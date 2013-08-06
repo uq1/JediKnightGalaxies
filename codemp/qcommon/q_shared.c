@@ -3,6 +3,29 @@
 // q_shared.c -- stateless support routines that are included in each code dll
 #include "q_shared.h"
 
+#include "../game/jkg_gangwars.h"
+gangWarsTeam_t bgGangWarsTeams[32];
+int bgnumGangWarTeams;
+
+/**************************************************
+* Q_stratt
+*
+* Attaches a string to the destination buffer, returns
+* qtrue on success or qfalse on failure (buffer full).
+**************************************************/
+
+qboolean Q_stratt( char *dest, unsigned int iSize, char *source )
+{
+	if ( strlen( dest ) + strlen( source ) > iSize )
+	{
+		return qfalse;
+	}
+
+	strcat( dest, source );
+	return qtrue;
+}
+
+
 /*
 -------------------------
 GetIDForString 
@@ -24,6 +47,39 @@ int GetIDForString ( stringID_table_t *table, const char *string )
 	}
 
 	return -1;
+}
+
+#include <stdio.h>
+#include <ctype.h>
+
+qboolean StringContainsWord(const char *haystack, const char *needle)
+{
+	if ( !*needle )
+	{
+		return qfalse;
+	}
+	for ( ; *haystack; ++haystack )
+	{
+		if ( toupper(*haystack) == toupper(*needle) )
+		{
+			/*
+			* Matched starting char -- loop through remaining chars.
+			*/
+			const char *h, *n;
+			for ( h = haystack, n = needle; *h && *n; ++h, ++n )
+			{
+				if ( toupper(*h) != toupper(*n) )
+				{
+					break;
+				}
+			}
+			if ( !*n ) /* matched all of 'needle' to null termination */
+			{
+				return qtrue; /* return the start of the match */
+			}
+		}
+	}
+	return qfalse;
 }
 
 /*
@@ -1103,9 +1159,23 @@ char *Q_CleanStr( char *string ) {
 	s = string;
 	d = string;
 	while ((c = *s) != 0 ) {
-		if ( Q_IsColorString( s ) ) {
+		// eezstreet fix: deal with non standard color codes as well..
+		if( s[0] == '^' && s[1] == 'x' &&
+			((s[2] >= '0' && s[2] <= '9') ||
+			(s[2] >= 'a' && s[2] <= 'f') ||
+			(s[2] >= 'A' && s[2] <= 'F')) &&
+			((s[3] >= '0' && s[3] <= '9') ||
+			(s[3] >= 'a' && s[3] <= 'f') ||
+			(s[3] >= 'A' && s[3] <= 'F')) &&
+			((s[4] >= '0' && s[4] <= '9') ||
+			(s[4] >= 'a' && s[4] <= 'f') ||
+			(s[4] >= 'A' && s[4] <= 'F')) )
+		{
+			s+=4;
+		}
+		else if ( Q_IsColorString( s ) ) {
 			s++;
-		}		
+		}
 		else if ( c >= 0x20 && c <= 0x7E ) {
 			*d++ = c;
 		}
@@ -1627,3 +1697,76 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 
 	strcat (s, newi);
 }
+
+//====================================================================
+
+// JKG Add - Generic Memory Objects
+// Creates a pool of memory which can be transformed and manipulated.
+
+void JKG_NewGenericMemoryObject(GenericMemoryObject *gmo, size_t size)
+{
+	gmo->numElements = 0;
+	
+	gmo->elements = (void**)malloc(size);
+	gmo->memAllocated = 1;
+	gmo->elementSize = size;
+}
+
+void JKG_DeleteGenericMemoryObject(GenericMemoryObject *gmo)
+{
+	gmo->numElements = -2;
+	free(gmo->elements);
+}
+
+void JKG_ClearGenericMemoryObject(GenericMemoryObject *gmo)
+{
+	gmo->numElements = 0;
+}
+
+void JKG_GenericMemoryObject_AddElement(GenericMemoryObject *gmo, void *element)
+{
+	if(gmo->memAllocated <= gmo->numElements+1)
+	{
+		gmo->memAllocated *= 2;
+		gmo->elements = (void **)realloc(gmo->elements, gmo->memAllocated*gmo->elementSize);
+	}
+	gmo->elements[gmo->numElements++] = element;
+}
+
+void JKG_GenericMemoryObject_DeleteElement(GenericMemoryObject *gmo, unsigned int number)
+{
+	gmo->elements[number] = NULL;
+	memcpy(gmo->elements+number, gmo->elements+number+1, gmo->elementSize*(gmo->numElements-number));
+	gmo->numElements--;
+}
+
+void Q_RGBCopy( vec4_t *output, vec4_t source )
+{
+	(*output)[0] = source[0];
+	(*output)[1] = source[1];
+	(*output)[2] = source[2];
+}
+
+qboolean Text_IsExtColorCode(const char *text) {
+	const char *r, *g, *b;
+	if ( strlen (text) < 4 )
+	{
+	    return qfalse;
+	}
+	
+	r = text+1;
+	g = text+2;
+	b = text+3;
+	// Get the color levels (if the numbers are invalid, it'll return -1, which we can use to validate)
+	if ((*r < '0' || *r > '9') && (*r < 'a' || *r > 'f') && (*r < 'A' || *r > 'F')) {
+		return qfalse;
+	}
+	if ((*g < '0' || *g > '9') && (*g < 'a' || *g > 'f') && (*g < 'A' || *g > 'F')) {
+		return qfalse;
+	}
+	if ((*b < '0' || *b > '9') && (*b < 'a' || *b > 'f') && (*b < 'A' || *b > 'F')) {
+		return qfalse;
+	}
+	return qtrue;
+}
+

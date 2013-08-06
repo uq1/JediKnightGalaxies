@@ -22,16 +22,18 @@ vec4_t		colorDkGrey	= {0.25, 0.25, 0.25, 1};
 vec4_t		colorLtBlue	= {0.367f, 0.261f, 0.722f, 1};
 vec4_t		colorDkBlue	= {0.199f, 0.0f,   0.398f, 1};
 
-vec4_t	g_color_table[8] =
+vec4_t	g_color_table[10] =
 	{
-	{0.0, 0.0, 0.0, 1.0},
-	{1.0, 0.0, 0.0, 1.0},
-	{0.0, 1.0, 0.0, 1.0},
-	{1.0, 1.0, 0.0, 1.0},
-	{0.0, 0.0, 1.0, 1.0},
-	{0.0, 1.0, 1.0, 1.0},
-	{1.0, 0.0, 1.0, 1.0},
-	{1.0, 1.0, 1.0, 1.0},
+	{0.086, 0.086, 0.086, 1.0},	// Black
+	{0.824, 0.180, 0.165, 1.0},	// Red
+	{0.267, 0.753, 0.404, 1.0},	// Green
+	{0.945, 0.784, 0.271, 1.0},	// Yellow
+	{0.275, 0.373, 0.792, 1.0},	// Blue
+	{0.310, 0.659, 0.757, 1.0},	// Cyan
+	{0.549, 0.133, 0.584, 1.0},	// Magenta
+	{1.0, 1.0, 1.0, 1.0},	// White
+	{1.0, 0.565, 0.133, 1.0},	// Orange
+	{0.5, 0.5, 0.5, 1.0},	// Gray
 	};
 
 
@@ -133,6 +135,92 @@ float	Q_random( int *seed ) {
 
 float	Q_crandom( int *seed ) {
 	return 2.0 * ( Q_random( seed ) - 0.5 );
+}
+
+//==============================================================
+//Wrapper functions for time -> eezstreet
+int		T_year( void ) {
+	time_t now = time(NULL);
+	struct tm *date = localtime ( &now );
+
+	return date->tm_year+1900;
+}
+
+int		T_month( void ) {
+	time_t now = time(NULL);
+	struct tm *date = localtime ( &now );
+
+	return date->tm_mon;
+}
+
+int		T_weekday( void ) {
+	time_t now = time(NULL);
+	struct tm *date = localtime ( &now );
+
+	return date->tm_wday;
+}
+
+int		T_monthday( void ) {
+	time_t now = time(NULL);
+	struct tm *date = localtime ( &now );
+
+	return date->tm_mday;
+}
+
+int		T_yearday( void ) {
+	time_t now = time(NULL);
+	struct tm *date = localtime ( &now );
+
+	return date->tm_yday;
+}
+
+int		T_hour( qboolean twentyfourhour ) {
+	time_t now = time(NULL);
+	struct tm *date = localtime ( &now );
+
+	if(twentyfourhour)
+	{
+		return date->tm_hour;
+	}
+	else
+	{
+		if(date->tm_hour < 13)
+		{
+			return date->tm_hour;
+		}
+		else
+		{
+			return date->tm_hour-12;
+		}
+	}
+}
+
+int		T_minute( void ) {
+	time_t now = time(NULL);
+	struct tm *date = localtime ( &now );
+
+	return date->tm_min;
+}
+
+int		T_second( void ) {
+	time_t now = time(NULL);
+	struct tm *date = localtime ( &now );
+
+	return date->tm_sec;
+}
+
+int		T_meridiem( void ) {
+	time_t now = time(NULL);
+	struct tm *date = localtime ( &now );
+
+	if(date->tm_hour < 13)
+	{
+		return M_AM;
+	}
+	else
+	{
+		return M_PM;
+	}
 }
 
 //=======================================================
@@ -394,6 +482,43 @@ void AnglesToAxis( const vec3_t angles, vec3_t axis[3] ) {
 	// angle vectors returns "right" instead of "y axis"
 	AngleVectors( angles, axis[0], right, axis[2] );
 	VectorSubtract( vec3_origin, right, axis[1] );
+}
+
+/*
+=================
+AxisToAngles
+
+  Used to convert the MD3 tag axis to MDC tag angles, which are much smaller
+
+  This doesn't have to be fast, since it's only used for conversion in utils, try to avoid
+  using this during gameplay
+=================
+*/
+
+void AxisToAngles( vec3_t axis[3], vec3_t angles ) {
+	vec3_t right, roll_angles, tvec;
+
+	// first get the pitch and yaw from the forward vector
+	vectoangles( axis[0], angles );
+
+	// now get the roll from the right vector
+	VectorCopy( axis[1], right );
+	// get the angle difference between the tmpAxis[2] and axis[2] after they have been reverse-rotated
+	RotatePointAroundVector( tvec, axisDefault[2], right, -angles[YAW] );
+	RotatePointAroundVector( right, axisDefault[1], tvec, -angles[PITCH] );
+	// now find the angles, the PITCH is effectively our ROLL
+	vectoangles( right, roll_angles );
+	roll_angles[PITCH] = AngleNormalize180( roll_angles[PITCH] );
+	// if the yaw is more than 90 degrees difference, we should adjust the pitch
+	if ( DotProduct( right, axisDefault[1] ) < 0 ) {
+		if ( roll_angles[PITCH] < 0 ) {
+			roll_angles[PITCH] = -90 + ( -90 - roll_angles[PITCH] );
+		} else {
+			roll_angles[PITCH] =  90 + ( 90 - roll_angles[PITCH] );
+		}
+	}
+
+	angles[ROLL] = -roll_angles[PITCH];
 }
 
 void AxisClear( vec3_t axis[3] ) {
@@ -1328,4 +1453,14 @@ float G_PointDistFromLineSegment( const vec3_t start, const vec3_t end, const ve
 	
 	//perpendicular intersection is between the 2 endpoints, return dist to it from from
 	return Distance( intersection, from );
+}
+
+double coslerp(
+   double start,double end,
+   double phase)
+{
+   double phase2;
+
+   phase2 = (1-cos(phase*M_PI))/2;
+   return(start*(1-phase2)+end*phase2);
 }
