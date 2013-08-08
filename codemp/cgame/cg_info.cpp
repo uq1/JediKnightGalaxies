@@ -86,7 +86,7 @@ void CG_LoadingClient( int clientNum ) {
 	}
 */
 	Q_strncpyz( personality, Info_ValueForKey( info, "n" ), sizeof(personality) );
-//	Q_CleanStr( personality );
+	Q_CleanStr( personality );
 
 	/*
 	if( cgs.gametype == GT_SINGLE_PLAYER ) {
@@ -111,11 +111,11 @@ void CG_DrawInformation( void ) {
 	const char	*s;
 	const char	*info;
 	const char	*sysInfo;
-	int			y;
-	int			value, valueNOFP;
+	//int			y;
+	//int			value, valueNOFP;
 	qhandle_t	levelshot;
-	char		buf[1024];
-	int			iPropHeight = 18;	// I know, this is total crap, but as a post release asian-hack....  -Ste
+	//char		buf[1024];
+//	int			iPropHeight = 18;	// I know, this is total crap, but as a post release asian-hack....  -Ste
 	
 	info = CG_ConfigString( CS_SERVERINFO );
 	sysInfo = CG_ConfigString( CS_SYSTEMINFO );
@@ -131,24 +131,29 @@ void CG_DrawInformation( void ) {
 	CG_LoadBar();
 
 	// draw the icons of things as they are loaded
-//	CG_DrawLoadingIcons();
+	//CG_DrawLoadingIcons();
 
 	// the first 150 rows are reserved for the client connection
 	// screen to write into
 	if ( cg.infoScreenText[0] ) {
 		const char *psLoading = CG_GetStringEdString("MENUS", "LOADING_MAPNAME");
-		UI_DrawProportionalString( 320, 128-32, va(/*"Loading... %s"*/ psLoading, cg.infoScreenText),
-			UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite );		
+		UI_DrawProportionalString( 320, 128-32, ( const char * ) va(( char * ) /*"Loading... %s"*/ psLoading, cg.infoScreenText),
+			UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite, FONT_MEDIUM );		
 	} else {
 		const char *psAwaitingSnapshot = CG_GetStringEdString("MENUS", "AWAITING_SNAPSHOT");
-		UI_DrawProportionalString( 320, 128-32, /*"Awaiting snapshot..."*/psAwaitingSnapshot,
-			UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite );			
+		UI_DrawProportionalString( 320, 128-32, ( const char * )  /*"Awaiting snapshot..."*/psAwaitingSnapshot,
+			UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite, FONT_MEDIUM );			
 	}
 
 	// draw info string information
 
-	y = 180-32;
+	//y = 180-32;
 
+	////////////////////////////////////////////
+	// TODO: Add a proper replacement for this
+	////////////////////////////////////////////
+
+/* This bit stops rendering of server info such as sv_pure sv_hostname..
 	// don't print server lines if playing a local game
 	trap_Cvar_VariableStringBuffer( "sv_running", buf, sizeof( buf ) );
 	if ( !atoi( buf ) ) {
@@ -177,14 +182,14 @@ void CG_DrawInformation( void ) {
 		}
 
 		{	// display global MOTD at bottom (mirrors ui_main UI_DrawConnectScreen
-			char motdString[1024];
+			/*char motdString[1024];
 			trap_Cvar_VariableStringBuffer( "cl_motdString", motdString, sizeof( motdString ) );
 
 			if (motdString[0])
 			{
 				UI_DrawProportionalString( 320, 425, motdString,
 					UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite );
-			}
+			}*lol/
 		}
 
 		// some extra space after hostname and motd
@@ -208,7 +213,63 @@ void CG_DrawInformation( void ) {
 	}
 
 	// game type
-	s = BG_GetGametypeString( cgs.gametype );
+	switch ( cgs.gametype ) {
+	case GT_FFA:
+			s = CG_GetStringEdString("MENUS", "FREE_FOR_ALL");//"Free For All";
+//		s = "Free For All";
+		break;
+	case GT_WARZONE:
+			s = CG_GetStringEdString("MENUS", "WARZONE");//"Free For All";
+//		s = "Free For All";
+		break;
+	case GT_HOLOCRON:
+			s = CG_GetStringEdString("MENUS", "HOLOCRON_FFA");//"Holocron FFA";
+//		s = "Holocron FFA";
+		break;
+	case GT_JEDIMASTER:
+			s = CG_GetStringEdString("MENUS", "SAGA");//"Jedi Master";??
+
+//		s = "Jedi Master";
+		break;
+	case GT_SINGLE_PLAYER:
+			s = CG_GetStringEdString("MENUS", "SAGA");//"Team FFA";
+
+		//s = "Single Player";
+		break;
+	case GT_DUEL:
+			s = CG_GetStringEdString("MENUS", "DUEL");//"Team FFA";
+		//s = "Duel";
+		break;
+	case GT_POWERDUEL:
+			s = CG_GetStringEdString("MENUS", "POWERDUEL");//"Team FFA";
+		//s = "Power Duel";
+		break;
+	case GT_TEAM:
+			s = CG_GetStringEdString("MENUS", "TEAM_FFA");//"Team FFA";
+
+		//s = "Team FFA";
+		break;
+	case GT_SIEGE:
+			s = CG_GetStringEdString("MENUS", "SIEGE");//"Siege";
+
+		//s = "Siege";
+		break;
+	case GT_CTF:
+			s = CG_GetStringEdString("MENUS", "CAPTURE_THE_FLAG");//"Capture the Flag";
+
+		//s = "Capture The Flag";
+		break;
+	case GT_CTY:
+			s = CG_GetStringEdString("MENUS", "CAPTURE_THE_YSALIMARI");//"Capture the Ysalamiri";
+
+		//s = "Capture The Ysalamiri";
+		break;
+	default:
+			s = CG_GetStringEdString("MENUS", "SAGA");//"Team FFA";
+
+		//s = "Unknown Gametype";
+		break;
+	}
 	UI_DrawProportionalString( 320, y, s,
 		UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite );
 	y += iPropHeight;
@@ -243,6 +304,15 @@ void CG_DrawInformation( void ) {
 	}
 
 	if (cgs.gametype >= GT_CTF) {
+		value = atoi( Info_ValueForKey( info, "capturelimit" ) );
+		if ( value ) {
+			UI_DrawProportionalString( 320, y, va( "%s %i", CG_GetStringEdString("MP_INGAME", "CAPTURELIMIT"), value ),
+				UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite );
+			y += iPropHeight;
+		}
+	}
+
+	if (cgs.gametype == GT_WARZONE) {
 		value = atoi( Info_ValueForKey( info, "capturelimit" ) );
 		if ( value ) {
 			UI_DrawProportionalString( 320, y, va( "%s %i", CG_GetStringEdString("MP_INGAME", "CAPTURELIMIT"), value ),
@@ -374,9 +444,15 @@ void CG_DrawInformation( void ) {
 			UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite );
 		y += iPropHeight;
 		break;
+	case GT_WARZONE:					
+		UI_DrawProportionalString( 320, y, va( "%s", (char *)CG_GetStringEdString("MP_INGAME", "RULES_WARZONE_1")),
+			UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite );
+		y += iPropHeight;
+		break;
 	default:
 		break;
 	}
+	*/
 }
 
 /*

@@ -184,6 +184,11 @@ CG_Respawn
 A respawn happened this snapshot
 ================
 */
+
+float CG_GetLowHealthPhase(int reset, float multiplier);
+
+void ChatBox_CloseChat();
+
 void CG_Respawn( void ) {
 	// no error decay on player movement
 	cg.thisFrameTeleport = qtrue;
@@ -192,7 +197,12 @@ void CG_Respawn( void ) {
 	cg.weaponSelectTime = cg.time;
 
 	// select the weapon the server says we are using
-	cg.weaponSelect = cg.snap->ps.weapon;
+	cg.weaponSelect = cg.snap->ps.weaponId;
+	
+	// Reset the low health blur
+	CG_GetLowHealthPhase(1, 1.0f);
+	ChatBox_CloseChat();
+	trap_Cvar_Set( "cflag", "" );
 }
 
 extern char *eventnames[];
@@ -484,6 +494,7 @@ CG_TransitionPlayerState
 
 ===============
 */
+void ChatBox_InterruptChat();
 void CG_TransitionPlayerState( playerState_t *ps, playerState_t *ops ) {
 	// check for changing follow mode
 	if ( ps->clientNum != ops->clientNum ) {
@@ -495,6 +506,17 @@ void CG_TransitionPlayerState( playerState_t *ps, playerState_t *ops ) {
 	// damage events (player is getting wounded)
 	if ( ps->damageEvent != ops->damageEvent && ps->damageCount ) {
 		CG_DamageFeedback( ps->damageYaw, ps->damagePitch, ps->damageCount );
+	}
+
+	// JKG, check for death (for fadeout and chat disruption)
+	if ( ps->stats[STAT_HEALTH] < 1 && cg.deathTime == 0 ) {
+		cg.deathTime = cg.time;
+		ChatBox_InterruptChat();
+	}
+	if ( ps->pm_type == PM_SPECTATOR && cg.deathTime && ps->stats[STAT_HEALTH] == 1) {
+		// We're usin the deathcam, dont do anythin
+	} else if ( ps->stats[STAT_HEALTH] > 0 && (cg.deathTime != 0) ) {
+		cg.deathTime = 0;
 	}
 
 	// respawning
@@ -524,4 +546,3 @@ void CG_TransitionPlayerState( playerState_t *ps, playerState_t *ops ) {
 		cg.duckTime = cg.time;
 	}
 }
-

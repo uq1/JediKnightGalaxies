@@ -718,6 +718,97 @@ void CG_AddScorePlum( localEntity_t *le ) {
 
 /*
 ===================
+CG_AddDamagePlum
+===================
+*/
+
+void CG_AddDamagePlum( localEntity_t *le ) {
+	refEntity_t	*re;
+	vec3_t		origin, delta, dir, vec, up = {0, 0, 1};
+	float		c, len;
+	int			i, dmg, digits[10], numdigits, negative;
+
+	re = &le->refEntity;
+
+	c = ( le->endTime - cg.time ) * le->lifeRate;
+
+	dmg = le->radius;
+
+	// If we got no damage to report, dont show the plum
+	if (!dmg) {
+		return;
+	}
+
+	// If the damage is positive, it means we actually healed instead of sustaining damage
+	if (dmg > 0) {
+		// Show it as green if we healed
+		re->shaderRGBA[0] = 0x11;
+		re->shaderRGBA[1] = 0xff;
+		re->shaderRGBA[2] = 0x11;
+	} else {
+		// Show it as red if we sustained damage
+		re->shaderRGBA[0] = 0xff;
+		re->shaderRGBA[1] = 0x11;
+		re->shaderRGBA[2] = 0x11;
+	}
+	
+	if (c < 0.25)
+		re->shaderRGBA[3] = 0xff * 4 * c;
+	else
+		re->shaderRGBA[3] = 0xff;
+
+	//re->radius = 4;
+
+	VectorCopy(le->pos.trBase, origin);
+	origin[2] += 110 - c * 100;
+
+	VectorSubtract(cg.refdef.vieworg, origin, dir);
+	CrossProduct(dir, up, vec);
+	VectorNormalize(vec);
+
+	VectorMA(origin, -10 + 20 * sin(c * 2 * M_PI), vec, origin);
+
+	// if the view would be "inside" the sprite, kill the sprite
+	// so it doesn't add too much overdraw
+	VectorSubtract( origin, cg.refdef.vieworg, delta );
+	len = VectorLength( delta );
+	if (len < 250) {
+		re->radius = 2;
+	} else if (len > 750) {
+		re->radius = 4;
+	} else {
+		re->radius = 2 + ((float)(len-250)/250);
+	}
+	/*if ( len < 20 ) {
+		CG_FreeLocalEntity( le );
+		return;
+	}*/
+
+	negative = qfalse;
+	if (dmg < 0) {
+		//negative = qtrue;  (Dont show - either way, just change color)
+		dmg = -dmg;
+	}
+
+	for (numdigits = 0; !(numdigits && !dmg); numdigits++) {
+		digits[numdigits] = dmg % 10;
+		dmg /= 10;
+	}
+
+	if (negative) {
+		digits[numdigits] = 10;
+		numdigits++;
+	}
+
+	for (i = 0; i < numdigits; i++) {
+		VectorMA(origin, (float) (((float) numdigits / 2) - i) * (2*re->radius), vec, re->origin);
+		re->customShader = cgs.media.plumShaders[digits[numdigits-1-i]];
+		trap_R_AddRefEntityToScene( re );
+	}
+}
+
+/*
+===================
 CG_AddOLine
 
 For forcefields/other rectangular things
@@ -848,6 +939,10 @@ void CG_AddLocalEntities( void ) {
 
 		case LE_SCOREPLUM:
 			CG_AddScorePlum( le );
+			break;
+
+		case LE_DAMAGEPLUM:
+			CG_AddDamagePlum( le );
 			break;
 
 		case LE_OLINE:

@@ -1,7 +1,6 @@
 //rww - shared trap call system
 #include "cg_local.h"
 
-
 qboolean strap_G2API_GetBoltMatrix(void *ghoul2, const int modelIndex, const int boltIndex, mdxaBone_t *matrix,
 								const vec3_t angles, const vec3_t position, const int frameNum, qhandle_t *modelList, vec3_t scale)
 {
@@ -67,4 +66,24 @@ void strap_TrueMalloc(void **ptr, int size)
 void strap_TrueFree(void **ptr)
 {
 	trap_TrueFree(ptr);
+}
+
+int strap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode )
+{
+    return trap_FS_FOpenFile (qpath, f, mode);
+}
+
+void strap_FS_Read( void *buffer, int len, fileHandle_t f )
+{
+    trap_FS_Read (buffer, len, f);
+}
+
+void strap_FS_FCloseFile( fileHandle_t f )
+{
+    trap_FS_FCloseFile (f);
+}
+
+int strap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize )
+{
+    return trap_FS_GetFileList (path, extension, listbuf, bufsize);
 }

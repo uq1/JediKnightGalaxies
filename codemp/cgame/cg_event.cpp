@@ -4,19 +4,19 @@
 
 #include "cg_local.h"
 #include "fx_local.h"
-#include "ui/ui_shared.h"
-#include "ui/ui_public.h"
+#include "../ui/ui_shared.h"
+#include "../ui/ui_public.h"
 
 // for the voice chats
-#include "ui/menudef.h"
+#include "../../JKGalaxies/ui/menudef.h"
 
 #include "ghoul2/G2.h"
+
+#include "cg_weapons.h"
 //==========================================================================
 
 extern qboolean WP_SaberBladeUseSecondBladeStyle( saberInfo_t *saber, int bladeNum );
 extern qboolean CG_VehicleWeaponImpact( centity_t *cent );
-extern qboolean CG_InFighter( void );
-extern qboolean CG_InATST( void );
 extern int cg_saberFlashTime;
 extern vec3_t cg_saberFlashPos;
 extern char *showPowersName[];
@@ -25,6 +25,8 @@ extern int cg_siegeDeathTime;
 extern int cg_siegeDeathDelay;
 extern int cg_vehicleAmmoWarning;
 extern int cg_vehicleAmmoWarningTime;
+
+vmCvar_t	jkg_nokillmessages;
 
 //I know, not siege, but...
 typedef enum
@@ -244,11 +246,12 @@ static void CG_Obituary( entityState_t *ent ) {
 		}
 		message = (char *)CG_GetStringEdString("MP_INGAME", message);
 
-		CG_Printf( "%s %s\n", targetName, message);
+		//CG_Printf( "%s %s\n", targetName, message); Disables rendering of kill messages as it is not needed in a MMO?
 		return;
 	}
 
 clientkilled:
+
 
 	// check for kill messages from the current clientNum
 	if ( attacker == cg.snap->ps.clientNum ) {
@@ -421,15 +424,17 @@ clientkilled:
 
 		if (message) {
 			message = (char *)CG_GetStringEdString("MP_INGAME", message);
-
-			CG_Printf( "%s %s %s\n", 
-				targetName, message, attackerName);
+			if (jkg_nokillmessages.integer!=1) {
+				CG_Printf( "%s %s %s\n", 
+				targetName, message, attackerName); //Disables rendering of kill messages as it is not needed in a MMO?
+			}
 			return;
 		}
 	}
-
-	// we don't know what it was
-	CG_Printf( "%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC") );
+	if (jkg_nokillmessages.integer!=1) {
+		// we don't know what it was
+		CG_Printf( "%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC") );  //Disables rendering of kill messages as it is not needed in a MMO?
+	}
 }
 
 //==========================================================================
@@ -580,62 +585,6 @@ static void CG_ItemPickup( int itemNum ) {
 	cg.itemPickup = itemNum;
 	cg.itemPickupTime = cg.time;
 	cg.itemPickupBlendTime = cg.time;
-	// see if it should be the grabbed weapon
-	if ( cg.snap && bg_itemlist[itemNum].giType == IT_WEAPON ) {
-
-		// 0 == no switching
-		// 1 == automatically switch to best SAFE weapon
-		// 2 == automatically switch to best weapon, safe or otherwise
-		// 3 == if not saber, automatically switch to best weapon, safe or otherwise
-
-		if (0 == cg_autoSwitch.integer)
-		{
-			// don't switch
-		}
-		else if ( cg_autoSwitch.integer == 1)
-		{ //only autoselect if not explosive ("safe")
-			if (bg_itemlist[itemNum].giTag != WP_TRIP_MINE &&
-				bg_itemlist[itemNum].giTag != WP_DET_PACK &&
-				bg_itemlist[itemNum].giTag != WP_THERMAL &&
-				bg_itemlist[itemNum].giTag != WP_ROCKET_LAUNCHER &&
-				bg_itemlist[itemNum].giTag > cg.snap->ps.weapon &&
-				cg.snap->ps.weapon != WP_SABER)
-			{
-				if (!cg.snap->ps.emplacedIndex)
-				{
-					cg.weaponSelectTime = cg.time;
-				}
-				cg.weaponSelect = bg_itemlist[itemNum].giTag;
-			}
-		}
-		else if ( cg_autoSwitch.integer == 2)
-		{ //autoselect if better
-			if (bg_itemlist[itemNum].giTag > cg.snap->ps.weapon &&
-				cg.snap->ps.weapon != WP_SABER)
-			{
-				if (!cg.snap->ps.emplacedIndex)
-				{
-					cg.weaponSelectTime = cg.time;
-				}
-				cg.weaponSelect = bg_itemlist[itemNum].giTag;
-			}
-		}
-		/*
-		else if ( cg_autoswitch.integer == 3)
-		{ //autoselect if better and not using the saber as a weapon
-			if (bg_itemlist[itemNum].giTag > cg.snap->ps.weapon &&
-				cg.snap->ps.weapon != WP_SABER)
-			{
-				if (!cg.snap->ps.emplacedIndex)
-				{
-					cg.weaponSelectTime = cg.time;
-				}
-				cg.weaponSelect = bg_itemlist[itemNum].giTag;
-			}
-		}
-		*/
-		//No longer required - just not switching ever if using saber
-	}
 
 	//rww - print pickup messages
 	if (bg_itemlist[itemNum].classname && bg_itemlist[itemNum].classname[0] &&
@@ -1274,8 +1223,14 @@ An entity has an event value
 also called by CG_CheckPlayerstateEvents
 ==============
 */
+
+extern vmCvar_t jkg_autoreload;
+
 #define	DEBUGNAME(x) if(cg_debugEvents.integer){CG_Printf(x"\n");}
-extern void CG_ChatBox_AddString(char *chatStr); //cg_draw.c
+#define	DEBUGNAME2(x, y) if(cg_debugEvents.integer){CG_Printf(x"\n", y);}
+extern void CG_ChatBox_AddString(char *chatStr, int fadeLevel); //cg_draw.c
+extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
+extern void JKG_CG_SetACISlot(const unsigned short slot);
 void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	entityState_t	*es;
 	int				event;
@@ -1534,7 +1489,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 			else
 			{
+#ifndef __MUSIC_ENGINE__
 				trap_S_StartBackgroundTrack( "music/mp/duel.mp3", "music/mp/duel.mp3", qfalse );
+#endif //__MUSIC_ENGINE__
 			}
 		}
 		else
@@ -1571,10 +1528,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_TAUNT");
 		{
 			int soundIndex = 0;
-
-			if ( cg_noTaunt.integer )
-				break;
-
 			if ( cgs.gametype != GT_DUEL
 				&& cgs.gametype != GT_POWERDUEL
 				&& es->eventParm == TAUNT_TAUNT )
@@ -1983,7 +1936,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 			else
 			{
-				int weap = 0;
+				/*int weap = 0;
 
 				if (es->eventParm && es->eventParm < WP_NUM_WEAPONS)
 				{
@@ -1995,24 +1948,51 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 					weap = (es->eventParm-WP_NUM_WEAPONS);
 				}
 				CG_OutOfAmmoChange(weap);
+				*/
+				trap_S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.noAmmoSound );
+				// Autoreload disabled, for now
+				/*if ( jkg_autoreload.integer )
+				{
+					// If we wanna auto-reload, check if its possible and go for it
+					if ( GetWeaponAmmoClip( cg.snap->ps.weapon, cg.snap->ps.weaponVariation ) && cg.snap->ps.ammo[GetWeaponAmmoIndex( cg.snap->ps.weapon, cg.snap->ps.weaponVariation )] > 0 )
+					{
+						
+						//trap_SendClientCommand("reload");
+					}
+				}*/
 			}
 		}
 		break;
 	case EV_CHANGE_WEAPON:
 		DEBUGNAME("EV_CHANGE_WEAPON");
 		{
-			int weapon = es->eventParm;
+		    int param = es->eventParm;
+			int weapon;
+			int variation;
 			weaponInfo_t *weaponInfo;
-			
-			assert(weapon >= 0 && weapon < MAX_WEAPONS);
+			weaponData_t *weaponData;
+			qboolean result;
 
-			weaponInfo = &cg_weapons[weapon];
+			assert(param >= 0 && param < MAX_WEAPON_TABLE_SIZE);
+			
+			result = BG_GetWeaponByIndex (param, &weapon, &variation);
+			assert (result);
+
+			weaponData = GetWeaponData( weapon, variation );
+
+			assert( weaponData );
+			
+			#ifdef _DEBUG
+			//CG_Printf ("Client-side received change weapon event: weapon %d, variation %d\n", weapon, variation);
+			#endif
+
+			weaponInfo = CG_WeaponInfo (weapon, variation);
 
 			assert(weaponInfo);
 
-			if (weaponInfo->selectSound)
+			if(weaponData->visuals.selectSound && weaponData->visuals.selectSound[0])
 			{
-				trap_S_StartSound (NULL, es->number, CHAN_AUTO, weaponInfo->selectSound );
+				trap_S_StartSound( NULL, es->number, CHAN_AUTO, trap_S_RegisterSound(weaponData->visuals.selectSound) );
 			}
 			else if (weapon != WP_SABER)
 			{ //not sure what SP is doing for this but I don't want a select sound for saber (it has the saber-turn-on)
@@ -2020,19 +2000,49 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 		}
 		break;
+	case EV_RELOAD:
+		DEBUGNAME("EV_RELOAD");
+		{
+			int weapon = es->eventParm;
+			weaponInfo_t *weaponInfo;
+			
+			assert(weapon >= 0 && weapon < MAX_WEAPONS);
+
+			weaponInfo = CG_WeaponInfo (weapon, 0);
+
+			assert(weaponInfo);
+
+			if (weaponInfo->selectSound)
+			{
+				trap_S_StartSound (NULL, es->time, CHAN_AUTO, weaponInfo->selectSound );
+			}
+			else
+			{ //not sure what SP is doing for this but I don't want a select sound for saber (it has the saber-turn-on)
+				trap_S_StartSound (NULL, es->time, CHAN_AUTO, cgs.media.selectSound );
+			}
+			// Check if its us that's reloading, so we can show the reload bar :o
+			if (es->time == cg.snap->ps.clientNum) {
+				cg.reloadTimeStart = cg.time;
+				cg.reloadTimeDuration = GetWeaponData( weapon, es->weaponVariation )->weaponReloadTime;
+				
+				//cg.viewWeaponAnimation = &weaponInfo->viewModelAnims[E11_IDLE];
+			}
+		}
+		break;
 	case EV_FIRE_WEAPON:
 		DEBUGNAME("EV_FIRE_WEAPON");
+
+		if ( cg.jkg_grenadeCookTimer && cent->currentState.number == cg.clientNum )
+		{
+			cg.jkg_grenadeCookTimer = 0;
+		}
+
 		if (cent->currentState.number >= MAX_CLIENTS && cent->currentState.eType != ET_NPC)
 		{ //special case for turret firing
 			vec3_t gunpoint, gunangle;
 			mdxaBone_t matrix;
 
-			weaponInfo_t *weaponInfo = &cg_weapons[WP_TURRET];
-
-			if ( !weaponInfo->registered )
-			{
-				CG_RegisterWeapon(WP_TURRET);
-			}
+			//weaponInfo_t *weaponInfo = CG_WeaponInfo (WP_TURRET, 0);
 
 			if (cent->ghoul2)
 			{
@@ -2062,7 +2072,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 
 			gunpoint[0] = matrix.matrix[0][3];
-			gunpoint[1] = matrix.matrix[1][3];
+			gunpoint[1] = matrix.matrix[1][3] + 10.0f;
 			gunpoint[2] = matrix.matrix[2][3];
 
 			gunangle[0] = -matrix.matrix[0][0];
@@ -2079,12 +2089,17 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			{ //vehicles do nothing for clientside weapon fire events.. at least for now.
 				break;
 			}
-			CG_FireWeapon( cent, qfalse );
+			JKG_FireWeapon (cent, qfalse);
 		}
 		break;
 
 	case EV_ALT_FIRE:
 		DEBUGNAME("EV_ALT_FIRE");
+
+		if ( cg.jkg_grenadeCookTimer && cent->currentState.number == cg.clientNum )
+		{
+			cg.jkg_grenadeCookTimer = 0;
+		}
 
 		if (cent->currentState.weapon == WP_EMPLACED_GUN)
 		{ //don't do anything for emplaced stuff
@@ -2098,18 +2113,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			break;
 		}
 
-		CG_FireWeapon( cent, qtrue );
-
-		//if you just exploded your detpacks and you have no ammo left for them, autoswitch
-		if ( cg.snap->ps.clientNum == cent->currentState.number &&
-			cg.snap->ps.weapon == WP_DET_PACK )
-		{
-			if (cg.snap->ps.ammo[weaponData[WP_DET_PACK].ammoIndex] == 0) 
-			{
-				CG_OutOfAmmoChange(WP_DET_PACK);
-			}
-		}
-
+        cent->currentState.origin[1] += 10.0f;
+		JKG_FireWeapon (cent, qtrue);
+		cent->currentState.origin[1] -= 10.0f;
 		break;
 
 	case EV_SABER_ATTACK:
@@ -2445,6 +2451,36 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 		break;
 
+	//Jedi Knight Galaxies add
+#ifdef __MMO__
+	case EV_GOTO_ACI:
+		if (es->number == cg.clientNum)
+			JKG_CG_SetACISlot(es->eventParm);
+		break;
+	case EV_HITMARKER_ASSIST:
+		if (es->number == cg.clientNum)
+		{
+			// All this does is make a hitmarker display. Nothing too fancy.
+			trap_S_StartSound(NULL, cg.clientNum, CHAN_AUTO, cgs.media.hitmarkerSound);
+			cg.hitmarkerLastTime = cg.time + 1000;
+
+			if (es->eventParm > 0)
+				CG_Notifications_Add(va("\"Assist: +%i Credits\"", es->eventParm), qfalse);
+		}
+		break;
+	case EV_HITMARKER_KILL: // UQ1: Sound here too???
+		if (es->number == cg.clientNum)
+		{
+			// All this does is make a hitmarker display. Nothing too fancy.
+			trap_S_StartSound(NULL, cg.clientNum, CHAN_AUTO, cgs.media.hitmarkerSound);
+			cg.hitmarkerLastTime = cg.time + 1000;
+
+			if (es->eventParm > 0)
+				CG_Notifications_Add(va("\"Kill: +%i Credits\"", es->eventParm), qfalse);
+		}
+		break;
+#endif //__MMO__
+
 	case EV_BECOME_JEDIMASTER:
 		DEBUGNAME("EV_SABER_UNHOLSTER");
 		{
@@ -2480,10 +2516,14 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_DISRUPTOR_MAIN_SHOT:
 		DEBUGNAME("EV_DISRUPTOR_MAIN_SHOT");
-		if (cent->currentState.eventParm != cg.snap->ps.clientNum ||
-			cg.renderingThirdPerson)
+		if (cent->currentState.owner != cg.snap->ps.clientNum ||
+			//[TrueView]
+			cg.renderingThirdPerson || cg_trueguns.integer 
+			|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)
+			//cg.renderingThirdPerson)
+			//[/TrueView]
 		{ //h4q3ry
-			CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.eventParm, cent->currentState.origin2);
+			CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.owner, cent->currentState.origin2);
 		}
 		else
 		{
@@ -2492,10 +2532,22 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				VectorCopy(cg.lastFPFlashPoint, cent->currentState.origin2);
 			}
 		}
-		FX_DisruptorMainShot( cent->currentState.origin2, cent->lerpOrigin ); 
+		JKG_RenderTraceline (cent, cent->currentState.origin2, cent->lerpOrigin, cent->currentState.firingMode);
+		
+		ByteToDir (cent->currentState.eventParm, dir);
+		if ( cent->currentState.otherEntityNum < MAX_CLIENTS ||
+		    cg_entities[cent->currentState.otherEntityNum].currentState.eType == ET_NPC )
+		{
+			JKG_RenderProjectileHitPlayer (cent, cent->lerpOrigin, dir, cent->currentState.firingMode);
+		}
+		else if ( cent->currentState.otherEntityNum != ENTITYNUM_NONE )
+		{
+			JKG_RenderProjectileMiss (cent, cent->lerpOrigin, dir, cent->currentState.firingMode);
+		}
+		//FX_DisruptorMainShot( cent->currentState.origin2, cent->lerpOrigin ); 
 		break;
 
-	case EV_DISRUPTOR_SNIPER_SHOT:
+	/*case EV_DISRUPTOR_SNIPER_SHOT:
 		DEBUGNAME("EV_DISRUPTOR_SNIPER_SHOT");
 		if (cent->currentState.eventParm != cg.snap->ps.clientNum ||
 			cg.renderingThirdPerson)
@@ -2510,11 +2562,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 		}
 		FX_DisruptorAltShot( cent->currentState.origin2, cent->lerpOrigin, cent->currentState.shouldtarget );
-		break;
+		break;*/
 
 	case EV_DISRUPTOR_SNIPER_MISS:
 		DEBUGNAME("EV_DISRUPTOR_SNIPER_MISS");
 		ByteToDir( es->eventParm, dir );
+		CG_Printf ("Disruptor miss\n");
 		if (es->weapon)
 		{ //primary
 			FX_DisruptorHitWall( cent->lerpOrigin, dir );
@@ -2528,6 +2581,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_DISRUPTOR_HIT:
 		DEBUGNAME("EV_DISRUPTOR_HIT");
 		ByteToDir( es->eventParm, dir );
+		CG_Printf ("Disruptor hit\n");
 		if (es->weapon)
 		{ //client
 			FX_DisruptorHitPlayer( cent->lerpOrigin, dir, qtrue );
@@ -2542,14 +2596,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_DISRUPTOR_ZOOMSOUND");
 		if (es->number == cg.snap->ps.clientNum)
 		{
-			if (cg.snap->ps.zoomMode)
-			{
-				trap_S_StartLocalSound(trap_S_RegisterSound("sound/weapons/disruptor/zoomstart.wav"), CHAN_AUTO);
-			}
-			else
-			{
-				trap_S_StartLocalSound(trap_S_RegisterSound("sound/weapons/disruptor/zoomend.wav"), CHAN_AUTO);
-			}
+			JKG_ToggleScope (cent);
 		}
 		break;
 	case EV_PREDEFSOUND:
@@ -2636,64 +2683,24 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			CG_LocalTimingBar(es->time, es->time2);
 		}
 		break;
+
+// cleaned the below up. this was a huge mess before --eez
 	case EV_USE_ITEM0:
-		DEBUGNAME("EV_USE_ITEM0");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM1:
-		DEBUGNAME("EV_USE_ITEM1");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM2:
-		DEBUGNAME("EV_USE_ITEM2");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM3:
-		DEBUGNAME("EV_USE_ITEM3");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM4:
-		DEBUGNAME("EV_USE_ITEM4");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM5:
-		DEBUGNAME("EV_USE_ITEM5");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM6:
-		DEBUGNAME("EV_USE_ITEM6");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM7:
-		DEBUGNAME("EV_USE_ITEM7");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM8:
-		DEBUGNAME("EV_USE_ITEM8");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM9:
-		DEBUGNAME("EV_USE_ITEM9");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM10:
-		DEBUGNAME("EV_USE_ITEM10");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM11:
-		DEBUGNAME("EV_USE_ITEM11");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM12:
-		DEBUGNAME("EV_USE_ITEM12");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM13:
-		DEBUGNAME("EV_USE_ITEM13");
-		CG_UseItem( cent );
-		break;
 	case EV_USE_ITEM14:
-		DEBUGNAME("EV_USE_ITEM14");
+		DEBUGNAME2("EV_USE_ITEM%i", event-EV_USE_ITEM0);
 		CG_UseItem( cent );
 		break;
 
@@ -2801,12 +2808,17 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_GRENADE_BOUNCE:
 		DEBUGNAME("EV_GRENADE_BOUNCE");
-		//Do something here?
+		JKG_BounceGrenade (cent, es->firingMode);
 		break;
 
 	case EV_SCOREPLUM:
 		DEBUGNAME("EV_SCOREPLUM");
 		CG_ScorePlum( cent->currentState.otherEntityNum, cent->lerpOrigin, cent->currentState.time );
+		break;
+
+	case EV_DAMAGEPLUM:
+		DEBUGNAME("EV_DAMAGEPLUM");
+		CG_DamagePlum( cent->currentState.otherEntityNum, cent->lerpOrigin, cent->currentState.time );
 		break;
 
 	case EV_CTFMESSAGE:
@@ -2828,18 +2840,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 
 		cent->bodyFadeTime = cg.time + 60000;
-		break;
-
-	//
-	// siege gameplay events
-	//
-	case EV_SIEGE_ROUNDOVER:
-		DEBUGNAME("EV_SIEGE_ROUNDOVER");
-		CG_SiegeRoundOver(&cg_entities[cent->currentState.weapon], cent->currentState.eventParm);
-		break;
-	case EV_SIEGE_OBJECTIVECOMPLETE:
-		DEBUGNAME("EV_SIEGE_OBJECTIVECOMPLETE");
-		CG_SiegeObjectiveCompleted(&cg_entities[cent->currentState.weapon], cent->currentState.eventParm, cent->currentState.trickedentindex);
 		break;
 
 	case EV_DESTROY_GHOUL2_INSTANCE:
@@ -2896,27 +2896,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	//
 	// missile impacts
 	//
-	case EV_CONC_ALT_IMPACT:
-		DEBUGNAME("EV_CONC_ALT_IMPACT");
-		{
-			float dist;
-			float shotDist = VectorNormalize(es->angles);
-			vec3_t spot;
-
-			for (dist = 0.0f; dist < shotDist; dist += 64.0f)
-			{ //one effect would be.. a whole lot better
-				VectorMA( es->origin2, dist, es->angles, spot );
-                trap_FX_PlayEffectID(cgs.effects.mConcussionAltRing, spot, es->angles2, -1, -1);
-			}
-
-			ByteToDir( es->eventParm, dir );
-			CG_MissileHitWall(WP_CONCUSSION, es->owner, position, dir, IMPACTSOUND_DEFAULT, qtrue, 0);
-
-			FX_ConcAltShot(es->origin2, spot);
-
-			//steal the bezier effect from the disruptor
-			FX_DisruptorAltMiss(position, dir);
-		}
+	case EV_EXPLOSIVE_BLOW:
+		DEBUGNAME("EV_EXPLOSIVE_BLOW");
+		JKG_BlowExplosive (cent, qtrue);
 		break;
 
 	case EV_MISSILE_STICK:
@@ -2934,13 +2916,17 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		else if ( CG_VehicleWeaponImpact( cent ) )
 		{//a vehicle missile that uses an overridden impact effect...
 		}
-		else if (cent->currentState.eFlags & EF_ALT_FIRING)
+		/*else if (cent->currentState.eFlags & EF_ALT_FIRING)
 		{
 			CG_MissileHitPlayer( es->weapon, position, dir, es->otherEntityNum, qtrue);
 		}
 		else
 		{
 			CG_MissileHitPlayer( es->weapon, position, dir, es->otherEntityNum, qfalse);
+		}*/
+		else
+		{
+			JKG_RenderProjectileHitPlayer (cent, position, dir, es->firingMode);
 		}
 
 		if (cg_ghoul2Marks.integer &&
@@ -2960,13 +2946,17 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		else if ( CG_VehicleWeaponImpact( cent ) )
 		{//a vehicle missile that used an overridden impact effect...
 		}
-		else if (cent->currentState.eFlags & EF_ALT_FIRING)
+		/*else if (cent->currentState.eFlags & EF_ALT_FIRING)
 		{
 			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_DEFAULT, qtrue, es->generic1);
 		}
 		else
 		{
 			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_DEFAULT, qfalse, 0);
+		}*/
+		else
+		{
+			JKG_RenderProjectileMiss (cent, position, dir, es->firingMode);
 		}
 
 		if (cg_ghoul2Marks.integer &&
@@ -2986,13 +2976,17 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		else if ( CG_VehicleWeaponImpact( cent ) )
 		{//a vehicle missile that used an overridden impact effect...
 		}
-		else if (cent->currentState.eFlags & EF_ALT_FIRING)
+		/*else if (cent->currentState.eFlags & EF_ALT_FIRING)
 		{
 			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qtrue, es->generic1);
 		}
 		else
 		{
 			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qfalse, 0);
+		}*/
+		else
+		{
+		    JKG_RenderProjectileMiss (cent, position, dir, (qboolean)(es->eFlags & EF_ALT_FIRING));
 		}
 		break;
 
@@ -3168,10 +3162,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_VOICECMD_SOUND:
 		DEBUGNAME("EV_VOICECMD_SOUND");
-		if (es->groundEntityNum >= MAX_CLIENTS)
-		{ //don't ever use this unless it is being used on a real client
-			break;
-		}
+		if (es->groundEntityNum < MAX_CLIENTS && es->groundEntityNum >= 0)
 		{
 			sfxHandle_t sfx = cgs.gameSounds[ es->eventParm ];
 			clientInfo_t *ci = &cgs.clientinfo[es->groundEntityNum];
@@ -3199,10 +3190,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				if (ci->team == cg.predictedPlayerState.persistant[PERS_TEAM])
 				{ //add to the chat box
 					//hear it in the world spot.
-					char vchatstr[1024] = {0};
-					Q_strncpyz(vchatstr, va("<%s^7: %s>\n", ci->name, descr), sizeof( vchatstr ) );
-					CG_ChatBox_AddString(vchatstr);
-					CG_Printf("*%s", vchatstr);
+					char vchatstr[1024];
+					strcpy(vchatstr, va("<%s: %s>\n", ci->name, descr));
+					if (jkg_nokillmessages.integer!=1) {
+					CG_Printf(vchatstr); //Disables rendering of kill messages as it is not needed in a MMO?
+					}
+					CG_ChatBox_AddString(vchatstr, 100);
 				}
 
 				//and play in world for everyone
@@ -3440,24 +3433,34 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_WEAPON_CHARGE:
 		DEBUGNAME("EV_WEAPON_CHARGE");
-		assert(es->eventParm > WP_NONE && es->eventParm < WP_NUM_WEAPONS);
-		if (cg_weapons[es->eventParm].chargeSound)
+		//assert(es->eventParm > WP_NONE && es->eventParm < WP_NUM_WEAPONS);
+		
+		JKG_ChargeWeapon (cent, qfalse);
+		
+		/*weapon = CG_WeaponInfo (es->eventParm, 0);
+		
+		if (weapon->chargeSound)
 		{
-			trap_S_StartSound(NULL, es->number, CHAN_WEAPON, cg_weapons[es->eventParm].chargeSound);
+			trap_S_StartSound(NULL, es->number, CHAN_WEAPON, weapon->chargeSound);
 		}
 		else if (es->eventParm == WP_DISRUPTOR)
 		{
 			trap_S_StartSound(NULL, es->number, CHAN_WEAPON, cgs.media.disruptorZoomLoop);
-		}
+		}*/
 		break;
 
 	case EV_WEAPON_CHARGE_ALT:
 		DEBUGNAME("EV_WEAPON_CHARGE_ALT");
-		assert(es->eventParm > WP_NONE && es->eventParm < WP_NUM_WEAPONS);
-		if (cg_weapons[es->eventParm].altChargeSound)
+		//assert(es->eventParm > WP_NONE && es->eventParm < WP_NUM_WEAPONS);
+		
+		JKG_ChargeWeapon (cent, qtrue);
+		
+		/*weapon = CG_WeaponInfo (es->eventParm, 0);
+		
+		if (weapon->altChargeSound)
 		{
-			trap_S_StartSound(NULL, es->number, CHAN_WEAPON, cg_weapons[es->eventParm].altChargeSound);
-		}
+			trap_S_StartSound(NULL, es->number, CHAN_WEAPON, weapon->altChargeSound);
+		}*/
 		break;
 
 	case EV_SHIELD_HIT:
@@ -3474,6 +3477,31 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_TESTLINE:
 		DEBUGNAME("EV_TESTLINE");
 		CG_TestLine(es->origin, es->origin2, es->time2, es->weapon, 1);
+		break;
+
+	// JKG - Start displaying a grenade indicator
+	case EV_GRENADE_COOK:
+	{
+		if ( es->number == cg.clientNum && cg.snap )
+		{
+			cg.jkg_grenadeCookTimer = cg.time + GetWeaponData( cg.snap->ps.weapon, cg.snap->ps.weaponVariation )->weaponReloadTime;
+		}
+		
+		break;
+	}
+	
+	case EV_EXPLOSIVE_ARM:
+	    DEBUGNAME ("EV_EXPLOSIVE_ARM");
+	    JKG_ArmExplosive (cent, (qboolean)(es->eFlags & EF_ALT_FIRING));
+	    break;
+	    
+	case EV_MISSILE_DIE:
+		JKG_RenderProjectileDeath (cent, cent->currentState.origin, cent->currentState.angles, cent->currentState.firingMode);
+	    break;
+
+	case EV_ITEM_BREAK:
+		DEBUGNAME ("EV_ITEM_BREAK");
+		trap_S_StartSound(NULL, cg.snap->ps.clientNum, CHAN_AUTO, CGitemLookupTable[es->eventParm].itemType == ITEM_ARMOR ? cgs.media.armorBreakSound : cgs.media.weaponBreakSound);
 		break;
 
 	default:

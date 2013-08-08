@@ -3,6 +3,7 @@
 // cg_syscalls.c -- this file is only included when building a dll
 // cg_syscalls.asm is included instead when building a qvm
 #include "cg_local.h"
+#include "../client/FxScheduler.h"
 
 static intptr_t (QDECL *Q_syscall)( intptr_t arg, ... ) = (intptr_t (QDECL *)( intptr_t, ...))-1;
 
@@ -287,9 +288,7 @@ qhandle_t trap_R_RegisterFont( const char *fontName )
 
 int	trap_R_Font_StrLenPixels(const char *text, const int iFontIndex, const float scale)
 {
-	//Raz: HACK! RE_Font_TtrLenPixels only works correctly with 1.0f scale
-	float width = (float)Q_syscall( CG_R_FONT_STRLENPIXELS, text, iFontIndex, PASSFLOAT(1.0f));
-	return width * scale;
+	return Q_syscall( CG_R_FONT_STRLENPIXELS, text, iFontIndex, PASSFLOAT(scale));
 }
 
 int trap_R_Font_StrLenChars(const char *text)
@@ -331,6 +330,10 @@ void trap_R_ClearDecals ( void )
 	Q_syscall ( CG_R_CLEARDECALS );
 }
 
+#ifdef __EXPERIMENTAL_SHADOWS__
+extern void CG_RecordLightPosition( vec3_t org );
+#endif //__EXPERIMENTAL_SHADOWS__
+
 void	trap_R_AddRefEntityToScene( const refEntity_t *re ) {
 	Q_syscall( CG_R_ADDREFENTITYTOSCENE, re );
 }
@@ -354,10 +357,16 @@ int		trap_R_LightForPoint( vec3_t point, vec3_t ambientLight, vec3_t directedLig
 
 void	trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
 	Q_syscall( CG_R_ADDLIGHTTOSCENE, org, PASSFLOAT(intensity), PASSFLOAT(r), PASSFLOAT(g), PASSFLOAT(b) );
+#ifdef __EXPERIMENTAL_SHADOWS__
+	CG_RecordLightPosition( org );
+#endif //__EXPERIMENTAL_SHADOWS__
 }
 
 void	trap_R_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
 	Q_syscall( CG_R_ADDADDITIVELIGHTTOSCENE, org, PASSFLOAT(intensity), PASSFLOAT(r), PASSFLOAT(g), PASSFLOAT(b) );
+#ifdef __EXPERIMENTAL_SHADOWS__
+	CG_RecordLightPosition( org );
+#endif //__EXPERIMENTAL_SHADOWS__
 }
 
 void	trap_R_RenderScene( const refdef_t *fd ) {
@@ -1124,3 +1133,80 @@ void trap_WE_AddWeatherZone( const vec3_t mins, const vec3_t maxs )
 Ghoul2 Insert End
 */
 
+/*
+===========================
+
+JKG Syscalls - Temporary until new import table is done
+
+===========================
+*/
+
+#include "../ui/ui_shared.h"
+uiCrossoverExports_t *trap_CO_InitCrossover( cgCrossoverExports_t *uiImports )
+{
+	return (uiCrossoverExports_t *)Q_syscall(CG_CO_INITCROSSOVER, uiImports);
+}
+
+void trap_CO_Shutdown( void )
+{
+	Q_syscall(CG_CO_SHUTDOWN);
+}
+
+#include "../ui/ui_public.h"
+
+// make sure you use the appropriate follow-up, otherwise i will feed your dog to a carnivorous antelope --eez
+void trap_Syscall_UI( void )
+{
+	Q_syscall(CG_CO_SYSCALL_UI);
+}
+
+void trap_Syscall_CG( void )
+{
+	Q_syscall(UI_SYSCALL_CG);
+}
+
+void trap_JKG_OverrideShaderFrame( qhandle_t shader, int frame, int time )
+{
+	Q_syscall(CG_JKG_OVERRIDESHADERFRAME, shader, frame, time );
+}
+
+// WARNING: float *table is actually a vec4_t [8]!!
+void trap_JKG_GetColorTable( float **table )
+{
+	Q_syscall(CG_JKG_GETCOLORTABLE, table);
+}
+
+float **trap_JKG_GetViewAngles( void )
+{
+	return (float**)Q_syscall(CG_JKG_GETVIEWANGLES);
+}
+
+void trap_JKG_SetViewAngles( vec3_t viewangles )
+{
+	Q_syscall(CG_JKG_SETVIEWANGLES, viewangles);
+}
+
+char *trap_FX_GetSharedMemory( void )
+{
+	return (char *)Q_syscall(CG_FX_GETSHAREDMEM);
+}
+
+void trap_R_AddMiniRefEntityToScene( miniRefEntity_t *ent )
+{
+	Q_syscall(CG_FX_ADDMINIREFENTITY, ent);
+}
+
+SEffectTemplate *trap_FX_GetEffectCopy( fxHandle_t handle, fxHandle_t *newHandle )
+{
+	return (SEffectTemplate *)Q_syscall(CG_FX_GETEFFECTCOPY1, handle, newHandle);
+}
+
+SEffectTemplate *trap_FX_GetEffectCopy( const char *file, fxHandle_t *newHandle )
+{
+	return (SEffectTemplate *)Q_syscall(CG_FX_GETEFFECTCOPY2, file, newHandle);
+}
+
+CPrimitiveTemplate *trap_FX_GetPrimitiveCopy( SEffectTemplate *efxFile, const char *componentName )
+{
+	return (CPrimitiveTemplate *)Q_syscall(CG_FX_GETPRIMITIVECOPY, efxFile, componentName);
+}

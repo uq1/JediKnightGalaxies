@@ -211,6 +211,8 @@ CG_ClipMoveToEntities
 extern void BG_VehicleAdjustBBoxForOrientation( Vehicle_t *veh, vec3_t origin, vec3_t mins, vec3_t maxs,
 										int clientNum, int tracemask,
 										void (*localTrace)(trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentMask)); // bg_pmove.c
+
+void CBB_GetBoundingBox(int index, vec3_t *mins, vec3_t *maxs);
 static void CG_ClipMoveToEntities ( const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
 							int skipNumber, int mask, trace_t *tr, qboolean g2Check ) {
 	int			i, x, zd, zu;
@@ -235,9 +237,12 @@ static void CG_ClipMoveToEntities ( const vec3_t start, const vec3_t mins, const
 			continue;
 		}
 
-		if ( ent->number > MAX_CLIENTS && 
-			 (ent->genericenemyindex-MAX_GENTITIES==cg.predictedPlayerState.clientNum || ent->genericenemyindex-MAX_GENTITIES==cg.predictedVehicleState.clientNum) )
-//		if (ent->number > MAX_CLIENTS && cg.snap && ent->genericenemyindex && (ent->genericenemyindex-MAX_GENTITIES) == cg.snap->ps.clientNum)
+		if ( ent->number > MAX_CLIENTS 
+			&& ent->eType != ET_NPC // UQ1: Do NPCs too!!!
+			&& (ent->genericenemyindex-MAX_GENTITIES==cg.predictedPlayerState.clientNum || ent->genericenemyindex-MAX_GENTITIES==cg.predictedVehicleState.clientNum) )
+//		if ( ent->number > MAX_CLIENTS && 
+//			 (ent->genericenemyindex-MAX_GENTITIES==cg.predictedPlayerState.clientNum || ent->genericenemyindex-MAX_GENTITIES==cg.predictedVehicleState.clientNum) )
+////		if (ent->number > MAX_CLIENTS && cg.snap && ent->genericenemyindex && (ent->genericenemyindex-MAX_GENTITIES) == cg.snap->ps.clientNum)
 		{ //rww - method of keeping objects from colliding in client-prediction (in case of ownership)
 			continue;
 		}
@@ -248,15 +253,19 @@ static void CG_ClipMoveToEntities ( const vec3_t start, const vec3_t mins, const
 			VectorCopy( cent->lerpAngles, angles );
 			BG_EvaluateTrajectory( &cent->currentState.pos, cg.physicsTime, origin );
 		} else {
-			// encoded bbox
-			x = (ent->solid & 255);
-			zd = ((ent->solid>>8) & 255);
-			zu = ((ent->solid>>16) & 255) - 32;
+			if (ent->eFlags & EF_CUSTOMBB) {
+				CBB_GetBoundingBox(ent->trickedentindex4,&bmins, &bmaxs);
+			} else {
+				// encoded bbox
+				x = (ent->solid & 255);
+				zd = ((ent->solid>>8) & 255);
+				zu = ((ent->solid>>16) & 255) - 32;
 
-			bmins[0] = bmins[1] = -x;
-			bmaxs[0] = bmaxs[1] = x;
-			bmins[2] = -zd;
-			bmaxs[2] = zu;
+				bmins[0] = bmins[1] = -x;
+				bmaxs[0] = bmaxs[1] = x;
+				bmins[2] = -zd;
+				bmaxs[2] = zu;
+			}
 
 			if (ent->eType == ET_NPC && ent->NPC_class == CLASS_VEHICLE &&
 				cent->m_pVehicle)
@@ -348,6 +357,61 @@ static void CG_ClipMoveToEntities ( const vec3_t start, const vec3_t mins, const
 	}
 }
 #pragma warning(default : 4701) //local variable may be used without having been initialized
+
+//[USE_ITEMS]
+void CG_TraceItem ( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber )
+{
+    trace_t tr;
+    int i;
+    vec3_t localMins, localMaxs;
+    
+    VectorSet (localMins, -8, -8, -0);
+	VectorSet (localMaxs, 8, 8, 16);
+    
+    trap_CM_BoxTrace (&tr, start, end, mins, maxs, 0, CONTENTS_SOLID);
+    tr.entityNum = tr.fraction == 1.0f ? ENTITYNUM_NONE : ENTITYNUM_WORLD;
+    
+    for ( i = 0; i < cg_numTriggerEntities; i++ )
+    {
+        centity_t *cent = cg_triggerEntities[ i ];
+        entityState_t *ent = &cent->currentState;
+        gitem_t *item = &bg_itemlist[ent->modelindex];
+        clipHandle_t cmodel;
+        vec3_t itemMins, itemMaxs;
+        
+        if ( ent->number == skipNumber )
+        {
+            continue;
+        }
+	    
+        if ( ent->eType != ET_ITEM )
+        {
+            continue;
+        }
+        
+        if ( item->giType != IT_WEAPON )
+        {
+            continue;
+        }
+	    
+        /*if ( ent->solid != SOLID_BMODEL ) {
+	        continue;
+        }*/
+
+        VectorAdd (localMins, ent->origin, itemMins);
+        VectorAdd (localMaxs, ent->origin, itemMaxs);
+        cmodel = trap_CM_TempBoxModel (itemMins, itemMaxs);
+        trap_CM_BoxTrace (&tr, start, end, mins, maxs, cmodel, -1);
+
+        if ( tr.fraction < 1.0f )
+        {
+            tr.entityNum = ent->number;
+            break;
+        }
+    }
+    
+    *result = tr;
+}
 
 /*
 ================
@@ -647,14 +711,6 @@ static void CG_TouchItem( centity_t *cent ) {
 
 	// don't touch it again this prediction
 	cent->miscTime = cg.time;
-
-	// if its a weapon, give them some predicted ammo so the autoswitch will work
-	if ( item->giType == IT_WEAPON ) {
-		cg.predictedPlayerState.stats[ STAT_WEAPONS ] |= 1 << item->giTag;
-		if ( !cg.predictedPlayerState.ammo[ item->giTag ] ) {
-			cg.predictedPlayerState.ammo[ item->giTag ] = 1;
-		}
-	}
 }
 
 
@@ -689,7 +745,8 @@ static void CG_TouchTriggerPrediction( void ) {
 		ent = &cent->currentState;
 
 		if ( ent->eType == ET_ITEM && !spectator ) {
-			CG_TouchItem( cent );
+			// [USE_ITEMS]
+			//CG_TouchItem( cent );
 			continue;
 		}
 
@@ -908,6 +965,25 @@ extern	vmCvar_t		cg_showVehBounds;
 pmove_t cg_vehPmove;
 qboolean cg_vehPmoveSet = qfalse;
 
+void DeathcamClamp( playerState_t *ps ) {
+	// Check if we went out of range and if so, clamp it to the range
+	vec3_t delta;
+	vec3_t vector;
+	vec3_t fwd;
+	vec3_t up;
+	vec3_t right;
+	int dist;
+
+	VectorSubtract(ps->origin, cg.deathcamCenter, delta);
+	dist = VectorLength(delta);
+	if (dist > cg.deathcamRadius) {
+		// We went outta range, clamp it
+		vectoangles(delta, vector);
+		AngleVectors(vector, fwd, right, up);
+		VectorMA(cg.deathcamCenter, cg.deathcamRadius, fwd, ps->origin);
+	}
+}
+
 #pragma warning(disable : 4701) //local variable may be used without having been initialized
 void CG_PredictPlayerState( void ) {
 	int			cmdNum, current, i;
@@ -918,6 +994,7 @@ void CG_PredictPlayerState( void ) {
 	usercmd_t	latestCmd;
 	centity_t *pEnt;
 	clientInfo_t *ci;
+	centity_t *veh;
 
 	cg.hyperspace = qfalse;	// will be set if touching a trigger_teleport
 
@@ -1086,6 +1163,7 @@ void CG_PredictPlayerState( void ) {
 	}
 
 	// run cmds
+	VectorCopy(cg.predictedPlayerState.origin, cg.deathcamBackupPos);
 	moved = qfalse;
 	for ( cmdNum = current - CMD_BACKUP + 1 ; cmdNum <= current ; cmdNum++ ) {
 		// get the command
@@ -1221,49 +1299,82 @@ void CG_PredictPlayerState( void ) {
 			}
 		}
 
-		if ( cg_pmove.pmove_fixed ) {
-			cg_pmove.cmd.serverTime = ((cg_pmove.cmd.serverTime + pmove_msec.integer-1) / pmove_msec.integer) * pmove_msec.integer;
-		}
-
-		cg_pmove.animations = bgAllAnims[pEnt->localAnimIndex].anims;
-		cg_pmove.gametype = cgs.gametype;
-
-		cg_pmove.debugMelee = cgs.debugMelee;
-		cg_pmove.stepSlideFix = cgs.stepSlideFix;
-		cg_pmove.noSpecMove = cgs.noSpecMove;
-
-		cg_pmove.nonHumanoid = (pEnt->localAnimIndex > 0);
-
-		if (cg.snap && cg.snap->ps.saberLockTime > cg.time)
+		veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
+		if( veh->m_pVehicle )
 		{
-			centity_t *blockOpp = &cg_entities[cg.snap->ps.saberLockEnemy];
+			vmove_t cg_vmove;
 
-			if (blockOpp)
-			{
-				vec3_t lockDir, lockAng;
+			veh->m_pVehicle->m_vOrientation = &cg.predictedVehicleState.vehOrientation[0];
+			//keep this updated based on what the playerstate says
+			veh->m_pVehicle->m_iRemovedSurfaces = cg.predictedVehicleState.vehSurfaces;
 
-				VectorSubtract( blockOpp->lerpOrigin, cg.snap->ps.origin, lockDir );
-				vectoangles(lockDir, lockAng);
+			trap_GetUserCmd( cmdNum, &veh->m_pVehicle->m_ucmd );
 
-				VectorCopy(lockAng, cg_pmove.ps->viewangles);
+			if ( veh->m_pVehicle->m_ucmd.buttons & BUTTON_TALK )
+			{ //forced input if "chat bubble" is up
+				veh->m_pVehicle->m_ucmd.buttons = BUTTON_TALK;
+				veh->m_pVehicle->m_ucmd.forwardmove = 0;
+				veh->m_pVehicle->m_ucmd.rightmove = 0;
+				veh->m_pVehicle->m_ucmd.upmove = 0;
 			}
-		}
 
-		//THIS is pretty much bad, but...
-		cg_pmove.ps->fd.saberAnimLevelBase = cg_pmove.ps->fd.saberAnimLevel;
-		if ( cg_pmove.ps->saberHolstered == 1 )
+			cg_vmove.ps = &cg.predictedPlayerState;
+			cg_vmove.animations = bgAllAnims[veh->localAnimIndex].anims;
+
+			memcpy(&cg_vmove.cmd, &veh->m_pVehicle->m_ucmd, sizeof(usercmd_t));
+
+			Vmove(&cg_vmove);
+		}
+		else
 		{
-			if ( ci->saber[0].numBlades > 0 )
-			{
-				cg_pmove.ps->fd.saberAnimLevelBase = SS_STAFF;
+			if ( cg_pmove.pmove_fixed ) {
+				cg_pmove.cmd.serverTime = ((cg_pmove.cmd.serverTime + pmove_msec.integer-1) / pmove_msec.integer) * pmove_msec.integer;
 			}
-			else if ( ci->saber[1].model[0] )
+
+			cg_pmove.animations = bgAllAnims[pEnt->localAnimIndex].anims;
+			cg_pmove.gametype = cgs.gametype;
+
+			cg_pmove.debugMelee = cgs.debugMelee;
+			cg_pmove.stepSlideFix = cgs.stepSlideFix;
+			cg_pmove.noSpecMove = cgs.noSpecMove;
+			cg_pmove.gender = ci->gender;
+
+			cg_pmove.nonHumanoid = (pEnt->localAnimIndex >= NUM_RESERVED_ANIMSETS);
+
+			if (cg.snap && cg.snap->ps.saberLockTime > cg.time)
 			{
-				cg_pmove.ps->fd.saberAnimLevelBase = SS_DUAL;
-			}
-		}
+				centity_t *blockOpp = &cg_entities[cg.snap->ps.saberLockEnemy];
+
+				if (blockOpp)
+				{
+					vec3_t lockDir, lockAng;
 	
-		Pmove (&cg_pmove);
+					VectorSubtract( blockOpp->lerpOrigin, cg.snap->ps.origin, lockDir );
+					vectoangles(lockDir, lockAng);
+
+					VectorCopy(lockAng, cg_pmove.ps->viewangles);
+				}
+			}
+
+			//THIS is pretty much bad, but...
+			cg_pmove.ps->fd.saberAnimLevelBase = cg_pmove.ps->fd.saberAnimLevel;
+			/*if ( cg_pmove.ps->saberHolstered == 1 )
+			{
+				if ( ci->saber[0].numBlades > 0 )
+				{
+					cg_pmove.ps->fd.saberAnimLevelBase = SS_STAFF;
+				}
+				else if ( ci->saber[1].model[0] )
+				{
+					cg_pmove.ps->fd.saberAnimLevelBase = SS_DUAL;
+				}
+			}*/
+	
+			Pmove (&cg_pmove);
+			if (cg.deathcamTime) {
+				DeathcamClamp(&cg.predictedPlayerState);
+			}
+		}
 
 		if (CG_Piloting(cg.predictedPlayerState.m_iVehicleNum) &&
 			cg.predictedPlayerState.pm_type != PM_INTERMISSION)
@@ -1373,7 +1484,9 @@ void CG_PredictPlayerState( void ) {
 		moved = qtrue;
 
 		// add push trigger movement effects
-		CG_TouchTriggerPrediction();
+		if (!cg.deathcamTime) {
+			CG_TouchTriggerPrediction();
+		}
 
 		// check for predictable events that changed from previous predictions
 		//CG_CheckChangedPredictableEvents(&cg.predictedPlayerState);

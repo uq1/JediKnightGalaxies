@@ -2,8 +2,8 @@
 //
 // cg_scoreboard -- draw the scoreboard on top of the game screen
 #include "cg_local.h"
-#include "ui/ui_shared.h"
-#include "game/bg_saga.h"
+#include "../ui/ui_shared.h"
+#include "../game/bg_saga.h"
 
 #define	SCOREBOARD_X		(0)
 
@@ -54,7 +54,69 @@
 static qboolean localClient; // true if local client has been displayed
 
 
-							 /*
+/*
+================
+CG_DrawFlagModel
+
+Used for both the status bar and the scoreboard
+JKGFIXME: use an icon instead bro, this is so 1999 --eez
+================
+*/
+void CG_DrawFlagModel( float x, float y, float w, float h, int team, qboolean force2D ) {
+	qhandle_t		cm;
+	float			len;
+	vec3_t			origin, angles;
+	vec3_t			mins, maxs;
+	qhandle_t		handle;
+
+	if ( !force2D && cg_draw3dIcons.integer ) {
+
+		VectorClear( angles );
+
+		cm = cgs.media.redFlagModel;
+
+		// offset the origin y and z to center the flag
+		trap_R_ModelBounds( cm, mins, maxs );
+
+		origin[2] = -0.5f * ( mins[2] + maxs[2] );
+		origin[1] = 0.5f * ( mins[1] + maxs[1] );
+
+		// calculate distance so the flag nearly fills the box
+		// assume heads are taller than wide
+		len = 0.5f * ( maxs[2] - mins[2] );		
+		origin[0] = len / 0.268f;	// len / tan( fov/2 )
+
+		angles[YAW] = 60 * sin( cg.time / 2000.0f );;
+
+		if( team == TEAM_RED ) {
+			handle = cgs.media.redFlagModel;
+		} else if( team == TEAM_BLUE ) {
+			handle = cgs.media.blueFlagModel;
+		} else if( team == TEAM_FREE ) {
+			handle = 0;//cgs.media.neutralFlagModel;
+		} else {
+			return;
+		}
+		CG_Draw3DModel( x, y, w, h, handle, NULL, 0, 0, origin, angles );
+	} else if ( cg_drawIcons.integer ) {
+		gitem_t *item;
+
+		if( team == TEAM_RED ) {
+			item = BG_FindItemForPowerup( PW_REDFLAG );
+		} else if( team == TEAM_BLUE ) {
+			item = BG_FindItemForPowerup( PW_BLUEFLAG );
+		} else if( team == TEAM_FREE ) {
+			item = BG_FindItemForPowerup( PW_NEUTRALFLAG );
+		} else {
+			return;
+		}
+		if (item) {
+		  CG_DrawPic( x, y, w, h, cg_items[ ITEM_INDEX(item) ].icon );
+		}
+	}
+}
+
+/*
 =================
 CG_DrawScoreboard
 =================
@@ -63,9 +125,17 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 {
 	//vec3_t	headAngles;
 	clientInfo_t	*ci;
-	int				iconx = SB_BOTICON_X + (SB_RATING_WIDTH / 2);
-	float			scale = largeFormat ? 1.0f : 0.75f,
-					iconSize = largeFormat ? SB_NORMAL_HEIGHT : SB_INTER_HEIGHT;
+	int iconx, headx;
+	float		scale;
+
+	if ( largeFormat )
+	{
+		scale = 1.0f;
+	}
+	else
+	{
+		scale = 0.75f;
+	}
 
 	if ( score->client < 0 || score->client >= cgs.maxclients ) {
 		Com_Printf( "Bad score->client: %i\n", score->client );
@@ -74,38 +144,65 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	
 	ci = &cgs.clientinfo[score->client];
 
+	iconx = SB_BOTICON_X + (SB_RATING_WIDTH / 2);
+	headx = SB_HEAD_X + (SB_RATING_WIDTH / 2);
+
 	// draw the handicap or bot skill marker (unless player has flag)
-	if ( ci->powerups & (1<<PW_NEUTRALFLAG) )
+	if ( ci->powerups & ( 1 << PW_NEUTRALFLAG ) )
 	{
-		if ( largeFormat )
-			CG_DrawFlagModel( iconx, y - (32 - BIGCHAR_HEIGHT) / 2, iconSize, iconSize, TEAM_FREE, qfalse );
-		else
-			CG_DrawFlagModel( iconx, y, iconSize, iconSize, TEAM_FREE, qfalse );
-	}
-
-	else if ( ci->powerups & ( 1 << PW_REDFLAG ) )
-		CG_DrawFlagModel( iconx, y, iconSize, iconSize, TEAM_RED, qfalse );
-
-	else if ( ci->powerups & ( 1 << PW_BLUEFLAG ) )
-		CG_DrawFlagModel( iconx, y, iconSize, iconSize, TEAM_BLUE, qfalse );
-
-	else if ( cgs.gametype == GT_POWERDUEL && (ci->duelTeam == DUELTEAM_LONE || ci->duelTeam == DUELTEAM_DOUBLE) )
-	{
-		CG_DrawPic( iconx, y, iconSize, iconSize, trap_R_RegisterShaderNoMip(
-			(ci->duelTeam == DUELTEAM_LONE) ? "gfx/mp/pduel_icon_lone" : "gfx/mp/pduel_icon_double" ) );
-	}
-
-	else if (cgs.gametype == GT_SIEGE)
-	{ //try to draw the shader for this class on the scoreboard
-		if (ci->siegeIndex != -1)
+		if( largeFormat )
 		{
-			siegeClass_t *scl = &bgSiegeClasses[ci->siegeIndex];
-
-			if (scl->classShader)
-			{
-				CG_DrawPic (iconx, y, largeFormat?24:12, largeFormat?24:12, scl->classShader);
-			}
+			CG_DrawFlagModel( iconx, y - ( 32 - BIGCHAR_HEIGHT ) / 2, 32, 32, TEAM_FREE, qfalse );
 		}
+		else
+		{
+			CG_DrawFlagModel( iconx, y, 16, 16, TEAM_FREE, qfalse );
+		}
+	}
+	else if ( ci->powerups & ( 1 << PW_REDFLAG ) )
+	{
+		if( largeFormat )
+		{
+			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_RED, qfalse );
+		}
+		else
+		{
+			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_RED, qfalse );
+		}
+	}
+	else if ( ci->powerups & ( 1 << PW_BLUEFLAG ) )
+	{
+		if( largeFormat )
+		{
+			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_BLUE, qfalse );
+		}
+		else
+		{
+			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_BLUE, qfalse );
+		}
+	}
+	else if (cgs.gametype == GT_POWERDUEL &&
+		(ci->duelTeam == DUELTEAM_LONE || ci->duelTeam == DUELTEAM_DOUBLE))
+	{
+		if (ci->duelTeam == DUELTEAM_LONE)
+		{
+			CG_DrawPic ( iconx, y, 32, 32, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_lone" ) );
+		}
+		else
+		{
+			CG_DrawPic ( iconx, y, 32, 32, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_double" ) );
+		}
+	}
+	else
+	{
+		// draw the wins / losses
+		/*
+		if ( cgs.gametype == GT_DUEL || cgs.gametype == GT_POWERDUEL ) 
+		{
+			CG_DrawSmallStringColor( iconx, y + SMALLCHAR_HEIGHT/2, va("%i/%i", ci->wins, ci->losses ), color );
+		}
+		*/
+		//rww - in duel, we now show wins/losses in place of "frags". This is because duel now defaults to 1 kill per round.
 	}
 
 	// highlight your position
@@ -213,37 +310,6 @@ static int CG_TeamScoreboard( int y, team_t team, float fade, int maxClients, in
 	return count;
 }
 
-int	CG_GetClassCount(team_t team,int siegeClass )
-{
-	int i = 0;
-	int count = 0;
-	clientInfo_t	*ci;
-	siegeClass_t *scl;
-
-	for ( i = 0 ; i < cgs.maxclients ; i++ )
-	{
-		ci = &cgs.clientinfo[ i ];
-
-		if ((!ci->infoValid) || ( team != ci->team ))
-		{
-			continue;
-		}
-
-		scl = &bgSiegeClasses[ci->siegeIndex];
-
-		// Correct class?
-		if ( siegeClass != scl->classShader )
-		{
-			continue;
-		}
-
-		count++;
-	}
-
- 	return count;
-
-}
-
 int CG_GetTeamNonScoreCount(team_t team)
 {
 	int i = 0,count=0;
@@ -287,6 +353,36 @@ int CG_GetTeamCount(team_t team, int maxClients)
 	return count;
 
 }
+
+
+
+/*
+================
+CG_DrawTeamBackground
+
+================
+*/
+void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team )
+{
+	vec4_t		hcolor;
+
+	hcolor[3] = alpha;
+	if ( team == TEAM_RED ) {
+		hcolor[0] = bgGangWarsTeams[cgs.redTeam].teamColor[0];
+		hcolor[1] = bgGangWarsTeams[cgs.redTeam].teamColor[1];
+		hcolor[2] = bgGangWarsTeams[cgs.redTeam].teamColor[2];
+	} else if ( team == TEAM_BLUE ) {
+		hcolor[0] = bgGangWarsTeams[cgs.blueTeam].teamColor[0];
+		hcolor[1] = bgGangWarsTeams[cgs.blueTeam].teamColor[1];
+		hcolor[2] = bgGangWarsTeams[cgs.blueTeam].teamColor[2];
+	} else {
+		return;
+	}
+
+	CG_FillRect ( x, y, w, h, hcolor );
+	trap_R_SetColor( NULL );
+}
+
 /*
 =================
 CG_DrawScoreboard
@@ -303,6 +399,14 @@ qboolean CG_DrawOldScoreboard( void ) {
 	int maxClients, realMaxClients;
 	int lineHeight;
 	int topBorderSize, bottomBorderSize;
+	
+	// Moved this up so we can use tab to refresh models
+	if ( ++cg.deferredPlayerLoading > 10 ) {
+		CG_LoadDeferredPlayers();
+	}
+
+	// Re-enable it for now
+	//return qfalse; //Disables scoreboard rendering, returns false before anything is drawn.
 
 	// don't draw amuthing if the menu or console is up
 	if ( cl_paused.integer ) {
@@ -404,7 +508,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 			x = ( SCREEN_WIDTH ) / 2;
 			y = 60;
 			//CG_DrawBigString( x, y, s, fade );
-			UI_DrawProportionalString(x, y, s, UI_CENTER|UI_DROPSHADOW, colorTable[CT_WHITE]);
+			UI_DrawProportionalString(x, y, s, UI_CENTER|UI_DROPSHADOW, colorTable[CT_WHITE], FONT_MEDIUM);
 		}
 	}
 	else if (cgs.gametype != GT_SIEGE)
@@ -412,9 +516,11 @@ qboolean CG_DrawOldScoreboard( void ) {
 		if ( cg.teamScores[0] == cg.teamScores[1] ) {
 			s = va("%s %i", CG_GetStringEdString("MP_INGAME", "TIEDAT"), cg.teamScores[0] );
 		} else if ( cg.teamScores[0] >= cg.teamScores[1] ) {
-			s = va("%s, %i / %i", CG_GetStringEdString("MP_INGAME", "RED_LEADS"), cg.teamScores[0], cg.teamScores[1] );
+			//s = va("%s, %i / %i", CG_GetStringEdString("MP_INGAME", "RED_LEADS"), cg.teamScores[0], cg.teamScores[1] );
+			s = va("%s, %i / %i", CG_GetStringEdString2(bgGangWarsTeams[cgs.redTeam].leadstring), cg.teamScores[0], cg.teamScores[1] );
 		} else {
-			s = va("%s, %i / %i", CG_GetStringEdString("MP_INGAME", "BLUE_LEADS"), cg.teamScores[1], cg.teamScores[0] );
+			//s = va("%s, %i / %i", CG_GetStringEdString("MP_INGAME", "BLUE_LEADS"), cg.teamScores[1], cg.teamScores[0] );
+			s = va("%s, %i / %i", CG_GetStringEdString2(bgGangWarsTeams[cgs.blueTeam].leadstring), cg.teamScores[0], cg.teamScores[1] );
 		}
 
 		x = ( SCREEN_WIDTH ) / 2;

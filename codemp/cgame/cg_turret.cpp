@@ -1,4 +1,5 @@
 #include "cg_local.h"
+#include "cg_weapons.h"
 #include "qcommon/q_shared.h"
 #include "ghoul2/G2.h"
 
@@ -147,12 +148,7 @@ void TurretClientRun(centity_t *ent)
 		ent->turAngles[PITCH] = 90;
 		ent->turAngles[YAW] = 0;
 
-		weaponInfo = &cg_weapons[WP_TURRET];
-
-		if ( !weaponInfo->registered )
-		{
-			CG_RegisterWeapon(WP_TURRET);
-		}
+		weaponInfo = CG_WeaponInfo (WP_TURRET, 0);
 	}
 
 	if (ent->currentState.fireflag == 2)

@@ -4,11 +4,62 @@
 // executed by a key binding
 
 #include "cg_local.h"
-#include "ui/ui_shared.h"
-#include "game/bg_saga.h"
+#include "../ui/ui_shared.h"
+#include "bg_saga.h"
+
+// TEST
+#include "jkg_cg_auxlib.h"
+#include "json/cJSON.h"
+
 extern menuDef_t *menuScoreboard;
 
+void CG_CameraZoomIn( void )
+{
+	cg_thirdPersonRange.value -= 5;
+	if ( cg_thirdPersonRange.value < 30 ) cg_thirdPersonRange.value = 30;
+}
 
+void CG_CameraZoomOut( void )
+{
+	cg_thirdPersonRange.value += 5;
+	if ( cg_thirdPersonRange.value > 100 ) cg_thirdPersonRange.value = 100;
+}
+
+void CG_Start360Camera( void )
+{
+	if ( trap_Key_GetCatcher() == 0 && cg.i360CameraTime == 0 )
+	{
+		usercmd_t cmd;
+		trap_GetUserCmd( trap_GetCurrentCmdNumber(), &cmd );
+
+		cg.i360CameraForce		= -1;
+		cg.i360CameraTime		= cg.time + 250;
+		cg.i360CameraOffset		= 0;
+		cg.i360CameraOriginal	= 0;
+		cg.i360CameraUserCmd	= cmd.angles[YAW];
+	}
+}
+
+void CG_Stop360Camera( void )
+{
+	if ( cg.i360CameraTime )
+	{
+		/* This was a short click, so only change the third person camera! */
+		if ( cg.i360CameraTime > cg.time )
+		{
+			trap_SendConsoleCommand( "cg_thirdPerson !" );
+		}
+		/* It was a full rotate so reset the view angles to their original position */
+		else
+		{
+			vec3_t angle;
+			angle[YAW] = cg.i360CameraOriginal;
+			trap_SetClientForceAngle( cg.time + 10, angle );
+		}
+	}
+
+	cg.i360CameraTime = 0;
+}
 
 void CG_TargetCommand_f( void ) {
 	int		targetNum;
@@ -23,7 +74,9 @@ void CG_TargetCommand_f( void ) {
 	trap_SendConsoleCommand( va( "gc %i %i", targetNum, atoi( test ) ) );
 }
 
-
+void CG_OpenPartyManagement_f( void ) {
+	uiImports->PartyMngtNotify( 10 );
+}
 
 /*
 =================
@@ -57,9 +110,9 @@ Debugging command to print the current position
 =============
 */
 static void CG_Viewpos_f (void) {
-	CG_Printf ("%s (%i %i %i) : %i\n", cgs.mapname, (int)cg.refdef.vieworg[0],
+	CG_Printf ("%s (%i %i %i) : (%i %i %i)\n", cgs.mapname, (int)cg.refdef.vieworg[0],
 		(int)cg.refdef.vieworg[1], (int)cg.refdef.vieworg[2], 
-		(int)cg.refdef.viewangles[YAW]);
+		(int)cg.refdef.viewangles[0], (int)cg.refdef.viewangles[1], (int)cg.refdef.viewangles[2]);
 }
 
 
@@ -135,46 +188,6 @@ static void CG_spLose_f( void) {
 	CG_CenterPrint(CG_GetStringEdString("MP_INGAME", "YOU_LOSE"), SCREEN_HEIGHT * .30, 0);
 }
 
-void CG_ClientList_f( void )
-{
-	clientInfo_t *ci;
-	int i;
-	int count = 0;
-
-	for( i = 0; i < MAX_CLIENTS; i++ ) 
-	{
-		ci = &cgs.clientinfo[ i ];
-		if( !ci->infoValid ) 
-			continue;
-
-		switch( ci->team ) 
-		{
-		case TEAM_FREE:
-			Com_Printf( "%2d " S_COLOR_YELLOW "F   " S_COLOR_WHITE "%s" S_COLOR_WHITE "%s\n", i, ci->name, (ci->botSkill != -1) ? " (bot)" : "" );
-			break;
-
-		case TEAM_RED:
-			Com_Printf( "%2d " S_COLOR_RED "R   " S_COLOR_WHITE "%s" S_COLOR_WHITE "%s\n", i,
-				ci->name, (ci->botSkill != -1) ? " (bot)" : "" );
-			break;
-
-		case TEAM_BLUE:
-			Com_Printf( "%2d " S_COLOR_BLUE "B   " S_COLOR_WHITE "%s" S_COLOR_WHITE "%s\n", i,
-				ci->name, (ci->botSkill != -1) ? " (bot)" : "" );
-			break;
-
-		default:
-		case TEAM_SPECTATOR:
-			Com_Printf( "%2d " S_COLOR_YELLOW "S   " S_COLOR_WHITE "%s" S_COLOR_WHITE "%s\n", i, ci->name, (ci->botSkill != -1) ? " (bot)" : "" );
-			break;
-		}
-
-		count++;
-	}
-
-	Com_Printf( "Listed %2d clients\n", count );
-}
-
 
 static void CG_TellTarget_f( void ) {
 	int		clientNum;
@@ -231,71 +244,161 @@ static void CG_StartOrbit_f( void ) {
 	}
 }
 
-void CG_SiegeBriefingDisplay(int team, int dontshow);
-static void CG_SiegeBriefing_f(void)
-{
-	int team;
-
-	if (cgs.gametype != GT_SIEGE)
-	{ //Cannot be displayed unless in this gametype
-		return;
+static void CG_StartCinematic(void) {
+	if (cg.cinematicState < 1 || cg.cinematicState > 2) {
+		cg.cinematicState = 1;
+		cg.cinematicTime = cg.time;
 	}
-
-	team = cg.predictedPlayerState.persistant[PERS_TEAM];
-
-	if (team != SIEGETEAM_TEAM1 &&
-		team != SIEGETEAM_TEAM2)
-	{ //cannot be displayed if not on a valid team
-		return;
-	}
-
-	CG_SiegeBriefingDisplay(team, 0);
 }
 
-static void CG_SiegeCvarUpdate_f(void)
-{
-	int team;
-
-	if (cgs.gametype != GT_SIEGE)
-	{ //Cannot be displayed unless in this gametype
-		return;
+static void CG_StopCinematic(void) {
+	if (cg.cinematicState > 0 && cg.cinematicState < 3) {
+		cg.cinematicState = 3;
+		cg.cinematicTime = cg.time;
 	}
-
-	team = cg.predictedPlayerState.persistant[PERS_TEAM];
-
-	if (team != SIEGETEAM_TEAM1 &&
-		team != SIEGETEAM_TEAM2)
-	{ //cannot be displayed if not on a valid team
-		return;
-	}
-
-	CG_SiegeBriefingDisplay(team, 1);
 }
-static void CG_SiegeCompleteCvarUpdate_f(void)
-{
 
-	if (cgs.gametype != GT_SIEGE)
-	{ //Cannot be displayed unless in this gametype
-		return;
-	}
+void CG_LoadHudMenu();
 
-	// Set up cvars for both teams
-	CG_SiegeBriefingDisplay(SIEGETEAM_TEAM1, 1);
-	CG_SiegeBriefingDisplay(SIEGETEAM_TEAM2, 1);
+static void CG_ReloadHUD(void) {
+	String_Init();
+	CG_LoadHudMenu();
 }
-/*
-static void CG_Camera_f( void ) {
-	char name[1024];
-	trap_Argv( 1, name, sizeof(name));
-	if (trap_loadCamera(name)) {
-		cg.cameraMode = qtrue;
-		trap_startCamera(cg.time);
+
+static void CG_PrintWeaponMuzzleOffset_f ( void )
+{
+    centity_t *cent = &cg_entities[cg.snap->ps.clientNum];
+    void *g2Weapon = cent->ghoul2;
+    
+    if ( !trap_G2_HaveWeGhoul2Models (g2Weapon) )
+    {
+        CG_Printf ("Current weapon does not use a GHOUL2 model.\n");
+    }
+    else if ( !trap_G2API_HasGhoul2ModelOnIndex (&g2Weapon, 1) )
+    {
+        CG_Printf ("Current weapon has no model on index 1.\n");
+    }
+    else
+    {
+        static const vec3_t worldForward = { 0.0f, 1.0f, 0.0f };
+        mdxaBone_t muzzleBone;
+        vec3_t muzzleOffset;
+        
+        if ( !trap_G2API_GetBoltMatrix (g2Weapon, 1, 0, &muzzleBone, worldForward, vec3_origin, cg.time, cgs.gameModels, cent->modelScale) )
+        {
+            CG_Printf ("Unable to get muzzle bolt matrix for the current weapon.\n");
+            return;
+        }
+        
+        BG_GiveMeVectorFromMatrix (&muzzleBone, ORIGIN, muzzleOffset);
+        VectorSubtract (muzzleOffset, muzzleOffset, cent->lerpOrigin);
+        
+        CG_Printf ("Muzzle offset at (%f %f %f).\n", muzzleOffset[0], muzzleOffset[1], muzzleOffset[2]);
+    }
+}
+
+
+// TEST
+int testMasterFinalFunc (asyncTask_t *task) {
+	cJSON *data = (cJSON *)task->finalData;
+	
+	if (task->errorCode == 0) {
+		Com_Printf("Test successful! (bounce: %i - %i)\n", cJSON_ToInteger(cJSON_GetObjectItem(data, "bounce")), trap_Milliseconds());
 	} else {
-		CG_Printf ("Unable to load camera %s\n",name);
+		Com_Printf("Test failed!\n");
 	}
+	return 0;
 }
-*/
 
+static void JKG_OpenInventoryMenu_f ( void )
+{
+    uiImports->InventoryNotify (0);
+}
+
+void JKG_OpenShopMenu_f ( void )
+{
+	uiImports->ShopNotify( 0 );
+}
+
+static void JKG_UseACI_f ( void )
+{
+    char buf[3];
+    int slot;
+    
+    if ( trap_Argc() != 2 )
+    {
+        CG_Printf ("Usage: /useACI <slot number>\n");
+        return;
+    }
+    
+    trap_Argv (1, buf, sizeof (buf));
+    if ( buf[0] < '0' || buf[0] > '9' )
+    {
+        return;
+    }
+    
+    slot = atoi (buf);
+    
+    if ( slot < 0 || slot >= MAX_ACI_SLOTS )
+    {
+        return;
+    }
+    
+    if ( !cg.playerACI[slot] )
+    {
+        return;
+    }
+    
+    cg.weaponSelect = slot;
+}
+
+static void JKG_DumpWeaponList_f ( void )
+{
+    char filename[MAX_QPATH];
+    if ( trap_Argc() > 1 )
+    {
+        trap_Argv (1, filename, sizeof (filename));
+    }
+    else
+    {
+        Q_strncpyz (filename, "weaponlist.txt", sizeof (filename));
+    }
+    
+    if ( BG_DumpWeaponList (filename) )
+    {
+        CG_Printf ("Weapon list was written to %s.\n", filename);
+    }
+    else
+    {
+        CG_Printf ("Failed to write weapon list to %s.\n", filename);
+    }
+}
+
+static void JKG_PrintWeaponList_f ( void )
+{
+	BG_PrintWeaponList();
+}
+
+static void JKG_ToggleCrouch ( void )
+{
+	if((cg.time - cg.crouchToggleTime) <= 400)
+	{
+		// You can now no longer "teabag at maximum velocity" --eez
+		return;
+	}
+	cg.crouchToggled = !cg.crouchToggled;
+	cg.crouchToggleTime = cg.time;
+}
+
+#ifdef __AUTOWAYPOINT__
+extern void AIMod_AutoWaypoint ( void );
+extern void AIMod_AutoWaypoint_Clean ( void );
+extern void AIMod_MarkBadHeight ( void );
+extern void AIMod_AddRemovalPoint ( void );
+extern void AIMod_AWC_MarkBadHeight ( void );
+extern void CG_ShowSurface ( void );
+extern void CG_ShowSlope ( void );
+#endif //__AUTOWAYPOINT__
 
 typedef struct {
 	char	*cmd;
@@ -333,10 +436,35 @@ static consoleCommand_t	commands[] = {
 	{ "invprev", CG_PrevInventory_f },
 	{ "forcenext", CG_NextForcePower_f },
 	{ "forceprev", CG_PrevForcePower_f },
-	{ "briefing", CG_SiegeBriefing_f },
-	{ "siegeCvarUpdate", CG_SiegeCvarUpdate_f },
-	{ "siegeCompleteCvarUpdate", CG_SiegeCompleteCvarUpdate_f },
-	{ "clientlist", CG_ClientList_f },
+	// Jedi Knight Galaxies
+	{ "startcin", CG_StartCinematic },
+	{ "stopcin", CG_StopCinematic },
+	{ "reloadhud", CG_ReloadHUD },
+	{ "+camera", CG_Start360Camera },
+	{ "-camera", CG_Stop360Camera },
+	{ "cameraZoomIn", CG_CameraZoomIn },
+	{ "cameraZoomOut", CG_CameraZoomOut },
+	//{ "party", CG_OpenPartyManagement_f },
+	{ "printWeaponMuzzle", CG_PrintWeaponMuzzleOffset_f },
+	{ "useACI", JKG_UseACI_f },
+	{ "inventory", JKG_OpenInventoryMenu_f },
+	{ "shop", JKG_OpenShopMenu_f },
+	{ "dumpWeaponList", JKG_DumpWeaponList_f },
+	{ "printWeaponList", JKG_PrintWeaponList_f },
+
+#ifdef __AUTOWAYPOINT__
+	{ "awp", AIMod_AutoWaypoint },
+	{ "autowaypoint", AIMod_AutoWaypoint },
+	{ "awc", AIMod_AutoWaypoint_Clean },
+	{ "autowaypointclean", AIMod_AutoWaypoint_Clean },
+	{ "showsurface", CG_ShowSurface },
+	{ "showslope", CG_ShowSlope },
+	{ "aw_badheight", AIMod_MarkBadHeight },
+	{ "awc_addremovalspot", AIMod_AddRemovalPoint },
+	{ "awc_addbadheight", AIMod_AWC_MarkBadHeight },
+#endif //__AUTOWAYPOINT__
+
+	{ "togglecrouch", JKG_ToggleCrouch },
 };
 
 static size_t numCommands = ARRAY_LEN( commands );

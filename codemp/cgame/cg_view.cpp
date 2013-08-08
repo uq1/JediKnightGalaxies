@@ -3,12 +3,22 @@
 // cg_view.c -- setup all the parameters (position, angle, etc)
 // for a 3D rendering
 #include "cg_local.h"
-#include "game/bg_saga.h"
+#include "jkg_navmesh_visualiser.h"
+
+#include "bg_saga.h"
+
 #include "cg_lights.h"
 
 #define MASK_CAMERACLIP (MASK_SOLID|CONTENTS_PLAYERCLIP)
 #define CAMERA_SIZE	4
 
+#include "jkg_cg_auxlib.h"
+
+//[TrueView]
+#define		MAX_TRUEVIEW_INFO_SIZE					8192
+char		true_view_info[MAX_TRUEVIEW_INFO_SIZE];
+int			true_view_valid;
+//[/TrueView]
 
 /*
 =============================================================================
@@ -365,13 +375,13 @@ static void CG_ResetThirdPersonViewDamp(void)
 	trace_t trace;
 
 	// Cap the pitch within reasonable limits
-	if (cameraFocusAngles[PITCH] > 89.0)
+	if (cameraFocusAngles[PITCH] > 89.0f)
 	{
-		cameraFocusAngles[PITCH] = 89.0;
+		cameraFocusAngles[PITCH] = 89.0f;
 	}
-	else if (cameraFocusAngles[PITCH] < -89.0)
+	else if (cameraFocusAngles[PITCH] < -89.0f)
 	{
-		cameraFocusAngles[PITCH] = -89.0;
+		cameraFocusAngles[PITCH] = -89.0f;
 	}
 
 	AngleVectors(cameraFocusAngles, camerafwd, NULL, cameraup);
@@ -388,14 +398,14 @@ static void CG_ResetThirdPersonViewDamp(void)
 
 	// First thing we do is trace from the first person viewpoint out to the new target location.
 	CG_Trace(&trace, cameraFocusLoc, cameramins, cameramaxs, cameraCurTarget, cg.snap->ps.clientNum, MASK_CAMERACLIP);
-	if (trace.fraction <= 1.0)
+	if (trace.fraction <= 1.0f)
 	{
 		VectorCopy(trace.endpos, cameraCurTarget);
 	}
 
 	// Now we trace from the new target location to the new view location, to make sure there is nothing in the way.
 	CG_Trace(&trace, cameraCurTarget, cameramins, cameramaxs, cameraCurLoc, cg.snap->ps.clientNum, MASK_CAMERACLIP);
-	if (trace.fraction <= 1.0)
+	if (trace.fraction <= 1.0f)
 	{
 		VectorCopy(trace.endpos, cameraCurLoc);
 	}
@@ -421,26 +431,27 @@ static void CG_UpdateThirdPersonTargetDamp(void)
 	{//hyperspacing, no damp
 		VectorCopy(cameraIdealTarget, cameraCurTarget);
 	}
-	else if (cg_thirdPersonTargetDamp.value>=1.0||cg.thisFrameTeleport||cg.predictedPlayerState.m_iVehicleNum)
+	else if (cg_thirdPersonTargetDamp.value>=1.0f||cg.thisFrameTeleport||cg.predictedPlayerState.m_iVehicleNum)
 	{	// No damping.
 		VectorCopy(cameraIdealTarget, cameraCurTarget);
 	}
-	else if (cg_thirdPersonTargetDamp.value>=0.0)
+	else if (cg_thirdPersonTargetDamp.value>=0.0f)
 	{	
 		// Calculate the difference from the current position to the new one.
 		VectorSubtract(cameraIdealTarget, cameraCurTarget, targetdiff);
 
 		// Now we calculate how much of the difference we cover in the time allotted.
 		// The equation is (Damp)^(time)
-		dampfactor = 1.0-cg_thirdPersonTargetDamp.value;	// We must exponent the amount LEFT rather than the amount bled off
-		dtime = (float)(cg.time-cameraLastFrame) * (1.0/(float)CAMERA_DAMP_INTERVAL);	// Our dampfactor is geared towards a time interval equal to "1".
+		dampfactor = 1.0f-cg_thirdPersonTargetDamp.value;	// We must exponent the amount LEFT rather than the amount bled off
+		dtime = (float)(cg.time-cameraLastFrame) * (1.0f/(float)CAMERA_DAMP_INTERVAL);	// Our dampfactor is geared towards a time interval equal to "1".
 
 		// Note that since there are a finite number of "practical" delta millisecond values possible, 
 		// the ratio should be initialized into a chart ultimately.
-		if ( cg_smoothCamera.integer )
+		if (jkg_smoothcamera.integer) {
 			ratio = powf(dampfactor, dtime);
-		else
-			ratio = Q_powf( dampfactor, dtime );
+		} else {
+			ratio = Q_powf(dampfactor, dtime);
+		}
 		
 		// This value is how much distance is "left" from the ideal.
 		VectorMA(cameraIdealTarget, -ratio, targetdiff, cameraCurTarget);
@@ -451,7 +462,7 @@ static void CG_UpdateThirdPersonTargetDamp(void)
 
 	// First thing we do is trace from the first person viewpoint out to the new target location.
 	CG_Trace(&trace, cameraFocusLoc, cameramins, cameramaxs, cameraCurTarget, cg.snap->ps.clientNum, MASK_CAMERACLIP);
-	if (trace.fraction < 1.0)
+	if (trace.fraction < 1.0f)
 	{
 		VectorCopy(trace.endpos, cameraCurTarget);
 	}
@@ -475,13 +486,13 @@ static void CG_UpdateThirdPersonCameraDamp(void)
 	
 	
 	// First thing we do is calculate the appropriate damping factor for the camera.
-	dampfactor=0.0;
+	dampfactor=0.0f;
 	if ( cg.predictedVehicleState.hyperSpaceTime
 		&& (cg.time-cg.predictedVehicleState.hyperSpaceTime) < HYPERSPACE_TIME )
 	{//hyperspacing - don't damp camera
 		dampfactor = 1.0f;
 	}
-	else if (cg_thirdPersonCameraDamp.value != 0.0)
+	else if (cg_thirdPersonCameraDamp.value != 0.0f)
 	{
 		float pitch;
 		float dFactor;
@@ -499,38 +510,39 @@ static void CG_UpdateThirdPersonCameraDamp(void)
 		pitch = Q_fabs(cameraFocusAngles[PITCH]);
 
 		// The higher the pitch, the larger the factor, so as you look up, it damps a lot less.
-		pitch /= 115.0;	
-		dampfactor = (1.0-dFactor)*(pitch*pitch);
+		pitch /= 115.0f;	
+		dampfactor = (1.0f-dFactor)*(pitch*pitch);
 
 		dampfactor += dFactor;
 
 		// Now we also multiply in the stiff factor, so that faster yaw changes are stiffer.
 		if (cameraStiffFactor > 0.0f)
 		{	// The cameraStiffFactor is how much of the remaining damp below 1 should be shaved off, i.e. approach 1 as stiffening increases.
-			dampfactor += (1.0-dampfactor)*cameraStiffFactor;
+			dampfactor += (1.0f-dampfactor)*cameraStiffFactor;
 		}
 	}
 
-	if (dampfactor>=1.0||cg.thisFrameTeleport)
+	if (dampfactor>=1.0f||cg.thisFrameTeleport)
 	{	// No damping.
 		VectorCopy(cameraIdealLoc, cameraCurLoc);
 	}
-	else if (dampfactor>=0.0)
+	else if (dampfactor>=0.0f)
 	{	
 		// Calculate the difference from the current position to the new one.
 		VectorSubtract(cameraIdealLoc, cameraCurLoc, locdiff);
 
 		// Now we calculate how much of the difference we cover in the time allotted.
 		// The equation is (Damp)^(time)
-		dampfactor = 1.0-dampfactor;	// We must exponent the amount LEFT rather than the amount bled off
-		dtime = (float)(cg.time-cameraLastFrame) * (1.0/(float)CAMERA_DAMP_INTERVAL);	// Our dampfactor is geared towards a time interval equal to "1".
+		dampfactor = 1.0f-dampfactor;	// We must exponent the amount LEFT rather than the amount bled off
+		dtime = (float)(cg.time-cameraLastFrame) * (1.0f/(float)CAMERA_DAMP_INTERVAL);	// Our dampfactor is geared towards a time interval equal to "1".
 
 		// Note that since there are a finite number of "practical" delta millisecond values possible, 
 		// the ratio should be initialized into a chart ultimately.
-		if ( cg_smoothCamera.integer )
+		if (jkg_smoothcamera.integer) {
 			ratio = powf(dampfactor, dtime);
-		else
-			ratio = Q_powf( dampfactor, dtime );
+		} else {
+			ratio = Q_powf(dampfactor, dtime);
+		}
 		
 		// This value is how much distance is "left" from the ideal.
 		VectorMA(cameraIdealLoc, -ratio, locdiff, cameraCurLoc);
@@ -540,7 +552,7 @@ static void CG_UpdateThirdPersonCameraDamp(void)
 	// Now we trace from the new target location to the new view location, to make sure there is nothing in the way.
 	CG_Trace(&trace, cameraCurTarget, cameramins, cameramaxs, cameraCurLoc, cg.snap->ps.clientNum, MASK_CAMERACLIP);
 
-	if (trace.fraction < 1.0)
+	if (trace.fraction < 1.0f)
 	{
 		if (trace.entityNum < ENTITYNUM_WORLD &&
 			cg_entities[trace.entityNum].currentState.solid == SOLID_BMODEL &&
@@ -622,7 +634,7 @@ static void CG_OffsetThirdPersonView( void )
 		}
 	}
 
-	cameraStiffFactor = 0.0;
+	cameraStiffFactor = 0.0f;
 
 	// Set camera viewing direction.
 	VectorCopy( cg.refdef.viewangles, cameraFocusAngles );
@@ -648,6 +660,17 @@ static void CG_OffsetThirdPersonView( void )
 	{
 		cameraFocusAngles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
 	}
+	else if ( cg.i360CameraTime && cg.i360CameraTime < cg.time )
+	{
+		/* First activation, store this exact yaw for future reference! */
+		if ( cg.i360CameraOriginal == 0 )
+		{
+			cg.i360CameraOriginal = cg.refdef.viewangles[YAW];
+		}
+
+		/* Add the offset to the rendering procedure, we're done! */
+		cameraFocusAngles[YAW] += cg.i360CameraOffset;
+	}
 	else
 	{	// Add in the third Person Angle.
 		cameraFocusAngles[YAW] += cg_thirdPersonAngle.value;
@@ -663,11 +686,11 @@ static void CG_OffsetThirdPersonView( void )
 					{
 						if ( cg.snap->ps.viewangles[PITCH] > 0 )
 						{
-							pitchOffset = cg.predictedPlayerState.viewangles[PITCH]*-0.75;
+							pitchOffset = cg.predictedPlayerState.viewangles[PITCH]*-0.75f;
 						}
 						else if ( cg.snap->ps.viewangles[PITCH] < 0 )
 						{
-							pitchOffset = cg.predictedPlayerState.viewangles[PITCH]*-0.75;
+							pitchOffset = cg.predictedPlayerState.viewangles[PITCH]*-0.75f;
 						}
 						else
 						{
@@ -680,7 +703,7 @@ static void CG_OffsetThirdPersonView( void )
 					}
 				}
 			}
-			/*if ( 0 && cg.predictedPlayerState.m_iVehicleNum //in a vehicle
+			if ( 0 && cg.predictedPlayerState.m_iVehicleNum //in a vehicle
 				&& BG_UnrestrainedPitchRoll( &cg.predictedPlayerState, cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle ) )//can roll/pitch without restriction
 			{
 				float pitchPerc = ((90.0f-fabs(cameraFocusAngles[ROLL]))/90.0f);
@@ -694,7 +717,7 @@ static void CG_OffsetThirdPersonView( void )
 					cameraFocusAngles[YAW] += pitchOffset-(pitchOffset*pitchPerc);
 				}
 			}
-			else*/
+			else
 			{
 				cameraFocusAngles[PITCH] += pitchOffset;
 			}
@@ -718,13 +741,13 @@ static void CG_OffsetThirdPersonView( void )
 		}
 		else
 		{
-			if (cameraFocusAngles[PITCH] > 80.0)
+			if (cameraFocusAngles[PITCH] > 80.0f)
 			{
-				cameraFocusAngles[PITCH] = 80.0;
+				cameraFocusAngles[PITCH] = 80.0f;
 			}
-			else if (cameraFocusAngles[PITCH] < -80.0)
+			else if (cameraFocusAngles[PITCH] < -80.0f)
 			{
-				cameraFocusAngles[PITCH] = -80.0;
+				cameraFocusAngles[PITCH] = -80.0f;
 			}
 		}
 
@@ -736,16 +759,16 @@ static void CG_OffsetThirdPersonView( void )
 			deltayaw = fabs(deltayaw - 360.0f);
 		}
 		cameraStiffFactor = deltayaw / (float)(cg.time-cameraLastFrame);
-		if (cameraStiffFactor < 1.0)
+		if (cameraStiffFactor < 1.0f)
 		{
-			cameraStiffFactor = 0.0;
+			cameraStiffFactor = 0.0f;
 		}
-		else if (cameraStiffFactor > 2.5)
+		else if (cameraStiffFactor > 2.5f)
 		{
-			cameraStiffFactor = 0.75;
+			cameraStiffFactor = 0.75f;
 		}
 		else
-		{	// 1 to 2 scales from 0.0 to 0.5
+		{	// 1 to 2 scales from 0.0f to 0.5f
 			cameraStiffFactor = (cameraStiffFactor-1.0f)*0.5f;
 		}
 		cameraLastYaw = cameraFocusAngles[YAW];
@@ -765,7 +788,7 @@ static void CG_OffsetThirdPersonView( void )
 	VectorSubtract(cameraCurTarget, cameraCurLoc, diff);
 	{
 		float dist = VectorNormalize(diff);
-		//under normal circumstances, should never be 0.00000 and so on.
+		//under normal circumstances, should never be 0.00000f and so on.
 		if ( !dist || (diff[0] == 0 || diff[1] == 0) )
 		{//must be hitting something, need some value to calc angles, so use cam forward
 			VectorCopy( camerafwd, diff );
@@ -840,7 +863,7 @@ static void CG_OffsetThirdPersonView( void ) {
 
 	view[2] += 8;
 
-	cg.refdef.viewangles[PITCH] *= 0.5;
+	cg.refdef.viewangles[PITCH] *= 0.5f;
 
 	AngleVectors( cg.refdef.viewangles, forward, right, up );
 
@@ -855,9 +878,9 @@ static void CG_OffsetThirdPersonView( void ) {
 	if (!cg_cameraMode.integer) {
 		CG_Trace( &trace, cg.refdef.vieworg, mins, maxs, view, cg.predictedPlayerState.clientNum, MASK_CAMERACLIP);
 
-		if ( trace.fraction != 1.0 ) {
+		if ( trace.fraction != 1.0f ) {
 			VectorCopy( trace.endpos, view );
-			view[2] += (1.0 - trace.fraction) * 32;
+			view[2] += (1.0f - trace.fraction) * 32;
 			// try another trace to this position, because a tunnel may have the ceiling
 			// close enogh that this is poking out
 
@@ -898,6 +921,68 @@ CG_OffsetFirstPersonView
 
 ===============
 */
+
+// Copied from server-side
+static qboolean G_InGetUpAnim(playerState_t *ps)
+{
+	switch( (ps->legsAnim) )
+	{
+	case BOTH_GETUP1:
+	case BOTH_GETUP2:
+	case BOTH_GETUP3:
+	case BOTH_GETUP4:
+	case BOTH_GETUP5:
+	case BOTH_FORCE_GETUP_F1:
+	case BOTH_FORCE_GETUP_F2:
+	case BOTH_FORCE_GETUP_B1:
+	case BOTH_FORCE_GETUP_B2:
+	case BOTH_FORCE_GETUP_B3:
+	case BOTH_FORCE_GETUP_B4:
+	case BOTH_FORCE_GETUP_B5:
+	case BOTH_GETUP_BROLL_B:
+	case BOTH_GETUP_BROLL_F:
+	case BOTH_GETUP_BROLL_L:
+	case BOTH_GETUP_BROLL_R:
+	case BOTH_GETUP_FROLL_B:
+	case BOTH_GETUP_FROLL_F:
+	case BOTH_GETUP_FROLL_L:
+	case BOTH_GETUP_FROLL_R:
+		return qtrue;
+	}
+
+	switch( (ps->torsoAnim) )
+	{
+	case BOTH_GETUP1:
+	case BOTH_GETUP2:
+	case BOTH_GETUP3:
+	case BOTH_GETUP4:
+	case BOTH_GETUP5:
+	case BOTH_FORCE_GETUP_F1:
+	case BOTH_FORCE_GETUP_F2:
+	case BOTH_FORCE_GETUP_B1:
+	case BOTH_FORCE_GETUP_B2:
+	case BOTH_FORCE_GETUP_B3:
+	case BOTH_FORCE_GETUP_B4:
+	case BOTH_FORCE_GETUP_B5:
+	case BOTH_GETUP_BROLL_B:
+	case BOTH_GETUP_BROLL_F:
+	case BOTH_GETUP_BROLL_L:
+	case BOTH_GETUP_BROLL_R:
+	case BOTH_GETUP_FROLL_B:
+	case BOTH_GETUP_FROLL_F:
+	case BOTH_GETUP_FROLL_L:
+	case BOTH_GETUP_FROLL_R:
+		return qtrue;
+	}
+
+	return qfalse;
+}
+
+
+qboolean PM_InForceGetUp( playerState_t *ps );
+qboolean PM_InGetUp( playerState_t *ps );
+qboolean PM_InKnockDown( playerState_t *ps );
+extern qboolean BG_InRoll( playerState_t *ps, int anim );
 static void CG_OffsetFirstPersonView( void ) {
 	float			*origin;
 	float			*angles;
@@ -909,6 +994,7 @@ static void CG_OffsetFirstPersonView( void ) {
 	vec3_t			predictedVelocity;
 	int				timeDelta;
 	int				kickTime;
+	qboolean rolling = BG_InRoll(&cg.predictedPlayerState, cg.predictedPlayerState.torsoAnim);
 	
 	if ( cg.snap->ps.pm_type == PM_INTERMISSION ) {
 		return;
@@ -924,6 +1010,27 @@ static void CG_OffsetFirstPersonView( void ) {
 		angles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
 		origin[2] += cg.predictedPlayerState.viewheight;
 		return;
+	}
+
+	// Jedi Knight Galaxies - Knockdown view, ported from SP
+	if ( PM_InKnockDown( &cg.predictedPlayerState ) )
+	{
+		float perc, animLen = (float)BG_AnimLength( 0, (animNumber_t)cg.predictedPlayerState.legsAnim );
+
+		if ( PM_InGetUp( &cg.predictedPlayerState ) || PM_InForceGetUp( &cg.predictedPlayerState ) )
+		{//start righting the view
+			perc = (float)cg.predictedPlayerState.legsTimer/animLen*2;
+		}
+		else
+		{//tilt the view
+			perc = (animLen-cg.predictedPlayerState.legsTimer)/animLen*2;
+		}
+		if ( perc > 1.0f )
+		{
+			perc = 1.0f;
+		}
+		angles[ROLL] += perc*40;
+		angles[PITCH] += perc*-15;
 	}
 
 	// add angles based on weapon kick
@@ -942,6 +1049,7 @@ static void CG_OffsetFirstPersonView( void ) {
 		}
 		VectorMA( angles, kickPerc, cg.kick_angles, angles );
 	}
+
 	// add angles based on damage kick
 	if ( cg.damageTime ) {
 		ratio = cg.time - cg.damageTime;
@@ -950,7 +1058,7 @@ static void CG_OffsetFirstPersonView( void ) {
 			angles[PITCH] += ratio * cg.v_dmg_pitch;
 			angles[ROLL] += ratio * cg.v_dmg_roll;
 		} else {
-			ratio = 1.0 - ( ratio - DAMAGE_DEFLECT_TIME ) / DAMAGE_RETURN_TIME;
+			ratio = 1.0f - ( ratio - DAMAGE_DEFLECT_TIME ) / DAMAGE_RETURN_TIME;
 			if ( ratio > 0 ) {
 				angles[PITCH] += ratio * cg.v_dmg_pitch;
 				angles[ROLL] += ratio * cg.v_dmg_roll;
@@ -1002,6 +1110,23 @@ static void CG_OffsetFirstPersonView( void ) {
 		cg.refdef.vieworg[2] -= cg.duckChange 
 			* (DUCK_TIME - timeDelta) / DUCK_TIME;
 	}
+	/*else if(BG_InRoll(&cg.predictedPlayerState, cg.predictedPlayerState.torsoAnim))
+	{
+		//cg.predictedPlayerState.legsTimer = cg.predictedPlayerState.legsTimer;
+		if(cg.predictedPlayerState.legsTimer > 1000)
+		{
+			cg.refdef.vieworg[2] -= cg.duckChange * (DUCK_TIME - (cg.predictedPlayerState.legsTimer-1000)) / DUCK_TIME;
+		}
+		else if(cg.predictedPlayerState.legsTimer > 100)
+		{
+			cg.refdef.vieworg[2] -= cg.duckChange;
+		}
+		else
+		{
+			cg.refdef.vieworg[2] -= (cg.duckChange * (cg.predictedPlayerState.legsTimer / (float)DUCK_TIME));
+		}
+		//cg.refdef.vieworg[2] -= cg.duckChange;
+	}*/
 
 	// add bob height
 	bob = cg.bobfracsin * cg.xyspeed * cg_bobUp.value;
@@ -1019,7 +1144,7 @@ static void CG_OffsetFirstPersonView( void ) {
 		cg.refdef.vieworg[2] += cg.landChange * f;
 	} else if ( delta < LAND_DEFLECT_TIME + LAND_RETURN_TIME ) {
 		delta -= LAND_DEFLECT_TIME;
-		f = 1.0 - ( delta / LAND_RETURN_TIME );
+		f = 1.0f - ( delta / LAND_RETURN_TIME );
 		cg.refdef.vieworg[2] += cg.landChange * f;
 	}
 
@@ -1079,7 +1204,7 @@ static void CG_OffsetFighterView( void )
 
 	//trace to that pos
 	CG_Trace(&trace, cg.refdef.vieworg, cameramins, cameramaxs, camOrg, cg.snap->ps.clientNum, MASK_CAMERACLIP);
-	if ( trace.fraction < 1.0 )
+	if ( trace.fraction < 1.0f )
 	{
 		VectorCopy( trace.endpos, camOrg );
 	}
@@ -1162,7 +1287,7 @@ qboolean CG_CalcFOVFromX( float fov_x )
 	// warp if underwater
 	contents = CG_PointContents( cg.refdef.vieworg, -1 );
 	if ( contents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ){
-		phase = cg.time / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
+		phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
 		v = WAVE_AMPLITUDE * sin( phase );
 		fov_x += v;
 		fov_y -= v;
@@ -1175,6 +1300,7 @@ qboolean CG_CalcFOVFromX( float fov_x )
 #else
 	inwater = qfalse;
 #endif
+
 
 	// set it
 	cg.refdef.fov_x = fov_x;
@@ -1191,8 +1317,19 @@ Fixed fov at intermissions, otherwise account for fov variable and zooms.
 ====================
 */
 #define	WAVE_AMPLITUDE	1
-#define	WAVE_FREQUENCY	0.4
+#ifndef WAVE_FREQUENCY
+#define	WAVE_FREQUENCY	0.4f
+#endif
 float zoomFov; //this has to be global client-side
+
+float Cin_ProcessFOV();
+
+#define MIN_FOV (1.0f)
+#define MAX_FOV (97.0f)
+float CG_ClampFov ( float fov )
+{
+    return Com_Clamp (MIN_FOV, MAX_FOV, fov);
+}
 
 static int CG_CalcFov( void ) {
 	float	x;
@@ -1201,122 +1338,179 @@ static int CG_CalcFov( void ) {
 	float	fov_x, fov_y;
 	float	f;
 	int		inwater;
-	float	cgFov = cg_fov.value;
-
-	if (cgFov < 1)
-	{
-		cgFov = 1;
-	}
-	if (cgFov > 130)
-	{
-		cgFov = 130;
-	}
-
-	if ( cg.predictedPlayerState.pm_type == PM_INTERMISSION ) {
-		// if in intermission, use a fixed value
-		fov_x = 80;//90;
+	playerState_t *ps = &cg.predictedPlayerState;
+	weaponInfo_t *weapon = CG_WeaponInfo (ps->weapon, ps->weaponVariation);
+		//[TrueView]
+	float cgFov;
+	//float	cgFov = cg_fov.value;
+	if (cg.cinematicState) {
+		cgFov = Cin_ProcessFOV();
+		fov_x = cgFov;
+		fov_y = cgFov;
 	} else {
-		// user selectable
-		if ( cgs.dmflags & DF_FIXED_FOV ) {
-			// dmflag to prevent wide fov for all clients
+		if(!cg.renderingThirdPerson && (cg_trueguns.integer || cg.predictedPlayerState.weapon == WP_SABER
+			|| cg.predictedPlayerState.weapon == WP_MELEE) && cg_truefov.value
+			&& (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
+			&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))
+		{
+			cgFov = cg_truefov.value;
+		}
+		else
+		{
+			cgFov = cg_fov.value;
+		}
+		//[/TrueView]
+		
+		cgFov = CG_ClampFov (cgFov);
+		
+		if ( weapon->ironsightsFov > 0.0f )
+		{
+			float phase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState);
+		    if ( phase >= 1.0f )
+            {
+                cgFov = cgFov - (80 - weapon->ironsightsFov);
+            }
+            else if ( phase > 0.0f )
+            {
+                cgFov = cgFov - (phase * (80 - weapon->ironsightsFov));
+            }
+        }
+
+		{
+			float phase = JKG_CalculateSprintPhase(&cg.predictedPlayerState);
+			if ( phase >= 1.0f )
+            {
+                cgFov = cgFov - (80 - jkg_sprintFOV.value);
+            }
+            else if ( phase > 0.0f )
+            {
+                cgFov = cgFov - (phase * (80 - jkg_sprintFOV.value));
+            }
+		}
+        
+        cgFov = CG_ClampFov (cgFov);
+
+		if ( cg.predictedPlayerState.pm_type == PM_INTERMISSION ) {
+			// if in intermission, use a fixed value
 			fov_x = 80;//90;
 		} else {
-			fov_x = cgFov;
-			if ( fov_x < 1 ) {
-				fov_x = 1;
-			} else if ( fov_x > 160 ) {
-				fov_x = 160;
-			}
-		}
-
-		if (cg.predictedPlayerState.zoomMode == 2)
-		{ //binoculars
-			if (zoomFov > 40.0f)
-			{
-				zoomFov -= cg.frametime * 0.075f;
-
-				if (zoomFov < 40.0f)
-				{
-					zoomFov = 40.0f;
-				}
-				else if (zoomFov > cgFov)
-				{
-					zoomFov = cgFov;
+			// user selectable
+			if ( cgs.dmflags & DF_FIXED_FOV ) {
+				// dmflag to prevent wide fov for all clients
+				fov_x = 80;//90;
+			} else {
+				fov_x = cgFov;
+				if ( fov_x < 1 ) {
+					fov_x = 1;
+				} else if ( fov_x > 160 ) {
+					fov_x = 160;
 				}
 			}
 
-			fov_x = zoomFov;
-		}
-		else if (cg.predictedPlayerState.zoomMode)
-		{
-			if (!cg.predictedPlayerState.zoomLocked)
-			{
-				if (zoomFov > 50)
-				{ //Now starting out at nearly half zoomed in
-					zoomFov = 50;
-				}
-				zoomFov -= cg.frametime * 0.035f;//0.075f;
-
-				if (zoomFov < MAX_ZOOM_FOV)
+			if (cg.predictedPlayerState.zoomMode == 2)
+			{ //binoculars
+				if (zoomFov > 40.0f)
 				{
-					zoomFov = MAX_ZOOM_FOV;
-				}
-				else if (zoomFov > cgFov)
-				{
-					zoomFov = cgFov;
-				}
-				else
-				{	// Still zooming
-					static int zoomSoundTime = 0;
+					zoomFov -= cg.frametime * 0.075f;
 
-					if (zoomSoundTime < cg.time || zoomSoundTime > cg.time + 10000)
+					if (zoomFov < 40.0f)
 					{
-						trap_S_StartSound(cg.refdef.vieworg, ENTITYNUM_WORLD, CHAN_LOCAL, cgs.media.disruptorZoomLoop);
-						zoomSoundTime = cg.time + 300;
+						zoomFov = 40.0f;
+					}
+					else if (zoomFov > cgFov)
+					{
+						zoomFov = cgFov;
 					}
 				}
-			}
 
-			if (zoomFov < MAX_ZOOM_FOV)
-			{
-				zoomFov = 50;		// hack to fix zoom during vid restart
+				fov_x = zoomFov;
 			}
-			fov_x = zoomFov;
-		}
-		else 
-		{
-			zoomFov = 80;
-
-			f = ( cg.time - cg.predictedPlayerState.zoomTime ) / ZOOM_OUT_TIME;
-			if ( f > 1.0 ) 
+			else if (cg.predictedPlayerState.zoomMode)
 			{
-				fov_x = fov_x;
-			} 
+			    const weaponData_t *weapon = GetWeaponData (
+			        cg.predictedPlayerState.weapon,
+			        cg.predictedPlayerState.weaponVariation
+			    );
+			    
+				if (!cg.predictedPlayerState.zoomLocked && weapon->zoomType == ZOOM_CONTINUOUS)
+				{
+					if (zoomFov > weapon->startZoomFov)
+					{ //Now starting out at nearly half zoomed in
+						zoomFov = weapon->startZoomFov;
+					}
+					zoomFov -= cg.frametime * (0.001f * weapon->zoomTime) / (weapon->startZoomFov - weapon->endZoomFov);//0.075f;
+
+					if (zoomFov < weapon->endZoomFov)
+					{
+						zoomFov = weapon->endZoomFov;
+					}
+					else if (zoomFov > cgFov)
+					{
+						zoomFov = cgFov;
+					}
+					else
+					{	// Still zooming
+						/*static int zoomSoundTime = 0;
+
+						if (zoomSoundTime < cg.time || zoomSoundTime > cg.time + 10000)
+						{
+							trap_S_StartSound(cg.refdef.vieworg, ENTITYNUM_WORLD, CHAN_LOCAL, cgs.media.disruptorZoomLoop);
+							zoomSoundTime = cg.time + 300;
+						}*/
+						JKG_ZoomScope (&cg_entities[cg.predictedPlayerState.clientNum]);
+					}
+				}
+				else if ( weapon->zoomType == ZOOM_TOGGLE )
+				{
+				    zoomFov = weapon->startZoomFov;
+				}
+
+				if (zoomFov < weapon->endZoomFov)
+				{
+					zoomFov = weapon->startZoomFov;		// hack to fix zoom during vid restart
+				}
+				fov_x = zoomFov;
+			}
 			else 
 			{
-				fov_x = cg.predictedPlayerState.zoomFov + f * ( fov_x - cg.predictedPlayerState.zoomFov );
+				zoomFov = 80;
+
+				f = ( cg.time - cg.predictedPlayerState.zoomTime ) / ZOOM_OUT_TIME;
+				if ( f > 1.0f ) 
+				{
+					fov_x = fov_x;
+				} 
+				else 
+				{
+					fov_x = cg.predictedPlayerState.zoomFov + f * ( fov_x - cg.predictedPlayerState.zoomFov );
+				}
 			}
 		}
+
+		if ( cg_fovAspectAdjust.integer ) {
+			// Based on LordHavoc's code for Darkplaces
+			// http://www.quakeworld.nu/forum/topic/53/what-does-your-qw-look-like/page/30
+			const float baseAspect = 0.75f; // 3/4
+			const float aspect = (float)cgs.glconfig.vidWidth/(float)cgs.glconfig.vidHeight;
+			const float desiredFov = fov_x;
+
+			fov_x = atan( tan( desiredFov*M_PI / 360.0f ) * baseAspect*aspect )*360.0f / M_PI;
+		}
 	}
-
-	if ( cg_fovAspectAdjust.integer ) {
-		// Based on LordHavoc's code for Darkplaces
-		// http://www.quakeworld.nu/forum/topic/53/what-does-your-qw-look-like/page/30
-		const float baseAspect = 0.75f; // 3/4
-		const float aspect = (float)cgs.glconfig.vidWidth/(float)cgs.glconfig.vidHeight;
-		const float desiredFov = fov_x;
-
-		fov_x = atan( tan( desiredFov*M_PI / 360.0f ) * baseAspect*aspect )*360.0f / M_PI;
-	}
-
 	x = cg.refdef.width / tan( fov_x / 360 * M_PI );
 	fov_y = atan2( cg.refdef.height, x );
 	fov_y = fov_y * 360 / M_PI;
+	
+	/*fov_x = atan2 (x, cg.refdef.height);
+	fov_x = fov_x * 360.0f / M_PI;*/
+	//fov_x = atan2 (cg.refdef.width, cg.refdef.height);
+
+	//fov_x = atan (x * cg.refdef.width) * M_PI / 360.0f;
 
 	// warp if underwater
 	cg.refdef.viewContents = CG_PointContents( cg.refdef.vieworg, -1 );
 	if ( cg.refdef.viewContents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ){
-		phase = cg.time / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
+		phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
 		v = WAVE_AMPLITUDE * sin( phase );
 		fov_x += v;
 		fov_y -= v;
@@ -1332,12 +1526,30 @@ static int CG_CalcFov( void ) {
 
 	if (cg.predictedPlayerState.zoomMode)
 	{
-		cg.zoomSensitivity = zoomFov/cgFov;
+		cg.zoomSensitivity = 0.25f * zoomFov / cgFov;
+	}
+	// JKG: Adjust mouse sensitivity based on ironsights FOV
+	else if ( cg.predictedPlayerState.ironsightsTime & IRONSIGHTS_MSB )
+	{
+	    const weaponData_t *weapon = GetWeaponData (cg.predictedPlayerState.weapon, cg.predictedPlayerState.weaponVariation);
+	    switch ( weapon->zoomType )
+	    {
+	        case ZOOM_CONTINUOUS:
+	            cg.zoomSensitivity = 0.25f * weapon->endZoomFov / cgFov;
+	            break;
+	            
+	        case ZOOM_TOGGLE:
+	            cg.zoomSensitivity = 0.25f * weapon->startZoomFov / cgFov;
+	            break;
+	            
+	        default:
+	            break;
+	    }
 	}
 	else if ( !cg.zoomed ) {
 		cg.zoomSensitivity = 1;
 	} else {
-		cg.zoomSensitivity = cg.refdef.fov_y / 75.0;
+		cg.zoomSensitivity = cg.refdef.fov_y / 75.0f;
 	}
 
 	return inwater;
@@ -1352,10 +1564,13 @@ CG_DamageBlendBlob
 */
 static void CG_DamageBlendBlob( void ) 
 {
-	int			t;
+	/*int			t;
 	int			maxTime;
-	refEntity_t		ent;
+	refEntity_t		ent;*/
 
+	// Jedi Knight Galaxies, disable for now
+	return;
+	/*
 	if ( !cg.damageValue ) {
 		return;
 	}
@@ -1374,33 +1589,34 @@ static void CG_DamageBlendBlob( void )
 	VectorMA( ent.origin, cg.damageX * -8, cg.refdef.viewaxis[1], ent.origin );
 	VectorMA( ent.origin, cg.damageY * 8, cg.refdef.viewaxis[2], ent.origin );
 
-	ent.radius = cg.damageValue * 3 * ( 1.0 - ((float)t / maxTime) );
+	ent.radius = cg.damageValue * 3 * ( 1.0f - ((float)t / maxTime) );
 
 	if (cg.snap->ps.damageType == 0)
 	{ //pure health
 		ent.customShader = cgs.media.viewPainShader;
-		ent.shaderRGBA[0] = 180 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[1] = 50 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[2] = 50 * ( 1.0 - ((float)t / maxTime) );
+		ent.shaderRGBA[0] = 180 * ( 1.0f - ((float)t / maxTime) );
+		ent.shaderRGBA[1] = 50 * ( 1.0f - ((float)t / maxTime) );
+		ent.shaderRGBA[2] = 50 * ( 1.0f - ((float)t / maxTime) );
 		ent.shaderRGBA[3] = 255;
 	}
 	else if (cg.snap->ps.damageType == 1)
 	{ //pure shields
 		ent.customShader = cgs.media.viewPainShader_Shields;
-		ent.shaderRGBA[0] = 50 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[1] = 180 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[2] = 50 * ( 1.0 - ((float)t / maxTime) );
+		ent.shaderRGBA[0] = 50 * ( 1.0f - ((float)t / maxTime) );
+		ent.shaderRGBA[1] = 180 * ( 1.0f - ((float)t / maxTime) );
+		ent.shaderRGBA[2] = 50 * ( 1.0f - ((float)t / maxTime) );
 		ent.shaderRGBA[3] = 255;
 	}
 	else
 	{ //shields and health
 		ent.customShader = cgs.media.viewPainShader_ShieldsAndHealth;
-		ent.shaderRGBA[0] = 180 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[1] = 180 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[2] = 50 * ( 1.0 - ((float)t / maxTime) );
+		ent.shaderRGBA[0] = 180 * ( 1.0f - ((float)t / maxTime) );
+		ent.shaderRGBA[1] = 180 * ( 1.0f - ((float)t / maxTime) );
+		ent.shaderRGBA[2] = 50 * ( 1.0f - ((float)t / maxTime) );
 		ent.shaderRGBA[3] = 255;
 	}
 	trap_R_AddRefEntityToScene( &ent );
+	*/
 }
 
 int cg_actionCamLastTime = 0;
@@ -1565,6 +1781,7 @@ Sets cg.refdef view values
 ===============
 */
 void CG_EmplacedView(vec3_t angles);
+int Cin_ProcessCamera();
 static int CG_CalcViewValues( void ) {
 	qboolean manningTurret = qfalse;
 	playerState_t	*ps;
@@ -1593,6 +1810,13 @@ static int CG_CalcViewValues( void ) {
 		}
 	}
 */
+
+	if (cg.cinematicState) {
+		if (Cin_ProcessCamera()) {
+			return CG_CalcFov();
+		}
+	}
+
 	// intermission view
 	if ( ps->pm_type == PM_INTERMISSION ) {
 		VectorCopy( ps->origin, cg.refdef.vieworg );
@@ -1602,7 +1826,7 @@ static int CG_CalcViewValues( void ) {
 	}
 
 	cg.bobcycle = ( ps->bobCycle & 128 ) >> 7;
-	cg.bobfracsin = fabs( sin( ( ps->bobCycle & 127 ) / 127.0 * M_PI ) );
+	cg.bobfracsin = fabs( sin( ( ps->bobCycle & 127 ) / 127.0f * M_PI ) );
 	cg.xyspeed = sqrt( ps->velocity[0] * ps->velocity[0] +
 		ps->velocity[1] * ps->velocity[1] );
 
@@ -1791,7 +2015,20 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 
 	if (!fov_x)
 	{
-		fov_x = cg_fov.value;
+		//[TrueView]
+		if(!cg.renderingThirdPerson && (cg_trueguns.integer || cg.predictedPlayerState.weapon == WP_SABER
+		|| cg.predictedPlayerState.weapon == WP_MELEE) && cg_truefov.value
+		&& (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
+		&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))
+		{
+			fov_x = cg_truefov.value;
+		}
+		else
+		{
+			fov_x = cg_fov.value;
+		}
+		//fov_x = cg_fov.value;
+		//[TrueView]
 	}
 
 	// setup fog the first time, ignore this part of the configstring after that
@@ -1858,7 +2095,20 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	}
 	else
 	{
-		fov_x = cg_fov.value;
+		//[TrueView]
+		if(!cg.renderingThirdPerson && (cg_trueguns.integer || cg.predictedPlayerState.weapon == WP_SABER
+		|| cg.predictedPlayerState.weapon == WP_MELEE) && cg_truefov.value 
+		&& (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
+		&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))
+		{
+			fov_x = cg_truefov.value;
+		}
+		else
+		{
+			fov_x = cg_fov.value;
+		}
+		//fov_x = cg_fov.value;
+		//[/TrueView]
 		if ( fov_x < 1 ) 
 		{
 			fov_x = 1;
@@ -1877,7 +2127,7 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 		if (cg.predictedPlayerState.zoomMode)
 		{ //zoomed/zooming in
 			f = ( cg.time - cg.zoomTime ) / (float)ZOOM_OUT_TIME;
-			if ( f > 1.0 ) {
+			if ( f > 1.0f ) {
 				fov_x = zoomFov;
 			} else {
 				fov_x = fov_x + f * ( zoomFov - fov_x );
@@ -1887,7 +2137,7 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 		else
 		{ //zooming out
 			f = ( cg.time - cg.zoomTime ) / (float)ZOOM_OUT_TIME;
-			if ( f > 1.0 ) {
+			if ( f > 1.0f ) {
 				fov_x = fov_x;
 			} else {
 				fov_x = zoomFov + f * ( fov_x - zoomFov);
@@ -2030,7 +2280,7 @@ void CG_SE_UpdateShake( vec3_t origin, vec3_t angles )
 	cgScreenEffects.FOV = CAMERA_DEFAULT_FOV;
 	cgScreenEffects.FOV2 = CAMERA_DEFAULT_FOV;
 
-	//intensity_scale now also takes into account FOV with 90.0 as normal
+	//intensity_scale now also takes into account FOV with 90.0f as normal
 	intensity_scale = 1.0f - ( (float) ( cg.time - cgScreenEffects.shake_start ) / (float) cgScreenEffects.shake_duration ) * (((cgScreenEffects.FOV+cgScreenEffects.FOV2)/2.0f)/90.0f);
 
 	intensity = cgScreenEffects.shake_intensity * intensity_scale;
@@ -2052,9 +2302,9 @@ void CG_SE_UpdateShake( vec3_t origin, vec3_t angles )
 
 void CG_SE_UpdateMusic(void)
 {
-	if (cgScreenEffects.music_volume_multiplier < 0.1)
+	if (cgScreenEffects.music_volume_multiplier < 0.1f)
 	{
-		cgScreenEffects.music_volume_multiplier = 1.0;
+		cgScreenEffects.music_volume_multiplier = 1.0f;
 		return;
 	}
 
@@ -2367,7 +2617,7 @@ void CG_DrawAutoMap(void)
 	//guess this doesn't need to be done every frame, but eh
 	trap_R_GetRealRes(&vWidth, &vHeight);
 
-	//set scaling values so that the 640x480 will result at 1.0/1.0
+	//set scaling values so that the 640x480 will result at 1.0f/1.0f
 	hScale = vWidth/640.0f;
 	vScale = vHeight/480.0f;
 
@@ -2417,90 +2667,6 @@ void CG_DrawAutoMap(void)
 	trap_R_RenderScene( &refdef );
 }
 
-//=========================================================================
-
-/*
-**  Frustum code
-*/
-
-// some culling bits
-typedef struct plane_s {
-	vec3_t normal;
-	float dist;
-} plane_t;
-
-static plane_t frustum[4];
-
-//
-//	CG_SetupFrustum
-//
-void CG_SetupFrustum( void ) {
-	int i;
-	float xs, xc;
-	float ang;
-
-	ang = cg.refdef.fov_x / 180 * M_PI * 0.5f;
-	xs = sin( ang );
-	xc = cos( ang );
-
-	VectorScale( cg.refdef.viewaxis[0], xs, frustum[0].normal );
-	VectorMA( frustum[0].normal, xc, cg.refdef.viewaxis[1], frustum[0].normal );
-
-	VectorScale( cg.refdef.viewaxis[0], xs, frustum[1].normal );
-	VectorMA( frustum[1].normal, -xc, cg.refdef.viewaxis[1], frustum[1].normal );
-
-	ang = cg.refdef.fov_y / 180 * M_PI * 0.5f;
-	xs = sin( ang );
-	xc = cos( ang );
-
-	VectorScale( cg.refdef.viewaxis[0], xs, frustum[2].normal );
-	VectorMA( frustum[2].normal, xc, cg.refdef.viewaxis[2], frustum[2].normal );
-
-	VectorScale( cg.refdef.viewaxis[0], xs, frustum[3].normal );
-	VectorMA( frustum[3].normal, -xc, cg.refdef.viewaxis[2], frustum[3].normal );
-
-	for ( i = 0 ; i < 4 ; i++ ) {
-		frustum[i].dist = DotProduct( cg.refdef.vieworg, frustum[i].normal );
-	}
-}
-
-//
-//	CG_CullPoint - returns true if culled
-//
-qboolean CG_CullPoint( vec3_t pt ) {
-	int i;
-	plane_t *frust;
-
-	// check against frustum planes
-	for ( i = 0 ; i < 4 ; i++ ) {
-		frust = &frustum[i];
-
-		if ( ( DotProduct( pt, frust->normal ) - frust->dist ) < 0 ) {
-			return( qtrue );
-		}
-	}
-
-	return( qfalse );
-}
-
-qboolean CG_CullPointAndRadius( const vec3_t pt, vec_t radius ) {
-	int i;
-	plane_t *frust;
-
-	// check against frustum planes
-	for ( i = 0 ; i < 4 ; i++ ) {
-		frust = &frustum[i];
-
-		if ( ( DotProduct( pt, frust->normal ) - frust->dist ) < -radius ) {
-			return( qtrue );
-		}
-	}
-
-	return( qfalse );
-}
-
-//=========================================================================
-
 /*
 =================
 CG_DrawActiveFrame
@@ -2519,10 +2685,16 @@ extern void CG_ActualLoadDeferredPlayers( void );
 
 static int cg_siegeClassIndex = -2;
 
+void CinBuild_Visualize();
+
+int LastACRun = 0;
+void JKG_AntiDebug();
+extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback ) {
 	int		inwater;
 	const char *cstr;
 	float mSensitivity = cg.zoomSensitivity;
+	static int	lastTime;
 	float mPitchOverride = 0.0f;
 	float mYawOverride = 0.0f;
 	static centity_t *veh = NULL;
@@ -2538,26 +2710,17 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		cgQueueLoad = qfalse;
 	}
 
+	if (lastTime) {
+		cg.frameDelta = trap_Milliseconds() - lastTime;
+	}
+	lastTime = trap_Milliseconds();
+
 	cg.time = serverTime;
 	cg.demoPlayback = demoPlayback;
 
 	if (cg.snap && ui_myteam.integer != cg.snap->ps.persistant[PERS_TEAM])
 	{
 		trap_Cvar_Set ( "ui_myteam", va("%i", cg.snap->ps.persistant[PERS_TEAM]) );
-	}
-	if (cgs.gametype == GT_SIEGE &&
-		cg.snap &&
-		cg_siegeClassIndex != cgs.clientinfo[cg.snap->ps.clientNum].siegeIndex)
-	{
-		cg_siegeClassIndex = cgs.clientinfo[cg.snap->ps.clientNum].siegeIndex;
-		if (cg_siegeClassIndex == -1)
-		{
-			trap_Cvar_Set("ui_mySiegeClass", "<none>");
-		}
-		else
-		{
-			trap_Cvar_Set("ui_mySiegeClass", bgSiegeClasses[cg_siegeClassIndex].name);
-		}
 	}
 
 	// update cvars
@@ -2663,7 +2826,40 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		}
 		else
 		{
-			trap_SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
+			if(cg.playerACI[cg.weaponSelect] >= -0)
+			{
+				if(cg.weaponSelect >= MAX_ACI_SLOTS)
+				{
+					cg.weaponSelect = 0;
+				}
+				if(cg.playerACI[cg.weaponSelect] >= MAX_INVENTORY_ITEMS)
+				{
+					goto defaultCmd;
+				}
+				if(cg.playerInventory[cg.playerACI[cg.weaponSelect]].id)
+				{
+					if(cg.holsterState && 
+						cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->varID != BG_GetWeaponIndex(WP_SABER, 0))
+					{
+						// Set us up using Melee if our holstered weapon is not a saber (and we're holstered)
+						trap_SetUserCmdValue( BG_GetWeaponIndex(WP_MELEE, 0), mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
+					}
+					else
+					{
+						trap_SetUserCmdValue( cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->varID, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
+					}
+				}
+				else
+				{
+					goto defaultCmd;
+				}
+			}
+			else
+			{
+defaultCmd:
+				trap_SetUserCmdValue( 0, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
+			}
+			//trap_SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse);
 		}
 	}
 
@@ -2672,17 +2868,36 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// update cg.predictedPlayerState
 	CG_PredictPlayerState();
-
+	
 	// decide on third person view
-	cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0);
+	cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0) || cg.cinematicState;
 
-	if (cg.snap->ps.stats[STAT_HEALTH] > 0)
+	if (!cg.cinematicState && cg.snap->ps.stats[STAT_HEALTH] > 0)
 	{
-		if (cg.predictedPlayerState.weapon == WP_EMPLACED_GUN && cg.predictedPlayerState.emplacedIndex /*&&
+	    if ( cg.i360CameraTime && cg.i360CameraTime <= cg.time )
+	    {
+		    cg.renderingThirdPerson = 1;
+	    }
+		else if (cg.predictedPlayerState.weapon == WP_EMPLACED_GUN && cg.predictedPlayerState.emplacedIndex /*&&
 			cg_entities[cg.predictedPlayerState.emplacedIndex].currentState.weapon == WP_NONE*/)
 		{ //force third person for e-web and emplaced use
 			cg.renderingThirdPerson = 1;
 		}
+		//[TrueView]
+		else if (cg_trueinvertsaber.integer == 2 && (cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE))
+		{//force thirdperson for sabers/melee if in cg_trueinvertsaber.integer == 2
+			cg.renderingThirdPerson = 1;
+		}
+		else if (cg.predictedPlayerState.fallingToDeath || cg.predictedPlayerState.m_iVehicleNum
+			|| (cg_trueinvertsaber.integer == 1 && !cg_thirdPerson.integer && (cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)))
+		{
+			cg.renderingThirdPerson = 1;
+		}
+		else if (cg_trueinvertsaber.integer == 1 && cg_thirdPerson.integer && (cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE))
+		{
+			cg.renderingThirdPerson = 0;
+		}
+		/*
 		else if (cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE ||
 			BG_InGrappleMove(cg.predictedPlayerState.torsoAnim) || BG_InGrappleMove(cg.predictedPlayerState.legsAnim) ||
 			cg.predictedPlayerState.forceHandExtend == HANDEXTEND_KNOCKDOWN || cg.predictedPlayerState.fallingToDeath ||
@@ -2697,12 +2912,18 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 				cg.renderingThirdPerson = 1;
 			}
 		}
+		*/
+		//[/TrueView]
+		else if ( cg.predictedPlayerState.zoomMode )
+	    {
+		    cg.renderingThirdPerson = 0;
+	    }
 		else if (cg.snap->ps.zoomMode)
 		{ //always force first person when zoomed
 			cg.renderingThirdPerson = 0;
 		}
 	}
-	
+
 	if (cg.predictedPlayerState.pm_type == PM_SPECTATOR)
 	{ //always first person for spec
 		cg.renderingThirdPerson = 0;
@@ -2715,18 +2936,18 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// build cg.refdef
 	inwater = CG_CalcViewValues();
-	CG_SetupFrustum();
 
 	if (cg_linearFogOverride)
 	{
 		trap_R_SetRangeFog(-cg_linearFogOverride);
 	}
-	else if (cg.predictedPlayerState.zoomMode)
+	// JKG - Dont mess up fog when zooming
+	/*else if (cg.predictedPlayerState.zoomMode)
 	{ //zooming with binoculars or sniper, set the fog range based on the zoom level -rww
 		cg_rangedFogging = qtrue;
 		//smaller the fov the less fog we have between the view and cull dist
 		trap_R_SetRangeFog(cg.refdef.fov_x*64.0f);
-	}
+	}*/
 	else if (cg_rangedFogging)
 	{ //disable it
 		cg_rangedFogging = qfalse;
@@ -2754,7 +2975,14 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		CG_AddParticles ();
 		CG_AddLocalEntities();
 	}
-	CG_AddViewWeapon( &cg.predictedPlayerState );
+	CG_AnimateViewWeapon (&cg.predictedPlayerState);
+	//CG_AddViewWeapon( &cg.predictedPlayerState );
+	JKG_RenderWeaponViewModel();
+	//debugTimeEnd = trap_Milliseconds();
+	//if (trap_Milliseconds() - debugLastUpdate > 500) {
+	//	CG_Printf("Frame processing time: %i ms\n", debugTimeEnd - debugTimeStart);
+	//	debugLastUpdate = trap_Milliseconds();
+	//}
 
 	if ( !cg.hyperspace) 
 	{
@@ -2825,6 +3053,15 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		}
 	}
 
+	// Jedi Knight Galaxies
+	// Display camera trajectories if the cam builder is on
+	CinBuild_Visualize();
+	
+	// JKG Nav Mesh visualisation
+#ifdef __DISABLED
+	JKG_Nav_VisualizeMesh();
+#endif
+
 	// actually issue the rendering calls
 	CG_DrawActive( stereoView );
 
@@ -2833,5 +3070,85 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	if ( cg_stats.integer ) {
 		CG_Printf( "cg.clientFrame:%i\n", cg.clientFrame );
 	}
+	
 }
 
+//[TrueView]
+//Checks to see if the current camera position is valid based on the last known safe location.  If it's not safe, place
+//the camera at the last position safe location
+void CheckCameraLocation( vec3_t OldeyeOrigin )  
+{
+	trace_t			trace;
+
+	CG_Trace(&trace, OldeyeOrigin, cameramins, cameramaxs, cg.refdef.vieworg, cg.snap->ps.clientNum, MASK_CAMERACLIP);
+	if (trace.fraction <= 1.0f)
+	{
+		VectorCopy(trace.endpos, cg.refdef.vieworg);
+	}
+}
+
+// The below was in cg_saga.c. Many 'wat's were to be had --eez
+//Loads in the True View auto eye positioning data so you don't have to worry about disk access later in the 
+//game
+//Based on CG_InitSagaMode and tck's tck_InitBuffer
+void CG_TrueViewInit( void )
+{
+	int				len = 0;
+	fileHandle_t	f;
+
+
+	len = trap_FS_FOpenFile("trueview.cfg", &f, FS_READ);
+
+	if (!f)
+	{
+		CG_Printf("Error: File Not Found: trueview.cfg\n");
+		true_view_valid = 0;
+		return;
+	}
+
+	if( len >= MAX_TRUEVIEW_INFO_SIZE )
+	{
+		CG_Printf("Error: trueview.cfg is over the trueview.cfg filesize limit.\n");
+		trap_FS_FCloseFile( f );
+		true_view_valid = 0;
+		return;
+	}
+
+	
+	trap_FS_Read(true_view_info, len, f);
+
+	true_view_valid = 1;
+
+	trap_FS_FCloseFile( f );
+
+	return;
+
+}
+
+//Tries to adjust the eye position from the data in cfg file if possible.
+void CG_AdjustEyePos (const char *modelName)
+{
+	//eye position
+	char	eyepos[MAX_QPATH];
+
+	if ( true_view_valid )
+	{
+		
+		if( BG_GetPairedValue(true_view_info, (char*) modelName, eyepos) )
+		{
+			//CG_Printf("True View Eye Adjust Loaded for %s.\n", modelName);
+			trap_Cvar_Set( "cg_trueeyeposition", eyepos );
+		}
+		else
+		{//Couldn't find an entry for the desired model.  Not nessicarily a bad thing.
+			trap_Cvar_Set( "cg_trueeyeposition", "0" );
+		}
+	}
+	else
+	{//The model eye position list is messed up.  Default to 0.0 for the eye position
+		trap_Cvar_Set( "cg_trueeyeposition", "0" );
+	}
+
+}
+//[/TrueView]
+//[/TrueView]

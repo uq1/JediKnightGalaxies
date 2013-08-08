@@ -1,5 +1,5 @@
 #include "cg_local.h"
-#include "ui/ui_shared.h"
+#include "../ui/ui_shared.h"
 
 extern displayContextDef_t cgDC;
 
@@ -14,30 +14,30 @@ int CG_GetSelectedPlayer() {
 qhandle_t CG_StatusHandle(int task) {
 	qhandle_t h = cgs.media.assaultShader;
 	switch (task) {
-	case TEAMTASK_OFFENSE :
-		h = cgs.media.assaultShader;
-		break;
-	case TEAMTASK_DEFENSE :
-		h = cgs.media.defendShader;
-		break;
-	case TEAMTASK_PATROL :
-		h = cgs.media.patrolShader;
-		break;
-	case TEAMTASK_FOLLOW :
-		h = cgs.media.followShader;
-		break;
-	case TEAMTASK_CAMP :
-		h = cgs.media.campShader;
-		break;
-	case TEAMTASK_RETRIEVE :
-		h = cgs.media.retrieveShader; 
-		break;
-	case TEAMTASK_ESCORT :
-		h = cgs.media.escortShader; 
-		break;
-	default : 
-		h = cgs.media.assaultShader;
-		break;
+		case TEAMTASK_OFFENSE :
+			h = cgs.media.assaultShader;
+			break;
+		case TEAMTASK_DEFENSE :
+			h = cgs.media.defendShader;
+			break;
+		case TEAMTASK_PATROL :
+			h = cgs.media.patrolShader;
+			break;
+		case TEAMTASK_FOLLOW :
+			h = cgs.media.followShader;
+			break;
+		case TEAMTASK_CAMP :
+			h = cgs.media.campShader;
+			break;
+		case TEAMTASK_RETRIEVE :
+			h = cgs.media.retrieveShader; 
+			break;
+		case TEAMTASK_ESCORT :
+			h = cgs.media.escortShader; 
+			break;
+		default : 
+			h = cgs.media.assaultShader;
+			break;
 	}
 	return h;
 }
@@ -45,7 +45,7 @@ qhandle_t CG_StatusHandle(int task) {
 
 float CG_GetValue(int ownerDraw) {
 	centity_t	*cent;
-	clientInfo_t *ci;
+ 	clientInfo_t *ci;
 	playerState_t	*ps;
 
 	cent = &cg_entities[cg.snap->ps.clientNum];
@@ -66,7 +66,7 @@ float CG_GetValue(int ownerDraw) {
 	case CG_PLAYER_AMMO_VALUE:
 		if ( cent->currentState.weapon ) 
 		{
-			return ps->ammo[weaponData[cent->currentState.weapon].ammoIndex];
+			return ps->ammo;
 		}
 		break;
 	case CG_PLAYER_SCORE:
@@ -82,7 +82,7 @@ float CG_GetValue(int ownerDraw) {
 		return cgs.scores2;
 		break;
 	case CG_PLAYER_FORCE_VALUE:
-		return ps->fd.forcePower;
+		return ps->forcePower;
 		break;
 	default:
 		break;
@@ -231,14 +231,16 @@ const char *CG_GetGameStatusText(void) {
 		if ( cg.teamScores[0] == cg.teamScores[1] ) {
 			s = va("%s %i", CG_GetStringEdString("MP_INGAME", "TIEDAT"), cg.teamScores[0] );
 		} else if ( cg.teamScores[0] >= cg.teamScores[1] ) {
-			s = va("%s, %i / %i", CG_GetStringEdString("MP_INGAME", "RED_LEADS"), cg.teamScores[0], cg.teamScores[1] );
+			//s = va("%s, %i / %i", CG_GetStringEdString("MP_INGAME", "RED_LEADS"), cg.teamScores[0], cg.teamScores[1] );
+			s = va("%s, %i / %i", CG_GetStringEdString2(bgGangWarsTeams[cgs.redTeam].leadstring), cg.teamScores[0], cg.teamScores[1] );
 		} else {
-			s = va("%s, %i / %i", CG_GetStringEdString("MP_INGAME", "BLUE_LEADS"), cg.teamScores[1], cg.teamScores[0] );
+			//s = va("%s, %i / %i", CG_GetStringEdString("MP_INGAME", "BLUE_LEADS"), cg.teamScores[1], cg.teamScores[0] );
+			s = va("%s, %i / %i", CG_GetStringEdString2(bgGangWarsTeams[cgs.blueTeam].leadstring), cg.teamScores[0], cg.teamScores[1] );
 		}
 	}
 	return s;
 }
-
+	
 extern int MenuFontToHandle(int iMenuFont);
 
 // maxX param is initially an X limit, but is also used as feedback. 0 = text was clipped to fit within, else maxX = next pos
@@ -479,30 +481,30 @@ void CG_DrawMedal(int ownerDraw, rectDef_t *rect, float scale, vec4_t color, qha
 	color[3] = 0.25;
 
 	switch (ownerDraw) {
-	case CG_ACCURACY:
-		value = score->accuracy;
-		break;
-	case CG_ASSISTS:
-		value = score->assistCount;
-		break;
-	case CG_DEFEND:
-		value = score->defendCount;
-		break;
-	case CG_EXCELLENT:
-		value = score->excellentCount;
-		break;
-	case CG_IMPRESSIVE:
-		value = score->impressiveCount;
-		break;
-	case CG_PERFECT:
-		value = score->perfect;
-		break;
-	case CG_GAUNTLET:
-		value = score->guantletCount;
-		break;
-	case CG_CAPTURES:
-		value = score->captures;
-		break;
+		case CG_ACCURACY:
+			value = score->accuracy;
+			break;
+		case CG_ASSISTS:
+			value = score->assistCount;
+			break;
+		case CG_DEFEND:
+			value = score->defendCount;
+			break;
+		case CG_EXCELLENT:
+			value = score->excellentCount;
+			break;
+		case CG_IMPRESSIVE:
+			value = score->impressiveCount;
+			break;
+		case CG_PERFECT:
+			value = score->perfect;
+			break;
+		case CG_GAUNTLET:
+			value = score->guantletCount;
+			break;
+		case CG_CAPTURES:
+			value = score->captures;
+			break;
 	}
 
 	if (value > 0) {
@@ -536,11 +538,11 @@ void CG_DrawMedal(int ownerDraw, rectDef_t *rect, float scale, vec4_t color, qha
 
 }
 
-
+	
 //
-void CG_OwnerDraw(float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle,int font) {
+void CG_OwnerDraw(void *alwaysNull, float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle,int font, int ownerDrawID) {
 
-	//Ignore all this, at least for now. May put some stat stuff back in menu files later.
+//Ignore all this, at least for now. May put some stat stuff back in menu files later.
 #if 0
 	rectDef_t rect;
 
@@ -726,12 +728,15 @@ void CG_OwnerDraw(float x, float y, float w, float h, float text_x, float text_y
 void CG_MouseEvent(int x, int y) {
 	int n;
 
-	/* Raz: Enable cgame key catcher
-	if ( (cg.predictedPlayerState.pm_type == PM_NORMAL || cg.predictedPlayerState.pm_type == PM_JETPACK || cg.predictedPlayerState.pm_type == PM_FLOAT || cg.predictedPlayerState.pm_type == PM_SPECTATOR) && cg.showScores == qfalse) {
-		trap_Key_SetCatcher(0);
-		return;
+	if (cg.isChatting) {
+		// Do nothing
+	} else {
+		// Disable the keycatcher
+		if ( (cg.predictedPlayerState.pm_type == PM_NORMAL || cg.predictedPlayerState.pm_type == PM_JETPACK || cg.predictedPlayerState.pm_type == PM_FLOAT || cg.predictedPlayerState.pm_type == PM_SPECTATOR) && cg.showScores == qfalse) {
+			trap_Key_SetCatcher(0);
+			return;
+		}
 	}
-	*/
 
 	cgs.cursorX+= x;
 	if (cgs.cursorX < 0)
@@ -784,20 +789,26 @@ void CG_ShowTeamMenu() {
 
 
 
+void ChatBox_HandleKey(int key, qboolean down);
+
 
 /*
 ==================
 CG_EventHandling
 ==================
-type 0 - no event handling
-1 - team menu
-2 - hud editor
+ type 0 - no event handling
+      1 - team menu
+      2 - hud editor
 
 */
 void CG_EventHandling(int type) {
 	cgs.eventHandling = type;
 	if (type == CGAME_EVENT_NONE) {
 		CG_HideTeamMenu();
+	if (cg.isChatting) {
+		// Pass this along to the chat system as an escape keystroke
+		ChatBox_HandleKey(A_ESCAPE, qtrue);
+	}
 	} else if (type == CGAME_EVENT_TEAMMENU) {
 		//CG_ShowTeamMenu();
 	} else if (type == CGAME_EVENT_SCOREBOARD) {
@@ -809,16 +820,21 @@ void CG_EventHandling(int type) {
 
 void CG_KeyEvent(int key, qboolean down) {
 
+	if (cg.isChatting) {
+		// Let the chat system handle it
+		ChatBox_HandleKey(key, down);
+	} else {
+		// Disable the keycatcher
+		if ( cg.predictedPlayerState.pm_type == PM_NORMAL || cg.predictedPlayerState.pm_type == PM_JETPACK || cg.predictedPlayerState.pm_type == PM_NORMAL || (cg.predictedPlayerState.pm_type == PM_SPECTATOR && cg.showScores == qfalse)) {
+			CG_EventHandling(CGAME_EVENT_NONE);
+			trap_Key_SetCatcher(0);
+			return;
+		}
+	}
+
 	if (!down) {
 		return;
 	}
-
-	if ( cg.predictedPlayerState.pm_type == PM_NORMAL || cg.predictedPlayerState.pm_type == PM_JETPACK || cg.predictedPlayerState.pm_type == PM_NORMAL || (cg.predictedPlayerState.pm_type == PM_SPECTATOR && cg.showScores == qfalse)) {
-		CG_EventHandling(CGAME_EVENT_NONE);
-		trap_Key_SetCatcher(0);
-		return;
-	}
-
 	//if (key == trap_Key_GetKey("teamMenu") || !Display_CaptureItem(cgs.cursorX, cgs.cursorY)) {
 	// if we see this then we should always be visible
 	//  CG_EventHandling(CGAME_EVENT_NONE);

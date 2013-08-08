@@ -2,15 +2,19 @@
 //
 // cg_main.c -- initialization and primary entry point for cgame
 #include "cg_local.h"
+#include "jkg_navmesh_visualiser.h"
 
-#include "ui/ui_shared.h"
+#include "../ui/ui_shared.h"
 // display context for new ui stuff
 displayContextDef_t cgDC;
 
 #include "cg_lights.h"
 
-extern int cgSiegeRoundState;
-extern int cgSiegeRoundTime;
+// Jedi Knight Galaxies
+#include "cg_weapons.h"
+#include "jkg_gangwars.h"
+#include "bg_items.h"
+
 /*
 Ghoul2 Insert Start
 */
@@ -110,6 +114,8 @@ vec4_t colorTable[CT_MAX] =
 
 int cgWeatherOverride = 0;
 
+int forceModelModificationCount = -1;
+
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum );
 void CG_Shutdown( void );
 
@@ -128,12 +134,52 @@ static int	CG_RagCallback(int callType);
 static void C_GetBoltPos(void);
 static void C_ImpactMark(void);
 
+#define MAX_MISC_ENTS	4000
+
+//static refEntity_t	*MiscEnts = 0;
+//static float		*Radius = 0;
+static refEntity_t	MiscEnts[MAX_MISC_ENTS]; //statically allocated for now.
+static float		Radius[MAX_MISC_ENTS];
+static float		zOffset[MAX_MISC_ENTS]; //some models need a z offset for culling, because of stupid wrong model origins
+
+static int			NumMiscEnts = 0;
+
 extern autoMapInput_t cg_autoMapInput; //cg_view.c
 extern int cg_autoMapInputTime;
 extern vec3_t cg_autoMapAngle;
 
 void CG_MiscEnt(void);
 void CG_DoCameraShake( vec3_t origin, float intensity, int radius, int time );
+
+qboolean cgame_initializing = qtrue;
+
+#ifdef __MUSIC_ENGINE__
+qboolean	cvarsLoaded = qfalse;
+
+extern void CG_DoMusic ( void );
+extern void CG_StopMusic ( void );
+
+extern vmCvar_t s_radioVolume;
+
+//extern void CG_DoSound ( void );
+//vmCvar_t s_musicvolume;
+
+qboolean CG_GameLoading ( void )
+{
+	return cgame_initializing;
+}
+
+/* */
+float CG_GetMusicVolume ( void )
+{	// cvars good, conflicting values bad --eez
+	return ( s_radioVolume.value );
+}
+
+int CG_GetTime ( void )
+{// Unique1 added.. For access by sound engine...
+	return cg.time;
+}
+#endif //__MUSIC_ENGINE__
 
 //do we have any force powers that we would normally need to cycle to?
 qboolean CG_NoUseableForce(void)
@@ -158,6 +204,19 @@ qboolean CG_NoUseableForce(void)
 	return qtrue;
 }
 
+#ifdef __SECONDARY_NETWORK__
+extern void jkg_netclientbegin();
+extern void jkg_netclientshutdown();
+
+extern qboolean CLIENT_FORCED_SHUTDOWN;
+#endif //__SECONDARY_NETWORK__
+
+#ifdef __EXPERIMENTAL_SHADOWS__
+extern void CG_ClearRecordedLights();
+#endif //__EXPERIMENTAL_SHADOWS__
+
+extern void ChatBox_UseMessageMode(int whichOne);
+
 /*
 ================
 vmMain
@@ -173,11 +232,20 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 		CG_Init( arg0, arg1, arg2 );
 		return 0;
 	case CG_SHUTDOWN:
+#ifdef __MUSIC_ENGINE__
+		CG_StopMusic();
+#endif //__MUSIC_ENGINE__
+#ifdef __SECONDARY_NETWORK__
+		jkg_netclientshutdown();
+#endif //__SECONDARY_NETWORK__
 		CG_Shutdown();
 		return 0;
 	case CG_CONSOLE_COMMAND:
 		return CG_ConsoleCommand();
 	case CG_DRAW_ACTIVE_FRAME:
+#ifdef __EXPERIMENTAL_SHADOWS__
+		CG_ClearRecordedLights();
+#endif //__EXPERIMENTAL_SHADOWS__
 		CG_DrawActiveFrame( arg0, arg1, arg2 );
 		return 0;
 	case CG_CROSSHAIR_PLAYER:
@@ -240,9 +308,12 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 		//return 1 if the command is ok. Otherwise, you can set char 0 on the command str to 0 and return
 		//0 to not execute anything, or you can fill conCommand in with something valid and return 0
 		//in order to have that string executed in place. Some example code:
-#if 0
+		/*
 		{
 			TCGIncomingConsoleCommand	*icc = (TCGIncomingConsoleCommand *)cg.sharedBuffer;
+			// Deny private commands (~ prefixed)
+			if (icc->conCommand[0] == '~') return 0;
+			
 			if (strstr(icc->conCommand, "wait"))
 			{ //filter out commands contaning wait
 				Com_Printf("You can't use commands containing the string wait with MyMod v1.0\n");
@@ -254,8 +325,19 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 				strcpy(icc->conCommand, "quit");
 				return 0;
 			}
+			
 		}
-#endif
+		*/
+		{
+		    TCGIncomingConsoleCommand *icc = (TCGIncomingConsoleCommand *)cg.sharedBuffer;
+		    if ( Q_stricmpn (icc->conCommand, "quit", 4) == 0 )
+		    {
+#ifdef __MUSIC_ENGINE__
+				CG_StopMusic();
+#endif //__MUSIC_ENGINE__
+		        return 1;
+		    }
+		}
 		return 1;
 
 	case CG_GET_USEABLE_FORCE:
@@ -328,6 +410,10 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 			
 			CG_DoCameraShake( data->mOrigin, data->mIntensity, data->mRadius, data->mTime );
 		}
+		return 0;
+
+	case CG_MESSAGEMODE:
+		ChatBox_UseMessageMode(arg0);
 		return 0;
 
 	default:
@@ -637,9 +723,13 @@ centity_t			cg_entities[MAX_GENTITIES];
 centity_t			*cg_permanents[MAX_GENTITIES]; //rwwRMG - added
 int					cg_numpermanents = 0;
 
-weaponInfo_t		cg_weapons[MAX_WEAPONS];
 itemInfo_t			cg_items[MAX_ITEMS];
 
+// Jedi Knight Galaxies, pain flashes
+int PainFlashStart;
+int PainFlashDuration;
+int PainFlashIntensity;
+//
 
 static void CG_SVRunningChange( void ) {
 	cgs.localServer = sv_running.integer;
@@ -929,49 +1019,6 @@ void CG_ParseWeatherEffect(const char *str)
 	trap_R_WorldEffectCommand(sptr);
 }
 
-extern int cgSiegeRoundBeganTime;
-void CG_ParseSiegeState(const char *str)
-{
-	int i = 0;
-	int j = 0;
-//	int prevState = cgSiegeRoundState;
-	char b[1024];
-
-	while (str[i] && str[i] != '|')
-	{
-		b[j] = str[i];
-		i++;
-		j++;
-	}
-	b[j] = 0;
-	cgSiegeRoundState = atoi(b);
-
-	if (str[i] == '|')
-	{
-		j = 0;
-		i++;
-		while (str[i])
-		{
-			b[j] = str[i];
-			i++;
-			j++;
-		}
-		b[j] = 0;
-//		if (cgSiegeRoundState != prevState)
-		{ //it changed
-			cgSiegeRoundTime = atoi(b);
-			if (cgSiegeRoundState == 0 || cgSiegeRoundState == 2)
-			{
-				cgSiegeRoundBeganTime = cgSiegeRoundTime;
-			}
-		}
-	}
-	else
-	{
-	    cgSiegeRoundTime = cg.time;
-	}
-}
-
 /*
 =================
 CG_RegisterSounds
@@ -991,7 +1038,7 @@ static void CG_RegisterSounds( void ) {
 
 	CG_AS_Register();
 
-//	CG_LoadingString( "sounds" );
+	//CG_LoadingString( "Sounds" );
 
 	trap_S_RegisterSound( "sound/weapons/melee/punch1.mp3" );
 	trap_S_RegisterSound( "sound/weapons/melee/punch2.mp3" );
@@ -1039,6 +1086,10 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.yellowDroppedSaberShader	= trap_R_RegisterShader("gfx/effects/yellow_glow");
 
 	cgs.media.rivetMarkShader			= trap_R_RegisterShader( "gfx/damage/rivetmark" );
+
+#ifdef __MUSIC_ENGINE__
+	cgs.media.radio_player =			trap_R_RegisterShaderNoMip( "gfx/radio_player" );
+#endif //__MUSIC_ENGINE__
 
 	trap_R_RegisterShader( "gfx/effects/saberFlare" );
 
@@ -1165,7 +1216,9 @@ static void CG_RegisterSounds( void ) {
 	//PRECACHE ALL MUSIC HERE (don't need to precache normally because it's streamed off the disk)
 	if (com_buildScript.integer)
 	{
+#ifndef __MUSIC_ENGINE__
 		trap_S_StartBackgroundTrack( "music/mp/duel.mp3", "music/mp/duel.mp3", qfalse );
+#endif //__MUSIC_ENGINE__
 	}
 
 	cg.loadLCARSStage = 1;
@@ -1224,6 +1277,9 @@ static void CG_RegisterSounds( void ) {
 	trap_R_RegisterModel("models/items/remote.md3");
 
 	cgs.media.holocronPickup = trap_S_RegisterSound( "sound/player/holocron.wav" );
+
+	// No ammo sound
+	cgs.media.noAmmoSound = trap_S_RegisterSound( "sound/weapons/noammo.wav" );
 
 	// Zoom
 	cgs.media.zoomStart = trap_S_RegisterSound( "sound/interface/zoomstart.wav" );
@@ -1353,30 +1409,6 @@ static void CG_RegisterSounds( void ) {
 		cgs.gameIcons[i] = trap_R_RegisterShaderNoMip ( iconName );
 	}
 
-	soundName = CG_ConfigString(CS_SIEGE_STATE);
-
-	if (soundName[0])
-	{
-		CG_ParseSiegeState(soundName);
-	}
-
-	soundName = CG_ConfigString(CS_SIEGE_WINTEAM);
-
-	if (soundName[0])
-	{
-		cg_siegeWinTeam = atoi(soundName);
-	}
-
-	if (cgs.gametype == GT_SIEGE)
-	{
-		CG_ParseSiegeObjectiveStatus(CG_ConfigString(CS_SIEGE_OBJECTIVES));
-		cg_beatingSiegeTime = atoi(CG_ConfigString(CS_SIEGE_TIMEOVERRIDE));
-		if ( cg_beatingSiegeTime )
-		{
-			CG_SetSiegeTimerCvar ( cg_beatingSiegeTime );
-		}
-	}
-
 	cg.loadLCARSStage = 2;
 
 	// FIXME: only needed with item
@@ -1385,6 +1417,10 @@ static void CG_RegisterSounds( void ) {
 	
 	cgs.media.winnerSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM006" );
 	cgs.media.loserSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM010" );
+
+	// eezstreet / JKG add: weapon/armor breaking
+	cgs.media.armorBreakSound = trap_S_RegisterSound( "sound/items/armor_break.wav" );
+	cgs.media.weaponBreakSound = trap_S_RegisterSound( "sound/items/weapon_break.wav" );
 }
 
 
@@ -1496,19 +1532,38 @@ static void CG_RegisterGraphics( void ) {
 		"gfx/2d/numbers/t_minus", //?????
 	};
 
+	static char		*plum_nums[11] = {
+		"gfx/2d/plumdigit/digit0",
+		"gfx/2d/plumdigit/digit1",
+		"gfx/2d/plumdigit/digit2",
+		"gfx/2d/plumdigit/digit3",
+		"gfx/2d/plumdigit/digit4",
+		"gfx/2d/plumdigit/digit5",
+		"gfx/2d/plumdigit/digit6",
+		"gfx/2d/plumdigit/digit7",
+		"gfx/2d/plumdigit/digit8",
+		"gfx/2d/plumdigit/digit9",
+		"gfx/2d/plumdigit/digitminus",
+	};
+
 	// clear any references to old media
 	memset( &cg.refdef, 0, sizeof( cg.refdef ) );
 	trap_R_ClearScene();
 
-	CG_LoadingString( cgs.mapname );        
+	//CG_LoadingString( cgs.mapname );        
+	CG_LoadingString( cgs.mapname );
 
-	trap_R_LoadWorldMap( cgs.mapname );
+	cg.showMapLoadProgress = 1;
+	trap_R_LoadWorldMap( cgs.mapname );		// The hooks in here will update the progress of the BSP loading
+	cg.showMapLoadProgress = 0;
 
 	// precache status bar pics
-//	CG_LoadingString( "game media" );
+	CG_LoadingString( "Game Media" );
 
 	for ( i=0 ; i<11 ; i++) {
 		cgs.media.numberShaders[i] = trap_R_RegisterShader( sb_nums[i] );
+		cgs.media.plumShaders[i] = trap_R_RegisterShader( plum_nums[i] );
+		
 	}
 
 	cg.loadLCARSStage = 3;
@@ -1541,6 +1596,7 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.lagometerShader = trap_R_RegisterShaderNoMip("gfx/2d/lag" );
 	cgs.media.connectionShader = trap_R_RegisterShaderNoMip( "gfx/2d/net" );
 
+	CG_LoadingString( "Effects" );
 	trap_FX_InitSystem(&cg.refdef);
 	CG_RegisterEffects();
 
@@ -1557,7 +1613,7 @@ static void CG_RegisterGraphics( void ) {
 	cgs.effects.mStunBatonFleshImpact = trap_FX_RegisterEffect("stunBaton/flesh_impact.efx");
 	cgs.effects.mAltDetonate = trap_FX_RegisterEffect("demp2/altDetonate.efx");
 	cgs.effects.mSparksExplodeNoSound = trap_FX_RegisterEffect("sparks/spark_exp_nosnd");
-	cgs.effects.mTripMineLaster = trap_FX_RegisterEffect("tripMine/laser.efx");
+	cgs.effects.mTripMineLaser = trap_FX_RegisterEffect("tripMine/laser.efx");
 	cgs.effects.mEmplacedMuzzleFlash = trap_FX_RegisterEffect( "effects/emplaced/muzzle_flash" );
 	cgs.effects.mConcussionAltRing = trap_FX_RegisterEffect("concussion/alt_ring");
 
@@ -1566,6 +1622,8 @@ static void CG_RegisterGraphics( void ) {
 	cgs.effects.mShipDestDestroyed = trap_FX_RegisterEffect("effects/ships/dest_destroyed.efx");
 	cgs.effects.mShipDestBurning = trap_FX_RegisterEffect("effects/ships/dest_burning.efx");
 	cgs.effects.mBobaJet = trap_FX_RegisterEffect("effects/boba/jet.efx");
+	
+	cgs.effects.mJetpack = trap_FX_RegisterEffect("effects/player/jetpack.efx"); //("effects/rockettrooper/flamenew.efx");
 
 
 	cgs.effects.itemCone = trap_FX_RegisterEffect("mp/itemcone.efx");
@@ -1596,6 +1654,8 @@ static void CG_RegisterGraphics( void ) {
 
 	cg.loadLCARSStage = 4;
 
+	CG_LoadingString( "Powerups" );
+
 	cgs.media.backTileShader = trap_R_RegisterShader( "gfx/2d/backtile" );
 
 	//precache the fpls skin
@@ -1624,7 +1684,7 @@ static void CG_RegisterGraphics( void ) {
 		}
 	}
 
-	if ( cgs.gametype == GT_CTF || cgs.gametype == GT_CTY || com_buildScript.integer ) {
+	if ( cgs.gametype == GT_CTF || cgs.gametype == GT_CTY || cgs.gametype == GT_WARZONE || com_buildScript.integer ) {
 		if (com_buildScript.integer)
 		{
 			trap_R_RegisterModel( "models/flags/r_flag.md3" );
@@ -1633,7 +1693,7 @@ static void CG_RegisterGraphics( void ) {
 			trap_R_RegisterModel( "models/flags/b_flag_ysal.md3" );
 		}
 
-		if (cgs.gametype == GT_CTF)
+		if (cgs.gametype == GT_CTF || cgs.gametype == GT_WARZONE)
 		{
 			cgs.media.redFlagModel = trap_R_RegisterModel( "models/flags/r_flag.md3" );
 			cgs.media.blueFlagModel = trap_R_RegisterModel( "models/flags/b_flag.md3" );
@@ -1663,16 +1723,23 @@ static void CG_RegisterGraphics( void ) {
 		cgs.media.neutralFlagBaseModel = trap_R_RegisterModel( "models/mapobjects/flagbase/ntrl_base.md3" );
 	}
 
-	if ( cgs.gametype >= GT_TEAM || com_buildScript.integer ) {
+	cgs.media.teamStatusBar = trap_R_RegisterShader( "gfx/2d/colorbar.tga" );
+	/*
+	if ( cgs.gametype >= GT_TEAM || cg_buildScript.integer ) {
 		cgs.media.teamRedShader = trap_R_RegisterShader( "sprites/team_red" );
 		cgs.media.teamBlueShader = trap_R_RegisterShader( "sprites/team_blue" );
 		//cgs.media.redQuadShader = trap_R_RegisterShader("powerups/blueflag" );
-		cgs.media.teamStatusBar = trap_R_RegisterShader( "gfx/2d/colorbar.tga" );
+		//cgs.media.teamStatusBar = trap_R_RegisterShader( "gfx/2d/colorbar.tga" );
 	}
 	else if ( cgs.gametype == GT_JEDIMASTER )
 	{
 		cgs.media.teamRedShader = trap_R_RegisterShader( "sprites/team_red" );
-	}
+	}*/
+	// JKG: Always load these (for now)
+	// cgs.media.teamRedShader = trap_R_RegisterShader( "sprites/team_red" );
+	// cgs.media.teamBlueShader = trap_R_RegisterShader( "sprites/team_blue" );
+	cgs.media.teamRedShader = bgGangWarsTeams[cgs.redTeam].teamIcon;
+	cgs.media.teamBlueShader = bgGangWarsTeams[cgs.blueTeam].teamIcon;
 
 	if (cgs.gametype == GT_POWERDUEL || com_buildScript.integer)
 	{
@@ -1707,6 +1774,7 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.binocularOverlay		= trap_R_RegisterShader( "gfx/2d/binocularNumOverlay" );
 
 	cg.loadLCARSStage = 5;
+	CG_LoadingString( "Models" );
 
 	// Chunk models
 	//FIXME: jfm:? bother to conditionally load these if an ent has this material type?
@@ -1722,6 +1790,8 @@ static void CG_RegisterGraphics( void ) {
 		cgs.media.chunkModels[CHUNK_WHITE_METAL][i]	= trap_R_RegisterModel( va( "models/chunks/metal/wmetal1_%i.md3", i+1 ) );
 	}
 
+	cgs.media.hitmarkerSound		= trap_S_RegisterSound("sound/player/hitmarker");
+
 	cgs.media.chunkSound			= trap_S_RegisterSound("sound/weapons/explosions/glasslcar");
 	cgs.media.grateSound			= trap_S_RegisterSound( "sound/effects/grate_destroy" );
 	cgs.media.rockBreakSound		= trap_S_RegisterSound("sound/effects/wall_smash");
@@ -1732,7 +1802,16 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.glassChunkSound		= trap_S_RegisterSound("sound/weapons/explosions/glassbreak1");
 	cgs.media.crateBreakSound[0]	= trap_S_RegisterSound("sound/weapons/explosions/crateBust1" );
 	cgs.media.crateBreakSound[1]	= trap_S_RegisterSound("sound/weapons/explosions/crateBust2" );
+	
+	cgs.media.bboxShader = trap_R_RegisterShader ("gfx/effects/bbox");
+	
+	// Damage types
+	cgs.media.stunOverlay = trap_R_RegisterShader ("gfx/PlayerOverlays/stun");
+	cgs.media.iceOverlay = trap_R_RegisterShader ("gfx/PlayerOverlays/ice");
+	cgs.media.carboniteOverlay = trap_R_RegisterShader ("gfx/PlayerOverlays/carbonite");
+    cgs.media.playerFireEffect = trap_FX_RegisterEffect ("player/fire");
 
+	CG_LoadingString( "Items" );
 /*
 Ghoul2 Insert Start
 */
@@ -1740,7 +1819,6 @@ Ghoul2 Insert Start
 /*
 Ghoul2 Insert End
 */
-	memset( cg_weapons, 0, sizeof( cg_weapons ) );
 
 	// only register the items that the server says we need
 	Q_strncpyz(items, CG_ConfigString(CS_ITEMS), sizeof(items));
@@ -1777,6 +1855,7 @@ Ghoul2 Insert End
 	cgs.media.viewPainShader_Shields			= trap_R_RegisterShader( "gfx/mp/dmgshader_shields" );
 	cgs.media.viewPainShader_ShieldsAndHealth	= trap_R_RegisterShader( "gfx/mp/dmgshader_shieldsandhealth" );
 
+	CG_LoadingString( "Brush Models" );
 	// register the inline models
 	breakPoint = cgs.numInlineModels = trap_CM_NumInlineModels();
 	for ( i = 1 ; i < cgs.numInlineModels ; i++ ) {
@@ -1800,6 +1879,7 @@ Ghoul2 Insert End
 
 	cg.loadLCARSStage = 7;
 
+	CG_LoadingString( "Game Models" );
 	// register all the server specified models
 	for (i=1 ; i<MAX_MODELS ; i++) {
 		const char		*cModelName;
@@ -1832,7 +1912,7 @@ Ghoul2 Insert Start
 */
 
 
-//	CG_LoadingString( "BSP instances" );
+	CG_LoadingString( "BSP instances" );
 
 	for(i = 1; i < MAX_SUB_BSP; i++)
 	{
@@ -1847,6 +1927,7 @@ Ghoul2 Insert Start
 		{
 			break;
 		}
+		CG_LoadingString( va("BSP instances: %s", bspName) );
 
 		trap_CM_LoadMap( bspName, qtrue );
 		cgs.inlineDrawModel[breakPoint] = trap_R_RegisterModel( bspName );
@@ -1873,10 +1954,10 @@ Ghoul2 Insert Start
 		}
 	}
 
-//	CG_LoadingString( "Creating terrain" );
+	CG_LoadingString( "Creating terrain" );
 	for(i = 0; i < MAX_TERRAINS; i++)
 	{
-		terrainInfo = CG_ConfigString( CS_TERRAINS + i );
+		terrainInfo = CG_ConfigString( CS_TERRAINS + i + 1 );
 		if ( !terrainInfo[0] )
 		{
 			break;
@@ -1908,7 +1989,7 @@ Ghoul2 Insert Start
 	//then append the skin name after that (note that this is only
 	//used for NPCs)
 
-//	CG_LoadingString("weapons");
+	CG_LoadingString("Weapons");
 
 	CG_InitG2Weapons();
 
@@ -1917,6 +1998,7 @@ Ghoul2 Insert End
 */
 	cg.loadLCARSStage = 9;
 
+	cgs.media.hitmarkerGraphic = trap_R_RegisterShaderNoMip("gfx/2d/crosshair_hitmarker.tga");
 
 	// new stuff
 	cgs.media.patrolShader = trap_R_RegisterShaderNoMip("ui/assets/statusbar/patrol.tga");
@@ -1933,6 +2015,9 @@ Ghoul2 Insert End
 	cgs.media.flagShaders[0] = trap_R_RegisterShaderNoMip("ui/assets/statusbar/flag_in_base.tga");
 	cgs.media.flagShaders[1] = trap_R_RegisterShaderNoMip("ui/assets/statusbar/flag_capture.tga");
 	cgs.media.flagShaders[2] = trap_R_RegisterShaderNoMip("ui/assets/statusbar/flag_missing.tga");
+
+	// Jedi Knight Galaxies
+	cgs.media.lowHealthAura = trap_R_RegisterShader("gfx/jkg/lowhealthaura.png");
 
 	cgs.media.halfShieldModel	= trap_R_RegisterModel ( "models/weaphits/testboom.md3" );
 	cgs.media.halfShieldShader	= trap_R_RegisterShader( "halfShieldShell" );
@@ -1952,6 +2037,14 @@ Ghoul2 Insert End
 		}
 	}
 */
+
+	// Jedi Knight Galaxies
+
+	cgs.media.deathfont = trap_R_RegisterFont("euraldb");
+	cgs.media.hudfont1 = trap_R_RegisterFont("hudfnt1");
+	cgs.media.hudfont2 = trap_R_RegisterFont("hudfnt2");
+	cgs.media.horizgradient = trap_R_RegisterShaderNoMip("gfx/jkg/horzgradient.png");
+	cgs.media.avatar_placeholder = trap_R_RegisterShaderNoMip("gfx/avatars/placeholder.png");
 }
 
 
@@ -1965,40 +2058,25 @@ const char *CG_GetStringEdString(char *refSection, char *refName)
 	return text[index];
 }
 
-int	CG_GetClassCount(team_t team,int siegeClass );
-int CG_GetTeamNonScoreCount(team_t team);
-
-void CG_SiegeCountCvars( void )
+const char *CG_GetStringEdString2(char *refName)
 {
-	int classGfx[6];
+	static char text[2][1024]={0};	//just incase it's nested
+	static int		index = 0;
 
-	trap_Cvar_Set( "ui_tm1_cnt",va("%d",CG_GetTeamNonScoreCount(TEAM_RED )));
-	trap_Cvar_Set( "ui_tm2_cnt",va("%d",CG_GetTeamNonScoreCount(TEAM_BLUE )));
-	trap_Cvar_Set( "ui_tm3_cnt",va("%d",CG_GetTeamNonScoreCount(TEAM_SPECTATOR )));
-	
-	// This is because the only way we can match up classes is by the gfx handle. 
-	classGfx[0] = trap_R_RegisterShaderNoMip("gfx/mp/c_icon_infantry");
-	classGfx[1] = trap_R_RegisterShaderNoMip("gfx/mp/c_icon_heavy_weapons");
-	classGfx[2] = trap_R_RegisterShaderNoMip("gfx/mp/c_icon_demolitionist");
-	classGfx[3] = trap_R_RegisterShaderNoMip("gfx/mp/c_icon_vanguard");
-	classGfx[4] = trap_R_RegisterShaderNoMip("gfx/mp/c_icon_support");
-	classGfx[5] = trap_R_RegisterShaderNoMip("gfx/mp/c_icon_jedi_general");
-
-	trap_Cvar_Set( "ui_tm1_c0_cnt",va("%d",CG_GetClassCount(TEAM_RED,classGfx[0])));
-	trap_Cvar_Set( "ui_tm1_c1_cnt",va("%d",CG_GetClassCount(TEAM_RED,classGfx[1])));
-	trap_Cvar_Set( "ui_tm1_c2_cnt",va("%d",CG_GetClassCount(TEAM_RED,classGfx[2])));
-	trap_Cvar_Set( "ui_tm1_c3_cnt",va("%d",CG_GetClassCount(TEAM_RED,classGfx[3])));
-	trap_Cvar_Set( "ui_tm1_c4_cnt",va("%d",CG_GetClassCount(TEAM_RED,classGfx[4])));
-	trap_Cvar_Set( "ui_tm1_c5_cnt",va("%d",CG_GetClassCount(TEAM_RED,classGfx[5])));
-
-	trap_Cvar_Set( "ui_tm2_c0_cnt",va("%d",CG_GetClassCount(TEAM_BLUE,classGfx[0])));
-	trap_Cvar_Set( "ui_tm2_c1_cnt",va("%d",CG_GetClassCount(TEAM_BLUE,classGfx[1])));
-	trap_Cvar_Set( "ui_tm2_c2_cnt",va("%d",CG_GetClassCount(TEAM_BLUE,classGfx[2])));
-	trap_Cvar_Set( "ui_tm2_c3_cnt",va("%d",CG_GetClassCount(TEAM_BLUE,classGfx[3])));
-	trap_Cvar_Set( "ui_tm2_c4_cnt",va("%d",CG_GetClassCount(TEAM_BLUE,classGfx[4])));
-	trap_Cvar_Set( "ui_tm2_c5_cnt",va("%d",CG_GetClassCount(TEAM_BLUE,classGfx[5])));
-
+	index ^= 1;
+	if(refName[0] == '@')
+	{
+		// Reference it up!
+		trap_SP_GetStringTextString(refName+1, text[index], sizeof(text[0]));
+	}
+	else
+	{
+		strcpy(text[index], refName);
+	}
+	return text[index];
 }
+
+int CG_GetTeamNonScoreCount(team_t team);
 
 /*																																			
 =======================
@@ -2009,9 +2087,6 @@ CG_BuildSpectatorString
 void CG_BuildSpectatorString(void) {
 	int i;
 	cg.spectatorList[0] = 0;
-
-	// Count up the number of players per team and per class
-	CG_SiegeCountCvars();
 
 	for (i = 0; i < MAX_CLIENTS; i++) {
 		if (cgs.clientinfo[i].infoValid && cgs.clientinfo[i].team == TEAM_SPECTATOR ) {
@@ -2077,6 +2152,7 @@ CG_StartMusic
 ======================
 */
 void CG_StartMusic( qboolean bForceStart ) {
+#ifndef __MUSIC_ENGINE__
 	char	*s;
 	char	parm1[MAX_QPATH], parm2[MAX_QPATH];
 
@@ -2086,6 +2162,7 @@ void CG_StartMusic( qboolean bForceStart ) {
 	Q_strncpyz( parm2, COM_Parse( (const char **)&s ), sizeof( parm2 ) );
 
 	trap_S_StartBackgroundTrack( parm1, parm2, !bForceStart );
+#endif //__MUSIC_ENGINE__
 }
 
 char *CG_GetMenuBuffer(const char *filename) {
@@ -2166,6 +2243,26 @@ qboolean CG_Asset_Parse(int handle) {
 			cgDC.Assets.qhSmall2Font = cgDC.RegisterFont(token.string);
 			continue;
 		}
+
+		// Jedi Knight Galaxies: small3Font
+		if (Q_stricmp(token.string, "small3Font") == 0) {
+			int pointSize;
+			if (!trap_PC_ReadToken(handle, &token) || !PC_Int_Parse(handle, &pointSize)) {
+				return qfalse;
+			}
+			cgDC.Assets.qhSmall3Font = cgDC.RegisterFont(token.string);
+			continue;
+		}
+
+		if (Q_stricmp(token.string, "small4Font") == 0) {
+			int pointSize;
+			if (!trap_PC_ReadToken(handle, &token) || !PC_Int_Parse(handle, &pointSize)) {
+				return qfalse;
+			}
+			cgDC.Assets.qhSmall4Font = cgDC.RegisterFont(token.string);
+			continue;
+		}
+		//end JKG
 
 		// font
 		if (Q_stricmp(token.string, "bigfont") == 0) {
@@ -2353,10 +2450,16 @@ qboolean CG_Load_Menu(const char **p)
 }
 
 
-static qboolean CG_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, int key) {
+static qboolean CG_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, int key, int ownerDrawID) {
 	return qfalse;
 }
 
+#ifdef __MUSIC_ENGINE__
+extern int MyMusicTotal;
+extern int MyMusicSelection;
+extern const char *RADIO_GetStationName(int index);
+extern const char *RADIO_GetStationAddress(int index);
+#endif //__MUSIC_ENGINE__
 
 static int CG_FeederCount(float feederID) {
 	int i, count;
@@ -2375,6 +2478,10 @@ static int CG_FeederCount(float feederID) {
 		}
 	} else if (feederID == FEEDER_SCOREBOARD) {
 		return cg.numScores;
+#ifdef __MUSIC_ENGINE__
+	} else if (feederID == FEEDER_MUSICLIST || feederID == FEEDER_MUSICDESC) {
+		return MyMusicTotal;
+#endif //__MUSIC_ENGINE__
 	}
 	return count;
 }
@@ -2442,6 +2549,17 @@ static const char *CG_FeederItemText(float feederID, int index, int column,
 	score_t *sp = NULL;
 
 	*handle1 = *handle2 = *handle3 = -1;
+
+#ifdef __MUSIC_ENGINE__
+	if (feederID == FEEDER_MUSICLIST)
+	{
+		return RADIO_GetStationAddress(index);
+	}
+	else if (feederID == FEEDER_MUSICDESC)
+	{
+		return RADIO_GetStationName(index);
+	}
+#endif //__MUSIC_ENGINE__
 
 	if (feederID == FEEDER_REDTEAM_LIST) {
 		team = TEAM_RED;
@@ -2524,7 +2642,40 @@ static qhandle_t CG_FeederItemImage(float feederID, int index) {
 	return 0;
 }
 
-static qboolean CG_FeederSelection(float feederID, int index, itemDef_t *item) {
+static qboolean CG_FeederSelection(float feederID, int index, itemDef_t *item) 
+{
+
+#ifdef __MUSIC_ENGINE__
+	if (feederID == FEEDER_MUSICLIST)
+	{// UQ1: I dont think we actually need the http to display on UI, just the description...
+		int count = 0;
+		int i = 0;
+	
+		for (i = 0; i < MyMusicTotal; i++) {
+			if (index == count) {
+				MyMusicSelection = i;
+			}
+			count++;
+		}
+
+		return qtrue;
+	}
+	else if (feederID == FEEDER_MUSICDESC)
+	{
+		int count = 0;
+		int i = 0;
+	
+		for (i = 0; i < MyMusicTotal; i++) {
+			if (index == count) {
+				MyMusicSelection = i;
+			}
+			count++;
+		}
+
+		return qtrue;
+	}
+#endif //__MUSIC_ENGINE__
+
 	if ( cgs.gametype >= GT_TEAM ) {
 		int i, count;
 		int team = (feederID == FEEDER_REDTEAM_LIST) ? TEAM_RED : TEAM_BLUE;
@@ -2612,23 +2763,20 @@ void CG_LoadMenus(const char *menuFile)
 
 	if ( !f )
 	{
-		if( Q_isanumber( menuFile ) ) // cg_hudFiles 1
-			trap_Print( S_COLOR_GREEN "hud menu file skipped, using default\n" );
-		else
-			CG_Printf( S_COLOR_YELLOW "hud menu file not found: %s, using default\n", menuFile );
+		trap_Print( va( S_COLOR_RED "menu file not found: %s, using default\n", menuFile ) );
 
 		len = trap_FS_FOpenFile( "ui/jahud.txt", &f, FS_READ );
-		if (!f)
+		if (!f) 
 		{
-			trap_FS_FCloseFile( f );
-			CG_Error( S_COLOR_RED "default hud menu file not found: ui/jahud.txt, unable to continue!" );
+			trap_Print( va( S_COLOR_RED "default menu file not found: ui/hud.txt, unable to continue!\n", menuFile ) );
 		}
 	}
 
 	if ( len >= MAX_MENUDEFFILE ) 
 	{
+		trap_Print( va( S_COLOR_RED "menu file too large: %s is %i, max allowed is %i", menuFile, len, MAX_MENUDEFFILE ) );
 		trap_FS_FCloseFile( f );
-		CG_Error( S_COLOR_RED "menu file too large: %s is %i, max allowed is %i", menuFile, len, MAX_MENUDEFFILE );
+		return;
 	}
 
 	trap_FS_Read( buf, len, f );
@@ -2680,7 +2828,7 @@ void CG_LoadHudMenu()
 	cgDC.setColor = &trap_R_SetColor;
 	cgDC.drawHandlePic = &CG_DrawPic;
 	cgDC.drawStretchPic = &trap_R_DrawStretchPic;
-	cgDC.drawText = &CG_Text_Paint;
+	cgDC.drawText = reinterpret_cast<void (__cdecl *)(float, float, float, vec_t [], const char *, float, int, int, int)>(&CG_Text_Paint);
 	cgDC.textWidth = &CG_Text_Width;
 	cgDC.textHeight = &CG_Text_Height;
 	cgDC.registerModel = &trap_R_RegisterModel;
@@ -2700,7 +2848,7 @@ void CG_LoadHudMenu()
 	cgDC.Language_IsAsian = &trap_Language_IsAsian;
 	cgDC.Language_UsesSpaces = &trap_Language_UsesSpaces;
 	cgDC.AnyLanguage_ReadCharFromString = &trap_AnyLanguage_ReadCharFromString;
-	cgDC.ownerDrawItem = &CG_OwnerDraw;
+	cgDC.ownerDrawItem = ( void ( * )( itemDef_t *, float, float, float, float, float, float, int, int, int, float, float, vec4_t, qhandle_t, int, int, int )) &CG_OwnerDraw;
 	cgDC.getValue = &CG_GetValue;
 	cgDC.ownerDrawVisible = &CG_OwnerDrawVisible;
 	cgDC.runScript = &CG_RunMenuScript;
@@ -2745,6 +2893,7 @@ void CG_LoadHudMenu()
 	}
 
 	CG_LoadMenus(hudSet);
+	CG_LoadMenus("ui/jkghud.txt");
 
 }
 
@@ -2784,11 +2933,16 @@ Ghoul2 Insert Start
 void CG_Init_CG(void)
 {
 	memset( &cg, 0, sizeof(cg));
+	cg.ironsightsBlend = 1.0f;
+	cg.sprintBlend = 1.0f;
+	memset( cg.playerACI, -1, sizeof(cg.playerACI) );
 }
+
 
 // initialise the cg_entities structure - take into account the ghoul2 stl stuff
 void CG_Init_CGents(void)
 {
+	
 	memset(&cg_entities, 0, sizeof(cg_entities));
 }
 
@@ -2836,6 +2990,32 @@ Called after every level change or subsystem restart
 Will perform callbacks to make the loading info screen update.
 =================
 */
+
+void CinBuild_Init();
+void ChatBox_InitSystem();
+void MiniMap_Init();
+void JKG_WeaponIndicators_Init();
+
+#include "jkg_cg_auxlib.h"
+#include "jkg_chatcmds.h"
+
+static void CG_OpenPartyManagement( void ) {
+	uiImports->PartyMngtNotify( 10 );
+}
+
+static void CG_OpenInventory ( void )
+{
+	uiImports->InventoryNotify( 0 );
+}
+
+void CG_SetupChatCmds() {
+	//CCmd_AddCommand("party", CG_OpenPartyManagement);
+	CCmd_AddCommand ("inventory", CG_OpenInventory);
+}
+
+extern void JKG_CG_InitItems( void );
+extern void JKG_CG_InitArmor( void );
+extern void CG_InitializeCrossoverAPI( void );
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 {
 	static gitem_t *item;
@@ -2843,12 +3023,20 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 	const char	*s;
 	int i = 0;
 
+	cgame_initializing = qtrue;
+
+	// Do the engine patches
+	ChatBox_InitSystem();
+	trap_Cvar_Set("connmsg", ""); // Clear connection message override
+
 	BG_InitAnimsets(); //clear it out
 
 	trap_CG_RegisterSharedMemory(cg.sharedBuffer);
 
 	//Load external vehicle data
 	BG_VehicleLoadParms();
+
+	CG_InitializeCrossoverAPI();
 
 	// clear everything
 /*
@@ -2866,7 +3054,24 @@ Ghoul2 Insert Start
 	CG_InitJetpackGhoul2();
 
 	CG_PmoveClientPointerUpdate();
+	
+	// Yum, ammo
+	BG_InitializeAmmo();
+	
+	/* Initialize the weapon data table */
+	BG_InitializeWeapons();
 
+	JKG_InitializeConstants();
+
+	/* Here be crystals */
+	JKG_InitializeSaberCrystalData();
+
+	// and here is some stance data too
+	JKG_InitializeStanceData();
+
+	// Jedi Knight Galaxies
+	CinBuild_Init();
+	CG_SetupChatCmds();
 /*
 Ghoul2 Insert End
 */
@@ -2882,10 +3087,12 @@ Ghoul2 Insert End
 //	CG_LoadFonts();
 	cgDC.Assets.qhSmallFont  = trap_R_RegisterFont("ocr_a");
 	cgDC.Assets.qhMediumFont = trap_R_RegisterFont("ergoec");
+	cgDC.Assets.qhSmall3Font = trap_R_RegisterFont("bankgothic");
+	cgDC.Assets.qhSmall4Font = trap_R_RegisterFont("segoeui");
 	cgDC.Assets.qhBigFont = cgDC.Assets.qhMediumFont;
 
 	memset( &cgs, 0, sizeof( cgs ) );
-	memset( cg_weapons, 0, sizeof(cg_weapons) );
+	CG_InitWeapons();
 
 	cg.clientNum = clientNum;
 
@@ -2901,6 +3108,12 @@ Ghoul2 Insert End
 	cgs.media.charsetShader		= trap_R_RegisterShaderNoMip( "gfx/2d/charsgrid_med" );
 	cgs.media.whiteShader		= trap_R_RegisterShader( "white" );
 
+	//Jedi Knight Galaxies: more char sets
+	cgs.media.charset_Arial		= trap_R_RegisterShaderNoMip( "gfx/2d/charsgrid_arial" );
+	cgs.media.charset_Courier	= trap_R_RegisterShaderNoMip( "gfx/2d/charsgrid_courier" );
+	cgs.media.charset_Fixedsys	= trap_R_RegisterShaderNoMip( "gfx/2d/charsgrid_fixedsys" );
+	cgs.media.charset_Segoeui	= trap_R_RegisterShaderNoMip( "gfx/2d/charsgrid_chat" );
+
 	cgs.media.loadBarLED		= trap_R_RegisterShaderNoMip( "gfx/hud/load_tick" );
 	cgs.media.loadBarLEDCap		= trap_R_RegisterShaderNoMip( "gfx/hud/load_tick_cap" );
 	cgs.media.loadBarLEDSurround= trap_R_RegisterShaderNoMip( "gfx/hud/mp_levelload" );
@@ -2910,7 +3123,14 @@ Ghoul2 Insert End
 	cg.forceHUDTotalFlashTime = 0;
 	cg.forceHUDNextFlashTime = 0;
 
-	i = WP_NONE+1;
+	cg.numItemsInInventory = 0;
+
+	//eezstreet add
+	JKG_CG_InitItems();
+	JKG_CG_InitArmor();
+	BG_LoadDefaultWeaponItems();
+
+	/*i = WP_NONE+1;
 	while (i <= LAST_USEABLE_WEAPON)
 	{
 		item = BG_FindItemForWeapon(i);
@@ -2926,7 +3146,8 @@ Ghoul2 Insert End
 			cgs.media.weaponIcons_NA[i] = 0;
 		}
 		i++;
-	}
+	}*/
+
 	trap_Cvar_VariableStringBuffer("com_buildscript", buf, sizeof(buf));
 	if (atoi(buf))
 	{
@@ -2976,14 +3197,13 @@ Ghoul2 Insert End
 	cgs.media.bdecal_burn1 = trap_R_RegisterShader("gfx/damage/bodybigburnmark1");
 	cgs.media.mSaberDamageGlow = trap_R_RegisterShader("gfx/effects/saberDamageGlow");
 
+	//MB_InitMotionBlur();
+
 	CG_RegisterCvars();
 
 	CG_InitConsoleCommands();
 
-	//Raz: initialise third person setting
-	cg.renderingThirdPerson = cg_thirdPerson.integer;
-
-	cg.weaponSelect = WP_BRYAR_PISTOL;
+	cg.weaponSelect = 0;
 
 	cgs.redflag = cgs.blueflag = -1; // For compatibily, default to unset for
 	cgs.flagStatus = -1;
@@ -3002,7 +3222,7 @@ Ghoul2 Insert End
 	// check version
 	s = CG_ConfigString( CS_GAME_VERSION );
 	if ( strcmp( s, GAME_VERSION ) ) {
-		CG_Error( "Client/Server game mismatch: %s/%s", GAME_VERSION, s );
+		//CG_Error( "Client/Server game mismatch: %s/%s", GAME_VERSION, s );
 	}
 
 	s = CG_ConfigString( CS_LEVEL_START_TIME );
@@ -3012,23 +3232,37 @@ Ghoul2 Insert End
 
 	// load the new map
 //	CG_LoadingString( "collision map" );
-
 	trap_CM_LoadMap( cgs.mapname, qfalse );
+	
+#ifdef __DISABLED
+	JKG_Nav_Init (cgs.mapname);
+#endif
 
 	String_Init();
 
 	cg.loading = qtrue;		// force players to load instead of defer
 
-	//make sure saber data is loaded before this! (so we can precache the appropriate hilts)
-	CG_InitSiegeMode();
+	//CG_LoadingString ( "TrueView" );
+	//[TrueView]
+	CG_TrueViewInit();
+	//[/TrueView]
 
+	//CG_LoadingString ( "Sounds" );
 	CG_RegisterSounds();
 
-//	CG_LoadingString( "graphics" );
+	//CG_LoadingString( "Graphics" );
+	if(cgs.gametype >= GT_TEAM)
+	{
+		// Gang Wars stuff
+		char *info = (char *)CG_ConfigString( CS_TEAMS );
+		JKG_BG_GangWarsInit();
+		cgs.redTeam = JKG_GetTeamByReference( Info_ValueForKey( info, "redTeam" ) );
+		cgs.blueTeam = JKG_GetTeamByReference( Info_ValueForKey( info, "blueTeam" ) );
+	}
 
 	CG_RegisterGraphics();
 
-//	CG_LoadingString( "clients" );
+	//CG_LoadingString( "Clients" );
 
 	CG_RegisterClients();		// if low on memory, some clients will be deferred
 
@@ -3041,6 +3275,8 @@ Ghoul2 Insert End
 
 	CG_InitMarkPolys();
 
+	// Load the minimaps
+	MiniMap_Init();
 	// remove the last loading update
 	cg.infoScreenText[0] = 0;
 
@@ -3064,12 +3300,34 @@ Ghoul2 Insert End
 
 	trap_R_GetDistanceCull(&cg.distanceCull);
 
-	CG_ParseEntitiesFromString();
+	//now get all the cgame only cents
+	CG_SpawnCGameOnlyEnts();
 
 	//Raz: warn for poor settings
 	trap_Cvar_VariableStringBuffer( "rate", buf, sizeof( buf ) );
 	if ( atoi( buf ) == 4000 )
 		CG_Printf( "^3WARNING: Default /rate value detected. Suggest typing /rate 25000 for a smoother connection!\n" );
+		
+	/* Initialize the party list table */
+	for ( i = 0; i < MAX_CLIENTS; i++ )
+	{
+		cgs.partyList[i].id = PARTY_SLOT_EMPTY;
+	}
+
+	for ( i = 0; i < PARTY_SLOT_INVITES; i++ )
+	{
+		cgs.party.invites[i].id = PARTY_SLOT_EMPTY;
+	}
+
+	if(cg.turnOnBlurCvar)
+	{
+		trap_Cvar_Set("ui_blurbackground", "1");
+		cg.turnOnBlurCvar = qfalse;
+	}
+
+	cgs.media.swfTestShader = trap_R_RegisterShaderNoMip("animation/swf/test");
+
+	cgame_initializing = qfalse;
 }
 
 //makes sure returned string is in localized format
@@ -3130,15 +3388,22 @@ CG_Shutdown
 Called before every level change or subsystem restart
 =================
 */
+
 void CG_Shutdown( void ) 
 {
 	BG_ClearAnimsets(); //free all dynamic allocations made through the engine
 
     CG_DestroyAllGhoul2();
 
+	// Jedi Knight Galaxies, terminate the crossover
+	trap_CO_Shutdown();
+
 //	Com_Printf("... FX System Cleanup\n");
 	trap_FX_FreeSystem();
 	trap_ROFF_Clean();
+#ifdef __DISABLED
+	JKG_Nav_Destroy();
+#endif
 
 	if (cgWeatherOverride)
 	{

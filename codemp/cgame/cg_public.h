@@ -1,7 +1,20 @@
-#pragma once
+//       ____ ___________________   ___           ____  __ _______   ___  ________  ___ ______________
+//      |    |\_   _____/\______ \ |   |         |    |/ _|\      \ |   |/  _____/ /   |   \__    ___/
+//      |    | |    __)_  |    |  \|   |         |      <  /   |   \|   /   \  ___/    ~    \|    |   
+//  /\__|    | |        \ |    `   \   |         |    |  \/    |    \   \    \_\  \    Y    /|    |   
+//  \________|/_______  //_______  /___|         |____|__ \____|__  /___|\______  /\___|_  / |____|   
+//                    \/         \/                      \/       \/            \/       \/           
+//                         ________    _____   ____       _____  ____  ___ ______________ _________   
+//                        /  _____/   /  _  \ |    |     /  _  \ \   \/  /|   \_   _____//   _____/   
+//                       /   \  ___  /  /_\  \|    |    /  /_\  \ \     / |   ||    __)_ \_____  \    
+//                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
+//                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
+//                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
+// cg_public.h
+// Copyright (C) 1999-2000 Id Software, Inc. (c) 2013 Jedi Knight Galaxies
 
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+#ifndef __CG_PUBLIC_H
+#define __CG_PUBLIC_H
 
 #define	CMD_BACKUP			64	
 #define	CMD_MASK			(CMD_BACKUP - 1)
@@ -10,7 +23,12 @@
 // needs to be larger than PACKET_BACKUP
 
 
-#define	MAX_ENTITIES_IN_SNAPSHOT	256
+// Jedi Knight Galaxies
+// Goddamn morrons at Ravensoft.. 256 clientside, 1024 serverside? yea right.. fixin
+// Note, this uses a engine patch to disable the limit and an offset change to ensure snap.serverCommandSequence is still set --boba
+
+//#define	MAX_ENTITIES_IN_SNAPSHOT	256
+#define	MAX_ENTITIES_IN_SNAPSHOT	1024
 
 // snapshots are a view of the server at a given time
 
@@ -58,6 +76,10 @@ typedef enum {
 	CG_ERROR,
 	CG_MILLISECONDS,
 
+	// these have to match the definitions in ui_public.h ==eez
+	CG_CO_SYSCALL_UI = 4,
+	CG_CO_SYSCALL_CG = 5,
+
 	//Also for profiling.. do not use for game related tasks.
 	CG_PRECISIONTIMER_START,
 	CG_PRECISIONTIMER_END,
@@ -67,7 +89,7 @@ typedef enum {
 	CG_CVAR_SET,
 	CG_CVAR_VARIABLESTRINGBUFFER,
 	CG_CVAR_GETHIDDENVALUE,
-	CG_ARGC,
+	CG_ARGC,								// DOES NOT WORK			
 	CG_ARGV,
 	CG_ARGS,
 	CG_FS_FOPENFILE,
@@ -81,7 +103,7 @@ typedef enum {
 	CG_SENDCLIENTCOMMAND,
 	CG_UPDATESCREEN,
 	CG_CM_LOADMAP,
-	CG_CM_NUMINLINEMODELS,
+	CG_CM_NUMINLINEMODELS,					// DOES NOT WORK
 	CG_CM_INLINEMODEL,
 	CG_CM_TEMPBOXMODEL,
 	CG_CM_TEMPCAPSULEMODEL,
@@ -92,7 +114,7 @@ typedef enum {
 	CG_CM_TRANSFORMEDBOXTRACE,
 	CG_CM_TRANSFORMEDCAPSULETRACE,
 	CG_CM_MARKFRAGMENTS,
-	CG_S_GETVOICEVOLUME,
+	CG_S_GETVOICEVOLUME,					// DOES NOT WORK
 	CG_S_MUTESOUND,
 	CG_S_STARTSOUND,
 	CG_S_STARTLOCALSOUND,
@@ -140,8 +162,8 @@ typedef enum {
 	CGAME_FLOOR,
 	CGAME_CEIL,
 
-	CGAME_TESTPRINTINT,
-	CGAME_TESTPRINTFLOAT,
+	CGAME_TESTPRINTINT,						// DOES NOT WORK
+	CGAME_TESTPRINTFLOAT,					// DOES NOT WORK
 
 	CGAME_ACOS,
 	CGAME_ASIN,
@@ -182,17 +204,17 @@ typedef enum {
 	CG_GETSNAPSHOT,
 	CG_GETDEFAULTSTATE,
 	CG_GETSERVERCOMMAND,
-	CG_GETCURRENTCMDNUMBER,
+	CG_GETCURRENTCMDNUMBER,					// DOES NOT WORK
 	CG_GETUSERCMD,
 	CG_SETUSERCMDVALUE,
 	CG_SETCLIENTFORCEANGLE,
-	CG_SETCLIENTTURNEXTENT,
+	CG_SETCLIENTTURNEXTENT,					// DOES NOT WORK
 	CG_OPENUIMENU,
 	CG_TESTPRINTINT,
 	CG_TESTPRINTFLOAT,
-	CG_MEMORY_REMAINING,
+	CG_MEMORY_REMAINING,					// DOES NOT WORK
 	CG_KEY_ISDOWN,
-	CG_KEY_GETCATCHER,
+	CG_KEY_GETCATCHER,						// DOES NOT WORK
 	CG_KEY_SETCATCHER,
 	CG_KEY_GETKEY,
 
@@ -218,7 +240,7 @@ typedef enum {
 
 	CG_FX_REGISTER_EFFECT,
 	CG_FX_PLAY_EFFECT,
-	CG_FX_PLAY_ENTITY_EFFECT,
+	CG_FX_PLAY_ENTITY_EFFECT,				// DOES NOT WORK
 	CG_FX_PLAY_EFFECT_ID,
 	CG_FX_PLAY_PORTAL_EFFECT_ID,
 	CG_FX_PLAY_ENTITY_EFFECT_ID,
@@ -255,7 +277,7 @@ Ghoul2 Insert Start
 */
 	CG_G2_LISTSURFACES,
 	CG_G2_LISTBONES,
-	CG_G2_SETMODELS,
+	CG_G2_SETMODELS,						// DOES NOT WORK
 	CG_G2_HAVEWEGHOULMODELS,
 	CG_G2_GETBOLT,
 	CG_G2_GETBOLT_NOREC,
@@ -307,7 +329,7 @@ Ghoul2 Insert Start
 	CG_G2_RAGPCJCONSTRAINT,
 	CG_G2_RAGPCJGRADIENTSPEED,
 	CG_G2_RAGEFFECTORGOAL,
-	CG_G2_GETRAGBONEPOS,
+	CG_G2_GETRAGBONEPOS,					// DOES NOT WORK
 	CG_G2_RAGEFFECTORKICK,
 	CG_G2_RAGFORCESOLVE,
 
@@ -318,9 +340,9 @@ Ghoul2 Insert Start
 
 	CG_G2_REMOVEBONE,
 
-	CG_G2_ATTACHINSTANCETOENTNUM,
-	CG_G2_CLEARATTACHEDINSTANCE,
-	CG_G2_CLEANENTATTACHMENTS,
+	CG_G2_ATTACHINSTANCETOENTNUM,			// DOES NOT WORK
+	CG_G2_CLEARATTACHEDINSTANCE,			// DOES NOT WORK
+	CG_G2_CLEANENTATTACHMENTS,				// DOES NOT WORK
 	CG_G2_OVERRIDESERVER,
 
 	CG_G2_GETSURFACENAME,
@@ -330,14 +352,31 @@ Ghoul2 Insert Start
 	CG_CM_REGISTER_TERRAIN,
 	CG_RMG_INIT,
 	CG_RE_INIT_RENDERER_TERRAIN,
-	CG_R_WEATHER_CONTENTS_OVERRIDE,
+	CG_R_WEATHER_CONTENTS_OVERRIDE,			// DOES NOT WORK (but is called?)
 	CG_R_WORLDEFFECTCOMMAND,
 	//Adding trap to get weather working
-	CG_WE_ADDWEATHERZONE
+	CG_WE_ADDWEATHERZONE,
 
 /*
 Ghoul2 Insert End
 */
+
+	// JKG trap calls --eez
+	CG_CO_INITCROSSOVER,
+	CG_CO_SHUTDOWN,
+
+	CG_JKG_OVERRIDESHADERFRAME,
+	CG_JKG_GETCOLORTABLE,
+	CG_JKG_GETVIEWANGLES,
+	CG_JKG_SETVIEWANGLES,
+
+	// FX system stuff for CPLUSPLUS --eez
+	CG_FX_GETSHAREDMEM,
+	CG_FX_ADDMINIREFENTITY,
+
+	CG_FX_GETEFFECTCOPY1,
+	CG_FX_GETEFFECTCOPY2,
+	CG_FX_GETPRIMITIVECOPY,
 } cgameImport_t;
 
 
@@ -437,6 +476,9 @@ typedef enum {
 	CG_GET_SORTED_FORCE_POWER,
 
 	CG_FX_CAMERASHAKE,//mcg post-gold added
+
+	// Jedi Knight Galaxies
+	CG_MESSAGEMODE,
 } cgameExport_t;
 
 typedef struct
@@ -593,3 +635,5 @@ typedef struct
 #define	MAX_CG_SHARED_BUFFER_SIZE		2048
 
 //----------------------------------------------
+
+#endif // __CG_PUBLIC_H

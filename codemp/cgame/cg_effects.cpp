@@ -443,11 +443,11 @@ void CG_InitGlass( void )
 	}
 }
 
-void Vector2Set(vec2_t a,float b,float c)
+/*void Vector2Set(vec2_t a,float b,float c)
 {
 	a[0] = b;
 	a[1] = c;
-}
+}*/
 
 #define TIME_DECAY_SLOW		0.1f
 #define TIME_DECAY_MED		0.04f
@@ -1305,6 +1305,49 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 }
 
 /*
+==================
+CG_ScorePlum
+==================
+*/
+void CG_DamagePlum( int client, vec3_t org, int damage ) {
+	localEntity_t	*le;
+	refEntity_t		*re;
+	vec3_t			angles;
+	static vec3_t lastPos;
+
+	//if (cg_scorePlum.integer == 0) {
+	//	return;
+	//}
+
+	le = CG_AllocLocalEntity();
+	le->leFlags = 0;
+	le->leType = LE_DAMAGEPLUM;
+	le->startTime = cg.time;
+	le->endTime = cg.time + 4000;
+	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
+
+	
+	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
+	le->radius = damage;
+	
+	VectorCopy( org, le->pos.trBase );
+	if (org[2] >= lastPos[2] - 20 && org[2] <= lastPos[2] + 20) {
+		le->pos.trBase[2] -= 20;
+	}
+
+	VectorCopy(org, lastPos);
+
+
+	re = &le->refEntity;
+
+	re->reType = RT_SPRITE;
+	re->radius = 16;
+
+	VectorClear(angles);
+	AnglesToAxis( angles, re->axis );
+}
+
+/*
 ====================
 CG_MakeExplosion
 ====================
@@ -1484,6 +1527,37 @@ void CG_SurfaceExplosion( vec3_t origin, vec3_t normal, float radius, float shak
 		//CG_ImpactMark( cgs.media.burnMarkShader, origin, normal, random()*360, 1,1,1,1, qfalse, 8, qfalse );
 	}
 }
+
+/*
+=================
+CG_Bleed
+
+This is the spurt of blood when a character gets hit
+=================
+*/
+void CG_Bleed( vec3_t origin, int entityNum ) {
+	localEntity_t	*ex;
+
+	ex = CG_AllocLocalEntity();
+	ex->leType = LE_EXPLOSION;
+
+	ex->startTime = cg.time;
+	ex->endTime = ex->startTime + 500;
+	
+	VectorCopy ( origin, ex->refEntity.origin);
+	ex->refEntity.reType = RT_SPRITE;
+	ex->refEntity.rotation = rand() % 360;
+	ex->refEntity.radius = 24;
+
+	ex->refEntity.customShader = 0;//cgs.media.bloodExplosionShader;
+
+	// don't show player's own blood in view
+	if ( entityNum == cg.snap->ps.clientNum ) {
+		ex->refEntity.renderfx |= RF_THIRD_PERSON;
+	}
+}
+
+
 
 /*
 ==================
