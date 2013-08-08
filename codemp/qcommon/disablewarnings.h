@@ -3,6 +3,7 @@
 // hide these nasty warnings
 
 #ifdef _MSC_VER
+#pragma warning( disable : 4619 )		// fuck you and your warning about warnings not existing. THIS WARNING DOESNT EXIST ANYMORE, BITCH --eez
 	#pragma warning( disable : 4018 )	// signed/unsigned mismatch
 	#pragma warning( disable : 4032 )	// 
 	#pragma warning( disable : 4051 )	// 

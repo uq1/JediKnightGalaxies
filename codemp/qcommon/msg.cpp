@@ -36,22 +36,9 @@ Handles byte ordering and avoids alignment errors
 
 int oldsize = 0;
 
-bool g_nOverrideChecked = false;
-void MSG_CheckNETFPSFOverrides(qboolean psfOverrides);
-
 void MSG_initHuffman();
 
 void MSG_Init( msg_t *buf, byte *data, int length ) {
-	if (!g_nOverrideChecked)
-	{
-		//Check for netf overrides
-		MSG_CheckNETFPSFOverrides(qfalse);
-		
-		//Then for psf overrides
-		MSG_CheckNETFPSFOverrides(qtrue);
-
-		g_nOverrideChecked = true;
-	}
 
 	if (!msgInit)
 	{
@@ -64,16 +51,6 @@ void MSG_Init( msg_t *buf, byte *data, int length ) {
 }
 
 void MSG_InitOOB( msg_t *buf, byte *data, int length ) {
-	if (!g_nOverrideChecked)
-	{
-		//Check for netf overrides
-		MSG_CheckNETFPSFOverrides(qfalse);
-		
-		//Then for psf overrides
-		MSG_CheckNETFPSFOverrides(qtrue);
-
-		g_nOverrideChecked = true;
-	}
 
 	if (!msgInit)
 	{
@@ -844,171 +821,154 @@ typedef struct {
 
 netField_t	entityStateFields[] = 
 {
+{ NETF(eType), 8 },
+{ NETF(eFlags), 32 },
+{ NETF(eFlags2), 32 },
+
+{ NETF(pos.trType), 8 },
 { NETF(pos.trTime), 32 },
 { NETF(pos.trBase[1]), 0 },
 { NETF(pos.trBase[0]), 0 },
-{ NETF(apos.trBase[1]), 0 },
 { NETF(pos.trBase[2]), 0 },
-{ NETF(apos.trBase[0]), 0 },
 { NETF(pos.trDelta[0]), 0 },
 { NETF(pos.trDelta[1]), 0 },
-{ NETF(eType), 8 },
-{ NETF(angles[1]), 0 },
 { NETF(pos.trDelta[2]), 0 },
+{ NETF(pos.trDuration), 32 },
+{ NETF(apos.trType), 8 },
+{ NETF(apos.trTime), 32 },
+{ NETF(apos.trBase[0]), 0 },
+{ NETF(apos.trBase[1]), 0 },
+{ NETF(apos.trBase[2]), 0 },
+{ NETF(apos.trDelta[0]), 0 },
+{ NETF(apos.trDelta[1]), 0 },
+{ NETF(apos.trDelta[2]), 0 },
+{ NETF(apos.trDuration), 32 },
+
+{ NETF(time), 32 },
+{ NETF(time2), 32 },
+
 { NETF(origin[0]), 0 },
 { NETF(origin[1]), 0 },
 { NETF(origin[2]), 0 },
-// does this need to be 8 bits?
-{ NETF(weapon), 8 },
-{ NETF(apos.trType), 8 },
-// changed from 12 to 16
-{ NETF(legsAnim), 16 },			// Maximum number of animation sequences is 2048.  Top bit is reserved for the togglebit
-// suspicious
-{ NETF(torsoAnim), 16 },		// Maximum number of animation sequences is 2048.  Top bit is reserved for the togglebit
-// large use beyond GENTITYNUM_BITS - should use generic1 insead
-{ NETF(genericenemyindex), 32 }, //Do not change to GENTITYNUM_BITS, used as a time offset for seeker
-{ NETF(eFlags), 32 },
-{ NETF(pos.trDuration), 32 },
-// might be able to reduce
-{ NETF(teamowner), 8 },
-{ NETF(groundEntityNum), GENTITYNUM_BITS },
-{ NETF(pos.trType), 8 },
-{ NETF(angles[2]), 0 },
 { NETF(angles[0]), 0 },
-{ NETF(solid), 24 },
-// flag states barely used - could be moved elsewhere
-{ NETF(fireflag), 2 },
-{ NETF(event), 10 },			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
-// used mostly for players and npcs - appears to be static / never changing
-{ NETF(customRGBA[3]), 8 }, //0-255
-// used mostly for players and npcs - appears to be static / never changing
-{ NETF(customRGBA[0]), 8 }, //0-255
-// only used in fx system (which rick did) and chunks
-{ NETF(speed), 0 },
-// why are npc's clientnum's that big?
-{ NETF(clientNum), GENTITYNUM_BITS }, //with npc's clientnum can be > MAX_CLIENTS so use entnum bits now instead.
-{ NETF(apos.trBase[2]), 0 },
-{ NETF(apos.trTime), 32 },
-// used mostly for players and npcs - appears to be static / never changing
-{ NETF(customRGBA[1]), 8 }, //0-255
-// used mostly for players and npcs - appears to be static / never changing
-{ NETF(customRGBA[2]), 8 }, //0-255
-// multiple meanings
-{ NETF(saberEntityNum), GENTITYNUM_BITS },
-// could probably just eliminate and assume a big number
-{ NETF(g2radius), 8 },
-{ NETF(otherEntityNum2), GENTITYNUM_BITS },
-// used all over the place
-{ NETF(owner), GENTITYNUM_BITS },
-{ NETF(modelindex2), 8 },
-// why was this changed from 0 to 8 ?
-{ NETF(eventParm), 8 },
-// unknown about size?
-{ NETF(saberMove), 8 },
-{ NETF(apos.trDelta[1]), 0 },
-{ NETF(boneAngles1[1]), 0 },
-// why raised from 8 to -16?
-{ NETF(modelindex), -16 },
-// barely used, could probably be replaced
-{ NETF(emplacedOwner), 32 }, //As above, also used as a time value (for electricity render time)
-{ NETF(apos.trDelta[0]), 0 },
-{ NETF(apos.trDelta[2]), 0 },
-// shouldn't these be better off as flags?  otherwise, they may consume more bits this way
-{ NETF(torsoFlip), 1 },
-{ NETF(angles2[1]), 0 },
-// used mostly in saber and npc
-{ NETF(lookTarget), GENTITYNUM_BITS },
-{ NETF(origin2[2]), 0 },
-// randomly used, not sure why this was used instead of svc_noclient
-//	if (cent->currentState.modelGhoul2 == 127)
-//	{ //not ready to be drawn or initialized..
-//		return;
-//	}
-{ NETF(modelGhoul2), 8 },
-{ NETF(loopSound), 8 },
+{ NETF(angles[1]), 0 },
+{ NETF(angles[2]), 0 },
 { NETF(origin2[0]), 0 },
-// multiple purpose bit flag
-{ NETF(shouldtarget), 1 },
-// widely used, does not appear that they have to be 16 bits
-{ NETF(trickedentindex), 16 }, //See note in PSF
-{ NETF(otherEntityNum), GENTITYNUM_BITS },
 { NETF(origin2[1]), 0 },
-{ NETF(time2), 32 },
-{ NETF(legsFlip), 1 },
-// fully used
-{ NETF(bolt2), GENTITYNUM_BITS },
-{ NETF(constantLight), 32 },
-{ NETF(time), 32 },
-// why doesn't lookTarget just indicate this?
-{ NETF(hasLookTarget), 1 },
-{ NETF(boneAngles1[2]), 0 },
-// used for both force pass and an emplaced gun - gun is just a flag indicator
-{ NETF(activeForcePass), 6 },
-// used to indicate health
-{ NETF(health), 10 }, //if something's health exceeds 1024, then.. too bad!
-// appears to have multiple means, could be eliminated by indicating a sound set differently
-{ NETF(loopIsSoundset), 1 },
-{ NETF(saberHolstered), 2 },
-//NPC-SPECIFIC:
-// both are used for NPCs sabers, though limited
-{ NETF(npcSaber1), 9 },
-{ NETF(maxhealth), 10 },
-{ NETF(trickedentindex2), 16 },
-// appear to only be 18 powers?
-{ NETF(forcePowersActive), 32 },
-// used, doesn't appear to be flexible
-{ NETF(iModelScale), 10 }, //0-1024 (guess it's gotta be increased if we want larger allowable scale.. but 1024% is pretty big)
-// full bits used
-{ NETF(powerups), 16 },
-// can this be reduced?
-{ NETF(soundSetIndex), 8 }, //rww - if MAX_AMBIENT_SETS is changed from 256, REMEMBER TO CHANGE THIS
-// looks like this can be reduced to 4? (ship parts = 4, people parts = 2)
-{ NETF(brokenLimbs), 8 }, //up to 8 limbs at once (not that that many are used)
-{ NETF(csSounds_Std), 8 }, //soundindex must be 8 unless max sounds is changed
-// used extensively
-{ NETF(saberInFlight), 1 },
+{ NETF(origin2[2]), 0 },
 { NETF(angles2[0]), 0 },
-{ NETF(frame), 16 },
+{ NETF(angles2[1]), 0 },
 { NETF(angles2[2]), 0 },
-// why not use torsoAnim and set a flag to do the same thing as forceFrame (saberLockFrame)
-{ NETF(forceFrame), 16 }, //if you have over 65536 frames, then this will explode. Of course if you have that many things then lots of things will probably explode.
-{ NETF(generic1), 8 },
-// do we really need 4 indexes?
-{ NETF(boneIndex1), 6 }, //up to 64 bones can be accessed by this indexing method
-// only 54 classes, could cut down 2 bits
-{ NETF(NPC_class), 8 },
-{ NETF(apos.trDuration), 32 },
-// there appears to be only 2 different version of parms passed - a flag would better be suited
-{ NETF(boneOrient), 9 }, //3 bits per orientation dir
-// this looks to be a single bit flag
+
 { NETF(bolt1), 8 },
+{ NETF(bolt2), GENTITYNUM_BITS },
+
+{ NETF(trickedentindex), 16 }, //See note in PSF
+{ NETF(trickedentindex2), 16 },
 { NETF(trickedentindex3), 16 },
-// in use for vehicles
-{ NETF(m_iVehicleNum), GENTITYNUM_BITS }, // 10 bits fits all possible entity nums (2^10 = 1024). - AReis
 { NETF(trickedentindex4), 16 },
-// but why is there an opposite state of surfaces field?
-{ NETF(surfacesOff), 32 },
-{ NETF(eFlags2), 10 },
-// should be bit field
+
+{ NETF(speed), 0 },
+
+{ NETF(fireflag), 2 },
+
+{ NETF(genericenemyindex), 32 }, //Do not change to GENTITYNUM_BITS, used as a time offset for seeker
+
+{ NETF(activeForcePass), 6 },
+
+{ NETF(emplacedOwner), 32 }, //As above, also used as a time value (for electricity render time)
+
+{ NETF(otherEntityNum), GENTITYNUM_BITS },
+{ NETF(otherEntityNum2), GENTITYNUM_BITS },
+
+{ NETF(groundEntityNum), GENTITYNUM_BITS },
+
+{ NETF(constantLight), 32 },
+{ NETF(loopSound), 8 },
+{ NETF(loopIsSoundset), 1 },
+
+{ NETF(soundSetIndex), 8 }, //rww - if MAX_AMBIENT_SETS is changed from 256, REMEMBER TO CHANGE THIS
+
+{ NETF(modelGhoul2), 8 },
+{ NETF(g2radius), 8 },
+{ NETF(modelindex), -16 },
+{ NETF(modelindex2), 8 },
+{ NETF(clientNum), GENTITYNUM_BITS }, //with npc's clientnum can be > MAX_CLIENTS so use entnum bits now instead.
+{ NETF(frame), 16 },
+
+{ NETF(saberInFlight), 1 },
+{ NETF(saberEntityNum), GENTITYNUM_BITS },
+{ NETF(saberMove), 8 },
+{ NETF(forcePowersActive), 32 },
+{ NETF(saberHolstered), 2 },
+
 { NETF(isJediMaster), 1 },
-// should be bit field
+
 { NETF(isPortalEnt), 1 },
-// possible multiple definitions
+
+{ NETF(solid), 24 },
+
+{ NETF(event), 10 },			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
+{ NETF(eventParm), 8 },
+
+{ NETF(owner), GENTITYNUM_BITS },
+{ NETF(teamowner), 8 },
+{ NETF(shouldtarget), 1 },
+
+{ NETF(powerups), 16 },
+{ NETF(weapon), 8 },
+{ NETF(legsAnim), 16 },			// Maximum number of animation sequences is 2048.  Top bit is reserved for the togglebit
+{ NETF(torsoAnim), 16 },		// Maximum number of animation sequences is 2048.  Top bit is reserved for the togglebit
+
+{ NETF(legsFlip), 1 },
+{ NETF(torsoFlip), 1 },
+
+{ NETF(forceFrame), 16 }, //if you have over 65536 frames, then this will explode. Of course if you have that many things then lots of things will probably explode.
+
+{ NETF(generic1), 8 },
+
 { NETF(heldByClient), 6 },
-// this does not appear to be used in any production or non-cheat fashion - REMOVE
+
 { NETF(ragAttach), GENTITYNUM_BITS },
-// used only in one spot for seige
+
+{ NETF(iModelScale), 10 }, //0-1024 (guess it's gotta be increased if we want larger allowable scale.. but 1024% is pretty big)
+
+{ NETF(brokenLimbs), 8 }, //up to 8 limbs at once (not that that many are used)
+
 { NETF(boltToPlayer), 6 },
+
+{ NETF(hasLookTarget), 1 },
+{ NETF(lookTarget), GENTITYNUM_BITS },
+
+{ NETF(customRGBA[0]), 8 }, //0-255
+{ NETF(customRGBA[1]), 8 }, //0-255
+{ NETF(customRGBA[2]), 8 }, //0-255
+{ NETF(customRGBA[3]), 8 }, //0-255
+
+{ NETF(health), 10 }, //if something's health exceeds 1024, then.. too bad!
+{ NETF(maxhealth), 10 },
+
+{ NETF(npcSaber1), 9 },
 { NETF(npcSaber2), 9 },
+
+{ NETF(csSounds_Std), 8 }, //soundindex must be 8 unless max sounds is changed
 { NETF(csSounds_Combat), 8 },
 { NETF(csSounds_Extra), 8 },
 { NETF(csSounds_Jedi), 8 },
-// used only for surfaces on NPCs
+
 { NETF(surfacesOn), 32 }, //allow up to 32 surfaces in the bitflag
+{ NETF(surfacesOff), 32 },
+
+{ NETF(boneIndex1), 6 }, //up to 64 bones can be accessed by this indexing method
 { NETF(boneIndex2), 6 },
 { NETF(boneIndex3), 6 },
 { NETF(boneIndex4), 6 },
+
+{ NETF(boneOrient), 9 }, //3 bits per orientation dir
+
 { NETF(boneAngles1[0]), 0 },
+{ NETF(boneAngles1[1]), 0 },
+{ NETF(boneAngles1[2]), 0 },
 { NETF(boneAngles2[0]), 0 },
 { NETF(boneAngles2[1]), 0 },
 { NETF(boneAngles2[2]), 0 },
@@ -1019,19 +979,34 @@ netField_t	entityStateFields[] =
 { NETF(boneAngles4[1]), 0 },
 { NETF(boneAngles4[2]), 0 },
 
-//rww - for use by mod authors only
-{ NETF(userInt1), 1 },
-{ NETF(userInt2), 1 },
-{ NETF(userInt3), 1 },
-{ NETF(userFloat1), 1 },
-{ NETF(userFloat2), 1 },
-{ NETF(userFloat3), 1 },
-{ NETF(userVec1[0]), 1 },
-{ NETF(userVec1[1]), 1 },
-{ NETF(userVec1[2]), 1 },
-{ NETF(userVec2[0]), 1 },
-{ NETF(userVec2[1]), 1 },
-{ NETF(userVec2[2]), 1 }
+{ NETF(NPC_class), 8 },
+
+{ NETF(m_iVehicleNum), GENTITYNUM_BITS }, // 10 bits fits all possible entity nums (2^10 = 1024). - AReis
+
+// JKG SPECIFIC
+{ NETF(weaponVariation), 8 },
+{ NETF(firingMode), 8 },
+{ NETF(weaponstate), 8 },
+
+{ NETF(damageTypeFlags), 32 },	// FIXME: does this really need to be sent as 32 bits? :/
+
+{ NETF(attackTime), 32 },
+{ NETF(freezeTorsoAnim), 16 },
+{ NETF(freezeLegsAnim), 16 },
+
+{ NETF(saberActionFlags), 16 },
+{ NETF(forcePower), 16 },
+{ NETF(saberSwingSpeed), 0 },
+{ NETF(saberMoveSwingSpeed), 0 },
+
+// Some of the below is totally unused. Forgive me, your lordship --eez
+{ NETF(saberPommel[0]), 16 },
+{ NETF(saberPommel[1]), 16 },
+{ NETF(saberShaft[0]), 16 },
+{ NETF(saberShaft[1]), 16 },
+{ NETF(saberEmitter[0]), 16 },
+{ NETF(saberEmitter[1]), 16 },
+{ NETF(saberCrystal[0]), 16 }
 };
 
 // if (int)f == f and (int)f + ( 1<<(FLOAT_INT_BITS-1) ) < ( 1 << FLOAT_INT_BITS )
@@ -1065,7 +1040,15 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 	// the "number" field is not part of the field list
 	// if this assert fails, someone added a field to the entityState_t
 	// struct without updating the message fields
-	assert( numFields + 1 == sizeof( *from )/4 );
+
+	//assert( numFields + 1 == sizeof( *from )/4 );	// this is totally fucking useless, let's make the assert way more verbose --eez
+#ifdef _DEBUG
+	if( numFields + 1 != sizeof( *from )/4 )
+	{
+		size_t fieldSize = sizeof( *from )/4;
+		assert( va("numFields + 1 (%i bytes) does not match sizeof(*from)/4 (%i bytes)!!", numFields + 1, fieldSize) );
+	}
+#endif
 
 	// a NULL to is a delta remove message
 	if ( to == NULL ) {
@@ -1458,19 +1441,41 @@ netField_t	playerStateFields[] =
 //{ PSF(hyperSpaceAngles[0]), 0 },//only used by vehicle?
 //{ PSF(hyperSpaceAngles[2]), 0 },//only used by vehicle?
 
-//rww - for use by mod authors only
-{ PSF(userInt1), 1 },
-{ PSF(userInt2), 1 },
-{ PSF(userInt3), 1 },
-{ PSF(userFloat1), 1 },
-{ PSF(userFloat2), 1 },
-{ PSF(userFloat3), 1 },
-{ PSF(userVec1[0]), 1 },
-{ PSF(userVec1[1]), 1 },
-{ PSF(userVec1[2]), 1 },
-{ PSF(userVec2[0]), 1 },
-{ PSF(userVec2[1]), 1 },
-{ PSF(userVec2[2]), 1 }
+{ PSF(weaponVariation), 8 },
+{ PSF(weaponId), 8 },
+{ PSF(shotsRemaining), 8 },
+{ PSF(sprintMustWait), 8 },
+
+{ PSF(saberActionFlags), 16 },
+
+{ PSF(damageTypeFlags), 32 },
+{ PSF(freezeTorsoAnim), 32 },
+{ PSF(freezeLegsAnim), 32 },
+
+{ PSF(firingMode), 8 },
+{ PSF(ironsightsTime), 32 },
+{ PSF(ironsightsDebounceStart), 32 },
+{ PSF(isInSights), 1 },
+
+{ PSF(sprintTime), 32 },
+{ PSF(sprintDebounceTime), 32 },
+{ PSF(isSprinting), 1 },
+
+{ PSF(forcePower), 16 },
+{ PSF(saberSwingSpeed), 0 },
+{ PSF(saberMoveSwingSpeed), 0 },
+
+{ PSF(saberPommel[0]), 16 },
+{ PSF(saberPommel[1]), 16 },
+{ PSF(saberShaft[0]), 16 },
+{ PSF(saberShaft[1]), 16 },
+{ PSF(saberEmitter[0]), 16 },
+{ PSF(saberEmitter[1]), 16 },
+{ PSF(saberCrystal[0]), 16 },
+{ PSF(saberCrystal[1]), 16 },
+
+{ PSF(blockPoints), 16 },
+{ PSF(ammo), 16 }
 };
 
 netField_t	pilotPlayerStateFields[] = 
@@ -1622,19 +1627,34 @@ netField_t	pilotPlayerStateFields[] =
 //{ PSF(hyperSpaceAngles[0]), 0 },//only used by vehicle?
 //{ PSF(hyperSpaceAngles[2]), 0 },//only used by vehicle?
 
-//rww - for use by mod authors only
-{ PSF(userInt1), 1 },
-{ PSF(userInt2), 1 },
-{ PSF(userInt3), 1 },
-{ PSF(userFloat1), 1 },
-{ PSF(userFloat2), 1 },
-{ PSF(userFloat3), 1 },
-{ PSF(userVec1[0]), 1 },
-{ PSF(userVec1[1]), 1 },
-{ PSF(userVec1[2]), 1 },
-{ PSF(userVec2[0]), 1 },
-{ PSF(userVec2[1]), 1 },
-{ PSF(userVec2[2]), 1 }
+{ PSF(weaponVariation), 8 },
+{ PSF(weaponId), 8 },
+{ PSF(shotsRemaining), 8 },
+
+{ PSF(damageTypeFlags), 32 },
+{ PSF(freezeTorsoAnim), 32 },
+{ PSF(freezeLegsAnim), 32 },
+
+{ PSF(firingMode), 8 },
+{ PSF(ironsightsTime), 32 },
+{ PSF(ironsightsDebounceStart), 32 },
+{ PSF(isInSights), 1 },
+
+{ PSF(forcePower), 16 },
+{ PSF(saberSwingSpeed), 0 },
+{ PSF(saberMoveSwingSpeed), 0 },
+
+{ PSF(saberPommel[0]), 16 },
+{ PSF(saberPommel[1]), 16 },
+{ PSF(saberShaft[0]), 16 },
+{ PSF(saberShaft[1]), 16 },
+{ PSF(saberEmitter[0]), 16 },
+{ PSF(saberEmitter[1]), 16 },
+{ PSF(saberCrystal[0]), 16 },
+{ PSF(saberCrystal[1]), 16 },
+
+{ PSF(blockPoints), 16 },
+{ PSF(ammo), 16 }
 };
 
 netField_t	vehPlayerStateFields[] = 
@@ -1707,20 +1727,7 @@ netField_t	vehPlayerStateFields[] =
 { PSF(vehSurfaces), 16 }, //allow up to 16 surfaces in the flag I guess
 { PSF(hyperSpaceAngles[0]), 0 },
 { PSF(hyperSpaceAngles[2]), 0 },
-
-//rww - for use by mod authors only
-{ PSF(userInt1), 1 },
-{ PSF(userInt2), 1 },
-{ PSF(userInt3), 1 },
-{ PSF(userFloat1), 1 },
-{ PSF(userFloat2), 1 },
-{ PSF(userFloat3), 1 },
-{ PSF(userVec1[0]), 1 },
-{ PSF(userVec1[1]), 1 },
-{ PSF(userVec1[2]), 1 },
-{ PSF(userVec2[0]), 1 },
-{ PSF(userVec2[1]), 1 },
-{ PSF(userVec2[2]), 1 }
+{ PSF(ammo), 16 },
 };
 
 //=====_OPTIMIZED_VEHICLE_NETWORKING=======================================================================
@@ -1901,200 +1908,6 @@ struct bitStorage_s
 static bitStorage_t		*g_netfBitStorage = NULL;
 static bitStorage_t		*g_psfBitStorage = NULL;
 
-//rww - Check the overrides files to see if the mod wants anything changed
-void MSG_CheckNETFPSFOverrides(qboolean psfOverrides)
-{
-	char overrideFile[4096];
-	char entryName[4096];
-	char bits[4096];
-	char *fileName;
-	int ibits;
-	int i = 0;
-	int j;
-	int len;
-	int numFields;
-	fileHandle_t f;
-	bitStorage_t **bitStorage;
-
-	if (psfOverrides)
-	{ //do PSF overrides instead of NETF
-		fileName = "psf_overrides.txt";
-		bitStorage = &g_psfBitStorage;
-		numFields = sizeof(playerStateFields)/sizeof(playerStateFields[0]);
-	}
-	else
-	{
-		fileName = "netf_overrides.txt";
-		bitStorage = &g_netfBitStorage;
-		numFields = sizeof(entityStateFields)/sizeof(entityStateFields[0]);
-	}
-
-	if (*bitStorage)
-	{ //if we have saved off the defaults before we want to stuff them all back in now
-		bitStorage_t *restore = *bitStorage;
-
-		while (i < numFields)
-		{
-			assert(restore);
-
-			if (psfOverrides)
-			{
-				playerStateFields[i].bits = restore->bits;
-			}
-			else
-			{
-				entityStateFields[i].bits = restore->bits;
-			}
-
-			i++;
-			restore = restore->next;
-		}
-	}
-
-	len = FS_FOpenFileRead(va("ext_data/MP/%s", fileName), &f, qfalse);
-
-	if (!f)
-	{ //silently exit since this file is not needed to proceed.
-		return;
-	}
-
-	if (len >= 4096)
-	{
-		Com_Printf("WARNING: %s is >= 4096 bytes and is being ignored\n", fileName);
-		FS_FCloseFile(f);
-		return;
-	}
-
-	//Get contents of the file
-	FS_Read(overrideFile, len, f);
-	FS_FCloseFile(f);
-
-	//because FS_Read does not do this for us.
-	overrideFile[len] = 0;
-
-	//If we haven't saved off the initial stuff yet then stuff it all into
-	//a list.
-	if (!*bitStorage)
-	{
-		i = 0;
-
-		while (i < numFields)
-		{
-			//Alloc memory for this new ptr
-			*bitStorage = (bitStorage_t *)Z_Malloc(sizeof(bitStorage_t), TAG_GENERAL, qtrue);
-
-			if (psfOverrides)
-			{
-				(*bitStorage)->bits = playerStateFields[i].bits;
-			}
-			else
-			{
-				(*bitStorage)->bits = entityStateFields[i].bits;
-			}
-
-			//Point to the ->next of the existing current ptr
-			bitStorage = &(*bitStorage)->next;
-			i++;
-		}
-	}
-
-	i = 0;
-	//Now parse through. Lines beginning with ; are disabled.
-	while (overrideFile[i])
-	{
-		if (overrideFile[i] == ';')
-		{ //parse to end of the line
-			while (overrideFile[i] != '\n')
-			{
-				i++;
-			}
-		}
-
-		if (overrideFile[i] != ';' &&
-			overrideFile[i] != '\n' &&
-			overrideFile[i] != '\r')
-		{ //on a valid char I guess, parse it
-			j = 0;
-
-			while (overrideFile[i] && overrideFile[i] != ',')
-			{
-				entryName[j] = overrideFile[i];
-				j++;
-				i++;
-			}
-			entryName[j] = 0;
-
-			if (!overrideFile[i])
-			{ //just give up, this shouldn't happen
-				Com_Printf("WARNING: Parsing error for %s\n", fileName);
-				return;
-			}
-
-			while (overrideFile[i] == ',' || overrideFile[i] == ' ')
-			{ //parse to the start of the value
-				i++;
-			}
-
-			j = 0;
-			while (overrideFile[i] != '\n' && overrideFile[i] != '\r')
-			{ //now read the value in
-				bits[j] = overrideFile[i];
-				j++;
-				i++;
-			}
-			bits[j] = 0;
-
-			if (bits[0])
-			{
-				if (!strcmp(bits, "GENTITYNUM_BITS"))
-				{ //special case
-					ibits = GENTITYNUM_BITS;
-				}
-				else
-				{
-	                ibits = atoi(bits);
-				}
-
-				j = 0;
-
-				//Now go through all the fields and see if we can find a match
-				while (j < numFields)
-				{
-					if (psfOverrides)
-					{ //check psf fields
-						if (!strcmp(playerStateFields[j].name, entryName))
-						{ //found it, set the bits
-							playerStateFields[j].bits = ibits;
-							break;
-						}
-					}
-					else
-					{ //otherwise check netf fields
-						if (!strcmp(entityStateFields[j].name, entryName))
-						{ //found it, set the bits
-							entityStateFields[j].bits = ibits;
-							break;
-						}
-					}
-					j++;
-				}
-
-				if (j == numFields)
-				{ //failed to find the value
-					Com_Printf("WARNING: Value '%s' from %s is not valid\n", entryName, fileName);
-				}
-			}
-			else
-			{ //also should not happen
-				Com_Printf("WARNING: Parsing error for %s\n", fileName);
-				return;
-			}
-		}
-
-		i++;
-	}
-}
-
 //MAKE SURE THIS MATCHES THE ENUM IN BG_PUBLIC.H!!!
 //This is in caps, because it is important.
 #define STAT_WEAPONS 4
@@ -2114,7 +1927,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	playerState_t	dummy;
 	int				statsbits;
 	int				persistantbits;
-	int				ammobits;
 	int				powerupbits;
 	int				numFields;
 	int				c;
@@ -2241,12 +2053,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 			persistantbits |= 1<<i;
 		}
 	}
-	ammobits = 0;
-	for (i=0 ; i<16 ; i++) {
-		if (to->ammo[i] != from->ammo[i]) {
-			ammobits |= 1<<i;
-		}
-	}
 	powerupbits = 0;
 	for (i=0 ; i<16 ; i++) {
 		if (to->powerups[i] != from->powerups[i]) {
@@ -2254,7 +2060,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 		}
 	}
 
-	if (!statsbits && !persistantbits && !ammobits && !powerupbits) {
+	if (!statsbits && !persistantbits && !powerupbits) {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 		oldsize += 4;
 #ifdef _ONEBIT_COMBO
@@ -2299,15 +2105,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	}
 
 
-	if ( ammobits ) {
-		MSG_WriteBits( msg, 1, 1 );	// changed
-		MSG_WriteShort( msg, ammobits );
-		for (i=0 ; i<16 ; i++)
-			if (ammobits & (1<<i) )
-				MSG_WriteShort (msg, to->ammo[i]);
-	} else {
-		MSG_WriteBits( msg, 0, 1 );	// no change
-	}
 
 
 	if ( powerupbits ) {
@@ -2526,15 +2323,6 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 #ifdef _DONETPROFILE_
 		startBytes=msg->readcount;
 #endif
-		if ( MSG_ReadBits( msg, 1 ) ) {
-			LOG("PS_AMMO");
-			bits = MSG_ReadShort (msg);
-			for (i=0 ; i<16 ; i++) {
-				if (bits & (1<<i) ) {
-					to->ammo[i] = MSG_ReadShort(msg);
-				}
-			}
-		}
 #ifdef _DONETPROFILE_
 		endBytes=msg->readcount;
 		ClReadProf().AddField("PS_AMMO",endBytes-startBytes);

@@ -1,20 +1,31 @@
 // Copyright (C) 2000-2002 Raven Software, Inc.
 //
 
+#ifndef _GAME_VERSION_H
+#define _GAME_VERSION_H
+
 #define _STR(x) #x
 #define STR(x) _STR(x)
 
+#include "../win32/AutoVersion.h"
+
+#define JKG_VERSION "0.4.13"
 // Current version of the multi player game
-#define VERSION_MAJOR_RELEASE		1
-#define VERSION_MINOR_RELEASE		0
-#define VERSION_EXTERNAL_BUILD		1
-#define VERSION_INTERNAL_BUILD		0
-
-#define VERSION_STRING STR(VERSION_MAJOR_RELEASE) ", " STR(VERSION_MINOR_RELEASE) ", " STR(VERSION_EXTERNAL_BUILD) ", " STR(VERSION_INTERNAL_BUILD) // "a, b, c, d"
-#define VERSION_STRING_DOTTED STR(VERSION_MAJOR_RELEASE) "." STR(VERSION_MINOR_RELEASE) "." STR(VERSION_EXTERNAL_BUILD) "." STR(VERSION_INTERNAL_BUILD) // "a.b.c.d"
-
-#if defined(_DEBUG)
-	#define	JK_VERSION		"(debug)OpenJK-MP: v"VERSION_STRING_DOTTED
+#ifdef _DEBUG
+	#define JKG_VERSION_SUFFIX "d"
+	#define	JK_VERSION		"(debug)JAmp: v"VERSION_STRING_DOTTED"/JKG: v"JKG_VERSION JKG_VERSION_SUFFIX
+	
+#elif defined FINAL_BUILD
+	#define JKG_VERSION_SUFFIX ""
+	#define	JK_VERSION		"JAmp: v"VERSION_STRING_DOTTED"/JKG: v"JKG_VERSION JKG_VERSION_SUFFIX
+	
 #else
-	#define	JK_VERSION		"OpenJK-MP: v"VERSION_STRING_DOTTED
+	#define JKG_VERSION_SUFFIX "r"
+	#define	JK_VERSION		"(internal)JAmp: v"VERSION_STRING_DOTTED"/JKG: v"JKG_VERSION JKG_VERSION_SUFFIX
 #endif
+
+#define	GAMEVERSION	"Jedi Knight Galaxies v"JKG_VERSION JKG_VERSION_SUFFIX
+
+#endif
+
+//end

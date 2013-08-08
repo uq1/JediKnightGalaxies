@@ -1,6 +1,8 @@
-#pragma once
-
 // qcommon.h -- definitions common between client and server, but not game.or ref modules
+#ifndef _QCOMMON_H_
+#define _QCOMMON_H_
+
+#ifdef ENGINE
 
 #include "qcommon/cm_public.h"
 #include "qcommon/q_shared.h"
@@ -26,6 +28,7 @@ void MSG_InitOOB( msg_t *buf, byte *data, int length );
 void MSG_Clear (msg_t *buf);
 void MSG_WriteData (msg_t *buf, const void *data, int length);
 void MSG_Bitstream( msg_t *buf );
+
 
 struct usercmd_s;
 struct entityState_s;
@@ -69,6 +72,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 						   , qboolean force );
 void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to, 
 						 int number );
+
 
 #ifdef _ONEBIT_COMBO
 void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to, int *bitComboDelta, int *bitNumDelta, qboolean isVehiclePS = qfalse );
@@ -209,7 +213,9 @@ PROTOCOL
 #define	PORT_UPDATE			29061
 //#define	PORT_AUTHORIZE		29062
 #define	PORT_SERVER			29070	//...+9 more for multiple servers
-#define	NUM_SERVER_PORTS	4		// broadcast scan this many ports after PORT_SERVER so a single machine can run multiple servers
+#define	NUM_SERVER_PORTS	4		// broadcast scan this many ports after
+									// PORT_SERVER so a single machine can
+									// run multiple servers
 
 // the svc_strings[] array in cl_parse.c should mirror this
 //
@@ -268,15 +274,7 @@ typedef enum {
 	TRAP_SQRT,
 	TRAP_MATRIXMULTIPLY,
 	TRAP_ANGLEVECTORS,
-	TRAP_PERPENDICULARVECTOR,
-	TRAP_FLOOR,
-	TRAP_CEIL,
-
-	TRAP_TESTPRINTINT,
-	TRAP_TESTPRINTFLOAT,
-
-	TRAP_ACOS,
-	TRAP_ASIN
+	TRAP_PERPENDICULARVECTOR
 } sharedTraps_t;
 
 void	VM_Init( void );
@@ -694,6 +692,7 @@ extern	cvar_t	*com_sv_running;
 extern	cvar_t	*com_cl_running;
 extern	cvar_t	*com_viewlog;			// 0 = hidden, 1 = visible, 2 = minimized
 extern	cvar_t	*com_version;
+extern	cvar_t	*com_blood;
 extern	cvar_t	*com_buildScript;		// for building release pak files
 extern	cvar_t	*com_journal;
 extern	cvar_t	*com_cameraMode;
@@ -1089,3 +1088,7 @@ inline int Round(float value)
 {
 	return((int)floorf(value + 0.5f));
 }
+
+#endif
+
+#endif // _QCOMMON_H_

@@ -852,9 +852,12 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 	#ifndef DEDICATED
 	#ifndef FINAL_BUILD
 						// Check for unprecached files when in game but not in the menus
-						if((cls.state == CA_ACTIVE) && !(Key_GetCatcher( ) & KEYCATCH_UI))
+						if( com_developer->integer )
 						{
-							Com_Printf(S_COLOR_YELLOW "WARNING: File %s not precached\n", filename);
+							if((cls.state == CA_ACTIVE) && !(Key_GetCatcher( ) & KEYCATCH_UI))
+							{
+								Com_Printf(S_COLOR_YELLOW "WARNING: File %s not precached\n", filename);
+							}
 						}
 	#endif
 	#endif // DEDICATED
@@ -2228,7 +2231,7 @@ void FS_Path_f( void ) {
 	searchpath_t	*s;
 	int				i;
 
-	Com_Printf ("Current search path:\n");
+	Com_Printf ("Current search paths:\n");
 	for (s = fs_searchpaths; s; s = s->next) {
 		if (s->pack) {
 			Com_Printf ("%s (%i files)\n", s->pack->pakFilename, s->pack->numfiles);
@@ -2684,7 +2687,14 @@ void FS_Startup( const char *gameName ) {
 		missingFiles = fopen( "\\missing.txt", "ab" );
 	}
 #endif
-	Com_Printf( "%d files in pk3 files\n", fs_packFiles );
+	if( fs_packFiles <= 0 )
+	{
+		Com_Error( ERR_FATAL, "No assets detected, aborting...");
+	}
+	else
+	{
+		Com_Printf( "%d files in pk3 files\n", fs_packFiles );
+	}
 }
 
 /*
