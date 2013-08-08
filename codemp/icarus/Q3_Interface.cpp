@@ -8,6 +8,9 @@
 //
 //	-- jweier
 
+#include "tokenizer.h"
+#include "interpreter.h"
+
 #include "game/g_public.h"
 #include "server/server.h"
 #include "interface.h"

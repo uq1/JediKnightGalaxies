@@ -19,7 +19,7 @@ const int RUNAWAY_LIMIT	= 256;
 enum
 {
 	TASK_RETURN_COMPLETE,
-	TASK_RETURN_FAILED,
+	TASK_RETURN_FAILED
 };
 
 enum 
@@ -27,7 +27,7 @@ enum
 	TASK_OK,
 	TASK_FAILED,
 	TASK_START,
-	TASK_END,
+	TASK_END
 };
 	
 // CTask

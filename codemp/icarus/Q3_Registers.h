@@ -10,6 +10,12 @@ enum
 
 #ifdef __cplusplus
 
+#include <stdlib.h>
+#include <string>
+#include <map>
+
+using namespace std;
+
 #define	MAX_VARIABLES	32
 
 typedef map < string, string >		varString_m;

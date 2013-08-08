@@ -1,6 +1,9 @@
 #pragma once
 
 // Interpreter.h
+#ifdef ENGINE
+#include "blockstream.h"
+#endif
 
 #define ICARUS_VERSION	1.33
 
@@ -110,7 +113,7 @@ enum
 	NUM_MESSAGES,
 };
 
-#ifdef __cplusplus
+#ifdef ENGINE
 typedef struct variable_s
 {
 	char	name[MAX_VAR_NAME];
