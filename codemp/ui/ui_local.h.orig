@@ -1,13 +1,13 @@
+#pragma once
+
 // Copyright (C) 1999-2000 Id Software, Inc.
 //
-#ifndef __UI_LOCAL_H__
-#define __UI_LOCAL_H__
 
 #include "qcommon/q_shared.h"
-#include "../renderer/tr_types.h"
+#include "renderer/tr_types.h"
 #include "ui_public.h"
 #include "keycodes.h"
-#include "../game/bg_public.h"
+#include "game/bg_public.h"
 #include "ui_shared.h"
 
 // global display context
@@ -89,7 +89,7 @@ extern vmCvar_t ui_bypassMainMenuLoad;
 #define	MAX_EDIT_LINE			256
 
 #define MAX_MENUDEPTH			16 //Raz: was 8
-//#define MAX_MENUITEMS			1024
+//#define MAX_MENUITEMS			256
 
 #define MAX_FORCE_CONFIGS		128
 
@@ -842,7 +842,6 @@ typedef struct {
 	int			languageCount;
 	int			languageCountIndex;
 
-	int			hideCursor;
 }	uiInfo_t;
 
 extern uiInfo_t uiInfo;
@@ -866,7 +865,7 @@ extern void			UI_SetColor( const float *rgba );
 extern void			UI_LerpColor(vec4_t a, vec4_t b, vec4_t c, float t);
 extern void			UI_DrawBannerString( int x, int y, const char* str, int style, vec4_t color );
 extern float		UI_ProportionalSizeScale( int style );
-extern void			UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t color, int font );
+extern void			UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t color );
 extern int			UI_ProportionalStringWidth( const char* str );
 extern void			UI_DrawString( int x, int y, const char* str, int style, vec4_t color );
 extern void			UI_DrawChar( int x, int y, int ch, int style, vec4_t color );
@@ -914,6 +913,7 @@ void UI_SPSkillMenu_Cache( void );
 //
 // ui_syscalls.c
 //
+
 
 void			trap_Print( const char *string );
 void			trap_Error( const char *string );
@@ -1001,9 +1001,6 @@ void			trap_CIN_SetExtents (int handle, int x, int y, int w, int h);
 int				trap_RealTime(qtime_t *qtime);
 void			trap_R_RemapShader( const char *oldShader, const char *newShader, const char *timeOffset );
 
-// crossover
-void			trap_Syscall_UI( void );
-void			trap_Syscall_CG( void );
 
 //
 // ui_addbots.c
@@ -1136,12 +1133,3 @@ typedef struct postGameInfo_s {
 	int skillBonus;
 	int baseScore;
 } postGameInfo_t;
-
-//
-// JKG - ui_servercmds.c
-//
-qboolean UI_ServerCommand( const char *cmd_string );
-
-
-
-#endif
