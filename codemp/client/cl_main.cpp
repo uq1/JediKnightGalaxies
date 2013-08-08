@@ -1087,7 +1087,6 @@ we also have to reload the UI and CGame because the renderer
 doesn't know what graphics to reload
 =================
 */
-extern bool g_nOverrideChecked;
 void CL_Vid_Restart_f( void ) {
 	// Settings may have changed so stop recording now
 	if( CL_VideoRecording( ) ) {
@@ -1096,11 +1095,6 @@ void CL_Vid_Restart_f( void ) {
 
 	if(clc.demorecording)
 		CL_StopRecord_f();
-
-	//rww - sort of nasty, but when a user selects a mod
-	//from the menu all it does is a vid_restart, so we
-	//have to check for new net overrides for the mod then.
-	g_nOverrideChecked = false;
 
 	// don't let them loop during the restart
 	S_StopAllSounds();
@@ -2182,6 +2176,12 @@ void CL_ShutdownRef( void ) {
 		return;
 	}
 	re.Shutdown( qtrue );
+
+	if ( rendererLib != NULL ) {
+		Sys_UnloadDll (rendererLib);
+		rendererLib = NULL;
+	}
+
 	Com_Memset( &re, 0, sizeof( re ) );
 }
 
@@ -3154,6 +3154,7 @@ void CL_GlobalServers_f( void ) {
 	netadr_t	to;
 	int			count, i, masterNum;
 	char		command[1024];
+	char		mserver[512];
 	
 	if ((count = Cmd_Argc()) < 3 || (masterNum = atoi(Cmd_Argv(1))) < 0 || masterNum > 1)
 	{
@@ -3161,20 +3162,22 @@ void CL_GlobalServers_f( void ) {
 		return;
 	}
 
+	Cvar_VariableStringBuffer(va("sv_master%i", masterNum), mserver, 512);
+
 	// reset the list, waiting for response
 	// -1 is used to distinguish a "no response"
 
-	i = NET_StringToAdr(MASTER_SERVER_NAME, &to);
+	i = NET_StringToAdr(mserver, &to);
 
 	if (!i)
 	{
-		Com_Printf("CL_GlobalServers_f: Error: could not resolve address of master %s\n", MASTER_SERVER_NAME);
+		Com_Printf("CL_GlobalServers_f: Error: could not resolve address of master %s\n", mserver);
 		return;
 	}
 	to.type = NA_IP;
 	to.port = BigShort(PORT_MASTER);
 
-	Com_Printf("Requesting servers from the master %s (%s)...\n", MASTER_SERVER_NAME, NET_AdrToString(to));
+	Com_Printf("Requesting servers from the master %s (%s)...\n", mserver, NET_AdrToString(to));
 
 	cls.numglobalservers = -1;
 	cls.pingUpdateSource = AS_GLOBAL;

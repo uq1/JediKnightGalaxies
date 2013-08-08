@@ -679,6 +679,8 @@ CL_UISystemCalls
 The ui module is making a system call
 ====================
 */
+
+extern vm_t *currentVM;
 intptr_t CL_UISystemCalls( intptr_t *args ) {
 	switch( args[0] ) {
 	//rww - alright, DO NOT EVER add a GAME/CGAME/UI generic call without adding a trap to match, and
@@ -709,18 +711,6 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case TRAP_PERPENDICULARVECTOR:
 		PerpendicularVector( (float *)VMA(1), (const float *)VMA(2) );
 		return 0;
-	case TRAP_FLOOR:
-		return FloatAsInt( floor( VMF(1) ) );
-	case TRAP_CEIL:
-		return FloatAsInt( ceil( VMF(1) ) );
-	case TRAP_TESTPRINTINT:
-		return 0;
-	case TRAP_TESTPRINTFLOAT:
-		return 0;
-	case TRAP_ACOS:
-		return FloatAsInt( Q_acos( VMF(1) ) );
-	case TRAP_ASIN:
-		return FloatAsInt( Q_asin( VMF(1) ) );
 
 
 	case UI_ERROR:
@@ -1281,6 +1271,19 @@ Ghoul2 Insert End
 			
 			return re.G2API_AttachG2Model(*g2From, args[2], *g2To, args[4], args[5]);
 		}
+
+	// Jedi Knight Galaxies
+
+	case UI_JKG_CHANGEPROTOCOL:
+		return 0;
+
+	case UI_SYSCALL_CG:
+		currentVM = cgvm;
+		return 0;
+
+	case UI_SYSCALL_UI:
+		currentVM = uivm;
+		return 0;
 /*
 Ghoul2 Insert End
 */

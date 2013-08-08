@@ -17,7 +17,7 @@ cvar_t		*con_notifytime;
 
 #define	DEFAULT_CONSOLE_WIDTH	78
 
-vec4_t	console_color = {1.0, 1.0, 1.0, 1.0};
+vec4_t  console_color = {0.509f, 0.609f, 0.847f, 1.0f};
 
 
 /*
@@ -45,12 +45,18 @@ Con_MessageMode_f
 ================
 */
 void Con_MessageMode_f (void) {	//yell
-	chat_playerNum = -1;
+	/*chat_playerNum = -1;
 	chat_team = qfalse;
 	Field_Clear( &chatField );
 	chatField.widthInChars = 30;
 
-	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );
+	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );*/
+	if( !cgvm )
+	{
+		assert( !"NULL cgvm" );
+		return;
+	}
+	VM_Call( cgvm, CG_MESSAGEMODE, 1 );
 }
 
 /*
@@ -59,11 +65,17 @@ Con_MessageMode2_f
 ================
 */
 void Con_MessageMode2_f (void) {	//team chat
-	chat_playerNum = -1;
+	/*chat_playerNum = -1;
 	chat_team = qtrue;
 	Field_Clear( &chatField );
 	chatField.widthInChars = 25;
-	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );
+	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );*/
+	if( !cgvm )
+	{
+		assert( !"NULL cgvm" );
+		return;
+	}
+	VM_Call( cgvm, CG_MESSAGEMODE, 2 );
 }
 
 /*
@@ -79,7 +91,7 @@ void Con_MessageMode3_f (void)
 		return;
 	}
 
-	chat_playerNum = VM_Call( cgvm, CG_CROSSHAIR_PLAYER );
+	/*chat_playerNum = VM_Call( cgvm, CG_CROSSHAIR_PLAYER );
 	if ( chat_playerNum < 0 || chat_playerNum >= MAX_CLIENTS ) {
 		chat_playerNum = -1;
 		return;
@@ -87,7 +99,8 @@ void Con_MessageMode3_f (void)
 	chat_team = qfalse;
 	Field_Clear( &chatField );
 	chatField.widthInChars = 30;
-	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );
+	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );*/
+	VM_Call( cgvm, CG_MESSAGEMODE, 3 );
 }
 
 /*
@@ -103,7 +116,7 @@ void Con_MessageMode4_f (void)
 		return;
 	}
 
-	chat_playerNum = VM_Call( cgvm, CG_LAST_ATTACKER );
+	/*chat_playerNum = VM_Call( cgvm, CG_LAST_ATTACKER );
 	if ( chat_playerNum < 0 || chat_playerNum >= MAX_CLIENTS ) {
 		chat_playerNum = -1;
 		return;
@@ -111,7 +124,8 @@ void Con_MessageMode4_f (void)
 	chat_team = qfalse;
 	Field_Clear( &chatField );
 	chatField.widthInChars = 30;
-	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );
+	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );*/
+	VM_Call( cgvm, CG_MESSAGEMODE, 4 );
 }
 
 /*
@@ -511,7 +525,7 @@ void Con_DrawNotify (void)
 	const char* chattext;
 
 	currentColor = 7;
-	re.SetColor( g_color_table[currentColor] );
+	re.SetColor( g_color_table[currentColor & 15] );
 
 	v = 0;
 	for (i= con.current-NUM_CON_TIMES+1 ; i<=con.current ; i++)
@@ -551,9 +565,9 @@ void Con_DrawNotify (void)
 			char sTemp[4096]={0};	// ott
 			for (x = 0 ; x < con.linewidth ; x++) 
 			{
-				if ( ( (text[x]>>8)&7 ) != currentColor ) {
-					currentColor = (text[x]>>8)&7;
-					strcat(sTemp,va("^%i", (text[x]>>8)&7) );
+				if ( ( (text[x]>>8)&15 ) != currentColor ) {
+					currentColor = (text[x]>>8)&15;
+					strcat(sTemp,va("^%i", (text[x]>>8)&15) );
 				}
 				strcat(sTemp,va("%c",text[x] & 0xFF));				
 			}
@@ -571,8 +585,8 @@ void Con_DrawNotify (void)
 					continue;
 				}
 				if ( ( (text[x]>>8)&7 ) != currentColor ) {
-					currentColor = (text[x]>>8)&7;
-					re.SetColor( g_color_table[currentColor] );
+					currentColor = (text[x]>>8)&15;
+					re.SetColor( g_color_table[currentColor & 15] );
 				}
 				if (!cl_conXOffset)
 				{
@@ -646,11 +660,9 @@ void Con_DrawSolidConsole( float frac ) {
 	else {
 		SCR_DrawPic( 0, 0, SCREEN_WIDTH, (float) y, cls.consoleShader );
 	}
-
-	const vec4_t color = { 0.509f, 0.609f, 0.847f,  1.0f};
 	// draw the bottom bar and version number
 
-	re.SetColor( color );
+	re.SetColor( console_color );
 	re.DrawStretchPic( 0, y, SCREEN_WIDTH, 2, 0, 0, 0, 0, cls.whiteShader );
 
 	i = strlen( JK_VERSION );
@@ -671,7 +683,7 @@ void Con_DrawSolidConsole( float frac ) {
 	if (con.display != con.current)
 	{
 	// draw arrows to show the buffer is backscrolled
-		re.SetColor( g_color_table[ColorIndex(COLOR_RED)] );
+		re.SetColor( console_color );
 		for (x=0 ; x<con.linewidth ; x+=4)
 			SCR_DrawSmallChar( (int) (con.xadjust + (x+1)*SMALLCHAR_WIDTH), y, '^' );
 		y -= SMALLCHAR_HEIGHT;
@@ -685,7 +697,7 @@ void Con_DrawSolidConsole( float frac ) {
 	}
 
 	currentColor = 7;
-	re.SetColor( g_color_table[currentColor] );
+	re.SetColor( g_color_table[currentColor & 15] );
 
 	static int iFontIndexForAsian = 0;
 	const float fFontScaleForAsian = 0.75f*con.yadjust;
@@ -721,9 +733,9 @@ void Con_DrawSolidConsole( float frac ) {
 			char sTemp[4096]={0};	// ott
 			for (x = 0 ; x < con.linewidth ; x++) 
 			{
-				if ( ( (text[x]>>8)&7 ) != currentColor ) {
-					currentColor = (text[x]>>8)&7;
-					strcat(sTemp,va("^%i", (text[x]>>8)&7) );
+				if ( ( (text[x]>>8)&15 ) != currentColor ) {
+					currentColor = (text[x]>>8)&15;
+					strcat(sTemp,va("^%i", (text[x]>>7)&15) );
 				}
 				strcat(sTemp,va("%c",text[x] & 0xFF));				
 			}
@@ -739,9 +751,9 @@ void Con_DrawSolidConsole( float frac ) {
 					continue;
 				}
 
-				if ( ( (text[x]>>8)&7 ) != currentColor ) {
-					currentColor = (text[x]>>8)&7;
-					re.SetColor( g_color_table[currentColor] );
+				if ( ( (text[x]>>8)&15 ) != currentColor ) {
+					currentColor = (text[x]>>8)&15;
+					re.SetColor( g_color_table[currentColor & 15] );
 				}
 				SCR_DrawSmallChar(  (int) (con.xadjust + (x+1)*SMALLCHAR_WIDTH), y, text[x] & 0xff );
 			}
