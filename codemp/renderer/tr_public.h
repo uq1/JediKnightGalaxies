@@ -3,12 +3,18 @@
 #include "renderer/tr_types.h"
 #include "qcommon/MiniHeap.h"
 #include "ghoul2/ghoul2_shared.h"
+#include "qcommon/qcommon.h"	// <-- this line here, doesn't make a difference if i add or remove it, it still fails with vm_t
 
 #define	REF_API_VERSION 1
 
 //
 // these are the functions exported by the refresh module
 //
+
+#ifdef _WIN32
+// bug --eez
+#define __attribute__(x)
+#endif
 
 typedef struct {
 	// called before the library is unloaded
@@ -228,6 +234,9 @@ typedef struct {
 	int					(*SavePNG)								( char *filename, byte *buf, size_t width, size_t height, int byteDepth );
 
 	IGhoul2InfoArray &	(*TheGhoul2InfoArray)					( void );
+
+	// Jedi Knight Galaxies specifc
+	void				(*OverrideShaderFrame)					( qhandle_t shader, int desiredFrame, int time );
 } refexport_t;
 
 //
