@@ -2,6 +2,7 @@
 //
 
 #include "g_local.h"
+#include "jkg_gangwars.h"
 
 qboolean	G_SpawnString( const char *key, const char *defaultString, char **out ) {
 	int		i;
@@ -194,6 +195,7 @@ field_t fields[] = {
 
 typedef struct {
 	char	*name;
+	qboolean	logical;
 	void	(*spawn)(gentity_t *ent);
 } spawn_t;
 
@@ -202,8 +204,6 @@ void SP_info_player_duel( gentity_t *ent );
 void SP_info_player_duel1( gentity_t *ent );
 void SP_info_player_duel2( gentity_t *ent );
 void SP_info_player_deathmatch (gentity_t *ent);
-void SP_info_player_siegeteam1 (gentity_t *ent);
-void SP_info_player_siegeteam2 (gentity_t *ent);
 void SP_info_player_intermission (gentity_t *ent);
 void SP_info_player_intermission_red (gentity_t *ent);
 void SP_info_player_intermission_blue (gentity_t *ent);
@@ -214,12 +214,6 @@ void SP_info_firstplace(gentity_t *ent);
 void SP_info_secondplace(gentity_t *ent);
 void SP_info_thirdplace(gentity_t *ent);
 void SP_info_podium(gentity_t *ent);
-
-void SP_info_siege_objective (gentity_t *ent);
-void SP_info_siege_radaricon (gentity_t *ent);
-void SP_info_siege_decomplete (gentity_t *ent);
-void SP_target_siege_end (gentity_t *ent);
-void SP_misc_siege_item (gentity_t *ent);
 
 void SP_func_plat (gentity_t *ent);
 void SP_func_static (gentity_t *ent);
@@ -407,7 +401,14 @@ void SP_team_CTF_bluespawn( gentity_t *ent );
 void SP_misc_turret( gentity_t *ent );
 void SP_misc_turretG2( gentity_t *base );
 
-void SP_item_botroam( gentity_t *ent ) { }
+// Warzone...
+void SP_misc_control_point (gentity_t* ent);
+void SP_ammo_crate_spawn ( gentity_t* ent );
+void SP_health_crate_spawn ( gentity_t* ent );
+
+void SP_item_botroam( gentity_t *ent )
+{
+}
 
 void SP_gametype_item ( gentity_t* ent )
 {
@@ -475,192 +476,189 @@ void SP_emplaced_gun( gentity_t *ent );
 /* This array MUST be sorted correctly by alphabetical name field */
 /* for conformity, use lower-case names too */
 spawn_t	spawns[] = {
-	{ "emplaced_gun",						SP_emplaced_gun },
-	{ "func_bobbing",						SP_func_bobbing },
-	{ "func_breakable",						SP_func_breakable },
-	{ "func_button",						SP_func_button },
-	{ "func_door",							SP_func_door },
-	{ "func_glass",							SP_func_glass },
-	{ "func_group",							SP_info_null },
-	{ "func_pendulum",						SP_func_pendulum },
-	{ "func_plat",							SP_func_plat },
-	{ "func_rotating",						SP_func_rotating },
-	{ "func_static",						SP_func_static },
-	{ "func_timer",							SP_func_timer }, // rename trigger_timer?
-	{ "func_train",							SP_func_train },
-	{ "func_usable",						SP_func_usable },
-	{ "func_wall",							SP_func_wall },
-	{ "fx_rain",							SP_CreateRain },
-	{ "fx_runner",							SP_fx_runner },
-	{ "fx_snow",							SP_CreateSnow },
-	{ "fx_spacedust",						SP_CreateSpaceDust },
-	{ "gametype_item",						SP_gametype_item },
-	{ "item_botroam",						SP_item_botroam },
-	{ "info_camp",							SP_info_camp },
-	{ "info_jedimaster_start",				SP_info_jedimaster_start },
-	{ "info_notnull",						SP_info_notnull }, // use target_position instead
-	{ "info_null",							SP_info_null },
-	{ "info_player_deathmatch",				SP_info_player_deathmatch },
-	{ "info_player_duel",					SP_info_player_duel },
-	{ "info_player_duel1",					SP_info_player_duel1 },
-	{ "info_player_duel2",					SP_info_player_duel2 },
-	{ "info_player_intermission",			SP_info_player_intermission },
-	{ "info_player_intermission_blue",		SP_info_player_intermission_blue },
-	{ "info_player_intermission_red",		SP_info_player_intermission_red },
-	{ "info_player_siegeteam1",				SP_info_player_siegeteam1 },
-	{ "info_player_siegeteam2",				SP_info_player_siegeteam2 },
-	{ "info_player_start",					SP_info_player_start },
-	{ "info_player_start_blue",				SP_info_player_start_blue },
-	{ "info_player_start_red",				SP_info_player_start_red },
-	{ "info_siege_decomplete",				SP_info_siege_decomplete },
-	{ "info_siege_objective",				SP_info_siege_objective },
-	{ "info_siege_radaricon",				SP_info_siege_radaricon },
-	{ "light",								SP_light },
-	{ "misc_ammo_floor_unit",				SP_misc_ammo_floor_unit },
-	{ "misc_bsp",							SP_misc_bsp },
-	{ "misc_faller",						SP_misc_faller },
-	{ "misc_G2model",						SP_misc_G2model },
-	{ "misc_holocron",						SP_misc_holocron },
-	{ "misc_maglock",						SP_misc_maglock },
-	{ "misc_model",							SP_misc_model },
-	{ "misc_model_ammo_power_converter",	SP_misc_model_ammo_power_converter },
-	{ "misc_model_breakable",				SP_misc_model_breakable },
-	{ "misc_model_health_power_converter",	SP_misc_model_health_power_converter },
-	{ "misc_model_shield_power_converter",	SP_misc_model_shield_power_converter },
-	{ "misc_model_static",					SP_misc_model_static },
-	{ "misc_portal_camera",					SP_misc_portal_camera },
-	{ "misc_portal_surface",				SP_misc_portal_surface },
-	{ "misc_shield_floor_unit",				SP_misc_shield_floor_unit },
-	{ "misc_siege_item",					SP_misc_siege_item },
-	{ "misc_skyportal",						SP_misc_skyportal },
-	{ "misc_skyportal_orient",				SP_misc_skyportal_orient },
-	{ "misc_teleporter_dest",				SP_misc_teleporter_dest },
-	{ "misc_turret",						SP_misc_turret },
-	{ "misc_turretG2",						SP_misc_turretG2 },
-	{ "misc_weapon_shooter",				SP_misc_weapon_shooter },
-	{ "misc_weather_zone",					SP_misc_weather_zone },
-	{ "npc_alora",							SP_NPC_Alora },
-	{ "npc_bartender",						SP_NPC_Bartender },
-	{ "npc_bespincop",						SP_NPC_BespinCop },
-	{ "npc_colombian_emplacedgunner",		SP_NPC_ShadowTrooper },
-	{ "npc_colombian_rebel",				SP_NPC_Reborn },
-	{ "npc_colombian_soldier",				SP_NPC_Reborn },
-	{ "npc_cultist",						SP_NPC_Cultist },
-	{ "npc_cultist_commando",				SP_NPC_Cultist_Commando },
-	{ "npc_cultist_destroyer",				SP_NPC_Cultist_Destroyer },
-	{ "npc_cultist_saber",					SP_NPC_Cultist_Saber },
-	{ "npc_cultist_saber_powers",			SP_NPC_Cultist_Saber_Powers },
-	{ "npc_desann",							SP_NPC_Desann },
-	{ "npc_droid_atst",						SP_NPC_Droid_ATST },
-	{ "npc_droid_gonk",						SP_NPC_Droid_Gonk },
-	{ "npc_droid_interrogator",				SP_NPC_Droid_Interrogator },
-	{ "npc_droid_mark1",					SP_NPC_Droid_Mark1 },
-	{ "npc_droid_mark2",					SP_NPC_Droid_Mark2 },
-	{ "npc_droid_mouse",					SP_NPC_Droid_Mouse },
-	{ "npc_droid_probe",					SP_NPC_Droid_Probe },
-	{ "npc_droid_protocol",					SP_NPC_Droid_Protocol },
-	{ "npc_droid_r2d2",						SP_NPC_Droid_R2D2 },
-	{ "npc_droid_r5d2",						SP_NPC_Droid_R5D2 },
-	{ "npc_droid_remote",					SP_NPC_Droid_Remote },
-	{ "npc_droid_seeker",					SP_NPC_Droid_Seeker },
-	{ "npc_droid_sentry",					SP_NPC_Droid_Sentry },
-	{ "npc_galak",							SP_NPC_Galak },
-	{ "npc_gran",							SP_NPC_Gran },
-	{ "npc_imperial",						SP_NPC_Imperial },
-	{ "npc_impworker",						SP_NPC_ImpWorker },
-	{ "npc_jan",							SP_NPC_Jan },
-	{ "npc_jawa",							SP_NPC_Jawa },
-	{ "npc_jedi",							SP_NPC_Jedi },
-	{ "npc_kyle",							SP_NPC_Kyle },
-	{ "npc_lando",							SP_NPC_Lando },
-	{ "npc_luke",							SP_NPC_Luke },
-	{ "npc_manuel_vergara_rmg",				SP_NPC_Desann },
-	{ "npc_minemonster",					SP_NPC_MineMonster },
-	{ "npc_monmothma",						SP_NPC_MonMothma },
-	{ "npc_monster_claw",					SP_NPC_Monster_Claw },
-	{ "npc_monster_fish",					SP_NPC_Monster_Fish },
-	{ "npc_monster_flier2",					SP_NPC_Monster_Flier2 },
-	{ "npc_monster_glider",					SP_NPC_Monster_Glider },
-	{ "npc_monster_howler",					SP_NPC_Monster_Howler },
-	{ "npc_monster_lizard",					SP_NPC_Monster_Lizard },
-	{ "npc_monster_murjj",					SP_NPC_Monster_Murjj },
-	{ "npc_monster_rancor",					SP_NPC_Monster_Rancor },
-	{ "npc_monster_swamp",					SP_NPC_Monster_Swamp },
-	{ "npc_monster_wampa",					SP_NPC_Monster_Wampa },
-	{ "npc_morgankatarn",					SP_NPC_MorganKatarn },
-	{ "npc_noghri",							SP_NPC_Noghri },
-	{ "npc_prisoner",						SP_NPC_Prisoner },
-	{ "npc_rebel",							SP_NPC_Rebel },
-	{ "npc_reborn",							SP_NPC_Reborn },
-	{ "npc_reborn_new",						SP_NPC_Reborn_New },
-	{ "npc_reelo",							SP_NPC_Reelo },
-	{ "npc_rodian",							SP_NPC_Rodian },
-	{ "npc_shadowtrooper",					SP_NPC_ShadowTrooper },
-	{ "npc_snowtrooper",					SP_NPC_Snowtrooper },
-	{ "npc_spawner",						SP_NPC_spawner },
-	{ "npc_stormtrooper",					SP_NPC_Stormtrooper },
-	{ "npc_stormtrooperofficer",			SP_NPC_StormtrooperOfficer },
-	{ "npc_swamptrooper",					SP_NPC_SwampTrooper },
-	{ "npc_tavion",							SP_NPC_Tavion },
-	{ "npc_tavion_new",						SP_NPC_Tavion_New },
-	{ "npc_tie_pilot",						SP_NPC_Tie_Pilot },
-	{ "npc_trandoshan",						SP_NPC_Trandoshan },
-	{ "npc_tusken",							SP_NPC_Tusken },
-	{ "npc_ugnaught",						SP_NPC_Ugnaught },
-	{ "npc_vehicle",						SP_NPC_Vehicle },
-	{ "npc_weequay",						SP_NPC_Weequay },
-	{ "path_corner",						SP_path_corner },
-	{ "point_combat",						SP_point_combat },
-	{ "ref_tag",							SP_reference_tag },
-	{ "ref_tag_huge",						SP_reference_tag },
-	{ "shooter_blaster",					SP_shooter_blaster },
-	{ "target_activate",					SP_target_activate },
-	{ "target_counter",						SP_target_counter },
-	{ "target_deactivate",					SP_target_deactivate },
-	{ "target_delay",						SP_target_delay },
-	{ "target_escapetrig",					SP_target_escapetrig },
-	{ "target_give",						SP_target_give },
-	{ "target_interest",					SP_target_interest },
-	{ "target_kill",						SP_target_kill },
-	{ "target_laser",						SP_target_laser },
-	{ "target_level_change",				SP_target_level_change },
-	{ "target_location",					SP_target_location },
-	{ "target_play_music",					SP_target_play_music },
-	{ "target_position",					SP_target_position },
-	{ "target_print",						SP_target_print },
-	{ "target_push",						SP_target_push },
-	{ "target_random",						SP_target_random },
-	{ "target_relay",						SP_target_relay },
-	{ "target_remove_powerups",				SP_target_remove_powerups },
-	{ "target_score",						SP_target_score },
-	{ "target_screenshake",					SP_target_screenshake },
-	{ "target_scriptrunner",				SP_target_scriptrunner },
-	{ "target_siege_end",					SP_target_siege_end },
-	{ "target_speaker",						SP_target_speaker },
-	{ "target_teleporter",					SP_target_teleporter },
-	{ "team_CTF_blueplayer",				SP_team_CTF_blueplayer },
-	{ "team_CTF_bluespawn",					SP_team_CTF_bluespawn },
-	{ "team_CTF_redplayer",					SP_team_CTF_redplayer },
-	{ "team_CTF_redspawn",					SP_team_CTF_redspawn },
-	{ "terrain",							SP_terrain },
-	{ "trigger_always",						SP_trigger_always },
-	{ "trigger_asteroid_field",				SP_trigger_asteroid_field },
-	{ "trigger_hurt",						SP_trigger_hurt },
-	{ "trigger_hyperspace",					SP_trigger_hyperspace },
-	{ "trigger_lightningstrike",			SP_trigger_lightningstrike },
-	{ "trigger_multiple",					SP_trigger_multiple },
-	{ "trigger_once",						SP_trigger_once },
-	{ "trigger_push",						SP_trigger_push },
-	{ "trigger_shipboundary",				SP_trigger_shipboundary },
-	{ "trigger_space",						SP_trigger_space },
-	{ "trigger_teleport",					SP_trigger_teleport },
-	{ "waypoint",							SP_waypoint },
-	{ "waypoint_navgoal",					SP_waypoint_navgoal },
-	{ "waypoint_navgoal_1",					SP_waypoint_navgoal_1 },
-	{ "waypoint_navgoal_2",					SP_waypoint_navgoal_2 },
-	{ "waypoint_navgoal_4",					SP_waypoint_navgoal_4 },
-	{ "waypoint_navgoal_8",					SP_waypoint_navgoal_8 },
-	{ "waypoint_small",						SP_waypoint_small },
+	{ "emplaced_gun", qfalse,						SP_emplaced_gun },
+	{ "func_bobbing", qfalse,						SP_func_bobbing },
+	{ "func_breakable", qfalse,						SP_func_breakable },
+	{ "func_button", qfalse,						SP_func_button },
+	{ "func_door", qfalse,							SP_func_door },
+	{ "func_glass", qfalse,							SP_func_glass },
+	{ "func_group",	 qfalse,						SP_info_null },
+	{ "func_pendulum", qfalse,						SP_func_pendulum },
+	{ "func_plat", qfalse,							SP_func_plat },
+	{ "func_rotating", qfalse,						SP_func_rotating },
+	{ "func_static", qfalse,						SP_func_static },
+	{ "func_timer", qfalse,							SP_func_timer }, // rename trigger_timer?
+	{ "func_train", qfalse,							SP_func_train },
+	{ "func_usable", qfalse,						SP_func_usable },
+	{ "func_wall", qfalse,							SP_func_wall },
+	{ "fx_rain", qtrue,							SP_CreateRain },
+	{ "fx_runner", qfalse,							SP_fx_runner },
+	{ "fx_snow", qtrue,							SP_CreateSnow },
+	{ "fx_spacedust", qtrue,						SP_CreateSpaceDust },
+	{ "gametype_item", qfalse,						SP_gametype_item },
+	{ "item_botroam", qtrue,						SP_item_botroam },
+	{ "info_camp", qtrue,							SP_info_camp },
+	{ "info_jedimaster_start", qtrue,					SP_info_jedimaster_start },
+	{ "info_notnull", qtrue,						SP_info_notnull }, // use target_position instead
+	{ "info_null", qtrue,							SP_info_null },
+	{ "info_player_deathmatch", qtrue,					SP_info_player_deathmatch },
+	{ "info_player_duel", qtrue,						SP_info_player_duel },
+	{ "info_player_duel1", qtrue,						SP_info_player_duel1 },
+	{ "info_player_duel2", qtrue,						SP_info_player_duel2 },
+	{ "info_player_intermission", qtrue,					SP_info_player_intermission },
+	{ "info_player_intermission_blue", qtrue,				SP_info_player_intermission_blue },
+	{ "info_player_intermission_red", qtrue,				SP_info_player_intermission_red },
+	{ "info_player_start", qtrue,						SP_info_player_start },
+	{ "info_player_start_blue", qtrue,					SP_info_player_start_blue },
+	{ "info_player_start_red", qtrue,					SP_info_player_start_red },
+	{ "jkg_target_vendor", qtrue,						JKG_SP_target_vendor },
+	{ "light", qfalse,							SP_light },
+	{ "misc_ammo_crate", qfalse,						SP_ammo_crate_spawn },
+	{ "misc_ammo_floor_unit", qfalse,					SP_misc_ammo_floor_unit },
+	{ "misc_bsp", qfalse,							SP_misc_bsp },
+	{ "misc_control_point", qfalse,						SP_misc_control_point },
+	{ "misc_faller", qfalse,						SP_misc_faller },
+	{ "misc_G2model", qfalse,						SP_misc_G2model },
+	{ "misc_health_crate", qfalse,						SP_health_crate_spawn },
+	{ "misc_holocron", qfalse,						SP_misc_holocron },
+	{ "misc_maglock", qfalse,						SP_misc_maglock },
+	{ "misc_model", qtrue,							SP_misc_model },
+	{ "misc_model_ammo_power_converter", qfalse,				SP_misc_model_ammo_power_converter },
+	{ "misc_model_breakable", qfalse,					SP_misc_model_breakable },
+	{ "misc_model_health_power_converter", qfalse,				SP_misc_model_health_power_converter },
+	{ "misc_model_shield_power_converter", qfalse,				SP_misc_model_shield_power_converter },
+	{ "misc_model_static", qtrue,						SP_misc_model_static },
+	{ "misc_portal_camera", qfalse,						SP_misc_portal_camera },
+	{ "misc_portal_surface", qfalse,					SP_misc_portal_surface },
+	{ "misc_shield_floor_unit", qfalse,					SP_misc_shield_floor_unit },
+	{ "misc_skyportal", qfalse,						SP_misc_skyportal },
+	{ "misc_skyportal_orient", qfalse,					SP_misc_skyportal_orient },
+	{ "misc_teleporter_dest", qfalse,					SP_misc_teleporter_dest },
+	{ "misc_turret", qfalse,						SP_misc_turret },
+	{ "misc_turretG2", qfalse,						SP_misc_turretG2 },
+	{ "misc_weapon_shooter", qfalse,					SP_misc_weapon_shooter },
+	{ "misc_weather_zone", qfalse,						SP_misc_weather_zone },
+	{ "npc_alora", qtrue,							SP_NPC_Alora },
+	{ "npc_bartender", qtrue,						SP_NPC_Bartender },
+	{ "npc_bespincop", qtrue,						SP_NPC_BespinCop },
+	{ "npc_colombian_emplacedgunner", qtrue,				SP_NPC_ShadowTrooper },
+	{ "npc_colombian_rebel", qtrue,						SP_NPC_Reborn },
+	{ "npc_colombian_soldier", qtrue,					SP_NPC_Reborn },
+	{ "npc_cultist", qtrue,							SP_NPC_Cultist },
+	{ "npc_cultist_commando", qtrue,					SP_NPC_Cultist_Commando },
+	{ "npc_cultist_destroyer", qtrue,					SP_NPC_Cultist_Destroyer },
+	{ "npc_cultist_saber", qtrue,						SP_NPC_Cultist_Saber },
+	{ "npc_cultist_saber_powers", qtrue,					SP_NPC_Cultist_Saber_Powers },
+	{ "npc_desann", qtrue,							SP_NPC_Desann },
+	{ "npc_droid_atst", qtrue,						SP_NPC_Droid_ATST },
+	{ "npc_droid_gonk", qtrue,						SP_NPC_Droid_Gonk },
+	{ "npc_droid_interrogator", qtrue,					SP_NPC_Droid_Interrogator },
+	{ "npc_droid_mark1", qtrue,						SP_NPC_Droid_Mark1 },
+	{ "npc_droid_mark2", qtrue,						SP_NPC_Droid_Mark2 },
+	{ "npc_droid_mouse", qtrue,						SP_NPC_Droid_Mouse },
+	{ "npc_droid_probe", qtrue,						SP_NPC_Droid_Probe },
+	{ "npc_droid_protocol", qtrue,						SP_NPC_Droid_Protocol },
+	{ "npc_droid_r2d2", qtrue,						SP_NPC_Droid_R2D2 },
+	{ "npc_droid_r5d2", qtrue,						SP_NPC_Droid_R5D2 },
+	{ "npc_droid_remote", qtrue,						SP_NPC_Droid_Remote },
+	{ "npc_droid_seeker", qtrue,						SP_NPC_Droid_Seeker },
+	{ "npc_droid_sentry", qtrue,						SP_NPC_Droid_Sentry },
+	{ "npc_galak", qtrue,							SP_NPC_Galak },
+	{ "npc_gran", qtrue,							SP_NPC_Gran },
+	{ "npc_imperial", qtrue,						SP_NPC_Imperial },
+	{ "npc_impworker", qtrue,						SP_NPC_ImpWorker },
+	{ "npc_jan", qtrue,							SP_NPC_Jan },
+	{ "npc_jawa", qtrue,							SP_NPC_Jawa },
+	{ "npc_jedi", qtrue,							SP_NPC_Jedi },
+	{ "npc_kyle", qtrue,							SP_NPC_Kyle },
+	{ "npc_lando", qtrue,							SP_NPC_Lando },
+	{ "npc_luke", qtrue,							SP_NPC_Luke },
+	{ "npc_manuel_vergara_rmg", qtrue,					SP_NPC_Desann },
+	{ "npc_minemonster", qtrue,						SP_NPC_MineMonster },
+	{ "npc_monmothma", qtrue,						SP_NPC_MonMothma },
+	{ "npc_monster_claw", qtrue,						SP_NPC_Monster_Claw },
+	{ "npc_monster_fish", qtrue,						SP_NPC_Monster_Fish },
+	{ "npc_monster_flier2", qtrue,						SP_NPC_Monster_Flier2 },
+	{ "npc_monster_glider", qtrue,						SP_NPC_Monster_Glider },
+	{ "npc_monster_howler", qtrue,						SP_NPC_Monster_Howler },
+	{ "npc_monster_lizard", qtrue,						SP_NPC_Monster_Lizard },
+	{ "npc_monster_murjj", qtrue,						SP_NPC_Monster_Murjj },
+	{ "npc_monster_rancor",	 qtrue,						SP_NPC_Monster_Rancor },
+	{ "npc_monster_swamp", qtrue,						SP_NPC_Monster_Swamp },
+	{ "npc_monster_wampa", qtrue,						SP_NPC_Monster_Wampa },
+	{ "npc_morgankatarn", qtrue,						SP_NPC_MorganKatarn },
+	{ "npc_noghri", qtrue,							SP_NPC_Noghri },
+	{ "npc_prisoner", qtrue,						SP_NPC_Prisoner },
+	{ "npc_rebel", qtrue,							SP_NPC_Rebel },
+	{ "npc_reborn", qtrue,							SP_NPC_Reborn },
+	{ "npc_reborn_new", qtrue,						SP_NPC_Reborn_New },
+	{ "npc_reelo", qtrue,							SP_NPC_Reelo },
+	{ "npc_rodian", qtrue,							SP_NPC_Rodian },
+	{ "npc_shadowtrooper", qtrue,						SP_NPC_ShadowTrooper },
+	{ "npc_snowtrooper", qtrue,						SP_NPC_Snowtrooper },
+	{ "npc_spawner", qtrue,							SP_NPC_spawner },
+	{ "npc_stormtrooper", qtrue,						SP_NPC_Stormtrooper },
+	{ "npc_stormtrooperofficer", qtrue,					SP_NPC_StormtrooperOfficer },
+	{ "npc_swamptrooper", qtrue,						SP_NPC_SwampTrooper },
+	{ "npc_tavion", qtrue,							SP_NPC_Tavion },
+	{ "npc_tavion_new", qtrue,						SP_NPC_Tavion_New },
+	{ "npc_tie_pilot", qtrue,						SP_NPC_Tie_Pilot },
+	{ "npc_trandoshan", qtrue,						SP_NPC_Trandoshan },
+	{ "npc_tusken", qtrue,							SP_NPC_Tusken },
+	{ "npc_ugnaught", qtrue,						SP_NPC_Ugnaught },
+	{ "npc_vehicle", qtrue,							SP_NPC_Vehicle },
+	{ "npc_weequay", qtrue,							SP_NPC_Weequay },
+	{ "path_corner", qtrue,							SP_path_corner },
+	{ "point_combat", qtrue,						SP_point_combat },
+	{ "ref_tag", qtrue,							SP_reference_tag },
+	{ "ref_tag_huge", qtrue,						SP_reference_tag },
+	{ "shooter_blaster", qtrue,						SP_shooter_blaster },
+	{ "target_activate", qtrue,						SP_target_activate },
+	{ "target_counter", qtrue,						SP_target_counter },
+	{ "target_deactivate", qtrue,						SP_target_deactivate },
+	{ "target_delay", qtrue,						SP_target_delay },
+	{ "target_escapetrig", qtrue,						SP_target_escapetrig },
+	{ "target_give", qtrue,							SP_target_give },
+	{ "target_interest", qtrue,						SP_target_interest },
+	{ "target_kill", qtrue,							SP_target_kill },
+	{ "target_laser", qtrue,						SP_target_laser },
+	{ "target_level_change", qtrue,						SP_target_level_change },
+	{ "target_location", qtrue,						SP_target_location },
+	{ "target_play_music", qtrue,						SP_target_play_music },
+	{ "target_position", qtrue,						SP_target_position },
+	{ "target_print", qtrue,						SP_target_print },
+	{ "target_push", qtrue,							SP_target_push },
+	{ "target_random", qtrue,						SP_target_random },
+	{ "target_relay", qtrue,						SP_target_relay },
+	{ "target_remove_powerups", qtrue,					SP_target_remove_powerups },
+	{ "target_score", qtrue,						SP_target_score },
+	{ "target_screenshake", qtrue,						SP_target_screenshake },
+	{ "target_scriptrunner", qtrue,						SP_target_scriptrunner },
+	{ "target_speaker", qfalse,						SP_target_speaker },
+	{ "target_teleporter", qtrue,						SP_target_teleporter },
+	{ "team_CTF_blueplayer", qtrue,						SP_team_CTF_blueplayer },
+	{ "team_CTF_bluespawn", qtrue,						SP_team_CTF_bluespawn },
+	{ "team_CTF_redplayer", qtrue,						SP_team_CTF_redplayer },
+	{ "team_CTF_redspawn", qtrue,						SP_team_CTF_redspawn },
+	{ "terrain", qfalse,							SP_terrain },
+	{ "trigger_always", qfalse,						SP_trigger_always },
+	{ "trigger_asteroid_field", qfalse,					SP_trigger_asteroid_field },
+	{ "trigger_hurt", qfalse,						SP_trigger_hurt },
+	{ "trigger_hyperspace", qfalse,						SP_trigger_hyperspace },
+	{ "trigger_lightningstrike", qfalse,					SP_trigger_lightningstrike },
+	{ "trigger_multiple", qfalse,						SP_trigger_multiple },
+	{ "trigger_once", qfalse,						SP_trigger_once },
+	{ "trigger_push", qfalse,						SP_trigger_push },
+	{ "trigger_shipboundary", qfalse,					SP_trigger_shipboundary },
+	{ "trigger_space", qfalse,						SP_trigger_space },
+	{ "trigger_teleport", qfalse,						SP_trigger_teleport },
+	{ "waypoint", qtrue,							SP_waypoint },
+	{ "waypoint_navgoal", qtrue,						SP_waypoint_navgoal },
+	{ "waypoint_navgoal_1", qtrue,						SP_waypoint_navgoal_1 },
+	{ "waypoint_navgoal_2", qtrue,						SP_waypoint_navgoal_2 },
+	{ "waypoint_navgoal_4", qtrue,						SP_waypoint_navgoal_4 },
+	{ "waypoint_navgoal_8", qtrue,						SP_waypoint_navgoal_8 },
+	{ "waypoint_small", qtrue,						SP_waypoint_small },
 };
 
 /*
@@ -673,7 +671,36 @@ returning qfalse if not found
 */
 static int spawncmp( const void *a, const void *b ) {
 	return Q_stricmp( (const char *)a, ((spawn_t*)b)->name );
+
+int GLua_Spawn_Entity(gentity_t* ent);
+int GLua_GetEntityTypeID(const char* classname);
+
+qboolean G_IsLogicalEntity(const char *classname) {
+	spawn_t	*s;
+
+	if (!classname) {
+		return qfalse;
+	}
+
+	// check normal spawn functions
+	for ( s=spawns ; s->name ; s++ ) {
+		if ( !strcmp(s->name, classname) ) {
+			// found it
+			if (s->logical) {
+				return qtrue;
+			} else {
+				return qfalse;
+			}
+		}
+	}
+	// Try Lua entities next
+	if (GLua_GetEntityTypeID(classname) == 2 /* Logical ent */) {
+		return qtrue;
+	}
+
+	return qfalse;
 }
+
 
 qboolean G_CallSpawn( gentity_t *ent ) {
 	spawn_t	*s;
@@ -688,6 +715,21 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 	//TODO: cant reorder items because compat so....?
 	for ( item=bg_itemlist+1 ; item->classname ; item++ ) {
 		if ( !strcmp(item->classname, ent->classname) ) {
+#ifdef __DISABLE_UNUSED_SPAWNS__
+			if ( !Q_strncmp(ent->classname, "weapon_", 7) )
+			{// UQ1: Since we can't pick them up anyway, don't even spawn weapons...
+				G_Printf("%s spawn disabled.\n", ent->classname);
+				G_FreeEntity(ent);
+				return qfalse;
+			}
+			else if ( !Q_strncmp(ent->classname, "ammo_", 5) )
+			{// UQ1: Since we can't pick them up anyway, don't even spawn ammo...
+				G_Printf("%s spawn disabled.\n", ent->classname);
+				G_FreeEntity(ent);
+				return qfalse;
+			}
+#endif //__DISABLE_UNUSED_SPAWNS__
+
 			G_SpawnItem( ent, item );
 			return qtrue;
 		}
@@ -701,6 +743,12 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 			G_SoundIndex( ent->healingsound );
 
 		s->spawn( ent );
+		return qtrue;
+	}
+	}
+	// Jedi Knight Galaxies
+	// Try Lua entities next
+	if (GLua_Spawn_Entity(ent)) {
 		return qtrue;
 	}
 
@@ -919,6 +967,14 @@ void G_SpawnGEntityFromSpawnVars( qboolean inSubBSP ) {
 	// move editor origin to pos
 	VectorCopy( ent->s.origin, ent->s.pos.trBase );
 	VectorCopy( ent->s.origin, ent->r.currentOrigin );
+
+	
+	
+	// Store the spawnvars for later use
+	spv = &g_spawnvars[ent->s.number];
+	for (i=0; i < level.numSpawnVars; i++) {
+		JKG_Pairs_Add(spv, level.spawnVars[i][0], level.spawnVars[i][1]);
+	}
 
 	// if we didn't get a classname, don't bother spawning anything
 	if ( !G_CallSpawn( ent ) ) {
@@ -1172,6 +1228,61 @@ qboolean G_ParseSpawnVars( qboolean inSubBSP ) {
 	return qtrue;
 }
 
+#ifdef __ENTITY_OVERRIDES__
+/*
+====================
+G_ParseSpawnVarsEx
+
+Parses a brace bounded set of key / value pairs out of the
+level's entity strings into level.spawnVars[]
+
+This does not actually spawn an entity.
+====================
+*/
+qboolean G_ParseSpawnVarsEx( int handle ) {
+	pc_token_t	token;
+	char		keyname[MAX_TOKEN_CHARS];
+	
+	level.numSpawnVars = 0;
+	level.numSpawnVarChars = 0;
+
+	// parse the opening brace
+	if (trap_PC_ReadToken(handle, &token) == 0)
+		// end of spawn string
+		return qfalse;
+
+	if (Q_stricmp(token.string, "{") != 0)
+		G_Error( "G_ParseSpawnVarsEx: found %s when expecting {", token.string );
+
+	// go through all the key / value pairs
+	while ( 1 ) {	
+		// parse key
+		if (trap_PC_ReadToken( handle, &token) == 0)
+			G_Error( "G_ParseSpawnVarsEx: EOF without closing brace" );
+
+		if (Q_stricmp(token.string, "}") == 0)
+			break;
+		
+		strcpy(keyname, token.string);
+
+		// parse value	
+		if (trap_PC_ReadToken( handle, &token) == 0)
+			G_Error("G_ParseSpawnVarsEx: EOF without closing brace" );
+
+		if (Q_stricmp(token.string, "}") == 0)
+			G_Error("G_ParseSpawnVarsEx: closing brace without data");
+
+		if (level.numSpawnVars == MAX_SPAWN_VARS)
+			G_Error("G_ParseSpawnVarsEx: MAX_SPAWN_VARS");
+
+		level.spawnVars[ level.numSpawnVars ][0] = G_AddSpawnVarToken(keyname);
+		level.spawnVars[ level.numSpawnVars ][1] = G_AddSpawnVarToken(token.string);
+		level.numSpawnVars++;
+	}
+
+	return qtrue;
+}
+#endif //__ENTITY_OVERRIDES__
 
 static	char *defaultStyles[32][3] = 
 {
@@ -1362,6 +1473,8 @@ BSP Options
 */
 extern void EWebPrecache(void); //g_items.c
 float g_cullDistance;
+
+extern vmCvar_t jkg_startingGun;
 void SP_worldspawn( void ) 
 {
 	char		*text, temp[32];
@@ -1418,15 +1531,12 @@ void SP_worldspawn( void )
 		}
 	}
 
-	if (level.gametype == GT_SIEGE)
-	{ //a tad bit of a hack, but..
-		EWebPrecache();
-	}
-
 	// make some data visible to connecting client
 	trap_SetConfigstring( CS_GAME_VERSION, GAME_VERSION );
 
 	trap_SetConfigstring( CS_LEVEL_START_TIME, va("%i", level.startTime ) );
+
+	G_SpawnInt("serverinit", "0", &level.serverInit);
 
 	G_SpawnString( "music", "", &text );
 	trap_SetConfigstring( CS_MUSIC, text );
@@ -1445,6 +1555,11 @@ void SP_worldspawn( void )
 	G_SpawnString( "soundSet", "default", &text );
 	trap_SetConfigstring( CS_GLOBAL_AMBIENT_SET, text );
 
+	G_SpawnString( "defaultWeapon", jkg_startingGun.string, &text );//pistol_DL-18
+	if(text)
+	{
+		strcpy(level.startingWeapon, text);
+	}
 	g_entities[ENTITYNUM_WORLD].s.number = ENTITYNUM_WORLD;
 	g_entities[ENTITYNUM_WORLD].classname = "worldspawn";
 
@@ -1454,22 +1569,37 @@ void SP_worldspawn( void )
 		trap_Cvar_Set( "g_restarted", "0" );
 		level.warmupTime = 0;
 	} 
-	//Raz: Fix warmup
-#if 0
-	/*
-	else if ( g_doWarmup.integer && level.gametype != GT_DUEL && level.gametype != GT_POWERDUEL ) { // Turn it on
-		level.warmupTime = -1;
-		trap_SetConfigstring( CS_WARMUP, va("%i", level.warmupTime) );
-		G_LogPrintf( "Warmup:\n" );
+
+	// Gang Wars
+	if( g_gametype.integer >= GT_TEAM )
+	{
+		char *redString, *blueString;
+		char teamInfo[MAX_INFO_STRING];
+
+		G_SpawnString("gwTeamRed", "red", &redString);
+		G_SpawnString("gwTeamBlue", "blue", &blueString);
+		
+		teamInfo[0] = '\0';
+
+		Info_SetValueForKey(teamInfo, "redTeam", redString);
+		Info_SetValueForKey(teamInfo, "blueTeam", blueString);
+
+		if(!Info_Validate(teamInfo))
+		{
+			Com_Error(ERR_FATAL, "GW: Info_Validate returned qfalse.\n");
+			return;
+		}
+
+		trap_SetConfigstring(CS_TEAMS, teamInfo);
+
+		level.redTeam = JKG_GetTeamByReference( redString );
+		level.blueTeam = JKG_GetTeamByReference( blueString );
+
+		if( level.redTeam < 0 || level.blueTeam < 0 )
+		{
+			Com_Printf("^3WARNING: Improper team for team %s\n", (level.redTeam < 0) ? "Red" : "Blue");
+		}
 	}
-	*/
-#else
-	else if ( g_doWarmup.integer && level.gametype != GT_DUEL && level.gametype != GT_POWERDUEL && level.gametype != GT_SIEGE ) { // Turn it on
-		level.warmupTime = -1;
-		trap_SetConfigstring( CS_WARMUP, va("%i", level.warmupTime) );
-		G_LogPrintf( "Warmup:\n" );
-	}
-#endif
 
 	trap_SetConfigstring(CS_LIGHT_STYLES+(LS_STYLES_START*3)+0, defaultStyles[0][0]);
 	trap_SetConfigstring(CS_LIGHT_STYLES+(LS_STYLES_START*3)+1, defaultStyles[0][1]);
@@ -1537,6 +1667,13 @@ Parses textual entity definitions out of an entstring and spawns gentities.
 ==============
 */
 void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
+#ifdef __ENTITY_OVERRIDES__
+	int			handle;
+	vmCvar_t	mapname;
+
+	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+#endif //__ENTITY_OVERRIDES__
+
 	// allow calls to G_Spawn*()
 	level.spawning = qtrue;
 	level.numSpawnVars = 0;
@@ -1544,6 +1681,36 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 	// the worldspawn is not an actual entity, but it still
 	// has a "spawn" function to perform any global setup
 	// needed by a level (setting configstrings or cvars, etc)
+#ifdef __ENTITY_OVERRIDES__
+	//
+	// UQ1: Allows different entities defintions to be loaded per gametype for a map with a .ovrents file...
+	// This version overrides the bsp's spawns completely.
+	//
+	if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
+		handle = trap_PC_LoadSource(va("maps/%s_scenario.ovrents", mapname.string));
+	else
+#ifdef __RPG__
+	if (g_gametype.integer == GT_RPG_CITY)
+		handle = trap_PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
+	else if (g_gametype.integer == GT_RPG_WILDERNESS)
+		handle = trap_PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
+	else 
+#endif //__RPG__
+	if (g_gametype.integer == GT_SINGLE_PLAYER)
+		handle = trap_PC_LoadSource(va("maps/%s_coop.ovrents", mapname.string));
+	else
+		handle = trap_PC_LoadSource(va("maps/%s.ovrents", mapname.string));
+
+	if (handle)
+	{
+		if ( !G_ParseSpawnVarsEx(handle) )
+		{
+			G_Error( "SpawnEntities: no entities" );
+			trap_PC_FreeSource(handle); // UQ added!
+		}
+	}
+	else
+#endif //__ENTITY_OVERRIDES__
 	if ( !G_ParseSpawnVars(qfalse) ) {
 		G_Error( "SpawnEntities: no entities" );
 	}
@@ -1561,10 +1728,58 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 		}
 	}
 
-	// parse ents
-	while( G_ParseSpawnVars(inSubBSP) ) {
-		G_SpawnGEntityFromSpawnVars(inSubBSP);
-	}	
+#ifdef __ENTITY_OVERRIDES__ // UQ added.. We need to pass all the new entity list, not just worldspawn...
+	if (handle)
+	{// Pass all the new .ovrents file's entities one at a time...
+		while( G_ParseSpawnVarsEx(handle) )
+			G_SpawnGEntityFromSpawnVars(inSubBSP);
+
+		trap_PC_FreeSource(handle); // UQ: Release the handle here instead of above...
+	}
+	else
+#endif //__ENTITY_OVERRIDES__
+	{// Parse ents from the actual map bsp.
+		while( G_ParseSpawnVars(inSubBSP) ) {
+			G_SpawnGEntityFromSpawnVars(inSubBSP);
+		}	
+	}
+
+#ifdef __ENTITY_OVERRIDES__
+	//
+	// UQ1: This version loads only 'extra' entitiyes from a .entities file...
+	//
+	if (!handle) 
+	{
+		// parse possible external entities map files
+		// it's used to add new ents to existing pure ET map
+		if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
+			handle = trap_PC_LoadSource(va("maps/%s_scenario.entities", mapname.string));
+		else
+#ifdef __RPG__
+		if (g_gametype.integer == GT_RPG_CITY)
+			handle = trap_PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
+		else if (g_gametype.integer == GT_RPG_WILDERNESS)
+			handle = trap_PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
+		else 
+#endif //__RPG__
+		if (g_gametype.integer == GT_SINGLE_PLAYER)
+			handle = trap_PC_LoadSource(va("maps/%s_coop.entities", mapname.string));
+		else
+			handle = trap_PC_LoadSource(va("maps/%s.entities", mapname.string));
+
+		if (handle)
+		{
+			if (G_ParseSpawnVarsEx(handle) == qfalse)
+				G_Error( "SpawnEntities: no entities" );
+
+			// parse ents
+			while (G_ParseSpawnVarsEx(handle))
+				G_SpawnGEntityFromSpawnVars(inSubBSP);
+
+			trap_PC_FreeSource(handle);
+		}
+	}
+#endif //__ENTITY_OVERRIDES__
 
 	if( g_entities[ENTITYNUM_WORLD].behaviorSet[BSET_SPAWN] && g_entities[ENTITYNUM_WORLD].behaviorSet[BSET_SPAWN][0] )
 	{//World has a spawn script, but we don't want the world in ICARUS and running scripts,

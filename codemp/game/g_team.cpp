@@ -184,6 +184,11 @@ OnSameTeam
 ==============
 */
 qboolean OnSameTeam( gentity_t *ent1, gentity_t *ent2 ) {
+	if( !ent1 || !ent2 || ent1 == NULL || ent2 == NULL )
+	{
+		return qfalse;
+	}
+
 	if ( !ent1->client || !ent2->client ) {
 		return qfalse;
 	}
@@ -725,25 +730,11 @@ void Team_DroppedFlagThink(gentity_t *ent) {
 Team_DroppedFlagThink
 ==============
 */
-
-// This is to account for situations when there are more players standing 
-// on flag stand and then flag gets returned. This leaded to bit random flag 
-// grabs/captures, improved version takes distance to the center of flag stand 
-// into consideration (closer player will get/capture the flag).
-static vec3_t	minFlagRange = { 50, 36, 36 };
-static vec3_t	maxFlagRange = { 44, 36, 36 };
-
-int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team );
-
 int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
-	int			i, num, j, enemyTeam;
+	int			i;
 	gentity_t	*player;
 	gclient_t	*cl = other->client;
 	int			enemy_flag;
-	vec3_t		mins, maxs;
-	int			touch[MAX_GENTITIES];
-	gentity_t*	enemy;
-	float		enemyDist, dist;
 
 	if (cl->sess.sessionTeam == TEAM_RED) {
 		enemy_flag = PW_BLUEFLAG;
@@ -769,58 +760,6 @@ int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 	// flag, he's just won!
 	if (!cl->ps.powerups[enemy_flag])
 		return 0; // We don't have the flag
-
-	// fix: captures after timelimit hit could 
-	// cause game ending with tied score
-	if ( level.intermissionQueued ) {
-		return 0;
-	}
-
-	// check for enemy closer to grab the flag
-	VectorSubtract( ent->s.pos.trBase, minFlagRange, mins );
-	VectorAdd( ent->s.pos.trBase, maxFlagRange, maxs );
-
-	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
-
-	dist = Distance(ent->s.pos.trBase, other->client->ps.origin);
-		
-	if (other->client->sess.sessionTeam == TEAM_RED){
-		enemyTeam = TEAM_BLUE;
-	} else {
-		enemyTeam = TEAM_RED;
-	}	
-
-	for ( j=0 ; j<num ; j++ ) {
-		enemy = (g_entities + touch[j]);
-
-		if (!enemy || !enemy->inuse || !enemy->client){
-			continue;
-		}
-
-		//check if its alive
-		if (enemy->health < 1)
-			continue;		// dead people can't pickup
-
-		//ignore specs
-		if (enemy->client->sess.sessionTeam == TEAM_SPECTATOR)
-			continue;
-
-		//check if this is enemy
-		if ((enemy->client->sess.sessionTeam != TEAM_RED && enemy->client->sess.sessionTeam != TEAM_BLUE) ||
-			enemy->client->sess.sessionTeam != enemyTeam){
-			continue;
-		}
-			
-		//check if enemy is closer to our flag than us
-		enemyDist = Distance(ent->s.pos.trBase,enemy->client->ps.origin);
-		if (enemyDist < dist){
-			// possible recursion is hidden in this, but 
-			// infinite recursion wont happen, because we cant 
-			// have a < b and b < a at the same time
-			return Team_TouchEnemyFlag( ent, enemy, team );
-		}
-	}
-
 	//PrintMsg( NULL, "%s" S_COLOR_WHITE " captured the %s flag!\n", cl->pers.netname, TeamName(OtherTeam(team)));
 	PrintCTFMessage(other->s.number, team, CTFMESSAGE_PLAYER_CAPTURED_FLAG);
 
@@ -884,53 +823,6 @@ int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 
 int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
 	gclient_t *cl = other->client;
-	vec3_t		mins, maxs;
-	int			num, j, ourFlag;
-	int			touch[MAX_GENTITIES];
-	gentity_t*	enemy;
-	float		enemyDist, dist;
-
-	VectorSubtract( ent->s.pos.trBase, minFlagRange, mins );
-	VectorAdd( ent->s.pos.trBase, maxFlagRange, maxs );
-
-	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
-
-	dist = Distance(ent->s.pos.trBase, other->client->ps.origin);
-
-	if (other->client->sess.sessionTeam == TEAM_RED){
-		ourFlag   = PW_REDFLAG;
-	} else {
-		ourFlag   = PW_BLUEFLAG;
-	}		
-
-	for(j = 0; j < num; ++j){
-		enemy = (g_entities + touch[j]);
-
-		if (!enemy || !enemy->inuse || !enemy->client){
-			continue;
-		}
-
-		//ignore specs
-		if (enemy->client->sess.sessionTeam == TEAM_SPECTATOR)
-			continue;
-
-		//check if its alive
-		if (enemy->health < 1)
-			continue;		// dead people can't pick up items
-
-		//lets check if he has our flag
-		if (!enemy->client->ps.powerups[ourFlag])
-			continue;
-
-		//check if enemy is closer to our flag than us
-		enemyDist = Distance(ent->s.pos.trBase,enemy->client->ps.origin);
-		if (enemyDist < dist){
-			// possible recursion is hidden in this, but 
-			// infinite recursion wont happen, because we cant 
-			// have a < b and b < a at the same time
-			return Team_TouchOurFlag( ent, enemy, team );
-		}
-	}
 
 	//PrintMsg (NULL, "%s" S_COLOR_WHITE " got the %s flag!\n",
 	//	other->client->pers.netname, TeamName(team));
@@ -1061,36 +953,20 @@ gentity_t *SelectRandomTeamSpawnPoint( int teamstate, team_t team, int siegeClas
 	char		*classname;
 	qboolean	mustBeEnabled = qfalse;
 
-	if (level.gametype == GT_SIEGE)
-	{
-		if (team == SIEGETEAM_TEAM1)
-		{
-			classname = "info_player_siegeteam1";
-		}
+	if (teamstate == TEAM_BEGIN) {
+		if (team == TEAM_RED)
+			classname = "team_CTF_redplayer";
+		else if (team == TEAM_BLUE)
+			classname = "team_CTF_blueplayer";
 		else
-		{
-			classname = "info_player_siegeteam2";
-		}
-
-		mustBeEnabled = qtrue; //siege spawn points need to be "enabled" to be used (because multiple spawnpoint sets can be placed at once)
-	}
-	else
-	{
-		if (teamstate == TEAM_BEGIN) {
-			if (team == TEAM_RED)
-				classname = "team_CTF_redplayer";
-			else if (team == TEAM_BLUE)
-				classname = "team_CTF_blueplayer";
-			else
-				return NULL;
-		} else {
-			if (team == TEAM_RED)
-				classname = "team_CTF_redspawn";
-			else if (team == TEAM_BLUE)
-				classname = "team_CTF_bluespawn";
-			else
-				return NULL;
-		}
+			return NULL;
+	} else {
+		if (team == TEAM_RED)
+			classname = "team_CTF_redspawn";
+		else if (team == TEAM_BLUE)
+			classname = "team_CTF_bluespawn";
+		else
+			return NULL;
 	}
 	count = 0;
 
@@ -1113,31 +989,6 @@ gentity_t *SelectRandomTeamSpawnPoint( int teamstate, team_t team, int siegeClas
 
 	if ( !count ) {	// no spots that won't telefrag
 		return G_Find( NULL, FOFS(classname), classname);
-	}
-
-	if (level.gametype == GT_SIEGE && siegeClass >= 0 &&
-		bgSiegeClasses[siegeClass].name[0])
-	{ //out of the spots found, see if any have an idealclass to match our class name
-		gentity_t *classSpots[MAX_TEAM_SPAWN_POINTS];
-		int classCount = 0;
-		int i = 0;
-
-        while (i < count)
-		{
-			if (spots[i] && spots[i]->idealclass && spots[i]->idealclass[0] &&
-				!Q_stricmp(spots[i]->idealclass, bgSiegeClasses[siegeClass].name))
-			{ //this spot's idealclass matches the class name
-                classSpots[classCount] = spots[i];
-				classCount++;
-			}
-			i++;
-		}
-
-		if (classCount > 0)
-		{ //found at least one
-			selection = rand() % classCount;
-			return spots[ selection ];
-		}
 	}
 
 	selection = rand() % count;
@@ -1328,7 +1179,11 @@ void CheckTeamStatus(void) {
 /*QUAKED team_CTF_redplayer (1 0 0) (-16 -16 -16) (16 16 32)
 Only in CTF games.  Red players spawn here at game start.
 */
+
+extern void SP_info_player_deathmatch (gentity_t *ent);
 void SP_team_CTF_redplayer( gentity_t *ent ) {
+	ent->classname = "team_ctf_redplayer";
+	SP_info_player_deathmatch( ent );
 }
 
 
@@ -1336,6 +1191,8 @@ void SP_team_CTF_redplayer( gentity_t *ent ) {
 Only in CTF games.  Blue players spawn here at game start.
 */
 void SP_team_CTF_blueplayer( gentity_t *ent ) {
+	ent->classname = "team_ctf_blueplayer";
+	SP_info_player_deathmatch( ent );
 }
 
 
@@ -1353,4 +1210,49 @@ Targets will be fired when someone spawns in on them.
 void SP_team_CTF_bluespawn(gentity_t *ent) {
 }
 
+
+//bypass most of the normal checks in SetTeam
+void SetTeamQuick(gentity_t *ent, int team, qboolean doBegin)
+{
+	char userinfo[MAX_INFO_STRING];
+
+	trap_GetUserinfo( ent->s.number, userinfo, sizeof( userinfo ) );
+
+	ent->client->sess.sessionTeam = team;
+
+	if (team == TEAM_SPECTATOR)
+	{
+		ent->client->sess.spectatorState = SPECTATOR_FREE;
+		Info_SetValueForKey(userinfo, "team", "s");
+	}
+	else
+	{
+		ent->client->sess.spectatorState = SPECTATOR_NOT;
+		if (team == TEAM_RED)
+		{
+			Info_SetValueForKey(userinfo, "team", "r");
+		}
+		else if (team == TEAM_BLUE)
+		{
+			Info_SetValueForKey(userinfo, "team", "b");
+		}
+		else
+		{
+			Info_SetValueForKey(userinfo, "team", "?");
+		}
+	}
+
+	trap_SetUserinfo( ent->s.number, userinfo );
+
+	ent->client->sess.spectatorClient = 0;
+
+	ent->client->pers.teamState.state = TEAM_BEGIN;
+
+	ClientUserinfoChanged( ent->s.number );
+
+	if (doBegin)
+	{
+		ClientBegin( ent->s.number, qfalse );
+	}
+}
 

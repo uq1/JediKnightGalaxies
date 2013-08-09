@@ -1,3 +1,5 @@
+// leave this line at the top for all g_xxxx.cpp files...
+#include "g_headers.h"
 
 //seems to be a compiler bug, it doesn't clean out the #ifdefs between dif-compiles
 //or something, so the headers spew errors on these defs from the previous compile.
@@ -10,9 +12,6 @@
 #undef maxs
 #undef legsAnimTimer
 #undef torsoAnimTimer
-#undef bool
-#undef false
-#undef true
 
 #undef sqrtf
 #undef Q_flrand
@@ -54,13 +53,8 @@
 #define maxs r.maxs
 #define legsAnimTimer legsTimer
 #define torsoAnimTimer torsoTimer
-#define bool qboolean
-#define false qfalse
-#define true qtrue
 
-//JAC: Added
 #undef sqrtf
-
 #define sqrtf sqrt
 #define Q_flrand flrand
 
@@ -115,7 +109,6 @@ static bool Board( Vehicle_t *pVeh, bgEntity_t *pEnt )
 	return true;
 }
 #endif //QAGAME
-
 
 //MP RULE - ALL PROCESSMOVECOMMANDS FUNCTIONS MUST BE BG-COMPATIBLE!!!
 //If you really need to violate this rule for SP, then use ifdefs.
@@ -580,7 +573,6 @@ void G_SetWalkerVehicleFunctions( vehicleInfo_t *pVehInfo )
 extern void G_AllocateVehicleObject(Vehicle_t **pVeh);
 #endif
 
-
 // Create/Allocate a new Animal Vehicle (initializing it as well).
 //this is a BG function too in MP so don't un-bg-compatibilify it -rww
 void G_CreateWalkerNPC( Vehicle_t **pVeh, const char *strAnimalType )
@@ -595,7 +587,7 @@ void G_CreateWalkerNPC( Vehicle_t **pVeh, const char *strAnimalType )
 #else
 	if (!*pVeh)
 	{ //only allocate a new one if we really have to
-		(*pVeh) = (Vehicle_t *) BG_Alloc( sizeof(Vehicle_t) );
+		(*pVeh) = (Vehicle_t *) malloc( sizeof(Vehicle_t) );
 	}
 #endif
 	memset(*pVeh, 0, sizeof(Vehicle_t));
@@ -615,9 +607,6 @@ void G_CreateWalkerNPC( Vehicle_t **pVeh, const char *strAnimalType )
 #undef maxs
 #undef legsAnimTimer
 #undef torsoAnimTimer
-#undef bool
-#undef false
-#undef true
 
 #undef sqrtf
 #undef Q_flrand

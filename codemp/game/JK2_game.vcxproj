@@ -1,0 +1,651 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Final|Win32">
+      <Configuration>Final</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>Server Side Module (game)</ProjectName>
+    <ProjectGuid>{5B587283-8429-4F8B-AECA-C09BF364B617}</ProjectGuid>
+    <RootNamespace>JK2game</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Final|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Final|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../$(Configuration)/Dlls\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../$(Configuration)/JK2game\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">../$(Configuration)/Dlls\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">../$(Configuration)/JK2game\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../$(Configuration)/Build/base\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../$(Configuration)/JK2game\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Final|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Final|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">gamex86</TargetName>
+    <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>NDebug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\../Release/JK2_game.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>.;../;../libraries/libcurl/include;..\libraries;..\shared;..\libraries\Detour\Include;..\libraries\Recast\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;MISSIONPACK;QAGAME;_JK2;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <MinimalRebuild>true</MinimalRebuild>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>.\../Release/JK2game/JK2_game.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\../Release/JK2game/</AssemblerListingLocation>
+      <ObjectFileName>.\../Release/JK2game/</ObjectFileName>
+      <ProgramDataBaseFileName>.\../Release/JK2game/</ProgramDataBaseFileName>
+      <WarningLevel>Level4</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDebug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>winmm.lib;libcurl.lib;ws2_32.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)jampgamex86.dll</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>../libraries/libcurl;../libraries/openssl;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>.\JK2_game.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>../$(Configuration)/PDB/$(TargetName).pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>../$(Configuration)/Map/$(TargetName).map</MapFileName>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <SetChecksum>true</SetChecksum>
+      <BaseAddress>0x20000000</BaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>.\../Release/jampgamex86.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>NDebug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\../Final/JK2_game.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>.;../;../libraries/libcurl/include;..\libraries;..\shared;..\libraries\Detour\Include;..\libraries\Recast\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;MISSIONPACK;QAGAME;WIN32;_JK2;FINAL_BUILD;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>.\../Final/JK2game/JK2_game.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\../Final/JK2game/</AssemblerListingLocation>
+      <ObjectFileName>.\../Final/JK2game/</ObjectFileName>
+      <ProgramDataBaseFileName>.\../Final/JK2game/</ProgramDataBaseFileName>
+      <WarningLevel>Level4</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDebug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>winmm.lib;libcurl.lib;ws2_32.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)jampgamex86.dll</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>../libraries/libcurl;../libraries/openssl;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>.\JK2_game.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>../$(Configuration)/PDB/$(TargetName).pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>../$(Configuration)/Map/$(TargetName).map</MapFileName>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <SetChecksum>true</SetChecksum>
+      <BaseAddress>0x20000000</BaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>.\../Final/jampgamex86.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>_Debug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\../Debug/JK2_game.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.;../;../libraries/libcurl/include;..\libraries;..\shared;..\libraries\Detour\Include;..\libraries\Recast\Include;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;BUILDING_REF_GL;Debug;WIN32;_WINDOWS;MISSIONPACK;QAGAME;_JK2;CURL_STATICLIB;_PHASE1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <OpenMPSupport>false</OpenMPSupport>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>.\../Debug/JK2game/JK2_game.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\../Debug/JK2game/</AssemblerListingLocation>
+      <ObjectFileName>.\../Debug/JK2game/</ObjectFileName>
+      <ProgramDataBaseFileName>.\../Debug/JK2game/</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_Debug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;libeay32.lib;dbghelp.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
+      <OutputFile>$(OutDir)gamex86.dll</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>../libraries/libcurl;../libraries/openssl;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>.\JK2_game.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>../$(Configuration)/PDB/$(TargetName).pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>../$(Configuration)/Map/$(TargetName).map</MapFileName>
+      <SubSystem>Windows</SubSystem>
+      <BaseAddress>0x20000000</BaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>.\../Debug/jampgamex86.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>"$(SolutionDir)\BuildMan.exe" game</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ai_dominance.cpp" />
+    <ClCompile Include="ai_dominance_astar.cpp" />
+    <ClCompile Include="ai_dominance_bot.cpp" />
+    <ClCompile Include="ai_dominance_evasion.cpp" />
+    <ClCompile Include="ai_main.cpp" />
+    <ClCompile Include="ai_util.cpp" />
+    <ClCompile Include="ai_wpnav.cpp" />
+    <ClCompile Include="animtable.cpp" />
+    <ClCompile Include="bg_ammo.cpp" />
+    <ClCompile Include="bg_constants.cpp" />
+    <ClCompile Include="bg_g2_utils.cpp" />
+    <ClCompile Include="bg_items.cpp" />
+    <ClCompile Include="bg_misc.cpp" />
+    <ClCompile Include="bg_panimate.cpp" />
+    <ClCompile Include="bg_pmove.cpp" />
+    <ClCompile Include="bg_saber.cpp" />
+    <ClCompile Include="bg_saberLoad.cpp" />
+    <ClCompile Include="bg_slidemove.cpp" />
+    <ClCompile Include="bg_vehicleLoad.cpp" />
+    <ClCompile Include="bg_vmove.cpp" />
+    <ClCompile Include="bg_weapons.cpp" />
+    <ClCompile Include="bg_weapons_load.cpp" />
+    <ClCompile Include="g_active.cpp" />
+    <ClCompile Include="g_arenas.cpp" />
+    <ClCompile Include="g_bot.cpp" />
+    <ClCompile Include="g_client.cpp" />
+    <ClCompile Include="g_cmds.cpp" />
+    <ClCompile Include="g_combat.cpp" />
+    <ClCompile Include="g_exphysics.cpp" />
+    <ClCompile Include="g_ICARUScb.cpp" />
+    <ClCompile Include="g_items.cpp" />
+    <ClCompile Include="g_log.cpp" />
+    <ClCompile Include="g_main.cpp" />
+    <ClCompile Include="g_mem.cpp" />
+    <ClCompile Include="g_misc.cpp" />
+    <ClCompile Include="g_missile.cpp" />
+    <ClCompile Include="g_mover.cpp" />
+    <ClCompile Include="g_nav.cpp" />
+    <ClCompile Include="g_navnew.cpp" />
+    <ClCompile Include="g_object.cpp" />
+    <ClCompile Include="g_session.cpp" />
+    <ClCompile Include="g_spawn.cpp" />
+    <ClCompile Include="g_strap.cpp" />
+    <ClCompile Include="g_svcmds.cpp" />
+    <ClCompile Include="g_syscalls.cpp" />
+    <ClCompile Include="g_target.cpp" />
+    <ClCompile Include="g_team.cpp" />
+    <ClCompile Include="g_timer.cpp" />
+    <ClCompile Include="g_trigger.cpp" />
+    <ClCompile Include="g_turret.cpp" />
+    <ClCompile Include="g_turret_G2.cpp" />
+    <ClCompile Include="g_utils.cpp" />
+    <ClCompile Include="g_vehicles.cpp" />
+    <ClCompile Include="g_vehicleTurret.cpp" />
+    <ClCompile Include="g_weapon.cpp" />
+    <ClCompile Include="jkg_admin.cpp" />
+    <ClCompile Include="jkg_bans.cpp" />
+    <ClCompile Include="jkg_chatcmds.cpp" />
+    <ClCompile Include="jkg_crafting.cpp" />
+    <ClCompile Include="jkg_custombounds.cpp" />
+    <ClCompile Include="jkg_damagetypes.cpp" />
+    <ClCompile Include="jkg_dynarrays.cpp" />
+    <ClCompile Include="jkg_equip.cpp" />
+    <ClCompile Include="jkg_gangwars.cpp" />
+    <ClCompile Include="jkg_item_sub.cpp" />
+    <ClCompile Include="jkg_items.cpp" />
+    <ClCompile Include="jkg_items_easy.cpp" />
+    <ClCompile Include="jkg_keypairs.cpp" />
+    <ClCompile Include="jkg_playerisolation.cpp" />
+    <ClCompile Include="jkg_rconbans.cpp" />
+    <ClCompile Include="jkg_supremacy_flags.cpp" />
+    <ClCompile Include="jkg_supremacy_flagsys.cpp" />
+    <ClCompile Include="jkg_supremacy_spawnsys.cpp" />
+    <ClCompile Include="jkg_team.cpp" />
+    <ClCompile Include="jkg_threading.cpp" />
+    <ClCompile Include="jkg_threadingsq.cpp" />
+    <ClCompile Include="jkg_utilityfunc.cpp" />
+    <ClCompile Include="NPC_AI_Humanoid.cpp" />
+    <ClCompile Include="NPC_Animal.cpp" />
+    <ClCompile Include="NPC_Conversations.cpp" />
+    <ClCompile Include="NPC_CoverPoints.cpp" />
+    <ClCompile Include="NPC_Fighter.cpp" />
+    <ClCompile Include="NPC_Speeder.cpp" />
+    <ClCompile Include="NPC_Walker.cpp" />
+    <ClCompile Include="NPC_Waypointing.cpp" />
+    <ClCompile Include="q_math.cpp" />
+    <ClCompile Include="q_shared.cpp" />
+    <ClCompile Include="tri_coll_test.cpp" />
+    <ClCompile Include="w_force.cpp" />
+    <ClCompile Include="w_saber.cpp" />
+    <ClCompile Include="..\GLua\glua_bitstream.cpp" />
+    <ClCompile Include="..\GLua\glua_bitwise.cpp" />
+    <ClCompile Include="..\GLua\glua_cryptography.cpp" />
+    <ClCompile Include="..\GLua\glua_cvar.cpp" />
+    <ClCompile Include="..\GLua\glua_encoding.cpp" />
+    <ClCompile Include="..\GLua\glua_engine.cpp" />
+    <ClCompile Include="..\GLua\glua_entity.cpp" />
+    <ClCompile Include="..\GLua\glua_files.cpp" />
+    <ClCompile Include="..\GLua\glua_main.cpp" />
+    <ClCompile Include="..\GLua\glua_npc.cpp" />
+    <ClCompile Include="..\GLua\glua_player.cpp" />
+    <ClCompile Include="..\GLua\glua_prng.cpp" />
+    <ClCompile Include="..\GLua\glua_sys.cpp" />
+    <ClCompile Include="..\GLua\glua_vector.cpp" />
+    <ClCompile Include="NPC.cpp" />
+    <ClCompile Include="NPC_AI_Atst.cpp" />
+    <ClCompile Include="NPC_AI_Default.cpp" />
+    <ClCompile Include="NPC_AI_Droid.cpp" />
+    <ClCompile Include="NPC_AI_GalakMech.cpp" />
+    <ClCompile Include="NPC_AI_Grenadier.cpp" />
+    <ClCompile Include="NPC_AI_Howler.cpp" />
+    <ClCompile Include="NPC_AI_ImperialProbe.cpp" />
+    <ClCompile Include="NPC_AI_Interrogator.cpp" />
+    <ClCompile Include="NPC_AI_Mark1.cpp" />
+    <ClCompile Include="NPC_AI_Mark2.cpp" />
+    <ClCompile Include="NPC_AI_MineMonster.cpp" />
+    <ClCompile Include="NPC_AI_Rancor.cpp" />
+    <ClCompile Include="NPC_AI_Remote.cpp" />
+    <ClCompile Include="NPC_AI_Seeker.cpp" />
+    <ClCompile Include="NPC_AI_Sentry.cpp" />
+    <ClCompile Include="NPC_AI_Sniper.cpp" />
+    <ClCompile Include="NPC_AI_Stormtrooper.cpp" />
+    <ClCompile Include="NPC_AI_Utils.cpp" />
+    <ClCompile Include="NPC_AI_Wampa.cpp" />
+    <ClCompile Include="NPC_behavior.cpp" />
+    <ClCompile Include="NPC_combat.cpp" />
+    <ClCompile Include="NPC_goal.cpp" />
+    <ClCompile Include="NPC_misc.cpp" />
+    <ClCompile Include="NPC_move.cpp" />
+    <ClCompile Include="NPC_reactions.cpp" />
+    <ClCompile Include="NPC_senses.cpp" />
+    <ClCompile Include="NPC_sounds.cpp" />
+    <ClCompile Include="NPC_spawn.cpp" />
+    <ClCompile Include="NPC_stats.cpp" />
+    <ClCompile Include="NPC_utils.cpp" />
+    <ClCompile Include="..\libraries\json\cJSON.c" />
+    <ClCompile Include="..\libraries\Lua\lapi.c" />
+    <ClCompile Include="..\libraries\Lua\lauxlib.c" />
+    <ClCompile Include="..\libraries\Lua\lbaselib.c" />
+    <ClCompile Include="..\libraries\Lua\lcode.c" />
+    <ClCompile Include="..\libraries\Lua\ldblib.c" />
+    <ClCompile Include="..\libraries\Lua\ldebug.c" />
+    <ClCompile Include="..\libraries\Lua\ldo.c" />
+    <ClCompile Include="..\libraries\Lua\ldump.c" />
+    <ClCompile Include="..\libraries\Lua\lfunc.c" />
+    <ClCompile Include="..\libraries\Lua\lgc.c" />
+    <ClCompile Include="..\libraries\Lua\linit.c" />
+    <ClCompile Include="..\libraries\Lua\liolib.c" />
+    <ClCompile Include="..\libraries\Lua\llex.c" />
+    <ClCompile Include="..\libraries\Lua\lmathlib.c" />
+    <ClCompile Include="..\libraries\Lua\lmem.c" />
+    <ClCompile Include="..\libraries\Lua\loadlib.c" />
+    <ClCompile Include="..\libraries\Lua\lobject.c" />
+    <ClCompile Include="..\libraries\Lua\lopcodes.c" />
+    <ClCompile Include="..\libraries\Lua\loslib.c" />
+    <ClCompile Include="..\libraries\Lua\lparser.c" />
+    <ClCompile Include="..\libraries\Lua\lstate.c" />
+    <ClCompile Include="..\libraries\Lua\lstring.c" />
+    <ClCompile Include="..\libraries\Lua\lstrlib.c" />
+    <ClCompile Include="..\libraries\Lua\ltable.c" />
+    <ClCompile Include="..\libraries\Lua\ltablib.c" />
+    <ClCompile Include="..\libraries\Lua\ltm.c" />
+    <ClCompile Include="..\libraries\Lua\lundump.c" />
+    <ClCompile Include="..\libraries\Lua\lvm.c" />
+    <ClCompile Include="..\libraries\Lua\lzio.c" />
+    <ClCompile Include="..\libraries\Lua\print.c" />
+    <ClCompile Include="..\libraries\encoding\base128.cpp" />
+    <ClCompile Include="..\libraries\encoding\base64.c" />
+    <ClCompile Include="..\libraries\encoding\bitstream.c" />
+    <ClCompile Include="..\libraries\Recast\Source\Recast.cpp" />
+    <ClCompile Include="..\libraries\Recast\Source\RecastAlloc.cpp" />
+    <ClCompile Include="..\libraries\Recast\Source\RecastArea.cpp" />
+    <ClCompile Include="..\libraries\Recast\Source\RecastContour.cpp" />
+    <ClCompile Include="..\libraries\Recast\Source\RecastFilter.cpp" />
+    <ClCompile Include="..\libraries\Recast\Source\RecastLayers.cpp" />
+    <ClCompile Include="..\libraries\Recast\Source\RecastMesh.cpp" />
+    <ClCompile Include="..\libraries\Recast\Source\RecastMeshDetail.cpp" />
+    <ClCompile Include="..\libraries\Recast\Source\RecastRasterization.cpp" />
+    <ClCompile Include="..\libraries\Recast\Source\RecastRegion.cpp" />
+    <ClCompile Include="..\libraries\Detour\Source\DetourAlloc.cpp" />
+    <ClCompile Include="..\libraries\Detour\Source\DetourCommon.cpp" />
+    <ClCompile Include="..\libraries\Detour\Source\DetourNavMesh.cpp" />
+    <ClCompile Include="..\libraries\Detour\Source\DetourNavMeshBuilder.cpp" />
+    <ClCompile Include="..\libraries\Detour\Source\DetourNavMeshQuery.cpp" />
+    <ClCompile Include="..\libraries\Detour\Source\DetourNode.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="JK2_game.def" />
+    <None Include="authdb.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ai.h" />
+    <ClInclude Include="ai_main.h" />
+    <ClInclude Include="anims.h" />
+    <ClInclude Include="..\cgame\animtable.h" />
+    <ClInclude Include="aux_exports.h" />
+    <ClInclude Include="b_local.h" />
+    <ClInclude Include="b_public.h" />
+    <ClInclude Include="be_aas.h" />
+    <ClInclude Include="be_ai_char.h" />
+    <ClInclude Include="be_ai_chat.h" />
+    <ClInclude Include="be_ai_gen.h" />
+    <ClInclude Include="be_ai_goal.h" />
+    <ClInclude Include="be_ai_move.h" />
+    <ClInclude Include="be_ai_weap.h" />
+    <ClInclude Include="be_ea.h" />
+    <ClInclude Include="bg_ammo.h" />
+    <ClInclude Include="bg_items.h" />
+    <ClInclude Include="bg_lib.h" />
+    <ClInclude Include="bg_local.h" />
+    <ClInclude Include="bg_public.h" />
+    <ClInclude Include="bg_strap.h" />
+    <ClInclude Include="bg_vehicles.h" />
+    <ClInclude Include="bg_weapons.h" />
+    <ClInclude Include="botlib.h" />
+    <ClInclude Include="..\cgame\cg_local.h" />
+    <ClInclude Include="..\cgame\cg_public.h" />
+    <ClInclude Include="chars.h" />
+    <ClInclude Include="..\shared\qcommon\disablewarnings.h" />
+    <ClInclude Include="..\shared\ghoul2\G2.h" />
+    <ClInclude Include="g_headers.h" />
+    <ClInclude Include="g_ICARUScb.h" />
+    <ClInclude Include="g_local.h" />
+    <ClInclude Include="g_nav.h" />
+    <ClInclude Include="g_public.h" />
+    <ClInclude Include="g_team.h" />
+    <ClInclude Include="inv.h" />
+    <ClInclude Include="jkg_admin.h" />
+    <ClInclude Include="jkg_asmdefines.h" />
+    <ClInclude Include="jkg_bans.h" />
+    <ClInclude Include="jkg_chatcmds.h" />
+    <ClInclude Include="jkg_crafting.h" />
+    <ClInclude Include="jkg_damagetypes.h" />
+    <ClInclude Include="jkg_dynarrays.h" />
+    <ClInclude Include="jkg_easy_items.h" />
+    <ClInclude Include="jkg_gangwars.h" />
+    <ClInclude Include="jkg_items.h" />
+    <ClInclude Include="jkg_keypairs.h" />
+    <ClInclude Include="jkg_libcurl.h" />
+    <ClInclude Include="jkg_navmesh_creator.h" />
+    <ClInclude Include="jkg_threading.h" />
+    <ClInclude Include="jkg_threadingsq.h" />
+    <ClInclude Include="jkg_utilityfunc.h" />
+    <ClInclude Include="match.h" />
+    <ClInclude Include="..\..\ui\menudef.h" />
+    <ClInclude Include="npc_headers.h" />
+    <ClInclude Include="q_shared.h" />
+    <ClInclude Include="..\win32\resource.h" />
+    <ClInclude Include="say.h" />
+    <ClInclude Include="..\shared\server\server.h" />
+    <ClInclude Include="surfaceflags.h" />
+    <ClInclude Include="syn.h" />
+    <ClInclude Include="..\shared\qcommon\tags.h" />
+    <ClInclude Include="teams.h" />
+    <ClInclude Include="..\cgame\tr_types.h" />
+    <ClInclude Include="w_saber.h" />
+    <ClInclude Include="z_global_defines.h" />
+    <ClInclude Include="..\shared\icarus\interpreter.h" />
+    <ClInclude Include="..\shared\icarus\Q3_Interface.h" />
+    <ClInclude Include="..\shared\icarus\Q3_Registers.h" />
+    <ClInclude Include="..\GLua\glua.h" />
+    <ClInclude Include="..\libraries\json\cJSON.h" />
+    <ClInclude Include="..\libraries\Lua\lapi.h" />
+    <ClInclude Include="..\libraries\Lua\lauxlib.h" />
+    <ClInclude Include="..\libraries\Lua\lcode.h" />
+    <ClInclude Include="..\libraries\Lua\ldebug.h" />
+    <ClInclude Include="..\libraries\Lua\ldo.h" />
+    <ClInclude Include="..\libraries\Lua\lfunc.h" />
+    <ClInclude Include="..\libraries\Lua\lgc.h" />
+    <ClInclude Include="..\libraries\Lua\llex.h" />
+    <ClInclude Include="..\libraries\Lua\llimits.h" />
+    <ClInclude Include="..\libraries\Lua\lmem.h" />
+    <ClInclude Include="..\libraries\Lua\lobject.h" />
+    <ClInclude Include="..\libraries\Lua\lopcodes.h" />
+    <ClInclude Include="..\libraries\Lua\lparser.h" />
+    <ClInclude Include="..\libraries\Lua\lstate.h" />
+    <ClInclude Include="..\libraries\Lua\lstring.h" />
+    <ClInclude Include="..\libraries\Lua\ltable.h" />
+    <ClInclude Include="..\libraries\Lua\ltm.h" />
+    <ClInclude Include="..\libraries\Lua\lua.h" />
+    <ClInclude Include="..\libraries\Lua\luaconf.h" />
+    <ClInclude Include="..\libraries\Lua\lualib.h" />
+    <ClInclude Include="..\libraries\Lua\lundump.h" />
+    <ClInclude Include="..\libraries\Lua\lvm.h" />
+    <ClInclude Include="..\libraries\Lua\lzio.h" />
+    <ClInclude Include="..\libraries\libcurl\include\curl\curl.h" />
+    <ClInclude Include="..\libraries\libcurl\include\curl\curlbuild.h" />
+    <ClInclude Include="..\libraries\libcurl\include\curl\curlrules.h" />
+    <ClInclude Include="..\libraries\libcurl\include\curl\curlver.h" />
+    <ClInclude Include="..\libraries\libcurl\include\curl\easy.h" />
+    <ClInclude Include="..\libraries\libcurl\include\curl\mprintf.h" />
+    <ClInclude Include="..\libraries\libcurl\include\curl\multi.h" />
+    <ClInclude Include="..\libraries\libcurl\include\curl\stdcheaders.h" />
+    <ClInclude Include="..\libraries\libcurl\include\curl\typecheck-gcc.h" />
+    <ClInclude Include="..\libraries\libcurl\include\curl\types.h" />
+    <ClInclude Include="..\libraries\encoding\base128.h" />
+    <ClInclude Include="..\libraries\encoding\base64.h" />
+    <ClInclude Include="..\libraries\encoding\bitstream.h" />
+    <ClInclude Include="..\libraries\openssl\aes.h" />
+    <ClInclude Include="..\libraries\openssl\asn1.h" />
+    <ClInclude Include="..\libraries\openssl\asn1_mac.h" />
+    <ClInclude Include="..\libraries\openssl\asn1t.h" />
+    <ClInclude Include="..\libraries\openssl\bio.h" />
+    <ClInclude Include="..\libraries\openssl\blowfish.h" />
+    <ClInclude Include="..\libraries\openssl\bn.h" />
+    <ClInclude Include="..\libraries\openssl\buffer.h" />
+    <ClInclude Include="..\libraries\openssl\camellia.h" />
+    <ClInclude Include="..\libraries\openssl\cast.h" />
+    <ClInclude Include="..\libraries\openssl\cms.h" />
+    <ClInclude Include="..\libraries\openssl\comp.h" />
+    <ClInclude Include="..\libraries\openssl\conf.h" />
+    <ClInclude Include="..\libraries\openssl\conf_api.h" />
+    <ClInclude Include="..\libraries\openssl\crypto.h" />
+    <ClInclude Include="..\libraries\openssl\des.h" />
+    <ClInclude Include="..\libraries\openssl\des_old.h" />
+    <ClInclude Include="..\libraries\openssl\dh.h" />
+    <ClInclude Include="..\libraries\openssl\dsa.h" />
+    <ClInclude Include="..\libraries\openssl\dso.h" />
+    <ClInclude Include="..\libraries\openssl\dtls1.h" />
+    <ClInclude Include="..\libraries\openssl\e_os2.h" />
+    <ClInclude Include="..\libraries\openssl\ebcdic.h" />
+    <ClInclude Include="..\libraries\openssl\ec.h" />
+    <ClInclude Include="..\libraries\openssl\ecdh.h" />
+    <ClInclude Include="..\libraries\openssl\ecdsa.h" />
+    <ClInclude Include="..\libraries\openssl\engine.h" />
+    <ClInclude Include="..\libraries\openssl\err.h" />
+    <ClInclude Include="..\libraries\openssl\evp.h" />
+    <ClInclude Include="..\libraries\openssl\hmac.h" />
+    <ClInclude Include="..\libraries\openssl\idea.h" />
+    <ClInclude Include="..\libraries\openssl\krb5_asn.h" />
+    <ClInclude Include="..\libraries\openssl\kssl.h" />
+    <ClInclude Include="..\libraries\openssl\lhash.h" />
+    <ClInclude Include="..\libraries\openssl\md4.h" />
+    <ClInclude Include="..\libraries\openssl\md5.h" />
+    <ClInclude Include="..\libraries\openssl\mdc2.h" />
+    <ClInclude Include="..\libraries\openssl\modes.h" />
+    <ClInclude Include="..\libraries\openssl\obj_mac.h" />
+    <ClInclude Include="..\libraries\openssl\objects.h" />
+    <ClInclude Include="..\libraries\openssl\ocsp.h" />
+    <ClInclude Include="..\libraries\openssl\opensslconf.h" />
+    <ClInclude Include="..\libraries\openssl\opensslv.h" />
+    <ClInclude Include="..\libraries\openssl\ossl_typ.h" />
+    <ClInclude Include="..\libraries\openssl\pem.h" />
+    <ClInclude Include="..\libraries\openssl\pem2.h" />
+    <ClInclude Include="..\libraries\openssl\pkcs12.h" />
+    <ClInclude Include="..\libraries\openssl\pkcs7.h" />
+    <ClInclude Include="..\libraries\openssl\pqueue.h" />
+    <ClInclude Include="..\libraries\openssl\rand.h" />
+    <ClInclude Include="..\libraries\openssl\rc2.h" />
+    <ClInclude Include="..\libraries\openssl\rc4.h" />
+    <ClInclude Include="..\libraries\openssl\ripemd.h" />
+    <ClInclude Include="..\libraries\openssl\rsa.h" />
+    <ClInclude Include="..\libraries\openssl\safestack.h" />
+    <ClInclude Include="..\libraries\openssl\seed.h" />
+    <ClInclude Include="..\libraries\openssl\sha.h" />
+    <ClInclude Include="..\libraries\openssl\ssl.h" />
+    <ClInclude Include="..\libraries\openssl\ssl2.h" />
+    <ClInclude Include="..\libraries\openssl\ssl23.h" />
+    <ClInclude Include="..\libraries\openssl\ssl3.h" />
+    <ClInclude Include="..\libraries\openssl\stack.h" />
+    <ClInclude Include="..\libraries\openssl\symhacks.h" />
+    <ClInclude Include="..\libraries\openssl\tls1.h" />
+    <ClInclude Include="..\libraries\openssl\ts.h" />
+    <ClInclude Include="..\libraries\openssl\txt_db.h" />
+    <ClInclude Include="..\libraries\openssl\ui.h" />
+    <ClInclude Include="..\libraries\openssl\ui_compat.h" />
+    <ClInclude Include="..\libraries\openssl\whrlpool.h" />
+    <ClInclude Include="..\libraries\openssl\x509.h" />
+    <ClInclude Include="..\libraries\openssl\x509_vfy.h" />
+    <ClInclude Include="..\libraries\openssl\x509v3.h" />
+    <ClInclude Include="..\libraries\Recast\Include\Recast.h" />
+    <ClInclude Include="..\libraries\Recast\Include\RecastAlloc.h" />
+    <ClInclude Include="..\libraries\Recast\Include\RecastAssert.h" />
+    <ClInclude Include="..\libraries\Detour\Include\DetourAlloc.h" />
+    <ClInclude Include="..\libraries\Detour\Include\DetourAssert.h" />
+    <ClInclude Include="..\libraries\Detour\Include\DetourCommon.h" />
+    <ClInclude Include="..\libraries\Detour\Include\DetourNavMesh.h" />
+    <ClInclude Include="..\libraries\Detour\Include\DetourNavMeshBuilder.h" />
+    <ClInclude Include="..\libraries\Detour\Include\DetourNavMeshQuery.h" />
+    <ClInclude Include="..\libraries\Detour\Include\DetourNode.h" />
+    <ClInclude Include="..\libraries\Detour\Include\DetourStatus.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\win32\JK2game.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

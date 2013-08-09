@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __AI__
+#define __AI__
 
 //Distance ratings
 typedef enum
@@ -121,3 +122,5 @@ void AI_GetGroup( gentity_t *self );
 
 qboolean AI_CheckEnemyCollision( gentity_t *ent, qboolean takeEnemy );
 gentity_t *AI_DistributeAttack( gentity_t *attacker, gentity_t *enemy, team_t team, int threshold );
+
+#endif	//__AI__

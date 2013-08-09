@@ -1,5 +1,21 @@
-#pragma once
+//       ____ ___________________   ___           ____  __ _______   ___  ________  ___ ______________
+//      |    |\_   _____/\______ \ |   |         |    |/ _|\      \ |   |/  _____/ /   |   \__    ___/
+//      |    | |    __)_  |    |  \|   |         |      <  /   |   \|   /   \  ___/    ~    \|    |   
+//  /\__|    | |        \ |    `   \   |         |    |  \/    |    \   \    \_\  \    Y    /|    |   
+//  \________|/_______  //_______  /___|         |____|__ \____|__  /___|\______  /\___|_  / |____|   
+//                    \/         \/                      \/       \/            \/       \/           
+//                         ________    _____   ____       _____  ____  ___ ______________ _________   
+//                        /  _____/   /  _  \ |    |     /  _  \ \   \/  /|   \_   _____//   _____/   
+//                       /   \  ___  /  /_\  \|    |    /  /_\  \ \     / |   ||    __)_ \_____  \    
+//                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
+//                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
+//                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
+// anims.h
+// List of player animations in the GLAs
+// (c) 2013 Jedi Knight Galaxies
 
+#ifndef __ANIMS_H__
+#define __ANIMS_H__
 // playerAnimations
 
 
@@ -1784,6 +1800,179 @@ typedef enum //# animNumber_e
 	BOTH_CIN_48,		//# Level specific cinematic 
 	BOTH_CIN_49,		//# Level specific cinematic 
 	BOTH_CIN_50,		//# Level specific cinematic
+	
+	// Root placeholder
+	ROOT,
+
+	// JKG Animations
+	TORSO_HANDSIGNAL6,
+	TORSO_HANDSIGNAL7,
+	TORSO_HANDSIGNAL8,
+	TORSO_HANDSIGNAL9,
+	TORSO_HANDSIGNAL10,
+	TORSO_HANDSIGNAL11,
+	TORSO_HANDSIGNAL12,
+	TORSO_HANDSIGNAL13,
+	TORSO_SALUTE,
+	TORSO_2PISTOLATTACK,
+	BOTH_2PISTOLREADY,
+
+	//[to be used in crouch and standing stance only]
+
+	BOTH_2PISTOLSTANCE,
+	TORSO_ROCKETATTACK,
+	TORSO_ROCKETSTANCE,
+
+	//[because we use these instead and replace the movement for all weapons]
+	BOTH_ROCKETWALK,
+	BOTH_2PISTOLWALK,
+	BOTH_PISTOLWALK,
+	BOTH_RIFLEWALK,
+	BOTH_ROCKETWALKBACK,
+	BOTH_2PISTOLWALKBACK,
+	BOTH_PISTOLWALKBACK,
+	BOTH_RIFLEWALKBACK,
+
+	//[for fem chars]
+	//[should replace lower half of weapon walks & use4 melee&noweap only]
+	BOTH_FEMALEEWALK,
+	BOTH_FEMALEEWALKBACK,
+
+	//[running with weapons so dont poke your eye out]
+	BOTH_PISTOLRUN,
+	BOTH_RIFLERUN,
+	BOTH_ROCKETRUN,
+
+	//[used in crouch walking to replace the one for these weapons]
+	BOTH_RIFLECROUCHING,
+	BOTH_RIFLECROUCHBACK,
+	BOTH_PISTOLCROUCHING,
+	BOTH_PISTOLCROUCHBACK,
+
+	//[replaces jump1 for rifles]
+	BOTH_RIFLEJUMP1,
+	BOTHRIFLELAND1,
+
+	//[this is for run & jumping foreward]
+	BOTH_HURDLE,
+	BOTH_PISTOLHURDLE,
+	BOTH_RIFLEHURDLE,
+
+	//[Reloading weapons fyi rifles have different directions]
+	BOTH_2PISTOLRELOAD,
+	BOTH_PISTOLRELOAD,
+	BOTH_RIFLERELOADB,
+	BOTH_RIFLERELOADR,
+	BOTH_RIFLERELOADL,
+	BOTH_ROCKETRELOAD,
+
+	//[TIMEFORPRONE]
+
+	BOTH_PRONEDOWN,
+	BOTH_PRONEUP,
+	BOTH_PRONESTANCE,
+	BOTH_PRONEREADY,
+	BOTH_PRONEFIRE,
+	BOTH_PRONECRAWL,
+	BOTH_PRONECRAWLBACK,
+	BOTH_PRONECRAWLLEFT,
+	BOTH_PRONECRAWLRIGHT,
+
+	//[The other falling death (33% chance for all 3:P)]
+
+	BOTH_FALLDEATH2,
+	BOTH_FALLDEATH2INAIR,
+	BOTH_FALLDEATH2LAND,
+	BOTH_FALLDEAD2LAND,
+	BOTH_FALLDEATH3,
+	BOTH_FALLDEATH3INAIR,
+	BOTH_FALLDEATH3LAND,
+	BOTH_FALLDEAD3LAND,
+
+	//[explosives detpacks replacer and tossing items]
+	BOTH_PLANTBOMBSTART,
+	BOTH_PLANTBOMBIDLE,
+	BOTH_PLANTBOMBFINISH,
+	BOTH_TOSSITEM,
+
+	//[electronic communication]
+	BOTH_WRISTCHAT,
+	BOTH_WRISTCHATIDLE,
+	BOTH_WRISTCHATEND,
+	BOTH_HOLOMESSEGE,
+	BOTH_HOLOMESSEGEIDLE,
+	BOTH_HOLOMESSEGEEND,
+
+	BOTH_USEMED,
+
+	//[forcepowers yay!deadlysight is a smoky sizzle.lightning big is more TFU uberness]
+	BOTH_FORCEDEADSIGHT,
+	BOTH_FORCEDEADSIGHTIDLE,
+	BOTH_FORCEDEADSIGHTRELEASE,
+
+	BOTH_FORCELIGHTNINGBIG,
+	BOTH_FORCELIGHTNINGBIGIDLE,
+	BOTH_FORCELIGHTNINGBIGEND,
+
+	//[like an invisible deka shield dome around you]
+	BOTH_FORCESHELL,
+	BOTH_FORCESHELLIDLE,
+	BOTH_FORCESHELLRELEASE,
+
+	//[better than bacta a jedi wavy hand is]
+	BOTH_FORCEREVIVE,
+	BOTH_FORCEREVIVEIDLE,
+	BOTH_FORCEREVIVEDONE,
+
+	//[fly like a rocketpack uses FORCELAND1]
+	BOTH_FORCEFLIGHT,
+	BOTH_FORCEFLIGHTIDLE,
+
+	BOTH_FORCEABSORBSTART,
+	BOTH_FORCEABSORBIDLE,
+	BOTH_FORCEABSORBFINISH,
+
+	//[Throwing a bubble or a really bright ball or Beam..see JK1]
+	BOTH_FORCEORB,
+	BOTH_FORCEDESTRUCTION,
+
+	//[put up an invisible wall of deflection lol]
+	BOTH_FORCEBARRIER,
+	BOTH_FORCEBARRIERIDLE,
+	BOTH_FORCEBARRIERRELEASE,
+
+	//[I shall heal you with my mind.lol.]
+	BOTH_FORCEHEAL,
+	BOTH_FORCEHEALIDLE,
+	BOTH_FORCEHEALRELEASE,
+
+	//[yet another TFU power radial push]
+	BOTH_FORCEREPULSE,
+
+	//[lift only pops them up in place with no damage levitated1-3]
+	BOTH_FORCELIFT,
+	//[levitate allows moving them around without hurting them they levitated idle more]
+	BOTH_FORCELEVITATE,
+	BOTH_FORCELEVITATEIDLE,
+	BOTH_FORCELEVITATEDONE,
+	//[WAVE adds a push launching them wayy up to their likely splat death.]
+	BOTH_FORCELEVITATEWAVE,
+
+	//[this is what happens when you're being levitated or in lift you'll b like popup]
+	BOTH_FORCELEVITATED,
+	BOTH_FORCELEVITATEDIDLE,
+	BOTH_FORCELEVITATEDLAND,
+
+	//[these bottom 2 are NEW ANIMATIONS for the matching animation]
+	BOTH_FORCE_DRAIN_GRABBEDHOLD,
+	BOTH_FORCE_DRAIN_GRABBEDEND,
+	
+	BOTH_SPRINT,
+	BOTH_FEMALERUN,
+	
+	BOTH_TWIST,
+    BOTH_MUFA,
+    BOTH_BOFA,
 
 	//# #eol
 	MAX_ANIMATIONS,
@@ -1791,3 +1980,7 @@ typedef enum //# animNumber_e
 } animNumber_t;
 
 #define SABER_ANIM_GROUP_SIZE (BOTH_A2_T__B_ - BOTH_A1_T__B_)
+
+
+#endif// #ifndef __ANIMS_H__
+

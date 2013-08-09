@@ -1,6 +1,7 @@
 // Copyright (C) 1999-2000 Id Software, Inc.
 //
 #include "g_local.h"
+#include "jkg_threading.h"
 
 // this file is only included when building a dll
 // g_syscalls.asm is included instead when building a qvm
@@ -179,11 +180,15 @@ qboolean trap_AreasConnected( int area1, int area2 ) {
 }
 
 void trap_LinkEntity( gentity_t *ent ) {
-	Q_syscall( G_LINKENTITY, ent );
+	if (!ent->isLogical) {	// Can't link logical entities
+		Q_syscall( G_LINKENTITY, ent );
+	}
 }
 
 void trap_UnlinkEntity( gentity_t *ent ) {
-	Q_syscall( G_UNLINKENTITY, ent );
+	if (!ent->isLogical) {	// Can't unlink logical entities
+		Q_syscall( G_UNLINKENTITY, ent );
+	}
 }
 
 int trap_EntitiesInBox( const vec3_t mins, const vec3_t maxs, int *list, int maxcount ) {
@@ -293,10 +298,12 @@ void trap_TrueFree(void **ptr)
 	Q_syscall(G_TRUEFREE, ptr);
 }
 
-//rww - icarus traps
+//rww - icarus traps (modified to properly handle logical entities
 int trap_ICARUS_RunScript( gentity_t *ent, const char *name )
 {
-	return Q_syscall(G_ICARUS_RUNSCRIPT, ent, name);
+	if (!ent->isLogical) // Disable icarus for logical entities
+		return Q_syscall(G_ICARUS_RUNSCRIPT, ent, name);
+	return 0;
 }
 
 qboolean trap_ICARUS_RegisterScript( const char *name, qboolean bCalledDuringInterrogate)
@@ -311,42 +318,55 @@ void trap_ICARUS_Init( void )
 
 qboolean trap_ICARUS_ValidEnt( gentity_t *ent )
 {
-	return Q_syscall(G_ICARUS_VALIDENT, ent);
+	if (!ent->isLogical) // Disable icarus for logical entities
+		return Q_syscall(G_ICARUS_VALIDENT, ent);
+	return qfalse;
 }
 
 qboolean trap_ICARUS_IsInitialized( int entID )
 {
-	return Q_syscall(G_ICARUS_ISINITIALIZED, entID);
+	if (entID < 1023) // Disable icarus for logical entities
+		return Q_syscall(G_ICARUS_ISINITIALIZED, entID);
+	return qfalse;
 }
 
 qboolean trap_ICARUS_MaintainTaskManager( int entID )
 {
-	return Q_syscall(G_ICARUS_MAINTAINTASKMANAGER, entID);
+	if (entID < 1023) // Disable icarus for logical entities
+		return Q_syscall(G_ICARUS_MAINTAINTASKMANAGER, entID);
+	return qfalse;
 }
 
 qboolean trap_ICARUS_IsRunning( int entID )
 {
-	return Q_syscall(G_ICARUS_ISRUNNING, entID);
+	if (entID < 1023) // Disable icarus for logical entities
+		return Q_syscall(G_ICARUS_ISRUNNING, entID);
+	return qfalse;
 }
 
 qboolean trap_ICARUS_TaskIDPending(gentity_t *ent, int taskID)
 {
-	return Q_syscall(G_ICARUS_TASKIDPENDING, ent, taskID);
+	if (!ent->isLogical) // Disable icarus for logical entities
+		return Q_syscall(G_ICARUS_TASKIDPENDING, ent, taskID);
+	return qfalse;
 }
 
 void trap_ICARUS_InitEnt( gentity_t *ent )
 {
-	Q_syscall(G_ICARUS_INITENT, ent);
+	if (!ent->isLogical) // Disable icarus for logical entities
+		Q_syscall(G_ICARUS_INITENT, ent);
 }
 
 void trap_ICARUS_FreeEnt( gentity_t *ent )
 {
-	Q_syscall(G_ICARUS_FREEENT, ent);
+	if (!ent->isLogical) // Disable icarus for logical entities
+		Q_syscall(G_ICARUS_FREEENT, ent);
 }
 
 void trap_ICARUS_AssociateEnt( gentity_t *ent )
 {
-	Q_syscall(G_ICARUS_ASSOCIATEENT, ent);
+	if (!ent->isLogical) // Disable icarus for logical entities
+		Q_syscall(G_ICARUS_ASSOCIATEENT, ent);
 }
 
 void trap_ICARUS_Shutdown( void )
@@ -356,12 +376,14 @@ void trap_ICARUS_Shutdown( void )
 
 void trap_ICARUS_TaskIDSet(gentity_t *ent, int taskType, int taskID)
 {
-	Q_syscall(G_ICARUS_TASKIDSET, ent, taskType, taskID);
+	if (!ent->isLogical) // Disable icarus for logical entities
+		Q_syscall(G_ICARUS_TASKIDSET, ent, taskType, taskID);
 }
 
 void trap_ICARUS_TaskIDComplete(gentity_t *ent, int taskType)
 {
-	Q_syscall(G_ICARUS_TASKIDCOMPLETE, ent, taskType);
+	if (!ent->isLogical) // Disable icarus for logical entities
+		Q_syscall(G_ICARUS_TASKIDCOMPLETE, ent, taskType);
 }
 
 void trap_ICARUS_SetVar(int taskID, int entID, const char *type_name, const char *data)

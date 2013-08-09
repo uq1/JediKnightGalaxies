@@ -12,7 +12,7 @@ extern void G_DebugPrint( int level, const char *format, ... );
 extern qboolean G_CheckInSolid (gentity_t *self, qboolean fix);
 extern qboolean ClientUserinfoChanged( int clientNum );
 extern qboolean SpotWouldTelefrag2( gentity_t *mover, vec3_t dest );
-extern void Jedi_Cloak( gentity_t *self );
+extern void NPC_Humanoid_Cloak( gentity_t *self );
 
 //extern void FX_BorgTeleport( vec3_t org );
 
@@ -28,7 +28,7 @@ extern void PM_SetTorsoAnimTimer( gentity_t *ent, int *torsoAnimTimer, int time 
 extern void PM_SetLegsAnimTimer( gentity_t *ent, int *legsAnimTimer, int time );
 
 extern void ST_ClearTimers( gentity_t *ent );
-extern void Jedi_ClearTimers( gentity_t *ent );
+extern void NPC_Humanoid_ClearTimers( gentity_t *ent );
 extern void NPC_ShadowTrooper_Precache( void );
 extern void NPC_Gonk_Precache( void );
 extern void NPC_Mouse_Precache( void );
@@ -65,7 +65,7 @@ extern void station_pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void func_usable_pain			(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_ATST_Pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_ST_Pain					(gentity_t *self, gentity_t *attacker, int damage);
-extern void NPC_Jedi_Pain				(gentity_t *self, gentity_t *attacker, int damage);
+extern void NPC_Humanoid_Pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Droid_Pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Probe_Pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_MineMonster_Pain		(gentity_t *self, gentity_t *attacker, int damage);
@@ -84,6 +84,136 @@ extern void TurretPain					(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Wampa_Pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Rancor_Pain				(gentity_t *self, gentity_t *attacker, int damage);
 
+
+//--------------------------------------------------------------
+
+qboolean HumanNamesLoaded = qfalse;
+
+typedef struct
+{// FIXME: Add other species name files...
+	char	HumanNames[MAX_QPATH];
+} name_list_t;
+
+name_list_t NPC_NAME_LIST[8000];
+
+int NUM_HUMAN_NAMES = 0;
+
+/* */
+void
+Load_NPC_Names ( void )
+{				// Load bot first names from external file.
+	char			*s, *t;
+	int				len;
+	fileHandle_t	f;
+	char			*buf;
+	char			*loadPath;
+	int				num = 0;
+
+	if (HumanNamesLoaded)
+		return;
+
+	loadPath = va( "npc_names_list.dat" );
+
+	len = trap_FS_FOpenFile( loadPath, &f, FS_READ );
+
+	HumanNamesLoaded = qtrue;
+
+	if ( !f )
+	{
+		return;
+	}
+
+	if ( !len )
+	{			//empty file
+		trap_FS_FCloseFile( f );
+		return;
+	}
+
+	if ( (buf = (char *)malloc( len + 1)) == 0 )
+	{			//alloc memory for buffer
+		trap_FS_FCloseFile( f );
+		return;
+	}
+
+	trap_FS_Read( buf, len, f );
+	buf[len] = 0;
+	trap_FS_FCloseFile( f );
+
+	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "NONAME");
+	NUM_HUMAN_NAMES++;
+	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "R2D2 Droid");
+	NUM_HUMAN_NAMES++;
+	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "R5D2 Droid");
+	NUM_HUMAN_NAMES++;
+	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "Protocol Droid");
+	NUM_HUMAN_NAMES++;
+	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "Weequay");
+	NUM_HUMAN_NAMES++;
+
+	for ( t = s = buf; *t; /* */ )
+	{
+		num++;
+		s = strchr( s, '\n' );
+		if ( !s || num > len )
+		{
+			break;
+		}
+
+		while ( *s == '\n' )
+		{
+			*s++ = 0;
+		}
+
+		if ( *t )
+		{
+			if ( !Q_strncmp( "//", va( "%s", t), 2) == 0 && strlen( va( "%s", t)) > 0 )
+			{	// Not a comment either... Record it in our list...
+				Q_strncpyz( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, va( "%s", t), strlen( va( "%s", t)) );
+				NUM_HUMAN_NAMES++;
+			}
+		}
+
+		t = s;
+	}
+
+	NUM_HUMAN_NAMES--;
+
+	G_Printf( "^4*** ^3%s^4: ^5There are ^7%i^5 NPC names in the database.\n", GAME_VERSION, NUM_HUMAN_NAMES );
+}
+
+void SelectNPCNameFromList( gentity_t *NPC )
+{
+	// Load names on first check...
+	Load_NPC_Names();
+
+	if (StringContainsWord(NPC->NPC_type, "r2d2"))
+	{
+		NPC->s.generic1 = 1; // Init the NPC name...
+		NPC->client->ps.generic1 = NPC->s.generic1; // Init the NPC name...
+	}
+	else if (StringContainsWord(NPC->NPC_type, "r5d2"))
+	{
+		NPC->s.generic1 = 2; // Init the NPC name...
+		NPC->client->ps.generic1 = NPC->s.generic1; // Init the NPC name...
+	}
+	else if (StringContainsWord(NPC->NPC_type, "protocol"))
+	{
+		NPC->s.generic1 = 3; // Init the NPC name...
+		NPC->client->ps.generic1 = NPC->s.generic1; // Init the NPC name...
+	}
+	else if (StringContainsWord(NPC->NPC_type, "weequay"))
+	{
+		NPC->s.generic1 = 4; // Init the NPC name...
+		NPC->client->ps.generic1 = NPC->s.generic1; // Init the NPC name...
+	}
+	else
+	{
+		NPC->s.generic1 = irand(4, NUM_HUMAN_NAMES); // Init the NPC name...
+		NPC->client->ps.generic1 = NPC->s.generic1; // Init the NPC name...
+	}
+}
+
+//--------------------------------------------------------------
 
 //void HirogenAlpha_Precache( void );
 
@@ -106,7 +236,7 @@ PAIN_FUNC *NPC_PainFunc( gentity_t *ent )
 
 	if ( ent->client->ps.weapon == WP_SABER )
 	{
-		func = NPC_Jedi_Pain;
+		func = NPC_Humanoid_Pain;
 	}
 	else
 	{
@@ -124,6 +254,7 @@ PAIN_FUNC *NPC_PainFunc( gentity_t *ent )
 		// troopers get special pain
 		case CLASS_STORMTROOPER:
 		case CLASS_SWAMPTROOPER:
+		case CLASS_MERC://Stoiss add merc class
 			func = NPC_ST_Pain;
 			break;
 
@@ -261,10 +392,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 	{//FIXME: extern this into NPC.cfg?
 		ent->NPC->scriptFlags |= SCF_NO_FORCE;//force powers don't work on him
 	}
-	if ( !Q_stricmp( "emperor", ent->NPC_type ) 
-		|| !Q_stricmp( "cultist_grip", ent->NPC_type )
-		|| !Q_stricmp( "cultist_drain", ent->NPC_type )
-		|| !Q_stricmp( "cultist_lightning", ent->NPC_type ))
+	if ( !Q_stricmp( "emperor", ent->NPC_type ) )
 	{//FIXME: extern this into NPC.cfg?
 		ent->NPC->scriptFlags |= SCF_DONT_FIRE;//so he uses only force powers
 	}
@@ -275,13 +403,16 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 	//	ent->client->ps.SaberDeactivate();
 	//	ent->client->ps.SetSaberLength( 0 );
 		WP_SaberInitBladeData( ent );
-		ent->client->ps.saberHolstered = 2;
+		ent->client->ps.saberHolstered = 0;
+		//Stoiss add Npc blockpoint
+		ent->client->ps.blockPoints = 150;//Stoiss add: give npcs Block point as well as players, should be higher then 100 to keep them give the player a good fight
+
 	//	G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saber[0].model, ent->handRBolt, 0 );
 	//	if ( ent->client->ps.dualSabers )
 	//	{
 	//		G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saber[1].model, ent->handLBolt, 1 );
 	//	}
-		Jedi_ClearTimers( ent );
+		NPC_Humanoid_ClearTimers( ent );
 	}
 	if ( ent->client->ps.fd.forcePowersKnown != 0 )
 	{
@@ -366,7 +497,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 
 			// Not even sure if we want to give different levels of batteries?  ...Or even that these are the values we'd want to use.
 			/*
-			switch ( g_npcspskill.integer )
+			switch ( g_spskill.integer )
 			{
 			case 0:	//	EASY
 				ent->client->ps.batteryCharge = MAX_BATTERIES * 0.8f; 
@@ -388,7 +519,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 			ent->NPC->defaultBehavior = BS_DEFAULT;
 			if ( ent->client->NPC_class == CLASS_SHADOWTROOPER )
 			{//FIXME: a spawnflag?
-				Jedi_Cloak( ent );
+				NPC_Humanoid_Cloak( ent );
 			}
 		 	if( ent->client->NPC_class == CLASS_TAVION ||
 				ent->client->NPC_class == CLASS_REBORN ||
@@ -470,31 +601,6 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 
 	default:
 		break;
-	}
-
-
-	if ( ent->client->NPC_class == CLASS_SEEKER
-		&& ent->activator )
-	{//assume my teams are already set correctly
-	}
-	else
-	{
-		//for siege, want "bad" npc's allied with the "bad" team
-		if (level.gametype == GT_SIEGE && ent->s.NPC_class != CLASS_VEHICLE)
-		{
-			if (ent->client->enemyTeam == NPCTEAM_PLAYER)
-			{
-				ent->client->sess.sessionTeam = SIEGETEAM_TEAM1;
-			}
-			else if (ent->client->enemyTeam == NPCTEAM_ENEMY)
-			{
-				ent->client->sess.sessionTeam = SIEGETEAM_TEAM2;
-			}
-			else
-			{
-				ent->client->sess.sessionTeam = TEAM_FREE;
-			}
-		}
 	}
 
 	if ( ent->client->NPC_class == CLASS_ATST || ent->client->NPC_class == CLASS_MARK1 ) // chris/steve/kevin requested that the mark1 be shielded also
@@ -751,7 +857,7 @@ int NPC_WeaponsForTeam( team_t team, int spawnflags, const char *NPC_type )
 	return WP_NONE;
 }
 
-extern void ChangeWeapon( gentity_t *ent, int newWeapon );
+extern void ChangeWeapon( gentity_t *ent, int newWeapon, int weapVariation );
 
 /*
 -------------------------
@@ -773,7 +879,7 @@ void NPC_SetWeapons( gentity_t *ent )
 			ent->client->ps.stats[STAT_WEAPONS] |= ( 1 << curWeap );
 //			RegisterItem( FindItemForWeapon( (weapon_t)(curWeap) ) );	//precache the weapon
 			//rwwFIXMEFIXME: Precache
-			ent->NPC->currentAmmo = ent->client->ps.ammo[weaponData[curWeap].ammoIndex] = 100;//FIXME: max ammo
+			ent->client->ps.stats[STAT_AMMO] = ent->NPC->currentAmmo = ent->client->ps.ammo = 100;//FIXME: max ammo
 
 			if ( bestWeap == WP_SABER )
 			{
@@ -862,6 +968,8 @@ qboolean NPC_SpotWouldTelefrag( gentity_t *npc )
 }
 
 //--------------------------------------------------------------
+void GLua_NPCEV_OnSpawn(gentity_t *self);
+
 void NPC_Begin (gentity_t *ent)
 {
 	vec3_t	spawn_origin, spawn_angles;
@@ -901,6 +1009,49 @@ void NPC_Begin (gentity_t *ent)
 	VectorCopy( ent->s.angles, spawn_angles);
 	spawn_angles[YAW] = ent->NPC->desiredYaw;
 
+	// UQ1: Mark every NPC's spawn position. For patrolling that spot and stuff...
+	VectorCopy(ent->client->ps.origin, ent->spawn_pos);
+
+	// UQ1: Give them a name (for kills)...
+	//strcpy(ent->client->pers.netname, va("a %s NPC", ent->NPC_type));
+	
+	if (ent->s.generic1 <= 0)
+	{// UQ1: Find their name type to send to an id to the client for names...
+//		int i;
+
+		ent->s.generic1 = 0; // Init the type...
+		ent->client->ps.generic1 = 0; // Init the type...
+
+		switch( ent->client->NPC_class )
+		{
+		case CLASS_STORMTROOPER:
+		case CLASS_SWAMPTROOPER:
+		case CLASS_IMPWORKER:
+		case CLASS_SHADOWTROOPER:
+			ent->s.generic1 = ent->client->ps.generic1 = irand(100, 999);
+			strcpy(ent->client->pers.netname, va("TK-%i", ent->client->ps.generic1));
+			break;
+		default:
+			SelectNPCNameFromList(ent);
+			strcpy(ent->client->pers.netname, va("%s", NPC_NAME_LIST[ent->client->ps.generic1].HumanNames));
+		}
+
+		//if (StringContainsWord(ent->NPC_type, NPC_NAMES[i]))
+		//G_Printf("NPC %i given name %s.\n", ent->s.number, NPC_NAMES[ent->s.generic1]);
+	}
+
+	// Init patrol range...
+	if (ent->patrol_range <= 0) ent->patrol_range = 512.0f;
+
+	// Init waypoints...
+	ent->wpCurrent = -1;
+	ent->wpNext = -1;
+	ent->wpLast = -1;
+	ent->longTermGoal = -1;
+
+	// Init enemy...
+	ent->enemy = NULL;
+
 	client = ent->client;
 
 	// increment the spawncount so the client will detect the respawn
@@ -924,7 +1075,7 @@ void NPC_Begin (gentity_t *ent)
 			//&& ent->client->NPC_class != CLASS_DESANN 
 			&& ent->client->NPC_class != CLASS_JEDI )
 		{// up everyone except jedi
-			ent->NPC->stats.health += ent->NPC->stats.health/4 * g_npcspskill.integer; // 100% on easy, 125% on medium, 150% on hard
+			ent->NPC->stats.health += ent->NPC->stats.health/4 * g_spskill.integer; // 100% on easy, 125% on medium, 150% on hard
 		}
 		
 		client->pers.maxHealth = client->ps.stats[STAT_MAX_HEALTH] = ent->NPC->stats.health;
@@ -937,7 +1088,7 @@ void NPC_Begin (gentity_t *ent)
 	if ( !Q_stricmp( "rodian", ent->NPC_type ) )
 	{//sniper
 		//NOTE: this will get overridden by any aim settings in their spawnscripts
-		switch ( g_npcspskill.integer )
+		switch ( g_spskill.integer )
 		{
 		case 0:
 			ent->NPC->stats.aim = 1;
@@ -953,9 +1104,10 @@ void NPC_Begin (gentity_t *ent)
 	else if ( ent->client->NPC_class == CLASS_STORMTROOPER
 		|| ent->client->NPC_class == CLASS_SWAMPTROOPER
 		|| ent->client->NPC_class == CLASS_IMPWORKER
+		|| ent->client->NPC_class == CLASS_MERC//Stoiss add merc class
 		|| !Q_stricmp( "rodian2", ent->NPC_type ) )
 	{//tweak yawspeed for these NPCs based on difficulty
-		switch ( g_npcspskill.integer )
+		switch ( g_spskill.integer )
 		{
 		case 0:
 			ent->NPC->stats.yawSpeed *= 0.75f;
@@ -982,7 +1134,7 @@ void NPC_Begin (gentity_t *ent)
 	else if ( ent->client->NPC_class == CLASS_REBORN
 		|| ent->client->NPC_class == CLASS_SHADOWTROOPER )
 	{
-		switch ( g_npcspskill.integer )
+		switch ( g_spskill.integer )
 		{
 		case 1:
 			ent->NPC->stats.yawSpeed *= 1.25f;
@@ -1048,10 +1200,21 @@ void NPC_Begin (gentity_t *ent)
 	{//not set by the NPCs.cfg
 		NPC_SetWeapons(ent);
 	}
+	
+	/* JKG - Muzzle Calculation */
+	if ( ent->client->ps.weapon != WP_NONE && ent->client->ps.weapon != WP_STUN_BATON && ent->client->ps.weapon != WP_MELEE && ent->client->ps.weapon != WP_SABER )
+	{
+		trap_G2API_InitGhoul2Model( &ent->client->weaponGhoul2[0], BG_FindItemForWeapon( (weapon_t)ent->client->ps.weapon )->view_model, 0, 0, 0, 0, 0 );
+	}
+	/* JKG - Muzzle Calculation End */
+
 	//select the weapon
-	ent->NPC->currentAmmo = ent->client->ps.ammo[weaponData[ent->client->ps.weapon].ammoIndex];
+	ent->NPC->currentAmmo = ent->client->ps.ammo;
 	ent->client->ps.weaponstate = WEAPON_IDLE;
-	ChangeWeapon( ent, ent->client->ps.weapon );
+
+	// [Weapon Variation]: Add a variation check here so the NPC will use the proper weapon you want
+	ChangeWeapon( ent, ent->client->ps.weapon, ent->client->ps.weaponVariation );
+	// [/Weapon Variation]
 
 	VectorCopy( spawn_origin, client->ps.origin );
 
@@ -1113,8 +1276,8 @@ void NPC_Begin (gentity_t *ent)
 	SetNPCGlobals( ent );
 
 	ent->enemy = NULL;
-	NPCS.NPCInfo->timeOfDeath = 0;
-	NPCS.NPCInfo->shotTime = 0;
+	NPCInfo->timeOfDeath = 0;
+	NPCInfo->shotTime = 0;
 	NPC_ClearGoal();
 	NPC_ChangeWeapon( ent->client->ps.weapon );
 
@@ -1127,10 +1290,7 @@ void NPC_Begin (gentity_t *ent)
 
 	//MCG - Begin: NPC hacks
 	//FIXME: Set the team correctly
-	if (ent->s.NPC_class != CLASS_VEHICLE || level.gametype != GT_SIEGE)
-	{
-		ent->client->ps.persistant[PERS_TEAM] = ent->client->playerTeam;
-	}
+	ent->client->ps.persistant[PERS_TEAM] = ent->client->playerTeam;
 
 	ent->use   = NPC_Use;
 	ent->think = NPC_Think;
@@ -1153,7 +1313,9 @@ void NPC_Begin (gentity_t *ent)
 		G_ScaleNetHealth(ent);
 	}
 
-	ChangeWeapon( ent, ent->client->ps.weapon );//yes, again... sigh
+	// [Weapon Variation]: Set the new variation bit for this NPC
+	ChangeWeapon( ent, ent->client->ps.weapon, ent->client->ps.weaponVariation );//yes, again... sigh
+	// [/Weapon Variation]
 
 	if ( !(ent->spawnflags & SFB_STARTINSOLID) )
 	{//Not okay to start in solid
@@ -1166,6 +1328,10 @@ void NPC_Begin (gentity_t *ent)
 	{
 		trap_ICARUS_MaintainTaskManager(ent->s.number);
 	}
+	// If it's a lua npc, call the OnSpawn event
+	if (ent->NPC->isLuaNPC) {
+		GLua_NPCEV_OnSpawn(ent);
+	}
 
 	VectorCopy( ent->r.currentOrigin, ent->client->renderInfo.eyePoint );
 
@@ -1173,7 +1339,7 @@ void NPC_Begin (gentity_t *ent)
 	// initialize animations and other things
 	memset( &ucmd, 0, sizeof( ucmd ) );
 	//_VectorCopy( client->pers.cmd_angles, ucmd.angles );
-	VectorCopyM(client->pers.cmd.angles, ucmd.angles);
+	VectorCopy(client->pers.cmd.angles, ucmd.angles);
 	
 	ent->client->ps.groundEntityNum = ENTITYNUM_NONE;
 
@@ -1200,6 +1366,19 @@ void NPC_Begin (gentity_t *ent)
 		}
 	}
 	ent->waypoint = ent->NPC->homeWp = WAYPOINT_NONE;
+
+	switch( ent->client->NPC_class )
+	{
+	case CLASS_IMPERIAL:
+	case CLASS_IMPWORKER:
+	case CLASS_PRISONER:
+	case CLASS_REBEL:
+		if (ent->client->ps.weapon == WP_NONE)
+			ent->client->ps.weapon = WP_BRYAR_PISTOL;
+		break;
+	default:
+		break;
+	}
 
 	if ( ent->m_pVehicle )
 	{//a vehicle
@@ -1278,7 +1457,7 @@ gNPC_t *New_NPC_t(int entNum)
 
 	if (!gNPCPtrs[entNum])
 	{
-		gNPCPtrs[entNum] = (gNPC_t *)BG_Alloc (sizeof(gNPC_t));
+		gNPCPtrs[entNum] = (gNPC_t *)malloc (sizeof(gNPC_t));
 	}
 		
 	ptr = gNPCPtrs[entNum];
@@ -1292,6 +1471,15 @@ gNPC_t *New_NPC_t(int entNum)
 
 	return ptr;
 }
+
+#ifdef _XBOX
+void NPC_NPCPtrsClear(void)
+{
+	for(int i=0; i<MAX_GENTITIES; i++) {
+		gNPCPtrs[i] = NULL;
+	}
+}
+#endif
 
 /*
 -------------------------
@@ -1360,6 +1548,7 @@ extern void G_CreateSpeederNPC( Vehicle_t **pVeh, const char *strType );
 extern void G_CreateWalkerNPC( Vehicle_t **pVeh, const char *strAnimalType );
 extern void G_CreateFighterNPC( Vehicle_t **pVeh, const char *strType );
 
+int GLua_Spawn_NPC(gentity_t* npc, gentity_t *spawner);
 gentity_t *NPC_Spawn_Do( gentity_t *ent )
 {
 	gentity_t	*newent = NULL;
@@ -1417,30 +1606,36 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 	{		
 		Com_Printf ( S_COLOR_RED"ERROR: NPC G_Alloc NPC failed\n" );		
 		goto finish;
-	//	return NULL;
+		//return NULL;
 	}	
 
 	//newent->client = (gclient_s *)G_Alloc (sizeof(gclient_s));
 	G_CreateFakeClient(newent->s.number, &newent->client);
 
+	/*
 	newent->NPC->tempGoal = G_Spawn();
 	
 	if ( newent->NPC->tempGoal == NULL ) 
 	{
 		newent->NPC = NULL;
 		goto finish;
-	//	return NULL;
+		//return NULL;
 	}
 
 	newent->NPC->tempGoal->classname = "NPC_goal";
 	newent->NPC->tempGoal->parent = newent;
 	newent->NPC->tempGoal->r.svFlags |= SVF_NOCLIENT;
+	*/
+
+	//eezstreet add
+	newent->currentLooter = NULL;
+	//eezstreet end
 
 	if ( newent->client == NULL ) 
 	{
-		Com_Printf ( S_COLOR_RED"ERROR: NPC BG_Alloc client failed\n" );
+		Com_Printf ( S_COLOR_RED"ERROR: NPC malloc client failed\n" );
 		goto finish;
-	//	return NULL;
+		//return NULL;
 	}
 	
 	memset ( newent->client, 0, sizeof(*newent->client) );
@@ -1570,6 +1765,7 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 	else
 	{
 		newent->client->ps.weapon = WP_NONE;//init for later check in NPC_Begin
+		newent->client->ps.weaponVariation = 0;
 	}
     
 	VectorCopy(ent->s.origin, newent->s.origin);
@@ -1654,6 +1850,46 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 
 //==New stuff=====================================================================
 	newent->s.eType	= ET_NPC;//ET_PLAYER;
+
+	// eezstreet: Adding some hijacking here which allows vendors to work without being vulnerable at spawn. VERY TEMPORARY
+	if(newent->targetname)
+	{
+		gentity_t *found = NULL;
+		while( (found = G_Find( found, FOFS(target), newent->targetname ) ) != NULL )
+		{
+			if(!Q_stricmp(found->classname, "jkg_target_vendor"))
+			{
+				// Vendor. So let's make it a vendor!
+				JKG_CreateNewVendor( newent, -1, qtrue, qtrue );
+			}
+		}
+	}
+
+	if (newent->s.generic1 <= 0)
+	{// UQ1: Find their name type to send to an id to the client for names...
+//		int i;
+
+		newent->s.generic1 = 0; // Init the type...
+		newent->client->ps.generic1 = 0; // Init the type...
+
+		switch( newent->client->NPC_class )
+		{
+		case CLASS_STORMTROOPER:
+		case CLASS_SWAMPTROOPER:
+		case CLASS_IMPWORKER:
+		case CLASS_SHADOWTROOPER:
+			newent->s.generic1 = newent->client->ps.generic1 = irand(100, 999);
+			strcpy(newent->client->pers.netname, va("TK-%i", newent->client->ps.generic1));
+			break;
+		default:
+			SelectNPCNameFromList(newent);
+			strcpy(newent->client->pers.netname, va("%s", NPC_NAME_LIST[newent->client->ps.generic1].HumanNames));
+			break;
+		}
+
+		//if (StringContainsWord(ent->NPC_type, NPC_NAMES[i]))
+		//G_Printf("NPC %i given name %s.\n", ent->s.number, NPC_NAMES[ent->s.generic1]);
+	}
 	
 	//FIXME: Call CopyParms
 	if ( ent->parms )
@@ -1671,7 +1907,9 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 	//FIXME: copy cameraGroup, store mine in message or other string field
 
 	//set origin
-	newent->s.pos.trType = TR_INTERPOLATE;
+	//newent->s.pos.trType = TR_INTERPOLATE;
+	newent->s.pos.trType = TR_LINEAR_STOP; // UQ1: Players use this...
+
 	newent->s.pos.trTime = level.time;
 	VectorCopy( newent->r.currentOrigin, newent->s.pos.trBase );
 	VectorClear( newent->s.pos.trDelta );
@@ -1724,6 +1962,20 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 
 	trap_LinkEntity (newent);
 
+	// Set up default use range (64)
+	newent->NPC->maxUseRange = 64;
+	//eezstreet add
+	//memset (newent->inventory, 0, sizeof (newent->inventory));
+	//eezstreet end
+	// Check for lua npcs
+	if (ent->npcscript) {
+		if (!GLua_Spawn_NPC(newent, ent)) {
+			// While this is technically nonfatal, we do create a warning nonetheless,
+			// since this can have significant consequences
+			Com_Printf ("WARNING: NPC_Spawn_Do - GLua_Spawn_NPC failed\n" );
+		}
+	}
+
 	if(!ent->use)
 	{
 		if( ent->target )
@@ -1734,6 +1986,7 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 		{//last guy should fire this target when he dies
 			newent->target = ent->closetarget;
 		}
+		G_Free(ent->targetname);
 		ent->targetname = NULL;
 		//why not remove me...?  Because of all the string pointers?  Just do G_NewStrings?
 		G_FreeEntity( ent );//bye!
@@ -1743,6 +1996,41 @@ finish:
 	if ( ent->spawnflags & NSF_DROP_TO_FLOOR )
 	{
 		G_SetOrigin( ent, saveOrg );
+	}
+
+	// UQ1: Mark every NPC's spawn position. For patrolling that spot and stuff...
+	VectorCopy(ent->r.currentOrigin, ent->spawn_pos);
+	VectorCopy(ent->r.currentOrigin, newent->spawn_pos);
+
+	// Init patrol range...
+	if (ent->patrol_range <= 0) ent->patrol_range = 512.0f;
+	newent->patrol_range = ent->patrol_range;
+
+	// Init waypoints...
+	ent->wpCurrent = -1;
+	ent->wpNext = -1;
+	ent->wpLast = -1;
+	ent->longTermGoal = -1;
+	newent->wpCurrent = -1;
+	newent->wpNext = -1;
+	newent->wpLast = -1;
+	newent->longTermGoal = -1;
+
+	// Init enemy...
+	ent->enemy = NULL;
+	newent->enemy = NULL;
+
+	switch( newent->client->NPC_class )
+	{
+	case CLASS_IMPERIAL:
+	case CLASS_IMPWORKER:
+	case CLASS_PRISONER:
+	case CLASS_REBEL:
+		if (newent->client->ps.weapon == WP_NONE)
+			newent->client->ps.weapon = newent->s.weapon = WP_BRYAR_PISTOL;
+		break;
+	default:
+		break;
 	}
 
 	return newent;
@@ -1799,16 +2087,23 @@ NPC_ShySpawn
 
 void NPC_ShySpawn( gentity_t *ent )
 {
+	int i;
 	ent->nextthink = level.time + SHY_THINK_TIME;
 	ent->think = NPC_ShySpawn;
 
 	//rwwFIXMEFIXME: Care about other clients not just 0?
-	if ( DistanceSquared( g_entities[0].r.currentOrigin, ent->r.currentOrigin ) <= SHY_SPAWN_DISTANCE_SQR )
-		return;
-
-	if ( (InFOV( ent, &g_entities[0], 80, 64 )) ) // FIXME: hardcoded fov
-		if ( (NPC_ClearLOS2( &g_entities[0], ent->r.currentOrigin )) )
+	// JKG - Handle clients other than 0
+	for (i=0; i<MAX_CLIENTS; i++) {
+		if (g_entities[i].client->pers.connected == CON_DISCONNECTED) {
+			continue;
+		}
+		if ( DistanceSquared( g_entities[i].r.currentOrigin, ent->r.currentOrigin ) <= SHY_SPAWN_DISTANCE_SQR )
 			return;
+
+		if ( (InFOV( ent, &g_entities[i], 80, 64 )) ) // FIXME: hardcoded fov
+			if ( (NPC_ClearLOS2( &g_entities[i], ent->r.currentOrigin )) )
+				return;
+	}
 
 	ent->think = 0;
 	ent->nextthink = 0;
@@ -1959,6 +2254,7 @@ void NPC_PrecacheType( char *NPC_type )
 void SP_NPC_spawner( gentity_t *self)
 {
 	int t;
+	char *temp;
 
 	if (!g_allowNPC.integer)
 	{
@@ -1966,6 +2262,7 @@ void SP_NPC_spawner( gentity_t *self)
 		self->nextthink = level.time;
 		return;
 	}
+
 	if ( !self->fullName || !self->fullName[0] )
 	{
 		//FIXME: make an index into an external string table for localization
@@ -2007,6 +2304,22 @@ void SP_NPC_spawner( gentity_t *self)
 	}
 
 	self->delay *= 1000;//1 = 1 msec, 1000 = 1 sec
+
+	// UQ1: Added patrol ranges...
+	{
+		int range = 0;
+		G_SpawnInt( "range", "0", &range );
+
+		if (range == 0) range = 512; // UQ1: Default patrol range...
+
+		self->patrol_range = range;
+	}
+
+	// See if we have an npcscript defined
+	G_SpawnString("npcscript", NULL, &temp);
+	if (temp) {
+		G_NewString2((void **)&self->npcscript, temp);
+	}
 
 	G_SpawnInt( "showhealth", "0", &t );
 	if (t)
@@ -3857,7 +4170,7 @@ NPC_Spawn_f
 
 gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboolean isVehicle ) 
 {
-	gentity_t		*NPCspawner = G_Spawn();
+	gentity_t		*NPCspawner = G_SpawnLogical();
 	vec3_t			forward, end;
 	trace_t			trace;
 
@@ -3905,11 +4218,13 @@ gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboo
 
 	trap_LinkEntity(NPCspawner);
 
-	NPCspawner->NPC_type = G_NewString( npc_type );
+	//NPCspawner->NPC_type = G_NewString( npc_type );
+	G_NewString2((void **)&NPCspawner->NPC_type, npc_type);
 
 	if ( targetname )
 	{
-		NPCspawner->NPC_targetname = G_NewString(targetname);
+		//NPCspawner->NPC_targetname = G_NewString(targetname);
+		G_NewString2((void **)&NPCspawner->NPC_targetname, targetname);
 	}
 
 	NPCspawner->count = 1;
@@ -4195,9 +4510,9 @@ void Cmd_NPC_f( gentity_t *ent )
 	else if ( Q_stricmp ( cmd, "score" ) == 0 )
 	{
 		char		cmd2[1024];
-		gentity_t *thisent = NULL;
+		gentity_t *ent = NULL;
 
-		trap_Argv( 2, cmd2, sizeof( cmd2 ) );
+		trap_Argv(2, cmd2, 1024);
 
 		if ( !cmd2[0] )
 		{//Show the score for all NPCs
@@ -4206,19 +4521,19 @@ void Cmd_NPC_f( gentity_t *ent )
 			Com_Printf( "SCORE LIST:\n" );
 			for ( i = 0; i < ENTITYNUM_WORLD; i++ )
 			{
-				thisent = &g_entities[i];
-				if ( !thisent || !thisent->client )
+				ent = &g_entities[i];
+				if ( !ent || !ent->client )
 				{
 					continue;
 				}
-				NPC_PrintScore( thisent );
+				NPC_PrintScore( ent );
 			}
 		}
 		else
 		{
-			if ( (thisent = G_Find( NULL, FOFS(targetname), cmd2 )) != NULL && thisent->client )
+			if ( (ent = G_Find( NULL, FOFS(targetname), cmd2 )) != NULL && ent->client )
 			{
-				NPC_PrintScore( thisent );
+				NPC_PrintScore( ent );
 			}
 			else
 			{

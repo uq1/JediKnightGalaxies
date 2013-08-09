@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __BG_VEHICLES_H
+#define __BG_VEHICLES_H
 
 #include "qcommon/q_shared.h"
 
@@ -357,7 +358,7 @@ typedef struct
 
 #define	VFOFS(x) ((size_t)&(((vehicleInfo_t *)0)->x))
 
-#define MAX_VEHICLES	16	//sigh... no more than 64 individual vehicles
+#define MAX_VEHICLES	64	//sigh... no more than 64 individual vehicles - Boba: raised back to 64)
 #define VEHICLE_BASE	0
 #define VEHICLE_NONE	-1
 
@@ -623,3 +624,5 @@ typedef struct Vehicle_s
 #endif
 
 extern int BG_VehicleGetIndex( const char *vehicleName );
+
+#endif	// __BG_VEHICLES_H

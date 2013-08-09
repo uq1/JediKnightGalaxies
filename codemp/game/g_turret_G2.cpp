@@ -355,7 +355,11 @@ static void turretG2_fire ( gentity_t *ent, vec3_t start, vec3_t dir )
 	{
 		//muzzle flash
 		G_PlayEffectID( ent->genericValue13, org, ang );
-		WP_FireTurboLaserMissile( ent, start, dir );
+
+		ent->s.weapon			= WP_BLASTER;
+		ent->s.weaponVariation	= 0;
+
+		WP_FireGenericMissile( ent, 0, start, dir );
 		if ( ent->alt_fire )
 		{
 			TurboLaser_SetBoneAnim( ent, 2, 3 );
@@ -746,6 +750,11 @@ static qboolean turretG2_find_enemies( gentity_t *self )
 			continue;
 		}
 
+		if ( target->vendorData.ourID )
+		{
+			continue;
+		}
+
 		if ( target->client )
 		{
 			VectorCopy( target->client->renderInfo.eyePoint, org );
@@ -893,10 +902,10 @@ void turretG2_base_think( gentity_t *self )
 			VectorSubtract( self->enemy->r.currentOrigin, self->r.currentOrigin, enemyDir );
 			enemyDist = VectorLengthSquared( enemyDir );
 
-			if ( enemyDist < self->radius * self->radius )
+			if ( enemyDist < self->radius * self->radius && self->enemy->client )
 			{
 				// was in valid radius
-				if ( trap_InPVS( self->r.currentOrigin, self->enemy->r.currentOrigin ) )
+				//if ( trap_InPVS( self->s.origin, self->enemy->client->ps.origin ) )	//oh, u so evil raven..
 				{
 					// Every now and again, check to see if we can even trace to the enemy
 					trace_t tr;
@@ -1094,7 +1103,7 @@ void finish_spawning_turretG2( gentity_t *base )
 
 	base->s.eType = ET_GENERAL;
 
-	if ( base->team && base->team[0] && //level.gametype == GT_SIEGE &&
+	if ( base->team && base->team[0] && //g_gametype.integer == GT_SIEGE &&
 		!base->teamnodmg)
 	{
 		base->teamnodmg = atoi(base->team);
@@ -1174,11 +1183,6 @@ void finish_spawning_turretG2( gentity_t *base )
 		}
 		//start in "off" anim
 		TurboLaser_SetBoneAnim( base, 4, 5 );
-		if ( level.gametype == GT_SIEGE )
-		{//FIXME: designer-specified?
-			//FIXME: put on other entities, too, particularly siege objectives and bbrushes...
-			base->s.eFlags2 |= EF2_BRACKET_ENTITY;
-		}
 	}
 	else
 	{

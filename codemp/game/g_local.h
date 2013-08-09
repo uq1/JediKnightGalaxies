@@ -1,13 +1,17 @@
-#pragma once
-
 // Copyright (C) 1999-2000 Id Software, Inc.
 //
 // g_local.h -- local definitions for game module
+#ifndef G_LOCAL_H
+#define G_LOCAL_H
 
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_vehicles.h"
 #include "g_public.h"
+#include "bg_ammo.h"
+#include "jkg_items.h"
+
+#include "qcommon/game_version.h"
 
 #ifndef __LCC__
 #define GAME_INLINE ID_INLINE
@@ -28,11 +32,11 @@ extern vec3_t gPainPoint;
 //==================================================================
 
 // the "gameversion" client command will print this plus compile date
-#define	GAMEVERSION	"basejka_modbase"
 
 #define SECURITY_LOG "security.log"
+#define JKG_ERRMSG "Please report this error to the game support section on the JKG forums:\nhttp://jkgalaxies.com"
 
-#define BODY_QUEUE_SIZE		8
+#define BODY_QUEUE_SIZE		64
 
 #ifndef INFINITE
 #define INFINITE			1000000
@@ -44,6 +48,12 @@ extern vec3_t gPainPoint;
 
 #define	INTERMISSION_DELAY_TIME	1000
 #define	SP_INTERMISSION_DELAY_TIME	5000
+
+// Jedi Knight Galaxies - Team Party Slots
+#define PARTY_SLOT_EMPTY	64
+#define PARTY_SLOT_MEMBERS	 5
+#define PARTY_SLOT_MAX		64
+#define PARTY_SLOT_INVITES	 5
 
 //primarily used by NPCs
 #define	START_TIME_LINK_ENTS		FRAMETIME*1 // time-delay after map start at which all ents have been spawned, so can link them
@@ -130,12 +140,35 @@ typedef enum
 	HL_MAX
 } hitLocation_t;
 
+// The assist kill system is set up so that people can see who hit them, and when, within one life.
+
+// Amount of time before a person who is given an assist is no longer considered
+// able to be awarded the assist, due to the amount of time between damage
+#define ASSIST_LAST_TIME	180000		// 3 minutes
+// Duration of time to check for proper kill awarding when falling off of ledges
+#define ASSIST_FALL_TIME	20000		// 20 seconds
+
+typedef struct {
+	gentity_t *entWhoHit;
+	unsigned int timeHit;
+	unsigned int damageDealt;
+} entityHitRecord_t;
+
+typedef struct {
+	entityHitRecord_t *hitRecords;
+	unsigned int numRecords;
+	unsigned int memAllocated;
+} assistStructure_t;
+
 //============================================================================
 extern void *precachedKyle;
 extern void *g2SaberInstance;
 
 extern qboolean gEscaping;
 extern int gEscapeTime;
+
+//============================================================================
+//so i herd you liek jkg
 
 struct gentity_s {
 	//rww - entstate must be first, to correspond with the bg shared entity structure
@@ -226,6 +259,7 @@ struct gentity_s {
 	int			eventTime;			// events will be cleared EVENT_VALID_MSEC after set
 	qboolean	freeAfterEvent;
 	qboolean	unlinkAfterEvent;
+	qboolean	tempEntity;
 
 	qboolean	physicsObject;		// if true, it can be pushed by movers and fall off edges
 									// all game items are physicsObjects, 
@@ -289,6 +323,9 @@ struct gentity_s {
 
 //Think Functions
 	int			nextthink;
+	// Jedi Knight Galaxies
+	void		(*remove)(gentity_t *self);
+	// ------------
 	void		(*think)(gentity_t *self);
 	void		(*reached)(gentity_t *self);	// movers call this when hitting endpoint
 	void		(*blocked)(gentity_t *self, gentity_t *other);
@@ -318,6 +355,7 @@ struct gentity_s {
 	int			count;
 	int			bounceCount;
 	qboolean	alt_fire;
+	trType_t	teamMoveType;			// JKG: ET_MOVER only, if non-0, use this trtype for movement of linked ents
 
 	gentity_t	*chain;
 	gentity_t	*enemy;
@@ -367,6 +405,106 @@ struct gentity_s {
 
 	// OpenJK add
 	int			useDebounceTime;	// for cultist_destroyer
+	
+	// Jedi Knight Galaxies
+	int			IDCode;			// Used for GLua to identify old ent references
+	int			UsesELS;		// Whether or not the ent uses entity local storage, set to 1 once any access to the table has been made
+	int			LuaUsable;		// Whether lua can use this (when inuse is false)
+	qboolean	isLogical;		// Determines if this ent is logical or not
+	gentity_t   *damagePlum;
+	int			damagePlumTime;
+	int			lastHealTime;
+
+	int			grenadeCookTime;	// For cookable grenades.
+	int			grenadeWeapon;		// The cookable grenade type that has been set (it can explode in your pocket).
+	int			grenadeVariation;	// The cookable grenade variation that has been set (it can explode in your pocket).
+
+	// For scripted NPCs
+	char		*npcscript;
+
+	inv_t *inventory;
+	gentity_t  *currentLooter;
+	gentity_t  *currentlyLooting;
+	qboolean	isAtWorkbench;	//nw
+	vendorStruct_t vendorData;
+	assistStructure_t	assistData;			// keeps a record of who hit us in this life
+
+	// For NPC waypoint following..
+	int			wpCurrent;
+	int			wpNext;
+	int			wpLast;
+	int			wpSeenTime;
+	int			wpTravelTime;
+	int			longTermGoal; // For ASTAR pathing NPCs...
+	int			coverpointGoal; // Coverpoint Waypoint...
+	int			coverpointOFC; // Coverpoint Out-From-Cover Waypoint...
+	int			coverpointOFCtime; // Coverpoint Out-From-Cover timer...
+	int			coverpointHIDEtime; // Coverpoint HIDE timer...
+	int			pathsize; // For ASTAR pathing NPCs...
+	int			pathlist[MAX_WPARRAY_SIZE]; // For ASTAR pathing NPCs...
+	float		patrol_range;
+	qboolean	return_home;
+	vec3_t		spawn_pos;
+	vec3_t		move_vector;
+	int			bot_strafe_left_timer;
+	int			bot_strafe_right_timer;
+	int			bot_strafe_crouch_timer;
+	int			bot_strafe_jump_timer;
+	int			bot_strafe_target_timer;
+	vec3_t		bot_strafe_target_position;
+	int			npc_mover_start_pos;
+	int			npc_dumb_route_time;
+
+	int			next_weapon_switch;
+	int			next_rifle_butt_time;
+	int			next_flamer_time;
+	int			next_kick_time;
+};
+
+//used for objective dependancy stuff
+#define		MAX_OBJECTIVES			6
+
+//max allowed objective dependancy
+#define		MAX_OBJECTIVEDEPENDANCY	6
+
+//TAB bot orders/tactical options
+#ifndef __linux__
+typedef enum {
+#else
+enum {
+#endif
+	BOTORDER_NONE,  //no order
+	BOTORDER_KNEELBEFOREZOD,  //Kneel before the ordered person
+	BOTORDER_SEARCHANDDESTROY,	//Attack mode.  If given an entity the bot will search for
+							  //and then attack that entity.  If NULL, the bot will just
+							  //hunt around and attack enemies.
+	BOTORDER_OBJECTIVE,	//Do objective play for seige.  Bot will defend or attack objective
+						//based on who's objective it is.
+	BOTORDER_SIEGECLASS_INFANTRY,
+	BOTORDER_SIEGECLASS_VANGUARD,
+	BOTORDER_SIEGECLASS_SUPPORT,
+	BOTORDER_SIEGECLASS_JEDI,
+	BOTORDER_SIEGECLASS_DEMOLITIONIST,
+	BOTORDER_SIEGECLASS_HEAVY_WEAPONS,
+	BOTORDER_MAX
+};
+
+#ifndef __linux__
+typedef enum {
+#else
+enum {
+#endif
+//[/Linux]
+	OT_NONE,	//no OT selected or bad OT
+	OT_ATTACK,	//Attack this objective, for destroyable stationary objectives
+	OT_DEFEND,  //Defend this objective, for destroyable stationary objectives 
+	//or touch objectives
+	OT_CAPTURE,  //Capture this objective
+	OT_DEFENDCAPTURE,  //prevent capture of this objective
+	OT_TOUCH,
+	OT_VEHICLE,  //get this vehicle to the related trigger_once.
+	OT_WAIT		//This is used by the bots to while they are waiting for a vehicle to respawn
+	
 };
 
 #define DAMAGEREDIRECT_HEAD		1
@@ -426,15 +564,24 @@ typedef struct {
 	int			wins, losses;		// tournament stats
 	int			selectedFP;			// check against this, if doesn't match value in playerstate then update userinfo
 	int			saberLevel;			// similar to above method, but for current saber attack level
-	int			setForce;			// set to true once player is given the chance to set force powers
+	qboolean	setForce;			// set to true once player is given the chance to set force powers
 	int			updateUITime;		// only update userinfo for FP/SL if < level.time
 	qboolean	teamLeader;			// true when this client is a team leader
 	char		siegeClass[64];
+	char		saberType[64];
+	char		saber2Type[64];
 	int			duelTeam;
 	int			siegeDesiredTeam;
 
 	//JAC: Added
 	char		IP[NET_ADDRSTRMAXLEN];
+	
+	// JKGalaxies additions
+	int			connTime;		// Time of connection
+	int			noq3fill;		// Set to 1 after connection activity check
+	int			validated;		// 1 if the client-side validation was received
+	/* Admin system */
+	int			adminRank;
 } clientSession_t;
 
 // playerstate mGameFlags
@@ -459,15 +606,22 @@ typedef struct {
 	int			maxHealth;			// for handicapping
 	int			enterTime;			// level.time the client entered the game
 	playerTeamState_t teamState;	// status in teamplay games
+	int			voteCount;			// to prevent people from constantly calling votes
+	int			teamVoteCount;		// to prevent people from constantly calling votes
 	qboolean	teamInfo;			// send team overlay updates?
 
-	//JAC: Added
-	int			connectTime;
+	// Jedi Knight Galaxies
+	int			partyNumber;						// Your party index in the level.party struct.
+	int			partyIndex;							// Your index in the level.party[party] struct.
+	int			partyInvite[PARTY_SLOT_INVITES];	// Your pending invites, you may accept/decline these.
+	int			partyManagement;					// Set to a time when party management panel is on!
+	qboolean	partyUpdate;						// Set to true when in need of an update in the next second (health/armor/etc)!
 
-	//Raz: Moved this out of session data.
-	//		userinfo -> pers in ClientUserinfoChanged
-	char		saber1[MAX_QPATH];
-	char		saber2[MAX_QPATH];
+	// Admin flags
+	qboolean	silenced;
+
+	// Custom team
+	int			customteam;					// Enables icons above the player's heads, for games like the arena
 
 	int			vote, teamvote; // 0 = none, 1 = yes, 2 = no
 } clientPersistant_t;
@@ -546,6 +700,29 @@ typedef struct renderInfo_s
 	int			boltValidityTime;
 } renderInfo_t;
 
+//EEZSTREET EDIT: STAT STRUCTURE
+struct statData_s
+{
+	//"Fake" stats
+	//char		*ACISave[MAX_ACI_SLOTS];	//Never access this directly, except for saving/loading procedures.
+	int			ACISlots[MAX_ACI_SLOTS];	//Use this for weapon code. If slot is used, then
+	                                        // it contains the internal weapon index of the weapon in said slot.
+	int         aciSlotsUsed;               // Bitfield of slots used
+
+	//"Real" stats
+	int			weight;
+};
+
+//Stoiss add
+typedef struct 
+{
+	int EntityNum;
+	int Debounce;
+	int SaberNum;
+	int BladeNum;
+}  sabimpact_t;
+//Stois end
+
 // this structure is cleared on each ClientSpawn(),
 // except for 'client->pers' and 'client->sess'
 struct gclient_s {
@@ -588,6 +765,9 @@ struct gclient_s {
 
 	vec3_t		oldOrigin;
 
+	// debounce time for accuracy
+	int			accuracyDebounce;
+
 	// sum up damage over an entire frame, so
 	// shotgun blasts give a single big kick
 	int			damage_armor;		// damage absorbed by armor
@@ -612,6 +792,12 @@ struct gclient_s {
 
 	// timers
 	int			respawnTime;		// can respawn when time > this, force after g_forcerespwan
+	// JKG
+	int			deathcamTime;
+	vec3_t		deathcamCenter;
+	int			deathcamRadius;
+	int			deathcamForceRespawn;
+
 	int			inactivityTime;		// kick players when time > this
 	qboolean	inactivityWarning;	// qtrue if the five seoond warning has been given
 	int			rewardTime;			// clear the EF_AWARD_IMPRESSIVE, etc when time > this
@@ -761,6 +947,67 @@ struct gclient_s {
 		int		drainDebounce;
 		int		lightningDebounce;
 	} force;
+	
+	//Stoiss add
+	//the SaberNum of the last enemy blade that you hit.
+	int			lastSaberCollided;
+	//the BladeNum of the last enemy blade that you hit.
+	int			lastBladeCollided;
+
+	sabimpact_t	sabimpact[MAX_SABERS][MAX_BLADES];
+	//Stoiss end
+
+	// Jedi Knight Galaxies
+	int			IDCode;
+	int			InCinematic;
+	int			clipammo[256];		// Ammo in current clip of specific weapon
+	int			firingModes[256];	// Different firing modes for each gun so it automagically remembers
+	qboolean	customGravity;
+	qboolean	pmfreeze;
+	qboolean	pmlock;
+	qboolean	pmnomove;
+	qboolean	noDismember;
+	qboolean	noDisintegrate;
+	qboolean	noDrops;					// Supress item drops
+	int         damageTypeTime[NUM_DAMAGE_TYPES];
+	int         damageTypeLastEffectTime[NUM_DAMAGE_TYPES];
+	gentity_t	*damageTypeOwner[NUM_DAMAGE_TYPES];
+	
+	// Custom disco messages
+	int			customDisconnectMsg;
+	
+	// Chat flood protection
+	int			lastChatMessage;
+
+	struct statData_s	coreStats;
+	int			deathLootIndex;
+	int			pickPocketLootIndex;
+	int			armorItems[ARMSLOT_MAX];
+
+	int		ammoTable[JKG_MAX_AMMO_INDICES];				// Max ammo indices increased to JKG_MAX_AMMO_INDICES
+
+	unsigned int numDroneShotsInBurst;
+	unsigned int lastHitmarkerTime;			// Timer to ensure that we don't get ear-raped whenever we hit someone with a scattergun --eez
+	unsigned int storedCredits;				// hack a doodle doo to prevent the credits from spectators from carrying over to people that join
+	unsigned int saberStanceDebounce;		// prevent people from spamming style change and causing issues
+
+	int				saberBPDebRecharge;
+	unsigned int	saberProjBlockTime;
+	unsigned int	saberBlockTime;
+
+	// all of the below was migrated from the playerState. None of it belonged there. --eez
+	int saberBlockDebounce;
+	int saberAttackWound;
+	int saberIdleWound;
+	int saberAttackSequence;				// FIXME: not used? --eez
+	int saberSaberBlockDebounce;
+
+#ifndef __MMO__
+	unsigned int numKillsThisLife;			// Killstreaks!
+#endif
+
+	char		botSoundDir[MAX_QPATH];
+	float		blockingLightningAccumulation;//Stoiss add
 };
 
 //Interest points
@@ -833,12 +1080,23 @@ typedef struct
 	int		nodeID;
 } waypointData_t;
 
+
+typedef struct
+{
+
+	unsigned int	 time;
+	int				 id;
+	char			 message[64];
+
+} teamPartyList_t;
+
 typedef struct {
 	struct gclient_s	*clients;		// [maxclients]
 
 	struct gentity_s	*gentities;
 	int			gentitySize;
 	int			num_entities;		// current number, <= MAX_GENTITIES
+	int			num_logicalents;	// current numner of logical ents, > MAX_GENTIIES, <= MAX_LOGICALENTS
 
 	int			warmupTime;			// restart match at this time
 
@@ -941,15 +1199,55 @@ typedef struct {
 	char		*mTargetAdjust;
 
 	char		mTeamFilter[MAX_QPATH];
+	// Jedi Knight Galaxies
+	int				serverInit;
+	char			party[MAX_CLIENTS][5];
+	teamPartyList_t	partyList[MAX_CLIENTS];
+	int vendors[32];							//List of vendors on the server
 
 	//JAC: added
 	struct {
 		fileHandle_t	log;
 	} security;
+	
+	int redTeam;								// Red team index, should be equivalent to cgs.redTeam
+	int blueTeam;								// Blue team index, should be equivalent to cgs.blueTeam'
+
+	int queriedVendors[32];						// Nothing fancy here, just a hack to restore balance in the universe
+	int lastVendorCheck;						// Last time we checked to replenish vendor stock
+	int lastVendorUpdateTime;
+	int	lastUpdatedVendor;
+
+	char	startingWeapon[MAX_QPATH];			// mega hax here.
+												// gives you one of these suckers, and auto equips it to the first slot.
+
+#ifdef __JKG_NINELIVES__
+	int		gamestartTime;						// After a five minute or so period of time, disallows joining from outside players
+#elif defined __JKG_TICKETING__
+	int		gamestartTime;						// After a five minute or so period of time, disallows joining from outside players
+#elif defined __JKG_ROUNDBASED__
+	int		gamestartTime;						// After a five minute or so period of time, disallows joining from outside players
+#endif
 
 	gametype_t	gametype;
 } level_locals_t;
 
+// Warzone Gametype...
+typedef struct {
+	int			closeWaypoints[256];
+	int			num_waypoints;
+	gentity_t	*flagentity;
+	gentity_t	*redNPCs[32];
+	gentity_t	*blueNPCs[32];
+	vec3_t		spawnpoints[32];
+	vec3_t		spawnangles[32];
+	int			num_spawnpoints;
+} flag_list_t;
+
+extern flag_list_t flag_list[1024]; 
+
+extern int bluetickets;
+extern int redtickets;
 
 //
 // g_spawn.c
@@ -967,6 +1265,7 @@ char *G_NewString( const char *string );
 // g_cmds.c
 //
 void Cmd_Score_f (gentity_t *ent);
+char	*ConcatArgs( int start );
 void StopFollowing( gentity_t *ent );
 void BroadcastTeamChange( gclient_t *client, int oldTeam );
 void SetTeam( gentity_t *ent, char *s );
@@ -1051,7 +1350,8 @@ void	G_SetAngles( gentity_t *ent, vec3_t angles );
 
 void	G_InitGentity( gentity_t *e );
 gentity_t	*G_Spawn (void);
-gentity_t *G_TempEntity( vec3_t origin, int event );
+gentity_t *G_SpawnLogical(void);
+gentity_t *G_TempEntity( const vec3_t origin, int event );
 gentity_t	*G_PlayEffect(int fxID, vec3_t org, vec3_t ang);
 gentity_t	*G_PlayEffectID(const int fxID, vec3_t org, vec3_t ang);
 gentity_t *G_ScreenShake(vec3_t org, gentity_t *target, float intensity, int duration, qboolean global);
@@ -1091,7 +1391,6 @@ const char *BuildShaderStateConfig(void);
 Ghoul2 Insert Start
 */
 int G_BoneIndex( const char *name );
-
 
 qhandle_t	trap_R_RegisterSkin( const char *name );
 
@@ -1166,7 +1465,6 @@ void		trap_G2API_ClearAttachedInstance(int entityNum);
 void		trap_G2API_CleanEntAttachments(void);
 qboolean	trap_G2API_OverrideServer(void *serverInstance);
 
-
 /*
 Ghoul2 Insert End
 */
@@ -1175,6 +1473,7 @@ Ghoul2 Insert End
 // g_combat.c
 //
 qboolean CanDamage (gentity_t *targ, vec3_t origin);
+void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, float strength, qboolean breakSaberLock );
 void G_Damage (gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t point, int damage, int dflags, int mod);
 qboolean G_RadiusDamage (vec3_t origin, gentity_t *attacker, float damage, float radius, gentity_t *ignore, gentity_t *missile, int mod);
 void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath );
@@ -1224,8 +1523,6 @@ gentity_t *CreateMissile( vec3_t org, vec3_t dir, float vel, int life,
 							gentity_t *owner, qboolean altFire);
 void G_BounceProjectile( vec3_t start, vec3_t impact, vec3_t dir, vec3_t endout );
 void G_ExplodeMissile( gentity_t *ent );
-
-void WP_FireBlasterMissile( gentity_t *ent, vec3_t start, vec3_t dir, qboolean altFire );
 
 
 //
@@ -1277,14 +1574,36 @@ int TAG_GetRadius( const char *owner, const char *name );
 int TAG_GetFlags( const char *owner, const char *name );
 
 void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles );
+void TeleportPlayer2( gentity_t *player, vec3_t origin, vec3_t angles );
 
 //
 // g_weapon.c
 //
+
+void		 WP_CalculateAngles( gentity_t *ent );
+void		 WP_CalculateMuzzlePoint( gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint );
+void		 WP_RecalculateTheFreakingMuzzleCrap( gentity_t *ent );
+gentity_t	*WP_FireGenericMissile( gentity_t *ent, int firemode, vec3_t origin, vec3_t dir );
+void		 WP_FireGenericTraceLine( gentity_t *ent, qboolean altFire );
+void		 WP_FireGenericWeapon( gentity_t *ent, int firemode );
+qboolean	 WP_GetWeaponAttackDisruption( gentity_t* ent, qboolean altFire );
+float		 WP_GetWeaponBoxSize( gentity_t *ent, int firemode );
+int			 WP_GetWeaponBounce( gentity_t *ent, int firemode );
+int			 WP_GetWeaponCharge( gentity_t *ent, int firemode );
+char		*WP_GetWeaponClassname( gentity_t *ent, int firemode );
+int			 WP_GetWeaponDamage( gentity_t *ent, int firemode );
+vec3_t		*WP_GetWeaponDirection( gentity_t *ent, qboolean altFire, vec3_t forward );
+qboolean	 WP_GetWeaponGravity( gentity_t *ent, int firemode );
+int			 WP_GetWeaponMOD( gentity_t *ent, int firemode );
+int			 WP_GetWeaponSplashMOD( gentity_t *ent, int firemode );
+float		 WP_GetWeaponRange( gentity_t *ent, int firemode );
+qboolean	 WP_GetWeaponShotCount( gentity_t *ent, qboolean altFire );
+float		 WP_GetWeaponSpeed( gentity_t *ent, int firemode );
+float		 WP_GetWeaponSplashRange( gentity_t *ent, int firemode );
+
+
 void WP_FireTurretMissile( gentity_t *ent, vec3_t start, vec3_t dir, qboolean altFire, int damage, int velocity, int mod, gentity_t *ignore );
 void WP_FireGenericBlasterMissile( gentity_t *ent, vec3_t start, vec3_t dir, qboolean altFire, int damage, int velocity, int mod );
-qboolean LogAccuracyHit( gentity_t *target, gentity_t *attacker );
-void CalcMuzzlePoint ( gentity_t *ent, const vec3_t inForward, const vec3_t inRight, const vec3_t inUp, vec3_t muzzlePoint );
 void SnapVectorTowards( vec3_t v, vec3_t to );
 qboolean CheckGauntletAttack( gentity_t *ent );
 
@@ -1292,16 +1611,17 @@ qboolean CheckGauntletAttack( gentity_t *ent );
 //
 // g_client.c
 //
-int TeamCount( int ignoreClientNum, team_t team );
+team_t TeamCount( int ignoreClientNum, int team );
 int TeamLeader( int team );
 team_t PickTeam( int ignoreClientNum );
 void SetClientViewAngle( gentity_t *ent, vec3_t angle );
 gentity_t *SelectSpawnPoint ( vec3_t avoidPoint, vec3_t origin, vec3_t angles, team_t team );
 void MaintainBodyQueue(gentity_t *ent);
+void JKG_PermaSpectate(gentity_t *ent);
 void respawn (gentity_t *ent);
 void BeginIntermission (void);
 void InitBodyQue (void);
-void ClientSpawn( gentity_t *ent );
+void ClientSpawn( gentity_t *ent, qboolean respawn );
 void player_die (gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod);
 void AddScore( gentity_t *ent, vec3_t origin, int score );
 void CalculateRanks( void );
@@ -1319,9 +1639,8 @@ qboolean G_FilterPacket (char *from);
 //
 // g_weapon.c
 //
-void FireWeapon( gentity_t *ent, qboolean altFire );
+void FireWeapon( gentity_t *ent, int firingMode );
 void BlowDetpacks(gentity_t *ent);
-void RemoveDetpacks(gentity_t *ent);
 
 //
 // p_hud.c
@@ -1342,7 +1661,6 @@ void DeathmatchScoreboardMessage (gentity_t *client);
 //
 // g_main.c
 //
-extern vmCvar_t g_ff_objectives;
 extern qboolean gDoSlowMoDuel;
 extern int gSlowMoDuelTime;
 
@@ -1430,14 +1748,15 @@ void Svcmd_BotList_f( void );
 void BotInterbreedEndMatch( void );
 qboolean G_DoesMapSupportGametype(const char *mapname, int gametype);
 const char *G_RefreshNextMap(int gametype, qboolean forced);
-void G_LoadArenas( void );
 
+extern int ASTAR_FindPath(int from, int to, int *pathlist);
+qboolean JKG_CheckRoutingFrom( int wp );
+qboolean JKG_CheckBelowWaypoint( int wp );
 // w_force.c / w_saber.c
 gentity_t *G_PreDefSound(vec3_t org, int pdSound);
-qboolean HasSetSaberOnly(void);
 void WP_ForcePowerStop( gentity_t *self, forcePowers_t forcePower );
 void WP_SaberPositionUpdate( gentity_t *self, usercmd_t *ucmd );
-int WP_SaberCanBlock(gentity_t *self, vec3_t point, int dflags, int mod, qboolean projectile, int attackStr);
+qboolean WP_SaberCanBlock(gentity_t *self, vec3_t point, int dflags, int mod, qboolean projectile, int attackStr);
 void WP_SaberInitBladeData( gentity_t *ent );
 void WP_InitForcePowers( gentity_t *ent );
 void WP_SpawnInitForcePowers( gentity_t *ent );
@@ -1453,10 +1772,14 @@ void ForceTeamHeal( gentity_t *self );
 void ForceTeamForceReplenish( gentity_t *self );
 void ForceSeeing( gentity_t *self );
 void ForceThrow( gentity_t *self, qboolean pull );
+void ForceDrain( gentity_t *self );
 void ForceTelepathy(gentity_t *self);
-qboolean Jedi_DodgeEvasion( gentity_t *self, gentity_t *shooter, trace_t *tr, int hitLoc );
+qboolean NPC_Humanoid_DodgeEvasion( gentity_t *self, gentity_t *shooter, trace_t *tr, int hitLoc );
+void WP_DeactivateSaber( gentity_t *self, qboolean clearLength );
+void WP_ActivateSaber( gentity_t *self );
 
 // g_log.c
+void QDECL G_LogPrintf( const char *fmt, ... );
 void QDECL G_LogWeaponPickup(int client, int weaponid);
 void QDECL G_LogWeaponFire(int client, int weaponid);
 void QDECL G_LogWeaponDamage(int client, int mod, int amount);
@@ -1469,10 +1792,6 @@ void QDECL G_LogWeaponInit(void);
 void QDECL G_LogWeaponOutput(void);
 void QDECL G_LogExit( const char *string );
 void QDECL G_ClearClientLog(int client);
-
-// g_siege.c
-void InitSiegeMode(void);
-void G_SiegeClientExData(gentity_t *msgTarg);
 
 // g_timer
 //Timing information
@@ -1513,17 +1832,19 @@ typedef struct bot_settings_s
 } bot_settings_t;
 
 int BotAISetup( int restart );
-int BotAIShutdown( int restart );
+int BotAIShutdown( qboolean restart );
 int BotAILoadMap( int restart );
 int BotAISetupClient(int client, struct bot_settings_s *settings, qboolean restart);
 int BotAIShutdownClient( int client, qboolean restart );
 int BotAIStartFrame( int time );
 
 #include "g_team.h" // teamplay specific stuff
-
+#include "jkg_keypairs.h"
 
 extern	level_locals_t	level;
-extern	gentity_t		g_entities[MAX_GENTITIES];
+extern gentity_t		g_entities[MAX_ENTITIESTOTAL];
+extern gentity_t		*g_logicalents;
+extern KeyPairSet_t		g_spawnvars[MAX_ENTITIESTOTAL];
 
 #define	FOFS(x) ((size_t)&(((gentity_t *)0)->x))
 
@@ -1847,7 +2168,30 @@ typedef enum userinfoValidationBits_e {
 	USERINFO_VALIDATION_MAX
 } userinfoValidationBits_t;
 
+/**************************************************
+* jkg_team.c
+**************************************************/
+
 void Svcmd_ToggleUserinfoValidation_f( void );
+qboolean	TeamCommand( int clientNum, char *cmd, char *param );							// A client is issueing a command, check for team commands here.
+void		TeamDisconnect( int clientNum );												// This client is disconnecting without dealing with his team.
+qboolean	TeamFriendly( int p1, int p2 );													// Returns wether or not these players are friendly.
+void		TeamInitialize( int clientNum );												// Initializes the party identifiers for this player.
+void		TeamInitializeServer( void );													// Initializes the party identifiers for the server.
+void		TeamPartyCommandAccept( int clientNum, int iID );								// Accepts the party invitation in the provided slot.
+void		TeamPartyCommandChangeLeader( int clientNum, int iID, qboolean forceClient );	// Changes the authority of the party leader to another member. The identifier is the slot!
+void		TeamPartyCommandCreate( int clientNum );										// Creates a new party. Find the first slot and set the client as leader.
+void		TeamPartyCommandDisband( int clientNum );										// Disbands the party, removes all members and the leader.
+void		TeamPartyCommandDismiss( int clientNum, int iID );								// Dismisses the target member from the party. The identifier is the slot!
+void		TeamPartyCommandInvite( int clientNum, char *parm );							// Invites a player to join your party. The parameter can be a identifier or name.
+void		TeamPartyCommandLeave( int clientNum, qboolean forceClient );					// Leave your current party. This may not be performed by the leader.
+void		TeamPartyListRefresh( int clientNum, int iTime );								// Refreshes the 'seeking party list', where people register to look for a party.
+void		TeamPartyListRegister( int clientNum, char *message );							// Register yourself on the seeking list!
+void		TeamPartyListUnregister( int clientNum, qboolean forcedUpdate );				// Unregister yourself from the seeking list!
+void		TeamPartyCommandReject( int clientNum, int iID );								// Rejects the party invitation in the provided slot.
+int			TeamPartyCount( int partyNum );													// Counts the number of players that are in the party.
+void		TeamPartyUpdate( int partyNum, int forceClient );								// Updates the team and individual status. This sends a full incremental update.
+int			TeamTarget( gentity_t *ent, char *cmd );										// Finds a target based on the client data and partial string.
 
 // g_cvar.c
 #define XCVAR_PROTO
@@ -1855,3 +2199,30 @@ void Svcmd_ToggleUserinfoValidation_f( void );
 #undef XCVAR_PROTO
 void G_RegisterCvars( void );
 void G_UpdateCvars( void );
+
+/**************************************************
+* jkg_items.c
+**************************************************/
+void JKG_VendorInit(void);
+void JKG_CreateNewVendor(gentity_t *ent, int desiredVendorID, qboolean random, qboolean refreshStock);
+void JKG_SP_target_vendor(gentity_t *ent);
+void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item);
+void JKG_CheckVendorReplenish(void);
+
+/**************************************************
+* jkg_astar.cpp - New A* Routing Implementation.
+**************************************************/
+extern qboolean PATHING_IGNORE_FRAME_TIME;
+
+int ASTAR_FindPath(int from, int to, int *pathlist);
+int ASTAR_FindPathWithTimeLimit(int from, int to, int *pathlist);
+int ASTAR_FindPathFast(int from, int to, int *pathlist, qboolean shorten);
+
+#ifdef _DEBUG
+extern void JKG_AssertFunction(char *file, int linenum, const char *expression);
+#define JKG_Assert(_Expression) if(!_Expression){ JKG_AssertFunction(__FILE__, __LINE__, #_Expression); assert(_Expression); }
+#else //!_DEBUG
+#define JKG_Assert(_Expression) {  }
+#endif //_DEBUG
+
+#endif

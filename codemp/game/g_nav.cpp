@@ -64,7 +64,7 @@ NPC_Blocked
 -------------------------
 */
 
-
+void GLua_NPCEV_OnBlocked(gentity_t *self, gentity_t *blocker);
 void NPC_Blocked( gentity_t *self, gentity_t *blocker )
 {
 	if ( self->NPC == NULL )
@@ -74,6 +74,10 @@ void NPC_Blocked( gentity_t *self, gentity_t *blocker )
 	if ( self->NPC->blockedSpeechDebounceTime > level.time )
 		return;
 
+	// Run OnBlocked if the npc is a lua npc
+	if (self->NPC->isLuaNPC) {
+		GLua_NPCEV_OnBlocked(self, blocker);
+	}
 	//Attempt to run any blocked scripts
 	if ( G_ActivateBehavior( self, BSET_BLOCKED ) )
 	{
@@ -87,7 +91,7 @@ void NPC_Blocked( gentity_t *self, gentity_t *blocker )
 		return;
 	}
 
-	//Debug_Printf( d_npcai, DEBUG_LEVEL_WARNING, "%s: Excuse me, %s %s!\n", self->targetname, blocker->classname, blocker->targetname );
+	//Debug_Printf( debugNPCAI, DEBUG_LEVEL_WARNING, "%s: Excuse me, %s %s!\n", self->targetname, blocker->classname, blocker->targetname );
 	
 	//If we're being blocked by the player, say something to them
 	if ( ( blocker->s.number >= 0 && blocker->s.number < MAX_CLIENTS ) && ( ( blocker->client->playerTeam == self->client->playerTeam ) ) )
@@ -287,7 +291,7 @@ qboolean NAV_ClearPathToPoint( gentity_t *self, vec3_t pmins, vec3_t pmaxs, vec3
 		}
 
 		//Okay, didn't get all the way there, let's see if we got close enough:
-		if ( NAV_HitNavGoal( self->r.currentOrigin, self->parent->r.mins, self->parent->r.maxs, trace.endpos, NPCS.NPCInfo->goalRadius, FlyingCreature( self->parent ) ) )
+		if ( NAV_HitNavGoal( self->r.currentOrigin, self->parent->r.mins, self->parent->r.maxs, trace.endpos, NPCInfo->goalRadius, FlyingCreature( self->parent ) ) )
 		{
 			return qtrue;
 		}
@@ -842,7 +846,7 @@ qboolean NAV_ResolveEntityCollision( gentity_t *self, gentity_t *blocker, vec3_t
 //		return qtrue;
 	
 	//See if we can get around the blocker at all (only for player!)
-	if ( blocker->s.number == 0 )
+	if ( blocker->s.number >= 0 && blocker->s.number < MAX_CLIENTS )
 	{
 		if ( NAV_StackedCanyon( self, blocker, pathDir ) )
 		{
@@ -905,7 +909,7 @@ qboolean NAV_AvoidCollision( gentity_t *self, gentity_t *goal, navInfo_t *info )
 	vec3_t	movepos;
 
 	//Clear our block info for this frame
-	NAV_ClearBlockedInfo( NPCS.NPC );
+	NAV_ClearBlockedInfo( NPC );
 
 	//Cap our distance
 	if ( info->distance > MAX_COLL_AVOID_DIST )
@@ -973,7 +977,7 @@ int NAV_TestBestNode( gentity_t *self, int startID, int endID, qboolean failEdge
 	vec3_t	end;
 	trace_t	trace;
 	vec3_t	mins;
-	int		clipmask = (NPCS.NPC->clipmask&~CONTENTS_BODY)|CONTENTS_BOTCLIP;
+	int		clipmask = (NPC->clipmask&~CONTENTS_BODY)|CONTENTS_BOTCLIP;
 
 	//get the position for the test choice
 	trap_Nav_GetNodePosition( endID, end );
@@ -1095,7 +1099,7 @@ qboolean NAV_MicroError( vec3_t start, vec3_t end )
 {
 	if ( VectorCompare( start, end ) )
 	{
-		if ( DistanceSquared( NPCS.NPC->r.currentOrigin, start ) < (8*8) )
+		if ( DistanceSquared( NPC->r.currentOrigin, start ) < (8*8) )
 		{
 			return qtrue;
 		}
@@ -1120,7 +1124,7 @@ int	NAV_MoveToGoal( gentity_t *self, navInfo_t *info )
 		return WAYPOINT_NONE;
 
 	//Check special player optimizations
-	if ( self->NPC->goalEntity->s.number == 0 )
+	if ( self->NPC->goalEntity->s.number >= 0 && self->NPC->goalEntity->s.number < MAX_CLIENTS )
 	{
 		//If we couldn't find the point, then we won't be able to this turn
 		if ( self->NPC->goalEntity->waypoint == WAYPOINT_NONE )
@@ -1295,7 +1299,7 @@ void SP_waypoint ( gentity_t *ent )
 			if(G_CheckInSolid (ent, qtrue))
 			{
 				Com_Printf(S_COLOR_RED"ERROR: Waypoint %s at %s in solid!\n", ent->targetname, vtos(ent->r.currentOrigin));
-				assert(0 && "Waypoint in solid!");
+				//assert(0 && "Waypoint in solid!");
 				G_FreeEntity(ent);
 				return;
 			}
@@ -1714,7 +1718,7 @@ int NAV_GetStoredWaypoint( char *targetname )
 {
 	int i;
 
-	if ( !targetname || !targetname[0] )
+	if ( !tempWaypointList || !targetname || !targetname[0] )
 	{
 		return -1;
 	}

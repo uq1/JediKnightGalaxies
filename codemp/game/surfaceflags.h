@@ -1,13 +1,24 @@
-#pragma once
-
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+//       ____ ___________________   ___           ____  __ _______   ___  ________  ___ ______________
+//      |    |\_   _____/\______ \ |   |         |    |/ _|\      \ |   |/  _____/ /   |   \__    ___/
+//      |    | |    __)_  |    |  \|   |         |      <  /   |   \|   /   \  ___/    ~    \|    |   
+//  /\__|    | |        \ |    `   \   |         |    |  \/    |    \   \    \_\  \    Y    /|    |   
+//  \________|/_______  //_______  /___|         |____|__ \____|__  /___|\______  /\___|_  / |____|   
+//                    \/         \/                      \/       \/            \/       \/           
+//                         ________    _____   ____       _____  ____  ___ ______________ _________   
+//                        /  _____/   /  _  \ |    |     /  _  \ \   \/  /|   \_   _____//   _____/   
+//                       /   \  ___  /  /_\  \|    |    /  /_\  \ \     / |   ||    __)_ \_____  \    
+//                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
+//                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
+//                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
+// surfaceflags.h
 // This file must be identical in the quake and utils directories
-
+//
 // contents flags are seperate bits
 // a given brush can contribute multiple content bits
-
+//
 // these definitions also need to be in q_shared.h!
+//
+// Copyright (C) 1999-2000 Id Software, Inc.
 
 #define	CONTENTS_SOLID			0x00000001	// Default setting. An eye is never valid in a solid
 #define	CONTENTS_LAVA			0x00000002
@@ -49,6 +60,7 @@
 #define	SURF_NODLIGHT			0x00800000	// don't dlight even if solid (solid lava, skies)
 #define	SURF_NOMISCENTS			0x01000000	// no client models allowed on this surface
 #define	SURF_FORCESIGHT			0x02000000	// not visible without Force Sight
+
 
 #define MATERIAL_BITS			5
 #define MATERIAL_MASK			0x1f	// mask to get the material type

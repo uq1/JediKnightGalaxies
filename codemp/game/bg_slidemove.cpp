@@ -28,13 +28,12 @@ extern qboolean G_CanBeEnemy(gentity_t *self, gentity_t *enemy); //w_saber.c
 
 extern qboolean BG_UnrestrainedPitchRoll( playerState_t *ps, Vehicle_t *pVeh );
 
-
 extern bgEntity_t *pm_entSelf;
 extern bgEntity_t *pm_entVeh;
 
 //vehicle impact stuff continued...
 #ifndef QAGAME //kind of hacky
-extern void trap_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad );
+extern void trap_FX_PlayEffectID( int id, const vec3_t org, const vec3_t fwd, int vol, int rad );
 #endif
 
 #ifdef QAGAME
@@ -892,8 +891,9 @@ void PM_StepSlideMove( qboolean gravity ) {
 	pm->trace (&trace, start_o, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
 	VectorSet(up, 0, 0, 1);
 	// never step up when you still have up velocity
-	if ( pm->ps->velocity[2] > 0 && (trace.fraction == 1.0 ||
-										DotProduct(trace.plane.normal, up) < 0.7))
+	if ( pm->ps->velocity[2] > 0 
+		&& (trace.fraction == 1.0 || DotProduct(trace.plane.normal, up) < 0.7)
+		&& !(pm->ps->clientNum >= MAX_CLIENTS && pEnt->s.NPC_class != CLASS_VEHICLE))
 	{
 		return;
 	}
@@ -907,8 +907,11 @@ void PM_StepSlideMove( qboolean gravity ) {
 	{
 		// apply ground friction, even if on ladder
 		if (pEnt &&
-			(pEnt->s.NPC_class == CLASS_ATST ||
-			(pEnt->s.NPC_class == CLASS_VEHICLE && pEnt->m_pVehicle && pEnt->m_pVehicle->m_pVehicleInfo->type == VH_WALKER) ) )
+			pEnt->s.NPC_class == CLASS_ATST ||
+				(pEnt->s.NPC_class == CLASS_VEHICLE &&
+					pEnt->m_pVehicle &&
+					pEnt->m_pVehicle->m_pVehicleInfo->type == VH_WALKER)
+			)
 		{//AT-STs can step high
 			up[2] += 66.0f;
 			isGiant = qtrue;
@@ -919,13 +922,24 @@ void PM_StepSlideMove( qboolean gravity ) {
 			isGiant = qtrue;
 		}
 		else
-		{
-			up[2] += STEPSIZE;
+		{// UQ1: NPCs get off easy - for the sake of lower CPU usage (routing) and looking better in general...
+			up[2] += STEPSIZE*2;
 		}
 	}
 	else
 	{
+#ifdef QAGAME
+	if ( g_entities[pm->ps->clientNum].r.svFlags & SVF_BOT )
+	{// UQ1: BOTs get off easy - for the sake of lower CPU usage (routing) and looking better in general...
+		up[2] += STEPSIZE*2;
+	}
+	else
+	{
 		up[2] += STEPSIZE;
+	}
+#else //!QAGAME
+		up[2] += STEPSIZE;
+#endif //QAGAME
 	}
 
 	// test the player position if they were a stepheight higher
@@ -934,6 +948,8 @@ void PM_StepSlideMove( qboolean gravity ) {
 		if ( pm->debugLevel ) {
 			Com_Printf("%i:bend can't step\n", c_pmove);
 		}
+
+		//Com_Printf("Failed step at 3.\n");
 		return;		// can't step up
 	}
 
@@ -1062,5 +1078,4 @@ void PM_StepSlideMove( qboolean gravity ) {
 		}
 	}
 }
-
 

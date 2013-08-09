@@ -1,5 +1,3 @@
-#pragma once
-
 #define		MAX_SIEGE_INFO_SIZE					16384
 
 #define		SIEGETEAM_TEAM1						1 //e.g. TEAM_RED
@@ -42,7 +40,6 @@ typedef enum
 	CFL_EXTRA_AMMO
 } siegeClassFlags_t;
 
-
 #define SIEGE_CLASS_DESC_LEN  4096
 typedef struct
 {
@@ -84,7 +81,6 @@ typedef struct
 	int			numClasses;
 	int			friendlyShader;
 } siegeTeam_t;
-
 
 extern siegeClass_t bgSiegeClasses[MAX_SIEGE_CLASSES];
 extern int bgNumSiegeClasses;

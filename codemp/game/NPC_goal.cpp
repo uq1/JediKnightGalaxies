@@ -9,17 +9,17 @@ SetGoal
 
 void SetGoal( gentity_t *goal, float rating ) 
 {
-	NPCS.NPCInfo->goalEntity = goal;
+	NPCInfo->goalEntity = goal;
 //	NPCInfo->goalEntityNeed = rating;
-	NPCS.NPCInfo->goalTime = level.time;
+	NPCInfo->goalTime = level.time;
 //	NAV_ClearLastRoute(NPC);
 	if ( goal ) 
 	{
-//		Debug_NPCPrintf( NPC, d_npcai, DEBUG_LEVEL_INFO, "NPC_SetGoal: %s @ %s (%f)\n", goal->classname, vtos( goal->currentOrigin), rating );
+//		Debug_NPCPrintf( NPC, debugNPCAI, DEBUG_LEVEL_INFO, "NPC_SetGoal: %s @ %s (%f)\n", goal->classname, vtos( goal->currentOrigin), rating );
 	}
 	else 
 	{
-//		Debug_NPCPrintf( NPC, d_npcai, DEBUG_LEVEL_INFO, "NPC_SetGoal: NONE\n" );
+//		Debug_NPCPrintf( NPC, debugNPCAI, DEBUG_LEVEL_INFO, "NPC_SetGoal: NONE\n" );
 	}
 }
 
@@ -30,27 +30,27 @@ NPC_SetGoal
 
 void NPC_SetGoal( gentity_t *goal, float rating ) 
 {
-	if ( goal == NPCS.NPCInfo->goalEntity ) 
+	if ( goal == NPCInfo->goalEntity ) 
 	{
 		return;
 	}
 
 	if ( !goal ) 
 	{
-//		Debug_NPCPrintf( NPC, d_npcai, DEBUG_LEVEL_ERROR, "NPC_SetGoal: NULL goal\n" );
+//		Debug_NPCPrintf( NPC, debugNPCAI, DEBUG_LEVEL_ERROR, "NPC_SetGoal: NULL goal\n" );
 		return;
 	}
 
 	if ( goal->client ) 
 	{
-//		Debug_NPCPrintf( NPC, d_npcai, DEBUG_LEVEL_ERROR, "NPC_SetGoal: goal is a client\n" );
+//		Debug_NPCPrintf( NPC, debugNPCAI, DEBUG_LEVEL_ERROR, "NPC_SetGoal: goal is a client\n" );
 		return;
 	}
 
-	if ( NPCS.NPCInfo->goalEntity ) 
+	if ( NPCInfo->goalEntity ) 
 	{
-//		Debug_NPCPrintf( NPC, d_npcai, DEBUG_LEVEL_INFO, "NPC_SetGoal: push %s\n", NPCInfo->goalEntity->classname );
-		NPCS.NPCInfo->lastGoalEntity = NPCS.NPCInfo->goalEntity;
+//		Debug_NPCPrintf( NPC, debugNPCAI, DEBUG_LEVEL_INFO, "NPC_SetGoal: push %s\n", NPCInfo->goalEntity->classname );
+		NPCInfo->lastGoalEntity = NPCInfo->goalEntity;
 //		NPCInfo->lastGoalEntityNeed = NPCInfo->goalEntityNeed;
 	}
 
@@ -66,18 +66,18 @@ void NPC_ClearGoal( void )
 {
 	gentity_t	*goal;
 
-	if ( !NPCS.NPCInfo->lastGoalEntity ) 
+	if ( !NPCInfo->lastGoalEntity ) 
 	{
 		SetGoal( NULL, 0.0 );
 		return;
 	}
 
-	goal = NPCS.NPCInfo->lastGoalEntity;
-	NPCS.NPCInfo->lastGoalEntity = NULL;
+	goal = NPCInfo->lastGoalEntity;
+	NPCInfo->lastGoalEntity = NULL;
 //	NAV_ClearLastRoute(NPC);
 	if ( goal->inuse && !(goal->s.eFlags & EF_NODRAW) ) 
 	{
-//		Debug_NPCPrintf( NPC, d_npcai, DEBUG_LEVEL_INFO, "NPC_ClearGoal: pop %s\n", goal->classname );
+//		Debug_NPCPrintf( NPC, debugNPCAI, DEBUG_LEVEL_INFO, "NPC_ClearGoal: pop %s\n", goal->classname );
 		SetGoal( goal, 0 );//, NPCInfo->lastGoalEntityNeed
 		return;
 	}
@@ -114,17 +114,24 @@ qboolean G_BoundsOverlap(const vec3_t mins1, const vec3_t maxs1, const vec3_t mi
 	return qtrue;
 }
 
+void GLua_NPCEV_OnReached(gentity_t *self);
 void NPC_ReachedGoal( void )
 {
-//	Debug_NPCPrintf( NPC, d_npcai, DEBUG_LEVEL_INFO, "UpdateGoal: reached goal entity\n" );
+//	Debug_NPCPrintf( NPC, debugNPCAI, DEBUG_LEVEL_INFO, "UpdateGoal: reached goal entity\n" );
 	NPC_ClearGoal();
-	NPCS.NPCInfo->goalTime = level.time;
+	NPCInfo->goalTime = level.time;
 
 //MCG - Begin
-	NPCS.NPCInfo->aiFlags &= ~NPCAI_MOVING;
-	NPCS.ucmd.forwardmove = 0;
+	NPCInfo->aiFlags &= ~NPCAI_MOVING;
+	ucmd.forwardmove = 0;
 	//Return that the goal was reached
-	trap_ICARUS_TaskIDComplete( NPCS.NPC, TID_MOVE_NAV );
+	trap_ICARUS_TaskIDComplete( NPC, TID_MOVE_NAV );
+	if (NPC->NPC->isLuaNPC && NPC->NPC->luaFlags.isMoving) {
+		GLua_NPCEV_OnReached(NPC);
+	}
+	NPC->NPC->luaFlags.isMoving = qfalse;
+
+	
 //MCG - End
 }
 /*
@@ -196,9 +203,9 @@ qboolean ReachedGoal( gentity_t *goal )
 		return qfalse;
 	}
 */
-	if ( NPCS.NPCInfo->aiFlags & NPCAI_TOUCHED_GOAL ) 
+	if ( NPCInfo->aiFlags & NPCAI_TOUCHED_GOAL ) 
 	{
-		NPCS.NPCInfo->aiFlags &= ~NPCAI_TOUCHED_GOAL;
+		NPCInfo->aiFlags &= ~NPCAI_TOUCHED_GOAL;
 		return qtrue;
 	}
 /*
@@ -227,7 +234,7 @@ qboolean ReachedGoal( gentity_t *goal )
 		}
 	}
 */	
-	return NAV_HitNavGoal( NPCS.NPC->r.currentOrigin, NPCS.NPC->r.mins, NPCS.NPC->r.maxs, goal->r.currentOrigin, NPCS.NPCInfo->goalRadius, FlyingCreature( NPCS.NPC ) );
+	return NAV_HitNavGoal( NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, goal->r.currentOrigin, NPCInfo->goalRadius, FlyingCreature( NPC ) );
 }
 
 /*
@@ -244,18 +251,18 @@ gentity_t *UpdateGoal( void )
 {
 	gentity_t	*goal;
 
-	if ( !NPCS.NPCInfo->goalEntity ) 
+	if ( !NPCInfo->goalEntity ) 
 	{
 		return NULL;
 	}
 
-	if ( !NPCS.NPCInfo->goalEntity->inuse )
+	if ( !NPCInfo->goalEntity->inuse )
 	{//Somehow freed it, but didn't clear it
 		NPC_ClearGoal();
 		return NULL;
 	}
 
-	goal = NPCS.NPCInfo->goalEntity;
+	goal = NPCInfo->goalEntity;
 
 	if ( ReachedGoal( goal ) ) 
 	{

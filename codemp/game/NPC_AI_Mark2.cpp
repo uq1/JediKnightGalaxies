@@ -11,7 +11,7 @@
 #define MIN_DISTANCE		24
 #define MIN_DISTANCE_SQR	( MIN_DISTANCE * MIN_DISTANCE )
 
-extern gitem_t	*BG_FindItemForAmmo( ammo_t ammo );
+extern gitem_t	*BG_FindItemForAmmo( ammoType_t ammo );
 
 //Local state enums
 enum
@@ -115,15 +115,15 @@ Mark2_Hunt
 */
 void Mark2_Hunt(void)
 {
-	if ( NPCS.NPCInfo->goalEntity == NULL )
+	if ( NPCInfo->goalEntity == NULL )
 	{
-		NPCS.NPCInfo->goalEntity = NPCS.NPC->enemy;
+		NPCInfo->goalEntity = NPC->enemy;
 	}
 
 	// Turn toward him before moving towards him.
 	NPC_FaceEnemy( qtrue );
 
-	NPCS.NPCInfo->combatMove = qtrue;
+	NPCInfo->combatMove = qtrue;
 	NPC_MoveToGoal( qtrue );
 }
 
@@ -136,35 +136,35 @@ void Mark2_FireBlaster(qboolean advance)
 {
 	vec3_t	muzzle1,enemy_org1,delta1,angleToEnemy1;
 	static	vec3_t	forward, vright, up;
-//	static	vec3_t	muzzle;
+	static	vec3_t	muzzle;
 	gentity_t	*missile;
 	mdxaBone_t	boltMatrix;
-	int bolt = trap_G2API_AddBolt(NPCS.NPC->ghoul2, 0, "*flash");
+	int bolt = trap_G2API_AddBolt(NPC->ghoul2, 0, "*flash");
 
-	trap_G2API_GetBoltMatrix( NPCS.NPC->ghoul2, 0, 
+	trap_G2API_GetBoltMatrix( NPC->ghoul2, 0, 
 				bolt,
-				&boltMatrix, NPCS.NPC->r.currentAngles, NPCS.NPC->r.currentOrigin, level.time,
-				NULL, NPCS.NPC->modelScale );
+				&boltMatrix, NPC->r.currentAngles, NPC->r.currentOrigin, level.time,
+				NULL, NPC->modelScale );
 
 	BG_GiveMeVectorFromMatrix( &boltMatrix, ORIGIN, muzzle1 );
 
-	if (NPCS.NPC->health)
+	if (NPC->health)
 	{
-		CalcEntitySpot( NPCS.NPC->enemy, SPOT_HEAD, enemy_org1 );
+		CalcEntitySpot( NPC->enemy, SPOT_HEAD, enemy_org1 );
 		VectorSubtract (enemy_org1, muzzle1, delta1);
 		vectoangles ( delta1, angleToEnemy1 );
 		AngleVectors (angleToEnemy1, forward, vright, up);
 	}
 	else
 	{
-		AngleVectors (NPCS.NPC->r.currentAngles, forward, vright, up);
+		AngleVectors (NPC->r.currentAngles, forward, vright, up);
 	}
 
 	G_PlayEffectID( G_EffectIndex("bryar/muzzle_flash"), muzzle1, forward );
 
-	G_Sound( NPCS.NPC, CHAN_AUTO, G_SoundIndex("sound/chars/mark2/misc/mark2_fire"));
+	G_Sound( NPC, CHAN_AUTO, G_SoundIndex("sound/chars/mark2/misc/mark2_fire"));
 
-	missile = CreateMissile( muzzle1, forward, 1600, 10000, NPCS.NPC, qfalse );
+	missile = CreateMissile( muzzle1, forward, 1600, 10000, NPC, qfalse );
 
 	missile->classname = "bryar_proj";
 	missile->s.weapon = WP_BRYAR_PISTOL;
@@ -183,15 +183,15 @@ Mark2_BlasterAttack
 */
 void Mark2_BlasterAttack(qboolean advance)
 {
-	if ( TIMER_Done( NPCS.NPC, "attackDelay" ) )	// Attack?
+	if ( TIMER_Done( NPC, "attackDelay" ) )	// Attack?
 	{
-		if (NPCS.NPCInfo->localState == LSTATE_NONE)	// He's up so shoot less often.
+		if (NPCInfo->localState == LSTATE_NONE)	// He's up so shoot less often.
 		{
-			TIMER_Set( NPCS.NPC, "attackDelay", Q_irand( 500, 2000) );
+			TIMER_Set( NPC, "attackDelay", Q_irand( 500, 2000) );
 		}
 		else
 		{
-			TIMER_Set( NPCS.NPC, "attackDelay", Q_irand( 100, 500) );
+			TIMER_Set( NPC, "attackDelay", Q_irand( 100, 500) );
 		}
 		Mark2_FireBlaster(advance);
 		return;
@@ -215,19 +215,19 @@ void Mark2_AttackDecision( void )
 
 	NPC_FaceEnemy( qtrue );
 
-	distance	= (int) DistanceHorizontalSquared( NPCS.NPC->r.currentOrigin, NPCS.NPC->enemy->r.currentOrigin );	
-	visible		= NPC_ClearLOS4( NPCS.NPC->enemy );
+	distance	= (int) DistanceHorizontalSquared( NPC->r.currentOrigin, NPC->enemy->r.currentOrigin );	
+	visible		= NPC_ClearLOS4( NPC->enemy );
 	advance		= (qboolean)(distance > MIN_DISTANCE_SQR);
 
 	// He's been ordered to get up
-	if (NPCS.NPCInfo->localState == LSTATE_RISINGUP)
+	if (NPCInfo->localState == LSTATE_RISINGUP)
 	{
-		NPCS.NPC->flags &= ~FL_SHIELDED;
-		NPC_SetAnim( NPCS.NPC, SETANIM_BOTH, BOTH_RUN1START, SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE );
-		if ((NPCS.NPC->client->ps.legsTimer<=0) && 
-			NPCS.NPC->client->ps.torsoAnim == BOTH_RUN1START )
+		NPC->flags &= ~FL_SHIELDED;
+		NPC_SetAnim( NPC, SETANIM_BOTH, BOTH_RUN1START, SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE );
+		if ((NPC->client->ps.legsTimer<=0) && 
+			NPC->client->ps.torsoAnim == BOTH_RUN1START )
 		{
-			NPCS.NPCInfo->localState = LSTATE_NONE;	// He's up again.
+			NPCInfo->localState = LSTATE_NONE;	// He's up again.
 		}
 		return;
 	}
@@ -236,13 +236,13 @@ void Mark2_AttackDecision( void )
 	if ((!visible) || (!NPC_FaceEnemy(qtrue)))
 	{
 		// If he's going down or is down, make him get up
-		if ((NPCS.NPCInfo->localState == LSTATE_DOWN) || (NPCS.NPCInfo->localState == LSTATE_DROPPINGDOWN))
+		if ((NPCInfo->localState == LSTATE_DOWN) || (NPCInfo->localState == LSTATE_DROPPINGDOWN))
 		{
-			if ( TIMER_Done( NPCS.NPC, "downTime" ) )	// Down being down?? (The delay is so he doesn't pop up and down when the player goes in and out of range)
+			if ( TIMER_Done( NPC, "downTime" ) )	// Down being down?? (The delay is so he doesn't pop up and down when the player goes in and out of range)
 			{
-				NPCS.NPCInfo->localState = LSTATE_RISINGUP;
-				NPC_SetAnim( NPCS.NPC, SETANIM_BOTH, BOTH_RUN1STOP, SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE );
-				TIMER_Set( NPCS.NPC, "runTime", Q_irand( 3000, 8000) );	// So he runs for a while before testing to see if he should drop down.
+				NPCInfo->localState = LSTATE_RISINGUP;
+				NPC_SetAnim( NPC, SETANIM_BOTH, BOTH_RUN1STOP, SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE );
+				TIMER_Set( NPC, "runTime", Q_irand( 3000, 8000) );	// So he runs for a while before testing to see if he should drop down.
 			}
 		}
 		else
@@ -253,37 +253,37 @@ void Mark2_AttackDecision( void )
 	}
 
 	// He's down but he could advance if he wants to.
-	if ((advance) && (TIMER_Done( NPCS.NPC, "downTime" )) && (NPCS.NPCInfo->localState == LSTATE_DOWN))
+	if ((advance) && (TIMER_Done( NPC, "downTime" )) && (NPCInfo->localState == LSTATE_DOWN))
 	{
-		NPCS.NPCInfo->localState = LSTATE_RISINGUP;
-		NPC_SetAnim( NPCS.NPC, SETANIM_BOTH, BOTH_RUN1STOP, SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE );
-		TIMER_Set( NPCS.NPC, "runTime", Q_irand( 3000, 8000) );	// So he runs for a while before testing to see if he should drop down.
+		NPCInfo->localState = LSTATE_RISINGUP;
+		NPC_SetAnim( NPC, SETANIM_BOTH, BOTH_RUN1STOP, SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE );
+		TIMER_Set( NPC, "runTime", Q_irand( 3000, 8000) );	// So he runs for a while before testing to see if he should drop down.
 	}
 
 	NPC_FaceEnemy( qtrue );
 
 	// Dropping down to shoot
-	if (NPCS.NPCInfo->localState == LSTATE_DROPPINGDOWN)
+	if (NPCInfo->localState == LSTATE_DROPPINGDOWN)
 	{
-		NPC_SetAnim( NPCS.NPC, SETANIM_BOTH, BOTH_RUN1STOP, SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE );
-		TIMER_Set( NPCS.NPC, "downTime", Q_irand( 3000, 9000) );
+		NPC_SetAnim( NPC, SETANIM_BOTH, BOTH_RUN1STOP, SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE );
+		TIMER_Set( NPC, "downTime", Q_irand( 3000, 9000) );
 
-		if ((NPCS.NPC->client->ps.legsTimer<=0) && NPCS.NPC->client->ps.torsoAnim == BOTH_RUN1STOP )
+		if ((NPC->client->ps.legsTimer<=0) && NPC->client->ps.torsoAnim == BOTH_RUN1STOP )
 		{
-			NPCS.NPC->flags |= FL_SHIELDED;
-			NPCS.NPCInfo->localState = LSTATE_DOWN;
+			NPC->flags |= FL_SHIELDED;
+			NPCInfo->localState = LSTATE_DOWN;
 		}
 	}
 	// He's down and shooting
-	else if (NPCS.NPCInfo->localState == LSTATE_DOWN)
+	else if (NPCInfo->localState == LSTATE_DOWN)
 	{
-		NPCS.NPC->flags |= FL_SHIELDED;//only damagable by lightsabers and missiles
+		NPC->flags |= FL_SHIELDED;//only damagable by lightsabers and missiles
 
 		Mark2_BlasterAttack(qfalse);
 	}
-	else if (TIMER_Done( NPCS.NPC, "runTime" ))	// Lowering down to attack. But only if he's done running at you.
+	else if (TIMER_Done( NPC, "runTime" ))	// Lowering down to attack. But only if he's done running at you.
 	{
-		NPCS.NPCInfo->localState = LSTATE_DROPPINGDOWN;
+		NPCInfo->localState = LSTATE_DROPPINGDOWN;
 	}
 	else if (advance)
 	{
@@ -308,21 +308,21 @@ void Mark2_Patrol( void )
 	}
 
 	//If we have somewhere to go, then do that
-	if (!NPCS.NPC->enemy)
+	if (!NPC->enemy)
 	{
 		if ( UpdateGoal() )
 		{
-			NPCS.ucmd.buttons |= BUTTON_WALKING;
+			ucmd.buttons |= BUTTON_WALKING;
 			NPC_MoveToGoal( qtrue );
 			NPC_UpdateAngles( qtrue, qtrue );
 		}
 
 		//randomly talk
-		if (TIMER_Done(NPCS.NPC,"patrolNoise"))
+		if (TIMER_Done(NPC,"patrolNoise"))
 		{
 //			G_Sound( NPC, G_SoundIndex(va("sound/chars/mark1/misc/talk%d.wav",	Q_irand(1, 4))));
 
-			TIMER_Set( NPCS.NPC, "patrolNoise", Q_irand( 2000, 4000 ) );
+			TIMER_Set( NPC, "patrolNoise", Q_irand( 2000, 4000 ) );
 		}
 	}
 }
@@ -344,12 +344,12 @@ NPC_BSMark2_Default
 */
 void NPC_BSMark2_Default( void )
 {
-	if ( NPCS.NPC->enemy )
+	if ( NPC->enemy )
 	{
-		NPCS.NPCInfo->goalEntity = NPCS.NPC->enemy;
+		NPCInfo->goalEntity = NPC->enemy;
 		Mark2_AttackDecision();
 	}
-	else if ( NPCS.NPCInfo->scriptFlags & SCF_LOOK_FOR_ENEMIES )
+	else if ( NPCInfo->scriptFlags & SCF_LOOK_FOR_ENEMIES )
 	{
 		Mark2_Patrol();
 	}

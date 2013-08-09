@@ -1,8 +1,18 @@
-#pragma once
-
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+//       ____ ___________________   ___           ____  __ _______   ___  ________  ___ ______________
+//      |    |\_   _____/\______ \ |   |         |    |/ _|\      \ |   |/  _____/ /   |   \__    ___/
+//      |    | |    __)_  |    |  \|   |         |      <  /   |   \|   /   \  ___/    ~    \|    |   
+//  /\__|    | |        \ |    `   \   |         |    |  \/    |    \   \    \_\  \    Y    /|    |   
+//  \________|/_______  //_______  /___|         |____|__ \____|__  /___|\______  /\___|_  / |____|   
+//                    \/         \/                      \/       \/            \/       \/           
+//                         ________    _____   ____       _____  ____  ___ ______________ _________   
+//                        /  _____/   /  _  \ |    |     /  _  \ \   \/  /|   \_   _____//   _____/   
+//                       /   \  ___  /  /_\  \|    |    /  /_\  \ \     / |   ||    __)_ \_____  \    
+//                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
+//                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
+//                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
+// bg_local.h
 // bg_local.h -- local definitions for the bg (both games) files
+// Copyright (C) 1999-2000 Id Software, Inc. (c) 2013 Jedi Knight Galaxies
 
 #define	MIN_WALK_NORMAL	0.7f		// can't walk on very steep slopes
 
@@ -31,7 +41,6 @@ typedef struct
 	vec3_t		previous_velocity;
 	int			previous_waterlevel;
 } pml_t;
-
 
 extern	pml_t		pml;
 
@@ -93,7 +102,7 @@ void PM_StartTorsoAnim( int anim );
 void PM_ContinueLegsAnim( int anim );
 void PM_ForceLegsAnim( int anim );
 
-void PM_BeginWeaponChange( int weapon );
+void PM_BeginWeaponChange( int weaponId );
 void PM_FinishWeaponChange( void );
 
 void PM_SetAnim(int setAnimParts,int anim,int setAnimFlags, int blendTime);
@@ -105,3 +114,8 @@ void PM_SetForceJumpZStart(float value);
 
 void BG_CycleInven(playerState_t *ps, int direction);
 
+int BG_ParseGenericAnimationFile ( animation_t *animset, size_t maxAnimations, const stringID_table_t *animTable, const char *filename, const char *fileText );
+
+// Weapons
+void            BG_AddWeaponData ( weaponData_t *weaponData );
+qboolean        BG_LoadWeapons ( weaponData_t *weaponDataTable, unsigned int *numLoadedWeapons, unsigned int *numWeaponVariations );

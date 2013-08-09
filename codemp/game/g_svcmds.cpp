@@ -5,11 +5,21 @@
 
 #include "g_local.h"
 
+// Include GLua 
+#include "../GLua/glua.h"
+#include "jkg_admin.h"
+#ifdef __UNUSED__
+#include "jkg_navmesh_creator.h"
+#endif //__UNUSED__
+#include "jkg_threading.h"
+#include "json/cJSON.h"
+
+
 /*
 ==============================================================================
 
 PACKET FILTERING
- 
+
 
 You can add or remove addresses from the filter list with:
 
@@ -45,6 +55,8 @@ typedef struct ipFilter_s
 static ipFilter_t	ipFilters[MAX_IPFILTERS];
 static int			numIPFilters;
 
+extern void AIMod_TimeMapPaths();
+
 /*
 =================
 StringToFilter
@@ -56,13 +68,13 @@ static qboolean StringToFilter (char *s, ipFilter_t *f)
 	int		i, j;
 	byte	b[4];
 	byte	m[4];
-	
+
 	for (i=0 ; i<4 ; i++)
 	{
 		b[i] = 0;
 		m[i] = 0;
 	}
-	
+
 	for (i=0 ; i<4 ; i++)
 	{
 		if (*s < '0' || *s > '9')
@@ -79,7 +91,7 @@ static qboolean StringToFilter (char *s, ipFilter_t *f)
 			G_Printf( "Bad filter address: %s\n", s );
 			return qfalse;
 		}
-		
+
 		j = 0;
 		while (*s >= '0' && *s <= '9')
 		{
@@ -286,6 +298,37 @@ void Svcmd_RemoveIP_f (void)
 
 /*
 ===================
+Svcmd_EntityInfo_f
+===================
+*/
+void	Svcmd_EntityInfo_f (void) {
+	int totalents;
+	int inuse;
+	int i;
+	gentity_t *e;
+
+	inuse = 0;
+	for (e = &g_entities[0], i=0; i < level.num_entities ; e++, i++) {
+		if (e->inuse) {
+			inuse++;
+		}
+	}
+	G_Printf("Normal entity slots in use: %i/%i (%i slots allocated)\n", inuse, MAX_GENTITIES, level.num_entities);
+	totalents = inuse;
+
+	inuse = 0;
+	for (e = &g_entities[MAX_GENTITIES], i=0; i < level.num_logicalents ; e++, i++) {
+		if (e->inuse) {
+			inuse++;
+		}
+	}
+	G_Printf("Logical entity slots in use: %i/%i (%i slots allocated)\n", inuse, MAX_LOGICENTITIES, level.num_logicalents);
+	totalents += inuse;
+	G_Printf("Total entity count: %i/%i\n", totalents, MAX_ENTITIESTOTAL);
+}
+
+/*
+===================
 Svcmd_EntityList_f
 ===================
 */
@@ -293,8 +336,8 @@ void	Svcmd_EntityList_f (void) {
 	int			e;
 	gentity_t		*check;
 
-	check = g_entities;
-	for (e = 0; e < level.num_entities ; e++, check++) {
+	check = g_entities+1;
+	for (e = 1; e < level.num_entities ; e++, check++) {
 		if ( !check->inuse ) {
 			continue;
 		}
@@ -311,12 +354,6 @@ void	Svcmd_EntityList_f (void) {
 			break;
 		case ET_MISSILE:
 			G_Printf("ET_MISSILE          ");
-			break;
-		case ET_SPECIAL:
-			G_Printf("ET_SPECIAL          ");
-			break;
-		case ET_HOLOCRON:
-			G_Printf("ET_HOLOCRON         ");
 			break;
 		case ET_MOVER:
 			G_Printf("ET_MOVER            ");
@@ -342,17 +379,8 @@ void	Svcmd_EntityList_f (void) {
 		case ET_NPC:
 			G_Printf("ET_NPC              ");
 			break;
-		case ET_BODY:
-			G_Printf("ET_BODY             ");
-			break;
-		case ET_TERRAIN:
-			G_Printf("ET_TERRAIN          ");
-			break;
-		case ET_FX:
-			G_Printf("ET_FX               ");
-			break;
 		default:
-			G_Printf("%-3i                ", check->s.eType);
+			G_Printf("%3i                 ", check->s.eType);
 			break;
 		}
 
@@ -430,7 +458,7 @@ void	Svcmd_ForceTeam_f( void ) {
 	SetTeam( &g_entities[cl - level.clients], str );
 }
 
-char *ConcatArgs( int start );
+char	*ConcatArgs( int start );
 
 /*
 =================
@@ -438,10 +466,74 @@ ConsoleCommand
 
 =================
 */
+
+int testMasterFinalFunc (struct asyncTask_s *task) {
+	cJSON *data = (cJSON *)task->finalData;
+
+	if (task->errorCode == 0) {
+		G_Printf("Test successful! (bounce: %i - %i)", cJSON_ToInteger(cJSON_GetObjectItem(data, "bounce")), level.time);
+	} else {
+		G_Printf("Test failed!");
+	}
+	return 0;
+}
+
 qboolean	ConsoleCommand( void ) {
 	char	cmd[MAX_TOKEN_CHARS];
 
 	trap_Argv( 0, cmd, sizeof( cmd ) );
+
+	if (!Q_stricmp (cmd, "lua_reload")) {
+		G_Printf("Doing soft GLua restart\n");
+		GLua_SoftRestart();
+		return qtrue;
+	}
+	if (!Q_stricmp (cmd, "lua_restart")) {
+		G_Printf("Doing hard GLua restart\n");
+		GLua_Close();
+		GLua_Init();
+		GLua_Hook_GameInit(level.time, 0);
+		GLua_Hook_MapLoadFinished();
+		return qtrue;
+	}
+	if (!Q_stricmp (cmd, "lua_run")) {
+		char line[1024] = {0};
+		char buff[1024] = {0};
+		int i, argc;
+		argc = trap_Argc();
+		for (i=1; i < argc; i++) {
+			trap_Argv(i, buff, sizeof(buff));
+			Q_strcat(line, 1023, buff);
+			Q_strcat(line, 1023, " ");
+			//Com_sprintf(line, sizeof(line), "%s%s ", line, buff);
+		}
+		GLua_Run(line);
+		return qtrue;
+	}
+
+	// Check for admin commands
+	if (JKG_Admin_ExecuteRcon(cmd)) return qtrue;
+
+#if 0
+	if (!Q_stricmp (cmd, "disasm")) {
+		Cmd_DisAsmDirect_f();
+		return qtrue;
+	}
+
+
+	if (!Q_stricmp (cmd, "stresslevel")) {
+		JKG_GLS_StressLevelInfo();
+		return qtrue;
+	}
+#endif
+
+	if (GLua_RconCommand(cmd))
+		return qtrue;
+
+	if ( !Q_stricmp (cmd, "entinfo") ) {
+		Svcmd_EntityInfo_f();
+		return qtrue;
+	}
 
 	if ( Q_stricmp (cmd, "entitylist") == 0 ) {
 		Svcmd_EntityList_f();
@@ -485,12 +577,18 @@ qboolean	ConsoleCommand( void ) {
 
 	if ( !Q_stricmp( cmd, "toggleuserinfovalidation" ) ) {
 		Svcmd_ToggleUserinfoValidation_f();
+		
 		return qtrue;
 	}
-
 	if (dedicated.integer) {
 		if (Q_stricmp (cmd, "say") == 0) {
 			trap_SendServerCommand( -1, va("print \"server: %s\n\"", ConcatArgs(1) ) );
+			return qtrue;
+		}
+
+		if ( Q_stricmp (cmd, "timemappaths") == 0 )
+		{
+			AIMod_TimeMapPaths();
 			return qtrue;
 		}
 		// everything else will NOT also be printed as a say command

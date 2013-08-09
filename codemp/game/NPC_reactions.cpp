@@ -10,8 +10,8 @@ extern void cgi_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxH
 extern qboolean Q3_TaskIDPending( gentity_t *ent, taskID_t taskType );
 extern qboolean NPC_CheckLookTarget( gentity_t *self );
 extern void NPC_SetLookTarget( gentity_t *self, int entNum, int clearTime );
-extern qboolean Jedi_WaitingAmbush( gentity_t *self );
-extern void Jedi_Ambush( gentity_t *self );
+extern qboolean NPC_Humanoid_WaitingAmbush( gentity_t *self );
+extern void NPC_Humanoid_Ambush( gentity_t *self );
 extern qboolean NPC_SomeoneLookingAtMe(gentity_t *ent);
 
 extern qboolean BG_SaberInSpecialAttack( int anim );
@@ -43,10 +43,14 @@ static void NPC_CheckAttacker( gentity_t *other, int mod )
 	//			as an enemy.  Ideally, there would be code before this to prevent that from
 	//			happening, but that is presumptuous.
 	
-	if ( !VALIDENT( other ) )
+	//valid ent - FIXME: a VALIDENT macro would be nice here
+	if ( !other )
 		return;
 
-	if ( other == NPCS.NPC )
+	if ( other == NPC )
+		return;
+
+	if ( !other->inuse )
 		return;
 
 	//Don't take a target that doesn't want to be
@@ -60,43 +64,41 @@ static void NPC_CheckAttacker( gentity_t *other, int mod )
 	//rwwFIXMEFIXME: support this
 
 	//If we haven't taken a target, just get mad
-	if ( NPCS.NPC->enemy == NULL )//was using "other", fixed to NPC
+	if ( NPC->enemy == NULL )//was using "other", fixed to NPC
 	{
-		G_SetEnemy( NPCS.NPC, other );
+		G_SetEnemy( NPC, other );
 		return;
 	}
 
 	//we have an enemy, see if he's dead
-	if ( NPCS.NPC->enemy->health <= 0 )
+	if ( NPC->enemy->health <= 0 )
 	{
-		G_ClearEnemy( NPCS.NPC );
-		G_SetEnemy( NPCS.NPC, other );
+		G_ClearEnemy( NPC );
+		G_SetEnemy( NPC, other );
 		return;
 	}
 
 	//Don't take the same enemy again
-	if ( other == NPCS.NPC->enemy )
+	if ( other == NPC->enemy )
 		return;
 
-	if ( NPCS.NPC->client->ps.weapon == WP_SABER )
+	if ( NPC->client->ps.weapon == WP_SABER )
 	{//I'm a jedi
 		if ( mod == MOD_SABER )
 		{//I was hit by a saber  FIXME: what if this was a thrown saber?
 			//always switch to this enemy if I'm a jedi and hit by another saber
-			G_ClearEnemy( NPCS.NPC );
-			G_SetEnemy( NPCS.NPC, other );
+			G_ClearEnemy( NPC );
+			G_SetEnemy( NPC, other );
 			return;
 		}
 	}
-
-	//OJKFIXME: clientnum 0
 	//Special case player interactions
 	if ( other == &g_entities[0] )
 	{
 		//Account for the skill level to skew the results
 		float	luckThreshold;
 
-		switch ( g_npcspskill.integer )
+		switch ( g_spskill.integer )
 		{
 		//Easiest difficulty, mild chance of picking up the player
 		case 0:
@@ -119,7 +121,7 @@ static void NPC_CheckAttacker( gentity_t *other, int mod )
 		if ( random() > luckThreshold )
 		{
 			G_ClearEnemy( other );
-			other->enemy = NPCS.NPC;
+			other->enemy = NPC;
 		}
 
 		return;
@@ -170,7 +172,7 @@ float NPC_GetPainChance( gentity_t *self, int damage )
 	}
 
 	pain_chance = (float)(self->client->ps.stats[STAT_MAX_HEALTH]-self->health)/(self->client->ps.stats[STAT_MAX_HEALTH]*2.0f) + (float)damage/(self->client->ps.stats[STAT_MAX_HEALTH]/2.0f);
-	switch ( g_npcspskill.integer )
+	switch ( g_spskill.integer )
 	{
 	case 0:	//easy
 		//return 0.75f;
@@ -244,7 +246,7 @@ void NPC_ChoosePainAnimation( gentity_t *self, gentity_t *other, vec3_t point, i
 	}
 	else 
 	{
-		if ( other && (other->s.weapon == WP_SABER || /*mod == MOD_ELECTROCUTE ||*/ mod == MOD_CRUSH/*FIXME:MOD_FORCE_GRIP*/ ) )
+		if ( other && other->s.weapon == WP_SABER || /*mod == MOD_ELECTROCUTE ||*/ mod == MOD_CRUSH/*FIXME:MOD_FORCE_GRIP*/ )
 		{
 			pain_chance = 1.0f;//always take pain from saber
 		}
@@ -356,6 +358,7 @@ void NPC_ChoosePainAnimation( gentity_t *self, gentity_t *other, vec3_t point, i
 NPC_Pain
 ===============
 */
+void GLua_NPCEV_OnPain(gentity_t *self, gentity_t *attacker, int damage);
 void NPC_Pain(gentity_t *self, gentity_t *attacker, int damage)
 {
 	team_t otherTeam = TEAM_FREE;
@@ -438,9 +441,9 @@ void NPC_Pain(gentity_t *self, gentity_t *attacker, int damage)
 				{//mindtricked
 					return;
 				}
-				else if ( self->NPC->ffireCount < 3+((2-g_npcspskill.integer)*2) )
+				else if ( self->NPC->ffireCount < 3+((2-g_spskill.integer)*2) )
 				{//not mad enough yet
-					//Com_Printf( "chck: %d < %d\n", self->NPC->ffireCount, 3+((2-g_npcspskill.integer)*2) );
+					//Com_Printf( "chck: %d < %d\n", self->NPC->ffireCount, 3+((2-g_spskill.integer)*2) );
 					if ( damage != -1 )
 					{//-1 == don't play pain anim
 						//Set our proper pain animation
@@ -487,16 +490,16 @@ void NPC_Pain(gentity_t *self, gentity_t *attacker, int damage)
 	SetNPCGlobals( self );
 
 	//Do extra bits
-	if ( NPCS.NPCInfo->ignorePain == qfalse )
+	if ( NPCInfo->ignorePain == qfalse )
 	{
-		NPCS.NPCInfo->confusionTime = 0;//clear any charm or confusion, regardless
+		NPCInfo->confusionTime = 0;//clear any charm or confusion, regardless
 		if ( damage != -1 )
 		{//-1 == don't play pain anim
 			//Set our proper pain animation
 			NPC_ChoosePainAnimation( self, other, point, damage, mod, hitLoc, voiceEvent );
 		}
 		//Check to take a new enemy
-		if ( NPCS.NPC->enemy != other && NPCS.NPC != other )
+		if ( NPC->enemy != other && NPC != other )
 		{//not already mad at them
 			NPC_CheckAttacker( other, mod );
 		}
@@ -530,14 +533,18 @@ NPC_Touch
 -------------------------
 */
 extern qboolean INV_SecurityKeyGive( gentity_t *target, const char *keyname );
+void GLua_NPCEV_OnTouch(gentity_t *self, gentity_t *other, trace_t* tr);
 void NPC_Touch(gentity_t *self, gentity_t *other, trace_t *trace) 
 {
-
 	if(!self->NPC)
 		return;
 
 	SaveNPCGlobals();
 	SetNPCGlobals( self );
+	
+	if (self->NPC->isLuaNPC) {
+		GLua_NPCEV_OnTouch(self, other, trace);
+	}
 
 	if ( self->message && self->health <= 0 )
 	{//I am dead and carrying a key
@@ -594,12 +601,12 @@ void NPC_Touch(gentity_t *self, gentity_t *other, trace_t *trace)
 		//Except if not facing one another...
 		if ( other->health > 0 ) 
 		{
-			NPCS.NPCInfo->touchedByPlayer = other;
+			NPCInfo->touchedByPlayer = other;
 		}
 
-		if ( other == NPCS.NPCInfo->goalEntity ) 
+		if ( other == NPCInfo->goalEntity ) 
 		{
-			NPCS.NPCInfo->aiFlags |= NPCAI_TOUCHED_GOAL;
+			NPCInfo->aiFlags |= NPCAI_TOUCHED_GOAL;
 		}
 
 		if( /*!(self->svFlags&SVF_LOCKEDENEMY) && !(self->svFlags&SVF_IGNORE_ENEMIES) &&*/ !(other->flags & FL_NOTARGET) )
@@ -608,12 +615,12 @@ void NPC_Touch(gentity_t *self, gentity_t *other, trace_t *trace)
 			{//See if we bumped into an enemy
 				if ( other->client->playerTeam == self->client->enemyTeam )
 				{//bumped into an enemy
-					if( NPCS.NPCInfo->behaviorState != BS_HUNT_AND_KILL && !NPCS.NPCInfo->tempBehavior )
+					if( NPCInfo->behaviorState != BS_HUNT_AND_KILL && !NPCInfo->tempBehavior )
 					{//MCG - Begin: checking specific BS mode here, this is bad, a HACK
 						//FIXME: not medics?
-						if ( NPCS.NPC->enemy != other )
+						if ( NPC->enemy != other )
 						{//not already mad at them
-							G_SetEnemy( NPCS.NPC, other );
+							G_SetEnemy( NPC, other );
 						}
 		//				NPCInfo->tempBehavior = BS_HUNT_AND_KILL;
 					}
@@ -636,13 +643,13 @@ void NPC_Touch(gentity_t *self, gentity_t *other, trace_t *trace)
 			//if ( NPC->enemy == other && (other->svFlags&SVF_NONNPC_ENEMY) )
 			if (0) //rwwFIXMEFIXME: Can probably just check if num < MAX_CLIENTS for non-npc enemy stuff
 			{
-				NPCS.NPCInfo->touchedByPlayer = other;
+				NPCInfo->touchedByPlayer = other;
 			}
 		}
 
-		if ( other == NPCS.NPCInfo->goalEntity ) 
+		if ( other == NPCInfo->goalEntity ) 
 		{
-			NPCS.NPCInfo->aiFlags |= NPCAI_TOUCHED_GOAL;
+			NPCInfo->aiFlags |= NPCAI_TOUCHED_GOAL;
 		}
 	}
 
@@ -921,8 +928,6 @@ void NPC_Respond( gentity_t *self, int userNum )
 	case CLASS_GONK:				// droid
 		G_Sound(self, CHAN_AUTO, G_SoundIndex(va("sound/chars/gonk/misc/gonktalk%d.wav",Q_irand(1, 2))));
 		break;
-	default:
-		break;
 	}
 	
 	if ( event != -1 )
@@ -953,9 +958,8 @@ void NPC_UseResponse( gentity_t *self, gentity_t *user, qboolean useWhenDone )
 		return;
 	}
 
-	//OJKFIXME: clientnum 0
-	if ( user->s.number != 0 )
-	{//not used by the player
+	if ( user->s.number >= MAX_CLIENTS ) // JKG - fixed
+	{//not used by the players
 		if ( useWhenDone )
 		{
 			G_ActivateBehavior( self, BSET_USE );
@@ -1012,6 +1016,8 @@ void NPC_Use( gentity_t *self, gentity_t *other, gentity_t *activator )
 		return;
 	}
 
+	//G_Printf("I got used!\n");
+
 	SaveNPCGlobals();
 	SetNPCGlobals( self );
 
@@ -1041,12 +1047,12 @@ void NPC_Use( gentity_t *self, gentity_t *other, gentity_t *activator )
 				}
 			}
 		}
-		else if ( Jedi_WaitingAmbush( NPCS.NPC ) )
+		else if ( NPC_Humanoid_WaitingAmbush( NPC ) )
 		{
-			Jedi_Ambush( NPCS.NPC );
+			NPC_Humanoid_Ambush( NPC );
 		}
 		//Run any use instructions
-		if ( activator && activator->s.number >= 0 && activator->s.number < MAX_CLIENTS && self->client->NPC_class == CLASS_GONK )
+		if ( activator && activator->s.number < MAX_CLIENTS && self->client->NPC_class == CLASS_GONK )
 		{
 			// must be using the gonk, so attempt to give battery power.
 			// NOTE: this will steal up to MAX_BATTERIES for the activator, leaving the residual on the gonk for potential later use.
@@ -1080,9 +1086,9 @@ void NPC_Use( gentity_t *self, gentity_t *other, gentity_t *activator )
 //		{//Heal me NOW, dammit!
 //			NPC_TakePatient( activator );
 //		}
-		else if ( activator && !self->enemy 
-			&& activator->s.number >= 0 && activator->s.number < MAX_CLIENTS
-			&& !(self->NPC->scriptFlags&SCF_NO_RESPONSE) )
+		else if ( !self->enemy 
+			&& activator->s.number < MAX_CLIENTS 
+			&& /*!gi.VoiceVolume[self->s.number] &&*/ !(self->NPC->scriptFlags&SCF_NO_RESPONSE) )
 			//rwwFIXMEFIXME: voice volume support?
 		{//I don't have an enemy and I'm not talking and I was used by the player
 			NPC_UseResponse( self, other, qfalse );

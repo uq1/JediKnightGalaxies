@@ -149,37 +149,12 @@ void Use_Target_Print (gentity_t *ent, gentity_t *other, gentity_t *activator)
 #ifndef FINAL_BUILD
 	if (!ent || !ent->inuse)
 	{
-	//	Com_Error(ERR_DROP, "Bad ent in Use_Target_Print");
-		return;
+		Com_Error(ERR_DROP, "Bad ent in Use_Target_Print");
 	}
 	else if (!activator || !activator->inuse)
 	{
-	//	Com_Error(ERR_DROP, "Bad activator in Use_Target_Print");
-		return;
+		Com_Error(ERR_DROP, "Bad activator in Use_Target_Print");
 	}
-
-	if (ent->genericValue15 > level.time)
-	{
-		Com_Printf("TARGET PRINT ERRORS:\n");
-		if (activator && activator->classname && activator->classname[0])
-		{
-			Com_Printf("activator classname: %s\n", activator->classname);
-		}
-		if (activator && activator->target && activator->target[0])
-		{
-			Com_Printf("activator target: %s\n", activator->target);
-		}
-		if (activator && activator->targetname && activator->targetname[0])
-		{
-			Com_Printf("activator targetname: %s\n", activator->targetname);
-		}
-		if (ent->targetname && ent->targetname[0])
-		{
-			Com_Printf("print targetname: %s\n", ent->targetname);
-		}
-		Com_Error(ERR_DROP, "target_print used in quick succession, fix it! See the console for details.");
-	}
-	ent->genericValue15 = level.time + 5000;
 #endif
 
 	G_ActivateBehavior(ent,BSET_USE);
@@ -666,6 +641,9 @@ void SP_target_counter (gentity_t *self)
 	{
 		self->count = 2;
 	}
+	
+	G_SpawnInt ("bounceCount", "0", &self->bounceCount);
+	
 	//if ( self->bounceCount > 0 )//let's always set this anyway
 	{//we will reset when we use up our count, remember our initial count
 		self->genericValue1 = self->count;
@@ -713,7 +691,8 @@ void target_random_use(gentity_t *self, gentity_t *other, gentity_t *activator)
 	}
 
 	//FIXME: need a seed
-	pick = Q_irand(1, t_count);
+	// FIXME2: Proper numbers now
+	pick = Q_irand(0, t_count-1);
 	t_count = 0;
 	while ( (t = G_Find (t, FOFS(targetname), self->target)) != NULL )
 	{

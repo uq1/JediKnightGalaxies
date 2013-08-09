@@ -1,12 +1,26 @@
-#pragma once
-
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+//       ____ ___________________   ___           ____  __ _______   ___  ________  ___ ______________
+//      |    |\_   _____/\______ \ |   |         |    |/ _|\      \ |   |/  _____/ /   |   \__    ___/
+//      |    | |    __)_  |    |  \|   |         |      <  /   |   \|   /   \  ___/    ~    \|    |   
+//  /\__|    | |        \ |    `   \   |         |    |  \/    |    \   \    \_\  \    Y    /|    |   
+//  \________|/_______  //_______  /___|         |____|__ \____|__  /___|\______  /\___|_  / |____|   
+//                    \/         \/                      \/       \/            \/       \/           
+//                         ________    _____   ____       _____  ____  ___ ______________ _________   
+//                        /  _____/   /  _  \ |    |     /  _  \ \   \/  /|   \_   _____//   _____/   
+//                       /   \  ___  /  /_\  \|    |    /  /_\  \ \     / |   ||    __)_ \_____  \    
+//                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
+//                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
+//                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
+// bg_public.h
 // bg_public.h -- definitions shared by both the server game and client game modules
 
 // because games can change separately from the main system version, we need a
 // second version that must match between game and cgame
+// Copyright (C) 1999-2000 Id Software, Inc. (c) 2013 Jedi Knight Galaxies
 
+#ifndef __BG_PUBLIC_H__
+#define __BG_PUBLIC_H__
+
+#include "bg_ammo.h"
 #include "bg_weapons.h"
 #include "anims.h"
 #include "bg_vehicles.h"
@@ -16,14 +30,13 @@
 #define	MAX_SPAWN_VARS_CHARS	4096
 
 
-#define	GAME_VERSION		"basejka-1"
-
 #define DEFAULT_SABER		"Kyle"
 #define DEFAULT_SABER_MODEL	"models/weapons2/saber/saber_w.glm"
+#define	GAME_VERSION	"Jedi Knight Galaxies 1.4.05"
 
 #define	STEPSIZE		18
 
-#define DEFAULT_FORCEPOWERS	"5-1-000000000000000000"
+#define DEFAULT_FORCEPOWERS	"0-1-000000000000000000"
 //"rank-side-heal.lev.speed.push.pull.tele.grip.lightning.rage.protect.absorb.teamheal.teamforce.drain.see"
 
 #define	DEFAULT_GRAVITY		800
@@ -54,6 +67,14 @@
 #define	DEAD_VIEWHEIGHT		-16
 
 #define MAX_CLIENT_SCORE_SEND 20
+
+// Xy: time to bring ironsights up
+#define IRONSIGHTS_TIME     (200)
+
+// Sprint animation time --eez
+#define SPRINT_TIME			(300)
+
+#ifdef __MMO__
 
 //
 // config strings are a general means of communicating variable length strings
@@ -92,15 +113,73 @@
 #define CS_CLIENT_DUELHEALTHS	31		// nmckenzie: DUEL_HEALTH.  Hopefully adding this cs is safe and good?
 #define CS_GLOBAL_AMBIENT_SET	32
 
-#define CS_AMBIENT_SET			37
+#define CS_AMBIENT_SET			37	
 
-#define CS_SIEGE_STATE			(CS_AMBIENT_SET+MAX_AMBIENT_SETS)
-#define CS_SIEGE_OBJECTIVES		(CS_SIEGE_STATE+1)
-#define CS_SIEGE_TIMEOVERRIDE	(CS_SIEGE_OBJECTIVES+1)
-#define CS_SIEGE_WINTEAM		(CS_SIEGE_TIMEOVERRIDE+1)
-#define CS_SIEGE_ICONS			(CS_SIEGE_WINTEAM+1)
+#define	CS_MODELS				(CS_AMBIENT_SET+MAX_AMBIENT_SETS)
+#define	CS_SKYBOXORG			(CS_MODELS+MAX_MODELS)		//rww - skybox info
+#define	CS_SOUNDS				(CS_SKYBOXORG+1)
+#define CS_ICONS				(CS_SOUNDS+MAX_SOUNDS)
+//#define	CS_PLAYERS				(CS_ICONS+MAX_ICONS)
+#define	CS_PLAYERS				(CS_ICONS+MAX_ICONS)
+//#define CS_G2BONES				(CS_PLAYERS+MAX_CLIENTS)
+//#define CS_G2BONES				(CS_PLAYERS+MAX_ICONS) // UQ1: Set this to MAX_ICONS (64) for now... See what happens...
+#define CS_G2BONES				(CS_PLAYERS+1) // UQ1: Just enough for the 1 bone ent we still use...
+#define CS_LOCATIONS			(CS_G2BONES+MAX_G2BONES)
+#define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS) 
+#define CS_EFFECTS				(CS_PARTICLES+MAX_LOCATIONS)
+#define	CS_LIGHT_STYLES			(CS_EFFECTS + MAX_FX)
 
-#define	CS_MODELS				(CS_SIEGE_ICONS+1)
+//rwwRMG - added:
+#define CS_TERRAINS				(CS_LIGHT_STYLES + (MAX_LIGHT_STYLES*3))
+#define CS_BSP_MODELS			(CS_TERRAINS + MAX_TERRAINS)
+
+// Jedi Knight Galaxies - Gang Wars
+#define CS_TEAMS				(CS_BSP_MODELS + MAX_SUB_BSP)
+
+#define CS_MAX					(CS_TEAMS + 1)
+
+#else //!__MMO__
+
+//
+// config strings are a general means of communicating variable length strings
+// from the server to all connected clients.
+//
+
+// CS_SERVERINFO and CS_SYSTEMINFO are defined in q_shared.h
+#define	CS_MUSIC				2
+#define	CS_MESSAGE				3		// from the map worldspawn's message field
+#define	CS_MOTD					4		// g_motd string for server message of the day
+#define	CS_WARMUP				5		// server time when the match will be restarted
+#define	CS_SCORES1				6
+#define	CS_SCORES2				7
+#define CS_VOTE_TIME			8
+#define CS_VOTE_STRING			9
+#define	CS_VOTE_YES				10
+#define	CS_VOTE_NO				11
+
+#define CS_TEAMVOTE_TIME		12
+#define CS_TEAMVOTE_STRING		14
+#define	CS_TEAMVOTE_YES			16
+#define	CS_TEAMVOTE_NO			18
+
+#define	CS_GAME_VERSION			20
+#define	CS_LEVEL_START_TIME		21		// so the timer only shows the current level
+#define	CS_INTERMISSION			22		// when 1, fraglimit/timelimit has been hit and intermission will start in a second or two
+#define CS_FLAGSTATUS			23		// string indicating flag status in CTF
+#define CS_SHADERSTATE			24
+#define CS_BOTINFO				25
+
+#define	CS_ITEMS				27		// string of 0's and 1's that tell which items are present
+
+#define CS_CLIENT_JEDIMASTER	28		// current jedi master
+#define CS_CLIENT_DUELWINNER	29		// current duel round winner - needed for printing at top of scoreboard
+#define CS_CLIENT_DUELISTS		30		// client numbers for both current duelists. Needed for a number of client-side things.
+#define CS_CLIENT_DUELHEALTHS	31		// nmckenzie: DUEL_HEALTH.  Hopefully adding this cs is safe and good?
+#define CS_GLOBAL_AMBIENT_SET	32
+
+#define CS_AMBIENT_SET			37	
+
+#define	CS_MODELS				(CS_AMBIENT_SET+MAX_AMBIENT_SETS)
 #define	CS_SKYBOXORG			(CS_MODELS+MAX_MODELS)		//rww - skybox info
 #define	CS_SOUNDS				(CS_SKYBOXORG+1)
 #define CS_ICONS				(CS_SOUNDS+MAX_SOUNDS)
@@ -122,7 +201,12 @@ Ghoul2 Insert End
 #define CS_TERRAINS				(CS_LIGHT_STYLES + (MAX_LIGHT_STYLES*3))
 #define CS_BSP_MODELS			(CS_TERRAINS + MAX_TERRAINS)
 
-#define CS_MAX					(CS_BSP_MODELS + MAX_SUB_BSP)
+// Jedi Knight Galaxies - Gang Wars
+#define CS_TEAMS				(CS_BSP_MODELS + MAX_SUB_BSP)
+
+#define CS_MAX					(CS_TEAMS + 1)
+
+#endif //__MMO__
 
 #if (CS_MAX) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
@@ -188,8 +272,14 @@ typedef enum {
 	GT_HOLOCRON,		// holocron ffa
 	GT_JEDIMASTER,		// jedi master
 	GT_DUEL,		// one on one tournament
-	GT_POWERDUEL,
+	GT_POWERDUEL,		// one on two tournament
 	GT_SINGLE_PLAYER,	// single player ffa
+
+#ifdef __RPG__
+	// UQ1: Added... Need to update gametypes file and menus to match...
+	GT_RPG_CITY,		// UQ1: New combined gametypes gametype. City area version.
+	GT_RPG_WILDERNESS,	// UQ1: New combined gametypes gametype. Wilderness area version.
+#endif //__RPG__
 
 	//-- team games go after this --
 
@@ -197,6 +287,16 @@ typedef enum {
 	GT_SIEGE,			// siege
 	GT_CTF,				// capture the flag
 	GT_CTY,
+	GT_WARZONE,
+#ifdef __JKG_NINELIVES__
+	GT_LMS_NINELIVES,	// replace Holocron/Singleplayer?
+#endif
+#ifdef __JKG_TICKETING__
+	GT_LMS_TICKETED,
+#endif
+#ifdef __JKG_ROUNDBASED__
+	GT_LMS_ROUNDS,
+#endif
 	GT_MAX_GAME_TYPE
 } gametype_t;
 
@@ -250,8 +350,9 @@ typedef struct animation_s {
 extern qboolean			BGPAFtextLoaded;
 extern animation_t		bgHumanoidAnimations[MAX_TOTALANIMATIONS];
 
-#define MAX_ANIM_FILES	16
-#define MAX_ANIM_EVENTS 300
+#define NUM_RESERVED_ANIMSETS (3)
+#define MAX_ANIM_FILES	64		// Jedi Knight Galaxies - Raised from 16 to 64
+#define MAX_ANIM_EVENTS 600		// Jedi Knight Galaxies - Raised from 300 to 600
 
 typedef enum
 {
@@ -338,7 +439,6 @@ typedef struct
 	qboolean		eventsParsed;
 } bgLoadedEvents_t;
 
-
 extern bgLoadedAnim_t bgAllAnims[MAX_ANIM_FILES];
 
 //In SP this is shared in with the anim stuff, and humanoid anim sets can be loaded
@@ -352,7 +452,6 @@ extern bgLoadedEvents_t bgAllEvents[MAX_ANIM_FILES];
 extern int bgNumAnimEvents;
 #endif
 
-
 typedef enum {
 	PM_NORMAL,		// can accelerate and turn
 	PM_JETPACK,		// special jetpack movement
@@ -362,7 +461,10 @@ typedef enum {
 	PM_DEAD,		// no acceleration or turning, but free falling
 	PM_FREEZE,		// stuck in place with no control
 	PM_INTERMISSION,	// no movement or status bar
-	PM_SPINTERMISSION	// no movement or status bar
+	PM_SPINTERMISSION,	// no movement or status bar
+	// Jedi Knight Galaxies
+	PM_LOCK,		// Fully stop all motion whatsoever, including turning
+	PM_NOMOVE,		// Stop movement keys, but keep pmove itself intact
 } pmtype_t;
 
 typedef enum {
@@ -373,6 +475,7 @@ typedef enum {
 	WEAPON_CHARGING,
 	WEAPON_CHARGING_ALT,
 	WEAPON_IDLE, //lowered		// NOTENOTE Added with saber
+	WEAPON_RELOADING, // added for reloading weapon
 } weaponstate_t;
 
 
@@ -451,6 +554,7 @@ typedef struct {
 	qboolean	gauntletHit;		// true if a gauntlet attack would actually hit something
 
 	int			framecount;
+	int			gender;
 
 	// results (out)
 	int			numtouch;
@@ -480,6 +584,7 @@ typedef struct {
 
 	// callbacks to test the world
 	// these will be different functions during game and cgame
+	//void        (*g2trace)( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
 	void		(*trace)( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentMask );
 	int			(*pointcontents)( const vec3_t point, int passEntityNum );
 
@@ -488,8 +593,28 @@ typedef struct {
 	//rww - bg entitystate access method
 	bgEntity_t	*baseEnt; //base address of the entity array (g_entities or cg_entities)
 	int			entSize; //size of the struct (gentity_t or centity_t) so things can be dynamic
+
 } pmove_t;
 
+// Jedi Knight Galaxies
+typedef struct {
+	playerState_t *ps;
+	
+	void *ghoul2;
+	vec3_t		modelScale;
+	usercmd_t	cmd;
+	int			tracemask;			// collide against these types of surfaces
+
+	animation_t	*animations;
+	qboolean	isRider;			// always false if we're using the vehicle in question
+
+	//rww - bg entitystate access method
+	bgEntity_t	*baseEnt; //base address of the entity array (g_entities or cg_entities)
+	int			entSize; //size of the struct (gentity_t or centity_t) so things can be dynamic
+
+	void		(*trace)( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentMask );
+	int			(*pointcontents)( const vec3_t point, int passEntityNum );
+} vmove_t;
 
 extern	pmove_t		*pm;
 
@@ -508,6 +633,8 @@ extern	pmove_t		*pm;
 void PM_UpdateViewAngles( playerState_t *ps, const usercmd_t *cmd );
 void Pmove (pmove_t *pmove);
 
+// vehicle pmove
+void Vmove( vmove_t *vmove );
 
 //===================================================================================
 
@@ -525,7 +652,12 @@ typedef enum {
 	STAT_ARMOR,				
 	STAT_DEAD_YAW,					// look this direction when dead (FIXME: get rid of?)
 	STAT_CLIENTS_READY,				// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
-	STAT_MAX_HEALTH					// health / armor limit, changable by handicap
+	STAT_MAX_HEALTH,				// Maximum health
+	// Jedi Knight Galaxies
+	STAT_MAX_ARMOR,					// Maximum shield/armor
+	STAT_AMMO,						// Ammo in current weapon (ps->ammo contains total ammo in clips))
+	STAT_ACCURACY,					// Extra accuracy rating from weapon
+	STAT_CAPTURE_ENTITYNUM			// Warzone Flag Capture Entity...
 } statIndex_t;
 
 
@@ -544,7 +676,7 @@ typedef enum {
 	PERS_ATTACKEE_ARMOR,			// health/armor of last person we attacked
 	PERS_KILLED,					// count of the number of times you died
 	// player awards tracking
-	PERS_IMPRESSIVE_COUNT,			// two railgun hits in a row
+	PERS_CREDITS,					// JKG: Player credit count
 	PERS_EXCELLENT_COUNT,			// two successive kills in a short amount of time
 	PERS_DEFEND_COUNT,				// defend awards
 	PERS_ASSIST_COUNT,				// assist awards
@@ -580,15 +712,17 @@ typedef enum {
 #define EF_ALT_FIRING			(1<<10)		// for alt-fires, mostly for lightning guns though
 #define	EF_JETPACK_ACTIVE		(1<<11)		//jetpack is activated
 
-#define EF_NOT_USED_1			(1<<12)		// not used
+#define EF_ONFIRE			(1<<12)		// JKG: Damage types - on fire
 
 #define	EF_TALK					(1<<13)		// draw a talk balloon
-#define	EF_CONNECTION			(1<<14)		// draw a connection trouble sprite
-#define	EF_NOT_USED_6			(1<<15)		// not used
+//#define	EF_CONNECTION			(1<<14)		// draw a connection trouble sprite
+#define EF_ELECTROCUTED          (1 << 14)   // JKG: Damage types - electrocuted
+#define	EF_SPRINTING			(1<<15)		// JKG: sprinting
 
-#define	EF_NOT_USED_2			(1<<16)		// not used
-#define	EF_NOT_USED_3			(1<<17)		// not used
-#define	EF_NOT_USED_4			(1<<18)		// not used
+#define	EF_FROZEN			(1<<16)		// JKG: Damage types - frozen
+
+#define	EF_CUSTOMBB				(1<<17)		// Ent uses custom bounding box
+#define	EF_STUNNED			(1<<18)		// JKG: Damage types - stunned
 
 #define	EF_BODYPUSH				(1<<19)		//rww - claiming this for fullbody push effect
 
@@ -781,7 +915,7 @@ typedef enum {
 	EV_SABER_UNHOLSTER,
 	EV_BECOME_JEDIMASTER,
 	EV_DISRUPTOR_MAIN_SHOT,
-	EV_DISRUPTOR_SNIPER_SHOT,
+	//EV_DISRUPTOR_SNIPER_SHOT,
 	EV_DISRUPTOR_SNIPER_MISS,
 	EV_DISRUPTOR_HIT,
 	EV_DISRUPTOR_ZOOMSOUND,
@@ -844,7 +978,7 @@ typedef enum {
 	EV_DEBRIS,
 	EV_MISC_MODEL_EXP,
 
-	EV_CONC_ALT_IMPACT,
+	EV_EXPLOSIVE_BLOW,
 
 	EV_MISSILE_HIT,
 	EV_MISSILE_MISS,
@@ -870,9 +1004,6 @@ typedef enum {
 	EV_CTFMESSAGE,
 
 	EV_BODYFADE,
-
-	EV_SIEGE_ROUNDOVER,
-	EV_SIEGE_OBJECTIVECOMPLETE,
 
 	EV_DESTROY_GHOUL2_INSTANCE,
 
@@ -978,6 +1109,19 @@ typedef enum {
 	EV_PUSHFAIL,
 
 	EV_SIEGESPEC,
+	// New events
+	EV_DAMAGEPLUM,
+	EV_RELOAD,
+	EV_GRENADE_COOK,
+	EV_EXPLOSIVE_ARM,
+	EV_MISSILE_DIE,
+	EV_ITEM_BREAK,		//Item gets broken due to loss of durability
+#ifdef __MMO__
+	EV_GOTO_ACI,		//Go to specific ACI slot (inexpensive)
+	EV_HITMARKER_ASSIST,
+	EV_HITMARKER_KILL,
+#endif //__MMO__
+_
 	
 } entity_event_t;			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
 
@@ -1192,6 +1336,10 @@ typedef enum {
 	ET_BODY,
 	ET_TERRAIN,
 	ET_FX,
+
+	ET_FLAG,				// Warzone Flag...
+	ET_AMMO_CRATE,			// Warzone Ammo Crate...
+	ET_HEALTH_CRATE,		// Warzone Health Crate...
 
 	ET_EVENTS				// any of the EV_* events can be added freestanding
 							// by setting eType to ET_EVENTS + eventNum
@@ -1493,12 +1641,17 @@ void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int ti
 					   qboolean *tPitching, qboolean *lYawing, float *tYawAngle, float *tPitchAngle,
 					   float *lYawAngle, int frametime, vec3_t turAngles, vec3_t modelScale, int ciLegs,
 					   int ciTorso, int *corrTime, vec3_t lookAngles, vec3_t lastHeadAngles, int lookTime,
-					   entityState_t *emplaced, int *crazySmoothFactor);
+					   entityState_t *emplaced, int *crazySmoothFactor, int saberActionFlags);
 void BG_G2ATSTAngles(void *ghoul2, int time, vec3_t cent_lerpAngles );
 
 //BG anim utility functions:
 
 int BG_AnimLength( int index, animNumber_t anim );
+
+//[BugFix2]
+float BG_GetTorsoAnimPoint(playerState_t * ps, int AnimIndex);
+float BG_GetLegsAnimPoint(playerState_t * ps, int AnimIndex);
+//[/BugFix2]
 
 qboolean BG_InSpecialJump( int anim );
 qboolean BG_InSaberStandAnim( int anim );
@@ -1518,7 +1671,7 @@ qboolean BG_SaberInKata( int saberMove );
 qboolean BG_InKataAnim(int anim);
 qboolean BG_KickingAnim( int anim );
 int BG_InGrappleMove(int anim);
-int BG_BrokenParryForAttack( int move );
+int BG_BrokenParryForAttack( int move, int stance );
 int BG_BrokenParryForParry( int move );
 int BG_KnockawayForParry( int move );
 qboolean BG_InRoll( playerState_t *ps, int anim );
@@ -1526,9 +1679,10 @@ qboolean BG_InDeathAnim( int anim );
 qboolean BG_InSaberLockOld( int anim );
 qboolean BG_InSaberLock( int anim );
 
-void BG_SaberStartTransAnim( int clientNum, int saberAnimLevel, int weapon, int anim, float *animSpeed, int broken );
+void BG_SaberStartTransAnim( int clientNum, int saberAnimLevel, int weapon, int anim, float *animSpeed, int broken, float saberMoveSwingSpeed, float saberSwingSpeed, int saberMove );
+void JKG_ReloadAnimation( int firingMode, int weaponID, int anim, animation_t *anims, float *animSpeed );
 
-void BG_ForcePowerDrain( playerState_t *ps, forcePowers_t forcePower, int overrideAmt );
+void BG_ForcePowerDrain( playerState_t *ps, forcePowers_t forcePower, int overrideAmt );//???
 
 void	BG_EvaluateTrajectory( const trajectory_t *tr, int atTime, vec3_t result );
 void	BG_EvaluateTrajectoryDelta( const trajectory_t *tr, int atTime, vec3_t result );
@@ -1559,13 +1713,6 @@ qboolean BG_IsItemSelectable(playerState_t *ps, int item);
 qboolean BG_HasYsalamiri(int gametype, playerState_t *ps);
 qboolean BG_CanUseFPNow(int gametype, playerState_t *ps, int time, forcePowers_t power);
 
-void *BG_Alloc ( int size );
-void *BG_AllocUnaligned ( int size );
-void *BG_TempAlloc( int size );
-void BG_TempFree( int size );
-char *BG_StringAlloc ( const char *source );
-qboolean BG_OutOfMemory ( void );
-
 void BG_BLADE_ActivateTrail ( bladeInfo_t *blade, float duration );
 void BG_BLADE_DeactivateTrail ( bladeInfo_t *blade, float duration );
 void BG_SI_Activate( saberInfo_t *saber );
@@ -1582,11 +1729,14 @@ void BG_SI_DeactivateTrail ( saberInfo_t *saber, float duration );
 extern void BG_AttachToRancor( void *ghoul2,float rancYaw,vec3_t rancOrigin,int time,qhandle_t *modelList,vec3_t modelScale,qboolean inMouth,vec3_t out_origin,vec3_t out_angles,vec3_t out_axis[3] );
 void BG_ClearRocketLock( playerState_t *ps );
 
-extern int WeaponReadyAnim[WP_NUM_WEAPONS];
-extern int WeaponAttackAnim[WP_NUM_WEAPONS];
+qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolean PMOVE  );
 
 extern int forcePowerDarkLight[NUM_FORCE_POWERS];
 
+double QuadraticBezierInterpolate(double phase, double p0, double p1, double p2);
+double CubicBezierInterpolate(double phase, double p0, double p1, double p2, double p3);
+double QuarticBezierInterpolate(double phase, double p0, double p1, double p2, double p3, double p4);
+double QuinticBezierInterpolate(double phase, double p0, double p1, double p2, double p3, double p4, double p5);
 
 #define ARENAS_PER_TIER		4
 #define MAX_ARENAS			1024
@@ -1600,6 +1750,57 @@ extern int forcePowerDarkLight[NUM_FORCE_POWERS];
 #define	HYPERSPACE_SPEED			10000.0f//was 30000
 #define	HYPERSPACE_TURN_RATE		45.0f
 
+// Bit of damage types stuff here...
+typedef enum damageType_e
+{
+    DT_ANNIHILATION,
+    DT_CONCUSSION,
+    DT_CUT,
+    DT_DISINTEGRATE,
+    DT_ELECTRIC,
+    DT_EXPLOSION,
+    DT_FIRE,
+    DT_FREEZE,
+    DT_IMPLOSION,
+    DT_STUN,
+    DT_CARBONITE,
+    
+    NUM_DAMAGE_TYPES
+} damageType_t;
+qboolean JKG_DamageTypeFreezes ( const damageType_t damageType );
+
+typedef struct {
+	float baseJumpHeight;
+	float baseJumpTapHeight;
+	float baseJumpTapVelocity;
+	float baseJumpVelocity;
+	unsigned int baseForceJumpLevel;
+
+	// Stuff pertaining to movement
+	float walkingSpeed; // in units per second i think
+	float ironsightsMoveSpeed;
+	float blockingModeMoveSpeed;
+
+	float backwardsSpeedModifier;
+	float strafeSpeedModifier;
+	float backwardsDiagonalSpeedModifier;
+	float baseSpeedModifier;
+	float walkSpeedModifier;
+	float minimumSpeedModifier;
+	float sprintSpeedModifier;
+} bgConstants_t;
+
+extern bgConstants_t bgConstants;
+void JKG_InitializeConstants(void);
+
+int BG_GetPairedValue(char *buf, char *key, char *outbuf);
+int trap_PC_LoadSource( const char *filename );
+int trap_PC_FreeSource( int handle );
+int trap_PC_ReadToken( int handle, pc_token_t *pc_token );
+
 extern const char *gametypeStringShort[GT_MAX_GAME_TYPE];
 const char *BG_GetGametypeString( int gametype );
 int BG_GetGametypeForString( const char *gametype );
+
+
+#endif //__BG_PUBLIC_H__

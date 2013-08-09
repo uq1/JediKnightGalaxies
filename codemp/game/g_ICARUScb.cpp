@@ -599,7 +599,9 @@ Utility function
 void moverCallback( gentity_t *ent )
 {	//complete the task
 	trap_ICARUS_TaskIDComplete( ent, TID_MOVE_NAV );
-	
+	if (ent->NPC) {
+		ent->NPC->luaFlags.isMoving = qfalse;
+	}
 	// play sound
 	ent->s.loopSound = 0;//stop looping sound
 	ent->s.loopIsSoundset = qfalse;
@@ -696,6 +698,7 @@ void Q3_Lerp2Start( int entID, int taskID, float duration )
 		ent->s.eType = ET_MOVER;
 	}
 
+	ent->teamMoveType = TR_STATIONARY;
 	//FIXME: set up correctly!!!
 	ent->moverState = MOVER_2TO1;
 	ent->s.eType = ET_MOVER;
@@ -744,6 +747,7 @@ void Q3_Lerp2End( int entID, int taskID, float duration )
 		ent->s.eType = ET_MOVER;
 	}
 
+	ent->teamMoveType = TR_STATIONARY;
 	//FIXME: set up correctly!!!
 	ent->moverState = MOVER_1TO2;
 	ent->s.eType = ET_MOVER;
@@ -802,6 +806,7 @@ void Q3_Lerp2Pos( int taskID, int entID, vec3_t origin, vec3_t angles, float dur
 	if ( duration == 0 )
 		duration = 1;
 
+	ent->teamMoveType = TR_STATIONARY;
 	//
 	// Movement
 
@@ -1881,6 +1886,9 @@ void MoveOwner( gentity_t *self )
 	{
 		G_SetOrigin( owner, self->r.currentOrigin );
 		trap_ICARUS_TaskIDComplete( owner, TID_MOVE_NAV );
+		if (owner->NPC) {
+			owner->NPC->luaFlags.isMoving = qfalse;
+		}
 	}
 }
 
@@ -1899,7 +1907,7 @@ static qboolean Q3_SetTeleportDest( int entID, vec3_t org )
 	{
 		if ( SpotWouldTelefrag2( teleEnt, org ) )
 		{
-			gentity_t *teleporter = G_Spawn();
+			gentity_t *teleporter = G_SpawnLogical();
 
 			G_SetOrigin( teleporter, org );
 			teleporter->r.ownerNum = teleEnt->s.number;
@@ -2068,6 +2076,8 @@ void Q3_Lerp2Origin( int taskID, int entID, vec3_t origin, float duration )
 	{
 		ent->s.eType = ET_MOVER;
 	}
+
+	ent->teamMoveType = TR_STATIONARY;
 
 	moverState = ent->moverState;
 
@@ -2281,6 +2291,7 @@ static qboolean Q3_SetNavGoal( int entID, const char *name )
 	{
 		ent->NPC->goalEntity = NULL;
 		trap_ICARUS_TaskIDComplete( ent, TID_MOVE_NAV );
+		ent->NPC->luaFlags.isMoving = qfalse;
 		return qfalse;
 	}
 	else
@@ -2556,9 +2567,9 @@ static void Q3_SetArmor( int entID, int data )
 	}
 
 	ent->client->ps.stats[STAT_ARMOR] = data;
-	if ( ent->client->ps.stats[STAT_ARMOR] > ent->client->ps.stats[STAT_MAX_HEALTH] )
+	if ( ent->client->ps.stats[STAT_ARMOR] > ent->client->ps.stats[STAT_MAX_ARMOR] )
 	{
-		ent->client->ps.stats[STAT_ARMOR] = ent->client->ps.stats[STAT_MAX_HEALTH];
+		ent->client->ps.stats[STAT_ARMOR] = ent->client->ps.stats[STAT_MAX_ARMOR];
 	}
 }
 
@@ -3326,14 +3337,16 @@ Q3_SetWeapon
   Argument		: const char *wp_name
 ============
 */
-extern void ChangeWeapon( gentity_t *ent, int newWeapon );
+extern void ChangeWeapon( gentity_t *ent, int newWeapon, int newVariation );
 static void Q3_SetWeapon (int entID, const char *wp_name)
 {
-	gentity_t	*ent  = &g_entities[entID];
+	/*gentity_t	*ent  = &g_entities[entID];
 	int		wp = GetIDForString( WPTable, wp_name );
 
+	weaponData_t wp;
 	ent->client->ps.stats[STAT_WEAPONS] = (1<<wp);
-	ChangeWeapon( ent, wp );
+	ChangeWeapon( ent, wp );*/
+	// FIXME: If we're going with ICARUS, this crap needs to be fixed properly --eez
 }
 
 /*

@@ -3,11 +3,12 @@
 #include "g_local.h"
 #include "w_saber.h"
 #include "qcommon/q_shared.h"
+#include "jkg_damagetypes.h"
 
 #define	MISSILE_PRESTEP_TIME	50
 
 extern void laserTrapStick( gentity_t *ent, vec3_t endpos, vec3_t normal );
-extern void Jedi_Decloak( gentity_t *self );
+extern void NPC_Humanoid_Decloak( gentity_t *self );
 
 extern qboolean FighterIsLanded( Vehicle_t *pVeh, playerState_t *parentPS );
 
@@ -139,6 +140,118 @@ void G_DeflectMissile( gentity_t *ent, gentity_t *missile, vec3_t forward )
 
 /*
 ================
+JKG_SaberDeflectMissile
+
+Also handles stuff like force costs, etc
+Only gets called when in projectile block mode
+
+================
+*/
+
+void JKG_SaberDeflectMissile( gentity_t *ent, gentity_t *missile, vec3_t forward ) 
+{
+	vec3_t	bounce_dir;
+	int		i;
+	float	speed;
+	gentity_t	*owner = ent;
+	int		isowner = 0;
+
+	if ( !(ent->client->ps.saberActionFlags & SAF_PROJBLOCKING) )
+	{
+		return;
+	}
+
+	if ( ent->r.ownerNum )
+	{
+		owner = &g_entities[ent->r.ownerNum];
+	}
+
+	if (missile->r.ownerNum == ent->s.number)
+	{ //the original owner is bouncing the missile, so don't try to bounce it back at him
+		isowner = 1;
+	}
+
+	//save the original speed
+	speed = VectorNormalize( missile->s.pos.trDelta );
+
+	//if ( ent && owner && owner->NPC && owner->enemy && Q_stricmp( "Tavion", owner->NPC_type ) == 0 && Q_irand( 0, 3 ) )
+	if ( &g_entities[missile->r.ownerNum] && missile->s.weapon != WP_SABER && missile->s.weapon != G2_MODEL_PART && !isowner )
+	{//bounce back at them if you can
+		VectorSubtract( g_entities[missile->r.ownerNum].r.currentOrigin, missile->r.currentOrigin, bounce_dir );
+		VectorNormalize( bounce_dir );
+	}
+	else if (isowner)
+	{ //in this case, actually push the missile away from me, and since we're giving boost to our own missile by pushing it, up the velocity
+		vec3_t missile_dir;
+
+		speed *= 1.5;
+
+		VectorSubtract( missile->r.currentOrigin, ent->r.currentOrigin, missile_dir );
+		VectorCopy( missile->s.pos.trDelta, bounce_dir );
+		VectorScale( bounce_dir, DotProduct( forward, missile_dir ), bounce_dir );
+		VectorNormalize( bounce_dir );
+	}
+	else
+	{
+		vec3_t missile_dir;
+
+		VectorSubtract( ent->r.currentOrigin, missile->r.currentOrigin, missile_dir );
+		VectorCopy( missile->s.pos.trDelta, bounce_dir );
+		VectorScale( bounce_dir, DotProduct( forward, missile_dir ), bounce_dir );
+		VectorNormalize( bounce_dir );
+	}
+	for ( i = 0; i < 3; i++ )
+	{
+		float randomFloat = (level.time-ent->client->saberProjBlockTime)/2000.0f;
+		float minimum;// = randomFloat/4;
+		float result;
+		int randomYesNo = Q_irand(0,1);
+
+		if(randomFloat <= 0.05f)
+		{
+			randomFloat = 0;
+		}
+		else if(randomFloat > 0.8f)
+		{
+			randomFloat = 0.8f;
+		}
+		else if(randomFloat > 0.05)
+		{
+			randomFloat -= 0.05f;	// perfect blocks were WAY too hard to get before..this will help to make blocking easier
+		}
+
+		minimum = randomFloat / 4;
+
+		// establish an effective minimum
+		result = RandFloat(minimum, randomFloat);
+		
+		if(randomYesNo == 0)
+		{
+			bounce_dir[i] += result;
+		}
+		else
+		{
+			bounce_dir[i] -= result;
+		}
+	}
+
+	VectorNormalize( bounce_dir );
+	VectorScale( bounce_dir, speed, missile->s.pos.trDelta );
+	missile->s.pos.trTime = level.time;		// move a bit on the very first frame
+	VectorCopy( missile->r.currentOrigin, missile->s.pos.trBase );
+	if ( missile->s.weapon != WP_SABER && missile->s.weapon != G2_MODEL_PART )
+	{//you are mine, now!
+		missile->r.ownerNum = ent->s.number;
+	}
+	if ( missile->s.weapon == WP_ROCKET_LAUNCHER )
+	{//stop homing
+		missile->think = 0;
+		missile->nextthink = 0;
+	}
+}
+
+/*
+================
 G_BounceMissile
 
 ================
@@ -153,7 +266,6 @@ void G_BounceMissile( gentity_t *ent, trace_t *trace ) {
 	BG_EvaluateTrajectoryDelta( &ent->s.pos, hitTime, velocity );
 	dot = DotProduct( velocity, trace->plane.normal );
 	VectorMA( velocity, -2*dot, trace->plane.normal, ent->s.pos.trDelta );
-
 
 	if ( ent->flags & FL_BOUNCE_SHRAPNEL ) 
 	{
@@ -179,11 +291,7 @@ void G_BounceMissile( gentity_t *ent, trace_t *trace ) {
 		}
 	}
 
-	if (ent->s.weapon == WP_THERMAL)
-	{ //slight hack for hit sound
-		G_Sound(ent, CHAN_BODY, G_SoundIndex(va("sound/weapons/thermal/bounce%i.wav", Q_irand(1, 2))));
-	}
-	else if (ent->s.weapon == WP_SABER)
+	if (ent->s.weapon == WP_SABER)
 	{
 		G_Sound(ent, CHAN_BODY, G_SoundIndex(va("sound/weapons/saber/bounce%i.wav", Q_irand(1, 3))));
 	}
@@ -301,10 +409,7 @@ gentity_t *CreateMissile( vec3_t org, vec3_t dir, float vel, int life,
 	missile->parent = owner;
 	missile->r.ownerNum = owner->s.number;
 
-	if (altFire)
-	{
-		missile->s.eFlags |= EF_ALT_FIRING;
-	}
+	missile->s.firingMode = owner->s.firingMode;
 
 	missile->s.pos.trType = TR_LINEAR;
 	missile->s.pos.trTime = level.time;// - MISSILE_PRESTEP_TIME;	// NOTENOTE This is a Quake 3 addition over JK2
@@ -344,13 +449,28 @@ void G_MissileBounceEffect( gentity_t *ent, vec3_t org, vec3_t dir )
 	}
 }
 
+static void G_GrenadeBounceEvent ( const gentity_t *ent )
+{
+    gentity_t *tent = G_TempEntity (ent->r.currentOrigin, EV_GRENADE_BOUNCE);
+    VectorCopy (ent->r.currentOrigin, tent->s.origin);
+    tent->s.number = ent->s.number;
+    tent->s.weapon = ent->s.weapon;
+    tent->s.weaponVariation = ent->s.weaponVariation;
+    
+    /*if ( ent->s.eFlags & EF_ALT_FIRING )
+    {
+        tent->s.eFlags |= EF_ALT_FIRING;
+    }*/
+
+	tent->s.firingMode = ent->s.firingMode;
+}
+
 /*
 ================
 G_MissileImpact
 ================
 */
-void WP_SaberBlockNonRandom( gentity_t *self, vec3_t hitloc, qboolean missileBlock );
-void WP_flechette_alt_blow( gentity_t *ent );
+qboolean WP_SaberBlockNonRandom( gentity_t *self, gentity_t *other, vec3_t hitloc, qboolean missileBlock );
 void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 	gentity_t		*other;
 	qboolean		hitClient = qfalse;
@@ -362,16 +482,25 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 	if ( !other->takedamage &&
 		(ent->bounceCount > 0 || ent->bounceCount == -5) &&
 		( ent->flags & ( FL_BOUNCE | FL_BOUNCE_HALF ) ) ) {
+		int originalBounceCount = ent->bounceCount;
 		G_BounceMissile( ent, trace );
-		G_AddEvent( ent, EV_GRENADE_BOUNCE, 0 );
+		if ( originalBounceCount != ent->bounceCount )
+		{
+		    G_GrenadeBounceEvent ((const gentity_t *)ent);
+		}
 		return;
 	}
 	else if (ent->neverFree && ent->s.weapon == WP_SABER && (ent->flags & FL_BOUNCE_HALF))
 	{ //this is a knocked-away saber
 		if (ent->bounceCount > 0 || ent->bounceCount == -5)
 		{
-			G_BounceMissile( ent, trace );
-			G_AddEvent( ent, EV_GRENADE_BOUNCE, 0 );
+		    	int originalBounceCount = ent->bounceCount;
+		    	G_BounceMissile( ent, trace );
+		    	G_GrenadeBounceEvent ((const gentity_t *)ent);
+		    	if ( originalBounceCount != ent->bounceCount )
+	        	{
+	            		G_GrenadeBounceEvent ((const gentity_t *)ent);
+	        	}
 			return;
 		}
 
@@ -461,7 +590,6 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		ent->s.weapon != WP_THERMAL &&
 		ent->s.weapon != WP_TRIP_MINE &&
 		ent->s.weapon != WP_DET_PACK &&
-		ent->s.weapon != WP_DEMP2 &&
 		ent->s.weapon != WP_EMPLACED_GUN &&
 		ent->methodOfDeath != MOD_REPEATER_ALT &&
 		ent->methodOfDeath != MOD_FLECHETTE_ALT_SPLASH && 
@@ -470,7 +598,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		ent->methodOfDeath != MOD_CONC &&
 		ent->methodOfDeath != MOD_CONC_ALT &&
 		!(ent->dflags&DAMAGE_HEAVY_WEAP_CLASS) )
-	{
+	{// entity is shielded
 		vec3_t fwd;
 
 		if (other->client)
@@ -486,18 +614,18 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		G_MissileBounceEffect(ent, ent->r.currentOrigin, fwd);
 		return;
 	}
-		
+
+	// SABERFIXME: make this based on .wpn file? some conc rifles should be able to be deflected...
 	if (other->takedamage && other->client &&
 		ent->s.weapon != WP_ROCKET_LAUNCHER &&
 		ent->s.weapon != WP_THERMAL &&
 		ent->s.weapon != WP_TRIP_MINE &&
 		ent->s.weapon != WP_DET_PACK &&
-		ent->s.weapon != WP_DEMP2 &&
 		ent->methodOfDeath != MOD_REPEATER_ALT &&
 		ent->methodOfDeath != MOD_FLECHETTE_ALT_SPLASH &&
 		ent->methodOfDeath != MOD_CONC &&
 		ent->methodOfDeath != MOD_CONC_ALT &&
-		other->client->ps.saberBlockTime < level.time &&
+		other->client->saberBlockDebounce < level.time &&
 		!isKnockedSaber &&
 		WP_SaberCanBlock(other, ent->r.currentOrigin, 0, 0, qtrue, 0))
 	{ //only block one projectile per 200ms (to prevent giant swarms of projectiles being blocked)
@@ -527,31 +655,19 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		}
 
 		AngleVectors(other->client->ps.viewangles, fwd, NULL, NULL);
-		if (otherDefLevel == FORCE_LEVEL_1)
-		{
-			//if def is only level 1, instead of deflecting the shot it should just die here
-		}
-		else if (otherDefLevel == FORCE_LEVEL_2)
-		{
-			G_DeflectMissile(other, ent, fwd);
-		}
-		else
-		{
-			G_ReflectMissile(other, ent, fwd);
-		}
-		other->client->ps.saberBlockTime = level.time + (350 - (otherDefLevel*100)); //200;
+		// SABERFIXME: Don't make this force based. This code is ugly as fuck anyway
+		other->client->saberBlockDebounce = level.time + (350 - (otherDefLevel*100)); //200;
 
 		//For jedi AI
 		other->client->ps.saberEventFlags |= SEF_DEFLECTED;
-
-		if (otherDefLevel == FORCE_LEVEL_3)
-		{
-			other->client->ps.saberBlockTime = 0; //^_^
-		}
-
-		if (otherDefLevel == FORCE_LEVEL_1)
+		if ( other->client->ps.saberActionFlags & (1 << SAF_BLOCKING) && !(other->client->ps.saberActionFlags & ( 1 << SAF_PROJBLOCKING) ) )
 		{
 			goto killProj;
+ 		}
+		else if ( other->client->ps.saberActionFlags & SAF_PROJBLOCKING )
+		{
+			JKG_SaberDeflectMissile(other, ent, fwd);
+			other->client->saberProjBlockTime += 500; // give them a little bit of leeway --eez
 		}
 		return;
 	}
@@ -564,7 +680,6 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 			ent->s.weapon != WP_THERMAL &&
 			ent->s.weapon != WP_TRIP_MINE &&
 			ent->s.weapon != WP_DET_PACK &&
-			ent->s.weapon != WP_DEMP2 &&
 			ent->methodOfDeath != MOD_REPEATER_ALT &&
 			ent->methodOfDeath != MOD_FLECHETTE_ALT_SPLASH &&
 			ent->methodOfDeath != MOD_CONC &&
@@ -579,7 +694,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 			//WP_SaberCanBlock(otherOwner, ent->r.currentOrigin, 0, 0, qtrue, 0);
 			if (otherOwner->client && otherOwner->client->ps.weaponTime <= 0)
 			{
-				WP_SaberBlockNonRandom(otherOwner, ent->r.currentOrigin, qtrue);
+				WP_SaberBlockNonRandom(otherOwner, NULL, ent->r.currentOrigin, qtrue);		// <-- ??? --eez
 			}
 
 			te = G_TempEntity( ent->r.currentOrigin, EV_SABER_BLOCK );
@@ -603,35 +718,44 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 			}
 
 			AngleVectors(otherOwner->client->ps.viewangles, fwd, NULL, NULL);
-
-			if (otherDefLevel == FORCE_LEVEL_1)
-			{
-				//if def is only level 1, instead of deflecting the shot it should just die here
-			}
-			else if (otherDefLevel == FORCE_LEVEL_2)
-			{
-				G_DeflectMissile(otherOwner, ent, fwd);
-			}
-			else
-			{
-				G_ReflectMissile(otherOwner, ent, fwd);
-			}
-			otherOwner->client->ps.saberBlockTime = level.time + (350 - (otherDefLevel*100));//200;
+			otherOwner->client->saberBlockDebounce = level.time + (350 - (otherDefLevel*100));//200;
 
 			//For jedi AI
 			otherOwner->client->ps.saberEventFlags |= SEF_DEFLECTED;
 
-			if (otherDefLevel == FORCE_LEVEL_3)
-			{
-				otherOwner->client->ps.saberBlockTime = 0; //^_^
-			}
-
-			if (otherDefLevel == FORCE_LEVEL_1)
+			// um...this code is a lil messed up, so i'll replace it with my own --eez
+			if ( otherOwner->client->ps.saberActionFlags & (1 << SAF_BLOCKING) && !(otherOwner->client->ps.saberActionFlags & ( 1 << SAF_PROJBLOCKING )) )
 			{
 				goto killProj;
+ 			}
+			else if ( otherOwner->client->ps.saberActionFlags & ( 1 << SAF_PROJBLOCKING ) )
+			{
+				// SABERFIXME: Write new function for this
+				JKG_SaberDeflectMissile(otherOwner, ent, fwd);
+				otherOwner->client->saberProjBlockTime += 500; // give them a little bit of leeway --eez
 			}
+
 			return;
 		}
+	}
+
+	if( ent->genericValue10 )	// nerf this check in order to make grenade bouncing work --eez
+	{
+		vec3_t fwd;
+
+		if (other->client)
+		{
+			AngleVectors(other->client->ps.viewangles, fwd, NULL, NULL);
+		}
+		else
+		{
+			AngleVectors(other->r.currentAngles, fwd, NULL, NULL);
+		}
+		VectorScale(ent->s.pos.trDelta, 0.2, ent->s.pos.trDelta);
+		G_Damage(other, ent, ent->parent, fwd, ent->s.origin, ent->genericValue9, 0, MOD_THERMAL);
+		G_DeflectMissile(other, ent, fwd);
+		//G_MissileBounceEffect(ent, ent->r.currentOrigin, fwd);
+		return;
 	}
 
 	// check for sticking
@@ -645,53 +769,33 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 	// impact damage
 	if (other->takedamage && !isKnockedSaber) {
 		// FIXME: wrong damage direction?
-		if ( ent->damage ) {
+		weaponData_t *weapon = GetWeaponData (ent->s.weapon, ent->s.weaponVariation);
+		weaponFireModeStats_t *fireMode = &weapon->firemodes[ent->s.firingMode];
+		
+		if ( ent->damage || fireMode->damageTypeHandle || fireMode->secondaryDmgHandle ) {
 			vec3_t	velocity;
-			qboolean didDmg = qfalse;
 
-			if( LogAccuracyHit( other, &g_entities[ent->r.ownerNum] ) ) {
-				g_entities[ent->r.ownerNum].client->accuracy_hits++;
-				hitClient = qtrue;
-			}
+			hitClient = qtrue;
 			BG_EvaluateTrajectoryDelta( &ent->s.pos, level.time, velocity );
 			if ( VectorLength( velocity ) == 0 ) {
 				velocity[2] = 1;	// stepped on a grenade
 			}
 
-			if (ent->s.weapon == WP_BOWCASTER || ent->s.weapon == WP_FLECHETTE ||
-				ent->s.weapon == WP_ROCKET_LAUNCHER)
-			{
-				if (ent->s.weapon == WP_FLECHETTE && (ent->s.eFlags & EF_ALT_FIRING))
-				{
-					/* fix: there are rare situations where flechette did
-					explode by timeout AND by impact in the very same frame, then here
-					ent->think was set to G_FreeEntity, so the folowing think 
-					did invalidate this entity, BUT it would be reused later in this 
-					function for explosion event. This, then, would set ent->freeAfterEvent
-					to qtrue, so event later, when reusing this entity by using G_InitEntity(),
-					it would have this freeAfterEvent set AND this would in case of dropped
-					item erase it from game immeadiately. THIS for example caused
-					very rare flag dissappearing bug.	 */
-					if (ent->think == WP_flechette_alt_blow)
-						ent->think(ent);
-				}
-				else
-				{
-					G_Damage (other, ent, &g_entities[ent->r.ownerNum], velocity,
-						/*ent->s.origin*/ent->r.currentOrigin, ent->damage, 
-						DAMAGE_HALF_ABSORB, ent->methodOfDeath);
-					didDmg = qtrue;
-				}
-			}
-			else
-			{
-				G_Damage (other, ent, &g_entities[ent->r.ownerNum], velocity,
-					/*ent->s.origin*/ent->r.currentOrigin, ent->damage, 
-					0, ent->methodOfDeath);
-				didDmg = qtrue;
-			}
+            if ( fireMode->damageTypeHandle )
+            {
+                JKG_DoDamage (fireMode->damageTypeHandle, other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, 0, ent->methodOfDeath);
+            }
+            else if ( ent->damage )
+            {
+                G_Damage (other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, ent->damage, 0, ent->methodOfDeath);
+            }
+            
+            if ( fireMode->secondaryDmgHandle )
+            {
+                JKG_DoDamage (fireMode->secondaryDmgHandle, other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, 0, ent->methodOfDeath);
+            }
 
-			if (didDmg && other && other->client)
+			if (other->client)
 			{ //What I'm wondering is why this isn't in the NPC pain funcs. But this is what SP does, so whatever.
 				class_t	npc_class = other->client->NPC_class;
 
@@ -711,56 +815,16 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 				}
 			}
 		}
-
-		if ( ent->s.weapon == WP_DEMP2 )
-		{//a hit with demp2 decloaks people, disables ships
-			if ( other && other->client && other->client->NPC_class == CLASS_VEHICLE )
-			{//hit a vehicle
-				if ( other->m_pVehicle //valid vehicle ent
-					&& other->m_pVehicle->m_pVehicleInfo//valid stats
-					&& (other->m_pVehicle->m_pVehicleInfo->type == VH_SPEEDER//always affect speeders
-						||(other->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER && ent->classname && Q_stricmp("vehicle_proj", ent->classname ) == 0) )//only vehicle ion weapons affect a fighter in this manner
-					&& !FighterIsLanded( other->m_pVehicle , &other->client->ps )//not landed
-					&& !(other->spawnflags&2) )//and not suspended
-				{//vehicles hit by "ion cannons" lose control
-					if ( other->client->ps.electrifyTime > level.time )
-					{//add onto it
-						//FIXME: extern the length of the "out of control" time?
-						other->client->ps.electrifyTime += Q_irand(200,500);
-						if ( other->client->ps.electrifyTime > level.time + 4000 )
-						{//cap it
-							other->client->ps.electrifyTime = level.time + 4000;
-						}
-					}
-					else
-					{//start it
-						//FIXME: extern the length of the "out of control" time?
-						other->client->ps.electrifyTime = level.time + Q_irand(200,500);
-					}
-				}
-			}
-			else if ( other && other->client && other->client->ps.powerups[PW_CLOAKED] )
-			{
-				Jedi_Decloak( other );
-				if ( ent->methodOfDeath == MOD_DEMP2_ALT )
-				{//direct hit with alt disables cloak forever
-					//permanently disable the saboteur's cloak
-					other->client->cloakToggleTime = Q3_INFINITE;
-				}
-				else
-				{//temp disable
-					other->client->cloakToggleTime = level.time + Q_irand( 3000, 10000 );
-				}
-			}
-		}
 	}
 killProj:
 	// is it cheaper in bandwidth to just remove this ent and create a new
 	// one, rather than changing the missile into the explosion?
 
 	if ( other->takedamage && other->client && !isKnockedSaber ) {
-		G_AddEvent( ent, EV_MISSILE_HIT, DirToByte( trace->plane.normal ) );
-		ent->s.otherEntityNum = other->s.number;
+		{
+			G_AddEvent( ent, EV_MISSILE_HIT, DirToByte( trace->plane.normal ) );
+			ent->s.otherEntityNum = other->s.number;
+		}
 	} else if( trace->surfaceFlags & SURF_METALSTEPS ) {
 		G_AddEvent( ent, EV_MISSILE_MISS_METAL, DirToByte( trace->plane.normal ) );
 	} else if (ent->s.weapon != G2_MODEL_PART && !isKnockedSaber) {
@@ -780,20 +844,15 @@ killProj:
 	G_SetOrigin( ent, trace->endpos );
 
 	ent->takedamage = qfalse;
-	// splash damage (doesn't apply to person directly hit)
-	if ( ent->splashDamage ) {
-		if( G_RadiusDamage( trace->endpos, ent->parent, ent->splashDamage, ent->splashRadius, 
-			other, ent, ent->splashMethodOfDeath ) ) {
-			if( !hitClient 
-				&& g_entities[ent->r.ownerNum].client ) {
-				g_entities[ent->r.ownerNum].client->accuracy_hits++;
-			}
-		}
-	}
 
 	if (ent->s.weapon == G2_MODEL_PART)
 	{
 		ent->freeAfterEvent = qfalse; //it will free itself
+	}
+
+	if(ent->splashRadius && ent->splashDamage && !ent->genericValue10)
+	{
+		G_RadiusDamage(trace->endpos, &g_entities[ent->r.ownerNum], ent->splashDamage, ent->splashRadius, NULL, ent, ent->methodOfDeath);
 	}
 
 	trap_LinkEntity( ent );
@@ -809,6 +868,8 @@ void G_RunMissile( gentity_t *ent ) {
 	trace_t		tr;
 	int			passent;
 	qboolean	isKnockedSaber = qfalse;
+	vec3_t		difference;
+	int			iLen;
 
 	if (ent->neverFree && ent->s.weapon == WP_SABER && (ent->flags & FL_BOUNCE_HALF))
 	{
@@ -836,12 +897,25 @@ void G_RunMissile( gentity_t *ent ) {
 			passent = ent->r.ownerNum;
 		}
 	}
+
+	/* Get the new length we have just calculated */
+	VectorSubtract( origin, ent->s.pos.trBase, difference );
+	iLen = ( int ) VectorLength( difference );
+
+	/* The length is larger then allowed, cut off the end position for the line trace */
+	if ( ent->s.apos.trBase[0] && iLen >= ent->s.apos.trBase[0] )
+	{
+		vec3_t fwd;
+		AngleVectors( ent->s.angles, fwd, NULL, NULL );
+		VectorMA( ent->s.pos.trBase, ent->s.eventParm, fwd, origin );
+	}
+
 	// trace a line from the previous position to the current position
 	if (d_projectileGhoul2Collision.integer)
 	{
 		trap_G2Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin, passent, ent->clipmask, G2TRFLAG_DOGHOULTRACE|G2TRFLAG_GETSURFINDEX|G2TRFLAG_THICK|G2TRFLAG_HITCORPSES, g_g2TraceLod.integer );
 
-		if (tr.fraction != 1.0 && tr.entityNum < ENTITYNUM_WORLD)
+		if ( tr.fraction != 1.0 && tr.entityNum < ENTITYNUM_WORLD)
 		{
 			gentity_t *g2Hit = &g_entities[tr.entityNum];
 
@@ -1011,6 +1085,24 @@ passthrough:
 				ent->s.apos.trBase[PITCH] = 0;
 			}
 		}
+	}
+
+	/* We're still past the allowed range and have done damage, make the entity go boom! */
+	if ( ent->s.apos.trBase[0] && iLen >= ent->s.apos.trBase[0] )
+	{
+	    gentity_t *te;	    
+		BG_EvaluateTrajectory( &ent->s.pos, level.time, origin );
+		
+	    te = G_TempEntity (origin, EV_MISSILE_DIE);
+	    VectorCopy (origin, te->s.origin);
+	    AngleVectors (ent->s.angles, te->s.angles, NULL, NULL);
+	    te->s.eFlags = ent->s.eFlags;
+	    te->s.weapon = ent->s.weapon;
+	    te->s.weaponVariation = ent->s.weaponVariation;
+		
+		G_FreeEntity (ent);
+		
+		return;
 	}
 
 	// check think function after bouncing

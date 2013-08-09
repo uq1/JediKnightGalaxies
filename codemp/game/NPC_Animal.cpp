@@ -1,3 +1,5 @@
+// leave this line at the top for all g_xxxx.cpp files...
+#include "g_headers.h"
 
 //seems to be a compiler bug, it doesn't clean out the #ifdefs between dif-compiles
 //or something, so the headers spew errors on these defs from the previous compile.
@@ -10,9 +12,6 @@
 #undef maxs
 #undef legsAnimTimer
 #undef torsoAnimTimer
-#undef bool
-#undef false
-#undef true
 
 #undef sqrtf
 #undef Q_flrand
@@ -54,13 +53,8 @@
 #define maxs r.maxs
 #define legsAnimTimer legsTimer
 #define torsoAnimTimer torsoTimer
-#define bool qboolean
-#define false qfalse
-#define true qtrue
 
-#ifdef sqrtf
 #undef sqrtf
-#endif
 #define sqrtf sqrt
 #define Q_flrand flrand
 
@@ -77,12 +71,8 @@ extern vec3_t playerMins;
 extern vec3_t playerMaxs;
 extern cvar_t	*g_speederControlScheme;
 
-#ifdef _JK2MP
-#endif
 extern void PM_SetAnim(pmove_t	*pm,int setAnimParts,int anim,int setAnimFlags, int blendTime);
 extern int PM_AnimLength( int index, animNumber_t anim );
-#ifdef _JK2MP
-#endif
 
 #ifndef	_JK2MP
 extern void CG_ChangeWeapon( int num );
@@ -153,9 +143,6 @@ static bool Update( Vehicle_t *pVeh, const usercmd_t *pUcmd )
 }
 #endif //QAGAME
 
-#ifdef _JK2MP
-#endif
-
 //MP RULE - ALL PROCESSMOVECOMMANDS FUNCTIONS MUST BE BG-COMPATIBLE!!!
 //If you really need to violate this rule for SP, then use ifdefs.
 //By BG-compatible, I mean no use of game-specific data - ONLY use
@@ -210,8 +197,8 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 
 
 
-	if ( pVeh->m_pPilot /*&& (pilotPS->weapon == WP_NONE || pilotPS->weapon == WP_MELEE )*/ &&
-		(pVeh->m_ucmd.buttons & BUTTON_ALT_ATTACK) && pVeh->m_pVehicleInfo->turboSpeed )
+	if ( pVeh->m_pPilot && /*(pilotPS->weapon == WP_NONE || pilotPS->weapon == WP_MELEE ) &&*/
+		(pVeh->m_ucmd.buttons & BUTTON_IRONSIGHTS) && pVeh->m_pVehicleInfo->turboSpeed )
 	{
 		if ((curTime - pVeh->m_iTurboTime)>pVeh->m_pVehicleInfo->turboRecharge)
 		{
@@ -885,14 +872,9 @@ void G_SetAnimalVehicleFunctions( vehicleInfo_t *pVehInfo )
 }
 
 // Following is only in game, not in namespace
-#ifdef _JK2MP
-#endif
 
 #ifdef QAGAME
 extern void G_AllocateVehicleObject(Vehicle_t **pVeh);
-#endif
-
-#ifdef _JK2MP
 #endif
 
 // Create/Allocate a new Animal Vehicle (initializing it as well).
@@ -909,7 +891,7 @@ void G_CreateAnimalNPC( Vehicle_t **pVeh, const char *strAnimalType )
 #else
 	if (!*pVeh)
 	{ //only allocate a new one if we really have to
-		(*pVeh) = (Vehicle_t *) BG_Alloc( sizeof(Vehicle_t) );
+		(*pVeh) = (Vehicle_t *) malloc( sizeof(Vehicle_t) );
 	}
 #endif
 	memset(*pVeh, 0, sizeof(Vehicle_t));
@@ -921,7 +903,6 @@ void G_CreateAnimalNPC( Vehicle_t **pVeh, const char *strAnimalType )
 }
 
 #ifdef _JK2MP
-
 
 //get rid of all the crazy defs we added for this file
 #undef currentAngles

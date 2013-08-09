@@ -2,10 +2,30 @@
 //
 
 #include "g_local.h"
+#include "jkg_threading.h" // JKG Threading Header
+#include "jkg_gangwars.h"
 #include "g_ICARUScb.h"
 #include "g_nav.h"
 #include "bg_saga.h"
 #include "b_local.h"
+
+#include <openssl/evp.h>
+
+//#define _G_FRAME_PERFANAL
+
+// Include GLua 
+#include "../GLua/glua.h"
+#include "json/cJSON.h"
+#include "jkg_admin.h"
+#include "jkg_bans.h"
+//#include "jkg_navmesh_creator.h"
+#include "jkg_damagetypes.h"
+#include "bg_items.h"
+#include "jkg_easy_items.h"
+
+#include <assert.h>
+
+int Q_vsnprintf( char *dest, size_t size, const char *fmt, va_list argptr );
 
 level_locals_t	level;
 
@@ -15,8 +35,107 @@ extern int fatalErrors;
 
 int killPlayerTimer = 0;
 
-gentity_t		g_entities[MAX_GENTITIES];
+// TEMP - Stress Logging
+fileHandle_t stressfile;
+int lastStressLog;
+
+typedef struct {
+	vmCvar_t	*vmCvar;
+	char		*cvarName;
+	char		*defaultString;
+	int			cvarFlags;
+	int			modificationCount;  // for tracking changes
+	qboolean	trackChange;	    // track this variable, and announce if changed
+  qboolean teamShader;        // track and if changed, update shader state
+} cvarTable_t;
+
+gentity_t		g_entities[MAX_ENTITIESTOTAL];
+gentity_t		*g_logicalents = &g_entities[MAX_GENTITIES]; // Quicker access xD
+KeyPairSet_t	g_spawnvars[MAX_ENTITIESTOTAL];
 gclient_t		g_clients[MAX_CLIENTS];
+
+flag_list_t flag_list[1024];
+
+
+// Warzone gametype tickets...
+int redtickets = 0;
+int bluetickets = 0;
+
+int next_flag_check = 0;
+
+int next_endgame_flag_check = 0;
+
+int num_red_flags = 0;
+int num_blue_flags = 0;
+
+vmCvar_t	g_ticketPercent;
+vmCvar_t	g_redTickets;
+vmCvar_t	g_blueTickets;
+vmCvar_t	g_redTicketRatio;
+vmCvar_t	g_blueTicketRatio;
+
+extern int number_of_flags; // Current number of warzone flags.
+
+extern int GetNumberOfWarzoneFlags ( void );
+extern void Warzone_Create_Flags( void );
+extern void Warzone_Flag_Think( gentity_t *ent );
+
+void AdjustTickets ( void )
+{// Count flags and adjust (add to) ticket numbers for each team...
+	int total_num_flags = GetNumberOfWarzoneFlags();
+	int red_flags = 0;
+	int blue_flags = 0;
+	int i;
+	int red_original = redtickets;
+	int blue_original = bluetickets;
+
+	//if (next_endgame_flag_check > level.time)
+	//	return;
+
+	// Check/Record flag numbers info for endgame every 100ms...
+	//next_endgame_flag_check = level.time + 100;
+
+	for (i=0; i<=total_num_flags;i++)
+	{
+		if (flag_list[i].flagentity)
+		{
+			if (flag_list[i].flagentity->s.modelindex == TEAM_RED)
+				red_flags++;
+			if (flag_list[i].flagentity->s.modelindex == TEAM_BLUE)
+				blue_flags++;
+		}
+	}
+	
+	// Record how many flags each team owns for endgame checks...
+	num_red_flags = red_flags;
+	num_blue_flags = blue_flags;
+
+	//G_Printf("%i red flags. %i blue flags. %i flags total.\n", num_red_flags, num_blue_flags, total_num_flags);
+
+	if (next_flag_check > level.time)
+		return;
+
+	if (total_num_flags < 4)
+		next_flag_check = level.time + 15000;
+	else if (total_num_flags < 7)
+		next_flag_check = level.time + 30000;
+	else
+		next_flag_check = level.time + 60000;
+
+	redtickets+=red_flags;
+	if (redtickets > g_redTickets.integer)
+		redtickets = g_redTickets.integer;
+
+	bluetickets+=blue_flags;
+	if (bluetickets > g_blueTickets.integer)
+		bluetickets = g_blueTickets.integer;
+
+	if (red_original != redtickets || blue_original != bluetickets)
+	{// Transmit if required only...
+		trap_SendServerCommand( -1, va("tkt %i %i", redtickets, bluetickets ));
+	}
+}
+
 
 qboolean gDuelExit = qfalse;
 
@@ -42,6 +161,11 @@ qboolean G_EntIsBreakable( int entityNum );
 qboolean G_EntIsRemovableUsable( int entNum );
 void CP_FindCombatPointWaypoints( void );
 
+#ifdef __SECONDARY_NETWORK__
+extern void jkg_netserverbegin();
+extern void jkg_netservershutdown();
+#endif //__SECONDARY_NETWORK__
+
 /*
 ================
 vmMain
@@ -56,6 +180,9 @@ This must be the very first function compiled into the .q3vm file
 		G_InitGame( arg0, arg1, arg2 );
 		return 0;
 	case GAME_SHUTDOWN:
+#ifdef __SECONDARY_NETWORK__
+		jkg_netservershutdown();
+#endif //__SECONDARY_NETWORK__
 		G_ShutdownGame( arg0 );
 		return 0;
 	case GAME_CLIENT_CONNECT:
@@ -315,8 +442,6 @@ void G_FindTeams( void ) {
 
 char gSharedBuffer[MAX_G_SHARED_BUFFER_SIZE];
 
-void WP_SaberLoadParms( void );
-void BG_VehicleLoadParms( void );
 
 void G_CacheGametype( void )
 {
@@ -349,13 +474,44 @@ G_InitGame
 
 ============
 */
+
+static void JKG_RegisteServerCallback ( asyncTask_t *task )
+{
+	cJSON *data;
+	const char *error;
+	if (task->errorCode) {
+		G_Printf("ERROR: Failed to register server: Error code %i\n", task->errorCode);
+		return;
+	}
+	data = (cJSON *)task->finalData;
+
+	if (cJSON_ToInteger(cJSON_GetObjectItem(data, "errorCode"))) {
+		error = cJSON_ToString(cJSON_GetObjectItem(data, "message"));
+		G_Printf("ERROR: Failed to register server: %s\n", error ? error : "Unknown error");
+		return;
+	}
+	G_Printf("Server successfully registered\n");
+}
+
 extern void RemoveAllWP(void);
 extern void BG_ClearVehicleParseParms(void);
+extern void JKG_InitItems(void);
+void ActivateCrashHandler();
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 	vmCvar_t	mapname;
 	vmCvar_t	ckSum;
-	char serverinfo[MAX_INFO_STRING] = {0};
+
+	//JKG_LoadAuxiliaryLibrary();
+	//JKG_GLS_PatchEngine();
+	OpenSSL_add_all_algorithms();
+
+	// Initialize Threading System
+	//JKG_InitThreading();
+
+	// Initialize admin commands
+	JKG_Admin_Init();
+	//JKG_Nav_Init();
 
 	//Init RMG to 0, it will be autoset to 1 if there is terrain on the level.
 	trap_Cvar_Set("RMG", "0");
@@ -365,8 +521,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_G2API_CleanEntAttachments();
 
 	BG_InitAnimsets(); //clear it out
-
-	B_InitAlloc(); //make sure everything is clean
 
 	trap_SV_RegisterSharedMemory(gSharedBuffer);
 
@@ -381,6 +535,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_RegisterCvars();
 
+	JKG_Bans_Init();
 	G_ProcessIPBans();
 
 	G_InitMemory();
@@ -438,6 +593,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// initialize all entities for this game
 	memset( g_entities, 0, MAX_GENTITIES * sizeof(g_entities[0]) );
 	level.gentities = g_entities;
+	//DIMA System
+	JKG_Easy_DIMA_GlobalInit();
 
 	// initialize all clients for this game
 	level.maxclients = sv_maxclients.integer;
@@ -464,6 +621,10 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	NPC_InitGame();
 	
 	TIMER_Clear();
+
+	// Jedi Knight Galaxies Lua Init
+	GLua_Init();
+	GLua_Hook_GameInit(levelTime, restart);
 	//
 	//ICARUS INIT START
 
@@ -481,8 +642,10 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	ClearRegisteredItems();
 
-	//make sure saber data is loaded before this! (so we can precache the appropriate hilts)
-	InitSiegeMode();
+	if(level.gametype >= GT_TEAM)
+	{
+		JKG_BG_GangWarsInit();
+	}
 
 	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 	trap_Cvar_Register( &ckSum, "sv_mapChecksum", "", CVAR_ROM );
@@ -491,6 +654,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	// parse the key/value pairs and spawn gentities
 	G_SpawnEntitiesFromString(qfalse);
+	GLua_Hook_MapLoadFinished();
 
 	// general initialization
 	G_FindTeams();
@@ -516,6 +680,27 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_SetConfigstring ( CS_CLIENT_DUELHEALTHS, va("-1|-1|!") );
 	trap_SetConfigstring ( CS_CLIENT_DUELWINNER, va("-1") );
 
+	/* Yum. Ammo. */
+	BG_InitializeAmmo();
+	
+	/* Initialize the weapon data table */
+	BG_InitializeWeapons();
+
+	/* Here be crystals */
+	JKG_InitializeSaberCrystalData();
+
+	// and here is some stance data too
+	JKG_InitializeStanceData();
+	
+	// setup master item table
+	JKG_InitItems();
+	JKG_VendorInit();
+
+	JKG_InitializeConstants();
+	
+	// Create items for weapons
+	BG_LoadDefaultWeaponItems();
+
 	SaveRegisteredItems();
 
 	//G_Printf ("-----------------------------------\n");
@@ -529,12 +714,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		BotAISetup( restart );
 		BotAILoadMap( restart );
-		G_InitBots( );
-	} else {
-		//JAC: We still want to load arenas even if bot_enable is off so that
-		//		g_autoMapCycle can work let alone any other code that relies on
-		//		using arena information that normally wouldn't be loaded
-		G_LoadArenas();
+		G_InitBots( restart );
 	}
 
 	if ( level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL )
@@ -566,18 +746,20 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 		//No loading games in MP.
 	}
 
-	if (level.gametype == GT_SIEGE)
-	{ //just get these configstrings registered now...
-		while (i < MAX_CUSTOM_SIEGE_SOUNDS)
-		{
-			if (!bg_customSiegeSoundNames[i])
-			{
-				break;
-			}
-			G_SoundIndex((char *)bg_customSiegeSoundNames[i]);
-			i++;
-		}
+	if (g_gametype.integer == GT_WARZONE)
+	{// Do scenario flags and generate spawnpoints before anyone tries to use them...
+		Warzone_Create_Flags(); // From .scenario file if needed...
+
+		redtickets = (g_redTickets.integer * (g_ticketPercent.integer*0.01)) * g_redTicketRatio.integer;
+		bluetickets = (g_redTickets.integer * (g_ticketPercent.integer*0.01)) * g_blueTicketRatio.integer;
 	}
+
+	/* Initialize the party table */
+	TeamInitializeServer();
+
+	/* TEMP - Stress level logging */
+	trap_FS_FOpenFile("stresslog.log", &stressfile, FS_APPEND);
+	lastStressLog = levelTime;
 }
 
 
@@ -587,9 +769,28 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 G_ShutdownGame
 =================
 */
+void DeactivateCrashHandler();
 void G_ShutdownGame( int restart ) {
 	int i = 0;
 	gentity_t *ent;
+
+	if(JKG_ThreadingInitialized())
+	{
+		//if (!level.serverInit) JKG_NewNetworkTask(LCMETHOD_SVSHUTDOWN, NULL, 0);
+	}
+	// Shutdown JKG's Threading System
+	JKG_ShutdownThreading( 7000 );
+
+	if (stressfile) {
+		trap_FS_FCloseFile(stressfile);
+		stressfile = 0;
+	}
+
+	GLua_Close();
+
+	/* First save all bans, then clear them to free up the allocated memory) */
+	JKG_Bans_SaveBans();
+	JKG_Bans_Clear();
 
 //	G_Printf ("==== ShutdownGame ====\n");
 
@@ -618,6 +819,12 @@ void G_ShutdownGame( int restart ) {
 					trap_G2API_CleanGhoul2Models(&ent->client->weaponGhoul2[j]);
 				}
 				j++;
+			}
+
+			if(ent->assistData.memAllocated > 0)
+			{
+				free(ent->assistData.hitRecords);
+				ent->assistData.memAllocated = 0;
 			}
 		}
 		i++;
@@ -662,8 +869,10 @@ void G_ShutdownGame( int restart ) {
 	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		BotAIShutdown( restart );
 	}
-
-	B_CleanupAlloc(); //clean up all allocations made with B_Alloc
+	JKG_Easy_DIMA_Cleanup();
+	G_TerminateMemory(); // wipe all allocs made with G_Alloc
+	//JKG_Nav_Shutdown();
+	EVP_cleanup();
 }
 
 
@@ -1193,7 +1402,7 @@ void G_ResetDuelists(void)
 		player_die(ent, ent, ent, 999, MOD_SUICIDE);
 		g_noPDuelCheck = qfalse;
 		trap_UnlinkEntity (ent);
-		ClientSpawn(ent);
+		ClientSpawn(ent, qfalse);
 
 		// add a teleportation effect
 		tent = G_TempEntity( ent->client->ps.origin, EV_PLAYER_TELEPORT_IN );
@@ -1269,16 +1478,7 @@ void CalculateRanks( void ) {
 		}
 	}
 
-	//Raz: Fix warmup
-#if 0
-	//if (!g_warmup.integer)
-	if (1)
-#else
-	if ( !g_warmup.integer || level.gametype == GT_SIEGE )
-#endif
-	{
-		level.warmupTime = 0;
-	}
+	level.warmupTime = 0;
 
 	/*
 	if (level.numNonSpectatorClients == 2 && preNumSpec < 2 && nonSpecIndex != -1 && level.gametype == GT_DUEL && !level.warmupTime)
@@ -1449,37 +1649,12 @@ FindIntermissionPoint
 This is also used for spectator spawns
 ==================
 */
-extern qboolean	gSiegeRoundBegun;
-extern qboolean	gSiegeRoundEnded;
-extern qboolean	gSiegeRoundWinningTeam;
 void FindIntermissionPoint( void ) {
 	gentity_t	*ent = NULL;
 	gentity_t	*target;
 	vec3_t		dir;
 
 	// find the intermission spot
-	if ( level.gametype == GT_SIEGE
-		&& level.intermissiontime
-		&& level.intermissiontime <= level.time
-		&& gSiegeRoundEnded )
-	{
-	   	if (gSiegeRoundWinningTeam == SIEGETEAM_TEAM1)
-		{
-			ent = G_Find (NULL, FOFS(classname), "info_player_intermission_red");
-			if ( ent && ent->target2 ) 
-			{
-				G_UseTargets2( ent, ent, ent->target2 );
-			}
-		}
-	   	else if (gSiegeRoundWinningTeam == SIEGETEAM_TEAM2)
-		{
-			ent = G_Find (NULL, FOFS(classname), "info_player_intermission_blue");
-			if ( ent && ent->target2 ) 
-			{
-				G_UseTargets2( ent, ent, ent->target2 );
-			}
-		}
-	}
 	if ( !ent )
 	{
 		ent = G_Find (NULL, FOFS(classname), "info_player_intermission");
@@ -1604,8 +1779,6 @@ or moved to a new level based on the "nextmap" cvar
 
 =============
 */
-extern void SiegeDoTeamAssign(void); //g_saga.c
-extern siegePers_t g_siegePersistant; //g_saga.c
 void ExitLevel (void) {
 	int		i;
 	gclient_t *cl;
@@ -1627,25 +1800,9 @@ void ExitLevel (void) {
 		DuelResetWinsLosses();
 	}
 
-
-	if (level.gametype == GT_SIEGE &&
-		g_siegeTeamSwitch.integer &&
-		g_siegePersistant.beatingTime)
-	{ //restart same map...
-		trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
-	}
-	else
-	{
-		trap_SendConsoleCommand( EXEC_APPEND, "vstr nextmap\n" );
-	}
+	trap_SendConsoleCommand( EXEC_APPEND, "vstr nextmap\n" );
 	level.changemap = NULL;
 	level.intermissiontime = 0;
-
-	if (level.gametype == GT_SIEGE &&
-		g_siegeTeamSwitch.integer)
-	{ //switch out now
-		SiegeDoTeamAssign();
-	}
 
 	// reset all the scores so we don't enter the intermission again
 	level.teamScores[TEAM_RED] = 0;
@@ -1759,9 +1916,12 @@ void LogExit( const char *string ) {
 
 	// don't send more than 32 scores (FIXME?)
 	numSorted = level.numConnectedClients;
-	if ( numSorted > 32 ) {
+	// Jedi Knight Galaxies
+	/*if ( numSorted > 32 ) {
 		numSorted = 32;
-	}
+	}*/
+	if (numSorted > MAX_CLIENTS)
+		numSorted = MAX_CLIENTS;
 
 	if ( level.gametype >= GT_TEAM ) {
 		G_LogPrintf( "red:%i  blue:%i\n",
@@ -2083,7 +2243,12 @@ and the time everyone is moved to the intermission spot, so you
 can see the last frag.
 =================
 */
+extern int GetNumberOfWarzoneFlags ( void );
+extern int WARZONE_GetNumberOfBlueFlags();
+extern int WARZONE_GetNumberOfRedFlags();
+
 qboolean g_endPDuel = qfalse;
+
 void CheckExitRules( void ) {
  	int			i;
 	gclient_t	*cl;
@@ -2099,6 +2264,38 @@ void CheckExitRules( void ) {
 	if (gDoSlowMoDuel)
 	{ //don't go to intermission while in slow motion
 		return;
+	}
+
+	if (level.gametype == GT_WARZONE ) && GetNumberOfWarzoneFlags() > 0)
+	{
+		if (WARZONE_GetNumberOfRedFlags() <= 0)
+		{// Red team has lost!
+			LogExit( "^4Rebels ^7WIN^5: ^1Imperials ^5have no more control points!" );
+			level.intermissionQueued = 0;
+			BeginIntermission();
+			return;
+		}
+		else if (WARZONE_GetNumberOfBlueFlags() <= 0)
+		{// Blue team has lost!
+			LogExit( "Imperials ^7WIN^5: ^4Rebels ^5have no more control points!" );
+			level.intermissionQueued = 0;
+			BeginIntermission();
+			return;
+		}
+		else if (redtickets <= 0)
+		{// Red team has lost!
+			LogExit( "^4Rebels ^7WIN^5: ^1Imperials ^5have no more tickets!" );
+			level.intermissionQueued = 0;
+			BeginIntermission();
+			return;
+		}
+		else if (bluetickets <= 0)
+		{// Blue team has lost!
+			LogExit( "Imperials ^7WIN^5: ^4Rebels ^5have no more tickets!" );
+			level.intermissionQueued = 0;
+			BeginIntermission();
+			return;
+		}
 	}
 
 	if (gEscaping)
@@ -2140,52 +2337,28 @@ void CheckExitRules( void ) {
 		return;
 	}
 
-	/*
-	if (level.gametype == GT_POWERDUEL)
-	{
-		if (level.numPlayingClients < 3)
-		{
-			if (!level.intermissiontime)
-			{
-				if (d_powerDuelPrint.integer)
-				{
-					Com_Printf("POWERDUEL WIN CONDITION: Duel forfeit (1)\n");
-				}
-				LogExit("Duel forfeit.");
-				return;
-			}
-		}
-	}
-	*/
-
 	// check for sudden death
-	if (level.gametype != GT_SIEGE)
-	{
-		if ( ScoreIsTied() ) {
-			// always wait for sudden death
-			if ((level.gametype != GT_DUEL) || !timelimit.value)
+	if ( ScoreIsTied() ) {
+		// always wait for sudden death
+		if ((level.gametype != GT_DUEL) || !timelimit.value)
+		{
+			if (level.gametype != GT_POWERDUEL)
 			{
-				if (level.gametype != GT_POWERDUEL)
-				{
-					return;
-				}
+				return;
 			}
 		}
 	}
 
-	if (level.gametype != GT_SIEGE)
-	{
-		if ( timelimit.value > 0.0f && !level.warmupTime ) {
-			if ( level.time - level.startTime >= timelimit.value*60000 ) {
+	if ( timelimit.value && !level.warmupTime ) {
+		if ( level.time - level.startTime >= timelimit.value*60000 ) {
 //				trap_SendServerCommand( -1, "print \"Timelimit hit.\n\"");
-				trap_SendServerCommand( -1, va("print \"%s.\n\"",G_GetStringEdString("MP_SVGAME", "TIMELIMIT_HIT")));
-				if (d_powerDuelPrint.integer)
-				{
-					Com_Printf("POWERDUEL WIN CONDITION: Timelimit hit (1)\n");
-				}
-				LogExit( "Timelimit hit." );
-				return;
+			trap_SendServerCommand( -1, va("print \"%s.\n\"",G_GetStringEdString("MP_SVGAME", "TIMELIMIT_HIT")));
+			if (d_powerDuelPrint.integer)
+			{
+				Com_Printf("POWERDUEL WIN CONDITION: Timelimit hit (1)\n");
 			}
+			LogExit( "Timelimit hit." );
+			return;
 		}
 	}
 
@@ -2390,14 +2563,16 @@ void CheckExitRules( void ) {
 
 		if ( level.teamScores[TEAM_RED] >= capturelimit.integer ) 
 		{
-			trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString("MP_SVGAME", "PRINTREDTEAM")));
+			//trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString("MP_SVGAME", "PRINTREDTEAM")));
+			trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString2(bgGangWarsTeams[level.redTeam].longname)));
 			trap_SendServerCommand( -1,  va("print \"%s.\n\"", G_GetStringEdString("MP_SVGAME", "HIT_CAPTURE_LIMIT")));
 			LogExit( "Capturelimit hit." );
 			return;
 		}
 
-		if ( level.teamScores[TEAM_BLUE] >= capturelimit.integer ) {
-			trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString("MP_SVGAME", "PRINTBLUETEAM")));
+		if ( level.teamScores[TEAM_BLUE] >= g_capturelimit.integer ) {
+			//trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString("MP_SVGAME", "PRINTBLUETEAM")));
+			trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].longname)));
 			trap_SendServerCommand( -1,  va("print \"%s.\n\"", G_GetStringEdString("MP_SVGAME", "HIT_CAPTURE_LIMIT")));
 			LogExit( "Capturelimit hit." );
 			return;
@@ -2713,6 +2888,7 @@ void CheckTournament( void ) {
 void G_KickAllBots(void)
 {
 	int i;
+	char netname[36];
 	gclient_t	*cl;
 
 	for ( i=0 ; i< sv_maxclients.integer ; i++ )
@@ -2726,7 +2902,9 @@ void G_KickAllBots(void)
 		{
 			continue;
 		}
-		trap_SendConsoleCommand( EXEC_INSERT, va("clientkick %d\n", i) );
+		strcpy(netname, cl->pers.netname);
+		Q_CleanStr(netname);
+		trap_SendConsoleCommand( EXEC_INSERT, va("kick \"%s\"\n", netname) );
 	}
 }
 
@@ -2928,7 +3106,7 @@ void CheckTeamVote( int team ) {
 			//
 			if ( !Q_strncmp( "leader", level.teamVoteString[cs_offset], 6) ) {
 				//set the team leader
-				SetLeader(team, atoi(level.teamVoteString[cs_offset] + 7));
+				//SetLeader(team, atoi(level.teamVoteString[cs_offset] + 7));
 			}
 			else {
 				trap_SendConsoleCommand( EXEC_APPEND, va("%s\n", level.teamVoteString[cs_offset] ) );
@@ -3005,15 +3183,9 @@ void G_RunThink (gentity_t *ent) {
 	ent->think (ent);
 
 runicarus:
-	if ( ent->inuse )
+	if ( ent->inuse && !ent->isLogical )
 	{
-		SaveNPCGlobals();
-		if(NPCS.NPCInfo == NULL && ent->NPC != NULL)
-		{
-			SetNPCGlobals( ent );
-		}
 		trap_ICARUS_MaintainTaskManager(ent->s.number);
-		RestoreNPCGlobals();
 	}
 }
 
@@ -3074,13 +3246,14 @@ Advances the non-player objects in the world
 void ClearNPCGlobals( void );
 void AI_UpdateGroups( void );
 void ClearPlayerAlertEvents( void );
-void SiegeCheckTimers(void);
 void WP_SaberStartMissileBlockCheck( gentity_t *self, usercmd_t *ucmd );
-extern void Jedi_Decloak( gentity_t *self );
+extern void NPC_Humanoid_Decloak( gentity_t *self );
 qboolean G_PointInBounds( vec3_t point, vec3_t mins, vec3_t maxs );
 
 int g_siegeRespawnCheck = 0;
 void SetMoverState( gentity_t *ent, moverState_t moverState, int time );
+
+int FRAME_TIME = 0;
 
 void G_RunFrame( int levelTime ) {
 	int			i;
@@ -3098,26 +3271,70 @@ void G_RunFrame( int levelTime ) {
 	void		*timer_GameChecks;
 	void		*timer_Queues;
 #endif
+	gclient_t	*cl;
 
-	if (level.gametype == GT_SIEGE &&
-		g_siegeRespawn.integer &&
-		g_siegeRespawnCheck < level.time)
-	{ //check for a respawn wave
-		gentity_t *clEnt;
-		for ( i=0; i < MAX_CLIENTS; i++ )
-		{
-			clEnt = &g_entities[i];
+	FRAME_TIME = trap_Milliseconds();
 
-			if (clEnt->inuse && clEnt->client &&
-				clEnt->client->tempSpectate > level.time &&
-				clEnt->client->sess.sessionTeam != TEAM_SPECTATOR)
+	// Run the main thread task poller (calling final callback functions that need to be on the main thread)
+	//JKG_MainThreadPoller();
+
+	// Jedi Knight Galaxies
+	// FIXME:
+	/*
+	if (jkg_fakeplayerban.integer && jkg_antifakeplayer.integer ) {
+		for (i = 0; i < MAX_CLIENTS; i++) {
+			cl = &level.clients[i];
+			if ( g_entities[i].r.svFlags & SVF_BOT )
 			{
-				respawn(clEnt);
-				clEnt->client->tempSpectate = 0;
+				continue;
+			}
+			if (cl->pers.connected != CON_DISCONNECTED) {
+				if (!cl->sess.noq3fill && level.time > (cl->sess.connTime + 8000) ) {
+					if (!Q_stricmp(cl->sess.IP, "localhost")) {
+						// Local host (this is the guy that did Create Server.. which isn't possible.., anyway, dont kick)
+						cl->sess.noq3fill = 1;
+						continue;
+					}
+					if (!ClientConnectionActive[i]) {
+						// Dead connection
+						if (jkg_fakeplayerbantime.string[0]) {
+							JKG_Bans_AddBan(svs->clients[i].netchan.remoteAddress, jkg_fakeplayerbantime.string, "Fake player DoS");
+							//trap_SendConsoleCommand(EXEC_NOW, va("addban %s %s Fake player DoS\n",cl->sess.IP, &jkg_fakeplayerbantime.string[0]));
+						}
+						trap_DropClient(i,"was kicked! Fake client detected.");
+						
+					} else {
+						cl->sess.noq3fill = 1;
+					}
+				}
 			}
 		}
+	}
+	*/
+	// Run lua timers
+	GLua_Timer();
+	GLua_Thread();
 
-		g_siegeRespawnCheck = level.time + g_siegeRespawn.integer * 1000;
+	if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
+		AdjustTickets();
+
+	/* JKG - Automatic healing when out-of-combat */
+	for ( i = 0; i < MAX_CLIENTS; i++ )
+	{
+		gentity_t *ent = &g_entities[i];
+
+		if ( !ent || !ent->inuse || !ent->client || ( ent->damagePlumTime + 60000 ) >= level.time )
+		{
+			continue;
+		}
+
+		if ( ent->lastHealTime < level.time )
+		{
+			int maxHealth		= ent->client->ps.stats[STAT_MAX_HEALTH];
+			int pctage			= (maxHealth < 100) ? 1 : maxHealth / 100;		// Add 1% (of 1 HP, whichever is higher)
+			ent->health			= ent->client->ps.stats[STAT_HEALTH] = ((( ent->health + pctage ) > maxHealth ) ? maxHealth : ent->health + pctage );
+			ent->lastHealTime	= level.time + 2500;
+		}
 	}
 
 	if (gDoSlowMoDuel)
@@ -3148,7 +3365,7 @@ void G_RunFrame( int levelTime ) {
 			}
 			else if (timeDif < 1150)
 			{
-				useDif = (timeDif/1000); //scale from 0.1 up to 1
+				useDif = (timeDif/1000); //scale from 0.1f up to 1
 				if (useDif < 0.1f)
 				{
 					useDif = 0.1f;
@@ -3225,13 +3442,19 @@ void G_RunFrame( int levelTime ) {
 		//Look to clear out old events
 		ClearPlayerAlertEvents();
 	}
+	
+	//JKG_Nav_Editor_Run();
 
 	g_TimeSinceLastFrame = (level.time - g_LastFrameTime);
 
 	// get any cvar changes
 	G_UpdateCvars();
 
+    // Damage players
+    JKG_DamagePlayers();
 
+	// Update any sort of vendors that need updating because of cvars, etc
+	JKG_CheckVendorReplenish();
 
 #ifdef _G_FRAME_PERFANAL
 	trap_PrecisionTimer_Start(&timer_ItemRun);
@@ -3240,6 +3463,7 @@ void G_RunFrame( int levelTime ) {
 	// go through all allocated objects
 	//
 	ent = &g_entities[0];
+	
 	for (i=0 ; i<level.num_entities ; i++, ent++) {
 		if ( !ent->inuse ) {
 			continue;
@@ -3257,20 +3481,12 @@ void G_RunFrame( int levelTime ) {
 				}
 			}
 			if ( ent->freeAfterEvent ) {
-				// tempEntities or dropped items completely go away after their event
-				if (ent->s.eFlags & EF_SOUNDTRACKER)
-				{ //don't trigger the event again..
-					ent->s.event = 0;
-					ent->s.eventParm = 0;
-					ent->s.eType = 0;
-					ent->eventTime = 0;
-				}
-				else
-				{
-					G_FreeEntity( ent );
-					continue;
-				}
-			} else if ( ent->unlinkAfterEvent ) {
+				// JKG - Just free it, otherwise excessive use of G_Sound can make us run out of entities...
+				G_FreeEntity( ent );
+				continue;
+			} 
+			else if ( ent->unlinkAfterEvent ) 
+			{
 				// items that will respawn will hide themselves after their pickup event
 				ent->unlinkAfterEvent = qfalse;
 				trap_UnlinkEntity( ent );
@@ -3313,24 +3529,6 @@ void G_RunFrame( int levelTime ) {
 
 		if ( ent->s.eType == ET_MOVER ) {
 			G_RunMover( ent );
-			continue;
-		}
-
-		//fix for self-deactivating areaportals in Siege
-		if ( ent->s.eType == ET_MOVER && level.gametype == GT_SIEGE && level.intermissiontime)
-		{
-			if ( !Q_stricmp("func_door", ent->classname) && ent->moverState != MOVER_POS1 )
-			{
-				SetMoverState( ent, MOVER_POS1, level.time );
-				if ( ent->teammaster == ent || !ent->teammaster ) 
-				{
-					trap_AdjustAreaPortalState( ent, qfalse );
-				}
-
-				//stop the looping sound
-				ent->s.loopSound = 0;
-				ent->s.loopIsSoundset = qfalse;
-			}
 			continue;
 		}
 
@@ -3399,10 +3597,25 @@ void G_RunFrame( int levelTime ) {
 					ent->client->isHacking = 0;
 					ent->client->ps.hackingTime = 0;
 				}
-				else if (!G_PointInBounds( ent->client->ps.origin, hacked->r.absmin, hacked->r.absmax ))
-				{ //they stepped outside the thing they're hacking, so reset hacking time
-					ent->client->isHacking = 0;
-					ent->client->ps.hackingTime = 0;
+				// Model hacking fix - Jedi Knight Galaxies
+				else if (hacked->s.eType == ET_MOVER) {
+					if (!G_PointInBounds( ent->client->ps.origin, hacked->r.absmin, hacked->r.absmax ))
+					{ //they stepped outside the thing they're hacking, so reset hacking time
+						ent->client->isHacking = 0;
+						ent->client->ps.hackingTime = 0;
+					}
+				}
+				else if (hacked->s.eType == ET_GENERAL) {
+					vec3_t nabsmin, nabsmax;
+					static vec3_t absminsadd = {-20, -20, -20};
+					static vec3_t absmaxsadd = {20, 20, 20};
+					VectorAdd(hacked->r.absmin, absminsadd, nabsmin);
+					VectorAdd(hacked->r.absmax, absmaxsadd, nabsmax);
+					if (!G_PointInBounds( ent->client->ps.origin, nabsmin, nabsmax ))
+					{ //they stepped outside the thing they're hacking, so reset hacking time
+						ent->client->isHacking = 0;
+						ent->client->ps.hackingTime = 0;
+					}
 				}
 				else if (VectorLength(angDif) > 10.0f)
 				{ //must remain facing generally the same angle as when we start
@@ -3443,6 +3656,26 @@ void G_RunFrame( int levelTime ) {
 				}
 			}
 
+			#define JKG_BLOCK_POINT_REGENERATION_RATE	200
+			if( ent->client->ps.blockPoints < 100 )
+			{
+				if(ent->client->ps.weapon == WP_SABER)
+				{
+					if(ent->client->saberBPDebRecharge < level.time)
+					{
+						ent->client->ps.blockPoints++;
+						if( ent->client->ps.saberActionFlags & (1 << SAF_BLOCKING) )
+						{
+							ent->client->saberBPDebRecharge = level.time + 175;
+						}
+						else
+						{
+							ent->client->saberBPDebRecharge = level.time + 325;
+						}
+					}
+				}
+			}
+
 #define CLOAK_DEFUEL_RATE		200 //approx. 20 seconds of idle use from a fully charged fuel amt
 #define CLOAK_REFUEL_RATE		150 //seems fair
 			if (ent->client->ps.powerups[PW_CLOAKED])
@@ -3454,7 +3687,7 @@ void G_RunFrame( int levelTime ) {
 					if (ent->client->ps.cloakFuel <= 0)
 					{ //turn it off
 						ent->client->ps.cloakFuel = 0;
-						Jedi_Decloak(ent);
+						NPC_Humanoid_Decloak(ent);
 					}
 					ent->client->cloakDebReduce = level.time + CLOAK_DEFUEL_RATE;
 				}
@@ -3468,19 +3701,9 @@ void G_RunFrame( int levelTime ) {
 				}
 			}
 
-			if (level.gametype == GT_SIEGE &&
-				ent->client->siegeClass != -1 &&
-				(bgSiegeClasses[ent->client->siegeClass].classflags & (1<<CFL_STATVIEWER)))
-			{ //see if it's time to send this guy an update of extended info
-				if (ent->client->siegeEDataSend < level.time)
-				{
-                    G_SiegeClientExData(ent);
-					ent->client->siegeEDataSend = level.time + 1000; //once every sec seems ok
-				}
-			}
-
 			if((!level.intermissiontime)&&!(ent->client->ps.pm_flags&PMF_FOLLOW) && ent->client->sess.sessionTeam != TEAM_SPECTATOR)
 			{
+			    JKG_DoPlayerDamageEffects (ent);
 				WP_ForcePowersUpdate(ent, &ent->client->pers.cmd );
 				WP_SaberPositionUpdate(ent, &ent->client->pers.cmd);
 				WP_SaberStartMissileBlockCheck(ent, &ent->client->pers.cmd);
@@ -3508,6 +3731,7 @@ void G_RunFrame( int levelTime ) {
 				}
 			}
 
+            JKG_DoPlayerDamageEffects (ent);
 			WP_ForcePowersUpdate(ent, &ent->client->pers.cmd );
 			WP_SaberPositionUpdate(ent, &ent->client->pers.cmd);
 			WP_SaberStartMissileBlockCheck(ent, &ent->client->pers.cmd);
@@ -3520,13 +3744,19 @@ void G_RunFrame( int levelTime ) {
 			ClearNPCGlobals();
 		}
 	}
+
+	// Process logical entities
+	ent = &g_entities[MAX_GENTITIES];
+	for (i=0 ; i<level.num_logicalents ; i++, ent++) {
+		if ( !ent->inuse ) {
+			continue;
+		}
+		// Logical entities only think, nothing else
+		G_RunThink( ent );
+	}
 #ifdef _G_FRAME_PERFANAL
 	iTimer_ItemRun = trap_PrecisionTimer_End(timer_ItemRun);
-#endif
 
-	SiegeCheckTimers();
-
-#ifdef _G_FRAME_PERFANAL
 	trap_PrecisionTimer_Start(&timer_ROFF);
 #endif
 	trap_ROFF_UpdateEntities();
@@ -3574,6 +3804,12 @@ void G_RunFrame( int levelTime ) {
 	// for tracking changes
 	CheckCvars();
 
+	if (g_listEntity.integer) {
+		for (i = 0; i < MAX_GENTITIES; i++) {
+			G_Printf("%4i: %s\n", i, g_entities[i].classname);
+		}
+		trap_Cvar_Set("g_listEntity", "0");
+	}
 #ifdef _G_FRAME_PERFANAL
 	iTimer_GameChecks = trap_PrecisionTimer_End(timer_GameChecks);
 #endif
@@ -3603,7 +3839,7 @@ void G_RunFrame( int levelTime ) {
 
 
 #ifdef _G_FRAME_PERFANAL
-	Com_Printf("---------------\nItemRun: %i\nROFF: %i\nClientEndframe: %i\nGameChecks: %i\nQueues: %i\n---------------\n",
+	Com_Printf("---------------\nItemRun: %i\n ROFF: %i\n ClientEndframe: %i\n GameChecks: %i\n Queues: %i\n---------------\n",
 		iTimer_ItemRun,
 		iTimer_ROFF,
 		iTimer_ClientEndframe,
@@ -3629,5 +3865,30 @@ const char *G_GetStringEdString(char *refSection, char *refName)
 	//properly.
 	static char text[1024]={0};
 	Com_sprintf(text, sizeof(text), "@@@%s", refName);
+	return text;
+}
+
+const char *G_GetStringEdString2(char *refName)
+{
+	/*
+	static char text[1024]={0};
+	trap_SP_GetStringTextString(va("%s_%s", refSection, refName), text, sizeof(text));
+	return text;
+	*/
+
+	//Well, it would've been lovely doing it the above way, but it would mean mixing
+	//languages for the client depending on what the server is. So we'll mark this as
+	//a stringed reference with @@@ and send the refname to the client, and when it goes
+	//to print it will get scanned for the stringed reference indication and dealt with
+	//properly.
+	static char text[1024]={0};
+	if(refName[0] == '@')
+	{
+		return G_GetStringEdString("", refName);
+	}
+	else
+	{
+		strcpy(text, refName);
+	}
 	return text;
 }

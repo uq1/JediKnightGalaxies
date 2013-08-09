@@ -54,21 +54,22 @@ void Seeker_MaintainHeight( void )
 	NPC_UpdateAngles( qtrue, qtrue );
 
 	// If we have an enemy, we should try to hover at or a little below enemy eye level
-	if ( NPCS.NPC->enemy )
+	if ( NPC->enemy )
 	{
-		if (TIMER_Done( NPCS.NPC, "heightChange" ))
+		if (TIMER_Done( NPC, "heightChange" ))
 		{
 			float difFactor;
 
-			TIMER_Set( NPCS.NPC,"heightChange",Q_irand( 1000, 3000 ));
+			TIMER_Set( NPC,"heightChange",Q_irand( 1000, 3000 ));
 
 			// Find the height difference
-			dif = (NPCS.NPC->enemy->r.currentOrigin[2] +  flrand( NPCS.NPC->enemy->r.maxs[2]/2, NPCS.NPC->enemy->r.maxs[2]+8 )) - NPCS.NPC->r.currentOrigin[2]; 
+			dif = (NPC->enemy->r.currentOrigin[2] +  flrand( NPC->enemy->r.maxs[2]/2, NPC->enemy->r.maxs[2]+8 )) - NPC->r.currentOrigin[2]; 
 
 			difFactor = 1.0f;
-			if ( NPCS.NPC->client->NPC_class == CLASS_BOBAFETT )
+			if ( NPC->client->NPC_class == CLASS_BOBAFETT
+				|| !Q_stricmp( "rockettrooper", NPC->NPC_type) )
 			{
-				if ( TIMER_Done( NPCS.NPC, "flameTime" ) )
+				if ( TIMER_Done( NPC, "flameTime" ) )
 				{
 					difFactor = 10.0f;
 				}
@@ -82,11 +83,12 @@ void Seeker_MaintainHeight( void )
 					dif = ( dif < 0 ? -24*difFactor : 24*difFactor );
 				}
 
-				NPCS.NPC->client->ps.velocity[2] = (NPCS.NPC->client->ps.velocity[2]+dif)/2;
+				NPC->client->ps.velocity[2] = (NPC->client->ps.velocity[2]+dif)/2;
 			}
-			if ( NPCS.NPC->client->NPC_class == CLASS_BOBAFETT )
+			if ( NPC->client->NPC_class == CLASS_BOBAFETT 
+				|| Q_stricmp( "rockettrooper", NPC->NPC_type) )
 			{
-				NPCS.NPC->client->ps.velocity[2] *= flrand( 0.85f, 3.0f );
+				NPC->client->ps.velocity[2] *= flrand( 0.85f, 3.0f );
 			}
 		}
 	}
@@ -94,31 +96,31 @@ void Seeker_MaintainHeight( void )
 	{
 		gentity_t *goal = NULL;
 
-		if ( NPCS.NPCInfo->goalEntity )	// Is there a goal?
+		if ( NPCInfo->goalEntity )	// Is there a goal?
 		{
-			goal = NPCS.NPCInfo->goalEntity;
+			goal = NPCInfo->goalEntity;
 		}
 		else
 		{
-			goal = NPCS.NPCInfo->lastGoalEntity;
+			goal = NPCInfo->lastGoalEntity;
 		}
 		if ( goal )
 		{
-			dif = goal->r.currentOrigin[2] - NPCS.NPC->r.currentOrigin[2];
+			dif = goal->r.currentOrigin[2] - NPC->r.currentOrigin[2];
 
 			if ( fabs( dif ) > 24 )
 			{
-				NPCS.ucmd.upmove = ( NPCS.ucmd.upmove < 0 ? -4 : 4 );
+				ucmd.upmove = ( ucmd.upmove < 0 ? -4 : 4 );
 			}
 			else
 			{
-				if ( NPCS.NPC->client->ps.velocity[2] )
+				if ( NPC->client->ps.velocity[2] )
 				{
-					NPCS.NPC->client->ps.velocity[2] *= VELOCITY_DECAY;
+					NPC->client->ps.velocity[2] *= VELOCITY_DECAY;
 
-					if ( fabs( NPCS.NPC->client->ps.velocity[2] ) < 2 )
+					if ( fabs( NPC->client->ps.velocity[2] ) < 2 )
 					{
-						NPCS.NPC->client->ps.velocity[2] = 0;
+						NPC->client->ps.velocity[2] = 0;
 					}
 				}
 			}
@@ -126,23 +128,23 @@ void Seeker_MaintainHeight( void )
 	}
 
 	// Apply friction
-	if ( NPCS.NPC->client->ps.velocity[0] )
+	if ( NPC->client->ps.velocity[0] )
 	{
-		NPCS.NPC->client->ps.velocity[0] *= VELOCITY_DECAY;
+		NPC->client->ps.velocity[0] *= VELOCITY_DECAY;
 
-		if ( fabs( NPCS.NPC->client->ps.velocity[0] ) < 1 )
+		if ( fabs( NPC->client->ps.velocity[0] ) < 1 )
 		{
-			NPCS.NPC->client->ps.velocity[0] = 0;
+			NPC->client->ps.velocity[0] = 0;
 		}
 	}
 
-	if ( NPCS.NPC->client->ps.velocity[1] )
+	if ( NPC->client->ps.velocity[1] )
 	{
-		NPCS.NPC->client->ps.velocity[1] *= VELOCITY_DECAY;
+		NPC->client->ps.velocity[1] *= VELOCITY_DECAY;
 
-		if ( fabs( NPCS.NPC->client->ps.velocity[1] ) < 1 )
+		if ( fabs( NPC->client->ps.velocity[1] ) < 1 )
 		{
-			NPCS.NPC->client->ps.velocity[1] = 0;
+			NPC->client->ps.velocity[1] = 0;
 		}
 	}
 }
@@ -154,37 +156,39 @@ void Seeker_Strafe( void )
 	vec3_t	end, right, dir;
 	trace_t	tr;
 
-	if ( random() > 0.7f || !NPCS.NPC->enemy || !NPCS.NPC->enemy->client )
+	if ( random() > 0.7f || !NPC->enemy || !NPC->enemy->client )
 	{
 		// Do a regular style strafe
-		AngleVectors( NPCS.NPC->client->renderInfo.eyeAngles, NULL, right, NULL );
+		AngleVectors( NPC->client->renderInfo.eyeAngles, NULL, right, NULL );
 
 		// Pick a random strafe direction, then check to see if doing a strafe would be
 		//	reasonably valid
 		side = ( rand() & 1 ) ? -1 : 1;
-		VectorMA( NPCS.NPC->r.currentOrigin, SEEKER_STRAFE_DIS * side, right, end );
+		VectorMA( NPC->r.currentOrigin, SEEKER_STRAFE_DIS * side, right, end );
 
-		trap_Trace( &tr, NPCS.NPC->r.currentOrigin, NULL, NULL, end, NPCS.NPC->s.number, MASK_SOLID );
+		trap_Trace( &tr, NPC->r.currentOrigin, NULL, NULL, end, NPC->s.number, MASK_SOLID );
 
 		// Close enough
 		if ( tr.fraction > 0.9f )
 		{
 			float vel = SEEKER_STRAFE_VEL;
 			float upPush = SEEKER_UPWARD_PUSH;
-			if ( NPCS.NPC->client->NPC_class != CLASS_BOBAFETT )
+
+			if ( NPC->client->NPC_class != CLASS_BOBAFETT 
+				&& Q_stricmp( "rockettrooper", NPC->NPC_type) )
 			{
-				G_Sound( NPCS.NPC, CHAN_AUTO, G_SoundIndex( "sound/chars/seeker/misc/hiss" ));
+				G_Sound( NPC, CHAN_AUTO, G_SoundIndex( "sound/chars/seeker/misc/hiss" ));
 			}
 			else
 			{
 				vel *= 3.0f;
 				upPush *= 4.0f;
 			}
-			VectorMA( NPCS.NPC->client->ps.velocity, vel*side, right, NPCS.NPC->client->ps.velocity );
+			VectorMA( NPC->client->ps.velocity, vel*side, right, NPC->client->ps.velocity );
 			// Add a slight upward push
-			NPCS.NPC->client->ps.velocity[2] += upPush;
+			NPC->client->ps.velocity[2] += upPush;
 
-			NPCS.NPCInfo->standTime = level.time + 1000 + random() * 500;
+			NPCInfo->standTime = level.time + 1000 + random() * 500;
 		}
 	}
 	else
@@ -192,38 +196,41 @@ void Seeker_Strafe( void )
 		float stDis;
 
 		// Do a strafe to try and keep on the side of their enemy
-		AngleVectors( NPCS.NPC->enemy->client->renderInfo.eyeAngles, dir, right, NULL );
+		AngleVectors( NPC->enemy->client->renderInfo.eyeAngles, dir, right, NULL );
 
 		// Pick a random side
 		side = ( rand() & 1 ) ? -1 : 1;
 		stDis = SEEKER_STRAFE_DIS;
-		if ( NPCS.NPC->client->NPC_class == CLASS_BOBAFETT )
+		if ( NPC->client->NPC_class == CLASS_BOBAFETT 
+			|| !Q_stricmp( "rockettrooper", NPC->NPC_type))
 		{
 			stDis *= 2.0f;
 		}
-		VectorMA( NPCS.NPC->enemy->r.currentOrigin, stDis * side, right, end );
+		VectorMA( NPC->enemy->r.currentOrigin, stDis * side, right, end );
 
 		// then add a very small bit of random in front of/behind the player action
 		VectorMA( end, crandom() * 25, dir, end );
 
-		trap_Trace( &tr, NPCS.NPC->r.currentOrigin, NULL, NULL, end, NPCS.NPC->s.number, MASK_SOLID );
+		trap_Trace( &tr, NPC->r.currentOrigin, NULL, NULL, end, NPC->s.number, MASK_SOLID );
 
 		// Close enough
 		if ( tr.fraction > 0.9f )
 		{
 			float dis, upPush;
 
-			VectorSubtract( tr.endpos, NPCS.NPC->r.currentOrigin, dir );
+			VectorSubtract( tr.endpos, NPC->r.currentOrigin, dir );
 			dir[2] *= 0.25; // do less upward change
 			dis = VectorNormalize( dir );
 
 			// Try to move the desired enemy side
-			VectorMA( NPCS.NPC->client->ps.velocity, dis, dir, NPCS.NPC->client->ps.velocity );
+			VectorMA( NPC->client->ps.velocity, dis, dir, NPC->client->ps.velocity );
 
 			upPush = SEEKER_UPWARD_PUSH;
-			if ( NPCS.NPC->client->NPC_class != CLASS_BOBAFETT )
+			
+			if ( NPC->client->NPC_class != CLASS_BOBAFETT
+				&& Q_stricmp( "rockettrooper", NPC->NPC_type) )
 			{
-				G_Sound( NPCS.NPC, CHAN_AUTO, G_SoundIndex( "sound/chars/seeker/misc/hiss" ));
+				G_Sound( NPC, CHAN_AUTO, G_SoundIndex( "sound/chars/seeker/misc/hiss" ));
 			}
 			else
 			{
@@ -231,9 +238,9 @@ void Seeker_Strafe( void )
 			}
 
 			// Add a slight upward push
-			NPCS.NPC->client->ps.velocity[2] += upPush;
+			NPC->client->ps.velocity[2] += upPush;
 
-			NPCS.NPCInfo->standTime = level.time + 2500 + random() * 500;
+			NPCInfo->standTime = level.time + 2500 + random() * 500;
 		}
 	}
 }
@@ -247,7 +254,7 @@ void Seeker_Hunt( qboolean visible, qboolean advance )
 	NPC_FaceEnemy( qtrue );
 
 	// If we're not supposed to stand still, pursue the player
-	if ( NPCS.NPCInfo->standTime < level.time )
+	if ( NPCInfo->standTime < level.time )
 	{
 		// Only strafe when we can see the player
 		if ( visible )
@@ -267,8 +274,8 @@ void Seeker_Hunt( qboolean visible, qboolean advance )
 	if ( visible == qfalse )
 	{
 		// Move towards our goal
-		NPCS.NPCInfo->goalEntity = NPCS.NPC->enemy;
-		NPCS.NPCInfo->goalRadius = 24;
+		NPCInfo->goalEntity = NPC->enemy;
+		NPCInfo->goalRadius = 24;
 
 		// Get our direction from the navigator if we can't see our target
 		if ( NPC_GetMoveDirection( forward, &distance ) == qfalse )
@@ -278,12 +285,12 @@ void Seeker_Hunt( qboolean visible, qboolean advance )
 	}
 	else
 	{
-		VectorSubtract( NPCS.NPC->enemy->r.currentOrigin, NPCS.NPC->r.currentOrigin, forward );
+		VectorSubtract( NPC->enemy->r.currentOrigin, NPC->r.currentOrigin, forward );
 		distance = VectorNormalize( forward );
 	}
 
-	speed = SEEKER_FORWARD_BASE_SPEED + SEEKER_FORWARD_MULTIPLIER * g_npcspskill.integer;
-	VectorMA( NPCS.NPC->client->ps.velocity, speed, forward, NPCS.NPC->client->ps.velocity );
+	speed = SEEKER_FORWARD_BASE_SPEED + SEEKER_FORWARD_MULTIPLIER * g_spskill.integer;
+	VectorMA( NPC->client->ps.velocity, speed, forward, NPC->client->ps.velocity );
 }
 
 //------------------------------------
@@ -292,42 +299,44 @@ void Seeker_Fire( void )
 	vec3_t		dir, enemy_org, muzzle;
 	gentity_t	*missile;
 
-	CalcEntitySpot( NPCS.NPC->enemy, SPOT_HEAD, enemy_org );
-	VectorSubtract( enemy_org, NPCS.NPC->r.currentOrigin, dir );
+	CalcEntitySpot( NPC->enemy, SPOT_HEAD, enemy_org );
+	VectorSubtract( enemy_org, NPC->r.currentOrigin, dir );
 	VectorNormalize( dir );
 
 	// move a bit forward in the direction we shall shoot in so that the bolt doesn't poke out the other side of the seeker
-	VectorMA( NPCS.NPC->r.currentOrigin, 15, dir, muzzle );
+	VectorMA( NPC->r.currentOrigin, 15, dir, muzzle );
 
-	missile = CreateMissile( muzzle, dir, 1000, 10000, NPCS.NPC, qfalse );
+	missile = CreateMissile( muzzle, dir, 1000, 10000, NPC, qfalse );
 
-	G_PlayEffectID( G_EffectIndex("blaster/muzzle_flash"), NPCS.NPC->r.currentOrigin, dir );
+	G_PlayEffectID( G_EffectIndex("blaster/muzzle_flash"), NPC->r.currentOrigin, dir );
 
 	missile->classname = "blaster";
-	missile->s.weapon = WP_BLASTER;
+	missile->s.weapon = WP_BRYAR_OLD;
+	missile->s.weaponVariation = 0;
 
 	missile->damage = 5;
 	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
 	missile->methodOfDeath = MOD_BLASTER;
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
-	if ( NPCS.NPC->r.ownerNum < ENTITYNUM_NONE )
+	if ( NPC->r.ownerNum < ENTITYNUM_NONE )
 	{
-		missile->r.ownerNum = NPCS.NPC->r.ownerNum;
+		missile->r.ownerNum = NPC->r.ownerNum;
 	}
 }
 
 //------------------------------------
 void Seeker_Ranged( qboolean visible, qboolean advance )
 {
-	if ( NPCS.NPC->client->NPC_class != CLASS_BOBAFETT )
+	if ( NPC->client->NPC_class != CLASS_BOBAFETT
+		&& Q_stricmp( "rockettrooper", NPC->NPC_type) )
 	{
-		if ( NPCS.NPC->count > 0 )
+		if ( NPC->count > 0 )
 		{
-			if ( TIMER_Done( NPCS.NPC, "attackDelay" ))	// Attack?
+			if ( TIMER_Done( NPC, "attackDelay" ))	// Attack?
 			{
-				TIMER_Set( NPCS.NPC, "attackDelay", Q_irand( 250, 2500 ));
+				TIMER_Set( NPC, "attackDelay", Q_irand( 250, 2500 ));
 				Seeker_Fire();
-				NPCS.NPC->count--;
+				NPC->count--;
 			}
 		}
 		else
@@ -336,11 +345,11 @@ void Seeker_Ranged( qboolean visible, qboolean advance )
 	//		NPC->client->ps.gravity = 900;
 	//		NPC->svFlags &= ~SVF_CUSTOM_GRAVITY;
 	//		NPC->client->ps.velocity[2] += 16;
-			G_Damage( NPCS.NPC, NPCS.NPC, NPCS.NPC, NULL, NULL, 999, 0, MOD_UNKNOWN );
+			G_Damage( NPC, NPC, NPC, NULL, NULL, 999, 0, MOD_UNKNOWN );
 		}
 	}
 
-	if ( NPCS.NPCInfo->scriptFlags & SCF_CHASE_ENEMIES )
+	if ( NPCInfo->scriptFlags & SCF_CHASE_ENEMIES )
 	{
 		Seeker_Hunt( visible, advance );
 	}
@@ -350,17 +359,19 @@ void Seeker_Ranged( qboolean visible, qboolean advance )
 void Seeker_Attack( void )
 {
 	float		distance;
-	qboolean	visible, advance;
+	qboolean	visible;
+	qboolean	advance;
 
 	// Always keep a good height off the ground
 	Seeker_MaintainHeight();
 
 	// Rate our distance to the target, and our visibilty
-	distance	= DistanceHorizontalSquared( NPCS.NPC->r.currentOrigin, NPCS.NPC->enemy->r.currentOrigin );	
-	visible		= NPC_ClearLOS4( NPCS.NPC->enemy );
+	distance	= DistanceHorizontalSquared( NPC->r.currentOrigin, NPC->enemy->r.currentOrigin );	
+	visible		= NPC_ClearLOS4( NPC->enemy );
 	advance		= (qboolean)(distance > MIN_DISTANCE_SQR);
 
-	if ( NPCS.NPC->client->NPC_class == CLASS_BOBAFETT )
+	if ( NPC->client->NPC_class == CLASS_BOBAFETT
+		|| !Q_stricmp( "rockettrooper", NPC->NPC_type) )
 	{
 		advance = (qboolean)(distance>(200.0f*200.0f));
 	}
@@ -368,7 +379,7 @@ void Seeker_Attack( void )
 	// If we cannot see our target, move to see it
 	if ( visible == qfalse )
 	{
-		if ( NPCS.NPCInfo->scriptFlags & SCF_CHASE_ENEMIES )
+		if ( NPCInfo->scriptFlags & SCF_CHASE_ENEMIES )
 		{
 			Seeker_Hunt( visible, advance );
 			return;
@@ -397,7 +408,7 @@ void Seeker_FindEnemy( void )
 	{
 		ent = &g_entities[entityList[i]];
 
-		if ( ent->s.number == NPCS.NPC->s.number 
+		if ( ent->s.number == NPC->s.number 
 			|| !ent->client //&& || !ent->NPC 
 			|| ent->health <= 0 
 			|| !ent->inuse )
@@ -405,7 +416,7 @@ void Seeker_FindEnemy( void )
 			continue;
 		}
 
-		if ( ent->client->playerTeam == NPCS.NPC->client->playerTeam || ent->client->playerTeam == NPCTEAM_NEUTRAL ) // don't attack same team or bots
+		if ( ent->client->playerTeam == NPC->client->playerTeam || ent->client->playerTeam == NPCTEAM_NEUTRAL ) // don't attack same team or bots
 		{
 			continue;
 		}
@@ -416,7 +427,7 @@ void Seeker_FindEnemy( void )
 			continue;
 		}
 
-		dis = DistanceHorizontalSquared( NPCS.NPC->r.currentOrigin, ent->r.currentOrigin );
+		dis = DistanceHorizontalSquared( NPC->r.currentOrigin, ent->r.currentOrigin );
 
 		if ( dis <= bestDis )
 		{
@@ -428,9 +439,9 @@ void Seeker_FindEnemy( void )
 	if ( best )
 	{
 		// used to offset seekers around a circle so they don't occupy the same spot.  This is not a fool-proof method.
-		NPCS.NPC->random = random() * 6.3f; // roughly 2pi
+		NPC->random = random() * 6.3f; // roughly 2pi
 
-		NPCS.NPC->enemy = best;
+		NPC->enemy = best;
 	}
 }
 
@@ -439,26 +450,28 @@ void Seeker_FollowOwner( void )
 {
 	float	dis, minDistSqr;
 	vec3_t	pt, dir;
-	gentity_t	*owner = &g_entities[NPCS.NPC->s.owner];
+	gentity_t	*owner = &g_entities[NPC->s.owner];
 
 	Seeker_MaintainHeight();
 
-	if ( NPCS.NPC->client->NPC_class == CLASS_BOBAFETT )
+	if ( NPC->client->NPC_class == CLASS_BOBAFETT
+		|| !Q_stricmp( "rockettrooper", NPC->NPC_type) )
 	{
-		owner = NPCS.NPC->enemy;
+		owner = NPC->enemy;
 	}
-	if ( !owner || owner == NPCS.NPC || !owner->client )
+	if ( !owner || owner == NPC || !owner->client )
 	{
 		return;
 	}
 	//rwwFIXMEFIXME: Care about all clients not just 0
-	dis	= DistanceHorizontalSquared( NPCS.NPC->r.currentOrigin, owner->r.currentOrigin );
+	dis	= DistanceHorizontalSquared( NPC->r.currentOrigin, owner->r.currentOrigin );
 	
 	minDistSqr = MIN_DISTANCE_SQR;
 
-	if ( NPCS.NPC->client->NPC_class == CLASS_BOBAFETT )
+	if ( NPC->client->NPC_class == CLASS_BOBAFETT
+		|| !Q_stricmp( "rockettrooper", NPC->NPC_type) )
 	{
-		if ( TIMER_Done( NPCS.NPC, "flameTime" ) )
+		if ( TIMER_Done( NPC, "flameTime" ) )
 		{
 			minDistSqr = 200*200;
 		}
@@ -467,13 +480,14 @@ void Seeker_FollowOwner( void )
 	if ( dis < minDistSqr )
 	{
 		// generally circle the player closely till we take an enemy..this is our target point
-		if ( NPCS.NPC->client->NPC_class == CLASS_BOBAFETT )
+		if ( NPC->client->NPC_class == CLASS_BOBAFETT
+			|| !Q_stricmp( "rockettrooper", NPC->NPC_type) )
 		{
-			pt[0] = owner->r.currentOrigin[0] + cos( level.time * 0.001f + NPCS.NPC->random ) * 250;
-			pt[1] = owner->r.currentOrigin[1] + sin( level.time * 0.001f + NPCS.NPC->random ) * 250;
-			if ( NPCS.NPC->client->jetPackTime < level.time )
+			pt[0] = owner->r.currentOrigin[0] + cos( level.time * 0.001f + NPC->random ) * 250;
+			pt[1] = owner->r.currentOrigin[1] + sin( level.time * 0.001f + NPC->random ) * 250;
+			if ( NPC->client->jetPackTime < level.time )
 			{
-				pt[2] = NPCS.NPC->r.currentOrigin[2] - 64;
+				pt[2] = NPC->r.currentOrigin[2] - 64;
 			}
 			else
 			{
@@ -482,37 +496,38 @@ void Seeker_FollowOwner( void )
 		}
 		else
 		{
-			pt[0] = owner->r.currentOrigin[0] + cos( level.time * 0.001f + NPCS.NPC->random ) * 56;
-			pt[1] = owner->r.currentOrigin[1] + sin( level.time * 0.001f + NPCS.NPC->random ) * 56;
+			pt[0] = owner->r.currentOrigin[0] + cos( level.time * 0.001f + NPC->random ) * 56;
+			pt[1] = owner->r.currentOrigin[1] + sin( level.time * 0.001f + NPC->random ) * 56;
 			pt[2] = owner->r.currentOrigin[2] + 40;
 		}
 
-		VectorSubtract( pt, NPCS.NPC->r.currentOrigin, dir );
-		VectorMA( NPCS.NPC->client->ps.velocity, 0.8f, dir, NPCS.NPC->client->ps.velocity );
+		VectorSubtract( pt, NPC->r.currentOrigin, dir );
+		VectorMA( NPC->client->ps.velocity, 0.8f, dir, NPC->client->ps.velocity );
 	}
 	else
 	{
-		if ( NPCS.NPC->client->NPC_class != CLASS_BOBAFETT )
+		if ( NPC->client->NPC_class != CLASS_BOBAFETT
+			&& Q_stricmp( "rockettrooper", NPC->NPC_type) )
 		{
-			if ( TIMER_Done( NPCS.NPC, "seekerhiss" ))
+			if ( TIMER_Done( NPC, "seekerhiss" ))
 			{
-				TIMER_Set( NPCS.NPC, "seekerhiss", 1000 + random() * 1000 );
-				G_Sound( NPCS.NPC, CHAN_AUTO, G_SoundIndex( "sound/chars/seeker/misc/hiss" ));
+				TIMER_Set( NPC, "seekerhiss", 1000 + random() * 1000 );
+				G_Sound( NPC, CHAN_AUTO, G_SoundIndex( "sound/chars/seeker/misc/hiss" ));
 			}
 		}
 
 		// Hey come back!
-		NPCS.NPCInfo->goalEntity = owner;
-		NPCS.NPCInfo->goalRadius = 32;
+		NPCInfo->goalEntity = owner;
+		NPCInfo->goalRadius = 32;
 		NPC_MoveToGoal( qtrue );
-		NPCS.NPC->parent = owner;
+		NPC->parent = owner;
 	}
 
-	if ( NPCS.NPCInfo->enemyCheckDebounceTime < level.time )
+	if ( NPCInfo->enemyCheckDebounceTime < level.time )
 	{
 		// check twice a second to find a new enemy
 		Seeker_FindEnemy();
-		NPCS.NPCInfo->enemyCheckDebounceTime = level.time + 500;
+		NPCInfo->enemyCheckDebounceTime = level.time + 500;
 	}
 
 	NPC_UpdateAngles( qtrue, qtrue );
@@ -524,7 +539,8 @@ void NPC_BSSeeker_Default( void )
 	/*
 	if ( in_camera )
 	{
-		if ( NPC->client->NPC_class != CLASS_BOBAFETT )
+		if ( NPC->client->NPC_class != CLASS_BOBAFETT
+			&& Q_stricmp( "rockettrooper", NPC->NPC_type) )
 		{
 			// cameras make me commit suicide....
 			G_Damage( NPC, NPC, NPC, NULL, NULL, 999, 0, MOD_UNKNOWN );
@@ -532,37 +548,39 @@ void NPC_BSSeeker_Default( void )
 	}
 	*/
 	//N/A for MP.
-	if ( NPCS.NPC->r.ownerNum < ENTITYNUM_NONE )
+	if ( NPC->r.ownerNum < ENTITYNUM_NONE )
 	{
-		//OJKFIXME: clientnum 0
 		gentity_t *owner = &g_entities[0];
 		if ( owner->health <= 0 
 			|| (owner->client && owner->client->pers.connected == CON_DISCONNECTED) )
 		{//owner is dead or gone
 			//remove me
-			G_Damage( NPCS.NPC, NULL, NULL, NULL, NULL, 10000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG );
+			G_Damage( NPC, NULL, NULL, NULL, NULL, 10000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG );
 			return;
 		}
 	}
 
-	if ( NPCS.NPC->random == 0.0f )
+	if ( NPC->random == 0.0f )
 	{
 		// used to offset seekers around a circle so they don't occupy the same spot.  This is not a fool-proof method.
-		NPCS.NPC->random = random() * 6.3f; // roughly 2pi
+		NPC->random = random() * 6.3f; // roughly 2pi
 	}
 
-	if ( NPCS.NPC->enemy && NPCS.NPC->enemy->health && NPCS.NPC->enemy->inuse )
+	if ( NPC->enemy && NPC->enemy->health && NPC->enemy->inuse )
 	{
-		//OJKFIXME: clientnum 0
-		if ( NPCS.NPC->client->NPC_class != CLASS_BOBAFETT && ( NPCS.NPC->enemy->s.number == 0 || ( NPCS.NPC->enemy->client && NPCS.NPC->enemy->client->NPC_class == CLASS_SEEKER )) )
+		if ( NPC->client->NPC_class != CLASS_BOBAFETT
+			&& Q_stricmp( "rockettrooper", NPC->NPC_type)
+			&& ( (NPC->enemy->s.number >= 0 && NPC->enemy->s.number < MAX_CLIENTS) || ( NPC->enemy->client && NPC->enemy->client->NPC_class == CLASS_SEEKER )) )
 		{
 			//hacked to never take the player as an enemy, even if the player shoots at it
-			NPCS.NPC->enemy = NULL;
+			NPC->enemy = NULL;
 		}
 		else
 		{
 			Seeker_Attack();
-			if ( NPCS.NPC->client->NPC_class == CLASS_BOBAFETT )
+
+			if ( NPC->client->NPC_class == CLASS_BOBAFETT
+				|| !Q_stricmp( "rockettrooper", NPC->NPC_type) )
 			{
 				Boba_FireDecide();
 			}

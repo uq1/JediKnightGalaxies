@@ -1,11 +1,18 @@
-#pragma once
-
 // Copyright (C) 1999-2000 Id Software, Inc.
 //
 
-// g_public.h -- game module information visible to server
+#ifndef G_PUBLIC_H
 
-#define Q3_INFINITE			16777216 
+// g_public.h -- game module information visible to server
+#define G_PUBLIC_H
+
+#include "bg_vehicles.h"
+
+// Jedi Knight Galaxies - Added a raised Q3_INFINITE to the absolute maximum time possible (server will auto-restart way before it reaches this)
+// The old max caused fuckups after 279 minutes of gameplay (as level.time will go over 0x01000000 or 16777216
+// The new limit will take over 24 days to reach (and the wrap around happens in about 23, so this'll never be reached
+#define Q3_INFINITE			16777216
+#define Q3_TIMEINFINITE		0x7FFFFFFF
 
 #define	GAME_API_VERSION	8
 
@@ -719,6 +726,7 @@ typedef struct {
 	int				next_roff_time; //rww - npc's need to know when they're getting roff'd
 } sharedEntity_t;
 
+#ifdef ENGINE
 #ifdef __cplusplus
 class CSequencer;
 class CTaskManager;
@@ -728,9 +736,11 @@ class CTaskManager;
 extern CSequencer	*gSequencers[MAX_GENTITIES];
 extern CTaskManager	*gTaskManagers[MAX_GENTITIES];
 
-#include "icarus/icarus.h"
-#include "icarus/sequencer.h"
-#include "icarus/taskmanager.h"
+#include "../icarus/icarus.h"
+#include "../icarus/sequencer.h"
+#include "../icarus/taskmanager.h"
+#include "../icarus/blockstream.h"
+#endif
 #endif
 
 //
@@ -926,3 +936,5 @@ typedef struct
 {
 	char string[2048];
 } T_G_ICARUS_GETSETIDFORSTRING;
+
+#endif //G_PUBLIC_H

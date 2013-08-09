@@ -9,6 +9,7 @@
 #define	MAX_RADIUS_ENTS		128
 #define	DEFAULT_RADIUS		45
 
+extern vmCvar_t		d_noGroupAI;
 qboolean AI_ValidateGroupMember( AIGroupInfo_t *group, gentity_t *member );
 
 extern void G_TestLine(vec3_t start, vec3_t end, int color, int time);
@@ -184,7 +185,7 @@ void AI_SortGroupByPathCostToEnemy( AIGroupInfo_t *group )
 				{//slot occupied
 					if ( group->member[i].pathCostToEnemy < bestMembers[j].pathCostToEnemy )
 					{//this guy has a shorter path than the one currenly in this spot, bump him and put myself in here
-						for ( k = group->numGroup; k < j; k++ )
+						for ( k = group->numGroup; k > j; k++ )
 						{
 							memcpy( &bestMembers[k], &bestMembers[k-1], sizeof( bestMembers[k] ) );
 						}
@@ -876,7 +877,7 @@ qboolean AI_RefreshGroup( AIGroupInfo_t *group )
 		{
 			group->morale += member->NPC->rank;
 		}
-		if ( group->commander && d_npcai.integer )
+		if ( group->commander && debugNPCAI.integer )
 		{
 			//G_DebugLine( group->commander->r.currentOrigin, member->r.currentOrigin, FRAMETIME, 0x00ff00ff, qtrue );
 			G_TestLine(group->commander->r.currentOrigin, member->r.currentOrigin, 0x00000ff, FRAMETIME);

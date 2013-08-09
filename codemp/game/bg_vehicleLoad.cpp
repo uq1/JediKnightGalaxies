@@ -28,13 +28,13 @@
 #ifndef QAGAME
 #ifndef CGAME
 #define WE_ARE_IN_THE_UI
-#include "ui/ui_local.h"
+#include "../ui/ui_local.h"
 #endif
 #endif
 #endif
 
 #ifndef _JK2MP
-#include "Ratl/string_vs.h"
+#include "..\Ratl\string_vs.h"
 #endif
 
 #ifdef QAGAME
@@ -152,6 +152,17 @@ vehField_t vehWeaponFields[NUM_VWEAP_PARMS] =
 	{"explodeOnExpire", VWFOFS(bExplodeOnExpire), VF_BOOL},	//when iLifeTime is up, explodes rather than simply removing itself
 };
 
+stringID_table_t VehicleTable[VH_NUM_VEHICLES+1] =
+{
+	ENUM2STRING(VH_NONE),
+	ENUM2STRING(VH_WALKER),		//something you ride inside of, it walks like you, like an AT-ST
+	ENUM2STRING(VH_FIGHTER),	//something you fly inside of, like an X-Wing or TIE fighter
+	ENUM2STRING(VH_SPEEDER),	//something you ride on that hovers, like a speeder or swoop
+	ENUM2STRING(VH_ANIMAL),		//animal you ride on top of that walks, like a tauntaun
+	ENUM2STRING(VH_FLIER),		//animal you ride on top of that flies, like a giant mynoc?
+	0,	-1
+};
+
 static qboolean BG_ParseVehWeaponParm( vehWeaponInfo_t *vehWeapon, char *parmName, char *pValue )
 {
 	int		i;
@@ -181,7 +192,7 @@ static qboolean BG_ParseVehWeaponParm( vehWeaponInfo_t *vehWeapon, char *parmNam
 				if (!*(char **)(b+vehWeaponFields[i].ofs))
 				{ //just use 1024 bytes in case we want to write over the string
 #ifdef _JK2MP
-					*(char **)(b+vehWeaponFields[i].ofs) = (char *)BG_Alloc(1024);//(char *)BG_Alloc(strlen(value));
+					*(char **)(b+vehWeaponFields[i].ofs) = (char *)malloc(1024);//(char *)malloc(strlen(value));
 					strcpy(*(char **)(b+vehWeaponFields[i].ofs), value);
 #else
 					(*(char **)(b+vehWeaponFields[i].ofs)) = G_NewString( value );
@@ -656,17 +667,6 @@ vehField_t vehicleFields[] =
 	{0, -1, VF_INT}
 };
 
-stringID_table_t VehicleTable[VH_NUM_VEHICLES+1] =
-{
-	ENUM2STRING(VH_NONE),
-	ENUM2STRING(VH_WALKER),		//something you ride inside of, it walks like you, like an AT-ST
-	ENUM2STRING(VH_FIGHTER),	//something you fly inside of, like an X-Wing or TIE fighter
-	ENUM2STRING(VH_SPEEDER),	//something you ride on that hovers, like a speeder or swoop
-	ENUM2STRING(VH_ANIMAL),		//animal you ride on top of that walks, like a tauntaun
-	ENUM2STRING(VH_FLIER),		//animal you ride on top of that flies, like a giant mynoc?
-	{0,	-1}
-};
-
 // Setup the shared functions (one's that all vehicles would generally use).
 void BG_SetSharedVehicleFunctions( vehicleInfo_t *pVehInfo )
 {
@@ -699,104 +699,6 @@ void BG_SetSharedVehicleFunctions( vehicleInfo_t *pVehInfo )
 void BG_VehicleSetDefaults( vehicleInfo_t *vehicle )
 {
 	memset(vehicle, 0, sizeof(vehicleInfo_t));
-/*
-#if _JK2MP
-	if (!vehicle->name)
-	{
-		vehicle->name = (char *)BG_Alloc(1024);
-	}
-	strcpy(vehicle->name, "default");
-#else
-	vehicle->name = G_NewString( "default" );
-#endif
-
-	//general data
-	vehicle->type = VH_SPEEDER;				//what kind of vehicle
-	//FIXME: no saber or weapons if numHands = 2, should switch to speeder weapon, no attack anim on player
-	vehicle->numHands = 0;					//if 2 hands, no weapons, if 1 hand, can use 1-handed weapons, if 0 hands, can use 2-handed weapons
-	vehicle->lookPitch = 0;				//How far you can look up and down off the forward of the vehicle
-	vehicle->lookYaw = 5;					//How far you can look left and right off the forward of the vehicle
-	vehicle->length = 0;					//how long it is - used for body length traces when turning/moving?
-	vehicle->width = 0;						//how wide it is - used for body length traces when turning/moving?
-	vehicle->height = 0;					//how tall it is - used for body length traces when turning/moving?
-	VectorClear( vehicle->centerOfGravity );//offset from origin: {forward, right, up} as a modifier on that dimension (-1.0f is all the way back, 1.0f is all the way forward)
-
-	//speed stats - note: these are DESIRED speed, not actual current speed/velocity
-	vehicle->speedMax = VEH_DEFAULT_SPEED_MAX;	//top speed
-	vehicle->turboSpeed = 0;					//turboBoost
-	vehicle->speedMin = 0;						//if < 0, can go in reverse
-	vehicle->speedIdle = 0;						//what speed it drifts to when no accel/decel input is given
-	vehicle->accelIdle = 0;						//if speedIdle > 0, how quickly it goes up to that speed
-	vehicle->acceleration = VEH_DEFAULT_ACCEL;	//when pressing on accelerator (1/2 this when going in reverse)
-	vehicle->decelIdle = VEH_DEFAULT_DECEL;		//when giving no input, how quickly it desired speed drops to speedIdle
-	vehicle->strafePerc = VEH_DEFAULT_STRAFE_PERC;//multiplier on current speed for strafing.  If 1.0f, you can strafe at the same speed as you're going forward, 0.5 is half, 0 is no strafing
-
-	//handling stats
-	vehicle->bankingSpeed = VEH_DEFAULT_BANKING_SPEED;	//how quickly it pitches and rolls (not under player control)
-	vehicle->rollLimit = VEH_DEFAULT_ROLL_LIMIT;		//how far it can roll to either side
-	vehicle->pitchLimit = VEH_DEFAULT_PITCH_LIMIT;		//how far it can pitch forward or backward
-	vehicle->braking = VEH_DEFAULT_BRAKING;				//when pressing on decelerator (backwards)
-	vehicle->turningSpeed = VEH_DEFAULT_TURNING_SPEED;	//how quickly you can turn
-	vehicle->turnWhenStopped = qfalse;					//whether or not you can turn when not moving	
-	vehicle->traction = VEH_DEFAULT_TRACTION;			//how much your command input affects velocity
-	vehicle->friction = VEH_DEFAULT_FRICTION;			//how much velocity is cut on its own
-	vehicle->maxSlope = VEH_DEFAULT_MAX_SLOPE;			//the max slope that it can go up with control
-
-	//durability stats
-	vehicle->mass = VEH_DEFAULT_MASS;			//for momentum and impact force (player mass is 10)
-	vehicle->armor = VEH_DEFAULT_MAX_ARMOR;		//total points of damage it can take
-	vehicle->toughness = VEH_DEFAULT_TOUGHNESS;	//modifies incoming damage, 1.0 is normal, 0.5 is half, etc.  Simulates being made of tougher materials/construction
-	vehicle->malfunctionArmorLevel = 0;			//when armor drops to or below this point, start malfunctioning
-
-	//visuals & sounds
-	//vehicle->model = "models/map_objects/ships/swoop.md3";	//what model to use - if make it an NPC's primary model, don't need this?
-	if (!vehicle->model)
-	{
-		vehicle->model = (char *)BG_Alloc(1024);
-	}
-	strcpy(vehicle->model, "models/map_objects/ships/swoop.md3");
-
-	vehicle->modelIndex = 0;							//set internally, not until this vehicle is spawned into the level
-	vehicle->skin = NULL;								//what skin to use - if make it an NPC's primary model, don't need this?
-	vehicle->riderAnim = BOTH_GUNSIT1;					//what animation the rider uses
-
-	vehicle->soundOn = NULL;							//sound to play when get on it
-	vehicle->soundLoop = NULL;							//sound to loop while riding it
-	vehicle->soundOff = NULL;							//sound to play when get off
-	vehicle->exhaustFX = NULL;							//exhaust effect, played from "*exhaust" bolt(s)
-	vehicle->trailFX = NULL;							//trail effect, played from "*trail" bolt(s)
-	vehicle->impactFX = NULL;							//explosion effect, for when it blows up (should have the sound built into explosion effect)
-	vehicle->explodeFX = NULL;							//explosion effect, for when it blows up (should have the sound built into explosion effect)
-	vehicle->wakeFX = NULL;								//effect itmakes when going across water
-
-	//other misc stats
-	vehicle->gravity = VEH_DEFAULT_GRAVITY;				//normal is 800
-	vehicle->hoverHeight = 0;//VEH_DEFAULT_HOVER_HEIGHT;	//if 0, it's a ground vehicle
-	vehicle->hoverStrength = 0;//VEH_DEFAULT_HOVER_STRENGTH;//how hard it pushes off ground when less than hover height... causes "bounce", like shocks
-	vehicle->waterProof = qtrue;						//can drive underwater if it has to
-	vehicle->bouyancy = 1.0f;							//when in water, how high it floats (1 is neutral bouyancy)
-	vehicle->fuelMax = 1000;							//how much fuel it can hold (capacity)
-	vehicle->fuelRate = 1;								//how quickly is uses up fuel
-	vehicle->visibility = VEH_DEFAULT_VISIBILITY;		//radius for sight alerts
-	vehicle->loudness = VEH_DEFAULT_LOUDNESS;			//radius for sound alerts
-	vehicle->explosionRadius = VEH_DEFAULT_EXP_RAD;
-	vehicle->explosionDamage = VEH_DEFAULT_EXP_DMG;
-	vehicle->maxPassengers = 0;
-
-	//new stuff
-	vehicle->hideRider = qfalse;						// rider (and passengers?) should not be drawn
-	vehicle->killRiderOnDeath = qfalse;					//if rider is on vehicle when it dies, they should die
-	vehicle->flammable = qfalse;						//whether or not the vehicle should catch on fire before it explodes
-	vehicle->explosionDelay = 0;						//how long the vehicle should be on fire/dying before it explodes
-	//camera stuff
-	vehicle->cameraOverride = qfalse;					//whether or not to use all of the following 3rd person camera override values
-	vehicle->cameraRange = 0.0f;						//how far back the camera should be - normal is 80
-	vehicle->cameraVertOffset = 0.0f;					//how high over the vehicle origin the camera should be - normal is 16
-	vehicle->cameraHorzOffset = 0.0f;					//how far to left/right (negative/positive) of of the vehicle origin the camera should be - normal is 0
-	vehicle->cameraPitchOffset = 0.0f;					//a modifier on the camera's pitch (up/down angle) to the vehicle - normal is 0
-	vehicle->cameraFOV = 0.0f;							//third person camera FOV, default is 80
-	vehicle->cameraAlpha = qfalse;						//fade out the vehicle if it's in the way of the crosshair
-*/
 }
 
 void BG_VehicleClampData( vehicleInfo_t *vehicle )
@@ -857,7 +759,7 @@ static qboolean BG_ParseVehicleParm( vehicleInfo_t *vehicle, char *parmName, cha
 				if (!*(char **)(b+vehicleFields[i].ofs))
 				{ //just use 128 bytes in case we want to write over the string
 #ifdef _JK2MP
-					*(char **)(b+vehicleFields[i].ofs) = (char *)BG_Alloc(128);//(char *)BG_Alloc(strlen(value));
+					*(char **)(b+vehicleFields[i].ofs) = (char *)malloc(128);//(char *)malloc(strlen(value));
 					strcpy(*(char **)(b+vehicleFields[i].ofs), value);
 #else
 					(*(char **)(b+vehicleFields[i].ofs)) = G_NewString( value );
@@ -1298,11 +1200,6 @@ int VEH_LoadVehicle( const char *vehicleName )
 	{
 		trap_R_RegisterSkin( va( "models/players/%s/model_%s.skin", vehicle->model, vehicle->skin) );
 	}
-	else
-	{
-		trap_R_RegisterSkin( va( "models/players/%s/model_default.skin", vehicle->model ) );
-	}
-#endif
 #endif
 #endif
 	//sanity check and clamp the vehicle's data
@@ -1425,13 +1322,13 @@ void BG_VehWeaponLoadParms( void )
 	holdChar = vehWeaponExtensionListBuf;
 
 #ifdef _JK2MP
-	tempReadBuffer = (char *)BG_TempAlloc(MAX_VEH_WEAPON_DATA_SIZE);
+	tempReadBuffer = (char *)malloc(MAX_VEH_WEAPON_DATA_SIZE);
 #else
 	tempReadBuffer = (char *)gi.Malloc( MAX_VEH_WEAPON_DATA_SIZE, TAG_G_ALLOC, qtrue );
 #endif
 	
 	// NOTE: Not use TempAlloc anymore...
-	//Make ABSOLUTELY CERTAIN that BG_Alloc/etc. is not used before
+	//Make ABSOLUTELY CERTAIN that malloc/etc. is not used before
 	//the subsequent BG_TempFree or the pool will be screwed. 
 
 	for ( i = 0; i < fileCnt; i++, holdChar += vehExtFNLen + 1 ) 
@@ -1485,7 +1382,7 @@ void BG_VehWeaponLoadParms( void )
 	}
 
 #ifdef _JK2MP
-	BG_TempFree(MAX_VEH_WEAPON_DATA_SIZE);
+	free(tempReadBuffer);
 #else
 	gi.Free(tempReadBuffer);	tempReadBuffer = NULL;
 #endif
@@ -1517,13 +1414,13 @@ void BG_VehicleLoadParms( void )
 	holdChar = vehExtensionListBuf;
 
 #ifdef _JK2MP
-	tempReadBuffer = (char *)BG_TempAlloc(MAX_VEHICLE_DATA_SIZE);
+	tempReadBuffer = (char *)malloc(MAX_VEHICLE_DATA_SIZE);
 #else
 	tempReadBuffer = (char *)gi.Malloc( MAX_VEHICLE_DATA_SIZE, TAG_G_ALLOC, qtrue );
 #endif
 	
 	// NOTE: Not use TempAlloc anymore...
-	//Make ABSOLUTELY CERTAIN that BG_Alloc/etc. is not used before
+	//Make ABSOLUTELY CERTAIN that malloc/etc. is not used before
 	//the subsequent BG_TempFree or the pool will be screwed. 
 
 	for ( i = 0; i < fileCnt; i++, holdChar += vehExtFNLen + 1 ) 
@@ -1577,7 +1474,7 @@ void BG_VehicleLoadParms( void )
 	}
 
 #ifdef _JK2MP
-	BG_TempFree(MAX_VEHICLE_DATA_SIZE);
+	free(tempReadBuffer);
 #else
 	gi.Free(tempReadBuffer);	tempReadBuffer = NULL;
 #endif
@@ -1610,7 +1507,9 @@ void BG_GetVehicleModelName(char *modelname, int len)
 	assert(modelname[0] == '$');
 	
 	if (vIndex == VEHICLE_NONE)
+	{
 		Com_Error(ERR_DROP, "BG_GetVehicleModelName:  couldn't find vehicle %s", vehName);
+	}
 
 	Q_strncpyz( modelname, g_vehicleInfo[vIndex].model, len );
 }
@@ -1622,7 +1521,9 @@ void BG_GetVehicleSkinName(char *skinname, int len)
 	assert(skinname[0] == '$');
 	
 	if (vIndex == VEHICLE_NONE)
+	{
 		Com_Error(ERR_DROP, "BG_GetVehicleSkinName:  couldn't find vehicle %s", vehName);
+	}
 
     if ( !VALIDSTRING( g_vehicleInfo[vIndex].skin ) )
 		skinname[0] = 0;

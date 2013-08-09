@@ -237,6 +237,7 @@ qboolean	G_TryPushingEntity( gentity_t *check, gentity_t *pusher, vec3_t move, v
 		{
 			G_Damage(check, pusher, pusher, vec3_origin, check->r.currentOrigin, 999, 0, MOD_UNKNOWN);
 		}
+		return qfalse;
 	}
 	// if it is ok to leave in the old position, do it
 	// this is only relevent for riding entities, not pushed
@@ -470,7 +471,8 @@ void G_MoverTeam( gentity_t *ent ) {
 	for ( part = ent ; part ; part = part->teamchain ) {
 		// call the reached function if time is at or past end point
 		if ( part->s.pos.trType == TR_LINEAR_STOP ||
-			part->s.pos.trType == TR_NONLINEAR_STOP) {
+			part->s.pos.trType == TR_NONLINEAR_STOP ||
+			part->s.pos.trType >= TR_NONLINEAR_ACCEL_STOP) {
 			if ( level.time >= part->s.pos.trTime + part->s.pos.trDuration ) {
 				if ( part->reached ) {
 					part->reached( part );
@@ -569,13 +571,17 @@ void SetMoverState( gentity_t *ent, moverState_t moverState, int time ) {
 		VectorSubtract( ent->pos2, ent->pos1, delta );
 		f = 1000.0 / ent->s.pos.trDuration;
 		VectorScale( delta, f, ent->s.pos.trDelta );
-		if ( ent->alt_fire )
-		{
-			ent->s.pos.trType = TR_LINEAR_STOP;
-		}
-		else
-		{
-			ent->s.pos.trType = TR_NONLINEAR_STOP;
+		if ( ent->teamMoveType ) {
+			ent->s.pos.trType = ent->teamMoveType;
+		} else {
+			if ( ent->alt_fire )
+			{
+				ent->s.pos.trType = TR_LINEAR_STOP;
+			}
+			else
+			{
+				ent->s.pos.trType = TR_NONLINEAR_STOP;
+			}
 		}
 		//ent->s.eFlags &= ~EF_BLOCKED_MOVER;
 		break;
@@ -584,13 +590,17 @@ void SetMoverState( gentity_t *ent, moverState_t moverState, int time ) {
 		VectorSubtract( ent->pos1, ent->pos2, delta );
 		f = 1000.0 / ent->s.pos.trDuration;
 		VectorScale( delta, f, ent->s.pos.trDelta );
-		if ( ent->alt_fire )
-		{
-			ent->s.pos.trType = TR_LINEAR_STOP;
-		}
-		else
-		{
-			ent->s.pos.trType = TR_NONLINEAR_STOP;
+		if ( ent->teamMoveType ) {
+			ent->s.pos.trType = ent->teamMoveType;
+		} else {
+			if ( ent->alt_fire )
+			{
+				ent->s.pos.trType = TR_LINEAR_STOP;
+			}
+			else
+			{
+				ent->s.pos.trType = TR_NONLINEAR_STOP;
+			}
 		}
 		//ent->s.eFlags &= ~EF_BLOCKED_MOVER;
 		break;
@@ -877,6 +887,13 @@ void Use_BinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator )
 		return;
 	}
 
+#ifdef _PHASE1
+	if ( ent->spawnflags & 32 && jkg_arearestrictions.integer)
+	{
+		return;		// eezstreet: Pande's orders (for servers restricting access to sewers on Coruscant I guess)
+	}
+#endif
+
 	// only the master should be used
 	if ( ent->flags & FL_TEAMSLAVE ) 
 	{
@@ -1060,11 +1077,11 @@ static void Touch_DoorTriggerSpectator( gentity_t *ent, gentity_t *other, trace_
 	VectorClear(dir);
 	if (fabs(other->s.origin[axis] - ent->r.absmax[axis]) <
 		fabs(other->s.origin[axis] - ent->r.absmin[axis])) {
-		origin[axis] = ent->r.absmin[axis] - 25;
+		origin[axis] = ent->r.absmin[axis] - 10;
 		dir[axis] = -1;
 	}
 	else {
-		origin[axis] = ent->r.absmax[axis] + 25;
+		origin[axis] = ent->r.absmax[axis] + 10;
 		dir[axis] = 1;
 	}
 	for (i = 0; i < 3; i++) {
@@ -1216,6 +1233,20 @@ void Think_SpawnNewDoorTrigger( gentity_t *ent )
 	mins[best] -= 120;
 
 	// create a trigger with this size
+
+	// JKG - Ensure the trigger is placed in the closed position
+	// Even if we have START_OPEN defined!
+	if (ent->spawnflags & 1) {
+		vec3_t delta;
+		// Transpose the bounding box if we're using START_OPEN
+		VectorSubtract(ent->pos2, ent->pos1, delta);
+		//Transpose it
+		for( i = 0; i < 3; i++ ) {
+			mins[i] += delta[i];
+			maxs[i] += delta[i];
+		}
+	}
+
 	other = G_Spawn ();
 	VectorCopy (mins, other->r.mins);
 	VectorCopy (maxs, other->r.maxs);

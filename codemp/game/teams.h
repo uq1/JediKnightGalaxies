@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef TEAMS_H
+#define TEAMS_H
 typedef enum //# team_e
 {
 	NPCTEAM_FREE,			// also TEAM_FREE - caution, some code checks a team_t via "if (!team_t_varname)" so I guess this should stay as entry 0, great or what? -slc
@@ -32,7 +32,7 @@ typedef enum
 	CLASS_IMPWORKER,
 	CLASS_INTERROGATOR,		// droid 
 	CLASS_JAN,				
-	CLASS_JEDI,				
+	CLASS_JEDI,
 	CLASS_KYLE,				
 	CLASS_LANDO,			
 	CLASS_LIZARD,
@@ -59,6 +59,7 @@ typedef enum
 	CLASS_SENTRY,
 	CLASS_SHADOWTROOPER,
 	CLASS_STORMTROOPER,
+	CLASS_MERC,//Stoiss add merc class
 	CLASS_SWAMP,
 	CLASS_SWAMPTROOPER,
 	CLASS_TAVION,
@@ -70,6 +71,30 @@ typedef enum
 	CLASS_VEHICLE,
 	CLASS_RANCOR,
 	CLASS_WAMPA,
+	CLASS_CIVILIAN,			// UQ1: Random civilian NPCs...
+	CLASS_GENERAL_VENDOR,
+	CLASS_WEAPONS_VENDOR,
+	CLASS_ARMOR_VENDOR,
+	CLASS_SUPPLIES_VENDOR,
+	CLASS_FOOD_VENDOR,
+	CLASS_MEDICAL_VENDOR,
+	CLASS_GAMBLER_VENDOR,
+	CLASS_TRADE_VENDOR,
+	CLASS_ODDITIES_VENDOR,
+	CLASS_DRUG_VENDOR,
+	CLASS_TRAVELLING_VENDOR,
+	//Stoiss add: FAQ Npc class
+	CLASS_JKG_FAQ_IMP_DROID,
+	CLASS_JKG_FAQ_ALLIANCE_DROID,
+	CLASS_JKG_FAQ_SPY_DROID,
+	CLASS_JKG_FAQ_CRAFTER_DROID,
+	CLASS_JKG_FAQ_MERC_DROID,
+	CLASS_JKG_FAQ_JEDI_MENTOR,
+	CLASS_JKF_FAQ_SITH_MENTOR,
+	//Stoiss end
+	CLASS_BOT_FAKE_NPC,
 	
 	CLASS_NUM_CLASSES
 } class_t;
+
+#endif	// #ifndef TEAMS_H

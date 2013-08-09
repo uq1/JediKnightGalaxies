@@ -1,3 +1,5 @@
+// leave this line at the top for all g_xxxx.cpp files...
+#include "g_headers.h"
 
 //seems to be a compiler bug, it doesn't clean out the #ifdefs between dif-compiles
 //or something, so the headers spew errors on these defs from the previous compile.
@@ -10,9 +12,6 @@
 #undef maxs
 #undef legsAnimTimer
 #undef torsoAnimTimer
-#undef bool
-#undef false
-#undef true
 
 #undef sqrtf
 #undef Q_flrand
@@ -54,13 +53,8 @@
 #define maxs r.maxs
 #define legsAnimTimer legsTimer
 #define torsoAnimTimer torsoTimer
-#define bool qboolean
-#define false qfalse
-#define true qtrue
 
-#ifdef sqrtf
 #undef sqrtf
-#endif
 #define sqrtf sqrt
 #define Q_flrand flrand
 
@@ -75,7 +69,7 @@ extern vmCvar_t	cg_thirdPersonAlpha;
 extern vec3_t playerMins;
 extern vec3_t playerMaxs;
 extern cvar_t	*g_speederControlScheme;
-extern void ChangeWeapon( gentity_t *ent, int newWeapon );
+extern void ChangeWeapon( gentity_t *ent, int newWeapon, int weapVariation );
 extern void PM_SetAnim(pmove_t	*pm,int setAnimParts,int anim,int setAnimFlags, int blendTime);
 extern int PM_AnimLength( int index, animNumber_t anim );
 extern void G_VehicleTrace( trace_t *results, const vec3_t start, const vec3_t tMins, const vec3_t tMaxs, const vec3_t end, int passEntityNum, int contentmask );
@@ -84,7 +78,6 @@ extern void G_VehicleTrace( trace_t *results, const vec3_t start, const vec3_t t
 extern qboolean BG_UnrestrainedPitchRoll( playerState_t *ps, Vehicle_t *pVeh );
 
 #ifdef _JK2MP
-
 
 extern void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags, int blendTime);
 extern int BG_GetTime(void);
@@ -1017,13 +1010,13 @@ static void FighterDamageRoutine( Vehicle_t *pVeh, bgEntity_t *parent, playerSta
 #ifdef QAGAME
 	if ( pVeh->m_LandTrace.fraction < 1.0f )
 	{ //if you land at all when pieces of your ship are missing, then die
-		gentity_t *vparent = (gentity_t *)pVeh->m_pParentEntity;
-		gentity_t *killer = vparent;
+		gentity_t *parent = (gentity_t *)pVeh->m_pParentEntity;
+		gentity_t *killer = parent;
 #ifdef _JK2MP//only have this info in MP...
-		if (vparent->client->ps.otherKiller < ENTITYNUM_WORLD &&
-			vparent->client->ps.otherKillerTime > level.time)
+		if (parent->client->ps.otherKiller < ENTITYNUM_WORLD &&
+			parent->client->ps.otherKillerTime > level.time)
 		{
-			gentity_t *potentialKiller = &g_entities[vparent->client->ps.otherKiller];
+			gentity_t *potentialKiller = &g_entities[parent->client->ps.otherKiller];
 
 			if (potentialKiller->inuse && potentialKiller->client)
 			{ //he's valid I guess
@@ -1031,7 +1024,7 @@ static void FighterDamageRoutine( Vehicle_t *pVeh, bgEntity_t *parent, playerSta
 			}
 		}
 #endif
-		G_Damage(vparent, killer, killer, vec3_origin, vparent->client->ps.origin, 99999, DAMAGE_NO_ARMOR, MOD_SUICIDE);
+		G_Damage(parent, killer, killer, vec3_origin, parent->client->ps.origin, 99999, DAMAGE_NO_ARMOR, MOD_SUICIDE);
 	}
 #endif
 
@@ -1982,6 +1975,7 @@ void G_SetFighterVehicleFunctions( vehicleInfo_t *pVehInfo )
 }
 
 // Following is only in game, not in namespace
+
 #ifdef QAGAME
 extern void G_AllocateVehicleObject(Vehicle_t **pVeh);
 #endif
@@ -1999,7 +1993,7 @@ void G_CreateFighterNPC( Vehicle_t **pVeh, const char *strType )
 #else
 	if (!*pVeh)
 	{ //only allocate a new one if we really have to
-		(*pVeh) = (Vehicle_t *) BG_Alloc( sizeof(Vehicle_t) );
+		(*pVeh) = (Vehicle_t *) malloc( sizeof(Vehicle_t) );
 	}
 #endif
 	memset(*pVeh, 0, sizeof(Vehicle_t));
@@ -2011,7 +2005,6 @@ void G_CreateFighterNPC( Vehicle_t **pVeh, const char *strType )
 
 #ifdef _JK2MP
 
-
 //get rid of all the crazy defs we added for this file
 #undef currentAngles
 #undef currentOrigin
@@ -2019,9 +2012,6 @@ void G_CreateFighterNPC( Vehicle_t **pVeh, const char *strType )
 #undef maxs
 #undef legsAnimTimer
 #undef torsoAnimTimer
-#undef bool
-#undef false
-#undef true
 
 #undef sqrtf
 #undef Q_flrand

@@ -6,6 +6,9 @@
 #include "bg_saga.h"
 #include "qcommon/q_shared.h"
 
+// Include GLua
+#include "../GLua/glua.h"
+
 typedef struct {
   char oldShader[MAX_QPATH];
   char newShader[MAX_QPATH];
@@ -99,7 +102,11 @@ Ghoul2 Insert Start
 */
 
 int G_BoneIndex( const char *name ) {
+#ifdef __MMO__
+	return 0;
+#else //!__MMO__
 	return G_FindConfigstringIndex (name, CS_G2BONES, MAX_G2BONES, qtrue);
+#endif //__MMO__
 }
 /*
 Ghoul2 Insert End
@@ -136,7 +143,12 @@ int	G_IconIndex( const char* name )
 }
 
 int G_SoundIndex( const char *name ) {
-	assert(name && name[0]);
+	// Removing this assert, since it causes Scizo's map to break --eez
+	//assert(name && name[0]);
+	if(!name || !name[0])
+	{
+		return 0;
+	}
 	return G_FindConfigstringIndex (name, CS_SOUNDS, MAX_SOUNDS, qtrue);
 }
 
@@ -161,29 +173,7 @@ int G_BSPIndex( const char *name )
 //see if we can or should allow this guy to use a custom skeleton -rww
 qboolean G_PlayerHasCustomSkeleton(gentity_t *ent)
 {
-	/*
-	siegeClass_t *scl;
-
-	if (level.gametype != GT_SIEGE)
-	{ //only in siege
-		return qfalse;
-	}
-
-	if (ent->s.number >= MAX_CLIENTS ||
-		!ent->client ||
-		ent->client->siegeClass == -1)
-	{ //invalid class
-		return qfalse;
-	}
-
-	scl = &bgSiegeClasses[ent->client->siegeClass];
-	if (!(scl->classflags & (1<<CFL_CUSTOMSKEL)))
-	{ //class is not flagged for this
-		return qfalse;
-	}
-
-	return qtrue;
-	*/
+	// TODO: expand --eez
 	return qfalse;
 }
 
@@ -222,13 +212,30 @@ NULL will be returned if the end of the list is reached.
 gentity_t *G_Find (gentity_t *from, int fieldofs, const char *match)
 {
 	char	*s;
+	int idx;
 
 	if (!from)
 		from = g_entities;
 	else
 		from++;
 
+	idx = from - g_entities;
+	if (idx >= MAX_GENTITIES)
+		goto dological;
+
 	for ( ; from < &g_entities[level.num_entities] ; from++)
+	{
+		if (!from->inuse)
+			continue;
+		s = *(char **) ((byte *)from + fieldofs);
+		if (!s)
+			continue;
+		if (!Q_stricmp (s, match))
+			return from;
+	}
+	from = &g_logicalents[0]; // 1st logical entity
+dological:
+	for ( ; from < &g_logicalents[level.num_logicalents] ; from++)
 	{
 		if (!from->inuse)
 			continue;
@@ -432,7 +439,7 @@ void G_CreateFakeClient(int entNum, gclient_t **cl)
 	//trap_TrueMalloc((void **)cl, sizeof(gclient_t));
 	if (!gClPtrs[entNum])
 	{
-		gClPtrs[entNum] = (gclient_t *) BG_Alloc(sizeof(gclient_t));
+		gClPtrs[entNum] = (gclient_t *) malloc(sizeof(gclient_t));
 	}
 	*cl = gClPtrs[entNum];
 }
@@ -684,8 +691,16 @@ void G_InitGentity( gentity_t *e ) {
 	e->inuse = qtrue;
 	e->classname = "noclass";
 	e->s.number = e - g_entities;
+	if (e->s.number<1023) {
+		e->isLogical = qfalse;
+	} else {
+		e->isLogical = qtrue;
+	}
 	e->r.ownerNum = ENTITYNUM_NONE;
 	e->s.modelGhoul2 = 0; //assume not
+
+	// Jedi Knight Galaxies - Wipe spawnvars
+	JKG_Pairs_Clear(&g_spawnvars[e->s.number]);
 
 	trap_ICARUS_FreeEnt( e );	//ICARUS information must be added after this point
 }
@@ -788,6 +803,9 @@ instead of being removed and recreated, which can cause interpolated
 angles and bad trails.
 =================
 */
+
+int NextIDCode = 1;
+
 gentity_t *G_Spawn( void ) {
 	int			i, force;
 	gentity_t	*e;
@@ -799,8 +817,15 @@ gentity_t *G_Spawn( void ) {
 		// override the normal minimum times before use
 		e = &g_entities[MAX_CLIENTS];
 		for ( i = MAX_CLIENTS ; i<level.num_entities ; i++, e++) {
-			if ( e->inuse ) {
-				continue;
+
+			if (force) {
+				if (!e->tempEntity) {
+					continue;
+				}
+			} else {
+				if ( e->inuse ) {
+					continue;
+				}
 			}
 
 			// the first couple seconds of server time can involve a lot of
@@ -810,11 +835,14 @@ gentity_t *G_Spawn( void ) {
 				continue;
 			}
 
+			
 			// reuse this slot
 			G_InitGentity( e );
+			e->IDCode = NextIDCode++;
+			e->UsesELS = 0;
 			return e;
 		}
-		if ( i != MAX_GENTITIES ) {
+		if ( i != ENTITYNUM_MAX_NORMAL ) {
 			break;
 		}
 	}
@@ -835,9 +863,67 @@ gentity_t *G_Spawn( void ) {
 	trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ), 
 		&level.clients[0].ps, sizeof( level.clients[0] ) );
 
+	
 	G_InitGentity( e );
+	e->IDCode = NextIDCode++;
+	e->UsesELS = 0;
 	return e;
 }
+
+
+// G_SpawnLogical: Creates a logical entity (ent nums 1024 to 4097)
+gentity_t *G_SpawnLogical( void ) {
+	int			i, force;
+	gentity_t	*e;
+
+	e = NULL;	// shut up warning
+	i = 0;		// shut up warning
+	for ( force = 0 ; force < 2 ; force++ ) {
+		// if we go through all entities and can't find one to free,
+		// override the normal minimum times before use
+		e = &g_entities[MAX_GENTITIES];
+		for ( i = MAX_GENTITIES ; i< (MAX_GENTITIES+level.num_logicalents) ; i++, e++) {
+			if ( e->inuse ) {
+				continue;
+			}
+
+			// the first couple seconds of server time can involve a lot of
+			// freeing and allocating, so relax the replacement policy
+			if ( !force && e->freetime > level.startTime + 2000 && level.time - e->freetime < 1000 )
+			{
+				continue;
+			}
+
+			// reuse this slot
+			G_InitGentity( e );
+			e->IDCode = NextIDCode++;
+			e->UsesELS = 0;
+			return e;
+		}
+		if ( i != MAX_ENTITIESTOTAL ) {
+			break;
+		}
+	}
+	if ( i == MAX_ENTITIESTOTAL-1 ) {
+		/*
+		for (i = 0; i < MAX_GENTITIES; i++) {
+			G_Printf("%4i: %s\n", i, g_entities[i].classname);
+		}
+		*/
+		G_SpewEntList();
+		G_Error( "G_SpawnLogical: no free entities" );
+	}
+	
+	// open up a new slot
+	level.num_logicalents++;
+	
+	G_InitGentity( e );
+	e->IDCode = NextIDCode++;
+	e->UsesELS = 0;
+	return e;
+}
+
+
 
 /*
 =================
@@ -916,9 +1002,12 @@ G_FreeEntity
 Marks the entity as free
 =================
 */
+
+void JKG_CBB_RemoveBB(gentity_t *ent);
 void G_FreeEntity( gentity_t *ed ) {
 	//gentity_t *te;
-
+	int i;
+	int entnum;
 	if (ed->isSaberEntity)
 	{
 #ifdef _DEBUG
@@ -1023,12 +1112,56 @@ void G_FreeEntity( gentity_t *ed ) {
 		trap_SendServerCommand(-1, va("kls %i %i", ed->s.trickedentindex, ed->s.number));
 	}
 
+	// Jedi Knight Galaxies
+	if (ed->remove) {		// Only used by scripted entities
+		ed->remove(ed);
+	}
+	JKG_CBB_RemoveBB(ed);
+	G_FreeSpawnVars(ed);
+
+	if (ed->parms) {
+		G_Free(ed->parms); // Free the parms before we wipe it to 0
+	}
+
+	if (ed->UsesELS) {
+		GLua_Wipe_EntDataSlot(ed);
+	}
+	ed->UsesELS = 0;
+	ed->IDCode = 0;
+	
+	if (ed->classname) {
+		G_Free(ed->classname);
+	}
+
 	memset (ed, 0, sizeof(*ed));
 	ed->classname = "freed";
 	ed->freetime = level.time;
 	ed->inuse = qfalse;
-}
 
+	// Ok, lets see if we can lower level.num_entities.
+	// If this entity was the last allocated slot, run back through g_entities and get the last used slots.
+	entnum = ed - g_entities;
+	if (!ed->isLogical) {
+		if (entnum == level.num_entities - 1) {
+			// Last slot, roll back
+			for (i = entnum; i >= MAX_CLIENTS; i--) {
+				if (g_entities[i].inuse)
+					break;
+			}
+			level.num_entities = i + 1;
+		}
+	} else {
+		if (entnum == MAX_GENTITIES + level.num_logicalents - 1) {
+			// Last slot, roll back
+			for (i = entnum; i >= MAX_GENTITIES; i--) {
+				if (g_entities[i].inuse)
+					break;
+			}
+			level.num_logicalents = i + 1 - MAX_GENTITIES;
+		}
+
+	}
+}
 /*
 =================
 G_TempEntity
@@ -1038,7 +1171,7 @@ The origin will be snapped to save net bandwidth, so care
 must be taken if the origin is right on a surface (snap towards start vector first)
 =================
 */
-gentity_t *G_TempEntity( vec3_t origin, int event ) {
+gentity_t *G_TempEntity( const vec3_t origin, int event ) {
 	gentity_t		*e;
 	vec3_t		snapped;
 
@@ -1048,6 +1181,7 @@ gentity_t *G_TempEntity( vec3_t origin, int event ) {
 	e->classname = "tempEntity";
 	e->eventTime = level.time;
 	e->freeAfterEvent = qtrue;
+	e->tempEntity = qtrue;
 
 	VectorCopy( origin, snapped );
 	SnapVector( snapped );		// save network bandwidth
@@ -1099,6 +1233,7 @@ gentity_t *G_SoundTempEntity( vec3_t origin, int event, int channel ) {
 void G_ScaleNetHealth(gentity_t *self)
 {
 	int maxHealth = self->maxHealth;
+	double divfactor;
 
     if (maxHealth < 1000)
 	{ //it's good then
@@ -1112,9 +1247,13 @@ void G_ScaleNetHealth(gentity_t *self)
 		return;
 	}
 
-	//otherwise, scale it down
-	self->s.maxhealth = (maxHealth/100);
-	self->s.health = (self->health/100);
+
+	//otherwise, scale it down to ~0-1000 range
+	divfactor = ceil(log10((double)maxHealth)) - 3;
+
+	self->s.maxhealth = (maxHealth / (powf(10, divfactor)));
+	self->s.health = (self->health / (powf(10, divfactor)));
+	
 
 	if (self->s.health < 0)
 	{ //don't let it wrap around
@@ -1416,6 +1555,35 @@ qboolean ValidUseTarget( gentity_t *ent )
 		return qfalse;
 	}
 
+	if (ent->s.eType == ET_NPC)
+	{
+		switch (ent->client->NPC_class)
+		{
+		case CLASS_GENERAL_VENDOR:
+		case CLASS_WEAPONS_VENDOR:
+		case CLASS_ARMOR_VENDOR:
+		case CLASS_SUPPLIES_VENDOR:
+		case CLASS_FOOD_VENDOR:
+		case CLASS_MEDICAL_VENDOR:
+		case CLASS_GAMBLER_VENDOR:
+		case CLASS_TRADE_VENDOR:
+		case CLASS_ODDITIES_VENDOR:
+		case CLASS_DRUG_VENDOR:
+		case CLASS_TRAVELLING_VENDOR:
+		case CLASS_JKG_FAQ_IMP_DROID:
+		case CLASS_JKG_FAQ_ALLIANCE_DROID:
+		case CLASS_JKG_FAQ_SPY_DROID:
+		case CLASS_JKG_FAQ_CRAFTER_DROID:
+		case CLASS_JKG_FAQ_MERC_DROID:
+		case CLASS_JKG_FAQ_JEDI_MENTOR:
+		case CLASS_JKF_FAQ_SITH_MENTOR:
+			return qtrue;
+			break;
+		default:
+			break;
+		}
+	}
+
 	if ( ent->flags & FL_INACTIVE )
 	{//set by target_deactivate
 		return qfalse;
@@ -1449,15 +1617,17 @@ void G_UseDispenserOn(gentity_t *ent, int dispType, gentity_t *target)
 		if (ent->client->medSupplyDebounce < level.time)
 		{ //do the next increment
 			//increment based on the amount of ammo used per normal shot.
-			target->client->ps.ammo[weaponData[target->client->ps.weapon].ammoIndex] += weaponData[target->client->ps.weapon].energyPerShot;
+			int ammoMax = GetWeaponAmmoMax( target->client->ps.weapon, target->client->ps.weaponVariation );
 
-			if (target->client->ps.ammo[weaponData[target->client->ps.weapon].ammoIndex] > ammoData[weaponData[target->client->ps.weapon].ammoIndex].max)
-			{ //cap it off
-				target->client->ps.ammo[weaponData[target->client->ps.weapon].ammoIndex] = ammoData[weaponData[target->client->ps.weapon].ammoIndex].max;
+			target->client->ps.ammo += GetWeaponData( target->client->ps.weapon, target->client->ps.weaponVariation )->firemodes[0].cost;
+
+			if ( target->client->ps.ammo > ammoMax )
+			{
+				target->client->ps.ammo = ammoMax;
 			}
 
 			//base the next supply time on how long the weapon takes to fire. Seems fair enough.
-			ent->client->medSupplyDebounce = level.time + weaponData[target->client->ps.weapon].fireTime;
+			ent->client->medSupplyDebounce = level.time + GetWeaponData( target->client->ps.weapon, target->client->ps.weaponVariation )->firemodes[0].delay;
 		}
 		target->client->isMedSupplied = level.time + 500;
 	}
@@ -1489,7 +1659,7 @@ int G_CanUseDispOn(gentity_t *ent, int dispType)
 			return 0;
 		}
 
-		if (ent->client->ps.ammo[weaponData[ent->client->ps.weapon].ammoIndex] < ammoData[weaponData[ent->client->ps.weapon].ammoIndex].max)
+		if (ent->client->ps.ammo < GetWeaponAmmoMax( ent->client->ps.weapon, ent->client->ps.weaponVariation ))
 		{ //needs more ammo for current weapon
 			return 1;
 		}
@@ -1504,59 +1674,6 @@ int G_CanUseDispOn(gentity_t *ent, int dispType)
 
 qboolean TryHeal(gentity_t *ent, gentity_t *target)
 {
-	if (level.gametype == GT_SIEGE && ent->client->siegeClass != -1 &&
-		target && target->inuse && target->maxHealth && target->healingclass &&
-		target->healingclass[0] && target->health > 0 && target->health < target->maxHealth)
-	{ //it's not dead yet...
-		siegeClass_t *scl = &bgSiegeClasses[ent->client->siegeClass];
-
-		if (!Q_stricmp(scl->name, target->healingclass))
-		{ //this thing can be healed by the class this player is using
-			if (target->healingDebounce < level.time)
-			{ //do the actual heal
-				target->health += 10;
-				if (target->health > target->maxHealth)
-				{ //don't go too high
-					target->health = target->maxHealth;
-				}
-				target->healingDebounce = level.time + target->healingrate;
-				if (target->healingsound && target->healingsound[0])
-				{ //play it
-					if (target->s.solid == SOLID_BMODEL)
-					{ //ok, well, just play it on the client then.
-						G_Sound(ent, CHAN_AUTO, G_SoundIndex(target->healingsound));
-					}
-					else
-					{
-						G_Sound(target, CHAN_AUTO, G_SoundIndex(target->healingsound));
-					}
-				}
-
-				//update net health for bar
-				G_ScaleNetHealth(target);
-				if (target->target_ent &&
-					target->target_ent->maxHealth)
-				{
-					target->target_ent->health = target->health;
-					G_ScaleNetHealth(target->target_ent);
-				}
-			}
-
-			//keep them in the healing anim even when the healing debounce is not yet expired
-			if (ent->client->ps.torsoAnim == BOTH_BUTTON_HOLD ||
-				ent->client->ps.torsoAnim == BOTH_CONSOLE1)
-			{ //extend the time
-				ent->client->ps.torsoTimer = 500;
-			}
-			else
-			{
-				G_SetAnim( ent, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
-			}
-
-			return qtrue;
-		}
-	}
-
 	return qfalse;
 }
 
@@ -1568,24 +1685,22 @@ Try and use an entity in the world, directly ahead of us
 ==============
 */
 
-#define USE_DISTANCE	64.0f
+#define USE_DISTANCE	64.0f		// Default use distance (npcs can override up to USE_DISTANCE_MAX)
+#define PICKUP_DISTANCE	128.0f		// Default item pickup distance
+#define USE_DISTANCE_MAX	1024.0f	// Max distance for use
 
 extern void Touch_Button(gentity_t *ent, gentity_t *other, trace_t *trace );
-extern qboolean gSiegeRoundBegun;
 static vec3_t	playerMins = {-15, -15, DEFAULT_MINS_2};
 static vec3_t	playerMaxs = {15, 15, DEFAULT_MAXS_2};
+void GLua_NPCEV_OnUse(gentity_t *self, gentity_t *other, gentity_t *activator);
+extern void JKG_target_vendor_use(gentity_t *ent, gentity_t *other, gentity_t *activator);
+
 void TryUse( gentity_t *ent )
 {
 	gentity_t	*target;
 	trace_t		trace;
 	vec3_t		src, dest, vf;
 	vec3_t		viewspot;
-
-	if (level.gametype == GT_SIEGE &&
-		!gSiegeRoundBegun)
-	{ //nothing can be used til the round starts.
-		return;
-	}
 
 	if (!ent || !ent->client || (ent->client->ps.weaponTime > 0 && ent->client->ps.torsoAnim != BOTH_BUTTON_HOLD && ent->client->ps.torsoAnim != BOTH_CONSOLE1) || ent->health < 1 ||
 		(ent->client->ps.pm_flags & PMF_FOLLOW) || ent->client->sess.sessionTeam == TEAM_SPECTATOR || ent->client->tempSpectate >= level.time ||
@@ -1647,7 +1762,7 @@ void TryUse( gentity_t *ent )
 	VectorCopy( viewspot, src );
 	AngleVectors( ent->client->ps.viewangles, vf, NULL, NULL );
 
-	VectorMA( src, USE_DISTANCE, vf, dest );
+	VectorMA( src, USE_DISTANCE_MAX, vf, dest );
 
 	//Trace ahead to find a valid target
 	trap_Trace( &trace, src, vec3_origin, vec3_origin, dest, ent->s.number, MASK_OPAQUE|CONTENTS_SOLID|CONTENTS_BODY|CONTENTS_ITEM|CONTENTS_CORPSE );
@@ -1658,6 +1773,56 @@ void TryUse( gentity_t *ent )
 	}
 
 	target = &g_entities[trace.entityNum];
+
+	// First we try the npc, if its use range is good, then trigger it, otherwise abort.
+
+	// If this is a lua npc, call the OnUse event
+	if (target->client && target->NPC && target->NPC->isLuaNPC) {
+		if (target->NPC->maxUseRange >= (USE_DISTANCE_MAX * trace.fraction) && target->client->ps.stats[STAT_HEALTH] > 0) {
+			GLua_NPCEV_OnUse(target, ent, ent);
+			return;
+		}
+	}
+
+	// [USE_ITEMS] Check if we targetted an item
+	if (target->s.eType == ET_ITEM && target->touch && (trace.fraction * USE_DISTANCE_MAX) <= PICKUP_DISTANCE ) {
+		target->touch(target, ent, &trace);
+		return;
+	}
+	// [/USE_ITEMS]
+
+
+	if ((trace.fraction * USE_DISTANCE_MAX) > USE_DISTANCE)
+	{
+		goto tryJetPack;
+	}
+
+	//Check for a use command
+	if ( ValidUseTarget( target ) )
+	{
+		if (target->s.eType == ET_NPC)
+		{
+			switch (target->client->NPC_class)
+			{
+			case CLASS_GENERAL_VENDOR:
+			case CLASS_WEAPONS_VENDOR:
+			case CLASS_ARMOR_VENDOR:
+			case CLASS_SUPPLIES_VENDOR:
+			case CLASS_FOOD_VENDOR:
+			case CLASS_MEDICAL_VENDOR:
+			case CLASS_GAMBLER_VENDOR:
+			case CLASS_TRADE_VENDOR:
+			case CLASS_ODDITIES_VENDOR:
+			case CLASS_DRUG_VENDOR:
+			case CLASS_TRAVELLING_VENDOR:
+				JKG_target_vendor_use(target, ent, ent);
+				return;
+				break;
+			default:
+				break;
+			}
+		}
+	}
 
 //Enable for corpse dragging
 #if 0
@@ -1762,11 +1927,7 @@ void TryUse( gentity_t *ent )
 #endif
 
 	//Check for a use command
-	if ( ValidUseTarget( target ) 
-		&& (level.gametype != GT_SIEGE 
-			|| !target->alliedTeam 
-			|| target->alliedTeam != ent->client->sess.sessionTeam 
-			|| g_ff_objectives.integer) )
+	if ( ValidUseTarget( target ) )
 	{
 		if (ent->client->ps.torsoAnim == BOTH_BUTTON_HOLD ||
 			ent->client->ps.torsoAnim == BOTH_CONSOLE1)
@@ -1777,6 +1938,7 @@ void TryUse( gentity_t *ent )
 		{
 			G_SetAnim( ent, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
 		}
+
 		ent->client->ps.weaponTime = ent->client->ps.torsoTimer;
 		/*
 		NPC_SetAnim( ent, SETANIM_TORSO, BOTH_FORCEPUSH, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );

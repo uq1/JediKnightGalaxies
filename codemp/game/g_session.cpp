@@ -13,7 +13,10 @@ and tournament restarts.
 =======================================================================
 */
 
-//TODO: Replace with reading/writing to file(s)
+// Jedi Knight Galaxies
+// Alrighty, we're recoding this system completely.
+// Instead of using cvars (lol wtf), we're gonna save the session data into a allocation :o
+clientSession_t *g_sess; //[MAX_CLIENTS] // Store session data in here
 
 /*
 ================
@@ -22,50 +25,87 @@ G_WriteClientSessionData
 Called on game shutdown
 ================
 */
-void G_WriteClientSessionData( gclient_t *client )
-{
-	char		s[MAX_CVAR_VALUE_STRING] = {0},
-				siegeClass[64] = {0}, IP[NET_ADDRSTRMAXLEN] = {0};
+void G_WriteClientSessionData( gclient_t *client ) {
+	
+	g_sess[client - level.clients] = client->sess;
+	
+	/*
+	const char	*s;
 	const char	*var;
 	int			i = 0;
+	char		siegeClass[64];
+	char		saberType[64];
+	char		saber2Type[64];
 
-	// for the strings, replace ' ' with 1
+	strcpy(siegeClass, client->sess.siegeClass);
 
-	Q_strncpyz( siegeClass, client->sess.siegeClass, sizeof( siegeClass ) );
-	for ( i=0; siegeClass[i]; i++ ) {
+	while (siegeClass[i])
+	{ //sort of a hack.. we don't want spaces by siege class names have spaces so convert them all to unused chars
 		if (siegeClass[i] == ' ')
+		{
 			siegeClass[i] = 1;
-	}
-	if ( !siegeClass[0] )
-		Q_strncpyz( siegeClass, "none", sizeof( siegeClass ) );
+		}
 
-	Q_strncpyz( IP, client->sess.IP, sizeof( IP ) );
-	for ( i=0; IP[i]; i++ ) {
-		if (IP[i] == ' ')
-			IP[i] = 1;
+		i++;
 	}
-	if ( !IP[0] )
-		Q_strncpyz( IP, "none", sizeof( IP ) );
 
-	// Make sure there is no space on the last entry
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.sessionTeam ) );
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.spectatorTime ) );
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.spectatorState ) );
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.spectatorClient ) );
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.wins ) );
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.losses ) );
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.teamLeader ) );
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.setForce ) );
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.saberLevel ) );
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.selectedFP ) );
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.duelTeam ) );
-	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.siegeDesiredTeam ) );
-	Q_strcat( s, sizeof( s ), va( "%s ", siegeClass ) );
-	Q_strcat( s, sizeof( s ), va( "%s", IP ) );
+	if (!siegeClass[0])
+	{ //make sure there's at least something
+		strcpy(siegeClass, "none");
+	}
+
+	//Do the same for the saber
+	strcpy(saberType, client->sess.saberType);
+
+	i = 0;
+	while (saberType[i])
+	{
+		if (saberType[i] == ' ')
+		{
+			saberType[i] = 1;
+		}
+
+		i++;
+	}
+
+	strcpy(saber2Type, client->sess.saber2Type);
+
+	i = 0;
+	while (saber2Type[i])
+	{
+		if (saber2Type[i] == ' ')
+		{
+			saber2Type[i] = 1;
+		}
+
+		i++;
+	}
+
+	s = va("%i %i %i %i %i %i %i %i %i %i %i %i %s %s %s %s", 
+		client->sess.sessionTeam,
+		client->sess.spectatorTime,
+		client->sess.spectatorState,
+		client->sess.spectatorClient,
+		client->sess.wins,
+		client->sess.losses,
+		client->sess.teamLeader,
+		client->sess.setForce,
+		client->sess.saberLevel,
+		client->sess.selectedFP,
+		client->sess.duelTeam,
+		client->sess.siegeDesiredTeam,
+		siegeClass,
+		saberType,
+		saber2Type,
+		//Jedi Knight Galaxies
+		client->sess.IP
+		);
 
 	var = va( "session%i", client - level.clients );
 
 	trap_Cvar_Set( var, s );
+	*/
+
 }
 
 /*
@@ -75,48 +115,79 @@ G_ReadSessionData
 Called on a reconnect
 ================
 */
-void G_ReadSessionData( gclient_t *client )
-{
-	char			s[MAX_CVAR_VALUE_STRING] = {0};
-	const char		*var;
-	int			i=0, tempSessionTeam=0, tempSpectatorState, tempTeamLeader;
+void G_ReadSessionData( gclient_t *client ) {
+	client->sess = g_sess[client - level.clients];
+	/*
+	char	s[MAX_STRING_CHARS];
+	const char	*var;
+	int			i = 0;
+
+	// bk001205 - format
+	int teamLeader;
+	int spectatorState;
+	int sessionTeam;
 
 	var = va( "session%i", client - level.clients );
 	trap_Cvar_VariableStringBuffer( var, s, sizeof(s) );
 
-	sscanf( s, "%i %i %i %i %i %i %i %i %i %i %i %i %s %s",
-		&tempSessionTeam, //&client->sess.sessionTeam,
+	sscanf( s, "%i %i %i %i %i %i %i %i %i %i %i %i %s %s %s %s",
+		&sessionTeam,                 // bk010221 - format
 		&client->sess.spectatorTime,
-		&tempSpectatorState, //&client->sess.spectatorState,
+		&spectatorState,              // bk010221 - format
 		&client->sess.spectatorClient,
 		&client->sess.wins,
 		&client->sess.losses,
-		&tempTeamLeader, //&client->sess.teamLeader,
+		&teamLeader,                   // bk010221 - format
 		&client->sess.setForce,
 		&client->sess.saberLevel,
 		&client->sess.selectedFP,
 		&client->sess.duelTeam,
 		&client->sess.siegeDesiredTeam,
-		client->sess.siegeClass,
-		client->sess.IP
+		&client->sess.siegeClass,
+		&client->sess.saberType,
+		&client->sess.saber2Type,
+		//Jedi Knight Galaxies
+		&client->sess.IP
 		);
 
-	client->sess.sessionTeam	= (team_t)tempSessionTeam;
-	client->sess.spectatorState	= (spectatorState_t)tempSpectatorState;
-	client->sess.teamLeader		= (qboolean)tempTeamLeader;
-
-	// convert back to spaces from unused chars, as session data is written that way.
-	for ( i=0; client->sess.siegeClass[i]; i++ )
-	{
+	while (client->sess.siegeClass[i])
+	{ //convert back to spaces from unused chars, as session data is written that way.
 		if (client->sess.siegeClass[i] == 1)
+		{
 			client->sess.siegeClass[i] = ' ';
+		}
+
+		i++;
 	}
 
-	for ( i=0; client->sess.IP[i]; i++ )
+	i = 0;
+	//And do the same for the saber type
+	while (client->sess.saberType[i])
 	{
-		if (client->sess.IP[i] == 1)
-			client->sess.IP[i] = ' ';
+		if (client->sess.saberType[i] == 1)
+		{
+			client->sess.saberType[i] = ' ';
+		}
+
+		i++;
 	}
+
+	i = 0;
+	while (client->sess.saber2Type[i])
+	{
+		if (client->sess.saber2Type[i] == 1)
+		{
+			client->sess.saber2Type[i] = ' ';
+		}
+
+		i++;
+	}
+
+	// bk001205 - format issues
+	client->sess.sessionTeam = (team_t)sessionTeam;
+	client->sess.spectatorState = (spectatorState_t)spectatorState;
+	client->sess.teamLeader = (qboolean)teamLeader;
+	*/
 
 	client->ps.fd.saberAnimLevel = client->sess.saberLevel;
 	client->ps.fd.saberDrawAnimLevel = client->sess.saberLevel;
@@ -222,6 +293,8 @@ void G_InitSessionData( gclient_t *client, char *userinfo, qboolean isBot ) {
 	sess->spectatorTime = level.time;
 
 	sess->siegeClass[0] = 0;
+	sess->saberType[0] = 0;
+	sess->saber2Type[0] = 0;
 
 	G_WriteClientSessionData( client );
 }
@@ -234,17 +307,29 @@ G_InitWorldSession
 ==================
 */
 void G_InitWorldSession( void ) {
+	char	tmp[MAX_STRING_CHARS];
 	char	s[MAX_STRING_CHARS];
-	int			gt;
+	int			gt, ptr;
 
 	trap_Cvar_VariableStringBuffer( "session", s, sizeof(s) );
 	gt = atoi( s );
-	
+
 	// if the gametype changed since the last session, don't use any
 	// client sessions
 	if ( level.gametype != gt ) {
 		level.newSession = qtrue;
 		G_Printf( "Gametype changed, clearing session data.\n" );
+	}
+	
+	trap_Cvar_VariableStringBuffer("gsess", tmp, sizeof(tmp));
+	ptr = atoi( tmp );
+	if (!tmp[0]) {
+		// Cvar doesn't exist, first startup
+		memset(&g_sess, 0, sizeof(g_sess));
+		trap_TrueMalloc((void**)&g_sess, sizeof(clientSession_t) * MAX_CLIENTS);
+		trap_Cvar_Set("gsess", va("%i", (int)g_sess));
+	} else {
+		g_sess = (clientSession_t *)ptr;
 	}
 }
 

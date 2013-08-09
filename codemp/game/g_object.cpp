@@ -193,7 +193,7 @@ void G_RunObject( gentity_t *ent )
 	//do impact physics
 	if ( ent->s.pos.trType == TR_GRAVITY )//tr.fraction < 1.0 && 
 	{//FIXME: only do this if no trDelta
-		if ( g_gravity.value <= 0 || tr.plane.normal[2] < 0.7 )
+		if ( g_gravity.value )
 		{
 			if ( ent->flags&(FL_BOUNCE|FL_BOUNCE_HALF) )
 			{

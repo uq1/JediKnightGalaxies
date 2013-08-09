@@ -67,6 +67,7 @@ stringID_table_t ClassTable[] =
 	ENUM2STRING(CLASS_SENTRY),
 	ENUM2STRING(CLASS_SHADOWTROOPER),
 	ENUM2STRING(CLASS_STORMTROOPER),
+	ENUM2STRING(CLASS_MERC),//Stoiss add merc class
 	ENUM2STRING(CLASS_SWAMP),
 	ENUM2STRING(CLASS_SWAMPTROOPER),
 	ENUM2STRING(CLASS_TAVION),
@@ -80,7 +81,30 @@ stringID_table_t ClassTable[] =
 	ENUM2STRING(CLASS_VEHICLE),
 	ENUM2STRING(CLASS_RANCOR),
 	ENUM2STRING(CLASS_WAMPA),
-	{"",	-1}
+	ENUM2STRING(CLASS_CIVILIAN),
+	ENUM2STRING(CLASS_GENERAL_VENDOR),
+	ENUM2STRING(CLASS_WEAPONS_VENDOR),
+	ENUM2STRING(CLASS_ARMOR_VENDOR),
+	ENUM2STRING(CLASS_SUPPLIES_VENDOR),
+	ENUM2STRING(CLASS_FOOD_VENDOR),
+	ENUM2STRING(CLASS_MEDICAL_VENDOR),
+	ENUM2STRING(CLASS_GAMBLER_VENDOR),
+	ENUM2STRING(CLASS_TRADE_VENDOR),
+	ENUM2STRING(CLASS_ODDITIES_VENDOR),
+	ENUM2STRING(CLASS_DRUG_VENDOR),
+	ENUM2STRING(CLASS_TRAVELLING_VENDOR),
+	//Stoiss add: FAQ Npc class
+	ENUM2STRING(CLASS_JKG_FAQ_IMP_DROID),
+	ENUM2STRING(CLASS_JKG_FAQ_ALLIANCE_DROID),
+	ENUM2STRING(CLASS_JKG_FAQ_SPY_DROID),
+	ENUM2STRING(CLASS_JKG_FAQ_CRAFTER_DROID),
+	ENUM2STRING(CLASS_JKG_FAQ_MERC_DROID),
+	ENUM2STRING(CLASS_JKG_FAQ_JEDI_MENTOR),
+	ENUM2STRING(CLASS_JKF_FAQ_SITH_MENTOR),
+	//Stoiss end
+
+	ENUM2STRING(CLASS_BOT_FAKE_NPC),
+	"",	-1
 };
 
 stringID_table_t BSTable[] =
@@ -96,10 +120,10 @@ stringID_table_t BSTable[] =
 	ENUM2STRING(BS_REMOVE),//# Waits for player to leave PVS then removes itself
 	ENUM2STRING(BS_CINEMATIC),//# Does nothing but face it's angles and move to a goal if it has one
 	//the rest are internal only
-	{"",				-1},
+	"",				-1,
 };
 
-#define stringIDExpand(str, strEnum)	{str, strEnum}, ENUM2STRING(strEnum)
+#define stringIDExpand(str, strEnum)	str, strEnum, ENUM2STRING(strEnum)
 
 stringID_table_t BSETTable[] =
 {
@@ -120,7 +144,7 @@ stringID_table_t BSETTable[] =
 	ENUM2STRING(BSET_FFIRE),//# script to run when player shoots their own teammates
 	ENUM2STRING(BSET_FFDEATH),//# script to run when player kills a teammate
 	stringIDExpand("", BSET_INVALID),
-	{"",				-1},
+	"",				-1,
 };
 
 extern stringID_table_t WPTable[];
@@ -206,8 +230,28 @@ char	*ClassNames[CLASS_NUM_CLASSES] =
 	"vehicle",
 	"rancor",
 	"wampa",
+	"civilian",
+	"vendor_weapons",
+	"vendor_armor",
+	"vendor_supplies",
+	"vendor_food",
+	"vendor_medical",
+	"vendor_gambling",
+	"vendor_trade",
+	"vendor_oddities",
+	"vendor_drug",
+	"vendor_travelling",
+	//Stoiss add faq class names
+	"jkg_faq_imp_droid",
+	"jkg_faq_alliance_droid",
+	"jkg_faq_spy_droid",
+	"jkg_faq_crafter_droid",
+	"jkg_faq_merc_droid",
+	"jkg_faq_jedi_mentor",
+	"jkg_faq_sith_mentor",
+	//Stoiss end
+	"bot_fake_npc",
 };
-
 
 /*
 NPC_ReactionTime
@@ -215,7 +259,7 @@ NPC_ReactionTime
 //FIXME use grandom in here
 int NPC_ReactionTime ( void ) 
 {
-	return 200 * ( 6 - NPCS.NPCInfo->stats.reactions );
+	return 200 * ( 6 - NPCInfo->stats.reactions );
 }
 
 //
@@ -227,7 +271,7 @@ extern qboolean BG_ParseLiteral( const char **data, const char *string );
 //
 // NPC parameters file : scripts/NPCs.cfg
 //
-#define MAX_NPC_DATA_SIZE 0x40000
+#define MAX_NPC_DATA_SIZE 0x200000
 char	NPCParms[MAX_NPC_DATA_SIZE];
 char	NPCFile[MAX_QPATH];
 
@@ -321,7 +365,6 @@ static rank_t TranslateRankName( const char *name )
 	}
 
 	return RANK_CIVILIAN;
-
 }
 
 extern saber_colors_t TranslateSaberColor( const char *name );
@@ -1013,6 +1056,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 	NPC->NPC->allWeaponOrder[6]	= WP_NONE;
 	NPC->NPC->allWeaponOrder[7]	= WP_NONE;
 */
+		/*
 		// fill in defaults
 		stats->aggression	= 3;
 		stats->aim			= 3;
@@ -1032,6 +1076,28 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 		stats->walkSpeed	= 90;
 		stats->runSpeed		= 300;
 		stats->acceleration	= 15;//Increase/descrease speed this much per frame (20fps)
+		*/
+
+		// fill in defaults - UQ1: Updating this as part of my "smarter NPCs" project...
+		stats->aggression	= 5;
+		stats->aim			= 5;
+		stats->evasion		= 5;
+		stats->intelligence	= 5;
+		stats->move			= 5;
+		stats->reactions	= 5;
+		stats->earshot		= 2048;
+		stats->hfov			= 140;
+		stats->vfov			= 120;
+		stats->vigilance	= 0.1f;
+		stats->visrange		= 2048;
+
+		stats->health		= 100;
+
+		//stats->yawSpeed		= 190;
+		stats->yawSpeed		= 190;
+		stats->walkSpeed	= 110;
+		stats->runSpeed		= 300;
+		stats->acceleration	= 25;//Increase/descrease speed this much per frame (20fps)
 	}
 	else
 	{
@@ -1104,6 +1170,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 		p = NPCParms;
 		COM_BeginParseSession(NPCFile);
 
+
 		// look for the right NPC
 		while ( p ) 
 		{
@@ -1129,7 +1196,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 		{
 			return qfalse;
 		}
-			
+
 		// parse the NPC info block
 		while ( 1 ) 
 		{
@@ -1795,7 +1862,8 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 				{
 					continue;
 				}
-				NPC->fullName = G_NewString(value);
+				//NPC->fullName = G_NewString(value);
+				G_NewString2((void **)&NPC->fullName, value);
 				continue;
 			}
 
@@ -1834,8 +1902,11 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 				{
 					continue;
 				}
+
 				NPC->client->NPC_class = (class_t)GetIDForString( ClassTable, value );
 				NPC->s.NPC_class = NPC->client->NPC_class; //we actually only need this value now, but at the moment I don't feel like changing the 200+ references to client->NPC_class.
+
+				//G_Printf("Parse NPC class %i [%s]\n", NPC->client->NPC_class, ClassTable[NPC->client->NPC_class]);
 
 				// No md3's for vehicles.
 				if ( NPC->client->NPC_class == CLASS_VEHICLE )
@@ -2227,6 +2298,13 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 				}
 				//FIXME: need to precache the weapon, too?  (in above func)
 				weap = GetIDForString( WPTable, value );
+
+				if ( weap == WP_STUN_BATON )
+				{
+					// UQ1: EEEWWWWW!!!!!
+					weap = WP_BLASTER;
+				}
+
 				if ( weap >= WP_NONE && weap <= WP_NUM_WEAPONS )///*WP_BLASTER_PISTOL*/WP_SABER ) //?!
 				{
 					NPC->client->ps.weapon = weap;
@@ -2234,7 +2312,8 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 					if ( weap > WP_NONE )
 					{
 					//	RegisterItem( FindItemForWeapon( (weapon_t)(NPC->client->ps.weapon) ) );	//precache the weapon
-						NPC->client->ps.ammo[weaponData[NPC->client->ps.weapon].ammoIndex] = 100;//FIXME: max ammo!
+					    NPC->client->ps.stats[STAT_AMMO] = 100;
+						NPC->client->ps.ammo = 100;//FIXME: max ammo!
 					}
 				}
 				continue;
@@ -2342,13 +2421,13 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 					continue;
 				}
 
-				saberName = (char *)BG_TempAlloc(4096);//G_NewString( value );
+				saberName = (char *)malloc(4096);//G_NewString( value );
 				strcpy(saberName, value);
 
 				WP_SaberParseParms( saberName, &NPC->client->saber[0] );
 				npcSaber1 = G_ModelIndex(va("@%s", saberName));
 
-				BG_TempFree(4096);
+				free(saberName);
 				continue;
 			}
 			
@@ -2362,7 +2441,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 
 				if ( !(NPC->client->saber[0].saberFlags&SFL_TWO_HANDED) )
 				{//can't use a second saber if first one is a two-handed saber...?
-					char *saberName = (char *)BG_TempAlloc(4096);//G_NewString( value );
+					char *saberName = (char *)malloc(4096);//G_NewString( value );
 					strcpy(saberName, value);
 
 					WP_SaberParseParms( saberName, &NPC->client->saber[1] );
@@ -2375,7 +2454,8 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 						//NPC->client->ps.dualSabers = qtrue;
 						npcSaber2 = G_ModelIndex(va("@%s", saberName));
 					}
-					BG_TempFree(4096);
+
+					free(saberName);
 				}
 				continue;
 			}
@@ -3222,10 +3302,151 @@ Ghoul2 Insert End
 	*/
 	//rwwFIXMEFIXME: Do something here I guess to properly precache stuff.
 
+	//
+	// UQ1: Part of the "smarter NPCs" project... Make sure their stats are all reasonable...
+	//
+
+	{
+		if (stats->aggression < 5)
+			stats->aggression	= 5;
+
+		if (stats->aim < 5)
+			stats->aim			= 5;
+
+		if (stats->evasion < 5)
+			stats->evasion		= 5;
+
+		if (stats->intelligence < 5)
+			stats->intelligence	= 5;
+
+		if (stats->move < 5)
+			stats->move			= 5;
+		
+		if (stats->reactions < 5)
+			stats->reactions	= 5;
+
+		if (stats->earshot < 2048)
+			stats->earshot		= 2048;
+
+		if (stats->hfov < 140)
+			stats->hfov			= 140;
+
+		if (stats->vfov < 120)
+			stats->vfov			= 120;
+
+		if (stats->vigilance < 0.1f)
+			stats->vigilance	= 0.1f;
+
+		if (stats->visrange < 2048)
+			stats->visrange		= 2048;
+
+		if (stats->health < 400)
+		{// Up all their HP values somewhat... Values well under 100hp are just stupid...
+			if (stats->health <= 50)
+			{
+				stats->health = 100 + (stats->health*2.5);
+			}
+			else if (stats->health <= 100)
+			{
+				stats->health = 100 + (stats->health*2.3);
+			}
+			else if (stats->health <= 200)
+			{
+				stats->health = 100 + (stats->health*2.1);
+			}
+			else if (stats->health <= 300)
+			{
+				stats->health = 100 + (stats->health*1.8);
+			}
+			else if (stats->health <= 400)
+			{
+				stats->health = 100 + (stats->health*1.6);
+			}
+			else
+			{// This will most likely only ever be vehicle NPCs... They have lots of HP anyway...
+				stats->health = 100 + (stats->health*1.5);
+			}
+		}
+
+		if (stats->yawSpeed < 190)
+			stats->yawSpeed		= 190;
+
+		//if (stats->walkSpeed < 110)
+		//	stats->walkSpeed	= 110;
+
+		if (stats->walkSpeed < 160)
+			stats->walkSpeed	= 160;
+
+		//if (stats->runSpeed < 300)
+		//	stats->runSpeed		= 300;
+			stats->runSpeed		= 220;
+
+		if (stats->acceleration < 160)
+			stats->acceleration	= 160;//Increase/descrease speed this much per frame (20fps)
+
+		if (NPC->client->NPC_class == CLASS_REBORN
+			|| NPC->client->NPC_class == CLASS_DESANN
+			|| NPC->client->NPC_class == CLASS_TAVION
+			|| NPC->client->NPC_class == CLASS_MARK1
+			|| NPC->client->NPC_class == CLASS_MARK2)
+		{// UQ1: All these should have FP_DRAIN >= 1
+			if (!(NPC->client->ps.fd.forcePowersKnown & ( 1 << FP_DRAIN ))
+				|| NPC->client->ps.fd.forcePowerLevel[FP_DRAIN] < 1)
+			{// Base level on their level of HP...
+				if (stats->health >= 1000)
+				{
+					NPC->client->ps.fd.forcePowersKnown |= ( 1 << FP_DRAIN );
+					NPC->client->ps.fd.forcePowerLevel[FP_DRAIN] = 3;
+				}
+				else if (stats->health >= 800)
+				{
+					NPC->client->ps.fd.forcePowersKnown |= ( 1 << FP_DRAIN );
+					NPC->client->ps.fd.forcePowerLevel[FP_DRAIN] = 2;
+				}
+				else
+				{
+					NPC->client->ps.fd.forcePowersKnown |= ( 1 << FP_DRAIN );
+					NPC->client->ps.fd.forcePowerLevel[FP_DRAIN] = 1;
+				}
+			}
+		}
+		else if (NPC->client->NPC_class == CLASS_JAN
+			|| NPC->client->NPC_class == CLASS_JEDI
+			|| NPC->client->NPC_class == CLASS_KYLE
+			|| NPC->client->NPC_class == CLASS_LUKE
+			|| NPC->client->NPC_class == CLASS_MONMOTHA
+			|| NPC->client->NPC_class == CLASS_MORGANKATARN)
+		{// UQ1: All these should have FP_HEAL >= 1
+			if (!(NPC->client->ps.fd.forcePowersKnown & ( 1 << FP_HEAL ))
+				|| NPC->client->ps.fd.forcePowerLevel[FP_HEAL] < 1)
+			{// Base level on their level of HP...
+				if (stats->health >= 1000)
+				{
+					NPC->client->ps.fd.forcePowersKnown |= ( 1 << FP_HEAL );
+					NPC->client->ps.fd.forcePowerLevel[FP_HEAL] = 3;
+				}
+				else if (stats->health >= 800)
+				{
+					NPC->client->ps.fd.forcePowersKnown |= ( 1 << FP_HEAL );
+					NPC->client->ps.fd.forcePowerLevel[FP_HEAL] = 2;
+				}
+				else
+				{
+					NPC->client->ps.fd.forcePowersKnown |= ( 1 << FP_HEAL );
+					NPC->client->ps.fd.forcePowerLevel[FP_HEAL] = 1;
+				}
+			}
+		}
+	}
+
 	return qtrue;
 }
 
+#ifdef _XBOX
+char *npcParseBuffer = NULL;
+#else
 char npcParseBuffer[MAX_NPC_DATA_SIZE];
+#endif
 
 void NPC_LoadParms( void ) 
 {
@@ -3243,6 +3464,10 @@ void NPC_LoadParms( void )
 
 	//now load in the extra .npc extensions
 	fileCnt = trap_FS_GetFileList("ext_data/NPCs", ".npc", npcExtensionListBuf, sizeof(npcExtensionListBuf) );
+
+#ifdef _XBOX
+	npcParseBuffer = (char *) Z_Malloc(MAX_NPC_DATA_SIZE, TAG_TEMP_WORKSPACE, qfalse, 4);
+#endif
 
 	holdChar = npcExtensionListBuf;
 	for ( i = 0; i < fileCnt; i++, holdChar += npcExtFNLen + 1 ) 
@@ -3278,4 +3503,5 @@ void NPC_LoadParms( void )
 			//rww  12/19/02-actually the probelm was npcParseBuffer not being nul-term'd, which could cause issues in the strcat too
 		}
 	}
+
 }

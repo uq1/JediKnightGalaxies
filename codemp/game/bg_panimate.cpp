@@ -314,6 +314,35 @@ qboolean BG_InKataAnim(int anim)
 	return qfalse;
 }
 
+//[CoOp]
+qboolean PM_LockedAnim( int anim )
+{//anims that can *NEVER* be overridden, regardless
+	switch ( anim )
+	{
+	case BOTH_KYLE_PA_1:
+	case BOTH_KYLE_PA_2:
+	case BOTH_KYLE_PA_3:
+	case BOTH_PLAYER_PA_1:
+	case BOTH_PLAYER_PA_2:
+	case BOTH_PLAYER_PA_3:
+	case BOTH_PLAYER_PA_3_FLY:
+	case BOTH_TAVION_SCEPTERGROUND:
+	case BOTH_TAVION_SWORDPOWER:
+	case BOTH_SCEPTER_START:
+	case BOTH_SCEPTER_HOLD:
+	case BOTH_SCEPTER_STOP:
+	//grabbed by wampa
+	case BOTH_GRABBED:	//#
+	case BOTH_RELEASED:	//#	when Wampa drops player, transitions into fall on back
+	case BOTH_HANG_IDLE:	//#
+	case BOTH_HANG_ATTACK:	//#
+	case BOTH_HANG_PAIN:	//#
+		return qtrue;
+	}
+	return qfalse;
+}
+//[/CoOp]
+
 qboolean BG_SaberInSpecial( int move )
 {
 	switch( move )
@@ -686,12 +715,12 @@ int BG_InGrappleMove(int anim)
 	return 0;
 }
 
-int BG_BrokenParryForAttack( int move )
+int BG_BrokenParryForAttack( int move, int stance )
 {
 	//Our attack was knocked away by a knockaway parry
 	//FIXME: need actual anims for this
 	//FIXME: need to know which side of the saber was hit!  For now, we presume the saber gets knocked away from the center
-	switch ( saberMoveData[move].startQuad )
+	switch ( SaberStances[stance].moves[move].startingQuadrant )
 	{
 	case Q_B:
 		return LS_V1_B_;
@@ -1080,9 +1109,9 @@ qboolean BG_StabDownAnim( int anim )
 	return qfalse;
 }
 
-int PM_SaberBounceForAttack( int move )
+int PM_SaberBounceForAttack( int stance, int move )
 {
-	switch ( saberMoveData[move].startQuad )
+	switch ( SaberStances[stance].moves[move].startingQuadrant )
 	{
 	case Q_B:
 	case Q_BR:
@@ -1210,8 +1239,113 @@ qboolean PM_InSaberAnim( int anim )
 	return qfalse;
 }
 
+
+//[KnockdownSys]
+//[SPPortCompete]
+qboolean PM_InForceGetUp( playerState_t *ps )
+{//racc - Are we in a getup animation that uses the Force?
+	switch ( ps->legsAnim )
+	{
+	case BOTH_FORCE_GETUP_F1:
+	case BOTH_FORCE_GETUP_F2:
+	case BOTH_FORCE_GETUP_B1:
+	case BOTH_FORCE_GETUP_B2:
+	case BOTH_FORCE_GETUP_B3:
+	case BOTH_FORCE_GETUP_B4:
+	case BOTH_FORCE_GETUP_B5:
+	case BOTH_FORCE_GETUP_B6:
+	case BOTH_GETUP_BROLL_B:
+	case BOTH_GETUP_BROLL_F:
+	case BOTH_GETUP_BROLL_L:
+	case BOTH_GETUP_BROLL_R:
+	case BOTH_GETUP_FROLL_B:
+	case BOTH_GETUP_FROLL_F:
+	case BOTH_GETUP_FROLL_L:
+	case BOTH_GETUP_FROLL_R:
+		if ( ps->legsTimer )
+		{
+			return qtrue;
+		}
+		break;
+	}
+	return qfalse;
+}
+
+qboolean PM_InGetUp( playerState_t *ps )
+{//racc - player in getup animation.
+	switch ( ps->legsAnim )
+	{
+	case BOTH_GETUP1:
+	case BOTH_GETUP2:
+	case BOTH_GETUP3:
+	case BOTH_GETUP4:
+	case BOTH_GETUP5:
+	case BOTH_GETUP_CROUCH_F1:
+	case BOTH_GETUP_CROUCH_B1:
+	case BOTH_GETUP_BROLL_B:
+	case BOTH_GETUP_BROLL_F:
+	case BOTH_GETUP_BROLL_L:
+	case BOTH_GETUP_BROLL_R:
+	case BOTH_GETUP_FROLL_B:
+	case BOTH_GETUP_FROLL_F:
+	case BOTH_GETUP_FROLL_L:
+	case BOTH_GETUP_FROLL_R:
+		if ( ps->legsTimer )
+		{
+			return qtrue;
+		}
+		break;
+	default:
+		return PM_InForceGetUp( ps );
+		break;
+	}
+	//what the hell, redundant, but...
+	return qfalse;
+}
+//[/KnockdownSys]
+
+
 qboolean PM_InKnockDown( playerState_t *ps )
 {
+	//[KnockdownSys] 
+	//Porting in SP Code for this stuff.
+	switch ( ps->legsAnim )
+	{
+	case BOTH_KNOCKDOWN1:
+	case BOTH_KNOCKDOWN2:
+	case BOTH_KNOCKDOWN3:
+	case BOTH_KNOCKDOWN4:
+	case BOTH_KNOCKDOWN5:
+	//special anims:
+	case BOTH_RELEASED:
+		return qtrue;
+		break;
+	case BOTH_LK_DL_ST_T_SB_1_L:
+		if ( ps->legsTimer < 550 )
+		{
+			return qtrue;
+		}
+		break;
+	case BOTH_PLAYER_PA_3_FLY:
+		if ( ps->legsTimer < 300 )
+		{
+			return qtrue;
+		}
+		/*
+		else if ( ps->clientNum < MAX_CLIENTS 
+			&& ps->legsAnimTimer < 300 + PLAYER_KNOCKDOWN_HOLD_EXTRA_TIME )
+		{
+			return qtrue;
+		}
+		*/
+		break;
+	default:
+		return PM_InGetUp( ps );
+		break;
+	}
+	return qfalse;
+
+	/* basejka code
 	switch ( (ps->legsAnim) )
 	{
 	case BOTH_KNOCKDOWN1:
@@ -1219,6 +1353,9 @@ qboolean PM_InKnockDown( playerState_t *ps )
 	case BOTH_KNOCKDOWN3:
 	case BOTH_KNOCKDOWN4:
 	case BOTH_KNOCKDOWN5:
+	//[MELEE]
+	case BOTH_PLAYER_PA_3_FLY:
+	//[/MELEE]
 		return qtrue;
 		break;
 	case BOTH_GETUP1:
@@ -1248,7 +1385,10 @@ qboolean PM_InKnockDown( playerState_t *ps )
 		break;
 	}
 	return qfalse;
+	*/
+	//[/KnockdownSys]
 }
+//[/SPPortCompete]
 
 qboolean PM_PainAnim( int anim )
 {
@@ -1531,6 +1671,50 @@ qboolean BG_SaberLockBreakAnim( int anim )
 	return (BG_SuperBreakLoseAnim(anim)||BG_SuperBreakWinAnim(anim));
 }
 
+//[SPPortCompete]
+//[KnockdownSys]
+qboolean BG_KnockDownAnim( int anim )
+{//racc - is this a "normal" knockdown animation?
+	switch ( anim )
+	{
+	case BOTH_KNOCKDOWN1:
+	case BOTH_KNOCKDOWN2:
+	case BOTH_KNOCKDOWN3:
+	case BOTH_KNOCKDOWN4:
+	case BOTH_KNOCKDOWN5:
+		return qtrue;
+		break;
+	}
+	return qfalse;
+}
+
+
+qboolean PM_KnockDownAnimExtended( int anim )
+{//racc - check anim to see if it's one of the getting-knockdowned/have-been-knockeddown ones.  
+	//This doesn't include any of the knockdown getup animations
+	switch ( anim )
+	{
+	case BOTH_KNOCKDOWN1:
+	case BOTH_KNOCKDOWN2:
+	case BOTH_KNOCKDOWN3:
+	case BOTH_KNOCKDOWN4:
+	case BOTH_KNOCKDOWN5:
+	//special anims:
+	case BOTH_RELEASED:
+	case BOTH_LK_DL_ST_T_SB_1_L:
+	case BOTH_PLAYER_PA_3_FLY:
+		return qtrue;
+		break;
+	/*
+	default:
+		return PM_InGetUp( ps );
+		break;
+	*/
+	}
+	return qfalse;
+}
+//[/KnockdownSys]
+//[/SPPortCompete]
 
 qboolean BG_FullBodyTauntAnim( int anim )
 {
@@ -1694,7 +1878,7 @@ void SpewDebugStuffToFile()
 #endif
 
 bgLoadedAnim_t bgAllAnims[MAX_ANIM_FILES];
-int bgNumAllAnims = 2; //start off at 2, because 0 will always be assigned to humanoid, and 1 will always be rockettrooper
+int bgNumAllAnims = NUM_RESERVED_ANIMSETS; //start off at 3, because 0 will always be assigned to humanoid, and 1 will always be rockettrooper, AND 2 IS FOR JKG MWAHAHAHAA
 
 //ALWAYS call on game/cgame init
 void BG_InitAnimsets(void)
@@ -1723,7 +1907,7 @@ void BG_ClearAnimsets(void)
 animation_t *BG_AnimsetAlloc(void)
 {
 	assert (bgNumAllAnims < MAX_ANIM_FILES);
-	bgAllAnims[bgNumAllAnims].anims = (animation_t *) BG_Alloc(sizeof(animation_t)*MAX_TOTALANIMATIONS);
+	bgAllAnims[bgNumAllAnims].anims = (animation_t *) malloc(sizeof(animation_t)*MAX_TOTALANIMATIONS);
 
 	return bgAllAnims[bgNumAllAnims].anims;
 }
@@ -1807,6 +1991,8 @@ void ParseAnimationEvtBlock(const char *aeb_filename, animevent_t *animEvents, a
 			break;
 		}
 	}
+
+	assert (animations != NULL);
 
 	//NOTE: instead of a blind increment, increase the index
 	//			this way if we have an event on an anim that already
@@ -2080,7 +2266,7 @@ void ParseAnimationEvtBlock(const char *aeb_filename, animevent_t *animEvents, a
 			{//actually are specifying a bolt to use
 				if (!animEvents[curAnimEvent].stringData)
 				{ //eh, whatever. no dynamic stuff, so this will do.
-					animEvents[curAnimEvent].stringData = (char *) BG_Alloc(2048);
+					animEvents[curAnimEvent].stringData = (char *) malloc(2048);
 				}
 				strcpy(animEvents[curAnimEvent].stringData, token);
 			}
@@ -2327,20 +2513,22 @@ models/players/visor/animation.cfg, etc
 */
 int BG_ParseAnimationFile(const char *filename, animation_t *animset, qboolean isHumanoid) 
 {
+#if 0
 	char		*text_p;
-	int			len;
-	int			i;
 	char		*token;
 	float		fps;
 	int			skip;
+	int			animNum;
+#endif
+	int			len;
+	int			i;
 	int			usedIndex = -1;
 	int			nextIndex = bgNumAllAnims;
 	qboolean	dynAlloc = qfalse;
 	qboolean	wasLoaded = qfalse;
-	static char BGPAFtext[60000];
+	char		BGPAFtext[100000];
 	fileHandle_t	f;
-	int				animNum;
-
+	
 	BGPAFtext[0] = '\0';
 
 	if (!isHumanoid)
@@ -2375,6 +2563,18 @@ int BG_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 					assert(!"Anim set alloc failed!");
 					return -1;
 				}
+			}
+			else if ( strstr (filename, "players/_humanoidJKG/") )
+			{
+			    nextIndex = 2; // JKG is always 2
+			    animset = BG_AnimsetAlloc();
+			    dynAlloc = qtrue;
+			    
+			    if ( !animset )
+			    {
+			        assert (!"Anim set allocation failed!");
+			        return -1;
+			    }
 			}
 			else
 			{
@@ -2427,85 +2627,8 @@ int BG_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 		return 0; //humanoid index
 	}
 
-	// parse the text
-	text_p = BGPAFtext;
-	skip = 0;	// quiet the compiler warning
-
-	//FIXME: have some way of playing anims backwards... negative numFrames?
-
-	//initialize anim array so that from 0 to MAX_ANIMATIONS, set default values of 0 1 0 100
-	for(i = 0; i < MAX_ANIMATIONS; i++)
-	{
-		animset[i].firstFrame = 0;
-		animset[i].numFrames = 0;
-		animset[i].loopFrames = -1;
-		animset[i].frameLerp = 100;
-	}
-
-	// read information for each frame
-	while(1) 
-	{
-		token = COM_Parse( (const char **)(&text_p) );
-
-		if ( !token || !token[0]) 
-		{
-			break;
-		}
-
-		animNum = GetIDForString(animTable, token);
-		if(animNum == -1)
-		{
-//#ifndef FINAL_BUILD
-#ifdef _DEBUG
-			Com_Printf(S_COLOR_RED"WARNING: Unknown token %s in %s\n", token, filename);
-			while (token[0])
-			{
-				token = COM_ParseExt( (const char **) &text_p, qfalse );	//returns empty string when next token is EOL
-			}
-#endif
-			continue;
-		}
-
-		token = COM_Parse( (const char **)(&text_p) );
-		if ( !token ) 
-		{
-			break;
-		}
-		animset[animNum].firstFrame = atoi( token );
-
-		token = COM_Parse( (const char **)(&text_p) );
-		if ( !token ) 
-		{
-			break;
-		}
-		animset[animNum].numFrames = atoi( token );
-
-		token = COM_Parse( (const char **)(&text_p) );
-		if ( !token ) 
-		{
-			break;
-		}
-		animset[animNum].loopFrames = atoi( token );
-
-		token = COM_Parse( (const char **)(&text_p) );
-		if ( !token ) 
-		{
-			break;
-		}
-		fps = atof( token );
-		if ( fps == 0 ) 
-		{
-			fps = 1;//Don't allow divide by zero error
-		}
-		if ( fps < 0 )
-		{//backwards
-			animset[animNum].frameLerp = floor(1000.0f / fps);
-		}
-		else
-		{
-			animset[animNum].frameLerp = ceil(1000.0f / fps);
-		}
-	}
+    BG_ParseGenericAnimationFile (animset, MAX_ANIMATIONS, animTable, filename, BGPAFtext);
+    
 /*
 #ifdef _DEBUG
 	//Check the array, and print the ones that have nothing in them.
@@ -2530,7 +2653,7 @@ int BG_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 	if (isHumanoid)
 	{
 		bgAllAnims[0].anims = animset;
-		strcpy(bgAllAnims[0].filename, filename);
+		Q_strncpyz (bgAllAnims[0].filename, filename, sizeof (bgAllAnims[0].filename));
 		BGPAFtextLoaded = qtrue;
 
 		usedIndex = 0;
@@ -2542,8 +2665,8 @@ int BG_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 
 		usedIndex = bgNumAllAnims;
 
-		if (nextIndex > 1)
-		{ //don't bother increasing the number if this ended up as a humanoid/rockettrooper load.
+		if (nextIndex > 2)
+		{ //don't bother increasing the number if this ended up as a humanoid/rockettrooper load, or JKG humanoid
 			bgNumAllAnims++;
 		}
 		else
@@ -2718,7 +2841,7 @@ void PM_SetTorsoAnimTimer(int time )
 	BG_SetTorsoAnimTimer(pm->ps, time);
 }
 
-void BG_SaberStartTransAnim( int clientNum, int saberAnimLevel, int weapon, int anim, float *animSpeed, int broken )
+void BG_SaberStartTransAnim( int clientNum, int saberAnimLevel, int weapon, int anim, float *animSpeed, int broken, float saberMoveSwingSpeed, float saberSwingSpeed, int saberMove )
 {
 	if ( anim >= BOTH_A1_T__B_ && anim <= BOTH_ROLL_STAB )
 	{
@@ -2775,6 +2898,20 @@ void BG_SaberStartTransAnim( int clientNum, int saberAnimLevel, int weapon, int 
 			*animSpeed *= 0.65f;
 		}
 	}
+
+	if( (saberMove >= LS_A_TL2BR &&
+		saberMove <= LS_A_T2B) ||
+		(saberMove >= LS_S_TL2BR &&
+		saberMove <= LS_T1_BL__L) )
+	{
+		*animSpeed *= saberSwingSpeed;
+	}
+}
+
+void JKG_ReloadAnimation( int firingMode, int weaponID, int anim, animation_t *anims, float *animSpeed )
+{
+	weaponData_t *wp = BG_GetWeaponDataByIndex(weaponID);
+	*animSpeed *= (anims[anim].numFrames-1) * fabs((float)(anims[anim].frameLerp)) / (float)wp->weaponReloadTime;
 }
 
 /*
@@ -2802,7 +2939,8 @@ void BG_SetAnimFinal(playerState_t *ps, animation_t *animations,
 	//NOTE: Setting blendTime here breaks actual blending..
 	blendTime = 0;
 
-	BG_SaberStartTransAnim(ps->clientNum, ps->fd.saberAnimLevel, ps->weapon, anim, &editAnimSpeed, ps->brokenLimbs);
+	BG_SaberStartTransAnim(ps->clientNum, ps->fd.saberAnimLevel, ps->weapon, anim, &editAnimSpeed, ps->brokenLimbs, 
+		SaberStances[ps->fd.saberAnimLevel].moves[ps->saberMove].animspeedscale, ps->saberSwingSpeed, ps->saberMove);
 
 	// Set torso anim
 	if (setAnimParts & SETANIM_TORSO)
@@ -2824,9 +2962,40 @@ void BG_SetAnimFinal(playerState_t *ps, animation_t *animations,
 		{
 			if (setAnimFlags & SETANIM_FLAG_HOLDLESS)
 			{	// Make sure to only wait in full 1/20 sec server frame intervals.
-				int dur;
-				int speedDif;
+
+				//[BugFix2]
+				//Yeah, I don't think this was working correctly before
+				//int dur;
+				//int speedDif;
+				if((ps->saberMove >= LS_A_TL2BR &&
+					ps->saberMove < LS_A_BACKSTAB) ||
+					(ps->saberMove >= LS_S_TL2BR &&
+					ps->saberMove <= LS_T1_BL__L))
+					{
+						// todo: see if i can fix this
+					}
+
+				// 
+
+				if( editAnimSpeed > 0 )
+				{
+					if(animations[anim].numFrames < 2)
+					{//single frame animations should just run with one frame worth of animation.
+						ps->torsoTimer = fabs((float)(animations[anim].frameLerp)) * (1/editAnimSpeed);
+					}
+					else
+					{
+						ps->torsoTimer = (animations[anim].numFrames-1) * fabs((float)(animations[anim].frameLerp)) * (1/editAnimSpeed);
+					}
+
+					if(ps->torsoTimer > 1)
+					{	
+						//set the timer to be one unit of time less than the actual animation time so the timer will expire on the frame at which the animation finishes.
+						ps->torsoTimer--;
+					}
+				}
 				
+				/*
 				dur = (animations[anim].numFrames-1) * fabs((float)(animations[anim].frameLerp));
 				speedDif = dur - (dur * editAnimSpeed);
 				dur += speedDif;
@@ -2838,6 +3007,8 @@ void BG_SetAnimFinal(playerState_t *ps, animation_t *animations,
 				{
 					ps->torsoTimer = fabs((float)(animations[anim].frameLerp));
 				}
+				*/
+				//[/BugFix2]
 			}
 			else
 			{
@@ -2872,9 +3043,30 @@ setAnimLegs:
 		{
 			if (setAnimFlags & SETANIM_FLAG_HOLDLESS)
 			{	// Make sure to only wait in full 1/20 sec server frame intervals.
-				int dur;
-				int speedDif;
+				//[BugFix2]
+				//Yeah, I don't think this was working correctly before
+				//int dur;
+				//int speedDif;
 				
+				if( editAnimSpeed > 0 )
+				{
+					if(animations[anim].numFrames < 2)
+					{//single frame animations should just run with one frame worth of animation.
+						ps->legsTimer = fabs((float)(animations[anim].frameLerp)) * (1/editAnimSpeed);
+					}
+					else
+					{
+						ps->legsTimer = (animations[anim].numFrames-1) * fabs((float)(animations[anim].frameLerp)) * (1/editAnimSpeed);
+					}
+
+					if(ps->legsTimer > 1)
+					{	
+						//set the timer to be one unit of time less than the actual animation time so the timer will expire on the frame at which the animation finishes.
+						ps->legsTimer--;
+					}
+				}
+
+				/*
 				dur = (animations[anim].numFrames-1) * fabs((float)(animations[anim].frameLerp));
 				speedDif = dur - (dur * editAnimSpeed);
 				dur += speedDif;
@@ -2886,6 +3078,9 @@ setAnimLegs:
 				{
 					ps->legsTimer = fabs((float)(animations[anim].frameLerp));
 				}
+				*/
+				//[/BugFix2]
+
 			}
 			else
 			{
@@ -2977,7 +3172,9 @@ void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int
 	{
 		if (anim == BOTH_RUNBACK1 ||
 			anim == BOTH_WALKBACK1 ||
-			anim == BOTH_RUN1)
+			anim == BOTH_RUN1 ||
+			anim == BOTH_FEMALEEWALK ||
+			anim == BOTH_FEMALERUN)
 		{ //hack for droids
 			anim = BOTH_WALK2;
 		}
@@ -3027,3 +3224,90 @@ void PM_SetAnim(int setAnimParts,int anim,int setAnimFlags, int blendTime)
 	BG_SetAnim(pm->ps, pm->animations, setAnimParts, anim, setAnimFlags, blendTime);
 }
 
+//[BugFix2]
+//Fixed the logic problem with the timers
+
+//BG versions of the animation point functions
+
+//Get the point in the animation and return a percentage of the current point in the anim between 0 and the total anim length (0.0f - 1.0f)
+//This function assumes that your animation timer is set to the exact length of the animation
+float BG_GetTorsoAnimPoint(playerState_t *ps, int AnimIndex)
+{
+	float attackAnimLength = 0;
+	float currentPoint = 0;
+	float animSpeedFactor = 1.0f;
+	float animPercentage = 0;
+
+	//animSpeedFactor *= ns->saberSwingSpeed;
+
+	//Be sure to scale by the proper anim speed just as if we were going to play the animation
+	BG_SaberStartTransAnim(ps->clientNum, ps->fd.saberAnimLevel, ps->weapon, ps->torsoAnim, &animSpeedFactor, ps->brokenLimbs, 
+		SaberStances[ps->fd.saberAnimLevel].moves[ps->saberMove].animspeedscale, ps->saberSwingSpeed, ps->saberMove);
+
+	if( animSpeedFactor > 0 )
+	{
+		if(bgAllAnims[AnimIndex].anims[ps->torsoAnim].numFrames < 2)
+		{//single frame animations should just run with one frame worth of animation.
+			attackAnimLength = fabs((float)(bgAllAnims[AnimIndex].anims[ps->torsoAnim].frameLerp)) * (1/animSpeedFactor);
+		}
+		else
+		{
+			attackAnimLength = (bgAllAnims[AnimIndex].anims[ps->torsoAnim].numFrames-1) * fabs((float)(bgAllAnims[AnimIndex].anims[ps->torsoAnim].frameLerp)) * (1/animSpeedFactor);
+		}
+
+		if(attackAnimLength > 1)
+		{	
+			//set the timer to be one unit of time less than the actual animation time so the timer will expire on the frame at which the animation finishes.
+			attackAnimLength--;
+		}
+	}
+
+	currentPoint = ps->torsoTimer;
+
+	animPercentage = currentPoint/attackAnimLength;
+
+
+	//Com_Printf("%f\n", animPercentage);
+
+	return animPercentage;
+}
+
+
+float BG_GetLegsAnimPoint(playerState_t * ps, int AnimIndex)
+{
+	float attackAnimLength = 0;
+	float currentPoint = 0;
+	float animSpeedFactor = 1.0f;
+	float animPercentage = 0;
+
+	//Be sure to scale by the proper anim speed just as if we were going to play the animation
+	BG_SaberStartTransAnim(ps->clientNum, ps->fd.saberAnimLevel, ps->weapon, ps->legsAnim, &animSpeedFactor, ps->brokenLimbs, 
+		SaberStances[ps->fd.saberAnimLevel].moves[ps->saberMove].animspeedscale, ps->saberSwingSpeed, ps->saberMove);
+
+	if( animSpeedFactor > 0 )
+	{
+		if(bgAllAnims[AnimIndex].anims[ps->legsAnim].numFrames < 2)
+		{//single frame animations should just run with one frame worth of animation.
+			attackAnimLength = fabs((float)(bgAllAnims[AnimIndex].anims[ps->legsAnim].frameLerp)) * (1/animSpeedFactor);
+		}
+		else
+		{
+			attackAnimLength = (bgAllAnims[AnimIndex].anims[ps->legsAnim].numFrames-1) * fabs((float)(bgAllAnims[AnimIndex].anims[ps->legsAnim].frameLerp)) * (1/animSpeedFactor);
+		}
+		
+		if(attackAnimLength > 1)
+		{	
+			//set the timer to be one unit of time less than the actual animation time so the timer will expire on the frame at which the animation finishes.
+			attackAnimLength--;
+		}
+	}
+
+	currentPoint = ps->legsTimer;
+
+	animPercentage = currentPoint/attackAnimLength;
+
+	//Com_Printf("%f\n", animPercentage);
+
+	return animPercentage;
+}
+//[/BugFix2]

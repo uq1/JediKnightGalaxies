@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __B_PUBLIC_H__
+#define __B_PUBLIC_H__
 
 #include "ai.h"
 
@@ -108,6 +109,10 @@ typedef struct gNPCstats_e
 // NOTE!!!  If you add any ptr fields into this structure could you please tell me so I can update the load/save code?
 //	so far the only things I've got to cope with are a bunch of gentity_t*'s, but tell me if any more get added -slc
 //
+typedef struct {
+	qboolean isMoving;
+} gNPCLuaFlags_t;
+
 
 #define	MAX_ENEMY_POS_LAG	2400
 #define	ENEMY_POS_LAG_INTERVAL	100
@@ -161,6 +166,9 @@ typedef struct
 	int			walkDebounceTime;
 	int			enemyCheckDebounceTime;
 	int			investigateDebounceTime;
+	//Stoiss add 
+	int         behavior_timers[NUM_BSTATES];
+	//Stoiss end
 	int			investigateCount;
 	vec3_t		investigateGoal;
 	int			investigateSoundDebounceTime;
@@ -194,6 +202,7 @@ typedef struct
 	vec3_t		lastPathAngles;		//So we know which way to face generally when we stop
 
 	//stats
+	gNPCLuaFlags_t luaFlags;
 	gNPCstats_t	stats;
 	int			aimErrorDebounceTime;
 	float		lastAimErrorYaw;
@@ -260,6 +269,17 @@ typedef struct
 	int			ffireCount;		//sigh... you'd think I'd be able to find a way to do this without having to use 3 int fields, but...
 	int			ffireDebounce;	
 	int			ffireFadeDebounce;
+	// JKG
+	int			isLuaNPC;
+	int			maxUseRange;		// Max use distance for the npc (clamped to USE_DISTANCE_MAX)
+
+	int			conversationSearchTime;
+	int			conversationRole;
+	gentity_t	*conversationPartner;
+	int			conversationSection;
+	int			conversationPart;
+	int			conversationReplyTime;
+	int			conversationAvailable;
 } gNPC_t;
 
 void G_SquadPathsInit(void);
@@ -351,3 +371,4 @@ typedef struct {
 	int			parm;
 } nedge_t;
 */
+#endif
