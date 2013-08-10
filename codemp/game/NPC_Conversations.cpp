@@ -6,7 +6,7 @@
 extern gentity_t	*NPC;
 
 extern qboolean NPC_FacePosition( vec3_t position, qboolean doPitch );
-extern void G_SoundOnEnt( gentity_t *ent, int channel, const char *soundPath );
+extern void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *soundPath );
 
 void NPC_EndConversation()
 {

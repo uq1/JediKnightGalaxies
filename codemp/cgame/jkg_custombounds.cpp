@@ -18,12 +18,6 @@ static JkgCBBc_t CBBs[1024]; // CBBs = Custom Bounding Boxes
 
 // Parsing code
 
-typedef struct {
-	int arg;
-	int argc;
-	char buff[1024];
-} parsebuff_t;
-
 static void CBB_InitParseBuff(parsebuff_t *pb) {
 	memset(pb,0,sizeof(parsebuff_t));
 	pb->arg = 1;

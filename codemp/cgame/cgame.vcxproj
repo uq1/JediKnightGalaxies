@@ -290,6 +290,7 @@
     <ClCompile Include="cg_scoreboard.cpp" />
     <ClCompile Include="cg_servercmds.cpp" />
     <ClCompile Include="cg_snapshot.cpp" />
+    <ClCompile Include="cg_spawn.cpp" />
     <ClCompile Include="cg_strap.cpp" />
     <ClCompile Include="cg_syscalls.cpp" />
     <ClCompile Include="cg_turret.cpp" />

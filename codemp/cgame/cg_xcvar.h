@@ -187,4 +187,9 @@ XCVAR_DEF( jkg_smoothcamera,					"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( jkg_sprintFOV,						"100",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( jkg_viewmodelPopup,					"150",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_gun_frame,						"0",					NULL,					CVAR_CHEAT )
+
+XCVAR_DEF( jkg_gunlesscrosshair,				"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( jkg_noletterbox,						"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( jkg_waypoint_render,					"0",					NULL,					CVAR_CHEAT )
+XCVAR_DEF( jkg_debugBBox,						"0",					NULL,					CVAR_CHEAT )
 #undef XCVAR_DEF

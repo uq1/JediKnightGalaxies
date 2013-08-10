@@ -307,9 +307,6 @@
     <ClCompile Include="..\libraries\libpng\pngwutil.c">
       <Filter>Libraries\libpng</Filter>
     </ClCompile>
-    <ClCompile Include="..\libraries\png\rpng.cpp">
-      <Filter>Libraries\png</Filter>
-    </ClCompile>
     <ClCompile Include="..\zlib\adler32.c">
       <Filter>Libraries\zlib</Filter>
     </ClCompile>
@@ -357,6 +354,9 @@
     </ClCompile>
     <ClCompile Include="..\zlib\zutil.c">
       <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\png\rpng.cpp">
+      <Filter>Libraries\png</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

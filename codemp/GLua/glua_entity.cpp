@@ -889,12 +889,12 @@ static int GLua_Entity_GetHealth(lua_State *L) {
 }
 
 void G_EntitySound( gentity_t *ent, int channel, int soundIndex );
-void G_SoundOnEnt( gentity_t *ent, int channel, const char *soundPath );
+void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *soundPath );
 
 static int GLua_Entity_PlaySound(lua_State *L) {
 	gentity_t *ent = GLua_CheckEntity(L, 1);
 	if (!ent) return 0;
-	G_SoundOnEnt(ent, luaL_checkint(L,2), luaL_checkstring(L,3));
+	G_SoundOnEnt(ent, (soundChannel_t)luaL_checkint(L,2), luaL_checkstring(L,3));
 	return 0;
 }
 

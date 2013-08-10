@@ -3868,3 +3868,120 @@ qboolean JKG_DamageTypeFreezes ( const damageType_t damageType )
     
     return qfalse;
 }
+
+const char *gametypeStringShort[GT_MAX_GAME_TYPE] = {
+	"FFA",
+	"HOLO",
+	"JM",
+	"1v1",
+	"2v1",
+	"SP",
+#ifdef __RPG__
+	"RPGCITY",
+	"RPGWILD",
+#endif
+	"TDM",
+	"SAGA",
+	"CTF",
+	"CTY",
+	"WZ",
+#ifdef __JKG_NINELIVES__
+	"9L",
+#endif
+#ifdef __JKG_TICKETING__
+	"LMS-T",
+#endif
+#ifdef __JKG_ROUNDBASED__
+	"LMS-R",
+#endif
+};
+
+const char *BG_GetGametypeString( int gametype )
+{
+	switch ( gametype )
+	{
+	case GT_FFA:
+		return "Free-For-All";
+	case GT_HOLOCRON:
+		return "Holocron FFA";
+	case GT_JEDIMASTER:
+		return "Jedi Master";
+	case GT_DUEL:
+		return "Duel";
+	case GT_POWERDUEL:
+		return "Power Duel";
+	case GT_SINGLE_PLAYER:
+		return "Cooperative";
+#ifdef __RPG__
+	case GT_RPG_CITY:
+		return "RPG - City";
+	case GT_RPG_WILDERNESS:
+		return "RPG - Wilderness";
+#endif
+	case GT_TEAM:
+		return "Team Deathmatch";
+	case GT_SIEGE:
+		return "Siege";
+	case GT_CTF:
+		return "Capture the Flag";
+	case GT_CTY:
+		return "Capture the Ysalimari";
+	case GT_WARZONE:
+		return "Warzone";
+#ifdef __JKG_NINELIVES__
+	case GT_LMS_NINELIVES:
+		return "Ninelives";
+#endif
+#ifdef __JKG_TICKETING__
+	case GT_LMS_TICKETED:
+		return "Ticketed LMS";
+#endif
+#ifdef __JKG_ROUNDBASED__
+	case GT_LMS_ROUNDS:
+		return "Round-based LMS";
+#endif
+	default:
+		return "Unknown Gametype";
+	}
+}
+
+int BG_GetGametypeForString( const char *gametype )
+{
+	if(Q_stricmp( gametype, "dm" ) == 0 ||
+		Q_stricmp( gametype, "ffa" ) == 0 )
+		return GT_FFA;
+	else if( Q_stricmp( gametype, "holo" ) == 0 ||
+		Q_stricmp( gametype, "holocron" ) == 0 )
+		return GT_HOLOCRON;
+	else if( Q_stricmp( gametype, "duel" ) == 0 ||
+		Q_stricmp( gametype, "1v1" ) == 0 )
+		return GT_DUEL;
+	else if( Q_stricmp( gametype, "powerduel" ) == 0 ||
+		Q_stricmp( gametype, "power duel" ) == 0 ||
+		Q_stricmp( gametype, "2v1" ) == 0 )
+		return GT_POWERDUEL;
+	else if( Q_stricmp( gametype, "jm" ) == 0 ||
+		Q_stricmp( gametype, "jedimaster" ) == 0 ||
+		Q_stricmp( gametype, "jedi master" ) == 0 )
+		return GT_JEDIMASTER;
+	else if( Q_stricmp( gametype, "sp" ) == 0 ||
+		Q_stricmp( gametype, "coop" ) == 0 ||
+		Q_stricmp( gametype, "co-op" ) == 0 ||
+		Q_stricmp( gametype, "co op" ) == 0 )
+		return GT_SINGLE_PLAYER;
+	else if( Q_stricmp( gametype, "tdm" ) == 0 ||
+		Q_stricmp( gametype, "tffa" ) == 0 )
+		return GT_TEAM;
+	else if( Q_stricmp( gametype, "saga" ) == 0 ||
+		Q_stricmp( gametype, "siege" ) == 0 )
+		return GT_SIEGE;
+	else if( Q_stricmp( gametype, "ctf" ) == 0 )
+		return GT_CTF;
+	else if( Q_stricmp( gametype, "cty" ) == 0 )
+		return GT_CTY;
+	else if( Q_stricmp( gametype, "warzone" ) == 0 ||
+		Q_stricmp( gametype, "wz" ) == 0 )
+		return GT_WARZONE;
+	else
+		return GT_FFA;
+}

@@ -474,6 +474,26 @@ char	*ConcatArgs( int start ) {
 
 /*
 ==================
+StringIsInteger
+==================
+*/
+qboolean StringIsInteger( const char *s ) {
+	int			i=0, len=0;
+	qboolean	foundDigit=qfalse;
+
+	for ( i=0, len=strlen( s ); i<len; i++ )
+	{
+		if ( !isdigit( s[i] ) )
+			return qfalse;
+
+		foundDigit = qtrue;
+	}
+
+	return foundDigit;
+}
+
+/*
+==================
 JKG_CheckIfNumber
 
 Loops through a string and returns the following:
@@ -2786,6 +2806,89 @@ static void Cmd_Tell_f( gentity_t *ent ) {
 	if ( ent != target && !(ent->r.svFlags & SVF_BOT)) {
 		G_Say( ent, ent, SAY_TELL, p );
 	}
+}
+
+// JKG BIG FIXME: We need to get everything together and work on a general SanitizeString that works across the board. I swear we have like seven functions
+// devoted to simply stripping a string of color codes. It's getting a bit ridiculous now. --eez
+
+/*
+==================
+SanitizeString2
+
+Rich's revised version of SanitizeString
+==================
+*/
+void SanitizeString2( char *in, char *out )
+{
+	int i = 0;
+	int r = 0;
+
+	while (in[i])
+	{
+		if (i >= MAX_NAME_LENGTH-1)
+		{ // the ui truncates the name here..
+			break;
+		}
+
+		if (in[i] == '^')
+		{
+			if (in[i+1] >= 48 && //'0'
+				in[i+1] <= 57) //'9'
+			{ //only skip it if there's a number after it for the color
+				i += 2;
+				continue;
+			}
+			else
+			{ // just skip the ^
+				i++;
+				continue;
+			}
+		}
+
+		if (in[i] < 32)
+		{
+			i++;
+			continue;
+		}
+
+		out[r] = in[i];
+		r++;
+		i++;
+	}
+	out[r] = 0;
+}
+
+/*
+====================
+G_ClientNumberFromStrippedName
+
+Same as above, but strips special characters out of the names before comparing.
+Jedi Knight Galaxies - Fixed the code to return the correct client ID
+====================
+*/
+
+int G_ClientNumberFromStrippedName ( const char* name )
+{
+	char		s2[MAX_STRING_CHARS];
+	char		n2[MAX_STRING_CHARS];
+	int			i;
+	gclient_t*	cl;
+
+	// check for a name match
+	SanitizeString2( (char*)name, s2 );
+	Q_strlwr(s2);
+	for ( i=0; i < level.numConnectedClients ; i++ ) 
+	{
+		cl = &level.clients[level.sortedClients[i]];
+		SanitizeString2( cl->pers.netname, n2 );
+		Q_strlwr(n2);
+		if ( !strcmp( n2, s2 ) ) 
+		{
+			return level.sortedClients[i];
+		}
+	}
+
+	return -1;
 }
 
 //siege voice command

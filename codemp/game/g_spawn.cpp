@@ -999,6 +999,111 @@ void G_SpawnGEntityFromSpawnVars( qboolean inSubBSP )
 	}
 }
 
+// Used by the lua entity factory
+void G_SpawnEntity(gentity_t **outent) {
+	int			i;
+	gentity_t	*ent;
+	char		*s, *value, *gametypeName;
+	KeyPairSet_t *spv;
+	static char *gametypeNames[] = {"ffa", "holocron", "jedimaster", "duel", "powerduel", "single", "team", "siege", "ctf", "cty"};
+
+	G_SpawnString( "classname", NULL, &value );
+	if (!value) {
+		return;	// Dont even bother spawning an ent without a classname
+	}
+	if (G_IsLogicalEntity(value)) {
+		// Check if the entity wants to be nonlogical anyway
+		G_SpawnInt("nological", "0", &i);
+		if (i) {				// Despite it being a logical entity, it wants to be nonlogical
+			ent = G_Spawn();	// possibly because it wants to use icarus for example
+		} else {
+			// Get the next free logical entity
+			ent = G_SpawnLogical();
+		}
+	} else {
+		// Get the next free normal entity
+		ent = G_Spawn();
+	}
+
+	*outent = ent;
+
+	for ( i = 0 ; i < level.numSpawnVars ; i++ ) {
+		G_ParseField( level.spawnVars[i][0], level.spawnVars[i][1], ent );
+	}
+
+	// check for "notsingle" flag
+	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
+		G_SpawnInt( "notsingle", "0", &i );
+		if ( i ) {
+			G_FreeEntity( ent );
+			return;
+		}
+	}
+	// check for "notteam" flag (GT_FFA, GT_DUEL, GT_SINGLE_PLAYER)
+	if ( g_gametype.integer >= GT_TEAM ) {
+		G_SpawnInt( "notteam", "0", &i );
+		if ( i ) {
+			G_FreeEntity( ent );
+			return;
+		}
+	} else {
+		G_SpawnInt( "notfree", "0", &i );
+		if ( i ) {
+			G_FreeEntity( ent );
+			return;
+		}
+	}
+
+	G_SpawnInt( "notta", "0", &i );
+	if ( i ) {
+		G_FreeEntity( ent );
+		return;
+	}
+
+	if( G_SpawnString( "gametype", NULL, &value ) ) {
+		if( g_gametype.integer >= GT_FFA && g_gametype.integer < GT_MAX_GAME_TYPE ) {
+			gametypeName = gametypeNames[g_gametype.integer];
+
+			s = strstr( value, gametypeName );
+			if( !s ) {
+				G_FreeEntity( ent );
+				return;
+			}
+		}
+	}
+
+	// move editor origin to pos
+	VectorCopy( ent->s.origin, ent->s.pos.trBase );
+	VectorCopy( ent->s.origin, ent->r.currentOrigin );
+
+
+
+	// Store the spawnvars for later use
+	spv = &g_spawnvars[ent->s.number];
+	for (i=0; i < level.numSpawnVars; i++) {
+		JKG_Pairs_Add(spv, level.spawnVars[i][0], level.spawnVars[i][1]);
+	}
+
+	// if we didn't get a classname, don't bother spawning anything
+	if ( !G_CallSpawn( ent ) ) {
+		G_FreeEntity( ent );
+	}
+
+	//Tag on the ICARUS scripting information only to valid recipients
+	if ( trap_ICARUS_ValidEnt( ent ) )
+	{
+		trap_ICARUS_InitEnt( ent );
+
+		if ( ent->classname && ent->classname[0] )
+		{
+			if ( Q_strncmp( "NPC_", ent->classname, 4 ) != 0 )
+			{//Not an NPC_spawner (rww - probably don't even care for MP, but whatever)
+				G_ActivateBehavior( ent, BSET_SPAWN );
+			}
+		}
+	}
+}
+
 /*
 ====================
 G_AddSpawnVarToken

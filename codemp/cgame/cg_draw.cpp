@@ -8035,8 +8035,6 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 
 	cg.refdef.rdflags |= RDF_DRAWSKYBOX;
 
-	CG_DrawMiscStaticModels();
-
 	// draw 3D view
 	trap_R_RenderScene( &cg.refdef );
 

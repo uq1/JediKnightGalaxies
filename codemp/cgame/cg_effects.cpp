@@ -556,7 +556,7 @@ void CG_DoGlass( vec3_t verts[4], vec3_t normal, vec3_t dmgPt, vec3_t dmgDir, fl
 				zz = z;
 			}
 
-			Vector2Set( biPoints[0], xx, zz );
+			Vec2Set( biPoints[0], xx, zz );
 
 			if ( t + 1 > 0 && t + 1 < mxWidth )
 			{

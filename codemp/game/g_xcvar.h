@@ -162,5 +162,10 @@ XCVAR_DEF( jkg_bounty,					"10",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_creditsPerKill,			"150",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( g_listEntity,				"0",			NULL,				CVAR_CHEAT,										false )
 XCVAR_DEF( jkg_arearestrictions,		"0",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_deathTimer,				"1",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_antifakeplayer,			"0",			NULL,				CVAR_ARCHIVE,									false )
+XCVAR_DEF( jkg_chatFloodProtect,		"1",			NULL,				CVAR_ARCHIVE,									false )
+XCVAR_DEF( jkg_startingGun,				"pistol_DL-18",	NULL,				CVAR_ARCHIVE|CVAR_LATCH,						true )
+XCVAR_DEF( g_banfile,					"",				NULL,				CVAR_ARCHIVE,									false )
 
 #undef XCVAR_DEF

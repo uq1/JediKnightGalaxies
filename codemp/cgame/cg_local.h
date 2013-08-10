@@ -1195,6 +1195,12 @@ Ghoul2 Insert End
 	qboolean			capturingFlag;
 	qboolean			recaptureingFlag;
 
+	qboolean spawning;
+	int	numSpawnVars;
+	char *spawnVars[MAX_SPAWN_VARS][2];	// key / value pairs
+	int numSpawnVarChars;
+	char spawnVarChars[MAX_SPAWN_VARS_CHARS];
+
 } cg_t;
 
 extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
@@ -2512,9 +2518,9 @@ void		trap_FX_SetRefDef			( refdef_t* refdef );
 int			trap_FX_RegisterEffect		( const char *file);
 void		trap_FX_PlayEffect			( const char *file, vec3_t org, vec3_t fwd, int vol, int rad );		// builds arbitrary perp. right vector, does a cross product to define up
 void		trap_FX_PlayEntityEffect	( const char *file, vec3_t org, vec3_t axis[3], const int boltInfo, const int entNum, int vol, int rad );
-void		trap_FX_PlayEffectID		( int id, const vec3_t org, const vec3_t fwd, int vol, int rad );		// builds arbitrary perp. right vector, does a cross product to define up
+void		trap_FX_PlayEffectID		( int id, vec3_t org, vec3_t fwd, int vol, int rad );		// builds arbitrary perp. right vector, does a cross product to define up
 void		trap_FX_PlayPortalEffectID	( int id, vec3_t org, vec3_t fwd, int vol, int rad );		// builds arbitrary perp. right vector, does a cross product to define up
-void		trap_FX_PlayEntityEffectID	( int id, const vec3_t org, vec3_t axis[3], const int boltInfo, const int pGhoul2, int vol, int rad );
+void		trap_FX_PlayEntityEffectID	( int id, vec3_t org, vec3_t axis[3], const int boltInfo, const int pGhoul2, int vol, int rad );
 void		trap_FX_PlayBoltedEffectID	( int id, vec3_t org, void *pGhoul2, const int boltNum, const int entNum, const int modelNum, int iLooptime, qboolean isRelative );
 void		trap_FX_AddScheduledEffects	( qboolean skyPortal );
 void		trap_FX_Draw2DEffects		( float screenXScale, float screenYScale );

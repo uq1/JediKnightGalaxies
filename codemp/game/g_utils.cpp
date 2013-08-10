@@ -1519,7 +1519,7 @@ void G_EntitySound( gentity_t *ent, int channel, int soundIndex ) {
 }
 
 //To make porting from SP easier.
-void G_SoundOnEnt( gentity_t *ent, int channel, const char *soundPath )
+void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *soundPath )
 {
 	gentity_t	*te;
 

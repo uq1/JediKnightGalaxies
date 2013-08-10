@@ -1282,6 +1282,7 @@ int G_ItemUsable(playerState_t *ps, int forcedUse);
 void Cmd_ToggleSaber_f(gentity_t *ent);
 void Cmd_EngageDuel_f(gentity_t *ent);
 void G_LeaveVehicle( gentity_t *ent, qboolean ConCheck );
+void SanitizeString2( char *in, char *out );
 
 gentity_t *G_GetDuelWinner(gclient_t *client);
 

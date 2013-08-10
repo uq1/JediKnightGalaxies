@@ -715,4 +715,19 @@ typedef struct
 #ifdef UI_EXPORTS
 extern cgCrossoverExports_t *cgImports;
 #endif
+
+/*
+=================
+Dealing with some unresolved externals which are getting on my nerves --eez
+=================
+*/
+
+typedef struct {
+	int arg;
+	int argc;
+	char buff[1024];
+} parsebuff_t;
+
+void Pzk_InitParseBuff(parsebuff_t *pb);
+const char *Pzk_NextToken(parsebuff_t *pb);
 #endif

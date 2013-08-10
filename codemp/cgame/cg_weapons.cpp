@@ -2987,7 +2987,7 @@ static void JKG_RenderGenericProjectile ( const centity_t *cent, const weaponDra
         
         trap_FX_PlayEffectID (
             weaponData->projectileRender.generic.projectileEffect,
-            cent->lerpOrigin,
+            (vec_t *)cent->lerpOrigin,
             forward,
             -1, -1
         );
@@ -3070,7 +3070,7 @@ static void JKG_RenderGenericProjectileMiss ( const centity_t *cent, const weapo
 {
     if ( weaponData->projectileMiss.generic.impactEffect )
     {
-        trap_FX_PlayEffectID (weaponData->projectileMiss.generic.impactEffect, origin, normal, -1, -1);
+        trap_FX_PlayEffectID (weaponData->projectileMiss.generic.impactEffect, (vec_t *)origin, (vec_t *)normal, -1, -1);
     }
 }
 
@@ -3078,7 +3078,7 @@ static void JKG_RenderGenericProjectileDeath ( const centity_t *cent, const weap
 {
     if ( weaponData->projectileRender.generic.deathEffect )
     {
-        trap_FX_PlayEffectID (weaponData->projectileRender.generic.deathEffect, origin, normal, -1, -1);
+        trap_FX_PlayEffectID (weaponData->projectileRender.generic.deathEffect, (vec_t *)origin, (vec_t *)normal, -1, -1);
     }
 }
 
@@ -3086,7 +3086,7 @@ static void JKG_RenderGenericProjectileHitPlayer ( const weaponDrawData_t *weapo
 {
     if ( weaponData->projectileHitPlayer.generic.impactEffect )
     {
-        trap_FX_PlayEffectID (weaponData->projectileHitPlayer.generic.impactEffect, origin, normal, -1, -1);
+        trap_FX_PlayEffectID (weaponData->projectileHitPlayer.generic.impactEffect, (vec_t *)origin, (vec_t *)normal, -1, -1);
     }
 }
 
@@ -3102,12 +3102,12 @@ static void JKG_RenderGrenadeProjectileMiss ( const centity_t *cent, const weapo
 {
     if ( weaponData->projectileMiss.grenade.impactEffect )
     {
-        trap_FX_PlayEffectID (weaponData->projectileMiss.grenade.impactEffect, origin, normal, -1, -1);
+        trap_FX_PlayEffectID (weaponData->projectileMiss.grenade.impactEffect, (vec_t *)origin, (vec_t *)normal, -1, -1);
     }
     
     if ( weaponData->projectileMiss.grenade.shockwaveEffect )
     {
-        trap_FX_PlayEffectID (weaponData->projectileMiss.grenade.shockwaveEffect, origin, normal, -1, -1);
+        trap_FX_PlayEffectID (weaponData->projectileMiss.grenade.shockwaveEffect, (vec_t *)origin, (vec_t *)normal, -1, -1);
     }
 }
 
@@ -3115,12 +3115,12 @@ static void JKG_RenderGrenadeProjectileHitPlayer ( const weaponDrawData_t *weapo
 {
     if ( weaponData->projectileHitPlayer.grenade.impactEffect )
     {
-        trap_FX_PlayEffectID (weaponData->projectileHitPlayer.grenade.impactEffect, origin, normal, -1, -1);
+        trap_FX_PlayEffectID (weaponData->projectileHitPlayer.grenade.impactEffect, (vec_t *)origin, (vec_t *)normal, -1, -1);
     }
     
     if ( weaponData->projectileMiss.grenade.shockwaveEffect )
     {
-        trap_FX_PlayEffectID (weaponData->projectileMiss.grenade.shockwaveEffect, origin, normal, -1, -1);
+        trap_FX_PlayEffectID (weaponData->projectileMiss.grenade.shockwaveEffect, (vec_t *)origin, (vec_t *)normal, -1, -1);
     }
 }
 
@@ -3128,7 +3128,7 @@ static void JKG_RenderGenericProjectileDeflected ( const weaponDrawData_t *weapo
 {
     if ( weaponData->projectileDeflected.generic.deflectEffect )
     {
-        trap_FX_PlayEffectID (weaponData->projectileDeflected.generic.deflectEffect, origin, normal, -1, -1);
+        trap_FX_PlayEffectID (weaponData->projectileDeflected.generic.deflectEffect, (vec_t *)origin, (vec_t *)normal, -1, -1);
     }
 }
 
@@ -3194,7 +3194,7 @@ static __inline void JKG_RenderChargingEffect ( centity_t *cent, const vec3_t mu
     
     if ( isFirstPerson )
     {
-        trap_FX_PlayEntityEffectID (chargingEffect, muzzlePosition, axis, -1, -1, -1, -1);
+        trap_FX_PlayEntityEffectID (chargingEffect, const_cast<vec_t *>(muzzlePosition), axis, -1, -1, -1, -1);
     }
     else
     {
@@ -3394,7 +3394,7 @@ static void JKG_RenderTripmineExplosive ( const centity_t *cent, const weaponDra
 					    trap_FX_PlayEffectID (
 				            weaponData->explosiveRender.tripmine.lineEffect,
 				            beamOrigin,
-				            cent->currentState.pos.trDelta,
+				            (vec_t *)cent->currentState.pos.trDelta,
 				            -1, -1
 				        );
 				    }
@@ -3435,7 +3435,7 @@ static void JKG_BlowGenericExplosive ( const centity_t *cent, const weaponDrawDa
             forward[1] = 1.0f;
         }
         
-        trap_FX_PlayEffectID (weaponData->explosiveBlow.generic.explodeEffect, s->origin, forward, -1, -1);
+        trap_FX_PlayEffectID (weaponData->explosiveBlow.generic.explodeEffect, (vec_t *)s->origin, forward, -1, -1);
 
 #ifdef __EXPERIMENTAL_SHADOWS__
 		CG_RecordLightPosition( s->origin );

@@ -1490,7 +1490,7 @@ is used for determining where the lightsaber should be, and for per-poly collisi
 void *g2SaberInstance = NULL;
 
 qboolean BG_IsValidCharacterModel(const char *modelName, const char *skinName);
-qboolean BG_ValidateSkinForTeam( const char *modelName, char *skinName, int team, float *colors );
+qboolean BG_ValidateSkinForTeam( char *modelName, char *skinName, int team, float *colors, int redTeam, int blueTeam, int clientNum );
 void BG_GetVehicleModelName(char *modelname, int len);
 
 void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
@@ -1609,7 +1609,7 @@ void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
 
 						colorOverride[0] = colorOverride[1] = colorOverride[2] = 0.0f;
 
-						BG_ValidateSkinForTeam( truncModelName, skin, ent->client->sess.sessionTeam, colorOverride);
+						BG_ValidateSkinForTeam( truncModelName, skin, ent->client->sess.sessionTeam, colorOverride, level.redTeam, level.blueTeam, ent-g_entities );
 						if (colorOverride[0] != 0.0f ||
 							colorOverride[1] != 0.0f ||
 							colorOverride[2] != 0.0f)
@@ -1620,17 +1620,6 @@ void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
 						}
 
 						//BG_ValidateSkinForTeam( truncModelName, skin, ent->client->sess.sessionTeam, NULL );
-					}
-					else if (level.gametype == GT_SIEGE)
-					{ //force skin for class if appropriate
-						if (ent->client->siegeClass != -1)
-						{
-							siegeClass_t *scl = &bgSiegeClasses[ent->client->siegeClass];
-							if (scl->forcedSkin[0])
-							{
-								Q_strncpyz( skin, scl->forcedSkin, sizeof( skin ) );
-							}
-						}
 					}
 				}
 			}
@@ -1894,7 +1883,6 @@ if desired.
 ============
 */
 qboolean G_SetSaber(gentity_t *ent, int saberNum, char *saberName, qboolean siegeOverride);
-void G_ValidateSiegeClassForTeam(gentity_t *ent, int team);
 
 typedef struct userinfoValidate_s {
 	const char		*field, *fieldClean;
@@ -2131,7 +2119,7 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 
 		VectorClear( colorOverride );
 
-		BG_ValidateSkinForTeam( model, skin, client->sess.sessionTeam, colorOverride );
+		BG_ValidateSkinForTeam( model, skin, client->sess.sessionTeam, colorOverride, level.redTeam, level.blueTeam, clientNum  );
 		if ( colorOverride[0] != 0.0f || colorOverride[1] != 0.0f || colorOverride[2] != 0.0f )
 			VectorScaleM( colorOverride, 255.0f, client->ps.customRGBA );
 	}
@@ -2152,71 +2140,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 
 	//Testing to see if this fixes the problem with a bot's team getting set incorrectly.
 	team = client->sess.sessionTeam;
-
-	//Set the siege class
-	if ( level.gametype == GT_SIEGE )
-	{
-		Q_strncpyz( className, client->sess.siegeClass, sizeof( className ) );
-
-		//Now that the team is legal for sure, we'll go ahead and get an index for it.
-		client->siegeClass = BG_SiegeFindClassIndexByName( className );
-		if ( client->siegeClass == -1 )
-		{ //ok, get the first valid class for the team you're on then, I guess.
-			BG_SiegeCheckClassLegality( team, className );
-			Q_strncpyz( client->sess.siegeClass, className, sizeof( client->sess.siegeClass ) );
-			client->siegeClass = BG_SiegeFindClassIndexByName( className );
-		}
-		else
-		{ //otherwise, make sure the class we are using is legal.
-			G_ValidateSiegeClassForTeam( ent, team );
-			Q_strncpyz( className, client->sess.siegeClass, sizeof( className ) );
-		}
-
-		if ( client->siegeClass != -1 )
-		{// Set the sabers if the class dictates
-			siegeClass_t *scl = &bgSiegeClasses[client->siegeClass];
-
-			G_SetSaber( ent, 0, scl->saber1[0] ? scl->saber1 : DEFAULT_SABER, qtrue );
-			G_SetSaber( ent, 1, scl->saber2[0] ? scl->saber2 : "none", qtrue );
-
-			//make sure the saber models are updated
-			G_SaberModelSetup( ent );
-
-			if ( scl->forcedModel[0] )
-			{ //be sure to override the model we actually use
-				Q_strncpyz( model, scl->forcedModel, sizeof( model ) );
-				if ( d_perPlayerGhoul2.integer )
-				{
-					if ( Q_stricmp( model, client->modelname ) )
-					{
-						Q_strncpyz( client->modelname, model, sizeof( client->modelname ) );
-						modelChanged = qtrue;
-					}
-				}
-			}
-
-			if ( G_PlayerHasCustomSkeleton( ent ) )
-			{//force them to use their class model on the server, if the class dictates
-				if ( Q_stricmp( model, client->modelname ) || ent->localAnimIndex == 0 )
-				{
-					Q_strncpyz( client->modelname, model, sizeof( client->modelname ) );
-					modelChanged = qtrue;
-				}
-			}
-		}
-	}
-	else
-		Q_strncpyz( className, "none", sizeof( className ) );
-
-	//Raz: only set the saber name on the first connect.
-	//		it will be read from userinfo on ClientSpawn and stored in client->pers.saber1/2
-	/*
-	if ( !VALIDSTRING( client->pers.saber1 ) || !VALIDSTRING( client->pers.saber2 ) )
-	{
-		G_SetSaber( ent, 0, Info_ValueForKey( userinfo, "saber1" ), qfalse );
-		G_SetSaber( ent, 1, Info_ValueForKey( userinfo, "saber2" ), qfalse );
-	}
-	*/
 
 	// set max health
 	{
@@ -3955,6 +3878,60 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	
 }
 
+
+/*
+===========
+G_ClearVote
+
+===========
+*/
+
+void G_ClearVote( gentity_t *ent ) {
+	if ( level.voteTime ) {
+		if ( ent->client->mGameFlags & PSG_VOTED ) {
+			if ( ent->client->pers.vote == 1 ) {
+				level.voteYes--;
+				trap_SetConfigstring( CS_VOTE_YES, va( "%i", level.voteYes ) );
+			}
+			else if ( ent->client->pers.vote == 2 ) {
+				level.voteNo--;
+				trap_SetConfigstring( CS_VOTE_NO, va( "%i", level.voteNo ) );
+			}
+		}
+		ent->client->mGameFlags &= ~(PSG_VOTED);
+		ent->client->pers.vote = 0;
+	}
+}
+
+/*
+===========
+G_ClearTeamVote
+
+===========
+*/
+
+void G_ClearTeamVote( gentity_t *ent, int team ) {
+	int voteteam;
+
+	if ( team == TEAM_RED )			voteteam = 0;
+	else if ( team == TEAM_BLUE )	voteteam = 1;
+	else							return;
+
+	if ( level.teamVoteTime[voteteam] ) {
+		if ( ent->client->mGameFlags & PSG_TEAMVOTED ) {
+			if ( ent->client->pers.teamvote == 1 ) {
+				level.teamVoteYes[voteteam]--;
+				trap_SetConfigstring( CS_TEAMVOTE_YES, va( "%i", level.teamVoteYes[voteteam] ) );
+			}
+			else if ( ent->client->pers.teamvote == 2 ) {
+				level.teamVoteNo[voteteam]--;
+				trap_SetConfigstring( CS_TEAMVOTE_NO, va( "%i", level.teamVoteNo[voteteam] ) );
+			}
+		}
+		ent->client->mGameFlags &= ~(PSG_TEAMVOTED);
+		ent->client->pers.teamvote = 0;
+	}
+}
 
 /*
 ===========

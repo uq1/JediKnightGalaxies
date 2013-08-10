@@ -4368,7 +4368,7 @@ void AIMod_AutoWaypoint_StandardMethod( void )
 					//CG_Printf("^4*** ^3AUTO-WAYPOINTER^4: ^5Adding temp waypoint ^3%i ^7at ^7%f %f %f^5. (^3%.2f^5%% complete)\n", areas, org[0], org[1], org[2], (float)((float)((float)final_tests/(float)total_tests)*100.0f));
 					strcpy( last_node_added_string, va("^5Adding temp waypoint ^3%i ^5at ^7%f %f %f^5.", areas/*+areas2+areas3*/, org[0], org[1], org[2]) );
 
-					VectorCopy( org, arealist[areas] );
+					VectorCopy( org, (vec_t *)arealist[areas] );
 					areas++;
 				}
 				else
@@ -4402,7 +4402,7 @@ void AIMod_AutoWaypoint_StandardMethod( void )
 
 						while (temp_org[2] <= temp_org2[2])
 						{// Add waypoints all the way up!
-							VectorCopy( temp_org, arealist[areas] );
+							VectorCopy( temp_org, (vec_t *)arealist[areas] );
 							areas++;
 							temp_org[2] += 24;
 						}
@@ -4419,7 +4419,7 @@ void AIMod_AutoWaypoint_StandardMethod( void )
 
 						while (temp_org[2] >= temp_org2[2])
 						{// Add waypoints all the way up!
-							VectorCopy( temp_org, arealist[areas] );
+							VectorCopy( temp_org, (vec_t *)arealist[areas] );
 							areas++;
 							temp_org[2] -= 24;
 						}

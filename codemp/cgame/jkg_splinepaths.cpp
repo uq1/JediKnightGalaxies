@@ -15,12 +15,6 @@
 #include "encoding/bitstream.h"
 #include "encoding/base128.h"
 
-typedef struct {
-	int arg;
-	int argc;
-	char buff[1024];
-} parsebuff_t;
-
 extern void Cin_InitParseBuff(parsebuff_t *pb);
 extern const char *Cin_NextToken(parsebuff_t *pb);
 qboolean Cin_TokensAvailable(parsebuff_t *pb);

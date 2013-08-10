@@ -3165,7 +3165,8 @@ Ghoul2 Insert End
 	trap_R_GetDistanceCull(&cg.distanceCull);
 
 	//now get all the cgame only cents
-	CG_SpawnCGameOnlyEnts();
+	//CG_SpawnCGameOnlyEnts();
+	CG_ParseEntitiesFromString();
 
 	//Raz: warn for poor settings
 	trap_Cvar_VariableStringBuffer( "rate", buf, sizeof( buf ) );

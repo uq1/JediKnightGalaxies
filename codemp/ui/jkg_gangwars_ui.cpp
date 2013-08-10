@@ -1,4 +1,4 @@
-#include "../game/q_shared.h"
+#include "qcommon/q_shared.h"
 #include "../game/jkg_gangwars.h"
 #include "jkg_gangwars_ui.h"
 #include "ui_shared.h"

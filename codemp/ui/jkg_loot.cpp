@@ -83,12 +83,6 @@ typedef struct
 	int			quality;
 } basicItemData;
 
-typedef struct {
-	int arg;
-	int argc;
-	char buff[1024];
-} parsebuff_t;
-
 basicItemData lootInContainer[MAX_LOOT_DRAW];
 
 
@@ -250,11 +244,6 @@ void JKG_Loot_DestroyMenu(void)
 	Menus_CloseByName("jkg_lootmenu");
 }
 
-//Processing functions
-extern void Pzk_InitParseBuff(parsebuff_t *pb);
-extern const char *Pzk_NextToken(parsebuff_t *pb);
-extern qboolean Pzk_TokensAvailable(parsebuff_t *pb);
-extern int Pzk_ParseInt(parsebuff_t *pb, int *num);
 void JKG_ProcessLoot(){
 	parsebuff_t	pb;
 	const char	*token, *nextToken;

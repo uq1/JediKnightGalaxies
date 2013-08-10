@@ -39,15 +39,8 @@ int killPlayerTimer = 0;
 fileHandle_t stressfile;
 int lastStressLog;
 
-typedef struct {
-	vmCvar_t	*vmCvar;
-	char		*cvarName;
-	char		*defaultString;
-	int			cvarFlags;
-	int			modificationCount;  // for tracking changes
-	qboolean	trackChange;	    // track this variable, and announce if changed
-  qboolean teamShader;        // track and if changed, update shader state
-} cvarTable_t;
+
+
 
 gentity_t		g_entities[MAX_ENTITIESTOTAL];
 gentity_t		*g_logicalents = &g_entities[MAX_GENTITIES]; // Quicker access xD
@@ -431,6 +424,84 @@ void G_FindTeams( void ) {
 
 //	G_Printf ("%i teams with %i entities\n", c, c2);
 }
+
+static void G_ValidateGametype( void ) {
+	// check some things
+	if ( g_gametype.integer < 0 || g_gametype.integer >= GT_MAX_GAME_TYPE ) {
+		G_Printf( "g_gametype %i is out of range, defaulting to 0\n", g_gametype.integer );
+		trap_Cvar_Set( "g_gametype", "0" );
+		trap_Cvar_Update( &g_gametype );
+	}
+}
+
+typedef struct {
+	vmCvar_t	*vmCvar;
+	char		*cvarName;
+	char		*defaultString;
+	void		(*update)( void );
+	int			cvarFlags;
+	qboolean	trackChange; // track this variable, and announce if changed
+} cvarTable_t;
+
+#define XCVAR_DECL
+	#include "g_xcvar.h"
+#undef XCVAR_DECL
+
+static cvarTable_t gameCvarTable[] = {
+	#define XCVAR_LIST
+		#include "g_xcvar.h"
+	#undef XCVAR_LIST
+};
+static int gameCvarTableSize = ARRAY_LEN( gameCvarTable );
+
+/*
+==============
+G_RegisterCvars
+==============
+*/
+
+void G_RegisterCvars( void )
+{
+	cvarTable_t *cv;
+	int i = 0;
+	for( i = 0, cv = gameCvarTable; i < gameCvarTableSize; i++, cv++ )
+	{
+		trap_Cvar_Register( cv->vmCvar, cv->cvarName, cv->defaultString, cv->cvarFlags );
+		if( cv->update )
+			cv->update();
+	}
+
+}
+
+/*
+==============
+G_UpdateCvars
+==============
+*/
+
+void G_UpdateCvars( void )
+{
+	cvarTable_t *cv;
+	int i = 0;
+	for( i = 0, cv = gameCvarTable; i < gameCvarTableSize; i++, cv++ )
+	{
+		if( cv->vmCvar )
+		{
+			int modCount = cv->vmCvar->modificationCount;
+			trap_Cvar_Update( cv->vmCvar );
+
+			if ( cv->vmCvar->modificationCount > modCount )
+			{
+				if ( cv->update )
+					cv->update();
+
+				if ( cv->trackChange )
+					trap_SendServerCommand( -1, va("print \"Server: %s changed to %s\n\"", cv->cvarName, cv->vmCvar->string) );
+			}
+		}
+	}
+}
+
 
 char gSharedBuffer[MAX_G_SHARED_BUFFER_SIZE];
 

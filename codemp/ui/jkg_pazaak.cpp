@@ -1236,12 +1236,6 @@ void Pazaak_Script_ButtonPress(char **args) {
 	}
 }
 
-typedef struct {
-	int arg;
-	int argc;
-	char buff[1024];
-} parsebuff_t;
-
 void Pzk_InitParseBuff(parsebuff_t *pb) {
 	memset(pb,0,sizeof(parsebuff_t));
 	pb->arg = 1;

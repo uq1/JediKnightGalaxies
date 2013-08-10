@@ -1549,7 +1549,11 @@ extern ID_INLINE qboolean	VectorCompare( const vec3_t vec1, const vec3_t vec2 );
 
 #define Vec2Set(v, x, y)			((v)[0]=(x),(v)[1]=(y)) // UQ1: Added	// renamed because conflicts with FX --eez
 #define	Vec4Avg(v, b, s, o)	((o)[0]=((v)[0]*(1-(s)))+((b)[0]*(s)),(o)[1]=((v)[1]*(1-(s)))+((b)[1]*(s)),(o)[2]=((v)[2]*(1-(s)))+((b)[2]*(s)),(o)[3]=((v)[3]*(1-(s)))+((b)[3]*(s))) // UQ1: Added
+#ifndef ENGINE
 #define Vector2Set(v,x,y)			Vec2Set(v,x,y)
+#define Vector4Copy(a,b)			VectorCopy4(a,b)
+#define Vector4Average(v, b, s, o)	Vec4Avg(v, b, s, o)
+#endif
 float VectorDistance( const vec3_t p1, const vec3_t p2 );
 
 #ifdef __LCC__

@@ -32,6 +32,8 @@ qboolean G_NameInTriggerClassList(char *list, char *str);
 
 extern siegeClass_t *BG_GetClassOnBaseClass(const int team, const short classIndex, const short cntIndex);
 
+extern void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *soundPath );
+
 //inits
 int DOM_FavoriteWeapon(bot_state_t *bs, gentity_t *target);
 void DOM_ResetWPTimers(bot_state_t *bs);
@@ -2902,7 +2904,6 @@ qboolean DOM_WaitForRouteCalculation(bot_state_t *bs)
 }
 
 extern void NPC_ConversationAnimation(gentity_t *NPC);
-extern void G_SoundOnEnt( gentity_t *ent, int channel, const char *soundPath );
 
 void DOM_AI_CheckSpeak(gentity_t *bot, qboolean moving)
 {
@@ -3735,7 +3736,6 @@ static qboolean DOM_Jedi_Jump( gentity_t *NPC, vec3_t dest, int goalEntNum )
 	return qtrue;
 }
 
-extern void G_SoundOnEnt( gentity_t *ent, int channel, const char *soundPath );
 extern qboolean PM_InKnockDown( playerState_t *ps );
 
 static qboolean DOM_Jedi_TryJump( gentity_t *NPC, gentity_t *goal )
