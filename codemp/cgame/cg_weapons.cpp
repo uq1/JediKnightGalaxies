@@ -3583,6 +3583,7 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
         
         ci = &cgs.clientinfo[s->clientNum];
         
+		if( cent->ghoul2 )
         {
 			float currentFrame, animSpeed;
 			int startFrame,endFrame,flags; //Filler data to make the trap call not go kaboom
