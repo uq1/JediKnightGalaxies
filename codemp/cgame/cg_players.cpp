@@ -1764,7 +1764,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	int k = 0;
 	qboolean saberUpdate[MAX_SABERS];
 
-	ci = &cgs.clientinfo[clientNum];
+ 	ci = &cgs.clientinfo[clientNum];
 
 	oldGhoul2 = ci->ghoul2Model;
 
@@ -1804,29 +1804,6 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	Q_strncpyz( newInfo.cleanname, v, sizeof( newInfo.cleanname ) );
 	Q_StripColor( newInfo.cleanname );
 
-	// colors
-	v = Info_ValueForKey( configstring, "c1" );
-	CG_ColorFromString( v, newInfo.color1 );
-
-	newInfo.icolor1 = atoi(v);
-
-	v = Info_ValueForKey( configstring, "c2" );
-	CG_ColorFromString( v, newInfo.color2 );
-
-	newInfo.icolor2 = atoi(v);
-
-	// bot skill
-	v = Info_ValueForKey( configstring, "skill" );
-	//Raz: Players now have -1 skill so you can determine the bots from the scoreboard code
-	if ( v && v[0] )
-		newInfo.botSkill = atoi( v );
-	else
-		newInfo.botSkill = -1;
-
-	// handicap
-	v = Info_ValueForKey( configstring, "hc" );
-	newInfo.handicap = atoi( v );
-
 	// wins
 	v = Info_ValueForKey( configstring, "w" );
 	newInfo.wins = atoi( v );
@@ -1851,27 +1828,13 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 
 	//Raz: Gender hints
-	if ( (v = Info_ValueForKey( configstring, "ds" )) )
+	if ( (v = Info_ValueForKey( configstring, "sex" )) )
 	{
 		if ( *v == 'm' )
 			newInfo.gender = GENDER_MALE;
 		else
 			newInfo.gender = GENDER_FEMALE;
 	}	
-
-	// team task
-	v = Info_ValueForKey( configstring, "tt" );
-	newInfo.teamTask = atoi(v);
-
-	// team leader
-	v = Info_ValueForKey( configstring, "tl" );
-	newInfo.teamLeader = atoi(v);
-
-//	v = Info_ValueForKey( configstring, "g_redteam" );
-//	Q_strncpyz(newInfo.redTeam, v, MAX_TEAMNAME);
-
-//	v = Info_ValueForKey( configstring, "g_blueteam" );
-//	Q_strncpyz(newInfo.blueTeam, v, MAX_TEAMNAME);
 
 	// model
 	v = Info_ValueForKey( configstring, "model" );
@@ -1909,96 +1872,6 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 			// truncate modelName
 			*slash = 0;
 		}
-	}
-
-	saberUpdate[0] = qfalse;
-	saberUpdate[1] = qfalse;
-
-	//saber being used
-	v = Info_ValueForKey( configstring, "st" );
-
-#ifdef __MMO__
-	if (v)
-		v = va("default");
-#endif //__MMO__
-
-	if (v && Q_stricmp(v, ci->saberName))
-	{
-		Q_strncpyz( newInfo.saberName, v, 64 );
-		WP_SetSaber(clientNum, newInfo.saber, 0, newInfo.saberName);
-		saberUpdate[0] = qtrue;
-	}
-	else
-	{
-		Q_strncpyz( newInfo.saberName, ci->saberName, 64 );
-		memcpy(&newInfo.saber[0], &ci->saber[0], sizeof(newInfo.saber[0]));
-		newInfo.ghoul2Weapons[0] = ci->ghoul2Weapons[0];
-	}
-
-	v = Info_ValueForKey( configstring, "st2" );
-
-#ifdef __MMO__
-	// UQ1: Need to know how many sabers they have. Guess we could use stance...
-	//if (v)
-	//	v = va("default");
-#endif //__MMO__
-
-	if (v && Q_stricmp(v, ci->saber2Name))
-	{
-		Q_strncpyz( newInfo.saber2Name, v, 64 );
-		WP_SetSaber(clientNum, newInfo.saber, 1, newInfo.saber2Name);
-		saberUpdate[1] = qtrue;
-	}
-	else
-	{
-		Q_strncpyz( newInfo.saber2Name, ci->saber2Name, 64 );
-		memcpy(&newInfo.saber[1], &ci->saber[1], sizeof(newInfo.saber[1]));
-		newInfo.ghoul2Weapons[1] = ci->ghoul2Weapons[1];
-	}
-
-	if (saberUpdate[0] || saberUpdate[1])
-	{
-		int j = 0;
-
-		while (j < MAX_SABERS)
-		{
-			if (saberUpdate[j])
-			{
-				if (newInfo.saber[j].model[0])
-				{
-					if (oldG2Weapons[j])
-					{ //free the old instance(s)
-						trap_G2API_CleanGhoul2Models(&oldG2Weapons[j]);
-						oldG2Weapons[j] = 0;
-					}
-
-					CG_InitG2SaberData(j, &newInfo);
-				}
-				else
-				{
-					if (oldG2Weapons[j])
-					{ //free the old instance(s)
-						trap_G2API_CleanGhoul2Models(&oldG2Weapons[j]);
-						oldG2Weapons[j] = 0;
-					}
-				}
-
-				cg_entities[clientNum].weapon = 0;
-				cg_entities[clientNum].ghoul2weapon = NULL; //force a refresh
-			}
-			j++;
-		}
-	}
-
-	//Check for any sabers that didn't get set again, if they didn't, then reassign the pointers for the new ci
-	k = 0;
-	while (k < MAX_SABERS)
-	{
-		if (oldG2Weapons[k])
-		{
-			newInfo.ghoul2Weapons[k] = oldG2Weapons[k];
-		}
-		k++;
 	}
 
 	//duel team

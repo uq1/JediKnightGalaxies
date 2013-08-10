@@ -1899,17 +1899,17 @@ static userinfoValidate_t userinfoFields[] = {
 	UIF( snaps,				1, 1 ),
 	UIF( model,				1, 1 ),
 	UIF( forcepowers,		1, 1 ),
-	UIF( color1,			1, 1 ),
-	UIF( color2,			1, 1 ),
+//	UIF( color1,			1, 1 ),	// NOT IN JKG
+//	UIF( color2,			1, 1 ),	// NOT IN JKG
 	UIF( handicap,			1, 1 ),
 	UIF( sex,				0, 1 ),
 	UIF( cg_predictItems,	1, 1 ),
-	UIF( saber1,			1, 1 ),
-	UIF( saber2,			1, 1 ),
+//	UIF( saber1,			1, 1 ), // NOT IN JKG
+//	UIF( saber2,			1, 1 ),	// NOT IN JKG
 	UIF( char_color_red,	1, 1 ),
 	UIF( char_color_green,	1, 1 ),
 	UIF( char_color_blue,	1, 1 ),
-	UIF( teamtask,			1, 1 ),
+//	UIF( teamtask,			1, 1 ),	// NOT IN JKG
 	UIF( password,			0, 1 ), // optional
 	UIF( teamoverlay,		0, 1 ), // only registered in cgame, not sent when connecting
 };
@@ -2041,11 +2041,11 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 
 	// check for malformed or illegal info strings
-	s = G_ValidateUserinfo( userinfo );
+	s = G_ValidateUserinfo( userinfo );	// <eezstreet> I think this is being used incorrectly in this case, as it doesn't validate them properly?
 	if ( s && *s )
 	{
 		G_SecurityLogPrintf( "Client %d (%s) failed userinfo validation: %s [IP: %s]\n", clientNum, ent->client->pers.netname, s, client->sess.IP );
-		trap_DropClient( clientNum, va( "Failed userinfo validation: %s", s ) );
+		trap_DropClient( clientNum, va( "%s was dropped due to invalid userinfo.", s ) );
 		return qfalse;
 	}
 
@@ -2214,23 +2214,17 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	//	Q_strcat( buf, sizeof( buf ), va( "tt\\%d\\", teamTask ) );
 		Q_strcat( buf, sizeof( buf ), va( "tl\\%d\\", teamLeader ) );
 	}
+	trap_GetConfigstring( CS_PLAYERS+clientNum, oldClientinfo, sizeof( oldClientinfo ) );
+	trap_SetConfigstring( CS_PLAYERS+clientNum, buf );
 #else //!__MMO__
 	// send over a subset of the userinfo keys so other clients can
 	// print scoreboards, display models, and play custom sounds
-	if ( ent->r.svFlags & SVF_BOT ) {
-		s = va("n\\%s\\t\\%i\\model\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\dt\\%i\\sex\\%s",
-			client->pers.netname, team, model, c1, c2, 
-			client->pers.maxHealth, client->sess.wins, client->sess.losses,
-			client->sess.duelTeam, sex );
-	} else {
-		s = va("n\\%s\\t\\%i\\model\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\tl\\%d\\dt\\%i\\sex\\%s",
-			client->pers.netname, client->sess.sessionTeam, model, c1, c2, 
-			client->pers.maxHealth, client->sess.wins, client->sess.losses, teamLeader, client->sess.duelTeam, sex);
-	}
-#endif //__MMO__
-
+	s = va("n\\%s\\t\\%i\\model\\%s\\w\\%i\\l\\%i\\dt\\%i\\sex\\%s",
+		client->pers.netname, client->sess.sessionTeam, model, 
+		client->sess.wins, client->sess.losses, client->sess.duelTeam, sex);
 	trap_GetConfigstring( CS_PLAYERS+clientNum, oldClientinfo, sizeof( oldClientinfo ) );
-	trap_SetConfigstring( CS_PLAYERS+clientNum, buf );
+	trap_SetConfigstring( CS_PLAYERS+clientNum, s );
+#endif //__MMO__
 
 	if ( modelChanged ) //only going to be true for allowable server-side custom skeleton cases
 	{ //update the server g2 instance if appropriate
@@ -2246,8 +2240,8 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 
 	if ( g_logClientInfo.integer )
 	{
-		if ( strcmp( oldClientinfo, buf ) )
-			G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, buf );
+		if ( strcmp( oldClientinfo, s ) )
+			G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, s );
 		else
 			G_LogPrintf( "ClientUserinfoChanged: %i <no change>\n", clientNum );
 	}
