@@ -2684,8 +2684,8 @@ qboolean ForceTelepathyCheckDirectNPCTarget( gentity_t *self, trace_t *tr, qbool
 						traceEnt->genericValue2 = traceEnt->client->enemyTeam;
 						traceEnt->genericValue3 = traceEnt->s.teamowner;
 						//set the new values
-						traceEnt->client->playerTeam = newPlayerTeam;
-						traceEnt->client->enemyTeam = newEnemyTeam;
+						traceEnt->client->playerTeam = (npcteam_t)newPlayerTeam;
+						traceEnt->client->enemyTeam = (npcteam_t)newEnemyTeam;
 						traceEnt->s.teamowner = newPlayerTeam;
 						//FIXME: need a *charmed* timer on this...?  Or do TEAM_PLAYERS assume that "confusion" means they should switch to team_enemy when done?
 						traceEnt->NPC->charmedTime = level.time + mindTrickTime[self->client->ps.fd.forcePowerLevel[FP_TELEPATHY]];

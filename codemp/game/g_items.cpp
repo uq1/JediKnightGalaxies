@@ -1076,34 +1076,10 @@ void ItemUse_Sentry( gentity_t *ent )
 extern gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboolean isVehicle );
 void ItemUse_Seeker(gentity_t *ent)
 {
-	if ( d_seekerNPC.integer )
-	{//actualy spawn a remote NPC
-		gentity_t *remote = NPC_SpawnType( ent, "remote", NULL, qfalse );
-		if ( remote && remote->client )
-		{//set it to my team
-			remote->s.owner = remote->r.ownerNum = ent->s.number;
-			remote->activator = ent;
-			if ( ent->client->sess.sessionTeam == TEAM_BLUE )
-			{
-				remote->client->playerTeam = NPCTEAM_PLAYER;
-			}
-			else if ( ent->client->sess.sessionTeam == TEAM_RED )
-			{
-				remote->client->playerTeam = NPCTEAM_ENEMY;
-			}
-			else
-			{
-				remote->client->playerTeam = NPCTEAM_NEUTRAL;
-			}
-		}	
-	}
-	else
-	{
-		ent->client->ps.eFlags |= EF_SEEKERDRONE;
-		ent->client->numDroneShotsInBurst = 0;
-		ent->client->ps.droneExistTime = level.time + 60000;
-		ent->client->ps.droneFireTime = level.time + 1500;
-	}
+	ent->client->ps.eFlags |= EF_SEEKERDRONE;
+	ent->client->numDroneShotsInBurst = 0;
+	ent->client->ps.droneExistTime = level.time + 60000;
+	ent->client->ps.droneFireTime = level.time + 1500;
 }
 
 void HealingPlum( gentity_t *ent, vec3_t origin, int amount );

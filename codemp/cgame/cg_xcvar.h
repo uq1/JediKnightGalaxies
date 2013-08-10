@@ -163,4 +163,28 @@ XCVAR_DEF( ui_tm2_c4_cnt,						"0",					NULL,					CVAR_ROM|CVAR_INTERNAL )
 XCVAR_DEF( ui_tm2_c5_cnt,						"0",					NULL,					CVAR_ROM|CVAR_INTERNAL )
 XCVAR_DEF( ui_tm2_cnt,							"0",					NULL,					CVAR_ROM|CVAR_INTERNAL )
 XCVAR_DEF( ui_tm3_cnt,							"0",					NULL,					CVAR_ROM|CVAR_INTERNAL )
+
+// Jedi Knight Galaxies
+XCVAR_DEF( cg_centertime,						"5",					NULL,					CVAR_NONE )
+XCVAR_DEF( cg_drawHUD,							"1",					NULL,					CVAR_NONE )
+XCVAR_DEF( ui_hidehud,							"0",					NULL,					CVAR_INTERNAL )
+XCVAR_DEF( ui_blurbackground,					"0",					NULL,					CVAR_INTERNAL )
+XCVAR_DEF( jkg_simpleHUD,						"0",					NULL,					CVAR_ARCHIVE )
+
+// TrueView
+XCVAR_DEF( cg_trueguns,							"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_trueroll,							"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_trueflip,							"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_truespin,							"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_truemoveroll,						"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_truesaberonly,					"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_trueeyeposition,					"0.0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_trueinvertsaber,					"1",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_truefov,							"80",					NULL,					CVAR_ARCHIVE )
+
+XCVAR_DEF( cg_cameraMode,						"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( jkg_smoothcamera,					"1",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( jkg_sprintFOV,						"100",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( jkg_viewmodelPopup,					"150",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_gun_frame,						"0",					NULL,					CVAR_CHEAT )
 #undef XCVAR_DEF

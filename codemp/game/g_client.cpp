@@ -1220,7 +1220,7 @@ team_t TeamCount( int ignoreClientNum, int team ) {
 		}
 	}
 
-	return count;
+	return (team_t)count;
 }
 
 /*
@@ -2046,7 +2046,8 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	char		*s=NULL,						*value=NULL,
 				userinfo[MAX_INFO_STRING]={0},	buf[MAX_INFO_STRING]={0},		oldClientinfo[MAX_INFO_STRING]={0},
 				model[MAX_QPATH]={0},			forcePowers[MAX_QPATH]={0},		oldname[MAX_NETNAME]={0},
-				className[MAX_QPATH]={0},		color1[MAX_INFO_STRING]={0},	color2[MAX_INFO_STRING]={0};
+				className[MAX_QPATH]={0},		c1[MAX_INFO_STRING]={0},		c2[MAX_INFO_STRING]={0},
+				sex[MAX_INFO_STRING]={0};
 	qboolean	modelChanged = qfalse, female = qfalse;
 
 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
@@ -2209,11 +2210,13 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 
 	//Raz: only set the saber name on the first connect.
 	//		it will be read from userinfo on ClientSpawn and stored in client->pers.saber1/2
+	/*
 	if ( !VALIDSTRING( client->pers.saber1 ) || !VALIDSTRING( client->pers.saber2 ) )
 	{
 		G_SetSaber( ent, 0, Info_ValueForKey( userinfo, "saber1" ), qfalse );
 		G_SetSaber( ent, 1, Info_ValueForKey( userinfo, "saber2" ), qfalse );
 	}
+	*/
 
 	// set max health
 	{
@@ -2251,17 +2254,10 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	teamLeader = client->sess.teamLeader;
 
 	// colors
-	Q_strncpyz( color1, Info_ValueForKey( userinfo, "color1" ), sizeof( color1 ) );
-	Q_strncpyz( color2, Info_ValueForKey( userinfo, "color2" ), sizeof( color2 ) );
+	Q_strncpyz( c1, Info_ValueForKey( userinfo, "color1" ), sizeof( c1 ) );
+	Q_strncpyz( c2, Info_ValueForKey( userinfo, "color2" ), sizeof( c2 ) );
 
-	if(!Q_stricmp(Info_ValueForKey( userinfo, "sex" ), "f"))
-	{
-		strcpy(sex, "f");
-	}
-	else
-	{
-		strcpy(sex, "m");
-	}
+	Q_strncpyz( sex, Info_ValueForKey( userinfo, "sex"), sizeof( sex ) );
 
 //	strcpy(redTeam, Info_ValueForKey( userinfo, "g_redteam" ));
 //	strcpy(blueTeam, Info_ValueForKey( userinfo, "g_blueteam" ));
@@ -2280,8 +2276,8 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	Q_strcat( buf, sizeof( buf ), va( "ds\\%c\\", female ? 'f' : 'm' ) );
 	Q_strcat( buf, sizeof( buf ), va( "st\\%s\\", client->pers.saber1 ) );
 	Q_strcat( buf, sizeof( buf ), va( "st2\\%s\\", client->pers.saber2 ) );
-	Q_strcat( buf, sizeof( buf ), va( "c1\\%s\\", color1 ) );
-	Q_strcat( buf, sizeof( buf ), va( "c2\\%s\\", color2 ) );
+	Q_strcat( buf, sizeof( buf ), va( "c1\\%s\\", c1 ) );
+	Q_strcat( buf, sizeof( buf ), va( "c2\\%s\\", c2 ) );
 	Q_strcat( buf, sizeof( buf ), va( "hc\\%i\\", client->pers.maxHealth ) );
 	if ( ent->r.svFlags & SVF_BOT )
 		Q_strcat( buf, sizeof( buf ), va( "skill\\%s\\", Info_ValueForKey( userinfo, "skill" ) ) );
@@ -2299,14 +2295,14 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	// send over a subset of the userinfo keys so other clients can
 	// print scoreboards, display models, and play custom sounds
 	if ( ent->r.svFlags & SVF_BOT ) {
-		s = va("n\\%s\\t\\%i\\ct\\%i\\model\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\skill\\%s\\tt\\%d\\tl\\%d\\siegeclass\\%s\\st\\%s\\st2\\%s\\dt\\%i\\sdt\\%i\\sex\\%s",
-			client->pers.netname, team, customteam, model,  c1, c2, 
+		s = va("n\\%s\\t\\%i\\model\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\dt\\%i\\sex\\%s",
+			client->pers.netname, team, model, c1, c2, 
 			client->pers.maxHealth, client->sess.wins, client->sess.losses,
-			Info_ValueForKey( userinfo, "skill" ), teamTask, teamLeader, className, saberName, saber2Name, client->sess.duelTeam, client->sess.siegeDesiredTeam, sex );
+			client->sess.duelTeam, sex );
 	} else {
-		s = va("n\\%s\\t\\%i\\model\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\tt\\%d\\tl\\%d\\st\\%s\\st2\\%s\\dt\\%i\\sex\\%s",
+		s = va("n\\%s\\t\\%i\\model\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\tl\\%d\\dt\\%i\\sex\\%s",
 			client->pers.netname, client->sess.sessionTeam, model, c1, c2, 
-			client->pers.maxHealth, client->sess.wins, client->sess.losses, teamTask, teamLeader, saberName, saber2Name, client->sess.duelTeam, sex);
+			client->pers.maxHealth, client->sess.wins, client->sess.losses, teamLeader, client->sess.duelTeam, sex);
 	}
 #endif //__MMO__
 
@@ -2630,7 +2626,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 
 			preSess = ent->client->sess.sessionTeam;
 			G_ReadSessionData( ent->client );
-			ent->client->sess.sessionTeam = preSess;
+			ent->client->sess.sessionTeam = (team_t)preSess;
 			G_WriteClientSessionData(ent->client);
 			if ( !ClientUserinfoChanged( clientNum ) )
 				return;
@@ -3611,103 +3607,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	client->ps.clientNum = index;
 	//give default weapons
 	client->ps.stats[STAT_WEAPONS] = ( 1 << WP_NONE );
-
-
-
-	if ( !AllForceDisabled( g_forcePowerDisable.integer )
-		&& g_trueJedi.integer )
-	{
-		if ( g_gametype.integer >= GT_TEAM && (client->sess.sessionTeam == TEAM_BLUE || client->sess.sessionTeam == TEAM_RED) )
-		{//In Team games, force one side to be merc and other to be jedi
-			if ( level.numPlayingClients > 0 )
-			{//already someone in the game
-				int		i, forceTeam = TEAM_SPECTATOR;
-				for ( i = 0 ; i < level.maxclients ; i++ ) 
-				{
-					if ( level.clients[i].pers.connected == CON_DISCONNECTED ) {
-						continue;
-					}
-					if ( level.clients[i].sess.sessionTeam == TEAM_BLUE || level.clients[i].sess.sessionTeam == TEAM_RED ) 
-					{//in-game
-						if ( WP_HasForcePowers( &level.clients[i].ps ) )
-						{//this side is using force
-							forceTeam = level.clients[i].sess.sessionTeam;
-						}
-						else
-						{//other team is using force
-							if ( level.clients[i].sess.sessionTeam == TEAM_BLUE )
-							{
-								forceTeam = TEAM_RED;
-							}
-							else
-							{
-								forceTeam = TEAM_BLUE;
-							}
-						}
-						break;
-					}
-				}
-				if ( WP_HasForcePowers( &client->ps ) && client->sess.sessionTeam != forceTeam )
-				{//using force but not on right team, switch him over
-					const char *teamName = TeamName( forceTeam );
-					//client->sess.sessionTeam = forceTeam;
-					SetTeam( ent, (char *)teamName );
-					return;
-				}
-			}
-		}
-
-		if ( WP_HasForcePowers( &client->ps ) )
-		{
-			client->ps.trueNonJedi = qfalse;
-			client->ps.trueJedi = qtrue;
-			//make sure they only use the saber
-			client->ps.weapon = WP_SABER;
-			client->ps.stats[STAT_WEAPONS] = (1 << WP_SABER);
-		}
-		else
-		{//no force powers set
-			client->ps.trueNonJedi = qtrue;
-			client->ps.trueJedi = qfalse;
-			client->ps.stats[STAT_WEAPONS] &= ~(1 << WP_SABER);
-			client->ps.stats[STAT_WEAPONS] |= (1 << WP_MELEE);
-			//client->ps.ammo[AMMO_POWERCELL] = GetAmmoMax (AMMO_POWERCELL);
-			client->ps.weapon = WP_NONE;
-		}
-	}
-	else
-	{//jediVmerc is incompatible with this gametype, turn it off!
-		trap_Cvar_Set( "g_jediVmerc", "0" );
-		if (g_gametype.integer == GT_HOLOCRON)
-		{
-			//always get free saber level 1 in holocron
-			client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_SABER );	//these are precached in g_items, ClearRegisteredItems()
-		}
-		else
-		{
-			if (client->ps.fd.forcePowerLevel[FP_SABER_OFFENSE])
-			{
-				client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_SABER );	//these are precached in g_items, ClearRegisteredItems()
-			}
-			else
-			{ //if you don't have saber attack rank then you don't get a saber
-				client->ps.stats[STAT_WEAPONS] |= (1 << WP_MELEE);
-			}
-		}
-
-		if (client->ps.stats[STAT_WEAPONS] & (1 << WP_SABER))
-		{
-			client->ps.weapon = WP_SABER;
-		}
-		else if (client->ps.stats[STAT_WEAPONS] & (1 << WP_BRYAR_PISTOL))
-		{
-			client->ps.weapon = WP_BRYAR_PISTOL;
-		}
-		else
-		{
-			client->ps.weapon = WP_MELEE;
-		}
-	}
 	
     client->ps.weapon = 0;
     client->ps.weaponId = BG_GetWeaponIndexFromClass (client->ps.weapon, 0);
@@ -3956,7 +3855,8 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	}
 
 	//set teams for NPCs to recognize
-	client->playerTeam = ent->s.teamowner = NPCTEAM_PLAYER;
+	ent->s.teamowner = NPCTEAM_PLAYER;
+	client->playerTeam = (npcteam_t)ent->s.teamowner;
 	client->enemyTeam = NPCTEAM_ENEMY;
 
 	/*

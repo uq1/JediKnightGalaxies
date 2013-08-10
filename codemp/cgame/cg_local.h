@@ -251,6 +251,7 @@ typedef struct {
 	char			saber2Name[64];
 
 	char			name[MAX_QPATH];
+	char			cleanname[MAX_QPATH];
 	team_t			team;
 	// JKG
 	int				customteam;		// For mini-games like the arena
@@ -1601,10 +1602,6 @@ typedef struct {
 	qhandle_t   iceOverlay;
 	qhandle_t   playerFireEffect;
 
-#ifdef __MUSIC_ENGINE__
-	qhandle_t	radio_player;
-#endif //__MUSIC_ENGINE__
-
 } cgMedia_t;
 
 
@@ -1888,7 +1885,6 @@ typedef struct {
 	int					numMiscStaticModels;
 	cg_staticmodel_t	miscStaticModels[MAX_STATIC_MODELS];
 
-} cgs_t;
 	// Jedi Knight Galaxies - New persistant values..
 	teamParty_t		party;
 	teamPartyList_t	partyList[MAX_CLIENTS];
@@ -2721,7 +2717,7 @@ void trap_JKG_SetViewAngles( vec3_t viewangles );
 char *trap_FX_GetSharedMemory( void );
 void trap_R_AddMiniRefEntityToScene( miniRefEntity_t *ent );
 #ifndef UI_EXPORTS
-int vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  );
+Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  );
 #endif
 
 void		CG_Init_CG(void);

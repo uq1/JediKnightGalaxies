@@ -925,8 +925,7 @@ void SP_target_interest( gentity_t *self )
 
 	if(self->target && self->target[0])
 	{
-		//level.interestPoints[level.numInterestPoints].target = G_NewString( self->target );
-		G_NewString2((void **)&level.interestPoints[level.numInterestPoints].target, self->target);
+		level.interestPoints[level.numInterestPoints].target = G_NewString( const_cast<const char *>(self->target) );
 	}
 
 	level.numInterestPoints++;

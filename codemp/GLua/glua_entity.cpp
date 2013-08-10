@@ -1,7 +1,7 @@
 // Defines the entity object and ents. namespace
 
-#include "../game/g_local.h"
-#include "../game/q_shared.h"
+#include "game/g_local.h"
+#include "qcommon/q_shared.h"
 
 #include "glua.h"
 #include "../game/jkg_utilityfunc.h"
@@ -310,14 +310,14 @@ static int GLua_Entity_GetTargetName(lua_State *L) {
 static int GLua_Entity_SetTarget(lua_State *L) {
 	gentity_t *ent = GLua_CheckEntity(L, 1);
 	if (!ent) return 0;
-	G_NewString2((void **)&ent->target, luaL_checkstring(L,2));
+	ent->target = G_NewString( luaL_checkstring(L,2) );
 	return 0;
 }
 
 static int GLua_Entity_SetTargetName(lua_State *L) {
 	gentity_t *ent = GLua_CheckEntity(L, 1);
 	if (!ent) return 0;
-	G_NewString2((void **)&ent->targetname, luaL_checkstring(L,2));
+	ent->targetname = G_NewString( luaL_checkstring(L,2) );
 	return 0;
 }
 
@@ -1198,12 +1198,11 @@ static int GLua_EntityFactory_ClearSpawnVars(lua_State *L) {
 	int keepclass = lua_toboolean(L,2);
 	const char *classname = NULL;
 	if (keepclass && JKG_Pairs_FindKey(&entfact->keys, "classname") != -1) {
-		G_NewString2((void**)&classname, JKG_Pairs_GetKey(&entfact->keys, "classname"));
+		classname = G_NewString( JKG_Pairs_GetKey( &entfact->keys, "classname" ) );
 	}
 	JKG_Pairs_Clear(&entfact->keys);
 	if (classname) {
 		JKG_Pairs_Add(&entfact->keys, "classname", classname);
-		G_Free((void*)classname);
 	}
 	return 0;
 }

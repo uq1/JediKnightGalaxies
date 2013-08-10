@@ -153,4 +153,14 @@ XCVAR_DEF( sv_fps,						"40",			NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO,					qtrue
 XCVAR_DEF( sv_maxclients,				"8",			NULL,				CVAR_SERVERINFO|CVAR_LATCH|CVAR_ARCHIVE,		qfalse )
 XCVAR_DEF( timelimit,					"0",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_NORESTART,	qtrue )
 
+// Jedi Knight Galaxies
+XCVAR_DEF( jkg_shop_replenish_time,		"300",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_debugThreading,			"0",			NULL,				CVAR_CHEAT,										true )
+XCVAR_DEF( jkg_startingStats,			"100/25",		NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_startingCredits,			"500",			NULL,				CVAR_ARCHIVE|CVAR_LATCH,						false )
+XCVAR_DEF( jkg_bounty,					"10",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_creditsPerKill,			"150",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( g_listEntity,				"0",			NULL,				CVAR_CHEAT,										false )
+XCVAR_DEF( jkg_arearestrictions,		"0",			NULL,				CVAR_ARCHIVE,									true )
+
 #undef XCVAR_DEF

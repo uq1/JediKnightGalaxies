@@ -2,7 +2,7 @@
 //
 // bg_misc.c -- both games misc functions, all completely stateless
 
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_strap.h"
 #include "jkg_gangwars.h"
@@ -306,8 +306,10 @@ stringID_table_t HoldableTable[] =
 stringID_table_t PowerupTable[] =
 {
 	ENUM2STRING(PW_NONE),
+#ifdef BASE_COMPAT
 	ENUM2STRING(PW_QUAD),
 	ENUM2STRING(PW_BATTLESUIT),
+#endif
 	ENUM2STRING(PW_PULL),
 	ENUM2STRING(PW_REDFLAG),
 	ENUM2STRING(PW_BLUEFLAG),
@@ -742,97 +744,6 @@ qboolean BG_FileExists(const char *fileName)
 	return qfalse;
 }
 
-#ifndef UI_EXPORTS //don't need this stuff in the ui
-
-// Following functions don't need to be in namespace, they're already
-// different per-module
-
-#ifdef QAGAME
-char *G_NewString( const char *string );
-void G_NewString2(void ** data, const char *string );
-#else
-char *CG_NewString( const char *string );
-#endif
-
-/*
-===============
-BG_ParseField
-
-Takes a key/value pair and sets the binary values
-in a gentity/centity/whatever the hell you want
-===============
-*/
-
-void BG_ParseField( BG_field_t *l_fields, const char *key, const char *value, byte *ent )
-{
-	BG_field_t	*f;
-	byte	*b;
-	float	v;
-	vec3_t	vec;
-
-	for ( f=l_fields ; f->name ; f++ ) {
-		if ( !Q_stricmp(f->name, key) ) {
-			// found it
-			b = (byte *)ent;
-
-			switch( f->type ) {
-			case F_LSTRING:
-#ifdef QAGAME
-				//*(char **)(b+f->ofs) = G_NewString (value);
-				G_NewString2((void **)(b+f->ofs), value);
-#else
-				*(char **)(b+f->ofs) = CG_NewString (value);
-#endif
-				break;
-			case F_VECTOR:
-				sscanf (value, "%f %f %f", &vec[0], &vec[1], &vec[2]);
-				((float *)(b+f->ofs))[0] = vec[0];
-				((float *)(b+f->ofs))[1] = vec[1];
-				((float *)(b+f->ofs))[2] = vec[2];
-				break;
-			case F_INT:
-				*(int *)(b+f->ofs) = atoi(value);
-				break;
-			case F_FLOAT:
-				*(float *)(b+f->ofs) = atof(value);
-				break;
-			case F_ANGLEHACK:
-				v = atof(value);
-				((float *)(b+f->ofs))[0] = 0;
-				((float *)(b+f->ofs))[1] = v;
-				((float *)(b+f->ofs))[2] = 0;
-				break;
-#ifdef QAGAME
-			case F_PARM1:
-			case F_PARM2:
-			case F_PARM3:
-			case F_PARM4:
-			case F_PARM5:
-			case F_PARM6:
-			case F_PARM7:
-			case F_PARM8:
-			case F_PARM9:
-			case F_PARM10:
-			case F_PARM11:
-			case F_PARM12:
-			case F_PARM13:
-			case F_PARM14:
-			case F_PARM15:
-			case F_PARM16:
-				Q3_SetParm( ((gentity_t *)(ent))->s.number, (f->type - F_PARM1), (char *) value );
-				break;
-#endif
-			default:
-			case F_IGNORE:
-				break;
-			}
-			return;
-		}
-	}
-}
-
-#endif
-
 /*
 ================
 BG_LegalizedForcePowers
@@ -1214,7 +1125,7 @@ gitem_t	bg_itemlist[] =
 /* icon */		NULL,		// icon
 /* pickup */	//NULL,		// pickup_name
 		0,					// quantity
-		0,					// giType (IT_*)
+		IT_BAD,				// giType (IT_*)
 		0,					// giTag
 /* precache */ "",			// precaches
 /* sounds */ "",			// sounds
@@ -3871,7 +3782,7 @@ int BG_ParseGenericAnimationFile ( animation_t *animset, size_t maxAnimations, c
 			break;
 		}
 
-		animNum = GetIDForString (animTable, token);
+		animNum = GetIDForString (const_cast<stringID_table_t *>(animTable), token);
 		if ( animNum == -1 )
 		{
 //#ifndef FINAL_BUILD

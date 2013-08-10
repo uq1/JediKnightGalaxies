@@ -63,7 +63,7 @@ void JKG_PMTrace( trace_t *results, const vec3_t start, const vec3_t mins, const
 		return;
 	}
 	// This of for a player, so clear out the contents of all player's he's hidden to
-	for (i=0, j=0; i<g_maxclients.integer; i++) {
+	for (i=0, j=0; i<sv_maxclients.integer; i++) {
 		if (g_entities[i].inuse && g_entities[i].client && JKG_IsIsolated(passEntityNum, i)) {
 			contbackup[j].entNum = i;
 			contbackup[j].contents = g_entities[i].r.contents;

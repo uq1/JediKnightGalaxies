@@ -17,7 +17,7 @@
 // Just a note here, this was designed with speeders in mind, not ships.
 // I will be upgrading this with proper ship/landspeeder support at a later date.
 
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_local.h"
 #include "bg_strap.h"

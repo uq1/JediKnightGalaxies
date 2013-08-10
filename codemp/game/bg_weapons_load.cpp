@@ -1,4 +1,4 @@
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_local.h"
 #include "bg_strap.h"
@@ -446,11 +446,11 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     
     node = cJSON_GetObjectItem (fireModeNode, "meansofdeath");
     str = cJSON_ToStringOpt (node, "MOD_UNKNOWN");
-    fireModeStats->weaponMOD = GetIDForString (MODTable, str);
+    fireModeStats->weaponMOD = GetIDForString (const_cast<stringID_table_t *>(MODTable), str);
     
     node = cJSON_GetObjectItem (fireModeNode, "splashmeansofdeath");
     str = cJSON_ToStringOpt (node, "MOD_UNKNOWN");
-    fireModeStats->weaponSplashMOD = GetIDForString (MODTable, str);
+    fireModeStats->weaponSplashMOD = GetIDForString (const_cast<stringID_table_t *>(MODTable), str);
 }
 
 //=========================================================

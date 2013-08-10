@@ -17,7 +17,7 @@
 #ifndef BG_ITEMS_H
 #define BG_ITEMS_H
 
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 
 #define MAX_ITEM_TABLE_SIZE     (65535)
 #define MAX_ITEM_FILE_LENGTH    (16384)

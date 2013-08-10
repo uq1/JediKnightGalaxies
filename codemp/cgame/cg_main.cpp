@@ -153,34 +153,6 @@ void CG_DoCameraShake( vec3_t origin, float intensity, int radius, int time );
 
 qboolean cgame_initializing = qtrue;
 
-#ifdef __MUSIC_ENGINE__
-qboolean	cvarsLoaded = qfalse;
-
-extern void CG_DoMusic ( void );
-extern void CG_StopMusic ( void );
-
-extern vmCvar_t s_radioVolume;
-
-//extern void CG_DoSound ( void );
-//vmCvar_t s_musicvolume;
-
-qboolean CG_GameLoading ( void )
-{
-	return cgame_initializing;
-}
-
-/* */
-float CG_GetMusicVolume ( void )
-{	// cvars good, conflicting values bad --eez
-	return ( s_radioVolume.value );
-}
-
-int CG_GetTime ( void )
-{// Unique1 added.. For access by sound engine...
-	return cg.time;
-}
-#endif //__MUSIC_ENGINE__
-
 //do we have any force powers that we would normally need to cycle to?
 qboolean CG_NoUseableForce(void)
 {
@@ -204,17 +176,6 @@ qboolean CG_NoUseableForce(void)
 	return qtrue;
 }
 
-#ifdef __SECONDARY_NETWORK__
-extern void jkg_netclientbegin();
-extern void jkg_netclientshutdown();
-
-extern qboolean CLIENT_FORCED_SHUTDOWN;
-#endif //__SECONDARY_NETWORK__
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-extern void CG_ClearRecordedLights();
-#endif //__EXPERIMENTAL_SHADOWS__
-
 extern void ChatBox_UseMessageMode(int whichOne);
 
 /*
@@ -232,20 +193,11 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 		CG_Init( arg0, arg1, arg2 );
 		return 0;
 	case CG_SHUTDOWN:
-#ifdef __MUSIC_ENGINE__
-		CG_StopMusic();
-#endif //__MUSIC_ENGINE__
-#ifdef __SECONDARY_NETWORK__
-		jkg_netclientshutdown();
-#endif //__SECONDARY_NETWORK__
 		CG_Shutdown();
 		return 0;
 	case CG_CONSOLE_COMMAND:
 		return CG_ConsoleCommand();
 	case CG_DRAW_ACTIVE_FRAME:
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_ClearRecordedLights();
-#endif //__EXPERIMENTAL_SHADOWS__
 		CG_DrawActiveFrame( arg0, arg1, arg2 );
 		return 0;
 	case CG_CROSSHAIR_PLAYER:
@@ -304,37 +256,10 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 		return CG_RagCallback(arg0);
 
 	case CG_INCOMING_CONSOLE_COMMAND:
-		//rww - let mod authors filter client console messages so they can cut them off if they want.
-		//return 1 if the command is ok. Otherwise, you can set char 0 on the command str to 0 and return
-		//0 to not execute anything, or you can fill conCommand in with something valid and return 0
-		//in order to have that string executed in place. Some example code:
-		/*
-		{
-			TCGIncomingConsoleCommand	*icc = (TCGIncomingConsoleCommand *)cg.sharedBuffer;
-			// Deny private commands (~ prefixed)
-			if (icc->conCommand[0] == '~') return 0;
-			
-			if (strstr(icc->conCommand, "wait"))
-			{ //filter out commands contaning wait
-				Com_Printf("You can't use commands containing the string wait with MyMod v1.0\n");
-				icc->conCommand[0] = 0;
-				return 0;
-			}
-			else if (strstr(icc->conCommand, "blah"))
-			{ //any command containing the string "blah" is redirected to "quit"
-				strcpy(icc->conCommand, "quit");
-				return 0;
-			}
-			
-		}
-		*/
 		{
 		    TCGIncomingConsoleCommand *icc = (TCGIncomingConsoleCommand *)cg.sharedBuffer;
 		    if ( Q_stricmpn (icc->conCommand, "quit", 4) == 0 )
 		    {
-#ifdef __MUSIC_ENGINE__
-				CG_StopMusic();
-#endif //__MUSIC_ENGINE__
 		        return 1;
 		    }
 		}
@@ -1087,10 +1012,6 @@ static void CG_RegisterSounds( void ) {
 
 	cgs.media.rivetMarkShader			= trap_R_RegisterShader( "gfx/damage/rivetmark" );
 
-#ifdef __MUSIC_ENGINE__
-	cgs.media.radio_player =			trap_R_RegisterShaderNoMip( "gfx/radio_player" );
-#endif //__MUSIC_ENGINE__
-
 	trap_R_RegisterShader( "gfx/effects/saberFlare" );
 
 	trap_R_RegisterShader( "powerups/ysalimarishell" );
@@ -1216,9 +1137,7 @@ static void CG_RegisterSounds( void ) {
 	//PRECACHE ALL MUSIC HERE (don't need to precache normally because it's streamed off the disk)
 	if (com_buildScript.integer)
 	{
-#ifndef __MUSIC_ENGINE__
 		trap_S_StartBackgroundTrack( "music/mp/duel.mp3", "music/mp/duel.mp3", qfalse );
-#endif //__MUSIC_ENGINE__
 	}
 
 	cg.loadLCARSStage = 1;
@@ -2152,7 +2071,6 @@ CG_StartMusic
 ======================
 */
 void CG_StartMusic( qboolean bForceStart ) {
-#ifndef __MUSIC_ENGINE__
 	char	*s;
 	char	parm1[MAX_QPATH], parm2[MAX_QPATH];
 
@@ -2162,7 +2080,6 @@ void CG_StartMusic( qboolean bForceStart ) {
 	Q_strncpyz( parm2, COM_Parse( (const char **)&s ), sizeof( parm2 ) );
 
 	trap_S_StartBackgroundTrack( parm1, parm2, !bForceStart );
-#endif //__MUSIC_ENGINE__
 }
 
 char *CG_GetMenuBuffer(const char *filename) {
@@ -2454,13 +2371,6 @@ static qboolean CG_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, 
 	return qfalse;
 }
 
-#ifdef __MUSIC_ENGINE__
-extern int MyMusicTotal;
-extern int MyMusicSelection;
-extern const char *RADIO_GetStationName(int index);
-extern const char *RADIO_GetStationAddress(int index);
-#endif //__MUSIC_ENGINE__
-
 static int CG_FeederCount(float feederID) {
 	int i, count;
 	count = 0;
@@ -2478,10 +2388,6 @@ static int CG_FeederCount(float feederID) {
 		}
 	} else if (feederID == FEEDER_SCOREBOARD) {
 		return cg.numScores;
-#ifdef __MUSIC_ENGINE__
-	} else if (feederID == FEEDER_MUSICLIST || feederID == FEEDER_MUSICDESC) {
-		return MyMusicTotal;
-#endif //__MUSIC_ENGINE__
 	}
 	return count;
 }
@@ -2549,17 +2455,6 @@ static const char *CG_FeederItemText(float feederID, int index, int column,
 	score_t *sp = NULL;
 
 	*handle1 = *handle2 = *handle3 = -1;
-
-#ifdef __MUSIC_ENGINE__
-	if (feederID == FEEDER_MUSICLIST)
-	{
-		return RADIO_GetStationAddress(index);
-	}
-	else if (feederID == FEEDER_MUSICDESC)
-	{
-		return RADIO_GetStationName(index);
-	}
-#endif //__MUSIC_ENGINE__
 
 	if (feederID == FEEDER_REDTEAM_LIST) {
 		team = TEAM_RED;
@@ -2644,37 +2539,6 @@ static qhandle_t CG_FeederItemImage(float feederID, int index) {
 
 static qboolean CG_FeederSelection(float feederID, int index, itemDef_t *item) 
 {
-
-#ifdef __MUSIC_ENGINE__
-	if (feederID == FEEDER_MUSICLIST)
-	{// UQ1: I dont think we actually need the http to display on UI, just the description...
-		int count = 0;
-		int i = 0;
-	
-		for (i = 0; i < MyMusicTotal; i++) {
-			if (index == count) {
-				MyMusicSelection = i;
-			}
-			count++;
-		}
-
-		return qtrue;
-	}
-	else if (feederID == FEEDER_MUSICDESC)
-	{
-		int count = 0;
-		int i = 0;
-	
-		for (i = 0; i < MyMusicTotal; i++) {
-			if (index == count) {
-				MyMusicSelection = i;
-			}
-			count++;
-		}
-
-		return qtrue;
-	}
-#endif //__MUSIC_ENGINE__
 
 	if ( cgs.gametype >= GT_TEAM ) {
 		int i, count;
@@ -3325,7 +3189,9 @@ Ghoul2 Insert End
 		cg.turnOnBlurCvar = qfalse;
 	}
 
+#ifdef SWF
 	cgs.media.swfTestShader = trap_R_RegisterShaderNoMip("animation/swf/test");
+#endif
 
 	cgame_initializing = qfalse;
 }

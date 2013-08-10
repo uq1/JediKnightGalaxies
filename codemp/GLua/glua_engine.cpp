@@ -1,7 +1,7 @@
 // Jedi Knight Galaxies main interfaces
 
-#include "../game/g_local.h"
-#include "../game/q_shared.h"
+#include "game/g_local.h"
+#include "qcommon/q_shared.h"
 
 #include "glua.h"
 
@@ -52,14 +52,14 @@ static int GLua_Print(lua_State *L) {
 		if ( !(*nl) ) {
 			if ( *msg ) {
 				assert( strlen( msg ) < 4095 ); // Failsafe, this should never happen (4096 is engine MAXPRINTMSG, accomodate for the added \n in the next call)
-				trap_Printf( va("%s\n", msg) );
+				trap_Print( va("%s\n", msg) );
 			}
 			break;
 		}
 		if ( *nl == '\n' ) {
 			*nl = '\0';
 			assert( strlen( msg ) < 4095 ); // Failsafe, this should never happen
-			trap_Printf( va("%s\n", msg) );
+			trap_Print( va("%s\n", msg) );
 			msg = nl + 1;
 			*nl = '\n';
 		}

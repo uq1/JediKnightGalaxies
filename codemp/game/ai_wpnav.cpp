@@ -387,7 +387,7 @@ void CreateNewWP_Automated(vec3_t origin, int flags)
 {
 	if (gWPNum >= MAX_WPARRAY_SIZE)
 	{
-		if (!g_RMG.integer)
+		if (!RMG.integer)
 		{
 			G_Printf(S_COLOR_YELLOW "Warning: Waypoint limit hit (%i)\n", MAX_WPARRAY_SIZE);
 		}

@@ -19,7 +19,7 @@
 
 #define JKG_MAX_AMMO_INDICES		64
 
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 
 typedef struct ammo_s
 {

@@ -1,9 +1,9 @@
 // FIXME: This needs to be in BG code, since it's shared between both games --eez
 
-#include "../game/q_shared.h"
-#include "../cgame/cg_local.h"
-#include "../ui/ui_shared.h"
-#include "../game/surfaceflags.h"
+#include "qcommon/q_shared.h"
+#include "cgame/cg_local.h"
+#include "ui/ui_shared.h"
+#include "game/surfaceflags.h"
 
 #ifdef __AUTOWAYPOINT__
 

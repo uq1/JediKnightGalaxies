@@ -6,7 +6,7 @@
 // The data is handled as per BG specifications.
 // ===============================================
 
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 #include "bg_saga.h"
 #include "jkg_gangwars.h"
 #include "bg_weapons.h"

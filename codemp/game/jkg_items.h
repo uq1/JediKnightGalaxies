@@ -2,7 +2,7 @@
 // bg_items.h: Contains all major item definitions.
 #pragma once
 
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_strap.h"
 

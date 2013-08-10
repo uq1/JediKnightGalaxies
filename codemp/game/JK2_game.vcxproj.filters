@@ -434,9 +434,6 @@
     <ClCompile Include="g_active.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="g_arenas.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="g_bot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -653,14 +650,14 @@
     <ClCompile Include="jkg_gangwars.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="q_math.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="q_shared.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\libraries\encoding\base128.cpp">
       <Filter>Libraries\Base128\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\qcommon\q_math.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\qcommon\q_shared.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -833,9 +830,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="npc_headers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="q_shared.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\win32\resource.h">
@@ -1239,6 +1233,12 @@
     </ClInclude>
     <ClInclude Include="..\libraries\Detour\Include\DetourStatus.h">
       <Filter>Libraries\Detour %28Pathfinding%29\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="g_xcvar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\qcommon\q_shared.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

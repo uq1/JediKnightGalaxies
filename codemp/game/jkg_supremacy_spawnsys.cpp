@@ -676,7 +676,7 @@ gentity_t *SelectWarzoneSpectatorSpawnpoint ( gentity_t *ent )
 				//	continue;
 
 				i = 0;
-				if (g_RMG.integer)
+				if (RMG.integer)
 				{
 					bestdist = 300;
 				}
@@ -1338,7 +1338,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 				//	continue;
 
 				i = 0;
-				if (g_RMG.integer)
+				if (RMG.integer)
 				{
 					bestdist = 300;
 				}
@@ -1581,7 +1581,7 @@ void NPC_SelectWarzoneSpawnpoint ( int TEAM )
 				//	continue;
 
 				i = 0;
-				if (g_RMG.integer)
+				if (RMG.integer)
 				{
 					bestdist = 300;
 				}

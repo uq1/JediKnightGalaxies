@@ -227,7 +227,7 @@ int DOM_GetRandomCloseWP(vec3_t org, int badwp, int unused)
 	int		NUM_GOOD = 0;
 
 	i = 0;
-	if (g_RMG.integer)
+	if (RMG.integer)
 	{
 		bestdist = 300;
 	}
@@ -316,7 +316,7 @@ int DOM_GetNearestWP(vec3_t org, int badwp)
 	vec3_t a;
 
 	i = 0;
-	if (g_RMG.integer)
+	if (RMG.integer)
 	{
 		bestdist = 300;
 	}
@@ -2687,7 +2687,7 @@ int DOM_GetNearestVisibleWP_Goal(vec3_t org, int ignore, int badwp)
 	vec3_t a, mins, maxs;
 
 	i = 0;
-	if (g_RMG.integer)
+	if (RMG.integer)
 	{
 		bestdist = 300;
 	}
@@ -2747,7 +2747,7 @@ int DOM_GetNearestVisibleWP(vec3_t org, int ignore, int badwp)
 	vec3_t a, mins, maxs;
 
 	i = 0;
-	if (g_RMG.integer)
+	if (RMG.integer)
 	{
 		bestdist = 300;
 	}
@@ -2804,7 +2804,7 @@ int DOM_GetNearestVisibleWP_NOBOX(vec3_t org, int ignore, int badwp)
 	vec3_t a, mins, maxs;
 
 	i = 0;
-	if (g_RMG.integer)
+	if (RMG.integer)
 	{
 		bestdist = 300;
 	}
@@ -6455,7 +6455,7 @@ qboolean DOM_CapObjectiveIsCarried(bot_state_t *bs)
 	flagpr = DOM_FlagColorforObjective(bs);
 
 	// check for carrier on desired flag
-	for (i = 0; i < g_maxclients.integer; i++) 
+	for (i = 0; i < sv_maxclients.integer; i++) 
 	{
 		carrier = g_entities + i;
 		if (carrier->inuse && carrier->client->ps.powerups[flagpr])
@@ -6475,7 +6475,7 @@ gentity_t *DOM_CapObjectiveCarrier(bot_state_t *bs)
 	flagpr = DOM_FlagColorforObjective(bs);
 
 	// find attacker's team's flag carrier
-	for (i = 0; i < g_maxclients.integer; i++) 
+	for (i = 0; i < sv_maxclients.integer; i++) 
 	{
 		carrier = g_entities + i;
 		if (carrier->inuse && carrier->client->ps.powerups[flagpr])

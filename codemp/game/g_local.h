@@ -610,6 +610,9 @@ typedef struct {
 	int			teamVoteCount;		// to prevent people from constantly calling votes
 	qboolean	teamInfo;			// send team overlay updates?
 
+	// JAC: Added
+	int			connectTime;
+
 	// Jedi Knight Galaxies
 	int			partyNumber;						// Your party index in the level.party struct.
 	int			partyIndex;							// Your index in the level.party[party] struct.
@@ -619,6 +622,10 @@ typedef struct {
 
 	// Admin flags
 	qboolean	silenced;
+
+	// JKG: Added back in from JAC edit
+	char		saber1[MAX_QPATH];
+	char		saber2[MAX_QPATH];
 
 	// Custom team
 	int			customteam;					// Enables icons above the player's heads, for games like the arena
@@ -1274,6 +1281,7 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent);
 int G_ItemUsable(playerState_t *ps, int forcedUse);
 void Cmd_ToggleSaber_f(gentity_t *ent);
 void Cmd_EngageDuel_f(gentity_t *ent);
+void G_LeaveVehicle( gentity_t *ent, qboolean ConCheck );
 
 gentity_t *G_GetDuelWinner(gclient_t *client);
 
@@ -1642,21 +1650,9 @@ qboolean G_FilterPacket (char *from);
 void FireWeapon( gentity_t *ent, int firingMode );
 void BlowDetpacks(gentity_t *ent);
 
-//
-// p_hud.c
-//
 void MoveClientToIntermission (gentity_t *client);
 void G_SetStats (gentity_t *ent);
 void DeathmatchScoreboardMessage (gentity_t *client);
-
-//
-// g_cmds.c
-//
-
-//
-// g_pweapon.c
-//
-
 
 //
 // g_main.c
@@ -1676,11 +1672,12 @@ void SendScoreboardMessageToAllClients( void );
 void QDECL G_Printf( const char *fmt, ... );
 void QDECL G_Error( const char *fmt, ... );
 const char *G_GetStringEdString(char *refSection, char *refName);
+const char *G_GetStringEdString2(char *refName);
 
 //
 // g_client.c
 //
-char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
+const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
 qboolean ClientUserinfoChanged( int clientNum );
 void ClientDisconnect( int clientNum );
 void ClientBegin( int clientNum, qboolean allowTeamReset );
@@ -2217,6 +2214,10 @@ extern qboolean PATHING_IGNORE_FRAME_TIME;
 int ASTAR_FindPath(int from, int to, int *pathlist);
 int ASTAR_FindPathWithTimeLimit(int from, int to, int *pathlist);
 int ASTAR_FindPathFast(int from, int to, int *pathlist, qboolean shorten);
+
+void NPC_ClearLookTarget( gentity_t *self );
+void BG_VehicleLoadParms( void );
+void WP_SaberLoadParms( void );
 
 #ifdef _DEBUG
 extern void JKG_AssertFunction(char *file, int linenum, const char *expression);

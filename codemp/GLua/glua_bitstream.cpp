@@ -1,8 +1,8 @@
 // Defines the bitstream. namespace and the BitStreamReader and BitStreamWriter classes
 // Implements bitstream functionality
 
-#include "../game/g_local.h"
-#include "../game/q_shared.h"
+#include "game/g_local.h"
+#include "qcommon/q_shared.h"
 
 #include "encoding/bitstream.h"
 

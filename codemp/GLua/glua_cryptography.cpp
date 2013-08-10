@@ -1,8 +1,8 @@
 // Implements cryptographic functionality into GLua (Hashing and symmetric encryption)
 // Using OpenSSL's EVP interface.
 
-#include "../game/g_local.h"
-#include "../game/q_shared.h"
+#include "game/g_local.h"
+#include "qcommon/q_shared.h"
 
 #include <openssl/evp.h>
 #include <stdlib.h>

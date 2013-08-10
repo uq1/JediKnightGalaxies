@@ -47,9 +47,7 @@ extern void UI_SaberLoadParms( void );
 extern qboolean ui_saber_parms_parsed;
 extern void UI_CacheSaberGlowGraphics( void );
 
-#endif //
-
-#ifdef CGAME
+#else
 
 extern int trap_Key_GetCatcher( void ) ;
 extern void trap_Key_SetCatcher( int catcher );
@@ -2088,28 +2086,6 @@ qboolean Script_Transition3(itemDef_t *item, char **args)
 }
 #endif
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 qboolean Script_SetCvar(itemDef_t *item, char **args) 
 {
 	const char *cvar, *val;
@@ -2459,14 +2435,18 @@ qboolean Item_SetFocus(itemDef_t *item, float x, float y) {
 			if (item->focusSound) {
 				sfx = &item->focusSound;
 			}
-			if (!(item->window.flags & WINDOW_NOFOCUSSOUND)) {
+			if (!(item->window.flags & WINDOW_NOFOCUSSOUND)) 
+			{
 				playSound = qtrue;
 			}
+		}
 		else 
 		{
-			if (oldFocus) {
+			if (oldFocus) 
+			{
 				oldFocus->window.flags |= WINDOW_HASFOCUS;
-				if (oldFocus->onFocus) {
+				if (oldFocus->onFocus) 
+				{
 					Item_RunScript(oldFocus, oldFocus->onFocus);
 				}
 			}
@@ -3250,61 +3230,6 @@ qboolean Item_OwnerDraw_HandleKey(itemDef_t *item, int key) {
   }
   return qfalse;
 }
-
-
-#ifdef _XBOX
-// Xbox-only key handlers
-
-//JLF new func
-qboolean Item_Button_HandleKey(itemDef_t *item, int key) 
-{
-	if ( key == A_CURSOR_RIGHT)
-	{
-		if (Item_HandleSelectionNext(item))
-		{
-			//Item processed it 
-			return qtrue;
-		}
-	}
-	else if ( key ==  A_CURSOR_LEFT)
-	{
-		if (Item_HandleSelectionPrev(item))
-		{
-			//Item processed it 
-			return qtrue;
-		}
-	}
-	return qfalse;
-}
-
-/*
-=================
-Item_Text_HandleKey
-=================
-*/
-qboolean Item_Text_HandleKey(itemDef_t *item, int key) 
-{
-//JLFSELECTIONRightLeft
-	if ( key == A_CURSOR_RIGHT)
-	{
-		if (Item_HandleSelectionNext(item))
-		{
-			//Item processed it 
-			return qtrue;
-		}
-	}
-	else if ( key ==  A_CURSOR_LEFT)
-	{
-		if (Item_HandleSelectionPrev(item))
-		{
-			//Item processed it 
-			return qtrue;
-		}
-	}
-	return qfalse;
-}
-
-#endif // _XBOX
 
 extern void JKG_Inventory_Arrow ( char **args );
 

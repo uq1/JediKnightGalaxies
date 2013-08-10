@@ -1173,7 +1173,7 @@ qboolean NPC_ValidEnemy( gentity_t *ent )
 	}
 
 	// UQ1: May as well set their team permanently...
-	ent->client->playerTeam = entTeam;
+	ent->client->playerTeam = (npcteam_t)entTeam;
 
 	//Can't be on the same team
 	if ( ent->client->playerTeam == NPC->client->playerTeam )
@@ -1699,8 +1699,8 @@ void NPC_CheckCharmed( void )
 {
 	if ( NPCInfo->charmedTime && NPCInfo->charmedTime < level.time && NPC->client )
 	{//we were charmed, set us back!
-		NPC->client->playerTeam = NPC->genericValue1;
-		NPC->client->enemyTeam = NPC->genericValue2;
+		NPC->client->playerTeam = (npcteam_t)NPC->genericValue1;
+		NPC->client->enemyTeam = (npcteam_t)NPC->genericValue2;
 		NPC->s.teamowner = NPC->genericValue3;
 
 		NPC->client->leader = NULL;

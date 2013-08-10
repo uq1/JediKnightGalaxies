@@ -1,6 +1,6 @@
 #include "jkg_damagetypes.h"
 #include "g_local.h"
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 
 typedef struct damageInstance_s
 {

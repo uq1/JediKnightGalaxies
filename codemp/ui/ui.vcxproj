@@ -254,7 +254,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\cgame\jkg_musicengine.cpp" />
     <ClCompile Include="..\game\animtable.cpp" />
     <ClCompile Include="..\game\bg_ammo.cpp" />
     <ClCompile Include="..\game\bg_constants.cpp" />
@@ -264,9 +263,9 @@
     <ClCompile Include="..\game\bg_weapons.cpp" />
     <ClCompile Include="..\game\bg_weapons_load.cpp" />
     <ClCompile Include="..\game\jkg_gangwars.cpp" />
-    <ClCompile Include="..\game\q_math.cpp" />
-    <ClCompile Include="..\game\q_shared.cpp" />
     <ClCompile Include="..\libraries\encoding\base128.cpp" />
+    <ClCompile Include="..\qcommon\q_math.c" />
+    <ClCompile Include="..\qcommon\q_shared.c" />
     <ClCompile Include="ui_atoms.cpp" />
     <ClCompile Include="ui_crossover.cpp" />
     <ClCompile Include="ui_force.cpp" />

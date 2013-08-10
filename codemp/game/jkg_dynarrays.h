@@ -2,7 +2,7 @@
 #ifndef JKG_DYNARRAYS_H
 #define JKG_DYNARRAYS_H
 
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 
 unsigned int JKG_Arrays_AddArrayElement(void **arry, size_t sze, unsigned int *count);
 qboolean JKG_Arrays_AddArrayElement_Location(int index, void **arry, size_t sze, unsigned int *count);

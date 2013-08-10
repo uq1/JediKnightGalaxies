@@ -225,23 +225,6 @@ static datpadmovedata_t datapadMoveData[MD_MOVE_TITLE_MAX][MAX_MOVES] =
 	NULL, NULL, 0,	MDS_NONE,
 };
 
-#ifdef __MUSIC_ENGINE__
-extern void CG_DoMusic ( void );
-extern void CG_StopMusic ( void );
-
-vmCvar_t s_musicvolume;
-vmCvar_t s_radioStationOverride;
-
-float CG_GetMusicVolume ( void )
-{// Returns the music volume as a float...
-	float volume;
-	char vol[64];
-	trap_Cvar_VariableStringBuffer( "s_musicvolume", vol, sizeof( vol ) );
-	volume = atof(vol);
-	return volume;
-}
-#endif //__MUSIC_ENGINE__
-
 /*
 ================
 vmMain
@@ -300,9 +283,6 @@ extern uiCrossoverExports_t *UI_InitializeCrossoverAPI( cgCrossoverExports_t *cg
 		return 0;
 
 	case UI_SHUTDOWN:
-#ifdef __MUSIC_ENGINE__
-		CG_StopMusic();
-#endif //__MUSIC_ENGINE__
 		_UI_Shutdown();
 		return 0;
 
@@ -9936,11 +9916,6 @@ to prevent it from blinking away too rapidly on local or lan games.
 */
 extern vmCvar_t connmsg;
 
-#ifdef __SECONDARY_NETWORK__
-vmCvar_t net_hostip;
-vmCvar_t net_hostport;
-#endif //__SECONDARY_NETWORK__
-
 void UI_DrawConnectScreen( qboolean overlay ) {
 	const char *s;
 	uiClientState_t	cstate;
@@ -9991,15 +9966,6 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 			trap_SP_GetStringTextString("MENUS_CONNECTING_TO", sStringEdTemp, sizeof(sStringEdTemp));
 			strcpy(text, va(/*"Connecting to %s"*/sStringEdTemp, cstate.servername));
 			Text_PaintCenter(centerPoint, yStart + 48, scale, colorWhite,text , ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM);
-
-#ifdef __SECONDARY_NETWORK__
-			StripPort(cstate.servername, IP);
-			StripIP(cstate.servername, PORT);
-			//Com_Printf("IP %s. PORT %s.\n", IP, PORT);
-
-			trap_Cvar_Set("net_hostip", IP);
-			trap_Cvar_Set("net_hostport", PORT);
-#endif //__SECONDARY_NETWORK__
 		}
 	}
 	//UI_DrawProportionalString( 320, 96, "Press Esc to abort", UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, menu_text_color );
@@ -10191,10 +10157,6 @@ vmCvar_t	jkgslot;
 vmCvar_t	conflag;
 vmCvar_t	connmsg;
 
-#ifdef __MUSIC_ENGINE__
-vmCvar_t s_radioStation;
-#endif //__MUSIC_ENGINE__
-
 // bk001129 - made static to avoid aliasing
 static cvarTable_t		cvarTable[] = {
 	{ &ui_ffa_fraglimit, "ui_ffa_fraglimit", "20", CVAR_ARCHIVE|CVAR_INTERNAL },
@@ -10323,10 +10285,6 @@ static cvarTable_t		cvarTable[] = {
 	{ &jkgslot,				"slot", "0", CVAR_USERINFO },
 	{ &conflag,				"cflag", "", CVAR_USERINFO | CVAR_ROM },
 	{ &connmsg,				"connmsg", "", CVAR_ROM },
-
-#ifdef __MUSIC_ENGINE__
-	{ &s_radioStation, "s_radioStation", "http://jblive.fm", CVAR_SERVERINFO | CVAR_ARCHIVE },
-#endif //__MUSIC_ENGINE__
 };
 
 // bk001129 - made static to avoid aliasing

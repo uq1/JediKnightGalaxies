@@ -869,7 +869,7 @@ void NPC_SetWeapons( gentity_t *ent )
 {
 	int			bestWeap = WP_NONE;
 	int			curWeap;
-	int			weapons = NPC_WeaponsForTeam( ent->client->playerTeam, ent->spawnflags, ent->NPC_type );
+	int			weapons = NPC_WeaponsForTeam( (team_t)ent->client->playerTeam, ent->spawnflags, ent->NPC_type );
 
 	ent->client->ps.stats[STAT_WEAPONS] = 0;
 	for ( curWeap = WP_SABER; curWeap < WP_NUM_WEAPONS; curWeap++ )
@@ -1075,7 +1075,7 @@ void NPC_Begin (gentity_t *ent)
 			//&& ent->client->NPC_class != CLASS_DESANN 
 			&& ent->client->NPC_class != CLASS_JEDI )
 		{// up everyone except jedi
-			ent->NPC->stats.health += ent->NPC->stats.health/4 * g_spskill.integer; // 100% on easy, 125% on medium, 150% on hard
+			ent->NPC->stats.health += ent->NPC->stats.health/4 * g_npcspskill.integer; // 100% on easy, 125% on medium, 150% on hard
 		}
 		
 		client->pers.maxHealth = client->ps.stats[STAT_MAX_HEALTH] = ent->NPC->stats.health;
@@ -1088,7 +1088,7 @@ void NPC_Begin (gentity_t *ent)
 	if ( !Q_stricmp( "rodian", ent->NPC_type ) )
 	{//sniper
 		//NOTE: this will get overridden by any aim settings in their spawnscripts
-		switch ( g_spskill.integer )
+		switch ( g_npcspskill.integer )
 		{
 		case 0:
 			ent->NPC->stats.aim = 1;
@@ -1107,7 +1107,7 @@ void NPC_Begin (gentity_t *ent)
 		|| ent->client->NPC_class == CLASS_MERC//Stoiss add merc class
 		|| !Q_stricmp( "rodian2", ent->NPC_type ) )
 	{//tweak yawspeed for these NPCs based on difficulty
-		switch ( g_spskill.integer )
+		switch ( g_npcspskill.integer )
 		{
 		case 0:
 			ent->NPC->stats.yawSpeed *= 0.75f;
@@ -1134,7 +1134,7 @@ void NPC_Begin (gentity_t *ent)
 	else if ( ent->client->NPC_class == CLASS_REBORN
 		|| ent->client->NPC_class == CLASS_SHADOWTROOPER )
 	{
-		switch ( g_spskill.integer )
+		switch ( g_npcspskill.integer )
 		{
 		case 1:
 			ent->NPC->stats.yawSpeed *= 1.25f;
@@ -1339,7 +1339,7 @@ void NPC_Begin (gentity_t *ent)
 	// initialize animations and other things
 	memset( &ucmd, 0, sizeof( ucmd ) );
 	//_VectorCopy( client->pers.cmd_angles, ucmd.angles );
-	VectorCopy(client->pers.cmd.angles, ucmd.angles);
+	VectorCopy((const vec_t *)client->pers.cmd.angles, (vec_t *)ucmd.angles);
 	
 	ent->client->ps.groundEntityNum = ENTITYNUM_NONE;
 
@@ -1796,7 +1796,8 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 				if ( g_entities[n].s.eType != ET_NPC && g_entities[n].client) 
 				{
 					VectorCopy(g_entities[n].s.origin, newent->s.origin);
-					newent->client->playerTeam = newent->s.teamowner = g_entities[n].client->playerTeam;
+					newent->s.teamowner = g_entities[n].client->playerTeam;
+					newent->client->playerTeam = (npcteam_t)newent->s.teamowner;
 					break;
 				}
 			}
@@ -1940,19 +1941,19 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 	newent->teamnodmg = ent->teamnodmg;
 	if ( ent->team && ent->team[0] )
 	{//specified team directly?
-		newent->client->sess.sessionTeam = atoi(ent->team);
+		newent->client->sess.sessionTeam = (team_t)atoi(ent->team);
 	}
 	else if ( newent->s.teamowner != TEAM_FREE )
 	{
-		newent->client->sess.sessionTeam = newent->s.teamowner;
+		newent->client->sess.sessionTeam = (team_t)newent->s.teamowner;
 	}
 	else if ( newent->alliedTeam != TEAM_FREE )
 	{
-		newent->client->sess.sessionTeam = newent->alliedTeam;
+		newent->client->sess.sessionTeam = (team_t)newent->alliedTeam;
 	}
 	else if ( newent->teamnodmg != TEAM_FREE )
 	{
-		newent->client->sess.sessionTeam = newent->teamnodmg;
+		newent->client->sess.sessionTeam = (team_t)newent->teamnodmg;
 	}
 	else
 	{
@@ -1986,7 +1987,6 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 		{//last guy should fire this target when he dies
 			newent->target = ent->closetarget;
 		}
-		G_Free(ent->targetname);
 		ent->targetname = NULL;
 		//why not remove me...?  Because of all the string pointers?  Just do G_NewStrings?
 		G_FreeEntity( ent );//bye!
@@ -2318,7 +2318,7 @@ void SP_NPC_spawner( gentity_t *self)
 	// See if we have an npcscript defined
 	G_SpawnString("npcscript", NULL, &temp);
 	if (temp) {
-		G_NewString2((void **)&self->npcscript, temp);
+		self->npcscript = G_NewString(temp);
 	}
 
 	G_SpawnInt( "showhealth", "0", &t );
@@ -4218,13 +4218,11 @@ gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboo
 
 	trap_LinkEntity(NPCspawner);
 
-	//NPCspawner->NPC_type = G_NewString( npc_type );
-	G_NewString2((void **)&NPCspawner->NPC_type, npc_type);
+	NPCspawner->NPC_type = G_NewString( npc_type );
 
 	if ( targetname )
 	{
-		//NPCspawner->NPC_targetname = G_NewString(targetname);
-		G_NewString2((void **)&NPCspawner->NPC_targetname, targetname);
+		NPCspawner->NPC_targetname = G_NewString(targetname);
 	}
 
 	NPCspawner->count = 1;

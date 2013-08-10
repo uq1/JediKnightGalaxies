@@ -2,8 +2,8 @@
 
 // Vector factory function
 
-#include "../game/g_local.h"
-#include "../game/q_shared.h"
+#include "game/g_local.h"
+#include "qcommon/q_shared.h"
 
 //#include <math.h>
 #include "glua.h"

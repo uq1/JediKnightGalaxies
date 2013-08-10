@@ -1340,7 +1340,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	// set up gun position
 	CG_CalculateWeaponPosition( hand.origin, angles );
 	{
-		float xoffs = cg_gun_x.value, yoffs = cg_gun_y.value, zoffs = cg_gun_z.value;
+		float xoffs = cg_gunX.value, yoffs = cg_gunX.value, zoffs = cg_gunZ.value;
 		/*if (ps->weapon == WP_BLASTER) {
 			xoffs += 1;
 			zoffs -= 0.5;
@@ -3548,9 +3548,9 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
     CG_CalculateWeaponPosition (hand.origin, hand.angles);
     
     // Offset the gun if necessary
-    gunPosition[0] = abs (cg_gun_x.value) > FLT_EPSILON ? cg_gun_x.value : weapon->gunPosition[0];
-    gunPosition[1] = abs (cg_gun_y.value) > FLT_EPSILON ? cg_gun_y.value : weapon->gunPosition[1];
-    gunPosition[2] = abs (cg_gun_z.value) > FLT_EPSILON ? cg_gun_z.value : weapon->gunPosition[2];
+    gunPosition[0] = abs (cg_gunX.value) > FLT_EPSILON ? cg_gunX.value : weapon->gunPosition[0];
+    gunPosition[1] = abs (cg_gunY.value) > FLT_EPSILON ? cg_gunY.value : weapon->gunPosition[1];
+    gunPosition[2] = abs (cg_gunZ.value) > FLT_EPSILON ? cg_gunZ.value : weapon->gunPosition[2];
     
     {
         float phase = JKG_CalculateIronsightsPhase (ps);

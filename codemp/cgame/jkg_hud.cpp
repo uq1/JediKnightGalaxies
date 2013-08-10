@@ -1,6 +1,6 @@
 #include "cg_local.h"
 #include "../ui/ui_shared.h"
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 
 extern displayContextDef_t cgDC;
 extern float *hudTintColor;

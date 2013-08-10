@@ -1,4 +1,4 @@
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 #include "bg_items.h"
 #include "bg_weapons.h"
 #ifdef QAGAME

@@ -669,8 +669,10 @@ Finds the spawn function for the entity and calls it,
 returning qfalse if not found
 ===============
 */
-static int spawncmp( const void *a, const void *b ) {
+static int spawncmp( const void *a, const void *b )
+{
 	return Q_stricmp( (const char *)a, ((spawn_t*)b)->name );
+}
 
 int GLua_Spawn_Entity(gentity_t* ent);
 int GLua_GetEntityTypeID(const char* classname);
@@ -744,7 +746,6 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 
 		s->spawn( ent );
 		return qtrue;
-	}
 	}
 	// Jedi Knight Galaxies
 	// Try Lua entities next
@@ -912,10 +913,12 @@ Spawn an entity and fill in all of the level fields from
 level.spawnVars[], then call the class specfic spawn function
 ===================
 */
-void G_SpawnGEntityFromSpawnVars( qboolean inSubBSP ) {
+void G_SpawnGEntityFromSpawnVars( qboolean inSubBSP ) 
+{
 	int			i;
 	gentity_t	*ent;
 	char		*s, *value, *gametypeName;
+	KeyPairSet_t *spv;
 	static char *gametypeNames[] = {"ffa", "holocron", "jedimaster", "duel", "powerduel", "single", "team", "siege", "ctf", "cty"};
 
 	// get the next free entity

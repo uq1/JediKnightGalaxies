@@ -161,11 +161,6 @@ qboolean G_EntIsBreakable( int entityNum );
 qboolean G_EntIsRemovableUsable( int entNum );
 void CP_FindCombatPointWaypoints( void );
 
-#ifdef __SECONDARY_NETWORK__
-extern void jkg_netserverbegin();
-extern void jkg_netservershutdown();
-#endif //__SECONDARY_NETWORK__
-
 /*
 ================
 vmMain
@@ -180,9 +175,6 @@ This must be the very first function compiled into the .q3vm file
 		G_InitGame( arg0, arg1, arg2 );
 		return 0;
 	case GAME_SHUTDOWN:
-#ifdef __SECONDARY_NETWORK__
-		jkg_netservershutdown();
-#endif //__SECONDARY_NETWORK__
 		G_ShutdownGame( arg0 );
 		return 0;
 	case GAME_CLIENT_CONNECT:
@@ -455,7 +447,7 @@ void G_CacheGametype( void )
 			level.gametype = GT_FFA;
 		}
 		else
-			level.gametype = gt;
+			level.gametype = (gametype_t)gt;
 	}
 	else if ( g_gametype.integer < 0 || level.gametype >= GT_MAX_GAME_TYPE )
 	{
@@ -463,7 +455,7 @@ void G_CacheGametype( void )
 		level.gametype = GT_FFA;
 	}
 	else
-		level.gametype = atoi( g_gametype.string );
+		level.gametype = (gametype_t)atoi( g_gametype.string );
 
 	trap_Cvar_Set( "g_gametype", va( "%i", level.gametype ) );
 }
@@ -501,17 +493,13 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 	vmCvar_t	mapname;
 	vmCvar_t	ckSum;
+	char		serverinfo[MAX_INFO_STRING];
 
-	//JKG_LoadAuxiliaryLibrary();
-	//JKG_GLS_PatchEngine();
 	OpenSSL_add_all_algorithms();
 
-	// Initialize Threading System
-	//JKG_InitThreading();
 
 	// Initialize admin commands
 	JKG_Admin_Init();
-	//JKG_Nav_Init();
 
 	//Init RMG to 0, it will be autoset to 1 if there is terrain on the level.
 	trap_Cvar_Set("RMG", "0");
@@ -714,7 +702,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		BotAISetup( restart );
 		BotAILoadMap( restart );
-		G_InitBots( restart );
+		G_InitBots( );
 	}
 
 	if ( level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL )
@@ -870,7 +858,7 @@ void G_ShutdownGame( int restart ) {
 		BotAIShutdown( restart );
 	}
 	JKG_Easy_DIMA_Cleanup();
-	G_TerminateMemory(); // wipe all allocs made with G_Alloc
+//	G_TerminateMemory(); // wipe all allocs made with G_Alloc
 	//JKG_Nav_Shutdown();
 	EVP_cleanup();
 }
@@ -1608,7 +1596,6 @@ When the intermission starts, this will be called for all players.
 If a new client connects, this will be called after the spawn function.
 ========================
 */
-extern void G_LeaveVehicle( gentity_t *ent, qboolean ConCheck );
 void MoveClientToIntermission( gentity_t *ent ) {
 	// take out of follow mode if needed
 	if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
@@ -2266,7 +2253,7 @@ void CheckExitRules( void ) {
 		return;
 	}
 
-	if (level.gametype == GT_WARZONE ) && GetNumberOfWarzoneFlags() > 0)
+	if (level.gametype == GT_WARZONE  && GetNumberOfWarzoneFlags() > 0)
 	{
 		if (WARZONE_GetNumberOfRedFlags() <= 0)
 		{// Red team has lost!
@@ -2570,7 +2557,7 @@ void CheckExitRules( void ) {
 			return;
 		}
 
-		if ( level.teamScores[TEAM_BLUE] >= g_capturelimit.integer ) {
+		if ( level.teamScores[TEAM_BLUE] >= capturelimit.integer ) {
 			//trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString("MP_SVGAME", "PRINTBLUETEAM")));
 			trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].longname)));
 			trap_SendServerCommand( -1,  va("print \"%s.\n\"", G_GetStringEdString("MP_SVGAME", "HIT_CAPTURE_LIMIT")));

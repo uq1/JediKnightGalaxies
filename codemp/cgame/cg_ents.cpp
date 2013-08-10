@@ -3625,10 +3625,6 @@ static void CG_FX( centity_t *cent )
 		}
 
 		cent->muzzleFlashTime = s1->modelindex2;
-		
-		// JKG FIX
-		if (!cent->inLastSnap)
-			return;
 	}
 
 	cent->miscTime = cg.time + s1->speed + random() * s1->time;

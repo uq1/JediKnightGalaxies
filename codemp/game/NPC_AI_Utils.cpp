@@ -73,7 +73,7 @@ int AI_GetGroupSize2( gentity_t *ent, int radius )
 	if ( ( ent == NULL ) || ( ent->client == NULL ) )
 		return -1;
 
-	return AI_GetGroupSize( ent->r.currentOrigin, radius, ent->client->playerTeam, ent );
+	return AI_GetGroupSize( ent->r.currentOrigin, radius, (team_t)ent->client->playerTeam, ent );
 }
 
 extern int NAV_FindClosestWaypointForPoint( gentity_t *ent, vec3_t point );
@@ -484,7 +484,7 @@ void AI_GetGroup( gentity_t *self )
 	memset( self->NPC->group, 0, sizeof( AIGroupInfo_t ) );
 
 	self->NPC->group->enemy = self->enemy;
-	self->NPC->group->team = self->client->playerTeam;
+	self->NPC->group->team = (team_t)self->client->playerTeam;
 	self->NPC->group->processed = qfalse;
 	self->NPC->group->commander = self;
 	self->NPC->group->memberValidateTime = level.time + 2000;
@@ -876,11 +876,6 @@ qboolean AI_RefreshGroup( AIGroupInfo_t *group )
 		else
 		{
 			group->morale += member->NPC->rank;
-		}
-		if ( group->commander && debugNPCAI.integer )
-		{
-			//G_DebugLine( group->commander->r.currentOrigin, member->r.currentOrigin, FRAMETIME, 0x00ff00ff, qtrue );
-			G_TestLine(group->commander->r.currentOrigin, member->r.currentOrigin, 0x00000ff, FRAMETIME);
 		}
 	}
 	if ( group->enemy )

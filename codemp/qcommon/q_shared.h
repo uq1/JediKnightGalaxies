@@ -39,44 +39,6 @@
 #include "../game/teams.h" //npc team stuff
 #include <time.h>
 
-// vvvv lol --eez
-#ifdef __SECONDARY_NETWORK__
-// ================================================================================================================================
-//
-// UQ1: Secondary Network - Packet Event Types. 
-//
-// ================================================================================================================================
-//
-// Adding New Stuff:
-//
-// Add the new event type you need here, then add the functionality inside the switch in GetDataFromPacket 
-// in ClientGame.cpp or ServerGame.cpp.
-//
-// jkg_net_send_packet() is the bridge you can use to quickly send packets from within the game/cgame code 
-// (or make your own - see below).
-//
-// It is also possible to make longer packets, but for now those will be needed to be done with their own functions in 
-// ClientGame.cpp, and jkg_clientsidenetwork.cpp, -or- ServerGame.cpp, and jkg_serversidenetwork.cpp.
-//
-//
-// There is no limit to how we use these packets. The system is very adaptable and uses only the bandwidth we actually need.
-//
-// ================================================================================================================================
-
-enum PacketEventTypes {
-	PACKETEVENT_NONE,
-	PACKETEVENT_TEST_TEXT,
-};
-
-#ifdef CGAME
-void jkg_net_send_packet( int eventID, char *eventData, int eventDataSize );
-#else //GAME
-void jkg_net_send_packet( int eventID, char *eventData, int eventDataSize, int entityNum );
-#endif //GAME
-
-// ================================================================================================================================
-#endif //__SECONDARY_NETWORK__
-
 #define MAX_WORLD_COORD		( 64 * 1024 )
 #define MIN_WORLD_COORD		( -64 * 1024 )
 #define WORLD_SIZE			( MAX_WORLD_COORD - MIN_WORLD_COORD )
@@ -96,6 +58,13 @@ void jkg_net_send_packet( int eventID, char *eventData, int eventDataSize, int e
 #define ARRAY_LEN( x ) ( sizeof( x ) / sizeof( *(x) ) )
 #define STRING( a ) #a
 #define XSTRING( a ) STRING( a )
+
+#ifndef ENGINE
+// The engine has different defines for these, so we don't want to screw up some of the stuff in qcommon
+#define BUMP( x, y ) if( x < y ) x = y
+#define CAP( x, y ) if( x > y ) x = y
+#define CLAMP( x, y, z ) BUMP( x, y ); CAP( x, z )
+#endif
 
 /*
 #define G2_EHNANCEMENTS
@@ -1279,6 +1248,7 @@ typedef struct wpneighbor_s
 {
 	int num;
 	int forceJumpTo;
+	int cost;
 } wpneighbor_t;
 
 typedef struct wpobject_s
@@ -1517,10 +1487,6 @@ void ByteToDir( int b, vec3_t dir );
 #define minimum( x, y ) ((x) < (y) ? (x) : (y))
 #define maximum( x, y ) ((x) > (y) ? (x) : (y))
 
-//JAC: Moved to q_math.c
-#define DEG2RAD( deg ) ( ((deg)*M_PI) / 180.0f )
-#define RAD2DEG( rad ) ( ((rad)*180.0f) / M_PI )
-
 extern ID_INLINE void		VectorAdd( const vec3_t vec1, const vec3_t vec2, vec3_t vecOut );
 extern ID_INLINE void		VectorSubtract( const vec3_t vec1, const vec3_t vec2, vec3_t vecOut );
 extern ID_INLINE void		VectorScale( const vec3_t vecIn, vec_t scale, vec3_t vecOut );
@@ -1580,6 +1546,11 @@ extern ID_INLINE qboolean	VectorCompare( const vec3_t vec1, const vec3_t vec2 );
 #define VectorAdvance(a,s,b,c)			(((c)[0]=(a)[0] + s * ((b)[0] - (a)[0])),((c)[1]=(a)[1] + s * ((b)[1] - (a)[1])),((c)[2]=(a)[2] + s * ((b)[2] - (a)[2])))
 #define VectorAverage(a,b,c)			(((c)[0]=((a)[0]+(b)[0])*0.5f),((c)[1]=((a)[1]+(b)[1])*0.5f),((c)[2]=((a)[2]+(b)[2])*0.5f))
 #define VectorNegate(a,b)				((b)[0]=-(a)[0],(b)[1]=-(a)[1],(b)[2]=-(a)[2])
+
+#define Vec2Set(v, x, y)			((v)[0]=(x),(v)[1]=(y)) // UQ1: Added	// renamed because conflicts with FX --eez
+#define	Vec4Avg(v, b, s, o)	((o)[0]=((v)[0]*(1-(s)))+((b)[0]*(s)),(o)[1]=((v)[1]*(1-(s)))+((b)[1]*(s)),(o)[2]=((v)[2]*(1-(s)))+((b)[2]*(s)),(o)[3]=((v)[3]*(1-(s)))+((b)[3]*(s))) // UQ1: Added
+#define Vector2Set(v,x,y)			Vec2Set(v,x,y)
+float VectorDistance( const vec3_t p1, const vec3_t p2 );
 
 #ifdef __LCC__
 #ifdef VectorCopy
@@ -3504,6 +3475,7 @@ void JKG_GenericMemoryObject_DeleteElement(GenericMemoryObject *gmo, unsigned in
 void Q_RGBCopy( vec4_t *output, vec4_t source );
 qboolean Text_IsExtColorCode(const char *text);
 qboolean StringContainsWord(const char *haystack, const char *needle);
+qboolean Q_stratt( char *dest, unsigned int iSize, char *source );
 
 #ifndef ENGINE
 typedef enum {

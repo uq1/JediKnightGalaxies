@@ -25,7 +25,7 @@ void Team_InitGame( void ) {
 	switch( level.gametype ) {
 	case GT_CTF:
 	case GT_CTY:
-		teamgame.redStatus = teamgame.blueStatus = -1; // Invalid to force update
+		teamgame.redStatus = teamgame.blueStatus = (flagStatus_t)-1; // Invalid to force update
 		Team_SetFlagStatus( TEAM_RED, FLAG_ATBASE );
 		Team_SetFlagStatus( TEAM_BLUE, FLAG_ATBASE );
 		break;
@@ -1218,7 +1218,7 @@ void SetTeamQuick(gentity_t *ent, int team, qboolean doBegin)
 
 	trap_GetUserinfo( ent->s.number, userinfo, sizeof( userinfo ) );
 
-	ent->client->sess.sessionTeam = team;
+	ent->client->sess.sessionTeam = (team_t)team;
 
 	if (team == TEAM_SPECTATOR)
 	{

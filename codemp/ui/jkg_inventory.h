@@ -1,9 +1,9 @@
 #ifndef JKG_INVENTORY_H
 #define JKG_INVENTORY_H
 
-#include "../game/bg_items.h"
-#include "../game/bg_weapons.h"
-#include "../game/q_shared.h"
+#include "game/bg_items.h"
+#include "game/bg_weapons.h"
+#include "qcommon/q_shared.h"
 
 extern vmCvar_t ui_inventoryFilter;
 

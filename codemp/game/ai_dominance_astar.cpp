@@ -24,7 +24,7 @@
 
 #include "g_local.h"
 #include "ai_main.h"
-#include "q_shared.h"
+#include "qcommon/q_shared.h"
 
 // Disable stupid warnings...
 #pragma warning( disable : 4710 )

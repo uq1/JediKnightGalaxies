@@ -1,8 +1,8 @@
 // Main code for Lua in Jedi Knight Galaxies
 // This file is the way jampgame gets in contact with lua, everything goes through here
 
-#include "../game/g_local.h"
-#include "../game/q_shared.h"
+#include "game/g_local.h"
+#include "qcommon/q_shared.h"
 
 #include "glua.h"
 

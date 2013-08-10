@@ -777,7 +777,7 @@ void NPC_Precache ( gentity_t *spawner )
 			}
 			//playerTeam = TranslateTeamName(value);
 			Com_sprintf(tk, sizeof(tk), "NPC%s", token);
-			playerTeam = (team_t)GetIDForString( TeamTable, tk );
+			playerTeam = (npcteam_t)GetIDForString( TeamTable, tk );
 			continue;
 		}
 
@@ -900,7 +900,7 @@ void NPC_Precache ( gentity_t *spawner )
 	}
 
 	//precache this NPC's possible weapons
-	NPC_PrecacheWeapons( playerTeam, spawner->spawnflags, spawner->NPC_type );
+	NPC_PrecacheWeapons( (team_t)playerTeam, spawner->spawnflags, spawner->NPC_type );
 
 //	CG_RegisterNPCCustomSounds( &ci );
 //	CG_RegisterNPCEffects( playerTeam );
@@ -1862,8 +1862,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 				{
 					continue;
 				}
-				//NPC->fullName = G_NewString(value);
-				G_NewString2((void **)&NPC->fullName, value);
+				NPC->fullName = G_NewString(value);
 				continue;
 			}
 
@@ -1877,7 +1876,8 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 					continue;
 				}
 				Com_sprintf(tk, sizeof(tk), "NPC%s", token);
-				NPC->client->playerTeam = NPC->s.teamowner = (team_t)GetIDForString( TeamTable, tk );//TranslateTeamName(value);
+				NPC->s.teamowner = GetIDForString( TeamTable, tk );
+				NPC->client->playerTeam = (npcteam_t)NPC->s.teamowner;
 				continue;
 			}
 
@@ -1891,7 +1891,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 					continue;
 				}
 				Com_sprintf(tk, sizeof(tk), "NPC%s", token);
-				NPC->client->enemyTeam = (team_t)GetIDForString( TeamTable, tk );//TranslateTeamName(value);
+				NPC->client->enemyTeam = (npcteam_t)GetIDForString( TeamTable, tk );//TranslateTeamName(value);
 				continue;
 			}
 

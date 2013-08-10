@@ -11,24 +11,17 @@
 
 unsigned int JKG_Pairs_Add(KeyPairSet_t *set, const char *key, const char *value){
 	unsigned int index = JKG_Arrays_AddArrayElement((void **)&set->pairs, sizeof(KeyPair_t), &set->count);
-	G_NewString2((void **)&set->pairs[index].key, key);
-	G_NewString2((void **)&set->pairs[index].value, value);
+	set->pairs[index].key = G_NewString(key);
+	set->pairs[index].value = G_NewString(value);
 	return index;
 }
 
 void JKG_Pairs_Remove(KeyPairSet_t *set, int index){
 	// Just free, if its NULL it'll bail out anyway, no need to check twice
-	G_Free(set->pairs[index].key);
-	G_Free(set->pairs[index].value);
 	JKG_Arrays_RemoveArrayElement((void **)&set->pairs, index, sizeof(KeyPair_t), &set->count);
 }
 
 void JKG_Pairs_Clear(KeyPairSet_t *set){
-	int i;
-	for(i = 0; i<set->count; i++){
-		G_Free(set->pairs[i].key);
-		G_Free(set->pairs[i].value);
-	}
 	JKG_Arrays_RemoveAllElements((void **)&set->pairs);
 	set->count = 0;
 }
@@ -52,7 +45,7 @@ char* JKG_Pairs_GetKey(KeyPairSet_t *set, const char *key) {
 void JKG_Pairs_SetKey(KeyPairSet_t *set, const char *key, const char *value) {
 	int index = JKG_Pairs_FindKey(set, key);
 	if(index >= 0) {
-		G_NewString2((void **)&set->pairs[index].value, value);
+		set->pairs[index].value = G_NewString(value);
 	}
 	else {
 		JKG_Pairs_Add(set, key, value);

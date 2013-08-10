@@ -1117,21 +1117,12 @@ void G_FreeEntity( gentity_t *ed ) {
 		ed->remove(ed);
 	}
 	JKG_CBB_RemoveBB(ed);
-	G_FreeSpawnVars(ed);
-
-	if (ed->parms) {
-		G_Free(ed->parms); // Free the parms before we wipe it to 0
-	}
 
 	if (ed->UsesELS) {
 		GLua_Wipe_EntDataSlot(ed);
 	}
 	ed->UsesELS = 0;
 	ed->IDCode = 0;
-	
-	if (ed->classname) {
-		G_Free(ed->classname);
-	}
 
 	memset (ed, 0, sizeof(*ed));
 	ed->classname = "freed";

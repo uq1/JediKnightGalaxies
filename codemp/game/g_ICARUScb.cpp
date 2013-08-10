@@ -4650,7 +4650,7 @@ static void Q3_SetAltFire( int entID, qboolean add)
 		ent->NPC->scriptFlags &= ~SCF_ALT_FIRE;
 	}
 
-	ChangeWeapon( ent, 	ent->client->ps.weapon );
+	ChangeWeapon( ent, 	ent->client->ps.weapon, ent->client->ps.weaponVariation );
 }
 
 /*

@@ -104,13 +104,6 @@ char *showPowersName[] =
 void ChatBox_SetPaletteAlpha(float alpha);
 
 
-#ifdef __MUSIC_ENGINE__
-#ifdef _WIN32
-extern void CG_DrawMusicInformation( void );
-#endif //_WIN32
-#endif //__MUSIC_ENGINE__
-
-
 int UI_ParseAnimationFile(const char *filename, animation_t *animset, qboolean isHumanoid) 
 {
 	return BG_ParseAnimationFile(filename, animset, isHumanoid);
@@ -301,10 +294,6 @@ JKGFIXME: Again, probably another func on the chopping block... we don't need th
 void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, void *ghoul2, int g2radius, qhandle_t skin, vec3_t origin, vec3_t angles ) {
 	refdef_t		refdef;
 	refEntity_t		ent;
-
-	if ( !cg_draw3dIcons.integer || !cg_drawIcons.integer ) {
-		return;
-	}
 
 	memset( &refdef, 0, sizeof( refdef ) );
 
@@ -2734,7 +2723,7 @@ static void CG_DrawPowerupIcons(int y)
 		{
 			int secondsleft = (cg.snap->ps.powerups[j] - cg.time)/1000;
 
-			item = BG_FindItemForPowerup( j );
+			item = BG_FindItemForPowerup( (powerup_t)j );
 
 			if (item)
 			{
@@ -2787,12 +2776,6 @@ static void CG_DrawUpperRight( void ) {
 	if ( cg_drawSnapshot.integer ) {
 		y = CG_DrawSnapshot( y );
 	}
-
-#ifdef __MUSIC_ENGINE__
-#ifdef _WIN32
-	CG_DrawMusicInformation();
-#endif //_WIN32
-#endif //__MUSIC_ENGINE__
 
 	if ( ( cgs.gametype >= GT_TEAM || cg.predictedPlayerState.m_iVehicleNum )
 		&& cg_drawRadar.integer )
@@ -7981,7 +7964,7 @@ static void CG_Draw2D( void ) {
 	CG_DrawLagometer();
 	
 
-	if (!cg_paused.integer) {
+	if (!cl_paused.integer) {
 		CG_DrawBracketedEntities();
 		CG_DrawUpperRight();
 	}

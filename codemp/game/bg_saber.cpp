@@ -1907,7 +1907,7 @@ saberMoveName_t PM_SaberJumpAttackMove2( qboolean doLeftMove )
 	//just do it
 	if (SaberStances[pm->ps->fd.saberAnimLevel].specialMoves.allowButterfly && SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly)
 	{
-		return PM_SaberDualJumpAttackMove();
+		return (saberMoveName_t)PM_SaberDualJumpAttackMove();
 	}
 	else
 	{
@@ -2527,7 +2527,7 @@ saberMoveName_t PM_SaberAttackForMovement(saberMoveName_t curmove)
 				pm->ps->forceHandExtend == HANDEXTEND_NONE &&
 				(pm->cmd.buttons & BUTTON_ATTACK && !(pm->cmd.buttons & BUTTON_IRONSIGHTS)))
 			{ //BACKFLIP ATTACK
-				newmove = PM_SaberBackflipAttackMove();
+				newmove = (saberMoveName_t)PM_SaberBackflipAttackMove();
 			}
 			else if (PM_CanBackstab() && !BG_SaberInSpecialAttack(pm->ps->torsoAnim))
 			{ //BACKSTAB (attack varies by level)
@@ -2556,15 +2556,15 @@ saberMoveName_t PM_SaberAttackForMovement(saberMoveName_t curmove)
 		}
 		else if ( PM_SaberInBounce( curmove ) )
 		{//bounces should go to their default attack if you don't specify a direction but are attacking
-			newmove = SaberStances[pm->ps->fd.saberAnimLevel].moves[curmove].chainAttack;
+			newmove = (saberMoveName_t)SaberStances[pm->ps->fd.saberAnimLevel].moves[curmove].chainAttack;
 
 			if ( PM_SaberKataDone(curmove, newmove) )
 			{
-				newmove = SaberStances[pm->ps->fd.saberAnimLevel].moves[curmove].chainIdle;
+				newmove = (saberMoveName_t)SaberStances[pm->ps->fd.saberAnimLevel].moves[curmove].chainIdle;
 			}
 			else
 			{
-				newmove = SaberStances[pm->ps->fd.saberAnimLevel].moves[curmove].chainAttack;
+				newmove = (saberMoveName_t)SaberStances[pm->ps->fd.saberAnimLevel].moves[curmove].chainAttack;
 			}
 		}
 		else if ( curmove == LS_READY )
@@ -3734,7 +3734,7 @@ weapChecks:
 						newmove = saberMoveData[curmove].chain_idle;
 					}
 					else */
-					newmove = PM_SaberAttackForMovement( curmove );
+					newmove = PM_SaberAttackForMovement( (saberMoveName_t)curmove );
 					if ( (PM_SaberInBounce( curmove )||PM_SaberInBrokenParry( curmove ))
 						&& SaberStances[pm->ps->fd.saberAnimLevel].moves[newmove].startingQuadrant == SaberStances[pm->ps->fd.saberAnimLevel].moves[curmove].endQuadrant )
 					{//this attack would be a repeat of the last (which was blocked), so don't actually use it, use the default chain attack for this bounce

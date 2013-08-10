@@ -1679,7 +1679,6 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 		else
 			team = "red";
 	}
-	}
 	//	Info_SetValueForKey( userinfo, "characterfile", Info_ValueForKey( botinfo, "aifile" ) );
 	Info_SetValueForKey( userinfo, "skill", va( "%5.2f", skill ) );
 	Info_SetValueForKey( userinfo, "team", team );
@@ -1850,7 +1849,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 
 		if (bot->client->sess.sessionTeam == TEAM_SPECTATOR)
 		{
-			bot->client->sess.sessionTeam = preTeam;
+			bot->client->sess.sessionTeam = (team_t)preTeam;
 		}
 
 		if (bot->client->sess.sessionTeam == TEAM_RED)

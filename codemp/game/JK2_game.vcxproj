@@ -260,6 +260,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\qcommon\q_math.c" />
+    <ClCompile Include="..\qcommon\q_shared.c" />
     <ClCompile Include="ai_dominance.cpp" />
     <ClCompile Include="ai_dominance_astar.cpp" />
     <ClCompile Include="ai_dominance_bot.cpp" />
@@ -283,7 +285,6 @@
     <ClCompile Include="bg_weapons.cpp" />
     <ClCompile Include="bg_weapons_load.cpp" />
     <ClCompile Include="g_active.cpp" />
-    <ClCompile Include="g_arenas.cpp" />
     <ClCompile Include="g_bot.cpp" />
     <ClCompile Include="g_client.cpp" />
     <ClCompile Include="g_cmds.cpp" />
@@ -345,8 +346,6 @@
     <ClCompile Include="NPC_Speeder.cpp" />
     <ClCompile Include="NPC_Walker.cpp" />
     <ClCompile Include="NPC_Waypointing.cpp" />
-    <ClCompile Include="q_math.cpp" />
-    <ClCompile Include="q_shared.cpp" />
     <ClCompile Include="tri_coll_test.cpp" />
     <ClCompile Include="w_force.cpp" />
     <ClCompile Include="w_saber.cpp" />
@@ -451,6 +450,7 @@
     <None Include="authdb.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\qcommon\q_shared.h" />
     <ClInclude Include="ai.h" />
     <ClInclude Include="ai_main.h" />
     <ClInclude Include="anims.h" />
@@ -486,6 +486,7 @@
     <ClInclude Include="g_nav.h" />
     <ClInclude Include="g_public.h" />
     <ClInclude Include="g_team.h" />
+    <ClInclude Include="g_xcvar.h" />
     <ClInclude Include="inv.h" />
     <ClInclude Include="jkg_admin.h" />
     <ClInclude Include="jkg_asmdefines.h" />
@@ -506,7 +507,6 @@
     <ClInclude Include="match.h" />
     <ClInclude Include="..\..\ui\menudef.h" />
     <ClInclude Include="npc_headers.h" />
-    <ClInclude Include="q_shared.h" />
     <ClInclude Include="..\win32\resource.h" />
     <ClInclude Include="say.h" />
     <ClInclude Include="..\shared\server\server.h" />

@@ -2526,16 +2526,6 @@ void NPC_Think ( gentity_t *self)//, int msec )
 		return;
 	}
 
-	// see if NPC ai is frozen
-	if ( debugNPCFreeze.value || (NPC->r.svFlags&SVF_ICARUS_FREEZE) ) 
-	{
-		NPC_UpdateAngles( qtrue, qtrue );
-		ClientThink(self->s.number, &ucmd);
-		//VectorCopy(self->s.origin, self->s.origin2 );
-		VectorCopy(self->r.currentOrigin, self->client->ps.origin);
-		return;
-	}
-
 	self->nextthink = level.time + FRAMETIME/2;
 
 
@@ -2597,7 +2587,7 @@ void NPC_Think ( gentity_t *self)//, int msec )
 			return;
 		}
 
-		if ( NPC->s.weapon == WP_SABER && g_spskill.integer >= 2 && NPCInfo->rank > RANK_LT_JG )
+		if ( NPC->s.weapon == WP_SABER && g_npcspskill.integer >= 2 && NPCInfo->rank > RANK_LT_JG )
 		{//Jedi think faster on hard difficulty, except low-rank (reborn)
 			NPCInfo->nextBStateThink = level.time + FRAMETIME/2;
 		}

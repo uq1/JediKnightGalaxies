@@ -518,7 +518,7 @@ static void CG_UseItem( centity_t *cent ) {
 		if ( !itemNum ) {
 			//CG_CenterPrint( "No item to use", SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
 		} else {
-			item = BG_FindItemForHoldable( itemNum );
+			item = BG_FindItemForHoldable( (holdable_t)itemNum );
 		}
 	}
 
@@ -1489,9 +1489,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 			else
 			{
-#ifndef __MUSIC_ENGINE__
 				trap_S_StartBackgroundTrack( "music/mp/duel.mp3", "music/mp/duel.mp3", qfalse );
-#endif //__MUSIC_ENGINE__
 			}
 		}
 		else

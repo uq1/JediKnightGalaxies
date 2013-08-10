@@ -38,7 +38,6 @@ void G_StartMatrixEffect( gentity_t *ent )
 
 #define	MAX_CHECK_THRESHOLD	1
 
-extern void NPC_ClearLookTarget( gentity_t *self );
 extern void NPC_SetLookTarget( gentity_t *self, int entNum, int clearTime );
 extern void NPC_TempLookTarget( gentity_t *self, int lookEntNum, int minLookTime, int maxLookTime );
 extern qboolean G_ExpandPointToBBox( vec3_t point, const vec3_t mins, const vec3_t maxs, int ignore, int clipmask );
@@ -2238,7 +2237,7 @@ static void NPC_Humanoid_CombatDistance( int enemy_dist )
 			NPC->client->ps.weaponTime <= 0 && //I'm not busy
 			WP_ForcePowerAvailable( NPC, FP_GRIP, 0 ) && //I can use the power
 			!Q_irand( 0, 10 ) && //don't do it all the time, averages to 1 check a second
-			Q_irand( 0, 6 ) < g_spskill.integer && //more likely on harder diff
+			Q_irand( 0, 6 ) < g_npcspskill.integer && //more likely on harder diff
 			Q_irand( RANK_CIVILIAN, RANK_CAPTAIN ) < NPCInfo->rank )//more likely against harder enemies
 		{//They're throwing their saber, grip them!
 			//taunt
@@ -2311,7 +2310,7 @@ static void NPC_Humanoid_CombatDistance( int enemy_dist )
 						ForceLightning( NPC );
 						if ( NPC->client->ps.fd.forcePowerLevel[FP_LIGHTNING] > FORCE_LEVEL_1 )
 						{
-							NPC->client->ps.weaponTime = Q_irand( 1000, 3000+(g_spskill.integer*500) );
+							NPC->client->ps.weaponTime = Q_irand( 1000, 3000+(g_npcspskill.integer*500) );
 							TIMER_Set( NPC, "holdLightning", NPC->client->ps.weaponTime );
 						}
 						TIMER_Set( NPC, "attackDelay", NPC->client->ps.weaponTime );
@@ -2323,7 +2322,7 @@ static void NPC_Humanoid_CombatDistance( int enemy_dist )
 					{
 						//ForceDrain2( NPC );
 						ForceDrain( NPC );
-						NPC->client->ps.weaponTime = Q_irand( 1000, 3000+(g_spskill.integer*500) );
+						NPC->client->ps.weaponTime = Q_irand( 1000, 3000+(g_npcspskill.integer*500) );
 						TIMER_Set( NPC, "draining", NPC->client->ps.weaponTime );
 						TIMER_Set( NPC, "attackDelay", NPC->client->ps.weaponTime );
 					}
@@ -2874,7 +2873,7 @@ int NPC_Humanoid_ReCalcParryTime( gentity_t *self, evasionType_t evasionType )
 	else if ( self->NPC )
 	{
 		if ( !g_saberRealisticCombat.integer 
-			&& ( g_spskill.integer == 2 || (g_spskill.integer == 1 && self->client->NPC_class == CLASS_TAVION) ) )
+			&& ( g_npcspskill.integer == 2 || (g_npcspskill.integer == 1 && self->client->NPC_class == CLASS_TAVION) ) )
 		{
 			if ( self->client->NPC_class == CLASS_TAVION )
 			{
@@ -2906,7 +2905,7 @@ int NPC_Humanoid_ReCalcParryTime( gentity_t *self, evasionType_t evasionType )
 				{
 					baseTime = 500;
 
-					switch ( g_spskill.integer )
+					switch ( g_npcspskill.integer )
 					{
 					case 0:
 						baseTime = 500;
@@ -2924,7 +2923,7 @@ int NPC_Humanoid_ReCalcParryTime( gentity_t *self, evasionType_t evasionType )
 				{
 					baseTime = 150;//500;
 
-					switch ( g_spskill.integer )
+					switch ( g_npcspskill.integer )
 					{
 					case 0:
 						baseTime = 200;//500;
@@ -3003,8 +3002,8 @@ qboolean NPC_Humanoid_QuickReactions( gentity_t *self )
 {
 	if ( ( self->client->NPC_class == CLASS_JEDI && NPCInfo->rank == RANK_COMMANDER ) ||
 		self->client->NPC_class == CLASS_TAVION ||
-		(self->client->ps.fd.forcePowerLevel[FP_SABER_DEFENSE]>FORCE_LEVEL_1&&g_spskill.integer>1) ||
-		(self->client->ps.fd.forcePowerLevel[FP_SABER_DEFENSE]>FORCE_LEVEL_2&&g_spskill.integer>0) )
+		(self->client->ps.fd.forcePowerLevel[FP_SABER_DEFENSE]>FORCE_LEVEL_1&&g_npcspskill.integer>1) ||
+		(self->client->ps.fd.forcePowerLevel[FP_SABER_DEFENSE]>FORCE_LEVEL_2&&g_npcspskill.integer>0) )
 	{
 		return qtrue;
 	}
@@ -5547,7 +5546,7 @@ static void NPC_Humanoid_CheckEnemyMovement( float enemy_dist )
 							TIMER_Set( NPC, "strafeLeft", -1 );
 							TIMER_Set( NPC, "strafeRight", -1 );
 							TIMER_Set( NPC, "noStrafe", Q_irand( 500, 1000 ) );
-							TIMER_Set( NPC, "noturn", Q_irand( 250, 500 )*(3-g_spskill.integer) );
+							TIMER_Set( NPC, "noturn", Q_irand( 250, 500 )*(3-g_npcspskill.integer) );
 
 							VectorCopy( NPC->enemy->client->ps.velocity, enemyFwd );
 							VectorNormalize( enemyFwd );
@@ -5938,7 +5937,7 @@ static void NPC_Humanoid_Combat( void )
 			VectorNormalize( smackDir );
 			
 			//hurt them
-			G_Damage( NPC->enemy, NPC, NPC, smackDir, NPC->r.currentOrigin, (g_spskill.integer+1)*Q_irand( 5, 10), DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK, MOD_CRUSH ); 
+			G_Damage( NPC->enemy, NPC, NPC, smackDir, NPC->r.currentOrigin, (g_npcspskill.integer+1)*Q_irand( 5, 10), DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK, MOD_CRUSH ); 
 
 			//throw them
 			G_Throw( NPC->enemy, smackDir, 64 );
@@ -6007,15 +6006,15 @@ void NPC_Humanoid_Pain(gentity_t *self, gentity_t *attacker, int damage)
 		TIMER_Set( self, "parryTime", -1 );
 		if ( self->client->NPC_class == CLASS_DESANN || !Q_stricmp("Yoda",self->NPC_type) )
 		{//less for Desann
-			self->client->ps.fd.forcePowerDebounce[FP_SABER_DEFENSE] = level.time + (3-g_spskill.integer)*50;
+			self->client->ps.fd.forcePowerDebounce[FP_SABER_DEFENSE] = level.time + (3-g_npcspskill.integer)*50;
 		}
 		else if ( self->NPC->rank >= RANK_LT_JG )
 		{
-			self->client->ps.fd.forcePowerDebounce[FP_SABER_DEFENSE] = level.time + (3-g_spskill.integer)*100;//300
+			self->client->ps.fd.forcePowerDebounce[FP_SABER_DEFENSE] = level.time + (3-g_npcspskill.integer)*100;//300
 		}
 		else
 		{
-			self->client->ps.fd.forcePowerDebounce[FP_SABER_DEFENSE] = level.time + (3-g_spskill.integer)*200;//500
+			self->client->ps.fd.forcePowerDebounce[FP_SABER_DEFENSE] = level.time + (3-g_npcspskill.integer)*200;//500
 		}
 		if ( !Q_irand( 0, 3 ) )
 		{//ouch... maybe switch up which saber power level we're using
@@ -6515,7 +6514,7 @@ static void NPC_Humanoid_Attack( void )
 		
 			if ( NPC->client->NPC_class == CLASS_DESANN || !Q_stricmp("Yoda",NPC->NPC_type) )
 			{
-				if ( g_spskill.integer )
+				if ( g_npcspskill.integer )
 				{
 					chance = 4.0f;//he pushes *hard*
 				}
@@ -6526,12 +6525,12 @@ static void NPC_Humanoid_Attack( void )
 			}
 			else if ( NPC->client->NPC_class == CLASS_TAVION )
 			{
-				chance = 2.0f+g_spskill.value;//from 2 to 4
+				chance = 2.0f+g_npcspskill.value;//from 2 to 4
 			}
 			else
 			{//the escalation in difficulty is nice, here, but cap it so it doesn't get *impossible* on hard
 				float maxChance	= (float)(RANK_LT)/2.0f+3.0f;//5?
-				if ( !g_spskill.value )
+				if ( !g_npcspskill.value )
 				{
 					chance = (float)(NPCInfo->rank)/2.0f;
 				}
@@ -6787,7 +6786,7 @@ static void NPC_Humanoid_Attack( void )
 	if ( NPC_IsJedi(NPC) )
 	{
 		if ( NPC->client->NPC_class == CLASS_TAVION 
-			|| (g_spskill.integer && ( NPC->client->NPC_class == CLASS_DESANN || NPCInfo->rank >= Q_irand( RANK_CREWMAN, RANK_CAPTAIN ))))
+			|| (g_npcspskill.integer && ( NPC->client->NPC_class == CLASS_DESANN || NPCInfo->rank >= Q_irand( RANK_CREWMAN, RANK_CAPTAIN ))))
 		{//Tavion will kick in force speed if the player does...
 			if ( NPC->enemy 
 				&& !NPC->enemy->s.number 
@@ -6796,7 +6795,7 @@ static void NPC_Humanoid_Attack( void )
 				&& !(NPC->client->ps.fd.forcePowersActive & (1<<FP_SPEED)) )
 			{
 				int chance = 0;
-				switch ( g_spskill.integer )
+				switch ( g_npcspskill.integer )
 				{
 				case 0:
 					chance = 9;

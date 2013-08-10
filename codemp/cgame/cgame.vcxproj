@@ -268,6 +268,8 @@
     <ClCompile Include="..\libraries\Detour\Source\DetourNavMeshQuery.cpp" />
     <ClCompile Include="..\libraries\Detour\Source\DetourNode.cpp" />
     <ClCompile Include="..\libraries\encoding\base128.cpp" />
+    <ClCompile Include="..\qcommon\q_math.c" />
+    <ClCompile Include="..\qcommon\q_shared.c" />
     <ClCompile Include="cg_cinematics.cpp" />
     <ClCompile Include="cg_consolecmds.cpp" />
     <ClCompile Include="cg_crossover.cpp" />
@@ -313,13 +315,10 @@
     <ClCompile Include="..\game\jkg_gangwars.cpp" />
     <ClCompile Include="jkg_hud.cpp" />
     <ClCompile Include="jkg_minimaps.cpp" />
-    <ClCompile Include="jkg_musicengine.cpp" />
     <ClCompile Include="jkg_navmesh_visualiser.cpp" />
     <ClCompile Include="jkg_splinepaths.cpp" />
     <ClCompile Include="jkg_autowaypoint.cpp" />
     <ClCompile Include="jkg_wpindicators.cpp" />
-    <ClCompile Include="..\game\q_math.cpp" />
-    <ClCompile Include="..\game\q_shared.cpp" />
     <ClCompile Include="..\ui\ui_shared.cpp" />
     <ClCompile Include="..\libraries\json\cJSON.c" />
     <ClCompile Include="..\libraries\encoding\bitstream.c" />
@@ -363,6 +362,7 @@
     <ClInclude Include="cg_public.h" />
     <ClInclude Include="cg_weapons.h" />
     <ClInclude Include="..\shared\qcommon\disablewarnings.h" />
+    <ClInclude Include="cg_xcvar.h" />
     <ClInclude Include="fx_local.h" />
     <ClInclude Include="..\shared\ghoul2\G2.h" />
     <ClInclude Include="holocronicons.h" />

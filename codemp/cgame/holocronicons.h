@@ -13,6 +13,8 @@
 // holocronicons.h
 // Copyright (c) 2013 Jedi Knight Galaxies
 
+#pragma once
+
 //OJKFIXME: just keep a single copy, not in a header D:
 const char *HolocronIcons[NUM_FORCE_POWERS] = {
 	"gfx/mp/f_icon_lt_heal",		//FP_HEAL,
@@ -34,4 +36,3 @@ const char *HolocronIcons[NUM_FORCE_POWERS] = {
 	"gfx/mp/f_icon_saber_defend",	//FP_SABER_DEFENSE,
 	"gfx/mp/f_icon_saber_throw"		//FP_SABERTHROW
 };
-#endif

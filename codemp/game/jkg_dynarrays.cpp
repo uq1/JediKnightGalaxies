@@ -32,7 +32,6 @@ qboolean JKG_Arrays_AddArrayElement_Location(int index, void **arry, size_t sze,
 	memcpy(buf, (byte *)(*arry) + (index * sze), shiftCount);
 	memcpy((byte *)(*arry) + ((index + 1) * sze), buf, shiftCount);
 
-	G_Free(buf);
 	memset((byte *)(*arry) + (index * sze), 0, sze);
 	(*count)++;
 	return qtrue;

@@ -69,36 +69,7 @@ void CG_DrawFlagModel( float x, float y, float w, float h, int team, qboolean fo
 	vec3_t			mins, maxs;
 	qhandle_t		handle;
 
-	if ( !force2D && cg_draw3dIcons.integer ) {
-
-		VectorClear( angles );
-
-		cm = cgs.media.redFlagModel;
-
-		// offset the origin y and z to center the flag
-		trap_R_ModelBounds( cm, mins, maxs );
-
-		origin[2] = -0.5f * ( mins[2] + maxs[2] );
-		origin[1] = 0.5f * ( mins[1] + maxs[1] );
-
-		// calculate distance so the flag nearly fills the box
-		// assume heads are taller than wide
-		len = 0.5f * ( maxs[2] - mins[2] );		
-		origin[0] = len / 0.268f;	// len / tan( fov/2 )
-
-		angles[YAW] = 60 * sin( cg.time / 2000.0f );;
-
-		if( team == TEAM_RED ) {
-			handle = cgs.media.redFlagModel;
-		} else if( team == TEAM_BLUE ) {
-			handle = cgs.media.blueFlagModel;
-		} else if( team == TEAM_FREE ) {
-			handle = 0;//cgs.media.neutralFlagModel;
-		} else {
-			return;
-		}
-		CG_Draw3DModel( x, y, w, h, handle, NULL, 0, 0, origin, angles );
-	} else if ( cg_drawIcons.integer ) {
+	if ( cg_drawIcons.integer ) {
 		gitem_t *item;
 
 		if( team == TEAM_RED ) {

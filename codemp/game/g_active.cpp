@@ -3427,7 +3427,7 @@ void ClientThink_real( gentity_t *ent ) {
 		ent->grenadeCookTime = 0;
 	}
 	
-	if ( BG_IsSprinting (&ent->client->ps, &pm.cmd, qfalse) )
+	if ( BG_IsSprinting (&ent->client->ps, &pmove.cmd, qfalse) )
 	{
 	    ent->client->ps.eFlags |= EF_SPRINTING;
     }
@@ -3453,7 +3453,7 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 	else
 	{
-		Pmove (&pm);
+		Pmove (&pmove);
 	}
 
 	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation ))

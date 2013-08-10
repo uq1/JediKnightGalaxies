@@ -16,7 +16,7 @@
 #ifndef CG_WEAPONS_H
 #define CG_WEAPONS_H
 
-#include "../game/q_shared.h"
+#include "qcommon/q_shared.h"
 
 // Forward declaration
 typedef struct weaponInfo_s weaponInfo_t;

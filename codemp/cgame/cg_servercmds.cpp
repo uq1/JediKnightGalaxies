@@ -106,6 +106,7 @@ void CG_ParseServerinfo( void ) {
 	const char	*info;
 	const char	*tinfo;
 	char	*mapname;
+	int		i;
 
 	info = CG_ConfigString( CS_SERVERINFO );
 
@@ -120,7 +121,7 @@ void CG_ParseServerinfo( void ) {
 
 	cgs.showDuelHealths = atoi( Info_ValueForKey( info, "g_showDuelHealths" ) );
 
-	cgs.gametype = atoi( Info_ValueForKey( info, "g_gametype" ) );
+	cgs.gametype = (gametype_t)atoi( Info_ValueForKey( info, "g_gametype" ) );
 	trap_Cvar_Set("g_gametype", va("%i", cgs.gametype));
 	cgs.needpass = atoi( Info_ValueForKey( info, "needpass" ) );
 	cgs.jediVmerc = atoi( Info_ValueForKey( info, "g_jediVmerc" ) );
@@ -185,7 +186,6 @@ void CG_ParseServerinfo( void ) {
 			cg.mRMGWeather = qfalse;
 		}
 	}
-}
 
 	//Raz: Fix bogus vote strings
 	Q_strncpyz( cgs.voteString, CG_ConfigString( CS_VOTE_STRING ), sizeof( cgs.voteString ) );
@@ -223,6 +223,40 @@ static char ctfFlagStatusRemap[] = {
 	// which was originally for 1-flag CTF.
 	FLAG_DROPPED
 };
+
+/*
+==================
+JKG_ShopConfirm
+See comment in g_cmds.c --eez
+==================
+*/
+
+static void JKG_ShopConfirm( void )
+{
+	int creditCount = atoi(CG_Argv(1));
+	int itemID = atoi(CG_Argv(2));
+
+	/* Change the credit count in the shop UI */
+	cg.snap->ps.persistant[PERS_CREDITS] = creditCount;
+	cg.playerInventory[cg.numItemsInInventory-1].id = &CGitemLookupTable[itemID];		// MEGA UNSTABLE HACK HERE
+
+	if(CGitemLookupTable[itemID].itemType == ITEM_WEAPON)
+	{
+		/* It's a weapon, so let's put it in the ACI */
+		for(int i = 0; i < MAX_ACI_SLOTS; i++)
+		{
+			if(cg.playerACI[i] == -1)
+			{
+				/* This slot doesn't have an item in it, so let's assign it */
+				cg.playerACI[i] = cg.numItemsInInventory-1;
+				break;
+			}
+		}
+	}
+
+	/* Notify the UI about changes in the shop */
+	uiImports->ShopNotify(1);
+}
 
 /*
 ==================

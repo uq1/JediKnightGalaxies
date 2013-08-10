@@ -35,7 +35,6 @@ extern void G_AddVoiceEvent( gentity_t *self, int event, int speakDebounceTime )
 extern void ForceJump( gentity_t *self, usercmd_t *ucmd );
 extern vmCvar_t	g_saberRealisticCombat;
 
-extern void NPC_ClearLookTarget( gentity_t *self );
 extern void NPC_SetLookTarget( gentity_t *self, int entNum, int clearTime );
 extern void NPC_TempLookTarget( gentity_t *self, int lookEntNum, int minLookTime, int maxLookTime );
 extern qboolean G_ExpandPointToBBox( vec3_t point, const vec3_t mins, const vec3_t maxs, int ignore, int clipmask );
@@ -536,7 +535,7 @@ int DOM_Jedi_ReCalcParryTime( gentity_t *self, evasionType_t evasionType )
 	}
 	else
 	{
-		if ( !g_saberRealisticCombat.integer && ( g_spskill.integer == 2 ) )
+		if ( !g_saberRealisticCombat.integer && ( g_npcspskill.integer == 2 ) )
 		{
 			return Q_irand( 0, 150 );
 		}
@@ -561,7 +560,7 @@ int DOM_Jedi_ReCalcParryTime( gentity_t *self, evasionType_t evasionType )
 				{
 					baseTime = 500;
 
-					switch ( g_spskill.integer )
+					switch ( g_npcspskill.integer )
 					{
 					case 0:
 						baseTime = 500;
@@ -579,7 +578,7 @@ int DOM_Jedi_ReCalcParryTime( gentity_t *self, evasionType_t evasionType )
 				{
 					baseTime = 150;//500;
 
-					switch ( g_spskill.integer )
+					switch ( g_npcspskill.integer )
 					{
 					case 0:
 						baseTime = 200;//500;

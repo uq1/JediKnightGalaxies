@@ -92,15 +92,6 @@
     <ClCompile Include="..\game\jkg_gangwars.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\cgame\jkg_musicengine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\q_math.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\q_shared.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ui_atoms.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -160,6 +151,12 @@
     </ClCompile>
     <ClCompile Include="..\libraries\encoding\base128.cpp">
       <Filter>Libraries\Base128\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\qcommon\q_math.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\qcommon\q_shared.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

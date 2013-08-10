@@ -6,6 +6,7 @@
 #endif
 #endif
 
+extern void BG_VehicleLoadParms( void );
 #ifdef _JK2MP
 	#include "qcommon/q_shared.h"
 	#include "bg_public.h"
@@ -93,8 +94,6 @@ int		numVehicleWeapons = 1;//first one is null/default
 
 vehicleInfo_t g_vehicleInfo[MAX_VEHICLES];
 int		numVehicles = 0;//first one is null/default
-
-void BG_VehicleLoadParms( void );
 
 typedef enum {
 	VF_IGNORE,
@@ -1160,8 +1159,8 @@ int VEH_LoadVehicle( const char *vehicleName )
 #endif
 	}
 
-#ifndef BASE_COMPAT
-	// Fix for broken swoop vehicle et al
+#ifdef BASE_COMPAT
+	// Fix for broken swoop vehicle et
 	if( vehicle->skin && vehicle->skin[0] )
 	{
 		// Register all of the skins, we're going to need to use them all
@@ -1171,7 +1170,7 @@ int VEH_LoadVehicle( const char *vehicleName )
 	{
 		trap_R_RegisterSkin( va( "models/players/%s/model_default.skin", vehicle->model) );
 	}
-#else
+#endif
 #ifndef _JK2MP
 	//SP
 	if ( vehicle->skin
@@ -1565,4 +1564,3 @@ void AttachRidersGeneric( Vehicle_t *pVeh )
 
 
 #endif // _JK2MP
-

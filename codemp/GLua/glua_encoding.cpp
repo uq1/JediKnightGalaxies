@@ -1,8 +1,8 @@
 // Defines the encoding. namespace
 // Implements base128 and base64 encoding
 
-#include "../game/g_local.h"
-#include "../game/q_shared.h"
+#include "game/g_local.h"
+#include "qcommon/q_shared.h"
 
 #include "encoding/base64.h"
 #include "encoding/base128.h"

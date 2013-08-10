@@ -1,7 +1,7 @@
 // Defines the player object and players. namespace
 
-#include "../game/g_local.h"
-#include "../game/q_shared.h"
+#include "game/g_local.h"
+#include "qcommon/q_shared.h"
 
 #include "glua.h"
 

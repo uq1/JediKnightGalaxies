@@ -428,7 +428,7 @@ qboolean	CheatsOk( gentity_t *ent ) {
 	{
 		return qtrue;
 	}
-	if ( !g_cheats.integer ) {
+	if ( !sv_cheats.integer ) {
 		trap_SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
 		return qfalse;
 	}
@@ -1198,7 +1198,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 #endif
 #endif
 
-		if ( g_teamForceBalance.integer && !g_trueJedi.integer ) {
+		if ( g_teamForceBalance.integer ) {
 			int		counts[TEAM_NUM_TEAMS];
 
 			//JAC: Invalid clientNum was being used
@@ -1324,7 +1324,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 	// also clear team votes if switching red/blue or going to spec
 	G_ClearTeamVote( ent, oldTeam );
 
-	client->sess.sessionTeam = team;
+	client->sess.sessionTeam = (team_t)team;
 	client->sess.spectatorState = specState;
 	client->sess.spectatorClient = specClient;
 
@@ -1369,7 +1369,6 @@ If the client being followed leaves the game, or you just want to drop
 to free floating spectator mode
 =================
 */
-extern void G_LeaveVehicle( gentity_t *ent, qboolean ConCheck );
 void StopFollowing( gentity_t *ent ) {
 	int i=0;
 	ent->client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;	
@@ -3000,11 +2999,6 @@ int G_ClientNumberFromStrippedSubstring ( const char* name, qboolean checkAll )
 	return match;
 }
 
-#ifdef __SECONDARY_NETWORK__
-extern void jkg_netserverbegin();
-extern void jkg_netservershutdown();
-#endif //__SECONDARY_NETWORK__
-
 /*
 ==================
 Cmd_CallVote_f
@@ -3117,10 +3111,6 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 			trap_SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOVOTE_MAPNOTSUPPORTEDBYGAME")) );
 			return;
 		}
-
-#ifdef __SECONDARY_NETWORK__
-		jkg_netservershutdown();
-#endif //__SECONDARY_NETWORK__
 
 		trap_Cvar_VariableStringBuffer( "nextmap", s, sizeof(s) );
 		if (*s) {
@@ -4759,8 +4749,6 @@ void ClientCommand( int clientNum ) {
 	}
 	else if (Q_stricmp (cmd, "kill") == 0)
 		Cmd_Kill_f (ent);
-	else if (Q_stricmp (cmd, "teamtask") == 0)
-		Cmd_TeamTask_f (ent);
 	#ifdef _DEBUG
 	else if (Q_stricmp (cmd, "levelshot") == 0)
 		Cmd_LevelShot_f (ent);
@@ -4791,8 +4779,6 @@ void ClientCommand( int clientNum ) {
 		Cmd_GameCommand_f( ent );
 	else if (Q_stricmp (cmd, "setviewpos") == 0)
 		Cmd_SetViewpos_f( ent );
-	else if (Q_stricmp (cmd, "stats") == 0)
-		Cmd_Stats_f( ent );
 #ifdef __AUTOWAYPOINT__ // __DOMINANCE_NPC__
 	else if (Q_stricmp (cmd, "checkbotreach") == 0 && !Q_strncmp(ent->client->sess.IP, "127.0.0.1:",10))	{
 		AIMod_CheckMapPaths( ent );
