@@ -201,7 +201,9 @@ static CGAME_INLINE qboolean CG_VehicleClipCheck(centity_t *ignored, trace_t *tr
 
 //rww - I'm disabling this warning for this function. It complains about oldTrace but as you can see it
 //always gets set before use, and I am not wasting CPU memsetting it to shut the compiler up.
+#ifdef _MSC_VER
 #pragma warning(disable : 4701) //local variable may be used without having been initialized
+#endif
 /*
 ====================
 CG_ClipMoveToEntities
@@ -356,7 +358,9 @@ static void CG_ClipMoveToEntities ( const vec3_t start, const vec3_t mins, const
 		}
 	}
 }
+#ifdef _MSC_VER
 #pragma warning(default : 4701) //local variable may be used without having been initialized
+#endif
 
 //[USE_ITEMS]
 void CG_TraceItem ( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber )
@@ -674,12 +678,13 @@ static void CG_TouchItem( centity_t *cent ) {
 */
 	// Special case for flags.  
 	// We don't predict touching our own flag
+	// Make sure the item type is also a flag too
 	if( cgs.gametype == GT_CTF || cgs.gametype == GT_CTY ) {
 		if (cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_RED &&
-			item->giTag == PW_REDFLAG)
+			item->giType == IT_TEAM && item->giTag == PW_REDFLAG)
 			return;
 		if (cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_BLUE &&
-			item->giTag == PW_BLUEFLAG)
+			item->giType == IT_TEAM && item->giTag == PW_BLUEFLAG)
 			return;
 	}
 
@@ -985,6 +990,7 @@ void DeathcamClamp( playerState_t *ps ) {
 }
 
 #pragma warning(disable : 4701) //local variable may be used without having been initialized
+#endif
 void CG_PredictPlayerState( void ) {
 	int			cmdNum, current, i;
 	playerState_t	oldPlayerState;
@@ -1569,4 +1575,6 @@ revertES:
 		}
 	}
 }
+#ifdef _MSC_VER
 #pragma warning(default : 4701) //local variable may be used without having been initialized
+#endif

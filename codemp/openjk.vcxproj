@@ -148,7 +148,6 @@
   <ItemGroup>
     <ClInclude Include="game\anims.h" />
     <ClInclude Include="game\bg_weapons.h" />
-    <ClInclude Include="game\botlib.h" />
     <ClInclude Include="libraries\mp3code\config.h" />
     <ClInclude Include="libraries\mp3code\htable.h" />
     <ClInclude Include="libraries\mp3code\jdw.h" />
@@ -364,6 +363,7 @@
     <ClCompile Include="qcommon\huffman.cpp" />
     <ClCompile Include="qcommon\matcomp.cpp" />
     <ClCompile Include="qcommon\md4.cpp" />
+    <ClCompile Include="qcommon\md5.cpp" />
     <ClCompile Include="qcommon\msg.cpp" />
     <ClCompile Include="qcommon\net_chan.cpp" />
     <ClCompile Include="qcommon\q_math.cpp" />

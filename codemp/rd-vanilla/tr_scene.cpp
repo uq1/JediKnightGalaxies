@@ -1,6 +1,3 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 #include "tr_local.h"
 
 #include "ghoul2/G2.h"
@@ -11,7 +8,9 @@
 #include "tr_lightmanager.h"
 #endif
 
+#ifdef _MSC_VER
 #pragma warning (disable: 4512)	//default assignment operator could not be gened
+#endif
 #include "qcommon/disablewarnings.h"
 
 static	int			r_firstSceneDrawSurf;
@@ -129,14 +128,14 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 	}
 
 	for ( j = 0; j < numPolys; j++ ) {
-		if ( r_numpolyverts + numVerts > max_polyverts || r_numpolys >= max_polys ) {
+		if ( r_numpolyverts + numVerts >= max_polyverts || r_numpolys >= max_polys ) {
       /*
       NOTE TTimo this was initially a PRINT_WARNING
       but it happens a lot with high fighting scenes and particles
       since we don't plan on changing the const and making for room for those effects
       simply cut this message to developer only
       */
-			ri.Printf( PRINT_DEVELOPER, S_COLOR_YELLOW  "WARNING: RE_AddPolyToScene: r_max_polys or r_max_polyverts reached\n");
+			ri->Printf( PRINT_DEVELOPER, S_COLOR_YELLOW  "WARNING: RE_AddPolyToScene: r_max_polys or r_max_polyverts reached\n");
 			return;
 		}
 
@@ -201,7 +200,7 @@ void RE_AddRefEntityToScene( const refEntity_t *ent ) {
 	}
 
 	if ( r_numentities >= MAX_REFENTITIES ) {
-		ri.Printf(PRINT_DEVELOPER, "RE_AddRefEntityToScene: Dropping refEntity, reached MAX_REFENTITIES\n");
+		ri->Printf(PRINT_DEVELOPER, "RE_AddRefEntityToScene: Dropping refEntity, reached MAX_REFENTITIES\n");
 		return;
 	}
 
@@ -209,7 +208,7 @@ void RE_AddRefEntityToScene( const refEntity_t *ent ) {
 		static qboolean firstTime = qtrue;
 		if (firstTime) {
 			firstTime = qfalse;
-			ri.Printf( PRINT_WARNING, "RE_AddRefEntityToScene passed a refEntity which has an origin with a NaN component\n");
+			ri->Printf( PRINT_WARNING, "RE_AddRefEntityToScene passed a refEntity which has an origin with a NaN component\n");
 		}
 		return;
 	}*/
@@ -241,10 +240,6 @@ void RE_AddRefEntityToScene( const refEntity_t *ent ) {
 
 		if (!ghoul2[0].mModel)
 		{
-#ifdef _DEBUG
-			CGhoul2Info &g2 = ghoul2[0];
-#endif
-			//DebugBreak();
 			Com_Printf("Your ghoul2 instance has no model!\n");
 		}
 	}
@@ -728,7 +723,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 		return;
 	}
 
-	startTime = ri.Milliseconds()*ri.Cvar_VariableValue( "timescale" );
+	startTime = ri->Milliseconds()*ri->Cvar_VariableValue( "timescale" );
 
 	if (!tr.world && !( fd->rdflags & RDF_NOWORLDMODEL ) ) {
 		Com_Error (ERR_DROP, "R_RenderScene: NULL worldmodel");
@@ -879,7 +874,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 	refEntParent = -1;
 
-	tr.frontEndMsec += ri.Milliseconds()*ri.Cvar_VariableValue( "timescale" ) - startTime;
+	tr.frontEndMsec += ri->Milliseconds()*ri->Cvar_VariableValue( "timescale" ) - startTime;
 
 	RE_RenderWorldEffects();
 

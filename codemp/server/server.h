@@ -4,7 +4,7 @@
 #include "qcommon/qcommon.h"
 #include "game/g_public.h"
 #include "game/bg_public.h"
-#include "renderer/tr_public.h"
+#include "rd-common/tr_public.h"
 
 //=============================================================================
 
@@ -204,7 +204,7 @@ extern	server_t		sv;					// cleared each map
 extern	vm_t			*gvm;				// game virtual machine
 
 //RAZFIXME: dedi server probably can't have this..
-extern	refexport_t		re;					// interface to refresh .dll
+extern	refexport_t		*re;					// interface to refresh .dll
 
 #define	MAX_MASTER_SERVERS	5
 
@@ -243,6 +243,27 @@ extern	cvar_t	*sv_filterCommands;
 //
 // sv_main.c
 //
+typedef struct leakyBucket_s leakyBucket_t;
+struct leakyBucket_s {
+	netadrtype_t	type;
+
+	union {
+		byte	_4[4];
+		byte	_x[10];
+	} ipv;
+
+	int					lastTime;
+	signed char			burst;
+
+	long				hash;
+
+	leakyBucket_t *prev, *next;
+};
+
+extern leakyBucket_t outboundLeakyBucket;
+
+qboolean SVC_RateLimit( leakyBucket_t *bucket, int burst, int period );
+qboolean SVC_RateLimitAddress( netadr_t from, int burst, int period );
 void SV_FinalMessage (char *message);
 void QDECL SV_SendServerCommand( client_t *cl, const char *fmt, ...);
 

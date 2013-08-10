@@ -124,17 +124,6 @@ static ID_INLINE void WRITE_2BYTES( int x )
 
 /*
 ===============
-WRITE_1BYTES
-===============
-*/
-static ID_INLINE void WRITE_1BYTES( int x )
-{
-  buffer[ bufIndex ] = x;
-  bufIndex += 1;
-}
-
-/*
-===============
 START_CHUNK
 ===============
 */
@@ -588,7 +577,7 @@ void CL_TakeVideoFrame( void )
   if( !afd.fileOpen )
     return;
 
-  re.TakeVideoFrame( afd.width, afd.height,
+  re->TakeVideoFrame( afd.width, afd.height,
       afd.cBuffer, afd.eBuffer, afd.motionJpeg );
 }
 

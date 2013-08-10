@@ -1,6 +1,3 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 // tr_shade.c
 
 #include "tr_local.h"
@@ -88,7 +85,7 @@ static void R_DrawStripElements( int numIndexes, const glIndex_t *indexes, void 
 			{
 				element( indexes[i+2] );
 				c_vertexes++;
-				assert( indexes[i+2] < tess.numVertexes );
+				assert( (int)indexes[i+2] < tess.numVertexes );
 				even = qtrue;
 			}
 			// otherwise we're done with this strip so finish it and start
@@ -216,8 +213,8 @@ void R_BindAnimatedImage( textureBundle_t *bundle ) {
 	int		index;
 
 	if ( bundle->isVideoMap ) {
-		ri.CIN_RunCinematic(bundle->videoMapHandle);
-		ri.CIN_UploadCinematic(bundle->videoMapHandle);
+		ri->CIN_RunCinematic(bundle->videoMapHandle);
+		ri->CIN_UploadCinematic(bundle->videoMapHandle);
 		return;
 	}
 
@@ -1445,6 +1442,8 @@ static void ComputeColors( shaderStage_t *pStage, int forceRGBGen )
 			}
 		}
 		break;
+	default:
+		break;
 	}
 avoidGen:
 	//
@@ -1688,7 +1687,6 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 
 		if ( !pStage->active )
 		{
-			assert(pStage->active);//wtf?
 			break;
 		}
 
@@ -2120,10 +2118,10 @@ void RB_EndSurface( void ) {
 	//
 	// draw debugging stuff
 	//
-	if ( r_showtris->integer && ri.Cvar_VariableIntegerValue( "developer" ) ) {
+	if ( r_showtris->integer && ri->Cvar_VariableIntegerValue( "developer" ) ) {
 		DrawTris (input);
 	}
-	if ( r_shownormals->integer && ri.Cvar_VariableIntegerValue( "developer" ) && ri.Cvar_VariableIntegerValue( "sv_running" ) ) {
+	if ( r_shownormals->integer && ri->Cvar_VariableIntegerValue( "developer" ) && ri->Cvar_VariableIntegerValue( "sv_running" ) ) {
 		DrawNormals (input);
 	}
 	// clear shader so we can tell we don't have any unclosed surfaces

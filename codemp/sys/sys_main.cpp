@@ -2,8 +2,6 @@
 #include <sys/fcntl.h>
 #include "qcommon/q_shared.h"
 #include "qcommon/qcommon.h"
-#include "qcommon/platform.h"
-#include "qcommon/files.h"
 
 #include "sys_loadlib.h"
 #ifdef DEDICATED
@@ -12,7 +10,6 @@
 #include "sys_local.h"
 #endif
 
-static char cdPath[ MAX_OSPATH ] = { 0 };
 static char binaryPath[ MAX_OSPATH ] = { 0 };
 static char installPath[ MAX_OSPATH ] = { 0 };
 
@@ -113,6 +110,7 @@ void	Sys_Init (void) {
 	Cvar_Set( "username", Sys_GetCurrentUser( ) );
 }
 
+void Sys_Exit( int ex ) __attribute__((noreturn));
 void Sys_Exit( int ex ) {
 #ifdef NDEBUG // regular behavior
     // We can't do this
@@ -176,7 +174,6 @@ First try to load library name from system library path,
 from executable path, then fs_basepath.
 =================
 */
-extern char		*FS_BuildOSPath( const char *base, const char *game, const char *qpath );
 
 void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 {
@@ -237,6 +234,31 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 	return dllhandle;
 }
 
+#ifdef MACOS_X
+void *Sys_LoadMachOBundle( const char *name )
+{
+	if ( !FS_LoadMachOBundle(name) )
+		return NULL;
+
+	char *homepath = Cvar_VariableString( "fs_homepath" );
+	char *gamedir = Cvar_VariableString( "fs_game" );
+	char dllName[MAX_QPATH];
+
+	Com_sprintf( dllName, sizeof(dllName), "%s_pk3" DLL_EXT, name );
+
+	//load the unzipped library
+	char *fn = FS_BuildOSPath( homepath, gamedir, dllName );
+
+	void    *libHandle = Sys_LoadLibrary( fn );
+
+	if ( libHandle != NULL ) {
+		Com_Printf( "Loaded pk3 bundle %s.\n", name );
+	}
+
+	return libHandle;
+}
+#endif
+
 /*
  =================
  Sys_LoadGameDll
@@ -249,22 +271,40 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 
 void *Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) )
 {
-	void	*libHandle;
+	void	*libHandle = NULL;
 	void	(QDECL *dllEntry)( intptr_t (QDECL *syscallptr)(intptr_t, ...) );
 	char	*basepath;
 	char	*homepath;
 	char	*cdpath;
 	char	*gamedir;
+#ifdef MACOS_X
+    char    *apppath;
+#endif
 	char	*fn;
 	char	filename[MAX_OSPATH];
 
 	Com_sprintf (filename, sizeof(filename), "%s" ARCH_STRING DLL_EXT, name);
 
+#if 0
+	libHandle = Sys_LoadLibrary( filename );
+#endif
+    
+#ifdef MACOS_X
+    //First, look for the old-style mac .bundle that's inside a pk3
+    //It's actually zipped, and the zipfile has the same name as 'name'
+    libHandle = Sys_LoadMachOBundle( name );
+#endif
+
 	if (!libHandle) {
+		//Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", filename, Sys_LibraryError() );
+
 		basepath = Cvar_VariableString( "fs_basepath" );
 		homepath = Cvar_VariableString( "fs_homepath" );
 		cdpath = Cvar_VariableString( "fs_cdpath" );
 		gamedir = Cvar_VariableString( "fs_game" );
+#ifdef MACOS_X
+        apppath = Cvar_VariableString( "fs_apppath" );
+#endif
 
 		fn = FS_BuildOSPath( basepath, gamedir, filename );
 		libHandle = Sys_LoadLibrary( fn );
@@ -278,34 +318,56 @@ void *Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(int, ...)
 			}
 			if ( !libHandle ) {
 				Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-				if( cdpath[0] ) {
-					fn = FS_BuildOSPath( cdpath, gamedir, filename );
+#ifdef MACOS_X
+                if( apppath[0] ) {
+					fn = FS_BuildOSPath( apppath, gamedir, filename );
 					libHandle = Sys_LoadLibrary( fn );
 				}
-				if ( !libHandle ) {
-					Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-					// now we try base
-					fn = FS_BuildOSPath( basepath, BASEGAME, filename );
-					libHandle = Sys_LoadLibrary( fn );
-					if ( !libHandle ) {
-						if( homepath[0] ) {
-							Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-							fn = FS_BuildOSPath( homepath, BASEGAME, filename );
-							libHandle = Sys_LoadLibrary( fn );
-						}
-						if ( !libHandle ) {
-							Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-							if( cdpath[0] ) {
-								fn = FS_BuildOSPath( cdpath, BASEGAME, filename );
-								libHandle = Sys_LoadLibrary( fn );
-							}
-							if ( !libHandle ) {
-								Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-								return NULL;
-							}
-						}
-					}
-				}
+                if ( !libHandle ) {
+                    Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+#endif
+                    if( cdpath[0] ) {
+                        fn = FS_BuildOSPath( cdpath, gamedir, filename );
+                        libHandle = Sys_LoadLibrary( fn );
+                    }
+                    if ( !libHandle ) {
+                        Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+                        // now we try base
+                        fn = FS_BuildOSPath( basepath, BASEGAME, filename );
+                        libHandle = Sys_LoadLibrary( fn );
+                        if ( !libHandle ) {
+                            if( homepath[0] ) {
+                                Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+                                fn = FS_BuildOSPath( homepath, BASEGAME, filename );
+                                libHandle = Sys_LoadLibrary( fn );
+                            }
+                            if ( !libHandle ) {
+                                Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+#ifdef MACOS_X
+                                if( apppath[0] ) {
+                                    fn = FS_BuildOSPath( apppath, BASEGAME, filename);
+                                    libHandle = Sys_LoadLibrary( fn );
+                                }
+                                if ( !libHandle ) {
+                                    Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+#endif
+                                    if( cdpath[0] ) {
+                                        fn = FS_BuildOSPath( cdpath, BASEGAME, filename );
+                                        libHandle = Sys_LoadLibrary( fn );
+                                    }
+                                    if ( !libHandle ) {
+                                        Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+                                        return NULL;
+                                    }
+#ifdef MACOS_X
+                                }
+#endif
+                            }
+                        }
+                    }
+#ifdef MACOS_X
+                }
+#endif
 			}
 		}
 	}
@@ -348,13 +410,40 @@ void    Sys_ConfigureFPU() { // bk001213 - divide by zero
 #endif // __linux
 }
 
+#ifdef MACOS_X
+/*
+ =================
+ Sys_StripAppBundle
+ 
+ Discovers if passed dir is suffixed with the directory structure of a Mac OS X
+ .app bundle. If it is, the .app directory structure is stripped off the end and
+ the result is returned. If not, dir is returned untouched.
+ =================
+ */
+char *Sys_StripAppBundle( char *dir )
+{
+	static char cwd[MAX_OSPATH];
+	
+	Q_strncpyz(cwd, dir, sizeof(cwd));
+	if(strcmp(Sys_Basename(cwd), "MacOS"))
+		return dir;
+	Q_strncpyz(cwd, Sys_Dirname(cwd), sizeof(cwd));
+	if(strcmp(Sys_Basename(cwd), "Contents"))
+		return dir;
+	Q_strncpyz(cwd, Sys_Dirname(cwd), sizeof(cwd));
+	if(!strstr(Sys_Basename(cwd), ".app"))
+		return dir;
+	Q_strncpyz(cwd, Sys_Dirname(cwd), sizeof(cwd));
+	return cwd;
+}
+#endif
+
 #ifndef DEFAULT_BASEDIR
-//TODO app bundles
-//#	ifdef MACOS_X
-//#		define DEFAULT_BASEDIR Sys_StripAppBundle(Sys_BinaryPath())
-//#	else
+#	ifdef MACOS_X
+#		define DEFAULT_BASEDIR Sys_StripAppBundle(Sys_BinaryPath())
+#	else
 #		define DEFAULT_BASEDIR Sys_BinaryPath()
-//#	endif
+#	endif
 #endif
 
 int main ( int argc, char* argv[] )
@@ -390,11 +479,6 @@ int main ( int argc, char* argv[] )
 
 		Q_strcat( commandLine, sizeof( commandLine ), " " );
 	}
-
-#if 0
-	// if we find the CD, add a +set cddir xxx command line
-	Sys_ScanForCD();
-#endif
 
 	Com_Init (commandLine);
     

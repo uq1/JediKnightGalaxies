@@ -225,7 +225,7 @@ static sharedEntity_t *Q3_GetEntityByName( const char *name )
 	entlist_t::iterator		ei;
 	char					temp[1024];
 
-	if ( name == NULL || name[0] == NULL )
+	if ( name == NULL || name[0] == '\0' )
 		return NULL;
 
 	strncpy( (char *) temp, name, sizeof(temp) );
@@ -252,7 +252,7 @@ Q3_GetTime
 Get the current game time
 =============
 */
-static DWORD Q3_GetTime( void )
+static unsigned int Q3_GetTime( void )
 {
 	return svs.time;
 }
@@ -756,7 +756,7 @@ void CGCam_Roll( float	dest, float duration )
 
 int ICARUS_LinkEntity( int entID, CSequencer *sequencer, CTaskManager *taskManager );
 
-static DWORD Q3_GetTimeScale( void )
+static unsigned int Q3_GetTimeScale( void )
 {
 	return com_timescale->value;
 }

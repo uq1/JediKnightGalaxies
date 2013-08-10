@@ -26,7 +26,6 @@ This file is part of Jedi Academy.
 //#include "../qcommon/q_imath.h"
 #include "cm_terrainmap.h"
 #include "cm_draw.h"
-#include "../png/png.h"
 
 static CTerrainMap	*TerrainMap = 0;
 
@@ -127,13 +126,12 @@ void CTerrainMap::ApplyBackground(void)
 	byte	*outPos;
 	float	xRel, yRel, xInc, yInc;
 	byte	*backgroundImage;
-	int		backgroundWidth, backgroundHeight, backgroundDepth;
+	int		backgroundWidth, backgroundHeight;
 	int		pos;
 	int		format;
 
 	memset(mImage, 255, sizeof(mBufImage));
 //	R_LoadImage("textures\\kamchatka\\ice", &backgroundImage, &backgroundWidth, &backgroundHeight, &format);0
-	backgroundDepth = 4;
 
 	re.LoadImageJA("gfx\\menus\\rmg\\01_bg", &backgroundImage, &backgroundWidth, &backgroundHeight, &format);
 	if (backgroundImage)
@@ -321,7 +319,7 @@ void CTerrainMap::AddPlayer(vec3_t origin, vec3_t angles)
 	vec3_t p;
 	int x,y,i;
 	float facing;
-	POINT poly[4];
+	Point poly[4];
 
 	facing = angles[1];
 	

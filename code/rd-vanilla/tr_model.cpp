@@ -403,6 +403,8 @@ void RE_RegisterMedia_LevelLoadBegin(const char *psMapName, ForceReload_e eForce
 			//
 			RE_RegisterModels_DeleteAll();
 			break;
+		default:
+			break;
 	}
 
 	// at some stage I'll probably want to put some special logic here, like not incrementing the level number
@@ -769,9 +771,9 @@ qhandle_t RE_RegisterModel( const char *name )
 
 		qhandle_t q = RE_RegisterModel_Actual( name );
 
-if (stricmp(&name[strlen(name)-4],".gla")){
-	gbInsideRegisterModel = qfalse;		// GLA files recursively call this, so don't turn off half way. A reference count would be nice, but if any ERR_DROP ever occurs within the load then the refcount will be knackered from then on
-}
+	if (Q_stricmp(&name[strlen(name)-4],".gla")){
+		gbInsideRegisterModel = qfalse;		// GLA files recursively call this, so don't turn off half way. A reference count would be nice, but if any ERR_DROP ever occurs within the load then the refcount will be knackered from then on
+	}
 
 	return q;
 }
@@ -790,7 +792,7 @@ static qboolean R_LoadMD3 (model_t *mod, int lod, void *buffer, const char *mod_
 	int					version;
 	int					size;
 
-#ifndef _M_IX86
+#if 0 //#ifndef _M_IX86
 	md3Frame_t			*frame;
 	md3Triangle_t		*tri;
 	md3St_t				*st;
@@ -859,7 +861,7 @@ static qboolean R_LoadMD3 (model_t *mod, int lod, void *buffer, const char *mod_
 		return qtrue;	// All done. Stop, go no further, do not pass Go...
 	}
 
-#ifndef _M_IX86
+#if 0 //#ifndef _M_IX86
 	//
 	// optimisation, we don't bother doing this for standard intel case since our data's already in that format...
 	//
@@ -938,7 +940,7 @@ static qboolean R_LoadMD3 (model_t *mod, int lod, void *buffer, const char *mod_
         }
 
 
-#ifndef _M_IX86
+#if 0 //#ifndef _M_IX86
 //
 // optimisation, we don't bother doing this for standard intel case since our data's already in that format...
 //
@@ -1201,16 +1203,3 @@ void R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs ) {
 		return;
 	}
 }
-
-
-#ifdef _XBOX
-void R_ModelFree(void)
-{
-	if (CachedModels)
-	{
-		RE_RegisterModels_DeleteAll();
-		delete CachedModels;
-		CachedModels = NULL;
-	}
-}
-#endif

@@ -241,7 +241,9 @@ static void Shader_SkipRestOfLine ( const char **data ) {
 #endif
 
 
+#ifndef USE_NEW_SHADER_HASH
 static char *s_shaderText;
+#endif
 
 // the shader is parsed into these global variables, then copied into
 // dynamically allocated memory if it is valid.
@@ -266,8 +268,10 @@ typedef struct shaderText_s {   // 8 bytes + strlen(text)+1
 
 static shaderText_t *shaderTextHashTable[MAX_SHADERTEXT_HASH];
 
+#ifndef DEDICATED
 static int fileShaderCount;		// total .shader files found
 static int shaderCount;			// total shaders parsed
+#endif
 // !drakkar
 #else
 #define MAX_SHADERTEXT_HASH		2048
@@ -1093,7 +1097,7 @@ static void ParseSurfaceSprites( const char *_text, shaderStage_t *stage )
 	stage->ss->facing = SURFSPRITE_FACING_NORMAL;
 
 	// A vertical parameter that needs a default regardless
-	stage->ss->vertSkew;
+	stage->ss->vertSkew = 0.0f;
 
 	// These are effect parameters that need defaults nonetheless.
 	stage->ss->fxDuration = 1000;		// 1 second
@@ -2301,7 +2305,7 @@ void ParseMaterial( const char **text )
 // this table is also present in q3map
 
 typedef struct {
-	char	*name;
+	const char	*name;
 	int		clearSolid, surfaceFlags, contents;
 } infoParm_t;
 
@@ -2723,7 +2727,7 @@ static shader_t *GeneratePermanentShader( void ) {
 		return tr.defaultShader;
 	}
 
-	newShader = (struct shader_s *)ri.Hunk_Alloc( sizeof( shader_t ), h_low );
+	newShader = (struct shader_s *)ri->Hunk_Alloc( sizeof( shader_t ), h_low );
 
 	*newShader = shader;
 
@@ -3195,7 +3199,7 @@ static shader_t *FinishShader( void ) {
 	{
 		if (vertexLightmap) 
 		{
-//			ri.DPrintf( "WARNING: shader '%s' has VERTEX forced lightmap!\n", shader.name );
+//			ri->DPrintf( "WARNING: shader '%s' has VERTEX forced lightmap!\n", shader.name );
 		} 
 		else 
 		{
@@ -3420,7 +3424,7 @@ shader_t *R_FindShader( const char *name, const int *lightmapIndex, const byte *
 	else if ( lightmapIndex[0] < LIGHTMAP_2D )
 	{
 		// negative lightmap indexes cause stray pointers (think tr.lightmaps[lightmapIndex])
-		ri.Printf( PRINT_WARNING, "WARNING: shader '%s' has invalid lightmap index of %d\n", name, lightmapIndex[0] );
+		ri->Printf( PRINT_WARNING, "WARNING: shader '%s' has invalid lightmap index of %d\n", name, lightmapIndex[0] );
 		lightmapIndex = lightmapsVertex;
 	}
 
@@ -3471,7 +3475,6 @@ shader_t *R_FindShader( const char *name, const int *lightmapIndex, const byte *
 	return FinishShader();
 }
 
-static void ScanAndLoadShaderFiles( const char *path );
 shader_t *R_FindServerShader( const char *name, const int *lightmapIndex, const byte *styles, qboolean mipRawImage ) 
 {
 	char		strippedName[MAX_QPATH];
@@ -3747,7 +3750,7 @@ void R_InitShaders(qboolean server)
 	if (!server)
 	{
 		Shader_BeginParseSession( "R_InitShaders" );
-		time = ri.Milliseconds()*ri.Cvar_VariableValue( "timescale" );
+		time = ri->Milliseconds()*ri->Cvar_VariableValue( "timescale" );
 		mem = Hunk_MemoryRemaining();
 		fileShaderCount = 0;
 		shaderCount = 0;
@@ -3766,7 +3769,7 @@ void R_InitShaders(qboolean server)
 // drakkar - print profiling info
 	if (!server)
 	{
-		time = ri.Milliseconds()*ri.Cvar_VariableValue( "timescale" ) - time;
+		time = ri->Milliseconds()*ri->Cvar_VariableValue( "timescale" ) - time;
 		mem = mem - Hunk_MemoryRemaining();
 		Com_Printf( "-------------------------\n" );
 		Com_Printf( "%d shader files read \n", fileShaderCount );

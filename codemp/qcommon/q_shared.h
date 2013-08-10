@@ -29,6 +29,8 @@
 #define HOMEPATH_NAME_WIN "JKGalaxies"
 #define HOMEPATH_NAME_MACOSX HOMEPATH_NAME_WIN
 
+#define	BASEGAME "base"
+
 //NOTENOTE: Only change this to re-point ICARUS to a new script directory
 #define Q3_SCRIPT_DIR	"scripts"
 
@@ -51,14 +53,13 @@
 #define	VALIDATEB( a )	if ( a == NULL ) {	assert(0);	return qfalse;	}
 #define VALIDATEP( a )	if ( a == NULL ) {	assert(0);	return NULL;	}
 
-#define VALIDSTRING( a )	( ( a != 0 ) && ( a[0] != 0 ) )
+#define VALIDSTRING( a )	( ( a != 0 ) && ( a[0] != '\0' ) )
 #define VALIDENT( e )		( ( e != 0 ) && ( (e)->inuse ) )
 
 //JAC: Added
 #define ARRAY_LEN( x ) ( sizeof( x ) / sizeof( *(x) ) )
 #define STRING( a ) #a
 #define XSTRING( a ) STRING( a )
-
 #ifndef ENGINE
 // The engine has different defines for these, so we don't want to screw up some of the stuff in qcommon
 #define BUMP( x, y ) if( x < y ) x = y
@@ -91,6 +92,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <float.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -99,6 +101,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <errno.h>
+#include <stddef.h>
 
 //Ignore __attribute__ on non-gcc platforms
 #if !defined(__GNUC__) && !defined(__attribute__)
@@ -174,7 +177,7 @@ float FloatSwap( const float *f );
 	#define PATH_SEP '\\'
 
 	#if defined(__WIN64__)
-		#define ARCH_STRING "x64"
+		#define ARCH_STRING "x84_64"
 	#elif defined(_M_ALPHA)
 		#define ARCH_STRING "AXP"
 	#endif
@@ -522,6 +525,13 @@ typedef int		sfxHandle_t;
 typedef int		fileHandle_t;
 typedef int		clipHandle_t;
 
+#define NULL_HANDLE		((qhandle_t) 0)
+#define NULL_SOUND		((sfxHandle_t) 0)
+#define NULL_FX				((fxHandle_t) 0)
+#define NULL_SFX			((sfxHandle_t) 0)
+#define NULL_FILE			((fileHandle_t) 0)
+#define NULL_CLIP			((clipHandle_t) 0)
+
 //Raz: can't think of a better place to put this atm,
 //		should probably be in the platform specific definitions
 #if defined (_MSC_VER) && (_MSC_VER >= 1600)
@@ -574,6 +584,7 @@ typedef int		clipHandle_t;
 #define	MAX_QINT			0x7fffffff
 #define	MIN_QINT			(-MAX_QINT-1)
 
+#define INT_ID( a, b, c, d ) (uint32_t)((((d) & 0xff) << 24) | (((c) & 0xff) << 16) | (((b) & 0xff) << 8) | ((a) & 0xff))
 
 // angle indexes
 #define	PITCH				0		// up / down
@@ -1396,7 +1407,7 @@ extern	vec4_t		colorDkBlue;
 // you MUST have the last bit on here about colour strings being less than 7 or taiwanese strings register as colour!!!!
 #define Q_IsColorString(p)	( p && *(p) == Q_COLOR_ESCAPE && *((p)+1) && *((p)+1) != Q_COLOR_ESCAPE && *((p)+1) <= '9' && *((p)+1) >= '0' )
 // Correct version of the above for Q_StripColor
-#define Q_IsColorStringExt(p)	((p) && *(p) == Q_COLOR_ESCAPE && *((p)+1) && isdigit(*((p)+1))) // ^[0-9]
+#define Q_IsColorStringExt(p)	((p) && *(p) == Q_COLOR_ESCAPE && *((p)+1) && *((p)+1) >= '0' && *((p)+1) <= '9') // ^[0-9]
 
 
 #define COLOR_BLACK		'0'
@@ -1609,9 +1620,10 @@ void ClearBounds( vec3_t mins, vec3_t maxs );
 vec_t DistanceHorizontal( const vec3_t p1, const vec3_t p2 );
 vec_t DistanceHorizontalSquared( const vec3_t p1, const vec3_t p2 );
 void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs );
-void VectorRotate( vec3_t in, vec3_t matrix[3], vec3_t out );
+void VectorRotate( const vec3_t in, vec3_t matrix[3], vec3_t out );
 int Q_log2(int val);
 
+qboolean Q_isnan(float f);
 float Q_acos(float c);
 float Q_asin(float c);
 
@@ -1732,6 +1744,7 @@ int Com_HexStrToInt( const char *str );
 
 int	QDECL Com_sprintf (char *dest, int size, const char *fmt, ...);
 
+void Com_RandomBytes( byte *string, int len );
 
 // mode parm for FS_FOpenFile
 typedef enum {
@@ -3009,15 +3022,6 @@ typedef enum {
 	FMV_ID_WAIT
 } e_status;
 
-typedef enum _flag_status {
-	FLAG_ATBASE = 0,
-	FLAG_TAKEN,			// CTF
-	FLAG_TAKEN_RED,		// One Flag CTF
-	FLAG_TAKEN_BLUE,	// One Flag CTF
-	FLAG_DROPPED
-} flagStatus_t;
-
-
 #define	MAX_GLOBAL_SERVERS			2048
 #define	MAX_OTHER_SERVERS			128
 #define MAX_PINGREQUESTS			32
@@ -3069,7 +3073,7 @@ Ghoul2 Insert End
 typedef enum {
 	#include "qcommon/tags.h"
 } memtag;
-typedef char memtag_t;
+typedef unsigned memtag_t;
 
 //rww - conveniently toggle "gore" code, for model decals and stuff.
 #define _G2_GORE
@@ -3412,7 +3416,7 @@ String ID Tables
 #define ENUM2STRING(arg)   { #arg,arg }
 typedef struct stringID_table_s
 {
-	char	*name;
+	const char	*name;
 	int		id;
 } stringID_table_t;
 

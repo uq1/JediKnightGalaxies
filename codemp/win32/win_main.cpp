@@ -9,14 +9,13 @@
 #include <float.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <direct.h>
 #include <io.h>
 #include <conio.h>
 #include "qcommon/stringed_ingame.h"
 
 #define MEM_THRESHOLD 128*1024*1024
-
-//static char		sys_cmdline[MAX_STRING_CHARS];
 
 /* win_shared.cpp */
 void Sys_SetBinaryPath(const char *path);
@@ -163,6 +162,27 @@ Sys_DefaultCDPath
 */
 char *Sys_DefaultCDPath( void ) {
 	return "";
+}
+
+/* Resolves path names and determines if they are the same */
+/* For use with full OS paths not quake paths */
+/* Returns true if resulting paths are valid and the same, otherwise false */
+bool Sys_PathCmp( const char *path1, const char *path2 ) {
+	char *r1, *r2;
+
+	r1 = _fullpath(NULL, path1, MAX_OSPATH);
+	r2 = _fullpath(NULL, path2, MAX_OSPATH);
+
+	if(r1 && r2 && !Q_stricmp(r1, r2))
+	{
+		free(r1);
+		free(r2);
+		return true;
+	}
+
+	free(r1);
+	free(r2);
+	return false;
 }
 
 /*
@@ -537,7 +557,7 @@ void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(in
 	char	*fn;
 	char	filename[MAX_QPATH];
 
-	Com_sprintf( filename, sizeof( filename ), "%sx86.dll", name );
+	Com_sprintf( filename, sizeof( filename ), "%s" ARCH_STRING DLL_EXT, name );
 
 	if (!Sys_UnpackDLL(filename))
 	{
@@ -1075,7 +1095,7 @@ void QuickMemTest(void)
 		{
 			// err...
 			//
-			LPCSTR psContinue = re.Language_IsAsian() ? 
+			LPCSTR psContinue = re->Language_IsAsian() ? 
 								"Your machine failed to allocate %dMB in a memory test, which may mean you'll have problems running this game all the way through.\n\nContinue anyway?"
 								: 
 								SE_GetString("CON_TEXT_FAILED_MEMTEST");
@@ -1084,7 +1104,7 @@ void QuickMemTest(void)
 			#define GetYesNo(psQuery)	(!!(MessageBox(NULL,psQuery,"Query",MB_YESNO|MB_ICONWARNING|MB_TASKMODAL)==IDYES))
 			if (!GetYesNo(va(psContinue,iMemTestMegs)))
 			{
-				LPCSTR psNoMem = re.Language_IsAsian() ?
+				LPCSTR psNoMem = re->Language_IsAsian() ?
 								"Insufficient memory to run this game!\n"
 								:
 								SE_GetString("CON_TEXT_INSUFFICIENT_MEMORY");
@@ -1184,11 +1204,7 @@ static int ParseCommandLine(char *cmdline, char **argv)
 //int	totalMsec, countMsec;
 
 #ifndef DEFAULT_BASEDIR
-#	ifdef MACOS_X
-#		define DEFAULT_BASEDIR Sys_StripAppBundle(Sys_BinaryPath())
-#	else
-#		define DEFAULT_BASEDIR Sys_BinaryPath()
-#	endif
+#	define DEFAULT_BASEDIR Sys_BinaryPath()
 #endif
 
 int main( int argc, char **argv )

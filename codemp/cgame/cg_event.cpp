@@ -3162,9 +3162,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_VOICECMD_SOUND");
 		if (es->groundEntityNum < MAX_CLIENTS && es->groundEntityNum >= 0)
 		{
+			int clientNum = es->groundEntityNum;
 			sfxHandle_t sfx = cgs.gameSounds[ es->eventParm ];
-			clientInfo_t *ci = &cgs.clientinfo[es->groundEntityNum];
-			centity_t *vChatEnt = &cg_entities[es->groundEntityNum];
+			clientInfo_t *ci = &cgs.clientinfo[clientNum];
+			centity_t *vChatEnt = &cg_entities[clientNum];
 			char descr[1024] = {0};
 
 			Q_strncpyz(descr, CG_GetStringForVoiceSound(CG_ConfigString( CS_SOUNDS + es->eventParm )), sizeof( descr ) );
@@ -3172,12 +3173,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			if (!sfx)
 			{
 				s = CG_ConfigString( CS_SOUNDS + es->eventParm );
-				sfx = CG_CustomSound( es->groundEntityNum, s );
+				sfx = CG_CustomSound( clientNum, s );
 			}
 
 			if (sfx)
 			{
-				if (es->groundEntityNum != cg.predictedPlayerState.clientNum)
+				if (clientNum != cg.predictedPlayerState.clientNum)
 				{ //play on the head as well to simulate hearing in radio and in world
 					if (ci->team == cg.predictedPlayerState.persistant[PERS_TEAM])
 					{ //don't hear it if this person is on the other team, but they can still
@@ -3197,7 +3198,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				}
 
 				//and play in world for everyone
-				trap_S_StartSound (NULL, es->groundEntityNum, CHAN_VOICE, sfx);
+				trap_S_StartSound (NULL, clientNum, CHAN_VOICE, sfx);
 				vChatEnt->vChatTime = cg.time + 1000;
 			}
 		}

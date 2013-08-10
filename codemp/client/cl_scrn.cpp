@@ -26,8 +26,8 @@ void SCR_DrawNamedPic( float x, float y, float width, float height, const char *
 
 	assert( width != 0 );
 
-	hShader = re.RegisterShader( picname );
-	re.DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
+	hShader = re->RegisterShader( picname );
+	re->DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
 }
 
 
@@ -39,11 +39,11 @@ Coordinates are 640*480 virtual values
 =================
 */
 void SCR_FillRect( float x, float y, float width, float height, const float *color ) {
-	re.SetColor( color );
+	re->SetColor( color );
 
-	re.DrawStretchPic( x, y, width, height, 0, 0, 0, 0, cls.whiteShader );
+	re->DrawStretchPic( x, y, width, height, 0, 0, 0, 0, cls.whiteShader );
 
-	re.SetColor( NULL );
+	re->SetColor( NULL );
 }
 
 
@@ -55,7 +55,7 @@ Coordinates are 640*480 virtual values
 =================
 */
 void SCR_DrawPic( float x, float y, float width, float height, qhandle_t hShader ) {
-	re.DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
+	re->DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
 }
 
 
@@ -94,7 +94,7 @@ static void SCR_DrawChar( int x, int y, float size, int ch ) {
 	size = 0.03125;
 	size2 = 0.0625;
 
-	re.DrawStretchPic( ax, ay, aw, ah,
+	re->DrawStretchPic( ax, ay, aw, ah,
 					   fcol, frow, 
 					   fcol + size, frow + size2, 
 					   cls.charSetShader );
@@ -134,7 +134,7 @@ void SCR_DrawSmallChar( int x, int y, int ch ) {
 #endif
 	size2 = 0.0625;
 
-	re.DrawStretchPic( x * con.xadjust, y * con.yadjust, 
+	re->DrawStretchPic( x * con.xadjust, y * con.yadjust, 
 						SMALLCHAR_WIDTH * con.xadjust, SMALLCHAR_HEIGHT * con.yadjust, 
 					   fcol, frow, 
 					   fcol + size, frow + size2, 
@@ -160,7 +160,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	// draw the drop shadow
 	color[0] = color[1] = color[2] = 0;
 	color[3] = setColor[3];
-	re.SetColor( color );
+	re->SetColor( color );
 	s = string;
 	xx = x;
 	while ( *s ) {
@@ -177,13 +177,13 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	// draw the colored text
 	s = string;
 	xx = x;
-	re.SetColor( setColor );
+	re->SetColor( setColor );
 	while ( *s ) {
 		if ( Q_IsColorString( s ) ) {
 			if ( !forceColor ) {
 				Com_Memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ) );
 				color[3] = setColor[3];
-				re.SetColor( color );
+				re->SetColor( color );
 			}
 			if ( !noColorEscape ) {
 				s += 2;
@@ -194,7 +194,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 		xx += size;
 		s++;
 	}
-	re.SetColor( NULL );
+	re->SetColor( NULL );
 }
 
 
@@ -229,13 +229,13 @@ void SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, 
 	// draw the colored text
 	s = string;
 	xx = x;
-	re.SetColor( setColor );
+	re->SetColor( setColor );
 	while ( *s ) {
 		if ( Q_IsColorString( s ) ) {
 			if ( !forceColor ) {
 				Com_Memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ) );
 				color[3] = setColor[3];
-				re.SetColor( color );
+				re->SetColor( color );
 			}
 			if ( !noColorEscape ) {
 				s += 2;
@@ -246,7 +246,7 @@ void SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, 
 		xx += SMALLCHAR_WIDTH;
 		s++;
 	}
-	re.SetColor( NULL );
+	re->SetColor( NULL );
 }
 
 
@@ -341,7 +341,6 @@ void SCR_DrawDebugGraph (void)
 {
 	int		a, x, y, w, i, h;
 	float	v;
-	int		color;
 
 	//
 	// draw the graph
@@ -349,22 +348,21 @@ void SCR_DrawDebugGraph (void)
 	w = 640;
 	x = 0;
 	y = 480;
-	re.SetColor( g_color_table[0] );
-	re.DrawStretchPic(x, y - cl_graphheight->integer, 
+	re->SetColor( g_color_table[0] );
+	re->DrawStretchPic(x, y - cl_graphheight->integer, 
 		w, cl_graphheight->integer, 0, 0, 0, 0, cls.whiteShader );
-	re.SetColor( NULL );
+	re->SetColor( NULL );
 
 	for (a=0 ; a<w ; a++)
 	{
 		i = (current-1-a+1024) & 1023;
 		v = values[i].value;
-		color = values[i].color;
 		v = v * cl_graphscale->integer + cl_graphshift->integer;
 		
 		if (v < 0)
 			v += cl_graphheight->integer * (1+(int)(-v / cl_graphheight->integer));
 		h = (int)v % cl_graphheight->integer;
-		re.DrawStretchPic( x+w-1-a, y - h, 1, h, 0, 0, 0, 0, cls.whiteShader );
+		re->DrawStretchPic( x+w-1-a, y - h, 1, h, 0, 0, 0, 0, cls.whiteShader );
 	}
 }
 
@@ -396,7 +394,7 @@ This will be called twice if rendering in stereo mode
 ==================
 */
 void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
-	re.BeginFrame( stereoFrame );
+	re->BeginFrame( stereoFrame );
 
 	qboolean uiFullscreen = (qboolean)(uivm && VM_Call( uivm, UI_IS_FULLSCREEN ));
 
@@ -404,9 +402,9 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	// unless they are displaying game renderings
 	if ( uiFullscreen || (cls.state != CA_ACTIVE && cls.state != CA_CINEMATIC) ) {
 		if ( cls.glconfig.vidWidth * 480 > cls.glconfig.vidHeight * 640 ) {
-			re.SetColor( g_color_table[0] );
-			re.DrawStretchPic( 0, 0, cls.glconfig.vidWidth, cls.glconfig.vidHeight, 0, 0, 0, 0, cls.whiteShader );
-			re.SetColor( NULL );
+			re->SetColor( g_color_table[0] );
+			re->DrawStretchPic( 0, 0, cls.glconfig.vidWidth, cls.glconfig.vidHeight, 0, 0, 0, 0, cls.whiteShader );
+			re->SetColor( NULL );
 		}
 	}
 
@@ -506,129 +504,11 @@ void SCR_UpdateScreen( void ) {
 		}
 
 		if ( com_speeds->integer ) {
-			re.EndFrame( &time_frontend, &time_backend );
+			re->EndFrame( &time_frontend, &time_backend );
 		} else {
-			re.EndFrame( NULL, NULL );
+			re->EndFrame( NULL, NULL );
 		}
 	}
 
 	recursive = 0;
-}
-
-#define MAX_SCR_LINES 10
-
-static float		scr_centertime_off;
-int					scr_center_y;
-//static string		scr_font;
-static char			scr_centerstring[1024];
-static int			scr_center_lines;
-static int			scr_center_widths[MAX_SCR_LINES];
-
-cvar_t		*scr_centertime;
-
-void SCR_CenterPrint (char *str)//, PalIdx_t colour)
-{
-	char	*s, *last, *start, *write_pos, *save_pos;
-	int		num_chars;
-	int		num_lines;
-	int		width;
-	bool	done = false;
-	bool	spaced;
-
-	if (!str)
-	{
-		scr_centertime_off = 0;
-		return;
-	}
-
-//	scr_font = string("medium");
-
-	// RWL - commented out
-//	width = viddef.width / 8;	// rjr hardcoded yuckiness
-	width = 640 / 8;	// rjr hardcoded yuckiness
-	width -= 4;
-
-	// RWL - commented out
-/*
-	if (cl.frame.playerstate.remote_type != REMOTE_TYPE_LETTERBOX)
-	{
-		width -= 30;
-	}
-*/
-
-	scr_centertime_off = scr_centertime->value;
-
-	Com_Printf("\n");
-
-	num_lines = 0;
-	write_pos = scr_centerstring;
-	scr_center_lines = 0;
-	spaced = false;
-	for(s = start = str, last=NULL, num_chars = 0; !done ; s++)
-	{
-		num_chars++;
-		if ((*s) == ' ')
-		{
-			spaced = true;
-			last = s;
-			scr_centertime_off += 0.2;//give them an extra 0.05 second for each character
-		}
-
-		if ((*s) == '\n' || (*s) == 0)
-		{
-			last = s;
-			num_chars = width;
-			spaced = true;
-		}
-
-		if (num_chars >= width)
-		{
-			scr_centertime_off += 0.8;//give them an extra half second for each newline
-			if (!last)
-			{
-				last = s;
-			}
-			if (!spaced)
-			{
-				last++;
-			}
-
-			save_pos = write_pos;
-			strncpy(write_pos, start, last-start);
-			write_pos += last-start;
-			*write_pos = 0;
-			write_pos++;
-
-			Com_Printf ("%s\n", save_pos);
-
-			// RWL - commented out
-//			scr_center_widths[scr_center_lines] = re.StrlenFont(save_pos, scr_font);;
-			scr_center_widths[scr_center_lines] = 640;
-
-
-			scr_center_lines++;
-
-			if ((*s) == NULL || scr_center_lines >= MAX_SCR_LINES)
-			{
-				done = true;
-			}
-			else
-			{
-				s = last;
-				if (spaced)
-				{
-					last++;
-				}
-				start = last;
-				last = NULL;
-				num_chars = 0;
-				spaced = false;
-			}
-			continue;
-		}
-	}
-
-	// echo it to the console
-	Com_Printf("\n\n");
-	Con_ClearNotify ();
 }

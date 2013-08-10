@@ -361,7 +361,7 @@ NPC_Pain
 void GLua_NPCEV_OnPain(gentity_t *self, gentity_t *attacker, int damage);
 void NPC_Pain(gentity_t *self, gentity_t *attacker, int damage)
 {
-	team_t otherTeam = TEAM_FREE;
+	npcteam_t otherTeam = NPCTEAM_FREE;
 	int		voiceEvent = -1;
 	gentity_t *other = attacker;
 	int mod = gPainMOD;

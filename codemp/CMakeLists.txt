@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.8)
 
 # Make sure the user is not executing this script directly
 if(NOT InOpenJK)
@@ -34,7 +34,7 @@ if(BuildMPEngine OR BuildMPDed)
 	#    Botlib
 	# the files could arguably just be put into the engine and dedicated projects without having a library for it.
 	set(MPBotlibDefines ${SharedDefines} "BOTLIB")
-	set(MPBotlibIncludeDirectories "${MPDir}")
+	set(MPBotlibIncludeDirectories ${MPDir})
 	set(MPBotlibHeaderFiles
 		"${MPDir}/botlib/aasfile.h"
 		"${MPDir}/botlib/be_aas.h"
@@ -115,6 +115,7 @@ if(BuildMPEngine OR BuildMPDed)
 	add_library(${MPBotLib} STATIC ${MPBotlibHeaderFiles} ${MPBotlibSourceFiles})
 	set_target_properties(${MPBotLib} PROPERTIES COMPILE_DEFINITIONS "${MPBotlibDefines}")
 	set_target_properties(${MPBotLib} PROPERTIES INCLUDE_DIRECTORIES "${MPBotlibIncludeDirectories}")
+	set_target_properties(${MPBotLib} PROPERTIES PROJECT_LABEL "Bot Library")
 	
 	#    Common files/libraries/defines of both Engine and Dedicated Server
 	
@@ -123,19 +124,17 @@ if(BuildMPEngine OR BuildMPDed)
 	# Platform-specific libraries
 	if(WIN32)
 		set(MPEngineAndDedLibraries ${MPEngineAndDedLibraries} "winmm" "wsock32")
-	else(WIN32)
-		message("You might need to add some libraries to codemp/CMakeLists.txt or you could get linker errors on non-Windows-OSs.")
 	endif(WIN32)
 	# Include directories
-	set(MPEngineAndDedIncludeDirectories ${MPDir}) # codemp folder, since includes are not always relative in the files
+	set(MPEngineAndDedIncludeDirectories ${MPDir} ${OpenJKLibDir}) # codemp folder, since includes are not always relative in the files
 	
 	if(UseInternalZlib)
-		set(MPEngineAndDedIncludeDirectories ${MPEngineAndDedIncludeDirectories} "${MPDir}/zlib")
 		# OpenAL32.lib is included for windows
-		find_library(ZlibLibrary NAMES zlib PATHS "${MPDir}/libs/win32")
+		find_library(ZlibLibrary NAMES zlib PATHS ${OpenJKLibDir})
 		if(NOT ZlibLibrary)
-			message(FATAL_ERROR "UseInternalOpenAL set, but libs/OpenAL32 not found!")
+			message(FATAL_ERROR "UseInternalZlib enabled, but lib/zlib.lib not found!")
 		endif(NOT ZlibLibrary)
+		set(MPEngineAndDedIncludeDirectories ${MPEngineAndDedIncludeDirectories} "${OpenJKLibDir}/zlib")
 		set(MPEngineAndDedLibraries ${MPEngineAndDedLibraries} ${ZlibLibrary})
 	else(UseInternalZlib)
 		find_package(ZLIB REQUIRED)
@@ -143,7 +142,7 @@ if(BuildMPEngine OR BuildMPDed)
 		set(MPEngineAndDedLibraries ${MPEngineAndDedLibraries} ${ZLIB_LIBRARY})
 	endif(UseInternalZlib)
 
-	file(GLOB_RECURSE J_SRC "${MPDir}/jpeg-8c/*.c" "${MPDir}/jpeg-8c/*.h")
+	file(GLOB_RECURSE J_SRC "${OpenJKLibDir}/jpeg-8c/*.c" "${OpenJKLibDir}/jpeg-8c/*.h")
 	source_group("jpeg-8c" FILES ${J_SRC})
 	
 	set(MPEngineAndDedCgameFiles
@@ -203,6 +202,7 @@ if(BuildMPEngine OR BuildMPDed)
 		"${MPDir}/qcommon/GenericParser2.h"
 		"${MPDir}/qcommon/huffman.cpp"
 		"${MPDir}/qcommon/md4.cpp"
+		"${MPDir}/qcommon/md5.cpp"
 		"${MPDir}/qcommon/MiniHeap.h"
 		"${MPDir}/qcommon/msg.cpp"
 		"${MPDir}/qcommon/matcomp.h"
@@ -328,8 +328,8 @@ if(BuildMPEngine OR BuildMPDed)
 	set(MPEngineAndDedMinizipFiles
 		"${MPDir}/qcommon/unzip.cpp"
 		"${MPDir}/qcommon/unzip.h"
-		"${MPDir}/zlib/ioapi.c"
-		"${MPDir}/zlib/ioapi.h"
+		"${OpenJKLibDir}/zlib/ioapi.c"
+		"${OpenJKLibDir}/zlib/ioapi.h"
 		)
 	source_group("minizip" FILES ${MPEngineAndDedMinizipFiles})
 	set(MPEngineAndDedFiles ${MPEngineAndDedFiles} ${MPEngineAndDedMinizipFiles})
@@ -374,9 +374,9 @@ if(BuildMPEngine)
 		set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} "${MPDir}/client/OpenAL")
 		# There's a libs/OpenAL32.lib
 		# (mrw) TODO Is this actually required on windows? It is loaded at runtime, should not be linked?
-		find_library(OpenALLibrary NAMES OpenAL32 PATHS "${MPDir}/libs/win32")
+		find_library(OpenALLibrary NAMES OpenAL32 PATHS ${OpenJKDir})
 		if(NOT OpenALLibrary)
-			message(FATAL_ERROR "UseInternalOpenAL set, but codemp/libs/win32/OpenAL32 not found!")
+			message(FATAL_ERROR "UseInternalOpenAL enabled, but lib/OpenAL32.lib not found!")
 		endif(NOT OpenALLibrary)
 		set(MPEngineLibraries ${MPEngineLibraries} ${OpenALLibrary})
 	else(UseInternalOpenAL)
@@ -404,7 +404,7 @@ if(BuildMPEngine)
 	#    Source Files
 	
 	# TODO: Allow for use of external library
-	file(GLOB_RECURSE MPEngineJpegFiles "${MPDir}/jpeg-8c/*.c" "${MPDir}/jpeg-8c/*.h")
+	file(GLOB_RECURSE MPEngineJpegFiles "${OpenJKLibDir}/jpeg-8c/*.c" "${OpenJKLibDir}/jpeg-8c/*.h")
 	source_group("jpeg-8c" FILES ${MPEngineJpegFiles})
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineJpegFiles})
 	
@@ -454,7 +454,6 @@ if(BuildMPEngine)
 		"${MPDir}/qcommon/hstring.cpp"
 		"${MPDir}/qcommon/hstring.h"
 		"${MPDir}/qcommon/INetProfile.h"
-		"${MPDir}/qcommon/platform.h"
 		)
 	source_group("common" FILES ${MPEngineCommonFiles})
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineCommonFiles})
@@ -540,17 +539,34 @@ if(BuildMPEngine)
 
 	# todo: windows resources
 
+	if(MakeApplicationBundles)
+		set(MACOSX_BUNDLE_ICON_FILE OpenJK.icns)
+		set_source_files_properties(${MPDir}/macosx/OpenJK.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+		set(MPEngineFiles ${MPEngineFiles} ${MPDir}/macosx/OpenJK.icns)
+	endif(MakeApplicationBundles)
+
 	if(WIN32)
 		add_executable(${MPEngine} WIN32 ${MPEngineFiles})
 	else(WIN32)
-		add_executable(${MPEngine} ${MPEngineFiles})
+		if(MakeApplicationBundles)
+			add_executable(${MPEngine} MACOSX_BUNDLE ${MPEngineFiles})
+		else(MakeApplicationBundles)
+			add_executable(${MPEngine} ${MPEngineFiles})
+		endif(MakeApplicationBundles)
 	endif(WIN32)
-    install(TARGETS ${MPEngine} RUNTIME DESTINATION ".")
+
+	if(MakeApplicationBundles)
+		install(TARGETS ${MPEngine} BUNDLE DESTINATION ".")
+	else(MakeApplicationBundles)
+		install(TARGETS ${MPEngine} RUNTIME DESTINATION ".")
+	endif(MakeApplicationBundles)
+
 	set_target_properties(${MPEngine} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPEngineDefines};${ReleaseDefines}")
 	set_target_properties(${MPEngine} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPEngineDefines};${ReleaseDefines}")
 	set_target_properties(${MPEngine} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPEngineDefines};${ReleaseDefines}")
 	set_target_properties(${MPEngine} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPEngineDefines};${DebugDefines}")
 	set_target_properties(${MPEngine} PROPERTIES INCLUDE_DIRECTORIES "${MPEngineIncludeDirectories}")
+	set_target_properties(${MPEngine} PROPERTIES PROJECT_LABEL "MP Client")
 	target_link_libraries(${MPEngine} ${MPEngineLibraries})
 endif(BuildMPEngine)
 
@@ -564,8 +580,11 @@ if(BuildMPDed)
 
 	# Dedicated renderer is compiled with the server.
 	set(MPDedicatedRendererFiles
-		"${MPDir}/renderer/mdx_format.h"
-		"${MPDir}/renderer/tr_public.h"
+		"${MPDir}/ghoul2/G2_gore.cpp"
+		"${MPDir}/rd-common/mdx_format.h"
+		"${MPDir}/rd-common/tr_image_manipulation.cpp"
+		"${MPDir}/rd-common/tr_image_png.cpp"
+		"${MPDir}/rd-common/tr_public.h"
 		"${MPDir}/rd-dedicated/tr_local.h"
 		"${MPDir}/rd-dedicated/G2_API.cpp"
 		"${MPDir}/rd-dedicated/G2_bolts.cpp"
@@ -574,38 +593,40 @@ if(BuildMPDed)
 		"${MPDir}/rd-dedicated/G2_surfaces.cpp"
 		"${MPDir}/rd-dedicated/tr_backend.cpp"
 		"${MPDir}/rd-dedicated/tr_ghoul2.cpp"
-		"${MPDir}/rd-dedicated/tr_image.cpp"
 		"${MPDir}/rd-dedicated/tr_init.cpp"
 		"${MPDir}/rd-dedicated/tr_main.cpp"
 		"${MPDir}/rd-dedicated/tr_mesh.cpp"
 		"${MPDir}/rd-dedicated/tr_model.cpp"
-		"${MPDir}/rd-dedicated/tr_shader.cpp")
+		"${MPDir}/rd-dedicated/tr_shader.cpp"
+		"${MPDir}/rd-dedicated/tr_skin.cpp")
 	source_group("renderer" FILES ${MPDedicatedRendererFiles})
 	set(MPDedFiles ${MPDedFiles} ${MPDedicatedRendererFiles})
 
-	set(MPDedicatedPngFiles
-		"${MPDir}/png/rpng.cpp")
-	source_group("png" FILES ${MPDedicatedPngFiles})
-	set(MPDedFiles ${MPDedFiles} ${MPDedicatedPngFiles})
-
-	set(MPDedLibPngFiles
-		"${MPDir}/libpng/png.c"
-		"${MPDir}/libpng/pngerror.c"
-		"${MPDir}/libpng/pngget.c"
-		"${MPDir}/libpng/pngmem.c"
-		"${MPDir}/libpng/pngpread.c"
-		"${MPDir}/libpng/pngread.c"
-		"${MPDir}/libpng/pngrio.c"
-		"${MPDir}/libpng/pngrtran.c"
-		"${MPDir}/libpng/pngrutil.c"
-		"${MPDir}/libpng/pngset.c"
-		"${MPDir}/libpng/pngtrans.c"
-		"${MPDir}/libpng/pngwio.c"
-		"${MPDir}/libpng/pngwrite.c"
-		"${MPDir}/libpng/pngwtran.c"
-		"${MPDir}/libpng/pngwutil.c")
-	source_group("libpng" FILES ${MPDedLibPngFiles})
-	set(MPDedFiles ${MPDedFiles} ${MPDedLibPngFiles})
+	if(UseInternalPNG)
+		set(MPDedLibPngFiles
+			"${OpenJKLibDir}/libpng/png.c"
+			"${OpenJKLibDir}/libpng/pngerror.c"
+			"${OpenJKLibDir}/libpng/pngget.c"
+			"${OpenJKLibDir}/libpng/pngmem.c"
+			"${OpenJKLibDir}/libpng/pngpread.c"
+			"${OpenJKLibDir}/libpng/pngread.c"
+			"${OpenJKLibDir}/libpng/pngrio.c"
+			"${OpenJKLibDir}/libpng/pngrtran.c"
+			"${OpenJKLibDir}/libpng/pngrutil.c"
+			"${OpenJKLibDir}/libpng/pngset.c"
+			"${OpenJKLibDir}/libpng/pngtrans.c"
+			"${OpenJKLibDir}/libpng/pngwio.c"
+			"${OpenJKLibDir}/libpng/pngwrite.c"
+			"${OpenJKLibDir}/libpng/pngwtran.c"
+			"${OpenJKLibDir}/libpng/pngwutil.c")
+		source_group("libpng" FILES ${MPDedLibPngFiles})
+		set(MPDedIncludeDirectories ${MPDedIncludeDirectories} "${OpenJKLibDir}/libpng")
+		set(MPDedFiles ${MPDedFiles} ${MPDedLibPngFiles})
+	else(UseInternalPNG)
+		find_package(PNG REQUIRED)
+		set(MPDedIncludeDirectories ${MPDedIncludeDirectories} ${PNG_INCLUDE_DIR})
+		set(MPDedLibraries ${MPDedLibraries} ${PNG_LIBRARIES})
+	endif(UseInternalPNG)
 	
 	set(MPDedNullFiles
 		"${MPDir}/null/null_client.cpp"
@@ -617,7 +638,7 @@ if(BuildMPDed)
 	set(MPDedFiles ${MPDedFiles} ${MPDedNullFiles})
 	if(WIN32)
 		set(MPDedWin32Files
-			"${MPDir}/null/win_main.cpp"
+			"${MPDir}/win32/win_main_ded.cpp"
 			"${MPDir}/win32/openjkded.rc"
 			)
 		source_group("win32" FILES ${MPDedWin32Files})
@@ -641,5 +662,6 @@ if(BuildMPDed)
 	set_target_properties(${MPDed} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPDedDefines};${ReleaseDefines}")
 	set_target_properties(${MPDed} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPDedDefines};${DebugDefines}")
 	set_target_properties(${MPDed} PROPERTIES INCLUDE_DIRECTORIES "${MPDedIncludeDirectories}")
+	set_target_properties(${MPDed} PROPERTIES PROJECT_LABEL "MP Dedicated Server")
 	target_link_libraries(${MPDed} ${MPDedLibraries})
 endif(BuildMPDed)

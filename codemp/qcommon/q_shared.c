@@ -870,7 +870,8 @@ int Com_HexStrToInt( const char *str )
 	// check for hex code
 	if( str[ 0 ] == '0' && str[ 1 ] == 'x' )
 	{
-		int i, n = 0;
+		int  n = 0;
+		size_t i;
 
 		for( i = 2; i < strlen( str ); i++ )
 		{
@@ -1364,7 +1365,7 @@ char * QDECL va( const char *format, ... )
 
 	va_start( argptr, format );
 	buf = (char *)&string[index++ & 3];
-	Q_vsnprintf( buf, MAX_VA_STRING-1, format, argptr );
+	Q_vsnprintf( buf, sizeof(*string), format, argptr );
 	va_end( argptr );
 
 	return buf;

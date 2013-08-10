@@ -6,10 +6,6 @@
 #include "GenericParser2.h"
 #include "stringed_ingame.h"
 #include "qcommon/game_version.h"
-#ifndef __linux__
-#include "qcommon/platform.h"
-#endif
-
 #include "../server/NPCNav/navigator.h"
 
 #define	MAXPRINTMSG	4096
@@ -51,16 +47,13 @@ cvar_t	*com_terrainPhysics; //rwwRMG - added
 
 cvar_t	*com_version;
 cvar_t	*com_buildScript;	// for automated data building scripts
-cvar_t	*com_introPlayed;
+cvar_t	*com_bootlogo;
 cvar_t	*cl_paused;
 cvar_t	*sv_paused;
 cvar_t	*com_cameraMode;
 cvar_t	*com_unfocused;
 cvar_t	*com_minimized;
 cvar_t  *com_homepath;
-#if defined(_WIN32) && defined(_DEBUG)
-cvar_t	*com_noErrorInterrupt;
-#endif
 
 cvar_t	*com_RMG;
 
@@ -76,10 +69,10 @@ int			com_frameTime;
 int			com_frameMsec;
 int			com_frameNumber;
 
-qboolean	com_errorEntered;
-qboolean	com_fullyInitialized;
+qboolean	com_errorEntered = qfalse;
+qboolean	com_fullyInitialized = qfalse;
 
-char	com_errorMessage[MAXPRINTMSG];
+char	com_errorMessage[MAXPRINTMSG] = {0};
 
 void Com_WriteConfig_f( void );
 
@@ -131,7 +124,7 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 	va_end (argptr);
 
 	if ( rd_buffer ) {
-		if ((strlen (msg) + strlen(rd_buffer)) > (rd_buffersize - 1)) {
+		if ((strlen (msg) + strlen(rd_buffer)) > (size_t)(rd_buffersize - 1)) {
 			rd_flush(rd_buffer);
 			*rd_buffer = 0;
 		}
@@ -229,7 +222,7 @@ void QDECL Com_OPrintf( const char *fmt, ...)
 #ifdef _WIN32
 	OutputDebugString(msg);
 #else
-	printf(msg);
+	printf("%s", msg);
 #endif
 }
 
@@ -247,24 +240,16 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 	static int	errorCount;
 	int			currentTime;
 
-#if defined(_WIN32) && defined(_DEBUG)
-	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD ) {
-		if (com_noErrorInterrupt && !com_noErrorInterrupt->integer) {
-			__asm {
-				int 0x03
-			}
-		}
+	if ( com_errorEntered ) {
+		Sys_Error( "recursive error after: %s", com_errorMessage );
 	}
-#endif
+	com_errorEntered = qtrue;
 
 	// when we are running automated scripts, make sure we
 	// know if anything failed
 	if ( com_buildScript && com_buildScript->integer ) {
 		code = ERR_FATAL;
 	}
-
-	// make sure we can get at our local stuff
-	FS_PureServerSetLoadedPaks( "", "" );
 
 	// if we are getting a solid stream of ERR_DROP, do an ERR_FATAL
 	currentTime = Sys_Milliseconds();
@@ -277,31 +262,31 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 	}
 	lastErrorTime = currentTime;
 
-	if ( com_errorEntered ) {
-		Sys_Error( "recursive error after: %s", com_errorMessage );
-	}
-	com_errorEntered = qtrue;
-
 	va_start (argptr,fmt);
 	Q_vsnprintf (com_errorMessage,sizeof(com_errorMessage), fmt,argptr);
 	va_end (argptr);
 
-	if ( code != ERR_DISCONNECT ) {
+	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD ) {
 		Cvar_Get("com_errorMessage", "", CVAR_ROM);	//give com_errorMessage a default so it won't come back to life after a resetDefaults
 		Cvar_Set("com_errorMessage", com_errorMessage);
 	}
 
-	if ( code == ERR_SERVERDISCONNECT ) {
+	if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT ) {
+		SV_Shutdown( "Server disconnected" );
 		CL_Disconnect( qtrue );
-		CL_FlushMemory( );
+		CL_FlushMemory( qtrue );
+		// make sure we can get at our local stuff
+		FS_PureServerSetLoadedPaks( "", "" );
 		com_errorEntered = qfalse;
 
 		throw ("DISCONNECTED\n");
-	} else if ( code == ERR_DROP || code == ERR_DISCONNECT ) {
+	} else if ( code == ERR_DROP ) {
 		Com_Printf ("********************\nERROR: %s\n********************\n", com_errorMessage);
 		SV_Shutdown (va("Server crashed: %s\n",  com_errorMessage));
 		CL_Disconnect( qtrue );
-		CL_FlushMemory( );
+		CL_FlushMemory( qtrue );
+		// make sure we can get at our local stuff
+		FS_PureServerSetLoadedPaks( "", "" );
 		com_errorEntered = qfalse;
 
 		throw ("DROPPED\n");
@@ -309,11 +294,14 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 		SV_Shutdown( "Server didn't have CD\n" );
 		if ( com_cl_running && com_cl_running->integer ) {
 			CL_Disconnect( qtrue );
-			CL_FlushMemory( );
-			com_errorEntered = qfalse;
+			CL_FlushMemory( qtrue );
+			
 		} else {
 			Com_Printf("Server didn't have CD\n" );
 		}
+		// make sure we can get at our local stuff
+		FS_PureServerSetLoadedPaks( "", "" );
+		com_errorEntered = qfalse;
 		throw ("NEED CD\n");
 	} else {
 		CL_Shutdown ();
@@ -376,13 +364,17 @@ Break it up into multiple console lines
 ==================
 */
 void Com_ParseCommandLine( char *commandLine ) {
+	int inq = 0;
 	com_consoleLines[0] = commandLine;
 	com_numConsoleLines = 1;
 
 	while ( *commandLine ) {
+		if (*commandLine == '"') {
+			inq = !inq;
+		}
 		// look for a + seperating character
 		// if commandLine came from a file, we might have real line seperators
-		if ( *commandLine == '+' || *commandLine == '\n' ) {
+		if ( (*commandLine == '+' && !inq) || *commandLine == '\n'  || *commandLine == '\r' ) {
 			if ( com_numConsoleLines == MAX_CONSOLE_LINES ) {
 				return;
 			}
@@ -430,10 +422,9 @@ be after execing the config and default.
 ===============
 */
 void Com_StartupVariable( const char *match ) {
-	int		i;
 	char	*s;
 
-	for (i=0 ; i < com_numConsoleLines ; i++) {
+	for (int i=0 ; i < com_numConsoleLines ; i++) {
 		Cmd_TokenizeString( com_consoleLines[i] );
 		if ( strcmp( Cmd_Argv(0), "set" ) ) {
 			continue;
@@ -443,7 +434,7 @@ void Com_StartupVariable( const char *match ) {
 
 		if(!match || !strcmp(s, match))
 		{
-			if(Cvar_Flags(s) == CVAR_NONEXISTENT)
+			if((unsigned)Cvar_Flags(s) == CVAR_NONEXISTENT)
 				Cvar_Get(s, Cmd_Argv(2), CVAR_USER_CREATED);
 			else
 				Cvar_Set2(s, Cmd_Argv(2), qfalse);
@@ -978,7 +969,7 @@ int Com_EventLoop( void ) {
 			// the event buffers are only large enough to hold the
 			// exact payload, but channel messages need to be large
 			// enough to hold fragment reassembly
-			if ( (unsigned)buf.cursize > buf.maxsize ) {
+			if ( (unsigned)buf.cursize > (unsigned)buf.maxsize ) {
 				Com_Printf("Com_EventLoop: oversize packet\n");
 				continue;
 			}
@@ -1077,9 +1068,8 @@ A way to force a bus error for development reasons
 =================
 */
 static void Com_Crash_f( void ) {
-	* ( int * ) 0 = 0x12345678;
+	* ( volatile int * ) 0 = 0x12345678;
 }
-
 
 #ifdef MEM_DEBUG
 	void SH_Register(void);
@@ -1108,6 +1098,22 @@ void Com_ExecuteCfg(void)
 
 /*
 =================
+Com_InitRand
+Seed the random number generator, if possible with an OS supplied random seed.
+=================
+*/
+static void Com_InitRand(void)
+{
+	unsigned int seed;
+
+	if(Sys_RandomBytes((byte *) &seed, sizeof(seed)))
+		srand(seed);
+	else
+		srand(time(NULL));
+}
+
+/*
+=================
 Com_Init
 =================
 */
@@ -1124,6 +1130,9 @@ void Com_Init( char *commandLine ) {
 		Cvar_Init ();
 
 		navigator.Init();
+
+		// initialize the weak pseudo-random number generator for use later.
+		Com_InitRand();
 
 		// prepare enough of the subsystems to handle
 		// cvar and command buffer management
@@ -1239,11 +1248,7 @@ void Com_Init( char *commandLine ) {
 		Cvar_Get ("RMG_course", "standard", CVAR_SYSTEMINFO );
 		Cvar_Get ("RMG_distancecull", "5000", CVAR_CHEAT );
 
-		com_introPlayed = Cvar_Get( "com_introplayed", "0", CVAR_ARCHIVE);
-
-	#if defined(_WIN32) && defined(_DEBUG)
-		com_noErrorInterrupt = Cvar_Get( "com_noErrorInterrupt", "0", 0 );
-	#endif
+		com_bootlogo = Cvar_Get( "com_bootlogo", "1", CVAR_ARCHIVE);
 
 		if ( com_dedicated->integer ) {
 			if ( !com_viewlog->integer ) {
@@ -1288,14 +1293,10 @@ void Com_Init( char *commandLine ) {
 			// if the user didn't give any commands, run default action
 			if ( !com_dedicated->integer ) 
 			{
-#ifndef _DEBUG
-				Cbuf_AddText ("cinematic openinglogos.roq\n");
-#endif
-				// intro.roq is iD's.
-//				if( !com_introPlayed->integer ) {
-//					Cvar_Set( com_introPlayed->name, "1" );
-//					Cvar_Set( "nextmap", "cinematic intro.RoQ" );
-//				}
+				if ( com_bootlogo->integer )
+				{
+					Cbuf_AddText ("cinematic openinglogos.roq\n");
+				}
 			}
 		}
 
@@ -1332,7 +1333,7 @@ void Com_WriteConfigToFile( const char *filename ) {
 		return;
 	}
 
-	FS_Printf (f, "// generated by Star Wars Jedi Academy MP, do not modify\n");
+	FS_Printf (f, "// generated by OpenJK MP, do not modify\n");
 	Key_WriteBindings (f);
 	Cvar_WriteVariables (f);
 	FS_FCloseFile( f );
@@ -1611,6 +1612,7 @@ try
 
 }//try
 	catch (const char* reason) {
+		VM_FreeRemaining();
 		Com_Printf (reason);
 		return;			// an ERR_DROP was thrown
 	}
@@ -1730,3 +1732,21 @@ CGenericParser2 *Com_ParseTextFile(const char *file, bool cleanFirst, bool write
 	return parse;
 }
 
+/*
+==================
+Com_RandomBytes
+
+fills string array with len radom bytes, peferably from the OS randomizer
+==================
+*/
+void Com_RandomBytes( byte *string, int len )
+{
+	int i;
+
+	if( Sys_RandomBytes( string, len ) )
+		return;
+
+	Com_Printf( "Com_RandomBytes: using weak randomization\n" );
+	for( i = 0; i < len; i++ )
+		string[i] = (unsigned char)( rand() % 255 );
+}

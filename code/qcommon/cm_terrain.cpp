@@ -77,7 +77,7 @@ void CCMLandScape::LoadTerrainDef(const char *td)
 		items = classes->GetSubGroups();
 		while(items)
 		{
-			if(!stricmp(items->GetName(), "altitudetexture"))
+			if(!Q_stricmp(items->GetName(), "altitudetexture"))
 			{
 				int			height;
 				const char	*shaderName;
@@ -97,7 +97,7 @@ void CCMLandScape::LoadTerrainDef(const char *td)
 					}
 				}
 			}
-			else if(!stricmp(items->GetName(), "water"))
+			else if(!Q_stricmp(items->GetName(), "water"))
 			{
 				const char	*shaderName;
 				CCMShader	*shader;
@@ -242,13 +242,7 @@ void CCMPatch::InitPlane(struct cbrushside_s *side, cplane_t *plane, vec3_t p0, 
 	plane->dist = DotProduct(p0, plane->normal);
 	plane->type = PlaneTypeForNormal(plane->normal);
 	SetPlaneSignbits(plane);
-
-#ifdef _XBOX
-	// MATT! - does this work?
-	cmg.planes[side->planeNum.GetValue()] = *plane;
-#else
 	side->plane = plane;
-#endif
 }
 
 // Create the planes required for collision detection
@@ -469,11 +463,7 @@ void CCMPatch::CreatePatchPlaneData(void)
 			if ( y > 0 && y < owner->GetPatchHeight ( ) - 1 )
 			{
 				cbrush_t* abovebrush = (cbrush_t*)GetAdjacentBrushY ( x, y );
-#ifdef _XBOX
-				cplane_t* aboveplane = &cmg.planes[abovebrush->sides->planeNum.GetValue()];
-#else
 				cplane_t* aboveplane = abovebrush->sides->plane;
-#endif
 
 				V = DotProduct ( aboveplane->normal, ((y+x)&1)?(localCoords[2]):(localCoords[1]) ) - aboveplane->dist;
 
@@ -491,11 +481,7 @@ void CCMPatch::CreatePatchPlaneData(void)
 			if ( x > 0 && x < owner->GetPatchWidth ( ) - 1 )
 			{
 				cbrush_t* abovebrush = (cbrush_t*)GetAdjacentBrushX ( x, y );
-#ifdef _XBOX
-				cplane_t* aboveplane = &cmg.planes[abovebrush->sides->planeNum.GetValue()];
-#else
 				cplane_t* aboveplane = abovebrush->sides->plane;
-#endif
 
 				V = DotProduct ( aboveplane->normal, localCoords[1] ) - aboveplane->dist;
 

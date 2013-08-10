@@ -386,8 +386,10 @@ qboolean CG_ParseSurfsFile( const char *modelName, const char *skinName, char *s
 	// parse the text
 	text_p = text;
 
-	memset( (char *)surfOff, 0, sizeof(surfOff) );
-	memset( (char *)surfOn, 0, sizeof(surfOn) );
+	surfOff[0] = '\0';
+	surfOn[0] = '\0';
+
+	COM_BeginParseSession ("CG_ParseSurfsFile");
 
 	// read information for surfOff and surfOn
 	while ( 1 ) 
@@ -635,9 +637,10 @@ retryModel:
 		const char	*p;
 
 		//Now turn on/off any surfaces
-		if ( surfOff && surfOff[0] )
+		if ( surfOff[0] )
 		{
 			p = surfOff;
+			COM_BeginParseSession ("CG_RegisterClientModelname: surfOff");
 			while ( 1 ) 
 			{
 				token = COM_ParseExt( &p, qtrue );
@@ -649,9 +652,10 @@ retryModel:
 				trap_G2API_SetSurfaceOnOff( ci->ghoul2Model, token, 0x00000002/*G2SURFACEFLAG_OFF*/ );
 			}
 		}
-		if ( surfOn && surfOn[0] )
+		if ( surfOn[0] )
 		{
 			p = surfOn;
+			COM_BeginParseSession ("CG_RegisterClientModelname: surfOn");
 			while ( 1 )
 			{
 				token = COM_ParseExt( &p, qtrue );
@@ -5862,6 +5866,8 @@ static void CG_RGBForSaberColor( saber_colors_t color, vec3_t rgb )
 		case SABER_PURPLE:
 			VectorSet( rgb, 0.9f, 0.2f, 1.0f );
 			break;
+		default:
+			break;
 	}
 }
 
@@ -6655,7 +6661,7 @@ qboolean BG_SuperBreakWinAnim( int anim );
 void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, int renderfx, int modelIndex, int saberNum, int bladeNum, vec3_t origin, vec3_t angles, qboolean fromSaber, qboolean dontDraw)
 {
 	vec3_t	org_, end, v,
-			axis_[3] = {0,0,0, 0,0,0, 0,0,0};	// shut the compiler up
+			axis_[3] = {{0,0,0}, {0,0,0}, {0,0,0}};	// shut the compiler up
 	trace_t	trace;
 	int i = 0;
 	int trailDur;

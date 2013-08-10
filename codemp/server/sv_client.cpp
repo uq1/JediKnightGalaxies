@@ -6,7 +6,7 @@
 #include "server.h"
 #include "qcommon/stringed_ingame.h"
 #include "RMG/RM_Headers.h"
-#include "../zlib/zlib.h"
+#include "zlib/zlib.h"
 
 static void SV_CloseDownload( client_t *cl );
 
@@ -47,6 +47,20 @@ void SV_GetChallenge( netadr_t from ) {
 	*/
 	if (Cvar_VariableValue("ui_singlePlayerActive"))
 	{
+		return;
+	}
+
+	// Prevent using getchallenge as an amplifier
+	if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {
+		Com_DPrintf( "SV_GetChallenge: rate limit from %s exceeded, dropping request\n",
+			NET_AdrToString( from ) );
+		return;
+	}
+
+	// Allow getchallenge to be DoSed relatively easily, but prevent
+	// excess outbound bandwidth usage when being flooded inbound
+	if ( SVC_RateLimit( &outboundLeakyBucket, 10, 100 ) ) {
+		Com_DPrintf( "SV_GetChallenge: rate limit exceeded, dropping request\n" );
 		return;
 	}
 
@@ -110,9 +124,6 @@ void SV_DirectConnect( netadr_t from ) {
 	intptr_t	denied;
 	int			count;
 	char		*ip;
-#ifdef _XBOX
-	bool		reconnect = false;
-#endif
 
 	Com_DPrintf ("SVC_DirectConnect ()\n");
 
@@ -230,9 +241,6 @@ void SV_DirectConnect( netadr_t from ) {
 			|| from.port == cl->netchan.remoteAddress.port ) ) {
 			Com_Printf ("%s:reconnect\n", NET_AdrToString (from));
 			newcl = cl;
-#ifdef _XBOX
-			reconnect = true;
-#endif
 			// VVFIXME - both SOF2 and Wolf remove this call, claiming it blows away the user's info
 			// disconnect the client from the game first so any flags the
 			// player might have are dropped
@@ -1300,7 +1308,7 @@ static void SV_UpdateUserinfo_f( client_t *cl ) {
 }
 
 typedef struct {
-	char	*name;
+	const char	*name;
 	void	(*func)( client_t *cl );
 } ucmd_t;
 

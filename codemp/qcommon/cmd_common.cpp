@@ -340,7 +340,7 @@ Cmd_Argv
 ============
 */
 char	*Cmd_Argv( int arg ) {
-	if ( (unsigned)arg >= cmd_argc ) {
+	if ( (unsigned)arg >= (unsigned)cmd_argc ) {
 		return "";
 	}
 	return cmd_argv[arg];	
@@ -493,7 +493,7 @@ static void Cmd_TokenizeString2( const char *text_in, qboolean ignoreQuotes ) {
 
 		while ( 1 ) {
 			// skip whitespace
-			while ( *text && *text <= ' ' ) {
+			while ( *text && *(const unsigned char* /*eurofix*/)text <= ' ' ) {
 				text++;
 			}
 			if ( !*text ) {

@@ -18,7 +18,7 @@
 // Copyright (C) 1999-2000 Id Software, Inc.
 //
 #include "qcommon/q_shared.h"
-#include "renderer/tr_types.h"
+#include "rd-common/tr_types.h"
 #include "game/bg_public.h"
 #include "cg_public.h"
 
@@ -46,10 +46,6 @@
 #define PARTY_SLOT_MEMBERS	 5
 #define PARTY_SLOT_MAX		64
 #define PARTY_SLOT_INVITES	 5
-
-#define NULL_HANDLE			((qhandle_t) 0)
-#define NULL_SOUND			((sfxHandle_t) 0)
-#define NULL_FX				((fxHandle_t) 0)
 
 #define	POWERUP_BLINKS		5
 
@@ -1238,7 +1234,7 @@ extern cgscreffects_t cgScreenEffects;
 void CGCam_Shake( float intensity, int duration );
 void CGCam_SetMusicMult( float multiplier, int duration );
 
-typedef enum 
+enum 
 {
 	CHUNK_METAL1 = 0,
 	CHUNK_METAL2,

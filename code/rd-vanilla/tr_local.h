@@ -20,7 +20,7 @@ This file is part of Jedi Academy.
 #define TR_LOCAL_H
 
 
-#include "../game/q_shared.h"
+#include "../qcommon/q_shared.h"
 #include "../qcommon/qfiles.h"
 #include "../renderer/tr_public.h"
 #include "../renderer/mdx_format.h"
@@ -121,7 +121,7 @@ typedef struct {
 typedef struct image_s {
 	char		imgName[MAX_QPATH];		// game path, including extension
 	int			frameUsed;			// for texture usage in frame statistics
-	USHORT		width, height;				// source image
+	word		width, height;				// source image
 //	int			imgfileSize;
 
 	GLuint		texnum;					// gl texture binding
@@ -1214,6 +1214,7 @@ extern	cvar_t	*r_skipBackEnd;
 extern	cvar_t	*r_ignoreGLErrors;
 
 extern	cvar_t	*r_overBrightBits;
+extern	cvar_t	*r_mapOverBrightBits;
 
 extern	cvar_t	*r_debugSurface;
 extern	cvar_t	*r_simpleMipMaps;
@@ -1409,7 +1410,8 @@ void		GLimp_Init( void );
 void		GLimp_Shutdown( void );
 void		GLimp_EndFrame( void );
 
-void		GLimp_LogComment( char *comment );
+void		GLimp_LogComment( const char *comment );
+void		GLimp_Minimize( void );
 
 void		GLimp_SetGamma( unsigned char red[256], 
 						    unsigned char green[256],
@@ -1619,7 +1621,9 @@ void R_AddAnimSurfaces( trRefEntity_t *ent );
 /*
 Ghoul2 Insert Start
 */
+#ifdef _MSC_VER
 #pragma warning (disable: 4512)	//default assignment operator could not be gened
+#endif
 class CBoneCache;
 
 class CRenderableSurface

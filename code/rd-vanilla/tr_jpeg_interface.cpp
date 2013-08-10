@@ -37,7 +37,7 @@ This file is part of Jedi Academy.
  */
 
 #define JPEG_INTERNALS
-#include "../jpeg-8c/jpeglib.h"
+#include "jpeg-8c/jpeglib.h"
 
 static void R_JPGErrorExit(j_common_ptr cinfo)
 {
@@ -468,12 +468,12 @@ void SaveJPG(const char * filename, int quality, int image_width, int image_heig
 
 
 
-void JPG_ErrorThrow(LPCSTR message)
+void JPG_ErrorThrow(const char *message)
 {
 	Com_Error( ERR_FATAL, "JPG: %s\n", message );
 }
 
-void JPG_MessageOut(LPCSTR message)
+void JPG_MessageOut(const char *message)
 {
 	VID_Printf(PRINT_ALL, "%s\n", message);
 }

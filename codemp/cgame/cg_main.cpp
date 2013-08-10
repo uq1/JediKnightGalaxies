@@ -131,7 +131,6 @@ static void C_Trace(void);
 static void C_G2Trace(void);
 static void C_G2Mark(void);
 static int	CG_RagCallback(int callType);
-static void C_GetBoltPos(void);
 static void C_ImpactMark(void);
 
 #define MAX_MISC_ENTS	4000
@@ -186,6 +185,7 @@ This is the only way control passes into the module.
 This must be the very first function compiled into the .q3vm file
 ================
 */
+intptr_t VMP ( int n ) { return (intptr_t)n; }
 Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  ) {
 
 	switch ( command ) {
@@ -228,12 +228,12 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 		return 0;
 
 	case CG_GET_GHOUL2:
-		return (int)cg_entities[arg0].ghoul2; //NOTE: This is used by the effect bolting which is actually not used at all.
+		return (intptr_t)cg_entities[arg0].ghoul2; //NOTE: This is used by the effect bolting which is actually not used at all.
 											  //I'm fairly sure if you try to use it with vm's it will just give you total
 											  //garbage. In other words, use at your own risk.
 
 	case CG_GET_MODEL_LIST:
-		return (int)cgs.gameModels;
+		return (intptr_t)cgs.gameModels;
 
 	case CG_CALC_LERP_POSITIONS:
 		CG_CalcEntityLerpPositions( &cg_entities[arg0] );
@@ -269,21 +269,21 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 		return CG_NoUseableForce();
 
 	case CG_GET_ORIGIN:
-		VectorCopy(cg_entities[arg0].currentState.pos.trBase, (float *)arg1);
+		VectorCopy(cg_entities[arg0].currentState.pos.trBase, (float *)VMP(arg1));
 		return 0;
 
 	case CG_GET_ANGLES:
-		VectorCopy(cg_entities[arg0].currentState.apos.trBase, (float *)arg1);
+		VectorCopy(cg_entities[arg0].currentState.apos.trBase, (float *)VMP(arg1));
 		return 0;
 
 	case CG_GET_ORIGIN_TRAJECTORY:
-		return (int)&cg_entities[arg0].nextState.pos;
+		return (intptr_t)&cg_entities[arg0].nextState.pos;
 
 	case CG_GET_ANGLE_TRAJECTORY:
-		return (int)&cg_entities[arg0].nextState.apos;
+		return (intptr_t)&cg_entities[arg0].nextState.apos;
 
 	case CG_ROFF_NOTETRACK_CALLBACK:
-		CG_ROFF_NotetrackCallback( &cg_entities[arg0], (const char *)arg1 );
+		CG_ROFF_NotetrackCallback( &cg_entities[arg0], (const char *)VMP(arg1) );
 		return 0;
 
 	case CG_IMPACT_MARK:
@@ -733,7 +733,7 @@ void CG_UpdateCvars( void ) {
 		if ( cv->vmCvar ) {
 			int modCount = cv->vmCvar->modificationCount;
 			trap_Cvar_Update( cv->vmCvar );
-			if ( cv->vmCvar->modificationCount > modCount ) {
+			if ( cv->vmCvar->modificationCount != modCount ) {
 				if ( cv->update )
 					cv->update();
 			}
@@ -1969,7 +1969,7 @@ Ghoul2 Insert End
 
 const char *CG_GetStringEdString(char *refSection, char *refName)
 {
-	static char text[2][1024]={0};	//just incase it's nested
+	static char text[2][1024];	//just incase it's nested
 	static int		index = 0;
 
 	index ^= 1;
@@ -2649,6 +2649,7 @@ void CG_LoadMenus(const char *menuFile)
 	
 	p = buf;
 
+	COM_BeginParseSession ("CG_LoadMenus");
 	while ( 1 ) 
 	{
 		token = COM_ParseExt( &p, qtrue );

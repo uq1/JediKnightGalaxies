@@ -38,6 +38,7 @@ This file is part of Jedi Academy.
 #endif
 
 void	IN_MouseEvent (int mstate);
+void	IN_RawMouseEvent( int lastX, int lastY ); // Send raw input events to the input subsystem
 
 void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr );
 
@@ -61,13 +62,11 @@ void	IN_Activate (qboolean active);
 void	IN_Frame (void);
 
 // window procedure
-#ifndef _XBOX
 LONG WINAPI MainWndProc (
     HWND    hWnd,
     UINT    uMsg,
     WPARAM  wParam,
     LPARAM  lParam);
-#endif
 
 void Conbuf_AppendText( const char *msg );
 

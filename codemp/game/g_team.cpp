@@ -27,6 +27,7 @@ void Team_InitGame( void ) {
 	case GT_CTY:
 		teamgame.redStatus = teamgame.blueStatus = (flagStatus_t)-1; // Invalid to force update
 		Team_SetFlagStatus( TEAM_RED, FLAG_ATBASE );
+		teamgame.blueStatus = (flagStatus_t)-1; // Invalid to force update
 		Team_SetFlagStatus( TEAM_BLUE, FLAG_ATBASE );
 		break;
 	default:
@@ -270,7 +271,6 @@ qboolean OnSameTeam( gentity_t *ent1, gentity_t *ent2 ) {
 
 	return qfalse;
 }
-
 
 static char ctfFlagStatusRemap[] = { '0', '1', '*', '*', '2' };
 

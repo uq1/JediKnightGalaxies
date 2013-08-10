@@ -157,6 +157,7 @@ cvar_t	*r_customwidth;
 cvar_t	*r_customheight;
 
 cvar_t	*r_overBrightBits;
+cvar_t	*r_mapOverBrightBits;
 
 cvar_t	*r_debugSurface;
 cvar_t	*r_simpleMipMaps;
@@ -434,8 +435,6 @@ void GL_CheckErrors( void ) {
     Com_Error( ERR_FATAL, "GL_CheckErrors: %s", s );
 }
 
-#ifndef _XBOX
-
 /*
 ** R_GetModeInfo
 */
@@ -502,8 +501,6 @@ static void R_ModeList_f( void )
 	VID_Printf( PRINT_ALL, "\n" );
 }
 
-#endif	// _XBOX
-
 /* 
 ============================================================================== 
  
@@ -524,7 +521,7 @@ void R_TakeScreenshot( int x, int y, int width, int height, char *fileName ) {
 	byte		*buffer;
 	int			i, c, temp;
 
-	qboolean bSaveAsJPG = !strnicmp(&fileName[strlen(fileName)-4],".jpg",4);
+	qboolean bSaveAsJPG = !Q_stricmpn(&fileName[strlen(fileName)-4],".jpg",4);
 
 	if (bSaveAsJPG)
 	{
@@ -876,7 +873,6 @@ extern bool g_bTextureRectangleHack;
 
 void GfxInfo_f( void ) 
 {
-	cvar_t *sys_cpustring = ri.Cvar_Get( "sys_cpustring", "", CVAR_ROM );
 	const char *enablestrings[] =
 	{
 		"disabled",
@@ -961,9 +957,20 @@ void GfxInfo_f( void )
 	VID_Printf( PRINT_ALL, "compressed textures: %s\n", enablestrings[glConfig.textureCompression != TC_NONE] );
 	VID_Printf( PRINT_ALL, "compressed lightmaps: %s\n", enablestrings[(r_ext_compressed_lightmaps->integer != 0 && glConfig.textureCompression != TC_NONE)] );
 	VID_Printf( PRINT_ALL, "texture compression method: %s\n", tc_table[glConfig.textureCompression] );
-	Com_Printf ("anisotropic filtering: %s  ", enablestrings[(r_ext_texture_filter_anisotropic->integer != 0) && glConfig.maxTextureFilterAnisotropy] );
-		Com_Printf ("(%f of %f)\n", r_ext_texture_filter_anisotropic->value, glConfig.maxTextureFilterAnisotropy );
-	Com_Printf ("Dynamic Glow: %s\n", enablestrings[r_DynamicGlow->integer] );
+	VID_Printf( PRINT_ALL, "anisotropic filtering: %s  ", enablestrings[(r_ext_texture_filter_anisotropic->integer != 0) && glConfig.maxTextureFilterAnisotropy] );
+	if (r_ext_texture_filter_anisotropic->integer != 0 && glConfig.maxTextureFilterAnisotropy)
+	{
+		if (Q_isintegral(r_ext_texture_filter_anisotropic->value))
+			VID_Printf( PRINT_ALL, "(%i of ", (int)r_ext_texture_filter_anisotropic->value);
+		else
+			VID_Printf( PRINT_ALL, "(%f of ", r_ext_texture_filter_anisotropic->value);
+
+		if (Q_isintegral(glConfig.maxTextureFilterAnisotropy))
+			VID_Printf( PRINT_ALL, "%i)\n", (int)glConfig.maxTextureFilterAnisotropy);
+		else
+			VID_Printf( PRINT_ALL, "%f)\n", glConfig.maxTextureFilterAnisotropy);
+	}
+	VID_Printf( PRINT_ALL, "Dynamic Glow: %s\n", enablestrings[r_DynamicGlow->integer] );
 	if (g_bTextureRectangleHack) Com_Printf ("Dynamic Glow ATI BAD DRIVER HACK %s\n", enablestrings[g_bTextureRectangleHack] );
 
 	if ( r_finish->integer ) {
@@ -1106,7 +1113,9 @@ void R_Register( void )
 	//
 	// latched and archived variables
 	//
+#ifndef __NO_JK2
 	com_jk2 = ri.Cvar_Get( "com_jk2", "0", CVAR_INIT );
+#endif
 
 	r_allowExtensions = ri.Cvar_Get( "r_allowExtensions", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_ext_compressed_textures = ri.Cvar_Get( "r_ext_compress_textures", "1", CVAR_ARCHIVE | CVAR_LATCH );
@@ -1138,13 +1147,10 @@ void R_Register( void )
 	r_texturebitslm = ri.Cvar_Get( "r_texturebitslm", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_colorbits = ri.Cvar_Get( "r_colorbits", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_stereo = ri.Cvar_Get( "r_stereo", "0", CVAR_ARCHIVE | CVAR_LATCH );
-#ifdef __linux__
-	r_stencilbits = ri.Cvar_Get( "r_stencilbits", "0", CVAR_ARCHIVE | CVAR_LATCH );
-#else
 	r_stencilbits = ri.Cvar_Get( "r_stencilbits", "8", CVAR_ARCHIVE | CVAR_LATCH );
-#endif
 	r_depthbits = ri.Cvar_Get( "r_depthbits", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_overBrightBits = ri.Cvar_Get ("r_overBrightBits", "0", CVAR_ARCHIVE | CVAR_LATCH );
+	r_mapOverBrightBits = ri.Cvar_Get( "r_mapOverBrightBits", "0", CVAR_ARCHIVE|CVAR_LATCH );
 	r_ignorehwgamma = ri.Cvar_Get( "r_ignorehwgamma", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	r_mode = ri.Cvar_Get( "r_mode", "4", CVAR_ARCHIVE | CVAR_LATCH );
 	r_fullscreen = ri.Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE | CVAR_LATCH );
@@ -1183,11 +1189,7 @@ void R_Register( void )
 	r_finish = ri.Cvar_Get ("r_finish", "0", CVAR_ARCHIVE);
 	r_textureMode = ri.Cvar_Get( "r_textureMode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE );
 	r_swapInterval = ri.Cvar_Get( "r_swapInterval", "0", CVAR_ARCHIVE );
-#ifdef __MACOS__
-	r_gamma = ri.Cvar_Get( "r_gamma", "1.2", CVAR_ARCHIVE );
-#else
 	r_gamma = ri.Cvar_Get( "r_gamma", "1", CVAR_ARCHIVE );
-#endif
 	r_facePlaneCull = ri.Cvar_Get ("r_facePlaneCull", "1", CVAR_ARCHIVE );
 
 	r_dlightStyle = ri.Cvar_Get ("r_dlightStyle", "1", CVAR_TEMP);
@@ -1309,6 +1311,7 @@ extern void R_WorldEffect_f(void);	//TR_WORLDEFFECTS.CPP
 	ri.Cmd_AddCommand( "r_we", R_WorldEffect_f );
 extern void R_ReloadFonts_f(void);
 	ri.Cmd_AddCommand( "r_reloadfonts", R_ReloadFonts_f );
+	ri.Cmd_AddCommand( "minimize", GLimp_Minimize );
 	// make sure all the commands added above are also
 	// removed in R_Shutdown
 }
@@ -1346,8 +1349,8 @@ void R_Init( void ) {
 //	Swap_Init();
 
 #ifndef FINAL_BUILD
-	if ( (int)tess.xyz & 15 ) {
-		Com_Printf( "WARNING: tess.xyz not 16 byte aligned (%x)\n",(int)tess.xyz & 15 );
+	if ( (intptr_t)tess.xyz & 15 ) {
+		Com_Printf( "WARNING: tess.xyz not 16 byte aligned (%x)\n",(intptr_t)tess.xyz & 15 );
 	}
 #endif
 
@@ -1398,9 +1401,7 @@ void R_Init( void ) {
 	R_InitImages();
 	R_InitShaders();
 	R_InitSkins();
-#ifndef _XBOX
 	R_TerrainInit();
-#endif
 	R_ModelInit();
 	R_InitWorldEffects();
 	R_InitFonts();
@@ -1437,15 +1438,13 @@ void RE_Shutdown( qboolean destroyWindow ) {
 	ri.Cmd_RemoveCommand ("imagecacheinfo");
 	ri.Cmd_RemoveCommand ("r_we");
 	ri.Cmd_RemoveCommand ("r_reloadfonts");
+	ri.Cmd_RemoveCommand ("minimize");
 
 	R_ShutdownWorldEffects();
-#ifndef _XBOX
 	R_TerrainShutdown();
-#endif
 	R_ShutdownFonts();
 
 	if ( tr.registered ) {
-#ifndef _XBOX	// GLOWXXX
 		if ( r_DynamicGlow && r_DynamicGlow->integer )
 		{
 			// Release the Glow Vertex Shader.
@@ -1478,12 +1477,9 @@ void RE_Shutdown( qboolean destroyWindow ) {
 			// Release the blur texture.
 			qglDeleteTextures( 1, &tr.blurImage );
 		}
-#endif
 //		R_SyncRenderThread();
 		R_ShutdownCommandBuffers();
-//#ifndef _XBOX
 		if (destroyWindow)
-//#endif
 		{
 			R_DeleteTextures();	// only do this for vid_restart now, not during things like map load
 		}
@@ -1626,6 +1622,12 @@ extern void G2Time_ReportTimers(void);
 #endif
 extern IGhoul2InfoArray &TheGhoul2InfoArray();
 
+#ifndef __NO_JK2
+unsigned int AnyLanguage_ReadCharFromString_JK2 ( char **text, qboolean *pbIsTrailingPunctuation ) {
+	return AnyLanguage_ReadCharFromString (text, pbIsTrailingPunctuation);
+}
+#endif
+
 extern "C" {
 
 Q_EXPORT refexport_t * QDECL GetRefAPI ( int apiVersion, refimport_t *refimp ) {
@@ -1713,7 +1715,9 @@ Q_EXPORT refexport_t * QDECL GetRefAPI ( int apiVersion, refimport_t *refimp ) {
 	re.Language_IsAsian = Language_IsAsian;
 	re.Language_UsesSpaces = Language_UsesSpaces;
 	re.AnyLanguage_ReadCharFromString = AnyLanguage_ReadCharFromString;
-	re.AnyLanguage_ReadCharFromString2 = AnyLanguage_ReadCharFromString;
+#ifndef __NO_JK2
+	re.AnyLanguage_ReadCharFromString2 = AnyLanguage_ReadCharFromString_JK2;
+#endif
 
 	re.R_Resample = R_Resample;
 	re.R_LoadDataImage = R_LoadDataImage;

@@ -187,56 +187,7 @@ void SV_Startup( void ) {
 	Cvar_Set( "sv_running", "1" );
 }
 
-
-#ifdef _XBOX
-//Xbox-only memory freeing.
-extern void R_ModelFree(void);
-extern void Sys_IORequestQueueClear(void);
-extern void Music_Free(void);
-extern void AS_FreePartial(void);
-extern void G_ASPreCacheFree(void);
-extern void Ghoul2InfoArray_Free(void);
-extern void Ghoul2InfoArray_Reset(void);
-extern void Menu_Reset(void);
-extern void G2_FreeRag(void);
-extern void ClearAllNavStructures(void);
-extern void ClearModelsAlreadyDone(void);
-extern void CL_FreeServerCommands(void);
-extern void CL_FreeReliableCommands(void);
-extern void CM_Free(void);
-extern void ShaderEntryPtrs_Clear(void);
-extern void G_FreeRoffs(void);
-extern int	numVehicles;
-void SV_ClearLastLevel(void)
-{
-	Menu_Reset();
-	Z_TagFree(TAG_G_ALLOC);
-	Z_TagFree(TAG_UI_ALLOC);
-	G_FreeRoffs();
-	R_ModelFree();
-	Music_Free();
-	Sys_IORequestQueueClear();
-	AS_FreePartial();
-	G_ASPreCacheFree();
-	Ghoul2InfoArray_Free();
-	G2_FreeRag();
-	ClearAllNavStructures();
-	ClearModelsAlreadyDone();
-	CL_FreeServerCommands();
-	CL_FreeReliableCommands();
-	CM_Free();
-	ShaderEntryPtrs_Clear();
-
-	numVehicles = 0;
-
-	if (svs.clients)
-	{
-		SV_FreeClient( svs.clients );
-	}
-}
-#endif
-
-qboolean CM_SameMap(char *server);
+qboolean CM_SameMap(const char *server);
 qboolean CM_HasTerrain(void);
 void Cvar_Defrag(void);
 
@@ -248,7 +199,7 @@ Change the server to a new map, taking all connected
 clients along with it.
 ================
 */
-void SV_SpawnServer( char *server, ForceReload_e eForceReload, qboolean bAllowScreenDissolve )
+void SV_SpawnServer( const char *server, ForceReload_e eForceReload, qboolean bAllowScreenDissolve )
 {
 	int			i;
 	int			checksum;
@@ -345,11 +296,6 @@ void SV_SpawnServer( char *server, ForceReload_e eForceReload, qboolean bAllowSc
 
 	sv.time = 1000;
 	re.G2API_SetTime(sv.time,G2T_SV_TIME);
-
-#ifndef _DEBUG
-	Com_Printf("CM_LOADMAP: %s\n", server);
-#endif
-
 
 	CM_LoadMap( va("maps/%s.bsp", server), qfalse, &checksum, qfalse );
 
@@ -494,7 +440,7 @@ not just stuck on the outgoing message list, because the server is going
 to totally exit after returning from this function.
 ==================
 */
-void SV_FinalMessage( char *message ) {
+void SV_FinalMessage( const char *message ) {
 	int			i, j;
 	client_t	*cl;
 	
@@ -522,7 +468,7 @@ Called when each game quits,
 before Sys_Quit or Sys_Error
 ================
 */
-void SV_Shutdown( char *finalmsg ) {
+void SV_Shutdown( const char *finalmsg, qboolean delayFreeGame ) {
 	int i;
 
 	if ( !com_sv_running || !com_sv_running->integer ) {
@@ -536,7 +482,7 @@ void SV_Shutdown( char *finalmsg ) {
 	}
 
 	SV_RemoveOperatorCommands();
-	SV_ShutdownGameProgs(qfalse);
+	SV_ShutdownGameProgs(qfalse, delayFreeGame);
 
 	if (svs.snapshotEntities)
 	{

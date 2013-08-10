@@ -101,28 +101,18 @@ R_ColorShiftLightingBytes
 ===============
 */
 void R_ColorShiftLightingBytes( byte in[4], byte out[4] ) {
-	int		shift=0, r, g, b;
+	int shift, r, g, b;
 
-	// should NOT do it if overbrightBits is 0
-	if (tr.overbrightBits)
-		shift = 1 - tr.overbrightBits;
-
-	if (!shift)
-	{
-		out[0] = in[0];
-		out[1] = in[1];
-		out[2] = in[2];
-		out[3] = in[3];
-		return;
-	}
+	// shift the color data based on overbright range
+	shift = r_mapOverBrightBits->integer - tr.overbrightBits;
 
 	// shift the data based on overbright range
 	r = in[0] << shift;
 	g = in[1] << shift;
 	b = in[2] << shift;
-	
+
 	// normalize by color instead of saturating to white
-	if ( ( r | g | b ) > 255 ) {
+	if ( (r|g|b) > 255 ) {
 		int		max;
 
 		max = r > g ? r : g;
@@ -144,24 +134,19 @@ R_ColorShiftLightingBytes
 
 ===============
 */
-static	void R_ColorShiftLightingBytes( byte in[3]) 
-{
-	int		shift=0, r, g, b;
+void R_ColorShiftLightingBytes( byte in[3] ) {
+	int shift, r, g, b;
 
-	// should NOT do it if overbrightBits is 0
-	if (tr.overbrightBits)
-		shift = 1 - tr.overbrightBits;
+	// shift the color data based on overbright range
+	shift = r_mapOverBrightBits->integer - tr.overbrightBits;
 
-	if (!shift) {
-		return;	//no need if not overbright
-	}
 	// shift the data based on overbright range
 	r = in[0] << shift;
 	g = in[1] << shift;
 	b = in[2] << shift;
-	
+
 	// normalize by color instead of saturating to white
-	if ( ( r | g | b ) > 255 ) {
+	if ( (r|g|b) > 255 ) {
 		int		max;
 
 		max = r > g ? r : g;
@@ -175,7 +160,6 @@ static	void R_ColorShiftLightingBytes( byte in[3])
 	in[1] = g;
 	in[2] = b;
 }
-
 
 /*
 ===============
@@ -418,7 +402,7 @@ static void ParseFace( dsurface_t *ds, mapVert_t *verts, msurface_t *surf, int *
 	numIndexes = LittleLong( ds->numIndexes );
 
 	// create the srfSurfaceFace_t
-	sfaceSize = ( int ) &((srfSurfaceFace_t *)0)->points[numPoints];
+	sfaceSize = ( intptr_t ) &((srfSurfaceFace_t *)0)->points[numPoints];
 	ofsIndexes = sfaceSize;
 	sfaceSize += sizeof( int ) * numIndexes;
 
@@ -707,7 +691,7 @@ static	void R_LoadSurfaces( lump_t *surfs, lump_t *verts, lump_t *indexLump, wor
 		{
 			case MST_PLANAR:
 				
-				int sfaceSize = ( int ) &((srfSurfaceFace_t *)0)->points[LittleLong(in->numVerts)];	
+				int sfaceSize = ( intptr_t ) &((srfSurfaceFace_t *)0)->points[LittleLong(in->numVerts)];	
 					sfaceSize += sizeof( int ) * LittleLong(in->numIndexes);
 
 				iFaceDataSizeRequired += sfaceSize;
@@ -1067,14 +1051,14 @@ static	void R_LoadFogs( lump_t *l, lump_t *brushesLump, lump_t *sidesLump, world
 		}
 		else
 		{
-			if ( (unsigned)out->originalBrushNumber >= brushesCount ) {
+			if ( (unsigned)out->originalBrushNumber >= (unsigned)brushesCount ) {
 				Com_Error( ERR_DROP, "fog brushNumber out of range" );
 			}
 			brush = brushes + out->originalBrushNumber;
 
 			firstSide = LittleLong( brush->firstSide );
 
-				if ( (unsigned)firstSide > sidesCount - 6 ) {
+				if ( (unsigned)firstSide > (unsigned)(sidesCount - 6) ) {
 				Com_Error( ERR_DROP, "fog brush sideNumber out of range" );
 			}
 
@@ -1341,7 +1325,6 @@ Called directly from cgame
 =================
 */
 void RE_LoadWorldMap_Actual( const char *name, world_t &worldData, int index ) {
-	int			i;
 	dheader_t	*header;
 	byte		*buffer = NULL;
 	qboolean	loadedSubBSP = qfalse;
@@ -1420,7 +1403,7 @@ void RE_LoadWorldMap_Actual( const char *name, world_t &worldData, int index ) {
 	}
 
 	// swap all the lumps
-	for (i=0 ; i<sizeof(dheader_t)/4 ; i++) {
+	for (size_t i=0 ; i<sizeof(dheader_t)/4 ; i++) {
 		((int *)header)[i] = LittleLong ( ((int *)header)[i]);
 	}
 

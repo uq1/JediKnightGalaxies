@@ -63,7 +63,7 @@ static client_t *SV_SetPlayer( void ) {
 //
 static bool SV_Map_( ForceReload_e eForceReload ) 
 {
-	char	*map;
+	const char	*map;
 	char	expanded[MAX_QPATH];
 
 	map = Cmd_Argv(1);
@@ -79,12 +79,8 @@ static bool SV_Map_( ForceReload_e eForceReload )
 		return false;
 	}
 
-#ifndef _XBOX	// Could check for maps/%s/brushes.mle or something...
 	Com_sprintf (expanded, sizeof(expanded), "maps/%s.bsp", map);
 
-#ifndef _DEBUG
-	Com_Printf("SV_Map_ CHECK HERE: %s\n", expanded);
-#endif
 	if ( FS_ReadFile (expanded, NULL) == -1 ) {
 		Com_Printf ("Can't find map %s\n", expanded);
 		extern	cvar_t	*com_buildScript;
@@ -94,16 +90,11 @@ static bool SV_Map_( ForceReload_e eForceReload )
 		}
 		return false;
 	}
-#endif
 
 	if (map[0]!='_')
 	{
 		SG_WipeSavegame("auto");
 	}
-
-#ifndef _DEBUG
-	Com_Printf("SV_SpawnServer call: %s\n", map);
-#endif
 
 	SV_SpawnServer( map, eForceReload, qtrue );	// start up the map
 	return true;
@@ -117,7 +108,9 @@ static bool SV_Map_( ForceReload_e eForceReload )
 void SV_Player_EndOfLevelSave(void)						   
 {
 	int	i;	
+#ifndef __NO_JK2
 	qboolean usesJK2 = (qboolean)(com_jk2 && com_jk2->integer);
+#endif
 
 	// I could just call GetClientState() but that's in sv_bot.cpp, and I'm not sure if that's going to be deleted for
 	//	the single player build, so here's the guts again...
@@ -136,6 +129,7 @@ void SV_Player_EndOfLevelSave(void)
 		playerState_t*		pState = cl->gentity->client;
 		const char	*s2;
 		const char *s;
+#ifndef __NO_JK2
 		if(usesJK2)
 		{
 			s = va("%i %i %i %i %i %i %i %f %f %f %i %i %i %i %i %i",
@@ -158,6 +152,7 @@ void SV_Player_EndOfLevelSave(void)
 							);
 		}
 		else
+#endif
 		{
 					//				|general info				  |-force powers |-saber 1		|-saber 2										  |-general saber
 					s = va("%i %i %i %i %i %i %i %f %f %f %i %i %i %i %i %s %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %s %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
@@ -255,13 +250,13 @@ void SV_Player_EndOfLevelSave(void)
 //extern void	SCR_PrecacheScreenshot();  //scr_scrn.cpp
 static void SV_MapTransition_f(void)
 {		
-	char	*spawntarget;
+	const char	*spawntarget;
 
 //	SCR_PrecacheScreenshot();
 	SV_Player_EndOfLevelSave();
 
 	spawntarget = Cmd_Argv(2);
-	if ( *spawntarget != NULL ) 
+	if ( *spawntarget != '\0' ) 
 	{
 		Cvar_Set( "spawntarget", spawntarget );
 	}
@@ -313,11 +308,7 @@ static void SV_Map_f( void )
 		if ( !Q_stricmpn( Cmd_Argv(0), "devmap", 6 ) ) {
 			Cvar_Set( "helpUsObi", "1" );
 		} else {
-#ifdef _XBOX
-			Cvar_Set( "helpUsObi", "1" );
-#else
 			Cvar_Set( "helpUsObi", "0" );
-#endif
 		}
 	}
 }
@@ -329,8 +320,8 @@ SV_LoadTransition_f
 */
 void SV_LoadTransition_f(void)
 {
-	char	*map;
-	char	*spawntarget;
+	const char	*map;
+	const char	*spawntarget;
 
 	map = Cmd_Argv(1);
 	if ( !*map ) {
@@ -347,7 +338,7 @@ void SV_LoadTransition_f(void)
 
 	//set the spawntarget if there is one
 	spawntarget = Cmd_Argv(2);
-	if ( *spawntarget != NULL ) 
+	if ( *spawntarget != '\0' ) 
 	{
 		Cvar_Set( "spawntarget", spawntarget );
 	}

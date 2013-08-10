@@ -19,7 +19,7 @@ This file is part of Jedi Academy.
 #ifndef	__CG_LOCAL_H__
 #define	__CG_LOCAL_H__
 
-#include "../game/q_shared.h"
+#include "../qcommon/q_shared.h"
 
 // define GAME_INCLUDE so that g_public.h does not define the
 // short, server-visible gclient_t and gentity_t structures,
@@ -149,13 +149,8 @@ struct centity_s
 {
 	entityState_t	currentState;	// from cg.frame
 	const entityState_t	*nextState;		// from cg.nextFrame, if available
-#ifdef _XBOX
-	byte		interpolate;	// true if next is valid to interpolate to
-	byte		currentValid;	// true if cg.frame holds this entity
-#else
 	qboolean		interpolate;	// true if next is valid to interpolate to
 	qboolean		currentValid;	// true if cg.frame holds this entity
-#endif
 
 	int				muzzleFlashTime;	// move to playerEntity?
 	qboolean		altFire;			// move to playerEntity?
@@ -369,10 +364,6 @@ typedef struct {
 	refdef_t	refdef;
 	vec3_t		refdefViewAngles;		// will be converted to refdef.viewaxis
 
-#ifdef _XBOX
-	qboolean	widescreen;
-#endif
-
 	// zoom key
 	int			zoomMode;		// 0 - not zoomed, 1 - binoculars, 2 - disruptor weapon
 	int			zoomDir;		// -1, 1
@@ -523,7 +514,7 @@ Ghoul2 Insert End
 
 #define MAX_SHOWPOWERS 12
 extern int showPowers[MAX_SHOWPOWERS]; 
-extern char *showPowersName[MAX_SHOWPOWERS];
+extern const char *showPowersName[MAX_SHOWPOWERS];
 extern int force_icons[NUM_FORCE_POWERS];
 #define MAX_DPSHOWPOWERS 16
 

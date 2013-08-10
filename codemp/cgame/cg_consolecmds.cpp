@@ -165,7 +165,7 @@ static void CG_scrollScoresUp_f( void) {
 	}
 }
 
-
+#if 0
 static void CG_spWin_f( void) {
 	trap_Cvar_Set("cg_cameraOrbit", "2");
 	trap_Cvar_Set("cg_cameraOrbitDelay", "35");
@@ -187,6 +187,7 @@ static void CG_spLose_f( void) {
 	//trap_S_StartLocalSound(cgs.media.loserSound, CHAN_ANNOUNCER);
 	CG_CenterPrint(CG_GetStringEdString("MP_INGAME", "YOU_LOSE"), SCREEN_HEIGHT * .30, 0);
 }
+#endif
 
 
 static void CG_TellTarget_f( void ) {

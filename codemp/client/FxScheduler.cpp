@@ -18,7 +18,7 @@ void CMediaHandles::operator=(const CMediaHandles &that )
 {
 	mMediaList.clear();
 
-	for ( int i = 0; i < that.mMediaList.size(); i++ )
+	for ( size_t i = 0; i < that.mMediaList.size(); i++ )
 	{
 		mMediaList.push_back( that.mMediaList[i] );
 	}
@@ -332,7 +332,7 @@ int CFxScheduler::RegisterEffect( const char *file, bool bHasCorrectPath /*= fal
 	}
 
 	// If we'll overflow our buffer, bail out--not a particularly elegant solution
-	if (len >= sizeof(data) - 1 )
+	if ((unsigned)len >= sizeof(data) - 1 )
 	{
 		theFxHelper.CloseFile( fh );
 		return 0;
@@ -1066,7 +1066,6 @@ bool gEffectsInPortal = qfalse; //this is just because I don't want to have to a
 void CFxScheduler::AddScheduledEffects( bool portal )
 {
 	TScheduledEffect::iterator	itr, next;
-	SScheduledEffect			*schedEffect = 0;
 	vec3_t						origin;
 	vec3_t						axis[3];
 	int							oldEntNum = -1, oldBoltIndex = -1, oldModelNum = -1;
@@ -1087,7 +1086,6 @@ void CFxScheduler::AddScheduledEffects( bool portal )
 	{
 		next = itr;
 		next++;
-		schedEffect = (*itr);
 
 		if (portal == (*itr)->mPortalEffect)
 		{ //only render portal fx on the skyportal pass and vice versa
@@ -1197,7 +1195,7 @@ void CFxScheduler::Draw2DEffects(float screenXScale, float screenYScale)
 		h *= screenYScale;
 
 		//allow 2d effect coloring?
-		re.DrawStretchPic(x - (w*0.5f), y - (h*0.5f), w, h, 0, 0, 1, 1, /*m2DEffects[i].mColor,*/ m2DEffects[i].mShaderHandle);
+		re->DrawStretchPic(x - (w*0.5f), y - (h*0.5f), w, h, 0, 0, 1, 1, /*m2DEffects[i].mColor,*/ m2DEffects[i].mShaderHandle);
 	}
 	// now that all 2D effects have been drawn we can consider the entire array to be free
 	mNextFree2DEffect = 0;
@@ -1251,7 +1249,9 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 		case Sound:
 		case CameraShake:
 			//does not work bolted
-				break;
+			break;
+		default:
+			break;
 		}
 	}
 

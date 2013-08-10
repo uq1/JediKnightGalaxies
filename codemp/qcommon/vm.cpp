@@ -27,6 +27,7 @@ int		vm_debugLevel;
 
 #define	MAX_VM		3
 vm_t	vmTable[MAX_VM];
+void	*vmHandlesToDelete[MAX_VM];
 
 void VM_VmInfo_f( void );
 void VM_VmProfile_f( void );
@@ -239,7 +240,6 @@ VM_LoadSymbols
 ===============
 */
 void VM_LoadSymbols( vm_t *vm ) {
-	int		len;
 	char	*mapfile, *token;
 	const	char *text_p;
 	char	name[MAX_QPATH];
@@ -258,7 +258,7 @@ void VM_LoadSymbols( vm_t *vm ) {
 
 	COM_StripExtension( vm->name, name, sizeof( name ) );
 	Com_sprintf( symbols, sizeof( symbols ), "vm/%s.map", name );
-	len = FS_ReadFile( symbols, (void **)&mapfile );
+	FS_ReadFile( symbols, (void **)&mapfile );
 	if ( !mapfile ) {
 		Com_Printf( "Couldn't load symbol file: %s\n", symbols );
 		return;
@@ -367,13 +367,12 @@ intptr_t QDECL VM_DllSyscall( intptr_t arg, ... ) {
 #if !id386 || defined __clang__ || defined MACOS_X
   // rcg010206 - see commentary above
   intptr_t args[16];
-  int i;
   va_list ap;
   
   args[0] = arg;
   
   va_start(ap, arg);
-  for (i = 1; i < ARRAY_LEN (args); i++)
+  for (size_t i = 1; i < ARRAY_LEN (args); i++)
     args[i] = va_arg(ap, intptr_t);
   va_end(ap);
   
@@ -393,9 +392,7 @@ This allows a server to do a map_restart without changing memory allocation
 */
 vm_t *VM_Restart( vm_t *vm ) {
 	vmHeader_t	*header;
-	int			length;
 	int			dataLength;
-	int			i;
 	char		filename[MAX_QPATH];
 
 	// DLL's can't be restarted in place
@@ -416,13 +413,13 @@ vm_t *VM_Restart( vm_t *vm ) {
 	Com_Printf( "VM_Restart()\n", filename );
 	Com_sprintf( filename, sizeof(filename), "vm/%s.qvm", vm->name );
 	Com_Printf( "Loading vm file %s.\n", filename );
-	length = FS_ReadFile( filename, (void **)&header );
+	FS_ReadFile( filename, (void **)&header );
 	if ( !header ) {
 		Com_Error( ERR_DROP, "VM_Restart failed.\n" );
 	}
 
 	// byte swap the header
-	for ( i = 0 ; i < sizeof( *header ) / 4 ; i++ ) {
+	for ( size_t i = 0 ; i < sizeof( *header ) / 4 ; i++ ) {
 		((int *)header)[i] = LittleLong( ((int *)header)[i] );
 	}
 
@@ -439,6 +436,7 @@ vm_t *VM_Restart( vm_t *vm ) {
 	// round up to next power of 2 so all data operations can
 	// be mask protected
 	dataLength = header->dataLength + header->litLength + header->bssLength;
+	int i;
 	for ( i = 0 ; dataLength > ( 1 << i ) ; i++ ) {
 	}
 	dataLength = 1 << i;
@@ -475,7 +473,6 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 				vmInterpret_t interpret ) {
 	vm_t		*vm;
 	vmHeader_t	*header;
-	int			length;
 	int			dataLength;
 	int			i;
 	char		filename[MAX_QPATH];
@@ -524,7 +521,7 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 	// load the image
 	Com_sprintf( filename, sizeof(filename), "vm/%s.qvm", vm->name );
 	Com_Printf( "Loading vm file %s.\n", filename );
-	length = FS_ReadFile( filename, (void **)&header );
+	FS_ReadFile( filename, (void **)&header );
 	if ( !header ) {
 		Com_Printf( "Failed.\n" );
 		VM_Free( vm );
@@ -532,7 +529,7 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 	}
 
 	// byte swap the header
-	for ( i = 0 ; i < sizeof( *header ) / 4 ; i++ ) {
+	for ( size_t i = 0 ; i < sizeof( *header ) / 4 ; i++ ) {
 		((int *)header)[i] = LittleLong( ((int *)header)[i] );
 	}
 
@@ -593,6 +590,41 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 	return vm;
 }
 
+/*
+==============
+VM_DelayedFree
+==============
+*/
+void VM_DelayedFree ( vm_t *vm )
+{
+	if ( !vm )
+	{
+		return;
+	}
+
+	ptrdiff_t index = vm - vmTable;
+	vmHandlesToDelete[index] = vm->dllHandle;
+
+	Com_Memset (vm, 0, sizeof (*vm));
+	currentVM = lastVM = NULL;
+}
+
+/*
+==============
+VM_FreeRemaining
+==============
+*/
+void VM_FreeRemaining()
+{
+	for ( int i = 0; i < MAX_VM; i++ )
+	{
+		if ( vmHandlesToDelete[i] != NULL )
+		{
+			Sys_UnloadDll (vmHandlesToDelete[i]);
+			vmHandlesToDelete[i] = NULL;
+		}
+	}
+}
 
 /*
 ==============
@@ -607,7 +639,6 @@ void VM_Free( vm_t *vm ) {
 
 	if ( vm->dllHandle ) {
 		Sys_UnloadDll( vm->dllHandle );
-		Com_Memset( vm, 0, sizeof( *vm ) );
 	}
 #if 0	// now automatically freed by hunk
 	if ( vm->codeBase ) {
@@ -654,8 +685,15 @@ void *VM_ArgPtr( intptr_t intValue ) {
 	}
 }
 
+float _vmf(intptr_t x)
+{
+	floatint_t fi;
+	fi.i = (int) x;
+	return fi.f;
+}
+
 extern vm_t *gvm;
-void *BotVMShift( int ptr )
+void *BotVMShift( intptr_t ptr )
 {
 	if ( !ptr )
 	{
@@ -714,7 +752,7 @@ void VM_Shifted_Alloc(void **ptr, int size)
 
 	//Alright, subtract the database from the memory pointer to get a memory address relative to the VM.
 	//When the VM modifies it it should be modifying the same chunk of memory we have allocated in the engine.
-	*ptr = (void *)((int)mem - (int)currentVM->dataBase);
+	*ptr = (void *)((intptr_t)mem - (intptr_t)currentVM->dataBase);
 }
 
 void VM_Shifted_Free(void **ptr)
@@ -728,7 +766,7 @@ void VM_Shifted_Free(void **ptr)
 	}
 
 	//Shift the VM memory pointer back to get the same pointer we initially allocated in real memory space.
-	mem = (void *)((int)currentVM->dataBase + (int)*ptr);
+	mem = (void *)((intptr_t)currentVM->dataBase + (intptr_t)*ptr);
 
 	if (!mem)
 	{
@@ -788,7 +826,6 @@ locals from sp
 intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... ) {
 	vm_t	*oldVM;
 	intptr_t	r;
-	int i;
 
 	if ( !vm || !vm->name[0] ) {
 		Com_Error( ERR_FATAL, "VM_Call with NULL vm" );
@@ -808,7 +845,7 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... ) {
 		int args[16];
 		va_list ap;
 		va_start(ap, callnum);
-		for (i = 0; i < ARRAY_LEN(args); i++) {
+		for (size_t i = 0; i < ARRAY_LEN(args); i++) {
 			args[i] = va_arg(ap, int);
 		}
 		va_end(ap);
@@ -939,6 +976,6 @@ void VM_LogSyscalls( int *args ) {
 		f = fopen("syscalls.log", "w" );
 	}
 	callnum++;
-	fprintf(f, "%i: %i (%i) = %i %i %i %i\n", callnum, args - (int *)currentVM->dataBase,
+	fprintf(f, "%i: %p (%i) = %i %i %i %i\n", callnum, (void*)(args - (int *)currentVM->dataBase),
 		args[0], args[1], args[2], args[3], args[4] );
 }

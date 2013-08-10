@@ -162,7 +162,11 @@ This is the only way control passes into the module.
 This must be the very first function compiled into the .q3vm file
 ================
 */
-/*Q_EXPORT_C*/ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  ) {
+// Promotes an integer to an intptr_t. It looks odd but
+// it gets around having to double-cast an integer in
+// vmMain below.
+intptr_t VMP ( int n ) { return (intptr_t)n; }
+Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  ) {
 	switch ( command ) {
 	case GAME_INIT:
 		G_InitGame( arg0, arg1, arg2 );
@@ -171,7 +175,7 @@ This must be the very first function compiled into the .q3vm file
 		G_ShutdownGame( arg0 );
 		return 0;
 	case GAME_CLIENT_CONNECT:
-		return (int)ClientConnect( arg0, arg1, arg2 );
+		return (intptr_t)ClientConnect( arg0, arg1, arg2 );
 	case GAME_CLIENT_THINK:
 		ClientThink( arg0, NULL );
 		return 0;
@@ -195,7 +199,7 @@ This must be the very first function compiled into the .q3vm file
 	case BOTAI_START_FRAME:
 		return BotAIStartFrame( arg0 );
 	case GAME_ROFF_NOTETRACK_CALLBACK:
-		G_ROFF_NotetrackCallback( &g_entities[arg0], (const char *)arg1 );
+		G_ROFF_NotetrackCallback( &g_entities[arg0], (const char *)VMP(arg1) );
 		return 0;
 	case GAME_SPAWN_RMG_ENTITY:
 		if (G_ParseSpawnVars(qfalse))
@@ -320,11 +324,11 @@ This must be the very first function compiled into the .q3vm file
 	//rww - end icarus callbacks
 
 	case GAME_NAV_CLEARPATHTOPOINT:
-		return NAV_ClearPathToPoint(&g_entities[arg0], (float *)arg1, (float *)arg2, (float *)arg3, arg4, arg5);
+		return NAV_ClearPathToPoint(&g_entities[arg0], (float *)VMP(arg1), (float *)VMP(arg2), (float *)VMP(arg3), arg4, arg5);
 	case GAME_NAV_CLEARLOS:
-		return NPC_ClearLOS2(&g_entities[arg0], (const float *)arg1);
+		return NPC_ClearLOS2(&g_entities[arg0], (const float *)VMP(arg1));
 	case GAME_NAV_CLEARPATHBETWEENPOINTS:
-		return NAVNEW_ClearPathBetweenPoints((float *)arg0, (float *)arg1, (float *)arg2, (float *)arg3, arg4, arg5);
+		return NAVNEW_ClearPathBetweenPoints((float *)VMP(arg0), (float *)VMP(arg1), (float *)VMP(arg2), (float *)VMP(arg3), arg4, arg5);
 	case GAME_NAV_CHECKNODEFAILEDFORENT:
 		return NAV_CheckNodeFailedForEnt(&g_entities[arg0], arg1);
 	case GAME_NAV_ENTISUNLOCKEDDOOR:
@@ -669,6 +673,10 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// even if they aren't all used, so numbers inside that
 	// range are NEVER anything but clients
 	level.num_entities = MAX_CLIENTS;
+
+	for ( i=0 ; i<MAX_CLIENTS ; i++ ) {
+		g_entities[i].classname = "clientslot";
+	}
 
 	// let the server system know where the entites are
 	trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ), 
@@ -2000,7 +2008,7 @@ void LogExit( const char *string ) {
 
 		ping = cl->ps.ping < 999 ? cl->ps.ping : 999;
 
-		G_LogPrintf( "score: %i  ping: %i  client: %i %s\n", cl->ps.persistant[PERS_SCORE], ping, level.sortedClients[i],	cl->pers.netname );
+		G_LogPrintf( "score: %i  ping: %i  client: [%s] %i \"%s^7\"\n", cl->ps.persistant[PERS_SCORE], ping, cl->pers.guid, level.sortedClients[i], cl->pers.netname );
 //		if (g_singlePlayer.integer && (level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL)) {
 //			if (g_entities[cl - level.clients].r.svFlags & SVF_BOT && cl->ps.persistant[PERS_RANK] == 0) {
 //				won = qfalse;

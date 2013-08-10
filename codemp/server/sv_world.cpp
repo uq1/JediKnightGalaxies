@@ -231,7 +231,7 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 
 		if (gEnt->s.solid == SOLID_BMODEL)
 		{ //yikes, this would make everything explode violently.
-			gEnt->s.solid = (k<<16) | (j<<8) | i-1;
+			gEnt->s.solid = (k<<16) | (j<<8) | (i-1);
 		}
 	}
 	else
@@ -372,9 +372,6 @@ SV_AreaEntities_r
 void SV_AreaEntities_r( worldSector_t *node, areaParms_t *ap ) {
 	svEntity_t	*check, *next;
 	sharedEntity_t *gcheck;
-	int			count;
-
-	count = 0;
 
 	for ( check = node->entities  ; check ; check = next ) {
 		next = check->nextEntityInWorldSector;
@@ -517,7 +514,9 @@ static float VectorDistance(vec3_t p1, vec3_t p2)
 	return VectorLength(dir);
 }
 #endif
+#ifdef _MSC_VER
 #pragma warning(disable : 4701) //local variable used without having been init
+#endif
 static void SV_ClipMoveToEntities( moveclip_t *clip ) {
 	static int	touchlist[MAX_GENTITIES];
 	int			i, num;
@@ -740,11 +739,11 @@ Ghoul2 Insert Start
 				touch->s.NPC_class == CLASS_VEHICLE &&
 				touch->m_pVehicle)
 			{ //for vehicles cache the transform data.
-				re.G2API_CollisionDetectCache(G2Trace, *((CGhoul2Info_v *)touch->ghoul2), angles, touch->r.currentOrigin, svs.time, touch->s.number, clip->start, clip->end, touch->modelScale, G2VertSpaceServer, 0, clip->useLod, fRadius);
+				re->G2API_CollisionDetectCache(G2Trace, *((CGhoul2Info_v *)touch->ghoul2), angles, touch->r.currentOrigin, svs.time, touch->s.number, clip->start, clip->end, touch->modelScale, G2VertSpaceServer, 0, clip->useLod, fRadius);
 			}
 			else
 			{
-				re.G2API_CollisionDetect(G2Trace, *((CGhoul2Info_v *)touch->ghoul2), angles, touch->r.currentOrigin, svs.time, touch->s.number, clip->start, clip->end, touch->modelScale, G2VertSpaceServer, 0, clip->useLod, fRadius);
+				re->G2API_CollisionDetect(G2Trace, *((CGhoul2Info_v *)touch->ghoul2), angles, touch->r.currentOrigin, svs.time, touch->s.number, clip->start, clip->end, touch->modelScale, G2VertSpaceServer, 0, clip->useLod, fRadius);
 			}
 
 			tN = 0;
@@ -786,7 +785,9 @@ Ghoul2 Insert End
 */
 	}
 }
+#ifdef _MSC_VER
 #pragma warning(default : 4701) //local variable used without having been init
+#endif
 
 /*
 ==================

@@ -74,6 +74,28 @@ void Sys_SetEnv(const char *name, const char *value)
 		unsetenv(name);
 }
 
+/*
+==================
+Sys_RandomBytes
+==================
+*/
+qboolean Sys_RandomBytes( byte *string, int len )
+{
+	FILE *fp;
+
+	fp = fopen( "/dev/urandom", "r" );
+	if( !fp )
+		return qfalse;
+
+	if( !fread( string, sizeof( byte ), len, fp ) )
+	{
+		fclose( fp );
+		return qfalse;
+	}
+
+	fclose( fp );
+	return qtrue;
+}
 
 /*
 ==================
@@ -195,10 +217,6 @@ sysEvent_t Sys_GetEvent( void ) {
 		return eventQue[ ( eventTail - 1 ) & MASK_QUED_EVENTS ];
 	}
 
-	// pump the message loop
-	// in vga this calls KBD_Update, under X, it calls GetEvent
-	Sys_SendKeyEvents ();
-
 	// check for console commands
 	s = Sys_ConsoleInput();
 	if ( s ) {
@@ -210,9 +228,6 @@ sysEvent_t Sys_GetEvent( void ) {
 		strcpy( b, s );
 		Sys_QueEvent( 0, SE_CONSOLE, 0, 0, len, b );
 	}
-
-	// check for other input devices
-	IN_Frame();
 
 	// check for network packets
 	MSG_Init( &netmsg, sys_packetReceived, sizeof( sys_packetReceived ) );
@@ -243,11 +258,20 @@ sysEvent_t Sys_GetEvent( void ) {
 }
 
 /*
+==============================================================
+
+DIRECTORY SCANNING
+
+==============================================================
+*/
+
+#define MAX_FOUND_FILES 0x1000
+
+/*
 ==================
 Sys_ListFiles
 ==================
 */
-#define	MAX_FOUND_FILES	0x1000
 void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, char **list, int *numfiles ) {
 	char		search[MAX_OSPATH], newsubdirs[MAX_OSPATH];
 	char		filename[MAX_OSPATH];
@@ -302,18 +326,14 @@ void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, ch
 char **Sys_ListFiles( const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs )
 {
 	struct dirent *d;
-	// char *p; // bk001204 - unused
 	DIR		*fdir;
 	qboolean dironly = wantsubs;
 	char		search[MAX_OSPATH];
 	int			nfiles;
 	char		**listCopy;
 	char		*list[MAX_FOUND_FILES];
-	//int			flag; // bk001204 - unused
 	int			i;
 	struct stat st;
-
-	int			extLen;
 
 	if (filter) {
 
@@ -326,7 +346,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		if (!nfiles)
 			return NULL;
 
-		listCopy = (char **)Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ),TAG_FILESYS,qfalse );
+		listCopy = (char **)Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ), TAG_FILESYS, qfalse );
 		for ( i = 0 ; i < nfiles ; i++ ) {
 			listCopy[i] = list[i];
 		}
@@ -343,7 +363,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		dironly = qtrue;
 	}
 
-	extLen = strlen( extension );
+	size_t extLen = strlen( extension );
 
 	// search
 	nfiles = 0;
@@ -362,9 +382,9 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 			continue;
 
 		if (*extension) {
-			if ( strlen( d->d_name ) < strlen( extension ) ||
+			if ( strlen( d->d_name ) < extLen ||
 				Q_stricmp(
-					d->d_name + strlen( d->d_name ) - strlen( extension ),
+					d->d_name + strlen( d->d_name ) - extLen,
 					extension ) ) {
 				continue; // didn't match
 			}
@@ -396,18 +416,18 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 	return listCopy;
 }
 
-void	Sys_FreeFileList( char **list ) {
+void	Sys_FreeFileList( char **fileList ) {
 	int		i;
 
-	if ( !list ) {
+	if ( !fileList ) {
 		return;
 	}
 
-	for ( i = 0 ; list[i] ; i++ ) {
-		Z_Free( list[i] );
+	for ( i = 0 ; fileList[i] ; i++ ) {
+		Z_Free( fileList[i] );
 	}
 
-	Z_Free( list );
+	Z_Free( fileList );
 }
 
 /*
@@ -474,6 +494,28 @@ char *Sys_Cwd( void )
 	cwd[MAX_OSPATH-1] = 0;
 
 	return cwd;
+}
+
+/* Resolves path names and determines if they are the same */
+/* For use with full OS paths not quake paths */
+/* Returns true if resulting paths are valid and the same, otherwise false */
+bool Sys_PathCmp( const char *path1, const char *path2 )
+{
+	char *r1, *r2;
+
+	r1 = realpath(path1, NULL);
+	r2 = realpath(path2, NULL);
+
+	if(r1 && r2 && !Q_stricmp(r1, r2))
+	{
+		free(r1);
+		free(r2);
+		return true;
+	}
+
+	free(r1);
+	free(r2);
+	return false;
 }
 
 void Sys_ShowConsole( int visLevel, qboolean quitOnClose )

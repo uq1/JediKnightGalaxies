@@ -18,7 +18,7 @@
 
 
 #include "../qcommon/q_shared.h"
-#include "../renderer/tr_types.h"
+#include "../rd-common/tr_types.h"
 #include "keycodes.h"
 
 #include "../../JKGalaxies/ui/menudef.h"

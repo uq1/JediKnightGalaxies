@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.8)
 
 # Make sure the user is not executing this script directly
 if(NOT InOpenJK)
@@ -8,8 +8,6 @@ endif(NOT InOpenJK)
 set(SPGameIncludeDirectories "${SPDir}/game")
 if(WIN32)
 	set(SPGameLibraries "winmm")
-else(WIN32)
-	message("code/game/CMakeLists.txt might need some libraries to link properly on your platform.")
 endif(WIN32)
 # TODO do we actually want _IMMERSION? I thought we don't have those files?
 set(SPGameDefines ${SharedDefines} "_IMMERSION" "_NO_PCH")
@@ -98,8 +96,6 @@ set(SPGameGameFiles
 	"${SPDir}/game/NPC_stats.cpp"
 	"${SPDir}/game/NPC_utils.cpp"
 	"${SPDir}/game/Q3_Interface.h"
-	"${SPDir}/game/q_math.cpp"
-	"${SPDir}/game/q_shared.cpp"
 	"${SPDir}/game/wp_atst.cpp"
 	"${SPDir}/game/wp_blaster_pistol.cpp"
 	"${SPDir}/game/wp_blaster_rifle.cpp"
@@ -160,7 +156,6 @@ set(SPGameGameFiles
 	"${SPDir}/game/hitlocs.h"
 	"${SPDir}/game/npc_headers.h"
 	"${SPDir}/game/objectives.h"
-	"${SPDir}/game/q_shared.h"
 	"${SPDir}/game/say.h"
 	"${SPDir}/game/statindex.h"
 	"${SPDir}/game/surfaceflags.h"
@@ -245,6 +240,9 @@ set(SPGameCommonFiles
 	"${SPDir}/qcommon/sstring.h"
 	"${SPDir}/qcommon/tags.h"
 	"${SPDir}/qcommon/timing.h"
+	"${SPDir}/qcommon/q_math.cpp"
+	"${SPDir}/qcommon/q_shared.cpp"
+	"${SPDir}/qcommon/q_shared.h"
 	)
 source_group("common" FILES ${SPGameCommonFiles})
 set(SPGameFiles ${SPGameFiles} ${SPGameCommonFiles})
@@ -361,6 +359,7 @@ set_target_properties(${SPGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${SPG
 set_target_properties(${SPGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${SPGameDefines};${ReleaseDefines}")
 set_target_properties(${SPGame} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${SPGameDefines};${DebugDefines}")
 set_target_properties(${SPGame} PROPERTIES INCLUDE_DIRECTORIES "${SPGameIncludeDirectories}")
+set_target_properties(${SPGame} PROPERTIES PROJECT_LABEL "SP Game Library")
 # no libraries used
 if(SPGameLibraries)
 	target_link_libraries(${SPGame} ${SPGameLibraries})

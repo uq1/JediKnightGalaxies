@@ -10,7 +10,6 @@
 #ifndef _WIN32
 #include <algorithm>
 #include <string>
-#include "qcommon/platform.h"
 #endif
 
 // Open AL
@@ -703,10 +702,9 @@ static sboolean S_LoadSound_DirIsAllowedToKeepMP3s(const char *psFilename)
 //		"sound/chr_d/"	// no need for this now, or any other language, since we'll always compare against english
 	};
 
-	int i;
-	for (i=0; i< (sizeof(psAllowedDirs) / sizeof(psAllowedDirs[0])); i++)
+	for (size_t i=0; i< (sizeof(psAllowedDirs) / sizeof(psAllowedDirs[0])); i++)
 	{
-		if (strnicmp(psFilename, psAllowedDirs[i], strlen(psAllowedDirs[i]))==0)
+		if (Q_stricmpn(psFilename, psAllowedDirs[i], strlen(psAllowedDirs[i]))==0)
 			return qtrue;	// found a dir that's allowed to keep MP3s
 	}
 
@@ -732,7 +730,6 @@ static sboolean S_LoadSound_Actual( sfx_t *sfx )
 	int		size;
 	char	*psExt;
 	char	sLoadName[MAX_QPATH];
-	ALuint  Buffer;
 	
 	int		len = strlen(sfx->sSoundName);
 	if (len<5)
@@ -774,7 +771,7 @@ static sboolean S_LoadSound_Actual( sfx_t *sfx )
 	SND_TouchSFX(sfx);
 
 //=========
-	if (strnicmp(psExt,".mp3",4)==0)
+	if (Q_stricmpn(psExt,".mp3",4)==0)
 	{
 		// load MP3 file instead...
 		//		
@@ -789,6 +786,7 @@ static sboolean S_LoadSound_Actual( sfx_t *sfx )
 			{
 //				Com_DPrintf("(Keeping file \"%s\" as MP3)\n",sLoadName);
 
+#ifdef _WIN32
 				if (s_UseOpenAL)
 				{
 					// Create space for lipsync data (4 lip sync values per streaming AL buffer)
@@ -797,6 +795,7 @@ static sboolean S_LoadSound_Actual( sfx_t *sfx )
 					else
 						sfx->lipSyncData = NULL;
 				}
+#endif
 			}
 			else
 			{
@@ -831,6 +830,7 @@ static sboolean S_LoadSound_Actual( sfx_t *sfx )
 						S_LoadSound_Finalize(&info,sfx,pbUnpackBuffer);
 
 						// Open AL
+#ifdef _WIN32
 						if (s_UseOpenAL)
 						{
 							if ((strstr(sfx->sSoundName, "chars")) || (strstr(sfx->sSoundName, "CHARS")))
@@ -845,6 +845,7 @@ static sboolean S_LoadSound_Actual( sfx_t *sfx )
 							alGetError();
 
 							// Generate AL Buffer
+                            ALuint Buffer;
 							alGenBuffers(1, &Buffer);
 							if (alGetError() == AL_NO_ERROR)
 							{
@@ -858,6 +859,7 @@ static sboolean S_LoadSound_Actual( sfx_t *sfx )
 								}
 							}
 						}
+#endif
 
 						Z_Free(pbUnpackBuffer);
 					}
@@ -901,6 +903,7 @@ static sboolean S_LoadSound_Actual( sfx_t *sfx )
 		ResampleSfx( sfx, info.rate, info.width, data + info.dataofs );
 
 		// Open AL
+#ifdef _WIN32
 		if (s_UseOpenAL)
 		{
 			if ((strstr(sfx->sSoundName, "chars")) || (strstr(sfx->sSoundName, "CHARS")))
@@ -915,6 +918,7 @@ static sboolean S_LoadSound_Actual( sfx_t *sfx )
 			alGetError();
 
 			// Generate AL Buffer
+            ALuint Buffer;
 			alGenBuffers(1, &Buffer);
 			if (alGetError() == AL_NO_ERROR)
 			{
@@ -929,6 +933,7 @@ static sboolean S_LoadSound_Actual( sfx_t *sfx )
 				}
 			}
 		}
+#endif
 
 		Z_Free(samples);
 	}

@@ -199,7 +199,7 @@ Ghoul2 Insert End
 	UI_JKG_CHANGEPROTOCOL,
 } uiImport_t;
 
-typedef enum {
+enum {
 	UIMENU_NONE,
 	UIMENU_MAIN,
 	UIMENU_INGAME,

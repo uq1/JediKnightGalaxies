@@ -371,7 +371,8 @@ LONG WINAPI MainWndProc (
 		vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
 		sr_fullscreen = Cvar_Get ("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_LATCH );
 
-		MSH_MOUSEWHEEL = RegisterWindowMessage("MSWHEEL_ROLLMSG"); 
+		MSH_MOUSEWHEEL = RegisterWindowMessage("MSWHEEL_ROLLMSG");
+#if 0
 		if ( sr_fullscreen->integer )
 		{
 			WIN_DisableAltTab();
@@ -380,6 +381,7 @@ LONG WINAPI MainWndProc (
 		{
 			WIN_EnableAltTab();
 		}
+#endif
 
 		break;
 #if 0
@@ -484,6 +486,22 @@ LONG WINAPI MainWndProc (
 				temp |= 16;
 
 			IN_MouseEvent (temp);
+		}
+		break;
+
+	case WM_INPUT:
+		{
+			RAWINPUT raw;
+			size_t rawSize = sizeof(raw);
+
+			GetRawInputData( (HRAWINPUT) lParam, RID_INPUT, &raw, &rawSize, sizeof(RAWINPUTHEADER) );
+
+			if ( raw.header.dwType == RIM_TYPEMOUSE )
+			{
+				LONG xPosRelative = raw.data.mouse.lLastX;
+				LONG yPosRelative = raw.data.mouse.lLastY;
+				IN_RawMouseEvent( xPosRelative, yPosRelative );
+			}
 		}
 		break;
 

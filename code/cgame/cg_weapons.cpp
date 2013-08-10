@@ -96,7 +96,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 		gi.G2API_PrecacheGhoul2Model( weaponModel ); // correct way is item->world_model
 	}
 
-	if ( weaponInfo->weaponModel == NULL )
+	if ( weaponInfo->weaponModel == 0 )
 	{
 		CG_Error( "Couldn't find weapon model %s for weapon %s\n", weaponData[weaponNum].weaponMdl, weaponData[weaponNum].classname);
 		return;
@@ -208,11 +208,11 @@ void CG_RegisterWeapon( int weaponNum ) {
 	// give ourselves the functions if we can
 	if (weaponData[weaponNum].func)
 	{
-		weaponInfo->missileTrailFunc = (void (__cdecl *)(struct centity_s *,const struct weaponInfo_s *))weaponData[weaponNum].func;
+		weaponInfo->missileTrailFunc = (void (*)(struct centity_s *,const struct weaponInfo_s *))weaponData[weaponNum].func;
 	}
 	if (weaponData[weaponNum].altfunc)
 	{
-		weaponInfo->alt_missileTrailFunc = (void (__cdecl *)(struct centity_s *,const struct weaponInfo_s *))weaponData[weaponNum].altfunc;
+		weaponInfo->alt_missileTrailFunc = (void (*)(struct centity_s *,const struct weaponInfo_s *))weaponData[weaponNum].altfunc;
 	}
 
 	switch ( weaponNum )	//extra client only stuff
@@ -224,10 +224,10 @@ void CG_RegisterWeapon( int weaponNum ) {
 		theFxScheduler.RegisterEffect( "force/force_touch" );
 		theFxScheduler.RegisterEffect( "saber/saber_block" );
 		theFxScheduler.RegisterEffect( "saber/saber_cut" );
-		theFxScheduler.RegisterEffect( "saber/limb_bolton" );
+		//theFxScheduler.RegisterEffect( "saber/limb_bolton" );
 		theFxScheduler.RegisterEffect( "saber/fizz" );
 		theFxScheduler.RegisterEffect( "saber/boil" );
-		theFxScheduler.RegisterEffect( "saber/fire" );//was "sparks/spark"
+		//theFxScheduler.RegisterEffect( "saber/fire" );//was "sparks/spark"
 
 		cgs.effects.forceHeal			= theFxScheduler.RegisterEffect( "force/heal" );
 		//cgs.effects.forceInvincibility	= theFxScheduler.RegisterEffect( "force/invin" );
@@ -635,7 +635,7 @@ void CG_RegisterItemVisuals( int itemNum ) {
 
 	item = &bg_itemlist[ itemNum ];
 
-	memset( itemInfo, 0, sizeof( &itemInfo ) );
+	memset( itemInfo, 0, sizeof( *itemInfo ) );
 	itemInfo->registered = qtrue;
 
 	itemInfo->models = cgi_R_RegisterModel( item->world_model );
@@ -1403,7 +1403,7 @@ int CG_WeaponCheck( int weaponIndex )
 
 int cgi_UI_GetItemText(char *menuFile,char *itemName, char *text);
 
-char *weaponDesc[13] = 
+const char *weaponDesc[13] = 
 {
 "SABER_DESC",
 "NEW_BLASTER_PISTOL_DESC",
@@ -1662,14 +1662,14 @@ void CG_DrawDataPadWeaponSelect( void )
 	// Print the weapon description
 	cgi_SP_GetStringTextString( va("SP_INGAME_%s",weaponDesc[cg.DataPadWeaponSelect-1]), text, sizeof(text) );
 
-	const short textboxXPos = 40;
-	const short textboxYPos = 60;
-	const int	textboxWidth = 560;
-	const int	textboxHeight = 300;
-	const float	textScale = 1.0f;
-
-	if (text)
+	if (text[0])
 	{
+		const short textboxXPos = 40;
+		const short textboxYPos = 60;
+		const int	textboxWidth = 560;
+		const int	textboxHeight = 300;
+		const float	textScale = 1.0f;
+
 		CG_DisplayBoxedText(
 			textboxXPos, textboxYPos,
 			textboxWidth, textboxHeight,
@@ -1784,14 +1784,6 @@ void CG_DrawWeaponSelect( void )
 	{
 		return; 
 	}
-
-#ifdef _XBOX
-	if(CL_ExtendSelectTime()) {
-		cg.weaponSelectTime = cg.time;
-	}
-
-	yOffset = -36;
-#endif
 
 	cg.iconSelectTime = cg.weaponSelectTime;
 

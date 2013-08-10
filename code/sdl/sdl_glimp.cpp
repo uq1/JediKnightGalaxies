@@ -1,11 +1,11 @@
 #include <SDL.h>
-#include "../game/q_shared.h"
+#include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
 #include "../rd-vanilla/tr_local.h"
 #include "sdl_qgl.h"
 #include "../sys/sys_local.h"
 
-static SDL_Window *window = NULL;
+//static SDL_Window *window = NULL;
 
 static float displayAspect;
 cvar_t *r_allowSoftwareGL; // Don't abort out if a hardware visual can't be obtained
@@ -23,7 +23,7 @@ typedef enum
 } rserr_t;
 
 static SDL_Window *screen = NULL;
-static SDL_DisplayMode *videoInfo = NULL;
+//static SDL_DisplayMode *videoInfo = NULL;
 
 /* Just hack it for now. */
 #ifdef MACOS_X
@@ -90,6 +90,18 @@ void ( APIENTRY * qglPointParameterfvEXT)( GLenum param, GLfloat *value );
 
 void ( * qglLockArraysEXT)( int, int);
 void ( * qglUnlockArraysEXT) ( void );
+
+/*
+===============
+GLimp_Minimize
+
+Minimize the game so that user is back at the desktop
+===============
+*/
+void GLimp_Minimize(void)
+{
+	SDL_MinimizeWindow( screen );
+}
 
 void		GLimp_EndFrame( void )
 {
@@ -195,7 +207,7 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 	const char *glstring;
 	int perChannelColorBits;
 	int colorBits, depthBits, stencilBits;
-	int samples;
+	//int samples;
 	int i = 0;
 	SDL_Surface *icon = NULL;
 	Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
@@ -747,7 +759,6 @@ GLimp_StartDriverAndSetMode
 */
 static qboolean GLimp_StartDriverAndSetMode(int mode, qboolean fullscreen, qboolean noborder)
 {
-	int i;
 	rserr_t err;
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
@@ -819,15 +830,6 @@ SDL_SetGamma(SDL_Window *win, float red, float green, float blue)
         SDL_CalculateGammaRamp(blue, blue_ramp);
     }
     return SDL_SetWindowGammaRamp(win, red_ramp, green_ramp, blue_ramp);
-}
-
-static qboolean GLimp_HaveExtension(const char *ext)
-{
-	const char *ptr = Q_stristr( glConfig.extensions_string, ext );
-	if (ptr == NULL)
-		return qfalse;
-	ptr += strlen(ext);
-	return (qboolean)(((*ptr == ' ') || (*ptr == '\0')));  // verify it's complete string.
 }
 
 static void GLW_InitTextureCompression( void )
@@ -995,10 +997,10 @@ static void GLimp_InitExtensions( void )
 		{
 			Com_Printf ("...ignoring GL_EXT_texture_filter_anisotropic\n" );
 		}
-		ri.Cvar_Set( "r_ext_texture_filter_anisotropic_avail", va("%f",glConfig.maxTextureFilterAnisotropy) );
+		ri.Cvar_SetValue( "r_ext_texture_filter_anisotropic_avail", glConfig.maxTextureFilterAnisotropy );
 		if ( r_ext_texture_filter_anisotropic->value > glConfig.maxTextureFilterAnisotropy )
 		{
-			ri.Cvar_Set( "r_ext_texture_filter_anisotropic", va("%f",glConfig.maxTextureFilterAnisotropy) );
+			ri.Cvar_SetValue( "r_ext_texture_filter_anisotropic_avail", glConfig.maxTextureFilterAnisotropy );
 		}
 	}
 	else
@@ -1087,7 +1089,7 @@ static void GLimp_InitExtensions( void )
 
 	if ( strstr( glConfig.extensions_string, "GL_EXT_point_parameters" ) )
 	{
-		if ( r_ext_compiled_vertex_array->integer || 1)
+		if ( r_ext_compiled_vertex_array->integer )
 		{
 			Com_Printf ("...using GL_EXT_point_parameters\n" );
 			qglPointParameterfEXT = ( void ( APIENTRY * )( GLenum, GLfloat) ) SDL_GL_GetProcAddress( "glPointParameterfEXT" );
@@ -1256,8 +1258,8 @@ static void GLimp_InitExtensions( void )
 
 	// Figure out which texture rectangle extension to use.
 	bool bTexRectSupported = false;
-	if ( strnicmp( glConfig.vendor_string, "ATI Technologies",16 )==0
-		&& strnicmp( glConfig.version_string, "1.3.3",5 )==0
+	if ( Q_stricmpn( glConfig.vendor_string, "ATI Technologies",16 )==0
+		&& Q_stricmpn( glConfig.version_string, "1.3.3",5 )==0
 		&& glConfig.version_string[5] < '9' ) //1.3.34 and 1.3.37 and 1.3.38 are broken for sure, 1.3.39 is not
 	{
 		g_bTextureRectangleHack = true;
@@ -1393,7 +1395,7 @@ void		GLimp_EnableLogging( qboolean enable )
 {
 }
 
-void 		GLimp_LogComment( char *comment )
+void 		GLimp_LogComment( const char *comment )
 {
 }
 

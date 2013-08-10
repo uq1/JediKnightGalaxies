@@ -631,6 +631,8 @@ typedef struct {
 	int			customteam;					// Enables icons above the player's heads, for games like the arena
 
 	int			vote, teamvote; // 0 = none, 1 = yes, 2 = no
+
+	char		guid[33];
 } clientPersistant_t;
 
 typedef struct renderInfo_s
@@ -1844,7 +1846,7 @@ extern gentity_t		g_entities[MAX_ENTITIESTOTAL];
 extern gentity_t		*g_logicalents;
 extern KeyPairSet_t		g_spawnvars[MAX_ENTITIESTOTAL];
 
-#define	FOFS(x) ((size_t)&(((gentity_t *)0)->x))
+#define	FOFS(x) offsetof(gentity_t, x)
 
 void	trap_Print( const char *fmt );
 void	trap_Error( const char *fmt );

@@ -1,9 +1,7 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 // tr_shade_calc.c
 
 #include "tr_local.h"
+#include "../rd-common/tr_common.h"
 
 
 #define	WAVEVALUE( table, base, amplitude, phase, freq )  ((base) + table[ Q_ftol( ( ( (phase) + tess.shaderTime * (freq) ) * FUNCTABLE_SIZE ) ) & FUNCTABLE_MASK ] * (amplitude))
@@ -36,7 +34,6 @@ static float *TableForFunc( genFunc_t func )
 **
 ** Evaluates a given waveForm_t, referencing backEnd.refdef.time directly
 */
-extern float GetNoiseTime( int t ); //from tr_noise, returns 0 to 2
 static float EvalWaveForm( const waveForm_t *wf ) 
 {
 	float	*table;
@@ -544,8 +541,8 @@ static void Autosprite2Deform( void ) {
 			// we need to see which direction this edge
 			// is used to determine direction of projection
 			for ( k = 0 ; k < 5 ; k++ ) {
-				if ( tess.indexes[ indexes + k ] == i + edgeVerts[nums[j]][0]
-					&& tess.indexes[ indexes + k + 1 ] == i + edgeVerts[nums[j]][1] ) {
+				if ( tess.indexes[ indexes + k ] == (unsigned)(i + edgeVerts[nums[j]][0])
+					&& tess.indexes[ indexes + k + 1 ] == (unsigned)(i + edgeVerts[nums[j]][1]) ) {
 					break;
 				}
 			}
@@ -665,7 +662,7 @@ void RB_CalcColorFromOneMinusEntity( unsigned char *dstColors )
 
 	for ( i = 0; i < tess.numVertexes; i++, pColors++ )
 	{
-		*pColors = * ( int * ) invModulate;
+		*pColors = c;
 	}
 }
 

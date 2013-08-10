@@ -2297,6 +2297,8 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	char		userinfo[MAX_INFO_STRING];
 	gentity_t	*ent;
 	gentity_t	*te;
+				tmpIP[NET_ADDRSTRMAXLEN] = {0},
+				guid[33] = {0};
 	char *luaresp;
 	const char *banreason;
 	char tmpIP[NET_ADDRSTRMAXLEN] = {0};
@@ -2313,6 +2315,14 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	// Which causes the server to kick and ban the client after 1 second
 
 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
+
+	value = Info_ValueForKey( userinfo, "ja_guid" );
+	if( value[0] )
+		Q_strncpyz( guid, value, sizeof( guid ) );
+	else if( isBot )
+		Q_strncpyz( guid, "BOT", sizeof( guid ) );
+	else
+		Q_strncpyz( guid, "NOGUID", sizeof( guid ) );
 
 	// check to see if they are on the banned IP list
 	//value = Info_ValueForKey (userinfo, "ip");
@@ -2380,8 +2390,8 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	}
 
 	// they can connect
-	ent->client = level.clients + clientNum;
-	client = ent->client;
+	client = &level.clients[ clientNum ];
+	ent->client = client;
 
 	//assign the pointer for bg entity access
 	ent->playerState = &ent->client->ps;
@@ -2394,9 +2404,9 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 		g_dontPenalizeTeam = qfalse;
 	}
 
-//	areabits = client->areabits;
-
 	memset( client, 0, sizeof(*client) );
+
+	Q_strncpyz( client->pers.guid, guid, sizeof( client->pers.guid ) );
 
 	client->pers.connected = CON_CONNECTING;
 	client->pers.connectTime = level.time; //JAC: Added
@@ -2437,10 +2447,8 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 		return luaresp;
 	}
 
-	// get and distribute relevent paramters
+	G_LogPrintf( "ClientConnect: %i [%s] (%s) \"%s^7\"\n", clientNum, tmpIP, guid, client->pers.netname );
 	// FIXME:
-	//G_LogPrintf( "ClientConnect: %i. IP: %s\n", clientNum, isBot ? "Bot" : NET_AdrToString(svs->clients[clientNum].netchan.remoteAddress) );
-	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 	ClientUserinfoChanged( clientNum );
 
 	// don't do the "xxx connected" messages if they were caried over from previous level
@@ -4012,7 +4020,7 @@ void ClientDisconnect( int clientNum ) {
 		TossClientItems( ent );
 	}
 
-	G_LogPrintf( "ClientDisconnect: %i\n", clientNum );
+	G_LogPrintf( "ClientDisconnect: %i [%s] (%s) \"%s^7\"\n", clientNum, ent->client->sess.IP, ent->client->pers.guid, ent->client->pers.netname );
 
 	// if we are playing in tourney mode, give a win to the other player and clear his frags for this round
 	if ( (level.gametype == GT_DUEL )

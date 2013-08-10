@@ -1,34 +1,48 @@
 # JACoders "OpenJK" project #
-IRC: irc.arloria.net / #JACoders ([webchat](http://www.arloria.net/tiramisu/tiramisu.swf?channels=#jacoders))
+IRC: irc.arloria.net / #JACoders ([webchat](http://unic0rn.github.io/tiramisu/jacoders/))
 
-The purpose of this project is to maintain and improve the Jedi Academy and Jedi Outcast games, developed by Raven Software.
-This project will not attempt to rebalance or otherwise modify core gameplay aspects.
+Forum: http://jkhub.org/forum/51-discussion/
+
+The purpose of this project is to maintain and improve the Jedi Academy and Jedi Outcast games, developed by Raven Software. This project does not attempt to rebalance or otherwise modify core gameplay.
+
+Major enhancement changes are very low priority at this time unless patches are made available and which do not alter the core functionality of gameplay or the stock renderer itself.
+
+Please use discrection when making issue requests on github. The [JKHub sub-forum](http://jkhub.org/forum/51-discussion/) is a better place for larger discussions on changes that aren't actually bugs.
+
+## 64-Bit Support (lack there-of)
+
+64-bit is currently limited and still requires a number of changes before being complete. If you would like to submit pull request to correct this in part or in full, please feel free to do so as it would be appreciated.
 
 ## Installation ##
 
-First, install Jedi Academy. If you don't already own the game you can buy it from either [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN) or [Play](http://www.play.com/Games/PC/4-/127805/Star-Wars-Jedi-Knight-Jedi-Academy/Product.html?searchstring=jedi+academy&searchsource=0&searchtype=allproducts&urlrefer=search).
-
-Then point the OpenJK installer to the GameData folder in the Jedi Academy install, e.g.  just point it to your "Jedi Academy/GameData" folder. If you've downloaded an archive, just unpack it to GameData.
+First, install Jedi Academy. If you don't already own the game you can buy it from online stores such as [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN) or [Play](http://www.play.com/Games/PC/4-/127805/Star-Wars-Jedi-Knight-Jedi-Academy/Product.html?searchstring=jedi+academy&searchsource=0&searchtype=allproducts&urlrefer=search). Then unpack the OpenJK zip file to your Jedi Academy GameData folder.
 
 ## Maintainers (in alphabetical order) ##
+
 * eezstreet
 * Ensiform
 * mrwonko
 * Raz0r
 * redsaurus
+* Xycaleth
 
 ## Significant contributors (in alphabetical order) ##
+
 * exidl
 * Scooper
 * Sil
-* Xycaleth
 
 ## Dependencies ##
+
 * OpenGL
 * OpenAL (included on Windows)
-* libpng (optional)
-* libjpeg (optional)
+* libpng (included on Windows)
+* libjpeg (included on Windows)
 * zlib (included on Windows)
+
+## Dedicated Server ##
+
+In order to run dedicated server, you must use the openjkded binary, running dedicated from the main executable is currently not allowed because it is broken with the addition of modular renderer.
 
 ## Developer Notes ##
 
@@ -53,13 +67,10 @@ Please be aware of the implications of the GPLv2 licence. In short, be prepared 
 * rd-strawberry (Maintainer: Xycaleth)
 * rd-vader (Maintainer: mrwonko)
 
-### Sorry for the history changes! ###
-For legal reasons we had to make changes to the history. This likely broke every forker's repo. See [here](http://git-scm.com/docs/git-rebase.html#_recovering_from_upstream_rebase) for how to fix if you've changed anything, or just delete your github fork and local folder and start over if you haven't.
-
 ### Engine "hax" ###
-* If your mod intends to use engine "hax" to figure out the nedaddr types (NA_IP, etc) NA_BAD is now 0 and NA_BOT is now 1 instead of vice versa.
 * You will no longer be able to use runtime memory patches. Consider forking OpenJK and adding your engine modifications directly.
 
 ### Links of Interest ###
 * [Buildbot](http://jk.xd.cm/)
-* [Buildbot builds](http://jk.xd.cm/~builds/)
+* [Buildbot builds](http://builds.openjk.org/)
+* [JKHub sub-forum](http://jkhub.org/forum/51-discussion/)

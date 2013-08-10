@@ -75,17 +75,11 @@ cvar_t	*m_forward;
 cvar_t	*m_side;
 cvar_t	*m_filter;
 
-#ifdef _XBOX
-//MAP HACK
-cvar_t	*cl_mapname;
-qboolean vidRestartReloadMap = qfalse;
-#endif
-
 cvar_t	*cl_activeAction;
 
 cvar_t	*cl_updateInfoString;
 
-cvar_t	*cl_ingameVideo;
+cvar_t	*cl_inGameVideo;
 
 cvar_t	*cl_thumbStickMode;
 
@@ -99,6 +93,7 @@ clientStatic_t		cls;
 
 // Structure containing functions exported from refresh DLL
 refexport_t	re;
+static void *rendererLib = NULL;
 
 //RAZFIXME: BAD BAD, maybe? had to move it out of ghoul2_shared.h -> CGhoul2Info_v at the least..
 IGhoul2InfoArray &_TheGhoul2InfoArray( void ) {
@@ -231,19 +226,11 @@ void CL_MapLoading( void ) {
 	} else {
 		// clear nextmap so the cinematic shutdown doesn't execute it
 		Cvar_Set( "nextmap", "" );
-#ifdef _XBOX	// This was done at E3 time - it's nasty, but we may just keep it.
-		connstate_t oldState = cls.state;
-		cls.state = CA_CHALLENGING;
-		SCR_UpdateScreen();
-		cls.state = oldState;
-#endif
 		CL_Disconnect();
 		Q_strncpyz( cls.servername, "localhost", sizeof(cls.servername) );
 		cls.state = CA_CHALLENGING;		// so the connect screen is drawn
 		cls.keyCatchers = 0;
-#ifndef _XBOX
 		SCR_UpdateScreen();
-#endif
 		clc.connectTime = -RETRANSMIT_TIMEOUT;
 		NET_StringToAdr( cls.servername, &clc.serverAddress);
 		// we don't need a challenge on the localhost
@@ -303,21 +290,11 @@ void CL_Disconnect( void ) {
 		return;
 	}
 
-#ifdef _XBOX
-	Cvar_Set("r_norefresh", "0");
-#endif
-
 	if (cls.uiStarted)
 		UI_SetActiveMenu( NULL,NULL );
 
 	SCR_StopCinematic ();
 	S_ClearSoundBuffer();
-
-#ifdef _XBOX
-//	extern qboolean RE_RegisterImages_LevelLoadEnd(void);
-//	RE_RegisterImages_LevelLoadEnd();
-	R_DeleteTextures();
-#endif
 
 	// send a disconnect message to the server
 	// send it a few times in case one is dropped
@@ -355,7 +332,7 @@ so when they are typed in at the console, they will need to be forwarded.
 ===================
 */
 void CL_ForwardCommandToServer( void ) {
-	char	*cmd;
+	const char	*cmd;
 	char	string[MAX_STRING_CHARS];
 
 	cmd = Cmd_Argv(0);
@@ -519,7 +496,7 @@ void CL_Clientinfo_f( void ) {
 
 //====================================================================
 
-void UI_UpdateConnectionString( char *string );
+void UI_UpdateConnectionString( const char *string );
 
 /*
 =================
@@ -621,7 +598,7 @@ Responses to broadcasts, etc
 */
 void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	char	*s;
-	char	*c;
+	const char	*c;
 	
 	MSG_BeginReading( msg );
 	MSG_ReadLong( msg );	// skip the -1
@@ -708,8 +685,6 @@ A packet has arrived from the main event loop
 =================
 */
 void CL_PacketEvent( netadr_t from, msg_t *msg ) {
-	int		headerBytes;
-
 	clc.lastPacketTime = cls.realtime;
 
 	if ( msg->cursize >= 4 && *(int *)msg->data == -1 ) {
@@ -739,9 +714,6 @@ void CL_PacketEvent( netadr_t from, msg_t *msg ) {
 	if (!Netchan_Process( &clc.netchan, msg) ) {
 		return;		// out of order, duplicated, etc
 	}
-
-	// the header is different lengths for reliable and unreliable messages
-	headerBytes = msg->readcount;
 
 	clc.lastPacketTime = cls.realtime;
 	CL_ParseServerMessage( msg );
@@ -967,6 +939,11 @@ void CL_ShutdownRef( void ) {
 		return;
 	}
 	re.Shutdown( qtrue );
+
+	if ( rendererLib != NULL ) {
+		Sys_UnloadDll (rendererLib);
+		rendererLib = NULL;
+	}
 	memset( &re, 0, sizeof( re ) );
 }
 
@@ -1004,15 +981,6 @@ void CL_StartHunkUsers( void ) {
 	}
 
 	if ( !cls.rendererStarted ) {
-#ifdef _XBOX
-		//if ((!com_sv_running->integer || com_errorEntered) && !vidRestartReloadMap)
-		//{
-		//	// free up some memory
-		//	extern void SV_ClearLastLevel(void);
-		//	SV_ClearLastLevel();
-		//}
-#endif
-
 		cls.rendererStarted = qtrue;
 		re.BeginRegistration( &cls.glconfig );
 
@@ -1035,13 +1003,11 @@ void CL_StartHunkUsers( void ) {
 		S_BeginRegistration();
 	}
 
-#if !defined (_XBOX)	//i guess xbox doesn't want the ui loaded all the time?
 	//we require the ui to be loaded here or else it crashes trying to access the ui on command line map loads
 	if ( !cls.uiStarted ) {
 		cls.uiStarted = qtrue;
 		CL_InitUI();
 	}
-#endif
 
 //	if ( !cls.cgameStarted && cls.state > CA_CONNECTED && cls.state != CA_CINEMATIC ) {
 	if ( !cls.cgameStarted && cls.state > CA_CONNECTED && (cls.state != CA_CINEMATIC && !CL_IsRunningInGameCinematic()) ) 
@@ -1093,13 +1059,13 @@ const char *String_GetStringValue( const char *reference )
 #ifdef __NO_JK2
 	return SE_GetString(reference);
 #else
-	if( Cvar_VariableIntegerValue("com_jk2") )
+	if( com_jk2 && com_jk2->integer )
 	{
 		return const_cast<const char *>(JK2SP_GetString( reference )->GetText());
 	}
 	else
 	{
-		return const_cast<const char *>(SE_GetString((LPCSTR)reference));
+		return const_cast<const char *>(SE_GetString(reference));
 	}
 #endif
 }
@@ -1108,6 +1074,7 @@ const char *String_GetStringValue( const char *reference )
 // DLL glue --eez
 WinVars_t *GetWindowsVariables( void )
 {
+	extern WinVars_t g_wv;
 	return &g_wv;
 }
 #endif
@@ -1159,8 +1126,6 @@ static CMiniHeap *GetG2VertSpaceServer( void ) {
 	return G2VertSpaceServer;
 }
 
-static void *rendererLib;
-
 #define DEFAULT_RENDER_LIBRARY	"rdsp-vanilla"	// NOTENOTE: If you change the output name of rd-vanilla, change this define too!
 
 void CL_InitRef( void ) {
@@ -1174,36 +1139,22 @@ void CL_InitRef( void ) {
 
 	Com_sprintf( dllName, sizeof( dllName ), "%s_" ARCH_STRING DLL_EXT, cl_renderer->string );
 
-    #ifdef _WIN32
-    if( !(rendererLib = (void *)LoadLibrary( dllName )) && strcmp( cl_renderer->string, cl_renderer->resetString ) )
-    #else
 	if( !(rendererLib = Sys_LoadDll( dllName, qfalse )) && strcmp( cl_renderer->string, cl_renderer->resetString ) )
-    #endif
 	{
 		Com_Printf( "failed: trying to load fallback renderer\n" );
 		Cvar_ForceReset( "cl_renderer" );
 
 		Com_sprintf( dllName, sizeof( dllName ), DEFAULT_RENDER_LIBRARY "_" ARCH_STRING DLL_EXT );
-        #ifdef _WIN32
-        rendererLib = (void *)LoadLibrary( dllName );
-        #else
 		rendererLib = Sys_LoadDll( dllName, qfalse );
-        #endif
 	}
 
 	if ( !rendererLib ) {
 		Com_Error( ERR_FATAL, "Failed to load renderer" );
 	}
 
-    #ifdef _WIN32
-    GetRefAPI = (GetRefAPI_t)GetProcAddress( (HMODULE)rendererLib, "GetRefAPI" );
-    if ( !GetRefAPI )
-        Com_Error( ERR_FATAL, "CL_InitRef(): NULL GetRefAPI on handle for %s\n", dllName );
-    #else
 	GetRefAPI = (GetRefAPI_t)Sys_LoadFunction( rendererLib, "GetRefAPI" );
 	if ( !GetRefAPI )
 		Com_Error( ERR_FATAL, "Can't load symbol GetRefAPI: '%s'", Sys_LibraryError() );
-    #endif
 
 #define RIT(y)	rit.y = y
 	RIT(CIN_PlayCinematic);
@@ -1330,10 +1281,7 @@ void CL_Init( void ) {
 	cls.realtimeFraction=0.0f;	// fraction of a msec accumulated
 
 	CL_InitInput ();
-
-#ifndef _XBOX	// No terrain on Xbox
 	RM_InitTerrain();
-#endif
 
 	//
 	// register our variables
@@ -1368,7 +1316,7 @@ void CL_Init( void ) {
 
 	cl_showMouseRate = Cvar_Get ("cl_showmouserate", "0", 0);
 
-	cl_ingameVideo = Cvar_Get ("cl_ingameVideo", "1", CVAR_ARCHIVE);
+	cl_inGameVideo = Cvar_Get ("cl_inGameVideo", "1", CVAR_ARCHIVE);
 	cl_VideoQuality = Cvar_Get ("cl_VideoQuality", "0", CVAR_ARCHIVE);
 	cl_VidFadeUp	= Cvar_Get ("cl_VidFadeUp", "1", CVAR_TEMP);
 	cl_VidFadeDown	= Cvar_Get ("cl_VidFadeDown", "1", CVAR_TEMP);
@@ -1389,10 +1337,6 @@ void CL_Init( void ) {
 #ifndef _WIN32
 	// ~ and `, as keys and characters
 	cl_consoleKeys = Cvar_Get( "cl_consoleKeys", "~ ` 0x7e 0x60", CVAR_ARCHIVE);
-#endif
-
-#ifdef _XBOX
-	cl_mapname = Cvar_Get ("cl_mapname", "t3_bounty", CVAR_TEMP);
 #endif
 
 	cl_updateInfoString = Cvar_Get( "cl_updateInfoString", "", CVAR_ROM );

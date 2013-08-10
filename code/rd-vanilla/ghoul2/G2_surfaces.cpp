@@ -23,7 +23,7 @@ This file is part of Jedi Academy.
 
 
 #ifndef __Q_SHARED_H
-	#include "../../game/q_shared.h"
+	#include "../../qcommon/q_shared.h"
 #endif
 
 #if !defined(TR_LOCAL_H)
@@ -36,7 +36,9 @@ This file is part of Jedi Academy.
 
 #define G2_MODEL_OK(g) ((g)&&(g)->mValid&&(g)->aHeader&&(g)->currentModel&&(g)->animModel)
 
+#ifdef _MSC_VER
 #pragma warning(disable : 4512)		//assignment op could not be genereated
+#endif
 
 class CQuickOverride
 {
@@ -92,8 +94,7 @@ const surfaceInfo_t *G2_FindOverrideSurface(int surfaceNum,const surfaceInfo_v &
 	{
 		// starting a new lookup
 		QuickOverride.Invalidate();
-		int i; 
-		for(i=0; i<surfaceList.size(); i++)
+		for(size_t i=0; i<surfaceList.size(); i++)
 		{
 			if (surfaceList[i].surface>=0)
 			{
@@ -105,10 +106,9 @@ const surfaceInfo_t *G2_FindOverrideSurface(int surfaceNum,const surfaceInfo_v &
 	int idx=QuickOverride.Test(surfaceNum);
 	if (idx<0)
 	{
-		unsigned int i; 
 		if (surfaceNum==10000)
 		{
-			for(i=0; i<surfaceList.size(); i++)
+			for(size_t i=0; i<surfaceList.size(); i++)
 			{
 				if (surfaceList[i].surface == surfaceNum)
 				{
@@ -118,6 +118,7 @@ const surfaceInfo_t *G2_FindOverrideSurface(int surfaceNum,const surfaceInfo_v &
 		}
 #if _DEBUG
 		// look through entire list
+		size_t i;
 		for(i=0; i<surfaceList.size(); i++)
 		{
 			if (surfaceList[i].surface == surfaceNum)
@@ -130,7 +131,7 @@ const surfaceInfo_t *G2_FindOverrideSurface(int surfaceNum,const surfaceInfo_v &
 #endif
 		return NULL;
 	}
-	assert(idx>=0&&idx<surfaceList.size());
+	assert(idx>=0&&idx<(int)surfaceList.size());
 	assert(surfaceList[idx].surface == surfaceNum);
 	return &surfaceList[idx];
 }
@@ -153,7 +154,7 @@ int G2_IsSurfaceLegal(const model_s *mod_m, const char *surfaceName, int *flags)
 			return i;
 		}
 		// find the next surface
-  		surf = (mdxmSurfHierarchy_t *)( (byte *)surf + (int)( &((mdxmSurfHierarchy_t *)0)->childIndexes[ surf->numChildren ] ));
+  		surf = (mdxmSurfHierarchy_t *)( (byte *)surf + (intptr_t)( &((mdxmSurfHierarchy_t *)0)->childIndexes[ surf->numChildren ] ));
 	}
 	return -1;
 }

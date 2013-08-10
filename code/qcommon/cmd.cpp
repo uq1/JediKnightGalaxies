@@ -17,7 +17,7 @@ This file is part of Jedi Academy.
 // Copyright 2001-2013 Raven Software
 // cmd.c -- Quake script command processing module
 
-#include "../game/q_shared.h"
+#include "q_shared.h"
 #include "qcommon.h"
 
 #define	MAX_CMD_BUFFER	8192
@@ -40,6 +40,8 @@ bind g "cmd use rocket ; +attack ; wait ; -attack ; cmd use blaster"
 void Cmd_Wait_f( void ) {
 	if ( Cmd_Argc() == 2 ) {
 		cmd_wait = atoi( Cmd_Argv( 1 ) );
+		if ( cmd_wait < 0 )
+			cmd_wait = 1; // ignore the argument
 	} else {
 		cmd_wait = 1;
 	}
@@ -155,7 +157,7 @@ void Cbuf_Execute (void)
 
 	while (cmd_text.cursize)
 	{
-		if ( cmd_wait )	{
+		if ( cmd_wait > 0 )	{
 			// skip out while text still remains in buffer, leaving it
 			// for next frame
 			cmd_wait--;
@@ -214,27 +216,34 @@ Cmd_Exec_f
 ===============
 */
 void Cmd_Exec_f( void ) {
-	char	*f;
-	int		len;
+	bool quiet;
+	union {
+		char	*c;
+		void	*v;
+	} f;
 	char	filename[MAX_QPATH];
 
+	quiet = !Q_stricmp(Cmd_Argv(0), "execq");
+
 	if (Cmd_Argc () != 2) {
-		Com_Printf ("exec <filename> : execute a script file\n");
+		Com_Printf ("exec%s <filename> : execute a script file%s\n",
+		            quiet ? "q" : "", quiet ? " without notification" : "");
 		return;
 	}
 
 	Q_strncpyz( filename, Cmd_Argv(1), sizeof( filename ) );
-	COM_DefaultExtension( filename, sizeof( filename ), ".cfg" ); 
-	len = FS_ReadFile( filename, (void **)&f);
-	if (!f) {
-		Com_Printf ("couldn't exec %s\n",Cmd_Argv(1));
+	COM_DefaultExtension( filename, sizeof( filename ), ".cfg" );
+	FS_ReadFile( filename, &f.v);
+	if (!f.c) {
+		Com_Printf ("couldn't exec %s\n", filename);
 		return;
 	}
-	Com_Printf ("execing %s\n",Cmd_Argv(1));
+	if (!quiet)
+		Com_Printf ("execing %s\n", filename);
 	
-	Cbuf_InsertText (f);
+	Cbuf_InsertText (f.c);
 
-	FS_FreeFile (f);
+	FS_FreeFile (f.v);
 }
 
 
@@ -246,7 +255,7 @@ Inserts the current value of a variable as command text
 ===============
 */
 void Cmd_Vstr_f( void ) {
-	char	*v;
+	const char	*v;
 
 	if (Cmd_Argc () != 2) {
 		Com_Printf ("vstr <variablename> : execute a variable command\n");
@@ -267,11 +276,7 @@ Just prints the rest of the line to the console
 */
 void Cmd_Echo_f (void)
 {
-	int		i;
-	
-	for (i=1 ; i<Cmd_Argc() ; i++)
-		Com_Printf ("%s ",Cmd_Argv(i));
-	Com_Printf ("\n");
+	Com_Printf ("%s\n", Cmd_Args());
 }
 
 
@@ -328,7 +333,7 @@ Cmd_Argv
 ============
 */
 char	*Cmd_Argv( int arg ) {
-	if ( (unsigned)arg >= cmd_argc ) {
+	if ( (unsigned)arg >= (unsigned)cmd_argc ) {
 		return "";
 	}
 	return cmd_argv[arg];	
@@ -369,6 +374,29 @@ char	*Cmd_Args( void ) {
 	return cmd_args;
 }
 
+/*
+============
+Cmd_Args
+
+Returns a single string containing argv(arg) to argv(argc()-1)
+============
+*/
+char *Cmd_ArgsFrom( int arg ) {
+	static	char		cmd_args[BIG_INFO_STRING];
+	int		i;
+
+	cmd_args[0] = 0;
+	if (arg < 0)
+		arg = 0;
+	for ( i = arg ; i < cmd_argc ; i++ ) {
+		strcat( cmd_args, cmd_argv[i] );
+		if ( i != cmd_argc-1 ) {
+			strcat( cmd_args, " " );
+		}
+	}
+
+	return cmd_args;
+}
 
 /*
 ============
@@ -707,7 +735,7 @@ void Cmd_List_f (void)
 {
 	cmd_function_t	*cmd;
 	int				i;
-	char			*match;
+	const char			*match;
 
 	if ( Cmd_Argc() > 1 ) {
 		match = Cmd_Argv( 1 );
@@ -738,6 +766,7 @@ void Cmd_Init (void)
 //
 	Cmd_AddCommand ("cmdlist",Cmd_List_f);
 	Cmd_AddCommand ("exec",Cmd_Exec_f);
+	Cmd_AddCommand ("execq",Cmd_Exec_f);
 	Cmd_AddCommand ("vstr",Cmd_Vstr_f);
 	Cmd_AddCommand ("echo",Cmd_Echo_f);
 	Cmd_AddCommand ("wait", Cmd_Wait_f);

@@ -2,15 +2,17 @@
 #include "qcommon/exe_headers.h"
 
 #include "qcommon/cm_local.h"
-#include "renderer/tr_types.h"
+#include "rd-common/tr_types.h"
 #include "RM_Headers.h"
 
+#ifdef _MSC_VER
 #pragma optimize("", off)
 
 // The above optmization triggers this warning:
 // "/GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function"
 // We don't give a rats ass.
 #pragma warning(disable: 4748)
+#endif
 
 static CRMLandScape		*rm_landscape;
 static CCMLandScape		*origin_land;
@@ -275,8 +277,8 @@ void CRMLandScape::CreateRandomDensityMap(byte *density, int width, int height, 
 void CRMLandScape::LoadDensityMap(const char *td)
 {
 	char		densityMap[MAX_QPATH];
-	byte		*imageData;
 #ifndef DEDICATED
+	byte		*imageData;
 	int			iWidth, iHeight, seed;
 	char 		*ptr;
 #endif
@@ -290,10 +292,8 @@ void CRMLandScape::LoadDensityMap(const char *td)
 	if(strlen(densityMap))
 	{
 		Com_DPrintf("CG_Terrain: Loading density map %s.....\n", densityMap);
-#ifdef DEDICATED
-		imageData = NULL;
-#else
-		re.LoadDataImage(densityMap, &imageData, &iWidth, &iHeight);
+#ifndef DEDICATED
+		re->LoadDataImage(densityMap, &imageData, &iWidth, &iHeight);
 		if(imageData)
 		{
 			if(strstr(densityMap, "density_"))
@@ -301,8 +301,8 @@ void CRMLandScape::LoadDensityMap(const char *td)
 				seed = strtoul(Info_ValueForKey(td, "seed"),&ptr,10);
 				CreateRandomDensityMap(imageData, iWidth, iHeight, seed);
 			}
-			re.Resample(imageData, iWidth, iHeight, mDensityMap, common->GetBlockWidth(), common->GetBlockHeight(), 1);
-			re.InvertImage(mDensityMap, common->GetBlockWidth(), common->GetBlockHeight(), 1);
+			re->Resample(imageData, iWidth, iHeight, mDensityMap, common->GetBlockWidth(), common->GetBlockHeight(), 1);
+			re->InvertImage(mDensityMap, common->GetBlockWidth(), common->GetBlockHeight(), 1);
 			Z_Free(imageData);
 		}
 #endif
@@ -356,9 +356,9 @@ void CRMLandScape::Sprinkle(CCMPatch *patch, CCGHeightDetails *hd, int level)
 
 			rm = hd->GetRandomModel(common);
 
-			refEnt.hModel = re.RegisterModel(rm->GetModelName());
+			refEnt.hModel = re->RegisterModel(rm->GetModelName());
 			refEnt.frame = 0;
-			re.ModelBoundsRef(&refEnt, bounds[0], bounds[1]);
+			re->ModelBoundsRef(&refEnt, bounds[0], bounds[1]);
 
 			// Calculate the scale using some magic to help ensure that the
 			// scales are never too different from eachother.  Otherwise you
@@ -514,6 +514,8 @@ void RM_ShutdownTerrain(void)
 
 // end
 
+#ifdef _MSC_VER
 #pragma warning(default: 4748)
 
 #pragma optimize("", on)
+#endif

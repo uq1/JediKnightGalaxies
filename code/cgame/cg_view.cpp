@@ -102,7 +102,7 @@ void CG_TestG2Model_f (void) {
 	Q_strncpyz (cg.testModelName, CG_Argv( 1 ), MAX_QPATH );
 	cg.testModelEntity.hModel = cgi_R_RegisterModel( cg.testModelName );
 
-	cg.testModel = gi.G2API_InitGhoul2Model(*((CGhoul2Info_v *)cg.testModelEntity.ghoul2), cg.testModelName, cg.testModelEntity.hModel, NULL, NULL,0,0);
+	cg.testModel = gi.G2API_InitGhoul2Model(*((CGhoul2Info_v *)cg.testModelEntity.ghoul2), cg.testModelName, cg.testModelEntity.hModel, NULL_HANDLE, NULL_HANDLE,0,0);
 	cg.testModelEntity.radius = 100.0f;
 
 	if ( cgi_Argc() == 3 ) {
@@ -353,13 +353,13 @@ static void CG_CalcIdealThirdPersonViewTarget(void)
 	{
 
 		gentity_t *gent = &g_entities[cg.snap->ps.viewEntity];
-		if ( gent->client && (gent->client->NPC_class == CLASS_GONK ) 
-			|| (gent->client->NPC_class == CLASS_INTERROGATOR) 
-			|| (gent->client->NPC_class == CLASS_SENTRY) 
-			|| (gent->client->NPC_class == CLASS_PROBE ) 
-			|| (gent->client->NPC_class == CLASS_MOUSE ) 
-			|| (gent->client->NPC_class == CLASS_R2D2 ) 
-			|| (gent->client->NPC_class == CLASS_R5D2) )
+		if ( gent->client && (gent->client->NPC_class == CLASS_GONK
+			|| gent->client->NPC_class == CLASS_INTERROGATOR
+			|| gent->client->NPC_class == CLASS_SENTRY
+			|| gent->client->NPC_class == CLASS_PROBE
+			|| gent->client->NPC_class == CLASS_MOUSE
+			|| gent->client->NPC_class == CLASS_R2D2
+			|| gent->client->NPC_class == CLASS_R5D2) )
 		{	// Droids use a generic offset
 			cameraFocusLoc[2] += 4;
 			VectorCopy( cameraFocusLoc, cameraIdealTarget );
@@ -1296,12 +1296,6 @@ qboolean CG_CalcFOVFromX( float fov_x )
 	cg.refdef.fov_x = fov_x;
 	cg.refdef.fov_y = fov_y;
 
-#ifdef _XBOX
-	if(cg.widescreen)
-//		cg.refdef.fov_x = fov_y * 1.5;//1.77777f;
-		cg.refdef.fov_x *= 1.125f;
-#endif
-
 	return (inwater);
 }
 
@@ -1445,9 +1439,7 @@ static qboolean	CG_CalcFov( void ) {
 			fov_x = cg_zoomFov;
 		} else {
 			f = ( cg.time - cg.zoomTime ) / ZOOM_OUT_TIME;
-			if ( f > 1.0 ) {
-				fov_x = fov_x;
-			} else {
+			if ( f <= 1.0 ) {
 				fov_x = cg_zoomFov + f * ( fov_x - cg_zoomFov );
 			}
 		}
@@ -2106,7 +2098,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	cg.renderingThirdPerson = cg_thirdPerson.integer 
 								|| (cg.snap->ps.stats[STAT_HEALTH] <= 0) 
 								|| (cg.snap->ps.eFlags&EF_HELD_BY_SAND_CREATURE)
-								|| (g_entities[0].client&&g_entities[0].client->NPC_class==CLASS_ATST
+								|| ((g_entities[0].client&&g_entities[0].client->NPC_class==CLASS_ATST)
 								|| (cg.snap->ps.weapon == WP_SABER || cg.snap->ps.weapon == WP_MELEE) );
 
 	if ( cg.zoomMode )

@@ -3,6 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dedicated Server (openjkded)", "openjkded.vcxproj", "{326282A4-4F23-1FC7-8A02-22BAECCA7FC4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine (openjk)", "openjk.vcxproj", "{940CECBC-C6E6-DBE5-B493-0A64D54AFDF6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openjkded", "openjkded.vcxproj", "{9C4ACA8A-5EC0-94A1-10F2-596651CB278D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "User Interface Module (ui)", "ui\ui.vcxproj", "{2DDA2041-6A68-4754-B342-14039CC91695}"
 EndProject
@@ -25,6 +26,10 @@ Global
 		{326282A4-4F23-1FC7-8A02-22BAECCA7FC4}.Final|Win32.Build.0 = Release|Win32
 		{326282A4-4F23-1FC7-8A02-22BAECCA7FC4}.Release|Win32.ActiveCfg = Release|Win32
 		{326282A4-4F23-1FC7-8A02-22BAECCA7FC4}.Release|Win32.Build.0 = Release|Win32
+		{9C4ACA8A-5EC0-94A1-10F2-596651CB278D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9C4ACA8A-5EC0-94A1-10F2-596651CB278D}.Debug|Win32.Build.0 = Debug|Win32
+		{9C4ACA8A-5EC0-94A1-10F2-596651CB278D}.Release|Win32.ActiveCfg = Release|Win32
+		{9C4ACA8A-5EC0-94A1-10F2-596651CB278D}.Release|Win32.Build.0 = Release|Win32
 		{940CECBC-C6E6-DBE5-B493-0A64D54AFDF6}.Debug|Win32.ActiveCfg = Debug|Win32
 		{940CECBC-C6E6-DBE5-B493-0A64D54AFDF6}.Debug|Win32.Build.0 = Debug|Win32
 		{940CECBC-C6E6-DBE5-B493-0A64D54AFDF6}.Final|Win32.ActiveCfg = Release|Win32

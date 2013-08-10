@@ -747,7 +747,28 @@ static rserr_t GLW_SetMode( int mode,
 	// print out informational messages
 	//
 	VID_Printf( PRINT_ALL, "...setting mode %d:", mode );
-	if ( !R_GetModeInfo( &glConfig.vidWidth, &glConfig.vidHeight, mode ) )
+	if (mode == -2)
+	{
+		int OSwidth = GetSystemMetrics (SM_CXSCREEN);
+		int OSheight = GetSystemMetrics (SM_CYSCREEN);
+
+		// use desktop video resolution
+		if( OSheight > 0 )
+		{
+			glConfig.vidWidth = OSwidth;
+			glConfig.vidHeight = OSheight;
+		}
+		else
+		{
+			glConfig.vidWidth = 640;
+			glConfig.vidHeight = 480;
+			VID_Printf( PRINT_ALL, "Cannot determine display resolution, assuming 640x480\n" );
+		}
+
+		//TODO Aspect stuff?
+		//glConfig.windowAspect = (float)glConfig.vidWidth / (float)glConfig.vidHeight;
+	}
+	else if ( !R_GetModeInfo( &glConfig.vidWidth, &glConfig.vidHeight, mode ) )
 	{
 		VID_Printf( PRINT_ALL, " invalid mode\n" );
 		return RSERR_INVALID_MODE;
@@ -1150,10 +1171,10 @@ static void GLW_InitExtensions( void )
 		{
 			Com_Printf ("...ignoring GL_EXT_texture_filter_anisotropic\n" );
 		}
-		ri.Cvar_Set( "r_ext_texture_filter_anisotropic_avail", va("%f",glConfig.maxTextureFilterAnisotropy) );
+		ri.Cvar_SetValue( "r_ext_texture_filter_anisotropic_avail", glConfig.maxTextureFilterAnisotropy );
 		if ( r_ext_texture_filter_anisotropic->value > glConfig.maxTextureFilterAnisotropy )
 		{
-			ri.Cvar_Set( "r_ext_texture_filter_anisotropic", va("%f",glConfig.maxTextureFilterAnisotropy) );
+			ri.Cvar_SetValue( "r_ext_texture_filter_anisotropic_avail", glConfig.maxTextureFilterAnisotropy );
 		}
 	}
 	else
@@ -1841,6 +1862,16 @@ void GLimp_Shutdown( void )
 		glw_state.pixelFormatSet = qfalse;
 	}
 
+	// unregister the window class
+	if ( s_classRegistered )
+	{
+		if ( FAILED (UnregisterClass (WINDOW_CLASS_NAME, tr.wv->hInstance)) )
+		{
+			Com_Error (ERR_FATAL, "GLimp_Shutdown: could not unregister window class, error code 0x%x", GetLastError());
+		}
+		s_classRegistered = qfalse;
+	}
+
 	// close the r_logFile
 	if ( glw_state.log_fp )
 	{
@@ -1864,9 +1895,25 @@ void GLimp_Shutdown( void )
 }
 
 /*
+===============
+GLimp_Minimize
+
+Minimize the game so that user is back at the desktop
+===============
+*/
+void GLimp_Minimize(void)
+{
+	if ( tr.wv->hWnd )
+	{
+		// Todo with viewlog maybe should try to unminimize but mer.
+		ShowWindow( tr.wv->hWnd, SW_MINIMIZE );
+	}
+}
+
+/*
 ** GLimp_LogComment
 */
-void GLimp_LogComment( char *comment ) 
+void GLimp_LogComment( const char *comment ) 
 {
 	if ( glw_state.log_fp ) {
 		fprintf( glw_state.log_fp, "%s", comment );
