@@ -456,6 +456,19 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 			(LAND_DEFLECT_TIME + LAND_RETURN_TIME - delta) / LAND_RETURN_TIME;
 	}
 
+	// Make the weapon go down whenever we aim up...
+	if( cg.refdef.viewangles[PITCH] < -50 )
+	{
+		//origin[2] -= (cg.refdef.viewangles[PITCH]+50)/20; // Trying these numbers ONE LAST TIME...
+		VectorMA( origin, (cg.refdef.viewangles[PITCH]+50)/24, cg.refdef.viewaxis[2], origin );
+	}
+	else if( cg.refdef.viewangles[PITCH] > 50 )
+	{
+		// Likewise, make the weapon get closer to us whenever we point downwards.
+		VectorMA( origin, (cg.refdef.viewangles[PITCH]-50)/24, cg.refdef.viewaxis[2], origin );
+		VectorMA( origin, (cg.refdef.viewangles[PITCH]-50)/55, cg.refdef.viewaxis[0], origin );
+	}
+
 	// oh well, i'm lumping this here too. just for the sake of the children or something --eez
 	if(cg.lastFiringMode != cg.predictedPlayerState.firingMode && cg.lastFiringModeGun != cg.predictedPlayerState.weaponId)
 	{
@@ -1341,13 +1354,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	CG_CalculateWeaponPosition( hand.origin, angles );
 	{
 		float xoffs = cg_gunX.value, yoffs = cg_gunX.value, zoffs = cg_gunZ.value;
-		/*if (ps->weapon == WP_BLASTER) {
-			xoffs += 1;
-			zoffs -= 0.5;
-		} else if (ps->weapon == WP_REPEATER) {
-			// Clone rifle hack
-			xoffs -= 5;
-		}*/
 		VectorMA( hand.origin, xoffs, cg.refdef.viewaxis[0], hand.origin );
 		VectorMA( hand.origin, yoffs, cg.refdef.viewaxis[1], hand.origin );
 		VectorMA( hand.origin, (zoffs+fovOffset), cg.refdef.viewaxis[2], hand.origin );
@@ -3543,7 +3549,12 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
     {
         return;
     }
+
+	// Set up basic stuff for the muzzle, so that we can use the muzzle position in our calculations for bob/sway
+	memset (&gun, 0, sizeof (gun));
+
     
+	// Calculate the position of the hand
     memset (&hand, 0, sizeof (hand));
     CG_CalculateWeaponPosition (hand.origin, hand.angles);
     
@@ -3608,8 +3619,6 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
     // Render hands with gun
     hand.hModel = weapon->handsModel;
     hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON;
-    
-    memset (&gun, 0, sizeof (gun));
     
     gun.renderfx = hand.renderfx;
     gun.hModel = weapon->viewModel;
