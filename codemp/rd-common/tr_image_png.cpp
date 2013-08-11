@@ -104,11 +104,17 @@ fopen_failed:
 void user_read_data( png_structp png_ptr, png_bytep data, png_size_t length );
 void png_print_error ( png_structp png_ptr, png_const_charp err )
 {
+	if( !currentPNGFile || !currentPNGFile[0] )
+		return;
+
 	ri->Printf (PRINT_ERROR, "PNG: %s: %s\n", currentPNGFile, err);
 }
 
 void png_print_warning ( png_structp png_ptr, png_const_charp warning )
 {
+	if( !currentPNGFile || !currentPNGFile[0] )
+		return;
+
 	ri->Printf (PRINT_WARNING, "PNG: %s: %s\n", currentPNGFile, warning);
 }
 
@@ -139,8 +145,15 @@ struct PNGFileReader
 		*width = 0;
 		*height = 0;
 
+		// Check and make sure the filename is valid (because you can never be too careful...)
+		if( !filename || !filename[0] )
+		{
+			ri->Printf( PRINT_ERROR, "PNG read called with invalid filename.\n" );
+			return 0;
+		}
+
 		// Copy the filename to the global variable
-		strncpy( currentPNGFile, filename, sizeof(currentPNGFile) );
+		Q_strncpyz( currentPNGFile, filename, sizeof(currentPNGFile) );
 
 		// Make sure we're actually reading PNG data.
 		const int SIGNATURE_LEN = 8;
