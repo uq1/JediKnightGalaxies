@@ -1,6 +1,9 @@
 #include "tr_common.h"
 #include <png.h>
 
+/* eezstreet - we want to print the filename whenever we encounter an error because otherwise these errors are annoying! */
+char currentPNGFile[MAX_QPATH] = {0};
+
 void user_write_data( png_structp png_ptr, png_bytep data, png_size_t length ) {
 	fileHandle_t fp = (fileHandle_t)(intptr_t)png_get_io_ptr( png_ptr );
 	ri->FS_Write( data, length, fp );
@@ -101,12 +104,12 @@ fopen_failed:
 void user_read_data( png_structp png_ptr, png_bytep data, png_size_t length );
 void png_print_error ( png_structp png_ptr, png_const_charp err )
 {
-	ri->Printf (PRINT_ERROR, "%s\n", err);
+	ri->Printf (PRINT_ERROR, "PNG: %s: %s\n", currentPNGFile, err);
 }
 
 void png_print_warning ( png_structp png_ptr, png_const_charp warning )
 {
-	ri->Printf (PRINT_WARNING, "%s\n", warning);
+	ri->Printf (PRINT_WARNING, "PNG: %s: %s\n", currentPNGFile, warning);
 }
 
 bool IsPowerOfTwo ( int i ) { return (i & (i - 1)) == 0; }
@@ -129,12 +132,15 @@ struct PNGFileReader
 		}
 	}
 
-	int Read ( byte **data, int *width, int *height )
+	int Read ( const char *filename, byte **data, int *width, int *height )
 	{
 		// Setup the pointers
 		*data = NULL;
 		*width = 0;
 		*height = 0;
+
+		// Copy the filename to the global variable
+		strncpy( currentPNGFile, filename, sizeof(currentPNGFile) );
 
 		// Make sure we're actually reading PNG data.
 		const int SIGNATURE_LEN = 8;
@@ -144,14 +150,14 @@ struct PNGFileReader
 
 		if ( !png_check_sig (ident, SIGNATURE_LEN) )
 		{
-			ri->Printf (PRINT_ERROR, "PNG signature not found in given image.");
+			ri->Printf (PRINT_ERROR, "PNG signature not found in %s.\n", currentPNGFile );
 			return 0;
 		}
 
 		png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL, png_print_error, png_print_warning);
 		if ( png_ptr == NULL )
 		{
-			ri->Printf (PRINT_ERROR, "Could not allocate enough memory to load the image.");
+			ri->Printf (PRINT_ERROR, "PNG: Could not allocate enough memory to load %s\n", currentPNGFile );
 			return 0;
 		}
 
@@ -180,7 +186,7 @@ struct PNGFileReader
 		// so that the graphics driver doesn't have to fiddle about with the texture when uploading.
 		if ( !IsPowerOfTwo (width_) || !IsPowerOfTwo (height_) )
 		{
-			ri->Printf (PRINT_ERROR, "Width or height is not a power-of-two.\n");
+			ri->Printf (PRINT_ERROR, "PNG: Width or height of %s is not a power-of-two.\n", currentPNGFile );
 			return 0;
 		}
 
@@ -190,7 +196,7 @@ struct PNGFileReader
 		// PNG_COLOR_TYPE_GRAY.
 		if ( colortype != PNG_COLOR_TYPE_RGB && colortype != PNG_COLOR_TYPE_RGBA )
 		{
-			ri->Printf (PRINT_ERROR, "Image is not 24-bit or 32-bit.");
+			ri->Printf (PRINT_ERROR, "PNG: %s is not 24-bit or 32-bit.\n", currentPNGFile );
 			return 0;
 		}
 
@@ -207,7 +213,7 @@ struct PNGFileReader
 		byte *tempData = (byte *)ri->Z_Malloc (width_ * height_ * 4, TAG_TEMP_PNG, qfalse, 4);
 		if ( !tempData )
 		{
-			ri->Printf (PRINT_ERROR, "Could not allocate enough memory to load the image.");
+			ri->Printf (PRINT_ERROR, "Could not allocate enough memory to load %s.\n", currentPNGFile );
 			return 0;
 		}
 
@@ -215,7 +221,7 @@ struct PNGFileReader
 		byte **row_pointers = (byte **)ri->Hunk_AllocateTempMemory (sizeof (byte *) * height_);
 		if ( !row_pointers )
 		{
-			ri->Printf (PRINT_ERROR, "Could not allocate enough memory to load the image.");
+			ri->Printf (PRINT_ERROR, "Could not allocate enough memory to load %s.\n", currentPNGFile );
 
 			ri->Z_Free (tempData);
 			
@@ -280,6 +286,6 @@ void LoadPNG ( const char *filename, byte **data, int *width, int *height )
 	}
 
 	PNGFileReader reader (buf);
-	reader.Read (data, width, height);
+	reader.Read (filename, data, width, height);
 }
 
