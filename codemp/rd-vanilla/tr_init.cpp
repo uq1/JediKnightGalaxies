@@ -1150,7 +1150,7 @@ void R_Register( void )
 	r_lodbias							= ri->Cvar_Get( "r_lodbias",						"0",						CVAR_ARCHIVE );
 	r_autolodscalevalue					= ri->Cvar_Get( "r_autolodscalevalue",				"0",						CVAR_ROM );
 	r_flares							= ri->Cvar_Get( "r_flares",							"1",						CVAR_ARCHIVE );
-	r_znear								= ri->Cvar_Get( "r_znear",							"4",						CVAR_CHEAT );
+	r_znear								= ri->Cvar_Get( "r_znear",							"2",						CVAR_CHEAT );
 	ri->Cvar_CheckRange( r_znear, 0.001f, 200, qfalse ); // was qtrue in JA, is qfalse properly in ioq3
 	r_ignoreGLErrors					= ri->Cvar_Get( "r_ignoreGLErrors",					"1",						CVAR_ARCHIVE );
 	r_fastsky							= ri->Cvar_Get( "r_fastsky",						"0",						CVAR_ARCHIVE );
