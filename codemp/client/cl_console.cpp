@@ -526,7 +526,7 @@ void Con_DrawNotify (void)
 	const char* chattext;
 
 	currentColor = 7;
-	re.SetColor( g_color_table[currentColor & 15] );
+	re->SetColor( g_color_table[currentColor & 15] );
 
 	v = 0;
 	for (i= con.current-NUM_CON_TIMES+1 ; i<=con.current ; i++)

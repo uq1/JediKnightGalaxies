@@ -990,7 +990,6 @@ void DeathcamClamp( playerState_t *ps ) {
 }
 
 #pragma warning(disable : 4701) //local variable may be used without having been initialized
-#endif
 void CG_PredictPlayerState( void ) {
 	int			cmdNum, current, i;
 	playerState_t	oldPlayerState;

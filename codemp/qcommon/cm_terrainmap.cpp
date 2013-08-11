@@ -7,7 +7,6 @@
 #include "qcommon/GenericParser2.h"
 #include "cm_terrainmap.h"
 #include "cm_draw.h"
-#include "libraries/png/rpng.h"
 #include "client/client.h" // good enough for now
 
 static CTerrainMap	*TerrainMap = 0;

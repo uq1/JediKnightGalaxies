@@ -225,7 +225,7 @@ public:
 		assert(!ent || ent->renderfx >= 0);
 #endif
 #ifdef ENGINE
-		re.AddRefEntityToScene( ent );
+		re->AddRefEntityToScene( ent );
 #else
 		trap_R_AddRefEntityToScene( ent );
 #endif
@@ -238,7 +238,7 @@ public:
 		assert(!ent || ent->renderfx >= 0);
 #endif
 #ifdef ENGINE
-		re.AddMiniRefEntityToScene( ent );
+		re->AddMiniRefEntityToScene( ent );
 #else
 		trap_R_AddMiniRefEntityToScene( ent );
 #endif
@@ -247,7 +247,7 @@ public:
 	ID_INLINE	void	AddLightToScene( vec3_t org, float radius, float red, float green, float blue )
 	{
 #ifdef ENGINE
-		re.AddLightToScene(	org, radius, red, green, blue );
+		re->AddLightToScene(	org, radius, red, green, blue );
 #else
 		trap_R_AddLightToScene( org, radius, red, green, blue );
 #endif
@@ -257,7 +257,7 @@ public:
 	ID_INLINE	int		RegisterShader( const char *shader )
 	{
 #ifdef ENGINE
-		return re.RegisterShader( shader );
+		return re->RegisterShader( shader );
 #else
 		return (int)trap_R_RegisterShader( shader );
 #endif
@@ -265,7 +265,7 @@ public:
 	ID_INLINE	int		RegisterModel( const char *model )
 	{
 #ifdef ENGINE
-		return re.RegisterModel( model );
+		return re->RegisterModel( model );
 #else
 		return (int)trap_R_RegisterModel( model );
 #endif
@@ -274,7 +274,7 @@ public:
 	ID_INLINE	void	AddPolyToScene( int shader, int count, polyVert_t *verts )
 	{
 #ifdef ENGINE
-		re.AddPolyToScene( shader, count, verts, 1 );
+		re->AddPolyToScene( shader, count, verts, 1 );
 #else
 		trap_R_AddPolyToScene( shader, count, verts );
 #endif
@@ -283,7 +283,7 @@ public:
 	ID_INLINE void AddDecalToScene ( qhandle_t shader, const vec3_t origin, const vec3_t dir, float orientation, float r, float g, float b, float a, qboolean alphaFade, float radius, qboolean temporary )
 	{
 #ifdef ENGINE
-		re.AddDecalToScene ( shader, origin, dir, orientation, r, g, b, a, alphaFade, radius, temporary );
+		re->AddDecalToScene ( shader, origin, dir, orientation, r, g, b, a, alphaFade, radius, temporary );
 #else
 		trap_R_AddDecalToScene ( shader, origin, dir, orientation, r, g, b, a, alphaFade, radius, temporary );
 #endif

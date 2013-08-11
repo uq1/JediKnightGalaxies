@@ -48,8 +48,8 @@
 extern "C" {
 #endif
 
-#include "zlib/zlib.h"
-#include "zlib/ioapi.h"
+#include "../libraries/zlib/zlib.h"
+#include "../libraries/zlib/ioapi.h"
 
 #define NOUNCRYPT
 

@@ -2294,14 +2294,13 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	char		*value;
 //	char		*areabits;
 	gclient_t	*client;
-	char		userinfo[MAX_INFO_STRING];
-	gentity_t	*ent;
-	gentity_t	*te;
+	char		userinfo[MAX_INFO_STRING] = {0},
 				tmpIP[NET_ADDRSTRMAXLEN] = {0},
 				guid[33] = {0};
+	gentity_t	*ent;
+	gentity_t	*te;
 	char *luaresp;
 	const char *banreason;
-	char tmpIP[NET_ADDRSTRMAXLEN] = {0};
 
 	ent = &g_entities[ clientNum ];
 	ent->LuaUsable = 1; // So we can use it in lua (PlayerConnected hook)

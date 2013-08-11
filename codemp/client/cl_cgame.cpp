@@ -1691,7 +1691,7 @@ Ghoul2 Insert End
 		return 0;
 
 	case CG_JKG_OVERRIDESHADERFRAME:
-		re.OverrideShaderFrame( args[1], args[2], args[3] );
+		re->OverrideShaderFrame( args[1], args[2], args[3] );
 		return 0;
 
 	// TODO: --eez
@@ -1726,7 +1726,7 @@ Ghoul2 Insert End
 		return (int)cl.mSharedMemory;
 
 	case CG_FX_ADDMINIREFENTITY:
-		re.AddMiniRefEntityToScene((const miniRefEntity_t *)VMA(1));
+		re->AddMiniRefEntityToScene((const miniRefEntity_t *)VMA(1));
 		return 0;
 
 	case CG_FX_GETEFFECTCOPY1:

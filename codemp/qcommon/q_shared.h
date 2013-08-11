@@ -500,10 +500,13 @@ typedef unsigned char 		byte;
 typedef unsigned short		word;
 typedef unsigned long		ulong;
 
-//typedef enum {qfalse, qtrue}	qboolean;
+#ifndef __cplusplus
+typedef enum {qfalse, qtrue}	qboolean;	// cuz apparently the engine still includes this in C files for some reason --eez
+#else
 #define qboolean	bool
 #define qfalse		false
 #define qtrue		true
+#endif
 
 typedef union {
 	float f;

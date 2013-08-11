@@ -12,10 +12,6 @@ struct GoreTextureCoordinates
 
 	GoreTextureCoordinates();
 	~GoreTextureCoordinates();
-#ifdef ENGINE
-#else
-				free(tex[i]);
-#endif
 };
 
 int AllocGoreRecord();

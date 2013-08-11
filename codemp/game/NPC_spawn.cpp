@@ -4384,7 +4384,7 @@ void NPC_Kill_f( void )
 		}
 		else
 		{
-			killTeam = GetIDForString( TeamTable, name );
+			killTeam = (npcteam_t)GetIDForString( TeamTable, name );
 
 			if ( killTeam == NPCTEAM_FREE )
 			{

@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="zlib\adler32.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
     <ClCompile Include="botlib\be_aas_bspq3.cpp">
       <Filter>Libraries\botlib</Filter>
     </ClCompile>
@@ -139,23 +136,14 @@
     <ClCompile Include="qcommon\cmd_common.cpp">
       <Filter>QCommon</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\compress.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
     <ClCompile Include="qcommon\CNetProfile.cpp">
       <Filter>QCommon</Filter>
     </ClCompile>
     <ClCompile Include="qcommon\common.cpp">
       <Filter>QCommon</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\crc32.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
     <ClCompile Include="qcommon\cvar.cpp">
       <Filter>QCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="zlib\deflate.c">
-      <Filter>Libraries\zlib</Filter>
     </ClCompile>
     <ClCompile Include="qcommon\exe_headers.cpp">
       <Filter>QCommon</Filter>
@@ -199,30 +187,6 @@
     <ClCompile Include="qcommon\huffman.cpp">
       <Filter>QCommon</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\gzclose.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="zlib\gzwrite.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="zlib\gzlib.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="zlib\gzread.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="zlib\infback.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="zlib\inffast.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="zlib\inflate.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="zlib\inftrees.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
     <ClCompile Include="icarus\Instance.cpp">
       <Filter>Libraries\ICARUS</Filter>
     </ClCompile>
@@ -255,9 +219,6 @@
     </ClCompile>
     <ClCompile Include="qcommon\md4.cpp">
       <Filter>QCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="zlib\ioapi.c">
-      <Filter>Libraries\zlib</Filter>
     </ClCompile>
     <ClCompile Include="icarus\Memory.cpp">
       <Filter>Libraries\ICARUS</Filter>
@@ -382,12 +343,6 @@
     <ClCompile Include="server\sv_snapshot.cpp">
       <Filter>Server</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\trees.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="zlib\uncompr.c">
-      <Filter>Libraries\zlib</Filter>
-    </ClCompile>
     <ClCompile Include="win32\win_input.cpp">
       <Filter>win32</Filter>
     </ClCompile>
@@ -408,9 +363,6 @@
     </ClCompile>
     <ClCompile Include="win32\win_syscon.cpp">
       <Filter>win32</Filter>
-    </ClCompile>
-    <ClCompile Include="zlib\zutil.c">
-      <Filter>Libraries\zlib</Filter>
     </ClCompile>
     <ClCompile Include="icarus\TaskManager.cpp">
       <Filter>Libraries\ICARUS</Filter>
@@ -493,6 +445,57 @@
     <ClCompile Include="libraries\mp3code\wavep.c">
       <Filter>Libraries\mp3code</Filter>
     </ClCompile>
+    <ClCompile Include="libraries\zlib\adler32.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\compress.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\crc32.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\deflate.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\gzclose.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\gzlib.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\gzread.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\gzwrite.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\infback.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\inffast.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\inflate.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\inftrees.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\ioapi.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\trees.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\uncompr.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="libraries\zlib\zutil.c">
+      <Filter>Libraries\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="qcommon\md5.cpp">
+      <Filter>QCommon</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="botlib\aasfile.h">
@@ -567,9 +570,6 @@
     <ClInclude Include="icarus\blockstream.h">
       <Filter>Libraries\ICARUS</Filter>
     </ClInclude>
-    <ClInclude Include="game\botlib.h">
-      <Filter>Libraries\botlib</Filter>
-    </ClInclude>
     <ClInclude Include="Ratl\bits_vs.h">
       <Filter>Libraries\Ratl</Filter>
     </ClInclude>
@@ -603,14 +603,8 @@
     <ClInclude Include="qcommon\chash.h">
       <Filter>QCommon</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\crc32.h">
-      <Filter>Libraries\zlib</Filter>
-    </ClInclude>
     <ClInclude Include="Ravl\CVec.h">
       <Filter>Libraries\Ravl</Filter>
-    </ClInclude>
-    <ClInclude Include="zlib\deflate.h">
-      <Filter>Libraries\zlib</Filter>
     </ClInclude>
     <ClInclude Include="client\eax\eax.h">
       <Filter>Libraries\EAX</Filter>
@@ -666,26 +660,11 @@
     <ClInclude Include="qcommon\hstring.h">
       <Filter>QCommon</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\gzguts.h">
-      <Filter>Libraries\zlib</Filter>
-    </ClInclude>
     <ClInclude Include="qcommon\INetProfile.h">
       <Filter>QCommon</Filter>
     </ClInclude>
     <ClInclude Include="icarus\icarus.h">
       <Filter>Libraries\ICARUS</Filter>
-    </ClInclude>
-    <ClInclude Include="zlib\inftrees.h">
-      <Filter>Libraries\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="zlib\inffast.h">
-      <Filter>Libraries\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="zlib\inffixed.h">
-      <Filter>Libraries\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="zlib\inflate.h">
-      <Filter>Libraries\zlib</Filter>
     </ClInclude>
     <ClInclude Include="icarus\interpreter.h">
       <Filter>Libraries\ICARUS</Filter>
@@ -743,9 +722,6 @@
     </ClInclude>
     <ClInclude Include="ui\keycodes.h">
       <Filter>VM Code</Filter>
-    </ClInclude>
-    <ClInclude Include="zlib\ioapi.h">
-      <Filter>Libraries\zlib</Filter>
     </ClInclude>
     <ClInclude Include="renderer\mdx_format.h">
       <Filter>Client</Filter>
@@ -870,9 +846,6 @@
     <ClInclude Include="cgame\tr_types.h">
       <Filter>Client</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\trees.h">
-      <Filter>Libraries\zlib</Filter>
-    </ClInclude>
     <ClInclude Include="ui\ui_public.h">
       <Filter>VM Code</Filter>
     </ClInclude>
@@ -881,15 +854,6 @@
     </ClInclude>
     <ClInclude Include="win32\win_local.h">
       <Filter>win32</Filter>
-    </ClInclude>
-    <ClInclude Include="zlib\zconf.h">
-      <Filter>Libraries\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="zlib\zutil.h">
-      <Filter>Libraries\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="zlib\zlib.h">
-      <Filter>Libraries\zlib</Filter>
     </ClInclude>
     <ClInclude Include="icarus\tokenizer.h">
       <Filter>Libraries\ICARUS</Filter>
@@ -929,6 +893,42 @@
     </ClInclude>
     <ClInclude Include="libraries\mp3code\tableawd.h">
       <Filter>Libraries\mp3code</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\crc32.h">
+      <Filter>Libraries\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\deflate.h">
+      <Filter>Libraries\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\gzguts.h">
+      <Filter>Libraries\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\inffast.h">
+      <Filter>Libraries\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\inffixed.h">
+      <Filter>Libraries\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\inflate.h">
+      <Filter>Libraries\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\inftrees.h">
+      <Filter>Libraries\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\ioapi.h">
+      <Filter>Libraries\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\trees.h">
+      <Filter>Libraries\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\zconf.h">
+      <Filter>Libraries\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\zlib.h">
+      <Filter>Libraries\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\zlib\zutil.h">
+      <Filter>Libraries\zlib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

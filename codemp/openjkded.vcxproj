@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>Dedicated Server (openjkded)</ProjectName>
-    <ProjectGuid>{9C4ACA8A-5EC0-94A1-10F2-596651CB278D}</ProjectGuid>
+    <ProjectGuid>{326282A4-4F23-1FC7-8A02-22BAECCA7FC4}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -112,7 +112,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>.;..;..\lib;..\lib\libpng;..\lib\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;../libraries/;libraries/libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
@@ -133,6 +133,18 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="libraries\zlib\crc32.h" />
+    <ClInclude Include="libraries\zlib\deflate.h" />
+    <ClInclude Include="libraries\zlib\gzguts.h" />
+    <ClInclude Include="libraries\zlib\inffast.h" />
+    <ClInclude Include="libraries\zlib\inffixed.h" />
+    <ClInclude Include="libraries\zlib\inflate.h" />
+    <ClInclude Include="libraries\zlib\inftrees.h" />
+    <ClInclude Include="libraries\zlib\ioapi.h" />
+    <ClInclude Include="libraries\zlib\trees.h" />
+    <ClInclude Include="libraries\zlib\zconf.h" />
+    <ClInclude Include="libraries\zlib\zlib.h" />
+    <ClInclude Include="libraries\zlib\zutil.h" />
     <ClInclude Include="qcommon\GenericParser2.h" />
     <ClInclude Include="qcommon\MiniHeap.h" />
     <ClInclude Include="qcommon\RoffSystem.h" />
@@ -242,18 +254,8 @@
     <ClInclude Include="RMG\RM_Objective.h" />
     <ClInclude Include="RMG\RM_Path.h" />
     <ClInclude Include="RMG\RM_Terrain.h" />
-    <ClInclude Include="..\lib\zlib\crc32.h" />
-    <ClInclude Include="..\lib\zlib\deflate.h" />
-    <ClInclude Include="..\lib\zlib\gzguts.h" />
-    <ClInclude Include="..\lib\zlib\inffast.h" />
-    <ClInclude Include="..\lib\zlib\inffixed.h" />
-    <ClInclude Include="..\lib\zlib\inflate.h" />
-    <ClInclude Include="..\lib\zlib\inftrees.h" />
     <ClInclude Include="..\lib\zlib\ioapi.h" />
     <ClInclude Include="..\lib\zlib\trees.h" />
-    <ClInclude Include="..\lib\zlib\zconf.h" />
-    <ClInclude Include="..\lib\zlib\zlib.h" />
-    <ClInclude Include="..\lib\zlib\zutil.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libraries\libpng\png.c" />
@@ -271,7 +273,22 @@
     <ClCompile Include="libraries\libpng\pngwrite.c" />
     <ClCompile Include="libraries\libpng\pngwtran.c" />
     <ClCompile Include="libraries\libpng\pngwutil.c" />
-    <ClCompile Include="libraries\png\rpng.cpp" />
+    <ClCompile Include="libraries\zlib\adler32.c" />
+    <ClCompile Include="libraries\zlib\compress.c" />
+    <ClCompile Include="libraries\zlib\crc32.c" />
+    <ClCompile Include="libraries\zlib\deflate.c" />
+    <ClCompile Include="libraries\zlib\gzclose.c" />
+    <ClCompile Include="libraries\zlib\gzlib.c" />
+    <ClCompile Include="libraries\zlib\gzread.c" />
+    <ClCompile Include="libraries\zlib\gzwrite.c" />
+    <ClCompile Include="libraries\zlib\infback.c" />
+    <ClCompile Include="libraries\zlib\inffast.c" />
+    <ClCompile Include="libraries\zlib\inflate.c" />
+    <ClCompile Include="libraries\zlib\inftrees.c" />
+    <ClCompile Include="libraries\zlib\ioapi.c" />
+    <ClCompile Include="libraries\zlib\trees.c" />
+    <ClCompile Include="libraries\zlib\uncompr.c" />
+    <ClCompile Include="libraries\zlib\zutil.c" />
     <ClCompile Include="qcommon\RoffSystem.cpp" />
     <ClCompile Include="qcommon\cm_draw.cpp" />
     <ClCompile Include="qcommon\cm_load.cpp" />
@@ -376,21 +393,6 @@
     <ClCompile Include="rd-dedicated\tr_model.cpp" />
     <ClCompile Include="rd-dedicated\tr_shader.cpp" />
     <ClCompile Include="rd-dedicated\tr_skin.cpp" />
-    <ClCompile Include="..\libraries\libpng\png.c" />
-    <ClCompile Include="..\libraries\libpng\pngerror.c" />
-    <ClCompile Include="..\libraries\libpng\pngget.c" />
-    <ClCompile Include="..\libraries\libpng\pngmem.c" />
-    <ClCompile Include="..\libraries\libpng\pngpread.c" />
-    <ClCompile Include="..\libraries\libpng\pngread.c" />
-    <ClCompile Include="..\libraries\libpng\pngrio.c" />
-    <ClCompile Include="..\libraries\libpng\pngrtran.c" />
-    <ClCompile Include="..\libraries\libpng\pngrutil.c" />
-    <ClCompile Include="..\libraries\libpng\pngset.c" />
-    <ClCompile Include="..\libraries\libpng\pngtrans.c" />
-    <ClCompile Include="..\libraries\libpng\pngwio.c" />
-    <ClCompile Include="..\libraries\libpng\pngwrite.c" />
-    <ClCompile Include="..\libraries\libpng\pngwtran.c" />
-    <ClCompile Include="..\libraries\libpng\pngwutil.c" />
     <ClCompile Include="RMG\rm_area.cpp" />
     <ClCompile Include="RMG\rm_instance.cpp" />
     <ClCompile Include="RMG\rm_instance_bsp.cpp" />
@@ -403,22 +405,6 @@
     <ClCompile Include="RMG\rm_objective.cpp" />
     <ClCompile Include="RMG\rm_path.cpp" />
     <ClCompile Include="RMG\rm_terrain.cpp" />
-    <ClCompile Include="..\lib\zlib\adler32.c" />
-    <ClCompile Include="..\lib\zlib\compress.c" />
-    <ClCompile Include="..\lib\zlib\crc32.c" />
-    <ClCompile Include="..\lib\zlib\deflate.c" />
-    <ClCompile Include="..\lib\zlib\gzclose.c" />
-    <ClCompile Include="..\lib\zlib\gzlib.c" />
-    <ClCompile Include="..\lib\zlib\gzread.c" />
-    <ClCompile Include="..\lib\zlib\gzwrite.c" />
-    <ClCompile Include="..\lib\zlib\infback.c" />
-    <ClCompile Include="..\lib\zlib\inffast.c" />
-    <ClCompile Include="..\lib\zlib\inflate.c" />
-    <ClCompile Include="..\lib\zlib\inftrees.c" />
-    <ClCompile Include="..\lib\zlib\ioapi.c" />
-    <ClCompile Include="..\lib\zlib\trees.c" />
-    <ClCompile Include="..\lib\zlib\uncompr.c" />
-    <ClCompile Include="..\lib\zlib\zutil.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="win32\openjkded.rc" />
