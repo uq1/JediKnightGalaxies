@@ -7948,8 +7948,8 @@ static void PM_Weapon( void )
 				pm->ps->weaponTime = 0;
 				return;
 			}
-			else
-			{ //just punch
+			else if( pm->ps->forcePower >= 15 || pm->ps->torsoAnim == BOTH_MELEE1 )
+			{ //just punch. We cannot start a melee combo if we are under 10 force power.
 				int desTAnim = BOTH_MELEE1;
 				if (pm->ps->torsoAnim == BOTH_MELEE1)
 				{

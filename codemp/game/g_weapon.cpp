@@ -2012,6 +2012,11 @@ void WP_FireMelee( gentity_t *ent, qboolean alt_fire )
 	vec3_t		mins, maxs, end;
 	vec3_t		muzzlePunch;
 
+	if( ent->client && (ent->client->ps.forcePower < 15 && ent->client->ps.torsoAnim != BOTH_MELEE1))
+	{	// Can't start a melee combo if we're under 10 force power --eez
+		return;
+	}
+
 	if ( ent->s.eType == ET_NPC 
 		&& ent->s.weapon != WP_SABER 
 		&& ent->enemy
@@ -2048,7 +2053,11 @@ void WP_FireMelee( gentity_t *ent, qboolean alt_fire )
 	// Melee "improvements" - sap a little bit of stamina for each punch
 	if (ent->client)
 	{
-		ent->client->ps.fd.forcePower -= 9;
+		ent->client->ps.forcePower -= 9;
+		if( ent->client->ps.forcePower <= 0 )
+		{
+			ent->client->ps.forcePower = 0;
+		}
 	}
 
 	VectorMA(muzzlePunch, 20.0f, forward, muzzlePunch);
