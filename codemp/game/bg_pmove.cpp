@@ -10591,6 +10591,10 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 		{
 			return qfalse;
 		}
+		if( ps->groundEntityNum == ENTITYNUM_NONE )
+		{
+			return qfalse;
+		}
 	}
 #ifdef QAGAME
 	else
