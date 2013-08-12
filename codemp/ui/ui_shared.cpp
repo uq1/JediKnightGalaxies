@@ -3189,46 +3189,14 @@ void Item_SetMouseOver(itemDef_t *item, qboolean focus) {
 }
 
 
-qboolean Item_OwnerDraw_HandleKey(itemDef_t *item, int key) {
-  if (item && DC->ownerDrawHandleKey)
-  {
-	
-	  // yep this is an ugly hack
-	  if( key == A_MOUSE1 || key == A_MOUSE2 )
-	  {
-		switch( item->window.ownerDraw )
-		{
-			case UI_FORCE_SIDE:
-			case UI_FORCE_RANK_HEAL:
-			case UI_FORCE_RANK_LEVITATION:
-			case UI_FORCE_RANK_SPEED:
-			case UI_FORCE_RANK_PUSH:
-			case UI_FORCE_RANK_PULL:
-			case UI_FORCE_RANK_TELEPATHY:
-			case UI_FORCE_RANK_GRIP:
-			case UI_FORCE_RANK_LIGHTNING:
-			case UI_FORCE_RANK_RAGE:
-			case UI_FORCE_RANK_PROTECT:
-			case UI_FORCE_RANK_ABSORB:
-			case UI_FORCE_RANK_TEAM_HEAL:
-			case UI_FORCE_RANK_TEAM_FORCE:
-			case UI_FORCE_RANK_DRAIN:
-			case UI_FORCE_RANK_SEE:
-			case UI_FORCE_RANK_SABERATTACK:
-			case UI_FORCE_RANK_SABERDEFEND:
-			case UI_FORCE_RANK_SABERTHROW:
-	  			if(!Rect_ContainsPoint(&item->window.rect, DC->cursorx, DC->cursory) )
-				{
-					return qfalse;
-				}
-				break;
-		}
-	  }
-	  
+qboolean Item_OwnerDraw_HandleKey(itemDef_t *item, int key) 
+{
+	if (item && DC->ownerDrawHandleKey)
+	{
+		return DC->ownerDrawHandleKey(item->window.ownerDraw, item->window.ownerDrawFlags, &item->special, key, item->window.ownerDrawID);
+	}
 
-    return DC->ownerDrawHandleKey(item->window.ownerDraw, item->window.ownerDrawFlags, &item->special, key, item->window.ownerDrawID);
-  }
-  return qfalse;
+	return qfalse;
 }
 
 extern void JKG_Inventory_Arrow ( char **args );
@@ -5626,22 +5594,6 @@ static bind_t g_bindings[] =
 	{"messagemode3",	-1,					-1,		-1, -1},
 	{"messagemode4",	-1,					-1,		-1, -1},
 	{"+use",			-1,					-1,		-1,	-1},
-	{"+force_jump",		-1,					-1,		-1,	-1},
-	{"force_throw",		A_F1,				-1,		-1,	-1},
-	{"force_pull",		A_F2,				-1,		-1,	-1},
-	{"force_speed",		A_F3,				-1,		-1,	-1},
-	{"force_distract",	A_F4,				-1,		-1,	-1},
-	{"force_heal",		A_F5,				-1,		-1,	-1},
-	{"+force_grip",		A_F6,				-1,		-1,	-1},
-	{"+force_lightning",A_F7,				-1,		-1,	-1},
-//mp only
-	{"+force_drain",	-1,					-1,		-1,	-1},
-	{"force_rage",		-1,					-1,		-1,	-1},
-	{"force_protect",	-1,					-1,		-1,	-1},
-	{"force_absorb",	-1,					-1,		-1,	-1},
-	{"force_healother",	-1,					-1,		-1,	-1},
-	{"force_forcepowerother",	-1,			-1,		-1,	-1},
-	{"force_seeing",	-1,					-1,		-1,	-1},
 
 	{"+useforce",		-1,					-1,		-1,	-1},
 	{"forcenext",		-1,					-1,		-1,	-1},

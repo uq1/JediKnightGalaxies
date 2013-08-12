@@ -60,74 +60,6 @@ void IN_Button10Down(void);
 void IN_Button10Up(void);
 void IN_Button6Down(void);
 void IN_Button6Up(void);
-void IN_UseGivenForce(void)
-{
-	char *c = Cmd_Argv(1);
-	int forceNum =-1;
-	int genCmdNum = 0;
-
-	if(c) {
-		forceNum = atoi(c);
-	} else {
-		return;
-	}
-
-	switch(forceNum) {
-	case FP_DRAIN:
-		IN_Button11Down();
-		IN_Button11Up();
-		break;
-	case FP_PUSH:
-		genCmdNum = GENCMD_FORCE_THROW;
-		break;
-	case FP_SPEED:
-		genCmdNum = GENCMD_FORCE_SPEED;
-		break;
-	case FP_PULL:
-		genCmdNum = GENCMD_FORCE_PULL;
-		break;
-	case FP_TELEPATHY:
-		genCmdNum = GENCMD_FORCE_DISTRACT;
-		break;
-	case FP_GRIP:
-		IN_Button6Down();
-		IN_Button6Up();
-		break;
-	case FP_LIGHTNING:
-		IN_Button10Down();
-		IN_Button10Up();
-		break;
-	case FP_RAGE:
-		genCmdNum = GENCMD_FORCE_RAGE;
-		break;
-	case FP_PROTECT:
-		genCmdNum = GENCMD_FORCE_PROTECT;
-		break;
-	case FP_ABSORB:
-		genCmdNum = GENCMD_FORCE_ABSORB;
-		break;
-	case FP_SEE:
-		genCmdNum = GENCMD_FORCE_SEEING;
-		break;
-	case FP_HEAL:
-		genCmdNum = GENCMD_FORCE_HEAL;
-		break;
-	case FP_TEAM_HEAL:
-		genCmdNum = GENCMD_FORCE_HEALOTHER;
-		break;
-	case FP_TEAM_FORCE:
-		genCmdNum = GENCMD_FORCE_FORCEPOWEROTHER;
-		break;
-	default:
-		assert(0);
-		break;
-	}
-
-	if(genCmdNum != 0) {
-		cl.gcmdSendValue = qtrue;
-		cl.gcmdValue = genCmdNum;
-	}
-}
 
 void IN_MLookDown( void ) {
 	in_mlooking = qtrue;
@@ -154,62 +86,52 @@ void IN_GenCMD2( void )
 
 void IN_GenCMD3( void )
 {
-	cl.gcmdSendValue = qtrue;
-	cl.gcmdValue = GENCMD_FORCE_HEAL;
+	return;
 }
 
 void IN_GenCMD4( void )
 {
-	cl.gcmdSendValue = qtrue;
-	cl.gcmdValue = GENCMD_FORCE_SPEED;
+	return;
 }
 
 void IN_GenCMD5( void )
 {
-	cl.gcmdSendValue = qtrue;
-	cl.gcmdValue = GENCMD_FORCE_PULL;
+	return;
 }
 
 void IN_GenCMD6( void )
 {
-	cl.gcmdSendValue = qtrue;
-	cl.gcmdValue = GENCMD_FORCE_DISTRACT;
+	return;
 }
 
 void IN_GenCMD7( void )
 {
-	cl.gcmdSendValue = qtrue;
-	cl.gcmdValue = GENCMD_FORCE_RAGE;
+	return;
 }
 
 void IN_GenCMD8( void )
 {
-	cl.gcmdSendValue = qtrue;
-	cl.gcmdValue = GENCMD_FORCE_PROTECT;
+	return;
 }
 
 void IN_GenCMD9( void )
 {
-	cl.gcmdSendValue = qtrue;
-	cl.gcmdValue = GENCMD_FORCE_ABSORB;
+	return;
 }
 
 void IN_GenCMD10( void )
 {
-	cl.gcmdSendValue = qtrue;
-	cl.gcmdValue = GENCMD_FORCE_HEALOTHER;
+	return;
 }
 
 void IN_GenCMD11( void )
 {
-	cl.gcmdSendValue = qtrue;
-	cl.gcmdValue = GENCMD_FORCE_FORCEPOWEROTHER;
+	return;
 }
 
 void IN_GenCMD12( void )
 {
-	cl.gcmdSendValue = qtrue;
-	cl.gcmdValue = GENCMD_FORCE_SEEING;
+	return;
 }
 
 void IN_GenCMD13( void )
@@ -260,8 +182,7 @@ void IN_GenCMD19( void )
 
 void IN_GenCMD20( void )
 {
-	cl.gcmdSendValue = qtrue;
-	cl.gcmdValue = GENCMD_FORCE_THROW;
+	return;
 }
 
 void IN_GenCMD21( void )
@@ -1615,20 +1536,10 @@ void CL_InitInput( void ) {
 	Cmd_AddCommand ("-speed", IN_SpeedUp);
 	Cmd_AddCommand ("+attack", IN_Button0Down);
 	Cmd_AddCommand ("-attack", IN_Button0Up);
-	//Cmd_AddCommand ("+force_jump", IN_Button1Down);//force jump
-	//Cmd_AddCommand ("-force_jump", IN_Button1Up);
 	Cmd_AddCommand ("+use", IN_Button5Down);
 	Cmd_AddCommand ("-use", IN_Button5Up);
-	Cmd_AddCommand ("+force_grip", IN_Button6Down);//force grip
-	Cmd_AddCommand ("-force_grip", IN_Button6Up);
 	Cmd_AddCommand ("+altattack", IN_Button7Down);//altattack
 	Cmd_AddCommand ("-altattack", IN_Button7Up);
-	Cmd_AddCommand ("+useforce", IN_Button9Down);//active force power
-	Cmd_AddCommand ("-useforce", IN_Button9Up);
-	Cmd_AddCommand ("+force_lightning", IN_Button10Down);//active force power
-	Cmd_AddCommand ("-force_lightning", IN_Button10Up);
-	Cmd_AddCommand ("+force_drain", IN_Button11Down);//active force power
-	Cmd_AddCommand ("-force_drain", IN_Button11Up);
 	//buttons
 	Cmd_AddCommand ("+button0", IN_Button0Down);//attack
 	Cmd_AddCommand ("-button0", IN_Button0Up);
@@ -1667,16 +1578,6 @@ void CL_InitInput( void ) {
 
 	Cmd_AddCommand ("sv_saberswitch", IN_GenCMD1);
 	Cmd_AddCommand ("engage_duel", IN_GenCMD2);
-	Cmd_AddCommand ("force_heal", IN_GenCMD3);
-	Cmd_AddCommand ("force_speed", IN_GenCMD4);
-	Cmd_AddCommand ("force_pull", IN_GenCMD5);
-	Cmd_AddCommand ("force_distract", IN_GenCMD6);
-	Cmd_AddCommand ("force_rage", IN_GenCMD7);
-	Cmd_AddCommand ("force_protect", IN_GenCMD8);
-	Cmd_AddCommand ("force_absorb", IN_GenCMD9);
-	Cmd_AddCommand ("force_healother", IN_GenCMD10);
-	Cmd_AddCommand ("force_forcepowerother", IN_GenCMD11);
-	Cmd_AddCommand ("force_seeing", IN_GenCMD12);
 	Cmd_AddCommand ("use_seeker", IN_GenCMD13);
 	Cmd_AddCommand ("use_field", IN_GenCMD14);
 	Cmd_AddCommand ("use_bacta", IN_GenCMD15);
@@ -1696,7 +1597,6 @@ void CL_InitInput( void ) {
 	Cmd_AddCommand ("gloat", IN_GenCMD31);
 	Cmd_AddCommand ("saberAttackCycle", IN_GenCMD19);
 	Cmd_AddCommand ("force_throw", IN_GenCMD20);
-	Cmd_AddCommand ("useGivenForce", IN_UseGivenForce);
 
 
 	Cmd_AddCommand("automap_button", IN_AutoMapButton);

@@ -3520,11 +3520,6 @@ void ClientThink_real( gentity_t *ent ) {
 		(pmove.cmd.generic_cmd != ent->client->lastGenCmd || ent->client->lastGenCmdTime < level.time))
 	{
 		ent->client->lastGenCmd = pmove.cmd.generic_cmd;
-		if (pmove.cmd.generic_cmd != GENCMD_FORCE_THROW &&
-			pmove.cmd.generic_cmd != GENCMD_FORCE_PULL)
-		{ //these are the only two where you wouldn't care about a delay between
-			ent->client->lastGenCmdTime = level.time + 300; //default 100ms debounce between issuing the same command.
-		}
 
 		switch(pmove.cmd.generic_cmd)
 		{
@@ -3541,39 +3536,6 @@ void ClientThink_real( gentity_t *ent ) {
 			{
 				Cmd_EngageDuel_f(ent);
 			}
-			break;
-		case GENCMD_FORCE_HEAL:
-			ForceHeal(ent);
-			break;
-		case GENCMD_FORCE_SPEED:
-			ForceSpeed(ent, 0);
-			break;
-		case GENCMD_FORCE_THROW:
-			ForceThrow(ent, qfalse);
-			break;
-		case GENCMD_FORCE_PULL:
-			ForceThrow(ent, qtrue);
-			break;
-		case GENCMD_FORCE_DISTRACT:
-			ForceTelepathy(ent);
-			break;
-		case GENCMD_FORCE_RAGE:
-			ForceRage(ent);
-			break;
-		case GENCMD_FORCE_PROTECT:
-			ForceProtect(ent);
-			break;
-		case GENCMD_FORCE_ABSORB:
-			ForceAbsorb(ent);
-			break;
-		case GENCMD_FORCE_HEALOTHER:
-			ForceTeamHeal(ent);
-			break;
-		case GENCMD_FORCE_FORCEPOWEROTHER:
-			ForceTeamForceReplenish(ent);
-			break;
-		case GENCMD_FORCE_SEEING:
-			ForceSeeing(ent);
 			break;
 		case GENCMD_USE_SEEKER:
 			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_SEEKER)) &&

@@ -504,9 +504,9 @@ Loops through a string and returns the following:
 */
 typedef enum
 {
-	JKGSTR_NONE,
-	JKGSTR_ALPHA,
-	JKGSTR_DECIMAL
+	JKGSTR_NONE,		// unknown string type
+	JKGSTR_ALPHA,		// string is plaintext/not a number
+	JKGSTR_DECIMAL		// string is a stringized number
 } JKGStringType_t;
 
 JKGStringType_t JKG_CheckIfNumber(const char *string)
@@ -516,7 +516,7 @@ JKGStringType_t JKG_CheckIfNumber(const char *string)
 	{
 		if(isalpha((int)string[i]))
 			return JKGSTR_ALPHA;
-		else if(!isdigit((int)string[i]))
+		else if(!isdigit((int)string[i]) && string[i] != '.')
 			return JKGSTR_NONE;
 		i++;
 	}

@@ -311,7 +311,6 @@ int UI_AdjustTimeByGame(int time);
 void UI_ShowPostGame(qboolean newHigh);
 void UI_ClearScores();
 void UI_LoadArenas(void);
-void UI_LoadForceConfig_List( void );
 
 //
 // ui_menu.c

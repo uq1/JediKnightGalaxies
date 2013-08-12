@@ -559,8 +559,6 @@ int UI_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 //menuDef_t *Menus_FindByName(const char *p);
 void Menu_ShowItemByName(menuDef_t *menu, const char *p, qboolean bShow);
 
-void UpdateForceUsed();
-
 char holdSPString[MAX_STRING_CHARS]={0};
 char holdSPString2[MAX_STRING_CHARS]={0};
 
@@ -936,7 +934,6 @@ void UI_DrawCenteredPic(qhandle_t image, int w, int h) {
 int frameCount = 0;
 int startTime;
 
-vmCvar_t	ui_rankChange;
 static void UI_BuildPlayerList();
 char parsedFPMessage[1024];
 
@@ -1031,69 +1028,6 @@ void _UI_Refresh( int realtime )
 		//UI_DrawString( 0, 0, va("(%d,%d)",uis.cursorx,uis.cursory), UI_LEFT|UI_SMALLFONT, colorRed );
 	}
 #endif
-
-	if (ui_rankChange.integer)
-	{
-		FPMessageTime = realtime + 3000;
-
-		if (!parsedFPMessage[0] /*&& uiMaxRank > ui_rankChange.integer*/)
-		{
-			const char *printMessage = UI_GetStringEdString("MP_INGAME", "SET_NEW_RANK");
-
-			int i = 0;
-			int p = 0;
-			int linecount = 0;
-
-			while (printMessage[i] && p < 1024)
-			{
-				parsedFPMessage[p] = printMessage[i];
-				p++;
-				i++;
-				linecount++;
-
-				if (linecount > 64 && printMessage[i] == ' ')
-				{
-					parsedFPMessage[p] = '\n';
-					p++;
-					linecount = 0;
-				}
-			}
-			parsedFPMessage[p] = '\0';
-		}
-
-		//if (uiMaxRank > ui_rankChange.integer)
-		{
-			uiMaxRank = ui_rankChange.integer;
-			uiForceRank = uiMaxRank;
-
-			/*
-			while (x < NUM_FORCE_POWERS)
-			{
-				//For now just go ahead and clear force powers upon rank change
-				uiForcePowersRank[x] = 0;
-				x++;
-			}
-			uiForcePowersRank[FP_LEVITATION] = 1;
-			uiForceUsed = 0;
-			*/
-
-			//Use BG_LegalizedForcePowers and transfer the result into the UI force settings
-			//UI_ReadLegalForce();
-		}
-
-		if (ui_freeSaber.integer && uiForcePowersRank[FP_SABER_OFFENSE] < 1)
-		{
-			uiForcePowersRank[FP_SABER_OFFENSE] = 1;
-		}
-		if (ui_freeSaber.integer && uiForcePowersRank[FP_SABER_DEFENSE] < 1)
-		{
-			uiForcePowersRank[FP_SABER_DEFENSE] = 1;
-		}
-		trap_Cvar_Set("ui_rankChange", "0");
-
-		//remember to update the force power count after changing the max rank
-		UpdateForceUsed();
-	}
 
 	if (ui_freeSaber.integer)
 	{
@@ -1842,25 +1776,6 @@ static void UI_DrawGenericNum(rectDef_t *rect, float scale, vec4_t color, int te
 	Text_Paint(rect->x, rect->y, scale, color, s,0, 0, textStyle, iMenuFont);
 }
 
-static void UI_DrawForceMastery(rectDef_t *rect, float scale, vec4_t color, int textStyle, int val, int min, int max, int iMenuFont)
-{
-	int i;
-	char *s;
-
-	i = val;
-	if (i < min)
-	{
-		i = min;
-	}
-	if (i > max)
-	{
-		i = max;
-	}
-
-	s = (char *)UI_GetStringEdString("MP_INGAME", forceMasteryLevels[i]);
-	Text_Paint(rect->x, rect->y, scale, color, s, 0, 0, textStyle, iMenuFont);
-}
-
 
 static void UI_DrawSkinColor(rectDef_t *rect, float scale, vec4_t color, int textStyle, int val, int min, int max, int iMenuFont)
 {
@@ -1883,86 +1798,6 @@ static void UI_DrawSkinColor(rectDef_t *rect, float scale, vec4_t color, int tex
 	}
 
 	Text_Paint(rect->x, rect->y, scale, color, s, 0, 0, textStyle, iMenuFont);
-}
-
-static void UI_DrawForceSide(rectDef_t *rect, float scale, vec4_t color, int textStyle, int val, int min, int max, int iMenuFont)
-{
-	char s[256];
-	menuDef_t *menu;
-
-	char info[MAX_INFO_VALUE];
-
-	info[0] = '\0';
-	trap_GetConfigString(CS_SERVERINFO, info, sizeof(info));
-
-	if (atoi( Info_ValueForKey( info, "g_forceBasedTeams" ) ))
-	{
-		switch((int)(trap_Cvar_VariableValue("ui_myteam")))
-		{
-		case TEAM_RED:
-			uiForceSide = FORCE_DARKSIDE;
-			color[0] = 0.2f;
-			color[1] = 0.2f;
-			color[2] = 0.2f;
-			break;
-		case TEAM_BLUE:
-			uiForceSide = FORCE_LIGHTSIDE;
-			color[0] = 0.2f;
-			color[1] = 0.2f;
-			color[2] = 0.2f;
-			break;
-		default:
-			break;
-		}
-	}
-
-	if (val == FORCE_LIGHTSIDE)
-	{
-		trap_SP_GetStringTextString("MENUS_FORCEDESC_LIGHT",s, sizeof(s));
-		menu = Menus_FindByName("forcealloc");
-		if (menu)
-		{
-			Menu_ShowItemByName(menu, "lightpowers", qtrue);
-			Menu_ShowItemByName(menu, "darkpowers", qfalse);
-			Menu_ShowItemByName(menu, "darkpowers_team", qfalse);
-
-			Menu_ShowItemByName(menu, "lightpowers_team", qtrue);//(ui_gameType.integer >= GT_TEAM));
-
-		}
-		menu = Menus_FindByName("ingame_playerforce");
-		if (menu)
-		{
-			Menu_ShowItemByName(menu, "lightpowers", qtrue);
-			Menu_ShowItemByName(menu, "darkpowers", qfalse);
-			Menu_ShowItemByName(menu, "darkpowers_team", qfalse);
-
-			Menu_ShowItemByName(menu, "lightpowers_team", qtrue);//(ui_gameType.integer >= GT_TEAM));
-		}
-	}
-	else
-	{
-		trap_SP_GetStringTextString("MENUS_FORCEDESC_DARK",s, sizeof(s));
-		menu = Menus_FindByName("forcealloc");
-		if (menu)
-		{
-			Menu_ShowItemByName(menu, "lightpowers", qfalse);
-			Menu_ShowItemByName(menu, "lightpowers_team", qfalse);
-			Menu_ShowItemByName(menu, "darkpowers", qtrue);
-
-			Menu_ShowItemByName(menu, "darkpowers_team", qtrue);//(ui_gameType.integer >= GT_TEAM));
-		}
-		menu = Menus_FindByName("ingame_playerforce");
-		if (menu)
-		{
-			Menu_ShowItemByName(menu, "lightpowers", qfalse);
-			Menu_ShowItemByName(menu, "lightpowers_team", qfalse);
-			Menu_ShowItemByName(menu, "darkpowers", qtrue);
-
-			Menu_ShowItemByName(menu, "darkpowers_team", qtrue);//(ui_gameType.integer >= GT_TEAM));
-		}
-	}
-
-	Text_Paint(rect->x, rect->y, scale, color, s,0, 0, textStyle, iMenuFont);
 }
 
 qboolean UI_HasSetSaberOnly( void )
@@ -2227,52 +2062,6 @@ static void UI_DrawMapCinematic(rectDef_t *rect, float scale, vec4_t color, qboo
 	}
 }
 
-static void UI_SetForceDisabled(int force)
-{
-	int i = 0;
-
-	if (force)
-	{
-		while (i < NUM_FORCE_POWERS)
-		{
-			if (force & (1 << i))
-			{
-				uiForcePowersDisabled[i] = qtrue;
-
-				if (i != FP_LEVITATION && i != FP_SABER_OFFENSE && i != FP_SABER_DEFENSE)
-				{
-					uiForcePowersRank[i] = 0;
-				}
-				else
-				{
-					if (i == FP_LEVITATION)
-					{
-						uiForcePowersRank[i] = 1;
-					}
-					else
-					{
-						uiForcePowersRank[i] = 3;
-					}
-				}
-			}
-			else
-			{
-				uiForcePowersDisabled[i] = qfalse;
-			}
-			i++;
-		}
-	}
-	else
-	{
-		i = 0;
-
-		while (i < NUM_FORCE_POWERS)
-		{
-			uiForcePowersDisabled[i] = qfalse;
-			i++;
-		}
-	}
-}
 // The game type on create server has changed - make the HUMAN/BOTS fields active 
 void UpdateBotButtons(void)
 {
@@ -2288,160 +2077,6 @@ void UpdateBotButtons(void)
 	Menu_ShowItemByName(menu, "humanbotfield", qtrue);
 	Menu_ShowItemByName(menu, "humanbotnonfield", qfalse);
 }
-
-void UpdateForceStatus()
-{
-	menuDef_t *menu;
-
-	// Currently we don't make a distinction between those that wish to play Jedi of lower than maximum skill.
-/*	if (ui_forcePowerDisable.integer)
-	{
-		uiForceRank = 0;
-		uiForceAvailable = 0;
-		uiForceUsed = 0;
-	}
-	else
-	{
-		uiForceRank = uiMaxRank;
-		uiForceUsed = 0;
-		uiForceAvailable = forceMasteryPoints[uiForceRank];
-	}
-*/
-	menu = Menus_FindByName("ingame_player");
-	if (menu)
-	{
-		char	info[MAX_INFO_STRING];
-		int		disabledForce = 0;
-		qboolean trueJedi = qfalse, allForceDisabled = qfalse;
-
-		trap_GetConfigString( CS_SERVERINFO, info, sizeof(info) );
-
-		//already have serverinfo at this point for stuff below. Don't bother trying to use ui_forcePowerDisable.
-		//if (ui_forcePowerDisable.integer)
-		//if (atoi(Info_ValueForKey(info, "g_forcePowerDisable")))
-		disabledForce = atoi(Info_ValueForKey(info, "g_forcePowerDisable"));
-		allForceDisabled = UI_AllForceDisabled(disabledForce);
-		trueJedi = UI_TrueJediEnabled();
-
-		if ( !trueJedi || allForceDisabled )
-		{
-			Menu_ShowItemByName(menu, "jedinonjedi", qfalse);
-		}
-		else
-		{
-			Menu_ShowItemByName(menu, "jedinonjedi", qtrue);
-		}
-		if ( allForceDisabled == qtrue || (trueJedi && uiJediNonJedi == FORCE_NONJEDI) )
-		{	// No force stuff
-			Menu_ShowItemByName(menu, "noforce", qtrue);
-			Menu_ShowItemByName(menu, "yesforce", qfalse);
-			// We don't want the saber explanation to say "configure saber attack 1" since we can't.
-			Menu_ShowItemByName(menu, "sabernoneconfigme", qfalse);
-		}
-		else
-		{
-			UI_SetForceDisabled(disabledForce);
-			Menu_ShowItemByName(menu, "noforce", qfalse);
-			Menu_ShowItemByName(menu, "yesforce", qtrue);
-		}
-
-		//Moved this to happen after it's done with force power disabling stuff
-		if (uiForcePowersRank[FP_SABER_OFFENSE] > 0 || ui_freeSaber.integer)
-		{	// Show lightsaber stuff.
-			Menu_ShowItemByName(menu, "nosaber", qfalse);
-			Menu_ShowItemByName(menu, "yessaber", qtrue);
-		}
-		else
-		{
-			Menu_ShowItemByName(menu, "nosaber", qtrue);
-			Menu_ShowItemByName(menu, "yessaber", qfalse);
-		}
-
-		// The leftmost button should be "apply" unless you are in spectator, where you can join any team.
-		if ((int)(trap_Cvar_VariableValue("ui_myteam")) != TEAM_SPECTATOR)
-		{
-			Menu_ShowItemByName(menu, "playerapply", qtrue);
-			Menu_ShowItemByName(menu, "playerforcejoin", qfalse);
-			Menu_ShowItemByName(menu, "playerforcered", qtrue);
-			Menu_ShowItemByName(menu, "playerforceblue", qtrue);
-			Menu_ShowItemByName(menu, "playerforcespectate", qtrue);
-		}
-		else
-		{
-			// Set or reset buttons based on choices
-			if (atoi(Info_ValueForKey(info, "g_gametype")) >= GT_TEAM)
-			{	// This is a team-based game.
-				Menu_ShowItemByName(menu, "playerforcespectate", qtrue);
-
-				// This is disabled, always show both sides from spectator.
-				if ( 0 && atoi(Info_ValueForKey(info, "g_forceBasedTeams")))
-				{	// Show red or blue based on what side is chosen.
-					if (uiForceSide==FORCE_LIGHTSIDE)
-					{
-						Menu_ShowItemByName(menu, "playerforcered", qfalse);
-						Menu_ShowItemByName(menu, "playerforceblue", qtrue);
-					}
-					else if (uiForceSide==FORCE_DARKSIDE)
-					{
-						Menu_ShowItemByName(menu, "playerforcered", qtrue);
-						Menu_ShowItemByName(menu, "playerforceblue", qfalse);
-					}
-					else
-					{
-						Menu_ShowItemByName(menu, "playerforcered", qtrue);
-						Menu_ShowItemByName(menu, "playerforceblue", qtrue);
-					}
-				}
-				else
-				{
-					Menu_ShowItemByName(menu, "playerforcered", qtrue);
-					Menu_ShowItemByName(menu, "playerforceblue", qtrue);
-				}
-			}
-			else
-			{
-				Menu_ShowItemByName(menu, "playerforcered", qfalse);
-				Menu_ShowItemByName(menu, "playerforceblue", qfalse);
-			}
-
-			Menu_ShowItemByName(menu, "playerapply", qfalse);
-			Menu_ShowItemByName(menu, "playerforcejoin", qtrue);
-			Menu_ShowItemByName(menu, "playerforcespectate", qtrue);
-		}
-	}
-
-
-	if ( !UI_TrueJediEnabled() )
-	{// Take the current team and force a skin color based on it.
-		char	info[MAX_INFO_STRING];
-
-		switch((int)(trap_Cvar_VariableValue("ui_myteam")))
-		{
-		case TEAM_RED:
-			uiSkinColor = TEAM_RED;
-			uiInfo.effectsColor = SABER_RED;
-			break;
-		case TEAM_BLUE:
-			uiSkinColor = TEAM_BLUE;
-			uiInfo.effectsColor = SABER_BLUE;
-			break;
-		default:
-			trap_GetConfigString( CS_SERVERINFO, info, sizeof(info) );
-
-			if (atoi(Info_ValueForKey(info, "g_gametype")) >= GT_TEAM)
-			{
-				uiSkinColor = TEAM_FREE;
-			}
-			else	// A bit of a hack so non-team games will remember which skin set you chose in the player menu
-			{
-				uiSkinColor = uiHoldSkinColor;
-			}
-			break;
-		}
-	}
-}
-
-
 
 static void UI_DrawNetSource(rectDef_t *rect, float scale, vec4_t color, int textStyle, int iMenuFont) 
 {
@@ -2755,78 +2390,6 @@ static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
 			s = (char *)UI_GetStringEdString("MENUS", "DEFAULT");
 			break;
 		}
-		break;
-	case UI_FORCE_SIDE:
-		i = uiForceSide;
-		if (i < 1 || i > 2) {
-			i = 1;
-		}
-
-		if (i == FORCE_LIGHTSIDE)
-		{
-			//			s = "Light";
-			s = (char *)UI_GetStringEdString("MENUS", "FORCEDESC_LIGHT");
-		}
-		else
-		{
-			//			s = "Dark";
-			s = (char *)UI_GetStringEdString("MENUS", "FORCEDESC_DARK");
-		}
-		break;
-	case UI_JEDI_NONJEDI:
-		i = uiJediNonJedi;
-		if (i < 0 || i > 1)
-		{
-			i = 0;
-		}
-
-		if (i == FORCE_NONJEDI)
-		{
-			//			s = "Non-Jedi";
-			s = (char *)UI_GetStringEdString("MENUS", "NO");
-		}
-		else
-		{
-			//			s = "Jedi";
-			s = (char *)UI_GetStringEdString("MENUS", "YES");
-		}
-		break;
-	case UI_FORCE_RANK:
-		i = uiForceRank;
-		if (i < 1 || i > MAX_FORCE_RANK) {
-			i = 1;
-		}
-
-		s = (char *)UI_GetStringEdString("MP_INGAME", forceMasteryLevels[i]);
-		break;
-	case UI_FORCE_RANK_HEAL:
-	case UI_FORCE_RANK_LEVITATION:
-	case UI_FORCE_RANK_SPEED:
-	case UI_FORCE_RANK_PUSH:
-	case UI_FORCE_RANK_PULL:
-	case UI_FORCE_RANK_TELEPATHY:
-	case UI_FORCE_RANK_GRIP:
-	case UI_FORCE_RANK_LIGHTNING:
-	case UI_FORCE_RANK_RAGE:
-	case UI_FORCE_RANK_PROTECT:
-	case UI_FORCE_RANK_ABSORB:
-	case UI_FORCE_RANK_TEAM_HEAL:
-	case UI_FORCE_RANK_TEAM_FORCE:
-	case UI_FORCE_RANK_DRAIN:
-	case UI_FORCE_RANK_SEE:
-	case UI_FORCE_RANK_SABERATTACK:
-	case UI_FORCE_RANK_SABERDEFEND:
-	case UI_FORCE_RANK_SABERTHROW:
-		findex = (ownerDraw - UI_FORCE_RANK)-1;
-		//this will give us the index as long as UI_FORCE_RANK is always one below the first force rank index
-		i = uiForcePowersRank[findex];
-
-		if (i < 0 || i > NUM_FORCE_POWER_LEVELS-1)
-		{
-			i = 0;
-		}
-
-		s = va("%i", uiForcePowersRank[findex]);
 		break;
 	case UI_CLANNAME:
 		s = UI_Cvar_VariableString("ui_teamName");
@@ -3356,72 +2919,6 @@ static void UI_OwnerDraw(itemDef_t *item, float x, float y, float w, float h, fl
 		break;
 	case UI_SKIN_COLOR:
 		UI_DrawSkinColor(&rect, scale, color, textStyle, uiSkinColor, TEAM_FREE, TEAM_BLUE, iMenuFont);
-		break;
-	case UI_FORCE_SIDE:
-		UI_DrawForceSide(&rect, scale, color, textStyle, uiForceSide, 1, 2, iMenuFont);
-		break;
-	case UI_JEDI_NONJEDI:
-		UI_DrawJediNonJedi(&rect, scale, color, textStyle, uiJediNonJedi, 0, 1, iMenuFont);
-		break;
-	case UI_FORCE_POINTS:
-		UI_DrawGenericNum(&rect, scale, color, textStyle, uiForceAvailable, 1, forceMasteryPoints[MAX_FORCE_RANK], ownerDraw,iMenuFont);
-		break;
-	case UI_FORCE_MASTERY_SET:
-		UI_DrawForceMastery(&rect, scale, color, textStyle, uiForceRank, 0, MAX_FORCE_RANK, iMenuFont);
-		break;
-	case UI_FORCE_RANK:
-		UI_DrawForceMastery(&rect, scale, color, textStyle, uiForceRank, 0, MAX_FORCE_RANK, iMenuFont);
-		break;
-	case UI_FORCE_RANK_HEAL:
-	case UI_FORCE_RANK_LEVITATION:
-	case UI_FORCE_RANK_SPEED:
-	case UI_FORCE_RANK_PUSH:
-	case UI_FORCE_RANK_PULL:
-	case UI_FORCE_RANK_TELEPATHY:
-	case UI_FORCE_RANK_GRIP:
-	case UI_FORCE_RANK_LIGHTNING:
-	case UI_FORCE_RANK_RAGE:
-	case UI_FORCE_RANK_PROTECT:
-	case UI_FORCE_RANK_ABSORB:
-	case UI_FORCE_RANK_TEAM_HEAL:
-	case UI_FORCE_RANK_TEAM_FORCE:
-	case UI_FORCE_RANK_DRAIN:
-	case UI_FORCE_RANK_SEE:
-	case UI_FORCE_RANK_SABERATTACK:
-	case UI_FORCE_RANK_SABERDEFEND:
-	case UI_FORCE_RANK_SABERTHROW:
-
-//		uiForceRank
-/*
-		uiForceUsed
-		// Only fields for white stars
-		if (uiForceUsed<3)
-		{
-		    Menu_ShowItemByName(menu, "lightpowers_team", qtrue);
-		}
-		else if (uiForceUsed<6)
-		{
-		    Menu_ShowItemByName(menu, "lightpowers_team", qtrue);
-		}
-*/
-
-		findex = (ownerDraw - UI_FORCE_RANK)-1;
-		//this will give us the index as long as UI_FORCE_RANK is always one below the first force rank index
-		if (uiForcePowerDarkLight[findex] && uiForceSide != uiForcePowerDarkLight[findex])
-		{
-			color[0] *= 0.5;
-			color[1] *= 0.5;
-			color[2] *= 0.5;
-		}
-/*		else if (uiForceRank < UI_ForceColorMinRank[bgForcePowerCost[findex][FORCE_LEVEL_1]])
-		{
-			color[0] *= 0.5;
-			color[1] *= 0.5;
-			color[2] *= 0.5;
-		}
-*/		drawRank = uiForcePowersRank[findex];
-
-		UI_DrawForceStars(&rect, scale, color, textStyle, findex, drawRank, 0, NUM_FORCE_POWER_LEVELS-1);
 		break;
 	case UI_EFFECTS:
 		UI_DrawEffects(&rect, scale, color);
@@ -4568,18 +4065,7 @@ static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, 
 		break;
 	case UI_SKIN_COLOR:
 		return UI_SkinColor_HandleKey(flags, special, key, uiSkinColor, TEAM_FREE, TEAM_BLUE, ownerDraw);
-		break;
-	case UI_FORCE_SIDE:
-		return UI_ForceSide_HandleKey(flags, special, key, uiForceSide, 1, 2, ownerDraw);
-		break;
-	case UI_JEDI_NONJEDI:
-		return UI_JediNonJedi_HandleKey(flags, special, key, uiJediNonJedi, 0, 1, ownerDraw);
-		break;
-	case UI_FORCE_MASTERY_SET:
-		return UI_ForceMaxRank_HandleKey(flags, special, key, uiForceRank, 1, MAX_FORCE_RANK, ownerDraw);
-		break;
-	case UI_FORCE_RANK:
-		break;		
+		break;	
 	case UI_CHAT_MAIN:
 		return UI_Chat_Main_HandleKey(key);
 		break;
@@ -4600,28 +4086,6 @@ static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, 
 		break;
 	case UI_CHAT_TACTICAL:
 		return UI_Chat_Tactical_HandleKey(key);
-		break;
-	case UI_FORCE_RANK_HEAL:
-	case UI_FORCE_RANK_LEVITATION:
-	case UI_FORCE_RANK_SPEED:
-	case UI_FORCE_RANK_PUSH:
-	case UI_FORCE_RANK_PULL:
-	case UI_FORCE_RANK_TELEPATHY:
-	case UI_FORCE_RANK_GRIP:
-	case UI_FORCE_RANK_LIGHTNING:
-	case UI_FORCE_RANK_RAGE:
-	case UI_FORCE_RANK_PROTECT:
-	case UI_FORCE_RANK_ABSORB:
-	case UI_FORCE_RANK_TEAM_HEAL:
-	case UI_FORCE_RANK_TEAM_FORCE:
-	case UI_FORCE_RANK_DRAIN:
-	case UI_FORCE_RANK_SEE:
-	case UI_FORCE_RANK_SABERATTACK:
-	case UI_FORCE_RANK_SABERDEFEND:
-	case UI_FORCE_RANK_SABERTHROW:
-		findex = (ownerDraw - UI_FORCE_RANK)-1;
-		//this will give us the index as long as UI_FORCE_RANK is always one below the first force rank index
-		return UI_ForcePowerRank_HandleKey(flags, special, key, uiForcePowersRank[findex], 0, NUM_FORCE_POWER_LEVELS-1, ownerDraw);
 		break;
 	case UI_EFFECTS:
 		return UI_Effects_HandleKey(flags, special, key);
@@ -6154,11 +5618,6 @@ static void UI_RunMenuScript(char **args)
 			trap_Cmd_ExecuteText( EXEC_APPEND, "exec mpdefault.cfg\n");
 			trap_Cmd_ExecuteText( EXEC_APPEND, "vid_restart\n" );
 			trap_Cvar_Set("com_introPlayed", "1" );
-		} else if (Q_stricmp(name, "loadArenas") == 0) {
-			UI_LoadArenas();
-			UI_MapCountByGameType(qfalse);
-			Menu_SetFeederSelection(NULL, FEEDER_ALLMAPS, gUISelectedMap, "createserver");
-			uiForceRank = trap_Cvar_VariableValue("g_maxForceRank");
 		} else if (Q_stricmp(name, "saveControls") == 0) {
 			Controls_SetConfig(qtrue);
 		} else if (Q_stricmp(name, "loadControls") == 0) {
@@ -6472,47 +5931,11 @@ static void UI_RunMenuScript(char **args)
 				Menus_CloseAll();
 			}
 		}
-		else if (Q_stricmp(name, "setForce") == 0)
-		{
-			const char *teamArg;
-
-			if (String_Parse(args, &teamArg))
-			{
-				if ( Q_stricmp( "none", teamArg ) == 0 )
-				{
-					UI_UpdateClientForcePowers(NULL);
-				}
-				else if ( Q_stricmp( "same", teamArg ) == 0 )
-				{//stay on current team
-					int myTeam = (int)(trap_Cvar_VariableValue("ui_myteam"));
-					if ( myTeam != TEAM_SPECTATOR )
-					{
-						UI_UpdateClientForcePowers(UI_TeamName(myTeam));//will cause him to respawn, if it's been 5 seconds since last one
-					}
-					else
-					{
-						UI_UpdateClientForcePowers(NULL);//just update powers
-					}
-				}
-				else
-				{
-					UI_UpdateClientForcePowers(teamArg);
-				}
-			}
-			else
-			{
-				UI_UpdateClientForcePowers(NULL);
-			}
-		}
 		else if (Q_stricmp(name, "setBotButton") == 0) 
 		{
 			UI_SetBotButton();
 		}
-		else if (Q_stricmp(name, "saveTemplate") == 0) {
-			UI_SaveForceTemplate();
-		} else if (Q_stricmp(name, "refreshForce") == 0) {
-			UI_UpdateForcePowers();
-		} else if (Q_stricmp(name, "glCustom") == 0) {
+		else if (Q_stricmp(name, "glCustom") == 0) {
 			trap_Cvar_Set("ui_r_glCustom", "4");
 		} 
 		else if (Q_stricmp(name, "setMovesListDefault") == 0) 
@@ -6742,10 +6165,6 @@ static void UI_RunMenuScript(char **args)
 				}
 			}
 
-		}
-		else if (Q_stricmp(name, "updateForceStatus") == 0)
-		{
-			UpdateForceStatus();
 		}
 		else if (Q_stricmp(name, "update") == 0) 
 		{
@@ -7800,17 +7219,6 @@ static int UI_FeederCount(float feederID)
 	case FEEDER_Q3HEADS:
 		return UI_HeadCountByColor();
 
-	case FEEDER_FORCECFG:
-		if (uiForceSide == FORCE_LIGHTSIDE)
-		{
-			return uiInfo.forceConfigCount-uiInfo.forceConfigLightIndexBegin;
-		}
-		else
-		{
-			return uiInfo.forceConfigLightIndexBegin+1;
-		}
-		//return uiInfo.forceConfigCount;
-
 	case FEEDER_CINEMATICS:
 		return uiInfo.movieCount;
 
@@ -8011,51 +7419,7 @@ static const char *UI_FeederItemText(float feederID, int index, int column,
 			int actual;
 			return UI_SelectedTeamHead(index, &actual);
 		} 
-		else if (feederID == FEEDER_FORCECFG) {
-			if (index >= 0 && index < uiInfo.forceConfigCount) {
-				if (index == 0)
-				{ //always show "custom"
-					return uiInfo.forceConfigNames[index];
-				}
-				else
-				{
-					if (uiForceSide == FORCE_LIGHTSIDE)
-					{
-						index += uiInfo.forceConfigLightIndexBegin;
-						if (index < 0)
-						{
-							return NULL;
-						}
-						if (index >= uiInfo.forceConfigCount)
-						{
-							return NULL;
-						}
-						return uiInfo.forceConfigNames[index];
-					}
-					else if (uiForceSide == FORCE_DARKSIDE)
-					{
-						index += uiInfo.forceConfigDarkIndexBegin;
-						if (index < 0)
-						{
-							return NULL;
-						}
-						if (index > uiInfo.forceConfigLightIndexBegin)
-						{ //dark gets read in before light
-							return NULL;
-						}
-						if (index >= uiInfo.forceConfigCount)
-						{
-							return NULL;
-						}
-						return uiInfo.forceConfigNames[index];
-					}
-					else
-					{
-						return NULL;
-					}
-				}
-			}
-		} else if (feederID == FEEDER_MAPS || feederID == FEEDER_ALLMAPS) {
+		else if (feederID == FEEDER_MAPS || feederID == FEEDER_ALLMAPS) {
 			int actual;
 			return UI_SelectedMap(index, &actual);
 		} else if (feederID == FEEDER_SERVERS) {
@@ -8548,33 +7912,6 @@ qboolean UI_FeederSelection(float feederFloat, int index, itemDef_t *item)
 			}
 		}
 	}
-	else if (feederID == FEEDER_FORCECFG) 
-	{
-		int newindex = index;
-
-		if (uiForceSide == FORCE_LIGHTSIDE)
-		{
-			newindex += uiInfo.forceConfigLightIndexBegin;
-			if (newindex >= uiInfo.forceConfigCount)
-			{
-				return qfalse;
-			}
-		}
-		else
-		{ //else dark
-			newindex += uiInfo.forceConfigDarkIndexBegin;
-			if (newindex >= uiInfo.forceConfigCount || newindex > uiInfo.forceConfigLightIndexBegin)
-			{ //dark gets read in before light
-				return qfalse;
-			}
-		}
-
-		if (index >= 0 && index < uiInfo.forceConfigCount) 
-		{
-			UI_ForceConfigHandle(uiInfo.forceConfigSelected, index);
-			uiInfo.forceConfigSelected = index;
-		}
-	} 
 	else if (feederID == FEEDER_MAPS || feederID == FEEDER_ALLMAPS) 
 	{
 		int actual, map;
@@ -8916,68 +8253,6 @@ static void UI_DrawCinematic(int handle, float x, float y, float w, float h) {
 static void UI_RunCinematicFrame(int handle) {
 	trap_CIN_RunCinematic(handle);
 }
-
-
-/*
-=================
-UI_LoadForceConfig_List
-=================
-Looks in the directory for force config files (.fcf) and loads the name in
-*/
-void UI_LoadForceConfig_List( void )
-{
-	int			numfiles = 0;
-	char		filelist[2048];
-	char		configname[128];
-	char		*fileptr = NULL;
-	int			j = 0;
-	int			filelen = 0;
-	qboolean	lightSearch = qfalse;
-
-	uiInfo.forceConfigCount = 0;
-	Com_sprintf( uiInfo.forceConfigNames[uiInfo.forceConfigCount], sizeof(uiInfo.forceConfigNames[uiInfo.forceConfigCount]), "Custom");
-	uiInfo.forceConfigCount++;
-	//Always reserve index 0 as the "custom" config
-
-nextSearch:
-	if (lightSearch)
-	{ //search light side folder
-		numfiles = trap_FS_GetFileList("forcecfg/light", "fcf", filelist, 2048 );
-		uiInfo.forceConfigLightIndexBegin = uiInfo.forceConfigCount-1;
-	}
-	else
-	{ //search dark side folder
-		numfiles = trap_FS_GetFileList("forcecfg/dark", "fcf", filelist, 2048 );
-		uiInfo.forceConfigDarkIndexBegin = uiInfo.forceConfigCount-1;
-	}
-
-	fileptr = filelist;
-
-	for (j=0; j<numfiles && uiInfo.forceConfigCount < MAX_FORCE_CONFIGS;j++,fileptr+=filelen+1)
-	{
-		filelen = strlen(fileptr);
-		COM_StripExtension(fileptr, configname, sizeof( configname ) );
-
-		if (lightSearch)
-		{
-			uiInfo.forceConfigSide[uiInfo.forceConfigCount] = qtrue; //light side config
-		}
-		else
-		{
-			uiInfo.forceConfigSide[uiInfo.forceConfigCount] = qfalse; //dark side config
-		}
-
-		Com_sprintf( uiInfo.forceConfigNames[uiInfo.forceConfigCount], sizeof(uiInfo.forceConfigNames[uiInfo.forceConfigCount]), configname);
-		uiInfo.forceConfigCount++;
-	}
-
-	if (!lightSearch)
-	{
-		lightSearch = qtrue;
-		goto nextSearch;
-	}
-}
-
 
 /*
 =================
@@ -9383,8 +8658,6 @@ void _UI_Init( qboolean inGameLoad ) {
 
 	UI_InitGangWars();
 
-	UI_UpdateForcePowers();
-
 	UI_RegisterCvars();
 	UI_InitMemory();
 
@@ -9522,10 +8795,6 @@ void _UI_Init( qboolean inGameLoad ) {
 
 	UI_BuildQ3Model_List();
 	UI_LoadBots();
-
-	UI_LoadForceConfig_List();
-
-	UI_InitForceShaders();
 
 	// sets defaults for ui temp cvars
 	uiInfo.effectsColor = /*gamecodetoui[*/(int)trap_Cvar_VariableValue("color1");//-1];
@@ -9690,27 +8959,6 @@ void _UI_SetActiveMenu( uiMenuCommand_t menu ) {
 			UI_BuildPlayerList();
 			Menus_CloseAll();
 			Menus_ActivateByName("ingame_player");
-			UpdateForceUsed();
-			return;
-		case UIMENU_PLAYERFORCE:
-			// trap_Cvar_Set( "cl_paused", "1" );
-			trap_Key_SetCatcher( KEYCATCH_UI );
-			UI_BuildPlayerList();
-			Menus_CloseAll();
-			Menus_ActivateByName("ingame_playerforce");
-			UpdateForceUsed();
-			return;
-		case UIMENU_SIEGEMESSAGE:
-			// trap_Cvar_Set( "cl_paused", "1" );
-			trap_Key_SetCatcher( KEYCATCH_UI );
-			Menus_CloseAll();
-			Menus_ActivateByName("siege_popmenu");
-			return;
-		case UIMENU_SIEGEOBJECTIVES:
-			// trap_Cvar_Set( "cl_paused", "1" );
-			trap_Key_SetCatcher( KEYCATCH_UI );
-			Menus_CloseAll();
-			Menus_ActivateByName("ingame_siegeobjectives");
 			return;
 		case UIMENU_VOICECHAT:
 			// trap_Cvar_Set( "cl_paused", "1" );
@@ -10208,9 +9456,6 @@ static cvarTable_t		cvarTable[] = {
 	{ &ui_initialized, "ui_initialized", "0", CVAR_TEMP|CVAR_INTERNAL },
 	//{ &ui_teamName, "ui_teamName", "Empire", CVAR_ARCHIVE|CVAR_INTERNAL },
 	{ &ui_opponentName, "ui_opponentName", "Rebellion", CVAR_ARCHIVE|CVAR_INTERNAL },
-	{ &ui_rankChange, "ui_rankChange", "0", CVAR_ARCHIVE|CVAR_INTERNAL },
-	{ &ui_freeSaber, "ui_freeSaber", "0", CVAR_ARCHIVE|CVAR_INTERNAL },
-	{ &ui_forcePowerDisable, "ui_forcePowerDisable", "0", CVAR_ARCHIVE|CVAR_INTERNAL },
 	{ &ui_redteam, "ui_redteam", "Empire", CVAR_ARCHIVE|CVAR_INTERNAL },
 	{ &ui_blueteam, "ui_blueteam", "Rebellion", CVAR_ARCHIVE|CVAR_INTERNAL },
 	{ &ui_dedicated, "ui_dedicated", "0", CVAR_ARCHIVE|CVAR_INTERNAL },
