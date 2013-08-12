@@ -3492,6 +3492,7 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 	s->saberActionFlags = ps->saberActionFlags;
 	s->firingMode = ps->firingMode;
 	s->weaponstate = ps->weaponstate;
+	s->sightsTransition = ps->sightsTransition;
 
 	s->powerups = 0;
 	for ( i = 0 ; i < MAX_POWERUPS ; i++ ) {
@@ -3656,6 +3657,7 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	s->saberActionFlags = ps->saberActionFlags;
 	s->firingMode = ps->firingMode;
 	s->weaponstate = ps->weaponstate;
+	s->sightsTransition = ps->sightsTransition;
 
 	s->powerups = 0;
 	for ( i = 0 ; i < MAX_POWERUPS ; i++ ) {

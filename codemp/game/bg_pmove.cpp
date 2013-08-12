@@ -4094,9 +4094,9 @@ static void PM_CrashLand( void ) {
 	if (pm->ps->weapon != WP_SABER && pm->ps->weapon != WP_MELEE && !PM_IsRocketTrooper())
 	{ //saber handles its own anims
 		//This will push us back into our weaponready stance from the land anim.
-		if (pm->ps->weapon == WP_DISRUPTOR && pm->ps->zoomMode == 1)
+		if ( pm->ps->zoomMode == 1 )
 		{
-			PM_StartTorsoAnim( TORSO_WEAPONREADY4 );
+			PM_StartTorsoAnim( GetWeaponData( pm->ps->weapon, pm->ps->weaponVariation )->anims.sights.torsoAnim );
 		}
 		else
 		{
@@ -4108,7 +4108,14 @@ static void PM_CrashLand( void ) {
 			{
 				if ( !BG_IsSprinting (pm->ps, &pm->cmd, qtrue) )
 				{
-					PM_StartTorsoAnim( GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.ready.torsoAnim );
+					if( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
+					{
+						PM_StartTorsoAnim( GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.sights.torsoAnim );
+					}
+					else
+					{
+						PM_StartTorsoAnim( GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.ready.torsoAnim );
+					}
 				}
 			}
 		}
@@ -5692,7 +5699,10 @@ static void PM_Footsteps( void ) {
 							}
 							else
 							{
-								PM_ContinueLegsAnim(PM_LegsSlopeBackTransition(GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.ready.legsAnim));
+								if( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
+									PM_ContinueLegsAnim(PM_LegsSlopeBackTransition(GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.sights.legsAnim));
+								else
+									PM_ContinueLegsAnim(PM_LegsSlopeBackTransition(GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.ready.legsAnim));
 							}
 						}
 					}
@@ -7632,7 +7642,10 @@ static void PM_Weapon( void )
 				}
 				else
 				{
-					PM_StartTorsoAnim( weaponData->anims.ready.torsoAnim );
+					if( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
+						PM_StartTorsoAnim( weaponData->anims.sights.torsoAnim );
+					else
+						PM_StartTorsoAnim( weaponData->anims.ready.torsoAnim );
 				}
 			}
 		}
@@ -7645,7 +7658,9 @@ static void PM_Weapon( void )
 		    pm->ps->weaponstate == WEAPON_READY && pm->ps->weaponTime <= 0 &&
 		    (pm->ps->weapon >= WP_BRYAR_PISTOL || pm->ps->weapon == WP_STUN_BATON) &&
 		    pm->ps->torsoTimer <= 0 &&
-			(pm->ps->torsoAnim) != weaponData->anims.ready.torsoAnim &&
+			(( (pm->ps->ironsightsTime & IRONSIGHTS_MSB) && pm->ps->torsoAnim != weaponData->anims.sights.torsoAnim ) ||
+			( !(pm->ps->ironsightsTime & IRONSIGHTS_MSB) && pm->ps->torsoAnim != weaponData->anims.ready.torsoAnim ) ) &&
+			//(pm->ps->torsoAnim) != weaponData->anims.ready.torsoAnim &&
 		    pm->ps->torsoAnim != TORSO_WEAPONIDLE3 &&
 		    pm->ps->weapon != WP_EMPLACED_GUN )
 		{
@@ -7659,7 +7674,10 @@ static void PM_Weapon( void )
 			}
 			else
 			{
-				PM_StartTorsoAnim( weaponData->anims.ready.torsoAnim );
+				if( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
+					PM_StartTorsoAnim( weaponData->anims.sights.torsoAnim );
+				else
+					PM_StartTorsoAnim( weaponData->anims.ready.torsoAnim );
 			}
 		}	
 	    else if (pm->ps->weapon == WP_MELEE || pm->ps->weapon == WP_NONE)
@@ -8037,7 +8055,14 @@ static void PM_Weapon( void )
 	pm->ps->weaponstate = WEAPON_FIRING;
 
 	if (doStdAnim) {
-		PM_StartTorsoAnim( weaponData->anims.firing.torsoAnim );
+		if( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
+		{
+			PM_StartTorsoAnim( weaponData->anims.sightsFiring.torsoAnim );
+		}
+		else
+		{
+			PM_StartTorsoAnim( weaponData->anims.firing.torsoAnim );
+		}
 	}
 	if ( pm->ps->weapon != WP_MELEE || !pm->ps->m_iVehicleNum )
 	{
@@ -8510,6 +8535,18 @@ void PM_AdjustAttackStates( pmove_t *pmove )
 	else if ( pmove->ps->sprintTime & SPRINT_MSB )
 	{
 		pmove->ps->sprintTime = pmove->cmd.serverTime & ~SPRINT_MSB;
+	}
+
+	// Check if we're in an ironsights transition...
+	if( (pmove->ps->ironsightsTime & ~IRONSIGHTS_MSB)+ weapon->ironsightsTime > pmove->cmd.serverTime &&
+		pmove->ps->weapon != WP_SABER && pmove->ps->weapon != WP_MELEE && pmove->ps->weapon != WP_NONE)
+	{	// We don't want saber or melee to trigger smoothness
+		//Com_Printf("Ironsights transition\n");
+		pmove->ps->sightsTransition = true;
+	}
+	else
+	{
+		pmove->ps->sightsTransition = false;
 	}
 	
 	// get ammo usage

@@ -3043,7 +3043,13 @@ static void CG_SetLerpFrameAnimation( centity_t *cent, clientInfo_t *ci, lerpFra
 			}
 		}
 
+		// This is what generates smoother animations when you're dealing with blocks...and you thought that the JKG
+		// animation crew was a lot more sophisticated than they really were! --eez
 		if( cent->currentState.saberActionFlags & ( 1 << SAF_BLOCKING ) && cent->currentState.saberMove == LS_READY)
+		{
+			blendTime *= 1.8;
+		}
+		else if( cent->currentState.sightsTransition )
 		{
 			blendTime *= 1.8;
 		}
@@ -3634,6 +3640,10 @@ static void CG_PlayerAnimation( centity_t *cent, int *legsOld, int *legs, float 
 	if ( cent->currentState.NPC_class != CLASS_VEHICLE )
 	{	
 		if( cent->currentState.saberActionFlags & ( 1 << SAF_BLOCKING ) && cent->currentState.saberMove == LS_READY)
+		{
+			speedScale *= 0.3;
+		}
+		else if( cent->currentState.sightsTransition )
 		{
 			speedScale *= 0.3;
 		}

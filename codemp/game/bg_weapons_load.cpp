@@ -624,6 +624,18 @@ static void BG_ParseWeaponPlayerAnimations ( weaponData_t *weaponData, cJSON *pl
 	{
 		weaponData->firstPersonSprintStyle = cJSON_ToNumber(node);
 	}
+
+	node = cJSON_GetObjectItem (playerAnimNode, "sights");
+	if(node)
+	{
+		BG_ParseAnimationObject (node, &weaponData->anims.sights.torsoAnim, &weaponData->anims.sights.legsAnim);
+	}
+
+	node = cJSON_GetObjectItem (playerAnimNode, "sightsFiring");
+	if(node)
+	{
+		BG_ParseAnimationObject (node, &weaponData->anims.sightsFiring.torsoAnim, &weaponData->anims.sightsFiring.legsAnim);
+	}
 }
 
 static void ReadString ( cJSON *parent, const char *field, char *dest, size_t destSize )

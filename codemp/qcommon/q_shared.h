@@ -2535,10 +2535,7 @@ typedef struct playerState_s {
 
 	signed short	blockPoints;
 
-#ifdef _ONEBIT_COMBO
-	int			deltaOneBits;
-	int			deltaNumBits;
-#endif
+	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 } playerState_t;
 // For ironsights
 #define IRONSIGHTS_MSB (1 << 31)
@@ -2953,6 +2950,8 @@ typedef struct entityState_s {
 	unsigned short	saberShaft[2];
 	unsigned short	saberEmitter[2];
 	unsigned short	saberCrystal[2];
+
+	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 } entityState_t;
 
 typedef enum {

@@ -3686,7 +3686,10 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 		else
 		{
 			G_SetAnim(ent, NULL, SETANIM_TORSO, TORSO_RAISEWEAP1, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_HOLDLESS, 0);
-			client->ps.legsAnim = GetWeaponData (client->ps.weapon, client->ps.weaponVariation)->anims.ready.legsAnim;
+			if( client->ps.ironsightsTime & IRONSIGHTS_MSB )
+				client->ps.legsAnim = GetWeaponData (client->ps.weapon, client->ps.weaponVariation)->anims.sights.legsAnim;
+			else
+				client->ps.legsAnim = GetWeaponData (client->ps.weapon, client->ps.weaponVariation)->anims.ready.legsAnim;
 		}
 		client->ps.weaponstate = WEAPON_RAISING;
 		client->ps.weaponTime = client->ps.torsoTimer;

@@ -389,6 +389,8 @@ typedef struct
 	weaponAnimationSet_t land;
 	weaponAnimationSet_t run;
 	weaponAnimationSet_t sprint;
+	weaponAnimationSet_t sights;
+	weaponAnimationSet_t sightsFiring;
 } weaponAnimationReplacements_t;
 
 typedef struct

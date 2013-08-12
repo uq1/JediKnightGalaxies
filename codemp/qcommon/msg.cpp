@@ -1011,7 +1011,9 @@ netField_t	entityStateFields[] =
 { NETF(saberShaft[1]), 16 },
 { NETF(saberEmitter[0]), 16 },
 { NETF(saberEmitter[1]), 16 },
-{ NETF(saberCrystal[0]), 16 }
+{ NETF(saberCrystal[0]), 16 },
+
+{ NETF(sightsTransition), 1 },
 };
 
 // if (int)f == f and (int)f + ( 1<<(FLOAT_INT_BITS-1) ) < ( 1 << FLOAT_INT_BITS )
@@ -1461,6 +1463,7 @@ netField_t	playerStateFields[] =
 { PSF(ironsightsTime), 32 },
 { PSF(ironsightsDebounceStart), 32 },
 { PSF(isInSights), 1 },
+{ PSF(sightsTransition), 1 },
 
 { PSF(sprintTime), 32 },
 { PSF(sprintDebounceTime), 32 },
@@ -1644,6 +1647,7 @@ netField_t	pilotPlayerStateFields[] =
 { PSF(ironsightsTime), 32 },
 { PSF(ironsightsDebounceStart), 32 },
 { PSF(isInSights), 1 },
+{ PSF(sightsTransition), 1 },
 
 { PSF(forcePower), 16 },
 { PSF(saberSwingSpeed), 0 },
