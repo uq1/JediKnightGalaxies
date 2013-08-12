@@ -546,6 +546,7 @@ Used to load a development dll instead of a virtual machine
 */
 
 extern char		*FS_BuildOSPath( const char *base, const char *game, const char *qpath );
+extern cvar_t	*fs_unpackbinaries;
 
 void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) ) {
 	HINSTANCE	libHandle;
@@ -557,9 +558,11 @@ void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(in
 	char	*fn;
 	char	filename[MAX_QPATH];
 
+	fs_unpackbinaries = Cvar_Get( "fs_unpackbinaries", "1", CVAR_INIT|CVAR_PROTECTED );
+
 	Com_sprintf( filename, sizeof( filename ), "%s" ARCH_STRING DLL_EXT, name );
 
-	if (!Sys_UnpackDLL(filename))
+	if (fs_unpackbinaries->integer && !Sys_UnpackDLL(filename))
 	{
 		return NULL;
 	}
