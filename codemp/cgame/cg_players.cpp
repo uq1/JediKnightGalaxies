@@ -1878,6 +1878,10 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 		}
 	}
 
+	// eezstreet edit: just set our first saber to be something else I guess...
+	Q_strncpyz(newInfo.saberName, "Katarn", sizeof( newInfo.saberName ) );
+	WP_SetSaber(clientNum, newInfo.saber, 0, newInfo.saberName);
+
 	//duel team
 	v = Info_ValueForKey( configstring, "dt" );
 

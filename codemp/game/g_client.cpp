@@ -2663,55 +2663,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	}
 	else
 	{
-		if (ent->r.svFlags & SVF_BOT)
-		{
-			char *saberVal = Info_ValueForKey(userinfo, "saber1");
-			char *saber2Val = Info_ValueForKey(userinfo, "saber2");
-
-			if (!saberVal || !saberVal[0])
-			{ //blah, set em up with a random saber
-				int r = rand()%50;
-				char sab1[1024];
-				char sab2[1024];
-
-				if (r <= 17)
-				{
-					strcpy(sab1, "Katarn");
-					strcpy(sab2, "none");
-				}
-				else if (r <= 34)
-				{
-					strcpy(sab1, "Katarn");
-					strcpy(sab2, "Katarn");
-				}
-				else
-				{
-					strcpy(sab1, "dual_1");
-					strcpy(sab2, "none");
-				}
-				G_SetSaber(ent, 0, sab1, qfalse);
-				G_SetSaber(ent, 0, sab2, qfalse);
-				Info_SetValueForKey( userinfo, "saber1", sab1 );
-				Info_SetValueForKey( userinfo, "saber2", sab2 );
-				trap_SetUserinfo( clientNum, userinfo );
-			}
-			else
-			{
-				G_SetSaber(ent, 0, saberVal, qfalse);
-			}
-
-			if (saberVal && saberVal[0] &&
-				(!saber2Val || !saber2Val[0]))
-			{
-				G_SetSaber(ent, 0, "none", qfalse);
-				Info_SetValueForKey( userinfo, "saber2", "none" );
-				trap_SetUserinfo( clientNum, userinfo );
-			}
-			else
-			{
-				G_SetSaber(ent, 0, saber2Val, qfalse);
-			}
-		}
+		G_SetSaber(ent, 0, "Katarn", qfalse);
 
 		// locate ent at a spawn point
 		ClientSpawn( ent, qfalse );
