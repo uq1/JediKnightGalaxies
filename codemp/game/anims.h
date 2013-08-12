@@ -1974,6 +1974,12 @@ typedef enum //# animNumber_e
     BOTH_MUFA,
     BOTH_BOFA,
 
+	//[8/12/13 add, these are the base anims]
+	BOTH_BASE_PISTOLSTANCE,
+	BOTH_BASE_PISTOLSHOOT,
+	BOTH_BASE_RIFLESTANCE,
+	BOTH_BASE_RIFLESHOOT,
+
 	//# #eol
 	MAX_ANIMATIONS,
 	MAX_TOTALANIMATIONS,
