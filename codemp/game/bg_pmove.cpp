@@ -1989,7 +1989,7 @@ static qboolean PM_CheckJump( void )
 {
 	qboolean allowFlips = qtrue;
 	
-	if ( BG_IsSprinting (pm->ps, &pm->cmd, qtrue) || (pm->ps->sprintDebounceTime + 500) > pm->cmd.serverTime )
+	if ( BG_IsSprinting (pm->ps, &pm->cmd, qtrue) )
 	{
 	    return qfalse;
 	}
