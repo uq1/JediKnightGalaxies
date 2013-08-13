@@ -8063,6 +8063,7 @@ static void PM_Weapon( void )
 		{
 			PM_StartTorsoAnim( weaponData->anims.firing.torsoAnim );
 		}
+		pm->ps->torsoTimer = 200;
 	}
 	if ( pm->ps->weapon != WP_MELEE || !pm->ps->m_iVehicleNum )
 	{

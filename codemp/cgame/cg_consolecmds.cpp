@@ -261,11 +261,6 @@ static void CG_StopCinematic(void) {
 
 void CG_LoadHudMenu();
 
-static void CG_ReloadHUD(void) {
-	String_Init();
-	CG_LoadHudMenu();
-}
-
 static void CG_PrintWeaponMuzzleOffset_f ( void )
 {
     centity_t *cent = &cg_entities[cg.snap->ps.clientNum];
@@ -440,7 +435,6 @@ static consoleCommand_t	commands[] = {
 	// Jedi Knight Galaxies
 	{ "startcin", CG_StartCinematic },
 	{ "stopcin", CG_StopCinematic },
-	{ "reloadhud", CG_ReloadHUD },
 	{ "+camera", CG_Start360Camera },
 	{ "-camera", CG_Stop360Camera },
 	{ "cameraZoomIn", CG_CameraZoomIn },

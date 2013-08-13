@@ -3059,7 +3059,7 @@ static void CG_SetLerpFrameAnimation( centity_t *cent, clientInfo_t *ci, lerpFra
 		}
 		else if( cent->currentState.sightsTransition )
 		{
-			blendTime *= 2.6;
+			blendTime *= 1.5;
 		}
 
 		if( cent->currentState.torsoAnim == BOTH_FEMALERUN || cent->currentState.torsoAnim == BOTH_FEMALEEWALK )
