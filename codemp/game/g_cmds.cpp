@@ -368,10 +368,11 @@ void JKG_Crystal_f ( gentity_t *ent, int saberNum )
 	char *args = ConcatArgs(1);
 	int argNum = atoi(args);
 
-	if(!CheatsOk(ent))
+	/* Temporary -- We don't need cheats for right now in order to activate the saber system color stuff */
+	/*if(!CheatsOk(ent))
 	{
 		return;
-	}
+	}*/
 
 	if(argNum)
 	{

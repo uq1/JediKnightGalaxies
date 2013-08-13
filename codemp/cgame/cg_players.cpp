@@ -1879,8 +1879,16 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 
 	// eezstreet edit: just set our first saber to be something else I guess...
-	Q_strncpyz(newInfo.saberName, "Katarn", sizeof( newInfo.saberName ) );
+	Q_strncpyz(newInfo.saberName, "default", sizeof( newInfo.saberName ) );
 	WP_SetSaber(clientNum, newInfo.saber, 0, newInfo.saberName);
+
+	trap_G2API_CleanGhoul2Models(&oldG2Weapons[0]);
+	newInfo.ghoul2Weapons[0] = oldG2Weapons[0];
+
+	CG_InitG2SaberData( 0, &newInfo );
+
+	cg_entities[clientNum].weapon = 0;
+	cg_entities[clientNum].ghoul2weapon = NULL; //force a refresh
 
 	//duel team
 	v = Info_ValueForKey( configstring, "dt" );
@@ -1893,10 +1901,6 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	{
 		newInfo.duelTeam = 0;
 	}
-
-	// force powers
-	v = Info_ValueForKey( configstring, "forcepowers" );
-	Q_strncpyz( newInfo.forcePowers, v, sizeof( newInfo.forcePowers ) );
 
 	if (cgs.gametype >= GT_TEAM	&& !cgs.jediVmerc && cgs.gametype != GT_SIEGE && cgs.gametype != GT_WARZONE )
 	{ //We won't force colors for siege.

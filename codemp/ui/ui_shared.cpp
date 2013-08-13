@@ -4429,7 +4429,6 @@ qboolean Item_Slider_HandleKey(itemDef_t *item, int key, qboolean down) {
 
 	//DC->Print("slider handle key\n");
 //JLF MPMOVED
-#ifndef _XBOX
 	if (item->window.flags & WINDOW_HASFOCUS && item->cvar && Rect_ContainsPoint(&item->window.rect, DC->cursorx, DC->cursory)) {
 		if (key == A_MOUSE1 || key == A_ENTER || key == A_MOUSE2 || key == A_MOUSE3) {
 			editFieldDef_t *editDef = (editFieldDef_t *) item->typeData;
@@ -10763,5 +10762,3 @@ static qboolean Menu_OverActiveItem(menuDef_t *menu, float x, float y) {
 	}
 	return qfalse;
 }
-
-#endif

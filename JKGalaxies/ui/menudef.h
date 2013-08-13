@@ -124,13 +124,6 @@
 #define FEEDER_SABER_SINGLE_INFO			0x2b			// saber single
 #define FEEDER_SABER_STAFF_INFO				0x2c			// saber staff
 
-
-// Xbox specific, hope no one minds
-#define FEEDER_XBL_ACCOUNTS					0xA0			// list of available XBL accounts
-#define FEEDER_XBL_PLAYERS					0xA1			// players (current and recent)
-#define FEEDER_XBL_FRIENDS					0xA2			// friends
-#define FEEDER_XBL_SERVERS					0xA3			// results of an optimatch query
-
 // JKG - Feeders
 #define FEEDER_PARTYMEMBERSINVITES	0x100
 #define FEEDER_PARTYSEEKERS			0x101
