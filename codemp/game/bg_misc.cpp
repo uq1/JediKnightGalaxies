@@ -3495,6 +3495,9 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 	s->firingMode = ps->firingMode;
 	s->weaponstate = ps->weaponstate;
 	s->sightsTransition = ps->sightsTransition;
+	// Crystal was missing as well...
+	s->saberCrystal[0] = ps->saberCrystal[0];
+	s->saberCrystal[1] = ps->saberCrystal[1];
 
 	s->powerups = 0;
 	for ( i = 0 ; i < MAX_POWERUPS ; i++ ) {
@@ -3662,6 +3665,8 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	s->firingMode = ps->firingMode;
 	s->weaponstate = ps->weaponstate;
 	s->sightsTransition = ps->sightsTransition;
+	s->saberCrystal[0] = ps->saberCrystal[0];
+	s->saberCrystal[1] = ps->saberCrystal[1];
 
 	s->powerups = 0;
 	for ( i = 0 ; i < MAX_POWERUPS ; i++ ) {
