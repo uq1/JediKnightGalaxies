@@ -2823,8 +2823,8 @@ void ClientThink_real( gentity_t *ent ) {
 	if ( ent->client->ps.weapon == WP_SABER &&
 		!ent->NPC && !BG_SabersOff(&ent->client->ps))								// NPCs don't use this method, they do it on their own terms --eez
 	{
-		if( ent->client->pers.cmd.buttons & BUTTON_IRONSIGHTS &&			// holding sights button
-			(ent->client->ps.groundEntityNum != ENTITYNUM_NONE || JKG_GroundDistance(&ent->client->ps, ent->r.mins, ent->r.maxs, MASK_SOLID) > 4.0f)&&		// not in air
+		if( ent->client->pers.cmd.buttons & BUTTON_IRONSIGHTS/* &&			// holding sights button
+			(ent->client->ps.groundEntityNum != ENTITYNUM_NONE || JKG_GroundDistance(&ent->client->ps, ent->r.mins, ent->r.maxs, MASK_SOLID) > 4.0f)*/&&		// not in air
 			//ent->client->ps.forceAllowDeactivateTime > level.time &&	// not using a force power
 			(  ent->client->ps.torsoTimer <= 0 || ent->client->saberBlockDebounce >= level.time || // NOT ATTACKING (swingblocks not permitted, period)
 			(ent->client->ps.saberMove >= LS_R_TL2BR && ent->client->ps.saberMove <= LS_R_T2B &&
