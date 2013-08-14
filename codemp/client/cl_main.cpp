@@ -2233,7 +2233,7 @@ void CL_InitRenderer( void ) {
 	cls.whiteShader = re->RegisterShader( "white" );
 	cls.consoleShader = re->RegisterShader( "console" );
 	g_console_field_width = cls.glconfig.vidWidth / SMALLCHAR_WIDTH - 2;
-	kg.g_consoleField.widthInChars = g_console_field_width;
+	g_consoleField.widthInChars = g_console_field_width;
 }
 
 /*

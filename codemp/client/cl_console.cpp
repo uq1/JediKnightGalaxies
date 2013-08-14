@@ -32,8 +32,8 @@ void Con_ToggleConsole_f (void) {
 		return;
 	}
 
-	Field_Clear( &kg.g_consoleField );
-	kg.g_consoleField.widthInChars = g_console_field_width;
+	Field_Clear( &g_consoleField );
+	g_consoleField.widthInChars = g_console_field_width;
 
 	Con_ClearNotify ();
 	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_CONSOLE );
@@ -315,6 +315,16 @@ void Con_CheckResize (void)
 
 
 /*
+==================
+Cmd_CompleteTxtName
+==================
+*/
+void Cmd_CompleteTxtName( char *args, int argNum ) {
+	if ( argNum == 2 )
+		Field_CompleteFilename( "", "txt", qfalse, qtrue );
+}
+
+/*
 ================
 Con_Init
 ================
@@ -325,20 +335,21 @@ void Con_Init (void) {
 	con_notifytime = Cvar_Get ("con_notifytime", "3", 0);
 	con_conspeed = Cvar_Get ("scr_conspeed", "3", 0);
 
-	Field_Clear( &kg.g_consoleField );
-	kg.g_consoleField.widthInChars = g_console_field_width;
+	Field_Clear( &g_consoleField );
+	g_consoleField.widthInChars = g_console_field_width;
 	for ( i = 0 ; i < COMMAND_HISTORY ; i++ ) {
-		Field_Clear( &kg.historyEditLines[i] );
-		kg.historyEditLines[i].widthInChars = g_console_field_width;
+		Field_Clear( &historyEditLines[i] );
+		historyEditLines[i].widthInChars = g_console_field_width;
 	}
 
-	Cmd_AddCommand ("toggleconsole", Con_ToggleConsole_f);
-	Cmd_AddCommand ("messagemode", Con_MessageMode_f);
-	Cmd_AddCommand ("messagemode2", Con_MessageMode2_f);
-	Cmd_AddCommand ("messagemode3", Con_MessageMode3_f);
-	Cmd_AddCommand ("messagemode4", Con_MessageMode4_f);
-	Cmd_AddCommand ("clear", Con_Clear_f);
-	Cmd_AddCommand ("condump", Con_Dump_f);
+	Cmd_AddCommand( "toggleconsole", Con_ToggleConsole_f );
+	Cmd_AddCommand( "messagemode", Con_MessageMode_f );
+	Cmd_AddCommand( "messagemode2", Con_MessageMode2_f );
+	Cmd_AddCommand( "messagemode3", Con_MessageMode3_f );
+	Cmd_AddCommand( "messagemode4", Con_MessageMode4_f );
+	Cmd_AddCommand( "clear", Con_Clear_f );
+	Cmd_AddCommand( "condump", Con_Dump_f );
+	Cmd_SetCommandCompletionFunc( "condump", Cmd_CompleteTxtName );
 }
 
 
@@ -501,7 +512,7 @@ void Con_DrawInput (void) {
 
 	SCR_DrawSmallChar( (int)(con.xadjust + 1 * SMALLCHAR_WIDTH), y, ']' );
 
-	Field_Draw( &kg.g_consoleField, (int)(con.xadjust + 2 * SMALLCHAR_WIDTH), y,
+	Field_Draw( &g_consoleField, (int)(con.xadjust + 2 * SMALLCHAR_WIDTH), y,
 				SCREEN_WIDTH - 3 * SMALLCHAR_WIDTH, qtrue, qtrue );
 }
 
@@ -860,7 +871,7 @@ void Con_Close( void ) {
 	if ( !com_cl_running->integer ) {
 		return;
 	}
-	Field_Clear( &kg.g_consoleField );
+	Field_Clear( &g_consoleField );
 	Con_ClearNotify ();
 	Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CONSOLE );
 	con.finalFrac = 0;				// none visible

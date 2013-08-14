@@ -1747,6 +1747,9 @@ int Com_HexStrToInt( const char *str );
 
 int	QDECL Com_sprintf (char *dest, int size, const char *fmt, ...);
 
+char *Com_SkipTokens( char *s, int numTokens, char *sep );
+char *Com_SkipCharset( char *s, char *sep );
+
 void Com_RandomBytes( byte *string, int len );
 
 // mode parm for FS_FOpenFile
@@ -1824,6 +1827,9 @@ float	LittleFloat (const float *l);
 void	Swap_Init (void);
 */
 char	* QDECL va(const char *format, ...);
+
+#define TRUNCATE_LENGTH	64
+void Com_TruncateLongString( char *buffer, const char *s );
 
 //=============================================
 
