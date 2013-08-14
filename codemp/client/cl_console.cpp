@@ -596,7 +596,7 @@ void Con_DrawNotify (void)
 				if ( ( text[x] & 0xff ) == ' ' ) {
 					continue;
 				}
-				if ( ( (text[x]>>8)&7 ) != currentColor ) {
+				if ( ( (text[x]>>8)&Q_COLOR_BITS ) != currentColor ) {
 					currentColor = (text[x]>>8)&15;
 					re->SetColor( g_color_table[currentColor & 15] );
 				}
