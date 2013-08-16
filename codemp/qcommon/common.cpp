@@ -1745,6 +1745,7 @@ static void PrintArgMatches( const char *s ) {
 }
 #endif
 
+#ifndef DEDICATED
 /*
 ===============
 PrintKeyMatches
@@ -1756,6 +1757,7 @@ static void PrintKeyMatches( const char *s ) {
 		Com_Printf( S_COLOR_GREY"Key  "S_COLOR_WHITE"%s\n", s );
 	}
 }
+#endif
 
 /*
 ===============
