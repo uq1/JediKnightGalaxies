@@ -1732,6 +1732,42 @@ static void PrintMatches( const char *s ) {
 
 /*
 ===============
+PrintArgMatches
+
+===============
+*/
+static void PrintArgMatches( const char *s ) {
+	if ( !Q_stricmpn( s, shortestMatch, strlen( shortestMatch ) ) ) {
+		Com_Printf( S_COLOR_WHITE"  %s\n", s );
+	}
+}
+
+/*
+===============
+PrintKeyMatches
+
+===============
+*/
+static void PrintKeyMatches( const char *s ) {
+	if ( !Q_stricmpn( s, shortestMatch, strlen( shortestMatch ) ) ) {
+		Com_Printf( S_COLOR_GREY"Key  "S_COLOR_WHITE"%s\n", s );
+	}
+}
+
+/*
+===============
+PrintFileMatches
+
+===============
+*/
+static void PrintFileMatches( const char *s ) {
+	if ( !Q_stricmpn( s, shortestMatch, strlen( shortestMatch ) ) ) {
+		Com_Printf( S_COLOR_GREY"File "S_COLOR_WHITE"%s\n", s );
+	}
+}
+
+/*
+===============
 PrintCvarMatches
 
 ===============
@@ -1801,7 +1837,7 @@ void Field_CompleteKeyname( void )
 	Key_KeynameCompletion( FindMatches );
 
 	if( !Field_Complete( ) )
-		Key_KeynameCompletion( PrintMatches );
+		Key_KeynameCompletion( PrintKeyMatches );
 }
 #endif
 
@@ -1818,7 +1854,7 @@ void Field_CompleteFilename( const char *dir, const char *ext, qboolean stripExt
 	FS_FilenameCompletion( dir, ext, stripExt, FindMatches, allowNonPureFilesOnDisk );
 
 	if ( !Field_Complete() )
-		FS_FilenameCompletion( dir, ext, stripExt, PrintMatches, allowNonPureFilesOnDisk );
+		FS_FilenameCompletion( dir, ext, stripExt, PrintFileMatches, allowNonPureFilesOnDisk );
 }
 
 /*

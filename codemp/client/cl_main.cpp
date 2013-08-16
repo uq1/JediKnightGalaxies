@@ -495,6 +495,22 @@ void CL_ReadDemoMessage( void ) {
 
 /*
 ====================
+CL_CompleteDemoName
+====================
+*/
+static void CL_CompleteDemoName( char *args, int argNum )
+{
+	if( argNum == 2 )
+	{
+		char demoExt[16];
+
+		Com_sprintf(demoExt, sizeof(demoExt), ".dm_%d", PROTOCOL_VERSION);
+		Field_CompleteFilename( "demos", demoExt, qtrue, qtrue );
+	}
+}
+
+/*
+====================
 CL_PlayDemo_f
 
 demo <demoname>
@@ -1036,6 +1052,23 @@ void CL_Connect_f( void ) {
 }
 
 #define MAX_RCON_MESSAGE 1024
+
+/*
+==================
+CL_CompleteRcon
+==================
+*/
+static void CL_CompleteRcon( char *args, int argNum )
+{
+	if( argNum == 2 )
+	{
+		// Skip "rcon "
+		char *p = Com_SkipTokens( args, 1, " " );
+
+		if( p > args )
+			Field_CompleteCommand( p, qtrue, qtrue );
+	}
+}
 
 /*
 =====================
@@ -2729,6 +2762,7 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("globalservers", CL_GlobalServers_f);
 	Cmd_AddCommand ("record", CL_Record_f);
 	Cmd_AddCommand ("demo", CL_PlayDemo_f);
+	Cmd_SetCommandCompletionFunc( "demo", CL_CompleteDemoName );
 	Cmd_AddCommand ("stoprecord", CL_StopRecord_f);
 	Cmd_AddCommand ("configstrings", CL_Configstrings_f);
 	Cmd_AddCommand ("clientinfo", CL_Clientinfo_f);
@@ -2740,6 +2774,7 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("reconnect", CL_Reconnect_f);
 	Cmd_AddCommand ("localservers", CL_LocalServers_f);
 	Cmd_AddCommand ("rcon", CL_Rcon_f);
+	Cmd_SetCommandCompletionFunc( "rcon", CL_CompleteRcon );
 	Cmd_AddCommand ("ping", CL_Ping_f );
 	Cmd_AddCommand ("serverstatus", CL_ServerStatus_f );
 	Cmd_AddCommand ("showip", CL_ShowIP_f );
