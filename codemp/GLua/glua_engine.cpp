@@ -68,6 +68,102 @@ static int GLua_Print(lua_State *L) {
 	return 0;
 }
 
+static int GLua_LogPrint( lua_State *L )
+{
+	// Same thing as GLua_Print, but we're doing this in the log
+	char *msg;
+	int i;
+	int args = lua_gettop(L);
+	const char *res;
+	char buff[16384] = {0};
+	char *nl;
+
+	// Concat all args and use that as the print
+	GLua_Push_ToString(L);
+
+	for (i = 1; i <= args; i++) 
+	{
+		lua_pushvalue(L,-1);
+		lua_pushvalue(L, i);
+		lua_call(L, 1, 1); // Assume this will never error out
+		res = lua_tostring(L,-1);
+		if (res) {
+			Q_strcat(&buff[0], sizeof(buff), res);
+		}
+		lua_pop(L,1);
+	}
+	lua_pop(L,1);
+	msg = &buff[0];
+
+	nl = msg;
+	while (1) {
+		if ( !(*nl) ) {
+			if ( *msg ) {
+				assert( strlen( msg ) < 4095 ); // Failsafe, this should never happen (4096 is engine MAXPRINTMSG, accomodate for the added \n in the next call)
+				G_LogPrintf( "%s\n", msg );
+			}
+			break;
+		}
+		if ( *nl == '\n' ) {
+			*nl = '\0';
+			assert( strlen( msg ) < 4095 ); // Failsafe, this should never happen
+			G_LogPrintf( "%s\n", msg );
+			msg = nl + 1;
+			*nl = '\n';
+		}
+		nl++;
+	}
+	return 0;
+}
+
+static int GLua_SecurityLogPrint( lua_State *L )
+{
+	// Same thing as GLua_Print, but we're doing this in the security log
+	char *msg;
+	int i;
+	int args = lua_gettop(L);
+	const char *res;
+	char buff[16384] = {0};
+	char *nl;
+
+	// Concat all args and use that as the print
+	GLua_Push_ToString(L);
+
+	for (i = 1; i <= args; i++) 
+	{
+		lua_pushvalue(L,-1);
+		lua_pushvalue(L, i);
+		lua_call(L, 1, 1); // Assume this will never error out
+		res = lua_tostring(L,-1);
+		if (res) {
+			Q_strcat(&buff[0], sizeof(buff), res);
+		}
+		lua_pop(L,1);
+	}
+	lua_pop(L,1);
+	msg = &buff[0];
+
+	nl = msg;
+	while (1) {
+		if ( !(*nl) ) {
+			if ( *msg ) {
+				assert( strlen( msg ) < 4095 ); // Failsafe, this should never happen (4096 is engine MAXPRINTMSG, accomodate for the added \n in the next call)
+				G_SecurityLogPrintf( "%s\n", msg );
+			}
+			break;
+		}
+		if ( *nl == '\n' ) {
+			*nl = '\0';
+			assert( strlen( msg ) < 4095 ); // Failsafe, this should never happen
+			G_SecurityLogPrintf( "%s\n", msg );
+			msg = nl + 1;
+			*nl = '\n';
+		}
+		nl++;
+	}
+	return 0;
+}
+
 static int GLua_Include(lua_State *L) {
 	const char *file;
 	char buff[1024];
@@ -177,6 +273,9 @@ void GLua_LoadBaseLibs(lua_State *L) {
 	lua_pushcclosure(L, GLua_Print, 0); lua_setglobal(L, "print");
 	lua_pushcclosure(L, GLua_Include, 0); lua_setglobal(L, "include");
 	lua_pushcclosure(L, GLua_FindMetatable, 0); lua_setglobal(L, "findmetatable");
+	// Log/SecurityLog Printf --eez
+	lua_pushcclosure(L, GLua_LogPrint, 0); lua_setglobal(L, "log");
+	lua_pushcclosure(L, GLua_SecurityLogPrint, 0); lua_setglobal(L, "securitylog");
 	// Remove different ways to execute code, we only want include to be available
 	lua_pushnil(L); lua_setglobal(L,"dofile"); 
 	lua_pushnil(L); lua_setglobal(L,"loadfile");
