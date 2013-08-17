@@ -14,6 +14,17 @@ GLua Framework: Framework to work with lua and do engine bindings.
 
 -----------------------------------------------------------------------------------------------
 
+	Global Functions
+
+-----------------------------------------------------------------------------------------------
+
+print(...):nil - Prints to the console. Args are concatenated strings. Identical in function to trap_Print.
+log(...):nil - Prints to the log. Args are concatenated strings. Identical in function to G_LogPrintf (minus the formatting)
+securitylog(...):nil - Prints to the security log. Args are concatenated strings. Identical in function to G_SecurityLogPrintf (minus the formatting)
+findmetatable(table:string):nil?
+
+-----------------------------------------------------------------------------------------------
+
 	Hook module: Provides the interface to hook functions to certain engine events
 		
 -----------------------------------------------------------------------------------------------	
