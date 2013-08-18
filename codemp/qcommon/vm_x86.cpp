@@ -1119,7 +1119,7 @@ int	VM_CallCompiled( vm_t *vm, int *args ) {
 		mov		programStack, esi
 		mov		opStack, edi
 		popad
-	}
+	}	
 #else
 	{
 		static int memProgramStack;
