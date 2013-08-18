@@ -12,7 +12,7 @@ static int GLua_File_Read(lua_State *L) {
 	void *buff;
 
 	len = trap_FS_FOpenFile(va("glua/data/%s", luaL_checkstring(L,1)), &f, FS_READ);
-	if (len < 0) {
+	if (len <= 0 || !f) {
 		lua_pushnil(L);
 		return 1;
 	} else {
@@ -73,7 +73,6 @@ static int GLua_File_ListFiles(lua_State *L) {
 	}
 	return 1;
 }
-
 
 static const struct luaL_reg file_f [] = {
 	{"Read", GLua_File_Read},

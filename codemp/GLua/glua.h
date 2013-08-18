@@ -117,50 +117,53 @@ void GLua_Wipe_EntDataSlot(gentity_t *ent);
 
 // GLua Libraries
 
-// glua_engine.c
+// glua_engine.cpp
 void GLua_LoadBaseLibs(lua_State *L);
 void GLua_LoadLibs(lua_State *L);
 void GLua_RegisterProperties(lua_State *L, const GLua_Prop *props, int nup);
 
-// glua_entity.c
+// glua_entity.cpp
 void GLua_Define_Entity(lua_State *L);
 void GLua_PushEntity(lua_State *L, gentity_t *ent);
 int GLua_IsEntity(lua_State *L, int idx);
 gentity_t *GLua_CheckEntity(lua_State *L, int idx);
 
-// glua_player.c
+// glua_player.cpp
 void GLua_Define_Player(lua_State *L);
 void GLua_PushPlayer(lua_State *L, int clientNum);
 GLua_Data_Player_t *GLua_CheckPlayer(lua_State *L, int idx);
 
-// glua_npc.c
+// glua_npc.cpp
 void GLua_PushNPC(lua_State *L, gentity_t *ent);
 void GLua_Define_NPC(lua_State *L);
 gentity_t *GLua_CheckNPC(lua_State *L, int idx);
 
-// glua_files.c
+// glua_files.cpp
 void GLua_Define_File(lua_State *L);
 
-// glua_bitwise.c
+// glua_bitwise.cpp
 void GLua_Define_Bit(lua_State *L);
 
-// glua_encoding.c
+// glua_encoding.cpp
 void GLua_Define_Encoding(lua_State *L);
 
-// glua_cryptography.c
+// glua_cryptography.cpp
 void GLua_Define_Cryptography(lua_State *L);
 
-// glua_bitstream.c
+// glua_bitstream.cpp
 void GLua_Define_BitStream(lua_State *L);
 
-// glua_prng.c
+// glua_prng.cpp
 void GLua_Define_PRNG(lua_State *L);
 
-// glua_cvar.c
+// glua_cvar.cpp
 void GLua_Define_Cvar(lua_State *L);
 
-// glua_sys.c
+// glua_sys.cpp
 void GLua_Define_Sys(lua_State *L);
+
+// glua_json.cpp
+void GLua_Define_JSON( lua_State *L );
 
 // glua_vector.c
 void GLua_PushVector(lua_State *L, float x, float y, float z);

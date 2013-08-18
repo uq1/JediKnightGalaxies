@@ -298,4 +298,7 @@ void GLua_LoadLibs(lua_State *L) {
 	GLua_Define_Entity(L);
 	GLua_Define_Player(L);
 	GLua_Define_NPC(L);
+
+	// add 8/13/2013
+	GLua_Define_JSON(L);
 }
