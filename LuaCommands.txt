@@ -135,6 +135,46 @@ table.HitNormal (vector) - Vector perpendicular to the surface hit.
 
 --------------------------------------------------------------------------------------------------------
 
+	File Library:
+
+-----------------------------------------------------------------------------------------------	
+
+file.Read(file:string):string - Returns contents of a file (uses glua/data as starting path)
+file.Write(file:string, buffer:string):nil - Writes to a file (uses glua/data as starting path)
+file.Exists(file:string):boolean - Checks if a file exists (uses glua/data as starting path)
+file.ListFiles(path:string, extension:string):string table - Returns a string table listing all of the files in the path. extension arg is optional. (uses glua/data as starting path)
+
+--------------------------------------------------------------------------------------------------------
+
+	JSON Library:
+
+-----------------------------------------------------------------------------------------------	
+
+json.Register(file:string):jsonHandle - Returns a jsonHandle (or in other words, the pointer to the root JSON node) for the given file, if it is a valid JSON file. (otherwise, returns nil)
+json.GetObjectItem(root:jsonHandle, nodeName:string):jsonHandle - Gets a node
+json.Clear(nil):nil - Run this func once you're done with json stuff.
+
+json.GetFirstObject(node:jsonHandle):jsonHandle - Gets the first object within an object node
+json.GetNextObject(node:jsonHandle):jsonHandle - Returns the next object that you're targetting. Returns nil if no node is found.
+
+json.IsNumber(node:jsonHandle):boolean - Returns true if the node is a number type
+json.IsObject(node:jsonHandle):boolean - Returns true if the node is an object type
+json.IsBoolean(node:jsonHandle):boolean - Returns true if the node is a boolean type
+
+json.ToString(node:jsonHandle):string - Converts node to string
+json.ToNumber(node:jsonHandle):number - Converts node to number
+json.ToInteger(node:jsonHandle):integer - Converts node to integer
+json.ToBoolean(node:jsonHandle):boolean - Converts node to boolean
+json.ToStringOpt(node:jsonHandle, opt:string):string - Converts node to string. If string is clear, or node does not exist, returns opt.
+json.ToNumberOpt(node:jsonHandle, opt:number):number - Converts node to number. If node does not exist, returns opt.
+json.ToIntegerOpt(node:jsonHandle, opt:integer):integer - Converts node to integer. If node does not exist, returns opt.
+json.ToBooleanOpt(node:jsonHandle, opt:boolean):boolean - Converts node to boolean. If node does not exist, returns opt.
+
+json.GetArraySize(node:jsonHandle):integer - Returns size of array object within node.
+json.GetArrayItem(node:jsonHandle, member:integer):jsonHandle - Returns node within array.
+
+--------------------------------------------------------------------------------------------------------
+
 	Vector Library:
 
 -----------------------------------------------------------------------------------------------	
