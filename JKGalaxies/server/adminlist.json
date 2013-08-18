@@ -1,0 +1,11 @@
+{
+	"admins":
+	[
+		{
+			"username":	"gaia",
+			// TODO: base64(SHA1(this));
+			"password":	"password",
+			"rank":		"God"
+		}
+	]
+}

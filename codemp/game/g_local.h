@@ -13,6 +13,9 @@
 
 #include "qcommon/game_version.h"
 
+#include <stdlib.h>
+#include <string>
+
 #ifndef __LCC__
 #define GAME_INLINE ID_INLINE
 #else
@@ -984,6 +987,7 @@ struct gclient_s {
 	int         damageTypeTime[NUM_DAMAGE_TYPES];
 	int         damageTypeLastEffectTime[NUM_DAMAGE_TYPES];
 	gentity_t	*damageTypeOwner[NUM_DAMAGE_TYPES];
+	std::string adminAccount;
 	
 	// Custom disco messages
 	int			customDisconnectMsg;

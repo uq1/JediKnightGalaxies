@@ -14,7 +14,7 @@ print("Loading main functions...")
 include("client/login.lua") -- Login framework
 include("admin/authentication.lua") -- Server access/hammer bans
 include("admin/banmanager.lua") -- Responsible for all bans
---include("admin/adminmain.lua") -- Admin commands (DEPRECATED)
+include("admin/adminmain.lua") -- Admin commands
 print("Loading entity spawning commands...")
 include("entcmds.lua")
 
