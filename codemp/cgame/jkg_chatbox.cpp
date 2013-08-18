@@ -486,8 +486,101 @@ void ChatBox_HandleKey(int key, qboolean down) {
 		ChatBox_CloseChat();
 		return;
 	}
-
-	if ( key & K_CHAR_FLAG ) {
+	else if ( key == A_DELETE || key == A_KP_PERIOD ) {
+		if ( cb_data.cursor < cb_data.len ) {
+			memmove( cb_data.buff + cb_data.cursor, cb_data.buff + cb_data.cursor + 1, cb_data.len - cb_data.cursor);
+			cb_data.len--;
+			ChatBox_UpdateScroll();
+		}
+		return;
+	}
+	else if ( key == A_CURSOR_RIGHT || key == A_KP_6 ) 
+	{
+		if (cb_data.cursor < cb_data.len) {
+			if (cb_data.buff[cb_data.cursor+1] == '^' && (cb_data.buff[cb_data.cursor+2] >= '0' && cb_data.buff[cb_data.cursor+2] <= '9')) {
+				cb_data.cursor += 3;
+			} else if (cb_data.buff[cb_data.cursor+1] == '^' && cb_data.buff[cb_data.cursor+2] == 'x' && Text_IsExtColorCode(&cb_data.buff[cb_data.cursor+2])) {
+				cb_data.cursor += 6;
+			} else {
+				cb_data.cursor++;
+			}
+			ChatBox_UpdateScroll();
+		} 
+		return;
+	}
+	else if ( key == A_CURSOR_LEFT || key == A_KP_4 ) 
+	{
+		if ( cb_data.cursor > 1 ) {
+			if (cb_data.buff[cb_data.cursor-2] == '^' && (cb_data.buff[cb_data.cursor-1] >= '0' && cb_data.buff[cb_data.cursor-1] <= '9')) {
+				// Jump over the color code
+				cb_data.cursor -= 3;
+			} else if (cb_data.cursor > 4 && cb_data.buff[cb_data.cursor-5] == '^' && cb_data.buff[cb_data.cursor-4] == 'x' && Text_IsExtColorCode(&cb_data.buff[cb_data.cursor-4])) { 
+				// Jump over extended color code
+				cb_data.cursor -= 6;
+			} else {
+				cb_data.cursor--;
+			}
+		} else if (cb_data.cursor > 0) {
+			cb_data.cursor--;
+		}
+		ChatBox_UpdateScroll();
+		return;
+	}
+	else if ( key == A_HOME || key == A_KP_7) {// || ( tolower(key) == 'a' && trap_Key_IsDown( K_CTRL ) ) ) {
+		cb_data.cursor = 0;
+		cb_data.scroll = 0;
+		return;
+	}
+	else if ( key == A_END || key == A_KP_1)  {// ( tolower(key) == 'e' && trap_Key_IsDown( K_CTRL ) ) ) {
+		cb_data.cursor = cb_data.len;
+		ChatBox_UpdateScroll();
+		return;
+	}
+	else if ( key == A_INSERT || key == A_KP_0 ) {
+		cb_data.overwrite = !cb_data.overwrite;
+		return;
+	}
+	else if ( key == A_ENTER || key == A_KP_ENTER)  {
+		// Send our message ^^
+		if (cb_data.buff[0]) {
+			// Check if it's a command
+			if (cb_data.buff[0] == '/' || cb_data.buff[0] == '\\') {
+				if (CCmd_Execute(&cb_data.buff[1])) {
+					ChatBox_CloseChat();
+					return;		// It was a client-side chat command
+				}
+			}
+			switch (cb_chatmode) {
+				case CHM_NORMAL:
+					trap_SendClientCommand(va("say \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
+					break;
+				case CHM_ACTION:
+					trap_SendClientCommand(va("sayact \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
+					break;
+				case CHM_GLOBAL:
+					trap_SendClientCommand(va("sayglobal \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
+					break;
+				case CHM_YELL:
+					trap_SendClientCommand(va("sayyell \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
+					break;
+				case CHM_WHISPER:
+					trap_SendClientCommand(va("saywhisper \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
+					break;
+				case CHM_PRIVATE:
+					trap_SendClientCommand(va("tell %i \"%s\"\n", cb_privtarget, ChatBox_EscapeChat(cb_data.buff)));
+					break;
+				case CHM_TEAM:
+					trap_SendClientCommand(va("say_team \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
+					break;
+				default:
+					break;
+			}
+		}
+		ChatBox_CloseChat();
+		return;
+	}
+	else
+	{
 		key &= ~K_CHAR_FLAG;
 
 		// Failsafe, should never happen, but just in case
@@ -547,107 +640,6 @@ void ChatBox_HandleKey(int key, qboolean down) {
 		}
 		// We typed somethin, check if we got something special here
 		ChatBox_CheckModes();
-	} else {
-
-		if ( key == A_DELETE || key == A_KP_PERIOD ) {
-			if ( cb_data.cursor < cb_data.len ) {
-				memmove( cb_data.buff + cb_data.cursor, cb_data.buff + cb_data.cursor + 1, cb_data.len - cb_data.cursor);
-				cb_data.len--;
-				ChatBox_UpdateScroll();
-			}
-			return;
-		}
-
-		if ( key == A_CURSOR_RIGHT || key == A_KP_6 ) 
-		{
-			if (cb_data.cursor < cb_data.len) {
-				if (cb_data.buff[cb_data.cursor+1] == '^' && (cb_data.buff[cb_data.cursor+2] >= '0' && cb_data.buff[cb_data.cursor+2] <= '9')) {
-					cb_data.cursor += 3;
-				} else if (cb_data.buff[cb_data.cursor+1] == '^' && cb_data.buff[cb_data.cursor+2] == 'x' && Text_IsExtColorCode(&cb_data.buff[cb_data.cursor+2])) {
-					cb_data.cursor += 6;
-				} else {
-					cb_data.cursor++;
-				}
-				ChatBox_UpdateScroll();
-			} 
-			return;
-		}
-
-		if ( key == A_CURSOR_LEFT || key == A_KP_4 ) 
-		{
-			if ( cb_data.cursor > 1 ) {
-				if (cb_data.buff[cb_data.cursor-2] == '^' && (cb_data.buff[cb_data.cursor-1] >= '0' && cb_data.buff[cb_data.cursor-1] <= '9')) {
-					// Jump over the color code
-					cb_data.cursor -= 3;
-				} else if (cb_data.cursor > 4 && cb_data.buff[cb_data.cursor-5] == '^' && cb_data.buff[cb_data.cursor-4] == 'x' && Text_IsExtColorCode(&cb_data.buff[cb_data.cursor-4])) { 
-					// Jump over extended color code
-					cb_data.cursor -= 6;
-				} else {
-					cb_data.cursor--;
-				}
-			} else if (cb_data.cursor > 0) {
-				cb_data.cursor--;
-			}
-			ChatBox_UpdateScroll();
-			return;
-		}
-
-		if ( key == A_HOME || key == A_KP_7) {// || ( tolower(key) == 'a' && trap_Key_IsDown( K_CTRL ) ) ) {
-			cb_data.cursor = 0;
-			cb_data.scroll = 0;
-			return;
-		}
-
-		if ( key == A_END || key == A_KP_1)  {// ( tolower(key) == 'e' && trap_Key_IsDown( K_CTRL ) ) ) {
-			cb_data.cursor = cb_data.len;
-			ChatBox_UpdateScroll();
-			return;
-		}
-
-		if ( key == A_INSERT || key == A_KP_0 ) {
-			cb_data.overwrite = !cb_data.overwrite;
-			return;
-		}
-	}
-
-	if ( key == A_ENTER || key == A_KP_ENTER)  {
-		// Send our message ^^
-		if (cb_data.buff[0]) {
-			// Check if it's a command
-			if (cb_data.buff[0] == '/' || cb_data.buff[0] == '\\') {
-				if (CCmd_Execute(&cb_data.buff[1])) {
-					ChatBox_CloseChat();
-					return;		// It was a client-side chat command
-				}
-			}
-			switch (cb_chatmode) {
-				case CHM_NORMAL:
-					trap_SendClientCommand(va("say \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
-					break;
-				case CHM_ACTION:
-					trap_SendClientCommand(va("sayact \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
-					break;
-				case CHM_GLOBAL:
-					trap_SendClientCommand(va("sayglobal \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
-					break;
-				case CHM_YELL:
-					trap_SendClientCommand(va("sayyell \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
-					break;
-				case CHM_WHISPER:
-					trap_SendClientCommand(va("saywhisper \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
-					break;
-				case CHM_PRIVATE:
-					trap_SendClientCommand(va("tell %i \"%s\"\n", cb_privtarget, ChatBox_EscapeChat(cb_data.buff)));
-					break;
-				case CHM_TEAM:
-					trap_SendClientCommand(va("say_team \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
-					break;
-				default:
-					break;
-			}
-		}
-		ChatBox_CloseChat();
-		return;
 	}
 
 }

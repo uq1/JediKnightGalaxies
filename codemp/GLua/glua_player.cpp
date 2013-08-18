@@ -784,6 +784,29 @@ static int GLua_Player_GetForceLevel(lua_State *L) {
 	return 1;
 }
 
+// NEW ADMIN SYSTEM
+static int GLua_Player_SetAdminAccount(lua_State *L)
+{
+	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
+	const char *account = luaL_checkstring(L, 2);
+	if(!ply) return 0;
+	if(!account) return 0;
+	level.clients[ply->clientNum].adminAccount = account;
+	return 0;
+}
+
+static int GLua_Player_GetAdminAccount(lua_State *L)
+{
+	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
+	if(!ply)
+	{
+		lua_pushnil(L);
+		return 1;
+	}
+	lua_pushstring( L, level.clients[ply->clientNum].adminAccount.c_str() );
+	return 1;
+}
+
 static int GLua_Player_SetActiveForce(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	int force = luaL_checkinteger(L,2);
@@ -1771,6 +1794,9 @@ static const struct luaL_reg player_m [] = {
 	{"GetGunAmmoType", GLua_Player_GetGunAmmoType},
 	{"PossessingItem", GLua_Player_PossessingItem},
 	{"PossessingWeapon", GLua_Player_PossessingWeapon},
+	// add 8/18/13
+	{"SetAdminAccount", GLua_Player_SetAdminAccount},
+	{"GetAdminAccount", GLua_Player_GetAdminAccount},
 	{NULL, NULL},
 };
 

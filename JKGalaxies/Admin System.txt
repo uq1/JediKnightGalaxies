@@ -1,0 +1,48 @@
+This will serve as documentation for JKG's admin system, for the time being.
+The system is currently a WIP.
+
+----------------------------------
+The "God" admin
+----------------------------------
+
+Each JKG server by default has a "God" admin that has the highest (and default) rank. This rank can do every action that is normally available by an admin.
+The default username/password for this admin is as follows:
+
+username: gaia
+password: password
+
+----------------------------------
+Logging In/Out
+----------------------------------
+
+To log in, simply type (in chat):
+
+/admlogin <username> <password>
+
+The username and password are case sensitive.
+To log out, simply type (in chat):
+
+/admlogout
+
+----------------------------------
+Changing your password
+----------------------------------
+
+Since using the default configuration is a bad idea (since literally anyone can log into the God account, including evil users, if you leave the default password), you'll want to change passwords.
+You can change the password using this command:
+
+/admchangedetails password <old pass> <new pass>
+
+Bear in mind that password fields are case-sensitive.
+
+----------------------------------
+Saved data
+----------------------------------
+
+All of the saved data about the server is stored in <fs_homepath>/server. Make note of this.
+All of the files are in plaintext/JSON, so you can edit the files by hand if you do not feel like hopping onto the server. Changes to these files require a server restart to take effect.
+
+----------------------------------
+Adding admins
+----------------------------------
+

@@ -659,6 +659,9 @@
     <ClCompile Include="..\qcommon\q_shared.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\GLua\glua_json.cpp">
+      <Filter>Source Files\GLua</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="JK2_game.def">

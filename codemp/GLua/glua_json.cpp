@@ -5,6 +5,7 @@
 #include <json/cJSON.h>
 #include <stdlib.h>
 #include <vector>
+#include <string>
 
 #include "glua.h"
 
@@ -15,7 +16,8 @@
 typedef struct
 {
 	std::vector<cJSON *> jsonBinding;
-	std::vector<char *> fileBinding;
+	cJSONStream *streamHandle;
+	std::string fileBinding;
 } gluaJSONBinding_t;
 
 static gluaJSONBinding_t fJSON;
@@ -81,11 +83,11 @@ static int GLua_JSON_Register( lua_State *L )
 	buff[len] = '\0';
 	trap_FS_FCloseFile( f );
 
-	fJSON.fileBinding.push_back( buff );
+	fJSON.fileBinding = buff;
 
 	// Okay, now handle the deal with the first node.
 	char error[MAX_STRING_CHARS];
-	cJSON *json = cJSON_ParsePooled( buff, error, sizeof( error ) );
+	cJSON *json = cJSON_ParsePooled( fJSON.fileBinding.c_str(), error, sizeof( error ) );
 
 	if( json == NULL )
 	{
@@ -144,13 +146,6 @@ static int GLua_JSON_Clear( lua_State *L )
 	// Use this whenever we're done doing JSON crap
 
 	// Kill files
-	std::vector<char *>::iterator fit;
-
-	for( fit = fJSON.fileBinding.begin(); fit != fJSON.fileBinding.end(); fit++ )
-	{
-		free(*fit);
-	}
-
 	fJSON.fileBinding.clear();
 
 	// Kill JSON nodes
@@ -506,6 +501,176 @@ static int GLua_JSON_GetArrayItem( lua_State *L )
 	return 1;
 }
 
+/*
+json.RegisterStream(maxdepth:integer, formatted:boolean):nil
+
+Starts a stream.
+*/
+
+static int GLua_JSON_RegisterStream( lua_State *L )
+{
+	fJSON.streamHandle = cJSON_Stream_New( luaL_checkinteger( L, 1 ), lua_toboolean( L, 2 ), 0, 0 );
+}
+
+/*
+json.FinishStream(filename:string):nil
+
+Finishes the current stream.
+*/
+
+static int GLua_JSON_FinishStream( lua_State *L )
+{
+	if( fJSON.streamHandle == NULL ) // ya...no..just no...
+		return 0;
+
+	const char *buffer = cJSON_Stream_Finalize( fJSON.streamHandle );
+	const char *file = luaL_checkstring(L, 1);
+	if( !file )
+		return 0;
+
+	fileHandle_t f;
+
+	trap_FS_FOpenFile( file, &f, FS_WRITE );
+	trap_FS_Write( buffer, strlen(buffer), f );
+	trap_FS_FCloseFile( f );
+}
+
+/*
+json.BeginObject(object:string):nil
+
+Begins an object. If object is "0", then we will pass NULL.
+*/
+
+static int GLua_JSON_BeginObject( lua_State *L )
+{
+	const char *arg = luaL_checkstring(L, 1);
+	if( !arg ) return 0;
+	bool firstArgNull = false;
+
+	if( Q_stricmp(arg, "0") == 0 )
+	{
+		firstArgNull = true;
+	}
+
+	cJSON_Stream_BeginObject( fJSON.streamHandle, firstArgNull ? NULL : arg );
+}
+
+/*
+json.EndObject(nil):nil
+
+Ends the highest-scoped object.
+*/
+
+static int GLua_JSON_EndObject( lua_State *L )
+{
+	cJSON_Stream_EndBlock( fJSON.streamHandle );
+}
+
+/*
+json.BeginArray(object:string):nil
+
+Same as json.BeginObject, but treats the value like an array.
+*/
+
+static int GLua_JSON_BeginArray( lua_State *L )
+{
+	const char *arg = luaL_checkstring(L, 1);
+	if( !arg ) return 0;
+	bool firstArgNull = false;
+
+	if( Q_stricmp(arg, "0") == 0 )
+	{
+		firstArgNull = true;
+	}
+
+	cJSON_Stream_BeginArray( fJSON.streamHandle, firstArgNull ? NULL : arg );
+}
+
+/*
+json.WriteString(key:string, value:string):nil
+
+Writes a string object. key can be "0" for NULL (good for arrays)
+*/
+
+static int GLua_JSON_WriteString( lua_State *L )
+{
+	const char *key = luaL_checkstring(L, 1);
+	const char *value = luaL_checkstring(L, 2);
+	if( !key ) return 0;
+	if( !value ) return 0;
+	bool firstArgNull = false;
+
+	if( Q_stricmp(key, "0") == 0 )
+	{
+		firstArgNull = true;
+	}
+
+	cJSON_Stream_WriteString( fJSON.streamHandle, firstArgNull ? NULL : key, value );
+}
+
+/*
+json.WriteInteger(key:string, value:integer):nil
+
+Writes an integer object. key can be "0" for NULL (good for arrays)
+*/
+
+static int GLua_JSON_WriteInteger( lua_State *L )
+{
+	const char *key = luaL_checkstring(L, 1);
+	int value = luaL_checkinteger(L, 2);
+	if( !key ) return 0;
+	bool firstArgNull = false;
+
+	if( Q_stricmp(key, "0") == 0 )
+	{
+		firstArgNull = true;
+	}
+
+	cJSON_Stream_WriteInteger( fJSON.streamHandle, firstArgNull ? NULL : key, value );
+}
+
+/*
+json.WriteNumber(key:string, value:number):nil
+
+Writes a number object. key can be "0" for NULL (good for arrays)
+*/
+
+static int GLua_JSON_WriteNumber( lua_State *L )
+{
+	const char *key = luaL_checkstring(L, 1);
+	double value = luaL_checknumber(L, 2);
+	if( !key ) return 0;
+	bool firstArgNull = false;
+
+	if( Q_stricmp(key, "0") == 0 )
+	{
+		firstArgNull = true;
+	}
+
+	cJSON_Stream_WriteNumber( fJSON.streamHandle, firstArgNull ? NULL : key, value );
+}
+
+/*
+json.WriteBoolean(key:string, value:boolean):nil
+
+Writes a boolean object. key can be "0" for NULL (good for arrays)
+*/
+
+static int GLua_JSON_WriteBoolean( lua_State *L )
+{
+	const char *key = luaL_checkstring(L, 1);
+	int value = lua_toboolean(L, 2);
+	if( !key ) return 0;
+	bool firstArgNull = false;
+
+	if( Q_stricmp(key, "0") == 0 )
+	{
+		firstArgNull = true;
+	}
+
+	cJSON_Stream_WriteBoolean( fJSON.streamHandle, firstArgNull ? NULL : key, value );
+}
+
 static const struct luaL_reg json_f [] = {
 	// Basics
 	{ "RegisterFile", GLua_JSON_Register },				// Opens a file. Returns the handle to the first node.
@@ -532,6 +697,19 @@ static const struct luaL_reg json_f [] = {
 	// Array handling
 	{ "GetArraySize", GLua_JSON_GetArraySize },			// cJSON_GetArraySize
 	{ "GetArrayItem", GLua_JSON_GetArrayItem },			// cJSON_GetArrayItem
+
+	// Writing Capabilities
+	{ "RegisterStream", GLua_JSON_RegisterStream },		// Opens a file. Returns the handle to the stream.
+	{ "FinishStream", GLua_JSON_FinishStream },			// Finishes a JSON file.
+
+	{ "BeginObject", GLua_JSON_BeginObject },
+	{ "EndObject", GLua_JSON_EndObject },
+	{ "BeginArray", GLua_JSON_BeginArray },
+
+	{ "WriteString", GLua_JSON_WriteString },
+	{ "WriteInteger", GLua_JSON_WriteInteger },
+	{ "WriteNumber", GLua_JSON_WriteNumber },
+	{ "WriteBoolean", GLua_JSON_WriteBoolean },
 };
 
 void GLua_Define_JSON( lua_State *L )

@@ -1,0 +1,11 @@
+{
+	"ranks":
+	[
+		{
+			// Rank name
+			"name":			"God",
+			// Can we use /admchangedetails?
+			"can-changedetails":	1
+		}
+	]
+}
