@@ -742,6 +742,60 @@ local function Admin_Say(ply, argc, argv)
 	end
 end
 
+local function Admin_Tell(ply, argc, argv)
+	if ply.IsAdmin then
+		local rank = AdmRank_GetRank(ply)
+		if rank["can-tell"] ~= true then
+			AdmReply(ply, "^1You do not have permission to perform this action.")
+		else
+			if argc < 3 then
+				AdmReply(ply, "^3Syntax: /admtell <player id/name> <message>")
+			else
+				local plytarg = players.GetByArg(argv[1])
+				local account = admins[ply:GetAdminAccount()]
+				local message = table.concat(argv," ",1, argc-1)
+
+				plytarg:SendChat( "^5Admin " .. account["username"] .. " whispers: " .. message )
+
+				if plytarg.lastadmtell == nil then
+					plytarg:SendChat( "^8Reply to this message using /admreply <msg>" )
+				end
+				plytarg.lastadmtell = account["username"]
+			end
+		end
+	else
+		AdmReply(ply, "^1You are not logged in.")
+	end
+end
+
+-- NOT to be confused with AdmReply!!
+local function Admin_Reply(ply, argc, argv)
+	if argc < 2 then
+		AdmReply(ply, "^3Syntax: /admreply <message>")
+		return
+	end
+
+	if ply.lastadmtell == nil then
+		ply:SendChat( "^1You have not been messaged by an admin in this play session." )
+		return
+	end
+
+	local account = ply.lastadmtell
+	local k = 0
+	local message = table.concat(argv," ",1, argc-1)
+	while players.GetByID(k) ~= nil do
+		local plytarg = players.GetByID(k)
+
+		if( account == plytarg:GetAdminAccount() )
+			plytarg:SendChat( "^5" .. ply.Name .. " replies: " .. message )
+		end
+
+		k = k + 1
+	end
+
+	ply:SendChat( "^5You reply: " .. message )
+end
+
 local function InitAdminCmds()
 	chatcmds.Add("admlogin", Admin_Login)
 	chatcmds.Add("admlogout", Admin_Logout)
@@ -755,6 +809,10 @@ local function InitAdminCmds()
 	chatcmds.Add("admalter", Admin_Alter)
 	chatcmds.Add("admstatus", Admin_Status)
 	chatcmds.Add("admsay", Admin_Say)
+	chatcmds.Add("admtell", Admin_Tell)
+
+	-- For replying to /admtells..this isn't an admin command, it can be used by any client
+	chatcmds.Add("admreply", Admin_Reply)
 end
 
 --[[ ------------------------------------------------

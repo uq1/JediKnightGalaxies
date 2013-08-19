@@ -807,6 +807,25 @@ static int GLua_Player_GetAdminAccount(lua_State *L)
 	return 1;
 }
 
+extern qboolean CCmd_Execute(int clientNum, const char *command);
+static int GLua_Player_ExecuteChatCommand(lua_State *L)
+{
+	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
+	if(!ply)
+	{
+		return 0;
+	}
+
+	const char *cmd = luaL_checkstring(L, 2);
+	if(!cmd)
+	{
+		return 0;
+	}
+
+	CCmd_Execute(ply->clientNum, cmd);
+	return 0;
+}
+
 static int GLua_Player_SetActiveForce(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	int force = luaL_checkinteger(L,2);
@@ -1797,6 +1816,8 @@ static const struct luaL_reg player_m [] = {
 	// add 8/18/13
 	{"SetAdminAccount", GLua_Player_SetAdminAccount},
 	{"GetAdminAccount", GLua_Player_GetAdminAccount},
+	// add 8/19/13
+	{"ExecuteChatCommand", GLua_Player_ExecuteChatCommand},
 	{NULL, NULL},
 };
 

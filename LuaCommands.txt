@@ -285,5 +285,8 @@ player:GetCurrentGunAmmoType():number - retrieves the ammo ID of the currently e
 player:GetGunAmmoType(weapon:number, variation: number):number - retrieves the ammo ID of the weapon/variation given (NOTE: I have no clue why I put this in player/ply...)--eez
 player:PossessingItem(itemid:number):bool - returns true if we are possessing the item, returns false otherwise
 player:PossessingWeapon(weapon: number, variation:number):bool - returns true if we are possessing this weapon in our inventory, returns false otherwise
+player:SetAdminAccount(account:string):nil - Sets our current admin account to a certain value
+player:GetAdminAccount():string - Gets our current admin account
+player:ExecuteChatCommand(command:string):nil - Executes a chat command (such as /me). This includes Lua commands!
 
 --------------------------------------------------------------------------------------------------------

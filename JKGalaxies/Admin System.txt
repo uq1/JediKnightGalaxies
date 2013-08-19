@@ -43,10 +43,12 @@ All of the saved data about the server is stored in <fs_homepath>/server. Make n
 All of the files are in plaintext/JSON, so you can edit the files by hand if you do not feel like hopping onto the server. Changes to these files require a server restart to take effect.
 
 ----------------------------------
-Profile
+Status
 ----------------------------------
 
 To see your basic account information, do /admprofile.
+
+To see all clients information, such as admin status and client numbers, do /admstatus
 
 ----------------------------------
 Adding and deleting admins
@@ -58,3 +60,51 @@ This is done through these commands:
 /admdeleteaccount <username>
 
 You must have the proper permissions to do this.
+
+----------------------------------
+List admins/ranks/powers
+----------------------------------
+
+To list all online admins:
+
+/admlist online
+
+To list all admin accounts + rank (prints to console):
+
+/admlist admins
+
+To list all ranks (prints to console):
+
+/admlist ranks
+
+To list what your rank can do, type:
+
+/admlist powers
+
+To inspect a rank's powers:
+
+/admrank inspect <rank name>
+
+----------------------------------
+Changing another admin's rank/password
+----------------------------------
+
+For rank:
+
+/admalter <username> rank <new rank>
+
+For password:
+
+/admalter <username> password <newpass>
+
+----------------------------------
+Messaging
+----------------------------------
+
+Global messaging:
+
+/admsay <message>
+
+Private messaging:
+
+/admtell <client name/number> <message>
