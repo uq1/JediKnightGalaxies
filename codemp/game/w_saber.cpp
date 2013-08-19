@@ -2350,6 +2350,34 @@ static GAME_INLINE qboolean G_ClientIdleInWorld(gentity_t *ent)
 	return qfalse;
 }
 
+//Stoiss add: OJP Code
+float CalcTraceFraction ( vec3_t Start, vec3_t End, vec3_t Endpos )
+{
+	float fulldist;
+	float dist;
+
+	fulldist = VectorDistance(Start, End);
+	dist = VectorDistance(Start, Endpos);
+
+	if ( fulldist > 0 )
+	{
+		if ( dist > 0 )
+		{
+			return dist/fulldist;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		//I'm going to let it return 1 when the EndPos = End = Start
+		return 1;
+	}
+}
+//Stoiss end
+
 static GAME_INLINE qboolean G_G2TraceCollide(trace_t *tr, vec3_t lastValidStart, vec3_t lastValidEnd, vec3_t traceMins, vec3_t traceMaxs)
 { //Hit the ent with the normal trace, try the collision trace.
 	G2Trace_t		G2Trace;
@@ -2429,11 +2457,18 @@ static GAME_INLINE qboolean G_G2TraceCollide(trace_t *tr, vec3_t lastValidStart,
 		{ //The ghoul2 trace result matches, so copy the collision position into the trace endpos and send it back.
 			VectorCopy(G2Trace[0].mCollisionPosition, tr->endpos);
 			VectorCopy(G2Trace[0].mCollisionNormal, tr->plane.normal);
+			//[SaberSys]
+			//Calculate the fraction point to keep all the code working correctly
+			tr->fraction = CalcTraceFraction( lastValidStart, lastValidEnd, tr->endpos );
+			//[/SaberSys]
 
 			if (g2Hit->client)
 			{
 				g2Hit->client->g2LastSurfaceHit = G2Trace[0].mSurfaceIndex;
 				g2Hit->client->g2LastSurfaceTime = level.time;
+				//[BugFix12]
+				g2Hit->client->g2LastSurfaceModel = G2Trace[0].mModelIndex;
+				//[/BugFix12]
 			}
 			return qtrue;
 		}
@@ -2713,9 +2748,39 @@ static GAME_INLINE qboolean G_SaberFaceCollisionCheck(int fNum, saberFace_t *fLi
 	return qfalse;
 }
 
+//Stoiss add
+//Copies all the important data from one trace_t to another.  Please note that this doesn't transfer ALL
+//of the trace_t data.
+void TraceCopy( trace_t *a, trace_t *b)
+{
+	b->allsolid = a->allsolid;
+	b->contents = a->contents;
+	VectorCopy(a->endpos, b->endpos);
+	b->entityNum = a->entityNum;
+	b->fraction = a->fraction;
+	//This is the only thing that's ever really used from the plane data.
+	VectorCopy(a->plane.normal, b->plane.normal);
+	b->startsolid = a->startsolid;
+	b->surfaceFlags = a->surfaceFlags;
+}
+
+
+//Reset the trace to be "blank".
+static GAME_INLINE void TraceClear( trace_t *tr, vec3_t end )
+{
+		tr->fraction = 1;
+		VectorCopy( end, tr->endpos );
+		tr->entityNum = ENTITYNUM_NONE;
+}
+//Stoiss end
+
+
 //check for collision of 2 blades -rww
 static GAME_INLINE qboolean G_SaberCollide(gentity_t *atk, gentity_t *def, vec3_t atkStart,
-						vec3_t atkEnd, vec3_t atkMins, vec3_t atkMaxs, vec3_t impactPoint)
+//Stoiss add
+											vec3_t atkEnd, vec3_t atkMins, vec3_t atkMaxs, trace_t *tr)
+//											vec3_t atkEnd, vec3_t atkMins, vec3_t atkMaxs, vec3_t impactPoint)
+//Stoiss end
 {
 	static int i, j;
 
@@ -2724,10 +2789,24 @@ static GAME_INLINE qboolean G_SaberCollide(gentity_t *atk, gentity_t *def, vec3_
 		return qtrue;
 	}
 
-	if (!atk->inuse || !atk->client || !def->inuse || !def->client)
+	//[SaberSys]
+	//Removed the atk gentity requirements for the function so my saber trace will work with
+	//atk gentity checks.
+	if (!def->inuse || !def->client)
+	//if (!atk->inuse || !atk->client || !def->inuse || !def->client)
 	{ //must have 2 clients and a valid saber entity
+		TraceClear( tr, atkEnd);
+		return qfalse;
+	//[/SaberSys]
+	}
+
+	//[BugFix26]
+	if(def->client->ps.saberHolstered == 2)
+	{//no sabers on.
+		TraceClear( tr, atkEnd);
 		return qfalse;
 	}
+	//[/BugFix26]
 
 	i = 0;
 	while (i < MAX_SABERS)
@@ -2778,8 +2857,17 @@ static GAME_INLINE qboolean G_SaberCollide(gentity_t *atk, gentity_t *def, vec3_
 						}
 #endif
 
-						if (G_SaberFaceCollisionCheck(fNum, fList, atkStart, atkEnd, atkMins, atkMaxs, impactPoint))
+						//[SaberSys]
+						if (G_SaberFaceCollisionCheck(fNum, fList, atkStart, atkEnd, atkMins, atkMaxs, tr->endpos))
+						//if (G_SaberFaceCollisionCheck(fNum, fList, atkStart, atkEnd, atkMins, atkMaxs, impactPoint))
 						{ //collided
+							//determine the plane of impact for the viewlocking stuff.
+							vec3_t result;
+
+							tr->fraction = CalcTraceFraction( atkStart, atkEnd, tr->endpos );
+
+							VectorSubtract(tr->endpos, result, result);
+							VectorCopy(result, tr->plane.normal);
 						if( atk && atk->client )//Stoiss add
 						{
 						atk->client->lastSaberCollided = i;
@@ -5187,9 +5275,9 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 				}
 			}
 			else
-			{//MP-style
-				if (!G_SaberCollide(self, otherOwner, lastValidStart,
-					lastValidEnd, saberTrMins, saberTrMaxs, tr.endpos))
+			{//MP-style //Stoiss Edit, not needed anymore
+				/*if (!G_SaberCollide(self, otherOwner, lastValidStart,
+					lastValidEnd, saberTrMins, saberTrMaxs, tr.endpos))*/
 				{ //detailed collision did not produce results...
 					return qfalse;
 				}
