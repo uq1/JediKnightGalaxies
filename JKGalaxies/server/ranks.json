@@ -13,6 +13,12 @@
 			// Account management
 			"can-addaccounts":	1,
 			"can-deleteaccounts":	1,
+
+			// admstatus command
+			"can-status":		1,
+
+			// Talking commands
+			"can-say":		1,
 			
 			// admlist command
 			"can-list-online":	1,

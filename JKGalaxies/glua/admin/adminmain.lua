@@ -88,6 +88,12 @@ local function AdmRank_InitRanks( )
 	
 		jObjectItem = json.GetObjectItem( jObject, "can-alter-password" )
 		rank["can-alter-password"] = json.ToBooleanOpt( jObjectItem, 0 )
+
+		jObjectItem = json.GetObjectItem( jObject, "can-status" )
+		rank["can-status"] = json.ToBooleanOpt( jObjectItem, 1 )
+
+		jObjectItem = json.GetObjectItem( jObject, "can-say" )
+		rank["can-say"] = json.ToBooleanOpt( jObjectItem, 1 )
 		
 		--
 		-- END COMMAND-BASED STUFF
@@ -188,6 +194,8 @@ local function RankList_SaveRanks( reason )
 		json.WriteBoolean( "can-rank-inspect", sortedrank["can-rank-inspect"] )
 		json.WriteBoolean( "can-alter-rank", sortedrank["can-alter-rank"] )
 		json.WriteBoolean( "can-alter-password", sortedrank["can-alter-password"] )
+		json.WriteBoolean( "can-status", sortedrank["can-status"] )
+		json.WriteBoolean( "can-say", sortedrank["can-say"] )
 		
 		-- Array base object
 		json.EndObject( )
@@ -438,9 +446,9 @@ local function Admin_AddAccount(ply, argc, argv)
 			AdmReply(ply, "^1You do not have permission to perform this action.")
 		else
 			-- Syntax:
-			-- /admaddaccount <username> <password> <rank>
+			-- /admnewaccount <username> <password> <rank>
 			if argc ~= 4 then
-				AdmReply(ply, "^3Syntax: /admaddaccount <username> <password> <rank>")
+				AdmReply(ply, "^3Syntax: /admnewaccount <username> <password> <rank>")
 			else
 				if admins[argv[1]] ~= nil then
 					AdmReply(ply, "^1Could not create account, an account by this name already exists.")
@@ -538,6 +546,10 @@ local function AdminHelp_ListPowers( rank )
 	if rank["can-alter-password"] then
 		printnn("^6admalter password, ")
 	end
+
+	if rank["can-status"] then
+		printnn("^2admstatus, ")
+	end
 						
 	print(" ")
 end
@@ -598,7 +610,7 @@ local function Admin_List(ply, argc, argv)
 				if rank["can-list-powers"] ~= true then
 					AdmReply(ply, "^1You do not have permission to perform this action.")
 				else
-					AdmReply("^4Results printed to console.")
+					AdmReply(ply, "^4Results printed to console.")
 					print("^2Your powers:")
 					
 					AdminHelp_ListPowers( rank )
@@ -655,7 +667,6 @@ local function Admin_Alter(ply, argc, argv)
 			if alteraccount == nil then
 				AdmReply(ply, "^1Invalid username for /admalter.")
 			else
-				local ourrank = AdmRank_GetRank(ply)
 				if argv[2] == "rank" then
 					if rank["can-alter-rank"] ~= true then
 						AdmReply(ply, "^1You do not have permission to perform this action.")
@@ -687,6 +698,50 @@ local function Admin_Alter(ply, argc, argv)
 	end
 end
 
+local function Admin_Status(ply, argc, argv)
+	if ply.IsAdmin then
+		local rank = AdmRank_GetRank(ply)
+		if rank["can-status"] ~= true then
+			AdmReply(ply, "^1You do not have permission to perform this action.")
+		else
+			local k = 0
+			AdmReply(ply, "^4Results printed to console.")
+			while players.GetByID(k) ~= nil do
+				local plysel = players.GetByID(k)
+				if plysel:IsValid() then
+					local plyselname = plysel:GetName()
+					printnn( k .. " - " .. plyselname )
+					if plysel.IsAdmin then
+						local plyselaccountname = plysel:GetAdminAccount()
+						local plyselaccount = admins[plyselaccountname]
+						printnn( " ^7(^2Logged in as ^4" .. plyselaccountname .. " ^5[Rank: " .. plyselaccount["rank"] .. "]^7)" )
+					end
+					print(" ")
+				end
+				k = k + 1
+			end
+			print(" ")
+		end
+	else
+		AdmReply(ply, "^1You are not logged in.")
+	end
+end
+
+local function Admin_Say(ply, argc, argv)
+	if ply.IsAdmin then
+		local rank = AdmRank_GetRank(ply)
+		if rank["can-say"] ~= true then
+			AdmReply(ply, "^1You do not have permission to perform this action.")
+		else
+			local accountname = ply:GetAdminAccount()
+			local message = table.concat(argv," ",1, argc-1)
+			chatmsg( "^7[^5" .. accountname .. "^7] <" .. rank["name"] .. "> " .. message )
+		end
+	else
+		AdmReply(ply, "^1You are not logged in.")
+	end
+end
+
 local function InitAdminCmds()
 	chatcmds.Add("admlogin", Admin_Login)
 	chatcmds.Add("admlogout", Admin_Logout)
@@ -698,6 +753,8 @@ local function InitAdminCmds()
 	chatcmds.Add("admlist", Admin_List)
 	chatcmds.Add("admrank", Admin_Rank)
 	chatcmds.Add("admalter", Admin_Alter)
+	chatcmds.Add("admstatus", Admin_Status)
+	chatcmds.Add("admsay", Admin_Say)
 end
 
 --[[ ------------------------------------------------

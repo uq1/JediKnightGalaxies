@@ -229,6 +229,14 @@ static int GLua_Include(lua_State *L) {
 	return 1;
 }
 
+static int GLua_Chat( lua_State *L )
+{
+	const char *msg = luaL_checkstring( L, 1 );
+
+	trap_SendServerCommand( -1, va("chat 100 \"%s\"", msg) );
+	return 0;
+}
+
 static int GLua_FindMetatable(lua_State *L) {
 	luaL_getmetatable(L, luaL_checkstring(L,1));
 	return 1;
@@ -308,6 +316,8 @@ void GLua_LoadBaseLibs(lua_State *L) {
 	lua_pushcclosure(L, GLua_SecurityLogPrint, 0); lua_setglobal(L, "securitylog");
 	// Print command, without newlines
 	lua_pushcclosure(L, GLua_PrintNN, 0); lua_setglobal(L, "printnn");
+	// Send chat messages
+	lua_pushcclosure(L, GLua_Chat, 0); lua_setglobal(L, "chatmsg");
 	// Remove different ways to execute code, we only want include to be available
 	lua_pushnil(L); lua_setglobal(L,"dofile"); 
 	lua_pushnil(L); lua_setglobal(L,"loadfile");
