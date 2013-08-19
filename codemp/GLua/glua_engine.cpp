@@ -68,6 +68,36 @@ static int GLua_Print(lua_State *L) {
 	return 0;
 }
 
+// Prints without adding a '\n' at the end. Good for loops, etc
+static int GLua_PrintNN( lua_State *L )
+{
+		/*const*/ char *msg;
+	char *nl;
+	char buff[16384] = {0};
+	int args = lua_gettop(L);
+	const char *res;
+	int i;
+
+	// Lets do this a lil different, concat all args and use that as the message ^^
+	GLua_Push_ToString(L); // Ref to tostring (instead of a global lookup, in case someone changes it)
+	for (i = 1; i <= args; i++) {
+		lua_pushvalue(L,-1);
+		lua_pushvalue(L, i);
+		lua_call(L, 1, 1); // Assume this will never error out
+		res = lua_tostring(L,-1);
+		if (res) {
+			Q_strcat(&buff[0], sizeof(buff), res);
+		}
+		lua_pop(L,1);
+	}
+	lua_pop(L,1);
+	msg = &buff[0];
+
+	trap_Print(msg);
+
+	return 0;
+}
+
 static int GLua_LogPrint( lua_State *L )
 {
 	// Same thing as GLua_Print, but we're doing this in the log
@@ -276,6 +306,8 @@ void GLua_LoadBaseLibs(lua_State *L) {
 	// Log/SecurityLog Printf --eez
 	lua_pushcclosure(L, GLua_LogPrint, 0); lua_setglobal(L, "log");
 	lua_pushcclosure(L, GLua_SecurityLogPrint, 0); lua_setglobal(L, "securitylog");
+	// Print command, without newlines
+	lua_pushcclosure(L, GLua_PrintNN, 0); lua_setglobal(L, "printnn");
 	// Remove different ways to execute code, we only want include to be available
 	lua_pushnil(L); lua_setglobal(L,"dofile"); 
 	lua_pushnil(L); lua_setglobal(L,"loadfile");

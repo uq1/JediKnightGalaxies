@@ -19,9 +19,9 @@ GLua Framework: Framework to work with lua and do engine bindings.
 -----------------------------------------------------------------------------------------------
 
 print(...):nil - Prints to the console. Args are concatenated strings. Identical in function to trap_Print.
+printnn(...):nil - Prints to the console without adding a '\n' to the end of it (good for loops, etc)
 log(...):nil - Prints to the log. Args are concatenated strings. Identical in function to G_LogPrintf (minus the formatting)
 securitylog(...):nil - Prints to the security log. Args are concatenated strings. Identical in function to G_SecurityLogPrintf (minus the formatting)
-findmetatable(table:string):nil?
 
 -----------------------------------------------------------------------------------------------
 

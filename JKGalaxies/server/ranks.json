@@ -4,8 +4,28 @@
 		{
 			// Rank name
 			"name":			"God",
-			// Can we use /admchangedetails?
-			"can-changedetails":	1
+
+			// Specific booleans stating whether we can do certain things
+
+			// Defaults to 1
+			"can-changedetails":	1,
+
+			// Account management
+			"can-addaccounts":	1,
+			"can-deleteaccounts":	1,
+			
+			// admlist command
+			"can-list-online":	1,
+			"can-list-admins":	1,
+			"can-list-ranks":	1,
+			"can-list-powers":	1,
+
+			// admrank command
+			"can-rank-inspect":	1,
+
+			// admalter command
+			"can-alter-rank":	1,
+			"can-alter-password":	1
 		}
 	]
 }

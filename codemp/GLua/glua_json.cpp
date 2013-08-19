@@ -510,6 +510,7 @@ Starts a stream.
 static int GLua_JSON_RegisterStream( lua_State *L )
 {
 	fJSON.streamHandle = cJSON_Stream_New( luaL_checkinteger( L, 1 ), lua_toboolean( L, 2 ), 0, 0 );
+	return 0;
 }
 
 /*
@@ -564,6 +565,7 @@ Ends the highest-scoped object.
 static int GLua_JSON_EndObject( lua_State *L )
 {
 	cJSON_Stream_EndBlock( fJSON.streamHandle );
+	return 0;
 }
 
 /*

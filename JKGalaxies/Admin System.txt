@@ -43,6 +43,18 @@ All of the saved data about the server is stored in <fs_homepath>/server. Make n
 All of the files are in plaintext/JSON, so you can edit the files by hand if you do not feel like hopping onto the server. Changes to these files require a server restart to take effect.
 
 ----------------------------------
-Adding admins
+Profile
 ----------------------------------
 
+To see your basic account information, do /admprofile.
+
+----------------------------------
+Adding and deleting admins
+----------------------------------
+
+This is done through these commands:
+
+/admnewaccount <username> <password> <rank>
+/admdeleteaccount <username>
+
+You must have the proper permissions to do this.
