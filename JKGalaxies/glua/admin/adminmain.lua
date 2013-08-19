@@ -94,6 +94,9 @@ local function AdmRank_InitRanks( )
 
 		jObjectItem = json.GetObjectItem( jObject, "can-say" )
 		rank["can-say"] = json.ToBooleanOpt( jObjectItem, 1 )
+
+		jObjectItem = json.GetObjectItem( jObject, "can-tell" )
+		rank["can-tell"] = json.ToBooleanOpt( jObjectItem, 1 )
 		
 		--
 		-- END COMMAND-BASED STUFF
@@ -196,6 +199,7 @@ local function RankList_SaveRanks( reason )
 		json.WriteBoolean( "can-alter-password", sortedrank["can-alter-password"] )
 		json.WriteBoolean( "can-status", sortedrank["can-status"] )
 		json.WriteBoolean( "can-say", sortedrank["can-say"] )
+		json.WriteBoolean( "can-tell", sortedrank["can-tell"] )
 		
 		-- Array base object
 		json.EndObject( )
@@ -550,6 +554,14 @@ local function AdminHelp_ListPowers( rank )
 	if rank["can-status"] then
 		printnn("^2admstatus, ")
 	end
+
+	if rank["can-say"] then
+		printnn("^5admsay, ")
+	end
+
+	if rank["can-tell"] then
+		printnn("^5admtell, ")
+	end
 						
 	print(" ")
 end
@@ -786,7 +798,7 @@ local function Admin_Reply(ply, argc, argv)
 	while players.GetByID(k) ~= nil do
 		local plytarg = players.GetByID(k)
 
-		if( account == plytarg:GetAdminAccount() )
+		if( account == plytarg:GetAdminAccount() ) then
 			plytarg:SendChat( "^5" .. ply.Name .. " replies: " .. message )
 		end
 
