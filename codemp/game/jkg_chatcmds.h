@@ -19,3 +19,5 @@ char *CCmd_Cmd();
 void CCmd_TokenizeString( const char *text_in );
 void	CCmd_AddCommand( const char *cmd_name, xccommand_t function );
 void	CCmd_RemoveCommand( const char *cmd_name );
+int CCmd_Caller( void );
+char *CCmd_ConcatArgs( int start );

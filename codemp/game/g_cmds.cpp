@@ -39,6 +39,7 @@ extern qboolean	CheatsOk( gentity_t *ent );
 #ifdef __UNUSED__
 #include "jkg_navmesh_creator.h"
 #endif //__UNUSED__
+#include "jkg_chatcmds.h"
 
 /*
 ==================
@@ -2321,6 +2322,8 @@ G_Say
 ==================
 */
 
+static bool jkgIgnoreFloodProtect = false;
+
 static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char *name, const char *message, char *locMsg, int fadeLevel )
 {
 	if (!other) {
@@ -2447,8 +2450,11 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 	// Check for flood
 	// If the target is the same as the sender, then we're sending a message to ourselves (because
 	// of private chat).
-	if (ent != target && (ent->client->lastChatMessage > (level.time - jkg_chatFloodProtect.integer))) {
-		return;
+	if( !jkgIgnoreFloodProtect )
+	{
+		if (ent != target && (ent->client->lastChatMessage > (level.time - jkg_chatFloodProtect.integer))) {
+			return;
+		}
 	}
 
 	ent->client->lastChatMessage = level.time;
@@ -2807,6 +2813,66 @@ static void Cmd_Tell_f( gentity_t *ent ) {
 	if ( ent != target && !(ent->r.svFlags & SVF_BOT)) {
 		G_Say( ent, ent, SAY_TELL, p );
 	}
+}
+
+void CCmd_Say( void )
+{
+	jkgIgnoreFloodProtect = true;
+	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_ALL, CCmd_ConcatArgs( 1 ) );
+	jkgIgnoreFloodProtect = false;
+}
+
+void CCmd_SayGlobal( void )
+{
+	jkgIgnoreFloodProtect = true;
+	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_GLOBAL, CCmd_ConcatArgs( 1 ) );
+	jkgIgnoreFloodProtect = false;
+}
+
+void CCmd_SayYell( void )
+{
+	jkgIgnoreFloodProtect = true;
+	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_YELL, CCmd_ConcatArgs( 1 ) );
+	jkgIgnoreFloodProtect = false;
+}
+
+void CCmd_SayAct( void )
+{
+	jkgIgnoreFloodProtect = true;
+	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_ACT, CCmd_ConcatArgs( 1 ) );
+	jkgIgnoreFloodProtect = false;
+}
+
+void CCmd_SayWhisper( void )
+{
+	jkgIgnoreFloodProtect = true;
+	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_WHISPER, CCmd_ConcatArgs( 1 ) );
+	jkgIgnoreFloodProtect = false;
+}
+
+void CCmd_Tell( void )
+{
+	jkgIgnoreFloodProtect = true;
+	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_TELL, CCmd_ConcatArgs( 1 ) );
+	jkgIgnoreFloodProtect = false;
+}
+
+void CCmd_Say_Team( void )
+{
+	jkgIgnoreFloodProtect = true;
+	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_TEAM, CCmd_ConcatArgs( 1 ) );
+	jkgIgnoreFloodProtect = false;
+}
+
+void JKG_BindChatCommands( void )
+{
+	// Evil: binds /say, /sayact, etc to chat commands as well...
+	CCmd_AddCommand("say", CCmd_Say);
+	CCmd_AddCommand("sayglobal", CCmd_SayGlobal);
+	CCmd_AddCommand("sayact", CCmd_SayAct);
+	CCmd_AddCommand("saywhisper", CCmd_SayWhisper);
+	CCmd_AddCommand("tell", CCmd_Tell);
+	CCmd_AddCommand("say_team", CCmd_Say_Team);
 }
 
 // JKG BIG FIXME: We need to get everything together and work on a general SanitizeString that works across the board. I swear we have like seven functions

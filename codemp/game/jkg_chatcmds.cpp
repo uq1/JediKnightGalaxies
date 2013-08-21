@@ -116,6 +116,19 @@ char *CCmd_ArgsFrom( int arg ) {
 
 /*
 ============
+CCmd_Caller
+
+...well, we need some way to get the caller, right?
+============
+*/
+
+int CCmd_Caller( void )
+{
+	return ccmd_client;
+}
+
+/*
+============
 Cmd_ArgsBuffer
 ============
 */
@@ -339,6 +352,47 @@ static const char *ChatBox_UnescapeChat(const char *message) {
 	return &buff[0];
 }
 
+/*
+============
+CCmd_ConcatArgs
+============
+*/
+
+char *CCmd_ConcatArgs( int start )
+{
+	static char	line[MAX_STRING_CHARS];
+	int i, tlen;
+	int len = 0;
+	int argc = CCmd_Argc();
+
+	if( start >= argc )
+	{
+		Com_Printf("CCmd_ConcatArgs() called with start >= argc, ignoring...\n");
+		return NULL;
+	}
+
+	for( i = start; i < argc; i++ )
+	{
+		char *v = CCmd_Argv(i);
+		tlen = strlen(v);
+
+		if( len + tlen >= MAX_STRING_CHARS - 1 )
+			break;
+
+		memcpy( line + len, v, tlen );
+		len += tlen;
+		if( i != argc - 1 )
+		{
+			line[len] = ' ';
+			len++;
+		}
+	}
+
+	line[len] = 0;
+
+	return line;
+}
+
 qboolean CCmd_Execute(int clientNum, const char *command) {
 	ccmd_function_t	*cmd;
 
@@ -373,3 +427,4 @@ qboolean CCmd_Execute(int clientNum, const char *command) {
 	// Lua doesn't know it either, bail out
 	return qfalse;
 }
+

@@ -1295,6 +1295,8 @@ void SanitizeString2( char *in, char *out );
 
 gentity_t *G_GetDuelWinner(gclient_t *client);
 
+void JKG_BindChatCommands( void );
+
 //
 // g_items.c
 //

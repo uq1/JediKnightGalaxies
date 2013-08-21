@@ -827,6 +827,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	/* TEMP - Stress level logging */
 	trap_FS_FOpenFile("stresslog.log", &stressfile, FS_APPEND);
 	lastStressLog = levelTime;
+
+	JKG_BindChatCommands();
 }
 
 

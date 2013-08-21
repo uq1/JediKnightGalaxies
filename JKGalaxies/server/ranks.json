@@ -20,6 +20,7 @@
 			// Talking commands
 			"can-say":		1,
 			"can-tell":		1,
+			"can-speak":		1,
 			
 			// admlist command
 			"can-list-online":	1,

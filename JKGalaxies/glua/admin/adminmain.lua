@@ -98,6 +98,12 @@ local function AdmRank_InitRanks( )
 		jObjectItem = json.GetObjectItem( jObject, "can-tell" )
 		rank["can-tell"] = json.ToBooleanOpt( jObjectItem, 1 )
 		
+		jObjectItem = json.GetObjectItem( jObject, "can-speak" )
+		rank["can-speak"] = json.ToBooleanOpt( jObjectItem, 1 )
+
+		jObjectItem = json.GetObjectItem( jObject, "can-puppet" )
+		rank["can-puppet"] = json.ToBooleanOpt( jObjectItem, 0 )
+	
 		--
 		-- END COMMAND-BASED STUFF
 		--
@@ -200,6 +206,8 @@ local function RankList_SaveRanks( reason )
 		json.WriteBoolean( "can-status", sortedrank["can-status"] )
 		json.WriteBoolean( "can-say", sortedrank["can-say"] )
 		json.WriteBoolean( "can-tell", sortedrank["can-tell"] )
+		json.WriteBoolean( "can-speak", sortedrank["can-speak"] )
+		json.WriteBoolean( "can-puppet", sortedrank["can-puppet"] )
 		
 		-- Array base object
 		json.EndObject( )
@@ -475,6 +483,23 @@ local function Admin_AddAccount(ply, argc, argv)
 	end
 end
 
+local function AdmHelp_LogoutAccount(account)
+	local k = 0
+	while players.GetByID(k) ~= nil do
+		ply = players.GetByID(k)
+		if ply.IsAdmin then
+			if account["username"] == ply:GetAdminAccount() then
+				-- soz you've been booted
+				AdmReply(ply, "^6Your account has been deleted. You have been logged out.")
+				ply.IsAdmin = false
+				ply:SetAdminAccount(" ")
+			end
+		end
+
+		k = k + 1
+	end
+end
+
 local function Admin_DeleteAccount(ply, argc, argv)
 	if ply.IsAdmin then
 		local rank = AdmRank_GetRank(ply)
@@ -490,6 +515,7 @@ local function Admin_DeleteAccount(ply, argc, argv)
 				if desiredaccount ~= nil then
 					local ouraccount = admins[ply:GetAdminAccount()]
 					if ouraccount["username"] ~= argv[1] then
+						AdmHelp_LogoutAccount(desiredaccount)
 						AdmList_DeleteAccount(desiredaccount)
 						AdmReply(ply, "^4Account deleted.")
 					else
@@ -561,6 +587,14 @@ local function AdminHelp_ListPowers( rank )
 
 	if rank["can-tell"] then
 		printnn("^5admtell, ")
+	end
+
+	if rank["can-speak"] then
+		printnn("^5admspeak, ")
+	end
+
+	if rank["can-puppet"] then
+		printnn("^8admpuppet, ")
 	end
 						
 	print(" ")
@@ -764,6 +798,11 @@ local function Admin_Tell(ply, argc, argv)
 				AdmReply(ply, "^3Syntax: /admtell <player id/name> <message>")
 			else
 				local plytarg = players.GetByArg(argv[1])
+				if plytarg == nil then
+					AdmReply(ply, "^1Invalid player specified.")
+					return
+				end
+
 				local account = admins[ply:GetAdminAccount()]
 				local message = table.concat(argv," ",1, argc-1)
 
@@ -808,6 +847,104 @@ local function Admin_Reply(ply, argc, argv)
 	ply:SendChat( "^5You reply: " .. message )
 end
 
+local function Admin_Speak(ply, argc, argv)
+	if ply.IsAdmin then
+		local rank = AdmRank_GetRank(ply)
+		if rank["can-speak"] ~= true then
+			AdmReply(ply, "^1You do not have permission to perform this action.")
+			return
+		end
+
+		if argc < 2 then
+			AdmReply(ply, "^3Syntax: /admspeak <message>")
+			return
+		end
+
+		local k = 0
+		local message = table.concat(argv," ",1, argc-1)
+		local ouraccount = admins[ply:GetAdminAccount()]
+
+		while players.GetByID(k) ~= nil do
+			local plytarg = players.GetByID(k)
+
+			if plytarg.IsAdmin then
+				plytarg:SendChat( "^7[^4Admins^7] ^5" .. ouraccount["username"] .. "^7: " .. message )
+			end
+
+			k = k + 1
+		end
+		
+	else
+		AdmReply(ply, "^1You are not logged in.")
+	end
+end
+
+local function Admin_Puppet(ply, argc, argv)
+	-- EVIL... we can mimmick the actions of other people.
+	-- Not for regular use, mostly for test purposes but some admins might find this humorous..
+
+	if ply.IsAdmin then
+		local rank = AdmRank_GetRank(ply)
+		if rank["can-puppet"] ~= true then
+			AdmReply(ply, "^1You do not have permission to perform this action.")
+			return
+		end
+
+		if argc < 3 then
+			AdmReply(ply, "^3Syntax: /admpuppet <player> <channel> <message> -OR-")
+			AdmReply(ply, "/admpuppet <player> <message>")
+			return
+		end
+
+		local plytarg = players.GetByArg(argv[1])
+		if plytarg == nil then
+			AdmReply(ply, "^1Invalid player specified.")
+			return
+		end
+
+		local channeltarg = argv[2]
+		local targetchan = 0
+
+		if channeltarg == "global" then
+			targetchan = 1
+		elseif channeltarg == "yell" then
+			targetchan = 2
+		elseif channeltarg == "emote" then
+			targetchan = 3
+		elseif channeltarg == "me" then
+			targetchan = 3
+		elseif channeltarg == "action" then
+			targetchan = 3
+		elseif channeltarg == "team" then
+			targetchan = 4
+		end
+		
+		local message
+		if targetchan == 0 then
+			message = table.concat(argv," ",2, argc-1)
+		else
+			message = table.concat(argv," ",3, argc-1)
+		end
+
+		if targetchan == 0 then
+			plytarg:ExecuteChatCommand("say " .. message)
+		elseif targetchan == 1 then
+			plytarg:ExecuteChatCommand("sayglobal " .. message)
+		elseif targetchan == 2 then
+			plytarg:ExecuteChatCommand("sayyell " .. message)
+		elseif targetchan == 3 then
+			plytarg:ExecuteChatCommand("sayact " .. message)
+		elseif targetchan == 4 then
+			plytarg:ExecuteChatCommand("say_team " .. message)
+		else
+			AdmReply(ply, "^1ERROR: This wasn't supposed to happen...abort, abort!")
+			return
+		end
+	else
+		AdmReply(ply, "^1You are not logged in.")
+	end
+end
+
 local function InitAdminCmds()
 	chatcmds.Add("admlogin", Admin_Login)
 	chatcmds.Add("admlogout", Admin_Logout)
@@ -822,6 +959,8 @@ local function InitAdminCmds()
 	chatcmds.Add("admstatus", Admin_Status)
 	chatcmds.Add("admsay", Admin_Say)
 	chatcmds.Add("admtell", Admin_Tell)
+	chatcmds.Add("admspeak", Admin_Speak)
+	chatcmds.Add("admpuppet", Admin_Puppet)
 
 	-- For replying to /admtells..this isn't an admin command, it can be used by any client
 	chatcmds.Add("admreply", Admin_Reply)
