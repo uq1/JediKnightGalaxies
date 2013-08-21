@@ -2322,7 +2322,7 @@ G_Say
 ==================
 */
 
-static bool jkgIgnoreFloodProtect = false;
+bool jkgIgnoreFloodProtect = false;
 
 static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char *name, const char *message, char *locMsg, int fadeLevel )
 {
@@ -2817,51 +2817,37 @@ static void Cmd_Tell_f( gentity_t *ent ) {
 
 void CCmd_Say( void )
 {
-	jkgIgnoreFloodProtect = true;
 	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_ALL, CCmd_ConcatArgs( 1 ) );
-	jkgIgnoreFloodProtect = false;
 }
 
 void CCmd_SayGlobal( void )
 {
-	jkgIgnoreFloodProtect = true;
 	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_GLOBAL, CCmd_ConcatArgs( 1 ) );
-	jkgIgnoreFloodProtect = false;
 }
 
 void CCmd_SayYell( void )
 {
-	jkgIgnoreFloodProtect = true;
 	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_YELL, CCmd_ConcatArgs( 1 ) );
-	jkgIgnoreFloodProtect = false;
 }
 
 void CCmd_SayAct( void )
 {
-	jkgIgnoreFloodProtect = true;
 	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_ACT, CCmd_ConcatArgs( 1 ) );
-	jkgIgnoreFloodProtect = false;
 }
 
 void CCmd_SayWhisper( void )
 {
-	jkgIgnoreFloodProtect = true;
 	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_WHISPER, CCmd_ConcatArgs( 1 ) );
-	jkgIgnoreFloodProtect = false;
 }
 
 void CCmd_Tell( void )
 {
-	jkgIgnoreFloodProtect = true;
 	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_TELL, CCmd_ConcatArgs( 1 ) );
-	jkgIgnoreFloodProtect = false;
 }
 
 void CCmd_Say_Team( void )
 {
-	jkgIgnoreFloodProtect = true;
 	G_Say( &g_entities[CCmd_Caller()], NULL, SAY_TEAM, CCmd_ConcatArgs( 1 ) );
-	jkgIgnoreFloodProtect = false;
 }
 
 void JKG_BindChatCommands( void )

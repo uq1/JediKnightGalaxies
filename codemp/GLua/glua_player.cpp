@@ -808,6 +808,7 @@ static int GLua_Player_GetAdminAccount(lua_State *L)
 }
 
 extern qboolean CCmd_Execute(int clientNum, const char *command);
+extern bool jkgIgnoreFloodProtect;
 static int GLua_Player_ExecuteChatCommand(lua_State *L)
 {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
@@ -822,7 +823,10 @@ static int GLua_Player_ExecuteChatCommand(lua_State *L)
 		return 0;
 	}
 
+	jkgIgnoreFloodProtect = true;
 	CCmd_Execute(ply->clientNum, cmd);
+	jkgIgnoreFloodProtect = false;
+
 	return 0;
 }
 
