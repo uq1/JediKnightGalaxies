@@ -277,7 +277,10 @@ void SP_target_speaker( gentity_t *ent ) {
 	}
 
 	if ( !G_SpawnString( "noise", "NOSOUND", &s ) ) {
-		G_Error( "target_speaker without a noise key at %s", vtos( ent->s.origin ) );
+		// NONONONONO... just kill the ent and move along, please. --eez
+		// G_Error( "target_speaker without a noise key at %s", vtos( ent->s.origin ) );
+		Com_Printf("^3WARNING: target_speaker (%i) without a noise key at %s\n", ent->s.number, vtos( ent->s.origin ) );
+		return;
 	}
 
 	// force all client reletive sounds to be "activator" speakers that
