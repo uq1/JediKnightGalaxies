@@ -21,6 +21,7 @@
 			"can-say":		1,
 			"can-tell":		1,
 			"can-speak":		1,
+			"can-puppet":		1,
 			
 			// admlist command
 			"can-list-online":	1,
@@ -30,10 +31,19 @@
 
 			// admrank command
 			"can-rank-inspect":	1,
+			"can-rank-create":	1,
+			"can-rank-delete":	1,
+			"can-rank-alter":	1,
 
 			// admalter command
 			"can-alter-rank":	1,
-			"can-alter-password":	1
+			"can-alter-password":	1,
+
+			// Building
+			"can-place":		1,
+			"can-delent":		1,
+			"can-showspawnvars":	1,
+			"can-entcount":		1
 		}
 	]
 }

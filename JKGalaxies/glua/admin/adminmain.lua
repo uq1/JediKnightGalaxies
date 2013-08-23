@@ -15,7 +15,7 @@ ranks = { }
 sortedadmins = { }
 sortedranks = { }
 
-local function AdmRank_GetRank(ply)
+function AdmRank_GetRank(ply)
 	if ply.IsAdmin then
 		local account = ply:GetAdminAccount()
 		return ranks[admins[account]["rank"]]
@@ -103,6 +103,18 @@ local function AdmRank_InitRanks( )
 
 		jObjectItem = json.GetObjectItem( jObject, "can-puppet" )
 		rank["can-puppet"] = json.ToBooleanOpt( jObjectItem, 0 )
+
+		jObjectItem = json.GetObjectItem( jObject, "can-place" )
+		rank["can-place"] = json.ToBooleanOpt( jObjectItem, 0 )
+
+		jObjectItem = json.GetObjectItem( jObject, "can-delent" )
+		rank["can-delent"] = json.ToBooleanOpt( jObjectItem, 0 )
+
+		jObjectItem = json.GetObjectItem( jObject, "can-entcount" )
+		rank["can-entcount"] = json.ToBooleanOpt( jObjectItem, 1 )
+
+		jObjectItem = json.GetObjectItem( jObject, "can-showspawnvars" )
+		rank["can-showspawnvars"] = json.ToBooleanOpt( jObjectItem, 0 )
 	
 		--
 		-- END COMMAND-BASED STUFF
@@ -208,6 +220,10 @@ local function RankList_SaveRanks( reason )
 		json.WriteBoolean( "can-tell", sortedrank["can-tell"] )
 		json.WriteBoolean( "can-speak", sortedrank["can-speak"] )
 		json.WriteBoolean( "can-puppet", sortedrank["can-puppet"] )
+		json.WriteBoolean( "can-place", sortedrank["can-place"] )
+		json.WriteBoolean( "can-delent", sortedrank["can-delent"] )
+		json.WriteBoolean( "can-showspawnvars", sortedrank["can-showspawnvars"] )
+		json.WriteBoolean( "can-entcount", sortedrank["can-entcount"] )
 		
 		-- Array base object
 		json.EndObject( )
@@ -531,6 +547,14 @@ local function Admin_DeleteAccount(ply, argc, argv)
 	end
 end
 
+-- High-Risk (Red/^1): Kicking/Banning, mostly. These are dangerous and should only be given to high-ranking admins.
+-- Harmless (Green/^2): Status, listing stuff, help, etc. These aren't harmful from a security standpoint.
+-- Self-Exploitable (Yellow/^3): From a security standpoint, these are only harmful to the person who uses it. Changing details falls into this category.
+-- Building Commands (Blue/^4): Building stuff. Built stuff can be destroyed by the users (later on, when we implement that, anyway), so no harm done.
+-- Communication (Cyan/^5): Talking with clients, and amongst admins. Can be extremely annoying if spoofed.
+-- Structural (Magenta/^6): Alters the structure of administration, such as dealing with ranks. Not necessarily needed on accounts, but they're there for convenience.
+-- Annoying (Orange/^8): While not necessarily harmful, if used, they can be annoying. Stuff like slap, slay, etc falls into this category.
+
 local function AdminHelp_ListPowers( rank )
 	-- This code is used in multiple places, I figured it would be wise to put this into a function
 	if rank == nil then
@@ -595,6 +619,22 @@ local function AdminHelp_ListPowers( rank )
 
 	if rank["can-puppet"] then
 		printnn("^8admpuppet, ")
+	end
+
+	if rank["can-place"] then
+		printnn("^4place, ")
+	end
+
+	if rank["can-delent"] then
+		printnn("^4delent, ")
+	end
+
+	if rank["can-showspawnvars"] then
+		printnn("^4showspawnvars, ")
+	end
+
+	if rank["can-entcount"] then
+		printnn("^4entcount, ")
 	end
 						
 	print(" ")

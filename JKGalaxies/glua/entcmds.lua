@@ -6,6 +6,17 @@
 --------------------------------------------------]]
 
 local function ShowSpawnVars(ply, argc, argv)
+	if ply.IsAdmin ~= true then
+		ply:SendPrint("^7Admin System - ^1You are not logged in.")
+		return
+	end
+
+	local rank = AdmRank_GetRank(ply)
+	if rank["can-showspawnvars"] ~= true then
+		ply:SendPrint("^1Admin ^5- ^7You are not allowed to use this command")
+		return
+	end
+
 	local ent
 	if argc == 2 then
 		ent = ents.GetByIndex(argv[1])
@@ -31,10 +42,17 @@ end
 
 -- Replica of lugormod's delent~
 local function delent(ply, argc, argv)
-	if ply.AdminRank < ADMRANK_ADMIN then
+	if ply.IsAdmin ~= true then
+		ply:SendPrint("^7Admin System - ^1You are not logged in.")
+		return
+	end
+
+	local rank = AdmRank_GetRank(ply)
+	if rank["can-delent"] ~= true then
 		ply:SendPrint("^1Admin ^5- ^7You are not allowed to use this command")
 		return
 	end
+
 	if argc < 2 then
 		ply:SendPrint("Usage: /delent <entity index> (use with caution)")
 		return
@@ -56,10 +74,17 @@ end
 -- Replica of lugormod's place command
 -- Syntax: /place <entity name> <distance from aimed surface (* for explicit origin)> [key,value,key,value etc..]
 local function place(ply, argc, argv)
-	if ply.AdminRank < ADMRANK_ADMIN then
+	if ply.IsAdmin ~= true then
+		ply:SendPrint("^7Admin System - ^1You are not logged in.")
+		return
+	end
+
+	local rank = AdmRank_GetRank(ply)
+	if rank["can-place"] ~= true then
 		ply:SendPrint("^1Admin ^5- ^7You are not allowed to use this command")
 		return
 	end
+
 	if argc < 3 then
 		ply:SendPrint("Usage: /place <entity name> <distance (* for explicit origin)> [keys/values, separated by ,]")
 		return
@@ -99,6 +124,17 @@ local function place(ply, argc, argv)
 end
 
 local function entcount(ply, argc, argv)
+	if ply.IsAdmin ~= true then
+		ply:SendPrint("^7Admin System - ^1You are not logged in.")
+		return
+	end
+
+	local rank = AdmRank_GetRank(ply)
+	if rank["can-entcount"] ~= true then
+		ply:SendPrint("^1Admin ^5- ^7You are not allowed to use this command")
+		return
+	end
+
 	ply:SendPrint(string.format("Entity count - Normal: %i (%i slots allocated) / Logical: %i (%i slots allocated)", ents.EntCount(), ents.EntCountAllocated(), ents.LogicalEntCount(), ents.LogicalEntCountAllocated()))
 end
 
