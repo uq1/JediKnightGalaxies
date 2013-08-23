@@ -115,6 +115,9 @@ void png_print_warning ( png_structp png_ptr, png_const_charp warning )
 	if( !currentPNGFile || !currentPNGFile[0] )
 		return;
 
+	if ( !Q_stricmp( warning, "iCCP: known incorrect sRGB profile" ) )
+		return;
+
 	ri->Printf (PRINT_WARNING, "PNG: %s: %s\n", currentPNGFile, warning);
 }
 
