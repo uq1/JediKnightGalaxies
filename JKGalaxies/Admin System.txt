@@ -108,3 +108,22 @@ Global messaging:
 Private messaging:
 
 /admtell <client name/number> <message>
+
+----------------------------------
+Building/Map Construction
+----------------------------------
+
+You can construct maps using a few of the standard Lugormod commands. JKG does not have the same ents as LMD, and JKG can have additional ents which can be coded in Lua (and be based on the map, too!), so keep this in mind.
+
+Commands:
+
+/place <entity classname> <Z offset> [flags]
+
+For more information about the flags, see GTK Radiant for more information.
+
+/delent [entity number]
+
+If no entity number is provided, it will delete the target that you are looking at.
+
+/showspawnvars [entity number]
+/entlist
