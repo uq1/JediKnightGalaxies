@@ -479,12 +479,11 @@ void misc_model_breakable_gravity_init( gentity_t *ent, qboolean dropToFloor )
 
 void misc_model_breakable_init( gentity_t *ent )
 {
-	if (!ent->model) {
-		G_Error("no model set on %s at (%.1f %.1f %.1f)\n", ent->classname, ent->s.origin[0],ent->s.origin[1],ent->s.origin[2]);
+	if (ent->model) {
+		//Main model
+		ent->s.modelindex = ent->sound2to1 = G_ModelIndex( ent->model );
+		//G_Error("no model set on %s at (%.1f %.1f %.1f)\n", ent->classname, ent->s.origin[0],ent->s.origin[1],ent->s.origin[2]);
 	}
-
-	//Main model
-	ent->s.modelindex = ent->sound2to1 = G_ModelIndex( ent->model );
 
 	if ( ent->spawnflags & 1 )
 	{//Blocks movement
