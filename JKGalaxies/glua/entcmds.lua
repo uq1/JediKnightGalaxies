@@ -29,15 +29,6 @@ local function ShowSpawnVars(ply, argc, argv)
 	ply:SendPrint(SB:ToString())
 end
 
-local function BBTest(ply, argc, argv)
-	local ent = ply:GetEyeTrace().Entity
-	if not ent or not ent:IsValid() then
-		ply:SendChat("^1No entity targetted")
-	end
-	ent:SetBoundingBox(Vector(-15, -85, -20), Vector(15, 85, 90))
-	ply:SendChat("^5Bounding box set")
-end
-
 -- Replica of lugormod's delent~
 local function delent(ply, argc, argv)
 	if ply.AdminRank < ADMRANK_ADMIN then
@@ -115,13 +106,11 @@ local function InitEntCmds()
 	cmds.Add("entcount", entcount)
 	cmds.Add("place", place)
 	cmds.Add("delent", delent)
-	cmds.Add("bbtest", BBTest)
 	cmds.Add("showspawnvars", ShowSpawnVars)
 
 	chatcmds.Add("entcount", entcount)
 	chatcmds.Add("place", place)
 	chatcmds.Add("delent", delent)
-	chatcmds.Add("bbtest, BBTest)
 	chatcmds.Add("showspawnvars", ShowSpawnVars)
 end
 
