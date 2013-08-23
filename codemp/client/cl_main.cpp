@@ -3235,9 +3235,9 @@ void CL_GlobalServers_f( void ) {
 	char		command[1024];
 	char		mserver[512];
 	
-	if ((count = Cmd_Argc()) < 3 || (masterNum = atoi(Cmd_Argv(1))) < 0 || masterNum > 1)
+	if ((count = Cmd_Argc()) < 3 || (masterNum = atoi(Cmd_Argv(1))) < 0 || masterNum > 5)
 	{
-		Com_Printf("usage: globalservers <master# 0-1> <protocol> [keywords]\n");
+		Com_Printf("usage: globalservers <master# 0-5> <protocol> [keywords]\n");
 		return;
 	}
 
