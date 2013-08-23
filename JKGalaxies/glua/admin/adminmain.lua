@@ -1004,6 +1004,26 @@ local function InitAdminCmds()
 
 	-- For replying to /admtells..this isn't an admin command, it can be used by any client
 	chatcmds.Add("admreply", Admin_Reply)
+
+	-- Add them to the console too.
+	cmds.Add("admlogin", Admin_Login)
+	cmds.Add("admlogout", Admin_Logout)
+	cmds.Add("admkick", Admin_Kick)
+	cmds.Add("admchangedetails", Admin_ChangeDetails)
+	cmds.Add("admprofile", Admin_Profile)
+	cmds.Add("admnewaccount", Admin_AddAccount)
+	cmds.Add("admdeleteaccount", Admin_DeleteAccount)
+	cmds.Add("admlist", Admin_List)
+	cmds.Add("admrank", Admin_Rank)
+	cmds.Add("admalter", Admin_Alter)
+	cmds.Add("admstatus", Admin_Status)
+	cmds.Add("admsay", Admin_Say)
+	cmds.Add("admtell", Admin_Tell)
+	cmds.Add("admspeak", Admin_Speak)
+	cmds.Add("admpuppet", Admin_Puppet)
+
+	-- For replying to /admtells..this isn't an admin command, it can be used by any client
+	cmds.Add("admreply", Admin_Reply)
 end
 
 --[[ ------------------------------------------------
