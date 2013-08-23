@@ -279,7 +279,7 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 		FS_PureServerSetLoadedPaks( "", "" );
 		com_errorEntered = qfalse;
 
-		throw ("DISCONNECTED\n");
+//		throw ("DISCONNECTED\n");
 	} else if ( code == ERR_DROP ) {
 		Com_Printf ("********************\nERROR: %s\n********************\n", com_errorMessage);
 		SV_Shutdown (va("Server crashed: %s\n",  com_errorMessage));
@@ -289,7 +289,7 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 		FS_PureServerSetLoadedPaks( "", "" );
 		com_errorEntered = qfalse;
 
-		throw ("DROPPED\n");
+//		throw ("DROPPED\n");
 	} else if ( code == ERR_NEED_CD ) {
 		SV_Shutdown( "Server didn't have CD\n" );
 		if ( com_cl_running && com_cl_running->integer ) {
@@ -302,7 +302,7 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 		// make sure we can get at our local stuff
 		FS_PureServerSetLoadedPaks( "", "" );
 		com_errorEntered = qfalse;
-		throw ("NEED CD\n");
+//		throw ("NEED CD\n");
 	} else {
 		CL_Shutdown ();
 		SV_Shutdown (va("Server fatal crashed: %s\n", com_errorMessage));
