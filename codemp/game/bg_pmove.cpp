@@ -10629,7 +10629,11 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 		{
 			return qfalse;
 		}
-		if( ps->groundEntityNum == ENTITYNUM_NONE )
+		/*if( ps->groundEntityNum == ENTITYNUM_NONE )
+		{
+			return qfalse;
+		}*/
+		if( abs(ps->velocity[2]) > 120.0f )
 		{
 			return qfalse;
 		}
@@ -10638,7 +10642,11 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 	else
 	{
 		// A lot of important gameside things require us to check if we're in mid air.
-		if( ps->groundEntityNum == ENTITYNUM_NONE )
+		/*if( ps->groundEntityNum == ENTITYNUM_NONE )
+		{
+			return qfalse;
+		}*/
+		if( abs(ps->velocity[2]) > 145.0f )
 		{
 			return qfalse;
 		}
