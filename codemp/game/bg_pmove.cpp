@@ -10617,10 +10617,10 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 	
 	if( PMOVE )
 	{
-		if( !pml.walking )		// temporarily removed because wrongness --eez
+		/*if( !pml.walking )		// temporarily removed because wrongness --eez
 		{
 			return qfalse;
-		}
+		}*/
 		if( ps->pm_type == PM_FLOAT )
 		{
 			return qfalse;
@@ -10633,7 +10633,7 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 		{
 			return qfalse;
 		}*/
-		if( abs(ps->velocity[2]) > 120.0f )
+		if( abs(ps->velocity[2]) > 158.0f )
 		{
 			return qfalse;
 		}
@@ -10646,7 +10646,7 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 		{
 			return qfalse;
 		}*/
-		if( abs(ps->velocity[2]) > 145.0f )
+		if( abs(ps->velocity[2]) > 158.0f )
 		{
 			return qfalse;
 		}
