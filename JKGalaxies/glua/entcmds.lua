@@ -29,8 +29,6 @@ local function ShowSpawnVars(ply, argc, argv)
 	ply:SendPrint(SB:ToString())
 end
 
-cmds.Add("showspawnvars", ShowSpawnVars)
-
 local function BBTest(ply, argc, argv)
 	local ent = ply:GetEyeTrace().Entity
 	if not ent or not ent:IsValid() then
@@ -39,8 +37,6 @@ local function BBTest(ply, argc, argv)
 	ent:SetBoundingBox(Vector(-15, -85, -20), Vector(15, 85, 90))
 	ply:SendChat("^5Bounding box set")
 end
-
-cmds.Add("bbtest", BBTest)
 
 -- Replica of lugormod's delent~
 local function delent(ply, argc, argv)
@@ -65,8 +61,6 @@ local function delent(ply, argc, argv)
 		end
 	end
 end
-
-cmds.Add("delent", delent)
 
 -- Replica of lugormod's place command
 -- Syntax: /place <entity name> <distance from aimed surface (* for explicit origin)> [key,value,key,value etc..]
@@ -113,10 +107,22 @@ local function place(ply, argc, argv)
 	end
 end
 
-cmds.Add("place", place)
-
 local function entcount(ply, argc, argv)
 	ply:SendPrint(string.format("Entity count - Normal: %i (%i slots allocated) / Logical: %i (%i slots allocated)", ents.EntCount(), ents.EntCountAllocated(), ents.LogicalEntCount(), ents.LogicalEntCountAllocated()))
 end
 
-cmds.Add("entcount", entcount)
+local function InitEntCmds()
+	cmds.Add("entcount", entcount)
+	cmds.Add("place", place)
+	cmds.Add("delent", delent)
+	cmds.Add("bbtest", BBTest)
+	cmds.Add("showspawnvars", ShowSpawnVars)
+
+	chatcmds.Add("entcount", entcount)
+	chatcmds.Add("place", place)
+	chatcmds.Add("delent", delent)
+	chatcmds.Add("bbtest, BBTest)
+	chatcmds.Add("showspawnvars", ShowSpawnVars)
+end
+
+InitEntCmds()
