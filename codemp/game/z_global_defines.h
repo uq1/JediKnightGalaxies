@@ -55,17 +55,14 @@
 
 // Generic Stuff...
 #define __DISABLE_UNUSED_SPAWNS__				// UQ1: Disable spawning of map ammo/weapons... (since we can't pick them up anyway, they are a waste of entities and cpu time)
-#define __WEAPON_HOLSTER__						// UQ1: Weapon Holsterring System... (Under Construction)
+//#define __WEAPON_HOLSTER__						// UQ1: Weapon Holsterring System... (Under Construction)
 //#define __WAYPOINT_SPAWNS__						// UQ1: Use waypoints as spawn locations...
 #define __ENTITY_OVERRIDES__						// UQ1: Override/Add-To map entity spawns with an external file...
 //#define VEH_CONTROL_SCHEME_4						// Vehicle Control System...
 //#define _G_FRAME_PERFANAL
 
-// OpenGL FX...
-//#define __GL_ANAGLYPH__							// UQ1: Red/Blue 3D Glasses... (Not Functional)
-//#define __GL_EMBOSS__								// UQ1: Emboss... (Not Functional)
-//#define __SWF__									// UQ1: Experimental SWF renderer... // eez: this is almost done!
-//#define __EXPERIMENTAL_SHADOWS__					// UQ1: Experimental Shadow System... // laggy
+// Misc
+#define SIL_IS_A_COOL_CAT							// because he is
 
 // New gametypes --eez
 // 9lives FFA. All players have 9 lives and gain one life per each kill, until the first person is out.

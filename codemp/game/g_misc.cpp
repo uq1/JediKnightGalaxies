@@ -493,7 +493,7 @@ void misc_model_breakable_init( gentity_t *ent )
 	{//Can only be shot
 		ent->r.contents = CONTENTS_SHOTCLIP;
 	}
-
+	
 	// TODO: fix using
 
 	// TODO: fix health/dying funcs
