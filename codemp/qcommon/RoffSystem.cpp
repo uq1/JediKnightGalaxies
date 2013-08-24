@@ -19,7 +19,8 @@ CROFFSystem theROFFSystem;
 //---------------------------------------------------------------------------
 CROFFSystem::CROFF::CROFF( const char *file, int id )
 {
-	strcpy( mROFFFilePath, file );
+	if( file )
+		Q_strncpyz( mROFFFilePath, file, sizeof(mROFFFilePath) );
 
 	mID				= id;
 	mMoveRotateList = NULL;

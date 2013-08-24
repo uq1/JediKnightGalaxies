@@ -275,7 +275,7 @@ char *Filename_WithoutExt(const char *psFilename)
 {
 	static char sString[MAX_QPATH];	// !
 
-	strcpy(sString,psFilename);
+	Q_strncpyz(sString, psFilename, sizeof(sString));
 
 	char *p = strrchr(sString,'.');		
 	char *p2= strrchr(sString,'\\');

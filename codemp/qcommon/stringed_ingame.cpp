@@ -167,7 +167,7 @@ char *CStringEdPackage::Filename_PathOnly(const char *psFilename)
 {
 	static char sString[ iSE_MAX_FILENAME_LENGTH ];
 
-	strcpy(sString,psFilename);	
+	Q_strncpyz(sString, psFilename, sizeof(sString));
 		
 	char *p1= strrchr(sString,'\\');
 	char *p2= strrchr(sString,'/');
@@ -189,7 +189,7 @@ char *CStringEdPackage::Filename_WithoutExt(const char *psFilename)
 {
 	static char sString[ iSE_MAX_FILENAME_LENGTH ];
 
-	strcpy(sString,psFilename);
+	Q_strncpyz(sString, psFilename, sizeof(sString));
 
 	char *p = strrchr(sString,'.');		
 	char *p2= strrchr(sString,'\\');
@@ -623,7 +623,7 @@ const char *CStringEdPackage::ParseLine( const char *psLine )
 			{
 				static const char sSeperators[] = " \t";
 				char sFlags[1024]={0};	// 1024 chars should be enough to store 8 flag names
-				strncpy(sFlags, psLine, sizeof(sFlags)-1);
+				Q_strncpyz(sFlags, psLine, sizeof(sFlags));
 				char *psToken = strtok( sFlags, sSeperators );
 				while( psToken != NULL )
 				{
@@ -672,7 +672,9 @@ const char *CStringEdPackage::ParseLine( const char *psLine )
 				{
 					iCharsToCopy = sizeof(sThisLanguage)-1;
 				}
-				strncpy(sThisLanguage, psLine, iCharsToCopy);	// already declared as {0} so no need to zero-cap dest buffer
+
+//				strncpy(sThisLanguage, psLine, iCharsToCopy);	// already declared as {0} so no need to zero-cap dest buffer
+				Q_strncpyz(sThisLanguage, psLine, iCharsToCopy);	// yea, whatever
 
 				psLine += strlen(sThisLanguage);
 				const char *_psSentence = ConvertCRLiterals_Read( InsideQuotes( psLine ) );

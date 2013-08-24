@@ -66,8 +66,8 @@ public:
 	virtual void		Preview				( const vec3_t from );
 
 	virtual void		SetArea				( CRMAreaManager* amanager, CRMArea* area ) { mArea = area; }
-	virtual void		SetFilter			( const char *filter ) { strcpy(mFilter, filter); }
-	virtual void		SetTeamFilter		( const char *teamFilter ) { strcpy(mTeamFilter, teamFilter); }
+	virtual void		SetFilter			( const char *filter ) { Q_strncpyz(mFilter, filter, sizeof(mFilter));  }
+	virtual void		SetTeamFilter		( const char *teamFilter ) { Q_strncpyz(mTeamFilter, teamFilter, sizeof(mTeamFilter)); }
 	void				SetObjective		( CRMObjective* obj ) { mObjective = obj; }
 	CRMObjective*		GetObjective		(void) {return mObjective;}
 	bool				HasObjective		() {return mObjective != NULL;}

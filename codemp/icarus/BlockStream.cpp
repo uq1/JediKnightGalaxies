@@ -533,7 +533,7 @@ int CBlockStream::Create( char *filename )
 	memset(newName, 0, sizeof(newName));
 
 	//Strip the extension and add the BLOCK_EXT extension
-	strcpy((char *) m_fileName, filename);
+	Q_strncpyz(m_fileName, filename, sizeof(m_fileName));
 	StripExtension( (char *) m_fileName, (char *) &newName );
 	strcat((char *) newName, IBI_EXT);
 

@@ -161,11 +161,13 @@
 // Disable warnings that now occur since we're using OpenJK --eez
 #pragma warning(disable : 4710)		// function not inlined
 
+#pragma warning(disable : 4800)		// forcing value to bool (performance warning)
+
 
 // Time to enable some warnings that probably should be left in
 //#pragma warning(2 : 4242)			// Return type does not match the variable type
 #pragma warning(2 : 4062)			// Switch does not contain a default label when it should
-#pragma warning(2 : 4191)			// Function pointer calling convention, args, or return type do not match assignment
+//#pragma warning(2 : 4191)			// Function pointer calling convention, args, or return type do not match assignment
 #pragma warning(2 : 4287)			// Unsigned variable was compared against a signed value
 #pragma warning(2 : 4289)			// Variable declared in for loop is used outside scope
 #pragma warning(2 : 4296)			// Operator expression is always false

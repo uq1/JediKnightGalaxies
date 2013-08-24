@@ -1008,21 +1008,21 @@ bot_randomlist_t *BotLoadRandomStrings(char *filename)
 			} //end if
 			while(!PC_CheckTokenString(source, "}"))
 			{
-				size_t len;
+				size_t len2;
 				if (!BotLoadChatMessage(source, chatmessagestring))
 				{
 					FreeSource(source);
 					return NULL;
 				} //end if
-				len = strlen(chatmessagestring) + 1;
-				len = PAD(len, sizeof(long));
-				size += sizeof(bot_randomstring_t) + len;
+				len2 = strlen(chatmessagestring) + 1;
+				len2 = PAD(len, sizeof(long));
+				size += sizeof(bot_randomstring_t) + len2;
 				if (pass)
 				{
 					randomstring = (bot_randomstring_t *) ptr;
 					ptr += sizeof(bot_randomstring_t);
 					randomstring->string = ptr;
-					ptr += len;
+					ptr += len2;
 					strcpy(randomstring->string, chatmessagestring);
 					//
 					random->numstrings++;
@@ -1440,7 +1440,7 @@ int BotFindMatch(char *str, bot_match_t *match, unsigned long int context)
 	int i;
 	bot_matchtemplate_t *ms;
 
-	strncpy(match->string, str, MAX_MESSAGE_SIZE);
+	Q_strncpyz(match->string, str, MAX_MESSAGE_SIZE);
 	//remove any trailing enters
 	while(strlen(match->string) &&
 			match->string[strlen(match->string)-1] == '\n')
@@ -1905,7 +1905,7 @@ bot_replychat_t *BotLoadReplyChat(char *filename)
 					} //end if
 					StripDoubleQuotes(token.string);
 					if (strlen(namebuffer)) strcat(namebuffer, "\\");
-					strcat(namebuffer, token.string);
+					Q_strcat(namebuffer, sizeof(namebuffer), token.string);
 				} while(PC_CheckTokenString(source, ","));
 				if (!PC_ExpectTokenString(source, ">"))
 				{
@@ -2389,7 +2389,7 @@ void BotConstructChatMessage(bot_chatstate_t *chatstate, char *message, unsigned
 	int i;
 	char srcmessage[MAX_MESSAGE_SIZE];
 
-	strcpy(srcmessage, message);
+	Q_strncpyz(srcmessage, message, sizeof(srcmessage));
 	for (i = 0; i < 10; i++)
 	{
 		if (!BotExpandChatMessage(chatstate->chatmessage, srcmessage, mcontext, match, vcontext, reply))
@@ -2630,7 +2630,7 @@ int BotReplyChat(int chatstate, char *message, int mcontext, int vcontext, char 
 	cs = BotChatStateFromHandle(chatstate);
 	if (!cs) return qfalse;
 	Com_Memset(&match, 0, sizeof(bot_match_t));
-	strcpy(match.string, message);
+	Q_strncpyz(match.string, message, sizeof(match.string));
 	bestpriority = -1;
 	bestchatmessage = NULL;
 	bestrchat = NULL;

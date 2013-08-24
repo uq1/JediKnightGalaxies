@@ -296,10 +296,10 @@ subWaves <directory> <wave1> <wave2> ...
 
 static void AS_GetSubWaves( ambientSet_t &set )
 {
-	char	dirBuffer[512], waveBuffer[256], waveName[1024];
+	char	dirBuffer[512] = {0}, waveBuffer[256] = {0}, waveName[1024] = {0};
 
 	//Get the directory for these sets
-	sscanf( parseBuffer+parsePos, "%s %s", tempBuffer, dirBuffer );	
+	if(sscanf( parseBuffer+parsePos, "%s %s", tempBuffer, dirBuffer ) < 2) return;	
 
 	//Move the pointer past these two strings
 	parsePos += ((strlen(keywordNames[SET_KEYWORD_SUBWAVES])+1) + (strlen(dirBuffer)+1));

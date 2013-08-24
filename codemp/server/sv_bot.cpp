@@ -108,9 +108,9 @@ void SV_BotCalculatePaths(int rmg)
 	//now clear out all the neighbor data before we recalculate
 	i = 0;
 
-	while (i < gWPNum)
+	while (i < gWPNum && i < MAX_WPARRAY_SIZE)
 	{
-		if (gWPArray[i] && gWPArray[i]->inuse && gWPArray[i]->neighbornum)
+		if (gWPArray[i] && gWPArray[i]->inuse && gWPArray[i]->neighbornum && gWPArray[i]->neighbornum < MAX_NEIGHBOR_SIZE)
 		{
 			while (gWPArray[i]->neighbornum >= 0)
 			{

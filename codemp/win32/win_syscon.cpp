@@ -208,7 +208,7 @@ LONG WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 				Sys_Print( va( "]%s\n", inputBuffer ) );
 
-				strcpy(kg.g_consoleField.buffer, inputBuffer);
+				Q_strncpyz(kg.g_consoleField.buffer, inputBuffer, sizeof(kg.g_consoleField.buffer));
 				kg.historyEditLines[kg.nextHistoryLine % COMMAND_HISTORY] = kg.g_consoleField;
 				kg.nextHistoryLine++;
 				kg.historyLine = kg.nextHistoryLine;
@@ -218,7 +218,7 @@ LONG WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			else if (wParam == 9 )
 			{
 				GetWindowText( s_wcd.hwndInputLine, inputBuffer, sizeof( inputBuffer ) );
-				strcpy(kg.g_consoleField.buffer, inputBuffer);
+				Q_strncpyz(kg.g_consoleField.buffer, inputBuffer, sizeof(kg.g_consoleField.buffer));
 				CompleteCommand();
 				SetWindowText( s_wcd.hwndInputLine, kg.g_consoleField.buffer);
 				SendMessage(s_wcd.hwndInputLine, EM_SETSEL, strlen(kg.g_consoleField.buffer) , MAKELONG(0xffff, 0xffff) );

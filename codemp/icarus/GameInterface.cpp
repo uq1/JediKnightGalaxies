@@ -402,7 +402,7 @@ void ICARUS_SoundPrecache(const char *filename)
 {
 	T_G_ICARUS_SOUNDINDEX *sharedMem = (T_G_ICARUS_SOUNDINDEX *)sv.mSharedMemory;
 
-	strcpy(sharedMem->filename, filename);
+	Q_strncpyz( sharedMem->filename, filename, sizeof(sharedMem->filename) );
 
 	VM_Call(gvm, GAME_ICARUS_SOUNDINDEX);	
 }
@@ -411,7 +411,7 @@ int ICARUS_GetIDForString( const char *string )
 {
 	T_G_ICARUS_GETSETIDFORSTRING *sharedMem = (T_G_ICARUS_GETSETIDFORSTRING *)sv.mSharedMemory;
 
-	strcpy(sharedMem->string, string);
+	Q_strncpyz( sharedMem->string, string, sizeof(sharedMem->string) );
 
 	return VM_Call(gvm, GAME_ICARUS_GETSETIDFORSTRING);
 }

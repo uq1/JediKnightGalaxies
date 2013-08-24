@@ -1167,6 +1167,8 @@ void shell_sort(void *vec, long n, long siz,
 	byte v[128]; // temp object
 	long 		i,j,h;
 
+	if( siz <= 0 ) return;
+
 	a = (byte *)vec;
 
 	// choose size of "heap"

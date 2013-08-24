@@ -996,14 +996,14 @@ int PC_Directive_include(source_t *source)
 		script = LoadScriptFile(token.string);
 		if (!script)
 		{
-			strcpy(path, source->includepath);
-			strcat(path, token.string);
+			Q_strncpyz(path, source->includepath, sizeof(path));
+			Q_strcat(path, sizeof(path), token.string);
 			script = LoadScriptFile(path);
 		} //end if
 	} //end if
 	else if (token.type == TT_PUNCTUATION && *token.string == '<')
 	{
-		strcpy(path, source->includepath);
+		Q_strncpyz(path, source->includepath, sizeof(path));
 		while(PC_ReadSourceToken(source, &token))
 		{
 			if (token.linescrossed > 0)
@@ -3019,7 +3019,7 @@ void PC_UnreadToken(source_t *source, token_t *token)
 //============================================================================
 void PC_SetIncludePath(source_t *source, char *path)
 {
-	strncpy(source->includepath, path, MAX_PATH);
+	Q_strncpyz(source->includepath, path, MAX_PATH);
 	//add trailing path seperator
 	if (source->includepath[strlen(source->includepath)-1] != '\\' &&
 		source->includepath[strlen(source->includepath)-1] != '/')
