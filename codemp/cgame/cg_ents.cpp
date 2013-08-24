@@ -3158,7 +3158,7 @@ qboolean flags_registerred = qfalse;
 
 // Warzone Flags...
 static void CG_Flag( centity_t *cent ) {
-	refEntity_t model;
+	refEntity_t flagmodel;
 	centity_t	*capturingflagent = &cg_entities[cg_entities[cg.clientNum].playerState->stats[STAT_CAPTURE_ENTITYNUM]];
 	int			capture_ent_num = cg_entities[cg.clientNum].playerState->stats[STAT_CAPTURE_ENTITYNUM];
 
@@ -3216,11 +3216,11 @@ static void CG_Flag( centity_t *cent ) {
 		cg.captureFlagPercent = 0;
 
 	// show the flag base
-	memset(&model, 0, sizeof(model));
-	model.reType = RT_MODEL;
-	VectorCopy( cent->lerpOrigin, model.lightingOrigin );
-	VectorCopy( cent->lerpOrigin, model.origin );
-	AnglesToAxis( cent->currentState.angles, model.axis );
+	memset(&flagmodel, 0, sizeof(flagmodel));
+	flagmodel.reType = RT_MODEL;
+	VectorCopy( cent->lerpOrigin, flagmodel.lightingOrigin );
+	VectorCopy( cent->lerpOrigin, flagmodel.origin );
+	AnglesToAxis( cent->currentState.angles, flagmodel.axis );
 
 	if (!flags_registerred)
 	{// Register basic flag model ready for use...
@@ -3236,26 +3236,26 @@ static void CG_Flag( centity_t *cent ) {
 
 	if ( cent->currentState.teamowner == TEAM_RED ) {
 		if (cent->currentState.modelindex && cent->currentState.modelindex >= 1) // Use a custom model...
-			model.hModel = cgs.gameModels[cent->currentState.modelindex];
+			flagmodel.hModel = cgs.gameModels[cent->currentState.modelindex];
 		else
-			model.hModel = cgs.media.redFlagModel;
+			flagmodel.hModel = cgs.media.redFlagModel;
 	}
 	else if ( cent->currentState.teamowner == TEAM_BLUE ) {
 		if (cent->currentState.modelindex2 && cent->currentState.modelindex2 >= 1) // Use a custom model...
-			model.hModel = cgs.gameModels[cent->currentState.modelindex2];
+			flagmodel.hModel = cgs.gameModels[cent->currentState.modelindex2];
 		else
-			model.hModel = cgs.media.blueFlagModel;
+			flagmodel.hModel = cgs.media.blueFlagModel;
 	}
 	else {
 		if (cent->currentState.activeForcePass && cent->currentState.activeForcePass >= 1) // Use a custom model...
-			model.hModel = cgs.gameModels[cent->currentState.activeForcePass];
+			flagmodel.hModel = cgs.gameModels[cent->currentState.activeForcePass];
 		else
-			model.hModel = cgs.media.neutralFlagModel;
+			flagmodel.hModel = cgs.media.neutralFlagModel;
 	}
 
 	if (cent->currentState.eType != ET_NPC)
 	{ //do not do this for g2animents
-		trap_R_AddRefEntityToScene( &model );
+		trap_R_AddRefEntityToScene( &flagmodel );
 	}
 }
 
@@ -3266,7 +3266,7 @@ CG_Ammo_Crate
 ===============
 */
 void CG_Ammo_Crate( centity_t *cent ) {
-	refEntity_t		model;
+	refEntity_t		flagmodel;
 	entityState_t	*cs;
 	playerState_t	*ps;
 	float			scale = 1.0f;
@@ -3274,14 +3274,14 @@ void CG_Ammo_Crate( centity_t *cent ) {
 	cs = &cent->currentState;
 	ps = &cg.predictedPlayerState;
 
-	memset(&model, 0, sizeof(model));
-	model.reType = RT_MODEL;
+	memset(&flagmodel, 0, sizeof(flagmodel));
+	flagmodel.reType = RT_MODEL;
 
-	VectorCopy( cent->lerpOrigin, model.lightingOrigin );
-	VectorCopy( cent->lerpOrigin, model.origin );
-	VectorCopy( cent->lerpOrigin, model.oldorigin);
+	VectorCopy( cent->lerpOrigin, flagmodel.lightingOrigin );
+	VectorCopy( cent->lerpOrigin, flagmodel.origin );
+	VectorCopy( cent->lerpOrigin, flagmodel.oldorigin);
 
-	AnglesToAxis( cent->currentState.angles, model.axis );
+	AnglesToAxis( cent->currentState.angles, flagmodel.axis );
 
 	if (!cent->currentState.modelindex2)
 		cent->currentState.modelindex2 = trap_R_RegisterModel( "models/doa/doa_cabinet/ammo_close.md3" );
@@ -3290,18 +3290,18 @@ void CG_Ammo_Crate( centity_t *cent ) {
 		cent->currentState.modelindex = trap_R_RegisterModel( "models/doa/doa_cabinet/ammo_open.md3" );
 
 	if (cent->currentState.frame == 1)
-		model.hModel = cgs.gameModels[cent->currentState.modelindex];
+		flagmodel.hModel = cgs.gameModels[cent->currentState.modelindex];
 	else
-		model.hModel = cgs.gameModels[cent->currentState.modelindex2];
+		flagmodel.hModel = cgs.gameModels[cent->currentState.modelindex2];
 	
-	VectorScale( model.axis[0], scale, model.axis[0] );
-	VectorScale( model.axis[1], scale, model.axis[1] );
-	VectorScale( model.axis[2], scale, model.axis[2] );
-	model.nonNormalizedAxes = qtrue;
+	VectorScale( flagmodel.axis[0], scale, flagmodel.axis[0] );
+	VectorScale( flagmodel.axis[1], scale, flagmodel.axis[1] );
+	VectorScale( flagmodel.axis[2], scale, flagmodel.axis[2] );
+	flagmodel.nonNormalizedAxes = qtrue;
 
 	if (cent->currentState.eType != ET_NPC)
 	{ //do not do this for NPCs
-		trap_R_AddRefEntityToScene( &model );
+		trap_R_AddRefEntityToScene( &flagmodel );
 	}
 }
 
@@ -3311,7 +3311,7 @@ CG_Health_Crate
 ===============
 */
 void CG_Health_Crate( centity_t *cent ) {
-	refEntity_t		model;
+	refEntity_t		cratemodel;
 	entityState_t	*cs;
 	playerState_t	*ps;
 	float			scale = 1.0f;
@@ -3319,14 +3319,14 @@ void CG_Health_Crate( centity_t *cent ) {
 	cs = &cent->currentState;
 	ps = &cg.predictedPlayerState;
 
-	memset(&model, 0, sizeof(model));
-	model.reType = RT_MODEL;
+	memset(&cratemodel, 0, sizeof(cratemodel));
+	cratemodel.reType = RT_MODEL;
 
-	VectorCopy( cent->lerpOrigin, model.lightingOrigin );
-	VectorCopy( cent->lerpOrigin, model.origin );
-	VectorCopy( cent->lerpOrigin, model.oldorigin);
+	VectorCopy( cent->lerpOrigin, cratemodel.lightingOrigin );
+	VectorCopy( cent->lerpOrigin, cratemodel.origin );
+	VectorCopy( cent->lerpOrigin, cratemodel.oldorigin);
 
-	AnglesToAxis( cent->currentState.angles, model.axis );
+	AnglesToAxis( cent->currentState.angles, cratemodel.axis );
 
 	if (!cent->currentState.modelindex2)
 		cent->currentState.modelindex2 = trap_R_RegisterModel( "models/doa/doa_cabinet/health_close.md3" );
@@ -3335,18 +3335,18 @@ void CG_Health_Crate( centity_t *cent ) {
 		cent->currentState.modelindex = trap_R_RegisterModel( "models/doa/doa_cabinet/health_open.md3" );
 
 	if (cent->currentState.frame == 1)
-		model.hModel = cgs.gameModels[cent->currentState.modelindex];
+		cratemodel.hModel = cgs.gameModels[cent->currentState.modelindex];
 	else
-		model.hModel = cgs.gameModels[cent->currentState.modelindex2];
+		cratemodel.hModel = cgs.gameModels[cent->currentState.modelindex2];
 
-	VectorScale( model.axis[0], scale, model.axis[0] );
-	VectorScale( model.axis[1], scale, model.axis[1] );
-	VectorScale( model.axis[2], scale, model.axis[2] );
-	model.nonNormalizedAxes = qtrue;
+	VectorScale( cratemodel.axis[0], scale, cratemodel.axis[0] );
+	VectorScale( cratemodel.axis[1], scale, cratemodel.axis[1] );
+	VectorScale( cratemodel.axis[2], scale, cratemodel.axis[2] );
+	cratemodel.nonNormalizedAxes = qtrue;
 
 	if (cent->currentState.eType != ET_NPC)
 	{ //do not do this for NPCs
-		trap_R_AddRefEntityToScene( &model );
+		trap_R_AddRefEntityToScene( &cratemodel );
 	}
 }
 

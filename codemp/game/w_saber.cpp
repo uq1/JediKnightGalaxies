@@ -10270,7 +10270,7 @@ qboolean WP_SaberCanBlock(gentity_t *self, vec3_t point, int dflags, int mod, qb
 	if (projectile)
 	{
 		// k, do force draining stuff now --eez
-		if(self->s.eType = ET_PLAYER)
+		if(self->s.eType == ET_PLAYER)
 		{
 			qboolean projBlockMode = self->client->ps.saberActionFlags & ( 1 << SAF_PROJBLOCKING );
 			int forcePowerUsed = 10; // FIXME: make this gun-dependant

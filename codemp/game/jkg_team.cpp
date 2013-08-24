@@ -74,8 +74,8 @@
 	qboolean TeamCommand( int clientNum, char *cmd, char *param )
 	{
 		//gentity_t	*ent = &g_entities[clientNum];
-		char		 parm[1024];
-		char		 cmdLocal[1024];
+		char		 parm[1024] = {0};
+		char		 cmdLocal[1024] = {0};
 	
 		/**************************************************
 		* Set the uiFeedback to qfalse, as we expect it to be.
@@ -385,17 +385,17 @@
 	{
 		int i, j;
 
-		for ( i = 0; i < PARTY_SLOT_MAX; i++ )
+		for ( i = 0; i < MAX_CLIENTS; i++ )	// HACK
 		{
 			for ( j = 0; j < PARTY_SLOT_MEMBERS; j++ )
 			{
-				level.party[i][j] = PARTY_SLOT_EMPTY;
+				level.party[i][j] = MAX_CLIENTS; // HACK
 			}
 		}
 
 		for ( i = 0; i < MAX_CLIENTS; i++ )
 		{
-			level.partyList[i].id = PARTY_SLOT_EMPTY;
+			level.partyList[i].id = MAX_CLIENTS;
 		}
 	}
 
@@ -555,7 +555,7 @@
 
 		TeamPartyListUnregister( clientNum, qtrue );
 
-		for ( i = 0; i < PARTY_SLOT_MAX; i++ )
+		for ( i = 0; i < MAX_CLIENTS; i++ )
 		{
 			if ( level.party[i][0] == PARTY_SLOT_EMPTY )
 			{

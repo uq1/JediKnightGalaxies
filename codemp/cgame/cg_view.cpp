@@ -703,24 +703,7 @@ static void CG_OffsetThirdPersonView( void )
 					}
 				}
 			}
-			if ( 0 && cg.predictedPlayerState.m_iVehicleNum //in a vehicle
-				&& BG_UnrestrainedPitchRoll( &cg.predictedPlayerState, cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle ) )//can roll/pitch without restriction
-			{
-				float pitchPerc = ((90.0f-fabs(cameraFocusAngles[ROLL]))/90.0f);
-				cameraFocusAngles[PITCH] += pitchOffset*pitchPerc;
-				if ( cameraFocusAngles[ROLL] > 0 )
-				{
-					cameraFocusAngles[YAW] -= pitchOffset-(pitchOffset*pitchPerc);
-				}
-				else
-				{
-					cameraFocusAngles[YAW] += pitchOffset-(pitchOffset*pitchPerc);
-				}
-			}
-			else
-			{
-				cameraFocusAngles[PITCH] += pitchOffset;
-			}
+			cameraFocusAngles[PITCH] += pitchOffset;
 		}
 	}
 

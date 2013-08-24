@@ -42,7 +42,7 @@ static int RCB_IPMatch(unsigned int IP, RconBan_t *Ban) {
 }
 
 static unsigned int RCB_SetupMask(unsigned int *IP) {
-	unsigned int mask;
+	unsigned int mask = 0;
 	if (*IP & 0xFF000000) mask |= 0xFF000000;
 	if (*IP & 0x00FF0000) mask |= 0x00FF0000;
 	if (*IP & 0x0000FF00) mask |= 0x0000FF00;

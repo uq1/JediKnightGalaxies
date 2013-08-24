@@ -216,6 +216,9 @@ void G_SetAmmoInCurrentClip ( gentity_t *ent, unsigned int weapon, unsigned int 
     {
         return;
     }
+
+	if ( index >= 256 ) // TODO: use a global #define for this
+		return;
     
     ent->client->clipammo[index] = ammo;
 }

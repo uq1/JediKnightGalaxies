@@ -33,12 +33,16 @@ void JKG_PlayerIsolationClear(int client) {
 }
 
 void JKG_PlayerIsolate(int client1, int client2) {
+	if (client1 >= MAX_CLIENTS || client1 < 0) return;
+	if (client2 >= MAX_CLIENTS || client2 < 0) return;
 	if (client1 == client2) return;
 	PlayerHide[client1][client2] = 1;
 	PlayerHide[client2][client1] = 1;
 }
 
 void JKG_PlayerReveal(int client1, int client2) {
+	if (client1 >= MAX_CLIENTS || client1 < 0) return;
+	if (client2 >= MAX_CLIENTS || client2 < 0) return;
 	PlayerHide[client1][client2] = 0;
 	PlayerHide[client2][client1] = 0;
 }

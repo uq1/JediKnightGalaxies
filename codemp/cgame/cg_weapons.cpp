@@ -1366,7 +1366,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		hand.frame = hand.oldframe = cg_debugGun.integer;
 		hand.backlerp = 0;
 	} else {
-		float currentFrame, animSpeed;
+		float currentFrame;
 #ifndef SIL_IS_A_COOL_CAT
 		int startFrame, endFrame, flags;
 #endif

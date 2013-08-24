@@ -3763,7 +3763,7 @@ int BG_ModelCache(const char *modelName, const char *skinName)
 }
 
 #include "../cgame/animtable.h"
-int BG_ParseGenericAnimationFile ( animation_t *animset, size_t maxAnimations, const stringID_table_t *animTable, const char *filename, const char *fileText )
+int BG_ParseGenericAnimationFile ( animation_t *animset, size_t maxAnimations, const stringID_table_t *animTableOut, const char *filename, const char *fileText )
 {
     int i;
     int animNum;
@@ -3791,7 +3791,7 @@ int BG_ParseGenericAnimationFile ( animation_t *animset, size_t maxAnimations, c
 			break;
 		}
 
-		animNum = GetIDForString (const_cast<stringID_table_t *>(animTable), token);
+		animNum = GetIDForString (const_cast<stringID_table_t *>(animTableOut), token);
 		if ( animNum == -1 )
 		{
 //#ifndef FINAL_BUILD

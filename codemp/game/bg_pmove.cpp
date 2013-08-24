@@ -2345,7 +2345,7 @@ static qboolean PM_CheckJump( void )
 	{
 		qboolean allowWallRuns = qtrue;
 		qboolean allowWallFlips = qtrue;
-		qboolean allowFlips = qtrue;
+		allowFlips = qtrue;
 		qboolean allowWallGrabs = qtrue;
 		if ( pm->ps->weapon == WP_SABER )
 		{
@@ -10029,9 +10029,10 @@ static ID_INLINE void PM_CmdForSaberMoves(usercmd_t *ucmd)
 		}
 		else
 		{ //saberstaff attacks
-			int aLen = PM_AnimLength(0, (animNumber_t)pm->ps->legsAnim);
 			float lenMin = 1700.0f;
 			float lenMax = 1800.0f;
+
+			aLen = PM_AnimLength(0, (animNumber_t)pm->ps->legsAnim);
 
 			if (pm->ps->legsAnim == BOTH_BUTTERFLY_LEFT)
 			{

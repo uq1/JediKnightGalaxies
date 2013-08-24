@@ -1729,7 +1729,9 @@ void JKG_GenericMemoryObject_AddElement(GenericMemoryObject *gmo, void *element)
 	if(gmo->memAllocated <= gmo->numElements+1)
 	{
 		gmo->memAllocated *= 2;
-		gmo->elements = (void **)realloc(gmo->elements, gmo->memAllocated*gmo->elementSize);
+		void *elementcheck = realloc(gmo->elements, gmo->memAllocated*gmo->elementSize);
+		if(!elementcheck) return;
+		gmo->elements = (void **)elementcheck;
 	}
 	gmo->elements[gmo->numElements++] = element;
 }

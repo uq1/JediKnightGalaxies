@@ -803,7 +803,6 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 	{
 		vec3_t	rr, ru;
 		vec3_t	rotate_ang;
-		float	alpha;
 
 		alpha = p->alpha;
 		

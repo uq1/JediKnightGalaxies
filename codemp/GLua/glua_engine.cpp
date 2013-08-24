@@ -72,7 +72,6 @@ static int GLua_Print(lua_State *L) {
 static int GLua_PrintNN( lua_State *L )
 {
 		/*const*/ char *msg;
-	char *nl;
 	char buff[16384] = {0};
 	int args = lua_gettop(L);
 	const char *res;

@@ -580,7 +580,7 @@ static int GLua_NPC_SetForceLevel(lua_State *L) {
 	if (!npc) return 0;
 	if (force < FP_FIRST || force >= NUM_FORCE_POWERS) return 0;
 	if (newlevel < 0 || newlevel > 3) return 0; // level > 3 is subject to change if we go for lvl 5
-	if (!npc->client->ps.fd.forcePowersKnown & (1 << force)) return 0;
+	if (!(npc->client->ps.fd.forcePowersKnown & (1 << force))) return 0;
 	npc->client->ps.fd.forcePowerLevel[force] = newlevel;
 	npc->client->ps.fd.forcePowerBaseLevel[force] = newlevel;
 	return 0;

@@ -1842,7 +1842,7 @@ Destroys an item from your inventory
 void JKG_Cmd_DestroyItem_f(gentity_t *ent)
 {
 	char arg[64];
-	int i, inventoryID;
+	int i, inventoryID = -1;
 	itemInstance_t destroyedItem;
 	trap_Argv(1, arg, sizeof(arg));
 
@@ -1960,7 +1960,7 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 	else
 	{
 		int i, inventoryID;
-		itemInstance_t destroyedItem;
+		itemInstance_t destroyedItem = {0};
 		for(i = 0; i < ent->inventory->elements; i++)
 		{
 			if(ent->inventory->items[i].id)

@@ -477,7 +477,8 @@ void CinBuild_Cmd_f() {
 		if (!Q_stricmp(token,"ap")) {
 			// Add new camera point
 			CinBuildData.campoints++;
-			CinBuildData.points = (campoint_t *)realloc(CinBuildData.points, sizeof(campoint_t) * CinBuildData.campoints);
+			campoint_t *points = (campoint_t *)realloc(CinBuildData.points, sizeof(campoint_t) * CinBuildData.campoints);
+			if(!CinBuildData.points || !points) return;
 			i = CinBuildData.campoints-1;
 			if (CinBuild_ParseVector(&pb, &CinBuildData.points[i].origin)) return;
 			if (CinBuild_ParseVector(&pb, &CinBuildData.points[i].angles)) return;
@@ -511,7 +512,8 @@ void CinBuild_Cmd_f() {
 			}
 			// Shift all entries around it upward
 			CinBuildData.campoints++;
-			CinBuildData.points = (campoint_t *)realloc(CinBuildData.points, sizeof(campoint_t) * CinBuildData.campoints);
+			campoint_t *points = (campoint_t *)realloc(CinBuildData.points, sizeof(campoint_t) * CinBuildData.campoints);
+			if(!CinBuildData.points || !points) return;
 			for (i = CinBuildData.campoints-2; i >= pt; i--) {
 				CinBuildData.points[i+1] = CinBuildData.points[i];
 			}
@@ -558,7 +560,8 @@ void CinBuild_Cmd_f() {
 				CinBuildData.points[i-1] = CinBuildData.points[i];
 			}
 			CinBuildData.campoints--;
-			CinBuildData.points = (campoint_t *)realloc(CinBuildData.points, sizeof(campoint_t) * CinBuildData.campoints);
+			campoint_t *points = (campoint_t *)realloc(CinBuildData.points, sizeof(campoint_t) * CinBuildData.campoints);
+			if(!CinBuildData.points || !points) return;
 
 			CinBuild_CreateTrajectory();
 			continue;

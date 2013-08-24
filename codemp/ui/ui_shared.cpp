@@ -6435,7 +6435,7 @@ void Item_TextScroll_Paint(itemDef_t *item)
 	if (item->cvar) 
 	{
 		DC->getCVarString(item->cvar, cvartext, sizeof(cvartext));
-		strcpy(item->text, cvartext);
+		Q_strncpyz(item->text, cvartext, sizeof(item->text));
 		Item_TextScroll_BuildLines ( item );
 	}
 

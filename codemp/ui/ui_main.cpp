@@ -2363,7 +2363,7 @@ static void UI_DrawOpponentName(rectDef_t *rect, float scale, vec4_t color, int 
 }
 
 static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
-	int i, h, value, findex, iUse = 0;
+	int i, h, value, iUse = 0;
 	const char *text;
 	const char *s = NULL;
 
@@ -2809,7 +2809,6 @@ extern void JKG_GangWars_TeamBLUEText( rectDef_t *rect, float scale, vec4_t colo
 static void UI_OwnerDraw(itemDef_t *item, float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle,int iMenuFont, int ownerDrawID) 
 {
 	rectDef_t rect;
-	int findex;
 	int drawRank = 0, iUse = 0;
 
 	rect.x = x + text_x;
@@ -4044,7 +4043,7 @@ static qboolean UI_VoiceChat_HandleKey(int flags, float *special, int key)
 
 
 static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, int key, int ownerDrawID) {
-	int findex, iUse = 0;
+	int iUse = 0;
 
 	switch (ownerDraw) {
 	case UI_JKG_SLICE_SUMMARY:

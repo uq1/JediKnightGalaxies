@@ -534,6 +534,7 @@ static int GLua_JSON_FinishStream( lua_State *L )
 	trap_FS_FOpenFile( file, &f, FS_WRITE );
 	trap_FS_Write( buffer, strlen(buffer), f );
 	trap_FS_FCloseFile( f );
+	return 0;
 }
 
 /*
@@ -554,6 +555,7 @@ static int GLua_JSON_BeginObject( lua_State *L )
 	}
 
 	cJSON_Stream_BeginObject( fJSON.streamHandle, firstArgNull ? NULL : arg );
+	return 0;
 }
 
 /*
@@ -586,6 +588,7 @@ static int GLua_JSON_BeginArray( lua_State *L )
 	}
 
 	cJSON_Stream_BeginArray( fJSON.streamHandle, firstArgNull ? NULL : arg );
+	return 0;
 }
 
 /*
@@ -608,6 +611,7 @@ static int GLua_JSON_WriteString( lua_State *L )
 	}
 
 	cJSON_Stream_WriteString( fJSON.streamHandle, firstArgNull ? NULL : key, value );
+	return 0;
 }
 
 /*
@@ -629,6 +633,7 @@ static int GLua_JSON_WriteInteger( lua_State *L )
 	}
 
 	cJSON_Stream_WriteInteger( fJSON.streamHandle, firstArgNull ? NULL : key, value );
+	return 0;
 }
 
 /*
@@ -650,6 +655,7 @@ static int GLua_JSON_WriteNumber( lua_State *L )
 	}
 
 	cJSON_Stream_WriteNumber( fJSON.streamHandle, firstArgNull ? NULL : key, value );
+	return 0;
 }
 
 /*
@@ -671,6 +677,7 @@ static int GLua_JSON_WriteBoolean( lua_State *L )
 	}
 
 	cJSON_Stream_WriteBoolean( fJSON.streamHandle, firstArgNull ? NULL : key, value );
+	return 0;
 }
 
 static const struct luaL_reg json_f [] = {

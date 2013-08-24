@@ -148,7 +148,6 @@ void WP_InitForcePowers( gentity_t *ent )
 	char readBuf[256];
 	int lastFPKnown = -1;
 	qboolean didEvent = qfalse;
-	char *valtemp;
 
 	if (!maxRank)
 	{ //if server has no max rank, default to max (50)
@@ -939,6 +938,9 @@ void WP_ForcePowerStart( gentity_t *self, forcePowers_t forcePower, int override
 	int	duration = 0;
 	qboolean hearable = qfalse;
 	float hearDist = 0;
+
+	if ( forcePower >= NUM_FORCE_POWERS )
+		return;
 
 	if (!WP_ForcePowerAvailable( self, forcePower, overrideAmt ))
 	{

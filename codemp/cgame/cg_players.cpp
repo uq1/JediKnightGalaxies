@@ -1766,7 +1766,6 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	void *oldG2Weapons[MAX_SABERS];
 	int i = 0;
 	int k = 0;
-	qboolean saberUpdate[MAX_SABERS];
 
  	ci = &cgs.clientinfo[clientNum];
 

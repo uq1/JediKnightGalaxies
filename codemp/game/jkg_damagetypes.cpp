@@ -264,7 +264,7 @@ qhandle_t JKG_RegisterDamageSettings ( const damageSettings_t *settings )
     qhandle_t handle = numDamageSettings;
     const damageSettings_t *data = &damageSettings[0];
     int i = 0;
-    if ( numDamageSettings >= MAX_DAMAGE_AREAS )
+    if ( numDamageSettings >= MAX_DAMAGE_SETTINGS )
     {
         G_Printf ("WARNING: Max number of damage type settings exceeded. Max is %d.\n", MAX_DAMAGE_SETTINGS);
         return 0;
@@ -287,6 +287,9 @@ qhandle_t JKG_RegisterDamageSettings ( const damageSettings_t *settings )
 
 void JKG_RemoveDamageType ( gentity_t *ent, damageType_t type )
 {
+	if( type >= MAX_DAMAGE_SETTINGS )
+		return;
+
     switch ( type )
     {
         case DT_STUN:

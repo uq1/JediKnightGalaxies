@@ -262,12 +262,12 @@ public:
 		return (int)trap_R_RegisterShader( shader );
 #endif
 	}
-	ID_INLINE	int		RegisterModel( const char *model )
+	ID_INLINE	int		RegisterModel( const char *modelFile )
 	{
 #ifdef ENGINE
-		return re->RegisterModel( model );
+		return re->RegisterModel( modelFile );
 #else
-		return (int)trap_R_RegisterModel( model );
+		return (int)trap_R_RegisterModel( modelFile );
 #endif
 	}
 

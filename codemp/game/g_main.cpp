@@ -3339,7 +3339,6 @@ void G_RunFrame( int levelTime ) {
 	void		*timer_GameChecks;
 	void		*timer_Queues;
 #endif
-	gclient_t	*cl;
 
 	FRAME_TIME = trap_Milliseconds();
 

@@ -1707,11 +1707,11 @@ void CalculatePaths(void)
 	//now clear out all the neighbor data before we recalculate
 	i = 0;
 
-	while (i < gWPNum)
+	while (i < gWPNum && i < MAX_WPARRAY_SIZE)
 	{
 		if (gWPArray[i] && gWPArray[i]->inuse && gWPArray[i]->neighbornum)
 		{
-			while (gWPArray[i]->neighbornum >= 0)
+			while (gWPArray[i]->neighbornum >= 0 && gWPArray[i]->neighbornum < MAX_NEIGHBOR_SIZE)
 			{
 				gWPArray[i]->neighbors[gWPArray[i]->neighbornum].num = 0;
 				gWPArray[i]->neighbors[gWPArray[i]->neighbornum].forceJumpTo = 0;

@@ -436,13 +436,13 @@ public:
 	{
 		Free();
 	}
-	void push_back(const CGhoul2Info &model)
+	void push_back(const CGhoul2Info &G2model)
 	{
 		if (!mItem)
 		{
 			Alloc();
 		}
-		Array().push_back(model);
+		Array().push_back(G2model);
 	}
 	int size() const
 	{

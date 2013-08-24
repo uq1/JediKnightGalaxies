@@ -2243,7 +2243,8 @@ void DOM_UQ1_UcmdMoveForDir ( bot_state_t *bs, usercmd_t *cmd, vec3_t dir )
 	cmd->forwardmove = DotProduct( forward, dir ) * speed;
 	cmd->rightmove = DotProduct( right, dir ) * speed;
 
-	cmd->upmove = abs(forward[3] ) * dir[3] * speed;
+	//cmd->upmove = abs(forward[3] ) * dir[3] * speed; // LOL BRO DO YOU EVEN VECTOR? --eez
+	cmd->upmove = abs(forward[2] ) * dir[2] * speed;
 }
 
 void DOM_BotMove(bot_state_t *bs, vec3_t dest, qboolean wptravel, qboolean strafe)
@@ -6384,10 +6385,10 @@ void DOM_objectiveType_Attack(bot_state_t *bs, gentity_t *target)
 		if(Distance(bs->origin, temp) < DEFEND_MAXDISTANCE)
 		{//automatically see target.
 			int desiredweap = DOM_FavoriteWeapon(bs, target);
-			if(!bs->cur_ps.stats[STAT_WEAPONS] & ( 1 << WP_DEMP2)
-				&& !bs->cur_ps.stats[STAT_WEAPONS] & ( 1 << WP_ROCKET_LAUNCHER )
-				&& !bs->cur_ps.stats[STAT_WEAPONS] & ( 1 << WP_CONCUSSION )
-				&& !bs->cur_ps.stats[STAT_WEAPONS] & ( 1 << WP_REPEATER ))
+			if(!(bs->cur_ps.stats[STAT_WEAPONS] & ( 1 << WP_DEMP2))
+				&& !(bs->cur_ps.stats[STAT_WEAPONS] & ( 1 << WP_ROCKET_LAUNCHER ))
+				&& !(bs->cur_ps.stats[STAT_WEAPONS] & ( 1 << WP_CONCUSSION ))
+				&& !(bs->cur_ps.stats[STAT_WEAPONS] & ( 1 << WP_REPEATER )))
 			{//we currently don't have a heavy weap that can reach this target
 				DOM_BotDefend(bs, target);
 			}

@@ -1064,7 +1064,7 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 	}
 
 	// Print background of the bars
-	for (i=0; i<11; i++) {
+	for (i=0; i<MAX_ACI_SLOTS; i++) {
 		focusItem = Menu_FindItemByName(menuHUD, va("slot%i", i));
 		if (focusItem)
 		{

@@ -63,12 +63,6 @@ JKGFIXME: use an icon instead bro, this is so 1999 --eez
 ================
 */
 void CG_DrawFlagModel( float x, float y, float w, float h, int team, qboolean force2D ) {
-	qhandle_t		cm;
-	float			len;
-	vec3_t			origin, angles;
-	vec3_t			mins, maxs;
-	qhandle_t		handle;
-
 	if ( cg_drawIcons.integer ) {
 		gitem_t *item;
 

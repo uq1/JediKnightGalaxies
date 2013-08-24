@@ -3935,7 +3935,7 @@ qboolean JKG_ParseSaberStanceFile( char *filename )
 			if( jsonChild )
 			{
 				theMove.anim = JKG_AnimationForJSON( jsonChild );
-				if(theMove.anim == -1)
+				if(theMove.anim == -1 && i < 60)	// slight hack
 				{
 					// badness, warn that this is invalid
 					Com_Printf("^3WARNING: %s: invalid anim (%s) for move (%s)\n", 
