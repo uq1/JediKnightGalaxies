@@ -623,7 +623,7 @@ const char *CStringEdPackage::ParseLine( const char *psLine )
 			{
 				static const char sSeperators[] = " \t";
 				char sFlags[1024]={0};	// 1024 chars should be enough to store 8 flag names
-				Q_strncpyz(sFlags, psLine, sizeof(sFlags));
+				Q_strncpyz(sFlags, psLine, sizeof(sFlags)-1);
 				char *psToken = strtok( sFlags, sSeperators );
 				while( psToken != NULL )
 				{
@@ -673,8 +673,8 @@ const char *CStringEdPackage::ParseLine( const char *psLine )
 					iCharsToCopy = sizeof(sThisLanguage)-1;
 				}
 
-//				strncpy(sThisLanguage, psLine, iCharsToCopy);	// already declared as {0} so no need to zero-cap dest buffer
-				Q_strncpyz(sThisLanguage, psLine, iCharsToCopy);	// yea, whatever
+				strncpy(sThisLanguage, psLine, iCharsToCopy);	// already declared as {0} so no need to zero-cap dest buffer
+//				Q_strncpyz(sThisLanguage, psLine, iCharsToCopy);	// yea, whatever
 
 				psLine += strlen(sThisLanguage);
 				const char *_psSentence = ConvertCRLiterals_Read( InsideQuotes( psLine ) );
