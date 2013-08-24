@@ -12,6 +12,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "'Vanilla' Renderer (rd-vani
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Server Side Module (game)", "game\JK2_game.vcxproj", "{5B587283-8429-4F8B-AECA-C09BF364B617}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "'Dedicated' Renderer (rd-dedicated)", "rd-dedicated\rd-dedicated.vcxproj", "{E0018719-D9FD-486A-91C1-F1BB3802CD0A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -55,6 +57,12 @@ Global
 		{5B587283-8429-4F8B-AECA-C09BF364B617}.Final|Win32.Build.0 = Final|Win32
 		{5B587283-8429-4F8B-AECA-C09BF364B617}.Release|Win32.ActiveCfg = Release|Win32
 		{5B587283-8429-4F8B-AECA-C09BF364B617}.Release|Win32.Build.0 = Release|Win32
+		{E0018719-D9FD-486A-91C1-F1BB3802CD0A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E0018719-D9FD-486A-91C1-F1BB3802CD0A}.Debug|Win32.Build.0 = Debug|Win32
+		{E0018719-D9FD-486A-91C1-F1BB3802CD0A}.Final|Win32.ActiveCfg = Release|Win32
+		{E0018719-D9FD-486A-91C1-F1BB3802CD0A}.Final|Win32.Build.0 = Release|Win32
+		{E0018719-D9FD-486A-91C1-F1BB3802CD0A}.Release|Win32.ActiveCfg = Release|Win32
+		{E0018719-D9FD-486A-91C1-F1BB3802CD0A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
