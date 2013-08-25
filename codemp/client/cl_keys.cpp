@@ -637,16 +637,19 @@ Handles history and console scrollback
 */
 void Console_Key( int key ) {
 	// ctrl-L clears screen
-	if ( keynames[key].lower == 'l' && kg.keys[A_CTRL].down ) {
+	if ( keynames[key].lower == 'l' && kg.keys[A_CTRL].down ) 
+	{
 		Cbuf_AddText( "clear\n" );
 		return;
 	}
 
 	// enter finishes the line
-	if ( key == A_ENTER || key == A_KP_ENTER ) {
+	if ( key == A_ENTER || key == A_KP_ENTER ) 
+	{
 		// legacy hack: strip any prepended slashes. they're not necessary anymore
 		if ( g_consoleField.buffer[0] &&
-			(g_consoleField.buffer[0] == '\\' || g_consoleField.buffer[0] == '/') ) {
+			(g_consoleField.buffer[0] == '\\' || g_consoleField.buffer[0] == '/') ) 
+		{
 			char temp[MAX_EDIT_LINE-1];
 
 			Q_strncpyz( temp, g_consoleField.buffer+1, sizeof( temp ) );
@@ -660,24 +663,30 @@ void Console_Key( int key ) {
 		Com_Printf( "%c%s\n", CONSOLE_PROMPT_CHAR, g_consoleField.buffer );
 
 		// check if cgame wants to eat the command...?
-		if ( cls.cgameStarted && cl.mSharedMemory ) {
+		if ( cls.cgameStarted && cl.mSharedMemory ) 
+		{
 			if (cgvm && cl.mSharedMemory)
-			TCGIncomingConsoleCommand *icc = (TCGIncomingConsoleCommand *)cl.mSharedMemory;
+			{
+				TCGIncomingConsoleCommand *icc = (TCGIncomingConsoleCommand *)cl.mSharedMemory;
 
-			Q_strncpyz( icc->conCommand, g_consoleField.buffer, sizeof( icc->conCommand ) );
+				Q_strncpyz( icc->conCommand, g_consoleField.buffer, sizeof( icc->conCommand ) );
 			
 				if (VM_Call(cgvm, CG_INCOMING_CONSOLE_COMMAND))
 				// valid command
-				Cbuf_AddText( g_consoleField.buffer );
-				Cbuf_AddText( "\n" );
-			}
-			else if ( icc->conCommand[0] ) {
-				// cgame ate it and substituted their own
-				Cbuf_AddText( icc->conCommand );
-				Cbuf_AddText( "\n" );
+				{
+					Cbuf_AddText( g_consoleField.buffer );
+					Cbuf_AddText( "\n" );
+				}
+				else if ( icc->conCommand[0] ) 
+				{
+					// cgame ate it and substituted their own
+					Cbuf_AddText( icc->conCommand );
+					Cbuf_AddText( "\n" );
+				}
 			}
 		}
-		else {
+		else 
+		{
 			// cgame didn't eat it, execute it
 			Cbuf_AddText( g_consoleField.buffer );
 			Cbuf_AddText( "\n" );
@@ -1229,29 +1238,35 @@ CL_KeyEvent
 Called by the system for both key up and key down events
 ===================
 */
-void CL_KeyEvent( int key, qboolean down, unsigned time ) {
+void CL_KeyEvent( int key, qboolean down, unsigned time ) 
+{
 	char cmd[MAX_STRING_CHARS], *kb;
 
 	// update auto-repeat status and BUTTON_ANY status
 	kg.keys[keynames[key].upper].down = down;
-	if ( down ) {
+	if ( down ) 
+	{
 		kg.keys[keynames[key].upper].repeats++;
-		if ( kg.keys[ keynames[key].upper ].repeats == 1 ) {
+		if ( kg.keys[ keynames[key].upper ].repeats == 1 ) 
+		{
 			kg.anykeydown = qtrue;
 			kg.keyDownCount++;
 		}
 	}
-	else {
+	else 
+	{
 		kg.keys[keynames[key].upper].repeats = 0;
 		kg.keyDownCount--;
-		if ( kg.keyDownCount <= 0 ) {
+		if ( kg.keyDownCount <= 0 ) 
+		{
 			kg.anykeydown = qfalse;
 			kg.keyDownCount = 0;
 		}
 	}
 
 	// console key is hardcoded, so the user can never unbind it
-	if ( key == A_CONSOLE || (kg.keys[A_SHIFT].down && key == A_ESCAPE) ) {
+	if ( key == A_CONSOLE || (kg.keys[A_SHIFT].down && key == A_ESCAPE) ) 
+	{
 		if ( !down )
 			return;
 		Con_ToggleConsole_f();
@@ -1260,38 +1275,46 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 	}
 
 	// kg.keys can still be used for bound actions
-	if ( down && cls.state == CA_CINEMATIC && !Key_GetCatcher() ) {
-		if ( !com_cameraMode->integer ) {
+	if ( down && cls.state == CA_CINEMATIC && !Key_GetCatcher() ) 
+	{
+		if ( !com_cameraMode->integer ) 
+		{
 			Cvar_Set( "nextdemo", "" );
 			key = A_ESCAPE;
 		}
 	}
 
 	// escape is always handled special
-	if ( key == A_ESCAPE && down ) {
-		if ( !kg.keys[A_SHIFT].down && ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) ) {
+	if ( key == A_ESCAPE && down ) 
+	{
+		if ( !kg.keys[A_SHIFT].down && ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) ) 
+		{
 			Con_ToggleConsole_f();
 			Key_ClearStates();
 			return;
 		}
 
-		if ( Key_GetCatcher() & KEYCATCH_MESSAGE ) {
+		if ( Key_GetCatcher() & KEYCATCH_MESSAGE ) 
+		{
 			// clear message mode
 			Message_Key( key );
 			return;
 		}
 
 		// escape always gets out of CGAME stuff
-		if (Key_GetCatcher() & KEYCATCH_CGAME) {
+		if (Key_GetCatcher() & KEYCATCH_CGAME) 
+		{
 			Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CGAME );
 			VM_Call (cgvm, CG_EVENT_HANDLING, CGAME_EVENT_NONE);
 			return;
 		}
 
-		if ( !(Key_GetCatcher() & KEYCATCH_UI) ) {
+		if ( !(Key_GetCatcher() & KEYCATCH_UI) ) 
+		{
 			if ( cls.state == CA_ACTIVE && !clc.demoplaying )
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_INGAME );
-			else {
+			else 
+			{
 				CL_Disconnect_f();
 				S_StopAllSounds();
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
@@ -1309,14 +1332,17 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 	// console mode and menu mode, to keep the character from continuing 
 	// an action started before a mode switch.
 	//
-	if ( !down ) {
+	if ( !down ) 
+	{
 		kb = kg.keys[keynames[key].upper].binding;
 
 		CL_AddKeyUpCommands( key, kb );
 
-		if ( Key_GetCatcher( ) & KEYCATCH_UI && uivm ) {
+		if ( Key_GetCatcher( ) & KEYCATCH_UI && uivm ) 
+		{
 			VM_Call( uivm, UI_KEY_EVENT, key, down );
-		} else if ( Key_GetCatcher( ) & KEYCATCH_CGAME && cgvm ) {
+		} 
+		else if ( Key_GetCatcher( ) & KEYCATCH_CGAME && cgvm ) 
 			VM_Call( cgvm, CG_KEY_EVENT, key, down );
 
 		return;
@@ -1328,15 +1354,11 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 	if ( Key_GetCatcher() & KEYCATCH_CONSOLE )
 		Console_Key( key );
 
-		if ( uivm ) {
-			VM_Call( uivm, UI_KEY_EVENT, key, down );
-		if ( cls.uiStarted )
-	}
+	if ( uivm )
+		VM_Call( uivm, UI_KEY_EVENT, key, down );
 
-		if ( cgvm ) {
-			VM_Call( cgvm, CG_KEY_EVENT, key, down );
-		if ( cls.cgameStarted )
-	}
+	if ( cgvm )
+		VM_Call( cgvm, CG_KEY_EVENT, key, down );
 
 	// chatbox
 	else if ( Key_GetCatcher() & KEYCATCH_MESSAGE )
@@ -1347,23 +1369,30 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 		Console_Key( key );
 
 	// binds
-	else {
+	else 
+	{
 		// send the bound action
 		kb = kg.keys[keynames[key].upper].binding;
-		if ( kb ) {
-			if ( kb[0] == '+' ) {
+		if ( kb ) 
+		{
+			if ( kb[0] == '+' ) 
+			{
 				char button[1024], *buttonPtr;
 				buttonPtr = button;
-				for ( int i=0; ; i++ ) {
-					if ( kb[i] == ';' || !kb[i] ) {
+				for ( int i=0; ; i++ ) 
+				{
+					if ( kb[i] == ';' || !kb[i] ) 
+					{
 						*buttonPtr = '\0';
-						if ( button[0] == '+') {
+						if ( button[0] == '+') 
+						{
 							// button commands add keynum and time as parms so that multiple
 							// sources can be discriminated and subframe corrected
 							Com_sprintf( cmd, sizeof( cmd ), "%s %i %i\n", button, key, time );
 							Cbuf_AddText( cmd );
 						}
-						else {
+						else 
+						{
 							// down-only command
 							Cbuf_AddText( button );
 							Cbuf_AddText( "\n" );
@@ -1377,26 +1406,31 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 						break;
 				}
 			}
-			else {
+			else 
+			{
 				// down-only command
 				if (cgvm && cl.mSharedMemory)
+				{
 					// don't do this unless cgame is inited and shared memory is valid
 					TCGIncomingConsoleCommand *icc = (TCGIncomingConsoleCommand *)cl.mSharedMemory;
 
 					strcpy( icc->conCommand, kb );
 					
 					if (VM_Call(cgvm, CG_INCOMING_CONSOLE_COMMAND))
+					{
 						//rww - let mod authors filter client console messages so they can cut them off if they want.
 						Cbuf_AddText( kb );
 						Cbuf_AddText( "\n" );
 					}
-					else if ( icc->conCommand[0] ) {
+					else if ( icc->conCommand[0] ) 
+					{
 						//the vm call says to execute this command in place
 						Cbuf_AddText( icc->conCommand );
 						Cbuf_AddText( "\n" );
 					}
 				}
-				else {
+				else 
+				{
 					//otherwise just add it
 					Cbuf_AddText( kb );
 					Cbuf_AddText( "\n" );
@@ -1425,7 +1459,7 @@ void CL_CharEvent( int key ) {
 	// distribute the key down event to the apropriate handler
 	if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
 	{
-		Field_CharEvent( &kg.g_consoleField, key );
+		Field_CharEvent( &g_consoleField, key );
 	}
 	else if ( Key_GetCatcher( ) & KEYCATCH_UI )
 	{
@@ -1437,7 +1471,7 @@ void CL_CharEvent( int key ) {
 	}
 	else if ( cls.state == CA_DISCONNECTED )
 	{
-		Field_CharEvent( &kg.g_consoleField, key );
+		Field_CharEvent( &g_consoleField, key );
 	}
 }
 

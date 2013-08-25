@@ -1437,6 +1437,7 @@ extern	vec4_t		colorDkBlue;
 #define S_COLOR_WHITE	"^7"
 #define S_COLOR_ORANGE  "^8"
 #define S_COLOR_GRAY	"^9"
+#define S_COLOR_GREY	S_COLOR_GRAY			// fuck British English.. --eez
 
 extern vec4_t	g_color_table[10];
 

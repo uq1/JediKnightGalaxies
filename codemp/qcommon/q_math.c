@@ -22,8 +22,7 @@ vec4_t		colorDkGrey	= {0.25, 0.25, 0.25, 1};
 vec4_t		colorLtBlue	= {0.367f, 0.261f, 0.722f, 1};
 vec4_t		colorDkBlue	= {0.199f, 0.0f,   0.398f, 1};
 
-vec4_t	g_color_table[10] =
-	{ 0.0, 0.0, 0.0, 1.0 },	// black
+vec4_t	g_color_table[10] = {
 	{0.086, 0.086, 0.086, 1.0},	// Black
 	{0.824, 0.180, 0.165, 1.0},	// Red
 	{0.267, 0.753, 0.404, 1.0},	// Green
