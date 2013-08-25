@@ -92,6 +92,12 @@ local function AdmRank_InitRanks( )
 		jObjectItem = json.GetObjectItem( jObject, "can-rank-delete" )
 		rank["can-rank-delete"] = json.ToBooleanOpt( jObjectItem, 0 )
 
+		jObjectItem = json.GetObjectItem( jObject, "can-rank-addpermission" )
+		rank["can-rank-addpermission"] = json.ToBooleanOpt( jObjectItem, 0 )
+
+		jObjectItem = json.GetObjectItem( jObject, "can-rank-deletepermission" )
+		rank["can-rank-deletepermission"] = json.ToBooleanOpt( jObjectItem, 0 )
+
 		jObjectItem = json.GetObjectItem( jObject, "can-alter-rank" )
 		rank["can-alter-rank"] = json.ToBooleanOpt( jObjectItem, 0 )
 	
@@ -301,6 +307,22 @@ local function AdminHelp_ListPowers( rank, listpermissions, listall )
 		end
 	end
 
+	if rank["can-rank-addpermission"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^1can-rank-addpermission^7, "
+		else
+			printedtext = printedtext .. "^1admrank addpermission^7, "
+		end
+	end
+
+	if rank["can-rank-deletepermission"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^1can-rank-deletepermission^7, "
+		else
+			printedtext = printedtext .. "^1admrank deletepermission^7, "
+		end
+	end
+
 	if rank["can-alter-rank"] or listall == true then
 		if listpermissions == true then
 			printedtext = printedtext .. "^6can-alter-rank^7, "
@@ -396,6 +418,62 @@ local function AdminHelp_ListPowers( rank, listpermissions, listall )
 	return printedtext
 end
 
+local function RankPermission_IsValid( permissionname )
+	if permissionname == "can-changedetails" then
+		return true
+	elseif permissionname == "can-addaccounts" then
+		return true
+	elseif permissionname == "can-deleteaccounts" then
+		return true
+	elseif permissionname == "can-list-online" then
+		return true
+	elseif permissionname == "can-list-admins" then
+		return true
+	elseif permissionname == "can-list-powers" then
+		return true
+	elseif permissionname == "can-list-ranks" then
+		return true
+	elseif permissionname == "can-list-permissions" then
+		return true
+	elseif permissionname == "can-rank-inspect" then
+		return true
+	elseif permissionname == "can-rank-create" then
+		return true
+	elseif permissionname == "can-rank-delete" then
+		return true
+	elseif permissionname == "can-rank-addpermission" then
+		return true
+	elseif permissionname == "can-rank-deletepermission" then
+		return true
+	elseif permissionname == "can-alter-rank" then
+		return true
+	elseif permissionname == "can-alter-password" then
+		return true
+	elseif permissionname == "can-status" then
+		return true
+	elseif permissionname == "can-say" then
+		return true
+	elseif permissionname == "can-tell" then
+		return true
+	elseif permissionname == "can-speak" then
+		return true
+	elseif permissionname == "can-puppet" then
+		return true
+	elseif permissionname == "can-place" then
+		return true
+	elseif permissionname == "can-delent" then
+		return true
+	elseif permissionname == "can-showspawnvars" then
+		return true
+	elseif permissionname == "can-entcount" then
+		return true
+	elseif permissionname == "use-cheats" then
+		return true
+	else
+		return false
+	end
+end
+
 local function RankList_SaveRanks( reason )
 	-- Save the .json file
 	json.RegisterStream( 3, 1 )
@@ -427,6 +505,8 @@ local function RankList_SaveRanks( reason )
 		json.WriteBoolean( "can-rank-inspect", sortedrank["can-rank-inspect"] )
 		json.WriteBoolean( "can-rank-create", sortedrank["can-rank-create"] )
 		json.WriteBoolean( "can-rank-delete", sortedrank["can-rank-delete"] )
+		json.WriteBoolean( "can-rank-addpermission", sortedrank["can-rank-addpermission"] )
+		json.WriteBoolean( "can-rank-deletepermission", sortedrank["can-rank-deletepermission"] )
 		json.WriteBoolean( "can-alter-rank", sortedrank["can-alter-rank"] )
 		json.WriteBoolean( "can-alter-password", sortedrank["can-alter-password"] )
 		json.WriteBoolean( "can-status", sortedrank["can-status"] )
@@ -922,8 +1002,52 @@ local function Admin_Rank(ply, argc, argv)
 					RankList_DeleteRank( rank )
 					AdmReply(ply, "^4Rank deleted.")
 				end
+			elseif argv[1] == "addpermission" then
+				if argc < 4 then
+					AdmReply(ply, "^3Syntax: /admrank addpermission <rank> <permission>")
+				elseif rank["can-rank-addpermission"] ~= true then
+					AdmReply(ply, "^1You do not have permission to perform this action.")
+				else
+					local rank = ranks[argv[2]]
+					if rank == nil then
+						AdmReply(ply, "^1Invalid rank specified.")
+						return
+					end
+
+					local permissionname = argv[3]
+					if RankPermission_IsValid( permissionname ) == false then
+						AdmReply(ply, "^1Invalid permission specified.")
+						return
+					end
+
+					rank[permissionname] = true
+					UpdateRank( rank, ply:GetAdminAccount() .. " added permission '" .. permissionname .. "' to rank " .. rank["name"])
+					AdmReply(ply, "^4Rank updated successfully.")
+				end
+			elseif argv[1] == "deletepermission" then
+				if argc < 4 then
+					AdmReply(ply, "^3Syntax: /admrank deletepermission <rank> <permission>")
+				elseif rank["can-rank-deletepermission"] ~= true then
+					AdmReply(ply, "^1You do not have permission to perform this action.")
+				else
+					local rank = ranks[argv[2]]
+					if rank == nil then
+						AdmReply(ply, "^1Invalid rank specified.")
+						return
+					end
+
+					local permissionname = argv[3]
+					if RankPermission_IsValid( permissionname ) == false then
+						AdmReply(ply, "^1Invalid permission specified.")
+						return
+					end
+
+					rank[permissionname] = false
+					UpdateRank( rank, ply:GetAdminAccount() .. " deleted permission '" .. permissionname .. "' from rank " .. rank["name"])
+					AdmReply(ply, "^4Rank updated successfully.")
+				end
 			else
-				AdmReply(ply, "^3Unknown admrank mode, valid modes are: inspect, create, delete")
+				AdmReply(ply, "^3Unknown admrank mode, valid modes are: inspect, create, delete, addpermission, deletepermission")
 			end
 		end
 	else

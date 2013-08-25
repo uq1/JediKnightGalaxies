@@ -106,6 +106,19 @@ You can list what permissions a rank has by doing:
 
 /admrank inspect <rank>
 
+Alright, now lets get on to the meat and potatoes here. A rank's permissions are fairly straight-forward. For instance,
+can-list-powers
+refers to /admlist powers. Likewise, can-puppet refers to /admpuppet. 
+There's a special permission called use-cheats, and that allows that rank to use cheats.
+
+Therefore, to add permissions to a rank, all you have to do is this:
+
+/admrank addpermission <rank> <permission>
+
+And to delete permissions, all you have to do is this:
+
+/admrank deletepermission <rank> <permission>
+
 ----------------------------------
 Changing another admin's rank/password
 ----------------------------------
