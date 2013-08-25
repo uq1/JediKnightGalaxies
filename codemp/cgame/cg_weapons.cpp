@@ -332,6 +332,8 @@ static int CG_MapTorsoToWeaponFrame( const clientInfo_t *ci, int frame, int anim
 	case BOTH_ATTACK3:
 	case BOTH_ATTACK4:
 	case BOTH_ATTACK10:
+	case BOTH_BASE_PISTOLSHOOT:
+	case BOTH_BASE_RIFLESHOOT:
 	case BOTH_THERMAL_THROW:
 		if ( frame >= animations[animNum].firstFrame && frame < animations[animNum].firstFrame + 6 ) 
 		{

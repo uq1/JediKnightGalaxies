@@ -4684,28 +4684,7 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 			return qtrue;//true cause even though we didn't get a hit, we don't want to do those extra traces because the debounce time says not to.
 		}
 		trMask &= ~CONTENTS_LIGHTSABER;
-		if ( d_saberSPStyleDamage.integer )
-		{
-			if ( BG_SaberInReturn( self->client->ps.saberMove ) )
-			{
-				dmg = SABER_NONATTACK_DAMAGE;
-			}
-			else
-			{
-				/*if (d_saberSPStyleDamage.integer == 2)
-				{*/
-					dmg = SABER_NONATTACK_DAMAGE;
-				/*}
-				else
-				{
-					dmg = 0;
-				}*/
-			}
-		}
-		else
-		{
-			dmg = SABER_NONATTACK_DAMAGE;
-		}
+		dmg = SABER_NONATTACK_DAMAGE;
 		idleDamage = qtrue;
 	}
 	else
@@ -4807,17 +4786,6 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 	if (dmg > SABER_NONATTACK_DAMAGE && self->client->ps.isJediMaster)
 	{ //give the Jedi Master more saber attack power
 		dmg *= 2;
-	}
-
-	if (level.gametype == GT_POWERDUEL &&
-		self->client->sess.duelTeam == DUELTEAM_LONE)
-	{ //always x2 when we're powerdueling alone... er, so, we apparently no longer want this?  So they say.
-		if ( duel_fraglimit.integer )
-		{
-			//dmg *= 1.5 - (.4 * (float)self->client->sess.wins / (float)g_duel_fraglimit.integer);
-				
-		}
-		//dmg *= 2;
 	}
 
 #ifndef FINAL_BUILD
@@ -5778,7 +5746,7 @@ void G_SPSaberDamageTraceLerped( gentity_t *self, int saberNum, int bladeNum, ve
 	saberHitFraction = 1.0f;
 	if ( VectorCompare2( baseOld, baseNew ) && VectorCompare2( endOld, endNew ) )
 	{//no diff
-		CheckSaberDamage( self, saberNum, bladeNum, baseNew, endNew, qfalse, clipmask, qfalse );
+		CheckSaberDamage( self, saberNum, bladeNum, baseNew, endNew, qtrue, clipmask, qfalse );
 	}
 	else
 	{//saber moved, lerp
