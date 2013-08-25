@@ -83,6 +83,12 @@ local function AdmRank_InitRanks( )
 		jObjectItem = json.GetObjectItem( jObject, "can-rank-inspect" )
 		rank["can-rank-inspect"] = json.ToBooleanOpt( jObjectItem, 1 )
 
+		jObjectItem = json.GetObjectItem( jObject, "can-rank-create" )
+		rank["can-rank-create"] = json.ToBooleanOpt( jObjectItem, 0 )
+
+		jObjectItem = json.GetObjectItem( jObject, "can-rank-delete" )
+		rank["can-rank-delete"] = json.ToBooleanOpt( jObjectItem, 0 )
+
 		jObjectItem = json.GetObjectItem( jObject, "can-alter-rank" )
 		rank["can-alter-rank"] = json.ToBooleanOpt( jObjectItem, 0 )
 	
@@ -216,6 +222,8 @@ local function RankList_SaveRanks( reason )
 		json.WriteBoolean( "can-list-ranks", sortedrank["can-list-ranks"] )
 		json.WriteBoolean( "can-list-powers", sortedrank["can-list-powers"] )
 		json.WriteBoolean( "can-rank-inspect", sortedrank["can-rank-inspect"] )
+		json.WriteBoolean( "can-rank-create", sortedrank["can-rank-create"] )
+		json.WriteBoolean( "can-rank-delete", sortedrank["can-rank-delete"] )
 		json.WriteBoolean( "can-alter-rank", sortedrank["can-alter-rank"] )
 		json.WriteBoolean( "can-alter-password", sortedrank["can-alter-password"] )
 		json.WriteBoolean( "can-status", sortedrank["can-status"] )
@@ -268,6 +276,11 @@ local function RankList_DeleteRank( rank )
 	local rankname = rank["name"]
 	table.remove(sortedranks, rank["sorted"])
 	ranks[rank["name"]] = nil
+	-- One sec, make sure we aren't deleting the last rank...
+	if ranks["numRanks"] == 1 then
+		print("^1ERROR: admin tried to delete last rank...")
+		return
+	end
 	-- Okay, we need to change the sorted stuff now
 	local k
 	for k = 0, ranks["numRanks"]-1 do
@@ -384,7 +397,7 @@ local function Admin_Login(ply, argc, argv)
 			ply:SetAdminAccount(argv[1])
 			AdmReply(ply, "^2Admin login successful")
 
-			if ranks[admins[argv]["rank"]]["use-cheats"] then
+			if ranks[admins[argv[1]]["rank"]]["use-cheats"] then
 				-- We can use cheats. Alright, mang! Let's set things up so that the C++ code knows that we can...
 				ply.CanUseCheats = true
 			end
@@ -605,6 +618,17 @@ local function AdminHelp_ListPowers( rank )
 		printnn("^2admrank inspect, ")
 	end
 
+	if rank["can-rank-create"] then
+		printnn("^1admrank create, ")
+	end
+
+	if rank["can-rank-delete"] then
+		printnn("^1admrank delete, ")
+	end
+
+	if rank["can-rank-delete"] then
+	end
+
 	if rank["can-alter-rank"] then
 		printnn("^6admalter rank, ")
 	end
@@ -745,8 +769,47 @@ local function Admin_Rank(ply, argc, argv)
 						AdminHelp_ListPowers( inspectedrank )
 					end
 				end
+			elseif argv[1] == "create" then
+				if argc < 3 then
+					AdmReply(ply, "^3Syntax: /admrank create <rank name>")
+				elseif rank["can-rank-create"] ~= true then
+					AdmReply(ply, "^1You do not have permission to perform this action.")
+				else
+					local blankrank = {}
+					blankrank["name"] = argv[2]
+					RankList_AddRank( blankrank )
+					AdmReply(ply, "^4Rank successfully added.")
+				end
+			elseif argv[1] == "delete" then
+				if argc < 3 then
+					AdmReply(ply, "^3Syntax: /admrank delete <rank> [change admins using this rank to THIS rank]")
+				elseif rank["can-rank-delete"] ~= true then
+					AdmReply(ply, "^1You do not have permission to perform this action.")
+				else
+					local rank = ranks[argv[2]]
+					if rank == nil then
+						AdmReply("^1ERROR: Invalid rank specified.")
+					end
+
+					-- Loop through the admins and make sure none of us are using this rank...
+					local k
+					for k = 0, admins["numAdmins"]-1 do
+						if sortedadmins[k]["rank"]["name"] == argv[2] then
+							if argc < 4 then
+								AdmReply(ply, "^3This rank is in use. You will need to specify a rank for people to use, since this rank is gone.")
+								return
+							end
+							sortedadmins[k]["rank"] = ranks[argv[3]]
+						end
+					end
+
+					-- K, guess it's okay to kill the rank, now...
+					-- You will be missed, rank.
+					RankList_DeleteRank( rank )
+					AdmReply(ply, "^4Rank deleted.")
+				end
 			else
-				AdmReply(ply, "^3Unknown admrank mode, valid modes are: inspect")
+				AdmReply(ply, "^3Unknown admrank mode, valid modes are: inspect, create, delete")
 			end
 		end
 	else
