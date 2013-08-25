@@ -4442,10 +4442,12 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 			{
 				VectorCopy( saberEnd, saberEndExtrapolated );
 			}
+
 			trap_Trace(&tr, saberStart, saberTrMins, saberTrMaxs, saberEndExtrapolated, self->s.number, trMask);
 
 			VectorCopy(saberStart, lastValidStart);
 			VectorCopy(saberEndExtrapolated, lastValidEnd);
+
 			/*
 			if ( tr.allsolid || tr.startsolid )
 			{
@@ -5173,12 +5175,12 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 			return qfalse;
 		}
 
-		if ((self->s.eType == ET_NPC || otherOwner->s.eType == ET_NPC) && //just make sure one of us is an npc
+		/*if ((self->s.eType == ET_NPC || otherOwner->s.eType == ET_NPC) && //just make sure one of us is an npc
 			self->client->playerTeam == otherOwner->client->playerTeam &&
 			level.gametype != GT_SIEGE)
 		{ //don't hit your teammate's sabers if you are an NPC. It can be rather annoying.
 			return qfalse;
-		}
+		}*/ // WRONG.
 
 		if (otherOwner->client->ps.duelInProgress &&
 			otherOwner->client->ps.duelIndex != self->s.number)
@@ -5746,7 +5748,7 @@ void G_SPSaberDamageTraceLerped( gentity_t *self, int saberNum, int bladeNum, ve
 	saberHitFraction = 1.0f;
 	if ( VectorCompare2( baseOld, baseNew ) && VectorCompare2( endOld, endNew ) )
 	{//no diff
-		CheckSaberDamage( self, saberNum, bladeNum, baseNew, endNew, qtrue, clipmask, qfalse );
+		CheckSaberDamage( self, saberNum, bladeNum, baseNew, endNew, qfalse, clipmask, qfalse );
 	}
 	else
 	{//saber moved, lerp
@@ -9370,9 +9372,9 @@ nextStep:
 				rBladeNum = 0;
 				while (rBladeNum < self->client->saber[rSaberNum].numBlades)
 				{ //Don't bother updating the bolt for each blade for this, it's just a very rough fallback method for during saberlocks
-					VectorCopy(boltOrigin, self->client->saber[saberNum].blade[rBladeNum].trail.base);
-					VectorCopy(end, self->client->saber[saberNum].blade[rBladeNum].trail.tip);
-					self->client->saber[saberNum].blade[rBladeNum].trail.lastTime = level.time;
+					VectorCopy(boltOrigin, self->client->saber[rSaberNum].blade[rBladeNum].trail.base);
+					VectorCopy(end, self->client->saber[rSaberNum].blade[rBladeNum].trail.tip);
+					self->client->saber[rSaberNum].blade[rBladeNum].trail.lastTime = level.time;
 
 					rBladeNum++;
 				}
