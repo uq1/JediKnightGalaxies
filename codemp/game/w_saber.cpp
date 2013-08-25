@@ -4692,14 +4692,14 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 			}
 			else
 			{
-				if (d_saberSPStyleDamage.integer == 2)
-				{
+				/*if (d_saberSPStyleDamage.integer == 2)
+				{*/
 					dmg = SABER_NONATTACK_DAMAGE;
-				}
+				/*}
 				else
 				{
 					dmg = 0;
-				}
+				}*/
 			}
 		}
 		else
@@ -5095,7 +5095,8 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 
 			if (self->s.eType == ET_NPC &&
 				g_entities[tr.entityNum].client &&
-				self->client->playerTeam == g_entities[tr.entityNum].client->playerTeam)
+				self->client->playerTeam == g_entities[tr.entityNum].client->playerTeam &&
+				dmg != SABER_NONATTACK_DAMAGE)
 			{ //Oops. Since he's an NPC, we'll be forgiving and cut the damage down.
 				dmg *= 0.2f;
 			}
@@ -8729,7 +8730,7 @@ void WP_SaberPositionUpdate( gentity_t *self, usercmd_t *ucmd )
 	int returnAfterUpdate = 0;
 	float animSpeedScale = 1.0f;
 	int saberNum;
-	qboolean clientOverride;
+	qboolean clientOverride = false;
 	gentity_t *vehEnt = NULL;
 	int rSaberNum = 0;
 	int rBladeNum = 0;
