@@ -880,7 +880,7 @@ local function Admin_Rank(ply, argc, argv)
 
 						ply:SendPrint("^5Rank permissions:")
 
-						ply:SendPrint(AdminHelp_ListPowers( inspectedrank, false, true ))
+						ply:SendPrint(AdminHelp_ListPowers( inspectedrank, true, false ))
 					end
 				end
 			elseif argv[1] == "create" then
