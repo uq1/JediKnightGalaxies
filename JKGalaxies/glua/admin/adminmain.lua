@@ -215,177 +215,177 @@ local function AdminHelp_ListPowers( rank, listpermissions, listall )
 
 	if rank["can-changedetails"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^3can-changedetails, "
+			printedtext = printedtext .. "^3can-changedetails^7, "
 		else
-			printedtext = printedtext .. "^3admchangedetails, "
+			printedtext = printedtext .. "^3admchangedetails^7, "
 		end
 	end
 
 	if rank["can-addaccounts"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^6can-addaccounts, "
+			printedtext = printedtext .. "^6can-addaccounts^7, "
 		else
-			printedtext = printedtext .. "^6admnewaccount, "
+			printedtext = printedtext .. "^6admnewaccount^7, "
 		end
 	end
 
 	if rank["can-deleteaccounts"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^6can-deleteaccounts, "
+			printedtext = printedtext .. "^6can-deleteaccounts^7, "
 		else
-			printedtext = printedtext .. "^6admdeleteaccount, "
+			printedtext = printedtext .. "^6admdeleteaccount^7, "
 		end
 	end
 
 	if rank["can-list-online"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^2can-list-online, "
+			printedtext = printedtext .. "^2can-list-online^7, "
 		else
-			printedtext = printedtext .. "^2admlist online, "
+			printedtext = printedtext .. "^2admlist online^7, "
 		end
 	end
 
 	if rank["can-list-admins"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^2can-list-admins, "
+			printedtext = printedtext .. "^2can-list-admins^7, "
 		else
-			printedtext = printedtext .. "^2admlist admins, "
+			printedtext = printedtext .. "^2admlist admins^7, "
 		end
 	end
 
 	if rank["can-list-ranks"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^2can-list-ranks, "
+			printedtext = printedtext .. "^2can-list-ranks^7, "
 		else
-			printedtext = printedtext .. "^2admlist ranks, "
+			printedtext = printedtext .. "^2admlist ranks^7, "
 		end
 	end
 
 	if rank["can-list-powers"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^2can-list-powers, "
+			printedtext = printedtext .. "^2can-list-powers^7, "
 		else
-			printedtext = printedtext .. "^2admlist powers, "
+			printedtext = printedtext .. "^2admlist powers^7, "
 		end
 	end
 
 	if rank["can-list-permissions"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^2can-list-permissions, "
+			printedtext = printedtext .. "^2can-list-permissions^7, "
 		else
-			printedtext = printedtext .. "^2admlist permissions, "
+			printedtext = printedtext .. "^2admlist permissions^7, "
 		end
 	end
 
 	if rank["can-rank-inspect"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^2can-rank-inspect, "
+			printedtext = printedtext .. "^2can-rank-inspect^7, "
 		else
-			printedtext = printedtext .. "^2admrank inspect, "
+			printedtext = printedtext .. "^2admrank inspect^7, "
 		end
 	end
 
 	if rank["can-rank-create"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^1can-rank-create, "
+			printedtext = printedtext .. "^1can-rank-create^7, "
 		else
-			printedtext = printedtext .. "^1admrank create, "
+			printedtext = printedtext .. "^1admrank create^7, "
 		end
 	end
 
 	if rank["can-rank-delete"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^1can-rank-delete, "
+			printedtext = printedtext .. "^1can-rank-delete^7, "
 		else
-			printedtext = printedtext .. "^1admrank delete, "
+			printedtext = printedtext .. "^1admrank delete^7, "
 		end
 	end
 
 	if rank["can-alter-rank"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^6can-alter-rank, "
+			printedtext = printedtext .. "^6can-alter-rank^7, "
 		else
-			printedtext = printedtext .. "^6admalter rank, "
+			printedtext = printedtext .. "^6admalter rank^7, "
 		end
 	end
 
 	if rank["can-alter-password"] or listall == true then
 		if listpermissions == true then
-			printedtect = printedtext .. "^6can-alter-password, "
+			printedtect = printedtext .. "^6can-alter-password^7, "
 		else
-			printedtext = printedtext .. "^6admalter password, "
+			printedtext = printedtext .. "^6admalter password^7, "
 		end
 	end
 
 	if rank["can-status"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^2can-status, "
+			printedtext = printedtext .. "^2can-status^7, "
 		else
-			printedtext = printedtext .. "^2admstatus, "
+			printedtext = printedtext .. "^2admstatus^7, "
 		end
 	end
 
 	if rank["can-say"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^5can-say, "
+			printedtext = printedtext .. "^5can-say^7, "
 		else
-			printedtext = printedtext .. "^5admsay, "
+			printedtext = printedtext .. "^5admsay^7, "
 		end
 	end
 
 	if rank["can-tell"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^5can-tell, "
+			printedtext = printedtext .. "^5can-tell^7, "
 		else
-			printedtext = printedtext .. "^5admtell, "
+			printedtext = printedtext .. "^5admtell^7, "
 		end
 	end
 
 	if rank["can-speak"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^5can-speak, "
+			printedtext = printedtext .. "^5can-speak^7, "
 		else
-			printedtext = printedtext .. "^5admspeak, "
+			printedtext = printedtext .. "^5admspeak^7, "
 		end
 	end
 
 	if rank["can-puppet"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^8can-puppet, "
+			printedtext = printedtext .. "^8can-puppet^7, "
 		else
-			printedtext = printedtext .. "^8admpuppet, "
+			printedtext = printedtext .. "^8admpuppet^7, "
 		end
 	end
 
 	if rank["can-place"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^4can-place, "
+			printedtext = printedtext .. "^4can-place^7, "
 		else
-			printedtext = printedtext .. "^4place, "
+			printedtext = printedtext .. "^4place^7, "
 		end
 	end
 
 	if rank["can-delent"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^4can-delent, "
+			printedtext = printedtext .. "^4can-delent^7, "
 		else
-			printedtext = printedtext .. "^4delent, "
+			printedtext = printedtext .. "^4delent^7, "
 		end
 	end
 
 	if rank["can-showspawnvars"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^4can-showspawnvars, "
+			printedtext = printedtext .. "^4can-showspawnvars^7, "
 		else
-			printedtext = printedtext .. "^4showspawnvars, "
+			printedtext = printedtext .. "^4showspawnvars^7, "
 		end
 	end
 
 	if rank["can-entcount"] or listall == true then
 		if listpermissions == true then
-			printedtext = printedtext .. "^4can-entcount, "
+			printedtext = printedtext .. "^4can-entcount^7, "
 		else
-			printedtext = printedtext .. "^4entcount, "
+			printedtext = printedtext .. "^4entcount^7, "
 		end
 	end
 
