@@ -584,96 +584,95 @@ local function AdminHelp_ListPowers( rank )
 	-- This code is used in multiple places, I figured it would be wise to put this into a function
 	if rank == nil then
 		return
-	end	
+	end
+
+	local printedtext = ""
 
 	if rank["can-changedetails"] then
-		printnn("^3admchangedetails, ")
+		printedtext = printedtext .. "^3admchangedetails, "
 	end
 
 	if rank["can-addaccounts"] then
-		printnn("^6admnewaccount, ")
+		printedtext = printedtext .. "^6admnewaccount, "
 	end
 
 	if rank["can-deleteaccounts"] then
-		printnn("^6admdeleteaccount, ")
+		printedtext = printedtext .. "^6admdeleteaccount, "
 	end
 
 	if rank["can-list-online"] then
-		printnn("^2admlist online, ")
+		printedtext = printedtext .. "^2admlist online, "
 	end
 
 	if rank["can-list-admins"] then
-		printnn("^2admlist admins, ")
+		printedtext = printedtext .. "^2admlist admins, "
 	end
 
 	if rank["can-list-ranks"] then
-		printnn("^2admlist ranks, ")
+		printedtext = printedtext .. "^2admlist ranks, "
 	end
 
 	if rank["can-list-powers"] then
-		printnn("^2admlist powers, ")
+		printedtext = printedtext .. "^2admlist powers, "
 	end
 
 	if rank["can-rank-inspect"] then
-		printnn("^2admrank inspect, ")
+		printedtext = printedtext .. "^2admrank inspect, "
 	end
 
 	if rank["can-rank-create"] then
-		printnn("^1admrank create, ")
+		printedtext = printedtext .. "^1admrank create, "
 	end
 
 	if rank["can-rank-delete"] then
-		printnn("^1admrank delete, ")
-	end
-
-	if rank["can-rank-delete"] then
+		printedtext = printedtext .. "^1admrank delete, "
 	end
 
 	if rank["can-alter-rank"] then
-		printnn("^6admalter rank, ")
+		printedtext = printedtext .. "^6admalter rank, "
 	end
 
 	if rank["can-alter-password"] then
-		printnn("^6admalter password, ")
+		printedtext = printedtext .. "^6admalter password, "
 	end
 
 	if rank["can-status"] then
-		printnn("^2admstatus, ")
+		printedtext = printedtext .. "^2admstatus, "
 	end
 
 	if rank["can-say"] then
-		printnn("^5admsay, ")
+		printedtext = printedtext .. "^5admsay, "
 	end
 
 	if rank["can-tell"] then
-		printnn("^5admtell, ")
+		printedtext = printedtext .. "^5admtell, "
 	end
 
 	if rank["can-speak"] then
-		printnn("^5admspeak, ")
+		printedtext = printedtext .. "^5admspeak, "
 	end
 
 	if rank["can-puppet"] then
-		printnn("^8admpuppet, ")
+		printedtext = printedtext .. "^8admpuppet, "
 	end
 
 	if rank["can-place"] then
-		printnn("^4place, ")
+		printedtext = printedtext .. "^4place, "
 	end
 
 	if rank["can-delent"] then
-		printnn("^4delent, ")
+		printedtext = printedtext .. "^4delent, "
 	end
 
 	if rank["can-showspawnvars"] then
-		printnn("^4showspawnvars, ")
+		printedtext = printedtext .. "^4showspawnvars, "
 	end
 
 	if rank["can-entcount"] then
-		printnn("^4entcount, ")
+		printedtext = printedtext .. "^4entcount, "
 	end
 						
-	print(" ")
+	return printedtext
 end
 
 local function Admin_List(ply, argc, argv)
@@ -687,6 +686,7 @@ local function Admin_List(ply, argc, argv)
 					AdmReply(ply, "^1You do not have permission to perform this action.")
 				else
 					local k = 0
+					local printstring = ""
 					AdmReply(ply, "^4Results printed to console.")
 					while players.GetByID(k) ~= nil do
 						local plysel = players.GetByID(k)
@@ -696,48 +696,49 @@ local function Admin_List(ply, argc, argv)
 								local plyselaccountname = plysel:GetAdminAccount()
 								local plyselaccount = admins[plyselaccountname]
 								if plyselaccount ~= nil then
-									printnn(plysel:GetName() .. " [" .. plyselaccountname .. "--" .. plyselaccount["rank"] .. "], " )
+									printstring = printstring .. plysel:GetName() .. " [" .. plyselaccountname .. "--" .. plyselaccount["rank"] .. "], "
 								end
 							end
 						end
 						k = k + 1
 					end
-					print(" ")
+					ply:SendPrint(printstring)
 				end
 			elseif argv[1] == "admins" then
 				if rank["can-list-admins"] ~= true then
 					AdmReply(ply, "^1You do not have permission to perform this action.")
 				else
 					AdmReply(ply, "^4Results printed to console.")
-					print("^2All admin accounts:")
+					ply:SendPrint("^2All admin accounts:")
 					local k
+					local printstring = ""
 					for k = 0, admins["numAdmins"]-1 do
-						printnn(sortedadmins[k]["username"] .. " [" .. sortedadmins[k]["rank"] .. "], ")
+						printstring = printstring .. sortedadmins[k]["username"] .. " [" .. sortedadmins[k]["rank"] .. "], "
 					end
-					print(" ")
+					ply:SendPrint(printstring)
 				end
 			elseif argv[1] == "ranks" then
 				if rank["can-list-ranks"] ~= true then
 					AdmReply(ply, "^1You do not have permission to perform this action.")
 				else
 					AdmReply(ply, "^4Results printed to console.")
-					print("^2All ranks:")
+					ply:SendPrint("^2All ranks:")
 					local k
+					local printstring = ""
 					for k = 0, ranks["numRanks"]-1 do
-						printnn(sortedranks[k]["name"] .. ", ")
+						printstring = printstring .. sortedranks[k]["name"] .. ", "
 					end
-					print(" ")
+					ply:SendPrint(printstring)
 				end
 			elseif argv[1] == "powers" then
 				if rank["can-list-powers"] ~= true then
 					AdmReply(ply, "^1You do not have permission to perform this action.")
 				else
 					AdmReply(ply, "^4Results printed to console.")
-					print("^2Your powers:")
+					ply:SendPrint("^2Your powers:")
 					
-					AdminHelp_ListPowers( rank )
+					ply:SendPrint(AdminHelp_ListPowers( rank ))
 				end
-				print(" ")
 			else
 				AdmReply(ply, "^3Unknown admlist mode. Valid modes are online, admins, ranks, powers")
 			end
@@ -764,9 +765,9 @@ local function Admin_Rank(ply, argc, argv)
 						AdmReply(ply, "^1'" .. argv[2] .. "' is not a valid rank.")
 					else
 						AdmReply(ply, "^4Rank permissions printed to console.")
-						print("^5This rank (" .. argv[2] .. ") can...")
+						ply:SendPrint("^5This rank (" .. argv[2] .. ") can...")
 						
-						AdminHelp_ListPowers( inspectedrank )
+						ply:SendPrint(AdminHelp_ListPowers( inspectedrank ))
 					end
 				end
 			elseif argv[1] == "create" then
@@ -867,21 +868,23 @@ local function Admin_Status(ply, argc, argv)
 		else
 			local k = 0
 			AdmReply(ply, "^4Results printed to console.")
+			ply:SendPrint("^2Status:")
+			local printstring = ""
 			while players.GetByID(k) ~= nil do
 				local plysel = players.GetByID(k)
 				if plysel:IsValid() then
 					local plyselname = plysel:GetName()
-					printnn( k .. " - " .. plyselname )
+					printstring = printstring .. k .. " - " .. plyselname
 					if plysel.IsAdmin then
 						local plyselaccountname = plysel:GetAdminAccount()
 						local plyselaccount = admins[plyselaccountname]
-						printnn( " ^7(^2Logged in as ^4" .. plyselaccountname .. " ^5[Rank: " .. plyselaccount["rank"] .. "]^7)" )
+						
+						printstring = printstring .. " ^7(^2Logged in as ^4" .. plyselaccountname .. " ^5[Rank: " .. plyselaccount["rank"] .. "]^7)"
 					end
-					print(" ")
 				end
 				k = k + 1
 			end
-			print(" ")
+			ply:SendPrint(printstring)
 		end
 	else
 		AdmReply(ply, "^1You are not logged in.")
