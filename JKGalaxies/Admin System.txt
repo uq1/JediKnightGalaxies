@@ -62,6 +62,16 @@ This is done through these commands:
 You must have the proper permissions to do this.
 
 ----------------------------------
+Creating and deleting ranks
+----------------------------------
+
+Simply put,
+
+/admrank create <rank name>
+/admrank delete <rank name> [rank to replace]
+If a rank is in use, you will need to specify the "rank to replace" arg. This will cause any admins using it to be promoted/demoted to that rank.
+
+----------------------------------
 List admins/ranks/powers
 ----------------------------------
 
@@ -81,9 +91,20 @@ To list what your rank can do, type:
 
 /admlist powers
 
-To inspect a rank's powers:
+----------------------------------
+Altering rank powers
+----------------------------------
 
-/admrank inspect <rank name>
+Here's where the magic begins: You can alter rank powers ingame, and make them custom for each user. 
+
+First you'll need to know the way that permissions work.
+You can list all the permissions in the system by doing:
+
+/admlist permissions
+
+You can list what permissions a rank has by doing:
+
+/admrank inspect <rank>
 
 ----------------------------------
 Changing another admin's rank/password

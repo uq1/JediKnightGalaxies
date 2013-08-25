@@ -80,6 +80,9 @@ local function AdmRank_InitRanks( )
 		jObjectItem = json.GetObjectItem( jObject, "can-list-powers" )
 		rank["can-list-online"] = json.ToBooleanOpt( jObjectItem, 1 )
 
+		jObjectItem = json.GetObjectItem( jObject, "can-list-permissions" )
+		rank["can-list-permissions"] = json.ToBooleanOpt( jObjectItem, 0 )
+
 		jObjectItem = json.GetObjectItem( jObject, "can-rank-inspect" )
 		rank["can-rank-inspect"] = json.ToBooleanOpt( jObjectItem, 1 )
 
@@ -194,6 +197,205 @@ local function AdmList_InitAdminList ( )
 	json.Clear()
 end
 
+-- High-Risk (Red/^1): Kicking/Banning, mostly. These are dangerous and should only be given to high-ranking admins.
+-- Harmless (Green/^2): Status, listing stuff, help, etc. These aren't harmful from a security standpoint.
+-- Self-Exploitable (Yellow/^3): From a security standpoint, these are only harmful to the person who uses it. Changing details falls into this category.
+-- Building Commands (Blue/^4): Building stuff. Built stuff can be destroyed by the users (later on, when we implement that, anyway), so no harm done.
+-- Communication (Cyan/^5): Talking with clients, and amongst admins. Can be extremely annoying if spoofed.
+-- Structural (Magenta/^6): Alters the structure of administration, such as dealing with ranks. Not necessarily needed on accounts, but they're there for convenience.
+-- Annoying (Orange/^8): While not necessarily harmful, if used, they can be annoying. Stuff like slap, slay, etc falls into this category.
+
+local function AdminHelp_ListPowers( rank, listpermissions, listall )
+	-- This code is used in multiple places, I figured it would be wise to put this into a function
+	if rank == nil then
+		return
+	end
+
+	local printedtext = ""
+
+	if rank["can-changedetails"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^3can-changedetails, "
+		else
+			printedtext = printedtext .. "^3admchangedetails, "
+		end
+	end
+
+	if rank["can-addaccounts"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^6can-addaccounts, "
+		else
+			printedtext = printedtext .. "^6admnewaccount, "
+		end
+	end
+
+	if rank["can-deleteaccounts"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^6can-deleteaccounts, "
+		else
+			printedtext = printedtext .. "^6admdeleteaccount, "
+		end
+	end
+
+	if rank["can-list-online"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^2can-list-online, "
+		else
+			printedtext = printedtext .. "^2admlist online, "
+		end
+	end
+
+	if rank["can-list-admins"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^2can-list-admins, "
+		else
+			printedtext = printedtext .. "^2admlist admins, "
+		end
+	end
+
+	if rank["can-list-ranks"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^2can-list-ranks, "
+		else
+			printedtext = printedtext .. "^2admlist ranks, "
+		end
+	end
+
+	if rank["can-list-powers"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^2can-list-powers, "
+		else
+			printedtext = printedtext .. "^2admlist powers, "
+		end
+	end
+
+	if rank["can-list-permissions"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^2can-list-permissions, "
+		else
+			printedtext = printedtext .. "^2admlist permissions, "
+		end
+	end
+
+	if rank["can-rank-inspect"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^2can-rank-inspect, "
+		else
+			printedtext = printedtext .. "^2admrank inspect, "
+		end
+	end
+
+	if rank["can-rank-create"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^1can-rank-create, "
+		else
+			printedtext = printedtext .. "^1admrank create, "
+		end
+	end
+
+	if rank["can-rank-delete"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^1can-rank-delete, "
+		else
+			printedtext = printedtext .. "^1admrank delete, "
+		end
+	end
+
+	if rank["can-alter-rank"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^6can-alter-rank, "
+		else
+			printedtext = printedtext .. "^6admalter rank, "
+		end
+	end
+
+	if rank["can-alter-password"] or listall == true then
+		if listpermissions == true then
+			printedtect = printedtext .. "^6can-alter-password, "
+		else
+			printedtext = printedtext .. "^6admalter password, "
+		end
+	end
+
+	if rank["can-status"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^2can-status, "
+		else
+			printedtext = printedtext .. "^2admstatus, "
+		end
+	end
+
+	if rank["can-say"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^5can-say, "
+		else
+			printedtext = printedtext .. "^5admsay, "
+		end
+	end
+
+	if rank["can-tell"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^5can-tell, "
+		else
+			printedtext = printedtext .. "^5admtell, "
+		end
+	end
+
+	if rank["can-speak"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^5can-speak, "
+		else
+			printedtext = printedtext .. "^5admspeak, "
+		end
+	end
+
+	if rank["can-puppet"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^8can-puppet, "
+		else
+			printedtext = printedtext .. "^8admpuppet, "
+		end
+	end
+
+	if rank["can-place"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^4can-place, "
+		else
+			printedtext = printedtext .. "^4place, "
+		end
+	end
+
+	if rank["can-delent"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^4can-delent, "
+		else
+			printedtext = printedtext .. "^4delent, "
+		end
+	end
+
+	if rank["can-showspawnvars"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^4can-showspawnvars, "
+		else
+			printedtext = printedtext .. "^4showspawnvars, "
+		end
+	end
+
+	if rank["can-entcount"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^4can-entcount, "
+		else
+			printedtext = printedtext .. "^4entcount, "
+		end
+	end
+
+	if listall == true or rank["use-cheats"] == true and listpermissions == true then
+		printedtext = printedtext .. "^8can-cheat "
+	end
+						
+	return printedtext
+end
+
 local function RankList_SaveRanks( reason )
 	-- Save the .json file
 	json.RegisterStream( 3, 1 )
@@ -221,6 +423,7 @@ local function RankList_SaveRanks( reason )
 		json.WriteBoolean( "can-list-admins", sortedrank["can-list-admins"] )
 		json.WriteBoolean( "can-list-ranks", sortedrank["can-list-ranks"] )
 		json.WriteBoolean( "can-list-powers", sortedrank["can-list-powers"] )
+		json.WriteBoolean( "can-list-permissions", sortedrank["can-list-permissions"] )
 		json.WriteBoolean( "can-rank-inspect", sortedrank["can-rank-inspect"] )
 		json.WriteBoolean( "can-rank-create", sortedrank["can-rank-create"] )
 		json.WriteBoolean( "can-rank-delete", sortedrank["can-rank-delete"] )
@@ -572,109 +775,6 @@ local function Admin_DeleteAccount(ply, argc, argv)
 	end
 end
 
--- High-Risk (Red/^1): Kicking/Banning, mostly. These are dangerous and should only be given to high-ranking admins.
--- Harmless (Green/^2): Status, listing stuff, help, etc. These aren't harmful from a security standpoint.
--- Self-Exploitable (Yellow/^3): From a security standpoint, these are only harmful to the person who uses it. Changing details falls into this category.
--- Building Commands (Blue/^4): Building stuff. Built stuff can be destroyed by the users (later on, when we implement that, anyway), so no harm done.
--- Communication (Cyan/^5): Talking with clients, and amongst admins. Can be extremely annoying if spoofed.
--- Structural (Magenta/^6): Alters the structure of administration, such as dealing with ranks. Not necessarily needed on accounts, but they're there for convenience.
--- Annoying (Orange/^8): While not necessarily harmful, if used, they can be annoying. Stuff like slap, slay, etc falls into this category.
-
-local function AdminHelp_ListPowers( rank )
-	-- This code is used in multiple places, I figured it would be wise to put this into a function
-	if rank == nil then
-		return
-	end
-
-	local printedtext = ""
-
-	if rank["can-changedetails"] then
-		printedtext = printedtext .. "^3admchangedetails, "
-	end
-
-	if rank["can-addaccounts"] then
-		printedtext = printedtext .. "^6admnewaccount, "
-	end
-
-	if rank["can-deleteaccounts"] then
-		printedtext = printedtext .. "^6admdeleteaccount, "
-	end
-
-	if rank["can-list-online"] then
-		printedtext = printedtext .. "^2admlist online, "
-	end
-
-	if rank["can-list-admins"] then
-		printedtext = printedtext .. "^2admlist admins, "
-	end
-
-	if rank["can-list-ranks"] then
-		printedtext = printedtext .. "^2admlist ranks, "
-	end
-
-	if rank["can-list-powers"] then
-		printedtext = printedtext .. "^2admlist powers, "
-	end
-
-	if rank["can-rank-inspect"] then
-		printedtext = printedtext .. "^2admrank inspect, "
-	end
-
-	if rank["can-rank-create"] then
-		printedtext = printedtext .. "^1admrank create, "
-	end
-
-	if rank["can-rank-delete"] then
-		printedtext = printedtext .. "^1admrank delete, "
-	end
-
-	if rank["can-alter-rank"] then
-		printedtext = printedtext .. "^6admalter rank, "
-	end
-
-	if rank["can-alter-password"] then
-		printedtext = printedtext .. "^6admalter password, "
-	end
-
-	if rank["can-status"] then
-		printedtext = printedtext .. "^2admstatus, "
-	end
-
-	if rank["can-say"] then
-		printedtext = printedtext .. "^5admsay, "
-	end
-
-	if rank["can-tell"] then
-		printedtext = printedtext .. "^5admtell, "
-	end
-
-	if rank["can-speak"] then
-		printedtext = printedtext .. "^5admspeak, "
-	end
-
-	if rank["can-puppet"] then
-		printedtext = printedtext .. "^8admpuppet, "
-	end
-
-	if rank["can-place"] then
-		printedtext = printedtext .. "^4place, "
-	end
-
-	if rank["can-delent"] then
-		printedtext = printedtext .. "^4delent, "
-	end
-
-	if rank["can-showspawnvars"] then
-		printedtext = printedtext .. "^4showspawnvars, "
-	end
-
-	if rank["can-entcount"] then
-		printedtext = printedtext .. "^4entcount, "
-	end
-						
-	return printedtext
-end
-
 local function Admin_List(ply, argc, argv)
 	if ply.IsAdmin then
 		if argc < 2 then
@@ -737,7 +837,16 @@ local function Admin_List(ply, argc, argv)
 					AdmReply(ply, "^4Results printed to console.")
 					ply:SendPrint("^2Your powers:")
 					
-					ply:SendPrint(AdminHelp_ListPowers( rank ))
+					ply:SendPrint(AdminHelp_ListPowers( rank, false, false ))
+				end
+			elseif argv[1] == "permissions" then
+				if rank["can-list-permissions"] ~= true then	
+					AdmReply(ply, "^1You do not have permission to perform this action.")
+				else
+					AdmReply(ply, "^4Results printed to console.")
+					ply:SendPrint("^2All permissions:")
+
+					ply:SendPrint(AdminHelp_ListPowers( rank, true, true ))
 				end
 			else
 				AdmReply(ply, "^3Unknown admlist mode. Valid modes are online, admins, ranks, powers")
@@ -767,7 +876,11 @@ local function Admin_Rank(ply, argc, argv)
 						AdmReply(ply, "^4Rank permissions printed to console.")
 						ply:SendPrint("^5This rank (" .. argv[2] .. ") can...")
 						
-						ply:SendPrint(AdminHelp_ListPowers( inspectedrank ))
+						ply:SendPrint(AdminHelp_ListPowers( inspectedrank, false, false ))
+
+						ply:SendPrint("^5Rank permissions:")
+
+						ply:SendPrint(AdminHelp_ListPowers( inspectedrank, false, true ))
 					end
 				end
 			elseif argv[1] == "create" then
