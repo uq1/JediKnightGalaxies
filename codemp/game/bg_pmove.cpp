@@ -8063,7 +8063,7 @@ static void PM_Weapon( void )
 		{
 			PM_StartTorsoAnim( weaponData->anims.firing.torsoAnim );
 		}
-		pm->ps->torsoTimer = 200;
+		pm->ps->torsoFlip = qtrue;
 	}
 	if ( pm->ps->weapon != WP_MELEE || !pm->ps->m_iVehicleNum )
 	{
@@ -8079,6 +8079,7 @@ static void PM_Weapon( void )
 		case FT_SEMI:
 			addTime = weaponData->firemodes[pm->ps->firingMode].delay;
 			pm->ps->shotsRemaining = SHOTS_TOGGLEBIT;
+			pm->ps->torsoTimer = addTime + 100;
 			break;
 		        
 		case FT_BURST:
@@ -8092,6 +8093,7 @@ static void PM_Weapon( void )
 				addTime = weaponData->firemodes[pm->ps->firingMode].burstFireDelay;
 				pm->ps->shotsRemaining = (pm->ps->shotsRemaining - 1) & ~SHOTS_TOGGLEBIT;
 			}
+			pm->ps->torsoTimer = addTime;
 			break;		
 	}
 
