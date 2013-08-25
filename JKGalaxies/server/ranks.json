@@ -7,6 +7,9 @@
 
 			// Specific booleans stating whether we can do certain things
 
+			// Do we want to use cheats? This includes stuff like /god, /notarget, etc...
+			"use-cheats":		1,
+
 			// Defaults to 1
 			"can-changedetails":	1,
 

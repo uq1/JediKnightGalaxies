@@ -585,6 +585,8 @@ typedef struct {
 	int			validated;		// 1 if the client-side validation was received
 	/* Admin system */
 	int			adminRank;
+
+	bool		canUseCheats;
 } clientSession_t;
 
 // playerstate mGameFlags

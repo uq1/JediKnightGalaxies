@@ -115,6 +115,9 @@ local function AdmRank_InitRanks( )
 
 		jObjectItem = json.GetObjectItem( jObject, "can-showspawnvars" )
 		rank["can-showspawnvars"] = json.ToBooleanOpt( jObjectItem, 0 )
+
+		jObjectItem = json.GetObjectItem( jObject, "use-cheats" )
+		rank["use-cheats"] = json.ToBooleanOpt( jObjectItem, 1 )
 	
 		--
 		-- END COMMAND-BASED STUFF
@@ -224,6 +227,7 @@ local function RankList_SaveRanks( reason )
 		json.WriteBoolean( "can-delent", sortedrank["can-delent"] )
 		json.WriteBoolean( "can-showspawnvars", sortedrank["can-showspawnvars"] )
 		json.WriteBoolean( "can-entcount", sortedrank["can-entcount"] )
+		json.WriteBoolean( "use-cheats", sortedrank["use-cheats"] )
 		
 		-- Array base object
 		json.EndObject( )
@@ -379,6 +383,11 @@ local function Admin_Login(ply, argc, argv)
 			ply.IsAdmin = true
 			ply:SetAdminAccount(argv[1])
 			AdmReply(ply, "^2Admin login successful")
+
+			if ranks[admins[argv]["rank"]]["use-cheats"] then
+				-- We can use cheats. Alright, mang! Let's set things up so that the C++ code knows that we can...
+				ply.CanUseCheats = true
+			end
 			return
 		end
 	end
@@ -390,6 +399,9 @@ local function Admin_Logout(ply, argc, argv)
 	if ply.IsAdmin then
 		ply.IsAdmin = false
 		ply:SetAdminAccount(" ")
+		if ply.CanUseCheats then
+			ply.CanUseCheats = false -- don't want us using cheats when we shouldn't be able to...
+		end
 		AdmReply(ply, "^5You are now logged out")
 		return
 	end

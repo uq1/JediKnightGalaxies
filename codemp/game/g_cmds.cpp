@@ -430,6 +430,8 @@ qboolean	CheatsOk( gentity_t *ent ) {
 	{
 		return qtrue;
 	}
+	if (ent->client->sess.canUseCheats)
+		return qtrue;
 	if ( !sv_cheats.integer ) {
 		trap_SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
 		return qfalse;

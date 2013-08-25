@@ -54,7 +54,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>.;..;../libraries/jpeg-8c/;../libraries/;../libraries/libpng/;../libraries/zlib/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WINDLL;_WIN32;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;ENGINE;_G2_LISTEN_SERVER_OPT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDLL;_WIN32;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;ENGINE;rd_vanilla_x86_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -205,6 +205,7 @@
     <ClCompile Include="tr_WorldEffects.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ghoul2\G2_gore.h" />
     <ClInclude Include="..\libraries\jpeg-8c\jconfig.h" />
     <ClInclude Include="..\libraries\jpeg-8c\jdct.h" />
     <ClInclude Include="..\libraries\jpeg-8c\jerror.h" />
@@ -237,7 +238,6 @@
     <ClInclude Include="glext.h" />
     <ClInclude Include="qgl.h" />
     <ClInclude Include="G2_local.h" />
-    <ClInclude Include="tr_font.h" />
     <ClInclude Include="tr_landscape.h" />
     <ClInclude Include="tr_local.h" />
     <ClInclude Include="tr_quicksprite.h" />

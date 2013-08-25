@@ -604,6 +604,30 @@ static int GLua_Player_CurrentlyLooting_Set(lua_State *L) {
 	ent->currentlyLooting = &g_entities[luaL_checkinteger(L, 2)];
 	return 0;
 }
+
+static int GLua_Player_CanUseCheats_Get(lua_State *L)
+{
+	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
+
+	if(!ply) return 0;
+
+	gentity_t *ent = &g_entities[ply->clientNum];
+
+	lua_pushinteger(L, ent->client->sess.canUseCheats);
+	return 1;
+}
+
+static int GLua_Player_CanUseCheats_Set(lua_State *L)
+{
+	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
+
+	if(!ply) return 0;
+
+	gentity_t *ent = &g_entities[ply->clientNum];
+
+	ent->client->sess.canUseCheats = luaL_checkinteger(L, 2);
+	return 0;
+}
 //eezstreet end
 
 static int GLua_Player_GetEyeTrace(lua_State *L) {
@@ -1862,6 +1886,7 @@ static const struct GLua_Prop player_p [] = {
 	{"CustomTeam", GLua_Player_GetCustomTeam, GLua_Player_SetCustomTeam},
 	//eezstreet add
 	{"CurrentlyLooting", GLua_Player_CurrentlyLooting_Get, GLua_Player_CurrentlyLooting_Set},
+	{"CanUseCheats", GLua_Player_CanUseCheats_Get, GLua_Player_CanUseCheats_Set},
 	//eezstreet end
 	{NULL,		NULL,						NULL},
 };

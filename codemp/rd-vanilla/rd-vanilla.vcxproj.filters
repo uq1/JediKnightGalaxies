@@ -16,12 +16,6 @@
     <ClCompile Include="G2_misc.cpp">
       <Filter>Ghoul2</Filter>
     </ClCompile>
-    <ClCompile Include="..\qcommon\GenericParser2.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\qcommon\matcomp.cpp">
-      <Filter>Ghoul2</Filter>
-    </ClCompile>
     <ClCompile Include="..\qcommon\q_math.cpp">
       <Filter>Shared</Filter>
     </ClCompile>
@@ -371,7 +365,13 @@
       <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="..\ghoul2\G2_gore.cpp">
-      <Filter>Ghoul2</Filter>
+      <Filter>g2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\qcommon\GenericParser2.cpp">
+      <Filter>Shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\qcommon\matcomp.cpp">
+      <Filter>Shared</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -388,9 +388,6 @@
       <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="tr_WorldEffects.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="tr_font.h">
       <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="tr_landscape.h">
@@ -486,6 +483,9 @@
     <ClInclude Include="..\rd-common\tr_types.h">
       <Filter>Shared</Filter>
     </ClInclude>
+    <ClInclude Include="..\ghoul2\G2_gore.h">
+      <Filter>g2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Libraries">
@@ -511,6 +511,9 @@
     </Filter>
     <Filter Include="Libraries\libpng">
       <UniqueIdentifier>{575b251b-7e07-4ca9-a58d-0dc467f3db35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="g2">
+      <UniqueIdentifier>{1a782c51-0ce1-4758-8d32-9e9667ce2788}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

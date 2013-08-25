@@ -1354,10 +1354,10 @@ void CL_KeyEvent( int key, qboolean down, unsigned time )
 	if ( Key_GetCatcher() & KEYCATCH_CONSOLE )
 		Console_Key( key );
 
-	if ( uivm )
+	else if ( uivm && Key_GetCatcher() & KEYCATCH_UI )
 		VM_Call( uivm, UI_KEY_EVENT, key, down );
 
-	if ( cgvm )
+	else if ( cgvm && Key_GetCatcher() & KEYCATCH_CGAME )
 		VM_Call( cgvm, CG_KEY_EVENT, key, down );
 
 	// chatbox
