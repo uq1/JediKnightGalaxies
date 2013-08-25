@@ -53,21 +53,27 @@ local function delent(ply, argc, argv)
 		return
 	end
 
+	local ent
 	if argc < 2 then
-		ply:SendPrint("Usage: /delent <entity index> (use with caution)")
-		return
-	else
-		local ent = ents.GetByIndex(argv[1])
-		if ent:IsPlayer() then
-			ply:SendPrint("You cannot delete player entities")
+		-- Minor improvement...let's delent what we're looking at --eez
+		ent = ply:GetEyeTrace().Entity
+		if ent == nil then
+			ply:SendPrint("Usage: /delent <entity index> (use with caution)")
 			return
 		end
-		if ent:IsValid() then
-			ply:SendPrint("Freeing entity " .. tostring(ent) .. "...")
-			ent:Free()
-		else
-			ply:SendPrint("Specified entity does not exist")
-		end
+	else
+		ent = ents.GetByIndex(argv[1])
+	end
+
+	if ent:IsPlayer() then
+		ply:SendPrint("You cannot delete player entities")
+		return
+	end
+	if ent:IsValid() then
+		ply:SendPrint("Freeing entity " .. tostring(ent) .. "...")
+		ent:Free()
+	else
+		ply:SendPrint("Specified entity does not exist")
 	end
 end
 
