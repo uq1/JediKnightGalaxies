@@ -11,6 +11,7 @@
         "hudicon":          "models/weapons/SuppressorPistol/icon_adv",
         "hudnaicon":        "models/weapons/SuppressorPistol/icon_adv",
         "selectsound":      "sound/weapons/select_pistol.wav",
+	"barrelCount":	    1,
         
         "indicators": {
             "ammo":         [ "models/weapons/suppressorpistol/pad", "models/weapons/suppressorpistol/pad10" ],

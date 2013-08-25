@@ -367,6 +367,9 @@ typedef struct weaponVisual_s
 	//eezstreet add: Variable crosshairs
 	int crosshairValue;
 
+	// eez: variable number of barrels, default is 4
+	int barrelCount;
+
 	weaponVisualFireMode_t visualFireModes[MAX_FIREMODES];
 } weaponVisual_t;
 

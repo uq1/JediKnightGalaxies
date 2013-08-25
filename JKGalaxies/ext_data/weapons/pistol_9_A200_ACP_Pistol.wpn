@@ -11,6 +11,7 @@
         "hudicon":          "models/weapons/A200_ACP_Pistol/icon_default",
         "hudnaicon":        "models/weapons/A200_ACP_Pistol/icon_default",
         "selectsound":      "sound/weapons/select_pistol.wav",
+	"barrelCount":	    2,
         
         "indicators": {
             "ammo":         [ "models/weapons/A200_ACP_Pistol/pad", "models/weapons/A200_ACP_Pistol/pad10" ]

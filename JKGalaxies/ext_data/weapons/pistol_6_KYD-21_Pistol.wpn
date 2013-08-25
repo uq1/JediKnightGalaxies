@@ -11,6 +11,7 @@
         "hudicon":          "models/weapons/KYD-21_Pistol/icon_targeter",
         "hudnaicon":        "models/weapons/KYD-21_Pistol/icon_targeter",
         "selectsound":      "sound/weapons/select_pistol.wav",
+	"barrelCount":	    1,
         
         "indicators": {
             "ammo":         [ "models/weapons/KYD-21_Pistol/bar3", "models/weapons/KYD-21_Pistol/bar2" ],

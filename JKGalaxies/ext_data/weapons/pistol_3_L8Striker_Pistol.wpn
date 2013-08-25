@@ -11,6 +11,7 @@
         "hudicon":          "models/weapons/l8striker_pistol/icon_rusty",
         "hudnaicon":        "models/weapons/l8striker_pistol/icon_rusty",
         "selectsound":      "sound/weapons/select_pistol.wav",
+	"barrelCount":      0,
         
         "indicators": {
             "ammo":         [ "models/weapons/l8striker_pistol/numbers3" ],

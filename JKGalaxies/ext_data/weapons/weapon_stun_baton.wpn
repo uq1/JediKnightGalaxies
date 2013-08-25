@@ -10,6 +10,7 @@
         "worldmodel":       "models/weapons2/stun_baton/baton_w.glm",
         "hudicon":          "gfx/hud/w_icon_stunbaton",
         "hudnaicon":        "gfx/hud/w_icon_stunbaton_na",
+	"barrelCount":	    3,
     
         "firemode0": {
             "type":         "blaster"

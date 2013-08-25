@@ -11,6 +11,7 @@
         "hudicon":          "models/weapons/elg-3a_pistol/icon_default",
         "hudnaicon":        "models/weapons/elg-3a_pistol/icon_default",
         "selectsound":      "sound/weapons/select_pistol.wav",
+	"barrelCount":      1,
         
         "indicators": {
             "ammo":         [ "models/weapons/elg-3a_pistol/indicator", "models/weapons/elg-3a_pistol/indicator0" ],

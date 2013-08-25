@@ -11,6 +11,7 @@
         "hudicon":          "models/weapons/fwg-5_flechettepistol/icon_default",
         "hudnaicon":        "models/weapons/fwg-5_flechettepistol/icon_default",
         "selectsound":      "sound/weapons/select_pistol.wav",
+	"barrelCount":	    2,
         
         "indicators": {
             "ammo":         [ "models/weapons/fwg-5_flechettepistol/indicator" ],

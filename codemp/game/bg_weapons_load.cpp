@@ -873,6 +873,10 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
 	//Crosshair -- eezstreet add
 	node = cJSON_GetObjectItem (visualsNode, "crosshairValue");
 	weaponVisuals->crosshairValue = (int)cJSON_ToNumberOpt(node, (double)1);
+
+	//Barrel count -- eezstreet add
+	node = cJSON_GetObjectItem (visualsNode, "barrelCount");
+	weaponVisuals->barrelCount = cJSON_ToIntegerOpt(node, 4);
     
     /*node = cJSON_GetObjectItem (visualsNode, "primary");
     BG_ParseVisualsFireMode (&weaponVisuals->primary, node);

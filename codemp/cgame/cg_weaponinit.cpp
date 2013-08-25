@@ -306,11 +306,11 @@ void JKG_LoadWeaponAssets ( weaponInfo_t *weaponInfo, const weaponData_t *weapon
     const weaponVisual_t *weaponVisuals = &weaponData->visuals;
     
     weaponInfo->indicatorType = weaponVisuals->indicatorType;
-    for ( i = 0; i < 3; i++ )
+	for ( i = 0; i < 4; i++ )
     {
         if ( weaponVisuals->groupedIndicatorShaders[i][0] )
         {
-            weaponInfo->groupedIndicators[i] = trap_R_RegisterShader (weaponVisuals->groupedIndicatorShaders[i]);
+			weaponInfo->groupedIndicators[i] = trap_R_RegisterShader (weaponVisuals->groupedIndicatorShaders[i]);
         }
     }
     
@@ -347,11 +347,18 @@ void JKG_LoadWeaponAssets ( weaponInfo_t *weaponInfo, const weaponData_t *weapon
     memset (weaponInfo->barrelModels, NULL_HANDLE, sizeof (weaponInfo->barrelModels));
     COM_StripExtension (weaponVisuals->view_model, extensionlessModel, sizeof(extensionlessModel));
     
-    for ( i = 0; i < 4; i++ )
+    for ( i = 0; i < weaponVisuals->barrelCount; i++ )
     {
-        const char *barrelModel = va ("%s%s", extensionlessModel, barrelSuffixes[i]);
-        int len = strlen (barrelModel);
+        const char *barrelModel;
+        int len;
         qhandle_t barrel;
+
+		if( i == 0 )
+			barrelModel = va("%s_barrel.md3", extensionlessModel);
+		else
+			barrelModel = va("%s_barrel%i.md3", extensionlessModel, i+1);
+
+		len = strlen( barrelModel );
         
         if ( (len + 1) > MAX_QPATH )
         {
