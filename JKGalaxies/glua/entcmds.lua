@@ -144,16 +144,73 @@ local function entcount(ply, argc, argv)
 	ply:SendPrint(string.format("Entity count - Normal: %i (%i slots allocated) / Logical: %i (%i slots allocated)", ents.EntCount(), ents.EntCountAllocated(), ents.LogicalEntCount(), ents.LogicalEntCountAllocated()))
 end
 
+local function rotate(ply, argc, argv)
+	if ply.IsAdmin ~= true then
+		ply:SendPrint("^7Admin System - ^1You are not logged in.")
+		return
+	end
+
+	local rank = AdmRank_GetRank(ply)
+	if rank["can-rotate"] ~= true then
+		ply:SendPrint("^1Admin ^5- ^7You are not allowed to use this command")
+		return
+	end
+
+	if argc < 4 then
+		-- We physically can NOT operate without pitch/yaw/roll
+		ply:SendPrint("Usage: /bRotate <entity index> <Pitch> <Yaw> <Roll>")
+		return
+	end
+
+	local ent
+	if argc < 5 then
+		ent = ply:GetEyeTrace().Entity
+		if ent:IsValid() == false then
+			ply:SendPrint("Usage: /bRotate <entity index> <Pitch> <Yaw> <Roll>")
+			return
+		end
+	else
+		ent = ents.GetByIndex(argv[1])
+	end
+
+	if ent:IsValid() then
+		local angles
+		if argc < 5 then
+			angles = Vector(argv[1] .. " " .. argv[2] .. " " .. argv[3])
+		else
+			angles = Vector(argv[2] .. " " .. argv[3] .. " " .. argv[4])
+		end
+
+		ent:Rotate( angles, 5000 )
+	else
+		ply:SendPrint("Specified ent is invalid.")
+	end
+end
+
 local function InitEntCmds()
 	cmds.Add("entcount", entcount)
 	cmds.Add("place", place)
 	cmds.Add("delent", delent)
 	cmds.Add("showspawnvars", ShowSpawnVars)
+	cmds.Add("rotate", rotate)
+
+	cmds.Add("bEntCount", entcount)
+	cmds.Add("bPlace", place)
+	cmds.Add("bDelent", delent)
+	cmds.Add("bShowSpawnVars", ShowSpawnVars)
+	cmds.Add("bRotate", rotate)
 
 	chatcmds.Add("entcount", entcount)
 	chatcmds.Add("place", place)
 	chatcmds.Add("delent", delent)
 	chatcmds.Add("showspawnvars", ShowSpawnVars)
+	chatcmds.Add("rotate", rotate)
+
+	chatcmds.Add("bEntCount", entcount)
+	chatcmds.Add("bPlace", place)
+	chatcmds.Add("bDelent", delent)
+	chatcmds.Add("bShowSpawnVars", ShowSpawnVars)
+	chatcmds.Add("bRotate", rotate)
 end
 
 InitEntCmds()

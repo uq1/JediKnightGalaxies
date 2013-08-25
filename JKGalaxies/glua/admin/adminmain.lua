@@ -131,6 +131,9 @@ local function AdmRank_InitRanks( )
 		jObjectItem = json.GetObjectItem( jObject, "can-showspawnvars" )
 		rank["can-showspawnvars"] = json.ToBooleanOpt( jObjectItem, 0 )
 
+		jObjectItem = json.GetObjectItem( jObject, "can-rotate" )
+		rank["can-rotate"] = json.ToBooleanOpt( jObjectItem, 0 )
+
 		jObjectItem = json.GetObjectItem( jObject, "use-cheats" )
 		rank["use-cheats"] = json.ToBooleanOpt( jObjectItem, 1 )
 	
@@ -383,7 +386,7 @@ local function AdminHelp_ListPowers( rank, listpermissions, listall )
 		if listpermissions == true then
 			printedtext = printedtext .. "^4can-place^7, "
 		else
-			printedtext = printedtext .. "^4place^7, "
+			printedtext = printedtext .. "^4bPlace^7, "
 		end
 	end
 
@@ -391,7 +394,7 @@ local function AdminHelp_ListPowers( rank, listpermissions, listall )
 		if listpermissions == true then
 			printedtext = printedtext .. "^4can-delent^7, "
 		else
-			printedtext = printedtext .. "^4delent^7, "
+			printedtext = printedtext .. "^4bDelent^7, "
 		end
 	end
 
@@ -399,7 +402,7 @@ local function AdminHelp_ListPowers( rank, listpermissions, listall )
 		if listpermissions == true then
 			printedtext = printedtext .. "^4can-showspawnvars^7, "
 		else
-			printedtext = printedtext .. "^4showspawnvars^7, "
+			printedtext = printedtext .. "^4bShowSpawnVars^7, "
 		end
 	end
 
@@ -407,7 +410,15 @@ local function AdminHelp_ListPowers( rank, listpermissions, listall )
 		if listpermissions == true then
 			printedtext = printedtext .. "^4can-entcount^7, "
 		else
-			printedtext = printedtext .. "^4entcount^7, "
+			printedtext = printedtext .. "^4bEntCount^7, "
+		end
+	end
+
+	if rank["can-rotate"] or listall == true then
+		if listpermissions == true then
+			printedtext = printedtext .. "^4can-rotate^7, "
+		else
+			printedtext = printedtext .. "^4bRotate^7, "
 		end
 	end
 
@@ -467,6 +478,8 @@ local function RankPermission_IsValid( permissionname )
 		return true
 	elseif permissionname == "can-entcount" then
 		return true
+	elseif permissionname == "can-rotate" then
+		return true
 	elseif permissionname == "use-cheats" then
 		return true
 	else
@@ -518,6 +531,7 @@ local function RankList_SaveRanks( reason )
 		json.WriteBoolean( "can-delent", sortedrank["can-delent"] )
 		json.WriteBoolean( "can-showspawnvars", sortedrank["can-showspawnvars"] )
 		json.WriteBoolean( "can-entcount", sortedrank["can-entcount"] )
+		json.WriteBoolean( "can-rotate", sortedrank["can-rotate"] )
 		json.WriteBoolean( "use-cheats", sortedrank["use-cheats"] )
 		
 		-- Array base object

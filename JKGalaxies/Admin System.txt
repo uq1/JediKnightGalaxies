@@ -151,13 +151,14 @@ You can construct maps using a few of the standard Lugormod commands. JKG does n
 
 Commands:
 
-/place <entity classname> <Z offset> [flags]
+/bPlace <entity classname> <Z offset> [flags]
 
 For more information about the flags, see GTK Radiant for more information.
 
-/delent [entity number]
+/bDelent [entity number]
 
 If no entity number is provided, it will delete the target that you are looking at.
 
-/showspawnvars [entity number]
-/entlist
+/bShowSpawnVars [entity number]
+/bEntList
+/bRotate [entity number] <Pitch> <Yaw> <Roll>
