@@ -613,7 +613,7 @@ static int GLua_Player_CanUseCheats_Get(lua_State *L)
 
 	gentity_t *ent = &g_entities[ply->clientNum];
 
-	lua_pushinteger(L, ent->client->sess.canUseCheats);
+	lua_pushboolean(L, ent->client->sess.canUseCheats);
 	return 1;
 }
 
@@ -625,7 +625,7 @@ static int GLua_Player_CanUseCheats_Set(lua_State *L)
 
 	gentity_t *ent = &g_entities[ply->clientNum];
 
-	ent->client->sess.canUseCheats = luaL_checkinteger(L, 2);
+	ent->client->sess.canUseCheats = lua_toboolean(L, 2);
 	return 0;
 }
 //eezstreet end

@@ -677,7 +677,6 @@ local function AdmReply(ply, message)
 end
 
 local function Admin_Login(ply, argc, argv)
-	local k,v
 	if argc ~= 3 then
 		-- Invalid number of arguments
 		AdmReply(ply, "^1Invalid arguments")
@@ -697,7 +696,7 @@ local function Admin_Login(ply, argc, argv)
 			local account = admins[argv[1]]
 			local rank = ranks[account["rank"]]
 
-			if rank["use-cheats"] then
+			if rank["use-cheats"] == true then
 				-- We can use cheats. Alright, mang! Let's set things up so that the C++ code knows that we can...
 				ply.CanUseCheats = true
 			end
