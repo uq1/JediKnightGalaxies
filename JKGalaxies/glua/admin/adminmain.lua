@@ -694,7 +694,10 @@ local function Admin_Login(ply, argc, argv)
 			ply:SetAdminAccount(argv[1])
 			AdmReply(ply, "^2Admin login successful")
 
-			if ranks[admins[argv[1]]["rank"]]["use-cheats"] then
+			local account = admins[argv[1]]
+			local rank = ranks[account["rank"]]
+
+			if rank["use-cheats"] then
 				-- We can use cheats. Alright, mang! Let's set things up so that the C++ code knows that we can...
 				ply.CanUseCheats = true
 			end
