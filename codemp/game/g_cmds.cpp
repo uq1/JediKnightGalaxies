@@ -300,7 +300,7 @@ void JKG_BuyItem_f(gentity_t *ent)
 	{
 		for(i = 0; i < numEnts; i++)
 		{
-			if(!strncmp(g_entities[entities[i]].classname, "trigger_", 8))
+			if(!strncmp(g_entities[entities[i]].classname, "trigger_", 8) || !Q_stricmp(g_entities[entities[i]].classname, "misc_model_breakable"))
 			{
 				//This ent is a trigger. OH SNAP.
 				gentity_t *pointingAt = G_Find(NULL, FOFS(targetname), g_entities[entities[i]].target);
@@ -326,7 +326,7 @@ void JKG_BuyItem_f(gentity_t *ent)
 					continue;	//No target
 				}
 
-				switch (pointingAt->client->NPC_class)
+				/*switch (pointingAt->client->NPC_class)
 				{// UQ1: Need to change these in the actual NPC script files...
 				case CLASS_GENERAL_VENDOR:
 				case CLASS_WEAPONS_VENDOR:
@@ -338,17 +338,17 @@ void JKG_BuyItem_f(gentity_t *ent)
 				case CLASS_TRADE_VENDOR:
 				case CLASS_ODDITIES_VENDOR:
 				case CLASS_DRUG_VENDOR:
-				case CLASS_TRAVELLING_VENDOR:
+				case CLASS_TRAVELLING_VENDOR:*/
 					{//This is a vendor. Buy it!
 						char buffer[16];
 						trap_Argv(1, buffer, sizeof(buffer));
 						JKG_Vendor_Buy(ent, pointingAt, atoi(buffer));
 						return;
 					}
-					break;
+					/*break;
 				default:
 					break;
-				}
+				}*/
 			}
 		}
 	}

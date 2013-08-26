@@ -887,31 +887,38 @@ void JKG_CreateNewVendor(gentity_t *ent, int desiredVendorID, qboolean random, q
 	ent->flags |= FL_NOTARGET;
 	ent->flags |= FL_NO_KNOCKBACK;
 	//FIXME: Getting a Error in this swift, npc files need a scripts on its own. --Stoiss
-	switch (ent->client->NPC_class)
-	{// UQ1: Need to change these in the actual NPC script files...
-	case CLASS_GENERAL_VENDOR:
-	case CLASS_WEAPONS_VENDOR:
-	case CLASS_ARMOR_VENDOR:
-	case CLASS_SUPPLIES_VENDOR:
-	case CLASS_FOOD_VENDOR:
-	case CLASS_MEDICAL_VENDOR:
-	case CLASS_GAMBLER_VENDOR:
-	case CLASS_TRADE_VENDOR:
-	case CLASS_ODDITIES_VENDOR:
-	case CLASS_DRUG_VENDOR:
-	case CLASS_TRAVELLING_VENDOR:
-		break;
-	default:
-		G_Printf("FIXME: NPC Vendor FORCED to CLASS_GENERAL_VENDOR. Vendors should have their own NPC file with a vendor class.\n");
-		ent->client->NPC_class = CLASS_GENERAL_VENDOR;
-		ent->s.NPC_class = CLASS_GENERAL_VENDOR;
-		break;
+	if ( ent->client )
+	{
+		switch (ent->client->NPC_class)
+		{// UQ1: Need to change these in the actual NPC script files...
+		case CLASS_GENERAL_VENDOR:
+		case CLASS_WEAPONS_VENDOR:
+		case CLASS_ARMOR_VENDOR:
+		case CLASS_SUPPLIES_VENDOR:
+		case CLASS_FOOD_VENDOR:
+		case CLASS_MEDICAL_VENDOR:
+		case CLASS_GAMBLER_VENDOR:
+		case CLASS_TRADE_VENDOR:
+		case CLASS_ODDITIES_VENDOR:
+		case CLASS_DRUG_VENDOR:
+		case CLASS_TRAVELLING_VENDOR:
+			break;
+		default:
+			G_Printf("FIXME: NPC Vendor FORCED to CLASS_GENERAL_VENDOR. Vendors should have their own NPC file with a vendor class.\n");
+			ent->client->NPC_class = CLASS_GENERAL_VENDOR;
+			ent->s.NPC_class = CLASS_GENERAL_VENDOR;
+			break;
+		}
 	}
 
 	ent->use = JKG_target_vendor_use; // why not? separate trigger seems a waste...
 	ent->r.svFlags |= SVF_PLAYER_USABLE;
-	ent->client->enemyTeam = NPCTEAM_NEUTRAL;
-	ent->client->playerTeam = NPCTEAM_NEUTRAL;
+
+	if( ent->client )
+	{
+		ent->client->enemyTeam = NPCTEAM_NEUTRAL;
+		ent->client->playerTeam = NPCTEAM_NEUTRAL;
+	}
 
 	//refreshStock overrides random
 	if(refreshStock && random)
@@ -1075,34 +1082,37 @@ void JKG_target_vendor_use(gentity_t *ent, gentity_t *other, gentity_t *activato
 	vendorTarget->flags |= FL_NOTARGET;
 	vendorTarget->flags |= FL_NO_KNOCKBACK;
 
-	// UQ1: Face the customer...
-	NPC = vendorTarget;
-	NPCInfo = NPC->NPC;
-	ucmd = NPC->client->pers.cmd;
-	NPC_FaceEntity( activator, qfalse );
+	if( vendorTarget->s.eType == ET_NPC )
+	{
+		// UQ1: Face the customer...
+		NPC = vendorTarget;
+		NPCInfo = NPC->NPC;
+		ucmd = NPC->client->pers.cmd;
+		NPC_FaceEntity( activator, qfalse );
 
-	if (NPC_VendorHasVendorSound(vendorTarget, "welcome00"))
-	{// This NPC has it's own vendor specific sound(s)...
-		char	filename[256];
-		int		max = 1;
+		if (NPC_VendorHasVendorSound(vendorTarget, "welcome00"))
+		{// This NPC has it's own vendor specific sound(s)...
+			char	filename[256];
+			int		max = 1;
 
-		while (NPC_VendorHasVendorSound(vendorTarget, va("welcome0%i", max))) max++;
+			while (NPC_VendorHasVendorSound(vendorTarget, va("welcome0%i", max))) max++;
 
-		strcpy(filename, va("sound/vendor/%s/welcome0%i.mp3", vendorTarget->NPC_type, irand(0, max-1)));
-		NPC_ConversationAnimation(vendorTarget);
-		G_SoundOnEnt( vendorTarget, CHAN_VOICE_ATTEN, filename );
-	}
-	else if (NPC_VendorHasConversationSounds(vendorTarget))
-	{// Override with generic chat sounds for this specific NPC...
-		strcpy(filename, va("sound/conversation/%s/conversation00.mp3", vendorTarget->NPC_type));
-		NPC_ConversationAnimation(vendorTarget);
-		G_SoundOnEnt( vendorTarget, CHAN_VOICE_ATTEN, filename );
-	}
-	else
-	{// Use generic shop open sound (english)... Meh! Couldn't find any... Needs to be looked into...
-		strcpy(filename, va("sound/vendor/generic/welcome0%i.mp3", irand(0,1)));
-		NPC_ConversationAnimation(vendorTarget);
-		G_SoundOnEnt( vendorTarget, CHAN_VOICE_ATTEN, filename );
+			strcpy(filename, va("sound/vendor/%s/welcome0%i.mp3", vendorTarget->NPC_type, irand(0, max-1)));
+			NPC_ConversationAnimation(vendorTarget);
+			G_SoundOnEnt( vendorTarget, CHAN_VOICE_ATTEN, filename );
+		}
+		else if (NPC_VendorHasConversationSounds(vendorTarget))
+		{// Override with generic chat sounds for this specific NPC...
+			strcpy(filename, va("sound/conversation/%s/conversation00.mp3", vendorTarget->NPC_type));
+			NPC_ConversationAnimation(vendorTarget);
+			G_SoundOnEnt( vendorTarget, CHAN_VOICE_ATTEN, filename );
+		}
+		else
+		{// Use generic shop open sound (english)... Meh! Couldn't find any... Needs to be looked into...
+			strcpy(filename, va("sound/vendor/generic/welcome0%i.mp3", irand(0,1)));
+			NPC_ConversationAnimation(vendorTarget);
+			G_SoundOnEnt( vendorTarget, CHAN_VOICE_ATTEN, filename );
+		}
 	}
 
 	//G_Printf("Shop opened.\n");
@@ -1110,8 +1120,11 @@ void JKG_target_vendor_use(gentity_t *ent, gentity_t *other, gentity_t *activato
 	JKG_RefreshClientVendorStock(activator, vendorTarget);
 	trap_SendServerCommand(activator->s.number, "shopopen");
 
-	if (vendorTarget->client->NPC_class == CLASS_TRAVELLING_VENDOR)
-		vendorTarget->NPC->walkDebounceTime = level.time + 60000; // UQ1: Wait 60 seconds before moving...
+	if( vendorTarget->s.eType == ET_NPC )
+	{
+		if (vendorTarget->client->NPC_class == CLASS_TRAVELLING_VENDOR)
+			vendorTarget->NPC->walkDebounceTime = level.time + 60000; // UQ1: Wait 60 seconds before moving...
+	}
 
 	activator->client->ps.useDelay = level.time + 500;
 }
@@ -1126,9 +1139,12 @@ void JKG_SP_target_vendor(gentity_t *ent)
 	{
 		JKG_CreateNewVendor(targetVendor, -1, qtrue, qtrue);
 
-		if (targetVendor->client->NPC_class == CLASS_TRAVELLING_VENDOR)
-		{// Remove the trigger, it will be left behind...
-			G_FreeEntity(ent);
+		if( targetVendor->client && targetVendor->s.eType == ET_NPC )
+		{
+			if (targetVendor->client->NPC_class == CLASS_TRAVELLING_VENDOR)
+			{// Remove the trigger, it will be left behind...
+				G_FreeEntity(ent);
+			}
 		}
 	}
 }
@@ -1188,43 +1204,48 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 	}*/
 
 	// UQ1: Face the customer...
-	NPC = vendorEnt;
-	NPCInfo = NPC->NPC;
-	ucmd = NPC->client->pers.cmd;
-	NPC_FaceEntity( ent, qfalse );
+	if( vendorEnt->s.eType == ET_NPC )
+	{
+		NPC = vendorEnt;
+		NPCInfo = NPC->NPC;
+		ucmd = NPC->client->pers.cmd;
+		NPC_FaceEntity( ent, qfalse );
+	}
 
 	if(ent->client->ps.persistant[PERS_CREDITS] < itemLookupTable[itemID].baseCost)	//TODO: add proper cost here
 	{
 		trap_SendServerCommand(ent->s.number, "print \"You do not have enough money for this item.\n\"");
 
-		if (NPC_VendorHasVendorSound(vendorEnt, "purchasefail00"))
-		{// This NPC has it's own vendor specific sound(s)...
-			char	filename[256];
-			int		max = 1;
+		if ( vendorEnt->s.eType == ET_NPC )
+		{
+			if (NPC_VendorHasVendorSound(vendorEnt, "purchasefail00"))
+			{// This NPC has it's own vendor specific sound(s)...
+				char	filename[256];
+				int		max = 1;
 
-			while (NPC_VendorHasVendorSound(vendorEnt, va("purchasefail0%i", max))) max++;
+				while (NPC_VendorHasVendorSound(vendorEnt, va("purchasefail0%i", max))) max++;
 
-			strcpy(filename, va("sound/vendor/%s/purchasefail0%i.mp3", vendorEnt->NPC_type, irand(0, max-1)));
-			NPC_ConversationAnimation(vendorEnt);
-			G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
-		}
-		else if (NPC_VendorHasConversationSounds(vendorEnt))
-		{// Override with generic chat sounds for this specific NPC...
-			char	filename[256];
+				strcpy(filename, va("sound/vendor/%s/purchasefail0%i.mp3", vendorEnt->NPC_type, irand(0, max-1)));
+				NPC_ConversationAnimation(vendorEnt);
+				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
+			}
+			else if (NPC_VendorHasConversationSounds(vendorEnt))
+			{// Override with generic chat sounds for this specific NPC...
+				char	filename[256];
 			
-			strcpy(filename, va("sound/conversation/%s/conversation02.mp3", vendorEnt->NPC_type));
-			NPC_ConversationAnimation(vendorEnt);
-			G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
-		}
-		else
-		{// Use generic shop buy sound...
-			char	filename[256];
+				strcpy(filename, va("sound/conversation/%s/conversation02.mp3", vendorEnt->NPC_type));
+				NPC_ConversationAnimation(vendorEnt);
+				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
+			}
+			else
+			{// Use generic shop buy sound...
+				char	filename[256];
 
-			strcpy(filename, va("sound/vendor/generic/purchasefail0%i.mp3", irand(0,5)));
-			NPC_ConversationAnimation(vendorEnt);
-			G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
+				strcpy(filename, va("sound/vendor/generic/purchasefail0%i.mp3", irand(0,5)));
+				NPC_ConversationAnimation(vendorEnt);
+				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
+			}
 		}
-
 		return;
 	}
 
@@ -1241,33 +1262,35 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 		// this is obviously temporary until we get a new shop setup. But for randomized shops, this works just fine.
 		trap_SendServerCommand(ent->s.number, va("shopconfirm %i %i", ent->client->ps.persistant[PERS_CREDITS], itemID));
 		
-		//TODO: add sound
-		if (NPC_VendorHasVendorSound(vendorEnt, "purchase00"))
-		{// This NPC has it's own vendor specific sound(s)...
-			char	filename[256];
-			int		max = 1;
+		if( vendorEnt->s.eType == ET_NPC )
+		{
+			if (NPC_VendorHasVendorSound(vendorEnt, "purchase00"))
+			{// This NPC has it's own vendor specific sound(s)...
+				char	filename[256];
+				int		max = 1;
 
-			while (NPC_VendorHasVendorSound(vendorEnt, va("purchase0%i", max))) max++;
+				while (NPC_VendorHasVendorSound(vendorEnt, va("purchase0%i", max))) max++;
 
-			strcpy(filename, va("sound/vendor/%s/purchase0%i.mp3", vendorEnt->NPC_type, irand(0, max-1)));
-			NPC_ConversationAnimation(vendorEnt);
-			G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
-		}
-		else if (NPC_VendorHasConversationSounds(vendorEnt))
-		{// Override with generic chat sounds for this specific NPC...
-			char	filename[256];
+				strcpy(filename, va("sound/vendor/%s/purchase0%i.mp3", vendorEnt->NPC_type, irand(0, max-1)));
+				NPC_ConversationAnimation(vendorEnt);
+				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
+			}
+			else if (NPC_VendorHasConversationSounds(vendorEnt))
+			{// Override with generic chat sounds for this specific NPC...
+				char	filename[256];
 			
-			strcpy(filename, va("sound/conversation/%s/conversation03.mp3", vendorEnt->NPC_type));
-			NPC_ConversationAnimation(vendorEnt);
-			G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
-		}
-		else
-		{// Use generic shop buy sound...
-			char	filename[256];
+				strcpy(filename, va("sound/conversation/%s/conversation03.mp3", vendorEnt->NPC_type));
+				NPC_ConversationAnimation(vendorEnt);
+				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
+			}
+			else
+			{// Use generic shop buy sound...
+				char	filename[256];
 
-			strcpy(filename, va("sound/vendor/generic/purchase0%i.mp3", irand(0,2)));
-			NPC_ConversationAnimation(vendorEnt);
-			G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
+				strcpy(filename, va("sound/vendor/generic/purchase0%i.mp3", irand(0,2)));
+				NPC_ConversationAnimation(vendorEnt);
+				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
+			}
 		}
 
 		// Add the ammo that we should get for this item
