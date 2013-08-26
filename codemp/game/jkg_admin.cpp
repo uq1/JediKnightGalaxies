@@ -297,7 +297,7 @@ static void AdmCmd_AmKick(gentity_t *ent, int clientNum, int rank)
 |* the specified player.
 |*
 |* This will cause the client to crash randomly with a
-|* packet parsing error. Once the error has occoured,
+|* packet parsing error. Once the error has occurred,
 |* the sabotage mechanism will be deactivated again.
 |*
 |* WARNING: This *cannot* be disabled once activated!
