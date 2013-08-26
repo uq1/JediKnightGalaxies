@@ -675,8 +675,11 @@ static int GLua_Entity_Rotate(lua_State *L) {
 		// Alright we got targetted movement
 		ent->s.apos.trType = (trType_t)type;
 		ent->s.apos.trTime = level.time;
-		VectorCopy(ent->r.currentAngles, ent->s.apos.trBase);
+
+		// Make sure our previous changes to rotations will stack with this one, as well.
+		VectorMA( ent->s.apos.trBase, ent->s.apos.trDuration, ent->s.apos.trDelta, ent->s.apos.trBase );
 		VectorSubtract(vec, ent->r.currentAngles, delta);
+		VectorAdd(ent->s.apos.trBase, delta, ent->s.apos.trBase);
 		VectorScale(delta, 1/((float)time/1000), delta);
 		VectorCopy(delta, ent->s.apos.trDelta);
 		ent->s.apos.trDuration = time;

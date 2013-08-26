@@ -135,8 +135,10 @@ field_t fields[] = {
 	{ "idealclass",				FOFS( idealclass ),						F_STRING },//for siege spawnpoints
 	{ "linear",					FOFS( alt_fire ),						F_INT },//for movers to use linear movement
 	{ "lostenemyscript",		FOFS( behaviorSet[BSET_LOSTENEMY] ),	F_STRING },//name of script to run
+	{ "maxs",					FOFS( r.maxs ),							F_VECTOR },
 	{ "message",				FOFS( message ),						F_STRING },
 	{ "mindtrickscript",		FOFS( behaviorSet[BSET_MINDTRICK] ),	F_STRING },//name of script to run
+	{ "mins",					FOFS( r.mins ),							F_VECTOR },
 	{ "model",					FOFS( model ),							F_STRING },
 	{ "model2",					FOFS( model2 ),							F_STRING },
 	{ "npc_target",				FOFS( NPC_target ),						F_STRING },
@@ -854,9 +856,25 @@ void G_ParseField( const char *key, const char *value, gentity_t *ent )
 			break;
 		case F_VECTOR:
 			if ( sscanf( value, "%f %f %f", &vec[0], &vec[1], &vec[2] ) == 3 ) {
-				((float *)(b+f->ofs))[0] = vec[0];
-				((float *)(b+f->ofs))[1] = vec[1];
-				((float *)(b+f->ofs))[2] = vec[2];
+				// HACK for mins/maxs
+				if( !Q_stricmp( key, "mins" ) )
+				{
+					ent->r.contents = CONTENTS_SOLID;
+					ent->clipmask = MASK_SOLID;
+					VectorCopy(vec, ent->r.mins);
+				}
+				else if( !Q_stricmp( key, "maxs" ) )
+				{
+					ent->r.contents = CONTENTS_SOLID;
+					ent->clipmask = MASK_SOLID;
+					VectorCopy(vec, ent->r.maxs);
+				}
+				else
+				{
+					((float *)(b+f->ofs))[0] = vec[0];
+					((float *)(b+f->ofs))[1] = vec[1];
+					((float *)(b+f->ofs))[2] = vec[2];
+				}
 			}
 			else {
 				G_Printf( "G_ParseField: Failed sscanf on F_VECTOR (key/value: %s/%s)\n", key, value );

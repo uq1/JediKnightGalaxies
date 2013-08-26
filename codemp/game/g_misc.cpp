@@ -384,6 +384,7 @@ custom explosion effect/sound?
 */
 void misc_model_breakable_gravity_init( gentity_t *ent, qboolean dropToFloor );
 void misc_model_breakable_init( gentity_t *ent );
+void Use_Multi( gentity_t *ent, gentity_t *other, gentity_t *activator );
 
 void SP_misc_model_breakable( gentity_t *ent ) 
 {
@@ -409,6 +410,7 @@ void SP_misc_model_breakable( gentity_t *ent )
 	if ( ent->spawnflags & 128 )
 	{//Can be used by the player's BUTTON_USE
 		ent->r.svFlags |= SVF_PLAYER_USABLE;
+		ent->use = Use_Multi;
 	}
 
 	ent->s.teamowner = 0;
