@@ -1,0 +1,16 @@
+diff a/codemp/game/w_saber.cpp b/codemp/game/w_saber.cpp	(rejected hunks)
+@@ -5175,12 +5175,12 @@
+ 			return qfalse;
+ 		}
+ 
+-		if ((self->s.eType == ET_NPC || otherOwner->s.eType == ET_NPC) && //just make sure one of us is an npc
++		/*if ((self->s.eType == ET_NPC || otherOwner->s.eType == ET_NPC) && //just make sure one of us is an npc
+ 			self->client->playerTeam == otherOwner->client->playerTeam &&
+ 			level.gametype != GT_SIEGE)
+ 		{ //don't hit your teammate's sabers if you are an NPC. It can be rather annoying.
+ 			return qfalse;
+-		}
++		}*/ // WRONG.
+ 
+ 		if (otherOwner->client->ps.duelInProgress &&
+ 			otherOwner->client->ps.duelIndex != self->s.number)

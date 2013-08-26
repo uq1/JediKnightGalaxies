@@ -837,6 +837,9 @@ struct gclient_s {
 
 	int			g2LastSurfaceHit; //index of surface hit during the most recent ghoul2 collision performed on this client.
 	int			g2LastSurfaceTime; //time when the surface index was set (to make sure it's up to date)
+	//[BUGFIX12]
+	int			g2LastSurfaceModel; //the index of the model on the ghoul2 that was hit during the lastest hit.
+	//[BUGFIX12]
 
 	int			corrTime;
 
