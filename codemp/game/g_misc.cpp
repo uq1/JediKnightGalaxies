@@ -407,7 +407,7 @@ void SP_misc_model_breakable( gentity_t *ent )
 	G_SetAngles( ent, ent->s.angles );
 	trap_LinkEntity (ent);
 
-	if ( ent->spawnflags & 128 )
+	if ( ent->spawnflags & 2 )
 	{//Can be used by the player's BUTTON_USE
 		ent->r.svFlags |= SVF_PLAYER_USABLE;
 		ent->use = Use_Multi;
