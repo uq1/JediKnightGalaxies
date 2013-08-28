@@ -21,6 +21,7 @@
 #include "../rd-common/tr_types.h"
 #include "keycodes.h"
 
+#include "../game/bg_public.h"
 #include "../../JKGalaxies/ui/menudef.h"
 
 //Raz: Drastically increased some of these
@@ -444,22 +445,22 @@ typedef struct
 } commandDef_t;
 
 typedef struct {
-  qhandle_t (*registerShaderNoMip) (const char *p);
-  void (*setColor) (const vec4_t v);
-  void (*drawHandlePic) (float x, float y, float w, float h, qhandle_t asset);
-  void (*drawStretchPic) (float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader );
-  void (*drawText) (float x, float y, float scale, vec4_t color, const char *text, float adjust, int limit, int style, int iMenuFont);  
-  int (*textWidth) (const char *text, float scale, int iMenuFont);  
-  int (*textHeight) (const char *text, float scale, int iMenuFont);
-  qhandle_t (*registerModel) (const char *p);
-  void (*modelBounds) (qhandle_t model, vec3_t min, vec3_t max);
-  void (*fillRect) ( float x, float y, float w, float h, const vec4_t color);
-  void (*drawRect) ( float x, float y, float w, float h, float size, const vec4_t color);
-  void (*drawSides) (float x, float y, float w, float h, float size);
-  void (*drawTopBottom) (float x, float y, float w, float h, float size);
-  void (*clearScene) ();
-  void (*addRefEntityToScene) (const refEntity_t *re );
-  void (*renderScene) ( const refdef_t *fd );
+	qhandle_t (*registerShaderNoMip) (const char *p);
+	void (*setColor) (const vec4_t v);
+	void (*drawHandlePic) (float x, float y, float w, float h, qhandle_t asset);
+	void (*drawStretchPic) (float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader );
+	void (*drawText) (float x, float y, float scale, vec4_t color, const char *text, float adjust, int limit, int style, int iMenuFont);  
+	int (*textWidth) (const char *text, float scale, int iMenuFont);  
+	int (*textHeight) (const char *text, float scale, int iMenuFont);
+	qhandle_t (*registerModel) (const char *p);
+	void (*modelBounds) (qhandle_t model, vec3_t min, vec3_t max);
+	void (*fillRect) ( float x, float y, float w, float h, const vec4_t color);
+	void (*drawRect) ( float x, float y, float w, float h, float size, const vec4_t color);
+	 void (*drawSides) (float x, float y, float w, float h, float size);
+	void (*drawTopBottom) (float x, float y, float w, float h, float size);
+	void (*clearScene) ();
+	void (*addRefEntityToScene) (const refEntity_t *re );
+	void (*renderScene) ( const refdef_t *fd );
 
 	qhandle_t (*RegisterFont)( const char *fontName );
 	int		(*Font_StrLenPixels) (const char *text, const int iFontIndex, const float scale);
@@ -469,24 +470,24 @@ typedef struct {
 	qboolean (*Language_IsAsian)(void);
 	qboolean (*Language_UsesSpaces)(void);
 	unsigned int (*AnyLanguage_ReadCharFromString)( const char *psText, int *piAdvanceCount, qboolean *pbIsTrailingPunctuation/* = NULL*/ );
-  void (*ownerDrawItem) (itemDef_t *item, float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle,int iMenuFont, int ownerDrawID);
+	void (*ownerDrawItem) (itemDef_t *item, float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle,int iMenuFont, int ownerDrawID);
 	float (*getValue) (int ownerDraw);
 	qboolean (*ownerDrawVisible) (int flags);
-  void (*runScript)(char **p);
-  qboolean (*deferScript)(char **p);
-  void (*getTeamColor)(vec4_t *color);
-  void (*getCVarString)(const char *cvar, char *buffer, int bufsize);
-  float (*getCVarValue)(const char *cvar);
-  void (*setCVar)(const char *cvar, const char *value);
-  void (*drawTextWithCursor)(float x, float y, float scale, vec4_t color, const char *text, int cursorPos, char cursor, int limit, int style, int iFontIndex);
-  void (*setOverstrikeMode)(qboolean b);
-  qboolean (*getOverstrikeMode)();
-  void (*startLocalSound)( sfxHandle_t sfx, int channelNum );
-  qboolean (*ownerDrawHandleKey)(int ownerDraw, int flags, float *special, int key, int ownerDrawID);
-  int (*feederCount)(float feederID);
-  const char *(*feederItemText)(float feederID, int index, int column, qhandle_t *handle1, qhandle_t *handle2, qhandle_t *handle3);
-  qhandle_t (*feederItemImage)(float feederID, int index);
-  qboolean (*feederSelection)(float feederID, int index, itemDef_t *item);
+	void (*runScript)(char **p);
+	qboolean (*deferScript)(char **p);
+	void (*getTeamColor)(vec4_t *color);
+	void (*getCVarString)(const char *cvar, char *buffer, int bufsize);
+	float (*getCVarValue)(const char *cvar);
+	void (*setCVar)(const char *cvar, const char *value);
+	void (*drawTextWithCursor)(float x, float y, float scale, vec4_t color, const char *text, int cursorPos, char cursor, int limit, int style, int iFontIndex);
+	void (*setOverstrikeMode)(qboolean b);
+	qboolean (*getOverstrikeMode)();
+	void (*startLocalSound)( sfxHandle_t sfx, int channelNum );
+	qboolean (*ownerDrawHandleKey)(int ownerDraw, int flags, float *special, int key, int ownerDrawID);
+	int (*feederCount)(float feederID);
+	const char *(*feederItemText)(float feederID, int index, int column, qhandle_t *handle1, qhandle_t *handle2, qhandle_t *handle3);
+	qhandle_t (*feederItemImage)(float feederID, int index);
+	qboolean (*feederSelection)(float feederID, int index, itemDef_t *item);
 	void (*keynumToStringBuf)( int keynum, char *buf, int buflen );
 	void (*getBindingBuf)( int keynum, char *buf, int buflen );
 	void (*setBinding)( int keynum, const char *binding );
@@ -503,21 +504,21 @@ typedef struct {
 	void (*drawCinematic)(int handle, float x, float y, float w, float h);
 	void (*runCinematicFrame)(int handle);
 
-  float			yscale;
-  float			xscale;
-  float			bias;
-  int				realTime;
-  int				frameTime;
+	float			yscale;
+	float			xscale;
+	float			bias;
+	int				realTime;
+	int				frameTime;
 	int				cursorx;
 	int				cursory;
 	qboolean	debug;
 
-  cachedAssets_t Assets;
+	cachedAssets_t Assets;
 
 	glconfig_t glconfig;
 	qhandle_t	whiteShader;
-  qhandle_t gradientImage;
-  qhandle_t cursor;
+	qhandle_t gradientImage;
+	qhandle_t cursor;
 	float FPS;
 
 } displayContextDef_t;

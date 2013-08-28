@@ -1765,5 +1765,35 @@ extern const char *gametypeStringShort[GT_MAX_GAME_TYPE];
 const char *BG_GetGametypeString( int gametype );
 int BG_GetGametypeForString( const char *gametype );
 
+typedef struct {
+	int			oldFrame;
+	int			oldFrameTime;		// time when ->oldFrame was exactly on
+
+	int			frame;
+	int			frameTime;			// time when ->frame will be exactly on
+
+	float		backlerp;
+
+	bool		lastFlip;
+
+	int			lastForcedFrame;
+
+	float		yawAngle;
+	bool		yawing;
+	float		pitchAngle;
+	bool		pitching;
+
+	float		yawSwingDif;
+
+	int			animationNumber;
+	animation_t	*animation;
+	int			animationTime;		// time when the first frame of the animation will be exact
+
+	float		animationSpeed;
+	float		animationTorsoSpeed;
+
+	bool		torsoYawing;
+} lerpFrame_t;
+
 
 #endif //__BG_PUBLIC_H__

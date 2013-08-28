@@ -284,21 +284,6 @@ extern vec4_t		text_color_disabled;
 extern vec4_t		text_color_normal;
 extern vec4_t		text_color_highlight;
 
-extern char	*ui_medalNames[];
-extern char	*ui_medalPicNames[];
-extern char	*ui_medalSounds[];
-
-//
-// ui_mfield.c
-//
-extern void			MField_Clear( mfield_t *edit );
-extern void			MField_KeyDownEvent( mfield_t *edit, int key );
-extern void			MField_CharEvent( mfield_t *edit, int ch );
-extern void			MField_Draw( mfield_t *edit, int x, int y, int style, vec4_t color );
-extern void			MenuField_Init( menufield_s* m );
-extern void			MenuField_Draw( menufield_s *f );
-extern sfxHandle_t	MenuField_Key( menufield_s* m, int* key );
-
 //
 // ui_main.c
 //
@@ -308,160 +293,14 @@ void UI_Load();
 void UI_LoadMenus(const char *menuFile, qboolean reset);
 void _UI_SetActiveMenu( uiMenuCommand_t menu );
 int UI_AdjustTimeByGame(int time);
-void UI_ShowPostGame(qboolean newHigh);
-void UI_ClearScores();
 void UI_LoadArenas(void);
-
-//
-// ui_menu.c
-//
-extern void MainMenu_Cache( void );
-extern void UI_MainMenu(void);
+extern void UI_DrawConnectScreen( qboolean overlay );
 extern void UI_RegisterCvars( void );
 extern void UI_UpdateCvars( void );
 
 //
-// ui_credits.c
-//
-extern void UI_CreditMenu( void );
-
-//
-// ui_ingame.c
-//
-extern void InGame_Cache( void );
-extern void UI_InGameMenu(void);
-
-//
-// ui_confirm.c
-//
-extern void ConfirmMenu_Cache( void );
-extern void UI_ConfirmMenu( const char *question, void (*draw)( void ), void (*action)( qboolean result ) );
-
-//
-// ui_setup.c
-//
-extern void UI_SetupMenu_Cache( void );
-extern void UI_SetupMenu(void);
-
-//
-// ui_team.c
-//
-extern void UI_TeamMainMenu( void );
-extern void TeamMain_Cache( void );
-
-//
-// ui_connect.c
-//
-extern void UI_DrawConnectScreen( qboolean overlay );
-
-//
-// ui_controls2.c
-//
-extern void UI_ControlsMenu( void );
-extern void Controls_Cache( void );
-
-//
-// ui_demo2.c
-//
-extern void UI_DemosMenu( void );
-extern void Demos_Cache( void );
-
-//
-// ui_cinematics.c
-//
-extern void UI_CinematicsMenu( void );
-extern void UI_CinematicsMenu_f( void );
-extern void UI_CinematicsMenu_Cache( void );
-
-//
-// ui_mods.c
-//
-extern void UI_ModsMenu( void );
-extern void UI_ModsMenu_Cache( void );
-
-//
-// ui_playermodel.c
-//
-extern void UI_PlayerModelMenu( void );
-extern void PlayerModel_Cache( void );
-
-//
-// ui_playersettings.c
-//
-extern void UI_PlayerSettingsMenu( void );
-extern void PlayerSettings_Cache( void );
-
-//
-// ui_preferences.c
-//
-extern void UI_PreferencesMenu( void );
-extern void Preferences_Cache( void );
-
-//
-// ui_specifyleague.c
-//
-extern void UI_SpecifyLeagueMenu( void );
-extern void SpecifyLeague_Cache( void );
-
-//
-// ui_specifyserver.c
-//
-extern void UI_SpecifyServerMenu( void );
-extern void SpecifyServer_Cache( void );
-
-//
-// ui_servers2.c
-//
-#define MAX_FAVORITESERVERS 16
-
-extern void UI_ArenaServersMenu( void );
-extern void ArenaServers_Cache( void );
-
-//
-// ui_startserver.c
-//
-extern void UI_StartServerMenu( qboolean multiplayer );
-extern void StartServer_Cache( void );
-extern void ServerOptions_Cache( void );
-extern void UI_BotSelectMenu( char *bot );
-extern void UI_BotSelectMenu_Cache( void );
-
-//
-// ui_serverinfo.c
-//
-extern void UI_ServerInfoMenu( void );
-extern void ServerInfo_Cache( void );
-
-//
-// ui_video.c
-//
-extern void UI_GraphicsOptionsMenu( void );
-extern void GraphicsOptions_Cache( void );
-extern void DriverInfo_Cache( void );
-
-//
 // ui_players.c
 //
-
-//FIXME ripped from cg_local.h
-typedef struct {
-	int			oldFrame;
-	int			oldFrameTime;		// time when ->oldFrame was exactly on
-
-	int			frame;
-	int			frameTime;			// time when ->frame will be exactly on
-
-	float		backlerp;
-
-	float		yawAngle;
-	qboolean	yawing;
-	float		pitchAngle;
-	qboolean	pitching;
-
-	int			animationNumber;
-	animation_t	*animation;
-	int			animationTime;		// time when the first frame of the animation will be exact
-} lerpFrame_t;
 
 typedef struct {
 	// model info
@@ -512,36 +351,9 @@ typedef struct {
 	int				realWeapon;
 } playerInfo_t;
 
-//void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int time );
-//void UI_PlayerInfo_SetModel( playerInfo_t *pi, const char *model, const char *headmodel, char *teamName );
-//void UI_PlayerInfo_SetInfo( playerInfo_t *pi, int legsAnim, int torsoAnim, vec3_t viewAngles, vec3_t moveAngles, weapon_t weaponNum, qboolean chat );
-//qboolean UI_RegisterClientModelname( playerInfo_t *pi, const char *modelSkinName , const char *headName, const char *teamName);
-
 //
 // ui_atoms.c
 //
-// this is only used in the old ui, the new ui has it's own version
-typedef struct {
-	int					frametime;
-	int					realtime;
-	int					cursorx;
-	int					cursory;
-	glconfig_t 	glconfig;
-	qboolean		debug;
-	qhandle_t		whiteShader;
-	qhandle_t		menuBackShader;
-	qhandle_t		menuBackShader2;
-	qhandle_t		menuBackNoLogoShader;
-	qhandle_t		charset;
-	qhandle_t		cursor;
-	qhandle_t		rb_on;
-	qhandle_t		rb_off;
-	float				scale;
-	float				bias;
-	qboolean		demoversion;
-	qboolean		firstdraw;
-} uiStatic_t;
-
 
 // new ui stuff
 #define UI_NUMFX 7
@@ -554,13 +366,6 @@ typedef struct {
 #define MAX_SPMAPS 16
 #define PLAYERS_PER_TEAM 8//5
 #define MAX_PINGREQUESTS		32
-
-/* Raz: Moving some of this to q_shared.h
-#define MAX_ADDRESSLENGTH		64
-#define MAX_HOSTNAMELENGTH		22
-#define MAX_MAPNAMELENGTH		16
-#define MAX_STATUSLENGTH		64
-*/
 
 #define MAX_LISTBOXWIDTH		256 //59
 #define UI_FONT_THRESHOLD		0.1
@@ -579,12 +384,6 @@ typedef struct {
 #define MAX_TIERS 16
 #define MAX_MODS 64
 
-/* Raz: Drastically increasing some of these
-#define MAX_DEMOS 256
-#define MAX_MOVIES 256
-#define MAX_Q3PLAYERMODELS 256
-#define MAX_PLAYERMODELS 32
-*/
 #define MAX_DEMOS 2048
 #define MAX_MOVIES 2048
 #define MAX_Q3PLAYERMODELS 1024
@@ -597,15 +396,6 @@ typedef struct {
 
 #define MAX_SCROLLTEXT_SIZE		4096
 #define MAX_SCROLLTEXT_LINES		64
-
-typedef struct {
-  const char *name;
-	const char *imageName;
-  qhandle_t headImage;
-	const char *base;
-	qboolean active;
-	int reference;
-} characterInfo;
 
 typedef struct {
 	const char *name;
@@ -739,7 +529,6 @@ typedef struct {
 	
 	int characterCount;
 	int botIndex;
-//	characterInfo characterList[MAX_HEADS];
 
 	int aliasCount;
 	aliasInfo aliasList[MAX_ALIASES];
@@ -883,7 +672,6 @@ extern void			UI_KeyEvent( int key );
 extern void			UI_StartDemoLoop( void );
 extern qboolean		m_entersound;
 void UI_LoadBestScores(const char *map, int game);
-extern uiStatic_t	uis;
 
 //
 // ui_spLevel.c

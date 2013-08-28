@@ -176,36 +176,6 @@ typedef struct trRefEntity_s
 
 // when changing animation, set animationTime to frameTime + lerping time
 // The current lerp will finish out, then it will lerp to the new animation
-typedef struct {
-	int			oldFrame;
-	int			oldFrameTime;		// time when ->oldFrame was exactly on
-
-	int			frame;
-	int			frameTime;			// time when ->frame will be exactly on
-
-	float		backlerp;
-
-	qboolean	lastFlip; //if does not match torsoFlip/legsFlip, restart the anim.
-
-	int			lastForcedFrame;
-
-	float		yawAngle;
-	qboolean	yawing;
-	float		pitchAngle;
-	qboolean	pitching;
-
-	float		yawSwingDif;
-
-	int			animationNumber;
-	animation_t	*animation;
-	int			animationTime;		// time when the first frame of the animation will be exact
-
-	float		animationSpeed;		// scale the animation speed
-	float		animationTorsoSpeed;
-
-	qboolean	torsoYawing;
-} lerpFrame_t;
-
 
 typedef struct {
 	lerpFrame_t		legs, torso, flag;
