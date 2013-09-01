@@ -2002,7 +2002,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				BG_SI_SetDesiredLength(&cgs.clientinfo[es->number].saber[0], 0, -1);
 				BG_SI_SetDesiredLength(&cgs.clientinfo[es->number].saber[1], 0, -1);
 
-				if( pm->ps->saberHolstered == 2 )
+				if( cg_entities[es->number].currentState.saberHolstered == 2 || 
+					cg_entities[es->number].currentState.weapon == WP_NONE ||
+					cg_entities[es->number].currentState.weapon == WP_MELEE )
 				{
 					trap_S_StartSound( NULL, es->number, CHAN_AUTO, cgs.media.selectSound );
 				}
