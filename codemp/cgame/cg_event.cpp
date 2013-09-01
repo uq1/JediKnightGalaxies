@@ -2455,6 +2455,42 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 		break;
 
+	case EV_SABER_HOLSTER:
+		DEBUGNAME("EV_SABER_HOLSTER");
+		{
+			clientInfo_t *ci = NULL;
+
+			if (es->eType == ET_NPC)
+			{
+				ci = cg_entities[es->eventParm].npcClient;
+			}
+			else if (es->eventParm < MAX_CLIENTS)
+			{
+				ci = &cgs.clientinfo[es->eventParm];
+			}
+
+			if (ci)
+			{
+				if ( es->eFlags == 1 )
+				{
+					// Quick sound effect
+					trap_S_StartSound( NULL, es->eventParm, CHAN_AUTO, trap_S_RegisterSound("sound/weapons/saber/saberoffquick.wav") );
+				}
+				else
+				{
+					if (ci->saber[0].soundOff)
+					{
+						trap_S_StartSound (NULL, es->eventParm, CHAN_AUTO, ci->saber[0].soundOff );
+					}
+					if (ci->saber[1].soundOff)
+					{
+						trap_S_StartSound (NULL, es->eventParm, CHAN_AUTO, ci->saber[1].soundOff );
+					}
+				}
+			}
+		}
+		break;
+
 	//Jedi Knight Galaxies add
 #ifdef __MMO__
 	case EV_GOTO_ACI:

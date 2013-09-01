@@ -11423,7 +11423,7 @@ stillDoSaber:
 		drawPlayerSaber = qtrue;
 	}
 	else if (cent->currentState.weapon == WP_SABER 
-		&& cent->currentState.saberHolstered < 2 )
+		&& cent->currentState.saberHolstered < 2 && cent->currentState.weaponstate != WEAPON_DROPPING)
 	{
 		if ( (!cent->currentState.saberInFlight //saber not in flight
 				|| ci->saber[1].soundLoop) //???

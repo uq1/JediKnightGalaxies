@@ -1023,6 +1023,7 @@ struct gclient_s {
 
 	char		botSoundDir[MAX_QPATH];
 	float		blockingLightningAccumulation;//Stoiss add
+	qboolean	didSaberOffSound;				// eez add
 };
 
 //Interest points

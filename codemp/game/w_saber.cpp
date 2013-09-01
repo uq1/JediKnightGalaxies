@@ -10399,6 +10399,38 @@ void JKG_NetworkSaberCrystals( playerState_t *ps, int invId, int weaponId )
 	if( !ps )
 		return;
 
+	if( ps->weaponstate == WEAPON_DROPPING )
+	{
+		// Semi-hack, we want to play the sound when we're turning off the saber.
+		if( ps->clientNum < 0 || ps->clientNum >= MAX_CLIENTS )
+		{
+			return;
+		}
+
+		gentity_t *ent2 = &g_entities[ps->clientNum];
+
+		if( ent2->client->didSaberOffSound )
+			return;
+		else if( ent2->client->saber[0].soundOff && !ps->saberHolstered )
+		{
+			// If we're switching to another saber, we use the quick sound. If we're switching to a gun, use the slow sound.
+			int weapon, variation;
+			gentity_t *te = G_TempEntity( ent2->r.currentOrigin, EV_SABER_HOLSTER );
+			te->s.eventParm = ps->clientNum;
+			if( BG_GetWeaponByIndex( weaponId, &weapon, &variation ) )
+			{
+				if( weapon == WP_SABER )
+				{
+					te->s.eFlags = 1;
+				}
+			}
+			ent2->client->didSaberOffSound = true;
+			return;
+		}
+	}
+	else if( ps->weaponstate != WEAPON_RAISING )
+		return;
+
 	int entNum = ps->clientNum;
 
 	if( entNum < 0 || entNum >= MAX_CLIENTS || invId < 0 )
@@ -10408,6 +10440,7 @@ void JKG_NetworkSaberCrystals( playerState_t *ps, int invId, int weaponId )
 	}
 
 	gentity_t *ent = &g_entities[entNum];
+	ent->client->didSaberOffSound = false;
 	if( invId >= ent->inventory->size )
 	{
 		// Not quite valid since it's bigger.
