@@ -2001,6 +2001,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				//CG_InitG2SaberData( 0, &cgs.clientinfo[es->number] );
 				BG_SI_SetDesiredLength(&cgs.clientinfo[es->number].saber[0], 0, -1);
 				BG_SI_SetDesiredLength(&cgs.clientinfo[es->number].saber[1], 0, -1);
+
+				if( pm->ps->saberHolstered == 2 )
+				{
+					trap_S_StartSound( NULL, es->number, CHAN_AUTO, cgs.media.selectSound );
+				}
 			}
 		}
 		break;

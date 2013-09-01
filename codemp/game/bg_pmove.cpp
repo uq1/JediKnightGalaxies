@@ -6320,9 +6320,27 @@ void PM_BeginWeaponChange( int weaponId ) {
     PM_AddEventWithParm( EV_CHANGE_WEAPON, weaponId);
     
 	pm->ps->weaponstate = WEAPON_DROPPING;
-	pm->ps->weaponTime += 300;
-	//PM_StartTorsoAnim( TORSO_DROPWEAP1 );
-	PM_SetAnim(SETANIM_TORSO, TORSO_DROPWEAP1, SETANIM_FLAG_OVERRIDE, 0);
+	if( pm->ps->weapon == WP_SABER )
+	{
+		if( pm->ps->saberHolstered == 2 && weapon == WP_SABER )
+		{
+			pm->ps->weaponTime += 150;
+		}
+		else if( pm->ps->saberHolstered == 2 && weapon != WP_SABER )
+		{
+			pm->ps->weaponTime += 300;
+		}
+		else
+		{
+			pm->ps->weaponTime += 600;
+			PM_SetAnim(SETANIM_TORSO, TORSO_DROPWEAP1, SETANIM_FLAG_OVERRIDE, 0);
+		}
+	}
+	else
+	{
+		pm->ps->weaponTime += 300;
+		PM_SetAnim(SETANIM_TORSO, TORSO_DROPWEAP1, SETANIM_FLAG_OVERRIDE, 0);
+	}
 
 	BG_ClearRocketLock( pm->ps );
 }
@@ -6363,6 +6381,10 @@ void PM_FinishWeaponChange( void ) {
 		}
 	}
 	//Stoiss end[/SaberThrowSys]
+	else if( weapon == WP_MELEE || weapon == WP_NONE )
+	{
+		PM_SetAnim(SETANIM_TORSO, BOTH_STAND9, SETANIM_FLAG_OVERRIDE, 0);
+	}
 	else
 	{
 		//PM_StartTorsoAnim( TORSO_RAISEWEAP1);
