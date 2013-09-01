@@ -2824,14 +2824,14 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 				if(cg.playerInventory[cg.playerACI[cg.weaponSelect]].id)
 				{
 					if(cg.holsterState && 
-						cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->varID != BG_GetWeaponIndex(WP_SABER, 0))
+						cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->weapon != WP_SABER)
 					{
 						// Set us up using Melee if our holstered weapon is not a saber (and we're holstered)
-						trap_SetUserCmdValue( BG_GetWeaponIndex(WP_MELEE, 0), mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
+						trap_SetUserCmdValue( BG_GetWeaponIndex(WP_MELEE, 0), mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
 					}
 					else
 					{
-						trap_SetUserCmdValue( cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->varID, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
+						trap_SetUserCmdValue( cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->varID, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
 					}
 				}
 				else

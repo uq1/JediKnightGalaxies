@@ -1,13 +1,14 @@
 {
     "name":             "@JKG_ITEMS_weapon_saber",
     "type":             "WP_SABER",
-    "variation":        0,
-    "classname":        "saber",
+    "variation":        3,
+    "classname":        "saber_crow",
     "description":      "@JKG_ITEMS_weapon_saber",
     
     "visual": {
         "hudicon":          "gfx/hud/w_icon_lightsaber",
         "hudnaicon":        "gfx/hud/w_icon_lightsaber_na",
+	"worldmodel":	    "models/weapons/lightsabers/crow/model.glm",
     
         "firemode0": {
             "type":         "blaster"
@@ -23,6 +24,11 @@
         "flags":        [ "roll" ],
         "speed":        1.1
     },
+
+    "saberdata": {
+	"hilt":		"Lightsaber_Crow",
+	"crystal":	"purple"
+    },
     
     "firemode0": {
         "meansofdeath": "MOD_SABER"
@@ -35,8 +41,8 @@
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
         "reload":       { "torso": "TORSO_DROPWEAP1" },
-        "ready":        { "torso": "BOTH_STAND2" },
-        "firing":       { "torso": "BOTH_STAND2" }
+        "ready":        { "torso": "BOTH_STAND1" },
+        "firing":       { "torso": "BOTH_STAND1" }
     },
     
     "weaponanims": {

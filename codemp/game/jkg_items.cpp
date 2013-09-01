@@ -453,6 +453,37 @@ setAsAverage:
 
 }
 
+// Calc handling
+// New system as of 9/1/2013
+
+#define __JKG_DEFAULT_CALC__	itm->calc1 = 0; itm->calc2 = 0; return;
+
+static void JKGCalc_SaberCrystal( itemInstance_t *itm, itemData_t *id )
+{
+	weaponData_t *wp = BG_GetWeaponDataByIndex( id->varID );
+	if( wp == NULL ) { __JKG_DEFAULT_CALC__ }
+	const saberCrystalData_t *sc = JKG_GetSaberCrystal( wp->sab.defaultcrystal );
+	if( sc == NULL ) { __JKG_DEFAULT_CALC__ }
+
+	itm->calc1 = JKG_GetSaberCrystal( BG_GetWeaponDataByIndex( id->varID )->sab.defaultcrystal )->crystalID;
+	itm->calc2 = 0;
+}
+
+static void JKGCalc_Perform( itemInstance_t *itm )
+{
+	itemData_t *itemData = itm->id;
+	if( itemData->itemType == ITEM_WEAPON && itemData->weapon == WP_SABER)
+	{
+		// Sabers.
+		// calc1 = crystal
+		JKGCalc_SaberCrystal( itm, itemData );
+	}
+	else
+	{
+		__JKG_DEFAULT_CALC__
+	}
+}
+
 static itemInstance_t *JKG_RollItem( unsigned int index, int qualityOverride, itemInstance_t *item )
 {
 	//WARNING! This function may be unsafe!
@@ -474,8 +505,7 @@ static itemInstance_t *JKG_RollItem( unsigned int index, int qualityOverride, it
 	//This will be calculated more precisely at a later date.
 	for(i = 0; i < MAX_PSPELLS; i++)
 		item->amount[i] = item->id->amountBase[i];
-	item->calc1 = 0;
-	item->calc2 = 0;
+	JKGCalc_Perform( item );
 	item->equipped = qfalse;
 
 	switch(itemData->itemType)
@@ -530,12 +560,13 @@ void JKG_A_RollItem( unsigned int itemIndex, int qualityOverride, inv_t *invento
 	{
 		item.amount[i] = item.id->amountBase[i];
 	}
-	item.calc1 = 0;
-	item.calc2 = 0;
+	JKGCalc_Perform( &item );
 	item.equipped = qfalse;
 	JKG_Easy_DIMA_Add(inventory, item);
 }
 
+
+// TODO: merge this and the below func into one, since they're pretty much identical..
 void JKG_A_GiveEntItem( unsigned int itemIndex, int qualityOverride, inv_t *inventory, gclient_t *owner )
 {
 	itemInstance_t item;
@@ -555,8 +586,7 @@ void JKG_A_GiveEntItem( unsigned int itemIndex, int qualityOverride, inv_t *inve
 	{
 		item.amount[i] = item.id->amountBase[i];
 	}
-	item.calc1 = 0;
-	item.calc2 = 0;
+	JKGCalc_Perform( &item );
 	item.equipped = qfalse;
 
 	//Find inventory ID for the pInv call
@@ -592,8 +622,7 @@ void JKG_A_GiveEntItemForcedToACI( unsigned int itemIndex, int qualityOverride, 
 	{
 		item.amount[i] = item.id->amountBase[i];
 	}
-	item.calc1 = 0;
-	item.calc2 = 0;
+	JKGCalc_Perform( &item );
 	item.equipped = qfalse;
 
 	//Find inventory ID for the pInv call

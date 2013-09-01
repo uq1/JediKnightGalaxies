@@ -211,7 +211,7 @@ Ghoul2 Insert End
 	}
 
 	if ( item->giType == IT_WEAPON ) {
-	    unsigned int numVariations = BG_NumberOfWeaponVariations (item->giTag);
+		unsigned int numVariations = BG_NumberOfWeaponVariations (item->giTag);
 	    unsigned int i;
 	    for ( i = 0; i < numVariations; i++ )
 	    {
@@ -1560,35 +1560,12 @@ extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
 CG_WeaponSelectable
 ===============
 */
-static qboolean CG_WeaponSelectable( int i ) {
-    // FIXME: temporary...until i get inventory working properly
-    //return qfalse;
-	/*if ( !cg.snap->ps.ammo[weaponData[i].ammoIndex] ) {
-		return qfalse;
-	}*/
+static qboolean CG_WeaponSelectable( int i ) 
+{
 	if (i < 0)
 	{
 		return qfalse;
 	}
-
-	// Jedi Knight Galaxies
-	// Weapons without ammo are still selectable, they just dont fire!
-
-	/*if (cg.predictedPlayerState.ammo[weaponData[i].ammoIndex] < weaponData[i].energyPerShot &&
-		cg.predictedPlayerState.ammo[weaponData[i].ammoIndex] < weaponData[i].altEnergyPerShot)
-	{
-		return qfalse;
-	}
-
-	if (i == WP_DET_PACK && cg.predictedPlayerState.ammo[weaponData[i].ammoIndex] < 1 &&
-		!cg.predictedPlayerState.hasDetPackPlanted)
-	{
-		return qfalse;
-	}*/
-
-	//if ( ! (cg.predictedPlayerState.stats[ STAT_WEAPONS ] & ( 1 << i ) ) ) {
-	//	return qfalse;
-	//}
 
 	if(cg.playerACI[i] < 0)
 		return qfalse;
@@ -1604,11 +1581,8 @@ static qboolean CG_WeaponSelectable( int i ) {
 CG_NextWeapon_f
 ===============
 */
-void CG_NextWeapon_f( void ) {
-
-	// No longer use this
-	//return;
-	// Or do we?
+void CG_NextWeapon_f( void ) 
+{
 	qboolean doWeaponNotify = qtrue;
 	
 	int desiredWeaponSelect = cg.weaponSelect + 1;
@@ -1633,7 +1607,7 @@ void CG_NextWeapon_f( void ) {
 		int current = trap_GetCurrentCmdNumber();
 		usercmd_t ucmd;
 		trap_GetUserCmd(current, &ucmd);
-		if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, qfalse))
+		if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, false))
 		{
 			return;
 		}
@@ -1678,6 +1652,7 @@ void CG_NextWeapon_f( void ) {
 	if(CG_WeaponSelectable(desiredWeaponSelect))
 	{
 		cg.weaponSelect = desiredWeaponSelect;
+
 		if( doWeaponNotify ) 
 		{
 			CG_Notifications_Add(cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->displayName, qtrue);
@@ -1695,12 +1670,8 @@ void CG_NextWeapon_f( void ) {
 CG_PrevWeapon_f
 ===============
 */
-void CG_PrevWeapon_f( void ) {
-
-	// No longer use this
-	//return;
-
-	// Or do we?
+void CG_PrevWeapon_f( void ) 
+{
 	qboolean doWeaponNotify = qtrue;
 
 	int desiredWeaponSelect = cg.weaponSelect - 1;
@@ -1875,7 +1846,7 @@ void CG_Weapon_f( void ) {
 	// JKG - Manual saber detection
 	if(num == cg.weaponSelect)
 	{
-		if(cg.playerInventory[cg.playerACI[num]].id->varID == BG_GetWeaponIndex(WP_SABER, 0))
+		if(cg.playerInventory[cg.playerACI[num]].id->varID == BG_GetWeaponIndex(WP_SABER, cg.playerInventory[cg.playerACI[num]].id->variation))
 		{
 			trap_SendClientCommand("togglesaber");
 		}
@@ -2608,7 +2579,7 @@ void CG_ShutDownG2Weapons(void)
 	}*/
 }
 
-static void *CG_GetGhoul2WorldModel ( int weaponNum, int weaponVariation )
+void *CG_GetGhoul2WorldModel ( int weaponNum, int weaponVariation )
 {
     unsigned int i;
     for ( i = 0; i < MAX_WEAPON_TABLE_SIZE; i++ )
@@ -2652,11 +2623,11 @@ void *CG_G2WeaponInstance(centity_t *cent, int weapon, int variation)
 	}
 
 	//Try to return the custom saber instance if we can.
-	if (ci->saber[0].model[0] &&
+	/*if (ci->saber[0].model[0] &&
 		ci->ghoul2Weapons[0])
 	{
 		return ci->ghoul2Weapons[0];
-	}
+	}*/
 
 	//If no custom then just use the default.
 	return CG_GetGhoul2WorldModel (weapon, variation);
@@ -2805,22 +2776,22 @@ void CG_CheckPlayerG2Weapons(playerState_t *ps, centity_t *cent)
 	{
 		CG_CopyG2WeaponInstance(cent, ps->weapon, ps->weaponVariation, cent->ghoul2);
 		cent->ghoul2weapon = CG_G2WeaponInstance(cent, ps->weapon, ps->weaponVariation);
-		if (cent->weapon == WP_SABER && cent->weapon != ps->weapon && !ps->saberHolstered)
-		{ //switching away from the saber
-			//trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, trap_S_RegisterSound( "sound/weapons/saber/saberoffquick.wav" ));
-			if (cgs.clientinfo[ps->clientNum].saber[0].soundOff && !ps->saberHolstered)
+		if( cent->weapon == WP_SABER && ps->weapon == WP_SABER &&
+			cent->currentState.weaponVariation != ps->weaponVariation &&
+			ps->saberHolstered != 2)
+		{
+			// We are switching to another saber from our current one
+			if (cgs.clientinfo[ps->clientNum].saber[0].soundOn)
 			{
-				trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, cgs.clientinfo[ps->clientNum].saber[0].soundOff);
+				trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, cgs.clientinfo[ps->clientNum].saber[0].soundOn);
 			}
 
-			if (cgs.clientinfo[ps->clientNum].saber[1].soundOff &&
-				cgs.clientinfo[ps->clientNum].saber[1].model[0] &&
-				!ps->saberHolstered)
+			if (cgs.clientinfo[ps->clientNum].saber[1].soundOn)
 			{
-				trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, cgs.clientinfo[ps->clientNum].saber[1].soundOff);
+				trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, cgs.clientinfo[ps->clientNum].saber[1].soundOn);
 			}
 		}
-		else if (ps->weapon == WP_SABER && cent->weapon != ps->weapon && !cent->saberWasInFlight)
+		else if (ps->weapon == WP_SABER && cent->weapon != ps->weapon && !cent->saberWasInFlight && ps->saberHolstered != 2)
 		{ //switching to the saber
 			//trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, trap_S_RegisterSound( "sound/weapons/saber/saberon.wav" ));
 			if (cgs.clientinfo[ps->clientNum].saber[0].soundOn)

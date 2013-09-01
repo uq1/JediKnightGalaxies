@@ -428,8 +428,6 @@ static consoleCommand_t	commands[] = {
 	{ "startOrbit", CG_StartOrbit_f },
 	//{ "camera", CG_Camera_f },
 	{ "loaddeferred", CG_LoadDeferredPlayers },
-	{ "invnext", CG_NextInventory_f },
-	{ "invprev", CG_PrevInventory_f },
 	{ "forcenext", CG_NextForcePower_f },
 	{ "forceprev", CG_PrevForcePower_f },
 	// Jedi Knight Galaxies

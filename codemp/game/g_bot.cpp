@@ -1588,16 +1588,6 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 	Info_SetValueForKey( userinfo, "snaps", "20" );
 	Info_SetValueForKey( userinfo, "skill", va("%1.2f", skill) );
 
-	if ( skill >= 1 && skill < 2 ) {
-		Info_SetValueForKey( userinfo, "handicap", "50" );
-	}
-	else if ( skill >= 2 && skill < 3 ) {
-		Info_SetValueForKey( userinfo, "handicap", "70" );
-	}
-	else if ( skill >= 3 && skill < 4 ) {
-		Info_SetValueForKey( userinfo, "handicap", "90" );
-	}
-
 	key = "model";
 	model = Info_ValueForKey( botinfo, key );
 	if ( !*model ) {
@@ -1620,34 +1610,6 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 		s = "male";
 	}
 	Info_SetValueForKey( userinfo, "sex", s );
-
-	key = "color1";
-	s = Info_ValueForKey( botinfo, key );
-	if ( !*s ) {
-		s = "4";
-	}
-	Info_SetValueForKey( userinfo, key, s );
-
-	key = "color2";
-	s = Info_ValueForKey( botinfo, key );
-	if ( !*s ) {
-		s = "4";
-	}
-	Info_SetValueForKey( userinfo, key, s );
-
-	key = "saber1";
-	s = Info_ValueForKey( botinfo, key );
-	if ( !*s ) {
-		s = "single_1";
-	}
-	Info_SetValueForKey( userinfo, key, s );
-
-	key = "saber2";
-	s = Info_ValueForKey( botinfo, key );
-	if ( !*s ) {
-		s = "none";
-	}
-	Info_SetValueForKey( userinfo, key, s );
 
 	s = Info_ValueForKey(botinfo, "personality");
 	if (!*s )

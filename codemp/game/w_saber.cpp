@@ -1519,20 +1519,6 @@ qboolean WP_SabersCheckLock( gentity_t *ent1, gentity_t *ent2 )
 		return qfalse;
 	}
 
-	if (ent1->s.eType != ET_NPC && ent2->s.eType != ET_NPC)
-	{ //can always get into locks with NPCs
-		if (!ent1->client->ps.duelInProgress ||
-			!ent2->client->ps.duelInProgress ||
-			ent1->client->ps.duelIndex != ent2->s.number ||
-			ent2->client->ps.duelIndex != ent1->s.number)
-		{ //only allow saber locking if two players are dueling with each other directly
-			if (level.gametype != GT_DUEL && level.gametype != GT_POWERDUEL)
-			{
-				return qfalse;
-			}
-		}
-	}
-
 	if ( fabs( ent1->r.currentOrigin[2]-ent2->r.currentOrigin[2] ) > 16 )
 	{
 		return qfalse;
@@ -10405,3 +10391,88 @@ void thrownSaberBallistics(gentity_t *saberEnt, gentity_t *saberOwn, qboolean st
 }
 //[/SaberThrowSys]
 
+void JKG_NetworkSaberCrystals( playerState_t *ps, int invId, int weaponId )
+{
+	// I'm being extra cautious with these checks for a reason...we originally networked stuff
+	// going by the weaponId because the stuff sent from the ACI was very inaccurate at times.
+
+	// Network what saber crystals we have
+	if( !ps )
+		return;
+
+	if( ps->weaponstate == WEAPON_DROPPING )
+	{
+		// Semi-hack, we want to play the sound when we're turning off the saber.
+		if( ps->clientNum < 0 || ps->clientNum >= MAX_CLIENTS )
+		{
+			return;
+		}
+
+		gentity_t *ent2 = &g_entities[ps->clientNum];
+
+		if( ent2->client->didSaberOffSound )
+			return;
+		else if( ent2->client->saber[0].soundOff && !ps->saberHolstered )
+		{
+			// If we're switching to another saber, we use the quick sound. If we're switching to a gun, use the slow sound.
+			int weapon, variation;
+			gentity_t *te = G_TempEntity( ent2->r.currentOrigin, EV_SABER_HOLSTER );
+			te->s.eventParm = ps->clientNum;
+			if( BG_GetWeaponByIndex( weaponId, &weapon, &variation ) )
+			{
+				if( weapon == WP_SABER )
+				{
+					te->s.eFlags = 1;
+				}
+			}
+			ent2->client->didSaberOffSound = true;
+			return;
+		}
+	}
+	else if( ps->weaponstate != WEAPON_RAISING )
+		return;
+
+	int entNum = ps->clientNum;
+
+	if( entNum < 0 || entNum >= MAX_CLIENTS || invId < 0 )
+	{
+		// GTFO maron
+		return;
+	}
+
+	gentity_t *ent = &g_entities[entNum];
+	ent->client->didSaberOffSound = false;
+	if( invId >= ent->inventory->size )
+	{
+		// Not quite valid since it's bigger.
+		return;
+	}
+
+	itemInstance_t *itm = &ent->inventory->items[invId];
+	if( !itm->id )
+	{
+		// NOPE.avi
+		return;
+	}
+
+	if( itm->id->itemType != ITEM_WEAPON )
+	{
+		// NOPE_2.0_.avi
+		return;
+	}
+
+	if( itm->id->weapon != WP_SABER )
+	{
+		// still-NOPE.avi
+		return;
+	}
+
+	if( itm->id->varID != weaponId )
+	{
+		// ultimate way of checking to be ABSOLUTELY SURE --eez
+		return;
+	}
+
+	// ok go
+	ps->saberCrystal[0] = itm->calc1;	// FIXME: need stuff for akimbo...
+}

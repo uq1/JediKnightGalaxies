@@ -1898,10 +1898,10 @@ static userinfoValidate_t userinfoFields[] = {
 	UIF( rate,				1, 1 ),
 	UIF( snaps,				1, 1 ),
 	UIF( model,				1, 1 ),
-	UIF( forcepowers,		1, 1 ),
+//	UIF( forcepowers,		1, 1 ),
 //	UIF( color1,			1, 1 ),	// NOT IN JKG
 //	UIF( color2,			1, 1 ),	// NOT IN JKG
-	UIF( handicap,			1, 1 ),
+//	UIF( handicap,			1, 1 ),
 	UIF( sex,				0, 1 ),
 	UIF( cg_predictItems,	1, 1 ),
 //	UIF( saber1,			1, 1 ), // NOT IN JKG
@@ -2041,12 +2041,15 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 
 	// check for malformed or illegal info strings
-	s = G_ValidateUserinfo( userinfo );	// <eezstreet> I think this is being used incorrectly in this case, as it doesn't validate them properly?
-	if ( s && *s )
+	if( !(g_entities[clientNum].r.svFlags & SVF_BOT) )
 	{
-		G_SecurityLogPrintf( "Client %d (%s) failed userinfo validation: %s [IP: %s]\n", clientNum, ent->client->pers.netname, s, client->sess.IP );
-		trap_DropClient( clientNum, va( "%s was dropped due to invalid userinfo.", s ) );
-		return qfalse;
+		s = G_ValidateUserinfo( userinfo );	// <eezstreet> I think this is being used incorrectly in this case, as it doesn't validate them properly?
+		if ( s && *s )
+		{
+			G_SecurityLogPrintf( "Client %d (%s) failed userinfo validation: %s [IP: %s]\n", clientNum, ent->client->pers.netname, s, client->sess.IP );
+			trap_DropClient( clientNum, va( "%s was dropped due to invalid userinfo.", s ) );
+			return qfalse;
+		}
 	}
 
 	// check for local client

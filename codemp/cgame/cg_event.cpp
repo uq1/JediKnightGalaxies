@@ -26,6 +26,8 @@ extern int cg_siegeDeathDelay;
 extern int cg_vehicleAmmoWarning;
 extern int cg_vehicleAmmoWarningTime;
 
+extern void JKG_SwapToSaber(int saberNum, clientInfo_t *ci, const char *newSaber, int weapon, int variation);
+
 vmCvar_t	jkg_nokillmessages;
 
 //I know, not siege, but...
@@ -563,13 +565,6 @@ static void CG_UseItem( centity_t *cent ) {
 		break;
 	case HI_CLOAK:
 		break; //Do something?
-	}
-
-	if (cg.snap && cg.snap->ps.clientNum == cent->currentState.number && itemNum != HI_BINOCULARS &&
-		itemNum != HI_JETPACK && itemNum != HI_HEALTHDISP && itemNum != HI_AMMODISP && itemNum != HI_CLOAK && itemNum != HI_EWEB)
-	{ //if not using binoculars/jetpack/dispensers/cloak, we just used that item up, so switch
-		BG_CycleInven(&cg.snap->ps, 1);
-		cg.itemSelect = -1; //update the client-side selection display
 	}
 }
 
@@ -1231,6 +1226,7 @@ extern vmCvar_t jkg_autoreload;
 extern void CG_ChatBox_AddString(char *chatStr, int fadeLevel); //cg_draw.c
 extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
 extern void JKG_CG_SetACISlot(const unsigned short slot);
+extern void WP_SetSaber( int entNum, saberInfo_t *sabers, int saberNum, const char *saberName );
 void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	entityState_t	*es;
 	int				event;
@@ -1996,6 +1992,16 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			{ //not sure what SP is doing for this but I don't want a select sound for saber (it has the saber-turn-on)
 				trap_S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.selectSound );
 			}
+
+			// If we're changing to a saber, we need to make sure that we change our client's saber to match.
+			if( weapon == WP_SABER )
+			{
+				WP_SetSaber( es->number, cgs.clientinfo[es->number].saber, 0, weaponData->sab.hiltname );
+				JKG_SwapToSaber( 0, &cgs.clientinfo[es->number], weaponData->sab.hiltname, weapon, variation );
+				//CG_InitG2SaberData( 0, &cgs.clientinfo[es->number] );
+				BG_SI_SetDesiredLength(&cgs.clientinfo[es->number].saber[0], 0, -1);
+				BG_SI_SetDesiredLength(&cgs.clientinfo[es->number].saber[1], 0, -1);
+			}
 		}
 		break;
 	case EV_RELOAD:
@@ -2444,6 +2450,42 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				if (ci->saber[1].soundOn)
 				{
 					trap_S_StartSound (NULL, es->number, CHAN_AUTO, ci->saber[1].soundOn );
+				}
+			}
+		}
+		break;
+
+	case EV_SABER_HOLSTER:
+		DEBUGNAME("EV_SABER_HOLSTER");
+		{
+			clientInfo_t *ci = NULL;
+
+			if (es->eType == ET_NPC)
+			{
+				ci = cg_entities[es->eventParm].npcClient;
+			}
+			else if (es->eventParm < MAX_CLIENTS)
+			{
+				ci = &cgs.clientinfo[es->eventParm];
+			}
+
+			if (ci)
+			{
+				if ( es->eFlags == 1 )
+				{
+					// Quick sound effect
+					trap_S_StartSound( NULL, es->eventParm, CHAN_AUTO, trap_S_RegisterSound("sound/weapons/saber/saberoffquick.wav") );
+				}
+				else
+				{
+					if (ci->saber[0].soundOff)
+					{
+						trap_S_StartSound (NULL, es->eventParm, CHAN_AUTO, ci->saber[0].soundOff );
+					}
+					if (ci->saber[1].soundOff)
+					{
+						trap_S_StartSound (NULL, es->eventParm, CHAN_AUTO, ci->saber[1].soundOff );
+					}
 				}
 			}
 		}

@@ -895,6 +895,14 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
 }
 #endif
 
+static void BG_ParseWPNSaberData ( weaponData_t *wp, cJSON *json )
+{
+	memset( &wp->sab, 0, sizeof( wp->sab ) );
+
+	ReadString( json, "hilt", wp->sab.hiltname, sizeof( wp->sab.hiltname ) );
+	ReadString( json, "crystal", wp->sab.defaultcrystal, sizeof( wp->sab.defaultcrystal ) );
+}
+
 stringID_table_t WPTable[]; // From bg_saga.c
 
 #define MAX_WEAPON_FILE_LENGTH (16384) // 16kb should be enough, 4kb apparently wasn't!
@@ -957,6 +965,13 @@ static qboolean BG_ParseWeaponFile ( const char *weaponFilePath )
 
     jsonNode = cJSON_GetObjectItem (json, "stats");
     BG_ParseWeaponStats (&weaponData, jsonNode);
+
+	// Special awesome saber stuff...
+	if( weaponData.weaponBaseIndex == WP_SABER )
+	{
+		jsonNode = cJSON_GetObjectItem (json, "saberdata");
+		BG_ParseWPNSaberData( &weaponData, jsonNode );
+	}
     
 	weaponData.numFiringModes = 0;
 	for(i = 0; i < MAX_FIREMODES; i++)

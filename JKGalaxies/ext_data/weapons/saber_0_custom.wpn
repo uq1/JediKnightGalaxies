@@ -1,13 +1,13 @@
 {
-    "name":             "@JKG_ITEMS_weapon_melee",
-    "type":             "WP_MELEE",
+    "name":             "@JKG_ITEMS_weapon_saber",
+    "type":             "WP_SABER",
     "variation":        0,
-    "classname":        "melee",
-    "description":      "@JKG_ITEMS_weapon_melee",
+    "classname":        "saber_custom",
+    "description":      "@JKG_ITEMS_weapon_saber",
     
     "visual": {
-        "hudicon":          "gfx/hud/w_icon_melee",
-        "hudnaicon":        "gfx/hud/w_icon_melee_na",
+        "hudicon":          "gfx/hud/w_icon_lightsaber",
+        "hudnaicon":        "gfx/hud/w_icon_lightsaber_na",
     
         "firemode0": {
             "type":         "blaster"
@@ -23,20 +23,25 @@
         "flags":        [ "roll" ],
         "speed":        1.1
     },
+
+    "saberdata": {
+	"hilt":		"Kyle",
+	"crystal":	"ot-blue"
+    },
     
     "firemode0": {
-        "damage":       10,
-        "firedelay":    400,
-        "range":        8.0,
-        "meansofdeath": "MOD_MELEE"
+        "meansofdeath": "MOD_SABER"
+    },
+    
+    "firemode1": {
+        "meansofdeath": "MOD_SABER"
     },
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
         "reload":       { "torso": "TORSO_DROPWEAP1" },
-	"sights":	{ "torso": "BOTH_STAND6", "legs": "BOTH_STAND1" },
-        "ready":        { "torso": "BOTH_STAND9", "legs": "BOTH_STAND9" },
-        "firing":       { "torso": "BOTH_ATTACK3" }
+        "ready":        { "torso": "BOTH_STAND2" },
+        "firing":       { "torso": "BOTH_STAND2" }
     },
     
     "weaponanims": {

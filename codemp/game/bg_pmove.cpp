@@ -341,7 +341,7 @@ int PM_GetSaberStance(void)
 
 	if ( BG_SabersOff( pm->ps ) )
 	{
-		return BOTH_STAND1;
+		return BG_GetWeaponDataByIndex( pm->ps->weaponId )->anims.ready.torsoAnim;
 	}
 
 	if ( saber1
@@ -5686,7 +5686,8 @@ static void PM_Footsteps( void ) {
 						if (!PM_AdjustStandAnimForSlope())
 						{
 							//PM_ContinueLegsAnim( BOTH_STAND1 );
-							PM_ContinueLegsAnim(PM_LegsSlopeBackTransition(BOTH_STAND1));
+							weaponData_t *wp = BG_GetWeaponDataByIndex( pm->ps->weaponId );
+							PM_ContinueLegsAnim(PM_LegsSlopeBackTransition( wp->anims.ready.legsAnim ));
 						}
 					}
 					else
@@ -5959,53 +5960,60 @@ static void PM_Footsteps( void ) {
 			}
 			else
 			{
-				if( SaberStances[pm->ps->fd.saberAnimLevel].isStaffOnly )
+				if( pm->ps->weapon != WP_MELEE )
 				{
-					if ( pm->ps->saberHolstered > 1 )
-					{//blades off
-						desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
+					if( SaberStances[pm->ps->fd.saberAnimLevel].isStaffOnly )
+					{
+						if ( pm->ps->saberHolstered > 1 )
+						{//blades off
+							desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
+						}
+						else if ( pm->ps->saberHolstered == 1 )
+						{//1 blade on
+							desiredAnim = BOTH_RUN2;
+						}
+						else
+						{
+							if (pm->ps->fd.forcePowersActive & (1<<FP_SPEED))
+							{
+								desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
+							}
+							else
+							{
+								desiredAnim = BOTH_RUN_STAFF;
+							}
+						}
 					}
-					else if ( pm->ps->saberHolstered == 1 )
-					{//1 blade on
-						desiredAnim = BOTH_RUN2;
+					else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
+					{
+						if ( pm->ps->saberHolstered > 1 )
+						{//blades off
+							desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
+						}
+						else if ( pm->ps->saberHolstered == 1 )
+						{//1 saber on
+							desiredAnim = BOTH_RUN2;
+						}
+						else
+						{
+							desiredAnim = BOTH_RUN_DUAL;
+						}
 					}
 					else
 					{
-						if (pm->ps->fd.forcePowersActive & (1<<FP_SPEED))
-						{
+						if ( pm->ps->saberHolstered || pm->ps->weapon == WP_MELEE || pm->ps->weapon == WP_NONE )  // JKG - Anim fix
+						{//saber off
 							desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
 						}
 						else
 						{
-							desiredAnim = BOTH_RUN_STAFF;
+							desiredAnim = BOTH_RUN2;
 						}
-					}
-				}
-				else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
-				{
-					if ( pm->ps->saberHolstered > 1 )
-					{//blades off
-						desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
-					}
-					else if ( pm->ps->saberHolstered == 1 )
-					{//1 saber on
-						desiredAnim = BOTH_RUN2;
-					}
-					else
-					{
-						desiredAnim = BOTH_RUN_DUAL;
 					}
 				}
 				else
 				{
-					if ( pm->ps->saberHolstered || pm->ps->weapon == WP_MELEE || pm->ps->weapon == WP_NONE )  // JKG - Anim fix
-					{//saber off
-						desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
-					}
-					else
-					{
-						desiredAnim = BOTH_RUN2;
-					}
+					desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
 				}
 			}
 			footstep = qtrue;
@@ -6280,6 +6288,12 @@ void PM_BeginWeaponChange( int weaponId ) {
 		}
 	}
 
+	// Don't allow while in blocking mode for sabers, otherwise this fucks EVERYTHING up...
+	if( pm->ps->weapon == WP_SABER && pm->ps->saberActionFlags & ( 1 << SAF_BLOCKING ) )
+	{
+		return;
+	}
+
 	// Don't allow while reloading.
 	if ( pm->ps->weaponstate == WEAPON_DROPPING || pm->ps->weaponstate == WEAPON_RELOADING ) {
 		return;
@@ -6336,9 +6350,9 @@ void PM_FinishWeaponChange( void ) {
 			if ( pm->ps->fd.saberAnimLevel == SS_DUAL )
 			{//holding second saber, activate it.
 				pm->ps->saberHolstered = 1;
-		PM_SetSaberMove(LS_DRAW);
-	}
-	else
+				PM_SetSaberMove(LS_DRAW);
+			}
+			else
 			{//not holding any sabers, make sure all our blades are all off.
 				pm->ps->saberHolstered = 2;
 			}
@@ -7409,7 +7423,7 @@ static void PM_Weapon( void )
 	{
 		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_SABER, 0);
 		pm->ps->weapon = WP_SABER;
-		pm->ps->weaponVariation = 0;
+		pm->ps->weaponVariation = 1;
 
 		if (pm->ps->duelTime >= pm->cmd.serverTime)
 		{
@@ -7421,7 +7435,7 @@ static void PM_Weapon( void )
 
 	if (pm->ps->weapon == WP_SABER && pm->ps->saberMove != LS_READY && pm->ps->saberMove != LS_NONE)
 	{
-		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_SABER, 0); //don't allow switching out mid-attack
+		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_SABER, pm->ps->weaponVariation); //don't allow switching out mid-attack
 	}
 
 	if (pm->ps->weapon == WP_SABER)
@@ -7581,7 +7595,7 @@ static void PM_Weapon( void )
 		PM_StartTorsoAnim( BOTH_GUNSIT1 );
 	}
 
-	if (pm->ps->isJediMaster || pm->ps->duelInProgress || pm->ps->trueJedi)
+	/*if (pm->ps->isJediMaster || pm->ps->duelInProgress || pm->ps->trueJedi)
 	{
 		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_SABER, 0);
 		pm->ps->weapon = WP_SABER;
@@ -7591,7 +7605,7 @@ static void PM_Weapon( void )
 		{
 			pm->ps->stats[STAT_WEAPONS] = (1 << WP_SABER);
 		}
-	}
+	}*/
 
 	amount = GetWeaponData( pm->ps->weapon, pm->ps->weaponVariation )->firemodes[pm->ps->firingMode].cost;
 
@@ -7602,8 +7616,10 @@ static void PM_Weapon( void )
 	// check for weapon change
 	// can't change if weapon is firing, but can change
 	// again if lowering or raising
-	if ( pm->ps->weaponTime <= 0 || pm->ps->weaponstate != WEAPON_FIRING ) {
-		if ( (pm->cmd.weapon != pm->ps->weaponId) && pm->ps->weaponstate != WEAPON_DROPPING ) {
+	if ( pm->ps->weaponTime <= 0 || pm->ps->weaponstate != WEAPON_FIRING ) 
+	{
+		if ( (pm->cmd.weapon != pm->ps->weaponId) && pm->ps->weaponstate != WEAPON_DROPPING ) 
+		{
 			PM_BeginWeaponChange( pm->cmd.weapon );
 		}
 	}
@@ -7630,10 +7646,10 @@ static void PM_Weapon( void )
 			{
 				PM_StartTorsoAnim( PM_GetSaberStance() );
 			}
-			else if (pm->ps->weapon == WP_MELEE || PM_IsRocketTrooper())
+			/*else if (pm->ps->weapon == WP_MELEE || PM_IsRocketTrooper())
 			{
 				PM_StartTorsoAnim( pm->ps->legsAnim );
-			}
+			}*/
 			else
 			{
 				if (pm->ps->weapon == WP_EMPLACED_GUN)
@@ -7686,10 +7702,13 @@ static void PM_Weapon( void )
 			    pm->ps->forceHandExtend == HANDEXTEND_NONE)
 		    {
 			    int desTAnim = pm->ps->legsAnim;
-			    if ((desTAnim == BOTH_STAND1 || desTAnim == BOTH_STAND2) &&
+			    if ((desTAnim == BOTH_STAND1 || desTAnim == BOTH_STAND2 || desTAnim == BOTH_STAND9) &&
 			        pm->ps->weapon == WP_MELEE)
 			    { //remap the standard standing anims for melee stance
-				    desTAnim = BOTH_STAND6;
+					if( desTAnim == BOTH_STAND9 )
+						desTAnim = BOTH_STAND9;
+					else
+						desTAnim = BOTH_STAND6;
 			    }
 
 			    if (!(pm->cmd.buttons & BUTTON_ATTACK) || pm->ps->weapon == WP_NONE)
@@ -11567,10 +11586,6 @@ void PmoveSingle (pmove_t *pmove) {
 	if (pm->cmd.forcesel != (byte)-1 && (pm->ps->fd.forcePowersKnown & (1 << pm->cmd.forcesel)))
 	{
 		pm->ps->fd.forcePowerSelected = pm->cmd.forcesel;
-	}
-	if (pm->cmd.invensel != (byte)-1 && (pm->ps->stats[STAT_HOLDABLE_ITEMS] & (1 << pm->cmd.invensel)))
-	{
-		pm->ps->stats[STAT_HOLDABLE_ITEM] = BG_GetItemIndexByTag(pm->cmd.invensel, IT_HOLDABLE);
 	}
 
 	if (pm->ps->m_iVehicleNum 

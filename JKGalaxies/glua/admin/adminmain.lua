@@ -15,6 +15,76 @@ ranks = { }
 sortedadmins = { }
 sortedranks = { }
 
+-- Felt like refactoring this, SO THEN I DOUBLED IT
+permissions = { }
+sortedpermissions = { }
+local numPermissions = 0
+
+--[[ ------------------------------------------------
+	AdmPerm_AddPermission( permissionname, permissiondefault, friendlyname, color )
+	Adds a permission to the permission table.
+--------------------------------------------------]]
+
+local function AdmPerm_AddPermission( permissionname, permissiondefault, friendlyname, color )
+	local permission = { }
+	permission["name"] = permissionname
+	permission["default"] = permissiondefault
+	permission["friendlyname"] = friendlyname
+	permission["color"] = color
+
+	permissions[permissionname] = permission
+	table.insert( sortedpermissions, numPermissions, permission )
+
+	numPermissions = numPermissions + 1
+end
+
+--[[ ------------------------------------------------
+	AdmPerm_InitPermissions()
+	Creates all of the standard permissions.
+--------------------------------------------------]]
+
+-- High-Risk (Red/^1): Kicking/Banning, mostly. These are dangerous and should only be given to high-ranking admins.
+-- Harmless (Green/^2): Status, listing stuff, help, etc. These aren't harmful from a security standpoint.
+-- Self-Exploitable (Yellow/^3): From a security standpoint, these are only harmful to the person who uses it. Changing details falls into this category.
+-- Building Commands (Blue/^4): Building stuff. Built stuff can be destroyed by the users (later on, when we implement that, anyway), so no harm done.
+-- Communication (Cyan/^5): Talking with clients, and amongst admins. Can be extremely annoying if spoofed.
+-- Structural (Magenta/^6): Alters the structure of administration, such as dealing with ranks. Not necessarily needed on accounts, but they're there for convenience.
+-- Annoying (Orange/^8): While not necessarily harmful, if used, they can be annoying. Stuff like slap, slay, etc falls into this category.
+
+local function AdmPerm_InitPermissions( )
+	AdmPerm_AddPermission( "can-changedetails", 		1, "admchangedetails", 		"^3" )
+	AdmPerm_AddPermission( "can-addaccounts", 		0, "admnewaccount", 		"^6" )
+	AdmPerm_AddPermission( "can-deleteaccounts", 		0, "admdeleteaccount", 		"^6" )
+	AdmPerm_AddPermission( "can-list-online", 		1, "admlist online", 		"^2" )
+	AdmPerm_AddPermission( "can-list-admins", 		1, "admlist admins", 		"^2" )
+	AdmPerm_AddPermission( "can-list-powers", 		1, "admlist ranks", 		"^2" )
+	AdmPerm_AddPermission( "can-list-ranks", 		1, "admlist powers", 		"^2" )
+	AdmPerm_AddPermission( "can-list-permissions", 		0, "admlist permissions", 	"^2" )
+	AdmPerm_AddPermission( "can-rank-inspect", 		1, "admrank inspect", 		"^2" )
+	AdmPerm_AddPermission( "can-rank-create", 		0, "admrank create", 		"^1" )
+	AdmPerm_AddPermission( "can-rank-delete", 		0, "admrank delete", 		"^1" )
+	AdmPerm_AddPermission( "can-rank-addpermission", 	0, "admrank addpermission", 	"^1" )
+	AdmPerm_AddPermission( "can-rank-deletepermission", 	0, "admrank deletepermission", 	"^1" )
+	AdmPerm_AddPermission( "can-alter-rank", 		0, "admalter rank", 		"^6" )
+	AdmPerm_AddPermission( "can-alter-password", 		0, "admalter password", 	"^6" )
+	AdmPerm_AddPermission( "can-status", 			1, "admstatus", 		"^2" )
+	AdmPerm_AddPermission( "can-say", 			1, "admsay", 			"^5" )
+	AdmPerm_AddPermission( "can-tell", 			1, "admtell", 			"^5" )
+	AdmPerm_AddPermission( "can-speak", 			1, "admspeak", 			"^5" )
+	AdmPerm_AddPermission( "can-puppet", 			0, "admpuppet", 		"^8" )
+	AdmPerm_AddPermission( "can-place", 			0, "bPlace", 			"^4" )
+	AdmPerm_AddPermission( "can-delent", 			0, "bDelent", 			"^4" )
+	AdmPerm_AddPermission( "can-entcount", 			1, "bEntCount", 		"^4" )
+	AdmPerm_AddPermission( "can-showspawnvars", 		0, "bShowSpawnVars", 		"^4" )
+	AdmPerm_AddPermission( "can-rotate", 			0, "bRotate", 			"^4" )
+	AdmPerm_AddPermission( "use-cheats", 			0, "Use Cheats", 		"^8" )
+end
+
+--[[ ------------------------------------------------
+	AdmRank_GetRank
+	Gets the rank of a player.
+--------------------------------------------------]]
+
 function AdmRank_GetRank(ply)
 	if ply.IsAdmin then
 		local account = ply:GetAdminAccount()
@@ -22,6 +92,11 @@ function AdmRank_GetRank(ply)
 	end
 	return nil
 end
+
+--[[ ------------------------------------------------
+	AdmRank_InitRanks
+	Inits all of the information about ranks
+--------------------------------------------------]]
 
 local function AdmRank_InitRanks( )
 	-- Grab our file
@@ -43,7 +118,7 @@ local function AdmRank_InitRanks( )
 	end
 
 	-- Loop through objects
-	local i
+	local i, j
 	for i = 0, json.GetArraySize(rankArray)-1 do
 		local jObject = json.GetArrayItem( rankArray, i )
 		local rank = {}
@@ -56,86 +131,13 @@ local function AdmRank_InitRanks( )
 		-- INSERT COMMAND-BASED STUFF HERE
 		--
 
-		jObjectItem = json.GetObjectItem( jObject, "can-changedetails" )
-		rank["can-changedetails"] = json.ToBooleanOpt( jObjectItem, 1 )
+		for j = 0, numPermissions-1 do
+			local permname = sortedpermissions[j]["name"]
+			local defvalue = sortedpermissions[j]["default"]
 
-		jObjectItem = json.GetObjectItem( jObject, "can-addaccounts" )
-		rank["can-addaccounts"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-deleteaccounts" )
-		rank["can-deleteaccounts"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-list-online" )
-		rank["can-list-online"] = json.ToBooleanOpt( jObjectItem, 1 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-list-admins" )
-		rank["can-list-admins"] = json.ToBooleanOpt( jObjectItem, 1 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-list-powers" )
-		rank["can-list-powers"] = json.ToBooleanOpt( jObjectItem, 1 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-list-ranks" )
-		rank["can-list-ranks"] = json.ToBooleanOpt( jObjectItem, 1 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-list-powers" )
-		rank["can-list-online"] = json.ToBooleanOpt( jObjectItem, 1 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-list-permissions" )
-		rank["can-list-permissions"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-rank-inspect" )
-		rank["can-rank-inspect"] = json.ToBooleanOpt( jObjectItem, 1 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-rank-create" )
-		rank["can-rank-create"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-rank-delete" )
-		rank["can-rank-delete"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-rank-addpermission" )
-		rank["can-rank-addpermission"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-rank-deletepermission" )
-		rank["can-rank-deletepermission"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-alter-rank" )
-		rank["can-alter-rank"] = json.ToBooleanOpt( jObjectItem, 0 )
-	
-		jObjectItem = json.GetObjectItem( jObject, "can-alter-password" )
-		rank["can-alter-password"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-status" )
-		rank["can-status"] = json.ToBooleanOpt( jObjectItem, 1 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-say" )
-		rank["can-say"] = json.ToBooleanOpt( jObjectItem, 1 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-tell" )
-		rank["can-tell"] = json.ToBooleanOpt( jObjectItem, 1 )
-		
-		jObjectItem = json.GetObjectItem( jObject, "can-speak" )
-		rank["can-speak"] = json.ToBooleanOpt( jObjectItem, 1 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-puppet" )
-		rank["can-puppet"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-place" )
-		rank["can-place"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-delent" )
-		rank["can-delent"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-entcount" )
-		rank["can-entcount"] = json.ToBooleanOpt( jObjectItem, 1 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-showspawnvars" )
-		rank["can-showspawnvars"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "can-rotate" )
-		rank["can-rotate"] = json.ToBooleanOpt( jObjectItem, 0 )
-
-		jObjectItem = json.GetObjectItem( jObject, "use-cheats" )
-		rank["use-cheats"] = json.ToBooleanOpt( jObjectItem, 1 )
+			jObjectItem = json.GetObjectItem( jObject, permname )
+			rank[permname] = json.ToBooleanOpt( jObjectItem, defvalue )
+		end
 	
 		--
 		-- END COMMAND-BASED STUFF
@@ -152,6 +154,12 @@ local function AdmRank_InitRanks( )
 	-- Make sure to clean up our mess.
 	json.Clear()
 end
+
+--[[ ------------------------------------------------
+	AdmList_InitAdminList
+	Opens up the json/savefile for the admins,
+	and then applies this information to the ingame system
+--------------------------------------------------]]
 
 local function AdmList_InitAdminList ( )
 	-- Grab our file
@@ -206,13 +214,12 @@ local function AdmList_InitAdminList ( )
 	json.Clear()
 end
 
--- High-Risk (Red/^1): Kicking/Banning, mostly. These are dangerous and should only be given to high-ranking admins.
--- Harmless (Green/^2): Status, listing stuff, help, etc. These aren't harmful from a security standpoint.
--- Self-Exploitable (Yellow/^3): From a security standpoint, these are only harmful to the person who uses it. Changing details falls into this category.
--- Building Commands (Blue/^4): Building stuff. Built stuff can be destroyed by the users (later on, when we implement that, anyway), so no harm done.
--- Communication (Cyan/^5): Talking with clients, and amongst admins. Can be extremely annoying if spoofed.
--- Structural (Magenta/^6): Alters the structure of administration, such as dealing with ranks. Not necessarily needed on accounts, but they're there for convenience.
--- Annoying (Orange/^8): While not necessarily harmful, if used, they can be annoying. Stuff like slap, slay, etc falls into this category.
+--[[ ------------------------------------------------
+	AdminHelp_ListPowers
+	Lists powers for a given rank, or, lists
+	all powers. OR, this can be used on
+	permissions also. It's like a 4-in-1 func.
+--------------------------------------------------]]
 
 local function AdminHelp_ListPowers( rank, listpermissions, listall )
 	-- This code is used in multiple places, I figured it would be wise to put this into a function
@@ -221,271 +228,46 @@ local function AdminHelp_ListPowers( rank, listpermissions, listall )
 	end
 
 	local printedtext = ""
+	local i
 
-	if rank["can-changedetails"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^3can-changedetails^7, "
-		else
-			printedtext = printedtext .. "^3admchangedetails^7, "
+	-- Loop through everything.
+	for i = 0, numPermissions-1 do
+		local perm = sortedpermissions[i]
+		local printcolor = perm["color"]
+		local permname = perm["name"]
+		local addtext
+
+		-- Make sure we have this permission
+		if listall == true or rank[permname] then
+			if listpermissions == true then
+				addtext = permname
+			else
+				addtext = perm["friendlyname"]
+			end
+			printedtext = printedtext .. printcolor .. addtext .. "^7, "
 		end
-	end
-
-	if rank["can-addaccounts"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^6can-addaccounts^7, "
-		else
-			printedtext = printedtext .. "^6admnewaccount^7, "
-		end
-	end
-
-	if rank["can-deleteaccounts"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^6can-deleteaccounts^7, "
-		else
-			printedtext = printedtext .. "^6admdeleteaccount^7, "
-		end
-	end
-
-	if rank["can-list-online"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^2can-list-online^7, "
-		else
-			printedtext = printedtext .. "^2admlist online^7, "
-		end
-	end
-
-	if rank["can-list-admins"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^2can-list-admins^7, "
-		else
-			printedtext = printedtext .. "^2admlist admins^7, "
-		end
-	end
-
-	if rank["can-list-ranks"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^2can-list-ranks^7, "
-		else
-			printedtext = printedtext .. "^2admlist ranks^7, "
-		end
-	end
-
-	if rank["can-list-powers"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^2can-list-powers^7, "
-		else
-			printedtext = printedtext .. "^2admlist powers^7, "
-		end
-	end
-
-	if rank["can-list-permissions"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^2can-list-permissions^7, "
-		else
-			printedtext = printedtext .. "^2admlist permissions^7, "
-		end
-	end
-
-	if rank["can-rank-inspect"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^2can-rank-inspect^7, "
-		else
-			printedtext = printedtext .. "^2admrank inspect^7, "
-		end
-	end
-
-	if rank["can-rank-create"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^1can-rank-create^7, "
-		else
-			printedtext = printedtext .. "^1admrank create^7, "
-		end
-	end
-
-	if rank["can-rank-delete"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^1can-rank-delete^7, "
-		else
-			printedtext = printedtext .. "^1admrank delete^7, "
-		end
-	end
-
-	if rank["can-rank-addpermission"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^1can-rank-addpermission^7, "
-		else
-			printedtext = printedtext .. "^1admrank addpermission^7, "
-		end
-	end
-
-	if rank["can-rank-deletepermission"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^1can-rank-deletepermission^7, "
-		else
-			printedtext = printedtext .. "^1admrank deletepermission^7, "
-		end
-	end
-
-	if rank["can-alter-rank"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^6can-alter-rank^7, "
-		else
-			printedtext = printedtext .. "^6admalter rank^7, "
-		end
-	end
-
-	if rank["can-alter-password"] or listall == true then
-		if listpermissions == true then
-			printedtect = printedtext .. "^6can-alter-password^7, "
-		else
-			printedtext = printedtext .. "^6admalter password^7, "
-		end
-	end
-
-	if rank["can-status"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^2can-status^7, "
-		else
-			printedtext = printedtext .. "^2admstatus^7, "
-		end
-	end
-
-	if rank["can-say"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^5can-say^7, "
-		else
-			printedtext = printedtext .. "^5admsay^7, "
-		end
-	end
-
-	if rank["can-tell"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^5can-tell^7, "
-		else
-			printedtext = printedtext .. "^5admtell^7, "
-		end
-	end
-
-	if rank["can-speak"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^5can-speak^7, "
-		else
-			printedtext = printedtext .. "^5admspeak^7, "
-		end
-	end
-
-	if rank["can-puppet"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^8can-puppet^7, "
-		else
-			printedtext = printedtext .. "^8admpuppet^7, "
-		end
-	end
-
-	if rank["can-place"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^4can-place^7, "
-		else
-			printedtext = printedtext .. "^4bPlace^7, "
-		end
-	end
-
-	if rank["can-delent"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^4can-delent^7, "
-		else
-			printedtext = printedtext .. "^4bDelent^7, "
-		end
-	end
-
-	if rank["can-showspawnvars"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^4can-showspawnvars^7, "
-		else
-			printedtext = printedtext .. "^4bShowSpawnVars^7, "
-		end
-	end
-
-	if rank["can-entcount"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^4can-entcount^7, "
-		else
-			printedtext = printedtext .. "^4bEntCount^7, "
-		end
-	end
-
-	if rank["can-rotate"] or listall == true then
-		if listpermissions == true then
-			printedtext = printedtext .. "^4can-rotate^7, "
-		else
-			printedtext = printedtext .. "^4bRotate^7, "
-		end
-	end
-
-	if listall == true or rank["use-cheats"] == true and listpermissions == true then
-		printedtext = printedtext .. "^8can-cheat "
 	end
 						
 	return printedtext
 end
 
+--[[ ------------------------------------------------
+	RankPermission_IsValid
+	Checks if a permission is valid or not
+--------------------------------------------------]]
+
 local function RankPermission_IsValid( permissionname )
-	if permissionname == "can-changedetails" then
-		return true
-	elseif permissionname == "can-addaccounts" then
-		return true
-	elseif permissionname == "can-deleteaccounts" then
-		return true
-	elseif permissionname == "can-list-online" then
-		return true
-	elseif permissionname == "can-list-admins" then
-		return true
-	elseif permissionname == "can-list-powers" then
-		return true
-	elseif permissionname == "can-list-ranks" then
-		return true
-	elseif permissionname == "can-list-permissions" then
-		return true
-	elseif permissionname == "can-rank-inspect" then
-		return true
-	elseif permissionname == "can-rank-create" then
-		return true
-	elseif permissionname == "can-rank-delete" then
-		return true
-	elseif permissionname == "can-rank-addpermission" then
-		return true
-	elseif permissionname == "can-rank-deletepermission" then
-		return true
-	elseif permissionname == "can-alter-rank" then
-		return true
-	elseif permissionname == "can-alter-password" then
-		return true
-	elseif permissionname == "can-status" then
-		return true
-	elseif permissionname == "can-say" then
-		return true
-	elseif permissionname == "can-tell" then
-		return true
-	elseif permissionname == "can-speak" then
-		return true
-	elseif permissionname == "can-puppet" then
-		return true
-	elseif permissionname == "can-place" then
-		return true
-	elseif permissionname == "can-delent" then
-		return true
-	elseif permissionname == "can-showspawnvars" then
-		return true
-	elseif permissionname == "can-entcount" then
-		return true
-	elseif permissionname == "can-rotate" then
-		return true
-	elseif permissionname == "use-cheats" then
+	if permissions[permissionname] ~= nil then
 		return true
 	else
 		return false
 	end
 end
+
+--[[ ------------------------------------------------
+	RankList_SaveRanks
+	Saves all the ranks into a file.
+--------------------------------------------------]]
 
 local function RankList_SaveRanks( reason )
 	-- Save the .json file
@@ -498,7 +280,7 @@ local function RankList_SaveRanks( reason )
 	json.BeginArray( "ranks" )
 
 	-- Okay, now to save all of the ranks...
-	local k
+	local k, l
 	for k = 0, ranks["numRanks"]-1 do
 		-- Array base object
 		json.BeginObject( "0" )
@@ -507,32 +289,16 @@ local function RankList_SaveRanks( reason )
 
 		json.WriteString( "name", sortedrank["name"] )
 
-		json.WriteBoolean( "can-changedetails", sortedrank["can-changedetails"] )
-		json.WriteBoolean( "can-addaccounts", sortedrank["can-addaccounts"] )
-		json.WriteBoolean( "can-deleteaccounts", sortedrank["can-deleteaccounts"] )
-		json.WriteBoolean( "can-list-online", sortedrank["can-list-online"] )
-		json.WriteBoolean( "can-list-admins", sortedrank["can-list-admins"] )
-		json.WriteBoolean( "can-list-ranks", sortedrank["can-list-ranks"] )
-		json.WriteBoolean( "can-list-powers", sortedrank["can-list-powers"] )
-		json.WriteBoolean( "can-list-permissions", sortedrank["can-list-permissions"] )
-		json.WriteBoolean( "can-rank-inspect", sortedrank["can-rank-inspect"] )
-		json.WriteBoolean( "can-rank-create", sortedrank["can-rank-create"] )
-		json.WriteBoolean( "can-rank-delete", sortedrank["can-rank-delete"] )
-		json.WriteBoolean( "can-rank-addpermission", sortedrank["can-rank-addpermission"] )
-		json.WriteBoolean( "can-rank-deletepermission", sortedrank["can-rank-deletepermission"] )
-		json.WriteBoolean( "can-alter-rank", sortedrank["can-alter-rank"] )
-		json.WriteBoolean( "can-alter-password", sortedrank["can-alter-password"] )
-		json.WriteBoolean( "can-status", sortedrank["can-status"] )
-		json.WriteBoolean( "can-say", sortedrank["can-say"] )
-		json.WriteBoolean( "can-tell", sortedrank["can-tell"] )
-		json.WriteBoolean( "can-speak", sortedrank["can-speak"] )
-		json.WriteBoolean( "can-puppet", sortedrank["can-puppet"] )
-		json.WriteBoolean( "can-place", sortedrank["can-place"] )
-		json.WriteBoolean( "can-delent", sortedrank["can-delent"] )
-		json.WriteBoolean( "can-showspawnvars", sortedrank["can-showspawnvars"] )
-		json.WriteBoolean( "can-entcount", sortedrank["can-entcount"] )
-		json.WriteBoolean( "can-rotate", sortedrank["can-rotate"] )
-		json.WriteBoolean( "use-cheats", sortedrank["use-cheats"] )
+		for l = 0, numPermissions-1 do
+			local permission = sortedpermissions[l]
+			local permname = permission["name"]
+
+			if sortedrank[permname] ~= nil then
+				json.WriteBoolean( permname, sortedrank[permname] )
+			else
+				json.WriteBoolean( permname, permission["default"] )
+			end
+		end
 		
 		-- Array base object
 		json.EndObject( )
@@ -551,6 +317,11 @@ local function RankList_SaveRanks( reason )
 	securitylog("Ranks saved. (Reason: " .. reason .. " )")
 end
 
+--[[ ------------------------------------------------
+	UpdateRank
+	Updates the savefile.
+--------------------------------------------------]]
+
 local function UpdateRank( rank, reason )
 	ranks[rank["name"]] = rank
 	if sortedranks[rank["sorted"]] ~= nil then
@@ -562,12 +333,22 @@ local function UpdateRank( rank, reason )
 	RankList_SaveRanks( reason )
 end
 
+--[[ ------------------------------------------------
+	RankList_AddRank
+	Adds a new rank into the system and
+	saves the ranks.
+--------------------------------------------------]]
+
 local function RankList_AddRank( rank )
 	ranks["numRanks"] = ranks["numRanks"] + 1
 	table.insert(sortedranks, ranks["numRanks"]-1, rank)
 	UpdateRank( rank, "Added new rank: " .. rank["name"] )
-	
 end
+
+--[[ ------------------------------------------------
+	RankList_DeleteRank
+	Deletes a rank and saves the ranks.
+--------------------------------------------------]]
 
 local function RankList_DeleteRank( rank )
 	local rankname = rank["name"]
@@ -589,6 +370,11 @@ local function RankList_DeleteRank( rank )
 	ranks["numRanks"] = ranks["numRanks"] - 1
 	RankList_SaveRanks( "Deleted rank: " .. rankname )
 end
+
+--[[ ------------------------------------------------
+	AdmList_SaveAccounts
+	Saves all the admin accounts into a file.
+--------------------------------------------------]]
 
 local function AdmList_SaveAccounts( reason )
 	-- Save the .json file
@@ -630,6 +416,11 @@ local function AdmList_SaveAccounts( reason )
 	securitylog("Accounts saved. (Reason: " .. reason .. " )")
 end
 
+--[[ ------------------------------------------------
+	UpdateAccount
+	Updates the accounts and calls AdmList_SaveAccounts
+--------------------------------------------------]]
+
 local function UpdateAccount( account, reason )
 	admins[account["username"]] = account
 	if sortedadmins[account["sorted"]] ~= nil then
@@ -641,11 +432,22 @@ local function UpdateAccount( account, reason )
 	AdmList_SaveAccounts( reason )
 end
 
+--[[ ------------------------------------------------
+	AdmList_AddAccount
+	Adds a new account into the system
+	Also saves all the accounts.
+--------------------------------------------------]]
+
 local function AdmList_AddAccount( account )
 	admins["numAdmins"] = admins["numAdmins"] + 1
 	table.insert(sortedadmins, admins["numAdmins"]-1, account)
 	UpdateAccount( account, "Added new account: " .. account["username"] .. " [Rank: " .. account["rank"] .. "]" )
 end
+
+--[[ ------------------------------------------------
+	AdmList_DeleteAccount
+	Deletes an account and saves all accounts.
+--------------------------------------------------]]
 
 local function AdmList_DeleteAccount( account )
 	local username = account["username"]
@@ -663,7 +465,13 @@ local function AdmList_DeleteAccount( account )
 	AdmList_SaveAccounts( "Deleted account: " .. username )
 end
 
+--[[ ------------------------------------------------
+	InitAdminAccounts
+	Inits ranks, admin list, permissions, etc
+--------------------------------------------------]]
+
 local function InitAdminAccounts( )
+	AdmPerm_InitPermissions()
 	AdmRank_InitRanks()
 	AdmList_InitAdminList()
 end
@@ -1315,6 +1123,11 @@ local function Admin_Puppet(ply, argc, argv)
 		AdmReply(ply, "^1You are not logged in.")
 	end
 end
+
+--[[ ------------------------------------------------
+	InitAdminCmds
+	This is what links all the commands into chat/console.
+--------------------------------------------------]]
 
 local function InitAdminCmds()
 	chatcmds.Add("admlogin", Admin_Login)

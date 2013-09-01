@@ -719,6 +719,7 @@ static const struct luaL_reg json_f [] = {
 	{ "WriteInteger", GLua_JSON_WriteInteger },
 	{ "WriteNumber", GLua_JSON_WriteNumber },
 	{ "WriteBoolean", GLua_JSON_WriteBoolean },
+	{ NULL, NULL }
 };
 
 void GLua_Define_JSON( lua_State *L )
