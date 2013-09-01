@@ -6326,6 +6326,10 @@ void PM_BeginWeaponChange( int weaponId ) {
 		{
 			pm->ps->weaponTime += 150;
 		}
+		else if( pm->ps->saberHolstered == 2 && weapon != WP_SABER )
+		{
+			pm->ps->weaponTime += 300;
+		}
 		else
 		{
 			pm->ps->weaponTime += 600;
