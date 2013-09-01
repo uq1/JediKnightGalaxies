@@ -6280,6 +6280,12 @@ void PM_BeginWeaponChange( int weaponId ) {
 		}
 	}
 
+	// Don't allow while in blocking mode for sabers, otherwise this fucks EVERYTHING up...
+	if( pm->ps->weapon == WP_SABER && pm->ps->saberActionFlags & ( 1 << SAF_BLOCKING ) )
+	{
+		return;
+	}
+
 	// Don't allow while reloading.
 	if ( pm->ps->weaponstate == WEAPON_DROPPING || pm->ps->weaponstate == WEAPON_RELOADING ) {
 		return;
@@ -7602,8 +7608,10 @@ static void PM_Weapon( void )
 	// check for weapon change
 	// can't change if weapon is firing, but can change
 	// again if lowering or raising
-	if ( pm->ps->weaponTime <= 0 || pm->ps->weaponstate != WEAPON_FIRING ) {
-		if ( (pm->cmd.weapon != pm->ps->weaponId) && pm->ps->weaponstate != WEAPON_DROPPING ) {
+	if ( pm->ps->weaponTime <= 0 || pm->ps->weaponstate != WEAPON_FIRING ) 
+	{
+		if ( (pm->cmd.weapon != pm->ps->weaponId) && pm->ps->weaponstate != WEAPON_DROPPING ) 
+		{
 			PM_BeginWeaponChange( pm->cmd.weapon );
 		}
 	}
