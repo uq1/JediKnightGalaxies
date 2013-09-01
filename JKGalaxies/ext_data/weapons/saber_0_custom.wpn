@@ -8,6 +8,7 @@
     "visual": {
         "hudicon":          "gfx/hud/w_icon_lightsaber",
         "hudnaicon":        "gfx/hud/w_icon_lightsaber_na",
+	"worldmodel":	    "models/weapons/lightsabers/caelumsereno/model.glm",
     
         "firemode0": {
             "type":         "blaster"
