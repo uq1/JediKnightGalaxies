@@ -1969,7 +1969,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 			assert(param >= 0 && param < MAX_WEAPON_TABLE_SIZE);
 			
-			result = BG_GetWeaponByIndex (param, &weapon, &variation);
+ 			result = BG_GetWeaponByIndex (param, &weapon, &variation);
 			assert (result);
 
 			weaponData = GetWeaponData( weapon, variation );

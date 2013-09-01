@@ -3489,6 +3489,8 @@ void WP_CalculateMuzzlePoint( gentity_t *ent, vec3_t forward, vec3_t right, vec3
 
 	/* Get the bolt index and the ghoul model to retrieve the muzzle point */
 	pGhoul		= ent->client->weaponGhoul2[0];					/* Use secondary hand muzzle when shooting with that! */
+	if(! pGhoul )
+		return;		/* Tempfix for some issues with vendors being pricks and firing at people */
 	iBolt		= trap_G2API_AddBolt( pGhoul, 0, "*flash" );	/* Use the *flash tag as muzzle point, it's rather accurate */
 
 	/* These weapons dont have a proper muzzle bolt, don't crash the client but fake the muzzle */
