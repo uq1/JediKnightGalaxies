@@ -11568,10 +11568,6 @@ void PmoveSingle (pmove_t *pmove) {
 	{
 		pm->ps->fd.forcePowerSelected = pm->cmd.forcesel;
 	}
-	if (pm->cmd.invensel != (byte)-1 && (pm->ps->stats[STAT_HOLDABLE_ITEMS] & (1 << pm->cmd.invensel)))
-	{
-		pm->ps->stats[STAT_HOLDABLE_ITEM] = BG_GetItemIndexByTag(pm->cmd.invensel, IT_HOLDABLE);
-	}
 
 	if (pm->ps->m_iVehicleNum 
 		/*&&pm_entSelf->s.NPC_class!=CLASS_VEHICLE*/

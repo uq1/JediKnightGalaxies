@@ -900,7 +900,7 @@ static void BG_ParseWPNSaberData ( weaponData_t *wp, cJSON *json )
 	memset( &wp->sab, 0, sizeof( wp->sab ) );
 
 	ReadString( json, "hilt", wp->sab.hiltname, sizeof( wp->sab.hiltname ) );
-	ReadString( json, "defaultcrystal", wp->sab.defaultcrystal, sizeof( wp->sab.defaultcrystal ) );
+	ReadString( json, "crystal", wp->sab.defaultcrystal, sizeof( wp->sab.defaultcrystal ) );
 }
 
 stringID_table_t WPTable[]; // From bg_saga.c

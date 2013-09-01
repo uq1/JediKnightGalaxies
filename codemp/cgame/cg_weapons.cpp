@@ -2776,7 +2776,21 @@ void CG_CheckPlayerG2Weapons(playerState_t *ps, centity_t *cent)
 	{
 		CG_CopyG2WeaponInstance(cent, ps->weapon, ps->weaponVariation, cent->ghoul2);
 		cent->ghoul2weapon = CG_G2WeaponInstance(cent, ps->weapon, ps->weaponVariation);
-		if (cent->weapon == WP_SABER && cent->weapon != ps->weapon && !ps->saberHolstered)
+		if( cent->weapon == WP_SABER && ps->weapon == WP_SABER &&
+			cent->currentState.weaponVariation != ps->weaponVariation )
+		{
+			// We are switching to another saber from our current one
+			if (cgs.clientinfo[ps->clientNum].saber[0].soundOn)
+			{
+				trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, cgs.clientinfo[ps->clientNum].saber[0].soundOn);
+			}
+
+			if (cgs.clientinfo[ps->clientNum].saber[1].soundOn)
+			{
+				trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, cgs.clientinfo[ps->clientNum].saber[1].soundOn);
+			}
+		}
+		else if (cent->weapon == WP_SABER && cent->weapon != ps->weapon && !ps->saberHolstered)
 		{ //switching away from the saber
 			//trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, trap_S_RegisterSound( "sound/weapons/saber/saberoffquick.wav" ));
 			if (cgs.clientinfo[ps->clientNum].saber[0].soundOff && !ps->saberHolstered)

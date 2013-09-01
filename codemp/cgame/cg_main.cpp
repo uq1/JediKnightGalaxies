@@ -2966,7 +2966,6 @@ Ghoul2 Insert End
 
 	cg.loadLCARSStage		= 0;
 
-	cg.itemSelect = -1;
 	cg.forceSelect = -1;
 	
 	// load a few needed things before we do any screen updates
@@ -3309,11 +3308,6 @@ void CG_NextForcePower_f( void )
 
 	current = trap_GetCurrentCmdNumber();
 	trap_GetUserCmd(current, &cmd);
-	if ((cmd.buttons & BUTTON_USE) || CG_NoUseableForce())
-	{
-		CG_NextInventory_f();
-		return;
-	}
 
 	if (cg.snap->ps.pm_flags & PMF_FOLLOW)
 	{
@@ -3356,11 +3350,6 @@ void CG_PrevForcePower_f( void )
 
 	current = trap_GetCurrentCmdNumber();
 	trap_GetUserCmd(current, &cmd);
-	if ((cmd.buttons & BUTTON_USE) || CG_NoUseableForce())
-	{
-		CG_PrevInventory_f();
-		return;
-	}
 
 	if (cg.snap->ps.pm_flags & PMF_FOLLOW)
 	{
@@ -3379,65 +3368,5 @@ void CG_PrevForcePower_f( void )
 	{
 		cg.forceSelect = cg.snap->ps.fd.forcePowerSelected;
 		cg.forceSelectTime = cg.time;
-	}
-}
-
-void CG_NextInventory_f(void)
-{
-	if ( !cg.snap )
-	{
-		return;
-	}
-
-	if (cg.snap->ps.pm_flags & PMF_FOLLOW)
-	{
-		return;
-	}
-
-	if (cg.predictedPlayerState.pm_type == PM_SPECTATOR)
-	{
-		return;
-	}
-
-	if (cg.itemSelect != -1)
-	{
-		cg.snap->ps.stats[STAT_HOLDABLE_ITEM] = BG_GetItemIndexByTag(cg.itemSelect, IT_HOLDABLE);
-	}
-	BG_CycleInven(&cg.snap->ps, 1);
-
-	if (cg.snap->ps.stats[STAT_HOLDABLE_ITEM])
-	{
-		cg.itemSelect = bg_itemlist[cg.snap->ps.stats[STAT_HOLDABLE_ITEM]].giTag;
-		cg.invenSelectTime = cg.time;
-	}
-}
-
-void CG_PrevInventory_f(void)
-{
-	if ( !cg.snap )
-	{
-		return;
-	}
-
-	if (cg.snap->ps.pm_flags & PMF_FOLLOW)
-	{
-		return;
-	}
-
-	if (cg.predictedPlayerState.pm_type == PM_SPECTATOR)
-	{
-		return;
-	}
-
-	if (cg.itemSelect != -1)
-	{
-		cg.snap->ps.stats[STAT_HOLDABLE_ITEM] = BG_GetItemIndexByTag(cg.itemSelect, IT_HOLDABLE);
-	}
-	BG_CycleInven(&cg.snap->ps, -1);
-
-	if (cg.snap->ps.stats[STAT_HOLDABLE_ITEM])
-	{
-		cg.itemSelect = bg_itemlist[cg.snap->ps.stats[STAT_HOLDABLE_ITEM]].giTag;
-		cg.invenSelectTime = cg.time;
 	}
 }

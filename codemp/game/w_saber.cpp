@@ -10390,3 +10390,55 @@ void thrownSaberBallistics(gentity_t *saberEnt, gentity_t *saberOwn, qboolean st
 }
 //[/SaberThrowSys]
 
+void JKG_NetworkSaberCrystals( playerState_t *ps, int invId, int weaponId )
+{
+	// I'm being extra cautious with these checks for a reason...we originally networked stuff
+	// going by the weaponId because the stuff sent from the ACI was very inaccurate at times.
+
+	// Network what saber crystals we have
+	if( !ps )
+		return;
+
+	int entNum = ps->clientNum;
+
+	if( entNum < 0 || entNum >= MAX_CLIENTS || invId < 0 )
+	{
+		// GTFO maron
+		return;
+	}
+
+	gentity_t *ent = &g_entities[entNum];
+	if( invId >= ent->inventory->size )
+	{
+		// Not quite valid since it's bigger.
+		return;
+	}
+
+	itemInstance_t *itm = &ent->inventory->items[invId];
+	if( !itm->id )
+	{
+		// NOPE.avi
+		return;
+	}
+
+	if( itm->id->itemType != ITEM_WEAPON )
+	{
+		// NOPE_2.0_.avi
+		return;
+	}
+
+	if( itm->id->weapon != WP_SABER )
+	{
+		// still-NOPE.avi
+		return;
+	}
+
+	if( itm->id->varID != weaponId )
+	{
+		// ultimate way of checking to be ABSOLUTELY SURE --eez
+		return;
+	}
+
+	// ok go
+	ps->saberCrystal[0] = itm->calc1;	// FIXME: need stuff for akimbo...
+}

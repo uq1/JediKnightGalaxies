@@ -566,13 +566,6 @@ static void CG_UseItem( centity_t *cent ) {
 	case HI_CLOAK:
 		break; //Do something?
 	}
-
-	if (cg.snap && cg.snap->ps.clientNum == cent->currentState.number && itemNum != HI_BINOCULARS &&
-		itemNum != HI_JETPACK && itemNum != HI_HEALTHDISP && itemNum != HI_AMMODISP && itemNum != HI_CLOAK && itemNum != HI_EWEB)
-	{ //if not using binoculars/jetpack/dispensers/cloak, we just used that item up, so switch
-		BG_CycleInven(&cg.snap->ps, 1);
-		cg.itemSelect = -1; //update the client-side selection display
-	}
 }
 
 
@@ -2006,6 +1999,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				WP_SetSaber( es->number, cgs.clientinfo[es->number].saber, 0, weaponData->sab.hiltname );
 				JKG_SwapToSaber( 0, &cgs.clientinfo[es->number], weaponData->sab.hiltname, weapon, variation );
 				//CG_InitG2SaberData( 0, &cgs.clientinfo[es->number] );
+				BG_SI_SetDesiredLength(&cgs.clientinfo[es->number].saber[0], 0, -1);
+				BG_SI_SetDesiredLength(&cgs.clientinfo[es->number].saber[1], 0, -1);
 			}
 		}
 		break;
