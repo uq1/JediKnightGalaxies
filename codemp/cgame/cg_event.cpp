@@ -26,6 +26,8 @@ extern int cg_siegeDeathDelay;
 extern int cg_vehicleAmmoWarning;
 extern int cg_vehicleAmmoWarningTime;
 
+extern void JKG_SwapToSaber(int saberNum, clientInfo_t *ci, const char *newSaber, int weapon, int variation);
+
 vmCvar_t	jkg_nokillmessages;
 
 //I know, not siege, but...
@@ -1231,6 +1233,7 @@ extern vmCvar_t jkg_autoreload;
 extern void CG_ChatBox_AddString(char *chatStr, int fadeLevel); //cg_draw.c
 extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
 extern void JKG_CG_SetACISlot(const unsigned short slot);
+extern void WP_SetSaber( int entNum, saberInfo_t *sabers, int saberNum, const char *saberName );
 void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	entityState_t	*es;
 	int				event;
@@ -1995,6 +1998,14 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			else if (weapon != WP_SABER)
 			{ //not sure what SP is doing for this but I don't want a select sound for saber (it has the saber-turn-on)
 				trap_S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.selectSound );
+			}
+
+			// If we're changing to a saber, we need to make sure that we change our client's saber to match.
+			if( weapon == WP_SABER )
+			{
+				WP_SetSaber( es->number, cgs.clientinfo[es->number].saber, 0, weaponData->sab.hiltname );
+				JKG_SwapToSaber( 0, &cgs.clientinfo[es->number], weaponData->sab.hiltname, weapon, variation );
+				//CG_InitG2SaberData( 0, &cgs.clientinfo[es->number] );
 			}
 		}
 		break;

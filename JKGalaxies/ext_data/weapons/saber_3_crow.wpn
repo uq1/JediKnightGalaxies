@@ -1,13 +1,14 @@
 {
     "name":             "@JKG_ITEMS_weapon_saber",
     "type":             "WP_SABER",
-    "variation":        0,
-    "classname":        "saber",
+    "variation":        3,
+    "classname":        "saber_crow",
     "description":      "@JKG_ITEMS_weapon_saber",
     
     "visual": {
         "hudicon":          "gfx/hud/w_icon_lightsaber",
         "hudnaicon":        "gfx/hud/w_icon_lightsaber_na",
+	"worldmodel":	    "models/weapons/lightsabers/crow/model.glm",
     
         "firemode0": {
             "type":         "blaster"
@@ -22,6 +23,11 @@
         "slot":         0,
         "flags":        [ "roll" ],
         "speed":        1.1
+    },
+
+    "saberdata": {
+	"hilt":		"Lightsaber_Crow",
+	"crystal":	"purple"
     },
     
     "firemode0": {

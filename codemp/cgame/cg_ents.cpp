@@ -2581,7 +2581,7 @@ static void CG_Missile( centity_t *cent ) {
 
 	if (cent->ghoul2 && s1->weapon == G2_MODEL_PART)
 	{
-		weapon = CG_WeaponInfo (WP_SABER, 0);
+		weapon = CG_WeaponInfo (WP_SABER, s1->weaponVariation);
 	}
 	else
 	{

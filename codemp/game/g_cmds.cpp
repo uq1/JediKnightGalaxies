@@ -5698,6 +5698,14 @@ void ClientCommand( int clientNum ) {
 	{
 		JKG_Cmd_SellItem_f(ent);
 	}
+	else if (Q_stricmp(cmd, "testSetSaber1") == 0)
+	{
+		char str[MAX_TOKEN_CHARS];
+
+		trap_Argv(1, str, sizeof(str));
+
+		G_SetSaber( ent, 0, str, false );
+	}
 	//
 	// BEGIN - Warzone Gametype Editing...
 	//

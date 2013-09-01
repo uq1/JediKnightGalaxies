@@ -6336,9 +6336,9 @@ void PM_FinishWeaponChange( void ) {
 			if ( pm->ps->fd.saberAnimLevel == SS_DUAL )
 			{//holding second saber, activate it.
 				pm->ps->saberHolstered = 1;
-		PM_SetSaberMove(LS_DRAW);
-	}
-	else
+				PM_SetSaberMove(LS_DRAW);
+			}
+			else
 			{//not holding any sabers, make sure all our blades are all off.
 				pm->ps->saberHolstered = 2;
 			}
@@ -7409,7 +7409,7 @@ static void PM_Weapon( void )
 	{
 		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_SABER, 0);
 		pm->ps->weapon = WP_SABER;
-		pm->ps->weaponVariation = 0;
+		pm->ps->weaponVariation = 1;
 
 		if (pm->ps->duelTime >= pm->cmd.serverTime)
 		{
@@ -7421,7 +7421,7 @@ static void PM_Weapon( void )
 
 	if (pm->ps->weapon == WP_SABER && pm->ps->saberMove != LS_READY && pm->ps->saberMove != LS_NONE)
 	{
-		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_SABER, 0); //don't allow switching out mid-attack
+		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_SABER, pm->ps->weaponVariation); //don't allow switching out mid-attack
 	}
 
 	if (pm->ps->weapon == WP_SABER)
@@ -7581,7 +7581,7 @@ static void PM_Weapon( void )
 		PM_StartTorsoAnim( BOTH_GUNSIT1 );
 	}
 
-	if (pm->ps->isJediMaster || pm->ps->duelInProgress || pm->ps->trueJedi)
+	/*if (pm->ps->isJediMaster || pm->ps->duelInProgress || pm->ps->trueJedi)
 	{
 		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_SABER, 0);
 		pm->ps->weapon = WP_SABER;
@@ -7591,7 +7591,7 @@ static void PM_Weapon( void )
 		{
 			pm->ps->stats[STAT_WEAPONS] = (1 << WP_SABER);
 		}
-	}
+	}*/
 
 	amount = GetWeaponData( pm->ps->weapon, pm->ps->weaponVariation )->firemodes[pm->ps->firingMode].cost;
 

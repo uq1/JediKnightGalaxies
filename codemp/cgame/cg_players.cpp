@@ -19,6 +19,8 @@ extern void CG_AddBracketedEnt(centity_t *cent);	//cg_ents.c
 extern qboolean CG_InFighter( void );
 extern qboolean WP_SaberBladeUseSecondBladeStyle( saberInfo_t *saber, int bladeNum );
 
+extern void *CG_GetGhoul2WorldModel ( int weaponNum, int weaponVariation );
+
 
 //for g2 surface routines
 #define TURN_ON				0x00000000
@@ -1404,10 +1406,51 @@ void CG_LoadClientInfo( clientInfo_t *ci ) {
 	}
 }
 
+void JKG_SwapToSaber(int saberNum, clientInfo_t *ci, const char *newSaber, int weapon, int variation)
+{
+	// We're swapping to a saber weapon, we need to do some extra sorts of preparations
+	if( ci->ghoul2Weapons[saberNum] && trap_G2_HaveWeGhoul2Models( ci->ghoul2Weapons[saberNum] ) )
+	{
+		trap_G2API_CleanGhoul2Models( &ci->ghoul2Weapons[saberNum] );
+	}
+
+	trap_G2API_DuplicateGhoul2Instance( CG_GetGhoul2WorldModel( weapon, variation ), &ci->ghoul2Weapons[saberNum] );
+
+	if( !ci->ghoul2Weapons[saberNum] || !trap_G2_HaveWeGhoul2Models( ci->ghoul2Weapons[saberNum] ) )
+	{
+		assert(0);
+	}
+
+	if (ci->saber[saberNum].skin)
+	{
+		trap_G2API_SetSkin(ci->ghoul2Weapons[saberNum], 0, ci->saber[saberNum].skin, ci->saber[saberNum].skin);
+	}
+
+	if (ci->saber[saberNum].saberFlags & SFL_BOLT_TO_WRIST)
+	{
+		trap_G2API_SetBoltInfo(ci->ghoul2Weapons[saberNum], 0, 3+saberNum);
+	}
+	else
+	{
+		trap_G2API_SetBoltInfo(ci->ghoul2Weapons[saberNum], 0, saberNum);
+	}
+}
 
 //Take care of initializing all the ghoul2 saber stuff based on clientinfo data. -rww
-static void CG_InitG2SaberData(int saberNum, clientInfo_t *ci)
+void CG_InitG2SaberData(int saberNum, clientInfo_t *ci)
 {
+	if( ci->saber[saberNum].model[0] == '\0' )
+	{
+		// sorta semi hack to prevent an assertion --eez
+		Q_strncpyz(ci->saber[saberNum].model, "models/weapons2/saber/saber_w.glm", sizeof(ci->saber[saberNum].model));
+	}
+
+	if (ci->ghoul2Weapons[saberNum])
+	{
+		// cleaning
+		trap_G2API_CleanGhoul2Models( &ci->ghoul2Weapons[saberNum] );
+	}
+
 	trap_G2API_InitGhoul2Model(&ci->ghoul2Weapons[saberNum], ci->saber[saberNum].model, 0, ci->saber[saberNum].skin, 0, 0, 0);
 
 	if (ci->ghoul2Weapons[saberNum])
@@ -1878,8 +1921,8 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 
 	// eezstreet edit: just set our first saber to be something else I guess...
-	Q_strncpyz(newInfo.saberName, "default", sizeof( newInfo.saberName ) );
-	WP_SetSaber(clientNum, newInfo.saber, 0, newInfo.saberName);
+	//Q_strncpyz(newInfo.saberName, "default", sizeof( newInfo.saberName ) );
+	//WP_SetSaber(clientNum, newInfo.saber, 0, newInfo.saberName);
 
 	trap_G2API_CleanGhoul2Models(&oldG2Weapons[0]);
 	newInfo.ghoul2Weapons[0] = oldG2Weapons[0];
@@ -6696,7 +6739,6 @@ void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, in
 	mdxaBone_t	boltMatrix;
 	vec3_t futureAngles;
 	effectTrailArgStruct_t fx;
-	int scolor = 0;
 	int	useModelIndex = 0;
 
 	if (cent->currentState.eType == ET_NPC)
@@ -6761,38 +6803,6 @@ void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, in
 	VectorMA( org_, saberLen, axis_[0], end );
 	
 	VectorAdd( end, axis_[0], end );
-
-	if (cent->currentState.eType == ET_NPC)
-	{
-		scolor = client->saber[saberNum].blade[bladeNum].color;
-	}
-	else
-	{
-		if (saberNum == 0)
-		{
-			scolor = client->icolor1;
-		}
-		else
-		{
-			scolor = client->icolor2;
-		}
-	}
-
-	if (cgs.gametype >= GT_TEAM &&
-		cgs.gametype != GT_SIEGE &&
-		cgs.gametype != GT_WARZONE &&
-		!cgs.jediVmerc &&
-		cent->currentState.eType != ET_NPC)
-	{
-		if (client->team == TEAM_RED)
-		{
-			scolor = SABER_RED;
-		}
-		else if (client->team == TEAM_BLUE)
-		{
-			scolor = SABER_BLUE;
-		}
-	}
 
 	if (!cg_saberContact.integer)
 	{ //if we don't have saber contact enabled, just add the blade and don't care what it's touching
@@ -7008,31 +7018,6 @@ CheckTrail:
 				{
 					vec3_t	rgb1={255.0f,255.0f,255.0f};
 
-					switch( scolor )
-					{
-						case SABER_RED:
-							VectorSet( rgb1, 255.0f, 0.0f, 0.0f );
-							break;
-						case SABER_ORANGE:
-							VectorSet( rgb1, 255.0f, 64.0f, 0.0f );
-							break;
-						case SABER_YELLOW:
-							VectorSet( rgb1, 255.0f, 255.0f, 0.0f );
-							break;
-						case SABER_GREEN:
-							VectorSet( rgb1, 0.0f, 255.0f, 0.0f );
-							break;
-						case SABER_BLUE:
-							VectorSet( rgb1, 0.0f, 64.0f, 255.0f );
-							break;
-						case SABER_PURPLE:
-							VectorSet( rgb1, 220.0f, 0.0f, 255.0f );
-							break;
-						default:
-							VectorSet( rgb1, 0.0f, 64.0f, 255.0f );
-							break;
-					}
-
 					//Here we will use the happy process of filling a struct in with arguments and passing it to a trap function
 					//so that we can take the struct and fill in an actual CTrail type using the data within it once we get it
 					//into the effects area
@@ -7049,35 +7034,25 @@ CheckTrail:
 
 					// I'm not sure that clipping this is really the best idea
 					//This prevents the trail from showing at all in low framerate situations.
-					//if ( diff <= SABER_TRAIL_TIME * 2 )
 					if ( diff <= 10000 )
-					{ //don't draw it if the last time is way out of date
+					{ 
+						//don't draw it if the last time is way out of date
 						float oldAlpha = 1.0f - ( diff / trailDur );
 
 						if (cg_saberTrail.integer == 2 && cg_shadows.integer != 2 && cgs.glconfig.stencilBits >= 4)
-						{//does other stuff below
+						{
+							//does other stuff below
 						}
 						else if ( (!WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) && client->saber[saberNum].trailStyle == 1 )
 								|| ( WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) && client->saber[saberNum].trailStyle2 == 1 ) )
-						{//motion trail
+						{
+							//motion trail
 							fx.mShader = cgs.media.swordTrailShader;
 							VectorSet( rgb1, 32.0f, 32.0f, 32.0f ); // make the sith sword trail pretty faint
 							trailDur *= 2.0f; // stay around twice as long?
 						} 
 						else
 						{
-							/*if ( (!WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) && client->saber[saberNum].trailStyle == 1 )
- 								|| ( WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) && client->saber[saberNum].trailStyle2 == 1 ) )
-							{//motion trail
-								fx.mShader = cgs.media.swordTrailShader;
-								VectorSet( rgb1, 32.0f, 32.0f, 32.0f ); // make the sith sword trail pretty faint
-								trailDur *= 2.0f; // stay around twice as long?
-							} 
-							else 
-							{ 
-								fx.mShader = cgs.media.saberBlurShader;
-							}
-							*/
 							if( cent->currentState.saberCrystal[saberNum] >= 0 &&
 								(saberCrystalsLookup[cent->currentState.saberCrystal[saberNum]].trailEffect &&
 								Q_stricmp(saberCrystalsLookup[cent->currentState.saberCrystal[saberNum]].trailEffect, "NULL_TRAIL")))
@@ -7093,7 +7068,8 @@ CheckTrail:
 						}
 
 						if (cg_saberTrail.integer == 2 && cg_shadows.integer != 2 && cgs.glconfig.stencilBits >= 4)
-						{//does other stuff below
+						{
+							//does other stuff below
 						}
 						else
 						{
@@ -7190,10 +7166,7 @@ JustDoIt:
 		}
 		return;
 	}
-	// Pass in the renderfx flags attached to the saber weapon model...this is done so that saber glows
-	//	will get rendered properly in a mirror...not sure if this is necessary??
-	//CG_DoSaber( org_, axis_[0], saberLen, client->saber[saberNum].blade[bladeNum].lengthMax, client->saber[saberNum].blade[bladeNum].radius,
-	//	scolor, renderfx, (qboolean)(saberNum==0&&bladeNum==0) );
+
 	CG_DoSaber( org_, axis_[0], saberLen, client->saber[saberNum].blade[bladeNum].lengthMax, client->saber[saberNum].blade[bladeNum].radius,
 		cent->currentState.saberCrystal[saberNum], renderfx, (qboolean)(client->saber[saberNum].numBlades < 3 && !(client->saber[saberNum].saberFlags2&SFL2_NO_DLIGHT)) );
 }

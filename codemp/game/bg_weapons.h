@@ -396,6 +396,20 @@ typedef struct
 	weaponAnimationSet_t sightsFiring;
 } weaponAnimationReplacements_t;
 
+// Sabers are a special breed.
+// The hilt parameters are defined in .sab files, literally no difference from how Raven handles it.
+// However, should we be on variation 0, we use a special, AWESOME hilt customization system.
+// Of course, due to modeling and manpower constraints, we aren't doing a whole lot of the awesome hilt customization stuff yet.
+// Right, so every other variation uses a "saberData" block, this defines the hilt and the default crystal that the item
+// happens to be stocked with on spawn.
+// So for example, Desann's saber always starts with a red crystal in it, etc
+
+typedef struct
+{
+	char			hiltname[MAX_QPATH];		// We get this from the .sab files.
+	char			defaultcrystal[MAX_QPATH];	// Crystal that gets chucked into this puppy by default...
+} saberWeaponData_t;
+
 typedef struct
 {
     char            classname[MAX_QPATH];   // Class name..
@@ -445,6 +459,8 @@ typedef struct
 											// 12 = raised, heavy bob
 
 	weaponFireModeStats_t firemodes[MAX_FIREMODES];
+
+	saberWeaponData_t sab;
     
     char displayName[64];			// The name which is to be displayed on the HUD.
     
