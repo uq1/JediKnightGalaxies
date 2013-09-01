@@ -6,8 +6,8 @@
     "description":      "@JKG_ITEMS_weapon_saber",
     
     "visual": {
-        "hudicon":          "gfx/hud/w_icon_lightsaber",
-        "hudnaicon":        "gfx/hud/w_icon_lightsaber_na",
+        "hudicon":          "models/weapons/lightsabers/icons/katarn.tga",
+        "hudnaicon":        "models/weapons/lightsabers/icons/katarn.tga",
 	"worldmodel":       "models/weapons2/saber/saber_w.glm",
     
         "firemode0": {

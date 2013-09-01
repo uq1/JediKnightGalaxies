@@ -6,8 +6,8 @@
     "description":      "@JKG_ITEMS_weapon_saber",
     
     "visual": {
-        "hudicon":          "gfx/hud/w_icon_lightsaber",
-        "hudnaicon":        "gfx/hud/w_icon_lightsaber_na",
+        "hudicon":          "models/weapons/lightsabers/icons/caelum.tga",
+        "hudnaicon":        "models/weapons/lightsabers/icons/caelum.tga",
 	"worldmodel":	    "models/weapons/lightsabers/caelumsereno/model.glm",
     
         "firemode0": {
