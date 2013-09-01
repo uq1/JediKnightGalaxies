@@ -8,11 +8,13 @@
 {
 	assetGlobalDef 
 	{
-		font					"ergoec" 18			// font
-		smallFont				"aurabesh" 18			// font
-		bigFont					"anewhope" 20			// font	
-		small2Font				"arialnb" 	14
-		small3Font				"bankgothic"	18	
+		font					"ergoec" 18			// font 1
+		smallFont				"aurabesh" 18			// font 2 Aurabesh, 18pt
+		bigFont					"anewhope" 20			// font 3 
+		small2Font				"arialnb" 	14		// font 4 Arial Black 18pt
+		small3Font				"bankgothic"	18		// font 5 ~BlasTech - Bank Gothic Medium, 18 pt, converted using BobaFett's Fontdat Creator.
+		small4Font				"segoeui"	10		// font 6 ~BlasTech - Segoeui (eez: ?), 10 pt 
+		font2					"euraldb" 18			// font 7 ~BobaFett, font & size unknown
 		cursor					"cursor"			// cursor	
 		gradientBar				"ui/assets/gradientbar2.tga"	// gradient bar
 		itemFocusSound				"sound/interface/menuroam.wav"	// sound for item getting focus (via keyboard or mouse )	
@@ -47,15 +49,24 @@
 		rect					0 0 640 480					// Size and position of the menu
 		visible					1						// Visible on open
 		focusColor				1 1 1 1					// Focus color for text and items
-		descX					320
-		descY					424
-		descScale				1
-		descColor				1 .682 0 .8
-		descAlignment				ITEM_ALIGN_CENTER		
+//		descX					320
+//		descY					424
+//		descScale				1					// No, we do not want descriptions. ~BlasT
+//		descColor				1 .682 0 .8
+//		descAlignment				ITEM_ALIGN_CENTER		
 
 		onOpen 
 		{
-			exec				"music music/t2_dpred/ImpBaseB_Action" ;
+			exec				"music music/t2_dpred/impbaseb_explore"
+			play				"sound/interface/sub_select.wav" 
+
+			//transition	<item name>	<start rect>		<end rect>	<gaps>	<time/frames 25 = 0.6 s, 50 = 1.1 s, 100 = 2.1 s @ 91 FPS>
+			//transition2 skips out the first rect block and instead uses the item's rect for start (ALLOWING for negative positioning), but only plays the first time the menu is launched
+			transition2	backgroundfog				0 0 640 480	20	100
+			transition2	video					511 158 92 89	20	100
+			transition2	background				0 0 640 480	20	100
+			transition2	holomenu				54 89 245 245	20	100
+			transition2	logo					10 6 487 123	20	100
 		}
 									
 		onESC 
@@ -71,441 +82,411 @@
 //----------------------------------------------------------------------------------------------
 //	MENU BACKGROUND
 //----------------------------------------------------------------------------------------------
-		itemDef 
-		{
-			name				background_video
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				200 144 256 256
-			background			"gfx/menus/videologo"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
-		}
-
-		itemDef 
-		{
-			name				background_text
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				0 0 160 480
-			background			"gfx/menus/menu_side_text"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
-		}
-
-		itemDef 
-		{
-			name				background_text_b
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				480 0 160 480
-			background			"gfx/menus/menu_side_text_right"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
-		}	
 	
+		itemDef 
+		{
+			name				backgroundfog
+			group				none
+			style				WINDOW_STYLE_SHADER
+			rect				-50 -121 821 616
+			background			"gfx/ui/main_bg_smoke"
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+
+		itemDef 
+		{
+			name				video
+			group				none
+			style				WINDOW_STYLE_SHADER
+			rect				606 82 118 114
+			background			"gfx/ui/main_video_roq"
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+
 		itemDef 
 		{
 			name				background
 			group				none
 			style				WINDOW_STYLE_SHADER
+			rect				-50 -121 821 616
+			background			"gfx/ui/main_bg"
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+
+		itemDef 
+		{
+			name				holomenu
+			group				none
+			style				WINDOW_STYLE_SHADER
+			rect				64 99 224 224
+			background			"gfx/ui/main_menu"
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+
+		itemDef 
+		{
+			name				logo
+			group				none
+			style				WINDOW_STYLE_SHADER
+			rect				253 6 391 97
+			background			"gfx/ui/main_bg_logo"
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+
+		itemDef 
+		{
+			name				filmgrain
+			group				none
+			style				WINDOW_STYLE_SHADER
 			rect				0 0 640 480
-			background			"gfx/menus/main_background"
+			background			"gfx/ui/main_bg_grain"
 			forecolor			1 1 1 1
 			visible				1
-			decoration
-		}
-
-		itemDef 
-		{
-			name				ring
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				193 145 256 256
-			background			"gfx/menus/main_ring"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
-		}
-
-		itemDef 
-		{
-			name				centerwindow
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				156 154 320 240
-			background			"gfx/menus/main_centerwindow"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
-		}
-
-		itemDef 
-		{
-			name				leftwindow
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				0 150 320 240
-			background			"gfx/menus/main_leftwindow"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
-		}
-
-		itemDef 
-		{
-			name				rightwindow
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				320 150 320 240
-			background			"gfx/menus/main_rightwindow"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
-		}
-
-		itemDef 
-		{
-			name				starwars
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				107 8 428 112
-			background			"gfx/menus/jediacademy"	
-			forecolor			1 1 1 1
-			visible				1
-			decoration
-		}
-
-		itemDef 
-		{
-			name				multiplayer_title
-			style				WINDOW_STYLE_EMPTY
-			rect				200 120 240 24
-			text				@MENUS_MULTIPLAYER
-			font				2
-			textscale			1
-			textaligny			0
-			textalign			ITEM_ALIGN_CENTER
-			textstyle			0
-			textalignx			120
-			forecolor			.695 .760 .861 1
-			visible				1  
 			decoration
 		}
 
 //----------------------------------------------------------------------------------------------
 //	TOP MENU BUTTONS
 //----------------------------------------------------------------------------------------------
+
+		// Selection highlight for the big buttons
 		itemDef 
 		{
-			name				button_glow
+			name				bigbutton_select
 			group				none
 			style				WINDOW_STYLE_SHADER
 			rect				0 0 0 0
-			background			"gfx/menus/menu_buttonback"
+			background			"gfx/ui/shop_itembutton_sel"
 			forecolor			1 1 1 1
 			visible				0
 			decoration
 		}
 
+		// Selection highlight for the small buttons
 		itemDef 
 		{
-			name				playbutton_undertext
+			name				smallbutton_select
 			group				none
-			style				WINDOW_STYLE_EMPTY
-			type				ITEM_TYPE_BUTTON
-			rect				36 194 130 24
-			text				@MENUS_NEW
-			font				1
-			textscale			.7
-			textaligny			0
-			textalign			ITEM_ALIGN_CENTER
-			textstyle			1
-			textalignx			65
-			forecolor			.02 0 .33 1
+			style				WINDOW_STYLE_SHADER
+			rect				0 0 0 0
+			background			"gfx/ui/main_buttonsmall"
+			forecolor			1 1 1 1
 			visible				0
 			decoration
 		}
-		
+
+		// "PLAY_" button
+
 		itemDef 
+		{
+			name				playbutton_bg
+			group				none
+			style				WINDOW_STYLE_SHADER
+			rect				40 108 273 68
+			background			"gfx/ui/shop_itembutton"
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+
+		itemDef
 		{
 			name				playbutton
 			group				main_button
 			style				WINDOW_STYLE_EMPTY
 			type				ITEM_TYPE_BUTTON
-			rect				36 212 130 24
-			text				@MENUS_PLAY					
-			descText			@MENUS_START_PLAYING_NOW
-			font				3
-			textscale			1.1
-			textaligny			0
-			textalign			ITEM_ALIGN_CENTER
-			textstyle			0
-			textalignx			65
-			forecolor			1 .682 0 1
+			rect				76 119 200 47
+			text				@JKG_MAINMENU_PLAY
+			font				5
+			textscale				0.8
+			textalign				ITEM_ALIGN_LEFT
+			textalignx			7
+			textaligny			3
+			textstyle			-1
+			forecolor			1 1 1 1
 			visible				1
 
 			mouseEnter 
 			{ 
-				show			button_glow 
-				setitemrect		button_glow	16 210 210 32
-				show 			playbutton_undertext 
+				show			bigbutton_select
+				setitemrect		bigbutton_select	40 108 273 68
 			}
 			mouseExit 
 			{ 
-				hide			button_glow 
-				hide 			playbutton_undertext 
-			}	  	  
+				hide			bigbutton_select 
+					clearfocus
+			}
 			action 
 			{ 			
 				play			"sound/interface/button1.wav" ; 
 				close			all ; 
-				open			multiplayermenu 
+				open			joinserver
 			}
 		}
 
-		// Big button "PLAYER PROFILE"
-		itemDef 
+		itemDef
 		{
-			name				profilebutton_undertext
+			name				playbutton_undertext
 			group				none
 			style				WINDOW_STYLE_EMPTY
 			type				ITEM_TYPE_BUTTON
-			rect				36 293 130 24
-			text				@MENUS_LOAD
-			font				1
-			textscale			.7
-			textaligny			0
-			textalign			ITEM_ALIGN_CENTER
-			textstyle			1
-			textalignx			65
-			forecolor			.02 0 .33 1
-			visible				0
+			rect				76 119 200 47
+			text				@JKG_MAINMENU_PLAY_DESC
+			font				5
+			textscale				0.4
+			textalign				ITEM_ALIGN_LEFT
+			textalignx			7
+			textaligny			28
+			textstyle			0
+			forecolor			1 1 1 1
+			visible				1
 			decoration
 		}
-		
+
+		// "CHARACTER_" button
+
 		itemDef 
 		{
-			name				profilebutton
+			name				characterbutton_bg
+			group				none
+			style				WINDOW_STYLE_SHADER
+			rect				40 165 273 68
+			background			"gfx/ui/shop_itembutton_na"
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+
+		itemDef
+		{
+			name				characterbutton
 			group				main_button
-			text				@MENUS_PROFILE
-			descText			@MENUS_PROFILE_DESC
+			style				WINDOW_STYLE_EMPTY
+			//type				ITEM_TYPE_BUTTON
+			rect				76 175 200 47
+			text				@JKG_MAINMENU_CHARACTER
+			font				5
+			textscale				0.8
+			textalign				ITEM_ALIGN_LEFT
+			textalignx			7
+			textaligny			3
+			textstyle			0
+			forecolor			1 1 1 1
+			visible				1
+
+			//mouseEnter 
+			//{ 
+			//	show			bigbutton_select
+			//	setitemrect		bigbutton_select	40 165 273 68
+			//}
+			//mouseExit 
+			//{ 
+			//	hide			bigbutton_select 
+			//		clearfocus
+			//}
+			//action 
+			//{ 			
+			//	play			"sound/interface/button1.wav" ; 
+			//	close			all ; 
+			//	open			playerMenu
+			//}
+		}
+
+		itemDef
+		{
+			name				characterbutton_undertext
+			group				none
 			style				WINDOW_STYLE_EMPTY
 			type				ITEM_TYPE_BUTTON
-			rect				36 310 130 24
-			textaligny			0
-			font				3
-			textscale			1.1
-			textalign			ITEM_ALIGN_CENTER
+			rect				76 175 200 47
+			text				@JKG_MAINMENU_CHARACTER_DESC
+			font				5
+			textscale				0.4
+			textalign				ITEM_ALIGN_LEFT
+			textalignx			7
+			textaligny			28
 			textstyle			0
-			textalignx			65
-			forecolor			1 .682 0 1
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+
+		// "CONFIGURE_" button
+
+		itemDef 
+		{
+			name				configurebutton_bg
+			group				none
+			style				WINDOW_STYLE_SHADER
+			rect				40 221 273 68
+			background			"gfx/ui/shop_itembutton"
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+
+		itemDef
+		{
+			name				configurebutton
+			group				main_button
+			style				WINDOW_STYLE_EMPTY
+			type				ITEM_TYPE_BUTTON
+			rect				76 231 200 47
+			text				@JKG_MAINMENU_CONFIGURE
+			font				5
+			textscale				0.8
+			textalign				ITEM_ALIGN_LEFT
+			textalignx			7
+			textaligny			4
+			textstyle			0
+			forecolor			1 1 1 1
 			visible				1
 
 			mouseEnter 
 			{ 
-				show			button_glow 
-				setitemrect		button_glow	16 308 210 32
-				show 			profilebutton_undertext 
+				show			bigbutton_select
+				setitemrect		bigbutton_select	40 221 273 68
 			}
 			mouseExit 
 			{ 
-				hide			button_glow 
-				hide 			profilebutton_undertext 
-			}	  	  
+				hide			bigbutton_select 
+					clearfocus
+			}
 			action 
-			{ 
+			{ 			
 				play			"sound/interface/button1.wav" ; 
 				close			all ; 
-				open			playerMenu
+				open			configureMenu
 			}
 		}
 
-		// Big button "CONTROLS"
-		itemDef 
+		itemDef
 		{
-			name				controlsbutton_undertext
+			name				configurebutton_undertext
 			group				none
 			style				WINDOW_STYLE_EMPTY
 			type				ITEM_TYPE_BUTTON
-			rect				448 194 146 24
-			text				@MENUS_CONTROLS2
-			font				1
-			textscale			.7
-			textaligny			0
-			textalign			ITEM_ALIGN_CENTER
-			textstyle			1
-			textalignx			65
-			forecolor			.02 0 .33 1
-			visible				0
-			decoration
-		}
-		
-		itemDef 
-		{
-			name				controlsbutton
-			group				main_button
-			text				@MENUS_CONTROLS2
-			descText			@MENUS_CONFIGURE_GAME_CONTROLS
-			type				ITEM_TYPE_BUTTON
-			style				WINDOW_STYLE_EMPTY
-			rect				441 212 160 24
-			font				3
-			textscale			1.1
-			textaligny			0
-			textalign			ITEM_ALIGN_CENTER
+			rect				76 231 200 47
+			text				@JKG_MAINMENU_CONFIGURE_DESC
+			font				5
+			textscale				0.4
+			textalign				ITEM_ALIGN_LEFT
+			textalignx			7
+			textaligny			29
 			textstyle			0
-			textalignx			65
-			backcolor			0 0 0 0
-			forecolor			1 .682 0 1
+			forecolor			1 1 1 1
 			visible				1
-			 
-			mouseEnter 
-			{ 
-				show			button_glow 
-				setitemrect		button_glow	416 210 210 32
-				show 			controlsbutton_undertext 
-			}
-			mouseExit 
-			{ 
-				hide			button_glow 
-				hide 			controlsbutton_undertext 
-			}	  	  
-			action 
-			{
-				play			"sound/interface/button1.wav" ; 
-				close			all ; 
-				open			controlsMenu ;
-			}
-		}
-
-		// Big button "SETUP"
-		itemDef 
-		{
-			name				setupbutton_undertext
-			group				none
-			style				WINDOW_STYLE_EMPTY
-			type				ITEM_TYPE_BUTTON
-			rect				456 292 130 24
-			text				@MENUS_SETUP
-			font				1
-			textscale			.7
-			textaligny			0
-			textalign			ITEM_ALIGN_CENTER
-			textstyle			1
-			textalignx			65
-			forecolor			.02 0 .33 1
-			visible				0
 			decoration
-		}
-
-		itemDef 
-		{
-			name				setupbutton
-			group				main_button
-			text				@MENUS_SETUP
-			descText			@MENUS_CONFIGURE_GAME_SETTINGS
-			type				ITEM_TYPE_BUTTON
-			style				WINDOW_STYLE_EMPTY
-			rect				456 310 130 24
-			font				3
-			textscale			1.1
-			textaligny			0
-			textalign			ITEM_ALIGN_CENTER
-			textstyle			0
-			textalignx			65
-			backcolor			0 0 0 0
-			forecolor			1 .682 0 1
-			visible				1
-			 
-			mouseEnter 
-			{ 
-				show			button_glow 
-				setitemrect		button_glow	416 308 210 32
-				show 			setupbutton_undertext 
-			}
-			mouseExit 
-			{ 
-				hide			button_glow 
-				hide 			setupbutton_undertext 
-			}	  	  
-			action 
-			{
-				play			"sound/interface/button1.wav" ; 
-				close			all ; 
-				open			setup_menu
-			}
 		}
 
 //----------------------------------------------------------------------------------------------
 //	OTHER MAIN MENU BUTTONS
 //----------------------------------------------------------------------------------------------
-		// Credits hidden button
+
+		// "CREDITS_" button (currently leads to the lost Controls menu)
+
 		itemDef 
 		{
-			name				creditsbutton
-			group				othermain
-//			text				@CREDITS
-			descText			@MENUS_SHOW_GAME_CREDITS
-			type				ITEM_TYPE_BUTTON
-			style				WINDOW_STYLE_EMPTY
-			rect				200 144 256 256
-			font				2
-			textscale			1
-			textaligny			0
-			textalign			ITEM_ALIGN_CENTER
-			textalignx			46
-			backcolor			0 0 0 0
-			forecolor			0.65 0.65 1 1
-			visible				0
-
-			mouseEnter
-			{
-			}		
-			mouseExit
-			{
-			}		
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 	
-				close			all ; 
-				open			creditsMenu 
-			}
+			name				creditsbutton_bg
+			group				none
+			style				WINDOW_STYLE_SHADER
+			rect				65 280 117 29
+			background			"gfx/ui/main_buttonsmall"
+			forecolor			1 1 1 1
+			visible				1
+			decoration
 		}
 
-		itemDef 
+		itemDef
 		{
-			name				exitgamebutton
-			group				othermain
-			text				@MENUS_EXIT
-			descText			@MENUS_LEAVE_JEDI_KNIGHT_II
-			type				ITEM_TYPE_BUTTON
+			name				creditsbutton
+			group				main_button
 			style				WINDOW_STYLE_EMPTY
-			rect				255 444 130 24 
-			font				3
-			textscale			1.1
-			textalign			ITEM_ALIGN_CENTER
+			type				ITEM_TYPE_BUTTON
+			rect				77 288 95 17
+			text				Old_Controls
+			//text				@JKG_MAINMENU_CREDITS
+			font				5
+			textscale				0.4
+			textalign				ITEM_ALIGN_LEFT
+			textalignx			24
+			textaligny			3
 			textstyle			0
-			textalignx			65
-			textaligny			-1
-			forecolor			1 .682 0 1
+			forecolor			1 1 1 1
 			visible				1
 
 			mouseEnter 
 			{ 
-				show			button_glow 
-				setitemrect		button_glow	215 440 210 32
+				show			smallbutton_select
+				setitemrect		smallbutton_select	65 280 117 29
 			}
 			mouseExit 
 			{ 
-				hide			button_glow 
-			}	  	  
+				hide			smallbutton_select 
+					clearfocus
+			}
 			action 
+			{ 			
+				play			"sound/interface/button1.wav" ; 
+				close			all ; 
+				open			controlsMenu
+			}
+		}
+
+		// "EXIT_" button
+
+		itemDef 
+		{
+			name				exitbutton_bg
+			group				none
+			style				WINDOW_STYLE_SHADER
+			rect				170 280 117 29
+			background			"gfx/ui/main_buttonsmall"
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+
+		itemDef
+		{
+			name				exitbutton
+			group				main_button
+			style				WINDOW_STYLE_EMPTY
+			type				ITEM_TYPE_BUTTON
+			rect				181 288 95 17
+			text				@JKG_MAINMENU_EXIT
+			font				5
+			textscale				0.4
+			textalign				ITEM_ALIGN_LEFT
+			textalignx			36
+			textaligny			3
+			textstyle			0
+			forecolor			1 1 1 1
+			visible				1
+
+			mouseEnter 
 			{ 
-				play			"sound/weapons/saber/saberoff.mp3"; 
+				show			smallbutton_select
+				setitemrect		smallbutton_select	170 280 117 29
+			}
+			mouseExit 
+			{ 
+				hide			smallbutton_select 
+					clearfocus
+			}
+			action 
+			{ 			
+				play			"sound/interface/esc.wav" 
 				close			all ; 
 				open			quitMenu 
 			}
