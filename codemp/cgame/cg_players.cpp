@@ -1924,10 +1924,12 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	//Q_strncpyz(newInfo.saberName, "default", sizeof( newInfo.saberName ) );
 	//WP_SetSaber(clientNum, newInfo.saber, 0, newInfo.saberName);
 
-	trap_G2API_CleanGhoul2Models(&oldG2Weapons[0]);
-	newInfo.ghoul2Weapons[0] = oldG2Weapons[0];
+	//trap_G2API_CleanGhoul2Models(&oldG2Weapons[0]);
+	//newInfo.ghoul2Weapons[0] = oldG2Weapons[0];
 
-	CG_InitG2SaberData( 0, &newInfo );
+	//CG_InitG2SaberData( 0, &newInfo );
+	memcpy(newInfo.saber, ci->saber, sizeof(ci->saber[0])*2);
+	memcpy(newInfo.ghoul2Weapons, ci->ghoul2Weapons, 8);
 
 	cg_entities[clientNum].weapon = 0;
 	cg_entities[clientNum].ghoul2weapon = NULL; //force a refresh
