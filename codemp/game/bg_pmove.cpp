@@ -6326,6 +6326,11 @@ void PM_BeginWeaponChange( int weaponId ) {
 		{
 			pm->ps->weaponTime += 150;
 		}
+		else if( pm->ps->saberHolstered == 2 && weapon == WP_MELEE )
+		{
+			// Switching from saber to melee
+			PM_SetAnim(SETANIM_BOTH, BOTH_STAND2TO1, SETANIM_FLAG_OVERRIDE, 0);
+		}
 		else if( pm->ps->saberHolstered == 2 && weapon != WP_SABER )
 		{
 			pm->ps->weaponTime += 300;
@@ -6388,7 +6393,14 @@ void PM_FinishWeaponChange( void ) {
 	//Stoiss end[/SaberThrowSys]
 	else if( weapon == WP_MELEE || weapon == WP_NONE )
 	{
-		PM_SetAnim(SETANIM_TORSO, BOTH_STAND9, SETANIM_FLAG_OVERRIDE, 0);
+		if( pm->ps->weapon == WP_SABER )
+		{
+			PM_SetAnim(SETANIM_TORSO, BOTH_STAND2TO1, SETANIM_FLAG_OVERRIDE, 0);
+		}
+		else
+		{
+			PM_SetAnim(SETANIM_TORSO, BOTH_STAND9, SETANIM_FLAG_OVERRIDE, 0);
+		}
 	}
 	else
 	{
