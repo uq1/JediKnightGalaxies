@@ -6377,6 +6377,11 @@ void PM_FinishWeaponChange( void ) {
 		}
 		else if(!pm->ps->saberInFlight)
 		{//have saber(s)
+			if( pm->ps->weapon == WP_MELEE || pm->ps->weapon == WP_NONE )
+			{
+				// Don't do any sort of fancy unholstering if we're switching from melee->saber
+				pm->ps->saberHolstered = 2;
+			}
 			PM_SetSaberMove(LS_DRAW);
 		}
 	}
