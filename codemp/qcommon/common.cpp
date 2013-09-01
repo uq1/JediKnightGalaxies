@@ -310,7 +310,8 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 
 	Com_Shutdown ();
 
-	Sys_Error ("%s", com_errorMessage);
+	if( code == ERR_FATAL )
+		Sys_Error ("%s", com_errorMessage);
 }
 
 
