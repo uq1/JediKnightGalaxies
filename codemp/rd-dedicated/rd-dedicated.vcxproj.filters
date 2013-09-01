@@ -62,9 +62,6 @@
     <ClCompile Include="tr_shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tr_skin.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\libraries\jpeg-8c\jaricom.c">
       <Filter>Libraries\jpeg-8c</Filter>
     </ClCompile>
@@ -248,9 +245,6 @@
     <ClCompile Include="..\libraries\libpng\pngwutil.c">
       <Filter>Libraries\libpng</Filter>
     </ClCompile>
-    <ClCompile Include="..\rd-common\tr_font.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\rd-common\tr_image_jpg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -276,6 +270,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\rd-vanilla\tr_subs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\qcommon\GenericParser2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ghoul2\G2_gore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tr_skin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\server\sv_init.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\qcommon\common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -345,6 +354,18 @@
     </ClInclude>
     <ClInclude Include="..\rd-common\tr_types.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\qcommon\GenericParser2.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ghoul2\G2_gore.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ghoul2\G2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ghoul2\ghoul2_shared.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

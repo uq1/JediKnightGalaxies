@@ -47,7 +47,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>.;..;../libraries/jpeg-8c/;../libraries/;../libraries/libpng/;../libraries/zlib/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WINDLL;_WIN32;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;ENGINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDLL;_WIN32;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_DEPRECATE;ENGINE;DEDICATED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -69,6 +69,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\ghoul2\G2_gore.cpp" />
     <ClCompile Include="..\libraries\jpeg-8c\jaricom.c" />
     <ClCompile Include="..\libraries\jpeg-8c\jcapimin.c" />
     <ClCompile Include="..\libraries\jpeg-8c\jcapistd.c" />
@@ -130,9 +131,10 @@
     <ClCompile Include="..\libraries\libpng\pngwrite.c" />
     <ClCompile Include="..\libraries\libpng\pngwtran.c" />
     <ClCompile Include="..\libraries\libpng\pngwutil.c" />
+    <ClCompile Include="..\qcommon\common.cpp" />
+    <ClCompile Include="..\qcommon\GenericParser2.cpp" />
     <ClCompile Include="..\qcommon\q_math.cpp" />
     <ClCompile Include="..\qcommon\q_shared.cpp" />
-    <ClCompile Include="..\rd-common\tr_font.cpp" />
     <ClCompile Include="..\rd-common\tr_image_jpg.cpp" />
     <ClCompile Include="..\rd-common\tr_image_load.cpp" />
     <ClCompile Include="..\rd-common\tr_image_manipulation.cpp" />
@@ -140,6 +142,7 @@
     <ClCompile Include="..\rd-common\tr_image_tga.cpp" />
     <ClCompile Include="..\rd-common\tr_noise.cpp" />
     <ClCompile Include="..\rd-vanilla\tr_subs.cpp" />
+    <ClCompile Include="..\server\sv_init.cpp" />
     <ClCompile Include="G2_API.cpp" />
     <ClCompile Include="G2_bolts.cpp" />
     <ClCompile Include="G2_bones.cpp" />
@@ -155,6 +158,9 @@
     <ClCompile Include="tr_skin.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ghoul2\G2.h" />
+    <ClInclude Include="..\ghoul2\G2_gore.h" />
+    <ClInclude Include="..\ghoul2\ghoul2_shared.h" />
     <ClInclude Include="..\libraries\jpeg-8c\jconfig.h" />
     <ClInclude Include="..\libraries\jpeg-8c\jdct.h" />
     <ClInclude Include="..\libraries\jpeg-8c\jerror.h" />
@@ -164,6 +170,7 @@
     <ClInclude Include="..\libraries\jpeg-8c\jpegint.h" />
     <ClInclude Include="..\libraries\jpeg-8c\jpeglib.h" />
     <ClInclude Include="..\libraries\jpeg-8c\jversion.h" />
+    <ClInclude Include="..\qcommon\GenericParser2.h" />
     <ClInclude Include="..\rd-common\mdx_format.h" />
     <ClInclude Include="..\rd-common\tr_common.h" />
     <ClInclude Include="..\rd-common\tr_font.h" />
