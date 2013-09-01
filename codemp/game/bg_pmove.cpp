@@ -6381,6 +6381,10 @@ void PM_FinishWeaponChange( void ) {
 		}
 	}
 	//Stoiss end[/SaberThrowSys]
+	else if( weapon == WP_MELEE || weapon == WP_NONE )
+	{
+		PM_SetAnim(SETANIM_TORSO, BOTH_STAND9, SETANIM_FLAG_OVERRIDE, 0);
+	}
 	else
 	{
 		//PM_StartTorsoAnim( TORSO_RAISEWEAP1);
