@@ -341,7 +341,7 @@ int PM_GetSaberStance(void)
 
 	if ( BG_SabersOff( pm->ps ) )
 	{
-		return BOTH_STAND1;
+		return BG_GetWeaponDataByIndex( pm->ps->weaponId )->anims.ready.torsoAnim;
 	}
 
 	if ( saber1
@@ -5686,7 +5686,8 @@ static void PM_Footsteps( void ) {
 						if (!PM_AdjustStandAnimForSlope())
 						{
 							//PM_ContinueLegsAnim( BOTH_STAND1 );
-							PM_ContinueLegsAnim(PM_LegsSlopeBackTransition(BOTH_STAND1));
+							weaponData_t *wp = BG_GetWeaponDataByIndex( pm->ps->weaponId );
+							PM_ContinueLegsAnim(PM_LegsSlopeBackTransition( wp->anims.ready.legsAnim ));
 						}
 					}
 					else
@@ -5959,53 +5960,60 @@ static void PM_Footsteps( void ) {
 			}
 			else
 			{
-				if( SaberStances[pm->ps->fd.saberAnimLevel].isStaffOnly )
+				if( pm->ps->weapon != WP_MELEE )
 				{
-					if ( pm->ps->saberHolstered > 1 )
-					{//blades off
-						desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
+					if( SaberStances[pm->ps->fd.saberAnimLevel].isStaffOnly )
+					{
+						if ( pm->ps->saberHolstered > 1 )
+						{//blades off
+							desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
+						}
+						else if ( pm->ps->saberHolstered == 1 )
+						{//1 blade on
+							desiredAnim = BOTH_RUN2;
+						}
+						else
+						{
+							if (pm->ps->fd.forcePowersActive & (1<<FP_SPEED))
+							{
+								desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
+							}
+							else
+							{
+								desiredAnim = BOTH_RUN_STAFF;
+							}
+						}
 					}
-					else if ( pm->ps->saberHolstered == 1 )
-					{//1 blade on
-						desiredAnim = BOTH_RUN2;
+					else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
+					{
+						if ( pm->ps->saberHolstered > 1 )
+						{//blades off
+							desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
+						}
+						else if ( pm->ps->saberHolstered == 1 )
+						{//1 saber on
+							desiredAnim = BOTH_RUN2;
+						}
+						else
+						{
+							desiredAnim = BOTH_RUN_DUAL;
+						}
 					}
 					else
 					{
-						if (pm->ps->fd.forcePowersActive & (1<<FP_SPEED))
-						{
+						if ( pm->ps->saberHolstered || pm->ps->weapon == WP_MELEE || pm->ps->weapon == WP_NONE )  // JKG - Anim fix
+						{//saber off
 							desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
 						}
 						else
 						{
-							desiredAnim = BOTH_RUN_STAFF;
+							desiredAnim = BOTH_RUN2;
 						}
-					}
-				}
-				else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
-				{
-					if ( pm->ps->saberHolstered > 1 )
-					{//blades off
-						desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
-					}
-					else if ( pm->ps->saberHolstered == 1 )
-					{//1 saber on
-						desiredAnim = BOTH_RUN2;
-					}
-					else
-					{
-						desiredAnim = BOTH_RUN_DUAL;
 					}
 				}
 				else
 				{
-					if ( pm->ps->saberHolstered || pm->ps->weapon == WP_MELEE || pm->ps->weapon == WP_NONE )  // JKG - Anim fix
-					{//saber off
-						desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
-					}
-					else
-					{
-						desiredAnim = BOTH_RUN2;
-					}
+					desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
 				}
 			}
 			footstep = qtrue;
@@ -7638,10 +7646,10 @@ static void PM_Weapon( void )
 			{
 				PM_StartTorsoAnim( PM_GetSaberStance() );
 			}
-			else if (pm->ps->weapon == WP_MELEE || PM_IsRocketTrooper())
+			/*else if (pm->ps->weapon == WP_MELEE || PM_IsRocketTrooper())
 			{
 				PM_StartTorsoAnim( pm->ps->legsAnim );
-			}
+			}*/
 			else
 			{
 				if (pm->ps->weapon == WP_EMPLACED_GUN)
@@ -7694,10 +7702,13 @@ static void PM_Weapon( void )
 			    pm->ps->forceHandExtend == HANDEXTEND_NONE)
 		    {
 			    int desTAnim = pm->ps->legsAnim;
-			    if ((desTAnim == BOTH_STAND1 || desTAnim == BOTH_STAND2) &&
+			    if ((desTAnim == BOTH_STAND1 || desTAnim == BOTH_STAND2 || desTAnim == BOTH_STAND9) &&
 			        pm->ps->weapon == WP_MELEE)
 			    { //remap the standard standing anims for melee stance
-				    desTAnim = BOTH_STAND6;
+					if( desTAnim == BOTH_STAND9 )
+						desTAnim = BOTH_STAND9;
+					else
+						desTAnim = BOTH_STAND6;
 			    }
 
 			    if (!(pm->cmd.buttons & BUTTON_ATTACK) || pm->ps->weapon == WP_NONE)

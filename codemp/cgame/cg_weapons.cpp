@@ -1846,7 +1846,7 @@ void CG_Weapon_f( void ) {
 	// JKG - Manual saber detection
 	if(num == cg.weaponSelect)
 	{
-		if(cg.playerInventory[cg.playerACI[num]].id->varID == BG_GetWeaponIndex(WP_SABER, 0))
+		if(cg.playerInventory[cg.playerACI[num]].id->varID == BG_GetWeaponIndex(WP_SABER, cg.playerInventory[cg.playerACI[num]].id->variation))
 		{
 			trap_SendClientCommand("togglesaber");
 		}

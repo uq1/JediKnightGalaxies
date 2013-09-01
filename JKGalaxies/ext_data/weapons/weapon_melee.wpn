@@ -34,7 +34,8 @@
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
         "reload":       { "torso": "TORSO_DROPWEAP1" },
-        "ready":        { "torso": "BOTH_STAND6", "legs": "BOTH_STAND1" },
+	"sights":	{ "torso": "BOTH_STAND6", "legs": "BOTH_STAND1" },
+        "ready":        { "torso": "BOTH_STAND9", "legs": "BOTH_STAND9" },
         "firing":       { "torso": "BOTH_ATTACK3" }
     },
     
