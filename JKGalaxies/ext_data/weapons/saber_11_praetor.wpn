@@ -1,14 +1,14 @@
 {
     "name":             "@JKG_ITEMS_weapon_saber",
     "type":             "WP_SABER",
-    "variation":        4,
-    "classname":        "saber_caelum",
+    "variation":        11,
+    "classname":        "saber_praetor",
     "description":      "@JKG_ITEMS_weapon_saber",
     
     "visual": {
-        "hudicon":          "models/weapons/lightsabers/icons/caelum.tga",
-        "hudnaicon":        "models/weapons/lightsabers/icons/caelum.tga",
-	"worldmodel":	    "models/weapons/lightsabers/caelumsereno/model.glm",
+        "hudicon":          "models/weapons/lightsabers/icons/preator.tga",
+        "hudnaicon":        "models/weapons/lightsabers/icons/preator.tga",
+	"worldmodel":	    "models/weapons2/saber_5/saber_5.glm",
     
         "firemode0": {
             "type":         "blaster"
@@ -26,8 +26,8 @@
     },
 
     "saberdata": {
-	"hilt":		"Lightsaber_CaelumSereno",
-	"crystal":	"ot-green-sharp"
+	"hilt":		"single_5",
+	"crystal":	"blue-sharp"
     },
     
     "firemode0": {

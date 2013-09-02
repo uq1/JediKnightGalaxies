@@ -4923,37 +4923,6 @@ static void PM_CheckDuck (void)
 
 //===================================================================
 
-
-
-/*
-==============
-PM_Use
-
-Generates a use event
-==============
-*/
-#define USE_DELAY 2000
-
-void PM_Use( void ) 
-{
-	if ( pm->ps->useTime > 0 )
-		pm->ps->useTime -= 100;//pm->cmd.msec;
-
-	if ( pm->ps->useTime > 0 ) {
-		return;
-	}
-
-	if ( ! (pm->cmd.buttons & BUTTON_USE ) )
-	{
-		pm->useEvent = 0;
-		pm->ps->useTime = 0;
-		return;
-	}
-
-	pm->useEvent = EV_USE;
-	pm->ps->useTime = USE_DELAY;
-}
-
 qboolean PM_WalkingAnim( int anim )
 {
 	switch ( anim )
@@ -6361,6 +6330,10 @@ void PM_FinishWeaponChange( void ) {
 	int		weapon;
 	int     variation;
 
+#ifdef QAGAME
+	JKG_DoubleCheckWeaponChange( &pm->cmd, pm->ps ); // sometimes sabers get fucked up, time to implement a hacky solution :/
+#endif
+
 	//eezstreet edit
 	if(!BG_GetWeaponByIndex(pm->cmd.weapon, &weapon, &variation))
 		return;
@@ -6417,6 +6390,7 @@ void PM_FinishWeaponChange( void ) {
 	pm->ps->weapon = weapon;
 	pm->ps->weaponVariation = variation;
 	pm->ps->weaponstate = WEAPON_RAISING;
+
 	pm->ps->weaponTime += 350;
 }
 
@@ -11661,8 +11635,6 @@ void PmoveSingle (pmove_t *pmove) {
 		// weapons
 		PM_Weapon();
 	}
-
-	PM_Use();
 
 	if (!pm->ps->m_iVehicleNum &&
 		(pm->ps->clientNum < MAX_CLIENTS ||

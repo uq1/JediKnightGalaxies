@@ -1093,6 +1093,13 @@ typedef struct
 	float		splashKnockback2;			//0 - amount of splashKnockback, 100% at a distance of 0, 0% at a distance = splashRadius
 //=========================================================================================================================================
 
+//	JEDI KNIGHT GALAXIES ADD
+
+//=========================================================================================================================================
+	int			extraDisarmChance;			// extra chance of being disarmed
+	float		extraDamage;				// extra damage
+	int			BPregenRate;
+	int			FPregenRate;
 } saberInfo_t;
 #define MAX_SABERS 2
 

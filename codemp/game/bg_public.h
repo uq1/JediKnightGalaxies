@@ -567,8 +567,6 @@ typedef struct {
 	int			numtouch;
 	int			touchents[MAXTOUCH];
 
-	int			useEvent;
-
 	vec3_t		mins, maxs;			// bounding box size
 
 	int			watertype;

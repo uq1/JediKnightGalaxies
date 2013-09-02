@@ -3540,8 +3540,8 @@ void WP_SaberClearDamage( void )
 	numVictims = 0;
 }
 
-void WP_SaberDamageAdd( int trVictimEntityNum, vec3_t trDmgDir, vec3_t trDmgSpot, 
-					   int trDmg, qboolean doDismemberment, int knockBackFlags )
+void WP_SaberDamageAdd( gentity_t *inflictor, int trVictimEntityNum, vec3_t trDmgDir, vec3_t trDmgSpot, 
+					   int trDmg, qboolean doDismemberment, int knockBackFlags, int saberNum )
 {
 	if ( trVictimEntityNum < 0 || trVictimEntityNum >= ENTITYNUM_WORLD )
 	{
@@ -3572,6 +3572,7 @@ void WP_SaberDamageAdd( int trVictimEntityNum, vec3_t trDmgDir, vec3_t trDmgSpot
 			victimEntityNum[numVictims++] = trVictimEntityNum;
 		}
 
+		trDmg *= inflictor->client->saber[saberNum].extraDamage;
 		totalDmg[curVictim] += trDmg;
 		if ( VectorCompare( dmgDir[curVictim], vec3_origin ) )
 		{
@@ -5096,7 +5097,7 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 				}
 			}
 
-			WP_SaberDamageAdd( tr.entityNum, dir, tr.endpos, dmg, doDismemberment, knockbackFlags );
+			WP_SaberDamageAdd( self, tr.entityNum, dir, tr.endpos, dmg, doDismemberment, knockbackFlags, rSaberNum );
 
 			if (g_entities[tr.entityNum].client)
 			{
@@ -7361,7 +7362,10 @@ qboolean saberCheckKnockdown_DuelLoss(gentity_t *saberent, gentity_t *saberOwner
 			other->client->saber[1].disarmBonus;
 		}
 	}
-	if ( Q_irand( 0, disarmChance ) )
+
+	disarmChance += saberOwner->client->saber[0].extraDisarmChance;
+
+	if ( Q_irand( 0, disarmChance ) >= 10)
 	{
 		return saberKnockOutOfHand(saberent, saberOwner, dif);
 	}
@@ -7404,7 +7408,12 @@ qboolean saberCheckKnockdown_BrokenParry(gentity_t *saberent, gentity_t *saberOw
 	{ //Strong vs. medium, medium vs. light
 		doKnock = qtrue;
 	}*/
-	doKnock = qtrue;
+	disarmChance += saberOwner->client->saber[0].extraDisarmChance;
+
+	if( Q_irand(0, disarmChance) >= 10 )
+	{
+		doKnock = qtrue;
+	}
 
 	if (doKnock)
 	{
@@ -10475,4 +10484,18 @@ void JKG_NetworkSaberCrystals( playerState_t *ps, int invId, int weaponId )
 
 	// ok go
 	ps->saberCrystal[0] = itm->calc1;	// FIXME: need stuff for akimbo...
+}
+
+void JKG_DoubleCheckWeaponChange( usercmd_t *cmd, playerState_t *ps )
+{
+	int invSel = cmd->invensel;
+
+	gentity_t *ent = &g_entities[ps->clientNum];
+
+	if( ent->inventory->elements <= invSel || invSel < 0 )
+	{
+		cmd->weapon = 0;
+	}
+
+	cmd->weapon = ent->inventory->items[invSel].id->varID;
 }

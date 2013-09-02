@@ -8,4 +8,6 @@ Lightsaber_Crow
 	soundOff		"sound/weapons/saber/saberoff2.wav"
 	saberLength	40
 	saberColor	random
+	extraDisarmChance	12
+	animSpeedScale	1.05
 }

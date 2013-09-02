@@ -5574,21 +5574,24 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 				WP_ForcePowerRegenerate( self, 0 );
 			}
 
+			int baseRegenTime = g_forceRegenTime.integer - 400 + self->client->saber[0].FPregenRate + self->client->saber[0].FPregenRate;
+			if( baseRegenTime < 0 ) baseRegenTime = 0;
+
 			if ( level.gametype == GT_POWERDUEL && self->client->sess.duelTeam == DUELTEAM_LONE )
 			{
 				if ( duel_fraglimit.integer )
 				{
-					self->client->ps.fd.forcePowerRegenDebounceTime = level.time + (g_forceRegenTime.integer*
+					self->client->ps.fd.forcePowerRegenDebounceTime = level.time + (baseRegenTime*
 						(0.6 + (.3 * (float)self->client->sess.wins / (float)duel_fraglimit.integer)));
 				}
 				else
 				{
-					self->client->ps.fd.forcePowerRegenDebounceTime = level.time + (g_forceRegenTime.integer*0.7);
+					self->client->ps.fd.forcePowerRegenDebounceTime = level.time + (baseRegenTime*0.7);
 				}
 			}
 			else
 			{
-				self->client->ps.fd.forcePowerRegenDebounceTime = level.time + g_forceRegenTime.integer;
+				self->client->ps.fd.forcePowerRegenDebounceTime = level.time + baseRegenTime;
 			}
 		}
 	}

@@ -1,8 +1,8 @@
 {
     "name":             "@JKG_ITEMS_weapon_saber",
     "type":             "WP_SABER",
-    "variation":        4,
-    "classname":        "saber_caelum",
+    "variation":        6,
+    "classname":        "saber_skywalker",
     "description":      "@JKG_ITEMS_weapon_saber",
     
     "visual": {
@@ -26,8 +26,8 @@
     },
 
     "saberdata": {
-	"hilt":		"Lightsaber_CaelumSereno",
-	"crystal":	"ot-green-sharp"
+	"hilt":		"Luke",
+	"crystal":	"ot-green"
     },
     
     "firemode0": {

@@ -1,14 +1,14 @@
 {
     "name":             "@JKG_ITEMS_weapon_saber",
     "type":             "WP_SABER",
-    "variation":        4,
-    "classname":        "saber_caelum",
+    "variation":        15,
+    "classname":        "saber_firebrand",
     "description":      "@JKG_ITEMS_weapon_saber",
     
     "visual": {
-        "hudicon":          "models/weapons/lightsabers/icons/caelum.tga",
-        "hudnaicon":        "models/weapons/lightsabers/icons/caelum.tga",
-	"worldmodel":	    "models/weapons/lightsabers/caelumsereno/model.glm",
+        "hudicon":          "models/weapons/lightsabers/icons/firebrand.tga",
+        "hudnaicon":        "models/weapons/lightsabers/icons/firebrand.tga",
+	"worldmodel":	    "models/weapons2/saber_9/saber_9.glm",
     
         "firemode0": {
             "type":         "blaster"
@@ -26,8 +26,8 @@
     },
 
     "saberdata": {
-	"hilt":		"Lightsaber_CaelumSereno",
-	"crystal":	"ot-green-sharp"
+	"hilt":		"single_9",
+	"crystal":	"orange-unstable"
     },
     
     "firemode0": {

@@ -1,14 +1,14 @@
 {
     "name":             "@JKG_ITEMS_weapon_saber",
     "type":             "WP_SABER",
-    "variation":        4,
-    "classname":        "saber_caelum",
+    "variation":        5,
+    "classname":        "saber_training",
     "description":      "@JKG_ITEMS_weapon_saber",
     
     "visual": {
-        "hudicon":          "models/weapons/lightsabers/icons/caelum.tga",
-        "hudnaicon":        "models/weapons/lightsabers/icons/caelum.tga",
-	"worldmodel":	    "models/weapons/lightsabers/caelumsereno/model.glm",
+        "hudicon":          "models/weapons/lightsabers/icons/training.tga",
+        "hudnaicon":        "models/weapons/lightsabers/icons/training.tga",
+	"worldmodel":	    "models/weapons2/saber_reborn/saber_w.glm",
     
         "firemode0": {
             "type":         "blaster"
@@ -26,8 +26,8 @@
     },
 
     "saberdata": {
-	"hilt":		"Lightsaber_CaelumSereno",
-	"crystal":	"ot-green-sharp"
+	"hilt":		"Training",
+	"crystal":	"ot-red"
     },
     
     "firemode0": {

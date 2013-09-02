@@ -3723,22 +3723,24 @@ void G_RunFrame( int levelTime ) {
 				}
 			}
 
-			#define JKG_BLOCK_POINT_REGENERATION_RATE	200
 			if( ent->client->ps.blockPoints < 100 )
 			{
 				if(ent->client->ps.weapon == WP_SABER)
 				{
 					if(ent->client->saberBPDebRecharge < level.time)
 					{
+						int rechargeRate = 300;
+						int rechargeDifference = 600 - ent->client->saber[0].BPregenRate - ent->client->saber[1].BPregenRate;
+
+						// Sabers with BP recharge rate bonuses DO stack.
+
 						ent->client->ps.blockPoints++;
+						rechargeRate += rechargeDifference;
 						if( ent->client->ps.saberActionFlags & (1 << SAF_BLOCKING) )
 						{
-							ent->client->saberBPDebRecharge = level.time + 175;
+							rechargeRate -= 150;
 						}
-						else
-						{
-							ent->client->saberBPDebRecharge = level.time + 325;
-						}
+						ent->client->saberBPDebRecharge = level.time + rechargeRate;
 					}
 				}
 			}

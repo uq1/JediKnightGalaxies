@@ -7,4 +7,6 @@ Lightsaber_CaelumSereno
 	soundLoop	"sound/weapons/saber/saberhum4.wav"
 	soundOff	"sound/weapons/saber/saberoff3.wav"
 	saberLength	40
+	throwable	0
+	disarmable	0
 }

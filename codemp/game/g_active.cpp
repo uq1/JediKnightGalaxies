@@ -3722,11 +3722,6 @@ void ClientThink_real( gentity_t *ent ) {
 	// execute client events
 	ClientEvents( ent, oldEventSequence );
 
-	if ( pmove.useEvent )
-	{
-		//TODO: Use
-//		TryUse( ent );
-	}
 	if ((ent->client->pers.cmd.buttons & BUTTON_USE) && ent->client->ps.useDelay < level.time)
 	{
 		TryUse(ent);

@@ -1,0 +1,20 @@
+
+single_8
+{
+	name		@MENUS_SINGLE_HILT8
+	saberType	SABER_SINGLE
+	saberModel	"models/weapons2/saber_8/saber_8.glm"
+	soundOn		"sound/weapons/saber/saberon.wav"
+	soundLoop	"sound/weapons/saber/saberhum4.wav"
+	soundOff	"sound/weapons/saber/saberoff.wav"
+	saberLength	48
+	saberColor	random
+	animSpeedScale	0.9
+	extraDisarmChance 9
+	extraDamage	0.5
+	FPregenRate	250
+	saberRadius	4
+	BPregenRate	225
+	lockBonus	2
+}
+
