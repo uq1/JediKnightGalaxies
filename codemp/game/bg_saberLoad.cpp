@@ -3230,9 +3230,10 @@ static qboolean JKG_LoadSaberCrystals( void )
         return qfalse;
     }
     
-    if ( fileLength > MAX_CRYSTAL_FILE_SIZE )
+    if ( fileLength >= MAX_CRYSTAL_FILE_SIZE )
     {
-        Com_Printf (S_COLOR_RED "Error: crystals.json file is too large (max file size is %d bytes)\n", MAX_CRYSTAL_FILE_SIZE);
+		Com_Error(ERR_FATAL, "Crystals file is too big.");
+        //Com_Printf (S_COLOR_RED "Error: crystals.json file is too large (max file size is %d bytes)\n", MAX_CRYSTAL_FILE_SIZE);
         strap_FS_FCloseFile (f);
         return qfalse;
     }
