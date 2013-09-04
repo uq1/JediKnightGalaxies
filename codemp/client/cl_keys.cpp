@@ -1465,6 +1465,10 @@ void CL_CharEvent( int key ) {
 	{
 		VM_Call( uivm, UI_KEY_EVENT, key | K_CHAR_FLAG, qtrue );
 	}
+	else if ( Key_GetCatcher( ) & KEYCATCH_CGAME )
+	{
+		VM_Call( cgvm, CG_KEY_EVENT, key | K_CHAR_FLAG, qtrue ); 
+	}
 	else if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE ) 
 	{
 		Field_CharEvent( &chatField, key );

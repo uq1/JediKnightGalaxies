@@ -579,7 +579,7 @@ void ChatBox_HandleKey(int key, qboolean down) {
 		ChatBox_CloseChat();
 		return;
 	}
-	else
+	else if( key & K_CHAR_FLAG )
 	{
 		key &= ~K_CHAR_FLAG;
 
