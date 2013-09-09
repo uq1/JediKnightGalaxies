@@ -1258,11 +1258,9 @@ void SendPendingPredictableEvents( playerState_t *ps ) {
 G_UpdateClientBroadcasts
 
 Determines whether this client should be broadcast to any other clients.  
-A client is broadcast when another client is using force sight or is
+A client is broadcast when another client is using force sight
 ==================
 */
-#define MAX_JEDIMASTER_DISTANCE	2500
-#define MAX_JEDIMASTER_FOV		100
 
 #define MAX_SIGHT_DISTANCE		1500
 #define MAX_SIGHT_FOV			100
@@ -1313,63 +1311,10 @@ static void G_UpdateForceSightBroadcasts ( gentity_t *self )
 	}
 }
 
-static void G_UpdateJediMasterBroadcasts ( gentity_t *self )
-{
-	int i;
-
-	// Not jedi master mode then nothing to do
-	if ( level.gametype != GT_JEDIMASTER )
-	{
-		return;
-	}
-
-	// This client isnt the jedi master so it shouldnt broadcast
-	if ( !self->client->ps.isJediMaster )
-	{
-		return;
-	}
-
-	// Broadcast ourself to all clients within range
-	for ( i = 0; i < level.numConnectedClients; i ++ )
-	{
-		gentity_t *ent = &g_entities[level.sortedClients[i]];
-		float	  dist;
-		vec3_t	  angles;
-
-		if ( ent == self )
-		{
-			continue;
-		}
-
-		VectorSubtract( self->client->ps.origin, ent->client->ps.origin, angles );
-		dist = VectorLengthSquared ( angles );
-		vectoangles ( angles, angles );
-
-		// Too far away then just forget it
-		if ( dist > MAX_JEDIMASTER_DISTANCE * MAX_JEDIMASTER_DISTANCE )
-		{
-			continue;
-		}
-		
-		// If not within the field of view then forget it
-		if ( !InFieldOfVision ( ent->client->ps.viewangles, MAX_JEDIMASTER_FOV, angles ) )
-		{
-			continue;
-		}
-
-		// Turn on the broadcast bit for the master and since there is only one
-		// master we are done
-		self->r.broadcastClients[ent->s.clientNum/32] |= (1 << (ent->s.clientNum%32));
-	}
-}
-
 void G_UpdateClientBroadcasts ( gentity_t *self )
 {
 	// Clear all the broadcast bits for this client
 	memset ( self->r.broadcastClients, 0, sizeof ( self->r.broadcastClients ) );
-
-	// The jedi master is broadcast to everyone in range
-	G_UpdateJediMasterBroadcasts ( self );
 
 	// Anyone with force sight on should see this client
 	G_UpdateForceSightBroadcasts ( self );

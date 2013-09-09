@@ -1878,26 +1878,6 @@ int G_CheckLedgeDive( gentity_t *self, float checkDist, const vec3_t checkVel, q
 //[/KnockdownSys]
 //[/SPPortComplete]
 
-gentity_t *G_GetJediMaster(void)
-{
-	int i = 0;
-	gentity_t *ent;
-
-	while (i < MAX_CLIENTS)
-	{
-		ent = &g_entities[i];
-
-		if (ent && ent->inuse && ent->client && ent->client->ps.isJediMaster)
-		{
-			return ent;
-		}
-
-		i++;
-	}
-
-	return NULL;
-}
-
 /*
 -------------------------
 G_AlertTeam
@@ -2223,7 +2203,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	int			killer;
 	int			i;
 	char		*killerName, *obit;
-	qboolean	wasJediMaster = qfalse;
 	int			sPMType = 0;
 	char		buf[512] = {0};
 
@@ -2616,10 +2595,6 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 		}
 		*/
 		//if ( self->client->NPC_class == CLASS_BOBAFETT && self->client->moveType == MT_FLYSWIM )
-		if (0)
-		{
-			Boba_FlyStop( self );
-		}
 		if ( self->s.NPC_class == CLASS_RANCOR )
 		{
 			Rancor_DropVictim( self );
@@ -2704,11 +2679,6 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 		inflictor->s.weapon == WP_TURRET)
 	{
 		attacker = inflictor->activator;
-	}
-
-	if (self->client && self->client->ps.isJediMaster)
-	{
-		wasJediMaster = qtrue;
 	}
 
 	//if he was charging or anything else, kill the sound
@@ -2804,7 +2774,6 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 		ent->s.otherEntityNum = self->s.number;
 		ent->s.otherEntityNum2 = killer;
 		ent->r.svFlags = SVF_BROADCAST;	// send to everyone
-		ent->s.isJediMaster = wasJediMaster;
 	}
 
 	self->enemy = attacker;
@@ -2849,44 +2818,10 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 			{
 				AddScore( attacker, self->r.currentOrigin, -1 );
 			}
-			if (level.gametype == GT_JEDIMASTER)
-			{
-				if (self->client && self->client->ps.isJediMaster)
-				{ //killed ourself so return the saber to the original position
-				  //(to avoid people jumping off ledges and making the saber
-				  //unreachable for 60 seconds)
-					ThrowSaberToAttacker(self, NULL);
-					self->client->ps.isJediMaster = qfalse;
-				}
-			}
-		} else {
-			if (level.gametype == GT_JEDIMASTER)
-			{
-				if ((attacker->client && attacker->client->ps.isJediMaster) ||
-					(self->client && self->client->ps.isJediMaster))
-				{
-					AddScore( attacker, self->r.currentOrigin, 1 );
-					
-					if (self->client && self->client->ps.isJediMaster)
-					{
-						ThrowSaberToAttacker(self, attacker);
-						self->client->ps.isJediMaster = qfalse;
-					}
-				}
-				else
-				{
-					gentity_t *jmEnt = G_GetJediMaster();
-
-					if (jmEnt && jmEnt->client)
-					{
-						AddScore( jmEnt, self->r.currentOrigin, 1 );
-					}
-				}
-			}
-			else
-			{
-				AddScore( attacker, self->r.currentOrigin, 1 );
-			}
+		} 
+		else 
+		{
+			AddScore( attacker, self->r.currentOrigin, 1 );
 
 			if( meansOfDeath == MOD_STUN_BATON ) {
 				
@@ -2911,14 +2846,6 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 
 		}
 	} else {
-		if (self->client && self->client->ps.isJediMaster)
-		{ //killed ourself so return the saber to the original position
-		  //(to avoid people jumping off ledges and making the saber
-		  //unreachable for 60 seconds)
-			ThrowSaberToAttacker(self, NULL);
-			self->client->ps.isJediMaster = qfalse;
-		}
-
 		if (level.gametype == GT_DUEL)
 		{ //in duel, if you kill yourself, the person you are dueling against gets a kill for it
 			int otherClNum = -1;
@@ -3133,23 +3060,7 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 			self->nextthink = level.time;
 		}
 		
-
-		//self->client->ps.legsAnim = anim;
-		//self->client->ps.torsoAnim = anim;
-//		self->client->ps.pm_flags |= PMF_UPDATE_ANIM;		// Make sure the pmove sets up the GHOUL2 anims.
-
-		//rww - do this on respawn, not death
-		//CopyToBodyQue (self);
-
-		//G_AddEvent( self, EV_DEATH1 + i, killer );
-		if (wasJediMaster)
-		{
-			G_AddEvent( self, EV_DEATH1 + i, 1 );
-		}
-		else
-		{
-			G_AddEvent( self, EV_DEATH1 + i, 0 );
-		}
+		G_AddEvent( self, EV_DEATH1 + i, 0 );
 
 		if (self != attacker)
 		{ //don't make NPCs want to murder you on respawn for killing yourself!
@@ -4856,26 +4767,6 @@ rww - end dismemberment/lbd
 ===================================
 */
 
-qboolean G_ThereIsAMaster(void)
-{
-	int i = 0;
-	gentity_t *ent;
-
-	while (i < MAX_CLIENTS)
-	{
-		ent = &g_entities[i];
-
-		if (ent && ent->client && ent->client->ps.isJediMaster)
-		{
-			return qtrue;
-		}
-
-		i++;
-	}
-
-	return qfalse;
-}
-
 #define PLAYER_KNOCKDOWN_HOLD_EXTRA_TIME 0
 
 void NPC_SetPainEvent( gentity_t *self );
@@ -5472,14 +5363,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			{ //things allied with my team should't hurt me.. I guess
 				return;
 			}
-		}
-
-		if (level.gametype == GT_JEDIMASTER && !g_friendlyFire.integer &&
-			targ && targ->client && attacker && attacker->client &&
-			targ != attacker && !targ->client->ps.isJediMaster && !attacker->client->ps.isJediMaster &&
-			G_ThereIsAMaster())
-		{
-			return;
 		}
 
 		if (targ->s.number >= MAX_CLIENTS && targ->client 

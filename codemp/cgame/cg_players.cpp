@@ -7403,76 +7403,6 @@ void CG_AddRandomLightning(vec3_t start, vec3_t end)
 	CG_AddLightningBeam(inOrg, outOrg);
 }
 
-qboolean CG_ThereIsAMaster(void)
-{
-	int i = 0;
-	centity_t *cent;
-
-	while (i < MAX_CLIENTS)
-	{
-		cent = &cg_entities[i];
-
-		if (cent && cent->currentState.isJediMaster)
-		{
-			return qtrue;
-		}
-
-		i++;
-	}
-
-	return qfalse;
-}
-
-#if 0
-void CG_DrawNoForceSphere(centity_t *cent, vec3_t origin, float scale, int shader)
-{
-	refEntity_t ent;
-	
-	// Don't draw the shield when the player is dead.
-	if (cent->currentState.eFlags & EF_DEAD)
-	{
-		return;
-	}
-
-	memset( &ent, 0, sizeof( ent ) );
-
-	VectorCopy( origin, ent.origin );
-	ent.origin[2] += 9.0;
-
-	VectorSubtract(cg.refdef.vieworg, ent.origin, ent.axis[0]);
-	if (VectorNormalize(ent.axis[0]) <= 0.1f)
-	{	// Entity is right on vieworg.  quit.
-		return;
-	}
-
-	VectorCopy(cg.refdef.viewaxis[2], ent.axis[2]);
-	CrossProduct(ent.axis[0], ent.axis[2], ent.axis[1]);
-
-	VectorScale(ent.axis[0], scale, ent.axis[0]);
-	VectorScale(ent.axis[1], scale, ent.axis[1]);
-	VectorScale(ent.axis[2], -scale, ent.axis[2]);
-
-	ent.shaderRGBA[3] = (cent->currentState.genericenemyindex - cg.time)/8;
-	ent.renderfx |= RF_RGB_TINT;
-	if (ent.shaderRGBA[3] > 200)
-	{
-		ent.shaderRGBA[3] = 200;
-	}
-	if (ent.shaderRGBA[3] < 1)
-	{
-		ent.shaderRGBA[3] = 1;
-	}
-
-	ent.shaderRGBA[2] = 0;
-	ent.shaderRGBA[0] = ent.shaderRGBA[1] = ent.shaderRGBA[3];
-
-	ent.hModel = cgs.media.halfShieldModel;
-	ent.customShader = shader;	
-
-	trap_R_AddRefEntityToScene( &ent );
-}
-#endif
-
 //Checks to see if the model string has a * appended with a custom skin name after.
 //If so, it terminates the model string correctly, parses the skin name out, and returns
 //the handle of the registered skin.
@@ -10313,25 +10243,6 @@ void CG_Player( centity_t *cent ) {
 			break;
 	}
 
-	if (cgs.gametype == GT_JEDIMASTER && cg_drawFriend.integer &&
-		cent->currentState.number != cg.snap->ps.clientNum)			// Don't show a sprite above a player's own head in 3rd person.
-	{	// If the view is either a spectator or on the same team as this character, show a symbol above their head.
-		if ((cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.snap->ps.persistant[PERS_TEAM] == team) &&
-			!(cent->currentState.eFlags & EF_DEAD))
-		{
-			if (CG_ThereIsAMaster())
-			{
-				if (!cg.snap->ps.isJediMaster)
-				{
-					if (!cent->currentState.isJediMaster)
-					{
-						CG_PlayerFloatSprite( cent, cgs.media.teamRedShader);
-					}
-				}
-			}
-		}
-	}
-
 	// add the shadow
 	shadow = CG_PlayerShadow( cent, &shadowPlane );
 
@@ -12357,26 +12268,6 @@ stillDoSaber:
 #endif //__EXPERIMENTAL_SHADOWS__
 	}
 
-	if (cent->currentState.isJediMaster && cg.snap->ps.clientNum != cent->currentState.number)
-	{
-		legs.shaderRGBA[0] = 100;
-		legs.shaderRGBA[1] = 100;
-		legs.shaderRGBA[2] = 255;
-
-		legs.renderfx &= ~RF_RGB_TINT;
-		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
-		legs.renderfx |= RF_NODEPTH;
-		legs.customShader = cgs.media.forceShell;
-		
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
-		trap_R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
-
-		legs.renderfx &= ~RF_NODEPTH;
-	}
-
 	if ((cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) && cg.snap->ps.clientNum != cent->currentState.number && cg_auraShell.integer)
 	{
 		if (cgs.gametype >= GT_TEAM)
@@ -12685,22 +12576,6 @@ endOfCall:
 				armorG2[ijk].customShader = cgs.media.playerShieldDamage;
 
 				trap_R_AddRefEntityToScene( &armorG2[ijk] );
-			}
-
-			if (cent->currentState.isJediMaster && cg.snap->ps.clientNum != cent->currentState.number)
-			{
-				armorG2[ijk].shaderRGBA[0] = 100;
-				armorG2[ijk].shaderRGBA[1] = 100;
-				armorG2[ijk].shaderRGBA[2] = 255;
-
-				armorG2[ijk].renderfx &= ~RF_RGB_TINT;
-				armorG2[ijk].renderfx &= ~RF_FORCE_ENT_ALPHA;
-				armorG2[ijk].renderfx |= RF_NODEPTH;
-				armorG2[ijk].customShader = cgs.media.forceShell;
-
-				trap_R_AddRefEntityToScene( &armorG2[ijk] );
-
-				armorG2[ijk].renderfx &= ~RF_NODEPTH;
 			}
 
 			if ((cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) && cg.snap->ps.clientNum != cent->currentState.number && cg_auraShell.integer)

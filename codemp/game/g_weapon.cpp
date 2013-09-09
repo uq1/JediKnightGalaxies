@@ -3104,11 +3104,6 @@ void emplaced_gun_use( gentity_t *self, gentity_t *other, trace_t *trace )
 		return;
 	}
 
-	if (activator->client->ps.isJediMaster)
-	{ //jm can't use weapons
-		return;
-	}
-
 	VectorSubtract(self->s.origin, activator->client->ps.origin, vLen);
 	ownLen = VectorLength(vLen);
 

@@ -2519,10 +2519,6 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 
 	if ( ps )
 	{
-		if ( ps->isJediMaster && item && (item->giType == IT_WEAPON || item->giType == IT_AMMO))
-		{//jedi master cannot pick up weapons
-			return qfalse;
-		}
 		if ( ps->duelInProgress )
 		{ //no picking stuff up while in a duel, no matter what the type is
 			return qfalse;
@@ -2946,7 +2942,6 @@ char *eventnames[] = {
 	"EV_SABER_BLOCK",
 	"EV_SABER_CLASHFLARE",
 	"EV_SABER_UNHOLSTER",
-	"EV_BECOME_JEDIMASTER",
 	"EV_DISRUPTOR_MAIN_SHOT",
 	"EV_DISRUPTOR_SNIPER_SHOT",
 	"EV_DISRUPTOR_SNIPER_MISS",
@@ -3495,8 +3490,6 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 
 	VectorCopy(ps->lastHitLoc, s->origin2);
 
-	s->isJediMaster = ps->isJediMaster;
-
 	s->fireflag = ps->fd.saberAnimLevel;
 
 	s->heldByClient = ps->heldByClient;
@@ -3661,8 +3654,6 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	s->constantLight = ps->weaponChargeTime;
 
 	VectorCopy(ps->lastHitLoc, s->origin2);
-
-	s->isJediMaster = ps->isJediMaster;
 
 	s->fireflag = ps->fd.saberAnimLevel;
 
@@ -3887,8 +3878,6 @@ const char *BG_GetGametypeString( int gametype )
 	{
 	case GT_FFA:
 		return "Free-For-All";
-	case GT_JEDIMASTER:
-		return "Jedi Master";
 	case GT_DUEL:
 		return "Duel";
 	case GT_POWERDUEL:
@@ -3938,10 +3927,6 @@ int BG_GetGametypeForString( const char *gametype )
 		Q_stricmp( gametype, "power duel" ) == 0 ||
 		Q_stricmp( gametype, "2v1" ) == 0 )
 		return GT_POWERDUEL;
-	else if( Q_stricmp( gametype, "jm" ) == 0 ||
-		Q_stricmp( gametype, "jedimaster" ) == 0 ||
-		Q_stricmp( gametype, "jedi master" ) == 0 )
-		return GT_JEDIMASTER;
 	else if( Q_stricmp( gametype, "sp" ) == 0 ||
 		Q_stricmp( gametype, "coop" ) == 0 ||
 		Q_stricmp( gametype, "co-op" ) == 0 ||

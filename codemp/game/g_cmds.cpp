@@ -1414,7 +1414,6 @@ void StopFollowing( gentity_t *ent ) {
 	ent->client->ps.legsTimer = 0;
 	ent->client->ps.torsoAnim = 0;
 	ent->client->ps.torsoTimer = 0;
-	ent->client->ps.isJediMaster = qfalse; // major exploit if you are spectating somebody and they are JM and you reconnect
 	ent->client->ps.cloakFuel = 100; // so that fuel goes away after stop following them
 	ent->client->ps.jetpackFuel = 100; // so that fuel goes away after stop following them
 	ent->health = ent->client->ps.stats[STAT_HEALTH] = 100; // so that you don't keep dead angles if you were spectating a dead person

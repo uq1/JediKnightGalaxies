@@ -907,8 +907,6 @@ netField_t	entityStateFields[] =
 { NETF(forcePowersActive), 32 },
 { NETF(saberHolstered), 2 },
 
-{ NETF(isJediMaster), 1 },
-
 { NETF(isPortalEnt), 1 },
 
 { NETF(solid), 24 },
@@ -1433,7 +1431,6 @@ netField_t	playerStateFields[] =
 { PSF(saberLockEnemy), GENTITYNUM_BITS },
 { PSF(fd.forceGripCripple), 1 }, //should only be 0 or 1 ever
 { PSF(emplacedIndex), GENTITYNUM_BITS },
-{ PSF(isJediMaster), 1 },
 { PSF(forceRestricted), 1 },
 { PSF(duelTime), 32 },
 { PSF(duelInProgress), 1 },
@@ -1605,7 +1602,6 @@ netField_t	pilotPlayerStateFields[] =
 { PSF(saberLockEnemy), GENTITYNUM_BITS },
 { PSF(fd.forceGripCripple), 1 }, //should only be 0 or 1 ever
 { PSF(emplacedIndex), GENTITYNUM_BITS },
-{ PSF(isJediMaster), 1 },
 { PSF(forceRestricted), 1 },
 { PSF(duelTime), 32 },
 { PSF(duelInProgress), 1 },
@@ -1866,7 +1862,6 @@ netField_t	playerStateFields[] =
 { PSF(saberLockEnemy), GENTITYNUM_BITS },
 { PSF(fd.forceGripCripple), 1 }, //should only be 0 or 1 ever
 { PSF(emplacedIndex), GENTITYNUM_BITS },
-{ PSF(isJediMaster), 1 },
 { PSF(forceRestricted), 1 },
 { PSF(duelTime), 32 },
 { PSF(duelInProgress), 1 },

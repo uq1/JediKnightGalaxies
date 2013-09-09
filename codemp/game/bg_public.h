@@ -107,13 +107,12 @@
 
 #define	CS_ITEMS				27		// string of 0's and 1's that tell which items are present
 
-#define CS_CLIENT_JEDIMASTER	28		// current jedi master
-#define CS_CLIENT_DUELWINNER	29		// current duel round winner - needed for printing at top of scoreboard
-#define CS_CLIENT_DUELISTS		30		// client numbers for both current duelists. Needed for a number of client-side things.
-#define CS_CLIENT_DUELHEALTHS	31		// nmckenzie: DUEL_HEALTH.  Hopefully adding this cs is safe and good?
-#define CS_GLOBAL_AMBIENT_SET	32
+#define CS_CLIENT_DUELWINNER	28		// current duel round winner - needed for printing at top of scoreboard
+#define CS_CLIENT_DUELISTS		29		// client numbers for both current duelists. Needed for a number of client-side things.
+#define CS_CLIENT_DUELHEALTHS	30		// nmckenzie: DUEL_HEALTH.  Hopefully adding this cs is safe and good?
+#define CS_GLOBAL_AMBIENT_SET	31
 
-#define CS_AMBIENT_SET			37	
+#define CS_AMBIENT_SET			36	
 
 #define	CS_MODELS				(CS_AMBIENT_SET+MAX_AMBIENT_SETS)
 #define	CS_SKYBOXORG			(CS_MODELS+MAX_MODELS)		//rww - skybox info
@@ -171,13 +170,12 @@
 
 #define	CS_ITEMS				27		// string of 0's and 1's that tell which items are present
 
-#define CS_CLIENT_JEDIMASTER	28		// current jedi master
-#define CS_CLIENT_DUELWINNER	29		// current duel round winner - needed for printing at top of scoreboard
-#define CS_CLIENT_DUELISTS		30		// client numbers for both current duelists. Needed for a number of client-side things.
-#define CS_CLIENT_DUELHEALTHS	31		// nmckenzie: DUEL_HEALTH.  Hopefully adding this cs is safe and good?
-#define CS_GLOBAL_AMBIENT_SET	32
+#define CS_CLIENT_DUELWINNER	28		// current duel round winner - needed for printing at top of scoreboard
+#define CS_CLIENT_DUELISTS		29		// client numbers for both current duelists. Needed for a number of client-side things.
+#define CS_CLIENT_DUELHEALTHS	30		// nmckenzie: DUEL_HEALTH.  Hopefully adding this cs is safe and good?
+#define CS_GLOBAL_AMBIENT_SET	31
 
-#define CS_AMBIENT_SET			37	
+#define CS_AMBIENT_SET			36	
 
 #define	CS_MODELS				(CS_AMBIENT_SET+MAX_AMBIENT_SETS)
 #define	CS_SKYBOXORG			(CS_MODELS+MAX_MODELS)		//rww - skybox info
@@ -269,8 +267,6 @@ typedef enum
 
 typedef enum {
 	GT_FFA,				// free for all
-	GT_HOLOCRON,		// holocron ffa
-	GT_JEDIMASTER,		// jedi master
 	GT_DUEL,		// one on one tournament
 	GT_POWERDUEL,		// one on two tournament
 	GT_SINGLE_PLAYER,	// single player ffa
@@ -284,7 +280,6 @@ typedef enum {
 	//-- team games go after this --
 
 	GT_TEAM,			// team deathmatch
-	GT_SIEGE,			// siege
 	GT_CTF,				// capture the flag
 	GT_CTY,
 	GT_WARZONE,
@@ -919,9 +914,7 @@ typedef enum {
 	EV_SABER_CLASHFLARE,
 	EV_SABER_UNHOLSTER,
 	EV_SABER_HOLSTER,
-	EV_BECOME_JEDIMASTER,
 	EV_DISRUPTOR_MAIN_SHOT,
-	//EV_DISRUPTOR_SNIPER_SHOT,
 	EV_DISRUPTOR_SNIPER_MISS,
 	EV_DISRUPTOR_HIT,
 	EV_DISRUPTOR_ZOOMSOUND,

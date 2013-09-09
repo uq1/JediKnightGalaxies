@@ -248,7 +248,6 @@ void G_InitSessionData( gclient_t *client, char *userinfo, qboolean isBot ) {
 			switch ( level.gametype ) {
 			default:
 			case GT_FFA:
-			case GT_JEDIMASTER:
 			case GT_SINGLE_PLAYER:
 				if ( g_maxGameClients.integer > 0 && 
 					level.numNonSpectatorClients >= g_maxGameClients.integer ) {

@@ -137,9 +137,6 @@ int G_GetMapTypeBits(char *type)
 			typeBits |= (1 << GT_WARZONE);
 			//typeBits |= (1 << GT_TEAM);
 		}
-		if( strstr( type, "jedimaster" ) ) {
-			typeBits |= (1 << GT_JEDIMASTER);
-		}
 		if( strstr( type, "duel" ) ) {
 			typeBits |= (1 << GT_DUEL);
 			typeBits |= (1 << GT_POWERDUEL);

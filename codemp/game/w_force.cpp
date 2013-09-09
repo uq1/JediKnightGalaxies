@@ -416,29 +416,26 @@ void WP_InitForcePowers( gentity_t *ent )
 	{
 		if (warnClient || !ent->client->sess.setForce)
 		{ //the client's rank is too high for the server and has been autocapped, so tell them
-			if ( level.gametype != GT_JEDIMASTER )
-			{
 #ifdef EVENT_FORCE_RANK
-				gentity_t *te = G_TempEntity( vec3_origin, EV_GIVE_NEW_RANK );
+			gentity_t *te = G_TempEntity( vec3_origin, EV_GIVE_NEW_RANK );
 
-				te->r.svFlags |= SVF_BROADCAST;
-				te->s.trickedentindex = ent->s.number;
-				te->s.eventParm = maxRank;
-				te->s.bolt1 = 0;
+			te->r.svFlags |= SVF_BROADCAST;
+			te->s.trickedentindex = ent->s.number;
+			te->s.eventParm = maxRank;
+			te->s.bolt1 = 0;
 #endif
-				didEvent = qtrue;
+			didEvent = qtrue;
 
 #ifdef EVENT_FORCE_RANK
-				te->s.bolt2 = ent->client->sess.sessionTeam;
+			te->s.bolt2 = ent->client->sess.sessionTeam;
 #else
-				//Event isn't very reliable, I made it a string. This way I can send it to just one
-				//client also, as opposed to making a broadcast event.
-				// Jedi Knight Galaxies, do not show the profile dialog
-				//trap_SendServerCommand(ent->s.number, va("nfr %i %i %i", maxRank, 1, ent->client->sess.sessionTeam));
-				trap_SendServerCommand(ent->s.number, va("nfr %i %i %i", maxRank, 0, ent->client->sess.sessionTeam));
-				//Arg1 is new max rank, arg2 is non-0 if force menu should be shown, arg3 is the current team
+			//Event isn't very reliable, I made it a string. This way I can send it to just one
+			//client also, as opposed to making a broadcast event.
+			// Jedi Knight Galaxies, do not show the profile dialog
+			//trap_SendServerCommand(ent->s.number, va("nfr %i %i %i", maxRank, 1, ent->client->sess.sessionTeam));
+			trap_SendServerCommand(ent->s.number, va("nfr %i %i %i", maxRank, 0, ent->client->sess.sessionTeam));
+			//Arg1 is new max rank, arg2 is non-0 if force menu should be shown, arg3 is the current team
 #endif
-			}
 			ent->client->sess.setForce = qtrue;
 		}
 
@@ -4875,59 +4872,6 @@ void SeekerDroneUpdate(gentity_t *self)
 	}
 }
 
-void JediMasterUpdate(gentity_t *self)
-{ //keep jedi master status updated for JM gametype
-	int i = 0;
-
-	while (i < NUM_FORCE_POWERS)
-	{
-		if (self->client->ps.isJediMaster)
-		{
-			self->client->ps.fd.forcePowersKnown |= (1 << i);
-			self->client->ps.fd.forcePowerLevel[i] = FORCE_LEVEL_3;
-
-			if (i == FP_TEAM_HEAL || i == FP_TEAM_FORCE ||
-				i == FP_DRAIN || i == FP_ABSORB)
-			{ //team powers are useless in JM, absorb is too because no one else has powers to absorb. Drain is just
-			  //relatively useless in comparison, because its main intent is not to heal, but rather to cripple others
-			  //by draining their force at the same time. And no one needs force in JM except the JM himself.
-				self->client->ps.fd.forcePowersKnown &= ~(1 << i);
-				self->client->ps.fd.forcePowerLevel[i] = 0;
-			}
-
-			if (i == FP_TELEPATHY)
-			{ //this decision was made because level 3 mindtrick allows the JM to just hide too much, and no one else has force
-			  //sight to counteract it. Since the JM himself is the focus of gameplay in this mode, having him hidden for large
-			  //durations is indeed a bad thing.
-				self->client->ps.fd.forcePowerLevel[i] = FORCE_LEVEL_2;
-			}
-		}
-		else
-		{
-			if ((self->client->ps.fd.forcePowersKnown & (1 << i)) && i != FP_LEVITATION)
-			{
-				self->client->ps.fd.forcePowersKnown -= (1 << i);
-			}
-
-			if ((self->client->ps.fd.forcePowersActive & (1 << i)) && i != FP_LEVITATION)
-			{
-				WP_ForcePowerStop(self, i);
-			}
-
-			if (i == FP_LEVITATION)
-			{
-				self->client->ps.fd.forcePowerLevel[i] = FORCE_LEVEL_1;
-			}
-			else
-			{
-				self->client->ps.fd.forcePowerLevel[i] = FORCE_LEVEL_0;
-			}
-		}
-
-		i++;
-	}
-}
-
 qboolean WP_HasForcePowers( const playerState_t *ps )
 {
 	int i;
@@ -5151,11 +5095,6 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 		{
 			self->client->ps.forceHandExtend = HANDEXTEND_WEAPONREADY;
 		}
-	}
-
-	if (level.gametype == GT_JEDIMASTER)
-	{
-		JediMasterUpdate(self);
 	}
 
 	SeekerDroneUpdate(self);

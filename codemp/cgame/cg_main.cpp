@@ -1630,17 +1630,7 @@ static void CG_RegisterGraphics( void ) {
 	}
 
 	cgs.media.teamStatusBar = trap_R_RegisterShader( "gfx/2d/colorbar.tga" );
-	/*
-	if ( cgs.gametype >= GT_TEAM || cg_buildScript.integer ) {
-		cgs.media.teamRedShader = trap_R_RegisterShader( "sprites/team_red" );
-		cgs.media.teamBlueShader = trap_R_RegisterShader( "sprites/team_blue" );
-		//cgs.media.redQuadShader = trap_R_RegisterShader("powerups/blueflag" );
-		//cgs.media.teamStatusBar = trap_R_RegisterShader( "gfx/2d/colorbar.tga" );
-	}
-	else if ( cgs.gametype == GT_JEDIMASTER )
-	{
-		cgs.media.teamRedShader = trap_R_RegisterShader( "sprites/team_red" );
-	}*/
+
 	// JKG: Always load these (for now)
 	// cgs.media.teamRedShader = trap_R_RegisterShader( "sprites/team_red" );
 	// cgs.media.teamBlueShader = trap_R_RegisterShader( "sprites/team_blue" );

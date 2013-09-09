@@ -5996,10 +5996,6 @@ static void CG_DrawWarmup( void ) {
 			s = CG_GetStringEdString("MENUS", "FREE_FOR_ALL");//"Free For All";
 		} else if ( cgs.gametype == GT_WARZONE ) {
 			s = CG_GetStringEdString("MENUS", "WARZONE");//"Warzone";
-		} else if ( cgs.gametype == GT_HOLOCRON ) {
-			s = CG_GetStringEdString("MENUS", "HOLOCRON_FFA");//"Holocron FFA";
-		} else if ( cgs.gametype == GT_JEDIMASTER ) {
-			s = CG_GetStringEdString("MENUS", "POWERDUEL");//"Jedi Master";??
 		} else if ( cgs.gametype == GT_TEAM ) {
 			s = CG_GetStringEdString("MENUS", "TEAM_FFA");//"Team FFA";
 		} else if ( cgs.gametype == GT_CTF ) {

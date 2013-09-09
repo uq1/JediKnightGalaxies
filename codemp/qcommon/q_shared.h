@@ -2392,7 +2392,6 @@ typedef struct playerState_s {
 	int			emplacedIndex;
 	float		emplacedTime;
 
-	qboolean	isJediMaster;
 	qboolean	forceRestricted;
 	int			saberIndex;
 
@@ -2846,8 +2845,6 @@ typedef struct entityState_s {
 	int			saberMove;
 	int			forcePowersActive;
 	int			saberHolstered;//sent in only only 2 bits - should be 0, 1 or 2
-
-	qboolean	isJediMaster;
 
 	qboolean	isPortalEnt; //this needs to be seperate for all entities I guess, which is why I couldn't reuse another value.
 

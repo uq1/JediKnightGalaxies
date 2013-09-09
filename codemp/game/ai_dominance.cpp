@@ -4876,13 +4876,7 @@ void DOM_ScanforEnemies(bot_state_t *bs)
 			G_Printf("Somehow this bot has locked onto itself. Not good.\n");
 		}
 
-		if(bs->currentEnemy->client && bs->currentEnemy->client->ps.isJediMaster)
-		{//never lose lock on the JM
-			DOM_EnemyVisualUpdate(bs);
-			DOM_CheckHolsterSaber(bs);
-			return;
-		}
-		else if(bs->currentTactic == BOTORDER_SEARCHANDDESTROY 
+		if(bs->currentTactic == BOTORDER_SEARCHANDDESTROY 
 			&& bs->tacticEntity)
 		{//currently going after search and destroy target
 			if(bs->tacticEntity->s.number == bs->currentEnemy->s.number)
@@ -4937,11 +4931,6 @@ void DOM_ScanforEnemies(bot_state_t *bs)
 			distcheck = VectorLength(a);
 			vectoangles(a, a);
 			a[PITCH] = a[ROLL] = 0;
-
-			if (g_entities[i].client && g_entities[i].client->ps.isJediMaster)
-			{ //make us think the Jedi Master is close so we'll attack him above all
-				distcheck = 1;
-			}
 
 			if (distcheck < closestdist && ((InFieldOfVision(bs->viewangles, 90, a) 
 				&& !BotMindTricked(bs->client, i)) 

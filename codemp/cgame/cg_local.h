@@ -1806,7 +1806,6 @@ typedef struct {
 	int				levelStartTime;
 
 	int				scores1, scores2;		// from configstrings
-	int				jediMaster;
 	int				duelWinner;
 	int				duelist1;
 	int				duelist2;

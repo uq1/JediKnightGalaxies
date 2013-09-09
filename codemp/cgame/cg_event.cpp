@@ -97,8 +97,6 @@ const char	*CG_PlaceString( int rank ) {
 	return str;
 }
 
-qboolean CG_ThereIsAMaster(void);
-
 /*
 =============
 CG_Obituary
@@ -260,34 +258,7 @@ clientkilled:
 		char	*s;
 
 		if ( cgs.gametype < GT_TEAM && cgs.gametype != GT_DUEL && cgs.gametype != GT_POWERDUEL ) {
-			if (cgs.gametype == GT_JEDIMASTER &&
-				attacker < MAX_CLIENTS &&
-				!ent->isJediMaster &&
-				!cg.snap->ps.isJediMaster &&
-				CG_ThereIsAMaster())
-			{
-				char part1[512];
-				char part2[512];
-				trap_SP_GetStringTextString("MP_INGAME_KILLED_MESSAGE", part1, sizeof(part1));
-				trap_SP_GetStringTextString("MP_INGAME_JMKILLED_NOTJM", part2, sizeof(part2));
-				s = va("%s %s\n%s\n", part1, targetName, part2);
-			}
-			else if (cgs.gametype == GT_JEDIMASTER &&
-				attacker < MAX_CLIENTS &&
-				!ent->isJediMaster &&
-				!cg.snap->ps.isJediMaster)
-			{ //no JM, saber must be out
-				char part1[512];
-				trap_SP_GetStringTextString("MP_INGAME_KILLED_MESSAGE", part1, sizeof(part1));
-				/*
-				kmsg1 = "for 0 points.\nGo for the saber!";
-				strcpy(part2, kmsg1);
-
-				s = va("%s %s %s\n", part1, targetName, part2);
-				*/
-				s = va("%s %s\n", part1, targetName);
-			}
-			else if (cgs.gametype == GT_POWERDUEL)
+			if (cgs.gametype == GT_POWERDUEL)
 			{
 				s = "";
 			}
@@ -308,10 +279,9 @@ clientkilled:
 			trap_SP_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
 			s = va("%s %s", sKilledStr, targetName );
 		}
-		//if (!(cg_singlePlayerActive.integer && cg_cameraOrbit.integer)) {
-			CG_CenterPrint( s, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
-		//} 
-		// print the text message as well
+
+		CG_CenterPrint( s, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
+
 	}
 
 	// check for double client messages
@@ -1795,43 +1765,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 			index = cg_entities[es->eventParm].currentState.modelindex;		// player predicted
 
-			if (index < 1 && cg_entities[es->eventParm].currentState.isJediMaster)
-			{ //a holocron most likely
-				index = cg_entities[es->eventParm].currentState.trickedentindex4;
-				trap_S_StartSound (NULL, es->number, CHAN_AUTO,	cgs.media.holocronPickup );
-								
-				if (es->number == cg.snap->ps.clientNum && showPowersName[index])
-				{
-					const char *strText = CG_GetStringEdString("MP_INGAME", "PICKUPLINE");
-
-					//Com_Printf("%s %s\n", strText, showPowersName[index]);
-					CG_CenterPrint( va("%s %s\n", strText, CG_GetStringEdString("SP_INGAME",showPowersName[index])), SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
-				}
-
-				//Show the player their force selection bar in case picking the holocron up changed the current selection
-				if (index != FP_SABER_OFFENSE && index != FP_SABER_DEFENSE && index != FP_SABERTHROW &&
-					index != FP_LEVITATION &&
-					es->number == cg.snap->ps.clientNum &&
-					(index == cg.snap->ps.fd.forcePowerSelected || !(cg.snap->ps.fd.forcePowersActive & (1 << cg.snap->ps.fd.forcePowerSelected))))
-				{
-					if (cg.forceSelect != index)
-					{
-						cg.forceSelect = index;
-						newindex = qtrue;
-					}
-				}
-
-				if (es->number == cg.snap->ps.clientNum && newindex)
-				{
-					if (cg.forceSelectTime < cg.time)
-					{
-						cg.forceSelectTime = cg.time;
-					}
-				}
-
-				break;
-			}
-
 			if (cg_entities[es->eventParm].weapon >= cg.time)
 			{ //rww - an unfortunately necessary hack to prevent double item pickups
 				break;
@@ -2527,39 +2460,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 		break;
 #endif //__MMO__
-
-	case EV_BECOME_JEDIMASTER:
-		DEBUGNAME("EV_SABER_UNHOLSTER");
-		{
-			trace_t tr;
-			vec3_t playerMins = {-15, -15, DEFAULT_MINS_2+8};
-			vec3_t playerMaxs = {15, 15, DEFAULT_MAXS_2};
-			vec3_t ang, pos, dpos;
-
-			VectorClear(ang);
-			ang[ROLL] = 1;
-
-			VectorCopy(position, dpos);
-			dpos[2] -= 4096;
-
-			CG_Trace(&tr, position, playerMins, playerMaxs, dpos, es->number, MASK_SOLID);
-			VectorCopy(tr.endpos, pos);
-			
-			if (tr.fraction == 1)
-			{
-				break;
-			}
-			trap_FX_PlayEffectID(cgs.effects.mJediSpawn, pos, ang, -1, -1);
-
-			trap_S_StartSound (NULL, es->number, CHAN_AUTO, trap_S_RegisterSound( "sound/weapons/saber/saberon.wav" ) );
-
-			if (cg.snap->ps.clientNum == es->number)
-			{
-				trap_S_StartLocalSound(cgs.media.happyMusic, CHAN_LOCAL);
-				CGCam_SetMusicMult(0.3f, 5000);
-			}
-		}
-		break;
 
 	case EV_DISRUPTOR_MAIN_SHOT:
 		DEBUGNAME("EV_DISRUPTOR_MAIN_SHOT");

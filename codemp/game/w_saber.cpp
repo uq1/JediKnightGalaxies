@@ -4772,11 +4772,6 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 		}
 	}
 
-	if (dmg > SABER_NONATTACK_DAMAGE && self->client->ps.isJediMaster)
-	{ //give the Jedi Master more saber attack power
-		dmg *= 2;
-	}
-
 #ifndef FINAL_BUILD
 	if (g_saberDebugPrint.integer > 2 && dmg > 1)
 	{
@@ -6358,7 +6353,7 @@ static GAME_INLINE qboolean CheckThrownSaberDamaged(gentity_t *saberent, gentity
 
 			if (tr.fraction == 1 || tr.entityNum == ent->s.number)
 			{ //Slice them
-				if (!saberOwner->client->ps.isJediMaster && WP_SaberCanBlock(ent, tr.endpos, 0, MOD_SABER, qfalse, 999))
+				if (WP_SaberCanBlock(ent, tr.endpos, 0, MOD_SABER, qfalse, 999))
 				{ //they blocked it
 					WP_SaberBlockNonRandom(ent, saberOwner, tr.endpos, qfalse);
 
@@ -6409,14 +6404,7 @@ static GAME_INLINE qboolean CheckThrownSaberDamaged(gentity_t *saberent, gentity
 						dflags |= DAMAGE_SABER_KNOCKBACK1;
 					}
 
-					if (saberOwner->client->ps.isJediMaster)
-					{ //2x damage for the Jedi Master
-						G_Damage(ent, saberOwner, saberOwner, dir, tr.endpos, saberent->damage*2, dflags, MOD_SABER);
-					}
-					else
-					{
-						G_Damage(ent, saberOwner, saberOwner, dir, tr.endpos, saberent->damage, dflags, MOD_SABER);
-					}
+					G_Damage(ent, saberOwner, saberOwner, dir, tr.endpos, saberent->damage, dflags, MOD_SABER);
 
 					te = G_TempEntity( tr.endpos, EV_SABER_HIT );
 					te->s.otherEntityNum = ent->s.number;
@@ -6676,12 +6664,6 @@ void MakeDeadSaber(gentity_t *ent)
 	vec3_t startang;
 	gentity_t *saberent;
 	gentity_t *owner = NULL;
-	
-	if (g_gametype.integer == GT_JEDIMASTER)
-	{ //never spawn a dead saber in JM, because the only saber on the level is really a world object
-		//G_Sound(ent, CHAN_AUTO, saberOffSound);
-		return;
-	}
 
 	saberent = G_Spawn();
 

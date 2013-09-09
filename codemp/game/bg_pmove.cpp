@@ -7590,12 +7590,6 @@ static void PM_Weapon( void )
 		pm->ps->weaponTime -= pml.msec;
 	}
 
-	if (pm->ps->isJediMaster && pm->ps->emplacedIndex)
-	{
-		pm->ps->emplacedIndex = 0;
-		pm->ps->saberHolstered = 0;
-	}
-
 	if (pm->ps->duelInProgress && pm->ps->emplacedIndex)
 	{
 		pm->ps->emplacedIndex = 0;
@@ -7607,18 +7601,6 @@ static void PM_Weapon( void )
 		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_EMPLACED_GUN, 0); //No switch for you!
 		PM_StartTorsoAnim( BOTH_GUNSIT1 );
 	}
-
-	/*if (pm->ps->isJediMaster || pm->ps->duelInProgress || pm->ps->trueJedi)
-	{
-		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_SABER, 0);
-		pm->ps->weapon = WP_SABER;
-		pm->ps->weaponVariation = 0;
-
-		if (pm->ps->isJediMaster || pm->ps->trueJedi)
-		{
-			pm->ps->stats[STAT_WEAPONS] = (1 << WP_SABER);
-		}
-	}*/
 
 	amount = GetWeaponData( pm->ps->weapon, pm->ps->weaponVariation )->firemodes[pm->ps->firingMode].cost;
 

@@ -238,8 +238,6 @@ void ThrowSaberToAttacker(gentity_t *self, gentity_t *attacker)
 		self->client->ps.saberIndex = ent->s.number;
 	}
 
-	trap_SetConfigstring ( CS_CLIENT_JEDIMASTER, "-1" );
-
 	if (attacker && attacker->client && self->client->ps.saberInFlight)
 	{ //someone killed us and we had the saber thrown, so actually move this saber to the saber location
 	  //if we killed ourselves with saber thrown, however, same suicide rules of respawning at spawn spot still
@@ -294,178 +292,6 @@ void ThrowSaberToAttacker(gentity_t *self, gentity_t *attacker)
 	}
 
 	trap_LinkEntity(ent);
-}
-
-void JMSaberThink(gentity_t *ent)
-{
-	gJMSaberEnt = ent;
-
-	if (ent->enemy)
-	{
-		if (!ent->enemy->client || !ent->enemy->inuse)
-		{ //disconnected?
-			VectorCopy(ent->enemy->s.pos.trBase, ent->s.pos.trBase);
-			VectorCopy(ent->enemy->s.pos.trBase, ent->s.origin);
-			VectorCopy(ent->enemy->s.pos.trBase, ent->r.currentOrigin);
-			ent->s.modelindex = G_ModelIndex("models/weapons2/saber/saber_w.glm");
-			ent->s.eFlags &= ~(EF_NODRAW);
-			ent->s.modelGhoul2 = 1;
-			ent->s.eType = ET_MISSILE;
-			ent->enemy = NULL;
-
-			ent->pos2[0] = 1;
-			ent->pos2[1] = 0; //respawn next think
-			trap_LinkEntity(ent);
-		}
-		else
-		{
-			ent->pos2[1] = level.time + JMSABER_RESPAWN_TIME;
-		}
-	}
-	else if (ent->pos2[0] && ent->pos2[1] < level.time)
-	{
-		VectorCopy(ent->s.origin2, ent->s.pos.trBase);
-		VectorCopy(ent->s.origin2, ent->s.origin);
-		VectorCopy(ent->s.origin2, ent->r.currentOrigin);
-		ent->pos2[0] = 0;
-		trap_LinkEntity(ent);
-	}
-
-	ent->nextthink = level.time + 50;
-	G_RunObject(ent);
-}
-
-void JMSaberTouch(gentity_t *self, gentity_t *other, trace_t *trace)
-{
-	int i = 0;
-//	gentity_t *te;
-
-	if (!other || !other->client || other->health < 1)
-	{
-		return;
-	}
-
-	if (self->enemy)
-	{
-		return;
-	}
-
-	if (!self->s.modelindex)
-	{
-		return;
-	}
-
-	if (other->client->ps.stats[STAT_WEAPONS] & (1 << WP_SABER))
-	{
-		return;
-	}
-
-	if (other->client->ps.isJediMaster)
-	{
-		return;
-	}
-
-	self->enemy = other;
-	other->client->ps.stats[STAT_WEAPONS] = (1 << WP_SABER);
-	other->client->ps.weapon = WP_SABER;
-	other->s.weapon = WP_SABER;
-	G_AddEvent(other, EV_BECOME_JEDIMASTER, 0);
-
-	// Track the jedi master 
-	trap_SetConfigstring ( CS_CLIENT_JEDIMASTER, va("%i", other->s.number ) );
-
-	if (g_spawnInvulnerability.integer)
-	{
-		other->client->ps.eFlags |= EF_INVULNERABLE;
-		other->client->invulnerableTimer = level.time + g_spawnInvulnerability.integer;
-	}
-
-	trap_SendServerCommand( -1, va("cp \"%s %s\n\"", other->client->pers.netname, G_GetStringEdString("MP_SVGAME", "BECOMEJM")) );
-
-	other->client->ps.isJediMaster = qtrue;
-	other->client->ps.saberIndex = self->s.number;
-
-	if (other->health < 200 && other->health > 0)
-	{ //full health when you become the Jedi Master
-		other->client->ps.stats[STAT_HEALTH] = other->health = 200;
-	}
-
-	if (other->client->ps.forcePower < 100)
-	{
-		other->client->ps.forcePower = 100;
-	}
-
-	while (i < NUM_FORCE_POWERS)
-	{
-		other->client->ps.fd.forcePowersKnown |= (1 << i);
-		other->client->ps.fd.forcePowerLevel[i] = FORCE_LEVEL_3;
-
-		i++;
-	}
-
-	self->pos2[0] = 1;
-	self->pos2[1] = level.time + JMSABER_RESPAWN_TIME;
-
-	self->s.modelindex = 0;
-	self->s.eFlags |= EF_NODRAW;
-	self->s.modelGhoul2 = 0;
-	self->s.eType = ET_GENERAL;
-
-	/*
-	te = G_TempEntity( vec3_origin, EV_DESTROY_GHOUL2_INSTANCE );
-	te->r.svFlags |= SVF_BROADCAST;
-	te->s.eventParm = self->s.number;
-	*/
-	G_KillG2Queue(self->s.number);
-
-	return;
-}
-
-gentity_t *gJMSaberEnt = NULL;
-
-/*QUAKED info_jedimaster_start (1 0 0) (-16 -16 -24) (16 16 32)
-"jedi master" saber spawn point
-*/
-void SP_info_jedimaster_start(gentity_t *ent)
-{
-	if (level.gametype != GT_JEDIMASTER)
-	{
-		gJMSaberEnt = NULL;
-		G_FreeEntity(ent);
-		return;
-	}
-
-	ent->enemy = NULL;
-
-	ent->flags = FL_BOUNCE_HALF;
-
-	ent->s.modelindex = G_ModelIndex("models/weapons2/saber/saber_w.glm");
-	ent->s.modelGhoul2 = 1;
-	ent->s.g2radius = 20;
-	//ent->s.eType = ET_GENERAL;
-	ent->s.eType = ET_MISSILE;
-	ent->s.weapon = WP_SABER;
-	ent->s.pos.trType = TR_GRAVITY;
-	ent->s.pos.trTime = level.time;
-	VectorSet( ent->r.maxs, 3, 3, 3 );
-	VectorSet( ent->r.mins, -3, -3, -3 );
-	ent->r.contents = CONTENTS_TRIGGER;
-	ent->clipmask = MASK_SOLID;
-
-	ent->isSaberEntity = qtrue;
-
-	ent->bounceCount = -5;
-
-	ent->physicsObject = qtrue;
-
-	VectorCopy(ent->s.pos.trBase, ent->s.origin2); //remember the spawn spot
-
-	ent->touch = JMSaberTouch;
-
-	trap_LinkEntity(ent);
-
-	ent->think = JMSaberThink;
-	ent->nextthink = level.time + 50;
 }
 
 /*
@@ -3579,8 +3405,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	//because entity state value is derived from player state data or some
 	//such)
 	client->ps.genericEnemyIndex = -1;
-
-	client->ps.isJediMaster = qfalse;
 
 	if (client->ps.fallingToDeath)
 	{

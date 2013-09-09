@@ -74,7 +74,6 @@ typedef struct campspot_s
 //FIXME: these are game specific
 enum {
 	GT_FFA,				// free for all
-	GT_JEDIMASTER,		// jedi master
 	GT_DUEL,		// one on one tournament
 	GT_POWERDUEL,
 	GT_SINGLE_PLAYER,	// single player tournament

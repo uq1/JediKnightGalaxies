@@ -308,7 +308,6 @@ void CG_SetConfigValues( void )
 	cg.warmup = atoi( CG_ConfigString( CS_WARMUP ) );
 
 	// Track who the jedi master is
-	cgs.jediMaster = atoi ( CG_ConfigString ( CS_CLIENT_JEDIMASTER ) );
 	cgs.duelWinner = atoi ( CG_ConfigString ( CS_CLIENT_DUELWINNER ) );
 
 	str = CG_ConfigString(CS_CLIENT_DUELISTS);
@@ -768,8 +767,6 @@ static void CG_ConfigStringModified( void ) {
 		cgs.scores1 = atoi( str );
 	} else if ( num == CS_SCORES2 ) {
 		cgs.scores2 = atoi( str );
-	} else if ( num == CS_CLIENT_JEDIMASTER ) {
-		cgs.jediMaster = atoi ( str );
 	}
 	else if ( num == CS_CLIENT_DUELWINNER )
 	{

@@ -209,7 +209,6 @@ void SP_info_player_deathmatch (gentity_t *ent);
 void SP_info_player_intermission (gentity_t *ent);
 void SP_info_player_intermission_red (gentity_t *ent);
 void SP_info_player_intermission_blue (gentity_t *ent);
-void SP_info_jedimaster_start (gentity_t *ent);
 void SP_info_player_start_red (gentity_t *ent);
 void SP_info_player_start_blue (gentity_t *ent);
 void SP_info_firstplace(gentity_t *ent);
@@ -498,7 +497,6 @@ spawn_t	spawns[] = {
 	{ "gametype_item", qfalse,						SP_gametype_item },
 	{ "item_botroam", qtrue,						SP_item_botroam },
 	{ "info_camp", qtrue,							SP_info_camp },
-	{ "info_jedimaster_start", qtrue,					SP_info_jedimaster_start },
 	{ "info_notnull", qtrue,						SP_info_notnull }, // use target_position instead
 	{ "info_null", qtrue,							SP_info_null },
 	{ "info_player_deathmatch", qtrue,					SP_info_player_deathmatch },
@@ -934,7 +932,7 @@ void G_SpawnGEntityFromSpawnVars( qboolean inSubBSP )
 	gentity_t	*ent;
 	char		*s, *value, *gametypeName;
 	KeyPairSet_t *spv;
-	static char *gametypeNames[] = {"ffa", "jedimaster", "duel", "powerduel", "single", "team", "ctf", "cty"};
+	static char *gametypeNames[] = {"ffa", "duel", "powerduel", "single", "team", "ctf", "cty"};
 
 	// get the next free entity
 	ent = G_Spawn();
@@ -1020,7 +1018,7 @@ void G_SpawnEntity(gentity_t **outent) {
 	gentity_t	*ent;
 	char		*s, *value, *gametypeName;
 	KeyPairSet_t *spv;
-	static char *gametypeNames[] = {"ffa", "jedimaster", "duel", "powerduel", "single", "team", "ctf", "cty"};
+	static char *gametypeNames[] = {"ffa", "duel", "powerduel", "single", "team", "ctf", "cty"};
 
 	G_SpawnString( "classname", NULL, &value );
 	if (!value) {

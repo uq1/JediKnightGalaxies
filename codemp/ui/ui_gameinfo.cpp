@@ -167,9 +167,6 @@ void UI_LoadArenas( void ) {
 			if( strstr( type, "warzone" ) ) {
 				uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_WARZONE);
 			}
-			if( strstr( type, "jedimaster" ) ) {
-				uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_JEDIMASTER);
-			}
 			if( strstr( type, "duel" ) ) {
 				uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_DUEL);
 				uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_POWERDUEL);

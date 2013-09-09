@@ -2796,57 +2796,6 @@ Ghoul2 Insert End
 	// add to refresh list, possibly with quad glow
 	CG_AddRefEntityWithPowerups( &ent, s1, TEAM_FREE );
 
-	if (s1->weapon == WP_SABER && cgs.gametype == GT_JEDIMASTER)
-	{ //in jedimaster always make the saber glow when on the ground
-		vec3_t org;
-		float wv;
-		int i;
-		addspriteArgStruct_t fxSArgs;
-		//refEntity_t sRef;
-		//memcpy( &sRef, &ent, sizeof( sRef ) );
-
-		ent.customShader = cgs.media.solidWhite;
-		ent.renderfx = RF_RGB_TINT;
-		wv = sin( cg.time * 0.003f ) * 0.08f + 0.1f;
-		ent.shaderRGBA[0] = wv * 255;
-		ent.shaderRGBA[1] = wv * 255;
-		ent.shaderRGBA[2] = wv * 0;
-		trap_R_AddRefEntityToScene (&ent);
-
-		for ( i = -4; i < 10; i += 1 )
-		{
-			VectorMA( ent.origin, -i, ent.axis[2], org );
-
-			VectorCopy(org, fxSArgs.origin);
-			VectorClear(fxSArgs.vel);
-			VectorClear(fxSArgs.accel);
-			fxSArgs.scale = 5.5f;
-			fxSArgs.dscale = 5.5f;
-			fxSArgs.sAlpha = wv;
-			fxSArgs.eAlpha = wv;
-			fxSArgs.rotation = 0.0f;
-			fxSArgs.bounce = 0.0f;
-			fxSArgs.life = 1.0f;
-			fxSArgs.shader = cgs.media.yellowDroppedSaberShader;
-			fxSArgs.flags = 0x08000000;
-
-			//trap_FX_AddSprite( org, NULL, NULL, 5.5f, 5.5f, wv, wv, 0.0f, 0.0f, 1.0f, cgs.media.yellowSaberGlowShader, 0x08000000 );
-			trap_FX_AddSprite(&fxSArgs);
-		}
-
-		if (cgs.gametype == GT_JEDIMASTER)
-		{
-			ent.shaderRGBA[0] = 255;
-			ent.shaderRGBA[1] = 255;
-			ent.shaderRGBA[2] = 0;
-
-			ent.renderfx |= RF_DEPTHHACK;
-			ent.customShader = cgs.media.forceSightBubble;
-		
-			trap_R_AddRefEntityToScene( &ent );
-		}
-	}
-
 	if ( s1->eFlags & EF_FIRING )
 	{//special code for adding the beam to the attached tripwire mine
 		vec3_t	beamOrg;

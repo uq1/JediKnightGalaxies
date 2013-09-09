@@ -1021,25 +1021,6 @@ int PassStandardEnemyChecks(bot_state_t *bs, gentity_t *en)
 		return 0;
 	}
 
-	if (level.gametype == GT_JEDIMASTER && !en->client->ps.isJediMaster && !bs->cur_ps.isJediMaster)
-	{ //rules for attacking non-JM in JM mode
-		vec3_t vs;
-		float vLen = 0;
-
-		if (!g_friendlyFire.integer)
-		{ //can't harm non-JM in JM mode if FF is off
-			return 0;
-		}
-
-		VectorSubtract(bs->origin, en->client->ps.origin, vs);
-		vLen = VectorLength(vs);
-
-		if (vLen > 350)
-		{
-			return 0;
-		}
-	}
-
 	return 1;
 }
 

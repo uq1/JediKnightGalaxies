@@ -730,10 +730,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	if( level.gametype >= GT_TEAM ) {
 		G_CheckTeamItems();
 	}
-	else if ( level.gametype == GT_JEDIMASTER )
-	{
-		trap_SetConfigstring ( CS_CLIENT_JEDIMASTER, "-1" );
-	}
 
 	if (level.gametype == GT_POWERDUEL)
 	{
