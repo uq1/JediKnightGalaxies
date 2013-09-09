@@ -502,7 +502,7 @@ retryModel:
 		skinName = "default";
 	}
 
-	if ( cgs.gametype >= GT_TEAM && !cgs.jediVmerc && cgs.gametype != GT_WARZONE )
+	if ( cgs.gametype >= GT_TEAM && cgs.gametype != GT_WARZONE )
 	{ //We won't force colors for siege.
 		int clientNumFixed = clientNum;
 		if(clientNumFixed < 0)
@@ -555,8 +555,7 @@ retryModel:
 	{
 	    humanoid = strstr (GLAName, "players/_humanoid/") != 0;
 	    jkgHumanoid = strstr (GLAName, "players/_humanoidJKG/") != 0;
-		if (!humanoid && !jkgHumanoid /*&&
-			(!strstr(GLAName, "players/rockettrooper/") || cgs.gametype != GT_SIEGE)*/) //only allow rockettrooper in siege
+		if (!humanoid && !jkgHumanoid )
 		{ //Bad!
 			badModel = qtrue;
 			goto retryModel;
@@ -608,14 +607,6 @@ retryModel:
 		{
 		    BG_ParseAnimationEvtFile( "models/players/_humanoidJKG/", 0, -1 ); //get the sounds for the JKG humanoid anims
 		}
-//		if (cgs.gametype == GT_SIEGE)
-//		{
-//			BG_ParseAnimationEvtFile( "models/players/rockettrooper/", 1, 1 ); //parse rockettrooper too
-//		}
-		//For the time being, we're going to have all real players use the generic humanoid soundset and that's it.
-		//Only npc's will use model-specific soundsets.
-
-	//	BG_ParseAnimationSndFile(va("models/players/%s/", modelName), 0, -1);
 	}
 	else if (!bgAllEvents[0].eventsParsed)
 	{ //make sure the player anim sounds are loaded even if the anims already are
@@ -627,10 +618,6 @@ retryModel:
 		{
 		    BG_ParseAnimationEvtFile( "models/players/_humanoidJKG/", 0, -1 );
 		}
-//		if (cgs.gametype == GT_SIEGE)
-//		{
-//			BG_ParseAnimationEvtFile( "models/players/rockettrooper/", 1, 1 );
-//		}
 	}
 
 	if ( CG_ParseSurfsFile( modelName, skinName, surfOff, surfOn ) )
@@ -1266,39 +1253,29 @@ void CG_LoadClientInfo( clientInfo_t *ci ) {
 		strcat( teamname, "/" );
 	}
 	modelloaded = qtrue;
-	/*if (cgs.gametype == GT_SIEGE &&
-		(ci->team == TEAM_SPECTATOR || ci->siegeIndex == -1))
-	{ //yeah.. kind of a hack I guess. Don't care until they are actually ingame with a valid class.
-		if ( !CG_RegisterClientModelname( ci, DEFAULT_MODEL, "default", teamname, -1 ) )
-		{
-			CG_Error( "DEFAULT_MODEL (%s) failed to register", DEFAULT_MODEL );
-		}
-	}*/
-	//else
-	{
-		if ( !CG_RegisterClientModelname( ci, ci->modelName, ci->skinName, teamname, clientNum ) ) {
-			//CG_Error( "CG_RegisterClientModelname( %s, %s, %s, %s %s ) failed", ci->modelName, ci->skinName, ci->headModelName, ci->headSkinName, teamname );
-			//rww - DO NOT error out here! Someone could just type in a nonsense model name and crash everyone's client.
-			//Give it a chance to load default model for this client instead.
 
-			// fall back to default team name
-			if( cgs.gametype >= GT_TEAM) {
-				// keep skin name
-				if( ci->team == TEAM_BLUE ) {
-					Q_strncpyz(teamname, DEFAULT_BLUETEAM_NAME, sizeof(teamname) );
-				} else {
-					Q_strncpyz(teamname, DEFAULT_REDTEAM_NAME, sizeof(teamname) );
-				}
-				if ( !CG_RegisterClientModelname( ci, fallbackModel, ci->skinName, teamname, -1 ) ) {
-					CG_Error( "DEFAULT_MODEL / skin (%s/%s) failed to register", fallbackModel, ci->skinName );
-				}
+	if ( !CG_RegisterClientModelname( ci, ci->modelName, ci->skinName, teamname, clientNum ) ) {
+		//CG_Error( "CG_RegisterClientModelname( %s, %s, %s, %s %s ) failed", ci->modelName, ci->skinName, ci->headModelName, ci->headSkinName, teamname );
+		//rww - DO NOT error out here! Someone could just type in a nonsense model name and crash everyone's client.
+		//Give it a chance to load default model for this client instead.
+
+		// fall back to default team name
+		if( cgs.gametype >= GT_TEAM) {
+			// keep skin name
+			if( ci->team == TEAM_BLUE ) {
+				Q_strncpyz(teamname, DEFAULT_BLUETEAM_NAME, sizeof(teamname) );
 			} else {
-				if ( !CG_RegisterClientModelname( ci, fallbackModel, "default", teamname, -1 ) ) {
-					CG_Error( "DEFAULT_MODEL (%s) failed to register", fallbackModel );
-				}
+				Q_strncpyz(teamname, DEFAULT_REDTEAM_NAME, sizeof(teamname) );
 			}
-			modelloaded = qfalse;
+			if ( !CG_RegisterClientModelname( ci, fallbackModel, ci->skinName, teamname, -1 ) ) {
+				CG_Error( "DEFAULT_MODEL / skin (%s/%s) failed to register", fallbackModel, ci->skinName );
+			}
+		} else {
+			if ( !CG_RegisterClientModelname( ci, fallbackModel, "default", teamname, -1 ) ) {
+				CG_Error( "DEFAULT_MODEL (%s) failed to register", fallbackModel );
+			}
 		}
+		modelloaded = qfalse;
 	}
 
 	if (clientNum != -1)
@@ -1384,14 +1361,7 @@ void CG_LoadClientInfo( clientInfo_t *ci ) {
 	}
 
 	// sounds
-	if (cgs.gametype == GT_SIEGE &&
-		(ci->team == TEAM_SPECTATOR || ci->siegeIndex == -1))
-	{ //don't need to load sounds
-	}
-	else
-	{
-		CG_LoadCISounds(ci, modelloaded, clientNum);
-	}
+	CG_LoadCISounds(ci, modelloaded, clientNum);
 
 	ci->deferred = qfalse;
 
@@ -1946,7 +1916,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 		newInfo.duelTeam = 0;
 	}
 
-	if (cgs.gametype >= GT_TEAM	&& !cgs.jediVmerc && cgs.gametype != GT_SIEGE && cgs.gametype != GT_WARZONE )
+	if (cgs.gametype >= GT_TEAM && cgs.gametype != GT_WARZONE )
 	{ //We won't force colors for siege.
 		BG_ValidateSkinForTeam( newInfo.modelName, newInfo.skinName, newInfo.team, newInfo.colorOverride, cgs.redTeam, cgs.blueTeam, clientNum );
 	}
@@ -1963,7 +1933,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 		{ //rww - don't defer your own client info ever
 			CG_LoadClientInfo( &newInfo );
 		}
-		else if (  cg_deferPlayers.integer && cgs.gametype != GT_SIEGE && !com_buildScript.integer && !cg.loading ) {
+		else if (  cg_deferPlayers.integer && !com_buildScript.integer && !cg.loading ) {
 			// keep whatever they had if it won't violate team skins
 			CG_SetDeferredClientInfo( &newInfo );
 		} else {
@@ -7433,8 +7403,6 @@ void CG_AddRandomLightning(vec3_t start, vec3_t end)
 	CG_AddLightningBeam(inOrg, outOrg);
 }
 
-extern char *forceHolocronModels[];
-
 qboolean CG_ThereIsAMaster(void)
 {
 	int i = 0;
@@ -11228,155 +11196,6 @@ SkipTrueView:
 	}
 
 	//[TrueView]
-	if (cgs.gametype == GT_HOLOCRON && cent->currentState.time2 && 
-	((cg.renderingThirdPerson || cg_trueguns.integer || cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE) 
-	|| cg.snap->ps.clientNum != cent->currentState.number))
-	//if (cgs.gametype == GT_HOLOCRON && cent->currentState.time2 && (cg.renderingThirdPerson || cg.snap->ps.clientNum != cent->currentState.number))
-	//[/TrueView]
-	{
-		int i = 0;
-		int renderedHolos = 0;
-		refEntity_t		holoRef;
-
-		while (i < NUM_FORCE_POWERS && renderedHolos < 3)
-		{
-			if (cent->currentState.time2 & (1 << i))
-			{
-				memset( &holoRef, 0, sizeof(holoRef) );
-
-				VectorCopy(cent->lerpOrigin, elevated);
-				elevated[2] += 8;
-
-				VectorCopy( elevated, holoRef.lightingOrigin );
-				holoRef.shadowPlane = shadowPlane;
-				holoRef.renderfx = 0;//RF_THIRD_PERSON;
-
-				if (renderedHolos == 0)
-				{
-					angle = ((cg.time / 8) & 255) * (M_PI * 2) / 255;
-					dir[0] = cos(angle) * 20;
-					dir[1] = sin(angle) * 20;
-					dir[2] = cos(angle) * 20;
-					VectorAdd(elevated, dir, holoRef.origin);
-
-					angles[0] = sin(angle) * 30;
-					angles[1] = (angle * 180 / M_PI) + 90;
-					if (angles[1] > 360)
-						angles[1] -= 360;
-					angles[2] = 0;
-					AnglesToAxis( angles, holoRef.axis );
-				}
-				else if (renderedHolos == 1)
-				{
-					angle = ((cg.time / 8) & 255) * (M_PI * 2) / 255 + M_PI;
-					if (angle > M_PI * 2)
-						angle -= (float)M_PI * 2;
-					dir[0] = sin(angle) * 20;
-					dir[1] = cos(angle) * 20;
-					dir[2] = cos(angle) * 20;
-					VectorAdd(elevated, dir, holoRef.origin);
-
-					angles[0] = cos(angle - 0.5 * M_PI) * 30;
-					angles[1] = 360 - (angle * 180 / M_PI);
-					if (angles[1] > 360)
-						angles[1] -= 360;
-					angles[2] = 0;
-					AnglesToAxis( angles, holoRef.axis );
-				}
-				else
-				{
-					angle = ((cg.time / 6) & 255) * (M_PI * 2) / 255 + 0.5 * M_PI;
-					if (angle > M_PI * 2)
-						angle -= (float)M_PI * 2;
-					dir[0] = sin(angle) * 20;
-					dir[1] = cos(angle) * 20;
-					dir[2] = 0;
-					VectorAdd(elevated, dir, holoRef.origin);
-			
-					VectorCopy(dir, holoRef.axis[1]);
-					VectorNormalize(holoRef.axis[1]);
-					VectorSet(holoRef.axis[2], 0, 0, 1);
-					CrossProduct(holoRef.axis[1], holoRef.axis[2], holoRef.axis[0]);
-				}
-
-				holoRef.modelScale[0] = 0.5;
-				holoRef.modelScale[1] = 0.5;
-				holoRef.modelScale[2] = 0.5;
-				ScaleModelAxis(&holoRef);
-
-				{
-					float wv;
-					addspriteArgStruct_t fxSArgs;
-					vec3_t holoCenter;
-
-					holoCenter[0] = holoRef.origin[0] + holoRef.axis[2][0]*18;
-					holoCenter[1] = holoRef.origin[1] + holoRef.axis[2][1]*18;
-					holoCenter[2] = holoRef.origin[2] + holoRef.axis[2][2]*18;
-
-					wv = sin( cg.time * 0.004f ) * 0.08f + 0.1f;
-
-					VectorCopy(holoCenter, fxSArgs.origin);
-					VectorClear(fxSArgs.vel);
-					VectorClear(fxSArgs.accel);
-					fxSArgs.scale = wv*60;
-					fxSArgs.dscale = wv*60;
-					fxSArgs.sAlpha = wv*12;
-					fxSArgs.eAlpha = wv*12;
-					fxSArgs.rotation = 0.0f;
-					fxSArgs.bounce = 0.0f;
-					fxSArgs.life = 1.0f;
-
-					fxSArgs.flags = 0x08000000|0x00000001;
-
-					if (forcePowerDarkLight[i] == FORCE_DARKSIDE)
-					{ //dark
-						fxSArgs.sAlpha *= 3;
-						fxSArgs.eAlpha *= 3;
-						fxSArgs.shader = cgs.media.redSaberGlowShader;
-						trap_FX_AddSprite(&fxSArgs);
-					}
-					else if (forcePowerDarkLight[i] == FORCE_LIGHTSIDE)
-					{ //light
-						fxSArgs.sAlpha *= 1.5;
-						fxSArgs.eAlpha *= 1.5;
-						fxSArgs.shader = cgs.media.redSaberGlowShader;
-						trap_FX_AddSprite(&fxSArgs);
-						fxSArgs.shader = cgs.media.greenSaberGlowShader;
-						trap_FX_AddSprite(&fxSArgs);
-						fxSArgs.shader = cgs.media.blueSaberGlowShader;
-						trap_FX_AddSprite(&fxSArgs);
-					}
-					else
-					{ //neutral
-						if (i == FP_SABER_OFFENSE ||
-							i == FP_SABER_DEFENSE ||
-							i == FP_SABERTHROW)
-						{ //saber power
-							fxSArgs.sAlpha *= 1.5;
-							fxSArgs.eAlpha *= 1.5;
-							fxSArgs.shader = cgs.media.greenSaberGlowShader;
-							trap_FX_AddSprite(&fxSArgs);
-						}
-						else
-						{
-							fxSArgs.sAlpha *= 0.5;
-							fxSArgs.eAlpha *= 0.5;
-							fxSArgs.shader = cgs.media.greenSaberGlowShader;
-							trap_FX_AddSprite(&fxSArgs);
-							fxSArgs.shader = cgs.media.blueSaberGlowShader;
-							trap_FX_AddSprite(&fxSArgs);
-						}
-					}
-				}
-
-				holoRef.hModel = trap_R_RegisterModel(forceHolocronModels[i]);
-				trap_R_AddRefEntityToScene( &holoRef );
-
-				renderedHolos++;
-			}
-			i++;
-		}
-	}
 
 	if ((cent->currentState.powerups & (1 << PW_YSALAMIRI)) ||
 		(cgs.gametype == GT_CTY && ((cent->currentState.powerups & (1 << PW_REDFLAG)) || (cent->currentState.powerups & (1 << PW_BLUEFLAG)))) )
@@ -12560,28 +12379,7 @@ stillDoSaber:
 
 	if ((cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) && cg.snap->ps.clientNum != cent->currentState.number && cg_auraShell.integer)
 	{
-		if (cgs.gametype == GT_SIEGE)
-		{	// A team game
-			if ( ci->team == TEAM_SPECTATOR || ci->team == TEAM_FREE )
-			{//yellow
-				legs.shaderRGBA[0] = 255;
-				legs.shaderRGBA[1] = 255;
-				legs.shaderRGBA[2] = 0;
-			}
-			else if ( ci->team != cgs.clientinfo[cg.snap->ps.clientNum].team )
-			{//red
-				legs.shaderRGBA[0] = 255;
-				legs.shaderRGBA[1] = 50;
-				legs.shaderRGBA[2] = 50;
-			}
-			else
-			{//green
-				legs.shaderRGBA[0] = 50;
-				legs.shaderRGBA[1] = 255;
-				legs.shaderRGBA[2] = 50;
-			}
-		}
-		else if (cgs.gametype >= GT_TEAM)
+		if (cgs.gametype >= GT_TEAM)
 		{	// A team game
 			switch(ci->team)
 			{
@@ -12907,28 +12705,7 @@ endOfCall:
 
 			if ((cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) && cg.snap->ps.clientNum != cent->currentState.number && cg_auraShell.integer)
 			{
-				if (cgs.gametype == GT_SIEGE)
-				{   // A team game
-					if ( ci->team == TEAM_SPECTATOR || ci->team == TEAM_FREE )
-					{//yellow
-						armorG2[ijk].shaderRGBA[0] = 255;
-						armorG2[ijk].shaderRGBA[1] = 255;
-						armorG2[ijk].shaderRGBA[2] = 0;
-					}
-					else if ( ci->team != cgs.clientinfo[cg.snap->ps.clientNum].team )
-					{//red
-						armorG2[ijk].shaderRGBA[0] = 255;
-						armorG2[ijk].shaderRGBA[1] = 50;
-						armorG2[ijk].shaderRGBA[2] = 50;
-					}
-					else
-					{//green
-						armorG2[ijk].shaderRGBA[0] = 50;
-						armorG2[ijk].shaderRGBA[1] = 255;
-						armorG2[ijk].shaderRGBA[2] = 50;
-					}
-				}
-				else if (cgs.gametype >= GT_TEAM)
+				if (cgs.gametype >= GT_TEAM)
 				{   // A team game
 					switch(ci->team)
 					{

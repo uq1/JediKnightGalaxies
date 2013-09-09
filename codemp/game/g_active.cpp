@@ -1014,15 +1014,7 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 				}
 				else
 				{
-					if (level.gametype == GT_SIEGE &&
-						delta > 60)
-					{ //longer falls hurt more
-						damage = delta*1; //good enough for now, I guess
-					}
-					else
-					{
-						damage = delta*0.16; //good enough for now, I guess
-					}
+					damage = delta*0.16; //good enough for now, I guess
 				}
 
 				VectorSet (dir, 0, 0, 1);

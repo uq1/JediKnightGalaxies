@@ -418,7 +418,6 @@ typedef struct {
     qhandle_t noForce;
     qhandle_t forceRestrict;
     qhandle_t saberOnly;
-    qhandle_t trueJedi;
 
 	sfxHandle_t moveRollSound;
 	sfxHandle_t moveJumpSound;

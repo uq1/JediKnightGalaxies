@@ -2394,8 +2394,6 @@ typedef struct playerState_s {
 
 	qboolean	isJediMaster;
 	qboolean	forceRestricted;
-	qboolean	trueJedi;
-	qboolean	trueNonJedi;
 	int			saberIndex;
 
 	int			genericEnemyIndex;
@@ -2405,11 +2403,6 @@ typedef struct playerState_s {
 	int			activeForcePass;
 
 	qboolean	hasDetPackPlanted; //better than taking up an eFlag isn't it?
-
-	float		holocronsCarried[NUM_FORCE_POWERS];
-	int			holocronCantTouch;
-	float		holocronCantTouchTime; //for keeping track of the last holocron that just popped out of me (if any)
-	int			holocronBits;
 
 	int			electrifyTime;
 

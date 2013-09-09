@@ -4552,8 +4552,7 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 			}
 			*/
 			if ( level.gametype != GT_DUEL
-				&& level.gametype != GT_POWERDUEL
-				&& level.gametype != GT_SIEGE )
+				&& level.gametype != GT_POWERDUEL )
 			{//in faster-paced games, sabers do more damage
 				fDmg *= 2.0f;
 			}
@@ -5034,18 +5033,15 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 			{
 				if (g_entities[tr.entityNum].client && g_entities[tr.entityNum].client->ps.weapon == WP_SABER)
 				{ //for jedi using the saber, half the damage (this comes with the increased default dmg debounce time)
-					if (level.gametype != GT_SIEGE)
-					{ //unless siege..
-						if (dmg > SABER_NONATTACK_DAMAGE && !unblockable)
-						{ //don't reduce damage if it's only 1, or if this is an unblockable attack
-							if (dmg == SABER_HITDAMAGE)
-							{ //level 1 attack
-								dmg *= 0.7;
-							}
-							else
-							{
-								dmg *= 0.5;
-							}
+					if (dmg > SABER_NONATTACK_DAMAGE && !unblockable)
+					{ //don't reduce damage if it's only 1, or if this is an unblockable attack
+						if (dmg == SABER_HITDAMAGE)
+						{ //level 1 attack
+							dmg *= 0.7;
+						}
+						else
+						{
+							dmg *= 0.5;
 						}
 					}
 				}
@@ -5164,8 +5160,7 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 		}
 
 		if ((self->s.eType == ET_NPC || otherOwner->s.eType == ET_NPC) && //just make sure one of us is an npc
-			self->client->playerTeam == otherOwner->client->playerTeam &&
-			level.gametype != GT_SIEGE)
+			self->client->playerTeam == otherOwner->client->playerTeam)
 		{ //don't hit your teammate's sabers if you are an NPC. It can be rather annoying.
 			return qfalse;
 		}

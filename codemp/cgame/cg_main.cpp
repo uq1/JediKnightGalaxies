@@ -1392,7 +1392,6 @@ static void CG_RegisterEffects( void )
 
 //===================================================================================
 
-extern char *forceHolocronModels[];
 int CG_HandleAppendedSkin(char *modelName);
 void CG_CacheG2AnimInfo(char *modelName);
 /*
@@ -1590,18 +1589,6 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.sightShell = trap_R_RegisterShader("powerups/sightshell");
 
 	cgs.media.itemHoloModel = trap_R_RegisterModel("models/map_objects/mp/holo.md3");
-
-	if (cgs.gametype == GT_HOLOCRON || com_buildScript.integer)
-	{
-		for ( i=0; i < NUM_FORCE_POWERS; i++ )
-		{
-			if (forceHolocronModels[i] &&
-				forceHolocronModels[i][0])
-			{
-				trap_R_RegisterModel(forceHolocronModels[i]);
-			}
-		}
-	}
 
 	if ( cgs.gametype == GT_CTF || cgs.gametype == GT_CTY || cgs.gametype == GT_WARZONE || com_buildScript.integer ) {
 		if (com_buildScript.integer)

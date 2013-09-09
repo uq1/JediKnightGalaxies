@@ -302,8 +302,6 @@ void SP_misc_maglock ( gentity_t *self );
 
 void SP_misc_faller(gentity_t *ent);
 
-void SP_misc_holocron(gentity_t *ent);
-
 void SP_reference_tag ( gentity_t *ent );
 
 void SP_misc_weapon_shooter( gentity_t *self );
@@ -522,7 +520,6 @@ spawn_t	spawns[] = {
 	{ "misc_faller", qfalse,						SP_misc_faller },
 	{ "misc_G2model", qfalse,						SP_misc_G2model },
 	{ "misc_health_crate", qfalse,						SP_health_crate_spawn },
-	{ "misc_holocron", qfalse,						SP_misc_holocron },
 	{ "misc_maglock", qfalse,						SP_misc_maglock },
 	{ "misc_model", qtrue,							SP_misc_model },
 	{ "misc_model_ammo_power_converter", qfalse,				SP_misc_model_ammo_power_converter },
@@ -937,7 +934,7 @@ void G_SpawnGEntityFromSpawnVars( qboolean inSubBSP )
 	gentity_t	*ent;
 	char		*s, *value, *gametypeName;
 	KeyPairSet_t *spv;
-	static char *gametypeNames[] = {"ffa", "holocron", "jedimaster", "duel", "powerduel", "single", "team", "siege", "ctf", "cty"};
+	static char *gametypeNames[] = {"ffa", "jedimaster", "duel", "powerduel", "single", "team", "ctf", "cty"};
 
 	// get the next free entity
 	ent = G_Spawn();
@@ -1023,7 +1020,7 @@ void G_SpawnEntity(gentity_t **outent) {
 	gentity_t	*ent;
 	char		*s, *value, *gametypeName;
 	KeyPairSet_t *spv;
-	static char *gametypeNames[] = {"ffa", "holocron", "jedimaster", "duel", "powerduel", "single", "team", "siege", "ctf", "cty"};
+	static char *gametypeNames[] = {"ffa", "jedimaster", "duel", "powerduel", "single", "team", "ctf", "cty"};
 
 	G_SpawnString( "classname", NULL, &value );
 	if (!value) {
@@ -1693,7 +1690,6 @@ void SP_worldspawn( void )
 	trap_SetConfigstring( CS_WARMUP, "" );
 	if ( g_restarted.integer ) {
 		trap_Cvar_Set( "g_restarted", "0" );
-		level.warmupTime = 0;
 	} 
 
 	// Gang Wars

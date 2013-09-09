@@ -476,7 +476,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 			UI_DrawProportionalString(x, y, s, UI_CENTER|UI_DROPSHADOW, colorTable[CT_WHITE], FONT_MEDIUM);
 		}
 	}
-	else if (cgs.gametype != GT_SIEGE)
+	else
 	{
 		if ( cg.teamScores[0] == cg.teamScores[1] ) {
 			s = va("%s %i", CG_GetStringEdString("MP_INGAME", "TIEDAT"), cg.teamScores[0] );
@@ -486,22 +486,6 @@ qboolean CG_DrawOldScoreboard( void ) {
 		} else {
 			//s = va("%s, %i / %i", CG_GetStringEdString("MP_INGAME", "BLUE_LEADS"), cg.teamScores[1], cg.teamScores[0] );
 			s = va("%s, %i / %i", CG_GetStringEdString2(bgGangWarsTeams[cgs.blueTeam].leadstring), cg.teamScores[0], cg.teamScores[1] );
-		}
-
-		x = ( SCREEN_WIDTH ) / 2;
-		y = 60;
-		
-		CG_Text_Paint ( x - CG_Text_Width ( s, 1.0f, FONT_MEDIUM ) / 2, y, 1.0f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_MEDIUM );
-	}
-	else if (cgs.gametype == GT_SIEGE && (cg_siegeWinTeam == 1 || cg_siegeWinTeam == 2))
-	{
-		if (cg_siegeWinTeam == 1)
-		{
-			s = va("%s", CG_GetStringEdString("MP_INGAME", "SIEGETEAM1WIN") );
-		}
-		else
-		{
-			s = va("%s", CG_GetStringEdString("MP_INGAME", "SIEGETEAM2WIN") );
 		}
 
 		x = ( SCREEN_WIDTH ) / 2;

@@ -5647,10 +5647,6 @@ static void CG_DrawVote(void) {
 	{
 		trap_SP_GetStringTextString("MENUS_NEXT_MAP", sCmd, sizeof(sCmd) );
 	}
-	else if (strncmp(cgs.voteString, "g_doWarmup", 10)==0)
-	{
-		trap_SP_GetStringTextString("MENUS_WARMUP", sCmd, sizeof(sCmd) );
-	}
 	else if (strncmp(cgs.voteString, "g_gametype", 10)==0)
 	{
 		trap_SP_GetStringTextString("MENUS_GAME_TYPE", sCmd, sizeof(sCmd) );

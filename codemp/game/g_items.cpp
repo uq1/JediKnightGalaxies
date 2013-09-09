@@ -98,14 +98,7 @@ void ShieldThink(gentity_t *self)
 {
 	self->s.trickedentindex = 0;
 
-	if ( level.gametype == GT_SIEGE )
-	{
-		self->health -= SHIELD_SIEGE_HEALTH_DEC;
-	}
-	else
-	{
-		self->health -= SHIELD_HEALTH_DEC;
-	}
+	self->health -= SHIELD_HEALTH_DEC;
 	self->nextthink = level.time + 1000;
 	if (self->health <= 0)
 	{
@@ -306,14 +299,7 @@ void CreateShield(gentity_t *ent)
 	paramData = (xaxis << 24) | (height << 16) | (posWidth << 8) | (negWidth);
 	ent->s.time2 = paramData;
 
-	if ( level.gametype == GT_SIEGE )
-	{
-		ent->health = ceil((float)(SHIELD_SIEGE_HEALTH*1));
-	}
-	else
-	{
-		ent->health = ceil((float)(SHIELD_HEALTH*1));
-	}
+	ent->health = ceil((float)(SHIELD_HEALTH*1));
 
 	ent->s.time = ent->health;//???
 	ent->pain = ShieldPain;
@@ -2101,32 +2087,10 @@ int Pickup_Ammo (gentity_t *ent, gentity_t *other)
 
 	if (ent->item->giTag == -1)
 	{ //an ammo_all, give them a bit of everything
-		if ( level.gametype == GT_SIEGE )	// complaints that siege tech's not giving enough ammo.  Does anything else use ammo all?
-		{
-			Add_Ammo(other, AMMO_BLASTER, 100);
-			Add_Ammo(other, AMMO_POWERCELL, 100);
-			Add_Ammo(other, AMMO_METAL_BOLTS, 100);
-			Add_Ammo(other, AMMO_ROCKETS, 5);
-			if (other->client->ps.stats[STAT_WEAPONS] & (1<<WP_DET_PACK))
-			{
-				Add_Ammo(other, AMMO_DETPACK, 2);
-			}
-			if (other->client->ps.stats[STAT_WEAPONS] & (1<<WP_THERMAL))
-			{
-				Add_Ammo(other, AMMO_THERMAL, 2);
-			}
-			if (other->client->ps.stats[STAT_WEAPONS] & (1<<WP_TRIP_MINE))
-			{
-				Add_Ammo(other, AMMO_TRIPMINE, 2);
-			}
-		}
-		else
-		{
-			Add_Ammo(other, AMMO_BLASTER, 50);
-			Add_Ammo(other, AMMO_POWERCELL, 50);
-			Add_Ammo(other, AMMO_METAL_BOLTS, 50);
-			Add_Ammo(other, AMMO_ROCKETS, 2);
-		}
+		Add_Ammo(other, AMMO_BLASTER, 50);
+		Add_Ammo(other, AMMO_POWERCELL, 50);
+		Add_Ammo(other, AMMO_METAL_BOLTS, 50);
+		Add_Ammo(other, AMMO_ROCKETS, 2);
 	}
 	else
 	{
@@ -2899,11 +2863,6 @@ void ClearRegisteredItems( void ) {
 	RegisterItem( BG_FindItemForWeapon( WP_STUN_BATON ) );
 	RegisterItem( BG_FindItemForWeapon( WP_MELEE ) );
 	RegisterItem( BG_FindItemForWeapon( WP_SABER ) );
-
-	if (level.gametype == GT_SIEGE)
-	{ //kind of cheesy, maybe check if siege class with disp's is gonna be on this map too
-		G_PrecacheDispensers();
-	}
 }
 
 /*
@@ -3037,9 +2996,8 @@ void G_BounceItem( gentity_t *ent, trace_t *trace ) {
 	VectorCopy( ent->r.currentOrigin, ent->s.pos.trBase );
 	ent->s.pos.trTime = level.time;
 
-	if (ent->s.eType == ET_HOLOCRON ||
-		(ent->s.shouldtarget && ent->s.eType == ET_GENERAL && ent->physicsObject))
-	{ //holocrons and sentry guns
+	if (ent->s.shouldtarget && ent->s.eType == ET_GENERAL && ent->physicsObject)
+	{ // sentry guns
 		if (ent->touch)
 		{
 			ent->touch(ent, &g_entities[trace->entityNum], trace);

@@ -296,7 +296,7 @@ void WP_InitForcePowers( gentity_t *ent )
 	i++;
 
 
-	if ( level.gametype != GT_SIEGE && (ent->r.svFlags & SVF_BOT) && botstates[ent->s.number] )
+	if ( (ent->r.svFlags & SVF_BOT) && botstates[ent->s.number] )
 	{ //hmm..I'm going to cheat here.
 		int oldI = i;
 		i_r = 0;
@@ -416,7 +416,7 @@ void WP_InitForcePowers( gentity_t *ent )
 	{
 		if (warnClient || !ent->client->sess.setForce)
 		{ //the client's rank is too high for the server and has been autocapped, so tell them
-			if (level.gametype != GT_HOLOCRON && level.gametype != GT_JEDIMASTER )
+			if ( level.gametype != GT_JEDIMASTER )
 			{
 #ifdef EVENT_FORCE_RANK
 				gentity_t *te = G_TempEntity( vec3_origin, EV_GIVE_NEW_RANK );
@@ -534,25 +534,6 @@ void WP_SpawnInitForcePowers( gentity_t *ent )
 	ent->client->ps.fd.forceMindtrickTargetIndex2 = 0;
 	ent->client->ps.fd.forceMindtrickTargetIndex3 = 0;
 	ent->client->ps.fd.forceMindtrickTargetIndex4 = 0;
-
-	ent->client->ps.holocronBits = 0;
-
-	i = 0;
-	while (i < NUM_FORCE_POWERS)
-	{
-		ent->client->ps.holocronsCarried[i] = 0;
-		i++;
-	}
-
-	if (level.gametype == GT_HOLOCRON)
-	{
-		i = 0;
-		while (i < NUM_FORCE_POWERS)
-		{
-			ent->client->ps.fd.forcePowerLevel[i] = FORCE_LEVEL_0;
-			i++;
-		}
-	}
 
 	i = 0;
 
@@ -4894,80 +4875,6 @@ void SeekerDroneUpdate(gentity_t *self)
 	}
 }
 
-void HolocronUpdate(gentity_t *self)
-{ //keep holocron status updated in holocron mode
-	int i = 0;
-	int noHRank = 0;
-
-	if (noHRank < FORCE_LEVEL_0)
-	{
-		noHRank = FORCE_LEVEL_0;
-	}
-	if (noHRank > FORCE_LEVEL_3)
-	{
-		noHRank = FORCE_LEVEL_3;
-	}
-
-	while (i < NUM_FORCE_POWERS)
-	{
-		if (self->client->ps.holocronsCarried[i])
-		{ //carrying it, make sure we have the power
-			self->client->ps.holocronBits |= (1 << i);
-			self->client->ps.fd.forcePowersKnown |= (1 << i);
-			self->client->ps.fd.forcePowerLevel[i] = FORCE_LEVEL_3;
-		}
-		else
-		{ //otherwise, make sure the power is cleared from us
-			self->client->ps.fd.forcePowerLevel[i] = 0;
-			if (self->client->ps.holocronBits & (1 << i))
-			{
-				self->client->ps.holocronBits -= (1 << i);
-			}
-
-			if ((self->client->ps.fd.forcePowersKnown & (1 << i)) && i != FP_LEVITATION && i != FP_SABER_OFFENSE)
-			{
-				self->client->ps.fd.forcePowersKnown -= (1 << i);
-			}
-
-			if ((self->client->ps.fd.forcePowersActive & (1 << i)) && i != FP_LEVITATION && i != FP_SABER_OFFENSE)
-			{
-				WP_ForcePowerStop(self, i);
-			}
-
-			if (i == FP_LEVITATION)
-			{
-				if (noHRank >= FORCE_LEVEL_1)
-				{
-					self->client->ps.fd.forcePowerLevel[i] = noHRank;
-				}
-				else
-				{
-					self->client->ps.fd.forcePowerLevel[i] = FORCE_LEVEL_1;
-				}
-			}
-			else if (i == FP_SABER_OFFENSE)
-			{
-				self->client->ps.fd.forcePowersKnown |= (1 << i);
-
-				if (noHRank >= FORCE_LEVEL_1)
-				{
-					self->client->ps.fd.forcePowerLevel[i] = noHRank;
-				}
-				else
-				{
-					self->client->ps.fd.forcePowerLevel[i] = FORCE_LEVEL_1;
-				}
-			}
-			else
-			{
-				self->client->ps.fd.forcePowerLevel[i] = FORCE_LEVEL_0;
-			}
-		}
-
-		i++;
-	}
-}
-
 void JediMasterUpdate(gentity_t *self)
 { //keep jedi master status updated for JM gametype
 	int i = 0;
@@ -5246,10 +5153,6 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 		}
 	}
 
-	if (level.gametype == GT_HOLOCRON)
-	{
-		HolocronUpdate(self);
-	}
 	if (level.gametype == GT_JEDIMASTER)
 	{
 		JediMasterUpdate(self);

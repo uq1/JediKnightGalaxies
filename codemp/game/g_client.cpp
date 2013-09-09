@@ -1602,7 +1602,7 @@ void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
 						strcpy(skin, "default");
 					}
 
-					if ( level.gametype >= GT_TEAM && level.gametype != GT_SIEGE && !g_jediVmerc.integer )
+					if ( level.gametype >= GT_TEAM )
 					{
 						//JAC: Also adjust customRGBA for team colors.
 						float colorOverride[3];
@@ -2115,7 +2115,7 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	Q_strncpyz( forcePowers, Info_ValueForKey( userinfo, "forcepowers" ), sizeof( forcePowers ) );
 
 	//JAC: update our customRGBA for team colors. 
-	if ( level.gametype >= GT_TEAM && level.gametype != GT_SIEGE && !g_jediVmerc.integer )
+	if ( level.gametype >= GT_TEAM )
 	{
 		char skin[MAX_QPATH] = {0};
 		vec3_t colorOverride = {0.0f};
@@ -3208,20 +3208,17 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 			}
 			ent->client->ps.fd.saberAnimLevelBase = ent->client->ps.fd.saberAnimLevel = ent->client->ps.fd.saberDrawAnimLevel = ent->client->sess.saberLevel;
 
-			if (g_gametype.integer != GT_SIEGE &&
-				ent->client->ps.fd.saberAnimLevel > ent->client->ps.fd.forcePowerLevel[FP_SABER_OFFENSE])
+			if (ent->client->ps.fd.saberAnimLevel > ent->client->ps.fd.forcePowerLevel[FP_SABER_OFFENSE])
 			{
 				ent->client->ps.fd.saberAnimLevelBase = ent->client->ps.fd.saberAnimLevel = ent->client->ps.fd.saberDrawAnimLevel = ent->client->sess.saberLevel = ent->client->ps.fd.forcePowerLevel[FP_SABER_OFFENSE];
 			}
 		}
-		if ( g_gametype.integer != GT_SIEGE )
+
+		//let's just make sure the styles we chose are cool
+		if ( !WP_SaberStyleValidForSaber( &ent->client->saber[0], &ent->client->saber[1], ent->client->ps.saberHolstered, ent->client->ps.fd.saberAnimLevel ) )
 		{
-			//let's just make sure the styles we chose are cool
-			if ( !WP_SaberStyleValidForSaber( &ent->client->saber[0], &ent->client->saber[1], ent->client->ps.saberHolstered, ent->client->ps.fd.saberAnimLevel ) )
-			{
-				WP_UseFirstValidSaberStyle( &ent->client->saber[0], &ent->client->saber[1], ent->client->ps.saberHolstered, &ent->client->ps.fd.saberAnimLevel );
-				ent->client->ps.fd.saberAnimLevelBase = ent->client->saberCycleQueue = ent->client->ps.fd.saberAnimLevel;
-			}
+			WP_UseFirstValidSaberStyle( &ent->client->saber[0], &ent->client->saber[1], ent->client->ps.saberHolstered, &ent->client->ps.fd.saberAnimLevel );
+			ent->client->ps.fd.saberAnimLevelBase = ent->client->saberCycleQueue = ent->client->ps.fd.saberAnimLevel;
 		}
 	}
 	l = 0;
@@ -3247,8 +3244,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 		}
 		ent->client->ps.fd.saberAnimLevel = ent->client->ps.fd.saberDrawAnimLevel = ent->client->sess.saberLevel;
 
-		if (g_gametype.integer != GT_SIEGE &&
-			ent->client->ps.fd.saberAnimLevel > ent->client->ps.fd.forcePowerLevel[FP_SABER_OFFENSE])
+		if (ent->client->ps.fd.saberAnimLevel > ent->client->ps.fd.forcePowerLevel[FP_SABER_OFFENSE])
 		{
 			ent->client->ps.fd.saberAnimLevel = ent->client->ps.fd.saberDrawAnimLevel = ent->client->sess.saberLevel = ent->client->ps.fd.forcePowerLevel[FP_SABER_OFFENSE];
 		}
@@ -3981,8 +3977,7 @@ void ClientDisconnect( int clientNum ) {
 
 	// if we are playing in tourney mode, give a win to the other player and clear his frags for this round
 	if ( (level.gametype == GT_DUEL )
-		&& !level.intermissiontime
-		&& !level.warmupTime ) {
+		&& !level.intermissiontime ) {
 		if ( level.sortedClients[1] == clientNum ) {
 			level.clients[ level.sortedClients[0] ].ps.persistant[PERS_SCORE] = 0;
 			level.clients[ level.sortedClients[0] ].sess.wins++;

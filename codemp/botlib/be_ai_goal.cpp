@@ -74,7 +74,6 @@ typedef struct campspot_s
 //FIXME: these are game specific
 enum {
 	GT_FFA,				// free for all
-	GT_HOLOCRON,		// holocron match
 	GT_JEDIMASTER,		// jedi master
 	GT_DUEL,		// one on one tournament
 	GT_POWERDUEL,
@@ -83,7 +82,6 @@ enum {
 	//-- team games go after this --
 
 	GT_TEAM,			// team deathmatch
-	GT_SIEGE,			// siege
 	GT_CTF,				// capture the flag
 	GT_CTY,
 	GT_MAX_GAME_TYPE

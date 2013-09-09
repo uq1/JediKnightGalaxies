@@ -648,27 +648,6 @@ void ScaleModelAxis(refEntity_t	*ent)
 Ghoul2 Insert End
 */
 
-char *forceHolocronModels[] = {
-	"models/map_objects/mp/lt_heal.md3",		//FP_HEAL,
-	"models/map_objects/mp/force_jump.md3",		//FP_LEVITATION,
-	"models/map_objects/mp/force_speed.md3",	//FP_SPEED,
-	"models/map_objects/mp/force_push.md3",		//FP_PUSH,
-	"models/map_objects/mp/force_pull.md3",		//FP_PULL,
-	"models/map_objects/mp/lt_telepathy.md3",	//FP_TELEPATHY,
-	"models/map_objects/mp/dk_grip.md3",		//FP_GRIP,
-	"models/map_objects/mp/dk_lightning.md3",	//FP_LIGHTNING,
-	"models/map_objects/mp/dk_rage.md3",		//FP_RAGE,
-	"models/map_objects/mp/lt_protect.md3",		//FP_PROTECT,
-	"models/map_objects/mp/lt_absorb.md3",		//FP_ABSORB,
-	"models/map_objects/mp/lt_healother.md3",	//FP_TEAM_HEAL,
-	"models/map_objects/mp/dk_powerother.md3",	//FP_TEAM_FORCE,
-	"models/map_objects/mp/dk_drain.md3",		//FP_DRAIN,
-	"models/map_objects/mp/force_sight.md3",	//FP_SEE,
-	"models/map_objects/mp/saber_attack.md3",	//FP_SABER_OFFENSE,
-	"models/map_objects/mp/saber_defend.md3",	//FP_SABER_DEFENSE,
-	"models/map_objects/mp/saber_throw.md3"		//FP_SABERTHROW
-};
-
 void CG_Disintegration(centity_t *cent, refEntity_t *ent)
 {
 	vec3_t tempAng, hitLoc;
@@ -1489,16 +1468,7 @@ Ghoul2 Insert End
 		}
 	}
 
-	if (s1->eType == ET_HOLOCRON && s1->modelindex < -100)
-	{ //special render, it's a holocron
-		//Using actual models now:
-		ent.hModel = trap_R_RegisterModel(forceHolocronModels[s1->modelindex+128]);
-
-		//Rotate them
-		VectorCopy( cg.autoAngles, cent->lerpAngles );
-		AxisCopy( cg.autoAxis, ent.axis );
-	}
-	else if (!doNotSetModel)
+	if (!doNotSetModel)
 	{
 		ent.hModel = cgs.gameModels[s1->modelindex];
 	}
@@ -3751,9 +3721,6 @@ Ghoul2 Insert End
 		break;
 	case ET_SPECIAL:
 		CG_Special( cent );
-		break;
-	case ET_HOLOCRON:
-		CG_General( cent );
 		break;
 	case ET_MOVER:
 		CG_Mover( cent );

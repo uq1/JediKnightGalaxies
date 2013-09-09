@@ -7,11 +7,8 @@
 
 #include "ai_main.h" //for the g2animents
 
-#define HOLOCRON_RESPAWN_TIME 30000
 #define MAX_AMMO_GIVE 2
 #define STATION_RECHARGE_TIME 100
-
-void HolocronThink(gentity_t *ent);
 
 /*QUAKED func_group (0 0 0) ?
 Used to group brushes together just for editor convenience.  They are turned into normal brushes by the utilities.
@@ -936,256 +933,6 @@ void SP_misc_skyportal (gentity_t *ent)
 	ent->nextthink = level.time + 1050; //give it some time first so that all other entities are spawned.
 }
 
-/*QUAKED misc_holocron (0 0 1) (-8 -8 -8) (8 8 8)
-count	Set to type of holocron (based on force power value)
-	HEAL = 0
-	JUMP = 1
-	SPEED = 2
-	PUSH = 3
-	PULL = 4
-	TELEPATHY = 5
-	GRIP = 6
-	LIGHTNING = 7
-	RAGE = 8
-	PROTECT = 9
-	ABSORB = 10
-	TEAM HEAL = 11
-	TEAM FORCE = 12
-	DRAIN = 13
-	SEE = 14
-	SABERATTACK = 15
-	SABERDEFEND = 16
-	SABERTHROW = 17
-*/
-
-/*char *holocronTypeModels[] = {
-	"models/chunks/rock/rock_big.md3",//FP_HEAL,
-	"models/chunks/rock/rock_big.md3",//FP_LEVITATION,
-	"models/chunks/rock/rock_big.md3",//FP_SPEED,
-	"models/chunks/rock/rock_big.md3",//FP_PUSH,
-	"models/chunks/rock/rock_big.md3",//FP_PULL,
-	"models/chunks/rock/rock_big.md3",//FP_TELEPATHY,
-	"models/chunks/rock/rock_big.md3",//FP_GRIP,
-	"models/chunks/rock/rock_big.md3",//FP_LIGHTNING,
-	"models/chunks/rock/rock_big.md3",//FP_RAGE,
-	"models/chunks/rock/rock_big.md3",//FP_PROTECT,
-	"models/chunks/rock/rock_big.md3",//FP_ABSORB,
-	"models/chunks/rock/rock_big.md3",//FP_TEAM_HEAL,
-	"models/chunks/rock/rock_big.md3",//FP_TEAM_FORCE,
-	"models/chunks/rock/rock_big.md3",//FP_DRAIN,
-	"models/chunks/rock/rock_big.md3",//FP_SEE
-	"models/chunks/rock/rock_big.md3",//FP_SABER_OFFENSE
-	"models/chunks/rock/rock_big.md3",//FP_SABER_DEFENSE
-	"models/chunks/rock/rock_big.md3"//FP_SABERTHROW
-};*/
-
-void HolocronRespawn(gentity_t *self)
-{
-	self->s.modelindex = (self->count - 128);
-}
-
-void HolocronPopOut(gentity_t *self)
-{
-	if (Q_irand(1, 10) < 5)
-	{
-		self->s.pos.trDelta[0] = 150 + Q_irand(1, 100);
-	}
-	else
-	{
-		self->s.pos.trDelta[0] = -150 - Q_irand(1, 100);
-	}
-	if (Q_irand(1, 10) < 5)
-	{
-		self->s.pos.trDelta[1] = 150 + Q_irand(1, 100);
-	}
-	else
-	{
-		self->s.pos.trDelta[1] = -150 - Q_irand(1, 100);
-	}
-	self->s.pos.trDelta[2] = 150 + Q_irand(1, 100);
-}
-
-void HolocronTouch(gentity_t *self, gentity_t *other, trace_t *trace)
-{
-	int i = 0;
-	int othercarrying = 0;
-	float time_lowest = 0;
-	int index_lowest = -1;
-	int hasall = 1;
-	int forceReselect = WP_NONE;
-
-	if (trace)
-	{
-		self->s.groundEntityNum = trace->entityNum;
-	}
-
-	if (!other || !other->client || other->health < 1)
-	{
-		return;
-	}
-
-	if (!self->s.modelindex)
-	{
-		return;
-	}
-
-	if (self->enemy)
-	{
-		return;
-	}
-
-	if (other->client->ps.holocronsCarried[self->count])
-	{
-		return;
-	}
-
-	if (other->client->ps.holocronCantTouch == self->s.number && other->client->ps.holocronCantTouchTime > level.time)
-	{
-		return;
-	}
-
-	while (i < NUM_FORCE_POWERS)
-	{
-		if (other->client->ps.holocronsCarried[i])
-		{
-			othercarrying++;
-
-			if (index_lowest == -1 || other->client->ps.holocronsCarried[i] < time_lowest)
-			{
-				index_lowest = i;
-				time_lowest = other->client->ps.holocronsCarried[i];
-			}
-		}
-		else if (i != self->count)
-		{
-			hasall = 0;
-		}
-		i++;
-	}
-
-	if (hasall)
-	{ //once we pick up this holocron we'll have all of them, so give us super special best prize!
-		//G_Printf("You deserve a pat on the back.\n");
-	}
-
-	if (!(other->client->ps.fd.forcePowersActive & (1 << other->client->ps.fd.forcePowerSelected)))
-	{ //If the player isn't using his currently selected force power, select this one
-		if (self->count != FP_SABER_OFFENSE && self->count != FP_SABER_DEFENSE && self->count != FP_SABERTHROW && self->count != FP_LEVITATION)
-		{
-			other->client->ps.fd.forcePowerSelected = self->count;
-		}
-	}
-
-	//G_Sound(other, CHAN_AUTO, G_SoundIndex("sound/weapons/w_pkup.wav"));
-	G_AddEvent( other, EV_ITEM_PICKUP, self->s.number );
-
-	other->client->ps.holocronsCarried[self->count] = level.time;
-	self->s.modelindex = 0;
-	self->enemy = other;
-
-	self->pos2[0] = 1;
-	self->pos2[1] = level.time + HOLOCRON_RESPAWN_TIME;
-
-	if (forceReselect != WP_NONE)
-	{
-		G_AddEvent(other, EV_NOAMMO, forceReselect);
-	}
-
-	//G_Printf("DON'T TOUCH ME\n");
-}
-
-void HolocronThink(gentity_t *ent)
-{
-	if (ent->pos2[0] && (!ent->enemy || !ent->enemy->client || ent->enemy->health < 1))
-	{
-		if (ent->enemy && ent->enemy->client)
-		{
-			HolocronRespawn(ent);
-			VectorCopy(ent->enemy->client->ps.origin, ent->s.pos.trBase);
-			VectorCopy(ent->enemy->client->ps.origin, ent->s.origin);
-			VectorCopy(ent->enemy->client->ps.origin, ent->r.currentOrigin);
-			//copy to person carrying's origin before popping out of them
-			HolocronPopOut(ent);
-			ent->enemy->client->ps.holocronsCarried[ent->count] = 0;
-			ent->enemy = NULL;
-			
-			goto justthink;
-		}
-	}
-	else if (ent->pos2[0] && ent->enemy && ent->enemy->client)
-	{
-		ent->pos2[1] = level.time + HOLOCRON_RESPAWN_TIME;
-	}
-
-	if (ent->enemy && ent->enemy->client)
-	{
-		if (!ent->enemy->client->ps.holocronsCarried[ent->count])
-		{
-			ent->enemy->client->ps.holocronCantTouch = ent->s.number;
-			ent->enemy->client->ps.holocronCantTouchTime = level.time + 5000;
-
-			HolocronRespawn(ent);
-			VectorCopy(ent->enemy->client->ps.origin, ent->s.pos.trBase);
-			VectorCopy(ent->enemy->client->ps.origin, ent->s.origin);
-			VectorCopy(ent->enemy->client->ps.origin, ent->r.currentOrigin);
-			//copy to person carrying's origin before popping out of them
-			HolocronPopOut(ent);
-			ent->enemy = NULL;
-
-			goto justthink;
-		}
-
-		if (!ent->enemy->inuse || (ent->enemy->client && ent->enemy->client->ps.fallingToDeath))
-		{
-			if (ent->enemy->inuse && ent->enemy->client)
-			{
-				ent->enemy->client->ps.holocronBits &= ~(1 << ent->count);
-				ent->enemy->client->ps.holocronsCarried[ent->count] = 0;
-			}
-			ent->enemy = NULL;
-			HolocronRespawn(ent);
-			VectorCopy(ent->s.origin2, ent->s.pos.trBase);
-			VectorCopy(ent->s.origin2, ent->s.origin);
-			VectorCopy(ent->s.origin2, ent->r.currentOrigin);
-
-			ent->s.pos.trTime = level.time;
-
-			ent->pos2[0] = 0;
-
-			trap_LinkEntity(ent);
-
-			goto justthink;
-		}
-	}
-
-	if (ent->pos2[0] && ent->pos2[1] < level.time)
-	{ //isn't in original place and has been there for (HOLOCRON_RESPAWN_TIME) seconds without being picked up, so respawn
-		VectorCopy(ent->s.origin2, ent->s.pos.trBase);
-		VectorCopy(ent->s.origin2, ent->s.origin);
-		VectorCopy(ent->s.origin2, ent->r.currentOrigin);
-
-		ent->s.pos.trTime = level.time;
-
-		ent->pos2[0] = 0;
-
-		trap_LinkEntity(ent);
-	}
-
-justthink:
-	ent->nextthink = level.time + 50;
-
-	if (ent->s.pos.trDelta[0] || ent->s.pos.trDelta[1] || ent->s.pos.trDelta[2])
-	{
-		G_RunObject(ent);
-	}
-}
-
-void SP_misc_holocron(gentity_t *ent)
-{
-	G_FreeEntity(ent);
-	return;
-}
-
 /*
 ======================================================================
 
@@ -1540,13 +1287,6 @@ void SP_misc_ammo_floor_unit(gentity_t *ent)
 	G_SoundIndex("sound/interface/ammocon_run");
 	ent->genericValue7 = G_SoundIndex("sound/interface/ammocon_done");
 	G_SoundIndex("sound/interface/ammocon_empty");
-
-	if (level.gametype == GT_SIEGE)
-	{ //show on radar from everywhere
-		ent->r.svFlags |= SVF_BROADCAST;
-		ent->s.eFlags |= EF_RADAROBJECT;
-		ent->s.genericenemyindex = G_IconIndex("gfx/mp/siegeicons/desert/weapon_recharge");
-	}
 }
 
 /*QUAKED misc_shield_floor_unit (1 0 0) (-16 -16 0) (16 16 40)
@@ -1627,13 +1367,6 @@ void SP_misc_shield_floor_unit( gentity_t *ent )
 	G_SoundIndex("sound/interface/shieldcon_run");
 	ent->genericValue7 = G_SoundIndex("sound/interface/shieldcon_done");
 	G_SoundIndex("sound/interface/shieldcon_empty");
-
-	if (level.gametype == GT_SIEGE)
-	{ //show on radar from everywhere
-		ent->r.svFlags |= SVF_BROADCAST;
-		ent->s.eFlags |= EF_RADAROBJECT;
-		ent->s.genericenemyindex = G_IconIndex("gfx/mp/siegeicons/desert/shield_recharge");
-	}
 }
 
 
@@ -1973,13 +1706,6 @@ void SP_misc_model_health_power_converter( gentity_t *ent )
 	//G_SoundIndex("sound/movers/objects/useshieldstation.wav");
 	G_SoundIndex("sound/player/pickuphealth.wav");
 	ent->genericValue7 = G_SoundIndex("sound/interface/shieldcon_done");
-
-	if (level.gametype == GT_SIEGE)
-	{ //show on radar from everywhere
-		ent->r.svFlags |= SVF_BROADCAST;
-		ent->s.eFlags |= EF_RADAROBJECT;
-		ent->s.genericenemyindex = G_IconIndex("gfx/mp/siegeicons/desert/bacta");
-	}
 }
 
 #if 0 //damage box stuff

@@ -809,7 +809,6 @@ qboolean VisibleAllowEntType ( int type, int flags )
 	case ET_ITEM:
 	//case ET_MISSILE:
 	//case ET_SPECIAL:				// rww - force fields
-	case ET_HOLOCRON:			// rww - holocron icon displays
 	case ET_BEAM:
 	case ET_PORTAL:
 	case ET_SPEAKER:
@@ -5328,7 +5327,6 @@ qboolean Is_Waypoint_Entity ( int eType )
 	case ET_ITEM:
 	//case ET_MISSILE:
 	//case ET_SPECIAL:				// rww - force fields
-	case ET_HOLOCRON:			// rww - holocron icon displays
 	//case ET_MOVER:
 	//case ET_BEAM:
 	case ET_PORTAL:

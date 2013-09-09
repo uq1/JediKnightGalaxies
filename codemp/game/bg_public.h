@@ -1329,7 +1329,6 @@ typedef enum {
 	ET_ITEM,
 	ET_MISSILE,
 	ET_SPECIAL,				// rww - force fields
-	ET_HOLOCRON,			// rww - holocron icon displays
 	ET_MOVER,
 	ET_BEAM,
 	ET_PORTAL,

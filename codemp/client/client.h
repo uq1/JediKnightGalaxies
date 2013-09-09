@@ -257,12 +257,7 @@ typedef struct {
 	int			maxPing;
 	int			ping;
 	qboolean	visible;
-//	int			allowAnonymous;
 	qboolean	needPassword;
-	int			trueJedi;
-	int			weaponDisable;
-	int			forceDisable;
-//	qboolean	pure;
 } serverInfo_t;
 
 typedef struct {

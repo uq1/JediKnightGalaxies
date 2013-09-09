@@ -1117,8 +1117,6 @@ typedef struct {
 	int			num_entities;		// current number, <= MAX_GENTITIES
 	int			num_logicalents;	// current numner of logical ents, > MAX_GENTIIES, <= MAX_LOGICALENTS
 
-	int			warmupTime;			// restart match at this time
-
 	fileHandle_t	logFile;
 
 	// store latched cvars here that we want to get at often

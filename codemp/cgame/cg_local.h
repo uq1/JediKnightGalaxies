@@ -1767,7 +1767,6 @@ typedef struct {
 	qboolean		localServer;		// detected on startup by checking sv_running
 
 	// parsed from serverinfo
-	int				siegeTeamSwitch;
 	int				showDuelHealths;
 	gametype_t		gametype;
 	// Gang Wars stuff -- Jedi Knight Galaxies
@@ -1784,7 +1783,6 @@ typedef struct {
 	int				timelimit;
 	int				maxclients;
 	qboolean		needpass;
-	qboolean		jediVmerc;
 	int				wDisable;
 	int				fDisable;
 

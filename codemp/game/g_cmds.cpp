@@ -3206,13 +3206,12 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 		 Q_stricmp( arg1, "g_gametype" ) &&
 		 Q_stricmp( arg1, "kick" ) &&
 		 Q_stricmp( arg1, "clientkick" ) &&
-		 Q_stricmp( arg1, "g_doWarmup" ) &&
 		 Q_stricmp( arg1, "timelimit" ) &&
 		 Q_stricmp( arg1, "fraglimit" ) &&
 		 Q_stricmp( arg1, "capturelimit" ) )
 	{
 		trap_SendServerCommand( ent-g_entities, "print \"Invalid vote string.\n\"" );
-		trap_SendServerCommand( ent-g_entities, "print \"Vote commands are: map_restart, nextmap, map <mapname>, g_gametype <n>, kick <player>, clientkick <clientnum>, g_doWarmup, timelimit <time>, fraglimit <frags>, capturelimit <captures>.\n\"" );
+		trap_SendServerCommand( ent-g_entities, "print \"Vote commands are: map_restart, nextmap, map <mapname>, g_gametype <n>, kick <player>, clientkick <clientnum>, timelimit <time>, fraglimit <frags>, capturelimit <captures>.\n\"" );
 		return;
 	}
 
@@ -4320,7 +4319,6 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 		return;
 	}
 
-	//if (level.gametype >= GT_TEAM && level.gametype != GT_SIEGE)
 	if (level.gametype >= GT_TEAM)
 	{ //no private dueling in team modes
 		trap_SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NODUEL_GAMETYPE")) );

@@ -567,7 +567,7 @@ uiInfo_t uiInfo;
 static void UI_StartServerRefresh(qboolean full);
 static void UI_StopServerRefresh( void );
 static void UI_DoServerRefresh( void );
-static void UI_BuildServerDisplayList(qboolean force);
+static void UI_BuildServerDisplayList(int force);
 static void UI_BuildServerStatus(qboolean force);
 static void UI_BuildFindPlayerList(qboolean force);
 static int QDECL UI_ServersQsortCompare( const void *arg1, const void *arg2 );
@@ -731,7 +731,6 @@ void AssetCache() {
 	uiInfo.uiDC.Assets.noForce = trap_R_RegisterShaderNoMip( "gfx/menus/noforce" );
 	uiInfo.uiDC.Assets.forceRestrict = trap_R_RegisterShaderNoMip( "gfx/menus/forcerestrict" );
 	uiInfo.uiDC.Assets.saberOnly = trap_R_RegisterShaderNoMip( "gfx/menus/saberonly" );
-	uiInfo.uiDC.Assets.trueJedi = trap_R_RegisterShaderNoMip( "gfx/menus/truejedi" );
 
 	for( n = 0; n < NUM_CROSSHAIRS; n++ ) {
 		uiInfo.uiDC.Assets.crosshairShader[n] = trap_R_RegisterShaderNoMip( va("gfx/2d/crosshair%c", 'a' + n ) );
@@ -1537,11 +1536,7 @@ void UI_Load() {
 
 	String_Init();
 
-#ifdef PRE_RELEASE_TADEMO
-	UI_ParseGameInfo("demogameinfo.txt");
-#else
 	UI_ParseGameInfo("ui/jamp/gameinfo.txt");
-#endif
 	UI_LoadArenas();
 	UI_LoadBots();
 
@@ -1552,21 +1547,6 @@ void UI_Load() {
 	Menus_CloseAll();
 	Menus_ActivateByName(lastName);
 
-}
-
-static const char *handicapValues[] = {"None","95","90","85","80","75","70","65","60","55","50","45","40","35","30","25","20","15","10","5",NULL};
-
-static void UI_DrawHandicap(rectDef_t *rect, float scale, vec4_t color, int textStyle, int iMenuFont) {
-	int i, h;
-
-	h = Com_Clamp( 5, 100, trap_Cvar_VariableValue("handicap") );
-	i = 20 - h / 5;
-
-	Text_Paint(rect->x, rect->y, scale, color, handicapValues[i], 0, 0, textStyle, iMenuFont);
-}
-
-static void UI_DrawClanName(rectDef_t *rect, float scale, vec4_t color, int textStyle, int iMenuFont) {
-	Text_Paint(rect->x, rect->y, scale, color, UI_Cvar_VariableString("ui_teamName"), 0, 0, textStyle, iMenuFont);
 }
 
 
@@ -1589,8 +1569,6 @@ static const char* UI_GetGameTypeName(int gtEnum)
 	{
 	case GT_FFA:
 		return UI_GetStringEdString("MENUS", "FREE_FOR_ALL");//"Free For All";
-	case GT_HOLOCRON:
-		return UI_GetStringEdString("MENUS", "HOLOCRON_FFA");//"Holocron FFA";
 	case GT_JEDIMASTER:
 		return UI_GetStringEdString("MENUS", "SAGA");//"Jedi Master";??
 	case GT_SINGLE_PLAYER:
@@ -1743,15 +1721,6 @@ static void UI_DrawPreviewCinematic(rectDef_t *rect, float scale, vec4_t color) 
 
 }
 
-static void UI_DrawSkill(rectDef_t *rect, float scale, vec4_t color, int textStyle, int iMenuFont) {
-	int i;
-	i = trap_Cvar_VariableValue( "g_spSkill" );
-	if (i < 1 || i > numSkillLevels) {
-		i = 1;
-	}
-	Text_Paint(rect->x, rect->y, scale, color, (char *)UI_GetStringEdString("MP_INGAME", (char *)skillLevels[i-1]),0, 0, textStyle, iMenuFont);
-}
-
 
 static void UI_DrawGenericNum(rectDef_t *rect, float scale, vec4_t color, int textStyle, int val, int min, int max, int type,int iMenuFont) 
 {
@@ -1790,129 +1759,6 @@ static void UI_DrawSkinColor(rectDef_t *rect, float scale, vec4_t color, int tex
 	}
 
 	Text_Paint(rect->x, rect->y, scale, color, s, 0, 0, textStyle, iMenuFont);
-}
-
-qboolean UI_HasSetSaberOnly( void )
-{
-	char	info[MAX_INFO_STRING];
-	int i = 0;
-	int wDisable = 0;
-	int	gametype = 0;
-
-	gametype = atoi(Info_ValueForKey(info, "g_gametype"));
-
-	if ( gametype == GT_JEDIMASTER )
-	{ //set to 0 
-		return qfalse;
-	}
-
-	trap_GetConfigString( CS_SERVERINFO, info, sizeof(info) );
-
-	if (gametype == GT_DUEL || gametype == GT_POWERDUEL)
-	{
-		wDisable = atoi(Info_ValueForKey(info, "g_duelWeaponDisable"));
-	}
-	else
-	{
-		wDisable = atoi(Info_ValueForKey(info, "g_weaponDisable"));
-	}
-
-	while (i < WP_NUM_WEAPONS)
-	{
-		if (!(wDisable & (1 << i)) &&
-			i != WP_SABER && i != WP_NONE)
-		{
-			return qfalse;
-		}
-
-		i++;
-	}
-
-	return qtrue;
-}
-
-static qboolean UI_AllForceDisabled(int force)
-{
-	int i;
-
-	if (force)
-	{
-		for (i=0;i<NUM_FORCE_POWERS;i++)
-		{
-			if (!(force & (1<<i)))
-			{
-				return qfalse;
-			}
-		}
-
-		return qtrue;
-	}
-
-	return qfalse;
-}
-
-qboolean UI_TrueJediEnabled( void )
-{
-	char	info[MAX_INFO_STRING];
-	int		gametype = 0, disabledForce = 0, trueJedi = 0;
-	qboolean saberOnly = qfalse, allForceDisabled = qfalse;
-
-	trap_GetConfigString( CS_SERVERINFO, info, sizeof(info) );
-
-	//already have serverinfo at this point for stuff below. Don't bother trying to use ui_forcePowerDisable.
-	//if (ui_forcePowerDisable.integer)
-	//if (atoi(Info_ValueForKey(info, "g_forcePowerDisable")))
-	disabledForce = atoi(Info_ValueForKey(info, "g_forcePowerDisable"));
-	allForceDisabled = UI_AllForceDisabled(disabledForce);
-	gametype = atoi(Info_ValueForKey(info, "g_gametype"));
-	saberOnly = UI_HasSetSaberOnly();
-
-	if ( gametype == GT_HOLOCRON 
-		|| gametype == GT_JEDIMASTER 
-		|| saberOnly 
-		|| allForceDisabled )
-	{
-		trueJedi = 0;
-	}
-	else
-	{
-		trueJedi = atoi( Info_ValueForKey( info, "g_jediVmerc" ) );
-	}
-	return (trueJedi != 0);
-}
-
-static void UI_DrawJediNonJedi(rectDef_t *rect, float scale, vec4_t color, int textStyle, int val, int min, int max, int iMenuFont)
-{
-	int i;
-	char s[256];
-	//menuDef_t *menu;
-
-	char info[MAX_INFO_VALUE];
-
-	i = val;
-	if (i < min || i > max) 
-	{
-		i = min;
-	}
-
-	info[0] = '\0';
-	trap_GetConfigString(CS_SERVERINFO, info, sizeof(info));
-
-	if ( !UI_TrueJediEnabled() )
-	{//true jedi mode is not on, do not draw this button type
-		return;
-	}
-
-	if ( val == FORCE_NONJEDI )
-	{
-		trap_SP_GetStringTextString("MENUS_NO",s, sizeof(s));
-	}
-	else
-	{
-		trap_SP_GetStringTextString("MENUS_YES",s, sizeof(s));
-	}
-
-	Text_Paint(rect->x, rect->y, scale, color, s,0, 0, textStyle, iMenuFont);
 }
 
 static void UI_DrawTeamName(rectDef_t *rect, float scale, vec4_t color, qboolean blue, int textStyle, int iMenuFont) {
@@ -2100,17 +1946,12 @@ static void UI_DrawOpponentName(rectDef_t *rect, float scale, vec4_t color, int 
 }
 
 static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
-	int i, h, value, iUse = 0;
+	int i, value, iUse = 0;
 	const char *text;
 	const char *s = NULL;
 
 
 	switch (ownerDraw) {
-	case UI_HANDICAP:
-		h = Com_Clamp( 5, 100, trap_Cvar_VariableValue("handicap") );
-		i = 20 - h / 5;
-		s = handicapValues[i];
-		break;
 	case UI_SKIN_COLOR:
 		switch(uiSkinColor)
 		{
@@ -2130,13 +1971,6 @@ static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
 		break;
 	case UI_GAMETYPE:
 		s = uiInfo.gameTypes[ui_gameType.integer].gameType;
-		break;
-	case UI_SKILL:
-		i = trap_Cvar_VariableValue( "g_spSkill" );
-		if (i < 1 || i > numSkillLevels) {
-			i = 1;
-		}
-		s = (char *)UI_GetStringEdString("MP_INGAME", (char *)skillLevels[i-1]);
 		break;
 	case UI_BLUETEAMNAME:
 		i = UI_TeamIndexFromName(UI_Cvar_VariableString("ui_blueTeam"));
@@ -2641,9 +2475,6 @@ static void UI_OwnerDraw(itemDef_t *item, float x, float y, float w, float h, fl
 		rect.x -= text_x;
 		JKG_GangWars_TeamBLUEText(&rect, scale, color, iMenuFont);
 		break;
-	case UI_HANDICAP:
-		UI_DrawHandicap(&rect, scale, color, textStyle, iMenuFont);
-		break;
 	case UI_SKIN_COLOR:
 		UI_DrawSkinColor(&rect, scale, color, textStyle, uiSkinColor, TEAM_FREE, TEAM_BLUE, iMenuFont);
 		break;
@@ -2661,9 +2492,6 @@ static void UI_OwnerDraw(itemDef_t *item, float x, float y, float w, float h, fl
 		break;
 	case UI_JOINGAMETYPE:
 		UI_DrawJoinGameType(&rect, scale, color, textStyle, iMenuFont);
-		break;
-	case UI_SKILL:
-		UI_DrawSkill(&rect, scale, color, textStyle, iMenuFont);
 		break;
 	case UI_TOTALFORCESTARS:
 		//      UI_DrawTotalForceStars(&rect, scale, color, textStyle);
@@ -2770,14 +2598,14 @@ static qboolean UI_OwnerDrawVisible(int flags) {
 	while (flags) {
 
 		if (flags & UI_SHOW_FFA) {
-			if (trap_Cvar_VariableValue("g_gametype") != GT_FFA && trap_Cvar_VariableValue("g_gametype") != GT_HOLOCRON && trap_Cvar_VariableValue("g_gametype") != GT_JEDIMASTER) {
+			if (trap_Cvar_VariableValue("g_gametype") != GT_FFA && trap_Cvar_VariableValue("g_gametype") != GT_JEDIMASTER) {
 				vis = qfalse;
 			}
 			flags &= ~UI_SHOW_FFA;
 		}
 
 		if (flags & UI_SHOW_NOTFFA) {
-			if (trap_Cvar_VariableValue("g_gametype") == GT_FFA || trap_Cvar_VariableValue("g_gametype") == GT_HOLOCRON || trap_Cvar_VariableValue("g_gametype") != GT_JEDIMASTER) {
+			if (trap_Cvar_VariableValue("g_gametype") == GT_FFA || trap_Cvar_VariableValue("g_gametype") != GT_JEDIMASTER) {
 				vis = qfalse;
 			}
 			flags &= ~UI_SHOW_NOTFFA;
@@ -2898,16 +2726,10 @@ static qboolean UI_Handicap_HandleKey(int flags, float *special, int key) {
 
 static qboolean UI_Effects_HandleKey(int flags, float *special, int key) {
 	if (key == A_MOUSE1 || key == A_MOUSE2 || key == A_ENTER || key == A_KP_ENTER) {
+		int team = (int)(trap_Cvar_VariableValue("ui_myteam"));
 
-		if ( !UI_TrueJediEnabled() )
-		{
-			int team = (int)(trap_Cvar_VariableValue("ui_myteam"));
-
-			if (team == TEAM_RED || team==TEAM_BLUE)
-			{
-				return qfalse;
-			}
-		}
+		if (team == TEAM_RED || team==TEAM_BLUE)
+			return qfalse;
 
 		if (key == A_MOUSE2) {
 			uiInfo.effectsColor--;
@@ -3376,7 +3198,7 @@ static qboolean UI_JoinGameType_HandleKey(int flags, float *special, int key) {
 		}
 
 		trap_Cvar_Set( "ui_joinGameType", va("%d", ui_joinGameType.integer));
-		UI_BuildServerDisplayList(qtrue);
+		UI_BuildServerDisplayList(1);
 		return qtrue;
 	}
 	return qfalse;
@@ -3522,7 +3344,7 @@ static qboolean UI_NetSource_HandleKey(int flags, float *special, int key) {
 			ui_netSource.integer = numNetSources - 1;
 		}
 
-		UI_BuildServerDisplayList(qtrue);
+		UI_BuildServerDisplayList(1);
 		//[MasterServer]
 		if (ui_netSource.integer >= AS_LOCAL) {
 			//[/MasterServer]
@@ -3548,7 +3370,7 @@ static qboolean UI_NetFilter_HandleKey(int flags, float *special, int key) {
 		} else if (ui_serverFilterType.integer < 0) {
 			ui_serverFilterType.integer = numServerFilters - 1;
 		}
-		UI_BuildServerDisplayList(qtrue);
+		UI_BuildServerDisplayList(1);
 		return qtrue;
 	}
 	return qfalse;
@@ -3712,9 +3534,6 @@ static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, 
 	case UI_JKG_CONVO_KEYHANDLER: 
 		return Conv_HandleKey_KeyHandler(flags, special, key);
 		break;
-	case UI_HANDICAP:
-		return UI_Handicap_HandleKey(flags, special, key);
-		break;
 	case UI_SKIN_COLOR:
 		return UI_SkinColor_HandleKey(flags, special, key, uiSkinColor, TEAM_FREE, TEAM_BLUE, ownerDraw);
 		break;	
@@ -3753,9 +3572,6 @@ static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, 
 		break;
 	case UI_JOINGAMETYPE:
 		return UI_JoinGameType_HandleKey(flags, special, key);
-		break;
-	case UI_SKILL:
-		return UI_Skill_HandleKey(flags, special, key);
 		break;
 	case UI_BLUETEAMNAME:
 		return UI_TeamName_HandleKey(flags, special, key, qtrue);
@@ -4138,22 +3954,16 @@ static void UI_StartSkirmish(qboolean next) {
 
 	temp = trap_Cvar_VariableValue( "cg_drawTimer" );
 	trap_Cvar_Set("ui_drawTimer", va("%i", temp));
-	temp = trap_Cvar_VariableValue( "g_doWarmup" );
-	trap_Cvar_Set("ui_doWarmup", va("%i", temp));
 	temp = trap_Cvar_VariableValue( "g_friendlyFire" );
 	trap_Cvar_Set("ui_friendlyFire", va("%i", temp));
 	temp = trap_Cvar_VariableValue( "sv_maxClients" );
 	trap_Cvar_Set("ui_maxClients", va("%i", temp));
-	temp = trap_Cvar_VariableValue( "g_warmup" );
-	trap_Cvar_Set("ui_Warmup", va("%i", temp));
 	temp = trap_Cvar_VariableValue( "sv_pure" );
 	trap_Cvar_Set("ui_pure", va("%i", temp));
 
 	trap_Cvar_Set("cg_cameraOrbit", "0");
 	trap_Cvar_Set("cg_thirdPerson", "0");
 	trap_Cvar_Set("cg_drawTimer", "1");
-	trap_Cvar_Set("g_doWarmup", "1");
-	trap_Cvar_Set("g_warmup", "15");
 	trap_Cvar_Set("sv_pure", "0");
 	trap_Cvar_Set("g_friendlyFire", "0");
 //	trap_Cvar_Set("g_redTeam", UI_Cvar_VariableString("ui_teamName"));
@@ -4171,17 +3981,17 @@ static void UI_StartSkirmish(qboolean next) {
 		trap_Cvar_Set("sv_maxClients", va("%d", temp));
 		Com_sprintf( buff, sizeof(buff), "wait ; addbot %s %f "", %i \n", uiInfo.mapList[ui_currentMap.integer].opponentName, skill, delay);
 		trap_Cmd_ExecuteText( EXEC_APPEND, buff );
-	} else if (g == GT_HOLOCRON || g == GT_JEDIMASTER) {
+	} else if (g == GT_JEDIMASTER) {
 		temp = uiInfo.mapList[ui_currentMap.integer].teamMembers * 2;
 		trap_Cvar_Set("sv_maxClients", va("%d", temp));
 		for (i =0; i < uiInfo.mapList[ui_currentMap.integer].teamMembers; i++) {
-			Com_sprintf( buff, sizeof(buff), "addbot \"%s\" %f %s %i %s\n", UI_AIFromName(uiInfo.teamList[k].teamMembers[i]), skill, (g == GT_HOLOCRON) ? "" : "Blue", delay, uiInfo.teamList[k].teamMembers[i]);
+			Com_sprintf( buff, sizeof(buff), "addbot \"%s\" %f %s %i %s\n", UI_AIFromName(uiInfo.teamList[k].teamMembers[i]), skill, "Blue", delay, uiInfo.teamList[k].teamMembers[i]);
 			trap_Cmd_ExecuteText( EXEC_APPEND, buff );
 			delay += 500;
 		}
 		k = UI_TeamIndexFromName(UI_Cvar_VariableString("ui_teamName"));
 		for (i =0; i < uiInfo.mapList[ui_currentMap.integer].teamMembers-1; i++) {
-			Com_sprintf( buff, sizeof(buff), "addbot \"%s\" %f %s %i %s\n", UI_AIFromName(uiInfo.teamList[k].teamMembers[i]), skill, (g == GT_HOLOCRON) ? "" : "Red", delay, uiInfo.teamList[k].teamMembers[i]);
+			Com_sprintf( buff, sizeof(buff), "addbot \"%s\" %f %s %i %s\n", UI_AIFromName(uiInfo.teamList[k].teamMembers[i]), skill, "Red", delay, uiInfo.teamList[k].teamMembers[i]);
 			trap_Cmd_ExecuteText( EXEC_APPEND, buff );
 			delay += 500;
 		}
@@ -5162,8 +4972,6 @@ static void UI_RunMenuScript(char **args)
 		{
 			int i, added = 0;
 			float skill;
-			int warmupTime = 0;
-			int doWarmup = 0;
 			
 			trap_Cvar_Set("cg_thirdPerson", "0");
 			trap_Cvar_Set("cg_cameraOrbit", "0");
@@ -5185,23 +4993,6 @@ static void UI_RunMenuScript(char **args)
 			//trap_Cvar_Set("g_blueTeam", UI_Cvar_VariableString("ui_opponentName"));
 			trap_Cmd_ExecuteText( EXEC_APPEND, va( "wait ; wait ; map %s\n", uiInfo.mapList[ui_currentNetMap.integer].mapLoadName ) );
 			skill = trap_Cvar_VariableValue( "g_spSkill" );
-
-			//Cap the warmup values in case the user tries a dumb setting.
-			warmupTime = trap_Cvar_VariableValue( "g_warmup" );
-			doWarmup = trap_Cvar_VariableValue( "g_doWarmup" );
-
-			if (doWarmup && warmupTime < 1)
-			{
-				trap_Cvar_Set("g_doWarmup", "0");
-			}
-			if (warmupTime < 5)
-			{
-				trap_Cvar_Set("g_warmup", "5");
-			}
-			if (warmupTime > 120)
-			{
-				trap_Cvar_Set("g_warmup", "120");
-			}
 
 			if (trap_Cvar_VariableValue( "g_gametype" ) == GT_DUEL ||
 				trap_Cvar_VariableValue( "g_gametype" ) == GT_POWERDUEL)
@@ -5280,10 +5071,10 @@ static void UI_RunMenuScript(char **args)
 			UI_ParseGameInfo("ui/jamp/gameinfo.txt");
 		} else if (Q_stricmp(name, "RefreshServers") == 0) {
 			UI_StartServerRefresh(qtrue);
-			UI_BuildServerDisplayList(qtrue);
+			UI_BuildServerDisplayList(1);
 		} else if (Q_stricmp(name, "RefreshFilter") == 0) {
 			UI_StartServerRefresh(qfalse);
-			UI_BuildServerDisplayList(qtrue);
+			UI_BuildServerDisplayList(1);
 		} else if (Q_stricmp(name, "RunSPDemo") == 0) {
 			if (uiInfo.demoAvailable) {
 				trap_Cmd_ExecuteText( EXEC_APPEND, va("demo %s_%i\n", uiInfo.mapList[ui_currentMap.integer].mapLoadName, uiInfo.gameTypes[ui_gameType.integer].gtEnum));
@@ -5313,7 +5104,7 @@ static void UI_RunMenuScript(char **args)
 				uiInfo.serverStatus.nextDisplayRefresh = 0;
 				uiInfo.nextServerStatusRefresh = 0;
 				uiInfo.nextFindPlayerRefresh = 0;
-				UI_BuildServerDisplayList(qtrue);
+				UI_BuildServerDisplayList(1);
 			} else {
 				Menus_CloseByName("joinserver");
 				Menus_OpenByName("main");
@@ -5327,7 +5118,7 @@ static void UI_RunMenuScript(char **args)
 			if (ui_netSource.integer == AS_LOCAL) {
 				UI_StartServerRefresh(qtrue);
 			}
-			UI_BuildServerDisplayList(qtrue);
+			UI_BuildServerDisplayList(1);
 			UI_FeederSelection(FEEDER_SERVERS, 0, NULL );
 
 		} else if (Q_stricmp(name, "ServerStatus") == 0) {
@@ -5668,129 +5459,6 @@ static void UI_RunMenuScript(char **args)
 		{
 			UI_UpdateCharacterSkin();
 		}
-#if 0
-		else if (Q_stricmp(name, "setui_dualforcepower") == 0) 
-		{
-			int forcePowerDisable = trap_Cvar_VariableValue("g_forcePowerDisable");
-			int	i, forceBitFlag=0;
-
-			// Turn off all powers but a few
-			for (i=0;i<NUM_FORCE_POWERS;i++)
-			{
-				if ((i != FP_LEVITATION) &&
-					(i != FP_PUSH) &&
-					(i != FP_PULL) &&
-					(i != FP_SABERTHROW) &&
-					(i != FP_SABER_DEFENSE) &&
-					(i != FP_SABER_OFFENSE))
-				{
-					forceBitFlag |= (1<<i);
-				}
-			}
-
-
-			if (forcePowerDisable==0)
-			{
-				trap_Cvar_Set("ui_dualforcepower", "0");
-			}
-			else if (forcePowerDisable==forceBitFlag)
-			{
-				trap_Cvar_Set("ui_dualforcepower", "2");
-			}
-			else 
-			{
-				trap_Cvar_Set("ui_dualforcepower", "1");
-			}
-
-		}
-		else if (Q_stricmp(name, "dualForcePowers") == 0) 
-		{
-			int	dualforcePower,i, forcePowerDisable;
-			dualforcePower = trap_Cvar_VariableValue("ui_dualforcepower");
-
-			if (dualforcePower==0)	// All force powers
-			{
-				forcePowerDisable = 0;
-			}
-			else if (dualforcePower==1)	// Remove All force powers
-			{
-				// It was set to something, so might as well make sure it got all flags set.
-				for (i=0;i<NUM_FORCE_POWERS;i++)
-				{
-					forcePowerDisable |= (1<<i);
-				}
-			}
-			else if (dualforcePower==2)	// Limited force powers
-			{
-				forcePowerDisable = 0;						
-				
-				// Turn off all powers but a few
-				for (i=0;i<NUM_FORCE_POWERS;i++)
-				{
-					if ((i != FP_LEVITATION) &&
-						(i != FP_PUSH) &&
-						(i != FP_PULL) &&
-						(i != FP_SABERTHROW) &&
-						(i != FP_SABER_DEFENSE) &&
-						(i != FP_SABER_OFFENSE))
-					{
-						forcePowerDisable |= (1<<i);
-					}
-				}
-			}
-
-			trap_Cvar_Set("g_forcePowerDisable", va("%i",forcePowerDisable));
-		}
-		else if (Q_stricmp(name, "forcePowersDisable") == 0) 
-		{
-			int	forcePowerDisable,i;
-
-			forcePowerDisable = trap_Cvar_VariableValue("g_forcePowerDisable");
-
-			// It was set to something, so might as well make sure it got all flags set.
-			if (forcePowerDisable)
-			{
-				for (i=0;i<NUM_FORCE_POWERS;i++)
-				{
-					forcePowerDisable |= (1<<i);
-				}
-
-				trap_Cvar_Set("g_forcePowerDisable", va("%i",forcePowerDisable));
-			}
-
-		} 
-		else if (Q_stricmp(name, "weaponDisable") == 0) 
-		{
-			int	weaponDisable,i;
-			const char *cvarString;
-
-			if (uiInfo.gameTypes[ui_netGameType.integer].gtEnum == GT_DUEL ||
-				uiInfo.gameTypes[ui_netGameType.integer].gtEnum == GT_POWERDUEL)
-			{
-				cvarString = "g_duelWeaponDisable";
-			}
-			else
-			{
-				cvarString = "g_weaponDisable";
-			}
-
-			weaponDisable = trap_Cvar_VariableValue(cvarString);
-
-			// It was set to something, so might as well make sure it got all flags set.
-			if (weaponDisable)
-			{
-				for (i=0;i<WP_NUM_WEAPONS;i++)
-				{
-					if (i!=WP_SABER)
-					{
-						weaponDisable |= (1<<i);
-					}
-				}
-
-				trap_Cvar_Set(cvarString, va("%i",weaponDisable));
-			}
-		} 
-#endif
 		else if (Q_stricmp(name, "clearmouseover") == 0) 
 		{
 			itemDef_t *item;
@@ -6062,7 +5730,7 @@ static int UI_MapCountByGameType(qboolean singlePlayer) {
 	if (game == GT_TEAM) {
 		game = GT_FFA;
 	}
-	if (game == GT_HOLOCRON || game == GT_JEDIMASTER) {
+	if (game == GT_JEDIMASTER) {
 		game = GT_FFA;
 	}
 
@@ -6246,7 +5914,7 @@ static void UI_BinaryServerInsertion(int num) {
 UI_BuildServerDisplayList
 ==================
 */
-static void UI_BuildServerDisplayList(qboolean force) {
+static void UI_BuildServerDisplayList(int force) {
 	int i, count, clients, maxClients, ping, game, len/*, visible*/;
 	char info[MAX_STRING_CHARS];
 //	qboolean startRefresh = qtrue; TTimo: unused
@@ -7097,54 +6765,6 @@ static const char *UI_FeederItemText(float feederID, int index, int column,
 						}
 						//check for saberonly and restricted force powers
 						gametype = atoi(Info_ValueForKey(info, "gametype"));
-#if 0
-						if ( gametype != GT_JEDIMASTER )
-						{
-							qboolean saberOnly = qtrue;
-							qboolean restrictedForce = qfalse;
-							qboolean allForceDisabled = qfalse;
-							int wDisable, i = 0;
-
-							//check force
-							restrictedForce = atoi(Info_ValueForKey(info, "fdisable"));
-							if ( UI_AllForceDisabled( restrictedForce ) )
-							{//all force powers are disabled
-								allForceDisabled = qtrue;
-								*handle2 = uiInfo.uiDC.Assets.noForce;
-							}
-							else if ( restrictedForce )
-							{//at least one force power is disabled
-								*handle2 = uiInfo.uiDC.Assets.forceRestrict;
-							}
-
-							//check weaps
-							wDisable = atoi(Info_ValueForKey(info, "wdisable"));
-
-							while ( i < WP_NUM_WEAPONS )
-							{
-								if ( !(wDisable & (1 << i)) && i != WP_SABER && i != WP_NONE )
-								{
-									saberOnly = qfalse;
-								}
-
-								i++;
-							}
-							if ( saberOnly )
-							{
-								*handle1 = uiInfo.uiDC.Assets.saberOnly;
-							}
-							else if ( atoi(Info_ValueForKey(info, "truejedi")) != 0 )
-							{
-								if ( gametype != GT_HOLOCRON 
-									&& gametype != GT_JEDIMASTER 
-									&& !saberOnly 
-									&& !allForceDisabled )
-								{//truejedi is on and allowed in this mode
-									*handle1 = uiInfo.uiDC.Assets.trueJedi;
-								}
-							}
-						}
-#endif
 						if ( ui_netSource.integer == AS_LOCAL ) {
 							Com_sprintf( hostname, sizeof(hostname), "%s [%s]",
 								Info_ValueForKey(info, "hostname"),
@@ -8264,10 +7884,6 @@ void _UI_Init( qboolean inGameLoad ) {
 	const char *menuSet;
 	int start;
 
-	//register this freakin thing now
-	vmCvar_t siegeTeamSwitch;
-	trap_Cvar_Register(&siegeTeamSwitch, "g_siegeTeamSwitch", "1", CVAR_SERVERINFO|CVAR_ARCHIVE);
-
 	// Some knucklehead decided to update client version once we got to the client aux lib,
 	// which is kinda stupid since we can't get there unless we actually connect to a server.
 	// DERP. --eez
@@ -9137,7 +8753,6 @@ static cvarTable_t		cvarTable[] = {
 	{ &ui_captureLimit, "ui_captureLimit", "5", CVAR_INTERNAL},
 	{ &ui_findPlayer, "ui_findPlayer", "Kyle", CVAR_ARCHIVE|CVAR_INTERNAL},
 	{ &ui_recordSPDemo, "ui_recordSPDemo", "0", CVAR_ARCHIVE|CVAR_INTERNAL},
-	{ &ui_realWarmUp, "g_warmup", "20", CVAR_ARCHIVE},
 	{ &ui_realCaptureLimit, "capturelimit", "0", CVAR_SERVERINFO | CVAR_ARCHIVE| CVAR_NORESTART},
 	{ &ui_serverStatusTimeOut, "ui_serverStatusTimeOut", "7000", CVAR_ARCHIVE|CVAR_INTERNAL},
 	{ &se_language, "se_language","english", CVAR_ARCHIVE | CVAR_NORESTART},	//text (string ed)
@@ -9258,7 +8873,7 @@ static void UI_DoServerRefresh( void )
 		UI_StopServerRefresh();
 	}
 	//
-	UI_BuildServerDisplayList(qfalse);
+	UI_BuildServerDisplayList(0);
 }
 
 /*

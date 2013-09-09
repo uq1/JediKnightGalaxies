@@ -2829,21 +2829,6 @@ void SP_func_breakable( gentity_t *self )
 
 	self->touch = funcBBrushTouch;
 
-	/*
-	if ( self->team && self->team[0] )
-	{
-		self->alliedTeam = TranslateTeamName( self->team );
-		if(self->alliedTeam == TEAM_FREE)
-		{
-			G_Error("team name %s not recognized\n", self->team);
-		}
-	}
-	*/
-	if ( self->team && self->team[0] && level.gametype == GT_SIEGE &&
-		!self->teamnodmg)
-	{
-		self->teamnodmg = atoi(self->team);
-	}
 	self->team = NULL;
 	if (!self->model) {
 		G_Error("func_breakable with NULL model\n");

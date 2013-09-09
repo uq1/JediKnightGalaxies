@@ -1433,11 +1433,8 @@ netField_t	playerStateFields[] =
 { PSF(saberLockEnemy), GENTITYNUM_BITS },
 { PSF(fd.forceGripCripple), 1 }, //should only be 0 or 1 ever
 { PSF(emplacedIndex), GENTITYNUM_BITS },
-{ PSF(holocronBits), 32 },
 { PSF(isJediMaster), 1 },
 { PSF(forceRestricted), 1 },
-{ PSF(trueJedi), 1 },
-{ PSF(trueNonJedi), 1 },
 { PSF(duelTime), 32 },
 { PSF(duelInProgress), 1 },
 { PSF(saberLockAdvance), 1 },
@@ -1544,7 +1541,6 @@ netField_t	pilotPlayerStateFields[] =
 { PSF(fd.forceMindtrickTargetIndex4), 16 }, //NOTE: Not just an index, used as a (1 << val) bitflag for up to 16 clients
 { PSF(fd.sentryDeployed), 1 },
 { PSF(fd.forcePowerLevel[FP_SEE]), 2 }, //needed for knowing when to display players through walls
-{ PSF(holocronBits), 32 },
 { PSF(fd.forcePower), 8 },
 
 //===THE REST OF THESE SHOULD NOT BE RELEVANT, BUT, FOR SAFETY, INCLUDE THEM ANYWAY, JUST AT THE BOTTOM===============================================================
@@ -1611,8 +1607,6 @@ netField_t	pilotPlayerStateFields[] =
 { PSF(emplacedIndex), GENTITYNUM_BITS },
 { PSF(isJediMaster), 1 },
 { PSF(forceRestricted), 1 },
-{ PSF(trueJedi), 1 },
-{ PSF(trueNonJedi), 1 },
 { PSF(duelTime), 32 },
 { PSF(duelInProgress), 1 },
 { PSF(saberLockAdvance), 1 },
@@ -1872,11 +1866,8 @@ netField_t	playerStateFields[] =
 { PSF(saberLockEnemy), GENTITYNUM_BITS },
 { PSF(fd.forceGripCripple), 1 }, //should only be 0 or 1 ever
 { PSF(emplacedIndex), GENTITYNUM_BITS },
-{ PSF(holocronBits), 32 },
 { PSF(isJediMaster), 1 },
 { PSF(forceRestricted), 1 },
-{ PSF(trueJedi), 1 },
-{ PSF(trueNonJedi), 1 },
 { PSF(duelTime), 32 },
 { PSF(duelInProgress), 1 },
 { PSF(saberLockAdvance), 1 },

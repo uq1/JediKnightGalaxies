@@ -2133,7 +2133,7 @@ qboolean BG_CanUseFPNow(int gametype, playerState_t *ps, int time, forcePowers_t
 		return qfalse;
 	}
 
-	if ( ps->forceRestricted || ps->trueNonJedi )
+	if ( ps->forceRestricted )
 	{
 		return qfalse;
 	}
@@ -2519,26 +2519,6 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 
 	if ( ps )
 	{
-		if ( ps->trueJedi )
-		{//force powers and saber only
-			if ( item->giType != IT_TEAM //not a flag
-				&& item->giType != IT_ARMOR//not shields
-				&& (item->giType != IT_WEAPON || item->giTag != WP_SABER)//not a saber
-				&& (item->giType != IT_HOLDABLE || item->giTag != HI_SEEKER)//not a seeker
-				&& (item->giType != IT_POWERUP || item->giTag == PW_YSALAMIRI) )//not a force pick-up
-			{
-				return qfalse;
-			}
-		}
-		else if ( ps->trueNonJedi )
-		{//can't pick up force powerups
-			if ( (item->giType == IT_POWERUP && item->giTag != PW_YSALAMIRI) //if a powerup, can only can pick up ysalamiri
-				|| (item->giType == IT_HOLDABLE && item->giTag == HI_SEEKER)//if holdable, cannot pick up seeker 
-				|| (item->giType == IT_WEAPON && item->giTag == WP_SABER ) )//or if it's a saber
-			{
-				return qfalse;
-			}
-		}
 		if ( ps->isJediMaster && item && (item->giType == IT_WEAPON || item->giType == IT_AMMO))
 		{//jedi master cannot pick up weapons
 			return qfalse;
@@ -3517,8 +3497,6 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 
 	s->isJediMaster = ps->isJediMaster;
 
-	s->time2 = ps->holocronBits;
-
 	s->fireflag = ps->fd.saberAnimLevel;
 
 	s->heldByClient = ps->heldByClient;
@@ -3685,8 +3663,6 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	VectorCopy(ps->lastHitLoc, s->origin2);
 
 	s->isJediMaster = ps->isJediMaster;
-
-	s->time2 = ps->holocronBits;
 
 	s->fireflag = ps->fd.saberAnimLevel;
 
@@ -3911,8 +3887,6 @@ const char *BG_GetGametypeString( int gametype )
 	{
 	case GT_FFA:
 		return "Free-For-All";
-	case GT_HOLOCRON:
-		return "Holocron FFA";
 	case GT_JEDIMASTER:
 		return "Jedi Master";
 	case GT_DUEL:
@@ -3929,8 +3903,6 @@ const char *BG_GetGametypeString( int gametype )
 #endif
 	case GT_TEAM:
 		return "Team Deathmatch";
-	case GT_SIEGE:
-		return "Siege";
 	case GT_CTF:
 		return "Capture the Flag";
 	case GT_CTY:
@@ -3959,9 +3931,6 @@ int BG_GetGametypeForString( const char *gametype )
 	if(Q_stricmp( gametype, "dm" ) == 0 ||
 		Q_stricmp( gametype, "ffa" ) == 0 )
 		return GT_FFA;
-	else if( Q_stricmp( gametype, "holo" ) == 0 ||
-		Q_stricmp( gametype, "holocron" ) == 0 )
-		return GT_HOLOCRON;
 	else if( Q_stricmp( gametype, "duel" ) == 0 ||
 		Q_stricmp( gametype, "1v1" ) == 0 )
 		return GT_DUEL;
@@ -3981,9 +3950,6 @@ int BG_GetGametypeForString( const char *gametype )
 	else if( Q_stricmp( gametype, "tdm" ) == 0 ||
 		Q_stricmp( gametype, "tffa" ) == 0 )
 		return GT_TEAM;
-	else if( Q_stricmp( gametype, "saga" ) == 0 ||
-		Q_stricmp( gametype, "siege" ) == 0 )
-		return GT_SIEGE;
 	else if( Q_stricmp( gametype, "ctf" ) == 0 )
 		return GT_CTF;
 	else if( Q_stricmp( gametype, "cty" ) == 0 )

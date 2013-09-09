@@ -137,9 +137,6 @@ int G_GetMapTypeBits(char *type)
 			typeBits |= (1 << GT_WARZONE);
 			//typeBits |= (1 << GT_TEAM);
 		}
-		if( strstr( type, "holocron" ) ) {
-			typeBits |= (1 << GT_HOLOCRON);
-		}
 		if( strstr( type, "jedimaster" ) ) {
 			typeBits |= (1 << GT_JEDIMASTER);
 		}
@@ -150,9 +147,6 @@ int G_GetMapTypeBits(char *type)
 		if( strstr( type, "powerduel" ) ) {
 			typeBits |= (1 << GT_DUEL);
 			typeBits |= (1 << GT_POWERDUEL);
-		}
-		if( strstr( type, "siege" ) ) {
-			typeBits |= (1 << GT_SIEGE);
 		}
 		if( strstr( type, "ctf" ) ) {
 			typeBits |= (1 << GT_CTF);
@@ -430,17 +424,8 @@ void G_AddRandomBot( int team ) {
 			if ( !(g_entities[i].r.svFlags & SVF_BOT) ) {
 				continue;
 			}
-			if (level.gametype == GT_SIEGE)
-			{
-				if ( team >= 0 && cl->sess.siegeDesiredTeam != team ) {
-					continue;
-				}
-			}
-			else
-			{
-				if ( team >= 0 && cl->sess.sessionTeam != team ) {
-					continue;
-				}
+			if ( team >= 0 && cl->sess.sessionTeam != team ) {
+				continue;
 			}
 			if ( !Q_stricmp( value, cl->pers.netname ) ) {
 				break;
@@ -463,17 +448,8 @@ void G_AddRandomBot( int team ) {
 			if ( !(g_entities[i].r.svFlags & SVF_BOT) ) {
 				continue;
 			}
-			if (level.gametype == GT_SIEGE)
-			{
-				if ( team >= 0 && cl->sess.siegeDesiredTeam != team ) {
-					continue;
-				}
-			}
-			else
-			{
-				if ( team >= 0 && cl->sess.sessionTeam != team ) {
-					continue;
-				}
+			if ( team >= 0 && cl->sess.sessionTeam != team ) {
+				continue;
 			}
 			if ( !Q_stricmp( value, cl->pers.netname ) ) {
 				break;
@@ -518,9 +494,7 @@ int G_RemoveRandomBot( int team ) {
 		if ( cl->sess.sessionTeam == TEAM_SPECTATOR && cl->sess.spectatorState == SPECTATOR_FOLLOW )
 			continue;
 
-		if ( level.gametype == GT_SIEGE && team >= 0 && cl->sess.siegeDesiredTeam != team )
-			continue;
-		else if ( team >= 0 && cl->sess.sessionTeam != team )
+		if ( team >= 0 && cl->sess.sessionTeam != team )
 			continue;
 
 		trap_SendConsoleCommand( EXEC_INSERT, va("clientkick %d\n", i) );
@@ -567,33 +541,19 @@ int G_CountBotPlayers( int team ) {
 	num = 0;
 	for ( i=0 ; i< sv_maxclients.integer ; i++ ) {
 		cl = level.clients + i;
-		if ( cl->pers.connected != CON_CONNECTED ) {
+		if ( cl->pers.connected != CON_CONNECTED )
 			continue;
-		}
-		if ( !(g_entities[i].r.svFlags & SVF_BOT) ) {
+		if ( !(g_entities[i].r.svFlags & SVF_BOT) )
 			continue;
-		}
-		if (level.gametype == GT_SIEGE)
-		{
-			if ( team >= 0 && cl->sess.siegeDesiredTeam != team ) {
-				continue;
-			}
-		}
-		else
-		{
-			if ( team >= 0 && cl->sess.sessionTeam != team ) {
-				continue;
-			}
-		}
+		if ( team >= 0 && cl->sess.sessionTeam != team )
+			continue;
 		num++;
 	}
 	for( n = 0; n < BOT_SPAWN_QUEUE_DEPTH; n++ ) {
-		if( !botSpawnQueue[n].spawnTime ) {
+		if( !botSpawnQueue[n].spawnTime )
 			continue;
-		}
-		if ( botSpawnQueue[n].spawnTime > level.time ) {
+		if ( botSpawnQueue[n].spawnTime > level.time )
 			continue;
-		}
 		num++;
 	}
 	return num;
@@ -608,11 +568,6 @@ void G_CheckMinimumPlayers( void ) {
 	int minplayers;
 	int humanplayers, botplayers;
 	static int checkminimumplayers_time;
-
-	if (level.gametype == GT_SIEGE)
-	{
-		return;
-	}
 
 	if (level.intermissiontime) return;
 	//only check once each 10 seconds
@@ -1053,11 +1008,6 @@ void G_CheckMinimumNpcs( void ) {
 	static int	checkminimumplayers_time;
 
 	if (gWPNum <= 0)
-	{
-		return;
-	}
-
-	if (g_gametype.integer == GT_SIEGE)
 	{
 		return;
 	}
@@ -1662,12 +1612,6 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 			bot->client->sess.sessionTeam = PickTeam( -1 );
 	}
 
-	if ( level.gametype == GT_SIEGE )
-	{
-		bot->client->sess.siegeDesiredTeam = bot->client->sess.sessionTeam;
-		bot->client->sess.sessionTeam = TEAM_SPECTATOR;
-	}
-
 	preTeam = bot->client->sess.sessionTeam;
 
 	// have it connect to the game as a normal client
@@ -1820,10 +1764,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 		}
 		else
 		{
-			if ( level.gametype == GT_SIEGE )
-				team = (bot->client->sess.sessionTeam == TEAM_BLUE) ? "Blue" : "s";
-			else
-				team = "Blue";
+			team = "Blue";
 		}
 
 		Info_SetValueForKey( userinfo, "team", team );

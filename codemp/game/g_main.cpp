@@ -1029,8 +1029,6 @@ void AddTournamentPlayer( void ) {
 		return;
 	}
 
-	level.warmupTime = -1;
-
 	// set them to free-for-all team
 	SetTeam( &g_entities[ nextInLine - level.clients ], "f" );
 }
@@ -1155,8 +1153,6 @@ void AddPowerDuelPlayers( void )
 	if ( !nextInLine ) {
 		return;
 	}
-
-	level.warmupTime = -1;
 
 	// set them to free-for-all team
 	SetTeam( &g_entities[ nextInLine - level.clients ], "f" );
@@ -1547,20 +1543,6 @@ void CalculateRanks( void ) {
 		}
 	}
 
-	level.warmupTime = 0;
-
-	/*
-	if (level.numNonSpectatorClients == 2 && preNumSpec < 2 && nonSpecIndex != -1 && level.gametype == GT_DUEL && !level.warmupTime)
-	{
-		gentity_t *currentWinner = G_GetDuelWinner(&level.clients[nonSpecIndex]);
-
-		if (currentWinner && currentWinner->client)
-		{
-			trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s %s\n\"",
-			currentWinner->client->pers.netname, G_GetStringEdString("MP_SVGAME", "VERSUS"), level.clients[nonSpecIndex].pers.netname));
-		}
-	}
-	*/
 	//NOTE: for now not doing this either. May use later if appropriate.
 
 	qsort( level.sortedClients, level.numConnectedClients, 
@@ -2417,7 +2399,7 @@ void CheckExitRules( void ) {
 		}
 	}
 
-	if ( timelimit.value && !level.warmupTime ) {
+	if ( timelimit.value ) {
 		if ( level.time - level.startTime >= timelimit.value*60000 ) {
 //				trap_SendServerCommand( -1, "print \"Timelimit hit.\n\"");
 			trap_SendServerCommand( -1, va("print \"%s.\n\"",G_GetStringEdString("MP_SVGAME", "TIMELIMIT_HIT")));
@@ -2438,109 +2420,6 @@ void CheckExitRules( void ) {
 			LogExit("Powerduel ended.");
 		}
 
-		//yeah, this stuff was completely insane.
-		/*
-		int duelists[3];
-		duelists[0] = level.sortedClients[0];
-		duelists[1] = level.sortedClients[1];
-		duelists[2] = level.sortedClients[2];
-
-		if (duelists[0] != -1 &&
-			duelists[1] != -1 &&
-			duelists[2] != -1)
-		{
-			if (!g_entities[duelists[0]].inuse ||
-				!g_entities[duelists[0]].client ||
-				g_entities[duelists[0]].client->ps.stats[STAT_HEALTH] <= 0 ||
-				g_entities[duelists[0]].client->sess.sessionTeam != TEAM_FREE)
-			{ //The lone duelist lost, give the other two wins (if applicable) and him a loss
-				if (g_entities[duelists[0]].inuse &&
-					g_entities[duelists[0]].client)
-				{
-					g_entities[duelists[0]].client->sess.losses++;
-					ClientUserinfoChanged(duelists[0]);
-				}
-				if (g_entities[duelists[1]].inuse &&
-					g_entities[duelists[1]].client)
-				{
-					if (g_entities[duelists[1]].client->ps.stats[STAT_HEALTH] > 0 &&
-						g_entities[duelists[1]].client->sess.sessionTeam == TEAM_FREE)
-					{
-						g_entities[duelists[1]].client->sess.wins++;
-					}
-					else
-					{
-						g_entities[duelists[1]].client->sess.losses++;
-					}
-					ClientUserinfoChanged(duelists[1]);
-				}
-				if (g_entities[duelists[2]].inuse &&
-					g_entities[duelists[2]].client)
-				{
-					if (g_entities[duelists[2]].client->ps.stats[STAT_HEALTH] > 0 &&
-						g_entities[duelists[2]].client->sess.sessionTeam == TEAM_FREE)
-					{
-						g_entities[duelists[2]].client->sess.wins++;
-					}
-					else
-					{
-						g_entities[duelists[2]].client->sess.losses++;
-					}
-					ClientUserinfoChanged(duelists[2]);
-				}
-
-				//Will want to parse indecies for two out at some point probably
-				trap_SetConfigstring ( CS_CLIENT_DUELWINNER, va("%i", duelists[1] ) );
-
-				if (d_powerDuelPrint.integer)
-				{
-					Com_Printf("POWERDUEL WIN CONDITION: Coupled duelists won (1)\n");
-				}
-				LogExit( "Coupled duelists won." );
-				gDuelExit = qfalse;
-			}
-			else if ((!g_entities[duelists[1]].inuse ||
-				!g_entities[duelists[1]].client ||
-				g_entities[duelists[1]].client->sess.sessionTeam != TEAM_FREE ||
-				g_entities[duelists[1]].client->ps.stats[STAT_HEALTH] <= 0) &&
-				(!g_entities[duelists[2]].inuse ||
-				!g_entities[duelists[2]].client ||
-				g_entities[duelists[2]].client->sess.sessionTeam != TEAM_FREE ||
-				g_entities[duelists[2]].client->ps.stats[STAT_HEALTH] <= 0))
-			{ //the coupled duelists lost, give the lone duelist a win (if applicable) and the couple both losses
-				if (g_entities[duelists[1]].inuse &&
-					g_entities[duelists[1]].client)
-				{
-					g_entities[duelists[1]].client->sess.losses++;
-					ClientUserinfoChanged(duelists[1]);
-				}
-				if (g_entities[duelists[2]].inuse &&
-					g_entities[duelists[2]].client)
-				{
-					g_entities[duelists[2]].client->sess.losses++;
-					ClientUserinfoChanged(duelists[2]);
-				}
-
-				if (g_entities[duelists[0]].inuse &&
-					g_entities[duelists[0]].client &&
-					g_entities[duelists[0]].client->ps.stats[STAT_HEALTH] > 0 &&
-					g_entities[duelists[0]].client->sess.sessionTeam == TEAM_FREE)
-				{
-					g_entities[duelists[0]].client->sess.wins++;
-					ClientUserinfoChanged(duelists[0]);
-				}
-
-				trap_SetConfigstring ( CS_CLIENT_DUELWINNER, va("%i", duelists[0] ) );
-
-				if (d_powerDuelPrint.integer)
-				{
-					Com_Printf("POWERDUEL WIN CONDITION: Lone duelist won (1)\n");
-				}
-				LogExit( "Lone duelist won." );
-				gDuelExit = qfalse;
-			}
-		}
-		*/
 		return;
 	}
 
@@ -2564,7 +2443,7 @@ void CheckExitRules( void ) {
 	{
 		sKillLimit = "Kill limit hit.";
 	}
-	if ( level.gametype < GT_SIEGE && fraglimit.integer ) {
+	if ( level.gametype <= GT_TEAM && fraglimit.integer ) {
 		if ( level.teamScores[TEAM_RED] >= fraglimit.integer ) {
 			trap_SendServerCommand( -1, va("print \"Red %s\n\"", G_GetStringEdString("MP_SVGAME", "HIT_THE_KILL_LIMIT")) );
 			if (d_powerDuelPrint.integer)
@@ -2730,57 +2609,7 @@ void CheckTournament( void ) {
 			}
 		}
 
-		//rww - It seems we have decided there will be no warmup in duel.
-		//if (!g_warmup.integer)
-		{ //don't care about any of this stuff then, just add people and leave me alone
-			level.warmupTime = 0;
-			return;
-		}
-#if 0
-		// if we don't have two players, go back to "waiting for players"
-		if ( level.numPlayingClients != 2 ) {
-			if ( level.warmupTime != -1 ) {
-				level.warmupTime = -1;
-				trap_SetConfigstring( CS_WARMUP, va("%i", level.warmupTime) );
-				G_LogPrintf( "Warmup:\n" );
-			}
-			return;
-		}
-
-		if ( level.warmupTime == 0 ) {
-			return;
-		}
-
-		// if the warmup is changed at the console, restart it
-		if ( g_warmup.modificationCount != level.warmupModificationCount ) {
-			level.warmupModificationCount = g_warmup.modificationCount;
-			level.warmupTime = -1;
-		}
-
-		// if all players have arrived, start the countdown
-		if ( level.warmupTime < 0 ) {
-			if ( level.numPlayingClients == 2 ) {
-				// fudge by -1 to account for extra delays
-				level.warmupTime = level.time + ( g_warmup.integer - 1 ) * 1000;
-
-				if (level.warmupTime < (level.time + 3000))
-				{ //rww - this is an unpleasent hack to keep the level from resetting completely on the client (this happens when two map_restarts are issued rapidly)
-					level.warmupTime = level.time + 3000;
-				}
-				trap_SetConfigstring( CS_WARMUP, va("%i", level.warmupTime) );
-			}
-			return;
-		}
-
-		// if the warmup time has counted down, restart
-		if ( level.time > level.warmupTime ) {
-			level.warmupTime += 10000;
-			trap_Cvar_Set( "g_restarted", "1" );
-			trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
-			level.restarted = qtrue;
-			return;
-		}
-#endif
+		return;
 	}
 	else if (level.gametype == GT_POWERDUEL)
 	{
@@ -2894,62 +2723,6 @@ void CheckTournament( void ) {
 		{ //if you have proper num of players then don't try to add again
 			g_dontFrickinCheck = qtrue;
 		}
-
-		level.warmupTime = 0;
-		return;
-	}
-	else if ( level.warmupTime != 0 ) {
-		int		counts[TEAM_NUM_TEAMS];
-		qboolean	notEnough = qfalse;
-
-		if ( level.gametype > GT_TEAM ) {
-			counts[TEAM_BLUE] = TeamCount( -1, TEAM_BLUE );
-			counts[TEAM_RED] = TeamCount( -1, TEAM_RED );
-
-			if (counts[TEAM_RED] < 1 || counts[TEAM_BLUE] < 1) {
-				notEnough = qtrue;
-			}
-		} else if ( level.numPlayingClients < 2 ) {
-			notEnough = qtrue;
-		}
-
-		if ( notEnough ) {
-			if ( level.warmupTime != -1 ) {
-				level.warmupTime = -1;
-				trap_SetConfigstring( CS_WARMUP, va("%i", level.warmupTime) );
-				G_LogPrintf( "Warmup:\n" );
-			}
-			return; // still waiting for team members
-		}
-
-		if ( level.warmupTime == 0 ) {
-			return;
-		}
-
-		// if the warmup is changed at the console, restart it
-		/*
-		if ( g_warmup.modificationCount != level.warmupModificationCount ) {
-			level.warmupModificationCount = g_warmup.modificationCount;
-			level.warmupTime = -1;
-		}
-		*/
-
-		// if all players have arrived, start the countdown
-		if ( level.warmupTime < 0 ) {
-			// fudge by -1 to account for extra delays
-			level.warmupTime = level.time + ( g_warmup.integer - 1 ) * 1000;
-			trap_SetConfigstring( CS_WARMUP, va("%i", level.warmupTime) );
-			return;
-		}
-
-		// if the warmup time has counted down, restart
-		if ( level.time > level.warmupTime ) {
-			level.warmupTime += 10000;
-			trap_Cvar_Set( "g_restarted", "1" );
-			trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
-			level.restarted = qtrue;
-			return;
-		}
 	}
 }
 
@@ -2991,13 +2764,6 @@ void CheckVote( void ) {
 			if (level.gametype != level.votingGametypeTo)
 			{ //If we're voting to a different game type, be sure to refresh all the map stuff
 				const char *nextMap = G_RefreshNextMap(level.votingGametypeTo, qtrue);
-
-				if (level.votingGametypeTo == GT_SIEGE)
-				{ //ok, kick all the bots, cause the aren't supported!
-                    G_KickAllBots();
-					//just in case, set this to 0 too... I guess...maybe?
-					//trap_Cvar_Set("bot_minplayers", "0");
-				}
 
 				if (nextMap && nextMap[0])
 				{
