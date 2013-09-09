@@ -172,3 +172,6 @@ pip-log.txt
 #############
 *.o
 *.so
+
+# we require Boost
+codemp/libraries/boost/*
