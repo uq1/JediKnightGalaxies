@@ -3847,8 +3847,6 @@ qboolean JKG_DamageTypeFreezes ( const damageType_t damageType )
 
 const char *gametypeStringShort[GT_MAX_GAME_TYPE] = {
 	"FFA",
-	"HOLO",
-	"JM",
 	"1v1",
 	"2v1",
 	"SP",

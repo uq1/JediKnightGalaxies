@@ -2129,7 +2129,6 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	gentity_t	*ent;
 	gentity_t	*te;
 	char *luaresp;
-	const char *banreason;
 
 	ent = &g_entities[ clientNum ];
 	ent->LuaUsable = 1; // So we can use it in lua (PlayerConnected hook)
