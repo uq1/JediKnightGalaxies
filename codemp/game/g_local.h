@@ -1648,8 +1648,6 @@ void AddScore( gentity_t *ent, vec3_t origin, int score );
 void CalculateRanks( void );
 qboolean SpotWouldTelefrag( gentity_t *spot );
 
-extern gentity_t *gJMSaberEnt;
-
 //
 // g_svcmds.c
 //

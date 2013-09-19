@@ -3855,7 +3855,6 @@ const char *gametypeStringShort[GT_MAX_GAME_TYPE] = {
 	"RPGWILD",
 #endif
 	"TDM",
-	"SAGA",
 	"CTF",
 	"CTY",
 	"WZ",
