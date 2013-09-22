@@ -911,6 +911,8 @@ typedef struct
 
 #define MAX_STANCES	16
 
+#define MAX_SABERHILTS	64
+
 typedef enum
 {
 	SS_NONE = 0,

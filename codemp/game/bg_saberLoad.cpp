@@ -6,6 +6,8 @@
 
 saberStanceExternal_t SaberStances[MAX_STANCES];
 
+saberInfo_t saberLookupTable[MAX_SABERHILTS];
+
 extern stringID_table_t animTable [MAX_ANIMATIONS+1];
 
 //Could use strap stuff but I don't particularly care at the moment anyway.
