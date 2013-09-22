@@ -216,26 +216,7 @@ void ThrowSaberToAttacker(gentity_t *self, gentity_t *attacker)
 
 	if (!ent || ent->enemy != self)
 	{ //something has gone very wrong (this should never happen)
-		//but in case it does.. find the saber manually
-#ifdef _DEBUG
-		Com_Printf("Lost the saber! Attempting to use global pointer..\n");
-#endif
-		ent = gJMSaberEnt;
-
-		if (!ent)
-		{
-#ifdef _DEBUG
-			Com_Printf("The global pointer was NULL. This is a bad thing.\n");
-#endif
-			return;
-		}
-
-#ifdef _DEBUG
-		Com_Printf("Got it (%i). Setting enemy to client %i.\n", ent->s.number, self->s.number);
-#endif
-
-		ent->enemy = self;
-		self->client->ps.saberIndex = ent->s.number;
+		Com_Error(ERR_FATAL, "ThrowSaberToAttacker failed.");
 	}
 
 	if (attacker && attacker->client && self->client->ps.saberInFlight)
