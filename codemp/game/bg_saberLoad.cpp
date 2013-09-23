@@ -640,6 +640,9 @@ bool JKG_ParseHiltFile( const char *filename )
 	Begin parsing for all the .hilt parameters
 	*/
 
+	JSONPARSE("fullName")
+		Q_strncpyz(theHilt.fullName, cJSON_ToString(jsonNode), MAX_QPATH);
+
 	JSONPARSE("saberType")
 	{
 		saberType_t theType = (saberType_t)GetIDForString( SaberTable, cJSON_ToString(jsonNode) );
