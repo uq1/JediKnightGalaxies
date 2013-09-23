@@ -1666,19 +1666,6 @@ qboolean BG_IsItemSelectable(playerState_t *ps, int item);
 qboolean BG_HasYsalamiri(int gametype, playerState_t *ps);
 qboolean BG_CanUseFPNow(int gametype, playerState_t *ps, int time, forcePowers_t power);
 
-void BG_BLADE_ActivateTrail ( bladeInfo_t *blade, float duration );
-void BG_BLADE_DeactivateTrail ( bladeInfo_t *blade, float duration );
-void BG_SI_Activate( saberInfo_t *saber );
-void BG_SI_Deactivate( saberInfo_t *saber );
-void BG_SI_BladeActivate( saberInfo_t *saber, int iBlade, qboolean bActive );
-qboolean BG_SI_Active(saberInfo_t *saber);
-void BG_SI_SetLength( saberInfo_t *saber, float length );
-void BG_SI_SetDesiredLength(saberInfo_t *saber, float len, int bladeNum);
-void BG_SI_SetLengthGradual( saberInfo_t *saber, int time );
-float BG_SI_Length(saberInfo_t *saber);
-float BG_SI_LengthMax(saberInfo_t *saber);
-void BG_SI_ActivateTrail ( saberInfo_t *saber, float duration );
-void BG_SI_DeactivateTrail ( saberInfo_t *saber, float duration );
 extern void BG_AttachToRancor( void *ghoul2,float rancYaw,vec3_t rancOrigin,int time,qhandle_t *modelList,vec3_t modelScale,qboolean inMouth,vec3_t out_origin,vec3_t out_angles,vec3_t out_axis[3] );
 void BG_ClearRocketLock( playerState_t *ps );
 

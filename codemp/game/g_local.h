@@ -2230,7 +2230,8 @@ int ASTAR_FindPathFast(int from, int to, int *pathlist, qboolean shorten);
 
 void NPC_ClearLookTarget( gentity_t *self );
 void BG_VehicleLoadParms( void );
-void WP_SaberLoadParms( void );
+
+void JKG_ParseHiltFiles( void );
 
 #ifdef _DEBUG
 extern void JKG_AssertFunction(char *file, int linenum, const char *expression);

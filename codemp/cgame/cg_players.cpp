@@ -17,7 +17,6 @@ extern vmCvar_t	cg_thirdPersonAlpha;
 extern void CG_AddRadarEnt(centity_t *cent);	//cg_ents.c
 extern void CG_AddBracketedEnt(centity_t *cent);	//cg_ents.c
 extern qboolean CG_InFighter( void );
-extern qboolean WP_SaberBladeUseSecondBladeStyle( saberInfo_t *saber, int bladeNum );
 
 extern void *CG_GetGhoul2WorldModel ( int weaponNum, int weaponVariation );
 
@@ -2081,8 +2080,8 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 			if (!cg_entities[clientNum].currentState.saberHolstered)
 			{ //if not holstered set length and desired length for both blades to full right now.
 				int j;
-				BG_SI_SetDesiredLength(&ci->saber[0], 0, -1);
-				BG_SI_SetDesiredLength(&ci->saber[1], 0, -1);
+				ci->saber[0].SetDesiredLength(0, -1);
+				ci->saber[1].SetDesiredLength(0, -1);
 
 				i = 0;
 				while (i < MAX_SABERS)
@@ -6577,27 +6576,13 @@ void CG_SaberCompWork(vec3_t start, vec3_t end, centity_t *owner, int saberNum, 
 								if ( client 
 									&& client->infoValid )
 								{
-									if ( WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) )
-									{
-										if ( client->saber[saberNum].g2MarksShader2 )
-										{//we have a shader to use instead of the standard mark shader
-											markShader = client->saber[saberNum].g2MarksShader2;
-										}
-										if ( client->saber[saberNum].g2WeaponMarkShader2 )
-										{//we have a shader to use as a splashback onto the weapon model
-											weaponMarkShader = client->saber[saberNum].g2WeaponMarkShader2;
-										}
+									if ( client->saber[saberNum].g2MarksShader )
+									{//we have a shader to use instead of the standard mark shader
+										markShader = client->saber[saberNum].g2MarksShader;
 									}
-									else
-									{
-										if ( client->saber[saberNum].g2MarksShader )
-										{//we have a shader to use instead of the standard mark shader
-											markShader = client->saber[saberNum].g2MarksShader;
-										}
-										if ( client->saber[saberNum].g2WeaponMarkShader )
-										{//we have a shader to use as a splashback onto the weapon model
-											weaponMarkShader = client->saber[saberNum].g2WeaponMarkShader;
-										}
+									if ( client->saber[saberNum].g2WeaponMarkShader )
+									{//we have a shader to use as a splashback onto the weapon model
+										weaponMarkShader = client->saber[saberNum].g2WeaponMarkShader;
 									}
 								}
 								CG_AddGhoul2Mark(markShader, flrand(3.0f, 4.0f),
@@ -6636,27 +6621,13 @@ void CG_SaberCompWork(vec3_t start, vec3_t end, centity_t *owner, int saberNum, 
 				}
 				if ( client && client->infoValid )
 				{
-					if ( WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) )
-					{//use second blade style values
-						if ( client->saber[saberNum].hitPersonEffect2 )
-						{
-							hitPersonFxID = client->saber[saberNum].hitPersonEffect2;
-						}
-						if ( client->saber[saberNum].hitOtherEffect2 )
-						{//custom hit other effect
-							hitOtherFxID = client->saber[saberNum].hitOtherEffect2;
-						}
+					if ( client->saber[saberNum].hitPersonEffect )
+					{
+						hitPersonFxID = client->saber[saberNum].hitPersonEffect;
 					}
-					else
-					{//use first blade style values
-						if ( client->saber[saberNum].hitPersonEffect )
-						{
-							hitPersonFxID = client->saber[saberNum].hitPersonEffect;
-						}
-						if ( client->saber[saberNum].hitOtherEffect )
-						{//custom hit other effect
-							hitOtherFxID = client->saber[saberNum].hitOtherEffect;
-						}
+					if ( client->saber[saberNum].hitOtherEffect )
+					{//custom hit other effect
+						hitOtherFxID = client->saber[saberNum].hitOtherEffect;
 					}
 				}
 				if (!trace.plane.normal[0] && !trace.plane.normal[1] && !trace.plane.normal[2])
@@ -6746,16 +6717,9 @@ void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, in
 	}
 	//Assume bladeNum is equal to the bolt index because bolts should be added in order of the blades.
 	//if there is an effect on this blade, play it
-	if (  !WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum )
-			&& client->saber[saberNum].bladeEffect )
+	if ( client->saber[saberNum].bladeEffect )
 	{
 		trap_FX_PlayBoltedEffectID(client->saber[saberNum].bladeEffect, scent->lerpOrigin, 
-			scent->ghoul2, bladeNum, scent->currentState.number, useModelIndex, -1, qfalse);
-	}
-	else if ( WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum )
-			&& client->saber[saberNum].bladeEffect2 )
-	{
-		trap_FX_PlayBoltedEffectID(client->saber[saberNum].bladeEffect2, scent->lerpOrigin, 
 			scent->ghoul2, bladeNum, scent->currentState.number, useModelIndex, -1, qfalse);
 	}
 	//get the boltMatrix
@@ -6907,9 +6871,7 @@ CheckTrail:
 	{ //don't do the trail in this case
 		goto JustDoIt;
 	}
-
-	if ( (!WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) && client->saber[saberNum].trailStyle > 1 )
-		 || ( WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) && client->saber[saberNum].trailStyle2 > 1 ) )
+	else if ( client->saber[saberNum].trailStyle > 1 )
 	{//don't actually draw the trail at all
 		goto JustDoIt;
 	}
@@ -7015,8 +6977,7 @@ CheckTrail:
 						{
 							//does other stuff below
 						}
-						else if ( (!WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) && client->saber[saberNum].trailStyle == 1 )
-								|| ( WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) && client->saber[saberNum].trailStyle2 == 1 ) )
+						else if ( client->saber[saberNum].trailStyle == 1 )
 						{
 							//motion trail
 							fx.mShader = cgs.media.swordTrailShader;
@@ -10140,8 +10101,8 @@ void CG_Player( centity_t *cent ) {
 						trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, ci->saber[1].soundOn);
 					}
 
-					BG_SI_SetDesiredLength(&ci->saber[0], 0, -1);
-					BG_SI_SetDesiredLength(&ci->saber[1], 0, -1);
+					ci->saber[0].SetDesiredLength(0, -1);
+					ci->saber[1].SetDesiredLength(0, -1);
 				}
 			}
 
@@ -11149,8 +11110,8 @@ stillDoSaber:
 	if ((cent->currentState.eFlags & EF_DEAD) && cent->currentState.weapon == WP_SABER)
 	{
 		//cent->saberLength = 0;
-		BG_SI_SetDesiredLength(&ci->saber[0], 0, -1);
-		BG_SI_SetDesiredLength(&ci->saber[1], 0, -1);
+		ci->saber[0].SetDesiredLength(0, -1);
+		ci->saber[1].SetDesiredLength(0, -1);
 
 		drawPlayerSaber = qtrue;
 	}
@@ -11459,21 +11420,21 @@ stillDoSaber:
 				if ( ci->saber[0].numBlades > 1//staff
 					&& cent->currentState.saberHolstered == 1 )//extra blades off
 				{//only first blade should be on
-					BG_SI_SetDesiredLength(&ci->saber[0], 0, -1);
-					BG_SI_SetDesiredLength(&ci->saber[0], -1, 0);
+					ci->saber[0].SetDesiredLength(0, -1);
+					ci->saber[0].SetDesiredLength(-1, 0);
 				}
 				else
 				{
-					BG_SI_SetDesiredLength(&ci->saber[0], -1, -1);
+					ci->saber[0].SetDesiredLength(-1, -1);
 				}
 				if ( ci->saber[1].model	//dual sabers
 					&& cent->currentState.saberHolstered == 1 )//second one off
 				{
-					BG_SI_SetDesiredLength(&ci->saber[1], 0, -1);
+					ci->saber[1].SetDesiredLength(0, -1);
 				}
 				else
 				{
-					BG_SI_SetDesiredLength(&ci->saber[1], -1, -1);
+					ci->saber[1].SetDesiredLength(-1, -1);
 				}
 
 				//while (l < MAX_SABERS)
@@ -11543,21 +11504,21 @@ stillDoSaber:
 			if ( ci->saber[0].numBlades > 1//staff
 				&& cent->currentState.saberHolstered == 1 )//extra blades off
 			{//only first blade should be on
-				BG_SI_SetDesiredLength(&ci->saber[0], 0, -1);
-				BG_SI_SetDesiredLength(&ci->saber[0], -1, 0);
+				ci->saber[0].SetDesiredLength(0, -1);
+				ci->saber[0].SetDesiredLength(-1, 0);
 			}
 			else
 			{
-				BG_SI_SetDesiredLength(&ci->saber[0], -1, -1);
+				ci->saber[0].SetDesiredLength(-1, -1);
 			}
 			if ( ci->saber[1].model	//dual sabers
 				&& cent->currentState.saberHolstered == 1 )//second one off
 			{
-				BG_SI_SetDesiredLength(&ci->saber[1], 0, -1);
+				ci->saber[1].SetDesiredLength(0, -1);
 			}
 			else
 			{
-				BG_SI_SetDesiredLength(&ci->saber[1], -1, -1);
+				ci->saber[1].SetDesiredLength(-1, -1);
 			}
 		}
 
@@ -11571,12 +11532,12 @@ stillDoSaber:
 		//Leaving right arm on, at least for now.
 		if (cent->currentState.brokenLimbs & (1 << BROKENLIMB_LARM))
 		{
-			BG_SI_SetDesiredLength(&ci->saber[1], 0, -1);
+			ci->saber[1].SetDesiredLength(0, -1);
 		}
 
 		if (!cent->currentState.saberEntityNum)
 		{
-			BG_SI_SetDesiredLength(&ci->saber[0], 0, -1);
+			ci->saber[0].SetDesiredLength(0, -1);
 			//BG_SI_SetDesiredLength(&ci->saber[1], 0, -1);
 		}
 		/*
@@ -11591,19 +11552,19 @@ stillDoSaber:
 	else if (cent->currentState.weapon == WP_SABER)
 	{
 		//cent->saberLength = 0;
-		BG_SI_SetDesiredLength(&ci->saber[0], 0, -1);
-		BG_SI_SetDesiredLength(&ci->saber[1], 0, -1);
+		ci->saber[0].SetDesiredLength(0, -1);
+		ci->saber[1].SetDesiredLength(0, -1);
 
 		drawPlayerSaber = qtrue;
 	}
 	else
 	{
 		//cent->saberLength = 0;
-		BG_SI_SetDesiredLength(&ci->saber[0], 0, -1);
-		BG_SI_SetDesiredLength(&ci->saber[1], 0, -1);
+		ci->saber[0].SetDesiredLength(0, -1);
+		ci->saber[1].SetDesiredLength(0, -1);
 
-		BG_SI_SetLength(&ci->saber[0], 0);
-		BG_SI_SetLength(&ci->saber[1], 0);
+		ci->saber[0].SetLength(0);
+		ci->saber[1].SetLength(1);
 	}
 
 #ifdef _RAG_BOLT_TESTING
@@ -11615,8 +11576,8 @@ stillDoSaber:
 
 	if (cent->currentState.weapon == WP_SABER)
 	{
-		BG_SI_SetLengthGradual(&ci->saber[0], cg.time);
-		BG_SI_SetLengthGradual(&ci->saber[1], cg.time);
+		ci->saber[0].SetLengthGradual( cg.time );
+		ci->saber[1].SetLengthGradual( cg.time );
 	}
 
 	if (drawPlayerSaber)
@@ -11725,8 +11686,8 @@ stillDoSaber:
 
 	if (cent->currentState.saberInFlight && !cent->currentState.saberEntityNum)
 	{ //reset the length if the saber is knocked away
-		BG_SI_SetDesiredLength(&ci->saber[0], 0, -1);
-		BG_SI_SetDesiredLength(&ci->saber[1], 0, -1);
+		ci->saber[0].SetDesiredLength(0, -1);
+		ci->saber[1].SetDesiredLength(0, -1);
 
 		if (g2HasWeapon)
 		{ //and remember to kill the bolton model in case we didn't get a thrown saber update first
@@ -12827,8 +12788,8 @@ void CG_ResetPlayerEntity( centity_t *cent )
 		}
 		if (!cent->currentState.saberHolstered)
 		{ //if not holstered set length and desired length for both blades to full right now.
-			BG_SI_SetDesiredLength(&ci->saber[0], 0, -1);
-			BG_SI_SetDesiredLength(&ci->saber[1], 0, -1);
+			ci->saber[0].SetDesiredLength(0, -1);
+			ci->saber[1].SetDesiredLength(0, -1);
 
 			i = 0;
 			while (i < MAX_SABERS)

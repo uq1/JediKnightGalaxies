@@ -682,8 +682,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ), 
 		&level.clients[0].ps, sizeof( level.clients[0] ) );
 
-	//Load sabers.cfg data
-	WP_SaberLoadParms();
+	JKG_ParseHiltFiles();
 
 	NPC_InitGame();
 	

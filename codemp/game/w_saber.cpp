@@ -22,13 +22,12 @@ qboolean BG_StabDownAnim( int anim );
 qboolean BG_SabersOff( playerState_t *ps );
 qboolean BG_SaberInTransitionAny( int move );
 qboolean BG_SaberInAttackPure( int move );
-qboolean WP_SaberBladeUseSecondBladeStyle( saberInfo_t *saber, int bladeNum );
 qboolean WP_SaberBladeDoTransitionDamage( saberInfo_t *saber, int bladeNum );
 
 void WP_SaberAddG2Model( gentity_t *saberent, const char *saberModel, qhandle_t saberSkin );
 void WP_SaberRemoveG2Model( gentity_t *saberent );
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// ///
 ///																																///
 ///																																///
 ///													JEDI KNIGHT GALAXIES														///
@@ -37,7 +36,7 @@ void WP_SaberRemoveG2Model( gentity_t *saberent );
 ///						System designed by Pande, eezstreet. Visuals designed by BlackResuru. (c) 2012 JKG						///
 ///																																///
 ///																																///
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// ///
 
 // Returns qtrue if we should disarm the attacker, returns qfalse if we should stagger the defender
 unsigned char JKG_GetBPNeededForBlock( gentity_t *blocker, int attackerSaberMove, int attackerSaberStyle );
@@ -3690,15 +3689,7 @@ void WP_SaberDoHit( gentity_t *self, int saberNum, int bladeNum )
 			}
 			else
 			{
-				if ( !WP_SaberBladeUseSecondBladeStyle( &self->client->saber[saberNum], bladeNum )
-					&& (self->client->saber[saberNum].saberFlags2&SFL2_NO_CLASH_FLARE) )
-				{//don't do clash flare
-				}
-				else if ( WP_SaberBladeUseSecondBladeStyle( &self->client->saber[saberNum], bladeNum )
-					&& (self->client->saber[saberNum].saberFlags2&SFL2_NO_CLASH_FLARE2) )
-				{//don't do clash flare
-				}
-				else
+				if ( !(self->client->saber[saberNum].saberFlags2&SFL2_NO_CLASH_FLARE) )
 				{
 					if (totalDmg[i] > SABER_NONATTACK_DAMAGE)
 					{ //I suppose I could tie this into the saberblock event, but I'm tired of adding flags to that thing.
@@ -3838,25 +3829,13 @@ void WP_SaberBounceSound( gentity_t *ent, int saberNum, int bladeNum )
 		return;
 	}
 	index = Q_irand( 1, 9 );
-	if ( !WP_SaberBladeUseSecondBladeStyle( &ent->client->saber[saberNum], bladeNum )
-		&& ent->client->saber[saberNum].bounceSound[0] )
+	if ( ent->client->saber[saberNum].bounceSound[0] )
 	{
 		G_Sound( ent, CHAN_AUTO, ent->client->saber[saberNum].bounceSound[Q_irand( 0, 2 )] );
 	}
-	else if ( WP_SaberBladeUseSecondBladeStyle( &ent->client->saber[saberNum], bladeNum )
-		&& ent->client->saber[saberNum].bounce2Sound[0] )
-	{
-		G_Sound( ent, CHAN_AUTO, ent->client->saber[saberNum].bounce2Sound[Q_irand( 0, 2 )] );
-	}
-	else if ( !WP_SaberBladeUseSecondBladeStyle( &ent->client->saber[saberNum], bladeNum )
-		&& ent->client->saber[saberNum].blockSound[0] )
+	else if ( ent->client->saber[saberNum].blockSound[0] )
 	{
 		G_Sound( ent, CHAN_AUTO, ent->client->saber[saberNum].blockSound[Q_irand( 0, 2 )] );
-	}
-	else if ( WP_SaberBladeUseSecondBladeStyle( &ent->client->saber[saberNum], bladeNum )
-		&& ent->client->saber[saberNum].block2Sound[0] )
-	{
-		G_Sound( ent, CHAN_AUTO, ent->client->saber[saberNum].block2Sound[Q_irand( 0, 2 )] );
 	}
 	else
 	{	
@@ -4750,15 +4729,9 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 		dmg *= g_saberDamageScale.value;
 
 		//see if this specific saber has a damagescale
-		if ( !WP_SaberBladeUseSecondBladeStyle( &self->client->saber[rSaberNum], rBladeNum )
-			&& self->client->saber[rSaberNum].damageScale != 1.0f )
+		if ( self->client->saber[rSaberNum].damageScale != 1.0f )
 		{
 			dmg = ceil( (float)dmg*self->client->saber[rSaberNum].damageScale );
-		}
-		else if ( WP_SaberBladeUseSecondBladeStyle( &self->client->saber[rSaberNum], rBladeNum )
-			&& self->client->saber[rSaberNum].damageScale2 != 1.0f )
-		{
-			dmg = ceil( (float)dmg*self->client->saber[rSaberNum].damageScale2 );
 		}
 
 		if ((self->client->ps.brokenLimbs & (1 << BROKENLIMB_RARM)) ||
@@ -4851,14 +4824,7 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 				te->s.angles[1] = 1;
 			}
 			//do radius damage/knockback, if any
-			if ( !WP_SaberBladeUseSecondBladeStyle( &self->client->saber[rSaberNum], rBladeNum ) )
-			{
-				WP_SaberRadiusDamage( self, tr.endpos, self->client->saber[rSaberNum].splashRadius, self->client->saber[rSaberNum].splashDamage, self->client->saber[rSaberNum].splashKnockback );
-			}
-			else
-			{
-				WP_SaberRadiusDamage( self, tr.endpos, self->client->saber[rSaberNum].splashRadius2, self->client->saber[rSaberNum].splashDamage2, self->client->saber[rSaberNum].splashKnockback2 );
-			}
+			WP_SaberRadiusDamage( self, tr.endpos, self->client->saber[rSaberNum].splashRadius, self->client->saber[rSaberNum].splashDamage, self->client->saber[rSaberNum].splashKnockback );
 	
 			return qtrue;
 		}
@@ -5051,19 +5017,12 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 			}
 
 			//store the damage, we'll apply it later
-			if ( !WP_SaberBladeUseSecondBladeStyle( &self->client->saber[rSaberNum], rBladeNum )
-				&& !(self->client->saber[rSaberNum].saberFlags2&SFL2_NO_DISMEMBERMENT) )
-			{
-				doDismemberment = qtrue;
-			}
-			if ( WP_SaberBladeUseSecondBladeStyle( &self->client->saber[rSaberNum], rBladeNum )
-				&& !(self->client->saber[rSaberNum].saberFlags2&SFL2_NO_DISMEMBERMENT) )
+			if ( !(self->client->saber[rSaberNum].saberFlags2&SFL2_NO_DISMEMBERMENT) )
 			{
 				doDismemberment = qtrue;
 			}
 
-			if ( !WP_SaberBladeUseSecondBladeStyle( &self->client->saber[rSaberNum], rBladeNum )
-				&& self->client->saber[rSaberNum].knockbackScale > 0.0f )
+			if ( self->client->saber[rSaberNum].knockbackScale > 0.0f )
 			{
 				if ( rSaberNum < 1 )
 				{
@@ -5072,19 +5031,6 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 				else
 				{
 					knockbackFlags = DAMAGE_SABER_KNOCKBACK2;
-				}
-			}
-
-			if ( WP_SaberBladeUseSecondBladeStyle( &self->client->saber[rSaberNum], rBladeNum )
-				&& self->client->saber[rSaberNum].knockbackScale > 0.0f )
-			{
-				if ( rSaberNum < 1 )
-				{
-					knockbackFlags = DAMAGE_SABER_KNOCKBACK1_B2;
-				}
-				else
-				{
-					knockbackFlags = DAMAGE_SABER_KNOCKBACK2_B2;
 				}
 			}
 
