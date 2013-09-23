@@ -4,7 +4,9 @@
 #include "bg_local.h"
 #include "w_saber.h"
 
+#include <json/cJSON.h>
 #include <unordered_map>
+#include <string>
 
 saberStanceExternal_t SaberStances[MAX_STANCES];
 
@@ -590,7 +592,7 @@ bool JKG_ParseHiltFile( const char *filename )
     cJSON *jsonNode = NULL;
 	cJSON *jsonChild = NULL;
 	char error[MAX_STRING_CHARS];
-	char hiltFileData[MAX_STANCE_FILE_LENGTH];		// TODO: change
+	char hiltFileData[32967];		// TODO: change
 	fileHandle_t f;
 	int fileLen = strap_FS_FOpenFile (filename, &f, FS_READ);
 	char name[MAX_QPATH];
@@ -601,10 +603,10 @@ bool JKG_ParseHiltFile( const char *filename )
         return false;
     }
 
-	if ( (fileLen + 1) >= MAX_STANCE_FILE_LENGTH )
+	if ( (fileLen + 1) >= 32967 )
     {
         trap_FS_FCloseFile (f);
-        Com_Printf (S_COLOR_RED "%s: file too big (%d bytes, maximum is %d).\n", filename, fileLen, MAX_STANCE_FILE_LENGTH - 1);
+        Com_Printf (S_COLOR_RED "%s: file too big (%d bytes, maximum is %d).\n", filename, fileLen, 32966);
         return false;
     }
     
@@ -944,14 +946,9 @@ bool JKG_ParseHiltFiles( void )
 	for ( i = 0; i < numFiles; i++ )
     {
         if ( JKG_ParseHiltFile (va ("ext_data/hilts/%s", hiltFile)) )
-        {
             successful++;
-			numStancesParsed++;
-        }
         else
-        {
             failed++;
-        }
             
         hiltFile += strlen (hiltFile) + 1;
     }

@@ -2821,7 +2821,7 @@ Ghoul2 Insert End
 extern playerState_t *cgSendPS[MAX_GENTITIES]; //is not MAX_CLIENTS because NPCs exceed MAX_CLIENTS
 void CG_PmoveClientPointerUpdate();
 
-void JKG_ParseHiltFiles( void );
+bool JKG_ParseHiltFiles( void );
 void BG_VehicleLoadParms( void );
 
 /*
