@@ -5,12 +5,12 @@
 #include "w_saber.h"
 
 #include <json/cJSON.h>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 saberStanceExternal_t SaberStances[MAX_STANCES];
 
-std::unordered_map<std::string, saberInfo_t> hiltLookupTable;
+std::unordered_map<std::string, saberInfo_t> *hiltLookupTable;
 
 extern stringID_table_t animTable [MAX_ANIMATIONS+1];
 
@@ -927,7 +927,7 @@ if(childNode)
 
 #undef JSONPARSE
 
-	hiltLookupTable.insert(std::pair<std::string, saberInfo_t>(name, theHilt));
+	hiltLookupTable->insert(std::pair<std::string, saberInfo_t>(name, theHilt));
 	return true;
 }
 
@@ -942,7 +942,7 @@ bool JKG_ParseHiltFiles( void )
 	int t = trap_Milliseconds();
 	int i;
 
-	hiltLookupTable.clear();
+	hiltLookupTable = new std::unordered_map<std::string, saberInfo_t>();
 
 	Com_Printf ("------- Hilt data -------\n");
 
@@ -965,16 +965,22 @@ bool JKG_ParseHiltFiles( void )
 
 bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber )
 {
-	try
-	{
-		memcpy(saber, &hiltLookupTable[hiltName], sizeof(saberInfo_t));
-		return true;
-	}
-	catch( ... )
+	if(!hiltLookupTable || hiltLookupTable->size() <= 0)
+		return false;	// occasionally gets set, incorrectly.
+	std::unordered_map<std::string, saberInfo_t>::iterator it = hiltLookupTable->find(hiltName);
+	if(it == hiltLookupTable->end())
 	{
 		Com_Printf(S_COLOR_YELLOW "WARNING: Couldn't find hilt \"%s\" reference\n", hiltName);
 		return false;
 	}
+	memcpy(saber, &it->second, sizeof(saberInfo_t));
+	return true;
+}
+
+void JKG_CleanSaberHilts( void )
+{
+	if(hiltLookupTable)
+		delete hiltLookupTable;
 }
 
 void WP_RemoveSaber( saberInfo_t *sabers, int saberNum )
