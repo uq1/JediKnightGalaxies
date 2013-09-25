@@ -2155,7 +2155,7 @@ qboolean G_SetSaber(gentity_t *ent, int saberNum, char *saberName, qboolean sieg
 
 	if ( !ent->client->saber[0].model[0] )
 	{
-		assert(0); //should never happen!
+		assert(!"No saber model"); //assert(0); //should never happen! // but does :/
 		Q_strncpyz( ent->client->pers.saber1, DEFAULT_SABER, sizeof( ent->client->pers.saber1 ) );
 	}
 	else

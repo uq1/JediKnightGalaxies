@@ -2472,7 +2472,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	}
 	else
 	{
-		G_SetSaber(ent, 0, "Katarn", qfalse);
+		G_SetSaber(ent, 0, DEFAULT_SABER, qfalse);
 
 		// locate ent at a spawn point
 		ClientSpawn( ent, qfalse );
