@@ -633,7 +633,7 @@ bool JKG_ParseHiltFile( const char *filename )
 	WP_SaberSetDefaults( &theHilt );
 
 #define JSONPARSE(x)		\
-	jsonNode = cJSON_GetObjectItem(json, #x); \
+	jsonNode = cJSON_GetObjectItem(json, x); \
 	if(jsonNode != NULL)
 
 	/*
