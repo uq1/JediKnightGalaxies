@@ -685,7 +685,7 @@ bool JKG_ParseHiltFile( const char *filename )
 			{
 				cJSON *childNode;
 #define JSONCHILDPARSE(x)	\
-childNode = cJSON_GetObjectItem(child, #x); \
+childNode = cJSON_GetObjectItem(child, x); \
 if(childNode)
 
 				JSONCHILDPARSE("length")
