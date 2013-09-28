@@ -507,10 +507,8 @@ short           GetWeaponAmmoClip ( unsigned char baseIndex, unsigned char modIn
 short           GetWeaponAmmoMax ( unsigned char baseIndex, unsigned char modIndex );
 short           GetAmmoMax ( unsigned char ammoIndex );
 
-#ifdef CGAME
 qboolean BG_DumpWeaponList ( const char *filename );
 void BG_PrintWeaponList( void );
-#endif
 
 /* Original definitions used for weapon switching and such, we won't use it eventually */
 #define LAST_USEABLE_WEAPON			WP_BRYAR_OLD		// anything > this will be considered not player useable

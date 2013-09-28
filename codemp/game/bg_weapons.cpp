@@ -266,7 +266,6 @@ void BG_InitializeWeapons ( void )
     }
 }
 
-#ifdef CGAME
 qboolean BG_DumpWeaponList ( const char *filename )
 {
     char buffer[8192] = { 0 };
@@ -327,4 +326,3 @@ void BG_PrintWeaponList( void )
     }
 	Com_Printf("----------------------------------------------------------------------------------------------------\n");
 }
-#endif

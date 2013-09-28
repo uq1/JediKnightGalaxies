@@ -406,6 +406,33 @@ void JKG_Crystal_f ( gentity_t *ent, int saberNum )
 	}
 }
 
+/*
+==================
+JKG_PrintWeaponList_f
+
+Good for testing desync
+==================
+*/
+
+void JKG_PrintWeaponList_f( gentity_t *ent )
+{
+	BG_PrintWeaponList();
+}
+
+/*
+==================
+JKG_DumpWeaponList_f
+
+Good for testing desync
+==================
+*/
+
+void JKG_DumpWeaponList_f( gentity_t *ent )
+{
+	BG_DumpWeaponList("svweaponlist.txt");
+}
+
+
 
 /*
 ==================
@@ -4721,6 +4748,16 @@ void ClientCommand( int clientNum ) {
 
 	if (Q_stricmp (cmd, "score") == 0) {
 		Cmd_Score_f (ent);
+		return;
+	}
+
+	if (Q_stricmp (cmd, "printweaponlist_sv") == 0) {
+		JKG_PrintWeaponList_f(ent);
+		return;
+	}
+
+	if (Q_stricmp (cmd, "dumpweaponlist_sv") == 0) {
+		JKG_DumpWeaponList_f(ent);
 		return;
 	}
 
