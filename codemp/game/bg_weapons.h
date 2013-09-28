@@ -555,7 +555,7 @@ typedef struct
 	char glowEffect[64];			// "none" for defaults
 } saberCrystalData_t;
 
-#define MAX_SABER_CRYSTALS	64
+#define MAX_SABER_CRYSTALS	256
 #define MAX_CRYSTAL_FILE_SIZE (65536) // 16kb
 
 extern saberCrystalData_t saberCrystalsLookup[MAX_SABER_CRYSTALS];
