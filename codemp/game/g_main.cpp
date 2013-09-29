@@ -3491,9 +3491,9 @@ void G_RunFrame( int levelTime ) {
 					if(ent->client->saberBPDebRecharge < level.time)
 					{
 						int rechargeRate = 300;
-						int rechargeDifference = 600 - ent->client->saber[0].BPregenRate;
+						int rechargeDifference = 300 - ent->client->saber[0].BPregenRate;
 						if( ent->client->saber[1].Active() )
-							rechargeDifference -= ent->client->saber[1].BPregenRate;
+							rechargeDifference += 300 - ent->client->saber[1].BPregenRate;
 
 						// Sabers with BP recharge rate bonuses DO stack.
 
