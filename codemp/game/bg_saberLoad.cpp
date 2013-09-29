@@ -553,6 +553,7 @@ void WP_SaberSetDefaults( saberInfo_t *saber )
 	saber->extraDisarmChance = 11;
 	saber->extraDamage = 1.0f;
 	saber->BPregenRate = 300;
+	saber->FPregenRate = 200;
 
 }
 
