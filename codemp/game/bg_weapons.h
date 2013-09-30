@@ -507,10 +507,8 @@ short           GetWeaponAmmoClip ( unsigned char baseIndex, unsigned char modIn
 short           GetWeaponAmmoMax ( unsigned char baseIndex, unsigned char modIndex );
 short           GetAmmoMax ( unsigned char ammoIndex );
 
-#ifdef CGAME
 qboolean BG_DumpWeaponList ( const char *filename );
 void BG_PrintWeaponList( void );
-#endif
 
 /* Original definitions used for weapon switching and such, we won't use it eventually */
 #define LAST_USEABLE_WEAPON			WP_BRYAR_OLD		// anything > this will be considered not player useable
@@ -555,7 +553,7 @@ typedef struct
 	char glowEffect[64];			// "none" for defaults
 } saberCrystalData_t;
 
-#define MAX_SABER_CRYSTALS	64
+#define MAX_SABER_CRYSTALS	256
 #define MAX_CRYSTAL_FILE_SIZE (65536) // 16kb
 
 extern saberCrystalData_t saberCrystalsLookup[MAX_SABER_CRYSTALS];

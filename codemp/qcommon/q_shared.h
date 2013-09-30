@@ -906,10 +906,18 @@ typedef struct
 	int			hitWallDebounceTime;
 	int			storageTime;
 	int			extendDebounce;
+
+#ifdef __cplusplus
+	void ActivateTrail( float duration ) { trail.inAction = true; trail.duration = duration; }
+	void DeactivateTrail( float duration ) { trail.inAction = false; trail.duration = duration; }
+#endif
+
 } bladeInfo_t;
 #define MAX_BLADES 8
 
 #define MAX_STANCES	16
+
+#define MAX_SABERHILTS	64
 
 typedef enum
 {
@@ -1100,6 +1108,131 @@ typedef struct
 	float		extraDamage;				// extra damage
 	int			BPregenRate;
 	int			FPregenRate;
+
+#ifdef __cplusplus
+	void Activate( void )
+	{
+		for( int i = 0; i < numBlades; i++ )
+			blade[i].active = true;
+	}
+
+	void Deactivate( void )
+	{
+		for( int i = 0; i < numBlades; i++ )
+			blade[i].active = false;
+	}
+
+	void BladeActivate( int iBlade, bool bActive )
+	{
+		if( iBlade < 0 || iBlade >= numBlades ) return;
+		blade[iBlade].active = bActive;
+	}
+
+	bool Active( void )
+	{
+		for( int i = 0; i < numBlades; i++ )
+		{
+			if( blade[i].active )
+				return true;
+		}
+		return false;
+	}
+
+	void SetLength( float length )
+	{
+		for( int i = 0; i < numBlades; i++ )
+			blade[i].length = length;
+	}
+
+	void SetDesiredLength( float length, int bladeNum )
+	{
+		int i, startBlade = 0, maxBlades = numBlades;
+		if( bladeNum >= 0 && bladeNum < numBlades )
+		{
+			startBlade = bladeNum;
+			maxBlades = bladeNum+1;
+		}
+		for( i = startBlade; i < maxBlades; i++ )
+			blade[i].desiredLength = length;
+	}
+
+	void SetLengthGradual( int time )
+	{
+		float amt, dLen;
+		for( int i = 0; i < numBlades; i++ )
+		{
+			dLen = blade[i].desiredLength;
+
+			if( dLen == -1 ) dLen = blade[i].lengthMax;
+			if( blade[i].length == dLen ) continue;
+
+			if( blade[i].length == blade[i].lengthMax ||
+				blade[i].length == 0 )
+			{
+				blade[i].extendDebounce = time;
+				if( blade[i].length == 0 ) blade[i].length++;
+				else blade[i].length--;
+			}
+
+			amt = (time - blade[i].extendDebounce*0.01);
+
+			if( amt < 0.2f ) amt = 0.2f;
+
+			if( blade[i].length < dLen )
+			{
+				blade[i].length += amt;
+				
+				if( blade[i].length > dLen )
+					blade[i].length = dLen;
+				if( blade[i].length > blade[i].lengthMax )
+					blade[i].length = blade[i].lengthMax;
+			}
+			else if( blade[i].length > dLen )
+			{
+				blade[i].length -= amt;
+
+				if(blade[i].length < dLen)
+					blade[i].length = dLen;
+				if(blade[i].length < 0)
+					blade[i].length = 0;
+			}
+		}
+	}
+
+	float Length( void )
+	{
+		float len1 = 0.0f;
+		for( int i = 0; i < numBlades; i++ )
+		{
+			if( blade[i].length > len1 )
+				len1 = blade[i].length;
+		}
+		return len1;
+	}
+
+	float LengthMax( void )
+	{
+		float len1 = 0.0f;
+		for( int i = 0; i < numBlades; i++ )
+		{
+			if( blade[i].lengthMax > len1 )
+				len1 = blade[i].lengthMax;
+		}
+		return len1;
+	}
+
+	void ActivateTrail( float duration )
+	{
+		for( int i = 0; i < numBlades; i++ )
+			blade[i].ActivateTrail( duration );
+	}
+
+	void DeactivateTrail( float duration )
+	{
+		for( int i = 0; i < numBlades; i++ )
+			blade[i].DeactivateTrail( duration );
+	}
+#endif
 } saberInfo_t;
 #define MAX_SABERS 2
 

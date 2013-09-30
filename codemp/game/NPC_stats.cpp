@@ -6,7 +6,6 @@
 
 extern qboolean NPCsPrecached;
 
-extern qboolean WP_SaberParseParms( const char *SaberName, saberInfo_t *saber );
 extern void WP_RemoveSaber( saberInfo_t *sabers, int saberNum );
 
 stringID_table_t TeamTable[] =
@@ -266,7 +265,25 @@ int NPC_ReactionTime ( void )
 // parse support routines
 //
 
-extern qboolean BG_ParseLiteral( const char **data, const char *string );
+qboolean BG_ParseLiteral( const char **data, const char *string ) 
+{
+	const char	*token;
+
+	token = COM_ParseExt( data, qtrue );
+	if ( token[0] == 0 ) 
+	{
+		Com_Printf( "unexpected EOF\n" );
+		return qtrue;
+	}
+
+	if ( Q_stricmp( token, string ) ) 
+	{
+		Com_Printf( "required string '%s' missing\n", string );
+		return qtrue;
+	}
+
+	return qfalse;
+}
 
 //
 // NPC parameters file : scripts/NPCs.cfg
@@ -2424,7 +2441,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 				saberName = (char *)malloc(4096);//G_NewString( value );
 				strcpy(saberName, value);
 
-				WP_SaberParseParms( saberName, &NPC->client->saber[0] );
+				JKG_GetSaberHilt( saberName, &NPC->client->saber[0] );
 				npcSaber1 = G_ModelIndex(va("@%s", saberName));
 
 				free(saberName);
@@ -2444,7 +2461,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 					char *saberName = (char *)malloc(4096);//G_NewString( value );
 					strcpy(saberName, value);
 
-					WP_SaberParseParms( saberName, &NPC->client->saber[1] );
+					JKG_GetSaberHilt( saberName, &NPC->client->saber[1] );
 					if ( (NPC->client->saber[1].saberFlags&SFL_TWO_HANDED) )
 					{//tsk tsk, can't use a twoHanded saber as second saber
 						WP_RemoveSaber( NPC->client->saber, 1 );
@@ -3253,7 +3270,7 @@ Ghoul2 Insert Start
 		if (npcSaber1 == 0)
 		{ //use "kyle" for a default then
 			npcSaber1 = G_ModelIndex("@Kyle");
-			WP_SaberParseParms( "Kyle", &NPC->client->saber[0] );
+			JKG_GetSaberHilt( DEFAULT_SABER, &NPC->client->saber[0] );
 		}
 
 		NPC->s.npcSaber1 = npcSaber1;

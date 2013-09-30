@@ -682,8 +682,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ), 
 		&level.clients[0].ps, sizeof( level.clients[0] ) );
 
-	//Load sabers.cfg data
-	WP_SaberLoadParms();
+	JKG_ParseHiltFiles();
 
 	NPC_InitGame();
 	
@@ -3492,7 +3491,9 @@ void G_RunFrame( int levelTime ) {
 					if(ent->client->saberBPDebRecharge < level.time)
 					{
 						int rechargeRate = 300;
-						int rechargeDifference = 600 - ent->client->saber[0].BPregenRate - ent->client->saber[1].BPregenRate;
+						int rechargeDifference = 300 - ent->client->saber[0].BPregenRate;
+						if( ent->client->saber[1].Active() )
+							rechargeDifference += 300 - ent->client->saber[1].BPregenRate;
 
 						// Sabers with BP recharge rate bonuses DO stack.
 

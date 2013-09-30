@@ -216,8 +216,7 @@ void ThrowSaberToAttacker(gentity_t *self, gentity_t *attacker)
 
 	if (!ent || ent->enemy != self)
 	{ //something has gone very wrong (this should never happen)
-		//but in case it does.. find the saber manually
-		Com_Error(ERR_FATAL, "An unspecified error occurred.");
+		Com_Error(ERR_FATAL, "ThrowSaberToAttacker failed.");
 	}
 
 	if (attacker && attacker->client && self->client->ps.saberInFlight)
@@ -2473,7 +2472,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	}
 	else
 	{
-		G_SetSaber(ent, 0, "Katarn", qfalse);
+		G_SetSaber(ent, 0, DEFAULT_SABER, qfalse);
 
 		// locate ent at a spawn point
 		ClientSpawn( ent, qfalse );

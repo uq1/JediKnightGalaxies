@@ -15,7 +15,6 @@
 #include "cg_weapons.h"
 //==========================================================================
 
-extern qboolean WP_SaberBladeUseSecondBladeStyle( saberInfo_t *saber, int bladeNum );
 extern qboolean CG_VehicleWeaponImpact( centity_t *cent );
 extern int cg_saberFlashTime;
 extern vec3_t cg_saberFlashPos;
@@ -1932,8 +1931,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				WP_SetSaber( es->number, cgs.clientinfo[es->number].saber, 0, weaponData->sab.hiltname );
 				JKG_SwapToSaber( 0, &cgs.clientinfo[es->number], weaponData->sab.hiltname, weapon, variation );
 				//CG_InitG2SaberData( 0, &cgs.clientinfo[es->number] );
-				BG_SI_SetDesiredLength(&cgs.clientinfo[es->number].saber[0], 0, -1);
-				BG_SI_SetDesiredLength(&cgs.clientinfo[es->number].saber[1], 0, -1);
+				cgs.clientinfo[es->number].saber[0].SetDesiredLength(0, -1);
+				cgs.clientinfo[es->number].saber[1].SetDesiredLength(0, -1);
 
 				if( cg_entities[es->number].currentState.saberHolstered == 2 || 
 					cg_entities[es->number].currentState.weapon == WP_NONE ||
@@ -2108,35 +2107,18 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				{
 					int saberNum = es->weapon;
 					int bladeNum = es->legsAnim;
-					if ( WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) )
-					{//use second blade style values
-						if ( client->saber[saberNum].hitPersonEffect2 )
-						{//custom hit person effect
-							hitPersonFxID = hitPersonSmallFxID = hitPersonMidFxID = client->saber[saberNum].hitPersonEffect2;
-						}
-						if ( client->saber[saberNum].hitOtherEffect2 )
-						{//custom hit other effect
-							hitOtherFxID = client->saber[saberNum].hitOtherEffect2;
-						}
-						if ( client->saber[saberNum].hit2Sound[0] )
-						{//custom hit sound
-							hitSound = client->saber[saberNum].hit2Sound[Q_irand(0,2)];
-						}
+
+					if ( client->saber[saberNum].hitPersonEffect )
+					{//custom hit person effect
+						hitPersonFxID = hitPersonSmallFxID = hitPersonMidFxID = client->saber[saberNum].hitPersonEffect;
 					}
-					else
-					{//use first blade style values
-						if ( client->saber[saberNum].hitPersonEffect )
-						{//custom hit person effect
-							hitPersonFxID = hitPersonSmallFxID = hitPersonMidFxID = client->saber[saberNum].hitPersonEffect;
-						}
-						if ( client->saber[saberNum].hitOtherEffect )
-						{//custom hit other effect
-							hitOtherFxID = client->saber[0].hitOtherEffect;
-						}
-						if ( client->saber[saberNum].hitSound[0] )
-						{//custom hit sound
-							hitSound = client->saber[saberNum].hitSound[Q_irand(0,2)];
-						}
+					if ( client->saber[saberNum].hitOtherEffect )
+					{//custom hit other effect
+						hitOtherFxID = client->saber[0].hitOtherEffect;
+					}
+					if ( client->saber[saberNum].hitSound[0] )
+					{//custom hit sound
+						hitSound = client->saber[saberNum].hitSound[Q_irand(0,2)];
 					}
 				}
 			}
@@ -2249,27 +2231,14 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 					{
 						int saberNum = es->weapon;
 						int bladeNum = es->legsAnim;
-						if ( WP_SaberBladeUseSecondBladeStyle( &client->saber[saberNum], bladeNum ) )
-						{//use second blade style values
-							if ( client->saber[saberNum].blockEffect2 )
-							{//custom saber block effect
-								blockFXID = client->saber[saberNum].blockEffect2;
-							}
-							if ( client->saber[saberNum].block2Sound[0] )
-							{//custom hit sound
-								blockSound = client->saber[saberNum].block2Sound[Q_irand(0,2)];
-							}
+
+						if ( client->saber[saberNum].blockEffect )
+						{//custom saber block effect
+							blockFXID = client->saber[saberNum].blockEffect;
 						}
-						else
-						{
-							if ( client->saber[saberNum].blockEffect )
-							{//custom saber block effect
-								blockFXID = client->saber[saberNum].blockEffect;
-							}
-							if ( client->saber[saberNum].blockSound[0] )
-							{//custom hit sound
-								blockSound = client->saber[saberNum].blockSound[Q_irand(0,2)];
-							}
+						if ( client->saber[saberNum].blockSound[0] )
+						{//custom hit sound
+							blockSound = client->saber[saberNum].blockSound[Q_irand(0,2)];
 						}
 						if ( (client->saber[saberNum].saberFlags2&SFL2_NO_CLASH_FLARE) )
 						{

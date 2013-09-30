@@ -480,7 +480,7 @@ static void JKGCalc_Perform( itemInstance_t *itm )
 	}
 	else
 	{
-		__JKG_DEFAULT_CALC__
+		__JKG_DEFAULT_CALC__;
 	}
 }
 

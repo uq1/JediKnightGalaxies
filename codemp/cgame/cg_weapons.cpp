@@ -2804,8 +2804,8 @@ void CG_CheckPlayerG2Weapons(playerState_t *ps, centity_t *cent)
 				trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, cgs.clientinfo[ps->clientNum].saber[1].soundOn);
 			}
 
-			BG_SI_SetDesiredLength(&cgs.clientinfo[ps->clientNum].saber[0], 0, -1);
-			BG_SI_SetDesiredLength(&cgs.clientinfo[ps->clientNum].saber[1], 0, -1);
+			cgs.clientinfo[ps->clientNum].saber[0].SetDesiredLength(0, -1);
+			cgs.clientinfo[ps->clientNum].saber[0].SetDesiredLength(0, -1);
 		}
 		cent->weapon = ps->weapon;
 	}

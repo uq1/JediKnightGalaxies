@@ -406,6 +406,33 @@ void JKG_Crystal_f ( gentity_t *ent, int saberNum )
 	}
 }
 
+/*
+==================
+JKG_PrintWeaponList_f
+
+Good for testing desync
+==================
+*/
+
+void JKG_PrintWeaponList_f( gentity_t *ent )
+{
+	BG_PrintWeaponList();
+}
+
+/*
+==================
+JKG_DumpWeaponList_f
+
+Good for testing desync
+==================
+*/
+
+void JKG_DumpWeaponList_f( gentity_t *ent )
+{
+	BG_DumpWeaponList("svweaponlist.txt");
+}
+
+
 
 /*
 ==================
@@ -2155,7 +2182,7 @@ qboolean G_SetSaber(gentity_t *ent, int saberNum, char *saberName, qboolean sieg
 
 	if ( !ent->client->saber[0].model[0] )
 	{
-		assert(0); //should never happen!
+		assert(!"No saber model"); //assert(0); //should never happen! // but does :/
 		Q_strncpyz( ent->client->pers.saber1, DEFAULT_SABER, sizeof( ent->client->pers.saber1 ) );
 	}
 	else
@@ -4721,6 +4748,16 @@ void ClientCommand( int clientNum ) {
 
 	if (Q_stricmp (cmd, "score") == 0) {
 		Cmd_Score_f (ent);
+		return;
+	}
+
+	if (Q_stricmp (cmd, "printweaponlist_sv") == 0) {
+		JKG_PrintWeaponList_f(ent);
+		return;
+	}
+
+	if (Q_stricmp (cmd, "dumpweaponlist_sv") == 0) {
+		JKG_DumpWeaponList_f(ent);
 		return;
 	}
 

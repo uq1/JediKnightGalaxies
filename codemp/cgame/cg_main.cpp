@@ -2821,7 +2821,7 @@ Ghoul2 Insert End
 extern playerState_t *cgSendPS[MAX_GENTITIES]; //is not MAX_CLIENTS because NPCs exceed MAX_CLIENTS
 void CG_PmoveClientPointerUpdate();
 
-void WP_SaberLoadParms( void );
+bool JKG_ParseHiltFiles( void );
 void BG_VehicleLoadParms( void );
 
 /*
@@ -2918,8 +2918,7 @@ Ghoul2 Insert Start
 Ghoul2 Insert End
 */
 
-	//Load sabers.cfg data
-	WP_SaberLoadParms();
+	JKG_ParseHiltFiles();
 
 	// this is kinda dumb as well, but I need to pre-load some fonts in order to have the text available
 	//	to say I'm loading the assets.... which includes loading the fonts. So I'll set these up as reasonable
