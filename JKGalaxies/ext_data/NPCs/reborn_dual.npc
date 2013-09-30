@@ -2,8 +2,8 @@ reborn_dual
 {
 	playerModel	reborn_new
 	customSkin	red
-	saber		reborn
-	saber2	reborn
+	saber		Training
+	saber2	Training
 	weapon	WP_SABER
 	saberStyle	6
 	FP_HEAL			0

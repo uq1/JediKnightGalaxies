@@ -2,7 +2,7 @@ RebornFencer
 {
 	playerModel	reborn
 	customSkin	fencer
-	saber		reborn
+	saber		single_4
 	weapon	WP_SABER
 	saberStyle	1
 	FP_HEAL			0

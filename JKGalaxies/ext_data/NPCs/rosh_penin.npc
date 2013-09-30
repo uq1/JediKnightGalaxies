@@ -83,7 +83,7 @@ rosh_penin
 rosh_dark
 {
 	playerModel	rosh_penin
-	saber		shadowtrooper
+	saber		training
 	weapon	WP_SABER
 	saberStyle		3
 	health		500

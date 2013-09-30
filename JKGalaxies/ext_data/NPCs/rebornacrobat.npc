@@ -2,7 +2,7 @@ RebornAcrobat
 {
 	playerModel	reborn
 	customSkin	acrobat
-	saber		reborn
+	saber		single_1
 	saberColor	red
 	weapon	WP_SABER
 	saberStyle	2

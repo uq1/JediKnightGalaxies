@@ -2,7 +2,7 @@ RebornForceUser
 {
 	playerModel	reborn
 	customSkin	forceuser
-	saber		reborn
+	saber		single_6
 	weapon	WP_SABER
 	saberStyle	2
 	FP_HEAL			0

@@ -107,7 +107,7 @@ RebornMaster
 {
 	playerModel	reborn_twin
 	customSkin	boss
-	saber		rebornmaster
+	saber		single_1
 	weapon	WP_SABER
 	saberStyle	1
 	saberStyle	2
@@ -164,7 +164,7 @@ RebornMasterDual
 {
 	playerModel	reborn_twin
 	customSkin	boss
-	saber		shadowtrooper
+	saber		single_1
 	saber2	shadowtrooper
 	weapon	WP_SABER
 	saberStyle	6

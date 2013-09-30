@@ -1,7 +1,7 @@
 ShadowTrooper
 {
 	playerModel	shadowtrooper
-	saber		shadowtrooper
+	saber		single_7
 	weapon	WP_SABER
 	saberStyle	1
 	saberStyle	3
@@ -51,7 +51,7 @@ ShadowTrooper
 ShadowTrooper2
 {
 	playerModel	shadowtrooper
-	saber		shadowtrooper
+	saber		single_7
 	saberColor	red
 	weapon	WP_SABER
 	saberStyle	3
