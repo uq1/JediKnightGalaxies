@@ -629,9 +629,8 @@ bool JKG_ParseHiltFile( const char *filename )
 		Com_Printf (S_COLOR_RED "%s: No \"name\" field.\n", filename);
 		return false;
 	}
-	Q_strncpyz(name, cJSON_ToString(jsonNode), sizeof(name));
-
 	WP_SaberSetDefaults( &theHilt );
+	Q_strncpyz(name, cJSON_ToString(jsonNode), sizeof(name));
 
 #define JSONPARSE(x)		\
 	jsonNode = cJSON_GetObjectItem(json, x); \
