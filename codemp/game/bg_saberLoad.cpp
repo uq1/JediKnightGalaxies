@@ -928,7 +928,7 @@ if(childNode)
 
 #undef JSONPARSE
 
-	hiltLookupTable->insert(std::pair<std::string, saberInfo_t>(name, theHilt));
+	hiltLookupTable->insert(std::pair<std::string, saberInfo_t>(Q_strlwr(name), theHilt));
 	return true;
 }
 
@@ -968,7 +968,7 @@ bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber )
 {
 	if(!hiltLookupTable || hiltLookupTable->size() <= 0)
 		return false;	// occasionally gets set, incorrectly.
-	std::unordered_map<std::string, saberInfo_t>::iterator it = hiltLookupTable->find(hiltName);
+	std::unordered_map<std::string, saberInfo_t>::iterator it = hiltLookupTable->find(Q_strlwr(const_cast<char *>(hiltName)));
 	if(it == hiltLookupTable->end())
 	{
 		Com_Printf(S_COLOR_YELLOW "WARNING: Couldn't find hilt \"%s\" reference\n", hiltName);
