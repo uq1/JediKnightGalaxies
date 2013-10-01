@@ -763,7 +763,7 @@ void G_CheckVendorNPCs( void )
 		}
 	}
 #ifdef __ALWAYS_TWO_TRAVELLINGVENDORS
-	if (botplayers < minplayers)
+	if (botplayers < minplayers && level.gametype != GT_DUEL && level.gametype != GT_POWERDUEL)
 	{
 		gentity_t	*npc = NULL;
 		int			waypoint = irand(0, gWPNum-1);
