@@ -7,6 +7,7 @@
 #include <json/cJSON.h>
 #include <string>
 #include <unordered_map>
+#include <boost/algorithm/string.hpp>
 
 saberStanceExternal_t SaberStances[MAX_STANCES];
 
@@ -926,8 +927,9 @@ if(childNode)
 	*/
 
 #undef JSONPARSE
-
-	hiltLookupTable->insert(std::pair<std::string, saberInfo_t>(Q_strlwr(name), theHilt));
+	std::string name2 = name;
+	boost::algorithm::to_lower(name2);
+	hiltLookupTable->insert(std::pair<std::string, saberInfo_t>(name2, theHilt));
 	return true;
 }
 
@@ -963,7 +965,7 @@ bool JKG_ParseHiltFiles( void )
     return (successful > 0);
 }
 
-bool JKG_GetSaberHilt( char *hiltName, saberInfo_t *saber )
+bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber )
 {
 	std::unordered_map<std::string, saberInfo_t>::iterator it;
 	if(!hiltLookupTable || hiltLookupTable->size() <= 0)
@@ -971,7 +973,12 @@ bool JKG_GetSaberHilt( char *hiltName, saberInfo_t *saber )
 	if( !Q_stricmp(hiltName, DEFAULT_SABER) )
 		it = hiltLookupTable->find(DEFAULT_SABER);
 	else
-		it = hiltLookupTable->find(Q_strlwr(hiltName));
+	{
+		std::string derp = hiltName;
+
+		boost::algorithm::to_lower(derp);
+		it = hiltLookupTable->find(derp);
+	}
 	if(it == hiltLookupTable->end())
 	{
 		Com_Printf(S_COLOR_YELLOW "WARNING: Couldn't find hilt \"%s\" reference\n", hiltName);
@@ -1028,7 +1035,7 @@ void WP_SetSaber( int entNum, saberInfo_t *sabers, int saberNum, const char *sab
 		return;
 	}
 
-	JKG_GetSaberHilt( (char *)saberName, &sabers[saberNum] );
+	JKG_GetSaberHilt( saberName, &sabers[saberNum] );
 
 	if ((sabers[1].saberFlags&SFL_TWO_HANDED))
 	{//not allowed to use a 2-handed saber as second saber
