@@ -963,11 +963,15 @@ bool JKG_ParseHiltFiles( void )
     return (successful > 0);
 }
 
-bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber )
+bool JKG_GetSaberHilt( char *hiltName, saberInfo_t *saber )
 {
+	std::unordered_map<std::string, saberInfo_t>::iterator it;
 	if(!hiltLookupTable || hiltLookupTable->size() <= 0)
 		return false;	// occasionally gets set, incorrectly.
-	std::unordered_map<std::string, saberInfo_t>::iterator it = hiltLookupTable->find(Q_strlwr(const_cast<char *>(hiltName)));
+	if( !Q_stricmp(hiltName, DEFAULT_SABER) )
+		it = hiltLookupTable->find(DEFAULT_SABER);
+	else
+		it = hiltLookupTable->find(Q_strlwr(hiltName));
 	if(it == hiltLookupTable->end())
 	{
 		Com_Printf(S_COLOR_YELLOW "WARNING: Couldn't find hilt \"%s\" reference\n", hiltName);
@@ -1024,7 +1028,7 @@ void WP_SetSaber( int entNum, saberInfo_t *sabers, int saberNum, const char *sab
 		return;
 	}
 
-	JKG_GetSaberHilt( saberName, &sabers[saberNum] );
+	JKG_GetSaberHilt( (char *)saberName, &sabers[saberNum] );
 
 	if ((sabers[1].saberFlags&SFL_TWO_HANDED))
 	{//not allowed to use a 2-handed saber as second saber
