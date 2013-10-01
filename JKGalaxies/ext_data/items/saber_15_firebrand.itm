@@ -1,0 +1,11 @@
+{
+	"name":             "@MENUS_SINGLE_HILT9",
+	"internal":             "saber_firebrand",
+	"itemtype":             "weapon",
+	"weapon":		"WP_SABER",
+	"variation":		"15",
+	"weight":		"10",
+	"cost":		"1325",
+	"xml":			"",
+	"itemIcon":		"models/weapons/lightsabers/icons/firebrand.tga"
+}
