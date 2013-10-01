@@ -12,6 +12,7 @@
 itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
 lootTable_t lootLookupTable[MAX_LOOT_TABLE_SIZE];
 vendorStruct_t *vendorLookupTable[32];
+static int lastUsedItemID = 0;
 
 static int lastUsedVendorID;
 
@@ -84,8 +85,17 @@ static qboolean JKG_ParseItem ( const char *itemFilePath, itemData_t *itemData )
 	strcpy(itemData->internalName, str);
 
 	jsonNode = cJSON_GetObjectItem (json, "id");
-	item = cJSON_ToNumber (jsonNode);
-	itemData->itemID = item;
+	if( jsonNode ) {
+		item = cJSON_ToNumber (jsonNode);
+		itemData->itemID = item;
+	} else {
+		itemData->itemID = lastUsedItemID;
+#ifdef _DEBUG
+		Com_Printf("^3DEBUG: autoassigning item ID %i\n", itemData->itemID);
+#endif
+	}
+
+	lastUsedItemID++;
 
 	jsonNode = cJSON_GetObjectItem (json, "itemtype");
 	str = cJSON_ToString (jsonNode);
@@ -264,6 +274,8 @@ static qboolean JKG_LoadItems ( void )
 	const char *itemFile = itemFiles;
 	int successful = 0;
 	int failed = 0;
+
+	lastUsedItemID = 0;
 
 	Com_Printf ("------- Constructing Item Table -------\n");
 	
