@@ -2811,7 +2811,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		}
 		else
 		{
-			if(cg.playerACI[cg.weaponSelect] >= -0)
+			if(cg.playerACI[cg.weaponSelect] >= 0)
 			{
 				if(cg.weaponSelect >= MAX_ACI_SLOTS)
 				{

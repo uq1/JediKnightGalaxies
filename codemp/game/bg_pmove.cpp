@@ -6330,13 +6330,14 @@ void PM_FinishWeaponChange( void ) {
 	int		weapon;
 	int     variation;
 
-#ifdef QAGAME
-	JKG_DoubleCheckWeaponChange( &pm->cmd, pm->ps ); // sometimes sabers get fucked up, time to implement a hacky solution :/
-#endif
-
 	//eezstreet edit
 	if(!BG_GetWeaponByIndex(pm->cmd.weapon, &weapon, &variation))
 		return;
+
+#ifdef QAGAME
+	if( weapon != WP_MELEE )
+		JKG_DoubleCheckWeaponChange( &pm->cmd, pm->ps ); // sometimes sabers get fucked up, time to implement a hacky solution :/
+#endif
 
 	if (weapon == WP_SABER)
 	{
@@ -6366,14 +6367,7 @@ void PM_FinishWeaponChange( void ) {
 	//Stoiss end[/SaberThrowSys]
 	else if( weapon == WP_MELEE || weapon == WP_NONE )
 	{
-		if( pm->ps->weapon == WP_SABER )
-		{
-			PM_SetAnim(SETANIM_TORSO, BOTH_STAND2TO1, SETANIM_FLAG_OVERRIDE, 0);
-		}
-		else
-		{
-			PM_SetAnim(SETANIM_TORSO, BOTH_STAND9, SETANIM_FLAG_OVERRIDE, 0);
-		}
+		PM_SetAnim(SETANIM_TORSO, BOTH_STAND9, SETANIM_FLAG_OVERRIDE, 0);
 	}
 	else
 	{
