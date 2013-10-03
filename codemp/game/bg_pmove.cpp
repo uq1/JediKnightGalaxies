@@ -7471,6 +7471,7 @@ static void PM_Weapon( void )
 	{
 		if(BG_IsSprinting (pm->ps, &pm->cmd, qtrue))
 		{
+			// FIXME: ummm...what
 			if (pm->ps->weapon == WP_DET_PACK)
 			{
 				if (pm->ps->weapon == WP_THERMAL)
@@ -7677,15 +7678,7 @@ static void PM_Weapon( void )
 		    pm->ps->torsoAnim != TORSO_WEAPONIDLE3 &&
 		    pm->ps->weapon != WP_EMPLACED_GUN )
 		{
-			if(BG_IsSprinting (pm->ps, &pm->cmd, qtrue))
-			{
-				if(pm->ps->torsoAnim != wp->anims.sprint.torsoAnim)
-				{
-					// Mark 
-				}
-				PM_StartTorsoAnim( wp->anims.sprint.torsoAnim );
-			}
-			else
+			if(!BG_IsSprinting (pm->ps, &pm->cmd, qtrue))
 			{
 				if( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
 					PM_StartTorsoAnim( weaponData->anims.sights.torsoAnim );
@@ -8684,10 +8677,10 @@ void PM_AdjustAttackStates( pmove_t *pmove )
 	}
 	
 	// JKG: No firing while sprinting
-    	if ( BG_IsSprinting (pmove->ps, &pmove->cmd, qtrue) )
-    	{
-        	pmove->cmd.buttons &= ~BUTTON_ATTACK;
-    	}
+    if ( BG_IsSprinting (pmove->ps, &pmove->cmd, qtrue) )
+    {
+        pmove->cmd.buttons &= ~BUTTON_ATTACK;
+    }
 	
 	if ( weapon->zoomType != ZOOM_NONE )
 	{
