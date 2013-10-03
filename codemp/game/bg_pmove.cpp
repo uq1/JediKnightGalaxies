@@ -5538,6 +5538,7 @@ static void PM_Footsteps( void ) {
 	int			old;
 	qboolean	footstep;
 	int			setAnimFlags = 0;
+	weaponData_t *wd = GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation);
 
 	//[Knockdown]
 	if ( PM_InKnockDown( pm->ps ) )
@@ -5794,52 +5795,59 @@ static void PM_Footsteps( void ) {
 		    else
 		    {
 		        // TODO: Need to replace these with the correct animations
-				if( SaberStances[pm->ps->fd.saberAnimLevel].isStaffOnly )
+				if( pm->ps->weapon == WP_SABER )
 				{
-					if ( pm->ps->saberHolstered > 1 )
-					{//blades off
-						desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
-					}
-					else if ( pm->ps->saberHolstered == 1 )
-					{//1 blade on
-						desiredAnim = BOTH_RUN2;
-					}
-					else
+					if( SaberStances[pm->ps->fd.saberAnimLevel].isStaffOnly )
 					{
-						if (pm->ps->fd.forcePowersActive & (1<<FP_SPEED))
-						{
+						if ( pm->ps->saberHolstered > 1 )
+						{//blades off
 							desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
+						}
+						else if ( pm->ps->saberHolstered == 1 )
+						{//1 blade on
+							desiredAnim = BOTH_RUN2;
 						}
 						else
 						{
-							desiredAnim = BOTH_RUN_STAFF;
+							if (pm->ps->fd.forcePowersActive & (1<<FP_SPEED))
+							{
+								desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
+							}
+							else
+							{
+								desiredAnim = BOTH_RUN_STAFF;
+							}
 						}
 					}
-				}
-				else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
-				{
-					if ( pm->ps->saberHolstered > 1 )
-					{//blades off
-					    desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
-					}
-					else if ( pm->ps->saberHolstered == 1 )
-					{//1 saber on
-					    desiredAnim = BOTH_RUN2;
-					}
-					else
+					else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
 					{
-					    desiredAnim = BOTH_RUN_DUAL;
-					}
-				}
-				else
-				{
-					if ( pm->ps->saberHolstered || pm->ps->weapon == WP_MELEE || pm->ps->weapon == WP_NONE )  // JKG - Anim fix
-					{//saber off
-					    desiredAnim = BOTH_SPRINT;
+						if ( pm->ps->saberHolstered > 1 )
+						{//blades off
+							desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
+						}
+						else if ( pm->ps->saberHolstered == 1 )
+						{//1 saber on
+							desiredAnim = BOTH_RUN2;
+						}
+						else
+						{
+							desiredAnim = BOTH_RUN_DUAL;
+						}
 					}
 					else
 					{
 						desiredAnim = BOTH_SPRINT;
+					}
+				}
+				else
+				{
+					if ( pm->ps->weapon == WP_MELEE || pm->ps->weapon == WP_NONE )
+					{
+						desiredAnim = BOTH_SPRINT;
+					}
+					else
+					{
+						desiredAnim = wd->anims.sprint.torsoAnim;
 					}
 				}
 		    }
