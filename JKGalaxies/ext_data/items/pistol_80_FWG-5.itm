@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_pistol_FWG-5_FlechettePistol",
 	"internal":             "pistol_FWG-5",
-	"id":             "80",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"4",

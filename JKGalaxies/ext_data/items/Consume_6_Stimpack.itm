@@ -1,7 +1,6 @@
 {
 	"name":             "Greater Bacta Canister",
 	"internal":             "Stimpack",
-	"id":             "6",
 	"cost":		"150",
 	"itemtype":             "none",
 

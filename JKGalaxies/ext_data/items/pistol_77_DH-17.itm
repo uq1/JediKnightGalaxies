@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_pistol_DH-17_Pistol",
 	"internal":             "pistol_DH-17",
-	"id":             "77",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"7",

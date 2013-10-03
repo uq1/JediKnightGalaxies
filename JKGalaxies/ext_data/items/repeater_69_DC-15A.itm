@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_repeater_DC-15A_Rifle",
 	"internal":             "repeater_DC-15A",
-	"id":             "69",
 	"itemtype":             "weapon",
 	"weapon":		"WP_REPEATER",
 	"variation":		"0",

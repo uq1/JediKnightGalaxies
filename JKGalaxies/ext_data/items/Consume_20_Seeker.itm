@@ -1,7 +1,6 @@
 {
 	"name":             "Marksman-H Combat Remote",
 	"internal":             "Seeker",
-	"id":             "20",
 	"itemtype":             "none",
 	"itemIcon":		"gfx/hud/i_icon_seeker",
 	"pSpell":		"13",

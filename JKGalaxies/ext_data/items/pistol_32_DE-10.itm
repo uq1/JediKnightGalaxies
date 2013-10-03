@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_pistol_DE-10_Pistol",
 	"internal":             "pistol_DE-10",
-	"id":             "32",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"10",

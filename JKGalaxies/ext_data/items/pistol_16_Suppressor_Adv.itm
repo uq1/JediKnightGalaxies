@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_pistol_SuppressorPistol_Adv",
 	"internal":             "pistol_Suppressor_Adv",
-	"id":             "16",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"5",

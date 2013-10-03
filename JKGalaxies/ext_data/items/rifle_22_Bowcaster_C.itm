@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_rifle_Bowcaster_Classic",
 	"internal":             "rifle_Bowcaster_C",
-	"id":             "22",
 	"itemtype":             "weapon",
 	"weapon":		"WP_DISRUPTOR",
 	"variation":		"5",

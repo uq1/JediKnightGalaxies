@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_charge_Sequencer",
 	"internal":             "charge_Sequencer",
-	"id":             "58",
 	"itemtype":             "weapon",
 	"weapon":		"WP_DET_PACK",
 	"variation":		"0",

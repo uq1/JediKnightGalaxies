@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_sniper_ACP_HAMaR",
 	"internal":             "sniper_ACP",
-	"id":             "68",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BOWCASTER",
 	"variation":		"8",

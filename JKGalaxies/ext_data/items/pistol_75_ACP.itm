@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_pistol_A200_ACP_Pistol",
 	"internal":             "pistol_ACP",
-	"id":             "75",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"9",

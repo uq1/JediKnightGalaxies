@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_Grenade_C22Frag",
 	"internal":             "Grenade_C22Frag",
-	"id":             "24",
 	"itemtype":             "weapon",
 	"weapon":		"WP_THERMAL",
 	"variation":		"1",

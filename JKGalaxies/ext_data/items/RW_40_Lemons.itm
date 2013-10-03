@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_RW_Lemons",
 	"internal":             "RW_Lemons",
-	"id":             "40",
 	"itemtype":             "weapon",
 	"weapon":		"WP_THERMAL",
 	"variation":		"11",

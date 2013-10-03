@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_rifle_E-11A_Rifle",
 	"internal":             "rifle_E-11A",
-	"id":             "55",
 	"itemtype":             "weapon",
 	"weapon":		"WP_DISRUPTOR",
 	"variation":		"1",

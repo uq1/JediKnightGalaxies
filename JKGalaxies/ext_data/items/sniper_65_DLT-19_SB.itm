@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_sniper_DLT-19_HeavyBlaster_Scope",
 	"internal":             "sniper_DLT-19_SB",
-	"id":             "65",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BOWCASTER",
 	"variation":		"5",

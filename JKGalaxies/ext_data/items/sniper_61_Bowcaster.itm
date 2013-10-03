@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_sniper_Bowcaster",
 	"internal":             "sniper_Bowcaster",
-	"id":             "61",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BOWCASTER",
 	"variation":		"1",
