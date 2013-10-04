@@ -1464,7 +1464,8 @@ static void R_CreateFogImage( void ) {
 R_CreateDefaultImage
 ==================
 */
-#define	DEFAULT_SIZE	16
+#define	DEFAULT_SIZE		256
+#define DEFAULT_BOX_LINE	16
 static void R_CreateDefaultImage( void ) {
 	int		x;
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
@@ -1472,25 +1473,28 @@ static void R_CreateDefaultImage( void ) {
 	// the default image will be a box, to allow you to see the mapping coordinates
 	memset( data, 32, sizeof( data ) );
 	for ( x = 0 ; x < DEFAULT_SIZE ; x++ ) {
-		data[0][x][0] =
-		data[0][x][1] =
-		data[0][x][2] =
-		data[0][x][3] = 255;
+		for( int i = 1; i <= DEFAULT_BOX_LINE; i++ )
+		{
+			data[0][x][0] =
+			data[0][x][1] =
+			data[0][x][2] =
+			data[0][x][3] = 255;
 
-		data[x][0][0] =
-		data[x][0][1] =
-		data[x][0][2] =
-		data[x][0][3] = 255;
+			data[x][0][0] =
+			data[x][0][1] =
+			data[x][0][2] =
+			data[x][0][3] = 255;
 
-		data[DEFAULT_SIZE-1][x][0] =
-		data[DEFAULT_SIZE-1][x][1] =
-		data[DEFAULT_SIZE-1][x][2] =
-		data[DEFAULT_SIZE-1][x][3] = 255;
+			data[DEFAULT_SIZE-i][x][0] =
+			data[DEFAULT_SIZE-i][x][1] =
+			data[DEFAULT_SIZE-i][x][2] =
+			data[DEFAULT_SIZE-i][x][3] = 255;
 
-		data[x][DEFAULT_SIZE-1][0] =
-		data[x][DEFAULT_SIZE-1][1] =
-		data[x][DEFAULT_SIZE-1][2] =
-		data[x][DEFAULT_SIZE-1][3] = 255;
+			data[x][DEFAULT_SIZE-i][0] =
+			data[x][DEFAULT_SIZE-i][1] =
+			data[x][DEFAULT_SIZE-i][2] =
+			data[x][DEFAULT_SIZE-i][3] = 255;
+		}
 	}
 	tr.defaultImage = R_CreateImage("*default", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, GL_RGBA, qtrue, qfalse, qfalse, GL_REPEAT );
 }
