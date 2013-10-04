@@ -3498,10 +3498,10 @@ void G_RunFrame( int levelTime ) {
 				{
 					if(ent->client->saberBPDebRecharge < level.time)
 					{
-						int rechargeRate = 300;
-						int rechargeDifference = 300 - ent->client->saber[0].BPregenRate;
+						int rechargeRate = 600;
+						int rechargeDifference = 600 - ent->client->saber[0].BPregenRate;
 						if( ent->client->saber[1].Active() )
-							rechargeDifference += 300 - ent->client->saber[1].BPregenRate;
+							rechargeDifference += 600 - ent->client->saber[1].BPregenRate;
 
 						// Sabers with BP recharge rate bonuses DO stack.
 
@@ -3509,7 +3509,7 @@ void G_RunFrame( int levelTime ) {
 						rechargeRate += rechargeDifference;
 						if( ent->client->ps.saberActionFlags & (1 << SAF_BLOCKING) )
 						{
-							rechargeRate -= 150;
+							rechargeRate -= 300;
 						}
 						ent->client->saberBPDebRecharge = level.time + rechargeRate;
 					}
