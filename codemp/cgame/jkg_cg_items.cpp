@@ -268,7 +268,7 @@ void JKG_CG_DeltaFeed ( const char *mode )
 
 
 stringID_table_t WPTable[]; // From bg_saga.c
-static int lastUsedItemID = 0;
+static int lastUsedItemID = 1;
 static qboolean JKG_CG_ParseItem ( const char *itemFilePath, cgItemData_t *itemData )
 {
 	cJSON *json = NULL;
@@ -314,6 +314,7 @@ static qboolean JKG_CG_ParseItem ( const char *itemFilePath, cgItemData_t *itemD
 	jsonNode = cJSON_GetObjectItem (json, "name");
 	str = cJSON_ToString (jsonNode);
 	Q_strncpyz (itemData->displayName, str, sizeof (itemData->displayName));
+	itemData->xml[0] = '\0';
 
 	//not used
 	/*jsonNode = cJSON_GetObjectItem (json, "internal");
@@ -321,13 +322,16 @@ static qboolean JKG_CG_ParseItem ( const char *itemFilePath, cgItemData_t *itemD
 	strcpy(itemData->internalName, str);*/
 
 	jsonNode = cJSON_GetObjectItem (json, "id");
-	if(!jsonNode)
+	if(jsonNode)
 	{
 		item = cJSON_ToNumber (jsonNode);
 		itemData->itemID = item;
 	}
 	else
+	{
 		itemData->itemID = lastUsedItemID;
+	}
+	
 	lastUsedItemID++;
 
 	jsonNode = cJSON_GetObjectItem (json, "itemtype");
@@ -444,7 +448,7 @@ static qboolean JKG_CG_LoadItems ( void )
 	int successful = 0;
 	int failed = 0;
 
-	lastUsedItemID = 0;
+	lastUsedItemID = 1;
 
 	CG_Printf("Loading items...\n");
 	for(i = 0; i < numFiles; i++ )

@@ -5683,13 +5683,13 @@ void ClientCommand( int clientNum ) {
 	{
 		trap_SendServerCommand( clientNum, va("print \"%i \n\"", ent->client->ps.stats[STAT_HEALTH]));
 		return;
-	}
+	}*/
 	else if (Q_stricmp(cmd, "debugInventory") == 0)
 	{
 		JKG_Cmd_ShowInv_f(ent);
 		return;
 	}
-#endif
+/*#endif
 	else if (Q_stricmp(cmd, "bodyLoot") == 0)
 	{
 		char arg[MAX_STRING_CHARS];

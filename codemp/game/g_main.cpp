@@ -564,6 +564,10 @@ extern void RemoveAllWP(void);
 extern void BG_ClearVehicleParseParms(void);
 extern void JKG_InitItems(void);
 void ActivateCrashHandler();
+
+extern void JKG_RetrieveDuelCache( void );
+extern void JKG_SaveDuelCache( void );
+
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 	vmCvar_t	mapname;
@@ -837,6 +841,10 @@ void DeactivateCrashHandler();
 void G_ShutdownGame( int restart ) {
 	int i = 0;
 	gentity_t *ent;
+
+	// Cache some stuff for Duel, if necessary. 
+	if( restart && (level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL))
+		JKG_SaveDuelCache();
 
 	if(JKG_ThreadingInitialized())
 	{
