@@ -662,6 +662,9 @@
     <ClCompile Include="..\GLua\glua_json.cpp">
       <Filter>Source Files\GLua</Filter>
     </ClCompile>
+    <ClCompile Include="w_melee.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="JK2_game.def">

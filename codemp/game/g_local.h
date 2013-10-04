@@ -1788,6 +1788,13 @@ void WP_ActivateSaber( gentity_t *self );
 void JKG_NetworkSaberCrystals( playerState_t *ps, int invId, int weaponId );
 void JKG_DoubleCheckWeaponChange( usercmd_t *cmd, playerState_t *ps );
 
+// wp_melee.cpp
+qboolean G_CanBeEnemy( gentity_t *self, gentity_t *enemy );
+qboolean G_KickDownable(gentity_t *ent);
+void G_KickSomeMofos(gentity_t *ent);
+void G_GrabSomeMofos(gentity_t *self);
+void JKG_GrappleUpdate( gentity_t *self );
+
 // g_log.c
 void QDECL G_LogPrintf( const char *fmt, ... );
 void QDECL G_LogWeaponPickup(int client, int weaponid);

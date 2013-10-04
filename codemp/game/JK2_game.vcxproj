@@ -349,6 +349,7 @@
     <ClCompile Include="NPC_Waypointing.cpp" />
     <ClCompile Include="tri_coll_test.cpp" />
     <ClCompile Include="w_force.cpp" />
+    <ClCompile Include="w_melee.cpp" />
     <ClCompile Include="w_saber.cpp" />
     <ClCompile Include="..\GLua\glua_bitstream.cpp" />
     <ClCompile Include="..\GLua\glua_bitwise.cpp" />
