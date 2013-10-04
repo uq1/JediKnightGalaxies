@@ -8148,6 +8148,269 @@ static void G_GrabSomeMofos(gentity_t *self)
 	}
 }
 
+static void JKG_GrappleUpdate( gentity_t *self )
+{
+	gentity_t *grappler = &g_entities[self->client->grappleIndex];
+
+	if (!grappler->inuse || !grappler->client || grappler->client->grappleIndex != self->s.number ||
+		!BG_InGrappleMove(grappler->client->ps.torsoAnim) || !BG_InGrappleMove(grappler->client->ps.legsAnim) ||
+		!BG_InGrappleMove(self->client->ps.torsoAnim) || !BG_InGrappleMove(self->client->ps.legsAnim) ||
+		!self->client->grappleState || !grappler->client->grappleState ||
+		grappler->health < 1 || self->health < 1 ||
+		!G_PrettyCloseIGuess(self->client->ps.origin[2], grappler->client->ps.origin[2], 4.0f))
+	{
+		self->client->grappleState = 0;
+		if ((BG_InGrappleMove(self->client->ps.torsoAnim) && self->client->ps.torsoTimer > 100) ||
+			(BG_InGrappleMove(self->client->ps.legsAnim) && self->client->ps.legsTimer > 100))
+		{ //if they're pretty far from finishing the anim then shove them into another anim
+			G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
+			if (self->client->ps.torsoAnim == BOTH_KYLE_MISS)
+			{ //providing the anim set succeeded..
+				self->client->ps.weaponTime = self->client->ps.torsoTimer;
+			}
+		}
+	}
+	else
+	{
+		vec3_t grapAng;
+
+		VectorSubtract(grappler->client->ps.origin, self->client->ps.origin, grapAng);
+
+		if (VectorLength(grapAng) > 64.0f)
+		{ //too far away, break it off
+			if ((BG_InGrappleMove(self->client->ps.torsoAnim) && self->client->ps.torsoTimer > 100) ||
+				(BG_InGrappleMove(self->client->ps.legsAnim) && self->client->ps.legsTimer > 100))
+			{
+				self->client->grappleState = 0;
+
+				G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
+				if (self->client->ps.torsoAnim == BOTH_KYLE_MISS)
+				{ //providing the anim set succeeded..
+					self->client->ps.weaponTime = self->client->ps.torsoTimer;
+				}
+			}
+		}
+		else
+		{
+			vectoangles(grapAng, grapAng);
+			SetClientViewAngle(self, grapAng);
+
+			if (self->client->grappleState >= 20)
+			{ //grapplee
+				//try to position myself at the correct distance from my grappler
+				float idealDist;
+				vec3_t gFwd, idealSpot;
+				trace_t trace;
+
+				if (grappler->client->ps.torsoAnim == BOTH_KYLE_PA_1)
+				{ //grab punch
+					idealDist = 46.0f;
+				}
+				else
+				{ //knee-throw
+					idealDist = 34.0f;
+				}
+
+				AngleVectors(grappler->client->ps.viewangles, gFwd, 0, 0);
+				VectorMA(grappler->client->ps.origin, idealDist, gFwd, idealSpot);
+
+				trap_Trace(&trace, self->client->ps.origin, self->r.mins, self->r.maxs, idealSpot, self->s.number, self->clipmask);
+				if (!trace.startsolid && !trace.allsolid && trace.fraction == 1.0f)
+				{ //go there
+					G_SetOrigin(self, idealSpot);
+					VectorCopy(idealSpot, self->client->ps.origin);
+				}
+			}
+			else if (self->client->grappleState >= 1)
+			{ //grappler
+				if (grappler->client->ps.weapon == WP_SABER)
+				{ //make sure their saber is shut off
+					if (!grappler->client->ps.saberHolstered)
+					{
+						grappler->client->ps.saberHolstered = 2;
+						if (grappler->client->saber[0].soundOff)
+						{
+							G_Sound(grappler, CHAN_AUTO, grappler->client->saber[0].soundOff);
+						}
+						if (grappler->client->saber[1].soundOff &&
+							grappler->client->saber[1].model[0])
+						{
+							G_Sound(grappler, CHAN_AUTO, grappler->client->saber[1].soundOff);
+						}
+					}
+				}
+
+				//check for smashy events
+				if (self->client->ps.torsoAnim == BOTH_KYLE_PA_1)
+				{ //grab punch
+                    if (self->client->grappleState == 1)
+					{ //smack
+						if (self->client->ps.torsoTimer < 3400)
+						{
+							int grapplerAnim = grappler->client->ps.torsoAnim;
+							int grapplerTime = grappler->client->ps.torsoTimer;
+
+							G_Damage(grappler, self, self, NULL, self->client->ps.origin, 10, 0, MOD_MELEE);
+							//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
+
+							//it might try to put them into a pain anim or something, so override it back again
+							if (grappler->health > 0)
+							{
+								grappler->client->ps.torsoAnim = grapplerAnim;
+								grappler->client->ps.torsoTimer = grapplerTime;
+								grappler->client->ps.legsAnim = grapplerAnim;
+								grappler->client->ps.legsTimer = grapplerTime;
+								grappler->client->ps.weaponTime = grapplerTime;
+							}
+							self->client->grappleState++;
+						}
+					}
+					else if (self->client->grappleState == 2)
+					{ //smack!
+						if (self->client->ps.torsoTimer < 2550)
+						{
+							int grapplerAnim = grappler->client->ps.torsoAnim;
+							int grapplerTime = grappler->client->ps.torsoTimer;
+
+							G_Damage(grappler, self, self, NULL, self->client->ps.origin, 10, 0, MOD_MELEE);
+							//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
+
+							//it might try to put them into a pain anim or something, so override it back again
+							if (grappler->health > 0)
+							{
+								grappler->client->ps.torsoAnim = grapplerAnim;
+								grappler->client->ps.torsoTimer = grapplerTime;
+								grappler->client->ps.legsAnim = grapplerAnim;
+								grappler->client->ps.legsTimer = grapplerTime;
+								grappler->client->ps.weaponTime = grapplerTime;
+							}
+							self->client->grappleState++;
+						}
+					}
+					else
+					{ //SMACK!
+						if (self->client->ps.torsoTimer < 1300)
+						{
+							vec3_t tossDir;
+
+							G_Damage(grappler, self, self, NULL, self->client->ps.origin, 30, 0, MOD_MELEE);
+							//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
+
+							self->client->grappleState = 0;
+
+							VectorSubtract(grappler->client->ps.origin, self->client->ps.origin, tossDir);
+							VectorNormalize(tossDir);
+							VectorScale(tossDir, 500.0f, tossDir);
+							tossDir[2] = 200.0f;
+
+							VectorAdd(grappler->client->ps.velocity, tossDir, grappler->client->ps.velocity);
+
+							if (grappler->health > 0)
+							{ //if still alive knock them down
+								grappler->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
+								grappler->client->ps.forceHandExtendTime = level.time + 1300;
+							}
+						}
+					}
+				}
+				else if (self->client->ps.torsoAnim == BOTH_KYLE_PA_2)
+				{ //knee throw
+                    if (self->client->grappleState == 1)
+					{ //knee to the face
+						if (self->client->ps.torsoTimer < 3200)
+						{
+							int grapplerAnim = grappler->client->ps.torsoAnim;
+							int grapplerTime = grappler->client->ps.torsoTimer;
+
+							G_Damage(grappler, self, self, NULL, self->client->ps.origin, 20, 0, MOD_MELEE);
+							//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
+
+							//it might try to put them into a pain anim or something, so override it back again
+							if (grappler->health > 0)
+							{
+								grappler->client->ps.torsoAnim = grapplerAnim;
+								grappler->client->ps.torsoTimer = grapplerTime;
+								grappler->client->ps.legsAnim = grapplerAnim;
+								grappler->client->ps.legsTimer = grapplerTime;
+								grappler->client->ps.weaponTime = grapplerTime;
+							}
+							self->client->grappleState++;
+						}
+					}
+					else if (self->client->grappleState == 2)
+					{ //smashed on the ground
+						if (self->client->ps.torsoTimer < 2000)
+						{
+							//G_Damage(grappler, self, self, NULL, self->client->ps.origin, 10, 0, MOD_MELEE);
+							//don't do damage on this one, it would look very freaky if they died
+							G_EntitySound( grappler, CHAN_VOICE, G_SoundIndex("*pain100.wav") );
+							//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
+							self->client->grappleState++;
+						}
+					}
+					else
+					{ //and another smash
+						if (self->client->ps.torsoTimer < 1000)
+						{
+							G_Damage(grappler, self, self, NULL, self->client->ps.origin, 30, 0, MOD_MELEE);
+							//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
+
+							//it might try to put them into a pain anim or something, so override it back again
+							if (grappler->health > 0)
+							{
+								grappler->client->ps.torsoTimer = 1000;
+								//G_SetAnim(grappler, &grappler->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP3, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
+								grappler->client->grappleState = 0;
+							}
+							else
+							{ //override death anim
+								grappler->client->ps.torsoAnim = BOTH_DEADFLOP1;
+								grappler->client->ps.legsAnim = BOTH_DEADFLOP1;
+							}
+
+							self->client->grappleState = 0;
+						}
+					}
+				}
+				else
+				{ //?
+				}
+			}
+		}
+	}
+}
+
+ID_INLINE bool JKG_CanWeThrowSaber( gentity_t *self )
+{
+	if (self->client->ps.saberThrowDelay < level.time)
+	{
+		if ( (self->client->saber[0].saberFlags&SFL_NOT_THROWABLE) )
+		{//cant throw it normally!
+			if ( (self->client->saber[0].saberFlags&SFL_SINGLE_BLADE_THROWABLE) )
+			{//but can throw it if only have 1 blade on
+				if ( self->client->saber[0].numBlades > 1
+					&& self->client->ps.saberHolstered == 1 )
+				{//have multiple blades and only one blade on
+					return true;
+				}
+				else
+				{//multiple blades on, can't throw
+					return false;
+				}
+			}
+			else
+			{//never can throw it
+				return false;
+			}
+		}
+		else
+		{//can throw it!
+			return true;
+		}
+	}
+	return self->client->ps.saberCanThrow;
+}
+
 void WP_SaberPositionUpdate( gentity_t *self, usercmd_t *ucmd )
 { //rww - keep the saber position as updated as possible on the server so that we can try to do realistic-looking contact stuff
   //Note that this function also does the majority of working in maintaining the server g2 client instance (updating angles/anims/etc)
@@ -8216,234 +8479,7 @@ void WP_SaberPositionUpdate( gentity_t *self, usercmd_t *ucmd )
 	}
 	else if (self->client->grappleState)
 	{
-		gentity_t *grappler = &g_entities[self->client->grappleIndex];
-
-		if (!grappler->inuse || !grappler->client || grappler->client->grappleIndex != self->s.number ||
-			!BG_InGrappleMove(grappler->client->ps.torsoAnim) || !BG_InGrappleMove(grappler->client->ps.legsAnim) ||
-			!BG_InGrappleMove(self->client->ps.torsoAnim) || !BG_InGrappleMove(self->client->ps.legsAnim) ||
-			!self->client->grappleState || !grappler->client->grappleState ||
-			grappler->health < 1 || self->health < 1 ||
-			!G_PrettyCloseIGuess(self->client->ps.origin[2], grappler->client->ps.origin[2], 4.0f))
-		{
-			self->client->grappleState = 0;
-			if ((BG_InGrappleMove(self->client->ps.torsoAnim) && self->client->ps.torsoTimer > 100) ||
-				(BG_InGrappleMove(self->client->ps.legsAnim) && self->client->ps.legsTimer > 100))
-			{ //if they're pretty far from finishing the anim then shove them into another anim
-				G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
-				if (self->client->ps.torsoAnim == BOTH_KYLE_MISS)
-				{ //providing the anim set succeeded..
-					self->client->ps.weaponTime = self->client->ps.torsoTimer;
-				}
-			}
-		}
-		else
-		{
-			vec3_t grapAng;
-
-			VectorSubtract(grappler->client->ps.origin, self->client->ps.origin, grapAng);
-
-			if (VectorLength(grapAng) > 64.0f)
-			{ //too far away, break it off
-				if ((BG_InGrappleMove(self->client->ps.torsoAnim) && self->client->ps.torsoTimer > 100) ||
-					(BG_InGrappleMove(self->client->ps.legsAnim) && self->client->ps.legsTimer > 100))
-				{
-					self->client->grappleState = 0;
-
-					G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
-					if (self->client->ps.torsoAnim == BOTH_KYLE_MISS)
-					{ //providing the anim set succeeded..
-						self->client->ps.weaponTime = self->client->ps.torsoTimer;
-					}
-				}
-			}
-			else
-			{
-				vectoangles(grapAng, grapAng);
-				SetClientViewAngle(self, grapAng);
-
-				if (self->client->grappleState >= 20)
-				{ //grapplee
-					//try to position myself at the correct distance from my grappler
-					float idealDist;
-					vec3_t gFwd, idealSpot;
-					trace_t trace;
-
-					if (grappler->client->ps.torsoAnim == BOTH_KYLE_PA_1)
-					{ //grab punch
-						idealDist = 46.0f;
-					}
-					else
-					{ //knee-throw
-						idealDist = 34.0f;
-					}
-
-					AngleVectors(grappler->client->ps.viewangles, gFwd, 0, 0);
-					VectorMA(grappler->client->ps.origin, idealDist, gFwd, idealSpot);
-
-					trap_Trace(&trace, self->client->ps.origin, self->r.mins, self->r.maxs, idealSpot, self->s.number, self->clipmask);
-					if (!trace.startsolid && !trace.allsolid && trace.fraction == 1.0f)
-					{ //go there
-						G_SetOrigin(self, idealSpot);
-						VectorCopy(idealSpot, self->client->ps.origin);
-					}
-				}
-				else if (self->client->grappleState >= 1)
-				{ //grappler
-					if (grappler->client->ps.weapon == WP_SABER)
-					{ //make sure their saber is shut off
-						if (!grappler->client->ps.saberHolstered)
-						{
-							grappler->client->ps.saberHolstered = 2;
-							if (grappler->client->saber[0].soundOff)
-							{
-								G_Sound(grappler, CHAN_AUTO, grappler->client->saber[0].soundOff);
-							}
-							if (grappler->client->saber[1].soundOff &&
-								grappler->client->saber[1].model[0])
-							{
-								G_Sound(grappler, CHAN_AUTO, grappler->client->saber[1].soundOff);
-							}
-						}
-					}
-
-					//check for smashy events
-					if (self->client->ps.torsoAnim == BOTH_KYLE_PA_1)
-					{ //grab punch
-                        if (self->client->grappleState == 1)
-						{ //smack
-							if (self->client->ps.torsoTimer < 3400)
-							{
-								int grapplerAnim = grappler->client->ps.torsoAnim;
-								int grapplerTime = grappler->client->ps.torsoTimer;
-
-								G_Damage(grappler, self, self, NULL, self->client->ps.origin, 10, 0, MOD_MELEE);
-								//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
-
-								//it might try to put them into a pain anim or something, so override it back again
-								if (grappler->health > 0)
-								{
-									grappler->client->ps.torsoAnim = grapplerAnim;
-									grappler->client->ps.torsoTimer = grapplerTime;
-									grappler->client->ps.legsAnim = grapplerAnim;
-									grappler->client->ps.legsTimer = grapplerTime;
-									grappler->client->ps.weaponTime = grapplerTime;
-								}
-								self->client->grappleState++;
-							}
-						}
-						else if (self->client->grappleState == 2)
-						{ //smack!
-							if (self->client->ps.torsoTimer < 2550)
-							{
-								int grapplerAnim = grappler->client->ps.torsoAnim;
-								int grapplerTime = grappler->client->ps.torsoTimer;
-
-								G_Damage(grappler, self, self, NULL, self->client->ps.origin, 10, 0, MOD_MELEE);
-								//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
-
-								//it might try to put them into a pain anim or something, so override it back again
-								if (grappler->health > 0)
-								{
-									grappler->client->ps.torsoAnim = grapplerAnim;
-									grappler->client->ps.torsoTimer = grapplerTime;
-									grappler->client->ps.legsAnim = grapplerAnim;
-									grappler->client->ps.legsTimer = grapplerTime;
-									grappler->client->ps.weaponTime = grapplerTime;
-								}
-								self->client->grappleState++;
-							}
-						}
-						else
-						{ //SMACK!
-							if (self->client->ps.torsoTimer < 1300)
-							{
-								vec3_t tossDir;
-
-								G_Damage(grappler, self, self, NULL, self->client->ps.origin, 30, 0, MOD_MELEE);
-								//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
-
-								self->client->grappleState = 0;
-
-								VectorSubtract(grappler->client->ps.origin, self->client->ps.origin, tossDir);
-								VectorNormalize(tossDir);
-								VectorScale(tossDir, 500.0f, tossDir);
-								tossDir[2] = 200.0f;
-
-								VectorAdd(grappler->client->ps.velocity, tossDir, grappler->client->ps.velocity);
-
-								if (grappler->health > 0)
-								{ //if still alive knock them down
-									grappler->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
-									grappler->client->ps.forceHandExtendTime = level.time + 1300;
-								}
-							}
-						}
-					}
-					else if (self->client->ps.torsoAnim == BOTH_KYLE_PA_2)
-					{ //knee throw
-                        if (self->client->grappleState == 1)
-						{ //knee to the face
-							if (self->client->ps.torsoTimer < 3200)
-							{
-								int grapplerAnim = grappler->client->ps.torsoAnim;
-								int grapplerTime = grappler->client->ps.torsoTimer;
-
-								G_Damage(grappler, self, self, NULL, self->client->ps.origin, 20, 0, MOD_MELEE);
-								//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
-
-								//it might try to put them into a pain anim or something, so override it back again
-								if (grappler->health > 0)
-								{
-									grappler->client->ps.torsoAnim = grapplerAnim;
-									grappler->client->ps.torsoTimer = grapplerTime;
-									grappler->client->ps.legsAnim = grapplerAnim;
-									grappler->client->ps.legsTimer = grapplerTime;
-									grappler->client->ps.weaponTime = grapplerTime;
-								}
-								self->client->grappleState++;
-							}
-						}
-						else if (self->client->grappleState == 2)
-						{ //smashed on the ground
-							if (self->client->ps.torsoTimer < 2000)
-							{
-								//G_Damage(grappler, self, self, NULL, self->client->ps.origin, 10, 0, MOD_MELEE);
-								//don't do damage on this one, it would look very freaky if they died
-								G_EntitySound( grappler, CHAN_VOICE, G_SoundIndex("*pain100.wav") );
-								//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
-								self->client->grappleState++;
-							}
-						}
-						else
-						{ //and another smash
-							if (self->client->ps.torsoTimer < 1000)
-							{
-								G_Damage(grappler, self, self, NULL, self->client->ps.origin, 30, 0, MOD_MELEE);
-								//G_Sound( grappler, CHAN_AUTO, G_SoundIndex( va( "sound/weapons/melee/punch%d", Q_irand( 1, 4 ) ) ) );
-
-								//it might try to put them into a pain anim or something, so override it back again
-								if (grappler->health > 0)
-								{
-									grappler->client->ps.torsoTimer = 1000;
-									//G_SetAnim(grappler, &grappler->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP3, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
-									grappler->client->grappleState = 0;
-								}
-								else
-								{ //override death anim
-									grappler->client->ps.torsoAnim = BOTH_DEADFLOP1;
-									grappler->client->ps.legsAnim = BOTH_DEADFLOP1;
-								}
-
-								self->client->grappleState = 0;
-							}
-						}
-					}
-					else
-					{ //?
-					}
-				}
-			}
-		}
+		JKG_GrappleUpdate(self);
 	}
 
 	//If this is a listen server (client+server running on same machine),
@@ -8473,17 +8509,13 @@ void WP_SaberPositionUpdate( gentity_t *self, usercmd_t *ucmd )
 		{ //Since we haven't got a bolt position, place it on top of the player origin.
 			VectorCopy(self->client->ps.origin, mySaber->r.currentOrigin);
 		}
-	
-		//I don't want to return now actually, I want to keep g2 instances for corpses up to
-		//date because I'm doing better corpse hit detection/dismem (particularly for the
-		//npc's)
-		//return;
 	}
 
 	if ( BG_SuperBreakWinAnim( self->client->ps.torsoAnim ) )
 	{
 		self->client->ps.weaponstate = WEAPON_FIRING;
 	}
+
 	if (self->client->ps.weapon != WP_SABER ||
 		self->client->ps.weaponstate == WEAPON_RAISING ||
 		self->client->ps.weaponstate == WEAPON_DROPPING ||
@@ -8495,33 +8527,7 @@ void WP_SaberPositionUpdate( gentity_t *self, usercmd_t *ucmd )
 		}
 	}
 
-	if (self->client->ps.saberThrowDelay < level.time)
-	{
-		if ( (self->client->saber[0].saberFlags&SFL_NOT_THROWABLE) )
-		{//cant throw it normally!
-			if ( (self->client->saber[0].saberFlags&SFL_SINGLE_BLADE_THROWABLE) )
-			{//but can throw it if only have 1 blade on
-				if ( self->client->saber[0].numBlades > 1
-					&& self->client->ps.saberHolstered == 1 )
-				{//have multiple blades and only one blade on
-					self->client->ps.saberCanThrow = qtrue;//qfalse;
-					//huh? want to be able to throw then right?
-				}
-				else
-				{//multiple blades on, can't throw
-					self->client->ps.saberCanThrow = qfalse;
-				}
-			}
-			else
-			{//never can throw it
-				self->client->ps.saberCanThrow = qfalse;
-			}
-		}
-		else
-		{//can throw it!
-			self->client->ps.saberCanThrow = qtrue;
-		}
-	}
+	self->client->ps.saberCanThrow = JKG_CanWeThrowSaber(self);
 nextStep:
 	if (self->client->ps.fd.forcePowersActive & (1 << FP_RAGE))
 	{
