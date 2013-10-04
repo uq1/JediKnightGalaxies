@@ -5797,7 +5797,7 @@ static void PM_Footsteps( void ) {
 		        // TODO: Need to replace these with the correct animations
 				if( pm->ps->weapon == WP_SABER )
 				{
-					if( SaberStances[pm->ps->fd.saberAnimLevel].isStaffOnly )
+					if( SaberStances[pm->ps->fd.saberAnimLevel].isStaffOnly && !BG_SabersOff(pm->ps) )
 					{
 						if ( pm->ps->saberHolstered > 1 )
 						{//blades off
@@ -5819,7 +5819,7 @@ static void PM_Footsteps( void ) {
 							}
 						}
 					}
-					else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
+					else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly && !BG_SabersOff(pm->ps) )
 					{
 						if ( pm->ps->saberHolstered > 1 )
 						{//blades off
@@ -5910,7 +5910,7 @@ static void PM_Footsteps( void ) {
 						desiredAnim = BOTH_RUNBACK2;
 					}
 				}
-				else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
+				else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly && !BG_SabersOff(pm->ps) )
 				{
 					if ( pm->ps->saberHolstered > 1 ) 
 					{//sabers off
@@ -5961,7 +5961,7 @@ static void PM_Footsteps( void ) {
 							}
 						}
 					}
-					else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
+					else if( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly && !BG_SabersOff(pm->ps) )
 					{
 						if ( pm->ps->saberHolstered > 1 )
 						{//blades off
