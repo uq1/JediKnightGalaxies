@@ -4085,7 +4085,7 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 	static int otherSaberLevel;
 	int dmg = 0;
 	int attackStr = 0;
-	float saberBoxSize = d_saberBoxTraceSize.value;
+	float saberBoxSize = 0;
 	qboolean idleDamage = qfalse;
 	qboolean didHit = qfalse;
 	qboolean sabersClashed = qfalse;
