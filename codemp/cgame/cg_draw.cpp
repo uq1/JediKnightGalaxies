@@ -2302,7 +2302,7 @@ float CG_DrawRadar ( float y )
 	{
 		// CLEANME: rewrite this check later. i didn't mean to rescope, honest to goodness --eez
 		vec4_t newColor = {1, 1, 1, 0};
-		float ironSightsPhase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState);
+		float ironSightsPhase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState, cg.time, &cg.ironsightsBlend);
 		VectorCopy4(newColor, color);
 
 		if(ironSightsPhase > 0)
@@ -3257,7 +3257,7 @@ vec3_t cg_crosshairPos={0,0,0};
 		    }
 		    else
 		    {
-				float ironSightsPhase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState);
+				float ironSightsPhase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState, cg.time, &cg.ironsightsBlend);
 				float sprintPhase = JKG_CalculateSprintPhase (&cg.predictedPlayerState);
 				if(ironSightsPhase > 0)
 				{
@@ -3494,7 +3494,7 @@ vec3_t cg_crosshairPos={0,0,0};
             // JKG: Crosshair disappears for ironsights
             if ( !cg.renderingThirdPerson )
             {
-				float ironSightsPhase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState);
+				float ironSightsPhase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState, cg.time, &cg.ironsightsBlend);
 				float sprintPhase = JKG_CalculateSprintPhase (&cg.predictedPlayerState);
 				if(ironSightsPhase > 0)
 				{

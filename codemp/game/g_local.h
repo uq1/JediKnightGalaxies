@@ -1027,6 +1027,7 @@ struct gclient_s {
 	char		botSoundDir[MAX_QPATH];
 	float		blockingLightningAccumulation;//Stoiss add
 	qboolean	didSaberOffSound;				// eez add
+	float		ironsightsBlend;			// only used in ~1 place, but it's used to prevent noscoping
 };
 
 //Interest points

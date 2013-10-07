@@ -4157,16 +4157,24 @@ vec3_t *WP_GetWeaponDirection( gentity_t *ent, int firemode, vec3_t forward )
 			fKnockBack	*= 1.0f;
 		}
 			
+		/* The sights modifier is altered based on how far into scoping we are.
+		 * This prevents "no-scoping" as seen in Call of Duty
+		 */
+		float phase = JKG_CalculateIronsightsPhase(&ent->client->ps, level.time, &ent->client->ironsightsBlend);
+		float sightsDiff = thisWeaponData->firemodes[firemode].weaponAccuracy.sightsModifier - 1.0f;
+		float adjustedSightsDiff = sightsDiff * phase;
+		float finalSightsModifier = 1.0f + adjustedSightsDiff;
+
 		/* Additional stabilising factor is in ironsights */
 		if ( !bIsMoving && !bIsInAir &&
 			bInIronsights )
 		{
-			fSpreadModifiers *= thisWeaponData->firemodes[firemode].weaponAccuracy.sightsModifier;
+			fSpreadModifiers *= finalSightsModifier;
 			fKnockBack  *= 0.8f;
 		}
 		else if( !bIsInAir && bInIronsights )
 		{
-			fSpreadModifiers *= thisWeaponData->firemodes[firemode].weaponAccuracy.sightsModifier;
+			fSpreadModifiers *= finalSightsModifier;
 		}
 
 		/* We have some extra slop to add, so let's add it now */

@@ -1671,6 +1671,8 @@ bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber );
 extern void BG_AttachToRancor( void *ghoul2,float rancYaw,vec3_t rancOrigin,int time,qhandle_t *modelList,vec3_t modelScale,qboolean inMouth,vec3_t out_origin,vec3_t out_angles,vec3_t out_axis[3] );
 void BG_ClearRocketLock( playerState_t *ps );
 
+float JKG_CalculateIronsightsPhase ( const playerState_t *ps, int time, float *blend );
+
 qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolean PMOVE  );
 
 extern int forcePowerDarkLight[NUM_FORCE_POWERS];
