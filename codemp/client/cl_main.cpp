@@ -81,6 +81,8 @@ cvar_t	*cl_autolodscale;
 cvar_t	*cl_consoleKeys;
 #endif
 
+cvar_t  *cl_lanForcePackets;
+
 vec3_t cl_windVec;
 
 
@@ -2715,6 +2717,8 @@ void CL_Init( void ) {
 	cl_motdString = Cvar_Get( "cl_motdString", "", CVAR_ROM );
 
 	Cvar_Get( "cl_maxPing", "800", CVAR_ARCHIVE );
+
+	cl_lanForcePackets = Cvar_Get ("cl_lanForcePackets", "1", CVAR_ARCHIVE);
 
 	cl_guidServerUniq = Cvar_Get ("cl_guidServerUniq", "1", CVAR_ARCHIVE);
 

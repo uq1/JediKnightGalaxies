@@ -389,6 +389,8 @@ extern	cvar_t	*cl_inGameVideo;
 extern	cvar_t	*cl_consoleKeys;
 #endif
 
+extern  cvar_t  *cl_lanForcePackets;
+
 //=================================================
 
 //
