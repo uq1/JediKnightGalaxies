@@ -421,7 +421,7 @@ qboolean CROFFSystem::Unload( int id )
 		// darn stl differences
 		TROFFList::iterator titr;
 		titr = itr;
-		itr++;
+		++itr;
 		mROFFList.erase(titr);
 #endif
 
@@ -460,7 +460,7 @@ qboolean CROFFSystem::Clean(qboolean isClient)
 	while ( itr != mROFFList.end() )
 	{
 		next = itr;
-		next++;
+		++next;
 
 		if (isClient)
 		{
@@ -482,7 +482,7 @@ qboolean CROFFSystem::Clean(qboolean isClient)
 	while ( entI != mROFFEntList.end() )
 	{
 		nextEnt = entI;
-		nextEnt++;
+		++nextEnt;
 
 		if ((*entI)->mIsClient == isClient)
 		{

@@ -178,7 +178,7 @@ void CFxScheduler::Clean(bool bRemoveTemplates /*= true*/, int idToPreserve /*= 
 	while ( itr != mFxSchedule.end() )
 	{
 		next = itr;
-		next++;
+		++next;
 
 		delete *itr;
 		mFxSchedule.erase(itr);
@@ -1085,7 +1085,7 @@ void CFxScheduler::AddScheduledEffects( bool portal )
 	while ( itr != mFxSchedule.end() )
 	{
 		next = itr;
-		next++;
+		++next;
 
 		if (portal == (*itr)->mPortalEffect)
 		{ //only render portal fx on the skyportal pass and vice versa

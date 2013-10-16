@@ -2725,7 +2725,7 @@ CPriorityQueue::~CPriorityQueue()
 //////////////////////////////////////////////////////////////////
 CEdge* CPriorityQueue::Find(int npNum)
 {
-	for(vector<CEdge*>::iterator HeapIter=mHeap.begin(); HeapIter!=mHeap.end(); HeapIter++)
+	for(vector<CEdge*>::iterator HeapIter=mHeap.begin(); HeapIter!=mHeap.end(); ++HeapIter)
 	{
 		if ((*HeapIter)->m_first == npNum)
 		{
@@ -2772,7 +2772,7 @@ void CPriorityQueue::Push(CEdge* theEdge )
 //////////////////////////////////////////////////////////////////
 void CPriorityQueue::Update( CEdge* edge )
 {  
-   for(vector<CEdge*>::iterator i=mHeap.begin(); i!=mHeap.end(); i++)
+   for(vector<CEdge*>::iterator i=mHeap.begin(); i!=mHeap.end(); ++i)
    {
       if( (*i)->m_first == edge->m_first )
       {  //Found node - resort from this position in the mHeap
