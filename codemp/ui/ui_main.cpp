@@ -1254,14 +1254,14 @@ qboolean Asset_Parse(int handle) {
 		}
 
 		if (Q_stricmp(token.string, "shadowX") == 0) {
-			if (!PC_Float_Parse(handle, &uiInfo.uiDC.Assets.shadowX)) {
+			if (!PC_Screenspace_Parse(handle, &uiInfo.uiDC.Assets.shadowX, qtrue)) {
 				return qfalse;
 			}
 			continue;
 		}
 
 		if (Q_stricmp(token.string, "shadowY") == 0) {
-			if (!PC_Float_Parse(handle, &uiInfo.uiDC.Assets.shadowY)) {
+			if (!PC_Screenspace_Parse(handle, &uiInfo.uiDC.Assets.shadowY, qfalse)) {
 				return qfalse;
 			}
 			continue;
