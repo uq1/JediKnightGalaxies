@@ -294,7 +294,7 @@ void	CCmd_AddCommand( const char *cmd_name, xccommand_t function ) {
 
 	// use a small malloc to avoid zone fragmentation
 	cmd = (ccmd_function_t *)malloc(sizeof(ccmd_function_t));
-	JKG_Assert(cmd);
+	//JKG_Assert(cmd);
 	cmd->name = CopyString( cmd_name );
 	cmd->function = function;
 	cmd->next = ccmd_functions;

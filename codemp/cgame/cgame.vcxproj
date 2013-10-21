@@ -323,20 +323,8 @@
     <ClCompile Include="..\ui\ui_shared.cpp" />
     <ClCompile Include="..\libraries\json\cJSON.c" />
     <ClCompile Include="..\libraries\encoding\bitstream.c" />
-    <ClCompile Include="..\libraries\Recast\Source\Recast.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastAlloc.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastArea.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastContour.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastFilter.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastLayers.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastMesh.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastMeshDetail.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastRasterization.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastRegion.cpp" />
     <ClCompile Include="..\libraries\RDDebugUtils\Source\DebugDraw.cpp" />
     <ClCompile Include="..\libraries\RDDebugUtils\Source\DetourDebugDraw.cpp" />
-    <ClCompile Include="..\libraries\RDDebugUtils\Source\RecastDebugDraw.cpp" />
-    <ClCompile Include="..\libraries\RDDebugUtils\Source\RecastDump.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\client\FxScheduler.h" />
