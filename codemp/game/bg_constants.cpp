@@ -41,8 +41,6 @@ static void ParseConstantsFile ( const char *fileText )
     {
         Com_Printf (S_COLOR_RED "Error: %s\n", jsonError);
     }
-	// Well, that's strange. It all loaded fine. Let's break all for a minute, and then check the values again.
-	// Hm. All seems fine now. Let's go ingame. I need to unpause the game first.
     else
     {
 		jsonNode = cJSON_GetObjectItem (json, "baseJumpHeight");

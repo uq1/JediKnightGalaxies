@@ -197,7 +197,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..;./../game;..\libraries;..\shared;..\libraries\Detour\Include;..\libraries\Recast\Include;..\libraries\RDDebugUtils\Include;..\libraries\DetourTileCache;..\libraries\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;./../game;..\libraries;..\shared;..\libraries\Detour\Include;..\libraries\Recast\Include;..\libraries\RDDebugUtils\Include;..\libraries\DetourTileCache;..\libraries\glew\include;..\libraries\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;WIN32;_WINDOWS;MISSIONPACK;CGAME;_JK2;GLEW_STATIC;BLOOM;_PHASE1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
