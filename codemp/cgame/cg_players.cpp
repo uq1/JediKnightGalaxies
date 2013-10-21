@@ -3614,11 +3614,6 @@ static void CG_PlayerAnimation( centity_t *cent, int *legsOld, int *legs, float 
 		*legsOld = *legs = *torsoOld = *torso = 0;
 		return;
 	}
-	
-	if ( cent->currentState.eFlags & EF_SPRINTING )
-	{
-	    speedScale *= 1.0f;	// uhm
-	}
 
 	if (!PM_RunningAnim(cent->currentState.legsAnim) &&
 		!PM_WalkingAnim(cent->currentState.legsAnim))

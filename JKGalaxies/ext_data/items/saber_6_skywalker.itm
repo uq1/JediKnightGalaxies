@@ -1,0 +1,11 @@
+{
+	"name":             "Skywalker",
+	"internal":             "saber_luke",
+	"itemtype":             "weapon",
+	"weapon":		"WP_SABER",
+	"variation":		"6",
+	"weight":		"5",
+	"cost":		"1350",
+	"xml":			"",
+	"itemIcon":		"models/weapons/lightsabers/icons/skywalker.tga"
+}

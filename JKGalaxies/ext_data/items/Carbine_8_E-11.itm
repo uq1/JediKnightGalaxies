@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_carbine_E-11_Carbine",
 	"internal":             "Carbine_e-11",
-	"id":             "8",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BLASTER",
 	"variation":		"0",

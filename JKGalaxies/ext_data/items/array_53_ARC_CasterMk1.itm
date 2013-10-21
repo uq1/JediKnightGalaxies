@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_array_ARC_CasterMk1",
 	"internal":             "array_ARC_CasterMk1",
-	"id":             "53",
 	"itemtype":             "weapon",
 	"weapon":		"WP_FLECHETTE",
 	"variation":		"2",

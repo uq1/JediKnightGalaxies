@@ -1027,6 +1027,7 @@ struct gclient_s {
 	char		botSoundDir[MAX_QPATH];
 	float		blockingLightningAccumulation;//Stoiss add
 	qboolean	didSaberOffSound;				// eez add
+	float		ironsightsBlend;			// only used in ~1 place, but it's used to prevent noscoping
 };
 
 //Interest points
@@ -1787,6 +1788,13 @@ void WP_DeactivateSaber( gentity_t *self, qboolean clearLength );
 void WP_ActivateSaber( gentity_t *self );
 void JKG_NetworkSaberCrystals( playerState_t *ps, int invId, int weaponId );
 void JKG_DoubleCheckWeaponChange( usercmd_t *cmd, playerState_t *ps );
+
+// wp_melee.cpp
+qboolean G_CanBeEnemy( gentity_t *self, gentity_t *enemy );
+qboolean G_KickDownable(gentity_t *ent);
+void G_KickSomeMofos(gentity_t *ent);
+void G_GrabSomeMofos(gentity_t *self);
+void JKG_GrappleUpdate( gentity_t *self );
 
 // g_log.c
 void QDECL G_LogPrintf( const char *fmt, ... );

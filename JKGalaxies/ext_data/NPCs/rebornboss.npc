@@ -2,7 +2,7 @@ RebornBoss
 {
 	playerModel	reborn
 	customSkin	boss
-	saber		shadowtrooper
+	saber		single_2
 	weapon	WP_SABER
 	saberStyle	1
 	saberStyle	2

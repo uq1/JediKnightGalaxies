@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_pistol_ELG-3A_Pistol",
 	"internal":             "pistol_ELG-3A",
-	"id":             "56",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"2",

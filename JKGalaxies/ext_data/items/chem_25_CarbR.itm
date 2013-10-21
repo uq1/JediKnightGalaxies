@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_chemical_CarboniteRifle",
 	"internal":             "chem_CarbR",
-	"id":             "25",
 	"itemtype":             "weapon",
 	"weapon":		"WP_DEMP2",
 	"variation":		"1",

@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_rifle_Bryar_Rifle",
 	"internal":             "rifle_Bryar",
-	"id":             "23",
 	"itemtype":             "weapon",
 	"weapon":		"WP_DISRUPTOR",
 	"variation":		"6",

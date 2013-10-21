@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_pistol_KYD-21_Pistol",
 	"internal":             "pistol_KYD-21",
-	"id":             "11",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"6",

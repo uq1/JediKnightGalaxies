@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_sniper_DXR6_HeavyCarbine",
 	"internal":             "sniper_DXR6",
-	"id":             "64",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BOWCASTER",
 	"variation":		"4",

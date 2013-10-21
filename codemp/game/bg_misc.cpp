@@ -2679,6 +2679,34 @@ double QuinticBezierInterpolate(double phase, double p0, double p1, double p2, d
 	return ( it*it*it*it*it * p0 ) + ( 5*it*it*it*it*t * p1 ) + ( 10*it*it*it*t*t * p2 ) + ( 10*it*it*t*t*t * p3 ) + ( 5*it*t*t*t*t * p4 ) + ( t*t*t*t*t * p5 );
 }
 
+//=========================================================
+// JKG_CalculateIronsightsPhase
+//---------------------------------------------------------
+// Returns a value between 0 and 1, where 0 represents
+// normal gun position, and 1 represents ironsights in
+// their correct position. All values in between are some
+// position between normal position and ironsights
+// position.
+//=========================================================
+
+float JKG_CalculateIronsightsPhase ( const playerState_t *ps, int levelTime, float *blend )
+{
+    double phase;
+    unsigned int time = ps->ironsightsTime & ~IRONSIGHTS_MSB;
+	weaponData_t *wp = BG_GetWeaponDataByIndex( ps->weaponId );
+    if ( ps->ironsightsTime & IRONSIGHTS_MSB )
+    {
+		phase = CubicBezierInterpolate (min (levelTime - time, wp->ironsightsTime) / (double)wp->ironsightsTime, 0.0, 0.0, 1.0, 1.0);
+        *blend = min (1.0f, max (0.0f, phase));
+    }
+    else
+    {
+		phase = (*blend) - CubicBezierInterpolate (min (levelTime - time, wp->ironsightsTime * (*blend)) / (double)(wp->ironsightsTime * (*blend)), 0.0, 0.0, 1.0, 1.0);
+    }
+    
+    return min (1.0f, max (0.0f, phase));
+}
+
 /*
 ================
 BG_EvaluateTrajectory

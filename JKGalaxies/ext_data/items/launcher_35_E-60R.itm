@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_launcher_E-60R_RocketLauncher",
 	"internal":             "launcher_E-60R",
-	"id":             "35",
 	"itemtype":             "weapon",
 	"weapon":		"WP_ROCKET_LAUNCHER",
 	"variation":		"5",

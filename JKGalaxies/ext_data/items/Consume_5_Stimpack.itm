@@ -1,7 +1,6 @@
 {
 	"name":             "BioTech Bacta Canister",
 	"internal":             "Stimpack",
-	"id":             "5",
 	"cost":		"100",
 	"itemtype":             "none",
 

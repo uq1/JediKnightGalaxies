@@ -1,7 +1,6 @@
 {
 	"name":             "Rebel Helmet",
 	"internal":             "Armor",
-	"id":             "14",
 	"itemtype":             "armor",
 	"armorID":		"3",
 	"armorSlot":		"head",

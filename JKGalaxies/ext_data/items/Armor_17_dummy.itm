@@ -1,7 +1,6 @@
 {
 	"name":             "Stormtrooper Gloves",
 	"internal":             "Armor",
-	"id":             "17",
 	"itemtype":             "armor",
 	"armorID":		"5",
 	"armorSlot":		"hands",

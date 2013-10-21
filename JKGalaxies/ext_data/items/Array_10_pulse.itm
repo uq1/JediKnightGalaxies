@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_array_DoubleBarrel_ArrayGun",
 	"internal":             "array_pulse",
-	"id":             "10",
 	"itemtype":             "weapon",
 	"weapon":		"WP_FLECHETTE",
 	"variation":		"4",

@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_array_ARC_CasterImperial",
 	"internal":             "array_ARC_CasterImp",
-	"id":             "81",
 	"itemtype":             "weapon",
 	"weapon":		"WP_FLECHETTE",
 	"variation":		"1",

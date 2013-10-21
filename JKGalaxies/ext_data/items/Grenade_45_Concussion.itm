@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_Grenade_Concussion",
 	"internal":             "Grenade_Concussion",
-	"id":             "45",
 	"itemtype":             "weapon",
 	"weapon":		"WP_THERMAL",
 	"variation":		"6",

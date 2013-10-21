@@ -1348,7 +1348,7 @@ static int CG_CalcFov( void ) {
 		
 		if ( weapon->ironsightsFov > 0.0f )
 		{
-			float phase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState);
+			float phase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState, cg.time, &cg.ironsightsBlend);
 		    if ( phase >= 1.0f )
             {
                 cgFov = cgFov - (80 - weapon->ironsightsFov);
@@ -2811,7 +2811,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		}
 		else
 		{
-			if(cg.playerACI[cg.weaponSelect] >= -0)
+			if(cg.playerACI[cg.weaponSelect] >= 0)
 			{
 				if(cg.weaponSelect >= MAX_ACI_SLOTS)
 				{

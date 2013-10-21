@@ -18,43 +18,6 @@ extern float	*hudTintColor;
 
 static weaponInfo_t cg_weapons[MAX_WEAPON_TABLE_SIZE];
 
-#ifdef __EXPERIMENTAL_SHADOWS__
-extern void CG_RecordLightPosition( vec3_t org );
-#endif //__EXPERIMENTAL_SHADOWS__
-
-// I'm so damned lazy when it comes to these phases...
-// We ought to take these and add some sort of extra time
-// variable like we did with GSA in order to give the effect
-// that the guns are harder to control and manipulate. Gives
-// the guns a bit of weight behind them --eez
-
-//=========================================================
-// JKG_CalculateIronsightsPhase
-//---------------------------------------------------------
-// Returns a value between 0 and 1, where 0 represents
-// normal gun position, and 1 represents ironsights in
-// their correct position. All values in between are some
-// position between normal position and ironsights
-// position.
-//=========================================================
-float JKG_CalculateIronsightsPhase ( const playerState_t *ps )
-{
-    double phase;
-    unsigned int time = ps->ironsightsTime & ~IRONSIGHTS_MSB;
-	weaponData_t *wp = BG_GetWeaponDataByIndex( ps->weaponId );
-    if ( ps->ironsightsTime & IRONSIGHTS_MSB )
-    {
-		phase = CubicBezierInterpolate (min (cg.time - time, wp->ironsightsTime) / (double)wp->ironsightsTime, 0.0, 0.0, 1.0, 1.0);
-        cg.ironsightsBlend = min (1.0f, max (0.0f, phase));
-    }
-    else
-    {
-		phase = cg.ironsightsBlend - CubicBezierInterpolate (min (cg.time - time, wp->ironsightsTime * cg.ironsightsBlend) / (double)(wp->ironsightsTime * cg.ironsightsBlend), 0.0, 0.0, 1.0, 1.0);
-    }
-    
-    return min (1.0f, max (0.0f, phase));
-}
-
 //=========================================================
 // JKG_CalculateFiremodePhase
 //---------------------------------------------------------
@@ -437,7 +400,7 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 	}
 
 	// idle drift
-	if(JKG_CalculateIronsightsPhase(&cg.predictedPlayerState) < 0.4)
+	if(JKG_CalculateIronsightsPhase(&cg.predictedPlayerState, cg.time, &cg.ironsightsBlend) < 0.4)
 	{	// EDIT 9/11/12: Don't do this when we're in ironsights. Looks bad, man.
 		swayscale = cg.xyspeed + 40;
 		fracsin = sin( cg.time * 0.001 );
@@ -1603,14 +1566,12 @@ void CG_NextWeapon_f( void )
 	}
 
 	// sprint check --eez
+	int current = trap_GetCurrentCmdNumber();
+	usercmd_t ucmd;
+	trap_GetUserCmd(current, &ucmd);
+	if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, false))
 	{
-		int current = trap_GetCurrentCmdNumber();
-		usercmd_t ucmd;
-		trap_GetUserCmd(current, &ucmd);
-		if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, false))
-		{
-			return;
-		}
+		return;
 	}
 
 	while(numIterations < MAX_ACI_SLOTS)
@@ -1692,14 +1653,12 @@ void CG_PrevWeapon_f( void )
 	}
 
 	// sprint check --eez
+	int current = trap_GetCurrentCmdNumber();
+	usercmd_t ucmd;
+	trap_GetUserCmd(current, &ucmd);
+	if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, qfalse))
 	{
-		int current = trap_GetCurrentCmdNumber();
-		usercmd_t ucmd;
-		trap_GetUserCmd(current, &ucmd);
-		if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, qfalse))
-		{
-			return;
-		}
+		return;
 	}
 
 	while(numIterations < MAX_ACI_SLOTS)
@@ -1797,14 +1756,12 @@ void CG_Weapon_f( void ) {
 	}
 
 	// sprint check --eez
+	int current = trap_GetCurrentCmdNumber();
+	usercmd_t ucmd;
+	trap_GetUserCmd(current, &ucmd);
+	if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, qfalse))
 	{
-		int current = trap_GetCurrentCmdNumber();
-		usercmd_t ucmd;
-		trap_GetUserCmd(current, &ucmd);
-		if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, qfalse))
-		{
-			return;
-		}
+		return;
 	}
 
 	num = atoi( CG_Argv( 1 ) );
@@ -1891,14 +1848,12 @@ void CG_WeaponClean_f( void ) {
 	}
 
 	// sprint check --eez
+	int current = trap_GetCurrentCmdNumber();
+	usercmd_t ucmd;
+	trap_GetUserCmd(current, &ucmd);
+	if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, qfalse))
 	{
-		int current = trap_GetCurrentCmdNumber();
-		usercmd_t ucmd;
-		trap_GetUserCmd(current, &ucmd);
-		if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, qfalse))
-		{
-			return;
-		}
+		return;
 	}
 
 	num = atoi( CG_Argv( 1 ) );
@@ -3536,17 +3491,15 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
     gunPosition[1] = abs (cg_gunY.value) > FLT_EPSILON ? cg_gunY.value : weapon->gunPosition[1];
     gunPosition[2] = abs (cg_gunZ.value) > FLT_EPSILON ? cg_gunZ.value : weapon->gunPosition[2];
     
-    {
-        float phase = JKG_CalculateIronsightsPhase (ps);
-        vec3_t s;
-        VectorSubtract (weapon->ironsightsPosition, gunPosition, s);
+	float phase = JKG_CalculateIronsightsPhase (ps, cg.time, &cg.ironsightsBlend);
+    vec3_t s2;
+    VectorSubtract (weapon->ironsightsPosition, gunPosition, s2);
         
-        VectorMA (gunPosition, phase, s, gunPosition);
+    VectorMA (gunPosition, phase, s2, gunPosition);
 
-		VectorMA (hand.origin, gunPosition[0], cg.refdef.viewaxis[0], hand.origin);
-		VectorMA (hand.origin, gunPosition[1], cg.refdef.viewaxis[1], hand.origin);
-		VectorMA (hand.origin, gunPosition[2] + (fovOffset * (1 - phase)), cg.refdef.viewaxis[2], hand.origin);
-    }
+	VectorMA (hand.origin, gunPosition[0], cg.refdef.viewaxis[0], hand.origin);
+	VectorMA (hand.origin, gunPosition[1], cg.refdef.viewaxis[1], hand.origin);
+	VectorMA (hand.origin, gunPosition[2] + (fovOffset * (1 - phase)), cg.refdef.viewaxis[2], hand.origin);
     
     AnglesToAxis (hand.angles, hand.axis);
     

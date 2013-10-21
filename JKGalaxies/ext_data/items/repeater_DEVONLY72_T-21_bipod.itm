@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_repeater_T-21_Repeater_Bipod",
 	"internal":             "T-21_Bipod",
-	"id":             "72",
 	"itemtype":             "weapon",
 	"weapon":		"WP_REPEATER",
 	"variation":		"3",

@@ -1,8 +1,8 @@
 JediTrainer
 {
 	playerModel	jeditrainer
-	saber		jedi
-	saber2		jedi
+	saber		Training
+	saber2		Training
 	saberColor	purple
 	saber2Color	purple
 	weapon	WP_SABER

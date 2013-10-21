@@ -1,7 +1,6 @@
 {
 	"name":             "BioTech Bacta Intravenous Solution",
 	"internal":             "Stimpack",
-	"id":             "7",
 	"cost":		"175",
 	"itemtype":             "none",
 

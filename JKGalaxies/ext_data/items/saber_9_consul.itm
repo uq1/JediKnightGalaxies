@@ -1,0 +1,11 @@
+{
+	"name":             "@MENUS_SINGLE_HILT3",
+	"internal":             "saber_consul",
+	"itemtype":             "weapon",
+	"weapon":		"WP_SABER",
+	"variation":		"9",
+	"weight":		"14",
+	"cost":		"1375",
+	"xml":			"",
+	"itemIcon":		"models/weapons/lightsabers/icons/consult.tga"
+}

@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_Grenade_CodeKey",
 	"internal":             "Grenade_CodeKey",
-	"id":             "46",
 	"itemtype":             "weapon",
 	"weapon":		"WP_THERMAL",
 	"variation":		"5",

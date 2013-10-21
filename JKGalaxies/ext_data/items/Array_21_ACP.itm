@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_array_ACP_ArrayGun",
 	"internal":             "array_ACP",
-	"id":             "21",
 	"itemtype":             "weapon",
 	"weapon":		"WP_FLECHETTE",
 	"variation":		"0",

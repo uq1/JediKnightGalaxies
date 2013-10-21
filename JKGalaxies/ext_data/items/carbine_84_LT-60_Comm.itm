@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_carbine_LT-60_SlugCarbine_Comm",
 	"internal":             "carbine_LT-60_C",
-	"id":             "84",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BLASTER",
 	"variation":		"4",

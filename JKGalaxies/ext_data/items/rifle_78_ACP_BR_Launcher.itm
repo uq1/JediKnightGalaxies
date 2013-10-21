@@ -2,7 +2,6 @@
 	"name":             "@JKG_ITEMS_rifle_A200_ACP_BattleRifle_Launcher",
 	"shortName":             "@JKG_ITEMS_s_rifle_A200_ACP_BattleRifle_Launcher",
 	"internal":             "rifle_ACP_BR_Launcher",
-	"id":             "78",
 	"itemtype":             "weapon",
 	"weapon":		"WP_DISRUPTOR",
 	"variation":		"3",

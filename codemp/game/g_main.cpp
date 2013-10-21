@@ -564,6 +564,10 @@ extern void RemoveAllWP(void);
 extern void BG_ClearVehicleParseParms(void);
 extern void JKG_InitItems(void);
 void ActivateCrashHandler();
+
+extern void JKG_RetrieveDuelCache( void );
+extern void JKG_SaveDuelCache( void );
+
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 	vmCvar_t	mapname;
@@ -837,6 +841,10 @@ void DeactivateCrashHandler();
 void G_ShutdownGame( int restart ) {
 	int i = 0;
 	gentity_t *ent;
+
+	// Cache some stuff for Duel, if necessary. 
+	if( restart && (level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL))
+		JKG_SaveDuelCache();
 
 	if(JKG_ThreadingInitialized())
 	{
@@ -3490,10 +3498,10 @@ void G_RunFrame( int levelTime ) {
 				{
 					if(ent->client->saberBPDebRecharge < level.time)
 					{
-						int rechargeRate = 300;
-						int rechargeDifference = 300 - ent->client->saber[0].BPregenRate;
+						int rechargeRate = 600;
+						int rechargeDifference = 600 - ent->client->saber[0].BPregenRate;
 						if( ent->client->saber[1].Active() )
-							rechargeDifference += 300 - ent->client->saber[1].BPregenRate;
+							rechargeDifference += 600 - ent->client->saber[1].BPregenRate;
 
 						// Sabers with BP recharge rate bonuses DO stack.
 
@@ -3501,7 +3509,7 @@ void G_RunFrame( int levelTime ) {
 						rechargeRate += rechargeDifference;
 						if( ent->client->ps.saberActionFlags & (1 << SAF_BLOCKING) )
 						{
-							rechargeRate -= 150;
+							rechargeRate -= 300;
 						}
 						ent->client->saberBPDebRecharge = level.time + rechargeRate;
 					}

@@ -2,7 +2,7 @@ cultist_saber
 {
 	playerModel	cultist
 	customSkin	brown
-	saber		reborn
+	saber		Training
 	weapon	WP_SABER
 	saberStyle	1
 	FP_LEVITATION	1

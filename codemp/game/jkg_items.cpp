@@ -12,6 +12,7 @@
 itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
 lootTable_t lootLookupTable[MAX_LOOT_TABLE_SIZE];
 vendorStruct_t *vendorLookupTable[32];
+static int lastUsedItemID = 1;
 
 static int lastUsedVendorID;
 
@@ -84,8 +85,17 @@ static qboolean JKG_ParseItem ( const char *itemFilePath, itemData_t *itemData )
 	strcpy(itemData->internalName, str);
 
 	jsonNode = cJSON_GetObjectItem (json, "id");
-	item = cJSON_ToNumber (jsonNode);
-	itemData->itemID = item;
+	if( jsonNode ) {
+		item = cJSON_ToNumber (jsonNode);
+		itemData->itemID = item;
+	} else {
+		itemData->itemID = lastUsedItemID;
+#ifdef _DEBUG
+		Com_Printf("^3DEBUG: autoassigning item ID %i\n", itemData->itemID);
+#endif
+	}
+
+	lastUsedItemID++;
 
 	jsonNode = cJSON_GetObjectItem (json, "itemtype");
 	str = cJSON_ToString (jsonNode);
@@ -264,6 +274,8 @@ static qboolean JKG_LoadItems ( void )
 	const char *itemFile = itemFiles;
 	int successful = 0;
 	int failed = 0;
+
+	lastUsedItemID = 1;
 
 	Com_Printf ("------- Constructing Item Table -------\n");
 	
@@ -1352,11 +1364,6 @@ void JKG_CheckVendorReplenish(void)
 	if(level.lastVendorCheck < level.time - 300 && level.lastVendorUpdateTime < level.time - (jkg_shop_replenish_time.integer*1000))
 	{	// Don't update all of the shops at once..do them in a rolling update.
 		level.lastUpdatedVendor++;
-		/*if(level.lastUpdatedVendor == 0)
-		{
-			// Uh..don't ask.
-			level.lastUpdatedVendor++;
-		}*/
 		if(level.lastUpdatedVendor >= lastUsedVendorID)
 		{
 			// Hit the last of the vendor list
@@ -1368,4 +1375,82 @@ void JKG_CheckVendorReplenish(void)
 		JKG_RefreshVendorStock(&g_entities[level.vendors[level.lastUpdatedVendor]]);
 		level.lastVendorCheck = level.time;
 	}
+}
+
+// New stuff for duel mode, cache all the client inventories so we don't lose our data when changing
+void JKG_Easy_AddItemToInventory(itemInstance_t *buffer, inv_t *inventory, unsigned int itemID);
+void JKG_RetrieveDuelCache( void )
+{
+	// TODO: reformat this code
+	fileHandle_t f;
+	int len = strap_FS_FOpenFile("server/dcache.cache", &f, FS_READ);
+	if( !len || len < 0 ) return;
+	if( !f || f == -1 ) return;
+	void *buf = malloc(len + 1);
+	strap_FS_Read(buf, len, f);
+	strap_FS_FCloseFile(f);
+	cJSON *json = cJSON_ParsePooled((const char *)buf, NULL, 0);
+	if(!json)
+	{
+		free(buf);
+		return;
+	}
+	for(int i = 0; i < level.numConnectedClients; i++)
+	{
+		cJSON *playerNode = cJSON_GetObjectItem(json, va("p%i", i+1));
+		int numItems = cJSON_ToInteger(cJSON_GetObjectItem(playerNode, "num"));
+		for(int j = 0; j < numItems; j++)
+		{
+			cJSON *itemNode = cJSON_GetObjectItem(playerNode, va("i%i", j+1));
+			if(itemNode)
+			{
+				// At this point, we're left in a kinda interesting situation.
+				// Clients have our inventory networked ... or do they?
+				// It shouldn't be cleared at that point, at least I don't think.
+				itemInstance_t blah;
+				blah.calc1 = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "calc1"));
+				blah.calc2 = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "calc2"));
+				blah.defense = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "def"));
+				blah.durabilityCurrent = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "dur"));
+				blah.equipped = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "equ"));
+				blah.itemQuality = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "qua"));
+
+				// now comes the fun part, getting the item instance from the lookup table...let's hope that this doesn't break.
+				blah.id = &itemLookupTable[cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "id"))];
+			}
+		}
+	}
+	free(buf);
+}
+
+void JKG_SaveDuelCache( void )
+{
+	// TODO: reformat this code
+	fileHandle_t f;
+	int len = strap_FS_FOpenFile("server/dcache.cache", &f, FS_WRITE);
+	if( !f || f == -1 ) return;
+
+	cJSONStream *json = cJSON_Stream_New(3, 0, 0, 0);
+	for(int i = 0; i < level.numConnectedClients; i++)
+	{
+		cJSON_Stream_BeginObject(json, va("p%i", i+1));
+		cJSON_Stream_WriteInteger(json, "num", g_entities[i].inventory->elements);
+		for(int j = 0; j < g_entities[i].inventory->elements; j++)
+		{
+			itemInstance_t *itm = &g_entities[i].inventory->items[j];
+			cJSON_Stream_BeginObject(json, va("i%i", j+1));
+			cJSON_Stream_WriteInteger(json, "id", itm->id->itemID);
+			cJSON_Stream_WriteInteger(json, "calc1", itm->calc1);
+			cJSON_Stream_WriteInteger(json, "calc2", itm->calc2);
+			cJSON_Stream_WriteInteger(json, "def", itm->defense);
+			cJSON_Stream_WriteInteger(json, "dur", itm->durabilityCurrent);
+			cJSON_Stream_WriteInteger(json, "equ", itm->equipped);
+			cJSON_Stream_WriteInteger(json, "qua", itm->itemQuality);
+			cJSON_Stream_EndBlock(json);
+		}
+		cJSON_Stream_EndBlock(json);
+	}
+	const char *buf = cJSON_Stream_Finalize(json);
+	trap_FS_Write(buf, strlen(buf), f);
+	strap_FS_FCloseFile(f);
 }

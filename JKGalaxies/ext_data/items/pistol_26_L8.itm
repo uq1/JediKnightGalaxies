@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_pistol_L8Striker_Pistol",
 	"internal":             "pistol_L8",
-	"id":             "26",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"3",

@@ -32,7 +32,7 @@ void DOM_InitFakeNPC(gentity_t *bot)
 	//Assign the pointer for bg entity access
 	bot->playerState = &bot->client->ps;
 
-	bot->NPC_type = Q_strlwr( G_NewString( "reborn" ) );
+	bot->NPC_type = G_NewString( "reborn" );
 
 	//bot->flags |= FL_NO_KNOCKBACK;//don't fall off ledges
 

@@ -1,7 +1,7 @@
 Reborn
 {
 	playerModel	reborn
-	saber		reborn
+	saber		Training
 	weapon	WP_SABER
 	saberStyle	1
 	FP_HEAL			0

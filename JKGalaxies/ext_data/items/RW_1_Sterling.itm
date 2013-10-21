@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_RW_Sterling",
 	"internal":             "RW_Sterling",
-	"id":             "1",
 	"itemtype":             "weapon",
 	"weapon":		"WP_CONCUSSION",
 	"variation":		"0",

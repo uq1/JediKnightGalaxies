@@ -1,7 +1,6 @@
 {
 	"name":             "Stormtrooper Legguards",
 	"internal":             "Armor",
-	"id":             "18",
 	"itemtype":             "armor",
 	"armorID":		"6",
 	"armorSlot":		"legs",

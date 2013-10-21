@@ -6,9 +6,9 @@
     "description":      "@JKG_ITEMS_weapon_saber",
     
     "visual": {
-        "hudicon":          "models/weapons/lightsabers/icons/caelum.tga",
-        "hudnaicon":        "models/weapons/lightsabers/icons/caelum.tga",
-	"worldmodel":	    "models/weapons/lightsabers/caelumsereno/model.glm",
+        "hudicon":          "models/weapons/lightsabers/icons/skywalker.tga",
+        "hudnaicon":        "models/weapons/lightsabers/icons/skywalker.tga",
+	"worldmodel":	    "models/weapons2/saber_luke/saber_w.glm",
     
         "firemode0": {
             "type":         "blaster"

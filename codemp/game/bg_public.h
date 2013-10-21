@@ -30,7 +30,7 @@
 #define	MAX_SPAWN_VARS_CHARS	4096
 
 
-#define DEFAULT_SABER		"Kyle"
+#define DEFAULT_SABER		"kyle"
 #define DEFAULT_SABER_MODEL	"models/weapons2/saber/saber_w.glm"
 #define	GAME_VERSION	"Jedi Knight Galaxies 1.4.05"
 
@@ -1670,6 +1670,8 @@ bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber );
 
 extern void BG_AttachToRancor( void *ghoul2,float rancYaw,vec3_t rancOrigin,int time,qhandle_t *modelList,vec3_t modelScale,qboolean inMouth,vec3_t out_origin,vec3_t out_angles,vec3_t out_axis[3] );
 void BG_ClearRocketLock( playerState_t *ps );
+
+float JKG_CalculateIronsightsPhase ( const playerState_t *ps, int time, float *blend );
 
 qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolean PMOVE  );
 

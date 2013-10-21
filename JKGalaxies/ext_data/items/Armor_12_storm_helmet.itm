@@ -1,7 +1,6 @@
 {
 	"name":             "Stormtrooper Helmet",
 	"internal":             "Armor",
-	"id":             "12",
 	"itemtype":             "armor",
 	"armorID":		"1",
 	"armorSlot":		"head",

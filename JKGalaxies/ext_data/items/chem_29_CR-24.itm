@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_chemical_CR-24_FlameCarbine",
 	"internal":             "chem_CR-24",
-	"id":             "29",
 	"itemtype":             "weapon",
 	"weapon":		"WP_DEMP2",
 	"variation":		"0",

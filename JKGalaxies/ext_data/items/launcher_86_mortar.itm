@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_launcher_Packered_MortarGun",
 	"internal":             "launcher_mortar",
-	"id":             "86",
 	"itemtype":             "Weapon",
 	"weapon":		"WP_ROCKET_LAUNCHER",
 	"variation":		"0",

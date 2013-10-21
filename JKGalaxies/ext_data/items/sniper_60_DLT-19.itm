@@ -1,7 +1,6 @@
 {
 	"name":             "@JKG_ITEMS_sniper_DLT-19_HeavyBlaster",
 	"internal":             "sniper_DLT-19",
-	"id":             "60",
 	"itemtype":             "weapon",
 	"weapon":		"WP_BOWCASTER",
 	"variation":		"0",

@@ -1,7 +1,6 @@
 {
 	"name":             "Stormtrooper Body Armor",
 	"internal":             "Armor",
-	"id":             "19",
 	"itemtype":             "armor",
 	"armorID":		"7",
 	"armorSlot":		"torso",

@@ -7,6 +7,7 @@
 #include <json/cJSON.h>
 #include <string>
 #include <unordered_map>
+#include <boost/algorithm/string.hpp>
 
 saberStanceExternal_t SaberStances[MAX_STANCES];
 
@@ -629,9 +630,8 @@ bool JKG_ParseHiltFile( const char *filename )
 		Com_Printf (S_COLOR_RED "%s: No \"name\" field.\n", filename);
 		return false;
 	}
-	Q_strncpyz(name, cJSON_ToString(jsonNode), sizeof(name));
-
 	WP_SaberSetDefaults( &theHilt );
+	Q_strncpyz(name, cJSON_ToString(jsonNode), sizeof(name));
 
 #define JSONPARSE(x)		\
 	jsonNode = cJSON_GetObjectItem(json, x); \
@@ -927,8 +927,9 @@ if(childNode)
 	*/
 
 #undef JSONPARSE
-
-	hiltLookupTable->insert(std::pair<std::string, saberInfo_t>(name, theHilt));
+	std::string name2 = name;
+	boost::algorithm::to_lower(name2);
+	hiltLookupTable->insert(std::pair<std::string, saberInfo_t>(name2, theHilt));
 	return true;
 }
 
@@ -966,9 +967,18 @@ bool JKG_ParseHiltFiles( void )
 
 bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber )
 {
+	std::unordered_map<std::string, saberInfo_t>::iterator it;
 	if(!hiltLookupTable || hiltLookupTable->size() <= 0)
 		return false;	// occasionally gets set, incorrectly.
-	std::unordered_map<std::string, saberInfo_t>::iterator it = hiltLookupTable->find(hiltName);
+	if( !Q_stricmp(hiltName, DEFAULT_SABER) )
+		it = hiltLookupTable->find(DEFAULT_SABER);
+	else
+	{
+		std::string derp = hiltName;
+
+		boost::algorithm::to_lower(derp);
+		it = hiltLookupTable->find(derp);
+	}
 	if(it == hiltLookupTable->end())
 	{
 		Com_Printf(S_COLOR_YELLOW "WARNING: Couldn't find hilt \"%s\" reference\n", hiltName);
