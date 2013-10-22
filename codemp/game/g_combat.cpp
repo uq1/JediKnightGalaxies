@@ -2415,7 +2415,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				{
 					// what.
 					entityHitRecord_t *reallocated = (entityHitRecord_t *)realloc( self->assistData.hitRecords, (sizeof(entityHitRecord_t))*(self->assistData.memAllocated*2) );
-					JKG_Assert(reallocated);
+					//JKG_Assert(reallocated);
 					if(reallocated == NULL)
 					{
 						continue;
@@ -6071,7 +6071,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			{
 				// Handle memory crapola
 				entityHitRecord_t *hitRecord = (entityHitRecord_t *)realloc(targ->assistData.hitRecords, (sizeof(entityHitRecord_t))*(targ->assistData.memAllocated*2));
-				JKG_Assert(hitRecord);
+				//JKG_Assert(hitRecord);
 				if(!hitRecord)
 				{
 					return;

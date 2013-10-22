@@ -85,7 +85,7 @@ void JKG_GetAutoBoxForModel(const char *model, vec3_t angles, float scale, vec3_
 	VectorCopy(imins, mins);
 	VectorCopy(imaxs, maxs);
 }
-
+/*
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -280,4 +280,5 @@ void JKG_AssertFunction(char *file, int linenum, const char *expression)
 	SymCleanup(GetCurrentProcess());
 }
 #endif
-#endif
+#
+*/

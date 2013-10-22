@@ -541,6 +541,7 @@ qboolean Rect_Parse(char **p, rectDef_t *r);
 qboolean String_Parse(char **p, const char **out);
 qboolean Script_Parse(char **p, const char **out);
 qboolean PC_Float_Parse(int handle, float *f);
+qboolean PC_Screenspace_Parse(int handle, float *f, qboolean which);
 qboolean PC_Color_Parse(int handle, vec4_t *c);
 qboolean PC_Int_Parse(int handle, int *i);
 qboolean PC_Rect_Parse(int handle, rectDef_t *r);

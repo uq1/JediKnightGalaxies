@@ -441,6 +441,43 @@ qboolean PC_Float_Parse(int handle, float *f) {
 
 /*
 =================
+PC_Screenspace_Parse
+=================
+*/
+bool PC_Screenspace_Parse(int handle, float *f, bool bXorWidth) {
+	pc_token_t token;
+	bool bNegative = false;
+	bool bUsePercentage = false;
+
+	if (!trap_PC_ReadToken(handle, &token))
+		return false;
+	if (token.string[strlen(token.string)-1] == '%%')
+		bUsePercentage = true;
+	if (token.string[0] == '-') {
+		if (!trap_PC_ReadToken(handle, &token))
+			return false;
+		bNegative = true;
+	}
+	if (token.type != TT_NUMBER) {
+		PC_SourceError(handle, "expected float but found %s\n", token.string);
+		return qfalse;
+	}
+	if (bNegative)
+		*f = -token.floatvalue;
+	else
+		*f = token.floatvalue;
+	if (bUsePercentage)
+	{
+		if( bXorWidth )
+			*f = (*f)/(float)SCREEN_WIDTH;
+		else
+			*f = (*f)/(float)SCREEN_HEIGHT;
+	}
+	return qtrue;
+}
+
+/*
+=================
 Color_Parse
 =================
 */
@@ -542,10 +579,10 @@ PC_Rect_Parse
 =================
 */
 qboolean PC_Rect_Parse(int handle, rectDef_t *r) {
-	if (PC_Float_Parse(handle, &r->x)) {
-		if (PC_Float_Parse(handle, &r->y)) {
-			if (PC_Float_Parse(handle, &r->w)) {
-				if (PC_Float_Parse(handle, &r->h)) {
+	if (PC_Screenspace_Parse(handle, &r->x, qtrue)) {
+		if (PC_Screenspace_Parse(handle, &r->y, qfalse)) {
+			if (PC_Screenspace_Parse(handle, &r->w, qtrue)) {
+				if (PC_Screenspace_Parse(handle, &r->h, qfalse)) {
 					return qtrue;
 				}
 			}
@@ -8001,7 +8038,7 @@ ItemParse_text2alignx
 */
 qboolean ItemParse_text2alignx( itemDef_t *item, int handle) 
 {
-	if (!PC_Float_Parse(handle, &item->text2alignx)) 
+	if (!PC_Screenspace_Parse(handle, &item->text2alignx, qtrue)) 
 	{
 		return qfalse;
 	}
@@ -8015,7 +8052,7 @@ ItemParse_text2aligny
 */
 qboolean ItemParse_text2aligny( itemDef_t *item, int handle) 
 {
-	if (!PC_Float_Parse(handle, &item->text2aligny)) 
+	if (!PC_Screenspace_Parse(handle, &item->text2aligny, qfalse)) 
 	{
 		return qfalse;
 	}
@@ -8703,7 +8740,7 @@ qboolean ItemParse_elementwidth( itemDef_t *item, int handle ) {
 
 	Item_ValidateTypeData(item);
 	listPtr = (listBoxDef_t*)item->typeData;
-	if (!PC_Float_Parse(handle, &listPtr->elementWidth)) {
+	if (!PC_Screenspace_Parse(handle, &listPtr->elementWidth, qtrue)) {
 		return qfalse;
 	}
 	return qtrue;
@@ -8716,7 +8753,7 @@ qboolean ItemParse_elementheight( itemDef_t *item, int handle ) {
 
 	Item_ValidateTypeData(item);
 	listPtr = (listBoxDef_t*)item->typeData;
-	if (!PC_Float_Parse(handle, &listPtr->elementHeight)) {
+	if (!PC_Screenspace_Parse(handle, &listPtr->elementHeight, qfalse)) {
 		return qfalse;
 	}
 	return qtrue;
@@ -8735,7 +8772,7 @@ qboolean ItemParse_elementSpacingW( itemDef_t *item, int handle ) {
 	listBoxDef_t *listPtr;
 	Item_ValidateTypeData(item);
 	listPtr = (listBoxDef_t*)item->typeData;
-	if (!PC_Float_Parse(handle, &listPtr->elementSpacingW)) {
+	if (!PC_Screenspace_Parse(handle, &listPtr->elementSpacingW, qtrue)) {
 		return qfalse;
 	}
 	return qtrue;
@@ -8744,7 +8781,7 @@ qboolean ItemParse_elementSpacingH( itemDef_t *item, int handle ) {
 	listBoxDef_t *listPtr;
 	Item_ValidateTypeData(item);
 	listPtr = (listBoxDef_t*)item->typeData;
-	if (!PC_Float_Parse(handle, &listPtr->elementSpacingH)) {
+	if (!PC_Screenspace_Parse(handle, &listPtr->elementSpacingH, qfalse)) {
 		return qfalse;
 	}
 	return qtrue;
@@ -8902,14 +8939,14 @@ qboolean ItemParse_textalign2( itemDef_t *item, int handle )
 }
 
 qboolean ItemParse_textalignx( itemDef_t *item, int handle ) {
-	if (!PC_Float_Parse(handle, &item->textalignx)) {
+	if (!PC_Screenspace_Parse(handle, &item->textalignx, qtrue)) {
 		return qfalse;
 	}
 	return qtrue;
 }
 
 qboolean ItemParse_textaligny( itemDef_t *item, int handle ) {
-	if (!PC_Float_Parse(handle, &item->textaligny)) {
+	if (!PC_Screenspace_Parse(handle, &item->textaligny, qfalse)) {
 		return qfalse;
 	}
 	return qtrue;

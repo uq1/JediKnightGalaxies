@@ -2240,12 +2240,12 @@ void NPC_ClearLookTarget( gentity_t *self );
 void BG_VehicleLoadParms( void );
 
 bool JKG_ParseHiltFiles( void );
-
+/*
 #ifdef _DEBUG
 extern void JKG_AssertFunction(char *file, int linenum, const char *expression);
 #define JKG_Assert(_Expression) if(!_Expression){ JKG_AssertFunction(__FILE__, __LINE__, #_Expression); assert(_Expression); }
 #else //!_DEBUG
 #define JKG_Assert(_Expression) {  }
 #endif //_DEBUG
-
+*/
 #endif

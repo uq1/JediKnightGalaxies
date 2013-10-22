@@ -2244,14 +2244,14 @@ qboolean CG_Asset_Parse(int handle) {
 		}
 
 		if (Q_stricmp(token.string, "shadowX") == 0) {
-			if (!PC_Float_Parse(handle, &cgDC.Assets.shadowX)) {
+			if (!PC_Screenspace_Parse(handle, &cgDC.Assets.shadowX, qtrue)) {
 				return qfalse;
 			}
 			continue;
 		}
 
 		if (Q_stricmp(token.string, "shadowY") == 0) {
-			if (!PC_Float_Parse(handle, &cgDC.Assets.shadowY)) {
+			if (!PC_Screenspace_Parse(handle, &cgDC.Assets.shadowY, qfalse)) {
 				return qfalse;
 			}
 			continue;

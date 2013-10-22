@@ -48,7 +48,7 @@ void JKG_Easy_DIMA_GlobalInit(void)
 void JKG_Easy_DIMA_CleanEntity(int entNum)
 {
 	itemInstance_t *reallocated = (itemInstance_t *)realloc(g_entities[entNum].inventory->items, sizeof(itemInstance_t) * DIMA_PREALLOC);
-	JKG_Assert(reallocated);
+	//JKG_Assert(reallocated);
 	g_entities[entNum].inventory->elements = 0;
 	g_entities[entNum].inventory->items = reallocated;
 	g_entities[entNum].inventory->size = sizeof(itemInstance_t) * DIMA_PREALLOC;
@@ -76,7 +76,7 @@ void JKG_Easy_DIMA_Add(inv_t *inventory, itemInstance_t item)
 		inventory->size += (sizeof(itemInstance_t) * DIMA_PREALLOC);
 
 		reallocated = (itemInstance_t *)realloc(inventory->items, inventory->size);
-		JKG_Assert(reallocated);
+		//JKG_Assert(reallocated);
 
 		if(!reallocated)
 		{

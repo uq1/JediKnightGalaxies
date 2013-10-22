@@ -941,7 +941,7 @@ void MaintainBodyQueue(gentity_t *ent)
 { //do whatever should be done taking ragdoll and dismemberment states into account.
 	qboolean doRCG = qfalse;
 
-	JKG_Assert(ent && ent->client);
+	//JKG_Assert(ent && ent->client);
 	if (ent->client->tempSpectate > level.time ||
 		(ent->client->ps.eFlags2 & EF2_SHIP_DEATH))
 	{
