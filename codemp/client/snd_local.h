@@ -121,6 +121,8 @@ typedef struct
 	int			iMP3SlidingDecodeWritePos;
 	int			iMP3SlidingDecodeWindowPos;
 
+	qboolean	doppler;
+	float		dopplerScale;
 
 	// Open AL specific
 	bool	bLooping;	// Signifies if this channel / source is playing a looping sound
@@ -199,6 +201,8 @@ extern cvar_t	*s_mixahead;
 
 extern cvar_t	*s_testsound;
 extern cvar_t	*s_separation;
+
+extern cvar_t	*s_doppler;
 
 wavinfo_t GetWavinfo (const char *name, byte *wav, int wavlength);
 
