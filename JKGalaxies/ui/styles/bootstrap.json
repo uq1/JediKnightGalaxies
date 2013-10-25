@@ -1,0 +1,35 @@
+"stylesheet": {
+	"simple-shader": {
+		"group": "none",
+		"style": "WINDOW_STYLE_SHADER",
+		"flags": [ "WINDOW_VISIBLE", "WINDOW_DECORATION", "WINDOW_FORECOLORSET" ],
+		"forecolor": [ "NORMALIZED", "1", "1", "1", "1" ]
+	},
+
+	"mainbutton": {
+		"group":	"main_button",
+		"style":	"WINDOW_STYLE_EMPTY",
+		"type":		"ITEM_TYPE_BUTTON",
+		"font": 	5,
+		"textscale":	0.8,
+		"textalign":	"ITEM_ALIGN_LEFT",
+		"textalignx":	7,
+		"textaligny":	3,
+		"textstyle":	-1,
+		"flags": [ "WINDOW_VISIBLE", "WINDOW_FORECOLORSET" ],
+		"forecolor": [ "NORMALIZED", "1", "1", "1", "1" ]
+	},
+	
+	"mainbutton_undertext": {
+		"group":	"none",
+		"style":	"WINDOW_STYLE_EMPTY",
+		"type":		"ITEM_TYPE_BUTTON",
+		"font":		5,
+		"textscale":	0.4,
+		"textalign":	"ITEM_ALIGN_LEFT",
+		"textalignx":	7,
+		"textaligny":	28,
+		"forecolor": [ "NORMALIZED", "1", "1", "1", "1" ],
+		"flags": [ "WINDOW_VISIBLE", "WINDOW_DECORATION", "WINDOW_FORECOLORSET" ]
+	}
+}
