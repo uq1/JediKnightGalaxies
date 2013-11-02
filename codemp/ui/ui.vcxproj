@@ -278,6 +278,7 @@
     <ClCompile Include="ui_servercmds.cpp" />
     <ClCompile Include="ui_shared.cpp" />
     <ClCompile Include="ui_strap.cpp" />
+    <ClCompile Include="ui_stylesheets.cpp" />
     <ClCompile Include="ui_syscalls.cpp" />
     <ClCompile Include="jkg_conversations.cpp" />
     <ClCompile Include="jkg_gangwars_ui.cpp" />

@@ -9629,6 +9629,19 @@ qboolean ItemParse_isSaber2( itemDef_t *item, int handle  )
 	return qfalse;
 }
 
+qboolean ItemParse_class( itemDef_t *item, int handle )
+{
+#ifndef CGAME
+	char classname[MAX_QPATH];
+	if( PC_String_Parse(handle, (const char **)&classname) )
+	{
+		JKG_UI_SetClass( classname, item );
+		return true;
+	}
+#endif
+	return false;
+}
+
 keywordHash_t itemParseKeywords[] = {
 	{"action",			ItemParse_action,			NULL	},
 	{"addColorRange",	ItemParse_addColorRange,	NULL	},
@@ -9661,13 +9674,6 @@ keywordHash_t itemParseKeywords[] = {
 	{"multifocus",		ItemParse_multifocus,		NULL	},
 	{"selectionZone",	ItemParse_selectionzone,	NULL	},
 	{"foreground",		ItemParse_foreground,		NULL	},
-	// Pagination stuff
-	/*{"numColumns",		ItemParse_numColumns,		NULL	},
-	{"numRows",			ItemParse_numRows,			NULL	},
-	{"pageFeed",		ItemParse_pageFeed,			NULL	},
-	{"pageObjRect",		ItemParse_pageObjRect,		NULL	},
-	{"pageBackArrow",	ItemParse_pageBackArrow,	NULL	},
-	{"pageForwArrow",	ItemParse_pageForwArrow,	NULL	},*/
 	//new events
 	{"onReturn",		ItemParse_onReturn,			NULL	},
 	{"onEscape",		ItemParse_onEscape,			NULL	},
@@ -9675,6 +9681,13 @@ keywordHash_t itemParseKeywords[] = {
 	{"textscale2",		ItemParse_textscale2,		NULL	},
 	{"textstyle2",		ItemParse_textstyle2,		NULL	},
 	{"text2align",	ItemParse_text2align,		NULL	},
+	{"ownerdrawID",		ItemParse_ownerdrawID,		NULL	},
+	{"ownerdrawFlag",	ItemParse_ownerdrawFlag,	NULL	},
+	// Image scroll specific
+	{"elementSpacingW",	ItemParse_elementSpacingW,	NULL	},
+	{"elementSpacingH",	ItemParse_elementSpacingH,	NULL	},
+	// style sheets
+	{"class",			ItemParse_class,			NULL	},
 
 	{"disableCvar",		ItemParse_disableCvar,		NULL	},
 	{"doubleclick",		ItemParse_doubleClick,		NULL	},
@@ -9717,13 +9730,6 @@ keywordHash_t itemParseKeywords[] = {
 	{"onFocus",			ItemParse_onFocus,			NULL	},
 	{"outlinecolor",	ItemParse_outlinecolor,		NULL	},
 	{"ownerdraw",		ItemParse_ownerdraw,		NULL	},
-	// JKG
-	{"ownerdrawID",		ItemParse_ownerdrawID,		NULL	},
-	{"ownerdrawFlag",	ItemParse_ownerdrawFlag,	NULL	},
-	// Image scroll specific
-	{"elementSpacingW",	ItemParse_elementSpacingW,	NULL	},
-	{"elementSpacingH",	ItemParse_elementSpacingH,	NULL	},
-	// End JKG
 	{"rect",			ItemParse_rect,				NULL	},
 	{"rectcvar",		ItemParse_rectcvar,			NULL	},
 	{"showCvar",		ItemParse_showCvar,			NULL	},
@@ -10447,6 +10453,15 @@ qboolean MenuParse_fadeAmount( itemDef_t *item, int handle ) {
 	return qtrue;
 }
 
+qboolean MenuParse_stylesheet( itemDef_t *item, int handle ) {
+#ifndef CGAME
+	char text[MAX_QPATH];
+	if (!PC_String_Parse(handle, (const char **)&text))
+		return qfalse;
+	JKG_UI_LoadStylesheet(text);
+#endif
+	return qtrue;
+}
 
 qboolean MenuParse_fadeCycle( itemDef_t *item, int handle ) {
 	menuDef_t *menu = (menuDef_t*)item;
@@ -10515,6 +10530,7 @@ keywordHash_t menuParseKeywords[] = {
 	{"onAccept",			MenuParse_onAccept,		NULL    },
 	// Jedi Knight Galaxies
 	{"handleEsc",			MenuParse_handleEsc,	NULL	},
+	{"stylesheet",			MenuParse_stylesheet,	NULL	},
 
 	{"onESC",				MenuParse_onESC,		NULL	},
 	{"outOfBoundsClick",	MenuParse_outOfBounds,	NULL	},
