@@ -8886,7 +8886,12 @@ void BG_AdjustClientSpeed(playerState_t *ps, usercmd_t *cmd, int svTime)
 		// strafing reduces speed significantly
 		//ps->speed *= 0.80f;
 		//speedModifier -= 0.25f;
-		speedModifier += bgConstants.strafeSpeedModifier;
+		if(BG_IsSprinting(ps, cmd, true))
+			speedModifier += bgConstants.strafeSpeedModifier/4;
+		else if(cmd->forwardmove != 0)
+			speedModifier += bgConstants.strafeSpeedModifier/1.5f;
+		else
+			speedModifier += bgConstants.strafeSpeedModifier;
 	}
 
 #ifndef _SP_PUDDING_MOVEMENT

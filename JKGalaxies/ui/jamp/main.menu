@@ -401,7 +401,7 @@
 			group				none
 			style				WINDOW_STYLE_SHADER
 			rect				65 280 117 29
-			background			"gfx/ui/main_buttonsmall"
+			background			"gfx/ui/shop_itembutton_na"
 			forecolor			1 1 1 1
 			visible				1
 			decoration
@@ -412,9 +412,9 @@
 			name				creditsbutton
 			group				main_button
 			style				WINDOW_STYLE_EMPTY
-			type				ITEM_TYPE_BUTTON
+			//type				ITEM_TYPE_BUTTON
 			rect				77 288 95 17
-			text				Old_Controls
+			text				@JKG_MAINMENU_CREDITS
 			//text				@JKG_MAINMENU_CREDITS
 			font				5
 			textscale				0.4
