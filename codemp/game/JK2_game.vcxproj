@@ -432,22 +432,6 @@
     <ClCompile Include="..\libraries\encoding\base128.cpp" />
     <ClCompile Include="..\libraries\encoding\base64.c" />
     <ClCompile Include="..\libraries\encoding\bitstream.c" />
-    <ClCompile Include="..\libraries\Recast\Source\Recast.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastAlloc.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastArea.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastContour.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastFilter.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastLayers.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastMesh.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastMeshDetail.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastRasterization.cpp" />
-    <ClCompile Include="..\libraries\Recast\Source\RecastRegion.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourAlloc.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourCommon.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMesh.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMeshBuilder.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMeshQuery.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="JK2_game.def" />
@@ -634,17 +618,6 @@
     <ClInclude Include="..\libraries\openssl\x509.h" />
     <ClInclude Include="..\libraries\openssl\x509_vfy.h" />
     <ClInclude Include="..\libraries\openssl\x509v3.h" />
-    <ClInclude Include="..\libraries\Recast\Include\Recast.h" />
-    <ClInclude Include="..\libraries\Recast\Include\RecastAlloc.h" />
-    <ClInclude Include="..\libraries\Recast\Include\RecastAssert.h" />
-    <ClInclude Include="..\libraries\Detour\Include\DetourAlloc.h" />
-    <ClInclude Include="..\libraries\Detour\Include\DetourAssert.h" />
-    <ClInclude Include="..\libraries\Detour\Include\DetourCommon.h" />
-    <ClInclude Include="..\libraries\Detour\Include\DetourNavMesh.h" />
-    <ClInclude Include="..\libraries\Detour\Include\DetourNavMeshBuilder.h" />
-    <ClInclude Include="..\libraries\Detour\Include\DetourNavMeshQuery.h" />
-    <ClInclude Include="..\libraries\Detour\Include\DetourNode.h" />
-    <ClInclude Include="..\libraries\Detour\Include\DetourStatus.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\win32\JK2game.rc" />

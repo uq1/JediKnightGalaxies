@@ -15,9 +15,6 @@
     <Filter Include="Libraries">
       <UniqueIdentifier>{4fe43ad3-9395-4de8-9a1c-83f80850c623}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Libraries\Detours">
-      <UniqueIdentifier>{7a7c1e24-dfd8-4f74-996d-e2cc6b6b93ee}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Libraries\Encoding">
       <UniqueIdentifier>{bf723b43-df40-4b8e-8fe4-3380645415b6}</UniqueIdentifier>
     </Filter>
@@ -26,33 +23,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\libraries\RDDebugUtils\Source\DebugDraw.cpp">
-      <Filter>Libraries\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\DetourTileCache\DetourTileCacheBuilder.cpp">
-      <Filter>Libraries\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourAlloc.cpp">
-      <Filter>Libraries\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourCommon.cpp">
-      <Filter>Libraries\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\RDDebugUtils\Source\DetourDebugDraw.cpp">
-      <Filter>Libraries\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMesh.cpp">
-      <Filter>Libraries\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMeshBuilder.cpp">
-      <Filter>Libraries\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMeshQuery.cpp">
-      <Filter>Libraries\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourNode.cpp">
-      <Filter>Libraries\Detours</Filter>
-    </ClCompile>
     <ClCompile Include="..\libraries\encoding\bitstream.c">
       <Filter>Libraries\Encoding</Filter>
     </ClCompile>

@@ -262,13 +262,6 @@
     <ClCompile Include="..\game\NPC_Fighter.cpp" />
     <ClCompile Include="..\game\NPC_Speeder.cpp" />
     <ClCompile Include="..\game\NPC_Walker.cpp" />
-    <ClCompile Include="..\libraries\DetourTileCache\DetourTileCacheBuilder.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourAlloc.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourCommon.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMesh.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMeshBuilder.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMeshQuery.cpp" />
-    <ClCompile Include="..\libraries\Detour\Source\DetourNode.cpp" />
     <ClCompile Include="..\libraries\encoding\base128.cpp" />
     <ClCompile Include="..\qcommon\q_math.c" />
     <ClCompile Include="..\qcommon\q_shared.c" />
@@ -325,8 +318,6 @@
     <ClCompile Include="..\ui\ui_shared.cpp" />
     <ClCompile Include="..\libraries\json\cJSON.c" />
     <ClCompile Include="..\libraries\encoding\bitstream.c" />
-    <ClCompile Include="..\libraries\RDDebugUtils\Source\DebugDraw.cpp" />
-    <ClCompile Include="..\libraries\RDDebugUtils\Source\DetourDebugDraw.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\client\FxScheduler.h" />

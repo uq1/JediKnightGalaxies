@@ -84,24 +84,6 @@
     <Filter Include="Libraries\OpenSSL\Header Files">
       <UniqueIdentifier>{419d19e3-9a84-4e04-b28e-bc71a6b58c8c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Libraries\Recast">
-      <UniqueIdentifier>{3389d0bd-993c-4786-b2bf-2a9cabb56cef}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\Recast\Header Files">
-      <UniqueIdentifier>{c1cb191a-b1eb-4ec5-bb2c-0676295f145d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\Recast\Source Files">
-      <UniqueIdentifier>{57e710c8-c776-4d77-90f1-2b980b5c78b7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\Detour %28Pathfinding%29">
-      <UniqueIdentifier>{46962bec-de13-4b56-bbe5-d26792284d50}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\Detour %28Pathfinding%29\Header Files">
-      <UniqueIdentifier>{f9315974-5184-49e8-a1af-6a0fa803beb4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\Detour %28Pathfinding%29\Source Files">
-      <UniqueIdentifier>{a800e8ca-d588-4361-b38f-c4f34b6fd873}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Warzone">
       <UniqueIdentifier>{0929b246-539b-4147-bd5d-b7e529ad85ca}</UniqueIdentifier>
     </Filter>
@@ -205,54 +187,6 @@
     </ClCompile>
     <ClCompile Include="..\libraries\encoding\bitstream.c">
       <Filter>Libraries\BitStream\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Recast\Source\Recast.cpp">
-      <Filter>Libraries\Recast\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Recast\Source\RecastAlloc.cpp">
-      <Filter>Libraries\Recast\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Recast\Source\RecastArea.cpp">
-      <Filter>Libraries\Recast\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Recast\Source\RecastContour.cpp">
-      <Filter>Libraries\Recast\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Recast\Source\RecastFilter.cpp">
-      <Filter>Libraries\Recast\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Recast\Source\RecastLayers.cpp">
-      <Filter>Libraries\Recast\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Recast\Source\RecastMesh.cpp">
-      <Filter>Libraries\Recast\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Recast\Source\RecastMeshDetail.cpp">
-      <Filter>Libraries\Recast\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Recast\Source\RecastRasterization.cpp">
-      <Filter>Libraries\Recast\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Recast\Source\RecastRegion.cpp">
-      <Filter>Libraries\Recast\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourAlloc.cpp">
-      <Filter>Libraries\Detour %28Pathfinding%29\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourCommon.cpp">
-      <Filter>Libraries\Detour %28Pathfinding%29\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMesh.cpp">
-      <Filter>Libraries\Detour %28Pathfinding%29\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMeshBuilder.cpp">
-      <Filter>Libraries\Detour %28Pathfinding%29\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourNavMeshQuery.cpp">
-      <Filter>Libraries\Detour %28Pathfinding%29\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\Detour\Source\DetourNode.cpp">
-      <Filter>Libraries\Detour %28Pathfinding%29\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ai_dominance_astar.cpp">
       <Filter>Source Files\NPCs</Filter>
@@ -1206,39 +1140,6 @@
     </ClInclude>
     <ClInclude Include="..\libraries\openssl\x509v3.h">
       <Filter>Libraries\OpenSSL\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\Recast\Include\Recast.h">
-      <Filter>Libraries\Recast\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\Recast\Include\RecastAlloc.h">
-      <Filter>Libraries\Recast\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\Recast\Include\RecastAssert.h">
-      <Filter>Libraries\Recast\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\Detour\Include\DetourAlloc.h">
-      <Filter>Libraries\Detour %28Pathfinding%29\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\Detour\Include\DetourAssert.h">
-      <Filter>Libraries\Detour %28Pathfinding%29\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\Detour\Include\DetourCommon.h">
-      <Filter>Libraries\Detour %28Pathfinding%29\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\Detour\Include\DetourNavMesh.h">
-      <Filter>Libraries\Detour %28Pathfinding%29\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\Detour\Include\DetourNavMeshBuilder.h">
-      <Filter>Libraries\Detour %28Pathfinding%29\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\Detour\Include\DetourNavMeshQuery.h">
-      <Filter>Libraries\Detour %28Pathfinding%29\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\Detour\Include\DetourNode.h">
-      <Filter>Libraries\Detour %28Pathfinding%29\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\Detour\Include\DetourStatus.h">
-      <Filter>Libraries\Detour %28Pathfinding%29\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="g_xcvar.h">
       <Filter>Header Files</Filter>
