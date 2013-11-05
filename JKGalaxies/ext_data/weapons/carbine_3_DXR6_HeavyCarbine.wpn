@@ -89,7 +89,7 @@
             "accuracy": {
         "accuracyRating": 25,
         "accuracyRatingPerShot": 6,
-        "msToDrainAccuracy": 200,
+        "msToDrainAccuracy": 70,
         "maxAccuracyAdd": 70,
         "sightsModifier": 0.3
         }

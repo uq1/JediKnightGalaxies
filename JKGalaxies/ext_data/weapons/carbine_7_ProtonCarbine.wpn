@@ -79,10 +79,10 @@
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
             "accuracy": {
-        "accuracyRating": 42,
-        "accuracyRatingPerShot": 2,
-        "msToDrainAccuracy": 280,
-        "maxAccuracyAdd": 110,
+        "accuracyRating": 28,
+        "accuracyRatingPerShot": 4,
+        "msToDrainAccuracy": 50,
+        "maxAccuracyAdd": 90,
         "sightsModifier": 0.4
         }
     },

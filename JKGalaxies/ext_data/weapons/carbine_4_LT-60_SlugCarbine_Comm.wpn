@@ -87,7 +87,7 @@
             "accuracy": {
         "accuracyRating": 32,
         "accuracyRatingPerShot": 2,
-        "msToDrainAccuracy": 240,
+        "msToDrainAccuracy": 60,
         "maxAccuracyAdd": 100,
         "sightsModifier": 0.4
         }
@@ -107,8 +107,8 @@
         "meansofdeath": "MOD_BLASTER",
             "accuracy": {
         "accuracyRating": 16,
-        "accuracyRatingPerShot": 2,
-        "msToDrainAccuracy": 240,
+        "accuracyRatingPerShot": 3,
+        "msToDrainAccuracy": 60,
         "maxAccuracyAdd": 50,
         "sightsModifier": 0.3
         }

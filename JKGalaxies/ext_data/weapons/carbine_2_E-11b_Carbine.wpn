@@ -81,9 +81,9 @@
         "splashmeansofdeath": "MOD_BLASTER",
             "accuracy": {
         "accuracyRating": 40,
-        "accuracyRatingPerShot": 2,
-        "msToDrainAccuracy": 240,
-        "maxAccuracyAdd": 120,
+        "accuracyRatingPerShot": 4,
+        "msToDrainAccuracy": 50,
+        "maxAccuracyAdd": 80,
         "sightsModifier": 0.4
         }
     },
