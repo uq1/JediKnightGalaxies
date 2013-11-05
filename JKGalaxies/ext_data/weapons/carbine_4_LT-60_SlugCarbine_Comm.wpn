@@ -78,13 +78,40 @@
         "ballistic":    true,
         "ammocost":     1,
         "firedelay":    120,
+        "range":        40000.0,
+        "recoil":       1.6,
+        "spread":       0.2,
+        "projectilespeed": 28000.0,
+        "projectileclass": "blaster_proj",
+        "meansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 32,
+        "accuracyRatingPerShot": 2,
+        "msToDrainAccuracy": 240,
+        "maxAccuracyAdd": 100,
+        "sightsModifier": 0.4
+        }
+    },
+    
+    "firemode1": {
+        "damage":       16,
+        "ballistic":    true,
+        "ammocost":     1,
+        "firedelay":    120,
         "firingtype":   "semi",
         "range":        40000.0,
         "recoil":       1.2,
         "spread":       0.2,
         "projectilespeed": 28000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER"
+        "meansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 16,
+        "accuracyRatingPerShot": 2,
+        "msToDrainAccuracy": 240,
+        "maxAccuracyAdd": 50,
+        "sightsModifier": 0.3
+        }
     },
     
     "playeranims": {

@@ -85,7 +85,14 @@
         "projectilespeed": 5000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
-        "splashmeansofdeath": "MOD_BLASTER"
+        "splashmeansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 25,
+        "accuracyRatingPerShot": 6,
+        "msToDrainAccuracy": 200,
+        "maxAccuracyAdd": 70,
+        "sightsModifier": 0.3
+        }
     },
 
     "firemode1": {

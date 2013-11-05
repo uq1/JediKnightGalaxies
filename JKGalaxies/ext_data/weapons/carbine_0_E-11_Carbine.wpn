@@ -74,29 +74,36 @@
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
-        "splashmeansofdeath": "MOD_BLASTER"
+        "splashmeansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 40,
+        "accuracyRatingPerShot": 2,
+        "msToDrainAccuracy": 240,
+        "maxAccuracyAdd": 120,
+        "sightsModifier": 0.4
+        }
     },
     
-    "firemode1": {
+//    "firemode1": {
 //        "damage":       10,
-        "damage": {
-                               "damage":       0
+//        "damage": {
+//                               "damage":       0
 //                               "damagetype": [ "stun" ]
-                        },
-        "collisionsize": 16.0,
-        "maxchargetime": 500,
-        "chargedamage": 1.5,
-        "chargedelay":  500,
-        "ammocost":     5,
-        "firedelay":    1700,
-        "firingtype":   "semi",
-        "range":        800.0,
-        "recoil":       0.5,
-        "spread":       1.0,
-        "projectilespeed": 4000.0,
-        "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER"
-    },
+//                        },
+//        "collisionsize": 16.0,
+//        "maxchargetime": 500,
+//        "chargedamage": 1.5,
+//        "chargedelay":  500,
+//        "ammocost":     5,
+//        "firedelay":    1700,
+//        "firingtype":   "semi",
+//        "range":        800.0,
+//        "recoil":       0.5,
+//        "spread":       1.0,
+//        "projectilespeed": 4000.0,
+//        "projectileclass": "blaster_proj",
+//        "meansofdeath": "MOD_BLASTER"
+//    },
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },

@@ -75,7 +75,18 @@
         "spread":       5.0,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER"
+        "meansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 50,
+        "accuracyRatingPerShot": 0,
+        "msToDrainAccuracy": 1000,
+        "maxAccuracyAdd": 0,
+        "crouchModifier": 1,
+        "runModifier": 1,
+        "sightsModifier": 1,
+        "walkModifier": 1,
+        "inAirModifier": 1
+        }
     },
     
     "firemode1": {
@@ -98,7 +109,18 @@
         "spread":       8.0,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER"
+        "meansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 64,
+        "accuracyRatingPerShot": 0,
+        "msToDrainAccuracy": 1000,
+        "maxAccuracyAdd": 0,
+        "crouchModifier": 1,
+        "runModifier": 1,
+        "sightsModifier": 1,
+        "walkModifier": 1,
+        "inAirModifier": 1
+        }
     },
     
     "playeranims": {
