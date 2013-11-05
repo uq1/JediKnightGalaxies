@@ -36,7 +36,7 @@
             "projectilefx": "weapons/slug_tracershot",
             "miss":         { "impactfx": "slugthrowers/impactsmall" },
             "hit":          { "impactfx": "weapons/slug_impact_flesh_blood" },
-	    "displayName":  "Semi"
+	    "displayName":  "Auto"
         },
         
         "firemode1": {
@@ -53,7 +53,8 @@
             "projectilemodel": "models/ammo/quarrel_projectile.md3",
             "projectilefx": "weapons/slug_tracershot",
             "miss":         { "impactfx": "slugthrowers/impactsmall" },
-            "hit":          { "impactfx": "weapons/slug_impact_flesh_blood" }
+            "hit":          { "impactfx": "weapons/slug_impact_flesh_blood" },
+	    "displayName":  "Semi"
         },
 
         "scope": {
