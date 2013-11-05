@@ -81,7 +81,7 @@
         "accuracyRating": 96,
         "accuracyRatingPerShot": 12,
         "msToDrainAccuracy": 150,
-        "maxAccuracyAdd": 128,
+        "maxAccuracyAdd": 64,
         "crouchModifier": 0.95,
         "runModifier": 1.2,
         "sightsModifier": 0.9,
