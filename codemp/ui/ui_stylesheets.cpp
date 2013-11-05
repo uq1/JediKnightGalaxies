@@ -53,14 +53,17 @@ void JKG_UI_LoadStylesheet( const char *text )
 		return;
 	}
 
-	cJSON *rootNode = cJSON_GetObjectItem( json, "stylesheet" );
-	if( rootNode )
+	if( json )
 	{
-		for( cJSON *classObject = cJSON_GetFirstItem( rootNode );
-			classObject; classObject = cJSON_GetNextItem( rootNode ) )
+		for( cJSON *classObject = cJSON_GetFirstItem( json );
+			classObject; classObject = cJSON_GetNextItem( json ) )
 		{
 			itemDef_t item;
+			const char *textTemp;
 			string name = cJSON_GetItemKey( classObject );
+
+			// fix some junk first off
+			item.typeData = NULL;
 
 			// parse the different blocks of the stylesheet
 			item.accept = cJSON_ToString(cJSON_GetObjectItem(classObject, "accept"));
@@ -93,8 +96,8 @@ void JKG_UI_LoadStylesheet( const char *text )
 			item.selectionNext = cJSON_ToString(cJSON_GetObjectItem(classObject, "selectionNext"));
 			item.selectionPrev = cJSON_ToString(cJSON_GetObjectItem(classObject, "selectionPrev"));
 			item.special = cJSON_ToNumber(cJSON_GetObjectItem(classObject, "special"));
-			Q_strncpyz(item.text, cJSON_ToString(cJSON_GetObjectItem(classObject, "text")), sizeof(item.text));
-			Q_strncpyz(item.text2, cJSON_ToString(cJSON_GetObjectItem(classObject, "text2")), sizeof(item.text2));
+			if (textTemp = cJSON_ToString(cJSON_GetObjectItem(classObject, "text"))) Q_strncpyz(item.text, textTemp, sizeof(item.text));
+			if (textTemp = cJSON_ToString(cJSON_GetObjectItem(classObject, "text2"))) Q_strncpyz(item.text2, textTemp, sizeof(item.text2));
 			item.text2alignment = cJSON_ToInteger(cJSON_GetObjectItem(classObject, "text2alignment")); // FIXME: use enum
 			item.text2alignx = cJSON_ToNumber(cJSON_GetObjectItem(classObject, "text2alignx")); // FIXME: allow for percentages
 			item.text2aligny = cJSON_ToNumber(cJSON_GetObjectItem(classObject, "text2aligny")); // FIXME: allow for percentages

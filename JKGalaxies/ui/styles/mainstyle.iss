@@ -1,4 +1,4 @@
-"stylesheet": {
+{
     "blankshader": {
         "style":    "3",
         "forecolor": ["0", "0", "0", "0"],
