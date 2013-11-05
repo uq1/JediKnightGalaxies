@@ -114,7 +114,7 @@ void JKG_UI_LoadStylesheet( const char *text )
 			item.window.borderSize = cJSON_ToNumber(cJSON_GetObjectItem(classObject, "borderSize"));
 			//item.window.cinematic // not needed
 			//item.window.cinematicName // not needed
-			item.window.flags = cJSON_ToInteger(cJSON_GetObjectItem(classObject, "flags")); // FIXME: use proper flags
+			item.window.flags = cJSON_ToInteger(cJSON_GetObjectItem(classObject, "windowFlags")); // FIXME: use proper flags
 			//item.window.foreColor // need vec parsing
 			item.window.foreground = DC->registerShaderNoMip(cJSON_ToString(cJSON_GetObjectItem(classObject, "foreground")));
 			item.window.group = cJSON_ToString(cJSON_GetObjectItem(classObject, "group"));

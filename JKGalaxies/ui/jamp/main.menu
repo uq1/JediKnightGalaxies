@@ -49,6 +49,7 @@
 		rect					0 0 640 480					// Size and position of the menu
 		visible					1						// Visible on open
 		focusColor				1 1 1 1					// Focus color for text and items
+        stylesheet              "mainstyle"               // Use this stylesheet
 //		descX					320
 //		descY					424
 //		descScale				1					// No, we do not want descriptions. ~BlasT
@@ -85,74 +86,50 @@
 	
 		itemDef 
 		{
+            class               blankshader
 			name				backgroundfog
-			group				none
-			style				WINDOW_STYLE_SHADER
 			rect				-50 -121 821 616
 			background			"gfx/ui/main_bg_smoke"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
 		}
 
 		itemDef 
 		{
+            class               blankshader
 			name				video
-			group				none
-			style				WINDOW_STYLE_SHADER
 			rect				606 82 118 114
 			background			"gfx/ui/main_video_roq"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
 		}
 
 		itemDef 
 		{
+            class               blankshader
 			name				background
-			group				none
-			style				WINDOW_STYLE_SHADER
 			rect				-50 -121 821 616
 			background			"gfx/ui/main_bg"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
 		}
 
 		itemDef 
 		{
+            class               blankshader
 			name				holomenu
-			group				none
-			style				WINDOW_STYLE_SHADER
 			rect				64 99 224 224
 			background			"gfx/ui/main_menu"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
 		}
 
 		itemDef 
 		{
+            class               blankshader
 			name				logo
-			group				none
-			style				WINDOW_STYLE_SHADER
 			rect				253 6 391 97
 			background			"gfx/ui/main_bg_logo"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
 		}
 
 		itemDef 
 		{
+            class               blankshader
 			name				filmgrain
-			group				none
-			style				WINDOW_STYLE_SHADER
 			rect				0 0 640 480
 			background			"gfx/ui/main_bg_grain"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
 		}
 
 //----------------------------------------------------------------------------------------------
@@ -162,27 +139,19 @@
 		// Selection highlight for the big buttons
 		itemDef 
 		{
+            class               blankshader
 			name				bigbutton_select
-			group				none
-			style				WINDOW_STYLE_SHADER
 			rect				0 0 0 0
 			background			"gfx/ui/shop_itembutton_sel"
-			forecolor			1 1 1 1
-			visible				0
-			decoration
 		}
 
 		// Selection highlight for the small buttons
 		itemDef 
 		{
+            class               blankshader
 			name				smallbutton_select
-			group				none
-			style				WINDOW_STYLE_SHADER
 			rect				0 0 0 0
 			background			"gfx/ui/main_buttonsmall"
-			forecolor			1 1 1 1
-			visible				0
-			decoration
 		}
 
 		// "PLAY_" button

@@ -11,6 +11,5 @@
 	loadMenu { "ui/jkg/jkg_slice.menu"		}
 	loadMenu { "ui/jkg/jkg_loot.menu"		}
   loadMenu { "ui/jkg/jkg_inventory.menu"  }
-  loadMenu { "ui/jkg/ingame_radio.menu"  }
 }
 

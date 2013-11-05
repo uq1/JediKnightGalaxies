@@ -9392,14 +9392,14 @@ qboolean ItemParse_cvarStrList( itemDef_t *item, int handle ) {
 
 	pass = 0;
 	while ( 1 ) {
-		char* psString;
+		const char* psString;
 
 //		if (!trap_PC_ReadToken(handle, &token)) {
 //			PC_SourceError(handle, "end of file inside menu item\n");
 //			return qfalse;
 //		}		   
 
-		if (!PC_String_Parse(handle, (const char **)&psString)) 
+		if (!PC_String_Parse(handle, &psString)) 
 		{
 			PC_SourceError(handle, "end of file inside menu item\n");
 			return qfalse;
@@ -9460,9 +9460,9 @@ qboolean ItemParse_cvarFloatList( itemDef_t *item, int handle )
 
 	while ( 1 ) 
 	{
-		char* string;
+		const char* string;
 
-		if ( !PC_String_Parse ( handle, (const char **)&string ) )
+		if ( !PC_String_Parse ( handle, &string ) )
 		{
 			PC_SourceError(handle, "end of file inside menu item\n");
 			return qfalse;
@@ -9632,8 +9632,8 @@ qboolean ItemParse_isSaber2( itemDef_t *item, int handle  )
 qboolean ItemParse_class( itemDef_t *item, int handle )
 {
 #ifndef CGAME
-	char classname[MAX_QPATH];
-	if( PC_String_Parse(handle, (const char **)&classname) )
+	const char *classname;
+	if( PC_String_Parse(handle, &classname) )
 	{
 		JKG_UI_SetClass( classname, item );
 		return true;
@@ -10455,8 +10455,8 @@ qboolean MenuParse_fadeAmount( itemDef_t *item, int handle ) {
 
 qboolean MenuParse_stylesheet( itemDef_t *item, int handle ) {
 #ifndef CGAME
-	char text[MAX_QPATH];
-	if (!PC_String_Parse(handle, (const char **)&text))
+	const char *text;
+	if (!PC_String_Parse(handle, &text))
 		return qfalse;
 	JKG_UI_LoadStylesheet(text);
 #endif
