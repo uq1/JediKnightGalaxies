@@ -96,7 +96,18 @@
         "projectilespeed":9000.0,
         "projectileclass":"conc_proj",
         "meansofdeath": "MOD_CONC",
-        "splashmeansofdeath": "MOD_CONC"
+        "splashmeansofdeath": "MOD_CONC",
+            "accuracy": {
+        "accuracyRating": 42,
+        "accuracyRatingPerShot": 12,
+        "msToDrainAccuracy": 450,
+        "maxAccuracyAdd": 120,
+        "crouchModifier": 0.9,
+        "runModifier": 1.4,
+        "sightsModifier": 0.7,
+        "walkModifier": 1.1,
+        "inAirModifier": 1.8
+        }
     },
     
     "firemode1": {
@@ -115,7 +126,18 @@
         "projectilespeed":9000.0,
         "projectileclass":"conc_proj",
         "meansofdeath": "MOD_CONC",
-        "splashmeansofdeath": "MOD_CONC"
+        "splashmeansofdeath": "MOD_CONC",
+            "accuracy": {
+        "accuracyRating": 24,
+        "accuracyRatingPerShot": 20,
+        "msToDrainAccuracy": 450,
+        "maxAccuracyAdd": 56,
+        "crouchModifier": 0.9,
+        "runModifier": 1.4,
+        "sightsModifier": 0.6,
+        "walkModifier": 1.1,
+        "inAirModifier": 1.8
+        }
     },
     
     "playeranims": {

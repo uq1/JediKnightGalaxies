@@ -83,7 +83,18 @@
         "projectilespeed":13000.0,
         "projectileclass":"conc_proj",
         "meansofdeath": "MOD_CONC",
-        "splashmeansofdeath": "MOD_CONC"
+        "splashmeansofdeath": "MOD_CONC",
+            "accuracy": {
+        "accuracyRating": 38,
+        "accuracyRatingPerShot": 10,
+        "msToDrainAccuracy": 450,
+        "maxAccuracyAdd": 120,
+        "crouchModifier": 0.7,
+        "runModifier": 1.5,
+        "sightsModifier": 0.25,
+        "walkModifier": 1.2,
+        "inAirModifier": 1.8
+        }
     },
     
     "playeranims": {

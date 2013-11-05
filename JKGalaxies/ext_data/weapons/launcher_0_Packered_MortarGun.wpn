@@ -70,7 +70,18 @@
         "projectilespeed":1500.0,
         "projectileclass":"rocket_proj",
         "meansofdeath": "MOD_ROCKET",
-        "splashmeansofdeath": "MOD_ROCKET_SPLASH"
+        "splashmeansofdeath": "MOD_ROCKET_SPLASH",
+            "accuracy": {
+        "accuracyRating": 72,
+        "accuracyRatingPerShot": 12,
+        "msToDrainAccuracy": 250,
+        "maxAccuracyAdd": 96,
+        "crouchModifier": 0.9,
+        "runModifier": 1.4,
+        "sightsModifier": 0.7,
+        "walkModifier": 1.1,
+        "inAirModifier": 1.8
+        }
     },
     
     "playeranims": {

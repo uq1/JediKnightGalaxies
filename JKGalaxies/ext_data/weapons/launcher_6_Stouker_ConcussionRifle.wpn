@@ -79,7 +79,18 @@
         "projectilespeed":5000.0,
         "projectileclass":"rocket_proj",
         "meansofdeath": "MOD_ROCKET",	// Blow them to smithereens!
-        "splashmeansofdeath": "MOD_ROCKET_SPLASH"
+        "splashmeansofdeath": "MOD_ROCKET_SPLASH",
+            "accuracy": {
+        "accuracyRating": 20,
+        "accuracyRatingPerShot": 16,
+        "msToDrainAccuracy": 450,
+        "maxAccuracyAdd": 84,
+        "crouchModifier": 0.9,
+        "runModifier": 1.4,
+        "sightsModifier": 0.7,
+        "walkModifier": 1.1,
+        "inAirModifier": 1.8
+        }
     },
     
     "firemode1": {
@@ -96,7 +107,18 @@
         "projectilespeed": 10000.0,
         "projectileclass":"flech_proj",
         "meansofdeath": "MOD_CONC",
-        "splashmeansofdeath": "MOD_CONC"
+        "splashmeansofdeath": "MOD_CONC",
+            "accuracy": {
+        "accuracyRating": 24,
+        "accuracyRatingPerShot": 20,
+        "msToDrainAccuracy": 450,
+        "maxAccuracyAdd": 48,
+        "crouchModifier": 0.9,
+        "runModifier": 1.4,
+        "sightsModifier": 0.8,
+        "walkModifier": 1.1,
+        "inAirModifier": 1.8
+        }
     },
     
     "playeranims": {
