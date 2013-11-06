@@ -156,7 +156,25 @@ typedef struct {
   vec4_t borderColor;             // border color
   vec4_t outlineColor;            // border color
   qhandle_t background;           // background asset  
-  qhandle_t foreground;			  // foreground asset (if needed. Only needed on checkboxes, radio, slider, and a few others --eez
+  qhandle_t foreground;			  // foreground asset (if needed. Only needed on checkboxes, radio, and slider --eez
+
+  // Listboxes and comboboxes only --eez
+  qboolean	useNewSlider;
+  qboolean	noSliderButtons;
+  qhandle_t	sliderButtonUpShader;
+  qhandle_t	sliderButtonDownShader;
+  qhandle_t	sliderBackground;
+  float		sliderThumbWidth;
+  float		sliderThumbHeight;
+  float		sliderButtonHeight;
+  float		sliderButtonWidth;
+
+  // For slider bars without buttons, some overrides --eez
+  qboolean	floatingSlider;
+  float		sliderBackgroundWidth;
+  float		sliderBackgroundHeight;
+  float		sliderTopY;
+  float		sliderBottomY;
 } windowDef_t;
 
 typedef windowDef_t Window;
