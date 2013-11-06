@@ -9311,6 +9311,13 @@ qboolean ItemParse_action( itemDef_t *item, int handle ) {
 	return qtrue;
 }
 
+qboolean ItemParse_tooltip( itemDef_t *item, int handle ) {
+	if (!PC_String_Parse(handle, &item->tooltip)) {
+		return qfalse;
+	}
+	return qtrue;
+}
+
 qboolean ItemParse_special( itemDef_t *item, int handle ) {
 	if (!PC_Float_Parse(handle, &item->special)) {
 		return qfalse;
@@ -9983,6 +9990,7 @@ keywordHash_t itemParseKeywords[] = {
 	{"text2",			ItemParse_text2,			NULL	},
 	{"text2alignx",		ItemParse_text2alignx,		NULL	},
 	{"text2aligny",		ItemParse_text2aligny,		NULL	},
+	{"tooltip",			ItemParse_tooltip,			NULL	},
 	{"type",			ItemParse_type,				NULL	},
 	{"visible",			ItemParse_visible,			NULL	},
 	{"wrapped",			ItemParse_wrapped,			NULL	},

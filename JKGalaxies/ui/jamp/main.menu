@@ -133,6 +133,24 @@
 		}
 
 //----------------------------------------------------------------------------------------------
+//  TOOLTIP
+//----------------------------------------------------------------------------------------------
+    itemDef
+    {
+        name        tooltip
+        group       none
+        background  "gfx/ui/inv_cursorbox"
+        font        5
+        align       ITEM_ALIGN_CENTER
+        textscale   0.4
+        type        ITEM_TYPE_OWNERDRAW
+        ownerdraw   1045
+        text        " " // this makes me want to set a Waffle House on fire, but it's the only way
+        decoration
+        
+    }
+
+//----------------------------------------------------------------------------------------------
 //	TOP MENU BUTTONS
 //----------------------------------------------------------------------------------------------
 
@@ -184,6 +202,7 @@
 			textstyle			-1
 			forecolor			1 1 1 1
 			visible				1
+            tooltip             "Play Jedi Knight Galaxies"
 
 			mouseEnter 
 			{ 
@@ -252,6 +271,7 @@
 			textstyle			0
 			forecolor			1 1 1 1
 			visible				1
+            tooltip             "Character Selection\n(locked until Phase 2)"
 
 			//mouseEnter 
 			//{ 
@@ -320,6 +340,7 @@
 			textstyle			0
 			forecolor			1 1 1 1
 			visible				1
+            tooltip             "Adjust controls and video/sound settings."
 
 			mouseEnter 
 			{ 
@@ -393,6 +414,7 @@
 			textstyle			0
 			forecolor			1 1 1 1
 			visible				1
+            tooltip             "Find out who made Jedi Knight Galaxies!\n(currently unavailable)"
 
 			//mouseEnter 
 			//{ 
@@ -442,6 +464,7 @@
 			textstyle			0
 			forecolor			1 1 1 1
 			visible				1
+            tooltip             "Leaving so soon?"
 
 			mouseEnter 
 			{ 

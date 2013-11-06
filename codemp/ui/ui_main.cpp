@@ -61,6 +61,8 @@ char *forcepowerDesc[NUM_FORCE_POWERS] =
 	"@SP_INGAME_FORCE_SABER_THROW_DESC"
 };
 
+void JKG_Draw_Tooltip(itemDef_t *tooltip);
+
 // Movedata Sounds
 typedef enum
 {
@@ -2456,6 +2458,10 @@ static void UI_OwnerDraw(itemDef_t *item, float x, float y, float w, float h, fl
 
 	case UI_JKG_INV_TOOLTIP:
 		JKG_Inventory_DrawTooltip();
+		break;
+
+	case UI_JKG_TOOLTIP:
+		JKG_Draw_Tooltip(item);
 		break;
 
 	case UI_JKG_TEAMRED:
@@ -8920,5 +8926,141 @@ static void UI_StartServerRefresh(qboolean full)
 			}
 		}
 	}
+}
+
+// TODO: move me into ui_shared.cpp somewhere plz
+extern int Menu_Count();
+extern menuDef_t Menus[MAX_MENUS];      // defined menus
+extern displayContextDef_t *DC;
+bool IsCursorTouching(rectDef_t *rect)
+{
+	bool xValid = false;
+	bool yValid = false;
+	if(DC->cursorx > rect->x && DC->cursorx < rect->x+rect->w)
+		xValid = true;
+	if(DC->cursory > rect->y && DC->cursory < rect->y+rect->h)
+		yValid = true;
+	return xValid && yValid;
+}
+
+#include <vector>
+#include <string>
+using namespace std;
+#define NUMBER_CHARS_TOOLTIP_LINE	80
+void RunTooltip(itemDef_t *item, itemDef_t *tooltip) {
+	if(!item) return;
+	if(!item->tooltip) return;
+
+	// Some preliminary stuff needs to be set
+	vec4_t defaultColor = {1.0f, 1.0f, 1.0f, 1.0f};
+	tooltip->window.rect.x = DC->cursorx + 10;
+	tooltip->window.rect.y = DC->cursory + 10;
+	DC->setColor(defaultColor);
+
+	// Render lines
+	vector<string> lines;
+	string stdstringVer = item->tooltip;
+
+	size_t previous = 0;
+	while( 1 )
+	{
+		size_t nextLine = stdstringVer.find("\\n", previous);
+		if(nextLine == string::npos) 
+		{ // last line
+			lines.push_back(stdstringVer.substr(previous));
+			break;
+		}
+		string brokenString = stdstringVer.substr(previous, nextLine-1);
+		previous = nextLine+1;
+		if(brokenString.length() <= NUMBER_CHARS_TOOLTIP_LINE)
+		{
+			lines.push_back(brokenString);
+			continue;
+		}
+		// have to break this into multiple lines
+		size_t chunk = 0;
+		while( 1 )
+		{
+			if(chunk + NUMBER_CHARS_TOOLTIP_LINE >= brokenString.length())
+			{
+				// last chunk
+				lines.push_back(brokenString.substr(chunk));
+				break;
+			}
+			string chunkStr = brokenString.substr(chunk, chunk + NUMBER_CHARS_TOOLTIP_LINE);
+			chunk += NUMBER_CHARS_TOOLTIP_LINE;
+			lines.push_back(chunkStr);
+		}
+	}
+
+	if(lines.begin() == lines.end())
+		return; // no lines detected
+
+	// Render back the lines in a sensible way.
+	float lineHeight = DC->textHeight(lines[0].c_str(), 1.0f, tooltip->iMenuFont) * tooltip->textscale;
+	float textHeight = lines.size() * lineHeight;
+
+	// Find the biggest text element so we can get the size of the tooltip
+	auto biggestElement = lines.begin();
+	for(auto it = lines.begin(); it != lines.end(); ++it)
+	{
+		if(it->length() > biggestElement->length())
+			biggestElement = it;
+	}
+	tooltip->window.rect.w = DC->textWidth(biggestElement->c_str(), 1.0f, tooltip->iMenuFont) * tooltip->textscale;
+	tooltip->window.rect.w += 70.0f; // 35px padding
+	tooltip->window.rect.h = textHeight + 40.0f; // 20px padding
+
+	// Now then...ACTUALLY RENDER the text...
+	for(auto it = lines.begin(); it != lines.end(); ++it)
+	{
+		float lineWidth = DC->textWidth(it->c_str(), 1.0f, tooltip->iMenuFont) * tooltip->textscale;
+		float textX = 0.0f;
+		if(tooltip->textalignment == ITEM_ALIGN_CENTER)
+		{
+			textX = tooltip->window.rect.x + 35.0f + (lineWidth/2);
+		}
+		else if(tooltip->textalignment == ITEM_ALIGN_RIGHT)
+		{
+			textX = tooltip->window.rect.x + tooltip->window.rect.w - 35.0f - lineWidth;
+		}
+		else
+		{
+			textX = tooltip->window.rect.x + 35.0f;
+		}
+		DC->drawText(	textX,
+						lineHeight*(it-lines.begin()),
+						tooltip->textscale,
+						defaultColor,
+						it->c_str(),
+						0, 0, 0,
+						tooltip->iMenuFont);
+	}
+
+	DC->drawHandlePic(tooltip->window.rect.x, tooltip->window.rect.y, tooltip->window.rect.w, tooltip->window.rect.h,
+						tooltip->window.background);
+}
+
+void JKG_Draw_Tooltip(itemDef_t *tooltip) {
+	bool ranAny = false;
+	if(!tooltip) return;
+	menuDef_t *menu = (menuDef_t *)(tooltip->parent);
+	for(int i = 0; i < menu->itemCount; i++)
+	{
+		itemDef_t *item = menu->items[i];
+		if(!item)									break;
+		if(!(item->window.flags & WINDOW_VISIBLE))	continue;
+		if(!item->tooltip)							continue;
+		if(!IsCursorTouching(&item->window.rect))	continue;
+		
+		// Now actually render said tooltip
+		RunTooltip(item, tooltip);
+		ranAny = true;
+	}
+
+	if(!ranAny)
+		tooltip->window.flags |= WINDOW_VISIBLE;
+	else
+		tooltip->window.flags &= ~WINDOW_VISIBLE;
 }
 

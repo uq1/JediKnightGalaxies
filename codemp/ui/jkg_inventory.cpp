@@ -1994,10 +1994,8 @@ void JKG_Inventory_ConstructToolTip ( int itemNumber, float cX, float cY )
 	}
 
 	//Grab the height of the combined lines
-	{
-		lineHeight = DC->textHeight(toolTextLines[biggestLine], toolTipItem->textscale, toolTipItem->iMenuFont);
-		toolTipItem->window.rect.h = (lineHeight*toolLines)+40; //20px padding on each side
-	}
+	lineHeight = DC->textHeight(toolTextLines[biggestLine], toolTipItem->textscale, toolTipItem->iMenuFont);
+	toolTipItem->window.rect.h = (lineHeight*toolLines)+40; //20px padding on each side
 
 	//Change the position of the toolTipItem
 	//TODO: Perform OOB checks here

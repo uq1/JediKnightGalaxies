@@ -346,6 +346,9 @@
 #define UI_JKG_TEAMRED			1043
 #define UI_JKG_TEAMBLUE			1044
 
+//Refactored tooltip code
+#define UI_JKG_TOOLTIP			1045
+
 //How handy it would be if this were an enum.
 #define UI_BLUETEAM6 280
 #define UI_BLUETEAM7 281

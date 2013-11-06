@@ -359,6 +359,8 @@ typedef struct itemDef_s {
 	qboolean	disabled;					// Does this item ignore mouse and keyboard focus
 	int			invertYesNo;
 	int			xoffset;
+
+	const char	*tooltip;					// New refactored tooltip system --eez
 } itemDef_t;
 
 typedef struct {
