@@ -2803,14 +2803,44 @@ int Item_ListBox_ThumbPosition(itemDef_t *item) {
 		return item->window.rect.x + 1 + SCROLLBAR_SIZE + pos;
 	}
 	else {
-		size = item->window.rect.h - (SCROLLBAR_SIZE * 2) - 2;
-		if (max > 0) {
-			pos = (size-SCROLLBAR_SIZE) / (float) max;
-		} else {
-			pos = 0;
+		if( item->window.useNewSlider )
+		{
+			if( item->window.noSliderButtons )
+			{
+				if( item->window.floatingSlider )
+				{
+					size = item->window.sliderBottomY - item->window.sliderTopY - item->window.sliderThumbHeight;
+					if ( max > 0 ) {
+						pos = size/(float)max;
+					}
+					else
+					{
+						pos = 0;
+					}
+					pos *= listPtr->startPos;
+					return item->window.rect.y + (item->window.sliderThumbHeight/2) + pos - 5;
+				}
+				else
+				{
+					return 1.0f; // not done
+				}
+			}
+			else
+			{
+				return 1.0f; // not done
+			}
 		}
-		pos *= listPtr->startPos;
-		return item->window.rect.y + 1 + SCROLLBAR_SIZE + pos;
+		else
+		{
+			size = item->window.rect.h - (SCROLLBAR_SIZE * 2) - 2;
+			if (max > 0) {
+				pos = (size-SCROLLBAR_SIZE) / (float) max;
+			} else {
+				pos = 0;
+			}
+			pos *= listPtr->startPos;
+			return item->window.rect.y + 1 + SCROLLBAR_SIZE + pos;
+		}
 	}
 }
 
@@ -6555,21 +6585,54 @@ void Item_ListBox_Paint(itemDef_t *item) {
 			{
 				// draw scrollbar to bottom of the window
 				x = item->window.rect.x + 1;
-				y = item->window.rect.y + item->window.rect.h - SCROLLBAR_SIZE - 1;
-				DC->drawHandlePic(x, y, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarArrowLeft);
-				x += SCROLLBAR_SIZE - 1;
+				if(item->window.useNewSlider)
+				{
+					if(item->window.noSliderButtons)
+					{
+						// HUFF...okay, this is way more difficult.
+						y = item->window.rect.y + item->window.rect.h - item->window.sliderThumbHeight - 1;
+						DC->drawHandlePic(x, y, item->window.rect.w, item->window.sliderThumbHeight, item->window.sliderBackground);
+						listPtr->endPos = listPtr->startPos;
+						thumb = Item_ListBox_ThumbDrawPosition(item);
+						DC->drawHandlePic(thumb, y, item->window.sliderThumbWidth, item->window.sliderThumbHeight, item->window.foreground);
+					}
+					else
+					{
+						y = item->window.rect.y + item->window.rect.h - item->window.sliderThumbHeight - 1;
+						DC->drawHandlePic(x, y, item->window.sliderButtonWidth, item->window.sliderButtonHeight, item->window.sliderButtonUpShader);
+						x += item->window.sliderButtonWidth - 1;
 
-				listPtr->endPos = listPtr->startPos;
-				sizeWidth = item->window.rect.w - (SCROLLBAR_SIZE * 2);
-				DC->drawHandlePic(x, y, sizeWidth+1, SCROLLBAR_SIZE, DC->Assets.scrollBar);
-				x += sizeWidth - 1;
-				DC->drawHandlePic(x, y, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarArrowRight);
-				// thumb
-				thumb = Item_ListBox_ThumbDrawPosition(item);//Item_ListBox_ThumbPosition(item);
-				if (thumb > x - SCROLLBAR_SIZE - 1) {
-					thumb = x - SCROLLBAR_SIZE - 1;
+						listPtr->endPos = listPtr->startPos;
+						sizeWidth = item->window.rect.w - (item->window.sliderButtonWidth * 2);
+						DC->drawHandlePic(x, y, sizeWidth+1, item->window.sliderThumbHeight, item->window.sliderBackground);
+						x += sizeWidth - 1;
+						DC->drawHandlePic(x, y, item->window.sliderButtonWidth, item->window.sliderButtonHeight, item->window.sliderButtonDownShader);
+						// thumb
+						thumb = Item_ListBox_ThumbDrawPosition(item);//Item_ListBox_ThumbPosition(item);
+						if (thumb > x - item->window.sliderThumbWidth - 1) {
+							thumb = x - item->window.sliderThumbWidth - 1;
+						}
+						DC->drawHandlePic(thumb, y, item->window.sliderThumbWidth, item->window.sliderThumbHeight, item->window.foreground);
+					}
 				}
-				DC->drawHandlePic(thumb, y, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarThumb);
+				else
+				{
+					y = item->window.rect.y + item->window.rect.h - SCROLLBAR_SIZE - 1;
+					DC->drawHandlePic(x, y, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarArrowLeft);
+					x += SCROLLBAR_SIZE - 1;
+
+					listPtr->endPos = listPtr->startPos;
+					sizeWidth = item->window.rect.w - (SCROLLBAR_SIZE * 2);
+					DC->drawHandlePic(x, y, sizeWidth+1, SCROLLBAR_SIZE, DC->Assets.scrollBar);
+					x += sizeWidth - 1;
+					DC->drawHandlePic(x, y, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarArrowRight);
+					// thumb
+					thumb = Item_ListBox_ThumbDrawPosition(item);//Item_ListBox_ThumbPosition(item);
+					if (thumb > x - SCROLLBAR_SIZE - 1) {
+						thumb = x - SCROLLBAR_SIZE - 1;
+					}
+					DC->drawHandlePic(thumb, y, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarThumb);
+				}
 			}
 			else if(listPtr->startPos > 0)
 			{
@@ -6717,22 +6780,77 @@ void Item_ListBox_Paint(itemDef_t *item) {
 			if (Item_ListBox_MaxScroll(item) > 0)
 			{
 				// draw scrollbar to right side of the window
-				x = item->window.rect.x + item->window.rect.w - SCROLLBAR_SIZE - 1;
-				y = item->window.rect.y + 1;
-				DC->drawHandlePic(x, y, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarArrowUp);
-				y += SCROLLBAR_SIZE - 1;
+				if( item->window.useNewSlider )
+				{
+					if( item->window.noSliderButtons )
+					{
+						if( item->window.floatingSlider )
+						{
+							// also known as: hi complex slider stuff here...
+							// real complex stuff here in fact..
+							x = item->window.rect.x + item->window.rect.w - item->window.sliderBackgroundWidth - 1;
+							if( item->window.sliderBackgroundHeight > item->window.rect.h )
+								y = item->window.rect.y - ((item->window.sliderBackgroundHeight-item->window.rect.h)/2); // :o
+							else
+								y = item->window.rect.y + 1;
+							DC->drawHandlePic(x, y, item->window.sliderBackgroundWidth, item->window.sliderBackgroundHeight, item->window.sliderBackground);
 
-				listPtr->endPos = listPtr->startPos;
-				sizeHeight = item->window.rect.h - (SCROLLBAR_SIZE * 2);
-				DC->drawHandlePic(x, y, SCROLLBAR_SIZE, sizeHeight+1, DC->Assets.scrollBar);
-				y += sizeHeight - 1;
-				DC->drawHandlePic(x, y, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarArrowDown);
-				// thumb
-				thumb = Item_ListBox_ThumbDrawPosition(item);//Item_ListBox_ThumbPosition(item);
-				if (thumb > y - SCROLLBAR_SIZE - 1) {
-					thumb = y - SCROLLBAR_SIZE - 1;
+							listPtr->endPos = listPtr->startPos;
+							x = item->window.rect.x + item->window.rect.w - item->window.sliderThumbWidth - 1;
+							thumb = Item_ListBox_ThumbDrawPosition(item);//Item_ListBox_ThumbPosition(item);
+							DC->drawHandlePic(x, thumb, item->window.sliderThumbWidth, item->window.sliderThumbHeight, item->window.foreground);
+						}
+						else
+						{
+							// same HUFF as above, this makes things slightly harder to test...
+							x = item->window.rect.x + item->window.rect.w - item->window.sliderThumbWidth - 1;
+							y = item->window.rect.y + 1;
+							DC->drawHandlePic(x, y, item->window.sliderThumbWidth, item->window.rect.h-1, item->window.sliderBackground);
+
+							listPtr->endPos = listPtr->startPos;
+							thumb = Item_ListBox_ThumbDrawPosition(item);//Item_ListBox_ThumbPosition(item);
+							DC->drawHandlePic(x, thumb, item->window.sliderThumbWidth, item->window.sliderThumbHeight, item->window.foreground);
+						}
+					}
+					else
+					{
+						x = item->window.rect.x + item->window.rect.w - item->window.sliderButtonWidth - 1;
+						y = item->window.rect.y + 1;
+						DC->drawHandlePic(x, y, item->window.sliderButtonWidth, item->window.sliderButtonHeight, item->window.sliderButtonUpShader);
+						y += item->window.sliderButtonHeight - 1;
+
+						listPtr->endPos = listPtr->startPos;
+						sizeHeight = item->window.rect.h - (item->window.sliderButtonHeight * 2);
+						DC->drawHandlePic(x, y, item->window.sliderThumbWidth, sizeHeight+1, item->window.sliderBackground);
+						y += sizeHeight - 1;
+						DC->drawHandlePic(x, y, item->window.sliderButtonWidth, item->window.sliderButtonHeight, item->window.sliderButtonDownShader);
+						// thumb
+						thumb = Item_ListBox_ThumbDrawPosition(item);//Item_ListBox_ThumbPosition(item);
+						if (thumb > y - item->window.sliderButtonHeight - 1) {
+							thumb = y - item->window.sliderButtonHeight - 1;
+						}
+						DC->drawHandlePic(x, thumb, item->window.sliderThumbWidth, item->window.sliderThumbHeight, item->window.foreground);
+					}
 				}
-				DC->drawHandlePic(x, thumb, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarThumb);
+				else
+				{
+					x = item->window.rect.x + item->window.rect.w - SCROLLBAR_SIZE - 1;
+					y = item->window.rect.y + 1;
+					DC->drawHandlePic(x, y, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarArrowUp);
+					y += SCROLLBAR_SIZE - 1;
+
+					listPtr->endPos = listPtr->startPos;
+					sizeHeight = item->window.rect.h - (SCROLLBAR_SIZE * 2);
+					DC->drawHandlePic(x, y, SCROLLBAR_SIZE, sizeHeight+1, DC->Assets.scrollBar);
+					y += sizeHeight - 1;
+					DC->drawHandlePic(x, y, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarArrowDown);
+					// thumb
+					thumb = Item_ListBox_ThumbDrawPosition(item);//Item_ListBox_ThumbPosition(item);
+					if (thumb > y - SCROLLBAR_SIZE - 1) {
+						thumb = y - SCROLLBAR_SIZE - 1;
+					}
+					DC->drawHandlePic(x, thumb, SCROLLBAR_SIZE, SCROLLBAR_SIZE, DC->Assets.scrollBarThumb);
+				}
 			}
 			else if(listPtr->startPos > 0)
 			{
@@ -9629,7 +9747,7 @@ qboolean ItemParse_isSaber2( itemDef_t *item, int handle  )
 	return qfalse;
 }
 
-qboolean ItemParse_class( itemDef_t *item, int handle )
+bool ItemParse_class( itemDef_t *item, int handle )
 {
 #ifndef CGAME
 	const char *classname;
@@ -9640,6 +9758,109 @@ qboolean ItemParse_class( itemDef_t *item, int handle )
 	}
 #endif
 	return false;
+}
+
+bool ItemParse_useNewSlider( itemDef_t *item, int handle )
+{
+	item->window.useNewSlider = true;
+	return true;
+}
+
+bool ItemParse_noSliderButtons( itemDef_t *item, int handle )
+{
+	item->window.noSliderButtons = true;
+	return true;
+}
+
+bool ItemParse_sliderButtonUp( itemDef_t *item, int handle )
+{
+	const char *shaderName;
+	if(!PC_String_Parse(handle, &shaderName))
+		return false;
+	item->window.sliderButtonUpShader = DC->registerShaderNoMip(shaderName);
+	return false;
+}
+
+bool ItemParse_sliderButtonDown( itemDef_t *item, int handle )
+{
+	const char *shaderName;
+	if(!PC_String_Parse(handle, &shaderName))
+		return false;
+	item->window.sliderButtonDownShader = DC->registerShaderNoMip(shaderName);
+	return true;
+}
+
+bool ItemParse_sliderThumbW( itemDef_t *item, int handle )
+{
+	if( PC_Float_Parse(handle, &item->window.sliderThumbWidth) )
+		return true;
+	return true;
+}
+
+bool ItemParse_sliderThumbH( itemDef_t *item, int handle )
+{
+	if( PC_Float_Parse(handle, &item->window.sliderThumbHeight) )
+		return true;
+	return false;
+}
+
+bool ItemParse_sliderButtonW( itemDef_t *item, int handle )
+{
+	if( PC_Float_Parse(handle, &item->window.sliderButtonWidth) )
+		return true;
+	return false;
+}
+
+bool ItemParse_sliderButtonH( itemDef_t *item, int handle )
+{
+	if( PC_Float_Parse(handle, &item->window.sliderButtonHeight) )
+		return true;
+	return false;
+}
+
+bool ItemParse_sliderBackground( itemDef_t *item, int handle )
+{
+	const char *shaderName;
+	if(!PC_String_Parse(handle, &shaderName))
+	{
+		return false;
+	}
+	item->window.sliderBackground = DC->registerShaderNoMip(shaderName);
+	return true;
+}
+
+bool ItemParse_floatingSlider( itemDef_t *item, int handle )
+{
+	item->window.floatingSlider = true;
+	return true;
+}
+
+bool ItemParse_SliderBackgroundW( itemDef_t *item, int handle )
+{
+	if(!PC_Float_Parse(handle, &item->window.sliderBackgroundWidth))
+		return false;
+	return true;
+}
+
+bool ItemParse_SliderBackgroundH( itemDef_t *item, int handle )
+{
+	if(!PC_Float_Parse(handle, &item->window.sliderBackgroundHeight))
+		return false;
+	return true;
+}
+
+bool ItemParse_sliderTop( itemDef_t *item, int handle )
+{
+	if(!PC_Float_Parse(handle, &item->window.sliderTopY))
+		return false;
+	return true;
+}
+
+bool ItemParse_sliderBottom( itemDef_t *item, int handle )
+{
+	if(!PC_Float_Parse(handle, &item->window.sliderBottomY))
+		return false;
+	return true;
 }
 
 keywordHash_t itemParseKeywords[] = {
@@ -9688,6 +9909,24 @@ keywordHash_t itemParseKeywords[] = {
 	{"elementSpacingH",	ItemParse_elementSpacingH,	NULL	},
 	// style sheets
 	{"class",			ItemParse_class,			NULL	},
+
+	// new slider crap
+	{"useNewSlider",	ItemParse_useNewSlider,		NULL	},
+	{"noSliderButtons",	ItemParse_noSliderButtons,	NULL	},
+	{"sliderButtonUp",	ItemParse_sliderButtonUp,	NULL	},
+	{"sliderButtonDown", ItemParse_sliderButtonDown, NULL	},
+	{"sliderThumbW",	ItemParse_sliderThumbW,		NULL	},
+	{"sliderThumbH",	ItemParse_sliderThumbH,		NULL	},
+	{"sliderButtonW",	ItemParse_sliderButtonW,	NULL	},
+	{"sliderButtonH",	ItemParse_sliderButtonH,	NULL	},
+	{"sliderBackground", ItemParse_sliderBackground, NULL	},
+
+	{"floatingSlider",	ItemParse_floatingSlider,	NULL	},
+	{"sliderBackgroundW", ItemParse_SliderBackgroundW, NULL	},
+	{"sliderBackgroundH", ItemParse_SliderBackgroundH, NULL },
+	{"sliderTop",		ItemParse_sliderTop,		NULL	},
+	{"sliderBottom",	ItemParse_sliderBottom,		NULL	},
+	// END JEDI KNIGHT GALAXIES
 
 	{"disableCvar",		ItemParse_disableCvar,		NULL	},
 	{"doubleclick",		ItemParse_doubleClick,		NULL	},

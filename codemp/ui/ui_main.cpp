@@ -6735,14 +6735,12 @@ static const char *UI_FeederItemText(float feederID, int index, int column,
 					if (ping <= 0) {
 						return Info_ValueForKey(info, "addr");
 					} else {
-						int gametype = 0;
 						//check for password
-						if ( atoi(Info_ValueForKey(info, "needpass")) )
-						{
-							*handle3 = uiInfo.uiDC.Assets.needPass;
-						}
-						//check for saberonly and restricted force powers
-						gametype = atoi(Info_ValueForKey(info, "gametype"));
+						//if ( atoi(Info_ValueForKey(info, "needpass")) )
+						//{
+						//	*handle3 = uiInfo.uiDC.Assets.needPass;
+						//}
+						// Don't do this, instead we will render a text field at some point that claims that they need a password
 						if ( ui_netSource.integer == AS_LOCAL ) {
 							Com_sprintf( hostname, sizeof(hostname), "%s [%s]",
 								Info_ValueForKey(info, "hostname"),
