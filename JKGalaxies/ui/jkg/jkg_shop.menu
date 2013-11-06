@@ -775,107 +775,107 @@
 
 	//Text Bits
 	itemDef
-        {
-            name                shop_feederTXT1
-            group              	shop_feederSel
-            rect                159 93 172 20
-	    style		1
-            text                ""
-            textalign           ITEM_ALIGN_RIGHT
-            textalignx          172
-	    text2aligny		10
-            font                5
-            textscale           0.4
-	    textscale2		0.3
-            forecolor           1 1 1 1
-            visible             0
-	    decoration
-        }
+	{
+		name                shop_feederTXT1
+		group              	shop_feederSel
+		rect                159 93 172 20
+		style		1
+		text                ""
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		25
+		font                5
+		textscale           0.4
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible             0
+		decoration
+	}
 	itemDef
-        {
-            name                shop_feederTXT2
-            group              	shop_feederSel
-            rect                159 151 172 20
-	    style		1
-            text                ""
-            textalign           ITEM_ALIGN_RIGHT
-            textalignx          172
-	    text2aligny		10
-            font                5
-            textscale           0.4
-	    textscale2		0.3
-            forecolor           1 1 1 1
-            visible             0
-	    decoration
-        }
+	{
+		name                shop_feederTXT2
+		group              	shop_feederSel
+		rect                159 151 172 20
+		style		1
+		text                ""
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		25
+		font                5
+		textscale           0.4
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible             0
+		decoration
+	}
 	itemDef
-        {
-            name                shop_feederTXT3
-            group              	shop_feederSel
-            rect                159 209 172 20
-            style               1
-            text                ""
-            textalign           ITEM_ALIGN_RIGHT
-            textalignx          172
-	    text2aligny		10
-            font                5
-            textscale           0.4
-	    textscale2		0.3
-            forecolor           1 1 1 1
-            visible             0
-	    decoration
-        }
+	{
+		name                shop_feederTXT3
+		group              	shop_feederSel
+		rect                159 209 172 20
+		style               1
+		text                ""
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		25
+		font                5
+		textscale           0.4
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible             0
+		decoration
+	}
 	itemDef
-        {
-            name                shop_feederTXT4
-            group              	shop_feederSel
-            rect                159 267 172 20
-            style               1
-            text                ""
-            textalign           ITEM_ALIGN_RIGHT
-            textalignx          172
-	    text2aligny		10
-            font                5
-            textscale           0.4
-	    textscale2		0.3
-            forecolor           1 1 1 1
-            visible             0
-	    decoration
-        }
+	{
+		name                shop_feederTXT4
+		group              	shop_feederSel
+		rect                159 267 172 20
+		style               1
+		text                ""
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		25
+		font                5
+		textscale           0.4
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible             0
+		decoration
+	}
 	itemDef
-        {
-            name                shop_feederTXT5
-            group              	shop_feederSel
-            rect                159 325 172 20
-            style               1
-            text                ""
-            textalign           ITEM_ALIGN_RIGHT
-            textalignx          172
-	    text2aligny		10
-            font                5
-            textscale           0.4
-	    textscale2		0.3
-            forecolor           1 1 1 1
-            visible             0
-	    decoration
-        }
+	{
+		name                shop_feederTXT5
+		group              	shop_feederSel
+		rect                159 325 172 20
+		style               1
+		text                ""
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		25
+		font                5
+		textscale           0.4
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible             0
+		decoration
+	}
 	itemDef
-        {
-            name                shop_feederTXT6
-            group              	shop_feederSel
-            rect                159 383 172 20
-	    style		1
-            text                ""
-            textalign           ITEM_ALIGN_RIGHT
-            textalignx          172
-	    text2aligny		10
-            font                5
-            textscale           0.4
-	    textscale2		0.3
-            forecolor           1 1 1 1
-            visible             0
-	    decoration
-        }
+	{
+		name                shop_feederTXT6
+		group              	shop_feederSel
+		rect                159 383 172 20
+		style		1
+		text                ""
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		35
+		font                5
+		textscale           0.4
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible             0
+		decoration
+	}
 
 	//Already in inventory?
 
