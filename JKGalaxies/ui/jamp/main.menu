@@ -394,22 +394,22 @@
 			forecolor			1 1 1 1
 			visible				1
 
-			mouseEnter 
-			{ 
-				show			smallbutton_select
-				setitemrect		smallbutton_select	65 280 117 29
-			}
-			mouseExit 
-			{ 
-				hide			smallbutton_select 
-					clearfocus
-			}
-			action 
-			{ 			
-				play			"sound/interface/button1.wav" ; 
-				close			all ; 
-				open			controlsMenu
-			}
+			//mouseEnter 
+			//{ 
+			//	show			smallbutton_select
+			//	setitemrect		smallbutton_select	65 280 117 29
+			//}
+			//mouseExit 
+			//{ 
+			//	hide			smallbutton_select 
+			//		clearfocus
+			//}
+			//action 
+			//{ 			
+			//	play			"sound/interface/button1.wav" ; 
+			//	close			all ; 
+			//	open			controlsMenu
+			//}
 		}
 
 		// "EXIT_" button
