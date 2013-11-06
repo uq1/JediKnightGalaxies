@@ -3753,6 +3753,9 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	//Take us out of ironsights
 	//ent->client->ns.ironsightsTime &= ~IRONSIGHTS_MSB;
 	ent->client->ps.ironsightsDebounceStart = level.time + ent->client->ps.weaponTime;
+
+	// Don't shoot any more bullets!
+	ent->client->ps.shotsRemaining = 0;
 }
 
 
