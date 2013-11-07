@@ -3099,15 +3099,11 @@ void Cmd_Where_f( gentity_t *ent ) {
 
 static const char *gameNames[] = {
 	"Free For All",
-	"Holocron FFA",
-	"Jedi Master",
 	"Duel",
 	"Power Duel",
 	"Single Player",
 	"Team FFA",
-	"Siege",
 	"Capture the Flag",
-	"Capture the Ysalamiri",
 	"Warzone",
 };
 

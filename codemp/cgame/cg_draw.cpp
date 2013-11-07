@@ -5659,18 +5659,10 @@ static void CG_DrawVote(void) {
 		{
 			sParm = CG_GetStringEdString("MENUS", "TEAM_FFA");
 		}
-		else if ( stricmp("Siege", cgs.voteString+11)==0  ) 
-		{
-			sParm = CG_GetStringEdString("MENUS", "SIEGE");
-		}
 		else if ( stricmp("Capture the Flag", cgs.voteString+11)==0  ) 
 		{
 			sParm = CG_GetStringEdString("MENUS", "CAPTURE_THE_FLAG");
 		}
-		else if ( stricmp("Capture the Ysalamiri", cgs.voteString+11)==0  ) 
-		{
-			sParm = CG_GetStringEdString("MENUS", "CAPTURE_THE_YSALIMARI");
-		} 
 	}
 	else if (strncmp(cgs.voteString, "map", 3)==0)
 	{
