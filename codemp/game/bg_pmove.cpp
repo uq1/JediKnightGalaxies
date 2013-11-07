@@ -1953,12 +1953,6 @@ float forceJumpHeightMax[NUM_FORCE_POWER_LEVELS] =
 	418//(384+stepheight(18)+crouchdiff(24) = 426)
 };
 
-void PM_GrabWallForJump( int anim )
-{//NOTE!!! assumes an appropriate anim is being passed in!!!
-	PM_SetAnim( SETANIM_BOTH, anim, SETANIM_FLAG_RESTART|SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
-	PM_AddEvent( EV_JUMP );//make sound for grab
-	pm->ps->pm_flags |= PMF_STUCK_TO_WALL;
-}
 
 /*
 =============
@@ -2870,7 +2864,9 @@ static qboolean PM_CheckJump( void )
 							if ( dot < 1.0f )
 							{//can't be heading *away* from the wall!
 								//grab it!
-								PM_GrabWallForJump( anim );
+								PM_SetAnim( SETANIM_BOTH, anim, SETANIM_FLAG_RESTART|SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+								PM_AddEvent( EV_JUMP );//make sound for grab
+								pm->ps->pm_flags |= PMF_STUCK_TO_WALL;
 							}
 						}
 					}
@@ -4532,25 +4528,6 @@ static void PM_SetWaterLevel( void ) {
 
 }
 
-qboolean PM_CheckDualForwardJumpDuck( void )
-{
-	qboolean resized = qfalse;
-	if ( pm->ps->legsAnim == BOTH_JUMPATTACK6 )
-	{
-		//dynamically reduce bounding box to let character sail over heads of enemies
-		if ( ( pm->ps->legsTimer >= 1450
-				&& PM_AnimLength( 0, BOTH_JUMPATTACK6 ) - pm->ps->legsTimer >= 400 ) 
-			||(pm->ps->legsTimer >= 400
-				&& PM_AnimLength( 0, BOTH_JUMPATTACK6 ) - pm->ps->legsTimer >= 1100 ) )
-		{//in a part of the anim that we're pretty much sideways in, raise up the mins
-			pm->mins[2] = 0;
-			pm->ps->pm_flags |= PMF_FIX_MINS;
-			resized = qtrue;
-		}
-	}
-	return resized;
-}
-
 void PM_CheckFixMins( void )
 {
 	if ( (pm->ps->pm_flags&PMF_FIX_MINS) )// pm->mins[2] > DEFAULT_MINS_2 )
@@ -4740,12 +4717,79 @@ static void PM_CheckDuck (void)
 			}
 		}
 
-		if ( PM_CheckDualForwardJumpDuck() )
-		{//special anim resizing us
+		if ( pm->ps->legsAnim == BOTH_JUMPATTACK6 )
+		{
+			//dynamically reduce bounding box to let character sail over heads of enemies
+			if ( ( pm->ps->legsTimer >= 1450
+					&& PM_AnimLength( 0, BOTH_JUMPATTACK6 ) - pm->ps->legsTimer >= 400 ) 
+				||(pm->ps->legsTimer >= 400
+					&& PM_AnimLength( 0, BOTH_JUMPATTACK6 ) - pm->ps->legsTimer >= 1100 ) )
+			{//in a part of the anim that we're pretty much sideways in, raise up the mins
+				pm->mins[2] = 0;
+				pm->ps->pm_flags |= PMF_FIX_MINS;
+				resized = qtrue;
+			}
 		}
 		else
 		{
-			PM_CheckFixMins();
+			if ( (pm->ps->pm_flags&PMF_FIX_MINS) )// pm->mins[2] > DEFAULT_MINS_2 )
+			{//drop the mins back down
+				//do a trace to make sure it's okay
+				trace_t	trace;
+				vec3_t end, curMins, curMaxs;
+	
+				VectorSet( end, pm->ps->origin[0], pm->ps->origin[1], pm->ps->origin[2]+MINS_Z ); 
+				VectorSet( curMins, pm->mins[0], pm->mins[1], 0 ); 
+				VectorSet( curMaxs, pm->maxs[0], pm->maxs[1], pm->ps->standheight ); 
+
+				pm->trace( &trace, pm->ps->origin, curMins, curMaxs, end, pm->ps->clientNum, pm->tracemask );
+				if ( !trace.allsolid && !trace.startsolid )
+				{//should never start in solid
+					if ( trace.fraction >= 1.0f )
+					{//all clear
+						//drop the bottom of my bbox back down
+						pm->mins[2] = MINS_Z;
+						pm->ps->pm_flags &= ~PMF_FIX_MINS;
+					}
+					else
+					{//move me up so the bottom of my bbox will be where the trace ended, at least
+						//need to trace up, too
+						float updist = ((1.0f-trace.fraction) * -MINS_Z);
+						end[2] = pm->ps->origin[2]+updist; 
+						pm->trace( &trace, pm->ps->origin, curMins, curMaxs, end, pm->ps->clientNum, pm->tracemask );
+						if ( !trace.allsolid && !trace.startsolid )
+						{//should never start in solid
+							if ( trace.fraction >= 1.0f )
+							{//all clear
+								//move me up
+								pm->ps->origin[2] += updist;
+								//drop the bottom of my bbox back down
+								pm->mins[2] = MINS_Z;
+								pm->ps->pm_flags &= ~PMF_FIX_MINS;
+							}
+							else
+							{//crap, no room to expand, so just crouch us
+								if ( pm->ps->legsAnim != BOTH_JUMPATTACK6
+									|| pm->ps->legsTimer <= 200 )
+								{//at the end of the anim, and we can't leave ourselves like this
+									//so drop the maxs, put the mins back and move us up
+									pm->maxs[2] += MINS_Z;
+									pm->ps->origin[2] -= MINS_Z;
+									pm->mins[2] = MINS_Z;
+									//this way we'll be in a crouch when we're done
+									if ( pm->ps->legsAnim == BOTH_JUMPATTACK6 )
+									{
+										pm->ps->legsTimer = pm->ps->torsoTimer = 0;
+									}
+									pm->ps->pm_flags |= PMF_DUCKED;
+									//FIXME: do we need to set a crouch anim here?
+									pm->ps->pm_flags &= ~PMF_FIX_MINS;
+								}
+							}
+						}//crap, stuck
+					}
+				}//crap, stuck!
+			}
 
 			if ( !pm->mins[2] )
 			{
@@ -4785,12 +4829,6 @@ static void PM_CheckDuck (void)
 		}
 		else if ( PM_InKnockDown( pm->ps ) )
 		{//forced crouch
-			/* COOPFIXME RAFIXME - impliment fire delay?
-			if ( pm->gent && pm->gent->client )
-			{//interrupted any potential delayed weapon fires
-				pm->gent->client->fireDelay = 0;
-			}
-			*/
 			pm->maxs[2] = pm->ps->crouchheight;
 			pm->ps->viewheight = pm->ps->crouchheight + STANDARD_VIEWHEIGHT_OFFSET;
 			pm->ps->pm_flags |= PMF_DUCKED;
