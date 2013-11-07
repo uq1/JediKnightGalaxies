@@ -516,7 +516,7 @@ if a user is interested in a server to do a full status
 ================
 */
 void SVC_Info( netadr_t from ) {
-	int		i, count, humans, wDisable;
+	int		i, count, humans;
 	char	*gamedir;
 	char	infostring[MAX_INFO_STRING];
 

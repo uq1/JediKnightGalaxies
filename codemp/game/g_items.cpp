@@ -1984,13 +1984,6 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 
 	other->client->ps.powerups[ent->item->giTag] += quantity * 1000;
 
-	if (ent->item->giTag == PW_YSALAMIRI)
-	{
-		other->client->ps.powerups[PW_FORCE_ENLIGHTENED_LIGHT] = 0;
-		other->client->ps.powerups[PW_FORCE_ENLIGHTENED_DARK] = 0;
-		other->client->ps.powerups[PW_FORCE_BOON] = 0;
-	}
-
 	// give any nearby players a "denied" anti-reward
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		vec3_t		delta;
@@ -2364,25 +2357,6 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 	if (other->health < 1)
 		return;		// dead people can't pickup
 
-	if (ent->item->giType == IT_POWERUP &&
-		(ent->item->giTag == PW_FORCE_ENLIGHTENED_LIGHT || ent->item->giTag == PW_FORCE_ENLIGHTENED_DARK))
-	{
-		if (ent->item->giTag == PW_FORCE_ENLIGHTENED_LIGHT)
-		{
-			if (other->client->ps.fd.forceSide != FORCE_LIGHTSIDE)
-			{
-				return;
-			}
-		}
-		else
-		{
-			if (other->client->ps.fd.forceSide != FORCE_DARKSIDE)
-			{
-				return;
-			}
-		}
-	}
-
 	// the same pickup rules are used for client side and server side
 	if ( !BG_CanItemBeGrabbed( level.gametype, &ent->s, &other->client->ps ) ) {
 		return;
@@ -2729,21 +2703,6 @@ void FinishSpawningItem( gentity_t *ent ) {
 	trace_t		tr;
 	vec3_t		dest;
 
-	if (g_forcePowerDisable.integer)
-	{ //if force powers disabled, don't add force powerups
-		if (ent->item->giType == IT_POWERUP)
-		{
-			if (ent->item->giTag == PW_FORCE_ENLIGHTENED_LIGHT ||
-				ent->item->giTag == PW_FORCE_ENLIGHTENED_DARK ||
-				ent->item->giTag == PW_FORCE_BOON)
-			{
-				G_FreeEntity(ent);
-				return;
-			}
-		}
-	}
-
-
 	if (level.gametype != GT_CTF &&
 		level.gametype != GT_CTY &&
 		ent->item->giType == IT_TEAM)
@@ -2752,17 +2711,12 @@ void FinishSpawningItem( gentity_t *ent ) {
 
 		switch (ent->item->giTag)
 		{
-		case PW_REDFLAG:
-			killMe = 1;
-			break;
-		case PW_BLUEFLAG:
-			killMe = 1;
-			break;
-		case PW_NEUTRALFLAG:
-			killMe = 1;
-			break;
-		default:
-			break;
+			case PW_REDFLAG:
+			case PW_BLUEFLAG:
+				killMe = 1;
+				break;
+			default:
+				break;
 		}
 
 		if (killMe)

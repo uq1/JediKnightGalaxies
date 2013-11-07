@@ -2349,6 +2349,8 @@ void G_DroidSounds( gentity_t *self )
 			case CLASS_GONK:				// droid
 				G_SoundOnEnt(self, CHAN_AUTO, va("sound/chars/gonk/misc/gonktalk%d.wav",Q_irand(1, 2)) );
 				break;
+			default:
+				break;
 			}
 			TIMER_Set( self, "patrolNoise", Q_irand( 2000, 4000 ) );
 		}

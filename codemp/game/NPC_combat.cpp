@@ -177,44 +177,22 @@ void G_AttackDelay( gentity_t *self, gentity_t *enemy )
 		case CLASS_REELO:
 		case CLASS_UGNAUGHT:
 		case CLASS_JAWA:
-			return;
-			break;
 		case CLASS_MINEMONSTER:
 		case CLASS_MURJJ:
-			return;
-			break;
 		case CLASS_INTERROGATOR:
 		case CLASS_PROBE:		
 		case CLASS_MARK1:		
 		case CLASS_MARK2:		
-		case CLASS_SENTRY:		
-			return;
-			break;
+		case CLASS_SENTRY:
 		case CLASS_REMOTE:
 		case CLASS_SEEKER:
 			return;
+		default:
 			break;
-		/*
-		case CLASS_GRAN:
-		case CLASS_RODIAN:
-		case CLASS_WEEQUAY:
-			break;
-		case CLASS_JEDI:				
-		case CLASS_SHADOWTROOPER:
-		case CLASS_TAVION:
-		case CLASS_REBORN:
-		case CLASS_LUKE:				
-		case CLASS_DESANN:			
-			break;
-		*/
 		}
 
 		switch ( self->s.weapon )
 		{
-		case WP_NONE:
-		case WP_SABER:
-			return;
-			break;
 		case WP_BRYAR_PISTOL:
 			break;
 		case WP_BLASTER:
@@ -242,46 +220,9 @@ void G_AttackDelay( gentity_t *self, gentity_t *enemy )
 		case WP_ROCKET_LAUNCHER:
 			attDelay += Q_irand( 500, 1500 );
 			break;
-//		case WP_BLASTER_PISTOL:	// apparently some enemy only version of the blaster
-//			attDelay -= Q_irand( 500, 1500 );
-//			break;
-			//rwwFIXMEFIXME: Have this weapon for NPCs?
-		case WP_DISRUPTOR://sniper's don't delay?
 			return;
-			break;
-		case WP_THERMAL://grenade-throwing has a built-in delay
+		default:
 			return;
-			break;
-		case WP_STUN_BATON:			// Any ol' melee attack
-			return;
-			break;
-		case WP_EMPLACED_GUN:
-			return;
-			break;
-		case WP_TURRET:			// turret guns 
-			return;
-			break;
-//		case WP_BOT_LASER:		// Probe droid	- Laser blast
-//			return; //rwwFIXMEFIXME: Have this weapon for NPCs?
-			break;
-		/*
-		case WP_DEMP2:
-			break;
-		case WP_TRIP_MINE:
-			break;
-		case WP_DET_PACK:
-			break;
-		case WP_STUN_BATON:
-			break;
-		case WP_ATST_MAIN:
-			break;
-		case WP_ATST_SIDE:
-			break;
-		case WP_TIE_FIGHTER:
-			break;
-		case WP_RAPID_FIRE_CONC:
-			break;
-		*/
 		}
 
 		if ( self->client->playerTeam == NPCTEAM_PLAYER )

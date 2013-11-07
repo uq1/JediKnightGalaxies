@@ -7179,12 +7179,6 @@ void saberFirstThrown(gentity_t *saberent)
 			goto runMin;
 		}
 	}
-
-	if (BG_HasYsalamiri(level.gametype, &saberOwn->client->ps))
-	{
-		thrownSaberTouch(saberent, saberent, NULL);
-		goto runMin;
-	}
 	
 	if (!BG_CanUseFPNow(level.gametype, &saberOwn->client->ps, level.time, FP_SABERTHROW))
 	{

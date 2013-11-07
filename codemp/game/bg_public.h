@@ -792,18 +792,13 @@ typedef enum {
 
 	PW_REDFLAG,
 	PW_BLUEFLAG,
-	PW_NEUTRALFLAG,
 
-	PW_SHIELDHIT,
+	PW_SHIELDHIT, // FIXME: remove
 
 	PW_SPEEDBURST,
 	PW_DISINT_4,
 	PW_SPEED,
 	PW_CLOAKED,
-	PW_FORCE_ENLIGHTENED_LIGHT,
-	PW_FORCE_ENLIGHTENED_DARK,
-	PW_FORCE_BOON,
-	PW_YSALAMIRI,
 
 	PW_NUM_POWERUPS
 
@@ -1663,7 +1658,6 @@ int BG_GetItemIndexByTag(int tag, int type);
 
 qboolean BG_IsItemSelectable(playerState_t *ps, int item);
 
-qboolean BG_HasYsalamiri(int gametype, playerState_t *ps);
 qboolean BG_CanUseFPNow(int gametype, playerState_t *ps, int time, forcePowers_t power);
 
 bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber );

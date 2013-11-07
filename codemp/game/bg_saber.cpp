@@ -3159,8 +3159,6 @@ void PM_WeaponLightsaber(void)
 		//Stoiss end [/SaberThrowSys]
 		else if ( pm->ps->weaponTime < 1&&
 				pm->ps->saberCanThrow &&
-				//pm->ps->fd.forcePower >= forcePowerNeeded[pm->ps->fd.forcePowerLevel[FP_SABERTHROW]][FP_SABERTHROW] &&
-				!BG_HasYsalamiri(pm->gametype, pm->ps) &&
 				BG_CanUseFPNow(pm->gametype, pm->ps, pm->cmd.serverTime, FP_SABERTHROW) &&
 				pm->ps->fd.forcePowerLevel[FP_SABERTHROW] > 0 &&
 				PM_SaberPowerCheck() )

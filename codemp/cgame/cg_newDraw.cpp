@@ -193,7 +193,7 @@ qboolean CG_OwnerDrawVisible(int flags) {
 	}
 
 	if (flags & CG_SHOW_IF_PLAYER_HAS_FLAG) {
-		if (cg.snap->ps.powerups[PW_REDFLAG] || cg.snap->ps.powerups[PW_BLUEFLAG] || cg.snap->ps.powerups[PW_NEUTRALFLAG]) {
+		if (cg.snap->ps.powerups[PW_REDFLAG] || cg.snap->ps.powerups[PW_BLUEFLAG]) {
 			return qtrue;
 		}
 	}

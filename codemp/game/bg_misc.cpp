@@ -313,16 +313,11 @@ stringID_table_t PowerupTable[] =
 	ENUM2STRING(PW_PULL),
 	ENUM2STRING(PW_REDFLAG),
 	ENUM2STRING(PW_BLUEFLAG),
-	ENUM2STRING(PW_NEUTRALFLAG),
 	ENUM2STRING(PW_SHIELDHIT),
 	ENUM2STRING(PW_SPEEDBURST),
 	ENUM2STRING(PW_DISINT_4),
 	ENUM2STRING(PW_SPEED),
 	ENUM2STRING(PW_CLOAKED),
-	ENUM2STRING(PW_FORCE_ENLIGHTENED_LIGHT),
-	ENUM2STRING(PW_FORCE_ENLIGHTENED_DARK),
-	ENUM2STRING(PW_FORCE_BOON),
-	ENUM2STRING(PW_YSALAMIRI),
 
 	"", -1
 };
@@ -1405,82 +1400,6 @@ Do not place. For siege classes ONLY.
 		"@MENUS_CLOAK_DESC"					// description
 	},
 
-/*QUAKED item_force_enlighten_light (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
-Adds one rank to all Force powers temporarily. Only light jedi can use.
-*/
-	{
-		"item_force_enlighten_light",
-		"sound/player/enlightenment.wav",
-		{ "models/map_objects/mp/jedi_enlightenment.md3", 
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/mpi_jlight",
-/* pickup *///	"Light Force Enlightenment",
-		25,
-		IT_POWERUP,
-		PW_FORCE_ENLIGHTENED_LIGHT,
-/* precache */ "",
-/* sounds */ "",
-		""					// description
-	},
-
-/*QUAKED item_force_enlighten_dark (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
-Adds one rank to all Force powers temporarily. Only dark jedi can use.
-*/
-	{
-		"item_force_enlighten_dark",
-		"sound/player/enlightenment.wav",
-		{ "models/map_objects/mp/dk_enlightenment.md3", 
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/mpi_dklight",
-/* pickup *///	"Dark Force Enlightenment",
-		25,
-		IT_POWERUP,
-		PW_FORCE_ENLIGHTENED_DARK,
-/* precache */ "",
-/* sounds */ "",
-		""					// description
-	},
-
-/*QUAKED item_force_boon (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
-Unlimited Force Pool for a short time.
-*/
-	{
-		"item_force_boon",
-		"sound/player/boon.wav",
-		{ "models/map_objects/mp/force_boon.md3", 
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/mpi_fboon",
-/* pickup *///	"Force Boon",
-		25,
-		IT_POWERUP,
-		PW_FORCE_BOON,
-/* precache */ "",
-/* sounds */ "",
-		""					// description
-	},
-
-/*QUAKED item_ysalimari (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
-A small lizard carried on the player, which prevents the possessor from using any Force power.  However, he is unaffected by any Force power.
-*/
-	{
-		"item_ysalimari",
-		"sound/player/ysalimari.wav",
-		{ "models/map_objects/mp/ysalimari.md3", 
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/mpi_ysamari",
-/* pickup *///	"Ysalamiri",
-		25,
-		IT_POWERUP,
-		PW_YSALAMIRI,
-/* precache */ "",
-/* sounds */ "",
-		""					// description
-	},
-
 	//
 	// WEAPONS 
 	//
@@ -2028,61 +1947,6 @@ Only in CTF games
 		""					// description
 	},
 
-	//
-	// PERSISTANT POWERUP ITEMS
-	//
-
-	/*QUAKED team_CTF_neutralflag (0 0 1) (-16 -16 -16) (16 16 16)
-Only in One Flag CTF games
-*/
-	{
-		"team_CTF_neutralflag",
-		NULL,
-        { "models/flags/n_flag.md3",
-		0, 0, 0 },
-/* view */		NULL,			
-/* icon */		"icons/iconf_neutral1",
-/* pickup *///	"Neutral Flag",
-		0,
-		IT_TEAM,
-		PW_NEUTRALFLAG,
-/* precache */ "",
-/* sounds */ "",
-		""					// description
-	},
-
-	{
-		"item_redcube",
-		"sound/player/pickupenergy.wav",
-        { "models/powerups/orb/r_orb.md3",
-		0, 0, 0 },
-/* view */		NULL,			
-/* icon */		"icons/iconh_rorb",
-/* pickup *///	"Red Cube",
-		0,
-		IT_TEAM,
-		0,
-/* precache */ "",
-/* sounds */ "",
-		""					// description
-	},
-
-	{
-		"item_bluecube",
-		"sound/player/pickupenergy.wav",
-        { "models/powerups/orb/b_orb.md3",
-		0, 0, 0 },
-/* view */		NULL,			
-/* icon */		"icons/iconh_borb",
-/* pickup *///	"Blue Cube",
-		0,
-		IT_TEAM,
-		0,
-/* precache */ "",
-/* sounds */ "",
-		""					// description
-	},
-
 	// end of list marker
 	{NULL}
 };
@@ -2110,29 +1974,8 @@ float vectoyaw( const vec3_t vec ) {
 	return yaw;
 }
 
-qboolean BG_HasYsalamiri(int gametype, playerState_t *ps)
-{
-	if (gametype == GT_CTY &&
-		(ps->powerups[PW_REDFLAG] || ps->powerups[PW_BLUEFLAG]))
-	{
-		return qtrue;
-	}
-
-	if (ps->powerups[PW_YSALAMIRI])
-	{
-		return qtrue;
-	}
-
-	return qfalse;
-}
-
 qboolean BG_CanUseFPNow(int gametype, playerState_t *ps, int time, forcePowers_t power)
 {
-	if (BG_HasYsalamiri(gametype, ps))
-	{
-		return qfalse;
-	}
-
 	if ( ps->forceRestricted )
 	{
 		return qfalse;
@@ -2591,13 +2434,6 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 		return qtrue;
 
 	case IT_POWERUP:
-		if (ps && (ps->powerups[PW_YSALAMIRI]))
-		{
-			if (item->giTag != PW_YSALAMIRI)
-			{
-				return qfalse;
-			}
-		}
 		return qtrue;	// powerups are always picked up
 
 	case IT_TEAM: // team items, such as flags

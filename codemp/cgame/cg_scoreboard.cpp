@@ -70,8 +70,6 @@ void CG_DrawFlagModel( float x, float y, float w, float h, int team, qboolean fo
 			item = BG_FindItemForPowerup( PW_REDFLAG );
 		} else if( team == TEAM_BLUE ) {
 			item = BG_FindItemForPowerup( PW_BLUEFLAG );
-		} else if( team == TEAM_FREE ) {
-			item = BG_FindItemForPowerup( PW_NEUTRALFLAG );
 		} else {
 			return;
 		}
@@ -113,38 +111,13 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	headx = SB_HEAD_X + (SB_RATING_WIDTH / 2);
 
 	// draw the handicap or bot skill marker (unless player has flag)
-	if ( ci->powerups & ( 1 << PW_NEUTRALFLAG ) )
+	if ( ci->powerups & ( 1 << PW_REDFLAG ) )
 	{
-		if( largeFormat )
-		{
-			CG_DrawFlagModel( iconx, y - ( 32 - BIGCHAR_HEIGHT ) / 2, 32, 32, TEAM_FREE, qfalse );
-		}
-		else
-		{
-			CG_DrawFlagModel( iconx, y, 16, 16, TEAM_FREE, qfalse );
-		}
-	}
-	else if ( ci->powerups & ( 1 << PW_REDFLAG ) )
-	{
-		if( largeFormat )
-		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_RED, qfalse );
-		}
-		else
-		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_RED, qfalse );
-		}
+		CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_RED, qfalse );
 	}
 	else if ( ci->powerups & ( 1 << PW_BLUEFLAG ) )
 	{
-		if( largeFormat )
-		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_BLUE, qfalse );
-		}
-		else
-		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_BLUE, qfalse );
-		}
+		CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_BLUE, qfalse );
 	}
 	else if (cgs.gametype == GT_POWERDUEL &&
 		(ci->duelTeam == DUELTEAM_LONE || ci->duelTeam == DUELTEAM_DOUBLE))

@@ -643,39 +643,6 @@ static void CG_TouchItem( centity_t *cent ) {
 
 	item = &bg_itemlist[ cent->currentState.modelindex ];
 
-	//Currently there is no reliable way of knowing if the client has touched a certain item before another if they are next to each other, or rather
-	//if the server has touched them in the same order. This results often in grabbing an item in the prediction and the server giving you the other
-	//item. So for now prediction of armor, health, and ammo is disabled.
-/*
-	if (item->giType == IT_ARMOR)
-	{ //rww - this will be stomped next update, but it's set so that we don't try to pick up two shields in one prediction and have the server cancel one
-	//	cg.predictedPlayerState.stats[STAT_ARMOR] += item->quantity;
-
-		//FIXME: This can't be predicted properly at the moment
-		return;
-	}
-
-	if (item->giType == IT_HEALTH)
-	{ //same as above, for health
-	//	cg.predictedPlayerState.stats[STAT_HEALTH] += item->quantity;
-
-		//FIXME: This can't be predicted properly at the moment
-		return;
-	}
-
-	if (item->giType == IT_AMMO)
-	{ //same as above, for ammo
-	//	cg.predictedPlayerState.ammo[item->giTag] += item->quantity;
-
-		//FIXME: This can't be predicted properly at the moment
-		return;
-	}
-
-	if (item->giType == IT_HOLDABLE)
-	{ //same as above, for holdables
-	//	cg.predictedPlayerState.stats[STAT_HOLDABLE_ITEMS] |= (1 << item->giTag);
-	}
-*/
 	// Special case for flags.  
 	// We don't predict touching our own flag
 	// Make sure the item type is also a flag too
@@ -687,26 +654,6 @@ static void CG_TouchItem( centity_t *cent ) {
 			item->giType == IT_TEAM && item->giTag == PW_BLUEFLAG)
 			return;
 	}
-
-	if (item->giType == IT_POWERUP &&
-		(item->giTag == PW_FORCE_ENLIGHTENED_LIGHT || item->giTag == PW_FORCE_ENLIGHTENED_DARK))
-	{
-		if (item->giTag == PW_FORCE_ENLIGHTENED_LIGHT)
-		{
-			if (cg.predictedPlayerState.fd.forceSide != FORCE_LIGHTSIDE)
-			{
-				return;
-			}
-		}
-		else
-		{
-			if (cg.predictedPlayerState.fd.forceSide != FORCE_DARKSIDE)
-			{
-				return;
-			}
-		}
-	}
-
 
 	// grab it
 	BG_AddPredictableEventToPlayerstate( EV_ITEM_PICKUP, cent->currentState.number , &cg.predictedPlayerState);

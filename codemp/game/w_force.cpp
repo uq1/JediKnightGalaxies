@@ -575,11 +575,6 @@ extern qboolean BG_InKnockDown( int anim ); //bg_pmove.c
 
 int ForcePowerUsableOn(gentity_t *attacker, gentity_t *other, forcePowers_t forcePower)
 {
-	if (other && other->client && BG_HasYsalamiri(level.gametype, &other->client->ps))
-	{
-		return 0;
-	}
-
 	if (attacker && attacker->client && !BG_CanUseFPNow(level.gametype, &attacker->client->ps, level.time, forcePower))
 	{
 		return 0;
@@ -685,11 +680,6 @@ qboolean WP_ForcePowerInUse( gentity_t *self, forcePowers_t forcePower )
 
 qboolean WP_ForcePowerUsable( gentity_t *self, forcePowers_t forcePower )
 {
-	if (BG_HasYsalamiri(level.gametype, &self->client->ps))
-	{
-		return qfalse;
-	}
-
 	if (self->health <= 0 || self->client->ps.stats[STAT_HEALTH] <= 0 ||
 		(self->client->ps.eFlags & EF_DEAD))
 	{
@@ -4232,10 +4222,6 @@ static void WP_UpdateMindtrickEnts(gentity_t *self)
 					RemoveTrickedEnt(&self->client->ps.fd, i);
 				}
 			}
-			else if (BG_HasYsalamiri(level.gametype, &ent->client->ps))
-			{
-				RemoveTrickedEnt(&self->client->ps.fd, i);
-			}
 		}
 
 		i++;
@@ -5099,13 +5085,7 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 
 	SeekerDroneUpdate(self);
 
-	if (self->client->ps.powerups[PW_FORCE_BOON])
-	{
-		prepower = self->client->ps.forcePower;
-	}
-
-	if (self && self->client && (BG_HasYsalamiri(level.gametype, &self->client->ps) ||
-		self->client->ps.fd.forceDeactivateAll || self->client->tempSpectate >= level.time))
+	if (self && self->client && (self->client->ps.fd.forceDeactivateAll || self->client->tempSpectate >= level.time))
 	{ //has ysalamiri.. or we want to forcefully stop all his active powers
 		i = 0;
 
@@ -5147,53 +5127,6 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 
 			i++;
 		}
-	}
-
-	i = 0;
-
-	if (self->client->ps.powerups[PW_FORCE_ENLIGHTENED_LIGHT] || self->client->ps.powerups[PW_FORCE_ENLIGHTENED_DARK])
-	{ //enlightenment
-		if (!self->client->ps.fd.forceUsingAdded)
-		{
-			i = 0;
-
-			while (i < NUM_FORCE_POWERS)
-			{
-				self->client->ps.fd.forcePowerBaseLevel[i] = self->client->ps.fd.forcePowerLevel[i];
-
-				if (!forcePowerDarkLight[i] ||
-					self->client->ps.fd.forceSide == forcePowerDarkLight[i])
-				{
-					self->client->ps.fd.forcePowerLevel[i] = FORCE_LEVEL_3;
-					self->client->ps.fd.forcePowersKnown |= (1 << i);
-				}
-
-				i++;
-			}
-
-			self->client->ps.fd.forceUsingAdded = 1;
-		}
-	}
-	else if (self->client->ps.fd.forceUsingAdded)
-	{ //we don't have enlightenment but we're still using enlightened powers, so clear them back to how they should be.
-		i = 0;
-
-		while (i < NUM_FORCE_POWERS)
-		{
-			self->client->ps.fd.forcePowerLevel[i] = self->client->ps.fd.forcePowerBaseLevel[i];
-			if (!self->client->ps.fd.forcePowerLevel[i])
-			{
-				if (self->client->ps.fd.forcePowersActive & (1 << i))
-				{
-					WP_ForcePowerStop(self, i);
-				}
-				self->client->ps.fd.forcePowersKnown &= ~(1 << i);
-			}
-
-			i++;
-		}
-
-		self->client->ps.fd.forceUsingAdded = 0;
 	}
 
 	i = 0;
@@ -5274,7 +5207,7 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 	}
 
 #ifndef METROID_JUMP
-	else if ( (ucmd->upmove > 10) && (self->client->ps.pm_flags & PMF_JUMP_HELD) && self->client->ps.groundTime && (level.time - self->client->ps.groundTime) > 150 && !BG_HasYsalamiri(level.gametype, &self->client->ps) && BG_CanUseFPNow(level.gametype, &self->client->ps, level.time, FP_LEVITATION) )
+	else if ( (ucmd->upmove > 10) && (self->client->ps.pm_flags & PMF_JUMP_HELD) && self->client->ps.groundTime && (level.time - self->client->ps.groundTime) > 150 && BG_CanUseFPNow(level.gametype, &self->client->ps, level.time, FP_LEVITATION) )
 	{//just charging up
 		ForceJumpCharge( self, ucmd );
 		usingForce = qtrue;
@@ -5407,14 +5340,7 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 		if ( !self->client->ps.saberInFlight && self->client->ps.fd.forcePowerRegenDebounceTime < level.time &&
 			(self->client->ps.weapon != WP_SABER || !BG_SaberInSpecial(self->client->ps.saberMove)) )
 		{
-			if (self->client->ps.powerups[PW_FORCE_BOON])
-			{
-				WP_ForcePowerRegenerate( self, 6 );
-			}
-			else
-			{
-				WP_ForcePowerRegenerate( self, 0 );
-			}
+			WP_ForcePowerRegenerate( self, 0 );
 
 			int baseRegenTime = g_forceRegenTime.integer - 400 + self->client->saber[0].FPregenRate + self->client->saber[0].FPregenRate;
 			if( baseRegenTime < 0 ) baseRegenTime = 0;

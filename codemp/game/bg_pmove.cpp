@@ -253,21 +253,6 @@ qboolean BG_KnockDownable(playerState_t *ps)
 #define PM_INLINE //none
 #endif
 
-//hacky assumption check, assume any client non-humanoid is a rocket trooper
-qboolean PM_INLINE PM_IsRocketTrooper(void)
-{
-	/*
-	if (pm->ps->clientNum < MAX_CLIENTS &&
-		pm->gametype == GT_SIEGE &&
-		pm->nonHumanoid)
-	{
-		return qtrue;
-	}
-	*/
-
-	return qfalse;
-}
-
 int JKG_PM_OppositeSaberParryAnimation(int anim)
 {
 	switch(anim)
@@ -1422,11 +1407,6 @@ qboolean PM_ForceJumpingUp(void)
 		return qfalse;
 	}
 
-	if (BG_HasYsalamiri(pm->gametype, pm->ps))
-	{
-		return qfalse;
-	}
-
 	if (!BG_CanUseFPNow(pm->gametype, pm->ps, pm->cmd.serverTime, FP_LEVITATION))
 	{
 		return qfalse;
@@ -2339,8 +2319,6 @@ static qboolean PM_CheckJump( void )
 		pm->ps->fd.forcePowerLevel[FP_LEVITATION] > FORCE_LEVEL_0 &&
 		!(pm->ps->pm_flags&PMF_JUMP_HELD) &&
 		(pm->ps->weapon == WP_SABER || pm->ps->weapon == WP_MELEE) &&
-		!PM_IsRocketTrooper() &&
-		!BG_HasYsalamiri(pm->gametype, pm->ps) &&
 		BG_CanUseFPNow(pm->gametype, pm->ps, pm->cmd.serverTime, FP_LEVITATION) )
 	{
 		qboolean allowWallRuns = qtrue;
@@ -2906,66 +2884,6 @@ static qboolean PM_CheckJump( void )
 		}
 	}
 
-	/*
-	if ( pm->cmd.upmove > 0 
-		&& (pm->ps->weapon == WP_SABER || pm->ps->weapon == WP_MELEE)
-		&& !PM_IsRocketTrooper()
-		&& (pm->ps->weaponTime > 0||pm->cmd.buttons&BUTTON_ATTACK) )
-	{//okay, we just jumped and we're in an attack
-		if ( !BG_InRoll( pm->ps, pm->ps->legsAnim )
-			&& !PM_InKnockDown( pm->ps )
-			&& !BG_InDeathAnim(pm->ps->legsAnim)
-			&& !BG_FlippingAnim( pm->ps->legsAnim )
-			&& !PM_SpinningAnim( pm->ps->legsAnim )
-			&& !BG_SaberInSpecialAttack( pm->ps->torsoAnim )
-			&& ( BG_SaberInAttack( pm->ps->saberMove ) ) )
-		{//not in an anim we shouldn't interrupt
-			//see if it's not too late to start a special jump-attack
-			float animLength = PM_AnimLength( 0, (animNumber_t)pm->ps->torsoAnim );
-			if ( animLength - pm->ps->torsoTimer < 500 )
-			{//just started the saberMove
-				//check for special-case jump attacks
-				if ( pm->ps->fd.saberAnimLevel == FORCE_LEVEL_2 )
-				{//using medium attacks
-					if (PM_GroundDistance() < 32 &&
-						!BG_InSpecialJump(pm->ps->legsAnim))
-					{ //FLIP AND DOWNWARD ATTACK
-						//trace_t tr;
-
-						//if (PM_SomeoneInFront(&tr))
-						{
-							PM_SetSaberMove(PM_SaberFlipOverAttackMove());
-							pml.groundPlane = qfalse;
-							pml.walking = qfalse;
-							pm->ps->pm_flags |= PMF_JUMP_HELD;
-							pm->ps->groundEntityNum = ENTITYNUM_NONE;
-							VectorClear(pml.groundTrace.plane.normal);
-
-							pm->ps->weaponTime = pm->ps->torsoTimer;
-						}
-					}
-				}
-				else if ( pm->ps->fd.saberAnimLevel == FORCE_LEVEL_3 )
-				{//using strong attacks
-					if ( pm->cmd.forwardmove > 0 && //going forward
-						(pm->cmd.buttons & BUTTON_ATTACK) && //must be holding attack still
-						PM_GroundDistance() < 32 &&
-						!BG_InSpecialJump(pm->ps->legsAnim))
-					{//strong attack: jump-hack
-						PM_SetSaberMove( PM_SaberJumpAttackMove() );
-						pml.groundPlane = qfalse;
-						pml.walking = qfalse;
-						pm->ps->pm_flags |= PMF_JUMP_HELD;
-						pm->ps->groundEntityNum = ENTITYNUM_NONE;
-						VectorClear(pml.groundTrace.plane.normal);
-
-						pm->ps->weaponTime = pm->ps->torsoTimer;
-					}
-				}
-			}
-		}
-	}
-	*/
 	if ( pm->ps->groundEntityNum == ENTITYNUM_NONE )
 	{
 		return qfalse;
@@ -4091,7 +4009,7 @@ static void PM_CrashLand( void ) {
 		}
 	}
 
-	if (pm->ps->weapon != WP_SABER && pm->ps->weapon != WP_MELEE && !PM_IsRocketTrooper())
+	if (pm->ps->weapon != WP_SABER && pm->ps->weapon != WP_MELEE)
 	{ //saber handles its own anims
 		//This will push us back into our weaponready stance from the land anim.
 		if ( pm->ps->zoomMode == 1 )
@@ -7206,7 +7124,7 @@ static void PM_Weapon( void )
 	if (pm->ps->forceHandExtend == HANDEXTEND_WEAPONREADY &&
 		PM_CanSetWeaponAnims())
 	{ //reset into weapon stance
-		if (pm->ps->weapon != WP_SABER && pm->ps->weapon != WP_MELEE && !PM_IsRocketTrooper())
+		if (pm->ps->weapon != WP_SABER && pm->ps->weapon != WP_MELEE)
 		{ //saber handles its own anims
 			if (pm->ps->weapon == WP_DISRUPTOR && pm->ps->zoomMode == 1)
 			{
@@ -7644,10 +7562,6 @@ static void PM_Weapon( void )
 			{
 				PM_StartTorsoAnim( PM_GetSaberStance() );
 			}
-			/*else if (pm->ps->weapon == WP_MELEE || PM_IsRocketTrooper())
-			{
-				PM_StartTorsoAnim( pm->ps->legsAnim );
-			}*/
 			else
 			{
 				if (pm->ps->weapon == WP_EMPLACED_GUN)
@@ -7668,8 +7582,7 @@ static void PM_Weapon( void )
 
 	if (PM_CanSetWeaponAnims())
 	{
-	    if ( !PM_IsRocketTrooper() &&
-		    pm->ps->weaponstate == WEAPON_READY && pm->ps->weaponTime <= 0 &&
+	    if ( pm->ps->weaponstate == WEAPON_READY && pm->ps->weaponTime <= 0 &&
 		    (pm->ps->weapon >= WP_BRYAR_PISTOL || pm->ps->weapon == WP_STUN_BATON) &&
 		    pm->ps->torsoTimer <= 0 &&
 			(( (pm->ps->ironsightsTime & IRONSIGHTS_MSB) && pm->ps->torsoAnim != weaponData->anims.sights.torsoAnim ) ||
@@ -7707,18 +7620,6 @@ static void PM_Weapon( void )
 				    {
 					    PM_StartTorsoAnim( desTAnim );
 				    }
-			    }
-		    }
-	    }
-	    else if (PM_IsRocketTrooper())
-	    {
-		    int desTAnim = pm->ps->legsAnim;
-
-		    if (!(pm->cmd.buttons & BUTTON_ATTACK))
-		    { //don't do this while holding attack
-			    if (pm->ps->torsoAnim != desTAnim)
-			    {
-				    PM_StartTorsoAnim( desTAnim );
 			    }
 		    }
 	    }
@@ -10739,14 +10640,6 @@ void PmoveSingle (pmove_t *pmove) {
 	pm->numtouch = 0;
 	pm->watertype = 0;
 	pm->waterlevel = 0;
-
-	if (PM_IsRocketTrooper())
-	{ //kind of nasty, don't let them crouch or anything if nonhumanoid (probably a rockettrooper)
-		if (pm->cmd.upmove < 0)
-		{
-			pm->cmd.upmove = 0;
-		}
-	}
 
 	if (pm->ps->pm_type == PM_FLOAT)
 	{ //You get no control over where you go in grip movement

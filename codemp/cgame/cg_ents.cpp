@@ -1914,30 +1914,6 @@ static void CG_Speaker( centity_t *cent ) {
 	cent->miscTime = cg.time + cent->currentState.frame * 100 + cent->currentState.clientNum * 100 * crandom();
 }
 
-qboolean CG_GreyItem(int type, int tag, int plSide)
-{
-	if (type == IT_POWERUP &&
-		(tag == PW_FORCE_ENLIGHTENED_LIGHT || tag == PW_FORCE_ENLIGHTENED_DARK))
-	{
-		if (plSide == FORCE_LIGHTSIDE)
-		{
-			if (tag == PW_FORCE_ENLIGHTENED_DARK)
-			{
-				return qtrue;
-			}
-		}
-		else if (plSide == FORCE_DARKSIDE)
-		{
-			if (tag == PW_FORCE_ENLIGHTENED_LIGHT)
-			{
-				return qtrue;
-			}
-		}
-	}
-
-	return qfalse;
-}
-
 /*
 ==================
 CG_Item
@@ -1976,12 +1952,7 @@ Ghoul2 Insert Start
 		!(cent->currentState.eFlags & EF_DROPPEDWEAPON) &&
 		!cg_simpleItems.integer)
 	{
-		vec3_t uNorm;
-		qboolean doGrey;
-		
-		VectorClear(uNorm);
-
-		uNorm[2] = 1;
+		vec3_t uNorm = { 0.0f, 0.0f, 1.0f };
 
 		memset( &ent, 0, sizeof( ent ) );
 
@@ -1991,23 +1962,9 @@ Ghoul2 Insert Start
 		AnglesToAxis(cent->lerpAngles, ent.axis);
 		ent.hModel = cgs.media.itemHoloModel;
 
-		doGrey = CG_GreyItem(item->giType, item->giTag, cg.snap->ps.fd.forceSide);
-
-		if (doGrey)
-		{
-			ent.renderfx |= RF_RGB_TINT;
-
-			ent.shaderRGBA[0] = 150;
-			ent.shaderRGBA[1] = 150;
-			ent.shaderRGBA[2] = 150;
-		}
-
 		trap_R_AddRefEntityToScene(&ent);
 
-		if (!doGrey)
-		{
-			trap_FX_PlayEffectID(cgs.effects.itemCone, ent.origin, uNorm, -1, -1);
-		}
+		trap_FX_PlayEffectID(cgs.effects.itemCone, ent.origin, uNorm, -1, -1);
 	}
 
 	// if set to invisible, skip
@@ -2031,17 +1988,8 @@ Ghoul2 Insert End
 
 		ent.origin[2] += 16;
 
-		if (item->giType != IT_POWERUP || item->giTag != PW_FORCE_BOON)
-		{
-			ent.renderfx |= RF_FORCE_ENT_ALPHA;
-		}
-
 		if ( es->eFlags & EF_ITEMPLACEHOLDER )
 		{
-			if (item->giType == IT_POWERUP && item->giTag == PW_FORCE_BOON)
-			{
-				return;
-			}
 			ent.shaderRGBA[0] = 200;
 			ent.shaderRGBA[1] = 200;
 			ent.shaderRGBA[2] = 200;
@@ -2052,23 +2000,6 @@ Ghoul2 Insert End
 			ent.shaderRGBA[3] = 255;
 		}
 
-		if (CG_GreyItem(item->giType, item->giTag, cg.snap->ps.fd.forceSide))
-		{
-			ent.shaderRGBA[0] = 100;
-			ent.shaderRGBA[1] = 100;
-			ent.shaderRGBA[2] = 100;
-
-			ent.shaderRGBA[3] = 200;
-
-			if (item->giTag == PW_FORCE_ENLIGHTENED_LIGHT)
-			{
-				ent.customShader = trap_R_RegisterShader("gfx/misc/mp_light_enlight_disable");
-			}
-			else
-			{
-				ent.customShader = trap_R_RegisterShader("gfx/misc/mp_dark_enlight_disable");
-			}
-		}
 		trap_R_AddRefEntityToScene(&ent);
 		return;
 	}
@@ -2224,31 +2155,6 @@ Ghoul2 Insert End
 	
 	msec = cg.time - cent->miscTime;
 
-	if (CG_GreyItem(item->giType, item->giTag, cg.snap->ps.fd.forceSide))
-	{
-		ent.renderfx |= RF_RGB_TINT;
-
-		ent.shaderRGBA[0] = 150;
-		ent.shaderRGBA[1] = 150;
-		ent.shaderRGBA[2] = 150;
-
-		ent.renderfx |= RF_FORCE_ENT_ALPHA;
-
-		ent.shaderRGBA[3] = 200;
-
-		if (item->giTag == PW_FORCE_ENLIGHTENED_LIGHT)
-		{
-			ent.customShader = trap_R_RegisterShader("gfx/misc/mp_light_enlight_disable");
-		}
-		else
-		{
-			ent.customShader = trap_R_RegisterShader("gfx/misc/mp_dark_enlight_disable");
-		}
-
-		trap_R_AddRefEntityToScene( &ent );
-		return;
-	}
-
 	if ( es->eFlags & EF_ITEMPLACEHOLDER )		// item has been picked up
 	{
 		if ( es->eFlags & EF_DEAD )				// if item had been droped, don't show at all
@@ -2287,7 +2193,7 @@ Ghoul2 Insert End
 			a=1;
 
 		ent.shaderRGBA[3] = a;
-		if (item->giType != IT_POWERUP || item->giTag != PW_FORCE_BOON)
+		if (item->giType != IT_POWERUP)
 		{ //boon model uses a different blending mode for the sprite inside and doesn't look proper with this method
 			ent.renderfx |= RF_FORCE_ENT_ALPHA;
 		}

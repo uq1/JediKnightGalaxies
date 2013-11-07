@@ -4885,18 +4885,6 @@ static void CG_PlayerPowerups( centity_t *cent, refEntity_t *torso ) {
 		CG_PlayerFlag( cent, cgs.media.blueFlagModel );
 		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 0.2f, 0.2f, 1.0 );
 	}
-
-	// neutralflag
-	if ( powerups & ( 1 << PW_NEUTRALFLAG ) ) {
-		trap_R_AddLightToScene( cent->lerpOrigin, 200 + (rand()&31), 1.0, 1.0, 1.0 );
-	}
-
-	// haste leaves smoke trails
-	/*
-	if ( powerups & ( 1 << PW_HASTE ) ) {
-		CG_HasteTrail( cent );
-	}
-	*/
 }
 
 
@@ -11063,37 +11051,6 @@ SkipTrueView:
 	}
 
 	//[TrueView]
-
-	if ((cent->currentState.powerups & (1 << PW_YSALAMIRI)) ||
-		(cgs.gametype == GT_CTY && ((cent->currentState.powerups & (1 << PW_REDFLAG)) || (cent->currentState.powerups & (1 << PW_BLUEFLAG)))) )
-	{
-		if (cgs.gametype == GT_CTY && (cent->currentState.powerups & (1 << PW_REDFLAG)))
-		{
-			CG_DrawPlayerSphere(cent, cent->lerpOrigin, 1.4f, cgs.media.ysaliredShader );
-		}
-		else if (cgs.gametype == GT_CTY && (cent->currentState.powerups & (1 << PW_BLUEFLAG)))
-		{
-			CG_DrawPlayerSphere(cent, cent->lerpOrigin, 1.4f, cgs.media.ysaliblueShader );
-		}
-		else
-		{
-			CG_DrawPlayerSphere(cent, cent->lerpOrigin, 1.4f, cgs.media.ysalimariShader );
-		}
-	}
-	
-	if (cent->currentState.powerups & (1 << PW_FORCE_BOON))
-	{
-		CG_DrawPlayerSphere(cent, cent->lerpOrigin, 2.0f, cgs.media.boonShader );
-	}
-
-	if (cent->currentState.powerups & (1 << PW_FORCE_ENLIGHTENED_DARK))
-	{
-		CG_DrawPlayerSphere(cent, cent->lerpOrigin, 2.0f, cgs.media.endarkenmentShader );
-	}
-	else if (cent->currentState.powerups & (1 << PW_FORCE_ENLIGHTENED_LIGHT))
-	{
-		CG_DrawPlayerSphere(cent, cent->lerpOrigin, 2.0f, cgs.media.enlightenmentShader );
-	}
 
 	if (cent->currentState.eFlags & EF_INVULNERABLE)
 	{

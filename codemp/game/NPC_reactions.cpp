@@ -928,6 +928,8 @@ void NPC_Respond( gentity_t *self, int userNum )
 	case CLASS_GONK:				// droid
 		G_Sound(self, CHAN_AUTO, G_SoundIndex(va("sound/chars/gonk/misc/gonktalk%d.wav",Q_irand(1, 2))));
 		break;
+	default:
+		break;
 	}
 	
 	if ( event != -1 )
