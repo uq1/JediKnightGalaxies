@@ -2437,7 +2437,7 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 		return qtrue;	// powerups are always picked up
 
 	case IT_TEAM: // team items, such as flags
-		if( gametype == GT_CTF || gametype == GT_CTY ) {
+		if( gametype == GT_CTF ) {
 			// ent->modelindex2 is non-zero on items if they are dropped
 			// we need to know this because we can pick up our dropped flag (and return it)
 			// but we can't pick up our flag at base
@@ -3755,8 +3755,6 @@ const char *BG_GetGametypeString( int gametype )
 		return "Team Deathmatch";
 	case GT_CTF:
 		return "Capture the Flag";
-	case GT_CTY:
-		return "Capture the Ysalimari";
 	case GT_WARZONE:
 		return "Warzone";
 #ifdef __JKG_NINELIVES__
@@ -3798,8 +3796,6 @@ int BG_GetGametypeForString( const char *gametype )
 		return GT_TEAM;
 	else if( Q_stricmp( gametype, "ctf" ) == 0 )
 		return GT_CTF;
-	else if( Q_stricmp( gametype, "cty" ) == 0 )
-		return GT_CTY;
 	else if( Q_stricmp( gametype, "warzone" ) == 0 ||
 		Q_stricmp( gametype, "wz" ) == 0 )
 		return GT_WARZONE;

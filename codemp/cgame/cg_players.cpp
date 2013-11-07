@@ -7196,34 +7196,6 @@ void CG_DrawPlayerSphere(centity_t *cent, vec3_t origin, float scale, int shader
 		ent.shaderRGBA[2] = 0;
 		ent.shaderRGBA[3] = 100;
 	}
-	else if (shader == cgs.media.ysalimariShader)
-	{
-		ent.shaderRGBA[0] = 255;
-		ent.shaderRGBA[1] = 255;
-		ent.shaderRGBA[2] = 0;
-		ent.shaderRGBA[3] = 100;
-	}
-	else if (shader == cgs.media.endarkenmentShader)
-	{
-		ent.shaderRGBA[0] = 100;
-		ent.shaderRGBA[1] = 0;
-		ent.shaderRGBA[2] = 0;
-		ent.shaderRGBA[3] = 20;
-	}
-	else if (shader == cgs.media.enlightenmentShader)
-	{
-		ent.shaderRGBA[0] = 255;
-		ent.shaderRGBA[1] = 255;
-		ent.shaderRGBA[2] = 255;
-		ent.shaderRGBA[3] = 20;
-	}
-	else
-	{ //ysal red/blue, boon
-		ent.shaderRGBA[0] = 255.0f;
-		ent.shaderRGBA[1] = 255.0f;
-		ent.shaderRGBA[2] = 255.0f;
-		ent.shaderRGBA[3] = 20;
-	}
 
 	ent.radius = 256;
 

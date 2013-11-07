@@ -1385,23 +1385,7 @@ typedef struct {
 	qhandle_t	heartShader;
 
 	// All the player shells
-	qhandle_t	ysaliredShader;
-	qhandle_t	ysaliblueShader;
-	qhandle_t	ysalimariShader;
-	qhandle_t	boonShader;
-	qhandle_t	endarkenmentShader;
-	qhandle_t	enlightenmentShader;
 	qhandle_t	invulnerabilityShader;
-
-#ifdef JK2AWARDS
-	// medals shown during gameplay
-	qhandle_t	medalImpressive;
-	qhandle_t	medalExcellent;
-	qhandle_t	medalGauntlet;
-	qhandle_t	medalDefend;
-	qhandle_t	medalAssist;
-	qhandle_t	medalCapture;
-#endif
 
 	// sounds
 	sfxHandle_t	selectSound;
@@ -1432,20 +1416,6 @@ typedef struct {
 	sfxHandle_t twoFragSound;
 	sfxHandle_t oneFragSound;
 
-#ifdef JK2AWARDS
-	sfxHandle_t impressiveSound;
-	sfxHandle_t excellentSound;
-	sfxHandle_t deniedSound;
-	sfxHandle_t humiliationSound;
-	sfxHandle_t defendSound;
-#endif
-
-	/*
-	sfxHandle_t takenLeadSound;
-	sfxHandle_t tiedLeadSound;
-	sfxHandle_t lostLeadSound;
-	*/
-
 	sfxHandle_t rollSound;
 
 	sfxHandle_t watrInSound;
@@ -1458,9 +1428,6 @@ typedef struct {
 	sfxHandle_t medkitSound;
 
 	// teamplay sounds
-#ifdef JK2AWARDS
-	sfxHandle_t captureAwardSound;
-#endif
 	sfxHandle_t redScoredSound;
 	sfxHandle_t blueScoredSound;
 	sfxHandle_t redLeadsSound;

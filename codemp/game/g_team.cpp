@@ -22,16 +22,11 @@ void Team_SetFlagStatus( int team, flagStatus_t status );
 void Team_InitGame( void ) {
 	memset(&teamgame, 0, sizeof teamgame);
 
-	switch( level.gametype ) {
-	case GT_CTF:
-	case GT_CTY:
+	if( level.gametype == GT_CTF ) {
 		teamgame.redStatus = teamgame.blueStatus = (flagStatus_t)-1; // Invalid to force update
 		Team_SetFlagStatus( TEAM_RED, FLAG_ATBASE );
 		teamgame.blueStatus = (flagStatus_t)-1; // Invalid to force update
 		Team_SetFlagStatus( TEAM_BLUE, FLAG_ATBASE );
-		break;
-	default:
-		break;
 	}
 }
 
@@ -303,7 +298,7 @@ void Team_SetFlagStatus( int team, flagStatus_t status ) {
 	if( modified ) {
 		char st[4];
 
-		if( level.gametype == GT_CTF || level.gametype == GT_CTY ) {
+		if( level.gametype == GT_CTF ) {
 			st[0] = ctfFlagStatusRemap[teamgame.redStatus];
 			st[1] = ctfFlagStatusRemap[teamgame.blueStatus];
 			st[2] = 0;
@@ -592,7 +587,7 @@ gentity_t *Team_ResetFlag( int team ) {
 }
 
 void Team_ResetFlags( void ) {
-	if( level.gametype == GT_CTF || level.gametype == GT_CTY ) {
+	if( level.gametype == GT_CTF) {
 		Team_ResetFlag( TEAM_RED );
 		Team_ResetFlag( TEAM_BLUE );
 	}

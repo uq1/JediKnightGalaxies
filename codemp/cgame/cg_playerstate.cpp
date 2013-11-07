@@ -283,22 +283,6 @@ void CG_CheckChangedPredictableEvents( playerState_t *ps ) {
 	}
 }
 
-/*
-==================
-pushReward
-==================
-*/
-#ifdef JK2AWARDS
-static void pushReward(sfxHandle_t sfx, qhandle_t shader, int rewardCount) {
-	if (cg.rewardStack < (MAX_REWARDSTACK-1)) {
-		cg.rewardStack++;
-		cg.rewardSound[cg.rewardStack] = sfx;
-		cg.rewardShader[cg.rewardStack] = shader;
-		cg.rewardCount[cg.rewardStack] = rewardCount;
-	}
-}
-#endif
-
 int cgAnnouncerTime = 0; //to prevent announce sounds from playing on top of each other
 
 /*
@@ -308,9 +292,6 @@ CG_CheckLocalSounds
 */
 void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 	int			highScore, health, armor, reward;
-#ifdef JK2AWARDS
-	sfxHandle_t sfx;
-#endif
 
 	// don't play the sounds if the player just changed teams
 	if ( ps->persistant[PERS_TEAM] != ops->persistant[PERS_TEAM] ) {
@@ -361,86 +342,6 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 	//Raz: also check PM_INTERMISSION
 	if ( cg.intermissionStarted || (cg.snap && cg.snap->ps.pm_type == PM_INTERMISSION) ) {
 		return;
-	}
-
-#ifdef JK2AWARDS
-	// reward sounds
-	reward = qfalse;
-	if (ps->persistant[PERS_CAPTURES] != ops->persistant[PERS_CAPTURES]) {
-		pushReward(cgs.media.captureAwardSound, cgs.media.medalCapture, ps->persistant[PERS_CAPTURES]);
-		reward = qtrue;
-		//Com_Printf("capture\n");
-	}
-	if (ps->persistant[PERS_IMPRESSIVE_COUNT] != ops->persistant[PERS_IMPRESSIVE_COUNT]) {
-		sfx = cgs.media.impressiveSound;
-
-		pushReward(sfx, cgs.media.medalImpressive, ps->persistant[PERS_IMPRESSIVE_COUNT]);
-		reward = qtrue;
-		//Com_Printf("impressive\n");
-	}
-	if (ps->persistant[PERS_EXCELLENT_COUNT] != ops->persistant[PERS_EXCELLENT_COUNT]) {
-		sfx = cgs.media.excellentSound;
-		pushReward(sfx, cgs.media.medalExcellent, ps->persistant[PERS_EXCELLENT_COUNT]);
-		reward = qtrue;
-		//Com_Printf("excellent\n");
-	}
-	if (ps->persistant[PERS_GAUNTLET_FRAG_COUNT] != ops->persistant[PERS_GAUNTLET_FRAG_COUNT]) {
-		sfx = cgs.media.humiliationSound;
-		pushReward(sfx, cgs.media.medalGauntlet, ps->persistant[PERS_GAUNTLET_FRAG_COUNT]);
-		reward = qtrue;
-		//Com_Printf("guantlet frag\n");
-	}
-	if (ps->persistant[PERS_DEFEND_COUNT] != ops->persistant[PERS_DEFEND_COUNT]) {
-		pushReward(cgs.media.defendSound, cgs.media.medalDefend, ps->persistant[PERS_DEFEND_COUNT]);
-		reward = qtrue;
-		//Com_Printf("defend\n");
-	}
-	if (ps->persistant[PERS_ASSIST_COUNT] != ops->persistant[PERS_ASSIST_COUNT]) {
-		//pushReward(cgs.media.assistSound, cgs.media.medalAssist, ps->persistant[PERS_ASSIST_COUNT]);
-		//reward = qtrue;
-		//Com_Printf("assist\n");
-	}
-	// if any of the player event bits changed
-	if (ps->persistant[PERS_PLAYEREVENTS] != ops->persistant[PERS_PLAYEREVENTS]) {
-		if ((ps->persistant[PERS_PLAYEREVENTS] & PLAYEREVENT_DENIEDREWARD) !=
-				(ops->persistant[PERS_PLAYEREVENTS] & PLAYEREVENT_DENIEDREWARD)) {
-			trap_S_StartLocalSound( cgs.media.deniedSound, CHAN_ANNOUNCER );
-		}
-		else if ((ps->persistant[PERS_PLAYEREVENTS] & PLAYEREVENT_GAUNTLETREWARD) !=
-				(ops->persistant[PERS_PLAYEREVENTS] & PLAYEREVENT_GAUNTLETREWARD)) {
-			trap_S_StartLocalSound( cgs.media.humiliationSound, CHAN_ANNOUNCER );
-		}
-		reward = qtrue;
-	}
-#else
-	reward = qfalse;
-#endif
-	// lead changes
-	if (!reward && cgAnnouncerTime < cg.time) {
-		//
-		if ( !cg.warmup && cgs.gametype != GT_POWERDUEL ) {
-			// never play lead changes during warmup and powerduel
-			if ( ps->persistant[PERS_RANK] != ops->persistant[PERS_RANK] ) {
-				if ( cgs.gametype < GT_TEAM) {
-					/*
-					if (  ps->persistant[PERS_RANK] == 0 ) {
-						CG_AddBufferedSound(cgs.media.takenLeadSound);
-						cgAnnouncerTime = cg.time + 3000;
-					} else if ( ps->persistant[PERS_RANK] == RANK_TIED_FLAG ) {
-						//CG_AddBufferedSound(cgs.media.tiedLeadSound);
-					} else if ( ( ops->persistant[PERS_RANK] & ~RANK_TIED_FLAG ) == 0 ) {
-						//rww - only bother saying this if you have more than 1 kill already.
-						//joining the server and hearing "the force is not with you" is silly.
-						if (ps->persistant[PERS_SCORE] > 0)
-						{
-							CG_AddBufferedSound(cgs.media.lostLeadSound);
-							cgAnnouncerTime = cg.time + 3000;
-						}
-					}
-					*/
-				}
-			}
-		}
 	}
 
 	// timelimit warnings

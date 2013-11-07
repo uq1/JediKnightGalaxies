@@ -148,9 +148,6 @@ int G_GetMapTypeBits(char *type)
 		if( strstr( type, "ctf" ) ) {
 			typeBits |= (1 << GT_CTF);
 		}
-		if( strstr( type, "cty" ) ) {
-			typeBits |= (1 << GT_CTY);
-		}
 	} else {
 		typeBits |= (1 << GT_FFA);
 	}

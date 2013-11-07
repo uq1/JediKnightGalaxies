@@ -5661,7 +5661,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	}
 
 	// See if it's the player hurting the emeny flag carrier
-	if( level.gametype == GT_CTF || level.gametype == GT_CTY) {
+	if( level.gametype == GT_CTF ) {
 		Team_CheckHurtCarrier(targ, attacker);
 	}
 

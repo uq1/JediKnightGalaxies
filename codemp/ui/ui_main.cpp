@@ -1578,8 +1578,6 @@ static const char* UI_GetGameTypeName(int gtEnum)
 		return UI_GetStringEdString("MENUS", "TEAM_FFA");//"Team FFA";
 	case GT_CTF:
 		return UI_GetStringEdString("MENUS", "CAPTURE_THE_FLAG");//"Capture the Flag";
-	case GT_CTY:
-		return UI_GetStringEdString("MENUS", "CAPTURE_THE_YSALIMARI");//"Capture the Ysalamiri";
 	case GT_WARZONE:
 		return UI_GetStringEdString("MENUS", "WARZONE");//"Warzone";
 	}

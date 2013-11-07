@@ -5271,11 +5271,11 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 		if(bs->currentTactic)
 		{//already have a tactic, use it.
 		}
-		else if(g_gametype.integer == GT_CTF || g_gametype.integer == GT_CTY)
+		else if(g_gametype.integer == GT_CTF)
 		{
 			DOM_DetermineCTFGoal(bs);
 		}
-		else if(g_gametype.integer == GT_CTF || g_gametype.integer == GT_CTY)
+		else if(g_gametype.integer == GT_WARZONE)
 		{
 			DOM_DetermineWARZONEGoal(bs);
 		}
@@ -6003,7 +6003,7 @@ gentity_t * DOM_DetermineObjectiveType(gentity_t *bot, int team, int objective, 
 	}
 	else 
 #endif //__WARZONE__
-	if(g_gametype.integer == GT_CTY || g_gametype.integer == GT_CTF)
+	if(g_gametype.integer == GT_CTF)
 	{//find the flag for this objective type
 		char *c;
 		if(*type == OT_CAPTURE)

@@ -281,7 +281,6 @@ typedef enum {
 
 	GT_TEAM,			// team deathmatch
 	GT_CTF,				// capture the flag
-	GT_CTY,
 	GT_WARZONE,
 #ifdef __JKG_NINELIVES__
 	GT_LMS_NINELIVES,	// replace Holocron/Singleplayer?

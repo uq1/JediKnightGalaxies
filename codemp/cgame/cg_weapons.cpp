@@ -124,13 +124,7 @@ void CG_RegisterItemVisuals( int itemNum ) {
 	memset( itemInfo, 0, sizeof( &itemInfo ) );
 	itemInfo->registered = qtrue;
 
-	if (item->giType == IT_TEAM &&
-		(item->giTag == PW_REDFLAG || item->giTag == PW_BLUEFLAG) &&
-		cgs.gametype == GT_CTY)
-	{ //in CTY the flag model is different
-		itemInfo->models[0] = trap_R_RegisterModel( item->world_model[1] );
-	}
-	else if (item->giType == IT_WEAPON &&
+	if (item->giType == IT_WEAPON &&
 		(item->giTag == WP_THERMAL || item->giTag == WP_TRIP_MINE || item->giTag == WP_DET_PACK))
 	{
 		itemInfo->models[0] = trap_R_RegisterModel( item->world_model[1] );

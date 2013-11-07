@@ -2606,7 +2606,7 @@ gentity_t *LaunchItem( gitem_t *item, vec3_t origin, vec3_t velocity ) {
 	VectorCopy( velocity, dropped->s.pos.trDelta );
 
 	dropped->flags |= FL_BOUNCE_HALF;
-	if ((level.gametype == GT_CTF || level.gametype == GT_CTY) && item->giType == IT_TEAM) { // Special case for CTF flags
+	if (level.gametype == GT_CTF && item->giType == IT_TEAM) { // Special case for CTF flags
 		dropped->think = Team_DroppedFlagThink;
 		dropped->nextthink = level.time + 30000;
 		Team_CheckDroppedItem( dropped );
@@ -2704,7 +2704,6 @@ void FinishSpawningItem( gentity_t *ent ) {
 	vec3_t		dest;
 
 	if (level.gametype != GT_CTF &&
-		level.gametype != GT_CTY &&
 		ent->item->giType == IT_TEAM)
 	{
 		int killMe = 0;
@@ -2789,7 +2788,7 @@ void G_CheckTeamItems( void ) {
 	// Set up team stuff
 	Team_InitGame();
 
-	if( level.gametype == GT_CTF || level.gametype == GT_CTY ) {
+	if( level.gametype == GT_CTF ) {
 		gitem_t	*item;
 
 		// check for the two flags

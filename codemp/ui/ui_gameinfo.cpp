@@ -178,9 +178,6 @@ void UI_LoadArenas( void ) {
 			if( strstr( type, "ctf" ) ) {
 				uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_CTF);
 			}
-			if( strstr( type, "cty" ) ) {
-				uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_CTY);
-			}
 		} else {
 			uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_FFA);
 		}

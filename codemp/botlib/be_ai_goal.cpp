@@ -82,7 +82,6 @@ enum {
 
 	GT_TEAM,			// team deathmatch
 	GT_CTF,				// capture the flag
-	GT_CTY,
 	GT_MAX_GAME_TYPE
 };
 typedef int gametype_t;

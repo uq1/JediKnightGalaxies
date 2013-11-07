@@ -2522,22 +2522,7 @@ static void CG_DrawPowerupIcons(int y)
 
 			if (item)
 			{
-				int icoShader = 0;
-				if (cgs.gametype == GT_CTY && (j == PW_REDFLAG || j == PW_BLUEFLAG))
-				{
-					if (j == PW_REDFLAG)
-					{
-						icoShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_rflag_ys" );
-					}
-					else
-					{
-						icoShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_bflag_ys" );
-					}
-				}
-				else
-				{
-					icoShader = trap_R_RegisterShader( item->icon );
-				}
+				int icoShader = trap_R_RegisterShader( item->icon );
 
 				CG_DrawPic( (640-(ico_size*1.1f)) + xOffset, y, ico_size, ico_size, icoShader );
 	
@@ -6000,8 +5985,6 @@ static void CG_DrawWarmup( void ) {
 			s = CG_GetStringEdString("MENUS", "TEAM_FFA");//"Team FFA";
 		} else if ( cgs.gametype == GT_CTF ) {
 			s = CG_GetStringEdString("MENUS", "CAPTURE_THE_FLAG");//"Capture the Flag";
-		} else if ( cgs.gametype == GT_CTY ) {
-			s = CG_GetStringEdString("MENUS", "CAPTURE_THE_YSALIMARI");//"Capture the Ysalamiri";
 		} else {
 			s = "";
 		}
@@ -6090,38 +6073,22 @@ void CG_DrawFlagStatus()
 		return;
 	}
 
-	if (cgs.gametype != GT_CTF && cgs.gametype != GT_CTY)
+	if (cgs.gametype != GT_CTF)
 	{
 		return;
 	}
 
 	team = cg.snap->ps.persistant[PERS_TEAM];
 
-	if (cgs.gametype == GT_CTY)
+	if (team == TEAM_RED)
 	{
-		if (team == TEAM_RED)
-		{
-			myFlagTakenShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_rflag_x" );
-			theirFlagShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_bflag_ys" );
-		}
-		else
-		{
-			myFlagTakenShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_bflag_x" );
-			theirFlagShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_rflag_ys" );
-		}
+		myFlagTakenShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_rflag_x" );
+		theirFlagShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_bflag" );
 	}
 	else
 	{
-		if (team == TEAM_RED)
-		{
-			myFlagTakenShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_rflag_x" );
-			theirFlagShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_bflag" );
-		}
-		else
-		{
-			myFlagTakenShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_bflag_x" );
-			theirFlagShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_rflag" );
-		}
+		myFlagTakenShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_bflag_x" );
+		theirFlagShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_rflag" );
 	}
 
 	if (CG_YourTeamHasFlag())
