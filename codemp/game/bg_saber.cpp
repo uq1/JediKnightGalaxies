@@ -2708,7 +2708,7 @@ int PM_KickMoveForConditions(void)
 	return kickMove;
 }
 
-qboolean BG_InSlopeAnim( int anim );
+qboolean PM_InSlopeAnim( int anim );
 qboolean PM_RunningAnim( int anim );
 
 int bg_parryDebounce[NUM_FORCE_POWER_LEVELS] =
@@ -3052,12 +3052,12 @@ void PM_WeaponLightsaber(void)
 			PM_SetSaberMove( LS_READY );
 		}
 
-		if ((pm->ps->legsAnim) != (pm->ps->torsoAnim) && !BG_InSlopeAnim(pm->ps->legsAnim) &&
+		if ((pm->ps->legsAnim) != (pm->ps->torsoAnim) && !PM_InSlopeAnim(pm->ps->legsAnim) &&
 			pm->ps->torsoTimer <= 0 && !(pm->ps->saberActionFlags & (1 << SAF_BLOCKING)))
 		{
 			PM_SetAnim(SETANIM_TORSO,(pm->ps->legsAnim),SETANIM_FLAG_OVERRIDE, 100);
 		}
-		else if ((BG_InSlopeAnim(pm->ps->legsAnim) || pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) && pm->ps->torsoTimer <= 0 &&
+		else if ((PM_InSlopeAnim(pm->ps->legsAnim) || pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) && pm->ps->torsoTimer <= 0 &&
 			!PM_SaberInParry(pm->ps->saberMove) && !PM_SaberInKnockaway(pm->ps->saberMove) &&
 			!PM_SaberInBrokenParry(pm->ps->saberMove) && !PM_SaberInReflect(pm->ps->saberMove))
 		{
@@ -3091,25 +3091,6 @@ void PM_WeaponLightsaber(void)
 
 	if (!pm->ps->saberEntityNum && pm->ps->saberInFlight)
 	{ //this means our saber has been knocked away
-		/*
-		if (pm->ps->saberMove != LS_READY)
-		{
-			PM_SetSaberMove( LS_READY );
-		}
-
-		if ((pm->ps->legsAnim) != (pm->ps->torsoAnim) && !BG_InSlopeAnim(pm->ps->legsAnim))
-		{
-			PM_SetAnim(SETANIM_TORSO,(pm->ps->legsAnim),SETANIM_FLAG_OVERRIDE, 100);
-		}
-
-		if (BG_InSaberStandAnim(pm->ps->torsoAnim) || pm->ps->torsoAnim == BOTH_SABERPULL)
-		{
-			PM_SetAnim(SETANIM_TORSO,BOTH_STAND1,SETANIM_FLAG_OVERRIDE, 100);
-		}
-
-		return;
-		*/
-		//Old method, don't want to do this now because we want to finish up reflected attacks and things
 		//if our saber is pried out of our hands from one.
 		if ( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
 		{
@@ -4079,7 +4060,7 @@ void PM_SetSaberMove(short newMove)
 			anim = PM_GetSaberStance();
 		}
 
-		if (BG_InSlopeAnim( anim ))
+		if (PM_InSlopeAnim( anim ))
 		{
 			anim = PM_GetSaberStance();
 		}

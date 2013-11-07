@@ -14,7 +14,6 @@ extern qboolean G_FlyVehicleDestroySurface( gentity_t *veh, int surface );
 extern void G_VehicleSetDamageLocFlags( gentity_t *veh, int impactDir, int deathPoint );
 extern void G_VehUpdateShields( gentity_t *targ );
 extern void G_LetGoOfWall( gentity_t *ent );
-extern void BG_ClearRocketLock( playerState_t *ps );
 //rww - pd
 void BotDamageNotification(gclient_t *bot, gentity_t *attacker);
 //end rww

@@ -83,8 +83,6 @@ extern void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimPa
 extern int BG_GetTime(void);
 #endif
 
-extern void BG_ExternThisSoICanRecompileInDebug( Vehicle_t *pVeh, playerState_t *riderPS );
-
 //this stuff has got to be predicted, so..
 bool BG_FighterUpdate(Vehicle_t *pVeh, const usercmd_t *pUcmd, vec3_t trMins, vec3_t trMaxs, float gravity,
 					  void (*traceFunc)( trace_t *results, const vec3_t start, const vec3_t lmins, const vec3_t lmaxs, const vec3_t end, int passEntityNum, int contentMask ))
@@ -1592,9 +1590,6 @@ static void ProcessOrientCommands( Vehicle_t *pVeh )
 		{
 			VectorCopy( riderPS->viewangles, pVeh->m_vOrientation );
 			VectorCopy( riderPS->viewangles, parentPS->viewangles );
-#ifdef _JK2MP
-			//BG_ExternThisSoICanRecompileInDebug( pVeh, riderPS );
-#endif
 
 			curRoll = pVeh->m_vOrientation[ROLL];
 
