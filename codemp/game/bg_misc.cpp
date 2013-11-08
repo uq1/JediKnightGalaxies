@@ -3720,7 +3720,6 @@ const char *gametypeStringShort[GT_MAX_GAME_TYPE] = {
 #endif
 	"TDM",
 	"CTF",
-	"CTY",
 	"WZ",
 #ifdef __JKG_NINELIVES__
 	"9L",

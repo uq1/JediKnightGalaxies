@@ -4618,7 +4618,6 @@ static void PM_CheckDuck (void)
 			{//in a part of the anim that we're pretty much sideways in, raise up the mins
 				pm->mins[2] = 0;
 				pm->ps->pm_flags |= PMF_FIX_MINS;
-				resized = qtrue;
 			}
 		}
 		else

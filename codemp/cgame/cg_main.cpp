@@ -1621,12 +1621,6 @@ static void CG_RegisterGraphics( void ) {
 
 	cgs.media.heartShader			= trap_R_RegisterShaderNoMip( "ui/assets/statusbar/selectedhealth.tga" );
 
-	cgs.media.ysaliredShader		= trap_R_RegisterShader( "powerups/ysaliredshell");
-	cgs.media.ysaliblueShader		= trap_R_RegisterShader( "powerups/ysaliblueshell");
-	cgs.media.ysalimariShader		= trap_R_RegisterShader( "powerups/ysalimarishell");
-	cgs.media.boonShader			= trap_R_RegisterShader( "powerups/boonshell");
-	cgs.media.endarkenmentShader	= trap_R_RegisterShader( "powerups/endarkenmentshell");
-	cgs.media.enlightenmentShader	= trap_R_RegisterShader( "powerups/enlightenmentshell");
 	cgs.media.invulnerabilityShader = trap_R_RegisterShader( "powerups/invulnerabilityshell");
 
 	// Binocular interface

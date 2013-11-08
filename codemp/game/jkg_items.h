@@ -146,6 +146,4 @@ typedef struct
 
 
 itemData_t *JKG_GetItemByWeaponIndex ( int weaponIndex );
-
-void JKG_A_RollItem( unsigned int itemIndex, int qualityOverride, inv_t *inventory );
 #endif

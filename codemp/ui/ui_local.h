@@ -909,19 +909,6 @@ typedef struct postGameInfo_s {
 	int score;
 	int redScore;
 	int blueScore;
-	int perfects;
-	int accuracy;
-	int impressives;
-	int excellents;
-	int defends;
-	int assists;
-	int gauntlets;
-	int	captures;
-	int time;
-	int timeBonus;
-	int shutoutBonus;
-	int skillBonus;
-	int baseScore;
 } postGameInfo_t;
 
 //

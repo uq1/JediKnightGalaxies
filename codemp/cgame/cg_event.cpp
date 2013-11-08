@@ -1195,7 +1195,6 @@ extern vmCvar_t jkg_autoreload;
 extern void CG_ChatBox_AddString(char *chatStr, int fadeLevel); //cg_draw.c
 extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
 extern void JKG_CG_SetACISlot(const unsigned short slot);
-extern void WP_SetSaber( int entNum, saberInfo_t *sabers, int saberNum, const char *saberName );
 void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	entityState_t	*es;
 	int				event;

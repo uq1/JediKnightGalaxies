@@ -675,12 +675,7 @@ typedef enum {
 	PERS_ATTACKEE_ARMOR,			// health/armor of last person we attacked
 	PERS_KILLED,					// count of the number of times you died
 	// player awards tracking
-	PERS_CREDITS,					// JKG: Player credit count
-	PERS_EXCELLENT_COUNT,			// two successive kills in a short amount of time
-	PERS_DEFEND_COUNT,				// defend awards
-	PERS_ASSIST_COUNT,				// assist awards
-	PERS_GAUNTLET_FRAG_COUNT,		// kills with the guantlet
-	PERS_CAPTURES					// captures
+	PERS_CREDITS					// JKG: Player credit count
 } persEnum_t;
 
 
@@ -1769,5 +1764,7 @@ typedef struct {
 	bool		torsoYawing;
 } lerpFrame_t;
 
+// Refactored includes
+void WP_SetSaber( int entNum, saberInfo_t *sabers, int saberNum, const char *saberName );
 
 #endif //__BG_PUBLIC_H__

@@ -1766,7 +1766,6 @@ static void CG_SetDeferredClientInfo( clientInfo_t *ci ) {
 CG_NewClientInfo
 ======================
 */
-void WP_SetSaber( int entNum, saberInfo_t *sabers, int saberNum, const char *saberName );
 
 void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	clientInfo_t *ci;

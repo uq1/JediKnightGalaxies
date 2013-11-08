@@ -652,7 +652,6 @@ void JKG_A_GiveEntItemForcedToACI( unsigned int itemIndex, int qualityOverride, 
 }
 
 //Instead of returning an array, this function modifies an existing array.
-extern void JKG_Easy_DIMA_Init(inv_t *inventory);
 void JKG_PickItemsClean( gentity_t *ent, lootTable_t *loot )
 {
 	int i, j = 0;

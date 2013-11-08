@@ -15,8 +15,6 @@
 extern wpobject_t *gWPArray[MAX_WPARRAY_SIZE];
 extern int gWPNum;
 
-extern void JKG_A_GiveEntItemForcedToACI( unsigned int itemIndex, int qualityOverride, inv_t *inventory, gclient_t *owner, unsigned int ACIslot );
-
 // Warzone...
 extern void Calculate_Warzone_Flag_Spawns ( void );
 extern gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent );
@@ -2291,8 +2289,6 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 
 void G_WriteClientSessionData( gclient_t *client );
 
-void WP_SetSaber( int entNum, saberInfo_t *sabers, int saberNum, const char *saberName );
-
 /*
 ===========
 ClientBegin
@@ -2302,11 +2298,6 @@ to be placed into the level.  This will happen every level load,
 and on transition between teams, but doesn't happen on respawns
 ============
 */
-void SetTeamQuick(gentity_t *ent, int team, qboolean doBegin);
-void JKG_CBB_SendAll(int client);
-void JKG_PlayerIsolationClear(int client);
-extern void JKG_Easy_DIMA_Init(inv_t *inventory);
-extern void JKG_A_GiveEntItem( unsigned int itemIndex, int qualityOverride, inv_t *inventory, gclient_t *owner );
 void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	gentity_t	*ent;
 	gclient_t	*client;
@@ -3522,35 +3513,12 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 
 			trap_SendServerCommand( -1, va("tkt %i %i", redtickets, bluetickets ));
 		}
-		
-		// select the highest weapon number available, after any
-		// spawn given items have fired
-		/*
-		client->ps.weapon = 1;
-		for ( i = WP_NUM_WEAPONS - 1 ; i > 0 ; i-- ) {
-			if ( client->ps.stats[STAT_WEAPONS] & ( 1 << i ) ) {
-				client->ps.weapon = i;
-				break;
-			}
-		}
-		*/
 	}
 
 	//set teams for NPCs to recognize
 	ent->s.teamowner = NPCTEAM_PLAYER;
 	client->playerTeam = (npcteam_t)ent->s.teamowner;
 	client->enemyTeam = NPCTEAM_ENEMY;
-
-	/*
-	//scaling for the power duel opponent
-	if (level.gametype == GT_POWERDUEL &&
-		client->sess.duelTeam == DUELTEAM_LONE)
-	{
-		client->ps.iModelScale = 125;
-		VectorSet(ent->modelScale, 1.25f, 1.25f, 1.25f);
-	}
-	*/
-	//Disabled. At least for now. Not sure if I'll want to do it or not eventually.
 
 	// run a client frame to drop exactly to the floor,
 	// initialize animations and other things

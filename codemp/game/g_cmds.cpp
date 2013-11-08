@@ -10,10 +10,7 @@
 int AcceptBotCommand(char *cmd, gentity_t *pl);
 //end rww
 
-void WP_SetSaber( int entNum, saberInfo_t *sabers, int saberNum, const char *saberName );
-
 void Cmd_NPC_f( gentity_t *ent );
-void SetTeamQuick(gentity_t *ent, int team, qboolean doBegin);
 
 extern void AIMod_CheckMapPaths ( gentity_t *ent );
 extern void AIMod_CheckObjectivePaths ( gentity_t *ent );
@@ -90,17 +87,18 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 		}
 		perfect = ( cl->ps.persistant[PERS_RANK] == 0 && cl->ps.persistant[PERS_KILLED] == 0 ) ? 1 : 0;
 
+		// FIXME
 		Com_sprintf (entry, sizeof(entry),
 			" %i %i %i %i %i %i %i %i %i %i %i %i %i %i", level.sortedClients[i],
 			cl->sess.sessionTeam == TEAM_SPECTATOR ? 0 : cl->ps.persistant[PERS_SCORE], ping, (level.time - cl->pers.enterTime)/60000,
 			scoreFlags, g_entities[level.sortedClients[i]].s.powerups, accuracy, 
 			cl->ps.persistant[PERS_CREDITS],
-			cl->ps.persistant[PERS_EXCELLENT_COUNT],
-			cl->ps.persistant[PERS_GAUNTLET_FRAG_COUNT], 
-			cl->ps.persistant[PERS_DEFEND_COUNT], 
-			cl->ps.persistant[PERS_ASSIST_COUNT], 
-			perfect,
-			cl->ps.persistant[PERS_CAPTURES]);
+			0,
+			0, 
+			0, 
+			0, 
+			0,
+			0);
 		j = strlen(entry);
 		if (stringlength + j > 1022)
 			break;
@@ -660,8 +658,6 @@ Give items to a client
 ==================
 */
 extern void JKG_A_RollItem( unsigned int itemIndex, int qualityOverride, inv_t *inventory );
-extern void JKG_A_GiveEntItem( unsigned int itemIndex, int qualityOverride, inv_t *inventory, gclient_t *owner );
-extern void JKG_A_GiveEntItemForcedToACI( unsigned int itemIndex, int qualityOverride, inv_t *inventory, gclient_t *owner, unsigned int ACIslot );
 void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 {
 	char		name[MAX_TOKEN_CHARS];
@@ -876,28 +872,10 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 				return;
 			}
 		}
-		/*for(i = 0; i < MAX_INVENTORY_ITEMS; i++)
-		{
-			if(!ent->inventory[i].id)
-				break;
-			else
-			{
-				if(!ent->inventory[i].id->itemID)
-				{
-					inventoryFull = qfalse;
-					break;
-				}
-			}
-		}*/
-		//JKG_A_RollItem(itemID, IQUAL_NORMAL, ent->inventory);
 		JKG_A_GiveEntItem(itemID, IQUAL_NORMAL, ent->inventory, ent->client);
 		return;
 	}
 
-	if (Q_stricmp(name, "excellent") == 0) {
-		ent->client->ps.persistant[PERS_EXCELLENT_COUNT]++;
-		return;
-	}
 	if (Q_stricmp(name, "credits") == 0) {
 		int creditAmount;
 		trap_Argv(2+baseArg, arg, sizeof( arg ) );
@@ -905,18 +883,6 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 		creditAmount = atoi(arg);
 		ent->client->ps.persistant[PERS_CREDITS] += creditAmount;
 		trap_SendServerCommand( ent->client->ps.clientNum, va("print \"Your new balance is: %i credits\n\"", ent->client->ps.persistant[PERS_CREDITS]) );
-		return;
-	}
-	if (Q_stricmp(name, "gauntletaward") == 0) {
-		ent->client->ps.persistant[PERS_GAUNTLET_FRAG_COUNT]++;
-		return;
-	}
-	if (Q_stricmp(name, "defend") == 0) {
-		ent->client->ps.persistant[PERS_DEFEND_COUNT]++;
-		return;
-	}
-	if (Q_stricmp(name, "assist") == 0) {
-		ent->client->ps.persistant[PERS_ASSIST_COUNT]++;
 		return;
 	}
 

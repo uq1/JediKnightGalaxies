@@ -46,8 +46,6 @@ extern vec3_t gPainPoint;
 #endif
 
 #define	FRAMETIME			100					// msec
-#define	CARNAGE_REWARD_TIME	3000
-#define REWARD_SPRITE_TIME	2000
 
 #define	INTERMISSION_DELAY_TIME	1000
 #define	SP_INTERMISSION_DELAY_TIME	5000
@@ -534,20 +532,8 @@ typedef enum {
 
 typedef struct {
 	playerTeamStateState_t	state;
-
 	int			location;
-
-	int			captures;
-	int			basedefense;
-	int			carrierdefense;
-	int			flagrecovery;
-	int			fragcarrier;
-	int			assists;
-
 	float		lasthurtcarrier;
-	float		lastreturnedflag;
-	float		flagsince;
-	float		lastfraggedcarrier;
 } playerTeamState_t;
 
 // the auto following clients don't follow a specific client
@@ -2240,12 +2226,13 @@ void NPC_ClearLookTarget( gentity_t *self );
 void BG_VehicleLoadParms( void );
 
 bool JKG_ParseHiltFiles( void );
-/*
-#ifdef _DEBUG
-extern void JKG_AssertFunction(char *file, int linenum, const char *expression);
-#define JKG_Assert(_Expression) if(!_Expression){ JKG_AssertFunction(__FILE__, __LINE__, #_Expression); assert(_Expression); }
-#else //!_DEBUG
-#define JKG_Assert(_Expression) {  }
-#endif //_DEBUG
-*/
+
+// Refactored included functions
+void SetTeamQuick(gentity_t *ent, int team, qboolean doBegin);
+void JKG_Easy_DIMA_Init(inv_t *inventory);
+void JKG_CBB_SendAll(int client);
+void JKG_PlayerIsolationClear(int client);
+void JKG_A_GiveEntItem( unsigned int itemIndex, int qualityOverride, inv_t *inventory, gclient_t *owner );
+void JKG_A_GiveEntItemForcedToACI( unsigned int itemIndex, int qualityOverride, inv_t *inventory, gclient_t *owner, unsigned int ACIslot );
+void JKG_A_RollItem( unsigned int itemIndex, int qualityOverride, inv_t *inventory );
 #endif
