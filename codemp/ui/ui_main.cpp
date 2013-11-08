@@ -274,6 +274,7 @@ const char *JAMD5Check();
 void CheckEngineDll();
 
 extern uiCrossoverExports_t *UI_InitializeCrossoverAPI( cgCrossoverExports_t *cg );
+extern "C" {
 /*Q_EXPORT_C*/ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  ) 
 {
 	switch ( command ) {
@@ -323,7 +324,9 @@ extern uiCrossoverExports_t *UI_InitializeCrossoverAPI( cgCrossoverExports_t *cg
 
 	return -1;
 }
+}
 
+// TODO: remove
 siegeClassDesc_t g_UIClassDescriptions[MAX_SIEGE_CLASSES];
 siegeTeam_t *siegeTeam1 = NULL;
 siegeTeam_t *siegeTeam2 = NULL;
