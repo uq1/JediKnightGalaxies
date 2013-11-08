@@ -99,7 +99,18 @@
         "projectilespeed": 6500.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_DISRUPTOR",
-        "splashmeansofdeath": "MOD_DISRUPTOR"
+        "splashmeansofdeath": "MOD_DISRUPTOR",
+            "accuracy": {
+        "accuracyRating": 35,
+        "accuracyRatingPerShot": 8,
+        "msToDrainAccuracy": 120,
+        "maxAccuracyAdd": 100,
+        "crouchModifier": 0.95,
+        "runModifier": 1.8,
+        "sightsModifier": 0.65,
+        "walkModifier": 1.5,
+        "inAirModifier": 2.4
+        }
     },
     
     "playeranims": {

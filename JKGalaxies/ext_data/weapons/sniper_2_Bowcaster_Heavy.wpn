@@ -75,7 +75,18 @@
         "spread":       0.0,
         "projectilespeed": 9000.0,
         "projectileclass": "bowcaster_proj",
-        "meansofdeath": "MOD_DISRUPTOR_SNIPER"
+        "meansofdeath": "MOD_DISRUPTOR_SNIPER",
+            "accuracy": {
+        "accuracyRating": 30,
+        "accuracyRatingPerShot": 6,
+        "msToDrainAccuracy": 160,
+        "maxAccuracyAdd": 75,
+        "crouchModifier": 0.8,
+        "runModifier": 2,
+        "sightsModifier": 0.95,
+        "walkModifier": 1.7,
+        "inAirModifier": 2.5
+        }
     },
     
     "playeranims": {

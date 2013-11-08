@@ -76,7 +76,18 @@
         "spread":       0.0,
         "projectilespeed": 26000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER"
+        "meansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 25,
+        "accuracyRatingPerShot": 6,
+        "msToDrainAccuracy": 135,
+        "maxAccuracyAdd": 115,
+        "crouchModifier": 0.9,
+        "runModifier": 1.6,
+        "sightsModifier": 0.7,
+        "walkModifier": 1.4,
+        "inAirModifier": 1.8
+        }
     },
     
     "playeranims": {

@@ -77,7 +77,18 @@
         "spread":       0.2,
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER"
+        "meansofdeath": "MOD_REPEATER",
+            "accuracy": {
+        "accuracyRating": 55,
+        "accuracyRatingPerShot": 4,
+        "msToDrainAccuracy": 70,
+        "maxAccuracyAdd": 85,
+        "crouchModifier": 0.89,
+        "runModifier": 1.2,
+        "sightsModifier": 0.8,
+        "walkModifier": 1.1,
+        "inAirModifier": 1.4
+        }
     },
     
     "firemode1": {
@@ -90,7 +101,18 @@
         "spread":       0.2,
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER"
+        "meansofdeath": "MOD_REPEATER",
+            "accuracy": {
+        "accuracyRating": 50,
+        "accuracyRatingPerShot": 3,
+        "msToDrainAccuracy": 70,
+        "maxAccuracyAdd": 80,
+        "crouchModifier": 0.95,
+        "runModifier": 1.4,
+        "sightsModifier": 0.95,
+        "walkModifier": 1.2,
+        "inAirModifier": 1.6
+        }
     },
     
     "playeranims": {

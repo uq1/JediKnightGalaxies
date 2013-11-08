@@ -84,7 +84,18 @@
         "spread":       0.0,
         "projectilespeed": 5000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL"
+        "meansofdeath": "MOD_BRYAR_PISTOL",
+            "accuracy": {
+        "accuracyRating": 20,
+        "accuracyRatingPerShot": 4,
+        "msToDrainAccuracy": 100,
+        "maxAccuracyAdd": 80,
+        "crouchModifier": 0.9,
+        "runModifier": 1.8,
+        "sightsModifier": 0.6,
+        "walkModifier": 1.5,
+        "inAirModifier": 2.2
+        }
     },
     
     "firemode1": {
@@ -102,7 +113,18 @@
         "projectilespeed": 6000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BRYAR_PISTOL_ALT",
-        "splashmeansofdeath": "MOD_BRYAR_PISTOL_ALT"
+        "splashmeansofdeath": "MOD_BRYAR_PISTOL_ALT",
+            "accuracy": {
+        "accuracyRating": 40,
+        "accuracyRatingPerShot": 6,
+        "msToDrainAccuracy": 100,
+        "maxAccuracyAdd": 85,
+        "crouchModifier": 0.9,
+        "runModifier": 1.8,
+        "sightsModifier": 0.65,
+        "walkModifier": 1.5,
+        "inAirModifier": 2.2
+        }
     },
     
     "playeranims": {

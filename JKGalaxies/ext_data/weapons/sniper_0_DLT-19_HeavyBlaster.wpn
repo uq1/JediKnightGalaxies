@@ -80,7 +80,18 @@
         "projectilespeed": 7000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_DISRUPTOR_SNIPER",
-        "splashmeansofdeath": "MOD_BLASTER"
+        "splashmeansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 20,
+        "accuracyRatingPerShot": 5,
+        "msToDrainAccuracy": 130,
+        "maxAccuracyAdd": 65,
+        "crouchModifier": 0.85,
+        "runModifier": 2,
+        "sightsModifier": 0.8,
+        "walkModifier": 1.5,
+        "inAirModifier": 2.2
+        }
     },
     
     "firemode1": {
@@ -93,7 +104,18 @@
         "spread":       0.8,
         "projectilespeed": 5000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER"
+        "meansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 40,
+        "accuracyRatingPerShot": 2,
+        "msToDrainAccuracy": 130,
+        "maxAccuracyAdd": 75,
+        "crouchModifier": 0.85,
+        "runModifier": 2,
+        "sightsModifier": 0.8,
+        "walkModifier": 1.5,
+        "inAirModifier": 2.2
+        }
     },
     
     "playeranims": {

@@ -77,7 +77,13 @@
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BRYAR_PISTOL",
-        "splashmeansofdeath": "MOD_BRYAR_PISTOL"
+        "splashmeansofdeath": "MOD_BRYAR_PISTOL",
+            "accuracy": {
+        "accuracyRating": 35,
+        "accuracyRatingPerShot": 5,
+        "msToDrainAccuracy": 55,
+        "maxAccuracyAdd": 75
+        }
     },
     
     "playeranims": {
