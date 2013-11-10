@@ -107,7 +107,7 @@
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_DISRUPTOR_SNIPER",
-        "splashmeansofdeath": "MOD_REPEATER_ALT_SPLASH"
+        "splashmeansofdeath": "MOD_REPEATER_ALT_SPLASH",
             "accuracy": {
         "accuracyRating": 70,
         "accuracyRatingPerShot": 7,
