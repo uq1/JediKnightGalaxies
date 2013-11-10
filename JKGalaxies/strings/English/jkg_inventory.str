@@ -1,0 +1,78 @@
+// Note to translators:
+// If a sentence is the same in your language then please change it to "#same"
+//
+// eg:
+// LANG_ENGLISH  "HALT"
+// LANG_GERMAN   "#same"
+//
+// (This is so we can tell which strings have been signed-off as ok to be the same words for QA
+//  and because we do not store duplicate strings, which will then get exported again next time
+//  as being untranslated.)
+//
+VERSION             "1"
+CONFIG              "W:\bin\stringed.cfg"
+FILENOTES           "Text for the inventory menu (@JKG_INVENTORY_)"
+
+REFERENCE           INVENTORY
+LANG_ENGLISH        "Inventory"
+
+REFERENCE           WEIGHT
+LANG_ENGLISH        "Weight:"
+
+REFERENCE           CREDITS
+LANG_ENGLISH        "Credits:"
+
+REFERENCE           FILTER
+LANG_ENGLISH        "Filter by Type:"
+
+REFERENCE           EXAMINE
+LANG_ENGLISH        "Examine"
+
+REFERENCE           USE
+LANG_ENGLISH        "Use"
+
+REFERENCE           EQUIP
+LANG_ENGLISH        "Equip"
+
+REFERENCE           UNEQUIP
+LANG_ENGLISH        "Unequip"
+
+REFERENCE           ASSIGNACI
+LANG_ENGLISH        "Assign to ACI"
+
+REFERENCE           UNASSIGNACI
+LANG_ENGLISH        "Unassign from ACI"
+
+REFERENCE           ASSIGNACILONG
+LANG_ENGLISH        "Assign to Active Combat Inventory Slot"
+
+REFERENCE           DESTROY
+LANG_ENGLISH        "Destroy"
+
+REFERENCE	    SELL
+LANG_ENGLISH	    "Sell"
+
+REFERENCE           DESTROYTHISITEM
+LANG_ENGLISH        "Destroy this item?"
+
+REFERENCE           SELLTHISITEM
+LANG_ENGLISH        "Sell this item?"
+
+REFERENCE           BUYTHISITEM
+LANG_ENGLISH        "Buy this item?"
+
+REFERENCE           YES
+LANG_ENGLISH        "Yes"
+
+REFERENCE           NO
+LANG_ENGLISH        "No"
+
+REFERENCE           TOINVENTORY
+LANG_ENGLISH        "View Inventory"
+
+REFERENCE           TOSHOP
+LANG_ENGLISH        "Back to Shop"
+
+ENDMARKER
+
+

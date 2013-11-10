@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<ItemXML>
+<ProductionInfo>
+<Manufacturer>BlasTech</Manufacturer>
+<Type>Blaster Carbine</Type>
+<Size>Small</Size>
+</ProductionInfo>
+<Usage>
+<Sights>N/A</Sights>
+<Indicators>None</Indicators>
+<ReloadTime>Long</ReloadTime>
+<Attachments>Scope</Attachments>
+<Variations>E-11 Blaster Rifle</Variations>
+</Usage>
+<TechnicalSpecs type="twocoltable" col1="Primary" col2="Secondary">
+
+<Ammunition>
+<Primary>Concussion charges</Primary>
+</Ammunition>
+
+<Capacity>
+<Primary>10 shots</Primary>
+</Capacity>
+
+<Action>
+<Primary>Semi automatic</Primary>
+</Action>
+
+<RateOfFire>
+<Primary>55 RPM</Primary>
+</RateOfFire>
+
+<Recoil>
+<Primary>Extreme (11.0)</Primary>
+<Secondary>Severe (10.0)</Secondary>
+</Recoil>
+
+<Accuracy>
+<Primary>Good (0.4)</Primary>
+</Accuracy>
+
+<EffectiveRange>
+<Primary>Medium to long</Primary>
+<Secondary>Close</Secondary>
+</EffectiveRange>
+
+<AbsoluteRange>
+<Primary>1219 m</Primary>
+<Secondary>30 m</Secondary>
+</AbsoluteRange>
+
+<ProjectileVelocity>
+<Primary>152 mps</Primary>
+<Secondary>305 mps</Secondary>
+</ProjectileVelocity>
+
+<Damage>
+<Primary>100 + splash damage</Primary>
+<Secondary>50</Secondary>
+</Damage>
+
+<Appearance>
+<Primary>Blue Plasma</Primary>
+<Secondary>Compact shockwave</Secondary>
+</Appearance>
+
+</TechnicalSpecs>
+</ItemXML>

@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<!-- This is a comment -->
+
+<!-- EXAMINE MENU XML FILES -->
+
+<!-- Anything I mark with a star (*) directly affects what is shown on screen. -->
+<!-- You can use string file references like in weapon files for these -->
+
+<!-- If you get a problem, check your console for errors. -->
+
+<!-- This tag must always go at the beginning, and be closed at the end -->
+<ItemXML>
+
+<!-- This is a group header -->
+<!-- * -->
+<ProductionInfo>
+
+<!-- Everything within this group is marked as * -->
+<!-- The stuff that is within these tags is also marked as * -->
+<!-- This should be pretty self explanatory. Adostic Arms is the manufacturer, etc. -->
+<!-- There is a limit of 5 fields in this category. (iirc). Feel free to experiment! -->
+<!-- Watch your spelling though. -->
+<Manufacturer>Barrakan Arms</Manufacturer>
+<Model>"A" 200 Series, Nicknamed "Ambusher"</Model>
+<Type>"A" 200 Series, Nicknamed "Ambusher"e</Type>
+<Size>Medium</Size>
+
+<!-- Closing category -->
+</ProductionInfo>
+<!-- Beginning new category -->
+<Usage>
+<!-- Same deal as above. Hardcoded limit of 5 fields. Everything is a *. -->
+<Sights>Holographic Reticle</Sights>
+<Indicators>Indication in Holo Sight</Indicators>
+<ReloadTime>1.5 S</ReloadTime>
+<Attachments>Projectile Launcher Tube</Attachments>
+<Variations>Holo-Sight</Variations>
+<!-- Closing category -->
+</Usage>
+
+
+<!-- The category name is not hardcoded, but the type is 100% hardcoded (for now) -->
+<TechnicalSpecs type="twocoltable" col1="Primary" col2="Secondary">
+<!-- We have a slight format change here for this table -->
+
+
+<Ammunition>
+<!-- The above is a row label -->
+<!-- Ingame, this will read "Ammunition....Power Cells...Smoke canister" -->
+<Primary>Power Cell</Primary>
+<Secondary>Flechette Shells</Secondary>
+</Ammunition>
+
+<Capacity>
+<Primary>20 Shots</Primary>
+<Secondary>2 Shots</Secondary>
+</Capacity>
+
+<Action>
+<Primary>Semi Automatic 3-round bursts</Primary>
+<Secondary>Semi-Automatic Single Ballistic Shot</Secondary>
+</Action>
+
+<RateOfFire>
+<Primary filler="fm1-delaypm" format="%2.0f x 12 rounds">600 rounds/min</Primary>
+<Secondary>30 Rounds/Min</Secondary>
+</RateOfFire>
+
+<Recoil>
+<Primary filler="fm1-recoil" format="Low (%2.2f)">Low (0.8)</Primary>
+<Secondary filler="fm2-recoil" format="Heavy (%2.2f)">Heavy (4.0)</Secondary>
+</Recoil>
+
+<Accuracy>
+<Primary filler="fm1-spread" format ="Good (%0.2f)">Good (0.2)</Primary>
+<Secondary filler="fm2-spread" format ="Medium (%2.1f)">Medium (1.0)</Secondary>
+</Accuracy>
+
+<EffectiveRange>
+<Primary>Medium to Long</Primary>
+<Secondary>Medium to Long</Secondary>
+</EffectiveRange>
+
+<AbsoluteRange>
+<Primary filler="fm1-range" format="%91.0f m">152 m</Primary>
+<Secondary filler="fm2-range" format="%5.0f m">1219 m</Secondary>
+</AbsoluteRange>
+
+<ProjectileVelocity>
+<Primary filler="fm1-vel" format="%2.1f m/s">213 m/s</Primary>
+<Secondary filler="fm2-vel" format="%2.1f m/s">73 m/s</Secondary>
+</ProjectileVelocity>
+
+<Damage>
+<Primary filler="fm1-baseDamage" format="%i x 12 pts">28 Damage</Primary>
+<Secondary>100 Spalsh Damage Over Four Metre Spalsh Radius</Secondary>
+</Damage>
+
+<Appearance>
+<Primary>Medium Caliber ACP bolts</Primary>
+<Secondary>Ballistic Small Explosive Flechette Rounds</Secondary>
+</Appearance>
+
+</TechnicalSpecs>
+
+<!-- Remember to close with this tag -->
+</ItemXML>

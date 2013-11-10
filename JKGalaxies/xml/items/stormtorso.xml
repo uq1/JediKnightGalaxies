@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<ItemXML>
+<ProductionInfo>
+<Manufacturer>Imperial DoMR</Manufacturer>
+<Model>Stormtrooper Armor</Model>
+<Material>Plastoid</Material>
+<Slot>Body Armor</Slot>
+</ProductionInfo>
+<Protection>
+<Slugthrowers>Near-Complete</Slugthrowers>
+<Blasters>Medium</Blasters>
+<Lightsabers>Light</Lightsabers>
+<Vibroblades>None</Vibroblades>
+<Cannon-Fire>None</Cannon-Fire>
+</Protection>
+</ItemXML>

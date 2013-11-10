@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<!-- This is a comment -->
+
+<!-- EXAMINE MENU XML FILES -->
+
+<!-- Anything I mark with a star (*) directly affects what is shown on screen. -->
+<!-- You can use string file references like in weapon files for these -->
+
+<!-- If you get a problem, check your console for errors. -->
+
+<!-- This tag must always go at the beginning, and be closed at the end -->
+<ItemXML>
+
+<!-- This is a group header -->
+<!-- * -->
+<ProductionInfo>
+
+<!-- Everything within this group is marked as * -->
+<!-- The stuff that is within these tags is also marked as * -->
+<!-- This should be pretty self explanatory. Adostic Arms is the manufacturer, etc. -->
+<!-- There is a limit of 5 fields in this category. (iirc). Feel free to experiment! -->
+<!-- Watch your spelling though. -->
+<Manufacturer>BlasTech Industries</Manufacturer>
+<Model>DLT-19</Model>
+<Type>Heavy Blaster Rifle</Type>
+<Size>Big</Size>
+
+<!-- Closing category -->
+</ProductionInfo>
+<!-- Beginning new category -->
+<Usage>
+<!-- Same deal as above. Hardcoded limit of 5 fields. Everything is a *. -->
+<Sights>Iron Sights or 4X Scope</Sights>
+<Indicators>Ammo Number and Fire-Mode Indicators</Indicators>
+<ReloadTime>1.5 s</ReloadTime>
+<Attachments>Optical Sniper Scope</Attachments>
+<Variations>Bipod Extended</Variations>
+<!-- Closing category -->
+</Usage>
+
+
+<!-- The category name is not hardcoded, but the type is 100% hardcoded (for now) -->
+<TechnicalSpecs type="twocoltable" col1="Primary" col2="Secondary">
+<!-- We have a slight format change here for this table -->
+
+
+<Ammunition>
+<!-- The above is a row label -->
+<!-- Ingame, this will read "Ammunition....Power Cells...Smoke canister" -->
+<Primary>Blaster Power Packs</Primary>
+<Secondary></Secondary>
+</Ammunition>
+
+<Capacity>
+<Primary>10 Shots</Primary>
+<Secondary>50 Shots</Secondary>
+</Capacity>
+
+<Action>
+<Primary>Semi-Automatic</Primary>
+<Secondary>Semi-Automatic</Secondary>
+</Action>
+
+<RateOfFire>
+<Primary filler="fm1-delaypm" format="%2.0f x 12 rounds">67 rounds/min</Primary>
+<Secondary>200 rounds/min</Secondary>
+</RateOfFire>
+
+<Recoil>
+<Primary filler="fm1-recoil" format="Low (%2.2f)">Medium (1.4)</Primary>
+<Secondary filler="fm2-recoil" format="Heavy (%2.2f)">Low (0.5)</Secondary>
+</Recoil>
+
+<Accuracy>
+<Primary filler="fm1-spread" format ="Good (%0.2f)">Flawless (0.0)</Primary>
+<Secondary filler="fm2-spread" format ="Medium (%2.1f)">Good (0.8)</Secondary>
+</Accuracy>
+
+<EffectiveRange>
+<Primary>Medium to Long</Primary>
+<Secondary>Close to Medium</Secondary>
+</EffectiveRange>
+
+<AbsoluteRange>
+<Primary filler="fm1-range" format="%91.0f m">244 m</Primary>
+<Secondary filler="fm2-range" format="%5.0f m">122 m</Secondary>
+</AbsoluteRange>
+
+<ProjectileVelocity>
+<Primary filler="fm1-vel" format="%2.1f m/s">213 m/s</Primary>
+<Secondary filler="fm2-vel" format="%2.1f m/s">152 m/s</Secondary>
+</ProjectileVelocity>
+
+<Damage>
+<Primary filler="fm1-baseDamage" format="%i x 12 pts">80 Damage</Primary>
+<Secondary>10 Damage</Secondary>
+</Damage>
+
+<Appearance>
+<Primary>Large Caliber Red Blaster</Primary>
+<Secondary>Small Caliber Red Paralyzer Blaster</Secondary>
+</Appearance>
+
+</TechnicalSpecs>
+
+<!-- Remember to close with this tag -->
+</ItemXML>
