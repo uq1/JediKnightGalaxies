@@ -2760,10 +2760,13 @@ int PM_DoFeint(int curmove, int stance)
 {
 	int newQuad = -1;
 
+	/*
+	// Don't believe this is necessary due to the feint not being powerful enough tactic to merrit nerfing at low fp. 
 	if(pm->ps->forcePower < 30)
 	{
 		return LS_NONE;	// not enough force power to do it
 	}
+	*/
 
 	if(pm->ps->saberActionFlags & (1 << SAF_FEINT)) 
 	{//already attack faking, can't do another one until this one is over.
