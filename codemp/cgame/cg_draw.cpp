@@ -6829,7 +6829,7 @@ float CG_GetLowHealthPhase(int reset, float multiplier) {
 //extern qboolean pm_isSprinting;
 static void CG_Draw2DScreenTints( void )
 {
-	float			rageTime, rageRecTime, absorbTime, protectTime, ysalTime;
+	float			rageTime, rageRecTime, absorbTime, protectTime;
 	vec4_t			hcolor;
 	
 	if (cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR)

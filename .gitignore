@@ -46,6 +46,7 @@ local.properties
 [Rr]elease/
 [Ff]inal/
 [Ff]inal[Bb]uild/
+[Bb]oost/
 *_i.c
 *_p.c
 *.ilk
