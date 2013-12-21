@@ -4415,7 +4415,7 @@ static void UI_GetCharacterCvars ( void )
 
 		for (i = 0; i < uiInfo.playerSpeciesCount; i++)
 		{
-			if ( !stricmp(model, uiInfo.playerSpecies[i].Name) )
+			if ( !Q_stricmp(model, uiInfo.playerSpecies[i].Name) )
 			{
 				uiInfo.playerSpeciesIndex = i;
 				break;
@@ -4427,7 +4427,7 @@ static void UI_GetCharacterCvars ( void )
 		model = UI_Cvar_VariableString ( "ui_char_model" );
 		for (i = 0; i < uiInfo.playerSpeciesCount; i++)
 		{
-			if ( !stricmp(model, uiInfo.playerSpecies[i].Name) )
+			if ( !Q_stricmp(model, uiInfo.playerSpecies[i].Name) )
 			{
 				uiInfo.playerSpeciesIndex = i;
 				return;	//FOUND IT, don't fall through

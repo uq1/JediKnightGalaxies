@@ -231,7 +231,7 @@ float FloatSwap( const float *f );
 
 	#define __cdecl
 	#define __declspec(x)
-	#define stricmp strcasecmp
+	#define Q_stricmp strcasecmp
 	#define ID_INLINE /*inline*/ 
 
     #define OS_STRING "MacOSX"
@@ -334,7 +334,7 @@ float FloatSwap( const float *f );
 	#include <unistd.h>
 
 	// bk001205 - from Makefile
-	#define stricmp strcasecmp
+	#define Q_stricmp strcasecmp
 
 	#define ID_INLINE /*inline*/
 

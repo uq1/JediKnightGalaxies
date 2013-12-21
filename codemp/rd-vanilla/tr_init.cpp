@@ -278,7 +278,7 @@ void R_Splash()
 {
 	image_t *pImage;
 /*	const char* s = ri->Cvar_VariableString("se_language");
-	if (stricmp(s,"english"))
+	if (Q_stricmp(s,"english"))
 	{
 		pImage = R_FindImageFile( "menu/splash_eur", qfalse, qfalse, qfalse, GL_CLAMP);
 	}
@@ -1132,7 +1132,7 @@ void R_Register( void )
 	r_mapOverBrightBits					= ri->Cvar_Get( "r_mapOverBrightBits",				"0",						CVAR_ARCHIVE|CVAR_LATCH );
 	r_ignorehwgamma						= ri->Cvar_Get( "r_ignorehwgamma",					"0",						CVAR_ARCHIVE|CVAR_LATCH );
 	r_mode								= ri->Cvar_Get( "r_mode",							"4",						CVAR_ARCHIVE|CVAR_LATCH );
-	r_fullscreen						= ri->Cvar_Get( "r_fullscreen",						"1",						CVAR_ARCHIVE|CVAR_LATCH );
+	r_fullscreen						= ri->Cvar_Get( "r_fullscreen",						"0",						CVAR_ARCHIVE|CVAR_LATCH );
 	r_noborder							= ri->Cvar_Get( "r_noborder",						"0",						CVAR_ARCHIVE|CVAR_LATCH );
 	r_centerWindow						= ri->Cvar_Get( "r_centerWindow",					"0",						CVAR_ARCHIVE|CVAR_LATCH );
 	r_customwidth						= ri->Cvar_Get( "r_customwidth",					"1600",						CVAR_ARCHIVE|CVAR_LATCH );

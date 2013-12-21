@@ -140,9 +140,14 @@ void Sys_Error( const char *error, ... )
 }
 
 void Sys_Quit (void) {
-    CL_Shutdown ();
-    fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
-    Sys_Exit(0);
+        IN_Shutdown();
+
+        Com_ShutdownZoneMemory();
+        Com_ShutdownHunkMemory();
+#ifdef DEDICATED
+fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
+#endif
+        Sys_Exit(0);
 }
 
 /*

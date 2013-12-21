@@ -36,8 +36,8 @@
 
 #define SB_RATING_WIDTH	    0 // (6 * BIGCHAR_WIDTH)
 #define SB_NAME_X			(SB_SCORELINE_X)
-#define SB_SCORE_X			(SB_SCORELINE_X + .55 * SB_SCORELINE_WIDTH)
-#define SB_PING_X			(SB_SCORELINE_X + .70 * SB_SCORELINE_WIDTH)
+#define SB_SCORE_X			(SB_SCORELINE_X + .62 * SB_SCORELINE_WIDTH) //.55
+#define SB_PING_X			(SB_SCORELINE_X + .74 * SB_SCORELINE_WIDTH) //.70
 #define SB_TIME_X			(SB_SCORELINE_X + .85 * SB_SCORELINE_WIDTH)
 
 // The new and improved score board
@@ -424,6 +424,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 	if (cgs.gametype == GT_POWERDUEL)
 	{ //do nothing?
 	}
+
 	else if ( cgs.gametype < GT_TEAM) {
 		if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR ) 
 		{
@@ -449,6 +450,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 			UI_DrawProportionalString(x, y, s, UI_CENTER|UI_DROPSHADOW, colorTable[CT_WHITE], FONT_MEDIUM);
 		}
 	}
+
 	else
 	{
 		if ( cg.teamScores[0] == cg.teamScores[1] ) {
@@ -470,8 +472,9 @@ qboolean CG_DrawOldScoreboard( void ) {
 	// scoreboard
 	y = SB_HEADER;
 
+	/* Ugly, let's comment this out for now
 	CG_DrawPic ( SB_SCORELINE_X - 40, y - 5, SB_SCORELINE_WIDTH + 80, 40, trap_R_RegisterShaderNoMip ( "gfx/menus/menu_buttonback.tga" ) );
-
+	*/
 	CG_Text_Paint ( SB_NAME_X, y, 1.0f, colorWhite, CG_GetStringEdString("MP_INGAME", "NAME"),0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_MEDIUM );
 	if (cgs.gametype == GT_DUEL || cgs.gametype == GT_POWERDUEL)
 	{

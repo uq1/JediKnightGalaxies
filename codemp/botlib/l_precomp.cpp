@@ -68,7 +68,7 @@ typedef enum {qfalse, qtrue}	qboolean;
 
 #define qtrue	true
 #define qfalse	false
-#define Q_stricmp	stricmp
+#define Q_stricmp	Q_stricmp
 
 #endif //BSPC
 

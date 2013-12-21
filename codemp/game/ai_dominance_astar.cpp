@@ -915,8 +915,8 @@ void AIMod_TimeMapPaths()
 
 		if (!goal->classname 
 			|| !goal->classname[0] 
-			|| !stricmp(goal->classname, "freed")
-			|| !stricmp(goal->classname, "noclass")) 
+			|| !Q_stricmp(goal->classname, "freed")
+			|| !Q_stricmp(goal->classname, "noclass")) 
 			continue;
 
 		if (i == ent->s.number) continue;
@@ -982,8 +982,8 @@ void AIMod_TimeMapPaths()
 
 		if (!goal->classname 
 			|| !goal->classname[0] 
-			|| !stricmp(goal->classname, "freed")
-			|| !stricmp(goal->classname, "noclass")) 
+			|| !Q_stricmp(goal->classname, "freed")
+			|| !Q_stricmp(goal->classname, "noclass")) 
 			continue;
 
 		if (i == ent->s.number) continue;
