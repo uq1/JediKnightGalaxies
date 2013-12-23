@@ -3054,6 +3054,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	// do it before setting health back up, so farthest
 	// ranging doesn't count this client
 	if ( client->sess.sessionTeam == TEAM_SPECTATOR ) {
+	
 		if (g_gametype.integer == GT_WARZONE)
 		{
 			// In case spawns havn't been allocated as yet...
@@ -3065,6 +3066,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 
 			trap_SendServerCommand( -1, va("tkt %i %i", redtickets, bluetickets ));
 		}
+
 		else
 		{
 			if (!GLua_Hook_SelectSpectatorSpawn(ent->s.number, &spawnPoint, spawn_origin, spawn_angles))

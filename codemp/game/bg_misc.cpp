@@ -3799,5 +3799,5 @@ int BG_GetGametypeForString( const char *gametype )
 		Q_stricmp( gametype, "wz" ) == 0 )
 		return GT_WARZONE;
 	else
-		return GT_FFA;
+		return GT_TEAM;
 }

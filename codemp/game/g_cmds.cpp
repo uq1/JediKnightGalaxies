@@ -2233,7 +2233,7 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 
 	// if they are playing a tournement game, count as a loss
 	if ( (level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL)
-		&& ent->client->sess.sessionTeam == TEAM_FREE ) {\
+		&& ent->client->sess.sessionTeam == TEAM_FREE ) {
 		//WTF???
 		ent->client->sess.losses++;
 	}

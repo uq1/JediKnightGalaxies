@@ -145,7 +145,7 @@ void UI_LoadArenas( void ) {
 	}
 //	trap_Print( va( "%i arenas parsed\n", ui_numArenas ) );
 	if (UI_OutOfMemory()) {
-		trap_Print(S_COLOR_YELLOW"WARNING: not anough memory in pool to load all arenas\n");
+		trap_Print(S_COLOR_YELLOW"WARNING: not enough memory in pool to load all arenas\n");
 	}
 
 	for( n = 0; n < ui_numArenas; n++ ) {
@@ -159,7 +159,7 @@ void UI_LoadArenas( void ) {
 		uiInfo.mapList[uiInfo.mapCount].typeBits = 0;
 
 		type = Info_ValueForKey( ui_arenaInfos[n], "type" );
-		// if no type specified, it will be treated as "ffa"
+		// if no type specified, it will be treated as "tffa"
 		if( *type ) {
 			if( strstr( type, "ffa" ) ) {
 				uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_FFA);
@@ -179,7 +179,7 @@ void UI_LoadArenas( void ) {
 				uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_CTF);
 			}
 		} else {
-			uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_FFA);
+			uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_TEAM);
 		}
 
 		uiInfo.mapCount++;

@@ -1572,11 +1572,11 @@ static const char* UI_GetGameTypeName(int gtEnum)
 	case GT_FFA:
 		return UI_GetStringEdString("MENUS", "FREE_FOR_ALL");//"Free For All";
 	case GT_SINGLE_PLAYER:
-		return UI_GetStringEdString("MENUS", "SAGA");//"Team FFA";
+		return UI_GetStringEdString("MENUS", "SAGA");//"Co-op";
 	case GT_DUEL:
 		return UI_GetStringEdString("MENUS", "DUEL");//"Team FFA";
 	case GT_POWERDUEL:
-		return UI_GetStringEdString("MENUS", "POWERDUEL");//"Team FFA";
+		return UI_GetStringEdString("MENUS", "POWERDUEL");//"Powerduel";
 	case GT_TEAM:
 		return UI_GetStringEdString("MENUS", "TEAM_FFA");//"Team FFA";
 	case GT_CTF:
@@ -1584,7 +1584,7 @@ static const char* UI_GetGameTypeName(int gtEnum)
 	case GT_WARZONE:
 		return UI_GetStringEdString("MENUS", "WARZONE");//"Warzone";
 	}
-	return UI_GetStringEdString("MENUS", "SAGA");//"Team FFA";
+	return UI_GetStringEdString("MENUS", "TEAM_FFA");//"Team FFA";
 }
 
 
