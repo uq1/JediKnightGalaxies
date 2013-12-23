@@ -10407,6 +10407,10 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 		return qfalse;
 	}
 
+	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
+			return qfalse;
+	}
+
 	if( (ps->ironsightsTime & IRONSIGHTS_MSB) )
 	{
 		return qfalse;
@@ -10421,10 +10425,10 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 	
 	if( PMOVE )
 	{
-		/*if( !pml.walking )		// temporarily removed because wrongness --eez
+		if( !pml.groundPlane )
 		{
 			return qfalse;
-		}*/
+		}
 		if( ps->pm_type == PM_FLOAT )
 		{
 			return qfalse;

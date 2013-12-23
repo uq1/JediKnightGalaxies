@@ -7,8 +7,10 @@
 	"offensiveStanceAnim": "BOTH_SABERSLOW_STANCE",
 	"projectileBlockAnim": "BOTH_SABERFAST_STANCE",
 
-	"isStaffFriendly": "0",		// can NOT be used with staff
-	"isDualsFriendly": "0",		// OR duals...
+	"isStaffFriendly": "1",		// can be used with staff
+	"isDualsFriendly": "1",		// and duals...
+	"isStaffOnly": "0",			// but is not restricted to staff (and does not ignite both blades)
+	"isDualsOnly": "0",			// or duals (and does not ignite both blades)
 	"sabSpecific": "0",			// unused --eez
 
 	"maxChainCount": "3",
