@@ -102,7 +102,6 @@ void SV_GetChallenge( netadr_t from ) {
 		challenge->clientChallenge = clientChallenge;
 		challenge->adr = from;
 		challenge->firstTime = svs.time;
-		challenge->time = svs.time;
 		challenge->connected = qfalse;
 	}
 
