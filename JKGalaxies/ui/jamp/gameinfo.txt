@@ -1,0 +1,29 @@
+// Game type info
+//
+// description, g_gametype enum
+//
+// 0 - GT_FFA,				// free for all
+// 1 - GT_DUEL,		// one on one tournament
+// 2 - GT_POWERDUEL,
+// 3 - GT_SINGLE_PLAYER,	// single player ffa
+// 4 - GT_TEAM,				// team ffa
+// 4 - GT_CTF,				// team ffa
+
+gametypes {
+  { "Free For All" 0 }
+  { "Duel" 1 }
+  { "Power Duel" 2 }
+  { "Team FFA" 4 } 
+  { "Capture the Flag" 5 } 
+}
+
+
+joingametypes {
+  { "All" -1 }
+  { "Free For All" 0 }
+  { "Duel" 1 }
+  { "Power Duel" 2 }
+  { "Team FFA" 4 } 
+  { "Capture the Flag" 5 }
+}
+

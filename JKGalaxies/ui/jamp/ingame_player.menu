@@ -997,6 +997,12 @@
 			forecolor			1 .682 0 1
 			descText			@MENUS_APPLY_CHANGES_AND_JOIN
 			visible			1
+			cvarTest			"ui_about_gametype"
+			hideCvar 
+			{ 
+				"4" ;
+				"5" ;
+			}
 			action 
 			{ 
 				play			"sound/interface/button1"
@@ -1047,8 +1053,6 @@
 				"0" ;
 				"1" ;
 				"2" ;
-				"3" ;
-				"4"
 			}
 			descText			@MENUS_CHANGES_AND_JOIN_THE
 			visible				1
@@ -1102,8 +1106,6 @@
 				"0" ;
 				"1" ;
 				"2" ;
-				"3" ;
-				"4"
 			}
 			descText			@MENUS_AND_JOIN_THE_BLUE_TEAM
 			visible				1
