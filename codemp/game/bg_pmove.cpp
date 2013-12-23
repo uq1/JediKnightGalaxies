@@ -411,6 +411,7 @@ qboolean PM_DoSlowFall(void)
 	return qfalse;
 }
 
+
 //FIXME: byebye
 //begin vehicle functions crudely ported from sp -rww
 /*
@@ -3068,7 +3069,7 @@ static void PM_FlyMove( void ) {
 	if ( !scale ) {
 		wishvel[0] = 0;
 		wishvel[1] = 0;
-		wishvel[2] = pm->ps->speed * (pm->cmd.upmove/127.0f);
+		wishvel[2] = pm->ps->speed * (pm->cmd.upmove/50.0f); //127.0f - increasing upward speed potential
 	} else {
 		for (i=0 ; i<3 ; i++) {
 			wishvel[i] = scale * pml.forward[i]*pm->cmd.forwardmove + scale * pml.right[i]*pm->cmd.rightmove;
@@ -3265,11 +3266,11 @@ static void PM_AirMove( void ) {
 
 		if (pm->cmd.upmove <= 0)
 		{
-            VectorScale(wishvel, 0.8f, wishvel);
+            VectorScale(wishvel, 3.0f, wishvel); // 0.8f - increasing jetpack power over all -Pande
 		}
 		else
 		{ //if we are jetting then we have more control than usual
-            VectorScale(wishvel, 2.0f, wishvel);
+            VectorScale(wishvel, 5.0f, wishvel); //2.0f - more power for spacebar hold
 		}
 	}
 	else
@@ -10397,29 +10398,35 @@ extern qboolean BG_FighterUpdate(Vehicle_t *pVeh, const usercmd_t *pUcmd, vec3_t
 // Check to see if we're sprinting
 qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolean PMOVE  )
 {
-	if ( !(cmd->buttons & BUTTON_SPRINT) && !ps->isSprinting )
-    	{
-        	return qfalse;
-    	}
+	    if ( !(cmd->buttons & BUTTON_SPRINT) && !ps->isSprinting )
+        {
+            return qfalse;
+        }
 
-	if (ps->saberActionFlags & (1 << SAF_BLOCKING))
-	{
-		return qfalse;
-	}
+        if (ps->saberActionFlags & (1 << SAF_BLOCKING))
+        {
+                return qfalse;
+        }
 
-	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
-			return qfalse;
-	}
+		if (ps->pm_type == PM_JETPACK)
+        {
+                return qfalse;
+        }
 
-	if( (ps->ironsightsTime & IRONSIGHTS_MSB) )
-	{
-		return qfalse;
-	}
+        if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
+                        return qfalse;
+        }
 
-	if( ps->weaponstate == WEAPON_RELOADING )
-	{
-		return false; // Cannot sprint while reloading.
-	}
+        if( (ps->ironsightsTime & IRONSIGHTS_MSB) )
+        {
+                return qfalse;
+        }
+
+        if( ps->weaponstate == WEAPON_RELOADING )
+        {
+                return false; // Cannot sprint while reloading.
+        }
+
 
 	// Only when on the ground.
 	
