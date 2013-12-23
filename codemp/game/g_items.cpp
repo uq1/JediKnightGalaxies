@@ -2183,7 +2183,7 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
 	G_LogWeaponPickup(other->s.number, ent->item->giTag);
 	
 	// team deathmatch has slow weapon respawns
-	if ( level.gametype == GT_TEAM ) 
+	if ( level.gametype >= GT_TEAM ) 
 	{
 		return adjustRespawnTime(RESPAWN_TEAM_WEAPON, ent->item->giType, ent->item->giTag);
 	}

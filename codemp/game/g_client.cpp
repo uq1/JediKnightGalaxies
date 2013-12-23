@@ -421,7 +421,7 @@ gentity_t *SelectRandomFurthestSpawnPoint ( vec3_t avoidPoint, vec3_t origin, ve
 	spot = NULL;
 
 	//in Team DM, look for a team start spot first, if any
-	if ( level.gametype == GT_TEAM 
+	if ( level.gametype >= GT_TEAM 
 		&& team != TEAM_FREE 
 		&& team != TEAM_SPECTATOR )
 	{
@@ -2358,6 +2358,8 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 			return;
 		}
 	}
+	/*
+
 	// Alright, let's set up the lives for LMS.
 #ifdef __JKG_NINELIVES__
 	if(g_gametype.integer == GT_LMS_NINELIVES)
@@ -2371,6 +2373,8 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 		client->ns.iLivesLeft = 1;	// One life for each round
 	}
 #endif
+
+	*/
 
 	client = level.clients + clientNum;
 

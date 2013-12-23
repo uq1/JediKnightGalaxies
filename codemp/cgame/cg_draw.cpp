@@ -5977,7 +5977,23 @@ static void CG_DrawWarmup( void ) {
 			s = CG_GetStringEdString("MENUS", "TEAM_FFA");//"Team FFA";
 		} else if ( cgs.gametype == GT_CTF ) {
 			s = CG_GetStringEdString("MENUS", "CAPTURE_THE_FLAG");//"Capture the Flag";
-		} else {
+		}
+#ifdef __JKG_NINELIVES__
+else if ( cgs.gametype == GT_LMS_NINELIVES ) {
+			s = CG_GetStringEdString("MENUS", "NINELIVES_LMS");
+}
+#endif
+#ifdef __JKG_TICKETING__
+else if ( cgs.gametype == GT_LMS_TICKETED ) {
+			s = CG_GetStringEdString("MENUS", "TICKETED_LMS");
+}
+#endif
+#ifdef __JKG_ROUNDBASED__
+else if ( cgs.gametype == GT_LMS_ROUNDS ) {
+			s = CG_GetStringEdString("MENUS", "ROUNDBASED_LMS");
+}
+#endif
+		else {
 			s = "";
 		}
 		w = CG_Text_Width(s, 1.5f, FONT_MEDIUM);
