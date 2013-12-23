@@ -66,48 +66,6 @@
 			decoration
 		}
 
-		itemDef 
-		{
-			name				aboutButton
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				5 0 70 32
-			background			"gfx/menus/menu_buttonback"			// Frame around button
-			forecolor			1 1 1 1
-			decoration
-			visible			0
-		}
-
-		itemdef
-		{
-			name				about
-			text				@MENUS_ABOUT
-			rect				5 0 70 32
-			type				ITEM_TYPE_BUTTON
-			style				WINDOW_STYLE_FILLED
-			font				2
-			textscale			.8
-			textstyle			3
-			textalign			ITEM_ALIGN_CENTER
-			textalignx			35
-			textaligny			2
-			forecolor			1 .682 0 1
-			backcolor			0 0 0 0
-			visible				1
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ;
-				open			ingame_about 
-			}
-			mouseenter 
-			{ 
-				show			aboutButton
-			}
-			mouseexit 
-			{ 
-				hide			aboutButton
-			}
-		}
 
 		itemDef 
 		{
@@ -237,139 +195,7 @@
 			}
 		}
 
-		itemDef 
-		{
-			name				objectivesButton
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				145 0 70 32
-			background			"gfx/menus/menu_buttonback"			// Frame around button
-			forecolor			1 1 1 1
-			decoration
-			visible			0
-		}
-
-		itemDef 
-		{
-			name				objectives
-			text				@MENUS_OBJECTIVES
-			type				1
-			style				WINDOW_STYLE_FILLED
-			rect				145 0 70 32
-			font				2
-			textscale			.8
-			textstyle			3
-			textalign			ITEM_ALIGN_CENTER
-			textalignx         	35
-			textaligny			2
-			forecolor			1 .682 0 1
-			backcolor			0 0 0 0
-			visible				1
-			cvartest			"g_gametype"
-			showcvar			{ "7" }
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ;
-				open			ingame_objectives
-			} 
-			mouseenter 
-			{ 
-				show			objectivesButton
-			}
-			mouseexit 
-			{ 
-				hide			objectivesButton
-			}
-		}
-
-		itemDef 
-		{
-			name				chatButton
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				215 0 70 32
-			background			"gfx/menus/menu_buttonback"			// Frame around button
-			forecolor			1 1 1 1
-			decoration
-			visible			0
-		}
-
-		itemDef 
-		{
-			name				chat
-			text				@MENUS_VOICE_CHAT			
-			type				1
-			style				WINDOW_STYLE_FILLED
-			rect				215 0 70 32
-			font				2
-			textscale			.8
-			textstyle			3
-			textalign			ITEM_ALIGN_CENTER
-			textalignx         	35
-			textaligny			2
-			forecolor			1 .682 0 1
-			backcolor			0 0 0 0
-			visible				1
-			cvartest			"g_gametype"
-			showcvar			{ "7" }
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ;
-				open			ingame_voicechat
-			} 
-			mouseenter 
-			{ 
-				show			chatButton
-			}
-			mouseexit 
-			{ 
-				hide			chatButton
-			}
-		}
 		
-
-		itemDef 
-		{
-			name				controlsButton
-			group				none
-			style				WINDOW_STYLE_SHADER
-			rect				285 0 70 32
-			background		"gfx/menus/menu_buttonback"			// Frame around button
-			forecolor			1 1 1 1
-			decoration
-			visible			0
-		}
-
-		itemDef 
-		{
-			name				controls
-			text				@MENUS_CONTROLS2
-			type				1
-			style				WINDOW_STYLE_FILLED
-			rect				285 0 70 32
-			font				2
-			textscale			.8
-			textstyle			3
-			textalign			ITEM_ALIGN_CENTER
-			textalignx          35
-			textaligny			2
-			forecolor			1 .682 0 1
-			backcolor			0 0 0 0
-			visible				1
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ;
-				open			ingame_controls 
-			}
-			mouseenter 
-			{ 
-				show			controlsButton
-			}
-			mouseexit 
-			{ 
-				hide			controlsButton
-			}
-		}
 
 		itemDef 
 		{
@@ -402,7 +228,7 @@
 			action 
 			{ 
 				play			"sound/interface/button1.wav" ;
-				open			ingame_setup 
+				open			configureMenu 
 			}
 			mouseenter 
 			{ 

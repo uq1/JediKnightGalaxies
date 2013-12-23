@@ -4,10 +4,14 @@
 //
 // 0 - GT_FFA,				// free for all
 // 1 - GT_DUEL,		// one on one tournament
-// 2 - GT_POWERDUEL,
+// 2 - GT_POWERDUEL,     // one on two tournament
 // 3 - GT_SINGLE_PLAYER,	// single player ffa
 // 4 - GT_TEAM,				// team ffa
-// 4 - GT_CTF,				// team ffa
+// 5 - GT_CTF,				// team ctf
+// 6 - GT_WARZONE,
+// 7 - GT_LMS_TICKETED,	
+// 8 - GT_LMS_NINELIVES,				
+// 9 - GT_LMS_ROUNDBASED,				
 
 gametypes {
   { "Free For All" 0 }
@@ -15,6 +19,10 @@ gametypes {
   { "Power Duel" 2 }
   { "Team FFA" 4 } 
   { "Capture the Flag" 5 } 
+  { "Warzone" 6 }
+  { "Ticketed LMS" 7 } 
+  { "9-Lives LMS" 8 }
+  { "Roundbased LMS" 9 }
 }
 
 
@@ -25,5 +33,9 @@ joingametypes {
   { "Power Duel" 2 }
   { "Team FFA" 4 } 
   { "Capture the Flag" 5 }
+  { "Warzone" 6 }
+  { "Ticketed LMS" 7 } 
+  { "9-Lives LMS" 8 }
+  { "Roundbased LMS" 9 }
 }
 

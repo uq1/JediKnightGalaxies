@@ -95,10 +95,12 @@
 			cvarTest			"ui_about_gametype"
 			showCvar 
 			{ 
-				"4" ; 
-				"5" ; 
-				"6" ; 
-				"7"
+				"4" ;
+				"5" ;
+				"6" ;
+				"7" ;
+				"8" ;
+				"9" ;
 			}
 			visible				1 
 			action 
@@ -133,10 +135,13 @@
 			cvarTest			"ui_about_gametype"
 			showCvar 
 			{ 
-				"4" ; 
-				"5" ; 
+
+				"4" ;
+				"5" ;
 				"6" ;
-				"7"
+				"7" ;
+				"8" ;
+				"9" ;
 			}
 			visible				1 
 			action 
@@ -171,10 +176,13 @@
 			cvarTest			"ui_about_gametype"
 			showCvar 
 			{ 
-				"4" ; 
-				"5" ; 
+
+				"4" ;
+				"5" ;
 				"6" ;
-				"7"
+				"7" ;
+				"8" ;
+				"9" ;
 			}
 			visible				1 
 			action 
@@ -281,10 +289,13 @@
 			cvarTest			"ui_about_gametype"
 			showCvar 
 			{ 
-				"4" ; 
-				"5" ; 
-				"6" ; 
-				"7"
+
+				"4" ;
+				"5" ;
+				"6" ;
+				"7" ;
+				"8" ;
+				"9" ;
 			}
 			visible				1 
 			action 
@@ -323,10 +334,12 @@
 			hideCvar 
 			{ 
 				"2" ;
-				"4" ; 
-				"5" ; 
-				"6" ; 
-				"7"
+				"4" ;
+				"5" ;
+				"6" ;
+				"7" ;
+				"8" ;
+				"9" ;
 			}
 			visible				1 
 			action 
@@ -362,10 +375,12 @@
 			hideCvar 
 			{
  				"2" ;
-				"4" ; 
-				"5" ; 
-				"6" ; 
-				"7"
+				"4" ;
+				"5" ;
+				"6" ;
+				"7" ;
+				"8" ;
+				"9" ;
 			}
 			visible				1 
 			action 
