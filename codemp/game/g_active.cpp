@@ -1720,7 +1720,7 @@ void G_CheckMovingLoopingSounds( gentity_t *ent, usercmd_t *ucmd )
 	}
 }
 
-void G_HeldByMonster( gentity_t *ent, usercmd_t **ucmd )
+void G_HeldByMonster( gentity_t *ent, usercmd_t *ucmd )
 {
 	if ( ent 
 		&& ent->client
@@ -1752,9 +1752,9 @@ void G_HeldByMonster( gentity_t *ent, usercmd_t **ucmd )
 		}
 	}
 	// don't allow movement, weapon switching, and most kinds of button presses
-	(*ucmd)->forwardmove = 0;
-	(*ucmd)->rightmove = 0;
-	(*ucmd)->upmove = 0;
+	ucmd->forwardmove = 0;
+	ucmd->rightmove = 0;
+	ucmd->upmove = 0;
 }
 
 typedef enum tauntTypes_e
@@ -2201,7 +2201,7 @@ void ClientThink_real( gentity_t *ent ) {
 
 	if ( client && (client->ps.eFlags2&EF2_HELD_BY_MONSTER) )
 	{
-		G_HeldByMonster( ent, &ucmd );
+		G_HeldByMonster( ent, ucmd );
 	}
 
 	// sanity check the command time to prevent speedup cheating
