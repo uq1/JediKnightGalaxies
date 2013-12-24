@@ -154,6 +154,17 @@ qboolean G_EntIsBreakable( int entityNum );
 qboolean G_EntIsRemovableUsable( int entNum );
 void CP_FindCombatPointWaypoints( void );
 
+const char *G_TeamName(int team)
+{
+	if (team==TEAM_RED)
+		return "RED";
+	else if (team==TEAM_BLUE)
+		return "BLUE";
+	else if (team==TEAM_SPECTATOR)
+		return "SPECTATOR";
+	return "FREE";
+}
+
 /*
 ================
 vmMain
@@ -1996,12 +2007,16 @@ void LogExit( const char *string ) {
 
 		ping = cl->ps.ping < 999 ? cl->ps.ping : 999;
 
-		G_LogPrintf( "score: %i  ping: %i  client: [%s] %i \"%s^7\"\n", cl->ps.persistant[PERS_SCORE], ping, cl->pers.guid, level.sortedClients[i], cl->pers.netname );
-//		if (g_singlePlayer.integer && (level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL)) {
-//			if (g_entities[cl - level.clients].r.svFlags & SVF_BOT && cl->ps.persistant[PERS_RANK] == 0) {
-//				won = qfalse;
-//			}
-//		}
+		if (level.gametype >= GT_TEAM) {
+			G_LogPrintf( "(%s) score: %i  ping: %i  client: [%s] %i \"%s^7\"\n", G_TeamName(cl->ps.persistant[PERS_TEAM]), cl->ps.persistant[PERS_SCORE], ping, cl->pers.guid, level.sortedClients[i], cl->pers.netname );
+		} else {
+			G_LogPrintf( "score: %i  ping: %i  client: [%s] %i \"%s^7\"\n", cl->ps.persistant[PERS_SCORE], ping, cl->pers.guid, level.sortedClients[i], cl->pers.netname );
+		}
+/*		if (g_singlePlayer.integer && (level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL)) {
+			if (g_entities[cl - level.clients].r.svFlags & SVF_BOT && cl->ps.persistant[PERS_RANK] == 0) {
+				won = qfalse;
+			}
+		} */
 	}
 
 	//yeah.. how about not.

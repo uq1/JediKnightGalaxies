@@ -648,15 +648,6 @@ void Cvar_SetSafe( const char *var_name, const char *value )
 
 /*
 ============
-Cvar_SetLatched
-============
-*/
-void Cvar_SetLatched( const char *var_name, const char *value) {
-	Cvar_Set2 (var_name, value, qfalse);
-}
-
-/*
-============
 Cvar_SetValue
 ============
 */

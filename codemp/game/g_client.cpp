@@ -3264,7 +3264,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	client->ps.eFlags = flags;
 	client->mGameFlags = gameFlags;
 
-	ent->s.groundEntityNum = ENTITYNUM_NONE;
+	client->ps.groundEntityNum = ent->s.groundEntityNum = ENTITYNUM_NONE;
 	ent->client = &level.clients[index];
 	ent->playerState = &ent->client->ps;
 	ent->takedamage = qtrue;
