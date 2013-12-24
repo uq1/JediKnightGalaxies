@@ -261,6 +261,9 @@ typedef struct {
 	int			ping;
 	qboolean	visible;
 	qboolean	needPassword;
+	int			trueJedi;
+	int			weaponDisable;
+	int			forceDisable;
 } serverInfo_t;
 
 typedef struct {
@@ -463,9 +466,6 @@ const char *Key_KeynumToString( int keynum/*, qboolean bTranslate */ ); //note: 
 //
 extern int cl_connectedToPureServer;
 extern int cl_connectedToCheatServer;
-extern int cl_connectedGAME;
-extern int cl_connectedCGAME;
-extern int cl_connectedUI;
 
 void CL_SystemInfoChanged( void );
 void CL_ParseServerMessage( msg_t *msg );
@@ -484,7 +484,6 @@ qboolean CL_UpdateVisiblePings_f( int source );
 //
 // console
 //
-void Con_DrawCharacter (int cx, int line, int num);
 
 void Con_CheckResize (void);
 void Con_Init (void);
