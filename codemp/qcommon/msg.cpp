@@ -878,7 +878,19 @@ netField_t	entityStateFields[] =
 { NETF(constantLight), 32 },
 { NETF(loopSound), 8 },
 { NETF(loopIsSoundset), 1 },
-
+{ NETF(saberHolstered), 2 },
+//NPC-SPECIFIC:
+// both are used for NPCs sabers, though limited
+{ NETF(npcSaber1), 9 },
+{ NETF(maxhealth), 10 },
+{ NETF(trickedentindex2), 16 },
+// appear to only be 18 powers?
+{ NETF(forcePowersActive), 32 },
+// used, doesn't appear to be flexible
+{ NETF(iModelScale), 10 }, //0-1024 (guess it's gotta be increased if we want larger allowable scale.. but 1024% is pretty big)
+// full bits used
+{ NETF(powerups), MAX_POWERUPS },
+// can this be reduced?
 { NETF(soundSetIndex), 8 }, //rww - if MAX_AMBIENT_SETS is changed from 256, REMEMBER TO CHANGE THIS
 
 { NETF(modelGhoul2), 8 },
@@ -2024,19 +2036,25 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	// send the arrays
 	//
 	statsbits = 0;
-	for (i=0 ; i<16 ; i++) {
+	for (i=0 ; i<MAX_STATS ; i++) {
 		if (to->stats[i] != from->stats[i]) {
 			statsbits |= 1<<i;
 		}
 	}
 	persistantbits = 0;
-	for (i=0 ; i<16 ; i++) {
+	for (i=0 ; i<MAX_PERSISTANT ; i++) {
 		if (to->persistant[i] != from->persistant[i]) {
 			persistantbits |= 1<<i;
 		}
 	}
+	ammobits = 0;
+	for (i=0 ; i<MAX_AMMO_TRANSMIT ; i++) {
+		if (to->ammo[i] != from->ammo[i]) {
+			ammobits |= 1<<i;
+		}
+	}
 	powerupbits = 0;
-	for (i=0 ; i<16 ; i++) {
+	for (i=0 ; i<MAX_POWERUPS ; i++) {
 		if (to->powerups[i] != from->powerups[i]) {
 			powerupbits |= 1<<i;
 		}
@@ -2055,8 +2073,8 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 
 	if ( statsbits ) {
 		MSG_WriteBits( msg, 1, 1 );	// changed
-		MSG_WriteShort( msg, statsbits );
-		for (i=0 ; i<16 ; i++)
+		MSG_WriteBits( msg, statsbits, MAX_STATS );
+		for (i=0 ; i<MAX_STATS ; i++)
 		{
 			if (statsbits & (1<<i) )
 			{
@@ -2078,8 +2096,8 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 
 	if ( persistantbits ) {
 		MSG_WriteBits( msg, 1, 1 );	// changed
-		MSG_WriteShort( msg, persistantbits );
-		for (i=0 ; i<16 ; i++)
+		MSG_WriteBits( msg, persistantbits, MAX_PERSISTANT );
+		for (i=0 ; i<MAX_PERSISTANT ; i++)
 			if (persistantbits & (1<<i) )
 				MSG_WriteShort (msg, to->persistant[i]);
 	} else {
@@ -2087,12 +2105,21 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	}
 
 
+	if ( ammobits ) {
+		MSG_WriteBits( msg, 1, 1 );	// changed
+		MSG_WriteBits( msg, ammobits, MAX_AMMO_TRANSMIT );
+		for (i=0 ; i<MAX_AMMO_TRANSMIT ; i++)
+			if (ammobits & (1<<i) )
+				MSG_WriteShort (msg, to->ammo[i]);
+	} else {
+		MSG_WriteBits( msg, 0, 1 );	// no change
+	}
 
 
 	if ( powerupbits ) {
 		MSG_WriteBits( msg, 1, 1 );	// changed
-		MSG_WriteShort( msg, powerupbits );
-		for (i=0 ; i<16 ; i++)
+		MSG_WriteBits( msg, powerupbits, MAX_POWERUPS );
+		for (i=0 ; i<MAX_POWERUPS ; i++)
 			if (powerupbits & (1<<i) )
 				MSG_WriteLong( msg, to->powerups[i] );
 	} else {
@@ -2263,8 +2290,8 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 		// parse stats
 		if ( MSG_ReadBits( msg, 1 ) ) {
 			LOG("PS_STATS");
-			bits = MSG_ReadShort (msg);
-			for (i=0 ; i<16 ; i++) {
+			bits = MSG_ReadBits (msg, MAX_STATS);
+			for (i=0 ; i<MAX_STATS ; i++) {
 				if (bits & (1<<i) )
 				{
 					if (i == STAT_WEAPONS)
@@ -2289,8 +2316,8 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 #endif
 		if ( MSG_ReadBits( msg, 1 ) ) {
 			LOG("PS_PERSISTANT");
-			bits = MSG_ReadShort (msg);
-			for (i=0 ; i<16 ; i++) {
+			bits = MSG_ReadBits (msg, MAX_PERSISTANT);
+			for (i=0 ; i<MAX_PERSISTANT ; i++) {
 				if (bits & (1<<i) ) {
 					to->persistant[i] = MSG_ReadShort(msg);
 				}
@@ -2305,6 +2332,15 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 #ifdef _DONETPROFILE_
 		startBytes=msg->readcount;
 #endif
+		if ( MSG_ReadBits( msg, 1 ) ) {
+			LOG("PS_AMMO");
+			bits = MSG_ReadBits (msg, MAX_AMMO_TRANSMIT);
+			for (i=0 ; i<MAX_AMMO_TRANSMIT ; i++) {
+				if (bits & (1<<i) ) {
+					to->ammo[i] = MSG_ReadShort(msg);
+				}
+			}
+		}
 #ifdef _DONETPROFILE_
 		endBytes=msg->readcount;
 		ClReadProf().AddField("PS_AMMO",endBytes-startBytes);
@@ -2316,8 +2352,8 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 #endif
 		if ( MSG_ReadBits( msg, 1 ) ) {
 			LOG("PS_POWERUPS");
-			bits = MSG_ReadShort (msg);
-			for (i=0 ; i<16 ; i++) {
+			bits = MSG_ReadBits (msg, MAX_POWERUPS);
+			for (i=0 ; i<MAX_POWERUPS ; i++) {
 				if (bits & (1<<i) ) {
 					to->powerups[i] = MSG_ReadLong(msg);
 				}
