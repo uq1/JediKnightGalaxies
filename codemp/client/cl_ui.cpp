@@ -16,10 +16,6 @@ Ghoul2 Insert Start
 Ghoul2 Insert End
 */
 
-#ifdef VV_LIGHTING
-#include "renderer/tr_lightmanager.h"
-#endif
-
 extern	botlib_export_t	*botlib_export;
 //void SP_Register(const char *Package);
 
@@ -823,11 +819,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return 0;
 
 	case UI_R_ADDLIGHTTOSCENE:
-#ifdef VV_LIGHTING
-		VVLightMan.RE_AddLightToScene( (const float *)VMA(1), VMF(2), VMF(3), VMF(4), VMF(5) );
-#else
 		re->AddLightToScene( (const float *)VMA(1), VMF(2), VMF(3), VMF(4), VMF(5) );
-#endif
 		return 0;
 
 	case UI_R_RENDERSCENE:

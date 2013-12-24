@@ -243,7 +243,6 @@ public:
 		trap_R_AddMiniRefEntityToScene( ent );
 #endif
 	}
-#ifndef VV_LIGHTING
 	ID_INLINE	void	AddLightToScene( vec3_t org, float radius, float red, float green, float blue )
 	{
 #ifdef ENGINE
@@ -252,7 +251,6 @@ public:
 		trap_R_AddLightToScene( org, radius, red, green, blue );
 #endif
 	}
-#endif
 
 	ID_INLINE	int		RegisterShader( const char *shader )
 	{

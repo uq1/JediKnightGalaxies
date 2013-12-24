@@ -5,10 +5,6 @@
 #include "client.h"
 #include "FxScheduler.h"
 
-#ifdef VV_LIGHTING
-#include "renderer/tr_lightmanager.h"
-#endif
-
 extern int		drawnFx;
 
 //--------------------------
@@ -1495,11 +1491,7 @@ void CEmitter::UpdateAngles(void)
 //----------------------------
 void CLight::Draw(void)
 {
-#ifdef VV_LIGHTING
-	VVLightMan.RE_AddLightToScene( mOrigin1, mRefEnt.radius, mRefEnt.origin[0], mRefEnt.origin[1], mRefEnt.origin[2] );
-#else
 	theFxHelper.AddLightToScene( mOrigin1, mRefEnt.radius, mRefEnt.origin[0], mRefEnt.origin[1], mRefEnt.origin[2] );
-#endif
 	drawnFx++;	
 }
 
