@@ -3706,7 +3706,7 @@ static int PM_TryRoll( void )
 
 	if ( pm->cmd.forwardmove )
 	{ //check forward/backward rolls
-		if ( pm->ps->pm_flags & PMF_BACKWARDS_RUN && ( pm->ps->velocity[1] < 100 && (pm->cmd.buttons & BUTTON_SPRINT) ) )
+		if ( pm->ps->pm_flags & PMF_BACKWARDS_RUN )
 		{
 			anim = BOTH_ROLL_B;
 			VectorMA( pm->ps->origin, -64, fwd, traceto );
