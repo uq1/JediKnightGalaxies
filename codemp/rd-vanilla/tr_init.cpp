@@ -1442,7 +1442,7 @@ void RE_Shutdown( qboolean destroyWindow ) {
 
 	R_ShutdownFonts();
 	if ( tr.registered ) {
-		R_IssuePendingRenderCommands();
+		R_SyncRenderThread();
 		if (destroyWindow)
 		{
 			R_DeleteTextures();		// only do this for vid_restart now, not during things like map load
@@ -1465,7 +1465,7 @@ Touch all images to make sure they are resident
 =============
 */
 void RE_EndRegistration( void ) {
-	R_IssuePendingRenderCommands();
+	R_SyncRenderThread();
 	if (!ri->Sys_LowPhysicalMemory()) {
 		RB_ShowImages();
 	}

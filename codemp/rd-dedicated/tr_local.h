@@ -1847,7 +1847,7 @@ extern	backEndData_t	*backEndData;
 void *R_GetCommandBuffer( int bytes );
 void RB_ExecuteRenderCommands( const void *data );
 
-void R_IssuePendingRenderCommands( void );
+void R_SyncRenderThread( void );
 
 void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs );
 

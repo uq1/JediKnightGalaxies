@@ -1228,7 +1228,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 	if ( !tr.registered ) {
 		return;
 	}
-	R_IssuePendingRenderCommands();
+	R_SyncRenderThread();
 
 	// we definately want to sync every frame for the cinematics
 	qglFinish();

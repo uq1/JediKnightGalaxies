@@ -90,12 +90,12 @@ void R_IssueRenderCommands( qboolean runPerformanceCounters ) {
 
 /*
 ====================
-R_IssuePendingRenderCommands
+R_SyncRenderThread
 
 Issue any pending commands and wait for them to complete.
 ====================
 */
-void R_IssuePendingRenderCommands( void ) {
+void R_SyncRenderThread( void ) {
 	if ( !tr.registered ) {
 		return;
 	}
@@ -324,7 +324,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 		}
 		else
 		{
-			R_IssuePendingRenderCommands();
+			R_SyncRenderThread();
 			qglEnable( GL_STENCIL_TEST );
 			qglStencilMask( ~0U );
 			qglClearStencil( 0U );
@@ -337,7 +337,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	{
 		// this is only reached if it was on and is now off
 		if ( r_measureOverdraw->modified ) {
-			R_IssuePendingRenderCommands();
+			R_SyncRenderThread();
 			qglDisable( GL_STENCIL_TEST );
 		}
 		r_measureOverdraw->modified = qfalse;
@@ -347,7 +347,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	// texturemode stuff
 	//
 	if ( r_textureMode->modified || r_ext_texture_filter_anisotropic->modified) {
-		R_IssuePendingRenderCommands();
+		R_SyncRenderThread();
 		GL_TextureMode( r_textureMode->string );
 		r_textureMode->modified = qfalse;
 		r_ext_texture_filter_anisotropic->modified = qfalse;
@@ -359,7 +359,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	if ( r_gamma->modified ) {
 		r_gamma->modified = qfalse;
 
-		R_IssuePendingRenderCommands();
+		R_SyncRenderThread();
 		R_SetColorMappings();
 	}
 
@@ -367,7 +367,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
     if ( !r_ignoreGLErrors->integer ) {
         int	err;
 
-		R_IssuePendingRenderCommands();
+		R_SyncRenderThread();
         if ( ( err = qglGetError() ) != GL_NO_ERROR ) {
             Com_Error( ERR_FATAL, "RE_BeginFrame() - glGetError() failed (0x%x)!\n", err );
         }
