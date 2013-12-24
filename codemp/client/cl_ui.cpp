@@ -1321,12 +1321,6 @@ void CL_InitUI( void ) {
 
 	// load the dll or bytecode
 	if ( cl_connectedToPureServer != 0 ) {
-#if 0
-		// if sv_pure is set we only allow qvms to be loaded
-		interpret = VMI_COMPILED;
-#else //load the module type based on what the server is doing -rww
-		interpret = (vmInterpret_t)cl_connectedUI;
-#endif
 	}
 	else {
 		interpret = (vmInterpret_t)(int)Cvar_VariableValue( "vm_ui" );
