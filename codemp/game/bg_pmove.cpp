@@ -3388,7 +3388,6 @@ static void PM_WalkMove( void ) {
 	// project the forward and right directions onto the ground plane
 	PM_ClipVelocity (pml.forward, pml.groundTrace.plane.normal, pml.forward, OVERCLIP );
 	PM_ClipVelocity (pml.right, pml.groundTrace.plane.normal, pml.right, OVERCLIP );
-	//
 	VectorNormalize (pml.forward);
 	VectorNormalize (pml.right);
 
@@ -3659,10 +3658,14 @@ static int PM_TryRoll( void )
 	int		anim = -1;
 	vec3_t fwd, right, traceto, mins, maxs, fwdAngles;
 
+	/* Old code
 	if ( BG_SaberInAttack( pm->ps->saberMove ) || BG_SaberInSpecialAttack( pm->ps->torsoAnim ) 
 		|| BG_SpinningSaberAnim( pm->ps->legsAnim ) 
-		|| PM_SaberInStart( pm->ps->saberMove ) )
-	{//attacking or spinning (or, if player, starting an attack)
+		|| PM_SaberInStart( pm->ps->saberMove ) ) */
+
+	if ( BG_SaberInSpecialAttack( pm->ps->torsoAnim ) 
+		|| BG_SpinningSaberAnim( pm->ps->legsAnim ))
+	{//special attacking or spinning
 		if ( PM_CanRollFromSoulCal( pm->ps ) )
 		{//hehe
 		}
@@ -3703,7 +3706,7 @@ static int PM_TryRoll( void )
 
 	if ( pm->cmd.forwardmove )
 	{ //check forward/backward rolls
-		if ( pm->ps->pm_flags & PMF_BACKWARDS_RUN ) 
+		if ( pm->ps->pm_flags & PMF_BACKWARDS_RUN && ( pm->ps->velocity[1] < 100 && (pm->cmd.buttons & BUTTON_SPRINT) ) )
 		{
 			anim = BOTH_ROLL_B;
 			VectorMA( pm->ps->origin, -64, fwd, traceto );
@@ -3965,7 +3968,7 @@ static void PM_CrashLand( void ) {
 
 	if ( pm->ps->pm_flags & PMF_DUCKED ) 
 	{
-		if( delta >= 2 && !PM_InOnGroundAnim( pm->ps->legsAnim ) && !PM_InKnockDown( pm->ps ) && !BG_InRoll(pm->ps, pm->ps->legsAnim) &&
+		if( /* delta >= 2 && !PM_InOnGroundAnim( pm->ps->legsAnim ) && */ !PM_InKnockDown( pm->ps ) && !BG_InRoll(pm->ps, pm->ps->legsAnim) &&
 			pm->ps->forceHandExtend == HANDEXTEND_NONE )
 		{//roll!
 			int anim = PM_TryRoll();
@@ -5538,8 +5541,14 @@ static void PM_Footsteps( void ) {
 
 		bobmove = 0.5f;	// ducked characters bob much faster
 
-		if ( ( (PM_RunningAnim( pm->ps->legsAnim )&&VectorLengthSquared(pm->ps->velocity)>=40000/*200*200*/) || PM_CanRollFromSoulCal( pm->ps ) ) &&
-			!BG_InRoll(pm->ps, pm->ps->legsAnim) )
+		if ( ( ( PM_RunningAnim(pm->ps->legsAnim) 
+			|| PM_CanRollFromSoulCal( pm->ps ) 
+			|| pm->ps->saberActionFlags & (1 << SAF_BLOCKING) 
+			|| pm->cmd.buttons & BUTTON_SPRINT
+			|| pm->cmd.buttons & BUTTON_IRONSIGHTS
+			|| pm->cmd.buttons & BUTTON_WALKING ) )
+				&& !BG_InRoll(pm->ps, pm->ps->legsAnim) )
+			// simplified but more accurate at the same time
 		{//roll!
 			rolled = PM_TryRoll();
 		}
