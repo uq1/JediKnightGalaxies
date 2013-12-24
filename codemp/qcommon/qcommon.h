@@ -490,7 +490,7 @@ void Cvar_CheckRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeI
 void	Cvar_Restart(qboolean unsetVM);
 void	Cvar_Restart_f( void );
 
-void Cvar_CompleteCvarName( char *args, int argNum );
+void	Cvar_CompleteCvarName( char *args, int argNum );
 
 extern	int			cvar_modifiedFlags;
 // whenever a cvar is modifed, its flags will be OR'd into this, so
@@ -720,7 +720,6 @@ void		Com_StartupVariable( const char *match );
 
 
 extern	cvar_t	*com_developer;
-extern	cvar_t	*com_vmdebug;
 extern	cvar_t	*com_dedicated;
 extern	cvar_t	*com_speeds;
 extern	cvar_t	*com_timescale;

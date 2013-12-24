@@ -184,12 +184,12 @@ field_t fields[] = {
 	{ "target5",				FOFS( target5 ),						F_STRING },
 	{ "target6",				FOFS( target6 ),						F_STRING },
 	{ "targetname",				FOFS( targetname ),						F_STRING },
+	{ "targetshadername",		FOFS( targetShaderName ),				F_STRING },
+	{ "targetshadernewname",	FOFS( targetShaderNewName ),			F_STRING },
 	{ "team",					FOFS( team ),							F_STRING },
 	{ "teamnodmg",				FOFS( teamnodmg ),						F_INT },
 	{ "teamowner",				FOFS( s.teamowner ),					F_INT },
 	{ "teamuser",				FOFS( alliedTeam ),						F_INT },
-	{ "targetshadername",		FOFS( targetShaderName ),				F_STRING },
-	{ "targetshadernewname",	FOFS( targetShaderNewName ),			F_STRING },
 	{ "usescript",				FOFS( behaviorSet[BSET_USE] ),			F_STRING },//name of script to run
 	{ "victoryscript",			FOFS( behaviorSet[BSET_VICTORY] ),		F_STRING },//name of script to run
 	{ "wait",					FOFS( wait ),							F_FLOAT },
@@ -495,7 +495,6 @@ spawn_t	spawns[] = {
 	{ "fx_snow", qtrue,							SP_CreateSnow },
 	{ "fx_spacedust", qtrue,						SP_CreateSpaceDust },
 	{ "gametype_item", qfalse,						SP_gametype_item },
-	{ "item_botroam", qtrue,						SP_item_botroam },
 	{ "info_camp", qtrue,							SP_info_camp },
 	{ "info_notnull", qtrue,						SP_info_notnull }, // use target_position instead
 	{ "info_null", qtrue,							SP_info_null },
@@ -509,6 +508,7 @@ spawn_t	spawns[] = {
 	{ "info_player_start", qtrue,						SP_info_player_start },
 	{ "info_player_start_blue", qtrue,					SP_info_player_start_blue },
 	{ "info_player_start_red", qtrue,					SP_info_player_start_red },
+	{ "item_botroam", qtrue,						SP_item_botroam },
 	{ "jkg_target_vendor", qtrue,						JKG_SP_target_vendor },
 	{ "light", qfalse,							SP_light },
 	{ "misc_ammo_crate", qfalse,						SP_ammo_crate_spawn },

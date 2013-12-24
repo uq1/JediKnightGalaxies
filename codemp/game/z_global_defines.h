@@ -61,9 +61,6 @@
 //#define VEH_CONTROL_SCHEME_4						// Vehicle Control System...
 //#define _G_FRAME_PERFANAL
 
-// Misc
-#define SIL_IS_A_COOL_CAT							// because he is
-
 // New gametypes --eez
 // 9lives FFA. All players have 9 lives and gain one life per each kill, until the first person is out.
 // Items are not bought, rather, players are given better weapons with killstreaks. Thus, there are no credits.

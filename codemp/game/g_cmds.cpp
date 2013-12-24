@@ -2521,7 +2521,7 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 		color = COLOR_CYAN;
 		break;
 	case SAY_TELL:
-		if (target && level.gametype >= GT_TEAM &&
+		if (target && target->inuse && target->client && level.gametype >= GT_TEAM &&
 			target->client->sess.sessionTeam == ent->client->sess.sessionTeam &&
 			Team_GetLocationMsg(ent, location, sizeof(location)))
 		{
@@ -3249,7 +3249,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	{
 		// special case for map changes, we want to reset the nextmap setting
 		// this allows a player to change maps, but not upset the map rotation
-		char	s[MAX_STRING_CHARS];
+		char	s[MAX_CVAR_VALUE_STRING];
 
 		if (!G_DoesMapSupportGametype(arg2, level.gametype))
 		{
@@ -3333,6 +3333,11 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 			return;
 		}
 		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %.3f", arg1, tl );
+		if ( Q_isintegral( tl ) )
+			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %i", arg1, (int)tl );
+		else
+			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %.3f", arg1, tl );
+			Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
 	}
 	else if ( !Q_stricmp( arg1, "fraglimit" ) )
 	{
