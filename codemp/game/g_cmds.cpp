@@ -3064,16 +3064,6 @@ void Cmd_Where_f( gentity_t *ent ) {
 	}
 }
 
-static const char *gameNames[] = {
-	"Free For All",
-	"Duel",
-	"Power Duel",
-	"Single Player",
-	"Team FFA",
-	"Capture the Flag",
-	"Warzone",
-};
-
 /*
 ==================
 G_ClientNumberFromName
@@ -3242,7 +3232,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 		level.votingGametypeTo = gt;
 
 		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %d", arg1, gt );
-		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s %s", arg1, gameNames[gt] );
+		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s %s", arg1, BG_GetGametypeString( gt ) );
 		Q_strncpyz( level.voteStringClean, level.voteString, sizeof( level.voteStringClean ) );
 	}
 	else if ( !Q_stricmp( arg1, "map" ) ) 

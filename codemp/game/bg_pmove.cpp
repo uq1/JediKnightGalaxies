@@ -3968,8 +3968,11 @@ static void PM_CrashLand( void ) {
 
 	if ( pm->ps->pm_flags & PMF_DUCKED ) 
 	{
-		if( /* delta >= 2 && !PM_InOnGroundAnim( pm->ps->legsAnim ) && */ !PM_InKnockDown( pm->ps ) && !BG_InRoll(pm->ps, pm->ps->legsAnim) &&
-			pm->ps->forceHandExtend == HANDEXTEND_NONE )
+		if( delta >= 2 
+			// && !PM_InOnGroundAnim( pm->ps->legsAnim )
+			&& !PM_InKnockDown( pm->ps ) 
+			&& !BG_InRoll(pm->ps, pm->ps->legsAnim) 
+			&& pm->ps->forceHandExtend == HANDEXTEND_NONE )
 		{//roll!
 			int anim = PM_TryRoll();
 

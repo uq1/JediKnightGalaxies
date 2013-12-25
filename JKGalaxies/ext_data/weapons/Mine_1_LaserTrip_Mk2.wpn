@@ -26,7 +26,7 @@
             "firesound":    "sound/weapons/laser_trap/fire.wav",
             "miss":         { "sticksound": "sound/weapons/laser_trap/stick.wav" },
             "explodefx":    "explosives/demosmall",
-	    "displayName":  "Proximity"
+	    "displayName":  "Beam"
         },
         
         "firemode1": {
@@ -38,7 +38,7 @@
             "armsound":     "sound/weapons/laser_trap/warning.wav",
             "firesound":    "sound/weapons/laser_trap/alt_fire.wav",
             "explodefx":    "explosives/demosmall",
-	    "displayName":  "Beam"
+	    "displayName":  "Proximity"
         }
     },
     

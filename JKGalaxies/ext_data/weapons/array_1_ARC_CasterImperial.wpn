@@ -37,7 +37,8 @@
             "runsound":     "sound/effects/energy_crackle.wav",
             "miss":         { "impactfx": "blasters/electric_impactmedium" },
             "hit":          { "impactfx": "blasters/electric_impactmedium" },
-            "deathFx":    "saber/ignitionflare_blue"
+            "deathFx":    "saber/ignitionflare_blue",
+	    "displayName": "Charge"
         },
         
         "firemode1": {
@@ -62,7 +63,8 @@
             "projectilefx": "blasters/shot_electricity",
             "runsound":     "sound/effects/energy_crackle.wav",
             "miss":         { "impactfx": "blasters/electric_impacttiny" },
-            "hit":          { "impactfx": "blasters/electric_impacttiny" }
+            "hit":          { "impactfx": "blasters/electric_impacttiny" },
+	    "displayName": "Repeater"
     }
 },
     
