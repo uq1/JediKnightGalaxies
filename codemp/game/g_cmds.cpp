@@ -3653,6 +3653,12 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	{
 	    return;
 	}
+
+	// Can't reload while rolling or flipping
+	if ( ent->client->ps.pm_flags & PMF_ROLLING || BG_FlippingAnim ( ent->client->ps.legsAnim ) )
+	{
+	    return;
+	}
 	
     // Can't reload while charging the weapon
 	if ( ent->client->ps.weaponstate == WEAPON_CHARGING || ent->client->ps.weaponstate == WEAPON_CHARGING_ALT )
