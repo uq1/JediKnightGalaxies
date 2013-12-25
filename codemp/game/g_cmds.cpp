@@ -890,6 +890,7 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 	{
 		ent->client->ps.cloakFuel	= 100;
 		ent->client->ps.jetpackFuel	= 100;
+		ent->client->ps.persistant[PERS_CREDITS] = 32000;
 	}
 
 	// spawn a specific item right on the player

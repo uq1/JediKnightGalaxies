@@ -1596,7 +1596,7 @@ extern void EWebPrecache(void); //g_items.c
 float g_cullDistance;
 
 extern vmCvar_t jkg_startingGun;
-extern vmCvar_t jkg_startingGunDuel;
+extern vmCvar_t jkg_startingSaberDuel;
 void SP_worldspawn( void ) 
 {
 	char		*text, temp[32];
@@ -1680,7 +1680,7 @@ void SP_worldspawn( void )
 	switch( level.gametype ) {
 		case GT_DUEL:
 		case GT_POWERDUEL:
-			G_SpawnString( "defaultWeapon", jkg_startingGunDuel.string, &text );
+			G_SpawnString( "defaultWeapon", jkg_startingSaberDuel.string, &text );
 			break;
 		default:
 			G_SpawnString( "defaultWeapon", jkg_startingGun.string, &text );//pistol_DL-18
