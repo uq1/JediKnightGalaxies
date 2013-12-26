@@ -3659,6 +3659,12 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	{
 	    return;
 	}
+
+	// Can't reload while on an emplaced gun
+	if ( ent->client->ps.emplacedIndex )
+	{ 
+		return;
+	}
 	
     // Can't reload while charging the weapon
 	if ( ent->client->ps.weaponstate == WEAPON_CHARGING || ent->client->ps.weaponstate == WEAPON_CHARGING_ALT )

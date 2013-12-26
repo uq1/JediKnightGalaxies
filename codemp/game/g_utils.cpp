@@ -1663,11 +1663,6 @@ int G_CanUseDispOn(gentity_t *ent, int dispType)
 	return 0;
 }
 
-qboolean TryHeal(gentity_t *ent, gentity_t *target)
-{
-	return qfalse;
-}
-
 /*
 ==============
 TryUse
@@ -1949,11 +1944,6 @@ void TryUse( gentity_t *ent )
 		return;
 	}
 
-	if (TryHeal(ent, target))
-	{
-		return;
-	}
-
 tryJetPack:
 	//if we got here, we didn't actually use anything else, so try to toggle jetpack if we are in the air, or if it is already on
 	if (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_JETPACK))
@@ -1965,8 +1955,9 @@ tryJetPack:
 		}
 	}
 
-	if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_AMMODISP)) /*&&
-		G_ItemUsable(&ent->client->ps, HI_AMMODISP)*/ )
+	/* No, this is broken and silly anyway. Oh and it also asserts the game atm due to g2 bugs. -Pande
+	if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_AMMODISP)) 
+			&& G_ItemUsable(&ent->client->ps, HI_AMMODISP) )
 	{ //if you used nothing, then try spewing out some ammo
 		trace_t trToss;
 		vec3_t fAng;
@@ -1983,7 +1974,7 @@ tryJetPack:
 			G_AddEvent(ent, EV_USE_ITEM0+HI_AMMODISP, 0);
 			return;
 		}
-	}
+	} */
 }
 
 qboolean G_PointInBounds( vec3_t point, vec3_t mins, vec3_t maxs )

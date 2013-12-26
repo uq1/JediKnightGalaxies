@@ -4113,7 +4113,7 @@ void ClientEndFrame( gentity_t *ent ) {
 
 	G_SetClientSound (ent);
 
-	// set the latest infor
+	// set the latest info
 	if (g_smoothClients.integer) {
 		BG_PlayerStateToEntityStateExtraPolate( &ent->client->ps, &ent->s, ent->client->ps.commandTime, qfalse );
 		//rww - 12-03-02 - Don't snap the origin of players! It screws prediction all up.

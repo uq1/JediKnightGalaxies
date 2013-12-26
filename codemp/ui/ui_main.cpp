@@ -8912,13 +8912,9 @@ static void UI_StartServerRefresh(qboolean full)
 			// cleaned this up slightly --eez
 			if(!Q_stricmp(serverFilters[ui_serverFilterType.integer].description, "JKG"))
 			{
-#ifdef			__PTR
-				trap_JKG_ChangeProtocol( 28 );
-				trap_Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d 28\n", i ) );			// PTR uses protocol 28
-#else
 				trap_JKG_ChangeProtocol( 27 );
 				trap_Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d 27\n", i ) );			// hax. JKG servers use protocol 27
-#endif
+
 			}
 			else
 			{

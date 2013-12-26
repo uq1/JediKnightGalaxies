@@ -3057,7 +3057,6 @@ static void WP_FireEmplaced( gentity_t *ent, qboolean altFire )
 */
  
 //----------------------------------------------------------
-extern qboolean TryHeal(gentity_t *ent, gentity_t *target); //g_utils.c
 void emplaced_gun_use( gentity_t *self, gentity_t *other, trace_t *trace )
 {
 	vec3_t fwd1, fwd2;
@@ -3120,22 +3119,10 @@ void emplaced_gun_use( gentity_t *self, gentity_t *other, trace_t *trace )
 
 	dot = DotProduct( fwd1, fwd2 );
 
-	// Must be reasonably facing the way the gun points ( 110 degrees or so ), otherwise we don't allow to use it.
-	if ( dot < -0.2f )
-	{
-		goto tryHeal;
-	}
-
 	VectorSubtract(self->s.origin, activator->client->ps.origin, fwd1);
 	VectorNormalize(fwd1);
 
 	dot = DotProduct( fwd1, fwd2 );
-
-	//check the positioning in relation to the gun as well
-	if ( dot < 0.6f )
-	{
-		goto tryHeal;
-	}
 
 	self->genericValue1 = 1;
 
@@ -3161,9 +3148,6 @@ void emplaced_gun_use( gentity_t *self, gentity_t *other, trace_t *trace )
 	VectorSubtract(self->r.currentOrigin, activator->client->ps.origin, anglesToOwner);
 	vectoangles(anglesToOwner, anglesToOwner);
 	return;
-
-tryHeal: //well, not in the right dir, try healing it instead...
-	TryHeal(activator, self);
 }
 
 void emplaced_gun_realuse( gentity_t *self, gentity_t *other, gentity_t *activator )
