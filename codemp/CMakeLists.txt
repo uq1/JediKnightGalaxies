@@ -207,6 +207,7 @@ if(BuildMPEngine OR BuildMPDed)
 		"${MPDir}/qcommon/matcomp.h"
 		"${MPDir}/qcommon/matcomp.cpp"
 		"${MPDir}/qcommon/net_chan.cpp"
+		"${MPDir}/qcommon/persistence.cpp"
 		"${MPDir}/qcommon/q_math.cpp"
 		"${MPDir}/qcommon/q_shared.cpp"
 		"${MPDir}/qcommon/qcommon.h"
