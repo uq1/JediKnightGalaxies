@@ -5046,7 +5046,7 @@ static void UI_RunMenuScript(char **args)
 			UI_GameType_HandleKey(0, 0, A_MOUSE2, qfalse);
 		} else if (Q_stricmp(name, "resetDefaults") == 0) {
 			trap_Cmd_ExecuteText( EXEC_APPEND, "cvar_restart\n");
-			trap_Cmd_ExecuteText( EXEC_APPEND, "exec mpdefault.cfg\n");
+			trap_Cmd_ExecuteText( EXEC_APPEND, "exec JKG_Defaults.cfg\n");
 			trap_Cmd_ExecuteText( EXEC_APPEND, "vid_restart\n" );
 			trap_Cvar_Set("com_introPlayed", "1" );
 		} else if (Q_stricmp(name, "saveControls") == 0) {

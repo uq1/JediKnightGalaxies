@@ -1723,10 +1723,12 @@ void GLimp_Init( void )
 	//
 	if ( Q_stricmp( lastValidRenderer->string, glConfig.renderer_string ) )
 	{
+		/*
 		if (ri->Sys_LowPhysicalMemory())
 		{
 			ri->Cvar_Set("s_khz", "11");// this will get called before S_Init
 		}
+		*/
 		//reset to defaults
 		ri->Cvar_Set( "r_picmip", "1" );
 

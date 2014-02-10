@@ -511,8 +511,8 @@ void FS_InitFilesystem( void ) {
 	// if we can't find default.cfg, assume that the paths are
 	// busted and error out now, rather than getting an unreadable
 	// graphics screen when the font fails to load
-	if ( FS_ReadFile( "mpdefault.cfg", NULL ) <= 0 ) {
-		Com_Error( ERR_FATAL, "Couldn't load mpdefault.cfg" );
+	if ( FS_ReadFile( "JKG_Defaults.cfg", NULL ) <= 0 ) {
+		Com_Error( ERR_FATAL, "Couldn't load JKG_Defaults.cfg" );
 		// bk001208 - SafeMode see below, FIXME?
 	}
 
