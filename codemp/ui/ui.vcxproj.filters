@@ -74,9 +74,6 @@
     <ClCompile Include="..\game\bg_constants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\game\bg_lib.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\game\bg_misc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

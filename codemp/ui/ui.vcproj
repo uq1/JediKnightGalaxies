@@ -355,9 +355,6 @@
 				RelativePath="..\game\bg_constants.c"
 				>
 			</File>
-			<File
-				RelativePath="..\game\bg_lib.c"
-				>
 				<FileConfiguration
 					Name="Final|Win32"
 					ExcludedFromBuild="true"

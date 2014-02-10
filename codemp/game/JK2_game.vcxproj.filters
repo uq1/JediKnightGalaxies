@@ -658,9 +658,6 @@
     <ClInclude Include="bg_items.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bg_lib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="bg_local.h">
       <Filter>Header Files</Filter>
     </ClInclude>

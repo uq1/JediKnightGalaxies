@@ -389,9 +389,6 @@
 				RelativePath=".\bg_items.c"
 				>
 			</File>
-			<File
-				RelativePath=".\bg_lib.c"
-				>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"

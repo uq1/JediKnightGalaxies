@@ -210,7 +210,7 @@
       <PreprocessorDefinitions>NDEBUG;_USRDL;WIN32;_WINDOWS;UI_EXPORTS;MISSIONPACK;_JK2;XML_STATIC;UI;_PHASE1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <MinimalRebuild>true</MinimalRebuild>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -259,7 +259,6 @@
     <ClCompile Include="..\game\animtable.cpp" />
     <ClCompile Include="..\game\bg_ammo.cpp" />
     <ClCompile Include="..\game\bg_constants.cpp" />
-    <ClCompile Include="..\game\bg_lib.cpp" />
     <ClCompile Include="..\game\bg_misc.cpp" />
     <ClCompile Include="..\game\bg_vehicleLoad.cpp" />
     <ClCompile Include="..\game\bg_weapons.cpp" />
