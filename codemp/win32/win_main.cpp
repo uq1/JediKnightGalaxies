@@ -540,6 +540,7 @@ void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(in
 
 	if (fs_unpackbinaries->integer && !Sys_UnpackDLL(filename))
 	{
+		Com_Printf("GetLastError returned %i\n", GetLastError());
 		return NULL;
 	}
 
@@ -564,6 +565,7 @@ void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(in
 					libHandle = LoadLibrary( fn );
 				}
 				if ( !libHandle ) {
+					Com_Printf("GetLastError returned %i\n", GetLastError());
 					return NULL;
 				}
 			}
@@ -574,11 +576,13 @@ void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(in
 	*entryPoint = (intptr_t (QDECL *)(int,...))GetProcAddress( libHandle, "vmMain" );
 	if ( !*entryPoint || !dllEntry ) {
 		FreeLibrary( libHandle );
+		Com_Printf("GetLastError returned %i\n", GetLastError());
 		return NULL;
 	}
 	dllEntry( systemcalls );
 
-	return libHandle;
+	Com_Printf("GetLastError returned %i\n", GetLastError());
+		return libHandle;
 }
 
 
