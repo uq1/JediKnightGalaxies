@@ -2801,7 +2801,10 @@ static void CG_OpenPartyManagement( void ) {
 
 static void CG_OpenInventory ( void )
 {
+	if (cgs.gametype != GT_DUEL) 
+	{
 	uiImports->InventoryNotify( 0 );
+	}
 }
 
 void CG_SetupChatCmds() {

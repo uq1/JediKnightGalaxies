@@ -1053,7 +1053,7 @@ qboolean BG_LegalizedForcePowers(char *powerOut, int maxRank, qboolean freeSaber
 	  //If jump is disabled, down-cap it to level 1. Otherwise don't do a thing.
 		if (fpDisabled & (1 << FP_LEVITATION))
 		{
-			final_Powers[FP_LEVITATION] = bgConstants.baseForceJumpLevel;
+			final_Powers[FP_LEVITATION] = 0;
 		}
 		if (fpDisabled & (1 << FP_SABER_OFFENSE))
 		{

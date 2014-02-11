@@ -961,7 +961,10 @@ static void CG_DrawMiniMap ( menuDef_t *menuHUD, vec4_t opacity )
 
 	// Render the minimap
 	// Use a default fixed radius of 500 units for now
+	if (cgs.gametype != GT_DUEL) 
+	{
 	MiniMap_Render(menuHUD, 1500.0f);
+	}
 
 	focusItem = Menu_FindItemByName(menuHUD, "frame");
 	if (focusItem)
@@ -978,7 +981,7 @@ static void CG_DrawMiniMap ( menuDef_t *menuHUD, vec4_t opacity )
 
 	//Render the credit display
 	focusItem = Menu_FindItemByName(menuHUD, "credits");
-	if (focusItem)
+	if (focusItem && cgs.gametype != GT_DUEL)
 	{
 		trap_R_SetColor(opacity);
 		trap_R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, va("Credits: %i", cg.predictedPlayerState.persistant[PERS_CREDITS]), opacity, cgDC.Assets.qhSmall3Font, -1, focusItem->textscale);
@@ -1287,12 +1290,16 @@ void CG_DrawHUD(centity_t *cent)
 	CG_DrawTopLeftHUD (menuHUD, opacity);
 
 	// Render the minimap
+	if (cgs.gametype != GT_DUEL) {
 	menuHUD = Menus_FindByName("hud_minimap");
 	CG_DrawMiniMap (menuHUD, opacity);
+	}
 
 	// Render the hotkey bar
-	menuHUD = Menus_FindByName("hud_hotkey");
-	CG_DrawHotkeyBar (menuHUD, opacity);
+	if (cgs.gametype != GT_DUEL) {
+		menuHUD = Menus_FindByName("hud_hotkey");
+		CG_DrawHotkeyBar (menuHUD, opacity);
+	}
 
 	menuHUD = Menus_FindByName("hud_bottomright");
 	CG_DrawBottomRightHUD (menuHUD, cent, opacity);

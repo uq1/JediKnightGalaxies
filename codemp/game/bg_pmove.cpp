@@ -1267,7 +1267,7 @@ static void PM_SetMovementDir( void ) {
 	}
 }
 
-#define METROID_JUMP 1
+//#define METROID_JUMP 1
 
 qboolean PM_ForceJumpingUp(void)
 {
@@ -3533,7 +3533,7 @@ static void PM_WalkMove( void ) {
 	        pm->ps->sprintMustWait = 1;
 	    }
 	}
-	else if ( pm->ps->sprintMustWait && pm->ps->forcePower >= 40 )
+	else if ( pm->ps->sprintMustWait && pm->ps->forcePower >= 25 )
 	{
 	    pm->ps->sprintMustWait = 0;
 	}
