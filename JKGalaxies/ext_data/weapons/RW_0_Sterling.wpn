@@ -30,6 +30,7 @@
             "projectilefx": "slugthrowers/slug_shot",
             "miss":         { "impactfx": "slugthrowers/impactsmall" },
             "hit":          { "impactfx": "weapons/slug_impact_flesh_blood" }
+	    "displayName":  "Automatic"
         },
         
         "firemode1": {
@@ -46,6 +47,7 @@
             "projectilefx": "slugthrowers/slug_shot",
             "miss":         { "impactfx": "slugthrowers/impactsmall" },
             "hit":          { "impactfx": "weapons/slug_impact_flesh_blood" }
+	    "displayName":  "Semi-auto"
         }
     },
     
@@ -73,6 +75,31 @@
         "meansofdeath": "MOD_BLASTER",
             "accuracy": {
         "accuracyRating": 45,
+        "accuracyRatingPerShot": 4,
+        "msToDrainAccuracy": 55,
+        "maxAccuracyAdd": 65,
+        "crouchModifier": 0.9,
+        "runModifier": 1.5,
+        "sightsModifier": 0.9,
+        "walkModifier": 1.3,
+        "inAirModifier": 1.6
+        }
+    },
+	
+	  "firemode1": {
+        "damage":       16,
+        "ballistic":    true,
+        "ammocost":     1,
+        "firedelay":    350,
+        "firingtype":   "semi",
+        "range":        40000.0,
+        "recoil":       1.1,
+        "spread":       0.05,
+        "projectilespeed": 13000.0,	// 9 x 19 mm Parabellum velocity 1300 ft/s
+        "projectileclass": "blaster_proj",
+        "meansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 90,
         "accuracyRatingPerShot": 4,
         "msToDrainAccuracy": 55,
         "maxAccuracyAdd": 65,

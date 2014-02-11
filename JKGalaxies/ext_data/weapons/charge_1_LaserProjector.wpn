@@ -23,12 +23,14 @@
             "g2radius":     100,
             "firesound":    "sound/weapons/detpack/fire.wav",
             "miss":         { "sticksound": "sound/weapons/detpack/stick.wav" }
+	    "displayName":  "Place"
         },
         
         "firemode1": {
             "type":         "detpack",
             
             "explodefx":    "explosives/demosmall"
+	    "displayName":  "Detonate"
         }
     },
     
