@@ -1267,7 +1267,7 @@ static void PM_SetMovementDir( void ) {
 	}
 }
 
-//#define METROID_JUMP 1
+#define METROID_JUMP 1
 
 qboolean PM_ForceJumpingUp(void)
 {
@@ -1992,6 +1992,8 @@ static qboolean PM_CheckJump( void )
 #if METROID_JUMP
 	if ( pm->waterlevel < 2 ) 
 	{
+		if ( pm->gametype == GT_DUEL )
+		{
 		if ( pm->ps->gravity > 0 )
 		{//can't do this in zero-G
 			if ( PM_ForceJumpingUp() )
@@ -2160,6 +2162,7 @@ static qboolean PM_CheckJump( void )
 				return qfalse;
 			}
 		}
+		} // if == GT_DUEL
 	}
 
 #endif

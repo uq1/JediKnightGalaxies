@@ -151,7 +151,7 @@ void WP_InitForcePowers( gentity_t *ent )
 
 	if (!maxRank)
 	{ //if server has no max rank, default to max (50)
-		maxRank = FORCE_MASTERY_UNINITIATED;
+		maxRank = FORCE_MASTERY_JEDI_MASTER;
 	}
 	else if (maxRank >= NUM_FORCE_MASTERY_LEVELS)
 	{//ack, prevent user from being dumb
