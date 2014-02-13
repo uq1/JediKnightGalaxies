@@ -10447,8 +10447,7 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 	
 	if( PMOVE )
 	{
-		int groundPlaneCheckSmoothing = (pm->cmd.serverTime - 150);
-		if( !pml.groundPlane && groundPlaneCheckSmoothing > pm->cmd.serverTime )
+		if( !pml.groundPlane && (pm->cmd.serverTime - 150) > pm->cmd.serverTime )
 		{
 			return qfalse;
 		}

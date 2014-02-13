@@ -1308,10 +1308,10 @@ void Com_Init( char *commandLine ) {
 			// if the user didn't give any commands, run default action
 			if ( !com_dedicated->integer ) 
 			{
-				if ( com_bootlogo->integer )
+				/*if ( com_bootlogo->integer )
 				{
 					Cbuf_AddText ("cinematic openinglogos.roq\n");
-				}
+				}*/
 			}
 		}
 

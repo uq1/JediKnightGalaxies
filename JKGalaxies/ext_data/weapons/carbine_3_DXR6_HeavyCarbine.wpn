@@ -41,24 +41,24 @@
         "firemode1": {
             "type":         "blaster",
             
-            "muzzlefx":     "blasters/muzzleflash_Red_medium",
+            "muzzlefx":     "blasters/muzzleflash_Purple_medium",
             "firesound":    [
                 "sound/weapons/blasters/disruptor1.mp3",
                 "sound/weapons/blasters/disruptor2.mp3",
                 "sound/weapons/blasters/disruptor3.mp3",
                 "sound/weapons/blasters/disruptor4.mp3"
             ],
-            "tracelineshader": "gfx/blasters/BlasterBolt_Beam_Glow_Red",
-            "traceline2shader": "gfx/blasters/BlasterBolt_Beam2_Red",
+            "tracelineshader": "gfx/blasters/BlasterBolt_Beam_Glow_RedPurple",
+            "traceline2shader": "gfx/blasters/BlasterBolt_Beam2_RedPurple",
             "minsize":      1.0,
             "maxsize":      18.0,
             "lifetime":     200,
             "chargingfx":   "weapons/charge_bryar",
             "chargingsound": "sound/weapons/disruptor/altcharge.wav",
-            "projectilefx": "blasters/shot_Red_big",
-            "miss":         { "impactfx": "weapons/blaster_impact_red_big_fire" },
-            "hit":          { "impactfx": "blasters/red_flesh_impact" },
-            "deathfx": "blasters/shot_Red_vaporize",
+            "projectilefx": "blasters/shot_RedPurple_big",
+            "miss":         { "impactfx": "weapons/blaster_impact_purple_big_fire" },
+            "hit":          { "impactfx": "blasters/purple_flesh_impact" },
+            "deathfx": "blasters/shot_RedPurple_vaporize",
 	    "displayName":  "Disruptor"
         }
     },
@@ -97,25 +97,35 @@
 
     "firemode1": {
         "hitscan":      true,
-        "damage":       30,
+        "damage":       50,
         "ammocost":     1,
         "maxchargetime":750,
         "chargedamage": 1.1,
         "chargedelay":  250,
         "firedelay":    700,
         "firingtype":   "semi",
-        "range":        4700.0,
-        "recoil":       1.2,
+        "range":        7000.0,
+        "recoil":       1.6,
         "spread":       0.0,
         "projectilespeed": 6500.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_DISRUPTOR",
-        "splashmeansofdeath": "MOD_DISRUPTOR"
+        "splashmeansofdeath": "MOD_DISRUPTOR",
+            "accuracy": {
+        "accuracyRating": 35,
+        "accuracyRatingPerShot": 8,
+        "msToDrainAccuracy": 120,
+        "maxAccuracyAdd": 100,
+        "crouchModifier": 0.95,
+        "runModifier": 1.8,
+        "sightsModifier": 0.65,
+        "walkModifier": 1.5,
+        "inAirModifier": 2.4
+        }
     },
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
- //       "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_RIFLERELOADB" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },
