@@ -3973,7 +3973,7 @@ static void PM_CrashLand( void ) {
 	{
 		if( delta >= 2 
 			// && !PM_InOnGroundAnim( pm->ps->legsAnim )
-			&& !PM_InKnockDown( pm->ps ) 
+			&& !PM_InKnockDown( pm->ps )
 			&& !BG_InRoll(pm->ps, pm->ps->legsAnim) 
 			&& pm->ps->forceHandExtend == HANDEXTEND_NONE )
 		{//roll!
@@ -5547,12 +5547,12 @@ static void PM_Footsteps( void ) {
 
 		bobmove = 0.5f;	// ducked characters bob much faster
 
-		if ( ( ( PM_RunningAnim(pm->ps->legsAnim) 
+		if ( ( PM_RunningAnim(pm->ps->legsAnim) 
 			|| PM_CanRollFromSoulCal( pm->ps ) 
 			|| pm->ps->saberActionFlags & (1 << SAF_BLOCKING) 
 			|| pm->cmd.buttons & BUTTON_SPRINT
-			|| pm->cmd.buttons & BUTTON_IRONSIGHTS
-			|| pm->cmd.buttons & BUTTON_WALKING ) )
+			|| (pm->cmd.buttons & BUTTON_IRONSIGHTS && !pm->ps->pm_flags & PMF_DUCKED)
+			|| pm->cmd.buttons & BUTTON_WALKING )
 				&& !BG_InRoll(pm->ps, pm->ps->legsAnim) )
 			// simplified but more accurate at the same time
 		{//roll!
@@ -10447,7 +10447,8 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 	
 	if( PMOVE )
 	{
-		if( !pml.groundPlane )
+		int groundPlaneCheckSmoothing = (pm->cmd.serverTime - 150);
+		if( !pml.groundPlane && groundPlaneCheckSmoothing > pm->cmd.serverTime )
 		{
 			return qfalse;
 		}
