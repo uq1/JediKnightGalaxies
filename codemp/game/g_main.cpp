@@ -3171,24 +3171,25 @@ void G_RunFrame( int levelTime ) {
 		AdjustTickets();
 
 	/* JKG - Automatic healing when out-of-combat */
-	for ( i = 0; i < MAX_CLIENTS; i++ )
-	{
-		gentity_t *ent = &g_entities[i];
-
-		if ( !ent || !ent->inuse || !ent->client || ( ent->damagePlumTime + 60000 ) >= level.time )
+	if(jkg_healthRegen.value > 0) {
+		for ( i = 0; i < MAX_CLIENTS; i++ )
 		{
-			continue;
-		}
+			gentity_t *ent = &g_entities[i];
 
-		if ( ent->lastHealTime < level.time )
-		{
-			int maxHealth		= ent->client->ps.stats[STAT_MAX_HEALTH];
-			int pctage			= (maxHealth < 100) ? 1 : maxHealth / 100;		// Add 1% (of 1 HP, whichever is higher)
-			ent->health			= ent->client->ps.stats[STAT_HEALTH] = ((( ent->health + pctage ) > maxHealth ) ? maxHealth : ent->health + pctage );
-			ent->lastHealTime	= level.time + 2500;
+			if ( !ent || !ent->inuse || !ent->client || ( ent->damagePlumTime + jkg_healthRegenDelay.value ) >= level.time )
+			{
+				continue;
+			}
+
+			if ( ent->lastHealTime < level.time )
+			{
+				int maxHealth		= ent->client->ps.stats[STAT_MAX_HEALTH];
+				int pctage			= (maxHealth < 100) ? jkg_healthRegen.value : (maxHealth / 100) * jkg_healthRegen.value;		// Add 1% (of 1 HP, whichever is higher)
+				ent->health			= ent->client->ps.stats[STAT_HEALTH] = ((( ent->health + pctage ) > maxHealth ) ? maxHealth : ent->health + pctage );
+				ent->lastHealTime	= level.time + jkg_healthRegenSpeed.value;
+			}
 		}
 	}
-
 	if (gDoSlowMoDuel)
 	{
 		if (level.restarted)

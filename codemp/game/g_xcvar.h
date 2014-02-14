@@ -158,5 +158,7 @@ XCVAR_DEF( jkg_chatFloodProtect,		"1",			NULL,				CVAR_ARCHIVE,									false )
 XCVAR_DEF( jkg_startingGun,				"pistol_DL-18",	NULL,				CVAR_ARCHIVE|CVAR_LATCH,						true )
 XCVAR_DEF( jkg_startingSaberDuel,		"saber_kyle",	NULL,				CVAR_ARCHIVE|CVAR_LATCH,						true )
 XCVAR_DEF( g_banfile,					"",				NULL,				CVAR_ARCHIVE,									false )
-
+XCVAR_DEF( jkg_healthRegen,				"1",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_healthRegenDelay,		"60000",		NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_healthRegenSpeed,		"2500",			NULL,				CVAR_ARCHIVE,									true )
 #undef XCVAR_DEF
