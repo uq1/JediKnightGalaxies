@@ -3302,7 +3302,9 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 
 			if (wp == -1)
 			{//no waypoints
+#ifdef _DEBUG
 				G_Printf("BOT DEBUG: %s failed to find a waypoint.\n", g_entities[bs->client].client->pers.netname);
+#endif
 				DOM_BotMove(bs, bs->DestPosition, qfalse, strafe);
 				return;
 			}
@@ -3320,13 +3322,17 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 
 		if (g_entities[bs->client].pathsize > 0)
 		{
+#ifdef _DEBUG
 			G_Printf("BOT DEBUG: Bot %s found a %i waypoint path from wp %i to wp %i.\n", g_entities[bs->client].client->pers.netname, g_entities[bs->client].pathsize, bs->wpCurrent->index, bs->wpDestination->index);
+#endif
 			bs->wpNext = gWPArray[DOM_GetNextWaypoint(bs)];
 			DOM_ResetWPTimers(bs);
 		}
 		else
 		{
+#ifdef _DEBUG
 			G_Printf("BOT DEBUG: Bot %s failed to find a path from wp %i to wp %i.\n", g_entities[bs->client].client->pers.netname, bs->wpCurrent->index, bs->wpDestination->index);
+#endif
 		}
 
 		bs->ready_to_calculate_path = qfalse;

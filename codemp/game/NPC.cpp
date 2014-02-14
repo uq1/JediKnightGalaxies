@@ -239,54 +239,18 @@ int BodyRemovalPadTime( gentity_t *ent )
 
 	if ( !ent || !ent->client )
 		return 0;
-/*
-	switch ( ent->client->playerTeam )
-	{
-	case NPCTEAM_KLINGON:	// no effect, we just remove them when the player isn't looking
-	case NPCTEAM_SCAVENGERS:
-	case NPCTEAM_HIROGEN:
-	case NPCTEAM_MALON:
-	case NPCTEAM_IMPERIAL:
-	case NPCTEAM_STARFLEET:
-		time = 10000; // 15 secs.
-		break;
 
-	case NPCTEAM_BORG:
-		time = 2000;
-		break;
-
-	case NPCTEAM_STASIS:
-		return qtrue;
-		break;
-
-	case NPCTEAM_FORGE:
-		time = 1000;
-		break;
-
-	case NPCTEAM_BOTS:
-//		if (!Q_stricmp( ent->NPC_type, "mouse" ))
-//		{
-			time = 0;
-//		}
-//		else
-//		{
-//			time = 10000;
-//		}
-		break;
-
-	case NPCTEAM_8472:
-		time = 2000;
-		break;
-
-	default:
+		if ( ent->client->playerTeam )
+		{	
 		// never go away
-		time = Q3_INFINITE;
-		break;
-	}
-*/
+			time = Q3_INFINITE;
+		}
+
+
 	// team no longer indicates species/race, so in this case we'd use NPC_class, but
 	switch( ent->client->NPC_class )
 	{
+	/* removal so everything never goes away until round end
 	case CLASS_MOUSE:
 	case CLASS_GONK:
 	case CLASS_R2D2:
@@ -300,13 +264,12 @@ int BodyRemovalPadTime( gentity_t *ent )
 	case CLASS_SENTRY:
 	case CLASS_INTERROGATOR:
 		time = 0;
-		break;
+		break; 
+		*/
 	default:
 		// never go away
-	//	time = Q3_INFINITE;
-		// for now I'm making default 10000
-		//time = 120000;
-		time = 30000; // UQ1: Changed to 30 secs...
+		time = Q3_INFINITE;
+		// time = 200000; // UQ1: Changed to 30 secs // Pande: Changed to infinite
 		break;
 
 	}
@@ -391,7 +354,7 @@ MG
 This will adjust the pitch and roll of a monster to match
 a given slope - if a non-'0 0 0' slope is passed, it will
 use that value, otherwise it will use the ground underneath
-the monster.  If it doesn't find a surface, it does nothinh\g
+the monster.  If it doesn't find a surface, it does nothing
 and returns.
 ====================================================================
 */
@@ -577,10 +540,11 @@ static void DeadThink ( void )
 				class_t	npc_class;
 
 				// Start the body effect first, then delay 400ms before ditching the corpse
-				NPC_RemoveBodyEffect();
+				// NPC_RemoveBodyEffect();
+				// removed for now
 
 				//FIXME: keep it running through physics somehow?
-				NPC->think = NPC_RemoveBody;
+				//NPC->think = NPC_RemoveBody;
 				NPC->nextthink = level.time + FRAMETIME;
 			//	if ( NPC->client->playerTeam == NPCTEAM_FORGE )
 			//		NPCInfo->timeOfDeath = level.time + FRAMETIME * 8;
@@ -737,11 +701,6 @@ void NPC_ApplyScriptFlags (void)
 		ucmd.forwardmove = 0;
 		ucmd.upmove = 0;
 	}
-
-	/*if ( (NPCInfo->scriptFlags & SCF_ALT_FIRE) && (ucmd.buttons & BUTTON_ATTACK) )
-	{//Use altfire instead
-		ucmd.buttons |= BUTTON_ALT_ATTACK;
-	}*/
 }
 
 void Q3_DebugPrint( int level, const char *format, ... );

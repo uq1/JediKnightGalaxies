@@ -1189,7 +1189,7 @@ static void ClientCleanName( const char *in, char *out, int outSize ) {
 
 	// don't allow empty names
 	if( *p == 0 || colorlessLen == 0 ) {
-		Q_strncpyz( p, "Padawan", outSize );
+		Q_strncpyz( p, "Mysterious Soldier", outSize );
 	}
 }
 

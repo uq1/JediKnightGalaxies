@@ -2726,7 +2726,7 @@ void CL_Init( void ) {
 #endif
 
 	// userinfo
-	Cvar_Get ("name", "Padawan", CVAR_USERINFO | CVAR_ARCHIVE );
+	Cvar_Get ("name", "Mysterious Soldier", CVAR_USERINFO | CVAR_ARCHIVE );
 	Cvar_Get ("rate", "25000", CVAR_USERINFO | CVAR_ARCHIVE );
 	Cvar_Get ("snaps", "40", CVAR_USERINFO | CVAR_ARCHIVE );
 	Cvar_Get ("model", "kyle/default", CVAR_USERINFO | CVAR_ARCHIVE );

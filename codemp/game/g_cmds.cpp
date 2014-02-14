@@ -881,8 +881,8 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 		trap_Argv(2+baseArg, arg, sizeof( arg ) );
 
 		creditAmount = atoi(arg);
-		ent->client->ps.persistant[PERS_CREDITS] += creditAmount;
-		trap_SendServerCommand( ent->client->ps.clientNum, va("print \"Your new balance is: %i credits\n\"", ent->client->ps.persistant[PERS_CREDITS]) );
+		int credits = (ent->client->ps.persistant[PERS_CREDITS] += creditAmount);
+		trap_SendServerCommand( ent->client->ps.clientNum, va("print \"Your new balance is: %i credits\n\"", max (0, credits)) );
 		return;
 	}
 
@@ -4874,7 +4874,8 @@ void ClientCommand( int clientNum ) {
 	else if (Q_stricmp (cmd, "credits") == 0)
 	{
 		//DEBUG: Show how many credits you have
-		trap_SendServerCommand( clientNum, va("print \"You have %i credits, %s.\n\"", ent->client->ps.persistant[PERS_CREDITS], ent->client->pers.netname) );
+		int credits = ent->client->ps.persistant[PERS_CREDITS];
+		trap_SendServerCommand( clientNum, va("print \"You have %i credits, %s.\n\"", max (0, credits), ent->client->pers.netname) );
 		return;
 	}
 	else if (!Q_stricmp(cmd, "buyVendor"))

@@ -3061,7 +3061,7 @@ static void PM_FlyMove( void ) {
 
 	scale = PM_CmdScale( &pm->cmd );
 	
-	if ( pm->ps->pm_type == PM_SPECTATOR && /*pm->cmd.buttons & BUTTON_ALT_ATTACK*/ pm->cmd.buttons & BUTTON_IRONSIGHTS ) {
+	if ( pm->ps->pm_type == PM_SPECTATOR && pm->cmd.buttons & BUTTON_IRONSIGHTS ) {
 		//turbo boost
 		scale *= 10;
 	}
@@ -3613,10 +3613,10 @@ static void PM_NoclipMove( void ) {
 	// accelerate
 	scale = PM_CmdScale( &pm->cmd );
 	if (pm->cmd.buttons & BUTTON_ATTACK) {	//turbo boost
-		scale *= 10;
+		scale *= 8;
 	}
-	if (/*pm->cmd.buttons & BUTTON_ALT_ATTACK*/ pm->cmd.buttons & BUTTON_IRONSIGHTS ) {	//turbo boost
-		scale *= 10;
+	if ( pm->cmd.buttons & BUTTON_IRONSIGHTS) {	//turbo boost
+		scale *= 8;
 	}
 
 	fmove = pm->cmd.forwardmove;
@@ -5551,7 +5551,7 @@ static void PM_Footsteps( void ) {
 			|| PM_CanRollFromSoulCal( pm->ps ) 
 			|| pm->ps->saberActionFlags & (1 << SAF_BLOCKING) 
 			|| pm->cmd.buttons & BUTTON_SPRINT
-			|| (pm->cmd.buttons & BUTTON_IRONSIGHTS && !pm->ps->pm_flags & PMF_DUCKED)
+			|| (pm->cmd.buttons & BUTTON_IRONSIGHTS && !pm->ps->pm_flags & PMF_DUCKED )
 			|| pm->cmd.buttons & BUTTON_WALKING )
 				&& !BG_InRoll(pm->ps, pm->ps->legsAnim) )
 			// simplified but more accurate at the same time
@@ -11048,19 +11048,19 @@ void PmoveSingle (pmove_t *pmove) {
 	{
 		if (pm->cmd.rightmove > 0)
 		{
-			PM_ContinueLegsAnim(BOTH_INAIRRIGHT1);
+			PM_ContinueLegsAnim(BOTH_FORCEJUMPRIGHT1);
 		}
 		else if (pm->cmd.rightmove < 0)
 		{
-            PM_ContinueLegsAnim(BOTH_INAIRLEFT1);
+            PM_ContinueLegsAnim(BOTH_FORCEJUMPLEFT1);
 		}
 		else if (pm->cmd.forwardmove > 0)
 		{
-			PM_ContinueLegsAnim(BOTH_INAIR1);
+			PM_ContinueLegsAnim(BOTH_FORCEJUMP1);
 		}
 		else if (pm->cmd.forwardmove < 0)
 		{
-			PM_ContinueLegsAnim(BOTH_INAIRBACK1);
+			PM_ContinueLegsAnim(BOTH_FORCEJUMPBACK1);
 		}
 		else
 		{
