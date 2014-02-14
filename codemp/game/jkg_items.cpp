@@ -12,13 +12,11 @@
 itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
 lootTable_t lootLookupTable[MAX_LOOT_TABLE_SIZE];
 vendorStruct_t *vendorLookupTable[32];
-static int lastUsedItemID = 1;
 
+static int lastUsedItemID = 1;
 static int lastUsedVendorID;
 
 extern void NPC_ConversationAnimation(gentity_t *NPC);
-
-//itemInstance_t BG_GenerateItem ( itemInstance_t *instance, unsigned int id, unsigned int quality, qboolean loot)
 
 itemData_t *JKG_GetItemByWeaponIndex ( int weaponIndex )
 {
@@ -1285,30 +1283,26 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 		
 		if( vendorEnt->s.eType == ET_NPC )
 		{
+			char filename[MAX_QPATH];
 			if (NPC_VendorHasVendorSound(vendorEnt, "purchase00"))
 			{// This NPC has it's own vendor specific sound(s)...
-				char	filename[256];
 				int		max = 1;
 
 				while (NPC_VendorHasVendorSound(vendorEnt, va("purchase0%i", max))) max++;
 
-				strcpy(filename, va("sound/vendor/%s/purchase0%i.mp3", vendorEnt->NPC_type, irand(0, max-1)));
+				Q_strncpyz(filename, va("sound/vendor/%s/purchase0%i.mp3", vendorEnt->NPC_type, Q_irand(0, max-1)), sizeof(filename));
 				NPC_ConversationAnimation(vendorEnt);
 				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
 			}
 			else if (NPC_VendorHasConversationSounds(vendorEnt))
 			{// Override with generic chat sounds for this specific NPC...
-				char	filename[256];
-			
-				strcpy(filename, va("sound/conversation/%s/conversation03.mp3", vendorEnt->NPC_type));
+				Q_strncpyz(filename, va("sound/conversation/%s/conversation03.mp3", vendorEnt->NPC_type), sizeof(filename));
 				NPC_ConversationAnimation(vendorEnt);
 				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
 			}
 			else
 			{// Use generic shop buy sound...
-				char	filename[256];
-
-				strcpy(filename, va("sound/vendor/generic/purchase0%i.mp3", irand(0,2)));
+				Q_strncpyz(filename, va("sound/vendor/generic/purchase0%i.mp3", Q_irand(0,2)), sizeof(filename));
 				NPC_ConversationAnimation(vendorEnt);
 				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
 			}
