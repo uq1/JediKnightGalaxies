@@ -3,8 +3,10 @@
 #include "g_local.h"
 #include "bg_saga.h"
 #include "jkg_gangwars.h"
-
 #include "../ui/menudef.h"			// for the voice chats
+#include "../GLua/glua.h"
+#include "jkg_admin.h"
+#include "jkg_chatcmds.h"
 
 //rww - for getting bot commands...
 int AcceptBotCommand(char *cmd, gentity_t *pl);
@@ -27,16 +29,81 @@ extern void WARZONE_RemoveAllWarzoneEnts ( void );
 extern void WARZONE_RemoveAmmoCrate ( void );
 extern void WARZONE_RemoveHealthCrate ( void );
 
-// Below...
-extern qboolean	CheatsOk( gentity_t *ent );
+/*
+==================
+CheatsOk
+==================
+*/
+qboolean	CheatsOk( gentity_t *ent ) {
+	if (ent->client->sess.adminRank >= ADMRANK_DEVELOPER)
+	{
+		return qtrue;
+	}
+	if (ent->client->sess.canUseCheats)
+		return qtrue;
+	if ( !sv_cheats.integer ) {
+		trap_SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
+		return qfalse;
+	}
+	if ( ent->health <= 0 || (ent->client && ent->client->deathcamTime) ) {
+		trap_SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBEALIVE")));
+		return qfalse;
+	}
+	return qtrue;
+}
 
-// Include GLua stuff
-#include "../GLua/glua.h"
-#include "jkg_admin.h"
-#ifdef __UNUSED__
-#include "jkg_navmesh_creator.h"
-#endif //__UNUSED__
-#include "jkg_chatcmds.h"
+
+/*
+==================
+ConcatArgs
+==================
+*/
+char	*ConcatArgs( int start ) {
+	int		i, c, tlen;
+	static char	line[MAX_STRING_CHARS];
+	int		len;
+	char	arg[MAX_STRING_CHARS];
+
+	len = 0;
+	c = trap_Argc();
+	for ( i = start ; i < c ; i++ ) {
+		trap_Argv( i, arg, sizeof( arg ) );
+		tlen = strlen( arg );
+		if ( len + tlen >= MAX_STRING_CHARS - 1 ) {
+			break;
+		}
+		memcpy( line + len, arg, tlen );
+		len += tlen;
+		if ( i != c - 1 ) {
+			line[len] = ' ';
+			len++;
+		}
+	}
+
+	line[len] = 0;
+
+	return line;
+}
+
+/*
+==================
+StringIsInteger
+==================
+*/
+qboolean StringIsInteger( const char *s ) {
+	int			i=0, len=0;
+	qboolean	foundDigit=qfalse;
+
+	for ( i=0, len=strlen( s ); i<len; i++ )
+	{
+		if ( !isdigit( s[i] ) )
+			return qfalse;
+
+		foundDigit = qtrue;
+	}
+
+	return foundDigit;
+}
 
 /*
 ==================
@@ -113,6 +180,17 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 		level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE],
 		string ) );
 #endif //__MMO__
+}
+
+/*
+==================
+Cmd_Score_f
+
+Request current scoreboard information
+==================
+*/
+void Cmd_Score_f( gentity_t *ent ) {
+	DeathmatchScoreboardMessage( ent );
 }
 
 /*
@@ -204,9 +282,14 @@ void JKG_ItemCheck_f(gentity_t *ent)
 	int itemNum;
 	int i;
 
-	trap_Argv(1, buffer, 64);
+	if(trap_Argc() < 2) {
+		trap_SendServerCommand(ent-g_entities, "print \"usage: /itemcheck <item ID or internal>\"\n");
+		return;
+	}
 
-	if(atoi(buffer))
+	trap_Argv(1, buffer, sizeof(buffer));
+
+	if(StringIsInteger(buffer))
 	{
 		itemNum = atoi(buffer);
 		if(itemLookupTable[itemNum].itemID)
@@ -411,97 +494,6 @@ Good for testing desync
 void JKG_DumpWeaponList_f( gentity_t *ent )
 {
 	BG_DumpWeaponList("svweaponlist.txt");
-}
-
-
-
-/*
-==================
-Cmd_Score_f
-
-Request current scoreboard information
-==================
-*/
-void Cmd_Score_f( gentity_t *ent ) {
-	DeathmatchScoreboardMessage( ent );
-}
-
-
-
-/*
-==================
-CheatsOk
-==================
-*/
-qboolean	CheatsOk( gentity_t *ent ) {
-	if (ent->client->sess.adminRank >= ADMRANK_DEVELOPER)
-	{
-		return qtrue;
-	}
-	if (ent->client->sess.canUseCheats)
-		return qtrue;
-	if ( !sv_cheats.integer ) {
-		trap_SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
-		return qfalse;
-	}
-	if ( ent->health <= 0 || (ent->client && ent->client->deathcamTime) ) {
-		trap_SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBEALIVE")));
-		return qfalse;
-	}
-	return qtrue;
-}
-
-
-/*
-==================
-ConcatArgs
-==================
-*/
-char	*ConcatArgs( int start ) {
-	int		i, c, tlen;
-	static char	line[MAX_STRING_CHARS];
-	int		len;
-	char	arg[MAX_STRING_CHARS];
-
-	len = 0;
-	c = trap_Argc();
-	for ( i = start ; i < c ; i++ ) {
-		trap_Argv( i, arg, sizeof( arg ) );
-		tlen = strlen( arg );
-		if ( len + tlen >= MAX_STRING_CHARS - 1 ) {
-			break;
-		}
-		memcpy( line + len, arg, tlen );
-		len += tlen;
-		if ( i != c - 1 ) {
-			line[len] = ' ';
-			len++;
-		}
-	}
-
-	line[len] = 0;
-
-	return line;
-}
-
-/*
-==================
-StringIsInteger
-==================
-*/
-qboolean StringIsInteger( const char *s ) {
-	int			i=0, len=0;
-	qboolean	foundDigit=qfalse;
-
-	for ( i=0, len=strlen( s ); i<len; i++ )
-	{
-		if ( !isdigit( s[i] ) )
-			return qfalse;
-
-		foundDigit = qtrue;
-	}
-
-	return foundDigit;
 }
 
 /*
