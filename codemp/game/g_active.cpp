@@ -2086,23 +2086,6 @@ void G_PM_SwitchWeaponFiringMode(playerState_t *ps, int newweapon, int newvariat
 	ent->client->ps.firingMode = ent->client->firingModes[ BG_GetWeaponIndexFromClass(newweapon, newvariation) ];
 }
 
-// JKG_GroundDistance
-// Determines distance to ground
-// Used in a number of places, including sprint and saber blocking
-float JKG_GroundDistance(playerState_t *ps, vec3_t mins, vec3_t maxs, int contentMask)
-{
-	trace_t tr;
-	vec3_t down;
-
-	VectorCopy(ps->origin, down);
-	down[2] -= 4096;
-
-	trap_Trace(&tr, ps->origin, mins, maxs, down, ps->clientNum, contentMask);
-
-	VectorSubtract(ps->origin, tr.endpos, down);
-	return VectorLength(down);
-}
-
 extern vmCvar_t jkg_deathTimer;
 gentity_t *WP_FireGenericGrenade( gentity_t *ent, int firemode, vec3_t origin, vec3_t dir );
 void ClientThink_real( gentity_t *ent ) {
@@ -2760,8 +2743,8 @@ void ClientThink_real( gentity_t *ent ) {
 	if ( ent->client->ps.weapon == WP_SABER &&
 		!ent->NPC && !BG_SabersOff(&ent->client->ps))								// NPCs don't use this method, they do it on their own terms --eez
 	{
-		if( ent->client->pers.cmd.buttons & BUTTON_IRONSIGHTS/* &&			// holding sights button
-			(ent->client->ps.groundEntityNum != ENTITYNUM_NONE || JKG_GroundDistance(&ent->client->ps, ent->r.mins, ent->r.maxs, MASK_SOLID) > 4.0f)*/&&		// not in air
+		if( ent->client->pers.cmd.buttons & BUTTON_IRONSIGHTS /*&&			// holding sights button
+			(ent->client->ps.groundEntityNum != ENTITYNUM_NONE ) */ &&		// not in air
 			//ent->client->ps.forceAllowDeactivateTime > level.time &&	// not using a force power
 			(  ent->client->ps.torsoTimer <= 0 || ent->client->saberBlockDebounce >= level.time || // NOT ATTACKING (swingblocks not permitted, period)
 			(ent->client->ps.saberMove >= LS_R_TL2BR && ent->client->ps.saberMove <= LS_R_T2B &&
