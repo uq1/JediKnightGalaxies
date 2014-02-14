@@ -3805,6 +3805,11 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 	}
 
+	if (ent->client->ps.persistant[PERS_CREDITS] < 0)
+	{
+		ent->client->ps.persistant[PERS_CREDITS] = 0;
+	}
+
 }
 
 /*
