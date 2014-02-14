@@ -319,34 +319,17 @@ void JKG_BuyItem_f(gentity_t *ent)
 			{// UQ1: Actual NPC (non trigger) usage...
 				gentity_t *pointingAt = &g_entities[entities[i]];
 
-				if(!pointingAt || !pointingAt->inuse || !pointingAt->client || pointingAt->s.eType != ET_NPC)
+				if(!pointingAt || !pointingAt->inuse)
 				{
 					continue;	//No target
 				}
 
-				/*switch (pointingAt->client->NPC_class)
-				{// UQ1: Need to change these in the actual NPC script files...
-				case CLASS_GENERAL_VENDOR:
-				case CLASS_WEAPONS_VENDOR:
-				case CLASS_ARMOR_VENDOR:
-				case CLASS_SUPPLIES_VENDOR:
-				case CLASS_FOOD_VENDOR:
-				case CLASS_MEDICAL_VENDOR:
-				case CLASS_GAMBLER_VENDOR:
-				case CLASS_TRADE_VENDOR:
-				case CLASS_ODDITIES_VENDOR:
-				case CLASS_DRUG_VENDOR:
-				case CLASS_TRAVELLING_VENDOR:*/
-					{//This is a vendor. Buy it!
-						char buffer[16];
-						trap_Argv(1, buffer, sizeof(buffer));
-						JKG_Vendor_Buy(ent, pointingAt, atoi(buffer));
-						return;
-					}
-					/*break;
-				default:
-					break;
-				}*/
+				{//This is a vendor. Buy it!
+					char buffer[8];
+					trap_Argv(1, buffer, sizeof(buffer));
+					JKG_Vendor_Buy(ent, pointingAt, atoi(buffer));
+					return;
+				}
 			}
 		}
 	}

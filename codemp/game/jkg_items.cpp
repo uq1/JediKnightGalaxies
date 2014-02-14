@@ -1198,15 +1198,9 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 
 	if(!vendorEnt)
 	{
-		//Not pointing at anything. ABORT! --eez
-		//Com_Printf("^3WARNING: jkg_target_vendor with no target\n");
-		//return;
-
-		// UQ1: Perfectly valid now - NPC's are now useable themselves (without a trigger ent)...
 		vendorEnt = targetVendor;
 	}
 
-	// K, the itemID is actually now the "item" arg, which should hopefully correct the little mistake of shops not giving out correct items --eez
 	for(i = 0; i < vendorEnt->vendorData.numItemsInStock; i++)
 	{
 		if(vendorEnt->vendorData.itemsInStock[i] == item)
@@ -1216,11 +1210,10 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 		}
 	}
 
-	// itemID = vendorEnt->vendorData.itemsInStock[item];
 	// alright, now let's do the check! --eez
 	if( itemID == -1 )
 	{
-		//Com_Printf("^3WARNING: Invalid vendor item.\n");
+		Com_Printf("^3WARNING: Invalid vendor item.\n");
 		return;
 	}
 
@@ -1233,15 +1226,6 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 	{
 		return; // DEAD??
 	}
-
-	// No longer a valid check, matter of factually --eez
-	/*if(item > vendorEnt->vendorData.numItemsInStock)
-	{
-		//Invalid item
-		//Com_Printf("^3WARNING: Invalid vendor item.\n");
-		//assert(0);
-		return;
-	}*/
 
 	// UQ1: Face the customer...
 	if( vendorEnt->s.eType == ET_NPC )
@@ -1258,30 +1242,27 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 
 		if ( vendorEnt->s.eType == ET_NPC )
 		{
+			char filename[MAX_QPATH];
 			if (NPC_VendorHasVendorSound(vendorEnt, "purchasefail00"))
 			{// This NPC has it's own vendor specific sound(s)...
-				char	filename[256];
 				int		max = 1;
 
 				while (NPC_VendorHasVendorSound(vendorEnt, va("purchasefail0%i", max))) max++;
 
-				strcpy(filename, va("sound/vendor/%s/purchasefail0%i.mp3", vendorEnt->NPC_type, irand(0, max-1)));
+				Q_strncpyz(filename, va("sound/vendor/%s/purchasefail0%i.mp3", vendorEnt->NPC_type, Q_irand(0, max-1)), sizeof(filename));
 				NPC_ConversationAnimation(vendorEnt);
 				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
 			}
 			else if (NPC_VendorHasConversationSounds(vendorEnt))
 			{// Override with generic chat sounds for this specific NPC...
-				char	filename[256];
-			
-				strcpy(filename, va("sound/conversation/%s/conversation02.mp3", vendorEnt->NPC_type));
+				// FIXME: why?
+				Q_strncpyz(filename, va("sound/conversation/%s/conversation02.mp3", vendorEnt->NPC_type), sizeof(filename));
 				NPC_ConversationAnimation(vendorEnt);
 				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
 			}
 			else
 			{// Use generic shop buy sound...
-				char	filename[256];
-
-				strcpy(filename, va("sound/vendor/generic/purchasefail0%i.mp3", irand(0,5)));
+				Q_strncpyz(filename, va("sound/vendor/generic/purchasefail0%i.mp3", Q_irand(0,5)), sizeof(filename)); // FIXME: magic numbers
 				NPC_ConversationAnimation(vendorEnt);
 				G_SoundOnEnt( vendorEnt, CHAN_VOICE_ATTEN, filename );
 			}
