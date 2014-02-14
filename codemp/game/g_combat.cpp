@@ -2298,13 +2298,10 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 #ifndef __MMO__
 	if(jkg_bounty.integer)
 	{
-		if( attacker != self )
-		{
-			if( attacker->client )
+		if( attacker != self && attacker->client && !OnSameTeam(attacker, self) )
 			{
 				attacker->client->numKillsThisLife++;
 			}
-		}
 	}
 #endif
 
@@ -2318,8 +2315,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			int credits = jkg_creditsPerKill.integer;
 			int bounty = (self->client->numKillsThisLife >= 3) ? self->client->numKillsThisLife*jkg_bounty.integer : 0;
 			attacker->client->ps.persistant[PERS_CREDITS] += (credits + bounty);
-			// UQ1: Again, use an event :) creds as additional value on it.
-			// eez: events are sent to all players...
 			if(bounty > 0)
 			{
 				trap_SendServerCommand(attacker-g_entities, va("notify 1 \"Kill: +%i Credits, +%i Bounty\"", credits, bounty));
@@ -2334,7 +2329,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		}
 	}
 #ifndef __MMO__
-	// Need to send this as an event. This is incredibly ugly atm
 	if(jkg_bounty.integer)
 	{
 		if(self->client && attacker->client && self->client->numKillsThisLife >= 3 )
