@@ -14,7 +14,7 @@ Copy assets0-3.pk3s from your base game into JKG's base folder.
 
 ## Dependencies ##
 
-* Boost library
+* Boost library (Place the boost folder in codemp/)
 * OpenGL
 * OpenAL (included on Windows)
 * libpng (included on Windows)
@@ -34,7 +34,7 @@ Please be aware of the implications of the GPLv2 licence. In short, be prepared 
 ### If you wish to contribute to JKGalaxies, please do the following ###
 * [Fork](https://github.com/JKGDevs/JediKnightGalaxies/fork) the project on Github
 * Create a new branch and make your changes
-* Send a [pull request](https://help.github.com/articles/creating-a-pull-request) to upstream (Razish/OpenJK)
+* Send a [pull request](https://help.github.com/articles/creating-a-pull-request) to upstream (JKGDevs/JediKnightGalaxies)
 
 ### If you wish to base your work off JKGalaxies (mod or engine) ###
 * [Fork](https://github.com/JKGDevs/JediKnightGalaxies/fork) the project on Github
@@ -43,3 +43,6 @@ Please be aware of the implications of the GPLv2 licence. In short, be prepared 
 
 ### Engine "hax" ###
 * You will no longer be able to use runtime memory patches. Consider forking JKG and adding your engine modifications directly.
+
+
+This project is based on [OpenJK](https://github.com/JACoders/OpenJK)
