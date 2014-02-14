@@ -27,6 +27,8 @@ In order to run dedicated server, you must use the JKGalaxiesDed binary, running
 
 ## Developer Notes ##
 
+Cmake not functioning at the moment. Find the MSVS C++ Express 2010 solution inside codemp/ .
+
 JKG is licensed under GPLv2 as free software. You are free to use, modify and redistribute JKG following the terms in LICENSE.txt.
 
 Please be aware of the implications of the GPLv2 licence. In short, be prepared to share your code.
