@@ -130,9 +130,14 @@ void JKG_ItemLookup_f(gentity_t *ent)
 	unsigned int i;
 	int badItems = 0;
 	int goodItems = 0;
-	char buffer[64];
-	char lookupString[960];
+	char buffer[64] = {0};
+	char lookupString[1024] = {0};
 	int maximum, minimum;
+
+	if (trap_Argc() < 3) {
+		trap_SendServerCommand(ent-g_entities, "print \"format: itemLookup <minimum> <maximum>\n\"");
+		return;
+	}
 
 	//Grab our args.
 	trap_Argv(1, buffer, 64);
@@ -140,11 +145,6 @@ void JKG_ItemLookup_f(gentity_t *ent)
 	trap_Argv(2, buffer, 64);
 	maximum = atoi(buffer);
 
-	if(!minimum || !maximum)
-	{ //Bad args.
-		trap_SendServerCommand(ent-g_entities, "print \"format: itemLookup <minimum> <maximum>\n\"");
-		return;
-	}
 	if(minimum > maximum)
 	{ //Oops, mixed the args most likely.
 		trap_SendServerCommand(ent-g_entities, "print \"Minimum must be less than maximum.\n\"");
@@ -183,10 +183,10 @@ void JKG_ItemLookup_f(gentity_t *ent)
 	}
 	else
 	{
-		trap_SendServerCommand(ent-g_entities, va("print \"%s\"", lookupString));
+		trap_SendServerCommand(ent-g_entities, va("print \"%s\"\n", lookupString));
 		if(badItems)
 		{
-			trap_SendServerCommand(ent-g_entities, va("print \"%i bad indeces\"", badItems));
+			trap_SendServerCommand(ent-g_entities, va("print \"%i bad indices\n\"", badItems));
 		}
 	}
 }
