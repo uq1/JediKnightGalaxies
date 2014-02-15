@@ -2659,7 +2659,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	//
 	case EV_PLAYER_TELEPORT_IN:
 		DEBUGNAME("EV_PLAYER_TELEPORT_IN");
-		{
+		/*{
 			trace_t tr;
 			vec3_t playerMins = {-15, -15, DEFAULT_MINS_2+8};
 			vec3_t playerMaxs = {15, 15, DEFAULT_MAXS_2};
@@ -2681,12 +2681,13 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				break;
 			}
 			trap_FX_PlayEffectID(cgs.effects.mSpawn, pos, ang, -1, -1);
-		}
+		}*/ 
+		// Pande: is annoying, doesn't fit aesthetically, and the effect relies on gfx from Mace's stargate stuff.
 		break;
 
 	case EV_PLAYER_TELEPORT_OUT:
 		DEBUGNAME("EV_PLAYER_TELEPORT_OUT");
-		{
+		/*{
 			trace_t tr;
 			vec3_t playerMins = {-15, -15, DEFAULT_MINS_2+8};
 			vec3_t playerMaxs = {15, 15, DEFAULT_MAXS_2};
@@ -2708,7 +2709,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				break;
 			}
 			trap_FX_PlayEffectID(cgs.effects.mSpawn, pos, ang, -1, -1);
-		}
+		} */ 
+		// Pande: is annoying, doesn't fit aesthetically, and the effect relies on gfx from Mace's stargate stuff.
 		break;
 
 	case EV_ITEM_POP:
