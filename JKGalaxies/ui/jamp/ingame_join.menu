@@ -122,7 +122,7 @@
 		itemDef 
 		{
 			name				team
-			text				@MENUS_TEAM_RED
+			text				""
 			type				1
 			style				2	
 			rect				2 34 124 30   
@@ -163,7 +163,7 @@
 		itemDef 
 		{
 			name				team
-			text				@MENUS_TEAM_BLUE
+			text				""
 			type				1
 			style				2	
 			rect				2 64 124 30   
@@ -201,6 +201,67 @@
 			}
 		}
 
+		
+		///////////////////////////////////////////////
+		// Jedi Knight Galaxies
+		// Gang Wars spec
+		///////////////////////////////////////////////
+
+		itemDef
+		{
+			name				teamtext
+			type				ITEM_TYPE_OWNERDRAW
+			ownerdraw			1043
+			style				2	
+			rect				2 34 124 30   
+			textalign			ITEM_ALIGN_CENTER
+			textalignx			62
+			textaligny			0     
+			font				2
+			textscale			1
+			forecolor			1 0.2 0.2 1
+			cvarTest			"ui_about_gametype"
+			showCvar 
+			{ 
+				"4" ; 
+				"5" ; 
+				"6" ;
+				"7" ; 
+				"8" ;
+				"9" ;
+			}
+			visible				1
+			decoration
+		}
+		itemDef
+		{
+			name				teamtext
+			text				""
+			type				ITEM_TYPE_OWNERDRAW
+			ownerdraw			1044
+			style				2	
+			rect				2 64 124 30   
+			textalign			ITEM_ALIGN_CENTER
+			textalignx			62
+			textaligny			0     
+			font				2
+			textscale			1
+			forecolor			0.2 0.2 1 1
+			cvarTest			"ui_about_gametype"
+			showCvar 
+			{ 
+				"4" ; 
+				"5" ; 
+				"6" ;
+				"7" ; 
+				"8" ;
+				"9" ;
+			}
+			visible				1
+			decoration
+		}
+
+		
 
 		itemDef 
 		{
