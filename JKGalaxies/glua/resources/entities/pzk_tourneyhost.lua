@@ -40,8 +40,8 @@ end
 
 -- OnUse event, called after a player presses use on the entity (assuming the entity is usable by players) or if the entity is triggered by another entity
 -- The 'other' argument is the entity that triggered it (in case it was triggered by another entity),
--- the 'activator' is the (usually player) responsible for the start of the chain
--- So, for example, if you have a button, targetting a target_relay, which targets this entity,
+-- the 'activator' is the entity (usually player) responsible for the start of the chain
+-- So, for example, if you have a button, targeting a target_relay, which targets this entity,
 -- the 'other' will be the target_relay entity, and the 'activator' the player that pressed the button
 function ENT:OnUse(other, activator)
 	-- If we're in a timeout, ignore the use for now
