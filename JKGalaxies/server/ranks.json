@@ -12,6 +12,7 @@
 
 			// Defaults to 1
 			"can-changedetails":	1,
+			"can-kick":	1,
 
 			// Account management
 			"can-addaccounts":	1,
@@ -43,6 +44,68 @@
 			"can-alter-password":	1,
 
 			// Building
+			"can-place":		1,
+			"can-delent":		1,
+			"can-showspawnvars":	1,
+			"can-entcount":		1,
+			"can-rotate":		1
+		}	
+	]
+
+	[
+		{
+			"name":			"Client",
+			"use-cheats":		0,
+			"can-changedetails":	0,
+			"can-addaccounts":	0,
+			"can-deleteaccounts":	0,
+			"can-status":		0,
+			"can-kick":	0,
+			"can-say":		0,
+			"can-tell":		0,
+			"can-speak":		0,
+			"can-puppet":		0,
+			"can-list-online":	0,
+			"can-list-admins":	0,
+			"can-list-ranks":	0,
+			"can-list-powers":	0,
+			"can-rank-inspect":	0,
+			"can-rank-create":	0,
+			"can-rank-delete":	0,
+			"can-rank-alter":	0,
+			"can-alter-rank":	0,
+			"can-alter-password":	0,
+			"can-place":		0,
+			"can-delent":		0,
+			"can-showspawnvars":	0,
+			"can-entcount":		0,
+			"can-rotate":		0
+		}
+	]
+	
+	[
+		{
+			"name":			"Builder",
+			"use-cheats":		0,
+			"can-changedetails":	0,
+			"can-addaccounts":	0,
+			"can-deleteaccounts":	0,
+			"can-status":		0,
+			"can-kick":	0,
+			"can-say":		0,
+			"can-tell":		0,
+			"can-speak":		0,
+			"can-puppet":		0,
+			"can-list-online":	0,
+			"can-list-admins":	0,
+			"can-list-ranks":	0,
+			"can-list-powers":	0,
+			"can-rank-inspect":	0,
+			"can-rank-create":	0,
+			"can-rank-delete":	0,
+			"can-rank-alter":	0,
+			"can-alter-rank":	0,
+			"can-alter-password":	0,
 			"can-place":		1,
 			"can-delent":		1,
 			"can-showspawnvars":	1,

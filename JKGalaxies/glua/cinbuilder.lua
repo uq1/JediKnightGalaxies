@@ -302,8 +302,9 @@ end
 
 local function CinBuild(ply, argc, argv)
 	local temp
-	if (ply.AdminRank < ADMRANK_ADMIN) then
-		ply:SendPrint("Only administrators are authorized to use the cinematic builder")
+	local rank = GetRank(ply)
+	if rank["can-cinbuild"] ~= true then
+		SystemReply(ply, "^1You do not have permission to perform this action.")
 		return
 	end
 	if (argc<2) then

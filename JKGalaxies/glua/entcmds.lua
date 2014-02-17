@@ -6,14 +6,14 @@
 --------------------------------------------------]]
 
 local function ShowSpawnVars(ply, argc, argv)
-	if ply.IsAdmin ~= true then
-		ply:SendPrint("^7Admin System - ^1You are not logged in.")
+	if ply.isLoggedIn ~= true then
+		ply:SendPrint("^7System: ^1You are not logged in.")
 		return
 	end
 
-	local rank = AdmRank_GetRank(ply)
+	local rank = GetRank(ply)
 	if rank["can-showspawnvars"] ~= true then
-		ply:SendPrint("^1Admin ^5- ^7You are not allowed to use this command")
+		ply:SendPrint("^7System: ^1You are not allowed to use this command")
 		return
 	end
 
@@ -42,14 +42,14 @@ end
 
 -- Replica of lugormod's delent~
 local function delent(ply, argc, argv)
-	if ply.IsAdmin ~= true then
-		ply:SendPrint("^7Admin System - ^1You are not logged in.")
+	if ply.isLoggedIn ~= true then
+		ply:SendPrint("^7System: ^1You are not logged in.")
 		return
 	end
 
-	local rank = AdmRank_GetRank(ply)
+	local rank = GetRank(ply)
 	if rank["can-delent"] ~= true then
-		ply:SendPrint("^1Admin ^5- ^7You are not allowed to use this command")
+		ply:SendPrint("^7System: ^1You are not allowed to use this command")
 		return
 	end
 
@@ -80,14 +80,14 @@ end
 -- Replica of lugormod's place command
 -- Syntax: /place <entity name> <distance from aimed surface (* for explicit origin)> [key,value,key,value etc..]
 local function place(ply, argc, argv)
-	if ply.IsAdmin ~= true then
-		ply:SendPrint("^7Admin System - ^1You are not logged in.")
+	if ply.isLoggedIn ~= true then
+		ply:SendPrint("^7System: ^1You are not logged in.")
 		return
 	end
 
-	local rank = AdmRank_GetRank(ply)
+	local rank = GetRank(ply)
 	if rank["can-place"] ~= true then
-		ply:SendPrint("^1Admin ^5- ^7You are not allowed to use this command")
+		ply:SendPrint("^7System: ^1You are not allowed to use this command")
 		return
 	end
 
@@ -130,14 +130,14 @@ local function place(ply, argc, argv)
 end
 
 local function entcount(ply, argc, argv)
-	if ply.IsAdmin ~= true then
-		ply:SendPrint("^7Admin System - ^1You are not logged in.")
+	if ply.isLoggedIn ~= true then
+		ply:SendPrint("^7System: ^1You are not logged in.")
 		return
 	end
 
-	local rank = AdmRank_GetRank(ply)
+	local rank = GetRank(ply)
 	if rank["can-entcount"] ~= true then
-		ply:SendPrint("^1Admin ^5- ^7You are not allowed to use this command")
+		ply:SendPrint("^7System: ^1You are not allowed to use this command")
 		return
 	end
 
@@ -145,14 +145,14 @@ local function entcount(ply, argc, argv)
 end
 
 local function rotate(ply, argc, argv)
-	if ply.IsAdmin ~= true then
-		ply:SendPrint("^7Admin System - ^1You are not logged in.")
+	if ply.isLoggedIn ~= true then
+		ply:SendPrint("^7System: ^1You are not logged in.")
 		return
 	end
 
-	local rank = AdmRank_GetRank(ply)
+	local rank = GetRank(ply)
 	if rank["can-rotate"] ~= true then
-		ply:SendPrint("^1Admin ^5- ^7You are not allowed to use this command")
+		ply:SendPrint("^7System: ^1You are not allowed to use this command")
 		return
 	end
 

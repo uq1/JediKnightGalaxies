@@ -976,7 +976,7 @@ struct gclient_s {
 	int         damageTypeTime[NUM_DAMAGE_TYPES];
 	int         damageTypeLastEffectTime[NUM_DAMAGE_TYPES];
 	gentity_t	*damageTypeOwner[NUM_DAMAGE_TYPES];
-	std::string adminAccount;
+	std::string Account;
 	
 	// Custom disco messages
 	int			customDisconnectMsg;
