@@ -29,7 +29,7 @@
             "projectilemodel": "models/ammo/quarrel_projectile.md3",
             "projectilefx": "slugthrowers/slug_shot",
             "miss":         { "impactfx": "slugthrowers/impactsmall" },
-            "hit":          { "impactfx": "weapons/slug_impact_flesh_blood" }
+            "hit":          { "impactfx": "weapons/slug_impact_flesh_blood" },
 	    "displayName":  "Automatic"
         },
         
@@ -46,7 +46,7 @@
             "projectilemodel": "models/ammo/quarrel_projectile.md3",
             "projectilefx": "slugthrowers/slug_shot",
             "miss":         { "impactfx": "slugthrowers/impactsmall" },
-            "hit":          { "impactfx": "weapons/slug_impact_flesh_blood" }
+            "hit":          { "impactfx": "weapons/slug_impact_flesh_blood" },
 	    "displayName":  "Semi-auto"
         }
     },

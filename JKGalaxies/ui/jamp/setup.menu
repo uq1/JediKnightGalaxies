@@ -19,10 +19,12 @@
 //		descAlignment				ITEM_ALIGN_CENTER		
 
 		onOpen 
-		{
+		{			
 			uiScript 		loadControls;
 			uiScript		getvideosetup ;			// Get video settings
-
+			
+			transition2	mainmenubutton_arrow		218 25 20 160	15	15
+			
 			show 		graphicsMenu ;
 			hide			customres ;
 			hide			customwidth_button ;
@@ -32,9 +34,9 @@
 			hide			graphics2Menu ;
 			hide			audioMenu ;
 			hide			controlsMenu ;
+			hide			controlsMenuTitle ;
 			hide			controls2Menu ;
 			hide			controls3Menu ;
-			hide			controls4Menu ;
 			hide			optionsMenu ;
 			hide			defaults ;
 			hide			highlights
@@ -265,9 +267,9 @@
 				hide			graphics2Menu ;
 				hide			audioMenu ;
 				hide			controlsMenu ;
+				hide			controlsMenuTitle ;
 				hide			controls2Menu ;
 				hide			controls3Menu ;
-				hide			controls4Menu ;
 				hide			optionsMenu ;
 				hide			defaults ;
 				hide			highlights
@@ -358,11 +360,11 @@
 				hide			applyChanges ;
 				hide			vidRestart ;
 				hide			graphics2Menu ;
-				show		audioMenu ;
+				show			audioMenu ;
 				hide			controlsMenu ;
+				hide			controlsMenuTitle ;
 				hide			controls2Menu ;
 				hide			controls3Menu ;
-				hide			controls4Menu ;
 				hide			optionsMenu ;
 				hide			defaults ;
 				hide			highlights
@@ -454,10 +456,10 @@
 				hide			vidRestart ;
 				hide			graphics2Menu ;
 				hide			audioMenu ;
-				show		controlsMenu ;
+				show			controlsMenu ;
+				show			controlsMenuTitle ;
 				hide			controls2Menu ;
 				hide			controls3Menu ;
-				hide			controls4Menu ;
 				hide			optionsMenu ;
 				hide			defaults ;
 				hide			highlights
@@ -536,7 +538,7 @@
 			action 
 			{
 				transition2	mainmenubutton_arrow		218 184 20 160	15	15
-
+				
 				play			"sound/interface/button1.wav" ;
 
 				defer			VideoSetup	videowarningMenu ;
@@ -550,9 +552,9 @@
 				hide			graphics2Menu ;
 				hide			audioMenu ;
 				hide			controlsMenu ;
+				hide			controlsMenuTitle ;
 				hide			controls2Menu ;
 				hide			controls3Menu ;
-				hide			controls4Menu ;
 				show		optionsMenu ;
 				hide			defaults ;
 				hide			highlights
@@ -1752,9 +1754,9 @@
 			hide			graphics2Menu ;
 			hide			audioMenu ;
 			hide			controlsMenu ;
+			hide			controlsMenuTitle ;
 			hide			controls2Menu ;
 			hide			controls3Menu ;
-			hide			controls4Menu ;
 			hide			optionsMenu ;
 			hide			defaults ;
 			hide			highlights
@@ -1812,9 +1814,9 @@
 			show		graphics2Menu ;
 			hide			audioMenu ;
 			hide			controlsMenu ;
+			hide			controlsMenuTitle ;
 			hide			controls2Menu ;
 			hide			controls3Menu ;
-			hide			controls4Menu ;
 			hide			optionsMenu ;
 			hide			defaults ;
 			hide			highlights
@@ -1965,9 +1967,9 @@
 				hide			graphics2Menu ;
 				hide			audioMenu ;
 				hide			controlsMenu ;
+				hide			controlsMenuTitle ;
 				hide			controls2Menu ;
 				hide			controls3Menu ;
-				hide			controls4Menu ;
 				hide			optionsMenu ;
 				hide			defaults ;
 				hide			highlights
@@ -2127,12 +2129,12 @@
 				@MENUS_OFF 	0 
 				@MENUS_ON 	1 
 			}
-			rect				260 300 340 14
+			rect				300 300 340 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font				5
+			textscale				0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_TOGGLE_TO_TURN_ON_MOVING
@@ -2162,12 +2164,12 @@
 				@MENUS_OFF 	0 
 				@MENUS_ON 	1 
 			}
-			rect				260 314 340 14
+			rect				300 314 340 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale				0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_DYNAMIC_GLOW_DESC
@@ -2188,7 +2190,7 @@
 		itemDef 
 		{	
 			name				light_flares
-			group				video2
+			group				graphics2menu
       		type				ITEM_TYPE_MULTI
 			text				@MENUS_LIGHT_FLARES
 			cvar				r_flares
@@ -2197,12 +2199,12 @@
 				@MENUS_OFF 	0 
 				@MENUS_ON 	1 
 			}
-			rect				260 328 340 14
+			rect				300 328 340 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale				0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_TOGGLE_TO_SHOW_HALOS
@@ -2223,7 +2225,7 @@
 		itemDef 
 		{	
 			name				wall_marks
-			group				video2
+			group				graphics2menu
       		type				ITEM_TYPE_MULTI
 			text				@MENUS_WALL_MARKS
 			cvar				cg_marks
@@ -2232,12 +2234,12 @@
 				@MENUS_OFF 	0 
 				@MENUS_ON 	1 
 			}
-			rect				260 342 340 14
+			rect				300 342 340 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale				0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_TOGGLE_TO_DISPLAY_SCORCH
@@ -2258,18 +2260,18 @@
 		itemDef 
 		{	
 			name				video_mode
-			group				video2
+			group				graphics2menu
 			type				ITEM_TYPE_SLIDER
 			text				@MENUS_ANISOTROPIC_FILTERING
 			cvarTest			r_ext_texture_filter_anisotropic_avail
 			disableCvar			{ 0 }     
 			cvarfloat				r_ext_texture_filter_anisotropic 1 .5 16
-			rect				260 356 340 14
+			rect				300 360 120 14
 			textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale				0.42
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_TOGGLE_ADVANCED_TEXTURE
@@ -2292,7 +2294,7 @@
 			name				advancedvideobutton_glow
 			group				highlights
 			style				WINDOW_STYLE_SHADER
-			rect				260 384 340 14
+			rect				300 384 340 14
 			background			"gfx/menus/menu_buttonback"			// Frame around button
 			forecolor			1 1 1 1
 			visible				0
@@ -2302,15 +2304,15 @@
 		itemDef 
 		{	
 			name				advancedvideo
-			group				video2
+			group				graphics2menu
       		type					ITEM_TYPE_BUTTON
 			text				@MENUS_SHOW_DRIVER_INFO
-			rect				260 384 340 14
+			rect				300 384 340 14
 			textalign			ITEM_ALIGN_CENTER
-			textalignx			170
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_SHOW_ADVANCED_INFORMATION
@@ -2336,19 +2338,39 @@
 //	SOUND FIELDS
 //
 //----------------------------------------------------------------------------------------------
+	itemDef
+		{
+			name				audioMenu_title
+			group				audioMenu
+			style				WINDOW_STYLE_EMPTY
+			type				ITEM_TYPE_BUTTON
+			rect				337 141 263 26
+			text				"-Audio Settings-"
+			font				5
+			textscale				1
+			textalign				ITEM_ALIGN_CENTER
+			textalignx			131
+			textaligny			-2
+			textstyle			0
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+
+			
 		itemDef 
 		{
 			name				effects_volume
-			group				sound
+			group				audioMenu
 			type				ITEM_TYPE_SLIDER
 			text				@MENUS_EFFECTS_VOLUME
 			cvarfloat			"s_volume" 0 0 1
-			rect				260 188 340 14
+			rect				300 188 120 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_ADJUST_VOLUME_FOR_SOUND
@@ -2370,16 +2392,16 @@
 		itemDef 
 		{
 			name				music_volume
-			group				sound
+			group				audioMenu
 			type				ITEM_TYPE_SLIDER
 			text				@MENUS_MUSIC_VOLUME
 			cvarfloat			"s_musicvolume" 0 0 1
-			rect				260 216 340 14
+			rect				300 216 120 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_ADJUST_VOLUME_FOR_MUSIC
@@ -2401,16 +2423,16 @@
 		itemDef 
 		{
 			name				voice_volume
-			group				sound
+			group				audioMenu
 			type				ITEM_TYPE_SLIDER
 			text				@MENUS_VOICE_VOLUME
 			cvarfloat			"s_volumeVoice" 0 0 1
-			rect				260 244 340 14
+			rect				300 244 120 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_VOICE_VOLUME_DESC
@@ -2432,7 +2454,7 @@
 		itemDef 
 		{	
 			name				sound_quality
-			group				sound
+			group				audioMenu
       			type				ITEM_TYPE_MULTI
 			text				@MENUS_SOUND_QUALITY
 			cvar				"s_khz"
@@ -2441,12 +2463,12 @@
 				@MENUS_LOW 	11  
 				@MENUS_HIGH 	22 
 			}
-			rect				260 272 340 14
+			rect				300 272 120 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_TRADE_CLARITY_OF_SOUND
@@ -2471,7 +2493,7 @@
 		itemDef 
 		{
 			name				eax
-			group				sound
+			group				audioMenu
 			type				ITEM_TYPE_MULTI
 			cvar				"s_UseOpenAL"
 			cvarFloatList		
@@ -2480,12 +2502,12 @@
 				@MENUS_ON 	1 
 			}
 			text				@MENUS_EAX
-			rect				260 300 340 14
+			rect				300 300 120 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_EAX_DESC
@@ -2508,7 +2530,7 @@
 		itemDef
 		{
 			name				eax_icon
-			group				sound
+			group				audioMenu
 			style				WINDOW_STYLE_SHADER
 			rect				380 320 128 64
 			background			"gfx/menus/eax"
@@ -2529,7 +2551,7 @@
 		itemDef
 		{
 			name				controlsMenu_title
-			group				controlsMenu
+			group				controlsMenuTitle
 			style				WINDOW_STYLE_EMPTY
 			type				ITEM_TYPE_BUTTON
 			rect				337 141 263 26
@@ -2579,7 +2601,6 @@
 				hide			controlsMenu ;
 				show		controls2Menu ;
 				hide			controls3Menu ;
-				hide			controls4Menu ;
 				hide			highlights ;
 			}
 			mouseEnter 
@@ -2595,27 +2616,787 @@
 
 		}
 
-		// CONFIGURE CONTROLS title
-		itemDef
+		itemDef 
 		{
-			name				controls2Menu_title
-			group				controls2Menu
-			style				WINDOW_STYLE_EMPTY
-			type				ITEM_TYPE_BUTTON
-			rect				337 141 263 26
-			text				@JKG_MAINMENU_CONFIGCONTROLS
+		   	name 			forward_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_FORWARD
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 180 117 7
+			rect				460 174 155 19
+			background			"gfx/ui/mainsub_sliderbar"
 			font				5
-			textscale				0.9
-			textalign				ITEM_ALIGN_CENTER
-			textalignx			131
-			textaligny			0
-			textstyle			0
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
 			forecolor			1 1 1 1
-			visible				1
-			decoration
+
+	   		visible 		1
+
+			cvar				"+forward"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 174 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
 		}
 
-		// NEXT SET button
+		itemDef 
+		{
+		   	name 			back_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_BACKWARD
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 191 117 7
+			rect				460 185 155 19
+			background			"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+back"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 185 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			left_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_TURNLEFT
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 202 117 7
+			rect				460 196 155 19
+			background			"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+left"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 196 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			right_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_TURNRIGHT
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 213 117 7
+			rect				460 207 155 19
+			background			"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+right"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 207 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			moveleft_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_MOVELEFT
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 224 117 7
+			rect				460 218 155 19
+			background			"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+moveleft"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 218 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			moveright_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_MOVERIGHT
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 235 117 7
+			rect				460 229 155 19
+			background			"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+moveright"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 229 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			speed_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_RUNWALK
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 246 117 7
+			rect				460 240 155 19
+			background			"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+speed"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 240 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			strafe_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_SIDESTEPTURN
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 257 117 7
+			rect				460 251 155 19
+			background			"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+strafe"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 251 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			moveup_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_JUMP
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 279 117 7
+			rect				460 273 155 19
+			background			"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+moveup"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 273 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			movedown_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_CROUCH
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 290 117 7
+			rect				460 284 155 19
+			background			"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+movedown"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 284 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			sprint_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_SPRINT
+			type			ITEM_TYPE_BIND_FIXED
+			rect			460 295 155 19
+			selectionZone		479 301 117 7
+			background 		"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+button12"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 295 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			attack_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_BLANK
+			type			ITEM_TYPE_BIND_FIXED
+			background 		"gfx/ui/mainsub_sliderbar"
+			rect				460 317 155 19
+			selectionZone			479 323 117 7
+			font				5
+			font2				5
+			text				@JKG_MAINMENU_ATTACK
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+attack"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 317 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			altattack_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_ALTATTACK
+			type			ITEM_TYPE_BIND_FIXED
+			background 		"gfx/ui/mainsub_sliderbar"
+			rect			460 328 155 19
+			selectionZone		479 334 117 7
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+altattack"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 328 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			aim_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_AIM
+			type			ITEM_TYPE_BIND_FIXED
+			background 		"gfx/ui/mainsub_sliderbar"
+			rect				460 339 155 19
+			selectionZone			479 345 117 7
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+button13"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 339 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			reload_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_RELOAD
+			type			ITEM_TYPE_BIND_FIXED
+			background 		"gfx/ui/mainsub_sliderbar"
+			rect				460 350 155 19
+			selectionZone			479 356 117 7
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"reload"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 350 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			saberAttackCycle_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_FIGHTINGSTYLE
+			type			ITEM_TYPE_BIND_FIXED
+			background			"gfx/ui/mainsub_sliderbar"
+			selectionZone			479 367 117 7
+			rect				460 361 155 19
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"saberAttackCycle"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 361 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			use_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_USE
+			type			ITEM_TYPE_BIND_FIXED
+			background			"gfx/ui/mainsub_sliderbar"
+			selectionZone			479 378 117 7
+			rect				460 372 155 19
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"+use"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 372 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+		itemDef 
+		{
+		   	name 			inventory_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_INVENTORY
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 389 117 7
+			rect				460 383 155 19
+			background			"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
+
+	   		visible 		1
+
+			cvar				"inventory"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 383 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
+
+
+		
+		
+		
+		
+				// NEXT SET button
 		itemDef 
 		{
 			name				nextset2_bg
@@ -2649,7 +3430,6 @@
 				hide			controlsMenu ;
 				hide			controls2Menu ;
 				show		controls3Menu ;
-				hide			controls4Menu ;
 				hide			highlights ;
 			}
 			mouseEnter 
@@ -2698,903 +3478,6 @@
 				show		controlsMenu ;
 				hide			controls2Menu ;
 				hide			controls3Menu ;
-				hide			controls4Menu ;
-				hide			highlights ;
-			}
-			mouseEnter 
-			{ 
-				show			highlight_bigbutton
-				setitemrect		highlight_bigbutton	321 408 161 40
-			}
-			mouseExit 
-			{ 
-				hide			highlight_bigbutton
-					clearfocus
-			}	  	  
-
-		}
-
-		itemDef 
-		{
-		   	name 			forward_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_FORWARD
-			type			ITEM_TYPE_BIND_FIXED
-			selectionZone			479 180 117 7
-			rect				460 174 155 19
-			background			"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+forward"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 174 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			back_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_BACKWARD
-			type			ITEM_TYPE_BIND_FIXED
-			selectionZone			479 191 117 7
-			rect				460 185 155 19
-			background			"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+back"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 185 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			left_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_TURNLEFT
-			type			ITEM_TYPE_BIND_FIXED
-			selectionZone			479 202 117 7
-			rect				460 196 155 19
-			background			"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+left"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 196 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			right_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_TURNRIGHT
-			type			ITEM_TYPE_BIND_FIXED
-			selectionZone			479 213 117 7
-			rect				460 207 155 19
-			background			"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+right"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 207 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			moveleft_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_MOVELEFT
-			type			ITEM_TYPE_BIND_FIXED
-			selectionZone			479 224 117 7
-			rect				460 218 155 19
-			background			"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+moveleft"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 218 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			moveright_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_MOVERIGHT
-			type			ITEM_TYPE_BIND_FIXED
-			selectionZone			479 235 117 7
-			rect				460 229 155 19
-			background			"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+moveright"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 229 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			speed_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_RUNWALK
-			type			ITEM_TYPE_BIND_FIXED
-			selectionZone			479 246 117 7
-			rect				460 240 155 19
-			background			"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+speed"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 240 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			strafe_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_SIDESTEPTURN
-			type			ITEM_TYPE_BIND_FIXED
-			selectionZone			479 257 117 7
-			rect				460 251 155 19
-			background			"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+strafe"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 251 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			moveup_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_JUMP
-			type			ITEM_TYPE_BIND_FIXED
-			selectionZone			479 279 117 7
-			rect				460 273 155 19
-			background			"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+moveup"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 273 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			movedown_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_CROUCH
-			type			ITEM_TYPE_BIND_FIXED
-			selectionZone			479 290 117 7
-			rect				460 284 155 19
-			background			"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+movedown"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 284 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			sprint_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_SPRINT
-			type			ITEM_TYPE_BIND_FIXED
-			rect			460 295 155 19
-			selectionZone		479 301 117 7
-			background 		"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+button12"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 295 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			attack_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_BLANK
-			type			ITEM_TYPE_BIND_FIXED
-			background 		"gfx/ui/mainsub_sliderbar"
-			rect				460 317 155 19
-			selectionZone			479 323 117 7
-			font				5
-			font2				5
-			text				@JKG_MAINMENU_ATTACK
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+attack"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 317 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			altattack_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_ALTATTACK
-			type			ITEM_TYPE_BIND_FIXED
-			background 		"gfx/ui/mainsub_sliderbar"
-			rect			460 328 155 19
-			selectionZone		479 334 117 7
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+altattack"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 328 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			aim_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_AIM
-			type			ITEM_TYPE_BIND_FIXED
-			background 		"gfx/ui/mainsub_sliderbar"
-			rect				460 339 155 19
-			selectionZone			479 345 117 7
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+button13"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 339 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			reload_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_RELOAD
-			type			ITEM_TYPE_BIND_FIXED
-			background 		"gfx/ui/mainsub_sliderbar"
-			rect				460 350 155 19
-			selectionZone			479 356 117 7
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"reload"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 350 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			saberAttackCycle_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_FIGHTINGSTYLE
-			type			ITEM_TYPE_BIND_FIXED
-			background			"gfx/ui/mainsub_sliderbar"
-			selectionZone			479 367 117 7
-			rect				460 361 155 19
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"saberAttackCycle"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 361 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			use_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_USE
-			type			ITEM_TYPE_BIND_FIXED
-			background			"gfx/ui/mainsub_sliderbar"
-			selectionZone			479 378 117 7
-			rect				460 372 155 19
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"+use"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 372 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		itemDef 
-		{
-		   	name 			inventory_button			
-			group 			controls2Menu
-			text			@JKG_MAINMENU_INVENTORY
-			type			ITEM_TYPE_BIND_FIXED
-			selectionZone			479 389 117 7
-			rect				460 383 155 19
-			background			"gfx/ui/mainsub_sliderbar"
-			font				5
-			font2				5
-			textscale				0.5
-			textscale2				0.4
-			textalign				ITEM_ALIGN_RIGHT
-			text2align				ITEM_ALIGN_LEFT
-			textalignx			10
-			textaligny			1
-			text2alignx			22
-			text2aligny			4
-			forecolor			1 1 1 1
-
-	   		visible 		1
-
-			cvar				"inventory"
-
-			mouseenter 
-			{ 
-				show			highlight_sliderbutton
-				setitemrect		highlight_sliderbutton 	460 383 155 19
-				show			keybindstatus
-			}
-			mouseexit 
-			{ 
-				hide			highlight_sliderbutton
-				hide			keybindstatus
-					clearfocus
-			} 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ; 
-			}
-		}
-
-		// CONFIGURE CONTROLS title
-		itemDef
-		{
-			name				controls3Menu_title
-			group				controls3Menu
-			style				WINDOW_STYLE_EMPTY
-			type				ITEM_TYPE_BUTTON
-			rect				337 141 263 26
-			text				@JKG_MAINMENU_CONFIGCONTROLS
-			font				5
-			textscale				0.9
-			textalign				ITEM_ALIGN_CENTER
-			textalignx			131
-			textaligny			0
-			textstyle			0
-			forecolor			1 1 1 1
-			visible				1
-			decoration
-		}
-
-		// NEXT SET button
-		itemDef 
-		{
-			name				nextset3_bg
-			group				controls3Menu
-			style				WINDOW_STYLE_SHADER
-			rect				456 408 161 40
-			background			"gfx/ui/shop_itembutton"
-			forecolor			1 1 1 1
-			visible				1
-			disabled 			1
-			decoration
-		}
-
-		itemDef 
-		{
-			name				nextset3
-			group				controls3Menu
-			text				@JKG_MAINMENU_NEXTSET
-			type				ITEM_TYPE_BUTTON
-			style				WINDOW_STYLE_EMPTY
-			rect				477 414 119 28
-			font				5
-			textscale			0.64
-			textalign			ITEM_ALIGN_LEFT
-			textalignx			17
-			textaligny			4
-			forecolor			1 1 1 1
-			visible			1
-			disabled		1
-
-			action 
-			{ 
-				hide			controlsMenu ;
-				hide			controls2Menu ;
-				hide			controls3Menu ;
-				show		controls4Menu ;
-				hide			highlights ;
-			}
-			mouseEnter 
-			{ 
-				show			highlight_bigbutton
-				setitemrect		highlight_bigbutton	456 408 161 40
-			}
-			mouseExit 
-			{ 
-				hide			highlight_bigbutton
-					clearfocus
-			}	  	  
-
-		}
-	
-		// PREVIOUS SET button
-		itemDef 
-		{
-			name				prevset3_bg
-			group				controls3Menu
-			style				WINDOW_STYLE_SHADER
-			rect				321 408 161 40
-			background			"gfx/ui/shop_itembutton"
-			forecolor			1 1 1 1
-			visible				1
-			decoration
-		}
-
-		itemDef 
-		{
-			name				prevset3
-			group				controls3Menu
-			text				@JKG_MAINMENU_PREVSET
-			type				ITEM_TYPE_BUTTON
-			style				WINDOW_STYLE_EMPTY
-			rect				342 414 119 28
-			font				5
-			textscale			0.64
-			textalign			ITEM_ALIGN_LEFT
-			textalignx			1
-			textaligny			4
-			forecolor			1 1 1 1
-			visible			1
-			action 
-			{ 
-				hide			controlsMenu ;
-				show		controls2Menu ;
-				hide			controls3Menu ;
-				hide			controls4Menu ;
 				hide			highlights ;
 			}
 			mouseEnter 
@@ -3614,7 +3497,7 @@
 		itemDef
 		{
 			name				aci
-			group				controls3Menu
+			group				controls2Menu
 			style				WINDOW_STYLE_EMPTY
 			type				ITEM_TYPE_BUTTON
 			rect				356 180 117 7
@@ -3633,7 +3516,7 @@
 		itemDef 
 		{
 		   	name 			slot1_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SLOT1
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 191 117 7
@@ -3676,7 +3559,7 @@
 		itemDef 
 		{
 		   	name 			slot2_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SLOT2
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 202 117 7
@@ -3719,7 +3602,7 @@
 		itemDef 
 		{
 		   	name 			slot3_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SLOT3
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 213 117 7
@@ -3762,7 +3645,7 @@
 		itemDef 
 		{
 		   	name 			slot4_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SLOT4
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 224 117 7
@@ -3805,7 +3688,7 @@
 		itemDef 
 		{
 		   	name 			slot5_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SLOT5
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 235 117 7
@@ -3848,7 +3731,7 @@
 		itemDef 
 		{
 		   	name 			slot6_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SLOT6
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 246 117 7
@@ -3891,7 +3774,7 @@
 		itemDef 
 		{
 		   	name 			slot7_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SLOT7
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 257 117 7
@@ -3934,7 +3817,7 @@
 		itemDef 
 		{
 		   	name 			slot8_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SLOT8
 			type			ITEM_TYPE_BIND_FIXED
 			background			"gfx/ui/mainsub_sliderbar"
@@ -3977,7 +3860,7 @@
 		itemDef 
 		{
 		   	name 			slot9_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SLOT9
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 279 117 7
@@ -4020,7 +3903,7 @@
 		itemDef 
 		{
 		   	name 			slot0_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SLOT0
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 290 117 7
@@ -4063,7 +3946,7 @@
 		itemDef 
 		{
 		   	name 			camera_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_360CAMERA
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 312 117 7
@@ -4106,7 +3989,7 @@
 		itemDef 
 		{
 		   	name 			zoomin_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_ZOOMIN
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 323 117 7
@@ -4149,7 +4032,7 @@
 		itemDef 
 		{
 		   	name 			zoomout_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_ZOOMOUT
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 334 117 7
@@ -4192,7 +4075,7 @@
 		itemDef 
 		{
 		   	name 			sayglobal_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SAYGLOBAL
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 356 117 7
@@ -4235,7 +4118,7 @@
 		itemDef 
 		{
 		   	name 			sayteam_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SAYTEAM
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 367 117 7
@@ -4278,7 +4161,7 @@
 		itemDef 
 		{
 		   	name 			sayaction_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SAYACTION
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 378 117 7
@@ -4321,7 +4204,7 @@
 		itemDef 
 		{
 		   	name 			saytarget_button			
-			group 			controls3Menu
+			group 			controls2Menu
 			text			@JKG_MAINMENU_SAYTARGET
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 389 117 7
@@ -4361,31 +4244,30 @@
 			}
 		}
 
-		// CONFIGURE CONTROLS title
-		itemDef
-		{
-			name				controls4Menu_title
-			group				controls4Menu
-			style				WINDOW_STYLE_EMPTY
-			type				ITEM_TYPE_BUTTON
-			rect				337 141 263 26
-			text				@JKG_MAINMENU_CONFIGCONTROLS
-			font				5
-			textscale				0.9
-			textalign				ITEM_ALIGN_CENTER
-			textalignx			131
-			textaligny			0
-			textstyle			0
-			forecolor			1 1 1 1
-			visible				1
-			decoration
-		}
-
+		
+	
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		// PREVIOUS SET button
 		itemDef 
 		{
-			name				prevset4_bg
-			group				controls4Menu
+			name				prevset3_bg
+			group				controls3Menu
 			style				WINDOW_STYLE_SHADER
 			rect				321 408 161 40
 			background			"gfx/ui/shop_itembutton"
@@ -4396,8 +4278,8 @@
 
 		itemDef 
 		{
-			name				prevset4
-			group				controls4Menu
+			name				prevset3
+			group				controls3Menu
 			text				@JKG_MAINMENU_PREVSET
 			type				ITEM_TYPE_BUTTON
 			style				WINDOW_STYLE_EMPTY
@@ -4412,9 +4294,9 @@
 			action 
 			{ 
 				hide			controlsMenu ;
-				hide			controls2Menu ;
-				show		controls3Menu ;
-				hide			controls4Menu ;
+				show		controls2Menu ;
+				hide			controls3Menu ;
+				hide			controls3Menu ;
 				hide			highlights ;
 			}
 			mouseEnter 
@@ -4428,10 +4310,13 @@
 					clearfocus
 			}	  	  
 
+		}
+	
+		
 		itemDef 
 		{
 		   	name 			usepower_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_USEPOWER
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 180 117 7
@@ -4474,7 +4359,7 @@
 		itemDef 
 		{
 		   	name 			nextpower_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_NEXTPOWER
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 191 117 7
@@ -4517,7 +4402,7 @@
 		itemDef 
 		{
 		   	name 			prevpower_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_PREVPOWER
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 202 117 7
@@ -4560,7 +4445,7 @@
 		itemDef 
 		{
 		   	name 			push_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_PUSH
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 213 117 7
@@ -4603,7 +4488,7 @@
 		itemDef 
 		{
 		   	name 			pull_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_PULL
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 224 117 7
@@ -4646,7 +4531,7 @@
 		itemDef 
 		{
 		   	name 			forcespeed_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_SPEED
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 235 117 7
@@ -4689,7 +4574,7 @@
 		itemDef 
 		{
 		   	name 			sense_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_SENSE
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 246 117 7
@@ -4732,7 +4617,7 @@
 		itemDef 
 		{
 		   	name 			protect_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_PROTECT
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 257 117 7
@@ -4773,7 +4658,7 @@
 		itemDef 
 		{
 		   	name 			absorb_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_ABSORB
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 268 117 7
@@ -4816,7 +4701,7 @@
 		itemDef 
 		{
 		   	name 			heal_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_HEAL
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 279 117 7
@@ -4859,7 +4744,7 @@
 		itemDef 
 		{
 		   	name 			healother_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_HEALOTHER
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 290 117 7
@@ -4901,7 +4786,7 @@
 		itemDef 
 		{
 		   	name 			mindtrick_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_MINDTRICK
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 301 117 7
@@ -4944,7 +4829,7 @@
 		itemDef 
 		{
 		   	name 			grip_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_GRIP
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 312 117 7
@@ -4987,7 +4872,7 @@
 		itemDef 
 		{
 		   	name 			drain_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_DRAIN
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 323 117 7
@@ -5030,7 +4915,7 @@
 		itemDef 
 		{
 		   	name 			lightning_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_LIGHTNING
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 334 117 7
@@ -5073,7 +4958,7 @@
 		itemDef 
 		{
 		   	name 			rage_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_RAGE
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 345 117 7
@@ -5116,7 +5001,7 @@
 		itemDef 
 		{
 		   	name 			teamenergize_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_TEAMENERGIZE
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 356 117 7
@@ -5159,7 +5044,7 @@
 		itemDef 
 		{
 		   	name 			showscores_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_SHOWSCORES
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 378 117 7
@@ -5202,7 +5087,7 @@
 		itemDef 
 		{
 		   	name 			taunt_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_TAUNT
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 389 117 7
@@ -5246,7 +5131,7 @@
 		itemDef 
 		{
 		   	name 			challengetoduel_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_CHALLENGETODUEL
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZOne			479 400 117 7
@@ -5290,7 +5175,7 @@
 		itemDef 
 		{
 		   	name 			playpazaak_button			
-			group 			controls4Menu
+			group 			controls3Menu
 			text			@JKG_MAINMENU_PLAYPAZAAK
 			type			ITEM_TYPE_BIND_FIXED
 			selectionZone			479 411 117 7
@@ -5337,20 +5222,43 @@
 //	OPTION FIELDS
 //
 //----------------------------------------------------------------------------------------------
+		
+	itemDef
+		{
+			name				optionsMenu_title
+			group				optionsMenu
+			style				WINDOW_STYLE_EMPTY
+			type				ITEM_TYPE_BUTTON
+			rect				337 141 263 26
+			text				"-Misc. Options-"
+			font				5
+			textscale				1
+			textalign				ITEM_ALIGN_CENTER
+			textalignx			131
+			textaligny			-2
+			textstyle			0
+			forecolor			1 1 1 1
+			visible				1
+			decoration
+		}
+		
+		
+		
+		
 		itemDef 
 		{	
 			name				draw_crosshair
-			group				options
+			group				optionsMenu
       			type				ITEM_TYPE_MULTI
 			text				@MENUS_DRAW_CROSSHAIR
 			cvar				"cg_drawcrosshair"
 			cvarFloatList			{  @MENUS_OFF 0 @MENUS_ON 1 }
-			rect				260 188 340 14
+			rect				350 188 340 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_TOGGLE_TO_SHOW_OR_HIDE
@@ -5372,17 +5280,17 @@
 		itemDef 
 		{	
 			name				identifytarget
-			group				options
+			group				optionsMenu
       			type				ITEM_TYPE_MULTI
 			text				@MENUS_IDENTIFY_TARGET
 			cvar				cg_drawCrosshairNames
 			cvarFloatList			{  @MENUS_OFF 0 @MENUS_ON 1 }
-			rect				260 202 340 14
+			rect				350 202 340 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_TOGGLE_TO_HAVE_THE_CROSSHAIR
@@ -5403,17 +5311,17 @@
 		itemDef 
 		{	
 			name				forcemodels
-			group				options
+			group				optionsMenu
       			type				ITEM_TYPE_MULTI
 			text				@MENUS_FORCE_PLAYER_MODELS
 			cvar				"cg_forceModel"
 			cvarFloatList			{  @MENUS_OFF 0 @MENUS_ON 1 }
-			rect				260 216 340 14
+			rect				350 216 340 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_FORCE_ALL_PLAYER_MODELS
@@ -5434,17 +5342,17 @@
 		itemDef 
 		{	
 			name				defermodels
-			group				options
+			group				optionsMenu
       			type				ITEM_TYPE_MULTI
 			text				@MENUS_DEFER_PLAYER_MODELS
 			cvar				"cg_deferPlayers"
 			cvarFloatList			{  @MENUS_OFF 0 @MENUS_ON 1 }
-			rect				260 230 340 14
+			rect				350 230 240 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_DEFERS_LOADING_OF_NEW
@@ -5466,7 +5374,7 @@
 		itemDef 
 		{	
 			name				teamchatsonly
-			group				options
+			group				optionsMenu
       			type				ITEM_TYPE_MULTI
 			text				@MENUS_TEAM_CHATS_ONLY
 			cvar				"cg_teamChatsOnly"
@@ -5475,12 +5383,12 @@
 				@MENUS_NO	0
 				@MENUS_YES	1
 			}
-			rect				260 244 340 14
+			rect				350 244 240 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_IGNORE_NON_TEAM_CHATS
@@ -5501,17 +5409,17 @@
 		itemDef 
 		{	
 			name				simpleitems
-			group				options
+			group				optionsMenu
       			type				ITEM_TYPE_MULTI
 			text				@MENUS_SIMPLE_ITEMS
 			cvar				"cg_simpleItems"
 			cvarFloatList			{  @MENUS_OFF 0 @MENUS_ON 1 }
-			rect				260 258 340 14
+			rect				350 258 240 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_RENDER_ICONS_FOR_ITEMS
@@ -5532,17 +5440,17 @@
 		itemDef 
 		{	
 			name				teamoverlay
-			group				options
+			group				optionsMenu
       			type				ITEM_TYPE_MULTI
 			text				@MENUS_TEAM_OVERLAY
 			cvar				"cg_drawTeamOverlay"
 			cvarFloatList			{  @MENUS_OFF 0 @MENUS_ON 1 }
-			rect				260 272 340 14
+			rect				350 272 240 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			descText			@MENUS_DRAW_OVERLAY_SHOWING
@@ -5564,7 +5472,7 @@
 		itemDef 
 		{	
 			name				weaponswayon
-			group				options
+			group				optionsMenu
       			type				ITEM_TYPE_MULTI
 			text				@MENUS_VIEW_SWAYING
 			descText			@MENUS_VIEW_SWAYING_DESC
@@ -5579,12 +5487,12 @@
 			{
 				"0"
 			}
-			rect				260 286 340 14
+			rect				350 286 240 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 
@@ -5608,7 +5516,7 @@
 		itemDef 
 		{	
 			name				weaponswayoff
-			group				options
+			group				optionsMenu
       			type				ITEM_TYPE_MULTI
 			text				@MENUS_VIEW_SWAYING
 			descText			@MENUS_VIEW_SWAYING_DESC
@@ -5623,12 +5531,12 @@
 			{
 				"0"
 			}
-			rect				260 286 340 14
+			rect				350 286 240 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4
-			textscale 			1
+			font 				5
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 
@@ -5652,7 +5560,7 @@
 		itemDef 
 		{	
 			name				footsteps
-			group				options
+			group				optionsMenu
       			type				ITEM_TYPE_MULTI
 			text				@MENUS_FOOTSTEPS
 			desctext			@MENUS_FOOTSTEPS_DESC
@@ -5664,12 +5572,12 @@
 				@MENUS_SOUNDS_AND_EFFECTS	2
 				@MENUS_SOUNDS_EFFECTS_GRAPHICS	3
 			}
-			rect				260 314 340 14
+			rect				350 300 240 14
 	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
+			textalignx			150
 			textaligny			0
-			font 				4					
-			textscale 			1
+			font 				5				
+			textscale 			0.5
 			forecolor			1 1 1 1
 			visible				0
 			action
@@ -5686,110 +5594,6 @@
 			} 
 		}
 
-		itemDef 
-		{	
-			name				text
-			group				options
-      		type				ITEM_TYPE_MULTI
-			text				@MENUS_TEXT
-			cvar				"se_language"
-			feeder				40
-			cvarStrList			feeder
-			rect				260 328 340 14
-	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
-			textaligny			0
-			font 				4
-			textscale 			1
-			forecolor			1 1 1 1
-			visible				0
-			descText			@MENUS_CHOOSE_THE_LANGUAGE_FOR
-			action
-			{
-				play			"sound/interface/button1"
-				show			langapply
-			}
-			mouseenter 
-			{ 
-				show			highlight11
-			}
-			mouseexit 
-			{ 
-				hide			highlight11
-			} 
-		}
-		itemDef 
-		{	
-			name				voice
-			group				options
-      			type				ITEM_TYPE_MULTI
-			text				@MENUS_VOICE
-			cvar				"s_language"
-			cvarStrList		
-			{ 
-				English   english
-				@MENUS_LANG_FRENCH  francais
-				Deutsch   deutsch
-				"Español"   espanol
-			}
-			rect				260 342 340 14
-	   		textalign			ITEM_ALIGN_RIGHT
-			textalignx			174
-			textaligny			0
-			font 				4
-			textscale 			1
-			forecolor			1 1 1 1
-			visible				0
-			descText			@MENUS_CHOOSE_THE_LANGUAGE_TO
-
-			action
-			{
-				play			"sound/interface/button1.wav"
-			}
-			mouseenter 
-			{ 
-				show			highlight12
-			}
-			mouseexit 
-			{ 
-				hide			highlight12
-			} 
-		}
-
-		// APPLY CHANGES button
-		itemDef 
-		{
-			name				langapply
-			group				options
-			text				@MENUS_SET_LANGUAGE
-			type				ITEM_TYPE_BUTTON
-			style				WINDOW_STYLE_EMPTY
-			rect				260 356 340 14 
-			textaligny			0
-			font 				4
-			textscale 			1       
-			textalign			ITEM_ALIGN_CENTER
-			textalignx			160
-			descText			@MENUS_SET_LANGUAGE_INFO
-			forecolor			1 1 1 1
-			visible			0
-
-			action 
-			{
-				play			"sound/interface/button1"
-				exec			"ui_load ; snd_restart"
-				hide			langapply
-			}
-			mouseEnter 
-			{ 
-				show			highlight13
-			}
-			mouseExit 
-			{ 
-				hide			highlight13
-			}	  	  
-
-		}
 
 //----------------------------------------------------------------------------------------------
 //
@@ -5802,7 +5606,7 @@
 			name				vidrestart_background
 			group				defaults
 			style				WINDOW_STYLE_SHADER
-			rect				260 185 342 227				
+			rect				350 185 342 227				
 			background			"gfx/menus/menu_boxred"					// Frame
 			forecolor			1 1 1 1
 			visible				0
@@ -5814,10 +5618,10 @@
 			name				options
 			group				defaults
 			text				@MENUS_WARNING
-			rect				260 202 340 20
+			rect				350 202 340 20
 			textalign			ITEM_ALIGN_CENTER
-			textalignx			170
-			font				2
+			textalignx			150
+			font				5
 			textscale			1    
 			forecolor			1 1 1 1
 			visible				0
@@ -5829,11 +5633,11 @@
 			name				options
 			group				defaults
 			text				@MENUS_THIS_WILL_SET_ALL_GAME
-			rect				260 230 340 20
+			rect				350 230 340 20
 			textalign			ITEM_ALIGN_CENTER
-			textalignx			170
+			textalignx			150
 			text2aligny			20
-			font				2
+			font				5
 			textscale			.9 
 			forecolor			1 1 1 1
 			visible				0
@@ -5845,11 +5649,11 @@
 			name				options
 			group				defaults
 			text				@MENUS_TO_THEIR_FACTORY_SETTINGS
-			rect				260 260 340 20
+			rect				350 260 340 20
 			textalign			ITEM_ALIGN_CENTER
-			textalignx			170
+			textalignx			150
 			text2aligny			20
-			font				2
+			font				5 //2
 			textscale			.9   
 			forecolor			1 1 1 1
 			visible				0
@@ -5861,10 +5665,10 @@
 			name				options
 			group				defaults
 			text				@MENUS_VID_RESTART3
-			rect				260 320 340 20
+			rect				350 320 340 20
 			textalign			ITEM_ALIGN_CENTER
-			textalignx			170
-			font				2
+			textalignx			150
+			font				5
 			textscale			1    
 			forecolor			1 1 1 1
 			visible				0
@@ -5893,7 +5697,7 @@
 			type				ITEM_TYPE_BUTTON
 			style				WINDOW_STYLE_EMPTY
 			rect				443 364 120 24 
-			font				2
+			font				5
 			textscale			1
 			textalign			ITEM_ALIGN_CENTER
 			textalignx			60
@@ -5940,7 +5744,7 @@
 			type				ITEM_TYPE_BUTTON
 			style				WINDOW_STYLE_EMPTY
 			rect				297 364 120 24 
-			font				2
+			font				5
 			textscale			1
 			textalign			ITEM_ALIGN_CENTER
 			textalignx			60

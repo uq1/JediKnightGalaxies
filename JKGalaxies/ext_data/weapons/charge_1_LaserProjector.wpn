@@ -22,14 +22,14 @@
             "g2model":      "models/weapons/LaserProjector/projectile.glm",
             "g2radius":     100,
             "firesound":    "sound/weapons/detpack/fire.wav",
-            "miss":         { "sticksound": "sound/weapons/detpack/stick.wav" }
+            "miss":         { "sticksound": "sound/weapons/detpack/stick.wav" },
 	    "displayName":  "Place"
         },
         
         "firemode1": {
             "type":         "detpack",
             
-            "explodefx":    "explosives/demosmall"
+            "explodefx":    "explosives/demosmall",
 	    "displayName":  "Detonate"
         }
     },
