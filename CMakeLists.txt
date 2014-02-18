@@ -64,7 +64,7 @@ message("Git revision is ${GIT_SHA1}")
 set(MPEngine "jkgalaxies.${Architecture}")
 set(MPVanillaRenderer "rd-vanilla_${Architecture}")
 set(MPDed "jkgalaxiesded.${Architecture}")
-set(MPGame "jampgame${Architecture}")
+set(MPGame "game${Architecture}")
 set(MPCGame "cgame${Architecture}")
 set(MPUI "ui${Architecture}")
 # Library names

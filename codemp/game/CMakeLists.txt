@@ -334,6 +334,7 @@ set(MPGameLuaHeader
 	"${MPDir}/libraries/Lua/lundump.h"
 	"${MPDir}/libraries/Lua/lvm.h"
 	"${MPDir}/libraries/Lua/lzio.h"
+	"${MPDir}/qcommon/disablewarnings.h"
 	)
 source_group("Libraries\\Lua\\Header Files" FILES ${MPGameLuaHeader})
 set(MPGameFiles ${MPGameFiles} ${MPGameLuaHeader})
@@ -453,6 +454,8 @@ set(MPGameFiles ${MPGameFiles} ${MPGameSSLHeader})
 
 add_library(${MPGame} SHARED ${MPGameFiles})
 target_link_libraries(${MPGame} "${MPDir}/libraries/openssl/ssleay32.lib" "${MPDir}/libraries/openssl/libeay32.lib")
+
+
 
 if(NOT WIN32)
 	# remove "lib" prefix for .so/.dylib files
