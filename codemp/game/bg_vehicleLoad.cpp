@@ -5,7 +5,7 @@
 #define _JK2MP
 #endif
 #endif
-
+#define _JK2MP
 extern void BG_VehicleLoadParms( void );
 #ifdef _JK2MP
 	#include "qcommon/q_shared.h"
@@ -32,10 +32,7 @@ extern void BG_VehicleLoadParms( void );
 #include "../ui/ui_local.h"
 #endif
 #endif
-#endif
-
-#ifndef _JK2MP
-#include "..\Ratl\string_vs.h"
+//#include "..\Ratl\string_vs.h"
 #endif
 
 #ifdef QAGAME

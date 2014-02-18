@@ -10,8 +10,9 @@
 //=========================================================*/
 
 #include <math.h>
-#include <DetourNavMeshBuilder.h>
-#include <Recast.h>
+
+#include "DetourNavMeshBuilder.h"
+#include "Recast.h"
 
 extern "C" {
 #include "g_local.h"

@@ -1,7 +1,7 @@
 
 #include "qcommon/q_shared.h"
 #include "g_local.h"
-
+#define _JK2
 #ifdef _JK2 //SP does not have this preprocessor for game like MP does
 #ifndef _JK2MP
 #define _JK2MP
