@@ -158,7 +158,7 @@ set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPUID
 set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPUIDefines};${ReleaseDefines}")
 set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPUIDefines};${DebugDefines}")
 set_target_properties(${MPUI} PROPERTIES INCLUDE_DIRECTORIES "${MPUIIncludeDirectories}")
-set_target_properties(${MPUI} PROPERTIES PROJECT_LABEL "MP UI Library")
+set_target_properties(${MPUI} PROPERTIES PROJECT_LABEL "MP UI Library (uix86.dll)")
 # no libraries used
 if(MPUILibraries)
 	target_link_libraries(${MPUI} ${MPUILibraries})
