@@ -5,7 +5,7 @@
 #include "cg_local.h"
 #include "jkg_navmesh_visualiser.h"
 
-#include "bg_saga.h"
+#include "game/bg_saga.h"
 
 #include "cg_lights.h"
 

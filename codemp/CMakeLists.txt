@@ -357,7 +357,7 @@ if(BuildMPEngine)
 	set(MPEngineLibraries ${MPEngineAndDedLibraries})
 	set(MPEngineIncludeDirectories ${MPEngineAndDedIncludeDirectories})
 	set(MPEngineFiles ${MPEngineAndDedFiles})
-	set(MPEngineDefines ${MPSharedDefines} "_JK2MP")
+	set(MPEngineDefines ${MPSharedDefines} "_JK2MP" "ENGINE")
 	
 	#    Dependencies
 	
@@ -574,7 +574,7 @@ if(BuildMPDed)
 	set(MPDedLibraries ${MPEngineAndDedLibraries})
 	set(MPDedIncludeDirectories ${MPEngineAndDedIncludeDirectories})
 	set(MPDedFiles ${MPEngineAndDedFiles})
-	set(MPDedDefines ${MPSharedDefines} "_CONSOLE" "DEDICATED")
+	set(MPDedDefines ${MPSharedDefines} "_CONSOLE" "DEDICATED" "ENGINE")
 
 	# Dedicated renderer is compiled with the server.
 	set(MPDedicatedRendererFiles

@@ -708,7 +708,7 @@ Crossover API
 */
 
 // The crossover API allows cgame and UI to communicate
-#include "bg_weapons.h"
+#include "game/bg_weapons.h"
 
 typedef struct
 {

@@ -5,7 +5,7 @@ set(InOpenJK TRUE)
 #    Project name
 project("JKGalaxes")
 
-
+set(SharedDefines ${SharedDefines} "ENGINE" "CLAMP")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 

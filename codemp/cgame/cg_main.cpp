@@ -12,8 +12,8 @@ displayContextDef_t cgDC;
 
 // Jedi Knight Galaxies
 #include "cg_weapons.h"
-#include "jkg_gangwars.h"
-#include "bg_items.h"
+#include "game/jkg_gangwars.h"
+#include "game/bg_items.h"
 
 /*
 Ghoul2 Insert Start
