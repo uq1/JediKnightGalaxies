@@ -1423,12 +1423,12 @@ void CG_DrawReload( void ) {
 	x = (320 - (trap_R_Font_StrLenPixels("Reloading weapon...", 1, 0.8f) / 2));
 	trap_R_Font_DrawString(
 			x,
-			190,
+			200,
 			"Reloading weapon...",
 			colorWhite,
-			1,
+			5,
 			-1,
-			0.8f);
+			0.45f);
 	phase = (float)(cg.time - cg.reloadTimeStart) / (float)cg.reloadTimeDuration;
 	trap_R_SetColor(colorBack);
 	trap_R_DrawStretchPic(243, 220, 154, 10, 0, 0, 1, 1, cgs.media.whiteShader);
@@ -1462,7 +1462,7 @@ void CG_DrawGrenade( void )
 	if ( cg.jkg_grenadeCookTimer && cg.jkg_grenadeCookTimer >= cg.time )
 	{
 		x = ( 320 - ( trap_R_Font_StrLenPixels( "Detonation time...", 1, 0.8f ) / 2 ));
-		trap_R_Font_DrawString( x, 190, "Detonation time...", colorWhite, 1, -1, 0.8f );
+		trap_R_Font_DrawString( x, 200, "Detonation time...", colorWhite, 5, -1, 0.45f );
 
 		phase = ( float )( cg.jkg_grenadeCookTimer - cg.time ) / ( float ) GetWeaponData( cg.snap->ps.weapon, cg.snap->ps.weaponVariation )->weaponReloadTime;
 		trap_R_SetColor(colorBack);
@@ -1557,7 +1557,7 @@ static float CG_DrawMiniScoreboard ( float y )
 		Q_strcat ( temp, MAX_QPATH, va(" Rebels: ") );
 		Q_strcat ( temp, MAX_QPATH, va("%i",cgs.bluetickets) );
 
-		CG_Text_Paint( 630 - CG_Text_Width ( temp, 0.7f, FONT_SMALL ) + xOffset, y, 0.7f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_SMALL );
+		CG_Text_Paint( 600 - CG_Text_Width ( temp, 0.4f, FONT_SMALL3 ) + xOffset, y, 0.4f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_SMALL3 );
 		y += 15;
 	}
 	else if ( cgs.gametype >= GT_TEAM )
@@ -1573,13 +1573,13 @@ static float CG_DrawMiniScoreboard ( float y )
 		if(cgs.clientinfo[cg.clientNum].team != TEAM_RED && cgs.clientinfo[cg.clientNum].team != TEAM_BLUE)
 		{
 			// If so, draw normally
-			CG_Text_Paint( 630 - CG_Text_Width ( temp, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM );
+			CG_Text_Paint( 610 - CG_Text_Width ( temp, 0.4f, FONT_SMALL3 ) + xOffset, y - 105, 0.4f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_SMALL3 );
 			y += 15;
 		}
 		else
 		{
-			CG_Text_Paint( 630 - CG_Text_Width ( temp, 0.7f, FONT_MEDIUM ) + xOffset, 75, 0.7f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM );
-			y = 90;
+			CG_Text_Paint( 610 - CG_Text_Width ( temp, 0.4f, FONT_SMALL3 ) + xOffset, 80, 0.4f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_SMALL3 );
+			y = 110;
 		}
 	}	
 	
@@ -2910,7 +2910,7 @@ static void CG_DrawCenterString( void ) {
 	int		x, y, w;
 	int h;
 	float	*color;
-	const float scale = 1.0f; //0.5f
+	const float scale = 0.6f; 
 
 	if ( !cg.centerPrintTime ) {
 		return;
@@ -2938,12 +2938,11 @@ static void CG_DrawCenterString( void ) {
 		}
 		linebuffer[l] = 0;
 
-		//w = CG_Text_Width(linebuffer, scale, FONT_MEDIUM);
-		h = CG_Text_Height(linebuffer, scale, FONT_MEDIUM);
-		w = CG_Text_Width(linebuffer, scale, FONT_MEDIUM);
+		h = CG_Text_Height(linebuffer, scale, FONT_SMALL3);
+		w = CG_Text_Width(linebuffer, scale, FONT_SMALL3);
 
-		x = (SCREEN_WIDTH - w) / 2;
-		CG_Text_Paint(x, y + h, scale, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM);
+		x = (SCREEN_WIDTH - w ) / 2;
+		CG_Text_Paint(x, y + h, scale, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_SMALL3);
 		y += h + 6;
 
 		while ( *start && ( *start != '\n' ) ) {
@@ -5594,10 +5593,10 @@ static void CG_DrawSpectator(void)
 	const char* s;
 
 	s = CG_GetStringEdString("MP_INGAME", "SPECTATOR");
-	CG_Text_Paint ( 320 - CG_Text_Width ( s, 1.0f, 3 ) / 2, 420, 1.0f, colorWhite, s, 0, 0, 0, 3 );
+	CG_Text_Paint ( 320 - CG_Text_Width ( s, 0.5f, 5 ) / 2, 438, 0.5f, colorWhite, s, 0, 0, 0, 5 );
 
 	s = CG_GetStringEdString("MP_INGAME", "SPEC_CHOOSEJOIN");
-	CG_Text_Paint ( 320 - CG_Text_Width ( s, 1.0f, 3 ) / 2, 440, 1.0f, colorWhite, s, 0, 0, 0, 3 );
+	CG_Text_Paint ( 320 - CG_Text_Width ( s, 0.5f, 5 ) / 2, 450, 0.5f, colorWhite, s, 0, 0, 0, 5 );
 }
 
 /*
