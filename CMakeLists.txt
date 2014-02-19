@@ -3,25 +3,20 @@ cmake_minimum_required(VERSION 2.8.8)
 set(InOpenJK TRUE)
 
 #    Project name
-project("OpenJK")
+project("JKGalaxes")
+
+set(SharedDefines ${SharedDefines} "ENGINE" "CLAMP")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 #    Customizable options
 option(BuildPortableVersion "Build portable version (does not read or write files from your user/home directory" OFF)
 
-option(BuildJK2Support "Build JK2 support" OFF)
-
-option(BuildMPEngine "Whether to create projects for the MP client (openjk.exe)" ON)
-option(BuildMPDed "Whether to create projects for the MP dedicated server (openjkded.exe)" ON)
+option(BuildMPEngine "Whether to create projects for the MP client (jkgalaxies.exe)" ON)
+option(BuildMPDed "Whether to create projects for the MP dedicated server (jkgalaxiesded.exe)" ON)
 option(BuildMPGame "Whether to create projects for the MP server-side gamecode (jampgamex86.dll)" ON)
 option(BuildMPCGame "Whether to create projects for the MP clientside gamecode (cgamex86.dll)" ON)
 option(BuildMPUI "Whether to create projects for the MP UI code (uix86.dll)" ON)
-option(BuildSPEngine "Whether to create projects for the SP engine (openjk_sp.exe)" ON)
-option(BuildSPGame "Whether to create projects for the SP gamecode (jagamex86.dll)" ON)
-# (mrw) jk2 has some weird PCH fuckery I cannot replicate with cmake without too much work
-set(BuildJK2SPGame OFF)
-#option(BuildJK2SPGame "Whether to create projects for the jk2 sp gamecode mod (jk2gamex86.dll)" ON)
 
 # Customizable libraries
 if(WIN32)
@@ -34,12 +29,6 @@ if(WIN32)
 else(WIN32)
 	option(UseInternalPNG "Whether to use the included libpng instead of a locally installed one" OFF)
 endif(WIN32)
-
-if(APPLE)
-	option(MakeApplicationBundles "Whether to build .app application bundles for engines built" ON)
-else(APPLE)
-	set(MakeApplicationBundles OFF)
-endif(APPLE)
 
 option(PackageDir "Where to place the installer/package." "${CMAKE_SOURCE_DIR}/package")
 
@@ -72,23 +61,18 @@ get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 message("Git revision is ${GIT_SHA1}")
 
 # Binary names
-set(SPEngine "openjk_sp.${Architecture}")
-set(SPGame "jagame${Architecture}")
-set(SPRDVanillaRenderer "rdsp-vanilla_${Architecture}")
-set(JK2SPGame "jk2game${Architecture}")
-set(MPEngine "openjk.${Architecture}")
+set(MPEngine "jkgalaxies.${Architecture}")
 set(MPVanillaRenderer "rd-vanilla_${Architecture}")
-set(MPDed "openjkded.${Architecture}")
-set(MPGame "jampgame${Architecture}")
+set(MPDed "jkgalaxiesded.${Architecture}")
+set(MPGame "game${Architecture}")
 set(MPCGame "cgame${Architecture}")
 set(MPUI "ui${Architecture}")
 # Library names
 set(MPBotLib "botlib")
 
 # Paths
-set(SPDir "${CMAKE_SOURCE_DIR}/code")
 set(MPDir "${CMAKE_SOURCE_DIR}/codemp")
-set(JK2SPDir "${CMAKE_SOURCE_DIR}/codeJK2")
+set(OpenJKLibDir "${MPDir}/libraries")
 
 # Common settings
 if(WIN32)
@@ -155,11 +139,7 @@ if(BuildPortableVersion)
 	set(SharedDefines ${SharedDefines} "_PORTABLE_VERSION")
 endif()
 
-if(NOT BuildJK2Support)
-	set(SharedDefines ${SharedDefines} "__NO_JK2")
-endif()
-
-set(OpenJKLibDir "${CMAKE_SOURCE_DIR}/lib")
+set(JKGDir "${CMAKE_SOURCE_DIR}/JKGalaxies")
 
 if(NOT MSVC)
 	# CMake already defines _DEBUG for MSVC.
@@ -169,10 +149,6 @@ endif()
 set(ReleaseDefines "FINAL_BUILD")
 
 #    Add projects
-add_subdirectory(${SPDir})
-if(BuildJK2SPGame)
-	add_subdirectory("${JK2SPDir}/game")
-endif(BuildJK2SPGame)
 add_subdirectory(${MPDir})
 
 #    CPack for installer creation
@@ -181,10 +157,10 @@ set(CPACK_PACKAGE_VERSION_MAJOR "0")
 set(CPACK_PACKAGE_VERSION_MINOR "1")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
 # I'm just not appending the version for now
-set(CPACK_PACKAGE_FILE_NAME "OpenJK-${CMAKE_SYSTEM_NAME}-${Architecture}")
+set(CPACK_PACKAGE_FILE_NAME "JKGalaxies-${CMAKE_SYSTEM_NAME}-${Architecture}")
 
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "An improved Jedi Academy")
-set(CPACK_PACKAGE_VENDOR "JACoders")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Jedi Academy - expanded horizons")
+set(CPACK_PACKAGE_VENDOR "JKGDevs")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt")
 set(CPACK_PACKAGE_DIRECTORY ${PACKAGE_DIR})

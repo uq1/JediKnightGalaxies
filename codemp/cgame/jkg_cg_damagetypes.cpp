@@ -1,5 +1,5 @@
 #include "cg_local.h"
-#include "bg_public.h"
+#include "game/bg_public.h"
 #include "jkg_cg_damagetypes.h"
 
 void JKG_PlayerDebuffVisuals ( centity_t *cent, refEntity_t *refEntity )

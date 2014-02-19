@@ -7,7 +7,7 @@
 // ===============================================
 
 #include "qcommon/q_shared.h"
-#include "bg_saga.h"
+#include "game/bg_saga.h"
 #include "jkg_gangwars.h"
 #include "bg_weapons.h"
 #include "bg_public.h"

@@ -1,5 +1,5 @@
 #include "ui_shared.h"
-#include "bg_strap.h"
+#include "game/bg_strap.h"
 #include <json/cJSON.h>
 #include <unordered_map>
 #include <string>

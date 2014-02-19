@@ -4,7 +4,7 @@
 #include "cg_local.h"
 #include "ghoul2/G2.h"
 #include "game/bg_saga.h"
-#include "bg_public.h"
+#include "game/bg_public.h"
 #include "jkg_cg_damagetypes.h"
 
 //[TrueView]

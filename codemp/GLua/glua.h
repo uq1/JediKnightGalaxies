@@ -1,10 +1,10 @@
 // Main code for Lua in Jedi Knight Galaxies
 // This file is the way jampgame gets in contact with lua, everything goes through here
-
+extern "C" {
 #include <Lua/lua.h>
 #include <Lua/lauxlib.h>
 #include <Lua/lualib.h>
-
+}
 #define GLUA_UNUSED(x) (void)x
 
 // Stack balancing asserts

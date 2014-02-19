@@ -112,9 +112,9 @@ endif(UseInternalPNG)
 
 if(UseInternalZlib)
 	# zlib.lib is included for windows
-	find_library(ZlibLibrary NAMES zlib PATHS ${OpenJKLibDir})
+	find_library(ZlibLibrary NAMES zlib PATHS ${OpenJKLibDir}/zlib)
 	if(NOT ZlibLibrary)
-		message(FATAL_ERROR "UseInternalZlib enabled, but lib/zlib.lib not found!")
+		message(FATAL_ERROR "UseInternalZlib enabled, but ${OpenJKLibDir}/zlib.lib not found!")
 	endif(NOT ZlibLibrary)
 	set(MPVanillaRendererIncludeDirectories ${MPVanillaRendererIncludeDirectories} "${OpenJKLibDir}/zlib")
 	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${ZlibLibrary})
