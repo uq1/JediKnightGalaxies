@@ -22,6 +22,7 @@ endif(BuildMPUI)
 
 #	 Add Vanilla JKA Renderer Project
 if(BuildMPEngine)
+	set(SharedDefines ${SharedDefines} "ENGINE")
 	add_subdirectory("${MPDir}/rd-vanilla")
 endif(BuildMPEngine)
 
