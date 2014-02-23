@@ -7,6 +7,7 @@
 #include "../GLua/glua.h"
 #include "jkg_admin.h"
 #include "jkg_chatcmds.h"
+#include "jkg_utilityfunc.h"
 
 //rww - for getting bot commands...
 int AcceptBotCommand(char *cmd, gentity_t *pl);
@@ -851,12 +852,12 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 		return;
 	}
 
-	if (Q_stricmp(name, "credits") == 0) {
+	if (Q_stricmp(name, "credits") == 0 || Q_stricmp(name, "credit") == 0) {
 		int creditAmount;
 		trap_Argv(2+baseArg, arg, sizeof( arg ) );
 
 		creditAmount = atoi(arg);
-		int credits = (ent->client->ps.persistant[PERS_CREDITS] += creditAmount);
+		int credits = JKG_ModifyCredits(ent->client->ps, creditAmount);
 		trap_SendServerCommand( ent->client->ps.clientNum, va("print \"Your new balance is: %i credits\n\"", max (0, credits)) );
 		return;
 	}
@@ -1927,7 +1928,7 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 				ent->inventory->items[numbah].id->baseCost = 2;	// hackery. Starting weapon sells for 1 credit.
 			}
 		}
-		ent->client->ps.persistant[PERS_CREDITS] += (ent->inventory->items[numbah].id->baseCost)/2;
+		JKG_ModifyCredits(ent->client->ps,(ent->inventory->items[numbah].id->baseCost)/2);
 		JKG_Cmd_DestroyItem_f(ent);
 	}
 	else
@@ -1957,7 +1958,7 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 						}
 					}
 
-					ent->client->ps.persistant[PERS_CREDITS] += (ent->inventory->items[i].id->baseCost)/2;
+					JKG_ModifyCredits(ent->client->ps, (ent->inventory->items[i].id->baseCost)/2);
 					JKG_Easy_RemoveItemFromInventory(i, (itemInstance_t **)ent->inventory->items, ent, qfalse);
 					break;
 				}

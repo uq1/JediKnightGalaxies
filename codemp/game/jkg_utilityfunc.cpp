@@ -6,6 +6,7 @@
 
 #include "g_local.h"
 #include <assert.h>
+#include "jkg_utilityfunc.h"
 
 typedef struct
 {
@@ -30,7 +31,13 @@ typedef struct
 	vec_t   scale;
 	char    creator[16];
 } md3boneFrame_t;
-
+int JKG_ModifyCredits(playerState_t& ps, int mod) {
+	if(ps.persistant[PERS_CREDITS] + mod > SHRT_MAX || ps.persistant[PERS_CREDITS] + mod < 0)
+		ps.persistant[PERS_CREDITS] = mod > 0 ? SHRT_MAX : 0;
+	else
+		ps.persistant[PERS_CREDITS] += mod;
+	return ps.persistant[PERS_CREDITS];
+}
 void JKG_RotateBBox(vec3_t mins,vec3_t maxs, vec3_t angles){
 	vec3_t sides[6];
 	int i,j;
