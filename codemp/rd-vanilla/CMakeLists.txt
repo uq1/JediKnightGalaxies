@@ -112,9 +112,9 @@ endif(UseInternalPNG)
 
 if(UseInternalZlib)
 	# zlib.lib is included for windows
-	find_library(ZlibLibrary NAMES zlib PATHS ${OpenJKLibDir})
+	find_library(ZlibLibrary NAMES zlib PATHS ${OpenJKLibDir}/zlib)
 	if(NOT ZlibLibrary)
-		message(FATAL_ERROR "UseInternalZlib enabled, but lib/zlib.lib not found!")
+		message(FATAL_ERROR "UseInternalZlib enabled, but ${OpenJKLibDir}/zlib.lib not found!")
 	endif(NOT ZlibLibrary)
 	set(MPVanillaRendererIncludeDirectories ${MPVanillaRendererIncludeDirectories} "${OpenJKLibDir}/zlib")
 	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${ZlibLibrary})
@@ -172,4 +172,5 @@ set_target_properties(${MPVanillaRenderer} PROPERTIES COMPILE_DEFINITIONS_RELEAS
 set_target_properties(${MPVanillaRenderer} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${SharedDefines};${DebugDefines}")
 set_target_properties(${MPVanillaRenderer} PROPERTIES INCLUDE_DIRECTORIES "${MPVanillaRendererIncludeDirectories}")
 set_target_properties(${MPVanillaRenderer} PROPERTIES PROJECT_LABEL "MP Vanilla Renderer")
+set_target_properties(${MPVanillaRenderer} PROPERTIES LINK_FLAGS "/NODEFAULTLIB:LIBCMT;MSVCRT")
 target_link_libraries(${MPVanillaRenderer} ${MPVanillaRendererLibraries})

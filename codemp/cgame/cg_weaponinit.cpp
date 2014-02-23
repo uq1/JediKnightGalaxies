@@ -2,7 +2,7 @@
 // cg_weaponinit.c -- events and effects dealing with weapons
 #include "cg_local.h"
 #include "fx_local.h"
-#include "bg_local.h"
+#include "game/bg_local.h"
 
 #include "cg_weapons.h"
 

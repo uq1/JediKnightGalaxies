@@ -5,8 +5,6 @@ if(NOT InOpenJK)
 	message(FATAL_ERROR "Use the top-level cmake script!")
 endif(NOT InOpenJK)
 
-set(MPSharedDefines ${SharedDefines} "_JK2")
-
 #    Add Game Project
 if(BuildMPGame)
 	add_subdirectory("${MPDir}/game")
@@ -24,6 +22,7 @@ endif(BuildMPUI)
 
 #	 Add Vanilla JKA Renderer Project
 if(BuildMPEngine)
+	set(SharedDefines ${SharedDefines} "ENGINE")
 	add_subdirectory("${MPDir}/rd-vanilla")
 endif(BuildMPEngine)
 
@@ -130,9 +129,9 @@ if(BuildMPEngine OR BuildMPDed)
 	
 	if(UseInternalZlib)
 		# OpenAL32.lib is included for windows
-		find_library(ZlibLibrary NAMES zlib PATHS ${OpenJKLibDir})
+		find_library(ZlibLibrary NAMES zlib PATHS ${OpenJKLibDir}/zlib)
 		if(NOT ZlibLibrary)
-			message(FATAL_ERROR "UseInternalZlib enabled, but lib/zlib.lib not found!")
+			message(FATAL_ERROR "UseInternalZlib enabled, but ${OpenJKLibDir}/zlib.lib not found!")
 		endif(NOT ZlibLibrary)
 		set(MPEngineAndDedIncludeDirectories ${MPEngineAndDedIncludeDirectories} "${OpenJKLibDir}/zlib")
 		set(MPEngineAndDedLibraries ${MPEngineAndDedLibraries} ${ZlibLibrary})
@@ -359,7 +358,7 @@ if(BuildMPEngine)
 	set(MPEngineLibraries ${MPEngineAndDedLibraries})
 	set(MPEngineIncludeDirectories ${MPEngineAndDedIncludeDirectories})
 	set(MPEngineFiles ${MPEngineAndDedFiles})
-	set(MPEngineDefines ${MPSharedDefines} "_JK2MP")
+	set(MPEngineDefines ${MPSharedDefines} "_JK2MP" "ENGINE")
 	
 	#    Dependencies
 	
@@ -374,9 +373,9 @@ if(BuildMPEngine)
 		set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} "${MPDir}/client/OpenAL")
 		# There's a libs/OpenAL32.lib
 		# (mrw) TODO Is this actually required on windows? It is loaded at runtime, should not be linked?
-		find_library(OpenALLibrary NAMES OpenAL32 PATHS ${OpenJKDir})
+		find_library(OpenALLibrary NAMES OpenAL32 PATHS ${OpenJKLibDir}/openal)
 		if(NOT OpenALLibrary)
-			message(FATAL_ERROR "UseInternalOpenAL enabled, but lib/OpenAL32.lib not found!")
+			message(FATAL_ERROR "UseInternalOpenAL enabled, but ${OpenJKDir}/OpenAL32.lib not found!")
 		endif(NOT OpenALLibrary)
 		set(MPEngineLibraries ${MPEngineLibraries} ${OpenALLibrary})
 	else(UseInternalOpenAL)
@@ -473,36 +472,36 @@ if(BuildMPEngine)
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineRavlFiles})
 	
 	set(MPEngineMp3Files
-		"${MPDir}/mp3code/cdct.c"
-		"${MPDir}/mp3code/config.h"
-		"${MPDir}/mp3code/csbt.c"
-		"${MPDir}/mp3code/csbtb.c"
-		"${MPDir}/mp3code/csbtl3.c"
-		"${MPDir}/mp3code/cup.c"
-		"${MPDir}/mp3code/cupini.c"
-		"${MPDir}/mp3code/cupl1.c"
-		"${MPDir}/mp3code/cupl3.c"
-		"${MPDir}/mp3code/cwin.c"
-		"${MPDir}/mp3code/cwinb.c"
-		"${MPDir}/mp3code/cwinm.c"
-		"${MPDir}/mp3code/htable.h"
-		"${MPDir}/mp3code/hwin.c"
-		"${MPDir}/mp3code/jdw.h"
-		"${MPDir}/mp3code/l3.h"
-		"${MPDir}/mp3code/l3dq.c"
-		"${MPDir}/mp3code/l3init.c"
-		"${MPDir}/mp3code/mdct.c"
-		"${MPDir}/mp3code/mhead.c"
-		"${MPDir}/mp3code/mhead.h"
-		"${MPDir}/mp3code/mp3struct.h"
-		"${MPDir}/mp3code/msis.c"
-		"${MPDir}/mp3code/port.h"
-		"${MPDir}/mp3code/small_header.h"
-		"${MPDir}/mp3code/tableawd.h"
-		"${MPDir}/mp3code/towave.c"
-		"${MPDir}/mp3code/uph.c"
-		"${MPDir}/mp3code/upsf.c"
-		"${MPDir}/mp3code/wavep.c"
+		"${OpenJKLibDir}/mp3code/cdct.c"
+		"${OpenJKLibDir}/mp3code/config.h"
+		"${OpenJKLibDir}/mp3code/csbt.c"
+		"${OpenJKLibDir}/mp3code/csbtb.c"
+		"${OpenJKLibDir}/mp3code/csbtl3.c"
+		"${OpenJKLibDir}/mp3code/cup.c"
+		"${OpenJKLibDir}/mp3code/cupini.c"
+		"${OpenJKLibDir}/mp3code/cupl1.c"
+		"${OpenJKLibDir}/mp3code/cupl3.c"
+		"${OpenJKLibDir}/mp3code/cwin.c"
+		"${OpenJKLibDir}/mp3code/cwinb.c"
+		"${OpenJKLibDir}/mp3code/cwinm.c"
+		"${OpenJKLibDir}/mp3code/htable.h"
+		"${OpenJKLibDir}/mp3code/hwin.c"
+		"${OpenJKLibDir}/mp3code/jdw.h"
+		"${OpenJKLibDir}/mp3code/l3.h"
+		"${OpenJKLibDir}/mp3code/l3dq.c"
+		"${OpenJKLibDir}/mp3code/l3init.c"
+		"${OpenJKLibDir}/mp3code/mdct.c"
+		"${OpenJKLibDir}/mp3code/mhead.c"
+		"${OpenJKLibDir}/mp3code/mhead.h"
+		"${OpenJKLibDir}/mp3code/mp3struct.h"
+		"${OpenJKLibDir}/mp3code/msis.c"
+		"${OpenJKLibDir}/mp3code/port.h"
+		"${OpenJKLibDir}/mp3code/small_header.h"
+		"${OpenJKLibDir}/mp3code/tableawd.h"
+		"${OpenJKLibDir}/mp3code/towave.c"
+		"${OpenJKLibDir}/mp3code/uph.c"
+		"${OpenJKLibDir}/mp3code/upsf.c"
+		"${OpenJKLibDir}/mp3code/wavep.c"
 		)
 	source_group("mp3code" FILES ${MPEngineMp3Files})
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineMp3Files})
@@ -566,7 +565,8 @@ if(BuildMPEngine)
 	set_target_properties(${MPEngine} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPEngineDefines};${ReleaseDefines}")
 	set_target_properties(${MPEngine} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPEngineDefines};${DebugDefines}")
 	set_target_properties(${MPEngine} PROPERTIES INCLUDE_DIRECTORIES "${MPEngineIncludeDirectories}")
-	set_target_properties(${MPEngine} PROPERTIES PROJECT_LABEL "MP Client")
+	set_target_properties(${MPEngine} PROPERTIES PROJECT_LABEL "MP Client (jkgalaxies.x86.exe)")
+	set_target_properties(${MPEngine} PROPERTIES LINK_FLAGS "/NODEFAULTLIB:LIBCMT;MSVCRT")
 	target_link_libraries(${MPEngine} ${MPEngineLibraries})
 endif(BuildMPEngine)
 
@@ -576,7 +576,7 @@ if(BuildMPDed)
 	set(MPDedLibraries ${MPEngineAndDedLibraries})
 	set(MPDedIncludeDirectories ${MPEngineAndDedIncludeDirectories})
 	set(MPDedFiles ${MPEngineAndDedFiles})
-	set(MPDedDefines ${MPSharedDefines} "_CONSOLE" "DEDICATED")
+	set(MPDedDefines ${MPSharedDefines} "_CONSOLE" "DEDICATED" "ENGINE")
 
 	# Dedicated renderer is compiled with the server.
 	set(MPDedicatedRendererFiles
@@ -662,6 +662,7 @@ if(BuildMPDed)
 	set_target_properties(${MPDed} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPDedDefines};${ReleaseDefines}")
 	set_target_properties(${MPDed} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPDedDefines};${DebugDefines}")
 	set_target_properties(${MPDed} PROPERTIES INCLUDE_DIRECTORIES "${MPDedIncludeDirectories}")
-	set_target_properties(${MPDed} PROPERTIES PROJECT_LABEL "MP Dedicated Server")
+	set_target_properties(${MPDed} PROPERTIES PROJECT_LABEL "MP Dedicated Server (jkgalaxiesded.x86.exe)")
+	set_target_properties(${MPDed} PROPERTIES LINK_FLAGS "/NODEFAULTLIB:LIBCMT;MSVCRT")
 	target_link_libraries(${MPDed} ${MPDedLibraries})
 endif(BuildMPDed)
