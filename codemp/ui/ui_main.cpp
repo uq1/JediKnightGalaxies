@@ -3361,17 +3361,17 @@ static qboolean UI_NetSource_HandleKey(int flags, float *special, int key) {
 static qboolean UI_NetFilter_HandleKey(int flags, float *special, int key) {
 	if (key == A_MOUSE1 || key == A_MOUSE2 || key == A_ENTER || key == A_KP_ENTER) {
 
-		if (key == A_MOUSE2) {
-			ui_serverFilterType.integer--;
-		} else {
-			ui_serverFilterType.integer++;
-		}
+		//if (key == A_MOUSE2) {
+			//ui_serverFilterType.integer--;
+		//} else {
+		//	ui_serverFilterType.integer++;
+		//}
 
-		if (ui_serverFilterType.integer >= numServerFilters) {
+		//if (ui_serverFilterType.integer >= numServerFilters) {
 			ui_serverFilterType.integer = 0;
-		} else if (ui_serverFilterType.integer < 0) {
-			ui_serverFilterType.integer = numServerFilters - 1;
-		}
+		//} else if (ui_serverFilterType.integer < 0) {
+		//	ui_serverFilterType.integer = numServerFilters - 1;
+		//}
 		UI_BuildServerDisplayList(1);
 		return qtrue;
 	}
