@@ -9,7 +9,7 @@ set(MPUIIncludeDirectories "${MPDir}" "${OpenJKLibDir}" "${OpenJKLibDir}/libexpa
 if(WIN32)
 	set(MPUILibraries "odbc32" "odbccp32") # what are these even?
 endif(WIN32)
-set(MPUIDefines ${MPSharedDefines} "UI_EXPORTS" "MISSIONPACK" "_USRDLL" "UI")
+set(MPUIDefines ${MPSharedDefines} "UI_EXPORTS" "MISSIONPACK" "_USRDLL" "UI" "XML_STATIC")
 
 set(MPUIGameFiles
 	"${MPDir}/game/animtable.cpp"
@@ -136,12 +136,12 @@ set(MPUIFiles ${MPUIFiles} ${MPUILibExpat})
 
 add_library(${MPUI} SHARED ${MPUIFiles})
 set(LibExpat
-	"${OpenJKLibDir}/libexpat/lib/libexpat.lib"
+	#"${OpenJKLibDir}/libexpat/lib/libexpat.lib"
 	"${OpenJKLibDir}/libexpat/lib/libexpatMT.lib"
-	"${OpenJKLibDir}/libexpat/lib/libexpatw.lib"
-	"${OpenJKLibDir}/libexpat/lib/libexpatwMT.lib"
+	#"${OpenJKLibDir}/libexpat/lib/libexpatw.lib"
+	#"${OpenJKLibDir}/libexpat/lib/libexpatwMT.lib"
 	)
-target_link_libraries(${MPUI} ${LibExpat})
+set(MPUILibraries ${MPUILibraries} ${LibExpat})
 
 if(NOT WIN32)
 	# remove "lib" prefix for .so/.dylib files
@@ -149,9 +149,9 @@ if(NOT WIN32)
 endif(NOT WIN32)
 
 if(WIN32)
-	install(TARGETS ${MPUI} RUNTIME DESTINATION "OpenJK")
+	install(TARGETS ${MPUI} RUNTIME DESTINATION "${BinaryDestination}/base")
 else(WIN32)
-	install(TARGETS ${MPUI} LIBRARY DESTINATION "OpenJK")
+	install(TARGETS ${MPUI} LIBRARY DESTINATION "/base")
 endif(WIN32)
 set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPUIDefines};${ReleaseDefines}")
 set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPUIDefines};${ReleaseDefines}")
@@ -159,6 +159,7 @@ set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPUIDefi
 set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPUIDefines};${DebugDefines}")
 set_target_properties(${MPUI} PROPERTIES INCLUDE_DIRECTORIES "${MPUIIncludeDirectories}")
 set_target_properties(${MPUI} PROPERTIES PROJECT_LABEL "MP UI Library (uix86.dll)")
+set_target_properties(${MPUI} PROPERTIES LINK_FLAGS "/NODEFAULTLIB:LIBCMT;MSVCRT")
 # no libraries used
 if(MPUILibraries)
 	target_link_libraries(${MPUI} ${MPUILibraries})

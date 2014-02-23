@@ -5,6 +5,14 @@ set(InOpenJK TRUE)
 #    Project name
 project("JKGalaxes")
 
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
+set(CMAKE_CXX_FLAGS_RELEASE "/MT" CACHE STRING "" FORCE)
+set(CMAKE_CXX_FLAGS_DEBUG "/MTd" CACHE STRING "" FORCE)
+set(CMAKE_C_FLAGS_RELEASE "/MT" CACHE STRING "" FORCE)
+set(CMAKE_C_FLAGS_DEBUG "/MTd" CACHE STRING "" FORCE)
+
+option(BuildDestinationExternal "Copy final build files to directory specified by 'Binary Destination'" OFF)
+set(BinaryDestination ${CMAKE_CURRENT_BINARY_DIR} CACHE STRING "Binary Destination")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -119,14 +127,12 @@ else(WIN32)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
-		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-but-set-variable")
 	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-writable-strings")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
 	endif()
-
 	if (NOT CMAKE_BUILD_TYPE)
 		message("No build type selected, default to RELEASE")
 		set(CMAKE_BUILD_TYPE "RELEASE")
