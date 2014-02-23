@@ -2,7 +2,7 @@
 
 #include "game/g_local.h"
 #include "qcommon/q_shared.h"
-
+#include "game/jkg_utilityfunc.h"
 #include "glua.h"
 
 #define ConvertVec(a, b) (b[0] = a->x, b[1] = a->y, b[2] = a->z)
@@ -1628,7 +1628,7 @@ static int GLua_Player_SetCreditCount(lua_State *L) {
 	if (!ply) return 0;
 	ent = &g_entities[ply->clientNum];
 	
-	ent->client->ps.persistant[PERS_CREDITS] = setTo;
+	JKG_SetCredits(ent->client->ps,setTo);
 	return 1;
 }
 
@@ -1639,7 +1639,7 @@ static int GLua_Player_ModifyCreditCount(lua_State *L) {
 	if (!ply) return 0;
 	ent = &g_entities[ply->clientNum];
 	
-	ent->client->ps.persistant[PERS_CREDITS] += modify;
+	JKG_ModifyCredits(ent->client->ps,modify);
 	return 1;
 }
 

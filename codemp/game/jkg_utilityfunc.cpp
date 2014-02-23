@@ -38,6 +38,13 @@ int JKG_ModifyCredits(playerState_t& ps, int mod) {
 		ps.persistant[PERS_CREDITS] += mod;
 	return ps.persistant[PERS_CREDITS];
 }
+int JKG_SetCredits(playerState_t& ps, int mod) {
+	if(mod > SHRT_MAX || mod < 0)
+		ps.persistant[PERS_CREDITS] = mod > 0 ? SHRT_MAX : 0;
+	else
+		ps.persistant[PERS_CREDITS] = mod;
+	return ps.persistant[PERS_CREDITS];
+}
 void JKG_RotateBBox(vec3_t mins,vec3_t maxs, vec3_t angles){
 	vec3_t sides[6];
 	int i,j;

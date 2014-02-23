@@ -9,7 +9,7 @@
 #include "jkg_admin.h"
 #include "jkg_bans.h"
 #include "jkg_damagetypes.h"
-
+#include "jkg_utilityfunc.h"
 #include "qcommon/game_version.h"
 
 extern wpobject_t *gWPArray[MAX_WPARRAY_SIZE];
@@ -2439,7 +2439,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	memset( &client->ps, 0, sizeof( client->ps ) );
 	client->ps.eFlags = flags;
 	// Check the credit count. that should probably stick.
-	client->ps.persistant[PERS_CREDITS] = credits;
+	JKG_SetCredits(client->ps,credits);
 
 	client->ps.hasDetPackPlanted = qfalse;
 
@@ -3356,7 +3356,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 					// Don't have any sort of item in our inventory
 					if(ent->client->ps.persistant[PERS_CREDITS] < jkg_startingCredits.integer)
 					{
-						ent->client->ps.persistant[PERS_CREDITS] = jkg_startingCredits.integer;
+						JKG_SetCredits(ent->client->ps,jkg_startingCredits.integer);
 						JKG_A_GiveEntItemForcedToACI(itemID, IQUAL_NORMAL, ent->inventory, ent->client, 0);
 					}
 				}
