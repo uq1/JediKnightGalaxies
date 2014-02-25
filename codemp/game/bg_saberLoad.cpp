@@ -5,9 +5,9 @@
 #include "w_saber.h"
 
 #include <json/cJSON.h>
+#include <cctype>
 #include <string>
 #include <unordered_map>
-#include <boost/algorithm/string.hpp>
 
 saberStanceExternal_t SaberStances[MAX_STANCES];
 
@@ -132,6 +132,14 @@ stringID_table_t SaberMoveTable[] =
 	ENUM2STRING(LS_HILT_BASH),
 	"",	-1
 };
+
+static void to_lower ( std::string& str )
+{
+	for (size_t i = 0, len = str.size(); i < len; i++)
+	{
+		str[i] = static_cast<char>(std::tolower (str[i]));
+	}
+}
 
 saber_colors_t TranslateSaberColor( const char *name ) 
 {
@@ -928,7 +936,7 @@ if(childNode)
 
 #undef JSONPARSE
 	std::string name2 = name;
-	boost::algorithm::to_lower(name2);
+	to_lower(name2);
 	hiltLookupTable->insert(std::pair<std::string, saberInfo_t>(name2, theHilt));
 	return true;
 }
@@ -976,7 +984,7 @@ bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber )
 	{
 		std::string derp = hiltName;
 
-		boost::algorithm::to_lower(derp);
+		to_lower(derp);
 		it = hiltLookupTable->find(derp);
 	}
 	if(it == hiltLookupTable->end())
