@@ -14,7 +14,6 @@
 		focusColor				1 1 1 .9								// Focus color for text and items
 		descX					320
 		descY					424
-		descFont				5
 		descScale				.6
 		descColor				.7 .85 1 .7
 		descAlignment				ITEM_ALIGN_CENTER		

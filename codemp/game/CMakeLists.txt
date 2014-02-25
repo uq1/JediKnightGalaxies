@@ -258,7 +258,7 @@ set(MPGameGLua
 	"${MPDir}/GLua/glua_sys.cpp"
 	"${MPDir}/GLua/glua_vector.cpp"
 	)
-source_group("Header Files\\GLua" FILES ${MPGameGLua})
+source_group("GLUA" FILES ${MPGameGLua})
 set(MPGameFiles ${MPGameFiles} ${MPGameGLua})
 
 set(MPGameLibBase128Header
