@@ -1509,6 +1509,14 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 	char			userinfo[MAX_INFO_STRING];
 	int				preTeam = 0;
 
+	clientNum = trap_BotAllocateClient();
+	if ( clientNum == -1 ) {
+//		trap->Print( S_COLOR_RED "Unable to add bot.  All player slots are in use.\n" );
+//		trap->Print( S_COLOR_RED "Start server with more 'open' slots.\n" );
+		trap_SendServerCommand( -1, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "UNABLE_TO_ADD_BOT")));
+		return;
+	}
+
 	// get the botinfo from bots.txt
 	botinfo = G_GetBotInfoByName( name );
 	if ( !botinfo ) {
