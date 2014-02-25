@@ -133,7 +133,7 @@ void JKG_UI_LoadStylesheet( const char *text )
 			//item.window.selectionZone // need parsing
 			item.window.style = cJSON_ToInteger(cJSON_GetObjectItem(classObject, "style")); // FIXME: use proper flags
 
-			styleobjects.insert( make_pair<string, itemDef_t>(name, item) );
+			styleobjects.insert( make_pair (name, item) );
 		}
 	}
 }
