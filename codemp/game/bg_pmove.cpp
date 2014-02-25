@@ -6961,7 +6961,7 @@ static void PM_Weapon( void )
 	qboolean vehicleRocketLock = qfalse;
 	// Jedi Knight Galaxies
 	int doStdAnim;
-	static qboolean jkg_didGrenadeCook[MAX_CLIENTS];
+	static qboolean jkg_didGrenadeCook[MAX_GENTITIES];
 	const weaponData_t *weaponData;
 	weaponData_t *wp = BG_GetWeaponDataByIndex(pm->ps->weaponId);
 
