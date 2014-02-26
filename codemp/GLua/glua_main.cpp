@@ -205,7 +205,7 @@ static int GLua_Panic(lua_State *L) {
 }
 
 void GLua_Init() {
-	//lua_State *L;
+	lua_State *L;
 	int i;
 	if (LuaInstance) {
 		// Apparently its already active?
