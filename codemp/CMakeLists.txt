@@ -506,6 +506,9 @@ if(BuildMPEngine)
 	source_group("mp3code" FILES ${MPEngineMp3Files})
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineMp3Files})
 	
+	file(GLOB_RECURSE MPEngineZlibFiles "${OpenJKLibDir}/zlib/*.c" "${OpenJKLibDir}/zlib/*.h")
+	source_group("Zlib" FILES ${MPEngineZlibFiles})
+	set(MPEngineFiles ${MPEngineFiles} ${MPEngineZlibFiles})
 	if(WIN32)
 		set(MPEngineWin32Files
 			"${MPDir}/win32/glw_win.h"

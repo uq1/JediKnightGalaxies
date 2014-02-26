@@ -40,6 +40,7 @@ set(MPCGameGameFiles
 	"${MPDir}/game/bg_strap.h"
 	"${MPDir}/game/bg_weapons.h"
 	"${MPDir}/game/surfaceflags.h"
+	"${MPDir}/game/z_global_defines.h"
 	)
 source_group("game" FILES ${MPCGameGameFiles})
 set(MPCGameFiles ${MPCGameFiles} ${MPCGameGameFiles})

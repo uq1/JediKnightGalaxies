@@ -68,7 +68,9 @@ set(MPVanillaRendererRdCommonFiles
 	"${MPDir}/rd-common/tr_image_tga.cpp"
 	"${MPDir}/rd-common/tr_image_png.cpp"
 	"${MPDir}/rd-common/tr_noise.cpp"
-	"${MPDir}/rd-common/tr_public.h")
+	"${MPDir}/rd-common/tr_public.h"
+	"${MPDir}/rd-common/tr_types.h"
+	)
 source_group("rd-common" FILES ${MPVanillaRendererRdCommonFiles})
 set(MPVanillaRendererFiles ${MPVanillaRendererFiles} ${MPVanillaRendererRdCommonFiles})
 
@@ -83,6 +85,10 @@ set(MPVanillaRendererFiles ${MPVanillaRendererFiles} ${MPVanillaRendererQcommonF
 file(GLOB_RECURSE MPVanillaRendererJpegFiles "${OpenJKLibDir}/jpeg-8c/*.c" "${OpenJKLibDir}/jpeg-8c/*.h")
 source_group("jpeg-8c" FILES ${MPVanillaRendererJpegFiles})
 set(MPVanillaRendererFiles ${MPVanillaRendererFiles} ${MPVanillaRendererJpegFiles})
+
+file(GLOB_RECURSE MPVanillaRendererZlibFiles "${OpenJKLibDir}/zlib/*.c" "${OpenJKLibDir}/zlib/*.h")
+source_group("Zlib" FILES ${MPVanillaRendererZlibFiles})
+set(MPVanillaRendererFiles ${MPVanillaRendererFiles} ${MPVanillaRendererZlibFiles})
 
 if(UseInternalPNG)
 	set(MPVanillaRendererLibPngFiles
@@ -166,11 +172,12 @@ else(WIN32)
 		install(TARGETS ${MPVanillaRenderer} LIBRARY DESTINATION ".")
 	endif(MakeApplicationBundles AND BuildMPEngine)
 endif(WIN32)
+
 set_target_properties(${MPVanillaRenderer} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${SharedDefines};${ReleaseDefines}")
 set_target_properties(${MPVanillaRenderer} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${SharedDefines};${ReleaseDefines}")
 set_target_properties(${MPVanillaRenderer} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${SharedDefines};${ReleaseDefines}")
 set_target_properties(${MPVanillaRenderer} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${SharedDefines};${DebugDefines}")
 set_target_properties(${MPVanillaRenderer} PROPERTIES INCLUDE_DIRECTORIES "${MPVanillaRendererIncludeDirectories}")
-set_target_properties(${MPVanillaRenderer} PROPERTIES PROJECT_LABEL "MP Vanilla Renderer")
+set_target_properties(${MPVanillaRenderer} PROPERTIES PROJECT_LABEL "MP Vanilla Renderer (rd-vanilla_x86.dll)")
 set_target_properties(${MPVanillaRenderer} PROPERTIES LINK_FLAGS "/NODEFAULTLIB:LIBCMT;MSVCRT")
 target_link_libraries(${MPVanillaRenderer} ${MPVanillaRendererLibraries})
