@@ -179,5 +179,5 @@ set_target_properties(${MPVanillaRenderer} PROPERTIES COMPILE_DEFINITIONS_RELEAS
 set_target_properties(${MPVanillaRenderer} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${SharedDefines};${DebugDefines}")
 set_target_properties(${MPVanillaRenderer} PROPERTIES INCLUDE_DIRECTORIES "${MPVanillaRendererIncludeDirectories}")
 set_target_properties(${MPVanillaRenderer} PROPERTIES PROJECT_LABEL "MP Vanilla Renderer (rd-vanilla_x86.dll)")
-set_target_properties(${MPVanillaRenderer} PROPERTIES LINK_FLAGS "/NODEFAULTLIB:LIBCMT;MSVCRT")
+#set_target_properties(${MPVanillaRenderer} PROPERTIES LINK_FLAGS "/NODEFAULTLIB:MSVCRT")
 target_link_libraries(${MPVanillaRenderer} ${MPVanillaRendererLibraries})

@@ -205,7 +205,7 @@ static int GLua_Panic(lua_State *L) {
 }
 
 void GLua_Init() {
-	lua_State *L;
+	//lua_State *L;
 	int i;
 	if (LuaInstance) {
 		// Apparently its already active?
@@ -234,9 +234,9 @@ void GLua_Init() {
 	// Initialize framework
 	G_Printf(" -> Initializing GLua Framework...\n");
 	if (GLua_LoadFile(L, "glua/framework/init.lua")) {
-		//Com_Error(ERR_FATAL, "FATAL ERROR: Could not properly initialize the GLua framework!\n");
-		G_Printf("FATAL ERROR: Could not properly initialize the GLua framework!\n");
-		while(1){};
+		Com_Error(ERR_FATAL, "FATAL ERROR: Could not properly initialize the GLua framework!\n");
+		//G_Printf("FATAL ERROR: Could not properly initialize the GLua framework!\n");
+		
 	}
 
 	GLua_Framework[GLUA_HOOK] = GLua_GetFrameworkRef(L,"hook","Call");
