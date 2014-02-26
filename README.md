@@ -3,7 +3,7 @@ IRC: irc.arloria.net / #JKGalaxies ([webchat](http://www.jkgalaxies.com/irc/))
 
 Forum: http://www.jkgalaxies.com/forum/
 
-Please use discrection when making issue requests on github. The forum is a better place for larger discussions on changes that aren't actually bugs.
+Please use discretion when making issue requests on GitHub. The forum is a better place for larger discussions on changes that aren't actually bugs.
 
 ## Installation of Game ##
 
@@ -14,7 +14,7 @@ Copy assets0-3.pk3s from your base game into JKG's base folder.
 
 ## Dependencies ##
 
-* Boost library (Place the boost folder in codemp/)
+* Boost library (only for some branches)
 * OpenGL
 * OpenAL (included on Windows)
 * libpng (included on Windows)
