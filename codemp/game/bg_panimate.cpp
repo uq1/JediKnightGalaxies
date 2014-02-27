@@ -2909,9 +2909,9 @@ void BG_SaberStartTransAnim( int clientNum, int saberAnimLevel, int weapon, int 
 
 void JKG_ReloadAnimation( int firingMode, int weaponID, int anim, animation_t *anims, float *animSpeed )
 {
-	weaponData_t *wp = BG_GetWeaponDataByIndex(weaponID);
+	const weaponData_t *wp = BG_GetWeaponDataByIndex(weaponID);
 	if(wp->weaponReloadTime == 0) {
-		wp->weaponReloadTime = 1;
+		return;
 	}
 	*animSpeed *= (anims[anim].numFrames-1) * fabs((float)(anims[anim].frameLerp)) / (float)wp->weaponReloadTime;
 }
