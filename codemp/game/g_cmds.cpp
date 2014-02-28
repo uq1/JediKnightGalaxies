@@ -340,85 +340,39 @@ JKG_BuyItem_f
 */
 void JKG_BuyItem_f(gentity_t *ent)
 {
-	int i;
-	int entities[MAX_GENTITIES];
-	int numEnts = 0;//trap_EntitiesInBox(ent->r.absmin, ent->r.absmax, entities, MAX_GENTITIES);
-
-	//if (numEnts <= 1)
-	{// UQ1: Non-Trigger Vendors...
-		vec3_t mins;
-		vec3_t maxs;
-		int e = 0;
-
-		for ( e = 0 ; e < 3 ; e++ ) 
-		{
-			if (e == 2)
-			{// Up/Down axis is smaller so people can't buy from another level of the building...
-				mins[e] = ent->r.currentOrigin[e] - 48;
-				maxs[e] = ent->r.currentOrigin[e] + 48;
-			}
-			else
-			{
-				mins[e] = ent->r.currentOrigin[e] - 192;
-				maxs[e] = ent->r.currentOrigin[e] + 192;
-			}
-		}
-
-		numEnts = trap_EntitiesInBox(mins, maxs, entities, MAX_GENTITIES);
-	}
-
 	if(trap_Argc() < 1)
 	{
 		trap_SendServerCommand(ent->s.number, "print \"Not enough args.\n\"");
 		return;
 	}
 
-	if(numEnts < 1)
+	if(ent->client->currentVendor == NULL)
 	{
 		trap_SendServerCommand(ent->s.number, "print \"You are not at a vendor.\n\"");
 		return;
 	}
-	else
+
+	char buffer[8];
+
+	trap_Argv (1, buffer, sizeof(buffer));
+	JKG_Vendor_Buy (ent, ent->client->currentVendor, atoi(buffer));
+}
+
+/*
+==================
+JKG_CloseVendor_f
+
+==================
+*/
+void JKG_CloseVendor_f (gentity_t *ent)
+{
+	if ( ent->client->currentVendor == NULL )
 	{
-		for(i = 0; i < numEnts; i++)
-		{
-			if(!strncmp(g_entities[entities[i]].classname, "trigger_", 8) || !Q_stricmp(g_entities[entities[i]].classname, "misc_model_breakable"))
-			{
-				//This ent is a trigger. OH SNAP.
-				gentity_t *pointingAt = G_Find(NULL, FOFS(targetname), g_entities[entities[i]].target);
-				if(!pointingAt || !pointingAt->inuse)
-				{
-					continue;	//No target
-				}
-				else if(!Q_stricmp(pointingAt->classname, "jkg_target_vendor"))
-				{
-					//This is a vendor. Buy it!
-					char buffer[16];
-					trap_Argv(1, buffer, sizeof(buffer));
-					JKG_Vendor_Buy(ent, pointingAt, atoi(buffer));
-					return;
-				}
-			}
-			else
-			{// UQ1: Actual NPC (non trigger) usage...
-				gentity_t *pointingAt = &g_entities[entities[i]];
-
-				if(!pointingAt || !pointingAt->inuse)
-				{
-					continue;	//No target
-				}
-
-				{//This is a vendor. Buy it!
-					char buffer[8];
-					trap_Argv(1, buffer, sizeof(buffer));
-					JKG_Vendor_Buy(ent, pointingAt, atoi(buffer));
-					return;
-				}
-			}
-		}
+		return;
 	}
 
-	trap_SendServerCommand(ent->s.number, "print \"You need to be at a vendor to purchase items.\n\"");
+	ent->client->pmnomove = false;
+	ent->client->currentVendor = NULL;
 }
 
 /*
@@ -3004,7 +2958,7 @@ void Cmd_GameCommand_f( gentity_t *ent ) {
 	trap_Argv( 2, arg, sizeof( arg ) );
 	order = atoi( arg );
 
-	if ( order < 0 || order >= numgc_orders ) {
+	if ( order >= numgc_orders ) {
 		trap_SendServerCommand( ent-g_entities, va("print \"Bad order: %i\n\"", order));
 		return;
 	}
@@ -4855,6 +4809,10 @@ void ClientCommand( int clientNum ) {
 		int credits = ent->client->ps.persistant[PERS_CREDITS];
 		trap_SendServerCommand( clientNum, va("print \"You have %i credits, %s.\n\"", max (0, credits), ent->client->pers.netname) );
 		return;
+	}
+	else if ( Q_stricmp (cmd, "closeVendor") == 0 )
+	{
+		JKG_CloseVendor_f (ent);
 	}
 	else if (!Q_stricmp(cmd, "buyVendor"))
 	{

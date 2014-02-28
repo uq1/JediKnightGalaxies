@@ -1015,6 +1015,8 @@ struct gclient_s {
 	float		blockingLightningAccumulation;//Stoiss add
 	qboolean	didSaberOffSound;				// eez add
 	float		ironsightsBlend;			// only used in ~1 place, but it's used to prevent noscoping
+
+	gentity_t	*currentVendor;
 };
 
 //Interest points

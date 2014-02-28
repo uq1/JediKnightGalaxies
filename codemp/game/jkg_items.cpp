@@ -1165,6 +1165,8 @@ void JKG_target_vendor_use(gentity_t *ent, gentity_t *other, gentity_t *activato
 	}
 
 	activator->client->ps.useDelay = level.time + 500;
+	activator->client->currentVendor = vendorTarget;
+	activator->client->pmnomove = true;
 }
 
 void JKG_SP_target_vendor(gentity_t *ent)

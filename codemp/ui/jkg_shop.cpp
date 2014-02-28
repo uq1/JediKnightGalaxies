@@ -597,6 +597,7 @@ void JKG_Shop_CloseDialog(char **args)
 		trap_Cvar_Set ("ui_hidehud", "0");
 	}
 	shopState.active = qfalse;
+	cgImports->SendClientCommand ("closeVendor");
 }
 
 void JKG_Shop_ItemSelect(char **args)
@@ -617,12 +618,7 @@ void JKG_Shop_ItemSelect(char **args)
 		//Too high...bug?
 		return;
 	}
-	if(credits < lookupTable[desiredItemID].cost)
-	{
-		// Don't have enough credits, so don't update the preview.
-		JKG_Shop_UpdateShopStuff(ui_inventoryFilter.integer);
-		return;
-	}
+
 	shopState.selectedShopItem = shopMenuPosition+arg0;
 	JKG_Shop_UpdateShopStuff(ui_inventoryFilter.integer);
 }
