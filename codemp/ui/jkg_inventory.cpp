@@ -1454,7 +1454,7 @@ static void XMLCALL JKGXML_End_Element(void *userData, const char *name)
 #pragma endregion
 static void XMLCALL JKGXML_ParseCharacters(void *data, const char *content, int length)
 {
-	char           *tmp = (char *)malloc(length);
+	char           *tmp = (char *)malloc(length + 1);
 	strncpy(tmp, content, length);
 	tmp[length] = '\0';
 	data = (void *) tmp;
