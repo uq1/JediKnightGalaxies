@@ -216,7 +216,7 @@ static void XMLCALL JKG_ShopXML_EndElement(void *userData, const XML_Char *name)
 
 static void XMLCALL JKG_ShopXML_ParseCharacters(void *data, const char *content, int length)
 {
-	char           *tmp = (char *)malloc(length);
+	char           *tmp = (char *)malloc(length + 1);
 	strncpy(tmp, content, length);
 	tmp[length] = '\0';
 	data = (void *) tmp;
