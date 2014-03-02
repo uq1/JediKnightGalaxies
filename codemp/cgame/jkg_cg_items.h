@@ -169,7 +169,7 @@ void JKG_CG_ClearACISlot ( int slot );
 
 void JKG_CG_EquipItem ( int newItem, int oldItem );
 void JKG_CG_UnequipItem ( int inventorySlot );
-void JKG_CG_EquipArmor( void );
+void JKG_CG_EquipArmor ( int client, int slot, int armorId );
 
 void JKG_CG_DeltaFeed ( const char *mode );
 
