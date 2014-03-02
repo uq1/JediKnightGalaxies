@@ -673,43 +673,7 @@ static int GLua_Player_GetEntity(lua_State *L) {
 	return 1;
 }
 
-static int GLua_Player_GiveWeapon(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
-	int weapon = luaL_checkinteger(L,2);
-	if (!ply) return 0;
-	if (weapon <= WP_NONE || weapon >= WP_NUM_WEAPONS) return 0;
-	level.clients[ply->clientNum].ps.stats[STAT_WEAPONS] |= (1 << weapon);
-	return 0;
-}
-
-static int GLua_Player_TakeWeapon(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
-	int weapon = luaL_checkinteger(L,2);
-	if (!ply) return 0;
-	if (weapon <= WP_NONE || weapon >= WP_NUM_WEAPONS) return 0;
-	level.clients[ply->clientNum].ps.stats[STAT_WEAPONS] &= ~(1 << weapon);
-	return 0;
-}
-
-static int GLua_Player_StripWeapons(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
-	if (!ply) return 0;
-	level.clients[ply->clientNum].ps.stats[STAT_WEAPONS] = 0;
-	level.clients[ply->clientNum].ps.weapon = 0;
-	level.clients[ply->clientNum].pers.cmd.weapon = 0;
-	trap_SendServerCommand(ply->clientNum, "chw 0");
-	return 0;
-}
-
-static int GLua_Player_HasWeapon(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
-	int weapon = luaL_checkinteger(L,2);
-	if (!ply) return 0;
-	if (weapon <= WP_NONE || weapon >= WP_NUM_WEAPONS) return 0;
-	lua_pushboolean(L, level.clients[ply->clientNum].ps.stats[STAT_WEAPONS] & (1 << weapon));
-	return 1;
-}
-
+// TODO: Make sure these two functions are getting and returning proper weapon & variation, see Ammo set&get functions for similar code
 static int GLua_Player_GetWeapon(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
@@ -729,7 +693,6 @@ static int GLua_Player_SetWeapon(lua_State *L) {
 	trap_SendServerCommand(ply->clientNum, va("chw %i", weapon));
 	return 0;
 }
-
 
 static int GLua_Player_Damage(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
@@ -1773,10 +1736,6 @@ static const struct luaL_reg player_m [] = {
 	//{"SetArmor", GLua_Player_SetArmor},
 	{"GetEyeTrace", GLua_Player_GetEyeTrace},
 	{"GetEntity", GLua_Player_GetEntity},
-	{"GiveWeapon", GLua_Player_GiveWeapon},
-	{"TakeWeapon", GLua_Player_TakeWeapon},
-	{"StripWeapons", GLua_Player_StripWeapons},
-	{"HasWeapon", GLua_Player_HasWeapon},
 	{"GetWeapon", GLua_Player_GetWeapon},
 	{"SetWeapon", GLua_Player_SetWeapon},
 	{"Damage", GLua_Player_Damage},

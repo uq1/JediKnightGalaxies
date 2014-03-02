@@ -464,61 +464,6 @@ static int GLua_NPC_GetEntity(lua_State *L) {
 	return 1;
 }
 
-
-static int GLua_NPC_GiveWeapon(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	int weapon = luaL_checkinteger(L,2);
-	if (!npc) return 0;
-	if (weapon <= WP_NONE || weapon >= WP_NUM_WEAPONS) return 0;
-	npc->client->ps.stats[STAT_WEAPONS] |= (1 << weapon);
-	return 0;
-}
-
-static int GLua_NPC_TakeWeapon(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	int weapon = luaL_checkinteger(L,2);
-	if (!npc) return 0;
-	if (weapon <= WP_NONE || weapon >= WP_NUM_WEAPONS) return 0;
-	npc->client->ps.stats[STAT_WEAPONS] &= ~(1 << weapon);
-	return 0;
-}
-
-void ChangeWeapon( gentity_t *ent, int newWeapon, int weaponVariant );
-static int GLua_NPC_StripWeapons(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if (!npc) return 0;
-	npc->client->ps.stats[STAT_WEAPONS] = 1;	// Only WP_NONE
-	ChangeWeapon(npc, WP_NONE, 0);
-	return 0;
-}
-
-static int GLua_NPC_HasWeapon(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	int weapon = luaL_checkinteger(L,2);
-	if (!npc) return 0;
-	if (weapon <= WP_NONE || weapon >= WP_NUM_WEAPONS) return 0;
-	lua_pushboolean(L, npc->client->ps.stats[STAT_WEAPONS] & (1 << weapon));
-	return 1;
-}
-
-static int GLua_NPC_GetWeapon(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if (!npc) return 0;
-	lua_pushinteger(L, npc->client->ps.weapon);
-	return 1;
-}
-
-static int GLua_NPC_SetWeapon(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	int weapon = luaL_checkinteger(L,2);
-	if (!npc) return 0;
-	if (weapon <= WP_NONE || weapon >= WP_NUM_WEAPONS) return 0;
-	// Check if player has the weapon in question
-	if (!(npc->client->ps.stats[STAT_WEAPONS] & (1 << weapon))) return 0;
-	ChangeWeapon(npc, weapon, 0);
-	return 0;
-}
-
 static int GLua_NPC_Damage(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	gentity_t *inflictor = NULL, *attacker = NULL;
@@ -1958,12 +1903,6 @@ static const struct luaL_reg npc_m [] = {
 	{"SetMaxArmor", GLua_NPC_SetMaxArmor},
 	{"GetEyeTrace", GLua_NPC_GetEyeTrace},
 	{"GetEntity", GLua_NPC_GetEntity},
-	{"GiveWeapon", GLua_NPC_GiveWeapon},
-	{"TakeWeapon", GLua_NPC_TakeWeapon},
-	{"StripWeapons", GLua_NPC_StripWeapons},
-	{"HasWeapon", GLua_NPC_HasWeapon},
-	{"GetWeapon", GLua_NPC_GetWeapon},
-	{"SetWeapon", GLua_NPC_SetWeapon},
 	{"Damage", GLua_NPC_Damage},
 	{"GiveForce", GLua_NPC_GiveForce},
 	{"TakeForce", GLua_NPC_TakeForce},
