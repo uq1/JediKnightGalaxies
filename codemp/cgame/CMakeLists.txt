@@ -95,7 +95,6 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/jkg_splinepaths.cpp"
 	"${MPDir}/cgame/jkg_wpindicators.cpp"
 	"${MPDir}/cgame/animtable.h"
-	"${MPDir}/cgame/cg_lights.h"
 	"${MPDir}/cgame/cg_local.h"
 	"${MPDir}/cgame/cg_public.h"
 	"${MPDir}/cgame/cg_weapons.h"

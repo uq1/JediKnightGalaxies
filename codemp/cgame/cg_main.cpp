@@ -8,8 +8,6 @@
 // display context for new ui stuff
 displayContextDef_t cgDC;
 
-#include "cg_lights.h"
-
 // Jedi Knight Galaxies
 #include "cg_weapons.h"
 #include "game/jkg_gangwars.h"

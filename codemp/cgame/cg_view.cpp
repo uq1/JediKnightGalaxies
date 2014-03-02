@@ -7,8 +7,6 @@
 
 #include "game/bg_saga.h"
 
-#include "cg_lights.h"
-
 #define MASK_CAMERACLIP (MASK_SOLID|CONTENTS_PLAYERCLIP)
 #define CAMERA_SIZE	4
 
