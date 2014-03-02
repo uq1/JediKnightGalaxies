@@ -34,7 +34,9 @@ typedef enum jkgItemType_e
     ITEM_ARMOR,
     ITEM_CLOTHING,
     ITEM_BUFF,
-	ITEM_CONSUMABLE
+	ITEM_CONSUMABLE,
+
+	NUM_ITEM_TYPES
 } jkgItemType_t;
 
 typedef enum
