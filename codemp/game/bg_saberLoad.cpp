@@ -1259,8 +1259,8 @@ static qboolean JKG_LoadSaberCrystals( void )
     
     if ( fileLength >= MAX_CRYSTAL_FILE_SIZE )
     {
+		Com_Printf (S_COLOR_RED "Error: crystals.json file is too large (max file size is %d kb)\n", MAX_CRYSTAL_FILE_SIZE/1024);
 		Com_Error(ERR_FATAL, "Crystals file is too big.");
-        //Com_Printf (S_COLOR_RED "Error: crystals.json file is too large (max file size is %d bytes)\n", MAX_CRYSTAL_FILE_SIZE);
         strap_FS_FCloseFile (f);
         return qfalse;
     }
@@ -1280,7 +1280,7 @@ void JKG_InitializeSaberCrystalData( void )
 {
 	if(!JKG_LoadSaberCrystals())
 	{
-		Com_Error(ERR_FATAL, "Could not read saber crystal data!");
+		Com_Error(ERR_FATAL, "Could not read saber crystal data! (See console for errors)");
 		return;
 	}
 }
