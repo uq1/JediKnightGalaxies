@@ -5815,7 +5815,7 @@ void Update_DOM_Goal_Lists ( void )
 	{
 		int nameNum = 0;
 
-		for (nameNum = 0;DOMObjectiveList[nameNum] != "";nameNum++)
+		for (nameNum = 0; DOMObjectiveList[nameNum][0] != '\0'; nameNum++)
 		{
 			if ( !Q_stricmp( g_entities[loop].classname, DOMObjectiveList[nameNum] ) 
 				&& !(g_entities[loop].s.origin[0] == 0 && g_entities[loop].s.origin[1] == 0 && g_entities[loop].s.origin[2] == 0) )
