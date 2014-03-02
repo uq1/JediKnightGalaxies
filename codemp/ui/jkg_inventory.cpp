@@ -7,7 +7,7 @@
 static cgItemInstance_t itemsInFilter[256];
 
 void JKG_Inventory_UpdateVisuals( void );
-void JKG_Inventory_Examine_Button ( int forceOff );
+static void JKG_Inventory_Examine_Button ( int forceOff );
 
 struct
 {
@@ -1160,17 +1160,18 @@ int JKG_Inventory_ExamineMenuNumForItemType(const int itemType)
 	{
 		case ITEM_WEAPON:
 			return 1;
-			break;
+
 		case ITEM_ARMOR:
 		case ITEM_CLOTHING:
 			return 2;
-			break;
+
 		case ITEM_BUFF:
 		case ITEM_UNKNOWN:
 			return 3;
-			break;
+
+		default:
+			return 0;
 	}
-	return 0;
 }
 #pragma endregion
 
@@ -1334,6 +1335,7 @@ static void XMLCALL JKGXML_End_Element(void *userData, const char *name)
 						//Technical specification
 						itemDef_t *item = Menu_FindItemByName(inventoryState.menu, va("examine%iCat%i_text%i", JKG_Inventory_ExamineMenuNumForItemType(inventoryState.selectedItem->id->itemType), containingCat,
 							last_tableline));
+
 						strcpy(item->text, name);
 						last_tableline++;
 					}
@@ -1341,6 +1343,7 @@ static void XMLCALL JKGXML_End_Element(void *userData, const char *name)
 					{
 						itemDef_t *item = Menu_FindItemByName(inventoryState.menu, va("examine%iCat%i_text%idata", JKG_Inventory_ExamineMenuNumForItemType(inventoryState.selectedItem->id->itemType), containingCat,
 							last_tableline));
+
 						if(!Q_stricmp(name, "Primary"))
 						{
 							if(useAutoFill)
@@ -1461,6 +1464,49 @@ static void XMLCALL JKGXML_ParseCharacters(void *data, const char *content, int 
 	last_content = tmp;
 }
 
+static void JKG_Inventory_ExamineMenuClear ()
+{
+	// For each item type
+	for ( int i = 0; i < NUM_ITEM_TYPES; i++ )
+	{
+		itemDef_t *header = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat3_tableHeaders", i));
+
+		if ( header != NULL )
+		{
+			header->text[0] = '\0';
+			header->text2[0] = '\0';
+		}
+		
+		int j = 1;
+		itemDef_t *title = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat%i_title", i, j));
+		while ( title != NULL )
+		{
+			int k = 1;
+
+			title->text[0] = '\0';
+
+			itemDef_t *text = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat%i_text%i", i, j, k));
+			while ( text != NULL )
+			{
+				text->text[0] = '\0';
+				text->text2[0] = '\0';
+
+				itemDef_t *data = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat%i_text%idata", i, j, k));
+				if ( data != NULL )
+				{
+					data->text[0] = '\0';
+				}
+
+				k++;
+				text = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat%i_text%i", i, j, k));
+			}
+
+			j++;
+			title = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat%i_title", i, j));
+		}
+	}
+}
+
 void JKG_Inventory_Examine_ParseXML ( void )
 {
 	XML_Parser parse = XML_ParserCreate(NULL);
@@ -1468,6 +1514,9 @@ void JKG_Inventory_Examine_ParseXML ( void )
 	int len;
 	fileHandle_t f;
 	char buffer[MAX_XML_BUFFER_SIZE];
+
+	JKG_Inventory_ExamineMenuClear ();
+
 	if(!inventoryState.selectedItem->id->xml)
 		return;
 	//Before we go off doing XML related stuff, let's make sure the file exists!
@@ -1511,7 +1560,7 @@ void JKG_Inventory_Examine_ParseXML ( void )
 }
 
 #pragma endregion
-void JKG_Inventory_Examine_Button ( int forceOff )
+static void JKG_Inventory_Examine_Button ( int forceOff )
 {
 	int i;
 	qboolean examineMenuUp = qfalse;
@@ -1578,6 +1627,9 @@ void JKG_Inventory_Examine_Button ( int forceOff )
 					Menu_ShowGroup (inventoryState.menu, "examine3Menu", qtrue);
 					strcpy(item->text, actualTextCheck);
 				}
+				break;
+
+			default:
 				break;
 		}
 		JKG_Inventory_Examine_ParseXML();
@@ -1952,17 +2004,19 @@ void JKG_Inventory_ConstructToolTip ( int itemNumber, float cX, float cY )
 	switch(inventory[itemNumber].id->itemType)
 	{
 		case ITEM_WEAPON:
-			JKG_Inventory_Tooltip_AddLine(toolTipItem,  va("Weapon"));
+			JKG_Inventory_Tooltip_AddLine(toolTipItem, "Weapon");
 			break;
 		case ITEM_ARMOR:
-			JKG_Inventory_Tooltip_AddLine(toolTipItem,  va("Armor"));
+			JKG_Inventory_Tooltip_AddLine(toolTipItem, "Armor");
 			break;
 		case ITEM_CLOTHING:
-			JKG_Inventory_Tooltip_AddLine(toolTipItem,  va("Clothing"));
+			JKG_Inventory_Tooltip_AddLine(toolTipItem, "Clothing");
 			break;
 		case ITEM_BUFF:
 		case ITEM_CONSUMABLE:
-			JKG_Inventory_Tooltip_AddLine(toolTipItem,  va("Consumable"));
+			JKG_Inventory_Tooltip_AddLine(toolTipItem, "Consumable");
+			break;
+		default:
 			break;
 	}
 	if(inventory[itemNumber].id->weight)
