@@ -22,6 +22,7 @@
 */
 
 #define POOLSIZE	(256 * 1024)
+#define ALIGNSIZE	(16)
 
 static char		memoryPool[POOLSIZE];
 static int		allocPoint;
@@ -29,13 +30,16 @@ static int		allocPoint;
 void *G_Alloc( int size ) {
 	char	*p;
 
+	// Align next allocation to nearest 16-byte boundary.
+	int alignedSize = (size + ALIGNSIZE - 1) & ~(ALIGNSIZE - 1);
+
 	if ( size <= 0 ) {
 		G_Error( "G_Alloc: zero-size allocation\n", size );
 		return NULL;
 	}
 
 	if ( g_debugAlloc.integer ) {
-		G_Printf( "G_Alloc of %i bytes (%i left)\n", size, POOLSIZE - allocPoint - ( ( size + 31 ) & ~31 ) );
+		G_Printf( "G_Alloc of %i bytes (%i left)\n", size, POOLSIZE - allocPoint - alignedSize );
 	}
 
 	if ( allocPoint + size > POOLSIZE ) {
@@ -45,7 +49,7 @@ void *G_Alloc( int size ) {
 
 	p = &memoryPool[allocPoint];
 
-	allocPoint += ( size + 31 ) & ~31;
+	allocPoint += alignedSize;
 
 	return p;
 }
