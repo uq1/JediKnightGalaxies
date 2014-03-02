@@ -2914,6 +2914,17 @@ void PM_SaberProjBlock( void )
 	}
 }
 //Stoiss end
+
+//Stoiss add
+qboolean InSaberDelayAnimation(int move)
+{
+	if((move >= 665 && move <= 669)
+		|| (move >=690 && move <= 694)
+		|| (move >= 715 && move <= 719))
+		return qtrue;
+	return qfalse;
+}
+//Stoiss end
 /*
 =================
 PM_WeaponLightsaber
@@ -3260,6 +3271,8 @@ void PM_WeaponLightsaber(void)
 	// Now we react to a block action by the player's lightsaber.
 	if ( pm->ps->saberBlocked )
 	{
+		qboolean wasAttackedByGun = qfalse;
+
 		if ( pm->ps->saberBlocked >= BLOCKED_UPPER_RIGHT 
 			&& pm->ps->saberBlocked < BLOCKED_UPPER_RIGHT_PROJ)
 		{//hold the parry for a bit
@@ -3349,40 +3362,50 @@ void PM_WeaponLightsaber(void)
 					pm->ps->weaponTime = pm->ps->torsoTimer;//+saberMoveData[bounceMove].blendTime+SABER_BLOCK_DUR;
 
 				}
-				break;
+				break;//Stoiss add. Testing to see if manuel block can parry shoots out of Projblocking
 			case BLOCKED_UPPER_RIGHT:
 				PM_SetSaberMove( LS_PARRY_UR );
 				break;
 			case BLOCKED_UPPER_RIGHT_PROJ:
 				PM_SetSaberMove( LS_REFLECT_UR );
+				wasAttackedByGun = qtrue;
 				break;
 			case BLOCKED_UPPER_LEFT:
 				PM_SetSaberMove( LS_PARRY_UL );
 				break;
 			case BLOCKED_UPPER_LEFT_PROJ:
 				PM_SetSaberMove( LS_REFLECT_UL );
+				wasAttackedByGun = qtrue;
 				break;
 			case BLOCKED_LOWER_RIGHT:
 				PM_SetSaberMove( LS_PARRY_LR );
 				break;
 			case BLOCKED_LOWER_RIGHT_PROJ:
 				PM_SetSaberMove( LS_REFLECT_LR );
+				wasAttackedByGun = qtrue;
 				break;
 			case BLOCKED_LOWER_LEFT:
 				PM_SetSaberMove( LS_PARRY_LL );
 				break;
 			case BLOCKED_LOWER_LEFT_PROJ:
 				PM_SetSaberMove( LS_REFLECT_LL);
+				wasAttackedByGun = qtrue;
 				break;
 			case BLOCKED_TOP:
 				PM_SetSaberMove( LS_PARRY_UP );
 				break;
 			case BLOCKED_TOP_PROJ:
 				PM_SetSaberMove( LS_REFLECT_UP );
+				wasAttackedByGun = qtrue;
 				break;
 			default:
 				pm->ps->saberBlocked = BLOCKED_NONE;
 				break;
+		}
+		if(InSaberDelayAnimation(pm->ps->torsoAnim) && (pm->ps->saberActionFlags & ( 1 << SAF_BLOCKING )) && wasAttackedByGun)
+		{
+			pm->ps->weaponTime += 700;
+			pm->ps->torsoTimer+=1500;
 		}
 		if ( pm->ps->saberBlocked >= BLOCKED_UPPER_RIGHT 
 			&& pm->ps->saberBlocked < BLOCKED_UPPER_RIGHT_PROJ)

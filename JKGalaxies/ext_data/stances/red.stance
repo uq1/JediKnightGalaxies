@@ -4,7 +4,7 @@
 	"name_technical": "Juyo",		// for advanced HUD
 	"name_simple": "Strong",		// for simple HUD -- unused atm
 
-	"offensiveStanceAnim": "BOTH_SABERSLOW_STANCE",
+	"offensiveStanceAnim": "BOTH_STAND3IDLE1",
 	"projectileBlockAnim": "BOTH_SABERFAST_STANCE",
 
 	"isStaffFriendly": "1",		// can be used with staff

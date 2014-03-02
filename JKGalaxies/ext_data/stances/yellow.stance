@@ -4,7 +4,7 @@
 	"name_technical": "Shii-Cho",		// for advanced HUD
 	"name_simple": "Medium",		// for simple HUD -- unused atm
 
-	"offensiveStanceAnim": "BOTH_STAND2",
+	"offensiveStanceAnim": "BOTH_STAND1IDLE1",
 	"projectileBlockAnim": "BOTH_SABERFAST_STANCE",
 
 	"isStaffFriendly": "1",		// can be used with staff
