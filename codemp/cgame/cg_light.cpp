@@ -1,30 +1,35 @@
 #include "cg_local.h"
-#include "cg_lights.h"
+
+typedef struct clightstyle_s {
+	int				length;
+	color4ub_t		value;
+	color4ub_t		map[MAX_QPATH];
+} clightstyle_t;
+
 
 static	clightstyle_t	cl_lightstyle[MAX_LIGHT_STYLES];
 static	int				lastofs;
 
 /*
 ================
-FX_ClearLightStyles
+CG_ClearLightStyles
 ================
 */
 void CG_ClearLightStyles (void)
 {
 	int	i;
 
-	memset (cl_lightstyle, 0, sizeof(cl_lightstyle));
+	memset( cl_lightstyle, 0, sizeof( cl_lightstyle ) );
 	lastofs = -1;
 
-	for(i=0;i<MAX_LIGHT_STYLES*3;i++)
-	{
-		CG_SetLightstyle (i);
-	}
+	for ( i=0; i<MAX_LIGHT_STYLES*3; i++ )
+	CG_SetLightstyle( i );
+
 }
 
 /*
 ================
-FX_RunLightStyles
+CG_RunLightStyles
 ================
 */
 void CG_RunLightStyles (void)
@@ -62,6 +67,11 @@ void CG_RunLightStyles (void)
 	}
 }
 
+/*
+================
+CG_SetLightStyle
+================
+*/
 void CG_SetLightstyle (int i)
 {
 	const char	*s;

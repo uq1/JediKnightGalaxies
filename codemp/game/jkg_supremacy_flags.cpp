@@ -390,7 +390,7 @@ void SP_ammo_crate_spawn ( gentity_t* ent )
 
 	G_SetOrigin( ent, ent->s.origin );
 
-	if(!model || model == "" || !strcmp(model, "" ))
+	if( !model || model[0] == '\0' )
 	{// ent->model can be specified...
 		//ent->model = "models/multiplayer/supplies/ammobox_wm.md3";
 		ent->model = "models/doa/doa_cabinet/ammo_open.md3";
@@ -418,7 +418,7 @@ void SP_ammo_crate_spawn ( gentity_t* ent )
 		}
 	}
 
-	if(!model2 || model2 == "" || !strcmp(model2, "" ))
+	if(!model2 || model2[0] == '\0')
 	{// ent->model can be specified...
 		//ent->model = "models/multiplayer/supplies/healthbox_wm.md3";
 		ent->model2 = "models/doa/doa_cabinet/ammo_close.md3";
@@ -604,7 +604,7 @@ void SP_health_crate_spawn ( gentity_t* ent )
 
 	G_SetOrigin( ent, ent->s.origin );
 
-	if(!model || model == "" || !strcmp(model, "" ))
+	if(!model || model[0] == '\0')
 	{// ent->model can be specified...
 		ent->model = "models/doa/doa_cabinet/health_open.md3";
 
@@ -631,7 +631,7 @@ void SP_health_crate_spawn ( gentity_t* ent )
 		}
 	}
 
-	if(!model2 || model2 == "" || !strcmp(model2, "" ))
+	if(!model2 || model2[0] == '\0')
 	{// ent->model can be specified...
 		ent->model2 = "models/doa/doa_cabinet/health_close.md3";
 	}

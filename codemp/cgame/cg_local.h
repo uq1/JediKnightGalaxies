@@ -2663,6 +2663,10 @@ void CG_CheckPlayerG2Weapons(playerState_t *ps, centity_t *cent);
 
 void CG_SetSiegeTimerCvar( int msec );
 
+void	CG_ClearLightStyles (void);
+void	CG_RunLightStyles (void);
+void	CG_SetLightstyle (int i);
+
 float JKG_CalculateSprintPhase( const playerState_t *ps );
 
 void CG_Notifications_Add(char *string, qboolean weapon);

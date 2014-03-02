@@ -506,10 +506,8 @@ void R_Init( void ) {
 RE_Shutdown
 ===============
 */
-void RE_Shutdown( qboolean destroyWindow ) {	
 
-//	Com_Printf ("RE_Shutdown( %i )\n", destroyWindow );
-
+void RE_Shutdown( qboolean destroyWindow, qboolean restarting ) {
 	ri->Cmd_RemoveCommand ("modellist");
 	ri->Cmd_RemoveCommand ("modelist");
 	ri->Cmd_RemoveCommand ("modelcacheinfo");

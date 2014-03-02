@@ -493,9 +493,9 @@ void CG_RegisterWeapon( int weaponNum, int variation ) {
 		weaponInfo->ammoModel = trap_R_RegisterModel( ammo->world_model[0] );
 	}*/
 
-//	strcpy( path, item->view_model );
+//	Q_strncpyz( path, item->view_model, sizeof(path) );
 //	COM_StripExtension( path, path );
-//	strcat( path, "_flash.md3" );
+//	Q_strcat( path, sizeof(path), "_flash.md3" );
 	weaponInfo->flashModel = 0;//trap_R_RegisterModel( path );
 
 	/*if (weaponNum == WP_DISRUPTOR ||
@@ -503,9 +503,9 @@ void CG_RegisterWeapon( int weaponNum, int variation ) {
 		weaponNum == WP_REPEATER ||
 		weaponNum == WP_ROCKET_LAUNCHER)
 	{
-		strcpy( path, weaponData->visuals.view_model );
+		Q_strcpyz( path, weaponData->visuals.view_model, sizeof(path) );
 		COM_StripExtension( path, path );
-		strcat( path, "_barrel.md3" );
+		Q_strcat( path, sizeof(path), "_barrel.md3" );
 		weaponInfo->barrelModel = trap_R_RegisterModel( path );
 	}
 	else if (weaponNum == WP_STUN_BATON)

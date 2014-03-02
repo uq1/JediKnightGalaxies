@@ -158,7 +158,7 @@ void Update_NPC_Goal_Lists ( void )
 	{
 		int nameNum = 0;
 
-		for (nameNum = 0;NPCObjectiveList[nameNum] != "";nameNum++)
+		for (nameNum = 0; NPCObjectiveList[nameNum][0] != '\0' ;nameNum++)
 		{
 			if (!Q_stricmp( g_entities[loop].classname, NPCObjectiveList[nameNum] ))
 			{

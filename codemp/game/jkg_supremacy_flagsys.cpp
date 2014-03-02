@@ -200,7 +200,7 @@ void Warzone_Flag_Think( gentity_t *ent )
 		if (!hit->health || hit->health <= 0)
 			continue;
 
-		if (hit->classname == "NPC_Vehicle")
+		if (Q_stricmp (hit->classname, "NPC_Vehicle") == 0)
 			continue;
 
 		//if (hit->s.eType == ET_NPC)
@@ -532,7 +532,7 @@ void SP_Spawn_Warzone_Flag ( gentity_t* ent )
 	ent->s.otherEntityNum2 = radius; // Set capture radius...
 	ent->s.otherEntityNum = flagnum; // Flag number...
 
-	if (model != "0")
+	if (model[0] != '0')
 	{// Red flag model..
 		ent->model = model;
 		//RegisterAsModel(model);
@@ -541,7 +541,7 @@ void SP_Spawn_Warzone_Flag ( gentity_t* ent )
 	else
 		ent->s.modelindex = -1;
 
-	if (model2 != "0")
+	if (model2[0] != '0')
 	{// Blue flag model..
 		ent->model2 = model2;
 		//RegisterAsModel(model2);
@@ -550,7 +550,7 @@ void SP_Spawn_Warzone_Flag ( gentity_t* ent )
 	else
 		ent->s.modelindex2 = -1;
 
-	if (fullname != "0")
+	if (fullname[0] != '0')
 	{// Neutral flag model..
 		ent->fullName = fullname;
 		//RegisterAsModel(fullname);
@@ -565,7 +565,7 @@ void SP_Spawn_Warzone_Flag ( gentity_t* ent )
 	ent->s.origin[2]+=64;
 	G_SetOrigin( ent, ent->s.origin );
 
-	if (model == "models/flags/r_flag.md3")
+	if (Q_stricmp (model, "models/flags/r_flag.md3") == 0)
 		Spawn_Flag_Base(ent->s.origin);
 
 	//Drop to floor
@@ -705,7 +705,7 @@ void Spawn_Scenario_Flag_Auto ( vec3_t origin, int teamowner )
 	ent->s.origin[2]+=64;
 	G_SetOrigin( ent, ent->s.origin );
 
-	if (model == "models/flags/r_flag.md3")
+	if (Q_stricmp (model, "models/flags/r_flag.md3") == 0)
 		Spawn_Flag_Base(ent->s.origin);
 
 	//Drop to floor
