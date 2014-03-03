@@ -1684,7 +1684,10 @@ Ghoul2 Insert End
 		}
 	} else {
 		// add to refresh list
-		trap_R_AddRefEntityToScene (&ent);
+		if ( ent.hModel > 0 || ent.ghoul2 != NULL || ent.customShader != NULL_HANDLE )
+		{
+			trap_R_AddRefEntityToScene (&ent);
+		}
 	}
 
 	if (cent->bolt3 == 999)
