@@ -2856,7 +2856,6 @@ Initializes all non-persistant parts of playerState
 ============
 */
 extern qboolean WP_HasForcePowers( const playerState_t *ps );
-extern struct statData_s;
 void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	int					index;
 	vec3_t				spawn_origin, spawn_angles;
