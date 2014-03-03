@@ -3173,6 +3173,7 @@ void Item_MouseEnter(itemDef_t *item, float x, float y) {
 		if( item->window.flags & WINDOW_FORCESELECTIONZONE )
 		{
 			r = item->window.selectionZone;
+
 		}
 
 		// items can be enabled and disabled 
@@ -4549,6 +4550,7 @@ qboolean Item_Slider_HandleKey(itemDef_t *item, int key, qboolean down) {
 					DC->setCVar(item->cvar, va("%f", value));
 					return qtrue;
 				}
+
 			}
 		}
 	}
@@ -5913,7 +5915,6 @@ void Item_Slider_Paint(itemDef_t *item) {
 
 	x = Item_Slider_ThumbPosition(item);
 	DC->drawHandlePic( x - (sW / 2), y - 2, sW, sH, foreground );
-
 }
 
 void Item_Bind_Paint(itemDef_t *item) 
@@ -7839,7 +7840,6 @@ void Menu_HandleMouseMove(menuDef_t *menu, float x, float y) {
   }
 
 	if (itemCapture) {
-		//Item_MouseMove(itemCapture, x, y);
 		return;
 	}
 
@@ -7879,7 +7879,17 @@ void Menu_HandleMouseMove(menuDef_t *menu, float x, float y) {
 			{
 				goto gohere;
 			}
-            else if (!(menu->items[i]->window.flags & WINDOW_FORCESELECTIONZONE) &&(Rect_ContainsPoint(&menu->items[i]->window.rect, x, y)) ) {
+			if (menu->items[i]->type == ITEM_TYPE_SLIDER) {
+				qRectangle test;
+				test.x = menu->items[i]->textRect.x + menu->items[i]->textRect.w + 8;
+				test.y = menu->items[i]->window.rect.y;
+				test.w = menu->items[i]->window.rect.w + menu->items[i]->textRect.w;
+				test.h = menu->items[i]->window.rect.h;
+				if (Rect_ContainsPoint(&test, x, y)) {
+					goto gohere;
+				}
+			}
+            else if (!(menu->items[i]->window.flags & WINDOW_FORCESELECTIONZONE) && (Rect_ContainsPoint(&menu->items[i]->window.rect, x, y))) {
 gohere:
 				if (pass == 1) {
 					overItem = menu->items[i];
