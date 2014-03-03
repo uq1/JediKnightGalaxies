@@ -2886,7 +2886,15 @@ Ghoul2 Insert End
 	if ( s1->modelindex2 && s1->modelindex2 < MAX_MODELS ) 
 	{
 		ent.skinNum = 0;
-		ent.hModel = cgs.gameModels[s1->modelindex2];
+		if ( s1->solid == SOLID_BMODEL )
+		{
+			ent.hModel = cgs.inlineDrawModel[s1->modelindex2];
+		}
+		else
+		{
+			ent.hModel = cgs.gameModels[s1->modelindex2];
+		}
+
 		if (s1->iModelScale)
 		{ //custom model2 scale
 			ent.modelScale[0] = ent.modelScale[1] = ent.modelScale[2] = s1->iModelScale/100.0f;
