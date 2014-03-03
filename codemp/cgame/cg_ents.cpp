@@ -1684,8 +1684,7 @@ Ghoul2 Insert End
 		}
 	} else {
 		// add to refresh list
-		if( ent.hModel > 0 )
-			trap_R_AddRefEntityToScene (&ent);
+		trap_R_AddRefEntityToScene (&ent);
 	}
 
 	if (cent->bolt3 == 999)
