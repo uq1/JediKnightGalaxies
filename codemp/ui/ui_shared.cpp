@@ -2898,7 +2898,6 @@ float Item_Slider_ThumbPosition(itemDef_t *item) {
 	}
 
 	value = DC->getCVarValue(item->cvar);
-
 	if (value < editDef->minVal) {
 		value = editDef->minVal;
 	} else if (value > editDef->maxVal) {
@@ -4996,6 +4995,42 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 						itemDef_t it;
 						it.parent = menu;
 						Item_RunScript(&it, menu->onAccept);
+					}
+					else if (item->type == ITEM_TYPE_SLIDER) {
+						qRectangle test;
+						test.x = item->textRect.x + item->textRect.w + 8;
+						test.y = item->window.rect.y;
+						test.w = item->window.rect.w + item->textRect.w;
+						test.h = item->window.rect.h;
+						if (Rect_ContainsPoint(&test, DC->cursorx, DC->cursory)) {
+							editFieldDef_t *editDef = (editFieldDef_t *)item->typeData;
+							float value, x;
+							if (item->text[0]) {
+								x = item->textRect.x + item->textRect.w + 8;
+							}
+							else {
+								x = item->window.rect.x;
+							}
+							value = DC->cursorx;
+							value -= x;
+							if (item->window.rect.w && item->window.rect.h)
+							{
+								value /= item->window.rect.w;
+							}
+							else
+							{
+								value /= SLIDER_WIDTH;
+							}
+							if (value < editDef->minVal) {
+								value = editDef->minVal;
+							}
+							else if (value > editDef->maxVal) {
+								value = editDef->maxVal;
+							}
+							char *tempchar = new char;
+							sprintf(tempchar, "%f", value);
+							DC->setCVar(item->cvar, tempchar);
+						}
 					}
 				}
 //END JLFACCEPT			
