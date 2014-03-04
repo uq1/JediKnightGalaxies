@@ -1094,7 +1094,7 @@ void laserTrapExplode( gentity_t *self )
 		if( self->enemy && self->enemy->client && !OnSameTeam(self->activator, self->enemy) && self->activator != self->enemy )
 		{
 			// Give us some credits, we're a good person etc
-			self->enemy->client->ps.persistant[PERS_CREDITS] += 35;
+			self->enemy->client->ps.credits += 35;
 			trap_SendServerCommand(self->enemy->s.number, "notify 1 \"Destroyed Enemy Equipment: +35 Credits\"");
 		}
 	}
@@ -1709,7 +1709,7 @@ void DetPackBlow(gentity_t *self)
 	{
 		if(self->parent != self->enemy && !OnSameTeam(self->parent, self->enemy))
 		{
-			self->enemy->client->ps.persistant[PERS_CREDITS] += 25;
+			self->enemy->client->ps.credits += 25;
 			trap_SendServerCommand(self->enemy->s.number, "notify 1 \"Destroyed Enemy Equipment: +25 Credits\"");
 		}
 	}

@@ -2670,6 +2670,7 @@ typedef struct playerState_s {
 	signed short	blockPoints;
 
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
+	unsigned int	credits;
 } playerState_t;
 // For ironsights
 #define IRONSIGHTS_MSB (1 << 31)

@@ -984,7 +984,7 @@ static void CG_DrawMiniMap ( menuDef_t *menuHUD, vec4_t opacity )
 	if (focusItem && cgs.gametype != GT_DUEL)
 	{
 		trap_R_SetColor(opacity);
-		trap_R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, va("Credits: %i", cg.predictedPlayerState.persistant[PERS_CREDITS]), opacity, cgDC.Assets.qhSmall3Font, -1, focusItem->textscale);
+		trap_R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, va("Credits: %i", cg.predictedPlayerState.credits), opacity, cgDC.Assets.qhSmall3Font, -1, focusItem->textscale);
 	}
 
 	focusItem = Menu_FindItemByName(menuHUD, "smalltext");

@@ -2314,7 +2314,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 #ifndef __MMO__
 			int credits = jkg_creditsPerKill.integer;
 			int bounty = (self->client->numKillsThisLife >= 3) ? self->client->numKillsThisLife*jkg_bounty.integer : 0;
-			attacker->client->ps.persistant[PERS_CREDITS] += (credits + bounty);
+			attacker->client->ps.credits += (credits + bounty);
 			if(bounty > 0)
 			{
 				trap_SendServerCommand(attacker-g_entities, va("notify 1 \"Kill: +%i Credits, +%i Bounty\"", credits, bounty));
@@ -2387,7 +2387,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 						{
 							assistCredits = jkg_creditsPerKill.integer - 1;
 						}
-						selfClient->ps.persistant[PERS_CREDITS] += assistCredits;
+						selfClient->ps.credits += assistCredits;
 #ifndef __MMO__ // UQ1: Use events! 1 event with credits param...
 						//trap_SendServerCommand(self->assistData.hitRecords[i].entWhoHit->client->ps.clientNum, "hitmarker");
 						trap_SendServerCommand(selfClient->ps.clientNum,

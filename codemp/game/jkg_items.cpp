@@ -1236,7 +1236,7 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 		NPC_FaceEntity( ent, qfalse );
 	}
 
-	if(ent->client->ps.persistant[PERS_CREDITS] < itemLookupTable[itemID].baseCost)	//TODO: add proper cost here
+	if(ent->client->ps.credits < itemLookupTable[itemID].baseCost)	//TODO: add proper cost here
 	{
 		trap_SendServerCommand(ent->s.number, "print \"You do not have enough money for this item.\n\"");
 
@@ -1277,11 +1277,11 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 			trap_SendServerCommand(ent->s.number, "print \"The item ID for this item is not valid.\n\"");
 			return;	//itemID isn't valid
 		}
-		ent->client->ps.persistant[PERS_CREDITS] -= itemLookupTable[itemID].baseCost;	//TODO: add proper cost here
+		ent->client->ps.credits -= itemLookupTable[itemID].baseCost;	//TODO: add proper cost here
 		JKG_A_GiveEntItem(itemID, IQUAL_NORMAL, ent->inventory, ent->client);
 		// eez: TEMP: retrofitted shopupdate into a new servercommand which confirms the order and sends it to the ACI (if appropriate)
 		// this is obviously temporary until we get a new shop setup. But for randomized shops, this works just fine.
-		trap_SendServerCommand(ent->s.number, va("shopconfirm %i %i", ent->client->ps.persistant[PERS_CREDITS], itemID));
+		trap_SendServerCommand(ent->s.number, va("shopconfirm %i %i", ent->client->ps.credits, itemID));
 		
 		if( vendorEnt->s.eType == ET_NPC )
 		{

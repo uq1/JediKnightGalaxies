@@ -225,7 +225,7 @@ static void JKG_ShopConfirm( void )
 	int itemID = atoi(CG_Argv(2));
 
 	/* Change the credit count in the shop UI */
-	cg.snap->ps.persistant[PERS_CREDITS] = creditCount;
+	cg.snap->ps.credits = creditCount;
 	cg.playerInventory[cg.numItemsInInventory-1].id = &CGitemLookupTable[itemID];		// MEGA UNSTABLE HACK HERE
 
 	if(CGitemLookupTable[itemID].itemType == ITEM_WEAPON)
@@ -1664,7 +1664,7 @@ static void CG_ServerCommand( void ) {
 	}
 	if ( !strcmp (cmd, "inventory_update") )
 	{
-		cg.predictedPlayerState.persistant[PERS_CREDITS] = atoi(CG_Argv(1));
+		cg.predictedPlayerState.credits = atoi(CG_Argv(1));
 		uiImports->InventoryNotify (1);
 		return;
 	}
@@ -1809,7 +1809,7 @@ static void CG_ServerCommand( void ) {
 
 	if( !strcmp(cmd, "shopupdate"))
 	{
-		cg.snap->ps.persistant[PERS_CREDITS] = atoi(CG_Argv(1));
+		cg.snap->ps.credits = atoi(CG_Argv(1));
 		uiImports->ShopNotify(1);
 		return;
 	}

@@ -3788,9 +3788,9 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 	}
 
-	if (ent->client->ps.persistant[PERS_CREDITS] < 0)
-	{
-		ent->client->ps.persistant[PERS_CREDITS] = 0;
+	if (ent->client->ps.credits < 0)
+	{	// Shouldn't ever happen since we're using unsigned.
+		ent->client->ps.credits = 0;
 	}
 
 }
@@ -3983,13 +3983,13 @@ void SpectatorClientEndFrame( gentity_t *ent ) {
 			if ( cl->pers.connected == CON_CONNECTED && cl->sess.sessionTeam != TEAM_SPECTATOR ) {
 				//flags = (cl->mGameFlags & ~(PSG_VOTED | PSG_TEAMVOTED)) | (ent->client->mGameFlags & (PSG_VOTED | PSG_TEAMVOTED));
 				//ent->client->mGameFlags = flags;
-				int credits = ent->client->ps.persistant[PERS_CREDITS];
+				unsigned int credits = ent->client->ps.credits;
 				usercmd_t ucmd;
 
 				ent->client->ps.eFlags = cl->ps.eFlags;
 				ent->client->ps = cl->ps;
 				ent->client->ps.pm_flags |= PMF_FOLLOW;
-				ent->client->ps.persistant[PERS_CREDITS] = credits;
+				ent->client->ps.credits = credits;
 
 				// k, let's do some sort of stuffs
 				trap_GetUsercmd(ent - g_entities, &ucmd);

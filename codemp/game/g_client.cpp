@@ -2289,7 +2289,7 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 
 	TeamInitialize( clientNum );
 	
-	client->ps.persistant[PERS_CREDITS] = jkg_startingCredits.integer-1;	// hack to give us our starting gear
+	client->ps.credits = jkg_startingCredits.integer-1;	// hack to give us our starting gear
 	client->storedCredits = jkg_startingCredits.integer-1;
 
 	return NULL;
@@ -2411,7 +2411,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	// so the viewpoint doesn't interpolate through the
 	// world to the new position
 	flags = client->ps.eFlags;
-	credits = client->ps.persistant[PERS_CREDITS];
+	credits = client->ps.credits;
 
 	i = 0;
 
@@ -2439,7 +2439,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	memset( &client->ps, 0, sizeof( client->ps ) );
 	client->ps.eFlags = flags;
 	// Check the credit count. that should probably stick.
-	JKG_SetCredits(client->ps,credits);
+	client->ps.credits = credits;
 
 	client->ps.hasDetPackPlanted = qfalse;
 
@@ -3354,9 +3354,9 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 				if(!haveItem && ent->inventory->elements < 1)
 				{
 					// Don't have any sort of item in our inventory
-					if(ent->client->ps.persistant[PERS_CREDITS] < jkg_startingCredits.integer)
+					if(ent->client->ps.credits < jkg_startingCredits.integer)
 					{
-						JKG_SetCredits(ent->client->ps,jkg_startingCredits.integer);
+						ent->client->ps.credits = jkg_startingCredits.integer;
 						JKG_A_GiveEntItemForcedToACI(itemID, IQUAL_NORMAL, ent->inventory, ent->client, 0);
 					}
 				}

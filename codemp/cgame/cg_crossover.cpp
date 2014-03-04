@@ -79,7 +79,7 @@ static void *CO_InventoryDataRequest ( int data )
         case 2:
             return (void *)cg.playerACI;
 		case 3:
-			return (void *)cg.predictedPlayerState.persistant[PERS_CREDITS];
+			return (void *)cg.predictedPlayerState.credits;
 		case 4:
 			return (void *)shopItems;
 		case 5:

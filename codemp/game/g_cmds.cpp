@@ -160,7 +160,7 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 			" %i %i %i %i %i %i %i %i %i %i %i %i %i %i", level.sortedClients[i],
 			cl->sess.sessionTeam == TEAM_SPECTATOR ? 0 : cl->ps.persistant[PERS_SCORE], ping, (level.time - cl->pers.enterTime)/60000,
 			scoreFlags, g_entities[level.sortedClients[i]].s.powerups, accuracy, 
-			cl->ps.persistant[PERS_CREDITS],
+			cl->ps.credits,
 			0,
 			0, 
 			0, 
@@ -811,7 +811,8 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 		trap_Argv(2+baseArg, arg, sizeof( arg ) );
 
 		creditAmount = atoi(arg);
-		int credits = JKG_ModifyCredits(ent->client->ps, creditAmount);
+		ent->client->ps.credits += creditAmount;
+		int credits = ent->client->ps.credits;
 		trap_SendServerCommand( ent->client->ps.clientNum, va("print \"Your new balance is: %i credits\n\"", max (0, credits)) );
 		return;
 	}
@@ -820,7 +821,7 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 	{
 		ent->client->ps.cloakFuel	= 100;
 		ent->client->ps.jetpackFuel	= 100;
-		ent->client->ps.persistant[PERS_CREDITS] = 32000;
+		ent->client->ps.credits = 32000; // FIXME
 	}
 
 	// spawn a specific item right on the player
@@ -1882,7 +1883,7 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 				ent->inventory->items[numbah].id->baseCost = 2;	// hackery. Starting weapon sells for 1 credit.
 			}
 		}
-		JKG_ModifyCredits(ent->client->ps,(ent->inventory->items[numbah].id->baseCost)/2);
+		ent->client->ps.credits += (ent->inventory->items[numbah].id->baseCost)/2;
 		JKG_Cmd_DestroyItem_f(ent);
 	}
 	else
@@ -1912,7 +1913,7 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 						}
 					}
 
-					JKG_ModifyCredits(ent->client->ps, (ent->inventory->items[i].id->baseCost)/2);
+					ent->client->ps.credits += (ent->inventory->items[i].id->baseCost/2);
 					JKG_Easy_RemoveItemFromInventory(i, (itemInstance_t **)ent->inventory->items, ent, qfalse);
 					break;
 				}
@@ -1926,7 +1927,7 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 			return;
 		}
 	}
-	trap_SendServerCommand(ent->s.number, va("inventory_update %i", ent->client->ps.persistant[PERS_CREDITS]));
+	trap_SendServerCommand(ent->s.number, va("inventory_update %i", ent->client->ps.credits));
 }
 /*
 =================
@@ -4806,7 +4807,7 @@ void ClientCommand( int clientNum ) {
 	else if (Q_stricmp (cmd, "credits") == 0)
 	{
 		//DEBUG: Show how many credits you have
-		int credits = ent->client->ps.persistant[PERS_CREDITS];
+		int credits = ent->client->ps.credits;
 		trap_SendServerCommand( clientNum, va("print \"You have %i credits, %s.\n\"", max (0, credits), ent->client->pers.netname) );
 		return;
 	}

@@ -1617,7 +1617,7 @@ static int GLua_Player_GetCreditCount(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
 
 	if (!ply) return 0;
-	lua_pushinteger(L, level.clients[ply->clientNum].ps.persistant[PERS_CREDITS]);
+	lua_pushinteger(L, level.clients[ply->clientNum].ps.credits);
 	return 1;
 }
 
@@ -1628,7 +1628,7 @@ static int GLua_Player_SetCreditCount(lua_State *L) {
 	if (!ply) return 0;
 	ent = &g_entities[ply->clientNum];
 	
-	JKG_SetCredits(ent->client->ps,setTo);
+	ent->client->ps.credits = setTo;
 	return 1;
 }
 
@@ -1639,7 +1639,7 @@ static int GLua_Player_ModifyCreditCount(lua_State *L) {
 	if (!ply) return 0;
 	ent = &g_entities[ply->clientNum];
 	
-	JKG_ModifyCredits(ent->client->ps,modify);
+	ent->client->ps.credits += modify;
 	return 1;
 }
 

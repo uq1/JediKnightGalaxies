@@ -674,8 +674,6 @@ typedef enum {
 	PERS_ATTACKER,					// clientnum of last damage inflicter
 	PERS_ATTACKEE_ARMOR,			// health/armor of last person we attacked
 	PERS_KILLED,					// count of the number of times you died
-	// player awards tracking
-	PERS_CREDITS					// JKG: Player credit count
 } persEnum_t;
 
 

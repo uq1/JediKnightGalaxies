@@ -1408,7 +1408,8 @@ netField_t	playerStateFields[] =
 { PSF(saberCrystal[1]), 16 },
 
 { PSF(blockPoints), 16 },
-{ PSF(ammo), 16 }
+{ PSF(ammo), 16 },
+{ PSF(credits), 32 }
 };
 
 netField_t	pilotPlayerStateFields[] = 
@@ -1584,7 +1585,8 @@ netField_t	pilotPlayerStateFields[] =
 { PSF(saberCrystal[1]), 16 },
 
 { PSF(blockPoints), 16 },
-{ PSF(ammo), 16 }
+{ PSF(ammo), 16 },
+{ PSF(credits), 32 },
 };
 
 netField_t	vehPlayerStateFields[] = 
