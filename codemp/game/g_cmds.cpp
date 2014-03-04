@@ -1327,6 +1327,7 @@ void StopFollowing( gentity_t *ent ) {
 	ent->r.svFlags &= ~SVF_BOT;
 	ent->client->ps.clientNum = ent - g_entities;
 	ent->client->ps.weapon = WP_NONE;
+	ent->client->ps.weaponVariation = 0;
 	G_LeaveVehicle( ent, qfalse ); // clears m_iVehicleNum as well
 	ent->client->ps.emplacedIndex = 0;
 	//ent->client->ps.m_iVehicleNum = 0;
