@@ -992,6 +992,15 @@ void CG_KillCEntityInstances(void)
 	{
 		cent = &cg_entities[i];
 
+		if ( i < MAX_CLIENTS && cent->currentState.number == i )
+		{
+			// Kill armor g2 instances
+			for ( int j = 0; j < ARMSLOT_MAX; j++ )
+			{
+				JKG_CG_EquipArmor (i, j, 0);
+			}
+		}
+
 		if (i >= MAX_CLIENTS && cent->currentState.number == i)
 		{ //do not clear G2 instances on client ents, they are constant
 			CG_KillCEntityG2(i);
@@ -1671,7 +1680,15 @@ static void CG_ServerCommand( void ) {
 
 	if(!strcmp(cmd, "aequi"))
 	{ //Armor Equip
-		JKG_CG_EquipArmor();
+		if ( trap_Argc () >= 2 )
+		{
+			int client = atoi (CG_Argv (1));
+			int slot = atoi (CG_Argv (2));
+			int armor = atoi (CG_Argv (3));
+
+			JKG_CG_EquipArmor (client, slot, armor);
+		}
+		
 		return;
 	}
 

@@ -1684,8 +1684,10 @@ Ghoul2 Insert End
 		}
 	} else {
 		// add to refresh list
-		if( ent.hModel > 0 )
+		if ( ent.hModel > 0 || ent.ghoul2 != NULL || ent.customShader != NULL_HANDLE )
+		{
 			trap_R_AddRefEntityToScene (&ent);
+		}
 	}
 
 	if (cent->bolt3 == 999)
@@ -2887,7 +2889,15 @@ Ghoul2 Insert End
 	if ( s1->modelindex2 && s1->modelindex2 < MAX_MODELS ) 
 	{
 		ent.skinNum = 0;
-		ent.hModel = cgs.gameModels[s1->modelindex2];
+		if ( s1->solid == SOLID_BMODEL )
+		{
+			ent.hModel = cgs.inlineDrawModel[s1->modelindex2];
+		}
+		else
+		{
+			ent.hModel = cgs.gameModels[s1->modelindex2];
+		}
+
 		if (s1->iModelScale)
 		{ //custom model2 scale
 			ent.modelScale[0] = ent.modelScale[1] = ent.modelScale[2] = s1->iModelScale/100.0f;

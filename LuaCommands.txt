@@ -225,10 +225,10 @@ Entity Class:
 NOTE: On deleted entities, only IsValid() works!
 All other functions return nil and do nothing!
 
-Entities and derrived objects (ie players) are fitted with a dynamic storage system
+Entities and derived objects (i.e. players) are fitted with a dynamic storage system
 This allows you to store any kinda of data in the player object by simply reading or writing it as if the
 player object were to be a table (ply.var = value, ply["var"] = value, etc will all work)
-Please note that you should avoid using function names as variables (it wont overwrite them, but retreiving them will call the function)
+Please note that you should avoid using function names as variables (it wont overwrite them, but retrieving them will call the function)
 
 If you wish to obtain the full table of custom variables for that entity, you can use the GetTable() function
 
@@ -257,36 +257,44 @@ player:GetID():number - Returns this player's ID.
 player:GetName():string - Returns this player's Name.
 player:GetIP():string - Returns this player's IP in a string. (IP and port)
 player:IsValid():bool - Returns whether this player object is valid or not.
+
 player:SendChat(text:string):nil - Shows the specified text in the player's chat area.
 player:SendCenterPrint(text:string):nil - Shows the specified text in the center of the player's screen.
 player:SendPrint(text:string):nil Shows the specified text in the player's console.
 player:SendCommand(command:string):nil - Sends the specified command to the player (CAUTION: The client side must know the command or the client gets errors!)
-player:Kill():nil - Kills the player immediately.
+
 player:SetPos(position:vector):nil - Moves the player to the specified location (Note: This is not a teleport and moving the player into another player will render them stuck)
 player:GetPos():vector - Returns the player's current position
+
 player:Teleport(position:vector, [angles:vector]):nil - Teleports the player to the specified location (facing the direction specified if any), telefrags anyone at that destination.
+player:Kill():nil - Kills the player immediately.
 player:Kick([reason:string]):nil - Kicks the player off the server with the reason specified. If no reason is specified, 'was kicked' will be used.
 player:SetTeam(team:string):nil - Sends the player to the specified team ("r" = red, "b" = blue, "s" = spectators, "f" = free)
 player:GetTeam():number - Returns the team the player is currently on (0 = free, 1 = red, 2 = blue, 3 = spectators)
 player:Spawn():nil - Forces the player to (re)spawn
+
 player:GetEyeTrace():table - Returns a table with trace results (see above)
 player:GetEntity():entity - Returns the entity object of the player
-player:GiveWeapon(weapon:number):nil - Gives the player the specified weapon (weapon = one of the WP_ constants)
-player:TakeWeapon(weapon:number):nil - Takes the specified weapon from the player (weapon = one of the WP_ constants)
-player:HasWeapon(weapon:number):bool - Returns whether the player has the specified weapon or not (weapon = one of the WP_ constants)
-player:StripWeapons():nil - Removes all weapons from the client [DOES NOT WORK]
+
 player:GetCreditCount():number - Returns number of credits that the player is currently holding on to.
 player:SetCreditCount(amount:number):nil - sets the amount of credits that the player has
 player:ModifyCreditCount(amount:number):nil - adds to the number of credits that the player has (eg a value of 100 adds 100 credits, -100 subtracts 100 credits)
+
 player:SetAmmo(ammotype:string, amount:number):nil - sets ammo of a certain type. Ammo is defined in ammo.json
 player:GetAmmo(ammotype:string):number - returns amount of ammo of a certain type that the player is holding
 player:ModifyAmmo(ammotype:string, amount:number):nil - adds to, rather than setting current ammo
 player:GetCurrentGunAmmoType():number - retrieves the ammo ID of the currently equipped weapon
 player:GetGunAmmoType(weapon:number, variation: number):number - retrieves the ammo ID of the weapon/variation given (NOTE: I have no clue why I put this in player/ply...)--eez
+
+player:GetWeapon(??? ???):number - TODO
+player:SetWeapon(??? ???):number - TODO
+
 player:PossessingItem(itemid:number):bool - returns true if we are possessing the item, returns false otherwise
 player:PossessingWeapon(weapon: number, variation:number):bool - returns true if we are possessing this weapon in our inventory, returns false otherwise
+
 player:SetAdminAccount(account:string):nil - Sets our current admin account to a certain value
 player:GetAdminAccount():string - Gets our current admin account
+
 player:ExecuteChatCommand(command:string):nil - Executes a chat command (such as /me). This includes Lua commands!
 
 --------------------------------------------------------------------------------------------------------

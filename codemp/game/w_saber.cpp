@@ -4579,11 +4579,11 @@ static GAME_INLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int
 			return qfalse;
 		}
 
-		if ((self->s.eType == ET_NPC || otherOwner->s.eType == ET_NPC) && //just make sure one of us is an npc
+		/*if ((self->s.eType == ET_NPC || otherOwner->s.eType == ET_NPC) && //just make sure one of us is an npc
 			self->client->playerTeam == otherOwner->client->playerTeam)
 		{ //don't hit your teammate's sabers if you are an NPC. It can be rather annoying.
 			return qfalse;
-		}
+		}*/ //Wrong
 
 		if (otherOwner->client->ps.duelInProgress &&
 			otherOwner->client->ps.duelIndex != self->s.number)
@@ -5151,7 +5151,7 @@ void G_SPSaberDamageTraceLerped( gentity_t *self, int saberNum, int bladeNum, ve
 	saberHitFraction = 1.0f;
 	if ( VectorCompare2( baseOld, baseNew ) && VectorCompare2( endOld, endNew ) )
 	{//no diff
-		CheckSaberDamage( self, saberNum, bladeNum, baseNew, endNew, qtrue, clipmask, qfalse );
+		CheckSaberDamage( self, saberNum, bladeNum, baseNew, endNew, qfalse, clipmask, qfalse );
 	}
 	else
 	{//saber moved, lerp

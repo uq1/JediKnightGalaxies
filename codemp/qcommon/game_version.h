@@ -9,7 +9,7 @@
 
 #include "../win32/AutoVersion.h"
 
-#define JKG_VERSION "0.4.13"
+#define JKG_VERSION "1.4.05"
 // Current version of the multi player game
 #ifdef _DEBUG
 	#define JKG_VERSION_SUFFIX "d"

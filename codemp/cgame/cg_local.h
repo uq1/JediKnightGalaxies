@@ -1884,6 +1884,8 @@ void CG_AddBufferedSound( sfxHandle_t sfx);
 
 float CG_ClampFov ( float fov );
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback );
+qboolean CG_CullPointAndRadius (const vec3_t pt, float radius);
+
 /*
 Ghoul2 Insert Start
 */

@@ -813,33 +813,30 @@ void JKG_CG_ShowOnlySelectedSurfaces ( void *g2, const char *modelPath, const ch
 }
 
 qboolean CG_RegisterClientArmorModelname( centity_t *cent, int armorNum, int clientNum, int slot);
-void JKG_CG_EquipArmor( void )
+void JKG_CG_EquipArmor( int client, int slot, int armorId )
 {
-	int client = atoi(CG_Argv(1));
-	int slot = atoi(CG_Argv(2));
-	int armor = atoi(CG_Argv(3));
-	
 	centity_t *cent = &cg_entities[client];
 
-	cgs.armorInformation[client][slot] = armor;
-	cent->equippedArmor[slot] = armor;
+	cgs.armorInformation[client][slot] = armorId;
+	cent->equippedArmor[slot] = armorId;
 	
-	if ( !armor )
+	if ( !armorId )
 	{
 	    // Show surfaces which were hidden on the player model for the previous armor.
-	    JKG_CG_SetModelSurfacesFlags (cent->ghoul2, armorMasterTable[cent->previousEquippedArmor[slot]].surfOffLowerString, 0);
-	    cent->previousEquippedArmor[slot] = armor;
+		JKG_CG_SetModelSurfacesFlags (cent->ghoul2, armorMasterTable[cent->previousEquippedArmor[slot]].surfOffLowerString, 0);
+		cent->previousEquippedArmor[slot] = armorId;
 	    
 	    if ( cent->armorGhoul2[slot] && trap_G2_HaveWeGhoul2Models (cent->armorGhoul2[slot]) )
 	    {
 	        trap_G2API_CleanGhoul2Models(&cent->armorGhoul2[slot]);
+			cent->armorGhoul2[slot] = NULL;
 	    }
 	    return;
 	}
 	
-	if(!CG_RegisterClientArmorModelname(cent, armor, client, slot))
+	if ( !CG_RegisterClientArmorModelname (cent, armorId, client, slot) )
 	{
-		CG_Printf("Failed to equip armor model %s in slot %i", armorMasterTable[armor].model, slot);
+		CG_Printf ("Failed to equip armor model %s in slot %i", armorMasterTable[armorId].model, slot);
 		return;
 	}
 
@@ -847,12 +844,12 @@ void JKG_CG_EquipArmor( void )
     JKG_CG_SetModelSurfacesFlags (cent->ghoul2, armorMasterTable[cent->previousEquippedArmor[slot]].surfOffLowerString, 0);
     
     // Now disable surfaces on the player model which need to been hidden on the new armor.
-    JKG_CG_SetModelSurfacesFlags (cent->ghoul2, armorMasterTable[armor].surfOffLowerString, 0x2);
+	JKG_CG_SetModelSurfacesFlags (cent->ghoul2, armorMasterTable[armorId].surfOffLowerString, G2SURFACEFLAG_OFF);
 
 	// Disable surfaces on the upper model as well
-	JKG_CG_SetModelSurfacesFlags (cent->armorGhoul2, armorMasterTable[armor].surfOffThisString, 0x2);
+	JKG_CG_SetModelSurfacesFlags (cent->armorGhoul2, armorMasterTable[armorId].surfOffThisString, G2SURFACEFLAG_OFF);
 
-	cent->previousEquippedArmor[slot] = armor;
+	cent->previousEquippedArmor[slot] = armorId;
 }
 
 void JKG_CG_SetACISlot(const unsigned short slot)

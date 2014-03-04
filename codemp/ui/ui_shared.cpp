@@ -2898,7 +2898,6 @@ float Item_Slider_ThumbPosition(itemDef_t *item) {
 	}
 
 	value = DC->getCVarValue(item->cvar);
-
 	if (value < editDef->minVal) {
 		value = editDef->minVal;
 	} else if (value > editDef->maxVal) {
@@ -3173,6 +3172,7 @@ void Item_MouseEnter(itemDef_t *item, float x, float y) {
 		if( item->window.flags & WINDOW_FORCESELECTIONZONE )
 		{
 			r = item->window.selectionZone;
+
 		}
 
 		// items can be enabled and disabled 
@@ -4549,6 +4549,7 @@ qboolean Item_Slider_HandleKey(itemDef_t *item, int key, qboolean down) {
 					DC->setCVar(item->cvar, va("%f", value));
 					return qtrue;
 				}
+
 			}
 		}
 	}
@@ -4994,6 +4995,42 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 						itemDef_t it;
 						it.parent = menu;
 						Item_RunScript(&it, menu->onAccept);
+					}
+					else if (item->type == ITEM_TYPE_SLIDER) {
+						qRectangle test;
+						test.x = item->textRect.x + item->textRect.w + 8;
+						test.y = item->window.rect.y;
+						test.w = item->window.rect.w + item->textRect.w;
+						test.h = item->window.rect.h;
+						if (Rect_ContainsPoint(&test, DC->cursorx, DC->cursory)) {
+							editFieldDef_t *editDef = (editFieldDef_t *)item->typeData;
+							float value, x;
+							if (item->text[0]) {
+								x = item->textRect.x + item->textRect.w + 8;
+							}
+							else {
+								x = item->window.rect.x;
+							}
+							value = DC->cursorx;
+							value -= x;
+							if (item->window.rect.w && item->window.rect.h)
+							{
+								value /= item->window.rect.w;
+							}
+							else
+							{
+								value /= SLIDER_WIDTH;
+							}
+							if (value < editDef->minVal) {
+								value = editDef->minVal;
+							}
+							else if (value > editDef->maxVal) {
+								value = editDef->maxVal;
+							}
+							char *tempchar = new char;
+							sprintf(tempchar, "%f", value);
+							DC->setCVar(item->cvar, tempchar);
+						}
 					}
 				}
 //END JLFACCEPT			
@@ -5913,7 +5950,6 @@ void Item_Slider_Paint(itemDef_t *item) {
 
 	x = Item_Slider_ThumbPosition(item);
 	DC->drawHandlePic( x - (sW / 2), y - 2, sW, sH, foreground );
-
 }
 
 void Item_Bind_Paint(itemDef_t *item) 
@@ -7839,7 +7875,6 @@ void Menu_HandleMouseMove(menuDef_t *menu, float x, float y) {
   }
 
 	if (itemCapture) {
-		//Item_MouseMove(itemCapture, x, y);
 		return;
 	}
 
@@ -7879,7 +7914,17 @@ void Menu_HandleMouseMove(menuDef_t *menu, float x, float y) {
 			{
 				goto gohere;
 			}
-            else if (!(menu->items[i]->window.flags & WINDOW_FORCESELECTIONZONE) &&(Rect_ContainsPoint(&menu->items[i]->window.rect, x, y)) ) {
+			if (menu->items[i]->type == ITEM_TYPE_SLIDER) {
+				qRectangle test;
+				test.x = menu->items[i]->textRect.x + menu->items[i]->textRect.w + 8;
+				test.y = menu->items[i]->window.rect.y;
+				test.w = menu->items[i]->window.rect.w + menu->items[i]->textRect.w;
+				test.h = menu->items[i]->window.rect.h;
+				if (Rect_ContainsPoint(&test, x, y)) {
+					goto gohere;
+				}
+			}
+            else if (!(menu->items[i]->window.flags & WINDOW_FORCESELECTIONZONE) && (Rect_ContainsPoint(&menu->items[i]->window.rect, x, y))) {
 gohere:
 				if (pass == 1) {
 					overItem = menu->items[i];

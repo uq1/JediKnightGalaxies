@@ -24,6 +24,7 @@
 #include "bg_weapons.h"
 #include "anims.h"
 #include "bg_vehicles.h"
+#include "qcommon/game_version.h"
 
 //these two defs are shared now because we do clientside ent parsing
 #define	MAX_SPAWN_VARS			64
@@ -32,7 +33,7 @@
 
 #define DEFAULT_SABER		"kyle"
 #define DEFAULT_SABER_MODEL	"models/weapons2/saber/saber_w.glm"
-#define	GAME_VERSION	"Jedi Knight Galaxies 1.4.05"
+#define	GAME_VERSION	"Jedi Knight Galaxies " JKG_VERSION
 
 #define	STEPSIZE		18
 

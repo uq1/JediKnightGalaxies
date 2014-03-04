@@ -2650,6 +2650,66 @@ void CG_DrawAutoMap(void)
 	trap_R_RenderScene( &refdef );
 }
 
+//=========================================================================
+
+/*
+**  Frustum code
+*/
+
+// some culling bits
+typedef struct plane_s {
+	vec3_t normal;
+	float dist;
+} plane_t;
+
+static plane_t frustum[4];
+
+static void CG_SetupFrustum (void) {
+	int i;
+	float xs, xc;
+	float ang;
+
+	ang = cg.refdef.fov_x / 180 * M_PI * 0.5f;
+	xs = sin (ang);
+	xc = cos (ang);
+
+	VectorScale (cg.refdef.viewaxis[0], xs, frustum[0].normal);
+	VectorMA (frustum[0].normal, xc, cg.refdef.viewaxis[1], frustum[0].normal);
+
+	VectorScale (cg.refdef.viewaxis[0], xs, frustum[1].normal);
+	VectorMA (frustum[1].normal, -xc, cg.refdef.viewaxis[1], frustum[1].normal);
+
+	ang = cg.refdef.fov_y / 180 * M_PI * 0.5f;
+	xs = sin (ang);
+	xc = cos (ang);
+
+	VectorScale (cg.refdef.viewaxis[0], xs, frustum[2].normal);
+	VectorMA (frustum[2].normal, xc, cg.refdef.viewaxis[2], frustum[2].normal);
+
+	VectorScale (cg.refdef.viewaxis[0], xs, frustum[3].normal);
+	VectorMA (frustum[3].normal, -xc, cg.refdef.viewaxis[2], frustum[3].normal);
+
+	for ( i = 0; i < 4; i++ ) {
+		frustum[i].dist = DotProduct (cg.refdef.vieworg, frustum[i].normal);
+	}
+}
+
+qboolean CG_CullPointAndRadius (const vec3_t pt, float radius) {
+	int i;
+	plane_t *frust;
+
+	// check against frustum planes
+	for ( i = 0; i < 4; i++ ) {
+		frust = &frustum[i];
+
+		if ( (DotProduct (pt, frust->normal) - frust->dist) < -radius ) {
+			return(qtrue);
+		}
+	}
+
+	return(qfalse);
+}
+
 /*
 =================
 CG_DrawActiveFrame
@@ -2919,6 +2979,8 @@ defaultCmd:
 
 	// build cg.refdef
 	inwater = CG_CalcViewValues();
+
+	CG_SetupFrustum ();
 
 	if (cg_linearFogOverride)
 	{
