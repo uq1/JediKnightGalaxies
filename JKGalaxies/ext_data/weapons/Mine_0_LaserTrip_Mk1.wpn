@@ -63,6 +63,8 @@
         "reload":       { "torso": "TORSO_DROPWEAP1" },
         "ready":        { "torso": "TORSO_WEAPONREADY10", "legs": "BOTH_STAND1" },
         "firing":       { "torso": "BOTH_ATTACK3" },
+		"sights":        { "torso": "TORSO_WEAPONREADY10", "legs": "BOTH_STAND1" },
+        "sightsFiring":       { "torso": "BOTH_ATTACK3" },
         "sprintStyle": "11"
     },
     
