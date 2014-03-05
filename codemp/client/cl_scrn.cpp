@@ -127,7 +127,8 @@ void SCR_DrawSmallChar( int x, int y, int ch ) {
 	frow = row*0.0625;
 	fcol = col*0.0625;
 
-	size = 0.0625;
+	size = 0.03125;
+	//size = 0.0625;
 	size2 = 0.0625;
 
 	re->DrawStretchPic( x * con.xadjust, y * con.yadjust, 
