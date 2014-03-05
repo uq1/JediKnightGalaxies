@@ -654,6 +654,10 @@ static void ReadString ( cJSON *parent, const char *field, char *dest, size_t de
         }
         Q_strncpyz (dest, str, destSize);
     }
+	else
+	{
+		dest[0] = '\0';
+	}
 }
 
 #ifdef CGAME
@@ -870,11 +874,7 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
     // Scope render
     ReadString (child, "mask", weaponVisuals->scopeShader, sizeof (weaponVisuals->scopeShader));
 
-	//Crosshair -- eezstreet add
-	node = cJSON_GetObjectItem (visualsNode, "crosshairValue");
-	weaponVisuals->crosshairValue = (int)cJSON_ToNumberOpt(node, (double)1);
-
-	//Barrel count -- eezstreet add
+	//Barrel count
 	node = cJSON_GetObjectItem (visualsNode, "barrelCount");
 	weaponVisuals->barrelCount = cJSON_ToIntegerOpt(node, 0);
     

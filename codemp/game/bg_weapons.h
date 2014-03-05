@@ -364,10 +364,7 @@ typedef struct weaponVisual_s
     int scopeSoundLoopTime;
     char scopeLoopSound[MAX_QPATH];
 
-	//eezstreet add: Variable crosshairs
-	int crosshairValue;
-
-	// eez: variable number of barrels, default is 4
+	// eez: variable number of barrels, default is 0
 	int barrelCount;
 
 	weaponVisualFireMode_t visualFireModes[MAX_FIREMODES];

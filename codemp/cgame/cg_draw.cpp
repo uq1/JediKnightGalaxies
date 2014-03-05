@@ -3193,6 +3193,7 @@ vec3_t cg_crosshairPos={0,0,0};
 	vec4_t		ecolor = {0,0,0,0};
 	centity_t	*crossEnt = NULL;
 	float		chX, chY;
+	weaponData_t *wp = GetWeaponData(cg.predictedPlayerState.weapon, cg.predictedPlayerState.weaponVariation);
 
 	if ( worldPoint )
 	{
@@ -3543,7 +3544,13 @@ vec3_t cg_crosshairPos={0,0,0};
 
 	if ( !hShader )
 	{
-		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
+		char* fmShader = wp->visuals.visualFireModes[cg.predictedPlayerState.firingMode].crosshairShader;
+		if ( fmShader[0] ) {
+			hShader = trap_R_RegisterShaderNoMip(fmShader);
+		}
+		else {
+			hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
+		}
 	}
 
 	chX = x + cg.refdef.x + 0.5f * (640 - w);
