@@ -5027,9 +5027,7 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 							else if (value > editDef->maxVal) {
 								value = editDef->maxVal;
 							}
-							char *tempchar = new char;
-							sprintf(tempchar, "%f", value);
-							DC->setCVar(item->cvar, tempchar);
+							DC->setCVar(item->cvar, va("%f", value));
 						}
 					}
 				}
