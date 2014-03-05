@@ -876,7 +876,7 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
 
 	//Barrel count -- eezstreet add
 	node = cJSON_GetObjectItem (visualsNode, "barrelCount");
-	weaponVisuals->barrelCount = cJSON_ToIntegerOpt(node, 4);
+	weaponVisuals->barrelCount = cJSON_ToIntegerOpt(node, 0);
     
     /*node = cJSON_GetObjectItem (visualsNode, "primary");
     BG_ParseVisualsFireMode (&weaponVisuals->primary, node);

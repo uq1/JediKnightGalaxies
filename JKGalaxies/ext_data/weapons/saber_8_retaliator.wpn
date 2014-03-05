@@ -8,7 +8,8 @@
     "visual": {
         "hudicon":          "models/weapons/lightsabers/icons/retaliator.tga",
         "hudnaicon":        "models/weapons/lightsabers/icons/retaliator.tga",
-	"worldmodel":	    "models/weapons2/saber_2/saber_2.glm",
+		"worldmodel":	    "models/weapons2/saber_2/saber_2.glm",
+		"barrelCount":		0,
     
         "firemode0": {
             "type":         "blaster"

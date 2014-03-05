@@ -295,12 +295,6 @@ static void JKG_LoadFireModeAssets ( weaponDrawData_t *drawData, const weaponFir
 
 void JKG_LoadWeaponAssets ( weaponInfo_t *weaponInfo, const weaponData_t *weaponData )
 {
-    static const char *barrelSuffixes[] = {
-        "_barrel.md3",
-        "_barrel2.md3",
-        "_barrel3.md3",
-        "_barrel4.md3"
-    };
     int i;
     char extensionlessModel[MAX_QPATH];
     const weaponVisual_t *weaponVisuals = &weaponData->visuals;

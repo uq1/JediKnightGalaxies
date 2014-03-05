@@ -15,7 +15,9 @@
         
         "firemode1": {
             "type":         "blaster"
-        }
+        },
+		
+		"barrelCount": 0
     },
     
     "stats": {

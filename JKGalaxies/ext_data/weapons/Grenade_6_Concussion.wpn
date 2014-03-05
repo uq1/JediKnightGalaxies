@@ -19,6 +19,7 @@
         
         "gunposition":      "9.0 -4.0 -3.0",
         "ironsightsposition": "8.0 -4.0 -2.8",
+		"barrelCount": "1",
     
         "firemode0": {
             "type":         "grenade",

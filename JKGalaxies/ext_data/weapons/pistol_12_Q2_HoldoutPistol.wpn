@@ -11,7 +11,7 @@
         "hudicon":          "models/weapons/Q2_HoldoutPistol/icon_default",
         "hudnaicon":        "models/weapons/Q2_HoldoutPistol/icon_default",
         "selectsound":      "sound/weapons/select_pistol.wav",
-	"barrelCount":	    1,
+		"barrelCount":	    "1",
         
         "indicators": {
             "ammo":         [ "models/weapons/Q2_HoldoutPistol/indicator" ]
