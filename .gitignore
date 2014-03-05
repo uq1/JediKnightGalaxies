@@ -41,6 +41,16 @@ local.properties
 *.user
 *.sln.docstates
 
+# These are generated through CMake now. Ignore.
+codemp/cgame/cgame.vcxproj
+codemp/cgame/cgame.vcxproj.filters
+codemp/game/JK2_game.vcxproj
+codemp/game/JK2_game.vcxproj.filters
+codemp/openjk.vcxproj
+codemp/openjk.vcxproj.filters
+codemp/ui/ui.vcxproj
+codemp/ui/ui.vcxproj.filters
+
 # Build results
 [Dd]ebug/
 [Rr]elease/

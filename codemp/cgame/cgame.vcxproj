@@ -56,7 +56,7 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">../$(Configuration)/Build/base\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">../$(Configuration)/cgame\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../$(Configuration)/Build/base\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../$(Configuration)/Build/JKG\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../$(Configuration)/cgame\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
@@ -263,6 +263,7 @@
     <ClCompile Include="..\game\NPC_Speeder.cpp" />
     <ClCompile Include="..\game\NPC_Walker.cpp" />
     <ClCompile Include="..\libraries\encoding\base128.cpp" />
+    <ClCompile Include="..\libraries\json\cJSON.cpp" />
     <ClCompile Include="..\qcommon\q_math.c" />
     <ClCompile Include="..\qcommon\q_shared.c" />
     <ClCompile Include="cg_cinematics.cpp" />
@@ -315,7 +316,6 @@
     <ClCompile Include="jkg_autowaypoint.cpp" />
     <ClCompile Include="jkg_wpindicators.cpp" />
     <ClCompile Include="..\ui\ui_shared.cpp" />
-    <ClCompile Include="..\libraries\json\cJSON.c" />
     <ClCompile Include="..\libraries\encoding\bitstream.c" />
   </ItemGroup>
   <ItemGroup>
