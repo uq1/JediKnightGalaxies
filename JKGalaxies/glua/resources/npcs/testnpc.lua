@@ -41,7 +41,7 @@ function NPC:OnAwake()
 end
 
 function NPC:OnAnger(enemy)
-	print("Test NPC OnAnger (targetted " .. tostring(enemy) .. ")")
+	print("Test NPC OnAnger (targeted " .. tostring(enemy) .. ")")
 end
 
 function NPC:OnAttack()

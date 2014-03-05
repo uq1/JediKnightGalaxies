@@ -174,7 +174,12 @@ pip-log.txt
 *.o
 *.so
 
-# we require Boost
+#############
+## JKG
+#############
+
+# we require Boost in some branches
 codemp/libraries/boost/*
-JKGalaxies/zz_JKG_Assets5.pk3
-JKGalaxies/zz_JKGAssets5.pk3
+
+# if someone makes a pk3 from jkgalaxies folder, as they should, it won't get committed by mistake
+JKGalaxies/*.pk3

@@ -11,8 +11,6 @@
 JKG.Running = true
 
 print("Loading main functions...")
-include("admin/authentication.lua") -- Server access/hammer bans
-include("admin/banmanager.lua") -- Responsible for all bans
 include("admin/accounts.lua") -- Accounts and Admin commands
 print("Loading entity spawning commands...")
 include("entcmds.lua")

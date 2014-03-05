@@ -7,12 +7,12 @@ function NPC:OnSpawn()
 	-- No weapon for this guy
 	self:GiveWeapon(WP_MELEE)
 	self:SetWeapon(WP_MELEE)
-	-- Godmode it, so they dont get killed
+	-- Godmode it, so they don't get killed
 	self:SetGodMode(true)
 	-- Explicitly tell it to walk and not run
 	self:SetWalking(true)
 	self:SetRunning(false)	
-	-- Prevent him from targetting anyone
+	-- Prevent him from targeting anyone
 	self:SetLookForEnemies(false)
 	self:SetChaseEnemies(false)
 	-- Set up local variables
@@ -27,7 +27,7 @@ function NPC:OnUse(other, activator)
 	self.LastUse = sys.Time()
 	
 	if not activator:IsPlayer() then
-		return		-- Only talk to players, nothin else
+		return		-- Only talk to players, nothing else
 	end
 	
 	local ply = activator:ToPlayer()
