@@ -8914,7 +8914,8 @@ static void UI_StartServerRefresh(qboolean full)
 			if(!Q_stricmp(serverFilters[ui_serverFilterType.integer].description, "JKG"))
 			{
 				trap_JKG_ChangeProtocol( 27 );
-				trap_Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d 27\n", i ) );			// hax. JKG servers use protocol 27
+				trap_Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d 26\n", i ) );
+				// TODO: change back over to 27, someone changed this to be 26 on the engine and it needs to all be switched back over.
 
 			}
 			else
