@@ -2080,7 +2080,9 @@ qboolean G_SetSaber(gentity_t *ent, int saberNum, char *saberName, qboolean sieg
 
 	//Set the saber with the arg given. If the arg is
 	//not a valid sabername defaults will be used.
-	WP_SetSaber( ent->s.number, ent->client->saber, saberNum, truncSaberName );
+	if(truncSaberName[0] != '\0') {
+		WP_SetSaber( ent->s.number, ent->client->saber, saberNum, truncSaberName );
+	}
 
 	if ( !ent->client->saber[0].model[0] )
 	{
