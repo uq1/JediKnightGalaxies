@@ -1525,8 +1525,6 @@ static void CG_RegisterGraphics( void ) {
 	cgs.effects.mSaberBloodSparks = trap_FX_RegisterEffect("saber/blood_sparks_mp.efx");
 	cgs.effects.mSaberBloodSparksSmall = trap_FX_RegisterEffect("saber/blood_sparks_25_mp.efx");
 	cgs.effects.mSaberBloodSparksMid = trap_FX_RegisterEffect("saber/blood_sparks_50_mp.efx");
-	cgs.effects.mSpawn = trap_FX_RegisterEffect("mp/spawn.efx");
-	cgs.effects.mJediSpawn = trap_FX_RegisterEffect("mp/jedispawn.efx");
 	cgs.effects.mBlasterDeflect = trap_FX_RegisterEffect("blaster/deflect.efx");
 	cgs.effects.mBlasterSmoke = trap_FX_RegisterEffect("blaster/smoke_bolton");
 	cgs.effects.mForceConfusionOld = trap_FX_RegisterEffect("force/confusion_old.efx");

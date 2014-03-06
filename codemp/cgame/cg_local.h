@@ -1563,8 +1563,6 @@ typedef struct
 	fxHandle_t	mSaberBloodSparks;
 	fxHandle_t	mSaberBloodSparksSmall;
 	fxHandle_t	mSaberBloodSparksMid;
-	fxHandle_t	mSpawn;
-	fxHandle_t	mJediSpawn;
 	fxHandle_t	mBlasterDeflect;
 	fxHandle_t	mBlasterSmoke;
 	fxHandle_t	mForceConfusionOld;
