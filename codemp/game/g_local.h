@@ -619,6 +619,8 @@ typedef struct {
 	char		saber1[MAX_QPATH];
 	char		saber2[MAX_QPATH];
 
+	char		account[MAX_QPATH];
+
 	// Custom team
 	int			customteam;					// Enables icons above the player's heads, for games like the arena
 
@@ -976,7 +978,6 @@ struct gclient_s {
 	int         damageTypeTime[NUM_DAMAGE_TYPES];
 	int         damageTypeLastEffectTime[NUM_DAMAGE_TYPES];
 	gentity_t	*damageTypeOwner[NUM_DAMAGE_TYPES];
-	std::string Account;
 	
 	// Custom disco messages
 	int			customDisconnectMsg;
