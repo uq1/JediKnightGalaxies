@@ -3740,7 +3740,7 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 		}
 			
 		/* Always render a shot beam from the muzzle to where we hit, the beam will continue if the shot continues */
-		tent = G_TempEntity( tr.endpos, EV_DISRUPTOR_MAIN_SHOT );
+		tent = G_TempEntity( tr.endpos, EV_WEAPON_TRACELINE );
 		VectorCopy( muzzle, tent->s.origin2 );
 		tent->s.eventParm = DirToByte (tr.plane.normal);
 		tent->s.otherEntityNum = ENTITYNUM_NONE;

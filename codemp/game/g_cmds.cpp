@@ -3642,8 +3642,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 		ent->client->ps.zoomMode = 0;
 	}
 
-	// TODO: Reload animation
-	G_SetAnim(ent, NULL, SETANIM_TORSO, GetWeaponData (weapon, ent->client->ps.weaponVariation)->anims.reload.torsoAnim, SETANIM_FLAG_OVERRIDE,0);
+	G_SetAnim(ent, NULL, SETANIM_TORSO, GetWeaponData (weapon, ent->client->ps.weaponVariation)->anims.reload.torsoAnim, SETANIM_FLAG_NORMAL,0);
 	ent->client->ps.weaponTime = GetWeaponData( weapon, ent->client->ps.weaponVariation )->weaponReloadTime;
 	// TODO: Add sound
 

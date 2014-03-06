@@ -11017,7 +11017,7 @@ SkipTrueView:
 		 	axis[2][2] = boltMatrix.matrix[2][2];
 
 			//trap_FX_PlayEntityEffectID(trap_FX_RegisterEffect("force/confusion.efx"), efOrg, axis, cent->boltInfo, cent->currentState.number);
-			trap_FX_PlayEntityEffectID(cgs.effects.mForceConfustionOld, efOrg, axis, -1, -1, -1, -1);
+			trap_FX_PlayEntityEffectID(cgs.effects.mForceConfusionOld, efOrg, axis, -1, -1, -1, -1);
 		}
 	}
 

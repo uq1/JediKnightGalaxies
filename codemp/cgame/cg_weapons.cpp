@@ -246,29 +246,6 @@ static int CG_MapTorsoToWeaponFrame( const clientInfo_t *ci, int frame, int anim
 	}
 #endif
 
-    // TODO: Fix this properly. This code sort of works, but sort of doesn't. For now the
-    // reload animations have just been changed back to base.
-#if 0
-    if ( (cg.reloadTimeStart + cg.reloadTimeDuration) >= cg.time )
-    {
-        // So much hax...must do this a better way.
-        int animFrame = frame - animations[animNum].firstFrame;
-        
-        if ( animFrame >= (animations[animNum].numFrames - 3) )
-        {
-            animFrame -= animations[animNum].numFrames - 3;
-            animFrame += 10;
-        }
-        else
-        {
-            animFrame = min (animFrame, 4);
-            animFrame += 6;
-        }
-
-		return animFrame;
-    }
-#endif
-
 	switch( animNum )
 	{
 	case TORSO_DROPWEAP1:
@@ -638,121 +615,6 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 	}
 #endif
 }
-
-
-/*
-===============
-CG_LightningBolt
-
-Origin will be the exact tag point, which is slightly
-different than the muzzle point used for determining hits.
-The cent should be the non-predicted cent if it is from the player,
-so the endpoint will reflect the simulated strike (lagging the predicted
-angle)
-===============
-*/
-static void CG_LightningBolt( centity_t *cent, vec3_t origin ) {
-//	trace_t  trace;
-//	refEntity_t  beam;
-//	vec3_t   forward;
-//	vec3_t   muzzlePoint, endPoint;
-
-	//Must be a durational weapon that continuously generates an effect.
-//	if ( cent->currentState.weapon == WP_DEMP2 && cent->currentState.eFlags & EF_ALT_FIRING ) 
-//	{ /*nothing*/ }
-//	else
-//	{
-//		return;
-//	}
-
-//	memset( &beam, 0, sizeof( beam ) );
-
-	// uhm what
-	return;
-
-	// NOTENOTE No lightning gun-ish stuff yet.
-/*
-	// CPMA  "true" lightning
-	if ((cent->currentState.number == cg.predictedPlayerState.clientNum) && (cg_trueLightning.value != 0)) {
-		vec3_t angle;
-		int i;
-
-		for (i = 0; i < 3; i++) {
-			float a = cent->lerpAngles[i] - cg.refdef.viewangles[i];
-			if (a > 180) {
-				a -= 360;
-			}
-			if (a < -180) {
-				a += 360;
-			}
-
-			angle[i] = cg.refdef.viewangles[i] + a * (1.0 - cg_trueLightning.value);
-			if (angle[i] < 0) {
-				angle[i] += 360;
-			}
-			if (angle[i] > 360) {
-				angle[i] -= 360;
-			}
-		}
-
-		AngleVectors(angle, forward, NULL, NULL );
-		VectorCopy(cent->lerpOrigin, muzzlePoint );
-//		VectorCopy(cg.refdef.vieworg, muzzlePoint );
-	} else {
-		// !CPMA
-		AngleVectors( cent->lerpAngles, forward, NULL, NULL );
-		VectorCopy(cent->lerpOrigin, muzzlePoint );
-	}
-
-	// FIXME: crouch
-	muzzlePoint[2] += DEFAULT_VIEWHEIGHT;
-
-	VectorMA( muzzlePoint, 14, forward, muzzlePoint );
-
-	// project forward by the lightning range
-	VectorMA( muzzlePoint, LIGHTNING_RANGE, forward, endPoint );
-
-	// see if it hit a wall
-	CG_Trace( &trace, muzzlePoint, vec3_origin, vec3_origin, endPoint, 
-		cent->currentState.number, MASK_SHOT );
-
-	// this is the endpoint
-	VectorCopy( trace.endpos, beam.oldorigin );
-
-	// use the provided origin, even though it may be slightly
-	// different than the muzzle origin
-	VectorCopy( origin, beam.origin );
-
-	beam.reType = RT_LIGHTNING;
-	beam.customShader = cgs.media.lightningShader;
-	trap_R_AddRefEntityToScene( &beam );
-*/
-
-	// NOTENOTE No lightning gun-ish stuff yet.
-/*
-	// add the impact flare if it hit something
-	if ( trace.fraction < 1.0 ) {
-		vec3_t	angles;
-		vec3_t	dir;
-
-		VectorSubtract( beam.oldorigin, beam.origin, dir );
-		VectorNormalize( dir );
-
-		memset( &beam, 0, sizeof( beam ) );
-		beam.hModel = cgs.media.lightningExplosionModel;
-
-		VectorMA( trace.endpos, -16, dir, beam.origin );
-
-		// make a random orientation
-		angles[0] = rand() % 360;
-		angles[1] = rand() % 360;
-		angles[2] = rand() % 360;
-		AnglesToAxis( angles, beam.axis );
-		trap_R_AddRefEntityToScene( &beam );
-	}
-*/
-}
-
 
 /*
 ========================
@@ -1203,9 +1065,6 @@ Ghoul2 Insert End
 			}
 		}
 
-		// add lightning bolt
-		CG_LightningBolt( nonPredictedCent, flashorigin );
-
 		if ( weapon->flashDlightColor[0] || weapon->flashDlightColor[1] || weapon->flashDlightColor[2] ) {
 			trap_R_AddLightToScene( flashorigin, 300 + (rand()&31), weapon->flashDlightColor[0],
 				weapon->flashDlightColor[1], weapon->flashDlightColor[2] );
@@ -1287,7 +1146,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 			// special hack for lightning gun...
 			VectorCopy( cg.refdef.vieworg, origin );
 			VectorMA( origin, -8, cg.refdef.viewaxis[2], origin );
-			CG_LightningBolt( &cg_entities[ps->clientNum], origin );
 		}
 		return;
 	}
@@ -2010,241 +1868,6 @@ qboolean CG_VehicleWeaponImpact( centity_t *cent )
 }
 
 /*
-=================
-CG_MissileHitWall
-
-Caused by an EV_MISSILE_MISS event, or directly by local bullet tracing
-=================
-*/
-void CG_MissileHitWall(int weapon, int clientNum, vec3_t origin, vec3_t dir, impactSound_t soundType, qboolean altFire, int charge) 
-{
-	int parm;
-	vec3_t up={0,0,1};
-
-	switch( weapon )
-	{
-	case WP_BRYAR_PISTOL:
-		if ( altFire )
-		{
-			parm = charge;
-			FX_BryarAltHitWall( origin, dir, parm );
-		}
-		else
-		{
-			FX_BryarHitWall( origin, dir );
-		}
-		break;
-
-	case WP_CONCUSSION:
-		FX_ConcussionHitWall( origin, dir );
-		break;
-
-	case WP_BRYAR_OLD:
-		if ( altFire )
-		{
-			parm = charge;
-			FX_BryarAltHitWall( origin, dir, parm );
-		}
-		else
-		{
-			FX_BryarHitWall( origin, dir );
-		}
-		break;
-
-	case WP_TURRET:
-		FX_TurretHitWall( origin, dir );
-		break;
-
-	case WP_BLASTER:
-		FX_BlasterWeaponHitWall( origin, dir );
-		break;
-
-	case WP_DISRUPTOR:
-		FX_DisruptorAltMiss( origin, dir );
-		break;
-
-	case WP_BOWCASTER:
-		FX_BowcasterHitWall( origin, dir );
-		break;
-
-	case WP_REPEATER:
-		if ( altFire )
-		{
-			FX_RepeaterAltHitWall( origin, dir );
-		}
-		else
-		{
-			FX_RepeaterHitWall( origin, dir );
-		}
-		break;
-
-	case WP_DEMP2:
-		if (altFire)
-		{
-			trap_FX_PlayEffectID(cgs.effects.mAltDetonate, origin, dir, -1, -1);
-		}
-		else
-		{
-			FX_DEMP2_HitWall( origin, dir );
-		}
-		break;
-
-	case WP_FLECHETTE:
-		/*if (altFire)
-		{
-			CG_SurfaceExplosion(origin, dir, 20.0f, 12.0f, qtrue);
-		}
-		else
-		*/
-		if (!altFire)
-		{
-			FX_FlechetteWeaponHitWall( origin, dir );
-		}
-		break;
-
-	case WP_ROCKET_LAUNCHER:
-		FX_RocketHitWall( origin, dir );
-		break;
-
-	case WP_THERMAL:
-		trap_FX_PlayEffectID( cgs.effects.thermalExplosionEffect, origin, dir, -1, -1 );
-		trap_FX_PlayEffectID( cgs.effects.thermalShockwaveEffect, origin, up, -1, -1 );
-		break;
-
-	case WP_EMPLACED_GUN:
-		FX_BlasterWeaponHitWall( origin, dir );
-		//FIXME: Give it its own hit wall effect
-		break;
-	}
-}
-
-
-/*
-=================
-CG_MissileHitPlayer
-=================
-*/
-void CG_MissileHitPlayer(int weapon, vec3_t origin, vec3_t dir, int entityNum, qboolean altFire) 
-{
-	qboolean	humanoid = qtrue;
-	vec3_t up={0,0,1};
-
-	/*
-	// NOTENOTE Non-portable code from single player
-	if ( cent->gent )
-	{
-		other = &g_entities[cent->gent->s.otherEntityNum];
-
-		if ( other->client && other->client->playerTeam == TEAM_BOTS )
-		{
-			humanoid = qfalse;
-		}
-	}
-	*/	
-
-	// NOTENOTE No bleeding in this game
-//	CG_Bleed( origin, entityNum );
-
-	// some weapons will make an explosion with the blood, while
-	// others will just make the blood
-	switch ( weapon ) {
-	case WP_BRYAR_PISTOL:
-		if ( altFire )
-		{
-			FX_BryarAltHitPlayer( origin, dir, humanoid );
-		}
-		else
-		{
-			FX_BryarHitPlayer( origin, dir, humanoid );
-		}
-		break;
-
-	case WP_CONCUSSION:
-		FX_ConcussionHitPlayer( origin, dir, humanoid );
-		break;
-
-	case WP_BRYAR_OLD:
-		if ( altFire )
-		{
-			FX_BryarAltHitPlayer( origin, dir, humanoid );
-		}
-		else
-		{
-			FX_BryarHitPlayer( origin, dir, humanoid );
-		}
-		break;
-
-	case WP_TURRET:
-		FX_TurretHitPlayer( origin, dir, humanoid );
-		break;
-
-	case WP_BLASTER:
-		FX_BlasterWeaponHitPlayer( origin, dir, humanoid );
-		break;
-
-	case WP_DISRUPTOR:
-		FX_DisruptorAltHit( origin, dir);
-		break;
-
-	case WP_BOWCASTER:
-		FX_BowcasterHitPlayer( origin, dir, humanoid );
-		break;
-
-	case WP_REPEATER:
-		if ( altFire )
-		{
-			FX_RepeaterAltHitPlayer( origin, dir, humanoid );
-		}
-		else
-		{
-			FX_RepeaterHitPlayer( origin, dir, humanoid );
-		}
-		break;
-
-	case WP_DEMP2:
-		// Do a full body effect here for some more feedback
-		// NOTENOTE The chaining of the demp2 is not yet implemented.
-		/*
-		if ( other )
-		{
-			other->s.powerups |= ( 1 << PW_DISINT_1 );
-			other->client->ps.powerups[PW_DISINT_1] = cg.time + 650;
-		}
-		*/
-		if (altFire)
-		{
-			trap_FX_PlayEffectID(cgs.effects.mAltDetonate, origin, dir, -1, -1);
-		}
-		else
-		{
-			FX_DEMP2_HitPlayer( origin, dir, humanoid );
-		}
-		break;
-
-	case WP_FLECHETTE:
-		FX_FlechetteWeaponHitPlayer( origin, dir, humanoid );
-		break;
-
-	case WP_ROCKET_LAUNCHER:
-		FX_RocketHitPlayer( origin, dir, humanoid );
-		break;
-
-	case WP_THERMAL:
-		trap_FX_PlayEffectID( cgs.effects.thermalExplosionEffect, origin, dir, -1, -1 );
-		trap_FX_PlayEffectID( cgs.effects.thermalShockwaveEffect, origin, up, -1, -1 );
-		break;
-	case WP_EMPLACED_GUN:
-		//FIXME: Its own effect?
-		FX_BlasterWeaponHitPlayer( origin, dir, humanoid );
-		break;
-
-	default:
-		break;
-	}
-}
-
-
-/*
 ============================================================================
 
 BULLETS
@@ -2259,27 +1882,6 @@ CG_CalcMuzzlePoint
 ======================
 */
 
-// Modified copy of the server routine in g_weapon.c
-void WP_CalculateMuzzlePoint( centity_t *cent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint ) 
-{
-	void *g2Weapon = cent->ghoul2;
-	
-	if ( trap_G2_HaveWeGhoul2Models (g2Weapon) && trap_G2API_HasGhoul2ModelOnIndex (&g2Weapon, 1) )
-	{
-	    mdxaBone_t muzzleBone;
-	    
-	    trap_G2API_GetBoltMatrix (g2Weapon, 1, 0, &muzzleBone, cent->lerpAngles, cent->lerpOrigin, cg.time, cgs.gameModels, cent->modelScale);
-	    BG_GiveMeVectorFromMatrix (&muzzleBone, ORIGIN, muzzlePoint);
-	}
-	else
-	{
-	    VectorCopy (cent->lerpOrigin, muzzlePoint);
-	    muzzlePoint[2] += cg.snap->ps.viewheight;
-	}
-	
-	
-}
-
 qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 	vec3_t		forward, right;
 	vec3_t		gunpoint;
@@ -2292,22 +1894,7 @@ qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 		vec3_t weaponMuzzle;
 		centity_t *pEnt = &cg_entities[cg.predictedPlayerState.clientNum];
 
-		/* JKG - Muzzle Calculation */
-		
-		// This code is causing crosshair glitches, so i'll disable it for now - BobaFett
-
-		/*if ( weapontype != WP_STUN_BATON && weapontype != WP_MELEE && weapontype != WP_SABER )
-		{
-			vec3_t mforward, mright, mup;
-			AngleVectors( cg.predictedPlayerState.viewangles, mforward, mright, mup );
-			WP_CalculateMuzzlePoint( &cg_entities[cg.snap->ps.clientNum], mforward, mright, mup, muzzle );
-			return qtrue;
-		}
-		else*/
-		{
-			VectorClear( weaponMuzzle );
-		}
-		/* JKG - Muzzle Calculation End */
+		VectorClear( weaponMuzzle );
 
 		if (cg.renderingThirdPerson)
 		{
@@ -2390,20 +1977,18 @@ qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 
 }
 
-
-
 /*
 Ghoul2 Insert Start
 */
 
 // create one instance of all the weapons we are going to use so we can just copy this info into each clients gun ghoul2 object in fast way
-static struct
-{
+struct g2WeaponInstance_s {
     unsigned int weaponNum;
     unsigned int weaponVariation;
     
     void *ghoul2;
-} g2WeaponInstances[MAX_WEAPON_TABLE_SIZE];
+};
+static g2WeaponInstance_s g2WeaponInstances[MAX_WEAPON_TABLE_SIZE];
 
 void CG_InitG2Weapons(void)
 {
@@ -2442,41 +2027,6 @@ void CG_InitG2Weapons(void)
 			}
 	    }
 	}
-	
-#if 0
-	for ( item = bg_itemlist + 1 ; item->classname ; item++ ) 
-	{
-		if ( item->giType == IT_WEAPON )
-		{
-			assert(item->giTag < MAX_WEAPONS);
-
-			// initialise model
-			trap_G2API_InitGhoul2Model(&g2WeaponInstances[/*i*/item->giTag], item->world_model[0], 0, 0, 0, 0, 0);
-//			trap_G2API_InitGhoul2Model(&g2WeaponInstances[i], item->world_model[0],G_ModelIndex( item->world_model[0] ) , 0, 0, 0, 0);
-			if (g2WeaponInstances[/*i*/item->giTag])
-			{
-				// indicate we will be bolted to model 0 (ie the player) on bolt 0 (always the right hand) when we get copied
-				trap_G2API_SetBoltInfo(g2WeaponInstances[/*i*/item->giTag], 0, 0);
-				// now set up the gun bolt on it
-				if (item->giTag == WP_SABER)
-				{
-					trap_G2API_AddBolt(g2WeaponInstances[/*i*/item->giTag], 0, "*blade1");
-				}
-				else
-				{
-					trap_G2API_AddBolt(g2WeaponInstances[/*i*/item->giTag], 0, "*flash");
-				}
-				i++;
-			}
-			if (i == MAX_WEAPONS)
-			{
-				assert(0);	
-				break;
-			}
-			
-		}
-	}
-#endif
 }
 
 // clean out any g2 models we instanciated for copying purposes
@@ -2501,23 +2051,8 @@ void CG_ShutDownG2Weapons(void)
 				trap_G2API_CleanGhoul2Models (&weapon->drawData[j].explosiveRender.tripmine.g2Model);
 				trap_G2API_CleanGhoul2Models (&weapon->drawData[j].explosiveRender.detpack.g2Model);
 			}
-			//trap_G2API_CleanGhoul2Models (&weapon->primDrawData.explosiveRender.tripmine.g2Model);
-	        //trap_G2API_CleanGhoul2Models (&weapon->primDrawData.explosiveRender.detpack.g2Model);
-	        //trap_G2API_CleanGhoul2Models (&weapon->altDrawData.explosiveRender.tripmine.g2Model);
-	        //trap_G2API_CleanGhoul2Models (&weapon->altDrawData.explosiveRender.detpack.g2Model);
 	    }
 	}
-	
-	/*for (i=0; i<MAX_WEAPONS; i++)
-	{
-		trap_G2API_CleanGhoul2Models(&g2WeaponInstances[i]);
-		
-		weapon = CG_WeaponInfo (i, 0);
-		if ( weapon && weapon->g2ViewModel )
-        {
-            trap_G2API_CleanGhoul2Models (&weapon->g2ViewModel);
-        }
-	}*/
 }
 
 void *CG_GetGhoul2WorldModel ( int weaponNum, int weaponVariation )
@@ -2562,13 +2097,6 @@ void *CG_G2WeaponInstance(centity_t *cent, int weapon, int variation)
 	{
 		return CG_GetGhoul2WorldModel (weapon, variation);
 	}
-
-	//Try to return the custom saber instance if we can.
-	/*if (ci->saber[0].model[0] &&
-		ci->ghoul2Weapons[0])
-	{
-		return ci->ghoul2Weapons[0];
-	}*/
 
 	//If no custom then just use the default.
 	return CG_GetGhoul2WorldModel (weapon, variation);
@@ -3184,9 +2712,10 @@ void JKG_RenderGenericWeaponWorld ( centity_t *cent, const weaponDrawData_t *wea
 	    
 	    if ( weaponData->weaponRender.generic.muzzleEffect )
 	    {
+			int boltNum = trap_G2API_AddBolt(cent->ghoul2, 1, "*flash");
 	        trap_FX_PlayBoltedEffectID (
 	            weaponData->weaponRender.generic.muzzleEffect,
-	            cent->lerpOrigin, cent->ghoul2, 0, s->number, 1, 0, qfalse
+	            cent->lerpOrigin, cent->ghoul2, boltNum, s->number, 1, 0, qfalse
 	        );
 	    }
 	    

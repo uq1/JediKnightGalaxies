@@ -1538,63 +1538,6 @@ typedef struct {
 //--------------------
 typedef struct
 {
-	//concussion
-	fxHandle_t	concussionShotEffect;
-	fxHandle_t	concussionImpactEffect;
-
-	// BRYAR PISTOL
-	fxHandle_t	bryarShotEffect;
-	fxHandle_t	bryarPowerupShotEffect;
-	fxHandle_t	bryarWallImpactEffect;
-	fxHandle_t	bryarWallImpactEffect2;
-	fxHandle_t	bryarWallImpactEffect3;
-	fxHandle_t	bryarFleshImpactEffect;
-	fxHandle_t	bryarDroidImpactEffect;
-
-	// BLASTER
-	fxHandle_t  blasterShotEffect;
-	fxHandle_t  blasterWallImpactEffect;
-	fxHandle_t  blasterFleshImpactEffect;
-	fxHandle_t  blasterDroidImpactEffect;
-
-	// DISRUPTOR
-	fxHandle_t  disruptorRingsEffect;
-	fxHandle_t  disruptorProjectileEffect;
-	fxHandle_t  disruptorWallImpactEffect;	
-	fxHandle_t  disruptorFleshImpactEffect;	
-	fxHandle_t  disruptorAltMissEffect;	
-	fxHandle_t  disruptorAltHitEffect;	
-
-	// BOWCASTER
-	fxHandle_t	bowcasterShotEffect;
-	fxHandle_t	bowcasterImpactEffect;
-
-	// REPEATER
-	fxHandle_t  repeaterProjectileEffect;
-	fxHandle_t  repeaterAltProjectileEffect;
-	fxHandle_t  repeaterWallImpactEffect;	
-	fxHandle_t  repeaterFleshImpactEffect;
-	fxHandle_t  repeaterAltWallImpactEffect;
-
-	// DEMP2
-	fxHandle_t  demp2ProjectileEffect;
-	fxHandle_t  demp2WallImpactEffect;
-	fxHandle_t  demp2FleshImpactEffect;
-
-	// FLECHETTE
-	fxHandle_t	flechetteShotEffect;
-	fxHandle_t	flechetteAltShotEffect;
-	fxHandle_t	flechetteWallImpactEffect;
-	fxHandle_t	flechetteFleshImpactEffect;
-
-	// ROCKET
-	fxHandle_t  rocketShotEffect;
-	fxHandle_t  rocketExplosionEffect;
-
-	// THERMAL
-	fxHandle_t	thermalExplosionEffect;
-	fxHandle_t	thermalShockwaveEffect;
-
 	// TRIPMINE
 	fxHandle_t	tripmineLaserFX;
 	fxHandle_t	tripmineGlowFX;
@@ -1624,26 +1567,21 @@ typedef struct
 	fxHandle_t	mJediSpawn;
 	fxHandle_t	mBlasterDeflect;
 	fxHandle_t	mBlasterSmoke;
-	fxHandle_t	mForceConfustionOld;
+	fxHandle_t	mForceConfusionOld;
 	fxHandle_t	mDisruptorDeathSmoke;
 	fxHandle_t	mSparkExplosion;
 	fxHandle_t	mTurretExplode;
 	fxHandle_t	mEmplacedExplode;
 	fxHandle_t	mEmplacedDeadSmoke;
-	fxHandle_t	mTripmineExplosion;
 	fxHandle_t	mDetpackExplosion;
-	fxHandle_t	mFlechetteAltBlow;
 	fxHandle_t	mStunBatonFleshImpact;
-	fxHandle_t	mAltDetonate;
 	fxHandle_t	mSparksExplodeNoSound;
 	fxHandle_t	mTripMineLaser;
 	fxHandle_t	mEmplacedMuzzleFlash;
-	fxHandle_t	mConcussionAltRing;
 	fxHandle_t	mHyperspaceStars;
 	fxHandle_t	mBlackSmoke;
 	fxHandle_t	mShipDestDestroyed;
 	fxHandle_t	mShipDestBurning;
-	fxHandle_t	mBobaJet;
 	// jetpack
 	fxHandle_t	mJetpack;	//effects/rockettrooper/flamenew.efx
 
@@ -2499,13 +2437,6 @@ int CG_NewParticleArea ( int num );
 
 
 void FX_TurretProjectileThink(  centity_t *cent, const struct weaponInfo_s *weapon );
-void FX_TurretHitWall( vec3_t origin, vec3_t normal );
-void FX_TurretHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
-
-void FX_ConcussionHitWall( vec3_t origin, vec3_t normal );
-void FX_ConcussionHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
-void FX_ConcussionProjectileThink(  centity_t *cent, const struct weaponInfo_s *weapon );
-void FX_ConcAltShot( vec3_t start, vec3_t end );
 
 //-----------------------------
 // Effects related prototypes
@@ -2514,20 +2445,6 @@ void FX_ConcAltShot( vec3_t start, vec3_t end );
 // Environmental effects 
 void CG_Spark( vec3_t origin, vec3_t dir );
 
-// Weapon prototypes
-void FX_BryarHitWall( vec3_t origin, vec3_t normal );
-void FX_BryarAltHitWall( vec3_t origin, vec3_t normal, int power );
-void FX_BryarHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
-void FX_BryarAltHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
-
-void FX_BlasterProjectileThink( centity_t *cent, const struct weaponInfo_s *weapon );
-void FX_BlasterAltFireThink( centity_t *cent, const struct weaponInfo_s *weapon );
-void FX_BlasterWeaponHitWall( vec3_t origin, vec3_t normal );
-void FX_BlasterWeaponHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
-
-
-void FX_ForceDrained(vec3_t origin, vec3_t dir);
-
 
 //-----------------------------
 // Effects related prototypes
@@ -2535,17 +2452,6 @@ void FX_ForceDrained(vec3_t origin, vec3_t dir);
 
 // Environmental effects 
 void CG_Spark( vec3_t origin, vec3_t dir );
-
-// Weapon prototypes
-void FX_BryarHitWall( vec3_t origin, vec3_t normal );
-void FX_BryarAltHitWall( vec3_t origin, vec3_t normal, int power );
-void FX_BryarHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
-void FX_BryarAltHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
-
-void FX_BlasterProjectileThink( centity_t *cent, const struct weaponInfo_s *weapon );
-void FX_BlasterAltFireThink( centity_t *cent, const struct weaponInfo_s *weapon );
-void FX_BlasterWeaponHitWall( vec3_t origin, vec3_t normal );
-void FX_BlasterWeaponHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
 
 void		trap_G2API_CollisionDetect		( CollisionRecord_t *collRecMap, void* ghoul2, const vec3_t angles, const vec3_t position,int frameNumber, int entNum, const vec3_t rayStart, const vec3_t rayEnd, const vec3_t scale, int traceFlags, int useLod, float fRadius );
 void		trap_G2API_CollisionDetectCache		( CollisionRecord_t *collRecMap, void* ghoul2, const vec3_t angles, const vec3_t position,int frameNumber, int entNum, const vec3_t rayStart, const vec3_t rayEnd, const vec3_t scale, int traceFlags, int useLod, float fRadius );

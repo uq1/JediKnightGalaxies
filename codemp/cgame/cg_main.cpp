@@ -1503,21 +1503,16 @@ static void CG_RegisterGraphics( void ) {
 	cgs.effects.mEmplacedExplode = trap_FX_RegisterEffect("emplaced/explode.efx");
 	cgs.effects.mTurretExplode = trap_FX_RegisterEffect("turret/explode.efx");
 	cgs.effects.mSparkExplosion = trap_FX_RegisterEffect("sparks/spark_explosion.efx");
-	cgs.effects.mTripmineExplosion = trap_FX_RegisterEffect("tripMine/explosion.efx");
 	cgs.effects.mDetpackExplosion = trap_FX_RegisterEffect("detpack/explosion.efx");
-	cgs.effects.mFlechetteAltBlow = trap_FX_RegisterEffect("flechette/alt_blow.efx");
 	cgs.effects.mStunBatonFleshImpact = trap_FX_RegisterEffect("stunBaton/flesh_impact.efx");
-	cgs.effects.mAltDetonate = trap_FX_RegisterEffect("demp2/altDetonate.efx");
 	cgs.effects.mSparksExplodeNoSound = trap_FX_RegisterEffect("sparks/spark_exp_nosnd");
 	cgs.effects.mTripMineLaser = trap_FX_RegisterEffect("tripMine/laser.efx");
 	cgs.effects.mEmplacedMuzzleFlash = trap_FX_RegisterEffect( "effects/emplaced/muzzle_flash" );
-	cgs.effects.mConcussionAltRing = trap_FX_RegisterEffect("concussion/alt_ring");
 
 	cgs.effects.mHyperspaceStars = trap_FX_RegisterEffect("ships/hyperspace_stars");
 	cgs.effects.mBlackSmoke = trap_FX_RegisterEffect( "volumetric/black_smoke" );
 	cgs.effects.mShipDestDestroyed = trap_FX_RegisterEffect("effects/ships/dest_destroyed.efx");
 	cgs.effects.mShipDestBurning = trap_FX_RegisterEffect("effects/ships/dest_burning.efx");
-	cgs.effects.mBobaJet = trap_FX_RegisterEffect("effects/boba/jet.efx");
 	
 	cgs.effects.mJetpack = trap_FX_RegisterEffect("effects/player/jetpack.efx"); //("effects/rockettrooper/flamenew.efx");
 
@@ -1534,7 +1529,7 @@ static void CG_RegisterGraphics( void ) {
 	cgs.effects.mJediSpawn = trap_FX_RegisterEffect("mp/jedispawn.efx");
 	cgs.effects.mBlasterDeflect = trap_FX_RegisterEffect("blaster/deflect.efx");
 	cgs.effects.mBlasterSmoke = trap_FX_RegisterEffect("blaster/smoke_bolton");
-	cgs.effects.mForceConfustionOld = trap_FX_RegisterEffect("force/confusion_old.efx");
+	cgs.effects.mForceConfusionOld = trap_FX_RegisterEffect("force/confusion_old.efx");
 
 	cgs.effects.forceLightning		= trap_FX_RegisterEffect( "effects/force/lightning.efx" );
 	cgs.effects.forceLightningWide	= trap_FX_RegisterEffect( "effects/force/lightningwide.efx" );

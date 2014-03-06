@@ -2429,8 +2429,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 #endif //__MMO__
 
-	case EV_DISRUPTOR_MAIN_SHOT:
-		DEBUGNAME("EV_DISRUPTOR_MAIN_SHOT");
+	case EV_WEAPON_TRACELINE:
+		DEBUGNAME("EV_WEAPON_TRACELINE");
 		if (cent->currentState.owner != cg.snap->ps.clientNum ||
 			//[TrueView]
 			cg.renderingThirdPerson || cg_trueguns.integer 
@@ -2459,56 +2459,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{
 			JKG_RenderProjectileMiss (cent, cent->lerpOrigin, dir, cent->currentState.firingMode);
 		}
-		//FX_DisruptorMainShot( cent->currentState.origin2, cent->lerpOrigin ); 
 		break;
 
-	/*case EV_DISRUPTOR_SNIPER_SHOT:
-		DEBUGNAME("EV_DISRUPTOR_SNIPER_SHOT");
-		if (cent->currentState.eventParm != cg.snap->ps.clientNum ||
-			cg.renderingThirdPerson)
-		{ //h4q3ry
-			CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.eventParm, cent->currentState.origin2);
-		}
-		else
-		{
-			if (cg.lastFPFlashPoint[0] ||cg.lastFPFlashPoint[1] || cg.lastFPFlashPoint[2])
-			{ //get the position of the muzzle flash for the first person weapon model from the last frame
-				VectorCopy(cg.lastFPFlashPoint, cent->currentState.origin2);
-			}
-		}
-		FX_DisruptorAltShot( cent->currentState.origin2, cent->lerpOrigin, cent->currentState.shouldtarget );
-		break;*/
-
-	case EV_DISRUPTOR_SNIPER_MISS:
-		DEBUGNAME("EV_DISRUPTOR_SNIPER_MISS");
-		ByteToDir( es->eventParm, dir );
-		CG_Printf ("Disruptor miss\n");
-		if (es->weapon)
-		{ //primary
-			FX_DisruptorHitWall( cent->lerpOrigin, dir );
-		}
-		else
-		{ //secondary
-			FX_DisruptorAltMiss( cent->lerpOrigin, dir );
-		}
-		break;
-
-	case EV_DISRUPTOR_HIT:
-		DEBUGNAME("EV_DISRUPTOR_HIT");
-		ByteToDir( es->eventParm, dir );
-		CG_Printf ("Disruptor hit\n");
-		if (es->weapon)
-		{ //client
-			FX_DisruptorHitPlayer( cent->lerpOrigin, dir, qtrue );
-		}
-		else
-		{ //non-client
-			FX_DisruptorHitWall( cent->lerpOrigin, dir );
-		}
-		break;
-
-	case EV_DISRUPTOR_ZOOMSOUND:
-		DEBUGNAME("EV_DISRUPTOR_ZOOMSOUND");
+	case EV_ZOOM:
+		DEBUGNAME("EV_ZOOM");
 		if (es->number == cg.snap->ps.clientNum)
 		{
 			JKG_ToggleScope (cent);
@@ -2923,21 +2877,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		case EFFECT_SPARK_EXPLOSION:
 			eID = cgs.effects.mSparkExplosion;
 			break;
-		case EFFECT_EXPLOSION_TRIPMINE:
-			eID = cgs.effects.mTripmineExplosion;
-			break;
 		case EFFECT_EXPLOSION_DETPACK:
 			eID = cgs.effects.mDetpackExplosion;
 			break;
-		case EFFECT_EXPLOSION_FLECHETTE:
-			eID = cgs.effects.mFlechetteAltBlow;
-			break;
 		case EFFECT_STUNHIT:
 			eID = cgs.effects.mStunBatonFleshImpact;
-			break;
-		case EFFECT_EXPLOSION_DEMP2ALT:
-			FX_DEMP2_AltDetonate( cent->lerpOrigin, es->weapon );
-			eID = cgs.effects.mAltDetonate;
 			break;
 		case EFFECT_EXPLOSION_TURRET:
 			eID = cgs.effects.mTurretExplode;
