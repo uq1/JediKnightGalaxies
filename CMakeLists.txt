@@ -150,7 +150,8 @@ set(ReleaseDefines "FINAL_BUILD")
 
 #    Add projects
 add_subdirectory(${MPDir})
-
+	set(CMAKE_C_FLAGS_DEBUG "/D_DEBUG /MDd /ZI /Ob0 /Od /RTC1" CACHE STRING "flags" FORCE )
+	set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MDd /ZI /Ob0 /Od /RTC1" CACHE STRING "flags" FORCE)
 #    CPack for installer creation
 # TODO: Which version are we?
 set(CPACK_PACKAGE_VERSION_MAJOR "0")
