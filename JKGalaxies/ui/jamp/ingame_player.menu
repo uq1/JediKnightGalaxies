@@ -40,13 +40,13 @@
 		onOpen  
 		{ 
 			uiScript				update "ui_GetName"
-			uiScript				updateForceStatus
+			jkgScript 				refreshmodellist
 			hide					highlights
 		}
 		onClose 
 		{ 
 			uiScript				update "ui_SetName"
-			uiScript				updateForceStatus
+			jkgScript				refreshmodellist
 			hide					highlights
 		}
 
@@ -422,7 +422,6 @@
 			action 
 			{ 
 				play			"sound/interface/button1"
-				uiScript		setForce "none"
 				hide			highlights
 				uiScript		closeingame
 			}
@@ -467,7 +466,6 @@
 			action 
 			{ 
 				play			"sound/interface/button1"
-				uiScript 		setForce "free"
 				hide			highlights
 				uiScript 		closeingame
 			}
@@ -520,7 +518,6 @@
 			action 
 			{ 
 				play			"sound/interface/button1"
-				uiScript		setForce "red"
 				hide			highlights
 				uiScript 		closeingame
 			}
@@ -573,7 +570,6 @@
 			action 
 			{ 
 				play			"sound/interface/button1"
-				uiScript 		setForce "blue"
 				hide			highlights
 				uiScript 		closeingame
 			}
@@ -619,7 +615,6 @@
 			action 
 			{ 
 				play			"sound/interface/button1"
-				uiScript 		setForce "s"
 				hide			highlights
 				uiScript 		closeingame
 			}

@@ -5768,12 +5768,13 @@ static int UI_HeadCountByColor() {
 	{
 		// Let's not be preposterous..
 		int gwTeam;
-		if(uiSkinColor == TEAM_BLUE || uiSkinColor == TEAM_RED)
+		int myTeam = (int)(trap_Cvar_VariableValue("ui_myteam"));
+		if(myTeam == TEAM_BLUE || myTeam == TEAM_RED)
 		{
-			gwTeam = (uiSkinColor == TEAM_RED) ? cgImports->GetRedTeam() : cgImports->GetBlueTeam();
+			gwTeam = (myTeam == TEAM_RED) ? cgImports->GetRedTeam() : cgImports->GetBlueTeam();
 			if(bgGangWarsTeams[gwTeam].useTeamColors)
 			{
-				if(uiSkinColor == TEAM_BLUE)
+				if(myTeam == TEAM_BLUE)
 				{
 					teamname = "/blue";
 					goto goAndCollectDollars;

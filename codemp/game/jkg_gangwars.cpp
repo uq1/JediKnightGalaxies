@@ -198,8 +198,9 @@ void JKG_BG_ParseGangWarsTeam(const char *filename)
 		{
 			if(parseBuf[i] == ',')
 			{
-				strncpy(bgGangWarsTeams[bgnumGangWarTeams].modelStore[bgGangWarsTeams[bgnumGangWarTeams].numModelsInStore++], parseBuf+j, i-j);
+				strncpy(bgGangWarsTeams[bgnumGangWarTeams].modelStore[bgGangWarsTeams[bgnumGangWarTeams].numModelsInStore], parseBuf+j, i-j);
 				bgGangWarsTeams[bgnumGangWarTeams].modelStore[bgGangWarsTeams[bgnumGangWarTeams].numModelsInStore][i-j+1] = '\0';
+				bgGangWarsTeams[bgnumGangWarTeams].numModelsInStore++;
 				j = i + 1;
 			}
 			if(parseBuf[i] == '\n')
@@ -225,6 +226,11 @@ void JKG_BG_ParseGangWarsTeam(const char *filename)
 	if ( BG_GetPairedValue( buffer, "defaultModel", parseBuf ) )
 	{
 		strcpy(bgGangWarsTeams[bgnumGangWarTeams].defaultModel, parseBuf);
+		size_t lastChar = strlen(bgGangWarsTeams[bgnumGangWarTeams].defaultModel)-1;
+		if(bgGangWarsTeams[bgnumGangWarTeams].defaultModel[lastChar] == ',') {
+			// This isn't a list. Commas don't belong in this field.
+			bgGangWarsTeams[bgnumGangWarTeams].defaultModel[lastChar] = '\0';
+		}
 	}
 	else
 	{
