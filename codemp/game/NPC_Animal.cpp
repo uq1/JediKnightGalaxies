@@ -361,13 +361,14 @@ static void ProcessOrientCommands( Vehicle_t *pVeh )
 	riderPS = rider->playerState;
 #else
 	parentPS = &parent->client->ps;
-	riderPS = &rider->client->ps;
 #endif
 
 	if (rider)
 	{
 #ifdef _JK2MP
-	float angDif = AngleSubtract(pVeh->m_vOrientation[YAW], riderPS->viewangles[YAW]);
+	float angDif;
+	riderPS = rider->playerState;
+	angDif = AngleSubtract(pVeh->m_vOrientation[YAW], riderPS->viewangles[YAW]);
 	if (parentPS && parentPS->speed)
 	{
 		float s = parentPS->speed;

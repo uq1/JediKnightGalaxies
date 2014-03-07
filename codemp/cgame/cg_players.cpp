@@ -2908,7 +2908,7 @@ void CG_TriggerAnimSounds( centity_t *cent )
 	{
 		CG_PlayerAnimEvents( cent->localAnimIndex, sFileIndex, qtrue, cent->pe.torso.frame, curFrame, cent->currentState.number );
 	}
-	cent->pe.torso.oldFrame = cent->pe.torso.oldFrame;
+	cent->pe.torso.oldFrame = cent->pe.torso.frame;
 	cent->pe.torso.frame = curFrame;
 	cent->pe.torso.backlerp = 1.0f - (currentFrame - (float)curFrame);	
 }
@@ -11348,7 +11348,7 @@ stillDoSaber:
 				{
 					ci->saber[0].SetDesiredLength(-1, -1);
 				}
-				if ( ci->saber[1].model	//dual sabers
+				if ( ci->saber[1].model[0]	//dual sabers
 					&& cent->currentState.saberHolstered == 1 )//second one off
 				{
 					ci->saber[1].SetDesiredLength(0, -1);
@@ -11432,7 +11432,7 @@ stillDoSaber:
 			{
 				ci->saber[0].SetDesiredLength(-1, -1);
 			}
-			if ( ci->saber[1].model	//dual sabers
+			if ( ci->saber[1].model[0]	//dual sabers
 				&& cent->currentState.saberHolstered == 1 )//second one off
 			{
 				ci->saber[1].SetDesiredLength(0, -1);
