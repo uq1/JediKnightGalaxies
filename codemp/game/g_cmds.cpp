@@ -1845,8 +1845,8 @@ void JKG_Cmd_DestroyItem_f(gentity_t *ent)
 		}
 
 	}
-	//trap_SendServerCommand(ent->client->ps.clientNum, va("print \"^2DEBUG: %s (internal %s, invID %i) destroyed.\n\"", destroyedItem.id->displayName,
-		destroyedItem.id->internalName, inventoryID));
+	/*trap_SendServerCommand(ent->client->ps.clientNum, va("print \"^2DEBUG: %s (internal %s, invID %i) destroyed.\n\"", destroyedItem.id->displayName,
+		destroyedItem.id->internalName, inventoryID));*/
 }
 
 void JKG_Cmd_SellItem_f(gentity_t *ent)
