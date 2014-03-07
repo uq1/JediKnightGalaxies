@@ -1981,54 +1981,6 @@ qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 Ghoul2 Insert Start
 */
 
-// create one instance of all the weapons we are going to use so we can just copy this info into each clients gun ghoul2 object in fast way
-struct g2WeaponInstance_s {
-    unsigned int weaponNum;
-    unsigned int weaponVariation;
-    
-    void *ghoul2;
-};
-static g2WeaponInstance_s g2WeaponInstances[MAX_WEAPON_TABLE_SIZE];
-
-void CG_InitG2Weapons(void)
-{
-	unsigned int i = 0;
-	unsigned int j;
-	unsigned int id = 0;
-	//gitem_t		*item;
-	
-	memset(g2WeaponInstances, 0, sizeof(g2WeaponInstances));
-	
-	for ( i = 0; i <= LAST_USEABLE_WEAPON; i++ )
-	{
-	    unsigned int numVariations = BG_NumberOfWeaponVariations (i);
-	    for ( j = 0; j < numVariations; j++ )
-	    {
-	        const weaponData_t *weaponData = GetWeaponData (i, j);
-
-			if( weaponData && weaponData->classname && weaponData->classname[0] &&			// stop with these goddamn asserts...
-				weaponData->visuals.world_model && weaponData->visuals.world_model[0])		// hard to code with all this background noise going on --eez
-			{
-				void *ghoul2 = NULL;
-	        
-				trap_G2API_InitGhoul2Model (&g2WeaponInstances[id].ghoul2, weaponData->visuals.world_model, 0, 0, 0, 0, 0);
-	        
-				ghoul2 = g2WeaponInstances[id].ghoul2;
-	        
-				if ( trap_G2_HaveWeGhoul2Models (ghoul2) )
-				{
-					trap_G2API_SetBoltInfo (ghoul2, 0, 0);
-					trap_G2API_AddBolt (ghoul2, 0, i == WP_SABER ? "*blade1" : "*flash");
-	            
-					g2WeaponInstances[id].weaponNum = i;
-					g2WeaponInstances[id].weaponVariation = j;
-					id++;
-				}
-			}
-	    }
-	}
-}
-
 // clean out any g2 models we instanciated for copying purposes
 void CG_ShutDownG2Weapons(void)
 {
@@ -2053,20 +2005,7 @@ void CG_ShutDownG2Weapons(void)
 			}
 	    }
 	}
-}
-
-void *CG_GetGhoul2WorldModel ( int weaponNum, int weaponVariation )
-{
-    unsigned int i;
-    for ( i = 0; i < MAX_WEAPON_TABLE_SIZE; i++ )
-	{
-	    if ( g2WeaponInstances[i].weaponNum == weaponNum && g2WeaponInstances[i].weaponVariation == weaponVariation )
-	    {
-	        return g2WeaponInstances[i].ghoul2;
-	    }
-	}
-	
-	return NULL;
+	BG_ShutdownWeaponG2Instances();
 }
 
 void *CG_G2WeaponInstance(centity_t *cent, int weapon, int variation)
@@ -2075,13 +2014,13 @@ void *CG_G2WeaponInstance(centity_t *cent, int weapon, int variation)
 
 	if (weapon != WP_SABER)
 	{
-		return CG_GetGhoul2WorldModel (weapon, variation);
+		return BG_GetWeaponGhoul2 (weapon, variation);
 	}
 
 	if (cent->currentState.eType != ET_PLAYER &&
 		cent->currentState.eType != ET_NPC)
 	{
-		return CG_GetGhoul2WorldModel (weapon, variation);
+		return BG_GetWeaponGhoul2 (weapon, variation);
 	}
 
 	if (cent->currentState.eType == ET_NPC)
@@ -2095,11 +2034,11 @@ void *CG_G2WeaponInstance(centity_t *cent, int weapon, int variation)
 
 	if (!ci)
 	{
-		return CG_GetGhoul2WorldModel (weapon, variation);
+		return BG_GetWeaponGhoul2 (weapon, variation);
 	}
 
 	//If no custom then just use the default.
-	return CG_GetGhoul2WorldModel (weapon, variation);
+	return BG_GetWeaponGhoul2 (weapon, variation);
 }
 
 // what ghoul2 model do we want to copy ?

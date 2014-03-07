@@ -1663,6 +1663,9 @@ void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
 			}
 		}
 	}
+	else if(ent->s.number < MAX_CLIENTS) {
+		trap_G2API_AddBolt(ent->ghoul2, 0, "*r_hand");
+	}
 
 	if (ent->s.number >= MAX_CLIENTS)
 	{ //some extra NPC stuff

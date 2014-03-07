@@ -2561,7 +2561,6 @@ void		CG_Init_CGents(void);
 void CG_SetGhoul2Info( refEntity_t *ent, const centity_t *cent);
 void CG_CreateBBRefEnts(entityState_t *s1, vec3_t origin );
 
-void CG_InitG2Weapons(void);
 void CG_ShutDownG2Weapons(void);
 void CG_CopyG2WeaponInstance(centity_t *cent, int weaponNum, int weaponVariation, void *toGhoul2);
 void *CG_G2WeaponInstance(centity_t *cent, int weapon, int variation);

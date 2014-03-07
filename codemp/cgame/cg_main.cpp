@@ -1843,7 +1843,7 @@ Ghoul2 Insert Start
 
 	CG_LoadingString("Weapons");
 
-	CG_InitG2Weapons();
+	BG_InitWeaponG2Instances();
 
 /*
 Ghoul2 Insert End

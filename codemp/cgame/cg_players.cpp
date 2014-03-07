@@ -18,8 +18,6 @@ extern void CG_AddRadarEnt(centity_t *cent);	//cg_ents.c
 extern void CG_AddBracketedEnt(centity_t *cent);	//cg_ents.c
 extern qboolean CG_InFighter( void );
 
-extern void *CG_GetGhoul2WorldModel ( int weaponNum, int weaponVariation );
-
 
 //for g2 surface routines
 #define TURN_ON				0x00000000
@@ -1383,7 +1381,7 @@ void JKG_SwapToSaber(int saberNum, clientInfo_t *ci, const char *newSaber, int w
 		trap_G2API_CleanGhoul2Models( &ci->ghoul2Weapons[saberNum] );
 	}
 
-	trap_G2API_DuplicateGhoul2Instance( CG_GetGhoul2WorldModel( weapon, variation ), &ci->ghoul2Weapons[saberNum] );
+	trap_G2API_DuplicateGhoul2Instance( BG_GetWeaponGhoul2( weapon, variation ), &ci->ghoul2Weapons[saberNum] );
 
 	if( !ci->ghoul2Weapons[saberNum] || !trap_G2_HaveWeGhoul2Models( ci->ghoul2Weapons[saberNum] ) )
 	{

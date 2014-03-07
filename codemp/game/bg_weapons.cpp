@@ -27,6 +27,8 @@ static weaponData_t weaponDataTable[MAX_WEAPON_TABLE_SIZE];
 static unsigned int numLoadedWeapons;
 static unsigned int numWeapons[MAX_WEAPONS];
 
+g2WeaponInstance_s g2WeaponInstances[MAX_WEAPON_TABLE_SIZE];
+
 unsigned int BG_NumberOfLoadedWeapons ( void )
 {
     return numLoadedWeapons;
