@@ -1119,8 +1119,8 @@ void Key_Bindlist_f( void ) {
 Key_KeynameCompletion
 ============
 */
-void Key_KeynameCompletion( void(*callback)( const char *s ) ) {
-	for ( unsigned int i=0; i<numKeynames; i++ ) {
+void Key_KeynameCompletion( callbackFunc_t callback ) {
+	for ( size_t i=0; i<numKeynames; i++ ) {
 		if ( keynames[i].name )
 			callback( keynames[i].name );
 	}

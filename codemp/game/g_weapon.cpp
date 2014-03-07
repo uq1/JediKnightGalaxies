@@ -3455,9 +3455,7 @@ void WP_CalculateAngles( gentity_t *ent )
 *
 * Calculates the muzzle point for the currently
 * equiped weapon. Uses bolt information to calculate
-* the proper muzzle. A client side version is available
-* in cg_weapons.c, so update that if you update this
-* (for dynamic crosshair entity scanning)!
+* the proper muzzle.
 **************************************************/
 
 void WP_CalculateMuzzlePoint( gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint ) 
@@ -3466,10 +3464,18 @@ void WP_CalculateMuzzlePoint( gentity_t *ent, vec3_t forward, vec3_t right, vec3
 	void		*pGhoul;
 	mdxaBone_t   muzzleMatrix;
 
-	/* Get the bolt index and the ghoul model to retrieve the muzzle point */
-	pGhoul		= ent->client->weaponGhoul2[0];					/* Use secondary hand muzzle when shooting with that! */
+	/* HACK: stop vendors from firing at players */
+	pGhoul		= ent->client->weaponGhoul2[0];
 	if(! pGhoul )
-		return;		/* Tempfix for some issues with vendors being pricks and firing at people */
+		return;
+	
+	/* Temporarily attach a weapon model to the player, grab the position of the bolt at that moment, and then when we're done,
+	 * pop the attached model off of the player. */
+	pGhoul		= BG_GetWeaponGhoul2(ent->s.weapon, ent->s.weaponVariation);
+	if( !pGhoul )
+		return;
+	trap_G2API_CopySpecificGhoul2Model(pGhoul, 0, ent->ghoul2, 1);
+	trap_G2API_SetBoltInfo(pGhoul, 1, 0);
 	iBolt		= trap_G2API_AddBolt( pGhoul, 0, "*flash" );	/* Use the *flash tag as muzzle point, it's rather accurate */
 
 	/* These weapons dont have a proper muzzle bolt, don't crash the client but fake the muzzle */
@@ -3494,7 +3500,7 @@ void WP_CalculateMuzzlePoint( gentity_t *ent, vec3_t forward, vec3_t right, vec3
 		// Client could be rendering in first person, so put it just a little bit away from the camera so it doesn't clip into the player's view.
 
 		AngleVectors( viewAngles, viewOrg, NULL, NULL );
-		VectorScale( viewOrg, 5, viewOrg );
+		VectorScale( viewOrg, 25, viewOrg );
 
 		VectorAdd( muzzlePoint, viewOrg, muzzlePoint );
 
@@ -3740,7 +3746,7 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 		}
 			
 		/* Always render a shot beam from the muzzle to where we hit, the beam will continue if the shot continues */
-		tent = G_TempEntity( tr.endpos, EV_DISRUPTOR_MAIN_SHOT );
+		tent = G_TempEntity( tr.endpos, EV_WEAPON_TRACELINE );
 		VectorCopy( muzzle, tent->s.origin2 );
 		tent->s.eventParm = DirToByte (tr.plane.normal);
 		tent->s.otherEntityNum = ENTITYNUM_NONE;

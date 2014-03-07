@@ -15,6 +15,7 @@
         "gunposition":      "9.0 -3.0 -4.0",
         "ironsightsposition": "8.0 -4.0 -4.0",
         "ironsightsfov": "80",
+		"barrelCount": "3",
     
         "firemode0": {
             "type":         "detpack",

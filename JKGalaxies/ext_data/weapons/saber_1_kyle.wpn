@@ -8,7 +8,8 @@
     "visual": {
         "hudicon":          "models/weapons/lightsabers/icons/katarn.tga",
         "hudnaicon":        "models/weapons/lightsabers/icons/katarn.tga",
-	"worldmodel":       "models/weapons2/saber/saber_w.glm",
+		"worldmodel":       "models/weapons2/saber/saber_w.glm",
+		"barrelCount":		0,
     
         "firemode0": {
             "type":         "blaster"

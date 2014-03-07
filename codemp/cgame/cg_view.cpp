@@ -2900,7 +2900,8 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 			else
 			{
 defaultCmd:
-				trap_SetUserCmdValue( 0, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
+				int meleeWeaponId = BG_GetWeaponIndexFromClass(WP_MELEE, 0);
+				trap_SetUserCmdValue( meleeWeaponId, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
 			}
 			//trap_SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse);
 		}

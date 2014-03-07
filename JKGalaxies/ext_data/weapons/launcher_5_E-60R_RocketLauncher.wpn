@@ -19,6 +19,7 @@
         "gunposition":      "14.0 -6.0 -7.0",
         "ironsightsposition": "11.0 -4.0 -8.0",
         "ironsightsfov": "70",
+		"barrelCount": "2",
    
         "firemode0": {
             "type":         "blaster",

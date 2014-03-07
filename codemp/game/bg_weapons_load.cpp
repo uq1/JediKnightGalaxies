@@ -654,6 +654,10 @@ static void ReadString ( cJSON *parent, const char *field, char *dest, size_t de
         }
         Q_strncpyz (dest, str, destSize);
     }
+	else
+	{
+		dest[0] = '\0';
+	}
 }
 
 #ifdef CGAME
@@ -807,7 +811,7 @@ static void BG_ParseVisualsFireMode ( weaponVisualFireMode_t *fireMode, cJSON *f
 
 	fmLoadCounter++;
 }
-
+#endif
 static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
 {
     cJSON *node = NULL;
@@ -816,6 +820,7 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
 	int i;
 
     ReadString (visualsNode, "worldmodel", weaponVisuals->world_model, sizeof (weaponVisuals->world_model));
+#ifdef CGAME
     ReadString (visualsNode, "viewmodel", weaponVisuals->view_model, sizeof (weaponVisuals->view_model));
     ReadString (visualsNode, "hudicon", weaponVisuals->icon, sizeof (weaponVisuals->icon));
     ReadString (visualsNode, "hudnaicon", weaponVisuals->icon_na, sizeof (weaponVisuals->icon_na));
@@ -870,13 +875,9 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
     // Scope render
     ReadString (child, "mask", weaponVisuals->scopeShader, sizeof (weaponVisuals->scopeShader));
 
-	//Crosshair -- eezstreet add
-	node = cJSON_GetObjectItem (visualsNode, "crosshairValue");
-	weaponVisuals->crosshairValue = (int)cJSON_ToNumberOpt(node, (double)1);
-
-	//Barrel count -- eezstreet add
+	//Barrel count
 	node = cJSON_GetObjectItem (visualsNode, "barrelCount");
-	weaponVisuals->barrelCount = cJSON_ToIntegerOpt(node, 4);
+	weaponVisuals->barrelCount = cJSON_ToIntegerOpt(node, 0);
     
     /*node = cJSON_GetObjectItem (visualsNode, "primary");
     BG_ParseVisualsFireMode (&weaponVisuals->primary, node);
@@ -892,8 +893,8 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
 			BG_ParseVisualsFireMode(&weaponVisuals->visualFireModes[i], node, weaponData->numFiringModes);
 		}
 	}
-}
 #endif
+}
 
 static void BG_ParseWPNSaberData ( weaponData_t *wp, cJSON *json )
 {
@@ -983,16 +984,6 @@ static qboolean BG_ParseWeaponFile ( const char *weaponFilePath )
 			weaponData.numFiringModes++;
 		}
 	}
-	// Old stuff for when we had primary/alt attacks --eez
-    /*jsonNode = cJSON_GetObjectItem (json, "primaryattack");
-    BG_ParseWeaponFireMode (&weaponData.firemodes[0], jsonNode);
-    
-    jsonNode = cJSON_GetObjectItem (json, "secondaryattack");
-    if ( jsonNode != NULL )
-    {
-        weaponData.hasSecondary = 1;
-        BG_ParseWeaponFireMode (&weaponData.firemodes[1], jsonNode);
-    }*/
     
     jsonNode = cJSON_GetObjectItem (json, "playeranims");
     BG_ParseWeaponPlayerAnimations (&weaponData, jsonNode);
@@ -1010,10 +1001,9 @@ static qboolean BG_ParseWeaponFile ( const char *weaponFilePath )
     jsonNode = cJSON_GetObjectItem (json, "description");
     str = cJSON_ToString (jsonNode);
     Q_strncpyz (weaponData.visuals.description, str, sizeof (weaponData.visuals.description));
-    
+#endif
     jsonNode = cJSON_GetObjectItem (json, "visual");
     BG_ParseVisuals (&weaponData, jsonNode);
-#endif
     
 
     /*if ( weaponData.zoomType != ZOOM_NONE )
@@ -1153,3 +1143,77 @@ qboolean BG_LoadWeapons ( weaponData_t *weaponDataTable, unsigned int *numLoaded
     
     return (qboolean)(successful > 0);
 }
+
+// Cloned from CG. Serverside needs Ghoul 2 instances too, in order to calculate muzzle position.
+#if defined(CGAME) || defined(QAGAME)
+
+extern int trap_G2API_InitGhoul2Model(void **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin,
+						  qhandle_t customShader, int modelFlags, int lodBias);
+extern qboolean trap_G2_HaveWeGhoul2Models(	void *ghoul2);
+extern void trap_G2API_SetBoltInfo(void *ghoul2, int modelIndex, int boltInfo);
+extern int trap_G2API_AddBolt(void *ghoul2, int modelIndex, const char *boneName);
+extern void trap_G2API_CleanGhoul2Models(void **ghoul2Ptr);
+
+void BG_InitWeaponG2Instances(void) {
+	unsigned int i = 0;
+	unsigned int j;
+	
+	memset(g2WeaponInstances, 0, sizeof(g2WeaponInstances));
+	
+	for ( i = 0; i <= LAST_USEABLE_WEAPON; i++ )
+	{
+	    unsigned int numVariations = BG_NumberOfWeaponVariations (i);
+	    for ( j = 0; j < numVariations; j++ )
+	    {
+	        const weaponData_t *weaponData = GetWeaponData (i, j);
+			const int id = BG_GetWeaponIndex(i, j);
+
+			if( weaponData && weaponData->classname && weaponData->classname[0] &&			// stop with these goddamn asserts...
+				weaponData->visuals.world_model && weaponData->visuals.world_model[0])		// hard to code with all this background noise going on --eez
+			{
+				void *ghoul2 = NULL;
+	        
+				trap_G2API_InitGhoul2Model (&g2WeaponInstances[id].ghoul2, weaponData->visuals.world_model, 0, 0, 0, 0, 0);
+	        
+				ghoul2 = g2WeaponInstances[id].ghoul2;
+	        
+				if ( trap_G2_HaveWeGhoul2Models (ghoul2) )
+				{
+					trap_G2API_SetBoltInfo (ghoul2, 0, 0);
+					trap_G2API_AddBolt (ghoul2, 0, i == WP_SABER ? "*blade1" : "*flash");
+	            
+					g2WeaponInstances[id].weaponNum = i;
+					g2WeaponInstances[id].weaponVariation = j;
+				}
+			}
+	    }
+	}
+}
+
+void BG_ShutdownWeaponG2Instances(void) {
+	unsigned int i = 0;
+	unsigned int j;
+	unsigned int id = 0;
+	
+	for ( i = 0; i <= LAST_USEABLE_WEAPON; i++ )
+	{
+	    unsigned int numVariations = BG_NumberOfWeaponVariations (i);
+	    for ( j = 0; j < numVariations; j++ )
+	    {
+			if(trap_G2_HaveWeGhoul2Models(g2WeaponInstances[id].ghoul2)) {
+				trap_G2API_CleanGhoul2Models(&g2WeaponInstances[id].ghoul2);
+				g2WeaponInstances[id].ghoul2 = NULL;
+			}
+			id++;
+	    }
+	}
+}
+
+void *BG_GetWeaponGhoul2 ( int weaponNum, int weaponVariation )
+{
+    unsigned int i;
+	const int id = BG_GetWeaponIndex(weaponNum, weaponVariation);
+	return g2WeaponInstances[id].ghoul2;
+}
+
+#endif

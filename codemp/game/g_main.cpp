@@ -763,6 +763,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	/* Initialize the weapon data table */
 	BG_InitializeWeapons();
 
+	Com_Printf("-------------- serverside weapon G2\n");
+	BG_InitWeaponG2Instances();
+
 	/* Here be crystals */
 	JKG_InitializeSaberCrystalData();
 
@@ -880,6 +883,8 @@ void G_ShutdownGame( int restart ) {
 	G_CleanAllFakeClients(); //get rid of dynamically allocated fake client structs.
 
 	BG_ClearAnimsets(); //free all dynamic allocations made through the engine
+
+	BG_ShutdownWeaponG2Instances();
 
 //	Com_Printf("... Gameside GHOUL2 Cleanup\n");
 	while (i < MAX_GENTITIES)

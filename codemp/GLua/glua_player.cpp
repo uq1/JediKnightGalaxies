@@ -778,7 +778,7 @@ static int GLua_Player_SetAccount(lua_State *L)
 	const char *account = luaL_checkstring(L, 2);
 	if(!ply) return 0;
 	if(!account) return 0;
-	level.clients[ply->clientNum].Account = account;
+	Q_strncpyz(level.clients[ply->clientNum].pers.account, account, sizeof(level.clients[ply->clientNum].pers.account));
 	return 0;
 }
 
@@ -790,7 +790,8 @@ static int GLua_Player_GetAccount(lua_State *L)
 		lua_pushnil(L);
 		return 1;
 	}
-	lua_pushstring( L, level.clients[ply->clientNum].Account.c_str() );
+
+	lua_pushstring( L, level.clients[ply->clientNum].pers.account );
 	return 1;
 }
 

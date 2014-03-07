@@ -18,8 +18,6 @@ extern void CG_AddRadarEnt(centity_t *cent);	//cg_ents.c
 extern void CG_AddBracketedEnt(centity_t *cent);	//cg_ents.c
 extern qboolean CG_InFighter( void );
 
-extern void *CG_GetGhoul2WorldModel ( int weaponNum, int weaponVariation );
-
 
 //for g2 surface routines
 #define TURN_ON				0x00000000
@@ -1383,7 +1381,7 @@ void JKG_SwapToSaber(int saberNum, clientInfo_t *ci, const char *newSaber, int w
 		trap_G2API_CleanGhoul2Models( &ci->ghoul2Weapons[saberNum] );
 	}
 
-	trap_G2API_DuplicateGhoul2Instance( CG_GetGhoul2WorldModel( weapon, variation ), &ci->ghoul2Weapons[saberNum] );
+	trap_G2API_DuplicateGhoul2Instance( BG_GetWeaponGhoul2( weapon, variation ), &ci->ghoul2Weapons[saberNum] );
 
 	if( !ci->ghoul2Weapons[saberNum] || !trap_G2_HaveWeGhoul2Models( ci->ghoul2Weapons[saberNum] ) )
 	{
@@ -2910,7 +2908,7 @@ void CG_TriggerAnimSounds( centity_t *cent )
 	{
 		CG_PlayerAnimEvents( cent->localAnimIndex, sFileIndex, qtrue, cent->pe.torso.frame, curFrame, cent->currentState.number );
 	}
-	cent->pe.torso.oldFrame = cent->pe.torso.oldFrame;
+	cent->pe.torso.oldFrame = cent->pe.torso.frame;
 	cent->pe.torso.frame = curFrame;
 	cent->pe.torso.backlerp = 1.0f - (currentFrame - (float)curFrame);	
 }
@@ -11017,7 +11015,7 @@ SkipTrueView:
 		 	axis[2][2] = boltMatrix.matrix[2][2];
 
 			//trap_FX_PlayEntityEffectID(trap_FX_RegisterEffect("force/confusion.efx"), efOrg, axis, cent->boltInfo, cent->currentState.number);
-			trap_FX_PlayEntityEffectID(cgs.effects.mForceConfustionOld, efOrg, axis, -1, -1, -1, -1);
+			trap_FX_PlayEntityEffectID(cgs.effects.mForceConfusionOld, efOrg, axis, -1, -1, -1, -1);
 		}
 	}
 
@@ -11350,7 +11348,7 @@ stillDoSaber:
 				{
 					ci->saber[0].SetDesiredLength(-1, -1);
 				}
-				if ( ci->saber[1].model	//dual sabers
+				if ( ci->saber[1].model[0]	//dual sabers
 					&& cent->currentState.saberHolstered == 1 )//second one off
 				{
 					ci->saber[1].SetDesiredLength(0, -1);
@@ -11434,7 +11432,7 @@ stillDoSaber:
 			{
 				ci->saber[0].SetDesiredLength(-1, -1);
 			}
-			if ( ci->saber[1].model	//dual sabers
+			if ( ci->saber[1].model[0]	//dual sabers
 				&& cent->currentState.saberHolstered == 1 )//second one off
 			{
 				ci->saber[1].SetDesiredLength(0, -1);

@@ -20,6 +20,7 @@
         "gunposition":      "10.0 -6.0 -3.0",
         "ironsightsposition": "9.0 -3.0 -1.7",
         "ironsightsfov": "70",
+		"barrelCount": "3",
         
         "firemode0": {
             "type":         "blaster",
@@ -120,10 +121,12 @@
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-        "reload":       { "torso": "BOTH_RELOADRIFLER" },
+        "reload":       { "torso": "BOTH_RIFLERELOADB" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },
-	"sprint":       { "torso": "BOTH_RIFLERUN" },
+		"ready":	{ "torso": "BOTH_BASE_RIFLESTANCE", "legs": "BOTH_STAND1" },
+		"firing":	{ "torso": "BOTH_BASE_RIFLESHOOT" },
+		"sprint":       { "torso": "BOTH_RIFLERUN" },
         "sprintStyle": "12"
     },
     

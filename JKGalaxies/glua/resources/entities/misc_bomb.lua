@@ -7,7 +7,7 @@
 	This bomb is rigged with a 10 second fuse, which you can trigger by pressing use on it
 	If the bomb takes damage, it'll ignite and explode (quite quickly :P)
 	
-	The entity is heavilly commented to make it easier for others to understand how this system works
+	The entity is heavily commented to make it easier for others to understand how this system works
 	
 	FUN! :P
 	
@@ -18,14 +18,14 @@
 -- They are loaded by a special entity loader which takes care of the spawning and controlling of scripted entities.
 -- To define a scripted entity, all properties, events and variables of the entity must be placed inside the 'ENT' table/namespace.
 -- This table is created by the loader prior to running this script, and is destroyed after processing it!
--- Therefore, functions maust never reference ENT directly! Instead, events can use 'self' to access their own entity object.
+-- Therefore, functions must never reference ENT directly! Instead, events can use 'self' to access their own entity object.
 -- Everything defined in 'ENT' is available through 'self' inside the events.
 
 -- Classname to be used for this entity (Mandatory, without this defined, the entity is discarded by the loader)
 ENT.ClassName = "misc_bomb"
 -- Type of this entity (generic, logical, mover and trigger are currently supported, also mandatory for the loader to accept this entity)
 ENT.Type = "generic"
--- Scripted entity to derrive this one from.
+-- Scripted entity to derive this one from.
 -- Note that this must be another scripted entity. You cannot provide a fx_runner as base entity for example.
 -- The entity manager/loader automatically creates standard base entities for every type, called base_<type>, so for this one, we'll use "base_generic"
 ENT.Base = "base_generic"
@@ -34,7 +34,7 @@ ENT.Base = "base_generic"
 -- ( table:function(a,b,c) is syntactic sugar for table.function(self, a, b, c), so in this case ENT:OnSpawn() is identical to ENT.OnSpawn(self) )
 
 -- OnSpawn event, called when the entity just spawned
--- In here we have to do the initialization of the entity, processing of the spawnvars, and doing all the setup required to get the ent workin the way we want to
+-- In here we have to do the initialization of the entity, processing of the spawnvars, and doing all the setup required to get the ent working the way we want to
 function ENT:OnSpawn()
 	-- Set-up position, rotation (based on spawnvars) and model
 	-- The 'or' is to specify a default value. A call to GetSpawnVar with an undefined var will return nil, in which case the alternative value is used

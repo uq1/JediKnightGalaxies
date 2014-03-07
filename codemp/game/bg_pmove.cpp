@@ -8398,7 +8398,7 @@ void PM_AdjustAttackStates( pmove_t *pmove )
 					    pmove->ps->zoomLocked = qfalse;
 					    pmove->ps->zoomLockTime = pmove->cmd.serverTime + 50;
 				    
-					    PM_AddEvent (EV_DISRUPTOR_ZOOMSOUND);
+					    PM_AddEvent (EV_ZOOM);
 			    	}
 			    	else if (pmove->ps->zoomLockTime < pmove->cmd.serverTime)
 		        	{
@@ -8432,7 +8432,7 @@ void PM_AdjustAttackStates( pmove_t *pmove )
 				   	pmove->ps->zoomTime = pmove->ps->commandTime;
 				    	pmove->ps->zoomLocked = qfalse;
 				    
-				    	PM_AddEvent (EV_DISRUPTOR_ZOOMSOUND);
+				    	PM_AddEvent (EV_ZOOM);
 			    	}
 		    }		    
 		    

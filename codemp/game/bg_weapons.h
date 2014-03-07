@@ -340,9 +340,12 @@ typedef struct weaponVisualFireMode_s
 
 typedef struct weaponVisual_s
 {
+#ifdef CGAME
 	char description[512];			// The description of this weapon to display in UI.
-	
+#endif	
+	// Server needs to know the world model for its Ghoul 2 instances.
 	char world_model[MAX_QPATH];	// The model used for 3D rendering.
+#ifdef CGAME
 	char view_model[MAX_QPATH];		// The model used when in first person mode.
 	
 	char icon[MAX_QPATH];		    // The icon of this weapon to be used in the HUD.
@@ -364,14 +367,25 @@ typedef struct weaponVisual_s
     int scopeSoundLoopTime;
     char scopeLoopSound[MAX_QPATH];
 
-	//eezstreet add: Variable crosshairs
-	int crosshairValue;
-
-	// eez: variable number of barrels, default is 4
+	// eez: variable number of barrels, default is 0
 	int barrelCount;
 
 	weaponVisualFireMode_t visualFireModes[MAX_FIREMODES];
+#endif
 } weaponVisual_t;
+
+// create one instance of all the weapons we are going to use so we can just copy this info into each clients gun ghoul2 object in fast way
+struct g2WeaponInstance_s {
+    unsigned int weaponNum;
+    unsigned int weaponVariation;
+    
+    void *ghoul2;
+};
+extern g2WeaponInstance_s g2WeaponInstances[MAX_WEAPON_TABLE_SIZE];
+
+void BG_InitWeaponG2Instances(void);
+void *BG_GetWeaponGhoul2 ( int weaponNum, int weaponVariation );
+void BG_ShutdownWeaponG2Instances(void);
 
 typedef struct
 {
@@ -464,9 +478,7 @@ typedef struct
     
     char displayName[64];			// The name which is to be displayed on the HUD.
     
-#ifdef CGAME
     weaponVisual_t visuals;
-#endif
 
 } weaponData_t;
 

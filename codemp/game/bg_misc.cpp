@@ -3081,7 +3081,13 @@ qboolean BG_ValidateSkinForTeam( char *modelName, char *skinName, int team, floa
 			return qtrue;
 		}
 #endif
-		sprintf(buffer, "%s/%s", modelName, skinName);
+		if(strchr(modelName, '/') != NULL) {
+			// Model name has a slash, just use that.
+			Q_strncpyz(buffer, modelName, sizeof(buffer));
+		}
+		else {
+			sprintf(buffer, "%s/%s", modelName, skinName);
+		}
 		for(; i < bgGangWarsTeams[teamNum].numModelsInStore; i++)
 		{
 			if(!Q_stricmp(buffer, bgGangWarsTeams[teamNum].modelStore[i]))

@@ -23,7 +23,7 @@ typedef struct {
 	char name[512];			// Display Name
 	char refPtr[512];		// Reference/Internal name
 	qhandle_t teamIcon;		// Not used by QAGAME
-	char modelStore[32][64];	// Parsed separately. Memory is allocated and freed by the Gang Wars handler
+	char modelStore[32][64];	// Parsed separately.
 	char defaultModel[64];	// The default model for this team
 	unsigned char numModelsInStore;
 	qboolean useTeamColors;	// Use team colors for this team? (ie force red team/blue team colors

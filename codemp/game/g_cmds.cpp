@@ -835,6 +835,8 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 		VectorCopy( ent->r.currentOrigin, it_ent->s.origin );
 		it_ent->classname = it->classname;
 		G_SpawnItem (it_ent, it);
+			if ( !it_ent || !it_ent->inuse )
+			return;
 		FinishSpawningItem(it_ent );
 		memset( &trace, 0, sizeof( trace ) );
 		Touch_Item (it_ent, ent, &trace);
@@ -1845,8 +1847,8 @@ void JKG_Cmd_DestroyItem_f(gentity_t *ent)
 		}
 
 	}
-	trap_SendServerCommand(ent->client->ps.clientNum, va("print \"^2DEBUG: %s (internal %s, invID %i) destroyed.\n\"", destroyedItem.id->displayName,
-		destroyedItem.id->internalName, inventoryID));
+	/*trap_SendServerCommand(ent->client->ps.clientNum, va("print \"^2DEBUG: %s (internal %s, invID %i) destroyed.\n\"", destroyedItem.id->displayName,
+		destroyedItem.id->internalName, inventoryID));*/
 }
 
 void JKG_Cmd_SellItem_f(gentity_t *ent)
@@ -2080,7 +2082,9 @@ qboolean G_SetSaber(gentity_t *ent, int saberNum, char *saberName, qboolean sieg
 
 	//Set the saber with the arg given. If the arg is
 	//not a valid sabername defaults will be used.
-	WP_SetSaber( ent->s.number, ent->client->saber, saberNum, truncSaberName );
+	if(truncSaberName[0] != '\0') {
+		WP_SetSaber( ent->s.number, ent->client->saber, saberNum, truncSaberName );
+	}
 
 	if ( !ent->client->saber[0].model[0] )
 	{
@@ -3640,8 +3644,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 		ent->client->ps.zoomMode = 0;
 	}
 
-	// TODO: Reload animation
-	G_SetAnim(ent, NULL, SETANIM_TORSO, GetWeaponData (weapon, ent->client->ps.weaponVariation)->anims.reload.torsoAnim, SETANIM_FLAG_OVERRIDE,0);
+	G_SetAnim(ent, NULL, SETANIM_TORSO, GetWeaponData (weapon, ent->client->ps.weaponVariation)->anims.reload.torsoAnim, SETANIM_FLAG_NORMAL,0);
 	ent->client->ps.weaponTime = GetWeaponData( weapon, ent->client->ps.weaponVariation )->weaponReloadTime;
 	// TODO: Add sound
 

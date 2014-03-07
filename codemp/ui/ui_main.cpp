@@ -5768,12 +5768,13 @@ static int UI_HeadCountByColor() {
 	{
 		// Let's not be preposterous..
 		int gwTeam;
-		if(uiSkinColor == TEAM_BLUE || uiSkinColor == TEAM_RED)
+		int myTeam = (int)(trap_Cvar_VariableValue("ui_myteam"));
+		if(myTeam == TEAM_BLUE || myTeam == TEAM_RED)
 		{
-			gwTeam = (uiSkinColor == TEAM_RED) ? cgImports->GetRedTeam() : cgImports->GetBlueTeam();
+			gwTeam = (myTeam == TEAM_RED) ? cgImports->GetRedTeam() : cgImports->GetBlueTeam();
 			if(bgGangWarsTeams[gwTeam].useTeamColors)
 			{
-				if(uiSkinColor == TEAM_BLUE)
+				if(myTeam == TEAM_BLUE)
 				{
 					teamname = "/blue";
 					goto goAndCollectDollars;
@@ -7539,6 +7540,10 @@ void UI_BuildQ3Model_List( void )
 
 	uiInfo.q3HeadCount = 0;
 
+	if(!cgImports) {
+		return;
+	}
+
 	if(ui_gameType.integer >= GT_TEAM)
 	{
 		// Gang Wars - UI stuff for model store
@@ -8913,7 +8918,8 @@ static void UI_StartServerRefresh(qboolean full)
 			if(!Q_stricmp(serverFilters[ui_serverFilterType.integer].description, "JKG"))
 			{
 				trap_JKG_ChangeProtocol( 27 );
-				trap_Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d 27\n", i ) );			// hax. JKG servers use protocol 27
+				trap_Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d 26\n", i ) );
+				// TODO: change back over to 27, someone changed this to be 26 on the engine and it needs to all be switched back over.
 
 			}
 			else

@@ -11,7 +11,7 @@
         "hudicon":          "models/weapons/DE-10_Pistol/icon_Snub",
         "hudnaicon":        "models/weapons/DE-10_Pistol/icon_Snub",
         "selectsound":      "sound/weapons/select_pistol.wav",
-	"barrelCount":	    1,
+	"barrelCount":	    "1",
         
         "gunposition":      "8.0 -4.0 -5.0",
         "ironsightsposition": "7.0 0 -4.0",
