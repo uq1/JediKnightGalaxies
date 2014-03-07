@@ -91,7 +91,7 @@ local function place(ply, argc, argv)
 		return
 	end
 
-	if argc < 3 then
+	if argc < 2 then
 		ply:SendPrint("Usage: /place <entity name> <distance (* for explicit origin)> [keys/values, separated by ,]")
 		return
 	end
