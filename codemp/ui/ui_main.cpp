@@ -7540,6 +7540,10 @@ void UI_BuildQ3Model_List( void )
 
 	uiInfo.q3HeadCount = 0;
 
+	if(!cgImports) {
+		return;
+	}
+
 	if(ui_gameType.integer >= GT_TEAM)
 	{
 		// Gang Wars - UI stuff for model store
