@@ -2,7 +2,8 @@ DKothos
 {
 	playerModel	reborn_twin
 //	customSkin	?
-	weapon		WP_MELEE
+	weapon		WP_SABER
+	saber		single_4
 	health		500
 	FP_HEAL		0
 	FP_LEVITATION	3

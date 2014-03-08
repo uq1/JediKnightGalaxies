@@ -3,7 +3,7 @@ Reborn
 	playerModel	reborn
 	saber		Training
 	weapon	WP_SABER
-	saberStyle	1
+	saberStyle	2
 	FP_HEAL			0
 	FP_LEVITATION	1
 	FP_SPEED		1

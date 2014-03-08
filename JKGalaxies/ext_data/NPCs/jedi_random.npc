@@ -8,8 +8,6 @@ jedi_hf1
 	saber		single_1
 	saberColor	random
 	weapon	WP_SABER
-	saberStyle	1
-	saberStyle	3
 	saberStyle	2
 	FP_HEAL			1
 	FP_LEVITATION	2
@@ -63,8 +61,6 @@ jedi_hf2
 	saber		single_2
 	saberColor	random
 	weapon	WP_SABER
-	saberStyle	1
-	saberStyle	3
 	saberStyle	2
 	FP_HEAL			1
 	FP_LEVITATION	2
@@ -118,8 +114,6 @@ jedi_hm1
 	saber		single_3
 	saberColor	random
 	weapon	WP_SABER
-	saberStyle	1
-	saberStyle	3
 	saberStyle	2
 	FP_HEAL			1
 	FP_LEVITATION	2
@@ -172,8 +166,6 @@ jedi_hm2
 	saber		single_4
 	saberColor	random
 	weapon	WP_SABER
-	saberStyle	1
-	saberStyle	3
 	saberStyle	2
 	FP_HEAL			1
 	FP_LEVITATION	2
@@ -223,10 +215,10 @@ jedi_kdm1
 	customSkin	head_B1|torso_D1|lower_C1
 //	customRGBA	138 83 0
 	customRGBA	jedi_kdm
-	saber		dual_3
+	saber		single_4
 	saberColor	random
 	weapon	WP_SABER
-	saberStyle	7
+	saberStyle	2
 	FP_HEAL		1
 	FP_LEVITATION	2
 	FP_SPEED		1
@@ -279,7 +271,6 @@ jedi_kdm2
 	saberColor	random
 	weapon	WP_SABER
 	saberStyle	2
-	saberStyle	3
 	FP_HEAL		2
 	FP_LEVITATION	2
 	FP_SPEED		2
@@ -332,7 +323,6 @@ jedi_rm1
 	saberColor	random
 	weapon	WP_SABER
 	saberStyle	2
-	saberStyle	1
 	FP_HEAL		1
 	FP_LEVITATION	3
 	FP_SPEED		3
@@ -385,7 +375,6 @@ jedi_rm2
 	saberColor	random
 	weapon	WP_SABER
 	saberStyle	2
-	saberStyle	1
 	FP_HEAL		2
 	FP_LEVITATION	3
 	FP_SPEED		3
@@ -434,10 +423,10 @@ jedi_tf1
 	customSkin	head_A1|torso_A1|lower_D1
 //	customRGBA	255 200 212
 	customRGBA	jedi_tf
-	saber		dual_5
+	saber		single_4
 	saberColor	random
 	weapon	WP_SABER
-	saberStyle	7
+	saberStyle	2
 	FP_HEAL		1
 	FP_LEVITATION	2
 	FP_SPEED		2
@@ -490,7 +479,6 @@ jedi_tf2
 	saber		single_8
 	saberColor	random
 	weapon	WP_SABER
-	saberStyle	1
 	saberStyle	2
 	FP_HEAL		2
 	FP_LEVITATION	3
@@ -541,11 +529,9 @@ jedi_zf1
 	customSkin	head_B1|torso_A1|lower_D1
 //	customRGBA	255 164 59
 	customRGBA	jedi_zf
-	saber		single_9
+	saber		single_4
 	saberColor	random
 	weapon	WP_SABER
-	saberStyle	1
-	saberStyle	3
 	saberStyle	2
 	FP_HEAL			1
 	FP_LEVITATION	2
@@ -597,11 +583,9 @@ jedi_zf2
 //	customRGBA	161 226 240
 	customRGBA	jedi_zf
 	saber		single_9
-	saber2	single_1
 	saberColor	random
-	saber2Color	random
 	weapon	WP_SABER
-	saberStyle	6
+	saberStyle	2
 	FP_HEAL		1
 	FP_LEVITATION	2
 	FP_SPEED		2

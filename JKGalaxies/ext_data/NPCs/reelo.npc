@@ -3,7 +3,6 @@ Reelo
 	playerModel	reelo
 	weapon		WP_BLASTER
 	rank		commander
-	altFire		1
 	snd			reelo
 	reactions	3
 	aim			1

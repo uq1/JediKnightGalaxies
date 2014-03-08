@@ -4,7 +4,7 @@ RebornFencer
 	customSkin	fencer
 	saber		single_4
 	weapon	WP_SABER
-	saberStyle	1
+	saberStyle	2
 	FP_HEAL			0
 	FP_LEVITATION	0
 	FP_SPEED		1
