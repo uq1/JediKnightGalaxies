@@ -160,7 +160,7 @@ void MiniMap_Init() {
 	areas = cJSON_GetObjectItem(root, "areas");
 	if (!areas || !cJSON_IsArray(areas)) {
 		cJSON_Delete(root);
-		CG_Printf("Could not parse %s.mmd: No 'areas' section not found\n", cgs.rawmapname);
+		CG_Printf("Could not parse %s.mmd: No 'areas' section found\n", cgs.rawmapname);
 		return;
 	}
 

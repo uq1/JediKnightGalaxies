@@ -963,7 +963,7 @@ static void CG_DrawMiniMap ( menuDef_t *menuHUD, vec4_t opacity )
 	// Use a default fixed radius of 500 units for now
 	if (cgs.gametype != GT_DUEL) 
 	{
-	MiniMap_Render(menuHUD, 1500.0f);
+		MiniMap_Render(menuHUD, 1500.0f);
 	}
 
 	focusItem = Menu_FindItemByName(menuHUD, "frame");
