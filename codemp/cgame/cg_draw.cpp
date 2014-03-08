@@ -1721,30 +1721,9 @@ float CG_DrawRadar ( float y )
 	int				xOffset = 0;
 	int				y2 = y;
 
-	// UQ1: Use radar when minimap is not available...
-	// Get MiniMap Location...
-	/*
-	itemDef_t *item;
-	vec4_t overlayColor = {1,1,1,0.7f};
-	vec4_t transcolor = {1,1,1,1};
-	vec4_t opacity;
-	
-	MAKERGBA(opacity, 1, 1, 1, 1*cg.jkg_HUDOpacity);
-
-	item = Menu_FindItemByName(Menus_FindByName("hud_minimap"), "maparea");
-	if (!item) {
-		return y;
-	}
-
-	xOffset = item->window.rect.x;
-	y2 = item->window.rect.y;
-	*/
-
-	// UQ1: Place over the minimap image...
 	y2 = -1;//d_poff.integer;
 	xOffset = 23;//d_roff.integer;
 	RADAR_RADIUS = 40;//d_yoff.value;
-	//zScale = d_yoff.value
 
 	if (!cg.snap)
 	{
@@ -1772,8 +1751,6 @@ float CG_DrawRadar ( float y )
 	color[0] = color[1] = color[2] = 1.0f;
 	color[3] = 0.6f;
 	trap_R_SetColor ( color );
-	// UQ1: Don't draw the radar image itself...
-	//CG_DrawPic( RADAR_X + xOffset, y2, RADAR_RADIUS*2, RADAR_RADIUS*2, cgs.media.radarShader );
 
 	//Always green for your own team.
 	VectorCopy ( g_color_table[ColorIndex(COLOR_GREEN)], teamColor );
@@ -2299,22 +2276,20 @@ float CG_DrawRadar ( float y )
 	arrow_w = arrowBaseScale * RADAR_RADIUS / 128;
 	arrow_h = arrowBaseScale * RADAR_RADIUS / 128;
 
-	{
-		// CLEANME: rewrite this check later. i didn't mean to rescope, honest to goodness --eez
-		vec4_t newColor = {1, 1, 1, 0};
-		float ironSightsPhase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState, cg.time, &cg.ironsightsBlend);
-		VectorCopy4(newColor, color);
+	vec4_t newColor = {1, 1, 1, 0};
+	float ironSightsPhase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState, cg.time, &cg.ironsightsBlend);
+	VectorCopy4(newColor, color);
 
-		if(ironSightsPhase > 0)
-		{
-			newColor[3] = 1.0f - ironSightsPhase;
-		}
-		else
-		{
-			newColor[3] = 1.0f;
-		}
-		trap_R_SetColor ( newColor );
+	if(ironSightsPhase > 0)
+	{
+		newColor[3] = 1.0f - ironSightsPhase;
 	}
+	else
+	{
+		newColor[3] = 1.0f;
+	}
+	trap_R_SetColor ( newColor );
+
 	CG_DrawRotatePic2( RADAR_X + RADAR_RADIUS + xOffset, y2 + RADAR_RADIUS, arrow_w, arrow_h, 
 					   0, cgs.media.mAutomapPlayerIcon );
 
@@ -2561,7 +2536,7 @@ static void CG_DrawUpperRight( void ) {
 		&& cg_drawRadar.integer )
 	{//draw Radar in Siege mode or when in a vehicle of any kind
 		if (!HaveMiniMap())
-			CG_DrawRadar ( y );
+			CG_DrawRadar ( 0 );
 	}
 
 	y = CG_DrawEnemyInfo ( y );
