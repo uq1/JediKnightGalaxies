@@ -1248,10 +1248,10 @@ void CG_DrawHUD(centity_t *cent)
 		if (cg.recaptureingFlag)
 		{
 			x-=15;
-			UI_DrawScaledProportionalString(x, y, va("Consolidating Control Point"), UI_RIGHT|UI_DROPSHADOW, color, 0.4);
+			UI_DrawScaledProportionalString(x, y, "Consolidating Control Point", UI_RIGHT|UI_DROPSHADOW, color, 0.4);
 		}
 		else
-			UI_DrawScaledProportionalString(x, y, va("Capturing Control Point"), UI_RIGHT|UI_DROPSHADOW, color, 0.4);
+			UI_DrawScaledProportionalString(x, y, "Capturing Control Point", UI_RIGHT|UI_DROPSHADOW, color, 0.4);
 	}
 	else if (cg.captureFlagPercent >= 100 && cg.capturingFlag)
 	{// For attack/defence/scenario gametype flag captures...
@@ -1266,7 +1266,7 @@ void CG_DrawHUD(centity_t *cent)
 
 		VectorSet(color, 250, 250, 0);
 
-		UI_DrawScaledProportionalString(x, y, va("^3Control Point Captured!"), UI_RIGHT|UI_DROPSHADOW, color, 0.4);
+		UI_DrawScaledProportionalString(x, y, "^3Control Point Captured!", UI_RIGHT|UI_DROPSHADOW, color, 0.4);
 	}
 
 	if (cgs.gametype >= GT_TEAM)

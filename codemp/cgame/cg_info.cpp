@@ -138,7 +138,7 @@ void CG_DrawInformation( void ) {
 	if ( cg.infoScreenText[0] ) {
 		const char *psLoading = CG_GetStringEdString("MENUS", "LOADING_MAPNAME");
 		UI_DrawProportionalString( 425, 105, ( const char * ) va(( char * ) /*"Loading... %s"*/ psLoading, cg.infoScreenText),
-			UI_CENTER|UI_BIGFONT|UI_DROPSHADOW, colorWhite, FONT_SMALL3 );		
+			UI_RIGHT|UI_BIGFONT|UI_DROPSHADOW, colorWhite, FONT_SMALL3 );		
 	} else {
 		const char *psAwaitingSnapshot = CG_GetStringEdString("MENUS", "AWAITING_SNAPSHOT");
 		UI_DrawProportionalString( 320, 128-32, ( const char * )  /*"Awaiting snapshot..."*/psAwaitingSnapshot,
