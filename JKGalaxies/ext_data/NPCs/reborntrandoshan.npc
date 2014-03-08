@@ -2,11 +2,9 @@ RebornTrandoshan
 {
 	playerModel	trandoshan
 	weapon		WP_SABER
-	saber		sabertrident
+	saber		single_4
+	saberStyle 2
 	saberColor	red
-	saberColor2	red
-	saberColor3	red
-	saberColor4	red
 	FP_HEAL			0
 	FP_LEVITATION	2
 	FP_SPEED		0

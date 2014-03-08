@@ -15,6 +15,9 @@ Rax
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
 	class		CLASS_IMPERIAL
+	snd			rax
+	sndcombat	rax
+	sndjedi		rax
 	yawspeed	90
 	walkSpeed	55
 	runSpeed	200

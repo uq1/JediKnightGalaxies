@@ -2,11 +2,9 @@ RebornRodian
 {
 	playerModel	rodian
 	weapon		WP_SABER
-	saber		saberstar2
-	saber2		saberstar2
+	saber		single_4
 	saberColor	red
-	saber2Color	red
-	saberStyle	6
+	saberStyle	2
 	FP_HEAL			0
 	FP_LEVITATION	3
 	FP_SPEED		2

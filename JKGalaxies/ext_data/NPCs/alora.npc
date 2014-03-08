@@ -6,7 +6,6 @@ alora
 	saberColor	red
 	weapon	WP_SABER
 	saberStyle		2
-	saberStyle		1
 	health			300
 	FP_HEAL			0
 	FP_LEVITATION	2
