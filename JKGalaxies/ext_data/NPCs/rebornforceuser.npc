@@ -2,9 +2,10 @@ RebornForceUser
 {
 	playerModel	reborn
 	customSkin	forceuser
-	saber		single_6
 	weapon	WP_SABER
-	saberStyle	2
+	saber		single_4
+	saberStyle 2
+	saberColor	red
 	FP_HEAL			0
 	FP_LEVITATION	1
 	FP_SPEED		1

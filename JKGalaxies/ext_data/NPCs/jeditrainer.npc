@@ -1,12 +1,10 @@
 JediTrainer
 {
 	playerModel	jeditrainer
-	saber		Training
-	saber2		Training
+	saber		single_4
 	saberColor	purple
-	saber2Color	purple
 	weapon	WP_SABER
-	saberStyle	6
+	saberStyle	2
 	FP_HEAL			2
 	FP_LEVITATION	3
 	FP_SPEED		3

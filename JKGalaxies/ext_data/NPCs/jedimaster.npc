@@ -2,10 +2,10 @@ JediMaster
 {
 	playerModel	jedi
 	customSkin	master
-	saber		dual_3
+	saber		single_4
 	saberColor	green
 	weapon	WP_SABER
-	saberStyle	7
+	saberStyle	2
 	FP_HEAL			2
 	FP_LEVITATION	3
 	FP_SPEED		3
