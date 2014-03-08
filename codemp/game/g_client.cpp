@@ -2888,6 +2888,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	int					topAmmoValues[JKG_MAX_AMMO_INDICES];
 	qboolean			haveItem = qfalse;
 	qboolean			use_secondary_spawnpoint = qfalse;
+	int					savedCredits;
 
 	index = ent - g_entities;
 	client = ent->client;
@@ -3154,6 +3155,8 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 
 	savedSiegeIndex = client->siegeClass;
 
+	savedCredits = client->ps.credits;
+
 	l = 0;
 	while (l < MAX_SABERS)
 	{
@@ -3242,6 +3245,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	client->accuracy_hits = accuracy_hits;
 	client->accuracy_shots = accuracy_shots;
 	client->lastkilled_client = -1;
+	client->ps.credits = savedCredits;
 
 	for ( i = 0 ; i < MAX_PERSISTANT ; i++ ) {
 		client->ps.persistant[i] = persistant[i];
