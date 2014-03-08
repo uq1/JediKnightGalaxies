@@ -2654,7 +2654,7 @@ void JKG_RenderGenericWeaponWorld ( centity_t *cent, const weaponDrawData_t *wea
 			int boltNum = trap_G2API_AddBolt(cent->ghoul2, 1, "*flash");
 	        trap_FX_PlayBoltedEffectID (
 	            weaponData->weaponRender.generic.muzzleEffect,
-	            cent->lerpOrigin, cent->ghoul2, boltNum, s->number, 1, 0, qfalse
+	            cent->lerpOrigin, cent->ghoul2, boltNum, s->number, 1, 0, qtrue
 	        );
 	    }
 	    
