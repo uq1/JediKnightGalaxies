@@ -162,7 +162,8 @@ static int Text_ExtColorCodes(const char *text, vec4_t color) {
 	// we must ensure we use that alpha as well.
 	// So copy the alpha of colorcode 0 (^0) instead of assuming 1.0
 
-	color[3] =*(float *)(0x56DF54 /*0x56DF48 + 12*/);
+	//color[3] =*(float *)(0x56DF54 /*0x56DF48 + 12*/);
+	color[3] = 1.0f;
 	return 1;
 }
 
