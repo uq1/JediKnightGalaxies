@@ -675,13 +675,13 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, const 
 
 		case UI_CENTER:
 		{
-			x -= CG_Text_Width(str, 1.0, iMenuFont) / 2; 
+			x -= CG_Text_Width(str, 0.5f, iMenuFont) / 2; 
 		}
 		break;
 
 		case UI_RIGHT:
 		{
-			x -= CG_Text_Width(str, 1.0, iMenuFont) / 2;
+			x -= CG_Text_Width(str, 0.5f, iMenuFont);
 		}
 		break;
 	}
