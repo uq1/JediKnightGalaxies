@@ -8334,7 +8334,9 @@ void PM_AdjustAttackStates( pmove_t *pmove )
 	primFireDown = (pmove->cmd.buttons & BUTTON_ATTACK);
 	
 	// Iron sights!
-	if ( (pmove->cmd.buttons & BUTTON_IRONSIGHTS || pmove->ps->isInSights) && !(pmove->ps->sprintTime & SPRINT_MSB) && pmove->ps->ironsightsDebounceStart == 0 )
+	if ( (pmove->cmd.buttons & BUTTON_IRONSIGHTS || pmove->ps->isInSights) && 
+		!(pmove->ps->sprintTime & SPRINT_MSB) && pmove->ps->ironsightsDebounceStart == 0 &&
+		!(pmove->ps->pm_flags & PMF_ROLLING) )
 	{
 	    if ( !(pmove->ps->ironsightsTime & IRONSIGHTS_MSB) )
 	    {
