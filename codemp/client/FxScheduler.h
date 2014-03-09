@@ -37,6 +37,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #pragma warning (pop)
 #endif
 
+using namespace std;
+
+
 #define FX_FILE_PATH	"effects"
 
 #define FX_MAX_TRACE_DIST		16384	// SOF2 uses a larger scale
@@ -84,7 +87,7 @@ class CMediaHandles
 {
 private:
 
-	std::vector<int>	mMediaList;
+	vector<int>	mMediaList;
 
 public:
 
@@ -396,6 +399,7 @@ public:
 	{
 		if ( numFree == 0 )
 		{
+			Com_Printf (S_COLOR_YELLOW "WARNING: Ran out of instances from memory pool.\n");
 			return NULL;
 		}
 
@@ -404,27 +408,9 @@ public:
 		std::rotate (freeAndAllocated, freeAndAllocated + 1, freeAndAllocated + N);
 		numFree--;
 
-		highWatermark = Q_max(highWatermark, N - numFree);
+		highWatermark = max (highWatermark, N - numFree);
 
 		return ptr;
-	}
-
-	void TransferTo ( PoolAllocator<T, N>& allocator )
-	{
-		allocator.freeAndAllocated = freeAndAllocated;
-		allocator.highWatermark = highWatermark;
-		allocator.numFree = numFree;
-		allocator.pool = pool;
-
-		highWatermark = 0;
-		numFree = N;
-		freeAndAllocated = NULL;
-		pool = NULL;
-	}
-
-	bool OwnsPtr ( const T *ptr ) const
-	{
-		return ptr >= pool && ptr < (pool + N);
 	}
 
 	void Free ( T *ptr )
@@ -464,9 +450,6 @@ public:
 	}
 
 private:
-	PoolAllocator ( const PoolAllocator<T, N>& );
-	PoolAllocator& operator = ( const PoolAllocator<T, N>& );
-
 	T *pool;
 
 	// The first 'numFree' elements are the indexes of the free slots.
@@ -475,80 +458,6 @@ private:
 	int numFree;
 
 	int highWatermark;
-};
-
-template<typename T, int N>
-class PagedPoolAllocator
-{
-	public:
-		PagedPoolAllocator ()
-			: numPages (1)
-			, pages (new PoolAllocator<T, N>[1]())
-		{
-		}
-
-		T *Alloc ()
-		{
-			T *ptr = NULL;
-			for ( int i = 0; i < numPages && ptr == NULL; i++ )
-			{
-				ptr = pages[i].Alloc ();
-			}
-
-			if ( ptr == NULL )
-			{
-				PoolAllocator<T, N> *newPages = new PoolAllocator<T, N>[numPages + 1] ();
-				for ( int i = 0; i < numPages; i++ )
-				{
-					pages[i].TransferTo (newPages[i]);
-				}
-
-				delete[] pages;
-				pages = newPages;
-				
-				ptr = pages[numPages].Alloc ();
-				if ( ptr == NULL )
-				{
-					return NULL;
-				}
-
-				numPages++;
-			}
-
-			return ptr;
-		}
-
-		void Free ( T *ptr )
-		{
-			for ( int i = 0; i < numPages; i++ )
-			{
-				if ( pages[i].OwnsPtr (ptr) )
-				{
-					pages[i].Free (ptr);
-					break;
-				}
-			}
-		}
-
-		int GetHighWatermark () const
-		{
-			int total = 0;
-			for ( int i = 0; i < numPages; i++ )
-			{
-				total += pages[i].GetHighWatermark ();
-			}
-
-			return total;
-		}
-
-		~PagedPoolAllocator ()
-		{
-			delete[] pages;
-		}
-
-	private:
-		int numPages;
-		PoolAllocator<T, N> *pages;
 };
 
 //-----------------------------------------------------------------
@@ -620,9 +529,9 @@ private:
 	};
 
 	// this makes looking up the index based on the string name much easier
-	typedef std::map<std::string, int>				TEffectID;
+	typedef map<string, int>				TEffectID;
 
-	typedef std::list<SScheduledEffect*>			TScheduledEffect;
+	typedef list<SScheduledEffect*>			TScheduledEffect;
 
 	// Effects
 	SEffectTemplate		mEffectTemplates[FX_MAX_EFFECTS];
@@ -635,7 +544,7 @@ private:
 	// List of scheduled effects that will need to be created at the correct time.
 	TScheduledEffect	mFxSchedule;
 
-	PagedPoolAllocator<SScheduledEffect, 1024> mScheduledEffectsPool;
+	PoolAllocator<SScheduledEffect, 500> mScheduledEffectsPool;
 
 	// Private function prototypes
 	SEffectTemplate *GetNewEffectTemplate( int *id, const char *file );
