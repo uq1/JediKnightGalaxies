@@ -3500,7 +3500,7 @@ void WP_CalculateMuzzlePoint( gentity_t *ent, vec3_t forward, vec3_t right, vec3
 		// Client could be rendering in first person, so put it just a little bit away from the camera so it doesn't clip into the player's view.
 
 		AngleVectors( viewAngles, viewOrg, NULL, NULL );
-		VectorScale( viewOrg, 25, viewOrg );
+		VectorScale( viewOrg, 5, viewOrg );
 
 		VectorAdd( muzzlePoint, viewOrg, muzzlePoint );
 
@@ -3754,6 +3754,7 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 		tent->s.owner = ent->s.number;
 		tent->s.weapon = ent->client->ps.weapon;
 		tent->s.weaponVariation = ent->client->ps.weaponVariation;
+		tent->s.firingMode = firemode;
 		if ( firemode )
 		{
 			tent->s.eFlags |= EF_ALT_FIRING;

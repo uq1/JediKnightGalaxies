@@ -2349,7 +2349,7 @@ static void JKG_FireBlaster ( centity_t *cent, const weaponDrawData_t *weaponDat
     {
         int index = Q_irand (0, weaponData->weaponFire.generic.fireSoundCount - 1);
         int channel = CHAN_AUTO;
-		if ( thisWeaponData->firemodes[s->firingMode].chargeTime )
+		if ( thisWeaponData->firemodes[firingMode].chargeTime )
         {
             channel = CHAN_WEAPON;
         }
@@ -3324,14 +3324,14 @@ void JKG_RenderProjectile ( const centity_t *cent, unsigned char firingMode )
 	}
 }
 
-void JKG_RenderTraceline ( const centity_t *cent, const vec3_t start, const vec3_t end, qboolean altFire )
+void JKG_RenderTraceline ( const centity_t *cent, const vec3_t start, const vec3_t end, unsigned char firingMode )
 {
     const entityState_t *s = &cent->currentState;
     const weaponInfo_t *weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
 
-	if( weapon->eventsHandler[s->firingMode] && weapon->eventsHandler[s->firingMode]->TracelineRender )
+	if( weapon->eventsHandler[firingMode] && weapon->eventsHandler[firingMode]->TracelineRender )
 	{
-		weapon->eventsHandler[s->firingMode]->TracelineRender ( &weapon->drawData[s->firingMode], start, end );
+		weapon->eventsHandler[firingMode]->TracelineRender ( &weapon->drawData[firingMode], start, end );
 	}
 }
 

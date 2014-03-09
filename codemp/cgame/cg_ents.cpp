@@ -2208,7 +2208,6 @@ Ghoul2 Insert End
 		// Now draw the static shader over it.
 		// Alpha in over half the time, out over half.
 		
-		//alpha = sin(M_PI*alpha);
 		a = alpha * 255.0f;
 
 		a = 255 - a;
@@ -2219,23 +2218,6 @@ Ghoul2 Insert End
 			a=255;
 
 		ent.customShader = cgs.media.itemRespawningRezOut;
-
-		/*
-		ent.shaderRGBA[0] = 0;
-		ent.shaderRGBA[1] = a;
-		ent.shaderRGBA[2] = a-100;
-
-		if (ent.shaderRGBA[2] < 0)
-		{
-			ent.shaderRGBA[2] = 0;
-		}
-		*/
-
-		/*
-		ent.shaderRGBA[0] =
-		ent.shaderRGBA[1] =
-		ent.shaderRGBA[2] = a;
-		*/
 
 		ent.renderfx |= RF_RGB_TINT;
 		ent.shaderRGBA[0] = 0;
@@ -2256,30 +2238,6 @@ Ghoul2 Insert End
 		}
 		trap_R_AddRefEntityToScene(&ent);
 	}
-
-	//rww - As far as I can see, this is useless.
-	/*
-	if ( item->giType == IT_WEAPON && wi->barrelModel ) {
-		refEntity_t	barrel;
-
-		memset( &barrel, 0, sizeof( barrel ) );
-
-		barrel.hModel = wi->barrelModel;
-
-		VectorCopy( ent.lightingOrigin, barrel.lightingOrigin );
-		barrel.shadowPlane = ent.shadowPlane;
-		barrel.renderfx = ent.renderfx;
-
-		barrel.customShader = ent.customShader;
-
-		CG_PositionRotatedEntityOnTag( &barrel, &ent, wi->weaponModel, "tag_barrel" );
-
-		AxisCopy( ent.axis, barrel.axis );
-		barrel.nonNormalizedAxes = ent.nonNormalizedAxes;
-
-		trap_R_AddRefEntityToScene( &barrel );
-	}
-	*/
 
 	// accompanying rings / spheres for powerups
 	if ( !cg_simpleItems.integer ) 
@@ -2358,44 +2316,14 @@ void CG_CreateDistortionTrailPart(centity_t *cent, float scale, vec3_t pos)
 	ent.hModel = trap_R_RegisterModel("models/weapons2/merr_sonn/trailmodel.md3");
 	ent.customShader = cgs.media.itemRespawningRezOut;//cgs.media.cloakedShader;//cgs.media.halfShieldShader;	
 
-#if 1
 	ent.renderfx = (RF_DISTORTION|RF_FORCE_ENT_ALPHA);
 	ent.shaderRGBA[0] = 255.0f;
 	ent.shaderRGBA[1] = 255.0f;
 	ent.shaderRGBA[2] = 255.0f;
 	ent.shaderRGBA[3] = 100.0f;
-#else //no alpha
-	ent.renderfx = RF_DISTORTION;
-#endif
 
 	trap_R_AddRefEntityToScene( &ent );
 }
-
-//distortion trail effect for rockets -rww
-/*
-static void CG_DistortionTrail( centity_t *cent )
-{
-	vec3_t fwd;
-	vec3_t pos;
-	float overallScale = 4.0f;
-
-	VectorCopy(cent->currentState.pos.trDelta, fwd);
-	VectorNormalize(fwd);
-
-	VectorMA(cent->lerpOrigin, -8.0f*overallScale, fwd, pos);
-	CG_CreateDistortionTrailPart(cent, 0.5f*overallScale, pos);
-	VectorMA(cent->lerpOrigin, -12.0f*overallScale, fwd, pos);
-	CG_CreateDistortionTrailPart(cent, 0.6f*overallScale, pos);
-	VectorMA(cent->lerpOrigin, -16.0f*overallScale, fwd, pos);
-	CG_CreateDistortionTrailPart(cent, 0.7f*overallScale, pos);
-	VectorMA(cent->lerpOrigin, -20.0f*overallScale, fwd, pos);
-	CG_CreateDistortionTrailPart(cent, 0.8f*overallScale, pos);
-	VectorMA(cent->lerpOrigin, -30.0f*overallScale, fwd, pos);
-	CG_CreateDistortionTrailPart(cent, 0.9f*overallScale, pos);
-	VectorMA(cent->lerpOrigin, -40.0f*overallScale, fwd, pos);
-	CG_CreateDistortionTrailPart(cent, 1.0f*overallScale, pos);
-}
-*/
 
 /*
 ===============
@@ -2438,14 +2366,6 @@ static void CG_Missile( centity_t *cent ) {
 
 				/* Do the predicted weapon death in-air */
 				JKG_RenderProjectileDeath (cent, org, fwd, s1->firingMode);
-				/*if ( s1->eFlags & EF_ALT_FIRING )
-				{
-					CG_MissileHitWall( s1->weapon, 0, org, dir, IMPACTSOUND_DEFAULT, qtrue, s1->generic1 );
-				}
-				else
-				{
-					CG_MissileHitWall( s1->weapon, 0, org, dir, IMPACTSOUND_DEFAULT, qfalse, 0 );
-				}*/
 
 				/* Mark this guy as performed, we don't need another effect */
 				cent->bolt1 = s1->time;
@@ -2511,109 +2431,11 @@ static void CG_Missile( centity_t *cent ) {
 	// calculate the axis
 	VectorCopy( s1->angles, cent->lerpAngles);
 
-#if 0
-	if ( s1->otherEntityNum2 && s1->weapon != WP_SABER )
-	{//using an over-ridden trail effect!
-		vec3_t forward;
-
-		if ( VectorNormalize2( cent->currentState.pos.trDelta, forward ) == 0.0f )
-		{
-			forward[2] = 1.0f;
-		}
-		if ((s1->eFlags&EF_JETPACK_ACTIVE)//hack so we know we're a vehicle Weapon shot
-			&& (g_vehWeaponInfo[s1->otherEntityNum2].iShotFX
-				|| g_vehWeaponInfo[s1->otherEntityNum2].iModel != NULL_HANDLE) )
-		{ //a vehicle with an override for the weapon trail fx or model
-			trap_FX_PlayEffectID( g_vehWeaponInfo[s1->otherEntityNum2].iShotFX, cent->lerpOrigin, forward, -1, -1 );
-			if ( g_vehWeaponInfo[s1->otherEntityNum2].iLoopSound )
-			{
-				vec3_t	velocity;
-				BG_EvaluateTrajectoryDelta( &cent->currentState.pos, cg.time, velocity );
-				trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, velocity, g_vehWeaponInfo[s1->otherEntityNum2].iLoopSound );
-			}
-			//add custom model
-			if ( g_vehWeaponInfo[s1->otherEntityNum2].iModel == NULL_HANDLE )
-			{
-				return;
-			}
-		}
-		else
-		{//a regular missile
-			trap_FX_PlayEffectID( cgs.gameEffects[s1->otherEntityNum2], cent->lerpOrigin, forward, -1, -1 );
-			if ( s1->loopSound )
-			{
-				vec3_t	velocity;
-				BG_EvaluateTrajectoryDelta( &cent->currentState.pos, cg.time, velocity );
-				trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, velocity, s1->loopSound );
-			}
-			//FIXME: if has a custom model, too, then set it and do rest of code below?
-			return;
-		}
-	}
-	else if ( cent->currentState.eFlags & EF_ALT_FIRING )
-	{
-		// add trails
-		if ( weapon->altMissileTrailFunc )  
-		{
-			weapon->altMissileTrailFunc( cent, weapon );
-		}
-
-		// add dynamic light
-		if ( weapon->altMissileDlight ) 
-		{
-			trap_R_AddLightToScene(cent->lerpOrigin, weapon->altMissileDlight, 
-				weapon->altMissileDlightColor[0], weapon->altMissileDlightColor[1], weapon->altMissileDlightColor[2] );
-		}
-
-		// add missile sound
-		if ( weapon->altMissileSound ) {
-			vec3_t	velocity;
-
-			BG_EvaluateTrajectoryDelta( &cent->currentState.pos, cg.time, velocity );
-
-			trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, velocity, weapon->altMissileSound );
-		}
-
-		//Don't draw something without a model
-		if ( weapon->altMissileModel == NULL_HANDLE )
-			return;
-	}
-	else
-	{
-		// add trails
-		if ( weapon->missileTrailFunc )  
-		{
-			weapon->missileTrailFunc( cent, weapon );
-		}
-
-		// add dynamic light
-		if ( weapon->missileDlight ) 
-		{
-			trap_R_AddLightToScene(cent->lerpOrigin, weapon->missileDlight, 
-				weapon->missileDlightColor[0], weapon->missileDlightColor[1], weapon->missileDlightColor[2] );
-		}
-
-		// add missile sound
-		if ( weapon->missileSound ) 
-		{
-			vec3_t	velocity;
-
-			BG_EvaluateTrajectoryDelta( &cent->currentState.pos, cg.time, velocity );
-
-			trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, velocity, weapon->missileSound );
-		}
-
-		//Don't draw something without a model
-		if ( weapon->missileModel == NULL_HANDLE && s1->weapon != WP_SABER && s1->weapon != G2_MODEL_PART ) //saber uses ghoul2 model, doesn't matter
-			return;
-	}
-#else
     if ( s1->weapon != WP_SABER )
     {
 		JKG_RenderProjectile (cent, s1->firingMode);
         return;
     }
-#endif
 
 	// create the render entity
 	memset (&ent, 0, sizeof(ent));
