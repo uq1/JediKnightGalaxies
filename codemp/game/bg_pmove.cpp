@@ -3615,7 +3615,7 @@ static void PM_NoclipMove( void ) {
 	if (pm->cmd.buttons & BUTTON_ATTACK) {	//turbo boost
 		scale *= 8;
 	}
-	if ( pm->cmd.buttons & BUTTON_IRONSIGHTS) {	//turbo boost
+	if ( pm->cmd.buttons & BUTTON_SPRINT) {	//turbo boost
 		scale *= 8;
 	}
 

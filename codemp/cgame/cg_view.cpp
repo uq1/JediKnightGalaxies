@@ -1357,6 +1357,7 @@ static int CG_CalcFov( void ) {
             }
         }
 
+		if(cg.predictedPlayerState.pm_type == PM_NORMAL)
 		{
 			float phase = JKG_CalculateSprintPhase(&cg.predictedPlayerState);
 			if ( phase >= 1.0f )
