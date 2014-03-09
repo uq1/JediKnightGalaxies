@@ -11753,6 +11753,22 @@ stillDoSaber:
 		//goto endOfCall;
 		return;
 	}
+	else if(cent->currentState.eFlags & EF_FROZEN || cent->currentState.damageTypeFlags & (1 << DT_FREEZE) ||
+		cent->currentState.damageTypeFlags & (1 << DT_CARBONITE)) {
+		if(!cent->miscTime) {
+			cent->miscTime = legs.frame;
+		}
+		trap_G2API_SetBoneAnim(legs.ghoul2, 0, "model_root", cent->miscTime, cent->miscTime, BONE_ANIM_OVERRIDE_FREEZE, 1.0f, cg.time, cent->miscTime, -1);
+		if (!cent->noLumbar)
+		{
+			trap_G2API_SetBoneAnim(legs.ghoul2, 0, "lower_lumbar", cent->miscTime, cent->miscTime, BONE_ANIM_OVERRIDE_FREEZE, 1.0f, cg.time, cent->miscTime, -1);
+
+			if (cent->localAnimIndex < NUM_RESERVED_ANIMSETS)
+			{
+				trap_G2API_SetBoneAnim(legs.ghoul2, 0, "Motion", cent->miscTime, cent->miscTime, BONE_ANIM_OVERRIDE_FREEZE, 1.0f, cg.time, cent->miscTime, -1);
+			}
+		}
+	}
 	else
 	{
 		cent->dustTrailTime = 0;

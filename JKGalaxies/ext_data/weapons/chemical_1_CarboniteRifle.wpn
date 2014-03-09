@@ -94,8 +94,8 @@
         "damage": {
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
-                               "damage":       8//,
-//                               "damagetype": [ "carbonite" ]
+                               "damage":       8,
+                               "damagetype": [ "carbonite" ]
                         },
         "ballistic":    true,
         "ammocost":     1,

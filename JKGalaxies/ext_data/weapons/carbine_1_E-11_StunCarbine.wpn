@@ -69,8 +69,8 @@
     "firemode0": {
 //        "damage":       10,
         "damage": {
-                               "damage":       0
-//                               "damagetype": [ "stun" ]
+                               "damage":       0,
+                               "damagetype": [ "stun" ]
                         },
         "collisionsize": 16.0,
         "maxchargetime": 500,
