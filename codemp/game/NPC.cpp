@@ -235,47 +235,10 @@ Determines when it's ok to ditch the corpse
 
 int BodyRemovalPadTime( gentity_t *ent )
 {
-	int	time;
-
 	if ( !ent || !ent->client )
 		return 0;
 
-		if ( ent->client->playerTeam )
-		{	
-		// never go away
-			time = Q3_INFINITE;
-		}
-
-
-	// team no longer indicates species/race, so in this case we'd use NPC_class, but
-	switch( ent->client->NPC_class )
-	{
-	/* removal so everything never goes away until round end
-	case CLASS_MOUSE:
-	case CLASS_GONK:
-	case CLASS_R2D2:
-	case CLASS_R5D2:
-	//case CLASS_PROTOCOL:
-	case CLASS_MARK1:
-	case CLASS_MARK2:
-	case CLASS_PROBE:
-	case CLASS_SEEKER:
-	case CLASS_REMOTE:
-	case CLASS_SENTRY:
-	case CLASS_INTERROGATOR:
-		time = 0;
-		break; 
-		*/
-	default:
-		// never go away
-		time = Q3_INFINITE;
-		// time = 200000; // UQ1: Changed to 30 secs // Pande: Changed to infinite
-		break;
-
-	}
-	
-
-	return time;
+	return Q3_INFINITE;
 }
 
 

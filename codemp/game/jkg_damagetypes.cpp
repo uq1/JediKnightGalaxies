@@ -216,6 +216,9 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage )
                 flags |= DAMAGE_RADIUS;
                 VectorNegate (dir, dir);
             break;
+
+			default:
+			break;
         }
     }
     
@@ -298,6 +301,9 @@ void JKG_RemoveDamageType ( gentity_t *ent, damageType_t type )
             ent->client->pmfreeze = qfalse;
             ent->client->pmlock = qfalse;
         break;
+
+		default:
+		break;
     }
 
     ent->client->ps.damageTypeFlags &= ~(1 << type);
@@ -368,6 +374,9 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
                     G_Damage (ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, 2, 0, 0);
                 }
             break;
+
+			default:
+			break;
         }
     }
 }

@@ -1604,7 +1604,6 @@ int			 WP_GetWeaponBounce( gentity_t *ent, int firemode );
 int			 WP_GetWeaponCharge( gentity_t *ent, int firemode );
 char		*WP_GetWeaponClassname( gentity_t *ent, int firemode );
 int			 WP_GetWeaponDamage( gentity_t *ent, int firemode );
-vec3_t		*WP_GetWeaponDirection( gentity_t *ent, qboolean altFire, vec3_t forward );
 qboolean	 WP_GetWeaponGravity( gentity_t *ent, int firemode );
 int			 WP_GetWeaponMOD( gentity_t *ent, int firemode );
 int			 WP_GetWeaponSplashMOD( gentity_t *ent, int firemode );

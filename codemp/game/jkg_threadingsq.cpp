@@ -81,7 +81,6 @@ void JKG_Stack_Push(jkg_stack_t *stack, asyncTask_t *task)		// Push a new task o
 	MUTEX_UNLOCK(stack);		// Unlock the mutex/CS
 }
 
-extern struct jkg_tasks_s;
 asyncTask_t *JKG_Stack_Pop(jkg_stack_t *stack)
 {
 	asyncTask_t *task;

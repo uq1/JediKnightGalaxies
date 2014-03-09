@@ -3479,7 +3479,7 @@ void WP_CalculateMuzzlePoint( gentity_t *ent, vec3_t forward, vec3_t right, vec3
 	iBolt		= trap_G2API_AddBolt( pGhoul, 0, "*flash" );	/* Use the *flash tag as muzzle point, it's rather accurate */
 
 	/* These weapons dont have a proper muzzle bolt, don't crash the client but fake the muzzle */
-	if ( pGhoul == NULL /*|| iBolt == -1*/ )
+	if ( pGhoul == NULL || iBolt == -1 )
 	{
 		VectorCopy( ent->r.currentOrigin, ent->client->ps.viewangles );
 		muzzlePoint[2] += ent->client->ps.viewheight;
@@ -4078,13 +4078,11 @@ void WP_CalculateSpread( float *pitch, float *yaw, float accuracyRating, float m
 * weapon with the appropriate mode. This references
 * the weapon table for this information.
 **************************************************/
-
-vec3_t *WP_GetWeaponDirection( gentity_t *ent, int firemode, vec3_t forward )
+static void WP_GetWeaponDirection( gentity_t *ent, int firemode, const vec3_t forward, vec3_t direction )
 {
 
 	weaponData_t	*thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
 	int				 fKnockBack		= ( float )thisWeaponData->firemodes[firemode].baseDamage;
-	static vec3_t	 fDirection;
 	float			 fSpreadModifiers = 1.0f;
 	vec3_t			 fAngles;
 		
@@ -4212,8 +4210,7 @@ vec3_t *WP_GetWeaponDirection( gentity_t *ent, int firemode, vec3_t forward )
 	}
 
 	/* Convert the angles back to a diretion and return the new value */
-	AngleVectors( fAngles, fDirection, NULL, NULL );
-	return &fDirection;
+	AngleVectors( fAngles, direction, NULL, NULL );
 }
 
 /**************************************************
@@ -4474,7 +4471,9 @@ void WP_FireGenericWeapon( gentity_t *ent, int firemode )
 
 			case WP_THERMAL:
 			{
-				WP_FireGenericGrenade( ent, firemode, muzzle, *WP_GetWeaponDirection( ent, firemode, forward ) );
+				vec3_t direction;
+				WP_GetWeaponDirection (ent, firemode, forward, direction);
+				WP_FireGenericGrenade( ent, firemode, muzzle, direction );
 				break;
 			}
 
@@ -4512,12 +4511,17 @@ void WP_FireGenericWeapon( gentity_t *ent, int firemode )
 				}
 				else if ( WP_IsWeaponGrenade (ent, firemode) )
 				{
-					WP_FireGenericGrenade( ent, firemode, muzzle, *WP_GetWeaponDirection( ent, firemode, forward ) );
+					vec3_t direction;
+					WP_GetWeaponDirection (ent, firemode, forward, direction);
+					WP_FireGenericGrenade( ent, firemode, muzzle, direction );
 				}
 				else
 				{
+					vec3_t direction;
+					WP_GetWeaponDirection (ent, firemode, forward, direction);
+
 					ent->client->ps.torsoTimer += 100;
-					WP_FireGenericMissile( ent, firemode, muzzle, *WP_GetWeaponDirection( ent, firemode, forward ));
+					WP_FireGenericMissile( ent, firemode, muzzle, direction );
 				}
 			}
 		}

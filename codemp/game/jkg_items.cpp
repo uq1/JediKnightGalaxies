@@ -527,6 +527,9 @@ static itemInstance_t *JKG_RollItem( unsigned int index, int qualityOverride, it
 			JKG_CalculateDurability(item);
 			JKG_CalculateDefense(item);
 			break;
+
+		default:
+			break;
 	}
 
 	return item;
