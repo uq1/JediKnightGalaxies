@@ -359,7 +359,7 @@ if(BuildMPEngine)
 	set(MPEngineLibraries ${MPEngineAndDedLibraries})
 	set(MPEngineIncludeDirectories ${MPEngineAndDedIncludeDirectories})
 	set(MPEngineFiles ${MPEngineAndDedFiles})
-	set(MPEngineDefines ${MPSharedDefines} "_JK2MP" "ENGINE")
+	set(MPEngineDefines ${MPSharedDefines} "ENGINE")
 	
 	#    Dependencies
 	

@@ -1,16 +1,9 @@
 
 #include "qcommon/q_shared.h"
 #include "g_local.h"
-#define _JK2
-#ifdef _JK2 //SP does not have this preprocessor for game like MP does
-#ifndef _JK2MP
-#define _JK2MP
-#endif
-#endif
 
 #include "bg_vehicles.h"
 
-#ifdef _JK2MP
 //this is really horrible, but it works! just be sure not to use any locals or anything
 //with these names (exluding bool, false, true). -rww
 
@@ -18,7 +11,6 @@
 #define sqrtf sqrt
 
 #define MOD_EXPLOSIVE MOD_SUICIDE
-#endif
 
 extern gentity_t *NPC_Spawn_Do( gentity_t *ent );
 extern void NPC_SetAnim(gentity_t	*ent,int setAnimParts,int anim,int setAnimFlags);
@@ -260,30 +252,18 @@ qboolean ValidateBoard( Vehicle_t *pVeh, bgEntity_t *pEnt )
 void FighterStorePilotViewAngles( Vehicle_t *pVeh, bgEntity_t *parent )
 {
 	playerState_t *riderPS;
-#ifdef _JK2MP
 	bgEntity_t *rider = NULL;
 	if (parent->s.owner != ENTITYNUM_NONE)
 	{
 		rider = PM_BGEntForNum(parent->s.owner); //&g_entities[parent->r.ownerNum];
 	}
-#else
-	gentity_t *rider = parent->owner;
-#endif
 
-#ifdef _JK2MP
 	if ( !rider )
-#else
-	if ( !rider || !rider->client )
-#endif
 	{
 		rider = parent;
 	}
 
-#ifdef _JK2MP
 	riderPS = rider->playerState;
-#else
-	riderPS = &rider->client->ps;
-#endif
 	VectorClear( pVeh->m_vPrevRiderViewAngles );
 	pVeh->m_vPrevRiderViewAngles[YAW] = AngleNormalize180(riderPS->viewangles[YAW]);
 }
@@ -1668,46 +1648,6 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 		// Jump off.
 		if ( pUmcd->upmove > 0 )
 		{
-
-// NOT IN MULTI PLAYER!
-//===================================================================
-#ifndef _JK2MP
-			float riderRightDot = G_CanJumpToEnemyVeh(pVeh, pUmcd);
-			if (riderRightDot!=0.0f)
-			{
-				// Eject Player From Current Vehicle
-				//-----------------------------------
-				pVeh->m_EjectDir = VEH_EJECT_TOP;
-				pVeh->m_pVehicleInfo->Eject( pVeh, pRider, qtrue );
-
-				// Send Current Vehicle Spinning Out Of Control
-				//----------------------------------------------
-				pVeh->m_pVehicleInfo->StartDeathDelay(pVeh, 10000);
-				pVeh->m_ulFlags |= (VEH_OUTOFCONTROL);
- 				VectorScale(pVeh->m_pParentEntity->client->ps.velocity, 1.0f, pVeh->m_pParentEntity->pos3);
-
-				// Todo: Throw Old Vehicle Away From The New Vehicle Some
-				//-------------------------------------------------------
-				vec3_t	toEnemy;
-				VectorSubtract(pVeh->m_pParentEntity->r.currentOrigin, rider->enemy->r.currentOrigin, toEnemy);
-				VectorNormalize(toEnemy);
-				G_Throw(pVeh->m_pParentEntity, toEnemy, 50);
-
-				// Start Boarding On Enemy's Vehicle
-				//-----------------------------------
-				Vehicle_t*	enemyVeh = G_IsRidingVehicle(rider->enemy);
-				enemyVeh->m_iBoarding = (riderRightDot>0)?(VEH_MOUNT_THROW_RIGHT):(VEH_MOUNT_THROW_LEFT);
-				enemyVeh->m_pVehicleInfo->Board(enemyVeh, rider);
-			}
-
-			// Don't Jump Off If Holding Strafe Key and Moving Fast
-			else if (pUmcd->rightmove && (parent->client->ps.speed>=10))
-			{
-				return qtrue;
-			}
-#endif
-//===================================================================
-
 			if ( pVeh->m_pVehicleInfo->Eject( pVeh, pRider, qfalse ) )
 			{
 				// Allow them to force jump off.
