@@ -3335,6 +3335,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		trap_S_StartSound(NULL, cg.snap->ps.clientNum, CHAN_AUTO, CGitemLookupTable[es->eventParm].itemType == ITEM_ARMOR ? cgs.media.armorBreakSound : cgs.media.weaponBreakSound);
 		break;
 
+	case EV_BULLET:
+		trap_Print("^3WARNING: EV_BULLET passed\n");
+		break;
 	default:
 		DEBUGNAME("UNKNOWN");
 		CG_Error( "Unknown event: %i", event );

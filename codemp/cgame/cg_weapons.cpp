@@ -2397,10 +2397,19 @@ static void JKG_RenderGenericProjectile ( const centity_t *cent, const weaponDra
 	}
 #endif //__EXPERIMENTAL_SHADOWS__
     
-    if ( weaponData->projectileRender.generic.runSound )
+	if ( weaponData->projectileRender.generic.runSound )
     {
         vec3_t velocity;
-        BG_EvaluateTrajectory (&s->pos, cg.time, velocity);
+		if( cent->currentState.weapon == WP_THERMAL || 
+			cent->currentState.weapon == WP_TRIP_MINE || 
+			cent->currentState.weapon == WP_DET_PACK ) {
+			// Weapons which don't have much velocity (ie grenades) don't need the doppler effect.
+			// Using the doppler effect on certain variations (lemons) can cause the game to crash
+			VectorCopy(vec3_origin, velocity);
+		}
+		else {
+			BG_EvaluateTrajectory (&s->pos, cg.time, velocity);
+		}
         
         trap_S_AddLoopingSound (s->number, cent->lerpOrigin, velocity, weaponData->projectileRender.generic.runSound);
     }
@@ -3198,8 +3207,6 @@ void JKG_SetWeaponEventsHandler ( weaponInfo_t *weaponInfo, const char *eventHan
     
 
 	weaponInfo->eventsHandler[firingMode] = NULL;
-    //weaponInfo->primaryEventsHandler = NULL;
-    //weaponInfo->altEventsHandler = NULL;
     
 	while( !found && wpEventHandler->handlerName != NULL )
 	{
@@ -3216,28 +3223,6 @@ void JKG_SetWeaponEventsHandler ( weaponInfo_t *weaponInfo, const char *eventHan
 	{
 		CG_Printf ("Weapon %d: invalid firing mode %i event handler \"%s\".\n", weaponInfo->weaponNum, firingMode, eventHandlerName);
 	}
-    //for ( ; found < 2 && wpEventHandler->handlerName != NULL; wpEventHandler++ )
-    //{
-    //    if ( !weaponInfo->primaryEventsHandler &&
-    //        Q_stricmp (primaryEventHandlerName, wpEventHandler->handlerName) == 0 )
-    //    {
-    //        weaponInfo->primaryEventsHandler = wpEventHandler;
-    //        found++;
-    //    }
-    //}
-    //
-    //if ( found < 2 )
-    //{
-    //    if ( weaponInfo->primaryEventsHandler == NULL )
-    //    {
-    //        CG_Printf ("Weapon %d: invalid primary event handler \"%s\".\n", weaponInfo->weaponNum, primaryEventHandlerName);
-    //    }
-    //    
-    //    if ( weaponInfo->altEventsHandler == NULL )
-    //    {
-    //        CG_Printf ("Weapon %d: invalid alt event handler \"%s\".\n", weaponInfo->weaponNum, altEventHandlerName);
-    //    }
-    //}
 }
 
 void JKG_RenderWeaponWorldModel ( centity_t *cent, const vec3_t angles )
@@ -3261,21 +3246,7 @@ void JKG_RenderWeaponWorldModel ( centity_t *cent, const vec3_t angles )
 	JKG_WeaponIndicators_Update (cent, NULL);
 	
 	weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
-	
-	/*if ( s->eFlags & EF_ALT_FIRING )
-	{
-	    if ( weapon->altEventsHandler && weapon->altEventsHandler->WeaponRenderWorld )
-	    {
-	        weapon->altEventsHandler->WeaponRenderWorld (cent, &weapon->altDrawData, qtrue, angles);
-	    }
-	}
-	else
-	{
-	    if ( weapon->primaryEventsHandler && weapon->primaryEventsHandler->WeaponRenderWorld )
-	    {
-	        weapon->primaryEventsHandler->WeaponRenderWorld (cent, &weapon->primDrawData, qfalse, angles);
-	    }
-	}*/
+
 	if ( weapon->eventsHandler[cent->currentState.firingMode] && weapon->eventsHandler[cent->currentState.firingMode]->WeaponRenderWorld )
 	{
 		weapon->eventsHandler[cent->currentState.firingMode]->WeaponRenderWorld( cent, &weapon->drawData[cent->currentState.firingMode], cent->currentState.firingMode, angles );
@@ -3302,21 +3273,6 @@ void JKG_RenderWeaponViewModel ( void )
 	JKG_WeaponIndicators_Update (cent, ps);
 	
 	weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
-	
-	/*if ( !(s->eFlags & EF_ALT_FIRING) )
-	{
-	    if ( weapon->primaryEventsHandler && weapon->primaryEventsHandler->WeaponRenderView )
-	    {
-	        weapon->primaryEventsHandler->WeaponRenderView (&weapon->primDrawData);
-	    }
-	}
-	else
-	{
-	    if ( weapon->altEventsHandler && weapon->altEventsHandler->WeaponRenderView )
-	    {
-	        weapon->altEventsHandler->WeaponRenderView (&weapon->altDrawData);
-	    }
-	}*/
 
 	if ( weapon->eventsHandler[ps->firingMode] && weapon->eventsHandler[ps->firingMode]->WeaponRenderView )
 	{
@@ -3328,21 +3284,6 @@ void JKG_RenderProjectileHitPlayer ( const centity_t *cent, const vec3_t origin,
 {
     const entityState_t *s = &cent->currentState;
     const weaponInfo_t *weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
-    
-    /*if ( !altFire )
-    {
-        if ( weapon->primaryEventsHandler && weapon->primaryEventsHandler->ProjectileHitPlayer )
-        {
-            weapon->primaryEventsHandler->ProjectileHitPlayer (&weapon->primDrawData, origin, direction);
-        }
-    }
-    else
-    {
-        if ( weapon->altEventsHandler && weapon->altEventsHandler->ProjectileHitPlayer )
-        {
-            weapon->altEventsHandler->ProjectileHitPlayer (&weapon->altDrawData, origin, direction);
-        }
-    }*/
 
 	if( weapon->eventsHandler[s->firingMode] && weapon->eventsHandler[s->firingMode]->ProjectileHitPlayer )
 	{
@@ -3354,21 +3295,6 @@ void JKG_RenderProjectileMiss ( const centity_t *cent, const vec3_t origin, cons
 {
     const entityState_t *s = &cent->currentState;
     const weaponInfo_t *weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
-    
-    /*if ( !altFire )
-    {
-        if ( weapon->primaryEventsHandler && weapon->primaryEventsHandler->ProjectileMiss )
-        {
-            weapon->primaryEventsHandler->ProjectileMiss (cent, &weapon->primDrawData, origin, direction);
-        }
-    }
-    else
-    {
-        if ( weapon->altEventsHandler && weapon->altEventsHandler->ProjectileMiss )
-        {
-            weapon->altEventsHandler->ProjectileMiss (cent, &weapon->altDrawData, origin, direction);
-        }
-    }*/
 
 	if( weapon->eventsHandler[s->firingMode] && weapon->eventsHandler[s->firingMode]->ProjectileMiss)
 	{
@@ -3380,21 +3306,6 @@ void JKG_RenderProjectileDeath ( const centity_t *cent, const vec3_t origin, con
 {
     const entityState_t *s = &cent->currentState;
     const weaponInfo_t *weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
-    
-    /*if ( !altFire )
-    {
-        if ( weapon->primaryEventsHandler && weapon->primaryEventsHandler->ProjectileDeath )
-        {
-            weapon->primaryEventsHandler->ProjectileDeath (cent, &weapon->primDrawData, origin, direction);
-        }
-    }
-    else
-    {
-        if ( weapon->altEventsHandler && weapon->altEventsHandler->ProjectileDeath )
-        {
-            weapon->altEventsHandler->ProjectileDeath (cent, &weapon->altDrawData, origin, direction);
-        }
-    }*/
 
 	if( weapon->eventsHandler[firingMode] && weapon->eventsHandler[firingMode]->ProjectileDeath )
 	{
@@ -3406,21 +3317,6 @@ void JKG_RenderProjectile ( const centity_t *cent, unsigned char firingMode )
 {
     const entityState_t *s = &cent->currentState;
     const weaponInfo_t *weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
-    
-    /*if ( !altFire )
-    {
-        if ( weapon->primaryEventsHandler && weapon->primaryEventsHandler->ProjectileRender )
-        {
-            weapon->primaryEventsHandler->ProjectileRender (cent, &weapon->primDrawData);
-        }
-    }
-    else
-    {
-        if ( weapon->altEventsHandler && weapon->altEventsHandler->ProjectileRender )
-        {
-            weapon->altEventsHandler->ProjectileRender (cent, &weapon->altDrawData);
-        }
-    }*/
 
 	if( weapon->eventsHandler[firingMode] && weapon->eventsHandler[firingMode]->ProjectileRender )
 	{
@@ -3432,21 +3328,6 @@ void JKG_RenderTraceline ( const centity_t *cent, const vec3_t start, const vec3
 {
     const entityState_t *s = &cent->currentState;
     const weaponInfo_t *weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
-    
-    /*if ( !altFire )
-    {
-        if ( weapon->primaryEventsHandler && weapon->primaryEventsHandler->TracelineRender )
-        {
-            weapon->primaryEventsHandler->TracelineRender (&weapon->primDrawData, start, end);
-        }
-    }
-    else
-    {
-        if ( weapon->altEventsHandler && weapon->altEventsHandler->TracelineRender )
-        {
-            weapon->altEventsHandler->TracelineRender (&weapon->altDrawData, start, end);
-        }
-    }*/
 
 	if( weapon->eventsHandler[s->firingMode] && weapon->eventsHandler[s->firingMode]->TracelineRender )
 	{
@@ -3458,21 +3339,6 @@ void JKG_BounceGrenade ( const centity_t *cent, unsigned char firingMode )
 {
     const entityState_t *s = &cent->currentState;
     const weaponInfo_t *weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
-    
-    /*if ( !altFire )
-    {
-        if ( weapon->primaryEventsHandler && weapon->primaryEventsHandler->GrenadeBounce )
-        {
-            weapon->primaryEventsHandler->GrenadeBounce (cent, &weapon->primDrawData);
-        }
-    }
-    else
-    {
-        if ( weapon->altEventsHandler && weapon->altEventsHandler->GrenadeBounce )
-        {
-            weapon->altEventsHandler->GrenadeBounce (cent, &weapon->altDrawData);
-        }
-    }*/
 
 	if( weapon->eventsHandler[firingMode] && weapon->eventsHandler[firingMode]->GrenadeBounce )
 	{
@@ -3484,21 +3350,6 @@ void JKG_RenderExplosive ( const centity_t *cent, unsigned char firingMode )
 {
     const entityState_t *s = &cent->currentState;
     const weaponInfo_t *weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
-    
-    /*if ( !altFire )
-    {
-        if ( weapon->primaryEventsHandler && weapon->primaryEventsHandler->ExplosiveRender )
-        {
-            weapon->primaryEventsHandler->ExplosiveRender (cent, &weapon->primDrawData, qfalse);
-        }
-    }
-    else
-    {
-        if ( weapon->altEventsHandler && weapon->altEventsHandler->ExplosiveRender )
-        {
-            weapon->altEventsHandler->ExplosiveRender (cent, &weapon->altDrawData, qtrue);
-        }
-    }*/
 
 	if( weapon->eventsHandler[firingMode] && weapon->eventsHandler[firingMode]->ExplosiveRender )
 	{
@@ -3510,21 +3361,6 @@ void JKG_ArmExplosive ( const centity_t *cent, unsigned char firingMode )
 {
     const entityState_t *s = &cent->currentState;
     const weaponInfo_t *weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
-    
-    /*if ( !altFire )
-    {
-        if ( weapon->primaryEventsHandler && weapon->primaryEventsHandler->ExplosiveArm )
-        {
-            weapon->primaryEventsHandler->ExplosiveArm (cent, &weapon->primDrawData);
-        }
-    }
-    else
-    {
-        if ( weapon->altEventsHandler && weapon->altEventsHandler->ExplosiveArm )
-        {
-            weapon->altEventsHandler->ExplosiveArm (cent, &weapon->altDrawData);
-        }
-    }*/
 
 	if( weapon->eventsHandler[firingMode] && weapon->eventsHandler[firingMode]->ExplosiveArm )
 	{
