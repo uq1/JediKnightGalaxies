@@ -6500,7 +6500,7 @@ static qboolean PM_DoChargedWeapons( qboolean vehicleRocketLock, bgEntity_t *veh
 				{
 					if (pm->ps->weaponChargeSubtractTime < pm->cmd.serverTime)
 					{
-						pm->ps->stats[STAT_AMMO] -= weaponFireData->cost;
+						pm->ps->stats[STAT_AMMO] -= weaponFireData->chargeSubtract;
 						pm->ps->weaponChargeSubtractTime = pm->cmd.serverTime + weaponFireData->chargeTime;
 					}
 				}
@@ -6521,7 +6521,7 @@ static qboolean PM_DoChargedWeapons( qboolean vehicleRocketLock, bgEntity_t *veh
 						gentity_t *Gself = &g_entities[pm->ps->clientNum];
 						Gself->client->ammoTable[GetWeaponAmmoIndex(pm->ps->weapon, pm->ps->weaponVariation)] -= weaponFireData->cost;
 #endif
-						pm->ps->ammo -= weaponFireData->cost;
+						pm->ps->ammo -= weaponFireData->chargeSubtract;
 						pm->ps->weaponChargeSubtractTime = pm->cmd.serverTime + weaponFireData->chargeTime;
 					}
 				}

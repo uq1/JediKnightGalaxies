@@ -171,6 +171,7 @@ typedef struct weaponFireModeStats_s
 	short		chargeMaximum;		// The maximum amount of time charged.
 	float		chargeMultiplier;	// The multiplier to apply on charged shot damage calculation.
 	short		chargeTime;		    // The time before substracting a drain.
+	int			chargeSubtract;		// The amount of ammo subtracted from a drain
 	char		cost;				// The ammo cost to shoot the weapon.
 	short		delay;				// The delay between each shot/throw/burstfire/whatever.
 	float		range;				// The maximum amount of range this weapon/mode can reach.

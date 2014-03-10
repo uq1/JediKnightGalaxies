@@ -109,9 +109,10 @@
                                "damagetype": [ "disintegrate" ]
                         },
         "ammocost":     1,
-        "maxchargetime":750,
-        "chargedamage": 2.5,
+        "maxchargetime":2750,
+        "chargedamage": 0.5,
         "chargedelay":  250,
+		"chargesubtract": 1,
         "firedelay":    400,
         "firingtype":   "semi",
         "range":        7000.0,

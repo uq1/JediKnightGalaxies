@@ -352,6 +352,9 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     
     node = cJSON_GetObjectItem (fireModeNode, "collisionsize");
     fireModeStats->boxSize = (float)cJSON_ToNumberOpt (node, 0.0);
+
+	node = cJSON_GetObjectItem (fireModeNode, "ammocost");
+    fireModeStats->cost = (char)cJSON_ToIntegerOpt (node, 0);
     
     node = cJSON_GetObjectItem (fireModeNode, "maxchargetime");
     fireModeStats->chargeMaximum = (short)cJSON_ToIntegerOpt (node, 0);
@@ -361,9 +364,9 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     
     node = cJSON_GetObjectItem (fireModeNode, "chargedelay");
     fireModeStats->chargeTime = (short)cJSON_ToIntegerOpt (node, 0);
-    
-    node = cJSON_GetObjectItem (fireModeNode, "ammocost");
-    fireModeStats->cost = (char)cJSON_ToIntegerOpt (node, 0);
+
+	node = cJSON_GetObjectItem (fireModeNode, "chargesubtract");
+	fireModeStats->chargeSubtract = cJSON_ToIntegerOpt(node, fireModeStats->cost);
     
     node = cJSON_GetObjectItem (fireModeNode, "firingtype");
     BG_ParseFireModeFiringType (fireModeStats, cJSON_ToStringOpt (node, "auto"));
