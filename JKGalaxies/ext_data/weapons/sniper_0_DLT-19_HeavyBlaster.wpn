@@ -36,7 +36,7 @@
             "miss":         { "impactfx": "weapons/blaster_impact_red_big_fire" },
             "hit":          { "impactfx": "blasters/red_flesh_impact" },
             "deathfx": "blasters/shot_red_vaporize",
-	    "displayName":  "Sniper"
+	    "displayName":  "Heavy"
         },
         
         "firemode1": {
@@ -53,7 +53,7 @@
             "miss":         { "impactfx": "blasters/red_impacttiny" },
             "hit":          { "impactfx": "blasters/red_impacttiny" },
             "deathfx": "blasters/shot_red_vaporize",
-	    "displayName":  "Blaster"
+	    "displayName":  "Light"
         }
     },
     
@@ -62,8 +62,8 @@
         "reloadtime":   2750,
         "ammoIndex":         "blaster_power_pack_m",
         "ammoOnSpawn":   120,
-        "ammoOnPickup":   24,
-        "clipSize":              12,
+        "ammoOnPickup":   40,
+        "clipSize":              20,
 //        "flags":        [ "togglezoom" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
@@ -71,7 +71,7 @@
     
     "firemode0": {
         "damage":       97,
-        "ammocost":     1,
+        "ammocost":     5,
         "firedelay":    900,
         "firingtype":   "semi",
         "range":        8000.0,
@@ -89,7 +89,7 @@
         "maxAccuracyAdd": 65,
         "crouchModifier": 0.85,
         "runModifier": 2,
-        "sightsModifier": 0.8,
+        "sightsModifier": 0.5,
         "walkModifier": 1.5,
         "inAirModifier": 2.2
         }

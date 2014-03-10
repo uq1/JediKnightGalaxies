@@ -49,7 +49,7 @@ static struct
     { DT_FIRE,          0,              10000,      2,      1000 },
     { DT_FREEZE,        0,              500,        2,      1000 },
     { DT_IMPLOSION,     DAMAGE_RADIUS,  0,          0,      0    },
-    { DT_STUN,          0,              4000,       0,      0    },
+    { DT_STUN,          0,              2000,       0,      0    },
     { DT_CARBONITE,     0,              4000,       2,      1000 }
 };
 

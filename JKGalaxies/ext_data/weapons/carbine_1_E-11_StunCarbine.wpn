@@ -52,6 +52,23 @@
             "deathfx": "explosives/flaregun",
 	    "animType":     "1",
 	    "displayName":  "Flare"
+        },
+		
+		"firemode2": {
+            "type":         "blaster",
+            
+            "muzzlefx":     "blasters/muzzleflash_Red_medium",
+            "firesound":    [
+                "sound/weapons/blasters/e11_1.mp3",
+                "sound/weapons/blasters/e11_2.mp3",
+                "sound/weapons/blasters/e11_3.mp3",
+                "sound/weapons/blasters/e11_4.mp3"
+            ],
+            "projectilefx": "blasters/shot_redorange_medium",
+            "miss":         { "impactfx": "weapons/blaster_impact_red_big_fire" },
+            "hit":          { "impactfx": "blasters/red_flesh_impact" },
+            "deathfx": "blasters/shot_redorange_vaporize",
+			"displayName": "Blaster"
         }
     },
     
@@ -95,7 +112,7 @@
         "ballistic":    true,
         "bounces":     -5,
         "collisionsize": 3.0,
-        "ammocost":     1,
+        "ammocost":     15,
         "firedelay":    1500,
         "firingtype":   "semi",
         "range":        6000.0,
@@ -106,6 +123,29 @@
         "meansofdeath": "MOD_BLASTER"
     },
     
+	"firemode2": {
+        "damage":       40,
+        "ammocost":     1,
+        "firedelay":    1000,
+        "firingtype":   "semi",
+        "range":        4500.0,
+        "recoil":       1.5,
+        "projectilespeed": 6000.0,
+        "projectileclass": "blaster_proj",
+        "meansofdeath": "MOD_BLASTER",
+        "splashmeansofdeath": "MOD_BLASTER",
+        "accuracy": {
+			"accuracyRating": 22,
+			"accuracyRatingPerShot": 3,
+			"msToDrainAccuracy": 50,
+			"maxAccuracyAdd": 85,
+			"crouchModifier": 0.8,
+			"runModifier": 1.3,
+			"sightsModifier": 0.7,
+			"walkModifier": 1.1,
+			"inAirModifier": 1.6
+        }
+    },
 
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
@@ -113,9 +153,9 @@
         "reload":       { "torso": "BOTH_RIFLERELOADR" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },
-	"ready":	{ "torso": "BOTH_BASE_RIFLESTANCE", "legs": "BOTH_STAND1" },
-	"firing":	{ "torso": "BOTH_BASE_RIFLESHOOT" },
-	"sprint":	{ "torso": "BOTH_RIFLERUN" },
+		"ready":	{ "torso": "BOTH_BASE_RIFLESTANCE", "legs": "BOTH_STAND1" },
+		"firing":	{ "torso": "BOTH_BASE_RIFLESHOOT" },
+		"sprint":	{ "torso": "BOTH_RIFLERUN" },
         "sprintStyle": "2"
     },
     

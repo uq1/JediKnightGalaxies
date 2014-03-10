@@ -100,12 +100,15 @@
     },
     
     "firemode1": {
-        "damage":       3,
-        "projectiles":  10,
+        "damage": {
+			"damage": 6,
+			"damageType": [ "stun" ]
+		},
+        "projectiles":  5,
         "maxchargetime": 500,
         "chargedamage": 1.8,
         "chargedelay":  250,
-        "ammocost":     1,
+        "ammocost":     20,
         "firedelay":    1200,
         "range":        400.0,
         "recoil":       0.5,

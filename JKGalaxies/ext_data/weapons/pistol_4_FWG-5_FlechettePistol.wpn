@@ -58,7 +58,7 @@
     
     "stats": {
         "slot":         1,
-        "reloadtime":   2000,
+        "reloadtime":   1500,
         "ammoIndex":         "flechette_missile",
         "ammoOnSpawn":   40,
         "ammoOnPickup":   16,
@@ -77,7 +77,7 @@
 //        "ballistic":    true,
         "collisionsize": 8.0,//32.0,	// To simulate the fact that the shells are supposed to explode right before impact with target in order to disperse the flechettes
         "ammocost":     1,
-        "firedelay":    1200,
+        "firedelay":    1000,
         "firingtype":   "semi",
         "splashrange":  80,
         "range":        40000.0,
@@ -86,7 +86,11 @@
         "projectilespeed":1600.0,//7000.0,
         "projectileclass":"flech_proj",
         "meansofdeath": "MOD_FLECHETTE",
-        "splashmeansofdeath": "MOD_FLECHETTE"
+        "splashmeansofdeath": "MOD_FLECHETTE",
+		"accuracy": {
+			"accuracyRating": 24,
+			"crouchModifier": 0.5
+		}
     },
     
     "playeranims": {

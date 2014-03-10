@@ -71,7 +71,7 @@
     },
     
     "firemode0": {
-        "damage":       23,
+        "damage":       30,
         "ammocost":     1,
         "firedelay":    700,
         "firingtype":   "semi",
@@ -84,15 +84,20 @@
     },
     
     "firemode1": {
-        "damage":       10,
+        "damage": {
+                               "damageradius": { "start": 8,
+                                                     "function": [ "constant"] },
+                               "damage":       10,
+                               "damagetype": [ "stun" ]
+                        },
         "collisionsize": 8.0,
         "maxchargetime": 500,
         "chargedamage": 1.5,
         "chargedelay":  500,
-        "ammocost":     4,
-        "firedelay":    400,
+        "ammocost":     8,
+        "firedelay":    800,
         "firingtype":   "semi",
-        "range":        1400.0,
+        "range":        700.0,
         "recoil":       0.5,
         "spread":       1.0,
         "projectilespeed": 3000.0,

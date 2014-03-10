@@ -54,6 +54,23 @@
             "hit":          { "impactfx": "saber/ignitionflare_blue" },
 	    "displayName":  "Stun"
         },
+		
+		"firemode2": {
+            "type":         "blaster",
+            
+            "muzzlefx":     "blasters/muzzleflash_Red_medium",
+            "firesound":    [
+                "sound/weapons/blasters/e11b_1.mp3",
+                "sound/weapons/blasters/e11b_2.mp3",
+                "sound/weapons/blasters/e11b_3.mp3",
+                "sound/weapons/blasters/e11b_4.mp3"
+            ],
+            "projectilefx": "blasters/shot_redorange_small",
+            "miss":         { "impactfx": "weapons/blaster_impact_red_medium_fire" },
+            "hit":          { "impactfx": "blasters/red_flesh_impact" },
+            "deathfx": "blasters/shot_red_vaporize",
+			"displayName":  "Burst"
+        },
 
         "scope": {
                 "mask":     "models/weapons/e-11b_rifle/scope_Mask"
@@ -73,31 +90,34 @@
     },
     
     "firemode0": {
-        "damage":       18,
+        "damage":       30,
         "ammocost":     1,
-        "firedelay":    143,
+        "firedelay":    300,
         "range":        4200.0,
-        "recoil":       1.1,
-        "spread":       0.7,
+        "recoil":       1.5,
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 30,
-        "accuracyRatingPerShot": 3,
-        "msToDrainAccuracy": 60,
-        "maxAccuracyAdd": 75,
-        "crouchModifier": 0.8,
-        "runModifier": 1.6,
-        "sightsModifier": 0.65,
-        "walkModifier": 1.3,
-        "inAirModifier": 1.7
+		"firingtype":   "semi",
+        "accuracy": {
+			"accuracyRating": 18,
+			"accuracyRatingPerShot": 3,
+			"msToDrainAccuracy": 60,
+			"maxAccuracyAdd": 75,
+			"crouchModifier": 0.8,
+			"runModifier": 1.6,
+			"sightsModifier": 0.65,
+			"walkModifier": 1.3,
+			"inAirModifier": 1.7
         }
     },
     
     "firemode1": {
-        "damage":       50,
+        "damage": {       
+			"damage": 20,
+			"damageType": [ "stun" ]
+		},
         "collisionsize": 20.0,
         "maxchargetime": 500,
         "chargedamage": 1.5,
@@ -121,6 +141,28 @@
         "sightsModifier": 0.7,
         "walkModifier": 1.3,
         "inAirModifier": 1.7
+        }
+    },
+	
+	"firemode2": {
+        "damage":       18,
+        "ammocost":     1,
+        "firedelay":    90,
+		"burstfiredelay":	500,
+        "firingtype":   "burst",
+		"shotsperburst": 4,
+        "range":        3500.0,
+        "recoil":       0.9,
+        "spread":       0.5,
+        "projectilespeed": 4000.0,
+        "projectileclass": "blaster_proj",
+        "meansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 30,
+        "accuracyRatingPerShot": 2,
+        "msToDrainAccuracy": 286,
+        "maxAccuracyAdd": 60,
+        "sightsModifier": 0.35
         }
     },
     

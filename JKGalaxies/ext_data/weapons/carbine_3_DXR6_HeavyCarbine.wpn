@@ -98,7 +98,12 @@
 
     "firemode1": {
         "hitscan":      true,
-        "damage":       50,
+        "damage": {
+                               "damageradius": { "start": 8,
+                                                     "function": [ "constant"] },
+                               "damage":       50,
+                               "damagetype": [ "disintegrate" ]
+                        },
         "ammocost":     1,
         "maxchargetime":750,
         "chargedamage": 1.1,

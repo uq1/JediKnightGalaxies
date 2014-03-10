@@ -35,7 +35,7 @@
             "projectilefx": "explosives/shot_concussion",
             "miss":         { "impactfx": "explosives/concussion3medium" },
             "hit":          { "impactfx": "explosives/concussion3medium" },
-	    "displayName":  "Concussion"
+			"displayName":  "Concussion"
         },
         
         "firemode1": {
@@ -74,7 +74,12 @@
     },
     
     "firemode0": {
-        "damage": 50,//100,//{
+		"damage": {
+			"damageradius": { "start": 420 },
+			"damage": 35,
+			"damageType": [ "stun" ]
+		},
+//        "damage": 50,//100,//{
 //                          "damageradius": { "start": 128 },
 //                          "delay": 0,
 //                          "damage": 50

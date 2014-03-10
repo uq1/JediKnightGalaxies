@@ -75,13 +75,13 @@
         "ammoOnSpawn":   120,
         "ammoOnPickup":   24,
         "clipSize":              12,
-        "flags":        [ "roll", "togglezoom" ],
+        "flags":        [ "togglezoom" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
     },
     
 	 "firemode0": {
-        "damage":       30,
+        "damage":       25,
         "ammocost":     1,
         "firedelay":    300,
         "range":        3500.0,
@@ -102,12 +102,17 @@
 	
     "firemode1": {
         "hitscan":      true,
-        "damage":       50,
+        "damage": {
+                               "damageradius": { "start": 8,
+                                                     "function": [ "constant"] },
+                               "damage":       30,
+                               "damagetype": [ "disintegrate" ]
+                        },
         "ammocost":     1,
         "maxchargetime":750,
-        "chargedamage": 1.1,
+        "chargedamage": 2.5,
         "chargedelay":  250,
-        "firedelay":    700,
+        "firedelay":    400,
         "firingtype":   "semi",
         "range":        7000.0,
         "recoil":       1.6,
