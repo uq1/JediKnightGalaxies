@@ -65,7 +65,7 @@
     },
     
     "firemode0": {
-        "damage":       30,
+        "damage":       35,
         "ammocost":     1,
         "firedelay":    300,
         "firingtype":   "semi",
@@ -75,11 +75,11 @@
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
         "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 55,
-        "accuracyRatingPerShot": 3,
-        "msToDrainAccuracy": 75,
-        "maxAccuracyAdd": 85
+        "accuracy": {
+			"accuracyRating": 45,
+			"accuracyRatingPerShot": 6,
+			"msToDrainAccuracy": 75,
+			"maxAccuracyAdd": 85
         }
     },
     

@@ -88,7 +88,7 @@
     },
     
     "firemode0": {
-        "damage":       28,
+        "damage":       30,
         "ammocost":     1,
         "burstshotdelay": 100,
         "firedelay":    900,
@@ -114,7 +114,7 @@
     },
 
     "firemode1": {
-        "damage":       28,
+        "damage":       35,
         "ammocost":     1,
         "firedelay":    400,
         "firingtype":   "semi",
@@ -125,20 +125,20 @@
         "projectileclass": "repeater_proj",
         "meansofdeath": "MOD_REPEATER",
             "accuracy": {
-        "accuracyRating": 50,
+        "accuracyRating": 35,
         "accuracyRatingPerShot": 3,
         "msToDrainAccuracy": 75,
         "maxAccuracyAdd": 75,
-        "crouchModifier": 0.96,
+        "crouchModifier": 0.7,
         "runModifier": 1.7,
-        "sightsModifier": 0.95,
+        "sightsModifier": 0.5,
         "walkModifier": 1.2,
         "inAirModifier": 1.9
         }
     },
     
     "firemode2": {
-        "damage":       50,//100,
+        "damage":       40,//100,
         "ballistic":    true,
         "collisionsize": 2.0,
         "ammocost":     21,

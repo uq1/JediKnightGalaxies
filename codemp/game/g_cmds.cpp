@@ -705,11 +705,11 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 	        int i = 0;
 			int itemID;
 	        
-			if ( ent->client->coreStats.weight >= MAX_INVENTORY_WEIGHT)
+			/*if ( ent->client->coreStats.weight >= MAX_INVENTORY_WEIGHT)
 	        {
 	            trap_SendServerCommand (ent->s.number, "print \"Your inventory is full. No more items can be added.\n\"");
 	            return;
-	        }
+	        }*/
 
 			//FIXME: The below assumes that there is a valid weapon item
 			itemID = JKG_GetItemByWeaponIndex(BG_GetWeaponIndex((unsigned int)weapon->weaponBaseIndex, (unsigned int)weapon->weaponModIndex))->itemID;

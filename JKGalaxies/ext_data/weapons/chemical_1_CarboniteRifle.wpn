@@ -53,12 +53,11 @@
     
     "stats": {
         "slot":         2,
-        "reloadtime":   2500,
+        "reloadtime":   4000,
         "ammoIndex":         "carbonite",
-        "ammoOnSpawn":   198,
-        "ammoOnPickup":   99,
-        "clipSize":              99,
-        "flags":        [ "roll" ],
+        "ammoOnSpawn":   100,
+        "ammoOnPickup":   50,
+        "clipSize":              50,
         "reloadmodifier": 0.9,
         "speed":        0.9
     },
@@ -68,8 +67,8 @@
         "damage": {
                                "damageradius": { "start": 16,
                                                      "function": [ "constant"] },
-                               "damage":       20//,
-//                               "damagetype": [ "carbonite" ] 
+                               "damage":       20,
+                               "damagetype": [ "carbonite" ] 
                         },
         "ballistic":    true,
         "maxchargetime":1000,
