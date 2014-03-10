@@ -20,7 +20,7 @@ cultist_lightning
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		human
+
 	class		CLASS_REBORN
 	snd			cultist3
 	sndcombat	cultist3

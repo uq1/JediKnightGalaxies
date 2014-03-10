@@ -35,7 +35,7 @@ RebornFencer
 	scale		96
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		human
+
 	class		CLASS_REBORN
 	snd			reborn2
 	sndcombat	reborn2

@@ -10,7 +10,7 @@ protocol
 	intelligence	5
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		bot
+
 	class		CLASS_PROTOCOL
 	snd			protocol
 	yawSpeed	60

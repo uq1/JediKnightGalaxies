@@ -34,7 +34,7 @@ Luke
 	yawSpeed	140
 	walkSpeed	55
 	runSpeed	200
-//	race		human
+
 	snd			luke
 	sndcombat	luke
 	sndjedi		luke

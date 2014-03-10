@@ -12,7 +12,7 @@ mouse
 	intelligence	5
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		bot
+
 	class		CLASS_MOUSE
 	yawSpeed	120
 	runSpeed	500

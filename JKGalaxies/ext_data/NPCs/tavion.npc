@@ -2,7 +2,7 @@ Tavion
 {
 	playerModel	tavion
 	rank		commander
-	saber		desann
+	saber		training
 	saberColor	red
 	weapon	WP_SABER
 	saberStyle	5
@@ -32,7 +32,6 @@ Tavion
 	vfov		160
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		human
 	class		CLASS_TAVION
 	sex		female
 	snd			tavion

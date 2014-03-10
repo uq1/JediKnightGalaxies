@@ -6,8 +6,8 @@
     "description":      "@JKG_ITEMS_weapon_melee",
     
     "visual": {
-        "hudicon":          "gfx/hud/w_icon_melee",
-        "hudnaicon":        "gfx/hud/w_icon_melee_na",
+        "hudicon":          "",
+        "hudnaicon":        "",
     
         "firemode0": {
             "type":         "blaster"

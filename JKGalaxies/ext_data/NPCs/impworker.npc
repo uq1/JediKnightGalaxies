@@ -13,7 +13,7 @@ ImpWorker
 	rank		crewman
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		imperial
+		imperial
 	class		CLASS_IMPWORKER
 	height		64
 	crouchheight 48
@@ -47,7 +47,7 @@ ImpWorker2
 	rank		crewman
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		imperial
+		imperial
 	class		CLASS_IMPWORKER
 	height		64
 	crouchheight 48
@@ -81,7 +81,7 @@ ImpWorker3
 	rank		crewman
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		imperial
+		imperial
 	class		CLASS_IMPWORKER
 	height		64
 	crouchheight 48

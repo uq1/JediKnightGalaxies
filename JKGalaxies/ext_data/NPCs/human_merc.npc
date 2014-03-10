@@ -19,7 +19,7 @@ human_merc
 	crouchheight 48
 	walkSpeed	51
 	runSpeed	200
-	snd			humanmerc1
+	snd	merc1
 	sndcombat	humanmerc1
 	sndextra	humanmerc1
 	yawspeed	70
@@ -53,7 +53,7 @@ human_merc_bow
 	crouchheight 48
 	walkSpeed	51
 	runSpeed	200
-	snd			humanmerc2
+	snd	merc2
 	sndcombat	humanmerc2
 	sndextra	humanmerc2
 	yawspeed	70
@@ -87,7 +87,7 @@ human_merc_rep
 	crouchheight 48
 	walkSpeed	51
 	runSpeed	200
-	snd			humanmerc2
+	snd	merc2
 	sndcombat	humanmerc2
 	sndextra	humanmerc2
 	yawspeed	70
@@ -121,7 +121,7 @@ human_merc_flc
 	crouchheight 48
 	walkSpeed	51
 	runSpeed	200
-	snd			humanmerc1
+	snd	merc1
 	sndcombat	humanmerc1
 	sndextra	humanmerc1
 	yawspeed	70
@@ -155,7 +155,7 @@ human_merc_cnc
 	crouchheight 48
 	walkSpeed	51
 	runSpeed	200
-	snd			humanmerc2
+	snd	merc2
 	sndcombat	humanmerc2
 	sndextra	humanmerc2
 	yawspeed	70

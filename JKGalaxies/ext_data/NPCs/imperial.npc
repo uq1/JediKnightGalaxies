@@ -13,7 +13,7 @@ Imperial
 	rank		lt
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
+
 	class		CLASS_IMPERIAL
 	snd			io2
 	sndcombat	io2
