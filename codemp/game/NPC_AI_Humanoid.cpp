@@ -161,6 +161,7 @@ qboolean NPC_IsHumanoid( void )
 	//case CLASS_R5D2:				// droid
 	case CLASS_REBEL:
 	case CLASS_REBORN:
+	case CLASS_REBORN_CULTIST:
 	case CLASS_REELO:
 	//case CLASS_REMOTE:
 	case CLASS_RODIAN:
@@ -199,7 +200,7 @@ qboolean NPC_IsHumanoid( void )
 	case CLASS_JKG_FAQ_CRAFTER_DROID:
 	case CLASS_JKG_FAQ_MERC_DROID:
 	case CLASS_JKG_FAQ_JEDI_MENTOR:
-	case CLASS_JKF_FAQ_SITH_MENTOR:
+	case CLASS_JKG_FAQ_SITH_MENTOR:
 	//Stoiss end
 	case CLASS_BOT_FAKE_NPC:
 		// Humanoid...
@@ -254,6 +255,7 @@ qboolean NPC_IsJedi ( gentity_t *self )
 	//case CLASS_R5D2:				// droid
 	//case CLASS_REBEL:
 	case CLASS_REBORN:
+	case CLASS_REBORN_CULTIST:
 	//case CLASS_REELO:
 	//case CLASS_REMOTE:
 	//case CLASS_RODIAN:
@@ -292,7 +294,7 @@ qboolean NPC_IsJedi ( gentity_t *self )
 	//case CLASS_JKG_FAQ_CRAFTER_DROID:
 	//case CLASS_JKG_FAQ_MERC_DROID:
 	case CLASS_JKG_FAQ_JEDI_MENTOR:
-	case CLASS_JKF_FAQ_SITH_MENTOR:
+	case CLASS_JKG_FAQ_SITH_MENTOR:
 	//Stoiss end
 	//case CLASS_BOT_FAKE_NPC:
 		// Is Jedi...
@@ -463,6 +465,7 @@ qboolean Boba_ChangeWeapon( int wp )
 	//case CLASS_R5D2:				// droid
 	case CLASS_REBEL:
 	//case CLASS_REBORN:
+	//case CLASS_REBORN_CULTIST:
 	case CLASS_REELO:
 	//case CLASS_REMOTE:
 	case CLASS_RODIAN:
@@ -4913,6 +4916,10 @@ static qboolean NPC_Humanoid_AttackDecide( int enemy_dist )
 		{//fencer
 			chance = 5;
 		}
+		else if (NPC->client->NPC_class == CLASS_REBORN_CULTIST && NPCInfo->rank == RANK_LT_JG ) 
+		{//fencer
+			chance = 5;
+		}
 		else
 		{
 			chance = NPCInfo->rank;
@@ -4932,6 +4939,7 @@ static qboolean NPC_Humanoid_AttackDecide( int enemy_dist )
 
 	if ( NPC->client->NPC_class == CLASS_TAVION ||
 		( NPC->client->NPC_class == CLASS_REBORN && NPCInfo->rank == RANK_LT_JG ) ||
+		( NPC->client->NPC_class == CLASS_REBORN_CULTIST && NPCInfo->rank == RANK_LT_JG ) ||
 		( NPC->client->NPC_class == CLASS_JEDI && NPCInfo->rank == RANK_COMMANDER ) )
 	{//tavion, fencers, jedi trainer are all good at following up a parry with an attack
 		if ( ( PM_SaberInParry( NPC->client->ps.saberMove ) || PM_SaberInKnockaway( NPC->client->ps.saberMove ) )

@@ -61,6 +61,7 @@ void NPC_CheckEvasion(void)
 	//case CLASS_R5D2:				// droid
 	case CLASS_REBEL:
 	case CLASS_REBORN:
+	case CLASS_REBORN_CULTIST:
 	case CLASS_REELO:
 	//case CLASS_REMOTE:
 	case CLASS_RODIAN:
@@ -98,7 +99,7 @@ void NPC_CheckEvasion(void)
 	case CLASS_JKG_FAQ_CRAFTER_DROID:
 	case CLASS_JKG_FAQ_MERC_DROID:
 	case CLASS_JKG_FAQ_JEDI_MENTOR:
-	case CLASS_JKF_FAQ_SITH_MENTOR:
+	case CLASS_JKG_FAQ_SITH_MENTOR:
 	case CLASS_BOT_FAKE_NPC:
 		// OK... EVADE AWAY!!!
 		break;

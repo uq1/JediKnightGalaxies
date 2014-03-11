@@ -523,6 +523,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 			}
 		 	if( ent->client->NPC_class == CLASS_TAVION ||
 				ent->client->NPC_class == CLASS_REBORN ||
+				ent->client->NPC_class == CLASS_REBORN_CULTIST ||
 				ent->client->NPC_class == CLASS_DESANN ||
 				ent->client->NPC_class == CLASS_SHADOWTROOPER )
 			{
@@ -1070,6 +1071,7 @@ void NPC_Begin (gentity_t *ent)
 	{
 		
 		if ( ent->client->NPC_class != CLASS_REBORN
+			&& ent->client->NPC_class != CLASS_REBORN_CULTIST 
 			&& ent->client->NPC_class != CLASS_SHADOWTROOPER 
 			//&& ent->client->NPC_class != CLASS_TAVION
 			//&& ent->client->NPC_class != CLASS_DESANN 
@@ -1132,6 +1134,7 @@ void NPC_Begin (gentity_t *ent)
 		}
 	}
 	else if ( ent->client->NPC_class == CLASS_REBORN
+		|| ent->client->NPC_class == CLASS_REBORN_CULTIST
 		|| ent->client->NPC_class == CLASS_SHADOWTROOPER )
 	{
 		switch ( g_npcspskill.integer )
@@ -2887,7 +2890,7 @@ void SP_NPC_Cultist_Saber( gentity_t *self)
 			}
 		}
 	}
-	
+	WP_SetSaberModel( NULL, CLASS_REBORN_CULTIST );
 	SP_NPC_spawner( self );
 }
 
@@ -2956,7 +2959,7 @@ void SP_NPC_Cultist_Saber_Powers( gentity_t *self)
 			}
 		}
 	}
-	
+	WP_SetSaberModel( NULL, CLASS_REBORN_CULTIST );
 	SP_NPC_spawner( self );
 }
 

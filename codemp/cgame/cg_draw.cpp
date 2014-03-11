@@ -5012,7 +5012,7 @@ void CG_DrawNPCNames( void )
 			tclr2[2] = 0.7f;
 			tclr2[3] = 1.0f;
 			break;
-			case CLASS_JKF_FAQ_SITH_MENTOR:
+			case CLASS_JKG_FAQ_SITH_MENTOR:
 				str2 = va("< Sith Mentor >");//oriange coler
 			tclr[0] = 1.0f;
 			tclr[1] = 0.225f;
@@ -5054,9 +5054,32 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_TAVION:
-		case CLASS_REBORN:
 		case CLASS_DESANN:
+			str2 = va("< Sith Boss>");
+			tclr[0] = 1.0f;
+			tclr[1] = 0.325f;
+			tclr[2] = 0.125f;
+			tclr[3] = 1.0f;
+
+			tclr2[0] = 1.0f;
+			tclr2[1] = 0.325f;
+			tclr2[2] = 0.125f;
+			tclr2[3] = 1.0f;
+			break;
+			case CLASS_REBORN:
 			str2 = va("< Sith >");
+			tclr[0] = 1.0f;
+			tclr[1] = 0.325f;
+			tclr[2] = 0.125f;
+			tclr[3] = 1.0f;
+
+			tclr2[0] = 1.0f;
+			tclr2[1] = 0.325f;
+			tclr2[2] = 0.125f;
+			tclr2[3] = 1.0f;
+			break;
+			case CLASS_REBORN_CULTIST:
+			str2 = va("< Sith Fighters >");
 			tclr[0] = 1.0f;
 			tclr[1] = 0.325f;
 			tclr[2] = 0.125f;
@@ -5217,7 +5240,7 @@ void CG_DrawNPCNames( void )
 			case CLASS_JKG_FAQ_CRAFTER_DROID:
 			case CLASS_JKG_FAQ_MERC_DROID:
 			case CLASS_JKG_FAQ_JEDI_MENTOR:
-			case CLASS_JKF_FAQ_SITH_MENTOR:
+			case CLASS_JKG_FAQ_SITH_MENTOR:
 			case CLASS_LUKE:
 			case CLASS_JEDI:
 			case CLASS_KYLE:
@@ -5226,6 +5249,7 @@ void CG_DrawNPCNames( void )
 			case CLASS_MORGANKATARN:
 			case CLASS_TAVION:
 			case CLASS_REBORN:
+			case CLASS_REBORN_CULTIST:
 			case CLASS_DESANN:
 			case CLASS_BOBAFETT:
 			case CLASS_COMMANDO:
