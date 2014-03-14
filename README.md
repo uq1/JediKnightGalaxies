@@ -5,6 +5,9 @@ Forum: http://www.jkgalaxies.com/forum/
 
 Please use discretion when making issue requests on GitHub. The forum is a better place for larger discussions on changes that aren't actually bugs.
 
+## Build Guide ##
+http://www.jkgalaxies.com/forum/viewtopic.php?f=17&t=173
+
 ## Installation of Game ##
 
 First, you need Jedi Academy installed. If you don't already own the game you can buy it from online stores such as [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN) or [Play](http://www.play.com/Games/PC/4-/127805/Star-Wars-Jedi-Knight-Jedi-Academy/Product.html?searchstring=jedi+academy&searchsource=0&searchtype=allproducts&urlrefer=search). 
@@ -26,8 +29,6 @@ Copy assets0-3.pk3s from your base game into JKG's base folder.
 In order to run dedicated server, you must use the JKGalaxiesDed binary, running dedicated from the main executable is currently not allowed because it is broken with the addition of a modular renderer.
 
 ## Developer Notes ##
-
-Cmake not functioning at the moment. Find the MSVS C++ Express 2010 solution inside codemp/ .
 
 JKG is licensed under GPLv2 as free software. You are free to use, modify and redistribute JKG following the terms in LICENSE.txt.
 
