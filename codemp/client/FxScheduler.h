@@ -544,7 +544,7 @@ private:
 	// List of scheduled effects that will need to be created at the correct time.
 	TScheduledEffect	mFxSchedule;
 
-	PoolAllocator<SScheduledEffect, 500> mScheduledEffectsPool;
+	PoolAllocator<SScheduledEffect, 2048> mScheduledEffectsPool;
 
 	// Private function prototypes
 	SEffectTemplate *GetNewEffectTemplate( int *id, const char *file );
