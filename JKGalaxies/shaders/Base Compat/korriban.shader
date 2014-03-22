@@ -356,7 +356,7 @@ textures/korriban/os_outsidebased
 {
 	qer_editorimage	textures/korriban/os_outsidebased
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         tcGen environment
     }
     {
@@ -373,7 +373,7 @@ textures/korriban/k_wall9b
 {
 	qer_editorimage	textures/korriban/k_wall9b
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         tcGen environment
     }
     {
@@ -390,7 +390,7 @@ textures/korriban/os_basic_pillarb
 {
 	qer_editorimage	textures/korriban/os_basic_pillarb
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         tcGen environment
     }
     {
@@ -407,7 +407,7 @@ textures/korriban/door
 {
 	qer_editorimage	textures/korriban/door
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         tcGen environment
     }
     {
@@ -424,7 +424,7 @@ textures/korriban/entrance_top
 {
 	qer_editorimage	textures/korriban/entrance_top
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         tcGen environment
     }
     {

@@ -412,7 +412,7 @@ textures/rift/piller_formal
 {
 	qer_editorimage	textures/rift/piller_formal
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         tcGen environment
     }
     {
@@ -429,7 +429,7 @@ textures/rift/thin_trim2
 {
 	qer_editorimage	textures/rift/thin_trim2
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         tcGen environment
     }
     {
@@ -446,7 +446,7 @@ textures/rift/basepiller
 {
 	qer_editorimage	textures/rift/basepiller
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         tcGen environment
     }
     {
@@ -463,7 +463,7 @@ textures/rift/base_ornate
 {
 	qer_editorimage	textures/rift/base_ornate
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         tcGen environment
     }
     {
@@ -480,7 +480,7 @@ textures/rift/basewall_ornate
 {
 	qer_editorimage	textures/rift/basewall_ornate
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         tcGen environment
     }
     {

@@ -60,7 +60,7 @@ textures/desert/stucco_grime_detail
         blendFunc GL_DST_COLOR GL_ZERO
     }
     {
-        map textures/desert/detail4
+        map textures/common/detail4
         blendFunc GL_DST_COLOR GL_ZERO
         detail
         tcMod scale 4 8

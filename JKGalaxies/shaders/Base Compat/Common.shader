@@ -163,7 +163,7 @@ textures/common/skip
 
 textures/common/env_glass
 {
-	qer_editorimage	textures/common/etest4
+	qer_editorimage	textures/common/env_metallic
 	qer_trans	0.6
 	surfaceparm	nonopaque
 	surfaceparm	forcefield
@@ -171,7 +171,7 @@ textures/common/env_glass
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         blendFunc GL_ONE GL_ONE
         tcGen environment
     }
@@ -181,14 +181,14 @@ textures/common/env_glass_breakable
 {
 // surfaceparm	forcefield
 
-	qer_editorimage	textures/common/etest4
+	qer_editorimage	textures/common/env_metallic
 	qer_trans	0.6
 	surfaceparm	nonopaque
 	surfaceparm	trans
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         blendFunc GL_ONE GL_ONE
         tcGen environment
     }
@@ -196,14 +196,14 @@ textures/common/env_glass_breakable
 
 textures/common/env_glass_green
 {
-	qer_editorimage	textures/common/etest4_green
+	qer_editorimage	textures/common/env_metallic_green
 	surfaceparm	nonopaque
 	surfaceparm	forcefield
 	surfaceparm	trans
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4_green
+        map textures/common/env_metallic_green
         blendFunc GL_ONE GL_ONE
         tcGen environment
     }
@@ -211,14 +211,14 @@ textures/common/env_glass_green
 
 textures/common/env_glass_red
 {
-	qer_editorimage	textures/common/etest4_red
+	qer_editorimage	textures/common/env_metallic_red
 	surfaceparm	nonopaque
 	surfaceparm	forcefield
 	surfaceparm	trans
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4_red
+        map textures/common/env_metallic_red
         blendFunc GL_ONE GL_ONE
         tcGen environment
     }
@@ -293,12 +293,12 @@ textures/common/env_glass_opaque
 {
 // surfaceparm	trans
 
-	qer_editorimage	textures/common/etest4
+	qer_editorimage	textures/common/env_metallic
 	surfaceparm	forcefield
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         rgbGen const ( 1.000000 1.000000 1.000000 )
         tcGen environment
     }
@@ -306,14 +306,14 @@ textures/common/env_glass_opaque
 
 textures/common/env_glass_equal
 {
-	qer_editorimage	textures/common/etest4
+	qer_editorimage	textures/common/env_metallic
 	surfaceparm	nonopaque
 	surfaceparm	forcefield
 	surfaceparm	trans
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         blendFunc GL_ONE GL_ONE
         rgbGen const ( 0.501961 0.501961 0.501961 )
         tcGen environment
@@ -663,7 +663,7 @@ textures/common/dust_animated
 
 textures/common/env_glass_tess
 {
-	qer_editorimage	textures/common/etest4
+	qer_editorimage	textures/common/env_metallic
 	q3map_tesssize	32
 	surfaceparm	nonopaque
 	surfaceparm	forcefield
@@ -671,7 +671,7 @@ textures/common/env_glass_tess
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         blendFunc GL_ONE GL_ONE
         tcGen environment
     }
@@ -764,7 +764,7 @@ textures/common/tan_gradient
 
 textures/common/env_obsidian
 {
-	qer_editorimage	textures/common/etest4
+	qer_editorimage	textures/common/env_metallic
 	surfaceparm	forcefield
 	q3map_nolightmap
 	q3map_onlyvertexlighting
@@ -839,7 +839,7 @@ textures/common/gradient_twosided
 
 textures/common/env_obsidian2
 {
-	qer_editorimage	textures/common/etest4
+	qer_editorimage	textures/common/env_metallic
 	surfaceparm	forcefield
 	q3map_nolightmap
 	q3map_onlyvertexlighting
@@ -1002,7 +1002,7 @@ textures/common/env_glass_security
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         blendFunc GL_ONE GL_ONE
         tcGen environment
     }
@@ -1022,7 +1022,7 @@ textures/common/glass_security_hex
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         blendFunc GL_ONE GL_ONE
         tcGen environment
     }
@@ -1042,7 +1042,7 @@ textures/common/glass_security_chain
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         blendFunc GL_ONE GL_ONE
         tcGen environment
     }
@@ -1062,7 +1062,7 @@ textures/common/glass_security_tris
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         blendFunc GL_ONE GL_ONE
         tcGen environment
     }
@@ -1085,7 +1085,7 @@ textures/common/glass_security_thex
         blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
     }
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
         alphaGen const 0.5
         tcGen environment
@@ -1102,7 +1102,7 @@ textures/common/glass_security_square
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         blendFunc GL_ONE GL_ONE
         tcGen environment
     }
@@ -1264,7 +1264,7 @@ textures/common/glass_security_opaque
 	q3map_material	Glass
 	q3map_nolightmap
     {
-        map textures/common/etest4
+        map textures/common/env_metallic
         tcGen environment
     }
     {
