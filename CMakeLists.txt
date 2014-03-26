@@ -81,6 +81,7 @@ if(WIN32)
 	if(WIN64)
 		if(MSVC)
 			set(SharedDefines "WIN64" "_CRT_SECURE_NO_WARNINGS")
+			
 		else(MSVC)
 			set(SharedDefines "WIN64")
 		endif(MSVC)
@@ -150,8 +151,9 @@ set(ReleaseDefines "FINAL_BUILD")
 
 #    Add projects
 add_subdirectory(${MPDir})
-	set(CMAKE_C_FLAGS_DEBUG "/D_DEBUG /MDd /ZI /Ob0 /Od /RTC1" CACHE STRING "flags" FORCE )
-	set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MDd /ZI /Ob0 /Od /RTC1" CACHE STRING "flags" FORCE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP" CACHE STRING "flags" FORCE)
+	set(CMAKE_C_FLAGS_DEBUG "/D_DEBUG /MP /MDd /ZI /Ob0 /Od /RTC1" CACHE STRING "flags" FORCE )
+	set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MP /MDd /ZI /Ob0 /Od /RTC1" CACHE STRING "flags" FORCE)
 #    CPack for installer creation
 # TODO: Which version are we?
 set(CPACK_PACKAGE_VERSION_MAJOR "0")
