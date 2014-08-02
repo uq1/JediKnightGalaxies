@@ -1,6 +1,4 @@
 // win_main.c
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
 
 #include "client/client.h"
 #include "win_local.h"
@@ -35,6 +33,8 @@ qboolean Sys_LowPhysicalMemory(void) {
 	if (!bAsked)	// just in case it takes a little time for GlobalMemoryStatusEx() to gather stats on
 	{				//	stuff we don't care about such as virtual mem etc.
 		bAsked = qtrue;
+
+		stat.dwLength = sizeof (stat);
 		GlobalMemoryStatusEx (&stat);
 	}
 	if (sys_lowmem->integer)
@@ -42,15 +42,6 @@ qboolean Sys_LowPhysicalMemory(void) {
 		return qtrue;
 	}
 	return (stat.ullTotalPhys <= MEM_THRESHOLD) ? qtrue : qfalse;
-}
-
-/*
-==================
-Sys_BeginProfiling
-==================
-*/
-void Sys_BeginProfiling( void ) {
-	// this is just used on the mac build
 }
 
 /*
@@ -275,7 +266,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		if (!nfiles)
 			return NULL;
 
-		listCopy = (char **)Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ), TAG_FILESYS );
+		listCopy = (char **)Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ), TAG_LISTFILES );
 		for ( i = 0 ; i < nfiles ; i++ ) {
 			listCopy[i] = list[i];
 		}
@@ -328,7 +319,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		return NULL;
 	}
 
-	listCopy = (char **)Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ), TAG_FILESYS );
+	listCopy = (char **)Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ), TAG_LISTFILES );
 	for ( i = 0 ; i < nfiles ; i++ ) {
 		listCopy[i] = list[i];
 	}
@@ -383,7 +374,7 @@ char *Sys_GetClipboardData( void ) {
 				data = (char *)Z_Malloc( GlobalSize( hClipboardData ) + 1, TAG_CLIPBOARD);
 				Q_strncpyz( data, cliptext, GlobalSize( hClipboardData )+1 );
 				GlobalUnlock( hClipboardData );
-				
+
 				strtok( data, "\n\r\b" );
 			}
 		}
@@ -439,7 +430,7 @@ bool Sys_UnpackDLL(const char *name)
 		return true;
 	}
 
-	f = FS_FOpenFileWrite( name );
+	f = FS_FOpenFileWrite( name, qfalse );
 	if ( !f )
 	{ //can't open for writing? Might be in use.
 		//This is possibly a malicious user attempt to circumvent dll
@@ -475,41 +466,41 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 
 	if(useSystemLib)
 		Com_Printf("Trying to load \"%s\"...\n", name);
-	
+
 	if(!useSystemLib || !(dllhandle = Sys_LoadLibrary(name)))
 	{
 		const char *topDir;
 		char libPath[MAX_OSPATH];
-        
+
 		topDir = Sys_BinaryPath();
-        
+
 		if(!*topDir)
 			topDir = ".";
-        
+
 		Com_Printf("Trying to load \"%s\" from \"%s\"...\n", name, topDir);
 		Com_sprintf(libPath, sizeof(libPath), "%s%c%s", topDir, PATH_SEP, name);
-        
+
 		if(!(dllhandle = Sys_LoadLibrary(libPath)))
 		{
 			const char *basePath = Cvar_VariableString("fs_basepath");
-			
+
 			if(!basePath || !*basePath)
 				basePath = ".";
-			
+
 			if(FS_FilenameCompare(topDir, basePath))
 			{
 				Com_Printf("Trying to load \"%s\" from \"%s\"...\n", name, basePath);
 				Com_sprintf(libPath, sizeof(libPath), "%s%c%s", basePath, PATH_SEP, name);
 				dllhandle = Sys_LoadLibrary(libPath);
 			}
-			
+
 			if(!dllhandle)
 			{
 				Com_Printf("Loading \"%s\" failed\n", name);
 			}
 		}
 	}
-	
+
 	return dllhandle;
 }
 
@@ -521,10 +512,7 @@ Used to load a development dll instead of a virtual machine
 =================
 */
 
-extern char		*FS_BuildOSPath( const char *base, const char *game, const char *qpath );
-extern cvar_t	*fs_unpackbinaries;
-
-void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) ) {
+void * QDECL Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) ) {
 	HINSTANCE	libHandle;
 	void	(QDECL *dllEntry)( intptr_t (QDECL *syscallptr)(intptr_t, ...) );
 	char	*basepath;
@@ -540,7 +528,9 @@ void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(in
 
 	if (fs_unpackbinaries->integer && !Sys_UnpackDLL(filename))
 	{
-		Com_Printf("GetLastError returned %i\n", GetLastError());
+		if ( com_developer->integer )
+			Com_Printf( "Sys_LoadLegacyGameDll: Failed to unpack %s from PK3.\n", filename );
+
 		return NULL;
 	}
 
@@ -572,9 +562,12 @@ void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(in
 		}
 	}
 
-	dllEntry = ( void (QDECL *)( intptr_t (QDECL *)( intptr_t, ... ) ) )GetProcAddress( libHandle, "dllEntry" ); 
-	*entryPoint = (intptr_t (QDECL *)(int,...))GetProcAddress( libHandle, "vmMain" );
-	if ( !*entryPoint || !dllEntry ) {
+	dllEntry = ( void (QDECL *)( intptr_t (QDECL *)( intptr_t, ... ) ) )GetProcAddress( libHandle, "dllEntry" );
+	*vmMain = (intptr_t (QDECL *)(int,...))GetProcAddress( libHandle, "vmMain" );
+	if ( !*vmMain || !dllEntry ) {
+		if ( com_developer->integer )
+			Com_Printf( "Sys_LoadLegacyGameDll: Entry point not found in %s. Failed with system error code 0x%X.\n", filename, GetLastError() );
+
 		FreeLibrary( libHandle );
 		Com_Printf("GetLastError returned %i\n", GetLastError());
 		return NULL;
@@ -585,269 +578,60 @@ void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(in
 		return libHandle;
 }
 
+void *QDECL Sys_LoadGameDll( const char *name, void *(QDECL **moduleAPI)(int, ...) ) {
+	HINSTANCE	libHandle;
+	char	*basepath, *homepath, *cdpath, *gamedir;
+	char	*fn;
+	char	filename[MAX_QPATH];
 
-/*
-========================================================================
+	Com_sprintf( filename, sizeof( filename ), "%s" ARCH_STRING DLL_EXT, name );
 
-BACKGROUND FILE STREAMING
+	if (!Sys_UnpackDLL(filename))
+	{
+		if ( com_developer->integer )
+			Com_Printf( "Sys_LoadGameDll: Failed to unpack %s from PK3.\n", filename );
 
-========================================================================
-*/
+		return NULL;
+	}
 
-#if 1
+	libHandle = LoadLibrary( filename );
+	if ( !libHandle ) {
+		basepath = Cvar_VariableString( "fs_basepath" );
+		homepath = Cvar_VariableString( "fs_homepath" );
+		cdpath = Cvar_VariableString( "fs_cdpath" );
+		gamedir = Cvar_VariableString( "fs_game" );
 
-void Sys_InitStreamThread( void ) {
-}
+		fn = FS_BuildOSPath( basepath, gamedir, filename );
+		libHandle = LoadLibrary( fn );
 
-void Sys_ShutdownStreamThread( void ) {
-}
-
-void Sys_BeginStreamedFile( fileHandle_t f, int readAhead ) {
-}
-
-void Sys_EndStreamedFile( fileHandle_t f ) {
-}
-
-int Sys_StreamedRead( void *buffer, int size, int count, fileHandle_t f ) {
-   return FS_Read( buffer, size * count, f );
-}
-
-void Sys_StreamSeek( fileHandle_t f, int offset, int origin ) {
-   FS_Seek( f, offset, origin );
-}
-
-
-#else
-
-typedef struct {
-	fileHandle_t	file;
-	byte	*buffer;
-	qboolean	eof;
-	qboolean	active;
-	int		bufferSize;
-	int		streamPosition;	// next byte to be returned by Sys_StreamRead
-	int		threadPosition;	// next byte to be read from file
-} streamsIO_t;
-
-typedef struct {
-	HANDLE				threadHandle;
-	int					threadId;
-	CRITICAL_SECTION	crit;
-	streamsIO_t			sIO[MAX_FILE_HANDLES];
-} streamState_t;
-
-streamState_t	stream;
-
-/*
-===============
-Sys_StreamThread
-
-A thread will be sitting in this loop forever
-================
-*/
-void Sys_StreamThread( void ) {
-	int		buffer;
-	int		count;
-	int		readCount;
-	int		bufferPoint;
-	int		r, i;
-
-	while (1) {
-		Sleep( 10 );
-//		EnterCriticalSection (&stream.crit);
-
-		for (i=1;i<MAX_FILE_HANDLES;i++) {
-			// if there is any space left in the buffer, fill it up
-			if ( stream.sIO[i].active  && !stream.sIO[i].eof ) {
-				count = stream.sIO[i].bufferSize - (stream.sIO[i].threadPosition - stream.sIO[i].streamPosition);
-				if ( !count ) {
-					continue;
+		if ( !libHandle ) {
+			if( homepath[0] ) {
+				fn = FS_BuildOSPath( homepath, gamedir, filename );
+				libHandle = LoadLibrary( fn );
+			}
+			if ( !libHandle ) {
+				if( cdpath[0] ) {
+					fn = FS_BuildOSPath( cdpath, gamedir, filename );
+					libHandle = LoadLibrary( fn );
 				}
-
-				bufferPoint = stream.sIO[i].threadPosition % stream.sIO[i].bufferSize;
-				buffer = stream.sIO[i].bufferSize - bufferPoint;
-				readCount = buffer < count ? buffer : count;
-
-				r = FS_Read( stream.sIO[i].buffer + bufferPoint, readCount, stream.sIO[i].file );
-				stream.sIO[i].threadPosition += r;
-
-				if ( r != readCount ) {
-					stream.sIO[i].eof = qtrue;
+				if ( !libHandle ) {
+					return NULL;
 				}
 			}
 		}
-//		LeaveCriticalSection (&stream.crit);
-	}
-}
-
-/*
-===============
-Sys_InitStreamThread
-
-================
-*/
-void Sys_InitStreamThread( void ) {
-	int i;
-
-	InitializeCriticalSection ( &stream.crit );
-
-	// don't leave the critical section until there is a
-	// valid file to stream, which will cause the StreamThread
-	// to sleep without any overhead
-//	EnterCriticalSection( &stream.crit );
-
-	stream.threadHandle = CreateThread(
-	   NULL,	// LPSECURITY_ATTRIBUTES lpsa,
-	   0,		// DWORD cbStack,
-	   (LPTHREAD_START_ROUTINE)Sys_StreamThread,	// LPTHREAD_START_ROUTINE lpStartAddr,
-	   0,			// LPVOID lpvThreadParm,
-	   0,			//   DWORD fdwCreate,
-	   &stream.threadId);
-	for(i=0;i<MAX_FILE_HANDLES;i++) {
-		stream.sIO[i].active = qfalse;
-	}
-}
-
-/*
-===============
-Sys_ShutdownStreamThread
-
-================
-*/
-void Sys_ShutdownStreamThread( void ) {
-}
-
-
-/*
-===============
-Sys_BeginStreamedFile
-
-================
-*/
-void Sys_BeginStreamedFile( fileHandle_t f, int readAhead ) {
-	if ( stream.sIO[f].file ) {
-		Sys_EndStreamedFile( stream.sIO[f].file );
 	}
 
-	stream.sIO[f].file = f;
-	stream.sIO[f].buffer = Z_Malloc( readAhead );
-	stream.sIO[f].bufferSize = readAhead;
-	stream.sIO[f].streamPosition = 0;
-	stream.sIO[f].threadPosition = 0;
-	stream.sIO[f].eof = qfalse;
-	stream.sIO[f].active = qtrue;
+	*moduleAPI = (void *(QDECL *)(int,...))GetProcAddress( libHandle, "GetModuleAPI" );
+	if ( !*moduleAPI ) {
+		if ( com_developer->integer )
+			Com_Printf( "Sys_LoadGameDll: Entry point not found in %s. Failed with system error code 0x%X.\n", filename, GetLastError() );
 
-	// let the thread start running
-//	LeaveCriticalSection( &stream.crit );
-}
-
-/*
-===============
-Sys_EndStreamedFile
-
-================
-*/
-void Sys_EndStreamedFile( fileHandle_t f ) {
-	if ( f != stream.sIO[f].file ) {
-		Com_Error( ERR_FATAL, "Sys_EndStreamedFile: wrong file");
-	}
-	// don't leave critical section until another stream is started
-	EnterCriticalSection( &stream.crit );
-
-	stream.sIO[f].file = 0;
-	stream.sIO[f].active = qfalse;
-
-	Z_Free( stream.sIO[f].buffer );
-
-	LeaveCriticalSection( &stream.crit );
-}
-
-
-/*
-===============
-Sys_StreamedRead
-
-================
-*/
-int Sys_StreamedRead( void *buffer, int size, int count, fileHandle_t f ) {
-	int		available;
-	int		remaining;
-	int		sleepCount;
-	int		copy;
-	int		bufferCount;
-	int		bufferPoint;
-	byte	*dest;
-
-	if (stream.sIO[f].active == qfalse) {
-		Com_Error( ERR_FATAL, "Streamed read with non-streaming file" );
+		FreeLibrary( libHandle );
+		return NULL;
 	}
 
-	dest = (byte *)buffer;
-	remaining = size * count;
-
-	if ( remaining <= 0 ) {
-		Com_Error( ERR_FATAL, "Streamed read with non-positive size" );
-	}
-
-	sleepCount = 0;
-	while ( remaining > 0 ) {
-		available = stream.sIO[f].threadPosition - stream.sIO[f].streamPosition;
-		if ( !available ) {
-			if ( stream.sIO[f].eof ) {
-				break;
-			}
-			if ( sleepCount == 1 ) {
-				Com_DPrintf( "Sys_StreamedRead: waiting\n" );
-			}
-			if ( ++sleepCount > 100 ) {
-				Com_Error( ERR_FATAL, "Sys_StreamedRead: thread has died");
-			}
-			Sleep( 10 );
-			continue;
-		}
-
-		EnterCriticalSection( &stream.crit );
-
-		bufferPoint = stream.sIO[f].streamPosition % stream.sIO[f].bufferSize;
-		bufferCount = stream.sIO[f].bufferSize - bufferPoint;
-
-		copy = available < bufferCount ? available : bufferCount;
-		if ( copy > remaining ) {
-			copy = remaining;
-		}
-		memcpy( dest, stream.sIO[f].buffer + bufferPoint, copy );
-		stream.sIO[f].streamPosition += copy;
-		dest += copy;
-		remaining -= copy;
-
-		LeaveCriticalSection( &stream.crit );
-	}
-
-	return (count * size - remaining) / size;
+	return libHandle;
 }
-
-/*
-===============
-Sys_StreamSeek
-
-================
-*/
-void Sys_StreamSeek( fileHandle_t f, int offset, int origin ) {
-
-	// halt the thread
-	EnterCriticalSection( &stream.crit );
-
-	// clear to that point
-	FS_Seek( f, offset, origin );
-	stream.sIO[f].streamPosition = 0;
-	stream.sIO[f].threadPosition = 0;
-	stream.sIO[f].eof = qfalse;
-
-	// let the thread start running at the new position
-	LeaveCriticalSection( &stream.crit );
-}
-
-#endif
 
 /*
 ========================================================================
@@ -987,18 +771,6 @@ void Sys_In_Restart_f( void ) {
 	IN_Init();
 }
 
-
-/*
-=================
-Sys_Net_Restart_f
-
-Restart the network subsystem
-=================
-*/
-void Sys_Net_Restart_f( void ) {
-	NET_Restart();
-}
-
 /*
 ================
 Sys_Init
@@ -1007,8 +779,6 @@ Called after the common systems (cvars, files, etc)
 are initialized
 ================
 */
-#define OSR2_BUILD_NUMBER 1111
-#define WIN98_BUILD_NUMBER 1998
 
 void Sys_Init( void ) {
 	// make sure the timer is high precision, otherwise
@@ -1016,7 +786,6 @@ void Sys_Init( void ) {
 	timeBeginPeriod( 1 );
 
 	Cmd_AddCommand ("in_restart", Sys_In_Restart_f);
-	Cmd_AddCommand ("net_restart", Sys_Net_Restart_f);
 
 	g_wv.osversion.dwOSVersionInfoSize = sizeof( g_wv.osversion );
 
@@ -1028,33 +797,11 @@ void Sys_Init( void ) {
 	if (g_wv.osversion.dwPlatformId == VER_PLATFORM_WIN32s)
 		Sys_Error ("This game doesn't run on Win32s");
 
-	if ( g_wv.osversion.dwPlatformId == VER_PLATFORM_WIN32_NT )
-	{
-		Cvar_Set( "arch", "winnt" );
-	}
-	else if ( g_wv.osversion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS )
-	{
-		if ( LOWORD( g_wv.osversion.dwBuildNumber ) >= WIN98_BUILD_NUMBER )
-		{
-			Cvar_Set( "arch", "win98" );
-		}
-		else if ( LOWORD( g_wv.osversion.dwBuildNumber ) >= OSR2_BUILD_NUMBER )
-		{
-			Cvar_Set( "arch", "win95 osr2.x" );
-		}
-		else
-		{
-			Cvar_Set( "arch", "win95" );
-		}
-	}
-	else
-	{
-		Cvar_Set( "arch", "unknown Windows variant" );
-	}
+	Cvar_Set( "arch", OS_STRING " " ARCH_STRING );
 
 	// save out a couple things in rom cvars for the renderer to access
-	Cvar_Get( "win_hinstance", va("%i", (int)g_wv.hInstance), CVAR_ROM );
-	Cvar_Get( "win_wndproc", va("%i", (int)MainWndProc), CVAR_ROM );
+	Cvar_Get( "win_hinstance", va("%p", g_wv.hInstance), CVAR_ROM );
+	Cvar_Get( "win_wndproc", va("%p", MainWndProc), CVAR_ROM );
 
 	Cvar_Set( "username", Sys_GetCurrentUser() );
 
@@ -1068,7 +815,7 @@ void QuickMemTest(void)
 //	if (!Sys_LowPhysicalMemory())
 	{
 		const int iMemTestMegs = 128;	// useful search label
-		// special test, 
+		// special test,
 		void *pvData = malloc(iMemTestMegs * 1024 * 1024);
 		if (pvData)
 		{
@@ -1078,9 +825,9 @@ void QuickMemTest(void)
 		{
 			// err...
 			//
-			LPCSTR psContinue = re->Language_IsAsian() ? 
+			LPCSTR psContinue = re->Language_IsAsian() ?
 								"Your machine failed to allocate %dMB in a memory test, which may mean you'll have problems running this game all the way through.\n\nContinue anyway?"
-								: 
+								:
 								SE_GetString("CON_TEXT_FAILED_MEMTEST");
 								// ( since it's too much hassle doing MBCS code pages and decodings etc for MessageBox command )
 
@@ -1200,10 +947,8 @@ int main( int argc, char **argv )
 	// no abort/retry/fail errors
 	SetErrorMode( SEM_FAILCRITICALERRORS );
 
-	// get the initial time base
+	// Set the initial time base
 	Sys_Milliseconds();
-
-	Sys_InitStreamThread();
 
 	Sys_SetBinaryPath( Sys_Dirname( argv[ 0 ] ) );
 	Sys_SetDefaultInstallPath( DEFAULT_BASEDIR );

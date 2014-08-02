@@ -1,9 +1,8 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 // cl.input.c  -- builds an intended movement command to send to the server
 
 #include "client.h"
+#include "cl_cgameapi.h"
+#include "cl_uiapi.h"
 #ifndef _WIN32
 #include <cmath>
 #endif
@@ -263,15 +262,7 @@ void IN_AutoMapButton(void)
 extern cvar_t *r_autoMap;
 void IN_AutoMapToggle(void)
 {
-
-	if (Cvar_VariableIntegerValue("cg_drawRadar"))
-	{
-		Cvar_Set("cg_drawRadar", "0");
-	}
-	else
-	{
-		Cvar_Set("cg_drawRadar", "1");
-	}
+	Cvar_User_SetValue("cg_drawRadar", !Cvar_VariableValue("cg_drawRadar"));
 	/*
 	if (r_autoMap && r_autoMap->integer)
 	{ //automap off, radar on
@@ -291,17 +282,17 @@ void IN_AutoMapToggle(void)
 
 void IN_VoiceChatButton(void)
 {
-	if (!uivm)
+	if (!cls.uiStarted)
 	{ //ui not loaded so this command is useless
 		return;
 	}
-	VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_VOICECHAT );
+	UIVM_SetActiveMenu( UIMENU_VOICECHAT );
 }
 
 void IN_KeyDown( kbutton_t *b ) {
 	int		k;
 	char	*c;
-	
+
 	c = Cmd_Argv(1);
 	if ( c[0] ) {
 		k = atoi(c);
@@ -312,7 +303,7 @@ void IN_KeyDown( kbutton_t *b ) {
 	if ( k == b->down[0] || k == b->down[1] ) {
 		return;		// repeating key
 	}
-	
+
 	if ( !b->down[0] ) {
 		b->down[0] = k;
 	} else if ( !b->down[1] ) {
@@ -321,7 +312,7 @@ void IN_KeyDown( kbutton_t *b ) {
 		Com_Printf ("Three keys down for a button!\n");
 		return;
 	}
-	
+
 	if ( b->active ) {
 		return;		// still down
 	}
@@ -502,9 +493,9 @@ static void CL_AutoMapKey(int autoMapKey, qboolean up)
 
 	memcpy(data, &g_clAutoMapInput, sizeof(autoMapInput_t));
 
-	if (cgvm)
+	if (cls.cgameStarted)
 	{
-		VM_Call(cgvm, CG_AUTOMAP_INPUT, 0);
+		CGVM_AutomapInput();
 	}
 
 	g_clAutoMapInput.goToDefaults = qfalse;
@@ -522,7 +513,7 @@ void IN_UpDown(void)
 		IN_KeyDown(&in_up);
 	}
 }
-void IN_UpUp(void) 
+void IN_UpUp(void)
 {
 	if (g_clAutoMapMode)
 	{
@@ -730,7 +721,7 @@ Moves the local angle positions
 */
 void CL_AdjustAngles( void ) {
 	float	speed;
-	
+
 	if ( in_speed.active ) {
 		speed = 0.001 * cls.frametime * cl_anglespeedkey->value;
 	} else {
@@ -831,22 +822,22 @@ CL_MouseEvent
 =================
 */
 void CL_MouseEvent( int dx, int dy, int time ) {
-	if (g_clAutoMapMode && cgvm)
+	if (g_clAutoMapMode && cls.cgameStarted)
 	{ //automap input
 		autoMapInput_t *data = (autoMapInput_t *)cl.mSharedMemory;
 
 		g_clAutoMapInput.yaw = dx;
 		g_clAutoMapInput.pitch = dy;
 		memcpy(data, &g_clAutoMapInput, sizeof(autoMapInput_t));
-		VM_Call(cgvm, CG_AUTOMAP_INPUT, 1);
+		CGVM_AutomapInput();
 
 		g_clAutoMapInput.yaw = 0.0f;
 		g_clAutoMapInput.pitch = 0.0f;
 	}
 	else if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
-		VM_Call( uivm, UI_MOUSE_EVENT, dx, dy );
+		UIVM_MouseEvent( dx, dy );
 	} else if ( Key_GetCatcher( ) & KEYCATCH_CGAME ) {
-		VM_Call (cgvm, CG_MOUSE_EVENT, dx, dy);
+		CGVM_MouseEvent( dx, dy );
 	} else {
 		cl.mouseDx[cl.mouseIndex] += dx;
 		cl.mouseDy[cl.mouseIndex] += dy;
@@ -874,6 +865,8 @@ CL_JoystickMove
 */
 extern cvar_t *in_joystick;
 void CL_JoystickMove( usercmd_t *cmd ) {
+	float	anglespeed;
+
 	if ( !in_joystick->integer )
 	{
 		return;
@@ -884,12 +877,13 @@ void CL_JoystickMove( usercmd_t *cmd ) {
 	{
 		if(abs(cl.joystickAxis[AXIS_FORWARD]) >= 30) cmd->forwardmove = cl.joystickAxis[AXIS_FORWARD];
 		if(abs(cl.joystickAxis[AXIS_SIDE]) >= 30) cmd->rightmove = cl.joystickAxis[AXIS_SIDE];
+		anglespeed = 0.001 * cls.frametime * cl_anglespeedkey->value;
+		cl.viewangles[YAW] -= (cl_yawspeed->value / 100.0f) * (cl.joystickAxis[AXIS_YAW]/1024.0f);
+		cl.viewangles[PITCH] += (cl_pitchspeed->value / 100.0f) * (cl.joystickAxis[AXIS_PITCH]/1024.0f);
 	}
 	else
 	{
 #endif
-	float	anglespeed;
-
 	if ( !(in_speed.active ^ cl_run->integer) ) {
 		cmd->buttons |= BUTTON_WALKING;
 	}
@@ -955,10 +949,7 @@ CL_MouseMove
 */
 void CL_MouseMove( usercmd_t *cmd ) {
 	float	mx, my;
-	float	accelSensitivity;
-	float	rate;
 	const float	speed = static_cast<float>(frame_msec);
-	const float pitch = cl_bUseFighterPitch?m_pitchVeh->value:m_pitch->value;
 
 	// allow mouse smoothing
 	if ( m_filter->integer ) {
@@ -973,85 +964,144 @@ void CL_MouseMove( usercmd_t *cmd ) {
 	cl.mouseDx[cl.mouseIndex] = 0;
 	cl.mouseDy[cl.mouseIndex] = 0;
 
-	rate = SQRTFAST( mx * mx + my * my ) / speed;
-	if ( cl_mYawOverride || cl_mPitchOverride )
-	{//FIXME: different people have different speed mouses,
-		if ( cl_mSensitivityOverride )
+	if ( mx == 0.0f && my == 0.0f )
+		return;
+
+	if ( cl_mouseAccel->value != 0.0f )
+	{
+		if ( cl_mouseAccelStyle->integer == 0 )
 		{
-			//this will fuck things up for them, need to clamp 
-			//max input?
-			accelSensitivity = cl_mSensitivityOverride;
+			float accelSensitivity;
+			float rate;
+
+			rate = SQRTFAST( mx * mx + my * my ) / speed;
+
+			if ( cl_mYawOverride || cl_mPitchOverride )
+			{//FIXME: different people have different speed mouses,
+				if ( cl_mSensitivityOverride )
+				{
+					//this will fuck things up for them, need to clamp
+					//max input?
+					accelSensitivity = cl_mSensitivityOverride;
+				}
+				else
+				{
+					accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
+				}
+			}
+			else
+			{
+				accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
+			}
+			mx *= accelSensitivity;
+			my *= accelSensitivity;
+
+			if ( cl_showMouseRate->integer )
+				Com_Printf( "rate: %f, accelSensitivity: %f\n", rate, accelSensitivity );
 		}
 		else
 		{
-			accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
-			// scale by FOV
-			accelSensitivity *= cl.cgameSensitivity;
+			float rate[2];
+			float power[2];
+
+			// sensitivity remains pretty much unchanged at low speeds
+			// cl_mouseAccel is a power value to how the acceleration is shaped
+			// cl_mouseAccelOffset is the rate for which the acceleration will have doubled the non accelerated amplification
+			// NOTE: decouple the config cvars for independent acceleration setup along X and Y?
+
+			rate[0] = fabs( mx ) / speed;
+			rate[1] = fabs( my ) / speed;
+			power[0] = powf( rate[0] / cl_mouseAccelOffset->value, cl_mouseAccel->value );
+			power[1] = powf( rate[1] / cl_mouseAccelOffset->value, cl_mouseAccel->value );
+
+			if ( cl_mYawOverride || cl_mPitchOverride )
+			{//FIXME: different people have different speed mouses,
+				if ( cl_mSensitivityOverride )
+				{
+					//this will fuck things up for them, need to clamp
+					//max input?
+					mx = cl_mSensitivityOverride * (mx + ((mx < 0) ? -power[0] : power[0]) * cl_mouseAccelOffset->value);
+					my = cl_mSensitivityOverride * (my + ((my < 0) ? -power[1] : power[1]) * cl_mouseAccelOffset->value);
+				}
+				else
+				{
+					mx = cl_sensitivity->value * (mx + ((mx < 0) ? -power[0] : power[0]) * cl_mouseAccelOffset->value);
+					my = cl_sensitivity->value * (my + ((my < 0) ? -power[1] : power[1]) * cl_mouseAccelOffset->value);
+				}
+			}
+			else
+			{
+				mx = cl_sensitivity->value * (mx + ((mx < 0) ? -power[0] : power[0]) * cl_mouseAccelOffset->value);
+				my = cl_sensitivity->value * (my + ((my < 0) ? -power[1] : power[1]) * cl_mouseAccelOffset->value);
+			}
+
+			if ( cl_showMouseRate->integer )
+				Com_Printf( "ratex: %f, ratey: %f, powx: %f, powy: %f\n", rate[0], rate[1], power[0], power[1] );
 		}
 	}
 	else
 	{
-		accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
-		// scale by FOV
-		accelSensitivity *= cl.cgameSensitivity;
-	}
-
-	if ( rate && cl_showMouseRate->integer ) {
-		Com_Printf( "%f : %f\n", rate, accelSensitivity );
-	}
-
-	mx *= accelSensitivity;
-	my *= accelSensitivity;
-
-	if (!mx && !my) {
-		return;
-	}
-
-	// add mouse X/Y movement to cmd
-	if ( in_strafe.active ) {
-		cmd->rightmove = ClampChar( cmd->rightmove + m_side->value * mx );
-	} else {
-		if ( cl_mYawOverride )
-		{
-			cl.viewangles[YAW] -= cl_mYawOverride * mx;
+		if ( cl_mYawOverride || cl_mPitchOverride )
+		{//FIXME: different people have different speed mouses,
+			if ( cl_mSensitivityOverride )
+			{
+				//this will fuck things up for them, need to clamp
+				//max input?
+				mx *= cl_mSensitivityOverride;
+				my *= cl_mSensitivityOverride;
+			}
+			else
+			{
+				mx *= cl_sensitivity->value;
+				my *= cl_sensitivity->value;
+			}
 		}
 		else
 		{
-			cl.viewangles[YAW] -= m_yaw->value * mx;
+			mx *= cl_sensitivity->value;
+			my *= cl_sensitivity->value;
 		}
+	}
+
+	// ingame FOV
+	mx *= cl.cgameSensitivity;
+	my *= cl.cgameSensitivity;
+
+	// add mouse X/Y movement to cmd
+	if ( in_strafe.active )
+		cmd->rightmove = ClampChar( cmd->rightmove + m_side->value * mx );
+	else {
+		if ( cl_mYawOverride )
+			cl.viewangles[YAW] -= cl_mYawOverride * mx;
+		else
+			cl.viewangles[YAW] -= m_yaw->value * mx;
 	}
 
 	if ( (in_mlooking || cl_freelook->integer) && !in_strafe.active ) {
 		// VVFIXME - This is supposed to be a CVAR
 		const float cl_pitchSensitivity = 1.0f;
-		if ( cl_mPitchOverride )
-		{
+		const float pitch = cl_bUseFighterPitch ? m_pitchVeh->value : m_pitch->value;
+		if ( cl_mPitchOverride ) {
 			if ( pitch > 0 )
-			{
 				cl.viewangles[PITCH] += cl_mPitchOverride * my * cl_pitchSensitivity;
-			}
 			else
-			{
 				cl.viewangles[PITCH] -= cl_mPitchOverride * my * cl_pitchSensitivity;
-			}
 		}
 		else
-		{
 			cl.viewangles[PITCH] += pitch * my * cl_pitchSensitivity;
-		}
-	} else {
-		cmd->forwardmove = ClampChar( cmd->forwardmove - m_forward->value * my );
 	}
+	else
+		cmd->forwardmove = ClampChar( cmd->forwardmove - m_forward->value * my );
 }
 
 qboolean CL_NoUseableForce(void)
 {
-	if (!cgvm)
+	if (!cls.cgameStarted)
 	{ //ahh, no cgame loaded
 		return qfalse;
 	}
 
-	return (qboolean)VM_Call(cgvm, CG_GET_USEABLE_FORCE);
+	return CGVM_NoUseableForce();
 }
 
 /*
@@ -1066,7 +1116,7 @@ void CL_CmdButtons( usercmd_t *cmd ) {
 	// figure button bits
 	// send a button bit even if the key was pressed and released in
 	// less than a frame
-	//	
+	//
 	for (i = 0 ; i < MAX_KBUTTONS ; i++) {
 		if ( in_buttons[i].active || in_buttons[i].wasPressed ) {
 			cmd->buttons |= 1 << i;
@@ -1124,7 +1174,7 @@ void CL_FinishMove( usercmd_t *cmd ) {
 	// send the current server time so the amount of movement
 	// can be determined without allowing cheating
 	cmd->serverTime = cl.serverTime;
-	
+
 	if (cl.cgameViewAngleForceTime > cl.serverTime)
 	{
 		cl.cgameViewAngleForce[YAW] -= SHORT2ANGLE(cl.snap.ps.delta_angles[YAW]);
@@ -1166,7 +1216,7 @@ void CL_FinishMove( usercmd_t *cmd ) {
 		{
 			cl_sendAngles[YAW] -= pitchSubtract;
 		}
-		
+
 		cl_sendAngles[PITCH] = AngleNormalize180( cl_sendAngles[PITCH] );
 		cl_sendAngles[YAW] = AngleNormalize360( cl_sendAngles[YAW] );
 		cl_sendAngles[ROLL] = AngleNormalize180( cl_sendAngles[ROLL] );
@@ -1200,7 +1250,7 @@ usercmd_t CL_CreateCmd( void ) {
 
 	// keyboard angle adjustment
 	CL_AdjustAngles ();
-	
+
 	Com_Memset( &cmd, 0, sizeof( cmd ) );
 
 	CL_CmdButtons( &cmd );
@@ -1219,7 +1269,7 @@ usercmd_t CL_CreateCmd( void ) {
 		cl.viewangles[PITCH] = oldAngles[PITCH] + 90;
 	} else if ( oldAngles[PITCH] - cl.viewangles[PITCH] > 90 ) {
 		cl.viewangles[PITCH] = oldAngles[PITCH] - 90;
-	} 
+	}
 
 	// store out the final values
 	CL_FinishMove( &cmd );
@@ -1296,8 +1346,8 @@ qboolean CL_ReadyToSendPacket( void ) {
 
 	// if we don't have a valid gamestate yet, only send
 	// one packet a second
-	if ( cls.state != CA_ACTIVE && 
-		cls.state != CA_PRIMED && 
+	if ( cls.state != CA_ACTIVE &&
+		cls.state != CA_PRIMED &&
 		!*clc.downloadTempName &&
 		cls.realtime - clc.lastPacketSentTime < 1000 ) {
 		return qfalse;
@@ -1457,7 +1507,7 @@ void CL_WritePacket( void ) {
 		Com_Printf( "%i ", buf.cursize );
 	}
 
-	CL_Netchan_Transmit (&clc.netchan, &buf);	
+	CL_Netchan_Transmit (&clc.netchan, &buf);
 
 	// clients never really should have messages large enough
 	// to fragment, but in case they do, fire them all off
@@ -1605,4 +1655,126 @@ void CL_InitInput( void ) {
 
 	cl_nodelta = Cvar_Get ("cl_nodelta", "0", 0);
 	cl_debugMove = Cvar_Get ("cl_debugMove", "0", 0);
+}
+
+/*
+============
+CL_ShutdownInput
+============
+*/
+void CL_ShutdownInput(void)
+{
+	Cmd_RemoveCommand ("centerview");
+
+	Cmd_RemoveCommand ("+moveup");
+	Cmd_RemoveCommand ("-moveup");
+	Cmd_RemoveCommand ("+movedown");
+	Cmd_RemoveCommand ("-movedown");
+	Cmd_RemoveCommand ("+left");
+	Cmd_RemoveCommand ("-left");
+	Cmd_RemoveCommand ("+right");
+	Cmd_RemoveCommand ("-right");
+	Cmd_RemoveCommand ("+forward");
+	Cmd_RemoveCommand ("-forward");
+	Cmd_RemoveCommand ("+back");
+	Cmd_RemoveCommand ("-back");
+	Cmd_RemoveCommand ("+lookup");
+	Cmd_RemoveCommand ("-lookup");
+	Cmd_RemoveCommand ("+lookdown");
+	Cmd_RemoveCommand ("-lookdown");
+	Cmd_RemoveCommand ("+strafe");
+	Cmd_RemoveCommand ("-strafe");
+	Cmd_RemoveCommand ("+moveleft");
+	Cmd_RemoveCommand ("-moveleft");
+	Cmd_RemoveCommand ("+moveright");
+	Cmd_RemoveCommand ("-moveright");
+	Cmd_RemoveCommand ("+speed");
+	Cmd_RemoveCommand ("-speed");
+	Cmd_RemoveCommand ("+attack");
+	Cmd_RemoveCommand ("-attack");
+	Cmd_RemoveCommand ("+use");
+	Cmd_RemoveCommand ("-use");
+	Cmd_RemoveCommand ("+force_grip");//force grip
+	Cmd_RemoveCommand ("-force_grip");
+	Cmd_RemoveCommand ("+altattack");//altattack
+	Cmd_RemoveCommand ("-altattack");
+	Cmd_RemoveCommand ("+useforce");//active force power
+	Cmd_RemoveCommand ("-useforce");
+	Cmd_RemoveCommand ("+force_lightning");//active force power
+	Cmd_RemoveCommand ("-force_lightning");
+	Cmd_RemoveCommand ("+force_drain");//active force power
+	Cmd_RemoveCommand ("-force_drain");
+	//buttons
+	Cmd_RemoveCommand ("+button0");//attack
+	Cmd_RemoveCommand ("-button0");
+	Cmd_RemoveCommand ("+button1");//force jump
+	Cmd_RemoveCommand ("-button1");
+	Cmd_RemoveCommand ("+button2");//use holdable (not used - change to use jedi power?)
+	Cmd_RemoveCommand ("-button2");
+	Cmd_RemoveCommand ("+button3");//gesture
+	Cmd_RemoveCommand ("-button3");
+	Cmd_RemoveCommand ("+button4");//walking
+	Cmd_RemoveCommand ("-button4");
+	Cmd_RemoveCommand ("+button5");//use object
+	Cmd_RemoveCommand ("-button5");
+	Cmd_RemoveCommand ("+button6");//force grip
+	Cmd_RemoveCommand ("-button6");
+	Cmd_RemoveCommand ("+button7");//altattack
+	Cmd_RemoveCommand ("-button7");
+	Cmd_RemoveCommand ("+button8");
+	Cmd_RemoveCommand ("-button8");
+	Cmd_RemoveCommand ("+button9");//active force power
+	Cmd_RemoveCommand ("-button9");
+	Cmd_RemoveCommand ("+button10");//force lightning
+	Cmd_RemoveCommand ("-button10");
+	Cmd_RemoveCommand ("+button11");//force drain
+	Cmd_RemoveCommand ("-button11");
+	Cmd_RemoveCommand ("+button12");
+	Cmd_RemoveCommand ("-button12");
+	Cmd_RemoveCommand ("+button13");
+	Cmd_RemoveCommand ("-button13");
+	Cmd_RemoveCommand ("+button14");
+	Cmd_RemoveCommand ("-button14");
+	Cmd_RemoveCommand ("+button15");
+	Cmd_RemoveCommand ("-button15");
+	Cmd_RemoveCommand ("+mlook");
+	Cmd_RemoveCommand ("-mlook");
+
+	Cmd_RemoveCommand ("sv_saberswitch");
+	Cmd_RemoveCommand ("engage_duel");
+	Cmd_RemoveCommand ("force_heal");
+	Cmd_RemoveCommand ("force_speed");
+	Cmd_RemoveCommand ("force_pull");
+	Cmd_RemoveCommand ("force_distract");
+	Cmd_RemoveCommand ("force_rage");
+	Cmd_RemoveCommand ("force_protect");
+	Cmd_RemoveCommand ("force_absorb");
+	Cmd_RemoveCommand ("force_healother");
+	Cmd_RemoveCommand ("force_forcepowerother");
+	Cmd_RemoveCommand ("force_seeing");
+	Cmd_RemoveCommand ("use_seeker");
+	Cmd_RemoveCommand ("use_field");
+	Cmd_RemoveCommand ("use_bacta");
+	Cmd_RemoveCommand ("use_electrobinoculars");
+	Cmd_RemoveCommand ("zoom");
+	Cmd_RemoveCommand ("use_sentry");
+	Cmd_RemoveCommand ("use_jetpack");
+	Cmd_RemoveCommand ("use_bactabig");
+	Cmd_RemoveCommand ("use_healthdisp");
+	Cmd_RemoveCommand ("use_ammodisp");
+	Cmd_RemoveCommand ("use_eweb");
+	Cmd_RemoveCommand ("use_cloak");
+	Cmd_RemoveCommand ("taunt");
+	Cmd_RemoveCommand ("bow");
+	Cmd_RemoveCommand ("meditate");
+	Cmd_RemoveCommand ("flourish");
+	Cmd_RemoveCommand ("gloat");
+	Cmd_RemoveCommand ("saberAttackCycle");
+	Cmd_RemoveCommand ("force_throw");
+	Cmd_RemoveCommand ("useGivenForce");
+
+
+	Cmd_RemoveCommand("automap_button");
+	Cmd_RemoveCommand("automap_toggle");
+	Cmd_RemoveCommand("voicechat");
 }

@@ -1,10 +1,7 @@
 // common.c -- misc functions used in client and server
 
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
-#include "GenericParser2.h"
 #include "stringed_ingame.h"
+#include "qcommon/cm_public.h"
 #include "qcommon/game_version.h"
 #include "../server/NPCNav/navigator.h"
 
@@ -36,8 +33,6 @@ cvar_t	*com_optvehtrace;
 cvar_t	*com_G2Report;
 #endif
 
-cvar_t	*com_terrainPhysics; //rwwRMG - added
-
 cvar_t	*com_version;
 cvar_t	*com_buildScript;	// for automated data building scripts
 cvar_t	*com_bootlogo;
@@ -48,7 +43,7 @@ cvar_t	*com_unfocused;
 cvar_t	*com_minimized;
 cvar_t  *com_homepath;
 
-cvar_t	*com_RMG;
+cvar_t *com_affinity;
 
 // Jedi Knight Galaxies
 cvar_t	*clver;
@@ -102,7 +97,7 @@ void Com_EndRedirect (void)
 Com_Printf
 
 Both client and server can use this, and it will output
-to the apropriate place.
+to the appropriate place.
 
 A raw string should NEVER be passed as fmt, because of "%f" type crashers.
 =============
@@ -123,7 +118,7 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 		}
 		Q_strcat(rd_buffer, rd_buffersize, msg);
     // TTimo nooo .. that would defeat the purpose
-		//rd_flush(rd_buffer);			
+		//rd_flush(rd_buffer);
 		//*rd_buffer = 0;
 		return;
 	}
@@ -190,7 +185,7 @@ A Com_Printf that only shows up if the "developer" cvar is set
 void QDECL Com_DPrintf( const char *fmt, ...) {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
-		
+
 	if ( !com_developer || !com_developer->integer ) {
 		return;			// don't confuse non-developers with techie stuff...
 	}
@@ -198,16 +193,16 @@ void QDECL Com_DPrintf( const char *fmt, ...) {
 	va_start (argptr,fmt);
 	Q_vsnprintf (msg, sizeof(msg), fmt, argptr);
 	va_end (argptr);
-	
+
 	Com_Printf ("%s", msg);
 }
 
 // Outputs to the VC / Windows Debug window (only in debug compile)
-void QDECL Com_OPrintf( const char *fmt, ...) 
+void QDECL Com_OPrintf( const char *fmt, ...)
 {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
-		
+
 	va_start (argptr,fmt);
 	Q_vsnprintf (msg, sizeof(msg), fmt, argptr);
 	va_end (argptr);
@@ -223,7 +218,7 @@ void QDECL Com_OPrintf( const char *fmt, ...)
 Com_Error
 
 Both client and server can use this, and it will
-do the apropriate things.
+do the appropriate things.
 =============
 */
 void QDECL Com_Error( int code, const char *fmt, ... ) {
@@ -263,8 +258,8 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 		Cvar_Set("com_errorMessage", com_errorMessage);
 	}
 
-	if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT || code == ERR_DROP ) {
-	throw code;
+	if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT || code == ERR_DROP || code == ERR_NEED_CD ) {
+		throw code;
 	} else {
 		CL_Shutdown ();
 		SV_Shutdown (va("Server fatal crashed: %s\n", com_errorMessage));
@@ -282,7 +277,7 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 Com_Quit_f
 
 Both client and server can use this, and it will
-do the apropriate things.
+do the appropriate things.
 =============
 */
 void Com_Quit_f( void ) {
@@ -385,23 +380,16 @@ be after execing the config and default.
 ===============
 */
 void Com_StartupVariable( const char *match ) {
-	char	*s;
-
 	for (int i=0 ; i < com_numConsoleLines ; i++) {
 		Cmd_TokenizeString( com_consoleLines[i] );
 		if ( strcmp( Cmd_Argv(0), "set" ) ) {
 			continue;
 		}
 
-		s = Cmd_Argv(1);
+		char *s = Cmd_Argv(1);
 
-		if(!match || !strcmp(s, match))
-		{
-			if((unsigned)Cvar_Flags(s) == CVAR_NONEXISTENT)
-				Cvar_Get(s, Cmd_Argv(2), CVAR_USER_CREATED);
-			else
-				Cvar_Set2(s, Cmd_Argv(2), qfalse);
-		}
+		if ( !match || !strcmp( s, match ) )
+			Cvar_User_Set( s, Cmd_Argv( 2 ) );
 	}
 }
 
@@ -903,9 +891,9 @@ int Com_EventLoop( void ) {
 			CL_JoystickEvent( ev.evValue, ev.evValue2, ev.evTime );
 			break;
 		case SE_CONSOLE:
-			if ( ((char *)ev.evPtr)[0] == '\\' || ((char *)ev.evPtr)[0] == '/' ) 
+			if ( ((char *)ev.evPtr)[0] == '\\' || ((char *)ev.evPtr)[0] == '/' )
 			{
-				Cbuf_AddText( (char *)ev.evPtr+1 );	
+				Cbuf_AddText( (char *)ev.evPtr+1 );
 			}
 			else
 			{
@@ -972,7 +960,7 @@ int Com_Milliseconds (void) {
 			Com_PushEvent( &ev );
 		}
 	} while ( ev.evType != SE_NONE );
-	
+
 	return ev.evTime;
 }
 
@@ -1033,10 +1021,6 @@ A way to force a bus error for development reasons
 static void Com_Crash_f( void ) {
 	* ( volatile int * ) 0 = 0x12345678;
 }
-
-#ifdef MEM_DEBUG
-	void SH_Register(void);
-#endif
 
 /*
 ==================
@@ -1130,25 +1114,92 @@ static void Com_InitRand(void)
 
 /*
 =================
+Com_ErrorString
+Error string for the given error code (from Com_Error).
+=================
+*/
+static const char *Com_ErrorString ( int code )
+{
+	switch ( code )
+	{
+		case ERR_DISCONNECT:
+		// fallthrough
+		case ERR_SERVERDISCONNECT:
+			return "DISCONNECTED";
+
+		case ERR_DROP:
+			return "DROPPED";
+
+		case ERR_NEED_CD:
+			return "NEED CD";
+
+		default:
+			return "UNKNOWN";
+	}
+}
+
+/*
+=================
+Com_CatchError
+Handles freeing up of resources when Com_Error is called.
+=================
+*/
+static void Com_CatchError ( int code )
+{
+	if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT ) {
+		SV_Shutdown( "Server disconnected" );
+		CL_Disconnect( qtrue );
+		CL_FlushMemory(  );
+		// make sure we can get at our local stuff
+		FS_PureServerSetLoadedPaks( "", "" );
+		com_errorEntered = qfalse;
+	} else if ( code == ERR_DROP ) {
+		Com_Printf ("********************\n"
+					"ERROR: %s\n"
+					"********************\n", com_errorMessage);
+		SV_Shutdown (va("Server crashed: %s\n",  com_errorMessage));
+		CL_Disconnect( qtrue );
+		CL_FlushMemory( );
+		// make sure we can get at our local stuff
+		FS_PureServerSetLoadedPaks( "", "" );
+		com_errorEntered = qfalse;
+	} else if ( code == ERR_NEED_CD ) {
+		SV_Shutdown( "Server didn't have CD" );
+		if ( com_cl_running && com_cl_running->integer ) {
+			CL_Disconnect( qtrue );
+			CL_FlushMemory( );
+		} else {
+			Com_Printf("Server didn't have CD\n" );
+		}
+		// make sure we can get at our local stuff
+		FS_PureServerSetLoadedPaks( "", "" );
+		com_errorEntered = qfalse;
+	}
+}
+
+/*
+=================
 Com_Init
 =================
 */
 void Com_Init( char *commandLine ) {
 	char	*s;
+	int		qport;
 
 	Com_Printf( "%s %s %s\n", JK_VERSION, PLATFORM_STRING, __DATE__ );
 
 	try
 	{
-		// bk001129 - do this before anything else decides to push events
+		// initialize the weak pseudo-random number generator for use later.
+		Com_InitRand();
+
+		// do this before anything else decides to push events
 		Com_InitPushEvent();
 
+		Com_InitZoneMemory();
 		Cvar_Init ();
 
 		navigator.Init();
-
-		// initialize the weak pseudo-random number generator for use later.
-		Com_InitRand();
 
 		// prepare enough of the subsystems to handle
 		// cvar and command buffer management
@@ -1157,12 +1208,11 @@ void Com_Init( char *commandLine ) {
 	//	Swap_Init ();
 		Cbuf_Init ();
 
-		Com_InitZoneMemory();
-
-		Cmd_Init ();
-
 		// override anything from the config files with command line args
 		Com_StartupVariable( NULL );
+
+		Com_InitZoneMemoryVars();
+		Cmd_Init ();
 
 		// Seed the random number generator
 		Rand_Init(Sys_Milliseconds(true));
@@ -1178,6 +1228,19 @@ void Com_Init( char *commandLine ) {
 		FS_InitFilesystem ();
 
 		Com_InitJournaling();
+
+		// Add some commands here already so users can use them from config files
+		if ( com_developer && com_developer->integer ) {
+			Cmd_AddCommand ("error", Com_Error_f);
+			Cmd_AddCommand ("crash", Com_Crash_f );
+			Cmd_AddCommand ("freeze", Com_Freeze_f);
+		}
+		Cmd_AddCommand ("quit", Com_Quit_f );
+#ifndef FINAL_BUILD
+		Cmd_AddCommand ("changeVectors", MSG_ReportChangeVectors_f );
+#endif
+		Cmd_AddCommand ("writeconfig", Com_WriteConfig_f );
+		Cmd_SetCommandCompletionFunc( "writeconfig", Cmd_CompleteCfgName );
 
 		Com_ExecuteCfg();
 
@@ -1216,8 +1279,6 @@ void Com_Init( char *commandLine ) {
 		com_fixedtime = Cvar_Get ("fixedtime", "0", CVAR_CHEAT);
 		com_showtrace = Cvar_Get ("com_showtrace", "0", CVAR_CHEAT);
 
-		com_terrainPhysics = Cvar_Get ("com_terrainPhysics", "1", CVAR_CHEAT);
-
 		com_dropsim = Cvar_Get ("com_dropsim", "0", CVAR_CHEAT);
 		com_viewlog = Cvar_Get( "viewlog", "0", 0 );
 		com_speeds = Cvar_Get ("com_speeds", "0", 0);
@@ -1239,29 +1300,7 @@ void Com_Init( char *commandLine ) {
 		com_G2Report = Cvar_Get("com_G2Report", "0", 0);
 #endif
 
-		com_RMG = Cvar_Get("RMG", "0", 0);
-
-		// Jedi Knight Galaxies
-		clver = Cvar_Get("clver", JKG_VERSION, CVAR_ROM|CVAR_USERINFO);
-
-		Cvar_Get ("RMG_seed", "0", 0);
-		Cvar_Get ("RMG_time", "day", 0);
-		Cvar_Get ("RMG_soundset", "", 0);
-
-		Cvar_Get ("RMG_textseed", "0", CVAR_SYSTEMINFO|CVAR_ARCHIVE);
-		Cvar_Get ("RMG_map", "small", CVAR_ARCHIVE|CVAR_SYSTEMINFO);
-		Cvar_Get ("RMG_timefile", "day", CVAR_ARCHIVE);
-		Cvar_Get ("RMG_terrain", "grassyhills", CVAR_ARCHIVE);
-
-		Cvar_Get ("RMG_sky", "", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_fog", "", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_weather", "", CVAR_SYSTEMINFO|CVAR_SERVERINFO|CVAR_CHEAT );
-		Cvar_Get ("RMG_instances", "colombia", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_miscents", "deciduous", 0);
-		Cvar_Get ("RMG_music", "music/dm_kam1", 0);
-		Cvar_Get ("RMG_mission", "ctf", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_course", "standard", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_distancecull", "5000", CVAR_CHEAT );
+		com_affinity = Cvar_Get( "com_affinity", "1", CVAR_ARCHIVE );
 
 		com_bootlogo = Cvar_Get( "com_bootlogo", "1", CVAR_ARCHIVE);
 
@@ -1271,22 +1310,19 @@ void Com_Init( char *commandLine ) {
 			}
 		}
 
-		if ( com_developer && com_developer->integer ) {
-			Cmd_AddCommand ("error", Com_Error_f);
-			Cmd_AddCommand ("crash", Com_Crash_f );
-			Cmd_AddCommand ("freeze", Com_Freeze_f);
-		}
-		Cmd_AddCommand ("quit", Com_Quit_f);
-		Cmd_AddCommand ("changeVectors", MSG_ReportChangeVectors_f );
-		Cmd_AddCommand ("writeconfig", Com_WriteConfig_f );
-
-		s = va("%s %s %s", JK_VERSION, PLATFORM_STRING, __DATE__ );
+		s = va("%s %s %s", JK_VERSION_OLD, PLATFORM_STRING, __DATE__ );
 		com_version = Cvar_Get ("version", s, CVAR_ROM | CVAR_SERVERINFO );
 
 		SE_Init();
 
 		Sys_Init();
-		Netchan_Init( Com_Milliseconds() & 0xffff );	// pick a port value that should be nice and random
+
+		Sys_SetProcessorAffinity();
+
+		// Pick a random port value
+		Com_RandomBytes( (byte*)&qport, sizeof(int) );
+		Netchan_Init( qport & 0xffff );	// pick a port value that should be nice and random
+
 		VM_Init();
 		SV_Init();
 
@@ -1303,10 +1339,10 @@ void Com_Init( char *commandLine ) {
 
 
 		// add + commands from command line
-		if ( !Com_AddStartupCommands() ) 
+		if ( !Com_AddStartupCommands() )
 		{
 			// if the user didn't give any commands, run default action
-			if ( !com_dedicated->integer ) 
+			if ( !com_dedicated->integer )
 			{
 				/*if ( com_bootlogo->integer )
 				{
@@ -1323,20 +1359,14 @@ void Com_Init( char *commandLine ) {
 		// make sure single player is off by default
 		Cvar_Set("ui_singlePlayerActive", "0");
 
-#ifdef MEM_DEBUG
-		SH_Register();
-#endif
-
 		com_fullyInitialized = qtrue;
-		Com_Printf ("--- Common Initialization Complete ---\n");	
-
+		Com_Printf ("--- Common Initialization Complete ---\n");
 	}
-
-catch ( int code )
-{
-Com_CatchError (code);
-Sys_Error ("Error during initialization: %s", Com_ErrorString (code));
-}
+	catch ( int code )
+	{
+		Com_CatchError (code);
+		Sys_Error ("Error during initialization: %s", Com_ErrorString (code));
+	}
 }
 
 //==================================================================
@@ -1426,7 +1456,7 @@ int Com_ModifyMsec( int msec ) {
 	} else if (com_cameraMode->integer) {
 		msec *= com_timescale->value;
 	}
-	
+
 	// don't let it scale below 1 msec
 	if ( msec < 1 && com_timescale->value) {
 		msec = 1;
@@ -1440,7 +1470,7 @@ int Com_ModifyMsec( int msec ) {
 			Com_Printf( "Hitch warning: %i msec frame time\n", msec );
 		}
 		clampTime = 5000;
-	} else 
+	} else
 	if ( !com_sv_running->integer ) {
 		// clients of remote servers do not want to clamp time, because
 		// it would skew their view of the server's time temporarily
@@ -1474,166 +1504,171 @@ Com_Frame
 */
 void Com_Frame( void ) {
 
-try
-{
+	try
+	{
 #ifdef G2_PERFORMANCE_ANALYSIS
-	G2PerformanceTimer_PreciseFrame.Start();
+		G2PerformanceTimer_PreciseFrame.Start();
 #endif
-	int		msec, minMsec;
-	static int	lastTime;
- 
-	int		timeBeforeFirstEvents;
-	int           timeBeforeServer;
-	int           timeBeforeEvents;
-	int           timeBeforeClient;
-	int           timeAfter;
+		int		msec, minMsec;
+		static int	lastTime = 0;
+
+		int		timeBeforeFirstEvents;
+		int           timeBeforeServer;
+		int           timeBeforeEvents;
+		int           timeBeforeClient;
+		int           timeAfter;
 
 
-	// bk001204 - init to zero.
-	//  also:  might be clobbered by `longjmp' or `vfork'
-	timeBeforeFirstEvents =0;
-	timeBeforeServer =0;
-	timeBeforeEvents =0;
-	timeBeforeClient = 0;
-	timeAfter = 0;
+		// bk001204 - init to zero.
+		//  also:  might be clobbered by `longjmp' or `vfork'
+		timeBeforeFirstEvents =0;
+		timeBeforeServer =0;
+		timeBeforeEvents =0;
+		timeBeforeClient = 0;
+		timeAfter = 0;
 
-	// write config file if anything changed
-	Com_WriteConfiguration(); 
+		// write config file if anything changed
+		Com_WriteConfiguration();
 
-	// if "viewlog" has been modified, show or hide the log console
-	if ( com_viewlog->modified ) {
-		if ( !com_dedicated->value ) {
-			Sys_ShowConsole( com_viewlog->integer, qfalse );
+		// if "viewlog" has been modified, show or hide the log console
+		if ( com_viewlog->modified ) {
+			if ( !com_dedicated->value ) {
+				Sys_ShowConsole( com_viewlog->integer, qfalse );
+			}
+			com_viewlog->modified = qfalse;
 		}
-		com_viewlog->modified = qfalse;
-	}
 
-	//
-	// main event loop
-	//
-	if ( com_speeds->integer ) {
-		timeBeforeFirstEvents = Sys_Milliseconds ();
-	}
-
-	// we may want to spin here if things are going too fast
-	if ( !com_dedicated->integer && com_maxfps->integer > 0 && !com_timedemo->integer ) {
-		minMsec = 1000 / com_maxfps->integer;
-	} else {
-		minMsec = 1;
-	}
-	do {
-		com_frameTime = Com_EventLoop();
-		if ( lastTime > com_frameTime ) {
-			lastTime = com_frameTime;		// possible on first frame
-		}
-		msec = com_frameTime - lastTime;
-	} while ( msec < minMsec );
-	Cbuf_Execute ();
-
-	lastTime = com_frameTime;
-
-	// mess with msec if needed
-	com_frameMsec = msec;
-	msec = Com_ModifyMsec( msec );
-
-	//
-	// server side
-	//
-	if ( com_speeds->integer ) {
-		timeBeforeServer = Sys_Milliseconds ();
-	}
-
-	SV_Frame( msec );
-
-	// if "dedicated" has been modified, start up
-	// or shut down the client system.
-	// Do this after the server may have started,
-	// but before the client tries to auto-connect
-	if ( com_dedicated->modified ) {
-		// get the latched value
-		Cvar_Get( "_dedicated", "0", 0 );
-		com_dedicated->modified = qfalse;
-		if ( !com_dedicated->integer ) {
-			CL_Init();
-			Sys_ShowConsole( com_viewlog->integer, qfalse );
-			CL_StartHunkUsers();	//fire up the UI!
-		} else {
-			CL_Shutdown();
-			Sys_ShowConsole( 1, qtrue );
-		}
-	}
-
-	//
-	// client system
-	//
-	if ( !com_dedicated->integer ) {
 		//
-		// run event loop a second time to get server to client packets
-		// without a frame of latency
+		// main event loop
 		//
 		if ( com_speeds->integer ) {
-			timeBeforeEvents = Sys_Milliseconds ();
+			timeBeforeFirstEvents = Sys_Milliseconds ();
 		}
-		Com_EventLoop();
+
+		// we may want to spin here if things are going too fast
+		if ( !com_dedicated->integer && com_maxfps->integer > 0 && !com_timedemo->integer ) {
+			minMsec = 1000 / com_maxfps->integer;
+		} else {
+			minMsec = 1;
+		}
+		do {
+			com_frameTime = Com_EventLoop();
+			if ( lastTime > com_frameTime ) {
+				lastTime = com_frameTime;		// possible on first frame
+			}
+			msec = com_frameTime - lastTime;
+		} while ( msec < minMsec );
 		Cbuf_Execute ();
 
+		lastTime = com_frameTime;
+
+		// mess with msec if needed
+		com_frameMsec = msec;
+		msec = Com_ModifyMsec( msec );
 
 		//
-		// client side
+		// server side
 		//
 		if ( com_speeds->integer ) {
-			timeBeforeClient = Sys_Milliseconds ();
+			timeBeforeServer = Sys_Milliseconds ();
 		}
 
-		CL_Frame( msec );
+		SV_Frame( msec );
 
+		// if "dedicated" has been modified, start up
+		// or shut down the client system.
+		// Do this after the server may have started,
+		// but before the client tries to auto-connect
+		if ( com_dedicated->modified ) {
+			// get the latched value
+			Cvar_Get( "_dedicated", "0", 0 );
+			com_dedicated->modified = qfalse;
+			if ( !com_dedicated->integer ) {
+				CL_Init();
+				Sys_ShowConsole( com_viewlog->integer, qfalse );
+				CL_StartHunkUsers();	//fire up the UI!
+			} else {
+				CL_Shutdown();
+				Sys_ShowConsole( 1, qtrue );
+			}
+		}
+
+		//
+		// client system
+		//
+		if ( !com_dedicated->integer ) {
+			//
+			// run event loop a second time to get server to client packets
+			// without a frame of latency
+			//
+			if ( com_speeds->integer ) {
+				timeBeforeEvents = Sys_Milliseconds ();
+			}
+			Com_EventLoop();
+			Cbuf_Execute ();
+
+
+			//
+			// client side
+			//
+			if ( com_speeds->integer ) {
+				timeBeforeClient = Sys_Milliseconds ();
+			}
+
+			CL_Frame( msec );
+
+			if ( com_speeds->integer ) {
+				timeAfter = Sys_Milliseconds ();
+			}
+		}
+		else
+		{
+			if ( com_speeds->integer )
+			{
+				timeBeforeEvents = timeBeforeClient = timeAfter = Sys_Milliseconds ();
+			}
+		}
+
+		//
+		// report timing information
+		//
 		if ( com_speeds->integer ) {
-			timeAfter = Sys_Milliseconds ();
+			int			all, sv, ev, cl;
+
+			all = timeAfter - timeBeforeServer;
+			sv = timeBeforeEvents - timeBeforeServer;
+			ev = timeBeforeServer - timeBeforeFirstEvents + timeBeforeClient - timeBeforeEvents;
+			cl = timeAfter - timeBeforeClient;
+			sv -= time_game;
+			cl -= time_frontend + time_backend;
+
+			Com_Printf ("frame:%i all:%3i sv:%3i ev:%3i cl:%3i gm:%3i rf:%3i bk:%3i\n",
+						 com_frameNumber, all, sv, ev, cl, time_game, time_frontend, time_backend );
 		}
+
+		//
+		// trace optimization tracking
+		//
+		if ( com_showtrace->integer ) {
+
+			extern	int c_traces, c_brush_traces, c_patch_traces;
+			extern	int	c_pointcontents;
+
+			Com_Printf ("%4i traces  (%ib %ip) %4i points\n", c_traces,
+				c_brush_traces, c_patch_traces, c_pointcontents);
+			c_traces = 0;
+			c_brush_traces = 0;
+			c_patch_traces = 0;
+			c_pointcontents = 0;
+		}
+
+		com_frameNumber++;
 	}
-
-	//
-	// report timing information
-	//
-	if ( com_speeds->integer ) {
-		int			all, sv, ev, cl;
-
-		all = timeAfter - timeBeforeServer;
-		sv = timeBeforeEvents - timeBeforeServer;
-		ev = timeBeforeServer - timeBeforeFirstEvents + timeBeforeClient - timeBeforeEvents;
-		cl = timeAfter - timeBeforeClient;
-		sv -= time_game;
-		cl -= time_frontend + time_backend;
-
-		Com_Printf ("frame:%i all:%3i sv:%3i ev:%3i cl:%3i gm:%3i rf:%3i bk:%3i\n", 
-					 com_frameNumber, all, sv, ev, cl, time_game, time_frontend, time_backend );
-	}	
-
-	//
-	// trace optimization tracking
-	//
-	if ( com_showtrace->integer ) {
-	
-		extern	int c_traces, c_brush_traces, c_patch_traces;
-		extern	int	c_pointcontents;
-
-		Com_Printf ("%4i traces  (%ib %ip) %4i points\n", c_traces,
-			c_brush_traces, c_patch_traces, c_pointcontents);
-		c_traces = 0;
-		c_brush_traces = 0;
-		c_patch_traces = 0;
-		c_pointcontents = 0;
+	catch (int code) {
+		Com_CatchError (code);
+		Com_Printf ("%s\n", Com_ErrorString (code));
+		return;
 	}
-
-	com_frameNumber++;
-
-}//try
-catch (int code) 
-{
-	Com_CatchError (code);
-	Com_Printf ("%s\n", Com_ErrorString (code));
-	return;
-}
 
 #ifdef G2_PERFORMANCE_ANALYSIS
 	G2Time_PreciseFrame += G2PerformanceTimer_PreciseFrame.End();
@@ -1653,7 +1688,7 @@ Com_Shutdown
 =================
 */
 void MSG_shutdownHuffman();
-void Com_Shutdown (void) 
+void Com_Shutdown (void)
 {
 	CM_ClearMap();
 
@@ -1915,7 +1950,7 @@ void Field_CompleteCommand( char *cmd, qboolean doCommands, qboolean doCvars )
 		if( ( p = Field_FindFirstSeparator( cmd ) ) )
 			Field_CompleteCommand( p + 1, qtrue, qtrue ); // Compound command
 		else
-			Cmd_CompleteArgument( baseCmd, cmd, completionArgument ); 
+			Cmd_CompleteArgument( baseCmd, cmd, completionArgument );
 	}
 	else {
 		if ( completionString[0] == '\\' || completionString[0] == '/' )
@@ -1958,75 +1993,6 @@ void Field_AutoComplete( field_t *field ) {
 	completionField = field;
 
 	Field_CompleteCommand( completionField->buffer, qtrue, qtrue );
-}
-
-//rwwRMG: Inserted:
-/*
-============
-ParseTextFile
-============
-*/
-
-bool Com_ParseTextFile(const char *file, class CGenericParser2 &parser, bool cleanFirst)
-{
-	fileHandle_t	f;
-	int				length = 0;
-	char			*buf = 0, *bufParse = 0;
-
-	length = FS_FOpenFileByMode( file, &f, FS_READ );
-	if (!f || !length)		
-	{
-		return false;
-	}
-
-	buf = new char [length + 1];
-	FS_Read( buf, length, f );
-	buf[length] = 0;
-
-	bufParse = buf;
-	parser.Parse(&bufParse, cleanFirst);
-	delete[] buf;
-
-	FS_FCloseFile( f );
-
-	return true;
-}
-
-void Com_ParseTextFileDestroy(class CGenericParser2 &parser)
-{
-	parser.Clean();
-}
-
-CGenericParser2 *Com_ParseTextFile(const char *file, bool cleanFirst, bool writeable)
-{
-	fileHandle_t	f;
-	int				length = 0;
-	char			*buf = 0, *bufParse = 0;
-	CGenericParser2 *parse;
-
-	length = FS_FOpenFileByMode( file, &f, FS_READ );
-	if (!f || !length)		
-	{
-		return 0;
-	}
-
-	buf = new char [length + 1];
-	FS_Read( buf, length, f );
-	FS_FCloseFile( f );
-	buf[length] = 0;
-
-	bufParse = buf;
-
-	parse = new CGenericParser2;
-	if (!parse->Parse(&bufParse, cleanFirst, writeable))
-	{
-		delete parse;
-		parse = 0;
-	}
-
-	delete[] buf;
-
-	return parse;
 }
 
 /*

@@ -1,10 +1,8 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 // world.c -- world query functions
 
 #include "server.h"
 #include "ghoul2/ghoul2_shared.h"
+#include "qcommon/cm_public.h"
 
 /*
 ================
@@ -99,7 +97,7 @@ worldSector_t *SV_CreateworldSector( int depth, vec3_t mins, vec3_t maxs ) {
 		anode->children[0] = anode->children[1] = NULL;
 		return anode;
 	}
-	
+
 	VectorSubtract (maxs, mins, size);
 	if (size[0] > size[1]) {
 		anode->axis = 0;
@@ -108,13 +106,13 @@ worldSector_t *SV_CreateworldSector( int depth, vec3_t mins, vec3_t maxs ) {
 	}
 
 	anode->dist = 0.5 * (maxs[anode->axis] + mins[anode->axis]);
-	VectorCopy (mins, mins1);	
-	VectorCopy (mins, mins2);	
-	VectorCopy (maxs, maxs1);	
-	VectorCopy (maxs, maxs2);	
-	
+	VectorCopy (mins, mins1);
+	VectorCopy (mins, mins2);
+	VectorCopy (maxs, maxs1);
+	VectorCopy (maxs, maxs2);
+
 	maxs1[anode->axis] = mins2[anode->axis] = anode->dist;
-	
+
 	anode->children[0] = SV_CreateworldSector (depth+1, mins2, maxs2);
 	anode->children[1] = SV_CreateworldSector (depth+1, mins1, maxs1);
 
@@ -255,7 +253,7 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 		}
 	} else {
 		// normal
-		VectorAdd (origin, gEnt->r.mins, gEnt->r.absmin);	
+		VectorAdd (origin, gEnt->r.mins, gEnt->r.absmin);
 		VectorAdd (origin, gEnt->r.maxs, gEnt->r.absmax);
 	}
 
@@ -335,7 +333,7 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 		else
 			break;		// crosses the node
 	}
-	
+
 	// link it in
 	ent->worldSector = node;
 	ent->nextEntityInWorldSector = node->entities;
@@ -354,7 +352,7 @@ bounds.  This does NOT mean that they actually touch in the case of bmodels.
 ============================================================================
 */
 
-typedef struct {
+typedef struct areaParms_s {
 	const float	*mins;
 	const float	*maxs;
 	int			*list;
@@ -394,7 +392,7 @@ void SV_AreaEntities_r( worldSector_t *node, areaParms_t *ap ) {
 		ap->list[ap->count] = check - sv.svEntities;
 		ap->count++;
 	}
-	
+
 	if (node->axis == -1) {
 		return;		// terminal node
 	}
@@ -432,7 +430,7 @@ int SV_AreaEntities( const vec3_t mins, const vec3_t maxs, int *entityList, int 
 //===========================================================================
 
 
-typedef struct {
+typedef struct moveclip_s {
 	vec3_t		boxmins, boxmaxs;// enclose the test object along entire move
 	const float	*mins;
 	const float *maxs;	// size of the moving object
@@ -505,7 +503,7 @@ SV_ClipMoveToEntities
 ====================
 */
 #ifndef FINAL_BUILD
-static float VectorDistance(vec3_t p1, vec3_t p2) 
+static float VectorDistance(vec3_t p1, vec3_t p2)
 {
 	vec3_t dir;
 
@@ -665,7 +663,7 @@ Ghoul2 Insert Start
 					touch->s.angles, touch->s.origin, svs.time, touch->s.number, clip->start, clip->end, touch->s.modelScale, G2VertSpaceServer, clip->traceFlags, clip->useLod);
 
 				// set our new trace record size
- 
+
 				for (z=0;z<MAX_G2_COLLISIONS;z++)
 				{
 					if (clip->trace.G2CollisionMap[z].mEntityNum != -1)
@@ -728,7 +726,7 @@ Ghoul2 Insert Start
 #ifndef FINAL_BUILD
 			if (sv_showghoultraces->integer)
 			{
-				Com_Printf( "Ghoul2 trace   lod=%1d   length=%6.0f   to %s\n",clip->useLod,VectorDistance(clip->start, clip->end),(*((CGhoul2Info_v *)touch->ghoul2))[0].mFileName);
+				Com_Printf( "Ghoul2 trace   lod=%1d   length=%6.0f   to %s\n",clip->useLod,VectorDistance(clip->start, clip->end), re->G2API_GetModelName (*(CGhoul2Info_v *)touch->ghoul2, 0));
 			}
 #endif
 
@@ -826,7 +824,7 @@ Ghoul2 Insert End
 	clip.contentmask = contentmask;
 /*
 Ghoul2 Insert Start
-*/	
+*/
 	VectorCopy( start, clip.start );
 	clip.traceFlags = traceFlags;
 	clip.useLod = useLod;
@@ -873,7 +871,6 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 	int			i, num;
 	int			contents, c2;
 	clipHandle_t	clipHandle;
-	float		*angles;
 
 	// get base contents from world
 	contents = CM_PointContents( p, 0 );
@@ -888,10 +885,6 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 		hit = SV_GentityNum( touch[i] );
 		// might intersect, so do an exact clip
 		clipHandle = SV_ClipHandleForEntity( hit );
-		angles = hit->s.angles;
-		if ( !hit->r.bmodel ) {
-			angles = vec3_origin;	// boxes don't rotate
-		}
 
 		c2 = CM_TransformedPointContents (p, clipHandle, hit->r.currentOrigin, hit->r.currentAngles);
 

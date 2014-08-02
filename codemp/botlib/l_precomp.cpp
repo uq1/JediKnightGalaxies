@@ -7,7 +7,7 @@
  * desc:		pre compiler
  *
  * $Archive: /MissionPack/code/botlib/l_precomp.c $
- * $Author: Ttimo $ 
+ * $Author: Ttimo $
  * $Revision: 20 $
  * $Modtime: 5/15/01 4:10a $
  * $Date: 5/15/01 4:10a $
@@ -1012,7 +1012,7 @@ int PC_Directive_include(source_t *source)
 				break;
 			} //end if
 			if (token.type == TT_PUNCTUATION && *token.string == '>') break;
-			strncat(path, token.string, MAX_PATH - 1);
+			Q_strcat(path, sizeof(path), token.string);
 		} //end while
 		if (*token.string != '>')
 		{
@@ -1068,7 +1068,7 @@ int PC_ReadLine(source_t *source, token_t *token)
 	do
 	{
 		if (!PC_ReadSourceToken(source, token)) return qfalse;
-		
+
 		if (token->linescrossed > crossline)
 		{
 			PC_UnreadSourceToken(source, token);
@@ -1135,7 +1135,7 @@ int PC_Directive_undef(source_t *source)
 			if (define->flags & DEFINE_FIXED)
 			{
 				SourceWarning(source, "can't undef %s", token.string);
-			} //end if			
+			} //end if
 			else
 			{
 				if (lastdefine) lastdefine->hashnext = define->hashnext;
@@ -1460,8 +1460,8 @@ void PC_RemoveAllGlobalDefines(void)
 				define = globaldefines[i];
 				globaldefines[i] = globaldefines[i]->globalnext;
 				PC_FreeDefine(define);
-			} 
-		} 
+			}
+		}
 	}
 #else //DEFINEHASHING
 	for (define = globaldefines; define; define = globaldefines)
@@ -1535,8 +1535,8 @@ void PC_AddGlobalDefinesToSource(source_t *source)
 			PC_AddDefineToHash(define, source->definehash);
 
 			define = define->globalnext;
-		} 
-	} 
+		}
+	}
 #else //DEFINEHASHING
 	define_t* newdefine;
 	for (define = globaldefines; define; define = define->next)
@@ -1701,11 +1701,6 @@ int PC_OperatorPriority(int op)
 	return qfalse;
 } //end of the function PC_OperatorPriority
 
-//#define AllocValue()			GetClearedMemory(sizeof(value_t));
-//#define FreeValue(val)		FreeMemory(val)
-//#define AllocOperator(op)		op = (operator_t *) GetClearedMemory(sizeof(operator_t));
-//#define FreeOperator(op)		FreeMemory(op);
-
 #define MAX_VALUES		64
 #define MAX_OPERATORS	64
 #define AllocValue(val)									\
@@ -1786,7 +1781,7 @@ int PC_EvaluateTokens(source_t *source, token_t *tokens, signed long int *intval
 				AllocValue(v);
 #if DEFINEHASHING
 				if (PC_FindHashedDefine(source->definehash, t->string))
-#else			
+#else
 				if (PC_FindDefine(source->defines, t->string))
 #endif //DEFINEHASHING
 				{
@@ -1914,7 +1909,7 @@ int PC_EvaluateTokens(source_t *source, token_t *tokens, signed long int *intval
 							break;
 						} //end if
 					} //end case
-					
+
 					case P_MUL:
 					case P_DIV:
 					case P_MOD:
@@ -2896,6 +2891,7 @@ int PC_ExpectTokenType(source_t *source, int type, int subtype, token_t *token)
 	{
 		if ((token->subtype & subtype) != subtype)
 		{
+			strcpy(str, "");
 			if (subtype & TT_DECIMAL) strcpy(str, "decimal");
 			if (subtype & TT_HEX) strcpy(str, "hex");
 			if (subtype & TT_OCTAL) strcpy(str, "octal");
@@ -3019,10 +3015,15 @@ void PC_UnreadToken(source_t *source, token_t *token)
 //============================================================================
 void PC_SetIncludePath(source_t *source, char *path)
 {
-	Q_strncpyz(source->includepath, path, MAX_PATH);
+	size_t len;
+
+	Q_strncpyz(source->includepath, path, MAX_PATH-1);
+
+	len = strlen(source->includepath);
+
 	//add trailing path seperator
-	if (source->includepath[strlen(source->includepath)-1] != '\\' &&
-		source->includepath[strlen(source->includepath)-1] != '/')
+	if (len > 0 && source->includepath[len-1] != '\\' &&
+		source->includepath[len-1] != '/')
 	{
 		strcat(source->includepath, PATHSEPERATOR_STR);
 	} //end if
@@ -3147,7 +3148,7 @@ void FreeSource(source_t *source)
 		define = source->definehash[i];
 		while(define)
 		{
-			nextdefine = define->hashnext; 			
+			nextdefine = define->hashnext;
 
 			if ( !(define->flags & DEFINE_GLOBAL) )
 			{

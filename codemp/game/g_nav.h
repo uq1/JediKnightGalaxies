@@ -20,59 +20,57 @@
 #define	MAX_RADIUS_CHECK	1024
 #define	YAW_ITERATIONS	16
 
-// This is probably wrong - VVFIXME
-// Some kind of wacky code sharing going on here, but we need these things
-// in g_navnew.c -- which is now C++ code in the GAME on Xbox, so the
-// original test fails.
-#if !defined(ENGINE) || (defined(_XBOX) && defined(QAGAME)) || (defined(__linux__) && defined(QAGAME))
-//rww - Rest of defines here are also shared in exe, do not modify.
-#define	__NEWCOLLECT	1
+// Engine has its own copy of these (navigator.h)
 
-#define _HARD_CONNECT	1
+#ifdef _GAME
+	//rww - Rest of defines here are also shared in exe, do not modify.
+	#define	__NEWCOLLECT	1
 
-//Node flags
-#define	NF_ANY			0
-//#define	NF_CLEAR_LOS	0x00000001
-#define NF_CLEAR_PATH	0x00000002
-#define NF_RECALC		0x00000004
+	#define _HARD_CONNECT	1
 
-//Edge flags
-#define	EFLAG_NONE		0
-#define EFLAG_BLOCKED	0x00000001
-#define EFLAG_FAILED	0x00000002
+	//Node flags
+	#define	NF_ANY			0
+	//#define	NF_CLEAR_LOS	0x00000001
+	#define NF_CLEAR_PATH	0x00000002
+	#define NF_RECALC		0x00000004
 
-//Miscellaneous defines
-#define	NODE_NONE		-1
-#define	NAV_HEADER_ID	'JNV5'
-#define	NODE_HEADER_ID	'NODE'
+	//Edge flags
+	#define	EFLAG_NONE		0
+	#define EFLAG_BLOCKED	0x00000001
+	#define EFLAG_FAILED	0x00000002
 
-//this stuff is local and can be modified, don't even show it to the engine.
-extern	qboolean navCalculatePaths;
+	//Miscellaneous defines
+	#define	NODE_NONE		-1
+	#define	NAV_HEADER_ID	'JNV5'
+	#define	NODE_HEADER_ID	'NODE'
 
-extern	qboolean NAVDEBUG_showNodes;
-extern	qboolean NAVDEBUG_showRadius;
-extern	qboolean NAVDEBUG_showEdges;
-extern	qboolean NAVDEBUG_showTestPath;
-extern	qboolean NAVDEBUG_showEnemyPath;
-extern	qboolean NAVDEBUG_showCombatPoints;
-extern	qboolean NAVDEBUG_showNavGoals;
-extern	qboolean NAVDEBUG_showCollision;
+	//this stuff is local and can be modified, don't even show it to the engine.
+	extern	qboolean navCalculatePaths;
 
-extern	int	 NAVDEBUG_curGoal;
+	extern	qboolean NAVDEBUG_showNodes;
+	extern	qboolean NAVDEBUG_showRadius;
+	extern	qboolean NAVDEBUG_showEdges;
+	extern	qboolean NAVDEBUG_showTestPath;
+	extern	qboolean NAVDEBUG_showEnemyPath;
+	extern	qboolean NAVDEBUG_showCombatPoints;
+	extern	qboolean NAVDEBUG_showNavGoals;
+	extern	qboolean NAVDEBUG_showCollision;
 
-void NAV_Shutdown( void );
-void NAV_CalculatePaths( const char *filename, int checksum );
-void NAV_CalculateSquadPaths( const char *filename, int checksum );
+	extern	int	 NAVDEBUG_curGoal;
 
-void NAV_ShowDebugInfo( void );
+	void NAV_Shutdown( void );
+	void NAV_CalculatePaths( const char *filename, int checksum );
+	void NAV_CalculateSquadPaths( const char *filename, int checksum );
 
-int NAV_GetNearestNode( gentity_t *self, int lastNode );
-extern int NAV_TestBestNode( gentity_t *self, int startID, int endID, qboolean failEdge );
+	void NAV_ShowDebugInfo( void );
 
-qboolean NPC_GetMoveDirection( vec3_t out, float *distance );
-void NPC_MoveToGoalExt( vec3_t point );
-void NAV_FindPlayerWaypoint( int clNum );
-qboolean NAV_CheckAhead( gentity_t *self, vec3_t end, trace_t *trace, int clipmask );
+	int NAV_GetNearestNode( gentity_t *self, int lastNode );
+	extern int NAV_TestBestNode( gentity_t *self, int startID, int endID, qboolean failEdge );
+
+	qboolean NPC_GetMoveDirection( vec3_t out, float *distance );
+	void NPC_MoveToGoalExt( vec3_t point );
+	void NAV_FindPlayerWaypoint( int clNum );
+	qboolean NAV_CheckAhead( gentity_t *self, vec3_t end, trace_t *trace, int clipmask );
 #endif
 
 #endif //#ifndef __G_NAV_H__

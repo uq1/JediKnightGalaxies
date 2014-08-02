@@ -163,7 +163,7 @@ typedef void (APIENTRY *PFNGLGETCOMBINERINPUTPARAMETERIVNV) (GLenum stage,GLenum
 typedef void (APIENTRY *PFNGLGETCOMBINEROUTPUTPARAMETERFVNV) (GLenum stage,GLenum portion,GLenum pname,GLfloat *params);
 typedef void (APIENTRY *PFNGLGETCOMBINEROUTPUTPARAMETERIVNV) (GLenum stage,GLenum portion,GLenum pname,GLint *params);
 typedef void (APIENTRY *PFNGLGETFINALCOMBINERINPUTPARAMETERFVNV) (GLenum variable,GLenum pname,GLfloat *params);
-typedef void (APIENTRY *PFNGLGETFINALCOMBINERINPUTPARAMETERIVNV) (GLenum variable,GLenum pname,GLfloat *params);
+typedef void (APIENTRY *PFNGLGETFINALCOMBINERINPUTPARAMETERIVNV) (GLenum variable,GLenum pname,GLint *params);
 /***********************************************************************************************************/
 
 // Declare Register Combiners function pointers.
@@ -281,7 +281,7 @@ extern PFNWGLSETPBUFFERATTRIBARBPROC		qwglSetPbufferAttribARB;
 #define GL_VERTEX_PROGRAM_ARB                       0x8620
 #define GL_PROGRAM_FORMAT_ASCII_ARB                 0x8875
 
-typedef void (APIENTRY * PFNGLPROGRAMSTRINGARBPROC) (GLenum target, GLenum format, GLsizei len, const GLvoid *string); 
+typedef void (APIENTRY * PFNGLPROGRAMSTRINGARBPROC) (GLenum target, GLenum format, GLsizei len, const GLvoid *string);
 typedef void (APIENTRY * PFNGLBINDPROGRAMARBPROC) (GLenum target, GLuint program);
 typedef void (APIENTRY * PFNGLDELETEPROGRAMSARBPROC) (GLsizei n, const GLuint *programs);
 typedef void (APIENTRY * PFNGLGENPROGRAMSARBPROC) (GLsizei n, GLuint *programs);
@@ -343,24 +343,12 @@ extern	void ( APIENTRY * qglClientActiveTextureARB )( GLenum texture );
 extern	void ( APIENTRY * qglLockArraysEXT) (GLint, GLint);
 extern	void ( APIENTRY * qglUnlockArraysEXT) (void);
 
-extern	void ( APIENTRY * qglPointParameterfEXT)( GLenum, GLfloat);
-extern	void ( APIENTRY * qglPointParameterfvEXT)( GLenum, GLfloat *);
-
-//3d textures -rww
-extern	void ( APIENTRY * qglTexImage3DEXT) (GLenum, GLint, GLenum, GLsizei, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid *);
-extern	void ( APIENTRY * qglTexSubImage3DEXT) (GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei, GLenum, GLenum, const GLvoid *);
-
 //===========================================================================
 
 // non-windows systems will just redefine qgl* to gl*
-#if !defined( _WIN32 ) && !defined(MACOS_X) && !defined( __linux__ ) && !defined( __FreeBSD__ ) // rb010123
-
-#include "qgl_linked.h"
-
-#elif defined(MACOS_X)
-// This includes #ifdefs for optional logging and GL error checking after every GL call as well as #defines to prevent incorrect usage of the non-'qgl' versions of the GL API.
-#include "../macosx/macosx_qgl.h"
-
+#if defined(MACOS_X)
+	// This includes #ifdefs for optional logging and GL error checking after every GL call as well as #defines to prevent incorrect usage of the non-'qgl' versions of the GL API.
+	#include "../macosx/macosx_qgl.h"
 #else
 
 // windows systems use a function pointer for each call so we can load minidrivers

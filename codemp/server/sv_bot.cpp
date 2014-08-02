@@ -1,9 +1,8 @@
 // sv_bot.c
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 #include "server.h"
 #include "botlib/botlib.h"
+#include "qcommon/cm_public.h"
+#include "server/sv_gameapi.h"
 
 typedef struct bot_debugpoly_s
 {
@@ -37,18 +36,12 @@ static int NotWithinRange(int base, int extent)
 	return 1;
 }
 
-int SV_OrgVisibleBox(vec3_t org1, vec3_t mins, vec3_t maxs, vec3_t org2, int ignore, int rmg)
+int SV_OrgVisibleBox(vec3_t org1, vec3_t mins, vec3_t maxs, vec3_t org2, int ignore)
 {
 	trace_t tr;
 
-	if (rmg)
-	{
-		SV_Trace(&tr, org1, NULL, NULL, org2, ignore, MASK_SOLID, 0, 0, 10);
-	}
-	else
-	{
-		SV_Trace(&tr, org1, mins, maxs, org2, ignore, MASK_SOLID, 0, 0, 10);
-	}
+
+	SV_Trace(&tr, org1, mins, maxs, org2, ignore, MASK_SOLID, 0, 0, 10);
 
 	if (tr.fraction == 1 && !tr.startsolid && !tr.allsolid)
 	{
@@ -68,7 +61,7 @@ void SV_BotWaypointReception(int wpnum, wpobject_t **wps)
 
 	while (i < gWPNum)
 	{
-		gWPArray[i] = (wpobject_t *)BotVMShift((intptr_t)wps[i]);
+		gWPArray[i] = wps[i];
 		i++;
 	}
 }
@@ -78,7 +71,7 @@ void SV_BotWaypointReception(int wpnum, wpobject_t **wps)
 SV_BotCalculatePaths
 ==================
 */
-void SV_BotCalculatePaths(int rmg)
+void SV_BotCalculatePaths( int /*rmg*/ )
 {
 	int i;
 	int c;
@@ -91,11 +84,6 @@ void SV_BotCalculatePaths(int rmg)
 	if (!gWPNum)
 	{
 		return;
-	}
-
-	if (rmg)
-	{
-		maxNeighborDist = DEFAULT_GRID_SPACING + (DEFAULT_GRID_SPACING*0.5);
 	}
 
 	mins[0] = -15;
@@ -144,7 +132,7 @@ void SV_BotCalculatePaths(int rmg)
 
 					if ((nLDist < maxNeighborDist || forceJumpable) &&
 						((int)gWPArray[i]->origin[2] == (int)gWPArray[c]->origin[2] || forceJumpable) &&
-						(SV_OrgVisibleBox(gWPArray[i]->origin, mins, maxs, gWPArray[c]->origin, ENTITYNUM_NONE, rmg) || forceJumpable))
+						(SV_OrgVisibleBox(gWPArray[i]->origin, mins, maxs, gWPArray[c]->origin, ENTITYNUM_NONE) || forceJumpable))
 					{
 						gWPArray[i]->neighbors[gWPArray[i]->neighbornum].num = c;
 						if (forceJumpable && ((int)gWPArray[i]->origin[2] != (int)gWPArray[c]->origin[2] || nLDist < maxNeighborDist))
@@ -197,6 +185,7 @@ int SV_BotAllocateClient(void) {
 	cl->netchan.remoteAddress.type = NA_BOT;
 	cl->rate = 16384;
 
+	// cannot start recording auto demos here since bot's name is not set yet
 	return i;
 }
 
@@ -216,6 +205,10 @@ void SV_BotFreeClient( int clientNum ) {
 	cl->name[0] = 0;
 	if ( cl->gentity ) {
 		cl->gentity->r.svFlags &= ~SVF_BOT;
+	}
+
+	if ( cl->demo.demorecording ) {
+		SV_StopRecordDemo( cl );
 	}
 }
 
@@ -247,7 +240,7 @@ void BotDrawDebugPolygons(void (*drawPoly)(int color, int numPoints, float *poin
 		if (bot_reachability->integer) parm0 |= 2;
 		if (bot_groundonly->integer) parm0 |= 4;
 		botlib_export->BotLibVarSet("bot_highlightarea", bot_highlightarea->string);
-		botlib_export->Test(parm0, NULL, svs.clients[0].gentity->r.currentOrigin, 
+		botlib_export->Test(parm0, NULL, svs.clients[0].gentity->r.currentOrigin,
 			svs.clients[0].gentity->r.currentAngles);
 	} //end if
 	//draw all debug polys
@@ -583,10 +576,12 @@ SV_BotFrame
 ==================
 */
 void SV_BotFrame( int time ) {
-	if (!bot_enable) return;
+	if (!bot_enable)
+		return;
 	//NOTE: maybe the game is already shutdown
-	if (!gvm) return;
-	VM_Call( gvm, BOTAI_START_FRAME, time );
+	if (!svs.gameStarted)
+		return;
+	GVM_BotAIStartFrame( time );
 }
 
 /*
@@ -704,7 +699,7 @@ void SV_BotInitBotLib(void) {
 
 	// file system access
 	botlib_import.FS_FOpenFile = FS_FOpenFileByMode;
-	botlib_import.FS_Read = FS_Read2;
+	botlib_import.FS_Read = FS_Read;
 	botlib_import.FS_Write = FS_Write;
 	botlib_import.FS_FCloseFile = FS_FCloseFile;
 	botlib_import.FS_Seek = FS_Seek;

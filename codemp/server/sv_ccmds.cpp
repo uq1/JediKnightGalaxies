@@ -1,8 +1,6 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 #include "server.h"
 #include "qcommon/stringed_ingame.h"
+#include "server/sv_gameapi.h"
 #include "qcommon/game_version.h"
 
 /*
@@ -16,12 +14,6 @@ These commands can only be entered from stdin or by a remote operator datagram
 
 const char *SV_GetStringEdString(char *refSection, char *refName)
 {
-	/*
-	static char text[1024]={0};
-	trap_SP_GetStringTextString(va("%s_%s", refSection, refName), text, sizeof(text));
-	return text;
-	*/
-
 	//Well, it would've been lovely doing it the above way, but it would mean mixing
 	//languages for the client depending on what the server is. So we'll mark this as
 	//a stringed reference with @@@ and send the refname to the client, and when it goes
@@ -268,6 +260,8 @@ static void SV_MapRestart_f( void ) {
 		return;
 	}
 
+	SV_StopAutoRecordDemos();
+
 	// toggle the server bit so clients can detect that a
 	// map_restart has happened
 	svs.snapFlagServerBit ^= SNAPFLAG_SERVERCOUNT;
@@ -276,6 +270,8 @@ static void SV_MapRestart_f( void ) {
 	// TTimo - don't update restartedserverId there, otherwise we won't deal correctly with multiple map_restart
 	sv.serverId = com_frameTime;
 	Cvar_Set( "sv_serverid", va("%i", sv.serverId ) );
+
+	time( &sv.realMapTimeStarted );
 
 	// if a map_restart occurs while a client is changing maps, we need
 	// to give them the correct time so that when they finish loading
@@ -292,11 +288,11 @@ static void SV_MapRestart_f( void ) {
 	sv.state = SS_LOADING;
 	sv.restarting = qtrue;
 
-	SV_RestartGameProgs();
+	SV_RestartGame();
 
 	// run a few frames to allow everything to settle
 	for ( i = 0 ;i < 3 ; i++ ) {
-		VM_Call( gvm, GAME_RUN_FRAME, sv.time );
+		GVM_RunFrame( sv.time );
 		sv.time += 100;
 		svs.time += 100;
 	}
@@ -323,7 +319,7 @@ static void SV_MapRestart_f( void ) {
 		SV_AddServerCommand( client, "map_restart\n" );
 
 		// connect the client again, without the firstTime flag
-		denied = (char *)VM_ExplicitArgPtr( gvm, VM_Call( gvm, GAME_CLIENT_CONNECT, i, qfalse, isBot ) );
+		denied = GVM_ClientConnect( i, qfalse, isBot );
 		if ( denied ) {
 			// this generally shouldn't happen, because the client
 			// was connected before the level change
@@ -341,12 +337,14 @@ static void SV_MapRestart_f( void ) {
 			// which is wrong obviously.
 			SV_ClientEnterWorld(client, NULL);
 		}
-	}	
+	}
 
 	// run another frame to allow things to look at all the players
-	VM_Call( gvm, GAME_RUN_FRAME, sv.time );
+	GVM_RunFrame( sv.time );
 	sv.time += 100;
 	svs.time += 100;
+
+	SV_BeginAutoRecordDemos();
 }
 
 //===============================================================
@@ -446,9 +444,6 @@ static void SV_Kick_f( void ) {
 		return;
 	}
 	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
-		// Ensiform: RAVEN BUT THIS IS SERVER CONSOLE SO... WHY DO WE WANT @@@ TO APPEAR
-//		SV_SendServerCommand(NULL, "print \"%s\"", "Cannot kick host player\n");
-//		SV_SendServerCommand(NULL, "print \"%s\"", SV_GetStringEdString("MP_SVGAME","CANNOT_KICK_HOST"));
 		Com_Printf("Cannot kick host player\n");
 		return;
 	}
@@ -544,9 +539,6 @@ static void SV_KickNum_f( void ) {
 		return;
 	}
 	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
-		// Ensiform: RAVEN BUT THIS IS SERVER CONSOLE SO... WHY DO WE WANT @@@ TO APPEAR
-//		SV_SendServerCommand(NULL, "print \"%s\"", "Cannot kick host player\n");
-//		SV_SendServerCommand(NULL, "print \"%s\"", SV_GetStringEdString("MP_SVGAME","CANNOT_KICK_HOST"));
 		Com_Printf("Cannot kick host player\n");
 		return;
 	}
@@ -560,7 +552,7 @@ static void SV_KickNum_f( void ) {
 SV_Status_f
 ================
 */
-static void SV_Status_f( void ) 
+static void SV_Status_f( void )
 {
 	int				i, humans, bots;
 	client_t		*cl;
@@ -571,11 +563,9 @@ static void SV_Status_f( void )
 	qboolean		avoidTruncation = qfalse;
 
 	// make sure server is running
-	if ( !com_sv_running->integer ) 
+	if ( !com_sv_running->integer )
 	{
-		//Ensiform: Why raven why, you didn't do this in other cmds.
 		Com_Printf( "Server is not running.\n" );
-		//Com_Printf( SE_GetString("STR_SERVER_SERVER_NOT_RUNNING") );
 		return;
 	}
 
@@ -609,14 +599,19 @@ static void SV_Status_f( void )
 #define STATUS_OS "Unknown"
 #endif
 
-	const char *ded_table[] = 
+	const char *ded_table[] =
 	{
 		"listen",
 		"lan dedicated",
 		"public dedicated",
 	};
 
-	Com_Printf ("hostname: %s^7\n", sv_hostname->string );
+	char hostname[MAX_HOSTNAMELENGTH]={0};
+
+	Q_strncpyz(hostname, sv_hostname->string, sizeof(hostname));
+	Q_StripColor(hostname);
+
+	Com_Printf ("hostname: %s^7\n", hostname );
 	Com_Printf ("version : %s %i\n", VERSION_STRING_DOTTED, PROTOCOL_VERSION );
 	Com_Printf ("game    : %s\n", FS_GetCurrentGameDir() );
 	Com_Printf ("udp/ip  : %s:%i os(%s) type(%s)\n", Cvar_VariableString("net_ip"), Cvar_VariableIntegerValue("net_port"), STATUS_OS, ded_table[com_dedicated->integer]);
@@ -651,8 +646,8 @@ static void SV_Status_f( void )
 
 		if (!avoidTruncation)
 		{
-			Com_Printf ("%3i %5i %s %-15.15s %7i %21s %5i %5i\n", 
-				i, 
+			Com_Printf ("%3i %5i %s %-15.15s %7i %21s %5i %5i\n",
+				i,
 				ps->persistant[PERS_SCORE],
 				state,
 				cl->name,
@@ -664,8 +659,8 @@ static void SV_Status_f( void )
 		}
 		else
 		{
-			Com_Printf ("%3i %5i %s %s %7i %21s %5i %5i\n", 
-				i, 
+			Com_Printf ("%3i %5i %s %s %7i %21s %5i %5i\n",
+				i,
 				ps->persistant[PERS_SCORE],
 				state,
 				cl->name,
@@ -870,13 +865,42 @@ void SV_WriteDemoMessage ( client_t *cl, msg_t *msg, int headerBytes ) {
 	// write the packet sequence
 	len = cl->netchan.outgoingSequence;
 	swlen = LittleLong( len );
-	FS_Write (&swlen, 4, cl->demo.demofile);
+	FS_Write( &swlen, 4, cl->demo.demofile );
 
 	// skip the packet sequencing information
 	len = msg->cursize - headerBytes;
-	swlen = LittleLong(len);
-	FS_Write (&swlen, 4, cl->demo.demofile);
-	FS_Write ( msg->data + headerBytes, len, cl->demo.demofile );
+	swlen = LittleLong( len );
+	FS_Write( &swlen, 4, cl->demo.demofile );
+	FS_Write( msg->data + headerBytes, len, cl->demo.demofile );
+}
+
+void SV_StopRecordDemo( client_t *cl ) {
+	int		len;
+
+	if ( !cl->demo.demorecording ) {
+		Com_Printf( "Client %d is not recording a demo.\n", cl - svs.clients );
+		return;
+	}
+
+	// finish up
+	len = -1;
+	FS_Write (&len, 4, cl->demo.demofile);
+	FS_Write (&len, 4, cl->demo.demofile);
+	FS_FCloseFile (cl->demo.demofile);
+	cl->demo.demofile = 0;
+	cl->demo.demorecording = qfalse;
+	Com_Printf ("Stopped demo for client %d.\n", cl - svs.clients);
+}
+
+// stops all recording demos
+void SV_StopAutoRecordDemos() {
+	if ( svs.clients && sv_autoDemo->integer ) {
+		for ( client_t *client = svs.clients; client - svs.clients < sv_maxclients->integer; client++ ) {
+			if ( client->demo.demorecording) {
+				SV_StopRecordDemo( client );
+			}
+		}
+	}
 }
 
 /*
@@ -887,7 +911,6 @@ stop recording a demo
 ====================
 */
 void SV_StopRecord_f( void ) {
-	int		len;
 	int		i;
 
 	client_t *cl = NULL;
@@ -910,56 +933,170 @@ void SV_StopRecord_f( void ) {
 			return;
 		}
 	}
-
-	if ( !cl->demo.demorecording ) {
-		Com_Printf( "Client %d is not recording a demo.\n", cl - svs.clients );
-		return;
-	}
-
-	// finish up
-	len = -1;
-	FS_Write (&len, 4, cl->demo.demofile);
-	FS_Write (&len, 4, cl->demo.demofile);
-	FS_FCloseFile (cl->demo.demofile);
-	cl->demo.demofile = 0;
-	cl->demo.demorecording = qfalse;
-	Com_Printf ("Stopped demo for client %d.\n", cl - svs.clients);
+	SV_StopRecordDemo( cl );
 }
 
-/* 
-================== 
+/*
+==================
 SV_DemoFilename
-================== 
-*/  
-void SV_DemoFilename( int number, char *fileName, int fileNameSize ) {
-	int		a,b,c,d;
+==================
+*/
+void SV_DemoFilename( char *buf, int bufSize ) {
+	time_t rawtime;
+	char timeStr[32] = {0}; // should really only reach ~19 chars
 
-	if ( number < 0 || number > 9999 ) {
-		Com_sprintf( fileName, fileNameSize, "demo9999" );
-		return;
-	}
+	time( &rawtime );
+	strftime( timeStr, sizeof( timeStr ), "%Y-%m-%d_%H-%M-%S", localtime( &rawtime ) ); // or gmtime
 
-	a = number / 1000;
-	number -= a*1000;
-	b = number / 100;
-	number -= b*100;
-	c = number / 10;
-	number -= c*10;
-	d = number;
-
-	Com_sprintf( fileName, fileNameSize, "demo%i%i%i%i"
-		, a, b, c, d );
+	Com_sprintf( buf, bufSize, "demo%s", timeStr );
 }
 
 // defined in sv_client.cpp
-extern void SV_CreateClientGameStateMessage( client_t *client, msg_t* msg, qboolean updateServerCommands );
-// code is a merge of the cl_main.cpp function of the same name and SV_SendClientGameState in sv_client.cpp
-static void SV_Record_f( void ) {
+extern void SV_CreateClientGameStateMessage( client_t *client, msg_t* msg );
+
+void SV_RecordDemo( client_t *cl, char *demoName ) {
 	char		name[MAX_OSPATH];
 	byte		bufData[MAX_MSGLEN];
 	msg_t		msg;
-	int			i;
 	int			len;
+
+	if ( cl->demo.demorecording ) {
+		Com_Printf( "Already recording.\n" );
+		return;
+	}
+
+	if ( cl->state != CS_ACTIVE ) {
+		Com_Printf( "Client is not active.\n" );
+		return;
+	}
+
+	// open the demo file
+	Q_strncpyz( cl->demo.demoName, demoName, sizeof( cl->demo.demoName ) );
+	Com_sprintf( name, sizeof( name ), "demos/%s.dm_%d", cl->demo.demoName, PROTOCOL_VERSION );
+	Com_Printf( "recording to %s.\n", name );
+	cl->demo.demofile = FS_FOpenFileWrite( name );
+	if ( !cl->demo.demofile ) {
+		Com_Printf ("ERROR: couldn't open.\n");
+		return;
+	}
+	cl->demo.demorecording = qtrue;
+
+	// don't start saving messages until a non-delta compressed message is received
+	cl->demo.demowaiting = qtrue;
+
+	cl->demo.isBot = ( cl->netchan.remoteAddress.type == NA_BOT ) ? qtrue : qfalse;
+	cl->demo.botReliableAcknowledge = cl->reliableSent;
+
+	// write out the gamestate message
+	MSG_Init( &msg, bufData, sizeof( bufData ) );
+
+	// NOTE, MRE: all server->client messages now acknowledge
+	int tmp = cl->reliableSent;
+	SV_CreateClientGameStateMessage( cl, &msg );
+	cl->reliableSent = tmp;
+
+	// finished writing the client packet
+	MSG_WriteByte( &msg, svc_EOF );
+
+	// write it to the demo file
+	len = LittleLong( cl->netchan.outgoingSequence - 1 );
+	FS_Write( &len, 4, cl->demo.demofile );
+
+	len = LittleLong( msg.cursize );
+	FS_Write( &len, 4, cl->demo.demofile );
+	FS_Write( msg.data, msg.cursize, cl->demo.demofile );
+
+	// the rest of the demo file will be copied from net messages
+}
+
+void SV_AutoRecordDemo( client_t *cl ) {
+	char demoName[MAX_OSPATH];
+	char demoFolderName[MAX_OSPATH];
+	char demoFileName[MAX_OSPATH];
+	char *demoNames[] = { demoFolderName, demoFileName };
+	char date[MAX_OSPATH];
+	char folderDate[MAX_OSPATH];
+	char demoPlayerName[MAX_NAME_LENGTH];
+	time_t rawtime;
+	struct tm * timeinfo;
+	time( &rawtime );
+	timeinfo = localtime( &rawtime );
+	strftime( date, sizeof( date ), "%Y-%m-%d_%H-%M-%S", timeinfo );
+	timeinfo = localtime( &sv.realMapTimeStarted );
+	strftime( folderDate, sizeof( folderDate ), "%Y-%m-%d_%H-%M-%S", timeinfo );
+	Q_strncpyz( demoPlayerName, cl->name, sizeof( demoPlayerName ) );
+	Q_CleanStr( demoPlayerName );
+	Com_sprintf( demoFileName, sizeof( demoFileName ), "%d %s %s %s",
+			cl - svs.clients, demoPlayerName, Cvar_VariableString( "mapname" ), date );
+	Com_sprintf( demoFolderName, sizeof( demoFolderName ), "%s %s", Cvar_VariableString( "mapname" ), folderDate );
+	// sanitize filename
+	for ( char **start = demoNames; start - demoNames < (ptrdiff_t)ARRAY_LEN( demoNames ); start++ ) {
+		Q_strstrip( *start, "\n\r;:.?*<>|\\/\"", NULL );
+	}
+	Com_sprintf( demoName, sizeof( demoName ), "autorecord/%s/%s", demoFolderName, demoFileName );
+	SV_RecordDemo( cl, demoName );
+}
+
+static time_t SV_ExtractTimeFromDemoFolder( char *folder ) {
+	size_t timeLen = strlen( "0000-00-00_00-00-00" );
+	if ( strlen( folder ) < timeLen ) {
+		return 0;
+	}
+	struct tm timeinfo;
+	timeinfo.tm_isdst = 0;
+	int numMatched = sscanf( folder + ( strlen(folder) - timeLen ), "%4d-%2d-%2d_%2d-%2d-%2d",
+		&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
+	if ( numMatched < 6 ) {
+		// parsing failed
+		return 0;
+	}
+	timeinfo.tm_year -= 1900;
+	return mktime( &timeinfo );
+}
+
+static int QDECL SV_DemoFolderTimeComparator( const void *arg1, const void *arg2 ) {
+	return SV_ExtractTimeFromDemoFolder( (char *)arg2 ) - SV_ExtractTimeFromDemoFolder( (char *)arg1 );
+}
+
+// starts demo recording on all active clients
+void SV_BeginAutoRecordDemos() {
+	if ( sv_autoDemo->integer ) {
+		for ( client_t *client = svs.clients; client - svs.clients < sv_maxclients->integer; client++ ) {
+			if ( client->state == CS_ACTIVE && !client->demo.demorecording ) {
+				if ( client->netchan.remoteAddress.type != NA_BOT || sv_autoDemoBots->integer ) {
+					SV_AutoRecordDemo( client );
+				}
+			}
+		}
+		if ( sv_autoDemoMaxMaps->integer > 0 ) {
+			char fileList[MAX_QPATH * 500];
+			char autorecordDirList[500][MAX_QPATH];
+			int autorecordDirListCount = 0;
+			char *fileName;
+			int i;
+			int numFiles = FS_GetFileList( "demos/autorecord", "/", fileList, sizeof( fileList ) );
+
+			fileName = fileList;
+			for ( i = 0; i < numFiles; i++ )
+			{
+				if ( Q_stricmp( fileName, "." ) && Q_stricmp( fileName, ".." ) ) {
+					Q_strncpyz( autorecordDirList[autorecordDirListCount++], fileName, MAX_QPATH );
+				}
+				fileName += strlen( fileName ) + 1;
+			}
+			qsort( autorecordDirList, autorecordDirListCount, sizeof( autorecordDirList[0] ), SV_DemoFolderTimeComparator );
+			for ( i = sv_autoDemoMaxMaps->integer; i < autorecordDirListCount; i++ ) {
+				FS_HomeRmdir( va( "demos/autorecord/%s", autorecordDirList[i] ), qtrue );
+			}
+		}
+	}
+}
+
+// code is a merge of the cl_main.cpp function of the same name and SV_SendClientGameState in sv_client.cpp
+static void SV_Record_f( void ) {
+	char		demoName[MAX_OSPATH];
+	char		name[MAX_OSPATH];
+	int			i;
 	char		*s;
 	client_t	*cl;
 
@@ -1018,57 +1155,21 @@ static void SV_Record_f( void ) {
 
 	if ( Cmd_Argc() >= 2 ) {
 		s = Cmd_Argv( 1 );
-		Q_strncpyz( cl->demo.demoName, s, sizeof( cl->demo.demoName ) );
-		Com_sprintf( name, sizeof( name ), "demos/%s.dm_%d", cl->demo.demoName, PROTOCOL_VERSION );
+		Q_strncpyz( demoName, s, sizeof( demoName ) );
+		Com_sprintf( name, sizeof( name ), "demos/%s.dm_%d", demoName, PROTOCOL_VERSION );
 	} else {
-		int		number;
+		// timestamp the file
+		SV_DemoFilename( demoName, sizeof( demoName ) );
 
-		// scan for a free demo name
-		for ( number = 0 ; number <= 9999 ; number++ ) {
-			SV_DemoFilename( number, cl->demo.demoName, sizeof( cl->demo.demoName ) );
-			Com_sprintf( name, sizeof( name ), "demos/%s.dm_%d", cl->demo.demoName, PROTOCOL_VERSION );
+		Com_sprintf (name, sizeof(name), "demos/%s.dm_%d", demoName, PROTOCOL_VERSION );
 
-			len = FS_ReadFile( name, NULL );
-			if ( len <= 0 ) {
-				break;	// file doesn't exist
-			}
-		}
+		if ( FS_FileExists( name ) ) {
+			Com_Printf( "Record: Couldn't create a file\n");
+			return;
+ 		}
 	}
 
-	// open the demo file
-
-	Com_Printf( "recording to %s.\n", name );
-	cl->demo.demofile = FS_FOpenFileWrite( name );
-	if ( !cl->demo.demofile ) {
-		Com_Printf ("ERROR: couldn't open.\n");
-		return;
-	}
-	cl->demo.demorecording = qtrue;
-
-	// don't start saving messages until a non-delta compressed message is received
-	cl->demo.demowaiting = qtrue;
-
-	cl->demo.isBot = ( cl->netchan.remoteAddress.type == NA_BOT ) ? qtrue : qfalse;
-	cl->demo.botReliableAcknowledge = cl->reliableSent;
-
-	// write out the gamestate message
-	MSG_Init( &msg, bufData, sizeof( bufData ) );
-
-	// NOTE, MRE: all server->client messages now acknowledge
-	SV_CreateClientGameStateMessage( cl, &msg, qfalse );
-
-	// finished writing the client packet
-	MSG_WriteByte( &msg, svc_EOF );
-
-	// write it to the demo file
-	len = LittleLong( cl->reliableSent - 1 );
-	FS_Write( &len, 4, cl->demo.demofile );
-
-	len = LittleLong( msg.cursize );
-	FS_Write( &len, 4, cl->demo.demofile );
-	FS_Write( msg.data, msg.cursize, cl->demo.demofile );
-
-	// the rest of the demo file will be copied from net messages
+	SV_RecordDemo( cl, demoName );
 }
 
 //===========================================================

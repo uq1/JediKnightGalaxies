@@ -1,6 +1,3 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 // ICARUS Utility functions
 //rww - mangled to work in server exe setting.
 
@@ -13,6 +10,7 @@
 #include "GameInterface.h"
 #include "qcommon/RoffSystem.h"
 #include "Q3_Interface.h"
+#include "server/sv_gameapi.h"
 
 ICARUS_Instance		*iICARUS;
 bufferlist_t		ICARUS_BufferList;
@@ -170,10 +168,10 @@ void ICARUS_Shutdown( void )
 	sharedEntity_t				*ent = SV_GentityNum(0);
 
 	//Release all ICARUS resources from the entities
-	for ( int i = 0; i < /*globals.num_entities*/MAX_GENTITIES; i++ ) 
+	for ( int i = 0; i < /*globals.num_entities*/MAX_GENTITIES; i++ )
 	{
 		ent = SV_GentityNum(i);
-		
+
 		if (gSequencers[i])
 		{
 			if (ent->s.number >= MAX_GENTITIES ||
@@ -237,7 +235,7 @@ void ICARUS_FreeEnt( sharedEntity_t *ent )
 	if VALIDSTRING( ent->script_targetname )
 	{
 		char	temp[1024];
-		
+
 		strncpy( (char *) temp, ent->script_targetname, 1023 );
 		temp[ 1023 ] = 0;
 
@@ -251,7 +249,7 @@ void ICARUS_FreeEnt( sharedEntity_t *ent )
 
 	//Delete the sequencer and the task manager
 	iICARUS->DeleteSequencer( gSequencers[ent->s.number] );
-	
+
 	//Clean up the pointers
 	gSequencers[ent->s.number]		= NULL;
 	gTaskManagers[ent->s.number]	= NULL;
@@ -262,7 +260,7 @@ void ICARUS_FreeEnt( sharedEntity_t *ent )
 ==============
 ICARUS_ValidEnt
 
-Determines whether or not an entity needs ICARUS information  
+Determines whether or not an entity needs ICARUS information
 ==============
 */
 
@@ -308,7 +306,7 @@ Associate the entity's id and name so that it can be referenced later
 void ICARUS_AssociateEnt( sharedEntity_t *ent )
 {
 	char	temp[1024];
-	
+
 	if ( VALIDSTRING( ent->script_targetname ) == false )
 		return;
 
@@ -343,7 +341,7 @@ bool ICARUS_RegisterScript( const char *name, qboolean bCalledDuringInterrogate 
 	//
 	if ( ei != ICARUS_BufferList.end() )
 		return (bCalledDuringInterrogate)?false:true;
-	
+
 	Com_sprintf( newname, sizeof(newname), "%s%s", name, IBI_EXT );
 
 
@@ -352,22 +350,22 @@ bool ICARUS_RegisterScript( const char *name, qboolean bCalledDuringInterrogate 
 	//	the ifndef, this just cuts down on internal error reports while testing release mode...
 	//
 	qboolean qbIgnoreFileRead = qfalse;
-	// 
+	//
 	// NOTENOTE: For the moment I've taken this back out, to avoid doubling the number of fopen()'s per file.
-#if 0//#ifndef FINAL_BUILD		
+#if 0//#ifndef FINAL_BUILD
 	if (bCalledDuringInterrogate)
 	{
 		fileHandle_t file;
 
-		gi.FS_FOpenFile( newname, &file, FS_READ );
-		
+		gi.FS_Open( newname, &file, FS_READ );
+
 		if ( file == NULL )
 		{
 			qbIgnoreFileRead = qtrue;	// warn disk code further down not to try FS_ReadFile()
 		}
 		else
 		{
-			gi.FS_FCloseFile( file );
+			gi.FS_Close( file );
 		}
 	}
 #endif
@@ -378,7 +376,7 @@ bool ICARUS_RegisterScript( const char *name, qboolean bCalledDuringInterrogate 
 	{
 		// File not found, but keep quiet during interrogate stage, because of stuff like BS_RUN_AND_SHOOT as scriptname
 		//
-		if (!bCalledDuringInterrogate)	
+		if (!bCalledDuringInterrogate)
 		{
 			Com_Printf(S_COLOR_RED"Could not open file '%s'\n", newname );
 		}
@@ -387,7 +385,7 @@ bool ICARUS_RegisterScript( const char *name, qboolean bCalledDuringInterrogate 
 
 	pscript = new pscript_t;
 
-	pscript->buffer = (char *) ICARUS_Malloc(length);//gi.Malloc(length, TAG_ICARUS, qfalse); 
+	pscript->buffer = (char *) ICARUS_Malloc(length);//gi.Malloc(length, TAG_ICARUS, qfalse);
 	memcpy (pscript->buffer, buffer, length);
 	pscript->length = length;
 
@@ -404,7 +402,7 @@ void ICARUS_SoundPrecache(const char *filename)
 
 	Q_strncpyz( sharedMem->filename, filename, sizeof(sharedMem->filename) );
 
-	VM_Call(gvm, GAME_ICARUS_SOUNDINDEX);	
+	GVM_ICARUS_SoundIndex();
 }
 
 int ICARUS_GetIDForString( const char *string )
@@ -413,7 +411,7 @@ int ICARUS_GetIDForString( const char *string )
 
 	Q_strncpyz( sharedMem->string, string, sizeof(sharedMem->string) );
 
-	return VM_Call(gvm, GAME_ICARUS_GETSETIDFORSTRING);
+	return GVM_ICARUS_GetSetIDForString();
 }
 
 /*
@@ -495,7 +493,7 @@ void ICARUS_InterrogateScript( const char *filename )
 			break;
 
 		case ID_PLAY:	// to cache ROFF files
-			
+
 			sVal1 = (const char *) block.GetMemberData( 0 );
 
 			if (!Q_stricmp(sVal1,"PLAY_ROFF"))
@@ -504,19 +502,19 @@ void ICARUS_InterrogateScript( const char *filename )
 
 				//we can do this I guess since the roff is loaded on the server.
 				theROFFSystem.Cache((char *)sVal1, qfalse);
-			}			
+			}
 			break;
 
 		//Run commands
 		case ID_RUN:
-			
+
 			sVal1 = (const char *) block.GetMemberData( 0 );
-			
+
 			COM_StripExtension( sVal1, (char *) temp, sizeof( temp ) );
 			ICARUS_InterrogateScript( (const char *) &temp );
-			
+
 			break;
-		
+
 		case ID_SOUND:
 			//We can't just call over to S_RegisterSound or whatever because this is on the server.
 			sVal1 = (const char *) block.GetMemberData( 1 );	//0 is channel, 1 is filename
@@ -533,7 +531,7 @@ void ICARUS_InterrogateScript( const char *filename )
 			{
 				sVal1 = (const char *) block.GetMemberData( 0 );
 				sVal2 = (const char *) block.GetMemberData( 1 );
-		
+
 				//Get the id for this set identifier
 				setID = ICARUS_GetIDForString( sVal1 );
 
@@ -704,11 +702,11 @@ void Svcmd_ICARUS_f( void )
 	{
 		//g_ICARUSDebug->integer = WL_DEBUG;
 		if ( VALIDSTRING( Cmd_Argv( 2 ) ) )
-		{	
+		{
 			sharedEntity_t	*ent = G_Find( NULL, FOFS( script_targetname ), gi.argv(2) );
 
 			if ( ent == NULL )
-			{	
+			{
 				Com_Printf( "Entity \"%s\" not found!\n", gi.argv(2) );
 				return;
 			}
@@ -720,9 +718,9 @@ void Svcmd_ICARUS_f( void )
 
 			return;
 		}
-	
+
 		Com_Printf("Logging ICARUS info for all entities\n");
-	
+
 		return;
 	}
 	*/

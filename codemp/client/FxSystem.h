@@ -1,5 +1,6 @@
 #pragma once
 
+#include "client/cl_cgameapi.h"
 #include "ghoul2/G2.h"
 
 extern cvar_t	*fx_debug;
@@ -85,7 +86,7 @@ public:
 #ifdef ENGINE
 		FS_Read2( data, len, fh );
 #else
-		trap_FS_Read( data, len, fh );
+		trap->FS_Read( data, len, fh );
 #endif
 		return 1;
 	}
@@ -154,7 +155,7 @@ public:
 		td->mMask = flags;
 
 #ifdef ENGINE
-		VM_Call( cgvm, CG_TRACE );
+		CGVM_Trace();
 #else
 		vmMain( CG_TRACE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 );
 #endif
@@ -189,7 +190,7 @@ public:
 		td->mMask = flags;
 
 #ifdef ENGINE
-		VM_Call( cgvm, CG_G2TRACE );
+		CGVM_G2Trace();
 #else
 		vmMain( CG_G2TRACE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 );
 #endif
@@ -202,7 +203,7 @@ public:
 #ifdef ENGINE
 		TCGG2Mark		*td = (TCGG2Mark *)cl.mSharedMemory;
 #else
-		TCGG2Mark		*td = (TCGG2Mark *)trap_FX_GetSharedMemory();
+		TCGG2Mark		*td = (TCGG2Mark *)trap->FX_GetSharedMemory();
 #endif
 
 		td->size = size;
@@ -211,7 +212,7 @@ public:
 		VectorCopy(dir, td->dir);
 
 #ifdef ENGINE
-		VM_Call(cgvm, CG_G2MARK);
+		CGVM_G2Mark();
 #else
 		vmMain( CG_G2MARK, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 );
 #endif
@@ -227,7 +228,7 @@ public:
 #ifdef ENGINE
 		re->AddRefEntityToScene( ent );
 #else
-		trap_R_AddRefEntityToScene( ent );
+		trap->R_AddRefEntityToScene( ent );
 #endif
 	}
 	ID_INLINE	void	AddFxToScene( miniRefEntity_t *ent )
@@ -240,15 +241,15 @@ public:
 #ifdef ENGINE
 		re->AddMiniRefEntityToScene( ent );
 #else
-		trap_R_AddMiniRefEntityToScene( ent );
+		trap->R_AddMiniRefEntityToScene( ent );
 #endif
 	}
-	ID_INLINE	void	AddLightToScene( vec3_t org, float radius, float red, float green, float blue )
+	inline	void	AddLightToScene( vec3_t org, float radius, float red, float green, float blue )
 	{
 #ifdef ENGINE
 		re->AddLightToScene(	org, radius, red, green, blue );
 #else
-		trap_R_AddLightToScene( org, radius, red, green, blue );
+		trap->R_AddLightToScene( org, radius, red, green, blue );
 #endif
 	}
 
@@ -257,7 +258,7 @@ public:
 #ifdef ENGINE
 		return re->RegisterShader( shader );
 #else
-		return (int)trap_R_RegisterShader( shader );
+		return (int)trap->R_RegisterShader( shader );
 #endif
 	}
 	ID_INLINE	int		RegisterModel( const char *modelFile )
@@ -265,7 +266,7 @@ public:
 #ifdef ENGINE
 		return re->RegisterModel( modelFile );
 #else
-		return (int)trap_R_RegisterModel( modelFile );
+		return (int)trap->R_RegisterModel( modelFile );
 #endif
 	}
 
@@ -274,7 +275,7 @@ public:
 #ifdef ENGINE
 		re->AddPolyToScene( shader, count, verts, 1 );
 #else
-		trap_R_AddPolyToScene( shader, count, verts );
+		trap->R_AddPolyToScene( shader, count, verts );
 #endif
 	}
 
@@ -283,7 +284,7 @@ public:
 #ifdef ENGINE
 		re->AddDecalToScene ( shader, origin, dir, orientation, r, g, b, a, alphaFade, radius, temporary );
 #else
-		trap_R_AddDecalToScene ( shader, origin, dir, orientation, r, g, b, a, alphaFade, radius, temporary );
+		trap->R_AddDecalToScene ( shader, origin, dir, orientation, r, g, b, a, alphaFade, radius, temporary );
 #endif
 	}
 

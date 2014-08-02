@@ -28,7 +28,7 @@ int RE_SavePNG( const char *filename, byte *buf, size_t width, size_t height, in
 	*/
 	int depth = 8;
 
-	fp = ri->FS_FOpenFileWrite( filename );
+	fp = ri->FS_FOpenFileWrite( filename, qtrue );
 	if ( !fp ) {
 		goto fopen_failed;
 	}
@@ -244,7 +244,7 @@ struct PNGFileReader
 			ri->Printf (PRINT_ERROR, "Could not allocate enough memory to load %s.\n", currentPNGFile );
 
 			ri->Z_Free (tempData);
-			
+
 			return 0;
 		}
 

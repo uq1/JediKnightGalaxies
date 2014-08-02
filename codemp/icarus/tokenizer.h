@@ -4,7 +4,7 @@
 //
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4786 )	// identifier was truncated 
+#pragma warning( disable : 4786 )	// identifier was truncated
 
 #pragma warning (push, 3)			// go back down to 3 for the stl include
 #pragma warning (disable:4503)		// decorated name length xceeded, name was truncated
@@ -77,8 +77,7 @@ enum
 	TK_USERDEF,
 };
 
-typedef struct
-{
+typedef struct keywordArray_s {
 	char*		m_keyword;
 	int			m_tokenvalue;
 } keywordArray_t;
@@ -177,7 +176,7 @@ public:
 
 protected:
 	void Init(long value);
-	
+
 	long			m_value;
 };
 
@@ -429,7 +428,7 @@ public:
 	const char *LookupToken(int tokenID, keywordArray_t* theTable = NULL);
 
 protected:
-	void SetError(int theError, const char *errString); 
+	void SetError(int theError, const char *errString);
 	virtual void Init(unsigned dwFlags = 0);
 	CToken* FetchToken();
 	bool AddDefineSymbol(CDirectiveSymbol* definesymbol);

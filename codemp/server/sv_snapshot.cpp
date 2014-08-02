@@ -1,8 +1,5 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 #include "server.h"
-
+#include "qcommon/cm_public.h"
 
 /*
 =============================================================================
@@ -117,12 +114,19 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 		client->deltaMessage = client->netchan.outgoingSequence;
 	}
 
+	// bots never acknowledge, but it doesn't matter since the only use case is for serverside demos
+	// in which case we can delta against the very last message every time
+	deltaMessage = client->deltaMessage;
+	if ( client->demo.isBot ) {
+		client->deltaMessage = client->netchan.outgoingSequence;
+	}
+
 	// try to use a previous frame as the source for delta compressing the snapshot
 	if ( deltaMessage <= 0 || client->state != CS_ACTIVE ) {
 		// client is asking for a retransmit
 		oldframe = NULL;
 		lastframe = 0;
-	} else if ( client->netchan.outgoingSequence - deltaMessage 
+	} else if ( client->netchan.outgoingSequence - deltaMessage
 		>= (PACKET_BACKUP - 3) ) {
 		// client hasn't gotten a good message through in a long time
 		Com_DPrintf ("%s: Delta request from out of date packet.\n", client->name);
@@ -130,6 +134,12 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 		lastframe = 0;
 	} else if ( client->demo.demorecording && client->demo.demowaiting ) {
 		// demo is waiting for a non-delta-compressed frame for this client, so don't delta compress
+		oldframe = NULL;
+		lastframe = 0;
+	} else if ( client->demo.minDeltaFrame > deltaMessage ) {
+		// we saved a non-delta frame to the demo and sent it to the client, but the client didn't ack it
+		// we can't delta against an old frame that's not in the demo without breaking the demo.  so send
+		// non-delta frames until the client acks.
 		oldframe = NULL;
 		lastframe = 0;
 	} else {
@@ -146,6 +156,10 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 	}
 
 	if ( oldframe == NULL ) {
+		if ( client->demo.demowaiting ) {
+			// this is a non-delta frame, so we can delta against it in the demo
+			client->demo.minDeltaFrame = client->netchan.outgoingSequence;
+		}
 		client->demo.demowaiting = qfalse;
 	}
 
@@ -276,10 +290,9 @@ Build a client snapshot structure
 =============================================================================
 */
 
-#define	MAX_SNAPSHOT_ENTITIES	1024
-typedef struct {
+typedef struct snapshotEntityNumbers_s {
 	int		numSnapshotEntities;
-	int		snapshotEntities[MAX_SNAPSHOT_ENTITIES];	
+	int		snapshotEntities[MAX_SNAPSHOT_ENTITIES];
 } snapshotEntityNumbers_t;
 
 /*
@@ -332,7 +345,7 @@ SV_AddEntitiesVisibleFromPoint
 ===============
 */
 float g_svCullDist = -1.0f;
-static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *frame, 
+static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *frame,
 									snapshotEntityNumbers_t *eNums, qboolean portal ) {
 	int		e, i;
 	sharedEntity_t *ent;
@@ -417,8 +430,49 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			continue;
 		}
 
-		if (com_RMG && com_RMG->integer)
-		{
+		// ignore if not touching a PV leaf
+		// check area
+		if ( !CM_AreasConnected( clientarea, svEnt->areanum ) ) {
+			// doors can legally straddle two areas, so
+			// we may need to check another one
+			if ( !CM_AreasConnected( clientarea, svEnt->areanum2 ) ) {
+				continue;		// blocked by a door
+			}
+		}
+
+		bitvector = clientpvs;
+
+		// check individual leafs
+		if ( !svEnt->numClusters ) {
+			continue;
+		}
+		l = 0;
+		for ( i=0 ; i < svEnt->numClusters ; i++ ) {
+			l = svEnt->clusternums[i];
+			if ( bitvector[l >> 3] & (1 << (l&7) ) ) {
+				break;
+			}
+		}
+
+		// if we haven't found it to be visible,
+		// check overflow clusters that coudln't be stored
+		if ( i == svEnt->numClusters ) {
+			if ( svEnt->lastCluster ) {
+				for ( ; l <= svEnt->lastCluster ; l++ ) {
+					if ( bitvector[l >> 3] & (1 << (l&7) ) ) {
+						break;
+					}
+				}
+				if ( l == svEnt->lastCluster ) {
+					continue;	// not visible
+				}
+			} else {
+				continue;
+			}
+		}
+
+		if (g_svCullDist != -1.0f)
+		{ //do a distance cull check
 			VectorAdd(ent->r.absmax, ent->r.absmin, difference);
 			VectorScale(difference, 0.5f, difference);
 			VectorSubtract(origin, difference, difference);
@@ -427,84 +481,25 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			// calculate the diameter
 			VectorSubtract(ent->r.absmax, ent->r.absmin, difference);
 			radius = VectorLength(difference);
-			if (length-radius < /*sv_RMGDistanceCull->integer*/5000.0f)
-			{	// more of a diameter check
-				SV_AddEntToSnapshot( svEnt, ent, eNums );
-			}
-		}
-		else
-		{
-			// ignore if not touching a PV leaf
-			// check area
-			if ( !CM_AreasConnected( clientarea, svEnt->areanum ) ) {
-				// doors can legally straddle two areas, so
-				// we may need to check another one
-				if ( !CM_AreasConnected( clientarea, svEnt->areanum2 ) ) {
-					continue;		// blocked by a door
-				}
-			}
-
-			bitvector = clientpvs;
-
-			// check individual leafs
-			if ( !svEnt->numClusters ) {
+			if (length-radius >= g_svCullDist)
+			{ //then don't add it
 				continue;
 			}
-			l = 0;
-			for ( i=0 ; i < svEnt->numClusters ; i++ ) {
-				l = svEnt->clusternums[i];
-				if ( bitvector[l >> 3] & (1 << (l&7) ) ) {
-					break;
-				}
-			}
+		}
 
-			// if we haven't found it to be visible,
-			// check overflow clusters that coudln't be stored
-			if ( i == svEnt->numClusters ) {
-				if ( svEnt->lastCluster ) {
-					for ( ; l <= svEnt->lastCluster ; l++ ) {
-						if ( bitvector[l >> 3] & (1 << (l&7) ) ) {
-							break;
-						}
-					}
-					if ( l == svEnt->lastCluster ) {
-						continue;	// not visible
-					}
-				} else {
+		// add it
+		SV_AddEntToSnapshot( svEnt, ent, eNums );
+
+		// if its a portal entity, add everything visible from its camera position
+		if ( ent->r.svFlags & SVF_PORTAL ) {
+			if ( ent->s.generic1 ) {
+				vec3_t dir;
+				VectorSubtract(ent->s.origin, origin, dir);
+				if ( VectorLengthSquared(dir) > (float) ent->s.generic1 * ent->s.generic1 ) {
 					continue;
 				}
 			}
-
-			if (g_svCullDist != -1.0f)
-			{ //do a distance cull check
-				VectorAdd(ent->r.absmax, ent->r.absmin, difference);
-				VectorScale(difference, 0.5f, difference);
-				VectorSubtract(origin, difference, difference);
-				length = VectorLength(difference);
-
-				// calculate the diameter
-				VectorSubtract(ent->r.absmax, ent->r.absmin, difference);
-				radius = VectorLength(difference);
-				if (length-radius >= g_svCullDist)
-				{ //then don't add it
-					continue;
-				}
-			}
-
-			// add it
-			SV_AddEntToSnapshot( svEnt, ent, eNums );
-
-			// if its a portal entity, add everything visible from its camera position
-			if ( ent->r.svFlags & SVF_PORTAL ) {
-				if ( ent->s.generic1 ) {
-					vec3_t dir;
-					VectorSubtract(ent->s.origin, origin, dir);
-					if ( VectorLengthSquared(dir) > (float) ent->s.generic1 * ent->s.generic1 ) {
-						continue;
-					}
-				}
-				SV_AddEntitiesVisibleFromPoint( ent->s.origin2, frame, eNums, qtrue );
-			}
+			SV_AddEntitiesVisibleFromPoint( ent->s.origin2, frame, eNums, qtrue );
 		}
 	}
 }
@@ -519,7 +514,7 @@ copies off the playerstate and areabits.
 This properly handles multiple recursive portals, but the render
 currently doesn't.
 
-For viewing through other player's eyes, clent can be something other than client->gentity
+For viewing through other player's eyes, client can be something other than client->gentity
 =============
 */
 static void SV_BuildClientSnapshot( client_t *client ) {
@@ -584,7 +579,7 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	svEnt = &sv.svEntities[ clientNum ];
 	svEnt->snapshotCounter = sv.snapshotCounter;
 
-	
+
 	// find the client's viewpoint
 	VectorCopy( ps->origin, org );
 	org[2] += ps->viewheight;
@@ -597,7 +592,7 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	// in the list which will need to be resorted for the delta compression
 	// to work correctly.  This also catches the error condition
 	// of an entity being included twice.
-	qsort( entityNumbers.snapshotEntities, entityNumbers.numSnapshotEntities, 
+	qsort( entityNumbers.snapshotEntities, entityNumbers.numSnapshotEntities,
 		sizeof( entityNumbers.snapshotEntities[0] ), SV_QsortEntityNumbers );
 
 	// now that all viewpoint's areabits have been OR'd together, invert
@@ -665,7 +660,7 @@ Called by SV_SendClientSnapshot and SV_SendClientGameState
 void SV_SendMessageToClient( msg_t *msg, client_t *client ) {
 	int			rateMsec;
 
-	// MW - my attempt to fix illegible server message errors caused by 
+	// MW - my attempt to fix illegible server message errors caused by
 	// packet fragmentation of initial snapshot.
 	while(client->state&&client->netchan.unsentFragments)
 	{
@@ -681,10 +676,10 @@ void SV_SendMessageToClient( msg_t *msg, client_t *client ) {
 	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageAcked = -1;
 
 	// save the message to demo.  this must happen before sending over network as that encodes the backing databuf
-	if (client->demo.demorecording && !client->demo.demowaiting) {
+	if ( client->demo.demorecording && !client->demo.demowaiting ) {
 		msg_t msgcopy = *msg;
 		MSG_WriteByte( &msgcopy, svc_EOF );
-		SV_WriteDemoMessage(client, &msgcopy, 0);
+		SV_WriteDemoMessage( client, &msgcopy, 0 );
 	}
 
 	// bots need to have their snapshots built, but
@@ -757,14 +752,16 @@ void SV_SendClientSnapshot( client_t *client ) {
 
 		MSG_WriteByte (&msg, svc_setgame);
 
-		while (fs_gamedirvar->string[i])
+		const char *gamedir = FS_GetCurrentGameDir(true);
+
+		while (gamedir[i])
 		{
-			MSG_WriteByte(&msg, fs_gamedirvar->string[i]);
+			MSG_WriteByte(&msg, gamedir[i]);
 			i++;
 		}
 		MSG_WriteByte(&msg, 0);
 
-		// MW - my attempt to fix illegible server message errors caused by 
+		// MW - my attempt to fix illegible server message errors caused by
 		// packet fragmentation of initial snapshot.
 		//rww - reusing this code here
 		while(client->state&&client->netchan.unsentFragments)
@@ -789,9 +786,15 @@ void SV_SendClientSnapshot( client_t *client ) {
 	// build the snapshot
 	SV_BuildClientSnapshot( client );
 
+	if ( sv_autoDemo->integer && !client->demo.demorecording ) {
+		if ( client->netchan.remoteAddress.type != NA_BOT || sv_autoDemoBots->integer ) {
+			SV_BeginAutoRecordDemos();
+		}
+	}
+
 	// bots need to have their snapshots built, but
 	// they query them directly without needing to be sent
-	if ( client->gentity && client->gentity->r.svFlags & SVF_BOT && !client->demo.demorecording ) {
+	if ( client->netchan.remoteAddress.type == NA_BOT && !client->demo.demorecording ) {
 		return;
 	}
 
@@ -844,7 +847,7 @@ void SV_SendClientMessages( void ) {
 		// send additional message fragments if the last message
 		// was too large to send at once
 		if ( c->netchan.unsentFragments ) {
-			c->nextSnapshotTime = svs.time + 
+			c->nextSnapshotTime = svs.time +
 				SV_RateMsec( c, c->netchan.unsentLength - c->netchan.unsentFragmentStart );
 			SV_Netchan_TransmitNextFragment( &c->netchan );
 			continue;

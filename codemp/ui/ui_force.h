@@ -8,6 +8,5 @@
 
 extern int uiSaberColorShaders[NUM_SABER_COLORS];
 // Dots above or equal to a given rank carry a certain color.
-extern vmCvar_t	ui_freeSaber;
 
 qboolean UI_SkinColor_HandleKey(int flags, float *special, int key, int num, int min, int max, int type);

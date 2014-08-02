@@ -9,7 +9,7 @@ set(MPUIIncludeDirectories "${MPDir}" "${OpenJKLibDir}" "${OpenJKLibDir}/libexpa
 if(WIN32)
 	set(MPUILibraries "odbc32" "odbccp32") # what are these even?
 endif(WIN32)
-set(MPUIDefines ${MPSharedDefines} "UI_EXPORTS" "MISSIONPACK" "_USRDLL" "UI" "XML_STATIC")
+set(MPUIDefines ${MPSharedDefines} "UI_EXPORTS" "MISSIONPACK" "_USRDLL" "_UI" "XML_STATIC")
 
 set(MPUIGameFiles
 	"${MPDir}/game/animtable.cpp"
@@ -24,7 +24,7 @@ set(MPUIGameFiles
 	"${MPDir}/game/bg_ammo.h"
 	"${MPDir}/game/bg_local.h"
 	"${MPDir}/game/bg_public.h"
-	"${MPDir}/game/bg_strap.h"
+	"${MPDir}/game/bg_saga.h"
 	"${MPDir}/game/bg_weapons.h"
 	"${MPDir}/game/jkg_gangwars.h"
 	"${MPDir}/game/surfaceflags.h"
@@ -39,6 +39,7 @@ set(MPUICommonFiles
 	"${MPDir}/qcommon/disablewarnings.h"
 	"${MPDir}/qcommon/game_version.h"
 	"${MPDir}/qcommon/q_shared.h"
+	"${MPDir}/qcommon/q_platform.h"
 	"${MPDir}/qcommon/qfiles.h"
 	"${MPDir}/qcommon/tags.h"
 	)
@@ -82,6 +83,7 @@ set(MPUIUIFiles
 	"${MPDir}/ui/ui_local.h"
 	"${MPDir}/ui/ui_public.h"
 	"${MPDir}/ui/ui_shared.h"
+	"${MPDir}/ui/ui_xcvar.h"
 	)
 source_group("ui" FILES ${MPUIUIFiles})
 set(MPUIFiles ${MPUIFiles} ${MPUIUIFiles})
@@ -151,7 +153,12 @@ endif(NOT WIN32)
 if(WIN32)
 	install(TARGETS ${MPUI} RUNTIME DESTINATION "JKGalaxies")
 else(WIN32)
-	install(TARGETS ${MPUI} LIBRARY DESTINATION "JKGalaxies")
+	if(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPUI} LIBRARY DESTINATION "${MPEngine}.app/Contents/MacOS/OpenJK")
+		install(TARGETS ${MPUI} LIBRARY DESTINATION "${MPEngine}.app/Contents/MacOS/base")
+	else(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPUI} LIBRARY DESTINATION "JKGalaxies")
+	endif(MakeApplicationBundles AND BuildMPEngine)
 endif(WIN32)
 set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPUIDefines};${ReleaseDefines}")
 set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPUIDefines};${ReleaseDefines}")

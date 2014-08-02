@@ -9,7 +9,7 @@ set(MPGameIncludeDirectories "${MPDir}" "${MPDir}/libraries")
 if(WIN32)
 	set(MPGameLibraries "winmm")
 endif(WIN32)
-set(MPGameDefines ${MPSharedDefines} "QAGAME" "MISSIONPACK" )
+set(MPGameDefines ${MPSharedDefines} "_GAME" )
 set(MPGameGameFiles
 	"${MPDir}/game/ai_dominance.cpp"
 	"${MPDir}/game/ai_dominance_astar.cpp"
@@ -143,7 +143,6 @@ set(MPGameGameFiles
 	"${MPDir}/game/bg_local.h"
 	"${MPDir}/game/bg_public.h"
 	"${MPDir}/game/bg_saga.h"
-	"${MPDir}/game/bg_strap.h"
 	"${MPDir}/game/bg_vehicles.h"
 	"${MPDir}/game/bg_weapons.h"
 	"${MPDir}/game/chars.h"
@@ -188,6 +187,7 @@ set(MPGameCommonFiles
 	"${MPDir}/qcommon/q_shared.cpp"
 	"${MPDir}/qcommon/disablewarnings.h"
 	"${MPDir}/qcommon/q_shared.h"
+	"${MPDir}/qcommon/q_platform.h"
 	"${MPDir}/qcommon/tags.h"
 	)
 source_group("common" FILES ${MPGameCommonFiles})
@@ -195,7 +195,6 @@ set(MPGameFiles ${MPGameFiles} ${MPGameCommonFiles})
 
 set(MPGameCgameFiles
 	"${MPDir}/cgame/animtable.h"
-	"${MPDir}/cgame/cg_local.h"
 	"${MPDir}/cgame/cg_public.h"
 	)
 source_group("cgame" FILES ${MPGameCgameFiles})
@@ -465,7 +464,12 @@ endif(NOT WIN32)
 if(WIN32)
 	install(TARGETS ${MPGame} RUNTIME DESTINATION "JKGalaxies")
 else(WIN32)
-	install(TARGETS ${MPGame} LIBRARY DESTINATION "JKGalaxies")
+	if(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPGame} LIBRARY DESTINATION "${MPEngine}.app/Contents/MacOS/OpenJK")
+		install(TARGETS ${MPGame} LIBRARY DESTINATION "${MPEngine}.app/Contents/MacOS/base")
+	else(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPGame} LIBRARY DESTINATION "JKGalaxies")
+	endif(MakeApplicationBundles AND BuildMPEngine)
 endif(WIN32)
 set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPGameDefines};${ReleaseDefines}")
 set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPGameDefines};${ReleaseDefines}")

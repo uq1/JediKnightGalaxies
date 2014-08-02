@@ -1,6 +1,3 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 #include "tr_local.h"
 
 backEndData_t	*backEndData;
@@ -20,12 +17,3 @@ bool g_bDynamicGlowSupported = false;
 
 extern void R_RotateForViewer(void);
 extern void R_SetupFrustum(void);
-
-static const float s_flipMatrix[16] = {
-	// convert from our coordinate system (looking down X)
-	// to OpenGL's coordinate system (looking down -Z)
-	0, 0, -1, 0,
-	-1, 0, 0, 0,
-	0, 1, 0, 0,
-	0, 0, 0, 1
-};

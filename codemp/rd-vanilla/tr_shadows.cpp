@@ -15,7 +15,7 @@
 
 #define _STENCIL_REVERSE
 
-typedef struct {
+typedef struct edgeDef_s {
 	int		i2;
 	int		facing;
 } edgeDef_t;
@@ -185,7 +185,7 @@ void RB_ShadowTessEnd( void )
 
 			RB_DoShadowTessEnd(dl->transformed);
 		}
-        
+
 		i++;
 	}
 	*/

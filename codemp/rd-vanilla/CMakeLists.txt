@@ -14,18 +14,17 @@ set(MPVanillaRendererFiles
 	"${MPDir}/rd-vanilla/G2_API.cpp"
 	"${MPDir}/rd-vanilla/G2_bolts.cpp"
 	"${MPDir}/rd-vanilla/G2_bones.cpp"
-	"${MPDir}/rd-vanilla/G2_local.h"
 	"${MPDir}/rd-vanilla/G2_misc.cpp"
 	"${MPDir}/rd-vanilla/G2_surfaces.cpp"
-	"${MPDir}/rd-vanilla/tr_arioche.cpp"
+	"${MPDir}/rd-vanilla/tr_arb.cpp"
 	"${MPDir}/rd-vanilla/tr_backend.cpp"
 	"${MPDir}/rd-vanilla/tr_bsp.cpp"
 	"${MPDir}/rd-vanilla/tr_cmds.cpp"
 	"${MPDir}/rd-vanilla/tr_curve.cpp"
+	"${MPDir}/rd-vanilla/tr_decals.cpp"
 	"${MPDir}/rd-vanilla/tr_ghoul2.cpp"
 	"${MPDir}/rd-vanilla/tr_image.cpp"
 	"${MPDir}/rd-vanilla/tr_init.cpp"
-	"${MPDir}/rd-vanilla/tr_landscape.h"
 	"${MPDir}/rd-vanilla/tr_light.cpp"
 	"${MPDir}/rd-vanilla/tr_local.h"
 	"${MPDir}/rd-vanilla/tr_main.cpp"
@@ -44,7 +43,6 @@ set(MPVanillaRendererFiles
 	"${MPDir}/rd-vanilla/tr_subs.cpp"
 	"${MPDir}/rd-vanilla/tr_surface.cpp"
 	"${MPDir}/rd-vanilla/tr_surfacesprites.cpp"
-	"${MPDir}/rd-vanilla/tr_terrain.cpp"
 	"${MPDir}/rd-vanilla/tr_world.cpp"
 	"${MPDir}/rd-vanilla/tr_WorldEffects.cpp"
 	"${MPDir}/rd-vanilla/tr_WorldEffects.h"
@@ -52,6 +50,8 @@ set(MPVanillaRendererFiles
 source_group("renderer" FILES ${MPVanillaRendererFiles})
 
 set(MPVanillaRendererGhoul2Files
+	"${MPDir}/ghoul2/g2_local.h"
+	"${MPDir}/ghoul2/ghoul2_shared.h"
 	"${MPDir}/ghoul2/G2_gore.cpp"
 	"${MPDir}/ghoul2/G2_gore.h")
 source_group("ghoul2" FILES ${MPVanillaRendererGhoul2Files})
@@ -63,19 +63,16 @@ set(MPVanillaRendererRdCommonFiles
 	"${MPDir}/rd-common/tr_font.cpp"
 	"${MPDir}/rd-common/tr_font.h"
 	"${MPDir}/rd-common/tr_image_load.cpp"
-	"${MPDir}/rd-common/tr_image_manipulation.cpp"
 	"${MPDir}/rd-common/tr_image_jpg.cpp"
 	"${MPDir}/rd-common/tr_image_tga.cpp"
 	"${MPDir}/rd-common/tr_image_png.cpp"
 	"${MPDir}/rd-common/tr_noise.cpp"
 	"${MPDir}/rd-common/tr_public.h"
-	"${MPDir}/rd-common/tr_types.h"
-	)
+	"${MPDir}/rd-common/tr_types.h")
 source_group("rd-common" FILES ${MPVanillaRendererRdCommonFiles})
 set(MPVanillaRendererFiles ${MPVanillaRendererFiles} ${MPVanillaRendererRdCommonFiles})
 
 set(MPVanillaRendererQcommonFiles
-	"${MPDir}/qcommon/GenericParser2.cpp"
 	"${MPDir}/qcommon/matcomp.cpp"
 	"${MPDir}/qcommon/q_math.cpp"
 	"${MPDir}/qcommon/q_shared.cpp")
@@ -117,24 +114,48 @@ else(UseInternalPNG)
 endif(UseInternalPNG)
 
 if(UseInternalZlib)
-	# zlib.lib is included for windows
-	find_library(ZlibLibrary NAMES zlib PATHS ${OpenJKLibDir}/zlib)
-	if(NOT ZlibLibrary)
-		message(FATAL_ERROR "UseInternalZlib enabled, but ${OpenJKLibDir}/zlib.lib not found!")
-	endif(NOT ZlibLibrary)
+	set(MPVanillaRendererZLibFiles
+		"${OpenJKLibDir}/zlib/adler32.c"
+		"${OpenJKLibDir}/zlib/compress.c"
+		"${OpenJKLibDir}/zlib/crc32.c"
+		"${OpenJKLibDir}/zlib/deflate.c"
+		"${OpenJKLibDir}/zlib/gzclose.c"
+		"${OpenJKLibDir}/zlib/gzlib.c"
+		"${OpenJKLibDir}/zlib/gzread.c"
+		"${OpenJKLibDir}/zlib/gzwrite.c"
+		"${OpenJKLibDir}/zlib/infback.c"
+		"${OpenJKLibDir}/zlib/inffast.c"
+		"${OpenJKLibDir}/zlib/inflate.c"
+		"${OpenJKLibDir}/zlib/inftrees.c"
+		"${OpenJKLibDir}/zlib/trees.c"
+		"${OpenJKLibDir}/zlib/uncompr.c"
+		"${OpenJKLibDir}/zlib/zutil.c"
+		"${OpenJKLibDir}/zlib/crc32.h"
+		"${OpenJKLibDir}/zlib/deflate.h"
+		"${OpenJKLibDir}/zlib/gzguts.h"
+		"${OpenJKLibDir}/zlib/inffast.h"
+		"${OpenJKLibDir}/zlib/inffixed.h"
+		"${OpenJKLibDir}/zlib/inflate.h"
+		"${OpenJKLibDir}/zlib/inftrees.h"
+		"${OpenJKLibDir}/zlib/trees.h"
+		"${OpenJKLibDir}/zlib/zconf.h"
+		"${OpenJKLibDir}/zlib/zlib.h"
+		"${OpenJKLibDir}/zlib/zutil.h")
+	source_group("zlib" FILES ${MPVanillaRendererZLibFiles})
+	set(MPVanillaRendererFiles ${MPVanillaRendererFiles} ${MPVanillaRendererZLibFiles})
 	set(MPVanillaRendererIncludeDirectories ${MPVanillaRendererIncludeDirectories} "${OpenJKLibDir}/zlib")
-	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${ZlibLibrary})
-else(UseInternalZlib)
+else()
 	find_package(ZLIB REQUIRED)
 	set(MPVanillaRendererIncludeDirectories ${MPVanillaRendererIncludeDirectories} ${ZLIB_INCLUDE_DIR})
 	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${ZLIB_LIBRARY})
-endif(UseInternalZlib)
+endif()
 
 if(NOT WIN32)
 	find_package(OpenGL REQUIRED)
 	set(MPVanillaRendererIncludeDirectories ${MPVanillaRendererIncludeDirectories} ${OPENGL_INCLUDE_DIR})
 	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${OPENGL_LIBRARIES})
 
+	set(SDL2_BUILDING_LIBRARY ON) # don't want main() in Renderer
 	find_package(SDL2 REQUIRED)
 	set(MPVanillaRendererIncludeDirectories ${MPVanillaRendererIncludeDirectories} ${SDL2_INCLUDE_DIR})
 	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${SDL2_LIBRARY})

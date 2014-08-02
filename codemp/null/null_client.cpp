@@ -1,5 +1,4 @@
-
-#include "client/client.h"
+#include "qcommon/qcommon.h"
 
 cvar_t *cl_shownet;
 
@@ -54,12 +53,12 @@ void CL_JoystickEvent( int axis, int value, int time ) {
 void CL_InitKeyCommands( void ) {
 }
 
-void CL_CDDialog( const char *msg ) {
-}
-
-void CL_FlushMemory( qboolean delayFlushVM ) {
+void CL_FlushMemory( void ) {
 }
 
 void CL_StartHunkUsers( void ) {
 }
 
+qboolean CL_ConnectedToRemoteServer( void ) {
+	return qfalse;
+}

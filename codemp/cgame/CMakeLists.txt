@@ -9,7 +9,7 @@ set(MPCGameIncludeDirectories "${MPDir}" "${MPDir}/libraries")
 if(WIN32)
 	set(MPCGameLibraries "odbc32" "odbccp32") # what are these even?
 endif(WIN32)
-set(MPCGameDefines ${MPSharedDefines} "CGAME" "MISSIONPACK" )
+set(MPCGameDefines ${MPSharedDefines} "_CGAME" )
 set(MPCGameGameFiles
 	"${MPDir}/game/animtable.cpp"
 	"${MPDir}/game/bg_ammo.cpp"
@@ -37,7 +37,7 @@ set(MPCGameGameFiles
 	"${MPDir}/game/bg_items.h"
 	"${MPDir}/game/bg_local.h"
 	"${MPDir}/game/bg_public.h"
-	"${MPDir}/game/bg_strap.h"
+	"${MPDir}/game/bg_saga.h"
 	"${MPDir}/game/bg_weapons.h"
 	"${MPDir}/game/surfaceflags.h"
 	"${MPDir}/game/z_global_defines.h"
@@ -111,6 +111,7 @@ set(MPCGameCommonFiles
 	"${MPDir}/qcommon/q_shared.cpp"
 	"${MPDir}/qcommon/disablewarnings.h"
 	"${MPDir}/qcommon/q_shared.h"
+	"${MPDir}/qcommon/q_platform.h"
 	"${MPDir}/qcommon/qfiles.h"
 	"${MPDir}/qcommon/tags.h"
 	)
@@ -164,7 +165,12 @@ endif(NOT WIN32)
 if(WIN32)
 	install(TARGETS ${MPCGame} RUNTIME DESTINATION "JKGalaxies")
 else(WIN32)
-	install(TARGETS ${MPCGame} LIBRARY DESTINATION "JKGalaxies")
+	if(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPCGame} LIBRARY DESTINATION "${MPEngine}.app/Contents/MacOS/OpenJK")
+		install(TARGETS ${MPCGame} LIBRARY DESTINATION "${MPEngine}.app/Contents/MacOS/base")
+	else(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPCGame} LIBRARY DESTINATION "JKGalaxies")
+	endif(MakeApplicationBundles AND BuildMPEngine)
 endif(WIN32)
 set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPCGameDefines};${ReleaseDefines}")
 set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPCGameDefines};${ReleaseDefines}")
