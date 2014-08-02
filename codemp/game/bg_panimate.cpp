@@ -2,7 +2,6 @@
 
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
-#include "bg_strap.h"
 #include "bg_local.h"
 #include "anims.h"
 #include "cgame/animtable.h"

@@ -22,9 +22,12 @@
 
 #include "qcommon/q_shared.h"
 #include "bg_ammo.h"
+#include "bg_public.h"
 
 #define MAX_WEAPON_TABLE_SIZE (255)
 #define MAX_FIREMODES (16)
+#define MAX_STANCES	(16)
+#define MAX_SABERHILTS	(64)
 
 typedef enum 
 {
@@ -143,7 +146,7 @@ typedef enum
 // that variable in the playerstate, which is just plain nasty imo.
 typedef struct
 {
-	vec_t accuracyRating;		// diameter of spread at 100 units away, in map units
+	float accuracyRating;		// diameter of spread at 100 units away, in map units
 	float crouchModifier;
 	float runModifier;
 	float walkModifier;		// this gets used in the case of crouch-walking, regardless of walking button being pressed
@@ -673,6 +676,7 @@ typedef struct
 } saberStanceExternal_t;
 
 extern saberStanceExternal_t SaberStances[MAX_STANCES];
-void JKG_InitializeStanceData( void );
-#endif
 
+void JKG_InitializeStanceData( void );
+
+#endif

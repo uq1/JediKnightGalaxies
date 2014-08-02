@@ -39,7 +39,6 @@
 #include "../qcommon/disablewarnings.h"
 
 #include "../game/teams.h" //npc team stuff
-#include <time.h>
 
 #define MAX_WORLD_COORD		( 64 * 1024 )
 #define MIN_WORLD_COORD		( -64 * 1024 )
@@ -836,9 +835,6 @@ extern vec4_t g_color_table[Q_COLOR_BITS+1];
 
 #define	MAKERGB( v, r, g, b ) v[0]=r;v[1]=g;v[2]=b
 #define	MAKERGBA( v, r, g, b, a ) v[0]=r;v[1]=g;v[2]=b;v[3]=a
-
-#define DEG2RAD( a ) ( ( (a) * M_PI ) / 180.0F )
-#define RAD2DEG( a ) ( ( (a) * 180.0f ) / M_PI )
 
 struct cplane_s;
 

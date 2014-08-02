@@ -1,6 +1,6 @@
 // qcommon.h -- definitions common between client and server, but not game.or ref modules
-#ifndef _QCOMMON_H_
-#define _QCOMMON_H_
+#ifndef QCOMMON_H
+#define QCOMMON_H
 
 #ifdef ENGINE
 
@@ -1134,4 +1134,4 @@ bool PD_Store ( const char *name, const void *data, size_t size );
 const void *PD_Load ( const char *name, size_t *size );
 
 #endif
-
+#endif // QCOMMON_H

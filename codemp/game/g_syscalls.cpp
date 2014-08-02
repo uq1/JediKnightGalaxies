@@ -1,32 +1,30 @@
 // Copyright (C) 1999-2000 Id Software, Inc.
 //
+// this file is only included when building a dll
+// g_syscalls.asm is included instead when building a qvm
 #include "g_local.h"
 #include "jkg_threading.h"
 
-// this file is only included when building a dll
-// g_syscalls.asm is included instead when building a qvm
+static void TranslateSyscalls( void );
 
 static intptr_t (QDECL *Q_syscall)( intptr_t arg, ... ) = (intptr_t (QDECL *)( intptr_t, ...))-1;
-
-extern "C" {
-	Q_EXPORT void dllEntry( intptr_t (QDECL *syscallptr)( intptr_t arg,... ) ) {
+Q_EXPORT void dllEntry( intptr_t (QDECL *syscallptr)( intptr_t arg,... ) ) {
 	Q_syscall = syscallptr;
-}
+
+	TranslateSyscalls();
 }
 
 int PASSFLOAT( float x ) {
-	floatint_t fi;
+	byteAlias_t fi;
 	fi.f = x;
 	return fi.i;
 }
 
-void	trap_Print( const char *fmt ) {
+void trap_Print( const char *fmt ) {
 	Q_syscall( G_PRINT, fmt );
 }
-
-void	trap_Error( const char *fmt ) {
+void trap_Error( const char *fmt ) {
 	Q_syscall( G_ERROR, fmt );
-	// shut up GCC warning about returning functions, because we know better
 	exit(1);
 }
 
@@ -52,7 +50,7 @@ int trap_PrecisionTimer_End(void *theTimer)
 	return Q_syscall(G_PRECISIONTIMER_END, theTimer);
 }
 
-void	trap_Cvar_Register( vmCvar_t *cvar, const char *var_name, const char *value, int flags ) {
+void	trap_Cvar_Register( vmCvar_t *cvar, const char *var_name, const char *value, uint32_t flags ) {
 	Q_syscall( G_CVAR_REGISTER, cvar, var_name, value, flags );
 }
 
@@ -692,7 +690,7 @@ void trap_AAS_PresenceTypeBoundingBox(int presencetype, vec3_t mins, vec3_t maxs
 }
 
 float trap_AAS_Time(void) {
-	floatint_t fi;
+	byteAlias_t fi;
 	fi.i = Q_syscall( BOTLIB_AAS_TIME );
 	return fi.f;
 }
@@ -886,13 +884,13 @@ void trap_BotFreeCharacter(int character) {
 }
 
 float trap_Characteristic_Float(int character, int index) {
-	floatint_t fi;
+	byteAlias_t fi;
 	fi.i = Q_syscall( BOTLIB_AI_CHARACTERISTIC_FLOAT, character, index );
 	return fi.f;
 }
 
 float trap_Characteristic_BFloat(int character, int index, float min, float max) {
-	floatint_t fi;
+	byteAlias_t fi;
 	fi.i = Q_syscall( BOTLIB_AI_CHARACTERISTIC_BFLOAT, character, index, PASSFLOAT(min), PASSFLOAT(max) );
 	return fi.f;
 }
@@ -1062,7 +1060,7 @@ int trap_BotGetMapLocationGoal(char *name, void /* struct bot_goal_s */ *goal) {
 }
 
 float trap_BotAvoidGoalTime(int goalstate, int number) {
-	floatint_t fi;
+	byteAlias_t fi;
 	fi.i = Q_syscall( BOTLIB_AI_AVOID_GOAL_TIME, goalstate, number );
 	return fi.f;
 }
@@ -1502,9 +1500,7 @@ int	trap_CM_RegisterTerrain(const char *config)
 	return Q_syscall(G_CM_REGISTER_TERRAIN, config);
 }
 
-void trap_RMG_Init(int terrainID)
-{ //rwwRMG - added [NEWTRAP]
-	Q_syscall(G_RMG_INIT, terrainID);
+void trap_RMG_Init() {
 }
 
 void trap_Bot_UpdateWaypoints(int wpnum, wpobject_t **wps)
@@ -1515,4 +1511,387 @@ void trap_Bot_UpdateWaypoints(int wpnum, wpobject_t **wps)
 void trap_Bot_CalculatePaths(int rmg)
 {
 	Q_syscall(G_BOT_CALCULATEPATHS, rmg);
+}
+
+// Translate import table funcptrs to syscalls
+
+static int SVSyscall_FS_Read( void *buffer, int len, fileHandle_t f ) { trap_FS_Read( buffer, len, f ); return 0; }
+static int SVSyscall_FS_Write( const void *buffer, int len, fileHandle_t f ) { trap_FS_Write( buffer, len, f ); return 0; }
+static qboolean SVSyscall_EntityContact( const vec3_t mins, const vec3_t maxs, const sharedEntity_t *ent, int capsule ) { if ( capsule ) return trap_EntityContactCapsule( mins, maxs, (const gentity_t *)ent ); else return trap_EntityContact( mins, maxs, (const gentity_t *)ent ); }
+
+static void SVSyscall_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, int capsule, int traceFlags, int useLod ) {
+	if ( capsule )
+		trap_TraceCapsule( results, start, mins, maxs, end, passEntityNum, contentmask );
+	else if ( traceFlags )
+		trap_G2Trace( results, start, mins, maxs, end, passEntityNum, contentmask, traceFlags, useLod );
+	else
+		trap_Trace( results, start, mins, maxs, end, passEntityNum, contentmask );
+}
+
+static void SVSyscall_AdjustAreaPortalState( sharedEntity_t *ent, bool open ) { trap_AdjustAreaPortalState( (gentity_t *)ent, open ); }
+static void SVSyscall_LinkEntity( sharedEntity_t *ent ) { trap_LinkEntity( (gentity_t *)ent ); }
+static void SVSyscall_UnlinkEntity( sharedEntity_t *ent ) { trap_UnlinkEntity( (gentity_t *)ent ); }
+static void SVSyscall_LocateGameData( sharedEntity_t *ent, int numEntities, int gentitySize, playerState_t *players, int gclientSize ) { trap_LocateGameData( (gentity_t *)ent, numEntities, gentitySize, players, gclientSize); }
+static void SVSyscall_SetBrushModel( sharedEntity_t *ent, const char *name ) { trap_SetBrushModel( (gentity_t *)ent, name ); }
+
+static int SVSyscall_ICARUS_RunScript( sharedEntity_t *ent, const char *name ) { return trap_ICARUS_RunScript( (gentity_t *)ent, name ); }
+static bool SVSyscall_ICARUS_ValidEnt( sharedEntity_t *ent ) { trap_ICARUS_ValidEnt( (gentity_t *)ent ); }
+static bool SVSyscall_ICARUS_TaskIDPending( sharedEntity_t *ent, int taskID ) { return trap_ICARUS_TaskIDPending( (gentity_t *)ent, taskID ); }
+static void SVSyscall_ICARUS_InitEnt( sharedEntity_t *ent ) { trap_ICARUS_InitEnt( (gentity_t *)ent ); }
+static void SVSyscall_ICARUS_FreeEnt( sharedEntity_t *ent ) { trap_ICARUS_FreeEnt( (gentity_t *)ent ); }
+static void SVSyscall_ICARUS_AssociateEnt( sharedEntity_t *ent ) { trap_ICARUS_AssociateEnt( (gentity_t *)ent ); }
+static void SVSyscall_ICARUS_TaskIDSet( sharedEntity_t *ent, int taskType, int taskID ) { trap_ICARUS_TaskIDSet( (gentity_t *)ent, taskType, taskID ); }
+static void SVSyscall_ICARUS_TaskIDComplete( sharedEntity_t *ent, int taskType ) { trap_ICARUS_TaskIDComplete( (gentity_t *)ent, taskType ); }
+
+static int SVSyscall_Nav_GetNearestNode( sharedEntity_t *ent, int lastID, int flags, int targetID ) { return trap_Nav_GetNearestNode( (gentity_t *)ent, lastID, flags, targetID ); }
+static void SVSyscall_Nav_CheckFailedNodes( sharedEntity_t *ent ) { trap_Nav_CheckFailedNodes( (gentity_t *)ent ); }
+static void SVSyscall_Nav_AddFailedNode( sharedEntity_t *ent, int nodeID ) { trap_Nav_AddFailedNode( (gentity_t *)ent, nodeID ); }
+static bool SVSyscall_Nav_NodeFailed( sharedEntity_t *ent, int nodeID ) { return trap_Nav_NodeFailed( (gentity_t *)ent, nodeID ); }
+static int SVSyscall_Nav_GetBestPathBetweenEnts( sharedEntity_t *ent, sharedEntity_t *goal, int flags ) { return trap_Nav_GetBestPathBetweenEnts( (gentity_t *)ent, (gentity_t *)goal, flags ); }
+
+
+
+void QDECL G_Error( int errorLevel, const char *error, ... ) {
+	va_list argptr;
+	char text[1024];
+
+	va_start( argptr, error );
+	Q_vsnprintf( text, sizeof( text ), error, argptr );
+	va_end( argptr );
+
+	trap_Error( text );
+}
+
+void QDECL G_Printf( const char *msg, ... ) {
+	va_list argptr;
+	char text[4096] = {0};
+	int ret;
+
+	va_start( argptr, msg );
+	ret = Q_vsnprintf( text, sizeof( text ), msg, argptr );
+	va_end( argptr );
+
+	if ( ret == -1 )
+		trap_Print( "G_Printf: overflow of 4096 bytes buffer\n" );
+	else
+		trap_Print( text );
+}
+
+static void TranslateSyscalls( void ) {
+	static gameImport_t import;
+
+	memset( &import, 0, sizeof( import ) );
+	trap = &import;
+
+	Com_Error								= G_Error;
+	Com_Printf								= G_Printf;
+
+	trap->Print								= Com_Printf;
+	trap->Error								= Com_Error;
+	trap->Milliseconds						= trap_Milliseconds;
+	trap->PrecisionTimerStart				= trap_PrecisionTimer_Start;
+	trap->PrecisionTimerEnd					= trap_PrecisionTimer_End;
+	trap->SV_RegisterSharedMemory			= trap_SV_RegisterSharedMemory;
+	trap->RealTime							= trap_RealTime;
+	trap->TrueMalloc						= trap_TrueMalloc;
+	trap->TrueFree							= trap_TrueFree;
+	trap->SnapVector						= trap_SnapVector;
+	trap->Cvar_Register						= trap_Cvar_Register;
+	trap->Cvar_Set							= trap_Cvar_Set;
+	trap->Cvar_Update						= trap_Cvar_Update;
+	trap->Cvar_VariableIntegerValue			= trap_Cvar_VariableIntegerValue;
+	trap->Cvar_VariableStringBuffer			= trap_Cvar_VariableStringBuffer;
+	trap->Argc								= trap_Argc;
+	trap->Argv								= trap_Argv;
+	trap->FS_Close							= trap_FS_FCloseFile;
+	trap->FS_GetFileList					= trap_FS_GetFileList;
+	trap->FS_Open							= trap_FS_FOpenFile;
+	trap->FS_Read							= SVSyscall_FS_Read;
+	trap->FS_Write							= SVSyscall_FS_Write;
+	trap->AdjustAreaPortalState				= SVSyscall_AdjustAreaPortalState;
+	trap->AreasConnected					= trap_AreasConnected;
+	trap->DebugPolygonCreate				= trap_DebugPolygonCreate;
+	trap->DebugPolygonDelete				= trap_DebugPolygonDelete;
+	trap->DropClient						= trap_DropClient;
+	trap->EntitiesInBox						= trap_EntitiesInBox;
+	trap->EntityContact						= SVSyscall_EntityContact;
+	trap->Trace								= SVSyscall_Trace;
+	trap->GetConfigstring					= trap_GetConfigstring;
+	trap->GetEntityToken					= trap_GetEntityToken;
+	trap->GetServerinfo						= trap_GetServerinfo;
+	trap->GetUsercmd						= trap_GetUsercmd;
+	trap->GetUserinfo						= trap_GetUserinfo;
+	trap->InPVS								= trap_InPVS;
+	trap->InPVSIgnorePortals				= trap_InPVSIgnorePortals;
+	trap->LinkEntity						= SVSyscall_LinkEntity;
+	trap->LocateGameData					= SVSyscall_LocateGameData;
+	trap->PointContents						= trap_PointContents;
+	trap->SendConsoleCommand				= trap_SendConsoleCommand;
+	trap->SendServerCommand					= trap_SendServerCommand;
+	trap->SetBrushModel						= SVSyscall_SetBrushModel;
+	trap->SetConfigstring					= trap_SetConfigstring;
+	trap->SetServerCull						= trap_SetServerCull;
+	trap->SetUserinfo						= trap_SetUserinfo;
+	trap->SiegePersSet						= trap_SiegePersSet;
+	trap->SiegePersGet						= trap_SiegePersGet;
+	trap->UnlinkEntity						= SVSyscall_UnlinkEntity;
+	trap->ROFF_Clean						= trap_ROFF_Clean;
+	trap->ROFF_UpdateEntities				= trap_ROFF_UpdateEntities;
+	trap->ROFF_Cache						= trap_ROFF_Cache;
+	trap->ROFF_Play							= trap_ROFF_Play;
+	trap->ROFF_Purge_Ent					= trap_ROFF_Purge_Ent;
+	trap->ICARUS_RunScript					= SVSyscall_ICARUS_RunScript;
+	trap->ICARUS_RegisterScript				= trap_ICARUS_RegisterScript;
+	trap->ICARUS_Init						= trap_ICARUS_Init;
+	trap->ICARUS_ValidEnt					= SVSyscall_ICARUS_ValidEnt;
+	trap->ICARUS_IsInitialized				= trap_ICARUS_IsInitialized;
+	trap->ICARUS_MaintainTaskManager		= trap_ICARUS_MaintainTaskManager;
+	trap->ICARUS_IsRunning					= trap_ICARUS_IsRunning;
+	trap->ICARUS_TaskIDPending				= SVSyscall_ICARUS_TaskIDPending;
+	trap->ICARUS_InitEnt					= SVSyscall_ICARUS_InitEnt;
+	trap->ICARUS_FreeEnt					= SVSyscall_ICARUS_FreeEnt;
+	trap->ICARUS_AssociateEnt				= SVSyscall_ICARUS_AssociateEnt;
+	trap->ICARUS_Shutdown					= trap_ICARUS_Shutdown;
+	trap->ICARUS_TaskIDSet					= SVSyscall_ICARUS_TaskIDSet;
+	trap->ICARUS_TaskIDComplete				= SVSyscall_ICARUS_TaskIDComplete;
+	trap->ICARUS_SetVar						= trap_ICARUS_SetVar;
+	trap->ICARUS_VariableDeclared			= trap_ICARUS_VariableDeclared;
+	trap->ICARUS_GetFloatVariable			= trap_ICARUS_GetFloatVariable;
+	trap->ICARUS_GetStringVariable			= trap_ICARUS_GetStringVariable;
+	trap->ICARUS_GetVectorVariable			= trap_ICARUS_GetVectorVariable;
+	trap->Nav_Init							= trap_Nav_Init;
+	trap->Nav_Free							= trap_Nav_Free;
+	trap->Nav_Load							= trap_Nav_Load;
+	trap->Nav_Save							= trap_Nav_Save;
+	trap->Nav_AddRawPoint					= trap_Nav_AddRawPoint;
+	trap->Nav_CalculatePaths				= trap_Nav_CalculatePaths;
+	trap->Nav_HardConnect					= trap_Nav_HardConnect;
+	trap->Nav_ShowNodes						= trap_Nav_ShowNodes;
+	trap->Nav_ShowEdges						= trap_Nav_ShowEdges;
+	trap->Nav_ShowPath						= trap_Nav_ShowPath;
+	trap->Nav_GetNearestNode				= SVSyscall_Nav_GetNearestNode;
+	trap->Nav_GetBestNode					= trap_Nav_GetBestNode;
+	trap->Nav_GetNodePosition				= trap_Nav_GetNodePosition;
+	trap->Nav_GetNodeNumEdges				= trap_Nav_GetNodeNumEdges;
+	trap->Nav_GetNodeEdge					= trap_Nav_GetNodeEdge;
+	trap->Nav_GetNumNodes					= trap_Nav_GetNumNodes;
+	trap->Nav_Connected						= trap_Nav_Connected;
+	trap->Nav_GetPathCost					= trap_Nav_GetPathCost;
+	trap->Nav_GetEdgeCost					= trap_Nav_GetEdgeCost;
+	trap->Nav_GetProjectedNode				= trap_Nav_GetProjectedNode;
+	trap->Nav_CheckFailedNodes				= SVSyscall_Nav_CheckFailedNodes;
+	trap->Nav_AddFailedNode					= SVSyscall_Nav_AddFailedNode;
+	trap->Nav_NodeFailed					= SVSyscall_Nav_NodeFailed;
+	trap->Nav_NodesAreNeighbors				= trap_Nav_NodesAreNeighbors;
+	trap->Nav_ClearFailedEdge				= trap_Nav_ClearFailedEdge;
+	trap->Nav_ClearAllFailedEdges			= trap_Nav_ClearAllFailedEdges;
+	trap->Nav_EdgeFailed					= trap_Nav_EdgeFailed;
+	trap->Nav_AddFailedEdge					= trap_Nav_AddFailedEdge;
+	trap->Nav_CheckFailedEdge				= trap_Nav_CheckFailedEdge;
+	trap->Nav_CheckAllFailedEdges			= trap_Nav_CheckAllFailedEdges;
+	trap->Nav_RouteBlocked					= trap_Nav_RouteBlocked;
+	trap->Nav_GetBestNodeAltRoute			= trap_Nav_GetBestNodeAltRoute;
+	trap->Nav_GetBestNodeAltRoute2			= trap_Nav_GetBestNodeAltRoute2;
+	trap->Nav_GetBestPathBetweenEnts		= SVSyscall_Nav_GetBestPathBetweenEnts;
+	trap->Nav_GetNodeRadius					= trap_Nav_GetNodeRadius;
+	trap->Nav_CheckBlockedEdges				= trap_Nav_CheckBlockedEdges;
+	trap->Nav_ClearCheckedNodes				= trap_Nav_ClearCheckedNodes;
+	trap->Nav_CheckedNode					= trap_Nav_CheckedNode;
+	trap->Nav_SetCheckedNode				= trap_Nav_SetCheckedNode;
+	trap->Nav_FlagAllNodes					= trap_Nav_FlagAllNodes;
+	trap->Nav_GetPathsCalculated			= trap_Nav_GetPathsCalculated;
+	trap->Nav_SetPathsCalculated			= trap_Nav_SetPathsCalculated;
+	trap->BotAllocateClient					= trap_BotAllocateClient;
+	trap->BotFreeClient						= trap_BotFreeClient;
+	trap->BotLoadCharacter					= trap_BotLoadCharacter;
+	trap->BotFreeCharacter					= trap_BotFreeCharacter;
+	trap->Characteristic_Float				= trap_Characteristic_Float;
+	trap->Characteristic_BFloat				= trap_Characteristic_BFloat;
+	trap->Characteristic_Integer			= trap_Characteristic_Integer;
+	trap->Characteristic_BInteger			= trap_Characteristic_BInteger;
+	trap->Characteristic_String				= trap_Characteristic_String;
+	trap->BotAllocChatState					= trap_BotAllocChatState;
+	trap->BotFreeChatState					= trap_BotFreeChatState;
+	trap->BotQueueConsoleMessage			= trap_BotQueueConsoleMessage;
+	trap->BotRemoveConsoleMessage			= trap_BotRemoveConsoleMessage;
+	trap->BotNextConsoleMessage				= trap_BotNextConsoleMessage;
+	trap->BotNumConsoleMessages				= trap_BotNumConsoleMessages;
+	trap->BotInitialChat					= trap_BotInitialChat;
+	trap->BotReplyChat						= trap_BotReplyChat;
+	trap->BotChatLength						= trap_BotChatLength;
+	trap->BotEnterChat						= trap_BotEnterChat;
+	trap->StringContains					= trap_StringContains;
+	trap->BotFindMatch						= trap_BotFindMatch;
+	trap->BotMatchVariable					= trap_BotMatchVariable;
+	trap->UnifyWhiteSpaces					= trap_UnifyWhiteSpaces;
+	trap->BotReplaceSynonyms				= trap_BotReplaceSynonyms;
+	trap->BotLoadChatFile					= trap_BotLoadChatFile;
+	trap->BotSetChatGender					= trap_BotSetChatGender;
+	trap->BotSetChatName					= trap_BotSetChatName;
+	trap->BotResetGoalState					= trap_BotResetGoalState;
+	trap->BotResetAvoidGoals				= trap_BotResetAvoidGoals;
+	trap->BotPushGoal						= trap_BotPushGoal;
+	trap->BotPopGoal						= trap_BotPopGoal;
+	trap->BotEmptyGoalStack					= trap_BotEmptyGoalStack;
+	trap->BotDumpAvoidGoals					= trap_BotDumpAvoidGoals;
+	trap->BotDumpGoalStack					= trap_BotDumpGoalStack;
+	trap->BotGoalName						= trap_BotGoalName;
+	trap->BotGetTopGoal						= trap_BotGetTopGoal;
+	trap->BotGetSecondGoal					= trap_BotGetSecondGoal;
+	trap->BotChooseLTGItem					= trap_BotChooseLTGItem;
+	trap->BotChooseNBGItem					= trap_BotChooseNBGItem;
+	trap->BotTouchingGoal					= trap_BotTouchingGoal;
+	trap->BotItemGoalInVisButNotVisible		= trap_BotItemGoalInVisButNotVisible;
+	trap->BotGetLevelItemGoal				= trap_BotGetLevelItemGoal;
+	trap->BotAvoidGoalTime					= trap_BotAvoidGoalTime;
+	trap->BotInitLevelItems					= trap_BotInitLevelItems;
+	trap->BotUpdateEntityItems				= trap_BotUpdateEntityItems;
+	trap->BotLoadItemWeights				= trap_BotLoadItemWeights;
+	trap->BotFreeItemWeights				= trap_BotFreeItemWeights;
+	trap->BotSaveGoalFuzzyLogic				= trap_BotSaveGoalFuzzyLogic;
+	trap->BotAllocGoalState					= trap_BotAllocGoalState;
+	trap->BotFreeGoalState					= trap_BotFreeGoalState;
+	trap->BotResetMoveState					= trap_BotResetMoveState;
+	trap->BotMoveToGoal						= trap_BotMoveToGoal;
+	trap->BotMoveInDirection				= trap_BotMoveInDirection;
+	trap->BotResetAvoidReach				= trap_BotResetAvoidReach;
+	trap->BotResetLastAvoidReach			= trap_BotResetLastAvoidReach;
+	trap->BotReachabilityArea				= trap_BotReachabilityArea;
+	trap->BotMovementViewTarget				= trap_BotMovementViewTarget;
+	trap->BotAllocMoveState					= trap_BotAllocMoveState;
+	trap->BotFreeMoveState					= trap_BotFreeMoveState;
+	trap->BotInitMoveState					= trap_BotInitMoveState;
+	trap->BotChooseBestFightWeapon			= trap_BotChooseBestFightWeapon;
+	trap->BotGetWeaponInfo					= trap_BotGetWeaponInfo;
+	trap->BotLoadWeaponWeights				= trap_BotLoadWeaponWeights;
+	trap->BotAllocWeaponState				= trap_BotAllocWeaponState;
+	trap->BotFreeWeaponState				= trap_BotFreeWeaponState;
+	trap->BotResetWeaponState				= trap_BotResetWeaponState;
+	trap->GeneticParentsAndChildSelection	= trap_GeneticParentsAndChildSelection;
+	trap->BotInterbreedGoalFuzzyLogic		= trap_BotInterbreedGoalFuzzyLogic;
+	trap->BotMutateGoalFuzzyLogic			= trap_BotMutateGoalFuzzyLogic;
+	trap->BotGetNextCampSpotGoal			= trap_BotGetNextCampSpotGoal;
+	trap->BotGetMapLocationGoal				= trap_BotGetMapLocationGoal;
+	trap->BotNumInitialChats				= trap_BotNumInitialChats;
+	trap->BotGetChatMessage					= trap_BotGetChatMessage;
+	trap->BotRemoveFromAvoidGoals			= trap_BotRemoveFromAvoidGoals;
+	trap->BotPredictVisiblePosition			= trap_BotPredictVisiblePosition;
+	trap->BotSetAvoidGoalTime				= trap_BotSetAvoidGoalTime;
+	trap->BotAddAvoidSpot					= trap_BotAddAvoidSpot;
+	trap->BotLibSetup						= trap_BotLibSetup;
+	trap->BotLibShutdown					= trap_BotLibShutdown;
+	trap->BotLibVarSet						= trap_BotLibVarSet;
+	trap->BotLibVarGet						= trap_BotLibVarGet;
+	trap->BotLibDefine						= trap_BotLibDefine;
+	trap->BotLibStartFrame					= trap_BotLibStartFrame;
+	trap->BotLibLoadMap						= trap_BotLibLoadMap;
+	trap->BotLibUpdateEntity				= trap_BotLibUpdateEntity;
+	trap->BotLibTest						= trap_BotLibTest;
+	trap->BotGetSnapshotEntity				= trap_BotGetSnapshotEntity;
+	trap->BotGetServerCommand				= trap_BotGetServerCommand;
+	trap->BotUserCommand					= trap_BotUserCommand;
+	trap->BotUpdateWaypoints				= trap_Bot_UpdateWaypoints;
+	trap->BotCalculatePaths					= trap_Bot_CalculatePaths;
+	trap->AAS_EnableRoutingArea				= trap_AAS_EnableRoutingArea;
+	trap->AAS_BBoxAreas						= trap_AAS_BBoxAreas;
+	trap->AAS_AreaInfo						= trap_AAS_AreaInfo;
+	trap->AAS_EntityInfo					= trap_AAS_EntityInfo;
+	trap->AAS_Initialized					= trap_AAS_Initialized;
+	trap->AAS_PresenceTypeBoundingBox		= trap_AAS_PresenceTypeBoundingBox;
+	trap->AAS_Time							= trap_AAS_Time;
+	trap->AAS_PointAreaNum					= trap_AAS_PointAreaNum;
+	trap->AAS_TraceAreas					= trap_AAS_TraceAreas;
+	trap->AAS_PointContents					= trap_AAS_PointContents;
+	trap->AAS_NextBSPEntity					= trap_AAS_NextBSPEntity;
+	trap->AAS_ValueForBSPEpairKey			= trap_AAS_ValueForBSPEpairKey;
+	trap->AAS_VectorForBSPEpairKey			= trap_AAS_VectorForBSPEpairKey;
+	trap->AAS_FloatForBSPEpairKey			= trap_AAS_FloatForBSPEpairKey;
+	trap->AAS_IntForBSPEpairKey				= trap_AAS_IntForBSPEpairKey;
+	trap->AAS_AreaReachability				= trap_AAS_AreaReachability;
+	trap->AAS_AreaTravelTimeToGoalArea		= trap_AAS_AreaTravelTimeToGoalArea;
+	trap->AAS_Swimming						= trap_AAS_Swimming;
+	trap->AAS_PredictClientMovement			= trap_AAS_PredictClientMovement;
+	trap->AAS_AlternativeRouteGoals			= trap_AAS_AlternativeRouteGoals;
+	trap->AAS_PredictRoute					= trap_AAS_PredictRoute;
+	trap->AAS_PointReachabilityAreaIndex	= trap_AAS_PointReachabilityAreaIndex;
+	trap->EA_Say							= trap_EA_Say;
+	trap->EA_SayTeam						= trap_EA_SayTeam;
+	trap->EA_Command						= trap_EA_Command;
+	trap->EA_Action							= trap_EA_Action;
+	trap->EA_Gesture						= trap_EA_Gesture;
+	trap->EA_Talk							= trap_EA_Talk;
+	trap->EA_Attack							= trap_EA_Attack;
+	trap->EA_Alt_Attack						= trap_EA_Alt_Attack;
+	trap->EA_ForcePower						= trap_EA_ForcePower;
+	trap->EA_Use							= trap_EA_Use;
+	trap->EA_Respawn						= trap_EA_Respawn;
+	trap->EA_Crouch							= trap_EA_Crouch;
+	trap->EA_MoveUp							= trap_EA_MoveUp;
+	trap->EA_MoveDown						= trap_EA_MoveDown;
+	trap->EA_MoveForward					= trap_EA_MoveForward;
+	trap->EA_MoveBack						= trap_EA_MoveBack;
+	trap->EA_MoveLeft						= trap_EA_MoveLeft;
+	trap->EA_MoveRight						= trap_EA_MoveRight;
+	trap->EA_SelectWeapon					= trap_EA_SelectWeapon;
+	trap->EA_Jump							= trap_EA_Jump;
+	trap->EA_DelayedJump					= trap_EA_DelayedJump;
+	trap->EA_Move							= trap_EA_Move;
+	trap->EA_View							= trap_EA_View;
+	trap->EA_EndRegular						= trap_EA_EndRegular;
+	trap->EA_GetInput						= trap_EA_GetInput;
+	trap->EA_ResetInput						= trap_EA_ResetInput;
+	trap->PC_LoadSource						= trap_PC_LoadSource;
+	trap->PC_FreeSource						= trap_PC_FreeSource;
+	trap->PC_ReadToken						= trap_PC_ReadToken;
+	trap->PC_SourceFileAndLine				= trap_PC_SourceFileAndLine;
+	trap->R_RegisterSkin					= trap_R_RegisterSkin;
+	trap->CM_RegisterTerrain				= trap_CM_RegisterTerrain;
+	trap->RMG_Init							= trap_RMG_Init;
+	trap->G2API_ListModelBones				= trap_G2_ListModelBones;
+	trap->G2API_ListModelSurfaces			= trap_G2_ListModelSurfaces;
+	trap->G2API_HaveWeGhoul2Models			= trap_G2_HaveWeGhoul2Models;
+	trap->G2API_SetGhoul2ModelIndexes		= trap_G2_SetGhoul2ModelIndexes;
+	trap->G2API_GetBoltMatrix				= trap_G2API_GetBoltMatrix;
+	trap->G2API_GetBoltMatrix_NoReconstruct	= trap_G2API_GetBoltMatrix_NoReconstruct;
+	trap->G2API_GetBoltMatrix_NoRecNoRot	= trap_G2API_GetBoltMatrix_NoRecNoRot;
+	trap->G2API_InitGhoul2Model				= trap_G2API_InitGhoul2Model;
+	trap->G2API_SetSkin						= trap_G2API_SetSkin;
+	trap->G2API_Ghoul2Size					= trap_G2API_Ghoul2Size;
+	trap->G2API_AddBolt						= trap_G2API_AddBolt;
+	trap->G2API_SetBoltInfo					= trap_G2API_SetBoltInfo;
+	trap->G2API_SetBoneAngles				= trap_G2API_SetBoneAngles;
+	trap->G2API_SetBoneAnim					= trap_G2API_SetBoneAnim;
+	trap->G2API_GetBoneAnim					= trap_G2API_GetBoneAnim;
+	trap->G2API_GetGLAName					= trap_G2API_GetGLAName;
+	trap->G2API_CopyGhoul2Instance			= trap_G2API_CopyGhoul2Instance;
+	trap->G2API_CopySpecificGhoul2Model		= trap_G2API_CopySpecificGhoul2Model;
+	trap->G2API_DuplicateGhoul2Instance		= trap_G2API_DuplicateGhoul2Instance;
+	trap->G2API_HasGhoul2ModelOnIndex		= trap_G2API_HasGhoul2ModelOnIndex;
+	trap->G2API_RemoveGhoul2Model			= trap_G2API_RemoveGhoul2Model;
+	trap->G2API_RemoveGhoul2Models			= trap_G2API_RemoveGhoul2Models;
+	trap->G2API_CleanGhoul2Models			= trap_G2API_CleanGhoul2Models;
+	trap->G2API_CollisionDetect				= trap_G2API_CollisionDetect;
+	trap->G2API_CollisionDetectCache		= trap_G2API_CollisionDetectCache;
+	trap->G2API_SetRootSurface				= trap_G2API_SetRootSurface;
+	trap->G2API_SetSurfaceOnOff				= trap_G2API_SetSurfaceOnOff;
+	trap->G2API_SetNewOrigin				= trap_G2API_SetNewOrigin;
+	trap->G2API_DoesBoneExist				= trap_G2API_DoesBoneExist;
+	trap->G2API_GetSurfaceRenderStatus		= trap_G2API_GetSurfaceRenderStatus;
+	trap->G2API_AbsurdSmoothing				= trap_G2API_AbsurdSmoothing;
+	trap->G2API_SetRagDoll					= trap_G2API_SetRagDoll;
+	trap->G2API_AnimateG2Models				= trap_G2API_AnimateG2Models;
+	trap->G2API_RagPCJConstraint			= trap_G2API_RagPCJConstraint;
+	trap->G2API_RagPCJGradientSpeed			= trap_G2API_RagPCJGradientSpeed;
+	trap->G2API_RagEffectorGoal				= trap_G2API_RagEffectorGoal;
+	trap->G2API_GetRagBonePos				= trap_G2API_GetRagBonePos;
+	trap->G2API_RagEffectorKick				= trap_G2API_RagEffectorKick;
+	trap->G2API_RagForceSolve				= trap_G2API_RagForceSolve;
+	trap->G2API_SetBoneIKState				= trap_G2API_SetBoneIKState;
+	trap->G2API_IKMove						= trap_G2API_IKMove;
+	trap->G2API_RemoveBone					= trap_G2API_RemoveBone;
+	trap->G2API_AttachInstanceToEntNum		= trap_G2API_AttachInstanceToEntNum;
+	trap->G2API_ClearAttachedInstance		= trap_G2API_ClearAttachedInstance;
+	trap->G2API_CleanEntAttachments			= trap_G2API_CleanEntAttachments;
+	trap->G2API_OverrideServer				= trap_G2API_OverrideServer;
+	trap->G2API_GetSurfaceName				= trap_G2API_GetSurfaceName;
 }

@@ -4,11 +4,6 @@
 
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
-#include "bg_strap.h"
-
-#ifndef BGITEMH
-#define BGITEMH
-
 #include "bg_items.h"
 
 #define MAX_LOOT_ITEMS			10
@@ -143,7 +138,4 @@ typedef struct
 	int numPickedItems;
 } randomItemStruct_t;
 
-
-
 itemData_t *JKG_GetItemByWeaponIndex ( int weaponIndex );
-#endif

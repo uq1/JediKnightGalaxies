@@ -2909,7 +2909,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 		if (!(ent->r.svFlags & SVF_BOT))
 			trap_SendServerCommand(ent->s.clientNum, "dcr");
 	}*/
-	trap_GetUserinfo( index, userinfo, sizeof(userinfo) );
+	trap->GetUserinfo( index, userinfo, sizeof(userinfo) );
 	while (l < MAX_SABERS)
 	{
 		switch (l)

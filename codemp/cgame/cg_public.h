@@ -13,8 +13,8 @@
 // cg_public.h
 // Copyright (C) 1999-2000 Id Software, Inc. (c) 2013 Jedi Knight Galaxies
 
-#ifndef __CG_PUBLIC_H
-#define __CG_PUBLIC_H
+#ifndef CG_PUBLIC_H
+#define CG_PUBLIC_H
 
 #define	CGAME_API_VERSION		1
 
@@ -442,6 +442,7 @@ typedef enum cgameImportLegacy_e {
 	CG_RE_INIT_RENDERER_TERRAIN,
 	CG_R_WEATHER_CONTENTS_OVERRIDE,			// DOES NOT WORK (but is called?)
 	CG_R_WORLDEFFECTCOMMAND,
+	CG_WE_ADDWEATHERZONE,
 
 /*
 Ghoul2 Insert End
@@ -463,7 +464,7 @@ Ghoul2 Insert End
 	CG_FX_GETEFFECTCOPY1,
 	CG_FX_GETEFFECTCOPY2,
 	CG_FX_GETPRIMITIVECOPY,
-} cgameImport_t;
+} cgameImportLegacy_t;
 
 
 /*
@@ -473,11 +474,6 @@ functions exported to the main executable
 
 ==================================================================
 */
-
-typedef enum {
-	CG_WE_ADDWEATHERZONE
-} cgameImportLegacy_t;
-
 typedef enum cgameExportLegacy_e {
 	CG_INIT,
 	CG_SHUTDOWN,
@@ -514,8 +510,6 @@ typedef enum cgameExportLegacy_e {
 
 	// Jedi Knight Galaxies
 	CG_MESSAGEMODE,
-} cgameExport_t;
-
 } cgameExportLegacy_t;
 
 typedef struct cgameImport_s {
@@ -597,6 +591,7 @@ typedef struct cgameImport_s {
 	void			(*R_AddAdditiveLightToScene)			( const vec3_t org, float intensity, float r, float g, float b );
 	void			(*R_AddDecalToScene)					( qhandle_t shader, const vec3_t origin, const vec3_t dir, float orientation, float r, float g, float b, float a, qboolean alphaFade, float radius, qboolean temporary );
 	void			(*R_AddLightToScene)					( const vec3_t org, float intensity, float r, float g, float b );
+	void			(*R_AddMiniRefEntityToScene)			( const miniRefEntity_t *re );
 	void			(*R_AddPolysToScene)					( qhandle_t hShader , int numVerts, const polyVert_t *verts, int num );
 	void			(*R_AddRefEntityToScene)				( const refEntity_t *re );
 	unsigned int	(*R_AnyLanguage_ReadCharFromString)		( const char *psText, int *piAdvanceCount, qboolean *pbIsTrailingPunctuation );
@@ -637,7 +632,7 @@ typedef struct cgameImport_s {
 	void			(*R_SetRefractionProperties)			( float distortionAlpha, float distortionStretch, qboolean distortionPrePost, qboolean distortionNegate );
 	void			(*R_WorldEffectCommand)					( const char *cmd );
 	void			(*RE_InitRendererTerrain)				( const char *info );
-	void			(*WE_AddWeatherZone)					( vec3_t mins, vec3_t maxs );
+	void			(*WE_AddWeatherZone)					( const vec3_t mins, const vec3_t maxs );
 
 	// client
 	void			(*GetCurrentSnapshotNumber)				( int *snapshotNumber, int *serverTime );
@@ -675,7 +670,7 @@ typedef struct cgameImport_s {
 	e_status		(*CIN_StopCinematic)					( int handle );
 
 	// FX
-	void			(*FX_AddLine)							( vec3_t start, vec3_t end, float size1, float size2, float sizeParm, float alpha1, float alpha2, float alphaParm, vec3_t sRGB, vec3_t eRGB, float rgbParm, int killTime, qhandle_t shader, int flags );
+	void			(*FX_AddLine)							( const vec3_t start, const vec3_t end, float size1, float size2, float sizeParm, float alpha1, float alpha2, float alphaParm, const vec3_t sRGB, const vec3_t eRGB, float rgbParm, int killTime, qhandle_t shader, int flags );
 	int				(*FX_RegisterEffect)					( const char *file );
 	void			(*FX_PlayEffect)						( const char *file, vec3_t org, vec3_t fwd, int vol, int rad );
 	void			(*FX_PlayEffectID)						( int id, vec3_t org, vec3_t fwd, int vol, int rad, qboolean isPortal );
@@ -692,6 +687,7 @@ typedef struct cgameImport_s {
 	void			(*FX_AddPrimitive)						( effectTrailArgStruct_t *p );
 	void			(*FX_AddSprite)							( addspriteArgStruct_t *p );
 	void			(*FX_AddElectricity)					( addElectricityArgStruct_t *p );
+	char			*(*FX_GetSharedMemory)					( void );
 
 	// stringed
 	qboolean		(*SE_GetStringTextString)				( const char *text, char *buffer, int bufferLength );
@@ -758,165 +754,10 @@ typedef struct cgameImport_s {
 	void			(*G2API_CleanEntAttachments)			( void );
 	qboolean		(*G2API_OverrideServer)					( void *serverInstance );
 	void			(*G2API_GetSurfaceName)					( void *ghoul2, int surfNumber, int modelIndex, char *fillBuf );
+
+	void			(*CO_Shutdown)							( void );
 } cgameImport_t;
 
-typedef struct
-{
-	float		up;
-	float		down;
-	float		yaw;
-	float		pitch;
-	qboolean	goToDefaults;
-} autoMapInput_t;
-
-// CG_POINT_CONTENTS
-typedef struct
-{
-	vec3_t		mPoint;			// input
-	int			mPassEntityNum;	// input
-} TCGPointContents;
-
-// CG_GET_BOLT_POS
-typedef struct
-{
-	vec3_t		mOrigin;		// output
-	vec3_t		mAngles;		// output
-	vec3_t		mScale;			// output
-	int			mEntityNum;		// input
-} TCGGetBoltData;
-
-// CG_IMPACT_MARK
-typedef struct
-{
-	int		mHandle;
-	vec3_t	mPoint;
-	vec3_t	mAngle;
-	float	mRotation;
-	float	mRed;
-	float	mGreen;
-	float	mBlue;
-	float	mAlphaStart;
-	float	mSizeStart;
-} TCGImpactMark;
-
-// CG_GET_LERP_ORIGIN
-// CG_GET_LERP_ANGLES
-// CG_GET_MODEL_SCALE
-typedef struct
-{
-	int			mEntityNum;		// input
-	vec3_t		mPoint;			// output
-} TCGVectorData;
-
-// CG_TRACE/CG_G2TRACE
-typedef struct
-{
-	trace_t mResult;					// output
-	vec3_t	mStart, mMins, mMaxs, mEnd;	// input
-	int		mSkipNumber, mMask;			// input
-} TCGTrace;
-
-// CG_G2MARK
-typedef struct
-{
-	int			shader;
-	float		size;
-	vec3_t		start, dir;
-} TCGG2Mark;
-
-// CG_INCOMING_CONSOLE_COMMAND
-typedef struct
-{
-	char conCommand[1024];
-} TCGIncomingConsoleCommand;
-
-// CG_FX_CAMERASHAKE
-typedef struct
-{
-	vec3_t	mOrigin;					// input
-	float	mIntensity;					// input
-	int		mRadius;					// input
-	int		mTime;						// input
-} TCGCameraShake;
-
-// CG_MISC_ENT
-typedef struct
-{
-	char	mModel[MAX_QPATH];			// input
-	vec3_t	mOrigin, mAngles, mScale;	// input
-} TCGMiscEnt;
-
-typedef struct
-{
-	refEntity_t		ent;				// output
-	void			*ghoul2;			// input
-	int				modelIndex;			// input
-	int				boltIndex;			// input
-	vec3_t			origin;				// input
-	vec3_t			angles;				// input
-	vec3_t			modelScale;			// input
-} TCGPositionOnBolt;
-
-//ragdoll callback structs -rww
-#define RAG_CALLBACK_NONE				0
-#define RAG_CALLBACK_DEBUGBOX			1
-typedef struct
-{
-	vec3_t			mins;
-	vec3_t			maxs;
-	int				duration;
-} ragCallbackDebugBox_t;
-
-#define RAG_CALLBACK_DEBUGLINE			2
-typedef struct
-{
-	vec3_t			start;
-	vec3_t			end;
-	int				time;
-	int				color;
-	int				radius;
-} ragCallbackDebugLine_t;
-
-#define RAG_CALLBACK_BONESNAP			3
-typedef struct
-{
-	char			boneName[128]; //name of the bone in question
-	int				entNum; //index of entity who owns the bone in question
-} ragCallbackBoneSnap_t;
-
-#define RAG_CALLBACK_BONEIMPACT			4
-typedef struct
-{
-	char			boneName[128]; //name of the bone in question
-	int				entNum; //index of entity who owns the bone in question
-} ragCallbackBoneImpact_t;
-
-#define RAG_CALLBACK_BONEINSOLID		5
-typedef struct
-{
-	vec3_t			bonePos; //world coordinate position of the bone
-	int				entNum; //index of entity who owns the bone in question
-	int				solidCount; //higher the count, the longer we've been in solid (the worse off we are)
-} ragCallbackBoneInSolid_t;
-
-#define RAG_CALLBACK_TRACELINE			6
-typedef struct
-{
-	trace_t			tr;
-	vec3_t			start;
-	vec3_t			end;
-	vec3_t			mins;
-	vec3_t			maxs;
-	int				ignore;
-	int				mask;
-} ragCallbackTraceLine_t;
-
-#define	MAX_CG_SHARED_BUFFER_SIZE		2048
-
-//----------------------------------------------
-
-#endif // __CG_PUBLIC_H
-=======
 typedef struct cgameExport_s {
 	void			(*Init)						( int serverMessageNum, int serverCommandSequence, int clientNum );
 	void			(*Shutdown)					( void );
@@ -949,4 +790,5 @@ typedef struct cgameExport_s {
 
 //linking of cgame library
 typedef cgameExport_t* (QDECL *GetCGameAPI_t)( int apiVersion, cgameImport_t *import );
->>>>>>> openjk/master
+
+#endif

@@ -174,7 +174,7 @@ if(BuildPortableVersion)
 endif()
 
 set(JKGDir "${CMAKE_SOURCE_DIR}/JKGalaxies")
-set(OpenJKLibDir "${CMAKE_SOURCE_DIR}/lib")
+set(OpenJKLibDir "${CMAKE_SOURCE_DIR}/codemp/libraries")
 
 if(NOT MSVC)
 	# CMake already defines _DEBUG for MSVC.

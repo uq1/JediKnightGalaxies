@@ -26,7 +26,7 @@ endif(BuildMPUI)
 if(BuildMPEngine)
 	set(SharedDefines ${SharedDefines} "ENGINE")
 	add_subdirectory("${MPDir}/rd-vanilla")
-endif(BuildMPRdVanilla)
+endif()
 
 
 #    Common things between Engine and Dedicated Server

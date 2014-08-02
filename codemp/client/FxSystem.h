@@ -3,6 +3,10 @@
 #include "client/cl_cgameapi.h"
 #include "ghoul2/G2.h"
 
+#ifndef ENGINE
+#include "cgame/cg_local.h"
+#endif
+
 extern cvar_t	*fx_debug;
 
 #ifdef _DEBUG
@@ -12,35 +16,32 @@ extern cvar_t	*fx_freeze;
 extern cvar_t	*fx_countScale;
 extern cvar_t	*fx_nearCull;
 
-#ifndef ENGINE
-typedef vec_t vec2_t[2];	// ya well, I guess this needed redefining for some reason --eez
-#endif
 #ifdef ENGINE
-ID_INLINE void Vector2Clear(vec2_t a)
+static inline void Vector2Clear(vec2_t a)
 {
 	a[0] = 0.0f;
 	a[1] = 0.0f;
 }
 
-ID_INLINE void Vector2Set(vec2_t a,float b,float c)
+static inline void Vector2Set(vec2_t a,float b,float c)
 {
 	a[0] = b;
 	a[1] = c;
 }
 
-ID_INLINE void Vector2Copy(vec2_t src,vec2_t dst)
+static inline void Vector2Copy(vec2_t src,vec2_t dst)
 {
 	dst[0] = src[0];
 	dst[1] = src[1];
 }
 
-ID_INLINE void Vector2MA(vec2_t src, float m, vec2_t v, vec2_t dst)
+static inline void Vector2MA(vec2_t src, float m, vec2_t v, vec2_t dst)
 {
 	dst[0] = src[0] + (m*v[0]);
 	dst[1] = src[1] + (m*v[1]);
 }
 
-ID_INLINE void Vector2Scale(vec2_t src,float b,vec2_t dst)
+static inline void Vector2Scale(vec2_t src,float b,vec2_t dst)
 {
 	dst[0] = src[0] * b;
 	dst[1] = src[1] * b;
@@ -63,8 +64,8 @@ public:
 public:
 	SFxHelper(void);
 
-	ID_INLINE	int	GetTime(void) { return mTime; }
-	ID_INLINE	int	GetFrameTime(void) { return mFrameTime; }
+	int	GetTime(void) { return mTime; }
+	int	GetFrameTime(void) { return mFrameTime; }
 
 	void	ReInit(refdef_t* pRefdef);
 	void	AdjustTime( int time );
@@ -73,67 +74,67 @@ public:
 	void	Print( const char *msg, ... );
 
 	// File handling
-	ID_INLINE	int		OpenFile( const char *path, fileHandle_t *fh, int mode )
+	int		OpenFile( const char *path, fileHandle_t *fh, int mode )
 	{
 #ifdef ENGINE
 		return FS_FOpenFileByMode( path, fh, FS_READ );
 #else
-		return trap_FS_FOpenFile( path, fh, FS_READ );
+		return trap->FS_Open( path, fh, FS_READ );
 #endif
 	}
-	ID_INLINE	int		ReadFile( void *data, int len, fileHandle_t fh )
+	int		ReadFile( void *data, int len, fileHandle_t fh )
 	{
 #ifdef ENGINE
-		FS_Read2( data, len, fh );
+		FS_Read( data, len, fh );
 #else
 		trap->FS_Read( data, len, fh );
 #endif
 		return 1;
 	}
-	ID_INLINE	void	CloseFile( fileHandle_t fh )
+	void	CloseFile( fileHandle_t fh )
 	{
 #ifdef ENGINE
 		FS_FCloseFile( fh );
 #else
-		trap_FS_FCloseFile( fh );
+		trap->FS_Close( fh );
 #endif
 	}
 
 	// Sound
-	ID_INLINE	void	PlaySound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle, int volume, int radius )
+	void	PlaySound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle, int volume, int radius )
 	{
 		//S_StartSound( origin, ENTITYNUM_NONE, CHAN_AUTO, sfxHandle, volume, radius );
 #ifdef ENGINE
 		S_StartSound( origin, ENTITYNUM_NONE, CHAN_AUTO, sfxHandle );
 #else
-		trap_S_StartSound( origin, ENTITYNUM_NONE, CHAN_AUTO, sfxHandle );
+		trap->S_StartSound( origin, ENTITYNUM_NONE, CHAN_AUTO, sfxHandle );
 #endif
 	}
-	ID_INLINE	void	PlayLocalSound(sfxHandle_t sfxHandle, int entchannel)
+	void	PlayLocalSound(sfxHandle_t sfxHandle, int entchannel)
 	{
 		//S_StartSound( origin, ENTITYNUM_NONE, CHAN_AUTO, sfxHandle, volume, radius );
 #ifdef ENGINE
 		S_StartLocalSound(sfxHandle, entchannel);
 #else
-		trap_S_StartLocalSound( sfxHandle, entchannel );
+		trap->S_StartLocalSound( sfxHandle, entchannel );
 #endif
 	}
-	ID_INLINE	int		RegisterSound( const char *sound )
+	int		RegisterSound( const char *sound )
 	{
 #ifdef ENGINE
 		return S_RegisterSound( sound );
 #else
-		trap_S_RegisterSound( sound );
+		return trap->S_RegisterSound( sound );
 #endif
 	}
 
 	// Physics/collision
-	ID_INLINE	void	Trace( trace_t &tr, vec3_t start, vec3_t min, vec3_t max, vec3_t end, int skipEntNum, int flags )
+	void	Trace( trace_t &tr, vec3_t start, vec3_t min, vec3_t max, vec3_t end, int skipEntNum, int flags )
 	{
 #ifdef ENGINE
 		TCGTrace		*td = (TCGTrace *)cl.mSharedMemory;
 #else
-		TCGTrace		*td = (TCGTrace *)trap_FX_GetSharedMemory();
+		TCGTrace		*td = (TCGTrace *)trap->FX_GetSharedMemory();
 #endif
 
 		if ( !min )
@@ -163,12 +164,12 @@ public:
 		tr = td->mResult;
 	}
 
-	ID_INLINE	void	G2Trace( trace_t &tr, vec3_t start, vec3_t min, vec3_t max, vec3_t end, int skipEntNum, int flags )
+	void	G2Trace( trace_t &tr, vec3_t start, vec3_t min, vec3_t max, vec3_t end, int skipEntNum, int flags )
 	{
 #ifdef ENGINE
 		TCGTrace		*td = (TCGTrace *)cl.mSharedMemory;
 #else
-		TCGTrace		*td = (TCGTrace *)trap_FX_GetSharedMemory();
+		TCGTrace		*td = (TCGTrace *)trap->FX_GetSharedMemory();
 #endif
 
 		if ( !min )
@@ -198,7 +199,7 @@ public:
 		tr = td->mResult;
 	}
 
-	ID_INLINE	void	AddGhoul2Decal(int shader, vec3_t start, vec3_t dir, float size)
+	void	AddGhoul2Decal(int shader, vec3_t start, vec3_t dir, float size)
 	{
 #ifdef ENGINE
 		TCGG2Mark		*td = (TCGG2Mark *)cl.mSharedMemory;
@@ -218,7 +219,7 @@ public:
 #endif
 	}
 
-	ID_INLINE	void	AddFxToScene( refEntity_t *ent )
+	void	AddFxToScene( refEntity_t *ent )
 	{
 #ifdef _DEBUG
 		mMainRefs++;
@@ -231,7 +232,7 @@ public:
 		trap->R_AddRefEntityToScene( ent );
 #endif
 	}
-	ID_INLINE	void	AddFxToScene( miniRefEntity_t *ent )
+	void	AddFxToScene( miniRefEntity_t *ent )
 	{
 #ifdef _DEBUG
 		mMiniRefs++;
@@ -253,7 +254,7 @@ public:
 #endif
 	}
 
-	ID_INLINE	int		RegisterShader( const char *shader )
+	int		RegisterShader( const char *shader )
 	{
 #ifdef ENGINE
 		return re->RegisterShader( shader );
@@ -261,7 +262,7 @@ public:
 		return (int)trap->R_RegisterShader( shader );
 #endif
 	}
-	ID_INLINE	int		RegisterModel( const char *modelFile )
+	int		RegisterModel( const char *modelFile )
 	{
 #ifdef ENGINE
 		return re->RegisterModel( modelFile );
@@ -270,16 +271,16 @@ public:
 #endif
 	}
 
-	ID_INLINE	void	AddPolyToScene( int shader, int count, polyVert_t *verts )
+	void	AddPolyToScene( int shader, int count, polyVert_t *verts )
 	{
 #ifdef ENGINE
 		re->AddPolyToScene( shader, count, verts, 1 );
 #else
-		trap->R_AddPolyToScene( shader, count, verts );
+		trap->R_AddPolysToScene( shader, count, verts, 1 );
 #endif
 	}
 
-	ID_INLINE void AddDecalToScene ( qhandle_t shader, const vec3_t origin, const vec3_t dir, float orientation, float r, float g, float b, float a, qboolean alphaFade, float radius, qboolean temporary )
+	void AddDecalToScene ( qhandle_t shader, const vec3_t origin, const vec3_t dir, float orientation, float r, float g, float b, float a, qboolean alphaFade, float radius, qboolean temporary )
 	{
 #ifdef ENGINE
 		re->AddDecalToScene ( shader, origin, dir, orientation, r, g, b, a, alphaFade, radius, temporary );

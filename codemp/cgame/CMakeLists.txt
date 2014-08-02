@@ -92,7 +92,6 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/cg_weapons.h"
 	"${MPDir}/cgame/cg_xcvar.h"
 	"${MPDir}/cgame/fx_local.h"
-	"${MPDir}/cgame/holocronicons.h"
 	"${MPDir}/cgame/jkg_cg_auxlib.h"
 	"${MPDir}/cgame/jkg_cg_damagetypes.h"
 	"${MPDir}/cgame/jkg_cg_items.h"

@@ -52,14 +52,14 @@ static int GLua_Print(lua_State *L) {
 		if ( !(*nl) ) {
 			if ( *msg ) {
 				assert( strlen( msg ) < 4095 ); // Failsafe, this should never happen (4096 is engine MAXPRINTMSG, accomodate for the added \n in the next call)
-				trap_Print( va("%s\n", msg) );
+				trap->Print( va("%s\n", msg) );
 			}
 			break;
 		}
 		if ( *nl == '\n' ) {
 			*nl = '\0';
 			assert( strlen( msg ) < 4095 ); // Failsafe, this should never happen
-			trap_Print( va("%s\n", msg) );
+			trap->Print( va("%s\n", msg) );
 			msg = nl + 1;
 			*nl = '\n';
 		}
@@ -92,7 +92,7 @@ static int GLua_PrintNN( lua_State *L )
 	lua_pop(L,1);
 	msg = &buff[0];
 
-	trap_Print(msg);
+	trap->Print(msg);
 
 	return 0;
 }
@@ -232,7 +232,7 @@ static int GLua_Chat( lua_State *L )
 {
 	const char *msg = luaL_checkstring( L, 1 );
 
-	trap_SendServerCommand( -1, va("chat 100 \"%s\"", msg) );
+	trap->SendServerCommand( -1, va("chat 100 \"%s\"", msg) );
 	return 0;
 }
 

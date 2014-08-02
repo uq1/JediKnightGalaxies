@@ -1,9 +1,12 @@
 #include <json/cJSON.h>
 #include "bg_ammo.h"
-#include "bg_strap.h"
 
-#ifdef CGAME
-#include "../cgame/cg_local.h"
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_CGAME)
+	#include "cgame/cg_local.h"
+#elif defined(_UI)
+	#include "ui/ui_local.h"
 #endif
 
 ammo_t ammoTable[JKG_MAX_AMMO_INDICES];
@@ -134,7 +137,7 @@ static qboolean LoadAmmo ( void )
     
     Com_Printf ("------- Ammo Initialization -------\n");
     
-    fileLength = strap_FS_FOpenFile ("ext_data/tables/ammo.json", &f, FS_READ);
+    fileLength = trap->FS_Open("ext_data/tables/ammo.json", &f, FS_READ);
     if ( fileLength == -1 || !f )
     {
         Com_Printf (S_COLOR_RED "Error: Failed to read the ammo.json file. File is unreadable or does not exist.\n");
@@ -144,20 +147,20 @@ static qboolean LoadAmmo ( void )
     if ( fileLength == 0 )
     {
         Com_Printf (S_COLOR_RED "Error: ammo.json file is empty.\n");
-        strap_FS_FCloseFile (f);
+        trap->FS_Close (f);
         return qfalse;
     }
     
     if ( fileLength > MAX_AMMO_FILE_SIZE )
     {
         Com_Printf (S_COLOR_RED "Error: ammo.txt file is too large (max file size is %d bytes)\n", MAX_AMMO_FILE_SIZE);
-        strap_FS_FCloseFile (f);
+        trap->FS_Close (f);
         return qfalse;
     }
     
-    strap_FS_Read (buffer, fileLength, f);
+    trap->FS_Read (buffer, fileLength, f);
     buffer[fileLength] = '\0';
-    strap_FS_FCloseFile (f);
+    trap->FS_Close (f);
     
     ParseAmmoFile (buffer);
     

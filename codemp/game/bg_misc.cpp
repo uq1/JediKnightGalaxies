@@ -4,7 +4,6 @@
 
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
-#include "bg_strap.h"
 #include "jkg_gangwars.h"
 
 #ifdef QAGAME

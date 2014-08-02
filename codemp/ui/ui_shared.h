@@ -13,8 +13,8 @@
 // ui_shared.h
 // Copyright (C) 2013 Jedi Knight Galaxies
 
-#ifndef __UI_SHARED_H
-#define __UI_SHARED_H
+#ifndef UI_SHARED_H
+#define UI_SHARED_H
 
 
 #include "../qcommon/q_shared.h"
@@ -407,6 +407,8 @@ typedef struct cachedAssets_s {
 	const char *gradientStr;
 	qhandle_t	qhSmallFont;
 	qhandle_t	qhSmall2Font;
+	qhandle_t	qhSmall3Font;
+	qhandle_t	qhSmall4Font;
 	qhandle_t	qhMediumFont;
 	qhandle_t	qhBigFont;
 	qhandle_t cursor;
@@ -670,7 +672,6 @@ typedef struct {
 
 void Pzk_InitParseBuff(parsebuff_t *pb);
 const char *Pzk_NextToken(parsebuff_t *pb);
-#endif
 
 extern const char *HolocronIcons[NUM_FORCE_POWERS];
 

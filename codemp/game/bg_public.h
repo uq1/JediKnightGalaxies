@@ -17,8 +17,8 @@
 // second version that must match between game and cgame
 // Copyright (C) 1999-2000 Id Software, Inc. (c) 2013 Jedi Knight Galaxies
 
-#ifndef __BG_PUBLIC_H__
-#define __BG_PUBLIC_H__
+#ifndef BG_PUBLIC_H
+#define BG_PUBLIC_H
 
 #include "bg_ammo.h"
 #include "bg_weapons.h"
@@ -1627,15 +1627,30 @@ typedef struct bladeInfo_s {
 } bladeInfo_t;
 #define MAX_BLADES 8
 
-typedef enum saber_styles_e {
-	SS_NONE=0,
-	SS_FAST,
-	SS_MEDIUM,
-	SS_STRONG,
-	SS_DESANN,
-	SS_TAVION,
-	SS_DUAL,
-	SS_STAFF,
+typedef enum
+{
+	SS_NONE = 0,
+	SS_MAKASHI,						// Blue
+	SS_SHII_CHO,						// Cyan
+	SS_SORESU,						// Yellow
+	SS_JUYO,						// Orange
+	SS_ATARU,						// Red
+	SS_DUAL,						// Dark Green / Light Green
+	SS_STAFF,						// Dark Purple / Light Purple
+#ifdef __BACKHANDSABERS
+	SS_BACKHAND,						// White
+	SS_BACKHAND_DUALS,					// Black
+#endif
+#ifdef __DJEM_SO_SABERS
+	SS_DJEM_SO,						// White
+	SS_DJEM_SO_DUALS,					// Black
+#endif
+#ifdef __POLEARMS
+	SS_POLEARM,						// Vibroblade-only --eez
+#endif
+#ifdef __SPEARS
+	SS_SPEAR,						// Vibroblade-only --eez
+#endif
 	SS_NUM_SABER_STYLES
 } saber_styles_t;
 

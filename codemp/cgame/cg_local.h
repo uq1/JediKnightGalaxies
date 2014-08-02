@@ -27,7 +27,7 @@
 //eezstreet edit
 #include "jkg_cg_items.h"
 #include "jkg_cg_damagetypes.h"
-#include "../game/jkg_gangwars.h"
+#include "game/jkg_gangwars.h"
 
 // The entire cgame module is unloaded and reloaded on each level change,
 // so there is NO persistant data between levels on the client side.
@@ -1585,7 +1585,6 @@ typedef struct cgEffects_s {
 	fxHandle_t	thermalExplosionEffect;
 	fxHandle_t	thermalShockwaveEffect;
 
->>>>>>> openjk/master
 	// TRIPMINE
 	fxHandle_t	tripmineLaserFX;
 	fxHandle_t	tripmineGlowFX;
@@ -2255,21 +2254,14 @@ void JKG_PlayerDebuffVisuals ( centity_t *cent, refEntity_t *refEntity );
 // Crossover API
 // -------------
 
-#ifdef CGAME
+#ifdef _CGAME
 #include "../ui/ui_shared.h"
 extern uiCrossoverExports_t *uiImports;
 #endif
 
-// -------------
-// NEW CRAPOLA
-// -------------
-// CPlusPlus edit
-#ifdef __cplusplus
-#include "../ghoul2/ghoul2_shared.h"
-#include "../client/FxSystem.h"
-#endif
-
-#endif
-
 extern cgameImport_t *trap;
 
+#include "ghoul2/ghoul2_shared.h"
+#include "client/FxSystem.h"
+
+#endif
