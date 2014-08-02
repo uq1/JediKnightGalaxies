@@ -37,7 +37,7 @@ remote_sp	// Don't try this, still uses .md3 player model which is unsupported b
 	intelligence	5
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		bot
+
 	class		CLASS_REMOTE
 	yawSpeed	120
 	runSpeed	500

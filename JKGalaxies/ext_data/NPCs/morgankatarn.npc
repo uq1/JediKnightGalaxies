@@ -12,7 +12,7 @@ MorganKatarn
 	rank		crewman
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		human
+
 	class		CLASS_MORGAN
 	walkSpeed	55
 	runSpeed	200

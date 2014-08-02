@@ -58,17 +58,17 @@
         "slot":         2,
         "reloadtime":   950,
         "ammoIndex":         "powerpak",
-        "ammoOnSpawn":   200,
-        "ammoOnPickup":   40,
-        "clipSize":              20,
+        "ammoOnSpawn":   80,
+        "ammoOnPickup":   20,
+        "clipSize":              10,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
     
     "firemode0": {
-        "damage":       35,
+        "damage":       55,
         "ammocost":     1,
-        "firedelay":    480,
+        "firedelay":    700,
         "firingtype":   "semi",
         "range":	2500.0,
         "recoil":       1.5,

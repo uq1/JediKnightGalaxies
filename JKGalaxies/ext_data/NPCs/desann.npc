@@ -36,7 +36,7 @@ Desann
 	width		18
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		human
+
 	class		CLASS_DESANN
 	yawSpeed	120
 	walkSpeed	55

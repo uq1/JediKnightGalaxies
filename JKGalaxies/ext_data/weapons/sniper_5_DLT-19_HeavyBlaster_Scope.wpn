@@ -66,8 +66,8 @@
         "reloadtime":   2750,
         "ammoIndex":         "blaster_power_pack_m",
         "ammoOnSpawn":   120,
-        "ammoOnPickup":   24,
-        "clipSize":              12,
+        "ammoOnPickup":   40,
+        "clipSize":              20,
         "flags":        [ "togglezoom" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
@@ -75,7 +75,7 @@
     
     "firemode0": {
         "damage":       97,
-        "ammocost":     1,
+        "ammocost":     5,
         "firedelay":    900,
         "firingtype":   "semi",
         "range":        8000.0,
@@ -100,7 +100,7 @@
     },
     
     "firemode1": {
-        "damage":       18,
+        "damage":       15,
         "ammocost":     1,
         "firedelay":    300,
         "firingtype":   "semi",

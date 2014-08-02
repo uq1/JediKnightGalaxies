@@ -65,16 +65,16 @@
         "slot":         0,
         "reloadtime":   1800,
         "ammoIndex":         "quarrel",
-        "ammoOnSpawn":   300,
+        "ammoOnSpawn":   200,
         "ammoOnPickup":   60,
-        "clipSize":              30,
+        "clipSize":              20,
         "flags":        [ "togglezoom" ],
         "reloadmodifier": 0.7,
         "startzoomfov": 30
     },
     
     "firemode0": {
-        "damage":       26,
+        "damage":       29,
         "ballistic":    true,
         "maxchargetime":1000,
         "chargedamage": 1.4,
@@ -90,7 +90,7 @@
         "projectileclass": "bowcaster_proj",
         "meansofdeath": "MOD_BOWCASTER",
             "accuracy": {
-        "accuracyRating": 50,
+        "accuracyRating": 30,
         "accuracyRatingPerShot": 5,
         "msToDrainAccuracy": 70,
         "maxAccuracyAdd": 95,

@@ -12,7 +12,7 @@ StormTrooper
 	rank		crewman
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
+
 	class		CLASS_STORMTROOPER
 	height		64
 	crouchheight 38
@@ -45,7 +45,7 @@ StormTrooper2
 	rank		crewman
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
+
 	class		CLASS_STORMTROOPER
 	height		64
 	crouchheight 38

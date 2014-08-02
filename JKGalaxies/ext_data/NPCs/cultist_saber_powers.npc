@@ -20,7 +20,7 @@ cultist_saber2
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -58,7 +58,7 @@ cultist_saber_throw2
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -95,7 +95,7 @@ cultist_saber_med2
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -133,7 +133,7 @@ cultist_saber_med_throw2
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -170,7 +170,7 @@ cultist_saber_strong2
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -208,7 +208,7 @@ cultist_saber_strong_throw2
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -248,7 +248,7 @@ cultist_saber_all2
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -288,7 +288,7 @@ cultist_saber_all_throw2
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1

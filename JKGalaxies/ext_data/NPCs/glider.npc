@@ -10,7 +10,7 @@ Glider
 	intelligence	5
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		harvester
+		harvester
 	class		CLASS_GLIDER
 	yawSpeed	60
 	runSpeed	150

@@ -76,12 +76,12 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 40,
-        "accuracyRatingPerShot": 4,
-        "msToDrainAccuracy": 50,
-        "maxAccuracyAdd": 80,
-        "sightsModifier": 0.4
+        "accuracy": {
+			"accuracyRating": 40,
+			"accuracyRatingPerShot": 8,
+			"msToDrainAccuracy": 75,
+			"maxAccuracyAdd": 80,
+			"sightsModifier": 0.4
         }
     },
     

@@ -33,7 +33,7 @@ Reborn
 	scale		94
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		human
+
 	class		CLASS_REBORN
 	snd			reborn1
 	sndcombat	reborn1

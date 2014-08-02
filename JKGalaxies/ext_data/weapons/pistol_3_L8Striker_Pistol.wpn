@@ -86,14 +86,18 @@
     "firemode1": {
         "damage":       20,
         "ammocost":     1,
-        "firedelay":    800,
+        "firedelay":    200,
         "firingtype":   "semi",
         "range":	1200,
         "recoil":       0.5,
         "spread":       0.1,
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL"
+        "meansofdeath": "MOD_BRYAR_PISTOL",
+		"accuracy": {
+			"accuracyRating": 11,
+			"sightsModifier": 0.2
+		}
     },
     
     "playeranims": {

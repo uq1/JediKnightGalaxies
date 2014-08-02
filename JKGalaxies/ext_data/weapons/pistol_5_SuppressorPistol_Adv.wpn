@@ -36,7 +36,8 @@
             "projectilefx": "blasters/shot_Yellow_Weak_small",
             "miss":         { "impactfx": "blasters/yellow_impacttiny" },
             "hit":          { "impactfx": "blasters/yellow_impacttiny" },
-            "deathfx": "blasters/shot_yellow_vaporize"
+            "deathfx": "blasters/shot_yellow_vaporize",
+			"displayName": "Semi"
         },
         
         "firemode1": {
@@ -52,7 +53,8 @@
             "projectilefx": "blasters/shot_Yellow_Weak_small",
             "miss":         { "impactfx": "blasters/yellow_impacttiny" },
             "hit":          { "impactfx": "blasters/yellow_impacttiny" },
-            "deathfx": "blasters/shot_yellow_vaporize"
+            "deathfx": "blasters/shot_yellow_vaporize",
+			"displayName": "Burst"
         }
     },
     
@@ -78,8 +80,29 @@
         "spread":       0.1,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL"
+        "meansofdeath": "MOD_BRYAR_PISTOL",
+		
+		"accuracy": {
+			"accuracyRating": 11,
+			"sightsModifier": 0.2
+		}
     },
+	
+	"firemode1": {
+		"damage":       20,
+        "ammocost":     1,
+		"burstshotdelay": 100,
+        "firedelay":    500,
+        "firingtype":   "burst",
+        "range":	1500.0,
+        "recoil":       0.3,
+        "spread":       0.1,
+		"shotsperburst": 3,
+		
+        "projectilespeed": 3000.0,
+        "projectileclass": "blaster_proj",
+        "meansofdeath": "MOD_BRYAR_PISTOL"
+	},
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },

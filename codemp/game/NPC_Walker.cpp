@@ -4,7 +4,6 @@
 //seems to be a compiler bug, it doesn't clean out the #ifdefs between dif-compiles
 //or something, so the headers spew errors on these defs from the previous compile.
 //this fixes that. -rww
-#ifdef _JK2MP
 //get rid of all the crazy defs we added for this file
 #undef currentAngles
 #undef currentOrigin
@@ -17,34 +16,15 @@
 #undef Q_flrand
 
 #undef MOD_EXPLOSIVE
-#endif
-
-#ifdef _JK2 //SP does not have this preprocessor for game like MP does
-#ifndef _JK2MP
-#define _JK2MP
-#endif
-#endif
-
-#ifndef _JK2MP //if single player
-#ifndef QAGAME //I don't think we have a QAGAME define
-#define QAGAME //but define it cause in sp we're always in the game
-#endif
-#endif
 
 #ifdef QAGAME //including game headers on cgame is FORBIDDEN ^_^
 #include "g_local.h"
-#elif defined _JK2MP
+#else
 #include "bg_public.h"
 #endif
 
-#ifndef _JK2MP
-#include "g_functions.h"
-#include "g_vehicles.h"
-#else
 #include "bg_vehicles.h"
-#endif
 
-#ifdef _JK2MP
 //this is really horrible, but it works! just be sure not to use any locals or anything
 //with these names (exluding bool, false, true). -rww
 #define currentAngles r.currentAngles
@@ -59,9 +39,6 @@
 #define Q_flrand flrand
 
 #define MOD_EXPLOSIVE MOD_SUICIDE
-#else
-#define bgEntity_t gentity_t
-#endif
 
 #ifdef QAGAME //we only want a few of these functions for BG
 
@@ -79,11 +56,7 @@ extern void G_VehicleTrace( trace_t *results, const vec3_t start, const vec3_t t
 static void RegisterAssets( Vehicle_t *pVeh )
 {
 	//atst uses turret weapon
-#ifdef _JK2MP
 	RegisterItem(BG_FindItemForWeapon(WP_TURRET));
-#else
-	// PUT SOMETHING HERE...
-#endif
 
 	//call the standard RegisterAssets now
 	g_vehicleInfo[VEHICLE_BASE].RegisterAssets( pVeh );
@@ -127,11 +100,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 	float speedInc, speedIdleDec, speedIdle, speedIdleAccel, speedMin, speedMax;
 	float fWalkSpeedMax;
 	bgEntity_t *parent = pVeh->m_pParentEntity;
-#ifdef _JK2MP
 	playerState_t *parentPS = parent->playerState;
-#else
-	playerState_t *parentPS = &parent->client->ps;
-#endif
 
 	speedIdleDec = pVeh->m_pVehicleInfo->decelIdle * pVeh->m_fTimeModifier;
 	speedMax = pVeh->m_pVehicleInfo->speedMax;
@@ -140,11 +109,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 	speedIdleAccel = pVeh->m_pVehicleInfo->accelIdle * pVeh->m_fTimeModifier;
 	speedMin = pVeh->m_pVehicleInfo->speedMin;
 
-#ifdef _JK2MP
 	if ( !parentPS->m_iVehicleNum  )
-#else
-	if ( !pVeh->m_pVehicleInfo->Inhabited( pVeh ) )
-#endif
 	{//drifts to a stop
 		speedInc = speedIdle * pVeh->m_fTimeModifier;
 		VectorClear( parentPS->moveDir );
@@ -241,7 +206,6 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 	/********************************************************************************/
 }
 
-#ifdef _JK2MP
 void WalkerYawAdjust(Vehicle_t *pVeh, playerState_t *riderPS, playerState_t *parentPS)
 {
 	float angDif = AngleSubtract(pVeh->m_vOrientation[YAW], riderPS->viewangles[YAW]);
@@ -268,35 +232,6 @@ void WalkerYawAdjust(Vehicle_t *pVeh, playerState_t *riderPS, playerState_t *par
 	}
 }
 
-/*
-void WalkerPitchAdjust(Vehicle_t *pVeh, playerState_t *riderPS, playerState_t *parentPS)
-{
-	float angDif = AngleSubtract(pVeh->m_vOrientation[PITCH], riderPS->viewangles[PITCH]);
-
-	if (parentPS && parentPS->speed)
-	{
-		float s = parentPS->speed;
-		float maxDif = pVeh->m_pVehicleInfo->turningSpeed*0.8f; //magic number hackery
-
-		if (s < 0.0f)
-		{
-			s = -s;
-		}
-		angDif *= s/pVeh->m_pVehicleInfo->speedMax;
-		if (angDif > maxDif)
-		{
-			angDif = maxDif;
-		}
-		else if (angDif < -maxDif)
-		{
-			angDif = -maxDif;
-		}
-		pVeh->m_vOrientation[PITCH] = AngleNormalize360(pVeh->m_vOrientation[PITCH] - angDif*(pVeh->m_fTimeModifier*0.2f));
-	}
-}
-*/
-#endif
-
 //MP RULE - ALL PROCESSORIENTCOMMANDS FUNCTIONS MUST BE BG-COMPATIBLE!!!
 //If you really need to violate this rule for SP, then use ifdefs.
 //By BG-compatible, I mean no use of game-specific data - ONLY use
@@ -313,46 +248,27 @@ static void ProcessOrientCommands( Vehicle_t *pVeh )
 	bgEntity_t *parent = pVeh->m_pParentEntity;
 	playerState_t *parentPS, *riderPS;
 
-#ifdef _JK2MP
 	bgEntity_t *rider = NULL;
 	if (parent->s.owner != ENTITYNUM_NONE)
 	{
 		rider = PM_BGEntForNum(parent->s.owner); //&g_entities[parent->r.ownerNum];
 	}
-#else
-	gentity_t *rider = parent->owner;
-#endif
 
-#ifdef _JK2MP
 	if ( !rider )
-#else
-	if ( !rider || !rider->client )
-#endif
 	{
 		rider = parent;
 	}
 
-#ifdef _JK2MP
 	parentPS = parent->playerState;
 	riderPS = rider->playerState;
-#else
-	parentPS = &parent->client->ps;
-	riderPS = &rider->client->ps;
-#endif
 
 	speed = VectorLength( parentPS->velocity );
 
 	// If the player is the rider...
 	if ( rider->s.number < MAX_CLIENTS )
 	{//FIXME: use the vehicle's turning stat in this calc
-#ifdef _JK2MP
 		WalkerYawAdjust(pVeh, riderPS, parentPS);
-		//FighterPitchAdjust(pVeh, riderPS, parentPS);
 		pVeh->m_vOrientation[PITCH] = riderPS->viewangles[PITCH];
-#else
-		pVeh->m_vOrientation[YAW] = riderPS->viewangles[YAW];
-		pVeh->m_vOrientation[PITCH] = riderPS->viewangles[PITCH];
-#endif
 	}
 	else
 	{
@@ -363,18 +279,10 @@ static void ProcessOrientCommands( Vehicle_t *pVeh )
 			//FIXME: or ramp up to max turnSpeed?
 			turnSpeed = 0.0f;
 		}
-#ifdef _JK2MP
 		if (rider->s.eType == ET_NPC)
-#else
-		if ( !rider || rider->NPC )
-#endif
 		{//help NPCs out some
 			turnSpeed *= 2.0f;
-#ifdef _JK2MP
 			if (parentPS->speed > 200.0f)
-#else
-			if ( parent->client->ps.speed > 200.0f )
-#endif
 			{
 				turnSpeed += turnSpeed * parentPS->speed/200.0f*0.05f;
 			}
@@ -413,32 +321,8 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 	// We're dead (boarding is reused here so I don't have to make another variable :-).
 	if ( parent->health <= 0 ) 
 	{
-		/*
-		if ( pVeh->m_iBoarding != -999 )	// Animate the death just once!
-		{
-			pVeh->m_iBoarding = -999;
-			iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD; 
-
-			// FIXME! Why do you keep repeating over and over!!?!?!? Bastard!
-			//Vehicle_SetAnim( parent, SETANIM_LEGS, BOTH_VT_DEATH1, iFlags, iBlend );
-		}
-		*/
 		return;
 	}
-
-// Following is redundant to g_vehicles.c
-//	if ( pVeh->m_iBoarding )
-//	{
-//		//we have no boarding anim
-//		if (pVeh->m_iBoarding < level.time)
-//		{ //we are on now
-//			pVeh->m_iBoarding = 0;
-//		}
-//		else
-//		{
-//			return;
-//		}
-//	}
 
 	// Percentage of maximum speed relative to current speed.
 	//float fSpeed = VectorLength( client->ps.velocity );
@@ -508,11 +392,7 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 			// Every once in a while buck or do a different idle...
 			iFlags = SETANIM_FLAG_NORMAL | SETANIM_FLAG_RESTART | SETANIM_FLAG_HOLD; 
 			iBlend = 600;
-#ifdef _JK2MP
 			if (parent->client->ps.m_iVehicleNum)
-#else
-			if ( pVeh->m_pVehicleInfo->Inhabited( pVeh ) )
-#endif
 			{//occupado
 				Anim = BOTH_STAND1;
 			}
@@ -578,7 +458,6 @@ extern void G_AllocateVehicleObject(Vehicle_t **pVeh);
 void G_CreateWalkerNPC( Vehicle_t **pVeh, const char *strAnimalType )
 {
 	// Allocate the Vehicle.
-#ifdef _JK2MP
 #ifdef QAGAME
 	//these will remain on entities on the client once allocated because the pointer is
 	//never stomped. on the server, however, when an ent is freed, the entity struct is
@@ -592,13 +471,7 @@ void G_CreateWalkerNPC( Vehicle_t **pVeh, const char *strAnimalType )
 #endif
 	memset(*pVeh, 0, sizeof(Vehicle_t));
 	(*pVeh)->m_pVehicleInfo = &g_vehicleInfo[BG_VehicleGetIndex( strAnimalType )];
-#else
-	(*pVeh) = (Vehicle_t *) gi.Malloc( sizeof(Vehicle_t), TAG_G_ALLOC, qtrue );
-	(*pVeh)->m_pVehicleInfo = &g_vehicleInfo[BG_VehicleGetIndex( strAnimalType )];
-#endif
 }
-
-#ifdef _JK2MP
 
 //get rid of all the crazy defs we added for this file
 #undef currentAngles
@@ -612,4 +485,3 @@ void G_CreateWalkerNPC( Vehicle_t **pVeh, const char *strAnimalType )
 #undef Q_flrand
 
 #undef MOD_EXPLOSIVE
-#endif

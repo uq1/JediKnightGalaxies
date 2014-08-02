@@ -14,7 +14,7 @@ Lando
 	rank		crewman
 	playerTeam	TEAM_PLAYER
 	enemyTeam	TEAM_ENEMY
-//	race		human
+
 	class		CLASS_LANDO
 	snd			lando
 	sndcombat	lando

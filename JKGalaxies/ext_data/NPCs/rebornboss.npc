@@ -34,7 +34,7 @@ RebornBoss
 	vfov		160
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		human
+
 	class		CLASS_REBORN
 	snd			reborn3
 	sndcombat	reborn3

@@ -248,13 +248,13 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 	if (!minimap_data.maploaded) {
 		// Render the blank one if we got no map data
 		trap_R_SetColor(opacity);
-		trap_R_DrawStretchPic(
+		/*trap_R_DrawStretchPic(
 			item->window.rect.x, 
 			item->window.rect.y, 
 			item->window.rect.w, 
 			item->window.rect.h,
 			0, 0, 1, 1,
-			minimap_data.nomapshader);
+			minimap_data.nomapshader);*/
 	} else {
 		// Alright! We got map data!
 		if (cg.time - minimap_data.lastupdate > 250) {
@@ -265,13 +265,13 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 		if (minimap_data.currentarea == -1) {
 			// Not in a valid area, so no minimap
 			trap_R_SetColor(opacity);
-			trap_R_DrawStretchPic(
+			/*trap_R_DrawStretchPic(
 				item->window.rect.x, 
 				item->window.rect.y, 
 				item->window.rect.w, 
 				item->window.rect.h,
 				0, 0, 1, 1,
-				minimap_data.nomapshader);
+				minimap_data.nomapshader);*/
 		} else {
 			float s0, s1, t0, t1;
 			vec2_t temp;
@@ -371,13 +371,13 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 				// Not in a valid area, so no minimap
 				transcolor[3] *= cg.jkg_HUDOpacity;
 				trap_R_SetColor(transcolor);
-				trap_R_DrawStretchPic(
+				/*trap_R_DrawStretchPic(
 					item->window.rect.x, 
 					item->window.rect.y, 
 					item->window.rect.w, 
 					item->window.rect.h,
 					0, 0, 1, 1,
-					minimap_data.nomapshader);
+					minimap_data.nomapshader);*/
 			} else {
 				float s0, s1, t0, t1;
 				vec2_t temp;

@@ -56,20 +56,20 @@
     
     "stats": {
         "slot":         2,
-        "reloadtime":   1000,
+        "reloadtime":   1500,
         "ammoIndex":         "powerpak",
-        "ammoOnSpawn":   200,
-        "ammoOnPickup":   40,
-        "clipSize":              20,
+        "ammoOnSpawn":   80,
+        "ammoOnPickup":   20,
+        "clipSize":              10,
         "flags":        [ "roll", "togglezoom" ],
         "startzoomfov": 30.0,
         "reloadmodifier": 0.7
     },
     
     "firemode0": {
-        "damage":       32,
+        "damage":       45,
         "ammocost":     1,
-        "firedelay":    500,
+        "firedelay":    800,
         "firingtype":   "semi",
         "range":	4500.0,
         "recoil":       1.2,
@@ -78,11 +78,11 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BRYAR_PISTOL",
         "splashmeansofdeath": "MOD_BRYAR_PISTOL",
-            "accuracy": {
-        "accuracyRating": 35,
-        "accuracyRatingPerShot": 5,
-        "msToDrainAccuracy": 55,
-        "maxAccuracyAdd": 75
+        "accuracy": {
+			"accuracyRating": 15,
+			"accuracyRatingPerShot": 5,
+			"msToDrainAccuracy": 55,
+			"maxAccuracyAdd": 75
         }
     },
     

@@ -1694,7 +1694,7 @@ void SP_worldspawn( void )
 	g_entities[ENTITYNUM_WORLD].r.ownerNum = ENTITYNUM_NONE;
 	g_entities[ENTITYNUM_WORLD].classname = "worldspawn";
 
-	g_entities[ENTITYNUM_NONE].s.number = ENTITYNUM_WORLD;
+	g_entities[ENTITYNUM_NONE].s.number = ENTITYNUM_NONE;
 	g_entities[ENTITYNUM_NONE].r.ownerNum = ENTITYNUM_NONE;
 	g_entities[ENTITYNUM_NONE].classname = "nothing";
 

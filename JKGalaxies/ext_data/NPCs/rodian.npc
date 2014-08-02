@@ -14,7 +14,6 @@ Rodian
 	rank		crewman
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
 	class		CLASS_RODIAN
 	snd			rodian1
 	sndcombat	rodian1
@@ -49,7 +48,6 @@ Rodian2
 	rank		crewman
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
 	class		CLASS_RODIAN
 	snd			rodian2
 	sndcombat	rodian2

@@ -75,7 +75,11 @@
     },
     
     "firemode0": {
-        "damage":       20,
+        "damage": {
+			"damage": 20,
+			"damagetype": ["stun"]
+		},
+		
 //        "damage": {
 //                          "damageradius": { "start": 220,		// Radius over lifetime - if constant, only set start radius
 //                                                     "end": 120,

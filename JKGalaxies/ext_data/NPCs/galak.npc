@@ -14,7 +14,7 @@ Galak
 	rank		captain
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
+
 	class		CLASS_IMPERIAL
 	yawspeed	90
 	walkSpeed	55

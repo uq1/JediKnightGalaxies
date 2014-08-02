@@ -12,7 +12,7 @@ MonMothma
 	rank		crewman
 	playerTeam	TEAM_PLAYER
 	enemyTeam	TEAM_ENEMY
-//	race		human
+
 	class		CLASS_MONMOTHMA
 	walkSpeed	55
 	runSpeed	200

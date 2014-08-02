@@ -1567,7 +1567,7 @@ qboolean ValidUseTarget( gentity_t *ent )
 		case CLASS_JKG_FAQ_CRAFTER_DROID:
 		case CLASS_JKG_FAQ_MERC_DROID:
 		case CLASS_JKG_FAQ_JEDI_MENTOR:
-		case CLASS_JKF_FAQ_SITH_MENTOR:
+		case CLASS_JKG_FAQ_SITH_MENTOR:
 			return qtrue;
 			break;
 		default:

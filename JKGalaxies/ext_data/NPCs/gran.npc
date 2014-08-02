@@ -77,7 +77,6 @@ GranBoxer
 	rank		crewman
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
 	class		CLASS_GRAN
 	snd			gran2
 	sndcombat	gran2
@@ -109,7 +108,6 @@ GranShooter
 	rank		crewman
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
 	class		CLASS_GRAN
 	snd			gran1
 	sndcombat	gran1

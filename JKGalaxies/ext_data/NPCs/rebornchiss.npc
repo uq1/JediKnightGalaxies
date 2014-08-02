@@ -34,7 +34,7 @@ RebornChiss
 	scale		96
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		human
+
 	class		CLASS_REBORN
 	snd			bartender
 	sndcombat	bartender

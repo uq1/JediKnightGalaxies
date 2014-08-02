@@ -10,6 +10,9 @@ typedef struct damageInstance_s
     vec3_t direction;
     int methodOfDeath;
     int damageFlags;
+
+	// Charge related
+	int damageOverride;
 } damageInstance_t;
 
 typedef struct damageArea_s
@@ -49,7 +52,7 @@ static struct
     { DT_FIRE,          0,              10000,      2,      1000 },
     { DT_FREEZE,        0,              500,        2,      1000 },
     { DT_IMPLOSION,     DAMAGE_RADIUS,  0,          0,      0    },
-    { DT_STUN,          0,              4000,       0,      0    },
+    { DT_STUN,          0,              2000,       0,      0    },
     { DT_CARBONITE,     0,              4000,       2,      1000 }
 };
 
@@ -137,10 +140,17 @@ static void SmallestVectorToBBox ( vec3_t out, const vec3_t position, const vec3
 
 static int CalculateDamageForDistance ( const damageArea_t *area, const vec3_t playerMins, const vec3_t playerMaxs, const vec3_t playerOrigin, float damageRadius )
 {
-    int d = area->data->damage;
+    int d; // = area->data->damage;
     vec3_t v;
     float distanceFromOrigin;
     float f = 0.0f;
+
+	if(area->context.damageOverride != 0 && area->context.damageOverride != area->data->damage) {
+		d = area->context.damageOverride;
+	}
+	else {
+		d = area->data->damage;
+	}
     
     SmallestVectorToBBox (v, area->origin, playerMins, playerMaxs);
     distanceFromOrigin = VectorLength (v);
@@ -515,6 +525,37 @@ static damageSettings_t *GetDamageSettingsForHandle ( qhandle_t handle )
 }
 
 //=========================================================
+// JKG_ChargeDamageOverride
+//---------------------------------------------------------
+// Description: Calculates damage override, which is 
+// often modified as a result of a charging weapon
+//=========================================================
+int JKG_ChargeDamageOverride( gentity_t *inflictor, bool bIsTraceline ) {
+	int damage = 0;
+	if(inflictor->s.generic1 != 0 || bIsTraceline) {
+		weaponData_t *wp = GetWeaponData(inflictor->s.weapon, inflictor->s.weaponVariation);
+		int firemode = inflictor->s.firingMode;
+		if(wp->firemodes[firemode].chargeTime) {
+			if(bIsTraceline) {
+				damage = WP_GetWeaponDamage(inflictor, inflictor->s.firingMode);
+			}
+			else {
+				int current = ( level.time - inflictor->s.generic1 ) / wp->firemodes[firemode].chargeTime;
+				float maximum = wp->firemodes[firemode].chargeMaximum / wp->firemodes[firemode].chargeTime;
+
+				if ( current > maximum ) current = maximum;
+
+				damage = wp->firemodes[firemode].baseDamage * current * wp->firemodes[firemode].chargeMultiplier;
+				if(damage < wp->firemodes[firemode].baseDamage) {
+					damage = wp->firemodes[firemode].baseDamage;
+				}
+			}
+		}
+	}
+	return damage;
+}
+
+//=========================================================
 // JKG_DoDamage
 //---------------------------------------------------------
 // Description: This is a wrapper for the G_Damage
@@ -526,6 +567,7 @@ void JKG_DoDirectDamage ( qhandle_t handle, gentity_t *targ, gentity_t *inflicto
 {
     damageSettings_t *data;
     damageArea_t area;
+	int damage;
         
     if ( !targ->takedamage )
     {
@@ -544,8 +586,17 @@ void JKG_DoDirectDamage ( qhandle_t handle, gentity_t *targ, gentity_t *inflicto
     
     data = GetDamageSettingsForHandle (handle);
     memset (&area, 0, sizeof (area));
-    
-    area.data = data;
+
+	area.data = data;
+	// The firing mode's base damage can lie! It doesn't account for dynamic damage amounts (ie weapon charging)
+	area.context.damageOverride = JKG_ChargeDamageOverride(inflictor, inflictor == attacker);
+	if(area.context.damageOverride != 0 && area.data->damage != area.context.damageOverride) {
+		damage = area.context.damageOverride;
+	}
+	else {
+		damage = data->damage;
+	}
+
     area.active = qtrue;
     VectorCopy (dir, area.context.direction);
     area.context.ignoreEnt = NULL;
@@ -557,7 +608,7 @@ void JKG_DoDirectDamage ( qhandle_t handle, gentity_t *targ, gentity_t *inflicto
     area.lastDamageTime = 0;
     VectorCopy (origin, area.origin);
     
-    DebuffPlayer (targ, &area, data->damage);
+	DebuffPlayer (targ, &area, damage);
 }
 
 //=========================================================
@@ -570,6 +621,12 @@ void JKG_DoDirectDamage ( qhandle_t handle, gentity_t *targ, gentity_t *inflicto
 void JKG_DoSplashDamage ( qhandle_t handle, const vec3_t origin, gentity_t *inflictor, gentity_t *attacker, gentity_t *ignoreEnt, int mod )
 {
     damageSettings_t *data = GetDamageSettingsForHandle (handle);
+	bool bDoDamageOverride = false;
+
+	if (inflictor != attacker) {
+		bDoDamageOverride = true;
+	}
+
     if ( !data->radial )
     {
         return;
@@ -596,6 +653,13 @@ void JKG_DoSplashDamage ( qhandle_t handle, const vec3_t origin, gentity_t *infl
             area->context.inflictor = inflictor;
             area->context.methodOfDeath = mod;
             area->startTime = level.time + data->delay;
+
+			if(bDoDamageOverride) {
+				area->context.damageOverride = JKG_ChargeDamageOverride(inflictor, false);
+			}
+			else {
+				area->context.damageOverride = area->data->damage;
+			}
         }
         else
         {
@@ -618,6 +682,13 @@ void JKG_DoSplashDamage ( qhandle_t handle, const vec3_t origin, gentity_t *infl
         a.context.inflictor = inflictor;
         a.context.methodOfDeath = mod;
         a.startTime = level.time;
+
+		if(bDoDamageOverride) {
+			a.context.damageOverride = JKG_ChargeDamageOverride(inflictor, false);
+		}
+		else {
+			a.context.damageOverride = a.data->damage;
+		}
         
         DamagePlayersInArea (&a);
     }

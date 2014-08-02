@@ -907,6 +907,7 @@ qboolean NPC_CanUseAdvancedFighting()
 	//case CLASS_R5D2:				// droid
 	case CLASS_REBEL:
 	case CLASS_REBORN:
+	case CLASS_REBORN_CULTIST:
 	case CLASS_REELO:
 	//case CLASS_REMOTE:
 	case CLASS_RODIAN:
@@ -944,7 +945,7 @@ qboolean NPC_CanUseAdvancedFighting()
 	case CLASS_JKG_FAQ_CRAFTER_DROID:
 	case CLASS_JKG_FAQ_MERC_DROID:
 	case CLASS_JKG_FAQ_JEDI_MENTOR:
-	case CLASS_JKF_FAQ_SITH_MENTOR:
+	case CLASS_JKG_FAQ_SITH_MENTOR:
 	case CLASS_BOT_FAKE_NPC:
 		// OK... EVADE AWAY!!!
 		break;
@@ -1821,7 +1822,7 @@ void NPC_RunBehavior( int team, int bState )
 	case CLASS_JKG_FAQ_CRAFTER_DROID:
 	case CLASS_JKG_FAQ_MERC_DROID:
 	case CLASS_JKG_FAQ_JEDI_MENTOR:
-	case CLASS_JKF_FAQ_SITH_MENTOR:
+	case CLASS_JKG_FAQ_SITH_MENTOR:
 		NPC_BehaviorSet_Vendor( bState );
 		return;
 	case CLASS_TRAVELLING_VENDOR:
@@ -2335,6 +2336,7 @@ void NPC_SetHitBox( void )
 	case CLASS_PROTOCOL:			// droid
 	case CLASS_REBEL:
 	case CLASS_REBORN:
+	case CLASS_REBORN_CULTIST:
 	case CLASS_REELO:
 	case CLASS_RODIAN:
 	case CLASS_SHADOWTROOPER:
@@ -2366,7 +2368,7 @@ void NPC_SetHitBox( void )
 	case CLASS_JKG_FAQ_CRAFTER_DROID:
 	case CLASS_JKG_FAQ_MERC_DROID:
 	case CLASS_JKG_FAQ_JEDI_MENTOR:
-	case CLASS_JKF_FAQ_SITH_MENTOR:
+	case CLASS_JKG_FAQ_SITH_MENTOR:
 	case CLASS_BOT_FAKE_NPC:
 	default:
 		// Humanoid...

@@ -21,7 +21,6 @@ cultist
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		human
 	class		CLASS_REBORN
 	snd			cultist1
 	sndcombat	cultist1

@@ -2300,6 +2300,7 @@ void ClientThink_real( gentity_t *ent ) {
 	if (client->pmnomove) {
 		client->ps.pm_type = PM_NOMOVE;
 	} else if (client->pmfreeze) { // JKG - Implement freeze and lock
+		ent->s.eFlags |= EF_FROZEN;
 		if (client->pmlock) {
 			client->ps.pm_type = PM_LOCK;
 		} else {

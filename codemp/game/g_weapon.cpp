@@ -3626,19 +3626,13 @@ gentity_t *WP_FireGenericMissile( gentity_t *ent, int firemode, vec3_t origin, v
 		missile->physicsObject		 = qtrue;
 	}
 
-	/* If this was fired using alt fire, set the flag so we can render accordingly */
-	/*if ( firemode )
-	{
-		missile->s.eFlags			|= EF_ALT_FIRING;
-	}*/
-
 	missile->s.firingMode = firemode;
 
 	/* If charging, set the charge in the generic1 field so we render accordingly */
 	if ( iCharge )
 	{
 		// Disabled for now. Its silly and causes shit for the grenades (otherwise overrule boxsize again)
-//		missile->s.generic1			 = iCharge;
+		missile->s.generic1			 = iCharge;
 //		fBoxSize					*= ( iCharge / 2 );
 	}
 		
