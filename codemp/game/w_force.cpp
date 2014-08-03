@@ -156,7 +156,7 @@ void WP_InitForcePowers( gentity_t *ent )
 	else if (maxRank >= NUM_FORCE_MASTERY_LEVELS)
 	{//ack, prevent user from being dumb
 		maxRank = FORCE_MASTERY_JEDI_MASTER;
-		trap_Cvar_Set( "g_maxForceRank", va("%i", maxRank) );
+		trap->Cvar_Set( "g_maxForceRank", va("%i", maxRank) );
 	}
 
 	/*
@@ -233,7 +233,7 @@ void WP_InitForcePowers( gentity_t *ent )
 	}
 	else
 	{
-		trap_GetUserinfo( ent->s.number, userinfo, sizeof( userinfo ) );
+		trap->GetUserinfo( ent->s.number, userinfo, sizeof( userinfo ) );
 	}
 
 	Q_strncpyz( forcePowers, Info_ValueForKey( userinfo, "forcepowers" ), sizeof( forcePowers ) );
@@ -241,7 +241,7 @@ void WP_InitForcePowers( gentity_t *ent )
 	if ( strlen( forcePowers ) < strlen( DEFAULT_FORCEPOWERS ) )
 	{
 		Q_strncpyz( forcePowers, DEFAULT_FORCEPOWERS, sizeof( forcePowers ) );
-		trap_SendServerCommand( ent-g_entities, "print \"^1Invalid forcepowers string, setting default\n\"" );
+		trap->SendServerCommand( ent-g_entities, "print \"^1Invalid forcepowers string, setting default\n\"" );
 	}
 
 	//if it's a bot just copy the info directly from its personality
@@ -255,20 +255,20 @@ void WP_InitForcePowers( gentity_t *ent )
 	{
 		if (ent->client->sess.sessionTeam == TEAM_RED)
 		{
-			warnClient = !(BG_LegalizedForcePowers(forcePowers, maxRank, false, FORCE_DARKSIDE, level.gametype, g_forcePowerDisable.integer));
+			warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof( forcePowers ), maxRank, false, FORCE_DARKSIDE, level.gametype, g_forcePowerDisable.integer));
 		}
 		else if (ent->client->sess.sessionTeam == TEAM_BLUE)
 		{
-			warnClient = !(BG_LegalizedForcePowers(forcePowers, maxRank, false, FORCE_LIGHTSIDE, level.gametype, g_forcePowerDisable.integer));
+			warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof( forcePowers ), maxRank, false, FORCE_LIGHTSIDE, level.gametype, g_forcePowerDisable.integer));
 		}
 		else
 		{
-			warnClient = !(BG_LegalizedForcePowers(forcePowers, maxRank, false, 0, level.gametype, g_forcePowerDisable.integer));
+			warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof( forcePowers ), maxRank, false, 0, level.gametype, g_forcePowerDisable.integer));
 		}
 	}
 	else
 	{
-		warnClient = !(BG_LegalizedForcePowers(forcePowers, maxRank, false, 0, level.gametype, g_forcePowerDisable.integer));
+		warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof( forcePowers ), maxRank, false, 0, level.gametype, g_forcePowerDisable.integer));
 	}
 
 	i_r = 0;
@@ -432,8 +432,8 @@ void WP_InitForcePowers( gentity_t *ent )
 			//Event isn't very reliable, I made it a string. This way I can send it to just one
 			//client also, as opposed to making a broadcast event.
 			// Jedi Knight Galaxies, do not show the profile dialog
-			//trap_SendServerCommand(ent->s.number, va("nfr %i %i %i", maxRank, 1, ent->client->sess.sessionTeam));
-			trap_SendServerCommand(ent->s.number, va("nfr %i %i %i", maxRank, 0, ent->client->sess.sessionTeam));
+			//trap->SendServerCommand(ent->s.number, va("nfr %i %i %i", maxRank, 1, ent->client->sess.sessionTeam));
+			trap->SendServerCommand(ent->s.number, va("nfr %i %i %i", maxRank, 0, ent->client->sess.sessionTeam));
 			//Arg1 is new max rank, arg2 is non-0 if force menu should be shown, arg3 is the current team
 #endif
 			ent->client->sess.setForce = qtrue;
@@ -450,13 +450,13 @@ void WP_InitForcePowers( gentity_t *ent )
 			te->s.bolt1 = 1;
 			te->s.bolt2 = ent->client->sess.sessionTeam;
 #else
-			trap_SendServerCommand(ent->s.number, va("nfr %i %i %i", maxRank, 0, ent->client->sess.sessionTeam));
+			trap->SendServerCommand(ent->s.number, va("nfr %i %i %i", maxRank, 0, ent->client->sess.sessionTeam));
 #endif
 		}
 
 		if (warnClientLimit)
 		{ //the server has one or more force powers disabled and the client is using them in his config
-			//trap_SendServerCommand(ent-g_entities, va("print \"The server has one or more force powers that you have chosen disabled.\nYou will not be able to use the disable force power(s) while playing on this server.\n\""));
+			//trap->SendServerCommand(ent-g_entities, va("print \"The server has one or more force powers that you have chosen disabled.\nYou will not be able to use the disable force power(s) while playing on this server.\n\""));
 		}
 	}
 
@@ -1248,7 +1248,7 @@ void ForceTeamHeal( gentity_t *self )
 
 		if (ent && ent->client && self != ent && OnSameTeam(self, ent) && ent->client->ps.forcePower < ent->client->ps.fd.forcePowerMax 
 			&& ForcePowerUsableOn(self, ent, FP_TEAM_FORCE) &&
-			trap_InPVS(self->client->ps.origin, ent->client->ps.origin))
+			trap->InPVS(self->client->ps.origin, ent->client->ps.origin))
 		{
 			VectorSubtract(self->client->ps.origin, ent->client->ps.origin, a);
 
@@ -1354,7 +1354,7 @@ void ForceTeamForceReplenish( gentity_t *self )
 		ent = &g_entities[i];
 
 		if (ent && ent->client && self != ent && OnSameTeam(self, ent) && ent->client->ps.fd.forcePower < 100 && ForcePowerUsableOn(self, ent, FP_TEAM_FORCE) &&
-			trap_InPVS(self->client->ps.origin, ent->client->ps.origin))
+			trap->InPVS(self->client->ps.origin, ent->client->ps.origin))
 		{
 			VectorSubtract(self->client->ps.origin, ent->client->ps.origin, a);
 
@@ -1450,7 +1450,7 @@ void ForceGrip( gentity_t *self )
 	tto[1] = tfrom[1] + fwd[1]*MAX_GRIP_DISTANCE;
 	tto[2] = tfrom[2] + fwd[2]*MAX_GRIP_DISTANCE;
 
-	trap_Trace(&tr, tfrom, NULL, NULL, tto, self->s.number, MASK_PLAYERSOLID);
+	trap->Trace(&tr, tfrom, NULL, NULL, tto, self->s.number, MASK_PLAYERSOLID, 0, 0, 0);
 
 	if ( tr.fraction != 1.0 &&
 		tr.entityNum != ENTITYNUM_NONE &&
@@ -1898,7 +1898,7 @@ void ForceShootLightning( gentity_t *self )
 			mins[i] = center[i] - radius;
 			maxs[i] = center[i] + radius;
 		}
-		numListedEntities = trap_EntitiesInBox( mins, maxs, iEntityList, MAX_GENTITIES );
+		numListedEntities = trap->EntitiesInBox( mins, maxs, iEntityList, MAX_GENTITIES );
 
 		i = 0;
 		while (i < numListedEntities)
@@ -1960,13 +1960,13 @@ void ForceShootLightning( gentity_t *self )
 			}
 		
 			//in PVS?
-			if ( !traceEnt->r.bmodel && !trap_InPVS( ent_org, self->client->ps.origin ) )
+			if ( !traceEnt->r.bmodel && !trap->InPVS( ent_org, self->client->ps.origin ) )
 			{//must be in PVS
 				continue;
 			}
 
 			//Now check and see if we can actually hit it
-			trap_Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, ent_org, self->s.number, MASK_SHOT );
+			trap->Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, ent_org, self->s.number, MASK_SHOT, 0, 0, 0 );
 			if ( tr.fraction < 1.0f && tr.entityNum != traceEnt->s.number )
 			{//must have clear LOS
 				continue;
@@ -1985,7 +1985,7 @@ void ForceShootLightning( gentity_t *self )
 			{
 			vec3_t	defaultDir;
 			VectorSet(defaultDir, 0, 0, 1);
-			trap_Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, ent_org, self->s.number, MASK_SHOT );
+			trap->Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, ent_org, self->s.number, MASK_SHOT, 0, 0, 0 );
 			G_PlayEffectID (G_EffectIndex( "effects/Player/disintegration_full.efx"), traceEnt->r.currentOrigin, defaultDir );
 			}//Stoiss/Scooper add
 			if (traceEnt->client->ps.stats[STAT_HEALTH] <= 0 ) // if we are dead
@@ -2003,7 +2003,7 @@ void ForceShootLightning( gentity_t *self )
 	{//trace-line
 		VectorMA( self->client->ps.origin, 2048, forward, end );
 		
-		trap_Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, end, self->s.number, MASK_SHOT );
+		trap->Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, end, self->s.number, MASK_SHOT, 0, 0, 0 );
 		if ( tr.entityNum == ENTITYNUM_NONE || tr.fraction == 1.0 || tr.allsolid || tr.startsolid )
 		{
 			return;
@@ -2204,7 +2204,7 @@ int ForceShootDrain( gentity_t *self )
 			mins[i] = center[i] - radius;
 			maxs[i] = center[i] + radius;
 		}
-		numListedEntities = trap_EntitiesInBox( mins, maxs, iEntityList, MAX_GENTITIES );
+		numListedEntities = trap->EntitiesInBox( mins, maxs, iEntityList, MAX_GENTITIES );
 
 		i = 0;
 		while (i < numListedEntities)
@@ -2268,13 +2268,13 @@ int ForceShootDrain( gentity_t *self )
 			}
 		
 			//in PVS?
-			if ( !traceEnt->r.bmodel && !trap_InPVS( ent_org, self->client->ps.origin ) )
+			if ( !traceEnt->r.bmodel && !trap->InPVS( ent_org, self->client->ps.origin ) )
 			{//must be in PVS
 				continue;
 			}
 
 			//Now check and see if we can actually hit it
-			trap_Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, ent_org, self->s.number, MASK_SHOT );
+			trap->Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, ent_org, self->s.number, MASK_SHOT, 0, 0, 0 );
 			if ( tr.fraction < 1.0f && tr.entityNum != traceEnt->s.number )
 			{//must have clear LOS
 				continue;
@@ -2289,7 +2289,7 @@ int ForceShootDrain( gentity_t *self )
 	{//trace-line
 		VectorMA( self->client->ps.origin, 2048, forward, end );
 		
-		trap_Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, end, self->s.number, MASK_SHOT );
+		trap->Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, end, self->s.number, MASK_SHOT, 0, 0, 0 );
 		if ( tr.entityNum == ENTITYNUM_NONE || tr.fraction == 1.0 || tr.allsolid || tr.startsolid || !g_entities[tr.entityNum].client || !g_entities[tr.entityNum].inuse )
 		{
 			return 0;
@@ -2366,7 +2366,7 @@ void ForceJumpCharge( gentity_t *self, usercmd_t *ucmd )
 		self->client->ps.fd.forceJumpCharge = self->client->ps.forcePower*forceJumpChargeInterval/(FORCE_JUMP_CHARGE_TIME/FRAMETIME);
 	}
 	
-	//G_Printf("%f\n", self->client->ps.fd.forceJumpCharge);
+	//trap->Print("%f\n", self->client->ps.fd.forceJumpCharge);
 }
 
 int WP_GetVelocityForForceJump( gentity_t *self, vec3_t jumpVel, usercmd_t *ucmd )
@@ -2539,7 +2539,7 @@ qboolean ForceTelepathyCheckDirectNPCTarget( gentity_t *self, trace_t *tr, qbool
 	tto[1] = tfrom[1] + fwd[1]*radius/2;
 	tto[2] = tfrom[2] + fwd[2]*radius/2;
 
-	trap_Trace( tr, tfrom, NULL, NULL, tto, self->s.number, MASK_PLAYERSOLID );
+	trap->Trace( tr, tfrom, NULL, NULL, tto, self->s.number, MASK_PLAYERSOLID, 0, 0, 0 );
 	
 	if ( tr->entityNum == ENTITYNUM_NONE 
 		|| tr->fraction == 1.0f
@@ -2834,7 +2834,7 @@ void ForceTelepathy(gentity_t *self)
 		int e = 0;
 		qboolean gotatleastone = qfalse;
 
-		numListedEntities = trap_EntitiesInBox( mins, maxs, entityList, MAX_GENTITIES );
+		numListedEntities = trap->EntitiesInBox( mins, maxs, entityList, MAX_GENTITIES );
 
 		while (e < numListedEntities)
 		{
@@ -3199,7 +3199,7 @@ void ForceThrow( gentity_t *self, qboolean pull )
 		tto[1] = tfrom[1] + fwd[1]*radius/2;
 		tto[2] = tfrom[2] + fwd[2]*radius/2;
 
-		trap_Trace(&tr, tfrom, NULL, NULL, tto, self->s.number, MASK_PLAYERSOLID);
+		trap->Trace(&tr, tfrom, NULL, NULL, tto, self->s.number, MASK_PLAYERSOLID, 0, 0, 0);
 
 		if (tr.fraction != 1.0 &&
 			tr.entityNum != ENTITYNUM_NONE)
@@ -3239,7 +3239,7 @@ void ForceThrow( gentity_t *self, qboolean pull )
 	}
 	else
 	{
-		numListedEntities = trap_EntitiesInBox( mins, maxs, entityList, MAX_GENTITIES );
+		numListedEntities = trap->EntitiesInBox( mins, maxs, entityList, MAX_GENTITIES );
 
 		e = 0;
 
@@ -3418,20 +3418,20 @@ void ForceThrow( gentity_t *self, qboolean pull )
 		}
 	
 		//in PVS?
-		if ( !ent->r.bmodel && !trap_InPVS( ent_org, self->client->ps.origin ) )
+		if ( !ent->r.bmodel && !trap->InPVS( ent_org, self->client->ps.origin ) )
 		{//must be in PVS
 			continue;
 		}
 
 		//really should have a clear LOS to this thing...
-		trap_Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, ent_org, self->s.number, MASK_SHOT );
+		trap->Trace( &tr, self->client->ps.origin, vec3_origin, vec3_origin, ent_org, self->s.number, MASK_SHOT, 0, 0, 0 );
 		if ( tr.fraction < 1.0f && tr.entityNum != ent->s.number )
 		{//must have clear LOS
 			//try from eyes too before you give up
 			vec3_t eyePoint;
 			VectorCopy(self->client->ps.origin, eyePoint);
 			eyePoint[2] += self->client->ps.viewheight;
-			trap_Trace( &tr, eyePoint, vec3_origin, vec3_origin, ent_org, self->s.number, MASK_SHOT );
+			trap->Trace( &tr, eyePoint, vec3_origin, vec3_origin, ent_org, self->s.number, MASK_SHOT, 0, 0, 0 );
 
 			if ( tr.fraction < 1.0f && tr.entityNum != ent->s.number )
 			{
@@ -3708,7 +3708,7 @@ void ForceThrow( gentity_t *self, qboolean pull )
 				AngleVectors( self->client->ps.viewangles, forward, NULL, NULL );
 				VectorNormalize( forward );
 				VectorMA( trFrom, radius, forward, end );
-				trap_Trace( &tr, trFrom, vec3_origin, vec3_origin, end, self->s.number, MASK_SHOT );
+				trap->Trace( &tr, trFrom, vec3_origin, vec3_origin, end, self->s.number, MASK_SHOT, 0, 0, 0 );
 				if ( tr.entityNum != push_list[x]->s.number || tr.fraction == 1.0 || tr.allsolid || tr.startsolid )
 				{//must be pointing right at it
 					continue;
@@ -3946,7 +3946,7 @@ void DoGripAction(gentity_t *self, forcePowers_t forcePower)
 
 	VectorSubtract(gripEnt->client->ps.origin, self->client->ps.origin, a);
 	
-	trap_Trace(&tr, self->client->ps.origin, NULL, NULL, gripEnt->client->ps.origin, self->s.number, MASK_PLAYERSOLID);
+	trap->Trace(&tr, self->client->ps.origin, NULL, NULL, gripEnt->client->ps.origin, self->s.number, MASK_PLAYERSOLID, 0, 0, 0);
 
 	gripLevel = WP_AbsorbConversion(gripEnt, gripEnt->client->ps.fd.forcePowerLevel[FP_ABSORB], self, FP_GRIP, self->client->ps.fd.forcePowerLevel[FP_GRIP], forcePowerNeeded[self->client->ps.fd.forcePowerLevel[FP_GRIP]][FP_GRIP]);
 
@@ -4217,7 +4217,7 @@ static void WP_UpdateMindtrickEnts(gentity_t *self)
 			}
 			else if ((level.time - self->client->dangerTime) < g_TimeSinceLastFrame*4)
 			{ //Untrick this entity if the tricker (self) fires while in his fov
-				if (trap_InPVS(ent->client->ps.origin, self->client->ps.origin) &&
+				if (trap->InPVS(ent->client->ps.origin, self->client->ps.origin) &&
 					OrgVisible(ent->client->ps.origin, self->client->ps.origin, ent->s.number))
 				{
 					RemoveTrickedEnt(&self->client->ps.fd, i);
@@ -4832,7 +4832,7 @@ void SeekerDroneUpdate(gentity_t *self)
 		}
 		else if (self->client->ps.droneFireTime < level.time)
 		{
-			trap_Trace(&tr, org, NULL, NULL, en->client->ps.origin, -1, MASK_SOLID);
+			trap->Trace(&tr, org, NULL, NULL, en->client->ps.origin, -1, MASK_SOLID, 0, 0, 0);
 
 			if (tr.fraction == 1 && !tr.startsolid && !tr.allsolid)
 			{

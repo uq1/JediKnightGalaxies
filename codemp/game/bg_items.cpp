@@ -1,7 +1,7 @@
 #include "qcommon/q_shared.h"
 #include "bg_items.h"
 #include "bg_weapons.h"
-#ifdef QAGAME
+#ifdef _GAME
     #include "g_local.h"
     #include "jkg_items.h"
     typedef itemData_t bgItemData_t;
@@ -36,7 +36,7 @@ qboolean BG_HasWeaponItem ( int clientNum, int weaponId )
 {
     int i;
     // Hate having to do it like this, but seems like the only way atm...
-#ifdef CGAME
+#ifdef _CGAME
     for ( i = 0; i < cg.numItemsInInventory; i++ )
     {
 		int weaponNum;

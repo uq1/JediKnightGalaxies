@@ -141,7 +141,7 @@ void NPC_CheckEvasion(void)
 			{// Check for nearby missiles/grenades to evade...
 				int i;
 				int entities[MAX_GENTITIES];
-				int numEnts = 0;//trap_EntitiesInBox(ent->r.absmin, ent->r.absmax, entities, MAX_GENTITIES);
+				int numEnts = 0;//trap->EntitiesInBox(ent->r.absmin, ent->r.absmax, entities, MAX_GENTITIES);
 
 				vec3_t mins;
 				vec3_t maxs;
@@ -153,7 +153,7 @@ void NPC_CheckEvasion(void)
 					maxs[e] = NPC->r.currentOrigin[e] + 256;
 				}
 
-				numEnts = trap_EntitiesInBox(mins, maxs, entities, MAX_GENTITIES);
+				numEnts = trap->EntitiesInBox(mins, maxs, entities, MAX_GENTITIES);
 
 				for (i = 0; i < numEnts; i++)
 				{
@@ -673,7 +673,7 @@ void NPC_BSFace (void)
 	//Once this is over, it snaps back to what it was facing before- WHY???
 	if( NPC_UpdateAngles ( qtrue, qtrue ) )
 	{
-		trap_ICARUS_TaskIDComplete( NPC, TID_BSTATE );
+		trap->ICARUS_TaskIDComplete( (sharedEntity_t *)NPC, TID_BSTATE );
 		
 		NPCInfo->desiredYaw = client->ps.viewangles[YAW];
 		NPCInfo->desiredPitch = client->ps.viewangles[PITCH];
@@ -688,7 +688,7 @@ void NPC_BSPointShoot (qboolean shoot)
 
 	if ( !NPC->enemy || !NPC->enemy->inuse || (NPC->enemy->NPC && NPC->enemy->health <= 0) )
 	{//FIXME: should still keep shooting for a second or two after they actually die...
-		trap_ICARUS_TaskIDComplete( NPC, TID_BSTATE );
+		trap->ICARUS_TaskIDComplete( (sharedEntity_t *)NPC, TID_BSTATE );
 		goto finished;
 		return;
 	}
@@ -734,7 +734,7 @@ void NPC_BSPointShoot (qboolean shoot)
 		//if ( !shoot || !(NPC->svFlags & SVF_LOCKEDENEMY) )
 		if (1)
 		{//If locked_enemy is on, dont complete until it is destroyed...
-			trap_ICARUS_TaskIDComplete( NPC, TID_BSTATE );
+			trap->ICARUS_TaskIDComplete( (sharedEntity_t *)NPC, TID_BSTATE );
 			goto finished;
 		}
 	}
@@ -960,7 +960,7 @@ void NPC_BSDefault( void )
 		NPC_CheckGetNewWeapon();
 		if ( NPC->client->leader 
 			&& NPCInfo->goalEntity == NPC->client->leader 
-			&& (!trap_ICARUS_TaskIDPending( NPC, TID_MOVE_NAV ) && !NPC->NPC->luaFlags.isMoving) )
+			&& (!trap->ICARUS_TaskIDPending( (sharedEntity_t *)NPC, TID_MOVE_NAV ) && !NPC->NPC->luaFlags.isMoving) )
 		{
 			NPC_ClearGoal();
 		}
@@ -1075,7 +1075,7 @@ void NPC_BSDefault( void )
 		if ( !NPC->enemy 
 			&& NPC->client->leader 
 			&& NPCInfo->goalEntity == NPC->client->leader 
-			&& (!trap_ICARUS_TaskIDPending( NPC, TID_MOVE_NAV ) && !NPC->NPC->luaFlags.isMoving) )
+			&& (!trap->ICARUS_TaskIDPending( (sharedEntity_t*)NPC, TID_MOVE_NAV ) && !NPC->NPC->luaFlags.isMoving) )
 		{
 			NPC_BSFollowLeader();
 		}

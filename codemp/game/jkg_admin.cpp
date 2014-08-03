@@ -154,7 +154,7 @@ static void InitBuffer(int clientNum)
 static void FlushBuffer()
 {
 	if (RespTarget != -1) {
-		trap_SendServerCommand(RespTarget, va("print \"%s\"", RespBuffer));
+		trap->SendServerCommand(RespTarget, va("print \"%s\"", RespBuffer));
 	}
 	InitBuffer(-1);
 }
@@ -165,7 +165,7 @@ static void AddToBuffer(const char *text)
 	if (len + RespLen > 960) {
 		// Buffer is full
 		if (RespTarget != -1) {
-			trap_SendServerCommand(RespTarget, va("print \"%s\"", RespBuffer));
+			trap->SendServerCommand(RespTarget, va("print \"%s\"", RespBuffer));
 		}
 		RespBuffer[0] = 0;
 		RespLen = 0;
@@ -260,30 +260,30 @@ static void AdmCmd_AmKick(gentity_t *ent, int clientNum, int rank)
 	int target;
 	const char *reason;
 	if (Cmd_Argc() < 2) {
-		trap_SendServerCommand(clientNum, "print \"Syntax: amkick <name/id> [reason]\n\"");
+		trap->SendServerCommand(clientNum, "print \"Syntax: amkick <name/id> [reason]\n\"");
 		return;
 	}
 	target = G_ClientNumberFromArg(Cmd_Argv(1));
 	if (target == -1) {
-		trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+		trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 		return;
 	} else if (target == -2) {
-		trap_SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
+		trap->SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
 		return;
 	}
 
 	if (rank != ADMRANK_OPERATOR && level.clients[target].sess.adminRank > level.clients[clientNum].sess.adminRank) {
-		trap_SendServerCommand(clientNum, va("print \"You are not allowed to use this command on %s\n\"", SanitizeName(level.clients[target].pers.netname)));
+		trap->SendServerCommand(clientNum, va("print \"You are not allowed to use this command on %s\n\"", SanitizeName(level.clients[target].pers.netname)));
 		return;
 	}
 	if (Cmd_Argc() > 2) {
 		reason = Cmd_ConcatArgs(2);
 		G_LogPrintf("Admin: %s has kicked %s (%s)\n", SanitizeName(ent->client->pers.netname), SanitizeName(level.clients[target].pers.netname), reason); 
-		trap_DropClient(target, va("was kicked: %s", reason));
+		trap->DropClient(target, va("was kicked: %s", reason));
 	} else {
 		G_LogPrintf("Admin: %s has kicked %s\n", SanitizeName(ent->client->pers.netname), SanitizeName(level.clients[target].pers.netname));
 #ifndef __MMO__ // UQ1: clear up some spam when kicking mass bots. Could add bot check if we really need this to display...
-		trap_DropClient(target, "was kicked");
+		trap->DropClient(target, "was kicked");
 #endif //__MMO__
 	}
 }
@@ -310,25 +310,25 @@ static void AdmCmd_AmSabotage(gentity_t *ent, int clientNum, int rank)
 {
 	int target;
 	if (Cmd_Argc() < 2) {
-		trap_SendServerCommand(clientNum, "print \"Syntax: amsabotage <name/id>\n\"");
+		trap->SendServerCommand(clientNum, "print \"Syntax: amsabotage <name/id>\n\"");
 		return;
 	}
 	target = G_ClientNumberFromArg(Cmd_Argv(1));
 	if (target == -1) {
-		trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+		trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 		return;
 	} else if (target == -2) {
-		trap_SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
+		trap->SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
 		return;
 	}
 
 	if (rank != ADMRANK_OPERATOR && level.clients[target].sess.adminRank > level.clients[clientNum].sess.adminRank) {
-		trap_SendServerCommand(clientNum, va("print \"You are not allowed to use this command on %s\n\"", SanitizeName(level.clients[target].pers.netname)));
+		trap->SendServerCommand(clientNum, va("print \"You are not allowed to use this command on %s\n\"", SanitizeName(level.clients[target].pers.netname)));
 		return;
 	}
 	G_LogPrintf("Admin: %s has activaged %s's self-sabotage mechanism\n", SanitizeName(ent->client->pers.netname), SanitizeName(level.clients[target].pers.netname));
-	trap_SendServerCommand(target, "ss 2");
-	trap_SendServerCommand(clientNum, va("print \"The self-sabotage mechanism on player %s has been activated\n\"", SanitizeName(level.clients[target].pers.netname)));
+	trap->SendServerCommand(target, "ss 2");
+	trap->SendServerCommand(clientNum, va("print \"The self-sabotage mechanism on player %s has been activated\n\"", SanitizeName(level.clients[target].pers.netname)));
 }
 
 /******************************************************\
@@ -344,28 +344,28 @@ static void AdmCmd_AmGrantVIP(gentity_t *ent, int clientNum, int rank)
 {
 	int target;
 	if (Cmd_Argc() < 2) {
-		trap_SendServerCommand(clientNum, "print \"Syntax: amgrantvip <name/id>\n\"");
+		trap->SendServerCommand(clientNum, "print \"Syntax: amgrantvip <name/id>\n\"");
 		return;
 	}
 	target = G_ClientNumberFromArg(Cmd_Argv(1));
 	if (target == -1) {
-		trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+		trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 		return;
 	} else if (target == -2) {
-		trap_SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
+		trap->SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
 		return;
 	}
 
 	if (level.clients[target].sess.adminRank == ADMRANK_VIP) {
-		trap_SendServerCommand(clientNum, va("print \"%s already has VIP access\n\"", SanitizeName(level.clients[target].pers.netname)));
+		trap->SendServerCommand(clientNum, va("print \"%s already has VIP access\n\"", SanitizeName(level.clients[target].pers.netname)));
 		return;
 	} else if (level.clients[target].sess.adminRank > ADMRANK_VIP) {
-		trap_SendServerCommand(clientNum, va("print \"%s cannot be given VIP access\n\"", SanitizeName(level.clients[target].pers.netname)));
+		trap->SendServerCommand(clientNum, va("print \"%s cannot be given VIP access\n\"", SanitizeName(level.clients[target].pers.netname)));
 		return;
 	} 
 	G_LogPrintf("Admin: %s has granted VIP access to %s\n", SanitizeName(ent->client->pers.netname), SanitizeName(level.clients[target].pers.netname));
 	level.clients[target].sess.adminRank = ADMRANK_VIP;
-	trap_SendServerCommand(clientNum, va("print \"%s has been given VIP access\n\"", SanitizeName(level.clients[target].pers.netname)));
+	trap->SendServerCommand(clientNum, va("print \"%s has been given VIP access\n\"", SanitizeName(level.clients[target].pers.netname)));
 }
 
 /******************************************************\
@@ -381,26 +381,26 @@ static void AdmCmd_AmRevokeVIP(gentity_t *ent, int clientNum, int rank)
 {
 	int target;
 	if (Cmd_Argc() < 2) {
-		trap_SendServerCommand(clientNum, "print \"Syntax: amgrantvip <name/id>\n\"");
+		trap->SendServerCommand(clientNum, "print \"Syntax: amgrantvip <name/id>\n\"");
 		return;
 	}
 	target = G_ClientNumberFromArg(Cmd_Argv(1));
 	if (target == -1) {
-		trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+		trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 		return;
 	} else if (target == -2) {
-		trap_SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
+		trap->SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
 		return;
 	}
 
 	if (level.clients[target].sess.adminRank != ADMRANK_VIP) {
-		trap_SendServerCommand(clientNum, va("print \"%s does not have VIP access\n\"", SanitizeName(level.clients[target].pers.netname)));
+		trap->SendServerCommand(clientNum, va("print \"%s does not have VIP access\n\"", SanitizeName(level.clients[target].pers.netname)));
 		return;
 	} 
 
 	G_LogPrintf("Admin: %s has revoked %s's VIP access\n", SanitizeName(ent->client->pers.netname), SanitizeName(level.clients[target].pers.netname));
 	level.clients[target].sess.adminRank = 0;
-	trap_SendServerCommand(clientNum, va("print \"%s's VIP access has been revoked\n\"", SanitizeName(level.clients[target].pers.netname)));
+	trap->SendServerCommand(clientNum, va("print \"%s's VIP access has been revoked\n\"", SanitizeName(level.clients[target].pers.netname)));
 }
 
 /******************************************************\
@@ -443,11 +443,11 @@ static void AdmCmd_AmTele(gentity_t *ent, int clientNum, int rank)
 			src[2] += ent->client->ps.viewheight;
 			AngleVectors( ent->client->ps.viewangles, vf, NULL, NULL );
 			VectorMA( src, 131072, vf, dest );
-			trap_Trace( &tr, src, vec3_origin, vec3_origin, dest, ent->s.number, MASK_OPAQUE|CONTENTS_SOLID|CONTENTS_BODY|CONTENTS_ITEM|CONTENTS_CORPSE );
+			trap->Trace( &tr, src, vec3_origin, vec3_origin, dest, ent->s.number, MASK_OPAQUE|CONTENTS_SOLID|CONTENTS_BODY|CONTENTS_ITEM|CONTENTS_CORPSE, 0, 0, 0 );
 			VectorMA ( tr.endpos, 32, tr.plane.normal, target );
 
 			if (SpotWouldTelefrag2(ent, target)) {
-				trap_SendServerCommand(clientNum, "print \"Target area blocked\n\"");
+				trap->SendServerCommand(clientNum, "print \"Target area blocked\n\"");
 				return;
 			}
 			G_LogPrintf("Admin: %s has teleported to %i %i %i\n", SanitizeName(ent->client->pers.netname), target[0], target[1], target[2]);
@@ -457,10 +457,10 @@ static void AdmCmd_AmTele(gentity_t *ent, int clientNum, int rank)
 			// Teleport self to target player
 			client1 = G_ClientNumberFromArg(Cmd_Argv(1));
 			if (client1 == -1) {
-				trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+				trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 				return;
 			} else if (client1 == -2) {
-				trap_SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
+				trap->SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
 				return;
 			}
 
@@ -473,7 +473,7 @@ static void AdmCmd_AmTele(gentity_t *ent, int clientNum, int rank)
 			target[2] += 48;
 
 			if (SpotWouldTelefrag2(ent, target)) {
-				trap_SendServerCommand(clientNum, "print \"Target area blocked\n\"");
+				trap->SendServerCommand(clientNum, "print \"Target area blocked\n\"");
 				return;
 			}
 			VectorCopy(ent1->client->ps.viewangles, angs);
@@ -485,10 +485,10 @@ static void AdmCmd_AmTele(gentity_t *ent, int clientNum, int rank)
 			// Teleport client 1 to client 2
 			client1 = G_ClientNumberFromArg(Cmd_Argv(1));
 			if (client1 == -1) {
-				trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+				trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 				return;
 			}  else if (client1 == -2) {
-				trap_SendServerCommand(clientNum, "print \"Ambiguous name specified for client 1\n\"");
+				trap->SendServerCommand(clientNum, "print \"Ambiguous name specified for client 1\n\"");
 				return;
 			}
 
@@ -496,16 +496,16 @@ static void AdmCmd_AmTele(gentity_t *ent, int clientNum, int rank)
 
 			client2 = G_ClientNumberFromArg(Cmd_Argv(2));
 			if (client2 == -1) {
-				trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+				trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 				return;
 			}  else if (client2 == -2) {
-				trap_SendServerCommand(clientNum, "print \"Ambiguous name specified for client 2\n\"");
+				trap->SendServerCommand(clientNum, "print \"Ambiguous name specified for client 2\n\"");
 				return;
 			}
 			ent2 = &g_entities[client2];
 
 			if (client1 != clientNum && rank == ADMRANK_DEVELOPER) {
-				trap_SendServerCommand(clientNum, "print \"You are not allowed to teleport other players\n\"");
+				trap->SendServerCommand(clientNum, "print \"You are not allowed to teleport other players\n\"");
 				return;
 			}
 
@@ -518,7 +518,7 @@ static void AdmCmd_AmTele(gentity_t *ent, int clientNum, int rank)
 			target[2] += 48;
 
 			if (SpotWouldTelefrag2(ent1, target)) {
-				trap_SendServerCommand(clientNum, "print \"Target area blocked\n\"");
+				trap->SendServerCommand(clientNum, "print \"Target area blocked\n\"");
 				return;
 			}
 			VectorCopy(ent2->client->ps.viewangles, angs);
@@ -533,7 +533,7 @@ static void AdmCmd_AmTele(gentity_t *ent, int clientNum, int rank)
 			target[2] = atof(Cmd_Argv(3));
 
 			if (SpotWouldTelefrag2(ent, target)) {
-				trap_SendServerCommand(clientNum, "print \"Target area blocked\n\"");
+				trap->SendServerCommand(clientNum, "print \"Target area blocked\n\"");
 				return;
 			}
 			G_LogPrintf("Admin: %s has teleported to %i %i %i)\n", SanitizeName(ent->client->pers.netname), target[0], target[1], target[2]);
@@ -543,17 +543,17 @@ static void AdmCmd_AmTele(gentity_t *ent, int clientNum, int rank)
 			// Teleport client to coordinates
 			client1 = G_ClientNumberFromArg(Cmd_Argv(1));
 			if (client1 == -1) {
-				trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+				trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 				return;
 			} else if (client1 == -2) {
-				trap_SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
+				trap->SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
 				return;
 			}
 
 			ent1 = &g_entities[client1];
 
 			if (client1 != clientNum && rank == ADMRANK_DEVELOPER) {
-				trap_SendServerCommand(clientNum, "print \"You are not allowed to teleport other players\n\"");
+				trap->SendServerCommand(clientNum, "print \"You are not allowed to teleport other players\n\"");
 				return;
 			}
 
@@ -562,14 +562,14 @@ static void AdmCmd_AmTele(gentity_t *ent, int clientNum, int rank)
 			target[2] = atof(Cmd_Argv(4));
 
 			if (SpotWouldTelefrag2(ent1, target)) {
-				trap_SendServerCommand(clientNum, "print \"Target area blocked\n\"");
+				trap->SendServerCommand(clientNum, "print \"Target area blocked\n\"");
 				return;
 			}
 			G_LogPrintf("Admin: %s has teleported %s to %i %i %i\n", SanitizeName(ent->client->pers.netname), SanitizeName(ent1->client->pers.netname), target[0], target[1], target[2]);
 			TeleportPlayer2(ent1, target, ent1->client->ps.viewangles);
 			return;
 		default:
-			trap_SendServerCommand(clientNum, "print \"Syntax: amtele [client 1] [client 2 or coordinates]\n\"");
+			trap->SendServerCommand(clientNum, "print \"Syntax: amtele [client 1] [client 2 or coordinates]\n\"");
 			return;
 	}
 }
@@ -593,10 +593,10 @@ static void AdmCmd_AmGod(gentity_t *ent, int clientNum, int rank)
 	} else {
 		target = G_ClientNumberFromArg(Cmd_Argv(1));
 		if (target == -1) {
-			trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+			trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 			return;
 		}  else if (target == -2) {
-			trap_SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
+			trap->SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
 			return;
 		}
 	}
@@ -609,7 +609,7 @@ static void AdmCmd_AmGod(gentity_t *ent, int clientNum, int rank)
 
 	G_LogPrintf("Admin: %s has %s %s\n", SanitizeName(ent->client->pers.netname), targ->flags & FL_GODMODE ? "granted god-mode to" : "revoked god-mode from", SanitizeName(level.clients[target].pers.netname));
 	
-	trap_SendServerCommand(clientNum, va("print \"%s (%s)\n\"", msg, SanitizeName(level.clients[target].pers.netname)));
+	trap->SendServerCommand(clientNum, va("print \"%s (%s)\n\"", msg, SanitizeName(level.clients[target].pers.netname)));
 }
 
 /******************************************************\
@@ -631,10 +631,10 @@ static void AdmCmd_AmNoClip(gentity_t *ent, int clientNum, int rank)
 	} else {
 		target = G_ClientNumberFromArg(Cmd_Argv(1));
 		if (target == -1) {
-			trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+			trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 			return;
 		} else if (target == -2) {
-			trap_SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
+			trap->SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
 			return;
 		}
 	}
@@ -647,7 +647,7 @@ static void AdmCmd_AmNoClip(gentity_t *ent, int clientNum, int rank)
 
 	G_LogPrintf("Admin: %s has %s %s\n", SanitizeName(ent->client->pers.netname), targ->client->noclip ? "granted no-clip to" : "revoked no-clip from", SanitizeName(level.clients[target].pers.netname));
 
-	trap_SendServerCommand(clientNum, va("print \"%s (%s)\n\"", msg, SanitizeName(level.clients[target].pers.netname)));
+	trap->SendServerCommand(clientNum, va("print \"%s (%s)\n\"", msg, SanitizeName(level.clients[target].pers.netname)));
 }
 
 /******************************************************\
@@ -669,10 +669,10 @@ static void AdmCmd_AmNoTarget(gentity_t *ent, int clientNum, int rank)
 	} else {
 		target = G_ClientNumberFromArg(Cmd_Argv(1));
 		if (target == -1) {
-			trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+			trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 			return;
 		} else if (target == -2) {
-			trap_SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
+			trap->SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
 			return;
 		}
 	}
@@ -685,7 +685,7 @@ static void AdmCmd_AmNoTarget(gentity_t *ent, int clientNum, int rank)
 
 	G_LogPrintf("Admin: %s has %s %s\n", SanitizeName(ent->client->pers.netname), targ->flags & FL_NOTARGET ? "granted no-target to" : "revoked no-target from", SanitizeName(level.clients[target].pers.netname));
 
-	trap_SendServerCommand(clientNum, va("print \"%s (%s)\n\"", msg, SanitizeName(level.clients[target].pers.netname)));
+	trap->SendServerCommand(clientNum, va("print \"%s (%s)\n\"", msg, SanitizeName(level.clients[target].pers.netname)));
 }
 
 /******************************************************\
@@ -704,15 +704,15 @@ static void AdmCmd_AmSilence(gentity_t *ent, int clientNum, int rank)
 	gentity_t *targ;
 	int target;
 	if (Cmd_Argc() < 2) {
-		trap_SendServerCommand(clientNum, "print \"Syntax: amsilence <name/id>\n\"");
+		trap->SendServerCommand(clientNum, "print \"Syntax: amsilence <name/id>\n\"");
 		return;
 	}
 	target = G_ClientNumberFromArg(Cmd_Argv(1));
 	if (target == -1) {
-		trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+		trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 		return;
 	} else if (target == -2) {
-		trap_SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
+		trap->SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
 		return;
 	}
 
@@ -726,7 +726,7 @@ static void AdmCmd_AmSilence(gentity_t *ent, int clientNum, int rank)
 
 	G_LogPrintf("Admin: %s has %s %s\n", SanitizeName(ent->client->pers.netname), targ->client->pers.silenced ? "silenced" : "un-silenced", SanitizeName(level.clients[target].pers.netname));
 
-	trap_SendServerCommand(clientNum, va("print \"%s %s\n\"", SanitizeName(level.clients[target].pers.netname), msg));
+	trap->SendServerCommand(clientNum, va("print \"%s %s\n\"", SanitizeName(level.clients[target].pers.netname), msg));
 }
 
 /******************************************************\
@@ -759,41 +759,41 @@ static void AdmCmd_AmBan(gentity_t *ent, int clientNum, int rank)
 	const char *reason;
 
 	if (Cmd_Argc() < 3) {
-		trap_SendServerCommand(clientNum, "print \"Syntax: amban <name/id> <duration> [reason]\n\"");
+		trap->SendServerCommand(clientNum, "print \"Syntax: amban <name/id> <duration> [reason]\n\"");
 		return;
 	}
 	target = G_ClientNumberFromArg(Cmd_Argv(1));
 	if (target == -1) {
-		trap_SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
+		trap->SendServerCommand(clientNum, va("print \"Cannot find player '%s'\n\"", Cmd_Argv(1)));
 		return;
 	} else if (target == -2) {
-		trap_SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
+		trap->SendServerCommand(clientNum, "print \"Ambiguous name specified\n\"");
 		return;
 	}
 
 	if (rank != ADMRANK_OPERATOR && level.clients[target].sess.adminRank > level.clients[clientNum].sess.adminRank) {
-		trap_SendServerCommand(clientNum, va("print \"You are not allowed to use this command on %s\n\"", SanitizeName(level.clients[target].pers.netname)));
+		trap->SendServerCommand(clientNum, va("print \"You are not allowed to use this command on %s\n\"", SanitizeName(level.clients[target].pers.netname)));
 		return;
 	}
 	if (Cmd_Argc() > 3) {
 		reason = Cmd_ConcatArgs(3);
 		ret = JKG_Bans_AddBan(svs->clients[target].netchan.remoteAddress, Cmd_Argv(2), reason);
 		if (ret == -1) {
-			trap_SendServerCommand(clientNum, va("print \"Could not ban %s\n\"", SanitizeName(level.clients[target].pers.netname)));
+			trap->SendServerCommand(clientNum, va("print \"Could not ban %s\n\"", SanitizeName(level.clients[target].pers.netname)));
 			return;
 		}
 		G_LogPrintf("Admin: %s has banned %s, duration: '%s' (%s) - Ban ID: %i\n", SanitizeName(ent->client->pers.netname), SanitizeName(level.clients[target].pers.netname), Cmd_Argv(2), reason, ret); 
-		trap_DropClient(target, va("was banned: %s", reason));
-		trap_SendServerCommand(clientNum, va("print \"Player %s has been banned. Ban id: %i\n\"", SanitizeName(level.clients[target].pers.netname), ret));
+		trap->DropClient(target, va("was banned: %s", reason));
+		trap->SendServerCommand(clientNum, va("print \"Player %s has been banned. Ban id: %i\n\"", SanitizeName(level.clients[target].pers.netname), ret));
 	} else {
 		ret = JKG_Bans_AddBan(svs->clients[target].netchan.remoteAddress, Cmd_Argv(2), NULL);
 		if (ret == -1) {
-			trap_SendServerCommand(clientNum, va("print \"Could not ban %s\n\"", SanitizeName(level.clients[target].pers.netname)));
+			trap->SendServerCommand(clientNum, va("print \"Could not ban %s\n\"", SanitizeName(level.clients[target].pers.netname)));
 			return;
 		}
 		G_LogPrintf("Admin: %s has banned %s, duration: '%s' - Ban ID: %i\n", SanitizeName(ent->client->pers.netname), SanitizeName(level.clients[target].pers.netname), Cmd_Argv(2), ret);
-		trap_DropClient(target, "was banned");
-		trap_SendServerCommand(clientNum, va("print \"Player %s has been banned. Ban id: %i\n\"", SanitizeName(level.clients[target].pers.netname), ret));
+		trap->DropClient(target, "was banned");
+		trap->SendServerCommand(clientNum, va("print \"Player %s has been banned. Ban id: %i\n\"", SanitizeName(level.clients[target].pers.netname), ret));
 	}*/
 }
 
@@ -816,7 +816,7 @@ static void AdmCmd_AmUnBan(gentity_t *ent, int clientNum, int rank)
 	const char *unbanreason;
 
 	if (Cmd_Argc() < 2) {
-		trap_SendServerCommand(clientNum, "print \"Syntax: amunban <ban id> [reason]\n\"");
+		trap->SendServerCommand(clientNum, "print \"Syntax: amunban <ban id> [reason]\n\"");
 		return;
 	}
 	id = atoi(Cmd_Argv(1));
@@ -828,16 +828,16 @@ static void AdmCmd_AmUnBan(gentity_t *ent, int clientNum, int rank)
 
 	ret = JKG_Bans_GetBanInfo(id, ip, sizeof(ip), duration, sizeof(duration), reason, sizeof(reason));
 	if (!ret) {
-		trap_SendServerCommand(clientNum, "print \"Invalid ban ID specified\n\"");
+		trap->SendServerCommand(clientNum, "print \"Invalid ban ID specified\n\"");
 	}
 
 	ret = JKG_Bans_RemoveBan(id);
 	if (ret) {
 		G_LogPrintf("Admin: %s has unbanned %s, reason: %s. Ban info: Duration: %s - Ban ID: %i- Ban reason: %s\n", SanitizeName(ent->client->pers.netname), ip, unbanreason, duration, id, reason);
-		trap_SendServerCommand(clientNum, "print \"Ban successfully lifted\n\"");
+		trap->SendServerCommand(clientNum, "print \"Ban successfully lifted\n\"");
 		return;
 	} else {
-		trap_SendServerCommand(clientNum, "print \"Could not lift ban\n\"");
+		trap->SendServerCommand(clientNum, "print \"Could not lift ban\n\"");
 	}
 }
 
@@ -862,12 +862,12 @@ static void AdmCmd_AmLoot(gentity_t *ent, int clientNum, int rank)
 
 	if (Cmd_Argc() < 3) 
 	{
-		trap_SendServerCommand(clientNum, "print \"Syntax: amloot <itemid> <quality>\n\"");
+		trap->SendServerCommand(clientNum, "print \"Syntax: amloot <itemid> <quality>\n\"");
 		return;
 	}
 	if(level.clients[clientNum].pers.connected != CON_CONNECTED)
 	{
-		trap_SendServerCommand(clientNum, "print \"You are not connected to a server.\n\"");
+		trap->SendServerCommand(clientNum, "print \"You are not connected to a server.\n\"");
 		return;
 	}
 
@@ -880,7 +880,7 @@ static void AdmCmd_AmLoot(gentity_t *ent, int clientNum, int rank)
 
 	if((ent->client->coreStats.weight - item.id->weight) <= 0)
 	{
-		trap_SendServerCommand(clientNum, "print \"You cannot carry any more items.\n\"");
+		trap->SendServerCommand(clientNum, "print \"You cannot carry any more items.\n\"");
 		return;
 	}
 
@@ -965,25 +965,25 @@ static void RconCmd_AmGrant(void)
 	int rank;
 	
 	if (Cmd_Argc() < 3) {
-		G_Printf("Syntax: amgrant <name/id> <rank>\n");
+		trap->Print("Syntax: amgrant <name/id> <rank>\n");
 		return;
 	}
 	target = G_ClientNumberFromArg(Cmd_Argv(1));
 	if (target == -1) {
-		G_Printf("Cannot find player '%s'\n", Cmd_Argv(1));
+		trap->Print("Cannot find player '%s'\n", Cmd_Argv(1));
 		return;
 	}
 	rank = atoi(Cmd_Argv(2));
 
 	if (rank < ADMRANK_NONE || rank > ADMRANK_OPERATOR) {
-		G_Printf("Invalid rank specified\n");
+		trap->Print("Invalid rank specified\n");
 		return;
 	}
 
 	G_LogPrintf("RconAdmin: (%s) %s has been granted %s rank\n", NET_RconAdrToString(), SanitizeName(level.clients[target].pers.netname), adminRanks[rank]);
 
 	level.clients[target].sess.adminRank = rank;
-	G_Printf("Player %i (%s) now has admin rank %s\n", target, SanitizeName(level.clients[target].pers.netname), adminRanks[rank]);
+	trap->Print("Player %i (%s) now has admin rank %s\n", target, SanitizeName(level.clients[target].pers.netname), adminRanks[rank]);
 }
 
 /******************************************************\
@@ -1000,12 +1000,12 @@ static void RconCmd_AmSpeak(void)
 	char message[1024];
 	
 	if (Cmd_Argc() < 2) {
-		G_Printf("Syntax: amspeak \"message\"\n");
+		trap->Print("Syntax: amspeak \"message\"\n");
 		return;
 	}
 	
 	strcpy(message, ConcatArgs(1));
-	trap_SendServerCommand(-1, va("chat 100 \"^3[SERVER] %s\"", message));
+	trap->SendServerCommand(-1, va("chat 100 \"^3[SERVER] %s\"", message));
 }
 
 /******************************************************\
@@ -1022,12 +1022,12 @@ static void RconCmd_AmCP(void)
 	char message[1024];
 	
 	if (Cmd_Argc() < 2) {
-		G_Printf("Syntax: amcp \"message\"\n");
+		trap->Print("Syntax: amcp \"message\"\n");
 		return;
 	}
 	
 	strcpy(message, Cmd_Argv(1));
-	trap_SendServerCommand(-1, va("cp \"%s\"", message));
+	trap->SendServerCommand(-1, va("cp \"%s\"", message));
 }
 
 
@@ -1059,15 +1059,15 @@ static void RconCmd_AmBan(void)
 	int ret;
 	
 	if (Cmd_Argc() < 3) {
-		G_Printf("Syntax: amban <name/id> <duration> [reason]\n");
+		trap->Print("Syntax: amban <name/id> <duration> [reason]\n");
 		return;
 	}
 	target = G_ClientNumberFromArg(Cmd_Argv(1));
 	if (target == -1) {
-		G_Printf("Cannot find player '%s'\n", Cmd_Argv(1));
+		trap->Print("Cannot find player '%s'\n", Cmd_Argv(1));
 		return;
 	} else if (target == -2) {
-		G_Printf("Ambiguous name specified\n");
+		trap->Print("Ambiguous name specified\n");
 		return;
 	}
 
@@ -1075,22 +1075,22 @@ static void RconCmd_AmBan(void)
 		reason = Cmd_ConcatArgs(3);
 		ret = JKG_Bans_AddBan(svs->clients[target].netchan.remoteAddress, Cmd_Argv(2), reason);
 		if (ret == -1) {
-			G_Printf("Could not ban %s\n", SanitizeName(level.clients[target].pers.netname));
+			trap->Print("Could not ban %s\n", SanitizeName(level.clients[target].pers.netname));
 			return;
 		}
 		G_LogPrintf("RconAdmin: (%s) %s has been banned, duration: '%s' (%s) - Ban ID: %i\n", NET_RconAdrToString(), SanitizeName(level.clients[target].pers.netname), Cmd_Argv(2), reason, ret); 
-		trap_DropClient(target, va("was banned: %s", reason));
-		G_Printf("Player %s has been banned. Ban id: %i\n", SanitizeName(level.clients[target].pers.netname), ret);
+		trap->DropClient(target, va("was banned: %s", reason));
+		trap->Print("Player %s has been banned. Ban id: %i\n", SanitizeName(level.clients[target].pers.netname), ret);
 	} else {
 		ret = JKG_Bans_AddBan(svs->clients[target].netchan.remoteAddress, Cmd_Argv(2), NULL);
 		if (ret == -1) {
-			G_Printf("Could not ban %s\n", SanitizeName(level.clients[target].pers.netname));
+			trap->Print("Could not ban %s\n", SanitizeName(level.clients[target].pers.netname));
 			return;
 		}
 
 		G_LogPrintf("RconAdmin: (%s) %s has been banned, duration: '%s' - Ban ID: %i\n", NET_RconAdrToString(), SanitizeName(level.clients[target].pers.netname), Cmd_Argv(2), ret);
-		trap_DropClient(target, "was banned");
-		G_Printf("Player %s has been banned. Ban id: %i\n", SanitizeName(level.clients[target].pers.netname), ret);
+		trap->DropClient(target, "was banned");
+		trap->Print("Player %s has been banned. Ban id: %i\n", SanitizeName(level.clients[target].pers.netname), ret);
 	}*/
 }
 
@@ -1125,7 +1125,7 @@ static void RconCmd_AmBanIP(void)
 	int ret;
 	
 	if (Cmd_Argc() < 3) {
-		G_Printf("Syntax: ambanip <ip address> <duration> [reason]\n");
+		trap->Print("Syntax: ambanip <ip address> <duration> [reason]\n");
 		return;
 	}
 	
@@ -1135,20 +1135,20 @@ static void RconCmd_AmBanIP(void)
 		reason = Cmd_ConcatArgs(3);
 		ret = JKG_Bans_AddBanString(ip, Cmd_Argv(2), reason);
 		if (ret == -1) {
-			G_Printf("Could not ban %s\n", ip);
+			trap->Print("Could not ban %s\n", ip);
 			return;
 		}
 		G_LogPrintf("RconAdmin: (%s) the IP %s has been banned, duration: '%s' (%s) - Ban ID: %i\n", NET_RconAdrToString(), ip, Cmd_Argv(2), reason, ret); 
-		G_Printf("IP %s has been banned. Ban id: %i\n", ip, ret);
+		trap->Print("IP %s has been banned. Ban id: %i\n", ip, ret);
 	} else {
 		ret = JKG_Bans_AddBanString(ip, Cmd_Argv(2), NULL);
 		if (ret == -1) {
-			G_Printf("Could not ban %s\n", ip);
+			trap->Print("Could not ban %s\n", ip);
 			return;
 		}
 
 		G_LogPrintf("RconAdmin: (%s) the IP %s has been banned, duration: '%s' - Ban ID: %i\n", NET_RconAdrToString(), ip, Cmd_Argv(2), ret);
-		G_Printf("IP %s has been banned. Ban id: %i\n", ip, ret);
+		trap->Print("IP %s has been banned. Ban id: %i\n", ip, ret);
 	}
 }
 
@@ -1170,7 +1170,7 @@ static void RconCmd_AmUnBan(void)
 	const char *unbanreason;
 
 	if (Cmd_Argc() < 2) {
-		G_Printf("Syntax: amunban <id> [reason]\n");
+		trap->Print("Syntax: amunban <id> [reason]\n");
 		return;
 	}
 	id = atoi(Cmd_Argv(1));
@@ -1182,16 +1182,16 @@ static void RconCmd_AmUnBan(void)
 
 	ret = JKG_Bans_GetBanInfo(id, ip, sizeof(ip), duration, sizeof(duration), reason, sizeof(reason));
 	if (!ret) {
-		G_Printf("Invalid ban ID specified\n");
+		trap->Print("Invalid ban ID specified\n");
 	}
 
 	ret = JKG_Bans_RemoveBan(id);
 	if (ret) {
 		G_LogPrintf("RconAdmin: (%s) %s has been unbanned, reason: %s. Ban info: Duration: %s - Ban ID: %i- Ban reason: %s\n",  NET_RconAdrToString(), ip, unbanreason, duration, id, reason);
-		G_Printf("Ban successfully lifted\n");
+		trap->Print("Ban successfully lifted\n");
 		return;
 	} else {
-		G_Printf("Could not lift ban\n");
+		trap->Print("Could not lift ban\n");
 	}
 }
 
@@ -1376,7 +1376,7 @@ void JKG_AdminNotify( admrank_e rank, const char *fmt, ... )
 			continue;
 		}
 		if (cl->sess.adminRank >= rank) {
-			trap_SendServerCommand(i, va("chat 100 \"%s\"\n", temp_buffer));
+			trap->SendServerCommand(i, va("chat 100 \"%s\"\n", temp_buffer));
 		}
 	}
 }

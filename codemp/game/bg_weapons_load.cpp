@@ -113,7 +113,7 @@ static const stringID_table_t AmmoTable[] =
 	{ NULL, -1 }
 };
 
-#ifdef QAGAME
+#ifdef _GAME
 #include "jkg_damagetypes.h"
 static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damageNode, qboolean secondary )
 {
@@ -320,7 +320,7 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     }
 
     node = cJSON_GetObjectItem (fireModeNode, "damage");
-#ifdef QAGAME
+#ifdef _GAME
     BG_ParseDamage (fireModeStats, node, qfalse);
     
     node = cJSON_GetObjectItem (fireModeNode, "secondarydamage");
@@ -1148,7 +1148,7 @@ qboolean BG_LoadWeapons ( weaponData_t *weaponDataTable, unsigned int *numLoaded
 }
 
 // Cloned from CG. Serverside needs Ghoul 2 instances too, in order to calculate muzzle position.
-#if defined(CGAME) || defined(QAGAME)
+#if defined(CGAME) || defined(_GAME)
 
 extern int trap_G2API_InitGhoul2Model(void **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin,
 						  qhandle_t customShader, int modelFlags, int lodBias);

@@ -455,7 +455,7 @@ void SpewDebugStuffToFile(animation_t *anims)
 	fileHandle_t f;
 	int i = 0;
 
-	trap_FS_FOpenFile("file_of_debug_stuff_SP.txt", &f, FS_WRITE);
+	trap->FS_FOpenFile("file_of_debug_stuff_SP.txt", &f, FS_WRITE);
 
 	if (!f)
 	{
@@ -470,8 +470,8 @@ void SpewDebugStuffToFile(animation_t *anims)
 		i++;
 	}
 
-	trap_FS_Write(BGPAFtext, strlen(BGPAFtext), f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Write(BGPAFtext, strlen(BGPAFtext), f);
+	trap->FS_FCloseFile(f);
 }
 #endif
 
@@ -683,7 +683,7 @@ void NPC_Precache ( gentity_t *spawner )
 			break;
 		}
 
-		SkipBracedSection( &p );
+		SkipBracedSection( &p, 0 );
 	}
 
 	if ( !p ) 
@@ -1203,7 +1203,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 				break;
 			}
 
-			SkipBracedSection( &p );
+			SkipBracedSection( &p, 0 );
 		}
 		if ( !p ) 
 		{
@@ -1924,7 +1924,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 				NPC->client->NPC_class = (class_t)GetIDForString( ClassTable, value );
 				NPC->s.NPC_class = NPC->client->NPC_class; //we actually only need this value now, but at the moment I don't feel like changing the 200+ references to client->NPC_class.
 
-				//G_Printf("Parse NPC class %i [%s]\n", NPC->client->NPC_class, ClassTable[NPC->client->NPC_class]);
+				//trap->Print("Parse NPC class %i [%s]\n", NPC->client->NPC_class, ClassTable[NPC->client->NPC_class]);
 
 				// No md3's for vehicles.
 				if ( NPC->client->NPC_class == CLASS_VEHICLE )
@@ -2065,16 +2065,16 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 					VectorCopy(NPC->s.origin, NPC->client->ps.origin);
 					VectorCopy(NPC->s.origin, NPC->r.currentOrigin);
 					G_SetOrigin( NPC, NPC->s.origin );
-					trap_LinkEntity(NPC);
+					trap->LinkEntity((sharedEntity_t *)NPC);
 					//now trace down
 					/*
 					VectorCopy( NPC->s.origin, bottom );
 					bottom[2] -= adjust;
-					trap_Trace( &tr, NPC->s.origin, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, MASK_NPCSOLID );
+					trap->Trace( &tr, NPC->s.origin, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, MASK_NPCSOLID );
 					if ( !tr.allsolid && !tr.startsolid )
 					{
 						G_SetOrigin( NPC, tr.endpos );
-						trap_LinkEntity(NPC);
+						trap->LinkEntity(NPC);
 					}
 					*/
 				}
@@ -3482,7 +3482,7 @@ void NPC_LoadParms( void )
 	*marker = 0;
 
 	//now load in the extra .npc extensions
-	fileCnt = trap_FS_GetFileList("ext_data/NPCs", ".npc", npcExtensionListBuf, sizeof(npcExtensionListBuf) );
+	fileCnt = trap->FS_GetFileList("ext_data/NPCs", ".npc", npcExtensionListBuf, sizeof(npcExtensionListBuf) );
 
 #ifdef _XBOX
 	npcParseBuffer = (char *) Z_Malloc(MAX_NPC_DATA_SIZE, TAG_TEMP_WORKSPACE, qfalse, 4);
@@ -3495,7 +3495,7 @@ void NPC_LoadParms( void )
 
 //		Com_Printf( "Parsing %s\n", holdChar );
 
-		len = trap_FS_FOpenFile(va( "ext_data/NPCs/%s", holdChar), &f, FS_READ);
+		len = trap->FS_Open(va( "ext_data/NPCs/%s", holdChar), &f, FS_READ);
 
 		if ( len == -1 ) 
 		{
@@ -3504,9 +3504,9 @@ void NPC_LoadParms( void )
 		else
 		{
 			if ( totallen + len >= MAX_NPC_DATA_SIZE ) {
-				G_Error( "NPC extensions (*.npc) are too large" );
+				trap->Error( ERR_DROP, "NPC extensions (*.npc) are too large" );
 			}
-			trap_FS_Read(npcParseBuffer, len, f);
+			trap->FS_Read(npcParseBuffer, len, f);
 			npcParseBuffer[len] = 0;
 
 			len = COM_Compress( npcParseBuffer );
@@ -3514,7 +3514,7 @@ void NPC_LoadParms( void )
 			strcat( marker, npcParseBuffer );
 			strcat(marker, "\n");
 			len++;
-			trap_FS_FCloseFile(f);
+			trap->FS_Close(f);
 
 			totallen += len;
 			marker = NPCParms+totallen;

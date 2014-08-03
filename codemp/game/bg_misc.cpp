@@ -6,21 +6,15 @@
 #include "bg_public.h"
 #include "jkg_gangwars.h"
 
-#ifdef QAGAME
-#include "g_local.h"
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_UI)
+	#include "../ui/ui_local.h"
+#elif defined(_CGAME)
+	#include "../cgame/cg_local.h"
 #endif
 
-#ifdef UI_EXPORTS
-#include "../ui/ui_local.h"
-#endif
-
-#ifndef UI_EXPORTS
-#ifndef QAGAME
-#include "../cgame/cg_local.h"
-#endif
-#endif
-
-#ifdef QAGAME
+#ifdef _GAME
 extern void Q3_SetParm (int entID, int parmNum, const char *parmValue);
 #endif
 
@@ -727,10 +721,10 @@ qboolean BG_FileExists(const char *fileName)
 	if (fileName && fileName[0])
 	{
 		int fh = 0;
-		trap_FS_FOpenFile(fileName, &fh, FS_READ);
+		trap->FS_Open(fileName, &fh, FS_READ);
 		if (fh > 0)
 		{
-			trap_FS_FCloseFile(fh);
+			trap->FS_Close(fh);
 			return qtrue;
 		}
 	}
@@ -1667,8 +1661,8 @@ NOTENOTE This weapon is not yet complete.  Don't place it.
 	{
 		"ammo_tripmine", 
 		"sound/weapons/w_pkup.wav",
-        { "models/weapons2/laser_trap/laser_trap_pu.md3", 
-		"models/weapons2/laser_trap/laser_trap_w.glm", 0, 0},
+        { "models/weapons2/laser_trap/laser_trap->pu.md3", 
+		"models/weapons2/laser_trap/laser_trap->w.glm", 0, 0},
 /* view */		"models/weapons2/laser_trap/laser_trap.md3", 
 /* icon */		"gfx/hud/w_icon_tripmine",
 /* pickup *///	"Trip Mines",
@@ -1720,7 +1714,7 @@ NOTENOTE This weapon is not yet complete.  Don't place it.
 	{
 		"weapon_trip_mine", 
 		"sound/weapons/w_pkup.wav",
-        { "models/weapons2/laser_trap/laser_trap_w.glm", "models/weapons2/laser_trap/laser_trap_pu.md3",
+        { "models/weapons2/laser_trap/laser_trap->w.glm", "models/weapons2/laser_trap/laser_trap->pu.md3",
 		0, 0},
 /* view */		"models/weapons2/laser_trap/laser_trap.md3", 
 /* icon */		"gfx/hud/w_icon_tripmine",
@@ -2689,7 +2683,7 @@ void BG_EvaluateTrajectory( const trajectory_t *tr, int atTime, vec3_t result ) 
 		VectorMA( tr->trBase, deltaTime, tr->trDelta, result );
 		break;
 	default:
-#ifdef QAGAME
+#ifdef _GAME
 		Com_Error( ERR_DROP, "BG_EvaluateTrajectory: [GAME SIDE] unknown trType: %i", tr->trType );
 #else
 		Com_Error( ERR_DROP, "BG_EvaluateTrajectory: [CLIENTGAME SIDE] unknown trType: %i", tr->trType );
@@ -2927,7 +2921,7 @@ Handles the sequence numbers
 ===============
 */
 
-//void	trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
+//void	trap->Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
 
 void BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerState_t *ps ) {
 
@@ -2938,12 +2932,12 @@ void BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerSta
 
 		if (!isRegistered)
 		{
-			trap_Cvar_Register(&showEvents, "showevents", "0", 0);
+			trap->Cvar_Register(&showEvents, "showevents", "0", 0);
 			isRegistered = qtrue;
 		}
 
 		if ( showEvents.integer != 0 ) {
-#ifdef QAGAME
+#ifdef _GAME
 			Com_Printf(" game event svt %5d -> %5d: num = %20s parm %d\n", ps->pmove_framecount/*ps->commandTime*/, ps->eventSequence, eventnames[newEvent], eventParm);
 #else
 			Com_Printf("Cgame event svt %5d -> %5d: num = %20s parm %d\n", ps->pmove_framecount/*ps->commandTime*/, ps->eventSequence, eventnames[newEvent], eventParm);
@@ -3562,39 +3556,29 @@ PLAYER ANGLES
 */
 
 //perform the appropriate model precache routine
-#ifdef QAGAME //game
-extern int trap_G2API_InitGhoul2Model(void **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin,
-						  qhandle_t customShader, int modelFlags, int lodBias); //exists on game/cgame/ui, only used on game
-extern void trap_G2API_CleanGhoul2Models(void **ghoul2Ptr); //exists on game/cgame/ui, only used on game
-#else //cgame/ui
-extern qhandle_t trap_R_RegisterModel( const char *name ); //exists on cgame/ui
-#endif
-//game/cgame/ui
-extern qhandle_t trap_R_RegisterSkin( const char *name ); //exists on game/cgame/ui
-
 int BG_ModelCache(const char *modelName, const char *skinName)
 {
-#ifdef QAGAME
+#ifdef _GAME
 	void *g2 = NULL;
 
 	if (skinName && skinName[0])
 	{
-		trap_R_RegisterSkin(skinName);
+		trap->R_RegisterSkin(skinName);
 	}
 
 	//I could hook up a precache ghoul2 function, but oh well, this works
-	trap_G2API_InitGhoul2Model(&g2, modelName, 0, 0, 0, 0, 0);
+	trap->G2API_InitGhoul2Model(&g2, modelName, 0, 0, 0, 0, 0);
 	if (g2)
 	{ //now get rid of it
-		trap_G2API_CleanGhoul2Models(&g2);
+		trap->G2API_CleanGhoul2Models(&g2);
 	}
 	return 0;
 #else
 	if (skinName && skinName[0])
 	{
-		trap_R_RegisterSkin(skinName);
+		trap->R_RegisterSkin(skinName);
 	}
-	return trap_R_RegisterModel(modelName);
+	return trap->R_RegisterModel(modelName);
 #endif
 }
 

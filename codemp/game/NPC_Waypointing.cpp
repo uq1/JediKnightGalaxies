@@ -13,7 +13,7 @@ extern qboolean OpenListEmpty(void);
 extern int FindOpenList(int wpNum);
 extern void AddCloseList( int openListpos );
 extern void RemoveFirstOpenList( void );
-extern float VectorDistanceNoHeight ( vec3_t v1, vec3_t v2 );
+extern float DistanceNoHeight ( vec3_t v1, vec3_t v2 );
 extern qboolean NPC_FacePosition( vec3_t position, qboolean doPitch );
 extern qboolean NPC_Humanoid_ClearPathToSpot( vec3_t dest, int impactEntNum );
 
@@ -174,7 +174,7 @@ void Update_NPC_Goal_Lists ( void )
 	if (num_NPC_objectives < 0)
 		num_NPC_objectives = 0;
 
-	G_Printf("NPC WAYPOINTING DEBUG: There are currently %i NPC objectives.\n", num_NPC_objectives);
+	trap->Print("NPC WAYPOINTING DEBUG: There are currently %i NPC objectives.\n", num_NPC_objectives);
 }
 
 int NPC_Find_Goal_EntityNum ( int ignoreEnt, int ignoreEnt2, vec3_t current_org, int teamNum )
@@ -212,13 +212,13 @@ int NPC_FindGoal( gentity_t *NPC )
 
 	if (!ent || ent->s.teamowner == NPC->s.teamowner)
 	{
-		//G_Printf("Failed to find a goal entity!\n");
+		//trap->Print("Failed to find a goal entity!\n");
 		//return -1;
 
 		return irand(0, gWPNum-1); // UQ1: Will try using random waypoints...
 	}
 
-	//G_Printf("NPC_FindGoal: Found a goal entity %s (%i).\n", ent->classname, ent->s.number);
+	//trap->Print("NPC_FindGoal: Found a goal entity %s (%i).\n", ent->classname, ent->s.number);
 
 	wp = DOM_GetBestWaypoint(ent->s.origin, NPC->s.number, -1);
 
@@ -368,7 +368,7 @@ void UpdategWPArray( void )
 				VectorCopy(gWPArray[gWPArray[i]->neighbors[j].num]->origin, end);
 				
 				//do a trace to see if there is still anything blocking the path
-				trap_Trace(&tr, start, NULL, NULL, end, ENTITYNUM_NONE, MASK_DEADSOLID);
+				trap->Trace(&tr, start, NULL, NULL, end, ENTITYNUM_NONE, MASK_DEADSOLID, 0, 0, 0);
 
 				//if the path is open, clear the 'blocked' flag
 				if (tr.fraction == 1.0)
@@ -386,7 +386,7 @@ int NPC_FindOnRoute( int wpNum, int Route[MAX_WPARRAY_SIZE] )
 
 	for( i=0; i < MAX_WPARRAY_SIZE; i++ )
 	{
-		//G_Printf("Checking %i = %i.\n", wpNum, Route[i]);
+		//trap->Print("Checking %i = %i.\n", wpNum, Route[i]);
 
 		if( wpNum == Route[i] )
 		{//Success!
@@ -428,7 +428,7 @@ short int NPCGetNextNode(gentity_t *NPC)
 	//NPC->pathsize--;	//mark that we've moved another node
 	temp = NPC_FindOnRoute( NPC->wpCurrent, NPC->pathlist );
 	node = NPC->pathlist[temp-1];
-	//G_Printf("Node found at pos %i in array.\n",temp);
+	//trap->Print("Node found at pos %i in array.\n",temp);
 	return node;
 }
 
@@ -461,7 +461,7 @@ qboolean MyVisible (gentity_t *self, gentity_t *other)
 	otherView[2] += other->client->ps.viewheight;		//add the target's viewheight
 
 	//check if a shot from the bot's viewheight to the player's viewheight would hit
-	trap_Trace (&tr, selfView, NULL, NULL, otherView, self->s.number, MASK_SHOT);
+	trap->Trace (&tr, selfView, NULL, NULL, otherView, self->s.number, MASK_SHOT, 0, 0, 0);
 
 	traceEnt = &g_entities[tr.entityNum];		//set traceEnt to the entity the shot would hit
 
@@ -482,7 +482,7 @@ void NPC_FixBotWaypointNeighbors ( void )
 	if (gWPNum <= 0)
 		return;
 
-	G_Printf("^1*** ^3DominancE^5: Repairing waypoint database...\n");
+	trap->Print("^1*** ^3DominancE^5: Repairing waypoint database...\n");
 
 	for (i = 0; i < gWPNum && gWPArray[i]->neighbornum < 32; i++)
 	{
@@ -523,7 +523,7 @@ void NPC_FixBotWaypointNeighbors ( void )
 		}
 	}
 
-	G_Printf("^1*** ^3DominancE^5: Waypoint database repaired...\n");
+	trap->Print("^1*** ^3DominancE^5: Waypoint database repaired...\n");
 }
 
 //===========================================================================
@@ -549,13 +549,13 @@ int NPC_MOVEMENT_ReachableBy(gentity_t *NPC, vec3_t goal)
 
     VectorCopy(NPC->r.mins,v);
     v[2] += 18; // Stepsize
-	trap_Trace(&trace, Org, v, NPC->r.maxs, goal, NPC->s.number, MASK_SOLID|MASK_OPAQUE);
+	trap->Trace(&trace, Org, v, NPC->r.maxs, goal, NPC->s.number, MASK_SOLID|MASK_OPAQUE, 0, 0, 0);
 
 	//if (trace.entityNum > 0)
-	//	G_Printf("Hit entity %i (%s).\n", trace.entityNum, g_entities[trace.entityNum].classname);
+	//	trap->Print("Hit entity %i (%s).\n", trace.entityNum, g_entities[trace.entityNum].classname);
 
 	//if (g_entities[trace.entityNum].s.eType == ET_NPC)
-	//	G_Printf("Hit an NPC!\n");
+	//	trap->Print("Hit an NPC!\n");
 
     if (trace.fraction == 1.0)
         return REACHABLE; // Yes we can see it
@@ -568,7 +568,7 @@ int NPC_MOVEMENT_ReachableBy(gentity_t *NPC, vec3_t goal)
     v[2] += 18; // Stepsize
 	VectorCopy(Org, eyes);
 	eyes[2]+=32;
-	trap_Trace(&trace, eyes, v, NPC->r.maxs, goal, NPC->s.number, MASK_SOLID|MASK_OPAQUE);
+	trap->Trace(&trace, eyes, v, NPC->r.maxs, goal, NPC->s.number, MASK_SOLID|MASK_OPAQUE, 0, 0, 0);
     if (trace.fraction == 1.0)
         return REACHABLE_JUMP; // Yes we can see it
 
@@ -578,7 +578,7 @@ int NPC_MOVEMENT_ReachableBy(gentity_t *NPC, vec3_t goal)
     v[2] += 18; // Stepsize
 	VectorCopy(NPC->r.maxs,v2);
     v2[2] *= 0.5; // Stepsize
-	trap_Trace(&trace, Org, v, v2, goal, NPC->s.number, MASK_SOLID|MASK_OPAQUE);
+	trap->Trace(&trace, Org, v, v2, goal, NPC->s.number, MASK_SOLID|MASK_OPAQUE, 0, 0, 0);
     if (trace.fraction == 1.0)
         return REACHABLE_DUCK; // Yes we can see it
 
@@ -685,7 +685,7 @@ qboolean NPC_WaitForFunc ( gentity_t *NPC )
 			VectorCopy( test->pos2, pos2 );
 		}
 
-		if(VectorDistance(origin, center) > 256/*192*//*400*/)
+		if(Distance(origin, center) > 256/*192*//*400*/)
 		{//too far away
 			continue;
 		}
@@ -791,7 +791,7 @@ void NPC_SelectMoveAnimation()
 		VectorCopy(playerMaxs, NPC->r.maxs);
 
 		NPC->r.maxs[2] = NPC->client->ps.crouchheight;
-		trap_LinkEntity(NPC);
+		trap->LinkEntity(NPC);
 	}
 	else if (!(NPC->client->ps.pm_flags & PMF_DUCKED) && NPC->r.maxs[2] < NPC->client->ps.standheight)
 	{
@@ -799,7 +799,7 @@ void NPC_SelectMoveAnimation()
 		VectorCopy(playerMaxs, NPC->r.maxs);
 
 		NPC->r.maxs[2] = NPC->client->ps.standheight;
-		trap_LinkEntity(NPC);
+		trap->LinkEntity(NPC);
 	}
 	*/
 
@@ -964,41 +964,41 @@ qboolean JKG_CheckBelowPoint( vec3_t point )
 	VectorCopy(point, org2);
 	org2[2] = -65536.0f;
 
-	trap_Trace( &tr, org, NULL, NULL, org2, -1, MASK_PLAYERSOLID|CONTENTS_TRIGGER);
+	trap->Trace( &tr, org, NULL, NULL, org2, -1, MASK_PLAYERSOLID|CONTENTS_TRIGGER, 0, 0, 0);
 	
 	if ( tr.startsolid )
 	{
-		//G_Printf("Waypoint %i is in solid.\n", wp);
+		//trap->Print("Waypoint %i is in solid.\n", wp);
 		return qfalse;
 	}
 
 	if ( tr.allsolid )
 	{
-		//G_Printf("Waypoint %i is in solid.\n", wp);
+		//trap->Print("Waypoint %i is in solid.\n", wp);
 		return qfalse;
 	}
 
 	if ( tr.fraction == 1 )
 	{
-		//G_Printf("Waypoint %i is too high above ground.\n", wp);
+		//trap->Print("Waypoint %i is too high above ground.\n", wp);
 		return qfalse;
 	}
 
 	if ( tr.contents & CONTENTS_LAVA )
 	{
-		//G_Printf("Waypoint %i is in lava.\n", wp);
+		//trap->Print("Waypoint %i is in lava.\n", wp);
 		return qfalse;
 	}
 	
 	if ( tr.contents & CONTENTS_SLIME )
 	{
-		//G_Printf("Waypoint %i is in slime.\n", wp);
+		//trap->Print("Waypoint %i is in slime.\n", wp);
 		return qfalse;
 	}
 
 	if ( tr.contents & CONTENTS_TRIGGER )
 	{
-		//G_Printf("Waypoint %i is in trigger.\n", wp);
+		//trap->Print("Waypoint %i is in trigger.\n", wp);
 		return qfalse;
 	}
 
@@ -1059,11 +1059,11 @@ static qboolean NPC_Jump( gentity_t *NPC, vec3_t dest )
 					BG_EvaluateTrajectory( &tr, level.time + elapsedTime, testPos );
 					if ( testPos[2] < lastPos[2] )
 					{//going down, ignore botclip
-						trap_Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask );
+						trap->Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask , 0, 0, 0);
 					}
 					else
 					{//going up, check for botclip
-						trap_Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP );
+						trap->Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP , 0, 0, 0);
 					}
 
 					if ( trace.allsolid || trace.startsolid )
@@ -1109,7 +1109,7 @@ static qboolean NPC_Jump( gentity_t *NPC, vec3_t dest )
 							//FIXME: do we care how far below ourselves or our dest we'll land?
 							VectorCopy( trace.endpos, bottom );
 							bottom[2] -= 128;
-							trap_Trace( &trace, trace.endpos, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask );
+							trap->Trace( &trace, trace.endpos, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask , 0, 0, 0);
 							if ( trace.fraction >= 1.0f )
 							{//would fall too far
 								blocked = qtrue;
@@ -1289,7 +1289,7 @@ static qboolean NPC_TryJump( gentity_t *NPC, vec3_t goal )
 
 									VectorCopy( dest, bottom );
 									bottom[2] -= 128;
-									trap_Trace( &trace, dest, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask );
+									trap->Trace( &trace, dest, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask , 0, 0, 0);
 									if ( trace.fraction < 1.0f )
 									{//hit floor, okay to land here
 										break;
@@ -1379,7 +1379,7 @@ qboolean NPC_ClearPathToJump( gentity_t *NPC, vec3_t dest, int impactEntNum )
 	//Offset the step height
 	VectorSet( mins, NPC->r.mins[0], NPC->r.mins[1], NPC->r.mins[2] + STEPSIZE );
 	
-	trap_Trace( &trace, NPC->r.currentOrigin, mins, NPC->r.maxs, dest, NPC->s.number, NPC->clipmask );
+	trap->Trace( &trace, NPC->r.currentOrigin, mins, NPC->r.maxs, dest, NPC->s.number, NPC->clipmask , 0, 0, 0);
 
 	//Do a simple check
 	if ( trace.allsolid || trace.startsolid )
@@ -1416,7 +1416,7 @@ qboolean NPC_ClearPathToJump( gentity_t *NPC, vec3_t dest, int impactEntNum )
 		VectorMA( NPC->r.currentOrigin, i, dir, start );
 		VectorCopy( start, end );
 		end[2] -= drop;
-		trap_Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask );//NPC->r.mins?
+		trap->Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask , 0, 0, 0);//NPC->r.mins?
 		if ( trace.fraction < 1.0f || trace.allsolid || trace.startsolid )
 		{//good to go
 			continue;
@@ -1447,12 +1447,12 @@ qboolean DOM_NPC_ClearPathBetweenSpots( vec3_t from, vec3_t dest, int impactEntN
 	VectorCopy(dest, destorg);
 	destorg[2]+=STEPSIZE;
 
-	trap_Trace( &trace, org, mins, maxs, destorg, NPC->s.number, CONTENTS_PLAYERCLIP/*NPC->clipmask*/ );
+	trap->Trace( &trace, org, mins, maxs, destorg, NPC->s.number, CONTENTS_PLAYERCLIP/*NPC->clipmask*/ , 0, 0, 0);
 
 	//Do a simple check
 	if ( trace.allsolid || trace.startsolid )
 	{//inside solid
-		//G_Printf("SOLID!\n");
+		//trap->Print("SOLID!\n");
 		return qfalse;
 	}
 
@@ -1461,12 +1461,12 @@ qboolean DOM_NPC_ClearPathBetweenSpots( vec3_t from, vec3_t dest, int impactEntN
 		if ( (impactEntNum != ENTITYNUM_NONE && trace.entityNum == impactEntNum )
 			/*|| !Q_stricmp(g_entities[trace.entityNum].classname, "worldspawn")*/ )
 		{//hit what we're going after
-			//G_Printf("OK!\n");
+			//trap->Print("OK!\n");
 			return qtrue;
 		}
 		else
 		{
-			//G_Printf("TRACE FAIL! - NPC %i hit entity %i (%s).\n", NPC->s.number, trace.entityNum, g_entities[trace.entityNum].classname);
+			//trap->Print("TRACE FAIL! - NPC %i hit entity %i (%s).\n", NPC->s.number, trace.entityNum, g_entities[trace.entityNum].classname);
 			return qfalse;
 		}
 	}
@@ -1489,12 +1489,12 @@ qboolean DOM_NPC_ClearPathBetweenSpots( vec3_t from, vec3_t dest, int impactEntN
 		VectorMA( NPC->r.currentOrigin, i, dir, start );
 		VectorCopy( start, end );
 		end[2] -= drop;
-		trap_Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask );//NPC->r.mins?
+		trap->Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask , 0, 0, 0);//NPC->r.mins?
 		if ( trace.fraction < 1.0f || trace.allsolid || trace.startsolid )
 		{//good to go
 			continue;
 		}
-		G_Printf("FLOOR!\n");
+		trap->Print("FLOOR!\n");
 		//no floor here! (or a long drop?)
 		return qfalse;
 	}*/
@@ -1521,12 +1521,12 @@ qboolean DOM_NPC_CrouchPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum
 	VectorCopy(dest, destorg);
 	destorg[2]+=STEPSIZE;
 
-	trap_Trace( &trace, org, mins, maxs, destorg, NPC->s.number, CONTENTS_PLAYERCLIP/*NPC->clipmask*/ );
+	trap->Trace( &trace, org, mins, maxs, destorg, NPC->s.number, CONTENTS_PLAYERCLIP/*NPC->clipmask*/ , 0, 0, 0);
 
 	//Do a simple check
 	if ( trace.allsolid || trace.startsolid )
 	{//inside solid
-		//G_Printf("SOLID!\n");
+		//trap->Print("SOLID!\n");
 		return qfalse;
 	}
 
@@ -1535,12 +1535,12 @@ qboolean DOM_NPC_CrouchPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum
 		if ( (impactEntNum != ENTITYNUM_NONE && trace.entityNum == impactEntNum )
 			/*|| !Q_stricmp(g_entities[trace.entityNum].classname, "worldspawn")*/ )
 		{//hit what we're going after
-			//G_Printf("OK!\n");
+			//trap->Print("OK!\n");
 			return qtrue;
 		}
 		else
 		{
-			//G_Printf("TRACE FAIL! - NPC %i hit entity %i (%s).\n", NPC->s.number, trace.entityNum, g_entities[trace.entityNum].classname);
+			//trap->Print("TRACE FAIL! - NPC %i hit entity %i (%s).\n", NPC->s.number, trace.entityNum, g_entities[trace.entityNum].classname);
 			return qfalse;
 		}
 	}
@@ -1563,12 +1563,12 @@ qboolean DOM_NPC_CrouchPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum
 		VectorMA( NPC->r.currentOrigin, i, dir, start );
 		VectorCopy( start, end );
 		end[2] -= drop;
-		trap_Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask );//NPC->r.mins?
+		trap->Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask , 0, 0, 0);//NPC->r.mins?
 		if ( trace.fraction < 1.0f || trace.allsolid || trace.startsolid )
 		{//good to go
 			continue;
 		}
-		G_Printf("FLOOR!\n");
+		trap->Print("FLOOR!\n");
 		//no floor here! (or a long drop?)
 		return qfalse;
 	}*/
@@ -1603,7 +1603,7 @@ qboolean NPC_FindTemporaryWaypoint()
 				VectorCopy(gWPArray[test_wp]->origin, NPC->bot_strafe_target_position);
 				NPC->wpTravelTime = level.time + 10000; // give them time to traverse this wp...
 				NPC->bot_strafe_target_timer = level.time + 5000;
-				G_Printf("NPC %s is using an avoidance waypoint.\n", NPC->NPC_type);
+				trap->Print("NPC %s is using an avoidance waypoint.\n", NPC->NPC_type);
 				return qtrue;
 			}
 		}
@@ -1636,18 +1636,18 @@ qboolean NPC_NeedJump()
 		return qtrue;
 	}
 
-	trap_Trace( &tr, org1, NULL, NULL, org2, NPC->s.number, MASK_PLAYERSOLID );
+	trap->Trace( &tr, org1, NULL, NULL, org2, NPC->s.number, MASK_PLAYERSOLID , 0, 0, 0);
 
 	if (tr.fraction < 1.0f)
 	{// Looks like we might need to jump... Check if it would work...
 		VectorCopy(NPC->r.currentOrigin, org1);
 		org1[2] += 32;
 		VectorMA( org1, 64, forward, org2 );
-		trap_Trace( &tr, org1, NULL, NULL, org2, NPC->s.number, MASK_PLAYERSOLID );
+		trap->Trace( &tr, org1, NULL, NULL, org2, NPC->s.number, MASK_PLAYERSOLID , 0, 0, 0);
 
 		if (tr.fraction >= 0.7f)
 		{// Close enough...
-			//G_Printf("need jump");
+			//trap->Print("need jump");
 			VectorCopy(org2, jumpLandPosition);
 			return qtrue;
 		}
@@ -1689,7 +1689,7 @@ int NPC_SelectBestAvoidanceMethod()
 	VectorCopy(gWPArray[NPC->wpCurrent]->origin, org2);
 	org2[2] += STEPSIZE;
 
-	trap_Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID );
+	trap->Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID , 0, 0, 0);
 		
 	if (tr.fraction == 1.0f)
 	{// It is accessable normally...
@@ -1711,7 +1711,7 @@ int NPC_SelectBestAvoidanceMethod()
 
 			if (!SKIP_RIGHT)
 			{
-				trap_Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID );
+				trap->Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID , 0, 0, 0);
 		
 				if (tr.fraction == 1.0f)
 				{
@@ -1735,7 +1735,7 @@ int NPC_SelectBestAvoidanceMethod()
 
 			if (!SKIP_LEFT)
 			{
-				trap_Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID );
+				trap->Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID , 0, 0, 0);
 		
 				if (tr.fraction == 1.0f)
 				{
@@ -1765,7 +1765,7 @@ qboolean NPC_NPCBlockingPath()
 
 		if (!ent) continue;
 		if (ent->s.eType != ET_PLAYER && ent->s.eType != ET_NPC) continue;
-		if (VectorDistance(ent->r.currentOrigin, NPC->r.currentOrigin) > 64) continue;
+		if (Distance(ent->r.currentOrigin, NPC->r.currentOrigin) > 64) continue;
 
 		if (InFOV3( ent->r.currentOrigin, NPC->r.currentOrigin, NPC->move_vector, 90, 120 ))
 		{
@@ -1843,7 +1843,7 @@ void NPC_Avoidance()
 			//NPC->wpTravelTime = level.time + 10000; // Give him more time to get to the new wp...
 			if (NPC->wpCurrent > 0 && NPC->wpCurrent < gWPNum)
 			{
-				float dist = VectorDistance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
+				float dist = Distance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
 
 				if (dist < 1) dist = 1;
 
@@ -1865,7 +1865,7 @@ void NPC_Avoidance()
 				//NPC->wpTravelTime = level.time + 10000; // Give him more time to get to the new wp...
 				if (NPC->wpCurrent > 0 && NPC->wpCurrent < gWPNum)
 				{
-					float dist = VectorDistance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
+					float dist = Distance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
 
 					if (dist < 1) dist = 1;
 
@@ -1893,7 +1893,7 @@ void NPC_Avoidance()
 						//NPC->wpTravelTime = level.time + 10000; // Give him more time to get to the new wp...
 						if (NPC->wpCurrent > 0 && NPC->wpCurrent < gWPNum)
 						{
-							float dist = VectorDistance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
+							float dist = Distance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
 
 							if (dist < 1) dist = 1;
 
@@ -2009,7 +2009,7 @@ int NPC_GetPatrolWP(gentity_t *NPC, vec3_t org)
 		{
 			vec3_t org, org2;
 
-			flLen = VectorDistance(NPC->r.currentOrigin, gWPArray[i]->origin);
+			flLen = Distance(NPC->r.currentOrigin, gWPArray[i]->origin);
 
 			/*if (gWPArray[i]->origin[2] > NPC->spawn_pos[2]+8
 				|| gWPArray[i]->origin[2] < NPC->spawn_pos[2]-8)
@@ -2066,12 +2066,12 @@ qboolean NPC_FindNewPatrolWaypoint()
 	NPC->wpNext = NPC->wpCurrent;
 	NPC->longTermGoal = NPC->wpCurrent;
 
-	NPC->wpTravelTime = level.time + (VectorDistance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) / 24.0f) * 1000.0f;
+	NPC->wpTravelTime = level.time + (Distance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) / 24.0f) * 1000.0f;
 
 	if (NPC->wpSeenTime < NPC->noWaypointTime)
 		NPC->wpSeenTime = NPC->noWaypointTime; // also make sure we don't try to make a new route for the same length of time...
 
-	//G_Printf("NPC Waypointing Debug: NPC %i [%s] (spawn pos %f %f %f) found a patrol waypoint for itself at %f %f %f (patrol range %f).", NPC->s.number, NPC->NPC_type, NPC->spawn_pos[0], NPC->spawn_pos[1], NPC->spawn_pos[2], gWPArray[NPC->wpCurrent]->origin[0], gWPArray[NPC->wpCurrent]->origin[1], gWPArray[NPC->wpCurrent]->origin[2], NPC->patrol_range);
+	//trap->Print("NPC Waypointing Debug: NPC %i [%s] (spawn pos %f %f %f) found a patrol waypoint for itself at %f %f %f (patrol range %f).", NPC->s.number, NPC->NPC_type, NPC->spawn_pos[0], NPC->spawn_pos[1], NPC->spawn_pos[2], gWPArray[NPC->wpCurrent]->origin[0], gWPArray[NPC->wpCurrent]->origin[1], gWPArray[NPC->wpCurrent]->origin[2], NPC->patrol_range);
 	return qtrue; // all good, we have a new waypoint...
 }
 
@@ -2096,7 +2096,7 @@ qboolean NPC_FindNewWaypoint()
 	if (NPC->wpCurrent < 0 || NPC->wpCurrent >= gWPNum)
 	{
 		NPC_PickRandomIdleAnimantion();
-		//G_Printf("NPC Waypointing Debug: NPC %i (%s) failed to find a waypoint for itself.", NPC->s.number, NPC->NPC_type);
+		//trap->Print("NPC Waypointing Debug: NPC %i (%s) failed to find a waypoint for itself.", NPC->s.number, NPC->NPC_type);
 		return qfalse; // failed... try again after som avoidance code...
 	}
 
@@ -2117,7 +2117,7 @@ qboolean NPC_CopyPathFromNearbyNPC()
 		if (test->s.eType != ET_NPC) continue;
 		if (test->pathsize <= 0) continue;
 		if (test->client->NPC_class != NPC->client->NPC_class) continue; // Only copy from same NPC classes???
-		if (VectorDistance(NPC->r.currentOrigin, test->r.currentOrigin) > 128) continue;
+		if (Distance(NPC->r.currentOrigin, test->r.currentOrigin) > 128) continue;
 		if (test->wpCurrent <= 0) continue;
 		if (test->longTermGoal <= 0) continue;
 		if (test->npc_dumb_route_time > level.time) continue;
@@ -2139,7 +2139,7 @@ qboolean NPC_CopyPathFromNearbyNPC()
 		//NPC->wpTravelTime = level.time + 15000;
 		if (NPC->wpCurrent > 0 && NPC->wpCurrent < gWPNum)
 		{
-			float dist = VectorDistance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
+			float dist = Distance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
 
 			if (dist < 1) dist = 1;
 
@@ -2151,7 +2151,7 @@ qboolean NPC_CopyPathFromNearbyNPC()
 		// Don't let me be copied for 5 seconds...
 		NPC->npc_dumb_route_time = level.time + 5000;
 
-		//G_Printf("NPC Waypointing Debug: NPC %i (%s) copied a %i waypoint path between waypoints %i and %i from %i (%s).", NPC->s.number, NPC->NPC_type, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal, test->s.number, test->NPC_type);
+		//trap->Print("NPC Waypointing Debug: NPC %i (%s) copied a %i waypoint path between waypoints %i and %i from %i (%s).", NPC->s.number, NPC->NPC_type, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal, test->s.number, test->NPC_type);
 		return qtrue;
 	}
 
@@ -2194,13 +2194,13 @@ void NPC_SetNewGoalAndPath()
 
 		if (NPC->pathsize > 0)
 		{
-			//G_Printf("NPC Waypointing Debug: NPC %i created a %i waypoint path for a random goal between waypoints %i and %i.", NPC->s.number, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal);
+			//trap->Print("NPC Waypointing Debug: NPC %i created a %i waypoint path for a random goal between waypoints %i and %i.", NPC->s.number, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal);
 			NPC->wpLast = -1;
 			NPC->wpNext = NPC_GetNextNode(NPC);		//move to this node first, since it's where our path starts from
 		}
 		else
 		{
-			//G_Printf("NPC Waypointing Debug: NPC %i failed to create a route between waypoints %i and %i.", NPC->s.number, NPC->wpCurrent, NPC->longTermGoal);
+			//trap->Print("NPC Waypointing Debug: NPC %i failed to create a route between waypoints %i and %i.", NPC->s.number, NPC->wpCurrent, NPC->longTermGoal);
 			// Delay before next route creation...
 			NPC->wpSeenTime = level.time + 1000;//30000;
 			NPC_PickRandomIdleAnimantion();
@@ -2209,7 +2209,7 @@ void NPC_SetNewGoalAndPath()
 	}
 	else
 	{
-		//G_Printf("NPC Waypointing Debug: NPC %i failed to find a goal waypoint.", NPC->s.number);
+		//trap->Print("NPC Waypointing Debug: NPC %i failed to find a goal waypoint.", NPC->s.number);
 
 		// Delay before next route creation...
 		NPC->wpSeenTime = level.time + 1000;//30000;
@@ -2223,7 +2223,7 @@ void NPC_SetNewGoalAndPath()
 	//NPC->wpTravelTime = level.time + 15000;
 	if (NPC->wpCurrent > 0 && NPC->wpCurrent < gWPNum)
 	{
-		float dist = VectorDistance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
+		float dist = Distance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
 
 		if (dist < 1) dist = 1;
 
@@ -2265,13 +2265,13 @@ void NPC_SetNewWarzoneGoalAndPath()
 
 		if (NPC->pathsize > 0)
 		{
-			//G_Printf("NPC Waypointing Debug: NPC %i created a %i waypoint path for a random goal between waypoints %i and %i.", NPC->s.number, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal);
+			//trap->Print("NPC Waypointing Debug: NPC %i created a %i waypoint path for a random goal between waypoints %i and %i.", NPC->s.number, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal);
 			NPC->wpLast = -1;
 			NPC->wpNext = NPC_GetNextNode(NPC);		//move to this node first, since it's where our path starts from
 		}
 		else
 		{
-			//G_Printf("NPC Waypointing Debug: NPC %i failed to create a route between waypoints %i and %i.", NPC->s.number, NPC->wpCurrent, NPC->longTermGoal);
+			//trap->Print("NPC Waypointing Debug: NPC %i failed to create a route between waypoints %i and %i.", NPC->s.number, NPC->wpCurrent, NPC->longTermGoal);
 			// Delay before next route creation...
 			NPC->wpSeenTime = level.time + 1000;//30000;
 			NPC_PickRandomIdleAnimantion();
@@ -2280,7 +2280,7 @@ void NPC_SetNewWarzoneGoalAndPath()
 	}
 	else
 	{
-		//G_Printf("NPC Waypointing Debug: NPC %i failed to find a goal waypoint.", NPC->s.number);
+		//trap->Print("NPC Waypointing Debug: NPC %i failed to find a goal waypoint.", NPC->s.number);
 
 		// Delay before next route creation...
 		NPC->wpSeenTime = level.time + 1000;//30000;
@@ -2294,7 +2294,7 @@ void NPC_SetNewWarzoneGoalAndPath()
 	//NPC->wpTravelTime = level.time + 15000;
 	if (NPC->wpCurrent > 0 && NPC->wpCurrent < gWPNum)
 	{
-		float dist = VectorDistance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
+		float dist = Distance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
 
 		if (dist < 1) dist = 1;
 
@@ -2315,9 +2315,9 @@ void NPC_SetEnemyGoal()
 
 	/*
 	if (NPC->wpTravelTime < level.time)
-		G_Printf("wp travel time\n");
+		trap->Print("wp travel time\n");
 	else 
-		G_Printf("Bad wps (lt: %i) (ps: %i) (wc: %i) (wn: %i)\n", NPC->longTermGoal, NPC->pathsize, NPC->wpCurrent, NPC->wpNext);
+		trap->Print("Bad wps (lt: %i) (ps: %i) (wc: %i) (wn: %i)\n", NPC->longTermGoal, NPC->pathsize, NPC->wpCurrent, NPC->wpNext);
 	*/
 
 	if (!NPC_FindNewWaypoint())
@@ -2341,8 +2341,8 @@ void NPC_SetEnemyGoal()
 			{
 				qboolean BAD = qfalse;
 
-				if (VectorDistance(NPC->r.currentOrigin, gWPArray[cover_nodes[i]]->origin) <= 2048.0f
-					&& VectorDistance(NPC->enemy->r.currentOrigin, gWPArray[cover_nodes[i]]->origin) <= 2048.0f)
+				if (Distance(NPC->r.currentOrigin, gWPArray[cover_nodes[i]]->origin) <= 2048.0f
+					&& Distance(NPC->enemy->r.currentOrigin, gWPArray[cover_nodes[i]]->origin) <= 2048.0f)
 				{// Range looks good from both places...
 					int thisWP = cover_nodes[i];
 					
@@ -2428,23 +2428,23 @@ void NPC_SetEnemyGoal()
 			if (NPC->enemy->s.eType == ET_PLAYER)
 			{
 				if (IS_COVERPOINT)
-					G_Printf("NPC Waypointing Debug: NPC %i (%s) created a %i waypoint COVERPOINT path between waypoints %i and %i for enemy player %s.", NPC->s.number, NPC->NPC_type, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal, NPC->enemy->client->pers.netname);
+					trap->Print("NPC Waypointing Debug: NPC %i (%s) created a %i waypoint COVERPOINT path between waypoints %i and %i for enemy player %s.", NPC->s.number, NPC->NPC_type, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal, NPC->enemy->client->pers.netname);
 				else
-					G_Printf("NPC Waypointing Debug: NPC %i (%s) created a %i waypoint path between waypoints %i and %i for enemy player %s.", NPC->s.number, NPC->NPC_type, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal, NPC->enemy->client->pers.netname);
+					trap->Print("NPC Waypointing Debug: NPC %i (%s) created a %i waypoint path between waypoints %i and %i for enemy player %s.", NPC->s.number, NPC->NPC_type, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal, NPC->enemy->client->pers.netname);
 			}
 			else
 			{
 				if (IS_COVERPOINT)
-					G_Printf("NPC Waypointing Debug: NPC %i (%s) created a %i waypoint COVERPOINT path between waypoints %i and %i for enemy %s.", NPC->s.number, NPC->NPC_type, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal, NPC->enemy->classname);
+					trap->Print("NPC Waypointing Debug: NPC %i (%s) created a %i waypoint COVERPOINT path between waypoints %i and %i for enemy %s.", NPC->s.number, NPC->NPC_type, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal, NPC->enemy->classname);
 				else
-					G_Printf("NPC Waypointing Debug: NPC %i (%s) created a %i waypoint path between waypoints %i and %i for enemy %s.", NPC->s.number, NPC->NPC_type, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal, NPC->enemy->classname);
+					trap->Print("NPC Waypointing Debug: NPC %i (%s) created a %i waypoint path between waypoints %i and %i for enemy %s.", NPC->s.number, NPC->NPC_type, NPC->pathsize, NPC->wpCurrent, NPC->longTermGoal, NPC->enemy->classname);
 			}
 			*/
 
 			NPC->wpLast = NPC->wpCurrent;
 			NPC->wpNext = NPC_GetNextNode(NPC);		//move to this node first, since it's where our path starts from
 
-			//G_Printf("New: wps (lt: %i) (ps: %i) (wc: %i) (wn: %i)\n", NPC->longTermGoal, NPC->pathsize, NPC->wpCurrent, NPC->wpNext);
+			//trap->Print("New: wps (lt: %i) (ps: %i) (wc: %i) (wn: %i)\n", NPC->longTermGoal, NPC->pathsize, NPC->wpCurrent, NPC->wpNext);
 
 			if (NPC->client->ps.weapon == WP_SABER)
 			{
@@ -2503,7 +2503,7 @@ void NPC_SetEnemyGoal()
 		}
 		else if (NPC->enemy->s.eType == ET_PLAYER)
 		{
-			//G_Printf("NPC Waypointing Debug: NPC %i (%s) failed to create a route between waypoints %i and %i for enemy player %s.", NPC->s.number, NPC->NPC_type, NPC->wpCurrent, NPC->longTermGoal, NPC->enemy->client->pers.netname);
+			//trap->Print("NPC Waypointing Debug: NPC %i (%s) failed to create a route between waypoints %i and %i for enemy player %s.", NPC->s.number, NPC->NPC_type, NPC->wpCurrent, NPC->longTermGoal, NPC->enemy->client->pers.netname);
 			NPC->longTermGoal = NPC->coverpointOFC = NPC->coverpointGoal = -1;
 			// Delay before next route creation...
 			NPC->wpSeenTime = level.time + 2000;
@@ -2513,7 +2513,7 @@ void NPC_SetEnemyGoal()
 	else
 	{
 		//if (NPC->enemy->s.eType == ET_PLAYER)
-		//	G_Printf("NPC Waypointing Debug: NPC %i (%s) failed to find a waypoint for enemy player %s.", NPC->s.number, NPC->NPC_type, NPC->enemy->client->pers.netname);
+		//	trap->Print("NPC Waypointing Debug: NPC %i (%s) failed to find a waypoint for enemy player %s.", NPC->s.number, NPC->NPC_type, NPC->enemy->client->pers.netname);
 
 		NPC->longTermGoal = NPC->coverpointOFC = NPC->coverpointGoal = -1;
 
@@ -2529,7 +2529,7 @@ void NPC_SetEnemyGoal()
 
 	if (NPC->wpCurrent > 0 && NPC->wpCurrent < gWPNum)
 	{
-		float dist = VectorDistance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
+		float dist = Distance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
 
 		if (dist < 1) dist = 1;
 
@@ -2572,7 +2572,7 @@ qboolean NPC_EnemyVisible( gentity_t *self, gentity_t *enemy )
 		else
 			enemyEyes[2]+=32;
 	
-		trap_Trace ( &tr, selfEyes, NULL, NULL, enemyEyes, self->s.number, MASK_SHOT );
+		trap->Trace ( &tr, selfEyes, NULL, NULL, enemyEyes, self->s.number, MASK_SHOT, 0, 0, 0 );
 
 		if (tr.entityNum == enemy->s.number)
 		{
@@ -2610,12 +2610,12 @@ qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum 
 	//destorg[2]+=STEPSIZE;
 	destorg[2]+=8;
 
-	trap_Trace( &trace, org, NULL/*mins*/, NULL/*maxs*/, destorg, NPC->s.number, MASK_PLAYERSOLID/*NPC->clipmask*/ );
+	trap->Trace( &trace, org, NULL/*mins*/, NULL/*maxs*/, destorg, NPC->s.number, MASK_PLAYERSOLID/*NPC->clipmask*/ , 0, 0, 0);
 
 	//Do a simple check
 	if ( trace.allsolid || trace.startsolid )
 	{//inside solid
-		//G_Printf("SOLID!\n");
+		//trap->Print("SOLID!\n");
 		return qfalse;
 	}
 
@@ -2624,12 +2624,12 @@ qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum 
 	{//hit something
 		if ( (impactEntNum != ENTITYNUM_NONE && trace.entityNum == impactEntNum ))
 		{//hit what we're going after
-			//G_Printf("OK!\n");
+			//trap->Print("OK!\n");
 			return qtrue;
 		}
 		else
 		{
-			//G_Printf("TRACE FAIL! - NPC %i hit entity %i (%s).\n", NPC->s.number, trace.entityNum, g_entities[trace.entityNum].classname);
+			//trap->Print("TRACE FAIL! - NPC %i hit entity %i (%s).\n", NPC->s.number, trace.entityNum, g_entities[trace.entityNum].classname);
 			return qfalse;
 		}
 	}
@@ -2656,12 +2656,12 @@ qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum 
 		VectorMA( NPC->r.currentOrigin, i, dir, start );
 		VectorCopy( start, end );
 		end[2] -= drop;
-		trap_Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask );//NPC->r.mins?
+		trap->Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask , 0, 0, 0);//NPC->r.mins?
 		if ( trace.fraction < 1.0f || trace.allsolid || trace.startsolid )
 		{//good to go
 			continue;
 		}
-		G_Printf("FLOOR!\n");
+		trap->Print("FLOOR!\n");
 		//no floor here! (or a long drop?)
 		return qfalse;
 	}*/
@@ -2733,7 +2733,7 @@ qboolean NPC_OrgVisible(vec3_t org1, vec3_t org2, int ignore)
 	VectorCopy(org2, to);
 	to[2] += 18;
 
-	trap_Trace(&tr, from, NULL, NULL, to, ignore, MASK_SOLID);
+	trap->Trace(&tr, from, NULL, NULL, to, ignore, MASK_SOLID, 0, 0, 0);
 
 	if (tr.fraction == 1)
 	{
@@ -2855,15 +2855,15 @@ qboolean NPC_FollowRoutes( void )
 	{// UQ1: Main visibility handling...
 		// UQ1: Saber wielders should get up close and personal, even if the enemy is visible already...
 		if (NPC->client->ps.weapon != WP_SABER
-			|| (NPC->client->ps.weapon == WP_SABER && VectorDistance(NPC->r.currentOrigin, NPC->enemy->r.currentOrigin) < 96))
+			|| (NPC->client->ps.weapon == WP_SABER && Distance(NPC->r.currentOrigin, NPC->enemy->r.currentOrigin) < 96))
 		{
 			/*
 			if (NPC->client->ps.weapon != WP_SABER
 				&& NPC->coverpointGoal > 0 && NPC->coverpointGoal <= gWPNum
 				&& NPC->coverpointOFC > 0 && NPC->coverpointOFC <= gWPNum
 				&& NPC_IsCoverpointFor( NPC->coverpointGoal, NPC->enemy )
-				&& VectorDistance(gWPArray[NPC->coverpointOFC]->origin, NPC->r.currentOrigin) > 24
-				&& VectorDistance(gWPArray[NPC->coverpointOFC]->origin, NPC->r.currentOrigin) < 192
+				&& Distance(gWPArray[NPC->coverpointOFC]->origin, NPC->r.currentOrigin) > 24
+				&& Distance(gWPArray[NPC->coverpointOFC]->origin, NPC->r.currentOrigin) < 192
 				&& NPC_CoverpointVisible(NPC, NPC->coverpointOFC))
 			{// We are moving back to our OFC cover point...
 				if (NPC->coverpointOFC < level.time)
@@ -2874,7 +2874,7 @@ qboolean NPC_FollowRoutes( void )
 				}
 				else
 				{// Move back behind cover again...
-					G_Printf("NPC DEBUG: NPC %i [%s] is moving out from cover.\n", NPC->s.number, NPC->client->pers.netname);
+					trap->Print("NPC DEBUG: NPC %i [%s] is moving out from cover.\n", NPC->s.number, NPC->client->pers.netname);
 					NPC->wpTravelTime = level.time + 20000;
 					NPC->longTermGoal = NPC->wpCurrent = NPC->wpNext = NPC->coverpointOFC;
 					HUNTING_ENEMY = qtrue;
@@ -2884,7 +2884,7 @@ qboolean NPC_FollowRoutes( void )
 				&& NPC->coverpointGoal > 0 && NPC->coverpointGoal <= gWPNum
 				&& NPC->coverpointOFC > 0 && NPC->coverpointOFC <= gWPNum
 				&& NPC_IsCoverpointFor( NPC->coverpointGoal, NPC->enemy )
-				&& VectorDistance(gWPArray[NPC->coverpointOFC]->origin, NPC->r.currentOrigin) < 24
+				&& Distance(gWPArray[NPC->coverpointOFC]->origin, NPC->r.currentOrigin) < 24
 				&& NPC_CoverpointVisible(NPC, NPC->coverpointOFC))
 			{// We are at our OFC cover point... stay here and shoot a bit...
 				if (NPC->coverpointOFC < level.time)
@@ -2893,9 +2893,9 @@ qboolean NPC_FollowRoutes( void )
 					NPC->longTermGoal = NPC->wpCurrent = NPC->wpNext = NPC->coverpointGoal;
 					NPC->wpTravelTime = level.time + 20000;
 				}
-				else if (trap_InPVS(NPC->enemy->r.currentOrigin, NPC->r.currentOrigin) && NPC_CheckVisibility( NPC->enemy, CHECK_360|CHECK_FOV|CHECK_VISRANGE ) == VIS_FOV)
+				else if (trap->InPVS(NPC->enemy->r.currentOrigin, NPC->r.currentOrigin) && NPC_CheckVisibility( NPC->enemy, CHECK_360|CHECK_FOV|CHECK_VISRANGE ) == VIS_FOV)
 				{// Shoot them!
-					G_Printf("NPC DEBUG: NPC %i [%s] is out from cover shooting his enemy.\n", NPC->s.number, NPC->client->pers.netname);
+					trap->Print("NPC DEBUG: NPC %i [%s] is out from cover shooting his enemy.\n", NPC->s.number, NPC->client->pers.netname);
 					NPC->wpTravelTime = level.time + 20000;
 					ENEMY_VISIBLE = qtrue;
 					return qfalse;
@@ -2905,8 +2905,8 @@ qboolean NPC_FollowRoutes( void )
 				&& NPC->coverpointGoal > 0 && NPC->coverpointGoal <= gWPNum
 				&& NPC->coverpointOFC > 0 && NPC->coverpointOFC <= gWPNum
 				&& NPC_IsCoverpointFor( NPC->coverpointGoal, NPC->enemy )
-				&& VectorDistance(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) >= 24
-				&& VectorDistance(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) < 192
+				&& Distance(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) >= 24
+				&& Distance(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) < 192
 				&& NPC_CoverpointVisible(NPC, NPC->coverpointGoal))
 			{// We are moving back to our cover point...
 				if (NPC->coverpointHIDEtime < level.time)
@@ -2917,7 +2917,7 @@ qboolean NPC_FollowRoutes( void )
 				}
 				else
 				{// Move back behind cover again...
-					G_Printf("NPC DEBUG: NPC %i [%s] is moving to his cover point.\n", NPC->s.number, NPC->client->pers.netname);
+					trap->Print("NPC DEBUG: NPC %i [%s] is moving to his cover point.\n", NPC->s.number, NPC->client->pers.netname);
 					NPC->wpTravelTime = level.time + 20000;
 					NPC->longTermGoal = NPC->wpCurrent = NPC->wpNext = NPC->coverpointGoal;
 					HUNTING_ENEMY = qtrue;
@@ -2927,7 +2927,7 @@ qboolean NPC_FollowRoutes( void )
 				&& NPC->coverpointGoal > 0 && NPC->coverpointGoal <= gWPNum
 				&& NPC->coverpointOFC > 0 && NPC->coverpointOFC <= gWPNum
 				&& NPC_IsCoverpointFor( NPC->coverpointGoal, NPC->enemy )
-				&& VectorDistance(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) < 24
+				&& Distance(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) < 24
 				&& NPC_CoverpointVisible(NPC, NPC->coverpointGoal))
 			{// We are at our cover point... stay here and shoot a bit...
 				if (NPC->coverpointHIDEtime < level.time)
@@ -2938,7 +2938,7 @@ qboolean NPC_FollowRoutes( void )
 				}
 				else
 				{// Hide! We are behind cover...
-					G_Printf("NPC DEBUG: NPC %i [%s] is taking cover.\n", NPC->s.number, NPC->client->pers.netname);
+					trap->Print("NPC DEBUG: NPC %i [%s] is taking cover.\n", NPC->s.number, NPC->client->pers.netname);
 					NPC->wpTravelTime = level.time + 20000;
 					return qfalse; // Idle...
 				}
@@ -2947,10 +2947,10 @@ qboolean NPC_FollowRoutes( void )
 				&& NPC->coverpointGoal > 0 && NPC->coverpointGoal <= gWPNum
 				&& NPC->coverpointOFC > 0 && NPC->coverpointOFC <= gWPNum
 				&& NPC_IsCoverpointFor( NPC->coverpointGoal, NPC->enemy )
-				&& VectorDistance(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) >= 24)
+				&& Distance(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) >= 24)
 			{// Keep moving to cover...
 				//if (NPC->coverpointHIDEtime > level.time)
-				//	G_Printf("NPC DEBUG: NPC %i [%s] is travelling to his cover point (ps: %i. distance: %f).\n", NPC->s.number, NPC->client->pers.netname, NPC->pathsize, VectorDistance(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin));
+				//	trap->Print("NPC DEBUG: NPC %i [%s] is travelling to his cover point (ps: %i. distance: %f).\n", NPC->s.number, NPC->client->pers.netname, NPC->pathsize, Distance(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin));
 
 				//NPC->coverpointHIDEtime = level.time + irand(3000, 8000);
 				//NPC->wpTravelTime = level.time + 20000;
@@ -2962,7 +2962,7 @@ qboolean NPC_FollowRoutes( void )
 				FORCED_COVERSPOT_FIND = qtrue;
 			}*/
 			else if (/*NPC->client->ps.weapon == WP_SABER 
-				&&*/ trap_InPVS(NPC->enemy->r.currentOrigin, NPC->r.currentOrigin) 
+				&&*/ trap->InPVS(NPC->enemy->r.currentOrigin, NPC->r.currentOrigin) 
 				&& NPC_CheckVisibility( NPC->enemy, CHECK_360|CHECK_FOV|CHECK_VISRANGE ) == VIS_FOV)
 			{// Ignore cover points...
 				ENEMY_VISIBLE = qtrue;
@@ -3003,7 +3003,7 @@ qboolean NPC_FollowRoutes( void )
 
 	if ( NPC_HaveValidEnemy()
 		&& !(NPC->client->ps.weapon != WP_SABER && (NPC->coverpointGoal > 0 || NPC->coverpointGoal < gWPNum))
-		&& (Distance(NPC->enemy->r.currentOrigin, NPC->r.currentOrigin) > 128.0f || !ENEMY_VISIBLE || (NPC->client->ps.weapon == WP_SABER && VectorDistance(NPC->r.currentOrigin, NPC->enemy->r.currentOrigin) >= 96)) )
+		&& (Distance(NPC->enemy->r.currentOrigin, NPC->r.currentOrigin) > 128.0f || !ENEMY_VISIBLE || (NPC->client->ps.weapon == WP_SABER && Distance(NPC->r.currentOrigin, NPC->enemy->r.currentOrigin) >= 96)) )
 	{// Chasing them around the map...
 		HUNTING_ENEMY = qtrue;
 	}
@@ -3045,7 +3045,7 @@ qboolean NPC_FollowRoutes( void )
 				break;
 			}
 		}
-		//G_Printf("Enemy too far away. Returning home...\n");
+		//trap->Print("Enemy too far away. Returning home...\n");
 	}
 
 	/*
@@ -3057,7 +3057,7 @@ qboolean NPC_FollowRoutes( void )
 	{
 		if (NPC->enemy && !NPC_IsCoverpointFor( NPC->coverpointGoal, NPC->enemy ))
 		{
-			//G_Printf("!NPC_IsCoverpointFor\n");
+			//trap->Print("!NPC_IsCoverpointFor\n");
 			FORCED_COVERSPOT_FIND = qtrue;
 		}
 	}
@@ -3077,15 +3077,15 @@ qboolean NPC_FollowRoutes( void )
 		if (NPC->enemy)
 		{
 			if (FORCED_COVERSPOT_FIND)
-				G_Printf("FORCED_COVERSPOT_FIND\n");
+				trap->Print("FORCED_COVERSPOT_FIND\n");
 			else if (NPC->wpCurrent < 0 || NPC->wpCurrent >= gWPNum)
-				G_Printf("wpCurrent\n");
+				trap->Print("wpCurrent\n");
 			else if (NPC->longTermGoal < 0 || NPC->longTermGoal >= gWPNum)
-				G_Printf("longTermGoal\n");
+				trap->Print("longTermGoal\n");
 			else if (NPC->wpTravelTime < level.time && velocity < 16)
-				G_Printf("travel Time\n");
+				trap->Print("travel Time\n");
 			//else if (NPC->enemy && (NPC->coverpointGoal <= 0 || NPC->coverpointGoal >= gWPNum))
-			//	G_Printf("NPC->coverpointGoal\n");
+			//	trap->Print("NPC->coverpointGoal\n");
 		}
 		*/
 
@@ -3142,9 +3142,9 @@ qboolean NPC_FollowRoutes( void )
 	}
 
 	if ( (NPC->coverpointGoal > 0 && NPC->coverpointGoal < gWPNum)
-		&& VectorDistanceNoHeight(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) < 24/*24*/)
+		&& DistanceNoHeight(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) < 24/*24*/)
 	{// We're at out goal! Find a new goal...
-		//G_Printf("NPC %i hit it's COVERPOINT goal waypoint!!!\n", NPC->s.number);
+		//trap->Print("NPC %i hit it's COVERPOINT goal waypoint!!!\n", NPC->s.number);
 		/*
 		NPC->wpTravelTime = level.time + 20000;
 		NPC->longTermGoal = NPC->wpCurrent = NPC->wpNext = NPC->coverpointOFC;
@@ -3164,11 +3164,11 @@ qboolean NPC_FollowRoutes( void )
 
 		return qfalse; // next think...
 	}
-	else if (VectorDistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < 32/*24*/
-		|| (NPC->bot_strafe_right_timer > level.time && VectorDistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < /*48*/64)
-		|| (NPC->bot_strafe_left_timer > level.time && VectorDistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < /*48*/64))
+	else if (DistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < 32/*24*/
+		|| (NPC->bot_strafe_right_timer > level.time && DistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < /*48*/64)
+		|| (NPC->bot_strafe_left_timer > level.time && DistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < /*48*/64))
 	{// We're at out goal! Find a new goal...
-		//G_Printf("NPC %i hit it's goal waypoint!!!\n", NPC->s.number);
+		//trap->Print("NPC %i hit it's goal waypoint!!!\n", NPC->s.number);
 		NPC->longTermGoal = -1;
 		NPC->wpCurrent = -1;
 		NPC->pathsize = -1;
@@ -3181,11 +3181,11 @@ qboolean NPC_FollowRoutes( void )
 		return qfalse; // next think...
 	}
 
-	if ((VectorDistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 32/*24*/
-		|| (NPC->bot_strafe_right_timer > level.time && VectorDistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < /*48*/64)
-		|| (NPC->bot_strafe_left_timer > level.time && VectorDistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < /*48*/64))
+	if ((DistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 32/*24*/
+		|| (NPC->bot_strafe_right_timer > level.time && DistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < /*48*/64)
+		|| (NPC->bot_strafe_left_timer > level.time && DistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < /*48*/64))
 		&& NPC->wpNext > 0
-		&& (NPC_OrgVisible(gWPArray[NPC->wpNext]->origin, NPC->r.currentOrigin, NPC->s.number) || VectorDistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 24)
+		&& (NPC_OrgVisible(gWPArray[NPC->wpNext]->origin, NPC->r.currentOrigin, NPC->s.number) || DistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 24)
 		/*&& NPC_Humanoid_ClearPathToSpot( gWPArray[NPC->wpNext]->origin, NPC->s.number )*/)
 	{// At current node.. Pick next in the list...
 		NPC->wpLast = NPC->wpCurrent;
@@ -3200,16 +3200,16 @@ qboolean NPC_FollowRoutes( void )
 		/*
 		if (NPC_HaveValidEnemy())
 		{
-			G_Printf("Next wps: (lt: %i) (ps: %i) (wc: %i) (wn: %i)\n", NPC->longTermGoal, NPC->pathsize, NPC->wpCurrent, NPC->wpNext);
+			trap->Print("Next wps: (lt: %i) (ps: %i) (wc: %i) (wn: %i)\n", NPC->longTermGoal, NPC->pathsize, NPC->wpCurrent, NPC->wpNext);
 			if (NPC->wpCurrent > 0 && NPC->wpCurrent <= gWPNum)
-				G_Printf("NPC %i hit a waypoint. Pathsize is now %i. Next wp is %i dist is %f.\n", NPC->s.number, NPC->pathsize, NPC->wpCurrent, VectorDistance(NPC->r.currentOrigin, gWPArray[NPC->wpCurrent]->origin));
+				trap->Print("NPC %i hit a waypoint. Pathsize is now %i. Next wp is %i dist is %f.\n", NPC->s.number, NPC->pathsize, NPC->wpCurrent, Distance(NPC->r.currentOrigin, gWPArray[NPC->wpCurrent]->origin));
 		}
 		*/
 
 		//NPC->wpTravelTime = level.time + 15000; // maximum of 10 seconds to traverse to the next waypoint...
 		if (NPC->wpCurrent > 0 && NPC->wpCurrent < gWPNum)
 		{
-			float dist = VectorDistance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
+			float dist = Distance(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin);
 
 			if (dist < 1) dist = 1;
 
@@ -3231,7 +3231,7 @@ qboolean NPC_FollowRoutes( void )
 	{// Shoot on the run :)
 		NPC_FacePosition( NPC->enemy->r.currentOrigin, qtrue );
 
-		if (trap_InPVS(NPC->enemy->r.currentOrigin, NPC->r.currentOrigin) && NPC_CheckVisibility( NPC->enemy, CHECK_360|CHECK_FOV|CHECK_VISRANGE ) == VIS_FOV )
+		if (trap->InPVS(NPC->enemy->r.currentOrigin, NPC->r.currentOrigin) && NPC_CheckVisibility( NPC->enemy, CHECK_360|CHECK_FOV|CHECK_VISRANGE ) == VIS_FOV )
 			ucmd.buttons |= BUTTON_ATTACK;
 	}
 	else
@@ -3269,7 +3269,7 @@ qboolean NPC_FollowRoutes( void )
 	{// Shoot on the run :)
 		NPC_FacePosition( NPC->enemy->r.currentOrigin, qtrue );
 		
-		if (trap_InPVS(NPC->enemy->r.currentOrigin, NPC->r.currentOrigin) && NPC_CheckVisibility( NPC->enemy, CHECK_360|CHECK_FOV|CHECK_VISRANGE ) == VIS_FOV )
+		if (trap->InPVS(NPC->enemy->r.currentOrigin, NPC->r.currentOrigin) && NPC_CheckVisibility( NPC->enemy, CHECK_360|CHECK_FOV|CHECK_VISRANGE ) == VIS_FOV )
 			ucmd.buttons |= BUTTON_ATTACK;
 	}
 	else
@@ -3432,9 +3432,9 @@ qboolean NPC_PatrolArea( void )
 		return qfalse; // next think...
 	}
 
-	if (VectorDistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 24/*24*/)
+	if (DistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 24/*24*/)
 	{// We're at out goal! Find a new goal...
-		//G_Printf("NPC %i hit it's goal waypoint!!!\n", NPC->s.number);
+		//trap->Print("NPC %i hit it's goal waypoint!!!\n", NPC->s.number);
 		NPC->longTermGoal = -1;
 		NPC->wpCurrent = -1;
 		NPC->pathsize = -1;

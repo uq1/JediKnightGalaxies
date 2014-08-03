@@ -1124,6 +1124,8 @@ typedef struct level_locals_s {
 	int			num_entities;		// current number, <= MAX_GENTITIES
 	int			num_logicalents;	// current numner of logical ents, > MAX_GENTIIES, <= MAX_LOGICALENTS
 
+	int			warmupTime;			// restart match at this time
+
 	fileHandle_t	logFile;
 
 	// store latched cvars here that we want to get at often
@@ -1633,7 +1635,7 @@ const char *G_GetStringEdString2(char *refName);
 //
 // g_client.c
 //
-const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
+char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
 qboolean ClientUserinfoChanged( int clientNum );
 void ClientDisconnect( int clientNum );
 void ClientBegin( int clientNum, qboolean allowTeamReset );

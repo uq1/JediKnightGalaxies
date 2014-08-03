@@ -49,12 +49,12 @@ const char *GLua_LoadFile_Reader(lua_State *L, void *ud, size_t *sz) { // Called
 		return NULL;
 	}
 	if (gfd->dataRemaining >= GLUA_LOAD_CHUNKSIZE) {
-		trap_FS_Read(gfd->buff, GLUA_LOAD_CHUNKSIZE, gfd->f);
+		trap->FS_Read(gfd->buff, GLUA_LOAD_CHUNKSIZE, gfd->f);
 		gfd->dataRemaining -= GLUA_LOAD_CHUNKSIZE;
 		*sz = GLUA_LOAD_CHUNKSIZE;
 		return gfd->buff;
 	} else {
-		trap_FS_Read(gfd->buff,gfd->dataRemaining,gfd->f);
+		trap->FS_Read(gfd->buff,gfd->dataRemaining,gfd->f);
 		*sz = gfd->dataRemaining;
 		gfd->dataRemaining = 0;
 		return gfd->buff;
@@ -67,14 +67,14 @@ int GLua_LoadFile(lua_State *L, const char* file) {	// Loads a file using JA's F
 	gfd_t gfd;
 	int status;
 	
-	len = trap_FS_FOpenFile(file, &f, FS_READ);
+	len = trap->FS_Open(file, &f, FS_READ);
 	if (!f || len < 0) {
 		// File doesn't exist
-		G_Printf("GLua_LoadFile: Failed to load %s, file doesn't exist\n",file);
+		trap->Print("GLua_LoadFile: Failed to load %s, file doesn't exist\n",file);
 		return 1;
 	} else if ( len == 0 ) {
 		// File is empty
-		G_Printf("GLua_LoadFile: Failed to load %s, file is empty\n",file);
+		trap->Print("GLua_LoadFile: Failed to load %s, file is empty\n",file);
 		return 1;
 	}
 	gfd.f = f;
@@ -85,11 +85,11 @@ int GLua_LoadFile(lua_State *L, const char* file) {	// Loads a file using JA's F
 	status = (lua_load(L, GLua_LoadFile_Reader, &gfd, va("@%s", file)) || lua_pcall(L,0,0,0));
 	if (status) {
 		// Error occurred
-		G_Printf("GLua_LoadFile: Failed to load %s: %s\n",file, lua_tostring(L,-1));
+		trap->Print("GLua_LoadFile: Failed to load %s: %s\n",file, lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	
-	trap_FS_FCloseFile(f);
+	trap->FS_Close(f);
 	return status;
 }
 
@@ -142,7 +142,7 @@ void GLua_GetCinematicCamPosition(int clientNum, float *x, float *y, float *z) {
 		GLua_PushPlayer(L, clientNum);
 		if (lua_pcall(L,1,1,0)) {
 			// Since this is called every frame for ppl in cinematics, dont show the error, just cancel out
-			G_Printf("ERROR: GLua_GetCinematicCamPosition: %s", lua_tostring(L,-1));
+			trap->Print("ERROR: GLua_GetCinematicCamPosition: %s", lua_tostring(L,-1));
 			lua_pop(L,1);
 			return;
 		}
@@ -169,7 +169,7 @@ void GLua_Wipe_EntDataSlot(gentity_t *ent) {
 
 	if (lua_pcall(L,1,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while clearing an entity data slot: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while clearing an entity data slot: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 
@@ -213,29 +213,29 @@ void GLua_Init() {
 	}
 	memset(GLua_Framework, -1 ,sizeof(GLua_Framework)); // Fill it with NULL refs
 
-	G_Printf("--------- Galaxies Lua initialization ---------\n");
+	trap->Print("--------- Galaxies Lua initialization ---------\n");
 	//LuaZ_Initialize();
 	//L = LuaInstance = lua_newstate(GLua_Allocator, 0);
-	G_Printf(" -> Initializing Lua...\n");
+	trap->Print(" -> Initializing Lua...\n");
 	L = LuaInstance = lua_open();
 	if (!L) {
 		Com_Error(ERR_FATAL, "FATAL ERROR: Could not properly initialize Lua!\n");
-		//G_Printf("FATAL ERROR: Could not properly initialize Lua!\n");
+		//trap->Print("FATAL ERROR: Could not properly initialize Lua!\n");
 		//while(1){};
 	}
 	lua_atpanic(L, GLua_Panic);
-	G_Printf(" -> Loading base libraries...\n");
+	trap->Print(" -> Loading base libraries...\n");
 	GLua_LoadBaseLibs(L);
 	
-	G_Printf(" -> Loading GLua libraries...\n");
+	trap->Print(" -> Loading GLua libraries...\n");
 	// Initialize namespaces and class metatables
 	GLua_LoadLibs(L);
 
 	// Initialize framework
-	G_Printf(" -> Initializing GLua Framework...\n");
+	trap->Print(" -> Initializing GLua Framework...\n");
 	if (GLua_LoadFile(L, "glua/framework/init.lua")) {
 		Com_Error(ERR_FATAL, "FATAL ERROR: Could not properly initialize the GLua framework!\n");
-		//G_Printf("FATAL ERROR: Could not properly initialize the GLua framework!\n");
+		//trap->Print("FATAL ERROR: Could not properly initialize the GLua framework!\n");
 		
 	}
 
@@ -272,15 +272,15 @@ void GLua_Init() {
 		}
 	}
 
-	G_Printf(" -> Executing init.lua...\n");
+	trap->Print(" -> Executing init.lua...\n");
 	// Run main script
 	if (GLua_LoadFile(L, "glua/init.lua")) {
 		// This is really bad: error during the init script
 		// For diagnostic reasons we wont go fatal here, but still, this needs fixing asap
-		G_Printf("CRITICAL ERROR: glua/init.lua failed to run correctly!\n");
+		trap->Print("CRITICAL ERROR: glua/init.lua failed to run correctly!\n");
 	}
-	G_Printf(" -> Init successful\n");
-	G_Printf("-----------------------------------------------\n");
+	trap->Print(" -> Init successful\n");
+	trap->Print("-----------------------------------------------\n");
 }
 
 int GLua_GetEntityTypeID(const char* classname) {
@@ -295,7 +295,7 @@ int GLua_GetEntityTypeID(const char* classname) {
 	lua_pushstring(L, classname);
 	if (lua_pcall(L,1,1,0)) {
 		// Error
-		G_Printf("GLua: Error occurred in GLua_GetEntityTypeID: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred in GLua_GetEntityTypeID: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 		return 0;
 	}
@@ -317,7 +317,7 @@ void GLua_SpawnEntity(gentity_t *ent, const char* classname) {
 	lua_pushstring(L, classname);
 	if (lua_pcall(L,2,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred in GLua_SpawnEntity: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred in GLua_SpawnEntity: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	STACKGUARD_CHECK(LuaInstance)
@@ -344,7 +344,7 @@ int GLua_NPCExists(const char* npcname) {
 	lua_pushstring(L, npcname);
 	if (lua_pcall(L,1,1,0)) {
 		// Error
-		G_Printf("GLua: Error occurred in GLua_NPCExists: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred in GLua_NPCExists: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 		return 0;
 	}
@@ -364,7 +364,7 @@ void GLua_SpawnNPC(gentity_t *npc, const char* npcname) {
 	lua_pushstring(L, npcname);
 	if (lua_pcall(L,2,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred in GLua_SpawnNPC: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred in GLua_SpawnNPC: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	STACKGUARD_CHECK(LuaInstance)
@@ -405,14 +405,14 @@ void GLua_Run(const char *line) {
 	lua_State *L = LuaInstance;
 	int status;
 	if (!L) {
-		G_Printf("Error: GLua is not active, please use lua_restart\n");
+		trap->Print("Error: GLua is not active, please use lua_restart\n");
 		return;
 	}
-	G_Printf("Executing %s...\n", line);
+	trap->Print("Executing %s...\n", line);
 	GLua_ProcessNewLines((char *)line);	// Do it after the printf, otherwise we'd get newlines in there too.. which is a lil iffy
 	status = (luaL_loadbuffer(L, line, strlen(line), "=lua_run") || lua_pcall(L,0,0,0));
 	if (status) {
-		G_Printf("Error executing Lua: %s\n", lua_tostring(L,-1));
+		trap->Print("Error executing Lua: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 }
@@ -432,7 +432,7 @@ void GLua_SoftRestart() {
 	lua_State *L = LuaInstance;
 	// Run main script
 	if (!L) {
-		G_Printf("Error: GLua is not active, please use lua_restart\n");
+		trap->Print("Error: GLua is not active, please use lua_restart\n");
 		return;
 	}
 	lua_pushboolean(L, 1);
@@ -444,7 +444,7 @@ void GLua_SoftRestart() {
 	if (GLua_LoadFile(L, "glua/init.lua")) {
 		// This is really bad, error during init script
 		// For diagnostic reasons we wont go fatal here, but still, this needs fixing asap
-		G_Printf("CRITICAL ERROR: glua/init.lua failed to run! Fix this problem immediately!\n");
+		trap->Print("CRITICAL ERROR: glua/init.lua failed to run! Fix this problem immediately!\n");
 	}
 	lua_pushnil(L);
 	lua_setglobal(L, "RELOADING");
@@ -466,7 +466,7 @@ void GLua_Hook_GameInit(int leveltime, int restart) {
 	lua_pushboolean(L,0); // Ignore return values
 	if (lua_pcall(L,2,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'Init': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'Init': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 
@@ -487,7 +487,7 @@ void GLua_Hook_MapLoadFinished() {
 	lua_pushboolean(L,0); // Ignore return values
 	if (lua_pcall(L,2,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'MapLoaded': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'MapLoaded': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 
@@ -508,7 +508,7 @@ void GLua_Hook_GameShutdown() {
 	lua_pushboolean(L,0); // Ignore return values
 	if (lua_pcall(L,2,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'Shutdown': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'Shutdown': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 
@@ -524,7 +524,7 @@ void GLua_Timer() {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, GLua_Framework[GLUA_TIMER]);
 	if (lua_pcall(L,0,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while processing timers: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while processing timers: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 
@@ -540,7 +540,7 @@ void GLua_TimerReset() {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, GLua_Framework[GLUA_TIMERRESET]);
 	if (lua_pcall(L,0,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while resetting timers: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while resetting timers: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 
@@ -556,7 +556,7 @@ void GLua_Thread() {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, GLua_Framework[GLUA_THREAD]);
 	if (lua_pcall(L,0,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while processing threads: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while processing threads: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	STACKGUARD_CHECK(LuaInstance)
@@ -570,7 +570,7 @@ void GLua_ThreadReset() {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, GLua_Framework[GLUA_THREADRESET]);
 	if (lua_pcall(L,0,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while resetting threads: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while resetting threads: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	STACKGUARD_CHECK(LuaInstance)
@@ -595,7 +595,7 @@ int GLua_Hook_PlayerSay(gentity_t * ent, gentity_t * target, int mode, const cha
 	lua_pushstring(L,text);
 	if (lua_pcall(L,6,1,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'PlayerSay': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'PlayerSay': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 		STACKGUARD_CHECK(LuaInstance)
 		return 0;
@@ -628,7 +628,7 @@ const char *GLua_Hook_PlayerConnect(int clientNum, int firsttime, int isbot) {
 	lua_pushboolean(L, isbot);
 	if (lua_pcall(L,5,1,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'PlayerConnect': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'PlayerConnect': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 		STACKGUARD_CHECK(LuaInstance)
 		return 0;
@@ -660,7 +660,7 @@ void GLua_Hook_PlayerBegin(int clientNum) {
 	GLua_PushPlayer(L, clientNum);
 	if (lua_pcall(L,3,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'PlayerBegin': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'PlayerBegin': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	STACKGUARD_CHECK(LuaInstance)
@@ -680,7 +680,7 @@ void GLua_Hook_PlayerSpawned(int clientNum) {
 	GLua_PushPlayer(L, clientNum);
 	if (lua_pcall(L,3,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'PlayerSpawned': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'PlayerSpawned': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	STACKGUARD_CHECK(LuaInstance)
@@ -700,7 +700,7 @@ void GLua_Hook_PlayerDeathcam(int clientNum, int *deathcamtime, int *forcerespaw
 	GLua_PushPlayer(L, clientNum);
 	if (lua_pcall(L,3,1,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'PlayerDeathcam': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'PlayerDeathcam': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 		STACKGUARD_CHECK(LuaInstance)
 		return;
@@ -739,7 +739,7 @@ void GLua_Hook_PlayerDeath(int clientNum, gentity_t *inflictor, gentity_t* attac
 	lua_pushinteger(L, mod);
 	if (lua_pcall(L,7,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'PlayerDeath': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'PlayerDeath': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	STACKGUARD_CHECK(LuaInstance)
@@ -761,7 +761,7 @@ int GLua_Hook_SelectInitialSpawn(int clientNum, gentity_t **spawnpoint, int team
 	lua_pushinteger(L, team);
 	if (lua_pcall(L,4,1,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'SelectInitialSpawn': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'SelectInitialSpawn': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 		STACKGUARD_CHECK(LuaInstance)
 		return 0;
@@ -828,7 +828,7 @@ int GLua_Hook_SelectSpawn(int clientNum, gentity_t **spawnpoint, int team, vec3_
 	GLua_PushVector(L, avoidpoint[0], avoidpoint[1], avoidpoint[2]);
 	if (lua_pcall(L,5,1,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'SelectSpawn': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'SelectSpawn': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 		STACKGUARD_CHECK(LuaInstance)
 		return 0;
@@ -893,7 +893,7 @@ int GLua_Hook_SelectSpectatorSpawn(int clientNum, gentity_t **spawnpoint, vec3_t
 	GLua_PushPlayer(L, clientNum);
 	if (lua_pcall(L,3,1,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'SelectSpectatorSpawn': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'SelectSpectatorSpawn': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 		STACKGUARD_CHECK(LuaInstance)
 		return 0;
@@ -958,7 +958,7 @@ void GLua_Hook_PlayerDisconnect(int clientNum) {
 	GLua_PushPlayer(L, clientNum);
 	if (lua_pcall(L,3,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'PlayerDisconnect': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'PlayerDisconnect': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	STACKGUARD_CHECK(LuaInstance)
@@ -979,7 +979,7 @@ void GLua_Hook_PlayerValidationFailed(int clientNum) {
 	GLua_PushPlayer(L, clientNum);
 	if (lua_pcall(L,3,0,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while calling hook 'PlayerValidationFailed': %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while calling hook 'PlayerValidationFailed': %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	STACKGUARD_CHECK(LuaInstance)
@@ -1013,7 +1013,7 @@ int GLua_ChatCommand(int clientNum, const char *cmd) { // Returns 1 if processed
 	}
 	if (lua_pcall(L,4,1,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while executing chat command '%s': %s\n",cmd, lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while executing chat command '%s': %s\n",cmd, lua_tostring(L,-1));
 		lua_pop(L,1);
 		STACKGUARD_CHECK(LuaInstance)
 		return 0;
@@ -1033,7 +1033,7 @@ int GLua_Command(int clientNum, const char *cmd) { // Returns 1 if processed, 0 
 	STACKGUARD_INIT(LuaInstance)
 	lua_State *L = LuaInstance;
 	int i;
-	int argc = trap_Argc();
+	int argc = trap->Argc();
 	char arg[MAX_STRING_CHARS];
 
 	if (!L) return 0;
@@ -1048,13 +1048,13 @@ int GLua_Command(int clientNum, const char *cmd) { // Returns 1 if processed, 0 
 	// Create a table with all args in it
 	lua_newtable(L);
 	for (i=0; i<argc; i++) {
-		trap_Argv(i,arg,sizeof(arg));
+		trap->Argv(i,arg,sizeof(arg));
 		lua_pushstring(L, arg);
 		lua_rawseti(L,-2,i);
 	}
 	if (lua_pcall(L,4,1,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while executing command '%s': %s\n",cmd, lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while executing command '%s': %s\n",cmd, lua_tostring(L,-1));
 		lua_pop(L,1);
 		STACKGUARD_CHECK(LuaInstance)
 		return 0;
@@ -1073,7 +1073,7 @@ int GLua_RconCommand(const char *cmd) { // Returns 1 if processed, 0 if not
 	STACKGUARD_INIT(LuaInstance)
 	lua_State *L = LuaInstance;
 	int i;
-	int argc = trap_Argc();
+	int argc = trap->Argc();
 	char arg[MAX_STRING_CHARS];
 
 	if (!L) return 0;
@@ -1086,13 +1086,13 @@ int GLua_RconCommand(const char *cmd) { // Returns 1 if processed, 0 if not
 	// Create a table with all args in it
 	lua_newtable(L);
 	for (i=0; i<argc; i++) {
-		trap_Argv(i,arg,sizeof(arg));
+		trap->Argv(i,arg,sizeof(arg));
 		lua_pushstring(L, arg);
 		lua_rawseti(L,-2,i);
 	}
 	if (lua_pcall(L,3,1,0)) {
 		// Error
-		G_Printf("GLua: Error occurred while executing command '%s': %s\n",cmd, lua_tostring(L,-1));
+		trap->Print("GLua: Error occurred while executing command '%s': %s\n",cmd, lua_tostring(L,-1));
 		lua_pop(L,1);
 		STACKGUARD_CHECK(LuaInstance)
 		return 0;

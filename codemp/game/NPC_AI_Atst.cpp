@@ -213,8 +213,8 @@ void ATST_Attack( void )
 		//rwwFIXMEFIXME: make atst weaps work.
 
 		// See if the side weapons are there
-		blasterTest = trap_G2API_GetSurfaceRenderStatus( NPC->ghoul2, 0, "head_light_blaster_cann" );
-		chargerTest = trap_G2API_GetSurfaceRenderStatus( NPC->ghoul2, 0, "head_concussion_charger" );
+		blasterTest = trap->G2API_GetSurfaceRenderStatus( NPC->ghoul2, 0, "head_light_blaster_cann" );
+		chargerTest = trap->G2API_GetSurfaceRenderStatus( NPC->ghoul2, 0, "head_concussion_charger" );
 
 		// It has both side weapons
 		if ( blasterTest != -1

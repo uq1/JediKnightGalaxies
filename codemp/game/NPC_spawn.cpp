@@ -114,7 +114,7 @@ Load_NPC_Names ( void )
 
 	loadPath = va( "npc_names_list.dat" );
 
-	len = trap_FS_FOpenFile( loadPath, &f, FS_READ );
+	len = trap->FS_Open( loadPath, &f, FS_READ );
 
 	HumanNamesLoaded = qtrue;
 
@@ -125,19 +125,19 @@ Load_NPC_Names ( void )
 
 	if ( !len )
 	{			//empty file
-		trap_FS_FCloseFile( f );
+		trap->FS_Close( f );
 		return;
 	}
 
 	if ( (buf = (char *)malloc( len + 1)) == 0 )
 	{			//alloc memory for buffer
-		trap_FS_FCloseFile( f );
+		trap->FS_Close( f );
 		return;
 	}
 
-	trap_FS_Read( buf, len, f );
+	trap->FS_Read( buf, len, f );
 	buf[len] = 0;
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
 	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "NONAME");
 	NUM_HUMAN_NAMES++;
@@ -178,7 +178,7 @@ Load_NPC_Names ( void )
 
 	NUM_HUMAN_NAMES--;
 
-	G_Printf( "^4*** ^3%s^4: ^5There are ^7%i^5 NPC names in the database.\n", GAME_VERSION, NUM_HUMAN_NAMES );
+	trap->Print( "^4*** ^3%s^4: ^5There are ^7%i^5 NPC names in the database.\n", GAME_VERSION, NUM_HUMAN_NAMES );
 }
 
 void SelectNPCNameFromList( gentity_t *NPC )
@@ -369,7 +369,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 			ent->pain = NPC_ATST_Pain;
 		}
 		//turn the damn hatch cover on and LEAVE it on
-		trap_G2API_SetSurfaceOnOff( ent->ghoul2, "head_hatchcover", 0/*TURN_ON*/ );
+		trap->G2API_SetSurfaceOnOff( ent->ghoul2, "head_hatchcover", 0/*TURN_ON*/ );
 	}
 	if ( !Q_stricmp( "wampa", ent->NPC_type ) )
 	{//FIXME: extern this into NPC.cfg?
@@ -947,7 +947,7 @@ qboolean NPC_SpotWouldTelefrag( gentity_t *npc )
 
 	VectorAdd( npc->r.currentOrigin, npc->r.mins, mins );
 	VectorAdd( npc->r.currentOrigin, npc->r.maxs, maxs );
-	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+	num = trap->EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
 
 	for (i=0 ; i<num ; i++)
 	{
@@ -1038,7 +1038,7 @@ void NPC_Begin (gentity_t *ent)
 		}
 
 		//if (StringContainsWord(ent->NPC_type, NPC_NAMES[i]))
-		//G_Printf("NPC %i given name %s.\n", ent->s.number, NPC_NAMES[ent->s.generic1]);
+		//trap->Print("NPC %i given name %s.\n", ent->s.number, NPC_NAMES[ent->s.generic1]);
 	}
 
 	// Init patrol range...
@@ -1207,7 +1207,7 @@ void NPC_Begin (gentity_t *ent)
 	/* JKG - Muzzle Calculation */
 	if ( ent->client->ps.weapon != WP_NONE && ent->client->ps.weapon != WP_STUN_BATON && ent->client->ps.weapon != WP_MELEE && ent->client->ps.weapon != WP_SABER )
 	{
-		trap_G2API_InitGhoul2Model( &ent->client->weaponGhoul2[0], BG_FindItemForWeapon( (weapon_t)ent->client->ps.weapon )->view_model, 0, 0, 0, 0, 0 );
+		trap->G2API_InitGhoul2Model( &ent->client->weaponGhoul2[0], BG_FindItemForWeapon( (weapon_t)ent->client->ps.weapon )->view_model, 0, 0, 0, 0, 0 );
 	}
 	/* JKG - Muzzle Calculation End */
 
@@ -1238,7 +1238,7 @@ void NPC_Begin (gentity_t *ent)
 	if(!(ent->spawnflags & 64))
 	{
 		G_KillBox( ent );
-		trap_LinkEntity (ent);
+		trap->LinkEntity ((sharedEntity_t *)ent);
 	}
 
 	// don't allow full run speed for a bit
@@ -1273,7 +1273,7 @@ void NPC_Begin (gentity_t *ent)
 	}
 
 	//ICARUS include
-	trap_ICARUS_InitEnt( ent );
+	trap->ICARUS_InitEnt( (sharedEntity_t *)ent );
 
 //==NPC initialization
 	SetNPCGlobals( ent );
@@ -1329,7 +1329,7 @@ void NPC_Begin (gentity_t *ent)
 	//Run a script if you have one assigned to you
 	if ( G_ActivateBehavior( ent, BSET_SPAWN ) )
 	{
-		trap_ICARUS_MaintainTaskManager(ent->s.number);
+		trap->ICARUS_MaintainTaskManager(ent->s.number);
 	}
 	// If it's a lua npc, call the OnSpawn event
 	if (ent->NPC->isLuaNPC) {
@@ -1342,7 +1342,7 @@ void NPC_Begin (gentity_t *ent)
 	// initialize animations and other things
 	memset( &ucmd, 0, sizeof( ucmd ) );
 	//_VectorCopy( client->pers.cmd_angles, ucmd.angles );
-	VectorCopy((const vec_t *)client->pers.cmd.angles, (vec_t *)ucmd.angles);
+	VectorCopy((const float *)client->pers.cmd.angles, (float *)ucmd.angles);
 	
 	ent->client->ps.groundEntityNum = ENTITYNUM_NONE;
 
@@ -1354,7 +1354,7 @@ void NPC_Begin (gentity_t *ent)
 
 	ClientThink( ent->s.number, &ucmd );
 
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 
 	if ( ent->client->playerTeam == NPCTEAM_ENEMY )
 	{//valid enemy spawned
@@ -1432,7 +1432,7 @@ void NPC_Begin (gentity_t *ent)
 						VectorCopy( ent->r.currentOrigin, droidEnt->s.origin );
 						VectorCopy( ent->r.currentOrigin, droidEnt->client->ps.origin );
 						G_SetOrigin( droidEnt, droidEnt->s.origin );
-						trap_LinkEntity( droidEnt );
+						trap->LinkEntity( (sharedEntity_t *)droidEnt );
 						VectorCopy( ent->r.currentAngles, droidEnt->s.angles );
 						G_SetAngles( droidEnt, droidEnt->s.angles );
 						if ( droidEnt->NPC )
@@ -1520,7 +1520,7 @@ qboolean NPC_StasisSpawn_Go( gentity_t *ent )
 
 	//Test for an entity blocking the spawn
 	trace_t	tr;
-	trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, ent->r.currentOrigin, ent->s.number, MASK_NPCSOLID );
+	trap->Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, ent->r.currentOrigin, ent->s.number, MASK_NPCSOLID );
 
 	//Can't have anything in the way
 	if ( tr.allsolid || tr.startsolid )
@@ -1575,7 +1575,7 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 		VectorCopy( ent->r.currentOrigin, saveOrg );
 		VectorCopy( ent->r.currentOrigin, bottom );
 		bottom[2] = MIN_WORLD_COORD;
-		trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, bottom, ent->s.number, MASK_NPCSOLID );
+		trap->Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, bottom, ent->s.number, MASK_NPCSOLID, 0, 0, 0 );
 		if ( !tr.allsolid && !tr.startsolid && tr.fraction < 1.0 )
 		{
 			G_SetOrigin( ent, tr.endpos );
@@ -1833,14 +1833,14 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 
 	newent->classname = "NPC";
 	newent->NPC_type = ent->NPC_type;
-	trap_UnlinkEntity(newent);
+	trap->UnlinkEntity((sharedEntity_t *)newent);
 	
 	VectorCopy(ent->s.angles, newent->s.angles);
 	VectorCopy(ent->s.angles, newent->r.currentAngles);
 	VectorCopy(ent->s.angles, newent->client->ps.viewangles);
 	newent->NPC->desiredYaw =ent->s.angles[YAW];
 	
-	trap_LinkEntity(newent);
+	trap->LinkEntity((sharedEntity_t *)newent);
 	newent->spawnflags = ent->spawnflags;
 
 	if(ent->paintarget)
@@ -1892,7 +1892,7 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 		}
 
 		//if (StringContainsWord(ent->NPC_type, NPC_NAMES[i]))
-		//G_Printf("NPC %i given name %s.\n", ent->s.number, NPC_NAMES[ent->s.generic1]);
+		//trap->Print("NPC %i given name %s.\n", ent->s.number, NPC_NAMES[ent->s.generic1]);
 	}
 	
 	//FIXME: Call CopyParms
@@ -1964,7 +1964,7 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 	}
 	newent->client->ps.persistant[PERS_TEAM] = newent->client->sess.sessionTeam;
 
-	trap_LinkEntity (newent);
+	trap->LinkEntity ((sharedEntity_t *)newent);
 
 	// Set up default use range (64)
 	newent->NPC->maxUseRange = 64;
@@ -2422,15 +2422,15 @@ qboolean NPC_VehiclePrecache( gentity_t *spawner )
 		int skin = 0;
 		if (pVehInfo->skin && pVehInfo->skin[0])
 		{
-			skin = trap_R_RegisterSkin(va("models/players/%s/model_%s.skin", pVehInfo->model, pVehInfo->skin));
+			skin = trap->R_RegisterSkin(va("models/players/%s/model_%s.skin", pVehInfo->model, pVehInfo->skin));
 		}
-		trap_G2API_InitGhoul2Model(&tempG2, va("models/players/%s/model.glm", pVehInfo->model), 0, skin, 0, 0, 0);
+		trap->G2API_InitGhoul2Model(&tempG2, va("models/players/%s/model.glm", pVehInfo->model), 0, skin, 0, 0, 0);
 		if (tempG2)
 		{ //now, cache the anim config.
 			char GLAName[1024];
 
 			GLAName[0] = 0;
-			trap_G2API_GetGLAName(tempG2, 0, GLAName);
+			trap->G2API_GetGLAName(tempG2, 0, GLAName);
 
 			if (GLAName[0])
 			{
@@ -2442,7 +2442,7 @@ qboolean NPC_VehiclePrecache( gentity_t *spawner )
 					BG_ParseAnimationFile(GLAName, NULL, qfalse);
 				}
 			}
-			trap_G2API_CleanGhoul2Models(&tempG2);
+			trap->G2API_CleanGhoul2Models(&tempG2);
 		}
 	}
 
@@ -4208,10 +4208,10 @@ gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboo
 	AngleVectors(ent->client->ps.viewangles, forward, NULL, NULL);
 	VectorNormalize(forward);
 	VectorMA(ent->r.currentOrigin, 64, forward, end);
-	trap_Trace(&trace, ent->r.currentOrigin, NULL, NULL, end, 0, MASK_SOLID);
+	trap->Trace(&trace, ent->r.currentOrigin, NULL, NULL, end, 0, MASK_SOLID, 0, 0, 0);
 	VectorCopy(trace.endpos, end);
 	end[2] -= 24;
-	trap_Trace(&trace, trace.endpos, NULL, NULL, end, 0, MASK_SOLID);
+	trap->Trace(&trace, trace.endpos, NULL, NULL, end, 0, MASK_SOLID, 0, 0, 0);
 	VectorCopy(trace.endpos, end);
 	end[2] += 24;
 	G_SetOrigin(NPCspawner, end);
@@ -4219,7 +4219,7 @@ gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboo
 	//set the yaw so that they face away from player
 	NPCspawner->s.angles[1] = ent->client->ps.viewangles[1];
 
-	trap_LinkEntity(NPCspawner);
+	trap->LinkEntity((sharedEntity_t *)NPCspawner);
 
 	NPCspawner->NPC_type = G_NewString( npc_type );
 
@@ -4325,16 +4325,16 @@ void NPC_Spawn_f( gentity_t *ent )
 	char	targetname[1024];
 	qboolean	isVehicle = qfalse;
 
-	trap_Argv(2, npc_type, 1024);
+	trap->Argv(2, npc_type, 1024);
 	if ( Q_stricmp( "vehicle", npc_type ) == 0 )
 	{
 		isVehicle = qtrue;
-		trap_Argv(3, npc_type, 1024);
-		trap_Argv(4, targetname, 1024);
+		trap->Argv(3, npc_type, 1024);
+		trap->Argv(4, targetname, 1024);
 	}
 	else
 	{
-		trap_Argv(3, targetname, 1024);
+		trap->Argv(3, targetname, 1024);
 	}
 
 	NPC_SpawnType( ent, npc_type, targetname, isVehicle );
@@ -4352,7 +4352,7 @@ void NPC_Kill_f( void )
 	npcteam_t	killTeam = NPCTEAM_FREE;
 	qboolean	killNonSF = qfalse;
 
-	trap_Argv(2, name, 1024);
+	trap->Argv(2, name, 1024);
 
 	if ( !name[0] )
 	{
@@ -4367,7 +4367,7 @@ void NPC_Kill_f( void )
 
 	if ( Q_stricmp( "team", name ) == 0 )
 	{
-		trap_Argv(3, name, 1024);
+		trap->Argv(3, name, 1024);
 
 		if ( !name[0] )
 		{
@@ -4486,7 +4486,7 @@ void Cmd_NPC_f( gentity_t *ent )
 {
 	char	cmd[1024];
 
-	trap_Argv( 1, cmd, 1024 );
+	trap->Argv( 1, cmd, 1024 );
 
 	if ( !cmd[0] ) 
 	{
@@ -4513,7 +4513,7 @@ void Cmd_NPC_f( gentity_t *ent )
 		char		cmd2[1024];
 		gentity_t *ent = NULL;
 
-		trap_Argv(2, cmd2, 1024);
+		trap->Argv(2, cmd2, 1024);
 
 		if ( !cmd2[0] )
 		{//Show the score for all NPCs

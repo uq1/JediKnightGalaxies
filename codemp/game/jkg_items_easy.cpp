@@ -162,6 +162,6 @@ void JKG_Easy_RemoveItemFromInventory(int number, itemInstance_t **inventory, ge
 	JKG_Easy_DIMA_Remove((inv_t *)inventory, number);
 	if(!NPC)
 	{
-		trap_SendServerCommand(owner->client->ps.clientNum, va("pInv rem %i", number));
+		trap->SendServerCommand(owner->client->ps.clientNum, va("pInv rem %i", number));
 	}
 }

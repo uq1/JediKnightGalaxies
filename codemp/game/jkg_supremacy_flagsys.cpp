@@ -40,7 +40,7 @@ void Spawn_Flag_Base ( vec3_t origin )
 	ent->s.eType = ET_GENERAL;
 	ent->setTime = 0;
 	
-//	trap_R_ModelBounds(trap_R_RegisterModel( "models/map_objects/mp/flag_base.md3" ), ent->r.mins, ent->r.maxs);
+//	trap->R_ModelBounds(trap->R_RegisterModel( "models/map_objects/mp/flag_base.md3" ), ent->r.mins, ent->r.maxs);
 
 	VectorSet( ent->r.mins, -16, -16, 0 );
 	VectorSet( ent->r.maxs, 16, 16, 16 );
@@ -54,7 +54,7 @@ void Spawn_Flag_Base ( vec3_t origin )
 		VectorCopy( ent->s.origin, saveOrg );
 		VectorCopy( ent->s.origin, bottom );
 		bottom[2] = MIN_WORLD_COORD;
-		trap_Trace( &tr, ent->s.origin, ent->r.mins, ent->r.maxs, bottom, ent->s.number, MASK_NPCSOLID );
+		trap->Trace( &tr, ent->s.origin, ent->r.mins, ent->r.maxs, bottom, ent->s.number, MASK_NPCSOLID, 0, 0, 0 );
 		if ( !tr.allsolid && !tr.startsolid && tr.fraction < 1.0 )
 		{
 			VectorCopy(tr.endpos, ent->s.origin);
@@ -64,7 +64,7 @@ void Spawn_Flag_Base ( vec3_t origin )
 
 	ent->r.contents = CONTENTS_SOLID|CONTENTS_OPAQUE|CONTENTS_BODY|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP;//CONTENTS_SOLID;
 
-	trap_LinkEntity (ent);
+	trap->LinkEntity ((sharedEntity_t *)ent);
 }
 
 //===========================================================================
@@ -115,7 +115,7 @@ qboolean EntityVisible(gentity_t *from, gentity_t *ent)
 	VectorCopy(ent->r.currentOrigin, ent_org);
 	ent_org[2]+=24;
 
-	trap_Trace( &tr, from_org, NULL, NULL, ent_org, from->s.number, MASK_SHOT );
+	trap->Trace( &tr, from_org, NULL, NULL, ent_org, from->s.number, MASK_SHOT );
 
 	if (tr.entityNum < 0 || tr.entityNum > ENTITYNUM_MAX_NORMAL)
 		return qfalse;
@@ -152,7 +152,7 @@ void Warzone_Flag_Think( gentity_t *ent )
 				gentity_t *flagent = flag_list[z].flagentity;
 				
 				PreCalculate_Flag_Spawnpoints( flagent->count, flagent->s.angles, flagent->s.origin );
-				//G_Printf("Flagnum is %i. flagent->s.otherEntityNum is %i\n", flagent->count, flagent->s.otherEntityNum);
+				//trap->Print("Flagnum is %i. flagent->s.otherEntityNum is %i\n", flagent->count, flagent->s.otherEntityNum);
 				flagent->alt_fire = qtrue;
 			}
 			flag_spawnpoints_done = qtrue;
@@ -163,7 +163,7 @@ void Warzone_Flag_Think( gentity_t *ent )
 		//if (level.numConnectedClients > 0)
 		{
 			PreCalculate_Flag_Spawnpoints( ent->count, ent->s.angles, ent->s.origin );
-			//G_Printf("Flagnum is %i. ent->s.otherEntityNum is %i\n", ent->count, ent->s.otherEntityNum);
+			//trap->Print("Flagnum is %i. ent->s.otherEntityNum is %i\n", ent->count, ent->s.otherEntityNum);
 			ent->alt_fire = qtrue;
 			flag_spawnpoints_done = qtrue;
 		}
@@ -185,7 +185,7 @@ void Warzone_Flag_Think( gentity_t *ent )
 	VectorAdd( maxs, ent->s.origin, maxs );
 
 	// Run the think... Look for captures...
-	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+	num = trap->EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
 
 	for ( i=0 ; i<num ; i++ ) 
 	{
@@ -216,7 +216,7 @@ void Warzone_Flag_Think( gentity_t *ent )
 		{// Red flag...
 			if ((hit->s.eType == ET_PLAYER || hit->s.eType == ET_NPC) && hit->s.teamowner == TEAM_RED)
 			{// Red player consolidating a red flag for spawns... 
-				//G_Printf("Consolidating flag!\n");
+				//trap->Print("Consolidating flag!\n");
 
 				ent->s.time2++;
 				hit->client->ps.stats[STAT_CAPTURE_ENTITYNUM] = ent->s.number;
@@ -230,7 +230,7 @@ void Warzone_Flag_Think( gentity_t *ent )
 			}
 			else if ((hit->s.eType == ET_PLAYER || hit->s.eType == ET_NPC) && hit->s.teamowner == TEAM_BLUE)
 			{// Blue player undoing red flag...
-				//G_Printf("Uncapturing flag!\n");
+				//trap->Print("Uncapturing flag!\n");
 
 				ent->s.time2--;
 				hit->client->ps.stats[STAT_CAPTURE_ENTITYNUM] = ent->s.number;
@@ -247,7 +247,7 @@ void Warzone_Flag_Think( gentity_t *ent )
 		{// Blue flag...
 			if ((hit->s.eType == ET_PLAYER || hit->s.eType == ET_NPC) && hit->s.teamowner == TEAM_BLUE)
 			{// Blue player consolidating a blue flag for spawns... 
-				//G_Printf("Consolidating flag!\n");
+				//trap->Print("Consolidating flag!\n");
 
 				ent->s.time2++;
 				hit->client->ps.stats[STAT_CAPTURE_ENTITYNUM] = ent->s.number;
@@ -261,7 +261,7 @@ void Warzone_Flag_Think( gentity_t *ent )
 			}
 			else if ((hit->s.eType == ET_PLAYER || hit->s.eType == ET_NPC) && hit->s.teamowner == TEAM_RED)
 			{// Red player undoing blue flag...
-				//G_Printf("Uncapturing flag!\n");
+				//trap->Print("Uncapturing flag!\n");
 
 				ent->s.time2--;
 				hit->client->ps.stats[STAT_CAPTURE_ENTITYNUM] = ent->s.number;
@@ -290,7 +290,7 @@ void Warzone_Flag_Think( gentity_t *ent )
 				// Set the current capturing team number of a neutral flag..
 				ent->s.genericenemyindex = hit->s.teamowner;
 
-				//G_Printf("Capturing flag!\n");
+				//trap->Print("Capturing flag!\n");
 
 				if ((hit->s.eType == ET_PLAYER || hit->s.eType == ET_NPC) 
 					&& hit->s.teamowner == TEAM_BLUE && ent->s.time2 >= 50)
@@ -312,7 +312,7 @@ void Warzone_Flag_Think( gentity_t *ent )
 				ent->s.time2--;
 				hit->client->ps.stats[STAT_CAPTURE_ENTITYNUM] = ent->s.number;
 
-				//G_Printf("Undoing owned flag!\n");
+				//trap->Print("Undoing owned flag!\n");
 
 				if (ent->s.time2 <= 0)
 				{// Initialize back to untouched flag...
@@ -334,7 +334,7 @@ void AddFlag_Spawn ( int flagnum, vec3_t origin, vec3_t angles )
 {// Add a new spawn to the list for this flag...
 	if (flag_list[flagnum].num_spawnpoints < 32)
 	{// Create a new spawn point.
-		//G_Printf("A new spawn point has been extrapolated. ^1(^5#^7%i^1)^5\n", SP_Spawns);
+		//trap->Print("A new spawn point has been extrapolated. ^1(^5#^7%i^1)^5\n", SP_Spawns);
 		VectorCopy( origin, flag_list[flagnum].spawnpoints[flag_list[flagnum].num_spawnpoints] ); // Copy this npc's location to the end of the list.
 		VectorCopy( angles, flag_list[flagnum].spawnangles[flag_list[flagnum].num_spawnpoints] ); // Copy this npc's location to the end of the list.
 		flag_list[flagnum].num_spawnpoints++;
@@ -343,7 +343,7 @@ void AddFlag_Spawn ( int flagnum, vec3_t origin, vec3_t angles )
 	{
 		if (!spots_filled[flagnum])
 		{// Finished making spawns for this flag...
-			//G_Printf("Calculated 32 spawns for flag #%i.\n", flagnum);
+			//trap->Print("Calculated 32 spawns for flag #%i.\n", flagnum);
 			spots_filled[flagnum] = qtrue;
 		}
 	}
@@ -355,7 +355,7 @@ qboolean TooCloseToOtherSpawnpoint ( int flagnum, vec3_t origin )
 
 	for (i = 0;i < flag_list[flagnum].num_spawnpoints;i++)
 	{
-		if (VectorDistance(flag_list[flagnum].spawnpoints[i], origin) < 64)
+		if (Distance(flag_list[flagnum].spawnpoints[i], origin) < 64)
 			return qtrue;
 	}
 
@@ -485,14 +485,14 @@ void PreCalculate_Flag_Spawnpoints( int flagnum, vec3_t angles, vec3_t origin )
 					&& VectorDistance(point, origin) > 128
 					&& !TooCloseToOtherSpawnpoint(flagnum, point))
 				{
-					//G_Printf("Adding spawn at %f %f %f.\n", point[0], point[1], point[2]);
+					//trap->Print("Adding spawn at %f %f %f.\n", point[0], point[1], point[2]);
 					AddFlag_Spawn(flagnum, point, angles);
 					//visible = qtrue;
 
 					if (flag_list[flagnum].num_spawnpoints >= 64)
 					{
-						//G_Printf("Have 64 spawns!\n");
-						G_Printf("^3*** ^3Warzone^5: Added ^7%i^5 spawnpoints at flag #^7%i^5.\n", flag_list[flagnum].num_spawnpoints, flagnum);
+						//trap->Print("Have 64 spawns!\n");
+						trap->Print("^3*** ^3Warzone^5: Added ^7%i^5 spawnpoints at flag #^7%i^5.\n", flag_list[flagnum].num_spawnpoints, flagnum);
 						return;
 					}
 				}
@@ -505,7 +505,7 @@ void PreCalculate_Flag_Spawnpoints( int flagnum, vec3_t angles, vec3_t origin )
 			alt = qtrue;
 	}
 
-	G_Printf("^3*** ^3Warzone^5: Added ^7%i^5 spawnpoints at flag #^7%i^5.\n", flag_list[flagnum].num_spawnpoints, flagnum);
+	trap->Print("^3*** ^3Warzone^5: Added ^7%i^5 spawnpoints at flag #^7%i^5.\n", flag_list[flagnum].num_spawnpoints, flagnum);
 #endif //__UNUSED__
 }
 
@@ -577,7 +577,7 @@ void SP_Spawn_Warzone_Flag ( gentity_t* ent )
 		VectorCopy( ent->s.origin, saveOrg );
 		VectorCopy( ent->s.origin, bottom );
 		bottom[2] = MIN_WORLD_COORD;
-		trap_Trace( &tr, ent->s.origin, ent->r.mins, ent->r.maxs, bottom, ent->s.number, MASK_NPCSOLID );
+		trap->Trace( &tr, ent->s.origin, ent->r.mins, ent->r.maxs, bottom, ent->s.number, MASK_NPCSOLID, 0, 0, 0 );
 		if ( !tr.allsolid && !tr.startsolid && tr.fraction < 1.0 )
 		{
 			VectorCopy(tr.endpos, ent->s.origin);
@@ -590,17 +590,17 @@ void SP_Spawn_Warzone_Flag ( gentity_t* ent )
 	if (teamowner == TEAM_RED)
 	{
 		ent->s.time2 = 100;
-		G_Printf("^4*** ^5Flag at ^7%f %f %f^5 is ^1TEAM_RED^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
+		trap->Print("^4*** ^5Flag at ^7%f %f %f^5 is ^1TEAM_RED^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
 	}
 	else if (teamowner == TEAM_BLUE)
 	{
 		ent->s.time2 = 100;
-		G_Printf("^4*** ^5Flag at ^7%f %f %f^5 is ^4TEAM_BLUE^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
+		trap->Print("^4*** ^5Flag at ^7%f %f %f^5 is ^4TEAM_BLUE^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
 	}
 	else
 	{
 		ent->s.time2 = 0;
-		G_Printf("^4*** ^5Flag at ^7%f %f %f^5 is ^6TEAM_NEUTRAL^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
+		trap->Print("^4*** ^5Flag at ^7%f %f %f^5 is ^6TEAM_NEUTRAL^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
 	}
 
 	ent->targetname = NULL;
@@ -610,7 +610,7 @@ void SP_Spawn_Warzone_Flag ( gentity_t* ent )
 
 	VectorSet( ent->r.mins, -8, -8, 0 );
 	VectorSet( ent->r.maxs, 8, 8, 96 );
-//	trap_R_ModelBounds(trap_R_RegisterModel( "models/flags/r_flag.md3" ), ent->r.mins, ent->r.maxs);
+//	trap->R_ModelBounds(trap->R_RegisterModel( "models/flags/r_flag.md3" ), ent->r.mins, ent->r.maxs);
 
 	ent->r.contents = CONTENTS_SOLID|CONTENTS_OPAQUE|CONTENTS_BODY|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP;//CONTENTS_SOLID;
 
@@ -618,7 +618,7 @@ void SP_Spawn_Warzone_Flag ( gentity_t* ent )
 
 	ent->s.eFlags |= EF_RADAROBJECT;
 
-	trap_LinkEntity (ent);
+	trap->LinkEntity ((sharedEntity_t *)ent);
 
 	flag_list[flagnum].flagentity = ent;
 	flag_list[flagnum].num_spawnpoints = 0;
@@ -717,7 +717,7 @@ void Spawn_Scenario_Flag_Auto ( vec3_t origin, int teamowner )
 		VectorCopy( ent->s.origin, saveOrg );
 		VectorCopy( ent->s.origin, bottom );
 		bottom[2] = MIN_WORLD_COORD;
-		trap_Trace( &tr, ent->s.origin, ent->r.mins, ent->r.maxs, bottom, ent->s.number, MASK_NPCSOLID );
+		trap->Trace( &tr, ent->s.origin, ent->r.mins, ent->r.maxs, bottom, ent->s.number, MASK_NPCSOLID, 0, 0, 0 );
 		if ( !tr.allsolid && !tr.startsolid && tr.fraction < 1.0 )
 		{
 			VectorCopy(tr.endpos, ent->s.origin);
@@ -730,17 +730,17 @@ void Spawn_Scenario_Flag_Auto ( vec3_t origin, int teamowner )
 	if (teamowner == TEAM_RED)
 	{
 		ent->s.time2 = 100;
-		G_Printf("^4*** ^5Flag at ^7%f %f %f^5 is ^1TEAM_RED^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
+		trap->Print("^4*** ^5Flag at ^7%f %f %f^5 is ^1TEAM_RED^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
 	}
 	else if (teamowner == TEAM_BLUE)
 	{
 		ent->s.time2 = 100;
-		G_Printf("^4*** ^5Flag at ^7%f %f %f^5 is ^4TEAM_BLUE^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
+		trap->Print("^4*** ^5Flag at ^7%f %f %f^5 is ^4TEAM_BLUE^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
 	}
 	else
 	{
 		ent->s.time2 = 0;
-		G_Printf("^4*** ^5Flag at ^7%f %f %f^5 is ^6TEAM_NEUTRAL^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
+		trap->Print("^4*** ^5Flag at ^7%f %f %f^5 is ^6TEAM_NEUTRAL^5! Radius is ^3%i^5.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], radius);
 	}
 
 	ent->targetname = NULL;
@@ -748,7 +748,7 @@ void Spawn_Scenario_Flag_Auto ( vec3_t origin, int teamowner )
 	ent->s.eType = ET_FLAG;
 	ent->think = Warzone_Flag_Think;
 
-//	trap_R_ModelBounds(trap_R_RegisterModel( "models/flags/r_flag.md3" ), ent->r.mins, ent->r.maxs);
+//	trap->R_ModelBounds(trap->R_RegisterModel( "models/flags/r_flag.md3" ), ent->r.mins, ent->r.maxs);
 
 	ent->r.contents = CONTENTS_SOLID|CONTENTS_OPAQUE|CONTENTS_BODY|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP;//CONTENTS_SOLID;
 
@@ -756,7 +756,7 @@ void Spawn_Scenario_Flag_Auto ( vec3_t origin, int teamowner )
 
 	//ent->s.eFlags |= EF_RADAROBJECT;
 
-	trap_LinkEntity (ent);
+	trap->LinkEntity ((sharedEntity_t *)ent);
 
 	flag_list[flagnum].flagentity = ent;
 	flag_list[flagnum].num_spawnpoints = 0;
@@ -814,7 +814,7 @@ int WARZONE_GetNumberOfBlueFlags()
 			count++;
 	}
 
-	//G_Printf("%i flags - %i blue.\n", number_of_flags, count);
+	//trap->Print("%i flags - %i blue.\n", number_of_flags, count);
 	return count;
 }
 
@@ -831,7 +831,7 @@ int WARZONE_GetNumberOfRedFlags()
 			count++;
 	}
 
-	//G_Printf("%i flags - %i red.\n", number_of_flags, count);
+	//trap->Print("%i flags - %i red.\n", number_of_flags, count);
 	return count;
 }
 

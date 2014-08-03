@@ -32,7 +32,7 @@ static void JKG_CBB_NetworkUpdate(int newslot, vec3_t mins, vec3_t maxs) {
 		if (ent->client->pers.connected != CON_CONNECTED)
 			continue;
 		// Valid client
-		trap_SendServerCommand(i, msg);
+		trap->SendServerCommand(i, msg);
 	}
 }
 
@@ -53,7 +53,7 @@ void JKG_CBB_SendAll(int client) {
 		Com_sprintf(sb, 1024, "%i %.1f %.1f %.1f %.1f %.1f %.1f ", i, CBBs[i].mins[0],CBBs[i].mins[1],CBBs[i].mins[2],CBBs[i].maxs[0],CBBs[i].maxs[1],CBBs[i].maxs[2]);
 		if (msgsz + strlen(sb) > 900) {
 			// Gettin too long, send it now and make a new message
-			trap_SendServerCommand(client, msg);
+			trap->SendServerCommand(client, msg);
 			Q_strncpyz(msg, "cbb ", 1024);
 			msgsz = 4;
 		}
@@ -62,7 +62,7 @@ void JKG_CBB_SendAll(int client) {
 	}
 	if (msgsz != 4) {
 		// send it
-		trap_SendServerCommand(client, msg);
+		trap->SendServerCommand(client, msg);
 	}
 }
 

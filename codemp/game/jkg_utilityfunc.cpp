@@ -28,7 +28,7 @@ typedef struct
 	vec3_t  mins;
 	vec3_t  maxs;
 	vec3_t  pos;
-	vec_t   scale;
+	float   scale;
 	char    creator[16];
 } md3boneFrame_t;
 void JKG_RotateBBox(vec3_t mins,vec3_t maxs, vec3_t angles){
@@ -71,10 +71,10 @@ void JKG_GetAutoBoxForModel(const char *model, vec3_t angles, float scale, vec3_
 	md3header_t header;
 	md3boneFrame_t boneframe;
 	vec3_t imins, imaxs;
-	trap_FS_FOpenFile(model, &f, FS_READ);
-	trap_FS_Read((void *)&header, sizeof(md3header_t), f);
-	trap_FS_Read((void *)&boneframe, sizeof(md3boneFrame_t), f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Open(model, &f, FS_READ);
+	trap->FS_Read((void *)&header, sizeof(md3header_t), f);
+	trap->FS_Read((void *)&boneframe, sizeof(md3boneFrame_t), f);
+	trap->FS_Close(f);
 	imins[0] = boneframe.mins[0] * scale;
 	imins[1] = boneframe.mins[1] * scale;
 	imins[2] = boneframe.mins[2] * scale;
@@ -110,7 +110,7 @@ static const char *JKG_Asset_GetAssertlogName() {
 
 static void JKG_WriteToAssertLogEasy( char *message, fileHandle_t *f )
 {
-	trap_FS_Write(message, strlen(message), *f);
+	trap->FS_Write(message, strlen(message), *f);
 }
 
 static void InitSymbolPath( char * SymbolPath, const char* ModPath )
@@ -248,7 +248,7 @@ void JKG_AssertFunction(char *file, int linenum, const char *expression)
 	CaptureStackBackTrace(0, MAX_JKG_ASSERT_STACK_CRAWL, (PVOID *)stack, NULL);
 
 	// K, next we create an assert log
-	trap_FS_FOpenFile(JKG_Asset_GetAssertlogName(), &f, FS_WRITE);
+	trap->FS_FOpenFile(JKG_Asset_GetAssertlogName(), &f, FS_WRITE);
 	JKG_WriteToAssertLogEasy(	"========================================\r\n"
 								" Jedi Knight Galaxies Assertion Failure \r\n"
 								"========================================\r\n\r\n", &f);
@@ -276,7 +276,7 @@ void JKG_AssertFunction(char *file, int linenum, const char *expression)
 
 	JKG_Assert_ListModules(&f);
 
-	trap_FS_FCloseFile(f);
+	trap->FS_FCloseFile(f);
 	SymCleanup(GetCurrentProcess());
 }
 #endif

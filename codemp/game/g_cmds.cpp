@@ -2510,7 +2510,7 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 
 	// echo the text to the console
 	if ( dedicated.integer ) {
-		G_Printf( "%s%s\n", name, text);
+		trap->Print( "%s%s\n", name, text);
 	}
 
 	// send it to all the apropriate clients
@@ -4898,9 +4898,9 @@ void ClientCommand( int clientNum ) {
 
 		int i = 0;
 
-		G_Printf("----------------------------------------------\n");
-		G_Printf("Entities Within Range.\n");
-		G_Printf("----------------------------------------------\n");
+		trap->Print("----------------------------------------------\n");
+		trap->Print("Entities Within Range.\n");
+		trap->Print("----------------------------------------------\n");
 		
 		for (i = MAX_CLIENTS; i < MAX_GENTITIES; i++)
 		{
@@ -4914,54 +4914,54 @@ void ClientCommand( int clientNum ) {
 
 			if (dist > 256) continue;
 
-			G_Printf("Entity %i", i);
+			trap->Print("Entity %i", i);
 
 			switch ( item->s.eType ) {
 			case ET_GENERAL:
-				G_Printf("[ET_GENERAL         ]");
+				trap->Print("[ET_GENERAL         ]");
 				break;
 			case ET_PLAYER:
-				G_Printf("[ET_PLAYER          ]");
+				trap->Print("[ET_PLAYER          ]");
 				break;
 			case ET_ITEM:
-				G_Printf("[ET_ITEM            ]");
+				trap->Print("[ET_ITEM            ]");
 				break;
 			case ET_MISSILE:
-				G_Printf("[ET_MISSILE         ]");
+				trap->Print("[ET_MISSILE         ]");
 				break;
 			case ET_MOVER:
-				G_Printf("[ET_MOVER           ]");
+				trap->Print("[ET_MOVER           ]");
 				break;
 			case ET_BEAM:
-				G_Printf("[ET_BEAM            ]");
+				trap->Print("[ET_BEAM            ]");
 				break;
 			case ET_PORTAL:
-				G_Printf("[ET_PORTAL          ]");
+				trap->Print("[ET_PORTAL          ]");
 				break;
 			case ET_SPEAKER:
-				G_Printf("[ET_SPEAKER         ]");
+				trap->Print("[ET_SPEAKER         ]");
 				break;
 			case ET_PUSH_TRIGGER:
-				G_Printf("[ET_PUSH_TRIGGER    ]");
+				trap->Print("[ET_PUSH_TRIGGER    ]");
 				break;
 			case ET_TELEPORT_TRIGGER:
-				G_Printf("[ET_TELEPORT_TRIGGER]");
+				trap->Print("[ET_TELEPORT_TRIGGER]");
 				break;
 			case ET_INVISIBLE:
-				G_Printf("[ET_INVISIBLE       ]");
+				trap->Print("[ET_INVISIBLE       ]");
 				break;
 			case ET_NPC:
-				G_Printf("[ET_NPC             ]");
+				trap->Print("[ET_NPC             ]");
 				break;
 			default:
-				G_Printf("[%3i                ]", item->s.eType);
+				trap->Print("[%3i                ]", item->s.eType);
 				break;
 			}
 
-			G_Printf(" [%s] at a distance of %f.\n", item->classname, dist);
+			trap->Print(" [%s] at a distance of %f.\n", item->classname, dist);
 		}
 
-		G_Printf("----------------------------------------------\n");
+		trap->Print("----------------------------------------------\n");
 	}
 #endif //__AUTOWAYPOINT__ // __DOMINANCE_NPC__
 	/*
@@ -5734,7 +5734,7 @@ void ClientCommand( int clientNum ) {
 
 		if (!str || !str[0])
 		{
-			G_Printf("Format: /warzone_changeflagteam <flag #> <team name>\n");
+			trap->Print("Format: /warzone_changeflagteam <flag #> <team name>\n");
 			WARZONE_ShowInfo();
 			return;
 		}

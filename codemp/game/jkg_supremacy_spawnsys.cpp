@@ -34,7 +34,7 @@ qboolean CheckAboveOK_Player(vec3_t origin) // For player/npc/bot spawns!
 
 	up[2] += 4096;
 
-	trap_Trace(&tr, origin, mins, maxs, up, ENTITYNUM_NONE, MASK_SOLID); // Look for ground.
+	trap->Trace(&tr, origin, mins, maxs, up, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0); // Look for ground.
 
 	VectorSubtract(origin, tr.endpos, up);
 
@@ -61,7 +61,7 @@ qboolean CheckBelowOK(vec3_t origin)
 
 	down[2] -= 128;
 
-	trap_Trace(&tr, origin, mins, maxs, down, ENTITYNUM_NONE, MASK_PLAYERSOLID); // Look for ground.
+	trap->Trace(&tr, origin, mins, maxs, down, ENTITYNUM_NONE, MASK_PLAYERSOLID, 0, 0, 0); // Look for ground.
 
 	VectorSubtract(origin, tr.endpos, down);
 
@@ -86,7 +86,7 @@ qboolean AdvancedWouldTelefrag(vec3_t point)
 	VectorAdd( point, playerMins, mins );
 	VectorAdd( point, playerMaxs, maxs );
 
-	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+	num = trap->EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
 
 	for (i=0 ; i<num ; i++) 
 	{
@@ -129,7 +129,7 @@ qboolean CheckEntitiesInSpot(vec3_t point)
 		//if (ent->s.solid != SOLID_BMODEL && !(ent->r.contents&CONTENTS_MONSTERCLIP) && !(ent->r.contents&CONTENTS_BOTCLIP) && !(ent->r.contents&CONTENTS_SOLID))
 		//	continue;
 
-		if (VectorDistance(point, ent->r.currentOrigin) < 128 || VectorDistance(point, ent->s.origin) < 128)
+		if (Distance(point, ent->r.currentOrigin) < 128 || Distance(point, ent->s.origin) < 128)
 		{// Bad point.
 			return qtrue;
 		}
@@ -137,14 +137,14 @@ qboolean CheckEntitiesInSpot(vec3_t point)
 		if (entitynum < MAX_CLIENTS 
 			&& ent->client 
 			&& ent->client->ps.origin
-			&& VectorDistance(point, ent->client->ps.origin) < 128)
+			&& Distance(point, ent->client->ps.origin) < 128)
 		{// Bad point.
 			return qtrue;
 		}
 
 #ifdef __NPC__
 		if (ent->NPC_client 
-			&& VectorDistance(point, ent->NPC_client->ps.origin) < 128)
+			&& Distance(point, ent->NPC_client->ps.origin) < 128)
 		{// Bad point.
 			return qtrue;
 		}
@@ -361,7 +361,7 @@ qboolean WarzoneSpawnpointAvailable ( gentity_t *ent )
 							if (!AdvancedWouldTelefrag(flag_list[flagnum].associated_red_spawnpoints[spawnpoint_num])
 								&& !CheckEntitiesInSpot(flag_list[flagnum].associated_red_spawnpoints[spawnpoint_num]))
 							{
-								//G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 associated point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
+								//trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 associated point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
 								notgood = qfalse;
 								VectorCopy(flag_list[flagnum].associated_red_spawnpoints[spawnpoint_num], newspawn);
 							}
@@ -376,7 +376,7 @@ qboolean WarzoneSpawnpointAvailable ( gentity_t *ent )
 							if (!AdvancedWouldTelefrag(flag_list[flagnum].associated_blue_spawnpoints[spawnpoint_num])
 								&& !CheckEntitiesInSpot(flag_list[flagnum].associated_blue_spawnpoints[spawnpoint_num]))
 							{
-								//G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 associated point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
+								//trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 associated point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
 								notgood = qfalse;
 								VectorCopy(flag_list[flagnum].associated_blue_spawnpoints[spawnpoint_num], newspawn);
 							}
@@ -395,7 +395,7 @@ qboolean WarzoneSpawnpointAvailable ( gentity_t *ent )
 						if (!AdvancedWouldTelefrag(flag_list[flagnum].spawnpoints[spawnpoint_num])
 							&& !CheckEntitiesInSpot(flag_list[flagnum].spawnpoints[spawnpoint_num]))
 						{
-							//G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
+							//trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
 							notgood = qfalse;
 							VectorCopy(flag_list[flagnum].spawnpoints[spawnpoint_num], newspawn);
 						}
@@ -415,7 +415,7 @@ qboolean WarzoneSpawnpointAvailable ( gentity_t *ent )
 							if (!AdvancedWouldTelefrag(flag_list[flagnum].unassociated_red_spawnpoints[spawnpoint_num])
 								&& !CheckEntitiesInSpot(flag_list[flagnum].unassociated_red_spawnpoints[spawnpoint_num]))
 							{
-								//G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 unassociated point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
+								//trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 unassociated point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
 								notgood = qfalse;
 								VectorCopy(flag_list[flagnum].unassociated_red_spawnpoints[spawnpoint_num], newspawn);
 							}
@@ -430,7 +430,7 @@ qboolean WarzoneSpawnpointAvailable ( gentity_t *ent )
 							if (!AdvancedWouldTelefrag(flag_list[flagnum].unassociated_blue_spawnpoints[spawnpoint_num])
 								&& !CheckEntitiesInSpot(flag_list[flagnum].unassociated_blue_spawnpoints[spawnpoint_num]))
 							{
-								//G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 unassociated point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
+								//trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 unassociated point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
 								notgood = qfalse;
 								VectorCopy(flag_list[flagnum].unassociated_blue_spawnpoints[spawnpoint_num], newspawn);
 							}
@@ -449,7 +449,7 @@ qboolean WarzoneSpawnpointAvailable ( gentity_t *ent )
 						if (!AdvancedWouldTelefrag(flag_list[last_flag_num].spawnpoints[spawnpoint_num])
 							&& !CheckEntitiesInSpot(flag_list[last_flag_num].spawnpoints[spawnpoint_num]))
 						{
-							//G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, last_flag_num, spawnpoint_num);
+							//trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, last_flag_num, spawnpoint_num);
 							notgood = qfalse;
 							VectorCopy(flag_list[last_flag_num].spawnpoints[spawnpoint_num], newspawn);
 						}
@@ -472,7 +472,7 @@ qboolean WarzoneSpawnpointAvailable ( gentity_t *ent )
 								if (!AdvancedWouldTelefrag(flag_list[tempflag].spawnpoints[spawnpoint_num])
 									&& !CheckEntitiesInSpot(flag_list[tempflag].spawnpoints[spawnpoint_num]))
 								{
-									//G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, tempflag, spawnpoint_num);
+									//trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, tempflag, spawnpoint_num);
 									notgood = qfalse;
 									VectorCopy(flag_list[tempflag].spawnpoints[spawnpoint_num], newspawn);
 									break;
@@ -653,7 +653,7 @@ gentity_t *SelectWarzoneSpectatorSpawnpoint ( gentity_t *ent )
 				tent->s.time2 = 1;
 				//	tent->s.density = 0;
 
-				G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5.\n", ent->client->pers.netname, NPC_SPAWNFLAG);
+				trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5.\n", ent->client->pers.netname, NPC_SPAWNFLAG);
 
 				return tent;
 			}
@@ -767,7 +767,7 @@ gentity_t *SelectWarzoneSpectatorSpawnpoint ( gentity_t *ent )
 					tent->s.time2 = 1;
 					//	tent->s.density = 0;
 
-					G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 (SPECTATOR) at flag ^7%i^5.\n", ent->client->pers.netname, flagnum);
+					trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 (SPECTATOR) at flag ^7%i^5.\n", ent->client->pers.netname, flagnum);
 
 					return tent;
 				}
@@ -782,7 +782,7 @@ gentity_t *SelectWarzoneSpectatorSpawnpoint ( gentity_t *ent )
 		vec3_t spawn_origin, spawn_angles;
 		VectorSet(spawn_origin, 0, 0, 0);
 		VectorSet(spawn_angles, 0, 0, 0);
-		spawnPoint = SelectCTFSpawnPoint(ent->client->sess.sessionTeam, ent->client->pers.teamState.state, spawn_origin, spawn_angles);
+		spawnPoint = SelectCTFSpawnPoint(ent->client->sess.sessionTeam, ent->client->pers.teamState.state, spawn_origin, spawn_angles, (ent->r.svFlags & SVF_BOT) != 0);
 
 		if (spawnPoint) return spawnPoint;
 
@@ -839,7 +839,7 @@ gentity_t *SelectWarzoneSpectatorSpawnpoint2 ( gentity_t *ent )
 		gentity_t *spawnPoint = SelectWarzoneSpectatorSpawnpoint2( ent );
 		VectorCopy(spawnPoint->s.origin, newspawn);
 
-		//G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 (^4SPECTATOR^5) at flag ^7%i^5.\n", ent->client->pers.netname, flagnum);
+		//trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 (^4SPECTATOR^5) at flag ^7%i^5.\n", ent->client->pers.netname, flagnum);
 		
 		/*
 		for (spawnpoint_num = 0; spawnpoint_num < flag_list[flagnum].num_spawnpoints; spawnpoint_num++)
@@ -858,7 +858,7 @@ gentity_t *SelectWarzoneSpectatorSpawnpoint2 ( gentity_t *ent )
 		//upOrg[2]+=65000;
 		upOrg[2]+=512;
 
-		trap_Trace( &tr, newspawn, NULL, NULL, upOrg, flag_list[flagnum].flagentity->s.number, MASK_SHOT|MASK_SOLID);
+		trap->Trace( &tr, newspawn, NULL, NULL, upOrg, flag_list[flagnum].flagentity->s.number, MASK_SHOT|MASK_SOLID, 0, 0, 0);
 		VectorCopy(tr.endpos, temp_pos);
 		VectorCopy(newspawn, good_pos);
 		good_pos[2] += ((temp_pos[2]-good_pos[2])*0.25); // 3/4 of the way to sky...
@@ -947,7 +947,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 				tent->s.time2 = 1;
 				//	tent->s.density = 0;
 
-				G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5.\n", ent->client->pers.netname, NPC_SPAWNFLAG);
+				trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5.\n", ent->client->pers.netname, NPC_SPAWNFLAG);
 
 				return tent;
 			}
@@ -981,7 +981,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 						if (!AdvancedWouldTelefrag(flag_list[flagnum].spawnpoints[spawnpoint_num])
 							&& !CheckEntitiesInSpot(flag_list[flagnum].spawnpoints[spawnpoint_num]))
 						{
-							G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
+							trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, flagnum, spawnpoint_num);
 							notgood = qfalse;
 							VectorCopy(flag_list[flagnum].spawnpoints[spawnpoint_num], newspawn);
 						}
@@ -999,7 +999,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 						if (!AdvancedWouldTelefrag(flag_list[last_flag_num].spawnpoints[spawnpoint_num])
 							&& !CheckEntitiesInSpot(flag_list[last_flag_num].spawnpoints[spawnpoint_num]))
 						{
-							G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, last_flag_num, spawnpoint_num);
+							trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, last_flag_num, spawnpoint_num);
 							notgood = qfalse;
 							VectorCopy(flag_list[last_flag_num].spawnpoints[spawnpoint_num], newspawn);
 						}
@@ -1022,7 +1022,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 								if (!AdvancedWouldTelefrag(flag_list[tempflag].spawnpoints[spawnpoint_num])
 									&& !CheckEntitiesInSpot(flag_list[tempflag].spawnpoints[spawnpoint_num]))
 								{
-									G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, tempflag, spawnpoint_num);
+									trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 point ^7%i^5.\n", ent->client->pers.netname, tempflag, spawnpoint_num);
 									notgood = qfalse;
 									VectorCopy(flag_list[tempflag].spawnpoints[spawnpoint_num], newspawn);
 									break;
@@ -1042,9 +1042,9 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 				}
 				else
 				{
-					if (trap_Nav_GetNumNodes() > 0)
+					if (trap->Nav_GetNumNodes() > 0)
 					{// Try using a close nav waypoint to any owned flag!
-						int		num_nodes = trap_Nav_GetNumNodes();
+						int		num_nodes = trap->Nav_GetNumNodes();
 						int		i, j;
 						int		best_flag = -1;
 						int		best_flag2 = -1;
@@ -1071,13 +1071,13 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 									vec3_t	playerMins = {-15, -15, DEFAULT_MINS_2};
 									vec3_t	playerMaxs = {15, 15, DEFAULT_MAXS_2};
 
-									trap_Nav_GetNodePosition( i, wp_org );
+									trap->Nav_GetNodePosition( i, wp_org );
 									wp_org[2]+=8;
 
 									// First test for solids/hazards!
 									VectorCopy(wp_org, test_org);
 									test_org[2]+=8;
-									trap_Trace(&tr, wp_org, playerMins, playerMaxs, test_org, -1, MASK_SOLID);
+									trap->Trace(&tr, wp_org, playerMins, playerMaxs, test_org, -1, MASK_SOLID);
 
 									if (tr.allsolid || tr.startsolid)
 										continue; // Don't make spawnpoints in solids!
@@ -1112,7 +1112,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 							VectorCopy(best_spot, ent->s.origin);
 							VectorCopy(best_spot, ent->r.currentOrigin);
 
-							G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 (close nav waypoint).\n", ent->client->pers.netname, best_flag);
+							trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 (close nav waypoint).\n", ent->client->pers.netname, best_flag);
 						}
 						else if (best_distance2 < 99999.9f)
 						{// Try using the backup one (*may* telefrag!
@@ -1120,7 +1120,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 							VectorCopy(best_spot2, ent->s.origin);
 							VectorCopy(best_spot2, ent->r.currentOrigin);
 
-							G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 (close nav waypoint).\n", ent->client->pers.netname, best_flag2);
+							trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 (close nav waypoint).\n", ent->client->pers.netname, best_flag2);
 						}
 						else
 						{// Argh! This sucks!
@@ -1166,7 +1166,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 										// First test for solids/hazards!
 										VectorCopy(wp_org, test_org);
 										test_org[2]+=8;
-										trap_Trace(&tr, wp_org, playerMins, playerMaxs, test_org, -1, MASK_SOLID);
+										trap->Trace(&tr, wp_org, playerMins, playerMaxs, test_org, -1, MASK_SOLID);
 
 										if (tr.allsolid || tr.startsolid)
 											continue; // Don't make spawnpoints in solids!
@@ -1202,7 +1202,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 							VectorCopy(best_spot, ent->s.origin);
 							VectorCopy(best_spot, ent->r.currentOrigin);
 
-							G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 (close waypoint).\n", ent->client->pers.netname, best_flag);
+							trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 (close waypoint).\n", ent->client->pers.netname, best_flag);
 						}
 						else if (best_distance2 < 99999.9f)
 						{// Try using the backup one (*may* telefrag!
@@ -1210,7 +1210,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 							VectorCopy(best_spot2, ent->s.origin);
 							VectorCopy(best_spot2, ent->r.currentOrigin);
 
-							G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 (close waypoint).\n", ent->client->pers.netname, best_flag2);
+							trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5 (close waypoint).\n", ent->client->pers.netname, best_flag2);
 						}
 						else
 						{// Argh! This sucks!
@@ -1302,7 +1302,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 				tent->s.time2 = 1;
 				//	tent->s.density = 0;
 
-				G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5.\n", ent->client->pers.netname, NPC_SPAWNFLAG);
+				trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5.\n", ent->client->pers.netname, NPC_SPAWNFLAG);
 
 				return tent;
 			}
@@ -1429,7 +1429,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 					tent->s.time2 = 1;
 					//	tent->s.density = 0;
 
-					G_Printf("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5.\n", ent->client->pers.netname, flagnum);
+					trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5.\n", ent->client->pers.netname, flagnum);
 
 					return tent;
 				}
@@ -1444,7 +1444,7 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 		vec3_t spawn_origin, spawn_angles;
 		VectorSet(spawn_origin, 0, 0, 0);
 		VectorSet(spawn_angles, 0, 0, 0);
-		spawnPoint = SelectCTFSpawnPoint(ent->client->sess.sessionTeam, ent->client->pers.teamState.state, spawn_origin, spawn_angles);
+		spawnPoint = SelectCTFSpawnPoint(ent->client->sess.sessionTeam, ent->client->pers.teamState.state, spawn_origin, spawn_angles, (ent->r.svFlags & SVF_BOT) != 0);
 
 		if (spawnPoint) return spawnPoint;
 

@@ -17,7 +17,7 @@
 
 #undef MOD_EXPLOSIVE
 
-#ifdef QAGAME //including game headers on cgame is FORBIDDEN ^_^
+#ifdef _GAME //including game headers on cgame is FORBIDDEN ^_^
 #include "g_local.h"
 #else
 #include "bg_public.h"
@@ -40,7 +40,7 @@
 
 #define MOD_EXPLOSIVE MOD_SUICIDE
 
-#ifdef QAGAME //we only want a few of these functions for BG
+#ifdef _GAME //we only want a few of these functions for BG
 
 extern float DotToSpot( vec3_t spot, vec3_t from, vec3_t fromAngles );
 extern vmCvar_t	cg_thirdPersonAlpha;
@@ -114,7 +114,7 @@ static bool Update( Vehicle_t *pVeh, const usercmd_t *pUcmd )
 {
 	return g_vehicleInfo[VEHICLE_BASE].Update( pVeh, pUcmd );
 }
-#endif //QAGAME
+#endif //_GAME
 
 //MP RULE - ALL PROCESSMOVECOMMANDS FUNCTIONS MUST BE BG-COMPATIBLE!!!
 //If you really need to violate this rule for SP, then use ifdefs.
@@ -136,7 +136,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 	bgEntity_t *parent = pVeh->m_pParentEntity;
 	playerState_t *parentPS = parent->playerState;
 
-#if QAGAME//MP GAME
+#if _GAME//MP GAME
 	curTime = level.time;
 #elif CGAME//MP CGAME
 	//FIXME: pass in ucmd?  Not sure if this is reliable...
@@ -323,7 +323,7 @@ void AnimalProcessOri(Vehicle_t *pVeh)
 	ProcessOrientCommands(pVeh);
 }
 
-#ifdef QAGAME //back to our game-only functions
+#ifdef _GAME //back to our game-only functions
 static void AnimateVehicle( Vehicle_t *pVeh )
 {
 	animNumber_t	Anim = BOTH_VT_IDLE; 
@@ -608,16 +608,16 @@ static void AnimateRiders( Vehicle_t *pVeh )
 
 	Vehicle_SetAnim( pilot, SETANIM_BOTH, Anim, iFlags, iBlend );
 }
-#endif //QAGAME
+#endif //_GAME
 
-#ifndef QAGAME
+#ifndef _GAME
 void AttachRidersGeneric( Vehicle_t *pVeh );
 #endif
 
 //on the client this function will only set up the process command funcs
 void G_SetAnimalVehicleFunctions( vehicleInfo_t *pVehInfo )
 {
-#ifdef QAGAME
+#ifdef _GAME
 	pVehInfo->AnimateVehicle			=		AnimateVehicle;
 	pVehInfo->AnimateRiders				=		AnimateRiders;
 //	pVehInfo->ValidateBoard				=		ValidateBoard;
@@ -634,11 +634,11 @@ void G_SetAnimalVehicleFunctions( vehicleInfo_t *pVehInfo )
 //	pVehInfo->Initialize				=		Initialize;
 	pVehInfo->Update					=		Update;
 //	pVehInfo->UpdateRider				=		UpdateRider;
-#endif //QAGAME
+#endif //_GAME
 	pVehInfo->ProcessMoveCommands		=		ProcessMoveCommands;
 	pVehInfo->ProcessOrientCommands		=		ProcessOrientCommands;
 
-#ifndef QAGAME //cgame prediction attachment func
+#ifndef _GAME //cgame prediction attachment func
 	pVehInfo->AttachRiders				=		AttachRidersGeneric;
 #endif
 //	pVehInfo->AttachRiders				=		AttachRiders;
@@ -649,7 +649,7 @@ void G_SetAnimalVehicleFunctions( vehicleInfo_t *pVehInfo )
 
 // Following is only in game, not in namespace
 
-#ifdef QAGAME
+#ifdef _GAME
 extern void G_AllocateVehicleObject(Vehicle_t **pVeh);
 #endif
 
@@ -658,7 +658,7 @@ extern void G_AllocateVehicleObject(Vehicle_t **pVeh);
 void G_CreateAnimalNPC( Vehicle_t **pVeh, const char *strAnimalType )
 {
 	// Allocate the Vehicle.
-#ifdef QAGAME
+#ifdef _GAME
 	//these will remain on entities on the client once allocated because the pointer is
 	//never stomped. on the server, however, when an ent is freed, the entity struct is
 	//memset to 0, so this memory would be lost..

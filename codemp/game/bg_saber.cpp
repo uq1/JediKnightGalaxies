@@ -26,7 +26,7 @@ int PM_irand_timesync(int val1, int val2)
 void BG_ForcePowerDrain( playerState_t *ps, forcePowers_t forcePower, int overrideAmt )
 {
 	// Migrating it to the server fixes nearly all of the desync issues on the bar. Fancy! But at a cost.
-#ifdef QAGAME
+#ifdef _GAME
 	//take away the power
 	int	drain = overrideAmt;
 
@@ -952,7 +952,7 @@ int PM_SaberLockWinAnim( qboolean victory, qboolean superBreak )
 	}
 	if ( winAnim != -1 )
 	{
-		PM_SetAnim( SETANIM_BOTH, winAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+		PM_SetAnim( SETANIM_BOTH, winAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 		pm->ps->weaponTime = pm->ps->torsoTimer;
 		pm->ps->saberBlocked = BLOCKED_NONE;
 		pm->ps->weaponstate = WEAPON_FIRING;
@@ -968,7 +968,7 @@ int PM_SaberLockWinAnim( qboolean victory, qboolean superBreak )
 }
 
 
-#ifdef QAGAME //including game headers on cgame is FORBIDDEN ^_^
+#ifdef _GAME //including game headers on cgame is FORBIDDEN ^_^
 
 #include "g_local.h"
 extern void NPC_SetAnim(gentity_t *ent, int setAnimParts, int anim, int setAnimFlags);
@@ -1098,7 +1098,7 @@ int PM_SaberLockLoseAnim( playerState_t *genemy, qboolean victory, qboolean supe
 	}
 	if ( loseAnim != -1 )
 	{
-#ifdef QAGAME
+#ifdef _GAME
 		NPC_SetAnim( &g_entities[genemy->clientNum], SETANIM_BOTH, loseAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 		genemy->weaponTime = genemy->torsoTimer;// + 250;
 #endif
@@ -1152,18 +1152,18 @@ int PM_SaberLockResultAnim( playerState_t *duelist, qboolean superBreak, qboolea
 	}
 
 	//play the anim and hold it
-#ifdef QAGAME
+#ifdef _GAME
 	//server-side: set it on the other guy, too
 	if ( duelist->clientNum == pm->ps->clientNum )
 	{//me
-		PM_SetAnim( SETANIM_BOTH, baseAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+		PM_SetAnim( SETANIM_BOTH, baseAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 	}
 	else
 	{//other guy
 		NPC_SetAnim( &g_entities[duelist->clientNum], SETANIM_BOTH, baseAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 	}
 #else
-	PM_SetAnim( SETANIM_BOTH, baseAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+	PM_SetAnim( SETANIM_BOTH, baseAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 #endif
 
 	if ( superBreak
@@ -1180,7 +1180,7 @@ int PM_SaberLockResultAnim( playerState_t *duelist, qboolean superBreak, qboolea
 			G_SetOrigin(saberent, duelist->currentOrigin);
 		}
 		*/
-#ifdef QAGAME
+#ifdef _GAME
 		if ( 1 )
 #else
 		if ( duelist->clientNum == pm->ps->clientNum )
@@ -1193,7 +1193,7 @@ int PM_SaberLockResultAnim( playerState_t *duelist, qboolean superBreak, qboolea
 		}
 	}
 
-#ifdef QAGAME
+#ifdef _GAME
 	if ( 1 )
 #else
 	if ( duelist->clientNum == pm->ps->clientNum )
@@ -2871,18 +2871,18 @@ void PM_SaberProjBlock( void )
 		switch ( pm->ps->saberBlocked )
 		{
 			case BLOCKED_PARRY_BROKEN:
-				PM_SetAnim( SETANIM_BOTH, Q_irand(BOTH_PAIN1,BOTH_PAIN3), SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+				PM_SetAnim( SETANIM_BOTH, Q_irand(BOTH_PAIN1,BOTH_PAIN3), SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 				pm->ps->weaponTime = pm->ps->legsTimer;
 				break;
 			case BLOCKED_ATK_BOUNCE:
-				PM_SetAnim( SETANIM_BOTH, Q_irand(BOTH_PAIN1,BOTH_PAIN3), SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+				PM_SetAnim( SETANIM_BOTH, Q_irand(BOTH_PAIN1,BOTH_PAIN3), SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 				pm->ps->weaponTime = pm->ps->legsTimer;
 				break;
 			case BLOCKED_UPPER_RIGHT:
 			case BLOCKED_UPPER_RIGHT_PROJ:
 			case BLOCKED_LOWER_RIGHT:
 			case BLOCKED_LOWER_RIGHT_PROJ:
-				PM_SetAnim( SETANIM_BOTH, BOTH_P1_S1_TR, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+				PM_SetAnim( SETANIM_BOTH, BOTH_P1_S1_TR, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 				pm->ps->legsTimer += Q_irand( 200, 1000 );
 				pm->ps->weaponTime = pm->ps->legsTimer;
 				break;
@@ -2890,13 +2890,13 @@ void PM_SaberProjBlock( void )
 			case BLOCKED_UPPER_LEFT_PROJ:
 			case BLOCKED_LOWER_LEFT:
 			case BLOCKED_LOWER_LEFT_PROJ:
-				PM_SetAnim( SETANIM_BOTH, BOTH_P1_S1_TL, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+				PM_SetAnim( SETANIM_BOTH, BOTH_P1_S1_TL, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 				pm->ps->legsTimer += Q_irand( 200, 1000 );
 				pm->ps->weaponTime = pm->ps->legsTimer;
 				break;
 			case BLOCKED_TOP:
 			case BLOCKED_TOP_PROJ:
-				PM_SetAnim( SETANIM_BOTH, BOTH_P1_S1_T_, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+				PM_SetAnim( SETANIM_BOTH, BOTH_P1_S1_T_, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 				pm->ps->legsTimer += Q_irand( 200, 1000 );
 				pm->ps->weaponTime = pm->ps->legsTimer;
 				break;
@@ -2938,7 +2938,7 @@ void PM_WeaponLightsaber(void)
 
 	qboolean checkOnlyWeap = qfalse;
 
-#ifdef QAGAME
+#ifdef _GAME
 	if( !(g_entities[pm->ps->clientNum].r.svFlags & SVF_BOT ) )
 	{
 		JKG_NetworkSaberCrystals( pm->ps, pm->cmd.invensel, pm->cmd.weapon );
@@ -3022,7 +3022,7 @@ void PM_WeaponLightsaber(void)
 				)
 			{
 				pm->ps->torsoTimer = 0;
-				PM_SetAnim(SETANIM_TORSO,BOTH_STAND1,SETANIM_FLAG_OVERRIDE, 100);
+				PM_SetAnim(SETANIM_TORSO,BOTH_STAND1,SETANIM_FLAG_OVERRIDE);
 				pm->ps->saberLockFrame = 0;
 			}
 		}
@@ -3059,13 +3059,13 @@ void PM_WeaponLightsaber(void)
 		if ((pm->ps->legsAnim) != (pm->ps->torsoAnim) && !PM_InSlopeAnim(pm->ps->legsAnim) &&
 			pm->ps->torsoTimer <= 0 && !(pm->ps->saberActionFlags & (1 << SAF_BLOCKING)))
 		{
-			PM_SetAnim(SETANIM_TORSO,(pm->ps->legsAnim),SETANIM_FLAG_OVERRIDE, 100);
+			PM_SetAnim(SETANIM_TORSO,(pm->ps->legsAnim),SETANIM_FLAG_OVERRIDE);
 		}
 		else if ((PM_InSlopeAnim(pm->ps->legsAnim) || pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) && pm->ps->torsoTimer <= 0 &&
 			!PM_SaberInParry(pm->ps->saberMove) && !PM_SaberInKnockaway(pm->ps->saberMove) &&
 			!PM_SaberInBrokenParry(pm->ps->saberMove) && !PM_SaberInReflect(pm->ps->saberMove))
 		{
-			PM_SetAnim(SETANIM_TORSO,PM_GetSaberStance(),SETANIM_FLAG_OVERRIDE, 100);
+			PM_SetAnim(SETANIM_TORSO,PM_GetSaberStance(),SETANIM_FLAG_OVERRIDE);
 		}
 
 		if (pm->ps->weaponTime < 1 && (pm->cmd.buttons & BUTTON_ATTACK))
@@ -3137,7 +3137,7 @@ void PM_WeaponLightsaber(void)
 		//Stoiss add [SaberThrowSys]
 		else if ( pm->ps->saberInFlight && pm->ps->saberEntityNum )
 		{//saber is already in flight continue moving it with the force.
-			PM_SetAnim(SETANIM_TORSO, BOTH_SABERTHROW2START, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 100);
+			PM_SetAnim(SETANIM_TORSO, BOTH_SABERTHROW2START, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 			pm->ps->torsoTimer = 1;
 			return;
 		}
@@ -3190,7 +3190,7 @@ void PM_WeaponLightsaber(void)
 			  )
 			)
 		{
-			PM_SetAnim(SETANIM_TORSO, BOTH_SABERPULL, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 100);
+			PM_SetAnim(SETANIM_TORSO, BOTH_SABERPULL, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 			pm->ps->torsoTimer = 1;
 			return;
 		}
@@ -3224,7 +3224,7 @@ void PM_WeaponLightsaber(void)
 	{
 		if ((pm->ps->torsoAnim) != (pm->ps->legsAnim))
 		{
-			PM_SetAnim(SETANIM_TORSO,(pm->ps->legsAnim),SETANIM_FLAG_OVERRIDE, 100);
+			PM_SetAnim(SETANIM_TORSO,(pm->ps->legsAnim),SETANIM_FLAG_OVERRIDE);
 		}
 	}
 	*/
@@ -3249,7 +3249,7 @@ void PM_WeaponLightsaber(void)
 
 	if( pm->ps->saberActionFlags & ( 1 << SAF_BLOCKING ) )
 		{ //rww - keep him in the blocking pose until he can attack again
-			PM_SetAnim(SETANIM_FLAG_NORMAL,saberMoveData[pm->ps->saberMove].animToUse,saberMoveData[pm->ps->saberMove].animSetFlags|SETANIM_FLAG_HOLD, saberMoveData[pm->ps->saberMove].blendTime);
+			PM_SetAnim(SETANIM_FLAG_NORMAL,saberMoveData[pm->ps->saberMove].animToUse,saberMoveData[pm->ps->saberMove].animSetFlags|SETANIM_FLAG_HOLD);
 			return;
 		}
 	}
@@ -3451,39 +3451,39 @@ weapChecks:
 		pm->ps->weaponstate = WEAPON_IDLE;
 		if((pm->ps->legsAnim) == BOTH_RUN1 || (pm->ps->legsAnim) == BOTH_FEMALERUN)
 		{
-			PM_SetAnim(SETANIM_TORSO,BOTH_RUN1,SETANIM_FLAG_NORMAL, 100);
+			PM_SetAnim(SETANIM_TORSO,BOTH_RUN1,SETANIM_FLAG_NORMAL);
 		}
 		else if((pm->ps->legsAnim) == BOTH_RUN2 )
 		{
-			PM_SetAnim(SETANIM_TORSO,BOTH_RUN2,SETANIM_FLAG_NORMAL, 100);
+			PM_SetAnim(SETANIM_TORSO,BOTH_RUN2,SETANIM_FLAG_NORMAL);
 		}
 		else if( pm->ps->legsAnim == BOTH_RUN_STAFF)
 		{
-			PM_SetAnim(SETANIM_TORSO,BOTH_RUN_STAFF,SETANIM_FLAG_NORMAL, 100);
+			PM_SetAnim(SETANIM_TORSO,BOTH_RUN_STAFF,SETANIM_FLAG_NORMAL);
 		}
 		else if( pm->ps->legsAnim == BOTH_RUN_DUAL)
 		{
-			PM_SetAnim(SETANIM_TORSO,BOTH_RUN_DUAL,SETANIM_FLAG_NORMAL, 100);
+			PM_SetAnim(SETANIM_TORSO,BOTH_RUN_DUAL,SETANIM_FLAG_NORMAL);
 		}
 		else if((pm->ps->legsAnim) == BOTH_WALK1 || (pm->ps->legsAnim) == BOTH_FEMALEEWALK)
 		{
-			PM_SetAnim(SETANIM_TORSO,((pm->gender == GENDER_FEMALE) ? BOTH_FEMALEEWALK : BOTH_WALK1),SETANIM_FLAG_NORMAL, 100);
+			PM_SetAnim(SETANIM_TORSO,((pm->gender == GENDER_FEMALE) ? BOTH_FEMALEEWALK : BOTH_WALK1),SETANIM_FLAG_NORMAL);
 		}
 		else if( pm->ps->legsAnim == BOTH_WALK2)
 		{
-			PM_SetAnim(SETANIM_TORSO,BOTH_WALK2,SETANIM_FLAG_NORMAL, 100);
+			PM_SetAnim(SETANIM_TORSO,BOTH_WALK2,SETANIM_FLAG_NORMAL);
 		}
 		else if( pm->ps->legsAnim == BOTH_WALK_STAFF)
 		{
-			PM_SetAnim(SETANIM_TORSO,BOTH_WALK_STAFF,SETANIM_FLAG_NORMAL, 100);
+			PM_SetAnim(SETANIM_TORSO,BOTH_WALK_STAFF,SETANIM_FLAG_NORMAL);
 		}
 		else if( pm->ps->legsAnim == BOTH_WALK_DUAL)
 		{
-			PM_SetAnim(SETANIM_TORSO,BOTH_WALK_DUAL,SETANIM_FLAG_NORMAL, 100);
+			PM_SetAnim(SETANIM_TORSO,BOTH_WALK_DUAL,SETANIM_FLAG_NORMAL);
 		}
 		else
 		{
-			PM_SetAnim(SETANIM_TORSO,PM_GetSaberStance(),SETANIM_FLAG_NORMAL, 100);
+			PM_SetAnim(SETANIM_TORSO,PM_GetSaberStance(),SETANIM_FLAG_NORMAL);
 		}
 
 		if (pm->ps->weaponstate == WEAPON_RAISING)
@@ -3646,7 +3646,7 @@ weapChecks:
 			// But it is if we're blocking!
 			if( pm->ps->saberActionFlags & ( 1 << SAF_BLOCKING ) )
 			{
-				PM_SetAnim(SETANIM_TORSO,PM_GetSaberStance(),SETANIM_FLAG_OVERRIDE, 100);
+				PM_SetAnim(SETANIM_TORSO,PM_GetSaberStance(),SETANIM_FLAG_OVERRIDE);
 				return;
 			}
 			else
@@ -3814,7 +3814,7 @@ weapChecks:
 
 			if ( both && pm->ps->torsoAnim == anim )
 			{
-				PM_SetAnim(SETANIM_LEGS,anim,SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 100);
+				PM_SetAnim(SETANIM_LEGS,anim,SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 			}
 
 			//don't fire again until anim is done
@@ -3829,7 +3829,7 @@ weapChecks:
 	pm->ps->weaponstate = WEAPON_FIRING;
 	if(pm->ps->weaponTime > 0 && pm->ps->saberActionFlags & ( 1 << SAF_BLOCKING ) )
 	{
-		PM_SetAnim(SETANIM_TORSO,PM_GetSaberStance(),SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 200);
+		PM_SetAnim(SETANIM_TORSO,PM_GetSaberStance(),SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 		PM_SetSaberMove(LS_READY);
 	}
 
@@ -3951,7 +3951,7 @@ void PM_SetSaberMove(short newMove)
 	{
 		return;
 	}
-#ifdef QAGAME
+#ifdef _GAME
 	if(SaberStances[pm->ps->fd.saberAnimLevel].moves[newMove].FPdrain)
 	{
 		pm->ps->forcePower -= SaberStances[pm->ps->fd.saberAnimLevel].moves[newMove].FPdrain;
@@ -4140,7 +4140,7 @@ void PM_SetSaberMove(short newMove)
 			}
 		}
 
-		PM_SetAnim(parts, anim, setflags, SaberStances[pm->ps->fd.saberAnimLevel].moves[newMove].blendTime);
+		PM_SetAnim(parts, anim, setflags);
 		if (parts != SETANIM_LEGS &&
 			(pm->ps->legsAnim == BOTH_ARIAL_LEFT ||
 			pm->ps->legsAnim == BOTH_ARIAL_RIGHT))
@@ -4234,7 +4234,7 @@ void PM_SetSaberMove(short newMove)
 saberInfo_t *BG_MySaber( int clientNum, int saberNum )
 {
 	//returns a pointer to the requested saberNum
-#ifdef QAGAME
+#ifdef _GAME
 	gentity_t *ent = &g_entities[clientNum];
 	if ( ent->inuse && ent->client )
 	{

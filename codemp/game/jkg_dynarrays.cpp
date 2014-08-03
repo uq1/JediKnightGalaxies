@@ -10,7 +10,7 @@
 unsigned int JKG_Arrays_AddArrayElement(void **arry, size_t sze, unsigned int *count){
 	*arry = (void *)realloc(*arry, sze * ((*count) + 1));
 	if(!arry) {
-		G_Error("JKG_Arrays_AddArrayElement: Failed to realloc memory array!\n");
+		trap->Error(ERR_DROP, "JKG_Arrays_AddArrayElement: Failed to realloc memory array!\n");
 		return -1;
 	}
 	memset((byte *)(*arry) + (sze * (*count)), 0, sze);
@@ -23,7 +23,7 @@ qboolean JKG_Arrays_AddArrayElement_Location(int index, void **arry, size_t sze,
 	int shiftCount;
 	*arry = (void *)realloc(*arry, sze * ((*count) + 1));
 	if(!arry) {
-		G_Error("JKG_Arrays_AddArrayElement_Location: Failed to realloc memory array!\n");
+		trap->Error(ERR_DROP, "JKG_Arrays_AddArrayElement_Location: Failed to realloc memory array!\n");
 		return qfalse;
 	}
 	shiftCount = (*count - index) * sze;
@@ -56,7 +56,7 @@ void JKG_Arrays_RemoveArrayElement(void **arry, unsigned int element, size_t sze
 	(*count)--;
 	*arry = (void *)realloc(*arry, sze * (*count));
 	if(!arry && (*count) > 0) {
-		G_Error("JKG_Arrays_RemoveArrayElement: Failed to realloc memory array!\n");
+		trap->Error(ERR_DROP, "JKG_Arrays_RemoveArrayElement: Failed to realloc memory array!\n");
 	}
 }
 
@@ -99,7 +99,7 @@ static void JKG_Array_EnsureCapacity ( jkgArray_t *arr, int n )
         arr->data = realloc (arr->data, arr->_elementSize * arr->_capacity * i);
         if ( arr->data == NULL )
         {
-            trap_Error ("Failed to reallocate memory for a JKG array.\n");
+            trap->Error (ERR_DROP, "Failed to reallocate memory for a JKG array.\n");
             return;
         }
         arr->_capacity *= i;
@@ -214,7 +214,7 @@ void JKG_Array_Shrink ( jkgArray_t *arr )
     arr->data = realloc (arr->data, arr->size * arr->_elementSize);
     if ( arr->data == NULL )
     {
-        trap_Error ("Failed to reallocate memory for a JKG array.\n");
+        trap->Error (ERR_DROP, "Failed to reallocate memory for a JKG array.\n");
         return;
     }
     

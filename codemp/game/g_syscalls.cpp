@@ -1535,7 +1535,7 @@ static void SVSyscall_LocateGameData( sharedEntity_t *ent, int numEntities, int 
 static void SVSyscall_SetBrushModel( sharedEntity_t *ent, const char *name ) { trap_SetBrushModel( (gentity_t *)ent, name ); }
 
 static int SVSyscall_ICARUS_RunScript( sharedEntity_t *ent, const char *name ) { return trap_ICARUS_RunScript( (gentity_t *)ent, name ); }
-static bool SVSyscall_ICARUS_ValidEnt( sharedEntity_t *ent ) { trap_ICARUS_ValidEnt( (gentity_t *)ent ); }
+static bool SVSyscall_ICARUS_ValidEnt( sharedEntity_t *ent ) { return trap_ICARUS_ValidEnt( (gentity_t *)ent ); }
 static bool SVSyscall_ICARUS_TaskIDPending( sharedEntity_t *ent, int taskID ) { return trap_ICARUS_TaskIDPending( (gentity_t *)ent, taskID ); }
 static void SVSyscall_ICARUS_InitEnt( sharedEntity_t *ent ) { trap_ICARUS_InitEnt( (gentity_t *)ent ); }
 static void SVSyscall_ICARUS_FreeEnt( sharedEntity_t *ent ) { trap_ICARUS_FreeEnt( (gentity_t *)ent ); }
@@ -1572,7 +1572,7 @@ void QDECL G_Printf( const char *msg, ... ) {
 	va_end( argptr );
 
 	if ( ret == -1 )
-		trap_Print( "G_Printf: overflow of 4096 bytes buffer\n" );
+		trap_Print( "trap->Print: overflow of 4096 bytes buffer\n" );
 	else
 		trap_Print( text );
 }
@@ -1584,7 +1584,7 @@ static void TranslateSyscalls( void ) {
 	trap = &import;
 
 	Com_Error								= G_Error;
-	Com_Printf								= G_Printf;
+	Com_Printf								= trap->Print;
 
 	trap->Print								= Com_Printf;
 	trap->Error								= Com_Error;

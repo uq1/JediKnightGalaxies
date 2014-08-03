@@ -29,7 +29,7 @@ BG_GetWeaponDataFromStr
 Given an index, variation and string, it will attempt to find that information
 ======================
 */
-#ifndef QAGAME
+#ifndef _GAME
 #define DWORD unsigned long
 weaponDataGrab_t BG_GetWeaponDataFromStr(int weapon, int variation, char *text)
 {

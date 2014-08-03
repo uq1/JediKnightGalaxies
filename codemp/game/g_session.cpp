@@ -103,7 +103,7 @@ void G_WriteClientSessionData( gclient_t *client ) {
 
 	var = va( "session%i", client - level.clients );
 
-	trap_Cvar_Set( var, s );
+	trap->Cvar_Set( var, s );
 	*/
 
 }
@@ -128,7 +128,7 @@ void G_ReadSessionData( gclient_t *client ) {
 	int sessionTeam;
 
 	var = va( "session%i", client - level.clients );
-	trap_Cvar_VariableStringBuffer( var, s, sizeof(s) );
+	trap->Cvar_VariableStringBuffer( var, s, sizeof(s) );
 
 	sscanf( s, "%i %i %i %i %i %i %i %i %i %i %i %i %s %s %s %s",
 		&sessionTeam,                 // bk010221 - format
@@ -288,11 +288,9 @@ void G_InitSessionData( gclient_t *client, char *userinfo, qboolean isBot ) {
 	}
 
 	sess->spectatorState = SPECTATOR_FREE;
-	sess->spectatorTime = level.time;
+	AddTournamentQueue(client);
 
 	sess->siegeClass[0] = 0;
-	sess->saberType[0] = 0;
-	sess->saber2Type[0] = 0;
 
 	G_WriteClientSessionData( client );
 }
@@ -309,23 +307,23 @@ void G_InitWorldSession( void ) {
 	char	s[MAX_STRING_CHARS];
 	int			gt, ptr;
 
-	trap_Cvar_VariableStringBuffer( "session", s, sizeof(s) );
+	trap->Cvar_VariableStringBuffer( "session", s, sizeof(s) );
 	gt = atoi( s );
 
 	// if the gametype changed since the last session, don't use any
 	// client sessions
 	if ( level.gametype != gt ) {
 		level.newSession = qtrue;
-		G_Printf( "Gametype changed, clearing session data.\n" );
+		trap->Print( "Gametype changed, clearing session data.\n" );
 	}
 	
-	trap_Cvar_VariableStringBuffer("gsess", tmp, sizeof(tmp));
+	trap->Cvar_VariableStringBuffer("gsess", tmp, sizeof(tmp));
 	ptr = atoi( tmp );
 	if (!tmp[0]) {
 		// Cvar doesn't exist, first startup
 		memset(&g_sess, 0, sizeof(g_sess));
-		trap_TrueMalloc((void**)&g_sess, sizeof(clientSession_t) * MAX_CLIENTS);
-		trap_Cvar_Set("gsess", va("%i", (int)g_sess));
+		trap->TrueMalloc((void**)&g_sess, sizeof(clientSession_t) * MAX_CLIENTS);
+		trap->Cvar_Set("gsess", va("%i", (int)g_sess));
 	} else {
 		g_sess = (clientSession_t *)ptr;
 	}
@@ -340,7 +338,7 @@ G_WriteSessionData
 void G_WriteSessionData( void ) {
 	int		i;
 
-	trap_Cvar_Set( "session", va("%i", level.gametype) );
+	trap->Cvar_Set( "session", va("%i", level.gametype) );
 
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		if ( level.clients[i].pers.connected == CON_CONNECTED ) {

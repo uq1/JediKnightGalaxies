@@ -103,7 +103,7 @@ void AdjustTickets ( void )
 	num_red_flags = red_flags;
 	num_blue_flags = blue_flags;
 
-	//G_Printf("%i red flags. %i blue flags. %i flags total.\n", num_red_flags, num_blue_flags, total_num_flags);
+	//trap->Print("%i red flags. %i blue flags. %i flags total.\n", num_red_flags, num_blue_flags, total_num_flags);
 
 	if (next_flag_check > level.time)
 		return;
@@ -125,7 +125,7 @@ void AdjustTickets ( void )
 
 	if (red_original != redtickets || blue_original != bluetickets)
 	{// Transmit if required only...
-		trap_SendServerCommand( -1, va("tkt %i %i", redtickets, bluetickets ));
+		trap->SendServerCommand( -1, va("tkt %i %i", redtickets, bluetickets ));
 	}
 }
 
@@ -163,224 +163,6 @@ const char *G_TeamName(int team)
 	else if (team==TEAM_SPECTATOR)
 		return "SPECTATOR";
 	return "FREE";
-}
-
-/*
-================
-vmMain
-
-This is the only way control passes into the module.
-This must be the very first function compiled into the .q3vm file
-================
-*/
-// Promotes an integer to an intptr_t. It looks odd but
-// it gets around having to double-cast an integer in
-// vmMain below.
-intptr_t VMP ( int n ) { return (intptr_t)n; }
-extern "C" {
-Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  ) {
-	switch ( command ) {
-	case GAME_INIT:
-		G_InitGame( arg0, arg1, arg2 );
-		return 0;
-	case GAME_SHUTDOWN:
-		G_ShutdownGame( arg0 );
-		return 0;
-	case GAME_CLIENT_CONNECT:
-		return (intptr_t)ClientConnect( arg0, arg1, arg2 );
-	case GAME_CLIENT_THINK:
-		ClientThink( arg0, NULL );
-		return 0;
-	case GAME_CLIENT_USERINFO_CHANGED:
-		ClientUserinfoChanged( arg0 );
-		return 0;
-	case GAME_CLIENT_DISCONNECT:
-		ClientDisconnect( arg0 );
-		return 0;
-	case GAME_CLIENT_BEGIN:
-		ClientBegin( arg0, qtrue );
-		return 0;
-	case GAME_CLIENT_COMMAND:
-		ClientCommand( arg0 );
-		return 0;
-	case GAME_RUN_FRAME:
-		G_RunFrame( arg0 );
-		return 0;
-	case GAME_CONSOLE_COMMAND:
-		return ConsoleCommand();
-	case BOTAI_START_FRAME:
-		return BotAIStartFrame( arg0 );
-	case GAME_ROFF_NOTETRACK_CALLBACK:
-		G_ROFF_NotetrackCallback( &g_entities[arg0], (const char *)VMP(arg1) );
-		return 0;
-	case GAME_SPAWN_RMG_ENTITY:
-		if (G_ParseSpawnVars(qfalse))
-		{
-			G_SpawnGEntityFromSpawnVars(qfalse);
-		}
-		return 0;
-
-	//rww - begin icarus callbacks
-	case GAME_ICARUS_PLAYSOUND:
-		{
-			T_G_ICARUS_PLAYSOUND *sharedMem = (T_G_ICARUS_PLAYSOUND *)gSharedBuffer;
-			return Q3_PlaySound(sharedMem->taskID, sharedMem->entID, sharedMem->name, sharedMem->channel);
-		}
-	case GAME_ICARUS_SET:
-		{
-			T_G_ICARUS_SET *sharedMem = (T_G_ICARUS_SET *)gSharedBuffer;
-			return Q3_Set(sharedMem->taskID, sharedMem->entID, sharedMem->type_name, sharedMem->data);
-		}
-	case GAME_ICARUS_LERP2POS:
-		{
-			T_G_ICARUS_LERP2POS *sharedMem = (T_G_ICARUS_LERP2POS *)gSharedBuffer;
-			if (sharedMem->nullAngles)
-			{
-				Q3_Lerp2Pos(sharedMem->taskID, sharedMem->entID, sharedMem->origin, NULL, sharedMem->duration);
-			}
-			else
-			{
-				Q3_Lerp2Pos(sharedMem->taskID, sharedMem->entID, sharedMem->origin, sharedMem->angles, sharedMem->duration);
-			}
-		}
-		return 0;
-	case GAME_ICARUS_LERP2ORIGIN:
-		{
-			T_G_ICARUS_LERP2ORIGIN *sharedMem = (T_G_ICARUS_LERP2ORIGIN *)gSharedBuffer;
-			Q3_Lerp2Origin(sharedMem->taskID, sharedMem->entID, sharedMem->origin, sharedMem->duration);
-		}
-		return 0;
-	case GAME_ICARUS_LERP2ANGLES:
-		{
-			T_G_ICARUS_LERP2ANGLES *sharedMem = (T_G_ICARUS_LERP2ANGLES *)gSharedBuffer;
-			Q3_Lerp2Angles(sharedMem->taskID, sharedMem->entID, sharedMem->angles, sharedMem->duration);
-		}
-		return 0;
-	case GAME_ICARUS_GETTAG:
-		{
-			T_G_ICARUS_GETTAG *sharedMem = (T_G_ICARUS_GETTAG *)gSharedBuffer;
-			return Q3_GetTag(sharedMem->entID, sharedMem->name, sharedMem->lookup, sharedMem->info);
-		}
-	case GAME_ICARUS_LERP2START:
-		{
-			T_G_ICARUS_LERP2START *sharedMem = (T_G_ICARUS_LERP2START *)gSharedBuffer;
-			Q3_Lerp2Start(sharedMem->entID, sharedMem->taskID, sharedMem->duration);
-		}
-		return 0;
-	case GAME_ICARUS_LERP2END:
-		{
-			T_G_ICARUS_LERP2END *sharedMem = (T_G_ICARUS_LERP2END *)gSharedBuffer;
-			Q3_Lerp2End(sharedMem->entID, sharedMem->taskID, sharedMem->duration);
-		}
-		return 0;
-	case GAME_ICARUS_USE:
-		{
-			T_G_ICARUS_USE *sharedMem = (T_G_ICARUS_USE *)gSharedBuffer;
-			Q3_Use(sharedMem->entID, sharedMem->target);
-		}
-		return 0;
-	case GAME_ICARUS_KILL:
-		{
-			T_G_ICARUS_KILL *sharedMem = (T_G_ICARUS_KILL *)gSharedBuffer;
-			Q3_Kill(sharedMem->entID, sharedMem->name);
-		}
-		return 0;
-	case GAME_ICARUS_REMOVE:
-		{
-			T_G_ICARUS_REMOVE *sharedMem = (T_G_ICARUS_REMOVE *)gSharedBuffer;
-			Q3_Remove(sharedMem->entID, sharedMem->name);
-		}
-		return 0;
-	case GAME_ICARUS_PLAY:
-		{
-			T_G_ICARUS_PLAY *sharedMem = (T_G_ICARUS_PLAY *)gSharedBuffer;
-			Q3_Play(sharedMem->taskID, sharedMem->entID, sharedMem->type, sharedMem->name);
-		}
-		return 0;
-	case GAME_ICARUS_GETFLOAT:
-		{
-			T_G_ICARUS_GETFLOAT *sharedMem = (T_G_ICARUS_GETFLOAT *)gSharedBuffer;
-			return Q3_GetFloat(sharedMem->entID, sharedMem->type, sharedMem->name, &sharedMem->value);
-		}
-	case GAME_ICARUS_GETVECTOR:
-		{
-			T_G_ICARUS_GETVECTOR *sharedMem = (T_G_ICARUS_GETVECTOR *)gSharedBuffer;
-			return Q3_GetVector(sharedMem->entID, sharedMem->type, sharedMem->name, sharedMem->value);
-		}
-	case GAME_ICARUS_GETSTRING:
-		{
-			T_G_ICARUS_GETSTRING *sharedMem = (T_G_ICARUS_GETSTRING *)gSharedBuffer;
-			int r;
-			char *crap = NULL; //I am sorry for this -rww
-			char **morecrap = &crap; //and this
-			r = Q3_GetString(sharedMem->entID, sharedMem->type, sharedMem->name, morecrap);
-
-			if (crap)
-			{ //success!
-				strcpy(sharedMem->value, crap);
-			}
-
-			return r;
-		}
-	case GAME_ICARUS_SOUNDINDEX:
-		{
-			T_G_ICARUS_SOUNDINDEX *sharedMem = (T_G_ICARUS_SOUNDINDEX *)gSharedBuffer;
-			G_SoundIndex(sharedMem->filename);
-		}
-		return 0;
-	case GAME_ICARUS_GETSETIDFORSTRING:
-		{
-			T_G_ICARUS_GETSETIDFORSTRING *sharedMem = (T_G_ICARUS_GETSETIDFORSTRING *)gSharedBuffer;
-			return GetIDForString(setTable, sharedMem->string);
-		}
-	//rww - end icarus callbacks
-
-	case GAME_NAV_CLEARPATHTOPOINT:
-		return NAV_ClearPathToPoint(&g_entities[arg0], (float *)VMP(arg1), (float *)VMP(arg2), (float *)VMP(arg3), arg4, arg5);
-	case GAME_NAV_CLEARLOS:
-		return NPC_ClearLOS2(&g_entities[arg0], (const float *)VMP(arg1));
-	case GAME_NAV_CLEARPATHBETWEENPOINTS:
-		return NAVNEW_ClearPathBetweenPoints((float *)VMP(arg0), (float *)VMP(arg1), (float *)VMP(arg2), (float *)VMP(arg3), arg4, arg5);
-	case GAME_NAV_CHECKNODEFAILEDFORENT:
-		return NAV_CheckNodeFailedForEnt(&g_entities[arg0], arg1);
-	case GAME_NAV_ENTISUNLOCKEDDOOR:
-		return G_EntIsUnlockedDoor(arg0);
-	case GAME_NAV_ENTISDOOR:
-		return G_EntIsDoor(arg0);
-	case GAME_NAV_ENTISBREAKABLE:
-		return G_EntIsBreakable(arg0);
-	case GAME_NAV_ENTISREMOVABLEUSABLE:
-		return G_EntIsRemovableUsable(arg0);
-	case GAME_NAV_FINDCOMBATPOINTWAYPOINTS:
-		CP_FindCombatPointWaypoints();
-		return 0;
-	case GAME_GETITEMINDEXBYTAG:
-		return BG_GetItemIndexByTag(arg0, arg1);
-	}
-
-	return -1;
-}
-}
-void QDECL G_Printf( const char *fmt, ... ) {
-	va_list		argptr;
-	char		text[1024];
-
-	va_start (argptr, fmt);
-	Q_vsnprintf (text, sizeof( text ), fmt, argptr);
-	va_end (argptr);
-
-	trap_Print( text );
-}
-
-void QDECL G_Error( const char *fmt, ... ) {
-	va_list		argptr;
-	char		text[1024];
-
-	va_start (argptr, fmt);
-	Q_vsnprintf (text, sizeof( text ), fmt, argptr);
-	va_end (argptr);
-
-	trap_Error( text );
 }
 
 /*
@@ -438,15 +220,15 @@ void G_FindTeams( void ) {
 		}
 	}
 
-//	G_Printf ("%i teams with %i entities\n", c, c2);
+//	trap->Print ("%i teams with %i entities\n", c, c2);
 }
 
 static void G_ValidateGametype( void ) {
 	// check some things
 	if ( g_gametype.integer < 0 || g_gametype.integer >= GT_MAX_GAME_TYPE ) {
-		G_Printf( "g_gametype %i is out of range, defaulting to 0\n", g_gametype.integer );
-		trap_Cvar_Set( "g_gametype", "0" );
-		trap_Cvar_Update( &g_gametype );
+		trap->Print( "g_gametype %i is out of range, defaulting to 0\n", g_gametype.integer );
+		trap->Cvar_Set( "g_gametype", "0" );
+		trap->Cvar_Update( &g_gametype );
 	}
 }
 
@@ -482,7 +264,7 @@ void G_RegisterCvars( void )
 	int i = 0;
 	for( i = 0, cv = gameCvarTable; i < gameCvarTableSize; i++, cv++ )
 	{
-		trap_Cvar_Register( cv->vmCvar, cv->cvarName, cv->defaultString, cv->cvarFlags );
+		trap->Cvar_Register( cv->vmCvar, cv->cvarName, cv->defaultString, cv->cvarFlags );
 		if( cv->update )
 			cv->update();
 	}
@@ -504,7 +286,7 @@ void G_UpdateCvars( void )
 		if( cv->vmCvar )
 		{
 			int modCount = cv->vmCvar->modificationCount;
-			trap_Cvar_Update( cv->vmCvar );
+			trap->Cvar_Update( cv->vmCvar );
 
 			if ( cv->vmCvar->modificationCount > modCount )
 			{
@@ -512,15 +294,14 @@ void G_UpdateCvars( void )
 					cv->update();
 
 				if ( cv->trackChange )
-					trap_SendServerCommand( -1, va("print \"Server: %s changed to %s\n\"", cv->cvarName, cv->vmCvar->string) );
+					trap->SendServerCommand( -1, va("print \"Server: %s changed to %s\n\"", cv->cvarName, cv->vmCvar->string) );
 			}
 		}
 	}
 }
 
 
-char gSharedBuffer[MAX_G_SHARED_BUFFER_SIZE];
-
+sharedBuffer_t gSharedBuffer;
 
 void G_CacheGametype( void )
 {
@@ -530,7 +311,7 @@ void G_CacheGametype( void )
 		int gt = BG_GetGametypeForString( g_gametype.string );
 		if ( gt == -1 )
 		{
-			G_Printf( "Gametype '%s' unrecognised, defaulting to FFA/Deathmatch\n", g_gametype.string );
+			trap->Print( "Gametype '%s' unrecognised, defaulting to FFA/Deathmatch\n", g_gametype.string );
 			level.gametype = GT_FFA;
 		}
 		else
@@ -538,13 +319,13 @@ void G_CacheGametype( void )
 	}
 	else if ( g_gametype.integer < 0 || level.gametype >= GT_MAX_GAME_TYPE )
 	{
-		G_Printf( "g_gametype %i is out of range, defaulting to 0\n", level.gametype );
+		trap->Print( "g_gametype %i is out of range, defaulting to 0\n", level.gametype );
 		level.gametype = GT_FFA;
 	}
 	else
 		level.gametype = (gametype_t)atoi( g_gametype.string );
 
-	trap_Cvar_Set( "g_gametype", va( "%i", level.gametype ) );
+	trap->Cvar_Set( "g_gametype", va( "%i", level.gametype ) );
 }
 
 /*
@@ -559,17 +340,17 @@ static void JKG_RegisteServerCallback ( asyncTask_t *task )
 	cJSON *data;
 	const char *error;
 	if (task->errorCode) {
-		G_Printf("ERROR: Failed to register server: Error code %i\n", task->errorCode);
+		trap->Print("ERROR: Failed to register server: Error code %i\n", task->errorCode);
 		return;
 	}
 	data = (cJSON *)task->finalData;
 
 	if (cJSON_ToInteger(cJSON_GetObjectItem(data, "errorCode"))) {
 		error = cJSON_ToString(cJSON_GetObjectItem(data, "message"));
-		G_Printf("ERROR: Failed to register server: %s\n", error ? error : "Unknown error");
+		trap->Print("ERROR: Failed to register server: %s\n", error ? error : "Unknown error");
 		return;
 	}
-	G_Printf("Server successfully registered\n");
+	trap->Print("Server successfully registered\n");
 }
 
 extern void RemoveAllWP(void);
@@ -592,22 +373,22 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	JKG_Admin_Init();
 
 	//Init RMG to 0, it will be autoset to 1 if there is terrain on the level.
-	trap_Cvar_Set("RMG", "0");
+	trap->Cvar_Set("RMG", "0");
 	RMG.integer = 0;
 
 	//Clean up any client-server ghoul2 instance attachments that may still exist exe-side
-	trap_G2API_CleanEntAttachments();
+	trap->G2API_CleanEntAttachments();
 
 	BG_InitAnimsets(); //clear it out
 
-	trap_SV_RegisterSharedMemory(gSharedBuffer);
+	trap->SV_RegisterSharedMemory(gSharedBuffer.raw);
 
 	//Load external vehicle data
 	BG_VehicleLoadParms();
 
-	G_Printf ("------- Game Initialization -------\n");
-	G_Printf ("gamename: %s\n", GAMEVERSION);
-	G_Printf ("gamedate: %s\n", __DATE__);
+	trap->Print ("------- Game Initialization -------\n");
+	trap->Print ("gamename: %s\n", GAMEVERSION);
+	trap->Print ("gamedate: %s\n", __DATE__);
 
 	srand( randomSeed );
 
@@ -629,37 +410,37 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	level.snd_medHealed = G_SoundIndex("sound/player/supp_healed.wav");
 	level.snd_medSupplied = G_SoundIndex("sound/player/supp_supplied.wav");
 
-	//trap_SP_RegisterServer("mp_svgame");
+	//trap->SP_RegisterServer("mp_svgame");
 
 	if ( g_log.string[0] )
 	{
-		trap_FS_FOpenFile( g_log.string, &level.logFile, g_logSync.integer ? FS_APPEND_SYNC : FS_APPEND );
+		trap->FS_Open( g_log.string, &level.logFile, g_logSync.integer ? FS_APPEND_SYNC : FS_APPEND );
 		if ( level.logFile )
-			G_Printf( "Logging to %s\n", g_log.string );
+			trap->Print( "Logging to %s\n", g_log.string );
 		else
-			G_Printf( "WARNING: Couldn't open logfile: %s\n", g_log.string );
+			trap->Print( "WARNING: Couldn't open logfile: %s\n", g_log.string );
 	}
 	else
-		G_Printf( "Not logging game events to disk.\n" );
+		trap->Print( "Not logging game events to disk.\n" );
 
-	trap_GetServerinfo( serverinfo, sizeof( serverinfo ) );
+	trap->GetServerinfo( serverinfo, sizeof( serverinfo ) );
 	G_LogPrintf( "------------------------------------------------------------\n" );
 	G_LogPrintf( "InitGame: %s\n", serverinfo );
 
 	if ( g_securityLog.integer )
 	{
 		if ( g_securityLog.integer == 1 )
-			trap_FS_FOpenFile( SECURITY_LOG, &level.security.log, FS_APPEND );
+			trap->FS_Open( SECURITY_LOG, &level.security.log, FS_APPEND );
 		else if ( g_securityLog.integer == 2 )
-			trap_FS_FOpenFile( SECURITY_LOG, &level.security.log, FS_APPEND_SYNC );
+			trap->FS_Open( SECURITY_LOG, &level.security.log, FS_APPEND_SYNC );
 
 		if ( level.security.log )
-			G_Printf( "Logging to "SECURITY_LOG"\n" );
+			trap->Print( "Logging to "SECURITY_LOG"\n" );
 		else
-			G_Printf( "WARNING: Couldn't open logfile: "SECURITY_LOG"\n" );
+			trap->Print( "WARNING: Couldn't open logfile: "SECURITY_LOG"\n" );
 	}
 	else
-		G_Printf( "Not logging security events to disk.\n" );
+		trap->Print( "Not logging security events to disk.\n" );
 
 	
 	G_LogWeaponInit();
@@ -694,7 +475,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	}
 
 	// let the server system know where the entites are
-	trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ), 
+	trap->LocateGameData( (sharedEntity_t *)level.gentities, level.num_entities, sizeof( gentity_t ), 
 		&level.clients[0].ps, sizeof( level.clients[0] ) );
 
 	JKG_ParseHiltFiles();
@@ -711,7 +492,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 //	Com_Printf("------ ICARUS Initialization ------\n");
 
-	trap_ICARUS_Init();
+	trap->ICARUS_Init();
 
 //	Com_Printf ("-----------------------------------\n");
 
@@ -728,10 +509,10 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 		JKG_BG_GangWarsInit();
 	}
 
-	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
-	trap_Cvar_Register( &ckSum, "sv_mapChecksum", "", CVAR_ROM );
+	trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+	trap->Cvar_Register( &ckSum, "sv_mapChecksum", "", CVAR_ROM );
 
-	navCalculatePaths	= ( trap_Nav_Load( mapname.string, ckSum.integer ) == qfalse );
+	navCalculatePaths	= ( trap->Nav_Load( mapname.string, ckSum.integer ) == qfalse );
 
 	// parse the key/value pairs and spawn gentities
 	G_SpawnEntitiesFromString(qfalse);
@@ -747,15 +528,15 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	if (level.gametype == GT_POWERDUEL)
 	{
-		trap_SetConfigstring ( CS_CLIENT_DUELISTS, va("-1|-1|-1") );
+		trap->SetConfigstring ( CS_CLIENT_DUELISTS, va("-1|-1|-1") );
 	}
 	else
 	{
-		trap_SetConfigstring ( CS_CLIENT_DUELISTS, va("-1|-1") );
+		trap->SetConfigstring ( CS_CLIENT_DUELISTS, va("-1|-1") );
 	}
 // nmckenzie: DUEL_HEALTH: Default.
-	trap_SetConfigstring ( CS_CLIENT_DUELHEALTHS, va("-1|-1|!") );
-	trap_SetConfigstring ( CS_CLIENT_DUELWINNER, va("-1") );
+	trap->SetConfigstring ( CS_CLIENT_DUELHEALTHS, va("-1|-1|!") );
+	trap->SetConfigstring ( CS_CLIENT_DUELWINNER, va("-1") );
 
 	/* Yum. Ammo. */
 	BG_InitializeAmmo();
@@ -783,15 +564,15 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	SaveRegisteredItems();
 
-	//G_Printf ("-----------------------------------\n");
+	//trap->Print ("-----------------------------------\n");
 
-	if( level.gametype == GT_SINGLE_PLAYER || trap_Cvar_VariableIntegerValue( "com_buildScript" ) ) {
+	if( level.gametype == GT_SINGLE_PLAYER || trap->Cvar_VariableIntegerValue( "com_buildScript" ) ) {
 		G_ModelIndex( SP_PODIUM_MODEL );
 		G_SoundIndex( "sound/player/gurp1.wav" );
 		G_SoundIndex( "sound/player/gurp2.wav" );
 	}
 
-	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
+	if ( trap->Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		BotAISetup( restart );
 		BotAILoadMap( restart );
 		G_InitBots( );
@@ -812,7 +593,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 		//out whenever you do a savegame since the edges and routes are dynamic...
 		//OR: always do a navigator.CheckBlockedEdges() on map startup after nav-load/calc-paths
 		//navigator.pathsCalculated = qtrue;//just to be safe?  Does this get saved out?  No... assumed
-		trap_Nav_SetPathsCalculated(qtrue);
+		trap->Nav_SetPathsCalculated(qtrue);
 		//need to do this, because combatpoint waypoints aren't saved out...?
 		CP_FindCombatPointWaypoints();
 		navCalcPathTime = 0;
@@ -820,7 +601,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 		/*
 		if ( g_eSavedGameJustLoaded == eNO )
 		{//clear all the failed edges unless we just loaded the game (which would include failed edges)
-			trap_Nav_ClearAllFailedEdges();
+			trap->Nav_ClearAllFailedEdges();
 		}
 		*/
 		//No loading games in MP.
@@ -838,7 +619,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	TeamInitializeServer();
 
 	/* TEMP - Stress level logging */
-	trap_FS_FOpenFile("stresslog.log", &stressfile, FS_APPEND);
+	trap->FS_Open("stresslog.log", &stressfile, FS_APPEND);
 	lastStressLog = levelTime;
 
 	JKG_BindChatCommands();
@@ -868,7 +649,7 @@ void G_ShutdownGame( int restart ) {
 	JKG_ShutdownThreading( 7000 );
 
 	if (stressfile) {
-		trap_FS_FCloseFile(stressfile);
+		trap->FS_Close(stressfile);
 		stressfile = 0;
 	}
 
@@ -878,7 +659,7 @@ void G_ShutdownGame( int restart ) {
 	JKG_Bans_SaveBans();
 	JKG_Bans_Clear();
 
-//	G_Printf ("==== ShutdownGame ====\n");
+//	trap->Print ("==== ShutdownGame ====\n");
 
 	G_CleanAllFakeClients(); //get rid of dynamically allocated fake client structs.
 
@@ -891,9 +672,9 @@ void G_ShutdownGame( int restart ) {
 	{ //clean up all the ghoul2 instances
 		ent = &g_entities[i];
 
-		if (ent->ghoul2 && trap_G2_HaveWeGhoul2Models(ent->ghoul2))
+		if (ent->ghoul2 && trap->G2API_HaveWeGhoul2Models(ent->ghoul2))
 		{
-			trap_G2API_CleanGhoul2Models(&ent->ghoul2);
+			trap->G2API_CleanGhoul2Models(&ent->ghoul2);
 			ent->ghoul2 = NULL;
 		}
 		if (ent->client)
@@ -902,9 +683,9 @@ void G_ShutdownGame( int restart ) {
 
 			while (j < MAX_SABERS)
 			{
-				if (ent->client->weaponGhoul2[j] && trap_G2_HaveWeGhoul2Models(ent->client->weaponGhoul2[j]))
+				if (ent->client->weaponGhoul2[j] && trap->G2API_HaveWeGhoul2Models(ent->client->weaponGhoul2[j]))
 				{
-					trap_G2API_CleanGhoul2Models(&ent->client->weaponGhoul2[j]);
+					trap->G2API_CleanGhoul2Models(&ent->client->weaponGhoul2[j]);
 				}
 				j++;
 			}
@@ -917,19 +698,19 @@ void G_ShutdownGame( int restart ) {
 		}
 		i++;
 	}
-	if (g2SaberInstance && trap_G2_HaveWeGhoul2Models(g2SaberInstance))
+	if (g2SaberInstance && trap->G2API_HaveWeGhoul2Models(g2SaberInstance))
 	{
-		trap_G2API_CleanGhoul2Models(&g2SaberInstance);
+		trap->G2API_CleanGhoul2Models(&g2SaberInstance);
 		g2SaberInstance = NULL;
 	}
-	if (precachedKyle && trap_G2_HaveWeGhoul2Models(precachedKyle))
+	if (precachedKyle && trap->G2API_HaveWeGhoul2Models(precachedKyle))
 	{
-		trap_G2API_CleanGhoul2Models(&precachedKyle);
+		trap->G2API_CleanGhoul2Models(&precachedKyle);
 		precachedKyle = NULL;
 	}
 
 //	Com_Printf ("... ICARUS_Shutdown\n");
-	trap_ICARUS_Shutdown ();	//Shut ICARUS down
+	trap->ICARUS_Shutdown ();	//Shut ICARUS down
 
 //	Com_Printf ("... Reference Tags Cleared\n");
 	TAG_Init();	//Clear the reference tags
@@ -938,55 +719,29 @@ void G_ShutdownGame( int restart ) {
 
 	if ( level.logFile ) {
 		G_LogPrintf( "ShutdownGame:\n------------------------------------------------------------\n" );
-		trap_FS_FCloseFile( level.logFile );
+		trap->FS_Close( level.logFile );
 		level.logFile = 0;
 	}
 
 	if ( level.security.log )
 	{
 		G_SecurityLogPrintf( "ShutdownGame\n\n" );
-		trap_FS_FCloseFile( level.security.log );
+		trap->FS_Close( level.security.log );
 		level.security.log = 0;
 	}
 
 	// write all the client session data so we can get it back
 	G_WriteSessionData();
 
-	trap_ROFF_Clean();
+	trap->ROFF_Clean();
 
-	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
+	if ( trap->Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		BotAIShutdown( restart );
 	}
 	JKG_Easy_DIMA_Cleanup();
 //	G_TerminateMemory(); // wipe all allocs made with G_Alloc
 	//JKG_Nav_Shutdown();
 	EVP_cleanup();
-}
-
-
-
-//===================================================================
-
-void QDECL Com_Error ( int errorLevel, const char *error, ... ) {
-	va_list		argptr;
-	char		text[1024];
-
-	va_start (argptr, error);
-	Q_vsnprintf (text, sizeof( text ), error, argptr);
-	va_end (argptr);
-
-	trap_Error(text);
-}
-
-void QDECL Com_Printf( const char *msg, ... ) {
-	va_list		argptr;
-	char		text[1024];
-
-	va_start (argptr, msg);
-	Q_vsnprintf (text, sizeof( text ), msg, argptr);
-	va_end (argptr);
-
-	trap_Print(text);
 }
 
 /*
@@ -1034,19 +789,20 @@ void AddTournamentPlayer( void ) {
 			continue;
 		}
 		// never select the dedicated follow or scoreboard clients
-		if ( client->sess.spectatorState == SPECTATOR_SCOREBOARD || 
+		if ( client->sess.spectatorState == SPECTATOR_SCOREBOARD ||
 			client->sess.spectatorClient < 0  ) {
 			continue;
 		}
 
-		if ( !nextInLine || client->sess.spectatorTime < nextInLine->sess.spectatorTime ) {
+		if ( !nextInLine || client->sess.spectatorNum > nextInLine->sess.spectatorNum )
 			nextInLine = client;
-		}
 	}
 
 	if ( !nextInLine ) {
 		return;
 	}
+
+	level.warmupTime = -1;
 
 	// set them to free-for-all team
 	SetTeam( &g_entities[ nextInLine - level.clients ], "f" );
@@ -1159,14 +915,13 @@ void AddPowerDuelPlayers( void )
 		}
 
 		// never select the dedicated follow or scoreboard clients
-		if ( client->sess.spectatorState == SPECTATOR_SCOREBOARD || 
+		if ( client->sess.spectatorState == SPECTATOR_SCOREBOARD ||
 			client->sess.spectatorClient < 0  ) {
 			continue;
 		}
 
-		if ( !nextInLine || client->sess.spectatorTime < nextInLine->sess.spectatorTime ) {
+		if ( !nextInLine || client->sess.spectatorNum > nextInLine->sess.spectatorNum )
 			nextInLine = client;
-		}
 	}
 
 	if ( !nextInLine ) {
@@ -1329,7 +1084,7 @@ void AdjustTournamentScores( void ) {
 
 			level.clients[ clientNum ].sess.wins++;
 			ClientUserinfoChanged( clientNum );
-			trap_SetConfigstring ( CS_CLIENT_DUELWINNER, va("%i", clientNum ) );
+			trap->SetConfigstring ( CS_CLIENT_DUELWINNER, va("%i", clientNum ) );
 
 			clientNum = level.sortedClients[clFailure];
 
@@ -1345,7 +1100,7 @@ void AdjustTournamentScores( void ) {
 
 			level.clients[ clientNum ].sess.wins++;
 			ClientUserinfoChanged( clientNum );
-			trap_SetConfigstring ( CS_CLIENT_DUELWINNER, va("%i", clientNum ) );
+			trap->SetConfigstring ( CS_CLIENT_DUELWINNER, va("%i", clientNum ) );
 
 			clientNum = level.sortedClients[clFailure];
 
@@ -1360,7 +1115,7 @@ void AdjustTournamentScores( void ) {
 			level.clients[ clientNum ].sess.wins++;
 			ClientUserinfoChanged( clientNum );
 
-			trap_SetConfigstring ( CS_CLIENT_DUELWINNER, va("%i", clientNum ) );
+			trap->SetConfigstring ( CS_CLIENT_DUELWINNER, va("%i", clientNum ) );
 		}
 
 		clientNum = level.sortedClients[1];
@@ -1417,10 +1172,10 @@ int QDECL SortRanks( const void *a, const void *b ) {
 
 	// then spectators
 	if ( ca->sess.sessionTeam == TEAM_SPECTATOR && cb->sess.sessionTeam == TEAM_SPECTATOR ) {
-		if ( ca->sess.spectatorTime < cb->sess.spectatorTime ) {
+		if ( ca->sess.spectatorNum > cb->sess.spectatorNum ) {
 			return -1;
 		}
-		if ( ca->sess.spectatorTime > cb->sess.spectatorTime ) {
+		if ( ca->sess.spectatorNum < cb->sess.spectatorNum ) {
 			return 1;
 		}
 		return 0;
@@ -1485,7 +1240,7 @@ void G_ResetDuelists(void)
 		g_noPDuelCheck = qtrue;
 		player_die(ent, ent, ent, 999, MOD_SUICIDE);
 		g_noPDuelCheck = qfalse;
-		trap_UnlinkEntity (ent);
+		trap->UnlinkEntity ((sharedEntity_t *)ent);
 		ClientSpawn(ent, qfalse);
 
 		// add a teleportation effect
@@ -1604,29 +1359,29 @@ void CalculateRanks( void ) {
 
 	// set the CS_SCORES1/2 configstrings, which will be visible to everyone
 	if ( level.gametype >= GT_TEAM ) {
-		trap_SetConfigstring( CS_SCORES1, va("%i", level.teamScores[TEAM_RED] ) );
-		trap_SetConfigstring( CS_SCORES2, va("%i", level.teamScores[TEAM_BLUE] ) );
+		trap->SetConfigstring( CS_SCORES1, va("%i", level.teamScores[TEAM_RED] ) );
+		trap->SetConfigstring( CS_SCORES2, va("%i", level.teamScores[TEAM_BLUE] ) );
 	} else {
 		if ( level.numConnectedClients == 0 ) {
-			trap_SetConfigstring( CS_SCORES1, va("%i", SCORE_NOT_PRESENT) );
-			trap_SetConfigstring( CS_SCORES2, va("%i", SCORE_NOT_PRESENT) );
+			trap->SetConfigstring( CS_SCORES1, va("%i", SCORE_NOT_PRESENT) );
+			trap->SetConfigstring( CS_SCORES2, va("%i", SCORE_NOT_PRESENT) );
 		} else if ( level.numConnectedClients == 1 ) {
-			trap_SetConfigstring( CS_SCORES1, va("%i", level.clients[ level.sortedClients[0] ].ps.persistant[PERS_SCORE] ) );
-			trap_SetConfigstring( CS_SCORES2, va("%i", SCORE_NOT_PRESENT) );
+			trap->SetConfigstring( CS_SCORES1, va("%i", level.clients[ level.sortedClients[0] ].ps.persistant[PERS_SCORE] ) );
+			trap->SetConfigstring( CS_SCORES2, va("%i", SCORE_NOT_PRESENT) );
 		} else {
-			trap_SetConfigstring( CS_SCORES1, va("%i", level.clients[ level.sortedClients[0] ].ps.persistant[PERS_SCORE] ) );
-			trap_SetConfigstring( CS_SCORES2, va("%i", level.clients[ level.sortedClients[1] ].ps.persistant[PERS_SCORE] ) );
+			trap->SetConfigstring( CS_SCORES1, va("%i", level.clients[ level.sortedClients[0] ].ps.persistant[PERS_SCORE] ) );
+			trap->SetConfigstring( CS_SCORES2, va("%i", level.clients[ level.sortedClients[1] ].ps.persistant[PERS_SCORE] ) );
 		}
 
 		if (level.gametype != GT_DUEL && level.gametype != GT_POWERDUEL)
 		{ //when not in duel, use this configstring to pass the index of the player currently in first place
 			if ( level.numConnectedClients >= 1 )
 			{
-				trap_SetConfigstring ( CS_CLIENT_DUELWINNER, va("%i", level.sortedClients[0] ) );
+				trap->SetConfigstring ( CS_CLIENT_DUELWINNER, va("%i", level.sortedClients[0] ) );
 			}
 			else
 			{
-				trap_SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
+				trap->SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
 			}
 		}
 	}
@@ -1729,7 +1484,7 @@ void FindIntermissionPoint( void ) {
 		ent = G_Find (NULL, FOFS(classname), "info_player_intermission");
 	}
 	if ( !ent ) {	// the map creator forgot to put in an intermission point...
-		SelectSpawnPoint ( vec3_origin, level.intermission_origin, level.intermission_angle, TEAM_SPECTATOR );
+		SelectSpawnPoint ( vec3_origin, level.intermission_origin, level.intermission_angle, TEAM_SPECTATOR, qfalse );
 	} else {
 		VectorCopy (ent->s.origin, level.intermission_origin);
 		VectorCopy (ent->s.angles, level.intermission_angle);
@@ -1762,7 +1517,7 @@ void BeginIntermission( void ) {
 
 	// if in tournement mode, change the wins / losses
 	if ( level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL ) {
-		trap_SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
+		trap->SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
 
 		if (level.gametype != GT_POWERDUEL)
 		{
@@ -1858,7 +1613,7 @@ void ExitLevel (void) {
 		if (!DuelLimitHit())
 		{
 			if ( !level.restarted ) {
-				trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
+				trap->SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
 				level.restarted = qtrue;
 				level.changemap = NULL;
 				level.intermissiontime = 0;
@@ -1869,7 +1624,7 @@ void ExitLevel (void) {
 		DuelResetWinsLosses();
 	}
 
-	trap_SendConsoleCommand( EXEC_APPEND, "vstr nextmap\n" );
+	trap->SendConsoleCommand( EXEC_APPEND, "vstr nextmap\n" );
 	level.changemap = NULL;
 	level.intermissiontime = 0;
 
@@ -1925,12 +1680,12 @@ void QDECL G_LogPrintf( const char *fmt, ... ) {
 	va_end( argptr );
 
 	if ( dedicated.integer )
-		G_Printf( "%s", string + l );
+		trap->Print( "%s", string + l );
 
 	if ( !level.logFile )
 		return;
 
-	trap_FS_Write( string, strlen( string ), level.logFile );
+	trap->FS_Write( string, strlen( string ), level.logFile );
 }
 /*
 =================
@@ -1956,12 +1711,12 @@ void QDECL G_SecurityLogPrintf( const char *fmt, ... ) {
 	va_end( argptr );
 
 	if ( dedicated.integer )
-		G_Printf( "%s", string + timeLen );
+		trap->Print( "%s", string + timeLen );
 
 	if ( !level.security.log )
 		return;
 
-	trap_FS_Write( string, strlen( string ), level.security.log );
+	trap->FS_Write( string, strlen( string ), level.security.log );
 }
 
 /*
@@ -1981,7 +1736,7 @@ void LogExit( const char *string ) {
 
 	// this will keep the clients from playing any voice sounds
 	// that will get cut off when the queued intermission starts
-	trap_SetConfigstring( CS_INTERMISSION, "1" );
+	trap->SetConfigstring( CS_INTERMISSION, "1" );
 
 	// don't send more than 32 scores (FIXME?)
 	numSorted = level.numConnectedClients;
@@ -2029,7 +1784,7 @@ void LogExit( const char *string ) {
 		if (level.gametype >= GT_CTF) {
 			won = level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE];
 		}
-		trap_SendConsoleCommand( EXEC_APPEND, (won) ? "spWin\n" : "spLose\n" );
+		trap->SendConsoleCommand( EXEC_APPEND, (won) ? "spWin\n" : "spLose\n" );
 	}
 	*/
 }
@@ -2153,16 +1908,16 @@ void CheckIntermissionExit( void ) {
 			{
 				if (level.numPlayingClients >= 3 && level.numNonSpectatorClients >= 3)
 				{
-					trap_SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i|%i", level.sortedClients[0], level.sortedClients[1], level.sortedClients[2] ) );
-					trap_SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
+					trap->SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i|%i", level.sortedClients[0], level.sortedClients[1], level.sortedClients[2] ) );
+					trap->SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
 				}			
 			}
 			else
 			{
 				if (level.numPlayingClients >= 2)
 				{
-					trap_SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i", level.sortedClients[0], level.sortedClients[1] ) );
-					trap_SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
+					trap->SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i", level.sortedClients[0], level.sortedClients[1] ) );
+					trap->SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
 				}
 			}
 
@@ -2184,8 +1939,8 @@ void CheckIntermissionExit( void ) {
 
 			if (level.numPlayingClients >= 3 && level.numNonSpectatorClients >= 3)
 			{
-				trap_SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i|%i", level.sortedClients[0], level.sortedClients[1], level.sortedClients[2] ) );
-				trap_SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
+				trap->SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i|%i", level.sortedClients[0], level.sortedClients[1], level.sortedClients[2] ) );
+				trap->SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
 			}
 		}
 		else
@@ -2209,8 +1964,8 @@ void CheckIntermissionExit( void ) {
 
 			if (level.numPlayingClients >= 2)
 			{
-				trap_SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i", level.sortedClients[0], level.sortedClients[1] ) );
-				trap_SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
+				trap->SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i", level.sortedClients[0], level.sortedClients[1] ) );
+				trap->SetConfigstring ( CS_CLIENT_DUELWINNER, "-1" );
 			}
 		}
 	}
@@ -2424,8 +2179,8 @@ void CheckExitRules( void ) {
 
 	if ( timelimit.value ) {
 		if ( level.time - level.startTime >= timelimit.value*60000 ) {
-//				trap_SendServerCommand( -1, "print \"Timelimit hit.\n\"");
-			trap_SendServerCommand( -1, va("print \"%s.\n\"",G_GetStringEdString("MP_SVGAME", "TIMELIMIT_HIT")));
+//				trap->SendServerCommand( -1, "print \"Timelimit hit.\n\"");
+			trap->SendServerCommand( -1, va("print \"%s.\n\"",G_GetStringEdString("MP_SVGAME", "TIMELIMIT_HIT")));
 			if (d_powerDuelPrint.integer)
 			{
 				Com_Printf("POWERDUEL WIN CONDITION: Timelimit hit (1)\n");
@@ -2468,7 +2223,7 @@ void CheckExitRules( void ) {
 	}
 	if ( level.gametype <= GT_TEAM && fraglimit.integer ) {
 		if ( level.teamScores[TEAM_RED] >= fraglimit.integer ) {
-			trap_SendServerCommand( -1, va("print \"Red %s\n\"", G_GetStringEdString("MP_SVGAME", "HIT_THE_KILL_LIMIT")) );
+			trap->SendServerCommand( -1, va("print \"Red %s\n\"", G_GetStringEdString("MP_SVGAME", "HIT_THE_KILL_LIMIT")) );
 			if (d_powerDuelPrint.integer)
 			{
 				Com_Printf("POWERDUEL WIN CONDITION: Kill limit (1)\n");
@@ -2478,7 +2233,7 @@ void CheckExitRules( void ) {
 		}
 
 		if ( level.teamScores[TEAM_BLUE] >= fraglimit.integer ) {
-			trap_SendServerCommand( -1, va("print \"Blue %s\n\"", G_GetStringEdString("MP_SVGAME", "HIT_THE_KILL_LIMIT")) );
+			trap->SendServerCommand( -1, va("print \"Blue %s\n\"", G_GetStringEdString("MP_SVGAME", "HIT_THE_KILL_LIMIT")) );
 			if (d_powerDuelPrint.integer)
 			{
 				Com_Printf("POWERDUEL WIN CONDITION: Kill limit (2)\n");
@@ -2504,7 +2259,7 @@ void CheckExitRules( void ) {
 				}
 				LogExit( "Duel limit hit." );
 				gDuelExit = qtrue;
-				trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " hit the win limit.\n\"",
+				trap->SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " hit the win limit.\n\"",
 					cl->pers.netname ) );
 				return;
 			}
@@ -2518,7 +2273,7 @@ void CheckExitRules( void ) {
 				gDuelExit = qfalse;
 				if (printLimit)
 				{
-					trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " %s.\n\"",
+					trap->SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " %s.\n\"",
 													cl->pers.netname,
 													G_GetStringEdString("MP_SVGAME", "HIT_THE_KILL_LIMIT")
 													) 
@@ -2533,17 +2288,17 @@ void CheckExitRules( void ) {
 
 		if ( level.teamScores[TEAM_RED] >= capturelimit.integer ) 
 		{
-			//trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString("MP_SVGAME", "PRINTREDTEAM")));
-			trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString2(bgGangWarsTeams[level.redTeam].longname)));
-			trap_SendServerCommand( -1,  va("print \"%s.\n\"", G_GetStringEdString("MP_SVGAME", "HIT_CAPTURE_LIMIT")));
+			//trap->SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString("MP_SVGAME", "PRINTREDTEAM")));
+			trap->SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString2(bgGangWarsTeams[level.redTeam].longname)));
+			trap->SendServerCommand( -1,  va("print \"%s.\n\"", G_GetStringEdString("MP_SVGAME", "HIT_CAPTURE_LIMIT")));
 			LogExit( "Capturelimit hit." );
 			return;
 		}
 
 		if ( level.teamScores[TEAM_BLUE] >= capturelimit.integer ) {
-			//trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString("MP_SVGAME", "PRINTBLUETEAM")));
-			trap_SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].longname)));
-			trap_SendServerCommand( -1,  va("print \"%s.\n\"", G_GetStringEdString("MP_SVGAME", "HIT_CAPTURE_LIMIT")));
+			//trap->SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString("MP_SVGAME", "PRINTBLUETEAM")));
+			trap->SendServerCommand( -1,  va("print \"%s \"", G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].longname)));
+			trap->SendServerCommand( -1,  va("print \"%s.\n\"", G_GetStringEdString("MP_SVGAME", "HIT_CAPTURE_LIMIT")));
 			LogExit( "Capturelimit hit." );
 			return;
 		}
@@ -2596,14 +2351,14 @@ void CheckTournament( void ) {
 	{
 		if (level.numPlayingClients >= 3 && level.numNonSpectatorClients >= 3)
 		{
-			trap_SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i|%i", level.sortedClients[0], level.sortedClients[1], level.sortedClients[2] ) );
+			trap->SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i|%i", level.sortedClients[0], level.sortedClients[1], level.sortedClients[2] ) );
 		}
 	}
 	else
 	{
 		if (level.numPlayingClients >= 2)
 		{
-			trap_SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i", level.sortedClients[0], level.sortedClients[1] ) );
+			trap->SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i", level.sortedClients[0], level.sortedClients[1] ) );
 		}
 	}
 
@@ -2615,7 +2370,7 @@ void CheckTournament( void ) {
 
 			if (level.numPlayingClients >= 2)
 			{
-				trap_SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i", level.sortedClients[0], level.sortedClients[1] ) );
+				trap->SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i", level.sortedClients[0], level.sortedClients[1] ) );
 			}
 		}
 
@@ -2627,7 +2382,7 @@ void CheckTournament( void ) {
 				playerState_t *ps1, *ps2;
 				ps1 = &level.clients[level.sortedClients[0]].ps;
 				ps2 = &level.clients[level.sortedClients[1]].ps;
-				trap_SetConfigstring ( CS_CLIENT_DUELHEALTHS, va("%i|%i|!", 
+				trap->SetConfigstring ( CS_CLIENT_DUELHEALTHS, va("%i|%i|!", 
 					ps1->stats[STAT_HEALTH], ps2->stats[STAT_HEALTH]));
 			}
 		}
@@ -2685,7 +2440,7 @@ void CheckTournament( void ) {
 				te->s.otherEntityNum2 = level.sortedClients[1];
 				te->s.groundEntityNum = level.sortedClients[2];
 
-				trap_SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i|%i", level.sortedClients[0], level.sortedClients[1], level.sortedClients[2] ) );
+				trap->SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i|%i", level.sortedClients[0], level.sortedClients[1], level.sortedClients[2] ) );
 				G_ResetDuelists();
 
 				g_dontFrickinCheck = qtrue;
@@ -2700,11 +2455,11 @@ void CheckTournament( void ) {
 					G_PowerDuelCount(&lone, &dbl, qtrue);
 					if (lone < 1)
 					{
-						trap_SendServerCommand( -1, va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "DUELMORESINGLE")) );
+						trap->SendServerCommand( -1, va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "DUELMORESINGLE")) );
 					}
 					else
 					{
-						trap_SendServerCommand( -1, va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "DUELMOREPAIRED")) );
+						trap->SendServerCommand( -1, va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "DUELMOREPAIRED")) );
 					}
 					g_duelPrintTimer = level.time + 10000;
 				}
@@ -2721,7 +2476,7 @@ void CheckTournament( void ) {
 					te->s.otherEntityNum2 = level.sortedClients[1];
 					te->s.groundEntityNum = level.sortedClients[2];
 
-					trap_SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i|%i", level.sortedClients[0], level.sortedClients[1], level.sortedClients[2] ) );
+					trap->SetConfigstring ( CS_CLIENT_DUELISTS, va("%i|%i|%i", level.sortedClients[0], level.sortedClients[1], level.sortedClients[2] ) );
 
 					if ( g_austrian.integer )
 					{
@@ -2737,7 +2492,7 @@ void CheckTournament( void ) {
 							level.clients[level.sortedClients[2]].sess.losses,
 							fraglimit.integer );
 					}
-					//trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
+					//trap->SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
 					//FIXME: This seems to cause problems. But we'd like to reset things whenever a new opponent is set.
 				}
 			}
@@ -2768,7 +2523,7 @@ void G_KickAllBots(void)
 		}
 		strcpy(netname, cl->pers.netname);
 		Q_CleanStr(netname);
-		trap_SendConsoleCommand( EXEC_INSERT, va("kick \"%s\"\n", netname) );
+		trap->SendConsoleCommand( EXEC_INSERT, va("kick \"%s\"\n", netname) );
 	}
 }
 
@@ -2780,7 +2535,7 @@ CheckVote
 void CheckVote( void ) {
 	if ( level.voteExecuteTime && level.voteExecuteTime < level.time ) {
 		level.voteExecuteTime = 0;
-		trap_SendConsoleCommand( EXEC_APPEND, va("%s\n", level.voteString ) );
+		trap->SendConsoleCommand( EXEC_APPEND, va("%s\n", level.voteString ) );
 
 		if (level.votingGametype)
 		{
@@ -2790,7 +2545,7 @@ void CheckVote( void ) {
 
 				if (nextMap && nextMap[0])
 				{
-					trap_SendConsoleCommand( EXEC_APPEND, va("map %s\n", nextMap ) );
+					trap->SendConsoleCommand( EXEC_APPEND, va("map %s\n", nextMap ) );
 				}
 			}
 			else
@@ -2808,11 +2563,11 @@ void CheckVote( void ) {
 				{
 					if (currentFL > 3 || !currentFL)
 					{ //if voting to duel, and fraglimit is more than 3 (or unlimited), then set it down to 3
-						trap_SendConsoleCommand(EXEC_APPEND, "fraglimit 3\n");
+						trap->SendConsoleCommand(EXEC_APPEND, "fraglimit 3\n");
 					}
 					if (currentTL)
 					{ //if voting to duel, and timelimit is set, make it unlimited
-						trap_SendConsoleCommand(EXEC_APPEND, "timelimit 0\n");
+						trap->SendConsoleCommand(EXEC_APPEND, "timelimit 0\n");
 					}
 				}
 				else if ((level.votingGametypeTo != GT_DUEL && level.votingGametypeTo != GT_POWERDUEL) &&
@@ -2820,7 +2575,7 @@ void CheckVote( void ) {
 				{
 					if (currentFL && currentFL < 20)
 					{ //if voting from duel, an fraglimit is less than 20, then set it up to 20
-						trap_SendConsoleCommand(EXEC_APPEND, "fraglimit 20\n");
+						trap->SendConsoleCommand(EXEC_APPEND, "fraglimit 20\n");
 					}
 				}
 			}
@@ -2833,12 +2588,12 @@ void CheckVote( void ) {
 		return;
 	}
 	if ( level.time-level.voteTime >= VOTE_TIME || level.voteYes + level.voteNo == 0 ) {
-		trap_SendServerCommand( -1, va("print \"%s (%s)\n\"", G_GetStringEdString("MP_SVGAME", "VOTEFAILED"), level.voteStringClean) );
+		trap->SendServerCommand( -1, va("print \"%s (%s)\n\"", G_GetStringEdString("MP_SVGAME", "VOTEFAILED"), level.voteStringClean) );
 	}
 	else {
 		if ( level.voteYes > level.numVotingClients/2 ) {
 			// execute the command, then remove the vote
-			trap_SendServerCommand( -1, va("print \"%s (%s)\n\"", G_GetStringEdString("MP_SVGAME", "VOTEPASSED"), level.voteStringClean) );
+			trap->SendServerCommand( -1, va("print \"%s (%s)\n\"", G_GetStringEdString("MP_SVGAME", "VOTEPASSED"), level.voteStringClean) );
 			level.voteExecuteTime = level.time + 3000;
 		}
 
@@ -2851,13 +2606,13 @@ void CheckVote( void ) {
 			even if player C would vote Yes and it should have been 2:1 and passed */
 	//	else if ( level.voteNo >= level.numVotingClients/2 )
 		else if ( level.voteNo >= (level.numVotingClients+1)/2 )
-			trap_SendServerCommand( -1, va("print \"%s (%s)\n\"", G_GetStringEdString("MP_SVGAME", "VOTEFAILED"), level.voteStringClean) );
+			trap->SendServerCommand( -1, va("print \"%s (%s)\n\"", G_GetStringEdString("MP_SVGAME", "VOTEFAILED"), level.voteStringClean) );
 
 		else // still waiting for a majority
 			return;
 	}
 	level.voteTime = 0;
-	trap_SetConfigstring( CS_VOTE_TIME, "" );
+	trap->SetConfigstring( CS_VOTE_TIME, "" );
 }
 
 /*
@@ -2871,7 +2626,7 @@ void PrintTeam(int team, char *message) {
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		if (level.clients[i].sess.sessionTeam != team)
 			continue;
-		trap_SendServerCommand( i, message );
+		trap->SendServerCommand( i, message );
 	}
 }
 
@@ -2955,29 +2710,29 @@ void CheckTeamVote( int team ) {
 		return;
 	}
 	if ( level.time - level.teamVoteTime[cs_offset] >= VOTE_TIME ) {
-		trap_SendServerCommand( -1, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TEAMVOTEFAILED")) );
+		trap->SendServerCommand( -1, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TEAMVOTEFAILED")) );
 	} else {
 		if ( level.teamVoteYes[cs_offset] > level.numteamVotingClients[cs_offset]/2 ) {
 			// execute the command, then remove the vote
-			trap_SendServerCommand( -1, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TEAMVOTEPASSED")) );
+			trap->SendServerCommand( -1, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TEAMVOTEPASSED")) );
 			//
 			if ( !Q_strncmp( "leader", level.teamVoteString[cs_offset], 6) ) {
 				//set the team leader
 				//SetLeader(team, atoi(level.teamVoteString[cs_offset] + 7));
 			}
 			else {
-				trap_SendConsoleCommand( EXEC_APPEND, va("%s\n", level.teamVoteString[cs_offset] ) );
+				trap->SendConsoleCommand( EXEC_APPEND, va("%s\n", level.teamVoteString[cs_offset] ) );
 			}
 		} else if ( level.teamVoteNo[cs_offset] >= (level.numteamVotingClients[cs_offset]+1)/2 ) {
 			// same behavior as a timeout
-			trap_SendServerCommand( -1, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TEAMVOTEFAILED")) );
+			trap->SendServerCommand( -1, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TEAMVOTEFAILED")) );
 		} else {
 			// still waiting for a majority
 			return;
 		}
 	}
 	level.teamVoteTime[cs_offset] = 0;
-	trap_SetConfigstring( CS_TEAMVOTE_TIME + cs_offset, "" );
+	trap->SetConfigstring( CS_TEAMVOTE_TIME + cs_offset, "" );
 
 }
 
@@ -3004,12 +2759,12 @@ void CheckCvars( void ) {
 			}
 			c++;
 		}
-		trap_Cvar_Set("g_password", password );
+		trap->Cvar_Set("g_password", password );
 
 		if ( *g_password.string && Q_stricmp( g_password.string, "none" ) ) {
-			trap_Cvar_Set( "g_needpass", "1" );
+			trap->Cvar_Set( "g_needpass", "1" );
 		} else {
-			trap_Cvar_Set( "g_needpass", "0" );
+			trap->Cvar_Set( "g_needpass", "0" );
 		}
 	}
 }
@@ -3042,7 +2797,7 @@ void G_RunThink (gentity_t *ent) {
 runicarus:
 	if ( ent->inuse && !ent->isLogical )
 	{
-		trap_ICARUS_MaintainTaskManager(ent->s.number);
+		trap->ICARUS_MaintainTaskManager(ent->s.number);
 	}
 }
 
@@ -3061,16 +2816,16 @@ void NAV_CheckCalcPaths( void )
 		vmCvar_t	mapname;
 		vmCvar_t	ckSum;
 
-		trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
-		trap_Cvar_Register( &ckSum, "sv_mapChecksum", "", CVAR_ROM );
+		trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+		trap->Cvar_Register( &ckSum, "sv_mapChecksum", "", CVAR_ROM );
 
 		//clear all the failed edges
-		trap_Nav_ClearAllFailedEdges();
+		trap->Nav_ClearAllFailedEdges();
 
 		//Calculate all paths
 		NAV_CalculatePaths( mapname.string, ckSum.integer );
 		
-		trap_Nav_CalculatePaths(qfalse);
+		trap->Nav_CalculatePaths(qfalse);
 
 #ifndef FINAL_BUILD
 		if ( fatalErrors )
@@ -3079,7 +2834,7 @@ void NAV_CheckCalcPaths( void )
 		}
 		else 
 #endif
-		if ( trap_Nav_Save( mapname.string, ckSum.integer ) == qfalse )
+		if ( trap->Nav_Save( mapname.string, ckSum.integer ) == qfalse )
 		{
 			Com_Printf("Unable to save navigations data for map \"%s\" (checksum:%d)\n", mapname.string, ckSum.integer );
 		}
@@ -3129,7 +2884,7 @@ void G_RunFrame( int levelTime ) {
 	void		*timer_Queues;
 #endif
 
-	FRAME_TIME = trap_Milliseconds();
+	FRAME_TIME = trap->Milliseconds();
 
 	// Run the main thread task poller (calling final callback functions that need to be on the main thread)
 	//JKG_MainThreadPoller();
@@ -3155,9 +2910,9 @@ void G_RunFrame( int levelTime ) {
 						// Dead connection
 						if (jkg_fakeplayerbantime.string[0]) {
 							JKG_Bans_AddBan(svs->clients[i].netchan.remoteAddress, jkg_fakeplayerbantime.string, "Fake player DoS");
-							//trap_SendConsoleCommand(EXEC_NOW, va("addban %s %s Fake player DoS\n",cl->sess.IP, &jkg_fakeplayerbantime.string[0]));
+							//trap->SendConsoleCommand(EXEC_NOW, va("addban %s %s Fake player DoS\n",cl->sess.IP, &jkg_fakeplayerbantime.string[0]));
 						}
-						trap_DropClient(i,"was kicked! Fake client detected.");
+						trap->DropClient(i,"was kicked! Fake client detected.");
 						
 					} else {
 						cl->sess.noq3fill = 1;
@@ -3201,11 +2956,11 @@ void G_RunFrame( int levelTime ) {
 			char buf[128];
 			float tFVal = 0;
 
-			trap_Cvar_VariableStringBuffer("timescale", buf, sizeof(buf));
+			trap->Cvar_VariableStringBuffer("timescale", buf, sizeof(buf));
 
 			tFVal = atof(buf);
 
-			trap_Cvar_Set("timescale", "1");
+			trap->Cvar_Set("timescale", "1");
 			if (tFVal == 1.0f)
 			{
 				gDoSlowMoDuel = qfalse;
@@ -3218,7 +2973,7 @@ void G_RunFrame( int levelTime ) {
 
 			if (timeDif < 150)
 			{
-				trap_Cvar_Set("timescale", "0.1f");
+				trap->Cvar_Set("timescale", "0.1f");
 			}
 			else if (timeDif < 1150)
 			{
@@ -3231,18 +2986,18 @@ void G_RunFrame( int levelTime ) {
 				{
 					useDif = 1.0f;
 				}
-				trap_Cvar_Set("timescale", va("%f", useDif));
+				trap->Cvar_Set("timescale", va("%f", useDif));
 			}
 			else
 			{
 				char buf[128];
 				float tFVal = 0;
 
-				trap_Cvar_VariableStringBuffer("timescale", buf, sizeof(buf));
+				trap->Cvar_VariableStringBuffer("timescale", buf, sizeof(buf));
 
 				tFVal = atof(buf);
 
-				trap_Cvar_Set("timescale", "1");
+				trap->Cvar_Set("timescale", "1");
 				if (timeDif > 1500 && tFVal == 1.0f)
 				{
 					gDoSlowMoDuel = qfalse;
@@ -3272,9 +3027,9 @@ void G_RunFrame( int levelTime ) {
 	{
 		if ( d_altRoutes.integer )
 		{
-			trap_Nav_CheckAllFailedEdges();
+			trap->Nav_CheckAllFailedEdges();
 		}
-		trap_Nav_ClearCheckedNodes();
+		trap->Nav_ClearCheckedNodes();
 
 		//remember last waypoint, clear current one
 		for ( i = 0; i < level.num_entities ; i++) 
@@ -3292,7 +3047,7 @@ void G_RunFrame( int levelTime ) {
 			}
 			if ( d_altRoutes.integer )
 			{
-				trap_Nav_CheckFailedNodes( ent );
+				trap->Nav_CheckFailedNodes( (sharedEntity_t *)ent );
 			}
 		}
 
@@ -3314,7 +3069,7 @@ void G_RunFrame( int levelTime ) {
 	JKG_CheckVendorReplenish();
 
 #ifdef _G_FRAME_PERFANAL
-	trap_PrecisionTimer_Start(&timer_ItemRun);
+	trap->PrecisionTimer_Start(&timer_ItemRun);
 #endif
 	//
 	// go through all allocated objects
@@ -3346,7 +3101,7 @@ void G_RunFrame( int levelTime ) {
 			{
 				// items that will respawn will hide themselves after their pickup event
 				ent->unlinkAfterEvent = qfalse;
-				trap_UnlinkEntity( ent );
+				trap->UnlinkEntity( (sharedEntity_t *)ent );
 			}
 		}
 
@@ -3577,7 +3332,7 @@ void G_RunFrame( int levelTime ) {
 				NAV_FindPlayerWaypoint(i);
 			}
 
-			trap_ICARUS_MaintainTaskManager(ent->s.number);
+			trap->ICARUS_MaintainTaskManager(ent->s.number);
 
 			G_RunClient( ent );
 			continue;
@@ -3616,19 +3371,19 @@ void G_RunFrame( int levelTime ) {
 		G_RunThink( ent );
 	}
 #ifdef _G_FRAME_PERFANAL
-	iTimer_ItemRun = trap_PrecisionTimer_End(timer_ItemRun);
+	iTimer_ItemRun = trap->PrecisionTimer_End(timer_ItemRun);
 
-	trap_PrecisionTimer_Start(&timer_ROFF);
+	trap->PrecisionTimer_Start(&timer_ROFF);
 #endif
-	trap_ROFF_UpdateEntities();
+	trap->ROFF_UpdateEntities();
 #ifdef _G_FRAME_PERFANAL
-	iTimer_ROFF = trap_PrecisionTimer_End(timer_ROFF);
+	iTimer_ROFF = trap->PrecisionTimer_End(timer_ROFF);
 #endif
 
 
 
 #ifdef _G_FRAME_PERFANAL
-	trap_PrecisionTimer_Start(&timer_ClientEndframe);
+	trap->PrecisionTimer_Start(&timer_ClientEndframe);
 #endif
 	// perform final fixups on the players
 	ent = &g_entities[0];
@@ -3638,13 +3393,13 @@ void G_RunFrame( int levelTime ) {
 		}
 	}
 #ifdef _G_FRAME_PERFANAL
-	iTimer_ClientEndframe = trap_PrecisionTimer_End(timer_ClientEndframe);
+	iTimer_ClientEndframe = trap->PrecisionTimer_End(timer_ClientEndframe);
 #endif
 
 
 
 #ifdef _G_FRAME_PERFANAL
-	trap_PrecisionTimer_Start(&timer_GameChecks);
+	trap->PrecisionTimer_Start(&timer_GameChecks);
 #endif
 	// see if it is time to do a tournement restart
 	CheckTournament();
@@ -3667,18 +3422,18 @@ void G_RunFrame( int levelTime ) {
 
 	if (g_listEntity.integer) {
 		for (i = 0; i < MAX_GENTITIES; i++) {
-			G_Printf("%4i: %s\n", i, g_entities[i].classname);
+			trap->Print("%4i: %s\n", i, g_entities[i].classname);
 		}
-		trap_Cvar_Set("g_listEntity", "0");
+		trap->Cvar_Set("g_listEntity", "0");
 	}
 #ifdef _G_FRAME_PERFANAL
-	iTimer_GameChecks = trap_PrecisionTimer_End(timer_GameChecks);
+	iTimer_GameChecks = trap->PrecisionTimer_End(timer_GameChecks);
 #endif
 
 
 
 #ifdef _G_FRAME_PERFANAL
-	trap_PrecisionTimer_Start(&timer_Queues);
+	trap->PrecisionTimer_Start(&timer_Queues);
 #endif
 	//At the end of the frame, send out the ghoul2 kill queue, if there is one
 	G_SendG2KillQueue();
@@ -3694,7 +3449,7 @@ void G_RunFrame( int levelTime ) {
 		}
 	}
 #ifdef _G_FRAME_PERFANAL
-	iTimer_Queues = trap_PrecisionTimer_End(timer_Queues);
+	iTimer_Queues = trap->PrecisionTimer_End(timer_Queues);
 #endif
 
 
@@ -3715,7 +3470,7 @@ const char *G_GetStringEdString(char *refSection, char *refName)
 {
 	/*
 	static char text[1024]={0};
-	trap_SP_GetStringTextString(va("%s_%s", refSection, refName), text, sizeof(text));
+	trap->SP_GetStringTextString(va("%s_%s", refSection, refName), text, sizeof(text));
 	return text;
 	*/
 
@@ -3729,27 +3484,321 @@ const char *G_GetStringEdString(char *refSection, char *refName)
 	return text;
 }
 
-const char *G_GetStringEdString2(char *refName)
-{
-	/*
-	static char text[1024]={0};
-	trap_SP_GetStringTextString(va("%s_%s", refSection, refName), text, sizeof(text));
-	return text;
-	*/
+static void G_SpawnRMGEntity( void ) {
+	if ( G_ParseSpawnVars( qfalse ) )
+		G_SpawnGEntityFromSpawnVars( qfalse );
+}
 
-	//Well, it would've been lovely doing it the above way, but it would mean mixing
-	//languages for the client depending on what the server is. So we'll mark this as
-	//a stringed reference with @@@ and send the refname to the client, and when it goes
-	//to print it will get scanned for the stringed reference indication and dealt with
-	//properly.
-	static char text[1024]={0};
-	if(refName[0] == '@')
-	{
-		return G_GetStringEdString("", refName);
+static void _G_ROFF_NotetrackCallback( int entID, const char *notetrack ) {
+	G_ROFF_NotetrackCallback( &g_entities[entID], notetrack );
+}
+
+static int G_ICARUS_PlaySound( void ) {
+	T_G_ICARUS_PLAYSOUND *sharedMem = &gSharedBuffer.playSound;
+	return Q3_PlaySound( sharedMem->taskID, sharedMem->entID, sharedMem->name, sharedMem->channel );
+}
+static qboolean G_ICARUS_Set( void ) {
+	T_G_ICARUS_SET *sharedMem = &gSharedBuffer.set;
+	return Q3_Set( sharedMem->taskID, sharedMem->entID, sharedMem->type_name, sharedMem->data );
+}
+static void G_ICARUS_Lerp2Pos( void ) {
+	T_G_ICARUS_LERP2POS *sharedMem = &gSharedBuffer.lerp2Pos;
+	Q3_Lerp2Pos( sharedMem->taskID, sharedMem->entID, sharedMem->origin, sharedMem->nullAngles ? NULL : sharedMem->angles, sharedMem->duration );
+}
+static void G_ICARUS_Lerp2Origin( void ) {
+	T_G_ICARUS_LERP2ORIGIN *sharedMem = &gSharedBuffer.lerp2Origin;
+	Q3_Lerp2Origin( sharedMem->taskID, sharedMem->entID, sharedMem->origin, sharedMem->duration );
+}
+static void G_ICARUS_Lerp2Angles( void ) {
+	T_G_ICARUS_LERP2ANGLES *sharedMem = &gSharedBuffer.lerp2Angles;
+	Q3_Lerp2Angles( sharedMem->taskID, sharedMem->entID, sharedMem->angles, sharedMem->duration );
+}
+static int G_ICARUS_GetTag( void ) {
+	T_G_ICARUS_GETTAG *sharedMem = &gSharedBuffer.getTag;
+	return Q3_GetTag( sharedMem->entID, sharedMem->name, sharedMem->lookup, sharedMem->info );
+}
+static void G_ICARUS_Lerp2Start( void ) {
+	T_G_ICARUS_LERP2START *sharedMem = &gSharedBuffer.lerp2Start;
+	Q3_Lerp2Start( sharedMem->entID, sharedMem->taskID, sharedMem->duration );
+}
+static void G_ICARUS_Lerp2End( void ) {
+	T_G_ICARUS_LERP2END *sharedMem = &gSharedBuffer.lerp2End;
+	Q3_Lerp2End( sharedMem->entID, sharedMem->taskID, sharedMem->duration );
+}
+static void G_ICARUS_Use( void ) {
+	T_G_ICARUS_USE *sharedMem = &gSharedBuffer.use;
+	Q3_Use( sharedMem->entID, sharedMem->target );
+}
+static void G_ICARUS_Kill( void ) {
+	T_G_ICARUS_KILL *sharedMem = &gSharedBuffer.kill;
+	Q3_Kill( sharedMem->entID, sharedMem->name );
+}
+static void G_ICARUS_Remove( void ) {
+	T_G_ICARUS_REMOVE *sharedMem = &gSharedBuffer.remove;
+	Q3_Remove( sharedMem->entID, sharedMem->name );
+}
+static void G_ICARUS_Play( void ) {
+	T_G_ICARUS_PLAY *sharedMem = &gSharedBuffer.play;
+	Q3_Play( sharedMem->taskID, sharedMem->entID, sharedMem->type, sharedMem->name );
+}
+static int G_ICARUS_GetFloat( void ) {
+	T_G_ICARUS_GETFLOAT *sharedMem = &gSharedBuffer.getFloat;
+	return Q3_GetFloat( sharedMem->entID, sharedMem->type, sharedMem->name, &sharedMem->value );
+}
+static int G_ICARUS_GetVector( void ) {
+	T_G_ICARUS_GETVECTOR *sharedMem = &gSharedBuffer.getVector;
+	return Q3_GetVector( sharedMem->entID, sharedMem->type, sharedMem->name, sharedMem->value );
+}
+static int G_ICARUS_GetString( void ) {
+	T_G_ICARUS_GETSTRING *sharedMem = &gSharedBuffer.getString;
+	char *crap = NULL; //I am sorry for this -rww
+	char **morecrap = &crap; //and this
+	int r = Q3_GetString( sharedMem->entID, sharedMem->type, sharedMem->name, morecrap );
+
+	if ( crap )
+		strcpy( sharedMem->value, crap );
+
+	return r;
+}
+static void G_ICARUS_SoundIndex( void ) {
+	T_G_ICARUS_SOUNDINDEX *sharedMem = &gSharedBuffer.soundIndex;
+	G_SoundIndex( sharedMem->filename );
+}
+static int G_ICARUS_GetSetIDForString( void ) {
+	T_G_ICARUS_GETSETIDFORSTRING *sharedMem = &gSharedBuffer.getSetIDForString;
+	return GetIDForString( setTable, sharedMem->string );
+}
+static qboolean G_NAV_ClearPathToPoint( int entID, vec3_t pmins, vec3_t pmaxs, vec3_t point, int clipmask, int okToHitEnt ) {
+	return NAV_ClearPathToPoint( &g_entities[entID], pmins, pmaxs, point, clipmask, okToHitEnt );
+}
+static qboolean G_NPC_ClearLOS2( int entID, const vec3_t end ) {
+	return NPC_ClearLOS2( &g_entities[entID], end );
+}
+static qboolean	G_NAV_CheckNodeFailedForEnt( int entID, int nodeNum ) {
+	return NAV_CheckNodeFailedForEnt( &g_entities[entID], nodeNum );
+}
+
+/*
+============
+GetModuleAPI
+============
+*/
+
+gameImport_t *trap = NULL;
+
+Q_EXPORT gameExport_t* QDECL GetModuleAPI( int apiVersion, gameImport_t *import )
+{
+	static gameExport_t ge = {0};
+
+	assert( import );
+	trap = import;
+	Com_Printf	= trap->Print;
+	Com_Error	= trap->Error;
+
+	memset( &ge, 0, sizeof( ge ) );
+
+	if ( apiVersion != GAME_API_VERSION ) {
+		trap->Print( "Mismatched GAME_API_VERSION: expected %i, got %i\n", GAME_API_VERSION, apiVersion );
+		return NULL;
 	}
-	else
-	{
-		strcpy(text, refName);
+
+	ge.InitGame							= G_InitGame;
+	ge.ShutdownGame						= G_ShutdownGame;
+	ge.ClientConnect					= ClientConnect;
+	ge.ClientBegin						= ClientBegin;
+	ge.ClientUserinfoChanged			= ClientUserinfoChanged;
+	ge.ClientDisconnect					= ClientDisconnect;
+	ge.ClientCommand					= ClientCommand;
+	ge.ClientThink						= ClientThink;
+	ge.RunFrame							= G_RunFrame;
+	ge.ConsoleCommand					= ConsoleCommand;
+	ge.BotAIStartFrame					= BotAIStartFrame;
+	ge.ROFF_NotetrackCallback			= _G_ROFF_NotetrackCallback;
+	ge.SpawnRMGEntity					= G_SpawnRMGEntity;
+	ge.ICARUS_PlaySound					= G_ICARUS_PlaySound;
+	ge.ICARUS_Set						= G_ICARUS_Set;
+	ge.ICARUS_Lerp2Pos					= G_ICARUS_Lerp2Pos;
+	ge.ICARUS_Lerp2Origin				= G_ICARUS_Lerp2Origin;
+	ge.ICARUS_Lerp2Angles				= G_ICARUS_Lerp2Angles;
+	ge.ICARUS_GetTag					= G_ICARUS_GetTag;
+	ge.ICARUS_Lerp2Start				= G_ICARUS_Lerp2Start;
+	ge.ICARUS_Lerp2End					= G_ICARUS_Lerp2End;
+	ge.ICARUS_Use						= G_ICARUS_Use;
+	ge.ICARUS_Kill						= G_ICARUS_Kill;
+	ge.ICARUS_Remove					= G_ICARUS_Remove;
+	ge.ICARUS_Play						= G_ICARUS_Play;
+	ge.ICARUS_GetFloat					= G_ICARUS_GetFloat;
+	ge.ICARUS_GetVector					= G_ICARUS_GetVector;
+	ge.ICARUS_GetString					= G_ICARUS_GetString;
+	ge.ICARUS_SoundIndex				= G_ICARUS_SoundIndex;
+	ge.ICARUS_GetSetIDForString			= G_ICARUS_GetSetIDForString;
+	ge.NAV_ClearPathToPoint				= G_NAV_ClearPathToPoint;
+	ge.NPC_ClearLOS2					= G_NPC_ClearLOS2;
+	ge.NAVNEW_ClearPathBetweenPoints	= NAVNEW_ClearPathBetweenPoints;
+	ge.NAV_CheckNodeFailedForEnt		= G_NAV_CheckNodeFailedForEnt;
+	ge.NAV_EntIsUnlockedDoor			= G_EntIsUnlockedDoor;
+	ge.NAV_EntIsDoor					= G_EntIsDoor;
+	ge.NAV_EntIsBreakable				= G_EntIsBreakable;
+	ge.NAV_EntIsRemovableUsable			= G_EntIsRemovableUsable;
+	ge.NAV_FindCombatPointWaypoints		= CP_FindCombatPointWaypoints;
+	ge.BG_GetItemIndexByTag				= BG_GetItemIndexByTag;
+
+	return &ge;
+}
+
+/*
+================
+vmMain
+
+This is the only way control passes into the module.
+This must be the very first function compiled into the .q3vm file
+================
+*/
+Q_EXPORT intptr_t vmMain( int command, intptr_t arg0, intptr_t arg1, intptr_t arg2, intptr_t arg3, intptr_t arg4,
+	intptr_t arg5, intptr_t arg6, intptr_t arg7, intptr_t arg8, intptr_t arg9, intptr_t arg10, intptr_t arg11 )
+{
+	switch ( command ) {
+	case GAME_INIT:
+		G_InitGame( arg0, arg1, arg2 );
+		return 0;
+
+	case GAME_SHUTDOWN:
+		G_ShutdownGame( arg0 );
+		return 0;
+
+	case GAME_CLIENT_CONNECT:
+		return (intptr_t)ClientConnect( arg0, arg1, arg2 );
+
+	case GAME_CLIENT_THINK:
+		ClientThink( arg0, NULL );
+		return 0;
+
+	case GAME_CLIENT_USERINFO_CHANGED:
+		ClientUserinfoChanged( arg0 );
+		return 0;
+
+	case GAME_CLIENT_DISCONNECT:
+		ClientDisconnect( arg0 );
+		return 0;
+
+	case GAME_CLIENT_BEGIN:
+		ClientBegin( arg0, qtrue );
+		return 0;
+
+	case GAME_CLIENT_COMMAND:
+		ClientCommand( arg0 );
+		return 0;
+
+	case GAME_RUN_FRAME:
+		G_RunFrame( arg0 );
+		return 0;
+
+	case GAME_CONSOLE_COMMAND:
+		return ConsoleCommand();
+
+	case BOTAI_START_FRAME:
+		return BotAIStartFrame( arg0 );
+
+	case GAME_ROFF_NOTETRACK_CALLBACK:
+		_G_ROFF_NotetrackCallback( arg0, (const char *)arg1 );
+		return 0;
+
+	case GAME_SPAWN_RMG_ENTITY:
+		G_SpawnRMGEntity();
+		return 0;
+
+	case GAME_ICARUS_PLAYSOUND:
+		return G_ICARUS_PlaySound();
+
+	case GAME_ICARUS_SET:
+		return G_ICARUS_Set();
+
+	case GAME_ICARUS_LERP2POS:
+		G_ICARUS_Lerp2Pos();
+		return 0;
+
+	case GAME_ICARUS_LERP2ORIGIN:
+		G_ICARUS_Lerp2Origin();
+		return 0;
+
+	case GAME_ICARUS_LERP2ANGLES:
+		G_ICARUS_Lerp2Angles();
+		return 0;
+
+	case GAME_ICARUS_GETTAG:
+		return G_ICARUS_GetTag();
+
+	case GAME_ICARUS_LERP2START:
+		G_ICARUS_Lerp2Start();
+		return 0;
+
+	case GAME_ICARUS_LERP2END:
+		G_ICARUS_Lerp2End();
+		return 0;
+
+	case GAME_ICARUS_USE:
+		G_ICARUS_Use();
+		return 0;
+
+	case GAME_ICARUS_KILL:
+		G_ICARUS_Kill();
+		return 0;
+
+	case GAME_ICARUS_REMOVE:
+		G_ICARUS_Remove();
+		return 0;
+
+	case GAME_ICARUS_PLAY:
+		G_ICARUS_Play();
+		return 0;
+
+	case GAME_ICARUS_GETFLOAT:
+		return G_ICARUS_GetFloat();
+
+	case GAME_ICARUS_GETVECTOR:
+		return G_ICARUS_GetVector();
+
+	case GAME_ICARUS_GETSTRING:
+		return G_ICARUS_GetString();
+
+	case GAME_ICARUS_SOUNDINDEX:
+		G_ICARUS_SoundIndex();
+		return 0;
+
+	case GAME_ICARUS_GETSETIDFORSTRING:
+		return G_ICARUS_GetSetIDForString();
+
+	case GAME_NAV_CLEARPATHTOPOINT:
+		return G_NAV_ClearPathToPoint( arg0, (float *)arg1, (float *)arg2, (float *)arg3, arg4, arg5 );
+
+	case GAME_NAV_CLEARLOS:
+		return G_NPC_ClearLOS2( arg0, (const float *)arg1 );
+
+	case GAME_NAV_CLEARPATHBETWEENPOINTS:
+		return NAVNEW_ClearPathBetweenPoints((float *)arg0, (float *)arg1, (float *)arg2, (float *)arg3, arg4, arg5);
+
+	case GAME_NAV_CHECKNODEFAILEDFORENT:
+		return NAV_CheckNodeFailedForEnt(&g_entities[arg0], arg1);
+
+	case GAME_NAV_ENTISUNLOCKEDDOOR:
+		return G_EntIsUnlockedDoor(arg0);
+
+	case GAME_NAV_ENTISDOOR:
+		return G_EntIsDoor(arg0);
+
+	case GAME_NAV_ENTISBREAKABLE:
+		return G_EntIsBreakable(arg0);
+
+	case GAME_NAV_ENTISREMOVABLEUSABLE:
+		return G_EntIsRemovableUsable(arg0);
+
+	case GAME_NAV_FINDCOMBATPOINTWAYPOINTS:
+		CP_FindCombatPointWaypoints();
+		return 0;
+
+	case GAME_GETITEMINDEXBYTAG:
+		return BG_GetItemIndexByTag(arg0, arg1);
 	}
-	return text;
+
+	return -1;
 }

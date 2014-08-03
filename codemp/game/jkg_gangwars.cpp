@@ -22,7 +22,7 @@ extern int BG_SiegeGetValueGroup(char *buf, char *group, char *outbuf);
 extern void BG_StripTabs(char *buf);
 extern int BG_GetPairedValue(char *buf, char *key, char *outbuf);
 
-#ifndef QAGAME //cgame, ui
+#ifndef _GAME //cgame, ui
 #ifndef UI
 qhandle_t	trap_R_RegisterShaderNoMip( const char *name );
 qhandle_t	trap_R_RegisterShader( const char *name );
@@ -78,7 +78,7 @@ void JKG_BG_ParseGangWarsTeam(const char *filename)
 
 	memset(bgGangWarsTeams[bgnumGangWarTeams].modelStore, 0, sizeof(bgGangWarsTeams[bgnumGangWarTeams].modelStore));
 	
-#ifndef QAGAME
+#ifndef _GAME
 #ifndef UI
 	if (BG_GetPairedValue(buffer, "icon", parseBuf))
 	{

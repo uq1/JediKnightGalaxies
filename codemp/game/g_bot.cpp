@@ -108,11 +108,11 @@ static void G_LoadArenasFromFile( char *filename ) {
 
 	len = trap_FS_FOpenFile( filename, &f, FS_READ );
 	if ( !f ) {
-		G_Printf( S_COLOR_RED "file not found: %s\n", filename );
+		trap->Print( S_COLOR_RED "file not found: %s\n", filename );
 		return;
 	}
 	if ( len >= MAX_ARENAS_TEXT ) {
-		G_Printf( S_COLOR_RED "file too large: %s is %i, max allowed is %i\n", filename, len, MAX_ARENAS_TEXT );
+		trap->Print( S_COLOR_RED "file too large: %s is %i, max allowed is %i\n", filename, len, MAX_ARENAS_TEXT );
 		trap_FS_FCloseFile( f );
 		return;
 	}
@@ -618,37 +618,37 @@ qboolean JKG_CheckBelowWaypoint( int wp )
 	
 	if ( tr.startsolid )
 	{
-		//G_Printf("Waypoint %i is in solid.\n", wp);
+		//trap->Print("Waypoint %i is in solid.\n", wp);
 		return qfalse;
 	}
 
 	if ( tr.allsolid )
 	{
-		//G_Printf("Waypoint %i is in solid.\n", wp);
+		//trap->Print("Waypoint %i is in solid.\n", wp);
 		return qfalse;
 	}
 
 	if ( tr.fraction == 1 )
 	{
-		//G_Printf("Waypoint %i is too high above ground.\n", wp);
+		//trap->Print("Waypoint %i is too high above ground.\n", wp);
 		return qfalse;
 	}
 
 	if ( tr.contents & CONTENTS_LAVA )
 	{
-		//G_Printf("Waypoint %i is in lava.\n", wp);
+		//trap->Print("Waypoint %i is in lava.\n", wp);
 		return qfalse;
 	}
 	
 	if ( tr.contents & CONTENTS_SLIME )
 	{
-		//G_Printf("Waypoint %i is in slime.\n", wp);
+		//trap->Print("Waypoint %i is in slime.\n", wp);
 		return qfalse;
 	}
 
 	if ( tr.contents & CONTENTS_TRIGGER )
 	{
-		//G_Printf("Waypoint %i is in trigger.\n", wp);
+		//trap->Print("Waypoint %i is in trigger.\n", wp);
 		return qfalse;
 	}
 
@@ -686,7 +686,7 @@ qboolean JKG_CheckRoutingFrom( int wp )
 
 	if (spot->pathsize > 0)
 	{
-		//G_Printf("Routing was %i. Spot is at %f %f %f.\n", spot->pathsize, spot->s.origin[0], spot->s.origin[1], spot->s.origin[2]);
+		//trap->Print("Routing was %i. Spot is at %f %f %f.\n", spot->pathsize, spot->s.origin[0], spot->s.origin[1], spot->s.origin[2]);
 		return qtrue; // Found a route... This waypoint looks good to spawn NPCs at!
 	}
 
@@ -794,7 +794,7 @@ void G_CheckVendorNPCs( void )
 		npc->s.angles[YAW] = irand(0,359);
 		npc->s.angles[ROLL] = 0;
 
-		G_Printf("[%i/%i] Spawning (travelling vendor NPC) %s at waypoint %i.\n", botplayers+1, minplayers, npc->NPC_type, waypoint);
+		trap->Print("[%i/%i] Spawning (travelling vendor NPC) %s at waypoint %i.\n", botplayers+1, minplayers, npc->NPC_type, waypoint);
 
 		npc->s.eFlags |= EF_RADAROBJECT;
 		SP_NPC_spawner( npc );
@@ -974,7 +974,7 @@ void G_CheckCivilianNPCs( void )
 		npc->s.angles[YAW] = irand(0,359);
 		npc->s.angles[ROLL] = 0;
 
-		G_Printf("[%i/%i] Spawning (civilian NPC) %s at waypoint %i.\n", botplayers+1, minplayers, npc->NPC_type, waypoint);
+		trap->Print("[%i/%i] Spawning (civilian NPC) %s at waypoint %i.\n", botplayers+1, minplayers, npc->NPC_type, waypoint);
 
 		SP_NPC_spawner( npc );
 	}
@@ -1355,14 +1355,14 @@ void G_CheckMinimumNpcs( void ) {
 				VectorCopy(gWPArray[waypoint]->origin, npc->s.origin);
 				npc->s.origin[2]+=32; // Drop down...
 
-				G_Printf("[%i/%i] Spawning (warzone NPC) %s at (fallback) waypoint %i.\n", botplayers+1, minplayers, npc->NPC_type, waypoint);
+				trap->Print("[%i/%i] Spawning (warzone NPC) %s at (fallback) waypoint %i.\n", botplayers+1, minplayers, npc->NPC_type, waypoint);
 			}
 			else
 			{// Found a good warzone spawnpoint... Using it...
 				VectorCopy(NPC_SPAWNPOINT, npc->s.origin);
 				npc->s.origin[2]+=32; // Drop down...
 
-				G_Printf("[%i/%i] Spawning (warzone NPC) %s at flag %i.\n", botplayers+1, minplayers, npc->NPC_type, NPC_SPAWNFLAG);
+				trap->Print("[%i/%i] Spawning (warzone NPC) %s at flag %i.\n", botplayers+1, minplayers, npc->NPC_type, NPC_SPAWNFLAG);
 			}
 
 			// Update ticket counts...
@@ -1392,7 +1392,7 @@ void G_CheckMinimumNpcs( void ) {
 			VectorCopy(gWPArray[waypoint]->origin, npc->s.origin);
 			npc->s.origin[2]+=32; // Drop down...
 
-			G_Printf("[%i/%i] Spawning (enemy NPC) %s at waypoint %i.\n", botplayers+1, minplayers, npc->NPC_type, waypoint);
+			trap->Print("[%i/%i] Spawning (enemy NPC) %s at waypoint %i.\n", botplayers+1, minplayers, npc->NPC_type, waypoint);
 		}
 
 		npc->s.angles[PITCH] = 0;
@@ -1446,7 +1446,7 @@ static void AddBotToSpawnQueue( int clientNum, int delay ) {
 		}
 	}
 
-	G_Printf( S_COLOR_YELLOW "Unable to delay spawn\n" );
+	trap->Print( S_COLOR_YELLOW "Unable to delay spawn\n" );
 	ClientBegin( clientNum, qfalse );
 }
 
@@ -1521,7 +1521,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 	botinfo = G_GetBotInfoByName( name );
 	if ( !botinfo ) {
 		trap_BotFreeClient( clientNum );
-		G_Printf( S_COLOR_RED "Error: Bot '%s' not defined\n", name );
+		trap->Print( S_COLOR_RED "Error: Bot '%s' not defined\n", name );
 		return;
 	}
 
@@ -1577,8 +1577,8 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 	// have the server allocate a client slot
 	clientNum = trap_BotAllocateClient();
 	if ( clientNum == -1 ) {
-		//		G_Printf( S_COLOR_RED "Unable to add bot.  All player slots are in use.\n" );
-		//		G_Printf( S_COLOR_RED "Start server with more 'open' slots.\n" );
+		//		trap->Print( S_COLOR_RED "Unable to add bot.  All player slots are in use.\n" );
+		//		trap->Print( S_COLOR_RED "Start server with more 'open' slots.\n" );
 		trap_SendServerCommand( -1, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "UNABLE_TO_ADD_BOT")));
 		return;
 	}
@@ -1735,7 +1735,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 			else
 				strcpy(bot->client->botSoundDir, "worker2");
 		}
-		G_Printf("Bot sound dir set to [%s].\n", bot->client->botSoundDir);
+		trap->Print("Bot sound dir set to [%s].\n", bot->client->botSoundDir);
 		//
 		// UQ1: END - sound directories for talking...
 		//
@@ -1922,7 +1922,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 				else
 					strcpy(bot->client->botSoundDir, "worker2");
 			}
-			G_Printf("Bot sound dir set to [%s].\n", bot->client->botSoundDir);
+			trap->Print("Bot sound dir set to [%s].\n", bot->client->botSoundDir);
 			//
 			// UQ1: END - sound directories for talking...
 			//
@@ -2055,7 +2055,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 			else
 				strcpy(bot->client->botSoundDir, "worker2");
 		}
-		G_Printf("Bot sound dir set to [%s].\n", bot->client->botSoundDir);
+		trap->Print("Bot sound dir set to [%s].\n", bot->client->botSoundDir);
 		//
 		// UQ1: END - sound directories for talking...
 		//
@@ -2161,7 +2161,7 @@ void Svcmd_BotList_f( void ) {
 		if (!*personality ) {
 			Q_strncpyz(personality, "botfiles/kyle.jkb", sizeof( personality ));
 		}
-		G_Printf("%-16s %-16s %-20s %-20s\n", name, model, COM_SkipPath(personality), funname);
+		trap->Print("%-16s %-16s %-20s %-20s\n", name, model, COM_SkipPath(personality), funname);
 	}
 }
 
@@ -2232,11 +2232,11 @@ static void G_LoadBotsFromFile( char *filename ) {
 
 	len = trap_FS_FOpenFile( filename, &f, FS_READ );
 	if ( !f ) {
-		G_Printf( S_COLOR_RED "file not found: %s\n", filename );
+		trap->Print( S_COLOR_RED "file not found: %s\n", filename );
 		return;
 	}
 	if ( len >= MAX_BOTS_TEXT ) {
-		G_Printf( S_COLOR_RED "file too large: %s is %i, max allowed is %i\n", filename, len, MAX_BOTS_TEXT );
+		trap->Print( S_COLOR_RED "file too large: %s is %i, max allowed is %i\n", filename, len, MAX_BOTS_TEXT );
 		trap_FS_FCloseFile( f );
 		return;
 	}
@@ -2296,7 +2296,7 @@ G_GetBotInfoByNumber
 */
 char *G_GetBotInfoByNumber( int num ) {
 	if( num < 0 || num >= g_numBots ) {
-		G_Printf( S_COLOR_RED "Invalid bot number: %i\n", num );
+		trap->Print( S_COLOR_RED "Invalid bot number: %i\n", num );
 		return NULL;
 	}
 	return g_botInfos[num];

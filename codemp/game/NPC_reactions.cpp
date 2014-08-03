@@ -136,7 +136,7 @@ void NPC_SetPainEvent( gentity_t *self )
 	//	if( self->client->playerTeam != TEAM_BORG )
 	//	{
 			//if ( !Q3_TaskIDPending( self, TID_CHAN_VOICE ) )
-			if (!trap_ICARUS_TaskIDPending(self, TID_CHAN_VOICE) && self->client)
+			if (!trap->ICARUS_TaskIDPending((sharedEntity_t *)self, TID_CHAN_VOICE) && self->client)
 			{
 				//G_AddEvent( self, EV_PAIN, floor((float)self->health/self->max_health*100.0f) );
 				G_AddEvent( self, EV_PAIN, floor((float)self->health/self->client->ps.stats[STAT_MAX_HEALTH]*100.0f) );
@@ -1018,7 +1018,7 @@ void NPC_Use( gentity_t *self, gentity_t *other, gentity_t *activator )
 		return;
 	}
 
-	//G_Printf("I got used!\n");
+	//trap->Print("I got used!\n");
 
 	SaveNPCGlobals();
 	SetNPCGlobals( self );

@@ -29,7 +29,7 @@ extern int strap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode
 extern void strap_FS_Read( void *buffer, int len, fileHandle_t f );
 
 
-#ifdef QAGAME
+#ifdef _GAME
 extern int G_SoundIndex( const char *name );
 #elif defined CGAME
 sfxHandle_t trap_S_RegisterSound( const char *sample);
@@ -39,7 +39,7 @@ int	trap_FX_RegisterEffect(const char *file);
 
 int BG_SoundIndex(char *sound)
 {
-#ifdef QAGAME
+#ifdef _GAME
 	return G_SoundIndex(sound);
 #elif defined CGAME
 	return trap_S_RegisterSound(sound);

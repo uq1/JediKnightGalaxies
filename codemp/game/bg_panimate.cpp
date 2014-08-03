@@ -5,13 +5,13 @@
 #include "bg_local.h"
 #include "anims.h"
 #include "cgame/animtable.h"
-#ifdef QAGAME
-#include "g_local.h"
-#endif
 
-#ifdef CGAME
-extern sfxHandle_t trap_S_RegisterSound( const char *sample);
-extern int trap_FX_RegisterEffect( const char *file);
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_UI)
+	#include "../ui/ui_local.h"
+#elif defined(_CGAME)
+	#include "../cgame/cg_local.h"
 #endif
 
 extern saberInfo_t *BG_MySaber( int clientNum, int saberNum );
@@ -1853,7 +1853,7 @@ void SpewDebugStuffToFile()
 	fileHandle_t f;
 	int i = 0;
 
-	trap_FS_FOpenFile("file_of_debug_stuff_MP.txt", &f, FS_WRITE);
+	trap->FS_FOpenFile("file_of_debug_stuff_MP.txt", &f, FS_WRITE);
 
 	if (!f)
 	{
@@ -1868,8 +1868,8 @@ void SpewDebugStuffToFile()
 		i++;
 	}
 
-	trap_FS_Write(BGPAFtext, strlen(BGPAFtext), f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Write(BGPAFtext, strlen(BGPAFtext), f);
+	trap->FS_FCloseFile(f);
 }
 #endif
 
@@ -1893,7 +1893,7 @@ void BG_ClearAnimsets(void)
 	{
 		if (bgAllAnims[i].anims)
 		{
-			strap_TrueFree((void **)&bgAllAnims[i].anims);
+			strap->TrueFree((void **)&bgAllAnims[i].anims);
 		}
 		i++;
 	}
@@ -1916,7 +1916,7 @@ void BG_AnimsetFree(animation_t *animset)
 		return;
 	}
 
-	strap_TrueFree((void **)&animset);
+	strap->TrueFree((void **)&animset);
 
 #ifdef _DEBUG
 	if (animset)
@@ -1927,7 +1927,7 @@ void BG_AnimsetFree(animation_t *animset)
 	*/
 }
 
-#ifndef QAGAME //none of this is actually needed serverside. Could just be moved to cgame code but it's here since it
+#ifndef _GAME //none of this is actually needed serverside. Could just be moved to cgame code but it's here since it
 			   //used to tie in a lot with the anim loading stuff.
 stringID_table_t animEventTypeTable[MAX_ANIM_EVENTS+1] = 
 {
@@ -2146,7 +2146,7 @@ void ParseAnimationEvtBlock(const char *aeb_filename, animevent_t *animEvents, a
 					}
 					else
 					{
-						animEvents[curAnimEvent].eventData[num] = trap_S_RegisterSound( va( stringData, n ) );
+						animEvents[curAnimEvent].eventData[num] = trap->S_RegisterSound( va( stringData, n ) );
 					}
 				}
 				animEvents[curAnimEvent].eventData[AED_SOUND_NUMRANDOMSNDS] = num - 1;
@@ -2159,7 +2159,7 @@ void ParseAnimationEvtBlock(const char *aeb_filename, animevent_t *animEvents, a
 				}
 				else
 				{
-					animEvents[curAnimEvent].eventData[AED_SOUNDINDEX_START] = trap_S_RegisterSound( stringData );
+					animEvents[curAnimEvent].eventData[AED_SOUNDINDEX_START] = trap->S_RegisterSound( stringData );
 				}
 #ifndef FINAL_BUILD
 				if ( !animEvents[curAnimEvent].eventData[AED_SOUNDINDEX_START] &&
@@ -2251,7 +2251,7 @@ void ParseAnimationEvtBlock(const char *aeb_filename, animevent_t *animEvents, a
 			{
 				break;
 			}
-			animEvents[curAnimEvent].eventData[AED_EFFECTINDEX] = trap_FX_RegisterEffect( token );
+			animEvents[curAnimEvent].eventData[AED_EFFECTINDEX] = trap->FX_RegisterEffect( token );
 			//get bolt index
 			token = COM_Parse( text_p );
 			if ( !token ) 
@@ -2422,14 +2422,14 @@ int BG_ParseAnimationEvtFile( const char *as_filename, int animFileIndex, int ev
 	}
 
 	// load the file
-	len = trap_FS_FOpenFile( sfilename, &f, FS_READ );
+	len = trap->FS_FOpenFile( sfilename, &f, FS_READ );
 	if ( len <= 0 ) 
 	{//no file
 		goto fin;
 	}
 	if ( len >= sizeof( text ) - 1 ) 
 	{
-		trap_FS_FCloseFile(f);
+		trap->FS_FCloseFile(f);
 #ifndef FINAL_BUILD
 		Com_Error(ERR_DROP, "File %s too long\n", sfilename );
 #else
@@ -2438,9 +2438,9 @@ int BG_ParseAnimationEvtFile( const char *as_filename, int animFileIndex, int ev
 		goto fin;
 	}
 
-	trap_FS_Read( text, len, f );
+	trap->FS_Read( text, len, f );
 	text[len] = 0;
-	trap_FS_FCloseFile( f );
+	trap->FS_FCloseFile( f );
 
 	// parse the text
 	text_p = text;
@@ -2597,7 +2597,7 @@ int BG_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 	// load the file
 	if (!BGPAFtextLoaded || !isHumanoid)
 	{ //rww - We are always using the same animation config now. So only load it once.
-		len = trap_FS_FOpenFile( filename, &f, FS_READ );
+		len = trap->FS_Open( filename, &f, FS_READ );
 		if ( (len <= 0) || (len >= sizeof( BGPAFtext ) - 1) ) 
 		{
 			if (dynAlloc)
@@ -2611,9 +2611,9 @@ int BG_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 			return -1;
 		}
 
-		trap_FS_Read( BGPAFtext, len, f );
+		trap->FS_Read( BGPAFtext, len, f );
 		BGPAFtext[len] = 0;
-		trap_FS_FCloseFile( f );
+		trap->FS_Close( f );
 	}
 	else
 	{
@@ -2716,7 +2716,7 @@ static void BG_StartLegsAnim( playerState_t *ps, int anim )
 	{
 		BG_FlipPart(ps, SETANIM_LEGS);
 	}
-#ifdef QAGAME
+#ifdef _GAME
 	else if (g_entities[ps->clientNum].s.legsAnim == anim)
 	{ //toggled anim to one anim then back to the one we were at previously in
 		//one frame, indicating that anim should be restarted.
@@ -2783,7 +2783,7 @@ void BG_StartTorsoAnim( playerState_t *ps, int anim )
 	{
 		BG_FlipPart(ps, SETANIM_TORSO);
 	}
-#ifdef QAGAME
+#ifdef _GAME
 	else if (g_entities[ps->clientNum].s.torsoAnim == anim)
 	{ //toggled anim to one anim then back to the one we were at previously in
 		//one frame, indicating that anim should be restarted.

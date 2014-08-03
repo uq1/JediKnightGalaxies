@@ -78,7 +78,7 @@ NPC_CheckCombatMove
 -------------------------
 */
 
-ID_INLINE qboolean NPC_CheckCombatMove( void )
+QINLINE qboolean NPC_CheckCombatMove( void )
 {
 	//return NPCInfo->combatMove;
 	if ( ( NPCInfo->goalEntity && NPC->enemy && NPCInfo->goalEntity == NPC->enemy ) || ( NPCInfo->combatMove ) )
@@ -126,7 +126,7 @@ NPC_GetMoveInformation
 -------------------------
 */
 
-ID_INLINE qboolean NPC_GetMoveInformation( vec3_t dir, float *distance )
+QINLINE qboolean NPC_GetMoveInformation( vec3_t dir, float *distance )
 {
 	//NOTENOTE: Use path stacks!
 
@@ -420,7 +420,7 @@ qboolean NPC_MoveToGoal( qboolean tryStraight )
 
 	if (!NPC_FollowRoutes())
 	{
-		//G_Printf("NPC_FollowRoutes failed!\n");
+		//trap->Print("NPC_FollowRoutes failed!\n");
 		return qfalse;
 	}
 
@@ -490,7 +490,7 @@ qboolean NPC_MoveToGoal( qboolean tryStraight )
 	// Do the actual routing and movement...
 	if (!NPC_FollowRoutes())
 	{
-		//G_Printf("NPC_FollowRoutes failed!\n");
+		//trap->Print("NPC_FollowRoutes failed!\n");
 		return qfalse;
 	}
 
@@ -535,7 +535,7 @@ qboolean NPC_MoveToGoal( qboolean tryStraight )
 
 		if (!NPC_FollowRoutes())
 		{
-			//G_Printf("NPC_FollowRoutes failed!\n");
+			//trap->Print("NPC_FollowRoutes failed!\n");
 			return qfalse;
 		}
 
@@ -576,7 +576,7 @@ qboolean NPC_MoveToGoal( qboolean tryStraight )
 
 		if (!NPC_FollowRoutes())
 		{
-			//G_Printf("NPC_FollowRoutes failed!\n");
+			//trap->Print("NPC_FollowRoutes failed!\n");
 			return qfalse;
 		}
 
@@ -591,7 +591,7 @@ qboolean NPC_MoveToGoal( qboolean tryStraight )
 
 		if (!NPC_FollowRoutes())
 		{
-			//G_Printf("NPC_FollowRoutes failed!\n");
+			//trap->Print("NPC_FollowRoutes failed!\n");
 			return qfalse;
 		}
 
@@ -709,5 +709,5 @@ void NPC_ApplyRoff(void)
 	//rwwFIXMEFIXME: Any significance to this?
 
 	// use the precise origin for linking
-	trap_LinkEntity(NPC);
+	trap->LinkEntity((sharedEntity_t *)NPC);
 }

@@ -123,7 +123,7 @@ void NPC_RemoveBody( gentity_t *self )
 
 	if ( self->NPC->nextBStateThink <= level.time )
 	{
-		trap_ICARUS_MaintainTaskManager(self->s.number);
+		trap->ICARUS_MaintainTaskManager(self->s.number);
 	}
 	self->NPC->nextBStateThink = level.time + FRAMETIME;
 
@@ -148,7 +148,7 @@ void NPC_RemoveBody( gentity_t *self )
 		|| self->client->NPC_class == CLASS_MARK2 )
 	{
 		//if ( !self->taskManager || !self->taskManager->IsRunning() )
-		if (!trap_ICARUS_IsRunning(self->s.number))
+		if (!trap->ICARUS_IsRunning(self->s.number))
 		{
 			if ( !self->activator || !self->activator->client || !(self->activator->client->ps.eFlags2&EF2_HELD_BY_MONSTER) )
 			{//not being held by a Rancor
@@ -206,7 +206,7 @@ void NPC_RemoveBody( gentity_t *self )
 		if ( self->enemy )
 		{
 			//if ( !self->taskManager || !self->taskManager->IsRunning() )
-			if (!trap_ICARUS_IsRunning(self->s.number))
+			if (!trap->ICARUS_IsRunning(self->s.number))
 			{
 				if ( !self->activator || !self->activator->client || !(self->activator->client->ps.eFlags2&EF2_HELD_BY_MONSTER) )
 				{//not being held by a Rancor
@@ -337,7 +337,7 @@ void pitch_roll_for_slope( gentity_t *forwhom, vec3_t pass_slope )
 		startspot[2] += forwhom->r.mins[2] + 4;
 		VectorCopy( startspot, endspot );
 		endspot[2] -= 300;
-		trap_Trace( &trace, forwhom->r.currentOrigin, vec3_origin, vec3_origin, endspot, forwhom->s.number, MASK_SOLID );
+		trap->Trace( &trace, forwhom->r.currentOrigin, vec3_origin, vec3_origin, endspot, forwhom->s.number, MASK_SOLID, 0, 0, 0 );
 //		if(trace_fraction>0.05&&forwhom.movetype==MOVETYPE_STEP)
 //			forwhom.flags(-)FL_ONGROUND;
 
@@ -386,7 +386,7 @@ void pitch_roll_for_slope( gentity_t *forwhom, vec3_t pass_slope )
 			//FIXME: trace?
 			forwhom->client->ps.origin[2] += (oldmins2 - forwhom->r.mins[2]);
 			forwhom->r.currentOrigin[2] = forwhom->client->ps.origin[2];
-			trap_LinkEntity( forwhom );
+			trap->LinkEntity( (sharedEntity_t *)forwhom );
 		}
 	}
 	else
@@ -419,7 +419,7 @@ static void DeadThink ( void )
 		if ( NPC->r.mins[0] > -32 )
 		{
 			NPC->r.mins[0] -= 1;
-			trap_Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask );
+			trap->Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask, 0, 0, 0 );
 			if ( trace.allsolid )
 			{
 				NPC->r.mins[0] += 1;
@@ -428,7 +428,7 @@ static void DeadThink ( void )
 		if ( NPC->r.maxs[0] < 32 )
 		{
 			NPC->r.maxs[0] += 1;
-			trap_Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask );
+			trap->Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask, 0, 0, 0 );
 			if ( trace.allsolid )
 			{
 				NPC->r.maxs[0] -= 1;
@@ -437,7 +437,7 @@ static void DeadThink ( void )
 		if ( NPC->r.mins[1] > -32 )
 		{
 			NPC->r.mins[1] -= 1;
-			trap_Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask );
+			trap->Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask, 0, 0, 0 );
 			if ( trace.allsolid )
 			{
 				NPC->r.mins[1] += 1;
@@ -446,7 +446,7 @@ static void DeadThink ( void )
 		if ( NPC->r.maxs[1] < 32 )
 		{
 			NPC->r.maxs[1] += 1;
-			trap_Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask );
+			trap->Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask, 0, 0, 0 );
 			if ( trace.allsolid )
 			{
 				NPC->r.maxs[1] -= 1;
@@ -488,7 +488,7 @@ static void DeadThink ( void )
 		{
 			if ( NPC->client->ps.eFlags & EF_NODRAW )
 			{
-				if (!trap_ICARUS_IsRunning(NPC->s.number))
+				if (!trap->ICARUS_IsRunning(NPC->s.number))
 				//if ( !NPC->taskManager || !NPC->taskManager->IsRunning() )
 				{
 					NPC->think = G_FreeEntity;
@@ -529,7 +529,7 @@ static void DeadThink ( void )
 	if ( NPC->bounceCount < 0 && NPC->s.groundEntityNum >= 0 )
 	{
 		// if client is in a nodrop area, make him/her nodraw
-		int contents = NPC->bounceCount = trap_PointContents( NPC->r.currentOrigin, -1 );
+		int contents = NPC->bounceCount = trap->PointContents( NPC->r.currentOrigin, -1 );
 
 		if ( ( contents & CONTENTS_NODROP ) ) 
 		{
@@ -604,7 +604,7 @@ void NPC_ShowDebugInfo (void)
 
 		while( (found = G_Find( found, FOFS(classname), "NPC" ) ) != NULL )
 		{
-			if ( trap_InPVS( found->r.currentOrigin, g_entities[0].r.currentOrigin ) )
+			if ( trap->InPVS( found->r.currentOrigin, g_entities[0].r.currentOrigin ) )
 			{
 				VectorAdd( found->r.currentOrigin, found->r.mins, mins );
 				VectorAdd( found->r.currentOrigin, found->r.maxs, maxs );
@@ -1082,7 +1082,7 @@ case BS_STAND_GUARD:
 
 void NPC_BehaviorSet_FakeNPC( int bState )
 {
-	//G_Printf("BS: %i\n", bState);
+	//trap->Print("BS: %i\n", bState);
 
 	switch( bState )
 	{
@@ -1941,7 +1941,7 @@ void NPC_RunBehavior( int team, int bState )
 				break;
 			}
 
-			if ( NPC->enemy && NPC->s.weapon == WP_NONE && bState != BS_HUNT_AND_KILL && (!trap_ICARUS_TaskIDPending( NPC, TID_MOVE_NAV ) && !NPC->NPC->luaFlags.isMoving) )
+			if ( NPC->enemy && NPC->s.weapon == WP_NONE && bState != BS_HUNT_AND_KILL && (!trap->ICARUS_TaskIDPending( (sharedEntity_t *)NPC, TID_MOVE_NAV ) && !NPC->NPC->luaFlags.isMoving) )
 			{//if in battle and have no weapon, run away, fixme: when in BS_HUNT_AND_KILL, they just stand there
 				if ( bState != BS_FLEE )
 				{
@@ -2232,7 +2232,7 @@ void NPC_CheckInSolid(void)
 	VectorCopy(NPC->r.currentOrigin, point);
 	point[2] -= 0.25;
 
-	trap_Trace(&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, point, NPC->s.number, NPC->clipmask);
+	trap->Trace(&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, point, NPC->s.number, NPC->clipmask, 0, 0, 0);
 	if(!trace.startsolid && !trace.allsolid)
 	{
 		VectorCopy(NPC->r.currentOrigin, NPCInfo->lastClearOrigin);
@@ -2243,7 +2243,7 @@ void NPC_CheckInSolid(void)
 		{
 //			Com_Printf("%s stuck in solid at %s: fixing...\n", NPC->script_targetname, vtos(NPC->r.currentOrigin));
 			G_SetOrigin(NPC, NPCInfo->lastClearOrigin);
-			trap_LinkEntity(NPC);
+			trap->LinkEntity((sharedEntity_t *)NPC);
 		}
 	}
 }
@@ -2443,7 +2443,7 @@ void NPC_Think ( gentity_t *self)//, int msec )
 
 		if ( NPCInfo->nextBStateThink <= level.time )
 		{
-			trap_ICARUS_MaintainTaskManager(self->s.number);
+			trap->ICARUS_MaintainTaskManager(self->s.number);
 		}
 
 		VectorCopy(self->r.currentOrigin, self->client->ps.origin);
@@ -2483,7 +2483,7 @@ void NPC_Think ( gentity_t *self)//, int msec )
 		if (self->client->ps.m_iVehicleNum)
 		{//we don't think on our own
 			//well, run scripts, though...
-			trap_ICARUS_MaintainTaskManager(self->s.number);
+			trap->ICARUS_MaintainTaskManager(self->s.number);
 			return;
 		}
 		else
@@ -2556,23 +2556,23 @@ void NPC_Think ( gentity_t *self)//, int msec )
 		//VectorCopy(self->s.origin, self->s.origin2 );
 	}
 	//must update icarus *every* frame because of certain animation completions in the pmove stuff that can leave a 50ms gap between ICARUS animation commands
-	trap_ICARUS_MaintainTaskManager(self->s.number);
+	trap->ICARUS_MaintainTaskManager(self->s.number);
 	VectorCopy(self->r.currentOrigin, self->client->ps.origin);
 }
 
 void NPC_InitAI ( void ) 
 {
 	/*
-	trap_Cvar_Register(&g_saberRealisticCombat, "g_saberRealisticCombat", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&g_saberRealisticCombat, "g_saberRealisticCombat", "0", CVAR_CHEAT);
 
-	trap_Cvar_Register(&debugNoRoam, "d_noroam", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&debugNPCAimingBeam, "d_npcaiming", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&debugBreak, "d_break", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&debugNPCAI, "d_npcai", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&debugNPCFreeze, "d_npcfreeze", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&d_JediAI, "d_JediAI", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&d_noGroupAI, "d_noGroupAI", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&d_asynchronousGroupAI, "d_asynchronousGroupAI", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&debugNoRoam, "d_noroam", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&debugNPCAimingBeam, "d_npcaiming", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&debugBreak, "d_break", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&debugNPCAI, "d_npcai", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&debugNPCFreeze, "d_npcfreeze", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&d_JediAI, "d_JediAI", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&d_noGroupAI, "d_noGroupAI", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&d_asynchronousGroupAI, "d_asynchronousGroupAI", "0", CVAR_CHEAT);
 	
 	//0 = never (BORING)
 	//1 = kyle only
@@ -2582,11 +2582,11 @@ void NPC_InitAI ( void )
 	//5 = kyle and any enemy
 	//6 = also when kyle takes pain or enemy jedi dodges player saber swing or does an acrobatic evasion
 
-	trap_Cvar_Register(&d_slowmodeath, "d_slowmodeath", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&d_slowmodeath, "d_slowmodeath", "0", CVAR_CHEAT);
 
-	trap_Cvar_Register(&d_saberCombat, "d_saberCombat", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&d_saberCombat, "d_saberCombat", "0", CVAR_CHEAT);
 
-	trap_Cvar_Register(&g_spskill, "g_npcspskill", "0", CVAR_ARCHIVE | CVAR_USERINFO);
+	trap->Cvar_Register(&g_spskill, "g_npcspskill", "0", CVAR_ARCHIVE | CVAR_USERINFO);
 	*/
 }
 
@@ -2623,7 +2623,7 @@ void NPC_InitAnimTable( void )
 void NPC_InitGame( void ) 
 {
 //	globals.NPCs = (gNPC_t *) gi.TagMalloc(game.maxclients * sizeof(game.bots[0]), TAG_GAME);
-//	trap_Cvar_Register(&debugNPCName, "d_npc", "0", CVAR_CHEAT);
+//	trap->Cvar_Register(&debugNPCName, "d_npc", "0", CVAR_CHEAT);
 
 	NPC_LoadParms();
 	NPC_InitAI();

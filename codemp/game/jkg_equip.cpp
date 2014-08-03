@@ -19,7 +19,7 @@ void JKG_EquipItem(gentity_t *ent, int iNum)
 		
 	if ( iNum < 0 || iNum >= MAX_INVENTORY_ITEMS )
 	{
-		trap_SendServerCommand(ent->client->ps.clientNum, "print \"Invalid inventory slot.\n\"");
+		trap->SendServerCommand(ent->client->ps.clientNum, "print \"Invalid inventory slot.\n\"");
 	    return;
 	}
 		
@@ -30,13 +30,13 @@ void JKG_EquipItem(gentity_t *ent, int iNum)
 
 	if( iNum >= ent->inventory->elements )
 	{
-		trap_SendServerCommand(ent->client->ps.clientNum, "print \"You do not have an item in that slot.\n\"");
+		trap->SendServerCommand(ent->client->ps.clientNum, "print \"You do not have an item in that slot.\n\"");
 		return;
 	}
 
 	if(ent->inventory->items[iNum].equipped)
 	{
-		//trap_SendServerCommand(ent->client->ps.clientNum, "print \"That item is already equipped.\n\"");
+		//trap->SendServerCommand(ent->client->ps.clientNum, "print \"That item is already equipped.\n\"");
 		return;
 	}
 
@@ -64,8 +64,8 @@ void JKG_EquipItem(gentity_t *ent, int iNum)
 	    
 	    //ent->inventory[iNum].equipped = qtrue;
 		ent->inventory->items[iNum].equipped = qtrue;
-	    trap_SendServerCommand (ent->s.number, va ("ieq %d %d", iNum, prevEquipped));
-		trap_SendServerCommand (ent->s.number, va ("chw %d", ent->inventory->items[iNum].id->varID));
+	    trap->SendServerCommand (ent->s.number, va ("ieq %d %d", iNum, prevEquipped));
+		trap->SendServerCommand (ent->s.number, va ("chw %d", ent->inventory->items[iNum].id->varID));
 	}
 	else if(ent->inventory->items[iNum].id->itemType == ITEM_ARMOR){
 	    // Unequip the armor which is currently equipped at the slot the new armor will use.
@@ -114,17 +114,17 @@ void JKG_EquipItem(gentity_t *ent, int iNum)
 		/*ent->inventory[iNum].equipped = qtrue;
 		ent->client->armorItems[ent->inventory[iNum].id->armorSlot] = iNum;
 		
-		trap_SendServerCommand (ent->s.number, va ("ieq %d %d", iNum, prevEquipped));
-		trap_SendServerCommand(-1, va("aequi %i %i %i", ent->client->ps.clientNum, ent->inventory[iNum].id->armorSlot, ent->inventory[iNum].id->armorID));*/
+		trap->SendServerCommand (ent->s.number, va ("ieq %d %d", iNum, prevEquipped));
+		trap->SendServerCommand(-1, va("aequi %i %i %i", ent->client->ps.clientNum, ent->inventory[iNum].id->armorSlot, ent->inventory[iNum].id->armorID));*/
 		ent->inventory->items[iNum].equipped = qtrue;
 		ent->client->armorItems[ent->inventory->items[iNum].id->armorSlot] = iNum;
 
-		trap_SendServerCommand( ent->s.number, va("ieq %d %d", iNum, prevEquipped ));
-		trap_SendServerCommand( -1, va("aequi %i %i %i", ent->client->ps.clientNum, ent->inventory->items[iNum].id->armorSlot, ent->inventory->items[iNum].id->armorID));
+		trap->SendServerCommand( ent->s.number, va("ieq %d %d", iNum, prevEquipped ));
+		trap->SendServerCommand( -1, va("aequi %i %i %i", ent->client->ps.clientNum, ent->inventory->items[iNum].id->armorSlot, ent->inventory->items[iNum].id->armorID));
 	}
 	else
 	{
-		trap_SendServerCommand(ent->client->ps.clientNum, "print \"You cannot equip that item.\n\"");
+		trap->SendServerCommand(ent->client->ps.clientNum, "print \"You cannot equip that item.\n\"");
 	}
 }
 
@@ -135,46 +135,46 @@ void JKG_UnequipItem(gentity_t *ent, int iNum)
 		
 	if ( iNum < 0 || iNum >= MAX_INVENTORY_ITEMS )
 	{
-		trap_SendServerCommand(ent->client->ps.clientNum, "print \"Invalid inventory slot.\n\"");
+		trap->SendServerCommand(ent->client->ps.clientNum, "print \"Invalid inventory slot.\n\"");
 	    return;
 	}
 
 	if( iNum >= ent->inventory->elements )
 	{
-		trap_SendServerCommand(ent->client->ps.clientNum, "print \"You do not have an item in that slot.\n\"");
+		trap->SendServerCommand(ent->client->ps.clientNum, "print \"You do not have an item in that slot.\n\"");
 		return;
 	}
 		
 	if ( !ent->inventory->items[iNum].id || ent->inventory->items[iNum].id == (itemData_t *)0xCDCDCDCD ) //fixme: bad hack here
 	{
 #ifdef DEBUG
-		trap_SendServerCommand(ent->client->ps.clientNum, "print \"^3WARNING: Attempted to access uninitialized heap memory\n\"");
+		trap->SendServerCommand(ent->client->ps.clientNum, "print \"^3WARNING: Attempted to access uninitialized heap memory\n\"");
 #endif
 	    return;
 	}
 	
 	if(!ent->inventory->items[iNum].equipped)
 	{
-		//trap_SendServerCommand(ent->client->ps.clientNum, "print \"That item is not equipped.\n\"");
+		//trap->SendServerCommand(ent->client->ps.clientNum, "print \"That item is not equipped.\n\"");
 		return;
 	}
 
 	if(ent->inventory->items[iNum].id->itemType == ITEM_WEAPON)
 	{
 		ent->inventory->items[iNum].equipped = qfalse;
-	    trap_SendServerCommand (ent->s.number, va ("iueq %i", iNum));
-	    trap_SendServerCommand (ent->s.number, "chw 0");
+	    trap->SendServerCommand (ent->s.number, va ("iueq %i", iNum));
+	    trap->SendServerCommand (ent->s.number, "chw 0");
 	}
 	else if(ent->inventory->items[iNum].id->itemType == ITEM_ARMOR)
 	{
 		ent->inventory->items[iNum].equipped = qfalse;
 		ent->client->armorItems[ent->inventory->items[iNum].id->armorSlot] = 0;
-		trap_SendServerCommand (ent->s.number, va ("iueq %i", iNum));
-		trap_SendServerCommand(-1, va("aequi %i %i 0", ent->client->ps.clientNum, ent->inventory->items[iNum].id->armorSlot));
+		trap->SendServerCommand (ent->s.number, va ("iueq %i", iNum));
+		trap->SendServerCommand(-1, va("aequi %i %i 0", ent->client->ps.clientNum, ent->inventory->items[iNum].id->armorSlot));
 	}
 	else
 	{
-		//trap_SendServerCommand(ent->client->ps.clientNum, "print \"You cannot unequip that item.\n\"");
+		//trap->SendServerCommand(ent->client->ps.clientNum, "print \"You cannot unequip that item.\n\"");
 	}
 }
 

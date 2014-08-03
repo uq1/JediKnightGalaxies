@@ -27,7 +27,7 @@ static gluaJSONBinding_t fJSON;
 //
 
 // Add a cJSON handle
-static ID_INLINE void FJSON_PassLastElement( lua_State *L, cJSON *element )
+static void FJSON_PassLastElement( lua_State *L, cJSON *element )
 {
 	// FIXME: JSON object handles are handled as numbers, not integers. FIX.
 	lua_pushnumber( L, fJSON.jsonBinding.size() );
@@ -35,7 +35,7 @@ static ID_INLINE void FJSON_PassLastElement( lua_State *L, cJSON *element )
 }
 
 // Make sure that a cJSON handle is valid
-static ID_INLINE bool FJSON_ValidateNode( lua_State *L, int argNumber )
+static bool FJSON_ValidateNode( lua_State *L, int argNumber )
 {
 	int index = luaL_checkint( L, argNumber );
 	if( index < 0 || index > fJSON.jsonBinding.size() )
@@ -45,7 +45,7 @@ static ID_INLINE bool FJSON_ValidateNode( lua_State *L, int argNumber )
 	return true;
 }
 
-static ID_INLINE cJSON *FJSON_RetrieveNode( lua_State *L, int argNumber )
+static cJSON *FJSON_RetrieveNode( lua_State *L, int argNumber )
 {
 	int index = luaL_checkint( L, argNumber );
 	cJSON *node = fJSON.jsonBinding.at( index );
@@ -68,7 +68,7 @@ static int GLua_JSON_Register( lua_State *L )
 	// Check and make sure the file exists, for starters
 	fileHandle_t f;
 	const char *fName = luaL_checkstring(L,1);
-	int len = trap_FS_FOpenFile( fName, &f, FS_READ );
+	int len = trap->FS_Open( fName, &f, FS_READ );
 
 	if( len < 0 || !f )
 	{
@@ -79,9 +79,9 @@ static int GLua_JSON_Register( lua_State *L )
 	// Read it now.
 	char *buff = (char *)malloc(len);
 	
-	trap_FS_Read( buff, len, f );
+	trap->FS_Read( buff, len, f );
 	buff[len] = '\0';
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
 	fJSON.fileBinding = buff;
 
@@ -91,7 +91,7 @@ static int GLua_JSON_Register( lua_State *L )
 
 	if( json == NULL )
 	{
-		trap_Print(va( S_COLOR_RED "Failed to get JSON node for Lua (file: %s): %s\n", fName, error));
+		trap->Print(va( S_COLOR_RED "Failed to get JSON node for Lua (file: %s): %s\n", fName, error));
 		lua_pushnil(L);
 		return 1;
 	}
@@ -531,9 +531,9 @@ static int GLua_JSON_FinishStream( lua_State *L )
 
 	fileHandle_t f;
 
-	trap_FS_FOpenFile( file, &f, FS_WRITE );
-	trap_FS_Write( buffer, strlen(buffer), f );
-	trap_FS_FCloseFile( f );
+	trap->FS_Open( file, &f, FS_WRITE );
+	trap->FS_Write( buffer, strlen(buffer), f );
+	trap->FS_Close( f );
 	return 0;
 }
 

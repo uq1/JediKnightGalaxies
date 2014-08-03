@@ -288,28 +288,28 @@ static int GLua_NPC_SetNavGoal(lua_State *L) {
 		return 0;
 	if ( !npc->health )
 	{
-		G_Printf( "GLua_NPC_SetNavGoal: tried to set a navgoal on a corpse! \"%s\"\n", npc->script_targetname );
+		trap->Print( "GLua_NPC_SetNavGoal: tried to set a navgoal on a corpse! \"%s\"\n", npc->script_targetname );
 		return 0;
 	}
 	if ( !npc->NPC )
 	{
-		G_Printf( "GLua_NPC_SetNavGoal: tried to set a navgoal on a non-NPC: \"%s\"\n", npc->script_targetname );
+		trap->Print( "GLua_NPC_SetNavGoal: tried to set a navgoal on a non-NPC: \"%s\"\n", npc->script_targetname );
 		return 0;
 	}
 	if ( !npc->NPC->tempGoal )
 	{
-		G_Printf( "GLua_NPC_SetNavGoal: tried to set a navgoal on a dead NPC: \"%s\"\n", npc->script_targetname );
+		trap->Print( "GLua_NPC_SetNavGoal: tried to set a navgoal on a dead NPC: \"%s\"\n", npc->script_targetname );
 		return 0;
 	}
 	if ( !npc->NPC->tempGoal->inuse )
 	{
-		G_Printf( "GLua_NPC_SetNavGoal: NPC's navgoal is freed: \"%s\"\n", npc->script_targetname );
+		trap->Print( "GLua_NPC_SetNavGoal: NPC's navgoal is freed: \"%s\"\n", npc->script_targetname );
 		return 0;
 	}
 	if (lua_isnoneornil(L,2)) {
 		// Clear nav goal
 		npc->NPC->goalEntity = NULL;
-		trap_ICARUS_TaskIDComplete( npc, TID_MOVE_NAV );
+		trap->ICARUS_TaskIDComplete( (sharedEntity_t *)npc, TID_MOVE_NAV );
 		npc->NPC->luaFlags.isMoving = qfalse;
 		GLua_NPCEV_OnReached(npc);
 		return 0;
@@ -322,7 +322,7 @@ static int GLua_NPC_SetNavGoal(lua_State *L) {
 			targ = G_Find(NULL, FOFS(targetname), (char*)name);
 			if ( !targ )
 			{
-				G_Printf( "GLua_NPC_SetNavGoal: can't find NAVGOAL \"%s\"\n", name );
+				trap->Print( "GLua_NPC_SetNavGoal: can't find NAVGOAL \"%s\"\n", name );
 				return 0;
 			}
 			else
@@ -439,7 +439,7 @@ static int GLua_NPC_GetEyeTrace(lua_State *L) {
 	VectorMA( src, luaL_optint(L,2,131072), vf, dest );
 
 	//Trace ahead to find a valid target
-	trap_Trace( &trace, src, vec3_origin, vec3_origin, dest, npc->s.number, MASK_OPAQUE|CONTENTS_SOLID|CONTENTS_BODY|CONTENTS_ITEM|CONTENTS_CORPSE );
+	trap->Trace( &trace, src, vec3_origin, vec3_origin, dest, npc->s.number, MASK_OPAQUE|CONTENTS_SOLID|CONTENTS_BODY|CONTENTS_ITEM|CONTENTS_CORPSE, 0, 0, 0 );
 	
 	lua_newtable(L);
 	lua_pushstring(L,"StartSolid"); lua_pushboolean(L,trace.startsolid); lua_settable(L,-3);
@@ -1195,7 +1195,7 @@ static int GLua_NPC_SetEnemy(lua_State *L) {
 		// It's a targetname, so do a G_Find
 		enemy = G_Find( NULL, FOFS(targetname), lua_tostring(L,2));
 		if (!enemy) {
-			G_Printf("GLua_NPC_SetEnemy: no such enemy: '%s'\n", lua_tostring(L,2));
+			trap->Print("GLua_NPC_SetEnemy: no such enemy: '%s'\n", lua_tostring(L,2));
 			return 0;
 		}
 		G_SetEnemy(npc, enemy);
@@ -1234,7 +1234,7 @@ static int GLua_NPC_SetLeader(lua_State *L) {
 		// It's a targetname, so do a G_Find
 		leader = G_Find( NULL, FOFS(targetname), lua_tostring(L,2));
 		if (!leader) {
-			G_Printf("GLua_NPC_SetLeader: no such leader: '%s'\n", lua_tostring(L,2));
+			trap->Print("GLua_NPC_SetLeader: no such leader: '%s'\n", lua_tostring(L,2));
 			return 0;
 		}
 		npc->client->leader = leader;
@@ -1390,7 +1390,7 @@ static int GLua_NPC_SetViewTarget(lua_State *L) {		// Does not have a Get equiva
 	if (lua_isstring(L,2)) {
 		viewtarget = G_Find( NULL, FOFS(targetname), lua_tostring(L,2));
 		if (!viewtarget) {
-			G_Printf("GLua_NPC_SetViewTarget: Could not find entity '%s'\n",  lua_tostring(L,2));
+			trap->Print("GLua_NPC_SetViewTarget: Could not find entity '%s'\n",  lua_tostring(L,2));
 			return 0;
 		}
 
@@ -1402,7 +1402,7 @@ static int GLua_NPC_SetViewTarget(lua_State *L) {		// Does not have a Get equiva
 	} else if (GLua_IsEntity(L,2)) {
 		viewtarget = GLua_CheckEntity(L,2);	
 		if (!viewtarget) {
-			G_Printf("GLua_NPC_SetViewTarget: NULL entity provided\n");
+			trap->Print("GLua_NPC_SetViewTarget: NULL entity provided\n");
 			return 0;
 		}
 
@@ -2095,7 +2095,7 @@ static void GLua_NPCEV_OnInit(gentity_t *self, gentity_t *spawner) {
 	lua_pushstring(L, "OnInit");
 	GLua_PushEntity(L, spawner);
 	if (lua_pcall(L,3,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnInit: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnInit: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2108,7 +2108,7 @@ void GLua_NPCEV_OnSpawn(gentity_t *self) {
 	GLua_PushNPC(L, self);
 	lua_pushstring(L, "OnSpawn");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnSpawn: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnSpawn: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2121,7 +2121,7 @@ void GLua_NPCEV_OnThink(gentity_t *self) {
 	GLua_PushNPC(L, self);
 	lua_pushstring(L, "OnThink");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnThink: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnThink: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2136,7 +2136,7 @@ void GLua_NPCEV_OnUse(gentity_t *self, gentity_t *other, gentity_t *activator) {
 	GLua_PushEntity(L, other);
 	GLua_PushEntity(L, activator);
 	if (lua_pcall(L,4,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnUse: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnUse: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2149,7 +2149,7 @@ void GLua_NPCEV_OnRemove(gentity_t *self) {
 	GLua_PushNPC(L, self);
 	lua_pushstring(L, "OnRemove");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnRemove: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnRemove: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2164,7 +2164,7 @@ void GLua_NPCEV_OnPain(gentity_t *self, gentity_t *attacker, int damage) {
 	GLua_PushEntity(L, attacker);
 	lua_pushnumber(L, damage);
 	if (lua_pcall(L,4,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnPain: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnPain: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2181,7 +2181,7 @@ void GLua_NPCEV_OnDie(gentity_t *self, gentity_t *inflictor, gentity_t *attacker
 	lua_pushnumber(L, damage);
 	lua_pushnumber(L, mod);
 	if (lua_pcall(L,6,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnDie: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnDie: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2195,7 +2195,7 @@ void GLua_NPCEV_OnTouch(gentity_t *self, gentity_t *other, trace_t* tr) {
 	lua_pushstring(L, "OnTouch");
 	GLua_PushEntity(L, other);
 	if (lua_pcall(L,3,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnTouch: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnTouch: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2208,7 +2208,7 @@ void GLua_NPCEV_OnReached(gentity_t *self) {
 	GLua_PushNPC(L, self);
 	lua_pushstring(L, "OnReached");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnReached: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnReached: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2221,7 +2221,7 @@ void GLua_NPCEV_OnStuck(gentity_t *self) {	// NAV cant find a path to the navgoa
 	GLua_PushNPC(L, self);
 	lua_pushstring(L, "OnStuck");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnStuck: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnStuck: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2235,7 +2235,7 @@ void GLua_NPCEV_OnBlocked(gentity_t *self, gentity_t *blocker) {
 	lua_pushstring(L, "OnBlocked");
 	GLua_PushEntity(L, blocker);
 	if (lua_pcall(L,3,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnBlocked: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnBlocked: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2248,7 +2248,7 @@ void GLua_NPCEV_OnAwake(gentity_t *self) {
 	GLua_PushNPC(L, self);
 	lua_pushstring(L, "OnAwake");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnAwake: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnAwake: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2262,7 +2262,7 @@ void GLua_NPCEV_OnAnger(gentity_t *self, gentity_t *enemy) {
 	lua_pushstring(L, "OnAnger");
 	GLua_PushEntity(L, enemy);
 	if (lua_pcall(L,3,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnAnger: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnAnger: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2275,7 +2275,7 @@ void GLua_NPCEV_OnAttack(gentity_t *self) {
 	GLua_PushNPC(L, self);
 	lua_pushstring(L, "OnAttack");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnAttack: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnAttack: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2288,7 +2288,7 @@ void GLua_NPCEV_OnVictory(gentity_t *self) {
 	GLua_PushNPC(L, self);
 	lua_pushstring(L, "OnVictory");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnVictory: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnVictory: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2301,7 +2301,7 @@ void GLua_NPCEV_OnLostEnemy(gentity_t *self) {
 	GLua_PushNPC(L, self);
 	lua_pushstring(L, "OnLostEnemy");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnLostEnemy: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnLostEnemy: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -2315,7 +2315,7 @@ void GLua_NPCEV_OnMindTrick(gentity_t *self, gentity_t *user) {
 	lua_pushstring(L, "OnMindTrick");
 	GLua_PushEntity(L, user);
 	if (lua_pcall(L,3,0,0)) {
-		G_Printf("GLua: Failed to call npc.OnMindTrick: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call npc.OnMindTrick: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;

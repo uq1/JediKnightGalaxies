@@ -17,7 +17,7 @@
 
 #undef MOD_EXPLOSIVE
 
-#ifdef QAGAME //including game headers on cgame is FORBIDDEN ^_^
+#ifdef _GAME //including game headers on cgame is FORBIDDEN ^_^
 #include "g_local.h"
 #else
 #include "bg_public.h"
@@ -41,7 +41,7 @@
 #define MOD_EXPLOSIVE MOD_SUICIDE
 
 extern float DotToSpot( vec3_t spot, vec3_t from, vec3_t fromAngles );
-#ifdef QAGAME //SP or gameside MP
+#ifdef _GAME //SP or gameside MP
 extern vmCvar_t	cg_thirdPersonAlpha;
 extern vec3_t playerMins;
 extern vec3_t playerMaxs;
@@ -64,7 +64,7 @@ bool BG_FighterUpdate(Vehicle_t *pVeh, const usercmd_t *pUcmd, vec3_t trMins, ve
 	vec3_t		bottom;
 	playerState_t *parentPS;
 	qboolean	isDead = qfalse;
-#ifdef QAGAME //don't do this on client
+#ifdef _GAME //don't do this on client
 	int i;
 
 	// Make sure the riders are not visible or collidable.
@@ -113,7 +113,7 @@ bool BG_FighterUpdate(Vehicle_t *pVeh, const usercmd_t *pUcmd, vec3_t trMins, ve
 	return true;
 }
 
-#ifdef QAGAME //ONLY in SP or on server, not cgame
+#ifdef _GAME //ONLY in SP or on server, not cgame
 
 // Like a think or move command, this updates various vehicle properties.
 static bool Update( Vehicle_t *pVeh, const usercmd_t *pUcmd )
@@ -197,7 +197,7 @@ static float PredictedAngularDecrement(float scale, float timeMod, float origina
 	return r;
 }
 
-#ifdef QAGAME//only do this check on GAME side, because if it's CGAME, it's being predicted, and it's only predicted if the local client is the driver
+#ifdef _GAME//only do this check on GAME side, because if it's CGAME, it's being predicted, and it's only predicted if the local client is the driver
 qboolean FighterIsInSpace( gentity_t *gParent )
 {
 	if ( gParent 
@@ -236,7 +236,7 @@ qboolean FighterIsLanding( Vehicle_t *pVeh, playerState_t *parentPS )
 {
 
 	if ( FighterOverValidLandingSurface( pVeh )
-#ifdef QAGAME//only do this check on GAME side, because if it's CGAME, it's being predicted, and it's only predicted if the local client is the driver
+#ifdef _GAME//only do this check on GAME side, because if it's CGAME, it's being predicted, and it's only predicted if the local client is the driver
 		&& pVeh->m_pVehicleInfo->Inhabited( pVeh )//has to have a driver in order to be capable of landing
 #endif
 		&& (pVeh->m_ucmd.forwardmove < 0||pVeh->m_ucmd.upmove<0) //decelerating or holding crouch button
@@ -251,7 +251,7 @@ qboolean FighterIsLaunching( Vehicle_t *pVeh, playerState_t *parentPS )
 {
 
 	if ( FighterOverValidLandingSurface( pVeh )
-#ifdef QAGAME//only do this check on GAME side, because if it's CGAME, it's being predicted, and it's only predicted if the local client is the driver
+#ifdef _GAME//only do this check on GAME side, because if it's CGAME, it's being predicted, and it's only predicted if the local client is the driver
 		&& pVeh->m_pVehicleInfo->Inhabited( pVeh )//has to have a driver in order to be capable of landing
 #endif
 		&& pVeh->m_ucmd.upmove > 0 //trying to take off
@@ -264,7 +264,7 @@ qboolean FighterIsLaunching( Vehicle_t *pVeh, playerState_t *parentPS )
 
 qboolean FighterSuspended( Vehicle_t *pVeh, playerState_t *parentPS )
 {
-#ifdef QAGAME//only do this check on GAME side, because if it's CGAME, it's being predicted, and it's only predicted if the local client is the driver
+#ifdef _GAME//only do this check on GAME side, because if it's CGAME, it's being predicted, and it's only predicted if the local client is the driver
 	if (!pVeh->m_pPilot//empty
 		&& !parentPS->speed//not moving
 		&& pVeh->m_ucmd.forwardmove <= 0//not trying to go forward for whatever reason
@@ -326,7 +326,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 				{//just started hyperspace
 //MIKE: This is going to play the sound twice for the predicting client, I suggest using
 //a predicted event or only doing it game-side. -rich
-#ifdef QAGAME//MP GAME-side
+#ifdef _GAME//MP GAME-side
 					//G_EntitySound( ((gentity_t *)(pVeh->m_pParentEntity)), CHAN_LOCAL, pVeh->m_pVehicleInfo->soundHyper );
 #elif CGAME//MP CGAME-side
 					trap_S_StartSound( NULL, pm->ps->clientNum, CHAN_LOCAL, pVeh->m_pVehicleInfo->soundHyper );
@@ -368,7 +368,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 			if ( parentPS->velocity[2] <= 0 
 				&& pVeh->m_pVehicleInfo->soundTakeOff )
 			{//taking off for the first time
-#ifdef QAGAME//MP GAME-side
+#ifdef _GAME//MP GAME-side
 				G_EntitySound( ((gentity_t *)(pVeh->m_pParentEntity)), CHAN_AUTO, pVeh->m_pVehicleInfo->soundTakeOff );
 #endif
 			}
@@ -413,7 +413,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 		{
 			pVeh->m_iTurboTime = (curTime + pVeh->m_pVehicleInfo->turboDuration);
 
-#ifdef QAGAME//MP GAME-side
+#ifdef _GAME//MP GAME-side
 			//NOTE: turbo sound can't be part of effect if effect is played on every muzzle!
 			if ( pVeh->m_pVehicleInfo->soundTurbo )
 			{
@@ -465,7 +465,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 		//Why set forwardmove?  PMove code doesn't use it... does it?
 		pVeh->m_ucmd.forwardmove = 127;
 	}
-#ifdef QAGAME //well, the thing is always going to be inhabited if it's being predicted!
+#ifdef _GAME //well, the thing is always going to be inhabited if it's being predicted!
 	else if ( FighterSuspended( pVeh, parentPS ) )
 	{
 		parentPS->speed = 0;
@@ -614,7 +614,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 
 //STRAFING==============================================================================
 	if ( pVeh->m_pVehicleInfo->strafePerc 
-#ifdef QAGAME//only do this check on GAME side, because if it's CGAME, it's being predicted, and it's only predicted if the local client is the driver
+#ifdef _GAME//only do this check on GAME side, because if it's CGAME, it's being predicted, and it's only predicted if the local client is the driver
 		&& pVeh->m_pVehicleInfo->Inhabited( pVeh )//has to have a driver in order to be capable of landing
 #endif
 		&& !pVeh->m_iRemovedSurfaces
@@ -697,7 +697,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 		parentPS->speed = speedMin;
 	}
 
-#ifdef QAGAME//FIXME: get working in GAME and CGAME
+#ifdef _GAME//FIXME: get working in GAME and CGAME
 	if ((pVeh->m_vOrientation[PITCH]*0.1f) > 10.0f)
 	{ //pitched downward, increase speed more and more based on our tilt
 		if ( FighterIsInSpace( (gentity_t *)parent ) )
@@ -905,7 +905,7 @@ static void FighterDamageRoutine( Vehicle_t *pVeh, bgEntity_t *parent, playerSta
 			//else: just keep going forward
 		}
 	}
-#ifdef QAGAME
+#ifdef _GAME
 	if ( pVeh->m_LandTrace.fraction < 1.0f )
 	{ //if you land at all when pieces of your ship are missing, then die
 		gentity_t *parent = (gentity_t *)pVeh->m_pParentEntity;
@@ -1259,13 +1259,13 @@ static void ProcessOrientCommands( Vehicle_t *pVeh )
 	bgEntity_t *parent = pVeh->m_pParentEntity;
 	playerState_t *parentPS, *riderPS;
 	float angleTimeMod;
-#ifdef QAGAME
+#ifdef _GAME
 	const float groundFraction = 0.1f;
 #endif
 	float	curRoll = 0.0f;
 	qboolean isDead = qfalse;
 	qboolean isLandingOrLanded = qfalse;
-#if QAGAME//MP GAME
+#if _GAME//MP GAME
 	int curTime = level.time;
 #elif CGAME//MP CGAME
 	//FIXME: pass in ucmd?  Not sure if this is reliable...
@@ -1534,7 +1534,7 @@ static void ProcessOrientCommands( Vehicle_t *pVeh )
 	}
 
 	// If no one is in this vehicle and it's up in the sky, pitch it forward as it comes tumbling down.
-#ifdef QAGAME //never gonna happen on client anyway, we can't be getting predicted unless the predicting client is boarded
+#ifdef _GAME //never gonna happen on client anyway, we can't be getting predicted unless the predicting client is boarded
  	if ( !pVeh->m_pVehicleInfo->Inhabited( pVeh ) 
 		&& pVeh->m_LandTrace.fraction >= groundFraction 
 		&& !FighterIsInSpace( (gentity_t *)parent ) 
@@ -1606,7 +1606,7 @@ static void ProcessOrientCommands( Vehicle_t *pVeh )
 	/********************************************************************************/
 }
 
-#ifdef QAGAME //ONLY in SP or on server, not cgame
+#ifdef _GAME //ONLY in SP or on server, not cgame
 
 extern void PM_SetAnim(pmove_t	*pm,int setAnimParts,int anim,int setAnimFlags, int blendTime);
 
@@ -1617,7 +1617,7 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 	int iFlags = SETANIM_FLAG_NORMAL, iBlend = 300;
 	qboolean isLanding = qfalse, isLanded = qfalse;
 	playerState_t *parentPS = pVeh->m_pParentEntity->playerState;
-#if QAGAME//MP GAME
+#if _GAME//MP GAME
 	int curTime = level.time;
 #elif CGAME//MP CGAME
 	//FIXME: pass in ucmd?  Not sure if this is reliable...
@@ -1661,7 +1661,7 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 				{
 					if ( pVeh->m_pVehicleInfo->soundLand )
 					{//just landed?
-#ifdef QAGAME//MP GAME-side
+#ifdef _GAME//MP GAME-side
 						G_EntitySound( ((gentity_t *)(pVeh->m_pParentEntity)), CHAN_AUTO, pVeh->m_pVehicleInfo->soundLand );
 #elif CGAME//MP CGAME-side
 						//trap_S_StartSound( NULL, pVeh->m_pParentEntity->s.number, CHAN_AUTO, pVeh->m_pVehicleInfo->soundLand );
@@ -1707,13 +1707,13 @@ static void AnimateRiders( Vehicle_t *pVeh )
 
 #endif //game-only
 
-#ifndef QAGAME
+#ifndef _GAME
 void AttachRidersGeneric( Vehicle_t *pVeh );
 #endif
 
 void G_SetFighterVehicleFunctions( vehicleInfo_t *pVehInfo )
 {
-#ifdef QAGAME //ONLY in SP or on server, not cgame
+#ifdef _GAME //ONLY in SP or on server, not cgame
 	pVehInfo->AnimateVehicle			=		AnimateVehicle;
 	pVehInfo->AnimateRiders				=		AnimateRiders;
 //	pVehInfo->ValidateBoard				=		ValidateBoard;
@@ -1734,7 +1734,7 @@ void G_SetFighterVehicleFunctions( vehicleInfo_t *pVehInfo )
 	pVehInfo->ProcessMoveCommands		=		ProcessMoveCommands;
 	pVehInfo->ProcessOrientCommands		=		ProcessOrientCommands;
 
-#ifndef QAGAME //cgame prediction attachment func
+#ifndef _GAME //cgame prediction attachment func
 	pVehInfo->AttachRiders				=		AttachRidersGeneric;
 #endif
 //	pVehInfo->AttachRiders				=		AttachRiders;
@@ -1745,7 +1745,7 @@ void G_SetFighterVehicleFunctions( vehicleInfo_t *pVehInfo )
 
 // Following is only in game, not in namespace
 
-#ifdef QAGAME
+#ifdef _GAME
 extern void G_AllocateVehicleObject(Vehicle_t **pVeh);
 #endif
 
@@ -1753,7 +1753,7 @@ extern void G_AllocateVehicleObject(Vehicle_t **pVeh);
 void G_CreateFighterNPC( Vehicle_t **pVeh, const char *strType )
 {
 	// Allocate the Vehicle.
-#ifdef QAGAME
+#ifdef _GAME
 	//these will remain on entities on the client once allocated because the pointer is
 	//never stomped. on the server, however, when an ent is freed, the entity struct is
 	//memset to 0, so this memory would be lost..

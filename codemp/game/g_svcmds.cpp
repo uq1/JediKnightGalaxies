@@ -88,7 +88,7 @@ static qboolean StringToFilter (char *s, ipFilter_t *f)
 				s++;
 				continue;
 			}
-			G_Printf( "Bad filter address: %s\n", s );
+			trap->Print( "Bad filter address: %s\n", s );
 			return qfalse;
 		}
 
@@ -153,7 +153,7 @@ static void UpdateIPBans (void)
 		}
 	}
 
-	trap_Cvar_Set( "g_banIPs", iplist_final );
+	trap->Cvar_Set( "g_banIPs", iplist_final );
 }
 
 /*
@@ -206,7 +206,7 @@ static void AddIP( char *str )
 	{
 		if (numIPFilters == MAX_IPFILTERS)
 		{
-			G_Printf ("IP filter list is full\n");
+			trap->Print ("IP filter list is full\n");
 			return;
 		}
 		numIPFilters++;
@@ -251,12 +251,12 @@ void Svcmd_AddIP_f (void)
 {
 	char		str[MAX_TOKEN_CHARS];
 
-	if ( trap_Argc() < 2 ) {
-		G_Printf("Usage: addip <ip-mask>\n");
+	if ( trap->Argc() < 2 ) {
+		trap->Print("Usage: addip <ip-mask>\n");
 		return;
 	}
 
-	trap_Argv( 1, str, sizeof( str ) );
+	trap->Argv( 1, str, sizeof( str ) );
 
 	AddIP( str );
 }
@@ -272,12 +272,12 @@ void Svcmd_RemoveIP_f (void)
 	int			i;
 	char		str[MAX_TOKEN_CHARS];
 
-	if ( trap_Argc() < 2 ) {
-		G_Printf("Usage: removeip <ip-mask>\n");
+	if ( trap->Argc() < 2 ) {
+		trap->Print("Usage: removeip <ip-mask>\n");
 		return;
 	}
 
-	trap_Argv( 1, str, sizeof( str ) );
+	trap->Argv( 1, str, sizeof( str ) );
 
 	if (!StringToFilter (str, &f))
 		return;
@@ -286,14 +286,14 @@ void Svcmd_RemoveIP_f (void)
 		if (ipFilters[i].mask == f.mask	&&
 			ipFilters[i].compare == f.compare) {
 			ipFilters[i].compare = 0xffffffffu;
-			G_Printf ("Removed.\n");
+			trap->Print ("Removed.\n");
 
 			UpdateIPBans();
 			return;
 		}
 	}
 
-	G_Printf ( "Didn't find %s.\n", str );
+	trap->Print ( "Didn't find %s.\n", str );
 }
 
 /*
@@ -313,7 +313,7 @@ void	Svcmd_EntityInfo_f (void) {
 			inuse++;
 		}
 	}
-	G_Printf("Normal entity slots in use: %i/%i (%i slots allocated)\n", inuse, MAX_GENTITIES, level.num_entities);
+	trap->Print("Normal entity slots in use: %i/%i (%i slots allocated)\n", inuse, MAX_GENTITIES, level.num_entities);
 	totalents = inuse;
 
 	inuse = 0;
@@ -322,9 +322,9 @@ void	Svcmd_EntityInfo_f (void) {
 			inuse++;
 		}
 	}
-	G_Printf("Logical entity slots in use: %i/%i (%i slots allocated)\n", inuse, MAX_LOGICENTITIES, level.num_logicalents);
+	trap->Print("Logical entity slots in use: %i/%i (%i slots allocated)\n", inuse, MAX_LOGICENTITIES, level.num_logicalents);
 	totalents += inuse;
-	G_Printf("Total entity count: %i/%i\n", totalents, MAX_ENTITIESTOTAL);
+	trap->Print("Total entity count: %i/%i\n", totalents, MAX_ENTITIESTOTAL);
 }
 
 /*
@@ -341,53 +341,53 @@ void	Svcmd_EntityList_f (void) {
 		if ( !check->inuse ) {
 			continue;
 		}
-		G_Printf("%3i:", e);
+		trap->Print("%3i:", e);
 		switch ( check->s.eType ) {
 		case ET_GENERAL:
-			G_Printf("ET_GENERAL          ");
+			trap->Print("ET_GENERAL          ");
 			break;
 		case ET_PLAYER:
-			G_Printf("ET_PLAYER           ");
+			trap->Print("ET_PLAYER           ");
 			break;
 		case ET_ITEM:
-			G_Printf("ET_ITEM             ");
+			trap->Print("ET_ITEM             ");
 			break;
 		case ET_MISSILE:
-			G_Printf("ET_MISSILE          ");
+			trap->Print("ET_MISSILE          ");
 			break;
 		case ET_MOVER:
-			G_Printf("ET_MOVER            ");
+			trap->Print("ET_MOVER            ");
 			break;
 		case ET_BEAM:
-			G_Printf("ET_BEAM             ");
+			trap->Print("ET_BEAM             ");
 			break;
 		case ET_PORTAL:
-			G_Printf("ET_PORTAL           ");
+			trap->Print("ET_PORTAL           ");
 			break;
 		case ET_SPEAKER:
-			G_Printf("ET_SPEAKER          ");
+			trap->Print("ET_SPEAKER          ");
 			break;
 		case ET_PUSH_TRIGGER:
-			G_Printf("ET_PUSH_TRIGGER     ");
+			trap->Print("ET_PUSH_TRIGGER     ");
 			break;
 		case ET_TELEPORT_TRIGGER:
-			G_Printf("ET_TELEPORT_TRIGGER ");
+			trap->Print("ET_TELEPORT_TRIGGER ");
 			break;
 		case ET_INVISIBLE:
-			G_Printf("ET_INVISIBLE        ");
+			trap->Print("ET_INVISIBLE        ");
 			break;
 		case ET_NPC:
-			G_Printf("ET_NPC              ");
+			trap->Print("ET_NPC              ");
 			break;
 		default:
-			G_Printf("%3i                 ", check->s.eType);
+			trap->Print("%3i                 ", check->s.eType);
 			break;
 		}
 
 		if ( check->classname ) {
-			G_Printf("%s", check->classname);
+			trap->Print("%s", check->classname);
 		}
-		G_Printf("\n");
+		trap->Print("\n");
 	}
 }
 
@@ -426,7 +426,7 @@ gclient_t	*ClientForString( const char *s ) {
 		}
 	}
 
-	G_Printf( "User %s is not on the server\n", s );
+	trap->Print( "User %s is not on the server\n", s );
 	return NULL;
 }
 
@@ -441,20 +441,20 @@ void	Svcmd_ForceTeam_f( void ) {
 	gclient_t	*cl;
 	char		str[MAX_TOKEN_CHARS];
 
-	if ( trap_Argc() < 3 ) {
-		G_Printf("Usage: forceteam <player> <team>\n");
+	if ( trap->Argc() < 3 ) {
+		trap->Print("Usage: forceteam <player> <team>\n");
 		return;
 	}
 
 	// find the player
-	trap_Argv( 1, str, sizeof( str ) );
+	trap->Argv( 1, str, sizeof( str ) );
 	cl = ClientForString( str );
 	if ( !cl ) {
 		return;
 	}
 
 	// set the team
-	trap_Argv( 2, str, sizeof( str ) );
+	trap->Argv( 2, str, sizeof( str ) );
 	SetTeam( &g_entities[cl - level.clients], str );
 }
 
@@ -471,9 +471,9 @@ int testMasterFinalFunc (struct asyncTask_s *task) {
 	cJSON *data = (cJSON *)task->finalData;
 
 	if (task->errorCode == 0) {
-		G_Printf("Test successful! (bounce: %i - %i)", cJSON_ToInteger(cJSON_GetObjectItem(data, "bounce")), level.time);
+		trap->Print("Test successful! (bounce: %i - %i)", cJSON_ToInteger(cJSON_GetObjectItem(data, "bounce")), level.time);
 	} else {
-		G_Printf("Test failed!");
+		trap->Print("Test failed!");
 	}
 	return 0;
 }
@@ -481,15 +481,15 @@ int testMasterFinalFunc (struct asyncTask_s *task) {
 qboolean	ConsoleCommand( void ) {
 	char	cmd[MAX_TOKEN_CHARS];
 
-	trap_Argv( 0, cmd, sizeof( cmd ) );
+	trap->Argv( 0, cmd, sizeof( cmd ) );
 
 	if (!Q_stricmp (cmd, "lua_reload")) {
-		G_Printf("Doing soft GLua restart\n");
+		trap->Print("Doing soft GLua restart\n");
 		GLua_SoftRestart();
 		return qtrue;
 	}
 	if (!Q_stricmp (cmd, "lua_restart")) {
-		G_Printf("Doing hard GLua restart\n");
+		trap->Print("Doing hard GLua restart\n");
 		GLua_Close();
 		GLua_Init();
 		GLua_Hook_GameInit(level.time, 0);
@@ -500,9 +500,9 @@ qboolean	ConsoleCommand( void ) {
 		char line[1024] = {0};
 		char buff[1024] = {0};
 		int i, argc;
-		argc = trap_Argc();
+		argc = trap->Argc();
 		for (i=1; i < argc; i++) {
-			trap_Argv(i, buff, sizeof(buff));
+			trap->Argv(i, buff, sizeof(buff));
 			Q_strcat(line, 1023, buff);
 			Q_strcat(line, 1023, " ");
 			//Com_sprintf(line, sizeof(line), "%s%s ", line, buff);
@@ -571,7 +571,7 @@ qboolean	ConsoleCommand( void ) {
 	}
 
 	if (Q_stricmp (cmd, "listip") == 0) {
-		trap_SendConsoleCommand( EXEC_NOW, "g_banIPs\n" );
+		trap->SendConsoleCommand( EXEC_NOW, "g_banIPs\n" );
 		return qtrue;
 	}
 
@@ -582,7 +582,7 @@ qboolean	ConsoleCommand( void ) {
 	}
 	if (dedicated.integer) {
 		if (Q_stricmp (cmd, "say") == 0) {
-			trap_SendServerCommand( -1, va("print \"server: %s\n\"", ConcatArgs(1) ) );
+			trap->SendServerCommand( -1, va("print \"server: %s\n\"", ConcatArgs(1) ) );
 			return qtrue;
 		}
 
@@ -592,7 +592,7 @@ qboolean	ConsoleCommand( void ) {
 			return qtrue;
 		}
 		// everything else will NOT also be printed as a say command
-		//trap_SendServerCommand( -1, va("print \"server: %s\n\"", ConcatArgs(0) ) );
+		//trap->SendServerCommand( -1, va("print \"server: %s\n\"", ConcatArgs(0) ) );
 		//return qtrue;
 	}
 

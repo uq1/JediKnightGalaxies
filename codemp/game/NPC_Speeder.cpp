@@ -5,7 +5,7 @@
 //or something, so the headers spew errors on these defs from the previous compile.
 //this fixes that. -rww
 
-#ifdef QAGAME //including game headers on cgame is FORBIDDEN ^_^
+#ifdef _GAME //including game headers on cgame is FORBIDDEN ^_^
 #include "g_local.h"
 #else
 #include "bg_public.h"
@@ -29,7 +29,7 @@
 #define MOD_EXPLOSIVE MOD_SUICIDE
 
 extern float DotToSpot( vec3_t spot, vec3_t from, vec3_t fromAngles );
-#ifdef QAGAME //SP or gameside MP
+#ifdef _GAME //SP or gameside MP
 extern vmCvar_t	cg_thirdPersonAlpha;
 extern vec3_t playerMins;
 extern vec3_t playerMaxs;
@@ -56,7 +56,7 @@ bool	VEH_StartStrafeRam(Vehicle_t *pVeh, bool Right, int Duration)
 }
 
 
-#ifdef QAGAME //game-only.. for now
+#ifdef _GAME //game-only.. for now
 // Like a think or move command, this updates various vehicle properties.
 bool Update( Vehicle_t *pVeh, const usercmd_t *pUcmd )
 {
@@ -75,7 +75,7 @@ bool Update( Vehicle_t *pVeh, const usercmd_t *pUcmd )
 
 	return true;
 }
-#endif //QAGAME
+#endif //_GAME
 
 //MP RULE - ALL PROCESSMOVECOMMANDS FUNCTIONS MUST BE BG-COMPATIBLE!!!
 //If you really need to violate this rule for SP, then use ifdefs.
@@ -119,7 +119,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 	}
 	speedIdleDec = pVeh->m_pVehicleInfo->decelIdle * pVeh->m_fTimeModifier;
 
-#if QAGAME//MP GAME
+#if _GAME//MP GAME
 	curTime = level.time;
 #elif CGAME//MP CGAME
 	//FIXME: pass in ucmd?  Not sure if this is reliable...
@@ -147,7 +147,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 					int i;
 					for (i=0; (i<MAX_VEHICLE_EXHAUSTS && pVeh->m_iExhaustTag[i]!=-1); i++)
 					{
-#ifdef QAGAME
+#ifdef _GAME
 						if (pVeh->m_pParentEntity &&
 							pVeh->m_pParentEntity->ghoul2 &&
 							pVeh->m_pParentEntity->playerState)
@@ -157,7 +157,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 
 							VectorSet(boltDir, 0.0f, pVeh->m_pParentEntity->playerState->viewangles[YAW], 0.0f);
 
-							trap_G2API_GetBoltMatrix(pVeh->m_pParentEntity->ghoul2, 0, pVeh->m_iExhaustTag[i], &boltMatrix, boltDir, pVeh->m_pParentEntity->playerState->origin, level.time, NULL, pVeh->m_pParentEntity->modelScale);
+							trap->G2API_GetBoltMatrix(pVeh->m_pParentEntity->ghoul2, 0, pVeh->m_iExhaustTag[i], &boltMatrix, boltDir, pVeh->m_pParentEntity->playerState->origin, level.time, NULL, pVeh->m_pParentEntity->modelScale);
 							BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, boltOrg);
 							BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, boltDir);
 							G_PlayEffectID(pVeh->m_pVehicleInfo->iTurboStartFX, boltOrg, boltDir);
@@ -338,7 +338,7 @@ void ProcessOrientCommands( Vehicle_t *pVeh )
 	/********************************************************************************/
 }
 
-#ifdef QAGAME
+#ifdef _GAME
 
 extern void PM_SetAnim(pmove_t	*pm,int setAnimParts,int anim,int setAnimFlags, int blendTime);
 extern int PM_AnimLength( int index, animNumber_t anim );
@@ -348,7 +348,7 @@ void AnimateVehicle( Vehicle_t *pVeh )
 {
 }
 
-#endif //QAGAME
+#endif //_GAME
 
 //rest of file is shared
 
@@ -419,7 +419,7 @@ void AnimateRiders( Vehicle_t *pVeh )
 	pilotPS = pVeh->m_pPilot->playerState;
 	parentPS = pVeh->m_pPilot->playerState;
 
-#if QAGAME//MP GAME
+#if _GAME//MP GAME
 	curTime = level.time;
 #elif CGAME//MP CGAME
 	//FIXME: pass in ucmd?  Not sure if this is reliable...
@@ -635,13 +635,13 @@ void AnimateRiders( Vehicle_t *pVeh )
 		SETANIM_BOTH, Anim, iFlags|SETANIM_FLAG_HOLD, iBlend);
 }
 
-#ifndef QAGAME
+#ifndef _GAME
 void AttachRidersGeneric( Vehicle_t *pVeh );
 #endif
 
 void G_SetSpeederVehicleFunctions( vehicleInfo_t *pVehInfo )
 {
-#ifdef QAGAME
+#ifdef _GAME
 	pVehInfo->AnimateVehicle			=		AnimateVehicle;
 	pVehInfo->AnimateRiders				=		AnimateRiders;
 //	pVehInfo->ValidateBoard				=		ValidateBoard;
@@ -664,7 +664,7 @@ void G_SetSpeederVehicleFunctions( vehicleInfo_t *pVehInfo )
 	pVehInfo->ProcessMoveCommands		=		ProcessMoveCommands;
 	pVehInfo->ProcessOrientCommands		=		ProcessOrientCommands;
 
-#ifndef QAGAME //cgame prediction attachment func
+#ifndef _GAME //cgame prediction attachment func
 	pVehInfo->AttachRiders				=		AttachRidersGeneric;
 #endif
 //	pVehInfo->AttachRiders				=		AttachRiders;
@@ -675,14 +675,14 @@ void G_SetSpeederVehicleFunctions( vehicleInfo_t *pVehInfo )
 
 // Following is only in game, not in namespace
 
-#ifdef QAGAME
+#ifdef _GAME
 extern void G_AllocateVehicleObject(Vehicle_t **pVeh);
 #endif
 
 // Create/Allocate a new Animal Vehicle (initializing it as well).
 void G_CreateSpeederNPC( Vehicle_t **pVeh, const char *strType )
 {
-#ifdef QAGAME
+#ifdef _GAME
 	//these will remain on entities on the client once allocated because the pointer is
 	//never stomped. on the server, however, when an ent is freed, the entity struct is
 	//memset to 0, so this memory would be lost..

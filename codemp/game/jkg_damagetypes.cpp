@@ -279,7 +279,7 @@ qhandle_t JKG_RegisterDamageSettings ( const damageSettings_t *settings )
     int i = 0;
     if ( numDamageSettings >= MAX_DAMAGE_SETTINGS )
     {
-        G_Printf ("WARNING: Max number of damage type settings exceeded. Max is %d.\n", MAX_DAMAGE_SETTINGS);
+        trap->Print ("WARNING: Max number of damage type settings exceeded. Max is %d.\n", MAX_DAMAGE_SETTINGS);
         return 0;
     }
     
@@ -363,7 +363,7 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
                 vec3_t p;
                 VectorCopy (ent->client->ps.origin, p);
                 p[2] -= 12.0f; // Water about half way up your thighs will extinguish the flames.
-                if ( trap_PointContents (p, ent->s.number) & CONTENTS_WATER )
+                if ( trap->PointContents (p, ent->s.number) & CONTENTS_WATER )
                 {
                     JKG_RemoveDamageType (ent, DT_FIRE);
                 }
@@ -455,7 +455,7 @@ static void DamagePlayersInArea ( damageArea_t *area )
         areaMaxs[j] = area->origin[j] + damageRadius;
     }
     
-    numEnts = trap_EntitiesInBox (areaMins, areaMaxs, entList, MAX_GENTITIES);
+    numEnts = trap->EntitiesInBox (areaMins, areaMaxs, entList, MAX_GENTITIES);
     for ( j = 0; j < numEnts; j++ )
     {
         vec3_t playerOrigin;
@@ -496,7 +496,7 @@ static void DamagePlayersInArea ( damageArea_t *area )
         VectorCopy (ent->client->ps.origin, playerOrigin);
         if ( area->data->penetrationType != PT_SHIELD_ARMOR_BUILDING )
         {
-            trap_Trace (&tr, area->origin, NULL, NULL, playerOrigin, -1, CONTENTS_SOLID);
+            trap->Trace (&tr, area->origin, NULL, NULL, playerOrigin, -1, CONTENTS_SOLID, 0, 0, 0);
             if ( tr.fraction != 1.0f )
             {
                 continue;
@@ -517,7 +517,7 @@ static damageSettings_t *GetDamageSettingsForHandle ( qhandle_t handle )
     handle--;
     if ( handle < 0 || handle >= numDamageSettings )
     {
-        G_Printf ("ERROR: Invalid damage area handle given.\n");
+        trap->Print ("ERROR: Invalid damage area handle given.\n");
         return NULL;
     }
     

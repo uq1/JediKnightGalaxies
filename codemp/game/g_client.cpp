@@ -1734,12 +1734,12 @@ void Svcmd_ToggleUserinfoValidation_f( void ) {
 	if ( trap_Argc() == 1 ) {
 		int i=0;
 		for ( i=0; i<numUserinfoFields; i++ ) {
-			if ( (g_userinfoValidate.integer & (1<<i)) )	G_Printf( "%2d [X] %s\n", i, userinfoFields[i].fieldClean );
-			else											G_Printf( "%2d [ ] %s\n", i, userinfoFields[i].fieldClean );
+			if ( (g_userinfoValidate.integer & (1<<i)) )	trap->Print( "%2d [X] %s\n", i, userinfoFields[i].fieldClean );
+			else											trap->Print( "%2d [ ] %s\n", i, userinfoFields[i].fieldClean );
 		}
 		for ( ; i<numUserinfoFields+USERINFO_VALIDATION_MAX; i++ ) {
-			if ( (g_userinfoValidate.integer & (1<<i)) )	G_Printf( "%2d [X] %s\n", i, userinfoValidateExtra[i-numUserinfoFields] );
-			else											G_Printf( "%2d [ ] %s\n", i, userinfoValidateExtra[i-numUserinfoFields] );
+			if ( (g_userinfoValidate.integer & (1<<i)) )	trap->Print( "%2d [X] %s\n", i, userinfoValidateExtra[i-numUserinfoFields] );
+			else											trap->Print( "%2d [ ] %s\n", i, userinfoValidateExtra[i-numUserinfoFields] );
 		}
 		return;
 	}
@@ -2109,7 +2109,7 @@ extern int NextIDCode;
 extern vmCvar_t jkg_antifakeplayer;
 extern qboolean g_dontPenalizeTeam; //g_cmds.c
 #define NET_ADDRSTRMAXLEN 48 // maximum length of an IPv6 address string including trailing '\0'
-const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
+char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	char		*value;
 //	char		*areabits;
 	gclient_t	*client;

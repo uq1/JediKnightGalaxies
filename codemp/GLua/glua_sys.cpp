@@ -12,47 +12,49 @@
 static int GLua_Sys_GetCvarString(lua_State *L) {
 	const char *cvarname = luaL_checkstring(L,1);
 	char buff[2048];
-	trap_Cvar_VariableStringBuffer(cvarname, buff, sizeof(buff));
+	trap->Cvar_VariableStringBuffer(cvarname, buff, sizeof(buff));
 	lua_pushstring(L,buff);
 	return 1;
 }
 
 static int GLua_Sys_GetCvarInt(lua_State *L) {
 	const char *cvarname = luaL_checkstring(L,1);
-	lua_pushinteger(L,trap_Cvar_VariableIntegerValue(cvarname));
+	lua_pushinteger(L,trap->Cvar_VariableIntegerValue(cvarname));
 	return 1;
 }
 
 static int GLua_Sys_GetCvarFloat(lua_State *L) {
 	const char *cvarname = luaL_checkstring(L,1);
-	lua_pushnumber(L, trap_Cvar_VariableValue(cvarname));
+	char value[20];
+	trap->Cvar_VariableStringBuffer( cvarname, value, sizeof( value ) );
+	lua_pushnumber(L, atof( value ));
 	return 1;
 }
 
 static int GLua_Sys_SetCvar(lua_State *L) {
 	const char *cvarname = luaL_checkstring(L,1);
 	const char *cvarvalue = luaL_checkstring(L,2);
-	trap_Cvar_Set(cvarname, cvarvalue);
+	trap->Cvar_Set(cvarname, cvarvalue);
 	return 0;
 }
 
 static int GLua_Sys_SetCS(lua_State *L) {
 	int csnum = luaL_checkint(L,1);
 	const char *csvalue = luaL_checkstring(L,2);
-	trap_SetConfigstring(csnum, csvalue);
+	trap->SetConfigstring(csnum, csvalue);
 	return 0;
 }
 
 static int GLua_Sys_GetCS(lua_State *L) {
 	int csnum = luaL_checkint(L,1);
 	char buff[2048];
-	trap_GetConfigstring(csnum, buff, sizeof(buff));
+	trap->GetConfigstring(csnum, buff, sizeof(buff));
 	lua_pushstring(L,buff);
 	return 1;
 }
 
 static int GLua_Sys_Milliseconds(lua_State *L) {
-	lua_pushinteger(L, trap_Milliseconds());
+	lua_pushinteger(L, trap->Milliseconds());
 	return 1;
 }
 
@@ -62,7 +64,7 @@ static int GLua_Sys_Time(lua_State *L) {
 }
 
 static int GLua_Sys_Command(lua_State *L) {
-	trap_SendConsoleCommand(EXEC_APPEND, luaL_checkstring(L,2));
+	trap->SendConsoleCommand(EXEC_APPEND, luaL_checkstring(L,2));
 	return 0;
 }
 
@@ -70,7 +72,7 @@ static int GLua_Sys_RemapShader(lua_State *L) {
 	int supressupdate = lua_toboolean(L,3);
 	AddRemap(luaL_checkstring(L,1), luaL_checkstring(L,2), level.time);
 	if (!supressupdate) {
-		trap_SetConfigstring(CS_SHADERSTATE, BuildShaderStateConfig());
+		trap->SetConfigstring(CS_SHADERSTATE, BuildShaderStateConfig());
 	}
 	return 0;
 }
@@ -159,7 +161,7 @@ static int GLua_Sys_AmmoLimit(lua_State *L) {
 
 static int GLua_Sys_MapName(lua_State *L) {
 	char cs[1024];
-	trap_GetServerinfo( cs, sizeof( cs ) );
+	trap->GetServerinfo( cs, sizeof( cs ) );
 	lua_pushstring(L, Info_ValueForKey( cs, "mapname" ));
 	return 1;
 }

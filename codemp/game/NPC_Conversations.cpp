@@ -98,13 +98,13 @@ void NPC_StormTrooperConversation()
 			strcpy(filename, va("sound/conversation/stormtrooper/MST_%iL%i.mp3", section, part));
 	}
 
-	trap_FS_FOpenFile( filename, &f, FS_READ );
+	trap->FS_Open( filename, &f, FS_READ );
 
 	if ( !f )
 	{
-		trap_FS_FCloseFile( f );
+		trap->FS_Close( f );
 
-		//G_Printf("File %s does not exist.\n", filename);
+		//trap->Print("File %s does not exist.\n", filename);
 
 		NPC->NPC->conversationSection++;
 		NPC->NPC->conversationPart = 1;
@@ -126,13 +126,13 @@ void NPC_StormTrooperConversation()
 				strcpy(filename, va("sound/conversation/stormtrooper/MST_%iL%i.mp3", section, part));
 		}
 
-		trap_FS_FOpenFile( filename, &f, FS_READ );
+		trap->FS_Open( filename, &f, FS_READ );
 
 		if ( !f )
 		{// End of conversation...
-			trap_FS_FCloseFile( f );
+			trap->FS_Close( f );
 
-			//G_Printf("File %s does not exist. Aborting conversation.\n", filename);
+			//trap->Print("File %s does not exist. Aborting conversation.\n", filename);
 
 			if (NPC->NPC->conversationSection > 15)
 				NPC_EndConversation();
@@ -141,9 +141,9 @@ void NPC_StormTrooperConversation()
 		}
 	}
 	//CHAN_VOICE_ATTEN
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
-	//G_Printf("NPC %i playing sound file %s.\n", NPC->s.number, filename);
+	//trap->Print("NPC %i playing sound file %s.\n", NPC->s.number, filename);
 
 	G_SoundOnEnt( NPC, CHAN_VOICE_ATTEN/*CHAN_AUTO*/, filename );
 	NPC_SetStormtrooperConversationReplyTimer();
@@ -206,7 +206,7 @@ void NPC_StormtrooperFindConversationPartner()
 			NPC->NPC->conversationPartner->NPC->conversationPart = 1;
 			NPC->NPC->conversationPartner->NPC->conversationReplyTime = level.time + 8000;
 
-			G_Printf(">> NPC %i (%s) enterred a conversation with NPC %i.\n", NPC->s.number, NPC->NPC_type, NPC->NPC->conversationPartner->s.number);
+			trap->Print(">> NPC %i (%s) enterred a conversation with NPC %i.\n", NPC->s.number, NPC->NPC_type, NPC->NPC->conversationPartner->s.number);
 			NPC_StormTrooperConversation();
 			return;
 		}
@@ -222,24 +222,24 @@ qboolean NPC_HasConversationSounds(gentity_t *conversationalist)
 	if (conversationalist->NPC->conversationAvailable == 1) return qfalse;
 	if (conversationalist->NPC->conversationAvailable == 2) return qtrue;
 
-	//G_Printf("Testing %s for conversation sounds.\n", conversationalist->NPC_type);
+	//trap->Print("Testing %s for conversation sounds.\n", conversationalist->NPC_type);
 
 	strcpy(filename, va("sound/conversation/%s/conversation00.mp3", conversationalist->NPC_type));
 
-	trap_FS_FOpenFile( filename, &f, FS_READ );
+	trap->FS_Open( filename, &f, FS_READ );
 
 	if ( !f )
 	{// End of conversation...
-		trap_FS_FCloseFile( f );
+		trap->FS_Close( f );
 		conversationalist->NPC->conversationAvailable = 1; // checked but has none!
-		//G_Printf("%s has NO conversation sounds.\n", conversationalist->NPC_type);
+		//trap->Print("%s has NO conversation sounds.\n", conversationalist->NPC_type);
 		return qfalse;
 	}
 
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
 	conversationalist->NPC->conversationAvailable = 2; // checked and has some!
-	//G_Printf("%s has conversation sounds.\n", conversationalist->NPC_type);
+	//trap->Print("%s has conversation sounds.\n", conversationalist->NPC_type);
 	return qtrue;
 }
 
@@ -252,24 +252,24 @@ qboolean NPC_VendorHasConversationSounds(gentity_t *conversationalist)
 	if (conversationalist->NPC->conversationAvailable == 1) return qfalse;
 	if (conversationalist->NPC->conversationAvailable == 2) return qtrue;
 
-	//G_Printf("Testing %s for conversation sounds.\n", conversationalist->NPC_type);
+	//trap->Print("Testing %s for conversation sounds.\n", conversationalist->NPC_type);
 
 	strcpy(filename, va("sound/conversation/civilian_%s/conversation00.mp3", conversationalist->NPC_type));
 
-	trap_FS_FOpenFile( filename, &f, FS_READ );
+	trap->FS_Open( filename, &f, FS_READ );
 
 	if ( !f )
 	{// End of conversation...
-		trap_FS_FCloseFile( f );
+		trap->FS_Close( f );
 		conversationalist->NPC->conversationAvailable = 1; // checked but has none!
-		//G_Printf("%s has NO conversation sounds.\n", conversationalist->NPC_type);
+		//trap->Print("%s has NO conversation sounds.\n", conversationalist->NPC_type);
 		return qfalse;
 	}
 
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
 	conversationalist->NPC->conversationAvailable = 2; // checked and has some!
-	//G_Printf("%s has conversation sounds.\n", conversationalist->NPC_type);
+	//trap->Print("%s has conversation sounds.\n", conversationalist->NPC_type);
 	return qtrue;
 }
 
@@ -280,15 +280,15 @@ qboolean NPC_VendorHasVendorSound(gentity_t *conversationalist, char *name)
 
 	strcpy(filename, va("sound/vendor/%s/%s.mp3", conversationalist->NPC_type, name));
 
-	trap_FS_FOpenFile( filename, &f, FS_READ );
+	trap->FS_Open( filename, &f, FS_READ );
 
 	if ( !f )
 	{// End of conversation...
-		trap_FS_FCloseFile( f );
+		trap->FS_Close( f );
 		return qfalse;
 	}
 
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
 	return qtrue;
 }
@@ -336,22 +336,22 @@ void NPC_NPCConversation()
 	else
 		strcpy(filename, va("sound/conversation/%s/conversation%i.mp3", NPC->NPC_type, part));
 
-	trap_FS_FOpenFile( filename, &f, FS_READ );
+	trap->FS_Open( filename, &f, FS_READ );
 
 	if ( !f )
 	{
-		trap_FS_FCloseFile( f );
+		trap->FS_Close( f );
 
-		//G_Printf("File %s does not exist. Aborting conversation.\n", filename);
+		//trap->Print("File %s does not exist. Aborting conversation.\n", filename);
 
 		NPC_EndConversation();
 
 		return;
 	}
 	//CHAN_VOICE_ATTEN
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
-	//G_Printf("NPC %i (%s) playing sound file %s.\n", NPC->s.number, NPC->NPC_type, filename);
+	//trap->Print("NPC %i (%s) playing sound file %s.\n", NPC->s.number, NPC->NPC_type, filename);
 
 	G_SoundOnEnt( NPC, CHAN_VOICE_ATTEN/*CHAN_AUTO*/, filename );
 	NPC_SetConversationReplyTimer();
@@ -431,7 +431,7 @@ void NPC_FindConversationPartner()
 			NPC->NPC->conversationPartner->NPC->conversationPart = 1;
 			NPC->NPC->conversationPartner->NPC->conversationReplyTime = level.time + 8000;
 
-			G_Printf(">> NPC %i (%s) enterred a conversation with NPC %i (%s).\n", NPC->s.number, NPC->NPC_type, NPC->NPC->conversationPartner->s.number, NPC->NPC->conversationPartner->NPC_type);
+			trap->Print(">> NPC %i (%s) enterred a conversation with NPC %i (%s).\n", NPC->s.number, NPC->NPC_type, NPC->NPC->conversationPartner->s.number, NPC->NPC->conversationPartner->NPC_type);
 			NPC_NPCConversation();
 			return;
 		}

@@ -89,13 +89,13 @@ void JKG_Bans_LoadBans()
 	cJSON *root, *banlist, *item, *ip;
 	banentry_t *entry;
 
-	len = trap_FS_FOpenFile(g_banfile.string, &f, FS_READ);
+	len = trap->FS_Open(g_banfile.string, &f, FS_READ);
 	if (len < 1) {
 		return;
 	}
 	buffer = ( char * )malloc(len+1);
-	trap_FS_Read(buffer, len, f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Read(buffer, len, f);
+	trap->FS_Close(f);
 
 	buffer[len] = 0;
 
@@ -103,7 +103,7 @@ void JKG_Bans_LoadBans()
 	free(buffer);
 
 	if (!root) {
-		G_Printf("Error: Could not parse banlist: %s\n", error);
+		trap->Print("Error: Could not parse banlist: %s\n", error);
 		return;
 	}
 	
@@ -176,9 +176,9 @@ void JKG_Bans_SaveBans()
 	cJSON_Stream_EndBlock(stream);	// Root object
 	buffer = cJSON_Stream_Finalize(stream);
 
-	trap_FS_FOpenFile(g_banfile.string, &f, FS_WRITE);
-	trap_FS_Write(buffer, strlen(buffer), f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Open(g_banfile.string, &f, FS_WRITE);
+	trap->FS_Write(buffer, strlen(buffer), f);
+	trap->FS_Close(f);
 
 	free((void *)buffer);
 }
@@ -535,20 +535,20 @@ void JKG_Bans_ListBans(const char *ip)
 			}
 		}
 		if (!c) {			// Check if we parsed any characters
-			G_Printf("Invalid IP specified\n");
+			trap->Print("Invalid IP specified\n");
 			return;	// Faulty IP
 		}
 		if (!*p || *p == ':')	// Check if we've reached the end of the IP
 			break;
 		if (*p != '.') {	// The next character MUST be a period
-			G_Printf("Invalid IP specified\n");
+			trap->Print("Invalid IP specified\n");
 			return;	// Faulty IP
 		}
 		i++;
 		p++;
 	}
 	if (i < 3) {		// If i < 3, the parser ended prematurely, so abort
-		G_Printf("Invalid IP specified\n");
+		trap->Print("Invalid IP specified\n");
 		return;
 	}
 
@@ -580,10 +580,10 @@ void JKG_Bans_ListBans(const char *ip)
 			}
 
 			// Temporary ban, calculate the remaining time
-			G_Printf("%i - %s - %s - %s\n", entry->id, JKG_Bans_IPToString(entry), GetRemainingTime(entry->expireTime), entry->banreason[0] ? entry->banreason : "Reason not specified" );
+			trap->Print("%i - %s - %s - %s\n", entry->id, JKG_Bans_IPToString(entry), GetRemainingTime(entry->expireTime), entry->banreason[0] ? entry->banreason : "Reason not specified" );
 		} else {
 			// Permaban
-			G_Printf("%i - %s - Permanent - %s\n", entry->id, JKG_Bans_IPToString(entry), entry->banreason[0] ? entry->banreason : "Reason not specified" );
+			trap->Print("%i - %s - Permanent - %s\n", entry->id, JKG_Bans_IPToString(entry), entry->banreason[0] ? entry->banreason : "Reason not specified" );
 		}
 		prev = entry;
 	}

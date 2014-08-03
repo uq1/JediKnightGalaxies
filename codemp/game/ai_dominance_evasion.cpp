@@ -131,7 +131,7 @@ qboolean DOM_MoveDirClear( int forwardmove, int rightmove, qboolean reset )
 	rtDist = ((float)rightmove)/2.0f;
 	VectorMA( NPC->r.currentOrigin, fwdDist, forward, testPos );
 	VectorMA( testPos, rtDist, right, testPos );
-	trap_Trace( &trace, NPC->r.currentOrigin, mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP );
+	trap->Trace( &trace, NPC->r.currentOrigin, mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP, 0, 0, 0 );
 	if ( trace.allsolid || trace.startsolid )
 	{//hmm, trace started inside this brush... how do we decide if we should continue?
 		//FIXME: what do we do if we start INSIDE a CONTENTS_BOTCLIP? Try the trace again without that in the clipmask?
@@ -172,7 +172,7 @@ qboolean DOM_MoveDirClear( int forwardmove, int rightmove, qboolean reset )
 	VectorCopy( trace.endpos, testPos );
 	testPos[2] += bottom_max;
 
-	trap_Trace( &trace, trace.endpos, mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask );
+	trap->Trace( &trace, trace.endpos, mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask , 0, 0, 0 );
 
 	//FIXME:Should we try to see if we can still get to our goal using the waypoint network from this trace.endpos?
 	//OR: just put NPC clip brushes on these edges (still fall through when die)
@@ -363,7 +363,7 @@ evasionType_t DOM_Jedi_CheckFlipEvasions( gentity_t *self, float rightdot, float
 		}
 		//trace in the dir that we want to go
 		VectorMA( self->r.currentOrigin, checkDist, right, traceto );
-		trap_Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP );
+		trap->Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP , 0, 0, 0 );
 		if ( trace.fraction >= 1.0f && allowCartWheels )
 		{//it's clear, let's do it
 			//FIXME: check for drops?
@@ -407,7 +407,7 @@ evasionType_t DOM_Jedi_CheckFlipEvasions( gentity_t *self, float rightdot, float
 						checkDist *= -1.0f;
 						VectorMA( self->r.currentOrigin, checkDist, right, traceto );
 						//trace in the dir that we want to go
-						trap_Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP );
+						trap->Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP , 0, 0, 0 );
 						if ( trace.fraction >= 1.0f )
 						{//it's clear, let's do it
 							if ( allowWallFlips )
@@ -459,7 +459,7 @@ evasionType_t DOM_Jedi_CheckFlipEvasions( gentity_t *self, float rightdot, float
 						checkDist *= -1.0f;
 						VectorMA( self->r.currentOrigin, checkDist, right, traceto );
 						//trace in the dir that we want to go
-						trap_Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP );
+						trap->Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP , 0, 0, 0 );
 						if ( (trace.fraction*checkDist) <= 32 )
 						{//wall on this side is close enough
 							bestCheckDist = checkDist;
@@ -1285,7 +1285,7 @@ static qboolean DOM_Jedi_SaberBlock( int saberNum, int bladeNum ) //saberNum = 0
 
 	//get the actual point of impact
 	trace_t	tr;
-	trap_Trace( &tr, saberPoint, vec3_origin, vec3_origin, axisPoint, NPC->enemy->s.number, MASK_SHOT, G2_RETURNONHIT, 10 );
+	trap->Trace( &tr, saberPoint, vec3_origin, vec3_origin, axisPoint, NPC->enemy->s.number, MASK_SHOT, G2_RETURNONHIT, 10 , 0, 0, 0 );
 	if ( tr.allsolid || tr.startsolid )
 	{//estimate
 	VectorSubtract( saberPoint, axisPoint, dir );
@@ -1357,7 +1357,7 @@ static qboolean DOM_Jedi_SaberBlock( int saberNum, int bladeNum ) //saberNum = 0
 	VectorMA( saberPoint, 200, dir, hitloc );
 
 	//get the actual point of impact
-	trap_Trace( &tr, saberPoint, saberMins, saberMaxs, hitloc, NPC->enemy->s.number, CONTENTS_BODY );//, G2_RETURNONHIT, 10 );
+	trap->Trace( &tr, saberPoint, saberMins, saberMaxs, hitloc, NPC->enemy->s.number, CONTENTS_BODY, 0, 0, 0 );//, G2_RETURNONHIT, 10 , 0, 0, 0 );
 	if ( tr.allsolid || tr.startsolid || tr.fraction >= 1.0f )
 	{//estimate
 		vec3_t	dir2Me;
