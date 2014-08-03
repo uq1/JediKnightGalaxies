@@ -39,7 +39,7 @@ extern void PM_SetAnim(pmove_t	*pm,int setAnimParts,int anim,int setAnimFlags, i
 extern int PM_AnimLength( int index, animNumber_t anim );
 #endif
 
-extern void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags, int blendTime);
+extern void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags);
 extern int BG_GetTime(void);
 extern qboolean BG_SabersOff( playerState_t *ps );
 
@@ -121,7 +121,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 
 #if _GAME//MP GAME
 	curTime = level.time;
-#elif CGAME//MP CGAME
+#elif _CGAME//MP CGAME
 	//FIXME: pass in ucmd?  Not sure if this is reliable...
 	curTime = pm->cmd.serverTime;
 #endif
@@ -361,7 +361,7 @@ void AnimateRiders( Vehicle_t *pVeh )
 {
 	animNumber_t Anim = BOTH_VS_IDLE;
 	float fSpeedPercToMax;
-	int iFlags = SETANIM_FLAG_NORMAL, iBlend = 300;
+	int iFlags = SETANIM_FLAG_NORMAL;
 	playerState_t *pilotPS;
 	playerState_t *parentPS;
 	int curTime;
@@ -390,12 +390,10 @@ void AnimateRiders( Vehicle_t *pVeh )
 			}
 			else if ( pVeh->m_iBoarding == VEH_MOUNT_THROW_LEFT)
 			{
-				iBlend = 0;
 				Anim = BOTH_VS_MOUNTTHROW_R;
 			}
 			else if ( pVeh->m_iBoarding == VEH_MOUNT_THROW_RIGHT)
 			{
-				iBlend = 0;
 				Anim = BOTH_VS_MOUNTTHROW_L;
 			}
 
@@ -408,7 +406,7 @@ void AnimateRiders( Vehicle_t *pVeh )
 			iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD;
 			
 			BG_SetAnim(pVeh->m_pPilot->playerState, bgAllAnims[pVeh->m_pPilot->localAnimIndex].anims,
-				SETANIM_BOTH, Anim, iFlags, iBlend);
+				SETANIM_BOTH, Anim, iFlags);
 		}
 
 		return;
@@ -421,7 +419,7 @@ void AnimateRiders( Vehicle_t *pVeh )
 
 #if _GAME//MP GAME
 	curTime = level.time;
-#elif CGAME//MP CGAME
+#elif _CGAME//MP CGAME
 	//FIXME: pass in ucmd?  Not sure if this is reliable...
 	curTime = pm->cmd.serverTime;
 #endif
@@ -433,7 +431,6 @@ void AnimateRiders( Vehicle_t *pVeh )
 	if ( pVeh->m_ucmd.forwardmove < 0 && !(pVeh->m_ulFlags & VEH_SLIDEBREAKING))
 	{
 		Anim = BOTH_VS_REV;
-		iBlend = 500;
 	}
 	else 
 	{
@@ -480,7 +477,6 @@ void AnimateRiders( Vehicle_t *pVeh )
 
  		if (Attacking && WeaponPose)
 		{// Attack!
-			iBlend	= 100;
  			iFlags	= SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_RESTART;
 	
 			// Auto Aiming
@@ -527,7 +523,6 @@ void AnimateRiders( Vehicle_t *pVeh )
 		}
 		else if (Left && pVeh->m_ucmd.buttons&BUTTON_USE)
 		{// Look To The Left Behind
-			iBlend	= 400;
 			iFlags	= SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD;
 			switch(WeaponPose)
 			{
@@ -538,7 +533,6 @@ void AnimateRiders( Vehicle_t *pVeh )
 		}
 		else if (Right && pVeh->m_ucmd.buttons&BUTTON_USE)
 		{// Look To The Right Behind
-			iBlend	= 400;
 			iFlags	= SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD;
 			switch(WeaponPose)
 			{
@@ -549,13 +543,11 @@ void AnimateRiders( Vehicle_t *pVeh )
 		}
 		else if (Turbo)
 		{// Kicked In Turbo
-			iBlend	= 50;
 			iFlags	= SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLDLESS;
 			Anim	= BOTH_VS_TURBO;
 		}
 		else if (Flying)
 		{// Off the ground in a jump
-			iBlend	= 800;
 			iFlags	= SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD;
 
 			switch(WeaponPose)
@@ -569,7 +561,6 @@ void AnimateRiders( Vehicle_t *pVeh )
 		}
 		else if (Crashing)
 		{// Hit the ground!
-			iBlend	= 100;
 			iFlags	= SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLDLESS;
 
 			switch(WeaponPose)
@@ -583,7 +574,6 @@ void AnimateRiders( Vehicle_t *pVeh )
 		}
 		else
 		{// No Special Moves
-			iBlend	= 300;
  			iFlags	= SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLDLESS;
 
 			if (pVeh->m_vOrientation[ROLL] <= -20)
@@ -632,7 +622,7 @@ void AnimateRiders( Vehicle_t *pVeh )
 		pVeh->m_pPilot->playerState->legsTimer = BG_AnimLength(pVeh->m_pPilot->localAnimIndex, Anim);
 	}
 	BG_SetAnim(pVeh->m_pPilot->playerState, bgAllAnims[pVeh->m_pPilot->localAnimIndex].anims,
-		SETANIM_BOTH, Anim, iFlags|SETANIM_FLAG_HOLD, iBlend);
+		SETANIM_BOTH, Anim, iFlags|SETANIM_FLAG_HOLD);
 }
 
 #ifndef _GAME

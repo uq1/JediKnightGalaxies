@@ -45,7 +45,6 @@
 // On windows, it's called sprintf_s instead of snprintf, so we'll do a little define here
 #ifdef WIN32
 #define snprintf sprintf_s
-#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include <string.h>

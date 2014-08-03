@@ -47,9 +47,9 @@ extern vmCvar_t	cg_thirdPersonAlpha;
 extern vec3_t playerMins;
 extern vec3_t playerMaxs;
 extern cvar_t	*g_speederControlScheme;
-extern void PM_SetAnim(pmove_t	*pm,int setAnimParts,int anim,int setAnimFlags, int blendTime);
+extern void PM_SetAnim(pmove_t	*pm,int setAnimParts,int anim,int setAnimFlags);
 extern int PM_AnimLength( int index, animNumber_t anim );
-extern void Vehicle_SetAnim(gentity_t *ent,int setAnimParts,int anim,int setAnimFlags, int iBlend);
+extern void Vehicle_SetAnim(gentity_t *ent,int setAnimParts,int anim,int setAnimFlags);
 extern void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, float strength, qboolean breakSaberLock );
 extern void G_VehicleTrace( trace_t *results, const vec3_t start, const vec3_t tMins, const vec3_t tMaxs, const vec3_t end, int passEntityNum, int contentmask );
 
@@ -314,7 +314,7 @@ static void ProcessOrientCommands( Vehicle_t *pVeh )
 static void AnimateVehicle( Vehicle_t *pVeh )
 {
 	animNumber_t Anim = BOTH_STAND1; 
-	int iFlags = SETANIM_FLAG_NORMAL, iBlend = 300;
+	int iFlags = SETANIM_FLAG_NORMAL;
 	gentity_t *parent = (gentity_t *)pVeh->m_pParentEntity;
 	float fSpeedPercToMax;
 
@@ -333,7 +333,6 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 	{  
 		float fYawDelta;
 
-		iBlend = 300;
 		iFlags = SETANIM_FLAG_OVERRIDE;
 		fYawDelta = pVeh->m_vPrevOrientation[YAW] - pVeh->m_vOrientation[YAW];
 
@@ -383,7 +382,6 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 		{
 			iFlags = SETANIM_FLAG_NORMAL;
 			Anim = BOTH_WALKBACK1;
-			iBlend = 500;
 		}
 		else
 		{
@@ -391,7 +389,6 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 
 			// Every once in a while buck or do a different idle...
 			iFlags = SETANIM_FLAG_NORMAL | SETANIM_FLAG_RESTART | SETANIM_FLAG_HOLD; 
-			iBlend = 600;
 			if (parent->client->ps.m_iVehicleNum)
 			{//occupado
 				Anim = BOTH_STAND1;
@@ -403,7 +400,7 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 		}
 	}
 
-	Vehicle_SetAnim( parent, SETANIM_LEGS, Anim, iFlags, iBlend );
+	Vehicle_SetAnim( parent, SETANIM_LEGS, Anim, iFlags );
 }
 
 //rwwFIXMEFIXME: This is all going to have to be predicted I think, or it will feel awful

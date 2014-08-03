@@ -7,6 +7,14 @@
 #include "bg_local.h"
 #include "bg_ammo.h"
 
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_CGAME)
+	#include "cgame/cg_local.h"
+#elif defined(_UI)
+	#include "ui/ui_local.h"
+#endif
+
 weaponAmmo_t xweaponAmmo [] =
 {
 	/* Ammo Index		  Cost	  Size	  Max */
@@ -305,11 +313,11 @@ qboolean BG_DumpWeaponList ( const char *filename )
         i = j;
     }
     
-    trap_FS_FOpenFile (filename, &f, FS_WRITE);
+    trap->FS_Open (filename, &f, FS_WRITE);
     if ( f )
     {
-        trap_FS_Write (buffer, strlen (buffer), f);
-        trap_FS_FCloseFile (f);
+        trap->FS_Write (buffer, strlen (buffer), f);
+        trap->FS_Close (f);
         
         return qtrue;
     }

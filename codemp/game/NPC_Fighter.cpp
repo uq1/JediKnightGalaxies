@@ -54,7 +54,7 @@ extern void G_VehicleTrace( trace_t *results, const vec3_t start, const vec3_t t
 
 extern qboolean BG_UnrestrainedPitchRoll( playerState_t *ps, Vehicle_t *pVeh );
 
-extern void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags, int blendTime);
+extern void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags);
 extern int BG_GetTime(void);
 
 //this stuff has got to be predicted, so..
@@ -274,12 +274,12 @@ qboolean FighterSuspended( Vehicle_t *pVeh, playerState_t *parentPS )
 		return qtrue;
 	}
 	return qfalse;
-#elif CGAME
+#elif _CGAME
 	return qfalse;
 #endif
 }
 
-#ifdef CGAME
+#ifdef _CGAME
 extern void trap_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx ); //cg_syscalls.c
 extern sfxHandle_t trap_S_RegisterSound( const char *sample); //cg_syscalls.c
 #endif
@@ -328,7 +328,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 //a predicted event or only doing it game-side. -rich
 #ifdef _GAME//MP GAME-side
 					//G_EntitySound( ((gentity_t *)(pVeh->m_pParentEntity)), CHAN_LOCAL, pVeh->m_pVehicleInfo->soundHyper );
-#elif CGAME//MP CGAME-side
+#elif _CGAME//MP CGAME-side
 					trap_S_StartSound( NULL, pm->ps->clientNum, CHAN_LOCAL, pVeh->m_pVehicleInfo->soundHyper );
 #endif			
 				}
@@ -1267,7 +1267,7 @@ static void ProcessOrientCommands( Vehicle_t *pVeh )
 	qboolean isLandingOrLanded = qfalse;
 #if _GAME//MP GAME
 	int curTime = level.time;
-#elif CGAME//MP CGAME
+#elif _CGAME//MP CGAME
 	//FIXME: pass in ucmd?  Not sure if this is reliable...
 	int curTime = pm->cmd.serverTime;
 #endif
@@ -1608,18 +1608,18 @@ static void ProcessOrientCommands( Vehicle_t *pVeh )
 
 #ifdef _GAME //ONLY in SP or on server, not cgame
 
-extern void PM_SetAnim(pmove_t	*pm,int setAnimParts,int anim,int setAnimFlags, int blendTime);
+extern void PM_SetAnim(pmove_t	*pm,int setAnimParts,int anim,int setAnimFlags);
 
 // This function makes sure that the vehicle is properly animated.
 static void AnimateVehicle( Vehicle_t *pVeh )
 {
 	int Anim = -1; 
-	int iFlags = SETANIM_FLAG_NORMAL, iBlend = 300;
+	int iFlags = SETANIM_FLAG_NORMAL;
 	qboolean isLanding = qfalse, isLanded = qfalse;
 	playerState_t *parentPS = pVeh->m_pParentEntity->playerState;
 #if _GAME//MP GAME
 	int curTime = level.time;
-#elif CGAME//MP CGAME
+#elif _CGAME//MP CGAME
 	//FIXME: pass in ucmd?  Not sure if this is reliable...
 	int curTime = pm->cmd.serverTime;
 #endif
@@ -1663,7 +1663,7 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 					{//just landed?
 #ifdef _GAME//MP GAME-side
 						G_EntitySound( ((gentity_t *)(pVeh->m_pParentEntity)), CHAN_AUTO, pVeh->m_pVehicleInfo->soundLand );
-#elif CGAME//MP CGAME-side
+#elif _CGAME//MP CGAME-side
 						//trap_S_StartSound( NULL, pVeh->m_pParentEntity->s.number, CHAN_AUTO, pVeh->m_pVehicleInfo->soundLand );
 #endif
 					}
@@ -1696,7 +1696,7 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 	if ( Anim != -1 )
 	{
 		BG_SetAnim(pVeh->m_pParentEntity->playerState, bgAllAnims[pVeh->m_pParentEntity->localAnimIndex].anims,
-			SETANIM_BOTH, Anim, iFlags, iBlend);
+			SETANIM_BOTH, Anim, iFlags);
 	}
 }
 

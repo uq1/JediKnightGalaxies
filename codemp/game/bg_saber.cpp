@@ -974,7 +974,7 @@ int PM_SaberLockWinAnim( qboolean victory, qboolean superBreak )
 extern void NPC_SetAnim(gentity_t *ent, int setAnimParts, int anim, int setAnimFlags);
 extern gentity_t g_entities[];
 
-#elif defined CGAME
+#elif defined _CGAME
 
 #include "..\cgame\cg_local.h" //ahahahahhahahaha@$!$!
 
@@ -4245,7 +4245,7 @@ saberInfo_t *BG_MySaber( int clientNum, int saberNum )
 		}
 		return &ent->client->saber[saberNum];
 	}
-#elif defined CGAME
+#elif defined _CGAME
 	clientInfo_t *ci = NULL;
 	if (clientNum < MAX_CLIENTS)
 	{

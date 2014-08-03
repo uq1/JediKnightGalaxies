@@ -22,7 +22,6 @@
 
 #include "qcommon/q_shared.h"
 #include "bg_ammo.h"
-#include "bg_public.h"
 
 #define MAX_WEAPON_TABLE_SIZE (255)
 #define MAX_FIREMODES (16)
@@ -344,12 +343,12 @@ typedef struct weaponVisualFireMode_s
 
 typedef struct weaponVisual_s
 {
-#ifdef CGAME
+#ifdef _CGAME
 	char description[512];			// The description of this weapon to display in UI.
 #endif	
 	// Server needs to know the world model for its Ghoul 2 instances.
 	char world_model[MAX_QPATH];	// The model used for 3D rendering.
-#ifdef CGAME
+#ifdef _CGAME
 	char view_model[MAX_QPATH];		// The model used when in first person mode.
 	
 	char icon[MAX_QPATH];		    // The icon of this weapon to be used in the HUD.

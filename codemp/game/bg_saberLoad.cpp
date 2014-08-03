@@ -1,4 +1,5 @@
 //bg_saberLoad.c
+#include "cgame/animtable.h"
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_local.h"
@@ -9,40 +10,28 @@
 #include <string>
 #include <unordered_map>
 
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_UI)
+	#include "../ui/ui_local.h"
+#elif defined(_CGAME)
+	#include "../cgame/cg_local.h"
+#endif
+
 saberStanceExternal_t SaberStances[MAX_STANCES];
 
 std::unordered_map<std::string, saberInfo_t> *hiltLookupTable;
 
-extern stringID_table_t animTable [MAX_ANIMATIONS+1];
-
-//Could use strap stuff but I don't particularly care at the moment anyway.
-extern int	trap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode );
-extern void	trap_FS_Read( void *buffer, int len, fileHandle_t f );
-extern void	trap_FS_Write( const void *buffer, int len, fileHandle_t f );
-extern void	trap_FS_FCloseFile( fileHandle_t f );
-extern int	trap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize );
-extern qhandle_t trap_R_RegisterSkin( const char *name );
-extern int		trap_Milliseconds( void );
-extern void strap_FS_FCloseFile( fileHandle_t f );
-extern int strap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize );
-extern int strap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode );
-extern void strap_FS_Read( void *buffer, int len, fileHandle_t f );
-
-
 #ifdef _GAME
 extern int G_SoundIndex( const char *name );
-#elif defined CGAME
-sfxHandle_t trap_S_RegisterSound( const char *sample);
-qhandle_t	trap_R_RegisterShader( const char *name );			// returns all white if not found
-int	trap_FX_RegisterEffect(const char *file);
 #endif
 
 int BG_SoundIndex(char *sound)
 {
 #ifdef _GAME
 	return G_SoundIndex(sound);
-#elif defined CGAME
-	return trap_S_RegisterSound(sound);
+#elif defined _CGAME
+	return trap->S_RegisterSound(sound);
 #endif
 }
 
@@ -604,7 +593,7 @@ bool JKG_ParseHiltFile( const char *filename )
 	char error[MAX_STRING_CHARS];
 	char hiltFileData[32967];		// TODO: change
 	fileHandle_t f;
-	int fileLen = strap_FS_FOpenFile (filename, &f, FS_READ);
+	int fileLen = trap->FS_Open (filename, &f, FS_READ);
 	char name[MAX_QPATH];
 
 	if ( !f || fileLen == -1 )
@@ -615,15 +604,15 @@ bool JKG_ParseHiltFile( const char *filename )
 
 	if ( (fileLen + 1) >= 32967 )
     {
-        trap_FS_FCloseFile (f);
+        trap->FS_Close (f);
         Com_Printf (S_COLOR_RED "%s: file too big (%d bytes, maximum is %d).\n", filename, fileLen, 32966);
         return false;
     }
     
-    strap_FS_Read (&hiltFileData, fileLen, f);
+    trap->FS_Read (&hiltFileData, fileLen, f);
     hiltFileData[fileLen] = '\0';
     
-    strap_FS_FCloseFile (f);
+    trap->FS_Close (f);
 
 	json = cJSON_ParsePooled (hiltFileData, error, sizeof (error));
     if ( json == NULL )
@@ -662,7 +651,7 @@ bool JKG_ParseHiltFile( const char *filename )
 		Q_strncpyz(theHilt.model, cJSON_ToString(jsonNode), MAX_QPATH);
 
 	JSONPARSE("customSkin")
-		theHilt.skin = trap_R_RegisterSkin(cJSON_ToString(jsonNode));
+		theHilt.skin = trap->R_RegisterSkin(cJSON_ToString(jsonNode));
 
 	JSONPARSE("soundOn")
 		theHilt.soundOn = BG_SoundIndex( const_cast<char *>(cJSON_ToString(jsonNode)) );
@@ -828,24 +817,24 @@ if(childNode)
 	JSONPARSE("trailStyle")
 		theHilt.trailStyle = cJSON_ToInteger( jsonNode );
 
-#ifdef CGAME
+#ifdef _CGAME
 	JSONPARSE("g2MarksShader")
-		theHilt.g2MarksShader = trap_R_RegisterShader( cJSON_ToString( jsonNode ) );
+		theHilt.g2MarksShader = trap->R_RegisterShader( cJSON_ToString( jsonNode ) );
 
 	JSONPARSE("g2WeaponMarkShader")
-		theHilt.g2WeaponMarkShader = trap_R_RegisterShader( cJSON_ToString( jsonNode ) );
+		theHilt.g2WeaponMarkShader = trap->R_RegisterShader( cJSON_ToString( jsonNode ) );
 
 	JSONPARSE("blockEffect")
-		theHilt.blockEffect = trap_FX_RegisterEffect( const_cast<char *>( cJSON_ToString( jsonNode ) ) );
+		theHilt.blockEffect = trap->FX_RegisterEffect( const_cast<char *>( cJSON_ToString( jsonNode ) ) );
 
 	JSONPARSE("hitPersonEffect")
-		theHilt.hitPersonEffect = trap_FX_RegisterEffect( const_cast<char *>( cJSON_ToString( jsonNode ) ) );
+		theHilt.hitPersonEffect = trap->FX_RegisterEffect( const_cast<char *>( cJSON_ToString( jsonNode ) ) );
 
 	JSONPARSE("hitOtherEffect")
-		theHilt.hitOtherEffect = trap_FX_RegisterEffect( const_cast<char *>( cJSON_ToString( jsonNode ) ) );
+		theHilt.hitOtherEffect = trap->FX_RegisterEffect( const_cast<char *>( cJSON_ToString( jsonNode ) ) );
 
 	JSONPARSE("bladeEffect")
-		theHilt.bladeEffect = trap_FX_RegisterEffect( const_cast<char *>( cJSON_ToString( jsonNode ) ) );
+		theHilt.bladeEffect = trap->FX_RegisterEffect( const_cast<char *>( cJSON_ToString( jsonNode ) ) );
 #endif
 
 	JSONPARSE("knockbackScale")
@@ -944,12 +933,12 @@ if(childNode)
 bool JKG_ParseHiltFiles( void )
 {
 	char hiltFiles[32967];
-	int numFiles = strap_FS_GetFileList ("ext_data/hilts", ".hilt", hiltFiles, sizeof (hiltFiles));
+	int numFiles = trap->FS_GetFileList ("ext_data/hilts", ".hilt", hiltFiles, sizeof (hiltFiles));
 	const char *hiltFile = hiltFiles;
 	int successful = 0;
     int failed = 0;
 
-	int t = trap_Milliseconds();
+	int t = trap->Milliseconds();
 	int i;
 
 	hiltLookupTable = new std::unordered_map<std::string, saberInfo_t>();
@@ -967,7 +956,7 @@ bool JKG_ParseHiltFiles( void )
     }
     
     Com_Printf ("Successfully loaded %d hilts, failed to load %d hilts.\n", successful, failed);
-    Com_Printf ("Took %d milliseconds.\n", trap_Milliseconds() - t);
+    Com_Printf ("Took %d milliseconds.\n", trap->Milliseconds() - t);
     Com_Printf ("-------------------------------------\n");
     
     return (successful > 0);
@@ -1127,7 +1116,7 @@ static void JKG_ParseCrystalFile( const char *fileText )
 
 			crystal->crystalID = i;
             
-            #ifdef CGAME
+            #ifdef _CGAME
             {
 				cJSON *rgb;
 				field = cJSON_GetObjectItem (jsonNode, "bladeEffect");
@@ -1243,7 +1232,7 @@ static qboolean JKG_LoadSaberCrystals( void )
     
     Com_Printf ("------- Crystals -------\n");
     
-    fileLength = trap_FS_FOpenFile ("ext_data/tables/crystals.json", &f, FS_READ);
+    fileLength = trap->FS_Open ("ext_data/tables/crystals.json", &f, FS_READ);
     if ( fileLength == -1 || !f )
     {
         Com_Printf (S_COLOR_RED "Error: Failed to read the crystals.json file. File is unreadable or does not exist.\n");
@@ -1253,7 +1242,7 @@ static qboolean JKG_LoadSaberCrystals( void )
     if ( fileLength == 0 )
     {
         Com_Printf (S_COLOR_RED "Error: crystals.json file is empty.\n");
-        strap_FS_FCloseFile (f);
+        trap->FS_Close (f);
         return qfalse;
     }
     
@@ -1261,13 +1250,13 @@ static qboolean JKG_LoadSaberCrystals( void )
     {
 		Com_Printf (S_COLOR_RED "Error: crystals.json file is too large (max file size is %d kb)\n", MAX_CRYSTAL_FILE_SIZE/1024);
 		Com_Error(ERR_FATAL, "Crystals file is too big.");
-        strap_FS_FCloseFile (f);
+        trap->FS_Close (f);
         return qfalse;
     }
     
-    strap_FS_Read (buffer, fileLength, f);
+    trap->FS_Read (buffer, fileLength, f);
     buffer[fileLength] = '\0';
-    strap_FS_FCloseFile (f);
+    trap->FS_Close (f);
     
     JKG_ParseCrystalFile (buffer);
     
@@ -1719,7 +1708,7 @@ qboolean JKG_ParseSaberStanceFile( char *filename )
 
 	char stanceFileData[MAX_STANCE_FILE_LENGTH];		// TODO: change
 	fileHandle_t f;
-	int fileLen = strap_FS_FOpenFile (filename, &f, FS_READ);
+	int fileLen = trap->FS_Open (filename, &f, FS_READ);
 
 	saberStanceExternal_t theStance;
 	saberMoveExternal_t theMove;
@@ -1732,16 +1721,16 @@ qboolean JKG_ParseSaberStanceFile( char *filename )
     
     if ( (fileLen + 1) >= MAX_STANCE_FILE_LENGTH )
     {
-        trap_FS_FCloseFile (f);
+        trap->FS_Close (f);
         Com_Printf (S_COLOR_RED "%s: file too big (%d bytes, maximum is %d).\n", filename, fileLen, MAX_STANCE_FILE_LENGTH - 1);
         
         return qfalse;
     }
     
-    strap_FS_Read (&stanceFileData, fileLen, f);
+    trap->FS_Read (&stanceFileData, fileLen, f);
     stanceFileData[fileLen] = '\0';
     
-    strap_FS_FCloseFile (f);
+    trap->FS_Close (f);
 
 	json = cJSON_ParsePooled (stanceFileData, error, sizeof (error));
     if ( json == NULL )
@@ -2330,12 +2319,12 @@ qboolean JKG_ParseSaberStanceFile( char *filename )
 qboolean JKG_LoadStanceData(void)
 {
 	char stanceFiles[16384];
-	int numFiles = strap_FS_GetFileList ("ext_data/stances", ".stance", stanceFiles, sizeof (stanceFiles));
+	int numFiles = trap->FS_GetFileList ("ext_data/stances", ".stance", stanceFiles, sizeof (stanceFiles));
 	const char *stanceFile = stanceFiles;
 	int successful = 0;
     int failed = 0;
 
-	int t = trap_Milliseconds();
+	int t = trap->Milliseconds();
 	int i;
 
 	Com_Printf ("------- Stance data -------\n");
@@ -2356,7 +2345,7 @@ qboolean JKG_LoadStanceData(void)
     }
     
     Com_Printf ("Successfully loaded %d stances, failed to load %d stances.\n", successful, failed);
-    Com_Printf ("Took %d milliseconds.\n", trap_Milliseconds() - t);
+    Com_Printf ("Took %d milliseconds.\n", trap->Milliseconds() - t);
     Com_Printf ("-------------------------------------\n");
     
     return (qboolean)(successful > 0);

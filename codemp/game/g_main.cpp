@@ -810,6 +810,33 @@ void AddTournamentPlayer( void ) {
 
 /*
 =======================
+AddTournamentQueue
+
+Add client to end of tournament queue
+=======================
+*/
+
+void AddTournamentQueue( gclient_t *client )
+{
+	int index;
+	gclient_t *curclient;
+
+	for( index = 0; index < level.maxclients; index++ )
+	{
+		curclient = &level.clients[index];
+
+		if ( curclient->pers.connected != CON_DISCONNECTED )
+		{
+			if ( curclient == client )
+				curclient->sess.spectatorNum = 0;
+			else if ( curclient->sess.sessionTeam == TEAM_SPECTATOR )
+				curclient->sess.spectatorNum++;
+		}
+	}
+}
+
+/*
+=======================
 RemoveTournamentLoser
 
 Make the loser a spectator at the back of the line
@@ -3191,7 +3218,7 @@ void G_RunFrame( int levelTime ) {
 				//keep him in the "use" anim
 				if (ent->client->ps.torsoAnim != BOTH_CONSOLE1)
 				{
-					G_SetAnim( ent, NULL, SETANIM_TORSO, BOTH_CONSOLE1, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+					G_SetAnim( ent, NULL, SETANIM_TORSO, BOTH_CONSOLE1, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 				}
 				else
 				{
@@ -3481,6 +3508,18 @@ const char *G_GetStringEdString(char *refSection, char *refName)
 	//properly.
 	static char text[1024]={0};
 	Com_sprintf(text, sizeof(text), "@@@%s", refName);
+	return text;
+}
+
+const char *G_GetStringEdString2(char *refName)
+{
+	static char text[1024];
+
+	if(refName[0] == '@')
+		return G_GetStringEdString("", refName);
+	else
+		Q_strncpyz(text, refName, sizeof( text ));
+
 	return text;
 }
 

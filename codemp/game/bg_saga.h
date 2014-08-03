@@ -1,3 +1,7 @@
+#pragma once
+
+#include "bg_public.h"
+
 #define		MAX_SIEGE_INFO_SIZE					16384
 
 #define		SIEGETEAM_TEAM1						1 //e.g. TEAM_RED

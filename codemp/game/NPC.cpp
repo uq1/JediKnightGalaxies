@@ -2640,7 +2640,7 @@ void NPC_InitGame( void )
 void NPC_SetAnim(gentity_t *ent, int setAnimParts, int anim, int setAnimFlags)
 {	// FIXME : once torsoAnim and legsAnim are in the same structure for NCP and Players
 	// rename PM_SETAnimFinal to PM_SetAnim and have both NCP and Players call PM_SetAnim
-	G_SetAnim(ent, NULL, setAnimParts, anim, setAnimFlags, 0);
+	G_SetAnim(ent, NULL, setAnimParts, anim, setAnimFlags);
 /*
 	if(ent->client)
 	{//Players, NPCs

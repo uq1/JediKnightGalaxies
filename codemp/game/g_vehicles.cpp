@@ -15,7 +15,7 @@
 extern gentity_t *NPC_Spawn_Do( gentity_t *ent );
 extern void NPC_SetAnim(gentity_t	*ent,int setAnimParts,int anim,int setAnimFlags);
 
-extern void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags, int blendTime);
+extern void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags);
 extern void BG_SetLegsAnimTimer(playerState_t *ps, int time );
 extern void BG_SetTorsoAnimTimer(playerState_t *ps, int time );
 void G_VehUpdateShields( gentity_t *targ );
@@ -25,10 +25,10 @@ extern void VEH_TurretThink( Vehicle_t *pVeh, gentity_t *parent, int turretNum )
 
 extern qboolean BG_UnrestrainedPitchRoll( playerState_t *ps, Vehicle_t *pVeh );
 
-void Vehicle_SetAnim(gentity_t *ent,int setAnimParts,int anim,int setAnimFlags, int iBlend)
+void Vehicle_SetAnim(gentity_t *ent,int setAnimParts,int anim,int setAnimFlags)
 {
 	assert(ent->client);
-	BG_SetAnim(&ent->client->ps, bgAllAnims[ent->localAnimIndex].anims, setAnimParts, anim, setAnimFlags, iBlend);
+	BG_SetAnim(&ent->client->ps, bgAllAnims[ent->localAnimIndex].anims, setAnimParts, anim, setAnimFlags);
 	ent->s.legsAnim = ent->client->ps.legsAnim;
 }
 
@@ -1092,13 +1092,12 @@ qboolean Initialize( Vehicle_t *pVeh )
 	parent->client->ps.stats[STAT_WEAPONS] |= (1<<WP_BLASTER);
 
 	//Initialize to landed (wings closed, gears down) animation
-	{
-		int iFlags = SETANIM_FLAG_NORMAL, iBlend = 300;
-		pVeh->m_ulFlags |= VEH_GEARSOPEN;
-		BG_SetAnim(pVeh->m_pParentEntity->playerState, 
-			bgAllAnims[pVeh->m_pParentEntity->localAnimIndex].anims,
-			SETANIM_BOTH, BOTH_VS_IDLE, iFlags, iBlend);
-	}
+	pVeh->m_ulFlags |= VEH_GEARSOPEN;
+	BG_SetAnim(pVeh->m_pParentEntity->playerState,
+				bgAllAnims[pVeh->m_pParentEntity->localAnimIndex].anims,
+				SETANIM_BOTH,
+				BOTH_VS_IDLE,
+				SETANIM_FLAG_NORMAL);
 
 	return qtrue;
 }
@@ -1567,7 +1566,7 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 				if ( pVeh->m_pVehicleInfo->Eject( pVeh, pRider, qfalse ) )
 				{
 					animNumber_t Anim;
-					int iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_HOLDLESS, iBlend = 300;
+					int iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_HOLDLESS;
 					if ( pUmcd->rightmove > 0 )
 					{
 						Anim = BOTH_ROLL_R;
@@ -1579,7 +1578,7 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 						pVeh->m_EjectDir = VEH_EJECT_LEFT;
 					}
 					VectorScale( parent->client->ps.velocity, 0.25f, rider->client->ps.velocity );
-					Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, iFlags, iBlend );
+					Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, iFlags );
 					//PM_SetAnim(pm,SETANIM_BOTH,anim,SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_HOLDLESS);
 					rider->client->ps.weaponTime = rider->client->ps.torsoTimer - 200;//just to make sure it's cleared when roll is done
 					G_AddEvent( rider, EV_ROLL, 0 );
@@ -1590,7 +1589,7 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 			{
 				// FIXME: Check trace to see if we should start playing the animation.
 				animNumber_t Anim;
-				int iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, iBlend = 500;
+				int iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD;
 				if ( pUmcd->rightmove > 0 )
 				{
 					Anim = BOTH_VS_DISMOUNT_R;
@@ -1619,7 +1618,7 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 
 				VectorScale( parent->client->ps.velocity, 0.25f, rider->client->ps.velocity );
 
-				Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, iFlags, iBlend );
+				Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, iFlags );
 			}
 		}
 		// Flying, so just fall off.
@@ -1659,7 +1658,7 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 				{
 					G_AddEvent( rider, EV_JUMP, 0 );
 				}
-				Vehicle_SetAnim( rider, SETANIM_BOTH, BOTH_JUMP1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 300 );
+				Vehicle_SetAnim( rider, SETANIM_BOTH, BOTH_JUMP1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD );
 				return qfalse;
 			}
 		}
@@ -1695,7 +1694,7 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 				if ( !(pVeh->m_ulFlags & VEH_FLYING) )
 				{
 					VectorScale( parent->client->ps.velocity, 0.25f, rider->client->ps.velocity );
-					Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_HOLDLESS, 300 );
+					Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_HOLDLESS );
 					//PM_SetAnim(pm,SETANIM_BOTH,anim,SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_HOLDLESS);
 					rider->client->ps.weaponTime = rider->client->ps.torsoTimer - 200;//just to make sure it's cleared when roll is done
 					G_AddEvent( rider, EV_ROLL, 0 );

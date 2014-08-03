@@ -4899,28 +4899,28 @@ qboolean G_SpecialRollGetup(gentity_t *self)
 		self->client->pers.cmd.rightmove > 0 &&
 		!self->client->pers.cmd.forwardmove)
 	{
-		G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP_BROLL_R, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
+		G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP_BROLL_R, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
 		rolled = qtrue;
 	}
 	else if (/*!self->client->pers.cmd.upmove &&*/
 		self->client->pers.cmd.rightmove < 0 &&
 		!self->client->pers.cmd.forwardmove)
 	{
-		G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP_BROLL_L, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
+		G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP_BROLL_L, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
 		rolled = qtrue;
 	}
 	else if (/*self->client->pers.cmd.upmove > 0 &&*/
 		!self->client->pers.cmd.rightmove &&
 		self->client->pers.cmd.forwardmove > 0)
 	{
-		G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP_BROLL_F, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
+		G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP_BROLL_F, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
 		rolled = qtrue;
 	}
 	else if (/*self->client->pers.cmd.upmove > 0 &&*/
 		!self->client->pers.cmd.rightmove &&
 		self->client->pers.cmd.forwardmove < 0)
 	{
-		G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP_BROLL_B, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
+		G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP_BROLL_B, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
 		rolled = qtrue;
 	}
 	else if (self->client->pers.cmd.upmove)

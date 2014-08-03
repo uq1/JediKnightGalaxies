@@ -64,8 +64,7 @@ qboolean DOM_DontBlockAllies(bot_state_t *bs);
 #define DEFEND_MINDISTANCE	200
 
 /* */
-float
-VectorDistanceNoHeight ( vec3_t v1, vec3_t v2 )
+float VectorDistanceNoHeight ( vec3_t v1, vec3_t v2 )
 {
 	vec3_t	dir;
 	vec3_t	v1a, v2a;
@@ -3859,7 +3858,7 @@ static qboolean DOM_Jedi_TryJump( gentity_t *NPC, gentity_t *goal )
 									//{
 										jumpAnim = BOTH_FLIP_F;
 									//}
-									G_SetAnim( NPC, ucmd, SETANIM_BOTH, jumpAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+									G_SetAnim( NPC, ucmd, SETANIM_BOTH, jumpAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 								}
 
 								NPC->client->ps.fd.forceJumpZStart = NPC->r.currentOrigin[2];

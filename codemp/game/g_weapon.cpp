@@ -3569,7 +3569,7 @@ gentity_t *WP_FireGenericGrenade( gentity_t *ent, int firemode, vec3_t origin, v
 		
 	// Make the player 'reload' the weapon
 	//ent->client->ps.weaponstate = WEAPON_DROPPING;
-	G_SetAnim (ent, NULL, SETANIM_TORSO, TORSO_DROPWEAP1, SETANIM_FLAG_OVERRIDE, 0);
+	G_SetAnim (ent, NULL, SETANIM_TORSO, TORSO_DROPWEAP1, SETANIM_FLAG_OVERRIDE);
 
 	return bolt;
 }

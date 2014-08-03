@@ -2924,8 +2924,7 @@ qboolean PM_RunningAnim( int anim );
 qboolean PM_WalkingAnim( int anim );
 
 void BG_SetAnimFinal(playerState_t *ps, animation_t *animations,
-					 int setAnimParts,int anim,int setAnimFlags,
-					 int blendTime)		// default blendTime=350
+					 int setAnimParts,int anim,int setAnimFlags)
 {
 	float editAnimSpeed = 1;
 
@@ -2936,9 +2935,6 @@ void BG_SetAnimFinal(playerState_t *ps, animation_t *animations,
 
 	assert(anim > -1);
 	assert(animations[anim].firstFrame > 0 || animations[anim].numFrames > 0);
-
-	//NOTE: Setting blendTime here breaks actual blending..
-	blendTime = 0;
 
 	BG_SaberStartTransAnim(ps->clientNum, ps->fd.saberAnimLevel, ps->weapon, anim, &editAnimSpeed, ps->brokenLimbs, 
 		SaberStances[ps->fd.saberAnimLevel].moves[ps->saberMove].animspeedscale, ps->saberSwingSpeed, ps->saberMove);
@@ -3110,7 +3106,7 @@ setAnimDone:
 void PM_SetAnimFinal(int setAnimParts,int anim,int setAnimFlags,
 					 int blendTime)		// default blendTime=350
 {
-	BG_SetAnimFinal(pm->ps, pm->animations, setAnimParts, anim, setAnimFlags, blendTime);
+	BG_SetAnimFinal(pm->ps, pm->animations, setAnimParts, anim, setAnimFlags);
 }
 
 
@@ -3162,7 +3158,7 @@ int BG_PickAnim( int animIndex, int minAnim, int maxAnim )
 //of a pmove too so I have ported it to true BGishness.
 //Please do not reference pm in this function or any functions that it calls,
 //or I will cry. -rww
-void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags, int blendTime)
+void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags)
 {
 	if (!animations)
 	{
@@ -3217,12 +3213,12 @@ void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int
 		}
 	}
 
-	BG_SetAnimFinal(ps, animations, setAnimParts, anim, setAnimFlags, blendTime);
+	BG_SetAnimFinal(ps, animations, setAnimParts, anim, setAnimFlags);
 }
 
-void PM_SetAnim(int setAnimParts,int anim,int setAnimFlags, int blendTime)
+void PM_SetAnim(int setAnimParts,int anim,int setAnimFlags)
 {	
-	BG_SetAnim(pm->ps, pm->animations, setAnimParts, anim, setAnimFlags, blendTime);
+	BG_SetAnim(pm->ps, pm->animations, setAnimParts, anim, setAnimFlags);
 }
 
 //[BugFix2]

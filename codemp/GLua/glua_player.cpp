@@ -1179,7 +1179,7 @@ static int GLua_Player_SetAnimLower(lua_State *L) {
 		return 0;
 	}
 	ent = &g_entities[ply->clientNum];
-	G_SetAnim(ent, NULL, SETANIM_LEGS, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE),  luaL_optinteger(L, 4, 0));
+	G_SetAnim(ent, NULL, SETANIM_LEGS, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE));
 	return 0;
 }
 
@@ -1197,7 +1197,7 @@ static int GLua_Player_SetAnimUpper(lua_State *L) {
 		return 0;
 	}
 	ent = &g_entities[ply->clientNum];
-	G_SetAnim(ent, NULL, SETANIM_TORSO, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE),  luaL_optinteger(L, 4, 0));
+	G_SetAnim(ent, NULL, SETANIM_TORSO, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE));
 	return 0;
 }
 
@@ -1215,7 +1215,7 @@ static int GLua_Player_SetAnimBoth(lua_State *L) {
 		return 0;
 	}
 	ent = &g_entities[ply->clientNum];
-	G_SetAnim(ent, NULL, SETANIM_BOTH, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE),  luaL_optinteger(L, 4, 0));
+	G_SetAnim(ent, NULL, SETANIM_BOTH, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE));
 	return 0;
 }
 

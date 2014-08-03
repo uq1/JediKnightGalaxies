@@ -51,7 +51,7 @@ extern cvar_t	*g_speederControlScheme;
 extern void PM_SetAnim(pmove_t	*pm,int setAnimParts,int anim,int setAnimFlags, int blendTime);
 extern int PM_AnimLength( int index, animNumber_t anim );
 
-extern void Vehicle_SetAnim(gentity_t *ent,int setAnimParts,int anim,int setAnimFlags, int iBlend);
+extern void Vehicle_SetAnim(gentity_t *ent,int setAnimParts,int anim,int setAnimFlags);
 extern void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, float strength, qboolean breakSaberLock );
 extern void G_VehicleTrace( trace_t *results, const vec3_t start, const vec3_t tMins, const vec3_t tMaxs, const vec3_t end, int passEntityNum, int contentmask );
 
@@ -138,7 +138,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 
 #if _GAME//MP GAME
 	curTime = level.time;
-#elif CGAME//MP CGAME
+#elif _CGAME//MP CGAME
 	//FIXME: pass in ucmd?  Not sure if this is reliable...
 	curTime = pm->cmd.serverTime;
 #endif
@@ -327,7 +327,7 @@ void AnimalProcessOri(Vehicle_t *pVeh)
 static void AnimateVehicle( Vehicle_t *pVeh )
 {
 	animNumber_t	Anim = BOTH_VT_IDLE; 
-	int				iFlags = SETANIM_FLAG_NORMAL, iBlend = 300;
+	int				iFlags = SETANIM_FLAG_NORMAL;
 	gentity_t *		pilot = (gentity_t *)pVeh->m_pPilot;
 	gentity_t *		parent = (gentity_t *)pVeh->m_pParentEntity;
 	playerState_t *	pilotPS;
@@ -360,8 +360,7 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 	{
 		iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD;
 		Anim = BOTH_VT_BUCK;
-		iBlend = 500;
-		Vehicle_SetAnim( parent, SETANIM_LEGS, BOTH_VT_BUCK, iFlags, iBlend );
+		Vehicle_SetAnim( parent, SETANIM_LEGS, BOTH_VT_BUCK, iFlags );
 		return;
 	}
 
@@ -396,10 +395,10 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 			// TODO: But what if he's killed? Should the animation remain persistant???
 			iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD;
 
-			Vehicle_SetAnim( parent, SETANIM_LEGS, Anim, iFlags, iBlend );
+			Vehicle_SetAnim( parent, SETANIM_LEGS, Anim, iFlags );
 			if (pilot)
 			{
-				Vehicle_SetAnim(pilot, SETANIM_BOTH, Anim, iFlags, iBlend );
+				Vehicle_SetAnim(pilot, SETANIM_BOTH, Anim, iFlags );
 			}
 			return;
 		}
@@ -419,7 +418,6 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 	if ( fSpeedPercToMax < -0.01f )
 	{
 		Anim = BOTH_VT_WALK_REV;
-		iBlend = 600;
 	}
 	else
 	{
@@ -434,18 +432,16 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 
 		if (Turbo)
 		{// Kicked In Turbo
-			iBlend	= 50;
 			iFlags	= SETANIM_FLAG_OVERRIDE;
 			Anim	= BOTH_VT_TURBO;
 		}
 		else
 		{// No Special Moves
-			iBlend	= 300;
  			iFlags	= SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLDLESS;
 			Anim	= (Walking)?(BOTH_VT_WALK_FWD  ):((Running)?(BOTH_VT_RUN_FWD  ):(BOTH_VT_IDLE1));
 		}
 	}
-	Vehicle_SetAnim( parent, SETANIM_LEGS, Anim, iFlags, iBlend );
+	Vehicle_SetAnim( parent, SETANIM_LEGS, Anim, iFlags );
 }
 
 //rwwFIXMEFIXME: This is all going to have to be predicted I think, or it will feel awful
@@ -606,7 +602,7 @@ static void AnimateRiders( Vehicle_t *pVeh )
 		}// No Special Moves
 	}
 
-	Vehicle_SetAnim( pilot, SETANIM_BOTH, Anim, iFlags, iBlend );
+	Vehicle_SetAnim( pilot, SETANIM_BOTH, Anim, iFlags );
 }
 #endif //_GAME
 

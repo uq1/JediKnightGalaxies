@@ -13,7 +13,7 @@ extern qboolean OpenListEmpty(void);
 extern int FindOpenList(int wpNum);
 extern void AddCloseList( int openListpos );
 extern void RemoveFirstOpenList( void );
-extern float DistanceNoHeight ( vec3_t v1, vec3_t v2 );
+extern float VectorDistanceNoHeight ( vec3_t v1, vec3_t v2 );
 extern qboolean NPC_FacePosition( vec3_t position, qboolean doPitch );
 extern qboolean NPC_Humanoid_ClearPathToSpot( vec3_t dest, int impactEntNum );
 
@@ -1327,7 +1327,7 @@ static qboolean NPC_TryJump( gentity_t *NPC, vec3_t goal )
 									//{
 										jumpAnim = BOTH_FLIP_F;
 									//}
-									G_SetAnim( NPC, &ucmd, SETANIM_BOTH, jumpAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+									G_SetAnim( NPC, &ucmd, SETANIM_BOTH, jumpAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 								}
 
 								NPC->client->ps.fd.forceJumpZStart = NPC->r.currentOrigin[2];
@@ -3142,7 +3142,7 @@ qboolean NPC_FollowRoutes( void )
 	}
 
 	if ( (NPC->coverpointGoal > 0 && NPC->coverpointGoal < gWPNum)
-		&& DistanceNoHeight(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) < 24/*24*/)
+		&& VectorDistanceNoHeight(gWPArray[NPC->coverpointGoal]->origin, NPC->r.currentOrigin) < 24/*24*/)
 	{// We're at out goal! Find a new goal...
 		//trap->Print("NPC %i hit it's COVERPOINT goal waypoint!!!\n", NPC->s.number);
 		/*
@@ -3164,9 +3164,9 @@ qboolean NPC_FollowRoutes( void )
 
 		return qfalse; // next think...
 	}
-	else if (DistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < 32/*24*/
-		|| (NPC->bot_strafe_right_timer > level.time && DistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < /*48*/64)
-		|| (NPC->bot_strafe_left_timer > level.time && DistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < /*48*/64))
+	else if (VectorDistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < 32/*24*/
+		|| (NPC->bot_strafe_right_timer > level.time && VectorDistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < /*48*/64)
+		|| (NPC->bot_strafe_left_timer > level.time && VectorDistanceNoHeight(gWPArray[NPC->longTermGoal]->origin, NPC->r.currentOrigin) < /*48*/64))
 	{// We're at out goal! Find a new goal...
 		//trap->Print("NPC %i hit it's goal waypoint!!!\n", NPC->s.number);
 		NPC->longTermGoal = -1;
@@ -3181,11 +3181,11 @@ qboolean NPC_FollowRoutes( void )
 		return qfalse; // next think...
 	}
 
-	if ((DistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 32/*24*/
-		|| (NPC->bot_strafe_right_timer > level.time && DistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < /*48*/64)
-		|| (NPC->bot_strafe_left_timer > level.time && DistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < /*48*/64))
+	if ((VectorDistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 32/*24*/
+		|| (NPC->bot_strafe_right_timer > level.time && VectorDistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < /*48*/64)
+		|| (NPC->bot_strafe_left_timer > level.time && VectorDistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < /*48*/64))
 		&& NPC->wpNext > 0
-		&& (NPC_OrgVisible(gWPArray[NPC->wpNext]->origin, NPC->r.currentOrigin, NPC->s.number) || DistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 24)
+		&& (NPC_OrgVisible(gWPArray[NPC->wpNext]->origin, NPC->r.currentOrigin, NPC->s.number) || VectorDistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 24)
 		/*&& NPC_Humanoid_ClearPathToSpot( gWPArray[NPC->wpNext]->origin, NPC->s.number )*/)
 	{// At current node.. Pick next in the list...
 		NPC->wpLast = NPC->wpCurrent;
@@ -3432,7 +3432,7 @@ qboolean NPC_PatrolArea( void )
 		return qfalse; // next think...
 	}
 
-	if (DistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 24/*24*/)
+	if (VectorDistanceNoHeight(gWPArray[NPC->wpCurrent]->origin, NPC->r.currentOrigin) < 24/*24*/)
 	{// We're at out goal! Find a new goal...
 		//trap->Print("NPC %i hit it's goal waypoint!!!\n", NPC->s.number);
 		NPC->longTermGoal = -1;

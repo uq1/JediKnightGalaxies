@@ -139,7 +139,7 @@ void BG_LoadDefaultWeaponItems ( void )
         item.weapon = weapon;
         item.variation = variation;
         item.varID = i;
-#ifdef CGAME
+#ifdef _CGAME
 		strcpy(item.itemIcon, weaponData->visuals.icon);
 #endif
         

@@ -787,7 +787,7 @@ fpDisabled is actually only expected (needed) from the server, because the ui di
 force power selection anyway when force powers are disabled on the server.
 ================
 */
-qboolean BG_LegalizedForcePowers(char *powerOut, int maxRank, qboolean freeSaber, int teamForce, int gametype, int fpDisabled)
+qboolean BG_LegalizedForcePowers(char *powerOut, size_t powerOutSize, int maxRank, qboolean freeSaber, int teamForce, int gametype, int fpDisabled)
 {
 	char powerBuf[128];
 	char readBuf[128];
@@ -815,7 +815,7 @@ qboolean BG_LegalizedForcePowers(char *powerOut, int maxRank, qboolean freeSaber
 	}
 
 	//first of all, print the max rank into the string as the rank
-	strcpy(powerOut, va("%i-", maxRank));
+	Q_strncpyz( powerOut, va( "%i-", maxRank ), powerOutSize );
 
 	while (i < 128 && powerBuf[i] && powerBuf[i] != '-')
 	{
@@ -1067,7 +1067,7 @@ qboolean BG_LegalizedForcePowers(char *powerOut, int maxRank, qboolean freeSaber
 	//We finally have all the force powers legalized and stored locally.
 	//Put them all into the string and return the result. We already have
 	//the rank there, so print the side and the powers now.
-	Q_strcat(powerOut, 128, va("%i-", final_Side));
+	Q_strcat(powerOut, powerOutSize, va("%i-", final_Side));
 
 	i = strlen(powerOut);
 	c = 0;
@@ -3055,7 +3055,7 @@ qboolean BG_IsValidCharacterModel(const char *modelName, const char *skinName)
 	}
 	return qtrue;
 }
-#ifdef CGAME
+#ifdef _CGAME
 extern cg_t				cg;
 #endif
 
@@ -3067,7 +3067,7 @@ qboolean BG_ValidateSkinForTeam( char *modelName, char *skinName, int team, floa
 		// First entry is not NULL, therefore we need to check the skin
 		int i = 0;
 		char buffer[MAX_QPATH];
-#ifdef CGAME
+#ifdef _CGAME
 		if(cg.clientNum == clientNum)
 		{
 			// Eh. Why bother. Let custom skin nerds have their fun.

@@ -312,7 +312,7 @@ void Touch_Multi( gentity_t *self, gentity_t *other, trace_t *trace )
 				if (other->client->ps.torsoAnim != BOTH_BUTTON_HOLD &&
 					other->client->ps.torsoAnim != BOTH_CONSOLE1)
 				{
-					G_SetAnim( other, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+					G_SetAnim( other, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 				}
 				else
 				{
@@ -370,7 +370,7 @@ void Touch_Multi( gentity_t *self, gentity_t *other, trace_t *trace )
 		if (other->client->ps.torsoAnim != BOTH_BUTTON_HOLD &&
 			other->client->ps.torsoAnim != BOTH_CONSOLE1)
 		{
-			G_SetAnim( other, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+			G_SetAnim( other, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 		}
 		else
 		{

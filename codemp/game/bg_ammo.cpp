@@ -68,7 +68,7 @@ static void ParseAmmoFile ( const char *fileText )
 
 			ammo->ammoIndex = i;
             
-            #ifdef CGAME
+            #ifdef _CGAME
             {
                 cJSON *visual = cJSON_GetObjectItem (jsonNode, "visual");
                 if ( visual )

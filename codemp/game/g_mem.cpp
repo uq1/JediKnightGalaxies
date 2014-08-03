@@ -34,7 +34,7 @@ void *G_Alloc( int size ) {
 	int alignedSize = (size + ALIGNSIZE - 1) & ~(ALIGNSIZE - 1);
 
 	if ( size <= 0 ) {
-		G_Error( "G_Alloc: zero-size allocation\n", size );
+		trap->Error( ERR_DROP, "G_Alloc: zero-size allocation\n", size );
 		return NULL;
 	}
 
@@ -43,7 +43,7 @@ void *G_Alloc( int size ) {
 	}
 
 	if ( allocPoint + size > POOLSIZE ) {
-	  G_Error( "G_Alloc: failed on allocation of %i bytes\n", size ); // bk010103 - was %u, but is signed
+	  trap->Error( ERR_DROP, "G_Alloc: failed on allocation of %i bytes\n", size ); // bk010103 - was %u, but is signed
 		return NULL;
 	}
 

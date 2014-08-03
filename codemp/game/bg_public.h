@@ -327,8 +327,6 @@ typedef enum _flag_status {
 
 typedef enum { GENDER_MALE, GENDER_FEMALE, GENDER_NEUTER } gender_t;
 
-extern vec3_t WP_MuzzlePoint[WP_NUM_WEAPONS];
-
 extern int forcePowerSorted[NUM_FORCE_POWERS];
 
 typedef enum saberLockType_e

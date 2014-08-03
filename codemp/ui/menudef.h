@@ -5,8 +5,6 @@
 
 #define CT_LTCYAN	0		0.5		0.5
 #define CT_DKCYAN	0		0.25	0.25
-
-#define ITEM_TYPE_INTSLIDER		16		// mouse speed, volume, etc.
     
 #define ITEM_TYPE_TEXT			0		// simple text
 #define ITEM_TYPE_BUTTON		1		// button, basically text with a border
@@ -24,7 +22,7 @@
 #define ITEM_TYPE_BIND			13		// multiple list setting, enumerated
 #define ITEM_TYPE_TEXTSCROLL	14		// scrolls text
 #define ITEM_TYPE_BIND_FIXED	15		// Jedi Knight Galaxies: fixed ITEM_TYPE_BIND which allows for proper background and text alignment
-#define ITEM_TYPE_INTSLIDER		15		// mouse speed, volume, etc.
+#define ITEM_TYPE_INTSLIDER		16		// mouse speed, volume, etc.
 
 #define ITEM_ALIGN_LEFT 0                 // left alignment
 #define ITEM_ALIGN_CENTER 1               // center alignment
