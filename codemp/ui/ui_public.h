@@ -360,6 +360,10 @@ typedef struct uiImport_s {
 	void			(*G2API_GetSurfaceName)					( void *ghoul2, int surfNumber, int modelIndex, char *fillBuf );
 	qboolean		(*G2API_SetSkin)						( void *ghoul2, int modelIndex, qhandle_t customSkin, qhandle_t renderSkin );
 	qboolean		(*G2API_AttachG2Model)					( void *ghoul2From, int modelIndexFrom, void *ghoul2To, int toBoltIndex, int toModel );
+
+	void			(*Syscall_CG)							( void );
+	void			(*Syscall_UI)							( void );
+	void			(*LAN_ChangeProtocol)					( int protocol );
 } uiImport_t;
 
 typedef struct uiExport_s {

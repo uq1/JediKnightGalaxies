@@ -21,7 +21,7 @@ CG_LoadingString
 void CG_LoadingString( const char *s ) {
 	Q_strncpyz( cg.infoScreenText, s, sizeof( cg.infoScreenText ) );
 
-	trap_UpdateScreen();
+	trap->UpdateScreen();
 }
 
 /*
@@ -71,14 +71,14 @@ void CG_LoadingClient( int clientNum ) {
 
 		Com_sprintf( iconName, MAX_QPATH, "models/players/%s/icon_%s.tga", model, skin );
 		
-		loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
+		loadingPlayerIcons[loadingPlayerIconCount] = trap->R_RegisterShaderNoMip( iconName );
 		if ( !loadingPlayerIcons[loadingPlayerIconCount] ) {
 			Com_sprintf( iconName, MAX_QPATH, "models/players/characters/%s/icon_%s.tga", model, skin );
-			loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
+			loadingPlayerIcons[loadingPlayerIconCount] = trap->R_RegisterShaderNoMip( iconName );
 		}
 		if ( !loadingPlayerIcons[loadingPlayerIconCount] ) {
 			Com_sprintf( iconName, MAX_QPATH, "models/players/%s/icon_%s.tga", DEFAULT_MODEL, "default" );
-			loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
+			loadingPlayerIcons[loadingPlayerIconCount] = trap->R_RegisterShaderNoMip( iconName );
 		}
 		if ( loadingPlayerIcons[loadingPlayerIconCount] ) {
 			loadingPlayerIconCount++;
@@ -90,7 +90,7 @@ void CG_LoadingClient( int clientNum ) {
 
 	/*
 	if( cgs.gametype == GT_SINGLE_PLAYER ) {
-		trap_S_RegisterSound( va( "sound/player/announce/%s.wav", personality ));
+		trap->S_RegisterSound( va( "sound/player/announce/%s.wav", personality ));
 	}
 	*/
 
@@ -121,11 +121,11 @@ void CG_DrawInformation( void ) {
 	sysInfo = CG_ConfigString( CS_SYSTEMINFO );
 
 	s = Info_ValueForKey( info, "mapname" );
-	levelshot = trap_R_RegisterShaderNoMip( va( "levelshots/%s", s ) );
+	levelshot = trap->R_RegisterShaderNoMip( va( "levelshots/%s", s ) );
 	if ( !levelshot ) {
-		levelshot = trap_R_RegisterShaderNoMip( "menu/art/unknownmap_mp" );
+		levelshot = trap->R_RegisterShaderNoMip( "menu/art/unknownmap_mp" );
 	}
-	trap_R_SetColor( NULL );
+	trap->R_SetColor( NULL );
 	CG_DrawPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, levelshot );
 
 	CG_LoadBar();
@@ -160,7 +160,7 @@ void CG_LoadBar(void)
 	const int barheight = tickheight + tickpady*2, bartop = 480-barheight;
 	const int capleft = barleft+tickpadx, tickleft = capleft+capwidth, ticktop = bartop+tickpady;
 
-	trap_R_SetColor( colorWhite );
+	trap->R_SetColor( colorWhite );
 	// Draw background
 	CG_DrawPic(barleft, bartop, barwidth, barheight, cgs.media.loadBarLEDSurround);
 

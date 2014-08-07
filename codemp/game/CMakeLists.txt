@@ -27,6 +27,7 @@ set(MPGameGameFiles
 	"${MPDir}/game/bg_panimate.cpp"
 	"${MPDir}/game/bg_pmove.cpp"
 	"${MPDir}/game/bg_saber.cpp"
+	"${MPDir}/game/bg_saberData.cpp"
 	"${MPDir}/game/bg_saberLoad.cpp"
 	"${MPDir}/game/bg_slidemove.cpp"
 	"${MPDir}/game/bg_vehicleLoad.cpp"

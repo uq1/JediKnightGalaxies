@@ -39,12 +39,12 @@ static jkg_convdata_t ConvoData;
 static void Conv_InitParseBuff(parsebuff_t *pb) {
 	memset(pb,0,sizeof(parsebuff_t));
 	pb->arg = 1;
-	pb->argc = trap_Argc();
+	pb->argc = trap->Cmd_Argc();
 }
 
 static const char *Conv_NextToken(parsebuff_t *pb) {
 	if (pb->arg > pb->argc) return NULL;
-	trap_Argv(pb->arg++,pb->buff, sizeof(pb->buff));
+	trap->Cmd_Argv(pb->arg++,pb->buff, sizeof(pb->buff));
 	return pb->buff;
 }
 
@@ -154,7 +154,7 @@ void Conv_ProcessCommand_f() {
 			Menus_CloseAll();
 			if (Menus_ActivateByName("jkg_conversation"))
 			{
-				trap_Key_SetCatcher( KEYCATCH_UI );
+				trap->Key_SetCatcher( KEYCATCH_UI );
 			}
 			Menu_ClearFocus(Menus_FindByName("jkg_conversation"));
 			continue;
@@ -162,7 +162,7 @@ void Conv_ProcessCommand_f() {
 		if (!Q_stricmp(token,"stop")) {
 			// Stop cinematic mode
 			Menus_CloseAll();
-			trap_Key_SetCatcher(0);
+			trap->Key_SetCatcher(0);
 			uiInfo.hideCursor = 0;
 			Conv_Reset();
 			continue;
@@ -255,7 +255,7 @@ void Conv_ProcessCommand_f() {
 					Com_Printf("CRITICAL ERROR: UI component te_text in jkg_conversation is missing! Ensure JKG is properly installed!\n");
 					return;	// If we get here, we got corrupted assets
 				}
-				editPtr = (editFieldDef_t *)item->typeData;
+				editPtr = item->typeData.edit;
 				
 				if (ConvoData.textEntryBits & TE_NUMBERONLY) {
 					item->type = ITEM_TYPE_NUMERICFIELD;
@@ -416,11 +416,11 @@ void Conv_OwnerDraw_Text(rectDef_t *rect, float scale, vec4_t color, int iMenuFo
 	for (i=0; i<4; i++) {
 		if (ConvoData.lines[i]) {
 			// Calculate the center position
-			x = rect->x + ((rect->w / 2) - (trap_R_Font_StrLenPixels(ConvoData.lines[i], iFontIndex, scale) / 2));
+			x = rect->x + ((rect->w / 2) - (trap->R_Font_StrLenPixels(ConvoData.lines[i], iFontIndex, scale) / 2));
 			// And draw it
-			trap_R_Font_DrawString(	x, y, ConvoData.lines[i],	color, iFontIndex, -1, scale	);
+			trap->R_Font_DrawString(	x, y, ConvoData.lines[i],	color, iFontIndex, -1, scale	);
 			// Shift up to the next line
-			y += trap_R_Font_HeightPixels(iFontIndex, scale);
+			y += trap->R_Font_HeightPixels(iFontIndex, scale);
 		}
 	}
 }
@@ -440,11 +440,11 @@ void Conv_OwnerDraw_LastText(rectDef_t *rect, float scale, vec4_t color, int iMe
 	for (i=3; i>=0; i--) {
 		if (ConvoData.lines[i]) {
 			// Calculate the center position
-			x = rect->x + ((rect->w / 2) - (trap_R_Font_StrLenPixels(ConvoData.lines[i], iFontIndex, scale) / 2));
+			x = rect->x + ((rect->w / 2) - (trap->R_Font_StrLenPixels(ConvoData.lines[i], iFontIndex, scale) / 2));
 			// And draw it
-			trap_R_Font_DrawString(	x, y, ConvoData.lines[i], color, iFontIndex, -1, scale);
+			trap->R_Font_DrawString(	x, y, ConvoData.lines[i], color, iFontIndex, -1, scale);
 			// Shift up to the next line
-			y -= trap_R_Font_HeightPixels(iFontIndex, scale);
+			y -= trap->R_Font_HeightPixels(iFontIndex, scale);
 		}
 	}
 }
@@ -459,7 +459,7 @@ void Conv_OwnerDraw_Choices(int choice, rectDef_t *rect, float scale, vec4_t col
 		return;
 	}
 
-	trap_R_Font_DrawString(	rect->x, rect->y, va("%i: %s", option+1, ConvoData.choices[option]), color, iFontIndex, -1, scale);
+	trap->R_Font_DrawString(	rect->x, rect->y, va("%i: %s", option+1, ConvoData.choices[option]), color, iFontIndex, -1, scale);
 }
 
 void Conv_OwnerDraw_ScrollButtons(int dir, rectDef_t *rect, vec4_t color) {
@@ -468,20 +468,20 @@ void Conv_OwnerDraw_ScrollButtons(int dir, rectDef_t *rect, vec4_t color) {
 	if (dir == 0) { // Up
 		// If we're at the top, dont enable this one
 		if (ConvoData.choiceScroll == 0) {
-			trap_R_SetColor(disabled);
+			trap->R_SetColor(disabled);
 		} else {
-			trap_R_SetColor(color);
+			trap->R_SetColor(color);
 		}
-		trap_R_DrawStretchPic(rect->x, rect->y, rect->w, rect->h, 0, 0, 1, 1, uiInfo.uiDC.Assets.arrow);
+		trap->R_DrawStretchPic(rect->x, rect->y, rect->w, rect->h, 0, 0, 1, 1, uiInfo.uiDC.Assets.arrow);
 	} else {
 		if (ConvoData.choiceScroll >= ConvoData.choicecount - 4) {
-			trap_R_SetColor(disabled);
+			trap->R_SetColor(disabled);
 		} else {
-			trap_R_SetColor(color);
+			trap->R_SetColor(color);
 		}
-		trap_R_DrawStretchPic(rect->x, rect->y, rect->w, rect->h, 0, 1, 1, 0, uiInfo.uiDC.Assets.arrow);
+		trap->R_DrawStretchPic(rect->x, rect->y, rect->w, rect->h, 0, 1, 1, 0, uiInfo.uiDC.Assets.arrow);
 	}
-	trap_R_SetColor(NULL);
+	trap->R_SetColor(NULL);
 }
 
 void Conv_OwnerDraw_TECaption(rectDef_t *rect, float scale, vec4_t color, int iMenuFont) {
@@ -492,9 +492,9 @@ void Conv_OwnerDraw_TECaption(rectDef_t *rect, float scale, vec4_t color, int iM
 	}
 
 	// Calculate the center position
-	x = rect->x + ((rect->w / 2) - (trap_R_Font_StrLenPixels(ConvoData.caption, iFontIndex, scale) / 2));
+	x = rect->x + ((rect->w / 2) - (trap->R_Font_StrLenPixels(ConvoData.caption, iFontIndex, scale) / 2));
 	// And draw it
-	trap_R_Font_DrawString(	x, rect->y, ConvoData.caption, color, iFontIndex, -1, scale);
+	trap->R_Font_DrawString(	x, rect->y, ConvoData.caption, color, iFontIndex, -1, scale);
 }
 
 qboolean Convo_ChoiceVisible(int choice) {
@@ -525,7 +525,7 @@ void Conv_Script_ProcessTextEntry(char **args) {
 
 		menu = Menus_FindByName("jkg_conversation");
 		item = Menu_FindItemByName(menu, "te_text");
-		edit = (editFieldDef_t *)item->typeData;
+		edit = item->typeData.edit;
 
 		cgImports->SendClientCommand(va("~convteresp %i \"%s\"", choice, &edit->buffer[0]));
 	}

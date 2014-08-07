@@ -2530,7 +2530,6 @@ extern playerState_t *cgSendPS[MAX_GENTITIES]; //is not MAX_CLIENTS because NPCs
 void CG_PmoveClientPointerUpdate();
 
 bool JKG_ParseHiltFiles( void );
-void BG_VehicleLoadParms( void );
 
 /*
 =================

@@ -20,8 +20,8 @@ void JKG_GangWars_TeamREDText( rectDef_t *rect, float scale, vec4_t color, int i
 	}
 	strcpy(line, UI_GetStringEdString2(bgGangWarsTeams[gwTeam].menustring));
 	y = rect->y;
-	x = rect->x + ((rect->w / 2) - (trap_R_Font_StrLenPixels(line, iFontIndex, scale2) / 2));
-	trap_R_Font_DrawString(	x, y, line,	bgGangWarsTeams[gwTeam].teamColor, iFontIndex, -1, scale2	);
+	x = rect->x + ((rect->w / 2) - (trap->R_Font_StrLenPixels(line, iFontIndex, scale2) / 2));
+	trap->R_Font_DrawString(	x, y, line,	bgGangWarsTeams[gwTeam].teamColor, iFontIndex, -1, scale2	);
 }
 
 //void JKG_GangWars_TeamBLUEText( int iMenuFont, rectDef_t *rect, float scale, vec4_t color )
@@ -38,6 +38,6 @@ void JKG_GangWars_TeamBLUEText( rectDef_t *rect, float scale, vec4_t color, int 
 	}
 	strcpy(line, UI_GetStringEdString2(bgGangWarsTeams[gwTeam].menustring));
 	y = rect->y;
-	x = rect->x + ((rect->w / 2) - (trap_R_Font_StrLenPixels(line, iFontIndex, scale2) / 2));
-	trap_R_Font_DrawString(	x, y, line,	bgGangWarsTeams[gwTeam].teamColor, iFontIndex, -1, scale2	);
+	x = rect->x + ((rect->w / 2) - (trap->R_Font_StrLenPixels(line, iFontIndex, scale2) / 2));
+	trap->R_Font_DrawString(	x, y, line,	bgGangWarsTeams[gwTeam].teamColor, iFontIndex, -1, scale2	);
 }

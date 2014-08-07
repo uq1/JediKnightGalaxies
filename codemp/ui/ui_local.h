@@ -30,29 +30,11 @@ void UI_LoadMenus( const char *menuFile, qboolean reset );
 void UI_LoadArenas( void );
 void UI_LoadForceConfig_List( void );
 
+const char *UI_GetStringEdString2(const char *refName);
+
 //
 // ui_players.c
 //
-
-//FIXME ripped from cg_local.h
-typedef struct lerpFrame_s {
-	int			oldFrame;
-	int			oldFrameTime;		// time when ->oldFrame was exactly on
-
-	int			frame;
-	int			frameTime;			// time when ->frame will be exactly on
-
-	float		backlerp;
-
-	float		yawAngle;
-	qboolean	yawing;
-	float		pitchAngle;
-	qboolean	pitching;
-
-	int			animationNumber;
-	animation_t	*animation;
-	int			animationTime;		// time when the first frame of the animation will be exact
-} lerpFrame_t;
 
 typedef struct playerInfo_s {
 	// model info
@@ -350,6 +332,10 @@ typedef struct uiInfo_s {
 
 	int						languageCount;
 	int						languageCountIndex;
+
+	int						effectsColor;
+
+	bool					hideCursor;
 } uiInfo_t;
 extern uiInfo_t uiInfo;
 
@@ -358,10 +344,8 @@ void		UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader );
 void		UI_FillRect( float x, float y, float width, float height, const float *color );
 char		*UI_Cvar_VariableString( const char *var_name );
 
-// crossover
-void			trap_Syscall_UI( void );
-void			trap_Syscall_CG( void );
-
+// ui_atoms.cpp
+void UI_DrawRect( float x, float y, float width, float height, const float *color );
 
 //
 // ui_gameinfo.c

@@ -60,9 +60,9 @@ static void UI_ServerRedirect( void )
 	// Regardless, we'll filter them anyway because they shouldn't be sent from the server at all.
 	// For confirmation on that, follow line 827 of cl_ui.c in the Quake 3 source code.
 
-	trap_Cvar_Set( "cflag", Cmd_Argv(2) );
-	trap_Cvar_Set( "connmsg", Cmd_Argv(3) );
-	trap_Cmd_ExecuteText( EXEC_NOW, va( "connect \"%s\"", connAddress ) ); // Also with EXEC_NOW, no need to pass a trailing \n
+	trap->Cvar_Set( "cflag", Cmd_Argv(2) );
+	trap->Cvar_Set( "connmsg", Cmd_Argv(3) );
+	trap->Cmd_ExecuteText( EXEC_NOW, va( "connect \"%s\"", connAddress ) ); // Also with EXEC_NOW, no need to pass a trailing \n
 
 	return;
 }

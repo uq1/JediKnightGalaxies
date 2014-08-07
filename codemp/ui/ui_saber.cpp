@@ -10,14 +10,15 @@ USER INTERFACE SABER LOADING & DISPLAY CODE
 #include "ui_local.h"
 #include "ui_shared.h"
 
-void WP_SaberLoadParms( void );
-qboolean WP_SaberParseParm( const char *saberName, const char *parmname, char *saberData );
+#define MAX_SABER_DATA_SIZE 0x80000
+
+static char	SaberParms[MAX_SABER_DATA_SIZE];
+qboolean	ui_saber_parms_parsed = qfalse;
+
 saber_colors_t TranslateSaberColor( const char *name );
 const char *SaberColorToString( saber_colors_t color );
 saber_styles_t TranslateSaberStyle( const char *name );
 saberType_t TranslateSaberType( const char *name );
-
-qboolean	ui_saber_parms_parsed = qfalse;
 
 static qhandle_t redSaberGlowShader;
 static qhandle_t redSaberCoreShader;
@@ -48,26 +49,139 @@ void UI_CacheSaberGlowGraphics( void )
 	purpleSaberCoreShader		= trap->R_RegisterShaderNoMip( "gfx/effects/sabers/purple_line" );
 }
 
+qboolean UI_ParseLiteral( const char **data, const char *string ) 
+{
+	const char	*token;
+
+	token = COM_ParseExt( data, qtrue );
+	if ( token[0] == 0 ) 
+	{
+		Com_Printf( "unexpected EOF\n" );
+		return qtrue;
+	}
+
+	if ( Q_stricmp( token, string ) ) 
+	{
+		Com_Printf( "required string '%s' missing\n", string );
+		return qtrue;
+	}
+
+	return qfalse;
+}
+
+qboolean UI_ParseLiteralSilent( const char **data, const char *string ) 
+{
+	const char	*token;
+
+	token = COM_ParseExt( data, qtrue );
+	if ( token[0] == 0 ) 
+	{
+		return qtrue;
+	}
+
+	if ( Q_stricmp( token, string ) ) 
+	{
+		return qtrue;
+	}
+
+	return qfalse;
+}
+
+qboolean UI_SaberParseParm( const char *saberName, const char *parmname, char *saberData ) 
+{
+	const char	*token;
+	const char	*value;
+	const char	*p;
+
+	if ( !saberName || !saberName[0] ) 
+	{
+		return qfalse;
+	}
+
+	//try to parse it out
+	p = SaberParms;
+	// A bogus name is passed in
+	COM_BeginParseSession("saberinfo");
+
+	// look for the right saber
+	while ( p )
+	{
+		token = COM_ParseExt( &p, qtrue );
+		if ( token[0] == 0 )
+		{
+			return qfalse;
+		}
+
+		if ( !Q_stricmp( token, saberName ) ) 
+		{
+			break;
+		}
+
+		SkipBracedSection( &p, 0 );
+	}
+	if ( !p ) 
+	{
+		return qfalse;
+	}
+
+	if ( UI_ParseLiteral( &p, "{" ) ) 
+	{
+		return qfalse;
+	}
+
+	// parse the saber info block
+	while ( 1 ) 
+	{
+		token = COM_ParseExt( &p, qtrue );
+		if ( !token[0] ) 
+		{
+			Com_Printf( S_COLOR_RED"ERROR: unexpected EOF while parsing '%s'\n", saberName );
+			return qfalse;
+		}
+
+		if ( !Q_stricmp( token, "}" ) ) 
+		{
+			break;
+		}
+
+		if ( !Q_stricmp( token, parmname ) ) 
+		{
+			if ( COM_ParseString( &p, &value ) ) 
+			{
+				continue;
+			}
+			strcpy( saberData, value );
+			return qtrue;
+		}
+
+		SkipRestOfLine( &p );
+		continue;
+	}
+
+	return qfalse;
+}
+
+
 qboolean UI_SaberModelForSaber( const char *saberName, char *saberModel )
 {
-	return WP_SaberParseParm( saberName, "saberModel", saberModel );
+	return UI_SaberParseParm( saberName, "saberModel", saberModel );
 }
 
 qboolean UI_SaberSkinForSaber( const char *saberName, char *saberSkin )
 {
-	return WP_SaberParseParm( saberName, "customSkin", saberSkin );
+	return UI_SaberParseParm( saberName, "customSkin", saberSkin );
 }
 
 qboolean UI_SaberTypeForSaber( const char *saberName, char *saberType )
 {
-	return WP_SaberParseParm( saberName, "saberType", saberType );
+	return UI_SaberParseParm( saberName, "saberType", saberType );
 }
 
 int UI_SaberNumBladesForSaber( const char *saberName )
 {
 	int numBlades;
 	char	numBladesString[8]={0};
-	WP_SaberParseParm( saberName, "numBlades", numBladesString );
+	UI_SaberParseParm( saberName, "numBlades", numBladesString );
 	numBlades = atoi( numBladesString );
 	if ( numBlades < 1 )
 	{
@@ -85,7 +199,7 @@ qboolean UI_SaberShouldDrawBlade( const char *saberName, int bladeNum )
 	int bladeStyle2Start = 0, noBlade = 0;
 	char	bladeStyle2StartString[8]={0};
 	char	noBladeString[8]={0};
-	WP_SaberParseParm( saberName, "bladeStyle2Start", bladeStyle2StartString );
+	UI_SaberParseParm( saberName, "bladeStyle2Start", bladeStyle2StartString );
 	if ( bladeStyle2StartString[0] )
 	{
 		bladeStyle2Start = atoi( bladeStyle2StartString );
@@ -93,7 +207,7 @@ qboolean UI_SaberShouldDrawBlade( const char *saberName, int bladeNum )
 	if ( bladeStyle2Start
 		&& bladeNum >= bladeStyle2Start )
 	{//use second blade style
-		WP_SaberParseParm( saberName, "noBlade2", noBladeString );
+		UI_SaberParseParm( saberName, "noBlade2", noBladeString );
 		if ( noBladeString[0] )
 		{
 			noBlade = atoi( noBladeString );
@@ -101,7 +215,7 @@ qboolean UI_SaberShouldDrawBlade( const char *saberName, int bladeNum )
 	}
 	else
 	{//use first blade style
-		WP_SaberParseParm( saberName, "noBlade", noBladeString );
+		UI_SaberParseParm( saberName, "noBlade", noBladeString );
 		if ( noBladeString[0] )
 		{
 			noBlade = atoi( noBladeString );
@@ -114,7 +228,7 @@ qboolean UI_IsSaberTwoHanded( const char *saberName )
 {
 	int twoHanded;
 	char	twoHandedString[8]={0};
-	WP_SaberParseParm( saberName, "twoHanded", twoHandedString );
+	UI_SaberParseParm( saberName, "twoHanded", twoHandedString );
 	if ( !twoHandedString[0] )
 	{//not defined defaults to "no"
 		return qfalse;
@@ -127,7 +241,7 @@ float UI_SaberBladeLengthForSaber( const char *saberName, int bladeNum )
 {
 	char	lengthString[8]={0};
 	float	length = 40.0f;
-	WP_SaberParseParm( saberName, "saberLength", lengthString );
+	UI_SaberParseParm( saberName, "saberLength", lengthString );
 	if ( lengthString[0] )
 	{
 		length = atof( lengthString );
@@ -137,7 +251,7 @@ float UI_SaberBladeLengthForSaber( const char *saberName, int bladeNum )
 		}
 	}
 
-	WP_SaberParseParm( saberName, va("saberLength%d", bladeNum+1), lengthString );
+	UI_SaberParseParm( saberName, va("saberLength%d", bladeNum+1), lengthString );
 	if ( lengthString[0] )
 	{
 		length = atof( lengthString );
@@ -154,7 +268,7 @@ float UI_SaberBladeRadiusForSaber( const char *saberName, int bladeNum )
 {
 	char	radiusString[8]={0};
 	float	radius = 3.0f;
-	WP_SaberParseParm( saberName, "saberRadius", radiusString );
+	UI_SaberParseParm( saberName, "saberRadius", radiusString );
 	if ( radiusString[0] )
 	{
 		radius = atof( radiusString );
@@ -164,7 +278,7 @@ float UI_SaberBladeRadiusForSaber( const char *saberName, int bladeNum )
 		}
 	}
 
-	WP_SaberParseParm( saberName, va("saberRadius%d", bladeNum+1), radiusString );
+	UI_SaberParseParm( saberName, va("saberRadius%d", bladeNum+1), radiusString );
 	if ( radiusString[0] )
 	{
 		radius = atof( radiusString );
@@ -180,7 +294,7 @@ float UI_SaberBladeRadiusForSaber( const char *saberName, int bladeNum )
 qboolean UI_SaberProperNameForSaber( const char *saberName, char *saberProperName )
 {
 	char	stringedSaberName[1024];
-	qboolean ret = WP_SaberParseParm( saberName, "name", stringedSaberName );
+	qboolean ret = UI_SaberParseParm( saberName, "name", stringedSaberName );
 	// if it's a stringed reference translate it
 	if( ret && stringedSaberName[0] == '@')
 	{
@@ -198,7 +312,7 @@ qboolean UI_SaberProperNameForSaber( const char *saberName, char *saberProperNam
 qboolean UI_SaberValidForPlayerInMP( const char *saberName )
 {
 	char allowed [8]={0};
-	if ( !WP_SaberParseParm( saberName, "notInMP", allowed ) )
+	if ( !UI_SaberParseParm( saberName, "notInMP", allowed ) )
 	{//not defined, default is yes
 		return qtrue;
 	}
@@ -212,12 +326,70 @@ qboolean UI_SaberValidForPlayerInMP( const char *saberName )
 	}
 }
 
-void UI_SaberLoadParms( void )
+void UI_SaberLoadParms( void ) 
 {
+	int			len, totallen, saberExtFNLen, fileCnt, i;
+	char		*holdChar, *marker;
+	char		saberExtensionListBuf[2048];			//	The list of file names read in
+	fileHandle_t f;
+	char buffer[MAX_MENUFILE];
+
+	//ui.Printf( "UI Parsing *.sab saber definitions\n" );
+
 	ui_saber_parms_parsed = qtrue;
 	UI_CacheSaberGlowGraphics();
 
-	WP_SaberLoadParms();
+	//set where to store the first one
+	totallen = 0;
+	marker = SaberParms;
+	marker[0] = '\0';
+
+	//now load in the extra .npc extensions
+	fileCnt = trap->FS_GetFileList("ext_data/sabers", ".sab", saberExtensionListBuf, sizeof(saberExtensionListBuf) );
+
+	holdChar = saberExtensionListBuf;
+	for ( i = 0; i < fileCnt; i++, holdChar += saberExtFNLen + 1 ) 
+	{
+		saberExtFNLen = strlen( holdChar );
+
+		len = trap->FS_Open( va( "ext_data/sabers/%s", holdChar), &f, FS_READ );
+
+		if (!f)
+		{
+			continue;
+		}
+
+		if ( len == -1 ) 
+		{
+			Com_Printf( "UI_SaberLoadParms: error reading %s\n", holdChar );
+		}
+		else
+		{
+			if (len > sizeof(buffer) )
+			{
+				Com_Error( ERR_FATAL, "UI_SaberLoadParms: file %s too large to read (max=%d)", holdChar, sizeof(buffer) );
+			}
+			trap->FS_Read( buffer, len, f );
+			trap->FS_Close( f );
+			buffer[len] = 0;
+
+			if ( totallen && *(marker-1) == '}' )
+			{//don't let it end on a } because that should be a stand-alone token
+				strcat( marker, " " );
+				totallen++;
+				marker++; 
+			}
+			len = COM_Compress( buffer );
+
+			if ( totallen + len >= MAX_SABER_DATA_SIZE ) {
+				Com_Error( ERR_FATAL, "UI_SaberLoadParms: ran out of space before reading %s\n(you must make the .sab files smaller)", holdChar );
+			}
+			strcat( marker, buffer );
+
+			totallen += len;
+			marker += len;
+		}
+	}
 }
 
 void UI_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float radius, saber_colors_t color )
@@ -734,4 +906,69 @@ void UI_SaberAttachToChar( itemDef_t *item )
 			}
 		}
 	}
+}
+
+void UI_SaberGetHiltInfo( const char *singleHilts[MAX_SABER_HILTS], const char *staffHilts[MAX_SABER_HILTS] )
+{
+	int	numSingleHilts = 0, numStaffHilts = 0;
+	const char	*saberName;
+	const char	*token;
+	const char	*p;
+
+	//go through all the loaded sabers and put the valid ones in the proper list
+	p = SaberParms;
+	COM_BeginParseSession("saberlist");
+
+	// look for a saber
+	while ( p )
+	{
+		token = COM_ParseExt( &p, qtrue );
+		if ( token[0] == 0 )
+		{//invalid name
+			continue;
+		}
+		saberName = String_Alloc( token );
+		//see if there's a "{" on the next line
+		SkipRestOfLine( &p );
+
+		if ( UI_ParseLiteralSilent( &p, "{" ) ) 
+		{//nope, not a name, keep looking
+			continue;
+		}
+
+		//this is a saber name
+		if ( !UI_SaberValidForPlayerInMP( saberName ) )
+		{
+			SkipBracedSection( &p, 0 );
+			continue;
+		}
+
+		if ( UI_IsSaberTwoHanded( saberName ) )
+		{
+			if ( numStaffHilts < MAX_SABER_HILTS-1 )//-1 because we have to NULL terminate the list
+			{
+				staffHilts[numStaffHilts++] = saberName;
+			}
+			else
+			{
+				Com_Printf( "WARNING: too many two-handed sabers, ignoring saber '%s'\n", saberName );
+			}
+		}
+		else
+		{
+			if ( numSingleHilts < MAX_SABER_HILTS-1 )//-1 because we have to NULL terminate the list
+			{
+				singleHilts[numSingleHilts++] = saberName;
+			}
+			else
+			{
+				Com_Printf( "WARNING: too many one-handed sabers, ignoring saber '%s'\n", saberName );
+			}
+		}
+		//skip the whole braced section and move on to the next entry
+		SkipBracedSection( &p, 0 );
+	}
+	//null terminate the list so the UI code knows where to stop listing them
+	singleHilts[numSingleHilts] = NULL;
+	staffHilts[numStaffHilts] = NULL;
 }

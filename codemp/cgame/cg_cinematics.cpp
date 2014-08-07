@@ -199,15 +199,15 @@ void Cin_SetCamData(int CamMode) {
 			free(cin.CamData);
 			break;
 		case CAM_VIDEO:
-			trap_CIN_StopCinematic(((CamData_Video_t *)cin.CamData)->videoHandle);
+			trap->CIN_StopCinematic(((CamData_Video_t *)cin.CamData)->videoHandle);
 			// Revert cvars
-			trap_Cvar_Set("r_clear", "0");
-			trap_Cvar_Set("r_drawworld", "1");
-			trap_Cvar_Set("r_drawentities", "1");
+			trap->Cvar_Set("r_clear", "0");
+			trap->Cvar_Set("r_drawworld", "1");
+			trap->Cvar_Set("r_drawentities", "1");
 
-			trap_Cvar_Set("s_volume", va("%f", ((CamData_Video_t *)cin.CamData)->volume));
-			trap_Cvar_Set("s_volumevoice", va("%f", ((CamData_Video_t *)cin.CamData)->voiceVolume));
-			trap_Cvar_Set("s_musicvolume", va("%f", ((CamData_Video_t *)cin.CamData)->musicVolume));
+			trap->Cvar_Set("s_volume", va("%f", ((CamData_Video_t *)cin.CamData)->volume));
+			trap->Cvar_Set("s_volumevoice", va("%f", ((CamData_Video_t *)cin.CamData)->voiceVolume));
+			trap->Cvar_Set("s_musicvolume", va("%f", ((CamData_Video_t *)cin.CamData)->musicVolume));
 			cg.cinematicVideo = 0;
 			free(cin.CamData);
 		default:
@@ -251,12 +251,12 @@ void Cin_SetCamData(int CamMode) {
 void Cin_InitParseBuff(parsebuff_t *pb) {
 	memset(pb,0,sizeof(parsebuff_t));
 	pb->arg = 1;
-	pb->argc = trap_Argc();
+	pb->argc = trap->Cmd_Argc();
 }
 
 const char *Cin_NextToken(parsebuff_t *pb) {
 	if (pb->arg > pb->argc) return NULL;
-	trap_Argv(pb->arg++,pb->buff, sizeof(pb->buff));
+	trap->Cmd_Argv(pb->arg++,pb->buff, sizeof(pb->buff));
 	return pb->buff;
 }
 
@@ -271,7 +271,7 @@ int Cin_ParseVector(parsebuff_t *pb, vec3_t *vec) {
 	for (i=0; i<3; i++) {
 		token = Cin_NextToken(pb);
 		if (!token) {
-			CG_Printf("WARNING: ^3Error processing cinematic info: Could not parse vector\n");
+			trap->Print("WARNING: ^3Error processing cinematic info: Could not parse vector\n");
 			return 1;
 		}
 		(*vec)[i] = atof(token);
@@ -285,7 +285,7 @@ int Cin_ParseVector2(parsebuff_t *pb, vec2_t *vec) {
 	for (i=0; i<2; i++) {
 		token = Cin_NextToken(pb);
 		if (!token) {
-			CG_Printf("WARNING: ^3Error processing cinematic info: Could not parse vector2\n");
+			trap->Print("WARNING: ^3Error processing cinematic info: Could not parse vector2\n");
 			return 1;
 		}
 		(*vec)[i] = atof(token);
@@ -297,7 +297,7 @@ int Cin_ParseInt(parsebuff_t *pb, int *num) {
 	const char *token;
 	token = Cin_NextToken(pb);
 	if (!token) {
-		CG_Printf("WARNING: ^3Error processing cinematic info: Could not parse int\n");
+		trap->Print("WARNING: ^3Error processing cinematic info: Could not parse int\n");
 		return 1;
 	}
 	*num = atoi(token);
@@ -310,7 +310,7 @@ int Cin_ParseFloat(parsebuff_t *pb, float *num) {
 	token = Cin_NextToken(pb);
 	
 	if (!token) {
-		CG_Printf("WARNING: ^3Error processing cinematic info: Could not parse float\n");
+		trap->Print("WARNING: ^3Error processing cinematic info: Could not parse float\n");
 		return 1;
 	}
 	*num = atof(token);
@@ -903,9 +903,9 @@ void Cin_ProcessFlash() {
 	if (cin.Flash.state == 0) return; // Off
 	if (cin.Flash.state == 2) { // Faded white
 		cincolor[3] = 1;
-		trap_R_SetColor(&cincolor[0]);
-		trap_R_DrawStretchPic(0,0,640,480,0,0,0,0,cgs.media.whiteShader);
-		trap_R_SetColor(NULL);
+		trap->R_SetColor(&cincolor[0]);
+		trap->R_DrawStretchPic(0,0,640,480,0,0,0,0,cgs.media.whiteShader);
+		trap->R_SetColor(NULL);
 		return;
 	}
 	if (cin.Flash.state == 1) {
@@ -925,13 +925,13 @@ void Cin_ProcessFlash() {
 			alpha = ((cin.Flash.to * alpha) + (cin.Flash.from * (1-alpha))) / 100;
 		}
 		cincolor[3] = alpha;
-		trap_R_SetColor(&cincolor[0]);
-		trap_R_DrawStretchPic(0,0,640,480,0,0,0,0,cgs.media.whiteShader);
-		trap_R_SetColor(NULL);
+		trap->R_SetColor(&cincolor[0]);
+		trap->R_DrawStretchPic(0,0,640,480,0,0,0,0,cgs.media.whiteShader);
+		trap->R_SetColor(NULL);
 		return;
 	}
 
-	trap_Error(va("ERROR: Cin_ProcessFlash: Invalid state %i", cin.Flash.state));
+	trap->Error(ERR_DROP, va("ERROR: Cin_ProcessFlash: Invalid state %i", cin.Flash.state));
 }
 
 void Cin_ProcessFade() {
@@ -941,9 +941,9 @@ void Cin_ProcessFade() {
 	if (cin.Fade.state == 0) return; // Off
 	if (cin.Fade.state == 2) { // Faded black
 		cincolor[3] = 1;
-		trap_R_SetColor(&cincolor[0]);
-		trap_R_DrawStretchPic(0,0,640,480,0,0,0,0,cgs.media.whiteShader);
-		trap_R_SetColor(NULL);
+		trap->R_SetColor(&cincolor[0]);
+		trap->R_DrawStretchPic(0,0,640,480,0,0,0,0,cgs.media.whiteShader);
+		trap->R_SetColor(NULL);
 		return;
 	}
 	if (cin.Fade.state == 1) {
@@ -963,13 +963,13 @@ void Cin_ProcessFade() {
 			alpha = ((cin.Fade.to * alpha) + (cin.Fade.from * (1-alpha))) / 100;
 		}
 		cincolor[3] = alpha;
-		trap_R_SetColor(&cincolor[0]);
-		trap_R_DrawStretchPic(0,0,640,480,0,0,0,0,cgs.media.whiteShader);
-		trap_R_SetColor(NULL);
+		trap->R_SetColor(&cincolor[0]);
+		trap->R_DrawStretchPic(0,0,640,480,0,0,0,0,cgs.media.whiteShader);
+		trap->R_SetColor(NULL);
 		return;
 	}
 
-	trap_Error(va("ERROR: Cin_ProcessFade: Invalid state %i", cin.Fade.state));
+	trap->Error(ERR_DROP, va("ERROR: Cin_ProcessFade: Invalid state %i", cin.Fade.state));
 }
 
 int Cin_ProcessMB() {
@@ -999,7 +999,7 @@ int Cin_ProcessMB() {
 		}
 		return (int)fade;
 	}
-	trap_Error(va("ERROR: Cin_ProcessMB: Invalid state %i", cin.Motionblur.state));
+	trap->Error(ERR_DROP, va("ERROR: Cin_ProcessMB: Invalid state %i", cin.Motionblur.state));
 	return 0;
 }
 
@@ -1011,8 +1011,8 @@ void Cin_ProcessVideo() {
 	}
 	data = (CamData_Video_t *)cin.CamData;
 
-	trap_CIN_RunCinematic(data->videoHandle);
-	trap_CIN_DrawCinematic(data->videoHandle);
+	trap->CIN_RunCinematic(data->videoHandle);
+	trap->CIN_DrawCinematic(data->videoHandle);
 }
 
 float Cin_ProcessFOV() {
@@ -1042,7 +1042,9 @@ float Cin_ProcessFOV() {
 		}
 		return fade;
 	}
-	trap_Error(va("ERROR: Cin_ProcessFOV: Invalid state %i", cin.Fov.state));
+
+	trap->Error(ERR_DROP, va("ERROR: Cin_ProcessFOV: Invalid state %i", cin.Fov.state));
+
 	return cg_fov.integer;
 }
 
@@ -1121,7 +1123,7 @@ void BitStream_ReadVector(bitstream_t *stream, vec3_t *vector) {
 static float Cin_GetCvarValue(const char *cvar_name) 
 {
 	char buffer[1024] = {0};
-	trap_Cvar_VariableStringBuffer(cvar_name, buffer, sizeof(buffer));
+	trap->Cvar_VariableStringBuffer(cvar_name, buffer, sizeof(buffer));
 	return atof(buffer);
 }
 
@@ -1137,7 +1139,7 @@ void Cin_ProcessCinematicBinary_f() {
 	CamData_Union_t *CamData;
 	bitstream_t stream;
 
-	trap_Argv(1, arg, 1024);
+	trap->Cmd_Argv(1, arg, 1024);
 
 	len = Base128_DecodeLength((unsigned int)strlen(arg));
 	Base128_Decode((const char *)arg, (unsigned int)strlen(arg), (void *)data, (unsigned int)840);
@@ -1375,19 +1377,19 @@ void Cin_ProcessCinematicBinary_f() {
 			CamData->CamVideo.looping = BitStream_ReadBool(&stream);
 			BitStream_ReadString(&stream, CamData->CamVideo.filename, 64);
 
-			CamData->CamVideo.videoHandle = trap_CIN_PlayCinematic(CamData->CamVideo.filename, 0, 0, 640, 480, (CamData->CamVideo.looping ? CIN_loop : CIN_hold) | CIN_aspect);
+			CamData->CamVideo.videoHandle = trap->CIN_PlayCinematic(CamData->CamVideo.filename, 0, 0, 640, 480, (CamData->CamVideo.looping ? CIN_loop : CIN_hold) | CIN_aspect);
 
 			// Adjust cvars to prepare the game for video rendering
-			trap_Cvar_Set("r_clear", "1");
-			trap_Cvar_Set("r_drawworld", "0");
-			trap_Cvar_Set("r_drawentities", "0");
+			trap->Cvar_Set("r_clear", "1");
+			trap->Cvar_Set("r_drawworld", "0");
+			trap->Cvar_Set("r_drawentities", "0");
 
 			CamData->CamVideo.volume = Cin_GetCvarValue("s_volume");
 			CamData->CamVideo.voiceVolume = Cin_GetCvarValue("s_volumevoice");
 			CamData->CamVideo.musicVolume = Cin_GetCvarValue("s_musicvolume");
-			trap_Cvar_Set("s_volume", "0");
-			trap_Cvar_Set("s_volumevoice", "0");
-			trap_Cvar_Set("s_musicvolume", "0");
+			trap->Cvar_Set("s_volume", "0");
+			trap->Cvar_Set("s_volumevoice", "0");
+			trap->Cvar_Set("s_musicvolume", "0");
 			cg.cinematicVideo = 1;
 
 			break;
@@ -1556,7 +1558,7 @@ void Cin_ProcessCinematicBinary_f() {
 			break;
 		case CIN_ACT_CONTDATA:
 			if (!cin.AwaitingData) {
-				CG_Printf("WARNING: ^3Error processing cinematic info: Cont received without awaiting further data\n");
+				trap->Print("WARNING: ^3Error processing cinematic info: Cont received without awaiting further data\n");
 				return;
 			}
 			CamData = reinterpret_cast<CamData_Union_t *>(cin.CamData);
@@ -1620,7 +1622,7 @@ void Cin_ProcessCinematicBinary_f() {
 
 		default:
 			// Should never happen
-			CG_Printf("WARNING: ^3Error processing cinematic info: Invalid act code\n");
+			trap->Print("WARNING: ^3Error processing cinematic info: Invalid act code\n");
 			return;
 		}
 	}
@@ -1679,7 +1681,7 @@ void Cin_ProcessCinematic_f() {
 			// Fade in
 			token = Cin_NextToken(&pb);
 			if (!token) {
-				CG_Printf("WARNING: ^3Error processing cinematic info: No fadetime after fi instruction\n");
+				trap->Print("WARNING: ^3Error processing cinematic info: No fadetime after fi instruction\n");
 				return;
 			}
 			cin.Fade.startTime = cg.time;
@@ -1693,7 +1695,7 @@ void Cin_ProcessCinematic_f() {
 			// Fade out
 			token = Cin_NextToken(&pb);
 			if (!token) {
-				CG_Printf("WARNING: ^3Error processing cinematic info: No fadetime after fo instruction\n");
+				trap->Print("WARNING: ^3Error processing cinematic info: No fadetime after fo instruction\n");
 				return;
 			}
 			cin.Fade.startTime = cg.time;
@@ -1707,7 +1709,7 @@ void Cin_ProcessCinematic_f() {
 			// Flash in
 			token = Cin_NextToken(&pb);
 			if (!token) {
-				CG_Printf("WARNING: ^3Error processing cinematic info: No fadetime after fli instruction\n");
+				trap->Print("WARNING: ^3Error processing cinematic info: No fadetime after fli instruction\n");
 				return;
 			}
 			cin.Flash.startTime = cg.time;
@@ -1721,7 +1723,7 @@ void Cin_ProcessCinematic_f() {
 			// Flash out
 			token = Cin_NextToken(&pb);
 			if (!token) {
-				CG_Printf("WARNING: ^3Error processing cinematic info: No fadetime after flo instruction\n");
+				trap->Print("WARNING: ^3Error processing cinematic info: No fadetime after flo instruction\n");
 				return;
 			}
 			cin.Flash.startTime = cg.time;
@@ -1765,7 +1767,7 @@ void Cin_ProcessCinematic_f() {
 				if (Cin_ParseVector(&pb, &CamData->CamLinear.targetpos)) return;
 				if (Cin_ParseInt(&pb, &CamData->CamLinear.pointcount)) return;
 			} else {
-				CG_Printf("WARNING: ^3Error processing cinematic info: Invalid linear cam trajectory type\n");
+				trap->Print("WARNING: ^3Error processing cinematic info: Invalid linear cam trajectory type\n");
 			}
 			// Alloc a buffer for the points
 			CamData->CamLinear.pointData = (CamData_Linear_Point_t *)malloc(sizeof(CamData_Linear_Point_t) * CamData->CamLinear.pointcount);
@@ -1806,7 +1808,7 @@ void Cin_ProcessCinematic_f() {
 				if (Cin_ParseVector(&pb, &CamData->CamSpline.targetpos)) return;
 				if (Cin_ParseInt(&pb, &CamData->CamSpline.pointcount)) return;
 			} else {
-				CG_Printf("WARNING: ^3Error processing cinematic info: Invalid spline cam trajectory type\n");
+				trap->Print("WARNING: ^3Error processing cinematic info: Invalid spline cam trajectory type\n");
 			}
 			// Get algoritms
 			// Format:
@@ -1849,7 +1851,7 @@ void Cin_ProcessCinematic_f() {
 		if (!Q_stricmp(token, "cont")) {
 			// Continuation of a previous coord set
 			if (!cin.AwaitingData) {
-				CG_Printf("WARNING: ^3Error processing cinematic info: Cont received without awaiting further data\n");
+				trap->Print("WARNING: ^3Error processing cinematic info: Cont received without awaiting further data\n");
 				return;
 			}
 			CamData = reinterpret_cast<CamData_Union_t *>(cin.CamData);

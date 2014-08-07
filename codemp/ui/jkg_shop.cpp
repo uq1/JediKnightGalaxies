@@ -240,7 +240,7 @@ void JKG_Shop_XMLHandle(void)
 		return;	//no XML for j00
 	}
 	//Make sure the file in question exists
-	len = trap_FS_FOpenFile(lookupTable[IDofSelectedItem].xml, &f, FS_READ);
+	len = trap->FS_Open(lookupTable[IDofSelectedItem].xml, &f, FS_READ);
 	if(!f)
 	{
 		//No file. Just retn for now.
@@ -251,7 +251,7 @@ void JKG_Shop_XMLHandle(void)
 	{
 		//Bad length
 		Menu_ShowGroup(shopState.menu, "shop_preview_examine", qfalse);
-		trap_FS_FCloseFile(f);
+		trap->FS_Close(f);
 		return;
 	}
 	//Turn off all the text first
@@ -282,8 +282,8 @@ void JKG_Shop_XMLHandle(void)
 	XML_SetElementHandler(parse, JKG_ShopXML_StartElement, JKG_ShopXML_EndElement);
 	XML_SetCharacterDataHandler(parse, JKG_ShopXML_ParseCharacters);
 	//Read the file
-	trap_FS_Read(buffer, MAX_XML_BUFFER_SIZE, f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Read(buffer, MAX_XML_BUFFER_SIZE, f);
+	trap->FS_Close(f);
 	buffer[len] = '\0';
 	if(XML_Parse(parse, buffer, (int)strlen(buffer), qtrue) == XML_STATUS_ERROR)
 	{
@@ -298,7 +298,7 @@ void JKG_Shop_XMLHandle(void)
 void JKG_Shop_ClearFeederItems(void)
 {
 	itemDef_t *item = Menu_FindItemByName(shopState.menu, "shop_dummyFeeder");
-	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
+	listBoxDef_t *listPtr = item->typeData.listbox;
 	int numElements = listPtr->elementHeight;
 	int i;
 
@@ -355,7 +355,7 @@ void JKG_Shop_UpdateShopStuff(int filterVal)
 	//Variable declarations
 	itemDef_t *item = Menu_FindItemByName(shopState.menu, "shop_dummyFeeder");
 	itemDef_t *item2;
-	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
+	listBoxDef_t *listPtr = item->typeData.listbox;
 	int numElements = listPtr->elementHeight;
 	int i;
 	cgItemData_t *lookupTable = (cgItemData_t *)cgImports->InventoryDataRequest(6);
@@ -422,7 +422,7 @@ void JKG_Shop_UpdateShopStuff(int filterVal)
 		if(item2)
 		{
 			//Image -> get the item icon for this item
-			item2->window.background = trap_R_RegisterShaderNoMip(lookupTable[UIshopItems[i+shopMenuPosition]].itemIcon); //TODO: precache me
+			item2->window.background = trap->R_RegisterShaderNoMip(lookupTable[UIshopItems[i+shopMenuPosition]].itemIcon); //TODO: precache me
 			Menu_ShowItemByName(shopState.menu, va("shop_feederIMG%i", i+1), qtrue);
 		}
 
@@ -505,7 +505,7 @@ hideItAll:
 		item2 = Menu_FindItemByName(shopState.menu, "shop_previewIcon");
 		if(item2)
 		{
-			item2->window.background = trap_R_RegisterShaderNoMip(lookupTable[UIshopItems[shopSlotNumber+shopMenuPosition-1]].itemIcon);
+			item2->window.background = trap->R_RegisterShaderNoMip(lookupTable[UIshopItems[shopSlotNumber+shopMenuPosition-1]].itemIcon);
 		}
 
 		item2 = Menu_FindItemByName(shopState.menu, "shop_previewItemName");
@@ -557,21 +557,21 @@ void JKG_Shop_UpdateNotify(int msg)
 			memset(&shopState, 0, sizeof(shopState));
 			shopState.active = qtrue;
 
-			trap_Syscall_UI();
+			trap->Syscall_UI();
 			shopState.menu = Menus_FindByName("jkg_shop");
 			if(shopState.menu && Menus_ActivateByName("jkg_shop"))
 			{
-				trap_Key_SetCatcher (trap_Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
+				trap->Key_SetCatcher (trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
 			}
 			shopState.selectedShopItem = 0;
-			trap_Syscall_CG();
+			trap->Syscall_CG();
 			break;
 		case 1:
 			{
-				trap_Syscall_UI();
+				trap->Syscall_UI();
 				JKG_Shop_UpdateShopStuff(ui_inventoryFilter.integer);
 				JKG_Shop_UpdateCreditDisplay();
-				trap_Syscall_CG();
+				trap->Syscall_CG();
 			}
 			break;
 	}
@@ -579,7 +579,7 @@ void JKG_Shop_UpdateNotify(int msg)
 
 void JKG_Shop_OpenDialog(char **args)
 {
-	trap_Cvar_Set ("ui_hidehud", "1");
+	trap->Cvar_Set ("ui_hidehud", "1");
 	shopState.active = qtrue;
 	shopState.inventoryOpen = qfalse;
 
@@ -594,7 +594,7 @@ void JKG_Shop_CloseDialog(char **args)
 {
 	if(!shopState.inventoryOpen)
 	{
-		trap_Cvar_Set ("ui_hidehud", "0");
+		trap->Cvar_Set ("ui_hidehud", "0");
 	}
 	shopState.active = qfalse;
 	cgImports->SendClientCommand ("closeVendor");
@@ -603,7 +603,7 @@ void JKG_Shop_CloseDialog(char **args)
 void JKG_Shop_ItemSelect(char **args)
 {
 	itemDef_t *item = Menu_FindItemByName(shopState.menu, "shop_dummyFeeder");
-	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
+	listBoxDef_t *listPtr = item->typeData.listbox;
 	cgItemData_t *lookupTable = (cgItemData_t *)cgImports->InventoryDataRequest( 6 );
 	int credits = (int)cgImports->InventoryDataRequest( 3 );
 	int arg0 = atoi(args[0]);
@@ -626,7 +626,7 @@ void JKG_Shop_ItemSelect(char **args)
 void JKG_Shop_ArrowPrevClean(void)
 {
 	itemDef_t *item = Menu_FindItemByName(shopState.menu, "shop_dummyFeeder");
-	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
+	listBoxDef_t *listPtr = item->typeData.listbox;
 	int numElements = listPtr->elementHeight;
 	if(shopMenuPosition-1 < 0)
 	{
@@ -673,7 +673,7 @@ void JKG_Shop_ArrowPrev(char **args)
 {
 	int arg = atoi(args[0]);
 	itemDef_t *item = Menu_FindItemByName(shopState.menu, "shop_dummyFeeder");
-	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
+	listBoxDef_t *listPtr = item->typeData.listbox;
 	int numElements = listPtr->elementHeight;
 
 	//Check if we're approaching 0

@@ -112,4 +112,8 @@ XCVAR_DEF( ui_team_fraglimit,				"0",					NULL,				CVAR_ARCHIVE|CVAR_INTERNAL )
 XCVAR_DEF( ui_team_friendly,				"1",					NULL,				CVAR_ARCHIVE|CVAR_INTERNAL )
 XCVAR_DEF( ui_team_timelimit,				"20",					NULL,				CVAR_ARCHIVE|CVAR_INTERNAL )
 
+XCVAR_DEF( ui_hidehud,						"0",					NULL,				CVAR_INTERNAL )
+XCVAR_DEF( ui_inventoryFilter,				"0",					NULL,				CVAR_ARCHIVE )
+XCVAR_DEF( connmsg,							"",						NULL,				CVAR_ROM )
+
 #undef XCVAR_DEF

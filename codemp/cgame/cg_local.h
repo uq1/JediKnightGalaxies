@@ -2171,6 +2171,7 @@ int			BG_ProperForceIndex(int power);
 void		BG_CycleForce(playerState_t *ps, int direction);
 
 const char *CG_GetStringEdString(char *refSection, char *refName);
+const char *CG_GetStringEdString2(char *refName);
 
 // Gang Wars Stuff
 

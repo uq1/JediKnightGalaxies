@@ -46,7 +46,7 @@ void trap_Cvar_Set( const char *var_name, const char *value ) {
 }
 
 float trap_Cvar_VariableValue( const char *var_name ) {
-	floatint_t fi;
+	byteAlias_t fi;
 	fi.i = Q_syscall( UI_CVAR_VARIABLEVALUE, var_name );
 	return fi.f;
 }

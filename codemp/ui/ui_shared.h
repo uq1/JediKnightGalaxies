@@ -357,6 +357,7 @@ typedef struct itemDef_s {
 		editFieldDef_t	*edit;
 		multiDef_t		*multi;
 		modelDef_t		*model;
+		textDef_t		*text;
 	} typeData;								// type specific data ptr's
 	const char	*descText;					//	Description text
 	int			appearanceSlot;				// order of appearance
@@ -488,7 +489,7 @@ typedef struct displayContextDef_s {
 	qboolean		(*Language_IsAsian)					( void );
 	qboolean		(*Language_UsesSpaces)				( void );
 	unsigned int	(*AnyLanguage_ReadCharFromString)	( const char *psText, int *piAdvanceCount, qboolean *pbIsTrailingPunctuation );
-	void			(*ownerDrawItem)					( float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle, int iMenuFont );
+	void			(*ownerDrawItem)					( itemDef_t *item, float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle, int iMenuFont, int ownerDrawID );
 	float			(*getValue)							( int ownerDraw );
 	qboolean		(*ownerDrawVisible)					( int flags );
 	void			(*runScript)						( char **p );
@@ -501,7 +502,7 @@ typedef struct displayContextDef_s {
 	void			(*setOverstrikeMode)				( qboolean b );
 	qboolean		(*getOverstrikeMode)				( void );
 	void			(*startLocalSound)					( sfxHandle_t sfx, int channelNum );
-	qboolean		(*ownerDrawHandleKey)				( int ownerDraw, int flags, float *special, int key );
+	qboolean		(*ownerDrawHandleKey)				( int ownerDraw, int flags, float *special, int key, int ownerDrawID );
 	int				(*feederCount)						( float feederID );
 	const char *	(*feederItemText)					( float feederID, int index, int column, qhandle_t *handle1, qhandle_t *handle2, qhandle_t *handle3 );
 	qhandle_t		(*feederItemImage)					( float feederID, int index );

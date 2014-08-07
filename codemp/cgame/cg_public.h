@@ -755,7 +755,11 @@ typedef struct cgameImport_s {
 	qboolean		(*G2API_OverrideServer)					( void *serverInstance );
 	void			(*G2API_GetSurfaceName)					( void *ghoul2, int surfNumber, int modelIndex, char *fillBuf );
 
+	uiCrossoverExports_t *(*CO_InitCrossover)						( cgCrossoverExports_t *co );
 	void			(*CO_Shutdown)							( void );
+
+	void			(*Syscall_CG)							( void );
+	void			(*Syscall_UI)							( void );
 } cgameImport_t;
 
 typedef struct cgameExport_s {

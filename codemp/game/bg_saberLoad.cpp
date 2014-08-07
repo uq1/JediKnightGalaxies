@@ -28,9 +28,9 @@ extern int G_SoundIndex( const char *name );
 
 int BG_SoundIndex(char *sound)
 {
-#ifdef _GAME
+#if defined(_GAME)
 	return G_SoundIndex(sound);
-#elif defined _CGAME
+#elif defined(_CGAME) || defined(_UI)
 	return trap->S_RegisterSound(sound);
 #endif
 }
@@ -163,6 +163,17 @@ saber_colors_t TranslateSaberColor( const char *name )
 	return SABER_BLUE;
 }
 
+const char *SaberColorToString( saber_colors_t color ) {
+	if ( color == SABER_RED )		return "red";
+	if ( color == SABER_ORANGE )	return "orange";
+	if ( color == SABER_YELLOW )	return "yellow";
+	if ( color == SABER_GREEN )		return "green";
+	if ( color == SABER_BLUE )		return "blue";
+	if ( color == SABER_PURPLE )	return "purple";
+
+	return NULL;
+}
+
 saber_styles_t TranslateSaberStyle( const char *name ) 
 {
 	if ( !Q_stricmp( name, "fast" ) ) 
@@ -194,6 +205,23 @@ saber_styles_t TranslateSaberStyle( const char *name )
 		return SS_STAFF;
 	}
 	return SS_NONE;
+}
+
+saberType_t TranslateSaberType( const char *name ) {
+	if ( !Q_stricmp( name, "SABER_SINGLE" ) )		return SABER_SINGLE;
+	if ( !Q_stricmp( name, "SABER_STAFF" ) ) 		return SABER_STAFF;
+	if ( !Q_stricmp( name, "SABER_DAGGER" ) ) 		return SABER_DAGGER;
+	if ( !Q_stricmp( name, "SABER_BROAD" ) ) 		return SABER_BROAD;
+	if ( !Q_stricmp( name, "SABER_PRONG" ) ) 		return SABER_PRONG;
+	if ( !Q_stricmp( name, "SABER_ARC" ) )			return SABER_ARC;
+	if ( !Q_stricmp( name, "SABER_SAI" ) )			return SABER_SAI;
+	if ( !Q_stricmp( name, "SABER_CLAW" ) )			return SABER_CLAW;
+	if ( !Q_stricmp( name, "SABER_LANCE" ) )		return SABER_LANCE;
+	if ( !Q_stricmp( name, "SABER_STAR" ) )			return SABER_STAR;
+	if ( !Q_stricmp( name, "SABER_TRIDENT" ) )		return SABER_TRIDENT;
+	if ( !Q_stricmp( name, "SABER_SITH_SWORD" ) )	return SABER_SITH_SWORD;
+
+	return SABER_SINGLE;
 }
 
 bool WP_SaberBladeDoTransitionDamage( saberInfo_t *saber, int bladeNum )
@@ -1622,7 +1650,7 @@ int JKG_SAFForJSON( cJSON *node )
 	}
 }
 
-void JKG_CopyMoveFromDefaultInfo( int moveNum, saberMoveExternal_t *saberMove )
+static void JKG_CopyMoveFromDefaultInfo( int moveNum, saberMoveExternal_t *saberMove )
 {
 	saberMove->anim = saberMoveData[moveNum].animToUse;
 	saberMove->animspeedscale = 1.0f;

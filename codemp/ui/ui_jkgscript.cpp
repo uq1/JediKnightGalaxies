@@ -106,7 +106,7 @@ void JKAG_LoginAcc(void) {
 	Menu_ShowItemByName(menu, "login_back", qtrue);
 	Menu_ShowItemByName(menu, "login_msg", qtrue);
 	cgImports->SendClientCommand(va("~clLogin \"%s\" \"%s\"", username, password));
-	//trap_Cmd_ExecuteText(EXEC_NOW, va("~clLogin \"%s\" \"%s\"", username, password));
+	//trap->Cmd_ExecuteText(EXEC_NOW, va("~clLogin \"%s\" \"%s\"", username, password));
 }
 
 void JKAG_RegisterAcc() {
@@ -132,7 +132,7 @@ void JKAG_RegisterAcc() {
 	Menu_ShowItemByName(menu, "backdrops", qfalse);
 	Menu_ShowItemByName(menu, "reg_msg", qfalse);
 	cgImports->SendClientCommand(va("~clRegister \"%s\" \"%s\" \"%s\"", username, password, email));
-	//trap_Cmd_ExecuteText(EXEC_NOW, va("~clRegister \"%s\" \"%s\" \"%s\"", username, password, email));
+	//trap->Cmd_ExecuteText(EXEC_NOW, va("~clRegister \"%s\" \"%s\" \"%s\"", username, password, email));
 }
 
 void JKAG_Login_Esc() {
@@ -256,18 +256,18 @@ void JKAG_Cmd_clLoginResp() {
 	menu = Menus_FindByName("JKAG_login");
 	if (!menu) return;
 
-	trap_Argv(1,buff,sizeof(buff));
+	trap->Argv(1,buff,sizeof(buff));
 	if (buff[0] == 's') {
 		// Success
 		Menus_CloseByName("JKAG_login");
-		trap_Syscall_UI();
-		trap_Print("Login successful!\n");
-		trap_Syscall_CG();
+		trap->Syscall_UI();
+		trap->Print("Login successful!\n");
+		trap->Syscall_CG();
 	} else {
 		// Failed
 		Menu_ShowItemByName(menu, "login_msg", qfalse);
 		Menu_ShowItemByName(menu, "login_fail", qtrue);
-		trap_Argv(2,buff,sizeof(buff));
+		trap->Argv(2,buff,sizeof(buff));
 		tmp = Menu_FindItemByName(menu, "login_fail_desc");
 		if (tmp && tmp->typeData) {
 			Q_strncpyz(((textDef_t *)tmp->typeData)->text,buff,sizeof(((textDef_t *)tmp->typeData)->text));
@@ -283,7 +283,7 @@ void JKAG_Cmd_clRegisterResp() {
 	menu = Menus_FindByName("JKAG_login");
 	if (!menu) return;
 
-	trap_Argv(1,buff,sizeof(buff));
+	trap->Argv(1,buff,sizeof(buff));
 	if (buff[0] == 's') {
 		// Success
 		Menu_ShowItemByName(menu, "reg_msg", qfalse);
@@ -292,7 +292,7 @@ void JKAG_Cmd_clRegisterResp() {
 		// Failed
 		Menu_ShowItemByName(menu, "reg_msg", qfalse);
 		Menu_ShowItemByName(menu, "reg_fail", qtrue);
-		trap_Argv(2,buff,sizeof(buff));
+		trap->Argv(2,buff,sizeof(buff));
 		tmp = Menu_FindItemByName(menu, "reg_fail_desc");
 		if (tmp && tmp->typeData) {
 			Q_strncpyz(((textDef_t *)tmp->typeData)->text,buff,sizeof(((textDef_t *)tmp->typeData)->text));
@@ -318,11 +318,11 @@ void JKG_Hack_RefreshModelList(char **args)
 {
 	char info[MAX_INFO_STRING];
 	info[0] = '\0';
-	trap_GetConfigString(CS_SERVERINFO, info, sizeof(info));
+	trap->GetConfigString(CS_SERVERINFO, info, sizeof(info));
 
-	trap_Cvar_Set("ui_gameType", Info_ValueForKey(info, "g_gametype"));
-	ui_gameType.integer = atoi( Info_ValueForKey(info, "g_gametype") );
-	if(ui_gameType.integer >= GT_TEAM)
+	trap->Cvar_Set("ui_gameType", Info_ValueForKey(info, "g_gametype"));
+	ui_gametype.integer = atoi( Info_ValueForKey(info, "g_gametype") );
+	if(ui_gametype.integer >= GT_TEAM)
 	{
 		// Don't do this in FFA/non gang wars mode. Causes unnecessary hitches.
 		UI_BuildQ3Model_List();
@@ -436,11 +436,11 @@ qboolean UI_RunSvCommand(const char *command) {
 	// Only called by cgame, dont use trap calls inside this or nested functions!
 	JKGkeywordHashSv_t *cmd = JKGKeywordHashSv_Find(JKGCmdsHash, ( char * ) command);
 	if (!cmd || !cmd->func) return qfalse;
-	trap_Syscall_UI();
+	trap->Syscall_UI();
 	// Inside this function trap calls are safe to be used
 	// RIP Boba's hack!
 	//((void (*)(void)) ( *((void (**)())&cmd->func) ))();
 	cmd->func();
-	trap_Syscall_CG();
+	trap->Syscall_CG();
 	return qtrue;
 }

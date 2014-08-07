@@ -79,21 +79,21 @@ static void ParseAmmoFile ( const char *fileText )
                     string = cJSON_ToString (field);
                     if ( string && string[0] )
                     {
-                        ammo->model = trap_R_RegisterModel (string);
+                        ammo->model = trap->R_RegisterModel (string);
                     }
                     
                     field = cJSON_GetObjectItem (visual, "fx");
                     string = cJSON_ToString (field);
                     if ( string && string[0] )
                     {
-                        ammo->fx = trap_FX_RegisterEffect (string);
+                        ammo->fx = trap->FX_RegisterEffect (string);
                     }
                     
                     field = cJSON_GetObjectItem (visual, "deathfx");
                     string = cJSON_ToString (field);
                     if ( string && string[0] )
                     {
-                        ammo->deathFx = trap_FX_RegisterEffect (string);
+                        ammo->deathFx = trap->FX_RegisterEffect (string);
                     }
                     
                     child = cJSON_GetObjectItem (visual, "miss");
@@ -103,7 +103,7 @@ static void ParseAmmoFile ( const char *fileText )
                         string = cJSON_ToString (field);
                         if ( string && string[0] )
                         {
-                            ammo->missFx = trap_FX_RegisterEffect (string);
+                            ammo->missFx = trap->FX_RegisterEffect (string);
                         }
                     }
                     
@@ -114,7 +114,7 @@ static void ParseAmmoFile ( const char *fileText )
                         string = cJSON_ToString (field);
                         if ( string && string[0] )
                         {
-                            ammo->hitFx = trap_FX_RegisterEffect (string);
+                            ammo->hitFx = trap->FX_RegisterEffect (string);
                         }
                     }
                 }

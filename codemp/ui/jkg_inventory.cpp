@@ -345,7 +345,7 @@ void JKG_Inventory_ConstructWeightText( void )
 
 void JKG_Inventory_OpenDialog ( char **args )
 {
-    trap_Cvar_Set ("ui_hidehud", "1");
+    trap->Cvar_Set ("ui_hidehud", "1");
     inventoryState.active = qtrue;
 	inventoryState.ACIopen = qtrue;
     
@@ -389,7 +389,7 @@ void JKG_Inventory_CloseDialog ( char **args )
 {
 	if(!inventoryState.inShop)
 	{
-		trap_Cvar_Set ("ui_hidehud", "0");
+		trap->Cvar_Set ("ui_hidehud", "0");
 	}
     inventoryState.active = qfalse;
 	inventoryState.examineMenuOpen = qfalse;
@@ -413,7 +413,7 @@ void JKG_Inventory_Arrow ( char **args )
 {
 	const char *name;
 	itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "inventory_feederstuff");
-	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
+	listBoxDef_t *listPtr = item->typeData.listbox;
 	int max = Item_ListBox_MaxScroll(item);
 	int viewmax = (item->window.rect.w / listPtr->elementWidth);
 	int numItems = *(int *)cgImports->InventoryDataRequest( 0 );
@@ -475,7 +475,7 @@ void JKG_Inventory_Arrow ( char **args )
 
 void JKG_Inventory_Arrow_New ( itemDef_t *item, int amount )
 {
-	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
+	listBoxDef_t *listPtr = item->typeData.listbox;
 	int max = Item_ListBox_MaxScroll(item);
 	int viewmax = (item->window.rect.w / listPtr->elementWidth);
 	int numItems = *(int *)cgImports->InventoryDataRequest( 0 );
@@ -780,7 +780,7 @@ qboolean JKG_Inventory_FeederSelection ( int index )
 {
     int numItems = JKG_Inventory_FeederCount();
 	itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "inventory_feederstuff");
-	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
+	listBoxDef_t *listPtr = item->typeData.listbox;
     cgItemInstance_t *inventory = NULL;
     
 	//Sanity check
@@ -852,13 +852,13 @@ void JKG_Inventory_UpdateNotify(int msg) {
             inventoryState.active = qtrue;
 			inventoryState.inShop = qfalse;
             
-            trap_Syscall_UI();
+            trap->Syscall_UI();
             inventoryState.menu = Menus_FindByName ("jkg_inventory");
             if ( inventoryState.menu && Menus_ActivateByName ("jkg_inventory") )
             {
-                trap_Key_SetCatcher (trap_Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
+                trap->Key_SetCatcher (trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
             }
-			trap_Syscall_CG();
+			trap->Syscall_CG();
         break;
         
         case 1: // update!
@@ -871,13 +871,13 @@ void JKG_Inventory_UpdateNotify(int msg) {
             inventoryState.active = qtrue;
 			inventoryState.inShop = qtrue;
             
-			trap_Syscall_UI();
+			trap->Syscall_UI();
             inventoryState.menu = Menus_FindByName ("jkg_inventory");
             if ( inventoryState.menu && Menus_ActivateByName ("jkg_inventory") )
             {
-                trap_Key_SetCatcher (trap_Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
+                trap->Key_SetCatcher (trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
             }
-			trap_Syscall_CG();
+			trap->Syscall_CG();
         break;
     }
 }
@@ -1520,7 +1520,7 @@ void JKG_Inventory_Examine_ParseXML ( void )
 	if(!inventoryState.selectedItem->id->xml)
 		return;
 	//Before we go off doing XML related stuff, let's make sure the file exists!
-	len = trap_FS_FOpenFile(inventoryState.selectedItem->id->xml, &f, FS_READ);
+	len = trap->FS_Open(inventoryState.selectedItem->id->xml, &f, FS_READ);
 	if(!f)
 	{
 		Com_Printf("^3WARNING: JKG_Inventory_Examine_ParseXML: %s NULL handle\n", inventoryState.selectedItem->id->xml);
@@ -1529,13 +1529,13 @@ void JKG_Inventory_Examine_ParseXML ( void )
 	if(!len || len == -1)
 	{
 		Com_Printf("^3WARNING: JKG_Inventory_Examine_ParseXML: %s NULL len\n", inventoryState.selectedItem->id->xml);
-		trap_FS_FCloseFile(f);
+		trap->FS_Close(f);
 		return;
 	}
 	if(len >= MAX_XML_BUFFER_SIZE)
 	{
 		Com_Printf("^3WARNING: JKG_Inventory_Examine_ParseXML: %s large len\n", inventoryState.selectedItem->id->xml);
-		trap_FS_FCloseFile(f);
+		trap->FS_Close(f);
 		return;
 	}
 	lastCat = 1;
@@ -1546,8 +1546,8 @@ void JKG_Inventory_Examine_ParseXML ( void )
 	XML_SetElementHandler(parse, JKGXML_Start_Element, JKGXML_End_Element);
 	XML_SetCharacterDataHandler(parse, JKGXML_ParseCharacters);
 	//Read the file and parse the data
-	trap_FS_Read(buffer, MAX_XML_BUFFER_SIZE, f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Read(buffer, MAX_XML_BUFFER_SIZE, f);
+	trap->FS_Close(f);
 	buffer[len] = '\0';
 	if(XML_Parse(parse, buffer, (int)strlen(buffer), qtrue) == XML_STATUS_ERROR)
 	{
@@ -1589,7 +1589,7 @@ static void JKG_Inventory_Examine_Button ( int forceOff )
 			return;
 		}
 		if(inventoryState.selectedItem->id->displayName[0] == '@')
-			trap_SP_GetStringTextString(inventoryState.selectedItem->id->displayName+1, actualTextCheck, sizeof(actualTextCheck));
+			trap->SE_GetStringTextString(inventoryState.selectedItem->id->displayName+1, actualTextCheck, sizeof(actualTextCheck));
 		else
 			strcpy(actualTextCheck, inventoryState.selectedItem->id->displayName);
 		//OK, next we have to update the background object to reflect the different item types
@@ -1793,7 +1793,7 @@ qhandle_t JKG_GetInventoryIcon(unsigned int index)
 	{
 		if(index < MAX_INVENTORY_ITEMS)
 		{
-			return trap_R_RegisterShaderNoMip((char *)cgImports->InventoryDataRequest( index + 50 ) ); //HACK
+			return trap->R_RegisterShaderNoMip((char *)cgImports->InventoryDataRequest( index + 50 ) ); //HACK
 		}
 		else
 		{
@@ -1804,7 +1804,7 @@ qhandle_t JKG_GetInventoryIcon(unsigned int index)
 	{
 		if(index < MAX_INVENTORY_ITEMS)
 		{
-			return trap_R_RegisterShaderNoMip((char *)cgImports->InventoryDataRequest( itemsInFilter[index].amount[0] + 50 ));
+			return trap->R_RegisterShaderNoMip((char *)cgImports->InventoryDataRequest( itemsInFilter[index].amount[0] + 50 ));
 		}
 		else
 		{
@@ -1818,7 +1818,7 @@ qboolean JKG_CursorInItem(float cx, float cy, unsigned int feederPos, itemDef_t 
 {
 	//cx/y = cursor x/y
 	//feederPos = visual position in the feeder (NOT ABSOLUTE)
-	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
+	listBoxDef_t *listPtr = item->typeData.listbox;
 	int maxW = (int)(item->window.rect.w / (listPtr->elementWidth+listPtr->elementSpacingW)); //FIXED
 	int maxH = (int)(item->window.rect.h / (listPtr->elementHeight+listPtr->elementSpacingH));
 	cgItemInstance_t *inventory = NULL;
@@ -1942,7 +1942,7 @@ void JKG_Inventory_Tooltip_AddLine(itemDef_t *toolTip, const char *text)
 	//TODO: add coloring
 	int lineLength;
 	strcpy(toolTextLines[toolLines], text);
-	toolAlignment[toolLines] = (toolTip->window.rect.w - (trap_R_Font_StrLenPixels(toolTextLines[toolLines], toolTip->iMenuFont, 1.0f)*toolTip->textscale))/2;
+	toolAlignment[toolLines] = (toolTip->window.rect.w - (trap->R_Font_StrLenPixels(toolTextLines[toolLines], toolTip->iMenuFont, 1.0f)*toolTip->textscale))/2;
 	lineLength = strlen(text);
 	if(lineLength > strlen(toolTextLines[biggestLine]))
 	{
@@ -1987,7 +1987,7 @@ void JKG_Inventory_ConstructToolTip ( int itemNumber, float cX, float cY )
 	//Build the actual text on the tooltip
 	//Name
 	strcpy(toolTextLines[toolLines], inventory[itemNumber].id->displayName);
-	trap_SP_GetStringTextString(inventory[itemNumber].id->displayName+1, actualTextCheck, sizeof(actualTextCheck));
+	trap->SE_GetStringTextString(inventory[itemNumber].id->displayName+1, actualTextCheck, sizeof(actualTextCheck));
 	topTextLength = strlen(actualTextCheck); //NOTENOTE: Whenever we add a new possible line to the tooltip, we check the length (so we don't loop through every line again)
 	if(topTextLength > 0)
 	{
@@ -1997,7 +1997,7 @@ void JKG_Inventory_ConstructToolTip ( int itemNumber, float cX, float cY )
 	{
 		strcpy(toolTextLines[toolLines], inventory[itemNumber].id->displayName);
 	}
-	toolAlignment[toolLines] = (toolTipItem->window.rect.w - (trap_R_Font_StrLenPixels(toolTextLines[toolLines], toolTipItem->iMenuFont, 1.0f)*toolTipItem->textscale))/2;
+	toolAlignment[toolLines] = (toolTipItem->window.rect.w - (trap->R_Font_StrLenPixels(toolTextLines[toolLines], toolTipItem->iMenuFont, 1.0f)*toolTipItem->textscale))/2;
 	toolLines++;
 	biggestLine = 0;
 	//The biggest line is always assumed to be this line in this case, because the first line is...AWESOME!
@@ -2060,7 +2060,7 @@ void JKG_Inventory_ConstructToolTip ( int itemNumber, float cX, float cY )
 	toolTipItem->textRect.y = cY + 30;
 	//HACK: Align the text properly
 	//toolTipItem->textalignx = toolTipItem->window.rect.w/2 - (((int)strlen(toolTextLines[biggestLine]) > 8) ? ((strlen(toolTextLines[biggestLine])/5)) : 0); //HACK for non monospace fonts
-	toolTipItem->textalignx = (toolTipItem->window.rect.w - (trap_R_Font_StrLenPixels(toolTextLines[biggestLine], toolTipItem->iMenuFont, 1.0f)*toolTipItem->textscale))/2;
+	toolTipItem->textalignx = (toolTipItem->window.rect.w - (trap->R_Font_StrLenPixels(toolTextLines[biggestLine], toolTipItem->iMenuFont, 1.0f)*toolTipItem->textscale))/2;
 	toolTipItem->textRect.w = toolTipItem->window.rect.w;
 	toolTipItem->textRect.h = toolTipItem->window.rect.h;
 	toolTipItem->textaligny = (toolTipItem->textRect.h/2)-4;
@@ -2071,7 +2071,7 @@ void JKG_Inventory_CheckTooltip ( char **args )
 	int i = 0;
 	itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "inventory_feederstuff");
 	itemDef_t *toolTipItem = Menu_FindItemByName(inventoryState.menu, "inventory_tooltest");
-	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
+	listBoxDef_t *listPtr = item->typeData.listbox;
 	int numWidth = item->window.rect.w/(listPtr->elementSpacingW+listPtr->elementWidth)+1;
 	int numHeight = item->window.rect.h/(listPtr->elementSpacingH+listPtr->elementHeight)+1;
 	qboolean showToolTip = qfalse;
@@ -2123,7 +2123,7 @@ void JKG_Inventory_DrawTooltip()
 {
 	int i;
 	itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "inventory_tooltest");
-	int txtHeight = trap_R_Font_HeightPixels(item->iMenuFont, item->textscale);
+	int txtHeight = trap->R_Font_HeightPixels(item->iMenuFont, item->textscale);
 	itemDef_t *itemCheck = Menu_FindItemByName(inventoryState.menu, "inventory_feederstuff");
 	if(!IsWithinCursor(itemCheck->window.rect.x, itemCheck->window.rect.y, itemCheck->window.rect.w, itemCheck->window.rect.h))
 	{
@@ -2136,7 +2136,7 @@ void JKG_Inventory_DrawTooltip()
 	{
 		//FIXMEFIXED: Show the correct text (display name)
 		DC->drawText(item->textRect.x + toolAlignment[i], item->textRect.y+(i*txtHeight)-item->textaligny, item->textscale, item->window.foreColor, toolTextLines[i], 0, -1, ITEM_TEXTSTYLE_NORMAL, item->iMenuFont);
-		//trap_R_Font_DrawString(item->textRect.x, item->textRect.y+(i*txtHeight), toolTextLines[i], colorWhite, 1, -1, item->textscale);
+		//trap->R_Font_DrawString(item->textRect.x, item->textRect.y+(i*txtHeight), toolTextLines[i], colorWhite, 1, -1, item->textscale);
 	}
 }
 void JKG_Inventory_CheckACIKeyStroke(int key)
@@ -2155,7 +2155,7 @@ void JKG_Inventory_UpdateVisuals( void )
 	int i;
 	itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "inventory_feederstuff");
 	cgItemInstance_t *inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
+	listBoxDef_t *listPtr = item->typeData.listbox;
 	int numItems = JKG_Inventory_FeederCount();
 	int maxW = (int)(item->window.rect.w / (listPtr->elementWidth+listPtr->elementSpacingW)); //FIXED
 	int maxH = (int)(item->window.rect.h / (listPtr->elementHeight+listPtr->elementSpacingH));

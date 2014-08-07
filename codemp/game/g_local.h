@@ -1875,7 +1875,6 @@ int ASTAR_FindPathWithTimeLimit(int from, int to, int *pathlist);
 int ASTAR_FindPathFast(int from, int to, int *pathlist, qboolean shorten);
 
 void NPC_ClearLookTarget( gentity_t *self );
-void BG_VehicleLoadParms( void );
 
 bool JKG_ParseHiltFiles( void );
 

@@ -27,10 +27,10 @@ void CG_CameraZoomOut( void )
 
 void CG_Start360Camera( void )
 {
-	if ( trap_Key_GetCatcher() == 0 && cg.i360CameraTime == 0 )
+	if ( trap->Key_GetCatcher() == 0 && cg.i360CameraTime == 0 )
 	{
 		usercmd_t cmd;
-		trap_GetUserCmd( trap_GetCurrentCmdNumber(), &cmd );
+		trap->GetUserCmd( trap->GetCurrentCmdNumber(), &cmd );
 
 		cg.i360CameraForce		= -1;
 		cg.i360CameraTime		= cg.time + 250;
@@ -47,14 +47,14 @@ void CG_Stop360Camera( void )
 		/* This was a short click, so only change the third person camera! */
 		if ( cg.i360CameraTime > cg.time )
 		{
-			trap_SendConsoleCommand( "cg_thirdPerson !" );
+			trap->SendConsoleCommand( "cg_thirdPerson !" );
 		}
 		/* It was a full rotate so reset the view angles to their original position */
 		else
 		{
 			vec3_t angle;
 			angle[YAW] = cg.i360CameraOriginal;
-			trap_SetClientForceAngle( cg.time + 10, angle );
+			trap->SetClientForceAngle( cg.time + 10, angle );
 		}
 	}
 
@@ -70,8 +70,8 @@ void CG_TargetCommand_f( void ) {
 		return;
 	}
 
-	trap_Argv( 1, test, 4 );
-	trap_SendClientCommand( va( "gc %i %i", targetNum, atoi( test ) ) );
+	trap->Cmd_Argv( 1, test, 4 );
+	trap->SendClientCommand( va( "gc %i %i", targetNum, atoi( test ) ) );
 }
 
 void CG_OpenPartyManagement_f( void ) {
@@ -86,7 +86,7 @@ Keybinding command
 =================
 */
 static void CG_SizeUp_f (void) {
-	trap_Cvar_Set("cg_viewsize", va("%i",(int)(cg_viewsize.integer+10)));
+	trap->Cvar_Set("cg_viewsize", va("%i",(int)(cg_viewsize.integer+10)));
 }
 
 
@@ -98,7 +98,7 @@ Keybinding command
 =================
 */
 static void CG_SizeDown_f (void) {
-	trap_Cvar_Set("cg_viewsize", va("%i",(int)(cg_viewsize.integer-10)));
+	trap->Cvar_Set("cg_viewsize", va("%i",(int)(cg_viewsize.integer-10)));
 }
 
 
@@ -110,7 +110,7 @@ Debugging command to print the current position
 =============
 */
 static void CG_Viewpos_f (void) {
-	CG_Printf ("%s (%i %i %i) : (%i %i %i)\n", cgs.mapname, (int)cg.refdef.vieworg[0],
+	trap->Print ("%s (%i %i %i) : (%i %i %i)\n", cgs.mapname, (int)cg.refdef.vieworg[0],
 		(int)cg.refdef.vieworg[1], (int)cg.refdef.vieworg[2], 
 		(int)cg.refdef.viewangles[0], (int)cg.refdef.viewangles[1], (int)cg.refdef.viewangles[2]);
 }
@@ -123,7 +123,7 @@ static void CG_ScoresDown_f( void ) {
 		// the scores are more than two seconds out of data,
 		// so request new ones
 		cg.scoresRequestTime = cg.time;
-		trap_SendClientCommand( "score" );
+		trap->SendClientCommand( "score" );
 
 		// leave the current scores up if they were already
 		// displayed, but if this is the first hit, clear them out
@@ -167,24 +167,24 @@ static void CG_scrollScoresUp_f( void) {
 
 #if 0
 static void CG_spWin_f( void) {
-	trap_Cvar_Set("cg_cameraOrbit", "2");
-	trap_Cvar_Set("cg_cameraOrbitDelay", "35");
-	trap_Cvar_Set("cg_thirdPerson", "1");
-	trap_Cvar_Set("cg_thirdPersonAngle", "0");
-	trap_Cvar_Set("cg_thirdPersonRange", "100");
+	trap->Cvar_Set("cg_cameraOrbit", "2");
+	trap->Cvar_Set("cg_cameraOrbitDelay", "35");
+	trap->Cvar_Set("cg_thirdPerson", "1");
+	trap->Cvar_Set("cg_thirdPersonAngle", "0");
+	trap->Cvar_Set("cg_thirdPersonRange", "100");
 	CG_AddBufferedSound(cgs.media.winnerSound);
-	//trap_S_StartLocalSound(cgs.media.winnerSound, CHAN_ANNOUNCER);
+	//trap->S_StartLocalSound(cgs.media.winnerSound, CHAN_ANNOUNCER);
 	CG_CenterPrint(CG_GetStringEdString("MP_INGAME", "YOU_WIN"), SCREEN_HEIGHT * .30, 0);
 }
 
 static void CG_spLose_f( void) {
-	trap_Cvar_Set("cg_cameraOrbit", "2");
-	trap_Cvar_Set("cg_cameraOrbitDelay", "35");
-	trap_Cvar_Set("cg_thirdPerson", "1");
-	trap_Cvar_Set("cg_thirdPersonAngle", "0");
-	trap_Cvar_Set("cg_thirdPersonRange", "100");
+	trap->Cvar_Set("cg_cameraOrbit", "2");
+	trap->Cvar_Set("cg_cameraOrbitDelay", "35");
+	trap->Cvar_Set("cg_thirdPerson", "1");
+	trap->Cvar_Set("cg_thirdPersonAngle", "0");
+	trap->Cvar_Set("cg_thirdPersonRange", "100");
 	CG_AddBufferedSound(cgs.media.loserSound);
-	//trap_S_StartLocalSound(cgs.media.loserSound, CHAN_ANNOUNCER);
+	//trap->S_StartLocalSound(cgs.media.loserSound, CHAN_ANNOUNCER);
 	CG_CenterPrint(CG_GetStringEdString("MP_INGAME", "YOU_LOSE"), SCREEN_HEIGHT * .30, 0);
 }
 #endif
@@ -200,9 +200,9 @@ static void CG_TellTarget_f( void ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
+	trap->Cmd_Args( message, 128 );
 	Com_sprintf( command, 128, "tell %i %s", clientNum, message );
-	trap_SendClientCommand( command );
+	trap->SendClientCommand( command );
 }
 
 static void CG_TellAttacker_f( void ) {
@@ -215,9 +215,9 @@ static void CG_TellAttacker_f( void ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
+	trap->Cmd_Args( message, 128 );
 	Com_sprintf( command, 128, "tell %i %s", clientNum, message );
-	trap_SendClientCommand( command );
+	trap->SendClientCommand( command );
 }
 
 
@@ -230,18 +230,18 @@ CG_StartOrbit_f
 static void CG_StartOrbit_f( void ) {
 	char var[MAX_TOKEN_CHARS];
 
-	trap_Cvar_VariableStringBuffer( "developer", var, sizeof( var ) );
+	trap->Cvar_VariableStringBuffer( "developer", var, sizeof( var ) );
 	if ( !atoi(var) ) {
 		return;
 	}
 	if (cg_cameraOrbit.value != 0) {
-		trap_Cvar_Set ("cg_cameraOrbit", "0");
-		trap_Cvar_Set("cg_thirdPerson", "0");
+		trap->Cvar_Set ("cg_cameraOrbit", "0");
+		trap->Cvar_Set("cg_thirdPerson", "0");
 	} else {
-		trap_Cvar_Set("cg_cameraOrbit", "5");
-		trap_Cvar_Set("cg_thirdPerson", "1");
-		trap_Cvar_Set("cg_thirdPersonAngle", "0");
-		trap_Cvar_Set("cg_thirdPersonRange", "100");
+		trap->Cvar_Set("cg_cameraOrbit", "5");
+		trap->Cvar_Set("cg_thirdPerson", "1");
+		trap->Cvar_Set("cg_thirdPersonAngle", "0");
+		trap->Cvar_Set("cg_thirdPersonRange", "100");
 	}
 }
 
@@ -266,13 +266,13 @@ static void CG_PrintWeaponMuzzleOffset_f ( void )
     centity_t *cent = &cg_entities[cg.snap->ps.clientNum];
     void *g2Weapon = cent->ghoul2;
     
-    if ( !trap_G2_HaveWeGhoul2Models (g2Weapon) )
+    if ( !trap->G2_HaveWeGhoul2Models (g2Weapon) )
     {
-        CG_Printf ("Current weapon does not use a GHOUL2 model.\n");
+        trap->Print ("Current weapon does not use a GHOUL2 model.\n");
     }
-    else if ( !trap_G2API_HasGhoul2ModelOnIndex (&g2Weapon, 1) )
+    else if ( !trap->G2API_HasGhoul2ModelOnIndex (&g2Weapon, 1) )
     {
-        CG_Printf ("Current weapon has no model on index 1.\n");
+        trap->Print ("Current weapon has no model on index 1.\n");
     }
     else
     {
@@ -280,16 +280,16 @@ static void CG_PrintWeaponMuzzleOffset_f ( void )
         mdxaBone_t muzzleBone;
         vec3_t muzzleOffset;
         
-        if ( !trap_G2API_GetBoltMatrix (g2Weapon, 1, 0, &muzzleBone, worldForward, vec3_origin, cg.time, cgs.gameModels, cent->modelScale) )
+        if ( !trap->G2API_GetBoltMatrix (g2Weapon, 1, 0, &muzzleBone, worldForward, vec3_origin, cg.time, cgs.gameModels, cent->modelScale) )
         {
-            CG_Printf ("Unable to get muzzle bolt matrix for the current weapon.\n");
+            trap->Print ("Unable to get muzzle bolt matrix for the current weapon.\n");
             return;
         }
         
         BG_GiveMeVectorFromMatrix (&muzzleBone, ORIGIN, muzzleOffset);
         VectorSubtract (muzzleOffset, muzzleOffset, cent->lerpOrigin);
         
-        CG_Printf ("Muzzle offset at (%f %f %f).\n", muzzleOffset[0], muzzleOffset[1], muzzleOffset[2]);
+        trap->Print ("Muzzle offset at (%f %f %f).\n", muzzleOffset[0], muzzleOffset[1], muzzleOffset[2]);
     }
 }
 
@@ -299,7 +299,7 @@ int testMasterFinalFunc (asyncTask_t *task) {
 	cJSON *data = (cJSON *)task->finalData;
 	
 	if (task->errorCode == 0) {
-		Com_Printf("Test successful! (bounce: %i - %i)\n", cJSON_ToInteger(cJSON_GetObjectItem(data, "bounce")), trap_Milliseconds());
+		Com_Printf("Test successful! (bounce: %i - %i)\n", cJSON_ToInteger(cJSON_GetObjectItem(data, "bounce")), trap->Milliseconds());
 	} else {
 		Com_Printf("Test failed!\n");
 	}
@@ -326,13 +326,13 @@ static void JKG_UseACI_f ( void )
     char buf[3];
     int slot;
     
-    if ( trap_Argc() != 2 )
+    if ( trap->Cmd_Argc() != 2 )
     {
-        CG_Printf ("Usage: /useACI <slot number>\n");
+        trap->Print ("Usage: /useACI <slot number>\n");
         return;
     }
     
-    trap_Argv (1, buf, sizeof (buf));
+    trap->Cmd_Argv (1, buf, sizeof (buf));
     if ( buf[0] < '0' || buf[0] > '9' )
     {
         return;
@@ -356,9 +356,9 @@ static void JKG_UseACI_f ( void )
 static void JKG_DumpWeaponList_f ( void )
 {
     char filename[MAX_QPATH];
-    if ( trap_Argc() > 1 )
+    if ( trap->Cmd_Argc() > 1 )
     {
-        trap_Argv (1, filename, sizeof (filename));
+        trap->Cmd_Argv (1, filename, sizeof (filename));
     }
     else
     {
@@ -367,11 +367,11 @@ static void JKG_DumpWeaponList_f ( void )
     
     if ( BG_DumpWeaponList (filename) )
     {
-        CG_Printf ("Weapon list was written to %s.\n", filename);
+        trap->Print ("Weapon list was written to %s.\n", filename);
     }
     else
     {
-        CG_Printf ("Failed to write weapon list to %s.\n", filename);
+        trap->Print ("Failed to write weapon list to %s.\n", filename);
     }
 }
 
@@ -537,12 +537,12 @@ void CG_InitConsoleCommands( void ) {
 	int		i;
 
 	for ( i = 0 ; i < numCommands ; i++ )
-		trap_AddCommand( commands[i].cmd );
+		trap->AddCommand( commands[i].cmd );
 
 	//
 	// the game server will interpret these commands, which will be automatically
 	// forwarded to the server after they are not recognized locally
 	//
 	for( i = 0; i < numgcmds; i++ )
-		trap_AddCommand( gcmds[i] );
+		trap->AddCommand( gcmds[i] );
 }

@@ -894,7 +894,7 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
     node = cJSON_GetObjectItem (visualsNode, "secondary");
     BG_ParseVisualsFireMode (&weaponVisuals->secondary, node);*/
 
-	for ( i = 0; i < weaponData->numFiringModes; i++ )
+	for ( int i = 0; i < weaponData->numFiringModes; i++ )
 	{
 		node = cJSON_GetObjectItem (visualsNode, va("firemode%i", i) );
 		if(node)

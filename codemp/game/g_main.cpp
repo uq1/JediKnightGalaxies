@@ -7,7 +7,8 @@
 #include "g_ICARUScb.h"
 #include "g_nav.h"
 #include "bg_saga.h"
-#include "b_local.h"
+//#include "b_local.h"
+#include "bg_public.h"
 
 #include <openssl/evp.h>
 

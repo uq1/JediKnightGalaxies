@@ -1575,8 +1575,9 @@ typedef struct saberMoveData_s {
 	saberMoveName_t chain_attack;		// What move to call if the attack button (and nothing else) is pressed
 	int trailLength;
 } saberMoveData_t;
-extern saberMoveData_t	saberMoveData[LS_MOVE_MAX];
 
+extern saberMoveData_t saberMoveData[LS_MOVE_MAX];
+extern int transitionMove[Q_NUM_QUADS][Q_NUM_QUADS];
 
 typedef enum saberType_e {
 	SABER_NONE = 0,

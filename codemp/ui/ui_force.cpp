@@ -16,8 +16,6 @@ int uiMaxPoints = 20;
 
 extern const char *UI_TeamName(int team);
 
-vmCvar_t	ui_freeSaber;
-
 void Menu_ShowItemByName(menuDef_t *menu, const char *p, qboolean bShow);
 
 extern int	uiSkinColor;
