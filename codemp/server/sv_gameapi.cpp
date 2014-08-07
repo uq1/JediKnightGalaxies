@@ -3126,10 +3126,10 @@ void SV_BindGame( void ) {
 		gi.SetActiveSubBSP						= SV_SetActiveSubBSP;
 		gi.CM_RegisterTerrain					= SV_CM_RegisterTerrain;
 		gi.RMG_Init								= SV_RMG_Init;
-		gi.G2API_ListModelBones					= SV_G2API_ListModelBones;
-		gi.G2API_ListModelSurfaces				= SV_G2API_ListModelSurfaces;
-		gi.G2API_HaveWeGhoul2Models				= SV_G2API_HaveWeGhoul2Models;
-		gi.G2API_SetGhoul2ModelIndexes			= SV_G2API_SetGhoul2ModelIndexes;
+		gi.G2_ListModelBones					= SV_G2API_ListModelBones;
+		gi.G2_ListModelSurfaces					= SV_G2API_ListModelSurfaces;
+		gi.G2_HaveWeGhoul2Models				= SV_G2API_HaveWeGhoul2Models;
+		gi.G2_SetGhoul2ModelIndexes				= SV_G2API_SetGhoul2ModelIndexes;
 		gi.G2API_GetBoltMatrix					= SV_G2API_GetBoltMatrix;
 		gi.G2API_GetBoltMatrix_NoReconstruct	= SV_G2API_GetBoltMatrix_NoReconstruct;
 		gi.G2API_GetBoltMatrix_NoRecNoRot		= SV_G2API_GetBoltMatrix_NoRecNoRot;

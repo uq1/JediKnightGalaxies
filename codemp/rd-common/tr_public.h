@@ -106,7 +106,7 @@ typedef struct refexport_s {
 	void				(*GetRealRes)							( int *w, int *h );
 	void				(*AutomapElevationAdjustment)			( float newHeight );
 	qboolean			(*InitializeWireframeAutomap)			( void );
-	void				(*AddWeatherZone)						( vec3_t mins, vec3_t maxs );
+	void				(*AddWeatherZone)						( const vec3_t mins, const vec3_t maxs );
 	void				(*WorldEffectCommand)					( const char *command );
 	void				(*RegisterMedia_LevelLoadBegin)			( const char *psMapName, ForceReload_e eForceReload );
 	void				(*RegisterMedia_LevelLoadEnd)			( void );

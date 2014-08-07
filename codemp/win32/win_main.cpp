@@ -522,11 +522,9 @@ void * QDECL Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(
 	char	*fn;
 	char	filename[MAX_QPATH];
 
-	fs_unpackbinaries = Cvar_Get( "fs_unpackbinaries", "1", CVAR_INIT|CVAR_PROTECTED );
-
 	Com_sprintf( filename, sizeof( filename ), "%s" ARCH_STRING DLL_EXT, name );
 
-	if (fs_unpackbinaries->integer && !Sys_UnpackDLL(filename))
+	if (!Sys_UnpackDLL(filename))
 	{
 		if ( com_developer->integer )
 			Com_Printf( "Sys_LoadLegacyGameDll: Failed to unpack %s from PK3.\n", filename );

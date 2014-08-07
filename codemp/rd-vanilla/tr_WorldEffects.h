@@ -13,4 +13,4 @@ bool R_GetWindSpeed(float &windSpeed);
 bool R_IsRaining();
 //bool R_IsSnowing();
 bool R_IsPuffing();
-void RE_AddWeatherZone(vec3_t mins, vec3_t maxs);
+void RE_AddWeatherZone(const vec3_t mins, const vec3_t maxs);

@@ -55,18 +55,7 @@ Con_MessageMode_f
 ================
 */
 void Con_MessageMode_f (void) {	//yell
-	/*chat_playerNum = -1;
-	chat_team = qfalse;
-	Field_Clear( &chatField );
-	chatField.widthInChars = 30;
-
-	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );*/
-	if( !cgvm )
-	{
-		assert( !"NULL cgvm" );
-		return;
-	}
-	VM_Call( cgvm, CG_MESSAGEMODE, 1 );
+	CGVM_MessageMode( 1 );
 }
 
 /*
@@ -75,17 +64,7 @@ Con_MessageMode2_f
 ================
 */
 void Con_MessageMode2_f (void) {	//team chat
-	/*chat_playerNum = -1;
-	chat_team = qtrue;
-	Field_Clear( &chatField );
-	chatField.widthInChars = 25;
-	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );*/
-	if( !cgvm )
-	{
-		assert( !"NULL cgvm" );
-		return;
-	}
-	VM_Call( cgvm, CG_MESSAGEMODE, 2 );
+	CGVM_MessageMode( 2 );
 }
 
 /*
@@ -94,14 +73,8 @@ Con_MessageMode3_f
 ================
 */
 void Con_MessageMode3_f (void)
-{		//target chat
-	if (!cls.cgameStarted)
-	{
-		assert(!"null cgvm");
-		return;
-	}
-
-	VM_Call( cgvm, CG_MESSAGEMODE, 3 );
+{
+	CGVM_MessageMode( 3 );
 }
 
 /*
@@ -110,14 +83,8 @@ Con_MessageMode4_f
 ================
 */
 void Con_MessageMode4_f (void)
-{	//attacker
-	if (!cls.cgameStarted)
-	{
-		assert(!"null cgvm");
-		return;
-	}
-
-	VM_Call( cgvm, CG_MESSAGEMODE, 4 );
+{
+	CGVM_MessageMode( 4 );
 }
 
 /*

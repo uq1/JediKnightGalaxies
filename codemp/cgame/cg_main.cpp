@@ -171,7 +171,7 @@ qboolean CG_NoUseableForce(void)
 	return qtrue;
 }
 
-extern void ChatBox_UseMessageMode(int whichOne);
+void ChatBox_UseMessageMode(int whichOne);
 
 static int C_PointContents( void ) {
 	TCGPointContents *data = &cg.sharedBuffer.pointContents;
@@ -3250,6 +3250,7 @@ Q_EXPORT cgameExport_t* QDECL GetModuleAPI( int apiVersion, cgameImport_t *impor
 	cge.AutomapInput			= CG_AutomapInput;
 	cge.MiscEnt					= CG_MiscEnt;
 	cge.CameraShake				= CG_FX_CameraShake;
+	cge.MessageMode				= ChatBox_UseMessageMode;
 
 	return &cge;
 }

@@ -492,7 +492,7 @@ public:
 	////////////////////////////////////////////////////////////////////////////////////
 	// AddWeatherZone - Will add a zone of mins and maxes
 	////////////////////////////////////////////////////////////////////////////////////
-	void			AddWeatherZone(vec3_t mins, vec3_t maxs)
+	void			AddWeatherZone(const vec3_t mins, const vec3_t maxs)
 	{
 		if (!mWeatherZones.full())
 		{
@@ -690,7 +690,7 @@ COutside			mOutside;
 bool				COutside::SWeatherZone::mMarkedOutside = false;
 
 
-void RE_AddWeatherZone(vec3_t mins, vec3_t maxs)
+void RE_AddWeatherZone(const vec3_t mins, const vec3_t maxs)
 {
 	mOutside.AddWeatherZone(mins, maxs);
 }

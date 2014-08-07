@@ -559,7 +559,7 @@ void SV_SendClientGameState( client_t *client ) {
 	// gamestate message was not just sent, forcing a retransmit
 	client->gamestateMessageNum = client->netchan.outgoingSequence;
 
-	SV_CreateClientGameStateMessage( client, &msg, qtrue );
+	SV_CreateClientGameStateMessage( client, &msg );
 
 	// deliver this to the client
 	SV_SendMessageToClient( &msg, client );

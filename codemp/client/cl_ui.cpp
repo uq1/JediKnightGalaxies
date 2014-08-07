@@ -27,24 +27,6 @@ void CL_ShutdownUI( void ) {
 	if ( !cls.uiStarted )
 		return;
 
-/*
-Ghoul2 Insert End
-*/
-	default:
-		Com_Error( ERR_DROP, "Bad UI system trap: %ld", (long int) args[0] );
-
-	}
-
-	return 0;
-}
-
-/*
-====================
-CL_ShutdownUI
-====================
-*/
-void CL_ShutdownUI( qboolean delayFreeVM ) {
-	Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_UI );
 	cls.uiStarted = qfalse;
 
 	CL_UnbindUI();

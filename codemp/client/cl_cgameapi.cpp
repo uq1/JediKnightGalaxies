@@ -281,6 +281,12 @@ void CGVM_CameraShake( void ) {
 	cge->CameraShake();
 }
 
+void CGVM_MessageMode( int mode ) {
+	VMSwap v( cgvm );
+
+	cge->MessageMode( mode );
+}
+
 
 //
 // cgame syscalls
@@ -349,8 +355,8 @@ static void CL_OpenUIMenu( int menuID ) {
 	UIVM_SetActiveMenu( (uiMenuCommand_t)menuID );
 }
 
-static void CGFX_AddLine( vec3_t start, vec3_t end, float size1, float size2, float sizeParm, float alpha1, float alpha2, float alphaParm, vec3_t sRGB, vec3_t eRGB, float rgbParm, int killTime, qhandle_t shader, int flags ) {
-	FX_AddLine( start, end, size1, size2, sizeParm, alpha1, alpha2, alphaParm, sRGB, eRGB, rgbParm, killTime, shader, flags );
+static void CGFX_AddLine( const vec3_t start, const vec3_t end, float size1, float size2, float sizeParm, float alpha1, float alpha2, float alphaParm, const vec3_t sRGB, const vec3_t eRGB, float rgbParm, int killTime, qhandle_t shader, int flags ) {
+	FX_AddLine( const_cast<float *>(start), const_cast<float *>(end), size1, size2, sizeParm, alpha1, alpha2, alphaParm, const_cast<float *>(sRGB), const_cast<float *>(eRGB), rgbParm, killTime, shader, flags );
 }
 
 static void CGFX_AddPoly( addpolyArgStruct_t *p ) {
@@ -489,12 +495,12 @@ static qboolean CL_G2API_SetSkin( void *ghoul2, int modelIndex, qhandle_t custom
 	return re->G2API_SetSkin( g2, modelIndex, customSkin, renderSkin );
 }
 
-static void CL_G2API_CollisionDetect( CollisionRecord_t *collRecMap, void* ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod, float fRadius ) {
-	re->G2API_CollisionDetect( collRecMap, *((CGhoul2Info_v *)ghoul2), angles, position, frameNumber, entNum, rayStart, rayEnd, scale, G2VertSpaceClient, traceFlags, useLod, fRadius );
+static void CL_G2API_CollisionDetect( CollisionRecord_t *collRecMap, void* ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, const vec3_t rayStart, const vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod, float fRadius ) {
+	re->G2API_CollisionDetect( collRecMap, *((CGhoul2Info_v *)ghoul2), angles, position, frameNumber, entNum, const_cast<float *>(rayStart), const_cast<float *>(rayEnd), scale, G2VertSpaceClient, traceFlags, useLod, fRadius );
 }
 
-static void CL_G2API_CollisionDetectCache( CollisionRecord_t *collRecMap, void* ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod, float fRadius ) {
-	re->G2API_CollisionDetectCache( collRecMap, *((CGhoul2Info_v *)ghoul2), angles, position, frameNumber, entNum, rayStart, rayEnd, scale, G2VertSpaceClient, traceFlags, useLod, fRadius );
+static void CL_G2API_CollisionDetectCache( CollisionRecord_t *collRecMap, void* ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, const vec3_t rayStart, const vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod, float fRadius ) {
+	re->G2API_CollisionDetectCache( collRecMap, *((CGhoul2Info_v *)ghoul2), angles, position, frameNumber, entNum, const_cast<float *>(rayStart), const_cast<float *>(rayEnd), scale, G2VertSpaceClient, traceFlags, useLod, fRadius );
 }
 
 static void CL_G2API_CleanGhoul2Models( void **ghoul2Ptr ) {

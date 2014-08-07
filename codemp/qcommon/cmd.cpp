@@ -590,17 +590,6 @@ void Cmd_TokenizeStringIgnoreQuotes( const char *text_in ) {
 }
 
 /*
-==================
-Cmd_CompleteCfgName
-==================
-*/
-void Cmd_CompleteCfgName( char *args, int argNum ) {
-	if( argNum == 2 ) {
-		Field_CompleteFilename( "", "cfg", qfalse, qtrue );
-	}
-}
-
-/*
 ============
 Cmd_FindCommand
 ============

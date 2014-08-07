@@ -797,6 +797,7 @@ typedef struct cgameExport_s {
 	void			(*AutomapInput)				( void );
 	void			(*MiscEnt)					( void );
 	void			(*CameraShake)				( void );
+	void			(*MessageMode)				( int mode );
 } cgameExport_t;
 
 //linking of cgame library

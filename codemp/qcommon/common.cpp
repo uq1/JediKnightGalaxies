@@ -1059,64 +1059,11 @@ static void Com_InitRand(void)
 		srand(time(NULL));
 }
 
- /*
- ==================
- Com_ErrorString
- Error string for the given error code (from Com_Error).
- ==================
- */
- static const char *Com_ErrorString ( int code )
- {
-   switch ( code )
-   {
-     case ERR_DISCONNECT:
-     // fallthrough
-     case ERR_SERVERDISCONNECT:
-       return "DISCONNECTED";
- 
-     case ERR_DROP:
-       return "DROPPED";
- 
-     default:
-       return "UNKNOWN";
-   }
- }
- 
- /*
- =================
- Com_CatchError
- Handles freeing up of resources when Com_Error is called.
- =================
- */
- static void Com_CatchError ( int code )
- {
-   if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT ) {
-     SV_Shutdown( "Server disconnected" );
-     CL_Disconnect( qtrue );
-     CL_FlushMemory( qtrue );
-     // make sure we can get at our local stuff
-     FS_PureServerSetLoadedPaks( "", "" );
-     com_errorEntered = qfalse;
-   } else if ( code == ERR_DROP ) {
-     Com_Printf ("********************\n"
-           "ERROR: %s\n"
-           "********************\n", com_errorMessage);
-     SV_Shutdown (va("Server crashed: %s\n",  com_errorMessage));
-     CL_Disconnect( qtrue );
-     CL_FlushMemory( qtrue );
-     // make sure we can get at our local stuff
-     FS_PureServerSetLoadedPaks( "", "" );
-     com_errorEntered = qfalse;
-   }
- }
- 
- /*
-
 /*
-=================
+==================
 Com_ErrorString
 Error string for the given error code (from Com_Error).
-=================
+==================
 */
 static const char *Com_ErrorString ( int code )
 {
@@ -1126,18 +1073,15 @@ static const char *Com_ErrorString ( int code )
 		// fallthrough
 		case ERR_SERVERDISCONNECT:
 			return "DISCONNECTED";
-
+ 
 		case ERR_DROP:
 			return "DROPPED";
-
-		case ERR_NEED_CD:
-			return "NEED CD";
-
+ 
 		default:
 			return "UNKNOWN";
 	}
 }
-
+ 
 /*
 =================
 Com_CatchError
@@ -1149,28 +1093,17 @@ static void Com_CatchError ( int code )
 	if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT ) {
 		SV_Shutdown( "Server disconnected" );
 		CL_Disconnect( qtrue );
-		CL_FlushMemory(  );
+		CL_FlushMemory();
 		// make sure we can get at our local stuff
 		FS_PureServerSetLoadedPaks( "", "" );
 		com_errorEntered = qfalse;
 	} else if ( code == ERR_DROP ) {
 		Com_Printf ("********************\n"
-					"ERROR: %s\n"
-					"********************\n", com_errorMessage);
+		"ERROR: %s\n"
+		"********************\n", com_errorMessage);
 		SV_Shutdown (va("Server crashed: %s\n",  com_errorMessage));
 		CL_Disconnect( qtrue );
-		CL_FlushMemory( );
-		// make sure we can get at our local stuff
-		FS_PureServerSetLoadedPaks( "", "" );
-		com_errorEntered = qfalse;
-	} else if ( code == ERR_NEED_CD ) {
-		SV_Shutdown( "Server didn't have CD" );
-		if ( com_cl_running && com_cl_running->integer ) {
-			CL_Disconnect( qtrue );
-			CL_FlushMemory( );
-		} else {
-			Com_Printf("Server didn't have CD\n" );
-		}
+		CL_FlushMemory();
 		// make sure we can get at our local stuff
 		FS_PureServerSetLoadedPaks( "", "" );
 		com_errorEntered = qfalse;
@@ -1310,7 +1243,7 @@ void Com_Init( char *commandLine ) {
 			}
 		}
 
-		s = va("%s %s %s", JK_VERSION_OLD, PLATFORM_STRING, __DATE__ );
+		s = va("%s %s %s", JK_VERSION, PLATFORM_STRING, __DATE__ );
 		com_version = Cvar_Get ("version", s, CVAR_ROM | CVAR_SERVERINFO );
 
 		SE_Init();

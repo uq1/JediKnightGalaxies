@@ -3264,8 +3264,6 @@ void CL_GlobalServers_f( void ) {
 		return;
 	}
 
-	Cvar_VariableStringBuffer(va("sv_master%i", masterNum), mserver, 512);
-
 	// reset the list, waiting for response
 	// -1 is used to distinguish a "no response"
 

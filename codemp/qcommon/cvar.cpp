@@ -1383,24 +1383,6 @@ void Cvar_CompleteCvarName( char *args, int argNum )
 }
 
 /*
-==================
-Cvar_CompleteCvarName
-==================
-*/
-void Cvar_CompleteCvarName( char *args, int argNum )
-{
-	if( argNum == 2 )
-	{
-		// Skip "<cmd> "
-		char *p = Com_SkipTokens( args, 1, " " );
-
-		if( p > args )
-			Field_CompleteCommand( p, qfalse, qtrue );
-	}
-}
-
-
-/*
 ============
 Cvar_Init
 
