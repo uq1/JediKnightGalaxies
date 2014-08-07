@@ -1326,7 +1326,7 @@ void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
 	}
 
 	// First things first.  If this is a ghoul2 model, then let's make sure we demolish this first.
-	if (ent->ghoul2 && trap->G2API_HaveWeGhoul2Models(ent->ghoul2))
+	if (ent->ghoul2 && trap->G2_HaveWeGhoul2Models(ent->ghoul2))
 	{
 		trap->G2API_CleanGhoul2Models(&(ent->ghoul2));
 	}
@@ -1348,7 +1348,7 @@ void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
 		trap->G2API_SetSkin(precachedKyle, 0, defSkin, defSkin);
 	}
 
-	if (precachedKyle && trap->G2API_HaveWeGhoul2Models(precachedKyle))
+	if (precachedKyle && trap->G2_HaveWeGhoul2Models(precachedKyle))
 	{
 		if (d_perPlayerGhoul2.integer || ent->s.number >= MAX_CLIENTS ||
 			G_PlayerHasCustomSkeleton(ent))
@@ -1459,7 +1459,7 @@ void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
 			if (handle<0)
 			{ //Huh. Guess we don't have this model. Use the default.
 
-				if (ent->ghoul2 && trap->G2API_HaveWeGhoul2Models(ent->ghoul2))
+				if (ent->ghoul2 && trap->G2_HaveWeGhoul2Models(ent->ghoul2))
 				{
 					trap->G2API_CleanGhoul2Models(&(ent->ghoul2));
 				}
@@ -3790,14 +3790,14 @@ void ClientDisconnect( int clientNum ) {
 		}
 	}
 
-	if (ent->ghoul2 && trap->G2API_HaveWeGhoul2Models(ent->ghoul2))
+	if (ent->ghoul2 && trap->G2_HaveWeGhoul2Models(ent->ghoul2))
 	{
 		trap->G2API_CleanGhoul2Models(&ent->ghoul2);
 	}
 	i = 0;
 	while (i < MAX_SABERS)
 	{
-		if (ent->client->weaponGhoul2[i] && trap->G2API_HaveWeGhoul2Models(ent->client->weaponGhoul2[i]))
+		if (ent->client->weaponGhoul2[i] && trap->G2_HaveWeGhoul2Models(ent->client->weaponGhoul2[i]))
 		{
 			trap->G2API_CleanGhoul2Models(&ent->client->weaponGhoul2[i]);
 		}

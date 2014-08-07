@@ -65,20 +65,20 @@ void CG_TestModel_f (void) {
 	vec3_t		angles;
 
 	memset( &cg.testModelEntity, 0, sizeof(cg.testModelEntity) );
-	if ( trap_Argc() < 2 ) {
+	if ( trap->Cmd_Argc() < 2 ) {
 		return;
 	}
 
 	Q_strncpyz (cg.testModelName, CG_Argv( 1 ), MAX_QPATH );
-	cg.testModelEntity.hModel = trap_R_RegisterModel( cg.testModelName );
+	cg.testModelEntity.hModel = trap->R_RegisterModel( cg.testModelName );
 
-	if ( trap_Argc() == 3 ) {
+	if ( trap->Cmd_Argc() == 3 ) {
 		cg.testModelEntity.backlerp = atof( CG_Argv( 2 ) );
 		cg.testModelEntity.frame = 1;
 		cg.testModelEntity.oldframe = 0;
 	}
 	if (! cg.testModelEntity.hModel ) {
-		CG_Printf( "Can't register model\n" );
+		trap->Print( "Can't register model\n" );
 		return;
 	}
 
@@ -111,7 +111,7 @@ void CG_TestGun_f (void) {
 
 void CG_TestModelNextFrame_f (void) {
 	cg.testModelEntity.frame++;
-	CG_Printf( "frame %i\n", cg.testModelEntity.frame );
+	trap->Print( "frame %i\n", cg.testModelEntity.frame );
 }
 
 void CG_TestModelPrevFrame_f (void) {
@@ -119,12 +119,12 @@ void CG_TestModelPrevFrame_f (void) {
 	if ( cg.testModelEntity.frame < 0 ) {
 		cg.testModelEntity.frame = 0;
 	}
-	CG_Printf( "frame %i\n", cg.testModelEntity.frame );
+	trap->Print( "frame %i\n", cg.testModelEntity.frame );
 }
 
 void CG_TestModelNextSkin_f (void) {
 	cg.testModelEntity.skinNum++;
-	CG_Printf( "skin %i\n", cg.testModelEntity.skinNum );
+	trap->Print( "skin %i\n", cg.testModelEntity.skinNum );
 }
 
 void CG_TestModelPrevSkin_f (void) {
@@ -132,16 +132,16 @@ void CG_TestModelPrevSkin_f (void) {
 	if ( cg.testModelEntity.skinNum < 0 ) {
 		cg.testModelEntity.skinNum = 0;
 	}
-	CG_Printf( "skin %i\n", cg.testModelEntity.skinNum );
+	trap->Print( "skin %i\n", cg.testModelEntity.skinNum );
 }
 
 static void CG_AddTestModel (void) {
 	int		i;
 
 	// re-register the model, because the level may have changed
-	cg.testModelEntity.hModel = trap_R_RegisterModel( cg.testModelName );
+	cg.testModelEntity.hModel = trap->R_RegisterModel( cg.testModelName );
 	if (! cg.testModelEntity.hModel ) {
-		CG_Printf ("Can't register model\n");
+		trap->Print ("Can't register model\n");
 		return;
 	}
 
@@ -160,7 +160,7 @@ static void CG_AddTestModel (void) {
 		}
 	}
 
-	trap_R_AddRefEntityToScene( &cg.testModelEntity );
+	trap->R_AddRefEntityToScene( &cg.testModelEntity );
 }
 
 
@@ -184,10 +184,10 @@ static void CG_CalcVrect (void) {
 	} else {
 		// bound normal viewsize
 		if (cg_viewsize.integer < 30) {
-			trap_Cvar_Set ("cg_viewsize","30");
+			trap->Cvar_Set ("cg_viewsize","30");
 			size = 30;
 		} else if (cg_viewsize.integer > 100) {
-			trap_Cvar_Set ("cg_viewsize","100");
+			trap->Cvar_Set ("cg_viewsize","100");
 			size = 100;
 		} else {
 			size = cg_viewsize.integer;
@@ -1436,7 +1436,7 @@ static int CG_CalcFov( void ) {
 
 						if (zoomSoundTime < cg.time || zoomSoundTime > cg.time + 10000)
 						{
-							trap_S_StartSound(cg.refdef.vieworg, ENTITYNUM_WORLD, CHAN_LOCAL, cgs.media.disruptorZoomLoop);
+							trap->S_StartSound(cg.refdef.vieworg, ENTITYNUM_WORLD, CHAN_LOCAL, cgs.media.disruptorZoomLoop);
 							zoomSoundTime = cg.time + 300;
 						}*/
 						JKG_ZoomScope (&cg_entities[cg.predictedPlayerState.clientNum]);
@@ -1597,7 +1597,7 @@ static void CG_DamageBlendBlob( void )
 		ent.shaderRGBA[2] = 50 * ( 1.0f - ((float)t / maxTime) );
 		ent.shaderRGBA[3] = 255;
 	}
-	trap_R_AddRefEntityToScene( &ent );
+	trap->R_AddRefEntityToScene( &ent );
 	*/
 }
 
@@ -1710,11 +1710,11 @@ qboolean CG_CheckPassengerTurretView( void )
 							hackPosAndAngle = qtrue;
 							if ( vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].yawBone )
 							{
-								boltIndex = trap_G2API_AddBolt( vehCent->ghoul2, 0, vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].yawBone );
+								boltIndex = trap->G2API_AddBolt( vehCent->ghoul2, 0, vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].yawBone );
 							}
 							else if ( vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].pitchBone )
 							{
-								boltIndex = trap_G2API_AddBolt( vehCent->ghoul2, 0, vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].pitchBone );
+								boltIndex = trap->G2API_AddBolt( vehCent->ghoul2, 0, vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].pitchBone );
 							}
 							else
 							{//well, no way of knowing, so screw it
@@ -1725,7 +1725,7 @@ qboolean CG_CheckPassengerTurretView( void )
 						{
 							mdxaBone_t boltMatrix;
 							vec3_t fwd, up;
-							trap_G2API_GetBoltMatrix_NoRecNoRot(vehCent->ghoul2, 0, boltIndex, &boltMatrix, vehCent->lerpAngles,
+							trap->G2API_GetBoltMatrix_NoRecNoRot(vehCent->ghoul2, 0, boltIndex, &boltMatrix, vehCent->lerpAngles,
 								vehCent->lerpOrigin, cg.time, NULL, vehCent->modelScale);
 							BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, cg.refdef.vieworg);
 							if ( hackPosAndAngle )
@@ -1781,7 +1781,7 @@ static int CG_CalcViewValues( void ) {
 /*
 	if (cg.cameraMode) {
 		vec3_t origin, angles;
-		if (trap_getCameraInfo(cg.time, &origin, &angles)) {
+		if (trap->getCameraInfo(cg.time, &origin, &angles)) {
 			VectorCopy(origin, cg.refdef.vieworg);
 			angles[ROLL] = 0;
 			VectorCopy(angles, cg.refdef.viewangles);
@@ -1939,7 +1939,7 @@ static void CG_PowerupTimerSounds( void ) {
 			continue;
 		}
 		if ( ( t - cg.time ) / POWERUP_BLINK_TIME != ( t - cg.oldTime ) / POWERUP_BLINK_TIME ) {
-			//trap_S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_ITEM, cgs.media.wearOffSound );
+			//trap->S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_ITEM, cgs.media.wearOffSound );
 		}
 	}
 }
@@ -1972,28 +1972,28 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	token = COM_ParseExt(&cstr, qfalse);
 	if (!token || !token[0])
 	{
-		CG_Error( "CG_DrawSkyBoxPortal: error parsing skybox configstring\n");
+		trap->Error( ERR_DROP, "CG_DrawSkyBoxPortal: error parsing skybox configstring\n");
 	}
 	cg.refdef.vieworg[0] = atof(token);
 
 	token = COM_ParseExt(&cstr, qfalse);
 	if (!token || !token[0])
 	{
-		CG_Error( "CG_DrawSkyBoxPortal: error parsing skybox configstring\n");
+		trap->Error( ERR_DROP, "CG_DrawSkyBoxPortal: error parsing skybox configstring\n");
 	}
 	cg.refdef.vieworg[1] = atof(token);
 
 	token = COM_ParseExt(&cstr, qfalse);
 	if (!token || !token[0])
 	{
-		CG_Error( "CG_DrawSkyBoxPortal: error parsing skybox configstring\n");
+		trap->Error( ERR_DROP, "CG_DrawSkyBoxPortal: error parsing skybox configstring\n");
 	}
 	cg.refdef.vieworg[2] = atof(token);
 
 	token = COM_ParseExt(&cstr, qfalse);
 	if (!token || !token[0]) 
 	{
-		CG_Error( "CG_DrawSkyBoxPortal: error parsing skybox configstring\n");
+		trap->Error( ERR_DROP, "CG_DrawSkyBoxPortal: error parsing skybox configstring\n");
 	}
 	fov_x = atoi(token);
 
@@ -2019,7 +2019,7 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	token = COM_ParseExt(&cstr, qfalse);
 	if (!token || !token[0])
 	{
-		CG_Error( "CG_DrawSkyBoxPortal: error parsing skybox configstring.  No fog state\n");
+		trap->Error( ERR_DROP, "CG_DrawSkyBoxPortal: error parsing skybox configstring.  No fog state\n");
 	}
 	else 
 	{
@@ -2032,21 +2032,21 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 
 			if (!token || !token[0])
 			{
-				CG_Error( "CG_DrawSkyBoxPortal: error parsing skybox configstring.  No fog[0]\n");
+				trap->Error( ERR_DROP, "CG_DrawSkyBoxPortal: error parsing skybox configstring.  No fog[0]\n");
 			}
 			fogColor[0] = atof(token);
 
 			token = COM_ParseExt(&cstr, qfalse);
 			if (!token || !token[0])
 			{
-				CG_Error( "CG_DrawSkyBoxPortal: error parsing skybox configstring.  No fog[1]\n");
+				trap->Error( ERR_DROP, "CG_DrawSkyBoxPortal: error parsing skybox configstring.  No fog[1]\n");
 			}
 			fogColor[1] = atof(token);
 
 			token = COM_ParseExt(&cstr, qfalse);
 			if (!token || !token[0])
 			{
-				CG_Error( "CG_DrawSkyBoxPortal: error parsing skybox configstring.  No fog[2]\n");
+				trap->Error( ERR_DROP, "CG_DrawSkyBoxPortal: error parsing skybox configstring.  No fog[2]\n");
 			}
 			fogColor[2] = atof(token);
 
@@ -2143,7 +2143,7 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 
 	if ( !cg.hyperspace) 
 	{ //rww - also had to add this to add effects being rendered in portal sky areas properly.
-		trap_FX_AddScheduledEffects(qtrue);
+		trap->FX_AddScheduledEffects(qtrue);
 	}
 
 	CG_AddPacketEntities(qtrue); //rww - There was no proper way to put real entities inside the portal view before.
@@ -2165,7 +2165,7 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	}
 
 	// draw the skybox
-	trap_R_RenderScene( &cg.refdef );
+	trap->R_RenderScene( &cg.refdef );
 
 	cg.refdef = backuprefdef;
 }
@@ -2193,7 +2193,7 @@ CG_PlayBufferedSounds
 static void CG_PlayBufferedSounds( void ) {
 	if ( cg.soundTime < cg.time ) {
 		if (cg.soundBufferOut != cg.soundBufferIn && cg.soundBuffer[cg.soundBufferOut]) {
-			trap_S_StartLocalSound(cg.soundBuffer[cg.soundBufferOut], CHAN_ANNOUNCER);
+			trap->S_StartLocalSound(cg.soundBuffer[cg.soundBufferOut], CHAN_ANNOUNCER);
 			cg.soundBuffer[cg.soundBufferOut] = 0;
 			cg.soundBufferOut = (cg.soundBufferOut + 1) % MAX_SOUNDBUFFER;
 			cg.soundTime = cg.time + 750;
@@ -2216,11 +2216,11 @@ void CG_UpdateSoundTrackers()
 			if (cg.snap && cent->currentState.trickedentindex == cg.snap->ps.clientNum)
 			{ //this is actually the player, so center the sound origin right on top of us
 				VectorCopy(cg.refdef.vieworg, cent->lerpOrigin);
-				trap_S_UpdateEntityPosition( cent->currentState.number, cent->lerpOrigin );
+				trap->S_UpdateEntityPosition( cent->currentState.number, cent->lerpOrigin );
 			}
 			else
 			{
-				trap_S_UpdateEntityPosition( cent->currentState.number, cg_entities[cent->currentState.trickedentindex].lerpOrigin );
+				trap->S_UpdateEntityPosition( cent->currentState.number, cg_entities[cent->currentState.trickedentindex].lerpOrigin );
 			}
 		}
 
@@ -2305,7 +2305,7 @@ void CG_SE_UpdateMusic(void)
 			}
 
 			Com_sprintf(musMultStr, sizeof(musMultStr), "%f", cgScreenEffects.music_volume_multiplier);
-			trap_Cvar_Set("s_musicMult", musMultStr);
+			trap->Cvar_Set("s_musicMult", musMultStr);
 
 			if (cgScreenEffects.music_volume_multiplier == 1.0f)
 			{
@@ -2325,7 +2325,7 @@ void CG_SE_UpdateMusic(void)
 		char musMultStr[512];
 
 		Com_sprintf(musMultStr, sizeof(musMultStr), "%f", cgScreenEffects.music_volume_multiplier);
-		trap_Cvar_Set("s_musicMult", musMultStr);
+		trap->Cvar_Set("s_musicMult", musMultStr);
 		cgScreenEffects.music_volume_set = qtrue;
 	}
 }
@@ -2424,7 +2424,7 @@ void CG_EmplacedView(vec3_t angles)
 
 		if (override == 2)
 		{
-			trap_SetClientForceAngle(cg.time + 5000, cg.refdef.viewangles);
+			trap->SetClientForceAngle(cg.time + 5000, cg.refdef.viewangles);
 		}
 	}
 
@@ -2476,7 +2476,7 @@ static void CG_AddRefentForAutoMap(centity_t *cent)
 		ent.hModel = cgs.gameModels[cent->currentState.modelindex];
 	}
 
-	trap_R_AddRefEntityToScene(&ent);
+	trap->R_AddRefEntityToScene(&ent);
 }
 
 //add all entities that would be on the radar
@@ -2599,7 +2599,7 @@ void CG_DrawAutoMap(void)
 	refdef.fov_y = 50;
 
 	//guess this doesn't need to be done every frame, but eh
-	trap_R_GetRealRes(&vWidth, &vHeight);
+	trap->R_GetRealRes(&vWidth, &vHeight);
 
 	//set scaling values so that the 640x480 will result at 1.0f/1.0f
 	hScale = vWidth/640.0f;
@@ -2622,7 +2622,7 @@ void CG_DrawAutoMap(void)
 
 	refdef.time = cg.time;
 
-	trap_R_ClearScene();
+	trap->R_ClearScene();
 	CG_AddRadarAutomapEnts();
 
 	if (cg.predictedPlayerState.m_iVehicleNum &&
@@ -2631,7 +2631,7 @@ void CG_DrawAutoMap(void)
 		cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle &&
 		cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER)
 	{ //constantly adjust to current height
-		trap_R_AutomapElevAdj(cg.predictedPlayerState.origin[2]);
+		trap->R_AutomapElevationAdjustment(cg.predictedPlayerState.origin[2]);
 	}
 	else
 	{
@@ -2645,10 +2645,10 @@ void CG_DrawAutoMap(void)
 
 		if (!tr.startsolid && !tr.allsolid)
 		{
-			trap_R_AutomapElevAdj(tr.endpos[2]);
+			trap->R_AutomapElevationAdjustment(tr.endpos[2]);
 		}
 	}
-	trap_R_RenderScene( &refdef );
+	trap->R_RenderScene( &refdef );
 }
 
 //=========================================================================
@@ -2755,16 +2755,16 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	}
 
 	if (lastTime) {
-		cg.frameDelta = trap_Milliseconds() - lastTime;
+		cg.frameDelta = trap->Milliseconds() - lastTime;
 	}
-	lastTime = trap_Milliseconds();
+	lastTime = trap->Milliseconds();
 
 	cg.time = serverTime;
 	cg.demoPlayback = demoPlayback;
 
 	if (cg.snap && ui_myteam.integer != cg.snap->ps.persistant[PERS_TEAM])
 	{
-		trap_Cvar_Set ( "ui_myteam", va("%i", cg.snap->ps.persistant[PERS_TEAM]) );
+		trap->Cvar_Set ( "ui_myteam", va("%i", cg.snap->ps.persistant[PERS_TEAM]) );
 	}
 
 	// update cvars
@@ -2777,21 +2777,21 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		return;
 	}
 
-	trap_FX_AdjustTime( cg.time );
+	trap->FX_AdjustTime( cg.time );
 
 	CG_RunLightStyles();
 
 	// any looped sounds will be respecified as entities
 	// are added to the render list
-	trap_S_ClearLoopingSounds();
+	trap->S_ClearLoopingSounds();
 
 	// clear all the render lists
-	trap_R_ClearScene();
+	trap->R_ClearScene();
 
 	// set up cg.snap and possibly cg.nextSnap
 	CG_ProcessSnapshots();
 
-	trap_ROFF_UpdateEntities();
+	trap->ROFF_UpdateEntities();
 
 	// if we haven't received any snapshots yet, all
 	// we can draw is the information screen
@@ -2810,11 +2810,11 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		// milliseconds which will start the timeout.
 		else if ( cg.snapshotTimeoutTime == -1 )
 		{		
-			cg.snapshotTimeoutTime = trap_Milliseconds ( );
+			cg.snapshotTimeoutTime = trap->Milliseconds ( );
 		}
 
 		// If we have been waiting too long then just error out
-		if ( cg.snapshotTimeoutTime > 0 && (trap_Milliseconds ( ) - cg.snapshotTimeoutTime > cg_snapshotTimeout.integer * 1000) )
+		if ( cg.snapshotTimeoutTime > 0 && (trap->Milliseconds ( ) - cg.snapshotTimeoutTime > cg_snapshotTimeout.integer * 1000) )
 		{
 			Com_Error ( ERR_DROP, CG_GetStringEdString("MP_SVGAME", "SNAPSHOT_TIMEOUT"));
 			return;
@@ -2846,7 +2846,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 			//mSensitivityOverride = 5.0f;//old default value
 			mSensitivityOverride = 0.0f;
 			bUseFighterPitch = qtrue;
-			trap_SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, mSensitivityOverride, cg.forceSelect, cg.itemSelect, bUseFighterPitch );
+			trap->SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, mSensitivityOverride, cg.forceSelect, cg.itemSelect, bUseFighterPitch );
 			isFighter = qtrue;
 		}
 	} 
@@ -2865,7 +2865,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 			veh->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER &&
 			bg_fighterAltControl.integer)
 		{
-			trap_SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qtrue );
+			trap->SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qtrue );
 			veh = NULL; //this is done because I don't want an extra assign each frame because I am so perfect and super efficient.
 		}
 		else
@@ -2886,11 +2886,11 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 						cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->weapon != WP_SABER)
 					{
 						// Set us up using Melee if our holstered weapon is not a saber (and we're holstered)
-						trap_SetUserCmdValue( BG_GetWeaponIndex(WP_MELEE, 0), mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
+						trap->SetUserCmdValue( BG_GetWeaponIndex(WP_MELEE, 0), mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
 					}
 					else
 					{
-						trap_SetUserCmdValue( cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->varID, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
+						trap->SetUserCmdValue( cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->varID, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
 					}
 				}
 				else
@@ -2902,9 +2902,9 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 			{
 defaultCmd:
 				int meleeWeaponId = BG_GetWeaponIndexFromClass(WP_MELEE, 0);
-				trap_SetUserCmdValue( meleeWeaponId, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
+				trap->SetUserCmdValue( meleeWeaponId, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
 			}
-			//trap_SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse);
+			//trap->SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse);
 		}
 	}
 
@@ -2986,19 +2986,19 @@ defaultCmd:
 
 	if (cg_linearFogOverride)
 	{
-		trap_R_SetRangeFog(-cg_linearFogOverride);
+		trap->R_SetRangedFog(-cg_linearFogOverride);
 	}
 	// JKG - Dont mess up fog when zooming
 	/*else if (cg.predictedPlayerState.zoomMode)
 	{ //zooming with binoculars or sniper, set the fog range based on the zoom level -rww
 		cg_rangedFogging = qtrue;
 		//smaller the fov the less fog we have between the view and cull dist
-		trap_R_SetRangeFog(cg.refdef.fov_x*64.0f);
+		trap->R_SetRangeFog(cg.refdef.fov_x*64.0f);
 	}*/
 	else if (cg_rangedFogging)
 	{ //disable it
 		cg_rangedFogging = qfalse;
-		trap_R_SetRangeFog(0.0f);
+		trap->R_SetRangedFog(0.0f);
 	}
 
 	cstr = CG_ConfigString(CS_SKYBOXORG);
@@ -3019,21 +3019,20 @@ defaultCmd:
 	if ( !cg.hyperspace ) {
 		CG_AddPacketEntities(qfalse);			// adter calcViewValues, so predicted player state is correct
 		CG_AddMarks();
-		CG_AddParticles ();
 		CG_AddLocalEntities();
 	}
 	CG_AnimateViewWeapon (&cg.predictedPlayerState);
 	//CG_AddViewWeapon( &cg.predictedPlayerState );
 	JKG_RenderWeaponViewModel();
-	//debugTimeEnd = trap_Milliseconds();
-	//if (trap_Milliseconds() - debugLastUpdate > 500) {
-	//	CG_Printf("Frame processing time: %i ms\n", debugTimeEnd - debugTimeStart);
-	//	debugLastUpdate = trap_Milliseconds();
+	//debugTimeEnd = trap->Milliseconds();
+	//if (trap->Milliseconds() - debugLastUpdate > 500) {
+	//	trap->Print("Frame processing time: %i ms\n", debugTimeEnd - debugTimeStart);
+	//	debugLastUpdate = trap->Milliseconds();
 	//}
 
 	if ( !cg.hyperspace) 
 	{
-		trap_FX_AddScheduledEffects(qfalse);
+		trap->FX_AddScheduledEffects(qfalse);
 	}
 
 	// add buffered sounds
@@ -3069,11 +3068,11 @@ defaultCmd:
 
 	if (cstr && cstr[0])
 	{
-		trap_S_UpdateAmbientSet( cstr, cg.refdef.vieworg );
+		trap->S_UpdateAmbientSet( cstr, cg.refdef.vieworg );
 	}
 
 	// update audio positions
-	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
+	trap->S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
 
 	// make sure the lagometerSample and frame timing isn't done twice when in stereo
 	if ( stereoView != STEREO_RIGHT ) {
@@ -3096,7 +3095,7 @@ defaultCmd:
 				timescale.value = cg_timescaleFadeEnd.value;
 		}
 		if (cg_timescaleFadeSpeed.value) {
-			trap_Cvar_Set("timescale", va("%f", timescale.value));
+			trap->Cvar_Set("timescale", va("%f", timescale.value));
 		}
 	}
 
@@ -3115,7 +3114,7 @@ defaultCmd:
 	CG_DrawAutoMap();
 
 	if ( cg_stats.integer ) {
-		CG_Printf( "cg.clientFrame:%i\n", cg.clientFrame );
+		trap->Print( "cg.clientFrame:%i\n", cg.clientFrame );
 	}
 	
 }
@@ -3144,29 +3143,29 @@ void CG_TrueViewInit( void )
 	fileHandle_t	f;
 
 
-	len = trap_FS_FOpenFile("trueview.cfg", &f, FS_READ);
+	len = trap->FS_Open("trueview.cfg", &f, FS_READ);
 
 	if (!f)
 	{
-		CG_Printf("Error: File Not Found: trueview.cfg\n");
+		trap->Print("Error: File Not Found: trueview.cfg\n");
 		true_view_valid = 0;
 		return;
 	}
 
 	if( len >= MAX_TRUEVIEW_INFO_SIZE )
 	{
-		CG_Printf("Error: trueview.cfg is over the trueview.cfg filesize limit.\n");
-		trap_FS_FCloseFile( f );
+		trap->Print("Error: trueview.cfg is over the trueview.cfg filesize limit.\n");
+		trap->FS_Close( f );
 		true_view_valid = 0;
 		return;
 	}
 
 	
-	trap_FS_Read(true_view_info, len, f);
+	trap->FS_Read(true_view_info, len, f);
 
 	true_view_valid = 1;
 
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
 	return;
 
@@ -3183,17 +3182,17 @@ void CG_AdjustEyePos (const char *modelName)
 		
 		if( BG_GetPairedValue(true_view_info, (char*) modelName, eyepos) )
 		{
-			//CG_Printf("True View Eye Adjust Loaded for %s.\n", modelName);
-			trap_Cvar_Set( "cg_trueeyeposition", eyepos );
+			//trap->Print("True View Eye Adjust Loaded for %s.\n", modelName);
+			trap->Cvar_Set( "cg_trueeyeposition", eyepos );
 		}
 		else
 		{//Couldn't find an entry for the desired model.  Not nessicarily a bad thing.
-			trap_Cvar_Set( "cg_trueeyeposition", "0" );
+			trap->Cvar_Set( "cg_trueeyeposition", "0" );
 		}
 	}
 	else
 	{//The model eye position list is messed up.  Default to 0.0 for the eye position
-		trap_Cvar_Set( "cg_trueeyeposition", "0" );
+		trap->Cvar_Set( "cg_trueeyeposition", "0" );
 	}
 
 }

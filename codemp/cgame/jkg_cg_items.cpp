@@ -226,8 +226,8 @@ void JKG_CG_DeltaFeed ( const char *mode )
 		switch(atoi(CG_Argv(IPPARSE_ITEMNUM+1)))
 		{
 			case IPPARSE_ID:
-				CG_Printf("^3Warning: Attempted to change ID of item %i (%s)\n", id, cg.playerInventory[id].id->displayName);
-				CG_Printf("^3Report this to the developers immediately.\n");
+				trap->Print("^3Warning: Attempted to change ID of item %i (%s)\n", id, cg.playerInventory[id].id->displayName);
+				trap->Print("^3Report this to the developers immediately.\n");
 				return;
 			case IPPARSE_QUALITY:
 				cg.playerInventory[id].itemQuality = atoi(CG_Argv(IPPARSE_ITEMNUM+2));
@@ -248,8 +248,8 @@ void JKG_CG_DeltaFeed ( const char *mode )
 				cg.playerInventory[id].equipped = (atoi(CG_Argv(IPPARSE_ITEMNUM+2)) > 0);
 				return;
 			default:
-				CG_Printf("^3Warning: Invalid 'chng' arg #2 (%i)\n", atoi(CG_Argv(IPPARSE_ITEMNUM+1)));
-				CG_Printf("^3Report this to the developers ASAP.\n");
+				trap->Print("^3Warning: Invalid 'chng' arg #2 (%i)\n", atoi(CG_Argv(IPPARSE_ITEMNUM+1)));
+				trap->Print("^3Report this to the developers ASAP.\n");
 				return;
 		}
 		//What the switch above does is actually pretty simple.
@@ -263,7 +263,7 @@ void JKG_CG_DeltaFeed ( const char *mode )
 		return;
 	}
 	else
-		CG_Printf("unknown mode parameter %s\n", mode);
+		trap->Print("unknown mode parameter %s\n", mode);
 }
 
 
@@ -280,30 +280,30 @@ static qboolean JKG_CG_ParseItem ( const char *itemFilePath, cgItemData_t *itemD
 
 	char itemFileData[MAX_ITEM_FILE_LENGTH];
 	fileHandle_t f;
-	int fileLen = trap_FS_FOpenFile(itemFilePath, &f, FS_READ);
+	int fileLen = trap->FS_Open(itemFilePath, &f, FS_READ);
 
 	if(!f || fileLen == -1)
 	{
-		CG_Printf("^1Unreadable or empty file: %s. Please report this to the developers.\n", itemFilePath);
+		trap->Print("^1Unreadable or empty file: %s. Please report this to the developers.\n", itemFilePath);
 		return qfalse;
 	}
 
 	if( (fileLen + 1) >= MAX_ITEM_FILE_LENGTH )
 	{
-		trap_FS_FCloseFile(f);
-		CG_Printf("^1%s item file too large. Please report this to the developers.\n", itemFilePath);
+		trap->FS_Close(f);
+		trap->Print("^1%s item file too large. Please report this to the developers.\n", itemFilePath);
 		return qfalse;
 	}
 
-	trap_FS_Read(&itemFileData, fileLen, f);
+	trap->FS_Read(&itemFileData, fileLen, f);
 	itemFileData[fileLen] = '\0';
 
-	trap_FS_FCloseFile(f);
+	trap->FS_Close(f);
 
 	json = cJSON_ParsePooled (itemFileData, error, sizeof (error));
 	if ( json == NULL )
 	{
-		CG_Printf ("^1%s: %s\n", itemFilePath, error);
+		trap->Print ("^1%s: %s\n", itemFilePath, error);
 		return qfalse;
 	}
 
@@ -438,19 +438,18 @@ static qboolean JKG_CG_ParseItem ( const char *itemFilePath, cgItemData_t *itemD
 	return qtrue;
 }
 
-extern int strap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize );
 static qboolean JKG_CG_LoadItems ( void )
 {
 	int i, j;
 	char itemFiles[8192];
-	int numFiles = strap_FS_GetFileList("ext_data/items/", ".itm", itemFiles, sizeof(itemFiles));
+	int numFiles = trap->FS_GetFileList("ext_data/items/", ".itm", itemFiles, sizeof(itemFiles));
 	const char *itemFile = itemFiles;
 	int successful = 0;
 	int failed = 0;
 
 	lastUsedItemID = 1;
 
-	CG_Printf("Loading items...\n");
+	trap->Print("Loading items...\n");
 	for(i = 0; i < numFiles; i++ )
 	{
 	    cgItemData_t dummy;
@@ -467,15 +466,15 @@ static qboolean JKG_CG_LoadItems ( void )
 
 			else
 			{
-				CG_Printf("^1ERROR: item ID out of range!\nItem: ext_data/items/%s, ID: %d\n", itemFile, dummy.itemID);
-				CG_Printf("^1Please report this to the developers immediately.\n");
-				CG_Printf("^1Jedi Knight Galaxies will now try to correct this automatically\n"); //Referring to ourselves in third person again, hm?
+				trap->Print("^1ERROR: item ID out of range!\nItem: ext_data/items/%s, ID: %d\n", itemFile, dummy.itemID);
+				trap->Print("^1Please report this to the developers immediately.\n");
+				trap->Print("^1Jedi Knight Galaxies will now try to correct this automatically\n"); //Referring to ourselves in third person again, hm?
 				for(j = 1; j < MAX_ITEM_TABLE_SIZE; j++)
 				{
 					if(!CGitemLookupTable[j].itemID)
 					{
 						dummy.itemID = j;
-						CG_Printf("^2Issue corrected.\n");
+						trap->Print("^2Issue corrected.\n");
 						break;
 					}
 				}
@@ -489,12 +488,12 @@ static qboolean JKG_CG_LoadItems ( void )
 		}
 
 		if(CGitemLookupTable[dummy.itemID].itemID)
-			CG_Printf("^3Duplicate item ID: %d. Please report this to the developers.\n", dummy.itemID);
+			trap->Print("^3Duplicate item ID: %d. Please report this to the developers.\n", dummy.itemID);
 		CGitemLookupTable[dummy.itemID] = dummy;
 
 		itemFile += strlen(itemFile)+1;
 	}
-	CG_Printf("Items loaded: %d successful, %d failed\n", successful, failed);
+	trap->Print("Items loaded: %d successful, %d failed\n", successful, failed);
 
 	return (qboolean)(successful > 0);
 }
@@ -530,30 +529,30 @@ static qboolean JKG_CG_ParseArmorFile ( const char *armorFilePath, cgArmorData_t
 
 	char armorFileData[MAX_ITEM_FILE_LENGTH];
 	fileHandle_t f;
-	int fileLen = trap_FS_FOpenFile(armorFilePath, &f, FS_READ);
+	int fileLen = trap->FS_Open(armorFilePath, &f, FS_READ);
 
 	if(!f || fileLen == -1)
 	{
-		CG_Printf("^1Unreadable or empty file: %s. Please report this to the developers.\n", armorFilePath);
+		trap->Print("^1Unreadable or empty file: %s. Please report this to the developers.\n", armorFilePath);
 		return qfalse;
 	}
 
 	if( (fileLen + 1) >= MAX_ITEM_FILE_LENGTH )
 	{
-		trap_FS_FCloseFile(f);
-		CG_Printf("^1%s item file too large. Please report this to the developers.\n", armorFilePath);
+		trap->FS_Close(f);
+		trap->Print("^1%s item file too large. Please report this to the developers.\n", armorFilePath);
 		return qfalse;
 	}
 
-	trap_FS_Read(&armorFileData, fileLen, f);
+	trap->FS_Read(&armorFileData, fileLen, f);
 	armorFileData[fileLen] = '\0';
 
-	trap_FS_FCloseFile(f);
+	trap->FS_Close(f);
 
 	json = cJSON_ParsePooled (armorFileData, error, sizeof (error));
 	if ( json == NULL )
 	{
-		CG_Printf ("^1%s: %s\n", armorFilePath, error);
+		trap->Print ("^1%s: %s\n", armorFilePath, error);
 		return qfalse;
 	}
 	
@@ -617,11 +616,11 @@ static qboolean JKG_CG_LoadArmor(void)
 {
 	int i = 0;
 	char armorFiles[8192];
-	int numFiles = strap_FS_GetFileList("ext_data/armor/", ".armour", armorFiles, sizeof(armorFiles));
+	int numFiles = trap->FS_GetFileList("ext_data/armor/", ".armour", armorFiles, sizeof(armorFiles));
 	const char *armorFile = armorFiles;
 	int successful = 0, failed = 0;
 
-	CG_Printf("Loading armor data...\n");
+	trap->Print("Loading armor data...\n");
 	for( ; i < numFiles; i++)
 	{
 	    cgArmorData_t armor;
@@ -642,12 +641,12 @@ static qboolean JKG_CG_LoadArmor(void)
 		}
 
 		if(armorMasterTable[armor.id].id)
-			CG_Printf("^3Warning: Duplicate armor ID %i\n", armor.id);
+			trap->Print("^3Warning: Duplicate armor ID %i\n", armor.id);
 		armorMasterTable[armor.id] = armor;
 
 		armorFile += strlen(armorFile)+1;
 	}
-	CG_Printf("Armor Loaded: %i successful, %i failed\n", successful, failed);
+	trap->Print("Armor Loaded: %i successful, %i failed\n", successful, failed);
 
 	return (qboolean)(successful > 0);
 }
@@ -711,7 +710,7 @@ void JKG_CG_SetModelSurfacesFlags ( void *g2, const char *surfaces, int flags )
 		if(!surfaceName[0])
 			break;
 			
-		trap_G2API_SetSurfaceOnOff (g2, surfaceName, flags);
+		trap->G2API_SetSurfaceOnOff (g2, surfaceName, flags);
 		i++;
 	}
 }
@@ -744,7 +743,7 @@ typedef struct mdxmHeader_s {
 //---------------------------------------------------------
 // Description: This retrieves the number of surfaces in
 // a GLM model. Use in conjunction with the G2 function,
-// trap_G2API_GetSurfaceName to get all the surface names
+// trap->G2API_GetSurfaceName to get all the surface names
 // in the model. Surface names have a max length of
 // MAX_QPATH.
 //=========================================================
@@ -752,11 +751,11 @@ int JKG_G2_GetNumberOfSurfaces ( const char *modelPath )
 {
     mdxmHeader_t header;
     fileHandle_t f;
-    int fileLen = trap_FS_FOpenFile (modelPath, &f, FS_READ);
+    int fileLen = trap->FS_Open (modelPath, &f, FS_READ);
     if ( fileLen == -1 || !f )
     {
 #ifdef _DEBUG
-        CG_Printf ("Failed to open the model %s.\n", modelPath);
+        trap->Print ("Failed to open the model %s.\n", modelPath);
 #endif
         return 0;
     }
@@ -764,13 +763,13 @@ int JKG_G2_GetNumberOfSurfaces ( const char *modelPath )
     if ( fileLen < sizeof (mdxmHeader_t) )
     {
 #ifdef _DEBUG
-        CG_Printf ("Invalid model file %s.\n", modelPath);
+        trap->Print ("Invalid model file %s.\n", modelPath);
 #endif
         return 0;
     }
     
-    trap_FS_Read (&header, sizeof (mdxmHeader_t), f);
-    trap_FS_FCloseFile (f);
+    trap->FS_Read (&header, sizeof (mdxmHeader_t), f);
+    trap->FS_Close (f);
     
     return header.numSurfaces;
 }
@@ -790,13 +789,13 @@ void JKG_CG_ShowOnlySelectedSurfaces ( void *g2, const char *modelPath, const ch
 
 	for(i = 0; i < numSurfaces; i++)
 	{
-		trap_G2API_GetSurfaceName( g2, i, 0, surfaceName );
+		trap->G2API_GetSurfaceName( g2, i, 0, surfaceName );
 		if ( surfaceName[0] == '*' )
 		{
 		    // this is actually the triangle for a bolt. Don't poke it! D;
 		    continue;
 		}
-		trap_G2API_SetSurfaceOnOff (g2, surfaceName, 0x2);
+		trap->G2API_SetSurfaceOnOff (g2, surfaceName, 0x2);
 	}
 
 	i = 0;
@@ -807,7 +806,7 @@ void JKG_CG_ShowOnlySelectedSurfaces ( void *g2, const char *modelPath, const ch
 		if(!surfaceName[0])
 			break;
 			
-		trap_G2API_SetSurfaceOnOff (g2, surfaceName, 0);
+		trap->G2API_SetSurfaceOnOff (g2, surfaceName, 0);
 		i++;
 	}
 }
@@ -826,9 +825,9 @@ void JKG_CG_EquipArmor( int client, int slot, int armorId )
 		JKG_CG_SetModelSurfacesFlags (cent->ghoul2, armorMasterTable[cent->previousEquippedArmor[slot]].surfOffLowerString, 0);
 		cent->previousEquippedArmor[slot] = armorId;
 	    
-	    if ( cent->armorGhoul2[slot] && trap_G2_HaveWeGhoul2Models (cent->armorGhoul2[slot]) )
+	    if ( cent->armorGhoul2[slot] && trap->G2_HaveWeGhoul2Models (cent->armorGhoul2[slot]) )
 	    {
-	        trap_G2API_CleanGhoul2Models(&cent->armorGhoul2[slot]);
+	        trap->G2API_CleanGhoul2Models(&cent->armorGhoul2[slot]);
 			cent->armorGhoul2[slot] = NULL;
 	    }
 	    return;
@@ -836,7 +835,7 @@ void JKG_CG_EquipArmor( int client, int slot, int armorId )
 	
 	if ( !CG_RegisterClientArmorModelname (cent, armorId, client, slot) )
 	{
-		CG_Printf ("Failed to equip armor model %s in slot %i", armorMasterTable[armorId].model, slot);
+		trap->Print ("Failed to equip armor model %s in slot %i", armorMasterTable[armorId].model, slot);
 		return;
 	}
 

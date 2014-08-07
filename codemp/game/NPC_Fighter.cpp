@@ -17,10 +17,12 @@
 
 #undef MOD_EXPLOSIVE
 
-#ifdef _GAME //including game headers on cgame is FORBIDDEN ^_^
-#include "g_local.h"
-#else
-#include "bg_public.h"
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_CGAME)
+	#include "cgame/cg_local.h"
+#elif defined(_UI)
+	#include "ui/ui_local.h"
 #endif
 
 #include "bg_vehicles.h"
@@ -279,11 +281,6 @@ qboolean FighterSuspended( Vehicle_t *pVeh, playerState_t *parentPS )
 #endif
 }
 
-#ifdef _CGAME
-extern void trap_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx ); //cg_syscalls.c
-extern sfxHandle_t trap_S_RegisterSound( const char *sample); //cg_syscalls.c
-#endif
-
 //MP RULE - ALL PROCESSMOVECOMMANDS FUNCTIONS MUST BE BG-COMPATIBLE!!!
 //If you really need to violate this rule for SP, then use ifdefs.
 //By BG-compatible, I mean no use of game-specific data - ONLY use
@@ -329,7 +326,7 @@ static void ProcessMoveCommands( Vehicle_t *pVeh )
 #ifdef _GAME//MP GAME-side
 					//G_EntitySound( ((gentity_t *)(pVeh->m_pParentEntity)), CHAN_LOCAL, pVeh->m_pVehicleInfo->soundHyper );
 #elif _CGAME//MP CGAME-side
-					trap_S_StartSound( NULL, pm->ps->clientNum, CHAN_LOCAL, pVeh->m_pVehicleInfo->soundHyper );
+					trap->S_StartSound( NULL, pm->ps->clientNum, CHAN_LOCAL, pVeh->m_pVehicleInfo->soundHyper );
 #endif			
 				}
 
@@ -1664,7 +1661,7 @@ static void AnimateVehicle( Vehicle_t *pVeh )
 #ifdef _GAME//MP GAME-side
 						G_EntitySound( ((gentity_t *)(pVeh->m_pParentEntity)), CHAN_AUTO, pVeh->m_pVehicleInfo->soundLand );
 #elif _CGAME//MP CGAME-side
-						//trap_S_StartSound( NULL, pVeh->m_pParentEntity->s.number, CHAN_AUTO, pVeh->m_pVehicleInfo->soundLand );
+						//trap->S_StartSound( NULL, pVeh->m_pParentEntity->s.number, CHAN_AUTO, pVeh->m_pVehicleInfo->soundLand );
 #endif
 					}
 					pVeh->m_ulFlags |= VEH_GEARSOPEN;

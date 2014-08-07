@@ -1208,17 +1208,17 @@ CPrimitiveTemplate *trap_FX_GetPrimitiveCopy( SEffectTemplate *efxFile, const ch
 }
 
 // Translate import table funcptrs to syscalls
-int CGSyscall_FS_Read( void *buffer, int len, fileHandle_t f ) { trap_FS_Read( buffer, len, f ); return 0; }
-int CGSyscall_FS_Write( const void *buffer, int len, fileHandle_t f ) { trap_FS_Write( buffer, len, f ); return 0; }
-clipHandle_t CGSyscall_CM_TempModel( const vec3_t mins, const vec3_t maxs, int capsule ) { if ( capsule ) return trap_CM_TempCapsuleModel( mins, maxs ); else return trap_CM_TempBoxModel( mins, maxs ); }
-void CGSyscall_CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, int capsule ) { if ( capsule ) trap_CM_CapsuleTrace( results, start, end, mins, maxs, model, brushmask ); else trap_CM_BoxTrace( results, start, end, mins, maxs, model, brushmask ); }
-void CGSyscall_CM_TransformedTrace( trace_t *results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, const vec3_t origin, const vec3_t angles, int capsule ) { if ( capsule ) trap_CM_TransformedCapsuleTrace( results, start, end, mins, maxs, model, brushmask, origin, angles ); else trap_CM_TransformedBoxTrace( results, start, end, mins, maxs, model, brushmask, origin, angles ); }
-void CGSyscall_R_AddPolysToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num ) { trap_R_AddPolyToScene( hShader, numVerts, verts ); }
-float CGSyscall_R_GetDistanceCull( void ) { float tmp; trap_R_GetDistanceCull( &tmp ); return tmp; }
-void CGSyscall_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad, qboolean isPortal ) { if ( isPortal ) trap_FX_PlayPortalEffectID( id, org, fwd, vol, rad ); else trap_FX_PlayEffectID( id, org, fwd, vol, rad ); }
-void CGSyscall_G2API_CollisionDetect( CollisionRecord_t *collRecMap, void* ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod, float fRadius ) { trap_G2API_CollisionDetect( collRecMap, ghoul2, angles, position, frameNumber, entNum, rayStart, rayEnd, scale, traceFlags, useLod, fRadius ); }
+static int CGSyscall_FS_Read( void *buffer, int len, fileHandle_t f ) { trap_FS_Read( buffer, len, f ); return 0; }
+static int CGSyscall_FS_Write( const void *buffer, int len, fileHandle_t f ) { trap_FS_Write( buffer, len, f ); return 0; }
+static clipHandle_t CGSyscall_CM_TempModel( const vec3_t mins, const vec3_t maxs, int capsule ) { if ( capsule ) return trap_CM_TempCapsuleModel( mins, maxs ); else return trap_CM_TempBoxModel( mins, maxs ); }
+static void CGSyscall_CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, int capsule ) { if ( capsule ) trap_CM_CapsuleTrace( results, start, end, mins, maxs, model, brushmask ); else trap_CM_BoxTrace( results, start, end, mins, maxs, model, brushmask ); }
+static void CGSyscall_CM_TransformedTrace( trace_t *results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, const vec3_t origin, const vec3_t angles, int capsule ) { if ( capsule ) trap_CM_TransformedCapsuleTrace( results, start, end, mins, maxs, model, brushmask, origin, angles ); else trap_CM_TransformedBoxTrace( results, start, end, mins, maxs, model, brushmask, origin, angles ); }
+static void CGSyscall_R_AddPolysToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num ) { trap_R_AddPolyToScene( hShader, numVerts, verts ); }
+static float CGSyscall_R_GetDistanceCull( void ) { float tmp; trap_R_GetDistanceCull( &tmp ); return tmp; }
+static void CGSyscall_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad, qboolean isPortal ) { if ( isPortal ) trap_FX_PlayPortalEffectID( id, org, fwd, vol, rad ); else trap_FX_PlayEffectID( id, org, fwd, vol, rad ); }
+static void CGSyscall_G2API_CollisionDetect( CollisionRecord_t *collRecMap, void* ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, const vec3_t rayStart, const vec3_t rayEnd, vec3_t scale, int traceFlags, int useLod, float fRadius ) { trap_G2API_CollisionDetect( collRecMap, ghoul2, angles, position, frameNumber, entNum, rayStart, rayEnd, scale, traceFlags, useLod, fRadius ); }
 
-void QDECL CG_Error( int level, const char *error, ... ) {
+static void QDECL CG_Error( int level, const char *error, ... ) {
 	va_list argptr;
 	char text[1024] = {0};
 
@@ -1229,7 +1229,7 @@ void QDECL CG_Error( int level, const char *error, ... ) {
 	trap_Error( text );
 }
 
-void QDECL CG_Printf( const char *msg, ... ) {
+static void QDECL CG_Printf( const char *msg, ... ) {
 	va_list argptr;
 	char text[4096] = {0};
 	int ret;

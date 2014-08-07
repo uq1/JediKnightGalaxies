@@ -1457,12 +1457,3 @@ double coslerp(
    phase2 = (1-cos(phase*M_PI))/2;
    return(start*(1-phase2)+end*phase2);
 }
-
-// Finds distance between two points (--eez)
-float VectorDistance( const vec3_t p1, const vec3_t p2 ) 
-{
-	vec3_t v;
-
-	VectorSubtract (p2, p1, v);
-	return VectorLength( v );
-}

@@ -1071,7 +1071,7 @@ void G_FreeEntity( gentity_t *ed ) {
 
 		while (i < MAX_SABERS)
 		{
-			if (ed->client->weaponGhoul2[i] && trap->G2API_HaveWeGhoul2Models(ed->client->weaponGhoul2[i]))
+			if (ed->client->weaponGhoul2[i] && trap->G2_HaveWeGhoul2Models(ed->client->weaponGhoul2[i]))
 			{
 				trap->G2API_CleanGhoul2Models(&ed->client->weaponGhoul2[i]);
 			}

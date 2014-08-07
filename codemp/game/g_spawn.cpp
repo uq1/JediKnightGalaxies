@@ -1633,7 +1633,7 @@ void SP_worldspawn( void )
 
 		trap->G2API_InitGhoul2Model(&precachedKyle, "models/players/kyle/model.glm", 0, 0, -20, 0, 0);
 
-		if (precachedKyle && trap->G2API_HaveWeGhoul2Models(precachedKyle)) // better safe than sorry --eez
+		if (precachedKyle && trap->G2_HaveWeGhoul2Models(precachedKyle)) // better safe than sorry --eez
 		{
 			defSkin = trap->R_RegisterSkin("models/players/kyle/model_default.skin");
 			trap->G2API_SetSkin(precachedKyle, 0, defSkin, defSkin);
@@ -1644,7 +1644,7 @@ void SP_worldspawn( void )
 	{
 		trap->G2API_InitGhoul2Model(&g2SaberInstance, "models/weapons2/saber/saber_w.glm", 0, 0, -20, 0, 0);
 
-		if (g2SaberInstance && trap->G2API_HaveWeGhoul2Models(g2SaberInstance))	// better safe than sorry --eez
+		if (g2SaberInstance && trap->G2_HaveWeGhoul2Models(g2SaberInstance))	// better safe than sorry --eez
 		{
 			// indicate we will be bolted to model 0 (ie the player) on bolt 0 (always the right hand) when we get copied
 			trap->G2API_SetBoltInfo(g2SaberInstance, 0, 0);

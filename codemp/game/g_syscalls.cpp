@@ -1847,10 +1847,10 @@ static void TranslateSyscalls( void ) {
 	trap->R_RegisterSkin					= trap_R_RegisterSkin;
 	trap->CM_RegisterTerrain				= trap_CM_RegisterTerrain;
 	trap->RMG_Init							= trap_RMG_Init;
-	trap->G2API_ListModelBones				= trap_G2_ListModelBones;
-	trap->G2API_ListModelSurfaces			= trap_G2_ListModelSurfaces;
-	trap->G2API_HaveWeGhoul2Models			= trap_G2_HaveWeGhoul2Models;
-	trap->G2API_SetGhoul2ModelIndexes		= trap_G2_SetGhoul2ModelIndexes;
+	trap->G2_ListModelBones					= trap_G2_ListModelBones;
+	trap->G2_ListModelSurfaces				= trap_G2_ListModelSurfaces;
+	trap->G2_HaveWeGhoul2Models				= trap_G2_HaveWeGhoul2Models;
+	trap->G2_SetGhoul2ModelIndexes			= trap_G2_SetGhoul2ModelIndexes;
 	trap->G2API_GetBoltMatrix				= trap_G2API_GetBoltMatrix;
 	trap->G2API_GetBoltMatrix_NoReconstruct	= trap_G2API_GetBoltMatrix_NoReconstruct;
 	trap->G2API_GetBoltMatrix_NoRecNoRot	= trap_G2API_GetBoltMatrix_NoRecNoRot;

@@ -1032,10 +1032,10 @@ typedef struct gameImport_s {
 	int			(*CM_RegisterTerrain)					( const char *config );
 	void		(*RMG_Init)								( void );
 
-	void		(*G2API_ListModelBones)					( void *ghlInfo, int frame );
-	void		(*G2API_ListModelSurfaces)				( void *ghlInfo );
-	qboolean	(*G2API_HaveWeGhoul2Models)				( void *ghoul2 );
-	void		(*G2API_SetGhoul2ModelIndexes)			( void *ghoul2, qhandle_t *modelList, qhandle_t *skinList );
+	void		(*G2_ListModelBones)					( void *ghlInfo, int frame );
+	void		(*G2_ListModelSurfaces)					( void *ghlInfo );
+	qboolean	(*G2_HaveWeGhoul2Models)				( void *ghoul2 );
+	void		(*G2_SetGhoul2ModelIndexes)				( void *ghoul2, qhandle_t *modelList, qhandle_t *skinList );
 	qboolean	(*G2API_GetBoltMatrix)					( void *ghoul2, const int modelIndex, const int boltIndex, mdxaBone_t *matrix, const vec3_t angles, const vec3_t position, const int frameNum, qhandle_t *modelList, vec3_t scale );
 	qboolean	(*G2API_GetBoltMatrix_NoReconstruct)	( void *ghoul2, const int modelIndex, const int boltIndex, mdxaBone_t *matrix, const vec3_t angles, const vec3_t position, const int frameNum, qhandle_t *modelList, vec3_t scale );
 	qboolean	(*G2API_GetBoltMatrix_NoRecNoRot)		( void *ghoul2, const int modelIndex, const int boltIndex, mdxaBone_t *matrix, const vec3_t angles, const vec3_t position, const int frameNum, qhandle_t *modelList, vec3_t scale );

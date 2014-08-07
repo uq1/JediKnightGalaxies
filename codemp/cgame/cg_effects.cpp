@@ -556,7 +556,8 @@ void CG_DoGlass( vec3_t verts[4], vec3_t normal, vec3_t dmgPt, vec3_t dmgDir, fl
 				zz = z;
 			}
 
-			Vec2Set( biPoints[0], xx, zz );
+			biPoints[0][0] = xx;
+			biPoints[0][1] = zz;
 
 			if ( t + 1 > 0 && t + 1 < mxWidth )
 			{
@@ -576,7 +577,8 @@ void CG_DoGlass( vec3_t verts[4], vec3_t normal, vec3_t dmgPt, vec3_t dmgDir, fl
 				zz = z;
 			}
 
-			Vector2Set( biPoints[1], xx + stepWidth, zz );
+			biPoints[1][0] = xx + stepWidth;
+			biPoints[1][1] = zz;
 
 			if ( t + 1 > 0 && t + 1 < mxWidth )
 			{
@@ -596,7 +598,8 @@ void CG_DoGlass( vec3_t verts[4], vec3_t normal, vec3_t dmgPt, vec3_t dmgDir, fl
 				zz = z;
 			}
 
-			Vector2Set( biPoints[2], xx + stepWidth, zz + stepHeight);
+			biPoints[2][0] = xx + stepWidth;
+			biPoints[2][1] = zz + stepHeight;
 
 			if ( t > 0 && t < mxWidth )
 			{
@@ -616,7 +619,8 @@ void CG_DoGlass( vec3_t verts[4], vec3_t normal, vec3_t dmgPt, vec3_t dmgDir, fl
 				zz = z;
 			}
 
-			Vector2Set( biPoints[3], xx, zz + stepHeight );
+			biPoints[3][0] = xx;
+			biPoints[3][1] = zz + stepHeight;
 
 			CG_CalcBiLerp( verts, subVerts, biPoints );
 			

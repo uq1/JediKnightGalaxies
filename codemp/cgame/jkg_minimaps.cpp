@@ -49,76 +49,76 @@ static void MiniMap_ParseArea(cJSON *area) {
 	entry = &minimap_data.areas[minimap_data.areacount-1];
 	if (!minimap_data.areas) {
 		// ..crap...outta memory? are you kidding me?
-		CG_Printf("CRITITAL ERROR: Could not allocate memory for minimap area! (minimaps/%s.mmd)\n", cgs.rawmapname);
+		trap->Print("CRITITAL ERROR: Could not allocate memory for minimap area! (minimaps/%s.mmd)\n", cgs.rawmapname);
 		return;
 	}
 
 	item = cJSON_GetObjectItem(area, "mins");
 	if (!item || !cJSON_IsArray(item)) {
-		CG_Printf("WARNING: Area without 'mins' in minimaps/%s.mmd\n", cgs.rawmapname);
+		trap->Print("WARNING: Area without 'mins' in minimaps/%s.mmd\n", cgs.rawmapname);
 	} else {
 		cJSON_ReadFloatArray(item, 3, entry->mins);
 	}
 	
 	item = cJSON_GetObjectItem(area, "maxs");
 	if (!item || !cJSON_IsArray(item)) {
-		CG_Printf("WARNING: Area without 'maxs' in minimaps/%s.mmd\n", cgs.rawmapname);
+		trap->Print("WARNING: Area without 'maxs' in minimaps/%s.mmd\n", cgs.rawmapname);
 	} else {
 		cJSON_ReadFloatArray(item, 3, entry->maxs);
 	}
 
 	item = cJSON_GetObjectItem(area, "priority");
 	if (!item || !cJSON_IsNumber(item)) {
-		CG_Printf("WARNING: Area without 'priority' in minimaps/%s.mmd\n", cgs.rawmapname);
+		trap->Print("WARNING: Area without 'priority' in minimaps/%s.mmd\n", cgs.rawmapname);
 	} else {
 		entry->priority = cJSON_ToInteger(item);
 	}
 
 	item = cJSON_GetObjectItem(area, "map");
 	if (!item || !cJSON_IsString(item)) {
-		CG_Printf("WARNING: Area without 'map' in minimaps/%s.mmd\n", cgs.rawmapname);
+		trap->Print("WARNING: Area without 'map' in minimaps/%s.mmd\n", cgs.rawmapname);
 	} else {
-		entry->shader = trap_R_RegisterShader(cJSON_ToStringOpt(item, "*white"));
+		entry->shader = trap->R_RegisterShader(cJSON_ToStringOpt(item, "*white"));
 	}
 
 	item = cJSON_GetObjectItem(area, "mapbase");
 	if (!item || !cJSON_IsArray(item)) {
-		CG_Printf("WARNING: Area without 'mapbase' in minimaps/%s.mmd\n", cgs.rawmapname);
+		trap->Print("WARNING: Area without 'mapbase' in minimaps/%s.mmd\n", cgs.rawmapname);
 	} else {
 		cJSON_ReadFloatArray(item, 2, &entry->x);
 	}
 
 	item = cJSON_GetObjectItem(area, "width");
 	if (!item || !cJSON_IsNumber(item)) {
-		CG_Printf("WARNING: Area without 'width' in minimaps/%s.mmd\n", cgs.rawmapname);
+		trap->Print("WARNING: Area without 'width' in minimaps/%s.mmd\n", cgs.rawmapname);
 	} else {
 		entry->w = cJSON_ToNumber(item);
 	}
 
 	item = cJSON_GetObjectItem(area, "height");
 	if (!item || !cJSON_IsNumber(item)) {
-		CG_Printf("WARNING: Area without 'height' in minimaps/%s.mmd\n", cgs.rawmapname);
+		trap->Print("WARNING: Area without 'height' in minimaps/%s.mmd\n", cgs.rawmapname);
 	} else {
 		entry->h = cJSON_ToNumber(item);
 	}
 
 	item = cJSON_GetObjectItem(area, "xinvert");
 	if (!item || !cJSON_IsBoolean(item)) {
-		CG_Printf("WARNING: Area without 'xinvert' in minimaps/%s.mmd\n", cgs.rawmapname);
+		trap->Print("WARNING: Area without 'xinvert' in minimaps/%s.mmd\n", cgs.rawmapname);
 	} else {
 		entry->xinvert = cJSON_ToBoolean(item);
 	}
 
 	item = cJSON_GetObjectItem(area, "yinvert");
 	if (!item || !cJSON_IsBoolean(item)) {
-		CG_Printf("WARNING: Area without 'yinvert' in minimaps/%s.mmd\n", cgs.rawmapname);
+		trap->Print("WARNING: Area without 'yinvert' in minimaps/%s.mmd\n", cgs.rawmapname);
 	} else {
 		entry->yinvert = cJSON_ToBoolean(item);
 	}
 	
 	item = cJSON_GetObjectItem(area, "radius");
 	if (!item || !cJSON_IsNumber(item)) {
-		CG_Printf("WARNING: Area without 'radius' in minimaps/%s.mmd\n", cgs.rawmapname);
+		trap->Print("WARNING: Area without 'radius' in minimaps/%s.mmd\n", cgs.rawmapname);
 	} else {
 		entry->radius = cJSON_ToNumber(item);
 	}
@@ -136,31 +136,33 @@ void MiniMap_Init() {
 	// First, lets load some shaders :)
 	memset(&minimap_data, 0, sizeof(minimap_data));
 
-	minimap_data.maskshader = trap_R_RegisterShaderNoMip("minimaps/mask");
-	minimap_data.overlayshader = trap_R_RegisterShaderNoMip("gfx/jkghud/minimap_visionmask.png");
-	//minimap_data.nomapshader = trap_R_RegisterShader("gfx/jkghud/minimap_nomap.png");
-	minimap_data.nomapshader = trap_R_RegisterShader("gfx/jkghud/minimap_backup_radar.png");
+	minimap_data.maskshader = trap->R_RegisterShaderNoMip("minimaps/mask");
+	minimap_data.overlayshader = trap->R_RegisterShaderNoMip("gfx/jkghud/minimap_visionmask.png");
+	//minimap_data.nomapshader = trap->R_RegisterShader("gfx/jkghud/minimap_nomap.png");
+	minimap_data.nomapshader = trap->R_RegisterShader("gfx/jkghud/minimap_backup_radar.png");
 
-	len = trap_FS_FOpenFile(va("minimaps/%s.mmd", cgs.rawmapname), &f, FS_READ);
+	len = trap->FS_Open(va("minimaps/%s.mmd", cgs.rawmapname), &f, FS_READ);
 	if (len < 1) {
 		return;		// No minimap
 	}
 	// Awesome, we got a minimap def file, lets parse it
 	buff = (char *)malloc(len+1);
-	trap_FS_Read(buff,len,f);
+	trap->FS_Read(buff,len,f);
 	buff[len] = 0;
-	trap_FS_FCloseFile(f);
+	trap->FS_Close(f);
 
 	root = cJSON_ParsePooled(buff, error, sizeof(error));
 	if (!root) {
-		CG_Printf("Could not parse %s.mmd: %s\n", cgs.rawmapname, error);
+		free(buff);
+		trap->Print("Could not parse %s.mmd: %s\n", cgs.rawmapname, error);
 		return;
 	}
 
 	areas = cJSON_GetObjectItem(root, "areas");
 	if (!areas || !cJSON_IsArray(areas)) {
+		free(buff);
 		cJSON_Delete(root);
-		CG_Printf("Could not parse %s.mmd: No 'areas' section found\n", cgs.rawmapname);
+		trap->Print("Could not parse %s.mmd: No 'areas' section found\n", cgs.rawmapname);
 		return;
 	}
 
@@ -247,8 +249,8 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 	}
 	if (!minimap_data.maploaded) {
 		// Render the blank one if we got no map data
-		trap_R_SetColor(opacity);
-		/*trap_R_DrawStretchPic(
+		trap->R_SetColor(opacity);
+		/*trap->R_DrawStretchPic(
 			item->window.rect.x, 
 			item->window.rect.y, 
 			item->window.rect.w, 
@@ -264,8 +266,8 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 		}
 		if (minimap_data.currentarea == -1) {
 			// Not in a valid area, so no minimap
-			trap_R_SetColor(opacity);
-			/*trap_R_DrawStretchPic(
+			trap->R_SetColor(opacity);
+			/*trap->R_DrawStretchPic(
 				item->window.rect.x, 
 				item->window.rect.y, 
 				item->window.rect.w, 
@@ -315,11 +317,11 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 
 			// Time to render it
 			// First, reset our color
-			trap_R_SetColor(opacity);
+			trap->R_SetColor(opacity);
 			
 			// Next draw the alpha mask, this one uses an alpha func
 			// So the next layer (which uses depthfunc) will inherit this alpha
-			trap_R_DrawRotatePic2(
+			trap->R_DrawRotatePic2(
 				item->window.rect.x+(item->window.rect.w/2),	// Center X
 				item->window.rect.y+(item->window.rect.h/2),	// Center Y
 				item->window.rect.w,								// Radius W
@@ -332,7 +334,7 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 			// Cuz of the alpha layer we rendered, this shader will 
 			// be clipped off in areas the alpha layer was transparent
 			// This way we obtain the round shape
-			trap_R_DrawRotatePic2( 
+			trap->R_DrawRotatePic2( 
 				item->window.rect.x+(item->window.rect.w/2),	// Center X
 				item->window.rect.y+(item->window.rect.h/2),	// Center Y
 				item->window.rect.w,								// Radius W
@@ -346,8 +348,8 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 			// But only if we're not fading with another map
 			if (!minimap_data.fadetime) {
 				overlayColor[3] *= cg.jkg_HUDOpacity;
-				trap_R_SetColor(overlayColor);
-				trap_R_DrawStretchPic(
+				trap->R_SetColor(overlayColor);
+				trap->R_DrawStretchPic(
 					item->window.rect.x, 
 					item->window.rect.y, 
 					item->window.rect.w, 
@@ -355,7 +357,7 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 					0, 0, 1, 1,
 					minimap_data.overlayshader);
 			}
-			trap_R_SetColor(opacity);
+			trap->R_SetColor(opacity);
 		}
 		if (minimap_data.fadetime) {
 			// We're transitioning
@@ -370,8 +372,8 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 			if (minimap_data.newarea == -1) {
 				// Not in a valid area, so no minimap
 				transcolor[3] *= cg.jkg_HUDOpacity;
-				trap_R_SetColor(transcolor);
-				/*trap_R_DrawStretchPic(
+				trap->R_SetColor(transcolor);
+				/*trap->R_DrawStretchPic(
 					item->window.rect.x, 
 					item->window.rect.y, 
 					item->window.rect.w, 
@@ -421,13 +423,13 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 
 				// Time to render it
 				// First, reset our color
-				trap_R_SetColor(transcolor);
+				trap->R_SetColor(transcolor);
 
 				// Now we draw our actual minimap picture over it
 				// Cuz of the alpha layer we rendered, this shader will 
 				// be clipped off in areas the alpha layer was transparent
 				// This way we obtain the round shape
-				trap_R_DrawRotatePic2( 
+				trap->R_DrawRotatePic2( 
 					item->window.rect.x+(item->window.rect.w/2),	// Center X
 					item->window.rect.y+(item->window.rect.h/2),	// Center Y
 					item->window.rect.w,								// Radius W
@@ -437,8 +439,8 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 					entry->shader);
 
 				// And put in the overlay (the first pass will skip this if we're fading
-				trap_R_SetColor(overlayColor);
-				trap_R_DrawStretchPic(
+				trap->R_SetColor(overlayColor);
+				trap->R_DrawStretchPic(
 					item->window.rect.x, 
 					item->window.rect.y, 
 					item->window.rect.w, 
@@ -449,7 +451,7 @@ void MiniMap_Render(menuDef_t *menu, float radiusScale) {
 			}
 		}
 		// Now we flush the 'buffer' to ensure nothin else will be affected by the alpha func
-		trap_R_DrawRotatePic2(0, 0, 0, 0, 0, 0, 0, 0, 0, cgs.media.whiteShader);
-		trap_R_SetColor(opacity);
+		trap->R_DrawRotatePic2(0, 0, 0, 0, 0, 0, 0, 0, 0, cgs.media.whiteShader);
+		trap->R_SetColor(opacity);
 	}	
 }

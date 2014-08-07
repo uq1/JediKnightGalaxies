@@ -65,19 +65,6 @@
 #define CLAMP( x, y, z ) BUMP( x, y ); CAP( x, z )
 #endif
 
-/*
-#define G2_EHNANCEMENTS
-
-#ifdef G2_EHNANCEMENTS
-//these two will probably explode if they're defined independent of one another.
-//rww - RAGDOLL_BEGIN
-#define JK2_RAGDOLL
-//rww - RAGDOLL_END
-//rww - Bone cache for multiplayer base.
-#define MP_BONECACHE
-#endif
-*/
-
 #ifndef FINAL_BUILD
 	// may want to enable timing and leak checking again. requires G2API changes.
 //	#define G2_PERFORMANCE_ANALYSIS
@@ -153,9 +140,9 @@ typedef unsigned long ulong;
 #ifndef __cplusplus
 typedef enum {qfalse, qtrue}	qboolean;	// cuz apparently the engine still includes this in C files for some reason --eez
 #else
-#define qboolean	bool
-#define qfalse		false
-#define qtrue		true
+typedef bool qboolean;
+#define qfalse false
+#define qtrue true
 #endif
 
 #ifndef min
@@ -240,7 +227,7 @@ typedef int32_t qhandle_t, thandle_t, fxHandle_t, sfxHandle_t, fileHandle_t, cli
 #define	MAX_QINT			0x7fffffff
 #define	MIN_QINT			(-MAX_QINT-1)
 
-#define INT_ID( a, b, c, d ) (uint32_t)((((a) & 0xff) << 24) | (((b) & 0xff) << 16) | (((c) & 0xff) << 8) | ((d) & 0xff))
+#define INT_ID( a, b, c, d ) (uint32_t)((((d) & 0xff) << 24) | (((c) & 0xff) << 16) | (((b) & 0xff) << 8) | ((a) & 0xff))
 
 // angle indexes
 #define	PITCH				0		// up / down
@@ -610,7 +597,7 @@ enum sharedEIKMoveState
 };
 
 //material stuff needs to be shared
-enum //# material_e
+typedef enum //# material_e
 {
 	MAT_METAL = 0,	// scorched blue-grey metal
 	MAT_GLASS,		// not a real chunk type, just plays an effect with glass sprites
@@ -632,8 +619,7 @@ enum //# material_e
 
 	NUM_MATERIALS
 
-};
-typedef int material_t;
+} material_t;
 
 //rww - bot stuff that needs to be shared
 #ifdef __AUTOWAYPOINT__

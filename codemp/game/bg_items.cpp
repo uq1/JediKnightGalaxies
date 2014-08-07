@@ -1,13 +1,13 @@
 #include "qcommon/q_shared.h"
 #include "bg_items.h"
 #include "bg_weapons.h"
-#ifdef _GAME
+#if defined(_GAME)
     #include "g_local.h"
     #include "jkg_items.h"
     typedef itemData_t bgItemData_t;
     extern itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
     #define itemTable itemLookupTable
-#else
+#elif defined(_CGAME)
     #include "../cgame/cg_local.h"
     #include "../cgame/jkg_cg_items.h"
     typedef cgItemData_t bgItemData_t;

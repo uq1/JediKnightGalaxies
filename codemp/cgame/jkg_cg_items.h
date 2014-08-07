@@ -37,13 +37,13 @@ typedef struct
 
     // LOOK AT ME, I'M A COMMENT.
     // Okay, I have your attention now. If you edit this struct, make sure you
-    // update the struct in ui/jkg_inventory.c too.
+    // update the struct in ui/jkg_inventory.h too.
 
 
 	//oboi, clientside time!
 	//Basic Item Characteristics
 	char displayName[MAX_ITEM_NAME];
-	char itemIcon [MAX_QPATH];
+	char itemIcon[MAX_QPATH];
 	char xml[MAX_QPATH];
 	unsigned int itemID;
 	jkgItemType_t itemType;

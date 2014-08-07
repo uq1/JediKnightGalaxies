@@ -632,7 +632,7 @@ Crossover API
 // The crossover API allows cgame and UI to communicate
 #include "game/bg_weapons.h"
 
-typedef struct
+typedef struct uiCrossoverExports_s
 {
 	qboolean		(*HandleServerCommand)( const char *command );
 	void			(*SetEscapeTrap)( qboolean activate );
@@ -642,7 +642,7 @@ typedef struct
 	void			(*ShopNotify)( int msg );
 } uiCrossoverExports_t;
 
-typedef struct
+typedef struct cgCrossoverExports_s
 {
 	void			(*SendClientCommand)( const char *command );
 	qboolean		(*EscapeTrapped)( void );

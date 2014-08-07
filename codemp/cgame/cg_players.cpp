@@ -6618,12 +6618,12 @@ void CG_SaberCompWork(vec3_t start, vec3_t end, centity_t *owner, int saberNum, 
 
 				if (owner->serverSaberFleshImpact)
 				{ //do standard player/live ent hit sparks
-					trap->FX_PlayEffectID( hitPersonFxID, trace.endpos, trace.plane.normal, -1, -1 );
+					trap->FX_PlayEffectID( hitPersonFxID, trace.endpos, trace.plane.normal, -1, -1, false );
 					//trap->S_StartSound(trace.endpos, trace.entityNum, CHAN_AUTO, trap->S_RegisterSound(va("sound/weapons/saber/saberhit%i.wav", Q_irand(1, 3))));
 				}
 				else
 				{ //do the cut effect
-					trap->FX_PlayEffectID( hitOtherFxID, trace.endpos, trace.plane.normal, -1, -1 );
+					trap->FX_PlayEffectID( hitOtherFxID, trace.endpos, trace.plane.normal, -1, -1, false );
 				}
 				doEffect = qfalse;
 			}
@@ -6785,7 +6785,7 @@ void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, in
 				{
 					if (!(trace.surfaceFlags & SURF_NOIMPACT) ) // never spark on sky
 					{
-						trap->FX_PlayEffectID( cgs.effects.mSparks, trace.endpos, trDir, -1, -1 );
+						trap->FX_PlayEffectID( cgs.effects.mSparks, trace.endpos, trDir, -1, -1, false );
 					}
 				}
 
@@ -7029,7 +7029,7 @@ CheckTrail:
 
 						if (cg_saberTrail.integer == 2 && cg_shadows.integer != 2 && cgs.glconfig.stencilBits >= 4)
 						{
-							trap->R_SetRefractProp(1.0f, 0.0f, qtrue, qtrue); //don't need to do this every frame.. but..
+							trap->R_SetRefractionProperties(1.0f, 0.0f, qtrue, qtrue); //don't need to do this every frame.. but..
 
 							if (BG_SaberInAttack(cent->currentState.saberMove)
 								||BG_SuperBreakWinAnim(cent->currentState.torsoAnim))
@@ -7764,9 +7764,9 @@ void CG_G2AnimEntModelLoad(centity_t *cent)
 		}
 	}
 
-	trap->S_ShutUp(qtrue);
+	trap->S_Shutup(qtrue);
 	CG_HandleNPCSounds(cent); //handle sound loading here as well.
-	trap->S_ShutUp(qfalse);
+	trap->S_Shutup(qfalse);
 }
 
 //for now this is just gonna create a big explosion on the area of the surface,
@@ -7850,12 +7850,12 @@ static void CG_CreateSurfaceDebris(centity_t *cent, int surfNum, int fxID, qbool
 	BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, v);
 	BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, d);
 
-	trap->FX_PlayEffectID(fxID, v, d, -1, -1);
+	trap->FX_PlayEffectID(fxID, v, d, -1, -1, false);
 	if ( throwPart && lostPartFX )
 	{//throw off a ship part, too
 		vec3_t	fxFwd;
 		AngleVectors( cent->lerpAngles, fxFwd, NULL, NULL );
-		trap->FX_PlayEffectID(lostPartFX, v, fxFwd, -1, -1);
+		trap->FX_PlayEffectID(lostPartFX, v, fxFwd, -1, -1, false);
 	}
 }
 
@@ -7906,7 +7906,7 @@ static void CG_CreateSurfaceSmoke(centity_t *cent, int shipSurf, int fxID)
 	BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, v);
 	BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, d);
 
-	trap->FX_PlayEffectID(fxID, v, d, -1, -1);
+	trap->FX_PlayEffectID(fxID, v, d, -1, -1, false);
 }
 
 #define SMOOTH_G2ANIM_LERPANGLES
@@ -8612,11 +8612,11 @@ static QINLINE void CG_VehicleEffects(centity_t *cent)
 				//if ( pVehNPC->m_iArmor <= 75 )
 				if (0)
 				{//hurt
-					trap->FX_PlayEffectID( cgs.effects.mBlackSmoke, org, fwd, -1, -1 );
+					trap->FX_PlayEffectID( cgs.effects.mBlackSmoke, org, fwd, -1, -1, false );
 				}
 				else if ( pVehNPC->m_pVehicleInfo->iTrailFX )
 				{//okay, do normal trail
-					trap->FX_PlayEffectID( pVehNPC->m_pVehicleInfo->iTrailFX, org, fwd, -1, -1 );
+					trap->FX_PlayEffectID( pVehNPC->m_pVehicleInfo->iTrailFX, org, fwd, -1, -1, false );
 				}
 				//=====================================================================
 				//EXHAUST FX
@@ -8684,7 +8684,7 @@ static QINLINE void CG_VehicleEffects(centity_t *cent)
 							BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, boltOrg);
 							VectorCopy(fwd, boltDir); //fixme?
 
-							trap->FX_PlayEffectID( fx, boltOrg, boltDir, -1, -1 );
+							trap->FX_PlayEffectID( fx, boltOrg, boltDir, -1, -1, false );
 						}
 					}
 				}
@@ -8721,7 +8721,7 @@ static QINLINE void CG_VehicleEffects(centity_t *cent)
 						BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, boltOrg);
 						VectorCopy(fwd, boltDir); //fixme?
 
-						trap->FX_PlayEffectID( pVehNPC->m_pVehicleInfo->iTrailFX, boltOrg, boltDir, -1, -1 );
+						trap->FX_PlayEffectID( pVehNPC->m_pVehicleInfo->iTrailFX, boltOrg, boltDir, -1, -1, false );
 					}
 				}
 			}
@@ -8752,7 +8752,7 @@ static QINLINE void CG_VehicleEffects(centity_t *cent)
 
 					//	BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, boltOrg);
 					//}
-					trap->FX_PlayEffectID( cgs.effects.mShipDestBurning, boltOrg, up, -1, -1 );
+					trap->FX_PlayEffectID( cgs.effects.mShipDestBurning, boltOrg, up, -1, -1, false );
 				}
 			}
 			if ( cent->currentState.brokenLimbs )
@@ -9635,7 +9635,7 @@ void CG_Player( centity_t *cent ) {
 	{
 		clientNum = cent->currentState.clientNum;
 		if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-			CG_Error( "Bad clientNum on player entity");
+			trap->Error( ERR_DROP, "Bad clientNum on player entity" );
 		}
 		ci = &cgs.clientinfo[ clientNum ];
 	}
@@ -9843,8 +9843,8 @@ void CG_Player( centity_t *cent ) {
 				{ //create effects
 					//FIXME: Just one big effect
 					//Play the effect
-					trap->FX_PlayEffectID(cgs.effects.mJetpack, flamePos, flameDir, -1, -1);
-					trap->FX_PlayEffectID(cgs.effects.mJetpack, flamePos, flameDir, -1, -1);
+					trap->FX_PlayEffectID(cgs.effects.mJetpack, flamePos, flameDir, -1, -1, false);
+					trap->FX_PlayEffectID(cgs.effects.mJetpack, flamePos, flameDir, -1, -1, false);
 
 					//Keep the jet fire sound looping
 					trap->S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
@@ -9855,13 +9855,13 @@ void CG_Player( centity_t *cent ) {
 					//FIXME: Different smaller effect for idle
 					//Play the effect
 
-					trap->FX_PlayEffectID(cgs.effects.mJetpack, flamePos, flameDir, -1, -1);
+					trap->FX_PlayEffectID(cgs.effects.mJetpack, flamePos, flameDir, -1, -1, false);
 				}
 
 				n++;
 			}
 			trap->S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
-						trap->S_RegisterSound( "sound/jkg/jetpack/jethover" /*"sound/effects/fire_lp"*/ ) );
+			trap->S_RegisterSound( "sound/jkg/jetpack/jethover" /*"sound/effects/fire_lp"*/ ) );
 			//trap->S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
 				//trap->S_RegisterSound( "sound/boba/JETHOVER" ) );
 		}
@@ -11880,7 +11880,7 @@ stillDoSaber:
 
 				if (cg_shadows.integer != 2 && cgs.glconfig.stencilBits >= 4 && cg_renderToTextureFX.integer)
 				{
-					trap->R_SetRefractProp(1.0f, 0.0f, qfalse, qfalse); //don't need to do this every frame.. but..
+					trap->R_SetRefractionProperties(1.0f, 0.0f, qfalse, qfalse); //don't need to do this every frame.. but..
 					legs.customShader = 2; //crazy "refractive" shader
 #ifdef __EXPERIMENTAL_SHADOWS__
 					CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
@@ -12379,7 +12379,7 @@ endOfCall:
 						{
 							if (cg_shadows.integer != 2 && cgs.glconfig.stencilBits >= 4 && cg_renderToTextureFX.integer)
 							{
-								trap->R_SetRefractProp(1.0f, 0.0f, qfalse, qfalse); //don't need to do this every frame.. but..
+								trap->R_SetRefractionProperties(1.0f, 0.0f, qfalse, qfalse); //don't need to do this every frame.. but..
 								armorG2[ijk].customShader = 2; //crazy "refractive" shader
 								trap->R_AddRefEntityToScene( &armorG2[ijk] );
 								armorG2[ijk].customShader = 0;
@@ -12426,7 +12426,11 @@ endOfCall:
 				trap->R_AddRefEntityToScene(&armorG2[ijk]);
 			}
 
-			if (!cg.snap->ps.duelInProgress && cent->currentState.bolt1 && !(cent->currentState.eFlags & EF_DEAD) && cent->currentState.number != cg.snap->ps.clientNum && (!cg.snap->ps.duelInProgress || cg.snap->ps.duelIndex != cent->currentState.number))
+			if (!cg.snap->ps.duelInProgress &&
+					cent->currentState.bolt1 &&
+					!(cent->currentState.eFlags & EF_DEAD) &&
+					cent->currentState.number != cg.snap->ps.clientNum &&
+					(!cg.snap->ps.duelInProgress || cg.snap->ps.duelIndex != cent->currentState.number))
 			{
 				armorG2[ijk].shaderRGBA[0] = 50;
 				armorG2[ijk].shaderRGBA[1] = 50;

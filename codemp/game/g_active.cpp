@@ -2840,7 +2840,7 @@ void ClientThink_real( gentity_t *ent ) {
 			}
 		}
 		else if (thrower->inuse && thrower->client && thrower->ghoul2 &&
-			trap->G2API_HaveWeGhoul2Models(thrower->ghoul2))
+			trap->G2_HaveWeGhoul2Models(thrower->ghoul2))
 		{
 #if 0
 			int lHandBolt = trap->G2API_AddBolt(thrower->ghoul2, 0, "*l_hand");
