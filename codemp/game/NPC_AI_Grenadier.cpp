@@ -568,7 +568,7 @@ void NPC_BSGrenadier_Attack( void )
 		NPC_AimAdjust( -1 );//adjust aim worse longer we cannot see enemy
 	}
 	/*
-	else if ( trap_InPVS( NPC->enemy->r.currentOrigin, NPC->r.currentOrigin ) )
+	else if ( trap->InPVS( NPC->enemy->r.currentOrigin, NPC->r.currentOrigin ) )
 	{
 		NPCInfo->enemyLastSeenTime = level.time;
 		faceEnemy3 = qtrue;

@@ -55,7 +55,6 @@ set(MPGameGameFiles
 	"${MPDir}/game/g_session.cpp"
 	"${MPDir}/game/g_spawn.cpp"
 	"${MPDir}/game/g_svcmds.cpp"
-	"${MPDir}/game/g_syscalls.cpp"
 	"${MPDir}/game/g_target.cpp"
 	"${MPDir}/game/g_team.cpp"
 	"${MPDir}/game/g_timer.cpp"

@@ -557,21 +557,17 @@ void JKG_Shop_UpdateNotify(int msg)
 			memset(&shopState, 0, sizeof(shopState));
 			shopState.active = qtrue;
 
-			trap->Syscall_UI();
 			shopState.menu = Menus_FindByName("jkg_shop");
 			if(shopState.menu && Menus_ActivateByName("jkg_shop"))
 			{
 				trap->Key_SetCatcher (trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
 			}
 			shopState.selectedShopItem = 0;
-			trap->Syscall_CG();
 			break;
 		case 1:
 			{
-				trap->Syscall_UI();
 				JKG_Shop_UpdateShopStuff(ui_inventoryFilter.integer);
 				JKG_Shop_UpdateCreditDisplay();
-				trap->Syscall_CG();
 			}
 			break;
 	}

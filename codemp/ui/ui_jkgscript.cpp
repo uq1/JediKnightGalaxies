@@ -425,10 +425,6 @@ void JKGScript_SetupKeywordHash(void) {
 void UI_RunJKGScript(const char *scriptname, char **args) {
 	JKGkeywordHashUI_t *script = JKGKeywordHashUI_Find(JKGScriptHash, ( char * ) scriptname);
 	if (!script || !script->func) return;
-	// HACK-HACK-HACK-HACK-HACK-HACK!! Yes i know this is extremely ugly, but this way we can cast a void * to a function pointer
-	// without causing any warnings :D
-	// RIP Boba's hack!
-	//((void (*)(char **))( *((void (**)())&script->func) ))(args);
 	script->func (args);
 }
 
@@ -436,11 +432,6 @@ qboolean UI_RunSvCommand(const char *command) {
 	// Only called by cgame, dont use trap calls inside this or nested functions!
 	JKGkeywordHashSv_t *cmd = JKGKeywordHashSv_Find(JKGCmdsHash, ( char * ) command);
 	if (!cmd || !cmd->func) return qfalse;
-	trap->Syscall_UI();
-	// Inside this function trap calls are safe to be used
-	// RIP Boba's hack!
-	//((void (*)(void)) ( *((void (**)())&cmd->func) ))();
 	cmd->func();
-	trap->Syscall_CG();
 	return qtrue;
 }

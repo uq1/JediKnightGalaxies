@@ -8528,14 +8528,12 @@ static void UI_StartServerRefresh(qboolean full)
 			// cleaned this up slightly --eez
 			if(!Q_stricmp(serverFilters[ui_serverFilterType.integer].description, "JKG"))
 			{
-				trap->LAN_ChangeProtocol( 27 );
 				trap->Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d 26\n", i ) );
 				// TODO: change back over to 27, someone changed this to be 26 on the engine and it needs to all be switched back over.
 
 			}
 			else
 			{
-				trap->LAN_ChangeProtocol( atoi(UI_Cvar_VariableString("protocol")) );
 				trap->Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d %s\n", i, UI_Cvar_VariableString("protocol") ) );
 			}
 		}
@@ -8714,62 +8712,4 @@ Q_EXPORT uiExport_t* QDECL GetModuleAPI( int apiVersion, uiImport_t *import )
 	uie.MenuReset			= Menu_Reset;
 
 	return &uie;
-}
-
-/*
-============
-vmMain
-============
-*/
-
-Q_EXPORT intptr_t vmMain( int command, intptr_t arg0, intptr_t arg1, intptr_t arg2, intptr_t arg3, intptr_t arg4,
-	intptr_t arg5, intptr_t arg6, intptr_t arg7, intptr_t arg8, intptr_t arg9, intptr_t arg10, intptr_t arg11 )
-{
-	switch ( command ) {
-	case UI_GETAPIVERSION:
-		return UI_LEGACY_API_VERSION;
-
-	case UI_INIT:
-		UI_Init( arg0 );
-		return 0;
-
-	case UI_SHUTDOWN:
-		UI_Shutdown();
-		return 0;
-
-	case UI_KEY_EVENT:
-		UI_KeyEvent( arg0, arg1 );
-		return 0;
-
-	case UI_MOUSE_EVENT:
-		UI_MouseEvent( arg0, arg1 );
-		return 0;
-
-	case UI_REFRESH:
-		UI_Refresh( arg0 );
-		return 0;
-
-	case UI_IS_FULLSCREEN:
-		return Menus_AnyFullScreenVisible();
-
-	case UI_SET_ACTIVE_MENU:
-		UI_SetActiveMenu( (uiMenuCommand_t)arg0 );
-		return 0;
-
-	case UI_CONSOLE_COMMAND:
-		return UI_ConsoleCommand(arg0);
-
-	case UI_DRAW_CONNECT_SCREEN:
-		UI_DrawConnectScreen( arg0 );
-		return 0;
-
-	case UI_MENU_RESET:
-		Menu_Reset();
-		return 0;
-
-	case UI_CROSSOVER_API:
-		return (intptr_t)UI_InitializeCrossoverAPI( (cgCrossoverExports_t *)arg0 );
-	}
-
-	return -1;
 }

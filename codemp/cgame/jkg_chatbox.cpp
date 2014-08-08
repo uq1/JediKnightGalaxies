@@ -71,14 +71,7 @@ void ChatBox_SetPaletteAlpha(float alpha) {
 	// This modifies the alpha of the JA color palette
 	// As well as the drop shadow color
 	// Always reset this back to 1 after you're done!
-	int i;
-	vec4_t fantasticArray[8];
-
-	trap->JKG_GetColorTable(fantasticArray);
-	for (i=0; i<8; i++) {
-		// Color code palette (vec4_t array)
-		fantasticArray[i][3] = alpha;
-	}
+	trap->JKG_SetColorTableAlpha(alpha);
 	// Drop shadow color
 	//*(float *)(0x5582B8 + 12) = alpha;		// FIXME: this address didn't look correct in the first place --eez
 }

@@ -81,50 +81,7 @@ vm_t *VM_Restart( vm_t *vm ) {
 
 	VM_Free( vm );
 
-	if ( saved.isLegacy )
-		return VM_CreateLegacy( saved.slot, saved.legacy.syscall );
-	else
-		return VM_Create( saved.slot );
-}
-
-vm_t *VM_CreateLegacy( vmSlots_t vmSlot, intptr_t( *systemCalls )(intptr_t *) ) {
-	vm_t *vm = NULL;
-
-	if ( !systemCalls ) {
-		Com_Error( ERR_FATAL, "VM_CreateLegacy: bad parms" );
-		return NULL;
-	}
-
-	// see if we already have the VM
-	if ( vmTable[vmSlot] )
-		return vmTable[vmSlot];
-
-	// find a free vm
-	vmTable[vmSlot] = (vm_t *)Z_Malloc( sizeof(*vm), TAG_VM, qtrue );
-	vm = vmTable[vmSlot];
-
-	// initialise it
-	vm->isLegacy = qtrue;
-	vm->slot = vmSlot;
-	Q_strncpyz( vm->name, vmNames[vmSlot], sizeof(vm->name) );
-	vm->legacy.syscall = systemCalls;
-
-	// find the legacy syscall api
-	FS_FindPureDLL( vm->name );
-	Com_Printf( "VM_CreateLegacy: %s"ARCH_STRING DLL_EXT, vm->name );
-	vm->dllHandle = Sys_LoadLegacyGameDll( vm->name, &vm->legacy.main, VM_DllSyscall );
-
-	if ( vm->dllHandle ) {
-		if ( com_developer->integer )
-			Com_Printf( " succeeded [0x%" PRIxPTR "]\n", (uintptr_t)vm->dllHandle );
-		else
-			Com_Printf( " succeeded\n" );
-		return vm;
-	}
-
-	VM_Free( vm );
-	Com_Printf( " failed!\n" );
-	return NULL;
+	return VM_Create( saved.slot );
 }
 
 vm_t *VM_Create( vmSlots_t vmSlot ) {
@@ -144,7 +101,6 @@ vm_t *VM_Create( vmSlots_t vmSlot ) {
 	vm = vmTable[vmSlot];
 
 	// initialise it
-	vm->isLegacy = qfalse;
 	vm->slot = vmSlot;
 	Q_strncpyz( vm->name, vmNames[vmSlot], sizeof(vm->name) );
 

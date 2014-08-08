@@ -68,7 +68,6 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/cg_servercmds.cpp"
 	"${MPDir}/cgame/cg_snapshot.cpp"
 	"${MPDir}/cgame/cg_spawn.cpp"
-	"${MPDir}/cgame/cg_syscalls.cpp"
 	"${MPDir}/cgame/cg_turret.cpp"
 	"${MPDir}/cgame/cg_view.cpp"
 	"${MPDir}/cgame/cg_weaponinit.cpp"

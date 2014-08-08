@@ -1832,6 +1832,10 @@ void CG_UpdateCvars( void );
 Q_EXPORT intptr_t vmMain( int command, intptr_t arg0, intptr_t arg1, intptr_t arg2, intptr_t arg3, intptr_t arg4,
 	intptr_t arg5, intptr_t arg6, intptr_t arg7, intptr_t arg8, intptr_t arg9, intptr_t arg10, intptr_t arg11 );
 
+void C_Trace( void );
+void C_G2Trace( void );
+void C_G2Mark( void );
+
 void CG_DrawMiscEnts(void);
 
 const char *CG_ConfigString( int index );
@@ -2195,18 +2199,6 @@ void CG_Spark( vec3_t origin, vec3_t dir );
 
 // Environmental effects
 void CG_Spark( vec3_t origin, vec3_t dir );
-
-void trap_CO_Shutdown( void );
-void trap_Syscall_UI( void );
-void trap_Syscall_CG( void );
-
-void trap_JKG_GetColorTable( float **table );
-float **trap_JKG_GetViewAngles( void );
-void trap_JKG_SetViewAngles( vec3_t viewangles );
-
-// FX stuff --eez
-char *trap_FX_GetSharedMemory( void );
-void trap_R_AddMiniRefEntityToScene( miniRefEntity_t *ent );
 
 // Weapon prototypes
 void FX_BryarHitWall( vec3_t origin, vec3_t normal );

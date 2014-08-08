@@ -274,7 +274,6 @@ static int GLua_NPC_ToString(lua_State *L) {
 }
 
 extern void NPC_SetMoveGoal( gentity_t *ent, vec3_t point, int radius, qboolean isNavGoal, int combatPoint, gentity_t *targetEnt ); //isNavGoal = qfalse, combatPoint = -1, targetEnt = NULL
-void trap_ICARUS_TaskIDSet(gentity_t *ent, int taskType, int taskID);
 void GLua_NPCEV_OnReached(gentity_t *self);
 #define	WAYPOINT_NONE	-1
 

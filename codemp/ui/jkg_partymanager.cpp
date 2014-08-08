@@ -278,25 +278,19 @@ void JKG_PartyMngt_UpdateNotify(int msg) {
 		if (!PMngtData.active) {
 			return;
 		}
-		trap->Syscall_UI();
 		JKG_PartyMngt_UpdateState();
-		trap->Syscall_CG();
 	} else if (msg == 1) {
 		if (!PMngtData.active) {
 			return;
 		}
-		trap->Syscall_UI();
 		JKG_PartyMngt_UpdateSeekers();
-		trap->Syscall_CG();
 	} else if (msg == 10) {
-		trap->Syscall_UI();
 		memset(&PMngtData, 0, sizeof(PMngtData));
 		PMngtData.active = 1;
 		if (Menus_ActivateByName("jkg_partymanagement"))
 		{
 			trap->Key_SetCatcher( trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );			
 		}
-		trap->Syscall_CG();
 	}
 }
 

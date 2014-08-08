@@ -123,9 +123,6 @@ void UI_CleanupGhoul2(void);
 static int	C_PointContents(void);
 static void C_GetLerpOrigin(void);
 static void C_GetLerpData(void);
-static void C_Trace(void);
-static void C_G2Trace(void);
-static void C_G2Mark(void);
 static int	CG_RagCallback(int callType);
 static void C_ImpactMark(void);
 
@@ -145,8 +142,6 @@ extern vec3_t cg_autoMapAngle;
 
 void CG_MiscEnt(void);
 void CG_DoCameraShake( vec3_t origin, float intensity, int radius, int time );
-
-qboolean cgame_initializing = qtrue;
 
 //do we have any force powers that we would normally need to cycle to?
 qboolean CG_NoUseableForce(void)
@@ -215,17 +210,17 @@ static void C_GetLerpData( void ) {
 	}
 }
 
-static void C_Trace( void ) {
+void C_Trace( void ) {
 	TCGTrace *td = &cg.sharedBuffer.trace;
 	CG_Trace( &td->mResult, td->mStart, td->mMins, td->mMaxs, td->mEnd, td->mSkipNumber, td->mMask );
 }
 
-static void C_G2Trace( void ) {
+void C_G2Trace( void ) {
 	TCGTrace *td = &cg.sharedBuffer.trace;
 	CG_G2Trace( &td->mResult, td->mStart, td->mMins, td->mMaxs, td->mEnd, td->mSkipNumber, td->mMask );
 }
 
-static void C_G2Mark( void ) {
+void C_G2Mark( void ) {
 	TCGG2Mark *td = &cg.sharedBuffer.g2Mark;
 	trace_t tr;
 	vec3_t end;
@@ -2575,8 +2570,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 	const char	*s;
 	int i = 0;
 
-	cgame_initializing = qtrue;
-
 	// Do the engine patches
 	ChatBox_InitSystem();
 	trap->Cvar_Set("connmsg", ""); // Clear connection message override
@@ -2879,8 +2872,6 @@ Ghoul2 Insert End
 #ifdef SWF
 	cgs.media.swfTestShader = trap->R_RegisterShaderNoMip("animation/swf/test");
 #endif
-
-	cgame_initializing = qfalse;
 }
 
 //makes sure returned string is in localized format
@@ -3253,141 +3244,4 @@ Q_EXPORT cgameExport_t* QDECL GetModuleAPI( int apiVersion, cgameImport_t *impor
 	cge.MessageMode				= ChatBox_UseMessageMode;
 
 	return &cge;
-}
-
-/*
-================
-vmMain
-
-This is the only way control passes into the module.
-This must be the very first function compiled into the .q3vm file
-================
-*/
-Q_EXPORT intptr_t vmMain( int command, intptr_t arg0, intptr_t arg1, intptr_t arg2, intptr_t arg3, intptr_t arg4,
-	intptr_t arg5, intptr_t arg6, intptr_t arg7, intptr_t arg8, intptr_t arg9, intptr_t arg10, intptr_t arg11 )
-{
-	switch ( command ) {
-	case CG_INIT:
-		CG_Init( arg0, arg1, arg2 );
-		return 0;
-
-	case CG_SHUTDOWN:
-		CG_Shutdown();
-		return 0;
-
-	case CG_CONSOLE_COMMAND:
-		return CG_ConsoleCommand();
-
-	case CG_DRAW_ACTIVE_FRAME:
-		CG_DrawActiveFrame( arg0, arg1, arg2 );
-		return 0;
-
-	case CG_CROSSHAIR_PLAYER:
-		return CG_CrosshairPlayer();
-
-	case CG_LAST_ATTACKER:
-		return CG_LastAttacker();
-
-	case CG_KEY_EVENT:
-		CG_KeyEvent( arg0, arg1 );
-		return 0;
-
-	case CG_MOUSE_EVENT:
-		_CG_MouseEvent( arg0, arg1 );
-		return 0;
-
-	case CG_EVENT_HANDLING:
-		CG_EventHandling( arg0 );
-		return 0;
-
-	case CG_POINT_CONTENTS:
-		return C_PointContents();
-
-	case CG_GET_LERP_ORIGIN:
-		C_GetLerpOrigin();
-		return 0;
-
-	case CG_GET_LERP_DATA:
-		C_GetLerpData();
-		return 0;
-
-	case CG_GET_GHOUL2:
-		return (intptr_t)cg_entities[arg0].ghoul2; //NOTE: This is used by the effect bolting which is actually not used at all.
-											  //I'm fairly sure if you try to use it with vm's it will just give you total
-											  //garbage. In other words, use at your own risk.
-
-	case CG_GET_MODEL_LIST:
-		return (intptr_t)cgs.gameModels;
-
-	case CG_CALC_LERP_POSITIONS:
-		CG_CalcEntityLerpPositions( &cg_entities[arg0] );
-		return 0;
-
-	case CG_TRACE:
-		C_Trace();
-		return 0;
-
-	case CG_GET_SORTED_FORCE_POWER:
-		return forcePowerSorted[arg0];
-
-	case CG_G2TRACE:
-		C_G2Trace();
-		return 0;
-
-	case CG_G2MARK:
-		C_G2Mark();
-		return 0;
-
-	case CG_RAG_CALLBACK:
-		return CG_RagCallback( arg0 );
-
-	case CG_INCOMING_CONSOLE_COMMAND:
-		return CG_IncomingConsoleCommand();
-
-	case CG_GET_USEABLE_FORCE:
-		return CG_NoUseableForce();
-
-	case CG_GET_ORIGIN:
-		CG_GetOrigin( arg0, (float *)arg1 );
-		return 0;
-
-	case CG_GET_ANGLES:
-		CG_GetAngles( arg0, (float *)arg1 );
-		return 0;
-
-	case CG_GET_ORIGIN_TRAJECTORY:
-		return (intptr_t)CG_GetOriginTrajectory( arg0 );
-
-	case CG_GET_ANGLE_TRAJECTORY:
-		return (intptr_t)CG_GetAngleTrajectory( arg0 );
-
-	case CG_ROFF_NOTETRACK_CALLBACK:
-		_CG_ROFF_NotetrackCallback( arg0, (const char *)arg1 );
-		return 0;
-
-	case CG_IMPACT_MARK:
-		C_ImpactMark();
-		return 0;
-
-	case CG_MAP_CHANGE:
-		CG_MapChange();
-		return 0;
-
-	case CG_AUTOMAP_INPUT:
-		CG_AutomapInput();
-		return 0;
-
-	case CG_MISC_ENT:
-		CG_MiscEnt();
-		return 0;
-
-	case CG_FX_CAMERASHAKE:
-		CG_FX_CameraShake();
-		return 0;
-
-	default:
-		trap->Error( ERR_DROP, "vmMain: unknown command %i", command );
-		break;
-	}
-	return -1;
 }

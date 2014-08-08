@@ -614,8 +614,6 @@ void Controls_SetDefaults( void );
 void CL_InitMultiMasterServer(void);
 void CL_ShutdownMultiMasterServer(void);
 
-void trap_JKG_ChangeProtocol( int whatProtocol );
-
 
 /*
 Ghoul2 Insert End

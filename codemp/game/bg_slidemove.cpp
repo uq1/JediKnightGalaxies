@@ -6,8 +6,12 @@
 #include "bg_public.h"
 #include "bg_local.h"
 
-#ifdef _GAME //yeah, this is kind of bad
-#include "g_local.h"
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_UI)
+	#include "../ui/ui_local.h"
+#elif defined(_CGAME)
+	#include "../cgame/cg_local.h"
 #endif
 
 /*
@@ -18,29 +22,19 @@ output: origin, velocity, impacts, stairup boolean
 
 */
 
-
 //do vehicle impact stuff
 // slight rearrangement by BTO (VV) so that we only have one namespace include
 #ifdef _GAME
 extern void G_FlyVehicleSurfaceDestruction(gentity_t *veh, trace_t *trace, int magnitude, qboolean force ); //g_vehicle.c
 extern qboolean G_CanBeEnemy(gentity_t *self, gentity_t *enemy); //w_saber.c
-#endif
-
-extern qboolean BG_UnrestrainedPitchRoll( playerState_t *ps, Vehicle_t *pVeh );
-
-extern bgEntity_t *pm_entSelf;
-extern bgEntity_t *pm_entVeh;
-
-//vehicle impact stuff continued...
-#ifndef _GAME //kind of hacky
-extern void trap_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad );
-#endif
-
-#ifdef _GAME
 extern qboolean FighterIsLanded( Vehicle_t *pVeh, playerState_t *parentPS );
 #endif
 
+extern qboolean BG_UnrestrainedPitchRoll( playerState_t *ps, Vehicle_t *pVeh );
 extern void PM_SetPMViewAngle(playerState_t *ps, vec3_t angle, usercmd_t *ucmd);
+
+extern bgEntity_t *pm_entSelf;
+extern bgEntity_t *pm_entVeh;
 
 #define MAX_IMPACT_TURN_ANGLE 45.0f
 void PM_VehicleImpact(bgEntity_t *pEnt, trace_t *trace)
@@ -141,7 +135,7 @@ void PM_VehicleImpact(bgEntity_t *pEnt, trace_t *trace)
 #ifdef _GAME
 			G_PlayEffectID( pSelfVeh->m_pVehicleInfo->iImpactFX, pm->ps->origin, up );
 #else
-			trap_FX_PlayEffectID( pSelfVeh->m_pVehicleInfo->iImpactFX, pm->ps->origin, up, -1, -1 );
+			trap->FX_PlayEffectID( pSelfVeh->m_pVehicleInfo->iImpactFX, pm->ps->origin, up, -1, -1 );
 #endif
 		}
 		*/
@@ -540,7 +534,7 @@ void PM_VehicleImpact(bgEntity_t *pEnt, trace_t *trace)
 			{ //don't hit your own missiles!
 				AngleVectors( pSelfVeh->m_vOrientation, NULL, NULL, vehUp );
 				pEnt->m_pVehicle->m_iHitDebounce = pm->cmd.serverTime + 200;
-				trap_FX_PlayEffectID( pSelfVeh->m_pVehicleInfo->iImpactFX, pm->ps->origin, vehUp, -1, -1 );
+				trap->FX_PlayEffectID( pSelfVeh->m_pVehicleInfo->iImpactFX, pm->ps->origin, vehUp, -1, -1, false );
 
 				pSelfVeh->m_ulFlags |= VEH_CRASHING;
 			}

@@ -158,7 +158,7 @@ public:
 #ifdef ENGINE
 		CGVM_Trace();
 #else
-		vmMain( CG_TRACE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 );
+		C_Trace();
 #endif
 
 		tr = td->mResult;
@@ -193,7 +193,7 @@ public:
 #ifdef ENGINE
 		CGVM_G2Trace();
 #else
-		vmMain( CG_G2TRACE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 );
+		C_G2Trace();
 #endif
 
 		tr = td->mResult;
@@ -215,7 +215,7 @@ public:
 #ifdef ENGINE
 		CGVM_G2Mark();
 #else
-		vmMain( CG_G2MARK, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 );
+		C_G2Mark();
 #endif
 	}
 

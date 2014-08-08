@@ -286,7 +286,7 @@ void JKG_LeaveCriticalSection( void *section )
 void JKG_Printf ( int (QDECL *syscall)( int arg, ... ), const char *message )
 {
     JKG_EnterCriticalSection (&cs_G_Printf);
-    syscall (G_PRINT, message);
+    trap->Print(message);
     JKG_LeaveCriticalSection (&cs_G_Printf);
 }
 

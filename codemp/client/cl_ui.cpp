@@ -1,21 +1,6 @@
 #include "client.h"
 #include "cl_uiapi.h"
 
-#if 0
-	// Jedi Knight Galaxies
-
-	case UI_JKG_CHANGEPROTOCOL:
-		return 0;
-
-	case UI_SYSCALL_CG:
-		currentVM = cgvm;
-		return 0;
-
-	case UI_SYSCALL_UI:
-		currentVM = uivm;
-		return 0;
-#endif
-
 /*
 ====================
 CL_ShutdownUI

@@ -9,6 +9,7 @@ qboolean	UIVM_IsFullscreen		( void );
 void		UIVM_SetActiveMenu		( uiMenuCommand_t menu );
 qboolean	UIVM_ConsoleCommand		( int realTime );
 void		UIVM_DrawConnectScreen	( qboolean overlay );
+uiCrossoverExports_t *UIVM_InitCrossover ( cgCrossoverExports_t *co );
 
 void CL_BindUI( void );
 void CL_UnbindUI( void );

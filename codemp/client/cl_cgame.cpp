@@ -472,59 +472,6 @@ rescan:
 	return qtrue;
 }
 
-#if 0
-	case CG_JKG_OVERRIDESHADERFRAME:
-		re->OverrideShaderFrame( args[1], args[2], args[3] );
-		return 0;
-
-	// TODO: --eez
-	case CG_CO_INITCROSSOVER:
-		return VM_Call( uivm, UI_CROSSOVER_API, args[1] );
-
-	case CG_CO_SHUTDOWN:
-		return 0;
-
-	case CG_CO_SYSCALL_UI:
-		currentVM = uivm;
-		return 0;
-
-	case CG_CO_SYSCALL_CG:
-		currentVM = cgvm;
-		return 0;
-
-	case CG_JKG_GETCOLORTABLE:
-		*(float **)VMA(1) = (float *)g_color_table;
-		return 0;
-
-	case CG_JKG_GETVIEWANGLES:
-		return (int)(float **)&cl.viewangles;
-
-	case CG_JKG_SETVIEWANGLES:
-		VectorCopy((float*)VMA(1), cl.viewangles);
-		return 0;
-
-	// FX crap --eez
-
-	case CG_FX_GETSHAREDMEM:
-		return (int)cl.mSharedMemory;
-
-	case CG_FX_ADDMINIREFENTITY:
-		re->AddMiniRefEntityToScene((const miniRefEntity_t *)VMA(1));
-		return 0;
-
-	case CG_FX_GETEFFECTCOPY1:
-		return (int)CFxExport_GetEffectCopy( (fxHandle_t)VMA(1), (fxHandle_t *)VMA(2) );
-	case CG_FX_GETEFFECTCOPY2:
-		return (int)CFxExport_GetEffectCopy( (const char *)VMA(1), (fxHandle_t *)VMA(2) );
-	case CG_FX_GETPRIMITIVECOPY:
-		return (int)CFxExport_GetPrimitiveCopy( (void *)VMA(1), (const char *)VMA(2) );
-
-	default:
-	    assert( !"Bad cgame system trap" ); // Better looking --eez
-		Com_Error( ERR_DROP, "Bad cgame system trap: %ld", (long int) args[0] );
-	}
-	return 0;
-#endif
 /*
 ====================
 CL_ShutdonwCGame

@@ -33,7 +33,7 @@ vmCvar_t npc_civilians;
 vmCvar_t npc_vendors;
 #endif //__NPC_MINPLAYERS__
 
-float trap_Cvar_VariableValue( const char *var_name ) {
+static float Cvar_VariableValue( const char *var_name ) {
 	char buf[MAX_CVAR_VALUE_STRING];
 
 	trap->Cvar_VariableStringBuffer(var_name, buf, sizeof(buf));
@@ -452,7 +452,7 @@ void G_AddRandomBot( int team ) {
 		if (i >= sv_maxclients.integer) {
 			num--;
 			if (num <= 0) {
-				skill = trap_Cvar_VariableValue( "g_npcspskill" );
+				skill = Cvar_VariableValue( "g_npcspskill" );
 				if (team == TEAM_RED) teamstr = "red";
 				else if (team == TEAM_BLUE) teamstr = "blue";
 				else teamstr = "";

@@ -274,12 +274,12 @@ int ASTAR_FindPathWithTimeLimit(int from, int to, int *pathlist)
 	int PathPointCount = 0;
 	std::vector<int>OpenList;
 	std::vector<int>PathList;
-	int			startTime = trap_Milliseconds();
+	int			startTime = trap->Milliseconds();
 
 	// UQ1: Because this A* is only used to hunt enemies, limit the over-all range on requests to save CPU time...
 	if (Distance(gWPArray[from]->origin, gWPArray[to]->origin) > 4096.0f) return -1;
 
-	if (!PATHING_IGNORE_FRAME_TIME && trap_Milliseconds() - FRAME_TIME > 300)
+	if (!PATHING_IGNORE_FRAME_TIME && trap->Milliseconds() - FRAME_TIME > 300)
 	{// Never path on an already long frame time...
 		return -1;
 	}
@@ -325,7 +325,7 @@ int ASTAR_FindPathWithTimeLimit(int from, int to, int *pathlist)
 		if(bFoundPath)
 			break;
 
-		if(!HaveNotClosed || trap_Milliseconds() - startTime > 500) // UQ1: Try limiting by timer, if we dont have one by now, we shouldn't bother!
+		if(!HaveNotClosed || trap->Milliseconds() - startTime > 500) // UQ1: Try limiting by timer, if we dont have one by now, we shouldn't bother!
 		{
 			//trap->Print("JKG A*: Failed to find a normal path - trying backup A*\n");
 			return -1; // Failed...
@@ -458,7 +458,7 @@ int ASTAR_ShortenPath(int old_pathlist_size, int *old_pathlist, int *pathlist)
 	int PathPointCount = 0;
 	std::vector<int>OpenList;
 	std::vector<int>PathList;
-	int startTime = trap_Milliseconds();
+	int startTime = trap->Milliseconds();
 
 	ORIGINAL_SIZE = old_pathlist_size;
 
@@ -504,7 +504,7 @@ int ASTAR_ShortenPath(int old_pathlist_size, int *old_pathlist, int *pathlist)
 		if(bFoundPath)
 			break;
 
-		if(NotClosedCount==0 || trap_Milliseconds()-startTime > 1000)
+		if(NotClosedCount==0 || trap->Milliseconds()-startTime > 1000)
 		{
 			//trap->Print("JKG A*: Failed to find a normal path - trying backup A*\n");
 			return -1; // Failed...
@@ -968,7 +968,7 @@ void AIMod_TimeMapPaths()
 	// And the alternative pathing...
 	//
 
-	startTime = trap_Milliseconds();
+	startTime = trap->Milliseconds();
 	NUM_PATHS = 0;
 	PATH_DISTANCES[MAX_GENTITIES];
 	TOTAL_DISTANCE = 0;
@@ -1023,7 +1023,7 @@ void AIMod_TimeMapPaths()
 
 	AVERAGE_DISTANCE = TOTAL_DISTANCE/NUM_PATHS;
 
-	Com_Printf( "Completed %i paths in %i seconds. Average path distance is %i\n", NUM_PATHS, (int)((int)(trap_Milliseconds()-startTime)/1000), AVERAGE_DISTANCE );
+	Com_Printf( "Completed %i paths in %i seconds. Average path distance is %i\n", NUM_PATHS, (int)((int)(trap->Milliseconds()-startTime)/1000), AVERAGE_DISTANCE );
 
 #endif //__SLOW_PATHING__
 

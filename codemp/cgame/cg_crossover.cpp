@@ -34,9 +34,7 @@ qboolean CO_EscapeTrapped( void )
 {
 	if( cg.trapEscape )
 	{
-		trap->Syscall_CG();
 		trap->SendClientCommand("~esc");
-		trap->Syscall_UI();
 		return qtrue;
 	}
 	return qfalse;
@@ -108,13 +106,6 @@ static void *CO_PartyMngtDataRequest(int data) {
 	}
 }
 
-void CO_SendClientCommand( const char *command )
-{
-	trap->Syscall_CG();
-	trap->SendClientCommand( command );
-	trap->Syscall_UI();
-}
-
 void CG_InitializeCrossoverAPI( void )
 {
 	co.GetBlueTeam = CO_GetBlueTeam;
@@ -124,7 +115,7 @@ void CG_InitializeCrossoverAPI( void )
 	co.InventoryAttachToACI = CO_InventoryAttachToACI;
 	co.InventoryDataRequest = CO_InventoryDataRequest;
 	co.PartyMngtDataRequest = CO_PartyMngtDataRequest;
-	co.SendClientCommand = CO_SendClientCommand;
+	co.SendClientCommand = trap->SendClientCommand;
 
 	uiImports = trap->CO_InitCrossover( &co );
 }

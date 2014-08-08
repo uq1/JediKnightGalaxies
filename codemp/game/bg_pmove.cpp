@@ -10398,7 +10398,6 @@ PmoveSingle
 
 ================
 */
-extern void trap_SnapVector( float *v );
 extern int BG_EmplacedView(vec3_t baseAngles, vec3_t angles, float *newYaw, float constraint);
 extern qboolean BG_FighterUpdate(Vehicle_t *pVeh, const usercmd_t *pUcmd, vec3_t trMins, vec3_t trMaxs, float gravity,
 					  void (*traceFunc)( trace_t *results, const vec3_t start, const vec3_t lmins, const vec3_t lmaxs, const vec3_t end, int passEntityNum, int contentMask )); //FighterNPC.c
@@ -11434,7 +11433,7 @@ void PmoveSingle (pmove_t *pmove) {
 
 	// snap velocity to integer coordinates to save network bandwidth
 	if ( !pm->pmove_float )
-		trap_SnapVector( pm->ps->velocity );
+		trap->SnapVector( pm->ps->velocity );
 
  	if (pm->ps->pm_type == PM_JETPACK || gPMDoSlowFall )
 	{

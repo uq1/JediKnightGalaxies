@@ -263,7 +263,6 @@ typedef struct vm_s {
 	vmSlots_t	slot; // VM_GAME, VM_CGAME, VM_UI
     char		name[MAX_QPATH];
 	void		*dllHandle;
-	qboolean	isLegacy; // uses the legacy syscall/vm_call api, is set by VM_CreateLegacy
 
 	// fill the import/export tables
 	void *		(*GetModuleAPI)( int apiVersion, ... );
@@ -288,29 +287,7 @@ public:
 
 extern const char *vmStrs[MAX_VM];
 
-typedef enum {
-	TRAP_MEMSET = 100,
-	TRAP_MEMCPY,
-	TRAP_STRNCPY,
-	TRAP_SIN,
-	TRAP_COS,
-	TRAP_ATAN2,
-	TRAP_SQRT,
-	TRAP_MATRIXMULTIPLY,
-	TRAP_ANGLEVECTORS,
-	TRAP_PERPENDICULARVECTOR,
-	TRAP_FLOOR,
-	TRAP_CEIL,
-
-	TRAP_TESTPRINTINT,
-	TRAP_TESTPRINTFLOAT,
-
-	TRAP_ACOS,
-	TRAP_ASIN
-} sharedTraps_t;
-
 void			VM_Init( void );
-vm_t			*VM_CreateLegacy( vmSlots_t vmSlot, intptr_t (*systemCalls)(intptr_t *) );
 vm_t			*VM_Create( vmSlots_t vmSlot );
 void			 VM_Free( vm_t *vm );
 void			 VM_Clear(void);

@@ -852,13 +852,11 @@ void JKG_Inventory_UpdateNotify(int msg) {
             inventoryState.active = qtrue;
 			inventoryState.inShop = qfalse;
             
-            trap->Syscall_UI();
             inventoryState.menu = Menus_FindByName ("jkg_inventory");
             if ( inventoryState.menu && Menus_ActivateByName ("jkg_inventory") )
             {
                 trap->Key_SetCatcher (trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
             }
-			trap->Syscall_CG();
         break;
         
         case 1: // update!
@@ -870,14 +868,12 @@ void JKG_Inventory_UpdateNotify(int msg) {
 			memset (&inventoryState, 0, sizeof (inventoryState));
             inventoryState.active = qtrue;
 			inventoryState.inShop = qtrue;
-            
-			trap->Syscall_UI();
+
             inventoryState.menu = Menus_FindByName ("jkg_inventory");
             if ( inventoryState.menu && Menus_ActivateByName ("jkg_inventory") )
             {
                 trap->Key_SetCatcher (trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
             }
-			trap->Syscall_CG();
         break;
     }
 }
