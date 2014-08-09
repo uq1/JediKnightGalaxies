@@ -6,7 +6,7 @@
 vm_t *currentVM = NULL;
 
 static const char *vmNames[MAX_VM] = {
-	"jampgame",
+	"game",
 	"cgame",
 	"ui"
 };

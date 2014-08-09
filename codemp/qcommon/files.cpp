@@ -1344,7 +1344,7 @@ long FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean unique
 							    !FS_IsExt(filename, ".arena", l) &&
 							    !FS_IsExt(filename, ".menu", l) &&
 							    !FS_IsExt(filename, ".fcf", l) &&
-							    Q_stricmp(filename, "jampgamex86.dll") != 0 &&
+							    Q_stricmp(filename, "gamex86.dll") != 0 &&
 							    //Q_stricmp(filename, "vm/qagame.qvm") != 0 &&
 							    !strstr(filename, "levelshots"))
 							{

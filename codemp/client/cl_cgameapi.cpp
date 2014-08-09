@@ -703,7 +703,7 @@ void CL_BindCGame( void ) {
 	cgvm = VM_Create( VM_CGAME );
 	if ( !cgvm ) {
 		cls.cgameStarted = qfalse;
-		Com_Error( ERR_DROP, "VM_CreateLegacy on cgame failed" );
+		Com_Error( ERR_DROP, "VM_Create on cgame failed" );
 	}
 
 	cgi.Print								= Com_Printf;

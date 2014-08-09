@@ -413,7 +413,7 @@ void CL_BindUI( void ) {
 	uivm = VM_Create( VM_UI );
 	if ( !uivm ) {
 		cls.uiStarted = qfalse;
-		Com_Error( ERR_DROP, "VM_CreateLegacy on ui failed" );
+		Com_Error( ERR_DROP, "VM_Create on ui failed" );
 	}
 
 	uii.Print								= Com_Printf;

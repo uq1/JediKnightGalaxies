@@ -1585,14 +1585,14 @@ void SV_BindGame( void ) {
 	static gameImport_t gi;
 	gameExport_t		*ret;
 	GetGameAPI_t		GetGameAPI;
-	char				dllName[MAX_OSPATH] = "jampgame"ARCH_STRING DLL_EXT;
+	char				dllName[MAX_OSPATH] = "game"ARCH_STRING DLL_EXT;
 
 	memset( &gi, 0, sizeof( gi ) );
 
 	gvm = VM_Create( VM_GAME );
 	if ( !gvm ) {
 		svs.gameStarted = qfalse;
-		Com_Error( ERR_DROP, "VM_CreateLegacy on game failed" );
+		Com_Error( ERR_DROP, "VM_Create on game failed" );
 	}
 
 	gi.Print								= Com_Printf;
