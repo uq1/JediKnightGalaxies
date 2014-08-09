@@ -224,15 +224,6 @@ static datpadmovedata_t datapadMoveData[MD_MOVE_TITLE_MAX][MAX_MOVES] =
 	NULL, NULL, 0,	MDS_NONE,
 };
 
-/*
-================
-vmMain
-
-This is the only way control passes into the module.
-!!! This MUST BE THE VERY FIRST FUNCTION compiled into the .qvm file !!!
-================
-*/
-
 extern qboolean UI_SaberModelForSaber( const char *saberName, char *saberModel );
 void UI_ClampMaxPlayers(void);
 static void UI_CheckServerName( void );

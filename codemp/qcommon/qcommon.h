@@ -266,12 +266,6 @@ typedef struct vm_s {
 
 	// fill the import/export tables
 	void *		(*GetModuleAPI)( int apiVersion, ... );
-
-	// legacy stuff
-	struct {
-		intptr_t	(QDECL *main)( int callNum, ... );		// module vmMain
-		intptr_t	(QDECL *syscall)( intptr_t *parms );	// engine syscall handler
-	} legacy;
 } vm_t;
 
 extern vm_t *currentVM;
@@ -292,15 +286,12 @@ vm_t			*VM_Create( vmSlots_t vmSlot );
 void			 VM_Free( vm_t *vm );
 void			 VM_Clear(void);
 vm_t			*VM_Restart( vm_t *vm );
-intptr_t QDECL	 VM_Call( vm_t *vm, int callNum, ... );
 void			 VM_Shifted_Alloc( void **ptr, int size );
 void			 VM_Shifted_Free( void **ptr );
 void			*VM_ArgPtr( intptr_t intValue );
 void			*VM_ExplicitArgPtr( vm_t *vm, intptr_t intValue );
-float			_vmf( intptr_t x );
 
 #define	VMA(x) VM_ArgPtr( args[x] )
-#define	VMF(x) _vmf( args[x] )
 
 /*
 ==============================================================

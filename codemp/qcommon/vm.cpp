@@ -40,40 +40,6 @@ void VM_Init( void ) {
 	memset( vmTable, 0, sizeof(vmTable) );
 }
 
-// The syscall mechanism relies on stack manipulation to get it's args.
-// This is likely due to C's inability to pass "..." parameters to a function in one clean chunk.
-// On PowerPC Linux, these parameters are not necessarily passed on the stack, so while (&arg[0] == arg) is true,
-//	(&arg[1] == 2nd function parameter) is not necessarily accurate, as arg's value might have been stored to the stack
-//	or other piece of scratch memory to give it a valid address, but the next parameter might still be sitting in a
-//	register.
-// QVM's syscall system also assumes that the stack grows downward, and that any needed types can be squeezed, safely,
-//	into a signed int.
-// This hack below copies all needed values for an argument to an array in memory, so that QVM can get the correct values.
-// This can also be used on systems where the stack grows upwards, as the presumably standard and safe stdargs.h macros
-//	are used.
-// The original code, while probably still inherently dangerous, seems to work well enough for the platforms it already
-//	works on. Rather than add the performance hit for those platforms, the original code is still in use there.
-// For speed, we just grab 15 arguments, and don't worry about exactly how many the syscall actually needs; the extra is
-//	thrown away.
-intptr_t QDECL VM_DllSyscall( intptr_t arg, ... ) {
-#if !id386 || defined __clang__ || defined MACOS_X
-	// rcg010206 - see commentary above
-	intptr_t args[16];
-	va_list ap;
-
-	args[0] = arg;
-
-	va_start(ap, arg);
-	for (size_t i = 1; i < ARRAY_LEN (args); i++)
-		args[i] = va_arg(ap, intptr_t);
-	va_end(ap);
-
-	return currentVM->legacy.syscall( args );
-#else // original id code
-	return currentVM->legacy.syscall( &arg );
-#endif
-}
-
 // Reload the data, but leave everything else in place
 // This allows a server to do a map_restart without changing memory allocation
 vm_t *VM_Restart( vm_t *vm ) {
@@ -205,31 +171,4 @@ void *VM_ExplicitArgPtr( vm_t *vm, intptr_t intValue ) {
 		return NULL;
 
 	return (void *)intValue;
-}
-
-float _vmf( intptr_t x ) {
-	byteAlias_t fi;
-	fi.i = (int)x;
-	return fi.f;
-}
-
-intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... ) {
-	intptr_t args[16] = { 0 };
-
-	if ( !vm || !vm->name[0] ) {
-		Com_Error( ERR_FATAL, "VM_Call with NULL vm" );
-		return 0;
-	}
-
-	VMSwap v( vm );
-
-	//rcg010207 -  see dissertation at top of VM_DllSyscall() in this file.
-	va_list ap;
-	va_start( ap, callnum );
-	for ( size_t i = 0; i < ARRAY_LEN( args ); i++ )
-		args[i] = va_arg( ap, intptr_t );
-	va_end( ap );
-
-	return vm->legacy.main( callnum, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8],
-		args[9], args[10], args[11], args[12], args[13], args[14], args[15] );
 }
