@@ -3481,7 +3481,7 @@ void WP_CalculateMuzzlePoint( gentity_t *ent, vec3_t forward, vec3_t right, vec3
 	/* These weapons dont have a proper muzzle bolt, don't crash the client but fake the muzzle */
 	if ( pGhoul == NULL || iBolt == -1 )
 	{
-		VectorCopy( ent->r.currentOrigin, ent->client->ps.viewangles );
+		VectorCopy( ent->r.currentOrigin, muzzlePoint );
 		muzzlePoint[2] += ent->client->ps.viewheight;
 	}
 	else
