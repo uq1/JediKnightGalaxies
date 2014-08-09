@@ -2101,6 +2101,9 @@ extern const char *gametypeStringShort[GT_MAX_GAME_TYPE];
 const char *BG_GetGametypeString( int gametype );
 int BG_GetGametypeForString( const char *gametype );
 
+bool JKG_ParseHiltFiles( void );
+void JKG_CleanSaberHilts( void );
+
 typedef struct {
 	int			oldFrame;
 	int			oldFrameTime;		// time when ->oldFrame was exactly on

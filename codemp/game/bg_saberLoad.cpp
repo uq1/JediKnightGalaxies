@@ -20,7 +20,23 @@
 
 saberStanceExternal_t SaberStances[MAX_STANCES];
 
-std::unordered_map<std::string, saberInfo_t> *hiltLookupTable;
+class CaseInsensitiveHash
+{
+public:
+	std::size_t operator()( const std::string& s ) const
+	{
+		std::size_t hash = 0;
+		for ( std::size_t i = 0; i < s.size(); i++ )
+		{
+			int c = std::tolower( s[i] );
+			hash += c * (i + 119);
+		}
+
+		return hash ^ (hash >> 10) ^ (hash >> 20);
+	}
+};
+
+std::unordered_map<std::string, saberInfo_t, CaseInsensitiveHash> *hiltLookupTable;
 
 #ifdef _GAME
 extern int G_SoundIndex( const char *name );
@@ -121,14 +137,6 @@ stringID_table_t SaberMoveTable[] =
 	ENUM2STRING(LS_HILT_BASH),
 	"",	-1
 };
-
-static void to_lower ( std::string& str )
-{
-	for (size_t i = 0, len = str.size(); i < len; i++)
-	{
-		str[i] = static_cast<char>(std::tolower (str[i]));
-	}
-}
 
 saber_colors_t TranslateSaberColor( const char *name ) 
 {
@@ -952,9 +960,9 @@ if(childNode)
 	*/
 
 #undef JSONPARSE
-	std::string name2 = name;
-	to_lower(name2);
-	hiltLookupTable->insert(std::pair<std::string, saberInfo_t>(name2, theHilt));
+
+	hiltLookupTable->insert(std::make_pair(name, theHilt));
+
 	return true;
 }
 
@@ -969,7 +977,7 @@ bool JKG_ParseHiltFiles( void )
 	int t = trap->Milliseconds();
 	int i;
 
-	hiltLookupTable = new std::unordered_map<std::string, saberInfo_t>();
+	hiltLookupTable = new std::unordered_map<std::string, saberInfo_t, CaseInsensitiveHash>();
 
 	Com_Printf ("------- Hilt data -------\n");
 
@@ -995,28 +1003,23 @@ bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber )
 	std::unordered_map<std::string, saberInfo_t>::iterator it;
 	if(!hiltLookupTable || hiltLookupTable->size() <= 0)
 		return false;	// occasionally gets set, incorrectly.
-	if( !Q_stricmp(hiltName, DEFAULT_SABER) )
-		it = hiltLookupTable->find(DEFAULT_SABER);
-	else
-	{
-		std::string derp = hiltName;
 
-		to_lower(derp);
-		it = hiltLookupTable->find(derp);
-	}
+	it = hiltLookupTable->find(hiltName);
 	if(it == hiltLookupTable->end())
 	{
 		Com_Printf(S_COLOR_YELLOW "WARNING: Couldn't find hilt \"%s\" reference\n", hiltName);
 		return false;
 	}
-	memcpy(saber, &it->second, sizeof(saberInfo_t));
+
+	*saber = it->second;
+
 	return true;
 }
 
 void JKG_CleanSaberHilts( void )
 {
-	if(hiltLookupTable)
-		delete hiltLookupTable;
+	delete hiltLookupTable;
+	hiltLookupTable = NULL;
 }
 
 void WP_RemoveSaber( saberInfo_t *sabers, int saberNum )

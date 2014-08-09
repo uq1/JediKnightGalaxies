@@ -1876,8 +1876,6 @@ int ASTAR_FindPathFast(int from, int to, int *pathlist, qboolean shorten);
 
 void NPC_ClearLookTarget( gentity_t *self );
 
-bool JKG_ParseHiltFiles( void );
-
 // Refactored included functions
 void SetTeamQuick(gentity_t *ent, int team, qboolean doBegin);
 void JKG_Easy_DIMA_Init(inv_t *inventory);

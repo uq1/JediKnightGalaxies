@@ -662,6 +662,8 @@ void G_ShutdownGame( int restart ) {
 
 //	trap->Print ("==== ShutdownGame ====\n");
 
+	JKG_CleanSaberHilts();
+
 	G_CleanAllFakeClients(); //get rid of dynamically allocated fake client structs.
 
 	BG_ClearAnimsets(); //free all dynamic allocations made through the engine

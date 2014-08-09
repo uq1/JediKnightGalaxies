@@ -2524,8 +2524,6 @@ Ghoul2 Insert End
 extern playerState_t *cgSendPS[MAX_GENTITIES]; //is not MAX_CLIENTS because NPCs exceed MAX_CLIENTS
 void CG_PmoveClientPointerUpdate();
 
-bool JKG_ParseHiltFiles( void );
-
 /*
 =================
 CG_Init
@@ -2551,7 +2549,7 @@ static void CG_OpenInventory ( void )
 {
 	if (cgs.gametype != GT_DUEL) 
 	{
-	uiImports->InventoryNotify( 0 );
+		uiImports->InventoryNotify( 0 );
 	}
 }
 
@@ -2937,6 +2935,8 @@ void CG_Shutdown( void )
 {
 	BG_ClearAnimsets(); //free all dynamic allocations made through the engine
 
+	JKG_CleanSaberHilts();
+
     CG_DestroyAllGhoul2();
 
 	// Jedi Knight Galaxies, terminate the crossover
@@ -2951,6 +2951,7 @@ void CG_Shutdown( void )
 
 	//reset weather
 	trap->R_WorldEffectCommand("die");
+
 
 	UI_CleanupGhoul2();
 	//If there was any ghoul2 stuff in our side of the shared ui code, then remove it now.
