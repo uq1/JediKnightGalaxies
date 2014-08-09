@@ -500,9 +500,6 @@ void SV_CreateClientGameStateMessage( client_t *client, msg_t *msg ) {
 
 	// write the checksum feed
 	MSG_WriteLong( msg, sv.checksumFeed);
-
-	// For old RMG system.
-	MSG_WriteShort ( msg, 0 );
 }
 
 /*

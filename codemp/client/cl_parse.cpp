@@ -336,7 +336,6 @@ rww - Update fs_game, this message is so we can use the ext_data
 *_overrides.txt files for mods.
 ================
 */
-void MSG_CheckNETFPSFOverrides(qboolean psfOverrides);
 void FS_UpdateGamedir(void);
 void CL_ParseSetGame( msg_t *msg )
 {
@@ -565,10 +564,6 @@ void CL_ParseGamestate( msg_t *msg ) {
 	clc.clientNum = MSG_ReadLong(msg);
 	// read the checksum feed
 	clc.checksumFeed = MSG_ReadLong( msg );
-
-	// Throw away the info for the old RMG system.
-	MSG_ReadShort (msg);
-
 
 	// parse serverId and other cvars
 	CL_SystemInfoChanged();
