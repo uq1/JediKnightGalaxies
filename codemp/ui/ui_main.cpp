@@ -7769,14 +7769,6 @@ void UI_Init( qboolean inGameLoad ) {
 	const char *menuSet;
 	int start;
 
-	// Some knucklehead decided to update client version once we got to the client aux lib,
-	// which is kinda stupid since we can't get there unless we actually connect to a server.
-	// DERP. --eez
-	//trap->Cvar_Set("clver", JKG_VERSION); // this is handled in engine now --eez
-
-	// Get the list of possible languages
-	uiInfo.languageCount = trap->SE_GetNumLanguages();	// this does a dir scan, so use carefully
-
 	uiInfo.inGameLoad = inGameLoad;
 
 	// set some cvar crap in the engine
@@ -8711,6 +8703,7 @@ Q_EXPORT uiExport_t* QDECL GetModuleAPI( int apiVersion, uiImport_t *import )
 	uie.ConsoleCommand		= UI_ConsoleCommand;
 	uie.DrawConnectScreen	= UI_DrawConnectScreen;
 	uie.MenuReset			= Menu_Reset;
+	uie.Crossover			= UI_InitializeCrossoverAPI;
 
 	return &uie;
 }
