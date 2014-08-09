@@ -4219,8 +4219,6 @@ gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboo
 	//set the yaw so that they face away from player
 	NPCspawner->s.angles[1] = ent->client->ps.viewangles[1];
 
-	trap->LinkEntity((sharedEntity_t *)NPCspawner);
-
 	NPCspawner->NPC_type = G_NewString( npc_type );
 
 	if ( targetname )
