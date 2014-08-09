@@ -223,7 +223,6 @@ void ICARUS_FreeEnt( sharedEntity_t *ent )
 	if (ent->s.number >= MAX_GENTITIES ||
 		ent->s.number < 0)
 	{
-		assert(0);
 		return;
 	}
 
