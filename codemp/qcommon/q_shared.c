@@ -7,6 +7,11 @@
 gangWarsTeam_t bgGangWarsTeams[32];
 int bgnumGangWarTeams;
 
+#if defined(_GAME) || defined(_CGAME) || defined(_UI)
+void (*Com_Error)( int level, const char *error, ... );
+void (*Com_Printf)( const char *msg, ... );
+#endif
+
 /**************************************************
 * Q_stratt
 *
