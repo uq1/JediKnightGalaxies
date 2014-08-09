@@ -4892,6 +4892,12 @@ static void NPC_Humanoid_CombatIdle( int enemy_dist )
 
 static qboolean NPC_Humanoid_AttackDecide( int enemy_dist )
 {
+	if ( NPC->enemy == NULL )
+	{
+		// Well obviously we can't attack nothingness.
+		return qfalse;
+	}
+
 	if ( NPC->enemy
 		&& NPC->enemy->client 
 		&& NPC->enemy->s.weapon == WP_SABER 
