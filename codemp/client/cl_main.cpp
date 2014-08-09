@@ -2821,11 +2821,8 @@ void CL_Shutdown( void ) {
 	}
 	recursive = qtrue;
 
-	if (G2VertSpaceClient)
-	{
-		delete G2VertSpaceClient;
-		G2VertSpaceClient = 0;
-	}
+	delete G2VertSpaceClient;
+	G2VertSpaceClient = NULL;
 
 	CL_Disconnect( qtrue );
 
