@@ -1233,6 +1233,8 @@ void Com_Init( char *commandLine ) {
 		com_G2Report = Cvar_Get("com_G2Report", "0", 0);
 #endif
 
+		clver = Cvar_Get("clver", JKG_VERSION, CVAR_ROM|CVAR_USERINFO);
+
 		com_affinity = Cvar_Get( "com_affinity", "1", CVAR_ARCHIVE );
 
 		com_bootlogo = Cvar_Get( "com_bootlogo", "1", CVAR_ARCHIVE);
