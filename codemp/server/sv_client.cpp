@@ -544,20 +544,6 @@ void SV_SendClientGameState( client_t *client ) {
 
 	SV_CreateClientGameStateMessage( client, &msg );
 
-	Com_DPrintf ("SV_SendClientGameState() for %s\n", client->name);
-	Com_DPrintf( "Going from CS_CONNECTED to CS_PRIMED for %s\n", client->name );
-	if ( client->state == CS_CONNECTED )
-		client->state = CS_PRIMED;
-	client->pureAuthentic = 0;
-	client->gotCP = qfalse;
-
-	// when we receive the first packet from the client, we will
-	// notice that it is from a different serverid and that the
-	// gamestate message was not just sent, forcing a retransmit
-	client->gamestateMessageNum = client->netchan.outgoingSequence;
-
-	SV_CreateClientGameStateMessage( client, &msg );
-
 	// deliver this to the client
 	SV_SendMessageToClient( &msg, client );
 }
