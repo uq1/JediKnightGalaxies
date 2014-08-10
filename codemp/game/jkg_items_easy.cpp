@@ -12,8 +12,7 @@ void JKG_Easy_AddItemToInventory(itemInstance_t *buffer, inv_t *inventory, unsig
 
 int JKG_Easy_FindItemByInternal(char *internalName)
 {
-	int i;
-	for(i = 1; i < MAX_ITEM_TABLE_SIZE; i++)
+	for(int i = 1; i < MAX_ITEM_TABLE_SIZE; i++)
 	{
 		if(itemLookupTable[i].itemID)
 		{
@@ -35,31 +34,49 @@ void JKG_Easy_DIMA_Init(inv_t *inventory)
 	inventory->size = sizeof(itemInstance_t) * DIMA_PREALLOC;
 }
 
-void JKG_Easy_DIMA_GlobalInit(void)
+inv_t *JKG_Easy_DIMA_AllocInventory()
 {
-	int i = 0;
-	for(; i < MAX_GENTITIES; i++)
-	{
-		g_entities[i].inventory = (inv_t *)malloc(sizeof(inv_t));
-		JKG_Easy_DIMA_Init(g_entities[i].inventory);
-	}
+	inv_t *inventory = reinterpret_cast<inv_t *>(malloc( sizeof( inv_t )));
+	JKG_Easy_DIMA_Init( inventory );
+
+	return inventory;
 }
 
 void JKG_Easy_DIMA_CleanEntity(int entNum)
 {
-	itemInstance_t *reallocated = (itemInstance_t *)realloc(g_entities[entNum].inventory->items, sizeof(itemInstance_t) * DIMA_PREALLOC);
+	gentity_t *ent = &g_entities[entNum];
+	inv_t *inventory = ent->inventory;
+	itemInstance_t *reallocated = (itemInstance_t *)realloc(inventory->items, sizeof(itemInstance_t) * DIMA_PREALLOC);
 	//JKG_Assert(reallocated);
-	g_entities[entNum].inventory->elements = 0;
-	g_entities[entNum].inventory->items = reallocated;
-	g_entities[entNum].inventory->size = sizeof(itemInstance_t) * DIMA_PREALLOC;
+	inventory->elements = 0;
+	inventory->items = reallocated;
+	inventory->size = sizeof(itemInstance_t) * DIMA_PREALLOC;
+}
+
+void JKG_Easy_DIMA_FreeInventory(inv_t **inventory)
+{
+	inv_t *inv = *inventory;
+
+	if ( inv != NULL )
+	{
+		free( inv->items );
+		free( inv );
+		*inventory = NULL;
+	}
 }
 
 void JKG_Easy_DIMA_Cleanup(void)
 {
-	int i = 0;
-	for( ; i < MAX_GENTITIES; i++)
+	for(int i = 0; i < MAX_GENTITIES; i++)
 	{
-		free(g_entities[i].inventory);
+		gentity_t *ent = &g_entities[i];
+
+		if ( ent->inventory != NULL )
+		{
+			free( ent->inventory->items );
+		}
+
+		free( ent->inventory );
 	}
 }
 

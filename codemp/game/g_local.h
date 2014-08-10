@@ -1323,6 +1323,7 @@ void SanitizeString2( char *in, char *out );
 gentity_t *G_GetDuelWinner(gclient_t *client);
 
 void JKG_BindChatCommands( void );
+void CCmd_Cleanup();
 
 //
 // g_items.c
@@ -1378,7 +1379,6 @@ int		G_RadiusList ( vec3_t origin, float radius,	gentity_t *ignore, qboolean tak
 
 void	G_Throw( gentity_t *targ, vec3_t newDir, float push );
 
-void	G_FreeFakeClient(gclient_t **cl);
 void	G_CreateFakeClient(int entNum, gclient_t **cl);
 void	G_CleanAllFakeClients(void);
 
@@ -1675,6 +1675,9 @@ void G_InitSessionData( gclient_t *client, char *userinfo, qboolean isBot );
 void G_InitWorldSession( void );
 void G_WriteSessionData( void );
 
+// NPC_spawn.cpp
+void NPC_Cleanup();
+
 //
 // NPC_senses.cpp
 //
@@ -1693,6 +1696,7 @@ extern qboolean G_ClearLOS5( gentity_t *self, const vec3_t end );
 // g_bot.c
 //
 void G_InitBots( void );
+void G_CleanupBots();
 char *G_GetBotInfoByNumber( int num );
 char *G_GetBotInfoByName( const char *name );
 void G_CheckBotSpawn( void );

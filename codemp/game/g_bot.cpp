@@ -2323,6 +2323,7 @@ char *G_GetBotInfoByName( const char *name ) {
 
 //rww - pd
 void LoadPath_ThisLevel(void);
+void WaypointsCleanup();
 //end rww
 
 /*
@@ -2345,4 +2346,9 @@ void G_InitBots( void ) {
 	//rww - new bot route stuff
 	LoadPath_ThisLevel();
 	//end rww
+}
+
+void G_CleanupBots()
+{
+	WaypointsCleanup();
 }

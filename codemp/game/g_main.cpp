@@ -36,13 +36,6 @@ extern int fatalErrors;
 
 int killPlayerTimer = 0;
 
-// TEMP - Stress Logging
-fileHandle_t stressfile;
-int lastStressLog;
-
-
-
-
 gentity_t		g_entities[MAX_ENTITIESTOTAL];
 gentity_t		*g_logicalents = &g_entities[MAX_GENTITIES]; // Quicker access xD
 KeyPairSet_t	g_spawnvars[MAX_ENTITIESTOTAL];
@@ -133,9 +126,6 @@ void AdjustTickets ( void )
 
 qboolean gDuelExit = qfalse;
 
-void G_InitGame					( int levelTime, int randomSeed, int restart );
-void G_RunFrame					( int levelTime );
-void G_ShutdownGame				( int restart );
 void CheckExitRules				( void );
 void G_ROFF_NotetrackCallback	( gentity_t *cent, const char *notetrack);
 
@@ -453,8 +443,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// initialize all entities for this game
 	memset( g_entities, 0, MAX_GENTITIES * sizeof(g_entities[0]) );
 	level.gentities = g_entities;
-	//DIMA System
-	JKG_Easy_DIMA_GlobalInit();
 
 	// initialize all clients for this game
 	level.maxclients = sv_maxclients.integer;
@@ -619,10 +607,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	/* Initialize the party table */
 	TeamInitializeServer();
 
-	/* TEMP - Stress level logging */
-	trap->FS_Open("stresslog.log", &stressfile, FS_APPEND);
-	lastStressLog = levelTime;
-
 	JKG_BindChatCommands();
 }
 
@@ -649,12 +633,9 @@ void G_ShutdownGame( int restart ) {
 	// Shutdown JKG's Threading System
 	JKG_ShutdownThreading( 7000 );
 
-	if (stressfile) {
-		trap->FS_Close(stressfile);
-		stressfile = 0;
-	}
-
 	GLua_Close();
+
+	CCmd_Cleanup();
 
 	/* First save all bans, then clear them to free up the allocated memory) */
 	JKG_Bans_SaveBans();
@@ -718,6 +699,12 @@ void G_ShutdownGame( int restart ) {
 //	Com_Printf ("... Reference Tags Cleared\n");
 	TAG_Init();	//Clear the reference tags
 
+	// Free up spawn vars memory
+	for ( int i = 0; i < MAX_ENTITIESTOTAL; i++ )
+	{
+		JKG_Pairs_Clear( &g_spawnvars[i] );
+	}
+
 	G_LogWeaponOutput();
 
 	if ( level.logFile ) {
@@ -739,8 +726,12 @@ void G_ShutdownGame( int restart ) {
 	trap->ROFF_Clean();
 
 	if ( trap->Cvar_VariableIntegerValue( "bot_enable" ) ) {
+		G_CleanupBots();
 		BotAIShutdown( restart );
 	}
+
+	NPC_Cleanup();
+
 	JKG_Easy_DIMA_Cleanup();
 //	G_TerminateMemory(); // wipe all allocs made with G_Alloc
 	//JKG_Nav_Shutdown();

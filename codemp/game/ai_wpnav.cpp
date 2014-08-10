@@ -469,13 +469,12 @@ void CreateNewWP_FromObject(wpobject_t *wp)
 
 	if (!gWPArray[gWPNum])
 	{
-		//gWPArray[gWPNum] = (wpobject_t *)malloc(sizeof(wpobject_t));
 		gWPArray[gWPNum] = (wpobject_t *)malloc(sizeof(wpobject_t));
-	}
 
-	if (!gWPArray[gWPNum])
-	{
-		trap->Print(S_COLOR_RED "ERROR: Could not allocated memory for waypoint\n");
+		if (!gWPArray[gWPNum])
+		{
+			trap->Error( ERR_DROP, "Could not allocate memory for waypoint\n" );
+		}
 	}
 
 	gWPArray[gWPNum]->flags = wp->flags;
@@ -2595,6 +2594,15 @@ int LoadPathData(const char *filename)
 	trap->Print("^2Loaded %i waypoints for from %s.\n", gWPNum, filename);
 
 	return 1;
+}
+
+void WaypointsCleanup()
+{
+	for ( int i = 0; i < gWPNum; i++ )
+	{
+		free( gWPArray[i] );
+		gWPArray[i] = NULL;
+	}
 }
 
 void FlagObjects(void)

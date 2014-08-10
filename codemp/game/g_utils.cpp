@@ -5,6 +5,7 @@
 #include "g_local.h"
 #include "bg_saga.h"
 #include "qcommon/q_shared.h"
+#include "jkg_easy_items.h"
 
 // Include GLua
 #include "../GLua/glua.h"
@@ -376,15 +377,10 @@ void G_Throw( gentity_t *targ, vec3_t newDir, float push )
 	}
 }
 
-//methods of creating/freeing "fake" dynamically allocated client entity structures.
-//You ABSOLUTELY MUST free this client after creating it before game shutdown. If
-//it is left around you will have a memory leak, because true dynamic memory is
-//allocated by the exe.
-void G_FreeFakeClient(gclient_t **cl)
-{ //or not, the dynamic stuff is busted somehow at the moment. Yet it still works in the test.
-  //I think something is messed up in being able to cast the memory to stuff to modify it,
-  //while modifying it directly seems to work fine.
-	//trap->TrueFree((void **)cl);
+static void G_FreeFakeClient(gclient_t **cl)
+{
+	free( *cl );
+	*cl = NULL;
 }
 
 //allocate a veh object
@@ -701,6 +697,13 @@ void G_InitGentity( gentity_t *e ) {
 
 	// Jedi Knight Galaxies - Wipe spawnvars
 	JKG_Pairs_Clear(&g_spawnvars[e->s.number]);
+
+	// Mainly for the benefit of players. For players, inventories are created
+	// at ClientBegin time, but only freed at ClientDisconnect or G_ShutdownGame.
+	// ClientBegin is called every time a player changes team. To avoid leaks,
+	// we free the inventory here and then realloc it.
+	JKG_Easy_DIMA_FreeInventory( &e->inventory );
+	e->inventory = JKG_Easy_DIMA_AllocInventory();
 
 	trap->ICARUS_FreeEnt( (sharedEntity_t *)e );	//ICARUS information must be added after this point
 }
@@ -1126,6 +1129,8 @@ void G_FreeEntity( gentity_t *ed ) {
 	}
 	ed->UsesELS = 0;
 	ed->IDCode = 0;
+
+	JKG_Easy_DIMA_FreeInventory( &ed->inventory );
 
 	memset (ed, 0, sizeof(*ed));
 	ed->classname = "freed";

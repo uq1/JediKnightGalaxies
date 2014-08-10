@@ -176,6 +176,8 @@ Load_NPC_Names ( void )
 		t = s;
 	}
 
+	free( buf );
+
 	NUM_HUMAN_NAMES--;
 
 	trap->Print( "^4*** ^3%s^4: ^5There are ^7%i^5 NPC names in the database.\n", GAME_VERSION, NUM_HUMAN_NAMES );
@@ -1452,7 +1454,7 @@ void NPC_Begin (gentity_t *ent)
 	}
 }
 
-gNPC_t *gNPCPtrs[MAX_GENTITIES];
+static gNPC_t *gNPCPtrs[MAX_GENTITIES];
 
 gNPC_t *New_NPC_t(int entNum)
 {
@@ -1473,6 +1475,15 @@ gNPC_t *New_NPC_t(int entNum)
 	}
 
 	return ptr;
+}
+
+void NPC_Cleanup()
+{
+	for ( int i = 0; i < MAX_GENTITIES; i++ )
+	{
+		free( gNPCPtrs[i] );
+		gNPCPtrs[i] = NULL;
+	}
 }
 
 #ifdef _XBOX

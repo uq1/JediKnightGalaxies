@@ -77,13 +77,16 @@ static int GLua_JSON_Register( lua_State *L )
 	}
 
 	// Read it now.
-	char *buff = (char *)malloc(len);
+	char *buff = (char *)malloc(len + 1);
 	
 	trap->FS_Read( buff, len, f );
 	buff[len] = '\0';
 	trap->FS_Close( f );
 
 	fJSON.fileBinding = buff;
+
+	// fileBinding takes a copy of the buffer. Let's just free the original right now.
+	free( buff );
 
 	// Okay, now handle the deal with the first node.
 	char error[MAX_STRING_CHARS];

@@ -10,6 +10,7 @@
 #include "jkg_bans.h"
 #include "jkg_damagetypes.h"
 #include "jkg_utilityfunc.h"
+#include "jkg_easy_items.h"
 #include "qcommon/game_version.h"
 
 extern wpobject_t *gWPArray[MAX_WPARRAY_SIZE];
@@ -2406,7 +2407,8 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	ent->client = client;
 
 	// give the client a bit of initial mem to set up their damage history
-	ent->assistData.hitRecords = (entityHitRecord_t *)malloc(sizeof(entityHitRecord_t));
+	// We realloc because the player might be changing teams.
+	ent->assistData.hitRecords = static_cast<entityHitRecord_t *>(realloc( ent->assistData.hitRecords, sizeof( entityHitRecord_t ) ));
 	ent->assistData.memAllocated = 1;
 
 	//assign the pointer for bg entity access
@@ -3717,7 +3719,7 @@ void ClientDisconnect( int clientNum ) {
 		return;
 	}
 
-	JKG_Easy_DIMA_CleanEntity(clientNum);
+	JKG_Easy_DIMA_FreeInventory( &ent->inventory );
 	if( ent->assistData.memAllocated > 0 && ent->assistData.hitRecords )
 	{
 		free( ent->assistData.hitRecords );
@@ -3823,6 +3825,7 @@ void ClientDisconnect( int clientNum ) {
 	ent->r.contents = 0;
 
 	trap->SetConfigstring( CS_PLAYERS + clientNum, "");
+
 
 	CalculateRanks();
 
