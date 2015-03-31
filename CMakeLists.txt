@@ -1,3 +1,21 @@
+#============================================================================
+# Copyright (C) 2013 - 2015, OpenJK contributors
+# 
+# This file is part of the OpenJK source code.
+# 
+# OpenJK is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+#============================================================================
+
 cmake_minimum_required(VERSION 2.8.8)
 # For checks in subdirectories
 set(InOpenJK TRUE)
@@ -32,13 +50,23 @@ else()
 	option(UseInternalPNG "Whether to use the included libpng instead of a locally installed one" OFF)
 endif()
 
+if(WIN32 OR APPLE)
+	option(UseInternalJPEG "Whether to use the included libjpeg instead of a locally installed one" ON)
+else()
+	option(UseInternalJPEG "Whether to use the included libjpeg instead of a locally installed one" OFF)
+endif()
+
 if(APPLE)
 	option(MakeApplicationBundles "Whether to build .app application bundles for engines built" ON)
 else()
 	set(MakeApplicationBundles OFF)
 endif()
 
-option(PackageDir "Where to place the installer/package." "${CMAKE_SOURCE_DIR}/package")
+if(MSVC)
+	option(UseInternalSDL2 "Whether to use the included SDL2 library instead of a locally installed one" ON)
+else()
+	set(UseInternalSDL2 OFF)
+endif()
 
 # Custom CMake Modules needed
 list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_SOURCE_DIR}/CMakeModules")
@@ -59,6 +87,8 @@ else()
 		set(WIN64 FALSE)
 	elseif(APPLE)
 		set(Architecture "x86")
+	elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
+		set(Architecture "arm")
 	else()
 		set(Architecture "i386")
 	endif()
@@ -69,7 +99,6 @@ message("Architecture is ${Architecture}")
 # Current Git SHA1 hash
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-# TODO: actually use the Git SHA1 for something?
 message("Git revision is ${GIT_SHA1}")
 
 # Binary names
@@ -84,29 +113,34 @@ set(JK2SPGame "jospgame${Architecture}")
 set(JK2SPVanillaRenderer "rdjosp-vanilla_${Architecture}")
 # Library names
 set(MPBotLib "botlib")
+set(SharedLib "shared")
 
 # Paths
 set(MPDir "${CMAKE_SOURCE_DIR}/codemp")
 set(OpenJKLibDir "${MPDir}/libraries")
+set(SharedDir ${CMAKE_SOURCE_DIR}/shared)
+
+include(InstallConfig)
 
 # Common settings
 if(WIN32)
+	set(SharedDefines "NOMINMAX")
 	if(MSVC)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP") # enable parallel compilation
 		set(CMAKE_C_FLAGS_DEBUG "/D_DEBUG /MDd /ZI /Ob0 /Od /RTC1" CACHE STRING "flags" FORCE )
 		set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MDd /ZI /Ob0 /Od /RTC1" CACHE STRING "flags" FORCE)
 	endif(MSVC)
 	if(WIN64)
+		set(SharedDefines ${SharedDefines} "WIN64")
 		if(MSVC)
-			set(SharedDefines "WIN64" "_CRT_SECURE_NO_WARNINGS")
+			set(SharedDefines ${SharedDefines} "_CRT_SECURE_NO_WARNINGS")
 		else()
-			set(SharedDefines "WIN64")
 			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:SSE2")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
 		endif()
 	else()
 		if(MSVC)
-			set(SharedDefines "_CRT_SECURE_NO_WARNINGS")
+			set(SharedDefines ${SharedDefines} "_CRT_SECURE_NO_WARNINGS")
 			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:SSE2")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
 		endif()
@@ -127,8 +161,10 @@ else()
 	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
 
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+	if (NOT Architecture STREQUAL "arm")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+	endif()
 
 	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
@@ -137,9 +173,13 @@ else()
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign")
+		if (Architecture STREQUAL "arm")
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsigned-char")
+		else()
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign")
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
+		endif()
 		#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-but-set-variable")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
 	elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment")
@@ -152,9 +192,13 @@ else()
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign")
+		if (Architecture STREQUAL "arm")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsigned-char")
+		else()
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse")
+		endif()
 		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-but-set-variable")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse")
 	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-writable-strings")
@@ -175,6 +219,14 @@ endif()
 
 set(JKGDir "${CMAKE_SOURCE_DIR}/JKGalaxies")
 set(OpenJKLibDir "${CMAKE_SOURCE_DIR}/codemp/libraries")
+if(UseInternalJPEG)
+	set(SharedDefines ${SharedDefines} "USE_INTERNAL_JPEG")
+endif()
+
+if(UseInternalZlib)
+	set(SharedDefines ${SharedDefines} "USE_INTERNAL_ZLIB")
+endif()
+
 
 if(NOT MSVC)
 	# CMake already defines _DEBUG for MSVC.
@@ -185,21 +237,3 @@ set(ReleaseDefines "FINAL_BUILD")
 
 #    Add projects
 add_subdirectory(${MPDir})
-
-# CPack for installer creation
-# TODO: Which version are we?
-set(CPACK_PACKAGE_VERSION_MAJOR "0")
-set(CPACK_PACKAGE_VERSION_MINOR "1")
-set(CPACK_PACKAGE_VERSION_PATCH "0")
-# I'm just not appending the version for now
-set(CPACK_PACKAGE_FILE_NAME "JKGalaxies-${CMAKE_SYSTEM_NAME}-${Architecture}")
-
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Jedi Academy - expanded horizons")
-set(CPACK_PACKAGE_VENDOR "JKGDevs")
-set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt")
-set(CPACK_PACKAGE_DIRECTORY ${PACKAGE_DIR})
-set(CPACK_BINARY_ZIP ON) # always create at least a zip file
-set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0) # prevent additional directory in zip
-
-include(CPack)

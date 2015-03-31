@@ -1,21 +1,24 @@
-// leave this line at the top for all g_xxxx.cpp files...
-#include "g_headers.h"
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
 
-//seems to be a compiler bug, it doesn't clean out the #ifdefs between dif-compiles
-//or something, so the headers spew errors on these defs from the previous compile.
-//this fixes that. -rww
-//get rid of all the crazy defs we added for this file
-#undef currentAngles
-#undef currentOrigin
-#undef mins
-#undef maxs
-#undef legsAnimTimer
-#undef torsoAnimTimer
+This file is part of the OpenJK source code.
 
-#undef sqrtf
-#undef Q_flrand
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
 
-#undef MOD_EXPLOSIVE
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 #ifdef _GAME //including game headers on cgame is FORBIDDEN ^_^
 #include "g_local.h"

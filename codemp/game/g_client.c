@@ -1,5 +1,27 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "g_local.h"
 #include "ghoul2/G2.h"
 #include "bg_saga.h"
@@ -1764,7 +1786,7 @@ void Svcmd_ToggleUserinfoValidation_f( void ) {
 			return;
 		}
 
-		trap->Cvar_Set( "g_userinfoValidate", va( "%i", (1<<index) ^ g_userinfoValidate.integer ) );
+		trap->Cvar_Set( "g_userinfoValidate", va( "%i", (1 << index) ^ (g_userinfoValidate.integer & ((1 << (numUserinfoFields + USERINFO_VALIDATION_MAX)) - 1)) ) );
 		trap->Cvar_Update( &g_userinfoValidate );
 
 		if ( index < numUserinfoFields )	Com_Printf( "%s %s\n", userinfoFields[index].fieldClean,				((g_userinfoValidate.integer & (1<<index)) ? "Validated" : "Ignored") );
@@ -3320,6 +3342,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	
 	// MOAR OVERRIDING OF WEAPONS.
 	if ( respawn )
+		trap->Cvar_Update( &g_jediVmerc );
 	{
 	    int weapon = 0;
 	    int variation = 0;
@@ -3754,6 +3777,16 @@ void ClientDisconnect( int clientNum ) {
 
 	//JAC: Correctly leave vehicles
 	G_LeaveVehicle( ent, qtrue );
+
+	if ( ent->client->ewebIndex )
+	{
+		gentity_t *eweb = &g_entities[ent->client->ewebIndex];
+
+		ent->client->ps.emplacedIndex = 0;
+		ent->client->ewebIndex = 0;
+		ent->client->ewebHealth = 0;
+		G_FreeEntity( eweb );
+	}
 
 	// stop any following clients
 	for ( i = 0 ; i < level.maxclients ; i++ ) {

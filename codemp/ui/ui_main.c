@@ -1,5 +1,27 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 /*
 =======================================================================
 
@@ -504,7 +526,6 @@ static int UI_GetIndexFromSelection(int actual);
 static void UI_SiegeClassCnt( const int team );
 
 
-int ProcessNewUI( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6 );
 int	uiSkinColor=TEAM_FREE;
 int	uiHoldSkinColor=TEAM_FREE;	// Stores the skin color so that in non-team games, the player screen remembers the team you chose, in case you're coming back from the force powers screen.
 
@@ -748,9 +769,9 @@ void Text_PaintWithCursor(float x, float y, float scale, vec4_t color, const cha
 	//
 	{
 		char sTemp[1024];
-		int iCopyCount = limit ? min( (signed)strlen( text ), limit ) : (signed)strlen( text );
-			iCopyCount = min( iCopyCount, cursorPos );
-			iCopyCount = min( iCopyCount, sizeof( sTemp ) );
+		int iCopyCount = limit > 0 ? Q_min( (int)strlen( text ), limit ) : (int)strlen( text );
+			iCopyCount = Q_min( iCopyCount, cursorPos );
+			iCopyCount = Q_min( iCopyCount, (int)sizeof( sTemp )-1 );
 
 			// copy text into temp buffer for pixel measure...
 			//			
@@ -1799,7 +1820,7 @@ void UpdateBotButtons(void)
 
 static void UI_DrawNetSource(rectDef_t *rect, float scale, vec4_t color, int textStyle, int iMenuFont) 
 {
-	//[MasterServer]
+	if (ui_netSource.integer < 0 || ui_netSource.integer >= numNetSources) {
 	if (ui_netSource.integer < 0 || ui_netSource.integer > AS_GLOBAL5) 
 	{
 		ui_netSource.integer = 0;
@@ -1956,41 +1977,40 @@ static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
 		s = va("%i. %s", iUse, text);
 		break;
 	case UI_NETSOURCE:
-		//[MasterServer]
-		if (ui_netSource.integer < 0 || ui_netSource.integer > AS_GLOBAL5) {
-			ui_netSource.integer = 0;
-		}
-		//[/MasterServer]
-		trap->SE_GetStringTextString("MENUS_SOURCE", holdSPString, sizeof(holdSPString));
-		s = va("%s %s", holdSPString, GetNetSourceString(ui_netSource.integer));
-		break;
-	case UI_NETFILTER:
-		if (ui_serverFilterType.integer < 0 || ui_serverFilterType.integer > numServerFilters) {
-			ui_serverFilterType.integer = 0;
-		}
-		trap->SE_GetStringTextString("MENUS_GAME", holdSPString, sizeof(holdSPString));
-		//trap->SE_GetStringTextString(serverFilters[ui_serverFilterType.integer].description, holdSPString2, sizeof(holdSPString2));
-		strcpy(holdSPString2, serverFilters[ui_serverFilterType.integer].description);
-
-		s = va("%s %s", holdSPString, holdSPString2 );
-		break;
-	case UI_ALLMAPS_SELECTION:
-		break;
-	case UI_OPPONENT_NAME:
-		break;
-	case UI_KEYBINDSTATUS:
-		if (Display_KeyBindPending()) {
-			s = UI_GetStringEdString("MP_INGAME", "WAITING_FOR_NEW_KEY");
-		} else {
+			if (ui_netSource.integer < 0 || ui_netSource.integer >= numNetSources) {
+				trap->Cvar_Set("ui_netSource", "0");
+				trap->Cvar_Update(&ui_netSource);
+			}
+			trap->SE_GetStringTextString("MENUS_SOURCE", holdSPString, sizeof(holdSPString));
+			s = va("%s %s", holdSPString, GetNetSourceString(ui_netSource.integer));
+			break;
+		case UI_NETFILTER:
+			trap->SE_GetStringTextString("MENUS_GAME", holdSPString, sizeof(holdSPString));
+			s = va("%s %s", holdSPString, UI_FilterDescription( ui_serverFilterType.integer ) );
+			break;
+		case UI_TIER:
+			break;
+		case UI_TIER_MAPNAME:
+			break;
+		case UI_TIER_GAMETYPE:
+			break;
+		case UI_ALLMAPS_SELECTION:
+			break;
+		case UI_OPPONENT_NAME:
+			break;
+		case UI_KEYBINDSTATUS:
+			if (Display_KeyBindPending()) {
+				s = UI_GetStringEdString("MP_INGAME", "WAITING_FOR_NEW_KEY");
+			} else {
 			//	s = "Press ENTER or CLICK to change, Press BACKSPACE to clear";
-		}
-		break;
-	case UI_SERVERREFRESHDATE:
-		s = UI_Cvar_VariableString(va("ui_lastServerRefresh_%i", ui_netSource.integer));
-		break;
-	default:
-		break;
-	}
+			}
+			break;
+		case UI_SERVERREFRESHDATE:
+			s = UI_Cvar_VariableString(va("ui_lastServerRefresh_%i", ui_netSource.integer));
+			break;
+    default:
+      break;
+  }
 
 	if (s) {
 		return Text_Width(s, scale, 0);
@@ -2031,7 +2051,7 @@ static void UI_DrawCrosshair(rectDef_t *rect, float scale, vec4_t color) {
 	}
 
 	//Raz: Don't stretch crosshairs
-	size = min( rect->w, rect->h );
+	size = Q_min( rect->w, rect->h );
 	UI_DrawHandlePic( rect->x, rect->y, size, size, uiInfo.uiDC.Assets.crosshairShader[uiInfo.currentCrosshair]);
 	trap->R_SetColor( NULL );
 }
@@ -3682,22 +3702,43 @@ static void UI_LoadMovies() {
 UI_LoadDemos
 ===============
 */
+#define MAX_DEMO_FOLDER_DEPTH (8)
+typedef struct loadDemoContext_s
+{
+	int depth;
+	qboolean warned;
+	char demoList[MAX_DEMOLIST];
+	char directoryList[MAX_DEMOLIST];
+	char *dirListHead;
+} loadDemoContext_t;
 
-#if 1
-
+static void UI_LoadDemosInDirectory( loadDemoContext_t *ctx, const char *directory )
 /*
 ===============
 UI_LoadDemos
 ===============
 */
 
-static void UI_LoadDemosInDirectory( const char *directory )
 {
-	char	demolist[MAX_DEMOLIST] = {0}, *demoname = NULL;
-	char	fileList[MAX_DEMOLIST] = {0}, *fileName = NULL;
-	char	demoExt[32] = {0};
-	int		i=0, j=0, len=0, numFiles=0;
-	int		protocol = trap->Cvar_VariableValue( "com_protocol" ), protocolLegacy = trap->Cvar_VariableValue( "com_legacyprotocol" );
+	char *demoname = NULL;
+	char demoExt[32] = {0};
+	int protocol = trap->Cvar_VariableValue( "com_protocol" );
+	int protocolLegacy = trap->Cvar_VariableValue( "com_legacyprotocol" );
+	char *dirListEnd;
+	int j;
+
+	if ( ctx->depth > MAX_DEMO_FOLDER_DEPTH )
+	{
+		if ( !ctx->warned )
+		{
+			ctx->warned = qtrue;
+			Com_Printf( S_COLOR_YELLOW "WARNING: Maximum demo folder depth (%d) was reached.\n", MAX_DEMO_FOLDER_DEPTH );
+		}
+
+		return;
+	}
+
+	ctx->depth++;
 
 	if ( !protocol )
 		protocol = trap->Cvar_VariableValue( "protocol" );
@@ -3706,17 +3747,19 @@ static void UI_LoadDemosInDirectory( const char *directory )
 
 	Com_sprintf( demoExt, sizeof( demoExt ), ".%s%d", DEMO_EXTENSION, protocol);
 
-	uiInfo.demoCount += trap->FS_GetFileList( directory, demoExt, demolist, sizeof( demolist ) );
+	uiInfo.demoCount += trap->FS_GetFileList( directory, demoExt, ctx->demoList, sizeof( ctx->demoList ) );
 
-	demoname = demolist;
+	demoname = ctx->demoList;
 
-	for ( j=0; j<2; j++ )
+	for ( j = 0; j < 2; j++ )
 	{
 		if ( uiInfo.demoCount > MAX_DEMOS )
 			uiInfo.demoCount = MAX_DEMOS;
 
 		for( ; uiInfo.loadedDemos<uiInfo.demoCount; uiInfo.loadedDemos++)
 		{
+			size_t len;
+
 			len = strlen( demoname );
 			Com_sprintf( uiInfo.demoList[uiInfo.loadedDemos], sizeof( uiInfo.demoList[0] ), "%s/%s", directory + strlen( DEMO_DIRECTORY ), demoname );
 			demoname += len + 1;
@@ -3727,66 +3770,69 @@ static void UI_LoadDemosInDirectory( const char *directory )
 			if ( protocolLegacy > 0 && uiInfo.demoCount < MAX_DEMOS )
 			{
 				Com_sprintf( demoExt, sizeof( demoExt ), ".%s%d", DEMO_EXTENSION, protocolLegacy );
-				uiInfo.demoCount += trap->FS_GetFileList( directory, demoExt, demolist, sizeof( demolist ) );
-				demoname = demolist;
+				uiInfo.demoCount += trap->FS_GetFileList( directory, demoExt, ctx->demoList, sizeof( ctx->demoList ) );
+				demoname = ctx->demoList;
 			}
 			else
 				break;
 		}
 	}
 
-	numFiles = trap->FS_GetFileList( directory, "/", fileList, sizeof( fileList ) );
-
-	fileName = fileList;
-	for ( i=0; i<numFiles; i++ )
+	dirListEnd = ctx->directoryList + sizeof( ctx->directoryList );
+	if ( ctx->dirListHead < dirListEnd )
 	{
-		len = strlen( fileName );
-		fileName[len] = '\0';
-		if ( Q_stricmp( fileName, "." ) && Q_stricmp( fileName, ".." ) )
-			UI_LoadDemosInDirectory( va( "%s/%s", directory, fileName ) );
-		fileName += len+1;
+		int i;
+		int dirListSpaceRemaining = dirListEnd - ctx->dirListHead;
+		int numFiles = trap->FS_GetFileList( directory, "/", ctx->dirListHead, dirListSpaceRemaining );
+		char *dirList;
+		char *childDirListBase;
+		char *fileName;
+
+		// Find end of this list so we have a base pointer for the child folders to use
+		dirList = ctx->dirListHead;
+		for ( i = 0; i < numFiles; i++ )
+		{
+			ctx->dirListHead += strlen( ctx->dirListHead ) + 1;
+		}
+		ctx->dirListHead++;
+
+		// Iterate through child directories
+		childDirListBase = ctx->dirListHead;
+		fileName = dirList;
+		for ( i = 0; i < numFiles; i++ )
+		{
+			size_t len = strlen( fileName );
+
+			if ( Q_stricmp( fileName, "." ) && Q_stricmp( fileName, ".." ) && len )
+				UI_LoadDemosInDirectory( ctx, va( "%s/%s", directory, fileName ) );
+
+			ctx->dirListHead = childDirListBase;
+			fileName += len+1;
+		}
+
+		assert( (fileName + 1) == childDirListBase );
 	}
 
+	ctx->depth--;
+}
+
+static void InitLoadDemoContext( loadDemoContext_t *ctx )
+{
+	ctx->warned = qfalse;
+	ctx->depth = 0;
+	ctx->dirListHead = ctx->directoryList;
 }
 
 static void UI_LoadDemos( void )
 {
+	loadDemoContext_t loadDemoContext;
+	InitLoadDemoContext( &loadDemoContext );
+
 	uiInfo.demoCount = 0;
 	uiInfo.loadedDemos = 0;
 	memset( uiInfo.demoList, 0, sizeof( uiInfo.demoList ) );
-	UI_LoadDemosInDirectory( DEMO_DIRECTORY );
+	UI_LoadDemosInDirectory( &loadDemoContext, DEMO_DIRECTORY );
 }
-
-#else
-
-static void UI_LoadDemos( void )
-{
-	char	demolist[4096] = {0};
-	char	demoExt[8] = {0};
-	char	*demoname = NULL;
-	int		i, len, extLen;
-
-	Com_sprintf( demoExt, sizeof( demoExt ), "dm_%d", (int)trap->Cvar_VariableValue( "protocol" ) );
-	uiInfo.demoCount = Com_Clampi( 0, MAX_DEMOS, trap->FS_GetFileList( "demos", demoExt, demolist, sizeof( demolist ) ) );
-	Com_sprintf( demoExt, sizeof( demoExt ), ".dm_%d", (int)trap->Cvar_VariableValue( "protocol" ) );
-	extLen = strlen( demoExt );
-
-	if ( uiInfo.demoCount )
-	{
-		demoname = demolist;
-		for ( i=0; i<uiInfo.demoCount; i++ )
-		{
-			len = strlen( demoname );
-			if ( !Q_stricmp( demoname + len - extLen, demoExt) )
-				demoname[len-extLen] = '\0';
-			Q_strupr( demoname );
-			uiInfo.demoList[i] = String_Alloc( demoname );
-			demoname += len + 1;
-		}
-	}
-}
-
-#endif
 
 static qboolean UI_SetNextMap(int actual, int index) {
 	int i;
@@ -5197,11 +5243,11 @@ static void UI_RunMenuScript(char **args)
 				} else {
 					int i;
 					for (i = 0; i < uiInfo.myTeamCount; i++) {
-						if (Q_stricmp(UI_Cvar_VariableString("name"), uiInfo.teamNames[i]) == 0) {
+						if (uiInfo.playerNumber == uiInfo.teamClientNums[i]) {
 							continue;
 						}
-						strcpy(buff, orders);
-						trap->Cmd_ExecuteText( EXEC_APPEND, va(buff, uiInfo.teamNames[i]) );
+						Com_sprintf( buff, sizeof( buff ), orders, uiInfo.teamClientNums[i] );
+						trap->Cmd_ExecuteText( EXEC_APPEND, buff );
 						trap->Cmd_ExecuteText( EXEC_APPEND, "\n" );
 					}
 				}
@@ -5515,6 +5561,10 @@ static void UI_RunMenuScript(char **args)
 		else if (Q_stricmp(name, "clampmaxplayers") == 0)
 		{
 			UI_ClampMaxPlayers();
+		}
+		else if ( Q_stricmp( name, "LaunchSP" ) == 0 )
+		{
+			// TODO for MAC_PORT
 		}
 		else 
 		{
@@ -6120,8 +6170,6 @@ static int UI_GetServerStatusInfo( const char *serverAddress, serverStatusInfo_t
 			while (p && *p) {
 				if (*p == '\\')
 					*p++ = '\0';
-				if (!p)
-					break;
 				score = p;
 				p = strchr(p, ' ');
 				if (!p)
@@ -6789,7 +6837,7 @@ static qhandle_t UI_FeederItemImage(float feederID, int index) {
 	}
 	else if (feederID == FEEDER_Q3HEADS) 
 	{
-		int actual;
+		int actual = 0;
 		UI_SelectedTeamHead(index, &actual);
 		index = actual;
 
@@ -6928,7 +6976,7 @@ qboolean UI_FeederSelection(float feederFloat, int index, itemDef_t *item)
 	}
 	else if (feederID == FEEDER_Q3HEADS) 
 	{
-		int actual;
+		int actual = 0;
 		UI_SelectedTeamHead(index, &actual);
 		uiInfo.q3SelectedHead = index;
 		trap->Cvar_Set("ui_selectedModelIndex", va("%i", index));

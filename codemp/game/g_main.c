@@ -1,5 +1,27 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 
 #include "g_local.h"
 #include "jkg_threading.h" // JKG Threading Header
@@ -317,6 +339,7 @@ void G_CacheGametype( void )
 		level.gametype = (gametype_t)atoi( g_gametype.string );
 
 	trap->Cvar_Set( "g_gametype", va( "%i", level.gametype ) );
+	trap->Cvar_Update( &g_gametype );
 }
 
 /*
@@ -1337,8 +1360,6 @@ void CalculateRanks( void ) {
 			}
 		}
 	}
-
-	//NOTE: for now not doing this either. May use later if appropriate.
 
 	qsort( level.sortedClients, level.numConnectedClients, 
 		sizeof(level.sortedClients[0]), SortRanks );
@@ -2522,6 +2543,7 @@ void CheckTournament( void ) {
 		{ //if you have proper num of players then don't try to add again
 			g_dontFrickinCheck = qtrue;
 		}
+			trap->Cvar_Update( &g_restarted );
 	}
 }
 

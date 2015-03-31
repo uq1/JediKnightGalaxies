@@ -1,5 +1,27 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // g_local.h -- local definitions for game module
 #ifndef G_LOCAL_H
 #define G_LOCAL_H
@@ -1320,8 +1342,6 @@ void Cmd_EngageDuel_f(gentity_t *ent);
 void G_LeaveVehicle( gentity_t *ent, qboolean ConCheck );
 void SanitizeString2( char *in, char *out );
 
-gentity_t *G_GetDuelWinner(gclient_t *client);
-
 void JKG_BindChatCommands( void );
 void CCmd_Cleanup();
 
@@ -1833,6 +1853,7 @@ typedef enum userinfoValidationBits_e {
 **************************************************/
 
 void Svcmd_ToggleUserinfoValidation_f( void );
+void Svcmd_ToggleAllowVote_f( void );
 qboolean	TeamCommand( int clientNum, char *cmd, char *param );							// A client is issueing a command, check for team commands here.
 void		TeamDisconnect( int clientNum );												// This client is disconnecting without dealing with his team.
 qboolean	TeamFriendly( int p1, int p2 );													// Returns wether or not these players are friendly.

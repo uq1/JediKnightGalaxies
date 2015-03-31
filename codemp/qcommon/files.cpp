@@ -1,4 +1,29 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 /*****************************************************************************
+
  * name:		files.cpp
  *
  * desc:		file code
@@ -13,6 +38,10 @@
 #endif
 #endif
 #include "minizip/unzip.h"
+
+#if defined(_WIN32)
+#include <Windows.h>
+#endif
 
 // for rmdir
 #if defined (_MSC_VER)
@@ -515,7 +544,9 @@ qboolean FS_CreatePath (char *OSPath) {
 
 	// Skip creation of the root directory as it will always be there
 	ofs = strchr( path, PATH_SEP );
-	ofs++;
+	if ( ofs ) {
+		ofs++;
+	}
 
 	for (; ofs != NULL && *ofs ; ofs++) {
 		if (*ofs == PATH_SEP) {
@@ -1220,22 +1251,6 @@ bool FS_FileCacheable(const char* const filename)
 
 /*
 ===========
-FS_ShiftedStrStr
-===========
-*/
-const char *FS_ShiftedStrStr(const char *string, const char *substring, int shift) {
-	char buf[MAX_STRING_TOKENS];
-	int i;
-
-	for (i = 0; substring[i]; i++) {
-		buf[i] = substring[i] + shift;
-	}
-	buf[i] = '\0';
-	return strstr(string, buf);
-}
-
-/*
-===========
 FS_FOpenFileRead
 
 Finds the file in the search path.
@@ -1333,6 +1348,10 @@ long FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean unique
 						// shaders, txt, arena files  by themselves do not count as a reference as
 						// these are loaded from all pk3s
 						// from every pk3 file..
+
+						// The x86.dll suffixes are needed in order for sv_pure to continue to
+						// work on non-x86/windows systems...
+
 						l = strlen( filename );
 						if ( !(pak->referenced & FS_GENERAL_REF)) {
 							if( !FS_IsExt(filename, ".shader", l) &&
@@ -1352,41 +1371,19 @@ long FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean unique
 							}
 						}
 
-						/*
-						FS_ShiftedStrStr(filename, "jampgamex86.dll", -13);
-												  //]^&`cZT`Xk+)!W__
-						FS_ShiftedStrStr(filename, "cgamex86.dll", -7);
-												  //\`Zf^q1/']ee
-						FS_ShiftedStrStr(filename, "uix86.dll", -5);
-												  //pds31)_gg
-						*/
-
-						// jampgame.qvm	- 13
-						// ]^&`cZT`X!di`
-						/*if (!(pak->referenced & FS_GAME_REF))
-						{
-							if (FS_ShiftedStrStr(filename, "]T`cZT`X!di`", 13) ||
-								FS_ShiftedStrStr(filename, "]T`cZT`Xk+)!W__", 13))
-							{
-								pak->referenced |= FS_GAME_REF;
-							}
-						}*/
-						// cgame.qvm	- 7
-						// \`Zf^'jof
 						if (!(pak->referenced & FS_CGAME_REF))
 						{
-							if (FS_ShiftedStrStr(filename , "\\`Zf^'jof", 7) ||
-								FS_ShiftedStrStr(filename , "\\`Zf^q1/']ee", 7))
+							if ( Q_stricmp( filename, "cgame.qvm" ) == 0 ||
+									Q_stricmp( filename, "cgamex86.dll" ) == 0 )
 							{
 								pak->referenced |= FS_CGAME_REF;
 							}
 						}
-						// ui.qvm		- 5
-						// pd)lqh
+
 						if (!(pak->referenced & FS_UI_REF))
 						{
-							if (FS_ShiftedStrStr(filename , "pd)lqh", 5) ||
-								FS_ShiftedStrStr(filename , "pds31)_gg", 5))
+							if ( Q_stricmp( filename, "ui.qvm" ) == 0 ||
+									Q_stricmp( filename, "uix86.dll" ) == 0 )
 							{
 								pak->referenced |= FS_UI_REF;
 							}
@@ -1712,7 +1709,6 @@ int FS_Write( const void *buffer, int len, fileHandle_t h ) {
 	return len;
 }
 
-#define	MAXPRINTMSG	4096
 void QDECL FS_Printf( fileHandle_t h, const char *fmt, ... ) {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
@@ -3858,7 +3854,6 @@ void FS_Restart( int checksumFeed ) {
 		Com_Error( ERR_FATAL, "Couldn't load JKG_Defaults.cfg" );
 	}
 
-	// bk010116 - new check before safeMode
 	if ( Q_stricmp(fs_gamedirvar->string, lastValidGame) ) {
 		// skip the jampconfig.cfg if "safe" is on the command line
 		if ( !Com_SafeMode() ) {

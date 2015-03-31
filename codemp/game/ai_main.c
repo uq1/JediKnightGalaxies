@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 #include "g_local.h"
 #include "qcommon/q_shared.h"
@@ -1295,6 +1317,30 @@ int PassLovedOneCheck(bot_state_t *bs, gentity_t *ent)
 	return 1;
 }
 
+				factor = 0;
+			}
+
+			if (ent->s.weapon == WP_DET_PACK &&
+				(ent->r.ownerNum == bs->client ||
+				(ent->r.ownerNum > 0 && ent->r.ownerNum < MAX_CLIENTS &&
+				g_entities[ent->r.ownerNum].client && OnSameTeam(&g_entities[bs->client], &g_entities[ent->r.ownerNum]))) )
+			{ //don't be afraid of your own detpacks or your teammates' detpacks
+				factor = 0;
+			}
+
+			if (ent->s.weapon == WP_TRIP_MINE &&
+				(ent->r.ownerNum == bs->client ||
+				(ent->r.ownerNum > 0 && ent->r.ownerNum < MAX_CLIENTS &&
+				g_entities[ent->r.ownerNum].client && OnSameTeam(&g_entities[bs->client], &g_entities[ent->r.ownerNum]))) )
+			{ //don't be afraid of your own trip mines or your teammates' trip mines
+				factor = 0;
+			}
+
+			if (ent->s.weapon == WP_THERMAL &&
+				(ent->r.ownerNum == bs->client ||
+				(ent->r.ownerNum > 0 && ent->r.ownerNum < MAX_CLIENTS &&
+				g_entities[ent->r.ownerNum].client && OnSameTeam(&g_entities[bs->client], &g_entities[ent->r.ownerNum]))) )
+			{ //don't be afraid of your own thermals or your teammates' thermals
 //check/select the chosen weapon
 int BotSelectChoiceWeapon(bot_state_t *bs, int weapon, int doselection)
 { //if !doselection then bot will only check if he has the specified weapon and return 1 (yes) or 0 (no)
