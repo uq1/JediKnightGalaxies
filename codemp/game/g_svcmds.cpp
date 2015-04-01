@@ -547,7 +547,11 @@ qboolean	ConsoleCommand( void ) {
 		return qtrue;
 	}
 #endif
-	{ "toggleallowvote",			Svcmd_ToggleAllowVote_f,			qfalse },
+
+	if (!Q_stricmp(cmd, "toggleallowvote")) {
+		Svcmd_ToggleAllowVote_f();
+		return qtrue;
+	}
 
 	if (GLua_RconCommand(cmd))
 		return qtrue;

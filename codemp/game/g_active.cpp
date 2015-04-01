@@ -1314,20 +1314,15 @@ void G_UpdateClientBroadcasts( gentity_t *self ) {
 		dist = VectorLengthSquared( angles );
 		vectoangles( angles, angles );
 
-		// broadcast jedi master to everyone if we are in distance/field of view
-		if ( level.gametype == GT_JEDIMASTER && self->client->ps.isJediMaster ) {
-			if ( dist < maxJediMasterDistance
-				&& InFieldOfVision( other->client->ps.viewangles, maxJediMasterFOV, angles ) )
-			{
-				send = qtrue;
-			}
 		// broadcast this client to everyone using force sight if we are in distance/field of view
-		if ( (other->client->ps.fd.forcePowersActive & (1 << FP_SEE)) ) {
-			if ( dist < maxForceSightDistance
-				&& InFieldOfVision( other->client->ps.viewangles, maxForceSightFOV, angles ) )
+		if ((other->client->ps.fd.forcePowersActive & (1 << FP_SEE))) {
+			if (dist < maxForceSightDistance
+				&& InFieldOfVision(other->client->ps.viewangles, maxForceSightFOV, angles))
 			{
 				send = qtrue;
 			}
+		}
+
 		if ( send ) {
 			Q_AddToBitflags( self->r.broadcastClients, i, 32 );
 		}

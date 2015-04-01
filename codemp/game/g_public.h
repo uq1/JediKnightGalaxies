@@ -20,8 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
 
-#ifndef G_PUBLIC_H
-
 // g_public.h -- game module information visible to server
 
 #pragma once

@@ -10793,14 +10793,14 @@ void PmoveSingle (pmove_t *pmove) {
 	// Xy: Go back to walking speed when ironsights are up
 	if ( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
 	{
-		pm->cmd.forwardmove = min (max (pm->cmd.forwardmove, -bgConstants.ironsightsMoveSpeed), bgConstants.ironsightsMoveSpeed);
-		pm->cmd.rightmove = min (max (pm->cmd.rightmove, -bgConstants.ironsightsMoveSpeed), bgConstants.ironsightsMoveSpeed);			// neither should this...
+		pm->cmd.forwardmove = Q_min (Q_max (pm->cmd.forwardmove, -bgConstants.ironsightsMoveSpeed), bgConstants.ironsightsMoveSpeed);
+		pm->cmd.rightmove = Q_min (Q_max (pm->cmd.rightmove, -bgConstants.ironsightsMoveSpeed), bgConstants.ironsightsMoveSpeed);			// neither should this...
 	}
 
 	if ( pm->ps->saberActionFlags & (1 << SAF_BLOCKING) && !(pm->cmd.buttons & BUTTON_WALKING) )
 	{
-		pm->cmd.forwardmove = min (max (pm->cmd.forwardmove, -bgConstants.blockingModeMoveSpeed), bgConstants.blockingModeMoveSpeed);	// this shouldn't be zero... o.o
-		pm->cmd.rightmove = min (max (pm->cmd.rightmove, -bgConstants.blockingModeMoveSpeed), bgConstants.blockingModeMoveSpeed);
+		pm->cmd.forwardmove = Q_min (Q_max (pm->cmd.forwardmove, -bgConstants.blockingModeMoveSpeed), bgConstants.blockingModeMoveSpeed);	// this shouldn't be zero... o.o
+		pm->cmd.rightmove = Q_min (Q_max (pm->cmd.rightmove, -bgConstants.blockingModeMoveSpeed), bgConstants.blockingModeMoveSpeed);
 	}
 
 	PM_CmdForSaberMoves(&pm->cmd);

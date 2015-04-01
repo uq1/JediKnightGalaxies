@@ -74,7 +74,6 @@ vm_t *VM_Restart( vm_t *vm ) {
 	return VM_Create( saved.slot );
 }
 
-	Com_Printf( "VM_CreateLegacy: %s"ARCH_STRING DLL_EXT, vm->name );
 vm_t *VM_Create( vmSlots_t vmSlot ) {
 	vm_t *vm = NULL;
 

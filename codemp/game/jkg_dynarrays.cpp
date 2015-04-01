@@ -70,7 +70,7 @@ void JKG_Arrays_RemoveArrayElement(void **arry, unsigned int element, size_t sze
 void JKG_Array_Init ( jkgArray_t *arr, unsigned int elementSize, unsigned int initialCapacity )
 {
     arr->data = NULL;
-    initialCapacity = max (initialCapacity, 1);
+    initialCapacity = Q_max (initialCapacity, 1);
     
     arr->data = malloc (initialCapacity * elementSize);
 

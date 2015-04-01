@@ -3342,7 +3342,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	
 	// MOAR OVERRIDING OF WEAPONS.
 	if ( respawn )
-		trap->Cvar_Update( &g_jediVmerc );
 	{
 	    int weapon = 0;
 	    int variation = 0;

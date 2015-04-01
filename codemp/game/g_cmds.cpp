@@ -604,6 +604,186 @@ int G_ClientNumberFromArg ( const char* name)
 
 /*
 ==================
+Callvote Functionality
+==================
+*/
+
+qboolean G_VoteFraglimit(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	int n = Com_Clampi(0, 0x7FFFFFFF, atoi(arg2));
+	Com_sprintf(level.voteString, sizeof(level.voteString), "%s %i", arg1, n);
+	Com_sprintf(level.voteDisplayString, sizeof(level.voteDisplayString), "%s", level.voteString);
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+
+qboolean G_VoteKick(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	int clientid = ClientNumberFromString(ent, const_cast<char*>(arg2));
+	gentity_t *target = NULL;
+	if (clientid == -1)
+		return qfalse;
+	target = &g_entities[clientid];
+	if (!target || !target->inuse || !target->client)
+		return qfalse;
+	Com_sprintf(level.voteString, sizeof(level.voteString), "clientkick %d", clientid);
+	Com_sprintf(level.voteDisplayString, sizeof(level.voteDisplayString), "kick %s", target->client->pers.netname);
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+
+const char *G_GetArenaInfoByMap(const char *map);
+void Cmd_MapList_f(gentity_t *ent) {
+	int i, toggle = 0;
+	char map[24] = "--", buf[512] = { 0 };
+	Q_strcat(buf, sizeof(buf), "Map list:");
+	for (i = 0; i<level.arenas.num; i++) {
+		Q_strncpyz(map, Info_ValueForKey(level.arenas.infos[i], "map"), sizeof(map));
+		Q_StripColor(map);
+		if (G_DoesMapSupportGametype(map, level.gametype)) {
+			char *tmpMsg = va(" ^%c%s", (++toggle & 1) ? COLOR_GREEN : COLOR_YELLOW, map);
+			if (strlen(buf) + strlen(tmpMsg) >= sizeof(buf)) {
+				trap->SendServerCommand(ent - g_entities, va("print \"%s\"", buf));
+				buf[0] = '\0';
+			}
+			Q_strcat(buf, sizeof(buf), tmpMsg);
+		}
+	}
+	trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", buf));
+}
+qboolean G_VoteMap(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	char s[MAX_CVAR_VALUE_STRING] = { 0 }, bspName[MAX_QPATH] = { 0 }, *mapName = NULL, *mapName2 = NULL;
+	fileHandle_t fp = NULL_FILE;
+	const char *arenaInfo;
+	// didn't specify a map, show available maps
+	if (numArgs < 3) {
+		Cmd_MapList_f(ent);
+		return qfalse;
+	}
+	if (strchr(arg2, '\\')) {
+		trap->SendServerCommand(ent - g_entities, "print \"Can't have mapnames with a \\\n\"");
+		return qfalse;
+	}
+	Com_sprintf(bspName, sizeof(bspName), "maps/%s.bsp", arg2);
+	if (trap->FS_Open(bspName, &fp, FS_READ) <= 0) {
+		trap->SendServerCommand(ent - g_entities, va("print \"Can't find map %s on server\n\"", bspName));
+		if (fp != NULL_FILE)
+			trap->FS_Close(fp);
+		return qfalse;
+	}
+	trap->FS_Close(fp);
+	if (!G_DoesMapSupportGametype(arg2, level.gametype)) {
+		trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOVOTE_MAPNOTSUPPORTEDBYGAME")));
+		return qfalse;
+	}
+	// preserve the map rotation
+	trap->Cvar_VariableStringBuffer("nextmap", s, sizeof(s));
+	if (*s)
+		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %s; set nextmap \"%s\"", arg1, arg2, s);
+	else
+		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %s", arg1, arg2);
+	arenaInfo = G_GetArenaInfoByMap(arg2);
+	if (arenaInfo) {
+		mapName = Info_ValueForKey(arenaInfo, "longname");
+		mapName2 = Info_ValueForKey(arenaInfo, "map");
+	}
+	if (!mapName || !mapName[0])
+		mapName = "ERROR";
+	if (!mapName2 || !mapName2[0])
+		mapName2 = "ERROR";
+	Com_sprintf(level.voteDisplayString, sizeof(level.voteDisplayString), "map %s (%s)", mapName, mapName2);
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+qboolean G_VoteMapRestart(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	int n = Com_Clampi(0, 60, atoi(arg2));
+	if (numArgs < 3)
+		n = 5;
+	Com_sprintf(level.voteString, sizeof(level.voteString), "%s %i", arg1, n);
+	Q_strncpyz(level.voteDisplayString, level.voteString, sizeof(level.voteDisplayString));
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+
+qboolean G_VoteNextmap(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	char s[MAX_CVAR_VALUE_STRING];
+	trap->Cvar_VariableStringBuffer("nextmap", s, sizeof(s));
+	if (!*s) {
+		trap->SendServerCommand(ent - g_entities, "print \"nextmap not set.\n\"");
+		return qfalse;
+	}
+	Com_sprintf(level.voteString, sizeof(level.voteString), "vstr nextmap");
+	Q_strncpyz(level.voteDisplayString, level.voteString, sizeof(level.voteDisplayString));
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+
+qboolean G_VoteTimelimit(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	float tl = Com_Clamp(0.0f, 35790.0f, atof(arg2));
+	if (Q_isintegral(tl))
+		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %i", arg1, (int)tl);
+	else
+		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %.3f", arg1, tl);
+	Q_strncpyz(level.voteDisplayString, level.voteString, sizeof(level.voteDisplayString));
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+qboolean G_VoteWarmup(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	int n = Com_Clampi(0, 1, atoi(arg2));
+	Com_sprintf(level.voteString, sizeof(level.voteString), "%s %i", arg1, n);
+	Q_strncpyz(level.voteDisplayString, level.voteString, sizeof(level.voteDisplayString));
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+typedef struct voteString_s {
+	const char	*string;
+	const char	*aliases; // space delimited list of aliases, will always show the real vote string
+	qboolean(*func)(gentity_t *ent, int numArgs, const char *arg1, const char *arg2);
+	int	numArgs; // number of REQUIRED arguments, not total/optional arguments
+	uint32_t	validGT; // bit-flag of valid gametypes
+	qboolean voteDelay; // if true, will delay executing the vote string after it's accepted by g_voteDelay
+	const char	*shortHelp; // NULL if no arguments needed
+} voteString_t;
+
+static voteString_t validVoteStrings[] = {
+	// vote string aliases # args valid gametypes exec delay short help
+	{ "fraglimit", "frags", G_VoteFraglimit, 1, GTB_ALL, qtrue, "<num>" },
+	{ "kick", NULL, G_VoteKick, 1, GTB_ALL, qfalse, "<client name>" },
+	{ "map", NULL, G_VoteMap, 0, GTB_ALL, qtrue, "<name>" },
+	{ "map_restart", "restart", G_VoteMapRestart, 0, GTB_ALL, qtrue, "<optional delay>" },
+	{ "nextmap", NULL, G_VoteNextmap, 0, GTB_ALL, qtrue, NULL },
+	{ "timelimit", "time", G_VoteTimelimit, 1, GTB_ALL, qtrue, "<num>" },
+};
+static const int validVoteStringsSize = ARRAY_LEN(validVoteStrings);
+
+void Svcmd_ToggleAllowVote_f(void) {
+	if (trap->Argc() == 1) {
+		int i = 0;
+		for (i = 0; i<validVoteStringsSize; i++) {
+			if ((g_allowVote.integer & (1 << i)))	trap->Print("%2d [X] %s\n", i, validVoteStrings[i].string);
+			else									trap->Print("%2d [ ] %s\n", i, validVoteStrings[i].string);
+		}
+		return;
+	}
+	else {
+		char arg[8] = { 0 };
+		int index;
+
+		trap->Argv(1, arg, sizeof(arg));
+		index = atoi(arg);
+
+		if (index < 0 || index >= validVoteStringsSize) {
+			Com_Printf("ToggleAllowVote: Invalid range: %i [0, %i]\n", index, validVoteStringsSize - 1);
+			return;
+		}
+
+		trap->Cvar_Set("g_allowVote", va("%i", (1 << index) ^ (g_allowVote.integer & ((1 << validVoteStringsSize) - 1))));
+		trap->Cvar_Update(&g_allowVote);
+
+		Com_Printf("%s %s^7\n", validVoteStrings[index].string, ((g_allowVote.integer & (1 << index)) ? "^2Enabled" : "^1Disabled"));
+	}
+}
+
+/*
+==================
 Cmd_Give_f
 
 Give items to a client
@@ -835,7 +1015,7 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 		creditAmount = atoi(arg);
 		ent->client->ps.credits += creditAmount;
 		int credits = ent->client->ps.credits;
-		trap->SendServerCommand( ent->client->ps.clientNum, va("print \"Your new balance is: %i credits\n\"", max (0, credits)) );
+		trap->SendServerCommand( ent->client->ps.clientNum, va("print \"Your new balance is: %i credits\n\"", Q_max (0, credits)) );
 		return;
 	}
 
@@ -3194,34 +3374,6 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 		if ( n < 0 || n >= MAX_CLIENTS )
 		{
 			trap->SendServerCommand( ent-g_entities, va("print \"invalid client number %d.\n\"", n ) );
-
-void Svcmd_ToggleAllowVote_f( void ) {
-	if ( trap->Argc() == 1 ) {
-		int i = 0;
-		for ( i = 0; i<validVoteStringsSize; i++ ) {
-			if ( (g_allowVote.integer & (1 << i)) )	trap->Print( "%2d [X] %s\n", i, validVoteStrings[i].string );
-			else									trap->Print( "%2d [ ] %s\n", i, validVoteStrings[i].string );
-		}
-		return;
-	}
-	else {
-		char arg[8] = { 0 };
-		int index;
-
-		trap->Argv( 1, arg, sizeof( arg ) );
-		index = atoi( arg );
-
-		if ( index < 0 || index >= validVoteStringsSize ) {
-			Com_Printf( "ToggleAllowVote: Invalid range: %i [0, %i]\n", index, validVoteStringsSize - 1 );
-			return;
-		}
-
-		trap->Cvar_Set( "g_allowVote", va( "%i", (1 << index) ^ (g_allowVote.integer & ((1 << validVoteStringsSize) - 1)) ) );
-		trap->Cvar_Update( &g_allowVote );
-
-		Com_Printf( "%s %s^7\n", validVoteStrings[index].string, ((g_allowVote.integer & (1 << index)) ? "^2Enabled" : "^1Disabled") );
-	}
-}
 			return;
 		}
 
@@ -3657,7 +3809,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	// TODO: Add sound
 
 	// Check if we have enough ammo remaining
-	ammotoadd = min (ammotoadd, ent->client->ps.ammo);
+	ammotoadd = Q_min (ammotoadd, ent->client->ps.ammo);
 
 	//Remove the ammo from 'bag'
 	ent->client->ps.ammo -= ammotoadd;
@@ -4820,7 +4972,7 @@ void ClientCommand( int clientNum ) {
 	{
 		//DEBUG: Show how many credits you have
 		int credits = ent->client->ps.credits;
-		trap->SendServerCommand( clientNum, va("print \"You have %i credits, %s.\n\"", max (0, credits), ent->client->pers.netname) );
+		trap->SendServerCommand( clientNum, va("print \"You have %i credits, %s.\n\"", Q_max (0, credits), ent->client->pers.netname) );
 		return;
 	}
 	else if ( Q_stricmp (cmd, "closeVendor") == 0 )

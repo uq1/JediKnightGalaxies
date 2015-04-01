@@ -765,26 +765,20 @@ void Text_PaintWithCursor(float x, float y, float scale, vec4_t color, const cha
 {
 	Text_Paint(x, y, scale, color, text, 0, limit, style, iMenuFont);
 
-	// now print the cursor as well...  (excuse the braces, it's for porting C++ to C)
-	//
-	{
-		char sTemp[1024];
-		int iCopyCount = limit > 0 ? Q_min( (int)strlen( text ), limit ) : (int)strlen( text );
-			iCopyCount = Q_min( iCopyCount, cursorPos );
-			iCopyCount = Q_min( iCopyCount, (int)sizeof( sTemp )-1 );
+	char sTemp[1024];
+	int iCopyCount = limit > 0 ? Q_min( (int)strlen( text ), limit ) : (int)strlen( text );
+		iCopyCount = Q_min( iCopyCount, cursorPos );
+		iCopyCount = Q_min( iCopyCount, (int)sizeof( sTemp )-1 );
 
-			// copy text into temp buffer for pixel measure...
-			//			
-			strncpy(sTemp,text,iCopyCount);
-					sTemp[iCopyCount] = '\0';
+		// copy text into temp buffer for pixel measure...
+		//			
+	strncpy(sTemp,text,iCopyCount);
+	sTemp[iCopyCount] = '\0';
 
-			{
-				int iFontIndex = MenuFontToHandle( iMenuFont );	
-				int iNextXpos  = trap->R_Font_StrLenPixels(sTemp, iFontIndex, scale );
+	int iFontIndex = MenuFontToHandle( iMenuFont );	
+	int iNextXpos  = trap->R_Font_StrLenPixels(sTemp, iFontIndex, scale );
 
-				Text_Paint(x+iNextXpos, y, scale, color, va("%c",cursor), 0, limit, style|ITEM_TEXTSTYLE_BLINK, iMenuFont);
-			}
-	}
+	Text_Paint(x+iNextXpos, y, scale, color, va("%c",cursor), 0, limit, style|ITEM_TEXTSTYLE_BLINK, iMenuFont);
 }
 
 
@@ -1820,8 +1814,7 @@ void UpdateBotButtons(void)
 
 static void UI_DrawNetSource(rectDef_t *rect, float scale, vec4_t color, int textStyle, int iMenuFont) 
 {
-	if (ui_netSource.integer < 0 || ui_netSource.integer >= numNetSources) {
-	if (ui_netSource.integer < 0 || ui_netSource.integer > AS_GLOBAL5) 
+	if (ui_netSource.integer < 0 || ui_netSource.integer >= numNetSources)
 	{
 		ui_netSource.integer = 0;
 	}
@@ -1986,13 +1979,7 @@ static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
 			break;
 		case UI_NETFILTER:
 			trap->SE_GetStringTextString("MENUS_GAME", holdSPString, sizeof(holdSPString));
-			s = va("%s %s", holdSPString, UI_FilterDescription( ui_serverFilterType.integer ) );
-			break;
-		case UI_TIER:
-			break;
-		case UI_TIER_MAPNAME:
-			break;
-		case UI_TIER_GAMETYPE:
+			s = va("%s %i", ui_serverFilterType); // FIXME: use the actual description!
 			break;
 		case UI_ALLMAPS_SELECTION:
 			break;

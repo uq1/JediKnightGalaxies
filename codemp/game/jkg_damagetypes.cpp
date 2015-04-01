@@ -168,7 +168,7 @@ static int CalculateDamageForDistance ( const damageArea_t *area, const vec3_t p
         
         case DF_GAUSSIAN: // change to sigmoid?
             f = gaussian (distanceFromOrigin / damageRadius);
-            f = max (0.0f, min (f, 1.0f));
+            f = Q_max (0.0f, Q_min (f, 1.0f));
             return d * f;
         break;
         

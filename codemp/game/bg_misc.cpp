@@ -2546,15 +2546,15 @@ float JKG_CalculateIronsightsPhase ( const playerState_t *ps, int levelTime, flo
 	weaponData_t *wp = BG_GetWeaponDataByIndex( ps->weaponId );
     if ( ps->ironsightsTime & IRONSIGHTS_MSB )
     {
-		phase = CubicBezierInterpolate (min (levelTime - time, wp->ironsightsTime) / (double)wp->ironsightsTime, 0.0, 0.0, 1.0, 1.0);
-        *blend = min (1.0f, max (0.0f, phase));
+		phase = CubicBezierInterpolate (Q_min (levelTime - time, wp->ironsightsTime) / (double)wp->ironsightsTime, 0.0, 0.0, 1.0, 1.0);
+        *blend = Q_min (1.0f, Q_max (0.0f, phase));
     }
     else
     {
-		phase = (*blend) - CubicBezierInterpolate (min (levelTime - time, wp->ironsightsTime * (*blend)) / (double)(wp->ironsightsTime * (*blend)), 0.0, 0.0, 1.0, 1.0);
+		phase = (*blend) - CubicBezierInterpolate (Q_min (levelTime - time, wp->ironsightsTime * (*blend)) / (double)(wp->ironsightsTime * (*blend)), 0.0, 0.0, 1.0, 1.0);
     }
     
-    return min (1.0f, max (0.0f, phase));
+    return Q_min (1.0f, Q_max (0.0f, phase));
 }
 
 /*

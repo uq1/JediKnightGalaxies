@@ -221,6 +221,3 @@ typedef struct uiExport_s {
 
 //linking of ui library
 typedef uiExport_t* (QDECL *GetUIAPI_t)( int apiVersion, uiImport_t *import );
-
-#endif
-

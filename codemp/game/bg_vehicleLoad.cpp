@@ -139,6 +139,10 @@ stringID_table_t VehicleTable[VH_NUM_VEHICLES+1] =
 	0,	-1
 };
 
+static const size_t numVehWeaponFields = ARRAY_LEN(vehWeaponFields);
+
+
+static vehField_t *FindVehWeaponParm(const char *parmName)
 {
 	size_t i;
 	for ( i = 0; i<numVehWeaponFields; i++ )
@@ -178,7 +182,7 @@ static qboolean BG_ParseVehWeaponParm( vehWeaponInfo_t *vehWeapon, const char *p
 	case VF_STRING:	// string on disk, pointer in memory
 		if (!*(char **)(b+vehWeaponField->ofs))
 		{ //just use 1024 bytes in case we want to write over the string
-					*(char **)(b+vehWeaponFields[i].ofs) = (char *)malloc(1024);//(char *)malloc(strlen(value));
+			*(char **)(b+vehWeaponField->ofs) = (char *)malloc(1024);//(char *)malloc(strlen(value));
 			strcpy(*(char **)(b+vehWeaponField->ofs), value);
 		}
 				
@@ -725,7 +729,7 @@ static qboolean BG_ParseVehicleParm( vehicleInfo_t *vehicle, const char *parmNam
 	case VF_STRING:	// string on disk, pointer in memory
 		if (!*(char **)(b+vehField->ofs))
 		{ //just use 128 bytes in case we want to write over the string
-					*(char **)(b+vehicleFields[i].ofs) = (char *)malloc(128);//(char *)malloc(strlen(value));
+			*(char **)(b+vehField->ofs) = (char *)malloc(128);//(char *)malloc(strlen(value));
 			strcpy(*(char **)(b+vehField->ofs), value);
 		}
 				

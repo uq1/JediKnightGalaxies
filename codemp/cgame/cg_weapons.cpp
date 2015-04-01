@@ -53,9 +53,9 @@ float JKG_CalculateFireModePhase ( void )
 	unsigned int time = cg.fireModeChangeTime;
 	weaponData_t *wp = BG_GetWeaponDataByIndex( cg.predictedPlayerState.weaponId );
 
-	phase = min(cg.time - time, wp->ironsightsTime)/(double)wp->ironsightsTime;
+	phase = Q_min(cg.time - time, wp->ironsightsTime)/(double)wp->ironsightsTime;
     
-    return min (1.0f, max (0.0f, phase));
+    return Q_min (1.0f, Q_max (0.0f, phase));
 }
 
 qboolean JKG_FiringModeAnimsAreTheSame( int transition )
@@ -85,15 +85,15 @@ float JKG_CalculateSprintPhase( const playerState_t *ps )
     unsigned int time = ps->sprintTime & ~SPRINT_MSB;
     if ( ps->sprintTime & SPRINT_MSB )
     {
-        phase = CubicBezierInterpolate (min (cg.time - time, SPRINT_TIME) / (double)SPRINT_TIME, 0.0, 0.0, 1.0, 1.0);
-        cg.sprintBlend = min (1.0f, max (0.0f, phase));
+        phase = CubicBezierInterpolate (Q_min (cg.time - time, SPRINT_TIME) / (double)SPRINT_TIME, 0.0, 0.0, 1.0, 1.0);
+        cg.sprintBlend = Q_min (1.0f, Q_max (0.0f, phase));
     }
     else
     {
-        phase = cg.sprintBlend - CubicBezierInterpolate (min (cg.time - time, SPRINT_TIME * cg.sprintBlend) / (double)(SPRINT_TIME * cg.sprintBlend), 0.0, 0.0, 1.0, 1.0);
+        phase = cg.sprintBlend - CubicBezierInterpolate (Q_min (cg.time - time, SPRINT_TIME * cg.sprintBlend) / (double)(SPRINT_TIME * cg.sprintBlend), 0.0, 0.0, 1.0, 1.0);
     }
     
-	return min (1.0f, max (0.0f, phase));
+	return Q_min (1.0f, Q_max (0.0f, phase));
 }
 
 void CG_InitWeapons ( void )

@@ -1317,30 +1317,6 @@ int PassLovedOneCheck(bot_state_t *bs, gentity_t *ent)
 	return 1;
 }
 
-				factor = 0;
-			}
-
-			if (ent->s.weapon == WP_DET_PACK &&
-				(ent->r.ownerNum == bs->client ||
-				(ent->r.ownerNum > 0 && ent->r.ownerNum < MAX_CLIENTS &&
-				g_entities[ent->r.ownerNum].client && OnSameTeam(&g_entities[bs->client], &g_entities[ent->r.ownerNum]))) )
-			{ //don't be afraid of your own detpacks or your teammates' detpacks
-				factor = 0;
-			}
-
-			if (ent->s.weapon == WP_TRIP_MINE &&
-				(ent->r.ownerNum == bs->client ||
-				(ent->r.ownerNum > 0 && ent->r.ownerNum < MAX_CLIENTS &&
-				g_entities[ent->r.ownerNum].client && OnSameTeam(&g_entities[bs->client], &g_entities[ent->r.ownerNum]))) )
-			{ //don't be afraid of your own trip mines or your teammates' trip mines
-				factor = 0;
-			}
-
-			if (ent->s.weapon == WP_THERMAL &&
-				(ent->r.ownerNum == bs->client ||
-				(ent->r.ownerNum > 0 && ent->r.ownerNum < MAX_CLIENTS &&
-				g_entities[ent->r.ownerNum].client && OnSameTeam(&g_entities[bs->client], &g_entities[ent->r.ownerNum]))) )
-			{ //don't be afraid of your own thermals or your teammates' thermals
 //check/select the chosen weapon
 int BotSelectChoiceWeapon(bot_state_t *bs, int weapon, int doselection)
 { //if !doselection then bot will only check if he has the specified weapon and return 1 (yes) or 0 (no)

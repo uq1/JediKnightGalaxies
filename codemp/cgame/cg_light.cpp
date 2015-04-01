@@ -65,7 +65,7 @@ void CG_RunLightStyles (void)
 //		return;
 	lastofs = ofs;
 
-	for (i=0,ls=cl_lightstyle ; i<MAX_LIGHT_STYLES ; i++, ls++)
+	for (i=0,ls=cl_lightstyle ; i<MAX_LIGHT_STYLES ; i++, ls++) {
 		byteAlias_t *ba = (byteAlias_t *)&ls->value;
 
 		ls->value[3] = 255;

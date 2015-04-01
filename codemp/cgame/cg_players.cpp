@@ -11703,9 +11703,9 @@ stillDoSaber:
 				savRGBA[1] = legs.shaderRGBA[1];
 				savRGBA[2] = legs.shaderRGBA[2];
 				
-				legs.shaderRGBA[0] = max(255-subLen/4,1);
-				legs.shaderRGBA[1] = max(255-subLen/4,1);
-				legs.shaderRGBA[2] = max(255-subLen/4,1);
+				legs.shaderRGBA[0] = Q_max(255-subLen/4,1);
+				legs.shaderRGBA[1] = Q_max(255-subLen/4,1);
+				legs.shaderRGBA[2] = Q_max(255-subLen/4,1);
 
 				legs.renderfx &= ~RF_RGB_TINT;
 				legs.renderfx &= ~RF_FORCE_ENT_ALPHA;

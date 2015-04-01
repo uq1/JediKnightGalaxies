@@ -1,4 +1,5 @@
 #include "../cgame/animtable.h"
+/*
 ===========================================================================
 Copyright (C) 1999 - 2005, Id Software, Inc.
 Copyright (C) 2000 - 2013, Raven Software, Inc.
@@ -16,6 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
+*/
 
 stringID_table_t animTable [MAX_ANIMATIONS+1] =
 {
