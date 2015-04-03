@@ -531,8 +531,7 @@ int	uiHoldSkinColor=TEAM_FREE;	// Stores the skin color so that in non-team game
 
 static const serverFilter_t serverFilters[] = {
 	{"JKG", "JKG" },
-	{"Non-JKG", "" },
-	{"base", "base" },
+	{"Non-JKG", "" }
 };
 static const int numServerFilters = sizeof(serverFilters) / sizeof(serverFilter_t);
 
@@ -3211,29 +3210,6 @@ static qboolean UI_NetSource_HandleKey(int flags, float *special, int key) {
 			ui_netSource.integer++;
 		}
 
-		//[MasterServer]
-		if(ui_netSource.integer >= AS_GLOBAL2 && ui_netSource.integer <= AS_GLOBAL5)
-		{
-			char masterstr[2], cvarname[sizeof("sv_master1")];
-			while(ui_netSource.integer >= AS_GLOBAL2 && ui_netSource.integer <= AS_GLOBAL5)
-			{
-				Com_sprintf(cvarname, sizeof(cvarname), "sv_master%d", ui_netSource.integer-AS_FAVORITES+1);
-				trap->Cvar_VariableStringBuffer(cvarname, masterstr, sizeof(masterstr));
-
-				if(*masterstr)
-					break;
-
-				if (key == A_MOUSE2) {
-					ui_netSource.integer--;
-				}
-				else
-				{
-					ui_netSource.integer++;
-				}
-			}
-		}
-		//[/MasterServer]
-
 		if (ui_netSource.integer >= numNetSources) {
 			ui_netSource.integer = 0;
 		} else if (ui_netSource.integer < 0) {
@@ -3241,11 +3217,6 @@ static qboolean UI_NetSource_HandleKey(int flags, float *special, int key) {
 		}
 
 		UI_BuildServerDisplayList(1);
-		//[MasterServer]
-		if (ui_netSource.integer >= AS_LOCAL) {
-			//[/MasterServer]
-			UI_StartServerRefresh(qtrue);
-		}
 		trap->Cvar_Set( "ui_netSource", va("%d", ui_netSource.integer));
 		return qtrue;
 	}
@@ -7796,11 +7767,6 @@ void UI_Init( qboolean inGameLoad ) {
 	int start;
 
 	uiInfo.inGameLoad = inGameLoad;
-
-	// set some cvar crap in the engine
-	trap->Cvar_Set("sv_master1", "master.jkhub.org");
-	trap->Cvar_Set("sv_master2", "masterjk3.ravensoft.com");
-	trap->Cvar_Set("sv_master3", "master.qtracker.com");
 
 	UI_InitGangWars();
 
