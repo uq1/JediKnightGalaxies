@@ -330,7 +330,9 @@ void GLua_LoadLibs(lua_State *L) {
 	GLua_Define_Sys(L);
 	GLua_Define_Bit(L);
 	GLua_Define_Encoding(L);
+#ifndef NO_CRYPTOGRAPHY
 	GLua_Define_Cryptography(L);
+#endif
 	GLua_Define_BitStream(L);
 	GLua_Define_PRNG(L);
 	GLua_Define_File(L);

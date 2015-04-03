@@ -1931,7 +1931,7 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 			}
 			else
 			{				
-				trap->SendServerCommand( -1, va( "print \"%s"S_COLOR_WHITE" %s %s\n\"", oldname, G_GetStringEdString( "MP_SVGAME", "PLRENAME" ), client->pers.netname ) );
+				trap->SendServerCommand( -1, va( "print \"%s" S_COLOR_WHITE " %s %s\n\"", oldname, G_GetStringEdString( "MP_SVGAME", "PLRENAME" ), client->pers.netname ) );
 				client->pers.netnameTime = level.time + 5000;
 			}
 		}

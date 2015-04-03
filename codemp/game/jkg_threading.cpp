@@ -26,6 +26,7 @@
 #include "jkg_threadingsq.h"
 
 /* OpenSSL Thread Safety */
+#ifndef NO_CRYPTOGRAPHY
 #ifdef _WIN32
 static HANDLE *lock_cs = 0;
 
@@ -126,7 +127,7 @@ void JKG_OPENSSL_ThreadSyncCleanup(void) {
 }
 
 #endif
-
+#endif
 
 
 #ifdef _WIN32
@@ -409,7 +410,9 @@ void JKG_InitThreading ( void )
 	Com_Printf( "Initialized critical sections\n" );
 #endif
 
+#ifndef NO_CRYPTOGRAPHY
 	JKG_OPENSSL_ThreadSyncInit();
+#endif
 	Com_Printf( "Initialized OpenSSL thread synchronisation\n" );
 
 	JKG_Task_Init();
@@ -471,7 +474,9 @@ void JKG_ShutdownThreading ( int maxWaitTime )
 	DeleteCriticalSection( &cs_G_Printf );
 #endif
 
+#ifndef NO_CRYPTOGRAPHY
 	JKG_OPENSSL_ThreadSyncCleanup();
+#endif
 	JKG_Task_Terminate();
 }
 

@@ -381,7 +381,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	vmCvar_t	ckSum;
 	char		serverinfo[MAX_INFO_STRING];
 
+#ifndef NO_CRYPTOGRAPHY
 	OpenSSL_add_all_algorithms();
+#endif
 
 	// Initialize admin commands
 	JKG_Admin_Init();
@@ -449,9 +451,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 			trap->FS_Open( SECURITY_LOG, &level.security.log, FS_APPEND_SYNC );
 
 		if ( level.security.log )
-			trap->Print( "Logging to "SECURITY_LOG"\n" );
+			trap->Print( "Logging to " SECURITY_LOG "\n" );
 		else
-			trap->Print( "WARNING: Couldn't open logfile: "SECURITY_LOG"\n" );
+			trap->Print( "WARNING: Couldn't open logfile: " SECURITY_LOG "\n" );
 	}
 	else
 		trap->Print( "Not logging security events to disk.\n" );
@@ -758,7 +760,9 @@ void G_ShutdownGame( int restart ) {
 	JKG_Easy_DIMA_Cleanup();
 //	G_TerminateMemory(); // wipe all allocs made with G_Alloc
 	//JKG_Nav_Shutdown();
+#ifndef NO_CRYPTOGRAPHY
 	EVP_cleanup();
+#endif
 }
 
 /*
