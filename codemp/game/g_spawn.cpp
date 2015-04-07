@@ -1709,6 +1709,7 @@ void SP_worldspawn( void )
 	if(text)
 	{
 		strcpy(level.startingWeapon, text);
+		trap->Cvar_Set("jkg_startingGun", text);
 	}
 	g_entities[ENTITYNUM_WORLD].s.number = ENTITYNUM_WORLD;
 	g_entities[ENTITYNUM_WORLD].r.ownerNum = ENTITYNUM_NONE;
