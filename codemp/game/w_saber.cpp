@@ -8877,7 +8877,7 @@ void JKG_DoubleCheckWeaponChange( usercmd_t *cmd, playerState_t *ps )
 	if( ent->inventory->elements <= invSel || invSel < 0 )
 	{
 		cmd->weapon = 0;
+	} else {
+		cmd->weapon = ent->inventory->items[invSel].id->varID;
 	}
-
-	cmd->weapon = ent->inventory->items[invSel].id->varID;
 }

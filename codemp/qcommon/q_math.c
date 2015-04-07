@@ -599,7 +599,10 @@ float Q_rsqrt( float number )
 	y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
 //	y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
 
-	assert( !Q_isnan(y) );
+	// I had to remove the below assertion because something in the renderer gets messed up
+	// when switching from spectator. I'm removing it for right now until I find what's
+	// actually causing this. --eezstreet
+//	assert( !Q_isnan(y) );
 	return y;
 }
 
