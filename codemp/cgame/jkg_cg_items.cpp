@@ -262,6 +262,13 @@ void JKG_CG_DeltaFeed ( const char *mode )
 		uiImports->InventoryNotify( 0 );
 		return;
 	}
+	else if (!Q_stricmp(mode, "clr"))
+	{
+		// eez add 6 april 2015 to fix bug with teamswitch
+		memset(cg.playerACI, -1, sizeof(cg.playerACI));
+		memset(cg.playerInventory, 0, sizeof(cg.playerInventory));
+		cg.numItemsInInventory = 0;
+	}
 	else
 		trap->Print("unknown mode parameter %s\n", mode);
 }

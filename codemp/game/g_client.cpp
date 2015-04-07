@@ -2352,7 +2352,12 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	JKG_PlayerIsolationClear(clientNum);
 	//eezstreet add
 	//memset(ent->inventory, 0, sizeof(ent->inventory));
-	ent->inventory = g_entities[clientNum].inventory;
+	ent->inventory = g_entities[clientNum].inventory;	// FIXME: ????
+
+	// 6 april 2015
+	// clear our inventory on ClientBegin because I forgot that this was a thing
+	trap->SendServerCommand(ent->client->ps.clientNum, "pInv clr");
+	ent->client->ps.credits = 0;
 
 	// eezstreet edit: set our item data
 	// TODO: fix this broken mess

@@ -943,28 +943,6 @@ gentity_t *SelectCTFSpawnPoint ( team_t team, int teamstate, vec3_t origin, vec3
 	return spot;
 }
 
-/*
-===========
-SelectSiegeSpawnPoint
-
-============
-*/
-gentity_t *SelectSiegeSpawnPoint ( int siegeClass, team_t team, int teamstate, vec3_t origin, vec3_t angles, qboolean isbot ) {
-	gentity_t	*spot;
-
-	spot = SelectRandomTeamSpawnPoint ( teamstate, team, siegeClass );
-
-	if (!spot) {
-		return SelectSpawnPoint( vec3_origin, origin, angles, team, isbot );
-	}
-
-	VectorCopy (spot->s.origin, origin);
-	origin[2] += 9;
-	VectorCopy (spot->s.angles, angles);
-
-	return spot;
-}
-
 /*---------------------------------------------------------------------------*/
 
 static int QDECL SortClients( const void *a, const void *b ) {
