@@ -37,6 +37,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include <stdlib.h>
 #include <string>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
 
 typedef struct gentity_s gentity_t;
 typedef struct gclient_s gclient_t;
@@ -196,6 +199,45 @@ typedef struct {
 	unsigned int numRecords;
 	unsigned int memAllocated;
 } assistStructure_t;
+
+//============================================================================
+// Treasure Class system
+
+class TreasureClass;
+typedef union { TreasureClass* tc; itemData_t* itm; } uTreasure;
+struct TreasureOdds {
+	uTreasure Treasure;
+	unsigned odds;
+	bool bTC;
+	bool bUnresolved;
+};
+
+class TreasureClass {
+protected:
+	std::vector<TreasureOdds> vTreasure;
+	std::string sName;
+	bool bValid;
+	unsigned totalChance;
+	unsigned numPicks;
+public:
+	TreasureClass(const char* fileName);
+	TreasureClass(void* json);
+	inv_t& GenerateLoot(inv_t& in, unsigned numPicks = 1);
+	const std::string& GetName() { return sName; }
+	bool IsValid() { return bValid; }
+	unsigned GetNumPicks() { return numPicks; }
+
+	void AddTo(const char* sRef, unsigned odds = 1);
+	void AddToNoEvaluate(const char* sRef, unsigned odds = 1);
+	//void DeleteFrom(const char* sRef);
+	//void ChangeOdds(const char* sRef, unsigned newOdds);
+
+	void EvaluateOdds();
+};
+
+#ifdef _GAME
+extern std::unordered_map<std::string, TreasureClass*> mTreasureRegistry;
+#endif
 
 //============================================================================
 extern void *precachedKyle;
