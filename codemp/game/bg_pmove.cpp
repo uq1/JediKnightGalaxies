@@ -3932,7 +3932,7 @@ static void PM_CrashLand( void ) {
 			{
 				if ( !BG_IsSprinting (pm->ps, &pm->cmd, qtrue) )
 				{
-					if( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
+					if( pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->weapon != WP_THERMAL && pm->ps->weapon != WP_TRIP_MINE && pm->ps->weapon != WP_DET_PACK )
 					{
 						PM_StartTorsoAnim( GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.sights.torsoAnim );
 					}
@@ -5540,7 +5540,7 @@ static void PM_Footsteps( void ) {
 							}
 							else
 							{
-								if( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
+								if( pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->weapon != WP_THERMAL && pm->ps->weapon != WP_TRIP_MINE && pm->ps->weapon != WP_DET_PACK )
 									PM_ContinueLegsAnim(PM_LegsSlopeBackTransition(GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.sights.legsAnim));
 								else
 									PM_ContinueLegsAnim(PM_LegsSlopeBackTransition(GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.ready.legsAnim));
@@ -5732,7 +5732,9 @@ static void PM_Footsteps( void ) {
 		}
 		else if ( !( pm->cmd.buttons & BUTTON_WALKING ) &&							// We are not holding the walk button.
 			(!(pm->cmd.buttons & BUTTON_IRONSIGHTS)) &&		// We are not in sights
-			!(pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) )						// We are not in block mode (note: legs-only)
+			!(pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) 
+			|| pm->ps->weapon == WP_THERMAL || pm->ps->weapon == WP_TRIP_MINE || pm->ps->weapon == WP_DET_PACK
+			)						// We are not in block mode (note: legs-only)
 		{ // Running, in other words.
 			bobmove = 0.4f;	// faster speeds bob faster
 			if ( pm->ps->clientNum >= MAX_CLIENTS &&
@@ -7501,7 +7503,7 @@ static void PM_Weapon( void )
 				}
 				else
 				{
-					if( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
+					if( pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->weapon != WP_THERMAL && pm->ps->weapon != WP_TRIP_MINE && pm->ps->weapon != WP_DET_PACK)
 						PM_StartTorsoAnim( weaponData->anims.sights.torsoAnim );
 					else
 						PM_StartTorsoAnim( weaponData->anims.ready.torsoAnim );
@@ -7524,7 +7526,7 @@ static void PM_Weapon( void )
 		{
 			if(!BG_IsSprinting (pm->ps, &pm->cmd, qtrue))
 			{
-				if( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
+				if( pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->weapon != WP_THERMAL && pm->ps->weapon != WP_TRIP_MINE && pm->ps->weapon != WP_DET_PACK)
 					PM_StartTorsoAnim( weaponData->anims.sights.torsoAnim );
 				else
 					PM_StartTorsoAnim( weaponData->anims.ready.torsoAnim );
@@ -7896,7 +7898,7 @@ static void PM_Weapon( void )
 	pm->ps->weaponstate = WEAPON_FIRING;
 
 	if (doStdAnim) {
-		if( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
+		if( pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->weapon != WP_THERMAL && pm->ps->weapon != WP_TRIP_MINE && pm->ps->weapon != WP_DET_PACK )
 		{
 			PM_StartTorsoAnim( weaponData->anims.sightsFiring.torsoAnim );
 		}
@@ -8385,7 +8387,8 @@ void PM_AdjustAttackStates( pmove_t *pmove )
 
 	// Check if we're in an ironsights transition...
 	if( (pmove->ps->ironsightsTime & ~IRONSIGHTS_MSB)+ weapon->ironsightsTime > pmove->cmd.serverTime &&
-		pmove->ps->weapon != WP_SABER && pmove->ps->weapon != WP_MELEE && pmove->ps->weapon != WP_NONE)
+		pmove->ps->weapon != WP_SABER && pmove->ps->weapon != WP_MELEE && pmove->ps->weapon != WP_NONE
+		&& pm->ps->weapon != WP_THERMAL && pm->ps->weapon != WP_TRIP_MINE && pm->ps->weapon != WP_DET_PACK)
 	{	// We don't want saber or melee to trigger smoothness
 		//Com_Printf("Ironsights transition\n");
 		pmove->ps->sightsTransition = true;
@@ -10446,11 +10449,11 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
         }
 
         if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
-                        return qfalse;
+                return qfalse;
         }
 
-        if( (ps->ironsightsTime & IRONSIGHTS_MSB) )
-        {
+        if( (ps->ironsightsTime & IRONSIGHTS_MSB) && ps->weapon != WP_THERMAL && ps->weapon != WP_TRIP_MINE && ps->weapon != WP_DET_PACK )
+        {	// Can't be sprinting while using iron sights (grenades do not count!)
                 return qfalse;
         }
 
@@ -10791,7 +10794,7 @@ void PmoveSingle (pmove_t *pmove) {
 	}
 	
 	// Xy: Go back to walking speed when ironsights are up
-	if ( pm->ps->ironsightsTime & IRONSIGHTS_MSB )
+	if ( pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->weapon != WP_THERMAL && pm->ps->weapon != WP_TRIP_MINE && pm->ps->weapon != WP_DET_PACK )
 	{
 		pm->cmd.forwardmove = Q_min (Q_max (pm->cmd.forwardmove, -bgConstants.ironsightsMoveSpeed), bgConstants.ironsightsMoveSpeed);
 		pm->cmd.rightmove = Q_min (Q_max (pm->cmd.rightmove, -bgConstants.ironsightsMoveSpeed), bgConstants.ironsightsMoveSpeed);			// neither should this...
