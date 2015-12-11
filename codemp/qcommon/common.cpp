@@ -285,6 +285,7 @@ void NORETURN QDECL Com_Error( int code, const char *fmt, ... ) {
 	}
 
 	if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT || code == ERR_DROP || code == ERR_NEED_CD ) {
+		Com_Printf(com_errorMessage);
 		throw code;
 	} else {
 		CL_Shutdown ();

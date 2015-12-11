@@ -448,11 +448,13 @@ void *Sys_LoadLegacyGameDll( const char *name, VMMainProc **vmMain, SystemCallPr
 
 	Com_sprintf (filename, sizeof(filename), "%s" ARCH_STRING DLL_EXT, name);
 
+#if 0	// DLL unpacking is always disabled in JKG.
 	if (!Sys_UnpackDLL(filename))
 	{
 		Com_DPrintf( "Sys_LoadLegacyGameDll: Failed to unpack %s from PK3.\n", filename );
 		return NULL;
 	}
+#endif
 
 #if defined(MACOS_X) && !defined(_JK2EXE)
     //First, look for the old-style mac .bundle that's inside a pk3
@@ -559,11 +561,13 @@ void *Sys_LoadGameDll( const char *name, GetModuleAPIProc **moduleAPI )
 
 	Com_sprintf (filename, sizeof(filename), "%s" ARCH_STRING DLL_EXT, name);
 
+#if 0		// DLL unpacking is always disabled in JKG.
 	if (!Sys_UnpackDLL(filename))
 	{
 		Com_DPrintf( "Sys_LoadGameDll: Failed to unpack %s from PK3.\n", filename );
 		return NULL;
 	}
+#endif
 
 #if defined(MACOS_X) && !defined(_JK2EXE)
     //First, look for the old-style mac .bundle that's inside a pk3
