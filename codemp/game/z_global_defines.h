@@ -173,8 +173,10 @@
 #pragma warning(2 : 4711)			// Function was inlined
 
 // VS 2015
+#if (_MSC_VER >= 1900)
 #pragma warning(disable: 4838)		// Conversion from 64-bit to 32-bit requires a narrowing conversion
 #pragma warning(disable: 4091)		// 'typedef' ignored when no variable is declared
+#endif
 
 #endif
 
