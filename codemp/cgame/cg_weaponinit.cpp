@@ -472,7 +472,9 @@ void CG_RegisterWeapon( int weaponNum, int variation ) {
 	weaponData = GetWeaponData (weaponNum, variation);
 
 	// load cmodel before model so filecache works
-	weaponInfo->weaponModel = trap->R_RegisterModel( weaponData->visuals.world_model );
+	if (weaponData->visuals.world_model[0] != '\0') { // Don't spam the console.
+		weaponInfo->weaponModel = trap->R_RegisterModel(weaponData->visuals.world_model);
+	}
 	// load in-view model also
 	weaponInfo->viewModel = NULL_HANDLE;
 	if ( weaponInfo->g2ViewModel )
@@ -491,49 +493,15 @@ void CG_RegisterWeapon( int weaponNum, int variation ) {
 	}
 
 	// calc midpoint for rotation
-	trap->R_ModelBounds( weaponInfo->weaponModel, mins, maxs );
-	for ( i = 0 ; i < 3 ; i++ ) {
-		weaponInfo->weaponMidpoint[i] = mins[i] + 0.5 * ( maxs[i] - mins[i] );
+	if (weaponInfo->weaponModel != NULL_HANDLE) {
+		trap->R_ModelBounds(weaponInfo->weaponModel, mins, maxs);
+		for (i = 0; i < 3; i++) {
+			weaponInfo->weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
+		}
 	}
 
 	weaponInfo->hudIcon = trap->R_RegisterShaderNoMip (weaponData->visuals.icon);
 	weaponInfo->hudNAIcon = trap->R_RegisterShaderNoMip (weaponData->visuals.icon_na);
-
-	/* Xycaleth: wtf was this for?
-	for ( ammo = bg_itemlist + 1 ; ammo->classname ; ammo++ ) {
-		if ( ammo->giType == IT_AMMO && ammo->giTag == weaponNum ) {
-			break;
-		}
-	}
-	if ( ammo->classname && ammo->world_model[0] ) {
-		weaponInfo->ammoModel = trap->R_RegisterModel( ammo->world_model[0] );
-	}*/
-
-//	Q_strncpyz( path, item->view_model, sizeof(path) );
-//	COM_StripExtension( path, path );
-//	Q_strcat( path, sizeof(path), "_flash.md3" );
-	weaponInfo->flashModel = 0;//trap->R_RegisterModel( path );
-
-	/*if (weaponNum == WP_DISRUPTOR ||
-		weaponNum == WP_FLECHETTE ||
-		weaponNum == WP_REPEATER ||
-		weaponNum == WP_ROCKET_LAUNCHER)
-	{
-		Q_strcpyz( path, weaponData->visuals.view_model, sizeof(path) );
-		COM_StripExtension( path, path );
-		Q_strcat( path, sizeof(path), "_barrel.md3" );
-		weaponInfo->barrelModel = trap->R_RegisterModel( path );
-	}
-	else if (weaponNum == WP_STUN_BATON)
-	{ //only weapon with more than 1 barrel..
-		trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel.md3");
-		trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel2.md3");
-		trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel3.md3");
-	}
-	else
-	{
-		weaponInfo->barrelModel = 0;
-	}*/
 
 	if (weaponNum != WP_SABER)
 	{
@@ -547,10 +515,6 @@ void CG_RegisterWeapon( int weaponNum, int variation ) {
 		weaponInfo->handsModel = 0;
 	}
 
-//	if ( !weaponInfo->handsModel ) {
-//		weaponInfo->handsModel = trap->R_RegisterModel( "models/weapons2/shotgun/shotgun_hand.md3" );
-//	}
-
 	for(i = 0; i < weaponData->numFiringModes; i++)
 	{
 		// this only deals with them one at a time from now on --eez
@@ -561,11 +525,6 @@ void CG_RegisterWeapon( int weaponNum, int variation ) {
 	switch ( weaponNum ) {
 	case WP_STUN_BATON:
 	case WP_MELEE:
-/*		MAKERGB( weaponInfo->flashDlightColor, 0.6f, 0.6f, 1.0f );
-		weaponInfo->firingSound = trap->S_RegisterSound( "sound/weapons/saber/saberhum.wav" );
-//		weaponInfo->flashSound[0] = trap->S_RegisterSound( "sound/weapons/melee/fstatck.wav" );
-*/
-		//trap->R_RegisterShader( "gfx/effects/stunPass" );
 		trap->FX_RegisterEffect( "stunBaton/flesh_impact" );
 
 		if (weaponNum == WP_STUN_BATON)
@@ -573,20 +532,6 @@ void CG_RegisterWeapon( int weaponNum, int variation ) {
 			trap->S_RegisterSound( "sound/weapons/baton/idle.wav" );
 			weaponInfo->flashSound[0] = trap->S_RegisterSound( "sound/weapons/baton/fire.mp3" );
 			weaponInfo->altFlashSound[0] = trap->S_RegisterSound( "sound/weapons/baton/fire.mp3" );
-		}
-		else
-		{
-			/*
-			int j = 0;
-
-			while (j < 4)
-			{
-				weaponInfo->flashSound[j] = trap->S_RegisterSound( va("sound/weapons/melee/swing%i", j+1) );
-				weaponInfo->altFlashSound[j] = weaponInfo->flashSound[j];
-				j++;
-			}
-			*/
-			//No longer needed, animsound config plays them for us
 		}
 		break;
 	case WP_SABER:
