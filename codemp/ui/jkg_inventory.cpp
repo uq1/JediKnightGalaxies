@@ -378,6 +378,10 @@ void JKG_Inventory_OpenDialog ( char **args )
 	JKG_Inventory_Examine_Button(qtrue);
 }
 
+void JKG_Inventory_OpenOther(char** args) {
+	JKG_Inventory_UpdateNotify(0);
+}
+
 void JKG_Inventory_CloseFromShop( char **args )
 {
 	inventoryState.ACIopen = qfalse;

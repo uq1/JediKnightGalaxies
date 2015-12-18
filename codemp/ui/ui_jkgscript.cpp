@@ -367,6 +367,7 @@ JKGkeywordHashUI_t JKGScripts[] = {
 	{"inv_arrow",			JKG_Inventory_Arrow,			0		},
 	{"inv_highlight",		JKG_Inventory_CheckTooltip,		0		},
 	{"inv_closefromshop",	JKG_Inventory_CloseFromShop,	0		},
+	{"inv_open_other",		JKG_Inventory_OpenOther,		0		},
 	// Looting
 	{"loot_button",			JKG_LootScript_Button,			0		},
 	{"loot_item",			JKG_LootScript_Item,			0		},
