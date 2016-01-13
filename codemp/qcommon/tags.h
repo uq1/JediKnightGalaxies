@@ -11,6 +11,28 @@
 //                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
 //                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
 // tags.h
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // do NOT include-protect this file, or add any fields or labels, because it's included within enums and tables
 //
 // these macro args get "TAG_" prepended on them for enum purposes, and appear as literal strings for "meminfo" command
@@ -22,7 +44,7 @@
 	TAGDEF(BOTGAME),
 	TAGDEF(DOWNLOAD),					// used by the downloading system
 	TAGDEF(GENERAL),
-	TAGDEF(CLIPBOARD),					
+	TAGDEF(CLIPBOARD),
 	TAGDEF(SND_MP3STREAMHDR),			// specific MP3 struct for decoding (about 18..22K each?), not the actual MP3 binary
 	TAGDEF(SND_DYNAMICMUSIC),			// in-mem MP3 files
 	TAGDEF(BSP_DISKIMAGE),				// temp during loading, to save both server and renderer fread()ing the same file. Only used if not low physical memory (currently 96MB)
@@ -71,6 +93,7 @@
 
 	TAGDEF(TEMP_HUNKALLOC),
 	TAGDEF(AVI),
+	TAGDEF(MINIZIP),
 	TAGDEF(COUNT)
 
 

@@ -1,5 +1,26 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 #include "g_local.h"
 #include "bg_saga.h"
@@ -311,7 +332,7 @@ void DoImpact( gentity_t *self, gentity_t *other, qboolean damageSelf )
 
 			force *= (magnitude/50);
 
-			cont = trap_PointContents( other->r.absmax, other->s.number );
+			cont = trap->PointContents( other->r.absmax, other->s.number );
 			if( (cont&CONTENTS_WATER) )//|| (self.classname=="barrel"&&self.aflag))//FIXME: or other watertypes
 			{
 				force /= 3;							//water absorbs 2/3 velocity
@@ -544,7 +565,7 @@ void	G_TouchTriggers( gentity_t *ent ) {
 	VectorSubtract( ent->client->ps.origin, range, mins );
 	VectorAdd( ent->client->ps.origin, range, maxs );
 
-	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+	num = trap->EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
 
 	// can't use ent->r.absmin, because that has a one unit pad
 	VectorAdd( ent->client->ps.origin, ent->r.mins, mins );
@@ -579,7 +600,7 @@ void	G_TouchTriggers( gentity_t *ent ) {
 			}
 			// [/USE_ITEMS]
 		} else {
-			if ( !trap_EntityContact( mins, maxs, hit ) ) {
+			if ( !trap->EntityContact( mins, maxs, (sharedEntity_t *)hit, 0 ) ) {
 				continue;
 			}
 		}
@@ -642,7 +663,7 @@ void G_MoverTouchPushTriggers( gentity_t *ent, vec3_t oldOrg )
 		VectorSubtract( checkSpot, range, mins );
 		VectorAdd( checkSpot, range, maxs );
 
-		num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+		num = trap->EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
 
 		// can't use ent->r.absmin, because that has a one unit pad
 		VectorAdd( checkSpot, ent->r.mins, mins );
@@ -668,7 +689,7 @@ void G_MoverTouchPushTriggers( gentity_t *ent, vec3_t oldOrg )
 			}
 
 
-			if ( !trap_EntityContact( mins, maxs, hit ) ) 
+			if ( !trap->EntityContact( mins, maxs, (sharedEntity_t *)hit, 0 ) ) 
 			{
 				continue;
 			}
@@ -704,6 +725,10 @@ void DeathcamClamp( gentity_t *ent ) {
 	}
 }
 
+static void SV_PMTrace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentMask ) {
+	trap->Trace( results, start, mins, maxs, end, passEntityNum, contentMask, qfalse, 0, 10 );
+}
+
 /*
 =================
 SpectatorThink
@@ -732,8 +757,8 @@ void SpectatorThink( gentity_t *ent, usercmd_t *ucmd ) {
 		pmove.ps = &client->ps;
 		pmove.cmd = *ucmd;
 		pmove.tracemask = MASK_PLAYERSOLID & ~CONTENTS_BODY;	// spectators can fly through bodies
-		pmove.trace = trap_Trace;
-		pmove.pointcontents = trap_PointContents;
+		pmove.trace = SV_PMTrace;
+		pmove.pointcontents = trap->PointContents;
 
 		pmove.noSpecMove = g_noSpecMove.integer;
 
@@ -754,7 +779,7 @@ void SpectatorThink( gentity_t *ent, usercmd_t *ucmd ) {
 		} else if (ent->client->tempSpectate < level.time) {
 			G_TouchTriggers( ent );
 		}
-		trap_UnlinkEntity( ent );
+		trap->UnlinkEntity( (sharedEntity_t *)ent );
 	}
 
 	client->oldbuttons = client->buttons;
@@ -797,12 +822,12 @@ qboolean ClientInactivityTimer( gclient_t *client ) {
 		client->inactivityWarning = qfalse;
 	} else if ( !client->pers.localClient ) {
 		if ( level.time > client->inactivityTime ) {
-			trap_DropClient( client - level.clients, "Dropped due to inactivity" );
+			trap->DropClient( client - level.clients, "Dropped due to inactivity" );
 			return qfalse;
 		}
 		if ( level.time > client->inactivityTime - 10000 && !client->inactivityWarning ) {
 			client->inactivityWarning = qtrue;
-			trap_SendServerCommand( client - level.clients, "cp \"Ten seconds until inactivity drop!\n\"" );
+			trap->SendServerCommand( client - level.clients, "cp \"Ten seconds until inactivity drop!\n\"" );
 		}
 	}
 	return qtrue;
@@ -878,7 +903,7 @@ void G_VehicleAttachDroidUnit( gentity_t *vehEnt )
 		mdxaBone_t boltMatrix;
 		vec3_t	fwd;
 
-		trap_G2API_GetBoltMatrix(vehEnt->ghoul2, 0, vehEnt->m_pVehicle->m_iDroidUnitTag, &boltMatrix, vehEnt->r.currentAngles, vehEnt->r.currentOrigin, level.time,
+		trap->G2API_GetBoltMatrix(vehEnt->ghoul2, 0, vehEnt->m_pVehicle->m_iDroidUnitTag, &boltMatrix, vehEnt->r.currentAngles, vehEnt->r.currentOrigin, level.time,
 			NULL, vehEnt->modelScale);
 		BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, droidEnt->r.currentOrigin);
 		BG_GiveMeVectorFromMatrix(&boltMatrix, NEGATIVE_Y, fwd);
@@ -891,7 +916,7 @@ void G_VehicleAttachDroidUnit( gentity_t *vehEnt )
 		}
 
 		G_SetOrigin( droidEnt, droidEnt->r.currentOrigin );
-		trap_LinkEntity( droidEnt );
+		trap->LinkEntity( (sharedEntity_t *)droidEnt );
 		
 		if ( droidEnt->NPC )
 		{
@@ -1253,71 +1278,56 @@ void SendPendingPredictableEvents( playerState_t *ps ) {
 	}
 }
 
-/*
-==================
-G_UpdateClientBroadcasts
+static const float maxJediMasterDistance = 2500.0f * 2500.0f; // x^2, optimisation
+static const float maxJediMasterFOV = 100.0f;
+static const float maxForceSightDistance = Square( 1500.0f ) * 1500.0f; // x^2, optimisation
+static const float maxForceSightFOV = 100.0f;
 
-Determines whether this client should be broadcast to any other clients.  
-A client is broadcast when another client is using force sight
-==================
-*/
-
-#define MAX_SIGHT_DISTANCE		1500
-#define MAX_SIGHT_FOV			100
-
-static void G_UpdateForceSightBroadcasts ( gentity_t *self )
-{
+void G_UpdateClientBroadcasts( gentity_t *self ) {
 	int i;
+	gentity_t *other;
 
-	// Any clients with force sight on should see this client
-	for ( i = 0; i < level.numConnectedClients; i ++ )
-	{
-		gentity_t *ent = &g_entities[level.sortedClients[i]];
-		float	  dist;
-		vec3_t	  angles;
+	// we are always sent to ourselves
+	// we are always sent to other clients if we are in their PVS
+	// if we are not in their PVS, we must set the broadcastClients bit field
+	// if we do not wish to be sent to any particular entity, we must set the broadcastClients bit field and the
+	//	SVF_BROADCASTCLIENTS bit flag
+	self->r.broadcastClients[0] = 0u;
+	self->r.broadcastClients[1] = 0u;
+
+	for ( i = 0, other = g_entities; i < MAX_CLIENTS; i++, other++ ) {
+		qboolean send = qfalse;
+		float dist;
+		vec3_t angles;
 	
-		if ( ent == self )
-		{
+		if ( !other->inuse || other->client->pers.connected != CON_CONNECTED ) {
+			// no need to compute visibility for non-connected clients
 			continue;
 		}
 
-		// Not using force sight so we shouldnt broadcast to this one
-		if ( !(ent->client->ps.fd.forcePowersActive & (1<<FP_SEE) ) )
-		{
+		if ( other == self ) {
+			// we are always sent to ourselves anyway, this is purely an optimisation
 			continue;
 		}
 
-		VectorSubtract( self->client->ps.origin, ent->client->ps.origin, angles );
-		dist = VectorLengthSquared ( angles );
-		vectoangles ( angles, angles );
+		VectorSubtract( self->client->ps.origin, other->client->ps.origin, angles );
+		dist = VectorLengthSquared( angles );
+		vectoangles( angles, angles );
 
-		// Too far away then just forget it
-		if ( dist > MAX_SIGHT_DISTANCE * MAX_SIGHT_DISTANCE )
-		{
-			continue;
-		}
-		
-		// If not within the field of view then forget it
-		if ( !InFieldOfVision ( ent->client->ps.viewangles, MAX_SIGHT_FOV, angles ) )
-		{
-			break;
+		// broadcast this client to everyone using force sight if we are in distance/field of view
+		if ((other->client->ps.fd.forcePowersActive & (1 << FP_SEE))) {
+			if (dist < maxForceSightDistance
+				&& InFieldOfVision(other->client->ps.viewangles, maxForceSightFOV, angles))
+			{
+				send = qtrue;
+			}
 		}
 
-		// Turn on the broadcast bit for the master and since there is only one
-		// master we are done
-		self->r.broadcastClients[ent->s.clientNum/32] |= (1 << (ent->s.clientNum%32));
-	
-		break;
+		if ( send ) {
+			Q_AddToBitflags( self->r.broadcastClients, i, 32 );
+		}
 	}
-}
-
-void G_UpdateClientBroadcasts ( gentity_t *self )
-{
-	// Clear all the broadcast bits for this client
-	memset ( self->r.broadcastClients, 0, sizeof ( self->r.broadcastClients ) );
-
-	// Anyone with force sight on should see this client
-	G_UpdateForceSightBroadcasts ( self );
+	trap->LinkEntity( (sharedEntity_t *)self );
 }
 
 void G_AddPushVecToUcmd( gentity_t *self, usercmd_t *ucmd )
@@ -1525,7 +1535,7 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 
 		if ( idleAnim != -1 && /*PM_HasAnimation( ent, idleAnim )*/idleAnim > 0 && idleAnim < MAX_ANIMATIONS )
 		{
-			G_SetAnim(ent, ucmd, SETANIM_BOTH, idleAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
+			G_SetAnim(ent, ucmd, SETANIM_BOTH, idleAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 
 			//don't idle again after this anim for a while
 			//ent->client->idleTime = level.time + PM_AnimLength( ent->client->clientInfo.animFileIndex, (animNumber_t)idleAnim ) + Q_irand( 0, 2000 );
@@ -1748,7 +1758,7 @@ void G_HeldByMonster( gentity_t *ent, usercmd_t *ucmd )
 			G_SetOrigin( ent, ent->client->ps.origin );
 			SetClientViewAngle( ent, ent->client->ps.viewangles );
 			G_SetAngles( ent, ent->client->ps.viewangles );
-			trap_LinkEntity( ent );//redundant?
+			trap->LinkEntity( (sharedEntity_t *)ent );//redundant?
 		}
 	}
 	// don't allow movement, weapon switching, and most kinds of button presses
@@ -2190,11 +2200,11 @@ void ClientThink_real( gentity_t *ent ) {
 	// sanity check the command time to prevent speedup cheating
 	if ( ucmd->serverTime > level.time + 200 ) {
 		ucmd->serverTime = level.time + 200;
-//		G_Printf("serverTime <<<<<\n" );
+//		trap->Print("serverTime <<<<<\n" );
 	}
 	if ( ucmd->serverTime < level.time - 1000 ) {
 		ucmd->serverTime = level.time - 1000;
-//		G_Printf("serverTime >>>>>\n" );
+//		trap->Print("serverTime >>>>>\n" );
 	} 
 
 	// ironsights related crap here
@@ -2220,10 +2230,10 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 
 	if ( pmove_msec.integer < 8 ) {
-		trap_Cvar_Set("pmove_msec", "8");
+		trap->Cvar_Set("pmove_msec", "8");
 	}
 	else if (pmove_msec.integer > 33) {
-		trap_Cvar_Set("pmove_msec", "33");
+		trap->Cvar_Set("pmove_msec", "33");
 	}
 
 	if ( pmove_fixed.integer || client->pers.pmoveFixed ) {
@@ -2300,6 +2310,7 @@ void ClientThink_real( gentity_t *ent ) {
 	if (client->pmnomove) {
 		client->ps.pm_type = PM_NOMOVE;
 	} else if (client->pmfreeze) { // JKG - Implement freeze and lock
+		ent->s.eFlags |= EF_FROZEN;
 		if (client->pmlock) {
 			client->ps.pm_type = PM_LOCK;
 		} else {
@@ -2371,7 +2382,7 @@ void ClientThink_real( gentity_t *ent ) {
 			}
 
 			VectorSet(tAng, 0, ent->client->ps.viewangles[YAW], 0);
-			trap_G2API_GetBoltMatrix(ent->ghoul2, 0, 0, &rhMat, tAng, ent->client->ps.origin, level.time,
+			trap->G2API_GetBoltMatrix(ent->ghoul2, 0, 0, &rhMat, tAng, ent->client->ps.origin, level.time,
 				NULL, ent->modelScale); //0 is always going to be right hand bolt
 			BG_GiveMeVectorFromMatrix(&rhMat, ORIGIN, rhOrg);
 
@@ -2705,17 +2716,17 @@ void ClientThink_real( gentity_t *ent ) {
 			}
 
 			/*
-			trap_SendServerCommand( ent-g_entities, va("print \"%s %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELWINNER")) );
-			trap_SendServerCommand( duelAgainst-g_entities, va("print \"%s %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELWINNER")) );
+			trap->SendServerCommand( ent-g_entities, va("print \"%s %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELWINNER")) );
+			trap->SendServerCommand( duelAgainst-g_entities, va("print \"%s %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELWINNER")) );
 			*/
 			//Private duel announcements are now made globally because we only want one duel at a time.
 			if (ent->health > 0 && ent->client->ps.stats[STAT_HEALTH] > 0)
 			{
-				trap_SendServerCommand( -1, va("cp \"%s %s %s!\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELWINNER"), duelAgainst->client->pers.netname) );
+				trap->SendServerCommand( -1, va("cp \"%s %s %s!\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELWINNER"), duelAgainst->client->pers.netname) );
 			}
 			else
 			{ //it was a draw, because we both managed to die in the same frame
-				trap_SendServerCommand( -1, va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELTIE")) );
+				trap->SendServerCommand( -1, va("cp \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELTIE")) );
 			}
 		}
 		else
@@ -2734,7 +2745,7 @@ void ClientThink_real( gentity_t *ent ) {
 				G_AddEvent(ent, EV_PRIVATE_DUEL, 0);
 				G_AddEvent(duelAgainst, EV_PRIVATE_DUEL, 0);
 
-				trap_SendServerCommand( -1, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELSTOP")) );
+				trap->SendServerCommand( -1, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELSTOP")) );
 			}
 		}
 	}
@@ -2835,11 +2846,11 @@ void ClientThink_real( gentity_t *ent ) {
 			}
 		}
 		else if (thrower->inuse && thrower->client && thrower->ghoul2 &&
-			trap_G2_HaveWeGhoul2Models(thrower->ghoul2))
+			trap->G2_HaveWeGhoul2Models(thrower->ghoul2))
 		{
 #if 0
-			int lHandBolt = trap_G2API_AddBolt(thrower->ghoul2, 0, "*l_hand");
-			int pelBolt = trap_G2API_AddBolt(thrower->ghoul2, 0, "pelvis");
+			int lHandBolt = trap->G2API_AddBolt(thrower->ghoul2, 0, "*l_hand");
+			int pelBolt = trap->G2API_AddBolt(thrower->ghoul2, 0, "pelvis");
 
 
 			if (lHandBolt != -1 && pelBolt != -1)
@@ -2865,12 +2876,12 @@ void ClientThink_real( gentity_t *ent ) {
 #if 0
 				mdxaBone_t boltMatrix, pBoltMatrix;
 
-				trap_G2API_GetBoltMatrix(thrower->ghoul2, 0, lHandBolt, &boltMatrix, tAngles, thrower->client->ps.origin, level.time, 0, thrower->modelScale);
+				trap->G2API_GetBoltMatrix(thrower->ghoul2, 0, lHandBolt, &boltMatrix, tAngles, thrower->client->ps.origin, level.time, 0, thrower->modelScale);
 				boltOrg[0] = boltMatrix.matrix[0][3];
 				boltOrg[1] = boltMatrix.matrix[1][3];
 				boltOrg[2] = boltMatrix.matrix[2][3];
 
-				trap_G2API_GetBoltMatrix(thrower->ghoul2, 0, pelBolt, &pBoltMatrix, tAngles, thrower->client->ps.origin, level.time, 0, thrower->modelScale);
+				trap->G2API_GetBoltMatrix(thrower->ghoul2, 0, pelBolt, &pBoltMatrix, tAngles, thrower->client->ps.origin, level.time, 0, thrower->modelScale);
 				pBoltOrg[0] = pBoltMatrix.matrix[0][3];
 				pBoltOrg[1] = pBoltMatrix.matrix[1][3];
 				pBoltOrg[2] = pBoltMatrix.matrix[2][3];
@@ -2942,8 +2953,8 @@ void ClientThink_real( gentity_t *ent ) {
 					intendedOrigin[1] = pBoltOrg[1] + vDif[1]*pDif;
 					intendedOrigin[2] = thrower->client->ps.origin[2];
 
-					trap_Trace(&tr, intendedOrigin, ent->r.mins, ent->r.maxs, intendedOrigin, ent->s.number, ent->clipmask);
-					trap_Trace(&tr2, ent->client->ps.origin, ent->r.mins, ent->r.maxs, intendedOrigin, ent->s.number, CONTENTS_SOLID);
+					trap->Trace(&tr, intendedOrigin, ent->r.mins, ent->r.maxs, intendedOrigin, ent->s.number, ent->clipmask, 0, 0, 0);
+					trap->Trace(&tr2, ent->client->ps.origin, ent->r.mins, ent->r.maxs, intendedOrigin, ent->s.number, CONTENTS_SOLID, 0, 0, 0);
 
 					if (tr.fraction == 1.0 && !tr.startsolid && tr2.fraction == 1.0 && !tr2.startsolid)
 					{
@@ -3096,8 +3107,8 @@ void ClientThink_real( gentity_t *ent ) {
 	else {
 		pmove.tracemask = MASK_PLAYERSOLID;
 	}
-	pmove.trace = JKG_PMTrace; //trap_Trace;
-	pmove.pointcontents = trap_PointContents;
+	pmove.trace = JKG_PMTrace; //trap->Trace;
+	pmove.pointcontents = trap->PointContents;
 	pmove.debugLevel = g_debugMove.integer;
 	pmove.noFootsteps = ( dmflags.integer & DF_NO_FOOTSTEPS ) > 0;
 
@@ -3126,8 +3137,8 @@ void ClientThink_real( gentity_t *ent ) {
 		else
 		{
 			pmove.ghoul2 = ent->ghoul2;
-			pmove.g2Bolts_LFoot = trap_G2API_AddBolt(ent->ghoul2, 0, "*l_leg_foot");
-			pmove.g2Bolts_RFoot = trap_G2API_AddBolt(ent->ghoul2, 0, "*r_leg_foot");
+			pmove.g2Bolts_LFoot = trap->G2API_AddBolt(ent->ghoul2, 0, "*l_leg_foot");
+			pmove.g2Bolts_RFoot = trap->G2API_AddBolt(ent->ghoul2, 0, "*r_leg_foot");
 		}
 	}
 
@@ -3164,7 +3175,7 @@ void ClientThink_real( gentity_t *ent ) {
 		userinfo[0] = '\0';
 
 		//Okay, first, grab the sex
-		trap_GetUserinfo( ent->s.number, userinfo, sizeof( userinfo ) );
+		trap->GetUserinfo( ent->s.number, userinfo, sizeof( userinfo ) );
 		text = Info_ValueForKey(userinfo, "sex");
 
 		if(!Q_stricmp(text, "female") || !Q_stricmp(text, "f"))
@@ -3649,7 +3660,7 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 
 	// link entity now, after any personal teleporters have been used
-	trap_LinkEntity (ent);
+	trap->LinkEntity ((sharedEntity_t *)ent);
 	if ( !ent->client->noclip ) {
 		G_TouchTriggers( ent );
 	}
@@ -3753,7 +3764,7 @@ void ClientThink_real( gentity_t *ent ) {
 				VectorCopy(client->ps.origin, client->deathcamCenter);
 				SnapVector(client->deathcamCenter);
 				client->deathcamRadius = 200; // 200 units before we hit the edges of our movement area
-				trap_SendServerCommand(ent->s.number, va("dc %i %i %i %i %i", client->deathcamTime, client->deathcamRadius, (int)client->deathcamCenter[0], (int)client->deathcamCenter[1], (int)client->deathcamCenter[2]));
+				trap->SendServerCommand(ent->s.number, va("dc %i %i %i %i %i", client->deathcamTime, client->deathcamRadius, (int)client->deathcamCenter[0], (int)client->deathcamCenter[1], (int)client->deathcamCenter[2]));
 				JKG_PermaSpectate(ent);
 			}
 
@@ -3787,12 +3798,6 @@ void ClientThink_real( gentity_t *ent ) {
 			ent->client->ps.m_iVehicleNum = 0;
 		}
 	}
-
-	if (ent->client->ps.credits < 0)
-	{	// Shouldn't ever happen since we're using unsigned.
-		ent->client->ps.credits = 0;
-	}
-
 }
 
 /*
@@ -3838,7 +3843,7 @@ void ClientThink( int clientNum,usercmd_t *ucmd ) {
 
 	if (clientNum < MAX_CLIENTS)
 	{
-		trap_GetUsercmd( clientNum, &ent->client->pers.cmd );
+		trap->GetUsercmd( clientNum, &ent->client->pers.cmd );
 	}
 
 	// mark the time we got info, so we can display the
@@ -3931,7 +3936,7 @@ void ClientThink( int clientNum,usercmd_t *ucmd ) {
 
 void G_RunClient( gentity_t *ent ) {
 	if ( ent->client->lastCmdTime < level.time - 1000 ) {
-     trap_GetUsercmd( ent-g_entities, &ent->client->pers.cmd );
+     trap->GetUsercmd( ent-g_entities, &ent->client->pers.cmd );
  
      ent->client->lastCmdTime = level.time;
  
@@ -3992,7 +3997,7 @@ void SpectatorClientEndFrame( gentity_t *ent ) {
 				ent->client->ps.credits = credits;
 
 				// k, let's do some sort of stuffs
-				trap_GetUsercmd(ent - g_entities, &ucmd);
+				trap->GetUsercmd(ent - g_entities, &ucmd);
 
 				if(ucmd.buttons & BUTTON_IRONSIGHTS)
 				{
@@ -4118,7 +4123,7 @@ void ClientEndFrame( gentity_t *ent ) {
 	SendPendingPredictableEvents( &ent->client->ps );
 
 	// set the bit for the reachability area the client is currently in
-//	i = trap_AAS_PointReachabilityAreaIndex( ent->client->ps.origin );
+//	i = trap->AAS_PointReachabilityAreaIndex( ent->client->ps.origin );
 //	ent->client->areabits[i >> 3] |= 1 << (i & 7);
 }
 

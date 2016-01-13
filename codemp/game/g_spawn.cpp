@@ -1,5 +1,25 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 #include "g_local.h"
 #include "jkg_gangwars.h"
@@ -47,7 +67,7 @@ qboolean	G_SpawnVector( const char *key, const char *defaultString, float *out )
 
 	present = G_SpawnString( key, defaultString, &s );
 	if ( sscanf( s, "%f %f %f", &out[0], &out[1], &out[2] ) != 3 ) {
-		G_Printf( "G_SpawnVector: Failed sscanf on %s (default: %s)\n", key, defaultString );
+		trap->Print( "G_SpawnVector: Failed sscanf on %s (default: %s)\n", key, defaultString );
 		VectorClear( out );
 		return qfalse;
 	}
@@ -706,7 +726,7 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 	gitem_t	*item;
 
 	if ( !ent->classname ) {
-		G_Printf( "G_CallSpawn: NULL classname\n" );
+		trap->Print( "G_CallSpawn: NULL classname\n" );
 		return qfalse;
 	}
 
@@ -717,13 +737,13 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 #ifdef __DISABLE_UNUSED_SPAWNS__
 			if ( !Q_strncmp(ent->classname, "weapon_", 7) )
 			{// UQ1: Since we can't pick them up anyway, don't even spawn weapons...
-				G_Printf("%s spawn disabled.\n", ent->classname);
+				trap->Print("%s spawn disabled.\n", ent->classname);
 				G_FreeEntity(ent);
 				return qfalse;
 			}
 			else if ( !Q_strncmp(ent->classname, "ammo_", 5) )
 			{// UQ1: Since we can't pick them up anyway, don't even spawn ammo...
-				G_Printf("%s spawn disabled.\n", ent->classname);
+				trap->Print("%s spawn disabled.\n", ent->classname);
 				G_FreeEntity(ent);
 				return qfalse;
 			}
@@ -750,7 +770,7 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 		return qtrue;
 	}
 
-	G_Printf( "%s doesn't have a spawn function\n", ent->classname );
+	trap->Print( "%s doesn't have a spawn function\n", ent->classname );
 	return qfalse;
 }
 
@@ -872,7 +892,7 @@ void G_ParseField( const char *key, const char *value, gentity_t *ent )
 				}
 			}
 			else {
-				G_Printf( "G_ParseField: Failed sscanf on F_VECTOR (key/value: %s/%s)\n", key, value );
+				trap->Print( "G_ParseField: Failed sscanf on F_VECTOR (key/value: %s/%s)\n", key, value );
 				((float *)(b+f->ofs))[0] = ((float *)(b+f->ofs))[1] = ((float *)(b+f->ofs))[2] = 0.0f;
 			}
 			break;
@@ -914,8 +934,8 @@ void G_ParseField( const char *key, const char *value, gentity_t *ent )
 #define ADJUST_AREAPORTAL() \
 	if(ent->s.eType == ET_MOVER) \
 	{ \
-		trap_LinkEntity(ent); \
-		trap_AdjustAreaPortalState(ent, qtrue); \
+		trap->LinkEntity((sharedEntity_t *)ent); \
+		trap->AdjustAreaPortalState((sharedEntity_t *)ent, qtrue); \
 	}
 
 /*
@@ -998,9 +1018,9 @@ void G_SpawnGEntityFromSpawnVars( qboolean inSubBSP )
 	}
 
 	//Tag on the ICARUS scripting information only to valid recipients
-	if ( trap_ICARUS_ValidEnt( ent ) )
+	if ( trap->ICARUS_ValidEnt( (sharedEntity_t *)ent ) )
 	{
-		trap_ICARUS_InitEnt( ent );
+		trap->ICARUS_InitEnt( (sharedEntity_t *)ent );
 
 		if ( ent->classname && ent->classname[0] )
 		{
@@ -1103,9 +1123,9 @@ void G_SpawnEntity(gentity_t **outent) {
 	}
 
 	//Tag on the ICARUS scripting information only to valid recipients
-	if ( trap_ICARUS_ValidEnt( ent ) )
+	if ( trap->ICARUS_ValidEnt( (sharedEntity_t *)ent ) )
 	{
-		trap_ICARUS_InitEnt( ent );
+		trap->ICARUS_InitEnt( (sharedEntity_t *)ent );
 
 		if ( ent->classname && ent->classname[0] )
 		{
@@ -1128,7 +1148,7 @@ char *G_AddSpawnVarToken( const char *string ) {
 
 	l = strlen( string );
 	if ( level.numSpawnVarChars + l + 1 > MAX_SPAWN_VARS_CHARS ) {
-		G_Error( "G_AddSpawnVarToken: MAX_SPAWN_VARS_CHARS" );
+		trap->Error( ERR_DROP, "G_AddSpawnVarToken: MAX_SPAWN_VARS_CHARS" );
 	}
 
 	dest = level.spawnVarChars + level.numSpawnVarChars;
@@ -1170,7 +1190,7 @@ static void HandleEntityAdjustment(void)
 	if (Q_stricmp(value, NOVALUE) != 0)
 	{
 		if ( sscanf( value, "%f %f %f", &origin[0], &origin[1], &origin[2] ) != 3 ) {
-			G_Printf( "HandleEntityAdjustment: failed sscanf on 'origin' (%s)\n", value );
+			trap->Print( "HandleEntityAdjustment: failed sscanf on 'origin' (%s)\n", value );
 			VectorClear( origin );
 		}
 	}
@@ -1192,7 +1212,7 @@ static void HandleEntityAdjustment(void)
 	if (Q_stricmp(value, NOVALUE) != 0)
 	{
 		if ( sscanf( value, "%f %f %f", &angles[0], &angles[1], &angles[2] ) != 3 ) {
-			G_Printf( "HandleEntityAdjustment: failed sscanf on 'angles' (%s)\n", value );
+			trap->Print( "HandleEntityAdjustment: failed sscanf on 'angles' (%s)\n", value );
 			VectorClear( angles );
 		}
 
@@ -1223,7 +1243,7 @@ static void HandleEntityAdjustment(void)
 	if (Q_stricmp(value, NOVALUE) != 0)
 	{
 		if ( sscanf( value, "%f %f %f", &angles[0], &angles[1], &angles[2] ) != 3 ) {
-			G_Printf( "HandleEntityAdjustment: failed sscanf on 'direction' (%s)\n", value );
+			trap->Print( "HandleEntityAdjustment: failed sscanf on 'direction' (%s)\n", value );
 			VectorClear( angles );
 		}
 	}
@@ -1306,19 +1326,19 @@ qboolean G_ParseSpawnVars( qboolean inSubBSP ) {
 	level.numSpawnVarChars = 0;
 
 	// parse the opening brace
-	if ( !trap_GetEntityToken( com_token, sizeof( com_token ) ) ) {
+	if ( !trap->GetEntityToken( com_token, sizeof( com_token ) ) ) {
 		// end of spawn string
 		return qfalse;
 	}
 	if ( com_token[0] != '{' ) {
-		G_Error( "G_ParseSpawnVars: found %s when expecting {",com_token );
+		trap->Error( ERR_DROP, "G_ParseSpawnVars: found %s when expecting {",com_token );
 	}
 
 	// go through all the key / value pairs
 	while ( 1 ) {	
 		// parse key
-		if ( !trap_GetEntityToken( keyname, sizeof( keyname ) ) ) {
-			G_Error( "G_ParseSpawnVars: EOF without closing brace" );
+		if ( !trap->GetEntityToken( keyname, sizeof( keyname ) ) ) {
+			trap->Error( ERR_DROP, "G_ParseSpawnVars: EOF without closing brace" );
 		}
 
 		if ( keyname[0] == '}' ) {
@@ -1326,15 +1346,15 @@ qboolean G_ParseSpawnVars( qboolean inSubBSP ) {
 		}
 		
 		// parse value	
-		if ( !trap_GetEntityToken( com_token, sizeof( com_token ) ) ) {
-			G_Error( "G_ParseSpawnVars: EOF without closing brace" );
+		if ( !trap->GetEntityToken( com_token, sizeof( com_token ) ) ) {
+			trap->Error( ERR_DROP, "G_ParseSpawnVars: EOF without closing brace" );
 		}
 
 		if ( com_token[0] == '}' ) {
-			G_Error( "G_ParseSpawnVars: closing brace without data" );
+			trap->Error( ERR_DROP, "G_ParseSpawnVars: closing brace without data" );
 		}
 		if ( level.numSpawnVars == MAX_SPAWN_VARS ) {
-			G_Error( "G_ParseSpawnVars: MAX_SPAWN_VARS" );
+			trap->Error( ERR_DROP, "G_ParseSpawnVars: MAX_SPAWN_VARS" );
 		}
 		level.spawnVars[ level.numSpawnVars ][0] = G_AddSpawnVarToken( keyname );
 		level.spawnVars[ level.numSpawnVars ][1] = G_AddSpawnVarToken( com_token );
@@ -1368,18 +1388,18 @@ qboolean G_ParseSpawnVarsEx( int handle ) {
 	level.numSpawnVarChars = 0;
 
 	// parse the opening brace
-	if (trap_PC_ReadToken(handle, &token) == 0)
+	if (trap->PC_ReadToken(handle, &token) == 0)
 		// end of spawn string
 		return qfalse;
 
 	if (Q_stricmp(token.string, "{") != 0)
-		G_Error( "G_ParseSpawnVarsEx: found %s when expecting {", token.string );
+		trap->Error( ERR_DROP, "G_ParseSpawnVarsEx: found %s when expecting {", token.string );
 
 	// go through all the key / value pairs
 	while ( 1 ) {	
 		// parse key
-		if (trap_PC_ReadToken( handle, &token) == 0)
-			G_Error( "G_ParseSpawnVarsEx: EOF without closing brace" );
+		if (trap->PC_ReadToken( handle, &token) == 0)
+			trap->Error( ERR_DROP, "G_ParseSpawnVarsEx: EOF without closing brace" );
 
 		if (Q_stricmp(token.string, "}") == 0)
 			break;
@@ -1387,14 +1407,14 @@ qboolean G_ParseSpawnVarsEx( int handle ) {
 		strcpy(keyname, token.string);
 
 		// parse value	
-		if (trap_PC_ReadToken( handle, &token) == 0)
-			G_Error("G_ParseSpawnVarsEx: EOF without closing brace" );
+		if (trap->PC_ReadToken( handle, &token) == 0)
+			trap->Error( ERR_DROP, "G_ParseSpawnVarsEx: EOF without closing brace" );
 
 		if (Q_stricmp(token.string, "}") == 0)
-			G_Error("G_ParseSpawnVarsEx: closing brace without data");
+			trap->Error( ERR_DROP,"G_ParseSpawnVarsEx: closing brace without data");
 
 		if (level.numSpawnVars == MAX_SPAWN_VARS)
-			G_Error("G_ParseSpawnVarsEx: MAX_SPAWN_VARS");
+			trap->Error( ERR_DROP,"G_ParseSpawnVarsEx: MAX_SPAWN_VARS");
 
 		level.spawnVars[ level.numSpawnVars ][0] = G_AddSpawnVarToken(keyname);
 		level.spawnVars[ level.numSpawnVars ][1] = G_AddSpawnVarToken(token.string);
@@ -1606,11 +1626,11 @@ void SP_worldspawn( void )
 	//I want to "cull" entities out of net sends to clients to reduce
 	//net traffic on our larger open maps -rww
 	G_SpawnFloat("distanceCull", "6000.0", &g_cullDistance);
-	trap_SetServerCull(g_cullDistance);
+	trap->SetServerCull(g_cullDistance);
 
 	G_SpawnString( "classname", "", &text );
 	if ( Q_stricmp( text, "worldspawn" ) ) {
-		G_Error( "SP_worldspawn: The first entity isn't 'worldspawn'" );
+		trap->Error( ERR_DROP, "SP_worldspawn: The first entity isn't 'worldspawn'" );
 	}
 
 	for ( i = 0 ; i < level.numSpawnVars ; i++ ) 
@@ -1631,51 +1651,51 @@ void SP_worldspawn( void )
 	{
 		int defSkin;
 
-		trap_G2API_InitGhoul2Model(&precachedKyle, "models/players/kyle/model.glm", 0, 0, -20, 0, 0);
+		trap->G2API_InitGhoul2Model(&precachedKyle, "models/players/kyle/model.glm", 0, 0, -20, 0, 0);
 
-		if (precachedKyle && trap_G2_HaveWeGhoul2Models(precachedKyle)) // better safe than sorry --eez
+		if (precachedKyle && trap->G2_HaveWeGhoul2Models(precachedKyle)) // better safe than sorry --eez
 		{
-			defSkin = trap_R_RegisterSkin("models/players/kyle/model_default.skin");
-			trap_G2API_SetSkin(precachedKyle, 0, defSkin, defSkin);
+			defSkin = trap->R_RegisterSkin("models/players/kyle/model_default.skin");
+			trap->G2API_SetSkin(precachedKyle, 0, defSkin, defSkin);
 		}
 	}
 
 	if (!g2SaberInstance)
 	{
-		trap_G2API_InitGhoul2Model(&g2SaberInstance, "models/weapons2/saber/saber_w.glm", 0, 0, -20, 0, 0);
+		trap->G2API_InitGhoul2Model(&g2SaberInstance, "models/weapons2/saber/saber_w.glm", 0, 0, -20, 0, 0);
 
-		if (g2SaberInstance && trap_G2_HaveWeGhoul2Models(g2SaberInstance))	// better safe than sorry --eez
+		if (g2SaberInstance && trap->G2_HaveWeGhoul2Models(g2SaberInstance))	// better safe than sorry --eez
 		{
 			// indicate we will be bolted to model 0 (ie the player) on bolt 0 (always the right hand) when we get copied
-			trap_G2API_SetBoltInfo(g2SaberInstance, 0, 0);
+			trap->G2API_SetBoltInfo(g2SaberInstance, 0, 0);
 			// now set up the gun bolt on it
-			trap_G2API_AddBolt(g2SaberInstance, 0, "*blade1");
+			trap->G2API_AddBolt(g2SaberInstance, 0, "*blade1");
 		}
 	}
 
 	// make some data visible to connecting client
-	trap_SetConfigstring( CS_GAME_VERSION, GAME_VERSION );
+	trap->SetConfigstring( CS_GAME_VERSION, GAME_VERSION );
 
-	trap_SetConfigstring( CS_LEVEL_START_TIME, va("%i", level.startTime ) );
+	trap->SetConfigstring( CS_LEVEL_START_TIME, va("%i", level.startTime ) );
 
 	G_SpawnInt("serverinit", "0", &level.serverInit);
 
 	G_SpawnString( "music", "", &text );
-	trap_SetConfigstring( CS_MUSIC, text );
+	trap->SetConfigstring( CS_MUSIC, text );
 
 	G_SpawnString( "message", "", &text );
-	trap_SetConfigstring( CS_MESSAGE, text );				// map specific message
+	trap->SetConfigstring( CS_MESSAGE, text );				// map specific message
 
-	trap_SetConfigstring( CS_MOTD, g_motd.string );		// message of the day
+	trap->SetConfigstring( CS_MOTD, g_motd.string );		// message of the day
 
 	G_SpawnString( "gravity", "800", &text );
-	trap_Cvar_Set( "g_gravity", text );
+	trap->Cvar_Set( "g_gravity", text );
+	trap->Cvar_Update( &g_gravity );
 
 	G_SpawnString( "enableBreath", "0", &text );
-	trap_Cvar_Set( "g_enableBreath", text );
 
 	G_SpawnString( "soundSet", "default", &text );
-	trap_SetConfigstring( CS_GLOBAL_AMBIENT_SET, text );
+	trap->SetConfigstring( CS_GLOBAL_AMBIENT_SET, text );
 
 	switch( level.gametype ) {
 		case GT_DUEL:
@@ -1689,14 +1709,22 @@ void SP_worldspawn( void )
 	if(text)
 	{
 		strcpy(level.startingWeapon, text);
+		trap->Cvar_Set("jkg_startingGun", text);
 	}
 	g_entities[ENTITYNUM_WORLD].s.number = ENTITYNUM_WORLD;
+	g_entities[ENTITYNUM_WORLD].r.ownerNum = ENTITYNUM_NONE;
 	g_entities[ENTITYNUM_WORLD].classname = "worldspawn";
 
+	g_entities[ENTITYNUM_NONE].s.number = ENTITYNUM_NONE;
+	g_entities[ENTITYNUM_NONE].r.ownerNum = ENTITYNUM_NONE;
+	g_entities[ENTITYNUM_NONE].classname = "nothing";
+
+
 	// see if we want a warmup time
-	trap_SetConfigstring( CS_WARMUP, "" );
+	trap->SetConfigstring( CS_WARMUP, "" );
 	if ( g_restarted.integer ) {
-		trap_Cvar_Set( "g_restarted", "0" );
+		trap->Cvar_Set( "g_restarted", "0" );
+		trap->Cvar_Update( &g_restarted );
 	} 
 
 	// Gang Wars
@@ -1719,7 +1747,7 @@ void SP_worldspawn( void )
 			return;
 		}
 
-		trap_SetConfigstring(CS_TEAMS, teamInfo);
+		trap->SetConfigstring(CS_TEAMS, teamInfo);
 
 		level.redTeam = JKG_GetTeamByReference( redString );
 		level.blueTeam = JKG_GetTeamByReference( blueString );
@@ -1730,26 +1758,26 @@ void SP_worldspawn( void )
 		}
 	}
 
-	trap_SetConfigstring(CS_LIGHT_STYLES+(LS_STYLES_START*3)+0, defaultStyles[0][0]);
-	trap_SetConfigstring(CS_LIGHT_STYLES+(LS_STYLES_START*3)+1, defaultStyles[0][1]);
-	trap_SetConfigstring(CS_LIGHT_STYLES+(LS_STYLES_START*3)+2, defaultStyles[0][2]);
+	trap->SetConfigstring(CS_LIGHT_STYLES+(LS_STYLES_START*3)+0, defaultStyles[0][0]);
+	trap->SetConfigstring(CS_LIGHT_STYLES+(LS_STYLES_START*3)+1, defaultStyles[0][1]);
+	trap->SetConfigstring(CS_LIGHT_STYLES+(LS_STYLES_START*3)+2, defaultStyles[0][2]);
 	
 	for(i=1;i<LS_NUM_STYLES;i++)
 	{
 		Com_sprintf(temp, sizeof(temp), "ls_%dr", i);
 		G_SpawnString(temp, defaultStyles[i][0], &text);
 		lengthRed = strlen(text);
-		trap_SetConfigstring(CS_LIGHT_STYLES+((i+LS_STYLES_START)*3)+0, text);
+		trap->SetConfigstring(CS_LIGHT_STYLES+((i+LS_STYLES_START)*3)+0, text);
 
 		Com_sprintf(temp, sizeof(temp), "ls_%dg", i);
 		G_SpawnString(temp, defaultStyles[i][1], &text);
 		lengthGreen = strlen(text);
-		trap_SetConfigstring(CS_LIGHT_STYLES+((i+LS_STYLES_START)*3)+1, text);
+		trap->SetConfigstring(CS_LIGHT_STYLES+((i+LS_STYLES_START)*3)+1, text);
 
 		Com_sprintf(temp, sizeof(temp), "ls_%db", i);
 		G_SpawnString(temp, defaultStyles[i][2], &text);
 		lengthBlue = strlen(text);
-		trap_SetConfigstring(CS_LIGHT_STYLES+((i+LS_STYLES_START)*3)+2, text);
+		trap->SetConfigstring(CS_LIGHT_STYLES+((i+LS_STYLES_START)*3)+2, text);
 
 		if (lengthRed != lengthGreen || lengthGreen != lengthBlue)
 		{
@@ -1800,7 +1828,7 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 	int			handle;
 	vmCvar_t	mapname;
 
-	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+	trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 #endif //__ENTITY_OVERRIDES__
 
 	// allow calls to G_Spawn*()
@@ -1816,32 +1844,32 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 	// This version overrides the bsp's spawns completely.
 	//
 	if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
-		handle = trap_PC_LoadSource(va("maps/%s_scenario.ovrents", mapname.string));
+		handle = trap->PC_LoadSource(va("maps/%s_scenario.ovrents", mapname.string));
 	else
 #ifdef __RPG__
 	if (g_gametype.integer == GT_RPG_CITY)
-		handle = trap_PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
+		handle = trap->PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
 	else if (g_gametype.integer == GT_RPG_WILDERNESS)
-		handle = trap_PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
+		handle = trap->PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
 	else 
 #endif //__RPG__
 	if (g_gametype.integer == GT_SINGLE_PLAYER)
-		handle = trap_PC_LoadSource(va("maps/%s_coop.ovrents", mapname.string));
+		handle = trap->PC_LoadSource(va("maps/%s_coop.ovrents", mapname.string));
 	else
-		handle = trap_PC_LoadSource(va("maps/%s.ovrents", mapname.string));
+		handle = trap->PC_LoadSource(va("maps/%s.ovrents", mapname.string));
 
 	if (handle)
 	{
 		if ( !G_ParseSpawnVarsEx(handle) )
 		{
-			G_Error( "SpawnEntities: no entities" );
-			trap_PC_FreeSource(handle); // UQ added!
+			trap->Error( ERR_DROP, "SpawnEntities: no entities" );
+			trap->PC_FreeSource(handle); // UQ added!
 		}
 	}
 	else
 #endif //__ENTITY_OVERRIDES__
 	if ( !G_ParseSpawnVars(qfalse) ) {
-		G_Error( "SpawnEntities: no entities" );
+		trap->Error( ERR_DROP, "SpawnEntities: no entities" );
 	}
 
 	if (!inSubBSP)
@@ -1863,7 +1891,7 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 		while( G_ParseSpawnVarsEx(handle) )
 			G_SpawnGEntityFromSpawnVars(inSubBSP);
 
-		trap_PC_FreeSource(handle); // UQ: Release the handle here instead of above...
+		trap->PC_FreeSource(handle); // UQ: Release the handle here instead of above...
 	}
 	else
 #endif //__ENTITY_OVERRIDES__
@@ -1882,30 +1910,30 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 		// parse possible external entities map files
 		// it's used to add new ents to existing pure ET map
 		if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
-			handle = trap_PC_LoadSource(va("maps/%s_scenario.entities", mapname.string));
+			handle = trap->PC_LoadSource(va("maps/%s_scenario.entities", mapname.string));
 		else
 #ifdef __RPG__
 		if (g_gametype.integer == GT_RPG_CITY)
-			handle = trap_PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
+			handle = trap->PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
 		else if (g_gametype.integer == GT_RPG_WILDERNESS)
-			handle = trap_PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
+			handle = trap->PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
 		else 
 #endif //__RPG__
 		if (g_gametype.integer == GT_SINGLE_PLAYER)
-			handle = trap_PC_LoadSource(va("maps/%s_coop.entities", mapname.string));
+			handle = trap->PC_LoadSource(va("maps/%s_coop.entities", mapname.string));
 		else
-			handle = trap_PC_LoadSource(va("maps/%s.entities", mapname.string));
+			handle = trap->PC_LoadSource(va("maps/%s.entities", mapname.string));
 
 		if (handle)
 		{
 			if (G_ParseSpawnVarsEx(handle) == qfalse)
-				G_Error( "SpawnEntities: no entities" );
+				trap->Error( ERR_DROP, "SpawnEntities: no entities" );
 
 			// parse ents
 			while (G_ParseSpawnVarsEx(handle))
 				G_SpawnGEntityFromSpawnVars(inSubBSP);
 
-			trap_PC_FreeSource(handle);
+			trap->PC_FreeSource(handle);
 		}
 	}
 #endif //__ENTITY_OVERRIDES__
@@ -1923,7 +1951,7 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 
 			if ( script_runner->inuse )
 			{
-				trap_ICARUS_InitEnt( script_runner );
+				trap->ICARUS_InitEnt( (sharedEntity_t *)script_runner );
 			}
 		}
 	}

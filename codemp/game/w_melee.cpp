@@ -84,11 +84,11 @@ gentity_t *G_KickTrace( gentity_t *ent, vec3_t kickDir, float kickDist, vec3_t k
 
 	if (d_saberKickTweak.integer)
 	{
-		trap_G2Trace( &trace, traceOrg, kickMins, kickMaxs, traceEnd, ent->s.number, MASK_SHOT, G2TRFLAG_DOGHOULTRACE|G2TRFLAG_GETSURFINDEX|G2TRFLAG_THICK|G2TRFLAG_HITCORPSES, g_g2TraceLod.integer );
+		trap->Trace( &trace, traceOrg, kickMins, kickMaxs, traceEnd, ent->s.number, MASK_SHOT, 0, G2TRFLAG_DOGHOULTRACE|G2TRFLAG_GETSURFINDEX|G2TRFLAG_THICK|G2TRFLAG_HITCORPSES, g_g2TraceLod.integer );
 	}
 	else
 	{
-		trap_Trace( &trace, traceOrg, kickMins, kickMaxs, traceEnd, ent->s.number, MASK_SHOT );
+		trap->Trace( &trace, traceOrg, kickMins, kickMaxs, traceEnd, ent->s.number, MASK_SHOT, 0, 0, 0 );
 	}
 
 	//G_TestLine(traceOrg, traceEnd, 0x0000ff, 5000);
@@ -487,7 +487,7 @@ void G_KickSomeMofos(gentity_t *ent)
 	}
 }
 
-static GAME_INLINE qboolean G_PrettyCloseIGuess(float a, float b, float tolerance)
+static QINLINE qboolean G_PrettyCloseIGuess(float a, float b, float tolerance)
 {
     if ((a-b) < tolerance &&
 		(a-b) > -tolerance)
@@ -513,7 +513,7 @@ void G_GrabSomeMofos(gentity_t *self)
 	}
 
     VectorSet(flatAng, 0.0f, self->client->ps.viewangles[1], 0.0f);
-	trap_G2API_GetBoltMatrix(self->ghoul2, 0, ri->handRBolt, &boltMatrix, flatAng, self->client->ps.origin,
+	trap->G2API_GetBoltMatrix(self->ghoul2, 0, ri->handRBolt, &boltMatrix, flatAng, self->client->ps.origin,
 		level.time, NULL, self->modelScale);
 	BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, pos);
 
@@ -521,7 +521,7 @@ void G_GrabSomeMofos(gentity_t *self)
 	VectorSet(grabMaxs, 4.0f, 4.0f, 4.0f);
 
 	//trace from my origin to my hand, if we hit anyone then get 'em
-	trap_G2Trace( &trace, self->client->ps.origin, grabMins, grabMaxs, pos, self->s.number, MASK_SHOT, G2TRFLAG_DOGHOULTRACE|G2TRFLAG_GETSURFINDEX|G2TRFLAG_THICK|G2TRFLAG_HITCORPSES, g_g2TraceLod.integer );
+	trap->Trace( &trace, self->client->ps.origin, grabMins, grabMaxs, pos, self->s.number, MASK_SHOT, 0, G2TRFLAG_DOGHOULTRACE|G2TRFLAG_GETSURFINDEX|G2TRFLAG_THICK|G2TRFLAG_HITCORPSES, g_g2TraceLod.integer );
     
 	if (trace.fraction != 1.0f &&
 		trace.entityNum < ENTITYNUM_WORLD)
@@ -553,7 +553,7 @@ void G_GrabSomeMofos(gentity_t *self)
 			{
 				if (self->client->ps.torsoTimer < 300 && !self->client->grappleState)
 				{ //you failed to grab anyone, play the "failed to grab" anim
-					G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
+					G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 					if (self->client->ps.torsoAnim == BOTH_KYLE_MISS)
 					{ //providing the anim set succeeded..
 						self->client->ps.weaponTime = self->client->ps.torsoTimer;
@@ -569,13 +569,13 @@ void G_GrabSomeMofos(gentity_t *self)
 			grabbed->client->grappleState = 20;
 
 			//time to crack some heads
-			G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, tortureAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
+			G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, tortureAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 			if (self->client->ps.torsoAnim == tortureAnim)
 			{ //providing the anim set succeeded..
 				self->client->ps.weaponTime = self->client->ps.torsoTimer;
 			}
 
-			G_SetAnim(grabbed, &grabbed->client->pers.cmd, SETANIM_BOTH, correspondingAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
+			G_SetAnim(grabbed, &grabbed->client->pers.cmd, SETANIM_BOTH, correspondingAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 			if (grabbed->client->ps.torsoAnim == correspondingAnim)
 			{ //providing the anim set succeeded..
 				if (grabbed->client->ps.weapon == WP_SABER)
@@ -605,7 +605,7 @@ void G_GrabSomeMofos(gentity_t *self)
 
 	if (self->client->ps.torsoTimer < 300 && !self->client->grappleState)
 	{ //you failed to grab anyone, play the "failed to grab" anim
-		G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
+		G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 		if (self->client->ps.torsoAnim == BOTH_KYLE_MISS)
 		{ //providing the anim set succeeded..
 			self->client->ps.weaponTime = self->client->ps.torsoTimer;
@@ -628,7 +628,7 @@ void JKG_GrappleUpdate( gentity_t *self )
 		if ((BG_InGrappleMove(self->client->ps.torsoAnim) && self->client->ps.torsoTimer > 100) ||
 			(BG_InGrappleMove(self->client->ps.legsAnim) && self->client->ps.legsTimer > 100))
 		{ //if they're pretty far from finishing the anim then shove them into another anim
-			G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
+			G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 			if (self->client->ps.torsoAnim == BOTH_KYLE_MISS)
 			{ //providing the anim set succeeded..
 				self->client->ps.weaponTime = self->client->ps.torsoTimer;
@@ -648,7 +648,7 @@ void JKG_GrappleUpdate( gentity_t *self )
 			{
 				self->client->grappleState = 0;
 
-				G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
+				G_SetAnim(self, &self->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 				if (self->client->ps.torsoAnim == BOTH_KYLE_MISS)
 				{ //providing the anim set succeeded..
 					self->client->ps.weaponTime = self->client->ps.torsoTimer;
@@ -679,7 +679,7 @@ void JKG_GrappleUpdate( gentity_t *self )
 				AngleVectors(grappler->client->ps.viewangles, gFwd, 0, 0);
 				VectorMA(grappler->client->ps.origin, idealDist, gFwd, idealSpot);
 
-				trap_Trace(&trace, self->client->ps.origin, self->r.mins, self->r.maxs, idealSpot, self->s.number, self->clipmask);
+				trap->Trace(&trace, self->client->ps.origin, self->r.mins, self->r.maxs, idealSpot, self->s.number, self->clipmask, 0, 0, 0);
 				if (!trace.startsolid && !trace.allsolid && trace.fraction == 1.0f)
 				{ //go there
 					G_SetOrigin(self, idealSpot);
@@ -824,7 +824,7 @@ void JKG_GrappleUpdate( gentity_t *self )
 							if (grappler->health > 0)
 							{
 								grappler->client->ps.torsoTimer = 1000;
-								//G_SetAnim(grappler, &grappler->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP3, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
+								//G_SetAnim(grappler, &grappler->client->pers.cmd, SETANIM_BOTH, BOTH_GETUP3, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 								grappler->client->grappleState = 0;
 							}
 							else

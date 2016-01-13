@@ -37,7 +37,7 @@ extern wpobject_t *gWPArray[MAX_WPARRAY_SIZE];
 
 extern float HeightDistance ( vec3_t v1, vec3_t v2 );
 extern int DOM_FindIdealPathtoWP(bot_state_t *bs, int from, int to, int badwp2, int *pathlist);
-//extern void QDECL G_Printf( const char *msg, ... );
+//extern void QDECL trap->Print( const char *msg, ... );
 
 qboolean PATHING_IGNORE_FRAME_TIME = qfalse;
 
@@ -185,7 +185,7 @@ int ASTAR_FindPath(int from, int to, int *pathlist)
 
 		if(NotClosedCount==0)
 		{
-			//G_Printf("JKG A*: Failed to find a normal path - trying backup A*\n");
+			//trap->Print("JKG A*: Failed to find a normal path - trying backup A*\n");
 			return -1; // Failed...
 			//return DOM_FindIdealPathtoWP(NULL, from, to, -1, pathlist);
 		}
@@ -250,19 +250,19 @@ int ASTAR_FindPath(int from, int to, int *pathlist)
 	PathPointCount++;
 
 	/*
-	G_Printf("=====================================================================");
-	G_Printf("Path (length %i) found was:\n", PathPointCount);
+	trap->Print("=====================================================================");
+	trap->Print("Path (length %i) found was:\n", PathPointCount);
 
 	for (i = 0; i < PathPointCount; i++)
 	{
 		if (i == PathPointCount - 1)
-			G_Printf("%i (goal) ", pathlist[i]);
+			trap->Print("%i (goal) ", pathlist[i]);
 		else
-			G_Printf("%i (dist to next %f) ", pathlist[i], Distance(gWPArray[pathlist[i]]->origin, gWPArray[pathlist[i+1]]->origin));
+			trap->Print("%i (dist to next %f) ", pathlist[i], Distance(gWPArray[pathlist[i]]->origin, gWPArray[pathlist[i+1]]->origin));
 	}
 
-	G_Printf("\n");
-	G_Printf("=====================================================================");
+	trap->Print("\n");
+	trap->Print("=====================================================================");
 	*/
 
 	//PathPointCount=PathList.size();
@@ -274,12 +274,12 @@ int ASTAR_FindPathWithTimeLimit(int from, int to, int *pathlist)
 	int PathPointCount = 0;
 	std::vector<int>OpenList;
 	std::vector<int>PathList;
-	int			startTime = trap_Milliseconds();
+	int			startTime = trap->Milliseconds();
 
 	// UQ1: Because this A* is only used to hunt enemies, limit the over-all range on requests to save CPU time...
 	if (Distance(gWPArray[from]->origin, gWPArray[to]->origin) > 4096.0f) return -1;
 
-	if (!PATHING_IGNORE_FRAME_TIME && trap_Milliseconds() - FRAME_TIME > 300)
+	if (!PATHING_IGNORE_FRAME_TIME && trap->Milliseconds() - FRAME_TIME > 300)
 	{// Never path on an already long frame time...
 		return -1;
 	}
@@ -325,9 +325,9 @@ int ASTAR_FindPathWithTimeLimit(int from, int to, int *pathlist)
 		if(bFoundPath)
 			break;
 
-		if(!HaveNotClosed || trap_Milliseconds() - startTime > 500) // UQ1: Try limiting by timer, if we dont have one by now, we shouldn't bother!
+		if(!HaveNotClosed || trap->Milliseconds() - startTime > 500) // UQ1: Try limiting by timer, if we dont have one by now, we shouldn't bother!
 		{
-			//G_Printf("JKG A*: Failed to find a normal path - trying backup A*\n");
+			//trap->Print("JKG A*: Failed to find a normal path - trying backup A*\n");
 			return -1; // Failed...
 			//return DOM_FindIdealPathtoWP(NULL, from, to, -1, pathlist);
 		}
@@ -401,19 +401,19 @@ int ASTAR_FindPathWithTimeLimit(int from, int to, int *pathlist)
 	PathPointCount++;
 
 	/*
-	G_Printf("=====================================================================");
-	G_Printf("Path (length %i) found was:\n", PathPointCount);
+	trap->Print("=====================================================================");
+	trap->Print("Path (length %i) found was:\n", PathPointCount);
 
 	for (i = 0; i < PathPointCount; i++)
 	{
 		if (i == PathPointCount - 1)
-			G_Printf("%i (goal) ", pathlist[i]);
+			trap->Print("%i (goal) ", pathlist[i]);
 		else
-			G_Printf("%i (dist to next %f) ", pathlist[i], Distance(gWPArray[pathlist[i]]->origin, gWPArray[pathlist[i+1]]->origin));
+			trap->Print("%i (dist to next %f) ", pathlist[i], Distance(gWPArray[pathlist[i]]->origin, gWPArray[pathlist[i+1]]->origin));
 	}
 
-	G_Printf("\n");
-	G_Printf("=====================================================================");
+	trap->Print("\n");
+	trap->Print("=====================================================================");
 	*/
 
 	//PathPointCount=PathList.size();
@@ -458,14 +458,14 @@ int ASTAR_ShortenPath(int old_pathlist_size, int *old_pathlist, int *pathlist)
 	int PathPointCount = 0;
 	std::vector<int>OpenList;
 	std::vector<int>PathList;
-	int startTime = trap_Milliseconds();
+	int startTime = trap->Milliseconds();
 
 	ORIGINAL_SIZE = old_pathlist_size;
 
 	// Initialize...
 	ASTAR_InitSASNodesShorten(old_pathlist_size, old_pathlist);
 
-	//G_Printf("Path is %i nodes from node %i to node %i.\n", old_pathlist_size, old_pathlist[old_pathlist_size-1], old_pathlist[0]);
+	//trap->Print("Path is %i nodes from node %i to node %i.\n", old_pathlist_size, old_pathlist[old_pathlist_size-1], old_pathlist[0]);
 
 	OpenList.clear();
 	PathList.clear();
@@ -504,9 +504,9 @@ int ASTAR_ShortenPath(int old_pathlist_size, int *old_pathlist, int *pathlist)
 		if(bFoundPath)
 			break;
 
-		if(NotClosedCount==0 || trap_Milliseconds()-startTime > 1000)
+		if(NotClosedCount==0 || trap->Milliseconds()-startTime > 1000)
 		{
-			//G_Printf("JKG A*: Failed to find a normal path - trying backup A*\n");
+			//trap->Print("JKG A*: Failed to find a normal path - trying backup A*\n");
 			return -1; // Failed...
 			//return DOM_FindIdealPathtoWP(NULL, from, to, -1, pathlist);
 		}
@@ -571,19 +571,19 @@ int ASTAR_ShortenPath(int old_pathlist_size, int *old_pathlist, int *pathlist)
 	PathPointCount++;
 
 	/*
-	G_Printf("=====================================================================");
-	G_Printf("Path (length %i) found was:\n", PathPointCount);
+	trap->Print("=====================================================================");
+	trap->Print("Path (length %i) found was:\n", PathPointCount);
 
 	for (i = 0; i < PathPointCount; i++)
 	{
 		if (i == PathPointCount - 1)
-			G_Printf("%i (goal) ", pathlist[i]);
+			trap->Print("%i (goal) ", pathlist[i]);
 		else
-			G_Printf("%i (dist to next %f) ", pathlist[i], Distance(gWPArray[pathlist[i]]->origin, gWPArray[pathlist[i+1]]->origin));
+			trap->Print("%i (dist to next %f) ", pathlist[i], Distance(gWPArray[pathlist[i]]->origin, gWPArray[pathlist[i+1]]->origin));
 	}
 
-	G_Printf("\n");
-	G_Printf("=====================================================================");
+	trap->Print("\n");
+	trap->Print("=====================================================================");
 	*/
 
 	//PathPointCount=PathList.size();
@@ -616,14 +616,14 @@ int ASTAR_FindPathFast(int from, int to, int *pathlist, qboolean shorten)
 	int			i, j, u, v, m;
 	gentity_t	*bot = NULL;
 
-	if (!PATHING_IGNORE_FRAME_TIME && trap_Milliseconds() - FRAME_TIME > 300)
+	if (!PATHING_IGNORE_FRAME_TIME && trap->Milliseconds() - FRAME_TIME > 300)
 	{// Never path on an already long frame time...
 		return -1;
 	}
 
 	if ( (from == NODE_INVALID) || (to == NODE_INVALID) || (from >= gWPNum) || (to >= gWPNum) || (from == to) )
 	{
-		//G_Printf("Bad from or to node.\n");
+		//trap->Print("Bad from or to node.\n");
 		return ( -1 );
 	}
 
@@ -855,11 +855,11 @@ int ASTAR_FindPathFast(int from, int to, int *pathlist, qboolean shorten)
 		}
 #endif //__SLOW_PATHING__
 
-		//G_Printf("Pathsize is %i.\n", count);
+		//trap->Print("Pathsize is %i.\n", count);
 		return ( count );
 	}
 
-	//G_Printf("Failed to find path.\n");
+	//trap->Print("Failed to find path.\n");
 	return ( -1 );											//return the number of nodes in the path, -1 if not found
 }
 
@@ -880,7 +880,7 @@ extern int DOM_GetBestWaypoint(vec3_t org, int ignore, int badwp);
 
 void AIMod_TimeMapPaths()
 {
-	int			startTime = trap_Milliseconds();
+	int			startTime = trap->Milliseconds();
 	/*short*/ int	pathlist[MAX_WPARRAY_SIZE];
 	int			pathsize;
 	gentity_t	*ent = NULL;
@@ -960,7 +960,7 @@ void AIMod_TimeMapPaths()
 
 	AVERAGE_DISTANCE = TOTAL_DISTANCE/NUM_PATHS;
 
-	Com_Printf( "Completed %i paths in %i seconds. Average path distance is %i\n", NUM_PATHS, (int)((int)(trap_Milliseconds()-startTime)/1000), AVERAGE_DISTANCE );
+	Com_Printf( "Completed %i paths in %i seconds. Average path distance is %i\n", NUM_PATHS, (trap->Milliseconds()-startTime)/1000, AVERAGE_DISTANCE );
 
 #ifdef __SLOW_PATHING__
 
@@ -968,7 +968,7 @@ void AIMod_TimeMapPaths()
 	// And the alternative pathing...
 	//
 
-	startTime = trap_Milliseconds();
+	startTime = trap->Milliseconds();
 	NUM_PATHS = 0;
 	PATH_DISTANCES[MAX_GENTITIES];
 	TOTAL_DISTANCE = 0;
@@ -1023,7 +1023,7 @@ void AIMod_TimeMapPaths()
 
 	AVERAGE_DISTANCE = TOTAL_DISTANCE/NUM_PATHS;
 
-	Com_Printf( "Completed %i paths in %i seconds. Average path distance is %i\n", NUM_PATHS, (int)((int)(trap_Milliseconds()-startTime)/1000), AVERAGE_DISTANCE );
+	Com_Printf( "Completed %i paths in %i seconds. Average path distance is %i\n", NUM_PATHS, (int)((int)(trap->Milliseconds()-startTime)/1000), AVERAGE_DISTANCE );
 
 #endif //__SLOW_PATHING__
 

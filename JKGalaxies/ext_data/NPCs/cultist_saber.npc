@@ -2,7 +2,8 @@ cultist_saber
 {
 	playerModel	cultist
 	customSkin	brown
-	saber		Training
+	saber		training
+	saberColor	red
 	weapon	WP_SABER
 	saberStyle	1
 	FP_LEVITATION	1
@@ -18,7 +19,7 @@ cultist_saber
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -37,7 +38,8 @@ cultist_saber_throw
 {
 	playerModel	cultist
 	customSkin	brown
-	saber		reborn
+	saber		training
+	saberColor	red
 	weapon	WP_SABER
 	saberStyle	1
 	FP_LEVITATION	1
@@ -54,7 +56,7 @@ cultist_saber_throw
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -73,7 +75,8 @@ cultist_saber_med
 {
 	playerModel	cultist
 	customSkin	brown
-	saber		reborn
+	saber		training
+	saberColor	red
 	weapon	WP_SABER
 	saberStyle	2
 	FP_LEVITATION	1
@@ -90,7 +93,7 @@ cultist_saber_med
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -109,7 +112,8 @@ cultist_saber_med_throw
 {
 	playerModel	cultist
 	customSkin	brown
-	saber		reborn
+	saber		training
+	saberColor	red
 	weapon	WP_SABER
 	saberStyle	2
 	FP_LEVITATION	1
@@ -127,7 +131,7 @@ cultist_saber_med_throw
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -146,7 +150,8 @@ cultist_saber_strong
 {
 	playerModel	cultist
 	customSkin	brown
-	saber		reborn
+	saber		training
+	saberColor	red
 	weapon	WP_SABER
 	saberStyle	3
 	FP_LEVITATION	1
@@ -163,7 +168,7 @@ cultist_saber_strong
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -182,7 +187,8 @@ cultist_saber_strong_throw
 {
 	playerModel	cultist
 	customSkin	brown
-	saber		reborn
+	saber		training
+	saberColor	red
 	weapon	WP_SABER
 	saberStyle	3
 	FP_LEVITATION	1
@@ -200,7 +206,7 @@ cultist_saber_strong_throw
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -219,7 +225,8 @@ cultist_saber_all
 {
 	playerModel	cultist
 	customSkin	brown
-	saber		reborn
+	saber		training
+	saberColor	red
 	weapon	WP_SABER
 	saberStyle		1
 	saberStyle		3
@@ -238,7 +245,7 @@ cultist_saber_all
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1
@@ -257,7 +264,8 @@ cultist_saber_all_throw
 {
 	playerModel	cultist
 	customSkin	brown
-	saber		reborn
+	saber		training
+	saberColor	red
 	weapon	WP_SABER
 	saberStyle		1
 	saberStyle		3
@@ -277,7 +285,7 @@ cultist_saber_all_throw
 	vfov		120
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-	class		CLASS_REBORN
+	class		CLASS_REBORN_CULTIST
 	snd			cultist1
 	sndcombat	cultist1
 	sndjedi		cultist1

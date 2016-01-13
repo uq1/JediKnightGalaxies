@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 //NPC_senses.cpp
 
 #include "b_local.h"
@@ -13,7 +35,7 @@ qboolean G_ClearLineOfSight(const vec3_t point1, const vec3_t point2, int ignore
 	trace_t		tr;
 	gentity_t	*hit;
 
-	trap_Trace ( &tr, point1, NULL, NULL, point2, ignore, clipmask );
+	trap->Trace( &tr, point1, NULL, NULL, point2, ignore, clipmask , 0, 0, 0);
 	if ( tr.fraction == 1.0 ) 
 	{
 		return qtrue;
@@ -24,7 +46,7 @@ qboolean G_ClearLineOfSight(const vec3_t point1, const vec3_t point2, int ignore
 	{
 		vec3_t	newpoint1;
 		VectorCopy(tr.endpos, newpoint1);
-		trap_Trace (&tr, newpoint1, NULL, NULL, point2, hit->s.number, clipmask );
+		trap->Trace(&tr, newpoint1, NULL, NULL, point2, hit->s.number, clipmask , 0, 0, 0);
 
 		if ( tr.fraction == 1.0 ) 
 		{
@@ -53,7 +75,7 @@ qboolean CanSee ( gentity_t *ent )
 	CalcEntitySpot( NPC, SPOT_HEAD_LEAN, eyes );
 
 	CalcEntitySpot( ent, SPOT_ORIGIN, spot );
-	trap_Trace ( &tr, eyes, NULL, NULL, spot, NPC->s.number, MASK_OPAQUE );
+	trap->Trace( &tr, eyes, NULL, NULL, spot, NPC->s.number, MASK_OPAQUE , 0, 0, 0);
 	ShotThroughGlass (&tr, ent, spot, MASK_OPAQUE);
 	if ( tr.fraction == 1.0 ) 
 	{
@@ -61,7 +83,7 @@ qboolean CanSee ( gentity_t *ent )
 	}
 
 	CalcEntitySpot( ent, SPOT_HEAD, spot );
-	trap_Trace ( &tr, eyes, NULL, NULL, spot, NPC->s.number, MASK_OPAQUE );
+	trap->Trace( &tr, eyes, NULL, NULL, spot, NPC->s.number, MASK_OPAQUE , 0, 0, 0);
 	ShotThroughGlass (&tr, ent, spot, MASK_OPAQUE);
 	if ( tr.fraction == 1.0 ) 
 	{
@@ -69,7 +91,7 @@ qboolean CanSee ( gentity_t *ent )
 	}
 
 	CalcEntitySpot( ent, SPOT_LEGS, spot );
-	trap_Trace ( &tr, eyes, NULL, NULL, spot, NPC->s.number, MASK_OPAQUE );
+	trap->Trace( &tr, eyes, NULL, NULL, spot, NPC->s.number, MASK_OPAQUE , 0, 0, 0);
 	ShotThroughGlass (&tr, ent, spot, MASK_OPAQUE);
 	if ( tr.fraction == 1.0 ) 
 	{
@@ -265,7 +287,7 @@ visibility_t NPC_CheckVisibility ( gentity_t *ent, int flags )
 	// check PVS
 	if ( flags & CHECK_PVS ) 
 	{
-		if ( !trap_InPVS ( ent->r.currentOrigin, NPC->r.currentOrigin ) ) 
+		if ( !trap->InPVS ( ent->r.currentOrigin, NPC->r.currentOrigin ) ) 
 		{
 			return VIS_NOT;
 		}
@@ -742,14 +764,14 @@ qboolean G_ClearLOS( gentity_t *self, const vec3_t start, const vec3_t end )
 	int			traceCount = 0;
 	
 	//FIXME: ENTITYNUM_NONE ok?
-	trap_Trace ( &tr, start, NULL, NULL, end, ENTITYNUM_NONE, CONTENTS_OPAQUE/*CONTENTS_SOLID*//*(CONTENTS_SOLID|CONTENTS_MONSTERCLIP)*/ );
+	trap->Trace( &tr, start, NULL, NULL, end, ENTITYNUM_NONE, CONTENTS_OPAQUE/*CONTENTS_SOLID*//*(CONTENTS_SOLID|CONTENTS_MONSTERCLIP)*/ , 0, 0, 0);
 	while ( tr.fraction < 1.0 && traceCount < 3 )
 	{//can see through 3 panes of glass
 		if ( tr.entityNum < ENTITYNUM_WORLD )
 		{
 			if ( &g_entities[tr.entityNum] != NULL && (g_entities[tr.entityNum].r.svFlags&SVF_GLASS_BRUSH) )
 			{//can see through glass, trace again, ignoring me
-				trap_Trace ( &tr, tr.endpos, NULL, NULL, end, tr.entityNum, MASK_OPAQUE );
+				trap->Trace( &tr, tr.endpos, NULL, NULL, end, tr.entityNum, MASK_OPAQUE , 0, 0, 0);
 				traceCount++;
 				continue;
 			}
@@ -878,7 +900,7 @@ int G_FindLocalInterestPoint( gentity_t *self )
 	for ( i = 0; i < level.numInterestPoints; i++ )
 	{
 		//Don't ignore portals?  If through a portal, need to look at portal!
-		if ( trap_InPVS( level.interestPoints[i].origin, eyes ) )
+		if ( trap->InPVS( level.interestPoints[i].origin, eyes ) )
 		{
 			VectorSubtract( level.interestPoints[i].origin, eyes, diffVec );
 			if ( (fabs(diffVec[0]) + fabs(diffVec[1])) / 2 < 48 &&

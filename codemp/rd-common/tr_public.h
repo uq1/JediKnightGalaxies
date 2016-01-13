@@ -1,3 +1,27 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #ifndef TR_PUBLIC_H
 #define TR_PUBLIC_H
 
@@ -7,19 +31,13 @@
 #include "qcommon/qcommon.h"	// <-- this line here, doesn't make a difference if i add or remove it, it still fails with vm_t
 #include "../ghoul2/ghoul2_shared.h"
 
-
-#define	REF_API_VERSION 3
+#define	REF_API_VERSION 7
 
 //
 // these are the functions exported by the refresh module
 //
 
-#ifdef _WIN32
-// bug --eez
-#define __attribute__(x)
-#endif
-
-typedef struct {
+typedef struct refexport_s {
 	// called before the library is unloaded
 	// if the system is just reconfiguring, pass destroyWindow = qfalse,
 	// which will keep the screen from flashing to the desktop.
@@ -87,10 +105,6 @@ typedef struct {
 	void				(*ModelBounds)							( qhandle_t model, vec3_t mins, vec3_t maxs );
 	void				(*ModelBoundsRef)						( refEntity_t *model, vec3_t mins, vec3_t maxs );
 
-#ifdef __USEA3D
-	void				(*A3D_RenderGeometry)					(void *pVoidA3D, void *pVoidGeom, void *pVoidMat, void *pVoidGeomStatus);
-#endif
-
 	qhandle_t			(*RegisterFont)							( const char *fontName );
 	int					(*Font_StrLenPixels)					( const char *text, const int iFontIndex, const float scale );
 	int					(*Font_StrLenChars)						( const char *text );
@@ -116,9 +130,8 @@ typedef struct {
 	void				(*GetRealRes)							( int *w, int *h );
 	void				(*AutomapElevationAdjustment)			( float newHeight );
 	qboolean			(*InitializeWireframeAutomap)			( void );
-	void				(*AddWeatherZone)						( vec3_t mins, vec3_t maxs );
+	void				(*AddWeatherZone)						( const vec3_t mins, const vec3_t maxs );
 	void				(*WorldEffectCommand)					( const char *command );
-	void				(*InitRendererTerrain)					( const char *info );
 	void				(*RegisterMedia_LevelLoadBegin)			( const char *psMapName, ForceReload_e eForceReload );
 	void				(*RegisterMedia_LevelLoadEnd)			( void );
 	int					(*RegisterMedia_GetLevel)				( void );
@@ -139,7 +152,7 @@ typedef struct {
 	int					(*G2API_AddBoltSurfNum)					( CGhoul2Info *ghlInfo, const int surfIndex );
 	int					(*G2API_AddSurface)						( CGhoul2Info *ghlInfo, int surfaceNumber, int polyNumber, float BarycentricI, float BarycentricJ, int lod );
 	void				(*G2API_AnimateG2ModelsRag)				( CGhoul2Info_v &ghoul2, int AcurrentTime, CRagDollUpdateParams *params );
-	qboolean			(*G2API_AttachEnt)						( int *boltInfo, CGhoul2Info *ghlInfoTo, int toBoltIndex, int entNum, int toModelNum );
+	qboolean			(*G2API_AttachEnt)						( int *boltInfo, CGhoul2Info_v& ghoul2, int modelIndex, int toBoltIndex, int entNum, int toModelNum );
 	qboolean			(*G2API_AttachG2Model)					( CGhoul2Info_v &ghoul2From, int modelFrom, CGhoul2Info_v &ghoul2To, int toBoltIndex, int toModel );
 	void				(*G2API_AttachInstanceToEntNum)			( CGhoul2Info_v &ghoul2, int entityNum, qboolean server );
 	void				(*G2API_AbsurdSmoothing)				( CGhoul2Info_v &ghoul2, qboolean status );
@@ -148,28 +161,29 @@ typedef struct {
 	void				(*G2API_CleanEntAttachments)			( void );
 	void				(*G2API_CleanGhoul2Models)				( CGhoul2Info_v **ghoul2Ptr );
 	void				(*G2API_ClearAttachedInstance)			( int entityNum );
-	void				(*G2API_CollisionDetect)				( CollisionRecord_t *collRecMap, CGhoul2Info_v &ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, CMiniHeap *G2VertSpace, int traceFlags, int useLod, float fRadius );
-	void				(*G2API_CollisionDetectCache)			( CollisionRecord_t *collRecMap, CGhoul2Info_v &ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, CMiniHeap *G2VertSpace, int traceFlags, int useLod, float fRadius );
+	void				(*G2API_CollisionDetect)				( CollisionRecord_t *collRecMap, CGhoul2Info_v &ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, IHeapAllocator *G2VertSpace, int traceFlags, int useLod, float fRadius );
+	void				(*G2API_CollisionDetectCache)			( CollisionRecord_t *collRecMap, CGhoul2Info_v &ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, IHeapAllocator *G2VertSpace, int traceFlags, int useLod, float fRadius );
 	int					(*G2API_CopyGhoul2Instance)				( CGhoul2Info_v &g2From, CGhoul2Info_v &g2To, int modelIndex );
 	void				(*G2API_CopySpecificG2Model)			( CGhoul2Info_v &ghoul2From, int modelFrom, CGhoul2Info_v &ghoul2To, int modelTo );
 	qboolean			(*G2API_DetachG2Model)					( CGhoul2Info *ghlInfo );
-	qboolean			(*G2API_DoesBoneExist)					( CGhoul2Info *ghlInfo, const char *boneName );
+	qboolean			(*G2API_DoesBoneExist)					( CGhoul2Info_v& ghoul2, int modelIndex, const char *boneName );
 	void				(*G2API_DuplicateGhoul2Instance)		( CGhoul2Info_v &g2From, CGhoul2Info_v **g2To );
 	void				(*G2API_FreeSaveBuffer)					( char *buffer );
 	qboolean			(*G2API_GetAnimFileName)				( CGhoul2Info *ghlInfo, char **filename );
 	char *				(*G2API_GetAnimFileNameIndex)			( qhandle_t modelIndex );
 	qboolean			(*G2API_GetAnimRange)					( CGhoul2Info *ghlInfo, const char *boneName, int *startFrame, int *endFrame );
 	qboolean			(*G2API_GetBoltMatrix)					( CGhoul2Info_v &ghoul2, const int modelIndex, const int boltIndex, mdxaBone_t *matrix, const vec3_t angles, const vec3_t position, const int frameNum, qhandle_t *modelList, vec3_t scale );
-	qboolean			(*G2API_GetBoneAnim)					( CGhoul2Info *ghlInfo, const char *boneName, const int currentTime, float *currentFrame, int *startFrame, int *endFrame, int *flags, float *animSpeed, qhandle_t *modelList );
+	qboolean			(*G2API_GetBoneAnim)					( CGhoul2Info_v& ghoul2, int modelIndex, const char *boneName, const int currentTime, float *currentFrame, int *startFrame, int *endFrame, int *flags, float *animSpeed, qhandle_t *modelList );
 	int					(*G2API_GetBoneIndex)					( CGhoul2Info *ghlInfo, const char *boneName );
 	int					(*G2API_GetGhoul2ModelFlags)			( CGhoul2Info *ghlInfo );
 	char *				(*G2API_GetGLAName)						( CGhoul2Info_v &ghoul2, int modelIndex );
+	const char *		(*G2API_GetModelName)					( CGhoul2Info_v& ghoul2, int modelIndex );
 	int					(*G2API_GetParentSurface)				( CGhoul2Info *ghlInfo, const int index );
 	qboolean			(*G2API_GetRagBonePos)					( CGhoul2Info_v &ghoul2, const char *boneName, vec3_t pos, vec3_t entAngles, vec3_t entPos, vec3_t entScale );
 	int					(*G2API_GetSurfaceIndex)				( CGhoul2Info *ghlInfo, const char *surfaceName );
-	char *				(*G2API_GetSurfaceName)					( CGhoul2Info *ghlInfo, int surfNumber );
+	char *				(*G2API_GetSurfaceName)					( CGhoul2Info_v& ghlInfo, int modelIndex, int surfNumber );
 	int					(*G2API_GetSurfaceOnOff)				( CGhoul2Info *ghlInfo, const char *surfaceName );
-	int					(*G2API_GetSurfaceRenderStatus)			( CGhoul2Info *ghlInfo, const char *surfaceName );
+	int					(*G2API_GetSurfaceRenderStatus)			( CGhoul2Info_v& ghoul2, int modelIndex, const char *surfaceName );
 	int					(*G2API_GetTime)						( int argTime );
 	int					(*G2API_Ghoul2Size)						( CGhoul2Info_v &ghoul2 );
 	void				(*G2API_GiveMeVectorFromMatrix)			( mdxaBone_t *boltMatrix, Eorientations flags, vec3_t vec );
@@ -177,12 +191,13 @@ typedef struct {
 	qboolean			(*G2API_HaveWeGhoul2Models)				( CGhoul2Info_v &ghoul2 );
 	qboolean			(*G2API_IKMove)							( CGhoul2Info_v &ghoul2, int time, sharedIKMoveParams_t *params );
 	int					(*G2API_InitGhoul2Model)				( CGhoul2Info_v **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin, qhandle_t customShader, int modelFlags, int lodBias );
+	qboolean			(*G2API_IsGhoul2InfovValid)				( CGhoul2Info_v& ghoul2 );
 	qboolean			(*G2API_IsPaused)						( CGhoul2Info *ghlInfo, const char *boneName );
 	void				(*G2API_ListBones)						( CGhoul2Info *ghlInfo, int frame );
 	void				(*G2API_ListSurfaces)					( CGhoul2Info *ghlInfo );
 	void				(*G2API_LoadGhoul2Models)				( CGhoul2Info_v &ghoul2, char *buffer );
 	void				(*G2API_LoadSaveCodeDestructGhoul2Info)	( CGhoul2Info_v &ghoul2 );
-	qboolean			(*G2API_OverrideServerWithClientData)	( CGhoul2Info *serverInstance );
+	qboolean			(*G2API_OverrideServerWithClientData)	( CGhoul2Info_v& serverInstance, int modelIndex );
 	qboolean			(*G2API_PauseBoneAnim)					( CGhoul2Info *ghlInfo, const char *boneName, const int currentTime );
 	qhandle_t			(*G2API_PrecacheGhoul2Model)			( const char *fileName );
 	qboolean			(*G2API_RagEffectorGoal)				( CGhoul2Info_v &ghoul2, const char *boneName, vec3_t pos );
@@ -191,7 +206,7 @@ typedef struct {
 	qboolean			(*G2API_RagPCJConstraint)				( CGhoul2Info_v &ghoul2, const char *boneName, vec3_t min, vec3_t max );
 	qboolean			(*G2API_RagPCJGradientSpeed)			( CGhoul2Info_v &ghoul2, const char *boneName, const float speed );
 	qboolean			(*G2API_RemoveBolt)						( CGhoul2Info *ghlInfo, const int index );
-	qboolean			(*G2API_RemoveBone)						( CGhoul2Info *ghlInfo, const char *boneName );
+	qboolean			(*G2API_RemoveBone)						( CGhoul2Info_v& ghoul2, int modelIndex, const char *boneName );
 	qboolean			(*G2API_RemoveGhoul2Model)				( CGhoul2Info_v **ghlRemove, const int modelIndex );
 	qboolean			(*G2API_RemoveGhoul2Models)				( CGhoul2Info_v **ghlRemove );
 	qboolean			(*G2API_RemoveSurface)					( CGhoul2Info *ghlInfo, const int index );
@@ -212,30 +227,20 @@ typedef struct {
 	void				(*G2API_SetRagDoll)						( CGhoul2Info_v &ghoul2, CRagDollParams *parms );
 	qboolean			(*G2API_SetRootSurface)					( CGhoul2Info_v &ghoul2, const int modelIndex, const char *surfaceName );
 	qboolean			(*G2API_SetShader)						( CGhoul2Info *ghlInfo, qhandle_t customShader );
-	qboolean			(*G2API_SetSkin)						( CGhoul2Info *ghlInfo, qhandle_t customSkin, qhandle_t renderSkin );
+	qboolean			(*G2API_SetSkin)						( CGhoul2Info_v& ghoul2, int modelIndex, qhandle_t customSkin, qhandle_t renderSkin );
 	qboolean			(*G2API_SetSurfaceOnOff)				( CGhoul2Info_v &ghoul2, const char *surfaceName, const int flags );
 	void				(*G2API_SetTime)						( int currentTime, int clock );
-	qboolean			(*G2API_SkinlessModel)					( CGhoul2Info *g2 );
+	qboolean			(*G2API_SkinlessModel)					( CGhoul2Info_v& ghoul2, int modelIndex );
 	qboolean			(*G2API_StopBoneAngles)					( CGhoul2Info *ghlInfo, const char *boneName );
 	qboolean			(*G2API_StopBoneAnglesIndex)			( CGhoul2Info *ghlInfo, const int index );
 	qboolean			(*G2API_StopBoneAnim)					( CGhoul2Info *ghlInfo, const char *boneName );
 	qboolean			(*G2API_StopBoneAnimIndex)				( CGhoul2Info *ghlInfo, const int index );
 
 	#ifdef _G2_GORE
-	int					(*G2API_GetNumGoreMarks)				( CGhoul2Info *g2 );
+	int					(*G2API_GetNumGoreMarks)				( CGhoul2Info_v& ghoul2, int modelIndex );
 	void				(*G2API_AddSkinGore)					( CGhoul2Info_v &ghoul2, SSkinGoreData &gore );
 	void				(*G2API_ClearSkinGore)					( CGhoul2Info_v &ghoul2 );
 	#endif // _SOF2
-
-	// RMG / Terrain stuff
-	void				(*LoadDataImage)						( const char *name, byte **pic, int *width, int *height );
-	void				(*InvertImage)							( byte *data, int width, int height, int depth );
-	void				(*Resample)								( byte *source, int swidth, int sheight, byte *dest, int dwidth, int dheight, int components );
-	void				(*LoadImageJA)							( const char *name, byte **pic, int *width, int *height );
-	void				(*CreateAutomapImage)					( const char *name, const byte *pic, int width, int height, qboolean mipmap, qboolean allowPicmip, qboolean allowTC, int glWrapClampMode );
-	int					(*SavePNG)								( const char *filename, byte *buf, size_t width, size_t height, int byteDepth );
-
-	IGhoul2InfoArray &	(*TheGhoul2InfoArray)					( void );
 
 	// Jedi Knight Galaxies specifc
 	void				(*OverrideShaderFrame)					( qhandle_t shader, int desiredFrame, int time );
@@ -244,7 +249,7 @@ typedef struct {
 //
 // these are the functions imported by the refresh module
 //
-typedef struct {
+typedef struct refimport_s {
 	void			(QDECL *Printf)						( int printLevel, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 	void			(QDECL *Error)						( int errorLevel, const char *fmt, ...) __attribute__ ((noreturn, format (printf, 2, 3)));
 	void			(QDECL *OPrintf)					( const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
@@ -268,9 +273,9 @@ typedef struct {
 	void			(*Cmd_ArgsBuffer)					( char *buffer, int bufferLength );
 	void			(*Cmd_AddCommand)					( const char *cmd_name, xcommand_t function );
 	void			(*Cmd_RemoveCommand)				( const char *cmd_name );
-	void			(*Cvar_Set)							( const char *var_name, const char *value );
-	cvar_t *		(*Cvar_Get)							( const char *var_name, const char *value, int flags );
-	void			(*Cvar_SetValue)					( const char *name, float value );
+	cvar_t *		(*Cvar_Set)							( const char *var_name, const char *value );
+	cvar_t *		(*Cvar_Get)							( const char *var_name, const char *value, uint32_t flags );
+	cvar_t *		(*Cvar_SetValue)					( const char *name, float value );
 	void			(*Cvar_CheckRange)					( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral );
 	void			(*Cvar_VariableStringBuffer)		( const char *var_name, char *buffer, int bufsize );
 	char *			(*Cvar_VariableString)				( const char *var_name );
@@ -281,10 +286,10 @@ typedef struct {
 	void			(*FS_FreeFile)						( void *buffer );
 	void			(*FS_FreeFileList)					( char **fileList );
 	int				(*FS_Read)							( void *buffer, int len, fileHandle_t f );
-	int				(*FS_ReadFile)						( const char *qpath, void **buffer );
+	long			(*FS_ReadFile)						( const char *qpath, void **buffer );
 	void			(*FS_FCloseFile)					( fileHandle_t f );
-	int				(*FS_FOpenFileRead)					( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
-	fileHandle_t	(*FS_FOpenFileWrite)				( const char *qpath );
+	long			(*FS_FOpenFileRead)					( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
+	fileHandle_t	(*FS_FOpenFileWrite)				( const char *qpath, qboolean safe );
 	int				(*FS_FOpenFileByMode)				( const char *qpath, fileHandle_t *f, fsMode_t mode );
 	qboolean		(*FS_FileExists)					( const char *file );
 	int				(*FS_FileIsInPAK)					( const char *filename, int *pChecksum );
@@ -294,15 +299,11 @@ typedef struct {
 	void			(*CM_BoxTrace)						( trace_t *results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, int capsule );
 	void			(*CM_DrawDebugSurface)				( void (*drawPoly)(int color, int numPoints, float *points) );
 	bool			(*CM_CullWorldBox)					( const cplane_t *frustum, const vec3pair_t bounds );
-	void			(*CM_TerrainPatchIterate)			( const class CCMLandScape *landscape, void (*IterateFunc)( CCMPatch *, void * ), void *userdata );
-	CCMLandScape *	(*CM_RegisterTerrain)				( const char *config, bool server );
-	void			(*CM_ShutdownTerrain)				( thandle_t terrainId );
 	byte *			(*CM_ClusterPVS)					( int cluster );
 	int				(*CM_LeafArea)						( int leafnum );
 	int				(*CM_LeafCluster)					( int leafnum );
 	int				(*CM_PointLeafnum)					( const vec3_t p );
 	int				(*CM_PointContents)					( const vec3_t p, clipHandle_t model );
-	intptr_t		(QDECL *VM_Call)					( vm_t *vm, int callnum, ... );
 	qboolean		(*Com_TheHunkMarkHasBeenMade)		( void );
 	void			(*S_RestartMusic)					( void );
 	qboolean		(*SND_RegisterAudio_LevelLoadEnd)	( qboolean bDeleteEverythingNotUsedThisLevel );
@@ -313,21 +314,20 @@ typedef struct {
 
 	// g2 data access
 	char *			(*GetSharedMemory)					( void ); // cl.mSharedMemory
-	vm_t *			(*GetCgameVM)						( void ); // cgvm
-	vm_t *			(*GetCurrentVM)						( void ); // currentVM
 
-	// server only stuff
-	vm_t *			(*GetGameVM)						( void ); // gvm
-	void			(*SV_GetConfigstring)				( int index, char *buffer, int bufferSize );
-	void			(*SV_SetConfigstring)				( int index, const char *val );
+	// (c)g vm callbacks
+	vm_t *			(*GetCurrentVM)						( void );
+	qboolean		(*CGVMLoaded)						( void );
+	int				(*CGVM_RagCallback)					( int callType );
 
-	// ugly win32 backend
-	void *			(*GetWinVars)						( void ); //g_wv
-    
-    // input event handling
-	void            (*IN_Init)                          ( void *windowData );
-	void            (*IN_Shutdown)                      ( void );
-	void            (*IN_Restart)                       ( void );
+	// window handling
+	window_t		(*WIN_Init)                         ( const windowDesc_t *desc, glconfig_t *glConfig );
+	void			(*WIN_SetGamma)						( glconfig_t *glConfig, byte red[256], byte green[256], byte blue[256] );
+	void			(*WIN_Present)						( window_t *window );
+	void            (*WIN_Shutdown)                     ( void );
+
+	// OpenGL-specific
+	void *			(*GL_GetProcAddress)				( const char *name );
 
 	// gpvCachedMapDiskImage
 	void *			(*CM_GetCachedMapDiskImage)			( void );
@@ -337,7 +337,7 @@ typedef struct {
 
 	// even the server will have this, which is a singleton
 	// so before assigning to this in R_Init, check if it's NULL!
-	CMiniHeap *		(*GetG2VertSpaceServer)				( void );
+	IHeapAllocator *(*GetG2VertSpaceServer)				( void );
 
 	// Persistent data store
 	bool			(*PD_Store)							( const char *name, const void *data, size_t size );

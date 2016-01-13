@@ -92,7 +92,7 @@ void DOM_StandardBotAI2(bot_state_t *bs, float thinktime)
 		if (rand()%10 < 5 &&
 			(!bs->doChat || bs->chatTime < level.time))
 		{
-			trap_EA_Attack(bs->client);
+			trap->EA_Attack(bs->client);
 		}
 
 		return;
@@ -115,7 +115,7 @@ void DOM_StandardBotAI2(bot_state_t *bs, float thinktime)
 	//memcpy( &ucmd, &NPCInfo->last_ucmd, sizeof( usercmd_t ) );
 	//ClientThink(bot->s.number, &ucmd);
 
-	trap_ICARUS_MaintainTaskManager(bot->s.number);
+	trap->ICARUS_MaintainTaskManager(bot->s.number);
 	VectorCopy(bot->r.currentOrigin, bot->client->ps.origin);
 
 	if (bot->client->ps.pm_flags & PMF_DUCKED && bot->r.maxs[2] > bot->client->ps.crouchheight)
@@ -125,7 +125,7 @@ void DOM_StandardBotAI2(bot_state_t *bs, float thinktime)
 		bot->r.maxs[0] = 8;
 		bot->r.mins[1] = -8;
 		bot->r.mins[0] = -8;
-		trap_LinkEntity(bot);
+		trap->LinkEntity((sharedEntity_t *)bot);
 	}
 	else if (!(bot->client->ps.pm_flags & PMF_DUCKED) && bot->r.maxs[2] < bot->client->ps.standheight)
 	{
@@ -134,6 +134,6 @@ void DOM_StandardBotAI2(bot_state_t *bs, float thinktime)
 		bot->r.maxs[0] = 10;
 		bot->r.mins[1] = -10;
 		bot->r.mins[0] = -10;
-		trap_LinkEntity(bot);
+		trap->LinkEntity((sharedEntity_t *)bot);
 	}
 }

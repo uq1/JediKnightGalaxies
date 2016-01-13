@@ -21,7 +21,7 @@ r5d2
 	intelligence	5
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		bot
+
 	class		CLASS_R5D2
 	yawSpeed	60
 	runSpeed	150

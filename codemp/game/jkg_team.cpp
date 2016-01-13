@@ -57,11 +57,11 @@
 
 		if ( uiFeedBack && clientNum == uiCaller )
 		{
-			trap_SendServerCommand( clientNum, va( "pmr \"%s\"", Q_CleanStr( buffer )));
+			trap->SendServerCommand( clientNum, va( "pmr \"%s\"", Q_CleanStr( buffer )));
 		}
 		else
 		{
-			trap_SendServerCommand( clientNum, va( "chat 100 \"^1System: ^7%s\"", buffer ));
+			trap->SendServerCommand( clientNum, va( "chat 100 \"^1System: ^7%s\"", buffer ));
 		}
 	}
 
@@ -88,11 +88,11 @@
 		* Retrieve the parameter that could have been set.
 		**************************************************/
 
-		if ( trap_Argc() >= 2 )
+		if ( trap->Argc() >= 2 )
 		{
 			if ( param == NULL )
 			{
-				trap_Argv( 1, parm, sizeof( parm ));
+				trap->Argv( 1, parm, sizeof( parm ));
 			}
 			else
 			{
@@ -117,7 +117,7 @@
 			**************************************************/
 
 			Q_strncpyz( cmdLocal, parm, sizeof( cmdLocal ));
-			trap_Argv( 2, parm, sizeof( parm ));
+			trap->Argv( 2, parm, sizeof( parm ));
 			cmd = ( char * ) &cmdLocal;
 
 			/**************************************************
@@ -159,7 +159,7 @@
 
 			if ( Q_stricmp( cmd, "accept" ) == 0 )
 			{
-				if (( uiFeedBack && trap_Argc() <= 2 ) || ( !uiFeedBack && trap_Argc() <= 1 ))
+				if (( uiFeedBack && trap->Argc() <= 2 ) || ( !uiFeedBack && trap->Argc() <= 1 ))
 				{
 					SendSystem( clientNum, "This command requires a parameter." );
 					return qtrue;
@@ -175,7 +175,7 @@
 
 			if ( Q_stricmp( cmd, "changeleader" ) == 0 )
 			{
-				if (( uiFeedBack && trap_Argc() <= 2 ) || ( !uiFeedBack && trap_Argc() <= 1 ))
+				if (( uiFeedBack && trap->Argc() <= 2 ) || ( !uiFeedBack && trap->Argc() <= 1 ))
 				{
 					SendSystem( clientNum, "This command requires a parameter." );
 					return qtrue;
@@ -211,7 +211,7 @@
 
 			if ( Q_stricmp( cmd, "dismiss" ) == 0 )
 			{
-				if (( uiFeedBack && trap_Argc() <= 2 ) || ( !uiFeedBack && trap_Argc() <= 1 ))
+				if (( uiFeedBack && trap->Argc() <= 2 ) || ( !uiFeedBack && trap->Argc() <= 1 ))
 				{
 					SendSystem( clientNum, "This command requires a parameter." );
 					return qtrue;
@@ -247,7 +247,7 @@
 
 			if ( Q_stricmp( cmd, "reject" ) == 0 )
 			{
-				if (( uiFeedBack && trap_Argc() <= 2 ) || ( !uiFeedBack && trap_Argc() <= 1 ))
+				if (( uiFeedBack && trap->Argc() <= 2 ) || ( !uiFeedBack && trap->Argc() <= 1 ))
 				{
 					SendSystem( clientNum, "This command requires a parameter." );
 					return qtrue;
@@ -837,7 +837,7 @@
 				if ( !Q_stratt( buffer, sizeof( buffer ), va( "%i %i %i %i \"%s\" ", i, level.partyList[i].id, classId, level.partyList[i].time, level.partyList[i].message )))
 				{
 					msgSent = qtrue;
-					trap_SendServerCommand( clientNum, va( "tpl %s", buffer ));
+					trap->SendServerCommand( clientNum, va( "tpl %s", buffer ));
 					memset( buffer, 0, sizeof( buffer ));
 					i--;
 				}
@@ -846,7 +846,7 @@
 
 		if (( uiFeedBack && !msgSent ) || strlen( buffer ))
 		{
-			trap_SendServerCommand( clientNum, va( "tpl %s", buffer ));
+			trap->SendServerCommand( clientNum, va( "tpl %s", buffer ));
 		}
 
 		if ( g_entities[clientNum].client->pers.partyManagement )
@@ -865,7 +865,7 @@
 	{
 		int i, iID;
 
-		if ( trap_Argc() <= 1 )
+		if ( trap->Argc() <= 1 )
 		{
 			SendSystem( clientNum, "This command requires you to specify a parameter." );
 			return;
@@ -1025,7 +1025,7 @@
 
 		if ( forceClient != PARTY_SLOT_EMPTY && ent->client->pers.partyNumber == PARTY_SLOT_EMPTY )
 		{
-			trap_SendServerCommand( forceClient, va( "tpi \"%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+			trap->SendServerCommand( forceClient, va( "tpi \"%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
 				ent->client->pers.partyInvite[0], level.party[ent->client->pers.partyInvite[0]][0], TeamPartyCount( ent->client->pers.partyInvite[0] ),
 				ent->client->pers.partyInvite[1], level.party[ent->client->pers.partyInvite[1]][0], TeamPartyCount( ent->client->pers.partyInvite[1] ),
 				ent->client->pers.partyInvite[2], level.party[ent->client->pers.partyInvite[2]][0], TeamPartyCount( ent->client->pers.partyInvite[2] ),
@@ -1065,7 +1065,7 @@
 				/* This is a fully fledged team member, update the client data */
 				else
 				{
-					trap_SendServerCommand( level.party[partyNum][i], lpData );
+					trap->SendServerCommand( level.party[partyNum][i], lpData );
 				}
 			}
 		}
@@ -1088,7 +1088,7 @@
 		int	iID;
 		
 		/* No other paramets means targeting through your crosshair */
-		if ( trap_Argc() == 1 || strlen( cmd ) < 1 )
+		if ( trap->Argc() == 1 || strlen( cmd ) < 1 )
 		{ 
 			trace_t tr;
 			vec3_t forward, end;
@@ -1099,7 +1099,7 @@
 			end[1] = ent->client->ps.origin[1] + forward[1] * 8192;
 			end[2] = ent->client->ps.origin[2] + forward[2] * 8192;
 				
-			trap_Trace( &tr, ent->client->ps.origin, NULL, NULL, end, ent->s.number, MASK_PLAYERSOLID );
+			trap->Trace( &tr, ent->client->ps.origin, NULL, NULL, end, ent->s.number, MASK_PLAYERSOLID, 0, 0, 0 );
 
 			if (( tr.entityNum < MAX_CLIENTS) && ( tr.entityNum >= 0 ) && ( tr.entityNum != ent->s.number ) && g_entities[tr.entityNum].client && g_entities[tr.entityNum].inuse )
 			{

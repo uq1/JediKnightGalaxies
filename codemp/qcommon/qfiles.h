@@ -14,6 +14,29 @@
 
 #ifndef __QFILES_H__
 #define __QFILES_H__
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 
 #include "../qcommon/q_shared.h"
 
@@ -33,36 +56,12 @@
 /*
 ========================================================================
 
-QVM files
-
-========================================================================
-*/
-
-#define	VM_MAGIC	0x12721444
-typedef struct {
-	int		vmMagic;
-
-	int		instructionCount;
-
-	int		codeOffset;
-	int		codeLength;
-
-	int		dataOffset;
-	int		dataLength;
-	int		litLength;			// ( dataLength - litLength ) should be byteswapped on load
-	int		bssLength;			// zero filled memory appended to datalength
-} vmHeader_t;
-
-
-/*
-========================================================================
-
 PCX files are used for 8 bit images
 
 ========================================================================
 */
 
-typedef struct {
+typedef struct pcx_s {
     char	manufacturer;
     char	version;
     char	encoding;
@@ -112,7 +111,7 @@ typedef struct md3Frame_s {
 typedef struct md3Tag_s {
 	char		name[MAX_QPATH];	// tag name
 	vec3_t		origin;
-	vec3_t		axis[3];
+	matrix3_t	axis;
 } md3Tag_t;
 
 /*
@@ -125,8 +124,8 @@ typedef struct md3Tag_s {
 ** st				sizeof( md3St_t ) * numVerts
 ** XyzNormals		sizeof( md3XyzNormal_t ) * numVerts * numFrames
 */
-typedef struct {
-	int		ident;				// 
+typedef struct md3Surface_s {
+	int		ident;				//
 
 	char	name[MAX_QPATH];	// polyset name
 
@@ -146,25 +145,25 @@ typedef struct {
 	int		ofsEnd;				// next surface follows
 } md3Surface_t;
 
-typedef struct {
+typedef struct md3Shader_s {
 	char			name[MAX_QPATH];
 	int				shaderIndex;	// for in-game use
 } md3Shader_t;
 
-typedef struct {
+typedef struct md3Triangle_s {
 	int			indexes[3];
 } md3Triangle_t;
 
-typedef struct {
+typedef struct md3St_s {
 	float		st[2];
 } md3St_t;
 
-typedef struct {
+typedef struct md3XyzNormal_s {
 	short		xyz[3];
 	short		normal;
 } md3XyzNormal_t;
 
-typedef struct {
+typedef struct md3Header_s {
 	int			ident;
 	int			version;
 
@@ -173,7 +172,7 @@ typedef struct {
 	int			flags;
 
 	int			numFrames;
-	int			numTags;			
+	int			numTags;
 	int			numSurfaces;
 
 	int			numSkins;
@@ -241,7 +240,7 @@ typedef struct {
 
 //=============================================================================
 
-typedef struct {
+typedef struct lump_s {
 	int		fileofs, filelen;
 } lump_t;
 
@@ -265,20 +264,20 @@ typedef struct {
 #define LUMP_LIGHTARRAY		17
 #define	HEADER_LUMPS		18
 
-typedef struct {
+typedef struct dheader_s {
 	int			ident;
 	int			version;
 
 	lump_t		lumps[HEADER_LUMPS];
 } dheader_t;
 
-typedef struct {
+typedef struct dmodel_s {
 	float		mins[3], maxs[3];
 	int			firstSurface, numSurfaces;
 	int			firstBrush, numBrushes;
 } dmodel_t;
 
-typedef struct {
+typedef struct dshader_s {
 	char		shader[MAX_QPATH];
 	int			surfaceFlags;
 	int			contentFlags;
@@ -286,19 +285,19 @@ typedef struct {
 
 // planes x^1 is allways the opposite of plane x
 
-typedef struct {
+typedef struct dplane_s {
 	float		normal[3];
 	float		dist;
 } dplane_t;
 
-typedef struct {
+typedef struct dnode_s {
 	int			planeNum;
 	int			children[2];	// negative numbers are -(leafs+1), not nodes
 	int			mins[3];		// for frustom culling
 	int			maxs[3];
 } dnode_t;
 
-typedef struct {
+typedef struct dleaf_s {
 	int			cluster;			// -1 = opaque cluster (do I still store these?)
 	int			area;
 
@@ -312,19 +311,19 @@ typedef struct {
 	int			numLeafBrushes;
 } dleaf_t;
 
-typedef struct {
+typedef struct dbrushside_s {
 	int			planeNum;			// positive plane side faces out of the leaf
 	int			shaderNum;
 	int			drawSurfNum;
 } dbrushside_t;
 
-typedef struct {
+typedef struct dbrush_s {
 	int			firstSide;
 	int			numSides;
 	int			shaderNum;		// the shader that determines the contents flags
 } dbrush_t;
 
-typedef struct {
+typedef struct dfog_s {
 	char		shader[MAX_QPATH];
 	int			brushNum;
 	int			visibleSide;	// the brush side that ray tests need to clip against (-1 == none)
@@ -337,7 +336,7 @@ typedef struct {
 #define	LS_LSNONE		0xff //rww - changed name because it unhappily conflicts with a lightsaber state name and changing this is just easier
 #define MAX_LIGHT_STYLES		64
 
-typedef struct {
+typedef struct mapVert_s {
 	vec3_t		xyz;
 	float		st[2];
 	float		lightmap[MAXLIGHTMAPS][2];
@@ -345,7 +344,7 @@ typedef struct {
 	byte		color[MAXLIGHTMAPS][4];
 } mapVert_t;
 
-typedef struct {
+typedef struct drawVert_s {
 	vec3_t		xyz;
 	float		st[2];
 	float		lightmap[MAXLIGHTMAPS][2];
@@ -353,13 +352,12 @@ typedef struct {
 	byte		color[MAXLIGHTMAPS][4];
 } drawVert_t;
 
-typedef struct
-{
+typedef struct dgrid_s {
 	byte		ambientLight[MAXLIGHTMAPS][3];
 	byte		directLight[MAXLIGHTMAPS][3];
 	byte		styles[MAXLIGHTMAPS];
 	byte		latLong[2];
-}  dgrid_t;
+} dgrid_t;
 
 typedef enum {
 	MST_BAD,
@@ -369,7 +367,7 @@ typedef enum {
 	MST_FLARE
 } mapSurfaceType_t;
 
-typedef struct {
+typedef struct dsurface_s {
 	int			shaderNum;
 	int			fogNum;
 	int			surfaceType;
@@ -386,7 +384,7 @@ typedef struct {
 	int			lightmapWidth, lightmapHeight;
 
 	vec3_t		lightmapOrigin;
-	vec3_t		lightmapVecs[3];	// for patches, [0] and [1] are lodbounds
+	matrix3_t	lightmapVecs;	// for patches, [0] and [1] are lodbounds
 
 	int			patchWidth;
 	int			patchHeight;
@@ -403,13 +401,13 @@ typedef struct {
 #define STYLE_BLINK			0x40000000
 #define	SET_MASK			0x00ffffff
 
-typedef struct 
+typedef struct
 {
 	short		width;					// number of pixels wide
 	short		height;					// number of scan lines
 	short		horizAdvance;			// number of pixels to advance to the next char
 	short		horizOffset;			// x offset into space to render glyph
-	int			baseline;				// y offset 
+	int			baseline;				// y offset
 	float		s;						// x start tex coord
 	float		t;						// y start tex coord
 	float		s2;						// x end tex coord

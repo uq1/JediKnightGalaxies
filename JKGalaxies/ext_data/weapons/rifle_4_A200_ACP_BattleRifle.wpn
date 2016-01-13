@@ -67,7 +67,7 @@
     },
     
     "firemode0": {
-        "damage":       28,
+        "damage":       30,
         "ammocost":     1,
         "burstshotdelay": 100,
         "firedelay":    900,
@@ -79,21 +79,21 @@
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
         "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 55,
-        "accuracyRatingPerShot": 4,
-        "msToDrainAccuracy": 70,
-        "maxAccuracyAdd": 85,
-        "crouchModifier": 0.89,
-        "runModifier": 1.2,
-        "sightsModifier": 0.8,
-        "walkModifier": 1.1,
-        "inAirModifier": 1.4
+        "accuracy": {
+			"accuracyRating": 55,
+			"accuracyRatingPerShot": 4,
+			"msToDrainAccuracy": 70,
+			"maxAccuracyAdd": 85,
+			"crouchModifier": 0.89,
+			"runModifier": 1.2,
+			"sightsModifier": 0.8,
+			"walkModifier": 1.1,
+			"inAirModifier": 1.4
         }
     },
     
     "firemode1": {
-        "damage":       28,
+        "damage":       35,
         "ammocost":     1,
         "firedelay":    400,
         "firingtype":   "semi",
@@ -104,13 +104,13 @@
         "projectileclass": "repeater_proj",
         "meansofdeath": "MOD_REPEATER",
             "accuracy": {
-        "accuracyRating": 50,
+        "accuracyRating": 35,
         "accuracyRatingPerShot": 3,
         "msToDrainAccuracy": 70,
         "maxAccuracyAdd": 80,
-        "crouchModifier": 0.95,
+        "crouchModifier": 0.7,
         "runModifier": 1.4,
-        "sightsModifier": 0.95,
+        "sightsModifier": 0.5,
         "walkModifier": 1.2,
         "inAirModifier": 1.6
         }

@@ -14,7 +14,7 @@ vendor_travelling
 	rank		crewman
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		klingon
+
 	class		CLASS_TRAVELLING_VENDOR
 	snd			reelo
 	sndcombat	reelo

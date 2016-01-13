@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "b_local.h"
 #include "g_nav.h"
 
@@ -18,20 +40,20 @@ void Wampa_SetBolts( gentity_t *self )
 	if ( self && self->client )
 	{
 		renderInfo_t *ri = &self->client->renderInfo;
-		ri->headBolt = trap_G2API_AddBolt(self->ghoul2, 0, "*head_eyes");
-		//ri->cervicalBolt = trap_G2API_AddBolt(self->ghoul2, 0, "neck_bone" );
-		//ri->chestBolt = trap_G2API_AddBolt(self->ghoul2, 0, "upper_spine");
-		//ri->gutBolt = trap_G2API_AddBolt(self->ghoul2, 0, "mid_spine");
-		ri->torsoBolt = trap_G2API_AddBolt(self->ghoul2, 0, "lower_spine");
-		ri->crotchBolt = trap_G2API_AddBolt(self->ghoul2, 0, "rear_bone");
-		//ri->elbowLBolt = trap_G2API_AddBolt(self->ghoul2, 0, "*l_arm_elbow");
-		//ri->elbowRBolt = trap_G2API_AddBolt(self->ghoul2, 0, "*r_arm_elbow");
-		ri->handLBolt = trap_G2API_AddBolt(self->ghoul2, 0, "*l_hand");
-		ri->handRBolt = trap_G2API_AddBolt(self->ghoul2, 0, "*r_hand");
-		//ri->kneeLBolt = trap_G2API_AddBolt(self->ghoul2, 0, "*hips_l_knee");
-		//ri->kneeRBolt = trap_G2API_AddBolt(self->ghoul2, 0, "*hips_r_knee");
-		ri->footLBolt = trap_G2API_AddBolt(self->ghoul2, 0, "*l_leg_foot");
-		ri->footRBolt = trap_G2API_AddBolt(self->ghoul2, 0, "*r_leg_foot");
+		ri->headBolt = trap->G2API_AddBolt(self->ghoul2, 0, "*head_eyes");
+		//ri->cervicalBolt = trap->G2API_AddBolt(self->ghoul2, 0, "neck_bone" );
+		//ri->chestBolt = trap->G2API_AddBolt(self->ghoul2, 0, "upper_spine");
+		//ri->gutBolt = trap->G2API_AddBolt(self->ghoul2, 0, "mid_spine");
+		ri->torsoBolt = trap->G2API_AddBolt(self->ghoul2, 0, "lower_spine");
+		ri->crotchBolt = trap->G2API_AddBolt(self->ghoul2, 0, "rear_bone");
+		//ri->elbowLBolt = trap->G2API_AddBolt(self->ghoul2, 0, "*l_arm_elbow");
+		//ri->elbowRBolt = trap->G2API_AddBolt(self->ghoul2, 0, "*r_arm_elbow");
+		ri->handLBolt = trap->G2API_AddBolt(self->ghoul2, 0, "*l_hand");
+		ri->handRBolt = trap->G2API_AddBolt(self->ghoul2, 0, "*r_hand");
+		//ri->kneeLBolt = trap->G2API_AddBolt(self->ghoul2, 0, "*hips_l_knee");
+		//ri->kneeRBolt = trap->G2API_AddBolt(self->ghoul2, 0, "*hips_r_knee");
+		ri->footLBolt = trap->G2API_AddBolt(self->ghoul2, 0, "*l_leg_foot");
+		ri->footRBolt = trap->G2API_AddBolt(self->ghoul2, 0, "*r_leg_foot");
 	}
 }
 

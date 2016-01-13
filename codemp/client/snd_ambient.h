@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #pragma once
 
 // Includes
@@ -21,8 +43,6 @@
 #pragma warning (pop)
 #pragma warning (disable:4503)	// decorated name length xceeded, name was truncated
 #endif
-
-using namespace std;
 
 // Defines
 
@@ -53,7 +73,7 @@ enum setKeyword_e
 	SET_KEYWORD_AMSDIR,
 	SET_KEYWORD_OUTDIR,
 	SET_KEYWORD_BASEDIR,
-	
+
 	NUM_AS_KEYWORDS,
 };
 
@@ -87,7 +107,7 @@ public:
 	CSetGroup();
 	~CSetGroup();
 
-	void Init( void ) 
+	void Init( void )
 	{
 		Free();
 	}
@@ -95,15 +115,15 @@ public:
 	void Free( void );
 
 	ambientSet_t *AddSet( const char *name );
-	
+
 	ambientSet_t *GetSet ( const char *name );
 	ambientSet_t *GetSet ( int ID );
 
 protected:
 
 	int								m_numSets;
-	vector < ambientSet_t * >		*m_ambientSets;
-	map	< sstring_t, ambientSet_t * >	*m_setMap;
+	std::vector < ambientSet_t * >		*m_ambientSets;
+	std::map	< sstring_t, ambientSet_t * >	*m_setMap;
 };
 
 // Prototypes

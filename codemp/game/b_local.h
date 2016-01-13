@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 //B_local.h
 //re-added by MCG
 #ifndef __B_LOCAL_H__
@@ -165,9 +187,6 @@ extern qboolean InFOV2( vec3_t origin, gentity_t *from, int hFOV, int vFOV );
 extern qboolean InFOV3( vec3_t spot, vec3_t from, vec3_t fromAngles, int hFOV, int vFOV );
 extern visibility_t NPC_CheckVisibility ( gentity_t *ent, int flags );
 extern qboolean InVisrange ( gentity_t *ent );
-
-//NPC_sounds
-//extern void NPC_AngerSound(void);
 
 //NPC_spawn
 extern void NPC_Spawn ( gentity_t *ent, gentity_t *other, gentity_t *activator );

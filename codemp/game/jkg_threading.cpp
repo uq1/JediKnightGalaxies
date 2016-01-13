@@ -26,6 +26,7 @@
 #include "jkg_threadingsq.h"
 
 /* OpenSSL Thread Safety */
+#ifndef NO_CRYPTOGRAPHY
 #ifdef _WIN32
 static HANDLE *lock_cs = 0;
 
@@ -126,7 +127,7 @@ void JKG_OPENSSL_ThreadSyncCleanup(void) {
 }
 
 #endif
-
+#endif
 
 
 #ifdef _WIN32
@@ -248,7 +249,7 @@ asyncTask_t *JKG_Task_GetFinished()
 void JKG_ThreadingDebugPrint( const char *message )
 {
 	if ( jkg_debugThreading.integer ) {
-		G_Printf( "%s", message );
+		trap->Print( "%s", message );
 	}
 }
 #else
@@ -286,7 +287,7 @@ void JKG_LeaveCriticalSection( void *section )
 void JKG_Printf ( int (QDECL *syscall)( int arg, ... ), const char *message )
 {
     JKG_EnterCriticalSection (&cs_G_Printf);
-    syscall (G_PRINT, message);
+    trap->Print(message);
     JKG_LeaveCriticalSection (&cs_G_Printf);
 }
 
@@ -378,7 +379,7 @@ void JKG_PrintTasksTable ( int clientNum )
 	char buf[MAX_STRING_CHARS];
 	int i;
 
-	trap_SendServerCommand( clientNum, "print \"----- JKG Async Tasks -----\n\"" );
+	trap->SendServerCommand( clientNum, "print \"----- JKG Async Tasks -----\n\"" );
 
 	Q_strncpyz( buf, "print \"", sizeof(buf) );
 	for ( i = 0; i < MAX_ASYNC_TASKS; i++ ) {
@@ -388,8 +389,8 @@ void JKG_PrintTasksTable ( int clientNum )
 	}
 	Q_strcat( buf, sizeof(buf), "\"" );
 
-	trap_SendServerCommand( clientNum, buf );
-	trap_SendServerCommand( clientNum, "print \"---------------------------\n\"" );
+	trap->SendServerCommand( clientNum, buf );
+	trap->SendServerCommand( clientNum, "print \"---------------------------\n\"" );
 
 	return;
 }
@@ -409,7 +410,9 @@ void JKG_InitThreading ( void )
 	Com_Printf( "Initialized critical sections\n" );
 #endif
 
+#ifndef NO_CRYPTOGRAPHY
 	JKG_OPENSSL_ThreadSyncInit();
+#endif
 	Com_Printf( "Initialized OpenSSL thread synchronisation\n" );
 
 	JKG_Task_Init();
@@ -431,7 +434,7 @@ void JKG_InitThreading ( void )
 
 void JKG_ShutdownThreading ( int maxWaitTime )
 {
-	int startMurder = trap_Milliseconds();
+	int startMurder = trap->Milliseconds();
 	int killDuration;
 
 	if (!backgrounderActive) return;
@@ -444,7 +447,7 @@ void JKG_ShutdownThreading ( int maxWaitTime )
 
 	while ( shuttingDown ) {
 		JKG_MainThreadPoller();		// Keep processing queries
-		if ( trap_Milliseconds() > startMurder + maxWaitTime ) {
+		if ( trap->Milliseconds() > startMurder + maxWaitTime ) {
 #ifdef _WIN32
 			TerminateThread( backgrounderHandle, 0 );
 			CloseHandle( backgrounderHandle );
@@ -461,7 +464,7 @@ void JKG_ShutdownThreading ( int maxWaitTime )
 		JKG_ThreadSleep( 1 );
 	}
 
-	killDuration = trap_Milliseconds() - startMurder;
+	killDuration = trap->Milliseconds() - startMurder;
 #ifndef FINAL_BUILD
 	Com_Printf( "^5Took %i milliseconds\n", killDuration );
 #endif
@@ -471,7 +474,9 @@ void JKG_ShutdownThreading ( int maxWaitTime )
 	DeleteCriticalSection( &cs_G_Printf );
 #endif
 
+#ifndef NO_CRYPTOGRAPHY
 	JKG_OPENSSL_ThreadSyncCleanup();
+#endif
 	JKG_Task_Terminate();
 }
 

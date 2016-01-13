@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "b_local.h"
 #include "g_nav.h"
 #include "anims.h"
@@ -559,7 +581,7 @@ void Sniper_FaceEnemy( void )
 								VectorMA( target, NPC->enemy->r.mins[2]*flrand(1.5, 4), up, target );
 							}
 						}
-						trap_Trace( &trace, muzzle, vec3_origin, vec3_origin, target, NPC->s.number, MASK_SHOT );
+						trap->Trace( &trace, muzzle, vec3_origin, vec3_origin, target, NPC->s.number, MASK_SHOT, 0, 0, 0 );
 						hit = Sniper_EvaluateShot( trace.entityNum );
 					}
 					NPC->count++;
@@ -679,7 +701,7 @@ void NPC_BSSniper_Attack( void )
 			if ( NPCInfo->scriptFlags & SCF_ALT_FIRE )
 			{//use primary fire
 				trace_t	trace;
-				trap_Trace ( &trace, NPC->enemy->r.currentOrigin, NPC->enemy->r.mins, NPC->enemy->r.maxs, NPC->r.currentOrigin, NPC->enemy->s.number, NPC->enemy->clipmask );
+				trap->Trace ( &trace, NPC->enemy->r.currentOrigin, NPC->enemy->r.mins, NPC->enemy->r.maxs, NPC->r.currentOrigin, NPC->enemy->s.number, NPC->enemy->clipmask, 0, 0, 0 );
 				if ( !trace.allsolid && !trace.startsolid && (trace.fraction == 1.0 || trace.entityNum == NPC->s.number ) )
 				{//he can get right to me
 					NPCInfo->scriptFlags &= ~SCF_ALT_FIRE;
@@ -726,7 +748,7 @@ void NPC_BSSniper_Attack( void )
 			AngleVectors( NPC->client->ps.viewangles, fwd, right, up );
 			WP_CalculateMuzzlePoint( NPC, fwd, right, up, muzzle );
 			VectorMA( muzzle, 8192, fwd, end );
-			trap_Trace ( &tr, muzzle, NULL, NULL, end, NPC->s.number, MASK_SHOT );
+			trap->Trace ( &tr, muzzle, NULL, NULL, end, NPC->s.number, MASK_SHOT, 0, 0, 0 );
 
 			hit = tr.entityNum;
 			//can we shoot our target?

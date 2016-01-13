@@ -24,13 +24,13 @@ void Warzone_Flag_Add ( vec3_t origin, int team )
 
 	if (number_of_flags > MAX_FLAG_POSITIONS)
 	{
-		G_Printf("^1*** ^3Warzone^1: ^3Warning! ^5Hit maximum flag positions (^7%i^5)!\n", MAX_FLAG_POSITIONS);
+		trap->Print("^1*** ^3Warzone^1: ^3Warning! ^5Hit maximum flag positions (^7%i^5)!\n", MAX_FLAG_POSITIONS);
 		return;
 	}
 
 	Spawn_Scenario_Flag_Auto ( origin, team );
 
-	G_Printf("^1*** ^3Warzone^1: ^5Flag number ^7%i^5 added at position ^7%f %f %f^5.\n", number_of_flags, origin[0], origin[1], origin[2] );
+	trap->Print("^1*** ^3Warzone^1: ^5Flag number ^7%i^5 added at position ^7%f %f %f^5.\n", number_of_flags, origin[0], origin[1], origin[2] );
 
 	//number_of_flags++; // Will always be in front of the actual number by one while creating.
 }
@@ -53,40 +53,40 @@ void Warzone_Flag_Loadpositions( void )
 	vmCvar_t		mapname;
 	int		num_flags = 0;
 
-	G_Printf("^1*** ^3Warzone^1: ^5Loading scenario flag position table...\n");
+	trap->Print("^1*** ^3Warzone^1: ^5Loading scenario flag position table...\n");
 
 	loadPath = (char *)malloc(1024*4);
 
-	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+	trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 
 	Com_sprintf(loadPath, 1024*4, "flag_positions/%s.flags\0", mapname.string);
 
-	len = trap_FS_FOpenFile( loadPath, &f, FS_READ );
+	len = trap->FS_Open( loadPath, &f, FS_READ );
 	if ( !f )
 	{
-		G_Printf(" ^3FAILED!!!\n");
-		G_Printf("^1*** ^3Warzone^1: ^5No file exists! (^3%s^5)\n", loadPath);
+		trap->Print(" ^3FAILED!!!\n");
+		trap->Print("^1*** ^3Warzone^1: ^5No file exists! (^3%s^5)\n", loadPath);
 		free(loadPath);
 		return;
 	}
 	if ( !len )
 	{ //empty file
-		G_Printf(" ^3FAILED!!!\n");
-		G_Printf("^1*** ^3Warzone^1: ^5Empty file!\n");
-		trap_FS_FCloseFile( f );
+		trap->Print(" ^3FAILED!!!\n");
+		trap->Print("^1*** ^3Warzone^1: ^5Empty file!\n");
+		trap->FS_Close( f );
 		free(loadPath);
 		return;
 	}
 
 	if ( (buf = (char *)malloc(len+1)) == 0 )
 	{//alloc memory for buffer
-		G_Printf(" ^3FAILED!!!\n");
-		G_Printf("^1*** ^3Warzone^1: ^5Unable to allocate buffer.\n");
+		trap->Print(" ^3FAILED!!!\n");
+		trap->Print("^1*** ^3Warzone^1: ^5Unable to allocate buffer.\n");
 		free(loadPath);
 		return;
 	}
-	trap_FS_Read( buf, len, f );
-	trap_FS_FCloseFile( f );
+	trap->FS_Read( buf, len, f );
+	trap->FS_Close( f );
 
 	for (t = s = buf; *t; /* */ ) 
 	{
@@ -106,8 +106,8 @@ void Warzone_Flag_Loadpositions( void )
 				
 				if (num_flags < 2)
 				{
-					G_Printf(" ^3FAILED!!!\n");
-					G_Printf("^1*** ^3Warzone^1: ^5You need at least 2 flag points!\n");
+					trap->Print(" ^3FAILED!!!\n");
+					trap->Print("^1*** ^3Warzone^1: ^5You need at least 2 flag points!\n");
 					return;
 				}
 				else
@@ -149,7 +149,7 @@ void Warzone_Flag_Loadpositions( void )
 			reference++;
 		}
 
-		//G_Printf("Origin is %f %f %f.\n", origin[0], origin[1], origin[2]);
+		//trap->Print("Origin is %f %f %f.\n", origin[0], origin[1], origin[2]);
 
 		if (origin[0] == 0 && origin[1] == 0)
 			break;
@@ -167,8 +167,8 @@ void Warzone_Flag_Loadpositions( void )
 	free(buf);
 	free(loadPath);
 
-	//G_Printf("^3Completed OK.\n");
-	G_Printf("^1*** ^3Warzone^1: ^5Total Flag Positions: ^7%i^5.\n", number_of_flags);
+	//trap->Print("^3Completed OK.\n");
+	trap->Print("^1*** ^3Warzone^1: ^5Total Flag Positions: ^7%i^5.\n", number_of_flags);
 	flags_loaded = qtrue;
 }
 
@@ -187,17 +187,17 @@ void Warzone_Flags_Savepositions( void )
 
 	number_of_flags--;
 
-	G_Printf("^3*** ^3AIMod: ^7Saving flag position table.\n");
+	trap->Print("^3*** ^3AIMod: ^7Saving flag position table.\n");
 
 	fileString = NULL;
 
 	savePath = (char *)malloc(1024*4);
 
-	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+	trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 
 	Com_sprintf(savePath, 1024*4, "flag_positions/%s.flags\0", mapname.string);
 
-	trap_FS_FOpenFile(savePath, &f, FS_WRITE);
+	trap->FS_FOpenFile(savePath, &f, FS_WRITE);
 
 	if ( !f )
 	{
@@ -206,7 +206,7 @@ void Warzone_Flags_Savepositions( void )
 	}
 
 	Com_sprintf( lineout, sizeof(lineout), "%i ", number_of_flags+1);
-	trap_FS_Write( lineout, strlen(lineout), f);
+	trap->FS_Write( lineout, strlen(lineout), f);
 
 	while (loop < number_of_flags+1)
 	{
@@ -218,14 +218,14 @@ void Warzone_Flags_Savepositions( void )
 				flag_list[loop].flagentity->s.origin[2],
 				flag_list[loop].flagentity->s.teamowner);
 		
-		trap_FS_Write( lineout, strlen(lineout), f);
+		trap->FS_Write( lineout, strlen(lineout), f);
 
 		loop++;
 	}
 
-	G_Printf("^3*** ^3AIMod: ^7Flag Position table saved %i flag positions to file %s.\n", number_of_flags+1, savePath);
+	trap->Print("^3*** ^3AIMod: ^7Flag Position table saved %i flag positions to file %s.\n", number_of_flags+1, savePath);
 
-	trap_FS_FCloseFile( f );
+	trap->FS_FCloseFile( f );
 	
 	free(savePath);
 }
@@ -317,7 +317,7 @@ void ammo_crate_think( gentity_t *ent )
 	}
 
 	// Run the think... Look for players...
-	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+	num = trap->EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
 
 	for ( i=0 ; i<num ; i++ ) 
 	{
@@ -326,7 +326,7 @@ void ammo_crate_think( gentity_t *ent )
 		if (!hit)
 			continue;
 
-		//G_Printf("%s is in box!\n", hit->classname);
+		//trap->Print("%s is in box!\n", hit->classname);
 
 		if (!hit->client)
 			continue;
@@ -457,9 +457,9 @@ void SP_ammo_crate_spawn ( gentity_t* ent )
 
 	ent->r.contents = CONTENTS_SOLID|CONTENTS_BODY|CONTENTS_MONSTERCLIP;
 
-	trap_LinkEntity (ent);
+	trap->LinkEntity ((sharedEntity_t *)ent);
 
-	G_Printf("Spawned ammo crate at %f %f %f.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2]);
+	trap->Print("Spawned ammo crate at %f %f %f.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2]);
 
 	ent->nextthink = level.time;
 }
@@ -526,7 +526,7 @@ void health_crate_think( gentity_t *ent )
 	}
 
 	// Run the think... Look for players...
-	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+	num = trap->EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
 
 	for ( i=0 ; i<num ; i++ ) 
 	{
@@ -535,7 +535,7 @@ void health_crate_think( gentity_t *ent )
 		if (!hit)
 			continue;
 
-		//G_Printf("%s is in box!\n", hit->classname);
+		//trap->Print("%s is in box!\n", hit->classname);
 
 		if (!hit->client)
 			continue;
@@ -559,7 +559,7 @@ void health_crate_think( gentity_t *ent )
 //			continue;
 
 		// Give them ammo!
-		//G_Printf("%s should be recieving health!\n", hit->client->pers.netname);
+		//trap->Print("%s should be recieving health!\n", hit->client->pers.netname);
 		if (hit->client->ps.stats[STAT_HEALTH] < hit->client->ps.stats[STAT_MAX_HEALTH])
 		{
 			// UQ1: We have no equivalent "generic health" item in JKG. Will add directly... For now...
@@ -669,9 +669,9 @@ void SP_health_crate_spawn ( gentity_t* ent )
 
 	ent->r.contents = CONTENTS_SOLID|CONTENTS_BODY|CONTENTS_MONSTERCLIP;
 
-	trap_LinkEntity (ent);
+	trap->LinkEntity ((sharedEntity_t *)ent);
 
-	G_Printf("Spawned health crate at %f %f %f.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2]);
+	trap->Print("Spawned health crate at %f %f %f.\n", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2]);
 
 	ent->nextthink = level.time;
 }
@@ -895,7 +895,7 @@ float WARZONE_FloorHeightAt ( vec3_t org )
 	VectorCopy(org, org2);
 	org2[2]= -65536.0f;
 
-	trap_Trace( &tr, org1, NULL, NULL, org2, -1, MASK_PLAYERSOLID );
+	trap->Trace( &tr, org1, NULL, NULL, org2, -1, MASK_PLAYERSOLID, 0, 0, 0 );
 	
 	//if (tr.contents & CONTENTS_WATER)
 	//{// Water...
@@ -921,7 +921,7 @@ void WARZONE_RemoveEntAt ( vec3_t org )
 	VectorCopy(org, org2);
 	org2[2]= -65536.0f;
 
-	trap_Trace( &tr, org1, NULL, NULL, org2, -1, MASK_PLAYERSOLID );
+	trap->Trace( &tr, org1, NULL, NULL, org2, -1, MASK_PLAYERSOLID, 0, 0, 0 );
 	
 	if (tr.entityNum < ENTITYNUM_MAX_NORMAL)
 	{
@@ -993,39 +993,39 @@ void WARZONE_ShowInfo ( void )
 {
 	int				i;
 
-	G_Printf("^3FLAGS:\n");
+	trap->Print("^3FLAGS:\n");
 
 	for (i = 0; i < warzone_edit_num_flags; i++)
 	{
 		if (warzone_edit_flags_team[i] == TEAM_RED)
-			G_Printf("^5[^2Flag #^3%i^5] - ^1RED\n", i);
+			trap->Print("^5[^2Flag #^3%i^5] - ^1RED\n", i);
 		else if (warzone_edit_flags_team[i] == TEAM_BLUE)
-			G_Printf("^5[^2Flag #^3%i^5] - ^4BLUE\n", i);
+			trap->Print("^5[^2Flag #^3%i^5] - ^4BLUE\n", i);
 		else
-			G_Printf("^5[^2Flag #^3%i^5] - ^7NEUTRAL\n", i);
+			trap->Print("^5[^2Flag #^3%i^5] - ^7NEUTRAL\n", i);
 	}
 
-	G_Printf("^5Total of ^3%i^5 warzone flags.\n", warzone_edit_num_flags-1);
+	trap->Print("^5Total of ^3%i^5 warzone flags.\n", warzone_edit_num_flags-1);
 
 #ifdef __VEHICLES__
-	G_Printf("^3VEHICLES:\n");
+	trap->Print("^3VEHICLES:\n");
 
 	for (i = 0; i < warzone_edit_num_vehicles; i++)
 	{
 		if (warzone_edit_vehicles_type[i] == VEHICLE_CLASS_LIGHT_TANK)
-			G_Printf("^5[^2Vehicle #^3%i^5] - ^1LIGHT TANK\n", i);
+			trap->Print("^5[^2Vehicle #^3%i^5] - ^1LIGHT TANK\n", i);
 		else if (warzone_edit_vehicles_type[i] == VEHICLE_CLASS_MEDIUM_TANK)
-			G_Printf("^5[^2Vehicle #^3%i^5] - ^1MEDIUM TANK\n", i);
+			trap->Print("^5[^2Vehicle #^3%i^5] - ^1MEDIUM TANK\n", i);
 		else if (warzone_edit_vehicles_type[i] == VEHICLE_CLASS_FLAMETANK)
-			G_Printf("^5[^2Vehicle #^3%i^5] - ^1FLAMER TANK\n", i);
+			trap->Print("^5[^2Vehicle #^3%i^5] - ^1FLAMER TANK\n", i);
 		else
-			G_Printf("^5[^2Vehicle #^3%i^5] - ^1HEAVY TANK\n", i);
+			trap->Print("^5[^2Vehicle #^3%i^5] - ^1HEAVY TANK\n", i);
 	}
 #endif //__VEHICLES__
 
-	G_Printf("^5Total of ^3%i^5 warzone vehicles.\n", warzone_edit_num_vehicles-1);
-	G_Printf("^3AMMO CRATES: ^5Total of ^3%i^5 warzone ammo crates.\n", warzone_edit_num_ammo_crates-1);
-	G_Printf("^3HEALTH CRATES: ^5Total of ^3%i^5 warzone health crates.\n", warzone_edit_num_health_crates-1);
+	trap->Print("^5Total of ^3%i^5 warzone vehicles.\n", warzone_edit_num_vehicles-1);
+	trap->Print("^3AMMO CRATES: ^5Total of ^3%i^5 warzone ammo crates.\n", warzone_edit_num_ammo_crates-1);
+	trap->Print("^3HEALTH CRATES: ^5Total of ^3%i^5 warzone health crates.\n", warzone_edit_num_health_crates-1);
 }
 
 void WARZONE_SaveGameInfo ( void )
@@ -1037,63 +1037,63 @@ void WARZONE_SaveGameInfo ( void )
 
 	strcpy( filename, "warzone/" );
 
-	trap_Cvar_VariableStringBuffer( "g_scriptName", filename, sizeof(filename) );
+	trap->Cvar_VariableStringBuffer( "g_scriptName", filename, sizeof(filename) );
 	if ( strlen( filename) > 0 )
 	{
-		trap_Cvar_Register( &mapname, "g_scriptName", "", CVAR_ROM );
+		trap->Cvar_Register( &mapname, "g_scriptName", "", CVAR_ROM );
 	}
 	else
 	{
-		trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+		trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 	}
 
 	Q_strcat( filename, sizeof(filename), mapname.string );
 
-	trap_FS_FOpenFile( va( "warzone/%s.info", filename), &f, FS_WRITE );
+	trap->FS_Open( va( "warzone/%s.info", filename), &f, FS_WRITE );
 
 	// Save flags...
-	trap_FS_Write( &warzone_edit_num_flags, sizeof(int), f );
+	trap->FS_Write( &warzone_edit_num_flags, sizeof(int), f );
 
 	for (i = 0; i < warzone_edit_num_flags; i++)
 	{
-		trap_FS_Write( &warzone_edit_flags[i], sizeof(vec3_t), f );
-		trap_FS_Write( &warzone_edit_flags_team[i], sizeof(int), f );
+		trap->FS_Write( &warzone_edit_flags[i], sizeof(vec3_t), f );
+		trap->FS_Write( &warzone_edit_flags_team[i], sizeof(int), f );
 	}
 
 	// Save vehicles...
-	trap_FS_Write( &warzone_edit_num_vehicles, sizeof(int), f );
+	trap->FS_Write( &warzone_edit_num_vehicles, sizeof(int), f );
 
 	for (i = 0; i < warzone_edit_num_vehicles; i++)
 	{
-		trap_FS_Write( &warzone_edit_vehicles_origins[i], sizeof(vec3_t), f );
-		trap_FS_Write( &warzone_edit_vehicles_angle[i], sizeof(float), f );
-		trap_FS_Write( &warzone_edit_vehicles_type[i], sizeof(int), f );
+		trap->FS_Write( &warzone_edit_vehicles_origins[i], sizeof(vec3_t), f );
+		trap->FS_Write( &warzone_edit_vehicles_angle[i], sizeof(float), f );
+		trap->FS_Write( &warzone_edit_vehicles_type[i], sizeof(int), f );
 	}
 
 	if (warzone_edit_num_ammo_crates < 0) warzone_edit_num_ammo_crates = 0;
 
 	// Save ammo crates...
-	trap_FS_Write( &warzone_edit_num_ammo_crates, sizeof(int), f );
+	trap->FS_Write( &warzone_edit_num_ammo_crates, sizeof(int), f );
 
 	for (i = 0; i < warzone_edit_num_ammo_crates; i++)
 	{
-		trap_FS_Write( &warzone_edit_ammo_crates_origins[i], sizeof(vec3_t), f );
-		trap_FS_Write( &warzone_edit_ammo_crates_angle[i], sizeof(float), f );
+		trap->FS_Write( &warzone_edit_ammo_crates_origins[i], sizeof(vec3_t), f );
+		trap->FS_Write( &warzone_edit_ammo_crates_angle[i], sizeof(float), f );
 	}
 
 	if (warzone_edit_num_health_crates < 0) warzone_edit_num_health_crates = 0;
 
 	// Save health crates...
-	trap_FS_Write( &warzone_edit_num_health_crates, sizeof(int), f );
+	trap->FS_Write( &warzone_edit_num_health_crates, sizeof(int), f );
 
 	for (i = 0; i < warzone_edit_num_health_crates; i++)
 	{
-		trap_FS_Write( &warzone_edit_health_crates_origins[i], sizeof(vec3_t), f );
-		trap_FS_Write( &warzone_edit_health_crates_angle[i], sizeof(float), f );
+		trap->FS_Write( &warzone_edit_health_crates_origins[i], sizeof(vec3_t), f );
+		trap->FS_Write( &warzone_edit_health_crates_angle[i], sizeof(float), f );
 	}
 
-	trap_FS_FCloseFile( f );													//close the file
-	G_Printf( "^1*** ^3%s^5: Successfully saved warzone info file ^7warzone/%s.info^5.\n", GAME_VERSION, filename );
+	trap->FS_Close( f );													//close the file
+	trap->Print( "^1*** ^3%s^5: Successfully saved warzone info file ^7warzone/%s.info^5.\n", GAME_VERSION, filename );
 }
 
 void SP_ammo_crate_spawn ( gentity_t* ent );
@@ -1107,8 +1107,8 @@ void WARZONE_LoadGameInfo2 ( void )
 	int				i;
 	vmCvar_t		fs_game;
 
-	trap_Cvar_Register( &fs_game, "fs_game", "", CVAR_SERVERINFO | CVAR_ROM );
-	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+	trap->Cvar_Register( &fs_game, "fs_game", "", CVAR_SERVERINFO | CVAR_ROM );
+	trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 
 	f = fopen( va( "%s/warzone/%s.info", fs_game.string, mapname.string), "rb" );
 	
@@ -1118,8 +1118,8 @@ void WARZONE_LoadGameInfo2 ( void )
 
 		if ( !f )
 		{
-			//G_Printf( "^1*** ^3WARNING^5: Reading from ^7warzone/%s.info^3 failed^5!!!\n", mapname.string );
-			//G_Printf( "^1*** ^3       ^5  No warzone support found for this map!\n" );
+			//trap->Print( "^1*** ^3WARNING^5: Reading from ^7warzone/%s.info^3 failed^5!!!\n", mapname.string );
+			//trap->Print( "^1*** ^3       ^5  No warzone support found for this map!\n" );
 			Warzone_Flag_Loadpositions();
 			return;
 		}
@@ -1217,7 +1217,7 @@ void WARZONE_LoadGameInfo2 ( void )
 	}
 
 	fclose(f);													//close the file
-	G_Printf( "^1*** ^3%s^5: Successfully loaded warzone info file ^7warzone/%s.info^5.\n", GAME_VERSION, mapname.string );
+	trap->Print( "^1*** ^3%s^5: Successfully loaded warzone info file ^7warzone/%s.info^5.\n", GAME_VERSION, mapname.string );
 }
 
 void WARZONE_LoadGameInfo ( void )
@@ -1227,9 +1227,9 @@ void WARZONE_LoadGameInfo ( void )
 	fileHandle_t	f;
 	int				i;
 
-	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+	trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 
-	trap_FS_FOpenFile( va( "warzone/%s.info", mapname.string), &f, FS_READ );
+	trap->FS_Open( va( "warzone/%s.info", mapname.string), &f, FS_READ );
 
 	if ( !f )
 	{
@@ -1238,26 +1238,26 @@ void WARZONE_LoadGameInfo ( void )
 	}
 
 	// Save flags...
-	trap_FS_Read( &warzone_edit_num_flags, sizeof(int), f );
+	trap->FS_Read( &warzone_edit_num_flags, sizeof(int), f );
 
 	for (i = 0; i < warzone_edit_num_flags; i++)
 	{
-		trap_FS_Read( &warzone_edit_flags[i], sizeof(vec3_t), f );
-		trap_FS_Read( &warzone_edit_flags_team[i], sizeof(int), f );
+		trap->FS_Read( &warzone_edit_flags[i], sizeof(vec3_t), f );
+		trap->FS_Read( &warzone_edit_flags_team[i], sizeof(int), f );
 
 		Warzone_Flag_Add( warzone_edit_flags[i], warzone_edit_flags_team[i]);
 
 	}
 
 	// Save vehicles...
-	trap_FS_Read( &warzone_edit_num_vehicles, sizeof(int), f );
+	trap->FS_Read( &warzone_edit_num_vehicles, sizeof(int), f );
 
 #ifdef __VEHICLES__
 	for (i = 0; i < warzone_edit_num_vehicles; i++)
 	{
-		trap_FS_Read( &warzone_edit_vehicles_origins[i], sizeof(vec3_t), f );
-		trap_FS_Read( &warzone_edit_vehicles_angle[i], sizeof(float), f );
-		trap_FS_Read( &warzone_edit_vehicles_type[i], sizeof(int), f );
+		trap->FS_Read( &warzone_edit_vehicles_origins[i], sizeof(vec3_t), f );
+		trap->FS_Read( &warzone_edit_vehicles_angle[i], sizeof(float), f );
+		trap->FS_Read( &warzone_edit_vehicles_type[i], sizeof(int), f );
 
 		{
 			gentity_t *self = G_Spawn();
@@ -1288,14 +1288,14 @@ void WARZONE_LoadGameInfo ( void )
 #endif //__VEHICLES__
 
 	// Save ammo crates...
-	trap_FS_Read( &warzone_edit_num_ammo_crates, sizeof(int), f );
+	trap->FS_Read( &warzone_edit_num_ammo_crates, sizeof(int), f );
 
 	if (warzone_edit_num_ammo_crates < 0) warzone_edit_num_ammo_crates = 0;
 
 	for (i = 0; i < warzone_edit_num_ammo_crates; i++)
 	{
-		trap_FS_Read( &warzone_edit_ammo_crates_origins[i], sizeof(vec3_t), f );
-		trap_FS_Read( &warzone_edit_ammo_crates_angle[i], sizeof(float), f );
+		trap->FS_Read( &warzone_edit_ammo_crates_origins[i], sizeof(vec3_t), f );
+		trap->FS_Read( &warzone_edit_ammo_crates_angle[i], sizeof(float), f );
 
 		{
 			gentity_t *self = G_Spawn();
@@ -1309,14 +1309,14 @@ void WARZONE_LoadGameInfo ( void )
 	}
 
 	// Save health crates...
-	trap_FS_Read( &warzone_edit_num_health_crates, sizeof(int), f );
+	trap->FS_Read( &warzone_edit_num_health_crates, sizeof(int), f );
 
 	if (warzone_edit_num_health_crates < 0) warzone_edit_num_health_crates = 0;
 
 	for (i = 0; i < warzone_edit_num_health_crates; i++)
 	{
-		trap_FS_Read( &warzone_edit_health_crates_origins[i], sizeof(vec3_t), f );
-		trap_FS_Read( &warzone_edit_health_crates_angle[i], sizeof(float), f );
+		trap->FS_Read( &warzone_edit_health_crates_origins[i], sizeof(vec3_t), f );
+		trap->FS_Read( &warzone_edit_health_crates_angle[i], sizeof(float), f );
 
 		{
 			gentity_t *self = G_Spawn();
@@ -1329,6 +1329,6 @@ void WARZONE_LoadGameInfo ( void )
 		}
 	}
 
-	trap_FS_FCloseFile( f );													//close the file
-	G_Printf( "^1*** ^3%s^5: Successfully loaded warzone info file ^7warzone/%s.info^5.\n", GAME_VERSION, mapname.string );
+	trap->FS_Close( f ); //close the file
+	trap->Print( "^1*** ^3%s^5: Successfully loaded warzone info file ^7warzone/%s.info^5.\n", GAME_VERSION, mapname.string );
 }

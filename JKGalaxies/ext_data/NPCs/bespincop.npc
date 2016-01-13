@@ -20,7 +20,6 @@ BespinCop
 	dismemberProbLegs	0
 	dismemberProbHands	20
 	dismemberProbWaist	0
-//	race		bespincop
 	class		CLASS_BESPIN_COP
 	snd			bespincop1
 	sndcombat	bespincop1
@@ -49,7 +48,6 @@ BespinCop2
 	dismemberProbLegs	0
 	dismemberProbHands	20
 	dismemberProbWaist	0
-//	race		bespincop
 	class		CLASS_BESPIN_COP
 	snd			bespincop2
 	sndcombat	bespincop2

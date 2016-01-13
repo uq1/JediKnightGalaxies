@@ -1,10 +1,32 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #pragma once
 
 // Tokenizer.h
 //
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4786 )	// identifier was truncated 
+#pragma warning( disable : 4786 )	// identifier was truncated
 
 #pragma warning (push, 3)			// go back down to 3 for the stl include
 #pragma warning (disable:4503)		// decorated name length xceeded, name was truncated
@@ -15,12 +37,6 @@
 #ifdef _MSC_VER
 #pragma warning (pop)
 #pragma warning (disable:4503)		// decorated name length xceeded, name was truncated
-#endif
-
-using namespace std;
-
-#ifndef _WIN32
-#include <string.h>
 #endif
 
 #include "qcommon/q_shared.h"
@@ -77,8 +93,7 @@ enum
 	TK_USERDEF,
 };
 
-typedef struct
-{
+typedef struct keywordArray_s {
 	char*		m_keyword;
 	int			m_tokenvalue;
 } keywordArray_t;
@@ -177,7 +192,7 @@ public:
 
 protected:
 	void Init(long value);
-	
+
 	long			m_value;
 };
 
@@ -273,7 +288,7 @@ protected:
 	char*			m_symbolName;
 };
 
-typedef map<const char *, CSymbol*, lessstr> symbolmap_t;
+typedef std::map<const char *, CSymbol*, lessstr> symbolmap_t;
 
 class CDirectiveSymbol : public CSymbol
 {
@@ -429,7 +444,7 @@ public:
 	const char *LookupToken(int tokenID, keywordArray_t* theTable = NULL);
 
 protected:
-	void SetError(int theError, const char *errString); 
+	void SetError(int theError, const char *errString);
 	virtual void Init(unsigned dwFlags = 0);
 	CToken* FetchToken();
 	bool AddDefineSymbol(CDirectiveSymbol* definesymbol);

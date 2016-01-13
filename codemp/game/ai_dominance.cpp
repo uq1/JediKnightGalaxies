@@ -64,8 +64,7 @@ qboolean DOM_DontBlockAllies(bot_state_t *bs);
 #define DEFEND_MINDISTANCE	200
 
 /* */
-float
-VectorDistanceNoHeight ( vec3_t v1, vec3_t v2 )
+float VectorDistanceNoHeight ( vec3_t v1, vec3_t v2 )
 {
 	vec3_t	dir;
 	vec3_t	v1a, v2a;
@@ -513,7 +512,7 @@ int DOM_FindIdealPathtoWP(bot_state_t *bs, int from, int to, int badwp2, int *pa
 
 	if ( (from == NODE_INVALID) || (to == NODE_INVALID) || (from >= gWPNum) || (to >= gWPNum) || (from == to) )
 	{
-		//G_Printf("Bad from or to node.\n");
+		//trap->Print("Bad from or to node.\n");
 		return ( -1 );
 	}
 
@@ -727,7 +726,7 @@ int DOM_FindIdealPathtoWP(bot_state_t *bs, int from, int to, int badwp2, int *pa
 		{
 			if (count+1 >= MAX_WPARRAY_SIZE)
 			{
-				G_Printf("ERROR: pathlist count > MAX_WPARRAY_SIZE.\n", count);
+				trap->Print("ERROR: pathlist count > MAX_WPARRAY_SIZE.\n", count);
 				return -1; // UQ1: Added to stop crash if path is too long for the memory allocation...
 			}
 
@@ -737,12 +736,12 @@ int DOM_FindIdealPathtoWP(bot_state_t *bs, int from, int to, int badwp2, int *pa
 
 		pathlist[count++] = from;								//add the beginning node to the end of the pathlist
 
-		//G_Printf("Pathsize is %i.\n", count);
+		//trap->Print("Pathsize is %i.\n", count);
 		return ( count );
 	}
 #endif //__DISABLED_OLD_ASTAR__
 
-	//G_Printf("Failed to find path.\n");
+	//trap->Print("Failed to find path.\n");
 	return ( -1 );											//return the number of nodes in the path, -1 if not found
 }
 
@@ -768,15 +767,15 @@ void ShowLinkInfo ( int wp, gentity_t *ent )
 			unreachable++;
 	}
 
-	G_Printf("Waypoint %i has %i links (%i seem to be unreachable).\n", wp, gWPArray[wp]->neighbornum, unreachable);
-	G_Printf("Links are to waypoints: ");
+	trap->Print("Waypoint %i has %i links (%i seem to be unreachable).\n", wp, gWPArray[wp]->neighbornum, unreachable);
+	trap->Print("Links are to waypoints: ");
 
 	for (i = 0; i < gWPArray[wp]->neighbornum; i++)
 	{
 		if (i+1 == gWPArray[wp]->neighbornum)
-			G_Printf("%i.\n", gWPArray[wp]->neighbors[i].num);
+			trap->Print("%i.\n", gWPArray[wp]->neighbors[i].num);
 		else
-			G_Printf("%i, ", gWPArray[wp]->neighbors[i].num);
+			trap->Print("%i, ", gWPArray[wp]->neighbors[i].num);
 	}
 }
 
@@ -792,13 +791,13 @@ AIMod_CreateNewRoute ( gentity_t *ent )
 
 	if (wp < 0)
 	{
-		G_Printf( "No routes - No waypoint was found at your current position!\n");
+		trap->Print( "No routes - No waypoint was found at your current position!\n");
 		return;
 	}
 
 	my_wp = gWPArray[wp];
 
-	G_Printf( "Finding bot objectives for %s at node number %i (%f %f %f).\n", ent->client->pers.netname,
+	trap->Print( "Finding bot objectives for %s at node number %i (%f %f %f).\n", ent->client->pers.netname,
 		my_wp->index, my_wp->origin[0], my_wp->origin[1], my_wp->origin[2] );
 
 	ShowLinkInfo(wp, ent);
@@ -813,7 +812,7 @@ AIMod_CreateNewRoute ( gentity_t *ent )
 
 		if (tries >= num_DOM_objectives*2)
 		{
-			G_Printf(  "Failed to find any path!\n"  );
+			trap->Print(  "Failed to find any path!\n"  );
 			break;
 		}
 
@@ -841,11 +840,11 @@ AIMod_CreateNewRoute ( gentity_t *ent )
 			continue;
 		}
 
-		G_Printf( "Objective %i (%s) pathsize is %i.\n", i, goal->classname, ent->pathsize );
+		trap->Print( "Objective %i (%s) pathsize is %i.\n", i, goal->classname, ent->pathsize );
 		break;
 	}
 
-	G_Printf( va( "Complete.\n") );
+	trap->Print( va( "Complete.\n") );
 }
 
 /*///////////////////////////////////////////////////
@@ -941,7 +940,7 @@ void DOM_BotOrder( gentity_t *orderer, gentity_t *orderee, int order, gentity_t 
 			//orders for a client objective 
 			if(objective->client)
 			{
-				G_Printf("%s ordered %s to %s %s\n", orderer->client->pers.netname, orderee->client->pers.netname, DOM_OrderNames[order], objective->client->pers.netname);
+				trap->Print("%s ordered %s to %s %s\n", orderer->client->pers.netname, orderee->client->pers.netname, DOM_OrderNames[order], objective->client->pers.netname);
 			}
 		}
 		else
@@ -954,7 +953,7 @@ void DOM_BotOrder( gentity_t *orderer, gentity_t *orderee, int order, gentity_t 
 		bs->botOrder = order;
 		bs->orderEntity = NULL;
 		bs->ordererNum = orderer->client->ps.clientNum;
-		G_Printf("%s ordered %s to %s\n", orderer->client->pers.netname, orderee->client->pers.netname, DOM_OrderNames[order]);
+		trap->Print("%s ordered %s to %s\n", orderer->client->pers.netname, orderee->client->pers.netname, DOM_OrderNames[order]);
 
 	}
 	else
@@ -982,7 +981,7 @@ void DOM_BotKneelBeforeZod(bot_state_t *bs)
 	//Sanity checks
 	if(!bs->tacticEntity || !bs->tacticEntity->client)
 	{//bad!
-		G_Printf("Bad tacticEntity sent to DOM_BotKneelBeforeZod.\n");
+		trap->Print("Bad tacticEntity sent to DOM_BotKneelBeforeZod.\n");
 		return;
 	}
 
@@ -1083,7 +1082,7 @@ int DOM_TraceJump(bot_state_t *bs, vec3_t traceto)
 	maxs[1] = 15;
 	maxs[2] = 32;
 
-	trap_Trace(&tr, bs->origin, mins, maxs, traceto_mod, bs->client, MASK_PLAYERSOLID);
+	trap->Trace(&tr, bs->origin, mins, maxs, traceto_mod, bs->client, MASK_PLAYERSOLID, 0, 0, 0);
 
 	if (tr.fraction == 1)
 	{
@@ -1104,7 +1103,7 @@ int DOM_TraceJump(bot_state_t *bs, vec3_t traceto)
 	maxs[1] = 15;
 	maxs[2] = 8;
 
-	trap_Trace(&tr, tracefrom_mod, mins, maxs, traceto_mod, bs->client, MASK_PLAYERSOLID);
+	trap->Trace(&tr, tracefrom_mod, mins, maxs, traceto_mod, bs->client, MASK_PLAYERSOLID, 0, 0, 0);
 
 	if (tr.fraction == 1)
 	{
@@ -1149,7 +1148,7 @@ int DOM_TraceJumpCrouchFall(bot_state_t *bs, vec3_t moveDir, int targetNum)
 	maxs[1] = 15;
 	maxs[2] = 32;
 
-	trap_Trace(&tr, tracefrom_mod, mins, maxs, traceto_mod, bs->client, MASK_SOLID);
+	trap->Trace(&tr, tracefrom_mod, mins, maxs, traceto_mod, bs->client, MASK_SOLID, 0, 0, 0);
 	if ((tr.fraction == 1 && !tr.startsolid))
 	{//CLIFF! or dangerous liquid.
 		return -1;
@@ -1166,7 +1165,7 @@ int DOM_TraceJumpCrouchFall(bot_state_t *bs, vec3_t moveDir, int targetNum)
 	traceto_mod[2] = bs->origin[2] + moveDir[2]*19;
 
 	//obstruction trace
-	trap_Trace(&tr, bs->origin, mins, maxs, traceto_mod, bs->client, MASK_PLAYERSOLID);
+	trap->Trace(&tr, bs->origin, mins, maxs, traceto_mod, bs->client, MASK_PLAYERSOLID, 0, 0, 0);
 
 	if (tr.fraction == 1 || tr.entityNum == targetNum)
 	{//nothing blocking our path
@@ -1204,7 +1203,7 @@ int DOM_TraceJumpCrouchFall(bot_state_t *bs, vec3_t moveDir, int targetNum)
 	maxs[1] = 15;
 	maxs[2] = 8;
 
-	trap_Trace(&tr, tracefrom_mod, mins, maxs, traceto_mod, bs->client, MASK_PLAYERSOLID);
+	trap->Trace(&tr, tracefrom_mod, mins, maxs, traceto_mod, bs->client, MASK_PLAYERSOLID, 0, 0, 0);
 
 	if (tr.fraction == 1 || tr.entityNum == targetNum)
 	{
@@ -1240,7 +1239,7 @@ int DOM_TraceJumpCrouchFall(bot_state_t *bs, vec3_t moveDir, int targetNum)
 	maxs[1] = 15;
 	maxs[2] = 8;
 
-	trap_Trace(&tr, tracefrom_mod, mins, maxs, traceto_mod, bs->client, MASK_PLAYERSOLID);
+	trap->Trace(&tr, tracefrom_mod, mins, maxs, traceto_mod, bs->client, MASK_PLAYERSOLID, 0, 0, 0);
 
 	if (tr.fraction == 1 || tr.entityNum == targetNum)
 	{
@@ -1374,7 +1373,7 @@ void DOM_AdjustMoveDirection( bot_state_t *bs, vec3_t moveDir, int Quad )
 			VectorNormalize(addvect);
 			break;
 		default:
-			G_Printf("Bad Quad in DOM_AdjustMoveDirection.\n");
+			trap->Print("Bad Quad in DOM_AdjustMoveDirection.\n");
 			return;
 	}
 
@@ -1822,7 +1821,7 @@ qboolean DOM_UseForceonLocal(bot_state_t *bs, vec3_t origin, qboolean pull)
 		vec3_t ang, viewDir;
 		//trace_t tr;
 
-		//trap_Trace(&tr, bs->eye, NULL, NULL, center, bs->client, MASK_PLAYERSOLID);
+		//trap->Trace(&tr, bs->eye, NULL, NULL, center, bs->client, MASK_PLAYERSOLID, 0, 0, 0);
 
 		//if(tr.entityNum == test->s.number || tr.fraction == 1.0)
 		{
@@ -1855,7 +1854,7 @@ qboolean DOM_UseForceonLocal(bot_state_t *bs, vec3_t origin, qboolean pull)
 				viewDir[2] = 0;
 				VectorNormalize(viewDir);
 
-				trap_EA_Move(bs->client, viewDir, 5000);
+				trap->EA_Move(bs->client, viewDir, 5000);
 			}
 			return qtrue;
 		}
@@ -1901,7 +1900,7 @@ qboolean DOM_AttackLocalBreakable(bot_state_t *bs, vec3_t origin)
 		bs->eye[2]+=32; //up...
 
 		//visual check
-		trap_Trace(&tr, bs->eye, NULL, NULL, testorigin, bs->client, MASK_PLAYERSOLID);
+		trap->Trace(&tr, bs->eye, NULL, NULL, testorigin, bs->client, MASK_PLAYERSOLID, 0, 0, 0);
 
 		if(tr.entityNum == test->s.number || tr.fraction == 1.0)
 		{//we can see the breakable
@@ -2000,7 +1999,7 @@ void DOM_IncreaseWaypointLinkCost(bot_state_t *bs)
 			else
 				bs->wpLast->neighbors[i].cost = 999999.9f;
 
-			//G_Printf("BOT DEBUG: Increasing cost of wp %i link %i.\n", bs->wpLast->index, i);
+			//trap->Print("BOT DEBUG: Increasing cost of wp %i link %i.\n", bs->wpLast->index, i);
 			break;
 		}
 	}
@@ -2042,7 +2041,7 @@ int DOM_SelectBestAvoidanceMethod(bot_state_t *bs, gentity_t *NPC)
 	
 	// Check right side...
 	VectorMA( org1, 256, right, org2 );
-	trap_Trace( &tr, org1, NULL, NULL, org2, NPC->s.number, MASK_PLAYERSOLID );
+	trap->Trace( &tr, org1, NULL, NULL, org2, NPC->s.number, MASK_PLAYERSOLID , 0, 0, 0);
 	distance = Distance(NPC->r.currentOrigin, tr.endpos);
 	
 	if (JKG_CheckBelowPoint(org2))
@@ -2056,7 +2055,7 @@ int DOM_SelectBestAvoidanceMethod(bot_state_t *bs, gentity_t *NPC)
 
 	// Check left side...
 	VectorMA( org1, -256, right, org2 );
-	trap_Trace( &tr, org1, NULL, NULL, org2, NPC->s.number, MASK_PLAYERSOLID );
+	trap->Trace( &tr, org1, NULL, NULL, org2, NPC->s.number, MASK_PLAYERSOLID , 0, 0, 0);
 	distance = Distance(NPC->r.currentOrigin, tr.endpos);
 	
 	if (distance > BEST_DISTANCE && JKG_CheckBelowPoint(org2))
@@ -2070,7 +2069,7 @@ int DOM_SelectBestAvoidanceMethod(bot_state_t *bs, gentity_t *NPC)
 
 	// Check jump...
 	VectorMA( org1, 256, forward, org2 );
-	trap_Trace( &tr, org1, NULL, NULL, org2, NPC->s.number, MASK_PLAYERSOLID );
+	trap->Trace( &tr, org1, NULL, NULL, org2, NPC->s.number, MASK_PLAYERSOLID , 0, 0, 0);
 	distance = Distance(NPC->r.currentOrigin, tr.endpos);
 	
 	if (distance >= BEST_DISTANCE && JKG_CheckBelowPoint(org2))
@@ -2116,7 +2115,7 @@ int DOM_SelectBestAvoidanceMethod(bot_state_t *bs, gentity_t *NPC)
 	VectorCopy(gWPArray[NPC->wpCurrent]->origin, org2);
 	org2[2] += STEPSIZE;
 
-	trap_Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID );
+	trap->Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID , 0, 0, 0);
 		
 	if (tr.fraction == 1.0f)
 	{// It is accessable normally...
@@ -2138,7 +2137,7 @@ int DOM_SelectBestAvoidanceMethod(bot_state_t *bs, gentity_t *NPC)
 
 			if (!SKIP_RIGHT)
 			{
-				trap_Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID );
+				trap->Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID , 0, 0, 0);
 		
 				if (tr.fraction == 1.0f)
 				{
@@ -2162,7 +2161,7 @@ int DOM_SelectBestAvoidanceMethod(bot_state_t *bs, gentity_t *NPC)
 
 			if (!SKIP_LEFT)
 			{
-				trap_Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID );
+				trap->Trace( &tr, org1, NPC->r.mins, NPC->r.maxs, org2, NPC->s.number, MASK_PLAYERSOLID , 0, 0, 0);
 		
 				if (tr.fraction == 1.0f)
 				{
@@ -2195,7 +2194,7 @@ int DOM_Avoidance(bot_state_t *bs, gentity_t *NPC)
 		break;
 	case AVOIDANCE_STRAFE_JUMP:
 		NPC->client->ps.pm_flags |= PMF_JUMP_HELD;
-		trap_EA_Jump(bs->client);
+		trap->EA_Jump(bs->client);
 		return AVOIDANCE_STRAFE_JUMP;
 		break;
 	default:
@@ -2232,7 +2231,7 @@ void DOM_UQ1_UcmdMoveForDir ( bot_state_t *bs, usercmd_t *cmd, vec3_t dir )
 		NPC->NPC->desiredSpeed = NPC->NPC->stats.walkSpeed;
 		NPC->client->ps.basespeed = NPC->client->ps.speed = NPCInfo->stats.walkSpeed;
 
-		G_Printf("Speed is %f. (w: %i) (r: %i)\n", NPC->client->ps.speed, NPCInfo->stats.walkSpeed, NPCInfo->stats.runSpeed);
+		trap->Print("Speed is %f. (w: %i) (r: %i)\n", NPC->client->ps.speed, NPCInfo->stats.walkSpeed, NPCInfo->stats.runSpeed);
 	}
 	*/
 	
@@ -2367,7 +2366,7 @@ void DOM_BotMove(bot_state_t *bs, vec3_t dest, qboolean wptravel, qboolean straf
 					bs->jumpTime = level.time + 100;
 					bs->wpSpecial = qtrue;
 					DOM_WPVisibleUpdate(bs);
-					trap_EA_Move(bs->client, bs->goalMovedir, 5000);
+					trap->EA_Move(bs->client, bs->goalMovedir, 5000);
 					return;
 				}
 
@@ -2389,7 +2388,7 @@ void DOM_BotMove(bot_state_t *bs, vec3_t dest, qboolean wptravel, qboolean straf
 					//bot_route_t routeTest;
 					int newwp = DOM_GetBestWaypoint(bs->origin, bs->client, bs->wpCurrent->index);
 
-					//G_Printf("BOT DEBUG: Bot %s created new route because of wpTravelTime.\n", g_entities[bs->client].client->pers.netname);
+					//trap->Print("BOT DEBUG: Bot %s created new route because of wpTravelTime.\n", g_entities[bs->client].client->pers.netname);
 
 					bs->AltRouteCheck = qtrue;
 					
@@ -2428,7 +2427,7 @@ void DOM_BotMove(bot_state_t *bs, vec3_t dest, qboolean wptravel, qboolean straf
 					bs->wpLast = NULL;
 					bs->wpCurrent = gWPArray[newwp];
 
-					//G_Printf("DOM BOT DEBUG: Creating route (4)\n");
+					//trap->Print("DOM BOT DEBUG: Creating route (4)\n");
 
 					g_entities[bs->client].pathsize = ASTAR_FindPathFast(bs->wpCurrent->index, bs->wpDestination->index, bs->botRoute, qtrue);
 
@@ -2454,7 +2453,7 @@ void DOM_BotMove(bot_state_t *bs, vec3_t dest, qboolean wptravel, qboolean straf
 					//bot_route_t routeTest;
 					int newwp = DOM_GetBestWaypoint(bs->origin, bs->client, bs->wpCurrent->index);
 
-					//G_Printf("BOT DEBUG: Bot %s created new route because of wpTravelTime2.\n", g_entities[bs->client].client->pers.netname);
+					//trap->Print("BOT DEBUG: Bot %s created new route because of wpTravelTime2.\n", g_entities[bs->client].client->pers.netname);
 
 					bs->AltRouteCheck = qtrue;
 					
@@ -2493,7 +2492,7 @@ void DOM_BotMove(bot_state_t *bs, vec3_t dest, qboolean wptravel, qboolean straf
 					bs->wpLast = NULL;
 					bs->wpCurrent = gWPArray[newwp];
 
-					//G_Printf("DOM BOT DEBUG: Creating route (3)\n");
+					//trap->Print("DOM BOT DEBUG: Creating route (3)\n");
 
 					g_entities[bs->client].pathsize = ASTAR_FindPathFast(bs->wpCurrent->index, bs->wpDestination->index, bs->botRoute, qtrue);
 
@@ -2559,7 +2558,7 @@ void DOM_BotMove(bot_state_t *bs, vec3_t dest, qboolean wptravel, qboolean straf
 		}
 		/*else if (STRAFE_DIRECTION == AVOIDANCE_STRAFE_JUMP)
 		{
-			trap_EA_MoveUp(bs->client);
+			trap->EA_MoveUp(bs->client);
 			bs->jumpTime = level.time + 200;
 		}*/
 
@@ -2574,17 +2573,17 @@ void DOM_BotMove(bot_state_t *bs, vec3_t dest, qboolean wptravel, qboolean straf
 
 	VectorCopy(dest, bs->goalPosition);
 	//DOM_UQ1_UcmdMoveForDir( bs, &bs->lastucmd, bs->goalMovedir );
-	trap_EA_Move(bs->client, bs->goalMovedir, 5000);
+	trap->EA_Move(bs->client, bs->goalMovedir, 5000);
 
 	//if (VectorDistance(bs->origin, dest) > 1024) assert(0);
 
-	//G_Printf("Bot %s move to wp %i (dist %f).\n", g_entities[bs->client].client->pers.netname, bs->wpCurrent->index, VectorDistance(bs->origin, dest));
+	//trap->Print("Bot %s move to wp %i (dist %f).\n", g_entities[bs->client].client->pers.netname, bs->wpCurrent->index, VectorDistance(bs->origin, dest));
 }
 
 
 void DOM_WPTouch(bot_state_t *bs)
 {//Touched the target WP
-	//G_Printf("%s - WPTouch (wp is %i, distance is %f)!\n", g_entities[bs->client].client->pers.netname, bs->wpCurrent->index, Distance(bs->origin, bs->wpCurrent->origin));
+	//trap->Print("%s - WPTouch (wp is %i, distance is %f)!\n", g_entities[bs->client].client->pers.netname, bs->wpCurrent->index, Distance(bs->origin, bs->wpCurrent->origin));
 
 	if(!bs->objectiveType || !bs->tacticEntity || !bs->wpDestination || bs->tacticEntity->s.number < MAX_CLIENTS
 		|| strcmp(bs->tacticEntity->classname, "freed") == 0 || bs->wpDestSwitchTime < level.time)
@@ -2625,7 +2624,7 @@ void DOM_WPTouch(bot_state_t *bs)
 		bs->wpLast = NULL;
 		bs->wpCurrent = gWPArray[wp];
 		
-		//G_Printf("BOT DEBUG: Bot %s created new route because of bad wpCurrent/wpNext.\n", g_entities[bs->client].client->pers.netname);
+		//trap->Print("BOT DEBUG: Bot %s created new route because of bad wpCurrent/wpNext.\n", g_entities[bs->client].client->pers.netname);
 
 		g_entities[bs->client].pathsize = ASTAR_FindPathFast(bs->wpCurrent->index, bs->wpDestination->index, bs->botRoute, qtrue);
 
@@ -2645,7 +2644,7 @@ void DOM_WPTouch(bot_state_t *bs)
 	bs->wpLast = bs->wpCurrent;
 	bs->wpCurrent = bs->wpNext;
 	bs->wpNext = gWPArray[DOM_GetNextWaypoint(bs)];
-	//G_Printf("%s - WPTouch (new wp is %i, distance is %f)!\n", g_entities[bs->client].client->pers.netname, bs->wpCurrent->index, Distance(bs->origin, bs->wpCurrent->origin));
+	//trap->Print("%s - WPTouch (new wp is %i, distance is %f)!\n", g_entities[bs->client].client->pers.netname, bs->wpCurrent->index, Distance(bs->origin, bs->wpCurrent->origin));
 	VectorCopy(bs->origin, bs->wpCurrentLoc);
 	DOM_ResetWPTimers(bs);
 }
@@ -2890,7 +2889,7 @@ qboolean DOM_WaitForRouteCalculation(bot_state_t *bs)
 	{// Stay still and wait!
 		bs->ready_to_calculate_path = qtrue;
 
-		if (bs->tacticEntity && bs->tacticEntity->inuse && VectorDistance(bs->tacticEntity->r.currentOrigin, bs->origin) < 256)
+		if (bs->tacticEntity && bs->tacticEntity->inuse && Distance(bs->tacticEntity->r.currentOrigin, bs->origin) < 256)
 			DOM_BotMove(bs, bs->tacticEntity->r.currentOrigin, qfalse, qfalse);
 		else if (bs->currentEnemy)
 			DOM_BotMove(bs, bs->currentEnemy->r.currentOrigin, qfalse, qfalse);
@@ -3121,18 +3120,18 @@ void DOM_AI_CheckSpeak(gentity_t *bot, qboolean moving)
 		}
 	}
 
-	trap_FS_FOpenFile( filename, &f, FS_READ );
+	trap->FS_Open( filename, &f, FS_READ );
 
 	if ( !f )
 	{// this file doesnt exist for this char...
-		//G_Printf("File [%s] does not exist.\n", filename);
-		trap_FS_FCloseFile( f );
+		//trap->Print("File [%s] does not exist.\n", filename);
+		trap->FS_Close( f );
 		return;
 	}
 
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
-	G_Printf("Bot sound file [%s] played.\n", filename);
+	trap->Print("Bot sound file [%s] played.\n", filename);
 
 	// Play a taunt/etc...
 	G_SoundOnEnt( bot, CHAN_VOICE_ATTEN, filename );
@@ -3154,7 +3153,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 	if(!bs->wpCurrent || bs->wpCurrent <= 0)
 	{////ok, we just did something other than wp navigation.  find the closest wp.
 		findwp = qtrue;
-		//G_Printf("(!bs->wpCurrent || bs->wpCurrent <= 0)\n");
+		//trap->Print("(!bs->wpCurrent || bs->wpCurrent <= 0)\n");
 	}
 	else if( bs->wpSeenTime < level.time )
 	{//lost track of the waypoint
@@ -3162,7 +3161,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 		badwp = bs->wpCurrent->index;
 		bs->wpDestination = NULL;
 		recalcroute = qtrue;
-		//G_Printf("( bs->wpSeenTime < level.time )\n");
+		//trap->Print("( bs->wpSeenTime < level.time )\n");
 
 		// UQ1: Mark wp the link as bad!
 		//DOM_IncreaseWaypointLinkCost(bs);
@@ -3174,7 +3173,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 		badwp = bs->wpCurrent->index;
 		bs->wpDestination = NULL;
 		recalcroute = qtrue;
-		G_Printf("( bs->wpTravelTime < level.time )\n");
+		trap->Print("( bs->wpTravelTime < level.time )\n");
 
 		// UQ1: Mark wp the link as bad!
 		//DOM_IncreaseWaypointLinkCost(bs);
@@ -3187,7 +3186,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 		if( distnow > 50 && distthen < distnow )
 		{//we're pretty far off the path, check to make sure we didn't get knocked way off course.
 			findwp = qtrue;
-			//G_Printf("( distnow > 50 && distthen < distnow )\n");
+			//trap->Print("( distnow > 50 && distthen < distnow )\n");
 		}
 	}
 
@@ -3209,9 +3208,9 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 			recalcroute = qtrue;
 
 			//if (!bs->wpDestination)
-			//	G_Printf("(!bs->wpDestination)\n");
+			//	trap->Print("(!bs->wpDestination)\n");
 			//else if (bs->wpDestination->index != destwp)
-			//	G_Printf("(bs->wpDestination->index != destwp)\n");
+			//	trap->Print("(bs->wpDestination->index != destwp)\n");
 		}
 	}
 	*/
@@ -3223,7 +3222,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 
 		if (wp == -1)
 		{//no waypoints
-			//G_Printf("%s failed to find a waypoint.\n", g_entities[bs->client].client->pers.netname);
+			//trap->Print("%s failed to find a waypoint.\n", g_entities[bs->client].client->pers.netname);
 			DOM_BotMove(bs, bs->DestPosition, qfalse, strafe);
 			return;
 		}
@@ -3278,7 +3277,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 	
 				if( destwp == -1 )
 				{//crap, this map has no wps.  try just autonaving it then
-					//G_Printf("BOT DEBUG: Bot %s failed to find a destwp.\n", g_entities[bs->client].client->pers.netname);
+					//trap->Print("BOT DEBUG: Bot %s failed to find a destwp.\n", g_entities[bs->client].client->pers.netname);
 
 					DOM_BotMove(bs, bs->tacticEntity->r.currentOrigin, qfalse, strafe);
 					return;
@@ -3288,7 +3287,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 			}
 			else
 			{
-				//G_Printf("BOT DEBUG: Bot %s failed to find an objective.\n", g_entities[bs->client].client->pers.netname);
+				//trap->Print("BOT DEBUG: Bot %s failed to find an objective.\n", g_entities[bs->client].client->pers.netname);
 			}
 		}
 		*/
@@ -3303,7 +3302,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 			if (wp == -1)
 			{//no waypoints
 #ifdef _DEBUG
-				G_Printf("BOT DEBUG: %s failed to find a waypoint.\n", g_entities[bs->client].client->pers.netname);
+				trap->Print("BOT DEBUG: %s failed to find a waypoint.\n", g_entities[bs->client].client->pers.netname);
 #endif
 				DOM_BotMove(bs, bs->DestPosition, qfalse, strafe);
 				return;
@@ -3317,13 +3316,13 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 			recalcroute = qtrue;
 		}
 
-		//G_Printf("BOT DEBUG: Bot %s created new route because of readytocalculate.\n", g_entities[bs->client].client->pers.netname);
+		//trap->Print("BOT DEBUG: Bot %s created new route because of readytocalculate.\n", g_entities[bs->client].client->pers.netname);
 		g_entities[bs->client].pathsize = ASTAR_FindPathFast(bs->wpCurrent->index, bs->wpDestination->index, bs->botRoute, qtrue);
 
 		if (g_entities[bs->client].pathsize > 0)
 		{
 #ifdef _DEBUG
-			G_Printf("BOT DEBUG: Bot %s found a %i waypoint path from wp %i to wp %i.\n", g_entities[bs->client].client->pers.netname, g_entities[bs->client].pathsize, bs->wpCurrent->index, bs->wpDestination->index);
+			trap->Print("BOT DEBUG: Bot %s found a %i waypoint path from wp %i to wp %i.\n", g_entities[bs->client].client->pers.netname, g_entities[bs->client].pathsize, bs->wpCurrent->index, bs->wpDestination->index);
 #endif
 			bs->wpNext = gWPArray[DOM_GetNextWaypoint(bs)];
 			DOM_ResetWPTimers(bs);
@@ -3331,7 +3330,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 		else
 		{
 #ifdef _DEBUG
-			G_Printf("BOT DEBUG: Bot %s failed to find a path from wp %i to wp %i.\n", g_entities[bs->client].client->pers.netname, bs->wpCurrent->index, bs->wpDestination->index);
+			trap->Print("BOT DEBUG: Bot %s failed to find a path from wp %i to wp %i.\n", g_entities[bs->client].client->pers.netname, bs->wpCurrent->index, bs->wpDestination->index);
 #endif
 		}
 
@@ -3349,14 +3348,14 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 		&& VectorDistanceNoHeight(bs->origin, bs->wpCurrent->origin) <= 24//16//BOT_WPTOUCH_DISTANCE
 		&& !bs->wpSpecial)
 	{
-		//G_Printf("WP (%i) Distance %f. HIT!\n", bs->wpCurrent->index, VectorDistanceNoHeight(bs->origin, bs->wpCurrent->origin));
+		//trap->Print("WP (%i) Distance %f. HIT!\n", bs->wpCurrent->index, VectorDistanceNoHeight(bs->origin, bs->wpCurrent->origin));
 		DOM_WPTouch(bs);
 	}
 	/*else if(bs->wpDestination && bs->wpCurrent->index != bs->wpDestination->index 
 		&& VectorDistanceNoHeight(bs->origin, bs->wpCurrent->origin) >= 16//BOT_WPTOUCH_DISTANCE
 		&& !bs->wpSpecial)
 	{
-		G_Printf("WP (%i) Distance %f.\n", bs->wpCurrent->index, VectorDistanceNoHeight(bs->origin, bs->wpCurrent->origin));
+		trap->Print("WP (%i) Distance %f.\n", bs->wpCurrent->index, VectorDistanceNoHeight(bs->origin, bs->wpCurrent->origin));
 	}*/
 
 	VectorCopy(bs->eye, bs->origin);
@@ -3461,7 +3460,7 @@ qboolean DOM_AI_CanLunge(bot_state_t *bs)
 	traceTo[1] = bs->origin[1] + fwd[1]*AI_LUNGE_DISTANCE;
 	traceTo[2] = bs->origin[2] + fwd[2]*AI_LUNGE_DISTANCE;
 
-	trap_Trace(&tr, bs->origin, trmins, trmaxs, traceTo, bs->client, MASK_PLAYERSOLID);
+	trap->Trace(&tr, bs->origin, trmins, trmaxs, traceTo, bs->client, MASK_PLAYERSOLID, 0, 0, 0);
 
 	ent = &g_entities[tr.entityNum];
 
@@ -3566,11 +3565,11 @@ static qboolean DOM_Jedi_Jump( gentity_t *NPC, vec3_t dest, int goalEntNum )
 					BG_EvaluateTrajectory( &tr, level.time + elapsedTime, testPos );
 					if ( testPos[2] < lastPos[2] )
 					{//going down, ignore botclip
-						trap_Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask );
+						trap->Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask , 0, 0, 0);
 					}
 					else
 					{//going up, check for botclip
-						trap_Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP );
+						trap->Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP , 0, 0, 0);
 					}
 
 					if ( trace.allsolid || trace.startsolid )
@@ -3616,7 +3615,7 @@ static qboolean DOM_Jedi_Jump( gentity_t *NPC, vec3_t dest, int goalEntNum )
 							//FIXME: do we care how far below ourselves or our dest we'll land?
 							VectorCopy( trace.endpos, bottom );
 							bottom[2] -= 128;
-							trap_Trace( &trace, trace.endpos, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask );
+							trap->Trace( &trace, trace.endpos, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask , 0, 0, 0);
 							if ( trace.fraction >= 1.0f )
 							{//would fall too far
 								blocked = qtrue;
@@ -3821,7 +3820,7 @@ static qboolean DOM_Jedi_TryJump( gentity_t *NPC, gentity_t *goal )
 									}
 									VectorCopy( dest, bottom );
 									bottom[2] -= 128;
-									trap_Trace( &trace, dest, NPC->r.mins, NPC->r.maxs, bottom, goal->s.number, NPC->clipmask );
+									trap->Trace( &trace, dest, NPC->r.mins, NPC->r.maxs, bottom, goal->s.number, NPC->clipmask , 0, 0, 0);
 									if ( trace.fraction < 1.0f )
 									{//hit floor, okay to land here
 										break;
@@ -3859,7 +3858,7 @@ static qboolean DOM_Jedi_TryJump( gentity_t *NPC, gentity_t *goal )
 									//{
 										jumpAnim = BOTH_FLIP_F;
 									//}
-									G_SetAnim( NPC, ucmd, SETANIM_BOTH, jumpAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+									G_SetAnim( NPC, ucmd, SETANIM_BOTH, jumpAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 								}
 
 								NPC->client->ps.fd.forceJumpZStart = NPC->r.currentOrigin[2];
@@ -3911,7 +3910,7 @@ qboolean DOM_Jedi_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum
 	//Offset the step height
 	VectorSet( mins, NPC->r.mins[0], NPC->r.mins[1], NPC->r.mins[2] + STEPSIZE );
 	
-	trap_Trace( &trace, NPC->r.currentOrigin, mins, NPC->r.maxs, dest, NPC->s.number, NPC->clipmask );
+	trap->Trace( &trace, NPC->r.currentOrigin, mins, NPC->r.maxs, dest, NPC->s.number, NPC->clipmask , 0, 0, 0);
 
 	//Do a simple check
 	if ( trace.allsolid || trace.startsolid )
@@ -3948,7 +3947,7 @@ qboolean DOM_Jedi_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum
 		VectorMA( NPC->r.currentOrigin, i, dir, start );
 		VectorCopy( start, end );
 		end[2] -= drop;
-		trap_Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask );//NPC->r.mins?
+		trap->Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask , 0, 0, 0);//NPC->r.mins?
 		if ( trace.fraction < 1.0f || trace.allsolid || trace.startsolid )
 		{//good to go
 			continue;
@@ -3987,7 +3986,7 @@ void DOM_BotBehave_AttackMove(bot_state_t *bs)
 	if(!bs->frame_Enemy_Vis && bs->enemySeenTime < level.time)
 	{//lost track of enemy
 		bs->currentEnemy = NULL;
-		//G_Printf("Not visible\n");
+		//trap->Print("Not visible\n");
 		return;
 	}
 
@@ -4027,7 +4026,7 @@ void DOM_BotBehave_AttackMove(bot_state_t *bs)
 
 	if(bs->wpSpecial)
 	{//in special wp move, don't do interrupt it.
-		//G_Printf("wpSpecial\n");
+		//trap->Print("wpSpecial\n");
 		return;
 	}
 
@@ -4047,14 +4046,14 @@ void DOM_BotBehave_AttackMove(bot_state_t *bs)
 
 	if ( g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_AMMO] <= 0 )
 	{
-		//G_Printf("DEBUG: Reload!\n");
+		//trap->Print("DEBUG: Reload!\n");
 		g_entities[bs->cur_ps.clientNum].client->ps.ammo = 100; // UQ1: NPCs need to cheat a little :)
 		g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_AMMO] = 100; // UQ1: NPCs need to cheat a little :)
 		g_entities[bs->cur_ps.clientNum].client->clipammo[bs->cur_ps.weapon] = 100;//GetWeaponAmmoClip( bs->cur_ps.weapon, g_entities[bs->cur_ps.clientNum].s.weaponVariation );
 
 		//Add_Ammo (NPC, client->ps.weapon, 100);
 		Cmd_Reload_f (&g_entities[bs->cur_ps.clientNum]);
-		//G_Printf("reload\n");
+		//trap->Print("reload\n");
 	}
 	else /*if(range < 2048.0f //DOM_MaximumAttackDistance[bs->virtualWeapon]
 		&& range > 0 //DOM_MinimumAttackDistance[bs->virtualWeapon]
@@ -4063,11 +4062,11 @@ void DOM_BotBehave_AttackMove(bot_state_t *bs)
 			|| (bs->virtualWeapon == WP_SABER && InFieldOfVision(g_entities[bs->cur_ps.clientNum].client->ps.viewangles, 100, ang))) )*/
 	{//don't attack unless you're inside your AttackDistance band and actually pointing at your enemy.  
 		//This is to prevent the bots from attackmoving with the saber @ 500 meters. :)
-		trap_EA_Attack(bs->client);
-		//G_Printf("fired\n");
+		trap->EA_Attack(bs->client);
+		//trap->Print("fired\n");
 	}
 	//else
-	//	G_Printf("range\n");
+	//	trap->Print("range\n");
 }
 
 
@@ -4186,7 +4185,7 @@ void DOM_BotBehave_DefendBasic(bot_state_t *bs, vec3_t defpoint)
 		}
 		else if(dist > DEFEND_MAXDISTANCE * .9)
 		{//nearing max distance hold here and attack
-			trap_EA_Move(bs->client, vec3_origin, 0);
+			trap->EA_Move(bs->client, vec3_origin, 0);
 		}
 		else
 		{//just attack them
@@ -4222,7 +4221,7 @@ qboolean DOM_BotBehave_CheckBackstab(bot_state_t *bs)
 	AngleVectors( bs->cur_ps.viewangles, forward, NULL, NULL );
 	VectorMA( cur_org, -64, forward, back_org );
 
-	trap_Trace( &tr, cur_org, NULL, NULL, back_org, bs->client, MASK_SHOT );
+	trap->Trace( &tr, cur_org, NULL, NULL, back_org, bs->client, MASK_SHOT , 0, 0, 0);
 
 	if (tr.entityNum < 0 || tr.entityNum > ENTITYNUM_MAX_NORMAL)
 		return qfalse;
@@ -4255,10 +4254,10 @@ qboolean DOM_BotBehave_CheckBackstab(bot_state_t *bs)
 	//adjust the moveDir to do strafing
 	DOM_AdjustforStrafe(bs, moveDir);
 	DOM_TraceMove(bs, moveDir, tr.entityNum);
-	trap_EA_Move(bs->client, moveDir, 5000);
-	trap_EA_Attack(bs->client);
+	trap->EA_Move(bs->client, moveDir, 5000);
+	trap->EA_Attack(bs->client);
 
-	//G_Printf("DOM BOT DEBUG: %s is using a backstab attack.\n", g_entities[bs->client].client->pers.netname);
+	//trap->Print("DOM BOT DEBUG: %s is using a backstab attack.\n", g_entities[bs->client].client->pers.netname);
 
 	return qtrue;
 }
@@ -4277,7 +4276,7 @@ qboolean DOM_BotBehave_CheckUseKata(bot_state_t *bs)
 	AngleVectors( bs->cur_ps.viewangles, forward, NULL, NULL );
 	VectorMA( cur_org, 64, forward, back_org );
 
-	trap_Trace( &tr, cur_org, NULL, NULL, back_org, bs->client, MASK_SHOT );
+	trap->Trace( &tr, cur_org, NULL, NULL, back_org, bs->client, MASK_SHOT , 0, 0, 0);
 
 	if (tr.entityNum < 0 || tr.entityNum > ENTITYNUM_MAX_NORMAL)
 		return qfalse;
@@ -4299,10 +4298,10 @@ qboolean DOM_BotBehave_CheckUseKata(bot_state_t *bs)
 		return qfalse;
 
 	// OK, let's stab away! bwahahaha!
-	trap_EA_Attack(bs->client);
-	trap_EA_Alt_Attack(bs->client);
+	trap->EA_Attack(bs->client);
+	trap->EA_Alt_Attack(bs->client);
 
-	//G_Printf("DOM BOT DEBUG: %s is using a kata attack.\n", g_entities[bs->client].client->pers.netname);
+	//trap->Print("DOM BOT DEBUG: %s is using a kata attack.\n", g_entities[bs->client].client->pers.netname);
 
 	return qtrue;
 }
@@ -4321,7 +4320,7 @@ qboolean DOM_BotBehave_CheckUseCrouchAttack(bot_state_t *bs)
 	AngleVectors( bs->cur_ps.viewangles, forward, NULL, NULL );
 	VectorMA( cur_org, 64, forward, back_org );
 
-	trap_Trace( &tr, cur_org, NULL, NULL, back_org, bs->client, MASK_SHOT );
+	trap->Trace( &tr, cur_org, NULL, NULL, back_org, bs->client, MASK_SHOT , 0, 0, 0);
 
 	if (tr.entityNum < 0 || tr.entityNum > ENTITYNUM_MAX_NORMAL)
 		return qfalse;
@@ -4354,12 +4353,12 @@ qboolean DOM_BotBehave_CheckUseCrouchAttack(bot_state_t *bs)
 	//adjust the moveDir to do strafing
 	DOM_AdjustforStrafe(bs, moveDir);
 	DOM_TraceMove(bs, moveDir, tr.entityNum);
-	trap_EA_Crouch(bs->client);
-	trap_EA_Move(bs->client, moveDir, 5000);
-	trap_EA_Attack(bs->client);
-	trap_EA_Alt_Attack(bs->client);
+	trap->EA_Crouch(bs->client);
+	trap->EA_Move(bs->client, moveDir, 5000);
+	trap->EA_Attack(bs->client);
+	trap->EA_Alt_Attack(bs->client);
 
-	//G_Printf("DOM BOT DEBUG: %s is using a crouch attack.\n", g_entities[bs->client].client->pers.netname);
+	//trap->Print("DOM BOT DEBUG: %s is using a crouch attack.\n", g_entities[bs->client].client->pers.netname);
 
 	return qtrue;
 }
@@ -4433,8 +4432,8 @@ void DOM_BotBehave_AttackBasic(bot_state_t *bs, gentity_t* target)
 	if(!BG_SaberInKata(bs->cur_ps.saberMove) && bs->cur_ps.fd.forcePower > 60 && 
 		bs->cur_ps.weapon == WP_SABER && dist < 128 && InFieldOfVision(bs->viewangles, 120, ang))
 	{//KATA!
-		trap_EA_Attack(bs->client);
-		trap_EA_Alt_Attack(bs->client);
+		trap->EA_Attack(bs->client);
+		trap->EA_Alt_Attack(bs->client);
 		return;
 	}
 
@@ -4543,14 +4542,14 @@ void DOM_BotBehave_AttackBasic(bot_state_t *bs, gentity_t* target)
 	if(!VectorCompare(vec3_origin, moveDir))
 	{
 		DOM_TraceMove(bs, moveDir, target->s.clientNum);
-		trap_EA_Move(bs->client, moveDir, 5000);
+		trap->EA_Move(bs->client, moveDir, 5000);
 	}
 
 	if(bs->cur_ps.weapon == bs->virtualWeapon
 		&& (InFieldOfVision(bs->viewangles, 30, ang) 
 		|| (bs->virtualWeapon == WP_SABER && InFieldOfVision(bs->viewangles, 120, ang))) )
 	{//not switching weapons so attack
-		trap_EA_Attack(bs->client);
+		trap->EA_Attack(bs->client);
 	}
 	*/
 
@@ -4570,7 +4569,7 @@ void DOM_BotBehave_Attack(bot_state_t *bs)
 		VectorCopy(enemyOrigin, bs->DestPosition);
 		bs->DestIgnore = bs->currentEnemy->s.number;
 		DOM_BotBehave_AttackMove(bs);
-		//G_Printf("Attack move.\n");
+		//trap->Print("Attack move.\n");
 		return;
 	}
 
@@ -4587,7 +4586,7 @@ void DOM_BotBehave_Attack(bot_state_t *bs)
 
 	//use basic attack
 	DOM_BotBehave_AttackBasic(bs, bs->currentEnemy);
-	//G_Printf("Attack basic.\n");
+	//trap->Print("Attack basic.\n");
 }
 
 
@@ -4805,7 +4804,7 @@ void DOM_EnemyVisualUpdate(bot_state_t *bs)
 	vectoangles(a, a);
 	a[PITCH] = a[ROLL] = 0;
 
-	trap_Trace(&tr, bs->eye, NULL, NULL, enemyOrigin, bs->client, MASK_PLAYERSOLID);
+	trap->Trace(&tr, bs->eye, NULL, NULL, enemyOrigin, bs->client, MASK_PLAYERSOLID, 0, 0, 0);
 
 	if ((tr.entityNum == bs->currentEnemy->s.number && InFieldOfVision(bs->viewangles, 90, a) && !BotMindTricked(bs->client, bs->currentEnemy->s.number)) 
 		|| BotCanHear(bs, bs->currentEnemy, dist))
@@ -4879,7 +4878,7 @@ void DOM_ScanforEnemies(bot_state_t *bs)
 	{//we're already locked onto an enemy
 		if( bs->client == bs->currentEnemy->s.number )
 		{
-			G_Printf("Somehow this bot has locked onto itself. Not good.\n");
+			trap->Print("Somehow this bot has locked onto itself. Not good.\n");
 		}
 
 		if(bs->currentTactic == BOTORDER_SEARCHANDDESTROY 
@@ -5158,7 +5157,7 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 	bs->ideal_viewangles[YAW] = irand(0,360);
 	MoveTowardIdealAngles(bs);
 	AngleVectors (bs->ideal_viewangles, g_entities[bs->client].movedir, NULL, NULL);
-	trap_EA_Move(bs->client, g_entities[bs->client].movedir, 5000);
+	trap->EA_Move(bs->client, g_entities[bs->client].movedir, 5000);
 	return;
 #endif //__BASIC_RANDOM_MOVEMENT_AI__
 
@@ -5198,7 +5197,7 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 		|| g_entities[bs->client].client->sess.sessionTeam == TEAM_SPECTATOR)
 	{//in intermission
 		//Mash the button to prevent the game from sticking on one level.
-		trap_EA_Attack(bs->client);
+		trap->EA_Attack(bs->client);
 		return;
 	}
 
@@ -5260,7 +5259,7 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 		if (rand()%10 < 5 &&
 			(!bs->doChat || bs->chatTime < level.time))
 		{
-			trap_EA_Attack(bs->client);
+			trap->EA_Attack(bs->client);
 		}
 
 		return;
@@ -5380,7 +5379,7 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 				bs->duckTime = level.time + 300;
 				if(!bs->lastucmd.forwardmove && !bs->lastucmd.rightmove)
 				{//not trying to move at all so we should at least attempt to move
-					trap_EA_MoveForward(bs->client);
+					trap->EA_MoveForward(bs->client);
 				}
 			}
 		}
@@ -5392,12 +5391,12 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 	{
 		if (bs->chatTeam)
 		{
-			trap_EA_SayTeam(bs->client, bs->currentChat);
+			trap->EA_SayTeam(bs->client, bs->currentChat);
 			bs->chatTeam = 0;
 		}
 		else
 		{
-			trap_EA_Say(bs->client, bs->currentChat);
+			trap->EA_Say(bs->client, bs->currentChat);
 		}
 		if (bs->doChat == 2)
 		{
@@ -5410,7 +5409,7 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 
 	if(bs->duckTime > level.time)
 	{
-		trap_EA_Crouch(bs->client);
+		trap->EA_Crouch(bs->client);
 	}
 
 	/*
@@ -5430,7 +5429,7 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 			}
 			else if (bs->cur_ps.origin[2] + 16 < bs->wpNext->origin[2])
 			{
-				trap_EA_Jump(bs->client);
+				trap->EA_Jump(bs->client);
 
 				if (g_entities[bs->client].client->ps.groundEntityNum == ENTITYNUM_NONE)
 				{
@@ -5468,7 +5467,7 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 		{
 			//if (bs->currentEnemy->client && bs->currentEnemy->client->ps.groundEntityNum != ENTITYNUM_NONE)
 			{
-				trap_EA_Jump(bs->client);
+				trap->EA_Jump(bs->client);
 
 				if (g_entities[bs->client].client->ps.groundEntityNum == ENTITYNUM_NONE)
 				{
@@ -5485,7 +5484,7 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 
 	if(bs->jumpTime > level.time)
 	{
-		trap_EA_Jump(bs->client);
+		trap->EA_Jump(bs->client);
 
 		if (g_entities[bs->client].client->ps.groundEntityNum == ENTITYNUM_NONE)
 		{
@@ -5496,18 +5495,18 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 	//use action
 	if(bs->useTime >level.time)
 	{
-		trap_EA_Use(bs->client);
+		trap->EA_Use(bs->client);
 	}
 
 	//attack actions
 	if(bs->doAttack)
 	{
-		trap_EA_Attack(bs->client);
+		trap->EA_Attack(bs->client);
 	}
 
 	if(bs->doAltAttack)
 	{
-		trap_EA_Alt_Attack(bs->client);
+		trap->EA_Alt_Attack(bs->client);
 	}
 
 	//Force powers are listed in terms of priority
@@ -5529,7 +5528,7 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 	{
 		if (bot_forcepowers.integer && !g_forcePowerDisable.integer)
 		{
-			trap_EA_ForcePower(bs->client);
+			trap->EA_ForcePower(bs->client);
 		}
 	}
 
@@ -5833,7 +5832,7 @@ void Update_DOM_Goal_Lists ( void )
 		num_DOM_objectives = 0;
 
 #ifdef _DEBUG
-	//G_Printf("DOMINATION WAYPOINTING DEBUG: There are currently %i DOM objectives.\n", num_DOM_objectives);
+	//trap->Print("DOMINATION WAYPOINTING DEBUG: There are currently %i DOM objectives.\n", num_DOM_objectives);
 #endif //_DEBUG
 }
 
@@ -5864,7 +5863,7 @@ int DOM_Find_Goal_EntityNum ( int ignoreEnt, int ignoreEnt2, vec3_t current_org,
 		{
 			int			current_obj = DOMObjectives[Q_irand(0, loop)];
 			gentity_t	*test = &g_entities[current_obj];
-			float		current_dist = VectorDistance(test->s.origin, current_org);
+			float		current_dist = Distance(test->s.origin, current_org);
 			
 			if ( current_dist > best_dist)
 				continue;
@@ -5915,11 +5914,11 @@ int DOM_FindFFAGoal( gentity_t *bot, bot_state_t *bs )
 
 	if (!ent)
 	{
-		//G_Printf("Failed to find a goal entity!\n");
+		//trap->Print("Failed to find a goal entity!\n");
 		return -1;
 	}
 
-	//G_Printf("NPC_FindGoal: Found a goal entity %s (%i).\n", ent->classname, ent->s.number);
+	//trap->Print("NPC_FindGoal: Found a goal entity %s (%i).\n", ent->classname, ent->s.number);
 
 	wp = DOM_GetBestWaypoint( ent->r.currentOrigin, ent->s.number, -1 );//DOM_GetNearestWP(ent->s.origin, -1);
 
@@ -5985,12 +5984,12 @@ gentity_t * DOM_DetermineObjectiveType(gentity_t *bot, int team, int objective, 
 			botstates[bot->s.number]->wpDestination = gWPArray[DOM_FindFFAGoal( bot, botstates[bot->s.number] )];
 			test = botstates[bot->s.number]->tacticEntity;
 
-			//G_Printf("%s: Warzone wanted objective type not found! Using a random type!\n", bot->client->pers.netname);
+			//trap->Print("%s: Warzone wanted objective type not found! Using a random type!\n", bot->client->pers.netname);
 		}
 		else
 		{
 			*type = found_type;
-			//G_Printf("%s: Warzone wanted objective type set!\n", bot->client->pers.netname);
+			//trap->Print("%s: Warzone wanted objective type set!\n", bot->client->pers.netname);
 		}
 #else //!__OLD__
 		test = &g_entities[DOM_Find_Goal_EntityNum( -1, -1, bot->r.currentOrigin, bot->client->sess.sessionTeam )];
@@ -6036,7 +6035,7 @@ gentity_t * DOM_DetermineObjectiveType(gentity_t *bot, int team, int objective, 
 		}
 		else
 		{
-			G_Printf("DOM_DetermineObjectiveType() Error: Bad ObjectiveType Given for CTF flag find.\n");
+			trap->Print("DOM_DetermineObjectiveType() Error: Bad ObjectiveType Given for CTF flag find.\n");
 			return NULL;
 		}
 		test = G_Find (test, FOFS(classname), c);
@@ -6113,7 +6112,7 @@ gentity_t * DOM_DetermineObjectiveType(gentity_t *bot, int team, int objective, 
 			}
 			else
 			{
-				G_Printf("Bad attacker state for func_breakable objective in DOM_DetermineObjectiveType().\n");
+				trap->Print("Bad attacker state for func_breakable objective in DOM_DetermineObjectiveType().\n");
 				return test;
 			}
 			break;
@@ -6166,7 +6165,7 @@ gentity_t * DOM_DetermineObjectiveType(gentity_t *bot, int team, int objective, 
 					}
 					else
 					{
-						G_Printf("Bad attacker state for vehicle trigger_once objective in DOM_DetermineObjectiveType().\n");
+						trap->Print("Bad attacker state for vehicle trigger_once objective in DOM_DetermineObjectiveType().\n");
 						return test;
 					}
 				}
@@ -6184,7 +6183,7 @@ gentity_t * DOM_DetermineObjectiveType(gentity_t *bot, int team, int objective, 
 					}
 					else
 					{
-						G_Printf("Bad attacker state for func_usable objective in DOM_DetermineObjectiveType().\n");
+						trap->Print("Bad attacker state for func_usable objective in DOM_DetermineObjectiveType().\n");
 						return test;
 					}
 				}
@@ -6212,7 +6211,7 @@ gentity_t * DOM_DetermineObjectiveType(gentity_t *bot, int team, int objective, 
 			}
 			else
 			{
-				G_Printf("Bad attacker state for misc_siege_item objective in DOM_DetermineObjectiveType().\n");
+				trap->Print("Bad attacker state for misc_siege_item objective in DOM_DetermineObjectiveType().\n");
 				return test;
 			}
 			break;
@@ -6238,7 +6237,7 @@ gentity_t * DOM_DetermineObjectiveType(gentity_t *bot, int team, int objective, 
 			}
 			else
 			{
-				G_Printf("Bad attacker state for misc_siege_item (target3) objective in DOM_DetermineObjectiveType().\n");
+				trap->Print("Bad attacker state for misc_siege_item (target3) objective in DOM_DetermineObjectiveType().\n");
 				return test;
 			}
 			break;
@@ -6264,7 +6263,7 @@ gentity_t * DOM_DetermineObjectiveType(gentity_t *bot, int team, int objective, 
 			}
 			else
 			{
-				G_Printf("Bad attacker state for misc_siege_item (target4) objective in DOM_DetermineObjectiveType().\n");
+				trap->Print("Bad attacker state for misc_siege_item (target4) objective in DOM_DetermineObjectiveType().\n");
 				return test;
 			}
 			break;
@@ -6327,7 +6326,7 @@ void DOM_objectiveType_Attack(bot_state_t *bs, gentity_t *target)
 	vectoangles(a, a);
 	a[PITCH] = a[ROLL] = 0;
 
-	trap_Trace(&tr, bs->eye, NULL, NULL, objOrigin, bs->client, MASK_PLAYERSOLID);
+	trap->Trace(&tr, bs->eye, NULL, NULL, objOrigin, bs->client, MASK_PLAYERSOLID, 0, 0, 0);
 
 	if (((tr.entityNum == target->s.number || tr.fraction == 1)
 		&& (InFieldOfVision(bs->viewangles, 90, a) || bs->cur_ps.groundEntityNum == target->s.number)
@@ -6478,7 +6477,7 @@ gentity_t *DOM_CapObjectiveCarrier(bot_state_t *bs)
 			return carrier;
 	}
 
-	G_Printf("DOM_CapObjectiveCarrier() Error: Couldn't find carrier entity.\n");
+	trap->Print("DOM_CapObjectiveCarrier() Error: Couldn't find carrier entity.\n");
 	return NULL;
 }
 
@@ -6784,7 +6783,7 @@ void DOM_BotObjective(bot_state_t *bs)
 	}
 	else
 	{
-		G_Printf("Bad/Unknown ObjectiveType in DOM_BotObjective.\n");
+		trap->Print("Bad/Unknown ObjectiveType in DOM_BotObjective.\n");
 	}
 }
 
@@ -6903,7 +6902,7 @@ AIMod_CheckObjectivePaths ( gentity_t *ent )
 
 	if (wp < 0)
 	{
-		G_Printf( "No routes - No waypoint was found at your current position!\n");
+		trap->Print( "No routes - No waypoint was found at your current position!\n");
 		return;
 	}
 
@@ -6911,7 +6910,7 @@ AIMod_CheckObjectivePaths ( gentity_t *ent )
 
 	my_wp = gWPArray[wp];
 
-	G_Printf( "Finding bot objectives for %s at node number %i (%f %f %f).\n", ent->client->pers.netname,
+	trap->Print( "Finding bot objectives for %s at node number %i (%f %f %f).\n", ent->client->pers.netname,
 		my_wp->index, my_wp->origin[0], my_wp->origin[1], my_wp->origin[2] );
 
 	ShowLinkInfo(wp, ent);
@@ -6935,10 +6934,10 @@ AIMod_CheckObjectivePaths ( gentity_t *ent )
 		//if (pathsize <= 0) // Alt A* Pathing...
 		//	pathsize = DOM_FindIdealPathtoWP(NULL, wp, goal_wp, -1, pathlist);
 
-		G_Printf( "Objective %i (%s) pathsize is %i.\n", i, goal->classname, pathsize );
+		trap->Print( "Objective %i (%s) pathsize is %i.\n", i, goal->classname, pathsize );
 	}
 
-	G_Printf( "Complete.\n" );
+	trap->Print( "Complete.\n" );
 
 	PATHING_IGNORE_FRAME_TIME = qfalse;
 }
@@ -6955,13 +6954,13 @@ AIMod_CheckMapPaths ( gentity_t *ent )
 
 	if (!current_wp)
 	{
-		G_Printf("No waypoint found!\n");
+		trap->Print("No waypoint found!\n");
 		return;
 	}
 
 	PATHING_IGNORE_FRAME_TIME = qtrue;
 
-	G_Printf( "Finding bot objectives for %s at node number %i (%f %f %f).\n", ent->client->pers.netname,
+	trap->Print( "Finding bot objectives for %s at node number %i (%f %f %f).\n", ent->client->pers.netname,
 				 current_wp, gWPArray[current_wp]->origin[0], gWPArray[current_wp]->origin[1],
 				 gWPArray[current_wp]->origin[2] );
 
@@ -6988,10 +6987,10 @@ AIMod_CheckMapPaths ( gentity_t *ent )
 		//if (pathsize <= 0) // Alt A* Pathing...
 		//	pathsize = DOM_FindIdealPathtoWP(NULL, current_wp, longTermGoal, -1, pathlist);
 
-		G_Printf( "Objective %i (%s) pathsize is %i.\n", i, goal->classname, pathsize );
+		trap->Print( "Objective %i (%s) pathsize is %i.\n", i, goal->classname, pathsize );
 	}
 
-	G_Printf( "Complete.\n" );
+	trap->Print( "Complete.\n" );
 
 	PATHING_IGNORE_FRAME_TIME = qfalse;
 }

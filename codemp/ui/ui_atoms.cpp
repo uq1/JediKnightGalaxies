@@ -1,5 +1,26 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 /**********************************************************************
 	UI_ATOMS.C
 
@@ -17,7 +38,7 @@ void QDECL UI_Printf( const char *msg, ... ) {
 	Q_vsnprintf( text, sizeof( text ), msg, argptr );
 	va_end( argptr );
 
-	trap_Print( text );
+	trap->Print( text );
 }
 
 void QDECL UI_Error( const char *msg, ... ) {
@@ -28,33 +49,7 @@ void QDECL UI_Error( const char *msg, ... ) {
 	Q_vsnprintf( text, sizeof( text ), msg, argptr );
 	va_end (argptr);
 
-	trap_Error( text );
-}
-
-void QDECL Com_Error( int level, const char *error, ... ) {
-	va_list		argptr;
-	char		text[4096] = {0};
-
-	va_start (argptr, error);
-	Q_vsnprintf( text, sizeof( text ), error, argptr );
-	va_end (argptr);
-
-	trap_Error( va("%s", text) );
-}
-
-void QDECL Com_Printf( const char *msg, ... ) {
-	va_list		argptr;
-	char		text[4096] = {0};
-	int ret;
-
-	va_start (argptr, msg);
-	ret = Q_vsnprintf (text, sizeof( text ), msg, argptr);
-	va_end (argptr);
-
-	if ( ret == -1 )
-		trap_Print( "Com_Printf: overflow of 4096 bytes buffer\n" );
-	else
-		trap_Print( va("%s", text) );
+	trap->Error( ERR_DROP, text );
 }
 
 qboolean newUI = qfalse;
@@ -78,14 +73,14 @@ UI_StartDemoLoop
 =================
 */
 void UI_StartDemoLoop( void ) {
-	trap_Cmd_ExecuteText( EXEC_APPEND, "d1\n" );
+	trap->Cmd_ExecuteText( EXEC_APPEND, "d1\n" );
 }
 
 
 char *UI_Argv( int arg ) {
 	static char	buffer[MAX_STRING_CHARS];
 
-	trap_Argv( arg, buffer, sizeof( buffer ) );
+	trap->Cmd_Argv( arg, buffer, sizeof( buffer ) );
 
 	return buffer;
 }
@@ -94,7 +89,7 @@ char *UI_Argv( int arg ) {
 char *UI_Cvar_VariableString( const char *var_name ) {
 	static char	buffer[MAX_STRING_CHARS];
 
-	trap_Cvar_VariableStringBuffer( var_name, buffer, sizeof( buffer ) );
+	trap->Cvar_VariableStringBuffer( var_name, buffer, sizeof( buffer ) );
 
 	return buffer;
 }
@@ -102,10 +97,10 @@ char *UI_Cvar_VariableString( const char *var_name ) {
 static void	UI_Cache_f() {
 	int i;
 	Display_CacheAll();
-	if (trap_Argc() == 2) {
+	if (trap->Cmd_Argc() == 2) {
 		for (i = 0; i < uiInfo.q3HeadCount; i++)
 		{
-			trap_Print( va("model %s\n", uiInfo.q3HeadNames[i]) );
+			trap->Print( va("model %s\n", uiInfo.q3HeadNames[i]) );
 		}
 	}
 }
@@ -118,7 +113,7 @@ int testMasterFinalFunc (asyncTask_t *task) {
 	cJSON *data = (cJSON *)task->finalData;
 	
 	if (task->errorCode == 0) {
-		Com_Printf("Test successful! (bounce: %i - %i)\n", cJSON_ToInteger(cJSON_GetObjectItem(data, "bounce")), trap_Milliseconds());
+		Com_Printf("Test successful! (bounce: %i - %i)\n", cJSON_ToInteger(cJSON_GetObjectItem(data, "bounce")), trap->Milliseconds());
 	} else {
 		Com_Printf("Test failed!\n");
 	}
@@ -214,9 +209,9 @@ qboolean UI_ConsoleCommand( int realTime ) {
 		char password[32];
 		char email[64];
 
-		trap_Argv(1, username, 32);
-		trap_Argv(2, password, 32);
-		trap_Argv(3, email, 32);
+		trap->Argv(1, username, 32);
+		trap->Argv(2, password, 32);
+		trap->Argv(3, email, 32);
 
 		JKG_GLUI_Task_RegisterUser(username, password, email, registerFinalFunc);
 		return qtrue;
@@ -226,8 +221,8 @@ qboolean UI_ConsoleCommand( int realTime ) {
 		char username[32];
 		char password[32];
 
-		trap_Argv(1, username, 32);
-		trap_Argv(2, password, 32);
+		trap->Argv(1, username, 32);
+		trap->Argv(2, password, 32);
 
 		JKG_GLUI_Task_Login(username, password, loginFinalFunc);
 		return qtrue;
@@ -248,12 +243,12 @@ qboolean UI_ConsoleCommand( int realTime ) {
 
 	if ( Q_stricmp (cmd, "ui_openmenu" ) == 0 ) 
 	{
-		//if ( trap_Cvar_VariableValue ( "developer" ) )
+		//if ( trap->Cvar_VariableValue ( "developer" ) )
 		{
 			Menus_CloseAll();
 			if (Menus_ActivateByName(UI_Argv(1)))
 			{
-				trap_Key_SetCatcher( KEYCATCH_UI );
+				trap->Key_SetCatcher( KEYCATCH_UI );
 			}
 			return qtrue;
 		}
@@ -275,20 +270,11 @@ qboolean UI_ConsoleCommand( int realTime ) {
 	return qfalse;
 }
 
-/*
-=================
-UI_Shutdown
-=================
-*/
-void UI_Shutdown( void ) {
-}
-
-
 void UI_DrawNamedPic( float x, float y, float width, float height, const char *picname ) {
 	qhandle_t	hShader;
 
-	hShader = trap_R_RegisterShaderNoMip( picname );
-	trap_R_DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
+	hShader = trap->R_RegisterShaderNoMip( picname );
+	trap->R_DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
 }
 
 void UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader ) {
@@ -317,7 +303,7 @@ void UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader ) {
 		t1 = 1;
 	}
 	
-	trap_R_DrawStretchPic( x, y, w, h, s0, t0, s1, t1, hShader );
+	trap->R_DrawStretchPic( x, y, w, h, s0, t0, s1, t1, hShader );
 }
 
 /*
@@ -328,23 +314,23 @@ Coordinates are 640*480 virtual values
 =================
 */
 void UI_FillRect( float x, float y, float width, float height, const float *color ) {
-	trap_R_SetColor( color );
+	trap->R_SetColor( color );
 
-	trap_R_DrawStretchPic( x, y, width, height, 0, 0, 0, 0, uiInfo.uiDC.whiteShader );
+	trap->R_DrawStretchPic( x, y, width, height, 0, 0, 0, 0, uiInfo.uiDC.whiteShader );
 
-	trap_R_SetColor( NULL );
+	trap->R_SetColor( NULL );
 }
 
 void UI_DrawSides(float x, float y, float w, float h) {
 	float size = 1 / uiInfo.uiDC.xscale;
-	trap_R_DrawStretchPic( x, y, size, h, 0, 0, 0, 0, uiInfo.uiDC.whiteShader );
-	trap_R_DrawStretchPic( x + w - size, y, size, h, 0, 0, 0, 0, uiInfo.uiDC.whiteShader );
+	trap->R_DrawStretchPic( x, y, size, h, 0, 0, 0, 0, uiInfo.uiDC.whiteShader );
+	trap->R_DrawStretchPic( x + w - size, y, size, h, 0, 0, 0, 0, uiInfo.uiDC.whiteShader );
 }
 
 void UI_DrawTopBottom(float x, float y, float w, float h) {
 	float size = 1 / uiInfo.uiDC.yscale;
-	trap_R_DrawStretchPic( x, y, w, size, 0, 0, 0, 0, uiInfo.uiDC.whiteShader );
-	trap_R_DrawStretchPic( x, y + h - size, w, size, 0, 0, 0, 0, uiInfo.uiDC.whiteShader );
+	trap->R_DrawStretchPic( x, y, w, size, 0, 0, 0, 0, uiInfo.uiDC.whiteShader );
+	trap->R_DrawStretchPic( x, y + h - size, w, size, 0, 0, 0, 0, uiInfo.uiDC.whiteShader );
 }
 /*
 ================
@@ -354,20 +340,16 @@ Coordinates are 640*480 virtual values
 =================
 */
 void UI_DrawRect( float x, float y, float width, float height, const float *color ) {
-	trap_R_SetColor( color );
+	trap->R_SetColor( color );
 
-  UI_DrawTopBottom(x, y, width, height);
-  UI_DrawSides(x, y, width, height);
+	UI_DrawTopBottom(x, y, width, height);
+	UI_DrawSides(x, y, width, height);
 
-	trap_R_SetColor( NULL );
-}
-
-void UI_SetColor( const float *rgba ) {
-	trap_R_SetColor( rgba );
+	trap->R_SetColor( NULL );
 }
 
 void UI_UpdateScreen( void ) {
-	trap_UpdateScreen();
+	trap->UpdateScreen();
 }
 
 

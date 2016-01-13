@@ -1,5 +1,26 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // cg_info.c -- display information while data is being loading
 
 #include "cg_local.h"
@@ -21,7 +42,7 @@ CG_LoadingString
 void CG_LoadingString( const char *s ) {
 	Q_strncpyz( cg.infoScreenText, s, sizeof( cg.infoScreenText ) );
 
-	trap_UpdateScreen();
+	trap->UpdateScreen();
 }
 
 /*
@@ -71,14 +92,14 @@ void CG_LoadingClient( int clientNum ) {
 
 		Com_sprintf( iconName, MAX_QPATH, "models/players/%s/icon_%s.tga", model, skin );
 		
-		loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
+		loadingPlayerIcons[loadingPlayerIconCount] = trap->R_RegisterShaderNoMip( iconName );
 		if ( !loadingPlayerIcons[loadingPlayerIconCount] ) {
 			Com_sprintf( iconName, MAX_QPATH, "models/players/characters/%s/icon_%s.tga", model, skin );
-			loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
+			loadingPlayerIcons[loadingPlayerIconCount] = trap->R_RegisterShaderNoMip( iconName );
 		}
 		if ( !loadingPlayerIcons[loadingPlayerIconCount] ) {
 			Com_sprintf( iconName, MAX_QPATH, "models/players/%s/icon_%s.tga", DEFAULT_MODEL, "default" );
-			loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
+			loadingPlayerIcons[loadingPlayerIconCount] = trap->R_RegisterShaderNoMip( iconName );
 		}
 		if ( loadingPlayerIcons[loadingPlayerIconCount] ) {
 			loadingPlayerIconCount++;
@@ -90,7 +111,7 @@ void CG_LoadingClient( int clientNum ) {
 
 	/*
 	if( cgs.gametype == GT_SINGLE_PLAYER ) {
-		trap_S_RegisterSound( va( "sound/player/announce/%s.wav", personality ));
+		trap->S_RegisterSound( va( "sound/player/announce/%s.wav", personality ));
 	}
 	*/
 
@@ -121,11 +142,11 @@ void CG_DrawInformation( void ) {
 	sysInfo = CG_ConfigString( CS_SYSTEMINFO );
 
 	s = Info_ValueForKey( info, "mapname" );
-	levelshot = trap_R_RegisterShaderNoMip( va( "levelshots/%s", s ) );
+	levelshot = trap->R_RegisterShaderNoMip( va( "levelshots/%s", s ) );
 	if ( !levelshot ) {
-		levelshot = trap_R_RegisterShaderNoMip( "menu/art/unknownmap_mp" );
+		levelshot = trap->R_RegisterShaderNoMip( "menu/art/unknownmap_mp" );
 	}
-	trap_R_SetColor( NULL );
+	trap->R_SetColor( NULL );
 	CG_DrawPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, levelshot );
 
 	CG_LoadBar();
@@ -138,7 +159,7 @@ void CG_DrawInformation( void ) {
 	if ( cg.infoScreenText[0] ) {
 		const char *psLoading = CG_GetStringEdString("MENUS", "LOADING_MAPNAME");
 		UI_DrawProportionalString( 425, 105, ( const char * ) va(( char * ) /*"Loading... %s"*/ psLoading, cg.infoScreenText),
-			UI_CENTER|UI_BIGFONT|UI_DROPSHADOW, colorWhite, FONT_SMALL3 );		
+			UI_RIGHT|UI_BIGFONT|UI_DROPSHADOW, colorWhite, FONT_SMALL3 );		
 	} else {
 		const char *psAwaitingSnapshot = CG_GetStringEdString("MENUS", "AWAITING_SNAPSHOT");
 		UI_DrawProportionalString( 320, 128-32, ( const char * )  /*"Awaiting snapshot..."*/psAwaitingSnapshot,
@@ -160,7 +181,7 @@ void CG_LoadBar(void)
 	const int barheight = tickheight + tickpady*2, bartop = 480-barheight;
 	const int capleft = barleft+tickpadx, tickleft = capleft+capwidth, ticktop = bartop+tickpady;
 
-	trap_R_SetColor( colorWhite );
+	trap->R_SetColor( colorWhite );
 	// Draw background
 	CG_DrawPic(barleft, bartop, barwidth, barheight, cgs.media.loadBarLEDSurround);
 

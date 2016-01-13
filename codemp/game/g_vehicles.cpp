@@ -1,16 +1,30 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 #include "qcommon/q_shared.h"
 #include "g_local.h"
-#define _JK2
-#ifdef _JK2 //SP does not have this preprocessor for game like MP does
-#ifndef _JK2MP
-#define _JK2MP
-#endif
-#endif
 
 #include "bg_vehicles.h"
 
-#ifdef _JK2MP
 //this is really horrible, but it works! just be sure not to use any locals or anything
 //with these names (exluding bool, false, true). -rww
 
@@ -18,31 +32,30 @@
 #define sqrtf sqrt
 
 #define MOD_EXPLOSIVE MOD_SUICIDE
-#endif
 
 extern gentity_t *NPC_Spawn_Do( gentity_t *ent );
 extern void NPC_SetAnim(gentity_t	*ent,int setAnimParts,int anim,int setAnimFlags);
 
-extern void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags, int blendTime);
+extern void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags);
 extern void BG_SetLegsAnimTimer(playerState_t *ps, int time );
 extern void BG_SetTorsoAnimTimer(playerState_t *ps, int time );
 void G_VehUpdateShields( gentity_t *targ );
-#ifdef QAGAME
+#ifdef _GAME
 extern void VEH_TurretThink( Vehicle_t *pVeh, gentity_t *parent, int turretNum );
 #endif
 
 extern qboolean BG_UnrestrainedPitchRoll( playerState_t *ps, Vehicle_t *pVeh );
 
-void Vehicle_SetAnim(gentity_t *ent,int setAnimParts,int anim,int setAnimFlags, int iBlend)
+void Vehicle_SetAnim(gentity_t *ent,int setAnimParts,int anim,int setAnimFlags)
 {
 	assert(ent->client);
-	BG_SetAnim(&ent->client->ps, bgAllAnims[ent->localAnimIndex].anims, setAnimParts, anim, setAnimFlags, iBlend);
+	BG_SetAnim(&ent->client->ps, bgAllAnims[ent->localAnimIndex].anims, setAnimParts, anim, setAnimFlags);
 	ent->s.legsAnim = ent->client->ps.legsAnim;
 }
 
 void G_VehicleTrace( trace_t *results, const vec3_t start, const vec3_t tMins, const vec3_t tMaxs, const vec3_t end, int passEntityNum, int contentmask )
 {
-	trap_Trace(results, start, tMins, tMaxs, end, passEntityNum, contentmask);
+	trap->Trace(results, start, tMins, tMaxs, end, passEntityNum, contentmask, 0, 0, 0);
 }
 
 Vehicle_t *G_IsRidingVehicle( gentity_t *pEnt )
@@ -69,7 +82,7 @@ void G_VehicleSpawn( gentity_t *self )
 
 	VectorCopy( self->r.currentOrigin, self->s.origin );
 
-	trap_LinkEntity( self );
+	trap->LinkEntity( (sharedEntity_t *)self );
 
 	if ( !self->count )
 	{
@@ -125,15 +138,15 @@ void G_AttachToVehicle( gentity_t *pEnt, usercmd_t **ucmd )
 	if ( !vehEnt->m_pVehicle )
 		return;
 
-	crotchBolt = trap_G2API_AddBolt(vehEnt->ghoul2, 0, "*driver");
+	crotchBolt = trap->G2API_AddBolt(vehEnt->ghoul2, 0, "*driver");
 
 	// Get the driver tag.
-	trap_G2API_GetBoltMatrix( vehEnt->ghoul2, 0, crotchBolt, &boltMatrix,
+	trap->G2API_GetBoltMatrix( vehEnt->ghoul2, 0, crotchBolt, &boltMatrix,
 							vehEnt->m_pVehicle->m_vOrientation, vehEnt->r.currentOrigin,
 							level.time, NULL, vehEnt->modelScale );
 	BG_GiveMeVectorFromMatrix( &boltMatrix, ORIGIN, ent->client->ps.origin );
 	G_SetOrigin(ent, ent->client->ps.origin);
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 }
 
 // Animate the vehicle and it's riders.
@@ -260,30 +273,18 @@ qboolean ValidateBoard( Vehicle_t *pVeh, bgEntity_t *pEnt )
 void FighterStorePilotViewAngles( Vehicle_t *pVeh, bgEntity_t *parent )
 {
 	playerState_t *riderPS;
-#ifdef _JK2MP
 	bgEntity_t *rider = NULL;
 	if (parent->s.owner != ENTITYNUM_NONE)
 	{
 		rider = PM_BGEntForNum(parent->s.owner); //&g_entities[parent->r.ownerNum];
 	}
-#else
-	gentity_t *rider = parent->owner;
-#endif
 
-#ifdef _JK2MP
 	if ( !rider )
-#else
-	if ( !rider || !rider->client )
-#endif
 	{
 		rider = parent;
 	}
 
-#ifdef _JK2MP
 	riderPS = rider->playerState;
-#else
-	riderPS = &rider->client->ps;
-#endif
 	VectorClear( pVeh->m_vPrevRiderViewAngles );
 	pVeh->m_vPrevRiderViewAngles[YAW] = AngleNormalize180(riderPS->viewangles[YAW]);
 }
@@ -335,7 +336,7 @@ qboolean Board( Vehicle_t *pVeh, bgEntity_t *pEnt )
 				if ( pVeh->m_ppPassengers[i] == NULL )
 				{
 					pVeh->m_ppPassengers[i] = (bgEntity_t *)ent;
-#ifdef QAGAME
+#ifdef _GAME
 					//Server just needs to tell client which passengernum he is
 					if ( ent->client )
 					{
@@ -363,7 +364,7 @@ qboolean Board( Vehicle_t *pVeh, bgEntity_t *pEnt )
 			parent->s.owner = parent->r.ownerNum; //for prediction
 		}
 
-#ifdef QAGAME		
+#ifdef _GAME		
 		{
 			gentity_t *gParent = (gentity_t *)parent;
 			if ( (gParent->spawnflags&2) )
@@ -421,7 +422,7 @@ qboolean Board( Vehicle_t *pVeh, bgEntity_t *pEnt )
 				if ( pVeh->m_ppPassengers[i] == NULL )
 				{
 					pVeh->m_ppPassengers[i] = (bgEntity_t *)ent;
-#ifdef QAGAME
+#ifdef _GAME
 					//Server just needs to tell client which passengernum he is
 					if ( ent->client )
 					{
@@ -585,7 +586,7 @@ void G_EjectDroidUnit( Vehicle_t *pVeh, qboolean kill )
 	pVeh->m_pDroidUnit->s.m_iVehicleNum = ENTITYNUM_NONE;
 	pVeh->m_pDroidUnit->s.owner = ENTITYNUM_NONE;
 //	pVeh->m_pDroidUnit->s.otherEntityNum2 = ENTITYNUM_NONE;
-#ifdef QAGAME
+#ifdef _GAME
 	{
 		gentity_t *droidEnt = (gentity_t *)pVeh->m_pDroidUnit;
 		droidEnt->flags &= ~FL_UNDYING;
@@ -692,7 +693,7 @@ qboolean Eject( Vehicle_t *pVeh, bgEntity_t *pEnt, qboolean forceEject )
 	// Move them to the exit position.
 	G_SetOrigin( ent, vExitPos );
 	VectorCopy(ent->r.currentOrigin, ent->client->ps.origin);
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 
 	//in MP if someone disconnects on us, we still have to clear our owner
 getItOutOfMe:
@@ -723,7 +724,7 @@ getItOutOfMe:
 				parent->client->ps.m_iVehicleNum = pVeh->m_ppPassengers[j]->s.number+1;
 
 				//rearrange the passenger slots now..
-#ifdef QAGAME
+#ifdef _GAME
 				//Server just needs to tell client he's not a passenger anymore
 				if ( ((gentity_t *)pVeh->m_ppPassengers[j])->client )
 				{
@@ -737,7 +738,7 @@ getItOutOfMe:
 					{ //move down
 						pVeh->m_ppPassengers[k-1] = pVeh->m_ppPassengers[k];
 						pVeh->m_ppPassengers[k] = NULL;
-#ifdef QAGAME
+#ifdef _GAME
 						//Server just needs to tell client which passenger he is
 						if ( ((gentity_t *)pVeh->m_ppPassengers[k-1])->client )
 						{
@@ -767,7 +768,7 @@ getItOutOfMe:
 			// If we found him...
 			if ( (gentity_t *)pVeh->m_ppPassengers[i] == ent )
 			{
-#ifdef QAGAME
+#ifdef _GAME
 				//Server just needs to tell client he's not a passenger anymore
 				if ( ((gentity_t *)pVeh->m_ppPassengers[i])->client )
 				{
@@ -861,11 +862,11 @@ qboolean EjectAll( Vehicle_t *pVeh )
 	// Throw them off.
 	if ( pVeh->m_pPilot )
 	{
-#ifdef QAGAME
+#ifdef _GAME
 		gentity_t *pilot = (gentity_t*)pVeh->m_pPilot;
 #endif
 		pVeh->m_pVehicleInfo->Eject( pVeh, pVeh->m_pPilot, qtrue );
-#ifdef QAGAME
+#ifdef _GAME
 		if ( pVeh->m_pVehicleInfo->killRiderOnDeath && pilot )
 		{//Kill them, too
 			//FIXME: proper origin, MOD and attacker (for credit/death message)?  Get from vehicle?
@@ -876,11 +877,11 @@ qboolean EjectAll( Vehicle_t *pVeh )
 	}
 	if ( pVeh->m_pOldPilot )
 	{
-#ifdef QAGAME
+#ifdef _GAME
 		gentity_t *pilot = (gentity_t*)pVeh->m_pOldPilot;
 #endif
 		pVeh->m_pVehicleInfo->Eject( pVeh, pVeh->m_pOldPilot, qtrue );
-#ifdef QAGAME
+#ifdef _GAME
 		if ( pVeh->m_pVehicleInfo->killRiderOnDeath && pilot )
 		{//Kill them, too
 			//FIXME: proper origin, MOD and attacker (for credit/death message)?  Get from vehicle?
@@ -897,11 +898,11 @@ qboolean EjectAll( Vehicle_t *pVeh )
 		{
 			if ( pVeh->m_ppPassengers[i] )
 			{
-#ifdef QAGAME
+#ifdef _GAME
 				gentity_t *rider = (gentity_t*)pVeh->m_ppPassengers[i];
 #endif
 				pVeh->m_pVehicleInfo->Eject( pVeh, pVeh->m_ppPassengers[i], qtrue );
-#ifdef QAGAME
+#ifdef _GAME
 				if ( pVeh->m_pVehicleInfo->killRiderOnDeath && rider )
 				{//Kill them, too
 					//FIXME: proper origin, MOD and attacker (for credit/death message)?  Get from vehicle?
@@ -1112,13 +1113,12 @@ qboolean Initialize( Vehicle_t *pVeh )
 	parent->client->ps.stats[STAT_WEAPONS] |= (1<<WP_BLASTER);
 
 	//Initialize to landed (wings closed, gears down) animation
-	{
-		int iFlags = SETANIM_FLAG_NORMAL, iBlend = 300;
-		pVeh->m_ulFlags |= VEH_GEARSOPEN;
-		BG_SetAnim(pVeh->m_pParentEntity->playerState, 
-			bgAllAnims[pVeh->m_pParentEntity->localAnimIndex].anims,
-			SETANIM_BOTH, BOTH_VS_IDLE, iFlags, iBlend);
-	}
+	pVeh->m_ulFlags |= VEH_GEARSOPEN;
+	BG_SetAnim(pVeh->m_pParentEntity->playerState,
+				bgAllAnims[pVeh->m_pParentEntity->localAnimIndex].anims,
+				SETANIM_BOTH,
+				BOTH_VS_IDLE,
+				SETANIM_FLAG_NORMAL);
 
 	return qtrue;
 }
@@ -1142,7 +1142,7 @@ static qboolean Update( Vehicle_t *pVeh, const usercmd_t *pUmcd )
 
 	parentPS =  pVeh->m_pParentEntity->playerState;
 
-#ifdef QAGAME//MP GAME
+#ifdef _GAME//MP GAME
 	curTime = level.time;
 #else
 	//FIXME: pass in ucmd?  Not sure if this is reliable...
@@ -1262,7 +1262,7 @@ static qboolean Update( Vehicle_t *pVeh, const usercmd_t *pUmcd )
 		return qfalse;
 	}
 	
-#ifdef QAGAME
+#ifdef _GAME
 	if (parent->spawnflags & 1)
 	{
 		if (pVeh->m_pPilot || !pVeh->m_bHasHadPilot)
@@ -1428,7 +1428,7 @@ static qboolean Update( Vehicle_t *pVeh, const usercmd_t *pUmcd )
 		}
 	}
 
-#ifdef QAGAME
+#ifdef _GAME
 	for ( i = 0; i < MAX_VEHICLE_TURRETS; i++ )
 	{//HMM... can't get a seperate command for each weapon, so do them all...?
 		VEH_TurretThink( pVeh, parent, i );
@@ -1587,7 +1587,7 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 				if ( pVeh->m_pVehicleInfo->Eject( pVeh, pRider, qfalse ) )
 				{
 					animNumber_t Anim;
-					int iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_HOLDLESS, iBlend = 300;
+					int iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_HOLDLESS;
 					if ( pUmcd->rightmove > 0 )
 					{
 						Anim = BOTH_ROLL_R;
@@ -1599,7 +1599,7 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 						pVeh->m_EjectDir = VEH_EJECT_LEFT;
 					}
 					VectorScale( parent->client->ps.velocity, 0.25f, rider->client->ps.velocity );
-					Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, iFlags, iBlend );
+					Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, iFlags );
 					//PM_SetAnim(pm,SETANIM_BOTH,anim,SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_HOLDLESS);
 					rider->client->ps.weaponTime = rider->client->ps.torsoTimer - 200;//just to make sure it's cleared when roll is done
 					G_AddEvent( rider, EV_ROLL, 0 );
@@ -1610,7 +1610,7 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 			{
 				// FIXME: Check trace to see if we should start playing the animation.
 				animNumber_t Anim;
-				int iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, iBlend = 500;
+				int iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD;
 				if ( pUmcd->rightmove > 0 )
 				{
 					Anim = BOTH_VS_DISMOUNT_R;
@@ -1639,7 +1639,7 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 
 				VectorScale( parent->client->ps.velocity, 0.25f, rider->client->ps.velocity );
 
-				Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, iFlags, iBlend );
+				Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, iFlags );
 			}
 		}
 		// Flying, so just fall off.
@@ -1668,46 +1668,6 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 		// Jump off.
 		if ( pUmcd->upmove > 0 )
 		{
-
-// NOT IN MULTI PLAYER!
-//===================================================================
-#ifndef _JK2MP
-			float riderRightDot = G_CanJumpToEnemyVeh(pVeh, pUmcd);
-			if (riderRightDot!=0.0f)
-			{
-				// Eject Player From Current Vehicle
-				//-----------------------------------
-				pVeh->m_EjectDir = VEH_EJECT_TOP;
-				pVeh->m_pVehicleInfo->Eject( pVeh, pRider, qtrue );
-
-				// Send Current Vehicle Spinning Out Of Control
-				//----------------------------------------------
-				pVeh->m_pVehicleInfo->StartDeathDelay(pVeh, 10000);
-				pVeh->m_ulFlags |= (VEH_OUTOFCONTROL);
- 				VectorScale(pVeh->m_pParentEntity->client->ps.velocity, 1.0f, pVeh->m_pParentEntity->pos3);
-
-				// Todo: Throw Old Vehicle Away From The New Vehicle Some
-				//-------------------------------------------------------
-				vec3_t	toEnemy;
-				VectorSubtract(pVeh->m_pParentEntity->r.currentOrigin, rider->enemy->r.currentOrigin, toEnemy);
-				VectorNormalize(toEnemy);
-				G_Throw(pVeh->m_pParentEntity, toEnemy, 50);
-
-				// Start Boarding On Enemy's Vehicle
-				//-----------------------------------
-				Vehicle_t*	enemyVeh = G_IsRidingVehicle(rider->enemy);
-				enemyVeh->m_iBoarding = (riderRightDot>0)?(VEH_MOUNT_THROW_RIGHT):(VEH_MOUNT_THROW_LEFT);
-				enemyVeh->m_pVehicleInfo->Board(enemyVeh, rider);
-			}
-
-			// Don't Jump Off If Holding Strafe Key and Moving Fast
-			else if (pUmcd->rightmove && (parent->client->ps.speed>=10))
-			{
-				return qtrue;
-			}
-#endif
-//===================================================================
-
 			if ( pVeh->m_pVehicleInfo->Eject( pVeh, pRider, qfalse ) )
 			{
 				// Allow them to force jump off.
@@ -1715,11 +1675,11 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 				rider->client->ps.velocity[2] += /*JUMP_VELOCITY*/ bgConstants.baseJumpVelocity;
 				rider->client->ps.fd.forceJumpZStart = rider->client->ps.origin[2];
 
-				if (!trap_ICARUS_TaskIDPending(rider, TID_CHAN_VOICE))
+				if (!trap->ICARUS_TaskIDPending((sharedEntity_t *)rider, TID_CHAN_VOICE))
 				{
 					G_AddEvent( rider, EV_JUMP, 0 );
 				}
-				Vehicle_SetAnim( rider, SETANIM_BOTH, BOTH_JUMP1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 300 );
+				Vehicle_SetAnim( rider, SETANIM_BOTH, BOTH_JUMP1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD );
 				return qfalse;
 			}
 		}
@@ -1755,7 +1715,7 @@ static qboolean UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUm
 				if ( !(pVeh->m_ulFlags & VEH_FLYING) )
 				{
 					VectorScale( parent->client->ps.velocity, 0.25f, rider->client->ps.velocity );
-					Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_HOLDLESS, 300 );
+					Vehicle_SetAnim( rider, SETANIM_BOTH, Anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_HOLDLESS );
 					//PM_SetAnim(pm,SETANIM_BOTH,anim,SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_HOLDLESS);
 					rider->client->ps.weaponTime = rider->client->ps.torsoTimer - 200;//just to make sure it's cleared when roll is done
 					G_AddEvent( rider, EV_ROLL, 0 );
@@ -1787,7 +1747,7 @@ static void AttachRiders( Vehicle_t *pVeh )
 
 		//assuming we updated him relative to the bolt in AttachRidersGeneric
 		G_SetOrigin( pilot, pilot->client->ps.origin );
-		trap_LinkEntity( pilot );
+		trap->LinkEntity( (sharedEntity_t *)pilot );
 	}
 
 	if (pVeh->m_pOldPilot)
@@ -1798,7 +1758,7 @@ static void AttachRiders( Vehicle_t *pVeh )
 
 		//assuming we updated him relative to the bolt in AttachRidersGeneric
 		G_SetOrigin( oldpilot, oldpilot->client->ps.origin );
-		trap_LinkEntity( oldpilot );
+		trap->LinkEntity( (sharedEntity_t *)oldpilot );
 	}
 
 	//attach passengers
@@ -1813,20 +1773,20 @@ static void AttachRiders( Vehicle_t *pVeh )
 			int crotchBolt;
 
 			assert(parent->ghoul2);
-			crotchBolt = trap_G2API_AddBolt(parent->ghoul2, 0, "*driver");
+			crotchBolt = trap->G2API_AddBolt(parent->ghoul2, 0, "*driver");
 			assert(parent->client);
 			assert(pilot->client);
 
 			VectorSet(yawOnlyAngles, 0, parent->client->ps.viewangles[YAW], 0);
 
 			// Get the driver tag.
-			trap_G2API_GetBoltMatrix( parent->ghoul2, 0, crotchBolt, &boltMatrix,
+			trap->G2API_GetBoltMatrix( parent->ghoul2, 0, crotchBolt, &boltMatrix,
 									yawOnlyAngles, parent->client->ps.origin,
 									level.time, NULL, parent->modelScale );
 			BG_GiveMeVectorFromMatrix( &boltMatrix, ORIGIN, pilot->client->ps.origin );
 
 			G_SetOrigin( pilot, pilot->client->ps.origin );
-			trap_LinkEntity( pilot );
+			trap->LinkEntity( (sharedEntity_t *)pilot );
 		}
 		i++;
 	}
@@ -1849,7 +1809,7 @@ static void AttachRiders( Vehicle_t *pVeh )
 			VectorSet(yawOnlyAngles, 0, parent->client->ps.viewangles[YAW], 0);
 
 			// Get the droid tag.
-			trap_G2API_GetBoltMatrix( parent->ghoul2, 0, pVeh->m_iDroidUnitTag, &boltMatrix,
+			trap->G2API_GetBoltMatrix( parent->ghoul2, 0, pVeh->m_iDroidUnitTag, &boltMatrix,
 									yawOnlyAngles, parent->r.currentOrigin,
 									level.time, NULL, parent->modelScale );
 			BG_GiveMeVectorFromMatrix( &boltMatrix, ORIGIN, droid->client->ps.origin );
@@ -1859,7 +1819,7 @@ static void AttachRiders( Vehicle_t *pVeh )
 			G_SetOrigin( droid, droid->client->ps.origin );
 			G_SetAngles( droid, droid->client->ps.viewangles);
 			SetClientViewAngle( droid, droid->client->ps.viewangles );
-			trap_LinkEntity( droid );
+			trap->LinkEntity( (sharedEntity_t *)droid );
 
 			if ( droid->NPC )
 			{
@@ -1958,7 +1918,7 @@ void G_VehicleDamageBoxSizing(Vehicle_t *pVeh)
 	VectorMA(nose, -hDist, up, back);
 
 	//and now, let's trace and see if our new mins/maxs are safe..
-	trap_Trace(&trace, parent->client->ps.origin, back, nose, parent->client->ps.origin, parent->s.number, parent->clipmask);
+	trap->Trace(&trace, parent->client->ps.origin, back, nose, parent->client->ps.origin, parent->s.number, parent->clipmask, 0, 0, 0);
 	if (!trace.allsolid && !trace.startsolid && trace.fraction == 1.0f)
 	{ //all clear!
 		VectorCopy(nose, parent->r.maxs);
@@ -1995,7 +1955,7 @@ int G_FlyVehicleImpactDir(gentity_t *veh, trace_t *trace)
 
 	//do a trace to determine if the nose is clear
 	VectorMA(veh->client->ps.origin, 256.0f, fwd, fPos);
-	trap_Trace(&localTrace, veh->client->ps.origin, testMins, testMaxs, fPos, veh->s.number, veh->clipmask);
+	trap->Trace(&localTrace, veh->client->ps.origin, testMins, testMaxs, fPos, veh->s.number, veh->clipmask, 0, 0, 0);
 	if (!localTrace.startsolid && !localTrace.allsolid && localTrace.fraction == 1.0f)
 	{ //otherwise I guess it's not clear..
 		noseClear = qtrue;
@@ -2014,7 +1974,7 @@ int G_FlyVehicleImpactDir(gentity_t *veh, trace_t *trace)
 			!(pVeh->m_iRemovedSurfaces & SHIPSURF_BROKEN_F))
 		{
 			VectorMA(rWing, 256.0f, fwd, fPos);
-			trap_Trace(&localTrace, rWing, testMins, testMaxs, fPos, veh->s.number, veh->clipmask);
+			trap->Trace(&localTrace, rWing, testMins, testMaxs, fPos, veh->s.number, veh->clipmask, 0, 0, 0);
 			if (localTrace.startsolid || localTrace.allsolid || localTrace.fraction != 1.0f)
 			{ //impact
 				return SHIPSURF_RIGHT;
@@ -2026,7 +1986,7 @@ int G_FlyVehicleImpactDir(gentity_t *veh, trace_t *trace)
 			!(pVeh->m_iRemovedSurfaces & SHIPSURF_BROKEN_D))
 		{
 			VectorMA(lWing, 256.0f, fwd, fPos);
-			trap_Trace(&localTrace, lWing, testMins, testMaxs, fPos, veh->s.number, veh->clipmask);
+			trap->Trace(&localTrace, lWing, testMins, testMaxs, fPos, veh->s.number, veh->clipmask, 0, 0, 0);
 			if (localTrace.startsolid || localTrace.allsolid || localTrace.fraction != 1.0f)
 			{ //impact
 				return SHIPSURF_LEFT;
@@ -2405,16 +2365,16 @@ void G_VehUpdateShields( gentity_t *targ )
 }
 
 // Set the parent entity of this Vehicle NPC.
-GAME_INLINE void SetParent( Vehicle_t *pVeh, bgEntity_t *pParentEntity ) { pVeh->m_pParentEntity = pParentEntity; }
+QINLINE void SetParent( Vehicle_t *pVeh, bgEntity_t *pParentEntity ) { pVeh->m_pParentEntity = pParentEntity; }
 
 // Add a pilot to the vehicle.
-GAME_INLINE void SetPilot( Vehicle_t *pVeh, bgEntity_t *pPilot ) { pVeh->m_pPilot = pPilot; }
+QINLINE void SetPilot( Vehicle_t *pVeh, bgEntity_t *pPilot ) { pVeh->m_pPilot = pPilot; }
 
 // Add a passenger to the vehicle (qfalse if we're full).
-GAME_INLINE qboolean AddPassenger( Vehicle_t *pVeh ) { return qfalse; }
+QINLINE qboolean AddPassenger( Vehicle_t *pVeh ) { return qfalse; }
 
 // Whether this vehicle is currently inhabited (by anyone) or not.
-GAME_INLINE qboolean Inhabited( Vehicle_t *pVeh ) { return ( pVeh->m_pPilot || pVeh->m_iNumPassengers ) ? qtrue : qfalse; }
+QINLINE qboolean Inhabited( Vehicle_t *pVeh ) { return ( pVeh->m_pPilot || pVeh->m_iNumPassengers ) ? qtrue : qfalse; }
 
 
 // Setup the shared functions (one's that all vehicles would generally use).

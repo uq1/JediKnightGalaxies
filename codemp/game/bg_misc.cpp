@@ -1,27 +1,41 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // bg_misc.c -- both games misc functions, all completely stateless
 
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
-#include "bg_strap.h"
 #include "jkg_gangwars.h"
 
-#ifdef QAGAME
-#include "g_local.h"
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_UI)
+	#include "../ui/ui_local.h"
+#elif defined(_CGAME)
+	#include "../cgame/cg_local.h"
 #endif
 
-#ifdef UI_EXPORTS
-#include "../ui/ui_local.h"
-#endif
-
-#ifndef UI_EXPORTS
-#ifndef QAGAME
-#include "../cgame/cg_local.h"
-#endif
-#endif
-
-#ifdef QAGAME
+#ifdef _GAME
 extern void Q3_SetParm (int entID, int parmNum, const char *parmValue);
 #endif
 
@@ -728,10 +742,10 @@ qboolean BG_FileExists(const char *fileName)
 	if (fileName && fileName[0])
 	{
 		int fh = 0;
-		trap_FS_FOpenFile(fileName, &fh, FS_READ);
+		trap->FS_Open(fileName, &fh, FS_READ);
 		if (fh > 0)
 		{
-			trap_FS_FCloseFile(fh);
+			trap->FS_Close(fh);
 			return qtrue;
 		}
 	}
@@ -794,7 +808,7 @@ fpDisabled is actually only expected (needed) from the server, because the ui di
 force power selection anyway when force powers are disabled on the server.
 ================
 */
-qboolean BG_LegalizedForcePowers(char *powerOut, int maxRank, qboolean freeSaber, int teamForce, int gametype, int fpDisabled)
+qboolean BG_LegalizedForcePowers(char *powerOut, size_t powerOutSize, int maxRank, qboolean freeSaber, int teamForce, int gametype, int fpDisabled)
 {
 	char powerBuf[128];
 	char readBuf[128];
@@ -822,7 +836,7 @@ qboolean BG_LegalizedForcePowers(char *powerOut, int maxRank, qboolean freeSaber
 	}
 
 	//first of all, print the max rank into the string as the rank
-	strcpy(powerOut, va("%i-", maxRank));
+	Q_strncpyz( powerOut, va( "%i-", maxRank ), powerOutSize );
 
 	while (i < 128 && powerBuf[i] && powerBuf[i] != '-')
 	{
@@ -1074,7 +1088,7 @@ qboolean BG_LegalizedForcePowers(char *powerOut, int maxRank, qboolean freeSaber
 	//We finally have all the force powers legalized and stored locally.
 	//Put them all into the string and return the result. We already have
 	//the rank there, so print the side and the powers now.
-	Q_strcat(powerOut, 128, va("%i-", final_Side));
+	Q_strcat(powerOut, powerOutSize, va("%i-", final_Side));
 
 	i = strlen(powerOut);
 	c = 0;
@@ -2532,15 +2546,15 @@ float JKG_CalculateIronsightsPhase ( const playerState_t *ps, int levelTime, flo
 	weaponData_t *wp = BG_GetWeaponDataByIndex( ps->weaponId );
     if ( ps->ironsightsTime & IRONSIGHTS_MSB )
     {
-		phase = CubicBezierInterpolate (min (levelTime - time, wp->ironsightsTime) / (double)wp->ironsightsTime, 0.0, 0.0, 1.0, 1.0);
-        *blend = min (1.0f, max (0.0f, phase));
+		phase = CubicBezierInterpolate (Q_min (levelTime - time, wp->ironsightsTime) / (double)wp->ironsightsTime, 0.0, 0.0, 1.0, 1.0);
+        *blend = Q_min (1.0f, Q_max (0.0f, phase));
     }
     else
     {
-		phase = (*blend) - CubicBezierInterpolate (min (levelTime - time, wp->ironsightsTime * (*blend)) / (double)(wp->ironsightsTime * (*blend)), 0.0, 0.0, 1.0, 1.0);
+		phase = (*blend) - CubicBezierInterpolate (Q_min (levelTime - time, wp->ironsightsTime * (*blend)) / (double)(wp->ironsightsTime * (*blend)), 0.0, 0.0, 1.0, 1.0);
     }
     
-    return min (1.0f, max (0.0f, phase));
+    return Q_min (1.0f, Q_max (0.0f, phase));
 }
 
 /*
@@ -2690,7 +2704,7 @@ void BG_EvaluateTrajectory( const trajectory_t *tr, int atTime, vec3_t result ) 
 		VectorMA( tr->trBase, deltaTime, tr->trDelta, result );
 		break;
 	default:
-#ifdef QAGAME
+#ifdef _GAME
 		Com_Error( ERR_DROP, "BG_EvaluateTrajectory: [GAME SIDE] unknown trType: %i", tr->trType );
 #else
 		Com_Error( ERR_DROP, "BG_EvaluateTrajectory: [CLIENTGAME SIDE] unknown trType: %i", tr->trType );
@@ -2760,7 +2774,7 @@ void BG_EvaluateTrajectoryDelta( const trajectory_t *tr, int atTime, vec3_t resu
 	}
 }
 
-char *eventnames[] = {
+const char *eventnames[] = {
 	"EV_NONE",
 
 	"EV_CLIENTJOIN",
@@ -2928,7 +2942,7 @@ Handles the sequence numbers
 ===============
 */
 
-//void	trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
+//void	trap->Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
 
 void BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerState_t *ps ) {
 
@@ -2939,12 +2953,12 @@ void BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerSta
 
 		if (!isRegistered)
 		{
-			trap_Cvar_Register(&showEvents, "showevents", "0", 0);
+			trap->Cvar_Register(&showEvents, "showevents", "0", 0);
 			isRegistered = qtrue;
 		}
 
 		if ( showEvents.integer != 0 ) {
-#ifdef QAGAME
+#ifdef _GAME
 			Com_Printf(" game event svt %5d -> %5d: num = %20s parm %d\n", ps->pmove_framecount/*ps->commandTime*/, ps->eventSequence, eventnames[newEvent], eventParm);
 #else
 			Com_Printf("Cgame event svt %5d -> %5d: num = %20s parm %d\n", ps->pmove_framecount/*ps->commandTime*/, ps->eventSequence, eventnames[newEvent], eventParm);
@@ -3062,7 +3076,7 @@ qboolean BG_IsValidCharacterModel(const char *modelName, const char *skinName)
 	}
 	return qtrue;
 }
-#ifdef CGAME
+#ifdef _CGAME
 extern cg_t				cg;
 #endif
 
@@ -3074,7 +3088,7 @@ qboolean BG_ValidateSkinForTeam( char *modelName, char *skinName, int team, floa
 		// First entry is not NULL, therefore we need to check the skin
 		int i = 0;
 		char buffer[MAX_QPATH];
-#ifdef CGAME
+#ifdef _CGAME
 		if(cg.clientNum == clientNum)
 		{
 			// Eh. Why bother. Let custom skin nerds have their fun.
@@ -3563,39 +3577,29 @@ PLAYER ANGLES
 */
 
 //perform the appropriate model precache routine
-#ifdef QAGAME //game
-extern int trap_G2API_InitGhoul2Model(void **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin,
-						  qhandle_t customShader, int modelFlags, int lodBias); //exists on game/cgame/ui, only used on game
-extern void trap_G2API_CleanGhoul2Models(void **ghoul2Ptr); //exists on game/cgame/ui, only used on game
-#else //cgame/ui
-extern qhandle_t trap_R_RegisterModel( const char *name ); //exists on cgame/ui
-#endif
-//game/cgame/ui
-extern qhandle_t trap_R_RegisterSkin( const char *name ); //exists on game/cgame/ui
-
 int BG_ModelCache(const char *modelName, const char *skinName)
 {
-#ifdef QAGAME
+#ifdef _GAME
 	void *g2 = NULL;
 
 	if (skinName && skinName[0])
 	{
-		trap_R_RegisterSkin(skinName);
+		trap->R_RegisterSkin(skinName);
 	}
 
 	//I could hook up a precache ghoul2 function, but oh well, this works
-	trap_G2API_InitGhoul2Model(&g2, modelName, 0, 0, 0, 0, 0);
+	trap->G2API_InitGhoul2Model(&g2, modelName, 0, 0, 0, 0, 0);
 	if (g2)
 	{ //now get rid of it
-		trap_G2API_CleanGhoul2Models(&g2);
+		trap->G2API_CleanGhoul2Models(&g2);
 	}
 	return 0;
 #else
 	if (skinName && skinName[0])
 	{
-		trap_R_RegisterSkin(skinName);
+		trap->R_RegisterSkin(skinName);
 	}
-	return trap_R_RegisterModel(modelName);
+	return trap->R_RegisterModel(modelName);
 #endif
 }
 

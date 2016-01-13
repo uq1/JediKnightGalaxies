@@ -1,5 +1,26 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // cg_draw.c -- draw all of the graphical elements during
 // active (after loading) gameplay
 
@@ -133,14 +154,14 @@ int CG_Text_Width(const char *text, float scale, int iMenuFont)
 	Q_strncpyz (buffer, text, sizeof (buffer));
 	Q_CleanStr (buffer);
 
-	return trap_R_Font_StrLenPixels(buffer, iFontIndex, scale);
+	return trap->R_Font_StrLenPixels(buffer, iFontIndex, scale);
 }
 
 int CG_Text_Height(const char *text, float scale, int iMenuFont) 
 {
 	int iFontIndex = MenuFontToHandle(iMenuFont);
 
-	return trap_R_Font_HeightPixels(iFontIndex, scale);
+	return trap->R_Font_HeightPixels(iFontIndex, scale);
 }
 
 #include "qcommon/qfiles.h"	// for STYLE_BLINK etc
@@ -160,7 +181,7 @@ void CG_Text_Paint(float x, float y, float scale, const vec4_t color, const char
 	case  ITEM_TEXTSTYLE_SHADOWEDMORE:		iStyleOR = (int)STYLE_DROPSHADOW;break;	// JK2 drop shadow ( need a color for this )
 	}
 
-	trap_R_Font_DrawString(	x,		// int ox
+	trap->R_Font_DrawString(	x,		// int ox
 							y,		// int oy
 							text,	// const char *text
 							color,	// paletteRGBA_c c
@@ -320,9 +341,9 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, void *
 
 	refdef.time = cg.time;
 
-	trap_R_ClearScene();
-	trap_R_AddRefEntityToScene( &ent );
-	trap_R_RenderScene( &refdef );
+	trap->R_ClearScene();
+	trap->R_AddRefEntityToScene( &ent );
+	trap->R_RenderScene( &refdef );
 }
 
 #define MAX_SHOWPOWERS NUM_FORCE_POWERS
@@ -434,7 +455,7 @@ void CG_DrawForceSelect( void )
 		i = MAX_SHOWPOWERS;
 	}
 
-	trap_R_SetColor(NULL);
+	trap->R_SetColor(NULL);
 	// Work backwards from current icon
 	holdX = x - ((bigIconSize/2) + pad + smallIconSize);
 	for (iconCnt=1;iconCnt<(sideLeftIconCnt+1);i--)
@@ -593,7 +614,7 @@ float CG_DrawVehicleShields( const menuDef_t	*menuHUD, const centity_t *veh )
 
 	if (item)
 	{
-		trap_R_SetColor( item->window.foreColor );
+		trap->R_SetColor( item->window.foreColor );
 		CG_DrawPic( 
 			item->window.rect.x, 
 			item->window.rect.y, 
@@ -632,7 +653,7 @@ float CG_DrawVehicleShields( const menuDef_t	*menuHUD, const centity_t *veh )
 			calcColor[3] *= percent;		// Fade it out
 		}
 
-		trap_R_SetColor( calcColor);
+		trap->R_SetColor( calcColor);
 
 		CG_DrawPic( 
 			item->window.rect.x, 
@@ -661,7 +682,7 @@ void CG_DrawVehicleAmmo( const menuDef_t *menuHUD, const centity_t *veh )
 
 	if (item)
 	{
-		trap_R_SetColor( item->window.foreColor );
+		trap->R_SetColor( item->window.foreColor );
 		CG_DrawPic( 
 			item->window.rect.x, 
 			item->window.rect.y, 
@@ -706,7 +727,7 @@ void CG_DrawVehicleAmmo( const menuDef_t *menuHUD, const centity_t *veh )
 			}
 		}
 
-		trap_R_SetColor( calcColor);
+		trap->R_SetColor( calcColor);
 
 		CG_DrawPic( 
 			item->window.rect.x, 
@@ -732,7 +753,7 @@ void CG_DrawVehicleAmmoUpper( const menuDef_t *menuHUD, const centity_t *veh )
 
 	if (item)
 	{
-		trap_R_SetColor( item->window.foreColor );
+		trap->R_SetColor( item->window.foreColor );
 		CG_DrawPic( 
 			item->window.rect.x, 
 			item->window.rect.y, 
@@ -777,7 +798,7 @@ void CG_DrawVehicleAmmoUpper( const menuDef_t *menuHUD, const centity_t *veh )
 			}
 		}
 
-		trap_R_SetColor( calcColor);
+		trap->R_SetColor( calcColor);
 
 		CG_DrawPic( 
 			item->window.rect.x, 
@@ -804,7 +825,7 @@ void CG_DrawVehicleAmmoLower( const menuDef_t *menuHUD, const centity_t *veh )
 
 	if (item)
 	{
-		trap_R_SetColor( item->window.foreColor );
+		trap->R_SetColor( item->window.foreColor );
 		CG_DrawPic( 
 			item->window.rect.x, 
 			item->window.rect.y, 
@@ -849,7 +870,7 @@ void CG_DrawVehicleAmmoLower( const menuDef_t *menuHUD, const centity_t *veh )
 			}
 		}
 
-		trap_R_SetColor( calcColor);
+		trap->R_SetColor( calcColor);
 
 		CG_DrawPic( 
 			item->window.rect.x, 
@@ -880,7 +901,7 @@ void CG_DrawVehicleTurboRecharge( const menuDef_t	*menuHUD, const centity_t *veh
 		if (diff > veh->m_pVehicle->m_pVehicleInfo->turboRecharge)
 		{
 			percent = 1.0f;
-			trap_R_SetColor( colorTable[CT_GREEN] );
+			trap->R_SetColor( colorTable[CT_GREEN] );
 		}
 		else 
 		{
@@ -889,7 +910,7 @@ void CG_DrawVehicleTurboRecharge( const menuDef_t	*menuHUD, const centity_t *veh
 			{
 				percent = 0.0f;
 			}
-			trap_R_SetColor( colorTable[CT_RED] );
+			trap->R_SetColor( colorTable[CT_RED] );
 		}
 
 		height *= percent;
@@ -935,7 +956,7 @@ void CG_DrawVehicleWeaponsLinked( const menuDef_t	*menuHUD, const centity_t *veh
 	if ( cg_drawLink != drawLink )
 	{//state changed, play sound
 		cg_drawLink = drawLink;
-		trap_S_StartSound (NULL, cg.predictedPlayerState.clientNum, CHAN_LOCAL, trap_S_RegisterSound( "sound/vehicles/common/linkweaps.wav" ) );
+		trap->S_StartSound (NULL, cg.predictedPlayerState.clientNum, CHAN_LOCAL, trap->S_RegisterSound( "sound/vehicles/common/linkweaps.wav" ) );
 	}
 
 	if ( drawLink )
@@ -946,7 +967,7 @@ void CG_DrawVehicleWeaponsLinked( const menuDef_t	*menuHUD, const centity_t *veh
 
 		if (item)
 		{
-			trap_R_SetColor( colorTable[CT_CYAN] );
+			trap->R_SetColor( colorTable[CT_CYAN] );
 
 				CG_DrawPic( 
 				item->window.rect.x, 
@@ -970,7 +991,7 @@ void CG_DrawVehicleSpeed( const menuDef_t	*menuHUD, const centity_t *veh )
 
 	if (item)
 	{
-		trap_R_SetColor( item->window.foreColor );
+		trap->R_SetColor( item->window.foreColor );
 		CG_DrawPic( 
 			item->window.rect.x, 
 			item->window.rect.y, 
@@ -1038,7 +1059,7 @@ void CG_DrawVehicleSpeed( const menuDef_t	*menuHUD, const centity_t *veh )
 			calcColor[3] *= percent;		// Fade it out
 		}
 
-		trap_R_SetColor( calcColor);
+		trap->R_SetColor( calcColor);
 
 		CG_DrawPic( 
 			item->window.rect.x, 
@@ -1066,7 +1087,7 @@ void CG_DrawVehicleArmor( const menuDef_t *menuHUD, const centity_t *veh )
 
 	if (item)
 	{
-		trap_R_SetColor( item->window.foreColor );
+		trap->R_SetColor( item->window.foreColor );
 		CG_DrawPic( 
 			item->window.rect.x, 
 			item->window.rect.y, 
@@ -1104,7 +1125,7 @@ void CG_DrawVehicleArmor( const menuDef_t *menuHUD, const centity_t *veh )
 			calcColor[3] *= percent;		// Fade it out
 		}
 
-		trap_R_SetColor( calcColor);
+		trap->R_SetColor( calcColor);
 
 		CG_DrawPic( 
 			item->window.rect.x, 
@@ -1170,7 +1191,7 @@ void CG_DrawVehicleDamage(const centity_t *veh,int brokenLimbs,const menuDef_t	*
 
 		VectorCopy4 ( colorTable[colorI], color );
 		color[3] = alpha;
-		trap_R_SetColor( color );
+		trap->R_SetColor( color );
 
 		switch ( index )
 		{
@@ -1236,11 +1257,11 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 				color[1] = item->window.foreColor[1]*perc;//fade other colors back in over time
 				color[2] = item->window.foreColor[2]*perc;//fade other colors back in over time
 				color[3] = item->window.foreColor[3];//always normal alpha
-				trap_R_SetColor( color );
+				trap->R_SetColor( color );
 			}
 			else
 			{
-				trap_R_SetColor( item->window.foreColor );
+				trap->R_SetColor( item->window.foreColor );
 			}
 
 			CG_DrawPic( 
@@ -1257,7 +1278,7 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 	{
 		if (veh->m_pVehicle->m_pVehicleInfo->dmgIndicFrameHandle)
 		{
-			trap_R_SetColor( item->window.foreColor );
+			trap->R_SetColor( item->window.foreColor );
 			CG_DrawPic( 
 				item->window.rect.x, 
 				item->window.rect.y, 
@@ -1274,7 +1295,7 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 		{
 			VectorCopy4 ( colorTable[CT_HUD_GREEN], color );
 			color[3] = percShields;
-			trap_R_SetColor( color );
+			trap->R_SetColor( color );
 			CG_DrawPic( 
 				item->window.rect.x, 
 				item->window.rect.y, 
@@ -1327,7 +1348,7 @@ qboolean CG_DrawVehicleHud( const centity_t *cent )
 	// Draw frame
 	if (item)
 	{
-		trap_R_SetColor( item->window.foreColor );
+		trap->R_SetColor( item->window.foreColor );
 		CG_DrawPic( 
 			item->window.rect.x, 
 			item->window.rect.y, 
@@ -1340,7 +1361,7 @@ qboolean CG_DrawVehicleHud( const centity_t *cent )
 
 	if (item)
 	{
-		trap_R_SetColor( item->window.foreColor );
+		trap->R_SetColor( item->window.foreColor );
 		CG_DrawPic( 
 			item->window.rect.x, 
 			item->window.rect.y, 
@@ -1420,8 +1441,8 @@ void CG_DrawReload( void ) {
 		cg.reloadTimeDuration = 0;
 		return;
 	}
-	x = (320 - (trap_R_Font_StrLenPixels("Reloading weapon...", 1, 0.8f) / 2));
-	trap_R_Font_DrawString(
+	x = (320 - (trap->R_Font_StrLenPixels("Reloading weapon...", 1, 0.8f) / 2));
+	trap->R_Font_DrawString(
 			x,
 			200,
 			"Reloading weapon...",
@@ -1430,12 +1451,12 @@ void CG_DrawReload( void ) {
 			-1,
 			0.45f);
 	phase = (float)(cg.time - cg.reloadTimeStart) / (float)cg.reloadTimeDuration;
-	trap_R_SetColor(colorBack);
-	trap_R_DrawStretchPic(243, 220, 154, 10, 0, 0, 1, 1, cgs.media.whiteShader);
-	trap_R_SetColor(colorFront);
-	trap_R_DrawStretchPic(245, 222, 150 * phase, 6, 0, 0, 1, 1, cgs.media.whiteShader);
+	trap->R_SetColor(colorBack);
+	trap->R_DrawStretchPic(243, 220, 154, 10, 0, 0, 1, 1, cgs.media.whiteShader);
+	trap->R_SetColor(colorFront);
+	trap->R_DrawStretchPic(245, 222, 150 * phase, 6, 0, 0, 1, 1, cgs.media.whiteShader);
 
-	trap_R_SetColor(NULL);
+	trap->R_SetColor(NULL);
 
 }
 
@@ -1461,15 +1482,15 @@ void CG_DrawGrenade( void )
 	
 	if ( cg.jkg_grenadeCookTimer && cg.jkg_grenadeCookTimer >= cg.time )
 	{
-		x = ( 320 - ( trap_R_Font_StrLenPixels( "Detonation time...", 1, 0.8f ) / 2 ));
-		trap_R_Font_DrawString( x, 200, "Detonation time...", colorWhite, 5, -1, 0.45f );
+		x = ( 320 - ( trap->R_Font_StrLenPixels( "Detonation time...", 1, 0.8f ) / 2 ));
+		trap->R_Font_DrawString( x, 200, "Detonation time...", colorWhite, 5, -1, 0.45f );
 
 		phase = ( float )( cg.jkg_grenadeCookTimer - cg.time ) / ( float ) GetWeaponData( cg.snap->ps.weapon, cg.snap->ps.weaponVariation )->weaponReloadTime;
-		trap_R_SetColor(colorBack);
-		trap_R_DrawStretchPic(243, 220, 154, 10, 0, 0, 1, 1, cgs.media.whiteShader);
-		trap_R_SetColor(colorFront);
-		trap_R_DrawStretchPic(245, 222, 150 * phase, 6, 0, 0, 1, 1, cgs.media.whiteShader);
-		trap_R_SetColor(NULL);
+		trap->R_SetColor(colorBack);
+		trap->R_DrawStretchPic(243, 220, 154, 10, 0, 0, 1, 1, cgs.media.whiteShader);
+		trap->R_SetColor(colorFront);
+		trap->R_DrawStretchPic(245, 222, 150 * phase, 6, 0, 0, 1, 1, cgs.media.whiteShader);
+		trap->R_SetColor(NULL);
 	}
 }
 
@@ -1519,9 +1540,9 @@ static void CG_DrawPickupItem( void ) {
 		if ( fadeColor ) 
 		{
 			CG_RegisterItemVisuals( value );
-			trap_R_SetColor( fadeColor );
+			trap->R_SetColor( fadeColor );
 			CG_DrawPic( 573, 320, ICON_SIZE, ICON_SIZE, cg_items[ value ].icon );
-			trap_R_SetColor( NULL );
+			trap->R_SetColor( NULL );
 		}
 	}
 }
@@ -1721,30 +1742,9 @@ float CG_DrawRadar ( float y )
 	int				xOffset = 0;
 	int				y2 = y;
 
-	// UQ1: Use radar when minimap is not available...
-	// Get MiniMap Location...
-	/*
-	itemDef_t *item;
-	vec4_t overlayColor = {1,1,1,0.7f};
-	vec4_t transcolor = {1,1,1,1};
-	vec4_t opacity;
-	
-	MAKERGBA(opacity, 1, 1, 1, 1*cg.jkg_HUDOpacity);
-
-	item = Menu_FindItemByName(Menus_FindByName("hud_minimap"), "maparea");
-	if (!item) {
-		return y;
-	}
-
-	xOffset = item->window.rect.x;
-	y2 = item->window.rect.y;
-	*/
-
-	// UQ1: Place over the minimap image...
 	y2 = -1;//d_poff.integer;
 	xOffset = 23;//d_roff.integer;
 	RADAR_RADIUS = 40;//d_yoff.value;
-	//zScale = d_yoff.value
 
 	if (!cg.snap)
 	{
@@ -1771,9 +1771,7 @@ float CG_DrawRadar ( float y )
 	// Draw the radar background image
 	color[0] = color[1] = color[2] = 1.0f;
 	color[3] = 0.6f;
-	trap_R_SetColor ( color );
-	// UQ1: Don't draw the radar image itself...
-	//CG_DrawPic( RADAR_X + xOffset, y2, RADAR_RADIUS*2, RADAR_RADIUS*2, cgs.media.radarShader );
+	trap->R_SetColor ( color );
 
 	//Always green for your own team.
 	VectorCopy ( g_color_table[ColorIndex(COLOR_GREEN)], teamColor );
@@ -1876,7 +1874,7 @@ float CG_DrawRadar ( float y )
 
 						//we only want to draw it if the objective for it is not complete.
 						//frame represents objective num.
-						trap_Cvar_VariableStringBuffer(va("team%i_objective%i", cent->currentState.brokenLimbs, cent->currentState.frame), objState, 1024);
+						trap->Cvar_VariableStringBuffer(va("team%i_objective%i", cent->currentState.brokenLimbs, cent->currentState.frame), objState, 1024);
 
 						complete = atoi(objState);
 
@@ -1952,7 +1950,7 @@ float CG_DrawRadar ( float y )
 							}					
 						}
 
-						trap_R_SetColor ( color );
+						trap->R_SetColor ( color );
 						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, shader );
 					}
 				}
@@ -2006,16 +2004,16 @@ float CG_DrawRadar ( float y )
 						{
 							if ( cgs.clientinfo[ cent->currentState.m_iVehicleNum-1 ].team == local->team )
 							{
-								trap_R_SetColor ( teamColor );
+								trap->R_SetColor ( teamColor );
 							}
 							else
 							{
-								trap_R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
+								trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
 							}
 						}
 						else
 						{
-							trap_R_SetColor ( NULL );
+							trap->R_SetColor ( NULL );
 						}
 						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, cent->m_pVehicle->m_pVehicleInfo->radarIconHandle );
 					}
@@ -2097,7 +2095,7 @@ float CG_DrawRadar ( float y )
 								impactSoundDebounceTime = cg.time + 100;
 							}
 							VectorMA( cg.refdef.vieworg, -500.0f*(surfaceDist/RADAR_ASTEROID_RANGE), dirPlayer, soundOrg );
-							trap_S_StartSound( soundOrg, ENTITYNUM_WORLD, CHAN_AUTO, trap_S_RegisterSound( "sound/vehicles/common/impactalarm.wav" ) );
+							trap->S_StartSound( soundOrg, ENTITYNUM_WORLD, CHAN_AUTO, trap->S_RegisterSound( "sound/vehicles/common/impactalarm.wav" ) );
 						}
 						//brighten it the closer it is
 						if ( surfaceDist > RADAR_ASTEROID_RANGE*0.66f )
@@ -2118,8 +2116,8 @@ float CG_DrawRadar ( float y )
 							asteroidColor[3] = (float)((cg.time-impactSoundDebounceTime)-100)/900.0f;
 						}
 
-						trap_R_SetColor ( asteroidColor );
-						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, trap_R_RegisterShaderNoMip( "gfx/menus/radar/asteroid" ) );
+						trap->R_SetColor ( asteroidColor );
+						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, trap->R_RegisterShaderNoMip( "gfx/menus/radar/asteroid" ) );
 					}
 				}
 				break;
@@ -2149,26 +2147,26 @@ float CG_DrawRadar ( float y )
 								{
 									radarLockSoundDebounceTime = cg.time + 1000;
 									arrowBaseScale = 3.0f;
-									alarmSound = trap_S_RegisterSound( "sound/vehicles/common/lockalarm1.wav" );
+									alarmSound = trap->S_RegisterSound( "sound/vehicles/common/lockalarm1.wav" );
 								}
 								else if ( actualDist > RADAR_MISSILE_RANGE/3.0f )
 								{
 									radarLockSoundDebounceTime = cg.time + 500;
 									arrowBaseScale = 6.0f;
-									alarmSound = trap_S_RegisterSound( "sound/vehicles/common/lockalarm2.wav" );
+									alarmSound = trap->S_RegisterSound( "sound/vehicles/common/lockalarm2.wav" );
 								}
 								else
 								{
 									radarLockSoundDebounceTime = cg.time + 250;
 									arrowBaseScale = 9.0f;
-									alarmSound = trap_S_RegisterSound( "sound/vehicles/common/lockalarm3.wav" );
+									alarmSound = trap->S_RegisterSound( "sound/vehicles/common/lockalarm3.wav" );
 								}
 								if ( actualDist > RADAR_MISSILE_RANGE )
 								{
 									actualDist = RADAR_MISSILE_RANGE;
 								}
 								VectorMA( cg.refdef.vieworg, -500.0f*(actualDist/RADAR_MISSILE_RANGE), dirPlayer, soundOrg );
-								trap_S_StartSound( soundOrg, ENTITYNUM_WORLD, CHAN_AUTO, alarmSound );
+								trap->S_StartSound( soundOrg, ENTITYNUM_WORLD, CHAN_AUTO, alarmSound );
 							}
 						}
 					}
@@ -2210,16 +2208,16 @@ float CG_DrawRadar ( float y )
 						cl = &cgs.clientinfo[cg_entities[cent->currentState.owner].currentState.m_iVehicleNum-1];
 						if ( cl->team == local->team )
 						{
-							trap_R_SetColor ( teamColor );
+							trap->R_SetColor ( teamColor );
 						}
 						else
 						{
-							trap_R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
+							trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
 						}
 					}
 					else
 					{
-						trap_R_SetColor ( NULL );
+						trap->R_SetColor ( NULL );
 					}
 					CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, cgs.media.mAutomapRocketIcon );
 				}
@@ -2252,7 +2250,7 @@ float CG_DrawRadar ( float y )
 					color[2] = teamColor[2] + (1.0f - teamColor[2]) * f;
 				}
 
-				trap_R_SetColor ( color );
+				trap->R_SetColor ( color );
 
 				//we want to scale the thing up/down based on the relative Z (up/down) positioning
 				if (cent->lerpOrigin[2] > cg.predictedPlayerState.origin[2])
@@ -2299,22 +2297,20 @@ float CG_DrawRadar ( float y )
 	arrow_w = arrowBaseScale * RADAR_RADIUS / 128;
 	arrow_h = arrowBaseScale * RADAR_RADIUS / 128;
 
-	{
-		// CLEANME: rewrite this check later. i didn't mean to rescope, honest to goodness --eez
-		vec4_t newColor = {1, 1, 1, 0};
-		float ironSightsPhase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState, cg.time, &cg.ironsightsBlend);
-		VectorCopy4(newColor, color);
+	vec4_t newColor = {1, 1, 1, 0};
+	float ironSightsPhase = JKG_CalculateIronsightsPhase (&cg.predictedPlayerState, cg.time, &cg.ironsightsBlend);
+	VectorCopy4(newColor, color);
 
-		if(ironSightsPhase > 0)
-		{
-			newColor[3] = 1.0f - ironSightsPhase;
-		}
-		else
-		{
-			newColor[3] = 1.0f;
-		}
-		trap_R_SetColor ( newColor );
+	if(ironSightsPhase > 0)
+	{
+		newColor[3] = 1.0f - ironSightsPhase;
 	}
+	else
+	{
+		newColor[3] = 1.0f;
+	}
+	trap->R_SetColor ( newColor );
+
 	CG_DrawRotatePic2( RADAR_X + RADAR_RADIUS + xOffset, y2 + RADAR_RADIUS, arrow_w, arrow_h, 
 					   0, cgs.media.mAutomapPlayerIcon );
 
@@ -2366,7 +2362,7 @@ static void CG_DrawTeamOverlay() {
 		if ( ci->infoValid && (( cgs.party.active && TeamFriendly( i )) || ( !cgs.party.active && ci->team == cg.snap->ps.persistant[PERS_TEAM] )))
 		{
 			plyrs++;
-			len = (float)trap_R_Font_StrLenPixels(ci->name, MenuFontToHandle(1), 1) *0.5f; //CG_DrawStrlen(ci->name);
+			len = (float)trap->R_Font_StrLenPixels(ci->name, MenuFontToHandle(1), 1) *0.5f; //CG_DrawStrlen(ci->name);
 			if (len > pwidth)
 				pwidth = len;
 		}
@@ -2414,22 +2410,22 @@ static void CG_DrawTeamOverlay() {
 			
 			MAKERGBA(hcolor, 0.4f,0.4f,0.4f,0.33f);
 			// Draw the box and border
-			trap_R_SetColor( hcolor );
+			trap->R_SetColor( hcolor );
 			CG_DrawPic( x, y, w, h, cgs.media.teamStatusBar );
 			MAKERGBA(hcolor, 0,0,0,0.33f);
 			CG_DrawRect( x, y, w, h, 1, hcolor);
-			trap_R_SetColor( NULL );
+			trap->R_SetColor( NULL );
 			
 			// Draw the Class Picture
 			MAKERGBA(hcolor, 1,1,1,0.6f);
-			trap_R_SetColor( hcolor );
-			trap_R_DrawStretchPic(x+2,y+2,20,20,0,0,1,1,cgs.media.whiteShader);
+			trap->R_SetColor( hcolor );
+			trap->R_DrawStretchPic(x+2,y+2,20,20,0,0,1,1,cgs.media.whiteShader);
 			MAKERGBA(hcolor,0,0,0,1);
 			CG_DrawRect(x+2, y+2, 20, 20, 1, hcolor);
 
 			// Draw player name
 			MAKERGBA(hcolor,1,1,1,1);		
-			trap_R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);
+			trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);
 			MAKERGBA(hcolor,0,0,0,1);
 			CG_DrawRect(x+24, y+2, pwidth+8 , 13, 1, hcolor);
 
@@ -2441,12 +2437,12 @@ static void CG_DrawTeamOverlay() {
 
 			// Render active part (health)
 			MAKERGBA(hcolor, 0.9f, 0.0f, 0.0f, 0.5f);
-			trap_R_SetColor(hcolor);
-			trap_R_DrawStretchPic(x+24, y+16, wid*fract ,6, 0, 0, 1, 1, cgs.media.whiteShader);
+			trap->R_SetColor(hcolor);
+			trap->R_DrawStretchPic(x+24, y+16, wid*fract ,6, 0, 0, 1, 1, cgs.media.whiteShader);
 			// Render dimmed part (health)
 			MAKERGBA(hcolor, 0.2f, 0.0f, 0.0f, 0.5f);
-			trap_R_SetColor(hcolor);
-			trap_R_DrawStretchPic(x+24 + wid*fract, y+16, wid*(1-fract) ,6, 0, 0, 1, 1, cgs.media.whiteShader);
+			trap->R_SetColor(hcolor);
+			trap->R_DrawStretchPic(x+24 + wid*fract, y+16, wid*(1-fract) ,6, 0, 0, 1, 1, cgs.media.whiteShader);
 			// Render border (health)
 			MAKERGBA(hcolor, 0,0,0,1);
 			CG_DrawRect(x+24, y+16, 70 + pwidth + 10 ,6, 1, hcolor);
@@ -2457,13 +2453,13 @@ static void CG_DrawTeamOverlay() {
 
 			// Render active part (Force)
 			MAKERGBA(hcolor, 0.0f, 0.0f, 0.9f, 0.5f);
-			trap_R_SetColor(hcolor);
-			trap_R_DrawStretchPic(xx, y+2, wid*fract,6, 0, 0, 1, 1, cgs.media.whiteShader);
+			trap->R_SetColor(hcolor);
+			trap->R_DrawStretchPic(xx, y+2, wid*fract,6, 0, 0, 1, 1, cgs.media.whiteShader);
 
 			// Render dimmed part (Force)
 			MAKERGBA(hcolor, 0.0f, 0.0f, 0.2f, 0.5f);
-			trap_R_SetColor(hcolor);
-			trap_R_DrawStretchPic(xx + wid*fract, y+2, wid*(1-fract),6, 0, 0, 1, 1, cgs.media.whiteShader);
+			trap->R_SetColor(hcolor);
+			trap->R_DrawStretchPic(xx + wid*fract, y+2, wid*(1-fract),6, 0, 0, 1, 1, cgs.media.whiteShader);
 
 			// Draw border (Force)
 			MAKERGBA(hcolor, 0,0,0,1);
@@ -2475,19 +2471,19 @@ static void CG_DrawTeamOverlay() {
 
 			// Render active part (Shield)
 			MAKERGBA(hcolor, 0.0f, 0.9f, 0.0f, 0.5f);
-			trap_R_SetColor(hcolor);
-			trap_R_DrawStretchPic(xx, y+9, wid*fract ,6, 0, 0, 1, 1, cgs.media.whiteShader);
+			trap->R_SetColor(hcolor);
+			trap->R_DrawStretchPic(xx, y+9, wid*fract ,6, 0, 0, 1, 1, cgs.media.whiteShader);
 
 			// Render dimmed part (Shield)
 			MAKERGBA(hcolor, 0.0f, 0.2f, 0.0f, 0.5f);
-			trap_R_SetColor(hcolor);
-			trap_R_DrawStretchPic(xx+ wid*fract, y+9, wid*(1-fract) ,6, 0, 0, 1, 1, cgs.media.whiteShader);
+			trap->R_SetColor(hcolor);
+			trap->R_DrawStretchPic(xx+ wid*fract, y+9, wid*(1-fract) ,6, 0, 0, 1, 1, cgs.media.whiteShader);
 			
 			// Render border (Shield)
 			MAKERGBA(hcolor, 0,0,0,1);
 			CG_DrawRect(xx, y+9, 70, 6, 1, hcolor);
 
-			trap_R_SetColor(NULL);
+			trap->R_SetColor(NULL);
 
 			y += 25;
 		}
@@ -2522,7 +2518,7 @@ static void CG_DrawPowerupIcons(int y)
 
 			if (item)
 			{
-				int icoShader = trap_R_RegisterShader( item->icon );
+				int icoShader = trap->R_RegisterShader( item->icon );
 
 				CG_DrawPic( (640-(ico_size*1.1f)) + xOffset, y, ico_size, ico_size, icoShader );
 	
@@ -2551,7 +2547,7 @@ extern qboolean HaveMiniMap( void );
 static void CG_DrawUpperRight( void ) {
 	float	y = 120.0f; // UQ1: Changed as the ACI covers this area!
 
-	trap_R_SetColor( colorTable[CT_WHITE] );
+	trap->R_SetColor( colorTable[CT_WHITE] );
 
 	if ( cg_drawSnapshot.integer ) {
 		y = CG_DrawSnapshot( y );
@@ -2561,7 +2557,7 @@ static void CG_DrawUpperRight( void ) {
 		&& cg_drawRadar.integer )
 	{//draw Radar in Siege mode or when in a vehicle of any kind
 		if (!HaveMiniMap())
-			CG_DrawRadar ( y );
+			CG_DrawRadar ( 0 );
 	}
 
 	y = CG_DrawEnemyInfo ( y );
@@ -2663,8 +2659,8 @@ static void CG_DrawDisconnect( void ) {
 	}
 
 	// draw the phone jack if we are completely past our buffers
-	cmdNum = trap_GetCurrentCmdNumber() - CMD_BACKUP + 1;
-	trap_GetUserCmd( cmdNum, &cmd );
+	cmdNum = trap->GetCurrentCmdNumber() - CMD_BACKUP + 1;
+	trap->GetUserCmd( cmdNum, &cmd );
 	if ( cmd.serverTime <= cg.snap->ps.commandTime
 		|| cmd.serverTime > cg.time ) {	// special check for map_restart // bk 0102165 - FIXME
 		return;
@@ -2683,7 +2679,7 @@ static void CG_DrawDisconnect( void ) {
 	x = 640 - 48;
 	y = 480 - 48;
 
-	CG_DrawPic( x, y, 48, 48, trap_R_RegisterShader("gfx/2d/net.tga" ) );
+	CG_DrawPic( x, y, 48, 48, trap->R_RegisterShader("gfx/2d/net.tga" ) );
 }
 
 
@@ -2713,7 +2709,7 @@ static void CG_DrawLagometer( void ) {
 	x = 640 - 48;
 	y = 480 - 144;
 
-	trap_R_SetColor( NULL );
+	trap->R_SetColor( NULL );
 	CG_DrawPic( x, y, 48, 48, cgs.media.lagometerShader );
 
 	ax = x;
@@ -2735,22 +2731,22 @@ static void CG_DrawLagometer( void ) {
 		if ( v > 0 ) {
 			if ( color != 1 ) {
 				color = 1;
-				trap_R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
+				trap->R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
 			}
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic ( ax + aw - a, mid - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			trap->R_DrawStretchPic ( ax + aw - a, mid - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		} else if ( v < 0 ) {
 			if ( color != 2 ) {
 				color = 2;
-				trap_R_SetColor( g_color_table[ColorIndex(COLOR_BLUE)] );
+				trap->R_SetColor( g_color_table[ColorIndex(COLOR_BLUE)] );
 			}
 			v = -v;
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic( ax + aw - a, mid, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			trap->R_DrawStretchPic( ax + aw - a, mid, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		}
 	}
 
@@ -2765,29 +2761,29 @@ static void CG_DrawLagometer( void ) {
 			if ( lagometer.snapshotFlags[i] & SNAPFLAG_RATE_DELAYED ) {
 				if ( color != 5 ) {
 					color = 5;	// YELLOW for rate delay
-					trap_R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
+					trap->R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
 				}
 			} else {
 				if ( color != 3 ) {
 					color = 3;
-					trap_R_SetColor( g_color_table[ColorIndex(COLOR_GREEN)] );
+					trap->R_SetColor( g_color_table[ColorIndex(COLOR_GREEN)] );
 				}
 			}
 			v = v * vscale;
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic( ax + aw - a, ay + ah - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			trap->R_DrawStretchPic( ax + aw - a, ay + ah - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		} else if ( v < 0 ) {
 			if ( color != 4 ) {
 				color = 4;		// RED for dropped snapshots
-				trap_R_SetColor( g_color_table[ColorIndex(COLOR_RED)] );
+				trap->R_SetColor( g_color_table[ColorIndex(COLOR_RED)] );
 			}
-			trap_R_DrawStretchPic( ax + aw - a, ay + ah - range, 1, range, 0, 0, 0, 0, cgs.media.whiteShader );
+			trap->R_DrawStretchPic( ax + aw - a, ay + ah - range, 1, range, 0, 0, 0, 0, cgs.media.whiteShader );
 		}
 	}
 
-	trap_R_SetColor( NULL );
+	trap->R_SetColor( NULL );
 
 	if ( cg_noPredict.integer || g_synchronousClients.integer ) {
 		CG_DrawBigString( ax, ay, "snc", 1.0f );
@@ -2798,17 +2794,17 @@ static void CG_DrawLagometer( void ) {
 
 void CG_DrawSiegeMessage( const char *str, int objectiveScreen )
 {
-//	if (!( trap_Key_GetCatcher() & KEYCATCH_UI ))
+//	if (!( trap->Key_GetCatcher() & KEYCATCH_UI ))
 	{
-		trap_OpenUIMenu(UIMENU_CLOSEALL);
-		trap_Cvar_Set("cg_siegeMessage", str);
+		trap->OpenUIMenu(UIMENU_CLOSEALL);
+		trap->Cvar_Set("cg_siegeMessage", str);
 		if (objectiveScreen)
 		{
-			trap_OpenUIMenu(UIMENU_SIEGEOBJECTIVES);
+			trap->OpenUIMenu(UIMENU_SIEGEOBJECTIVES);
 		}
 		else
 		{
-			trap_OpenUIMenu(UIMENU_SIEGEMESSAGE);
+			trap->OpenUIMenu(UIMENU_SIEGEMESSAGE);
 		}
 	}
 }
@@ -2818,7 +2814,7 @@ void CG_DrawSiegeMessageNonMenu( const char *str )
 	char	text[1024];
 	if (str[0]=='@')
 	{	
-		trap_SP_GetStringTextString(str+1, text, sizeof(text));
+		trap->SE_GetStringTextString(str+1, text, sizeof(text));
 		str = text;
 	}
 	CG_CenterPrint(str, SCREEN_HEIGHT * 0.30f, BIGCHAR_WIDTH);
@@ -2921,7 +2917,7 @@ static void CG_DrawCenterString( void ) {
 		return;
 	}
 
-	trap_R_SetColor( color );
+	trap->R_SetColor( color );
 
 	start = cg.centerPrint;
 
@@ -2954,7 +2950,7 @@ static void CG_DrawCenterString( void ) {
 		start++;
 	}
 
-	trap_R_SetColor( NULL );
+	trap->R_SetColor( NULL );
 }
 
 
@@ -3227,7 +3223,7 @@ vec3_t cg_crosshairPos={0,0,0};
 		vec4_t		hcolor;
 
 		CG_ColorForHealth( hcolor );
-		trap_R_SetColor( hcolor );
+		trap->R_SetColor( hcolor );
 	}
 	else
 	{
@@ -3258,7 +3254,7 @@ vec3_t cg_crosshairPos={0,0,0};
 				}
             }
             
-			trap_R_SetColor( ecolor );
+			trap->R_SetColor( ecolor );
 		}
 		//rwwFIXMEFIXME: Write this a different way, it's getting a bit too sloppy looking
 		if ( cg.crosshairClientNum < ENTITYNUM_WORLD && chEntValid &&
@@ -3495,7 +3491,7 @@ vec3_t cg_crosshairPos={0,0,0};
                 ecolor[3] = 1.0f;
             }
             
-			trap_R_SetColor( ecolor );
+			trap->R_SetColor( ecolor );
 		}
 	}
 
@@ -3546,7 +3542,7 @@ vec3_t cg_crosshairPos={0,0,0};
 	{
 		char* fmShader = wp->visuals.visualFireModes[cg.predictedPlayerState.firingMode].crosshairShader;
 		if ( fmShader[0] ) {
-			hShader = trap_R_RegisterShaderNoMip(fmShader);
+			hShader = trap->R_RegisterShaderNoMip(fmShader);
 		}
 		else {
 			hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
@@ -3555,12 +3551,12 @@ vec3_t cg_crosshairPos={0,0,0};
 
 	chX = x + cg.refdef.x + 0.5f * (640 - w);
 	chY = y + cg.refdef.y + 0.5f * (480 - h);
-	trap_R_DrawStretchPic( chX, chY, w, h, 0, 0, 1, 1, hShader );
+	trap->R_DrawStretchPic( chX, chY, w, h, 0, 0, 1, 1, hShader );
 
 	// draw hitmarker --eez
 	if(cg.hitmarkerLastTime > cg.time)
 	{
-		trap_R_DrawStretchPic( chX, chY, w, h, 0, 0, 1, 1, cgs.media.hitmarkerGraphic );
+		trap->R_DrawStretchPic( chX, chY, w, h, 0, 0, 1, 1, cgs.media.hitmarkerGraphic );
 	}
 
 	//draw a health bar directly under the crosshair if we're looking at something
@@ -3604,18 +3600,18 @@ vec3_t cg_crosshairPos={0,0,0};
 		ecolor[0] = ecolor[1] = ecolor[2] = (1 - ecolor[3]) * ( sin( cg.time * 0.001f ) * 0.08f + 0.35f ); // don't draw full color
 		ecolor[3] = 1.0f;
 
-		trap_R_SetColor( ecolor );
+		trap->R_SetColor( ecolor );
 
 		w *= 2.0f;
 		h *= 2.0f;
 
-		trap_R_DrawStretchPic( x + cg.refdef.x + 0.5f * (640 - w), 
+		trap->R_DrawStretchPic( x + cg.refdef.x + 0.5f * (640 - w), 
 			y + cg.refdef.y + 0.5f * (480 - h), 
 			w, h, 0, 0, 1, 1, cgs.media.forceCoronaShader );
 	}
 
 	//Raz: Was missing this
-	trap_R_SetColor( NULL );
+	trap->R_SetColor( NULL );
 }
 
 qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y)
@@ -3723,11 +3719,11 @@ void CG_SaberClashFlare( void )
 	CG_WorldCoordToScreenCoord( cg_saberFlashPos, &x, &y );
 
 	VectorSet( color, 0.8f, 0.8f, 0.8f );
-	trap_R_SetColor( color );
+	trap->R_SetColor( color );
 
 	CG_DrawPic( x - ( v * 300 ), y - ( v * 300 ),
 				v * 600, v * 600,
-				trap_R_RegisterShader( "gfx/effects/saberFlare" ));
+				trap->R_RegisterShader( "gfx/effects/saberFlare" ));
 }
 
 void CG_DottedLine( float x1, float y1, float x2, float y2, float dotSize, int numDots, vec4_t color, float alpha )
@@ -3739,7 +3735,7 @@ void CG_DottedLine( float x1, float y1, float x2, float y2, float dotSize, int n
 	VectorCopy4( color, colorRGBA );
 	colorRGBA[3] = alpha;
 
-	trap_R_SetColor( colorRGBA );
+	trap->R_SetColor( colorRGBA );
 
 	xDiff = x2-x1;
 	yDiff = y2-y1;
@@ -3801,16 +3797,16 @@ void CG_BracketEntity( centity_t *cent, float radius )
 		if ( cgs.gametype < GT_TEAM )
 		{//ffa?
 			isEnemy = qtrue;
-			trap_R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
+			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
 		}
 		else if ( cgs.clientinfo[ cent->currentState.m_iVehicleNum-1 ].team == local->team )
 		{
-			trap_R_SetColor ( g_color_table[ColorIndex(COLOR_GREEN)] );
+			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_GREEN)] );
 		}
 		else
 		{
 			isEnemy = qtrue;
-			trap_R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
+			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
 		}
 	}
 	else if ( cent->currentState.teamowner )
@@ -3818,21 +3814,21 @@ void CG_BracketEntity( centity_t *cent, float radius )
 		if ( cgs.gametype < GT_TEAM )
 		{//ffa?
 			isEnemy = qtrue;
-			trap_R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
+			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
 		}
 		else if ( cent->currentState.teamowner != cg.predictedPlayerState.persistant[PERS_TEAM] )
 		{// on enemy team
 			isEnemy = qtrue;
-			trap_R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
+			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
 		}
 		else
 		{ //a friend
-			trap_R_SetColor ( g_color_table[ColorIndex(COLOR_GREEN)] );
+			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_GREEN)] );
 		}
 	}
 	else
 	{//FIXME: if we want to ever bracket anything besides vehicles (like siege objectives we want to blow up), we should handle the coloring here
-		trap_R_SetColor ( NULL );
+		trap->R_SetColor ( NULL );
 	}
 	
 	if ( len <= 1.0f )
@@ -3934,8 +3930,8 @@ void CG_BracketEntity( centity_t *cent, float radius )
 								//draw a line from the ship's cur pos to the lead pos
 								CG_DottedLine( x, y, leadX, leadY, 1, 10, g_color_table[ColorIndex(COLOR_RED)], 0.5f );
 								//now draw the lead indicator
-								trap_R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
-								CG_DrawPic( leadX-8, leadY-8, 16, 16, trap_R_RegisterShader( "gfx/menus/radar/lead" ) );
+								trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
+								CG_DrawPic( leadX-8, leadY-8, 16, 16, trap->R_RegisterShader( "gfx/menus/radar/lead" ) );
 							}
 						}
 					}
@@ -4025,7 +4021,7 @@ static void CG_DrawActivePowers(void)
 		return;
 	}
 
-	trap_R_SetColor( NULL );
+	trap->R_SetColor( NULL );
 
 	while (i < NUM_FORCE_POWERS)
 	{
@@ -4211,22 +4207,22 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 			{
 				if ( cg.snap->ps.m_iVehicleNum )
 				{
-					trap_S_StartSound( org, 0, CHAN_AUTO, trap_S_RegisterSound( "sound/vehicles/weapons/common/lock.wav" ));
+					trap->S_StartSound( org, 0, CHAN_AUTO, trap->S_RegisterSound( "sound/vehicles/weapons/common/lock.wav" ));
 				}
 				else
 				{
-					trap_S_StartSound( org, 0, CHAN_AUTO, trap_S_RegisterSound( "sound/weapons/rocket/lock.wav" ));
+					trap->S_StartSound( org, 0, CHAN_AUTO, trap->S_RegisterSound( "sound/weapons/rocket/lock.wav" ));
 				}
 			}
 			else
 			{
 				if ( cg.snap->ps.m_iVehicleNum )
 				{
-					trap_S_StartSound( org, 0, CHAN_AUTO, trap_S_RegisterSound( "sound/vehicles/weapons/common/tick.wav" ));
+					trap->S_StartSound( org, 0, CHAN_AUTO, trap->S_RegisterSound( "sound/vehicles/weapons/common/tick.wav" ));
 				}
 				else
 				{
-					trap_S_StartSound( org, 0, CHAN_AUTO, trap_S_RegisterSound( "sound/weapons/rocket/tick.wav" ));
+					trap->S_StartSound( org, 0, CHAN_AUTO, trap->S_RegisterSound( "sound/weapons/rocket/tick.wav" ));
 				}
 			}
 		}
@@ -4240,10 +4236,10 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 			color[2] = 0.0f;
 			color[3] = 0.1f * i + 0.2f;
 
-			trap_R_SetColor( color );
+			trap->R_SetColor( color );
 
 			// our slices are offset by about 45 degrees.
-			CG_DrawRotatePic( cx - sz, cy - sz, sz, sz, i * 45.0f, trap_R_RegisterShaderNoMip( "gfx/2d/wedge" ));
+			CG_DrawRotatePic( cx - sz, cy - sz, sz, sz, i * 45.0f, trap->R_RegisterShaderNoMip( "gfx/2d/wedge" ));
 		}
 
 		// we are locked and loaded baby
@@ -4252,9 +4248,9 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 			color[0] = color[1] = color[2] = sin( cg.time * 0.05f ) * 0.5f + 0.5f;
 			color[3] = 1.0f; // this art is additive, so the alpha value does nothing
 
-			trap_R_SetColor( color );
+			trap->R_SetColor( color );
 
-			CG_DrawPic( cx - sz, cy - sz * 2, sz * 2, sz * 2, trap_R_RegisterShaderNoMip( "gfx/2d/lock" ));
+			CG_DrawPic( cx - sz, cy - sz * 2, sz * 2, sz * 2, trap->R_RegisterShaderNoMip( "gfx/2d/lock" ));
 		}
 	}
 }
@@ -4324,7 +4320,7 @@ qboolean CG_CalcVehicleMuzzlePoint( int entityNum, vec3_t start, vec3_t d_f, vec
 //calc the muzzle point from the e-web itself
 void CG_CalcEWebMuzzlePoint(centity_t *cent, vec3_t start, vec3_t d_f, vec3_t d_rt, vec3_t d_up)
 {
-	int bolt = trap_G2API_AddBolt(cent->ghoul2, 0, "*cannonflash");
+	int bolt = trap->G2API_AddBolt(cent->ghoul2, 0, "*cannonflash");
 
 	assert(bolt != -1);
 
@@ -4332,7 +4328,7 @@ void CG_CalcEWebMuzzlePoint(centity_t *cent, vec3_t start, vec3_t d_f, vec3_t d_
 	{
 		mdxaBone_t boltMatrix;
 
-		trap_G2API_GetBoltMatrix_NoRecNoRot(cent->ghoul2, 0, bolt, &boltMatrix, cent->lerpAngles, cent->lerpOrigin, cg.time, NULL, cent->modelScale);
+		trap->G2API_GetBoltMatrix_NoRecNoRot(cent->ghoul2, 0, bolt, &boltMatrix, cent->lerpAngles, cent->lerpOrigin, cg.time, NULL, cent->modelScale);
 		BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, start);
 		BG_GiveMeVectorFromMatrix(&boltMatrix, NEGATIVE_X, d_f);
 
@@ -4563,7 +4559,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 	}
 
 	// if the player is in fog, don't show it
-	content = trap_CM_PointContents( trace.endpos, 0 );
+	content = CG_PointContents( trace.endpos, 0 );
 	if ( content & CONTENTS_FOG ) {
 		return;
 	}
@@ -4687,7 +4683,7 @@ void Load_NPC_Names ( void )
 
 	loadPath = va( "npc_names_list.dat" );
 
-	len = trap_FS_FOpenFile( loadPath, &f, FS_READ );
+	len = trap->FS_Open( loadPath, &f, FS_READ );
 
 	HumanNamesLoaded = qtrue;
 
@@ -4698,19 +4694,19 @@ void Load_NPC_Names ( void )
 
 	if ( !len )
 	{			//empty file
-		trap_FS_FCloseFile( f );
+		trap->FS_Close( f );
 		return;
 	}
 
 	if ( (buf = (char *)malloc( len + 1)) == 0 )
 	{			//alloc memory for buffer
-		trap_FS_FCloseFile( f );
+		trap->FS_Close( f );
 		return;
 	}
 
-	trap_FS_Read( buf, len, f );
+	trap->FS_Read( buf, len, f );
 	buf[len] = 0;
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
 	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "NONAME");
 	NUM_HUMAN_NAMES++;
@@ -5037,7 +5033,7 @@ void CG_DrawNPCNames( void )
 			tclr2[2] = 0.7f;
 			tclr2[3] = 1.0f;
 			break;
-			case CLASS_JKF_FAQ_SITH_MENTOR:
+			case CLASS_JKG_FAQ_SITH_MENTOR:
 				str2 = va("< Sith Mentor >");//oriange coler
 			tclr[0] = 1.0f;
 			tclr[1] = 0.225f;
@@ -5079,9 +5075,32 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_TAVION:
-		case CLASS_REBORN:
 		case CLASS_DESANN:
+			str2 = va("< Sith Boss>");
+			tclr[0] = 1.0f;
+			tclr[1] = 0.325f;
+			tclr[2] = 0.125f;
+			tclr[3] = 1.0f;
+
+			tclr2[0] = 1.0f;
+			tclr2[1] = 0.325f;
+			tclr2[2] = 0.125f;
+			tclr2[3] = 1.0f;
+			break;
+			case CLASS_REBORN:
 			str2 = va("< Sith >");
+			tclr[0] = 1.0f;
+			tclr[1] = 0.325f;
+			tclr[2] = 0.125f;
+			tclr[3] = 1.0f;
+
+			tclr2[0] = 1.0f;
+			tclr2[1] = 0.325f;
+			tclr2[2] = 0.125f;
+			tclr2[3] = 1.0f;
+			break;
+			case CLASS_REBORN_CULTIST:
+			str2 = va("< Sith Fighters >");
 			tclr[0] = 1.0f;
 			tclr[1] = 0.325f;
 			tclr[2] = 0.125f;
@@ -5242,7 +5261,7 @@ void CG_DrawNPCNames( void )
 			case CLASS_JKG_FAQ_CRAFTER_DROID:
 			case CLASS_JKG_FAQ_MERC_DROID:
 			case CLASS_JKG_FAQ_JEDI_MENTOR:
-			case CLASS_JKF_FAQ_SITH_MENTOR:
+			case CLASS_JKG_FAQ_SITH_MENTOR:
 			case CLASS_LUKE:
 			case CLASS_JEDI:
 			case CLASS_KYLE:
@@ -5251,6 +5270,7 @@ void CG_DrawNPCNames( void )
 			case CLASS_MORGANKATARN:
 			case CLASS_TAVION:
 			case CLASS_REBORN:
+			case CLASS_REBORN_CULTIST:
 			case CLASS_DESANN:
 			case CLASS_BOBAFETT:
 			case CLASS_COMMANDO:
@@ -5498,7 +5518,7 @@ static void CG_DrawCrosshairNames( void ) {
 	// draw the name of the player being looked at
 	color = CG_FadeColor( cg.crosshairClientTime, 1000 );
 	if ( !color ) {
-		trap_R_SetColor( NULL );
+		trap->R_SetColor( NULL );
 		return;
 	}
 
@@ -5584,7 +5604,7 @@ static void CG_DrawCrosshairNames( void ) {
 		UI_DrawProportionalString(320, 170, sanitized, UI_CENTER, tcolor, FONT_MEDIUM);
 	}
 
-	trap_R_SetColor( NULL );
+	trap->R_SetColor( NULL );
 }
 
 
@@ -5622,7 +5642,7 @@ static void CG_DrawVote(void) {
 	// play a talk beep whenever it is modified
 	if ( cgs.voteModified ) {
 		cgs.voteModified = qfalse;
-		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+		trap->S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 	}
 
 	sec = ( VOTE_TIME - ( cg.time - cgs.voteTime ) ) / 1000;
@@ -5632,20 +5652,20 @@ static void CG_DrawVote(void) {
 
 	if (strncmp(cgs.voteString, "map_restart", 11)==0)
 	{
-		trap_SP_GetStringTextString("MENUS_RESTART_MAP", sCmd, sizeof(sCmd) );
+		trap->SE_GetStringTextString("MENUS_RESTART_MAP", sCmd, sizeof(sCmd) );
 	}
 	else if (strncmp(cgs.voteString, "vstr nextmap", 12)==0)
 	{
-		trap_SP_GetStringTextString("MENUS_NEXT_MAP", sCmd, sizeof(sCmd) );
+		trap->SE_GetStringTextString("MENUS_NEXT_MAP", sCmd, sizeof(sCmd) );
 	}
 	else if (strncmp(cgs.voteString, "g_gametype", 10)==0)
 	{
-		trap_SP_GetStringTextString("MENUS_GAME_TYPE", sCmd, sizeof(sCmd) );
-		if      ( Q_stricmp("Free For All", cgs.voteString+11)==0 ) 
+		trap->SE_GetStringTextString("MENUS_GAME_TYPE", sCmd, sizeof(sCmd) );
+		if ( Q_stricmp("Free For All", cgs.voteString+11)==0 ) 
 		{
 			sParm = CG_GetStringEdString("MENUS", "FREE_FOR_ALL");
 		}
-		else if      ( Q_stricmp("Warzone", cgs.voteString+11)==0 ) 
+		else if ( Q_stricmp("Warzone", cgs.voteString+11)==0 ) 
 		{
 			sParm = CG_GetStringEdString("MENUS", "WARZONE");
 		}
@@ -5672,12 +5692,12 @@ static void CG_DrawVote(void) {
 	}
 	else if (strncmp(cgs.voteString, "map", 3)==0)
 	{
-		trap_SP_GetStringTextString("MENUS_NEW_MAP", sCmd, sizeof(sCmd) );
+		trap->SE_GetStringTextString("MENUS_NEW_MAP", sCmd, sizeof(sCmd) );
 		sParm = cgs.voteString+4;
 	}
 	else if (strncmp(cgs.voteString, "kick", 4)==0)
 	{
-		trap_SP_GetStringTextString("MENUS_KICK_PLAYER", sCmd, sizeof(sCmd) );
+		trap->SE_GetStringTextString("MENUS_KICK_PLAYER", sCmd, sizeof(sCmd) );
 		sParm = cgs.voteString+5;
 	}
 	else
@@ -5687,9 +5707,9 @@ static void CG_DrawVote(void) {
 
 
 
-	trap_SP_GetStringTextString("MENUS_VOTE", sVote, sizeof(sVote) );
-	trap_SP_GetStringTextString("MENUS_YES", sYes, sizeof(sYes) );
-	trap_SP_GetStringTextString("MENUS_NO",  sNo,  sizeof(sNo) );
+	trap->SE_GetStringTextString("MENUS_VOTE", sVote, sizeof(sVote) );
+	trap->SE_GetStringTextString("MENUS_YES", sYes, sizeof(sYes) );
+	trap->SE_GetStringTextString("MENUS_NO",  sNo,  sizeof(sNo) );
 
 	if (sParm && sParm[0])
 	{
@@ -5727,7 +5747,7 @@ static void CG_DrawTeamVote(void) {
 	// play a talk beep whenever it is modified
 	if ( cgs.teamVoteModified[cs_offset] ) {
 		cgs.teamVoteModified[cs_offset] = qfalse;
-//		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+//		trap->S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 	}
 
 	sec = ( VOTE_TIME - ( cg.time - cgs.teamVoteTime[cs_offset] ) ) / 1000;
@@ -6018,13 +6038,13 @@ else if ( cgs.gametype == GT_LMS_ROUNDS ) {
 
 		switch ( sec ) {
 			case 0:
-				trap_S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
+				trap->S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
 				break;
 			case 1:
-				trap_S_StartLocalSound( cgs.media.count2Sound, CHAN_ANNOUNCER );
+				trap->S_StartLocalSound( cgs.media.count2Sound, CHAN_ANNOUNCER );
 				break;
 			case 2:
-				trap_S_StartLocalSound( cgs.media.count3Sound, CHAN_ANNOUNCER );
+				trap->S_StartLocalSound( cgs.media.count3Sound, CHAN_ANNOUNCER );
 				break;
 			default:
 				break;
@@ -6065,7 +6085,7 @@ void CG_DrawTimedMenus() {
 		int t = cg.time - cg.voiceTime;
 		if ( t > 2500 ) {
 			Menus_CloseByName("voiceMenu");
-			trap_Cvar_Set("cl_conXOffset", "0");
+			trap->Cvar_Set("cl_conXOffset", "0");
 			cg.voiceTime = 0;
 		}
 	}
@@ -6080,7 +6100,7 @@ void CG_DrawFlagStatus()
 	int ico_size = 32;
 
 	//Raz: was missing this
-	trap_R_SetColor( NULL );
+	trap->R_SetColor( NULL );
 
 	if (!cg.snap)
 	{
@@ -6096,13 +6116,13 @@ void CG_DrawFlagStatus()
 
 	if (team == TEAM_RED)
 	{
-		myFlagTakenShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_rflag_x" );
-		theirFlagShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_bflag" );
+		myFlagTakenShader = trap->R_RegisterShaderNoMip( "gfx/hud/mpi_rflag_x" );
+		theirFlagShader = trap->R_RegisterShaderNoMip( "gfx/hud/mpi_bflag" );
 	}
 	else
 	{
-		myFlagTakenShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_bflag_x" );
-		theirFlagShader = trap_R_RegisterShaderNoMip( "gfx/hud/mpi_rflag" );
+		myFlagTakenShader = trap->R_RegisterShaderNoMip( "gfx/hud/mpi_bflag_x" );
+		theirFlagShader = trap->R_RegisterShaderNoMip( "gfx/hud/mpi_rflag" );
 	}
 
 	if (CG_YourTeamHasFlag())
@@ -6135,20 +6155,20 @@ void CG_DrawJetpackCloak(menuDef_t *menuHUD) {
 	if (cg.snap->ps.weapon == WP_SABER)
 	{
 		percent = cg.predictedPlayerState.blockPoints;
-		pic = trap_R_RegisterShader("gfx/jkghud/ico_cloak.png");
+		pic = trap->R_RegisterShader("gfx/jkghud/ico_cloak.png");
 	}
 
 	if (cg.snap->ps.jetpackFuel < 100)
 	{ // Jetpack is being used or is recharging
 		if (cg.snap->ps.cloakFuel >= 100 || (cg.time >> 10 & 1)) {
 			percent = cg.snap->ps.jetpackFuel;
-			pic = trap_R_RegisterShader("gfx/jkghud/ico_jetpack.png");
+			pic = trap->R_RegisterShader("gfx/jkghud/ico_jetpack.png");
 		}
 	}
 	if (cg.snap->ps.cloakFuel < 100) {
 		if (cg.snap->ps.jetpackFuel >= 100 || !(cg.time >> 10 & 1)) {
 			percent = cg.snap->ps.cloakFuel;
-			pic = trap_R_RegisterShader("gfx/jkghud/ico_cloak.png");
+			pic = trap->R_RegisterShader("gfx/jkghud/ico_cloak.png");
 		}
 	}
 
@@ -6163,8 +6183,8 @@ void CG_DrawJetpackCloak(menuDef_t *menuHUD) {
 	if (focusItem)
 	{	// The bar might not be in the HUD. But it should be located..I think in the bottom right hand corner.
 		// It's a red bar, I think. It's the same as the one used for the jetpack fuel, I believe. it is green
-		trap_R_SetColor( opacity );
-		trap_R_DrawStretchPic(
+		trap->R_SetColor( opacity );
+		trap->R_DrawStretchPic(
 						focusItem->window.rect.x,
 						focusItem->window.rect.y,
 						focusItem->window.rect.w * percent,
@@ -6178,7 +6198,7 @@ void CG_DrawJetpackCloak(menuDef_t *menuHUD) {
 	focusItem = Menu_FindItemByName(menuHUD, "bar1ico");
 	if (focusItem)
 	{
-		trap_R_SetColor( opacity );	
+		trap->R_SetColor( opacity );	
 		CG_DrawPic( 
 			focusItem->window.rect.x, 
 			focusItem->window.rect.y, 
@@ -6468,7 +6488,7 @@ void CG_ChatBox_AddString(char *chatStr, int fadeLevel)
 
 	// Trick: instead of usin the right scale, get the length at scale 1
 	// then scale down with a float, so we dont get rounding errors
-	//chatLen = trap_R_Font_StrLenPixels(chat->string, cgDC.Assets.qhSmall4Font, 1); //CG_Text_Width(chat->string, 1.0f, FONT_SMALL);
+	//chatLen = trap->R_Font_StrLenPixels(chat->string, cgDC.Assets.qhSmall4Font, 1); //CG_Text_Width(chat->string, 1.0f, FONT_SMALL);
 	//chatLen *= 0.5f;
 	chatLen = strlen(chat->string)*4;
 
@@ -6494,8 +6514,8 @@ void CG_ChatBox_AddString(char *chatStr, int fadeLevel)
 				}
 			}
 			*writeptr = chat->string[i];
-			//chatLen = ((float)trap_R_Font_StrLenPixels(buffer, cgDC.Assets.qhSmall4Font, 1) * 0.5f); //CG_Text_Width(s, 0.65f, FONT_SMALL);
-			//chatLen += trap_R_Font_StrLenPixels(s, cgDC.Assets.qhSmallFont, 0.4f); //CG_Text_Width(s, 0.65f, FONT_SMALL);
+			//chatLen = ((float)trap->R_Font_StrLenPixels(buffer, cgDC.Assets.qhSmall4Font, 1) * 0.5f); //CG_Text_Width(s, 0.65f, FONT_SMALL);
+			//chatLen += trap->R_Font_StrLenPixels(s, cgDC.Assets.qhSmallFont, 0.4f); //CG_Text_Width(s, 0.65f, FONT_SMALL);
 			//The above is pretty derpy...
 			chatLen = strlen(buffer)*4;
             writeptr++;
@@ -6679,15 +6699,15 @@ void CG_Notifications_Add(char *string, qboolean weapon)
 		// String is stringed
 		if(string[0] == '@')
 		{
-			whatWeGot = trap_SP_GetStringTextString( string+1, buffer, MAX_NOTIFICATION_CHARS );
+			whatWeGot = trap->SE_GetStringTextString( string+1, buffer, MAX_NOTIFICATION_CHARS );
 		}
 		else if(!Q_stricmpn(string, "??@", 3))
 		{
-			whatWeGot = trap_SP_GetStringTextString( string+3, buffer, MAX_NOTIFICATION_CHARS );
+			whatWeGot = trap->SE_GetStringTextString( string+3, buffer, MAX_NOTIFICATION_CHARS );
 		}
 		else
 		{
-			whatWeGot = trap_SP_GetStringTextString( string, buffer, MAX_NOTIFICATION_CHARS );
+			whatWeGot = trap->SE_GetStringTextString( string, buffer, MAX_NOTIFICATION_CHARS );
 		}
 		if(whatWeGot)
 		{
@@ -6780,7 +6800,7 @@ void CG_DrawMessageNotifications(void)
 	x = item->window.rect.x;
 	y = item->window.rect.y;
 	w = item->window.rect.w;
-	textHeight = (trap_R_Font_HeightPixels(item->iMenuFont, 1.0f)*item->textscale);
+	textHeight = (trap->R_Font_HeightPixels(item->iMenuFont, 1.0f)*item->textscale);
 	VectorCopy4(item->window.foreColor, color);
 
 
@@ -6802,7 +6822,7 @@ void CG_DrawMessageNotifications(void)
 		if(color[3] > 0)
 		{
 			// Optimization --eez
-			CG_Text_Paint(x + w - (trap_R_Font_StrLenPixels(cg.notificationBox[i].string, item->iMenuFont, 1.0f)*item->textscale) , y + (i*textHeight),
+			CG_Text_Paint(x + w - (trap->R_Font_StrLenPixels(cg.notificationBox[i].string, item->iMenuFont, 1.0f)*item->textscale) , y + (i*textHeight),
 				item->textscale, color, cg.notificationBox[i].string, 0, -1, 0, item->iMenuFont);
 		}
 	}
@@ -6893,15 +6913,15 @@ static void CG_Draw2DScreenTints( void )
 					hcolor[3] = 1.0f - ((float)(cg.time - cg.deathcamFadeStart) / 4000.0f); // 0 to 4000 converted to 0.0f to 1.0f
 					CG_DrawRect(0, 0, 640, 480, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 				}
-				trap_R_SetColor(NULL);
+				trap->R_SetColor(NULL);
 				// Display the 'you will be revived in xx seconds'
-				trap_R_DrawStretchPic(80,390, 480, 55, 0, 0, 1, 1, cgs.media.horizgradient);
+				trap->R_DrawStretchPic(80,390, 480, 55, 0, 0, 1, 1, cgs.media.horizgradient);
 				if (tr) {
-					x = 320 - (trap_R_Font_StrLenPixels(va("Your clone will be ready in %i seconds",tr), cgs.media.deathfont, 0.6f) / 2);
-					trap_R_Font_DrawString(x, 410, va("Your clone will be ready in %i seconds",tr), colorWhite, cgs.media.deathfont, -1, 0.6f);
+					x = 320 - (trap->R_Font_StrLenPixels(va("Your clone will be ready in %i seconds",tr), cgs.media.deathfont, 0.6f) / 2);
+					trap->R_Font_DrawString(x, 410, va("Your clone will be ready in %i seconds",tr), colorWhite, cgs.media.deathfont, -1, 0.6f);
 				} else {
-					//x = 320 - (trap_R_Font_StrLenPixels("Press the attack key to revive yourself", cgs.media.deathfont, 0.6f) / 2);
-					trap_R_Font_DrawString(165, 410, "Press the attack key to revive yourself", colorWhite, cgs.media.deathfont, -1, 0.6f);
+					//x = 320 - (trap->R_Font_StrLenPixels("Press the attack key to revive yourself", cgs.media.deathfont, 0.6f) / 2);
+					trap->R_Font_DrawString(165, 410, "Press the attack key to revive yourself", colorWhite, cgs.media.deathfont, -1, 0.6f);
 				}
 			}
 		}
@@ -6911,9 +6931,9 @@ static void CG_Draw2DScreenTints( void )
 			hcolor[2] = 0;
 			hcolor[3] = 0.6f * lowHealthPhase; // (float)(30 - cg.snap->ps.stats[STAT_HEALTH]) * 0.02f;
 			hcolor[3] *= fabs((sinf((float)cg.time / 750.0f)));
-			trap_R_SetColor(hcolor);
-			trap_R_DrawStretchPic(0,0,640,480,0, 0, 1, 1, cgs.media.lowHealthAura);
-			trap_R_SetColor(NULL);
+			trap->R_SetColor(hcolor);
+			trap->R_DrawStretchPic(0,0,640,480,0, 0, 1, 1, cgs.media.lowHealthAura);
+			trap->R_SetColor(NULL);
 		}
 		if (cg.snap->ps.fd.forcePowersActive & (1 << FP_RAGE))
 		{
@@ -7284,31 +7304,31 @@ void CG_DrawChatbox() {
 	if (item) {
 		VectorCopy4(item->window.foreColor, tmpCol);
 		tmpCol[3] *= cg.jkg_HUDOpacity;
-		trap_R_SetColor( tmpCol );
-		trap_R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);
+		trap->R_SetColor( tmpCol );
+		trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);
 	}
 	item = Menu_FindItemByName(menuHUD, "h_guild");
 	if (item) {
 		VectorCopy4(item->window.foreColor, tmpCol);
 		tmpCol[3] *= cg.jkg_HUDOpacity;
-		trap_R_SetColor( tmpCol );
-		trap_R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);
+		trap->R_SetColor( tmpCol );
+		trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);
 	}
 
 	item = Menu_FindItemByName(menuHUD, "h_action");
 	if (item) {
 		VectorCopy4(item->window.foreColor, tmpCol);
 		tmpCol[3] *= cg.jkg_HUDOpacity;
-		trap_R_SetColor( tmpCol );
-		trap_R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);
+		trap->R_SetColor( tmpCol );
+		trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);
 	}
 
 	item = Menu_FindItemByName(menuHUD, "h_comm");
 	if (item) {
 		VectorCopy4(item->window.foreColor, tmpCol);
 		tmpCol[3] *= cg.jkg_HUDOpacity;
-		trap_R_SetColor( tmpCol );
-		trap_R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);
+		trap->R_SetColor( tmpCol );
+		trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);
 	}
 #pragma endregion
 	ChatBox_DrawBackdrop(menuHUD);
@@ -7319,7 +7339,7 @@ void CG_DrawChatbox() {
 	item = Menu_FindItemByName(menuHUD, "frame");
 	if (item) {
 		MAKERGBA(color, 1, 1, 1, cg.jkg_HUDOpacity);
-		trap_R_SetColor( color );	
+		trap->R_SetColor( color );	
 		CG_DrawPic( 
 			item->window.rect.x, 
 			item->window.rect.y, 
@@ -7360,7 +7380,7 @@ void CG_DrawChatbox() {
 #pragma endregion
 	
 	MAKERGBA(color, 1, 1, 1, 1*cg.jkg_HUDOpacity);
-	trap_R_SetColor(color);
+	trap->R_SetColor(color);
 
 	ChatBox_DrawChat(menuHUD);
 }
@@ -7409,10 +7429,10 @@ static void CG_Draw2D( void ) {
 		// If its 0 its off, so ya :P
 		if (cg.cinematicState == 2) {
 			if (!jkg_noletterbox.integer) {
-				trap_R_SetColor(&cincolor[0]);
-				trap_R_DrawStretchPic(0,0,640,75,0,0,0,0,cgs.media.whiteShader);
-				trap_R_DrawStretchPic(0,480-75,640,75,0,0,0,0,cgs.media.whiteShader);
-				trap_R_SetColor(NULL);
+				trap->R_SetColor(&cincolor[0]);
+				trap->R_DrawStretchPic(0,0,640,75,0,0,0,0,cgs.media.whiteShader);
+				trap->R_DrawStretchPic(0,480-75,640,75,0,0,0,0,cgs.media.whiteShader);
+				trap->R_SetColor(NULL);
 			}
 			// No HUD when in cinematic mode
 			return;
@@ -7442,13 +7462,13 @@ static void CG_Draw2D( void ) {
 				transpos = 75 - transpos;
 			}
 		} else {
-			trap_Error(va("CG_Draw2D: Invalid cinematic state %i", cg.cinematicState));
+			trap->Error(ERR_DROP, va("CG_Draw2D: Invalid cinematic state %i", cg.cinematicState));
 		}
 		if (!jkg_noletterbox.integer) {
-			trap_R_SetColor(&cincolor[0]);
-			trap_R_DrawStretchPic(0,0,640,transpos,0,0,0,0,cgs.media.whiteShader);
-			trap_R_DrawStretchPic(0,480-transpos,640,transpos,0,0,0,0,cgs.media.whiteShader);
-			trap_R_SetColor(NULL);
+			trap->R_SetColor(&cincolor[0]);
+			trap->R_DrawStretchPic(0,0,640,transpos,0,0,0,0,cgs.media.whiteShader);
+			trap->R_DrawStretchPic(0,480-transpos,640,transpos,0,0,0,0,cgs.media.whiteShader);
+			trap->R_SetColor(NULL);
 		}
 		return;
 	}
@@ -7675,7 +7695,7 @@ static void CG_DrawMiscStaticModels (void) {
 			}
 		}
 
-		if ( !trap_R_inPVS (cg.refdef.vieworg, cullorg, cg.refdef.areamask) ) {
+		if ( !trap->R_InPVS (cg.refdef.vieworg, cullorg, cg.refdef.areamask) ) {
 			continue;
 		}
 
@@ -7690,7 +7710,7 @@ static void CG_DrawMiscStaticModels (void) {
 
 		VectorSubtract (ent.origin, cg.refdef.vieworg, diff);
 		if ( VectorLength (diff) - (cgs.miscStaticModels[i].radius) <= cg.distanceCull ) {
-			trap_R_AddRefEntityToScene (&ent);
+			trap->R_AddRefEntityToScene (&ent);
 		}
 	}
 }
@@ -7733,7 +7753,7 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		break;
 	default:
 		separation = 0;
-		CG_Error( "CG_DrawActive: Undefined stereoView" );
+		trap->Error( ERR_DROP, "CG_DrawActive: Undefined stereoView" );
 	}
 
 
@@ -7751,7 +7771,7 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	CG_DrawMiscStaticModels ();
 
 	// draw 3D view
-	trap_R_RenderScene( &cg.refdef );
+	trap->R_RenderScene( &cg.refdef );
 
 	// restore original viewpoint if running stereo
 	if ( separation != 0 ) {

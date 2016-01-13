@@ -14,7 +14,7 @@ ImpOfficer
 	rank		ltcomm
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
+
 	class		CLASS_IMPERIAL
 	snd			io1
 	sndcombat	io1

@@ -1,18 +1,39 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // BG_PAnimate.c
 
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
-#include "bg_strap.h"
 #include "bg_local.h"
 #include "anims.h"
 #include "cgame/animtable.h"
-#ifdef QAGAME
-#include "g_local.h"
-#endif
 
-#ifdef CGAME
-extern sfxHandle_t trap_S_RegisterSound( const char *sample);
-extern int trap_FX_RegisterEffect( const char *file);
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_UI)
+	#include "../ui/ui_local.h"
+#elif defined(_CGAME)
+	#include "../cgame/cg_local.h"
 #endif
 
 extern saberInfo_t *BG_MySaber( int clientNum, int saberNum );
@@ -1854,7 +1875,7 @@ void SpewDebugStuffToFile()
 	fileHandle_t f;
 	int i = 0;
 
-	trap_FS_FOpenFile("file_of_debug_stuff_MP.txt", &f, FS_WRITE);
+	trap->FS_FOpenFile("file_of_debug_stuff_MP.txt", &f, FS_WRITE);
 
 	if (!f)
 	{
@@ -1869,8 +1890,8 @@ void SpewDebugStuffToFile()
 		i++;
 	}
 
-	trap_FS_Write(BGPAFtext, strlen(BGPAFtext), f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Write(BGPAFtext, strlen(BGPAFtext), f);
+	trap->FS_FCloseFile(f);
 }
 #endif
 
@@ -1894,7 +1915,7 @@ void BG_ClearAnimsets(void)
 	{
 		if (bgAllAnims[i].anims)
 		{
-			strap_TrueFree((void **)&bgAllAnims[i].anims);
+			strap->TrueFree((void **)&bgAllAnims[i].anims);
 		}
 		i++;
 	}
@@ -1917,7 +1938,7 @@ void BG_AnimsetFree(animation_t *animset)
 		return;
 	}
 
-	strap_TrueFree((void **)&animset);
+	strap->TrueFree((void **)&animset);
 
 #ifdef _DEBUG
 	if (animset)
@@ -1928,7 +1949,7 @@ void BG_AnimsetFree(animation_t *animset)
 	*/
 }
 
-#ifndef QAGAME //none of this is actually needed serverside. Could just be moved to cgame code but it's here since it
+#ifndef _GAME //none of this is actually needed serverside. Could just be moved to cgame code but it's here since it
 			   //used to tie in a lot with the anim loading stuff.
 stringID_table_t animEventTypeTable[MAX_ANIM_EVENTS+1] = 
 {
@@ -2147,7 +2168,7 @@ void ParseAnimationEvtBlock(const char *aeb_filename, animevent_t *animEvents, a
 					}
 					else
 					{
-						animEvents[curAnimEvent].eventData[num] = trap_S_RegisterSound( va( stringData, n ) );
+						animEvents[curAnimEvent].eventData[num] = trap->S_RegisterSound( va( stringData, n ) );
 					}
 				}
 				animEvents[curAnimEvent].eventData[AED_SOUND_NUMRANDOMSNDS] = num - 1;
@@ -2160,7 +2181,7 @@ void ParseAnimationEvtBlock(const char *aeb_filename, animevent_t *animEvents, a
 				}
 				else
 				{
-					animEvents[curAnimEvent].eventData[AED_SOUNDINDEX_START] = trap_S_RegisterSound( stringData );
+					animEvents[curAnimEvent].eventData[AED_SOUNDINDEX_START] = trap->S_RegisterSound( stringData );
 				}
 #ifndef FINAL_BUILD
 				if ( !animEvents[curAnimEvent].eventData[AED_SOUNDINDEX_START] &&
@@ -2252,7 +2273,7 @@ void ParseAnimationEvtBlock(const char *aeb_filename, animevent_t *animEvents, a
 			{
 				break;
 			}
-			animEvents[curAnimEvent].eventData[AED_EFFECTINDEX] = trap_FX_RegisterEffect( token );
+			animEvents[curAnimEvent].eventData[AED_EFFECTINDEX] = trap->FX_RegisterEffect( token );
 			//get bolt index
 			token = COM_Parse( text_p );
 			if ( !token ) 
@@ -2423,14 +2444,14 @@ int BG_ParseAnimationEvtFile( const char *as_filename, int animFileIndex, int ev
 	}
 
 	// load the file
-	len = trap_FS_FOpenFile( sfilename, &f, FS_READ );
+	len = trap->FS_Open( sfilename, &f, FS_READ );
 	if ( len <= 0 ) 
 	{//no file
 		goto fin;
 	}
 	if ( len >= sizeof( text ) - 1 ) 
 	{
-		trap_FS_FCloseFile(f);
+		trap->FS_Close(f);
 #ifndef FINAL_BUILD
 		Com_Error(ERR_DROP, "File %s too long\n", sfilename );
 #else
@@ -2439,9 +2460,9 @@ int BG_ParseAnimationEvtFile( const char *as_filename, int animFileIndex, int ev
 		goto fin;
 	}
 
-	trap_FS_Read( text, len, f );
+	trap->FS_Read( text, len, f );
 	text[len] = 0;
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
 	// parse the text
 	text_p = text;
@@ -2598,7 +2619,7 @@ int BG_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 	// load the file
 	if (!BGPAFtextLoaded || !isHumanoid)
 	{ //rww - We are always using the same animation config now. So only load it once.
-		len = trap_FS_FOpenFile( filename, &f, FS_READ );
+		len = trap->FS_Open( filename, &f, FS_READ );
 		if ( (len <= 0) || (len >= sizeof( BGPAFtext ) - 1) ) 
 		{
 			if (dynAlloc)
@@ -2612,9 +2633,9 @@ int BG_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 			return -1;
 		}
 
-		trap_FS_Read( BGPAFtext, len, f );
+		trap->FS_Read( BGPAFtext, len, f );
 		BGPAFtext[len] = 0;
-		trap_FS_FCloseFile( f );
+		trap->FS_Close( f );
 	}
 	else
 	{
@@ -2717,7 +2738,7 @@ static void BG_StartLegsAnim( playerState_t *ps, int anim )
 	{
 		BG_FlipPart(ps, SETANIM_LEGS);
 	}
-#ifdef QAGAME
+#ifdef _GAME
 	else if (g_entities[ps->clientNum].s.legsAnim == anim)
 	{ //toggled anim to one anim then back to the one we were at previously in
 		//one frame, indicating that anim should be restarted.
@@ -2784,7 +2805,7 @@ void BG_StartTorsoAnim( playerState_t *ps, int anim )
 	{
 		BG_FlipPart(ps, SETANIM_TORSO);
 	}
-#ifdef QAGAME
+#ifdef _GAME
 	else if (g_entities[ps->clientNum].s.torsoAnim == anim)
 	{ //toggled anim to one anim then back to the one we were at previously in
 		//one frame, indicating that anim should be restarted.
@@ -2925,8 +2946,7 @@ qboolean PM_RunningAnim( int anim );
 qboolean PM_WalkingAnim( int anim );
 
 void BG_SetAnimFinal(playerState_t *ps, animation_t *animations,
-					 int setAnimParts,int anim,int setAnimFlags,
-					 int blendTime)		// default blendTime=350
+					 int setAnimParts,int anim,int setAnimFlags)
 {
 	float editAnimSpeed = 1;
 
@@ -2937,9 +2957,6 @@ void BG_SetAnimFinal(playerState_t *ps, animation_t *animations,
 
 	assert(anim > -1);
 	assert(animations[anim].firstFrame > 0 || animations[anim].numFrames > 0);
-
-	//NOTE: Setting blendTime here breaks actual blending..
-	blendTime = 0;
 
 	BG_SaberStartTransAnim(ps->clientNum, ps->fd.saberAnimLevel, ps->weapon, anim, &editAnimSpeed, ps->brokenLimbs, 
 		SaberStances[ps->fd.saberAnimLevel].moves[ps->saberMove].animspeedscale, ps->saberSwingSpeed, ps->saberMove);
@@ -3111,7 +3128,7 @@ setAnimDone:
 void PM_SetAnimFinal(int setAnimParts,int anim,int setAnimFlags,
 					 int blendTime)		// default blendTime=350
 {
-	BG_SetAnimFinal(pm->ps, pm->animations, setAnimParts, anim, setAnimFlags, blendTime);
+	BG_SetAnimFinal(pm->ps, pm->animations, setAnimParts, anim, setAnimFlags);
 }
 
 
@@ -3163,7 +3180,7 @@ int BG_PickAnim( int animIndex, int minAnim, int maxAnim )
 //of a pmove too so I have ported it to true BGishness.
 //Please do not reference pm in this function or any functions that it calls,
 //or I will cry. -rww
-void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags, int blendTime)
+void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int anim,int setAnimFlags)
 {
 	if (!animations)
 	{
@@ -3218,12 +3235,12 @@ void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int
 		}
 	}
 
-	BG_SetAnimFinal(ps, animations, setAnimParts, anim, setAnimFlags, blendTime);
+	BG_SetAnimFinal(ps, animations, setAnimParts, anim, setAnimFlags);
 }
 
-void PM_SetAnim(int setAnimParts,int anim,int setAnimFlags, int blendTime)
+void PM_SetAnim(int setAnimParts,int anim,int setAnimFlags)
 {	
-	BG_SetAnim(pm->ps, pm->animations, setAnimParts, anim, setAnimFlags, blendTime);
+	BG_SetAnim(pm->ps, pm->animations, setAnimParts, anim, setAnimFlags);
 }
 
 //[BugFix2]

@@ -1,7 +1,25 @@
-// leave this line at the top of all AI_xxxx.cpp files for PCH reasons...
-#include "g_headers.h"
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
 
-	    
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "b_local.h"
 
 extern void G_GetBoltPosition( gentity_t *self, int boltIndex, vec3_t pos, int modelIndex );
@@ -21,10 +39,10 @@ void Rancor_SetBolts( gentity_t *self )
 	if ( self && self->client )
 	{
 		renderInfo_t *ri = &self->client->renderInfo;
-		ri->handRBolt = trap_G2API_AddBolt( self->ghoul2, 0, "*r_hand" );
-		ri->handLBolt = trap_G2API_AddBolt( self->ghoul2, 0, "*l_hand" );
-		ri->headBolt = trap_G2API_AddBolt( self->ghoul2, 0, "*head_eyes" );
-		ri->torsoBolt = trap_G2API_AddBolt( self->ghoul2, 0, "jaw_bone" );
+		ri->handRBolt = trap->G2API_AddBolt( self->ghoul2, 0, "*r_hand" );
+		ri->handLBolt = trap->G2API_AddBolt( self->ghoul2, 0, "*l_hand" );
+		ri->headBolt = trap->G2API_AddBolt( self->ghoul2, 0, "*head_eyes" );
+		ri->torsoBolt = trap->G2API_AddBolt( self->ghoul2, 0, "jaw_bone" );
 	}
 }
 
@@ -794,7 +812,7 @@ void Rancor_CheckDropVictim( void )
 	VectorSet( start, NPC->activator->r.currentOrigin[0], NPC->activator->r.currentOrigin[1], NPC->activator->r.absmin[2] ); 
 	VectorSet( end, NPC->activator->r.currentOrigin[0], NPC->activator->r.currentOrigin[1], NPC->activator->r.absmax[2]-1 ); 
 
-	trap_Trace( &trace, start, mins, maxs, end, NPC->activator->s.number, NPC->activator->clipmask );
+	trap->Trace( &trace, start, mins, maxs, end, NPC->activator->s.number, NPC->activator->clipmask, 0, 0, 0 );
 	if ( !trace.allsolid && !trace.startsolid && trace.fraction >= 1.0f )
 	{
 		Rancor_DropVictim( NPC );

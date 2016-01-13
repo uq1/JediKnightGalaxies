@@ -1,6 +1,13 @@
-#include "bg_strap.h"
 #include "bg_public.h"
 #include <json/cJSON.h>
+
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_CGAME)
+	#include "cgame/cg_local.h"
+#elif defined(_UI)
+	#include "ui/ui_local.h"
+#endif
 
 bgConstants_t bgConstants;
 
@@ -100,7 +107,7 @@ qboolean ReadConstantsFile(void)
     char buffer[MAX_CONSTANTS_FILE_SIZE + 1];
     int fileLength;
     
-    fileLength = strap_FS_FOpenFile ("ext_data/tables/constants.json", &f, FS_READ);
+    fileLength = trap->FS_Open("ext_data/tables/constants.json", &f, FS_READ);
     if ( fileLength == -1 || !f )
     {
         Com_Printf (S_COLOR_RED "Error: Failed to read the constants.json file. File is unreadable or does not exist.\n");
@@ -110,20 +117,20 @@ qboolean ReadConstantsFile(void)
     if ( fileLength == 0 )
     {
         Com_Printf (S_COLOR_RED "Error: constants.json file is empty.\n");
-        strap_FS_FCloseFile (f);
+        trap->FS_Close (f);
         return qfalse;
     }
     
     if ( fileLength > MAX_CONSTANTS_FILE_SIZE )
     {
         Com_Printf (S_COLOR_RED "Error: constants.json file is too large (max file size is %d bytes)\n", MAX_CONSTANTS_FILE_SIZE);
-        strap_FS_FCloseFile (f);
+        trap->FS_Close (f);
         return qfalse;
     }
     
-    strap_FS_Read (buffer, fileLength, f);
+    trap->FS_Read (buffer, fileLength, f);
     buffer[fileLength] = '\0';
-    strap_FS_FCloseFile (f);
+    trap->FS_Close (f);
     
     ParseConstantsFile (buffer);
     

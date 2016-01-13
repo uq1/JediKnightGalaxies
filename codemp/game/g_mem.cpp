@@ -1,7 +1,28 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
-// Simple linear memory allocator
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // g_mem.c
+// Simple linear memory allocator
 //
 
 #include "g_local.h"
@@ -34,16 +55,16 @@ void *G_Alloc( int size ) {
 	int alignedSize = (size + ALIGNSIZE - 1) & ~(ALIGNSIZE - 1);
 
 	if ( size <= 0 ) {
-		G_Error( "G_Alloc: zero-size allocation\n", size );
+		trap->Error( ERR_DROP, "G_Alloc: zero-size allocation\n", size );
 		return NULL;
 	}
 
 	if ( g_debugAlloc.integer ) {
-		G_Printf( "G_Alloc of %i bytes (%i left)\n", size, POOLSIZE - allocPoint - alignedSize );
+		trap->Print( "G_Alloc of %i bytes (%i left)\n", size, POOLSIZE - allocPoint - alignedSize );
 	}
 
 	if ( allocPoint + size > POOLSIZE ) {
-	  G_Error( "G_Alloc: failed on allocation of %i bytes\n", size ); // bk010103 - was %u, but is signed
+		trap->Error( ERR_DROP, "G_Alloc: failed on allocation of %i bytes\n", size ); // bk010103 - was %u, but is signed
 		return NULL;
 	}
 
@@ -59,5 +80,5 @@ void G_InitMemory( void ) {
 }
 
 void Svcmd_GameMem_f( void ) {
-	G_Printf( "Game memory status: %i out of %i bytes allocated\n", allocPoint, POOLSIZE );
+	trap->Print( "Game memory status: %i out of %i bytes allocated\n", allocPoint, POOLSIZE );
 }

@@ -217,10 +217,10 @@ void JKG_Loot_DrawDialog(int line, float x, float y, float w, float h)
 		text = lootDLGData.dlgText2;
 	}
 
-	width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5f;
+	width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5f;
 
 	x = x + ((w / 2) - (width / 2));
-	trap_R_Font_DrawString(	x, y, text, colorWhite, MenuFontToHandle(1) | 0x80000000 , -1, 0.5f);
+	trap->R_Font_DrawString(	x, y, text, colorWhite, MenuFontToHandle(1) | 0x80000000 , -1, 0.5f);
 }
 
 void JKG_Loot_DrawItemInstanceSlot(int slot, float x, float y, float w, float h)
@@ -234,13 +234,13 @@ void JKG_Loot_DrawItemInstanceSlot(int slot, float x, float y, float w, float h)
 	text = lootInContainer[slot].name;
 
 	if(text != NULL && Q_stricmp(text, "(null)") && Q_stricmp(text, "NULLSLOT"))
-		trap_R_Font_DrawString(x, y, text, colorWhite, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);
+		trap->R_Font_DrawString(x, y, text, colorWhite, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);
 }
 
 void JKG_Loot_DestroyMenu(void)
 {
 	lootUIData.loot_running = qfalse;
-	trap_Key_SetCatcher( trap_Key_GetCatcher() & ~KEYCATCH_UI );
+	trap->Key_SetCatcher( trap->Key_GetCatcher() & ~KEYCATCH_UI );
 	Menus_CloseByName("jkg_lootmenu");
 }
 
@@ -263,7 +263,7 @@ void JKG_ProcessLoot(){
 			//Initialize menu
 			Menus_CloseAll();
 			if (Menus_ActivateByName("jkg_lootmenu"))
-				trap_Key_SetCatcher( trap_Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );
+				trap->Key_SetCatcher( trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );
 			Menu_ClearFocus(Menus_FindByName("jkg_lootmenu"));
 			lootUIData.loot_running = qtrue;
 			continue;

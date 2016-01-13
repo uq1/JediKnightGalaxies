@@ -116,7 +116,7 @@ static void JKG_PartyMngt_UpdateState() {
 	if (!menu) {
 		return;
 	}
-	trap_GetClientState( &cs );
+	trap->GetClientState( &cs );
 	party = (teamParty_t *)cgImports->PartyMngtDataRequest(0);
 	
 	if (!party) {
@@ -141,7 +141,7 @@ static void JKG_PartyMngt_UpdateState() {
 				PMngtData.partyLead = 1;
 			}
 
-			trap_GetConfigString(CS_PLAYERS + party->members[i].id, buff, sizeof(buff));
+			trap->GetConfigString(CS_PLAYERS + party->members[i].id, buff, sizeof(buff));
 			Q_strncpyz(PMngtData.Data.PartyMembers[j].playerName, Info_ValueForKey(buff, "n"), 64);
 
 			if (party->members[i].status == -1) {
@@ -190,7 +190,7 @@ static void JKG_PartyMngt_UpdateState() {
 			PMngtData.Data.Invites[j].slotid = i;
 			PMngtData.Data.Invites[j].id = party->invites[i].id;
 
-			trap_GetConfigString(CS_PLAYERS + party->invites[i].leaderId, buff, sizeof(buff));
+			trap->GetConfigString(CS_PLAYERS + party->invites[i].leaderId, buff, sizeof(buff));
 			Q_strncpyz(PMngtData.Data.Invites[j].leaderName, Info_ValueForKey(buff, "n"), 64);
 			Com_sprintf(PMngtData.Data.Invites[j].memberCount, 6, "%i", party->invites[i].memberCount);
 
@@ -228,7 +228,7 @@ static void JKG_PartyMngt_UpdateSeekers() {
 	if (!menu) {
 		return;
 	}
-	trap_GetClientState( &cs );
+	trap->GetClientState( &cs );
 	list = (teamPartyList_t *)cgImports->PartyMngtDataRequest(1);
 
 	if (!list) {
@@ -246,7 +246,7 @@ static void JKG_PartyMngt_UpdateSeekers() {
 			PMngtData.amSeeker = 1;
 		}
 		
-		trap_GetConfigString(CS_PLAYERS + list[i].id, buff, sizeof(buff));
+		trap->GetConfigString(CS_PLAYERS + list[i].id, buff, sizeof(buff));
 		Q_strncpyz(PMngtData.partySeeker[j].playerName, Info_ValueForKey(buff, "n"), 64);
 		Q_strncpyz(PMngtData.partySeeker[j].message, list[i].message, 64);
 		Q_strncpyz(PMngtData.partySeeker[j].playerClass, "N/A", 64);
@@ -278,25 +278,19 @@ void JKG_PartyMngt_UpdateNotify(int msg) {
 		if (!PMngtData.active) {
 			return;
 		}
-		trap_Syscall_UI();
 		JKG_PartyMngt_UpdateState();
-		trap_Syscall_CG();
 	} else if (msg == 1) {
 		if (!PMngtData.active) {
 			return;
 		}
-		trap_Syscall_UI();
 		JKG_PartyMngt_UpdateSeekers();
-		trap_Syscall_CG();
 	} else if (msg == 10) {
-		trap_Syscall_UI();
 		memset(&PMngtData, 0, sizeof(PMngtData));
 		PMngtData.active = 1;
 		if (Menus_ActivateByName("jkg_partymanagement"))
 		{
-			trap_Key_SetCatcher( trap_Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );			
+			trap->Key_SetCatcher( trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );			
 		}
-		trap_Syscall_CG();
 	}
 }
 
@@ -491,7 +485,7 @@ static void PartyMngt_Dialog_Show(const char *line1, const char *line2, const ch
 		// Clear the text
 		item = Menu_FindItemByName(menu, "dlg_textentry");
 		if (item) {
-			((editFieldDef_t *)item->typeData)->buffer[0] = 0;
+			item->typeData.edit->buffer[0] = 0;
 			item->cursorPos = 0;
 			Menu_SetTextFieldFocus(item);
 		}
@@ -542,7 +536,7 @@ void PartyMngt_Script_DialogButton(char **args) {
 			if (menu) {
 				item = Menu_FindItemByName(menu, "dlg_textentry");
 				if (item) {
-					(*PDlgData.callback)(button, ((editFieldDef_t *)item->typeData)->buffer);
+					(*PDlgData.callback)(button, item->typeData.edit->buffer);
 					return;
 				}
 			}
@@ -571,9 +565,9 @@ static const char	*ConcatArgs( int start ) {
 	char	arg[MAX_STRING_CHARS];
 
 	len = 0;
-	c = trap_Argc();
+	c = trap->Cmd_Argc();
 	for ( i = start ; i < c ; i++ ) {
-		trap_Argv( i, arg, sizeof( arg ) );
+		trap->Cmd_Argv( i, arg, sizeof( arg ) );
 		tlen = strlen( arg );
 		if ( len + tlen >= MAX_STRING_CHARS - 1 ) {
 			break;
@@ -660,7 +654,7 @@ void PartyMngt_Script_Button(char **args) {
 	if (!Int_Parse(args, &button)) {
 		return;
 	}
-	trap_GetClientState( &cs );
+	trap->GetClientState( &cs );
 	switch (button) {
 		case PBTN_STARTPARTY:
 			if (PMngtData.inParty) {
@@ -773,14 +767,14 @@ void PartyMngt_Script_OpenDlg(char **args) {
 	// Request a new list
 	PMngtData.seekerListPending = 1;
 	cgImports->SendClientCommand(va("~pmngt partylistrefresh %i", (int)cgImports->PartyMngtDataRequest(2)));
-	trap_Cvar_Set("ui_hidehud", "1");
+	trap->Cvar_Set("ui_hidehud", "1");
 	PMngtData.active = 1;
 }
 
 void PartyMngt_Script_CloseDlg(char **args) {
 	// Dialog got closed, inform the server
 	cgImports->SendClientCommand("~pmngt off");
-	trap_Cvar_Set("ui_hidehud", "0");
+	trap->Cvar_Set("ui_hidehud", "0");
 	PMngtData.active = 0;
 }
 
@@ -800,10 +794,10 @@ void JKG_PartyMngt_DrawDialog(int line, float x, float y, float w, float h) {
 		text = PDlgData.line3;
 	}
 
-	width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5f;
+	width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5f;
 
 	x = x + ((w / 2) - (width / 2));
 	//MAKERGBA(shadow,0,0,0,0.2f);
-	//trap_R_Font_DrawString(	x+1, y+1, text, shadow, MenuFontToHandle(1), -1, 0.5f);
-	trap_R_Font_DrawString(	x, y, text, colorWhite, MenuFontToHandle(1) | 0x80000000 , -1, 0.5f);
+	//trap->R_Font_DrawString(	x+1, y+1, text, shadow, MenuFontToHandle(1), -1, 0.5f);
+	trap->R_Font_DrawString(	x, y, text, colorWhite, MenuFontToHandle(1) | 0x80000000 , -1, 0.5f);
 }

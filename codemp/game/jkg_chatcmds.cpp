@@ -428,3 +428,15 @@ qboolean CCmd_Execute(int clientNum, const char *command) {
 	return qfalse;
 }
 
+void CCmd_Cleanup()
+{
+	ccmd_function_t *next;
+
+	for ( ccmd_function_t *cmd = ccmd_functions; cmd != NULL; cmd = next )
+	{
+		next = cmd->next;
+
+		free( cmd->name );
+		free( cmd );
+	}
+}

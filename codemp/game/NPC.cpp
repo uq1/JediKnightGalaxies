@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 //
 // NPC.cpp - generic functions
 //
@@ -123,7 +145,7 @@ void NPC_RemoveBody( gentity_t *self )
 
 	if ( self->NPC->nextBStateThink <= level.time )
 	{
-		trap_ICARUS_MaintainTaskManager(self->s.number);
+		trap->ICARUS_MaintainTaskManager(self->s.number);
 	}
 	self->NPC->nextBStateThink = level.time + FRAMETIME;
 
@@ -148,7 +170,7 @@ void NPC_RemoveBody( gentity_t *self )
 		|| self->client->NPC_class == CLASS_MARK2 )
 	{
 		//if ( !self->taskManager || !self->taskManager->IsRunning() )
-		if (!trap_ICARUS_IsRunning(self->s.number))
+		if (!trap->ICARUS_IsRunning(self->s.number))
 		{
 			if ( !self->activator || !self->activator->client || !(self->activator->client->ps.eFlags2&EF2_HELD_BY_MONSTER) )
 			{//not being held by a Rancor
@@ -206,7 +228,7 @@ void NPC_RemoveBody( gentity_t *self )
 		if ( self->enemy )
 		{
 			//if ( !self->taskManager || !self->taskManager->IsRunning() )
-			if (!trap_ICARUS_IsRunning(self->s.number))
+			if (!trap->ICARUS_IsRunning(self->s.number))
 			{
 				if ( !self->activator || !self->activator->client || !(self->activator->client->ps.eFlags2&EF2_HELD_BY_MONSTER) )
 				{//not being held by a Rancor
@@ -235,47 +257,10 @@ Determines when it's ok to ditch the corpse
 
 int BodyRemovalPadTime( gentity_t *ent )
 {
-	int	time;
-
 	if ( !ent || !ent->client )
 		return 0;
 
-		if ( ent->client->playerTeam )
-		{	
-		// never go away
-			time = Q3_INFINITE;
-		}
-
-
-	// team no longer indicates species/race, so in this case we'd use NPC_class, but
-	switch( ent->client->NPC_class )
-	{
-	/* removal so everything never goes away until round end
-	case CLASS_MOUSE:
-	case CLASS_GONK:
-	case CLASS_R2D2:
-	case CLASS_R5D2:
-	//case CLASS_PROTOCOL:
-	case CLASS_MARK1:
-	case CLASS_MARK2:
-	case CLASS_PROBE:
-	case CLASS_SEEKER:
-	case CLASS_REMOTE:
-	case CLASS_SENTRY:
-	case CLASS_INTERROGATOR:
-		time = 0;
-		break; 
-		*/
-	default:
-		// never go away
-		time = Q3_INFINITE;
-		// time = 200000; // UQ1: Changed to 30 secs // Pande: Changed to infinite
-		break;
-
-	}
-	
-
-	return time;
+	return Q3_INFINITE;
 }
 
 
@@ -374,14 +359,11 @@ void pitch_roll_for_slope( gentity_t *forwhom, vec3_t pass_slope )
 		startspot[2] += forwhom->r.mins[2] + 4;
 		VectorCopy( startspot, endspot );
 		endspot[2] -= 300;
-		trap_Trace( &trace, forwhom->r.currentOrigin, vec3_origin, vec3_origin, endspot, forwhom->s.number, MASK_SOLID );
+		trap->Trace( &trace, forwhom->r.currentOrigin, vec3_origin, vec3_origin, endspot, forwhom->s.number, MASK_SOLID, 0, 0, 0 );
 //		if(trace_fraction>0.05&&forwhom.movetype==MOVETYPE_STEP)
 //			forwhom.flags(-)FL_ONGROUND;
 
 		if ( trace.fraction >= 1.0 )
-			return;
-
-		if( !( &trace.plane ) )
 			return;
 
 		if ( VectorCompare( vec3_origin, trace.plane.normal ) )
@@ -426,7 +408,7 @@ void pitch_roll_for_slope( gentity_t *forwhom, vec3_t pass_slope )
 			//FIXME: trace?
 			forwhom->client->ps.origin[2] += (oldmins2 - forwhom->r.mins[2]);
 			forwhom->r.currentOrigin[2] = forwhom->client->ps.origin[2];
-			trap_LinkEntity( forwhom );
+			trap->LinkEntity( (sharedEntity_t *)forwhom );
 		}
 	}
 	else
@@ -459,7 +441,7 @@ static void DeadThink ( void )
 		if ( NPC->r.mins[0] > -32 )
 		{
 			NPC->r.mins[0] -= 1;
-			trap_Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask );
+			trap->Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask, 0, 0, 0 );
 			if ( trace.allsolid )
 			{
 				NPC->r.mins[0] += 1;
@@ -468,7 +450,7 @@ static void DeadThink ( void )
 		if ( NPC->r.maxs[0] < 32 )
 		{
 			NPC->r.maxs[0] += 1;
-			trap_Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask );
+			trap->Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask, 0, 0, 0 );
 			if ( trace.allsolid )
 			{
 				NPC->r.maxs[0] -= 1;
@@ -477,7 +459,7 @@ static void DeadThink ( void )
 		if ( NPC->r.mins[1] > -32 )
 		{
 			NPC->r.mins[1] -= 1;
-			trap_Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask );
+			trap->Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask, 0, 0, 0 );
 			if ( trace.allsolid )
 			{
 				NPC->r.mins[1] += 1;
@@ -486,7 +468,7 @@ static void DeadThink ( void )
 		if ( NPC->r.maxs[1] < 32 )
 		{
 			NPC->r.maxs[1] += 1;
-			trap_Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask );
+			trap->Trace (&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, NPC->r.currentOrigin, NPC->s.number, NPC->clipmask, 0, 0, 0 );
 			if ( trace.allsolid )
 			{
 				NPC->r.maxs[1] -= 1;
@@ -528,7 +510,7 @@ static void DeadThink ( void )
 		{
 			if ( NPC->client->ps.eFlags & EF_NODRAW )
 			{
-				if (!trap_ICARUS_IsRunning(NPC->s.number))
+				if (!trap->ICARUS_IsRunning(NPC->s.number))
 				//if ( !NPC->taskManager || !NPC->taskManager->IsRunning() )
 				{
 					NPC->think = G_FreeEntity;
@@ -569,7 +551,7 @@ static void DeadThink ( void )
 	if ( NPC->bounceCount < 0 && NPC->s.groundEntityNum >= 0 )
 	{
 		// if client is in a nodrop area, make him/her nodraw
-		int contents = NPC->bounceCount = trap_PointContents( NPC->r.currentOrigin, -1 );
+		int contents = NPC->bounceCount = trap->PointContents( NPC->r.currentOrigin, -1 );
 
 		if ( ( contents & CONTENTS_NODROP ) ) 
 		{
@@ -644,7 +626,7 @@ void NPC_ShowDebugInfo (void)
 
 		while( (found = G_Find( found, FOFS(classname), "NPC" ) ) != NULL )
 		{
-			if ( trap_InPVS( found->r.currentOrigin, g_entities[0].r.currentOrigin ) )
+			if ( trap->InPVS( found->r.currentOrigin, g_entities[0].r.currentOrigin ) )
 			{
 				VectorAdd( found->r.currentOrigin, found->r.mins, mins );
 				VectorAdd( found->r.currentOrigin, found->r.maxs, maxs );
@@ -947,6 +929,7 @@ qboolean NPC_CanUseAdvancedFighting()
 	//case CLASS_R5D2:				// droid
 	case CLASS_REBEL:
 	case CLASS_REBORN:
+	case CLASS_REBORN_CULTIST:
 	case CLASS_REELO:
 	//case CLASS_REMOTE:
 	case CLASS_RODIAN:
@@ -984,7 +967,7 @@ qboolean NPC_CanUseAdvancedFighting()
 	case CLASS_JKG_FAQ_CRAFTER_DROID:
 	case CLASS_JKG_FAQ_MERC_DROID:
 	case CLASS_JKG_FAQ_JEDI_MENTOR:
-	case CLASS_JKF_FAQ_SITH_MENTOR:
+	case CLASS_JKG_FAQ_SITH_MENTOR:
 	case CLASS_BOT_FAKE_NPC:
 		// OK... EVADE AWAY!!!
 		break;
@@ -1121,7 +1104,7 @@ case BS_STAND_GUARD:
 
 void NPC_BehaviorSet_FakeNPC( int bState )
 {
-	//G_Printf("BS: %i\n", bState);
+	//trap->Print("BS: %i\n", bState);
 
 	switch( bState )
 	{
@@ -1861,7 +1844,7 @@ void NPC_RunBehavior( int team, int bState )
 	case CLASS_JKG_FAQ_CRAFTER_DROID:
 	case CLASS_JKG_FAQ_MERC_DROID:
 	case CLASS_JKG_FAQ_JEDI_MENTOR:
-	case CLASS_JKF_FAQ_SITH_MENTOR:
+	case CLASS_JKG_FAQ_SITH_MENTOR:
 		NPC_BehaviorSet_Vendor( bState );
 		return;
 	case CLASS_TRAVELLING_VENDOR:
@@ -1980,7 +1963,7 @@ void NPC_RunBehavior( int team, int bState )
 				break;
 			}
 
-			if ( NPC->enemy && NPC->s.weapon == WP_NONE && bState != BS_HUNT_AND_KILL && (!trap_ICARUS_TaskIDPending( NPC, TID_MOVE_NAV ) && !NPC->NPC->luaFlags.isMoving) )
+			if ( NPC->enemy && NPC->s.weapon == WP_NONE && bState != BS_HUNT_AND_KILL && (!trap->ICARUS_TaskIDPending( (sharedEntity_t *)NPC, TID_MOVE_NAV ) && !NPC->NPC->luaFlags.isMoving) )
 			{//if in battle and have no weapon, run away, fixme: when in BS_HUNT_AND_KILL, they just stand there
 				if ( bState != BS_FLEE )
 				{
@@ -2271,7 +2254,7 @@ void NPC_CheckInSolid(void)
 	VectorCopy(NPC->r.currentOrigin, point);
 	point[2] -= 0.25;
 
-	trap_Trace(&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, point, NPC->s.number, NPC->clipmask);
+	trap->Trace(&trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, point, NPC->s.number, NPC->clipmask, 0, 0, 0);
 	if(!trace.startsolid && !trace.allsolid)
 	{
 		VectorCopy(NPC->r.currentOrigin, NPCInfo->lastClearOrigin);
@@ -2282,7 +2265,7 @@ void NPC_CheckInSolid(void)
 		{
 //			Com_Printf("%s stuck in solid at %s: fixing...\n", NPC->script_targetname, vtos(NPC->r.currentOrigin));
 			G_SetOrigin(NPC, NPCInfo->lastClearOrigin);
-			trap_LinkEntity(NPC);
+			trap->LinkEntity((sharedEntity_t *)NPC);
 		}
 	}
 }
@@ -2375,6 +2358,7 @@ void NPC_SetHitBox( void )
 	case CLASS_PROTOCOL:			// droid
 	case CLASS_REBEL:
 	case CLASS_REBORN:
+	case CLASS_REBORN_CULTIST:
 	case CLASS_REELO:
 	case CLASS_RODIAN:
 	case CLASS_SHADOWTROOPER:
@@ -2406,7 +2390,7 @@ void NPC_SetHitBox( void )
 	case CLASS_JKG_FAQ_CRAFTER_DROID:
 	case CLASS_JKG_FAQ_MERC_DROID:
 	case CLASS_JKG_FAQ_JEDI_MENTOR:
-	case CLASS_JKF_FAQ_SITH_MENTOR:
+	case CLASS_JKG_FAQ_SITH_MENTOR:
 	case CLASS_BOT_FAKE_NPC:
 	default:
 		// Humanoid...
@@ -2481,7 +2465,7 @@ void NPC_Think ( gentity_t *self)//, int msec )
 
 		if ( NPCInfo->nextBStateThink <= level.time )
 		{
-			trap_ICARUS_MaintainTaskManager(self->s.number);
+			trap->ICARUS_MaintainTaskManager(self->s.number);
 		}
 
 		VectorCopy(self->r.currentOrigin, self->client->ps.origin);
@@ -2521,7 +2505,7 @@ void NPC_Think ( gentity_t *self)//, int msec )
 		if (self->client->ps.m_iVehicleNum)
 		{//we don't think on our own
 			//well, run scripts, though...
-			trap_ICARUS_MaintainTaskManager(self->s.number);
+			trap->ICARUS_MaintainTaskManager(self->s.number);
 			return;
 		}
 		else
@@ -2594,23 +2578,23 @@ void NPC_Think ( gentity_t *self)//, int msec )
 		//VectorCopy(self->s.origin, self->s.origin2 );
 	}
 	//must update icarus *every* frame because of certain animation completions in the pmove stuff that can leave a 50ms gap between ICARUS animation commands
-	trap_ICARUS_MaintainTaskManager(self->s.number);
+	trap->ICARUS_MaintainTaskManager(self->s.number);
 	VectorCopy(self->r.currentOrigin, self->client->ps.origin);
 }
 
 void NPC_InitAI ( void ) 
 {
 	/*
-	trap_Cvar_Register(&g_saberRealisticCombat, "g_saberRealisticCombat", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&g_saberRealisticCombat, "g_saberRealisticCombat", "0", CVAR_CHEAT);
 
-	trap_Cvar_Register(&debugNoRoam, "d_noroam", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&debugNPCAimingBeam, "d_npcaiming", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&debugBreak, "d_break", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&debugNPCAI, "d_npcai", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&debugNPCFreeze, "d_npcfreeze", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&d_JediAI, "d_JediAI", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&d_noGroupAI, "d_noGroupAI", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&d_asynchronousGroupAI, "d_asynchronousGroupAI", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&debugNoRoam, "d_noroam", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&debugNPCAimingBeam, "d_npcaiming", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&debugBreak, "d_break", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&debugNPCAI, "d_npcai", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&debugNPCFreeze, "d_npcfreeze", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&d_JediAI, "d_JediAI", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&d_noGroupAI, "d_noGroupAI", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&d_asynchronousGroupAI, "d_asynchronousGroupAI", "0", CVAR_CHEAT);
 	
 	//0 = never (BORING)
 	//1 = kyle only
@@ -2620,11 +2604,11 @@ void NPC_InitAI ( void )
 	//5 = kyle and any enemy
 	//6 = also when kyle takes pain or enemy jedi dodges player saber swing or does an acrobatic evasion
 
-	trap_Cvar_Register(&d_slowmodeath, "d_slowmodeath", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&d_slowmodeath, "d_slowmodeath", "0", CVAR_CHEAT);
 
-	trap_Cvar_Register(&d_saberCombat, "d_saberCombat", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&d_saberCombat, "d_saberCombat", "0", CVAR_CHEAT);
 
-	trap_Cvar_Register(&g_spskill, "g_npcspskill", "0", CVAR_ARCHIVE | CVAR_USERINFO);
+	trap->Cvar_Register(&g_spskill, "g_npcspskill", "0", CVAR_ARCHIVE | CVAR_USERINFO);
 	*/
 }
 
@@ -2661,7 +2645,7 @@ void NPC_InitAnimTable( void )
 void NPC_InitGame( void ) 
 {
 //	globals.NPCs = (gNPC_t *) gi.TagMalloc(game.maxclients * sizeof(game.bots[0]), TAG_GAME);
-//	trap_Cvar_Register(&debugNPCName, "d_npc", "0", CVAR_CHEAT);
+//	trap->Cvar_Register(&debugNPCName, "d_npc", "0", CVAR_CHEAT);
 
 	NPC_LoadParms();
 	NPC_InitAI();
@@ -2678,7 +2662,7 @@ void NPC_InitGame( void )
 void NPC_SetAnim(gentity_t *ent, int setAnimParts, int anim, int setAnimFlags)
 {	// FIXME : once torsoAnim and legsAnim are in the same structure for NCP and Players
 	// rename PM_SETAnimFinal to PM_SetAnim and have both NCP and Players call PM_SetAnim
-	G_SetAnim(ent, NULL, setAnimParts, anim, setAnimFlags, 0);
+	G_SetAnim(ent, NULL, setAnimParts, anim, setAnimFlags);
 /*
 	if(ent->client)
 	{//Players, NPCs

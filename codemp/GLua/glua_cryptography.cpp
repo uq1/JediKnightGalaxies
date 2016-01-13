@@ -1,6 +1,8 @@
 // Implements cryptographic functionality into GLua (Hashing and symmetric encryption)
 // Using OpenSSL's EVP interface.
 
+#ifndef NO_CRYPTOGRAPHY
+
 #include "game/g_local.h"
 #include "qcommon/q_shared.h"
 
@@ -436,3 +438,5 @@ void GLua_Define_Cryptography(lua_State *L) {
 
 	STACKGUARD_CHECK(L)
 }
+
+#endif

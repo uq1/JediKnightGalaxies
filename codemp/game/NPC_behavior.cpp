@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 //NPC_behavior.cpp
 /*
 FIXME - MCG:
@@ -90,13 +112,13 @@ void NPC_BSAdvanceFight (void)
 					trace_t		tr;
 					gentity_t	*traceEnt;
 					//are we gonna hit him if we shoot at his center?
-					trap_Trace ( &tr, muzzle, NULL, NULL, enemy_org, NPC->s.number, MASK_SHOT );
+					trap->Trace ( &tr, muzzle, NULL, NULL, enemy_org, NPC->s.number, MASK_SHOT, 0, 0, 0 );
 					traceEnt = &g_entities[tr.entityNum];
 					if( traceEnt != NPC->enemy &&
 						(!traceEnt || !traceEnt->client || !NPC->client->enemyTeam || NPC->client->enemyTeam != traceEnt->client->playerTeam) )
 					{//no, so shoot for the head
 						attack_scale *= 0.75;
-						trap_Trace ( &tr, muzzle, NULL, NULL, enemy_head, NPC->s.number, MASK_SHOT );
+						trap->Trace ( &tr, muzzle, NULL, NULL, enemy_head, NPC->s.number, MASK_SHOT, 0, 0, 0 );
 						traceEnt = &g_entities[tr.entityNum];
 					}
 
@@ -175,9 +197,9 @@ void NPC_BSAdvanceFight (void)
 
 	if(!ucmd.forwardmove && !ucmd.rightmove)
 	{//We reached our captureGoal
-		if(trap_ICARUS_IsInitialized(NPC->s.number))
+		if(trap->ICARUS_IsInitialized(NPC->s.number))
 		{
-			trap_ICARUS_TaskIDComplete( NPC, TID_BSTATE );
+			trap->ICARUS_TaskIDComplete( (sharedEntity_t *)NPC, TID_BSTATE );
 		}
 	}
 }
@@ -444,8 +466,8 @@ qboolean NPC_CheckInvestigate( int alertEventNum )
 		return qfalse;
 	}
 
-	//if(!trap_InPVSIgnorePortals(ent->r.currentOrigin, NPC->r.currentOrigin))//should we be able to hear through areaportals?
-	if ( !trap_InPVS( soundPos, NPC->r.currentOrigin ) )
+	//if(!trap->InPVSIgnorePortals(ent->r.currentOrigin, NPC->r.currentOrigin))//should we be able to hear through areaportals?
+	if ( !trap->InPVS( soundPos, NPC->r.currentOrigin ) )
 	{//can hear through doors?
 		return qfalse;
 	}
@@ -907,7 +929,7 @@ void NPC_BSJump (void)
 			ucmd.forwardmove = 0;
 			NPC->flags &= ~FL_NO_KNOCKBACK;
 			//Return that the goal was reached
-			trap_ICARUS_TaskIDComplete( NPC, TID_MOVE_NAV );
+			trap->ICARUS_TaskIDComplete( (sharedEntity_t *)NPC, TID_MOVE_NAV );
 			if (NPC->NPC->isLuaNPC && NPC->NPC->luaFlags.isMoving) {
 				GLua_NPCEV_OnReached(NPC);
 			}
@@ -937,7 +959,7 @@ void NPC_BSJump (void)
 void NPC_BSRemove (void)
 {
 	NPC_UpdateAngles ( qtrue, qtrue );
-	if( !trap_InPVS( NPC->r.currentOrigin, g_entities[0].r.currentOrigin ) )//FIXME: use cg.vieworg?
+	if( !trap->InPVS( NPC->r.currentOrigin, g_entities[0].r.currentOrigin ) )//FIXME: use cg.vieworg?
 	{ //rwwFIXMEFIXME: Care about all clients instead of just 0?
 		G_UseTargets2( NPC, NPC, NPC->target3 );
 		NPC->s.eFlags |= EF_NODRAW;
@@ -1076,7 +1098,7 @@ void NPC_BSSearch (void)
 			{
 				if ( !Q_irand( 0, 30 ) )
 				{
-					int	numEdges = trap_Nav_GetNodeNumEdges( NPCInfo->tempGoal->waypoint );
+					int	numEdges = trap->Nav_GetNodeNumEdges( NPCInfo->tempGoal->waypoint );
 
 					if ( numEdges != WAYPOINT_NONE )
 					{
@@ -1084,8 +1106,8 @@ void NPC_BSSearch (void)
 
 						vec3_t	branchPos, lookDir;
 
-						int nextWp = trap_Nav_GetNodeEdge( NPCInfo->tempGoal->waypoint, branchNum );
-						trap_Nav_GetNodePosition( nextWp, branchPos );
+						int nextWp = trap->Nav_GetNodeEdge( NPCInfo->tempGoal->waypoint, branchNum );
+						trap->Nav_GetNodePosition( nextWp, branchPos );
 
 						VectorSubtract( branchPos, NPCInfo->tempGoal->r.currentOrigin, lookDir );
 						NPCInfo->desiredYaw = AngleNormalize360( vectoyaw( lookDir ) + flrand( -45, 45 ) );
@@ -1110,14 +1132,14 @@ void NPC_BSSearch (void)
 			
 			if ( NPC->waypoint == NPCInfo->homeWp )
 			{
-				int	numEdges = trap_Nav_GetNodeNumEdges( NPCInfo->tempGoal->waypoint );
+				int	numEdges = trap->Nav_GetNodeNumEdges( NPCInfo->tempGoal->waypoint );
 
 				if ( numEdges != WAYPOINT_NONE )
 				{
 					int branchNum = Q_irand( 0, numEdges - 1 );
 
-					int nextWp = trap_Nav_GetNodeEdge( NPCInfo->homeWp, branchNum );
-					trap_Nav_GetNodePosition( nextWp, NPCInfo->tempGoal->r.currentOrigin );
+					int nextWp = trap->Nav_GetNodeEdge( NPCInfo->homeWp, branchNum );
+					trap->Nav_GetNodePosition( nextWp, NPCInfo->tempGoal->r.currentOrigin );
 					NPCInfo->tempGoal->waypoint = nextWp;
 				}
 
@@ -1133,7 +1155,7 @@ void NPC_BSSearch (void)
 			}
 			else
 			{//At a branch, so return home
-				trap_Nav_GetNodePosition( NPCInfo->homeWp, NPCInfo->tempGoal->r.currentOrigin );
+				trap->Nav_GetNodePosition( NPCInfo->homeWp, NPCInfo->tempGoal->r.currentOrigin );
 				NPCInfo->tempGoal->waypoint = NPCInfo->homeWp;
 				/*
 				VectorCopy( waypoints[NPCInfo->homeWp].origin, NPCInfo->tempGoal->r.currentOrigin );
@@ -1175,7 +1197,7 @@ void NPC_BSSearchStart( int homeWp, bState_t bState )
 	NPCInfo->tempBehavior = bState;
 	NPCInfo->aiFlags |= NPCAI_ENROUTE_TO_HOMEWP;
 	NPCInfo->investigateDebounceTime = 0;
-	trap_Nav_GetNodePosition( homeWp, NPCInfo->tempGoal->r.currentOrigin );
+	trap->Nav_GetNodePosition( homeWp, NPCInfo->tempGoal->r.currentOrigin );
 	NPCInfo->tempGoal->waypoint = homeWp;
 	//Com_Printf("\nHeading for wp %d...\n", NPCInfo->homeWp);
 }
@@ -1273,7 +1295,7 @@ void NPC_BSWander (void)
 			{
 				if ( !Q_irand( 0, 30 ) )
 				{
-					int	numEdges = trap_Nav_GetNodeNumEdges( NPCInfo->tempGoal->waypoint );
+					int	numEdges = trap->Nav_GetNodeNumEdges( NPCInfo->tempGoal->waypoint );
 
 					if ( numEdges != WAYPOINT_NONE )
 					{
@@ -1281,8 +1303,8 @@ void NPC_BSWander (void)
 
 						vec3_t	branchPos, lookDir;
 
-						int	nextWp = trap_Nav_GetNodeEdge( NPCInfo->tempGoal->waypoint, branchNum );
-						trap_Nav_GetNodePosition( nextWp, branchPos );
+						int	nextWp = trap->Nav_GetNodeEdge( NPCInfo->tempGoal->waypoint, branchNum );
+						trap->Nav_GetNodePosition( nextWp, branchPos );
 
 						VectorSubtract( branchPos, NPCInfo->tempGoal->r.currentOrigin, lookDir );
 						NPCInfo->desiredYaw = AngleNormalize360( vectoyaw( lookDir ) + flrand( -45, 45 ) );
@@ -1296,14 +1318,14 @@ void NPC_BSWander (void)
 			
 			if ( NPC->waypoint != WAYPOINT_NONE )
 			{
-				int	numEdges = trap_Nav_GetNodeNumEdges( NPC->waypoint );
+				int	numEdges = trap->Nav_GetNodeNumEdges( NPC->waypoint );
 
 				if ( numEdges != WAYPOINT_NONE )
 				{
 					int branchNum = Q_irand( 0, numEdges - 1 );
 
-					int nextWp = trap_Nav_GetNodeEdge( NPC->waypoint, branchNum );
-					trap_Nav_GetNodePosition( nextWp, NPCInfo->tempGoal->r.currentOrigin );
+					int nextWp = trap->Nav_GetNodeEdge( NPC->waypoint, branchNum );
+					trap->Nav_GetNodePosition( nextWp, NPCInfo->tempGoal->r.currentOrigin );
 					NPCInfo->tempGoal->waypoint = nextWp;
 				}
 
@@ -1373,7 +1395,7 @@ void NPC_Surrender( void )
 
 qboolean NPC_CheckSurrender( void )
 {
-	if ( (!trap_ICARUS_TaskIDPending( NPC, TID_MOVE_NAV ) && !NPC->NPC->luaFlags.isMoving)
+	if ( (!trap->ICARUS_TaskIDPending( (sharedEntity_t *)NPC, TID_MOVE_NAV ) && !NPC->NPC->luaFlags.isMoving)
 		&& NPC->client->ps.groundEntityNum != ENTITYNUM_NONE 
 		&& !NPC->client->ps.weaponTime && !PM_InKnockDown( &NPC->client->ps )
 		&& NPC->enemy && NPC->enemy->client && NPC->enemy->enemy == NPC && NPC->enemy->s.weapon != WP_NONE && NPC->enemy->s.weapon != WP_STUN_BATON 
@@ -1408,7 +1430,7 @@ qboolean NPC_CheckSurrender( void )
 					{//they're not close
 						return qfalse;
 					}
-					else if ( !trap_InPVS( NPC->r.currentOrigin, NPC->enemy->r.currentOrigin ) )
+					else if ( !trap->InPVS( NPC->r.currentOrigin, NPC->enemy->r.currentOrigin ) )
 					{//they're not in the same room
 						return qfalse;
 					}
@@ -1439,7 +1461,7 @@ qboolean NPC_CheckSurrender( void )
 							{//they're looking at me
 								if ( DistanceSquared( NPC->r.currentOrigin, NPC->enemy->r.currentOrigin ) < 16384 )
 								{//they're close
-									if ( trap_InPVS( NPC->r.currentOrigin, NPC->enemy->r.currentOrigin ) )
+									if ( trap->InPVS( NPC->r.currentOrigin, NPC->enemy->r.currentOrigin ) )
 									{//they're in the same room
 										NPC_Surrender();
 										NPC_UpdateAngles( qtrue, qtrue );
@@ -1456,7 +1478,7 @@ qboolean NPC_CheckSurrender( void )
 						{//they're looking at me
 							if ( DistanceSquared( NPC->r.currentOrigin, NPC->enemy->r.currentOrigin ) < 4096 )
 							{//they're close
-								if ( trap_InPVS( NPC->r.currentOrigin, NPC->enemy->r.currentOrigin ) )
+								if ( trap->InPVS( NPC->r.currentOrigin, NPC->enemy->r.currentOrigin ) )
 								{//they're in the same room
 									//FIXME: should player-team NPCs not fire on surrendered NPCs?
 									NPC_Surrender();
@@ -1514,7 +1536,7 @@ void NPC_BSFlee( void )
 		}
 		if ( NPC->waypoint != WAYPOINT_NONE )
 		{
-			int	numEdges = trap_Nav_GetNodeNumEdges( NPC->waypoint );
+			int	numEdges = trap->Nav_GetNodeNumEdges( NPC->waypoint );
 
 			if ( numEdges != WAYPOINT_NONE )
 			{
@@ -1529,8 +1551,8 @@ void NPC_BSFlee( void )
 				{
 					vec3_t	branchPos, runDir;
 
-					nextWp = trap_Nav_GetNodeEdge( NPC->waypoint, branchNum );
-					trap_Nav_GetNodePosition( nextWp, branchPos );
+					nextWp = trap->Nav_GetNodeEdge( NPC->waypoint, branchNum );
+					trap->Nav_GetNodePosition( nextWp, branchPos );
 
 					VectorSubtract( branchPos, NPC->r.currentOrigin, runDir );
 					VectorNormalize( runDir );
@@ -1594,7 +1616,7 @@ void NPC_StartFlee( gentity_t *enemy, vec3_t dangerPoint, int dangerLevel, int f
 {
 	int cp = -1;
 
-	if ( trap_ICARUS_TaskIDPending( NPC, TID_MOVE_NAV ) || NPC->NPC->luaFlags.isMoving )
+	if ( trap->ICARUS_TaskIDPending( (sharedEntity_t *)NPC, TID_MOVE_NAV ) || NPC->NPC->luaFlags.isMoving )
 	{//running somewhere that a script requires us to go, don't interrupt that!
 		return;
 	}
@@ -1733,7 +1755,7 @@ void NPC_BSEmplaced( void )
 		}
 	}
 /*
-	else if ( trap_InPVS( NPC->enemy->r.currentOrigin, NPC->r.currentOrigin ) )
+	else if ( trap->InPVS( NPC->enemy->r.currentOrigin, NPC->r.currentOrigin ) )
 	{
 		NPCInfo->enemyLastSeenTime = level.time;
 		faceEnemy = qtrue;

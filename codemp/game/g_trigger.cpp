@@ -1,5 +1,26 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "g_local.h"
 #include "bg_saga.h"
 
@@ -9,8 +30,8 @@ void InitTrigger( gentity_t *self ) {
 	if (!VectorCompare (self->s.angles, vec3_origin))
 		G_SetMovedir (self->s.angles, self->movedir);
 
-	trap_SetBrushModel( self, self->model );
-	self->r.contents = CONTENTS_TRIGGER;		// replaces the -1 from trap_SetBrushModel
+	trap->SetBrushModel( (sharedEntity_t *)self, self->model );
+	self->r.contents = CONTENTS_TRIGGER;		// replaces the -1 from trap->SetBrushModel
 	self->r.svFlags = SVF_NOCLIENT;
 
 	if(self->spawnflags & 128)
@@ -37,7 +58,7 @@ void multi_trigger_run( gentity_t *ent )
 
 	if ( ent->soundSet && ent->soundSet[0] )
 	{
-		trap_SetConfigstring( CS_GLOBAL_AMBIENT_SET, ent->soundSet );
+		trap->SetConfigstring( CS_GLOBAL_AMBIENT_SET, ent->soundSet );
 	}
 
 	if (ent->genericValue4)
@@ -312,7 +333,7 @@ void Touch_Multi( gentity_t *self, gentity_t *other, trace_t *trace )
 				if (other->client->ps.torsoAnim != BOTH_BUTTON_HOLD &&
 					other->client->ps.torsoAnim != BOTH_CONSOLE1)
 				{
-					G_SetAnim( other, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+					G_SetAnim( other, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 				}
 				else
 				{
@@ -370,7 +391,7 @@ void Touch_Multi( gentity_t *self, gentity_t *other, trace_t *trace )
 		if (other->client->ps.torsoAnim != BOTH_BUTTON_HOLD &&
 			other->client->ps.torsoAnim != BOTH_CONSOLE1)
 		{
-			G_SetAnim( other, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0 );
+			G_SetAnim( other, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 		}
 		else
 		{
@@ -494,7 +515,7 @@ void SP_trigger_multiple( gentity_t *ent )
 	}
 
 	InitTrigger( ent );
-	trap_LinkEntity (ent);
+	trap->LinkEntity((sharedEntity_t *)ent);
 }
 
 
@@ -569,7 +590,7 @@ void SP_trigger_once( gentity_t *ent )
 	ent->delay *= 1000;//1 = 1 msec, 1000 = 1 sec
 
 	InitTrigger( ent );
-	trap_LinkEntity (ent);
+	trap->LinkEntity((sharedEntity_t *)ent);
 }
 
 /*
@@ -601,7 +622,7 @@ void Do_Strike(gentity_t *ent)
 	strikeFrom[2] = ent->r.absmax[2]-4.0f;
 
 	//now trace for damaging stuff, and do the effect
-	trap_Trace(&localTrace, strikeFrom, NULL, NULL, strikePoint, ent->s.number, MASK_PLAYERSOLID);
+	trap->Trace(&localTrace, strikeFrom, NULL, NULL, strikePoint, ent->s.number, MASK_PLAYERSOLID, 0, 0, 0);
 	VectorCopy(localTrace.endpos, strikePoint);
 
 	if (localTrace.startsolid || localTrace.allsolid)
@@ -699,7 +720,7 @@ void SP_trigger_lightningstrike( gentity_t *ent )
 	}
 
 	InitTrigger( ent );
-	trap_LinkEntity (ent);
+	trap->LinkEntity((sharedEntity_t *)ent);
 }
 
 
@@ -974,7 +995,7 @@ void SP_trigger_push( gentity_t *self ) {
 
 	self->think = AimAtTarget;
 	self->nextthink = level.time + FRAMETIME;
-	trap_LinkEntity (self);
+	trap->LinkEntity((sharedEntity_t *)self);
 }
 
 void Use_target_push( gentity_t *self, gentity_t *other, gentity_t *activator ) {
@@ -1059,7 +1080,7 @@ void trigger_teleporter_touch (gentity_t *self, gentity_t *other, trace_t *trace
 
 	dest = 	G_PickTarget( self->target );
 	if (!dest) {
-		G_Printf ("Couldn't find teleporter destination\n");
+		trap->Print ("Couldn't find teleporter destination\n");
 		return;
 	}
 
@@ -1092,7 +1113,7 @@ void SP_trigger_teleport( gentity_t *self ) {
 	self->s.eType = ET_TELEPORT_TRIGGER;
 	self->touch = trigger_teleporter_touch;
 
-	trap_LinkEntity (self);
+	trap->LinkEntity((sharedEntity_t *)self);
 }
 
 
@@ -1132,9 +1153,9 @@ void hurt_use( gentity_t *self, gentity_t *other, gentity_t *activator ) {
 	G_ActivateBehavior(self,BSET_USE);
 
 	if ( self->r.linked ) {
-		trap_UnlinkEntity( self );
+		trap->UnlinkEntity( (sharedEntity_t *)self );
 	} else {
-		trap_LinkEntity( self );
+		trap->LinkEntity( (sharedEntity_t *)self );
 	}
 }
 
@@ -1253,11 +1274,11 @@ void SP_trigger_hurt( gentity_t *self ) {
 
 	// link in to the world if starting active
 	if ( ! (self->spawnflags & 1) ) {
-		trap_LinkEntity (self);
+		trap->LinkEntity((sharedEntity_t *)self);
 	}
 	else if (self->r.linked)
 	{
-		trap_UnlinkEntity(self);
+		trap->UnlinkEntity((sharedEntity_t *)self);
 	}
 }
 
@@ -1311,7 +1332,7 @@ void SP_trigger_space(gentity_t *self)
 	
 	self->touch = space_touch;
 
-    trap_LinkEntity(self);
+    trap->LinkEntity((sharedEntity_t *)self);
 }
 
 void shipboundary_touch( gentity_t *self, gentity_t *other, trace_t *trace )
@@ -1333,7 +1354,7 @@ void shipboundary_touch( gentity_t *self, gentity_t *other, trace_t *trace )
 	ent = G_Find (NULL, FOFS(targetname), self->target);
 	if (!ent || !ent->inuse)
 	{ //this is bad
-		G_Error("trigger_shipboundary has invalid target '%s'\n", self->target);
+		trap->Error(ERR_DROP, "trigger_shipboundary has invalid target '%s'\n", self->target);
 		return;
 	}
 
@@ -1344,7 +1365,7 @@ void shipboundary_touch( gentity_t *self, gentity_t *other, trace_t *trace )
 	}
 
 	//make sure this sucker is linked so the prediction knows where to go
-	trap_LinkEntity(ent);
+	trap->LinkEntity((sharedEntity_t *)ent);
 
 	other->client->ps.vehTurnaroundIndex = ent->s.number;
 	other->client->ps.vehTurnaroundTime = level.time + (self->genericValue1*2);
@@ -1367,7 +1388,7 @@ void shipboundary_think(gentity_t *ent)
 		return;
 	}
 
-	numListedEntities = trap_EntitiesInBox( ent->r.absmin, ent->r.absmax, iEntityList, MAX_GENTITIES );
+	numListedEntities = trap->EntitiesInBox( ent->r.absmin, ent->r.absmax, iEntityList, MAX_GENTITIES );
 	while (i < numListedEntities)
 	{
 		listedEnt = &g_entities[iEntityList[i]];
@@ -1401,20 +1422,20 @@ void SP_trigger_shipboundary(gentity_t *self)
 	
 	if (!self->target || !self->target[0])
 	{
-		G_Error("trigger_shipboundary without a target.");
+		trap->Error(ERR_DROP, "trigger_shipboundary without a target.");
 	}
 	G_SpawnInt("traveltime", "0", &self->genericValue1);
 
 	if (!self->genericValue1)
 	{
-		G_Error("trigger_shipboundary without traveltime.");
+		trap->Error(ERR_DROP, "trigger_shipboundary without traveltime.");
 	}
 
 	self->think = shipboundary_think;
 	self->nextthink = level.time + 500;
 	self->touch = shipboundary_touch;
 
-    trap_LinkEntity(self);
+    trap->LinkEntity((sharedEntity_t *)self);
 }
 
 void hyperspace_touch( gentity_t *self, gentity_t *other, trace_t *trace )
@@ -1443,7 +1464,7 @@ void hyperspace_touch( gentity_t *self, gentity_t *other, trace_t *trace )
 				ent = G_Find (NULL, FOFS(targetname), self->target);
 				if (!ent || !ent->inuse)
 				{ //this is bad
-					G_Error("trigger_hyperspace has invalid target '%s'\n", self->target);
+					trap->Error(ERR_DROP, "trigger_hyperspace has invalid target '%s'\n", self->target);
 					return;
 				}
 				VectorSubtract( other->client->ps.origin, ent->s.origin, diff );
@@ -1455,7 +1476,7 @@ void hyperspace_touch( gentity_t *self, gentity_t *other, trace_t *trace )
 				ent = G_Find (NULL, FOFS(targetname), self->target2);
 				if (!ent || !ent->inuse)
 				{ //this is bad
-					G_Error("trigger_hyperspace has invalid target2 '%s'\n", self->target2);
+					trap->Error(ERR_DROP, "trigger_hyperspace has invalid target2 '%s'\n", self->target2);
 					return;
 				}
 				VectorCopy( ent->s.origin, newOrg );
@@ -1464,7 +1485,7 @@ void hyperspace_touch( gentity_t *self, gentity_t *other, trace_t *trace )
 				VectorMA( newOrg, fDiff, fwd, newOrg );
 				VectorMA( newOrg, rDiff, right, newOrg );
 				VectorMA( newOrg, uDiff, up, newOrg );
-				//G_Printf("hyperspace from %s to %s\n", vtos(other->client->ps.origin), vtos(newOrg) );
+				//trap->Print("hyperspace from %s to %s\n", vtos(other->client->ps.origin), vtos(newOrg) );
 				//now put them in the offset position, facing the angles that position wants them to be facing
 				TeleportPlayer( other, newOrg, ent->s.angles );
 				if ( other->m_pVehicle && other->m_pVehicle->m_pPilot )
@@ -1486,7 +1507,7 @@ void hyperspace_touch( gentity_t *self, gentity_t *other, trace_t *trace )
 		ent = G_Find (NULL, FOFS(targetname), self->target);
 		if (!ent || !ent->inuse)
 		{ //this is bad
-			G_Error("trigger_hyperspace has invalid target '%s'\n", self->target);
+			trap->Error(ERR_DROP, "trigger_hyperspace has invalid target '%s'\n", self->target);
 			return;
 		}
 
@@ -1508,14 +1529,14 @@ void trigger_hyperspace_find_targets( gentity_t *self )
 	targEnt = G_Find (NULL, FOFS(targetname), self->target);
 	if (!targEnt || !targEnt->inuse)
 	{ //this is bad
-		G_Error("trigger_hyperspace has invalid target '%s'\n", self->target);
+		trap->Error(ERR_DROP, "trigger_hyperspace has invalid target '%s'\n", self->target);
 		return;
 	}
 	targEnt->r.svFlags |= SVF_BROADCAST;//crap, need to tell the cgame about the target_position
 	targEnt = G_Find (NULL, FOFS(targetname), self->target2);
 	if (!targEnt || !targEnt->inuse)
 	{ //this is bad
-		G_Error("trigger_hyperspace has invalid target2 '%s'\n", self->target2);
+		trap->Error(ERR_DROP, "trigger_hyperspace has invalid target2 '%s'\n", self->target2);
 		return;
 	}
 	targEnt->r.svFlags |= SVF_BROADCAST;//crap, need to tell the cgame about the target_position
@@ -1537,18 +1558,18 @@ void SP_trigger_hyperspace(gentity_t *self)
 	
 	if (!self->target || !self->target[0])
 	{
-		G_Error("trigger_hyperspace without a target.");
+		trap->Error(ERR_DROP, "trigger_hyperspace without a target.");
 	}
 	if (!self->target2 || !self->target2[0])
 	{
-		G_Error("trigger_hyperspace without a target2.");
+		trap->Error(ERR_DROP, "trigger_hyperspace without a target2.");
 	}
 	
 	self->delay = Distance( self->r.absmax, self->r.absmin );//my size
 
 	self->touch = hyperspace_touch;
 
-    trap_LinkEntity(self);
+    trap->LinkEntity((sharedEntity_t *)self);
 
 	//self->think = trigger_hyperspace_find_targets;
 	//self->nextthink = level.time + FRAMETIME;
@@ -1603,7 +1624,7 @@ void SP_func_timer( gentity_t *self ) {
 
 	if ( self->random >= self->wait ) {
 		self->random = self->wait - 1;//NOTE: was - FRAMETIME, but FRAMETIME is in msec (100) and these numbers are in *seconds*!
-		G_Printf( "func_timer at %s has random >= wait\n", vtos( self->s.origin ) );
+		trap->Print( "func_timer at %s has random >= wait\n", vtos( self->s.origin ) );
 	}
 
 	if ( self->spawnflags & 1 ) {
@@ -1785,7 +1806,7 @@ target - target this at func_rotating asteroids
 */
 void SP_trigger_asteroid_field(gentity_t *self)
 {
-	trap_SetBrushModel( self, self->model );
+	trap->SetBrushModel( (sharedEntity_t *)self, self->model );
 	self->r.contents = 0;
 
 	if ( !self->count )
@@ -1801,5 +1822,5 @@ void SP_trigger_asteroid_field(gentity_t *self)
 	self->think = asteroid_field_think;
 	self->nextthink = level.time + 100;
 
-    trap_LinkEntity(self);
+    trap->LinkEntity((sharedEntity_t *)self);
 }

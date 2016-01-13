@@ -1,3 +1,27 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "tr_common.h"
 
 /*
@@ -7,8 +31,12 @@
  * (stdio.h is sufficient on ANSI-conforming systems.)
  * You may also wish to include "jerror.h".
  */
+#ifdef USE_INTERNAL_JPEG
 #define JPEG_INTERNALS
 #include "jpeg-8c/jpeglib.h"
+#else
+#include <jpeglib.h>
+#endif
 
 static void R_JPGErrorExit(j_common_ptr cinfo)
 {
@@ -57,10 +85,7 @@ void LoadJPG( const char *filename, unsigned char **pic, int *width, int *height
 	unsigned int pixelcount, memcount;
 	unsigned int sindex, dindex;
 	byte *out;
-	union {
-		byte *b;
-		void *v;
-	} fbuffer;
+	fileBuffer_t fbuffer;
 	byte  *buf;
 	/* In this example we want to open the input file before doing anything else,
 	* so that the setjmp() error recovery below can assume the file is open.
@@ -102,8 +127,8 @@ void LoadJPG( const char *filename, unsigned char **pic, int *width, int *height
 
 	/* Step 4: set parameters for decompression */
 
- 
-	/* Make sure it always converts images to RGB color space. This will 
+
+	/* Make sure it always converts images to RGB color space. This will
 	* automatically convert 8-bit greyscale images to RGB as well.	*/
 	cinfo.out_color_space = JCS_RGB;
 
@@ -119,20 +144,20 @@ void LoadJPG( const char *filename, unsigned char **pic, int *width, int *height
 	* output image dimensions available, as well as the output colormap
 	* if we asked for color quantization.
 	* In this example, we need to make an output work buffer of the right size.
-	*/ 
+	*/
 	/* JSAMPLEs per row in output buffer */
 	pixelcount = cinfo.output_width * cinfo.output_height;
 
-	if(!cinfo.output_width || !cinfo.output_height 
-		|| ((pixelcount * 4) / cinfo.output_width) / 4 != cinfo.output_height 
-		|| pixelcount > 0x1FFFFFFF || cinfo.output_components != 3 
-		) 
-	{ 
-		// Free the memory to make sure we don't leak memory 
-		ri->FS_FreeFile (fbuffer.v); 
-		jpeg_destroy_decompress(&cinfo); 
+	if(!cinfo.output_width || !cinfo.output_height
+		|| ((pixelcount * 4) / cinfo.output_width) / 4 != cinfo.output_height
+		|| pixelcount > 0x1FFFFFFF || cinfo.output_components != 3
+		)
+	{
+		// Free the memory to make sure we don't leak memory
+		ri->FS_FreeFile (fbuffer.v);
+		jpeg_destroy_decompress(&cinfo);
 
-		Com_Printf("LoadJPG: %s has an invalid image format: %dx%d*4=%d, components: %d", filename, 
+		Com_Printf("LoadJPG: %s has an invalid image format: %dx%d*4=%d, components: %d", filename,
 			cinfo.output_width, cinfo.output_height, pixelcount * 4, cinfo.output_components);
 		return;
 	}
@@ -165,9 +190,9 @@ void LoadJPG( const char *filename, unsigned char **pic, int *width, int *height
 	// Expand from RGB to RGBA
 	sindex = pixelcount * cinfo.output_components;
 	dindex = memcount;
- 
+
 	do {
-		buf[--dindex] = 255; 
+		buf[--dindex] = 255;
 		buf[--dindex] = buf[--sindex];
 		buf[--dindex] = buf[--sindex];
 		buf[--dindex] = buf[--sindex];
@@ -203,7 +228,7 @@ void LoadJPG( const char *filename, unsigned char **pic, int *width, int *height
 
 /* Expanded data destination object for stdio output */
 
-typedef struct {
+typedef struct my_destination_mgr_s {
 	struct jpeg_destination_mgr pub; /* public fields */
 
 	byte* outfile;		/* target stream */
@@ -329,7 +354,7 @@ size_t RE_SaveJPGToBuffer(byte *buffer, size_t bufSize, int quality,
 	cinfo.err = jpeg_std_error(&jerr);
 	cinfo.err->error_exit = R_JPGErrorExit;
 	cinfo.err->output_message = R_JPGOutputMessage;
-	
+
 	/* Now we can initialize the JPEG compression object. */
 	jpeg_create_compress(&cinfo);
 

@@ -13,6 +13,6 @@ menustring "@MENUS_TEAM_RED"
 reference "red"
 modelstore "NULL,"
 useTeamColors "1"
-icon "sprites/team_red"
+icon "sprites/imps"
 
 teamColor "{255,51,51,255}"

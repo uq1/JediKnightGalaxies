@@ -1,3 +1,26 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "g_local.h"
 #include "qcommon/q_shared.h"
 #include "botlib/botlib.h"
@@ -196,7 +219,7 @@ int BotDoChat(bot_state_t *bs, char *section, int always)
 		return 0;
 	}
 
-	if (trap_Cvar_VariableIntegerValue("se_language"))
+	if (trap->Cvar_VariableIntegerValue("se_language"))
 	{ //no chatting unless English.
 		return 0;
 	}
@@ -296,7 +319,7 @@ int BotDoChat(bot_state_t *bs, char *section, int always)
 	}
 	chatgroup[inc_2] = '\0';
 
-	//trap_EA_Say(bs->client, chatgroup);
+	//trap->EA_Say(bs->client, chatgroup);
 	inc_1 = 0;
 	inc_2 = 0;
 
@@ -436,7 +459,7 @@ int ReadChatGroups(bot_state_t *bs, char *buf)
 
 	if (strlen(cgroupbegin) >= MAX_CHAT_BUFFER_SIZE)
 	{
-		G_Printf(S_COLOR_RED "Error: Personality chat section exceeds max size\n");
+		trap->Print(S_COLOR_RED "Error: Personality chat section exceeds max size\n");
 		return 0;
 	}
 
@@ -471,25 +494,25 @@ void BotUtilizePersonality(bot_state_t *bs)
 	char *buf = (char *)malloc(131072);
 	char *readbuf, *group;
 
-	len = trap_FS_FOpenFile(bs->settings.personalityfile, &f, FS_READ);
+	len = trap->FS_Open(bs->settings.personalityfile, &f, FS_READ);
 
 	failed = 0;
 
 	if (!f)
 	{
-		G_Printf(S_COLOR_RED "Error: Specified personality not found\n");
+		trap->Print(S_COLOR_RED "Error: Specified personality not found\n");
 		free(buf);
 		return;
 	}
 
 	if (len >= 131072)
 	{
-		G_Printf(S_COLOR_RED "Personality file exceeds maximum length\n");
+		trap->Print(S_COLOR_RED "Personality file exceeds maximum length\n");
 		free(buf);
 		return;
 	}
 
-	trap_FS_Read(buf, len, f);
+	trap->FS_Read(buf, len, f);
 
 	rlen = len;
 
@@ -506,7 +529,7 @@ void BotUtilizePersonality(bot_state_t *bs)
 
 	if (!GetValueGroup(buf, "GeneralBotInfo", group))
 	{
-		G_Printf(S_COLOR_RED "Personality file contains no GeneralBotInfo group\n");
+		trap->Print(S_COLOR_RED "Personality file contains no GeneralBotInfo group\n");
 		failed = 1; //set failed so we know to set everything to default values
 	}
 
@@ -713,5 +736,5 @@ void BotUtilizePersonality(bot_state_t *bs)
 	free(buf);
 	free(readbuf); //readbuf
 	free(group); //group
-	trap_FS_FCloseFile(f);
+	trap->FS_Close(f);
 }

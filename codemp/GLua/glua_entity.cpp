@@ -232,7 +232,7 @@ static int GLua_Entity_SetPos(lua_State *L) {
 	if (ent->r.linked) {
 		dolink = 1;	// So we dont link ents that shouldn't be linked (ie target_xx ents)
 	}
-	if (dolink) trap_UnlinkEntity (ent);
+	if (dolink) trap->UnlinkEntity ((sharedEntity_t *)ent);
 
 	if(ent->client && !ignoreclient)
 	{
@@ -251,7 +251,7 @@ static int GLua_Entity_SetPos(lua_State *L) {
 		G_SetOrigin( ent, neworigin );
 	}
 
-	if (dolink) trap_LinkEntity( ent );
+	if (dolink) trap->LinkEntity( (sharedEntity_t *)ent );
 
 	return 0;
 }
@@ -286,7 +286,7 @@ static int GLua_Entity_SetAngles(lua_State *L) {
 	{
 		G_SetAngles(ent, newangs);
 	}
-	if (dolink) trap_LinkEntity( ent );
+	if (dolink) trap->LinkEntity( (sharedEntity_t *)ent );
 
 	return 0;
 }
@@ -464,7 +464,7 @@ static int GLua_Entity_LinkEntity(lua_State *L) {
 	gentity_t *ent = GLua_CheckEntity(L, 1);
 	if (!ent) return 0;
 	if (ent->client || ent->NPC) return 0;
-	trap_LinkEntity(ent);
+	trap->LinkEntity((sharedEntity_t *)ent);
 	return 0;
 }
 
@@ -472,7 +472,7 @@ static int GLua_Entity_UnlinkEntity(lua_State *L) {
 	gentity_t *ent = GLua_CheckEntity(L, 1);
 	if (!ent) return 0;
 	if (ent->client || ent->NPC) return 0;
-	trap_UnlinkEntity(ent);
+	trap->UnlinkEntity((sharedEntity_t *)ent);
 	return 0;
 }
 
@@ -522,14 +522,14 @@ static int GLua_Entity_SetBoundingBox(lua_State *L) {
 	if (ent->client || ent->NPC) return 0;
 	dolink = ent->r.linked;
 	if (dolink)
-		trap_UnlinkEntity(ent);
+		trap->UnlinkEntity((sharedEntity_t *)ent);
 	//memcpy(&mins, lmins, 12);
 	//memcpy(&maxs, lmaxs, 12);
 	ConvertVec(lmins, mins);
 	ConvertVec(lmaxs, maxs);
 	JKG_CBB_SetBB(ent, mins, maxs); 
 	if (dolink)
-		trap_LinkEntity(ent);
+		trap->LinkEntity((sharedEntity_t *)ent);
 	return 0;
 }
 
@@ -714,7 +714,7 @@ static int GLua_Entity_GetModel(lua_State *L) {
 	if (ent->client || ent->NPC) return 0;
 	switch(ent->s.eType) {
 		case ET_GENERAL:
-			trap_GetConfigstring(CS_MODELS + ent->s.modelindex, buff, 1024);
+			trap->GetConfigstring(CS_MODELS + ent->s.modelindex, buff, 1024);
 			lua_pushstring(L, buff);
 			break;
 		case ET_MOVER:
@@ -724,7 +724,7 @@ static int GLua_Entity_GetModel(lua_State *L) {
 				// We got a bmodel here
 				lua_pushstring(L, va("*%i" , ent->s.modelindex));
 			} else {
-				trap_GetConfigstring(CS_MODELS + ent->s.modelindex, buff, 1024);
+				trap->GetConfigstring(CS_MODELS + ent->s.modelindex, buff, 1024);
 				lua_pushstring(L, buff);
 			}
 			break;
@@ -748,16 +748,16 @@ static int GLua_Entity_SetModel(lua_State *L) {
 		case ET_MOVER:
 		case ET_PUSH_TRIGGER:
 		case ET_TELEPORT_TRIGGER:
-			trap_UnlinkEntity(ent);
+			trap->UnlinkEntity((sharedEntity_t *)ent);
 			if (model[0] == '*') {
-				trap_SetBrushModel(ent, model);
-				trap_LinkEntity(ent); // Link to apply the new bmodel
+				trap->SetBrushModel((sharedEntity_t *)ent, model);
+				trap->LinkEntity((sharedEntity_t *)ent); // Link to apply the new bmodel
 			} else {
 				if (ent->s.solid == SOLID_BMODEL) {
 					ent->s.solid = 0;
 				}
 				ent->s.modelindex = G_ModelIndex(model);
-				trap_LinkEntity(ent);
+				trap->LinkEntity((sharedEntity_t *)ent);
 			}
 			break;
 		default:
@@ -791,7 +791,7 @@ static int GLua_Entity_AutoBox(lua_State *L) {
 	if (ent->client || ent->NPC) return 0;
 	switch(ent->s.eType) {
 		case ET_GENERAL:
-			trap_GetConfigstring(CS_MODELS + ent->s.modelindex, modelbuff, 1024);
+			trap->GetConfigstring(CS_MODELS + ent->s.modelindex, modelbuff, 1024);
 			break;
 		case ET_MOVER:
 		case ET_PUSH_TRIGGER:
@@ -801,7 +801,7 @@ static int GLua_Entity_AutoBox(lua_State *L) {
 				// Don't autobox it
 				return 0;
 			} else {
-				trap_GetConfigstring(CS_MODELS + ent->s.modelindex, modelbuff, 1024);
+				trap->GetConfigstring(CS_MODELS + ent->s.modelindex, modelbuff, 1024);
 			}
 			break;
 		default:
@@ -815,10 +815,10 @@ static int GLua_Entity_AutoBox(lua_State *L) {
 	SnapVector(maxs);
 	dolink = ent->r.linked;
 	if (dolink)
-		trap_UnlinkEntity(ent);
+		trap->UnlinkEntity((sharedEntity_t *)ent);
 	JKG_CBB_SetBB(ent, mins, maxs); 
 	if (dolink)
-		trap_LinkEntity(ent);
+		trap->LinkEntity((sharedEntity_t *)ent);
 	return 0;
 }
 
@@ -1240,7 +1240,7 @@ static int GLua_EntityFactory_Create(lua_State *L) {
 	if (level.spawning && level.numSpawnVars != 0) {
 		// Game is currently busy spawning an ent
 		// Usually means we tried to create an ent inside a custom ent's spawn function
-		G_Printf("WARNING: Entity Factory tried to spawn an entity while the spawner was in use\n");
+		trap->Print("WARNING: Entity Factory tried to spawn an entity while the spawner was in use\n");
 		GLua_PushEntity(L, NULL);
 		return 1;
 	}
@@ -1385,7 +1385,7 @@ static int GLua_Entities_FindInBox(lua_State *L) {
 	ConvertVec(mins, mn);
 	ConvertVec(maxs, mx);
 
-	hits = trap_EntitiesInBox(mn, mx, ents, MAX_GENTITIES);
+	hits = trap->EntitiesInBox(mn, mx, ents, MAX_GENTITIES);
 	for (i=0; i<hits; i++) {
 		GLua_PushEntity(L, &g_entities[ents[i]]);
 		lua_rawseti(L,-2,idx++);
@@ -1532,7 +1532,7 @@ static void GLua_EntEV_OnThink(gentity_t *self) {
 	GLua_PushEntity(L, self);
 	lua_pushstring(L, "OnThink");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnThink: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnThink: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1547,7 +1547,7 @@ static void GLua_EntEV_OnUse(gentity_t *self, gentity_t *other, gentity_t *activ
 	GLua_PushEntity(L, other);
 	GLua_PushEntity(L, activator);
 	if (lua_pcall(L,4,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnUse: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnUse: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1560,7 +1560,7 @@ static void GLua_EntEV_OnRemove(gentity_t *self) {
 	GLua_PushEntity(L, self);
 	lua_pushstring(L, "OnRemove");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnRemove: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnRemove: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1575,7 +1575,7 @@ static void GLua_EntEV_OnTakeDamage(gentity_t *self, gentity_t *attacker, int da
 	GLua_PushEntity(L, attacker);
 	lua_pushnumber(L, damage);
 	if (lua_pcall(L,4,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnTakeDamage: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnTakeDamage: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1592,7 +1592,7 @@ static void GLua_EntEV_OnDie(gentity_t *self, gentity_t *inflictor, gentity_t *a
 	lua_pushnumber(L, damage);
 	lua_pushnumber(L, mod);
 	if (lua_pcall(L,6,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnDie: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnDie: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1606,7 +1606,7 @@ static void GLua_EntEV_OnTouch(gentity_t *self, gentity_t *other, trace_t* tr) {
 	lua_pushstring(L, "OnTouch");
 	GLua_PushEntity(L, other);
 	if (lua_pcall(L,3,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnTouch: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnTouch: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1619,7 +1619,7 @@ static void GLua_EntEV_OnReached(gentity_t *self) {
 	GLua_PushEntity(L, self);
 	lua_pushstring(L, "OnReached");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnReached: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnReached: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1633,7 +1633,7 @@ static void GLua_EntEV_OnBlocked(gentity_t *self, gentity_t *other) {
 	lua_pushstring(L, "OnBlocked");
 	GLua_PushEntity(L, other);
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnBlocked: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnBlocked: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1655,7 +1655,7 @@ static void GLua_SP_Generic(gentity_t *ent) {
 	GLua_PushEntity(L, ent);
 	lua_pushstring(L, "OnSpawn");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnSpawn: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnSpawn: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1675,7 +1675,7 @@ static void GLua_SP_Logical(gentity_t *ent) {
 	GLua_PushEntity(L, ent);
 	lua_pushstring(L, "OnSpawn");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnSpawn: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnSpawn: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1698,7 +1698,7 @@ static void GLua_SP_Mover(gentity_t *ent) {
 	GLua_PushEntity(L, ent);
 	lua_pushstring(L, "OnSpawn");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnSpawn: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnSpawn: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1720,7 +1720,7 @@ static void GLua_SP_Trigger(gentity_t *ent) {
 	GLua_PushEntity(L, ent);
 	lua_pushstring(L, "OnSpawn");
 	if (lua_pcall(L,2,0,0)) {
-		G_Printf("GLua: Failed to call ent.OnSpawn: %s\n", lua_tostring(L,-1));
+		trap->Print("GLua: Failed to call ent.OnSpawn: %s\n", lua_tostring(L,-1));
 		lua_pop(L,1);
 	}
 	return;
@@ -1752,7 +1752,7 @@ int GLua_Spawn_Entity(gentity_t* ent) {
 			GLua_SP_Trigger(ent);
 			break;
 		default:
-			G_Printf("WARNING: Internal error in GLua_Spawn_Entity: Invalid ent type!\n");
+			trap->Print("WARNING: Internal error in GLua_Spawn_Entity: Invalid ent type!\n");
 	}
 	return 1;
 }

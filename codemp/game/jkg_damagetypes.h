@@ -65,6 +65,10 @@ typedef struct damageSettings_s
     int					damageType;
     penetrationType_t   penetrationType;
     qboolean            planar;
+
+	// Damage override stuff
+	int					weapon;
+	int					weaponVariation;
 } damageSettings_t;
 
 qhandle_t JKG_RegisterDamageSettings ( const damageSettings_t *settings );

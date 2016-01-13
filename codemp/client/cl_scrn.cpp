@@ -1,9 +1,31 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 // cl_scrn.c -- master for refresh, status bar, console, chat, notify, etc
 
 #include "client.h"
+#include "cl_uiapi.h"
 
 extern console_t con;
 qboolean	scr_initialized;		// ready to draw
@@ -95,8 +117,8 @@ static void SCR_DrawChar( int x, int y, float size, int ch ) {
 	size2 = 0.0625;
 
 	re->DrawStretchPic( ax, ay, aw, ah,
-					   fcol, frow, 
-					   fcol + size, frow + size2, 
+					   fcol, frow,
+					   fcol + size, frow + size2,
 					   cls.charSetShader );
 }
 
@@ -128,13 +150,12 @@ void SCR_DrawSmallChar( int x, int y, int ch ) {
 	fcol = col*0.0625;
 
 	size = 0.03125;
-	//size = 0.0625;
 	size2 = 0.0625;
 
-	re->DrawStretchPic( x * con.xadjust, y * con.yadjust, 
-						SMALLCHAR_WIDTH * con.xadjust, SMALLCHAR_HEIGHT * con.yadjust, 
-					   fcol, frow, 
-					   fcol + size, frow + size2, 
+	re->DrawStretchPic( x * con.xadjust, y * con.yadjust,
+						SMALLCHAR_WIDTH * con.xadjust, SMALLCHAR_HEIGHT * con.yadjust,
+					   fcol, frow,
+					   fcol + size, frow + size2,
 					   cls.charSetShader );
 }
 
@@ -269,7 +290,7 @@ static int SCR_Strlen( const char *str ) {
 
 /*
 ** SCR_GetBigStringWidth
-*/ 
+*/
 int	SCR_GetBigStringWidth( const char *str ) {
 	return SCR_Strlen( str ) * BIGCHAR_WIDTH;
 }
@@ -308,8 +329,7 @@ DEBUG GRAPH
 ===============================================================================
 */
 
-typedef struct
-{
+typedef struct graphsamp_s {
 	float	value;
 	int		color;
 } graphsamp_t;
@@ -346,7 +366,7 @@ void SCR_DrawDebugGraph (void)
 	x = 0;
 	y = 480;
 	re->SetColor( g_color_table[0] );
-	re->DrawStretchPic(x, y - cl_graphheight->integer, 
+	re->DrawStretchPic(x, y - cl_graphheight->integer,
 		w, cl_graphheight->integer, 0, 0, 0, 0, cls.whiteShader );
 	re->SetColor( NULL );
 
@@ -355,7 +375,7 @@ void SCR_DrawDebugGraph (void)
 		i = (current-1-a+1024) & 1023;
 		v = values[i].value;
 		v = v * cl_graphscale->integer + cl_graphshift->integer;
-		
+
 		if (v < 0)
 			v += cl_graphheight->integer * (1+(int)(-v / cl_graphheight->integer));
 		h = (int)v % cl_graphheight->integer;
@@ -393,19 +413,9 @@ This will be called twice if rendering in stereo mode
 void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	re->BeginFrame( stereoFrame );
 
-	qboolean uiFullscreen = (qboolean)(uivm && VM_Call( uivm, UI_IS_FULLSCREEN ));
+	qboolean uiFullscreen = (qboolean)(cls.uiStarted && UIVM_IsFullscreen());
 
-	// wide aspect ratio screens need to have the sides cleared
-	// unless they are displaying game renderings
-	if ( uiFullscreen || (cls.state != CA_ACTIVE && cls.state != CA_CINEMATIC) ) {
-		if ( cls.glconfig.vidWidth * 480 > cls.glconfig.vidHeight * 640 ) {
-			re->SetColor( g_color_table[0] );
-			re->DrawStretchPic( 0, 0, cls.glconfig.vidWidth, cls.glconfig.vidHeight, 0, 0, 0, 0, cls.whiteShader );
-			re->SetColor( NULL );
-		}
-	}
-
-	if ( !uivm ) {
+	if ( !cls.uiStarted ) {
 		Com_DPrintf("draw screen without UI loaded\n");
 		return;
 	}
@@ -414,8 +424,7 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	// don't need to render anything under it
 	//actually, yes you do, unless you want clients to cycle out their reliable
 	//commands from sitting in the menu. -rww
-	if ( (uivm && !uiFullscreen) || (!(cls.framecount&7) && cls.state == CA_ACTIVE) ) {
-	//if ( !VM_Call( uivm, UI_IS_FULLSCREEN ) || (!(cls.framecount&7) && cls.state == CA_ACTIVE)) {
+	if ( (cls.uiStarted && !uiFullscreen) || (!(cls.framecount&7) && cls.state == CA_ACTIVE) ) {
 		switch( cls.state ) {
 		default:
 			Com_Error( ERR_FATAL, "SCR_DrawScreenField: bad cls.state" );
@@ -426,15 +435,15 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 		case CA_DISCONNECTED:
 			// force menu up
 			S_StopAllSounds();
-			VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
+			UIVM_SetActiveMenu( UIMENU_MAIN );
 			break;
 		case CA_CONNECTING:
 		case CA_CHALLENGING:
 		case CA_CONNECTED:
 			// connecting clients will only show the connection dialog
 			// refresh to update the time
-			VM_Call( uivm, UI_REFRESH, cls.realtime );
-			VM_Call( uivm, UI_DRAW_CONNECT_SCREEN, qfalse );
+			UIVM_Refresh( cls.realtime );
+			UIVM_DrawConnectScreen( qfalse );
 			break;
 		case CA_LOADING:
 		case CA_PRIMED:
@@ -444,8 +453,8 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 			// also draw the connection information, so it doesn't
 			// flash away too briefly on local or lan games
 			// refresh to update the time
-			VM_Call( uivm, UI_REFRESH, cls.realtime );
-			VM_Call( uivm, UI_DRAW_CONNECT_SCREEN, qtrue );
+			UIVM_Refresh( cls.realtime );
+			UIVM_DrawConnectScreen( qtrue );
 			break;
 		case CA_ACTIVE:
 			CL_CGameRendering( stereoFrame );
@@ -455,8 +464,8 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	}
 
 	// the menu draws next
-	if ( Key_GetCatcher( ) & KEYCATCH_UI && uivm ) {
-		VM_Call( uivm, UI_REFRESH, cls.realtime );
+	if ( Key_GetCatcher( ) & KEYCATCH_UI && cls.uiStarted ) {
+		UIVM_Refresh( cls.realtime );
 	}
 
 	// console draws next
@@ -490,7 +499,7 @@ void SCR_UpdateScreen( void ) {
 
 	// If there is no VM, there are also no rendering commands issued. Stop the renderer in
 	// that case.
-	if( uivm || com_dedicated->integer )
+	if( cls.uiStarted || com_dedicated->integer )
 	{
 		// if running in stereo, we need to draw the frame twice
 		if ( cls.glconfig.stereoEnabled ) {

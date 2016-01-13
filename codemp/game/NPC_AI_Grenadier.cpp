@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "b_local.h"
 #include "g_nav.h"
 #include "anims.h"
@@ -503,7 +525,7 @@ void NPC_BSGrenadier_Attack( void )
 		if ( NPC->client->ps.weapon == WP_THERMAL )
 		{//grenadier
 			trace_t	trace;
-			trap_Trace ( &trace, NPC->r.currentOrigin, NPC->enemy->r.mins, NPC->enemy->r.maxs, NPC->enemy->r.currentOrigin, NPC->s.number, NPC->enemy->clipmask );
+			trap->Trace ( &trace, NPC->r.currentOrigin, NPC->enemy->r.mins, NPC->enemy->r.maxs, NPC->enemy->r.currentOrigin, NPC->s.number, NPC->enemy->clipmask, 0, 0, 0 );
 			if ( !trace.allsolid && !trace.startsolid && (trace.fraction == 1.0 || trace.entityNum == NPC->enemy->s.number ) )
 			{//I can get right to him
 				//reset fire-timing variables
@@ -568,7 +590,7 @@ void NPC_BSGrenadier_Attack( void )
 		NPC_AimAdjust( -1 );//adjust aim worse longer we cannot see enemy
 	}
 	/*
-	else if ( trap_InPVS( NPC->enemy->r.currentOrigin, NPC->r.currentOrigin ) )
+	else if ( trap->InPVS( NPC->enemy->r.currentOrigin, NPC->r.currentOrigin ) )
 	{
 		NPCInfo->enemyLastSeenTime = level.time;
 		faceEnemy3 = qtrue;

@@ -1,4 +1,27 @@
 /*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
+/*
 **	cg_spawn.c
 **
 **	Client-side functions for parsing entity data.
@@ -142,24 +165,24 @@ char    *vtos( const vec3_t v ) {
 }
 void SP_misc_model_static( void ) {
 	char* model;
-	vec_t angle;
+	float angle;
 	vec3_t angles;
-	vec_t scale;
+	float scale;
 	vec3_t vScale;
 	vec3_t org;
-	vec_t zoffset;
+	float zoffset;
 	int i;
 	int modelIndex;
 	cg_staticmodel_t *staticmodel;
 
 	if( cgs.numMiscStaticModels >= MAX_STATIC_MODELS ) {
-		CG_Error( "MAX_STATIC_MODELS(%i) hit", MAX_STATIC_MODELS );
+		trap->Error( ERR_DROP, "MAX_STATIC_MODELS(%i) hit", MAX_STATIC_MODELS );
 	}
 
 	CG_SpawnString( "model", "", &model );
 
 	if( !model || !model[0] ) {
-		CG_Error( "misc_model_static with no model." );
+		trap->Error( ERR_DROP, "misc_model_static with no model." );
 	}
 
 	CG_SpawnVector( "origin", "0 0 0", org );
@@ -177,9 +200,9 @@ void SP_misc_model_static( void ) {
 		}
 	}
 
-	modelIndex = trap_R_RegisterModel( model );
+	modelIndex = trap->R_RegisterModel( model );
 	if( modelIndex == 0 ) {
-		CG_Error( "misc_model_static failed to load model '%s'", model );
+		trap->Error( ERR_DROP, "misc_model_static failed to load model '%s'", model );
 		return;
 	}
 
@@ -196,7 +219,7 @@ void SP_misc_model_static( void ) {
 	if( staticmodel->model ) {
 		vec3_t mins, maxs;
 
-		trap_R_ModelBounds( staticmodel->model, mins, maxs );
+		trap->R_ModelBounds( staticmodel->model, mins, maxs );
 
 		VectorScaleVector( mins, vScale, mins );
 		VectorScaleVector( maxs, vScale, maxs );
@@ -221,10 +244,10 @@ vec3_t cg_skyOriPos;
 float cg_skyOriScale = 0.0f;
 void SP_misc_skyportal_orient( void ) {
 	vec3_t org;
-	vec_t scale;
+	float scale;
 
 	if( cg_skyOri ) {
-		CG_Error( "ERROR: multiple misc_skyportal_orients found" );
+		trap->Error( ERR_DROP, "ERROR: multiple misc_skyportal_orients found" );
 	}
 
 	CG_SpawnVector( "origin", "0 0 0", org );
@@ -241,13 +264,13 @@ void SP_misc_weather_zone( void ) {
 	CG_SpawnString( "model", "", &model );
 
 	if( !model || !model[0] ) {
-		CG_Error( "misc_weather_zone with invalid brush model data." );
+		trap->Error( ERR_DROP, "misc_weather_zone with invalid brush model data." );
 		return;
 	}
 
-	trap_R_ModelBounds( trap_R_RegisterModel( model ), mins, maxs );
+	trap->R_ModelBounds( trap->R_RegisterModel( model ), mins, maxs );
 
-	trap_WE_AddWeatherZone( mins, maxs );
+	trap->WE_AddWeatherZone( mins, maxs );
 }
 typedef struct {
 	char *name;
@@ -331,7 +354,7 @@ char *CG_AddSpawnVarToken( const char *string ) {
 
 	l = strlen( string );
 	if( cg.numSpawnVarChars + l + 1 > MAX_SPAWN_VARS_CHARS ) {
-		CG_Error( "CG_AddSpawnVarToken: MAX_SPAWN_VARS_CHARS" );
+		trap->Error( ERR_DROP, "CG_AddSpawnVarToken: MAX_SPAWN_VARS_CHARS" );
 	}
 
 	dest = cg.spawnVarChars + cg.numSpawnVarChars;
@@ -359,20 +382,20 @@ qboolean CG_ParseSpawnVars( void ) {
 	cg.numSpawnVarChars	= 0;
 
 	// parse the opening brace
-	if( !trap_GetEntityToken( com_token, sizeof( com_token ) ) ) {
+	if( !trap->R_GetEntityToken( com_token, sizeof( com_token ) ) ) {
 		// end of spawn string
 		return qfalse;
 	}
 
 	if( com_token[0] != '{' ) {
-		CG_Error( "CG_ParseSpawnVars: found %s when expecting {", com_token );
+		trap->Error( ERR_DROP, "CG_ParseSpawnVars: found %s when expecting {", com_token );
 	}
 
 	// go through all the key / value pairs
 	while( 1 ) {
 		// parse key
-		if( !trap_GetEntityToken( keyname, sizeof( keyname ) ) ) {
-			CG_Error( "CG_ParseSpawnVars: EOF without closing brace" );
+		if( !trap->R_GetEntityToken( keyname, sizeof( keyname ) ) ) {
+			trap->Error( ERR_DROP, "CG_ParseSpawnVars: EOF without closing brace" );
 		}
 
 		if( keyname[0] == '}' ) {
@@ -380,16 +403,16 @@ qboolean CG_ParseSpawnVars( void ) {
 		}
 
 		// parse value
-		if( !trap_GetEntityToken( com_token, sizeof( com_token ) ) ) {
-			CG_Error( "CG_ParseSpawnVars: EOF without closing brace" );
+		if( !trap->R_GetEntityToken( com_token, sizeof( com_token ) ) ) {
+			trap->Error( ERR_DROP, "CG_ParseSpawnVars: EOF without closing brace" );
 		}
 
 		if( com_token[0] == '}' ) {
-			CG_Error( "CG_ParseSpawnVars: closing brace without data" );
+			trap->Error( ERR_DROP, "CG_ParseSpawnVars: closing brace without data" );
 		}
 
 		if( cg.numSpawnVars == MAX_SPAWN_VARS ) {
-			CG_Error( "CG_ParseSpawnVars: MAX_SPAWN_VARS" );
+			trap->Error( ERR_DROP, "CG_ParseSpawnVars: MAX_SPAWN_VARS" );
 		}
 
 		cg.spawnVars[cg.numSpawnVars][0]	= CG_AddSpawnVarToken( keyname );
@@ -406,7 +429,7 @@ void SP_worldspawn( void ) {
 
 	CG_SpawnString( "classname", "", &s );
 	if( Q_stricmp( s, "worldspawn" ) ) {
-		CG_Error( "SP_worldspawn: The first entity isn't 'worldspawn'" );
+		trap->Error( ERR_DROP, "SP_worldspawn: The first entity isn't 'worldspawn'" );
 	}
 
 	CG_SpawnFloat( "fogstart", "0", &cg_linearFogOverride );
@@ -421,7 +444,7 @@ Parses textual entity definitions out of an entstring
 */
 void CG_ParseEntitiesFromString( void ) {
 	// make sure it is reset
-	trap_GetEntityToken( NULL, -1 );
+	trap->R_GetEntityToken( NULL, -1 );
 
 	// allow calls to CG_Spawn*()
 	cg.spawning	= qtrue;
@@ -431,7 +454,7 @@ void CG_ParseEntitiesFromString( void ) {
 	// has a "spawn" function to perform any global setup
 	// needed by a level (setting configstrings or cvars, etc)
 	if( !CG_ParseSpawnVars() ) {
-		CG_Error( "ParseEntities: no entities" );
+		trap->Error( ERR_DROP, "ParseEntities: no entities" );
 	}
 
 	SP_worldspawn();

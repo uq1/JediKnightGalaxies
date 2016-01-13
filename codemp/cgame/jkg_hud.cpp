@@ -138,18 +138,18 @@ static void CG_DrawSaberStyle( centity_t *cent, menuDef_t *menuHUD)
 
 	// Now then, lets render this text ^_^
 
-	width = (float)trap_R_Font_StrLenPixels(text, cgDC.Assets.qhSmall3Font, 1) * 0.6f;
+	width = (float)trap->R_Font_StrLenPixels(text, cgDC.Assets.qhSmall3Font, 1) * 0.6f;
 				
 	focusItem = Menu_FindItemByName(menuHUD, "infobar");
 	if (focusItem)
 	{
-		trap_R_Font_DrawString(focusItem->window.rect.x + ((focusItem->window.rect.w/2) - (width/2)), focusItem->window.rect.y, text, colorWhite, cgDC.Assets.qhSmall3Font, -1, 0.6f);
+		trap->R_Font_DrawString(focusItem->window.rect.x + ((focusItem->window.rect.w/2) - (width/2)), focusItem->window.rect.y, text, colorWhite, cgDC.Assets.qhSmall3Font, -1, 0.6f);
 	}
 
 	focusItem = Menu_FindItemByName(menuHUD, "weapicon");
 	if (focusItem)
 	{
-		trap_R_SetColor( NULL );	
+		trap->R_SetColor( NULL );	
 		CG_DrawPic( 
 			focusItem->window.rect.x, 
 			focusItem->window.rect.y, 
@@ -245,18 +245,18 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 
 	// Now then, lets render this text ^_^
 
-	width = (float)trap_R_Font_StrLenPixels(text, cgDC.Assets.qhSmallFont, 1) * 0.6f;
+	width = (float)trap->R_Font_StrLenPixels(text, cgDC.Assets.qhSmallFont, 1) * 0.6f;
 				
 	focusItem = Menu_FindItemByName(menuHUD, "infobar");
 	if (focusItem)
 	{
-		trap_R_Font_DrawString(focusItem->window.rect.x + ((focusItem->window.rect.w/2) - (width/2)), focusItem->window.rect.y, text, opacity, cgDC.Assets.qhSmall3Font, -1, 0.5f);
+		trap->R_Font_DrawString(focusItem->window.rect.x + ((focusItem->window.rect.w/2) - (width/2)), focusItem->window.rect.y, text, opacity, cgDC.Assets.qhSmall3Font, -1, 0.5f);
 	}
 
 	focusItem = Menu_FindItemByName(menuHUD, "weapicon");
 	if (focusItem)
 	{
-		trap_R_SetColor( opacity );	
+		trap->R_SetColor( opacity );	
 		CG_DrawPic( 
 			focusItem->window.rect.x, 
 			focusItem->window.rect.y, 
@@ -329,9 +329,9 @@ static void JKG_DrawFiringMode( menuDef_t *menuHUD )
 		return;
 	}
 
-	textWidth = trap_R_Font_StrLenPixels(text, cgDC.Assets.qhSmall3Font, 0.4f);
-	//trap_R_Font_DrawString(focusItem->window.rect.x + ((focusItem->window.rect.w/2) - (width/2)), focusItem->window.rect.y, text, opacity, cgDC.Assets.qhSmall3Font, -1, 0.5f);
-	trap_R_Font_DrawString(x + ((w/2) - (textWidth/2)), y, text, opacity, cgDC.Assets.qhSmall3Font, -1, 0.4f);
+	textWidth = trap->R_Font_StrLenPixels(text, cgDC.Assets.qhSmall3Font, 0.4f);
+	//trap->R_Font_DrawString(focusItem->window.rect.x + ((focusItem->window.rect.w/2) - (width/2)), focusItem->window.rect.y, text, opacity, cgDC.Assets.qhSmall3Font, -1, 0.5f);
+	trap->R_Font_DrawString(x + ((w/2) - (textWidth/2)), y, text, opacity, cgDC.Assets.qhSmall3Font, -1, 0.4f);
 }
 
 /*
@@ -364,7 +364,7 @@ static void CG_DrawForcePower( menuDef_t *menuHUD )
 		if (cg.forceHUDNextFlashTime < cg.time)	
 		{
 			cg.forceHUDNextFlashTime = cg.time + 400;
-			trap_S_StartSound (NULL, 0, CHAN_LOCAL, cgs.media.noforceSound );
+			trap->S_StartSound (NULL, 0, CHAN_LOCAL, cgs.media.noforceSound );
 
 			if (cg.forceHUDActive)
 			{
@@ -402,13 +402,13 @@ static void CG_DrawForcePower( menuDef_t *menuHUD )
 	if (focusItem)
 	{
 		calcColor[3] *= cg.jkg_HUDOpacity;
-		trap_R_SetColor( calcColor );	
+		trap->R_SetColor( calcColor );	
 		CG_DrawPic( 
 			focusItem->window.rect.x, 
 			focusItem->window.rect.y, 
 			focusItem->window.rect.w, 
 			focusItem->window.rect.h, 
-			trap_R_RegisterShader("gfx/jkghud/ico_stamina.png") // TODO: Precache this
+			trap->R_RegisterShader("gfx/jkghud/ico_stamina.png") // TODO: Precache this
 			);			
 	}*/
 
@@ -420,8 +420,8 @@ static void CG_DrawForcePower( menuDef_t *menuHUD )
 	focusItem = Menu_FindItemByName(menuHUD, "staminabar");
 	if (focusItem)
 	{
-		trap_R_SetColor( opacity );
-		trap_R_DrawStretchPic(
+		trap->R_SetColor( opacity );
+		trap->R_DrawStretchPic(
 							focusItem->window.rect.x,
 							focusItem->window.rect.y, 
 							focusItem->window.rect.w * percent,
@@ -433,8 +433,8 @@ static void CG_DrawForcePower( menuDef_t *menuHUD )
 
 	{
 		char *Force = va("%i / %i", cg.predictedPlayerState.forcePower, maxForcePower);
-		trap_R_Font_DrawString( focusItem->window.rect.x + (focusItem->window.rect.w / 2) - (trap_R_Font_StrLenPixels(Force, 1, 0.4)/2),
-				focusItem->window.rect.y - 2/* + (trap_R_Font_HeightPixels(1, 1.0)*0.4)*/,
+		trap->R_Font_DrawString( focusItem->window.rect.x + (focusItem->window.rect.w / 2) - (trap->R_Font_StrLenPixels(Force, 1, 0.4)/2),
+				focusItem->window.rect.y - 2/* + (trap->R_Font_HeightPixels(1, 1.0)*0.4)*/,
 				Force, colorWhite, 1, -1, 0.4f );
 	}
 }
@@ -463,7 +463,7 @@ void FlagCaptureBar(void)
 
 	percentage = cg.captureFlagPercent/2;
 
-	trap_R_SetColor( colorWhite );
+	trap->R_SetColor( colorWhite );
 	// Draw background
 	CG_DrawPic(barleft, bartop, barwidth, barheight, cgs.media.loadBarLEDSurround);
 
@@ -562,26 +562,26 @@ static void CG_DrawHealth( menuDef_t *menuHUD )
 			if (fcurrent < factor) {
 				state = 1;
 				// We're filling up, draw up to fcurrent solid, and up to factor translucent
-				trap_R_SetColor(opacity);
-				trap_R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * fcurrent, focusItem->window.rect.h, 0, 0, fcurrent, 1, focusItem->window.background);
+				trap->R_SetColor(opacity);
+				trap->R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * fcurrent, focusItem->window.rect.h, 0, 0, fcurrent, 1, focusItem->window.background);
 				fadecolor[3] *= cg.jkg_HUDOpacity;
-				trap_R_SetColor(fadecolor);
-				trap_R_DrawStretchPic(focusItem->window.rect.x + focusItem->window.rect.w * fcurrent, focusItem->window.rect.y, focusItem->window.rect.w * (factor - fcurrent), focusItem->window.rect.h, fcurrent, 0, factor, 1, focusItem->window.background);
-				trap_R_SetColor(NULL);
+				trap->R_SetColor(fadecolor);
+				trap->R_DrawStretchPic(focusItem->window.rect.x + focusItem->window.rect.w * fcurrent, focusItem->window.rect.y, focusItem->window.rect.w * (factor - fcurrent), focusItem->window.rect.h, fcurrent, 0, factor, 1, focusItem->window.background);
+				trap->R_SetColor(NULL);
 			} else if (fcurrent > factor) {
 				state = 2;
 				// We're draining, draw up to factor solid, and up to fcurrent translucent
-				trap_R_SetColor(opacity);
-				trap_R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * factor, focusItem->window.rect.h, 0, 0, factor, 1, focusItem->window.background);
+				trap->R_SetColor(opacity);
+				trap->R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * factor, focusItem->window.rect.h, 0, 0, factor, 1, focusItem->window.background);
 				fadecolor[3] *= cg.jkg_HUDOpacity;
-				trap_R_SetColor(fadecolor);
-				trap_R_DrawStretchPic(focusItem->window.rect.x + focusItem->window.rect.w * factor, focusItem->window.rect.y, focusItem->window.rect.w * (fcurrent - factor), focusItem->window.rect.h, factor, 0, fcurrent, 1, focusItem->window.background);
-				trap_R_SetColor(NULL);
+				trap->R_SetColor(fadecolor);
+				trap->R_DrawStretchPic(focusItem->window.rect.x + focusItem->window.rect.w * factor, focusItem->window.rect.y, focusItem->window.rect.w * (fcurrent - factor), focusItem->window.rect.h, factor, 0, fcurrent, 1, focusItem->window.background);
+				trap->R_SetColor(NULL);
 			} else {
 				state = 0;
 				// Just solid
-				trap_R_SetColor(opacity);
-				trap_R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * factor, focusItem->window.rect.h, 0, 0, factor, 1, focusItem->window.background);
+				trap->R_SetColor(opacity);
+				trap->R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * factor, focusItem->window.rect.h, 0, 0, factor, 1, focusItem->window.background);
 			}
 		}
 	}
@@ -605,8 +605,8 @@ static void CG_DrawHealth( menuDef_t *menuHUD )
 		}
 		glowColor[3] *= cg.jkg_HUDOpacity;
 		text = va("%i / %i", healthAmt, maxAmt);
-		x = ((focusItem->window.rect.w/2) - (trap_R_Font_StrLenPixels(text, cgs.media.hudfont1, 0.6f) / 2)) + focusItem->window.rect.x;
-		trap_R_Font_DrawString(
+		x = ((focusItem->window.rect.w/2) - (trap->R_Font_StrLenPixels(text, cgs.media.hudfont1, 0.6f) / 2)) + focusItem->window.rect.x;
+		trap->R_Font_DrawString(
 			x,
 			focusItem->window.rect.y,
 			text,
@@ -614,7 +614,7 @@ static void CG_DrawHealth( menuDef_t *menuHUD )
 			cgs.media.hudfont1,
 			-1,
 			0.6f);
-		trap_R_SetColor(NULL);
+		trap->R_SetColor(NULL);
 	}
 }
 
@@ -695,25 +695,25 @@ static void CG_DrawArmor( menuDef_t *menuHUD )
 			if (fcurrent < factor) {
 				state = 1;
 				// We're filling up, draw up to fcurrent solid, and up to factor translucent
-				trap_R_SetColor(opacity);
-				trap_R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * fcurrent, focusItem->window.rect.h, 0, 0, fcurrent, 1, focusItem->window.background);
+				trap->R_SetColor(opacity);
+				trap->R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * fcurrent, focusItem->window.rect.h, 0, 0, fcurrent, 1, focusItem->window.background);
 				fadecolor[3] *= cg.jkg_HUDOpacity;
-				trap_R_SetColor(fadecolor);
-				trap_R_DrawStretchPic(focusItem->window.rect.x + focusItem->window.rect.w * fcurrent, focusItem->window.rect.y, focusItem->window.rect.w * (factor - fcurrent), focusItem->window.rect.h, fcurrent, 0, factor, 1, focusItem->window.background);
-				trap_R_SetColor(opacity);
+				trap->R_SetColor(fadecolor);
+				trap->R_DrawStretchPic(focusItem->window.rect.x + focusItem->window.rect.w * fcurrent, focusItem->window.rect.y, focusItem->window.rect.w * (factor - fcurrent), focusItem->window.rect.h, fcurrent, 0, factor, 1, focusItem->window.background);
+				trap->R_SetColor(opacity);
 			} else if (fcurrent > factor) {
 				state = 2;
 				// We're draining, draw up to factor solid, and up to fcurrent translucent
-				trap_R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * factor, focusItem->window.rect.h, 0, 0, factor, 1, focusItem->window.background);
+				trap->R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * factor, focusItem->window.rect.h, 0, 0, factor, 1, focusItem->window.background);
 				fadecolor[3] *= cg.jkg_HUDOpacity;
-				trap_R_SetColor(fadecolor);
-				trap_R_DrawStretchPic(focusItem->window.rect.x + focusItem->window.rect.w * factor, focusItem->window.rect.y, focusItem->window.rect.w * (fcurrent - factor), focusItem->window.rect.h, factor, 0, fcurrent, 1, focusItem->window.background);
-				trap_R_SetColor(opacity);
+				trap->R_SetColor(fadecolor);
+				trap->R_DrawStretchPic(focusItem->window.rect.x + focusItem->window.rect.w * factor, focusItem->window.rect.y, focusItem->window.rect.w * (fcurrent - factor), focusItem->window.rect.h, factor, 0, fcurrent, 1, focusItem->window.background);
+				trap->R_SetColor(opacity);
 			} else {
 				state = 0;
 				// Just solid
-				trap_R_SetColor(opacity);
-				trap_R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * factor, focusItem->window.rect.h, 0, 0, factor, 1, focusItem->window.background);
+				trap->R_SetColor(opacity);
+				trap->R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w * factor, focusItem->window.rect.h, 0, 0, factor, 1, focusItem->window.background);
 			}
 		}
 	}
@@ -737,8 +737,8 @@ static void CG_DrawArmor( menuDef_t *menuHUD )
 		glowColor[3] *= cg.jkg_HUDOpacity;
 		// Center and draw the text, positioning will be finetuned later on :P
 		text = va("%i / %i", armor, maxArmor);
-		x = ((focusItem->window.rect.w/2) - (trap_R_Font_StrLenPixels(text, cgs.media.hudfont1, 0.6f) / 2)) + focusItem->window.rect.x;
-		trap_R_Font_DrawString(
+		x = ((focusItem->window.rect.w/2) - (trap->R_Font_StrLenPixels(text, cgs.media.hudfont1, 0.6f) / 2)) + focusItem->window.rect.x;
+		trap->R_Font_DrawString(
 			x,
 			focusItem->window.rect.y,
 			text,
@@ -746,7 +746,7 @@ static void CG_DrawArmor( menuDef_t *menuHUD )
 			cgs.media.hudfont1,
 			-1,
 			0.6f);
-		trap_R_SetColor(NULL);
+		trap->R_SetColor(NULL);
 	}
 }
 
@@ -763,7 +763,7 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 	/*focusItem = Menu_FindItemByName(menuHUD, "barsbackground");
 	if (focusItem)
 	{
-		trap_R_SetColor(opacity);	
+		trap->R_SetColor(opacity);	
 		CG_DrawPic( 
 			focusItem->window.rect.x, 
 			focusItem->window.rect.y, 
@@ -784,7 +784,7 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 		focusItem = Menu_FindItemByName(menuHUD, "frame");
 		if (focusItem)
 		{
-			trap_R_SetColor(opacity);	
+			trap->R_SetColor(opacity);	
 			CG_DrawPic( 
 				focusItem->window.rect.x, 
 				focusItem->window.rect.y, 
@@ -797,7 +797,7 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 		focusItem = Menu_FindItemByName(menuHUD, "hudicon_shield");
 		if (focusItem)
 		{
-			trap_R_SetColor(opacity);	
+			trap->R_SetColor(opacity);	
 			CG_DrawPic( 
 				focusItem->window.rect.x, 
 				focusItem->window.rect.y, 
@@ -810,7 +810,7 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 		focusItem = Menu_FindItemByName(menuHUD, "hudicon_health");
 		if (focusItem)
 		{
-			trap_R_SetColor(opacity);	
+			trap->R_SetColor(opacity);	
 			CG_DrawPic( 
 				focusItem->window.rect.x, 
 				focusItem->window.rect.y, 
@@ -823,7 +823,7 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 		focusItem = Menu_FindItemByName(menuHUD, "hudicon_stamina");
 		if (focusItem)
 		{
-			trap_R_SetColor(opacity);	
+			trap->R_SetColor(opacity);	
 			CG_DrawPic( 
 				focusItem->window.rect.x, 
 				focusItem->window.rect.y, 
@@ -838,7 +838,7 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 	/*focusItem = Menu_FindItemByName(menuHUD, "avatar");
 	if (focusItem)
 	{
-		trap_R_SetColor(opacity);	
+		trap->R_SetColor(opacity);	
 		CG_DrawPic( 
 			focusItem->window.rect.x, 
 			focusItem->window.rect.y, 
@@ -854,9 +854,9 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 	if (focusItem)
 	{
 		const char *temp = va("%i", 0);
-		int x = ((focusItem->window.rect.w/2) - (trap_R_Font_StrLenPixels(temp, MenuFontToHandle(1), 0.6f) / 2)) + focusItem->window.rect.x;
+		int x = ((focusItem->window.rect.w/2) - (trap->R_Font_StrLenPixels(temp, MenuFontToHandle(1), 0.6f) / 2)) + focusItem->window.rect.x;
 		//CG_DrawRect(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w, focusItem->window.rect.h, 1, colorWhite);
-		trap_R_Font_DrawString(
+		trap->R_Font_DrawString(
 			x,
 			focusItem->window.rect.y,
 			temp,
@@ -872,10 +872,10 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 		const char *temp = va("%s", Info_ValueForKey(CG_ConfigString(CS_PLAYERS + cg.snap->ps.clientNum), "n"));
 		//CG_DrawRect(focusItem->window.rect.x,focusItem->window.rect.y,focusItem->window.rect.w,focusItem->window.rect.h,1,colorWhite);
 		// To avoid rounding errors, we get the length at scale 1, then adjust it
-		int x = ((focusItem->window.rect.w/2) - (((float)trap_R_Font_StrLenPixels(temp, MenuFontToHandle(1), 1) * 0.5f) / 2)) + focusItem->window.rect.x;
+		int x = ((focusItem->window.rect.w/2) - (((float)trap->R_Font_StrLenPixels(temp, MenuFontToHandle(1), 1) * 0.5f) / 2)) + focusItem->window.rect.x;
 		//CG_DrawRect(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w, focusItem->window.rect.h, 1, colorWhite);
 		ChatBox_SetPaletteAlpha(opacity[3]);
-		trap_R_Font_DrawString(
+		trap->R_Font_DrawString(
 			x,
 			focusItem->window.rect.y,
 			temp,
@@ -911,7 +911,7 @@ static void CG_DrawFPS( float x, float y, float w, float h, int font, float text
 
 	// don't use serverTime, because that will be drifting to
 	// correct for internet lag changes, timescales, timedemos, etc
-	t = trap_Milliseconds();
+	t = trap->Milliseconds();
 	frameTime = t - previous;
 	previous = t;
 	if (t - lastupdate > 50)	//don't sample faster than this
@@ -946,7 +946,7 @@ static void CG_DrawFPS( float x, float y, float w, float h, int font, float text
 
 	//w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
 
-	trap_R_Font_DrawString(x, y, s, fpscolor, font | STYLE_DROPSHADOW, -1, textScale);
+	trap->R_Font_DrawString(x, y, s, fpscolor, font | STYLE_DROPSHADOW, -1, textScale);
 	//CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F);
 }
 
@@ -963,13 +963,13 @@ static void CG_DrawMiniMap ( menuDef_t *menuHUD, vec4_t opacity )
 	// Use a default fixed radius of 500 units for now
 	if (cgs.gametype != GT_DUEL) 
 	{
-	MiniMap_Render(menuHUD, 1500.0f);
+		MiniMap_Render(menuHUD, 1500.0f);
 	}
 
 	focusItem = Menu_FindItemByName(menuHUD, "frame");
 	if (focusItem)
 	{
-		trap_R_SetColor(opacity);
+		trap->R_SetColor(opacity);
 		CG_DrawPic( 
 			focusItem->window.rect.x, 
 			focusItem->window.rect.y, 
@@ -983,8 +983,8 @@ static void CG_DrawMiniMap ( menuDef_t *menuHUD, vec4_t opacity )
 	focusItem = Menu_FindItemByName(menuHUD, "credits");
 	if (focusItem && cgs.gametype != GT_DUEL)
 	{
-		trap_R_SetColor(opacity);
-		trap_R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, va("Credits: %i", cg.predictedPlayerState.credits), opacity, cgDC.Assets.qhSmall3Font, -1, focusItem->textscale);
+		trap->R_SetColor(opacity);
+		trap->R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, va("Credits: %i", cg.predictedPlayerState.credits), opacity, cgDC.Assets.qhSmall3Font, -1, focusItem->textscale);
 	}
 
 	focusItem = Menu_FindItemByName(menuHUD, "smalltext");
@@ -994,7 +994,7 @@ static void CG_DrawMiniMap ( menuDef_t *menuHUD, vec4_t opacity )
 		int mins, sec, msec;
 		int numberItems = 0;
 		buffer[0] = '\0';
-		trap_R_SetColor(opacity);
+		trap->R_SetColor(opacity);
 		if(cg_drawTimer.integer == 1 || cg_drawTimer.integer == 3)
 		{
 			//Draw server time
@@ -1030,7 +1030,7 @@ static void CG_DrawMiniMap ( menuDef_t *menuHUD, vec4_t opacity )
 
 		//strcat(buffer, '\0');
 
-		trap_R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, buffer, opacity, cgDC.Assets.qhSmall3Font, -1, focusItem->textscale);
+		trap->R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, buffer, opacity, cgDC.Assets.qhSmall3Font, -1, focusItem->textscale);
 	}
 
 	if(cg_drawFPS.integer > 0)
@@ -1056,7 +1056,7 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 	focusItem = Menu_FindItemByName(menuHUD, "frame");
 	if (focusItem)
 	{
-		trap_R_SetColor(opacity);
+		trap->R_SetColor(opacity);
 		CG_DrawPic( 
 			focusItem->window.rect.x, 
 			focusItem->window.rect.y, 
@@ -1087,13 +1087,13 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 						col[1] = 1.0f;
 						col[2] = 1.0f;
 				        
-						/*trap_R_SetColor (colorTable[CT_MDGREY]);
-						trap_R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w, focusItem->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);*/
+						/*trap->R_SetColor (colorTable[CT_MDGREY]);
+						trap->R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w, focusItem->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);*/
 						if(i == cg.weaponSelect)
 						{
-							trap_R_SetColor (opacity);
+							trap->R_SetColor (opacity);
 							//TODO: precache me!
-							trap_R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w, focusItem->window.rect.h, 0, 0, 1, 1, trap_R_RegisterShaderNoMip("gfx/jkghud/aciselect"));
+							trap->R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w, focusItem->window.rect.h, 0, 0, 1, 1, trap->R_RegisterShaderNoMip("gfx/jkghud/aciselect"));
 						}
 					}
 				}
@@ -1102,13 +1102,13 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 					col[0] = 1.0f;
 					col[1] = 1.0f;
 					col[2] = 1.0f;
-					shader = trap_R_RegisterShaderNoMip(cg.playerInventory[cg.playerACI[i]].id->itemIcon);
+					shader = trap->R_RegisterShaderNoMip(cg.playerInventory[cg.playerACI[i]].id->itemIcon);
 				}
 			}
 			if(shader != cgs.media.whiteShader)
 			{
-				trap_R_SetColor( col );
-				trap_R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w, focusItem->window.rect.h, 0, 0, 1, 1, shader);
+				trap->R_SetColor( col );
+				trap->R_DrawStretchPic(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w, focusItem->window.rect.h, 0, 0, 1, 1, shader);
 			}
 			//CG_DrawRect(focusItem->window.rect.x, focusItem->window.rect.y, focusItem->window.rect.w, focusItem->window.rect.h, 1, colorWhite);
 		}
@@ -1116,14 +1116,14 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 		focusItem = Menu_FindItemByName(menuHUD, va("slotl%i", i));
 		if (focusItem)
 		{
-			trap_R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, va("%i", i), opacity, cgDC.Assets.qhSmallFont, -1, 0.4f);
+			trap->R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, va("%i", i), opacity, cgDC.Assets.qhSmallFont, -1, 0.4f);
 		}
 	}
 
 	focusItem = Menu_FindItemByName(menuHUD, "frame_overlay");
 	if(focusItem)
 	{
-		trap_R_SetColor(opacity);
+		trap->R_SetColor(opacity);
 		CG_DrawPic( 
 			focusItem->window.rect.x, 
 			focusItem->window.rect.y, 
@@ -1147,7 +1147,7 @@ static void CG_DrawBottomRightHUD ( menuDef_t *menuHUD, centity_t *cent, vec4_t 
 	{
 		vec4_t tmp;
 		MAKERGBA(tmp,0,0,0, cg.jkg_HUDOpacity);
-		trap_R_SetColor( tmp );	
+		trap->R_SetColor( tmp );	
 		CG_DrawPic( 
 			focusItem->window.rect.x, 
 			focusItem->window.rect.y, 
@@ -1164,7 +1164,7 @@ static void CG_DrawBottomRightHUD ( menuDef_t *menuHUD, centity_t *cent, vec4_t 
 	focusItem = Menu_FindItemByName(menuHUD, "frame");
 	if (focusItem)
 	{
-		trap_R_SetColor(opacity);
+		trap->R_SetColor(opacity);
 		CG_DrawPic( 
 			focusItem->window.rect.x, 
 			focusItem->window.rect.y, 
@@ -1248,10 +1248,10 @@ void CG_DrawHUD(centity_t *cent)
 		if (cg.recaptureingFlag)
 		{
 			x-=15;
-			UI_DrawScaledProportionalString(x, y, va("Consolidating Control Point"), UI_RIGHT|UI_DROPSHADOW, color, 0.4);
+			UI_DrawScaledProportionalString(x, y, "Consolidating Control Point", UI_RIGHT|UI_DROPSHADOW, color, 0.4);
 		}
 		else
-			UI_DrawScaledProportionalString(x, y, va("Capturing Control Point"), UI_RIGHT|UI_DROPSHADOW, color, 0.4);
+			UI_DrawScaledProportionalString(x, y, "Capturing Control Point", UI_RIGHT|UI_DROPSHADOW, color, 0.4);
 	}
 	else if (cg.captureFlagPercent >= 100 && cg.capturingFlag)
 	{// For attack/defence/scenario gametype flag captures...
@@ -1266,7 +1266,7 @@ void CG_DrawHUD(centity_t *cent)
 
 		VectorSet(color, 250, 250, 0);
 
-		UI_DrawScaledProportionalString(x, y, va("^3Control Point Captured!"), UI_RIGHT|UI_DROPSHADOW, color, 0.4);
+		UI_DrawScaledProportionalString(x, y, "^3Control Point Captured!", UI_RIGHT|UI_DROPSHADOW, color, 0.4);
 	}
 
 	if (cgs.gametype >= GT_TEAM)

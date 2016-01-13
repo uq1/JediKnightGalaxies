@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "b_local.h"
 
 //static void R5D2_LookAround( void );
@@ -216,7 +238,7 @@ void Droid_Spin( void )
 		|| NPC->client->NPC_class == CLASS_R2D2 )
 	{
 		// No head?
-		if (trap_G2API_GetSurfaceRenderStatus( NPC->ghoul2, 0, "head" )>0)
+		if (trap->G2API_GetSurfaceRenderStatus( NPC->ghoul2, 0, "head" )>0)
 		{
 			if (TIMER_Done(NPC,"smoke") && !TIMER_Done(NPC,"droidsmoketotal"))
 			{
@@ -293,7 +315,7 @@ void NPC_Droid_Pain(gentity_t *self, gentity_t *attacker, int damage)
 				if (!(self->spawnflags & 2))	// Doesn't have to ALWAYSDIE
 				{
 					if ((self->NPC->localState != LSTATE_SPINNING) && 
-						(!trap_G2API_GetSurfaceRenderStatus( self->ghoul2, 0, "head" )))
+						(!trap->G2API_GetSurfaceRenderStatus( self->ghoul2, 0, "head" )))
 					{
 						NPC_SetSurfaceOnOff( self, "head", TURN_OFF );
 
@@ -371,7 +393,7 @@ void NPC_Droid_Pain(gentity_t *self, gentity_t *attacker, int damage)
 				if (!(self->spawnflags & 2))	// Doesn't have to ALWAYSDIE
 				{
 					if ((self->NPC->localState != LSTATE_SPINNING) && 
-						(!trap_G2API_GetSurfaceRenderStatus( self->ghoul2, 0, "head" )))
+						(!trap->G2API_GetSurfaceRenderStatus( self->ghoul2, 0, "head" )))
 					{
 						NPC_SetSurfaceOnOff( self, "head", TURN_OFF );
 

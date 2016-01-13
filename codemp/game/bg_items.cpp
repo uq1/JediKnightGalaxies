@@ -1,13 +1,13 @@
 #include "qcommon/q_shared.h"
 #include "bg_items.h"
 #include "bg_weapons.h"
-#ifdef QAGAME
+#if defined(_GAME)
     #include "g_local.h"
     #include "jkg_items.h"
     typedef itemData_t bgItemData_t;
     extern itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
     #define itemTable itemLookupTable
-#else
+#elif defined(_CGAME)
     #include "../cgame/cg_local.h"
     #include "../cgame/jkg_cg_items.h"
     typedef cgItemData_t bgItemData_t;
@@ -36,7 +36,7 @@ qboolean BG_HasWeaponItem ( int clientNum, int weaponId )
 {
     int i;
     // Hate having to do it like this, but seems like the only way atm...
-#ifdef CGAME
+#ifdef _CGAME
     for ( i = 0; i < cg.numItemsInInventory; i++ )
     {
 		int weaponNum;
@@ -139,7 +139,7 @@ void BG_LoadDefaultWeaponItems ( void )
         item.weapon = weapon;
         item.variation = variation;
         item.varID = i;
-#ifdef CGAME
+#ifdef _CGAME
 		strcpy(item.itemIcon, weaponData->visuals.icon);
 #endif
         

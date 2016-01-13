@@ -46,7 +46,7 @@ static qboolean JKG_ParseItem ( const char *itemFilePath, itemData_t *itemData )
 
 	char itemFileData[MAX_ITEM_FILE_LENGTH];
 	fileHandle_t f;
-	int fileLen = strap_FS_FOpenFile (itemFilePath, &f, FS_READ);
+	int fileLen = trap->FS_Open (itemFilePath, &f, FS_READ);
 
 	if ( !f || fileLen == -1 )
 	{
@@ -56,15 +56,15 @@ static qboolean JKG_ParseItem ( const char *itemFilePath, itemData_t *itemData )
 
 	if ( (fileLen + 1) >= MAX_ITEM_FILE_LENGTH )
 	{
-		strap_FS_FCloseFile(f);
+		trap->FS_Close(f);
 		Com_Printf (S_COLOR_RED "%s item file too large\n", itemFilePath);
 		return qfalse;
 	}
 
-	strap_FS_Read (&itemFileData, fileLen, f);
+	trap->FS_Read (&itemFileData, fileLen, f);
 	itemFileData[fileLen] = '\0';
 
-	strap_FS_FCloseFile (f);
+	trap->FS_Close (f);
 
 	json = cJSON_ParsePooled (itemFileData, error, sizeof (error));
 	if ( json == NULL )
@@ -268,7 +268,7 @@ static qboolean JKG_LoadItems ( void )
 {
 	int i, j;
 	char itemFiles[8192];
-	int numFiles = strap_FS_GetFileList ("ext_data/items/", ".itm", itemFiles, sizeof (itemFiles));
+	int numFiles = trap->FS_GetFileList ("ext_data/items/", ".itm", itemFiles, sizeof (itemFiles));
 	const char *itemFile = itemFiles;
 	int successful = 0;
 	int failed = 0;
@@ -332,7 +332,7 @@ static qboolean JKG_ParseLootTable ( const char *lootFilePath, lootTable_t *loot
 
 	char lootFileData[MAX_LOOT_FILE_LENGTH];
 	fileHandle_t f;
-	int fileLen = strap_FS_FOpenFile (lootFilePath, &f, FS_READ);
+	int fileLen = trap->FS_Open (lootFilePath, &f, FS_READ);
 
 	if ( !f || fileLen == -1 )
 	{
@@ -342,15 +342,15 @@ static qboolean JKG_ParseLootTable ( const char *lootFilePath, lootTable_t *loot
 
 	if ( (fileLen + 1) >= MAX_LOOT_FILE_LENGTH )
 	{
-		strap_FS_FCloseFile(f);
+		trap->FS_Close(f);
 		Com_Printf (S_COLOR_RED "%s loot file too large\n", lootFilePath);
 		return qfalse;
 	}
 
-	strap_FS_Read (&lootFileData, fileLen, f);
+	trap->FS_Read (&lootFileData, fileLen, f);
 	lootFileData[fileLen] = '\0';
 
-	strap_FS_FCloseFile (f);
+	trap->FS_Close (f);
 
 	json = cJSON_ParsePooled (lootFileData, error, sizeof (error));
 	if(json == NULL)
@@ -387,7 +387,7 @@ static qboolean JKG_LoadLootTable ( void )
 {
 	int i;
 	char lootFiles[8192];
-	int numFiles = strap_FS_GetFileList ("ext_data/loot", ".loot", lootFiles, sizeof (lootFiles));
+	int numFiles = trap->FS_GetFileList ("ext_data/loot", ".loot", lootFiles, sizeof (lootFiles));
 	const char *lootFile = lootFiles;
 	int successful = 0;
 	int failed = 0;
@@ -527,6 +527,9 @@ static itemInstance_t *JKG_RollItem( unsigned int index, int qualityOverride, it
 			JKG_CalculateDurability(item);
 			JKG_CalculateDefense(item);
 			break;
+
+		default:
+			break;
 	}
 
 	return item;
@@ -606,7 +609,7 @@ void JKG_A_GiveEntItem( unsigned int itemIndex, int qualityOverride, inv_t *inve
 	JKG_Easy_DIMA_Add(inventory, item);
 
 	//Perform the pInv call to network to clients
-	trap_SendServerCommand(owner->ps.clientNum, va("pInv add %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+	trap->SendServerCommand(owner->ps.clientNum, va("pInv add %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
 		invNum, item.id->itemID, item.itemQuality, item.amount[0], item.amount[1], item.amount[2],
 		        item.amount[3], item.amount[4], item.amount[5], item.amount[6], item.amount[7],
 		        item.amount[8], item.amount[9], item.equipped));
@@ -642,7 +645,7 @@ void JKG_A_GiveEntItemForcedToACI( unsigned int itemIndex, int qualityOverride, 
 	JKG_Easy_DIMA_Add(inventory, item);
 
 	//Perform the pInv call to network to clients
-	trap_SendServerCommand(owner->ps.clientNum, va("pInv addfrc %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+	trap->SendServerCommand(owner->ps.clientNum, va("pInv addfrc %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
 		invNum, item.id->itemID, ACIslot, item.itemQuality, item.amount[0], item.amount[1], item.amount[2],
 		        item.amount[3], item.amount[4], item.amount[5], item.amount[6], item.amount[7],
 		        item.amount[8], item.amount[9], item.equipped));
@@ -691,7 +694,7 @@ void JKG_InitItems ( void )
 
 void JKG_StopLooting(int clientNum, gentity_t *targetEnt)
 {
-	trap_SendServerCommand(clientNum, "loot cl");
+	trap->SendServerCommand(clientNum, "loot cl");
 	targetEnt->currentLooter = NULL;
 }
 
@@ -709,25 +712,25 @@ static void JKG_ParseRandomVendorFile(const char *fileName)
 	char temp[MAX_RANDOM_VENDOR_BUFFER_SIZE];
 	fileHandle_t f;
 
-	len = trap_FS_FOpenFile(fileName, &f, FS_READ);
+	len = trap->FS_Open(fileName, &f, FS_READ);
 	if(!len || !f)
 	{
 		Com_Printf("No random vendor file found. Vendors will not work.\n");
 		if(!len)
 		{
-			trap_FS_FCloseFile(f);
+			trap->FS_Close(f);
 		}
 		return;
 	}
 	if(len >= MAX_RANDOM_VENDOR_BUFFER_SIZE)
 	{
 		Com_Printf("Random vendor file >= MAX_RANDOM_VENDOR_BUFFER_SIZE. Vendors will not work.\n");
-		trap_FS_FCloseFile(f);
+		trap->FS_Close(f);
 		return;
 	}
 
-	trap_FS_Read(buffer, len, f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Read(buffer, len, f);
+	trap->FS_Close(f);
 	buffer[len] = '\0';
 
 	//Now we parse the file
@@ -942,7 +945,7 @@ void JKG_CreateNewVendor(gentity_t *ent, int desiredVendorID, qboolean random, q
 		case CLASS_TRAVELLING_VENDOR:
 			break;
 		default:
-			G_Printf("FIXME: NPC Vendor FORCED to CLASS_GENERAL_VENDOR. Vendors should have their own NPC file with a vendor class.\n");
+			trap->Print("FIXME: NPC Vendor FORCED to CLASS_GENERAL_VENDOR. Vendors should have their own NPC file with a vendor class.\n");
 			ent->client->NPC_class = CLASS_GENERAL_VENDOR;
 			ent->s.NPC_class = CLASS_GENERAL_VENDOR;
 			break;
@@ -1052,7 +1055,7 @@ void JKG_RefreshClientVendorStock( gentity_t *client, gentity_t *vendor )
 		strcat(buffer, va(" %i", vendor->vendorData.itemsInStock[i]));
 	}
 
-	trap_SendServerCommand(client->client->ps.clientNum, buffer);
+	trap->SendServerCommand(client->client->ps.clientNum, buffer);
 }
 
 void JKG_RefreshVendorStockForAll( gentity_t *vendor )
@@ -1066,7 +1069,7 @@ void JKG_RefreshVendorStockForAll( gentity_t *vendor )
 		strcat(buffer, va(" %i", vendor->vendorData.itemsInStock[i]));
 	}
 
-	trap_SendServerCommand(-1, buffer);
+	trap->SendServerCommand(-1, buffer);
 }
 
 extern gentity_t	*NPC;
@@ -1088,13 +1091,13 @@ void JKG_target_vendor_use(gentity_t *ent, gentity_t *other, gentity_t *activato
 
 	if(!activator->client)
 	{
-		//G_Printf("VENDOR DEBUG: Vendor activator is not a client!\n");
+		//trap->Print("VENDOR DEBUG: Vendor activator is not a client!\n");
 		return;	//Check #1 - Is this a client?
 	}
 
 	if(activator->NPC)
 	{
-		//G_Printf("VENDOR DEBUG: Vendor has no NPC information!\n");
+		//trap->Print("VENDOR DEBUG: Vendor has no NPC information!\n");
 		return; //Check #2 - And not an NPC?
 	}
 
@@ -1105,7 +1108,7 @@ void JKG_target_vendor_use(gentity_t *ent, gentity_t *other, gentity_t *activato
 
 	if(!vendorTarget)
 	{
-		//G_Printf("VENDOR DEBUG: Vendor has no vendorTarget!\n");
+		//trap->Print("VENDOR DEBUG: Vendor has no vendorTarget!\n");
 		//return;
 		// UQ1: Perfectly valid now - NPC's are now useable themselves (without a trigger ent)...
 		vendorTarget = ent;
@@ -1153,10 +1156,10 @@ void JKG_target_vendor_use(gentity_t *ent, gentity_t *other, gentity_t *activato
 		}
 	}
 
-	//G_Printf("Shop opened.\n");
+	//trap->Print("Shop opened.\n");
 	//Actual meat of the function: activate the vendor menu for this client
 	JKG_RefreshClientVendorStock(activator, vendorTarget);
-	trap_SendServerCommand(activator->s.number, "shopopen");
+	trap->SendServerCommand(activator->s.number, "shopopen");
 
 	if( vendorTarget->s.eType == ET_NPC )
 	{
@@ -1238,7 +1241,7 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 
 	if(ent->client->ps.credits < itemLookupTable[itemID].baseCost)	//TODO: add proper cost here
 	{
-		trap_SendServerCommand(ent->s.number, "print \"You do not have enough money for this item.\n\"");
+		trap->SendServerCommand(ent->s.number, "print \"You do not have enough money for this item.\n\"");
 
 		if ( vendorEnt->s.eType == ET_NPC )
 		{
@@ -1274,14 +1277,14 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 	{
 		if(!itemLookupTable[itemID].itemID)
 		{
-			trap_SendServerCommand(ent->s.number, "print \"The item ID for this item is not valid.\n\"");
+			trap->SendServerCommand(ent->s.number, "print \"The item ID for this item is not valid.\n\"");
 			return;	//itemID isn't valid
 		}
 		ent->client->ps.credits -= itemLookupTable[itemID].baseCost;	//TODO: add proper cost here
 		JKG_A_GiveEntItem(itemID, IQUAL_NORMAL, ent->inventory, ent->client);
 		// eez: TEMP: retrofitted shopupdate into a new servercommand which confirms the order and sends it to the ACI (if appropriate)
 		// this is obviously temporary until we get a new shop setup. But for randomized shops, this works just fine.
-		trap_SendServerCommand(ent->s.number, va("shopconfirm %i %i", ent->client->ps.credits, itemID));
+		trap->SendServerCommand(ent->s.number, va("shopconfirm %i %i", ent->client->ps.credits, itemID));
 		
 		if( vendorEnt->s.eType == ET_NPC )
 		{
@@ -1359,12 +1362,12 @@ void JKG_RetrieveDuelCache( void )
 {
 	// TODO: reformat this code
 	fileHandle_t f;
-	int len = strap_FS_FOpenFile("server/dcache.cache", &f, FS_READ);
+	int len = trap->FS_Open("server/dcache.cache", &f, FS_READ);
 	if( !len || len < 0 ) return;
 	if( !f || f == -1 ) return;
 	void *buf = malloc(len + 1);
-	strap_FS_Read(buf, len, f);
-	strap_FS_FCloseFile(f);
+	trap->FS_Read(buf, len, f);
+	trap->FS_Close(f);
 	cJSON *json = cJSON_ParsePooled((const char *)buf, NULL, 0);
 	if(!json)
 	{
@@ -1403,7 +1406,7 @@ void JKG_SaveDuelCache( void )
 {
 	// TODO: reformat this code
 	fileHandle_t f;
-	int len = strap_FS_FOpenFile("server/dcache.cache", &f, FS_WRITE);
+	int len = trap->FS_Open("server/dcache.cache", &f, FS_WRITE);
 	if( !f || f == -1 ) return;
 
 	cJSONStream *json = cJSON_Stream_New(3, 0, 0, 0);
@@ -1427,6 +1430,6 @@ void JKG_SaveDuelCache( void )
 		cJSON_Stream_EndBlock(json);
 	}
 	const char *buf = cJSON_Stream_Finalize(json);
-	trap_FS_Write(buf, strlen(buf), f);
-	strap_FS_FCloseFile(f);
+	trap->FS_Write(buf, strlen(buf), f);
+	trap->FS_Close(f);
 }

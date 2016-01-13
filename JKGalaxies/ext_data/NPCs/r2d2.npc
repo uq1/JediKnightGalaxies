@@ -21,7 +21,7 @@ r2d2
 	intelligence		5
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race			bot
+
 	class			CLASS_R2D2
 	yawSpeed		120
 	runSpeed		150

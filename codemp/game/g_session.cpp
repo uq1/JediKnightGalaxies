@@ -1,7 +1,28 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
-#include "g_local.h"
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
 
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
+#include "g_local.h"
 
 /*
 =======================================================================
@@ -103,7 +124,7 @@ void G_WriteClientSessionData( gclient_t *client ) {
 
 	var = va( "session%i", client - level.clients );
 
-	trap_Cvar_Set( var, s );
+	trap->Cvar_Set( var, s );
 	*/
 
 }
@@ -128,7 +149,7 @@ void G_ReadSessionData( gclient_t *client ) {
 	int sessionTeam;
 
 	var = va( "session%i", client - level.clients );
-	trap_Cvar_VariableStringBuffer( var, s, sizeof(s) );
+	trap->Cvar_VariableStringBuffer( var, s, sizeof(s) );
 
 	sscanf( s, "%i %i %i %i %i %i %i %i %i %i %i %i %s %s %s %s",
 		&sessionTeam,                 // bk010221 - format
@@ -214,7 +235,7 @@ void G_InitSessionData( gclient_t *client, char *userinfo, qboolean isBot ) {
 	if ( level.gametype >= GT_TEAM ) {
 		if ( g_teamAutoJoin.integer && !(g_entities[client-level.clients].r.svFlags & SVF_BOT) ) {
 			sess->sessionTeam = PickTeam( -1 );
-			BroadcastTeamChange( client, -1 );
+			client->ps.fd.forceDoInit = 1; //every time we change teams make sure our force powers are set right
 		} else {
 			// always spawn as spectator in team games
 			if (!isBot)
@@ -236,7 +257,7 @@ void G_InitSessionData( gclient_t *client, char *userinfo, qboolean isBot ) {
 				{
 					sess->sessionTeam = PickTeam( -1 );
 				}
-				BroadcastTeamChange( client, -1 );
+				client->ps.fd.forceDoInit = 1; //every time we change teams make sure our force powers are set right
 			}
 		}
 	} else {
@@ -288,11 +309,9 @@ void G_InitSessionData( gclient_t *client, char *userinfo, qboolean isBot ) {
 	}
 
 	sess->spectatorState = SPECTATOR_FREE;
-	sess->spectatorTime = level.time;
+	AddTournamentQueue(client);
 
 	sess->siegeClass[0] = 0;
-	sess->saberType[0] = 0;
-	sess->saber2Type[0] = 0;
 
 	G_WriteClientSessionData( client );
 }
@@ -309,23 +328,23 @@ void G_InitWorldSession( void ) {
 	char	s[MAX_STRING_CHARS];
 	int			gt, ptr;
 
-	trap_Cvar_VariableStringBuffer( "session", s, sizeof(s) );
+	trap->Cvar_VariableStringBuffer( "session", s, sizeof(s) );
 	gt = atoi( s );
 
 	// if the gametype changed since the last session, don't use any
 	// client sessions
 	if ( level.gametype != gt ) {
 		level.newSession = qtrue;
-		G_Printf( "Gametype changed, clearing session data.\n" );
+		trap->Print( "Gametype changed, clearing session data.\n" );
 	}
 	
-	trap_Cvar_VariableStringBuffer("gsess", tmp, sizeof(tmp));
+	trap->Cvar_VariableStringBuffer("gsess", tmp, sizeof(tmp));
 	ptr = atoi( tmp );
 	if (!tmp[0]) {
 		// Cvar doesn't exist, first startup
 		memset(&g_sess, 0, sizeof(g_sess));
-		trap_TrueMalloc((void**)&g_sess, sizeof(clientSession_t) * MAX_CLIENTS);
-		trap_Cvar_Set("gsess", va("%i", (int)g_sess));
+		trap->TrueMalloc((void**)&g_sess, sizeof(clientSession_t) * MAX_CLIENTS);
+		trap->Cvar_Set("gsess", va("%i", (int)g_sess));
 	} else {
 		g_sess = (clientSession_t *)ptr;
 	}
@@ -340,7 +359,7 @@ G_WriteSessionData
 void G_WriteSessionData( void ) {
 	int		i;
 
-	trap_Cvar_Set( "session", va("%i", level.gametype) );
+	trap->Cvar_Set( "session", va("%i", level.gametype) );
 
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		if ( level.clients[i].pers.connected == CON_CONNECTED ) {

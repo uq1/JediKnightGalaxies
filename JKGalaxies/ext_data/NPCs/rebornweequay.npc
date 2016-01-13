@@ -2,10 +2,9 @@ RebornWeequay
 {
 	playerModel	weequay
 	weapon		WP_SABER
-	saber		saberbroad
+	saber		single_4
 	saberColor	red
-	saberColor2	red
-	saberStyle	3
+	saberStyle	2
 	FP_HEAL			0
 	FP_LEVITATION	2
 	FP_SPEED		0

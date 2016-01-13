@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 #ifdef XCVAR_PROTO
 	#define XCVAR_DEF( name, defVal, update, flags ) extern vmCvar_t name;
@@ -11,7 +33,7 @@
 	#define XCVAR_DEF( name, defVal, update, flags ) { & name , #name , defVal , update , flags },
 #endif
 
-XCVAR_DEF( bg_fighterAltControl,				"0",					NULL,					CVAR_SERVERINFO )
+XCVAR_DEF( bg_fighterAltControl,				"0",					NULL,					CVAR_SYSTEMINFO )
 XCVAR_DEF( broadsword,							"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_animBlend,						"1",					NULL,					CVAR_NONE )
 XCVAR_DEF( cg_animSpeed,						"1",					NULL,					CVAR_CHEAT )
@@ -23,6 +45,7 @@ XCVAR_DEF( cg_bobUp,							"0.005",				NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_cameraOrbit,						"0",					NULL,					CVAR_CHEAT )
 XCVAR_DEF( cg_cameraOrbitDelay,					"50",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_centerTime,						"3",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_chatBeep,							"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_chatBox,							"10000",				NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_chatBoxHeight,					"350",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_crosshairHealth,					"0",					NULL,					CVAR_ARCHIVE )
@@ -66,7 +89,9 @@ XCVAR_DEF( cg_fov,								"80",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_fovAspectAdjust,					"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_fovViewmodel,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_fovViewmodelAdjust,				"1",					NULL,					CVAR_ARCHIVE )
+#if 0
 XCVAR_DEF( cg_fpls,								"0",					NULL,					CVAR_NONE )
+#endif
 XCVAR_DEF( cg_g2TraceLod,						"2",					NULL,					CVAR_NONE )
 XCVAR_DEF( cg_ghoul2Marks,						"16",					NULL,					CVAR_NONE )
 XCVAR_DEF( cg_gunX,								"0",					NULL,					CVAR_ARCHIVE )
@@ -76,6 +101,7 @@ XCVAR_DEF( cg_hudFiles,							"ui/jahud.txt",			NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_jumpSounds,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_lagometer,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_marks,							"1",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_noFXSoundSets,					"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_noPlayerAnims,					"0",					NULL,					CVAR_CHEAT )
 XCVAR_DEF( cg_noPredict,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_noProjectileTrail,				"0",					NULL,					CVAR_ARCHIVE )
@@ -92,6 +118,7 @@ XCVAR_DEF( cg_saberDynamicMarks,				"0",					NULL,					CVAR_NONE )
 XCVAR_DEF( cg_saberDynamicMarkTime,				"60000",				NULL,					CVAR_NONE )
 XCVAR_DEF( cg_saberModelTraceEffect,			"0",					NULL,					CVAR_NONE )
 XCVAR_DEF( cg_saberTrail,						"1",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_scoreboardBots,					"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_scorePlums,						"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_stereoSeparation,					"0.4",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_shadows,							"1",					NULL,					CVAR_ARCHIVE )
@@ -104,6 +131,7 @@ XCVAR_DEF( cg_smoothClients,					"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_snapshotTimeout,					"10",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_speedTrail,						"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_stats,							"0",					NULL,					CVAR_NONE )
+XCVAR_DEF( cg_teamChatBeep,						"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_teamChatsOnly,					"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_thirdPerson,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_thirdPersonAlpha,					"1.0",					NULL,					CVAR_CHEAT )

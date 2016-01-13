@@ -22,7 +22,7 @@
 typedef struct {
 	char name[512];			// Display Name
 	char refPtr[512];		// Reference/Internal name
-	qhandle_t teamIcon;		// Not used by QAGAME
+	qhandle_t teamIcon;		// Not used by _GAME
 	char modelStore[32][64];	// Parsed separately.
 	char defaultModel[64];	// The default model for this team
 	unsigned char numModelsInStore;

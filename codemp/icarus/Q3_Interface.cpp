@@ -1,9 +1,28 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 // ICARUS Engine Interface File
 //
-//	This file is the only section of the ICARUS systems that 
+//	This file is the only section of the ICARUS systems that
 //	is not directly portable from engine to engine.
 //
 //	-- jweier
@@ -17,18 +36,19 @@
 #include "GameInterface.h"
 #include "Q3_Interface.h"
 #include "Q3_Registers.h"
+#include "server/sv_gameapi.h"
 
 #define stringIDExpand(str, strEnum)	str, strEnum, ENUM2STRING(strEnum)
 //#define stringIDExpand(str, strEnum)	str,strEnum
 
 /*
-stringID_table_t tagsTable [] = 
+stringID_table_t tagsTable [] =
 {
 }
 */
 
 extern float Q_flrand(float min, float max);
-extern qboolean COM_ParseString( char **data, char **s ); 
+extern qboolean COM_ParseString( char **data, char **s );
 
 //=======================================================================
 
@@ -39,7 +59,7 @@ interface_export_t	interface_export;
 ============
 Q3_ReadScript
   Description	: Reads in a file and attaches the script directory properly
-  Return type	: static int 
+  Return type	: static int
   Argument		: const char *name
   Argument		: void **buf
 ============
@@ -52,9 +72,9 @@ static int Q3_ReadScript( const char *name, void **buf )
 
 /*
 ============
-Q3_CenterPrint 
+Q3_CenterPrint
   Description	: Prints a message in the center of the screen
-  Return type	: static void 
+  Return type	: static void
   Argument		:  const char *format
   Argument		: ...
 ============
@@ -182,8 +202,8 @@ void Q3_TaskIDSet( sharedEntity_t *ent, taskID_t taskType, int taskID )
 /*
 ============
 Q3_CheckStringCounterIncrement
-  Description	: 
-  Return type	: static float 
+  Description	:
+  Return type	: static float
   Argument		: const char *string
 ============
 */
@@ -262,7 +282,7 @@ static unsigned int Q3_GetTime( void )
 G_AddSexToMunroString
 
 Take any string, look for "kyle/" replace with "kyla/" based on "sex"
-And: Take any string, look for "/mr_" replace with "/ms_" based on "sex" 
+And: Take any string, look for "/mr_" replace with "/ms_" based on "sex"
 returns qtrue if changed to ms
 =============
 */
@@ -280,7 +300,7 @@ static qboolean G_AddSexToMunroString ( char *string, qboolean qDoBoth )
 			} else {
 				start = strrchr( string, '/' );		//get the last slash before the wav
 				if (start != NULL) {
-					if (!strncmp( start, "/mr_", 4) ) {
+					if (!Q_strncmp( start, "/mr_", 4) ) {
 						if (qDoBoth) {	//we want to change mr to ms
 							start[2] = 's';	//change mr to ms
 							return qtrue;
@@ -294,7 +314,7 @@ static qboolean G_AddSexToMunroString ( char *string, qboolean qDoBoth )
 		else {	//i'm male
 			start = strrchr( string, '/' );		//get the last slash before the wav
 			if (start != NULL) {
-				if (!strncmp( start, "/ms_", 4) ) {
+				if (!Q_strncmp( start, "/ms_", 4) ) {
 					return qfalse;	//don't want this one
 				}
 			}	//IF found slash
@@ -320,15 +340,15 @@ static int Q3_PlaySound( int taskID, int entID, const char *name, const char *ch
 	Q_strncpyz(sharedMem->name, name, sizeof(sharedMem->name));
 	Q_strncpyz(sharedMem->channel, channel, sizeof(sharedMem->channel));
 
-	return VM_Call(gvm, GAME_ICARUS_PLAYSOUND);
+	return GVM_ICARUS_PlaySound();
 }
 
 
 /*
 ============
 Q3_SetVar
-  Description	: 
-  Return type	: static void 
+  Description	:
+  Return type	: static void
   Argument		:  int taskID
   Argument		: int entID
   Argument		: const char *type_name
@@ -341,7 +361,7 @@ void Q3_SetVar( int taskID, int entID, const char *type_name, const char *data )
 	float	float_data;
 	float	val = 0.0f;
 
-	
+
 	if ( vret != VTYPE_NONE )
 	{
 		switch ( vret )
@@ -378,8 +398,8 @@ void Q3_SetVar( int taskID, int entID, const char *type_name, const char *data )
 /*
 ============
 Q3_Set
-  Description	: 
-  Return type	: void 
+  Description	:
+  Return type	: void
   Argument		:  int taskID
   Argument		: int entID
   Argument		: const char *type_name
@@ -395,7 +415,7 @@ static void Q3_Set( int taskID, int entID, const char *type_name, const char *da
 	Q_strncpyz(sharedMem->type_name, type_name, sizeof(sharedMem->type_name));
 	Q_strncpyz(sharedMem->data, data, sizeof(sharedMem->data));
 
-	if (VM_Call(gvm, GAME_ICARUS_SET))
+	if ( GVM_ICARUS_Set() )
 	{
 		gTaskManagers[entID]->Completed( taskID );
 	}
@@ -405,8 +425,8 @@ static void Q3_Set( int taskID, int entID, const char *type_name, const char *da
 /*
 ============
 Q3_Evaluate
-  Description	: 
-  Return type	: int 
+  Description	:
+  Return type	: int
   Argument		:  int p1Type
   Argument		: const char *p1
   Argument		: int p2Type
@@ -602,7 +622,7 @@ static int Q3_Evaluate( int p1Type, const char *p1, int p2Type, const char *p2, 
 		}
 
 		break;
-	
+
 	default:
 		Q3_DebugPrint( WL_ERROR, "Q3_Evaluate unknown operator used!\n");
 		break;
@@ -656,11 +676,11 @@ void Q3_DebugPrint( int level, const char *format, ... )
 		case WL_ERROR:
 			Com_Printf ( S_COLOR_RED"ERROR: %s", text );
 			break;
-		
+
 		case WL_WARNING:
 			Com_Printf ( S_COLOR_YELLOW"WARNING: %s", text );
 			break;
-		
+
 		case WL_DEBUG:
 			{
 				int		entNum;
@@ -674,7 +694,7 @@ void Q3_DebugPrint( int level, const char *format, ... )
 				buffer = (char *) text;
 				buffer += 5;
 
-				if ( ( entNum < 0 ) || ( entNum > MAX_GENTITIES ) )
+				if ( ( entNum < 0 ) || ( entNum >= MAX_GENTITIES ) )
 					entNum = 0;
 
 				Com_Printf ( S_COLOR_BLUE"DEBUG: %s(%d): %s\n", SV_GentityNum(entNum)->script_targetname, entNum, buffer );
@@ -780,7 +800,7 @@ static void Q3_Lerp2Pos( int taskID, int entID, vec3_t origin, vec3_t angles, fl
 	}
 	sharedMem->duration = duration;
 
-	VM_Call(gvm, GAME_ICARUS_LERP2POS);
+	GVM_ICARUS_Lerp2Pos();
 	//We do this in case the values are modified in the game. It would be expected by icarus that
 	//the values passed in here are modified equally.
 	VectorCopy(sharedMem->origin, origin);
@@ -800,7 +820,7 @@ static void Q3_Lerp2Origin( int taskID, int entID, vec3_t origin, float duration
 	VectorCopy(origin, sharedMem->origin);
 	sharedMem->duration = duration;
 
-	VM_Call(gvm, GAME_ICARUS_LERP2ORIGIN);
+	GVM_ICARUS_Lerp2Origin();
 	VectorCopy(sharedMem->origin, origin);
 }
 
@@ -813,7 +833,7 @@ static void Q3_Lerp2Angles( int taskID, int entID, vec3_t angles, float duration
 	VectorCopy(angles, sharedMem->angles);
 	sharedMem->duration = duration;
 
-	VM_Call(gvm, GAME_ICARUS_LERP2ANGLES);
+	GVM_ICARUS_Lerp2Angles();
 	VectorCopy(sharedMem->angles, angles);
 }
 
@@ -827,7 +847,7 @@ static int	Q3_GetTag( int entID, const char *name, int lookup, vec3_t info )
 	sharedMem->lookup = lookup;
 	VectorCopy(info, sharedMem->info);
 
-	r = VM_Call(gvm, GAME_ICARUS_GETTAG);
+	r = GVM_ICARUS_GetTag();
 	VectorCopy(sharedMem->info, info);
 	return r;
 }
@@ -840,7 +860,7 @@ static void Q3_Lerp2Start( int entID, int taskID, float duration )
 	sharedMem->entID = entID;
 	sharedMem->duration = duration;
 
-	VM_Call(gvm, GAME_ICARUS_LERP2START);
+	GVM_ICARUS_Lerp2Start();
 }
 
 static void Q3_Lerp2End( int entID, int taskID, float duration )
@@ -851,7 +871,7 @@ static void Q3_Lerp2End( int entID, int taskID, float duration )
 	sharedMem->entID = entID;
 	sharedMem->duration = duration;
 
-	VM_Call(gvm, GAME_ICARUS_LERP2END);
+	GVM_ICARUS_Lerp2End();
 }
 
 static void Q3_Use( int entID, const char *target )
@@ -861,7 +881,7 @@ static void Q3_Use( int entID, const char *target )
 	sharedMem->entID = entID;
 	Q_strncpyz(sharedMem->target, target, sizeof(sharedMem->target));
 
-	VM_Call(gvm, GAME_ICARUS_USE);
+	GVM_ICARUS_Use();
 }
 
 static void Q3_Kill( int entID, const char *name )
@@ -871,7 +891,7 @@ static void Q3_Kill( int entID, const char *name )
 	sharedMem->entID = entID;
 	Q_strncpyz(sharedMem->name, name, sizeof(sharedMem->name));
 
-	VM_Call(gvm, GAME_ICARUS_KILL);
+	GVM_ICARUS_Kill();
 }
 
 static void Q3_Remove( int entID, const char *name )
@@ -881,7 +901,7 @@ static void Q3_Remove( int entID, const char *name )
 	sharedMem->entID = entID;
 	Q_strncpyz(sharedMem->name, name, sizeof(sharedMem->name));
 
-	VM_Call(gvm, GAME_ICARUS_REMOVE);
+	GVM_ICARUS_Remove();
 }
 
 static void Q3_Play( int taskID, int entID, const char *type, const char *name )
@@ -893,7 +913,7 @@ static void Q3_Play( int taskID, int entID, const char *type, const char *name )
 	Q_strncpyz(sharedMem->type, type, sizeof(sharedMem->type));
 	Q_strncpyz(sharedMem->name, name, sizeof(sharedMem->name));
 
-	VM_Call(gvm, GAME_ICARUS_PLAY);
+	GVM_ICARUS_Play();
 }
 
 static int Q3_GetFloat( int entID, int type, const char *name, float *value )
@@ -906,7 +926,7 @@ static int Q3_GetFloat( int entID, int type, const char *name, float *value )
 	Q_strncpyz(sharedMem->name, name, sizeof(sharedMem->name));
 	sharedMem->value = 0;//*value;
 
-	r = VM_Call(gvm, GAME_ICARUS_GETFLOAT);
+	r = GVM_ICARUS_GetFloat();
 	*value = sharedMem->value;
 	return r;
 }
@@ -921,7 +941,7 @@ static int Q3_GetVector( int entID, int type, const char *name, vec3_t value )
 	Q_strncpyz(sharedMem->name, name, sizeof(sharedMem->name));
 	VectorCopy(value, sharedMem->value);
 
-	r = VM_Call(gvm, GAME_ICARUS_GETVECTOR);
+	r = GVM_ICARUS_GetVector();
 	VectorCopy(sharedMem->value, value);
 	return r;
 }
@@ -935,7 +955,7 @@ static int Q3_GetString( int entID, int type, const char *name, char **value )
 	sharedMem->type = type;
 	Q_strncpyz(sharedMem->name, name, sizeof(sharedMem->name));
 
-	r = VM_Call(gvm, GAME_ICARUS_GETSTRING);
+	r = GVM_ICARUS_GetString();
 	//rww - careful with this, next time shared memory is altered this will get stomped
 	*value = &sharedMem->value[0];
 	return r;
@@ -946,7 +966,7 @@ static int Q3_GetString( int entID, int type, const char *name, char **value )
 ============
 Interface_Init
   Description	: Inits the interface for the game
-  Return type	: void 
+  Return type	: void
   Argument		: interface_export_t *pe
 ============
 */
@@ -967,7 +987,7 @@ void Interface_Init( interface_export_t *pe )
 	pe->I_Lerp2Angles			=	Q3_Lerp2Angles;
 	pe->I_GetTag				=	Q3_GetTag;
 	pe->I_Lerp2Start			=	Q3_Lerp2Start;
-	pe->I_Lerp2End				=	Q3_Lerp2End;	
+	pe->I_Lerp2End				=	Q3_Lerp2End;
 	pe->I_Use					=	Q3_Use;
 	pe->I_Kill					=	Q3_Kill;
 	pe->I_Remove				=	Q3_Remove;

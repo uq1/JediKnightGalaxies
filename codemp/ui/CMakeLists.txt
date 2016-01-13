@@ -1,3 +1,21 @@
+#============================================================================
+# Copyright (C) 2013 - 2015, OpenJK contributors
+# 
+# This file is part of the OpenJK source code.
+# 
+# OpenJK is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+#============================================================================
+
 cmake_minimum_required(VERSION 2.8.8)
 
 # Make sure the user is not executing this script directly
@@ -9,12 +27,14 @@ set(MPUIIncludeDirectories "${MPDir}" "${OpenJKLibDir}" "${OpenJKLibDir}/libexpa
 if(WIN32)
 	set(MPUILibraries "odbc32" "odbccp32") # what are these even?
 endif(WIN32)
-set(MPUIDefines ${MPSharedDefines} "UI_EXPORTS" "MISSIONPACK" "_USRDLL" "UI" "XML_STATIC")
+set(MPUIDefines ${MPSharedDefines} "UI_EXPORTS" "MISSIONPACK" "_USRDLL" "_UI" "XML_STATIC")
 
 set(MPUIGameFiles
 	"${MPDir}/game/animtable.cpp"
 	"${MPDir}/game/bg_ammo.cpp"
 	"${MPDir}/game/bg_constants.cpp"
+	"${MPDir}/game/bg_saberData.cpp"
+	"${MPDir}/game/bg_saberLoad.cpp"
 	"${MPDir}/game/jkg_gangwars.cpp"
 	"${MPDir}/game/bg_misc.cpp"
 	"${MPDir}/game/bg_vehicleLoad.cpp"
@@ -24,7 +44,7 @@ set(MPUIGameFiles
 	"${MPDir}/game/bg_ammo.h"
 	"${MPDir}/game/bg_local.h"
 	"${MPDir}/game/bg_public.h"
-	"${MPDir}/game/bg_strap.h"
+	"${MPDir}/game/bg_saga.h"
 	"${MPDir}/game/bg_weapons.h"
 	"${MPDir}/game/jkg_gangwars.h"
 	"${MPDir}/game/surfaceflags.h"
@@ -39,6 +59,7 @@ set(MPUICommonFiles
 	"${MPDir}/qcommon/disablewarnings.h"
 	"${MPDir}/qcommon/game_version.h"
 	"${MPDir}/qcommon/q_shared.h"
+	"${MPDir}/qcommon/q_platform.h"
 	"${MPDir}/qcommon/qfiles.h"
 	"${MPDir}/qcommon/tags.h"
 	)
@@ -55,6 +76,7 @@ set(MPUIUIFiles
 	"${MPDir}/ui/jkg_shop.cpp"
 	"${MPDir}/ui/jkg_slice.cpp"
 	"${MPDir}/ui/ui_atoms.cpp"
+	"${MPDir}/ui/ui_cvar.cpp"
 	"${MPDir}/ui/ui_crossover.cpp"
 	"${MPDir}/ui/ui_force.cpp"
 	"${MPDir}/ui/ui_gameinfo.cpp"
@@ -63,9 +85,7 @@ set(MPUIUIFiles
 	"${MPDir}/ui/ui_saber.cpp"
 	"${MPDir}/ui/ui_servercmds.cpp"
 	"${MPDir}/ui/ui_shared.cpp"
-	"${MPDir}/ui/ui_strap.cpp"
 	"${MPDir}/ui/ui_stylesheets.cpp"
-	"${MPDir}/ui/ui_syscalls.cpp"
 	"${MPDir}/ui/aux_ui_exports.h"
 	"${MPDir}/ui/keycodes.h"
 	"${CMAKE_SOURCE_DIR}/JKGalaxies/ui/menudef.h" #Fixme: Better location plz
@@ -82,6 +102,7 @@ set(MPUIUIFiles
 	"${MPDir}/ui/ui_local.h"
 	"${MPDir}/ui/ui_public.h"
 	"${MPDir}/ui/ui_shared.h"
+	"${MPDir}/ui/ui_xcvar.h"
 	)
 source_group("ui" FILES ${MPUIUIFiles})
 set(MPUIFiles ${MPUIFiles} ${MPUIUIFiles})
@@ -148,11 +169,39 @@ if(NOT WIN32)
 	set_target_properties(${MPUI} PROPERTIES PREFIX "")
 endif(NOT WIN32)
 
-if(WIN32)
-	install(TARGETS ${MPUI} RUNTIME DESTINATION "JKGalaxies")
-else(WIN32)
-	install(TARGETS ${MPUI} LIBRARY DESTINATION "JKGalaxies")
-endif(WIN32)
+if(MakeApplicationBundles AND BuildMPEngine)
+	install(TARGETS ${MPUI}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/OpenJK"
+		COMPONENT ${JKAMPCoreComponent})
+	install(TARGETS ${MPUI}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/base"
+		COMPONENT ${JKAMPCoreComponent})
+elseif(WIN32)
+	install(TARGETS ${MPUI}
+		RUNTIME
+		DESTINATION "${JKAInstallDir}/OpenJK"
+		COMPONENT ${JKAMPCoreComponent})
+	if (WIN64)
+		# Don't do this on 32-bit Windows to avoid overwriting
+		# vanilla JKA's DLLs
+		install(TARGETS ${MPUI}
+			RUNTIME
+			DESTINATION "${JKAInstallDir}/base"
+			COMPONENT ${JKAMPCoreComponent})
+	endif()
+else()
+	install(TARGETS ${MPUI}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/OpenJK"
+		COMPONENT ${JKAMPCoreComponent})
+	install(TARGETS ${MPUI}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/base"
+		COMPONENT ${JKAMPCoreComponent})
+endif()
+
 set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPUIDefines};${ReleaseDefines}")
 set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPUIDefines};${ReleaseDefines}")
 set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPUIDefines};${ReleaseDefines}")

@@ -1,5 +1,27 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // cg_servercmds.c -- reliably sequenced text commands sent by the server
 // these are processed at snapshot transition time, so there will definately
 // be a valid snapshot this frame
@@ -70,7 +92,7 @@ static void CG_ParseTeamInfo( void )
 {
 	int	i, iID, iLen;
 
-	for ( i = 0, iLen = (( trap_Argc() - 1 ) / 9 ); i < iLen; i++ )
+	for ( i = 0, iLen = (( trap->Cmd_Argc() - 1 ) / 9 ); i < iLen; i++ )
 	{
 		iID = atoi( CG_Argv( i * 9 + 1 ));;
 		cgs.clientinfo[iID].location = atoi( CG_Argv( i * 9 + 2 ));
@@ -95,23 +117,22 @@ and whenever the server updates any serverinfo flagged cvars
 */
 void CG_ParseServerinfo( void ) {
 	const char	*info;
-	const char	*tinfo;
 	char	*mapname;
 	int		i;
 
 	info = CG_ConfigString( CS_SERVERINFO );
 
-	cgs.debugMelee = atoi( Info_ValueForKey( info, "g_debugMelee" ) ); //trap_Cvar_GetHiddenVarValue("g_iknowkungfu");
+	cgs.debugMelee = atoi( Info_ValueForKey( info, "g_debugMelee" ) ); //trap->Cvar_GetHiddenVarValue("g_iknowkungfu");
 	cgs.stepSlideFix = atoi( Info_ValueForKey( info, "g_stepSlideFix" ) );
 
 	cgs.noSpecMove = atoi( Info_ValueForKey( info, "g_noSpecMove" ) );
 
-	//trap_Cvar_Set("bg_fighterAltControl", Info_ValueForKey( info, "bg_fighterAltControl" ));
+	//trap->Cvar_Set("bg_fighterAltControl", Info_ValueForKey( info, "bg_fighterAltControl" ));
 
 	cgs.showDuelHealths = atoi( Info_ValueForKey( info, "g_showDuelHealths" ) );
 
 	cgs.gametype = (gametype_t)atoi( Info_ValueForKey( info, "g_gametype" ) );
-	trap_Cvar_Set("g_gametype", va("%i", cgs.gametype));
+	trap->Cvar_Set("g_gametype", va("%i", cgs.gametype));
 	cgs.needpass = atoi( Info_ValueForKey( info, "needpass" ) );
 	cgs.wDisable = atoi( Info_ValueForKey( info, "wdisable" ) );
 	cgs.fDisable = atoi( Info_ValueForKey( info, "fdisable" ) );
@@ -125,55 +146,29 @@ void CG_ParseServerinfo( void ) {
 	mapname = Info_ValueForKey( info, "mapname" );
 
 	//rww - You must do this one here, Info_ValueForKey always uses the same memory pointer.
-	trap_Cvar_Set ( "ui_about_mapname", mapname );
+	trap->Cvar_Set ( "ui_about_mapname", mapname );
 
 	Com_sprintf( cgs.mapname, sizeof( cgs.mapname ), "maps/%s.bsp", mapname );
 	Com_sprintf( cgs.rawmapname, sizeof( cgs.rawmapname ), "%s", mapname );
 //	Q_strncpyz( cgs.redTeam, Info_ValueForKey( info, "g_redTeam" ), sizeof(cgs.redTeam) );
-//	trap_Cvar_Set("g_redTeam", cgs.redTeam);
+//	trap->Cvar_Set("g_redTeam", cgs.redTeam);
 //	Q_strncpyz( cgs.blueTeam, Info_ValueForKey( info, "g_blueTeam" ), sizeof(cgs.blueTeam) );
-//	trap_Cvar_Set("g_blueTeam", cgs.blueTeam);
+//	trap->Cvar_Set("g_blueTeam", cgs.blueTeam);
 
-	trap_Cvar_Set ( "ui_about_gametype", va("%i", cgs.gametype ) );
-	trap_Cvar_Set ( "ui_about_fraglimit", va("%i", cgs.fraglimit ) );
-	trap_Cvar_Set ( "ui_about_duellimit", va("%i", cgs.duel_fraglimit ) );
-	trap_Cvar_Set ( "ui_about_capturelimit", va("%i", cgs.capturelimit ) );
-	trap_Cvar_Set ( "ui_about_timelimit", va("%i", cgs.timelimit ) );
-	trap_Cvar_Set ( "ui_about_maxclients", va("%i", cgs.maxclients ) );
-	trap_Cvar_Set ( "ui_about_dmflags", va("%i", cgs.dmflags ) );
-	trap_Cvar_Set ( "ui_about_hostname", Info_ValueForKey( info, "sv_hostname" ) );
-	trap_Cvar_Set ( "ui_about_needpass", Info_ValueForKey( info, "g_needpass" ) );
-	trap_Cvar_Set ( "ui_about_botminplayers", Info_ValueForKey ( info, "bot_minplayers" ) );
+	trap->Cvar_Set ( "ui_about_gametype", va("%i", cgs.gametype ) );
+	trap->Cvar_Set ( "ui_about_fraglimit", va("%i", cgs.fraglimit ) );
+	trap->Cvar_Set ( "ui_about_duellimit", va("%i", cgs.duel_fraglimit ) );
+	trap->Cvar_Set ( "ui_about_capturelimit", va("%i", cgs.capturelimit ) );
+	trap->Cvar_Set ( "ui_about_timelimit", va("%i", cgs.timelimit ) );
+	trap->Cvar_Set ( "ui_about_maxclients", va("%i", cgs.maxclients ) );
+	trap->Cvar_Set ( "ui_about_dmflags", va("%i", cgs.dmflags ) );
+	trap->Cvar_Set ( "ui_about_hostname", Info_ValueForKey( info, "sv_hostname" ) );
+	trap->Cvar_Set ( "ui_about_needpass", Info_ValueForKey( info, "g_needpass" ) );
+	trap->Cvar_Set ( "ui_about_botminplayers", Info_ValueForKey ( info, "bot_minplayers" ) );
 
 	//Set the siege teams based on what the server has for overrides.
-	trap_Cvar_Set("cg_siegeTeam1", Info_ValueForKey(info, "g_siegeTeam1"));
-	trap_Cvar_Set("cg_siegeTeam2", Info_ValueForKey(info, "g_siegeTeam2"));
-
-	tinfo = CG_ConfigString( CS_TERRAINS + 1 );
-	if ( !tinfo || !*tinfo )
-	{
-		cg.mInRMG = qfalse;
-	}
-	else
-	{
-		int weather = 0;
-
-		cg.mInRMG = qtrue;
-		trap_Cvar_Set("RMG", "1");
-
-		weather = atoi( Info_ValueForKey( info, "RMG_weather" ) );
-
-		trap_Cvar_Set("RMG_weather", va("%i", weather));
-
-		if (weather == 1 || weather == 2)
-		{
-			cg.mRMGWeather = qtrue;
-		}
-		else
-		{
-			cg.mRMGWeather = qfalse;
-		}
-	}
+	trap->Cvar_Set("cg_siegeTeam1", Info_ValueForKey(info, "g_siegeTeam1"));
+	trap->Cvar_Set("cg_siegeTeam2", Info_ValueForKey(info, "g_siegeTeam2"));
 
 	//Raz: Fix bogus vote strings
 	Q_strncpyz( cgs.voteString, CG_ConfigString( CS_VOTE_STRING ), sizeof( cgs.voteString ) );
@@ -182,7 +177,7 @@ void CG_ParseServerinfo( void ) {
 	//		OpenJK servers will try to match us to the sv_fps too (sv_client.cpp -> SV_UserinfoChanged)
 	i = atoi( Info_ValueForKey( info, "sv_fps" ) );
 	if ( i )
-		trap_Cvar_Set( "snaps", va( "%i", i ) );
+		trap->Cvar_Set( "snaps", va( "%i", i ) );
 }
 
 /*
@@ -365,7 +360,7 @@ void CG_ShaderStateChanged(void) {
 				strncpy(timeOffset, t, o-t);
 				timeOffset[o-t] = 0;
 				o++;
-				trap_R_RemapShader( originalShader, newShader, timeOffset );
+				trap->R_RemapShader( originalShader, newShader, timeOffset );
 			}
 		} else {
 			break;
@@ -466,7 +461,7 @@ static void CG_RegisterCustomSounds(clientInfo_t *ci, int setType, const char *p
 		}
 
 		s++;
-		hSFX = trap_S_RegisterSound( va("sound/chars/%s/misc/%s", psDir, s) );
+		hSFX = trap->S_RegisterSound( va("sound/chars/%s/misc/%s", psDir, s) );
 
 		if (hSFX == 0)
 		{
@@ -492,7 +487,7 @@ static void CG_RegisterCustomSounds(clientInfo_t *ci, int setType, const char *p
 
 					strcat(modifiedSound, "1.wav");
 
-					hSFX = trap_S_RegisterSound( va("sound/chars/%s/misc/%s", psDir, modifiedSound) );
+					hSFX = trap->S_RegisterSound( va("sound/chars/%s/misc/%s", psDir, modifiedSound) );
 				}
 			}
 		}
@@ -536,9 +531,9 @@ void CG_PrecacheNPCSounds(const char *str)
 				}
 				sEnd[k-1] = 0;
 
-				trap_S_ShutUp(qtrue);
-				trap_S_RegisterSound( va("sound/chars/%s/misc/%s", pEnd, sEnd) );
-				trap_S_ShutUp(qfalse);
+				trap->S_Shutup(qtrue);
+				trap->S_RegisterSound( va("sound/chars/%s/misc/%s", pEnd, sEnd) );
+				trap->S_Shutup(qfalse);
 			}
 			else
 			{ //move onto the next set
@@ -742,7 +737,7 @@ static void CG_ConfigStringModified( void ) {
 
 	// get the gamestate from the client system, which will have the
 	// new configstring already integrated
-	trap_GetGameState( &cgs.gameState );
+	trap->GetGameState( &cgs.gameState );
 
 	// look up the individual string that was modified
 	str = CG_ConfigString( num );
@@ -847,7 +842,7 @@ static void CG_ConfigStringModified( void ) {
 
 		if (modelName[0] != '$' && modelName[0] != '@')
 		{ //don't register vehicle names and saber names as models.
-			cgs.gameModels[ num-CS_MODELS ] = trap_R_RegisterModel( modelName );
+			cgs.gameModels[ num-CS_MODELS ] = trap->R_RegisterModel( modelName );
 		}
 		else
 		{
@@ -856,13 +851,13 @@ static void CG_ConfigStringModified( void ) {
 // GHOUL2 Insert start
 		/*
 	} else if ( num >= CS_CHARSKINS && num < CS_CHARSKINS+MAX_CHARSKINS ) {
-		cgs.skins[ num-CS_CHARSKINS ] = trap_R_RegisterSkin( str );
+		cgs.skins[ num-CS_CHARSKINS ] = trap->R_RegisterSkin( str );
 		*/
 		//rww - removed and replaced with CS_G2BONES
 // Ghoul2 Insert end
 	} else if ( num >= CS_SOUNDS && num < CS_SOUNDS+MAX_SOUNDS ) {
 		if ( str[0] != '*' ) {	// player specific sounds don't register here
-			cgs.gameSounds[ num-CS_SOUNDS] = trap_S_RegisterSound( str );
+			cgs.gameSounds[ num-CS_SOUNDS] = trap->S_RegisterSound( str );
 		}
 		else if (str[1] == '$')
 		{ //an NPC soundset
@@ -876,7 +871,7 @@ static void CG_ConfigStringModified( void ) {
 		}
 		else
 		{
-			cgs.gameEffects[ num-CS_EFFECTS] = trap_FX_RegisterEffect( str );
+			cgs.gameEffects[ num-CS_EFFECTS] = trap->FX_RegisterEffect( str );
 		}
 	}
 	else if ( num >= CS_PLAYERS && num < CS_PLAYERS+MAX_CLIENTS )
@@ -926,9 +921,9 @@ void CG_KillCEntityG2(int entNum)
 		{
 			ci->ghoul2Model = NULL;
 		}
-		else if (ci->ghoul2Model && trap_G2_HaveWeGhoul2Models(ci->ghoul2Model))
+		else if (ci->ghoul2Model && trap->G2_HaveWeGhoul2Models(ci->ghoul2Model))
 		{
-			trap_G2API_CleanGhoul2Models(&ci->ghoul2Model);
+			trap->G2API_CleanGhoul2Models(&ci->ghoul2Model);
 			ci->ghoul2Model = NULL;
 		}
 
@@ -936,9 +931,9 @@ void CG_KillCEntityG2(int entNum)
 		j = 0;
 		while (j < MAX_SABERS)
 		{
-			if (ci->ghoul2Weapons[j] && trap_G2_HaveWeGhoul2Models(ci->ghoul2Weapons[j]))
+			if (ci->ghoul2Weapons[j] && trap->G2_HaveWeGhoul2Models(ci->ghoul2Weapons[j]))
 			{
-				trap_G2API_CleanGhoul2Models(&ci->ghoul2Weapons[j]);
+				trap->G2API_CleanGhoul2Models(&ci->ghoul2Weapons[j]);
 				ci->ghoul2Weapons[j] = NULL;
 			}
 
@@ -946,29 +941,29 @@ void CG_KillCEntityG2(int entNum)
 		}
 	}
 
-	if (cent->ghoul2 && trap_G2_HaveWeGhoul2Models(cent->ghoul2))
+	if (cent->ghoul2 && trap->G2_HaveWeGhoul2Models(cent->ghoul2))
 	{
-		trap_G2API_CleanGhoul2Models(&cent->ghoul2);
+		trap->G2API_CleanGhoul2Models(&cent->ghoul2);
 		cent->ghoul2 = NULL;
 	}
 
 	//eezstreet add: Armor rendering removal
 	for(j = 0; j < ARMSLOT_MAX; j++)
 	{
-		trap_G2API_CleanGhoul2Models(&cent->armorGhoul2[j]);
+		trap->G2API_CleanGhoul2Models(&cent->armorGhoul2[j]);
 		cent->armorGhoul2[j] = NULL;
 	}
 	//eezstreet end
 
-	if (cent->grip_arm && trap_G2_HaveWeGhoul2Models(cent->grip_arm))
+	if (cent->grip_arm && trap->G2_HaveWeGhoul2Models(cent->grip_arm))
 	{
-		trap_G2API_CleanGhoul2Models(&cent->grip_arm);
+		trap->G2API_CleanGhoul2Models(&cent->grip_arm);
 		cent->grip_arm = NULL;
 	}
 
-	if (cent->frame_hold && trap_G2_HaveWeGhoul2Models(cent->frame_hold))
+	if (cent->frame_hold && trap->G2_HaveWeGhoul2Models(cent->frame_hold))
 	{
-		trap_G2API_CleanGhoul2Models(&cent->frame_hold);
+		trap->G2API_CleanGhoul2Models(&cent->frame_hold);
 		cent->frame_hold = NULL;
 	}
 
@@ -1051,15 +1046,14 @@ require a reload of all the media
 */
 static void CG_MapRestart( void ) {
 	if ( cg_showMiss.integer ) {
-		CG_Printf( "CG_MapRestart\n" );
+		trap->Print( "CG_MapRestart\n" );
 	}
 
-	trap_R_ClearDecals ( );
-	//FIXME: trap_FX_Reset?
+	trap->R_ClearDecals ( );
+	//FIXME: trap->FX_Reset?
 
 	CG_InitLocalEntities();
 	CG_InitMarkPolys();
-	CG_ClearParticles ();
 	CG_KillCEntityInstances();
 
 	// make sure the "3 frags left" warnings play again
@@ -1075,24 +1069,24 @@ static void CG_MapRestart( void ) {
 
 	CG_StartMusic(qtrue);
 
-	trap_S_ClearLoopingSounds();
+	trap->S_ClearLoopingSounds();
 
 	// we really should clear more parts of cg here and stop sounds
 
 	// play the "fight" sound if this is a restart without warmup
 	if ( cg.warmup == 0 && cgs.gametype != GT_POWERDUEL/* && cgs.gametype == GT_DUEL */) {
-		trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
+		trap->S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
 		CG_CenterPrint( CG_GetStringEdString("MP_SVGAME", "BEGIN_DUEL"), 120, GIANTCHAR_WIDTH*2 );
 	}
 	/*
 	if (cg_singlePlayerActive.integer) {
-		trap_Cvar_Set("ui_matchStartTime", va("%i", cg.time));
+		trap->Cvar_Set("ui_matchStartTime", va("%i", cg.time));
 		if (cg_recordSPDemo.integer && cg_recordSPDemoName.string && *cg_recordSPDemoName.string) {
-			trap_SendConsoleCommand(va("set g_synchronousclients 1 ; record %s \n", cg_recordSPDemoName.string));
+			trap->SendConsoleCommand(va("set g_synchronousclients 1 ; record %s \n", cg_recordSPDemoName.string));
 		}
 	}
 	*/
-	trap_Cvar_Set("cg_thirdPerson", "0");
+	trap->Cvar_Set("cg_thirdPerson", "0");
 	cg.numItemsInInventory = 0;
 	memset(cg.playerInventory, 0, sizeof(cg.playerInventory));
 	memset(cg.playerACI, -1, sizeof(cg.playerACI));
@@ -1154,7 +1148,7 @@ static void JKG_FireModeUpdate(void)
 	if( wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound &&
 		wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound[0] )
 	{
-		trap_S_StartLocalSound( trap_S_RegisterSound( wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound ), CHAN_AUTO );
+		trap->S_StartLocalSound( trap->S_RegisterSound( wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound ), CHAN_AUTO );
 	}
 
 	//if( wpData->visuals.visualFireModes[ previousFMInt ].animType != wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].animType )
@@ -1274,7 +1268,7 @@ static void CG_BodyQueueCopy(centity_t *cent, int clientNum, int knownWeapon, in
 
 	if (cent->ghoul2)
 	{
-		trap_G2API_CleanGhoul2Models(&cent->ghoul2);
+		trap->G2API_CleanGhoul2Models(&cent->ghoul2);
 	}
 
 	if (clientNum < 0 || clientNum >= MAX_CLIENTS)
@@ -1307,22 +1301,22 @@ static void CG_BodyQueueCopy(centity_t *cent, int clientNum, int knownWeapon, in
 
 	cent->dustTrailTime = source->dustTrailTime;
 
-	trap_G2API_DuplicateGhoul2Instance(source->ghoul2, &cent->ghoul2);
+	trap->G2API_DuplicateGhoul2Instance(source->ghoul2, &cent->ghoul2);
 
 	if (source->isRagging)
 	{ //just reset it now.
 		source->isRagging = qfalse;
-		trap_G2API_SetRagDoll(source->ghoul2, NULL); //calling with null parms resets to no ragdoll.
+		trap->G2API_SetRagDoll(source->ghoul2, NULL); //calling with null parms resets to no ragdoll.
 	}
 
 	//either force the weapon from when we died or remove it if it was a dropped weapon
-	if (knownWeapon > WP_BRYAR_PISTOL && trap_G2API_HasGhoul2ModelOnIndex(&(cent->ghoul2), 1))
+	if (knownWeapon > WP_BRYAR_PISTOL && trap->G2API_HasGhoul2ModelOnIndex(&(cent->ghoul2), 1))
 	{
-		trap_G2API_RemoveGhoul2Model(&(cent->ghoul2), 1);
+		trap->G2API_RemoveGhoul2Model(&(cent->ghoul2), 1);
 	}
-	else if (trap_G2API_HasGhoul2ModelOnIndex(&(cent->ghoul2), 1))
+	else if (trap->G2API_HasGhoul2ModelOnIndex(&(cent->ghoul2), 1))
 	{
-		trap_G2API_CopySpecificGhoul2Model(CG_G2WeaponInstance(cent, knownWeapon, weaponVariation), 0, cent->ghoul2, 1);
+		trap->G2API_CopySpecificGhoul2Model(CG_G2WeaponInstance(cent, knownWeapon, weaponVariation), 0, cent->ghoul2, 1);
 	}
 
 	if (!cent->ownerRagging)
@@ -1370,9 +1364,9 @@ static void CG_BodyQueueCopy(centity_t *cent, int clientNum, int knownWeapon, in
 		//	aNum = (anim->firstFrame+anim->numFrames)-1;
 		//}
 
-		trap_G2API_SetBoneAnim(cent->ghoul2, 0, "upper_lumbar", aNum, eFrame, flags, animSpeed, cg.time, -1, 150);
-		trap_G2API_SetBoneAnim(cent->ghoul2, 0, "model_root", aNum, eFrame, flags, animSpeed, cg.time, -1, 150);
-		trap_G2API_SetBoneAnim(cent->ghoul2, 0, "Motion", aNum, eFrame, flags, animSpeed, cg.time, -1, 150);
+		trap->G2API_SetBoneAnim(cent->ghoul2, 0, "upper_lumbar", aNum, eFrame, flags, animSpeed, cg.time, -1, 150);
+		trap->G2API_SetBoneAnim(cent->ghoul2, 0, "model_root", aNum, eFrame, flags, animSpeed, cg.time, -1, 150);
+		trap->G2API_SetBoneAnim(cent->ghoul2, 0, "Motion", aNum, eFrame, flags, animSpeed, cg.time, -1, 150);
 	}
 
 	//After we create the bodyqueue, regenerate any limbs on the real instance
@@ -1394,7 +1388,7 @@ Cmd_Argc() / Cmd_Argv()
 char *_Cmd_Argv(int idx) {
 	static char buff[1024];
 	buff[0] = 0;
-	trap_Argv(idx, buff, 1024);
+	trap->Cmd_Argv(idx, buff, 1024);
 	return buff;
 }
 
@@ -1402,10 +1396,10 @@ char *_Cmd_Argv(int idx) {
 
 static void CG_ServerRedirect() {
 	char connAddress[MAX_TOKEN_CHARS];
-	trap_Argv( 1, connAddress, sizeof(connAddress) );
+	trap->Cmd_Argv( 1, connAddress, sizeof(connAddress) );
 
 	// We must have the server address at least
-	if ( trap_Argc() < 2 ) {
+	if ( trap->Cmd_Argc() < 2 ) {
 		return;
 	}
 
@@ -1414,9 +1408,9 @@ static void CG_ServerRedirect() {
 		return;
 	}
 
-	trap_Cvar_Set( "cflag", _Cmd_Argv(2) );
-	trap_Cvar_Set( "connmsg", _Cmd_Argv(3) );
-	trap_SendConsoleCommand( va( "connect \"%s\"\n", connAddress ) );
+	trap->Cvar_Set( "cflag", _Cmd_Argv(2) );
+	trap->Cvar_Set( "connmsg", _Cmd_Argv(3) );
+	trap->SendConsoleCommand( va( "connect \"%s\"\n", connAddress ) );
 
 	return;
 }
@@ -1456,7 +1450,7 @@ static void CG_ServerCommand( void ) {
 
 	// Check Jedi Knight Galaxies commands (not handled by the UI)
 	//if (!strcmp(cmd, "~svrGiveVersionData")) {
-	//	trap_SendClientCommand(va("~svrVersionData %s", JKA_G_CLIENTSIDE_VERSION));
+	//	trap->SendClientCommand(va("~svrVersionData %s", JKA_G_CLIENTSIDE_VERSION));
 	//	return;
 	//}
 
@@ -1517,18 +1511,18 @@ static void CG_ServerCommand( void ) {
 
 	if ( !strcmp( cmd, "scl" ) )
 	{
-		//if (!( trap_Key_GetCatcher() & KEYCATCH_UI ))
+		//if (!( trap->Key_GetCatcher() & KEYCATCH_UI ))
 		//Well, I want it to come up even if the briefing display is up.
 		{
-			trap_OpenUIMenu(UIMENU_CLASSSEL); //UIMENU_CLASSSEL
+			trap->OpenUIMenu(UIMENU_CLASSSEL); //UIMENU_CLASSSEL
 		}
 		return;
 	}
 
 	if ( !strcmp( cmd, "spc" ) )
 	{
-		trap_Cvar_Set("ui_myteam", "3");
-		trap_OpenUIMenu(UIMENU_PLAYERCONFIG); //UIMENU_CLASSSEL
+		trap->Cvar_Set("ui_myteam", "3");
+		trap->OpenUIMenu(UIMENU_PLAYERCONFIG); //UIMENU_CLASSSEL
 		return;
 	}
 
@@ -1538,7 +1532,7 @@ static void CG_ServerCommand( void ) {
 		int setTeam = 0;
 		int newRank = 0;
 
-		if (trap_Argc() < 3)
+		if (trap->Cmd_Argc() < 3)
 		{
 #ifdef _DEBUG
 			Com_Printf("WARNING: Invalid newForceRank string\n");
@@ -1550,13 +1544,13 @@ static void CG_ServerCommand( void ) {
 		doMenu = atoi(CG_Argv(2));
 		setTeam = atoi(CG_Argv(3));
 
-		trap_Cvar_Set("ui_rankChange", va("%i", newRank));
+		trap->Cvar_Set("ui_rankChange", va("%i", newRank));
 
-		trap_Cvar_Set("ui_myteam", va("%i", setTeam));
+		trap->Cvar_Set("ui_myteam", va("%i", setTeam));
 
-		if (!( trap_Key_GetCatcher() & KEYCATCH_UI ) && doMenu)
+		if (!( trap->Key_GetCatcher() & KEYCATCH_UI ) && doMenu)
 		{
-			trap_OpenUIMenu(UIMENU_PLAYERCONFIG);
+			trap->OpenUIMenu(UIMENU_PLAYERCONFIG);
 		}
 
 		return;
@@ -1567,7 +1561,7 @@ static void CG_ServerCommand( void ) {
 	  //If it has been occupied since this message was sent somehow, the worst that can (should) happen
 	  //is the instance will have to reinit with its current info.
 		int indexNum = 0;
-		int argNum = trap_Argc();
+		int argNum = trap->Cmd_Argc();
 		int i = 1;
 		
 		if (argNum < 1)
@@ -1579,7 +1573,7 @@ static void CG_ServerCommand( void ) {
 		{
 			indexNum = atoi(CG_Argv(i));
 
-			if (cg_entities[indexNum].ghoul2 && trap_G2_HaveWeGhoul2Models(cg_entities[indexNum].ghoul2))
+			if (cg_entities[indexNum].ghoul2 && trap->G2_HaveWeGhoul2Models(cg_entities[indexNum].ghoul2))
 			{
 				if (indexNum < MAX_CLIENTS)
 				{ //You try to do very bad thing!
@@ -1601,7 +1595,7 @@ static void CG_ServerCommand( void ) {
 	if (!strcmp(cmd, "kls"))
 	{ //kill looping sounds
 		int indexNum = 0;
-		int argNum = trap_Argc();
+		int argNum = trap->Cmd_Argc();
 		centity_t *clent = NULL;
 		centity_t *trackerent = NULL;
 		
@@ -1649,7 +1643,7 @@ static void CG_ServerCommand( void ) {
 
 	if ( !strcmp (cmd, "ieq") )
 	{
-	    if ( trap_Argc() == 3 )
+	    if ( trap->Cmd_Argc() == 3 )
 	    {
 	        int newItem = atoi (CG_Argv (1));
 	        int oldItem = atoi (CG_Argv (2));
@@ -1662,7 +1656,7 @@ static void CG_ServerCommand( void ) {
 	
 	if ( !strcmp (cmd, "iueq") )
 	{
-	    if ( trap_Argc() == 2 )
+	    if ( trap->Cmd_Argc() == 2 )
 	    {
 	        int slot = atoi (CG_Argv (1));
 	        JKG_CG_UnequipItem (slot);
@@ -1680,7 +1674,7 @@ static void CG_ServerCommand( void ) {
 
 	if(!strcmp(cmd, "aequi"))
 	{ //Armor Equip
-		if ( trap_Argc () >= 2 )
+		if ( trap->Cmd_Argc () >= 2 )
 		{
 			int client = atoi (CG_Argv (1));
 			int slot = atoi (CG_Argv (2));
@@ -1707,7 +1701,7 @@ static void CG_ServerCommand( void ) {
 	if (!strcmp(cmd, "rcg") || IRCG)
 	{ //rcg - Restore Client Ghoul (make sure limbs are reattached and ragdoll state is reset - this must be done reliably)
 		int indexNum = 0;
-		int argNum = trap_Argc();
+		int argNum = trap->Cmd_Argc();
 		centity_t *clent;
 		
 		if (argNum < 1)
@@ -1732,7 +1726,7 @@ static void CG_ServerCommand( void ) {
 		}
 
 #ifdef _DEBUG
-		if (!trap_G2_HaveWeGhoul2Models(clent->ghoul2))
+		if (!trap->G2_HaveWeGhoul2Models(clent->ghoul2))
 		{
 			assert(!"Tried to reset state on a bad instance. Crash is inevitable.");
 		}
@@ -1776,11 +1770,11 @@ static void CG_ServerCommand( void ) {
 		if (clent->isRagging)
 		{
 			clent->isRagging = qfalse;
-			trap_G2API_SetRagDoll(clent->ghoul2, NULL); //calling with null parms resets to no ragdoll.
+			trap->G2API_SetRagDoll(clent->ghoul2, NULL); //calling with null parms resets to no ragdoll.
 		}
 		
 		//clear all the decals as well
-		trap_G2API_ClearSkinGore(clent->ghoul2);
+		trap->G2API_ClearSkinGore(clent->ghoul2);
 
 		clent->weapon = 0;
 		clent->ghoul2weapon = NULL; //force a weapon reinit
@@ -1800,7 +1794,7 @@ static void CG_ServerCommand( void ) {
 	if ( !strcmp( cmd, "shoprefresh" ) ) {
 		//Clear the shop
 		memset(shopItems, 0, sizeof(shopItems));
-		numShopItems = trap_Argc()-1;
+		numShopItems = trap->Cmd_Argc()-1;
 		//Refresh its contents
 		if(numShopItems > 0)
 		{
@@ -1857,7 +1851,7 @@ static void CG_ServerCommand( void ) {
 		{
 			x++;
 		}
-		trap_SP_GetStringTextString(x, strEd, MAX_STRINGED_SV_STRING);
+		trap->SE_GetStringTextString(x, strEd, MAX_STRINGED_SV_STRING);
 		CG_CenterPrint( strEd, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
 		return;
 	}
@@ -1878,27 +1872,27 @@ static void CG_ServerCommand( void ) {
 	if ( !strcmp( cmd, "print" ) ) {
 		char strEd[MAX_STRINGED_SV_STRING];
 		CG_CheckSVStringEdRef(strEd, CG_Argv(1));
-		CG_Printf( "%s", strEd );
+		trap->Print( "%s", strEd );
 		return;
 	}
 
 	if ( !strcmp( cmd, "chat" ) ) {
 		if ( !cg_teamChatsOnly.integer ) {
-			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+			trap->S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 			Q_strncpyz( text, CG_Argv(2), sizeof (text) );
 			CG_RemoveChatEscapeChar( text );
 			CG_ChatBox_AddString(text, atoi(CG_Argv(1)));
-			CG_Printf( "*%s\n", Text_ConvertExtToNormal(text) );
+			trap->Print( "*%s\n", Text_ConvertExtToNormal(text) );
 		}
 		return;
 	}
 
 	if ( !strcmp( cmd, "tchat" ) ) {
-		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+		trap->S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 		Q_strncpyz( text, CG_Argv(2), MAX_SAY_TEXT );
 		CG_RemoveChatEscapeChar( text );
 		CG_ChatBox_AddString(text, atoi(CG_Argv(1)));
-		CG_Printf( "*%s\n", Text_ConvertExtToNormal(text) );
+		trap->Print( "*%s\n", Text_ConvertExtToNormal(text) );
 
 		return;
 	}
@@ -1912,7 +1906,7 @@ static void CG_ServerCommand( void ) {
 			char message[MAX_STRING_CHARS];
 			int fadeLevel;
 
-			if (trap_Argc() < 4)
+			if (trap->Cmd_Argc() < 4)
 			{
 				return;
 			}
@@ -1924,15 +1918,15 @@ static void CG_ServerCommand( void ) {
 
 			if (loc[0] == '@')
 			{ //get localized text
-				trap_SP_GetStringTextString(loc+1, loc, MAX_STRING_CHARS);
+				trap->SE_GetStringTextString(loc+1, loc, MAX_STRING_CHARS);
 			}
 
-			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+			trap->S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 			//Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 			Com_sprintf(text, MAX_SAY_TEXT, "%s<%s>^%s%s", name, loc, color, message);
 			CG_RemoveChatEscapeChar( text );
 			CG_ChatBox_AddString(text, fadeLevel);
-			CG_Printf( "*%s\n", Text_ConvertExtToNormal(text) );
+			trap->Print( "*%s\n", Text_ConvertExtToNormal(text) );
 		}
 		return;
 	}
@@ -1943,7 +1937,7 @@ static void CG_ServerCommand( void ) {
 		char message[MAX_STRING_CHARS];
 		int fadeLevel;
 
-		if (trap_Argc() < 4)
+		if (trap->Cmd_Argc() < 4)
 		{
 			return;
 		}
@@ -1955,15 +1949,15 @@ static void CG_ServerCommand( void ) {
 
 		if (loc[0] == '@')
 		{ //get localized text
-			trap_SP_GetStringTextString(loc+1, loc, MAX_STRING_CHARS);
+			trap->SE_GetStringTextString(loc+1, loc, MAX_STRING_CHARS);
 		}
 
-		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+		trap->S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 		//Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 		Com_sprintf(text, MAX_SAY_TEXT, "%s<%s> ^%s%s", name, loc, color, message);
 		CG_RemoveChatEscapeChar( text );
 		CG_ChatBox_AddString(text, fadeLevel);
-		CG_Printf( "*%s\n", Text_ConvertExtToNormal(text) );
+		trap->Print( "*%s\n", Text_ConvertExtToNormal(text) );
 
 		return;
 	}
@@ -1993,13 +1987,13 @@ static void CG_ServerCommand( void ) {
 	//after processing the command.
 	if ( !strcmp( cmd, "remapShader" ) ) 
 	{
-		if ( trap_Argc() == 4 )
+		if ( trap->Cmd_Argc() == 4 )
 		{
 			char shader1[MAX_QPATH];
 			char shader2[MAX_QPATH];
 			Q_strncpyz( shader1, CG_Argv( 1 ), sizeof( shader1 ) );
 			Q_strncpyz( shader2, CG_Argv( 2 ), sizeof( shader2 ) );
-			trap_R_RemapShader( shader1, shader2, CG_Argv( 3 ) );
+			trap->R_RemapShader( shader1, shader2, CG_Argv( 3 ) );
 			return;
 		}
 		return;
@@ -2007,8 +2001,8 @@ static void CG_ServerCommand( void ) {
 
 	/* basejka code
 	if ( Q_stricmp (cmd, "remapShader") == 0 ) {
-		if (trap_Argc() == 4) {
-			trap_R_RemapShader(CG_Argv(1), CG_Argv(2), CG_Argv(3));
+		if (trap->Cmd_Argc() == 4) {
+			trap->R_RemapShader(CG_Argv(1), CG_Argv(2), CG_Argv(3));
 		}
 	}
 	*/
@@ -2032,7 +2026,7 @@ static void CG_ServerCommand( void ) {
 	{
 		int i, iID, iLen;
 
-		for ( i = 0, iLen = (( trap_Argc() - 1 ) / 5 ); i < iLen; i++ )
+		for ( i = 0, iLen = (( trap->Cmd_Argc() - 1 ) / 5 ); i < iLen; i++ )
 		{
 			iID	= atoi( CG_Argv( i * 5 + 1 ));
 			cgs.partyList[iID].id = atoi( CG_Argv( i * 5 + 2 ));
@@ -2124,7 +2118,7 @@ static void CG_ServerCommand( void ) {
 	if( !strcmp( cmd, "hitmarker") )
 	{
 		// All this does is make a hitmarker display. Nothing too fancy.
-		trap_S_StartSound(NULL, cg.clientNum, CHAN_AUTO, cgs.media.hitmarkerSound);
+		trap->S_StartSound(NULL, cg.clientNum, CHAN_AUTO, cgs.media.hitmarkerSound);
 		cg.hitmarkerLastTime = cg.time + 1000;
 		return;
 	}
@@ -2137,7 +2131,7 @@ static void CG_ServerCommand( void ) {
 	}
 	//eezstreet end
 
-	CG_Printf( "Unknown client game command: %s\n", cmd );
+	trap->Print( "Unknown client game command: %s\n", cmd );
 }
 
 /*
@@ -2150,7 +2144,7 @@ with this this snapshot.
 */
 void CG_ExecuteNewServerCommands( int latestSequence ) {
 	while ( cgs.serverCommandSequence < latestSequence ) {
-		if ( trap_GetServerCommand( ++cgs.serverCommandSequence ) ) {
+		if ( trap->GetServerCommand( ++cgs.serverCommandSequence ) ) {
 			CG_ServerCommand();
 		}
 	}

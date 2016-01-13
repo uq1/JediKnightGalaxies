@@ -1,5 +1,26 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // cg_scoreboard -- draw the scoreboard on top of the game screen
 #include "cg_local.h"
 #include "../ui/ui_shared.h"
@@ -124,11 +145,11 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	{
 		if (ci->duelTeam == DUELTEAM_LONE)
 		{
-			CG_DrawPic ( iconx, y, 32, 32, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_lone" ) );
+			CG_DrawPic ( iconx, y, 32, 32, trap->R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_lone" ) );
 		}
 		else
 		{
-			CG_DrawPic ( iconx, y, 32, 32, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_double" ) );
+			CG_DrawPic ( iconx, y, 32, 32, trap->R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_double" ) );
 		}
 	}
 	else
@@ -318,7 +339,7 @@ void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team )
 	}
 
 	CG_FillRect ( x, y, w, h, hcolor );
-	trap_R_SetColor( NULL );
+	trap->R_SetColor( NULL );
 }
 
 /*
@@ -432,9 +453,9 @@ qboolean CG_DrawOldScoreboard( void ) {
 			char sOf[256];
 			char sWith[256];
 
-			trap_SP_GetStringTextString("MP_INGAME_PLACE",	sPlace,	sizeof(sPlace));
-			trap_SP_GetStringTextString("MP_INGAME_OF",		sOf,	sizeof(sOf));
-			trap_SP_GetStringTextString("MP_INGAME_WITH",	sWith,	sizeof(sWith));
+			trap->SE_GetStringTextString("MP_INGAME_PLACE",	sPlace,	sizeof(sPlace));
+			trap->SE_GetStringTextString("MP_INGAME_OF",		sOf,	sizeof(sOf));
+			trap->SE_GetStringTextString("MP_INGAME_WITH",	sWith,	sizeof(sWith));
 
 			s = va("%s %s (%s %i) %s %i",
 				CG_PlaceString( cg.snap->ps.persistant[PERS_RANK] + 1 ),
@@ -473,13 +494,13 @@ qboolean CG_DrawOldScoreboard( void ) {
 	y = SB_HEADER;
 
 	/* Ugly, let's comment this out for now
-	CG_DrawPic ( SB_SCORELINE_X - 40, y - 5, SB_SCORELINE_WIDTH + 80, 40, trap_R_RegisterShaderNoMip ( "gfx/menus/menu_buttonback.tga" ) );
+	CG_DrawPic ( SB_SCORELINE_X - 40, y - 5, SB_SCORELINE_WIDTH + 80, 40, trap->R_RegisterShaderNoMip ( "gfx/menus/menu_buttonback.tga" ) );
 	*/
 	CG_Text_Paint ( SB_NAME_X, y, 1.0f, colorWhite, CG_GetStringEdString("MP_INGAME", "NAME"),0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_MEDIUM );
 	if (cgs.gametype == GT_DUEL || cgs.gametype == GT_POWERDUEL)
 	{
 		char sWL[100];
-		trap_SP_GetStringTextString("MP_INGAME_W_L", sWL,	sizeof(sWL));
+		trap->SE_GetStringTextString("MP_INGAME_W_L", sWL,	sizeof(sWL));
 
 		CG_Text_Paint ( SB_SCORE_X, y, 1.0f, colorWhite, sWL, 0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_MEDIUM );
 	}

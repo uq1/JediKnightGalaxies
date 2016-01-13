@@ -16,7 +16,7 @@ Galak_Mech
 	rank		crewman
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
+
 	class		CLASS_GALAK_MECH
 	snd			galak
 	sndcombat	galak

@@ -65,32 +65,32 @@ qboolean AIMOD_LoadCoverPoints ( void )
 	// Init...
 	num_cover_spots = 0;
 
-	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+	trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 
-	trap_FS_FOpenFile( va( "nodes/%s.cpw", mapname.string), &f, FS_READ );
+	trap->FS_Open( va( "nodes/%s.cpw", mapname.string), &f, FS_READ );
 
 	if (!f)
 	{
-		G_Printf( "^1ERROR: Reading coverpoints from /nodes/%s.cpw failed\n", mapname.string );
+		trap->Print( "^1ERROR: Reading coverpoints from /nodes/%s.cpw failed\n", mapname.string );
 		return qfalse;
 	}
 
-	trap_FS_Read( &num_map_waypoints, sizeof(int), f );
+	trap->FS_Read( &num_map_waypoints, sizeof(int), f );
 
 	if (num_map_waypoints != gWPNum)
 	{// Is an old file! We need to make a new one!
-		G_Printf( "^1*** ^3%s^5: Reading coverpoints from ^7/nodes/%s.cpw^3 failed ^5(old coverpoint file)^5!!!\n", GAME_VERSION, mapname.string );
-		trap_FS_FCloseFile( f );
+		trap->Print( "^1*** ^3%s^5: Reading coverpoints from ^7/nodes/%s.cpw^3 failed ^5(old coverpoint file)^5!!!\n", GAME_VERSION, mapname.string );
+		trap->FS_Close( f );
 		return qfalse;
 	}
 
-	trap_FS_Read( &num_cover_spots, sizeof(int), f );	
+	trap->FS_Read( &num_cover_spots, sizeof(int), f );	
 
 	for ( i = 0; i < num_cover_spots; i++ )
 	{
 		int j = 0;
 
-		trap_FS_Read( &(cover_nodes[i]), sizeof(int), f );
+		trap->FS_Read( &(cover_nodes[i]), sizeof(int), f );
 
 		if (!(gWPArray[cover_nodes[i]]->flags & WPFLAG_COVER))
 			gWPArray[cover_nodes[i]]->flags |= WPFLAG_COVER;
@@ -98,9 +98,9 @@ qboolean AIMOD_LoadCoverPoints ( void )
 		//CG_Printf("Cover spot #%i (node %i) is at %f %f %f.\n", i, cover_nodes[i], nodes[cover_nodes[i]].origin[0], nodes[cover_nodes[i]].origin[1], nodes[cover_nodes[i]].origin[2]);
 	}
 
-	trap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
-	G_Printf( "^1*** ^3%s^5: Successfully loaded %i cover points from file ^7/nodes/%s.cpw^5.\n", GAME_VERSION, num_cover_spots, mapname.string);
+	trap->Print( "^1*** ^3%s^5: Successfully loaded %i cover points from file ^7/nodes/%s.cpw^5.\n", GAME_VERSION, num_cover_spots, mapname.string);
 
 	return qtrue;
 }
@@ -108,7 +108,7 @@ qboolean AIMOD_LoadCoverPoints ( void )
 int CoverOrgVisible ( vec3_t org1, vec3_t org2, int ignore )
 {
 	trace_t tr;
-	trap_Trace( &tr, org1, NULL, NULL, org2, ignore, MASK_SOLID | MASK_OPAQUE | MASK_WATER );
+	trap->Trace( &tr, org1, NULL, NULL, org2, ignore, MASK_SOLID | MASK_OPAQUE | MASK_WATER , 0, 0, 0);
 	
 	if ( tr.fraction == 1 )
 	{

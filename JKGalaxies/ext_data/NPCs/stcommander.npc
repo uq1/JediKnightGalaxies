@@ -17,7 +17,7 @@ STCommander
 	scale		105
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
+
 	class		CLASS_STORMTROOPER
 	height		68
 	crouchheight 52

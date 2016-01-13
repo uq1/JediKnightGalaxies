@@ -14,7 +14,7 @@ Trandoshan
 	rank		crewman
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		klingon
+
 	class		CLASS_TRANDOSHAN
 	snd			trandoshan1
 	sndcombat	trandoshan1

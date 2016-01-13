@@ -33,7 +33,7 @@ ShadowTrooper
 	vfov		160
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		human
+
 	class		CLASS_SHADOWTROOPER
 	snd			shadow1
 	sndcombat	shadow1
@@ -84,7 +84,7 @@ ShadowTrooper2
 	vfov		160
 	playerTeam	TEAM_ENEMY
 	enemyTeam	TEAM_PLAYER
-//	race		human
+
 	class		CLASS_SHADOWTROOPER
 	snd			shadow2
 	sndcombat	shadow2

@@ -77,7 +77,7 @@
     },
         
     "firemode0": {
-        "damage":       30,
+        "damage":       40,
         "ammocost":     1,
         "firedelay":    300,
         "range":        3500.0,
@@ -98,11 +98,17 @@
 
     "firemode1": {
         "hitscan":      true,
-        "damage":       50,
-        "ammocost":     1,
-        "maxchargetime":750,
-        "chargedamage": 1.1,
-        "chargedelay":  250,
+        "damage": {
+                               "damageradius": { "start": 8,
+                                                     "function": [ "constant"] },
+                               "damage":       50,
+                               "damagetype": [ "disintegrate" ]
+                        },
+        "ammocost":     2,
+        "maxchargetime":1000,
+        "chargedamage": 0.18,
+        "chargedelay":  125,
+		"chargesubtract": 2,
         "firedelay":    700,
         "firingtype":   "semi",
         "range":        7000.0,

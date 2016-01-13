@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "cg_local.h"
 #include "cg_weapons.h"
 #include "qcommon/q_shared.h"
@@ -129,20 +151,20 @@ void TurretClientRun(centity_t *ent)
 	{
 		weaponInfo_t	*weaponInfo;
 
-		trap_G2API_InitGhoul2Model(&ent->ghoul2, CG_ConfigString( CS_MODELS+ent->currentState.modelindex ), 0, 0, 0, 0, 0);
+		trap->G2API_InitGhoul2Model(&ent->ghoul2, CG_ConfigString( CS_MODELS+ent->currentState.modelindex ), 0, 0, 0, 0, 0);
 
 		if (!ent->ghoul2)
 		{ //bad
 			return;
 		}
 
-		ent->torsoBolt = trap_G2API_AddBolt( ent->ghoul2, 0, "*flash02" );
+		ent->torsoBolt = trap->G2API_AddBolt( ent->ghoul2, 0, "*flash02" );
 
-		trap_G2API_SetBoneAngles( ent->ghoul2, 0, "bone_hinge", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Y, POSITIVE_Z, POSITIVE_X, NULL, 100, cg.time ); 
-		trap_G2API_SetBoneAngles( ent->ghoul2, 0, "bone_gback", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Y, POSITIVE_Z, POSITIVE_X, NULL, 100, cg.time ); 
-		trap_G2API_SetBoneAngles( ent->ghoul2, 0, "bone_barrel", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Y, POSITIVE_Z, POSITIVE_X, NULL, 100, cg.time ); 
+		trap->G2API_SetBoneAngles( ent->ghoul2, 0, "bone_hinge", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Y, POSITIVE_Z, POSITIVE_X, NULL, 100, cg.time ); 
+		trap->G2API_SetBoneAngles( ent->ghoul2, 0, "bone_gback", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Y, POSITIVE_Z, POSITIVE_X, NULL, 100, cg.time ); 
+		trap->G2API_SetBoneAngles( ent->ghoul2, 0, "bone_barrel", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Y, POSITIVE_Z, POSITIVE_X, NULL, 100, cg.time ); 
 
-		trap_G2API_SetBoneAnim( ent->ghoul2, 0, "model_root", 0, 11, BONE_ANIM_OVERRIDE_FREEZE, 0.8f, cg.time, 0, 0 );
+		trap->G2API_SetBoneAnim( ent->ghoul2, 0, "model_root", 0, 11, BONE_ANIM_OVERRIDE_FREEZE, 0.8f, cg.time, 0, 0 );
 
 		ent->turAngles[ROLL] = 0;
 		ent->turAngles[PITCH] = 90;
@@ -155,7 +177,7 @@ void TurretClientRun(centity_t *ent)
 	{ //I'm about to blow
 		if (ent->turAngles)
 		{
-			trap_G2API_SetBoneAngles( ent->ghoul2, 0, "bone_hinge", ent->turAngles, BONE_ANGLES_REPLACE, NEGATIVE_Y, NEGATIVE_Z, NEGATIVE_X, NULL, 100, cg.time ); 
+			trap->G2API_SetBoneAngles( ent->ghoul2, 0, "bone_hinge", ent->turAngles, BONE_ANGLES_REPLACE, NEGATIVE_Y, NEGATIVE_Z, NEGATIVE_X, NULL, 100, cg.time ); 
 		}
 		return;
 	}
@@ -164,11 +186,11 @@ void TurretClientRun(centity_t *ent)
 		vec3_t muzzleOrg, muzzleDir;
 		mdxaBone_t boltMatrix;
 
-		trap_G2API_GetBoltMatrix(ent->ghoul2, 0, ent->torsoBolt, &boltMatrix, /*ent->lerpAngles*/vec3_origin, ent->lerpOrigin, cg.time, cgs.gameModels, ent->modelScale);
+		trap->G2API_GetBoltMatrix(ent->ghoul2, 0, ent->torsoBolt, &boltMatrix, /*ent->lerpAngles*/vec3_origin, ent->lerpOrigin, cg.time, cgs.gameModels, ent->modelScale);
 		BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, muzzleOrg);
 		BG_GiveMeVectorFromMatrix(&boltMatrix, NEGATIVE_X, muzzleDir);
 
-		trap_FX_PlayEffectID(cgs.effects.mTurretMuzzleFlash, muzzleOrg, muzzleDir, -1, -1);
+		trap->FX_PlayEffectID(cgs.effects.mTurretMuzzleFlash, muzzleOrg, muzzleDir, -1, -1, false);
 
 		ent->bolt4 = ent->currentState.fireflag;
 	}
@@ -234,5 +256,5 @@ void TurretClientRun(centity_t *ent)
 	}
 
 	ent->frame_minus1_refreshed = cg.time;
-	trap_G2API_SetBoneAngles( ent->ghoul2, 0, "bone_hinge", ent->turAngles, BONE_ANGLES_REPLACE, NEGATIVE_Y, NEGATIVE_Z, NEGATIVE_X, NULL, 100, cg.time ); 
+	trap->G2API_SetBoneAngles( ent->ghoul2, 0, "bone_hinge", ent->turAngles, BONE_ANGLES_REPLACE, NEGATIVE_Y, NEGATIVE_Z, NEGATIVE_X, NULL, 100, cg.time ); 
 }

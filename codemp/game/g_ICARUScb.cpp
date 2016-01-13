@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 //====================================================================================
 //
 //rww - ICARUS callback file, all that can be handled within vm's is handled in here.
@@ -449,7 +471,7 @@ int Q3_PlaySound( int taskID, int entID, const char *name, const char *channel )
 		{
 			if ( in_camera)	// Cinematic
 			{					
-				trap_SendServerCommand( -1, va("ct \"%s\" %i", finalName, soundHandle) );
+				trap->SendServerCommand( -1, va("ct \"%s\" %i", finalName, soundHandle) );
 			}
 			else //if (precacheWav[i].speaker==SP_NONE)	//  lower screen text
 			{
@@ -458,7 +480,7 @@ int Q3_PlaySound( int taskID, int entID, const char *name, const char *channel )
 				//
 				if (bBroadcast || (DistanceSquared(ent->currentOrigin, ent2->currentOrigin) < ((voice_chan == CHAN_VOICE_ATTEN)?(350 * 350):(1200 * 1200)) ) )
 				{
-					trap_SendServerCommand( -1, va("ct \"%s\" %i", finalName, soundHandle) );
+					trap->SendServerCommand( -1, va("ct \"%s\" %i", finalName, soundHandle) );
 				}
 			}
 		}
@@ -467,7 +489,7 @@ int Q3_PlaySound( int taskID, int entID, const char *name, const char *channel )
 		{
 			if ( in_camera)	// Cinematic text
 			{							
-				trap_SendServerCommand( -1, va("ct \"%s\" %i", finalName, soundHandle));
+				trap->SendServerCommand( -1, va("ct \"%s\" %i", finalName, soundHandle));
 			}
 		}
 
@@ -479,7 +501,7 @@ int Q3_PlaySound( int taskID, int entID, const char *name, const char *channel )
 		char buf[128];
 		float tFVal = 0;
 
-		trap_Cvar_VariableStringBuffer("timescale", buf, sizeof(buf));
+		trap->Cvar_VariableStringBuffer("timescale", buf, sizeof(buf));
 
 		tFVal = atof(buf);
 
@@ -494,7 +516,7 @@ int Q3_PlaySound( int taskID, int entID, const char *name, const char *channel )
 			G_Sound( ent, voice_chan, G_SoundIndex((char *) finalName) );
 		}
 		//Remember we're waiting for this
-		trap_ICARUS_TaskIDSet( ent, TID_CHAN_VOICE, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_CHAN_VOICE, taskID );
 
 		return qfalse;
 	}
@@ -527,7 +549,7 @@ void Q3_Play( int taskID, int entID, const char *type, const char *name )
 	if ( !Q_stricmp( type, "PLAY_ROFF" ) )
 	{
 		// Try to load the requested ROFF
-		ent->roffid = trap_ROFF_Cache((char*)name);
+		ent->roffid = trap->ROFF_Cache((char*)name);
 		if ( ent->roffid )
 		{
 			ent->roffname = G_NewString( name );
@@ -536,7 +558,7 @@ void Q3_Play( int taskID, int entID, const char *type, const char *name )
 			//ent->roff_ctr = 0;
 
 			//Save this off for later
-			trap_ICARUS_TaskIDSet( ent, TID_MOVE_NAV, taskID );
+			trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_MOVE_NAV, taskID );
 
 			// Let the ROFF playing start.
 			//ent->next_roff_time = level.time;
@@ -548,9 +570,9 @@ void Q3_Play( int taskID, int entID, const char *type, const char *name )
 			VectorCopy( ent->r.currentOrigin, ent->s.origin2 );
 			VectorCopy( ent->r.currentAngles, ent->s.angles2 );
 			
-			trap_LinkEntity( ent );
+			trap->LinkEntity( (sharedEntity_t *)ent );
 
-			trap_ROFF_Play(ent->s.number, ent->roffid, qtrue);
+			trap->ROFF_Play(ent->s.number, ent->roffid, qtrue);
 		}
 	}
 }
@@ -565,7 +587,7 @@ Utility function
 void anglerCallback( gentity_t *ent )
 {
 	//Complete the task
-	trap_ICARUS_TaskIDComplete( ent, TID_ANGLE_FACE );
+	trap->ICARUS_TaskIDComplete( (sharedEntity_t *)ent, TID_ANGLE_FACE );
 
 	//Set the currentAngles, clear all movement
 	VectorMA( ent->s.apos.trBase, (ent->s.apos.trDuration*0.001f), ent->s.apos.trDelta, ent->r.currentAngles );
@@ -583,7 +605,7 @@ void anglerCallback( gentity_t *ent )
 	}
 
 	//link
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 }
 
 void MatchTeam( gentity_t *teamLeader, int moverState, int time );
@@ -598,7 +620,7 @@ Utility function
 */
 void moverCallback( gentity_t *ent )
 {	//complete the task
-	trap_ICARUS_TaskIDComplete( ent, TID_MOVE_NAV );
+	trap->ICARUS_TaskIDComplete( (sharedEntity_t *)ent, TID_MOVE_NAV );
 	if (ent->NPC) {
 		ent->NPC->luaFlags.isMoving = qfalse;
 	}
@@ -711,12 +733,12 @@ void Q3_Lerp2Start( int entID, int taskID, float duration )
 	ent->s.pos.trDuration = duration * 10;	//In seconds
 	ent->s.pos.trTime = level.time;
 	
-	trap_ICARUS_TaskIDSet( ent, TID_MOVE_NAV, taskID );
+	trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_MOVE_NAV, taskID );
 	// starting sound
 	G_PlayDoorLoopSound( ent );
 	G_PlayDoorSound( ent, BMS_START );	//??
 
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 }
 
 /*
@@ -760,12 +782,12 @@ void Q3_Lerp2End( int entID, int taskID, float duration )
 	ent->s.pos.trDuration = duration * 10;	//In seconds
 	ent->s.time = level.time;
 	
-	trap_ICARUS_TaskIDSet( ent, TID_MOVE_NAV, taskID );
+	trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_MOVE_NAV, taskID );
 	// starting sound
 	G_PlayDoorLoopSound( ent );
 	G_PlayDoorSound( ent, BMS_START );	//??
 
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 }
 
 void InitMoverTrData( gentity_t *ent );
@@ -862,7 +884,7 @@ void Q3_Lerp2Pos( int taskID, int entID, vec3_t origin, vec3_t angles, float dur
 		ent->s.apos.trTime = level.time;
 
 		ent->reached = moveAndRotateCallback;
-		trap_ICARUS_TaskIDSet( ent, TID_ANGLE_FACE, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANGLE_FACE, taskID );
 	}
 	else
 	{
@@ -875,12 +897,12 @@ void Q3_Lerp2Pos( int taskID, int entID, vec3_t origin, vec3_t angles, float dur
 		ent->blocked = Blocked_Mover;
 	}
 
-	trap_ICARUS_TaskIDSet( ent, TID_MOVE_NAV, taskID );
+	trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_MOVE_NAV, taskID );
 	// starting sound
 	G_PlayDoorLoopSound( ent );
 	G_PlayDoorSound( ent, BMS_START );	//??
 
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 }
 
 /*
@@ -930,13 +952,13 @@ void Q3_Lerp2Angles( int taskID, int entID, vec3_t angles, float duration )
 
 	ent->s.apos.trTime = level.time;
 	
-	trap_ICARUS_TaskIDSet( ent, TID_ANGLE_FACE, taskID );
+	trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANGLE_FACE, taskID );
 
 	//ent->e_ReachedFunc = reachedF_NULL;
 	ent->think = anglerCallback;
 	ent->nextthink = level.time + duration;
 
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 }
 
 /*
@@ -1550,10 +1572,10 @@ int Q3_GetFloat( int entID, int type, const char *name, float *value )
 		break;
 
 	default:
-		if ( trap_ICARUS_VariableDeclared( name ) != VTYPE_FLOAT )
+		if ( trap->ICARUS_VariableDeclared( name ) != VTYPE_FLOAT )
 			return 0;
 
-		return trap_ICARUS_GetFloatVariable( name, value );
+		return trap->ICARUS_GetFloatVariable( name, value );
 	}
 
 	return 1;
@@ -1623,10 +1645,10 @@ int Q3_GetVector( int entID, int type, const char *name, vec3_t value )
 
 	default:
 
-		if ( trap_ICARUS_VariableDeclared( name ) != VTYPE_VECTOR )
+		if ( trap->ICARUS_VariableDeclared( name ) != VTYPE_VECTOR )
 			return 0;
 
-		return trap_ICARUS_GetVectorVariable( name, value );
+		return trap->ICARUS_GetVectorVariable( name, value );
 	}
 
 	return 1;
@@ -1848,10 +1870,10 @@ int Q3_GetString( int entID, int type, const char *name, char **value )
 		break;
 	default:
 
-		if ( trap_ICARUS_VariableDeclared( name ) != VTYPE_STRING )
+		if ( trap->ICARUS_VariableDeclared( name ) != VTYPE_STRING )
 			return 0;
 
-		return trap_ICARUS_GetStringVariable( name, (const char *) *value );
+		return trap->ICARUS_GetStringVariable( name, (const char *) *value );
 	}
 
 	return 1;
@@ -1885,7 +1907,7 @@ void MoveOwner( gentity_t *self )
 	else
 	{
 		G_SetOrigin( owner, self->r.currentOrigin );
-		trap_ICARUS_TaskIDComplete( owner, TID_MOVE_NAV );
+		trap->ICARUS_TaskIDComplete( (sharedEntity_t *)owner, TID_MOVE_NAV );
 		if (owner->NPC) {
 			owner->NPC->luaFlags.isMoving = qfalse;
 		}
@@ -1943,7 +1965,7 @@ static void Q3_SetOrigin( int entID, vec3_t origin )
 		return;
 	}
 
-	trap_UnlinkEntity (ent);
+	trap->UnlinkEntity ((sharedEntity_t *)ent);
 
 	if(ent->client)
 	{
@@ -1964,7 +1986,7 @@ static void Q3_SetOrigin( int entID, vec3_t origin )
 		G_SetOrigin( ent, origin );
 	}
 
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 }
 
 /*
@@ -2045,7 +2067,7 @@ static void Q3_SetAngles( int entID, vec3_t angles )
 	{
 		VectorCopy( angles, ent->s.angles );
 	}
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 }
 
 /*
@@ -2111,13 +2133,13 @@ void Q3_Lerp2Origin( int taskID, int entID, vec3_t origin, float duration )
 	}
 	if ( taskID != -1 )
 	{
-		trap_ICARUS_TaskIDSet( ent, TID_MOVE_NAV, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_MOVE_NAV, taskID );
 	}
 	// starting sound
 	G_PlayDoorLoopSound( ent );//start looping sound
 	G_PlayDoorSound( ent, BMS_START );	//play start sound
 
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 }
 
 static void Q3_SetOriginOffset( int entID, int axis, float offset )
@@ -2290,7 +2312,7 @@ static qboolean Q3_SetNavGoal( int entID, const char *name )
 		|| Q_stricmp( "NULL", name) == 0 )
 	{
 		ent->NPC->goalEntity = NULL;
-		trap_ICARUS_TaskIDComplete( ent, TID_MOVE_NAV );
+		trap->ICARUS_TaskIDComplete( (sharedEntity_t *)ent, TID_MOVE_NAV );
 		ent->NPC->luaFlags.isMoving = qfalse;
 		return qfalse;
 	}
@@ -2353,7 +2375,7 @@ static void SetLowerAnim( int entID, int animID)
 		return;
 	}
 
-	G_SetAnim(ent,NULL,SETANIM_LEGS,animID,SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE,0);
+	G_SetAnim(ent,NULL,SETANIM_LEGS,animID,SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE);
 }
 
 /*
@@ -2381,7 +2403,7 @@ static void SetUpperAnim ( int entID, int animID)
 		return;
 	}
 
-	G_SetAnim(ent,NULL,SETANIM_TORSO,animID,SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE,0);
+	G_SetAnim(ent,NULL,SETANIM_TORSO,animID,SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE);
 }
 
 /*
@@ -3075,7 +3097,7 @@ Q3_SetTimeScale
 */
 static void Q3_SetTimeScale( int entID, const char *data )
 {
-	trap_Cvar_Set("timescale", data);
+	trap->Cvar_Set("timescale", data);
 }
 
 
@@ -5101,7 +5123,7 @@ void SolidifyOwner( gentity_t *self )
 	}
 	else
 	{
-		trap_ICARUS_TaskIDComplete( owner, TID_RESIZE );
+		trap->ICARUS_TaskIDComplete( (sharedEntity_t *)owner, TID_RESIZE );
 	}
 }
 
@@ -5837,7 +5859,7 @@ Prints a message in the center of the screen
 static void Q3_ScrollText ( const char *id)
 {
 	G_DebugPrint( WL_WARNING, "Q3_ScrollText: NOT SUPPORTED IN MP\n");
-	//trap_SendServerCommand( -1, va("st \"%s\"", id));
+	//trap->SendServerCommand( -1, va("st \"%s\"", id));
 
 	return;
 }
@@ -5852,7 +5874,7 @@ Prints a message in the center of the screen giving it an LCARS frame around it
 static void Q3_LCARSText ( const char *id)
 {
 	G_DebugPrint( WL_WARNING, "Q3_ScrollText: NOT SUPPORTED IN MP\n");
-	//trap_SendServerCommand( -1, va("lt \"%s\"", id));
+	//trap->SendServerCommand( -1, va("lt \"%s\"", id));
 
 	return;
 }
@@ -5895,7 +5917,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 		}
 		if ( !Q3_SetTeleportDest( entID, vector_data ) )
 		{
-			trap_ICARUS_TaskIDSet( ent, TID_MOVE_NAV, taskID );
+			trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_MOVE_NAV, taskID );
 			return qfalse;
 		}
 		break;
@@ -5944,7 +5966,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 	case SET_NAVGOAL:
 		if ( Q3_SetNavGoal( entID, (char *) data ) )
 		{
-			trap_ICARUS_TaskIDSet( ent, TID_MOVE_NAV, taskID );
+			trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_MOVE_NAV, taskID );
 			return qfalse;	//Don't call it back
 		}
 		break;
@@ -5953,7 +5975,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 		if ( Q3_SetAnimUpper( entID, (char *) data ) )
 		{
 			Q3_TaskIDClear( &ent->taskID[TID_ANIM_BOTH] );//We only want to wait for the top
-			trap_ICARUS_TaskIDSet( ent, TID_ANIM_UPPER, taskID );
+			trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANIM_UPPER, taskID );
 			return qfalse;	//Don't call it back
 		}
 		break;
@@ -5962,7 +5984,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 		if ( Q3_SetAnimLower( entID, (char *) data ) )
 		{
 			Q3_TaskIDClear( &ent->taskID[TID_ANIM_BOTH] );//We only want to wait for the bottom
-			trap_ICARUS_TaskIDSet( ent, TID_ANIM_LOWER, taskID );
+			trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANIM_LOWER, taskID );
 			return qfalse;	//Don't call it back
 		}
 		break;
@@ -5972,7 +5994,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 			int	both = 0;
 			if ( Q3_SetAnimUpper( entID, (char *) data ) )
 			{
-				trap_ICARUS_TaskIDSet( ent, TID_ANIM_UPPER, taskID );
+				trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANIM_UPPER, taskID );
 				both++;
 			}
 			else
@@ -5981,7 +6003,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 			}
 			if ( Q3_SetAnimLower( entID, (char *) data ) )
 			{
-				trap_ICARUS_TaskIDSet( ent, TID_ANIM_LOWER, taskID );
+				trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANIM_LOWER, taskID );
 				both++;
 			}
 			else
@@ -5990,7 +6012,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 			}
 			if ( both >= 2 )
 			{
-				trap_ICARUS_TaskIDSet( ent, TID_ANIM_BOTH, taskID );
+				trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANIM_BOTH, taskID );
 			}
 			if ( both )
 			{
@@ -6003,7 +6025,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 		int_data = atoi((char *) data);
 		Q3_SetAnimHoldTime( entID, int_data, qtrue );
 		Q3_TaskIDClear( &ent->taskID[TID_ANIM_BOTH] );//We only want to wait for the bottom
-		trap_ICARUS_TaskIDSet( ent, TID_ANIM_LOWER, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANIM_LOWER, taskID );
 		return qfalse;	//Don't call it back
 		break;
 
@@ -6011,7 +6033,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 		int_data = atoi((char *) data);
 		Q3_SetAnimHoldTime( entID, int_data, qfalse );
 		Q3_TaskIDClear( &ent->taskID[TID_ANIM_BOTH] );//We only want to wait for the top
-		trap_ICARUS_TaskIDSet( ent, TID_ANIM_UPPER, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANIM_UPPER, taskID );
 		return qfalse;	//Don't call it back
 		break;
 
@@ -6019,9 +6041,9 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 		int_data = atoi((char *) data);
 		Q3_SetAnimHoldTime( entID, int_data, qfalse );
 		Q3_SetAnimHoldTime( entID, int_data, qtrue );
-		trap_ICARUS_TaskIDSet( ent, TID_ANIM_BOTH, taskID );
-		trap_ICARUS_TaskIDSet( ent, TID_ANIM_UPPER, taskID );
-		trap_ICARUS_TaskIDSet( ent, TID_ANIM_LOWER, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANIM_BOTH, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANIM_UPPER, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANIM_LOWER, taskID );
 		return qfalse;	//Don't call it back
 		break;
 
@@ -6046,7 +6068,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 	case SET_BEHAVIOR_STATE:
 		if( !Q3_SetBState( entID, (char *) data ) )
 		{
-			trap_ICARUS_TaskIDSet( ent, TID_BSTATE, taskID );
+			trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_BSTATE, taskID );
 			return qfalse;//don't complete
 		}
 		break;
@@ -6058,7 +6080,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 	case SET_TEMP_BSTATE:
 		if( !Q3_SetTempBState( entID, (char *) data ) )
 		{
-			trap_ICARUS_TaskIDSet( ent, TID_BSTATE, taskID );
+			trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_BSTATE, taskID );
 			return qfalse;//don't complete
 		}
 		break;
@@ -6070,14 +6092,14 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 	case SET_DPITCH://FIXME: make these set tempBehavior to BS_FACE and await completion?  Or set lockedDesiredPitch/Yaw and aimTime?
 		float_data = atof((char *) data);
 		Q3_SetDPitch( entID, float_data );
-		trap_ICARUS_TaskIDSet( ent, TID_ANGLE_FACE, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANGLE_FACE, taskID );
 		return qfalse;
 		break;
 
 	case SET_DYAW:
 		float_data = atof((char *) data);
 		Q3_SetDYaw( entID, float_data );
-		trap_ICARUS_TaskIDSet( ent, TID_ANGLE_FACE, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANGLE_FACE, taskID );
 		return qfalse;
 		break;
 
@@ -6087,7 +6109,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 
 	case SET_VIEWTARGET:
 		Q3_SetViewTarget( entID, (char *) data );
-		trap_ICARUS_TaskIDSet( ent, TID_ANGLE_FACE, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANGLE_FACE, taskID );
 		return qfalse;
 		break;
 
@@ -6283,7 +6305,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 	case SET_LOCATION:
 		if ( !Q3_SetLocation( entID, (char *) data ) )
 		{
-			trap_ICARUS_TaskIDSet( ent, TID_LOCATION, taskID );
+			trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_LOCATION, taskID );
 			return qfalse;
 		}
 		break;
@@ -6519,7 +6541,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 		{
 			if ( !Q3_SetSolid( entID, qtrue) )
 			{
-				trap_ICARUS_TaskIDSet( ent, TID_RESIZE, taskID );
+				trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_RESIZE, taskID );
 				return qfalse;
 			}
 		}
@@ -6673,7 +6695,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 		int_data = atoi((char *) data);
 		Q3_SetEndFrame(entID, int_data);
 
-		trap_ICARUS_TaskIDSet( ent, TID_ANIM_BOTH, taskID );
+		trap->ICARUS_TaskIDSet( (sharedEntity_t *)ent, TID_ANIM_BOTH, taskID );
 		return qfalse;
 		break;
 
@@ -6921,7 +6943,7 @@ qboolean Q3_Set( int taskID, int entID, const char *type_name, const char *data 
 	
 	default:
 		//G_DebugPrint( WL_ERROR, "Q3_Set: '%s' is not a valid set field\n", type_name );
-		trap_ICARUS_SetVar( taskID, entID, type_name, data );
+		trap->ICARUS_SetVar( taskID, entID, type_name, data );
 		break;
 	}
 

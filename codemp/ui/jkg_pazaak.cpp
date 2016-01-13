@@ -180,37 +180,37 @@ static void Pazaak_CacheShaders() {
 	if (DC) {
 		if (DC->glconfig.vidWidth > 800) { // Bigger than 800x600? (assuming normal resolutions)
 			// Use med-res
-			PzkShaders.backSide = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/back_m.png");
-			PzkShaders.deckCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/green_m.png");
-			PzkShaders.flipMinusCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/multi_neg_m.png");
-			PzkShaders.flipPlusCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/multi_pos_m.png");
-			PzkShaders.minusCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/red_m.png");
-			PzkShaders.plusCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/blue_m.png");
-			PzkShaders.specialCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/yellow_m.png");
+			PzkShaders.backSide = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/back_m.png");
+			PzkShaders.deckCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/green_m.png");
+			PzkShaders.flipMinusCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/multi_neg_m.png");
+			PzkShaders.flipPlusCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/multi_pos_m.png");
+			PzkShaders.minusCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/red_m.png");
+			PzkShaders.plusCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/blue_m.png");
+			PzkShaders.specialCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/yellow_m.png");
 		} else {
 			// Use low-res
-			PzkShaders.backSide = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/back_l.png");
-			PzkShaders.deckCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/green_l.png");
-			PzkShaders.flipMinusCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/multi_neg_l.png");
-			PzkShaders.flipPlusCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/multi_pos_l.png");
-			PzkShaders.minusCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/red_l.png");
-			PzkShaders.plusCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/blue_l.png");
-			PzkShaders.specialCard = trap_R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/yellow_l.png");
+			PzkShaders.backSide = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/back_l.png");
+			PzkShaders.deckCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/green_l.png");
+			PzkShaders.flipMinusCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/multi_neg_l.png");
+			PzkShaders.flipPlusCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/multi_pos_l.png");
+			PzkShaders.minusCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/red_l.png");
+			PzkShaders.plusCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/blue_l.png");
+			PzkShaders.specialCard = trap->R_RegisterShaderNoMip("gfx/minigames/pazaak/cards/yellow_l.png");
 		}
 	}
 }
 
 static void Pazaak_CacheSounds() {
 	memset(&PzkSounds, 0, sizeof(PzkSounds));
-	PzkSounds.drawCard = trap_S_RegisterSound("sound/minigames/pazaak/draw.wav");
-	PzkSounds.playCard = trap_S_RegisterSound("sound/minigames/pazaak/playcard.wav");
-	PzkSounds.turnSwitch = trap_S_RegisterSound("sound/minigames/pazaak/turn.wav");
-	PzkSounds.bust = trap_S_RegisterSound("sound/minigames/pazaak/bust.wav");
-	PzkSounds.loseSet = trap_S_RegisterSound("sound/minigames/pazaak/loseset.wav");
-	PzkSounds.winSet = trap_S_RegisterSound("sound/minigames/pazaak/winset.wav");
-	PzkSounds.tieSet = trap_S_RegisterSound("sound/minigames/pazaak/tie.wav");
-	PzkSounds.loseMatch = trap_S_RegisterSound("sound/minigames/pazaak/losematch.wav");
-	PzkSounds.winMatch = trap_S_RegisterSound("sound/minigames/pazaak/winmatch.wav");
+	PzkSounds.drawCard = trap->S_RegisterSound("sound/minigames/pazaak/draw.wav");
+	PzkSounds.playCard = trap->S_RegisterSound("sound/minigames/pazaak/playcard.wav");
+	PzkSounds.turnSwitch = trap->S_RegisterSound("sound/minigames/pazaak/turn.wav");
+	PzkSounds.bust = trap->S_RegisterSound("sound/minigames/pazaak/bust.wav");
+	PzkSounds.loseSet = trap->S_RegisterSound("sound/minigames/pazaak/loseset.wav");
+	PzkSounds.winSet = trap->S_RegisterSound("sound/minigames/pazaak/winset.wav");
+	PzkSounds.tieSet = trap->S_RegisterSound("sound/minigames/pazaak/tie.wav");
+	PzkSounds.loseMatch = trap->S_RegisterSound("sound/minigames/pazaak/losematch.wav");
+	PzkSounds.winMatch = trap->S_RegisterSound("sound/minigames/pazaak/winmatch.wav");
 
 }
 
@@ -384,12 +384,12 @@ void JKG_Pazaak_DrawDialog(int line, float x, float y, float w, float h) {
 		text = PDlgData.line2;
 	}
 
-	width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5f;
+	width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5f;
 
 	x = x + ((w / 2) - (width / 2));
 	MAKERGBA(shadow,0,0,0,0.2f);
-	trap_R_Font_DrawString(	x+1, y+1, text, shadow, MenuFontToHandle(1), -1, 0.5f);
-	trap_R_Font_DrawString(	x, y, text, colorWhite, MenuFontToHandle(1), -1, 0.5f);
+	trap->R_Font_DrawString(	x+1, y+1, text, shadow, MenuFontToHandle(1), -1, 0.5f);
+	trap->R_Font_DrawString(	x, y, text, colorWhite, MenuFontToHandle(1), -1, 0.5f);
 }
 
 static void Pazaak_Close() {
@@ -727,16 +727,16 @@ void JKG_Pazaak_DrawCardSlot(int slot, float x, float y, float w, float h) {
 	if (slot > 9) {
 		// Opponent side
 		if (PzkState.standing_opponent) {
-			trap_R_SetColor(cardColorStand);
+			trap->R_SetColor(cardColorStand);
 		} else {
-			trap_R_SetColor(cardColor);
+			trap->R_SetColor(cardColor);
 		}
 	} else {
 		// Our side
 		if (PzkState.standing_player) {
-			trap_R_SetColor(cardColorStand);
+			trap->R_SetColor(cardColorStand);
 		} else {
-			trap_R_SetColor(cardColor);
+			trap->R_SetColor(cardColor);
 		}
 	}
 	sh = Pazaak_GetCardShader(PzkState.field[slot-1].cardid, PzkState.field[slot-1].param);
@@ -744,14 +744,14 @@ void JKG_Pazaak_DrawCardSlot(int slot, float x, float y, float w, float h) {
 		// No shader, so the slot is probably empty
 		return;
 	}
-	trap_R_DrawStretchPic(x,y,w,h,0,0,1,1, sh);
+	trap->R_DrawStretchPic(x,y,w,h,0,0,1,1, sh);
 	// Draw the number on it
 	text = Pazaak_GetCardValue(PzkState.field[slot-1].cardid, PzkState.field[slot-1].param);
 
-	width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
+	width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
 
 	x = x + (w/4) + ((w / 4) - (width / 2));
-	trap_R_Font_DrawString(	x, y + (h*0.25f), text, colorWhite, MenuFontToHandle(1), -1, 0.5);
+	trap->R_Font_DrawString(	x, y + (h*0.25f), text, colorWhite, MenuFontToHandle(1), -1, 0.5);
 }
 
 
@@ -771,30 +771,30 @@ void JKG_Pazaak_DrawSelCardSlot(int slot, float x, float y, float w, float h) {
 		return;
 	}
 	
-	Vector4Copy(cardColor, color);
+	VectorCopy4M(cardColor, color);
 	if (CardSelSlotHover[slot]) {
-		color[3] *= (0.8f + 0.2f * fabs(sin((float)trap_Milliseconds()/200.f)));
+		color[3] *= (0.8f + 0.2f * fabs(sin((float)trap->Milliseconds()/200.f)));
 	}
-	trap_R_SetColor(color);
+	trap->R_SetColor(color);
 
 	sh = Pazaak_GetCardShader(slot + PZCARD_PLUS_1, 0);
 	if (!sh) {
 		// No shader, so the slot is probably empty
 		return;
 	}
-	trap_R_DrawStretchPic(x,y,w,h,0,0,1,1, sh);
+	trap->R_DrawStretchPic(x,y,w,h,0,0,1,1, sh);
 	// Draw the number on it
 	text = Pazaak_GetNeutralCardValue(slot + PZCARD_PLUS_1);
 
-	width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
+	width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
 	x2 = x + (w/4) + ((w / 4) - (width / 2));
-	trap_R_Font_DrawString(	x2, y + (h*0.25f), text, colorWhite, MenuFontToHandle(1), -1, 0.5);
+	trap->R_Font_DrawString(	x2, y + (h*0.25f), text, colorWhite, MenuFontToHandle(1), -1, 0.5);
 
 	text = va("%i", PzkState.playercards[slot].amount - PzkState.playercards[slot].inuse);
 
-	width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
+	width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
 	x2 = x + 7;
-	trap_R_Font_DrawString(	x2, y-2, text, colorWhite, MenuFontToHandle(1) | 0x80000000, -1, 0.5);
+	trap->R_Font_DrawString(	x2, y-2, text, colorWhite, MenuFontToHandle(1) | 0x80000000, -1, 0.5);
 }
 
 
@@ -809,24 +809,24 @@ void JKG_Pazaak_DrawSideDeckSlot(int slot, float x, float y, float w, float h) {
 		return;
 	}
 
-	Vector4Copy(cardColor, color);
+	VectorCopy4M(cardColor, color);
 	if (CardSDHover[slot]) {
-		color[3] *= (0.8f + 0.2f * fabs(sin((float)trap_Milliseconds()/200.f)));
+		color[3] *= (0.8f + 0.2f * fabs(sin((float)trap->Milliseconds()/200.f)));
 	}
-	trap_R_SetColor(color);
+	trap->R_SetColor(color);
 
 	sh = Pazaak_GetCardShader(PzkState.sidedeck[slot], 0);
 	if (!sh) {
 		// No shader, so the slot is probably empty
 		return;
 	}
-	trap_R_DrawStretchPic(x,y,w,h,0,0,1,1, sh);
+	trap->R_DrawStretchPic(x,y,w,h,0,0,1,1, sh);
 	// Draw the number on it
 	text = Pazaak_GetNeutralCardValue(PzkState.sidedeck[slot]);
 
-	width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
+	width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
 	x2 = x + (w/4) + ((w / 4) - (width / 2));
-	trap_R_Font_DrawString(	x2, y + (h*0.25f), text, colorWhite, MenuFontToHandle(1), -1, 0.5);
+	trap->R_Font_DrawString(	x2, y + (h*0.25f), text, colorWhite, MenuFontToHandle(1), -1, 0.5);
 }
 
 
@@ -840,24 +840,24 @@ void JKG_Pazaak_DrawHandSlot(int slot, float x, float y, float w, float h) {
 		return;
 	}
 	
-	Vector4Copy(cardColor, color);
+	VectorCopy4M(cardColor, color);
 	if (slot < 5 && HandSlotHover[slot-1]) {
-		color[3] *= (0.8f + 0.2f * fabs(sin((float)trap_Milliseconds()/200.f)));
+		color[3] *= (0.8f + 0.2f * fabs(sin((float)trap->Milliseconds()/200.f)));
 	}
-	trap_R_SetColor(color);
+	trap->R_SetColor(color);
 	sh = Pazaak_GetCardShader(PzkState.hand[slot-1].cardid, PzkState.hand[slot-1].param);
 	if (!sh) {
 		return;
 	}
 
-	trap_R_DrawStretchPic(x,y,w,h,0,0,1,1, sh);
+	trap->R_DrawStretchPic(x,y,w,h,0,0,1,1, sh);
 	// Draw the number on it
 	text = Pazaak_GetCardValue(PzkState.hand[slot-1].cardid, PzkState.hand[slot-1].param);
 
-	width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
+	width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
 
 	x = x + (w/4) + ((w / 4) - (width / 2));
-	trap_R_Font_DrawString(	x, y + (h*0.25f), text, colorWhite, MenuFontToHandle(1), -1, 0.5);
+	trap->R_Font_DrawString(	x, y + (h*0.25f), text, colorWhite, MenuFontToHandle(1), -1, 0.5);
 }
 
 void JKG_Pazaak_DrawNames(int player, float x, float y, float w, float h) {
@@ -874,10 +874,10 @@ void JKG_Pazaak_DrawNames(int player, float x, float y, float w, float h) {
 		text = PzkState.name_opponent;
 	}
 	if (player == 2) {
-		width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
+		width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
 		x=x-width;
 	}
-	trap_R_Font_DrawString(	x, y , text, colorWhite, MenuFontToHandle(1), -1, 0.5);
+	trap->R_Font_DrawString(	x, y , text, colorWhite, MenuFontToHandle(1), -1, 0.5);
 }
 
 void JKG_Pazaak_DrawPoints(int player, float x, float y, float w, float h) {
@@ -904,10 +904,10 @@ void JKG_Pazaak_DrawPoints(int player, float x, float y, float w, float h) {
 	}
 
 	if (player == 1) {
-		width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
+		width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
 		x=x-width;
 	}
-	trap_R_Font_DrawString(	x, y , text, colorWhite, MenuFontToHandle(1), -1, 0.5);
+	trap->R_Font_DrawString(	x, y , text, colorWhite, MenuFontToHandle(1), -1, 0.5);
 }
 
 void JKG_Pazaak_DrawTimeout(float x, float y, float w, float h) {
@@ -922,7 +922,7 @@ void JKG_Pazaak_DrawTimeout(float x, float y, float w, float h) {
 		// No timeout set
 		return;
 	}
-	tr = ceil((float)(PzkState.timeout - trap_Milliseconds()) / 1000.0);
+	tr = ceil((float)(PzkState.timeout - trap->Milliseconds()) / 1000.0);
 	if (tr < 0) {
 		tr = 0;
 	}
@@ -932,9 +932,9 @@ void JKG_Pazaak_DrawTimeout(float x, float y, float w, float h) {
 		text = va("%i", tr);
 	}
 	
-	width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.6f;
+	width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.6f;
 	x = x + ((w / 2) - (width / 2));
-	trap_R_Font_DrawString(	x, y , text, colorWhite, MenuFontToHandle(1), -1, 0.6f);
+	trap->R_Font_DrawString(	x, y , text, colorWhite, MenuFontToHandle(1), -1, 0.6f);
 }
 
 void JKG_Pazaak_DrawWaiting(float x, float y, float w, float h, qhandle_t shader) {
@@ -950,10 +950,10 @@ void JKG_Pazaak_DrawWaiting(float x, float y, float w, float h, qhandle_t shader
 		return;
 	}
 	MAKERGBA(color,1,1,1,0);
-	deltatime = PzkState.waitingStartTime - trap_Milliseconds();
+	deltatime = PzkState.waitingStartTime - trap->Milliseconds();
 	color[3] = fabs((sinf((float)deltatime / 400.0f)));
-	trap_R_SetColor(color);
-	trap_R_DrawStretchPic(x,y,w,h,0,0,1,1,shader);
+	trap->R_SetColor(color);
+	trap->R_DrawStretchPic(x,y,w,h,0,0,1,1,shader);
 }
 
 
@@ -1179,7 +1179,7 @@ static void Pazaak_ConfirmSideDeckDialog(int response) {
 									PzkState.sidedeck[4], PzkState.sidedeck[5],
 									PzkState.sidedeck[6], PzkState.sidedeck[7],
 									PzkState.sidedeck[8], PzkState.sidedeck[9]));
-		PzkState.waitingStartTime = trap_Milliseconds();
+		PzkState.waitingStartTime = trap->Milliseconds();
 								
 	}
 }
@@ -1239,12 +1239,12 @@ void Pazaak_Script_ButtonPress(char **args) {
 void Pzk_InitParseBuff(parsebuff_t *pb) {
 	memset(pb,0,sizeof(parsebuff_t));
 	pb->arg = 1;
-	pb->argc = trap_Argc();
+	pb->argc = trap->Cmd_Argc();
 }
 
 const char *Pzk_NextToken(parsebuff_t *pb) {
 	if (pb->arg > pb->argc) return NULL;
-	trap_Argv(pb->arg++,pb->buff, sizeof(pb->buff));
+	trap->Cmd_Argv(pb->arg++,pb->buff, sizeof(pb->buff));
 	return pb->buff;
 }
 
@@ -1317,7 +1317,7 @@ void JKG_ProcessPazaak_f() {
 			PzkState.active = 1;
 			activeBoard = 0;
 			// This instruction should be followed by a gtg or gtc
-			trap_Cvar_Set("ui_hidehud", "1");
+			trap->Cvar_Set("ui_hidehud", "1");
 			continue;
 		}
 		if (!PzkState.active) {
@@ -1326,15 +1326,15 @@ void JKG_ProcessPazaak_f() {
 		if (!Q_stricmp(token,"stop")) {
 			Pazaak_Reset();
 			Pazaak_Close();
-			trap_Cvar_Set("ui_hidehud", "0");
-			trap_Key_SetCatcher( trap_Key_GetCatcher() & ~KEYCATCH_UI );
+			trap->Cvar_Set("ui_hidehud", "0");
+			trap->Key_SetCatcher( trap->Key_GetCatcher() & ~KEYCATCH_UI );
 			continue;
 		}
 		if (!Q_stricmp(token,"gtg")) {
 			Menus_CloseAll();
 			if (Menus_ActivateByName("jkg_pazaakholo"))
 			{
-				trap_Key_SetCatcher( trap_Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );
+				trap->Key_SetCatcher( trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );
 			}
 			Menu_ClearFocus(Menus_FindByName("jkg_pazaakholo"));
 			activeBoard = 1;
@@ -1344,7 +1344,7 @@ void JKG_ProcessPazaak_f() {
 			Menus_CloseAll();
 			if (Menus_ActivateByName("jkg_cardselholo"))
 			{
-				trap_Key_SetCatcher( trap_Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );
+				trap->Key_SetCatcher( trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );
 			}
 			Menu_ClearFocus(Menus_FindByName("jkg_cardselholo"));
 			activeBoard = 2;
@@ -1374,7 +1374,7 @@ void JKG_ProcessPazaak_f() {
 			} else if (PzkState.turn == 2) {
 				Menu_ShowItemByName(menu, "turn_o", qtrue);
 			}
-			trap_S_StartLocalSound(PzkSounds.turnSwitch, CHAN_AUTO);
+			trap->S_StartLocalSound(PzkSounds.turnSwitch, CHAN_AUTO);
 			continue;
 		}
 		if (!Q_stricmp(token,"sto")) {
@@ -1384,7 +1384,7 @@ void JKG_ProcessPazaak_f() {
 				// Clear it
 				PzkState.timeout = 0;
 			} else {
-				PzkState.timeout = trap_Milliseconds() + (temp*1000);
+				PzkState.timeout = trap->Milliseconds() + (temp*1000);
 			}
 			continue;
 		}
@@ -1395,12 +1395,12 @@ void JKG_ProcessPazaak_f() {
 				// Our points
 				if (Pzk_ParseInt(&pb, &PzkState.total_player)) return;
 				if (PzkState.total_player > 20) {
-					trap_S_StartLocalSound(PzkSounds.bust, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.bust, CHAN_AUTO);
 				}
 			} else {
 				if (Pzk_ParseInt(&pb, &PzkState.total_opponent)) return;
 				if (PzkState.total_opponent > 20) {
-					trap_S_StartLocalSound(PzkSounds.bust, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.bust, CHAN_AUTO);
 				}
 			}
 			continue;
@@ -1465,10 +1465,10 @@ void JKG_ProcessPazaak_f() {
 				// New card, so play an audio cue
 				if (PzkState.field[temp].cardid >= PZCARD_NORMAL_1 && PzkState.field[temp].cardid <= PZCARD_NORMAL_10) {
 					// A new deck card
-					trap_S_StartLocalSound(PzkSounds.drawCard, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.drawCard, CHAN_AUTO);
 				} else if (PzkState.field[temp].cardid >= PZCARD_PLUS_1 && PzkState.field[temp].cardid <= PZCARD_2N4) {
 					// A hand card!
-					trap_S_StartLocalSound(PzkSounds.playCard, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.playCard, CHAN_AUTO);
 				}
 			}
 			continue;
@@ -1628,35 +1628,35 @@ void JKG_ProcessPazaak_f() {
 
 			switch (PzkState.dlgid) {
 				case PDLGID_WONSET:
-					trap_S_StartLocalSound(PzkSounds.winSet, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.winSet, CHAN_AUTO);
 					Pazaak_Dialog_Show("You won the set.", NULL, PDLG_OK, Pazaak_Dlg_Ok);
 					break;
 				case PDLGID_LOSTSET:
-					trap_S_StartLocalSound(PzkSounds.loseSet, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.loseSet, CHAN_AUTO);
 					Pazaak_Dialog_Show("The opponent wins the set.", NULL, PDLG_OK, Pazaak_Dlg_Ok);
 					break;
 				case PDLGID_TIESET:
-					trap_S_StartLocalSound(PzkSounds.tieSet, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.tieSet, CHAN_AUTO);
 					Pazaak_Dialog_Show("The set is tied.", NULL, PDLG_OK, Pazaak_Dlg_Ok);
 					break;
 				case PDLGID_WONMATCH:
-					trap_S_StartLocalSound(PzkSounds.winMatch, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.winMatch, CHAN_AUTO);
 					Pazaak_Dialog_Show("You have defeated your opponent.", NULL, PDLG_OK, Pazaak_Dlg_Ok);
 					break;
 				case PDLGID_LOSTMATCH:
-					trap_S_StartLocalSound(PzkSounds.loseMatch, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.loseMatch, CHAN_AUTO);
 					Pazaak_Dialog_Show("You have been defeated.", NULL, PDLG_OK, Pazaak_Dlg_Ok);
 					break;
 				case PDLGID_WINFORFEIT:
-					trap_S_StartLocalSound(PzkSounds.winMatch, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.winMatch, CHAN_AUTO);
 					Pazaak_Dialog_Show("Your opponent has forfeited the match.", NULL, PDLG_OK, Pazaak_Dlg_Ok);
 					break;
 				case PDLGID_LOSEFORFEIT:
-					trap_S_StartLocalSound(PzkSounds.loseMatch, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.loseMatch, CHAN_AUTO);
 					Pazaak_Dialog_Show("You have forfeited the match.", NULL, PDLG_OK, Pazaak_Dlg_Ok);
 					break;
 				case PDLGID_LOSEQUIT:
-					trap_S_StartLocalSound(PzkSounds.loseMatch, CHAN_AUTO);
+					trap->S_StartLocalSound(PzkSounds.loseMatch, CHAN_AUTO);
 					Pazaak_Dialog_Show("You have quit the match.", NULL, PDLG_OK, Pazaak_Dlg_Ok);
 					break;
 			}
@@ -1750,7 +1750,7 @@ void JKG_ProcessPazaak_f() {
 										PzkState.sidedeck[4], PzkState.sidedeck[5],
 										PzkState.sidedeck[6], PzkState.sidedeck[7],
 										PzkState.sidedeck[8], PzkState.sidedeck[9]));
-			PzkState.waitingStartTime = trap_Milliseconds();
+			PzkState.waitingStartTime = trap->Milliseconds();
 			continue;
 		}
 

@@ -20,10 +20,9 @@
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_local.h"
-#include "bg_strap.h"
 #include "ghoul2/G2.h"
 
-#ifdef QAGAME
+#ifdef _GAME
 #include "g_local.h" //ahahahahhahahaha@$!$!
 #else
 #include "../cgame/cg_local.h"

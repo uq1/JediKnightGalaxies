@@ -12,21 +12,12 @@
 #include "bg_weapons.h"
 #include "bg_public.h"
 
-extern int	trap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode );
-extern void	trap_FS_Read( void *buffer, int len, fileHandle_t f );
-extern void	trap_FS_Write( const void *buffer, int len, fileHandle_t f );
-extern void	trap_FS_FCloseFile( fileHandle_t f );
-extern int	trap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize );
-
-extern int BG_SiegeGetValueGroup(char *buf, char *group, char *outbuf);
-extern void BG_StripTabs(char *buf);
-extern int BG_GetPairedValue(char *buf, char *key, char *outbuf);
-
-#ifndef QAGAME //cgame, ui
-#ifndef UI
-qhandle_t	trap_R_RegisterShaderNoMip( const char *name );
-qhandle_t	trap_R_RegisterShader( const char *name );
-#endif
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_CGAME)
+	#include "cgame/cg_local.h"
+#elif defined(_UI)
+	#include "ui/ui_local.h"
 #endif
 
 void JKG_BG_ParseGangWarsTeam(const char *filename)
@@ -36,7 +27,7 @@ void JKG_BG_ParseGangWarsTeam(const char *filename)
 	char buffer[8192];
 	char parseBuf[4096];
 
-	len = trap_FS_FOpenFile(filename, &f, FS_READ);
+	len = trap->FS_Open(filename, &f, FS_READ);
 
 	if(!f)
 	{
@@ -46,13 +37,13 @@ void JKG_BG_ParseGangWarsTeam(const char *filename)
 	if(!len || len >= 8192)
 	{
 		Com_Printf("^1Error loading Gang wars file (%s): Invalid file size range\n", filename);
-		trap_FS_FCloseFile(f);
+		trap->FS_Close(f);
 		return;
 	}
 
-	trap_FS_Read(buffer, len, f);
+	trap->FS_Read(buffer, len, f);
 
-	trap_FS_FCloseFile(f);
+	trap->FS_Close(f);
 
 	buffer[len] = '\0';
 
@@ -78,22 +69,19 @@ void JKG_BG_ParseGangWarsTeam(const char *filename)
 
 	memset(bgGangWarsTeams[bgnumGangWarTeams].modelStore, 0, sizeof(bgGangWarsTeams[bgnumGangWarTeams].modelStore));
 	
-#ifndef QAGAME
-#ifndef UI
+#if defined(_GAME) || defined(_UI)
+	bgGangWarsTeams[bgnumGangWarTeams].teamIcon = 0;
+#elif defined(_CGAME)
 	if (BG_GetPairedValue(buffer, "icon", parseBuf))
 	{
-		bgGangWarsTeams[bgnumGangWarTeams].teamIcon = trap_R_RegisterShader(parseBuf);
+		bgGangWarsTeams[bgnumGangWarTeams].teamIcon = trap->R_RegisterShader(parseBuf);
 	}
 	else
 	{
-		bgGangWarsTeams[bgnumGangWarTeams].teamIcon = trap_R_RegisterShader("sprites/team_red");
+		bgGangWarsTeams[bgnumGangWarTeams].teamIcon = trap->R_RegisterShader("sprites/team_red");
 	}
-#else
-	bgGangWarsTeams[bgnumGangWarTeams].teamIcon = 0;
 #endif
-#else
-	bgGangWarsTeams[bgnumGangWarTeams].teamIcon = 0;
-#endif
+
 	if ( BG_GetPairedValue( buffer, "useTeamColors", parseBuf ) )
 	{
 		bgGangWarsTeams[bgnumGangWarTeams].useTeamColors = (qboolean)atoi(parseBuf);
@@ -253,7 +241,7 @@ void JKG_BG_LoadGangWarTeams(void)
 	char fileList[4096];
 	char filename[MAX_QPATH];
 	char* fileptr;
-	numFiles = trap_FS_GetFileList("ext_data/gangwars", ".team", fileList, 4096);
+	numFiles = trap->FS_GetFileList("ext_data/gangwars", ".team", fileList, 4096);
 	fileptr = fileList;
 	for(i = 0; i < numFiles; i++, fileptr += filelen+1)
 	{

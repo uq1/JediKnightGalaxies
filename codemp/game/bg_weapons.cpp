@@ -1,11 +1,39 @@
-// Copyright (C) 2001-2002 Raven Software
-//
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // bg_weapons.c -- part of bg_pmove functionality
 
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_local.h"
 #include "bg_ammo.h"
+
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_CGAME)
+	#include "cgame/cg_local.h"
+#elif defined(_UI)
+	#include "ui/ui_local.h"
+#endif
 
 weaponAmmo_t xweaponAmmo [] =
 {
@@ -26,6 +54,8 @@ weaponAmmo_t xweaponAmmo [] =
 static weaponData_t weaponDataTable[MAX_WEAPON_TABLE_SIZE];
 static unsigned int numLoadedWeapons;
 static unsigned int numWeapons[MAX_WEAPONS];
+
+g2WeaponInstance_s g2WeaponInstances[MAX_WEAPON_TABLE_SIZE];
 
 unsigned int BG_NumberOfLoadedWeapons ( void )
 {
@@ -303,11 +333,11 @@ qboolean BG_DumpWeaponList ( const char *filename )
         i = j;
     }
     
-    trap_FS_FOpenFile (filename, &f, FS_WRITE);
+    trap->FS_Open (filename, &f, FS_WRITE);
     if ( f )
     {
-        trap_FS_Write (buffer, strlen (buffer), f);
-        trap_FS_FCloseFile (f);
+        trap->FS_Write (buffer, strlen (buffer), f);
+        trap->FS_Close (f);
         
         return qtrue;
     }

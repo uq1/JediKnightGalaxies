@@ -54,6 +54,23 @@
             "hit":          { "impactfx": "blasters/red_flesh_impact" },
             "deathfx": "blasters/shot_red_vaporize",
 	    "displayName":  "Semi"
+        },
+		
+		"firemode2": {
+            "type":         "blaster",
+            
+            "muzzlefx":     "blasters/muzzleflash_Red_medium",
+            "firesound":    [
+                "sound/weapons/blasters/e11b_1.mp3",
+                "sound/weapons/blasters/e11b_2.mp3",
+                "sound/weapons/blasters/e11b_3.mp3",
+                "sound/weapons/blasters/e11b_4.mp3"
+            ],
+            "projectilefx": "blasters/shot_redorange_small",
+            "miss":         { "impactfx": "weapons/blaster_impact_red_medium_fire" },
+            "hit":          { "impactfx": "blasters/red_flesh_impact" },
+            "deathfx": "blasters/shot_red_vaporize",
+			"displayName":  "Burst"
         }
     },
     
@@ -82,7 +99,7 @@
         "splashmeansofdeath": "MOD_BLASTER",
             "accuracy": {
         "accuracyRating": 40,
-        "accuracyRatingPerShot": 4,
+        "accuracyRatingPerShot": 8,
         "msToDrainAccuracy": 50,
         "maxAccuracyAdd": 80,
         "sightsModifier": 0.4
@@ -102,6 +119,28 @@
         "meansofdeath": "MOD_BLASTER",
             "accuracy": {
         "accuracyRating": 20,
+        "accuracyRatingPerShot": 2,
+        "msToDrainAccuracy": 286,
+        "maxAccuracyAdd": 60,
+        "sightsModifier": 0.35
+        }
+    },
+	
+	"firemode2": {
+        "damage":       18,
+        "ammocost":     1,
+        "firedelay":    90,
+		"burstfiredelay":	500,
+        "firingtype":   "burst",
+		"shotsperburst": 4,
+        "range":        3500.0,
+        "recoil":       0.9,
+        "spread":       0.5,
+        "projectilespeed": 4000.0,
+        "projectileclass": "blaster_proj",
+        "meansofdeath": "MOD_BLASTER",
+            "accuracy": {
+        "accuracyRating": 30,
         "accuracyRatingPerShot": 2,
         "msToDrainAccuracy": 286,
         "maxAccuracyAdd": 60,

@@ -1,5 +1,26 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "g_local.h"
 #include "w_saber.h"
 #include "qcommon/q_shared.h"
@@ -352,7 +373,7 @@ void G_ExplodeMissile( gentity_t *ent ) {
 		}
 	}
 
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 }
 
 void G_RunStuckMissile( gentity_t *ent )
@@ -855,7 +876,7 @@ killProj:
 		G_RadiusDamage(trace->endpos, &g_entities[ent->r.ownerNum], ent->splashDamage, ent->splashRadius, NULL, ent, ent->methodOfDeath);
 	}
 
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 }
 
 /*
@@ -913,7 +934,7 @@ void G_RunMissile( gentity_t *ent ) {
 	// trace a line from the previous position to the current position
 	if (d_projectileGhoul2Collision.integer)
 	{
-		trap_G2Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin, passent, ent->clipmask, G2TRFLAG_DOGHOULTRACE|G2TRFLAG_GETSURFINDEX|G2TRFLAG_THICK|G2TRFLAG_HITCORPSES, g_g2TraceLod.integer );
+		trap->Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin, passent, ent->clipmask, 0, G2TRFLAG_DOGHOULTRACE|G2TRFLAG_GETSURFINDEX|G2TRFLAG_THICK|G2TRFLAG_HITCORPSES, g_g2TraceLod.integer );
 
 		if ( tr.fraction != 1.0 && tr.entityNum < ENTITYNUM_WORLD)
 		{
@@ -933,12 +954,12 @@ void G_RunMissile( gentity_t *ent ) {
 	}
 	else
 	{
-		trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin, passent, ent->clipmask );
+		trap->Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin, passent, ent->clipmask, 0, 0, 0 );
 	}
 
 	if ( tr.startsolid || tr.allsolid ) {
 		// make sure the tr.entityNum is set to the entity we're stuck in
-		trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, ent->r.currentOrigin, passent, ent->clipmask );
+		trap->Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, ent->r.currentOrigin, passent, ent->clipmask, 0, 0, 0 );
 		tr.fraction = 0;
 	}
 	else {
@@ -948,11 +969,11 @@ void G_RunMissile( gentity_t *ent ) {
 	if (ent->passThroughNum && tr.entityNum == (ent->passThroughNum-1))
 	{
 		VectorCopy( origin, ent->r.currentOrigin );
-		trap_LinkEntity( ent );
+		trap->LinkEntity( (sharedEntity_t *)ent );
 		goto passthrough;
 	}
 
-	trap_LinkEntity( ent );
+	trap->LinkEntity( (sharedEntity_t *)ent );
 
 	if (ent->s.weapon == G2_MODEL_PART && !ent->bounceCount)
 	{
@@ -961,7 +982,7 @@ void G_RunMissile( gentity_t *ent ) {
 
 		VectorCopy(ent->r.currentOrigin, lowerOrg);
 		lowerOrg[2] -= 1;
-		trap_Trace( &trG, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, lowerOrg, passent, ent->clipmask );
+		trap->Trace( &trG, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, lowerOrg, passent, ent->clipmask, 0, 0, 0 );
 
 		VectorCopy(trG.endpos, groundSpot);
 

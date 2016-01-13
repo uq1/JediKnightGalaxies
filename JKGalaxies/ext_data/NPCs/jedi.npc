@@ -4,8 +4,6 @@ Jedi
 	saber		single_2
 	saberColor	yellow
 	weapon	WP_SABER
-	saberStyle	1
-	saberStyle	3
 	saberStyle	2
 	FP_HEAL			1
 	FP_LEVITATION	2

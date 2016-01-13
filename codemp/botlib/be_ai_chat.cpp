@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 /*****************************************************************************
  * name:		be_ai_chat.c
@@ -5,7 +27,7 @@
  * desc:		bot chat AI
  *
  * $Archive: /MissionPack/code/botlib/be_ai_chat.c $
- * $Author: Ttimo $ 
+ * $Author: Ttimo $
  * $Revision: 12 $
  * $Modtime: 4/13/01 4:45p $
  * $Date: 4/13/01 4:45p $
@@ -172,7 +194,7 @@ typedef struct bot_chatstate_s
 	bot_chat_t *chat;
 } bot_chatstate_t;
 
-typedef struct {
+typedef struct bot_ichatdata_s {
 	bot_chat_t	*chat;
 	char		filename[MAX_QPATH];
 	char		chatname[MAX_QPATH];
@@ -361,7 +383,7 @@ int BotNextConsoleMessage(int chatstate, bot_consolemessage_t *cm)
 		cm->type = firstmsg->type;
 		Q_strncpyz(cm->message, firstmsg->message,
 			   sizeof(cm->message));
-		
+
 		/* We omit setting the two pointers in cm because pointer
 		 * size in the VM differs between the size in the engine on
 		 * 64 bit machines, which would lead to a buffer overflow if
@@ -369,7 +391,7 @@ int BotNextConsoleMessage(int chatstate, bot_consolemessage_t *cm)
 		 * of no interest to functions calling
 		 * BotNextConsoleMessage anyways.
 		 */
-		
+
 		return cm->handle;
 	} //end if
 	return 0;
@@ -2223,10 +2245,10 @@ int BotLoadChatFile(int chatstate, char *chatfile, char *chatname)
 				}
 				continue;
 			}
-			if( strcmp( chatfile, ichatdata[n]->filename ) != 0 ) { 
+			if( strcmp( chatfile, ichatdata[n]->filename ) != 0 ) {
 				continue;
 			}
-			if( strcmp( chatname, ichatdata[n]->chatname ) != 0 ) { 
+			if( strcmp( chatname, ichatdata[n]->chatname ) != 0 ) {
 				continue;
 			}
 			cs->chat = ichatdata[n]->chat;
@@ -2311,7 +2333,7 @@ int BotExpandChatMessage(char *outmessage, char *message, unsigned long mcontext
 							//replace the reply synonyms in the variables
 							BotReplaceReplySynonyms(temp, vcontext);
 						} //end if
-						else 
+						else
 						{
 							//replace synonyms in the variable context
 							BotReplaceSynonyms(temp, vcontext);

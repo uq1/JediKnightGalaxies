@@ -355,7 +355,7 @@ static int GLua_Vector_ToAngles(lua_State *L) {
 
 	self = GLua_CheckVector(L,1);
 
-	vectoangles((const vec_t *)self, vec2);
+	vectoangles((const float *)self, vec2);
 
 	self->x = vec2[0];
 	self->y = vec2[1];
@@ -424,7 +424,7 @@ static int GLua_Vector_GetAngles(lua_State *L) {
 
 	self = GLua_CheckVector(L,1);
 
-	vectoangles((const vec_t *)self, vec2);
+	vectoangles((const float *)self, vec2);
 
 	vec = (GLuaVec_t *)lua_newuserdata(L,12);
 	vec->x = vec2[0];

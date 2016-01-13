@@ -237,7 +237,7 @@ static int GLua_Player_SendChat(lua_State *L) {
 		lua_pop(L,1);
 	}
 	
-	trap_SendServerCommand(ply->clientNum, va("chat 100 \"%s\"", ChatBox_EscapeChat(&buff[0])));
+	trap->SendServerCommand(ply->clientNum, va("chat 100 \"%s\"", ChatBox_EscapeChat(&buff[0])));
 	return 0;
 }
 
@@ -267,7 +267,7 @@ static int GLua_Player_SendFadedChat(lua_State *L) {
 		}
 		lua_pop(L,1);
 	}
-	trap_SendServerCommand(ply->clientNum, va("chat %i \"%s\"", fadeLevel, ChatBox_EscapeChat(&buff[0])));
+	trap->SendServerCommand(ply->clientNum, va("chat %i \"%s\"", fadeLevel, ChatBox_EscapeChat(&buff[0])));
 	return 0;
 }
 
@@ -290,7 +290,7 @@ static int GLua_Player_SendCenterPrint(lua_State *L) {
 		}
 		lua_pop(L,1);
 	}
-	trap_SendServerCommand(ply->clientNum, va("cp \"%s\n\"", &buff[0]));
+	trap->SendServerCommand(ply->clientNum, va("cp \"%s\n\"", &buff[0]));
 	return 0;
 }
 
@@ -313,7 +313,7 @@ static int GLua_Player_SendPrint(lua_State *L) {
 		}
 		lua_pop(L,1);
 	}
-	trap_SendServerCommand(ply->clientNum, va("print \"%s\n\"", &buff[0]));
+	trap->SendServerCommand(ply->clientNum, va("print \"%s\n\"", &buff[0]));
 	return 0;
 }
 
@@ -336,7 +336,7 @@ static int GLua_Player_SendCommand(lua_State *L) { // Use with caution!
 		}
 		lua_pop(L,1);
 	}
-	trap_SendServerCommand(ply->clientNum, va("%s", &buff[0]));
+	trap->SendServerCommand(ply->clientNum, va("%s", &buff[0]));
 	return 0;
 }
 
@@ -486,7 +486,7 @@ static int GLua_Player_Kick(lua_State *L) {
 	const char *reason = lua_tostring(L,2);
 	if (!ply) return 0;
 	if (!reason) reason = "was kicked";
-	trap_DropClient(ply->clientNum, reason);
+	trap->DropClient(ply->clientNum, reason);
 	return 0;
 }
 
@@ -648,7 +648,7 @@ static int GLua_Player_GetEyeTrace(lua_State *L) {
 	VectorMA( src, luaL_optint(L, 2, 131072), vf, dest );
 
 	//Trace ahead to find a valid target
-	trap_Trace( &trace, src, vec3_origin, vec3_origin, dest, ent->s.number, MASK_OPAQUE|CONTENTS_SOLID|CONTENTS_BODY|CONTENTS_ITEM|CONTENTS_CORPSE );
+	trap->Trace( &trace, src, vec3_origin, vec3_origin, dest, ent->s.number, MASK_OPAQUE|CONTENTS_SOLID|CONTENTS_BODY|CONTENTS_ITEM|CONTENTS_CORPSE, 0, 0, 0 );
 	
 	lua_newtable(L);
 	lua_pushstring(L,"StartSolid"); lua_pushboolean(L,trace.startsolid); lua_settable(L,-3);
@@ -690,7 +690,7 @@ static int GLua_Player_SetWeapon(lua_State *L) {
 	if (!(level.clients[ply->clientNum].ps.stats[STAT_WEAPONS] & (1 << weapon))) return 0;
 	level.clients[ply->clientNum].ps.weapon = weapon;
 	level.clients[ply->clientNum].pers.cmd.weapon = BG_GetWeaponIndexFromClass (weapon, 0);
-	trap_SendServerCommand(ply->clientNum, va("chw %i", weapon));
+	trap->SendServerCommand(ply->clientNum, va("chw %i", weapon));
 	return 0;
 }
 
@@ -1015,7 +1015,7 @@ static int GLua_Player_GetUserInfo(lua_State *L) {
 	const char *key = luaL_checkstring(L,2);
 	if (!ply) return 0;
 
-	trap_GetUserinfo(ply->clientNum, buff, sizeof(buff));
+	trap->GetUserinfo(ply->clientNum, buff, sizeof(buff));
 	lua_pushstring(L, Info_ValueForKey(buff, key));
 
 	return 1;
@@ -1049,10 +1049,10 @@ static int GLua_Player_StartHacking(lua_State *L) {
 		time = luaL_checkinteger(L,3);
 		if (time < 0) {
 			time = 0;
-			G_Printf("Warning: GLua_Player_StartHacking: time < 0! Clamped to 0.\n");
+			trap->Print("Warning: GLua_Player_StartHacking: time < 0! Clamped to 0.\n");
 		} else if (time > 60000) {
 			time = 60000;
-			G_Printf("Warning: GLua_Player_StartHacking: time > 60000! Clamped to 60000.\n");
+			trap->Print("Warning: GLua_Player_StartHacking: time > 60000! Clamped to 60000.\n");
 		}
 		level.clients[ply->clientNum].isHacking = ent->s.number;
 		VectorCopy(level.clients[ply->clientNum].ps.viewangles, level.clients[ply->clientNum].hackingAngles);
@@ -1179,7 +1179,7 @@ static int GLua_Player_SetAnimLower(lua_State *L) {
 		return 0;
 	}
 	ent = &g_entities[ply->clientNum];
-	G_SetAnim(ent, NULL, SETANIM_LEGS, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE),  luaL_optinteger(L, 4, 0));
+	G_SetAnim(ent, NULL, SETANIM_LEGS, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE));
 	return 0;
 }
 
@@ -1197,7 +1197,7 @@ static int GLua_Player_SetAnimUpper(lua_State *L) {
 		return 0;
 	}
 	ent = &g_entities[ply->clientNum];
-	G_SetAnim(ent, NULL, SETANIM_TORSO, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE),  luaL_optinteger(L, 4, 0));
+	G_SetAnim(ent, NULL, SETANIM_TORSO, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE));
 	return 0;
 }
 
@@ -1215,7 +1215,7 @@ static int GLua_Player_SetAnimBoth(lua_State *L) {
 		return 0;
 	}
 	ent = &g_entities[ply->clientNum];
-	G_SetAnim(ent, NULL, SETANIM_BOTH, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE),  luaL_optinteger(L, 4, 0));
+	G_SetAnim(ent, NULL, SETANIM_BOTH, anim, luaL_optinteger(L, 3, SETANIM_FLAG_RESTART|SETANIM_FLAG_HOLD|SETANIM_FLAG_OVERRIDE));
 	return 0;
 }
 
@@ -1555,13 +1555,13 @@ static int GLua_Player_ServerTransfer(lua_State *L) {
 	const char *connmsg = luaL_optstring(L,4, "");
 
 	if (!ply) return 0;
-	trap_SendServerCommand(ply->clientNum, va("svr \"%s\" \"%s\" \"%s\"", target, flags, connmsg));
+	trap->SendServerCommand(ply->clientNum, va("svr \"%s\" \"%s\" \"%s\"", target, flags, connmsg));
 	level.clients[ply->clientNum].customDisconnectMsg = 1; // TODO: Use enums for this
 	// We need a re-think on client server redirection, the current implementation depends on the
 	// client responding to our command and redirecting by itself. We can't guarantee that the client
 	// will disconnect. That's why kicks are done server-side of course and force the client off.
 	// What I'm suggesting is simply setting the parameters with the svr server command then using
-	// trap_DropClient to drop the player off the server with the added bonus of not needing a hook to show
+	// trap->DropClient to drop the player off the server with the added bonus of not needing a hook to show
 	// a custom disconnect message... even though that's already made. - Didz
 	return 0;
 }

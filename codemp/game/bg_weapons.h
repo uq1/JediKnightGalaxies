@@ -16,6 +16,29 @@
 // not enough damages, which were in a define. However, most if not all of the weapon data
 // has been appropriately moved over to weaponData_t, which is filled by the .wpn files.
 // (c) 2013 Jedi Knight Galaxies
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 
 #ifndef BG_WEAPONS_H
 #define BG_WEAPONS_H
@@ -25,6 +48,8 @@
 
 #define MAX_WEAPON_TABLE_SIZE (255)
 #define MAX_FIREMODES (16)
+#define MAX_STANCES	(16)
+#define MAX_SABERHILTS	(64)
 
 typedef enum 
 {
@@ -143,7 +168,7 @@ typedef enum
 // that variable in the playerstate, which is just plain nasty imo.
 typedef struct
 {
-	vec_t accuracyRating;		// diameter of spread at 100 units away, in map units
+	float accuracyRating;		// diameter of spread at 100 units away, in map units
 	float crouchModifier;
 	float runModifier;
 	float walkModifier;		// this gets used in the case of crouch-walking, regardless of walking button being pressed
@@ -171,6 +196,7 @@ typedef struct weaponFireModeStats_s
 	short		chargeMaximum;		// The maximum amount of time charged.
 	float		chargeMultiplier;	// The multiplier to apply on charged shot damage calculation.
 	short		chargeTime;		    // The time before substracting a drain.
+	int			chargeSubtract;		// The amount of ammo subtracted from a drain
 	char		cost;				// The ammo cost to shoot the weapon.
 	short		delay;				// The delay between each shot/throw/burstfire/whatever.
 	float		range;				// The maximum amount of range this weapon/mode can reach.
@@ -340,9 +366,12 @@ typedef struct weaponVisualFireMode_s
 
 typedef struct weaponVisual_s
 {
+#ifdef _CGAME
 	char description[512];			// The description of this weapon to display in UI.
-	
+#endif	
+	// Server needs to know the world model for its Ghoul 2 instances.
 	char world_model[MAX_QPATH];	// The model used for 3D rendering.
+#ifdef _CGAME
 	char view_model[MAX_QPATH];		// The model used when in first person mode.
 	
 	char icon[MAX_QPATH];		    // The icon of this weapon to be used in the HUD.
@@ -368,7 +397,21 @@ typedef struct weaponVisual_s
 	int barrelCount;
 
 	weaponVisualFireMode_t visualFireModes[MAX_FIREMODES];
+#endif
 } weaponVisual_t;
+
+// create one instance of all the weapons we are going to use so we can just copy this info into each clients gun ghoul2 object in fast way
+struct g2WeaponInstance_s {
+    unsigned int weaponNum;
+    unsigned int weaponVariation;
+    
+    void *ghoul2;
+};
+extern g2WeaponInstance_s g2WeaponInstances[MAX_WEAPON_TABLE_SIZE];
+
+void BG_InitWeaponG2Instances(void);
+void *BG_GetWeaponGhoul2 ( int weaponNum, int weaponVariation );
+void BG_ShutdownWeaponG2Instances(void);
 
 typedef struct
 {
@@ -461,9 +504,7 @@ typedef struct
     
     char displayName[64];			// The name which is to be displayed on the HUD.
     
-#ifdef CGAME
     weaponVisual_t visuals;
-#endif
 
 } weaponData_t;
 
@@ -657,6 +698,7 @@ typedef struct
 } saberStanceExternal_t;
 
 extern saberStanceExternal_t SaberStances[MAX_STANCES];
-void JKG_InitializeStanceData( void );
-#endif
 
+void JKG_InitializeStanceData( void );
+
+#endif

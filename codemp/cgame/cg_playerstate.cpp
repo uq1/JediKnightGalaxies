@@ -1,5 +1,26 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // cg_playerstate.c -- this file acts on changes in a new playerState_t
 // With normal play, this will be done after local prediction, but when
 // following another player or playing back a demo, it will be checked
@@ -71,7 +92,7 @@ void CG_CheckAmmo( void ) {
 
 	// play a sound on transitions
 	if ( cg.lowAmmoWarning != previous ) {
-		trap_S_StartLocalSound( cgs.media.noAmmoSound, CHAN_LOCAL_SOUND );
+		trap->S_StartLocalSound( cgs.media.noAmmoSound, CHAN_LOCAL_SOUND );
 	}
 #endif
 	//disabled silly ammo warning stuff for now
@@ -202,10 +223,8 @@ void CG_Respawn( void ) {
 	// Reset the low health blur
 	CG_GetLowHealthPhase(1, 1.0f);
 	ChatBox_CloseChat();
-	trap_Cvar_Set( "cflag", "" );
+	trap->Cvar_Set( "cflag", "" );
 }
-
-extern char *eventnames[];
 
 /*
 ==============
@@ -276,7 +295,7 @@ void CG_CheckChangedPredictableEvents( playerState_t *ps ) {
 				cg.predictableEvents[ i & (MAX_PREDICTED_EVENTS-1) ] = event;
 
 				if ( cg_showMiss.integer ) {
-					CG_Printf("WARNING: changed predicted event\n");
+					trap->Print("WARNING: changed predicted event\n");
 				}
 			}
 		}
@@ -291,7 +310,7 @@ CG_CheckLocalSounds
 ==================
 */
 void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
-	int			highScore, health, armor, reward;
+	int			highScore, health, armor;
 
 	// don't play the sounds if the player just changed teams
 	if ( ps->persistant[PERS_TEAM] != ops->persistant[PERS_TEAM] ) {
@@ -305,25 +324,25 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 
 		if (armor > health/2)
 		{	// We also hit shields along the way, so consider them "pierced".
-//			trap_S_StartLocalSound( cgs.media.shieldPierceSound, CHAN_LOCAL_SOUND );
+//			trap->S_StartLocalSound( cgs.media.shieldPierceSound, CHAN_LOCAL_SOUND );
 		}
 		else
 		{	// Shields didn't really stand in our way.
-//			trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
+//			trap->S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
 		}
 
 		//FIXME: Hit sounds?
 		/*
 		if (armor > 50 ) {
-			trap_S_StartLocalSound( cgs.media.hitSoundHighArmor, CHAN_LOCAL_SOUND );
+			trap->S_StartLocalSound( cgs.media.hitSoundHighArmor, CHAN_LOCAL_SOUND );
 		} else if (armor || health > 100) {
-			trap_S_StartLocalSound( cgs.media.hitSoundLowArmor, CHAN_LOCAL_SOUND );
+			trap->S_StartLocalSound( cgs.media.hitSoundLowArmor, CHAN_LOCAL_SOUND );
 		} else {
-			trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
+			trap->S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
 		}
 		*/
 	} else if ( ps->persistant[PERS_HITS] < ops->persistant[PERS_HITS] ) {
-		//trap_S_StartLocalSound( cgs.media.hitTeamSound, CHAN_LOCAL_SOUND );
+		//trap->S_StartLocalSound( cgs.media.hitTeamSound, CHAN_LOCAL_SOUND );
 	}
 
 	// health changes of more than -3 should make pain sounds
@@ -351,16 +370,16 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 		msec = cg.time - cgs.levelStartTime;
 		if ( !( cg.timelimitWarnings & 4 ) && msec > ( cgs.timelimit * 60 + 2 ) * 1000 ) {
 			cg.timelimitWarnings |= 1 | 2 | 4;
-			//trap_S_StartLocalSound( cgs.media.suddenDeathSound, CHAN_ANNOUNCER );
+			//trap->S_StartLocalSound( cgs.media.suddenDeathSound, CHAN_ANNOUNCER );
 		}
 		else if ( !( cg.timelimitWarnings & 2 ) && msec > (cgs.timelimit - 1) * 60 * 1000 ) {
 			cg.timelimitWarnings |= 1 | 2;
-			trap_S_StartLocalSound( cgs.media.oneMinuteSound, CHAN_ANNOUNCER );
+			trap->S_StartLocalSound( cgs.media.oneMinuteSound, CHAN_ANNOUNCER );
 			cgAnnouncerTime = cg.time + 3000;
 		}
 		else if ( cgs.timelimit > 5 && !( cg.timelimitWarnings & 1 ) && msec > (cgs.timelimit - 5) * 60 * 1000 ) {
 			cg.timelimitWarnings |= 1;
-			trap_S_StartLocalSound( cgs.media.fiveMinuteSound, CHAN_ANNOUNCER );
+			trap->S_StartLocalSound( cgs.media.fiveMinuteSound, CHAN_ANNOUNCER );
 			cgAnnouncerTime = cg.time + 3000;
 		}
 	}

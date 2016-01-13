@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 //NPC_utils.cpp
 
 #include "b_local.h"
@@ -150,7 +172,7 @@ void CalcEntitySpot ( const gentity_t *ent, const spot_t spot, vec3_t point )
 		start[2] = ent->r.absmin[2];
 		VectorCopy( start, end );
 		end[2] -= 64;
-		trap_Trace( &tr, start, ent->r.mins, ent->r.maxs, end, ent->s.number, MASK_PLAYERSOLID );
+		trap->Trace( &tr, start, ent->r.mins, ent->r.maxs, end, ent->s.number, MASK_PLAYERSOLID, 0, 0, 0 );
 		if ( tr.fraction < 1.0 ) 
 		{
 			VectorCopy( tr.endpos, point);
@@ -233,7 +255,7 @@ qboolean NPC_UpdateAngles ( qboolean doPitch, qboolean doYaw )
 		char buf[128];
 		float tFVal = 0;
 
-		trap_Cvar_VariableStringBuffer("timescale", buf, sizeof(buf));
+		trap->Cvar_VariableStringBuffer("timescale", buf, sizeof(buf));
 
 		tFVal = atof(buf);
 
@@ -313,9 +335,9 @@ qboolean NPC_UpdateAngles ( qboolean doPitch, qboolean doYaw )
 
 	ucmd.angles[ROLL] = ANGLE2SHORT ( NPC->client->ps.viewangles[ROLL] ) - NPC->client->ps.delta_angles[ROLL];
 
-	if ( exact && trap_ICARUS_TaskIDPending( NPC, TID_ANGLE_FACE ) )
+	if ( exact && trap->ICARUS_TaskIDPending( (sharedEntity_t *)NPC, TID_ANGLE_FACE ) )
 	{
-		trap_ICARUS_TaskIDComplete( NPC, TID_ANGLE_FACE );
+		trap->ICARUS_TaskIDComplete( (sharedEntity_t *)NPC, TID_ANGLE_FACE );
 	}
 	return exact;
 
@@ -888,7 +910,7 @@ qboolean G_ActivateBehavior (gentity_t *self, int bset )
 		{
 			G_DebugPrint( WL_VERBOSE, "%s attempting to run bSet %s (%s)\n", self->targetname, GetStringForID( BSETTable, bset ), bs_name );
 		}
-		trap_ICARUS_RunScript( self, va( "%s/%s", Q3_SCRIPT_DIR, bs_name ) );
+		trap->ICARUS_RunScript( (sharedEntity_t *)self, va( "%s/%s", Q3_SCRIPT_DIR, bs_name ) );
 	}
 	return qtrue;
 }
@@ -991,7 +1013,7 @@ void NPC_SetBoneAngles(gentity_t *ent, char *bone, vec3_t angles)
 	//first 3 bits is forward, second 3 bits is right, third 3 bits is up
 	ent->s.boneOrient = ((forward)|(right<<3)|(up<<6));
 
-	trap_G2API_SetBoneAngles(ent->ghoul2, 0, bone, angles, flags, up, right, forward, NULL, 100, level.time);
+	trap->G2API_SetBoneAngles(ent->ghoul2, 0, bone, angles, flags, up, right, forward, NULL, 100, level.time);
 }
 
 //rww - and another method of automatically managing surface status for the client and server at once
@@ -1035,7 +1057,7 @@ void NPC_SetSurfaceOnOff(gentity_t *ent, const char *surfaceName, int surfaceFla
 		return;
 	}
 
-	trap_G2API_SetSurfaceOnOff(ent->ghoul2, surfaceName, surfaceFlags);
+	trap->G2API_SetSurfaceOnOff(ent->ghoul2, surfaceName, surfaceFlags);
 }
 
 //rww - cheap check to see if an armed client is looking in our general direction
@@ -1051,7 +1073,7 @@ qboolean NPC_SomeoneLookingAtMe(gentity_t *ent)
 		if (pEnt && pEnt->inuse && pEnt->client && pEnt->client->sess.sessionTeam != TEAM_SPECTATOR &&
 			!(pEnt->client->ps.pm_flags & PMF_FOLLOW) && pEnt->s.weapon != WP_NONE)
 		{
-			if (trap_InPVS(ent->r.currentOrigin, pEnt->r.currentOrigin))
+			if (trap->InPVS(ent->r.currentOrigin, pEnt->r.currentOrigin))
 			{
 				if (InFOV( ent, pEnt, 30, 30 ))
 				{ //I'm in a 30 fov or so cone from this player.. that's enough I guess.
@@ -1273,7 +1295,7 @@ int NPC_FindNearestEnemy( gentity_t *ent )
 	}
 
 	//Get a number of entities in a given space
-	numEnts = trap_EntitiesInBox( mins, maxs, iradiusEnts, MAX_RADIUS_ENTS );
+	numEnts = trap->EntitiesInBox( mins, maxs, iradiusEnts, MAX_RADIUS_ENTS );
 
 	for ( i = 0; i < numEnts; i++ )
 	{
@@ -1739,7 +1761,7 @@ void G_GetBoltPosition( gentity_t *self, int boltIndex, vec3_t pos, int modelInd
 		return;
 	}
 
-	trap_G2API_GetBoltMatrix( self->ghoul2, modelIndex, 
+	trap->G2API_GetBoltMatrix( self->ghoul2, modelIndex, 
 				boltIndex,
 				&boltMatrix, angles, self->r.currentOrigin, level.time,
 				NULL, self->modelScale );
@@ -1789,5 +1811,5 @@ int NPC_GetEntsNearBolt( int *radiusEnts, float radius, int boltIndex, vec3_t bo
 	}
 
 	//Get the number of entities in a given space
-	return (trap_EntitiesInBox( mins, maxs, radiusEnts, 128 ));
+	return (trap->EntitiesInBox( mins, maxs, radiusEnts, 128 ));
 }

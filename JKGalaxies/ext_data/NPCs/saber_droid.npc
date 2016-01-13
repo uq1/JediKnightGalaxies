@@ -1,9 +1,9 @@
 saber_droid_training
 {
 	playerModel	saber_droid
-	saber		droid
+	saber		single_4 //droid
 	weapon	WP_SABER
-	saberStyle	1
+	saberStyle	2
 	FP_SABER_DEFENSE 1
 	FP_SABER_OFFENSE 1
 	reactions	1
@@ -34,9 +34,9 @@ saber_droid_training
 saber_droid
 {
 	playerModel	saber_droid
-	saber		droid
+	saber		single_4 //droid
 	weapon	WP_SABER
-	saberStyle	1
+	saberStyle	2
 	FP_SABER_DEFENSE 3
 	FP_SABER_OFFENSE 3
 	rank		ensign

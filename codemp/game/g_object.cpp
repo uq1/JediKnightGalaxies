@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "g_local.h"
 
 extern void G_MoverTouchPushTriggers( gentity_t *ent, vec3_t oldOrg );
@@ -101,13 +123,13 @@ void G_RunObject( gentity_t *ent )
 	}
 	// trace a line from the previous position to the current position,
 	// ignoring interactions with the missile owner
-	trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin, 
-		ent->parent ? ent->parent->s.number : ent->s.number, ent->clipmask );
+	trap->Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin, 
+		ent->parent ? ent->parent->s.number : ent->s.number, ent->clipmask, 0, 0, 0 );
 
 	if ( !tr.startsolid && !tr.allsolid && tr.fraction ) 
 	{
 		VectorCopy( tr.endpos, ent->r.currentOrigin );
-		trap_LinkEntity( ent );
+		trap->LinkEntity( (sharedEntity_t *)ent );
 	}
 	else
 	//if ( tr.startsolid ) 

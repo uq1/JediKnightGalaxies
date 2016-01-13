@@ -79,9 +79,11 @@
         "range":        10000.0,
         "recoil":       2.4,
         "spread":       0.0,
+		"splashrange":	30,
         "projectilespeed": 9000.0,
         "projectileclass": "bowcaster_proj",
         "meansofdeath": "MOD_DISRUPTOR_SNIPER",
+		"splashmeansofdeath": "MOD_DISRUPTOR_SNIPER",
             "accuracy": {
         "accuracyRating": 20,
         "accuracyRatingPerShot": 6,

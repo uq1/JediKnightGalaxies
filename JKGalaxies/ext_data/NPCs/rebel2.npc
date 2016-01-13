@@ -11,7 +11,7 @@ Rebel2
 	rank		crewman
 	playerTeam	TEAM_PLAYER
 	enemyTeam	TEAM_ENEMY
-//	race		human
+
 	class		CLASS_REBEL
 	snd			rebel2
 	sndcombat	rebel2

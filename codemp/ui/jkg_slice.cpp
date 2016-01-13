@@ -150,7 +150,7 @@ void JKG_Slice_ProgramListReset()
 	item = Menu_FindItemByName(menu, "proglist");
 
 	item->cursorPos = -1;
-	listPtr = (listBoxDef_t*)item->typeData;
+	listPtr = item->typeData.listbox;
 	listPtr->cursorPos = -1;
 
 	Menu_SetItemText(menu, "progdesc", "Please select a program");
@@ -277,10 +277,10 @@ void JKG_Slice_DrawDialog(int line, float x, float y, float w, float h) {
 		text = sliceData.dlgText3;
 	}
 
-	width = (float)trap_R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5f;
+	width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5f;
 
 	x = x + ((w / 2) - (width / 2));
-	trap_R_Font_DrawString(	x, y, text, colorWhite, MenuFontToHandle(1) | 0x80000000 , -1, 0.5f);
+	trap->R_Font_DrawString(	x, y, text, colorWhite, MenuFontToHandle(1) | 0x80000000 , -1, 0.5f);
 }
 
 // Message Processor
@@ -297,7 +297,7 @@ void JKG_Slice_ProcessCommand_f(void)
 
 	bitstream_t stream;
 
-	trap_Argv(1, arg, 1024);
+	trap->Cmd_Argv(1, arg, 1024);
 
 	len = Base128_DecodeLength(strlen(arg));
 	Base128_Decode(arg, strlen(arg), data, 840);
@@ -320,11 +320,11 @@ void JKG_Slice_ProcessCommand_f(void)
 			sliceData.active = qtrue;
 
 			// Bring up UI
-			trap_Cvar_Set("ui_hidehud", "1");
+			trap->Cvar_Set("ui_hidehud", "1");
 			Menus_CloseAll();
 			if (Menus_ActivateByName("jkg_slice"))
 			{
-				trap_Key_SetCatcher( trap_Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );
+				trap->Key_SetCatcher( trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );
 			}
 			Menu_ClearFocus(Menus_FindByName("jkg_slice"));
 
@@ -336,8 +336,8 @@ void JKG_Slice_ProcessCommand_f(void)
 			sliceData.active = qfalse;
 
 			Menus_CloseByName("jkg_slice");
-			trap_Cvar_Set("ui_hidehud", "0");
-			trap_Key_SetCatcher( trap_Key_GetCatcher() & ~KEYCATCH_UI );
+			trap->Cvar_Set("ui_hidehud", "0");
+			trap->Key_SetCatcher( trap->Key_GetCatcher() & ~KEYCATCH_UI );
 			break;
 		case SLICECMD_CONFIG:
 			// Receive configuration
@@ -357,7 +357,7 @@ void JKG_Slice_ProcessCommand_f(void)
 			row = BitStream_ReadBits(&stream, 3);
 			col = BitStream_ReadBits(&stream, 3);
 			sliceData.grid[row][col].active = 1;
-			sliceData.grid[row][col].revealTime = trap_Milliseconds();
+			sliceData.grid[row][col].revealTime = trap->Milliseconds();
 			sliceData.grid[row][col].type = BitStream_ReadBits(&stream, 3);
 			break;
 		case SLICECMD_LOCK:
@@ -418,7 +418,7 @@ void JKG_Slice_ProcessCommand_f(void)
 			// TODO: Play sound effect?
 			sliceData.intrusionState = BitStream_ReadBits(&stream, 2);
 			if (sliceData.intrusionState == 1) {
-				sliceData.intrusionStart = trap_Milliseconds();
+				sliceData.intrusionStart = trap->Milliseconds();
 			} else {
 				sliceData.intrusionStart = 0;
 			}
@@ -429,7 +429,7 @@ void JKG_Slice_ProcessCommand_f(void)
 		case SLICECMD_BLINKNODE:
 			row = BitStream_ReadBits(&stream, 3);
 			col = BitStream_ReadBits(&stream, 3);
-			sliceData.grid[row][col].blinkTime = trap_Milliseconds();
+			sliceData.grid[row][col].blinkTime = trap->Milliseconds();
 			sliceData.grid[row][col].blinkColor = BitStream_ReadBool(&stream);
 			break;
 		case SLICECMD_INITFIELD:
@@ -437,8 +437,8 @@ void JKG_Slice_ProcessCommand_f(void)
 			sliceData.fieldLocked = qfalse;
 			break;
 		case SLICECMD_ALARM:
-			sfx = trap_S_RegisterSound("sound/effects/mpalarm.wav");
-			trap_S_StartLocalSound(sfx, CHAN_AUTO);
+			sfx = trap->S_RegisterSound("sound/effects/mpalarm.wav");
+			trap->S_StartLocalSound(sfx, CHAN_AUTO);
 			break;
 		default:
 			Com_Printf("Error processing slice command, unknown command ID\n");
@@ -483,15 +483,15 @@ void JKG_Slice_DrawGridSlot(int slot, float x, float y, float w, float h)
 			// Determine the color to show
 			switch (sliceData.grid[row][col].type) {
 				case 0:	// Alarm node
-					Vector4Copy(red, color2);
+					VectorCopy4M(red, color2);
 					text = NULL;
 					break;
 				case 1:	// Relay node
-					Vector4Copy(orange, color2);
+					VectorCopy4M(orange, color2);
 					text = NULL;
 					break;
 				case 2: // Reset node
-					Vector4Copy(yellow, color2);
+					VectorCopy4M(yellow, color2);
 					text = "R";
 					break;
 				case 3: // Access level 1
@@ -499,38 +499,38 @@ void JKG_Slice_DrawGridSlot(int slot, float x, float y, float w, float h)
 				case 5:	// Access level 3
 				case 6:	// Access level 4
 				case 7: // Access level 5
-					Vector4Copy(green, color2);
+					VectorCopy4M(green, color2);
 					text = va("%i", sliceData.grid[row][col].type - 2);
 					break;
 			}
 
 			if (sliceData.grid[row][col].revealTime) {
-				float phase = (float)(trap_Milliseconds() - sliceData.grid[row][col].revealTime) / 250.0f;
+				float phase = (float)(trap->Milliseconds() - sliceData.grid[row][col].revealTime) / 250.0f;
 				if (phase > 1.0f) phase = 1.0f;
 
-				if (trap_Milliseconds() > sliceData.grid[row][col].revealTime + 250) {
+				if (trap->Milliseconds() > sliceData.grid[row][col].revealTime + 250) {
 					sliceData.grid[row][col].revealTime = 0;
 				}
 
-				LerpColor((vec_t *)(white), color2, color, phase);
+				LerpColor((float *)white, color2, color, phase);
 				UI_FillRect(x, y, w, h, color);
 				
 				if (text) {
 					color[0] = color[1] = color[2] = 1.0f;
 					color[3] = phase;
-					w2 = trap_R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
+					w2 = trap->R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
 					DC->drawText(x + (w/2) - (w2/2), y+(h*0.2f), 0.4f, color, text, 0, 0, 0, 0 );
 				}
 			} else {
 				UI_FillRect(x, y, w, h, color2);
 				if (text) {
-					w2 = trap_R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
-					DC->drawText(x + (w/2) - (w2/2), y+(h*0.2f), 0.4f, (vec_t *)(white), text, 0, 0, 0, 0 );
+					w2 = trap->R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
+					DC->drawText(x + (w/2) - (w2/2), y+(h*0.2f), 0.4f, (float *)(white), text, 0, 0, 0, 0 );
 				}
 			}
 		} else {
 			if (sliceData.grid[row][col].blinkTime) {
-				int delta = trap_Milliseconds() - sliceData.grid[row][col].blinkTime;
+				int delta = trap->Milliseconds() - sliceData.grid[row][col].blinkTime;
 				float phase;
 				if (delta > 2350) {	 // ~(7.5 * PI)*100, so the node blinks 4 times and stops when faded out
 					sliceData.grid[row][col].blinkTime = 0;
@@ -539,18 +539,18 @@ void JKG_Slice_DrawGridSlot(int slot, float x, float y, float w, float h)
 				phase = 0.5f + (sin((float)delta / 100.0f) * 0.5);
 
 				if (sliceData.grid[row][col].blinkColor) {
-					LerpColor((vec_t *)offcolor, (vec_t *)green, color, phase);
+					LerpColor((float *)offcolor, (float *)green, color, phase);
 				} else {
-					LerpColor((vec_t *)offcolor, (vec_t *)red, color, phase);
+					LerpColor((float *)offcolor, (float *)red, color, phase);
 				}
 
 				UI_FillRect(x, y, w, h, color);
 			} else {
 				if (sliceData.grid[row][col].marked) {
 					if (sliceData.grid[row][col].marked == 1) {
-						MAKERGBA(color, 0.3f, 0.3f, 1.0f, 0.7f + sin((float)trap_Milliseconds() / 150.0f) * 0.1f);
+						MAKERGBA(color, 0.3f, 0.3f, 1.0f, 0.7f + sin((float)trap->Milliseconds() / 150.0f) * 0.1f);
 					} else {
-						MAKERGBA(color, 1.0f, 0.3f, .3f, 0.7f + sin((float)trap_Milliseconds() / 150.0f) * 0.1f);
+						MAKERGBA(color, 1.0f, 0.3f, .3f, 0.7f + sin((float)trap->Milliseconds() / 150.0f) * 0.1f);
 					}
 					UI_FillRect(x, y, w, h, color);
 				} else {
@@ -560,7 +560,7 @@ void JKG_Slice_DrawGridSlot(int slot, float x, float y, float w, float h)
 		}
 
 		if (sliceData.inputState == INPUTSTATE_AWAITINGNODE || (sliceData.inputState == INPUTSTATE_AWAITINGINACTIVENODE && !sliceData.grid[row][col].active)) {
-			float phase = 0.7f + sin((float)trap_Milliseconds() / 150.0f) * 0.1f;
+			float phase = 0.7f + sin((float)trap->Milliseconds() / 150.0f) * 0.1f;
 			MAKERGBA(color, phase, phase, phase, 1.0f);
 			UI_DrawRect(x, y, w, h, color);
 		} else {
@@ -589,7 +589,7 @@ void JKG_Slice_DrawGridSummary(int slot, float x, float y, float w, float h) {
 		UI_FillRect(x, y, w, h/2, topcol);
 		UI_FillRect(x, y + (0.5f * h), w, h/2, botcol);
 		if (sliceData.inputState == INPUTSTATE_AWAITINGLINE) {
-			float phase = 0.7f + sin((float)trap_Milliseconds() / 150.0f) * 0.1f;
+			float phase = 0.7f + sin((float)trap->Milliseconds() / 150.0f) * 0.1f;
 			MAKERGBA(color, phase, phase, phase, 1.0f);
 			UI_DrawRect(x, y, w, h, color);
 		} else {
@@ -600,19 +600,19 @@ void JKG_Slice_DrawGridSummary(int slot, float x, float y, float w, float h) {
 
 	if (sliceData.summariesKnown) {
 		text = va("%i", sliceData.summaries[slot].value);
-		w2 = trap_R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
-		DC->drawText(x + (w/2) - (w2/2), y-1, 0.4f, const_cast<vec_t *>(white), text, 0, 0, 0, 0 );
+		w2 = trap->R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
+		DC->drawText(x + (w/2) - (w2/2), y-1, 0.4f, const_cast<float *>(white), text, 0, 0, 0, 0 );
 
 		text = va("%i", sliceData.summaries[slot].alarms);
-		w2 = trap_R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
-		DC->drawText(x + (w/2) - (w2/2), y+(h*0.5f)-1, 0.4f, const_cast<vec_t *>(white), text, 0, 0, 0, 0 );
+		w2 = trap->R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
+		DC->drawText(x + (w/2) - (w2/2), y+(h*0.5f)-1, 0.4f, const_cast<float *>(white), text, 0, 0, 0, 0 );
 	} else {
 		text = "?";
-		w2 = trap_R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
-		DC->drawText(x + (w/2) - (w2/2), y-1, 0.4f, const_cast<vec_t *>(white), text, 0, 0, 0, 0 );
+		w2 = trap->R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
+		DC->drawText(x + (w/2) - (w2/2), y-1, 0.4f, const_cast<float *>(white), text, 0, 0, 0, 0 );
 
-		w2 = trap_R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
-		DC->drawText(x + (w/2) - (w2/2), y+(h*0.5f)-1, 0.4f, const_cast<vec_t *>(white), text, 0, 0, 0, 0 );
+		w2 = trap->R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.4f;
+		DC->drawText(x + (w/2) - (w2/2), y+(h*0.5f)-1, 0.4f, const_cast<float *>(white), text, 0, 0, 0, 0 );
 	}
 
 }
@@ -649,8 +649,8 @@ void JKG_Slice_DrawSecurityClearance(int slot, float x, float y, float w, float 
 
 	text = va("%i", slot + 1);
 	
-	w2 = trap_R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.5f;
-	DC->drawText(x + (w/2) - (w2/2), y+(h*0.2f), 0.5f, const_cast<vec_t *>(white), text, 0, 0, 0, 0 );
+	w2 = trap->R_Font_StrLenPixels(text, MenuFontToHandle(0), 1.0f) * 0.5f;
+	DC->drawText(x + (w/2) - (w2/2), y+(h*0.2f), 0.5f, const_cast<float *>(white), text, 0, 0, 0, 0 );
 
 }
 
@@ -658,7 +658,7 @@ void JKG_Slice_DrawWarningLevel(float x, float y, float w, float h)
 {
 	const char *text = va("Warning level: %i / %i", sliceData.warningLevel, sliceData.warningThreshold);
 
-	DC->drawText(x, y, 0.6f, const_cast<vec_t *>(redfont), text, 0, 0, sliceData.warningLevel >= sliceData.warningThreshold ? ITEM_TEXTSTYLE_BLINK : 0, 1 );
+	DC->drawText(x, y, 0.6f, const_cast<float *>(redfont), text, 0, 0, sliceData.warningLevel >= sliceData.warningThreshold ? ITEM_TEXTSTYLE_BLINK : 0, 1 );
 }
 
 void JKG_Slice_DrawIntrusion(int field, float x, float y, float w, float h)
@@ -685,7 +685,7 @@ void JKG_Slice_DrawIntrusion(int field, float x, float y, float w, float h)
 				break;
 		}
 
-		DC->drawText(x, y, 0.5f, const_cast<vec_t *>(redfont), text, 0, 0, 0, 1 );
+		DC->drawText(x, y, 0.5f, const_cast<float *>(redfont), text, 0, 0, 0, 1 );
 	} else {
 		// Time
 		int mins;
@@ -696,7 +696,7 @@ void JKG_Slice_DrawIntrusion(int field, float x, float y, float w, float h)
 			// Time hasnt started yet
 			time = sliceData.intrusionTime;
 		} else {
-			time = sliceData.intrusionTime - ((trap_Milliseconds() - sliceData.intrusionStart) / 1000);
+			time = sliceData.intrusionTime - ((trap->Milliseconds() - sliceData.intrusionStart) / 1000);
 		}
 		
 		if (time < 0) {
@@ -708,10 +708,10 @@ void JKG_Slice_DrawIntrusion(int field, float x, float y, float w, float h)
 		
 		if (sliceData.intrusionState == 0 || sliceData.intrusionState == 1) {
 			text = va("%02i:%02i remaining until lockdown", mins, secs);
-			DC->drawText(x, y, 0.4f, const_cast<vec_t *>(redfont), text, 0, 0, time <= 10 ? ITEM_TEXTSTYLE_BLINK : 0, 1 );
+			DC->drawText(x, y, 0.4f, const_cast<float *>(redfont), text, 0, 0, time <= 10 ? ITEM_TEXTSTYLE_BLINK : 0, 1 );
 		} else if (sliceData.intrusionState == 3) {
 			text = "Lockdown activated!";
-			DC->drawText(x, y, 0.4f, const_cast<vec_t *>(redfont), text, 0, 0, ITEM_TEXTSTYLE_BLINK, 1 );
+			DC->drawText(x, y, 0.4f, const_cast<float *>(redfont), text, 0, 0, ITEM_TEXTSTYLE_BLINK, 1 );
 		}
 	}
 }

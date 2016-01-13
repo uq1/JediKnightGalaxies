@@ -194,7 +194,7 @@ void JKG_FireWeapon ( centity_t *cent, qboolean altFire );
 void JKG_RenderWeaponWorldModel ( centity_t *cent, const vec3_t angles );
 void JKG_RenderWeaponViewModel ( void );
 
-void JKG_RenderTraceline ( const centity_t *cent, const vec3_t start, const vec3_t end, qboolean altFire );
+void JKG_RenderTraceline ( const centity_t *cent, const vec3_t start, const vec3_t end, unsigned char firingMode );
 void JKG_BounceGrenade ( const centity_t *cent, unsigned char firingMode );
 
 void JKG_BlowExplosive ( const centity_t *cent, qboolean altFire );

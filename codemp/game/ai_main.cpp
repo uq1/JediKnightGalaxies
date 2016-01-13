@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 #include "g_local.h"
 #include "qcommon/q_shared.h"
@@ -91,7 +113,7 @@ void BotSelectWeapon(int client, int weapon)
 //		assert(0);
 		return;
 	}
-	trap_EA_SelectWeapon(client, weapon);
+	trap->EA_SelectWeapon(client, weapon);
 }
 
 
@@ -199,7 +221,7 @@ BotAI_GetSnapshotEntity
 int BotAI_GetSnapshotEntity( int clientNum, int sequence, entityState_t *state ) {
 	int		entNum;
 
-	entNum = trap_BotGetSnapshotEntity( clientNum, sequence );
+	entNum = trap->BotGetSnapshotEntity( clientNum, sequence );
 	if ( entNum == -1 ) {
 		memset(state, 0, sizeof(entityState_t));
 		return -1;
@@ -216,7 +238,7 @@ BotEntityInfo
 ==============
 */
 void BotEntityInfo(int entnum, aas_entityinfo_t *info) {
-	trap_AAS_EntityInfo(entnum, info);
+	trap->AAS_EntityInfo(entnum, info);
 }
 
 /*
@@ -314,7 +336,7 @@ void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
 		bs->viewanglespeed[i] *= 0.45 * (1 - factor);
 	}
 	if (bs->viewangles[PITCH] > 180) bs->viewangles[PITCH] -= 360;
-	trap_EA_View(bs->client, bs->viewangles);
+	trap->EA_View(bs->client, bs->viewangles);
 }
 
 /*
@@ -439,7 +461,7 @@ void BotUpdateInput(bot_state_t *bs, int time, int elapsed_time) {
 	BotChangeViewAngles(bs, (float) elapsed_time / 1000);
 
 	//retrieve the bot input
-	trap_EA_GetInput(bs->client, (float) time / 1000, &bi);
+	trap->EA_GetInput(bs->client, (float) time / 1000, &bi);
 
 	//respawn hack
 	if (bi.actionflags & ACTION_RESPAWN) {
@@ -462,7 +484,7 @@ BotAIRegularUpdate
 */
 void BotAIRegularUpdate(void) {
 	if (regularupdate_time < FloatTime()) {
-		trap_BotUpdateEntityItems();
+		trap->BotUpdateEntityItems();
 		regularupdate_time = FloatTime() + 0.3;
 	}
 }
@@ -504,7 +526,7 @@ int BotAI(int client, float thinktime) {
 	int end = 0;
 #endif
 
-	trap_EA_ResetInput(client);
+	trap->EA_ResetInput(client);
 	//
 	bs = botstates[client];
 	if (!bs || !bs->inuse) {
@@ -515,7 +537,7 @@ int BotAI(int client, float thinktime) {
 	BotAI_GetClientState( client, &bs->cur_ps );
 
 	//retrieve any waiting server commands
-	while( trap_BotGetServerCommand(client, buf, sizeof(buf)) ) {
+	while( trap->BotGetServerCommand(client, buf, sizeof(buf)) ) {
 		//have buf point to the command and args to the command arguments
 		args = strchr( buf, ' ');
 		if (!args) continue;
@@ -549,16 +571,16 @@ int BotAI(int client, float thinktime) {
 	//get the area the bot is in
 
 #ifdef _DEBUG
-	start = trap_Milliseconds();
+	start = trap->Milliseconds();
 #endif
 
 	DOM_StandardBotAI(bs, thinktime);
 	//DOM_StandardBotAI2(bs, thinktime);
 
 #ifdef _DEBUG
-	end = trap_Milliseconds();
+	end = trap->Milliseconds();
 
-	trap_Cvar_Update(&bot_debugmessages);
+	trap->Cvar_Update(&bot_debugmessages);
 
 	if (bot_debugmessages.integer)
 	{
@@ -664,10 +686,10 @@ int BotAISetupClient(int client, struct bot_settings_s *settings, qboolean resta
 
 #ifndef __MMO__
 	//allocate a goal state
-	bs->gs = trap_BotAllocGoalState(client);
+	bs->gs = trap->BotAllocGoalState(client);
 
 	//allocate a weapon state
-	bs->ws = trap_BotAllocWeaponState();
+	bs->ws = trap->BotAllocWeaponState();
 #endif //__MMO__
 
 	bs->inuse = qtrue;
@@ -675,7 +697,7 @@ int BotAISetupClient(int client, struct bot_settings_s *settings, qboolean resta
 	bs->setupcount = 4;
 	bs->entergame_time = FloatTime();
 #ifndef __MMO__
-	bs->ms = trap_BotAllocMoveState();
+	bs->ms = trap->BotAllocMoveState();
 #endif //__MMO__
 	numbots++;
 
@@ -705,11 +727,11 @@ int BotAIShutdownClient(int client, qboolean restart) {
 	}
 
 #ifndef __MMO__
-	trap_BotFreeMoveState(bs->ms);
+	trap->BotFreeMoveState(bs->ms);
 	//free the goal state`			
-	trap_BotFreeGoalState(bs->gs);
+	trap->BotFreeGoalState(bs->gs);
 	//free the weapon weights
-	trap_BotFreeWeaponState(bs->ws);
+	trap->BotFreeWeaponState(bs->ws);
 #endif //__MMO__
 
 	//
@@ -768,11 +790,11 @@ void BotResetState(bot_state_t *bs) {
 	bs->entergame_time = entergame_time;
 #ifndef __MMO__
 	//reset several states
-	if (bs->ms) trap_BotResetMoveState(bs->ms);
-	if (bs->gs) trap_BotResetGoalState(bs->gs);
-	if (bs->ws) trap_BotResetWeaponState(bs->ws);
-	if (bs->gs) trap_BotResetAvoidGoals(bs->gs);
-	if (bs->ms) trap_BotResetAvoidReach(bs->ms);
+	if (bs->ms) trap->BotResetMoveState(bs->ms);
+	if (bs->gs) trap->BotResetGoalState(bs->gs);
+	if (bs->ws) trap->BotResetWeaponState(bs->ws);
+	if (bs->gs) trap->BotResetAvoidGoals(bs->gs);
+	if (bs->ms) trap->BotResetAvoidReach(bs->ms);
 #endif //__MMO__
 }
 
@@ -802,7 +824,7 @@ int OrgVisible(vec3_t org1, vec3_t org2, int ignore)
 {
 	trace_t tr;
 
-	trap_Trace(&tr, org1, NULL, NULL, org2, ignore, MASK_SOLID);
+	trap->Trace(&tr, org1, NULL, NULL, org2, ignore, MASK_SOLID, 0, 0, 0);
 
 	if (tr.fraction == 1)
 	{
@@ -819,11 +841,11 @@ int OrgVisibleBox(vec3_t org1, vec3_t mins, vec3_t maxs, vec3_t org2, int ignore
 
 	if (RMG.integer)
 	{
-		trap_Trace(&tr, org1, NULL, NULL, org2, ignore, MASK_SOLID);
+		trap->Trace(&tr, org1, NULL, NULL, org2, ignore, MASK_SOLID, 0, 0, 0);
 	}
 	else
 	{
-		trap_Trace(&tr, org1, mins, maxs, org2, ignore, MASK_SOLID);
+		trap->Trace(&tr, org1, mins, maxs, org2, ignore, MASK_SOLID, 0, 0, 0);
 	}
 
 	if (tr.fraction == 1 && !tr.startsolid && !tr.allsolid)
@@ -847,7 +869,7 @@ int CheckForFunc(vec3_t org, int ignore)
 
 	under[2] -= 64;
 
-	trap_Trace(&tr, org, NULL, NULL, under, ignore, MASK_SOLID);
+	trap->Trace(&tr, org, NULL, NULL, under, ignore, MASK_SOLID, 0, 0, 0);
 
 	if (tr.fraction == 1)
 	{
@@ -884,7 +906,7 @@ qboolean BotPVSCheck( const vec3_t p1, const vec3_t p2 )
 		return qtrue;
 	}
 
-	return trap_InPVS(p1, p2);
+	return trap->InPVS(p1, p2);
 }
 
 //get the index to the nearest visible waypoint in the global trail
@@ -1529,13 +1551,13 @@ int BotAIStartFrame(int time) {
 
 	if (gUpdateVars < level.time)
 	{
-		trap_Cvar_Update(&bot_pvstype);
-		trap_Cvar_Update(&bot_camp);
-		trap_Cvar_Update(&bot_attachments);
-		trap_Cvar_Update(&bot_forgimmick);
-		trap_Cvar_Update(&bot_honorableduelacceptance);
+		trap->Cvar_Update(&bot_pvstype);
+		trap->Cvar_Update(&bot_camp);
+		trap->Cvar_Update(&bot_attachments);
+		trap->Cvar_Update(&bot_forgimmick);
+		trap->Cvar_Update(&bot_honorableduelacceptance);
 #ifndef FINAL_BUILD
-		trap_Cvar_Update(&bot_getinthecarrr);
+		trap->Cvar_Update(&bot_getinthecarrr);
 #endif
 		gUpdateVars = level.time + 1000;
 	}
@@ -1545,7 +1567,7 @@ int BotAIStartFrame(int time) {
 	//rww - addl bot frame functions
 	if (gBotEdit)
 	{
-		trap_Cvar_Update(&bot_wp_info);
+		trap->Cvar_Update(&bot_wp_info);
 		BotWaypointRender();
 	}
 
@@ -1592,7 +1614,7 @@ int BotAIStartFrame(int time) {
 		}
 
 		BotUpdateInput(botstates[i], time, elapsed_time);
-		trap_BotUserCommand(botstates[i]->client, &botstates[i]->lastucmd);
+		trap->BotUserCommand(botstates[i]->client, &botstates[i]->lastucmd);
 	}
 
 	return qtrue;
@@ -1605,29 +1627,29 @@ BotAISetup
 */
 int BotAISetup( int restart ) {
 	//rww - new bot cvars..
-	trap_Cvar_Register(&bot_forcepowers, "bot_forcepowers", "1", CVAR_CHEAT);
-	trap_Cvar_Register(&bot_forgimmick, "bot_forgimmick", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&bot_honorableduelacceptance, "bot_honorableduelacceptance", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&bot_pvstype, "bot_pvstype", "1", CVAR_CHEAT);
+	trap->Cvar_Register(&bot_forcepowers, "bot_forcepowers", "1", CVAR_CHEAT);
+	trap->Cvar_Register(&bot_forgimmick, "bot_forgimmick", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&bot_honorableduelacceptance, "bot_honorableduelacceptance", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&bot_pvstype, "bot_pvstype", "1", CVAR_CHEAT);
 #ifndef FINAL_BUILD
-	trap_Cvar_Register(&bot_getinthecarrr, "bot_getinthecarrr", "0", 0);
+	trap->Cvar_Register(&bot_getinthecarrr, "bot_getinthecarrr", "0", 0);
 #endif
 
 #ifdef _DEBUG
-	trap_Cvar_Register(&bot_nogoals, "bot_nogoals", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&bot_debugmessages, "bot_debugmessages", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&bot_nogoals, "bot_nogoals", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&bot_debugmessages, "bot_debugmessages", "0", CVAR_CHEAT);
 #endif
 
-	trap_Cvar_Register(&bot_attachments, "bot_attachments", "1", 0);
-	trap_Cvar_Register(&bot_camp, "bot_camp", "1", 0);
+	trap->Cvar_Register(&bot_attachments, "bot_attachments", "1", 0);
+	trap->Cvar_Register(&bot_camp, "bot_camp", "1", 0);
 
-	trap_Cvar_Register(&bot_wp_info, "bot_wp_info", "1", 0);
-	trap_Cvar_Register(&bot_wp_edit, "bot_wp_edit", "0", CVAR_CHEAT);
-	trap_Cvar_Register(&bot_wp_clearweight, "bot_wp_clearweight", "1", 0);
-	trap_Cvar_Register(&bot_wp_distconnect, "bot_wp_distconnect", "1", 0);
-	trap_Cvar_Register(&bot_wp_visconnect, "bot_wp_visconnect", "1", 0);
+	trap->Cvar_Register(&bot_wp_info, "bot_wp_info", "1", 0);
+	trap->Cvar_Register(&bot_wp_edit, "bot_wp_edit", "0", CVAR_CHEAT);
+	trap->Cvar_Register(&bot_wp_clearweight, "bot_wp_clearweight", "1", 0);
+	trap->Cvar_Register(&bot_wp_distconnect, "bot_wp_distconnect", "1", 0);
+	trap->Cvar_Register(&bot_wp_visconnect, "bot_wp_visconnect", "1", 0);
 
-	trap_Cvar_Update(&bot_forcepowers);
+	trap->Cvar_Update(&bot_forcepowers);
 	//end rww
 
 	//if the game is restarted for a tournament
@@ -1638,7 +1660,7 @@ int BotAISetup( int restart ) {
 	//initialize the bot states
 	memset( botstates, 0, sizeof(botstates) );
 
-	if (!trap_BotLibSetup())
+	if (!trap->BotLibSetup())
 	{
 		return qfalse; //wts?!
 	}
@@ -1666,7 +1688,7 @@ int BotAIShutdown( qboolean restart ) {
 		//don't shutdown the bot library
 	}
 	else {
-		trap_BotLibShutdown();
+		trap->BotLibShutdown();
 	}
 	return qtrue;
 }

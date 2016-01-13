@@ -1,13 +1,20 @@
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_local.h"
-#include "bg_strap.h"
 #include <json/cJSON.h>
 #include "../cgame/animtable.h"
 
+#if defined(_GAME)
+	#include "g_local.h"
+#elif defined(_CGAME)
+	#include "cgame/cg_local.h"
+#elif defined(_UI)
+	#include "ui/ui_local.h"
+#endif
+
 static int fmLoadCounter;
 
-static ID_INLINE void BG_ParseWeaponStatsFlags ( weaponData_t *weaponData, const char *flagStr )
+static void BG_ParseWeaponStatsFlags ( weaponData_t *weaponData, const char *flagStr )
 {
     if ( Q_stricmp (flagStr, "cookable") == 0 )
     {
@@ -31,7 +38,7 @@ static ID_INLINE void BG_ParseWeaponStatsFlags ( weaponData_t *weaponData, const
     }
 }
 
-static ID_INLINE void BG_ParseFireModeFiringType ( weaponFireModeStats_t *fireMode, const char *firingTypeStr )
+static void BG_ParseFireModeFiringType ( weaponFireModeStats_t *fireMode, const char *firingTypeStr )
 {
     if ( Q_stricmp (firingTypeStr, "auto") == 0 )
     {
@@ -113,7 +120,7 @@ static const stringID_table_t AmmoTable[] =
 	{ NULL, -1 }
 };
 
-#ifdef QAGAME
+#ifdef _GAME
 #include "jkg_damagetypes.h"
 static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damageNode, qboolean secondary )
 {
@@ -320,7 +327,7 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     }
 
     node = cJSON_GetObjectItem (fireModeNode, "damage");
-#ifdef QAGAME
+#ifdef _GAME
     BG_ParseDamage (fireModeStats, node, qfalse);
     
     node = cJSON_GetObjectItem (fireModeNode, "secondarydamage");
@@ -352,6 +359,9 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     
     node = cJSON_GetObjectItem (fireModeNode, "collisionsize");
     fireModeStats->boxSize = (float)cJSON_ToNumberOpt (node, 0.0);
+
+	node = cJSON_GetObjectItem (fireModeNode, "ammocost");
+    fireModeStats->cost = (char)cJSON_ToIntegerOpt (node, 0);
     
     node = cJSON_GetObjectItem (fireModeNode, "maxchargetime");
     fireModeStats->chargeMaximum = (short)cJSON_ToIntegerOpt (node, 0);
@@ -361,9 +371,9 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     
     node = cJSON_GetObjectItem (fireModeNode, "chargedelay");
     fireModeStats->chargeTime = (short)cJSON_ToIntegerOpt (node, 0);
-    
-    node = cJSON_GetObjectItem (fireModeNode, "ammocost");
-    fireModeStats->cost = (char)cJSON_ToIntegerOpt (node, 0);
+
+	node = cJSON_GetObjectItem (fireModeNode, "chargesubtract");
+	fireModeStats->chargeSubtract = cJSON_ToIntegerOpt(node, fireModeStats->cost);
     
     node = cJSON_GetObjectItem (fireModeNode, "firingtype");
     BG_ParseFireModeFiringType (fireModeStats, cJSON_ToStringOpt (node, "auto"));
@@ -398,7 +408,7 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
 		cJSON *child = NULL;
 
 		child = cJSON_GetObjectItem( node, "accuracyRating" );
-		fireModeStats->weaponAccuracy.accuracyRating = (vec_t)cJSON_ToNumberOpt( child, 32.0f );
+		fireModeStats->weaponAccuracy.accuracyRating = (float)cJSON_ToNumberOpt( child, 32.0f );
 
 		child = cJSON_GetObjectItem( node, "crouchModifier" );
 		fireModeStats->weaponAccuracy.crouchModifier = (float)cJSON_ToNumberOpt( child, 0.8f );
@@ -660,7 +670,7 @@ static void ReadString ( cJSON *parent, const char *field, char *dest, size_t de
 	}
 }
 
-#ifdef CGAME
+#ifdef _CGAME
 
 static void BG_ParseVisualsFireMode ( weaponVisualFireMode_t *fireMode, cJSON *fireModeNode, int numFireModes )
 {
@@ -811,15 +821,15 @@ static void BG_ParseVisualsFireMode ( weaponVisualFireMode_t *fireMode, cJSON *f
 
 	fmLoadCounter++;
 }
-
+#endif
 static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
 {
     cJSON *node = NULL;
     cJSON *child = NULL;
     weaponVisual_t *weaponVisuals = &weaponData->visuals;
-	int i;
 
     ReadString (visualsNode, "worldmodel", weaponVisuals->world_model, sizeof (weaponVisuals->world_model));
+#ifdef _CGAME
     ReadString (visualsNode, "viewmodel", weaponVisuals->view_model, sizeof (weaponVisuals->view_model));
     ReadString (visualsNode, "hudicon", weaponVisuals->icon, sizeof (weaponVisuals->icon));
     ReadString (visualsNode, "hudnaicon", weaponVisuals->icon_na, sizeof (weaponVisuals->icon_na));
@@ -884,7 +894,7 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
     node = cJSON_GetObjectItem (visualsNode, "secondary");
     BG_ParseVisualsFireMode (&weaponVisuals->secondary, node);*/
 
-	for ( i = 0; i < weaponData->numFiringModes; i++ )
+	for ( int i = 0; i < weaponData->numFiringModes; i++ )
 	{
 		node = cJSON_GetObjectItem (visualsNode, va("firemode%i", i) );
 		if(node)
@@ -892,8 +902,8 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
 			BG_ParseVisualsFireMode(&weaponVisuals->visualFireModes[i], node, weaponData->numFiringModes);
 		}
 	}
-}
 #endif
+}
 
 static void BG_ParseWPNSaberData ( weaponData_t *wp, cJSON *json )
 {
@@ -917,7 +927,7 @@ static qboolean BG_ParseWeaponFile ( const char *weaponFilePath )
     
     char weaponFileData[MAX_WEAPON_FILE_LENGTH];
     fileHandle_t f;
-    int fileLen = strap_FS_FOpenFile (weaponFilePath, &f, FS_READ);
+    int fileLen = trap->FS_Open (weaponFilePath, &f, FS_READ);
     
     weaponData_t weaponData;
 
@@ -931,16 +941,16 @@ static qboolean BG_ParseWeaponFile ( const char *weaponFilePath )
     
     if ( (fileLen + 1) >= MAX_WEAPON_FILE_LENGTH )
     {
-        trap_FS_FCloseFile (f);
+        trap->FS_Close (f);
         Com_Printf (S_COLOR_RED "%s: file too big (%d bytes, maximum is %d).\n", weaponFilePath, fileLen, MAX_WEAPON_FILE_LENGTH - 1);
         
         return qfalse;
     }
     
-    strap_FS_Read (&weaponFileData, fileLen, f);
+    trap->FS_Read (&weaponFileData, fileLen, f);
     weaponFileData[fileLen] = '\0';
     
-    strap_FS_FCloseFile (f);
+    trap->FS_Close (f);
     
     json = cJSON_ParsePooled (weaponFileData, error, sizeof (error));
     if ( json == NULL )
@@ -983,16 +993,6 @@ static qboolean BG_ParseWeaponFile ( const char *weaponFilePath )
 			weaponData.numFiringModes++;
 		}
 	}
-	// Old stuff for when we had primary/alt attacks --eez
-    /*jsonNode = cJSON_GetObjectItem (json, "primaryattack");
-    BG_ParseWeaponFireMode (&weaponData.firemodes[0], jsonNode);
-    
-    jsonNode = cJSON_GetObjectItem (json, "secondaryattack");
-    if ( jsonNode != NULL )
-    {
-        weaponData.hasSecondary = 1;
-        BG_ParseWeaponFireMode (&weaponData.firemodes[1], jsonNode);
-    }*/
     
     jsonNode = cJSON_GetObjectItem (json, "playeranims");
     BG_ParseWeaponPlayerAnimations (&weaponData, jsonNode);
@@ -1001,7 +1001,7 @@ static qboolean BG_ParseWeaponFile ( const char *weaponFilePath )
     str = cJSON_ToString (jsonNode);
     Q_strncpyz (weaponData.displayName, str, sizeof (weaponData.displayName));
     
-#ifdef CGAME
+#ifdef _CGAME
     // TODO: Maybe we can turn this into a loop somehow? It's just turning into a stupidly long list.
 
     jsonNode = cJSON_GetObjectItem (json, "weaponanims");
@@ -1010,10 +1010,9 @@ static qboolean BG_ParseWeaponFile ( const char *weaponFilePath )
     jsonNode = cJSON_GetObjectItem (json, "description");
     str = cJSON_ToString (jsonNode);
     Q_strncpyz (weaponData.visuals.description, str, sizeof (weaponData.visuals.description));
-    
+#endif
     jsonNode = cJSON_GetObjectItem (json, "visual");
     BG_ParseVisuals (&weaponData, jsonNode);
-#endif
     
 
     /*if ( weaponData.zoomType != ZOOM_NONE )
@@ -1047,15 +1046,15 @@ static qboolean LoadWeaponCacheFile ( weaponData_t *weaponDataTable, int *numLoa
     weaponDataCacheHeader_t *header = NULL;
     int i;
     
-    fileLen = trap_FS_FOpenFile ("ext_data/weapons/weapcache.bin", &f, FS_READ);
+    fileLen = trap->FS_Open ("ext_data/weapons/weapcache.bin", &f, FS_READ);
     if ( fileLen == -1 || !f )
     {
         return qfalse;
     }
     
     buffer = (char *)malloc (fileLen + 1);
-    trap_FS_Read ((void *)buffer, fileLen, f);
-    trap_FS_FCloseFile (f);
+    trap->FS_Read ((void *)buffer, fileLen, f);
+    trap->FS_Close (f);
     buffer[fileLen] = '\0';
     
     header = (weaponDataCacheHeader_t *)&buffer[0];
@@ -1088,7 +1087,7 @@ static void WriteWeaponCacheFile ( weaponData_t *weaponDataTable, int *numLoaded
     weaponDataCacheHeader_t *header = NULL;
     int bufferSize;
     
-    trap_FS_FOpenFile ("ext_data/weapons/weapcache.bin", &f, FS_WRITE);
+    trap->FS_Open ("ext_data/weapons/weapcache.bin", &f, FS_WRITE);
     if ( !f )
     {
         return;
@@ -1104,23 +1103,22 @@ static void WriteWeaponCacheFile ( weaponData_t *weaponDataTable, int *numLoaded
     p += sizeof (weaponDataCacheHeader_t);
     memcpy (p, weaponDataTable, sizeof (weaponData_t) * *numLoadedWeapons);
     
-    trap_FS_Write ((void *)buffer, bufferSize, f);
-    trap_FS_FCloseFile (f);
+    trap->FS_Write ((void *)buffer, bufferSize, f);
+    trap->FS_Close (f);
     
     free (buffer);
 }
 
-int trap_Milliseconds ( void );
 qboolean BG_LoadWeapons ( weaponData_t *weaponDataTable, unsigned int *numLoadedWeapons, unsigned int *numWeapons )
 {
     int i;
     char weaponFiles[8192];
-    int numFiles = strap_FS_GetFileList ("ext_data/weapons", ".wpn", weaponFiles, sizeof (weaponFiles));
+    int numFiles = trap->FS_GetFileList ("ext_data/weapons", ".wpn", weaponFiles, sizeof (weaponFiles));
     const char *weaponFile = weaponFiles;
     int successful = 0;
     int failed = 0;
     
-    int t = trap_Milliseconds();
+    int t = trap->Milliseconds();
     
     Com_Printf ("------- Weapon Initialization -------\n");
     
@@ -1148,8 +1146,74 @@ qboolean BG_LoadWeapons ( weaponData_t *weaponDataTable, unsigned int *numLoaded
     }*/
     
     Com_Printf ("Successfully loaded %d weapons, failed to load %d weapons.\n", successful, failed);
-    Com_Printf ("Took %d milliseconds.\n", trap_Milliseconds() - t);
+    Com_Printf ("Took %d milliseconds.\n", trap->Milliseconds() - t);
     Com_Printf ("-------------------------------------\n");
     
     return (qboolean)(successful > 0);
 }
+
+// Cloned from CG. Serverside needs Ghoul 2 instances too, in order to calculate muzzle position.
+#if defined(_CGAME) || defined(_GAME)
+
+void BG_InitWeaponG2Instances(void) {
+	unsigned int i = 0;
+	unsigned int j;
+	
+	memset(g2WeaponInstances, 0, sizeof(g2WeaponInstances));
+	
+	for ( i = 0; i <= LAST_USEABLE_WEAPON; i++ )
+	{
+	    unsigned int numVariations = BG_NumberOfWeaponVariations (i);
+	    for ( j = 0; j < numVariations; j++ )
+	    {
+	        const weaponData_t *weaponData = GetWeaponData (i, j);
+			const int id = BG_GetWeaponIndex(i, j);
+
+			if( weaponData && weaponData->classname && weaponData->classname[0] &&			// stop with these goddamn asserts...
+				weaponData->visuals.world_model && weaponData->visuals.world_model[0])		// hard to code with all this background noise going on --eez
+			{
+				void *ghoul2 = NULL;
+	        
+				trap->G2API_InitGhoul2Model (&g2WeaponInstances[id].ghoul2, weaponData->visuals.world_model, 0, 0, 0, 0, 0);
+	        
+				ghoul2 = g2WeaponInstances[id].ghoul2;
+	        
+				if ( trap->G2_HaveWeGhoul2Models (ghoul2) )
+				{
+					trap->G2API_SetBoltInfo (ghoul2, 0, 0);
+					trap->G2API_AddBolt (ghoul2, 0, i == WP_SABER ? "*blade1" : "*flash");
+	            
+					g2WeaponInstances[id].weaponNum = i;
+					g2WeaponInstances[id].weaponVariation = j;
+				}
+			}
+	    }
+	}
+}
+
+void BG_ShutdownWeaponG2Instances(void) {
+	unsigned int i = 0;
+	unsigned int j;
+	unsigned int id = 0;
+	
+	for ( i = 0; i <= LAST_USEABLE_WEAPON; i++ )
+	{
+	    unsigned int numVariations = BG_NumberOfWeaponVariations (i);
+	    for ( j = 0; j < numVariations; j++ )
+	    {
+			if(trap->G2_HaveWeGhoul2Models(g2WeaponInstances[id].ghoul2)) {
+				trap->G2API_CleanGhoul2Models(&g2WeaponInstances[id].ghoul2);
+				g2WeaponInstances[id].ghoul2 = NULL;
+			}
+			id++;
+	    }
+	}
+}
+
+void *BG_GetWeaponGhoul2 ( int weaponNum, int weaponVariation )
+{
+	const int id = BG_GetWeaponIndex(weaponNum, weaponVariation);
+	return g2WeaponInstances[id].ghoul2;
+}
+
+#endif

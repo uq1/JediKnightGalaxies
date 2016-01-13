@@ -20,7 +20,7 @@ Jan
 	yawSpeed	140
 	walkSpeed	55
 	runSpeed	200
-//	race		human
+
 	snd			jan
 	dismemberProbHead	0
 	dismemberProbArms	0

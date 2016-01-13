@@ -1,5 +1,5 @@
+#include "ui_local.h"
 #include "ui_shared.h"
-#include "game/bg_strap.h"
 #include <json/cJSON.h>
 #include <unordered_map>
 #include <string>
@@ -18,7 +18,7 @@ void JKG_UI_LoadStylesheet( const char *text )
 	// Parse the actual stylesheet
 	fileHandle_t f;
 	char filebuffer[32768];
-	int filelen = strap_FS_FOpenFile( va("ui/styles/%s.iss",stylesheet), &f, FS_READ );
+	int filelen = trap->FS_Open( va("ui/styles/%s.iss",stylesheet), &f, FS_READ );
 
 	if ( filelen == -1 || !f )
     {
@@ -29,20 +29,20 @@ void JKG_UI_LoadStylesheet( const char *text )
     if ( filelen == 0 )
     {
         Com_Printf (S_COLOR_RED "Error: stylesheet \"%s\" is empty.\n", stylesheet);
-        strap_FS_FCloseFile (f);
+        trap->FS_Close (f);
         return;
     }
     
     if ( filelen > sizeof(filebuffer)-1 )
     {
         Com_Printf (S_COLOR_RED "Error: really big stylesheet \"%s\"\n", stylesheet);
-        strap_FS_FCloseFile (f);
+        trap->FS_Close (f);
         return;
     }
 
-	strap_FS_Read( filebuffer, filelen, f );
+	trap->FS_Read( filebuffer, filelen, f );
 	filebuffer[filelen] = '\0';
-	strap_FS_FCloseFile( f );
+	trap->FS_Close( f );
 
 	// Parse the actual stylesheet now.
 	char jsonError[MAX_STRING_CHARS] = {0};
@@ -63,7 +63,7 @@ void JKG_UI_LoadStylesheet( const char *text )
 			string name = cJSON_GetItemKey( classObject );
 
 			// fix some junk first off
-			item.typeData = NULL;
+			item.typeData.data = NULL;
 
 			// parse the different blocks of the stylesheet
 			item.accept = cJSON_ToString(cJSON_GetObjectItem(classObject, "accept"));
@@ -111,7 +111,7 @@ void JKG_UI_LoadStylesheet( const char *text )
 			item.textStyle2 = cJSON_ToInteger(cJSON_GetObjectItem(classObject, "textStyle2")); // FIXME: use proper flags
 			item.type = cJSON_ToInteger(cJSON_GetObjectItem(classObject, "type")); // FIXME: use enum
 			//item.window.backColor // need vec parsing
-			item.window.background = DC->registerShaderNoMip(cJSON_ToString(cJSON_GetObjectItem(classObject, "background")));
+			item.window.background = DC->registerShaderNoMip(cJSON_ToStringOpt(cJSON_GetObjectItem(classObject, "background"), ""));
 			item.window.border = cJSON_ToInteger(cJSON_GetObjectItem(classObject, "border"));
 			//item.window.borderColor // need vec parsing
 			item.window.borderSize = cJSON_ToNumber(cJSON_GetObjectItem(classObject, "borderSize"));
@@ -119,7 +119,7 @@ void JKG_UI_LoadStylesheet( const char *text )
 			//item.window.cinematicName // not needed
 			item.window.flags = cJSON_ToInteger(cJSON_GetObjectItem(classObject, "windowFlags")); // FIXME: use proper flags
 			//item.window.foreColor // need vec parsing
-			item.window.foreground = DC->registerShaderNoMip(cJSON_ToString(cJSON_GetObjectItem(classObject, "foreground")));
+			item.window.foreground = DC->registerShaderNoMip(cJSON_ToStringOpt(cJSON_GetObjectItem(classObject, "foreground"), ""));
 			item.window.group = cJSON_ToString(cJSON_GetObjectItem(classObject, "group"));
 			item.window.name = cJSON_ToString(cJSON_GetObjectItem(classObject, "name"));
 			//item.window.outlineColor // same as borderColor??

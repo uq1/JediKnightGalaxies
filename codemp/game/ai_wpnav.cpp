@@ -1,3 +1,26 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "g_local.h"
 #include "qcommon/q_shared.h"
 #include "botlib/botlib.h"
@@ -328,7 +351,7 @@ checkprint:
 	{
 		flagstr = GetFlagStr(gWPArray[bestindex]->flags);
 		gLastPrintedIndex = bestindex;
-		G_Printf(S_COLOR_YELLOW "Waypoint %i\nFlags - %i (%s) (w%f)\nOrigin - (%i %i %i)\n", (int)(gWPArray[bestindex]->index), (int)(gWPArray[bestindex]->flags), flagstr, gWPArray[bestindex]->weight, (int)(gWPArray[bestindex]->origin[0]), (int)(gWPArray[bestindex]->origin[1]), (int)(gWPArray[bestindex]->origin[2]));
+		trap->Print(S_COLOR_YELLOW "Waypoint %i\nFlags - %i (%s) (w%f)\nOrigin - (%i %i %i)\n", (int)(gWPArray[bestindex]->index), (int)(gWPArray[bestindex]->flags), flagstr, gWPArray[bestindex]->weight, (int)(gWPArray[bestindex]->origin[0]), (int)(gWPArray[bestindex]->origin[1]), (int)(gWPArray[bestindex]->origin[2]));
 		//GetFlagStr allocates 128 bytes for this, if it's changed then obviously this must be as well
 		free(flagstr); //flagstr
 
@@ -352,7 +375,7 @@ void TransferWPData(int from, int to)
 
 	if (!gWPArray[to])
 	{
-		G_Printf(S_COLOR_RED "FATAL ERROR: Could not allocated memory for waypoint\n");
+		trap->Print(S_COLOR_RED "FATAL ERROR: Could not allocated memory for waypoint\n");
 	}
 
 	gWPArray[to]->flags = gWPArray[from]->flags;
@@ -389,7 +412,7 @@ void CreateNewWP_Automated(vec3_t origin, int flags)
 	{
 		if (!RMG.integer)
 		{
-			G_Printf(S_COLOR_YELLOW "Warning: Waypoint limit hit (%i)\n", MAX_WPARRAY_SIZE);
+			trap->Print(S_COLOR_YELLOW "Warning: Waypoint limit hit (%i)\n", MAX_WPARRAY_SIZE);
 		}
 		return;
 	}
@@ -402,7 +425,7 @@ void CreateNewWP_Automated(vec3_t origin, int flags)
 
 	if (!gWPArray[gWPNum])
 	{
-		G_Printf(S_COLOR_RED "ERROR: Could not allocated memory for waypoint\n");
+		trap->Print(S_COLOR_RED "ERROR: Could not allocated memory for waypoint\n");
 	}
 
 	if (TooCloseToOtherWaypoint(origin))
@@ -417,7 +440,7 @@ void CreateNewWP_Automated(vec3_t origin, int flags)
 	gWPArray[gWPNum]->inuse = 1;
 	VectorCopy(origin, gWPArray[gWPNum]->origin);
 
-	G_Printf("^2Added waypoint %i at %f %f %f.\n", gWPNum, origin[0], origin[1], origin[2]);
+	trap->Print("^2Added waypoint %i at %f %f %f.\n", gWPNum, origin[0], origin[1], origin[2]);
 
 	gWPNum++;
 }
@@ -428,7 +451,7 @@ void CreateNewWP(vec3_t origin, int flags)
 	{
 		if (!RMG.integer)
 		{
-			G_Printf(S_COLOR_YELLOW "Warning: Waypoint limit hit (%i)\n", MAX_WPARRAY_SIZE);
+			trap->Print(S_COLOR_YELLOW "Warning: Waypoint limit hit (%i)\n", MAX_WPARRAY_SIZE);
 		}
 		return;
 	}
@@ -441,7 +464,7 @@ void CreateNewWP(vec3_t origin, int flags)
 
 	if (!gWPArray[gWPNum])
 	{
-		G_Printf(S_COLOR_RED "ERROR: Could not allocated memory for waypoint\n");
+		trap->Print(S_COLOR_RED "ERROR: Could not allocated memory for waypoint\n");
 	}
 
 	gWPArray[gWPNum]->flags = flags;
@@ -453,7 +476,7 @@ void CreateNewWP(vec3_t origin, int flags)
 	gWPArray[gWPNum]->inuse = 1;
 	VectorCopy(origin, gWPArray[gWPNum]->origin);
 
-	G_Printf("^2Added waypoint %i at %f %f %f.\n", gWPNum, origin[0], origin[1], origin[2]);
+	trap->Print("^2Added waypoint %i at %f %f %f.\n", gWPNum, origin[0], origin[1], origin[2]);
 
 	gWPNum++;
 }
@@ -469,13 +492,12 @@ void CreateNewWP_FromObject(wpobject_t *wp)
 
 	if (!gWPArray[gWPNum])
 	{
-		//gWPArray[gWPNum] = (wpobject_t *)malloc(sizeof(wpobject_t));
 		gWPArray[gWPNum] = (wpobject_t *)malloc(sizeof(wpobject_t));
-	}
 
-	if (!gWPArray[gWPNum])
-	{
-		G_Printf(S_COLOR_RED "ERROR: Could not allocated memory for waypoint\n");
+		if (!gWPArray[gWPNum])
+		{
+			trap->Error( ERR_DROP, "Could not allocate memory for waypoint\n" );
+		}
 	}
 
 	gWPArray[gWPNum]->flags = wp->flags;
@@ -561,7 +583,7 @@ void RemoveWP_InTrail(int afterindex)
 
 	if (afterindex < 0 || afterindex >= gWPNum)
 	{
-		G_Printf(S_COLOR_YELLOW "Waypoint number %i does not exist\n", afterindex);
+		trap->Print(S_COLOR_YELLOW "Waypoint number %i does not exist\n", afterindex);
 		return;
 	}
 
@@ -579,7 +601,7 @@ void RemoveWP_InTrail(int afterindex)
 
 	if (!foundanindex)
 	{
-		G_Printf(S_COLOR_YELLOW "Waypoint index %i should exist, but does not (?)\n", afterindex);
+		trap->Print(S_COLOR_YELLOW "Waypoint index %i should exist, but does not (?)\n", afterindex);
 		return;
 	}
 
@@ -629,14 +651,14 @@ int CreateNewWP_InTrail(vec3_t origin, int flags, int afterindex)
 	{
 		if (!RMG.integer)
 		{
-			G_Printf(S_COLOR_YELLOW "Warning: Waypoint limit hit (%i)\n", MAX_WPARRAY_SIZE);
+			trap->Print(S_COLOR_YELLOW "Warning: Waypoint limit hit (%i)\n", MAX_WPARRAY_SIZE);
 		}
 		return 0;
 	}
 
 	if (afterindex < 0 || afterindex >= gWPNum)
 	{
-		G_Printf(S_COLOR_YELLOW "Waypoint number %i does not exist\n", afterindex);
+		trap->Print(S_COLOR_YELLOW "Waypoint number %i does not exist\n", afterindex);
 		return 0;
 	}
 
@@ -654,7 +676,7 @@ int CreateNewWP_InTrail(vec3_t origin, int flags, int afterindex)
 
 	if (!foundanindex)
 	{
-		G_Printf(S_COLOR_YELLOW "Waypoint index %i should exist, but does not (?)\n", afterindex);
+		trap->Print(S_COLOR_YELLOW "Waypoint index %i should exist, but does not (?)\n", afterindex);
 		return 0;
 	}
 
@@ -708,14 +730,14 @@ int CreateNewWP_InsertUnder(vec3_t origin, int flags, int afterindex)
 	{
 		if (!RMG.integer)
 		{
-			G_Printf(S_COLOR_YELLOW "Warning: Waypoint limit hit (%i)\n", MAX_WPARRAY_SIZE);
+			trap->Print(S_COLOR_YELLOW "Warning: Waypoint limit hit (%i)\n", MAX_WPARRAY_SIZE);
 		}
 		return 0;
 	}
 
 	if (afterindex < 0 || afterindex >= gWPNum)
 	{
-		G_Printf(S_COLOR_YELLOW "Waypoint number %i does not exist\n", afterindex);
+		trap->Print(S_COLOR_YELLOW "Waypoint number %i does not exist\n", afterindex);
 		return 0;
 	}
 
@@ -733,7 +755,7 @@ int CreateNewWP_InsertUnder(vec3_t origin, int flags, int afterindex)
 
 	if (!foundanindex)
 	{
-		G_Printf(S_COLOR_YELLOW "Waypoint index %i should exist, but does not (?)\n", afterindex);
+		trap->Print(S_COLOR_YELLOW "Waypoint index %i should exist, but does not (?)\n", afterindex);
 		return 0;
 	}
 
@@ -791,7 +813,7 @@ void TeleportToWP(gentity_t *pl, int afterindex)
 
 	if (afterindex < 0 || afterindex >= gWPNum)
 	{
-		G_Printf(S_COLOR_YELLOW "Waypoint number %i does not exist\n", afterindex);
+		trap->Print(S_COLOR_YELLOW "Waypoint number %i does not exist\n", afterindex);
 		return;
 	}
 
@@ -809,7 +831,7 @@ void TeleportToWP(gentity_t *pl, int afterindex)
 
 	if (!foundanindex)
 	{
-		G_Printf(S_COLOR_YELLOW "Waypoint index %i should exist, but does not (?)\n", afterindex);
+		trap->Print(S_COLOR_YELLOW "Waypoint index %i should exist, but does not (?)\n", afterindex);
 		return;
 	}
 
@@ -822,7 +844,7 @@ void WPFlagsModify(int wpnum, int flags)
 {
 	if (wpnum < 0 || wpnum >= gWPNum || !gWPArray[wpnum] || !gWPArray[wpnum]->inuse)
 	{
-		G_Printf(S_COLOR_YELLOW "WPFlagsModify: Waypoint %i does not exist\n", wpnum);
+		trap->Print(S_COLOR_YELLOW "WPFlagsModify: Waypoint %i does not exist\n", wpnum);
 		return;
 	}
 
@@ -872,7 +894,7 @@ int CanGetToVector(vec3_t org1, vec3_t org2, vec3_t mins, vec3_t maxs)
 {
 	trace_t tr;
 
-	trap_Trace(&tr, org1, mins, maxs, org2, ENTITYNUM_NONE, MASK_SOLID);
+	trap->Trace(&tr, org1, mins, maxs, org2, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 	if (tr.fraction == 1 && !tr.startsolid && !tr.allsolid)
 	{
@@ -893,7 +915,7 @@ int CanGetToVectorTravel(vec3_t org1, vec3_t org2, vec3_t mins, vec3_t maxs)
 	mins[2] = -13;
 	maxs[2] = 13;
 
-	trap_Trace(&tr, org1, mins, maxs, org2, ENTITYNUM_NONE, MASK_SOLID);
+	trap->Trace(&tr, org1, mins, maxs, org2, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 	if (tr.fraction != 1 || tr.startsolid || tr.allsolid)
 	{
@@ -915,14 +937,14 @@ int CanGetToVectorTravel(vec3_t org1, vec3_t org2, vec3_t mins, vec3_t maxs)
 	VectorCopy(org1, dmid);
 	dmid[2] -= 1024;
 
-	trap_Trace(&tr, midpos, NULL, NULL, dmid, ENTITYNUM_NONE, MASK_SOLID);
+	trap->Trace(&tr, midpos, NULL, NULL, dmid, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 	startheight = org1[2] - tr.endpos[2];
 
 	VectorCopy(midpos, dmid);
 	dmid[2] -= 1024;
 
-	trap_Trace(&tr, midpos, NULL, NULL, dmid, ENTITYNUM_NONE, MASK_SOLID);
+	trap->Trace(&tr, midpos, NULL, NULL, dmid, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 	if (tr.startsolid || tr.allsolid)
 	{
@@ -975,7 +997,7 @@ int CanGetToVectorTravel(vec3_t org1, vec3_t moveTo, vec3_t mins, vec3_t maxs)
 		stepGoal[1] = workingOrg[1] + stepSub[1]*stepSize;
 		stepGoal[2] = workingOrg[2] + stepSub[2]*stepSize;
 
-		trap_Trace(&tr, workingOrg, mins, maxs, stepGoal, ENTITYNUM_NONE, traceMask);
+		trap->Trace(&tr, workingOrg, mins, maxs, stepGoal, ENTITYNUM_NONE, traceMask, 0, 0, 0);
 
 		if (!tr.startsolid && !tr.allsolid && tr.fraction)
 		{
@@ -986,7 +1008,7 @@ int CanGetToVectorTravel(vec3_t org1, vec3_t moveTo, vec3_t mins, vec3_t maxs)
 			{
 				workingOrg[0] = tr.endpos[0];
 				workingOrg[1] = tr.endpos[1];
-				//trap_LinkEntity(self);
+				//trap->LinkEntity(self);
 				didMove = 1;
 			}
 		}
@@ -1012,7 +1034,7 @@ int CanGetToVectorTravel(vec3_t org1, vec3_t moveTo, vec3_t mins, vec3_t maxs)
 
 			if (VectorLength(vecMeasure) > 1)
 			{
-				trap_Trace(&tr, trFrom, mins, maxs, trTo, ENTITYNUM_NONE, traceMask);
+				trap->Trace(&tr, trFrom, mins, maxs, trTo, ENTITYNUM_NONE, traceMask, 0, 0, 0);
 
 				if (!tr.startsolid && !tr.allsolid && tr.fraction == 1)
 				{ //clear trace here, probably up a step
@@ -1022,12 +1044,12 @@ int CanGetToVectorTravel(vec3_t org1, vec3_t moveTo, vec3_t mins, vec3_t maxs)
 					VectorCopy(tr.endpos, trDown);
 					trDown[2] -= 16;
 
-					trap_Trace(&tr, trFrom, mins, maxs, trTo, ENTITYNUM_NONE, traceMask);
+					trap->Trace(&tr, trFrom, mins, maxs, trTo, ENTITYNUM_NONE, traceMask, 0, 0, 0);
 
 					if (!tr.startsolid && !tr.allsolid)
 					{ //plop us down on the step after moving up
 						VectorCopy(tr.endpos, workingOrg);
-						//trap_LinkEntity(self);
+						//trap->LinkEntity(self);
 						didMove = 1;
 					}
 				}
@@ -1137,7 +1159,7 @@ int ConnectTrail(int startindex, int endindex, qboolean behindTheScenes)
 
 	if (!behindTheScenes)
 	{
-		G_Printf(S_COLOR_YELLOW "Point %i is not connected to %i - Repairing...\n", startindex, endindex);
+		trap->Print(S_COLOR_YELLOW "Point %i is not connected to %i - Repairing...\n", startindex, endindex);
 	}
 
 	VectorCopy(gWPArray[startindex]->origin, startplace);
@@ -1146,7 +1168,7 @@ int ConnectTrail(int startindex, int endindex, qboolean behindTheScenes)
 
 	starttrace[2] -= 4096;
 
-	trap_Trace(&tr, startplace, NULL, NULL, starttrace, ENTITYNUM_NONE, MASK_SOLID);
+	trap->Trace(&tr, startplace, NULL, NULL, starttrace, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 	baseheight = startplace[2] - tr.endpos[2];
 
@@ -1219,7 +1241,7 @@ int ConnectTrail(int startindex, int endindex, qboolean behindTheScenes)
 
 				starttrace[2] -= 4096;
 
-				trap_Trace(&tr, testspot, NULL, NULL, starttrace, ENTITYNUM_NONE, MASK_SOLID);
+				trap->Trace(&tr, testspot, NULL, NULL, starttrace, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 				testspot[2] = tr.endpos[2]+baseheight;
 
@@ -1250,7 +1272,7 @@ int ConnectTrail(int startindex, int endindex, qboolean behindTheScenes)
 
 				starttrace[2] -= 4096;
 
-				trap_Trace(&tr, testspot, NULL, NULL, starttrace, ENTITYNUM_NONE, MASK_SOLID);
+				trap->Trace(&tr, testspot, NULL, NULL, starttrace, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 				testspot[2] = tr.endpos[2]+baseheight;
 
@@ -1281,7 +1303,7 @@ int ConnectTrail(int startindex, int endindex, qboolean behindTheScenes)
 
 				starttrace[2] -= 4096;
 
-				trap_Trace(&tr, testspot, NULL, NULL, starttrace, ENTITYNUM_NONE, MASK_SOLID);
+				trap->Trace(&tr, testspot, NULL, NULL, starttrace, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 				testspot[2] = tr.endpos[2]+baseheight;
 
@@ -1312,7 +1334,7 @@ int ConnectTrail(int startindex, int endindex, qboolean behindTheScenes)
 
 				starttrace[2] -= 4096;
 
-				trap_Trace(&tr, testspot, NULL, NULL, starttrace, ENTITYNUM_NONE, MASK_SOLID);
+				trap->Trace(&tr, testspot, NULL, NULL, starttrace, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 				testspot[2] = tr.endpos[2]+baseheight;
 
@@ -1349,13 +1371,13 @@ int ConnectTrail(int startindex, int endindex, qboolean behindTheScenes)
 		if (!behindTheScenes)
 #endif
 		{
-			G_Printf(S_COLOR_RED "Could not link %i to %i, unreachable by node branching.\n", startindex, endindex);
+			trap->Print(S_COLOR_RED "Could not link %i to %i, unreachable by node branching.\n", startindex, endindex);
 		}
 		gWPArray[startindex]->flags |= WPFLAG_ONEWAY_FWD;
 		gWPArray[endindex]->flags |= WPFLAG_ONEWAY_BACK;
 		if (!behindTheScenes)
 		{
-			G_Printf(S_COLOR_YELLOW "Since points cannot be connected, point %i has been flagged as only-forward and point %i has been flagged as only-backward.\n", startindex, endindex);
+			trap->Print(S_COLOR_YELLOW "Since points cannot be connected, point %i has been flagged as only-forward and point %i has been flagged as only-backward.\n", startindex, endindex);
 		}
 
 		/*while (nodenum >= 0)
@@ -1432,7 +1454,7 @@ int ConnectTrail(int startindex, int endindex, qboolean behindTheScenes)
 			{
 				if (!behindTheScenes)
 				{
-					G_Printf(S_COLOR_RED "Could not link %i to %i, waypoint limit hit.\n", startindex, endindex);
+					trap->Print(S_COLOR_RED "Could not link %i to %i, waypoint limit hit.\n", startindex, endindex);
 				}
 				return 0;
 			}
@@ -1452,7 +1474,7 @@ int ConnectTrail(int startindex, int endindex, qboolean behindTheScenes)
 
 	if (!behindTheScenes)
 	{
-		G_Printf(S_COLOR_YELLOW "Finished connecting %i to %i.\n", startindex, endindex);
+		trap->Print(S_COLOR_YELLOW "Finished connecting %i to %i.\n", startindex, endindex);
 	}
 
 	return 1;
@@ -1485,7 +1507,7 @@ int DoorBlockingSection(int start, int end)
 		return 0;
 	}
 
-	trap_Trace(&tr, gWPArray[start]->origin, NULL, NULL, gWPArray[end]->origin, ENTITYNUM_NONE, MASK_SOLID);
+	trap->Trace(&tr, gWPArray[start]->origin, NULL, NULL, gWPArray[end]->origin, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 	if (tr.fraction == 1)
 	{
@@ -1506,7 +1528,7 @@ int DoorBlockingSection(int start, int end)
 
 	start_trace_index = tr.entityNum;
 
-	trap_Trace(&tr, gWPArray[end]->origin, NULL, NULL, gWPArray[start]->origin, ENTITYNUM_NONE, MASK_SOLID);
+	trap->Trace(&tr, gWPArray[end]->origin, NULL, NULL, gWPArray[start]->origin, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 	if (tr.fraction == 1)
 	{
@@ -1543,8 +1565,8 @@ int RepairPaths(qboolean behindTheScenes)
 
 	preAmount = gWPNum;
 
-	trap_Cvar_Update(&bot_wp_distconnect);
-	trap_Cvar_Update(&bot_wp_visconnect);
+	trap->Cvar_Update(&bot_wp_distconnect);
+	trap->Cvar_Update(&bot_wp_visconnect);
 
 	while (i < gWPNum)
 	{
@@ -1588,11 +1610,11 @@ int OrgVisibleCurve(vec3_t org1, vec3_t mins, vec3_t maxs, vec3_t org2, int igno
 	VectorCopy(org1, evenorg1);
 	evenorg1[2] = org2[2];
 
-	trap_Trace(&tr, evenorg1, mins, maxs, org2, ignore, MASK_SOLID);
+	trap->Trace(&tr, evenorg1, mins, maxs, org2, ignore, MASK_SOLID, 0, 0, 0);
 
 	if (tr.fraction == 1 && !tr.startsolid && !tr.allsolid)
 	{
-		trap_Trace(&tr, evenorg1, mins, maxs, org1, ignore, MASK_SOLID);
+		trap->Trace(&tr, evenorg1, mins, maxs, org1, ignore, MASK_SOLID, 0, 0, 0);
 
 		if (tr.fraction == 1 && !tr.startsolid && !tr.allsolid)
 		{
@@ -1899,7 +1921,7 @@ int GetNearestVisibleWPToItem(vec3_t org, int ignore)
 			VectorSubtract(org, gWPArray[i]->origin, a);
 			flLen = VectorLength(a);
 
-			if (flLen < bestdist && trap_InPVS(org, gWPArray[i]->origin) && OrgVisibleBox(org, mins, maxs, gWPArray[i]->origin, ignore))
+			if (flLen < bestdist && trap->InPVS(org, gWPArray[i]->origin) && OrgVisibleBox(org, mins, maxs, gWPArray[i]->origin, ignore))
 			{
 				bestdist = flLen;
 				bestindex = i;
@@ -1919,7 +1941,7 @@ void CalculateWeightGoals(void)
 	gentity_t *ent;
 	float weight;
 
-	trap_Cvar_Update(&bot_wp_clearweight);
+	trap->Cvar_Update(&bot_wp_clearweight);
 
 	if (bot_wp_clearweight.integer)
 	{ //if set then flush out all weight/goal values before calculating them again
@@ -2083,10 +2105,10 @@ void CreateNewWP_FromAWPNode(int index, vec3_t origin, int flags, int weight, in
 
 	if (!gWPArray[gWPNum])
 	{
-		G_Printf(S_COLOR_RED "ERROR: Could not allocated memory for waypoint\n");
+		trap->Print(S_COLOR_RED "ERROR: Could not allocated memory for waypoint\n");
 	}
 
-	//G_Printf("DEBUG: Adding waypoint (%i) %i at %f %f %f with %i links.\n", gWPNum, index, origin[0], origin[1], origin[2], num_links);
+	//trap->Print("DEBUG: Adding waypoint (%i) %i at %f %f %f with %i links.\n", gWPNum, index, origin[0], origin[1], origin[2], num_links);
 
 	gWPArray[gWPNum]->flags = flags;
 	gWPArray[gWPNum]->weight = weight;
@@ -2237,56 +2259,56 @@ AIMOD_NODES_LoadNodes ( void )
 	strcpy( filename, "nodes/" );
 
 	////////////////////
-	trap_Cvar_VariableStringBuffer( "g_scriptName", filename, sizeof(filename) );
+	trap->Cvar_VariableStringBuffer( "g_scriptName", filename, sizeof(filename) );
 	if ( strlen( filename) > 0 )
 	{
-		trap_Cvar_Register( &mapname, "g_scriptName", "", CVAR_ROM );
+		trap->Cvar_Register( &mapname, "g_scriptName", "", CVAR_ROM );
 	}
 	else
 	{
-		trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+		trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 	}
 
 	Q_strcat( filename, sizeof(filename), mapname.string );
 
 	///////////////////
 	//open the node file for reading, return false on error
-	trap_FS_FOpenFile( va( "nodes/%s.bwp", filename), &f, FS_READ );
+	trap->FS_Open( va( "nodes/%s.bwp", filename), &f, FS_READ );
 	if ( !f )
 	{
 		Com_Printf("^1AWP ERROR: Failed to open nodes/%s.bwp\n", filename);
 		return qfalse;
 	}
 
-	trap_Cvar_Register( &mapname, "mapname", "", CVAR_ROM | CVAR_SERVERINFO );	//get the map name
+	trap->Cvar_Register( &mapname, "mapname", "", CVAR_ROM | CVAR_SERVERINFO );	//get the map name
 	strcpy( mp, mapname.string );
-	trap_FS_Read( &nm, strlen( name) + 1, f );									//read in a string the size of the mod name (+1 is because all strings end in hex '00')
-	trap_FS_Read( &version, sizeof(float), f );			//read and make sure the version is the same
+	trap->FS_Read( &nm, strlen( name) + 1, f );									//read in a string the size of the mod name (+1 is because all strings end in hex '00')
+	trap->FS_Read( &version, sizeof(float), f );			//read and make sure the version is the same
 
 	if ( version != NOD_VERSION && version != 1.0f )
 	{
-		G_Printf( "^1*** ^3WARNING^5: Reading from ^7nodes/%s.bwp^3 failed^5!!!\n", filename );
-		G_Printf( "^1*** ^3       ^5  Old node file detected.\n" );
-		trap_FS_FCloseFile( f );
+		trap->Print( "^1*** ^3WARNING^5: Reading from ^7nodes/%s.bwp^3 failed^5!!!\n", filename );
+		trap->Print( "^1*** ^3       ^5  Old node file detected.\n" );
+		trap->FS_Close( f );
 		return qfalse;
 	}
 
-	trap_FS_Read( &map, strlen( mp) + 1, f );			//make sure the file is for the current map
+	trap->FS_Read( &map, strlen( mp) + 1, f );			//make sure the file is for the current map
 	if ( Q_stricmp( map, mp) != 0 )
 	{
-		G_Printf( "^1*** ^3WARNING^5: Reading from ^7nodes/%s.bwp^3 failed^5!!!\n", filename );
-		G_Printf( "^1*** ^3       ^5  Node file is not for this map!\n" );
-		trap_FS_FCloseFile( f );
+		trap->Print( "^1*** ^3WARNING^5: Reading from ^7nodes/%s.bwp^3 failed^5!!!\n", filename );
+		trap->Print( "^1*** ^3       ^5  Node file is not for this map!\n" );
+		trap->FS_Close( f );
 		return qfalse;
 	}
 
 	if (version == NOD_VERSION)
 	{
-		trap_FS_Read( &numberNodes, sizeof(/*short*/ int), f ); //read in the number of nodes in the map
+		trap->FS_Read( &numberNodes, sizeof(/*short*/ int), f ); //read in the number of nodes in the map
 	}
 	else
 	{
-		trap_FS_Read( &temp, sizeof(short int), f ); //read in the number of nodes in the map
+		trap->FS_Read( &temp, sizeof(short int), f ); //read in the number of nodes in the map
 		numberNodes = temp;
 	}
 
@@ -2303,11 +2325,11 @@ AIMOD_NODES_LoadNodes ( void )
 		}
 
 		//read in all the node info stored in the file
-		trap_FS_Read( &vec, sizeof(vec3_t), f );
-		trap_FS_Read( &flags, sizeof(int), f );
-		trap_FS_Read( objNum, sizeof(short int) * 3, f );
-		trap_FS_Read( &objFlags, sizeof(short int), f );
-		trap_FS_Read( &numLinks, sizeof(short int), f );
+		trap->FS_Read( &vec, sizeof(vec3_t), f );
+		trap->FS_Read( &flags, sizeof(int), f );
+		trap->FS_Read( objNum, sizeof(short int) * 3, f );
+		trap->FS_Read( &objFlags, sizeof(short int), f );
+		trap->FS_Read( &numLinks, sizeof(short int), f );
 
 		//Load_AddNode( vec, flags, objNum, objFlags );	//add the node
 
@@ -2316,15 +2338,15 @@ AIMOD_NODES_LoadNodes ( void )
 		{
 			if (version == NOD_VERSION)
 			{
-				trap_FS_Read( &target, sizeof(/*short*/ int), f );
+				trap->FS_Read( &target, sizeof(/*short*/ int), f );
 			}
 			else
 			{
-				trap_FS_Read( &temp, sizeof(short int), f );
+				trap->FS_Read( &temp, sizeof(short int), f );
 				target = temp;
 			}
 
-			trap_FS_Read( &fl2, sizeof(short int), f );
+			trap->FS_Read( &fl2, sizeof(short int), f );
 			//ConnectNodes( i, target, fl2 );				//add any links
 			links[j] = target;
 			link_flags[j] = fl2;
@@ -2336,9 +2358,9 @@ AIMOD_NODES_LoadNodes ( void )
 		CreateNewWP_FromAWPNode(i, vec, new_flags, 1/*weight*/, -1/*associated_entity*/, 64.0f/*disttonext*/, -1, numLinks, links, link_flags);
 	}
 
-	trap_FS_Read( &fix_aas_nodes, sizeof(short int), f );
-	trap_FS_FCloseFile( f );							//close the file
-	G_Printf( "^1*** ^3%s^5: Successfully loaded %i waypoints from advanced waypoint file ^7nodes/%s.bwp^5.\n", GAME_VERSION,
+	trap->FS_Read( &fix_aas_nodes, sizeof(short int), f );
+	trap->FS_Close( f );							//close the file
+	trap->Print( "^1*** ^3%s^5: Successfully loaded %i waypoints from advanced waypoint file ^7nodes/%s.bwp^5.\n", GAME_VERSION,
 			  numberNodes, filename );
 	//nodes_loaded = qtrue;
 
@@ -2369,7 +2391,7 @@ int LoadPathData(const char *filename)
 
 	Com_sprintf(routePath, 1024, "botroutes/%s.wnt\0", filename);
 
-	len = trap_FS_FOpenFile(routePath, &f, FS_READ);
+	len = trap->FS_Open(routePath, &f, FS_READ);
 
 	free(routePath); //routePath
 
@@ -2378,21 +2400,21 @@ int LoadPathData(const char *filename)
 //#ifdef __AUTOWAYPOINT__
 //		if (AIMOD_NODES_LoadNodes()) return 1; // UQ1: Load/Convert Auto-Waypoint Nodes...
 //#else //!__AUTOWAYPOINT__
-		G_Printf(S_COLOR_YELLOW "Bot route data not found for %s\n", filename);
+		trap->Print(S_COLOR_YELLOW "Bot route data not found for %s\n", filename);
 //#endif //__AUTOWAYPOINT__
 		return 2;
 	}
 
 	if (len >= 524288)
 	{
-		G_Printf(S_COLOR_RED "Route file exceeds maximum length\n");
+		trap->Print(S_COLOR_RED "Route file exceeds maximum length\n");
 		return 0;
 	}
 
 	fileString = (char *)malloc(524288);
 	currentVar = (char *)malloc(2048);
 
-	trap_FS_Read(fileString, len, f);
+	trap->FS_Read(fileString, len, f);
 
 	if (fileString[i] == 'l')
 	{ //contains a "levelflags" entry..
@@ -2582,7 +2604,7 @@ int LoadPathData(const char *filename)
 	free(fileString);
 	free(currentVar);
 
-	trap_FS_FCloseFile(f);
+	trap->FS_Close(f);
 
 	CalculateWeightGoals();
 	//calculate weights for idle activity goals when
@@ -2592,9 +2614,18 @@ int LoadPathData(const char *filename)
 	//Look at jump points and mark them as requiring
 	//force jumping as needed
 
-	G_Printf("^2Loaded %i waypoints for from %s.\n", gWPNum, filename);
+	trap->Print("^2Loaded %i waypoints for from %s.\n", gWPNum, filename);
 
 	return 1;
+}
+
+void WaypointsCleanup()
+{
+	for ( int i = 0; i < gWPNum; i++ )
+	{
+		free( gWPArray[i] );
+		gWPArray[i] = NULL;
+	}
 }
 
 void FlagObjects(void)
@@ -2655,7 +2686,7 @@ void FlagObjects(void)
 
 			if (tlen < bestdist)
 			{
-				trap_Trace(&tr, flag_red->s.pos.trBase, mins, maxs, gWPArray[i]->origin, flag_red->s.number, MASK_SOLID);
+				trap->Trace(&tr, flag_red->s.pos.trBase, mins, maxs, gWPArray[i]->origin, flag_red->s.number, MASK_SOLID, 0, 0, 0);
 
 				if (tr.fraction == 1 || tr.entityNum == flag_red->s.number)
 				{
@@ -2692,7 +2723,7 @@ void FlagObjects(void)
 
 			if (tlen < bestdist)
 			{
-				trap_Trace(&tr, flag_blue->s.pos.trBase, mins, maxs, gWPArray[i]->origin, flag_blue->s.number, MASK_SOLID);
+				trap->Trace(&tr, flag_blue->s.pos.trBase, mins, maxs, gWPArray[i]->origin, flag_blue->s.number, MASK_SOLID, 0, 0, 0);
 
 				if (tr.fraction == 1 || tr.entityNum == flag_blue->s.number)
 				{
@@ -2739,19 +2770,19 @@ int SavePathData(const char *filename)
 
 	Com_sprintf(routePath, 1024, "botroutes/%s.wnt\0", filename);
 
-	trap_FS_FOpenFile(routePath, &f, FS_WRITE);
+	trap->FS_Open(routePath, &f, FS_WRITE);
 
 	free(routePath);
 
 	if (!f)
 	{
-		G_Printf(S_COLOR_RED "ERROR: Could not open file %s to write path data\n", filename);
+		trap->Print(S_COLOR_RED "ERROR: Could not open file %s to write path data\n", filename);
 		return 0;
 	}
 
 	if (!RepairPaths(qfalse)) //check if we can see all waypoints from the last. If not, try to branch over.
 	{
-		trap_FS_FCloseFile(f);
+		trap->FS_Close(f);
 		return 0;
 	}
 
@@ -2834,14 +2865,14 @@ int SavePathData(const char *filename)
 		i++;
 	}
 
-	trap_FS_Write(fileString, strlen(fileString), f);
+	trap->FS_Write(fileString, strlen(fileString), f);
 
 	free(fileString);
 	free(storeString);
 
-	trap_FS_FCloseFile(f);
+	trap->FS_Close(f);
 
-	G_Printf("Path data has been saved and updated. You may need to restart the level for some things to be properly calculated.\n");
+	trap->Print("Path data has been saved and updated. You may need to restart the level for some things to be properly calculated.\n");
 
 	return 1;
 }
@@ -3007,7 +3038,7 @@ int G_RecursiveConnection(int start, int end, int weight, qboolean traceCheck, f
 
 		if (indexDirections[i] != -1 && traceCheck)
 		{ //if we care about trace visibility between nodes, perform the check and mark as not valid if the trace isn't clear.
-			trap_Trace(&tr, nodetable[start].origin, NULL, NULL, nodetable[indexDirections[i]].origin, ENTITYNUM_NONE, CONTENTS_SOLID);
+			trap->Trace(&tr, nodetable[start].origin, NULL, NULL, nodetable[indexDirections[i]].origin, ENTITYNUM_NONE, CONTENTS_SOLID, 0, 0, 0);
 
 			if (tr.fraction != 1)
 			{
@@ -3057,9 +3088,9 @@ void G_DebugNodeFile()
 		i++;
 	}
 
-	trap_FS_FOpenFile("ROUTEDEBUG.txt", &f, FS_WRITE);
-	trap_FS_Write(fileString, strlen(fileString), f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Open("ROUTEDEBUG.txt", &f, FS_WRITE);
+	trap->FS_Write(fileString, strlen(fileString), f);
+	trap->FS_Close(f);
 }
 #endif
 
@@ -3189,9 +3220,9 @@ void CreateAsciiTableRepresentation()
 
 	fileString[sP] = 0;
 
-	trap_FS_FOpenFile("ROUTEDRAWN.txt", &f, FS_WRITE);
-	trap_FS_Write(fileString, strlen(fileString), f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Open("ROUTEDRAWN.txt", &f, FS_WRITE);
+	trap->FS_Write(fileString, strlen(fileString), f);
+	trap->FS_Close(f);
 }
 
 void CreateAsciiNodeTableRepresentation(int start, int end)
@@ -3313,9 +3344,9 @@ void CreateAsciiNodeTableRepresentation(int start, int end)
 
 	fileString[sP] = 0;
 
-	trap_FS_FOpenFile("ROUTEDRAWN.txt", &f, FS_WRITE);
-	trap_FS_Write(fileString, strlen(fileString), f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Open("ROUTEDRAWN.txt", &f, FS_WRITE);
+	trap->FS_Write(fileString, strlen(fileString), f);
+	trap->FS_Close(f);
 }
 #endif
 
@@ -3410,12 +3441,12 @@ void G_RMGPathing(void)
 
 	if (!terrain || !terrain->inuse || terrain->s.eType != ET_TERRAIN)
 	{
-		G_Printf("Error: RMG with no terrain!\n");
+		trap->Print("Error: RMG with no terrain!\n");
 		return;
 	}
 
 #ifdef PATH_TIME_DEBUG
-	startTime = trap_Milliseconds();
+	startTime = trap->Milliseconds();
 #endif
 
 	nodenum = 0;
@@ -3450,7 +3481,7 @@ void G_RMGPathing(void)
 
 			VectorCopy(nodetable[nodenum].origin, downVec);
 			downVec[2] -= 3000;
-			trap_Trace(&tr, nodetable[nodenum].origin, trMins, trMaxs, downVec, ENTITYNUM_NONE, MASK_SOLID);
+			trap->Trace(&tr, nodetable[nodenum].origin, trMins, trMaxs, downVec, ENTITYNUM_NONE, MASK_SOLID, 0, 0, 0);
 
 			if ((tr.entityNum >= ENTITYNUM_WORLD || g_entities[tr.entityNum].s.eType == ET_TERRAIN) && tr.endpos[2] < terrain->r.absmin[2]+750)
 			{ //only drop nodes on terrain directly
@@ -3580,9 +3611,9 @@ void G_RMGPathing(void)
 #endif
 
 #ifdef PATH_TIME_DEBUG
-	endTime = trap_Milliseconds();
+	endTime = trap->Milliseconds();
 
-	G_Printf("Total routing time taken: %ims\n", (endTime - startTime));
+	trap->Print("Total routing time taken: %ims\n", (endTime - startTime));
 #endif
 
 #ifdef ASCII_ART_DEBUG
@@ -3633,8 +3664,8 @@ void BeginAutoPathRoutine(void)
 #endif
 	
 	//rww - Using a faster in-engine version because we're having to wait for this stuff to get done as opposed to just saving it once.
-	trap_Bot_UpdateWaypoints(gWPNum, gWPArray);
-	trap_Bot_CalculatePaths(RMG.integer);
+	trap->BotUpdateWaypoints(gWPNum, gWPArray);
+	trap->BotCalculatePaths(RMG.integer);
 	//CalculatePaths(); //make everything nice and connected
 
 #ifdef PAINFULLY_DEBUGGING_THROUGH_VM
@@ -3688,11 +3719,11 @@ void LoadPath_ThisLevel(void)
 	int			i = 0;
 	gentity_t	*ent = NULL;
 
-	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+	trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 
 	if (RMG.integer)
 	{ //If RMG, generate the path on-the-fly
-		trap_Cvar_Register(&bot_normgpath, "bot_normgpath", "1", CVAR_CHEAT);
+		trap->Cvar_Register(&bot_normgpath, "bot_normgpath", "1", CVAR_CHEAT);
 		//note: This is disabled for now as I'm using standard bot nav
 		//on premade terrain levels.
 
@@ -3715,7 +3746,7 @@ void LoadPath_ThisLevel(void)
 		}
 	}
 
-	trap_Cvar_Update(&bot_wp_edit);
+	trap->Cvar_Update(&bot_wp_edit);
 
 	if (bot_wp_edit.value)
 	{
@@ -3860,13 +3891,13 @@ int AcceptBotCommand(char *cmd, gentity_t *pl)
 
 	if (Q_stricmp (cmd, "bot_wp_cmdlist") == 0) //lists all the bot waypoint commands.
 	{
-		G_Printf(S_COLOR_YELLOW "bot_wp_add" S_COLOR_WHITE " - Add a waypoint (optional int parameter will insert the point after the specified waypoint index in a trail)\n\n");
-		G_Printf(S_COLOR_YELLOW "bot_wp_rem" S_COLOR_WHITE " - Remove a waypoint (removes last unless waypoint index is specified as a parameter)\n\n");
-		G_Printf(S_COLOR_YELLOW "bot_wp_addflagged" S_COLOR_WHITE " - Same as wp_add, but adds a flagged point (type bot_wp_addflagged for help)\n\n");
-		G_Printf(S_COLOR_YELLOW "bot_wp_switchflags" S_COLOR_WHITE " - Switches flags on an existing waypoint (type bot_wp_switchflags for help)\n\n");
-		G_Printf(S_COLOR_YELLOW "bot_wp_tele" S_COLOR_WHITE " - Teleport yourself to the specified waypoint's location\n");
-		G_Printf(S_COLOR_YELLOW "bot_wp_killoneways" S_COLOR_WHITE " - Removes oneway (backward and forward) flags on all waypoints in the level\n\n");
-		G_Printf(S_COLOR_YELLOW "bot_wp_save" S_COLOR_WHITE " - Saves all waypoint data into a file for later use\n");
+		trap->Print(S_COLOR_YELLOW "bot_wp_add" S_COLOR_WHITE " - Add a waypoint (optional int parameter will insert the point after the specified waypoint index in a trail)\n\n");
+		trap->Print(S_COLOR_YELLOW "bot_wp_rem" S_COLOR_WHITE " - Remove a waypoint (removes last unless waypoint index is specified as a parameter)\n\n");
+		trap->Print(S_COLOR_YELLOW "bot_wp_addflagged" S_COLOR_WHITE " - Same as wp_add, but adds a flagged point (type bot_wp_addflagged for help)\n\n");
+		trap->Print(S_COLOR_YELLOW "bot_wp_switchflags" S_COLOR_WHITE " - Switches flags on an existing waypoint (type bot_wp_switchflags for help)\n\n");
+		trap->Print(S_COLOR_YELLOW "bot_wp_tele" S_COLOR_WHITE " - Teleport yourself to the specified waypoint's location\n");
+		trap->Print(S_COLOR_YELLOW "bot_wp_killoneways" S_COLOR_WHITE " - Removes oneway (backward and forward) flags on all waypoints in the level\n\n");
+		trap->Print(S_COLOR_YELLOW "bot_wp_save" S_COLOR_WHITE " - Saves all waypoint data into a file for later use\n");
 
 		return 1;
 	}
@@ -3931,7 +3962,7 @@ int AcceptBotCommand(char *cmd, gentity_t *pl)
 		}
 		else
 		{
-			G_Printf(S_COLOR_YELLOW "You didn't specify an index. Assuming last.\n");
+			trap->Print(S_COLOR_YELLOW "You didn't specify an index. Assuming last.\n");
 			TeleportToWP(pl, gWPNum-1);
 		}
 		return 1;
@@ -3963,7 +3994,7 @@ int AcceptBotCommand(char *cmd, gentity_t *pl)
 
 		if (!RequiredSArgument || !RequiredSArgument[0])
 		{
-			G_Printf(S_COLOR_YELLOW "Flag string needed for bot_wp_addflagged\nj - Jump point\nd - Duck point\nc - Snipe or camp standing\nf - Wait for func\nm - Do not move to when func is under\ns - Snipe or camp\nx - Oneway, forward\ny - Oneway, back\ng - Mission goal\nn - No visibility\nExample (for a point the bot would jump at, and reverse on when traveling a trail backwards):\nbot_wp_addflagged jx\n");
+			trap->Print(S_COLOR_YELLOW "Flag string needed for bot_wp_addflagged\nj - Jump point\nd - Duck point\nc - Snipe or camp standing\nf - Wait for func\nm - Do not move to when func is under\ns - Snipe or camp\nx - Oneway, forward\ny - Oneway, back\ng - Mission goal\nn - No visibility\nExample (for a point the bot would jump at, and reverse on when traveling a trail backwards):\nbot_wp_addflagged jx\n");
 			return 1;
 		}
 
@@ -4039,7 +4070,7 @@ int AcceptBotCommand(char *cmd, gentity_t *pl)
 
 		if (!RequiredSArgument || !RequiredSArgument[0])
 		{
-			G_Printf(S_COLOR_YELLOW "Flag string needed for bot_wp_switchflags\nType bot_wp_addflagged for a list of flags and their corresponding characters, or use 0 for no flags.\nSyntax: bot_wp_switchflags <flags> <n>\n");
+			trap->Print(S_COLOR_YELLOW "Flag string needed for bot_wp_switchflags\nType bot_wp_addflagged for a list of flags and their corresponding characters, or use 0 for no flags.\nSyntax: bot_wp_switchflags <flags> <n>\n");
 			return 1;
 		}
 
@@ -4102,7 +4133,7 @@ int AcceptBotCommand(char *cmd, gentity_t *pl)
 		}
 		else
 		{
-			G_Printf(S_COLOR_YELLOW "Waypoint number (to modify) needed for bot_wp_switchflags\nSyntax: bot_wp_switchflags <flags> <n>\n");
+			trap->Print(S_COLOR_YELLOW "Waypoint number (to modify) needed for bot_wp_switchflags\nSyntax: bot_wp_switchflags <flags> <n>\n");
 		}
 		return 1;
 	}
@@ -4134,7 +4165,7 @@ int AcceptBotCommand(char *cmd, gentity_t *pl)
 	if (Q_stricmp (cmd, "bot_wp_save") == 0)
 	{
 		gDeactivated = 0;
-		trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+		trap->Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 		SavePathData(mapname.string);
 		return 1;
 	}

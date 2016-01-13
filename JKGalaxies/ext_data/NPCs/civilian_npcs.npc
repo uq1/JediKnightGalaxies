@@ -13,7 +13,6 @@ civilian_bartender
 	rank		crewman
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		human
 	class		CLASS_CIVILIAN
 	walkSpeed	55
 	runSpeed	200
@@ -102,7 +101,6 @@ civilian_protocol
 	intelligence	5
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		bot
 	class		CLASS_CIVILIAN
 	snd			protocol
 	yawSpeed	60
@@ -136,7 +134,6 @@ civilian_r2d2
 	intelligence		5
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race			bot
 	class			CLASS_CIVILIAN
 	yawSpeed		120
 	runSpeed		150
@@ -169,7 +166,6 @@ civilian_r5d2
 	intelligence	5
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		bot
 	class		CLASS_CIVILIAN
 	yawSpeed	60
 	runSpeed	150
@@ -198,7 +194,6 @@ civilian_rodian
 	rank		crewman
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		klingon
 	class		CLASS_CIVILIAN
 	snd			rodian1
 	sndcombat	rodian1
@@ -233,7 +228,6 @@ civilian_rodian2
 	rank		crewman
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		klingon
 	class		CLASS_CIVILIAN
 	snd			rodian2
 	sndcombat	rodian2
@@ -264,7 +258,6 @@ civilian_trandoshan
 	rank		crewman
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		klingon
 	class		CLASS_CIVILIAN
 	snd			trandoshan1
 	sndcombat	trandoshan1

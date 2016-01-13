@@ -17,7 +17,7 @@ GLua_Data_Cvar_t *GLua_CheckCvar(lua_State *L, int idx) {
 
 void GLua_Cvar_UpdateCvar(GLua_Data_Cvar_t *cv) {
 	cv->lastModifiedCount = cv->cvar.modificationCount;
-	trap_Cvar_Update(&cv->cvar);
+	trap->Cvar_Update(&cv->cvar);
 	cv->lastUpdate = level.time;
 }
 
@@ -92,7 +92,7 @@ static int GLua_Cvar_Update(lua_State *L) {
 static int GLua_Cvar_Set(lua_State *L) {
 	GLua_Data_Cvar_t *cv = GLua_CheckCvar(L, 1);
 	const char *newvalue = luaL_checkstring(L,2);
-	trap_Cvar_Set(cv->name, newvalue);
+	trap->Cvar_Set(cv->name, newvalue);
 	GLua_Cvar_UpdateCvar(cv);
 	return 0;
 }
@@ -140,7 +140,7 @@ static int GLua_Cvar_Create(lua_State *L) {
 	int flags = luaL_checkinteger(L,3);
 	GLua_Data_Cvar_t *cv = (GLua_Data_Cvar_t *)lua_newuserdata(L, sizeof(GLua_Data_Cvar_t));
 	memset(cv,0,sizeof(GLua_Data_Cvar_t));
-	trap_Cvar_Register(&cv->cvar, cvarname, defval, flags);
+	trap->Cvar_Register(&cv->cvar, cvarname, defval, flags);
 	cv->lastUpdate = level.time;
 	Q_strncpyz(cv->name, cvarname,sizeof(cv->name));
 	luaL_getmetatable(L,"Cvar");

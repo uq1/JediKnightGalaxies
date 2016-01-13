@@ -20,14 +20,14 @@ void craftingtable_use( gentity_t *self, gentity_t *other, gentity_t *activator 
 	switch(self->genericValue4)
 	{
 		case CRAFTING_WELDING:
-			trap_SendServerCommand(activator->client->ps.clientNum, "itemCraftStart welding");
+			trap->SendServerCommand(activator->client->ps.clientNum, "itemCraftStart welding");
 			break;
 		case CRAFTING_CHEMICAL:
-			trap_SendServerCommand(activator->client->ps.clientNum, "itemCraftStart chemical");
+			trap->SendServerCommand(activator->client->ps.clientNum, "itemCraftStart chemical");
 			break;
 		case CRAFTING_WORKBENCH:
 		default:
-			trap_SendServerCommand(activator->client->ps.clientNum, "itemCraftStart workbench");
+			trap->SendServerCommand(activator->client->ps.clientNum, "itemCraftStart workbench");
 			break;
 	}
 	activator->isAtWorkbench = qtrue;
@@ -83,7 +83,7 @@ void SP_jkg_workbench(gentity_t *ent)
 
 	ent->use = craftingtable_use;
 
-	trap_LinkEntity(ent);
+	trap->LinkEntity((sharedEntity_t *)ent);
 }
 
 /*
@@ -102,7 +102,7 @@ qboolean JKG_Items_LoadCraftFile( const char *filePath, craftRecipe_t *craftData
 	
 	char craftFileData[MAX_CRAFTING_FILE_SIZE];
 	fileHandle_t f;
-	int fileLen = strap_FS_FOpenFile(filePath, &f, FS_READ);
+	int fileLen = trap->FS_Open(filePath, &f, FS_READ);
 
 	if(!f || fileLen == -1)
 	{
@@ -111,15 +111,15 @@ qboolean JKG_Items_LoadCraftFile( const char *filePath, craftRecipe_t *craftData
 	}
 	if( (fileLen + 1) >= MAX_CRAFTING_FILE_SIZE )
 	{
-		strap_FS_FCloseFile(f);
+		trap->FS_Close(f);
 		Com_Printf(S_COLOR_RED "%s: File too large\n", filePath);
 		return qfalse;
 	}
 
-	strap_FS_Read(&craftFileData, fileLen, f);
+	trap->FS_Read(&craftFileData, fileLen, f);
 	craftFileData[fileLen] = '\0';
 
-	strap_FS_FCloseFile(f);
+	trap->FS_Close(f);
 
 	json = cJSON_ParsePooled(craftFileData, error, sizeof(error));
 	if(json == NULL)
@@ -192,7 +192,7 @@ void JKG_Items_LoadCraftingSection( const char * const bench, const char * const
 {
 	int i = 0;
 	char craftFiles[16384];
-	int numFiles = strap_FS_GetFileList(va("ext_data/crafting/%s/%s", bench, section), ".craft", craftFiles, sizeof(craftFiles));
+	int numFiles = trap->FS_GetFileList(va("ext_data/crafting/%s/%s", bench, section), ".craft", craftFiles, sizeof(craftFiles));
 	const char *craftFile = craftFiles;
 	int successful = 0;
 	int failed = 0;
@@ -267,14 +267,14 @@ void JKG_Items_CraftRecipe( gentity_t *ent, craftRecipe_t *craftData )
 	if(!ent->isAtWorkbench)
 	{
 		free(matsWeHave);
-		trap_SendServerCommand(ent->client->ps.clientNum, "print \"^1You need a medium to craft on.\n\"");
+		trap->SendServerCommand(ent->client->ps.clientNum, "print \"^1You need a medium to craft on.\n\"");
 		return;
 	}
 	
 	if(craftData->craftBench != ent->currentlyLooting->genericValue4)
 	{
 		free(matsWeHave);
-		trap_SendServerCommand(ent->client->ps.clientNum, "print \"^1You can't craft that recipe here.\n\"");
+		trap->SendServerCommand(ent->client->ps.clientNum, "print \"^1You can't craft that recipe here.\n\"");
 		return;
 	}
 
@@ -285,7 +285,7 @@ void JKG_Items_CraftRecipe( gentity_t *ent, craftRecipe_t *craftData )
 		if(inventoryID == -1)
 		{ // :(
 			free(matsWeHave);
-			trap_SendServerCommand(ent->client->ps.clientNum, "print \"^1You do not have the materials required to make this.\n\"");
+			trap->SendServerCommand(ent->client->ps.clientNum, "print \"^1You do not have the materials required to make this.\n\"");
 			return;
 		}
 		matsWeHave[i] = inventoryID;

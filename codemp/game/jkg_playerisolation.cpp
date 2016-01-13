@@ -63,7 +63,7 @@ void JKG_PMTrace( trace_t *results, const vec3_t start, const vec3_t mins, const
 	int i, j;
 	if (passEntityNum < 0 || passEntityNum >= MAX_CLIENTS) {
 		// Not a valid client
-		trap_Trace(results, start, mins, maxs, end, passEntityNum, contentmask);
+		trap->Trace(results, start, mins, maxs, end, passEntityNum, contentmask, 0, 0, 0);
 		return;
 	}
 	// This of for a player, so clear out the contents of all player's he's hidden to
@@ -76,7 +76,7 @@ void JKG_PMTrace( trace_t *results, const vec3_t start, const vec3_t mins, const
 		}
 	}
 
-	trap_Trace(results, start, mins, maxs, end, passEntityNum, contentmask);
+	trap->Trace(results, start, mins, maxs, end, passEntityNum, contentmask, 0, 0, 0);
 	
 	for (i=0; i<j; i++) {
 		g_entities[contbackup[i].entNum].r.contents = contbackup[i].contents;

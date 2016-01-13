@@ -29,7 +29,7 @@ typedef struct ammo_s
 	unsigned int ammoMax;
 
 	// Below appears unused. --eez
-    #ifdef CGAME
+    #ifdef _CGAME
     qhandle_t   model;
     fxHandle_t  fx;
     fxHandle_t  missFx;

@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "tr_local.h"
 
 /*
@@ -46,10 +68,9 @@ bool RE_SplitSkins(const char *INname, char *skinhead, char *skintorso, char *sk
 		strcpy (skinlower, name);
 
 		//now get the the individual files
-		
+
 		//advance to second
-		char *p2 = strchr(p, '|'); 
-		assert(p2);
+		char *p2 = strchr(p, '|');
 		if (!p2)
 		{
 			return false;
@@ -62,7 +83,6 @@ bool RE_SplitSkins(const char *INname, char *skinhead, char *skintorso, char *sk
 
 		//advance to third
 		p = strchr(p2, '|');
-		assert(p);
 		if (!p)
 		{
 			return false;
@@ -74,14 +94,14 @@ bool RE_SplitSkins(const char *INname, char *skinhead, char *skintorso, char *sk
 
 		strcat (skinlower,p);
 		strcat (skinlower, ".skin");
-		
+
 		return true;
 	}
 	return false;
 }
 
 // given a name, go get the skin we want and return
-qhandle_t RE_RegisterIndividualSkin( const char *name , qhandle_t hSkin) 
+qhandle_t RE_RegisterIndividualSkin( const char *name , qhandle_t hSkin)
 {
 	skin_t			*skin;
 	skinSurface_t	*surf;
@@ -93,7 +113,7 @@ qhandle_t RE_RegisterIndividualSkin( const char *name , qhandle_t hSkin)
 	ri->FS_ReadFile( name, (void **)&text );
 	if ( !text ) {
 #ifndef FINAL_BUILD
-		Com_Printf( "WARNING: RE_RegisterSkin( '%s' ) failed to load!\n", name );
+		ri->Printf( PRINT_ALL, "WARNING: RE_RegisterSkin( '%s' ) failed to load!\n", name );
 #endif
 		return 0;
 	}
@@ -121,7 +141,7 @@ qhandle_t RE_RegisterIndividualSkin( const char *name , qhandle_t hSkin)
 		if ( !strncmp( token, "tag_", 4 ) ) {	//these aren't in there, but just in case you load an id style one...
 			continue;
 		}
-		
+
 		// parse the shader name
 		token = CommaParse( &text_p );
 
@@ -136,7 +156,7 @@ qhandle_t RE_RegisterIndividualSkin( const char *name , qhandle_t hSkin)
 		if ( (unsigned)skin->numSurfaces >= ARRAY_LEN( skin->surfaces ) )
 		{
 			assert( ARRAY_LEN( skin->surfaces ) > (unsigned)skin->numSurfaces );
-			Com_Printf( "WARNING: RE_RegisterSkin( '%s' ) more than %d surfaces!\n", name, ARRAY_LEN( skin->surfaces ) );
+			ri->Printf( PRINT_ALL, "WARNING: RE_RegisterSkin( '%s' ) more than %u surfaces!\n", name, (unsigned int )ARRAY_LEN( skin->surfaces ) );
 			break;
 		}
 		surf = (skinSurface_t *) Hunk_Alloc( sizeof( *skin->surfaces[0] ), h_low );
@@ -165,12 +185,12 @@ qhandle_t RE_RegisterSkin( const char *name ) {
 	skin_t		*skin;
 
 	if ( !name || !name[0] ) {
-		Com_Printf( "Empty name passed to RE_RegisterSkin\n" );
+		ri->Printf( PRINT_ALL, "Empty name passed to RE_RegisterSkin\n" );
 		return 0;
 	}
 
 	if ( strlen( name ) >= MAX_QPATH ) {
-		Com_Printf( "Skin name exceeds MAX_QPATH\n" );
+		ri->Printf( PRINT_ALL, "Skin name exceeds MAX_QPATH\n" );
 		return 0;
 	}
 
@@ -187,7 +207,7 @@ qhandle_t RE_RegisterSkin( const char *name ) {
 
 	// allocate a new skin
 	if ( tr.numSkins == MAX_SKINS ) {
-		Com_Printf( "WARNING: RE_RegisterSkin( '%s' ) MAX_SKINS hit\n", name );
+		ri->Printf( PRINT_ALL, "WARNING: RE_RegisterSkin( '%s' ) MAX_SKINS hit\n", name );
 		return 0;
 	}
 	tr.numSkins++;
@@ -197,7 +217,7 @@ qhandle_t RE_RegisterSkin( const char *name ) {
 	skin->numSurfaces = 0;
 
 	// make sure the render thread is stopped
-	R_SyncRenderThread();
+	R_IssuePendingRenderCommands();
 
 	// If not a .skin file, load as a single shader
 	if ( strcmp( name + strlen( name ) - 5, ".skin" ) ) {
@@ -237,7 +257,7 @@ qhandle_t RE_RegisterSkin( const char *name ) {
 CommaParse
 
 This is unfortunate, but the skin files aren't
-compatable with our normal parsing rules.
+compatible with our normal parsing rules.
 ==================
 */
 static char *CommaParse( char **data_p ) {
@@ -257,7 +277,7 @@ static char *CommaParse( char **data_p ) {
 
 	while ( 1 ) {
 		// skip whitespace
-		while( (c = *data) <= ' ') {
+		while( (c = *(const unsigned char* /*eurofix*/)data) <= ' ') {
 			if( !c ) {
 				break;
 			}
@@ -274,13 +294,13 @@ static char *CommaParse( char **data_p ) {
 				data++;
 		}
 		// skip /* */ comments
-		else if ( c=='/' && data[1] == '*' ) 
+		else if ( c=='/' && data[1] == '*' )
 		{
-			while ( *data && ( *data != '*' || data[1] != '/' ) ) 
+			while ( *data && ( *data != '*' || data[1] != '/' ) )
 			{
 				data++;
 			}
-			if ( *data ) 
+			if ( *data )
 			{
 				data += 2;
 			}
@@ -308,7 +328,7 @@ static char *CommaParse( char **data_p ) {
 				*data_p = ( char * ) data;
 				return com_token;
 			}
-			if (len < MAX_TOKEN_CHARS)
+			if (len < MAX_TOKEN_CHARS - 1)
 			{
 				com_token[len] = c;
 				len++;
@@ -319,7 +339,7 @@ static char *CommaParse( char **data_p ) {
 	// parse a regular word
 	do
 	{
-		if (len < MAX_TOKEN_CHARS)
+		if (len < MAX_TOKEN_CHARS - 1)
 		{
 			com_token[len] = c;
 			len++;
@@ -328,11 +348,6 @@ static char *CommaParse( char **data_p ) {
 		c = *data;
 	} while (c>32 && c != ',' );
 
-	if (len == MAX_TOKEN_CHARS)
-	{
-//		Com_Printf ("Token exceeded %i chars, discarded.\n", MAX_TOKEN_CHARS);
-		len = 0;
-	}
 	com_token[len] = 0;
 
 	*data_p = ( char * ) data;
@@ -402,16 +417,16 @@ void	R_SkinList_f( void ) {
 	int			i, j;
 	skin_t		*skin;
 
-	Com_Printf ( "------------------\n");
+	ri->Printf( PRINT_ALL,  "------------------\n");
 
 	for ( i = 0 ; i < tr.numSkins ; i++ ) {
 		skin = tr.skins[i];
 
-		Com_Printf ("%3i:%s\n", i, skin->name );
+		ri->Printf( PRINT_ALL, "%3i:%s\n", i, skin->name );
 		for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
-			Com_Printf ("       %s = %s\n", 
+			ri->Printf( PRINT_ALL, "       %s = %s\n",
 				skin->surfaces[j]->name, ((shader_t* )skin->surfaces[j]->shader)->name );
 		}
 	}
-	Com_Printf ( "------------------\n");
+	ri->Printf( PRINT_ALL,  "------------------\n");
 }

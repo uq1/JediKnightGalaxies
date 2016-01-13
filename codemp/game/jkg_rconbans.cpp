@@ -58,7 +58,7 @@ static int RCB_GetFreeSlot() {
 		}
 	}
 	if (RCBanCount == MAX_RCBANS-1) {
-		G_Printf("Warning: RCB_GetFreeSlot: Out of Rcon Ban slots\n");
+		trap->Print("Warning: RCB_GetFreeSlot: Out of Rcon Ban slots\n");
 		return -1;
 	}
 	RCBanCount++;

@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "b_local.h"
 #include "g_nav.h"
 #include "anims.h"
@@ -161,6 +183,7 @@ qboolean NPC_IsHumanoid( void )
 	//case CLASS_R5D2:				// droid
 	case CLASS_REBEL:
 	case CLASS_REBORN:
+	case CLASS_REBORN_CULTIST:
 	case CLASS_REELO:
 	//case CLASS_REMOTE:
 	case CLASS_RODIAN:
@@ -199,7 +222,7 @@ qboolean NPC_IsHumanoid( void )
 	case CLASS_JKG_FAQ_CRAFTER_DROID:
 	case CLASS_JKG_FAQ_MERC_DROID:
 	case CLASS_JKG_FAQ_JEDI_MENTOR:
-	case CLASS_JKF_FAQ_SITH_MENTOR:
+	case CLASS_JKG_FAQ_SITH_MENTOR:
 	//Stoiss end
 	case CLASS_BOT_FAKE_NPC:
 		// Humanoid...
@@ -254,6 +277,7 @@ qboolean NPC_IsJedi ( gentity_t *self )
 	//case CLASS_R5D2:				// droid
 	//case CLASS_REBEL:
 	case CLASS_REBORN:
+	case CLASS_REBORN_CULTIST:
 	//case CLASS_REELO:
 	//case CLASS_REMOTE:
 	//case CLASS_RODIAN:
@@ -292,7 +316,7 @@ qboolean NPC_IsJedi ( gentity_t *self )
 	//case CLASS_JKG_FAQ_CRAFTER_DROID:
 	//case CLASS_JKG_FAQ_MERC_DROID:
 	case CLASS_JKG_FAQ_JEDI_MENTOR:
-	case CLASS_JKF_FAQ_SITH_MENTOR:
+	case CLASS_JKG_FAQ_SITH_MENTOR:
 	//Stoiss end
 	//case CLASS_BOT_FAKE_NPC:
 		// Is Jedi...
@@ -463,6 +487,7 @@ qboolean Boba_ChangeWeapon( int wp )
 	//case CLASS_R5D2:				// droid
 	case CLASS_REBEL:
 	//case CLASS_REBORN:
+	//case CLASS_REBORN_CULTIST:
 	case CLASS_REELO:
 	//case CLASS_REMOTE:
 	case CLASS_RODIAN:
@@ -587,7 +612,7 @@ void WP_ResistForcePush( gentity_t *self, gentity_t *pusher, qboolean noPenalty 
 		char buf[128];
 		float tFVal = 0;
 
-		trap_Cvar_VariableStringBuffer("timescale", buf, sizeof(buf));
+		trap->Cvar_VariableStringBuffer("timescale", buf, sizeof(buf));
 
 		tFVal = atof(buf);
 
@@ -774,7 +799,7 @@ void Boba_FireFlameThrower( gentity_t *self )
 
 	if (NPC->client->NPC_class != CLASS_BOBAFETT) return;
 
-	trap_G2API_GetBoltMatrix( self->ghoul2, 0, self->client->renderInfo.handLBolt,
+	trap->G2API_GetBoltMatrix( self->ghoul2, 0, self->client->renderInfo.handLBolt,
 			&boltMatrix, self->r.currentAngles, self->r.currentOrigin, level.time,
 			NULL, self->modelScale );
 
@@ -786,7 +811,7 @@ void Boba_FireFlameThrower( gentity_t *self )
 	G_PlayEffectID( G_EffectIndex("boba/fthrw"), start, dir); // UQ1: Added... Keep playing the effect rather then having him look stupid...
 	VectorMA( start, 128, dir, end );
 
-	trap_Trace( &tr, start, traceMins, traceMaxs, end, self->s.number, MASK_SHOT );
+	trap->Trace( &tr, start, traceMins, traceMaxs, end, self->s.number, MASK_SHOT , 0, 0, 0);
 
 	traceEnt = &g_entities[tr.entityNum];
 	if ( tr.entityNum < ENTITYNUM_WORLD && traceEnt->takedamage )
@@ -843,9 +868,9 @@ void Boba_StartFlameThrower( gentity_t *self )
 	G_SoundOnEnt( self, CHAN_WEAPON, "sound/effects/combustfire.mp3" );
 
 	// UQ1: Errr... the anim uses his left hand...
-	//trap_G2API_GetBoltMatrix(NPC->ghoul2, 0, NPC->client->renderInfo.handRBolt, &boltMatrix, NPC->r.currentAngles,
+	//trap->G2API_GetBoltMatrix(NPC->ghoul2, 0, NPC->client->renderInfo.handRBolt, &boltMatrix, NPC->r.currentAngles,
 	//	NPC->r.currentOrigin, level.time, NULL, NPC->modelScale);
-	trap_G2API_GetBoltMatrix(NPC->ghoul2, 0, NPC->client->renderInfo.handLBolt, &boltMatrix, NPC->r.currentAngles,
+	trap->G2API_GetBoltMatrix(NPC->ghoul2, 0, NPC->client->renderInfo.handLBolt, &boltMatrix, NPC->r.currentAngles,
 		NPC->r.currentOrigin, level.time, NULL, NPC->modelScale);
 
 	BG_GiveMeVectorFromMatrix( &boltMatrix, ORIGIN, org );
@@ -1077,7 +1102,7 @@ void Boba_FireDecide( void )
 				}
 			}
 		}
-		else if ( trap_InPVS( NPC->enemy->r.currentOrigin, NPC->r.currentOrigin ) )
+		else if ( trap->InPVS( NPC->enemy->r.currentOrigin, NPC->r.currentOrigin ) )
 		{
 			NPCInfo->enemyLastSeenTime = level.time;
 			faceEnemy = qtrue;
@@ -1128,7 +1153,7 @@ void Boba_FireDecide( void )
 							vec3_t	forward, end;
 							AngleVectors( NPC->client->ps.viewangles, forward, NULL, NULL );
 							VectorMA( muzzle, 8192, forward, end );
-							trap_Trace( &tr, muzzle, vec3_origin, vec3_origin, end, NPC->s.number, MASK_SHOT );
+							trap->Trace( &tr, muzzle, vec3_origin, vec3_origin, end, NPC->s.number, MASK_SHOT , 0, 0, 0);
 							VectorCopy( tr.endpos, impactPos );
 						}
 
@@ -1484,7 +1509,7 @@ qboolean NPC_Humanoid_ClearPathToSpot( vec3_t dest, int impactEntNum )
 	//Offset the step height
 	VectorSet( mins, NPC->r.mins[0], NPC->r.mins[1], NPC->r.mins[2] + STEPSIZE );
 	
-	trap_Trace( &trace, NPC->r.currentOrigin, mins, NPC->r.maxs, dest, NPC->s.number, NPC->clipmask );
+	trap->Trace( &trace, NPC->r.currentOrigin, mins, NPC->r.maxs, dest, NPC->s.number, NPC->clipmask , 0, 0, 0);
 
 	//Do a simple check
 	if ( trace.allsolid || trace.startsolid )
@@ -1521,7 +1546,7 @@ qboolean NPC_Humanoid_ClearPathToSpot( vec3_t dest, int impactEntNum )
 		VectorMA( NPC->r.currentOrigin, i, dir, start );
 		VectorCopy( start, end );
 		end[2] -= drop;
-		trap_Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask );//NPC->r.mins?
+		trap->Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask , 0, 0, 0);//NPC->r.mins?
 		if ( trace.fraction < 1.0f || trace.allsolid || trace.startsolid )
 		{//good to go
 			continue;
@@ -1582,7 +1607,7 @@ qboolean NPC_MoveDirClear( int forwardmove, int rightmove, qboolean reset )
 	rtDist = ((float)rightmove)/2.0f;
 	VectorMA( NPC->r.currentOrigin, fwdDist, forward, testPos );
 	VectorMA( testPos, rtDist, right, testPos );
-	trap_Trace( &trace, NPC->r.currentOrigin, mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP );
+	trap->Trace( &trace, NPC->r.currentOrigin, mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP , 0, 0, 0);
 	if ( trace.allsolid || trace.startsolid )
 	{//hmm, trace started inside this brush... how do we decide if we should continue?
 		//FIXME: what do we do if we start INSIDE a CONTENTS_BOTCLIP? Try the trace again without that in the clipmask?
@@ -1620,7 +1645,7 @@ qboolean NPC_MoveDirClear( int forwardmove, int rightmove, qboolean reset )
 	VectorCopy( trace.endpos, testPos );
 	testPos[2] += bottom_max;
 
-	trap_Trace( &trace, trace.endpos, mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask );
+	trap->Trace( &trace, trace.endpos, mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask , 0, 0, 0);
 
 	//FIXME:Should we try to see if we can still get to our goal using the waypoint network from this trace.endpos?
 	//OR: just put NPC clip brushes on these edges (still fall through when die)
@@ -2679,7 +2704,7 @@ evasionType_t NPC_Humanoid_CheckFlipEvasions( gentity_t *self, float rightdot, f
 		}
 		//trace in the dir that we want to go
 		VectorMA( self->r.currentOrigin, checkDist, right, traceto );
-		trap_Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP );
+		trap->Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP , 0, 0, 0);
 		if ( trace.fraction >= 1.0f && allowCartWheels )
 		{//it's clear, let's do it
 			//FIXME: check for drops?
@@ -2730,7 +2755,7 @@ evasionType_t NPC_Humanoid_CheckFlipEvasions( gentity_t *self, float rightdot, f
 						checkDist *= -1.0f;
 						VectorMA( self->r.currentOrigin, checkDist, right, traceto );
 						//trace in the dir that we want to go
-						trap_Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP );
+						trap->Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP , 0, 0, 0);
 						if ( trace.fraction >= 1.0f )
 						{//it's clear, let's do it
 							if ( allowWallFlips )
@@ -2789,7 +2814,7 @@ evasionType_t NPC_Humanoid_CheckFlipEvasions( gentity_t *self, float rightdot, f
 						checkDist *= -1.0f;
 						VectorMA( self->r.currentOrigin, checkDist, right, traceto );
 						//trace in the dir that we want to go
-						trap_Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP );
+						trap->Trace( &trace, self->r.currentOrigin, mins, maxs, traceto, self->s.number, CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP , 0, 0, 0);
 						if ( (trace.fraction*checkDist) <= 32 )
 						{//wall on this side is close enough
 							bestCheckDist = checkDist;
@@ -3756,7 +3781,7 @@ static qboolean NPC_Humanoid_SaberBlock( int saberNum, int bladeNum ) //saberNum
 
 	//get the actual point of impact
 	trace_t	tr;
-	trap_Trace( &tr, saberPoint, vec3_origin, vec3_origin, axisPoint, NPC->enemy->s.number, MASK_SHOT, G2_RETURNONHIT, 10 );
+	trap->Trace( &tr, saberPoint, vec3_origin, vec3_origin, axisPoint, NPC->enemy->s.number, MASK_SHOT, G2_RETURNONHIT, 10 , 0, 0, 0);
 	if ( tr.allsolid || tr.startsolid )
 	{//estimate
 		VectorSubtract( saberPoint, axisPoint, dir );
@@ -3828,7 +3853,7 @@ static qboolean NPC_Humanoid_SaberBlock( int saberNum, int bladeNum ) //saberNum
 	VectorMA( saberPoint, 200, dir, hitloc );
 
 	//get the actual point of impact
-	trap_Trace( &tr, saberPoint, saberMins, saberMaxs, hitloc, NPC->enemy->s.number, CONTENTS_BODY );//, G2_RETURNONHIT, 10 );
+	trap->Trace( &tr, saberPoint, saberMins, saberMaxs, hitloc, NPC->enemy->s.number, CONTENTS_BODY, 0, 0, 0 );//, G2_RETURNONHIT, 10);
 	if ( tr.allsolid || tr.startsolid || tr.fraction >= 1.0f )
 	{//estimate
 		vec3_t	dir2Me;
@@ -4251,7 +4276,7 @@ gentity_t *Jedi_FindEnemyInCone( gentity_t *self, gentity_t *fallback, float min
 		mins[e] = self->r.currentOrigin[e] - 1024;
 		maxs[e] = self->r.currentOrigin[e] + 1024;
 	}
-	numListedEntities = trap_EntitiesInBox( mins, maxs, entityList, MAX_GENTITIES );
+	numListedEntities = trap->EntitiesInBox( mins, maxs, entityList, MAX_GENTITIES );
 
 	for ( e = 0 ; e < numListedEntities ; e++ ) 
 	{
@@ -4277,7 +4302,7 @@ gentity_t *Jedi_FindEnemyInCone( gentity_t *self, gentity_t *fallback, float min
 			continue;
 		}
 
-		if ( !trap_InPVS( check->r.currentOrigin, self->r.currentOrigin ) )
+		if ( !trap->InPVS( check->r.currentOrigin, self->r.currentOrigin ) )
 		{//can't potentially see them
 			continue;
 		}
@@ -4291,7 +4316,7 @@ gentity_t *Jedi_FindEnemyInCone( gentity_t *self, gentity_t *fallback, float min
 		}
 
 		//really should have a clear LOS to this thing...
-		trap_Trace( &tr, self->r.currentOrigin, vec3_origin, vec3_origin, check->r.currentOrigin, self->s.number, MASK_SHOT );
+		trap->Trace( &tr, self->r.currentOrigin, vec3_origin, vec3_origin, check->r.currentOrigin, self->s.number, MASK_SHOT , 0, 0, 0);
 		if ( tr.fraction < 1.0f && tr.entityNum != check->s.number )
 		{//must have clear shot
 			continue;
@@ -4889,6 +4914,12 @@ static void NPC_Humanoid_CombatIdle( int enemy_dist )
 
 static qboolean NPC_Humanoid_AttackDecide( int enemy_dist )
 {
+	if ( NPC->enemy == NULL )
+	{
+		// Well obviously we can't attack nothingness.
+		return qfalse;
+	}
+
 	if ( NPC->enemy
 		&& NPC->enemy->client 
 		&& NPC->enemy->s.weapon == WP_SABER 
@@ -4913,6 +4944,10 @@ static qboolean NPC_Humanoid_AttackDecide( int enemy_dist )
 		{//fencer
 			chance = 5;
 		}
+		else if (NPC->client->NPC_class == CLASS_REBORN_CULTIST && NPCInfo->rank == RANK_LT_JG ) 
+		{//fencer
+			chance = 5;
+		}
 		else
 		{
 			chance = NPCInfo->rank;
@@ -4932,6 +4967,7 @@ static qboolean NPC_Humanoid_AttackDecide( int enemy_dist )
 
 	if ( NPC->client->NPC_class == CLASS_TAVION ||
 		( NPC->client->NPC_class == CLASS_REBORN && NPCInfo->rank == RANK_LT_JG ) ||
+		( NPC->client->NPC_class == CLASS_REBORN_CULTIST && NPCInfo->rank == RANK_LT_JG ) ||
 		( NPC->client->NPC_class == CLASS_JEDI && NPCInfo->rank == RANK_COMMANDER ) )
 	{//tavion, fencers, jedi trainer are all good at following up a parry with an attack
 		if ( ( PM_SaberInParry( NPC->client->ps.saberMove ) || PM_SaberInKnockaway( NPC->client->ps.saberMove ) )
@@ -5091,11 +5127,11 @@ static qboolean NPC_Humanoid_Jump( vec3_t dest, int goalEntNum )
 					BG_EvaluateTrajectory( &tr, level.time + elapsedTime, testPos );
 					if ( testPos[2] < lastPos[2] )
 					{//going down, ignore botclip
-						trap_Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask );
+						trap->Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask , 0, 0, 0);
 					}
 					else
 					{//going up, check for botclip
-						trap_Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP );
+						trap->Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP , 0, 0, 0);
 					}
 
 					if ( trace.allsolid || trace.startsolid )
@@ -5141,7 +5177,7 @@ static qboolean NPC_Humanoid_Jump( vec3_t dest, int goalEntNum )
 							//FIXME: do we care how far below ourselves or our dest we'll land?
 							VectorCopy( trace.endpos, bottom );
 							bottom[2] -= 128;
-							trap_Trace( &trace, trace.endpos, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask );
+							trap->Trace( &trace, trace.endpos, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask , 0, 0, 0);
 							if ( trace.fraction >= 1.0f )
 							{//would fall too far
 								blocked = qtrue;
@@ -5345,7 +5381,7 @@ static qboolean NPC_Humanoid_TryJump( gentity_t *goal )
 									}
 									VectorCopy( dest, bottom );
 									bottom[2] -= 128;
-									trap_Trace( &trace, dest, NPC->r.mins, NPC->r.maxs, bottom, goal->s.number, NPC->clipmask );
+									trap->Trace( &trace, dest, NPC->r.mins, NPC->r.maxs, bottom, goal->s.number, NPC->clipmask , 0, 0, 0);
 									if ( trace.fraction < 1.0f )
 									{//hit floor, okay to land here
 										break;
@@ -5665,11 +5701,11 @@ static void NPC_Humanoid_CheckJumps( void )
 		//FIXME: account for PM_AirMove if ucmd.forwardmove and/or ucmd.rightmove is non-zero...
 		if ( testPos[2] < lastPos[2] )
 		{//going down, don't check for BOTCLIP
-			trap_Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask );//FIXME: include CONTENTS_BOTCLIP?
+			trap->Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask , 0, 0, 0);//FIXME: include CONTENTS_BOTCLIP?
 		}
 		else
 		{//going up, check for BOTCLIP
-			trap_Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP );
+			trap->Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP , 0, 0, 0);
 		}
 		if ( trace.allsolid || trace.startsolid )
 		{//WTF?
@@ -5702,7 +5738,7 @@ static void NPC_Humanoid_CheckJumps( void )
 		return;
 	}
 	bottom[2] -= 128;
-	trap_Trace( &trace, trace.endpos, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask );
+	trap->Trace( &trace, trace.endpos, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask , 0, 0, 0);
 	if ( trace.allsolid || trace.startsolid || trace.fraction < 1.0f )
 	{//hit ground!
 		if ( trace.entityNum < ENTITYNUM_WORLD )
@@ -5754,7 +5790,7 @@ static void NPC_Humanoid_Combat( void )
 				vec3_t end;
 				VectorCopy( NPC->r.currentOrigin, end );
 				end[2] += 36;
-				trap_Trace( &trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP );
+				trap->Trace( &trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP , 0, 0, 0);
 				if ( !trace.allsolid && !trace.startsolid && trace.fraction >= 1.0 )
 				{
 					vec3_t angles, forward;
@@ -5762,7 +5798,7 @@ static void NPC_Humanoid_Combat( void )
 					angles[0] = 0;
 					AngleVectors( angles, forward, NULL, NULL );
 					VectorMA( end, 64, forward, end );
-					trap_Trace( &trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP );
+					trap->Trace( &trace, NPC->r.currentOrigin, NPC->r.mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP , 0, 0, 0);
 					if ( !trace.allsolid && !trace.startsolid )
 					{
 						if ( trace.fraction >= 1.0 || trace.plane.normal[2] > 0 )
@@ -5821,7 +5857,7 @@ static void NPC_Humanoid_Combat( void )
 				{//try to jump to the blockedDest
 					gentity_t *tempGoal = G_Spawn();//ugh, this is NOT good...?
 					G_SetOrigin( tempGoal, NPCInfo->blockedDest );
-					trap_LinkEntity( tempGoal );
+					trap->LinkEntity( (sharedEntity_t *)tempGoal );
 					if ( NPC_Humanoid_TryJump( tempGoal ) )
 					{//going to jump to the dest
 						G_FreeEntity( tempGoal );
@@ -5917,7 +5953,7 @@ static void NPC_Humanoid_Combat( void )
 		&& !(NPC->client->NPC_class == CLASS_BOBAFETT && (!TIMER_Done( NPC, "nextAttackDelay" ) || !TIMER_Done( NPC, "flameTime" )))
 		&& NPC->next_kick_time <= level.time )
 	{// Close range - switch to melee... TODO: Make jedi/sith kick...
-		//G_Printf("Debug: NPC kicking...\n");
+		//trap->Print("Debug: NPC kicking...\n");
 		NPCInfo->scriptFlags &= ~SCF_ALT_FIRE;
 		NPC_SetAnim( NPC, SETANIM_BOTH, BOTH_A7_KICK_F, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD ); // UQ1: Better anim?????
 		WP_FireMelee( NPC, qfalse );
@@ -6118,7 +6154,7 @@ qboolean NPC_Humanoid_CheckAmbushPlayer( void )
 //		if ( NPC->client->ps.powerups[PW_CLOAKED] || g_crosshairEntNum != NPC->s.number )
 		if (NPC->client->ps.powerups[PW_CLOAKED] || !NPC_SomeoneLookingAtMe(NPC)) //rwwFIXMEFIXME: Need to pay attention to who is under crosshair for each player or something.
 		{//if I'm not cloaked and the player's crosshair is on me, I will wake up, otherwise do this stuff down here...
-			if ( !trap_InPVS( player->r.currentOrigin, NPC->r.currentOrigin ) )
+			if ( !trap->InPVS( player->r.currentOrigin, NPC->r.currentOrigin ) )
 			{//must be in same room
 				continue;
 			}
@@ -6236,7 +6272,7 @@ static void NPC_Humanoid_Patrol( void )
 			float	enemy_dist;
 			if ( enemy && enemy->client && NPC_ValidEnemy( enemy ) && enemy->client->playerTeam == NPC->client->enemyTeam )
 			{
-				if ( trap_InPVS( NPC->r.currentOrigin, enemy->r.currentOrigin ) )
+				if ( trap->InPVS( NPC->r.currentOrigin, enemy->r.currentOrigin ) )
 				{//we could potentially see him
 					enemy_dist = DistanceSquared( NPC->r.currentOrigin, enemy->r.currentOrigin );
 					if ( enemy->s.eType == ET_PLAYER || enemy_dist < best_enemy_dist )
@@ -6459,7 +6495,7 @@ void NPC_BSJedi_FollowLeader( void )
 			{
 				gentity_t *tempGoal = G_Spawn();//ugh, this is NOT good...?
 				G_SetOrigin( tempGoal, NPCInfo->blockedDest );
-				trap_LinkEntity( tempGoal );
+				trap->LinkEntity( (sharedEntity_t *)tempGoal );
 				TIMER_Set( NPC, "jumpChaseDebounce", -1 );
 				if ( NPC_Humanoid_TryJump( tempGoal ) )
 				{//going to jump to the dest

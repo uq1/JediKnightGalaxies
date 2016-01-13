@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "b_local.h"
 
 #define	MIN_MELEE_RANGE		640
@@ -42,7 +64,7 @@ static void ATST_PlayEffect( gentity_t *self, const int boltID, const char *fx )
 		mdxaBone_t	boltMatrix;
 		vec3_t		org, dir;
 
-		trap_G2API_GetBoltMatrix( self->ghoul2, 0, 
+		trap->G2API_GetBoltMatrix( self->ghoul2, 0, 
 					boltID,
 					&boltMatrix, self->r.currentAngles, self->r.currentOrigin, level.time,
 					NULL, self->modelScale );
@@ -82,11 +104,11 @@ void G_ATSTCheckPain( gentity_t *self, gentity_t *other, int damage )
 	{
 		if (self->locationDamage[hitLoc] >= LEFT_ARM_HEALTH)	// Blow it up?
 		{
-			newBolt = trap_G2API_AddBolt( self->ghoul2, 0, "*flash3" );
+			newBolt = trap->G2API_AddBolt( self->ghoul2, 0, "*flash3" );
 			if ( newBolt != -1 )
 			{
 //				G_PlayEffect( "small_chunks", self->playerModel, self->genericBolt1, self->s.number);
-				ATST_PlayEffect( self, trap_G2API_AddBolt(self->ghoul2, 0, "*flash3"), "env/med_explode2" );
+				ATST_PlayEffect( self, trap->G2API_AddBolt(self->ghoul2, 0, "*flash3"), "env/med_explode2" );
 				//G_PlayEffectID( G_EffectIndex("blaster/smoke_bolton"), self->playerModel, newBolt, self->s.number);
 				//Maybe bother with this some other time.
 			}
@@ -98,11 +120,11 @@ void G_ATSTCheckPain( gentity_t *self, gentity_t *other, int damage )
 	{
 		if (self->locationDamage[hitLoc] >= RIGHT_ARM_HEALTH)
 		{			
-			newBolt = trap_G2API_AddBolt( self->ghoul2, 0, "*flash4" );
+			newBolt = trap->G2API_AddBolt( self->ghoul2, 0, "*flash4" );
 			if ( newBolt != -1 )
 			{
 //				G_PlayEffect( "small_chunks", self->playerModel, self->genericBolt2, self->s.number);
-				ATST_PlayEffect( self, trap_G2API_AddBolt(self->ghoul2, 0, "*flash4"), "env/med_explode2" );
+				ATST_PlayEffect( self, trap->G2API_AddBolt(self->ghoul2, 0, "*flash4"), "env/med_explode2" );
 				//G_PlayEffect( "blaster/smoke_bolton", self->playerModel, newBolt, self->s.number);
 			}
 
@@ -213,8 +235,8 @@ void ATST_Attack( void )
 		//rwwFIXMEFIXME: make atst weaps work.
 
 		// See if the side weapons are there
-		blasterTest = trap_G2API_GetSurfaceRenderStatus( NPC->ghoul2, 0, "head_light_blaster_cann" );
-		chargerTest = trap_G2API_GetSurfaceRenderStatus( NPC->ghoul2, 0, "head_concussion_charger" );
+		blasterTest = trap->G2API_GetSurfaceRenderStatus( NPC->ghoul2, 0, "head_light_blaster_cann" );
+		chargerTest = trap->G2API_GetSurfaceRenderStatus( NPC->ghoul2, 0, "head_concussion_charger" );
 
 		// It has both side weapons
 		if ( blasterTest != -1

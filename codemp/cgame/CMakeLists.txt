@@ -1,3 +1,21 @@
+#============================================================================
+# Copyright (C) 2013 - 2015, OpenJK contributors
+# 
+# This file is part of the OpenJK source code.
+# 
+# OpenJK is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+#============================================================================
+
 cmake_minimum_required(VERSION 2.8.8)
 
 # Make sure the user is not executing this script directly
@@ -9,7 +27,7 @@ set(MPCGameIncludeDirectories "${MPDir}" "${MPDir}/libraries")
 if(WIN32)
 	set(MPCGameLibraries "odbc32" "odbccp32") # what are these even?
 endif(WIN32)
-set(MPCGameDefines ${MPSharedDefines} "CGAME" "MISSIONPACK" )
+set(MPCGameDefines ${MPSharedDefines} "_CGAME" )
 set(MPCGameGameFiles
 	"${MPDir}/game/animtable.cpp"
 	"${MPDir}/game/bg_ammo.cpp"
@@ -20,6 +38,7 @@ set(MPCGameGameFiles
 	"${MPDir}/game/bg_panimate.cpp"
 	"${MPDir}/game/bg_pmove.cpp"
 	"${MPDir}/game/bg_saber.cpp"
+	"${MPDir}/game/bg_saberData.cpp"
 	"${MPDir}/game/bg_saberLoad.cpp"
 	"${MPDir}/game/bg_saga.h"
 	"${MPDir}/game/bg_slidemove.cpp"
@@ -37,7 +56,7 @@ set(MPCGameGameFiles
 	"${MPDir}/game/bg_items.h"
 	"${MPDir}/game/bg_local.h"
 	"${MPDir}/game/bg_public.h"
-	"${MPDir}/game/bg_strap.h"
+	"${MPDir}/game/bg_saga.h"
 	"${MPDir}/game/bg_weapons.h"
 	"${MPDir}/game/surfaceflags.h"
 	"${MPDir}/game/z_global_defines.h"
@@ -67,21 +86,11 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/cg_servercmds.cpp"
 	"${MPDir}/cgame/cg_snapshot.cpp"
 	"${MPDir}/cgame/cg_spawn.cpp"
-	"${MPDir}/cgame/cg_strap.cpp"
-	"${MPDir}/cgame/cg_syscalls.cpp"
 	"${MPDir}/cgame/cg_turret.cpp"
 	"${MPDir}/cgame/cg_view.cpp"
 	"${MPDir}/cgame/cg_weaponinit.cpp"
 	"${MPDir}/cgame/cg_weapons.cpp"
-	"${MPDir}/cgame/fx_blaster.cpp"
-	"${MPDir}/cgame/fx_bowcaster.cpp"
 	"${MPDir}/cgame/fx_bryarpistol.cpp"
-	"${MPDir}/cgame/fx_demp2.cpp"
-	"${MPDir}/cgame/fx_disruptor.cpp"
-	"${MPDir}/cgame/fx_flechette.cpp"
-	"${MPDir}/cgame/fx_force.cpp"
-	"${MPDir}/cgame/fx_heavyrepeater.cpp"
-	"${MPDir}/cgame/fx_rocketlauncher.cpp"
 	"${MPDir}/cgame/jkg_autowaypoint.cpp"
 	"${MPDir}/cgame/jkg_cg_damagetypes.cpp"
 	"${MPDir}/cgame/jkg_cg_items.cpp"
@@ -100,7 +109,6 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/cg_weapons.h"
 	"${MPDir}/cgame/cg_xcvar.h"
 	"${MPDir}/cgame/fx_local.h"
-	"${MPDir}/cgame/holocronicons.h"
 	"${MPDir}/cgame/jkg_cg_auxlib.h"
 	"${MPDir}/cgame/jkg_cg_damagetypes.h"
 	"${MPDir}/cgame/jkg_cg_items.h"
@@ -119,6 +127,7 @@ set(MPCGameCommonFiles
 	"${MPDir}/qcommon/q_shared.cpp"
 	"${MPDir}/qcommon/disablewarnings.h"
 	"${MPDir}/qcommon/q_shared.h"
+	"${MPDir}/qcommon/q_platform.h"
 	"${MPDir}/qcommon/qfiles.h"
 	"${MPDir}/qcommon/tags.h"
 	)
@@ -169,11 +178,39 @@ if(NOT WIN32)
 	set_target_properties(${MPCGame} PROPERTIES PREFIX "")
 endif(NOT WIN32)
 
-if(WIN32)
-	install(TARGETS ${MPCGame} RUNTIME DESTINATION "JKGalaxies")
-else(WIN32)
-	install(TARGETS ${MPCGame} LIBRARY DESTINATION "JKGalaxies")
-endif(WIN32)
+if(MakeApplicationBundles AND BuildMPEngine)
+	install(TARGETS ${MPCGame}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/OpenJK"
+		COMPONENT ${JKAMPCoreComponent})
+	install(TARGETS ${MPCGame}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/base"
+		COMPONENT ${JKAMPCoreComponent})
+elseif(WIN32)
+	install(TARGETS ${MPCGame}
+		RUNTIME
+		DESTINATION "${JKAInstallDir}/OpenJK"
+		COMPONENT ${JKAMPCoreComponent})
+	if (WIN64)
+		# Don't do this on 32-bit Windows to avoid overwriting
+		# vanilla JKA's DLLs
+		install(TARGETS ${MPCGame}
+			RUNTIME
+			DESTINATION "${JKAInstallDir}/base"
+			COMPONENT ${JKAMPCoreComponent})
+	endif()
+else()
+	install(TARGETS ${MPCGame}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/OpenJK"
+		COMPONENT ${JKAMPCoreComponent})
+	install(TARGETS ${MPCGame}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/base"
+		COMPONENT ${JKAMPCoreComponent})
+endif()
+
 set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPCGameDefines};${ReleaseDefines}")
 set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPCGameDefines};${ReleaseDefines}")
 set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPCGameDefines};${ReleaseDefines}")

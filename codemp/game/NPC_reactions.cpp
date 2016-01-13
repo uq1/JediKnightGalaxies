@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 //NPC_reactions.cpp
 #include "b_local.h"
 #include "anims.h"
@@ -136,7 +158,7 @@ void NPC_SetPainEvent( gentity_t *self )
 	//	if( self->client->playerTeam != TEAM_BORG )
 	//	{
 			//if ( !Q3_TaskIDPending( self, TID_CHAN_VOICE ) )
-			if (!trap_ICARUS_TaskIDPending(self, TID_CHAN_VOICE) && self->client)
+			if (!trap->ICARUS_TaskIDPending((sharedEntity_t *)self, TID_CHAN_VOICE) && self->client)
 			{
 				//G_AddEvent( self, EV_PAIN, floor((float)self->health/self->max_health*100.0f) );
 				G_AddEvent( self, EV_PAIN, floor((float)self->health/self->client->ps.stats[STAT_MAX_HEALTH]*100.0f) );
@@ -1018,7 +1040,7 @@ void NPC_Use( gentity_t *self, gentity_t *other, gentity_t *activator )
 		return;
 	}
 
-	//G_Printf("I got used!\n");
+	//trap->Print("I got used!\n");
 
 	SaveNPCGlobals();
 	SetNPCGlobals( self );

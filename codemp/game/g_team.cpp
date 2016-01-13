@@ -1,9 +1,28 @@
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 #include "g_local.h"
 #include "bg_saga.h"
-
 
 typedef struct teamgame_s {
 	float			last_flag_capture;
@@ -85,7 +104,7 @@ void QDECL PrintMsg( gentity_t *ent, const char *fmt, ... ) {
 	while ((p = strchr(msg, '"')) != NULL)
 		*p = '\'';
 
-	trap_SendServerCommand ( ( (ent == NULL) ? -1 : ent-g_entities ), va("print \"%s\"", msg ));
+	trap->SendServerCommand ( ( (ent == NULL) ? -1 : ent-g_entities ), va("print \"%s\"", msg ));
 }
 */
 //Printing messages to players via this method is no longer done, StringEd stuff is client only.
@@ -304,7 +323,7 @@ void Team_SetFlagStatus( int team, flagStatus_t status ) {
 			st[2] = 0;
 		}
 
-		trap_SetConfigstring( CS_FLAGSTATUS, st );
+		trap->SetConfigstring( CS_FLAGSTATUS, st );
 	}
 }
 
@@ -351,10 +370,8 @@ order.
 void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker)
 {
 	int i;
-	gentity_t *ent;
 	int flag_pw, enemy_flag_pw;
 	int otherteam;
-	int tokens;
 	gentity_t *flag, *carrier = NULL;
 	char *c;
 	vec3_t v1, v2;
@@ -441,9 +458,9 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker
 	VectorSubtract(attacker->r.currentOrigin, flag->r.currentOrigin, v2);
 
 	if ( ( ( VectorLength(v1) < CTF_TARGET_PROTECT_RADIUS &&
-		trap_InPVS(flag->r.currentOrigin, targ->r.currentOrigin ) ) ||
+		trap->InPVS(flag->r.currentOrigin, targ->r.currentOrigin ) ) ||
 		( VectorLength(v2) < CTF_TARGET_PROTECT_RADIUS &&
-		trap_InPVS(flag->r.currentOrigin, attacker->r.currentOrigin ) ) ) &&
+		trap->InPVS(flag->r.currentOrigin, attacker->r.currentOrigin ) ) ) &&
 		attacker->client->sess.sessionTeam != targ->client->sess.sessionTeam) {
 
 		// we defended the base flag
@@ -456,9 +473,9 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker
 		VectorSubtract(attacker->r.currentOrigin, carrier->r.currentOrigin, v1);
 
 		if ( ( ( VectorLength(v1) < CTF_ATTACKER_PROTECT_RADIUS &&
-			trap_InPVS(carrier->r.currentOrigin, targ->r.currentOrigin ) ) ||
+			trap->InPVS(carrier->r.currentOrigin, targ->r.currentOrigin ) ) ||
 			( VectorLength(v2) < CTF_ATTACKER_PROTECT_RADIUS &&
-				trap_InPVS(carrier->r.currentOrigin, attacker->r.currentOrigin ) ) ) &&
+				trap->InPVS(carrier->r.currentOrigin, attacker->r.currentOrigin ) ) ) &&
 			attacker->client->sess.sessionTeam != targ->client->sess.sessionTeam) {
 			AddScore(attacker, targ->r.currentOrigin, CTF_CARRIER_PROTECT_BONUS);
 			return;
@@ -542,7 +559,7 @@ void Team_ReturnFlagSound( gentity_t *ent, int team ) {
 	gentity_t	*te;
 
 	if (ent == NULL) {
-		G_Printf ("Warning:  NULL passed to Team_ReturnFlagSound\n");
+		trap->Print ("Warning:  NULL passed to Team_ReturnFlagSound\n");
 		return;
 	}
 
@@ -560,7 +577,7 @@ void Team_TakeFlagSound( gentity_t *ent, int team ) {
 	gentity_t	*te;
 
 	if (ent == NULL) {
-		G_Printf ("Warning:  NULL passed to Team_TakeFlagSound\n");
+		trap->Print ("Warning:  NULL passed to Team_TakeFlagSound\n");
 		return;
 	}
 
@@ -598,7 +615,7 @@ void Team_CaptureFlagSound( gentity_t *ent, int team ) {
 	gentity_t	*te;
 
 	if (ent == NULL) {
-		G_Printf ("Warning:  NULL passed to Team_CaptureFlagSound\n");
+		trap->Print ("Warning:  NULL passed to Team_CaptureFlagSound\n");
 		return;
 	}
 
@@ -780,32 +797,34 @@ Team_GetLocation
 Report a location for the player. Uses placed nearby target_location entities
 ============
 */
-gentity_t *Team_GetLocation(gentity_t *ent)
+locationData_t *Team_GetLocation(gentity_t *ent)
 {
-	gentity_t		*eloc, *best;
+	locationData_t	*loc, *best;
 	float			bestlen, len;
 	vec3_t			origin;
+	int				i;
 
 	best = NULL;
 	bestlen = 3*8192.0*8192.0;
 
 	VectorCopy( ent->r.currentOrigin, origin );
 
-	for (eloc = level.locationHead; eloc; eloc = eloc->nextTrain) {
-		len = ( origin[0] - eloc->r.currentOrigin[0] ) * ( origin[0] - eloc->r.currentOrigin[0] )
-			+ ( origin[1] - eloc->r.currentOrigin[1] ) * ( origin[1] - eloc->r.currentOrigin[1] )
-			+ ( origin[2] - eloc->r.currentOrigin[2] ) * ( origin[2] - eloc->r.currentOrigin[2] );
+	for ( i=0; i<level.locations.num; i++ ) {
+		loc = &level.locations.data[i];
+		len = ( origin[0] - loc->origin[0] ) * ( origin[0] - loc->origin[0] )
+			+ ( origin[1] - loc->origin[1] ) * ( origin[1] - loc->origin[1] )
+			+ ( origin[2] - loc->origin[2] ) * ( origin[2] - loc->origin[2] );
 
 		if ( len > bestlen ) {
 			continue;
 		}
 
-		if ( !trap_InPVS( origin, eloc->r.currentOrigin ) ) {
+		if ( !trap->InPVS( origin, loc->origin ) ) {
 			continue;
 		}
 
 		bestlen = len;
-		best = eloc;
+		best = loc;
 	}
 
 	return best;
@@ -821,10 +840,10 @@ Report a location for the player. Uses placed nearby target_location entities
 */
 qboolean Team_GetLocationMsg(gentity_t *ent, char *loc, int loclen)
 {
-	gentity_t *best;
+	locationData_t *best;
 
 	best = Team_GetLocation( ent );
-	
+
 	if (!best)
 		return qfalse;
 
@@ -908,35 +927,13 @@ SelectCTFSpawnPoint
 
 ============
 */
-gentity_t *SelectCTFSpawnPoint ( team_t team, int teamstate, vec3_t origin, vec3_t angles ) {
+gentity_t *SelectCTFSpawnPoint ( team_t team, int teamstate, vec3_t origin, vec3_t angles, qboolean isbot ) {
 	gentity_t	*spot;
 
 	spot = SelectRandomTeamSpawnPoint ( teamstate, team, -1 );
 
 	if (!spot) {
-		return SelectSpawnPoint( vec3_origin, origin, angles, team );
-	}
-
-	VectorCopy (spot->s.origin, origin);
-	origin[2] += 9;
-	VectorCopy (spot->s.angles, angles);
-
-	return spot;
-}
-
-/*
-===========
-SelectSiegeSpawnPoint
-
-============
-*/
-gentity_t *SelectSiegeSpawnPoint ( int siegeClass, team_t team, int teamstate, vec3_t origin, vec3_t angles ) {
-	gentity_t	*spot;
-
-	spot = SelectRandomTeamSpawnPoint ( teamstate, team, siegeClass );
-
-	if (!spot) {
-		return SelectSpawnPoint( vec3_origin, origin, angles, team );
+		return SelectSpawnPoint( vec3_origin, origin, angles, team, isbot );
 	}
 
 	VectorCopy (spot->s.origin, origin);
@@ -1031,12 +1028,13 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 		}
 	}
 
-	trap_SendServerCommand( ent-g_entities, va("tinfo %i %s", cnt, string) );
+	trap->SendServerCommand( ent-g_entities, va("tinfo %i %s", cnt, string) );
 }
 
 void CheckTeamStatus(void) {
 	int i;
-	gentity_t *loc, *ent;
+	locationData_t *loc;
+	gentity_t *ent;
 
 	if (level.time - level.lastTeamLocationTime > TEAM_LOCATION_UPDATE_TIME) {
 
@@ -1057,7 +1055,7 @@ void CheckTeamStatus(void) {
 			if (ent->inuse && (ent->client->sess.sessionTeam == TEAM_RED ||	ent->client->sess.sessionTeam == TEAM_BLUE)) {
 				loc = Team_GetLocation( ent );
 				if (loc)
-					ent->client->pers.teamState.location = loc->health;
+					ent->client->pers.teamState.location = loc->cs_index;
 				else
 					ent->client->pers.teamState.location = 0;
 			}
@@ -1122,7 +1120,7 @@ void SetTeamQuick(gentity_t *ent, int team, qboolean doBegin)
 {
 	char userinfo[MAX_INFO_STRING];
 
-	trap_GetUserinfo( ent->s.number, userinfo, sizeof( userinfo ) );
+	trap->GetUserinfo( ent->s.number, userinfo, sizeof( userinfo ) );
 
 	ent->client->sess.sessionTeam = (team_t)team;
 
@@ -1148,7 +1146,7 @@ void SetTeamQuick(gentity_t *ent, int team, qboolean doBegin)
 		}
 	}
 
-	trap_SetUserinfo( ent->s.number, userinfo );
+	trap->SetUserinfo( ent->s.number, userinfo );
 
 	ent->client->sess.spectatorClient = 0;
 

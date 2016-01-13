@@ -1,15 +1,34 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 #include "server.h"
 
-//rww - RAGDOLL_BEGIN
 #include "ghoul2/ghoul2_shared.h"
-//rww - RAGDOLL_END
+#include "sv_gameapi.h"
 
 serverStatic_t	svs;				// persistant server info
 server_t		sv;					// local server
-vm_t			*gvm = NULL;				// game virtual machine // bk001212 init
 
 cvar_t	*sv_snapsMin;			// minimum snapshots/sec a client can request, also limited by sv_snapsMax
 cvar_t	*sv_snapsMax;			// maximum snapshots/sec a client can request, also limited by sv_fps
@@ -40,6 +59,15 @@ cvar_t	*sv_floodProtect;
 cvar_t	*sv_lanForceRate; // dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
 cvar_t	*sv_needpass;
 cvar_t	*sv_filterCommands; // strict filtering on commands (replace: \r \n ;)
+cvar_t	*sv_autoDemo;
+cvar_t	*sv_autoDemoBots;
+cvar_t	*sv_autoDemoMaxMaps;
+cvar_t	*sv_blockJumpSelect;
+cvar_t	*sv_banFile;
+
+serverBan_t serverBans[SERVER_MAXBANS];
+int serverBansCount = 0;
+
 /*
 =============================================================================
 
@@ -57,7 +85,7 @@ Converts newlines to "\n" so a line prints nicer
 */
 char	*SV_ExpandNewlines( char *in ) {
 	static	char	string[1024];
-	unsigned int	l;
+	size_t	l;
 
 	l = 0;
 	while ( *in && l < sizeof(string) - 3 ) {
@@ -85,6 +113,11 @@ not have future snapshot_t executed before it is executed
 void SV_AddServerCommand( client_t *client, const char *cmd ) {
 	int		index, i;
 
+	// do not send commands until the gamestate has been sent
+	if ( client->state < CS_PRIMED ) {
+		return;
+	}
+
 	client->reliableSequence++;
 	// if we would be losing an old command that hasn't been acknowledged,
 	// we must drop the connection
@@ -108,7 +141,7 @@ void SV_AddServerCommand( client_t *client, const char *cmd ) {
 =================
 SV_SendServerCommand
 
-Sends a reliable command string to be interpreted by 
+Sends a reliable command string to be interpreted by
 the client game module: "cp", "print", "chat", etc
 A NULL client will broadcast to all clients
 =================
@@ -118,7 +151,7 @@ void QDECL SV_SendServerCommand(client_t *cl, const char *fmt, ...) {
 	byte		message[MAX_MSGLEN];
 	client_t	*client;
 	int			j;
-	
+
 	va_start (argptr,fmt);
 	Q_vsnprintf((char *)message, sizeof(message), fmt, argptr);
 	va_end (argptr);
@@ -137,15 +170,12 @@ void QDECL SV_SendServerCommand(client_t *cl, const char *fmt, ...) {
 	}
 
 	// hack to echo broadcast prints to console
-	if ( com_dedicated->integer && !strncmp( (char *)message, "print", 5) ) {
+	if ( com_dedicated->integer && !Q_strncmp( (char *)message, "print", 5) ) {
 		Com_Printf ("broadcast: %s\n", SV_ExpandNewlines((char *)message) );
 	}
 
 	// send the data to all relevent clients
 	for (j = 0, client = svs.clients; j < sv_maxclients->integer ; j++, client++) {
-		if ( client->state < CS_PRIMED ) {
-			continue;
-		}
 		SV_AddServerCommand( client, (char *)message );
 	}
 }
@@ -222,7 +252,7 @@ void SV_MasterHeartbeat( void ) {
 			sv_master[i]->modified = qfalse;
 
 			g_lastResolveTime[i] = time;
-	
+
 			Com_Printf( "Resolving %s\n", sv_master[i]->string );
 			if ( !NET_StringToAdr( sv_master[i]->string, &adr[i] ) ) {
 				// if the address failed to resolve, clear it
@@ -235,11 +265,8 @@ void SV_MasterHeartbeat( void ) {
 			if ( !strstr( ":", sv_master[i]->string ) ) {
 				adr[i].port = BigShort( PORT_MASTER );
 			}
-			Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", sv_master[i]->string,
-				adr[i].ip[0], adr[i].ip[1], adr[i].ip[2], adr[i].ip[3],
-				BigShort( adr[i].port ) );
+			Com_Printf( "%s resolved to %s\n", sv_master[i]->string, NET_AdrToString(adr[i]) );
 		}
-
 
 		Com_Printf ("Sending heartbeat to %s\n", sv_master[i]->string );
 		// this command should be changed if the server info / status format
@@ -297,7 +324,6 @@ static long SVC_HashForAddress( netadr_t address ) {
 
 	switch ( address.type ) {
 		case NA_IP:  ip = address.ip;  size = 4; break;
-		case NA_IPX: ip = address.ipx; size = 10; break;
 		default: break;
 	}
 
@@ -331,11 +357,6 @@ static leakyBucket_t *SVC_BucketForAddress( netadr_t address, int burst, int per
 					return bucket;
 				}
 				break;
-			case NA_IPX:
-				if ( memcmp( bucket->ipv._x, address.ipx, 10 ) == 0 ) {
-					return bucket;
-				}
-				break;
 
 			default:
 				break;
@@ -356,7 +377,7 @@ static leakyBucket_t *SVC_BucketForAddress( netadr_t address, int burst, int per
 			} else {
 				bucketHashes[ bucket->hash ] = bucket->next;
 			}
-			
+
 			if ( bucket->next != NULL ) {
 				bucket->next->prev = bucket->prev;
 			}
@@ -368,7 +389,6 @@ static leakyBucket_t *SVC_BucketForAddress( netadr_t address, int burst, int per
 			bucket->type = address.type;
 			switch ( address.type ) {
 				case NA_IP:  Com_Memcpy( bucket->ipv._4, address.ip, 4 );   break;
-				case NA_IPX:  Com_Memcpy( bucket->ipv._x, address.ipx, 10 );   break;
 				default: break;
 			}
 
@@ -405,7 +425,7 @@ qboolean SVC_RateLimit( leakyBucket_t *bucket, int burst, int period ) {
 		int expired = interval / period;
 		int expiredRemainder = interval % period;
 
-		if ( expired > bucket->burst ) {
+		if ( expired > bucket->burst || interval < 0 ) {
 			bucket->burst = 0;
 			bucket->lastTime = now;
 		} else {
@@ -480,7 +500,7 @@ void SVC_Status( netadr_t from ) {
 	if(strlen(Cmd_Argv(1)) > 128)
 		return;
 
-	strcpy( infostring, Cvar_InfoString( CVAR_SERVERINFO ) );
+	Q_strncpyz( infostring, Cvar_InfoString( CVAR_SERVERINFO ), sizeof( infostring ) );
 
 	// echo back the parameter to status. so master servers can use it as a challenge
 	// to prevent timed spoofed reply packets that add ghost servers
@@ -493,7 +513,7 @@ void SVC_Status( netadr_t from ) {
 		cl = &svs.clients[i];
 		if ( cl->state >= CS_CONNECTED ) {
 			ps = SV_GameClientNum( i );
-			Com_sprintf (player, sizeof(player), "%i %i \"%s\"\n", 
+			Com_sprintf (player, sizeof(player), "%i %i \"%s\"\n",
 				ps->persistant[PERS_SCORE], cl->ping, cl->name);
 			playerLength = strlen(player);
 			if (statusLength + playerLength >= (int)sizeof(status) ) {
@@ -576,12 +596,13 @@ void SVC_Info( netadr_t from ) {
 	Info_SetValueForKey( infostring, "hostname", sv_hostname->string );
 	Info_SetValueForKey( infostring, "mapname", sv_mapname->string );
 	Info_SetValueForKey( infostring, "clients", va("%i", count) );
-	Info_SetValueForKey(infostring, "g_humanplayers", va("%i", humans));
-	Info_SetValueForKey( infostring, "sv_maxclients", 
+	Info_SetValueForKey( infostring, "g_humanplayers", va("%i", humans) );
+	Info_SetValueForKey( infostring, "sv_maxclients",
 		va("%i", sv_maxclients->integer - sv_privateClients->integer ) );
 	Info_SetValueForKey( infostring, "gametype", va("%i", sv_gametype->integer ) );
 	Info_SetValueForKey( infostring, "needpass", va("%i", sv_needpass->integer ) );
 	Info_SetValueForKey( infostring, "pure", va("%i", sv_pure->integer ) );
+	Info_SetValueForKey( infostring, "autodemo", va("%i", sv_autoDemo->integer ) );
 
 	if( sv_minPing->integer ) {
 		Info_SetValueForKey( infostring, "minPing", va("%i", sv_minPing->integer) );
@@ -717,9 +738,7 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	} else if (!Q_stricmp(c, "connect")) {
 		SV_DirectConnect( from );
 	} else if (!Q_stricmp(c, "ipAuthorize")) {
-		//Ensiform: There isnt even an auth server in JA
-		//So why were we still accepting these packets
-		//SV_AuthorizeIpPacket( from );
+		// ...
 	} else if (!Q_stricmp(c, "rcon")) {
 		SVC_RemoteCommand( from, msg );
 	} else if (!Q_stricmp(c, "disconnect")) {
@@ -791,8 +810,8 @@ void SV_PacketEvent( netadr_t from, msg_t *msg ) {
 		}
 		return;
 	}
-	
-	// if we received a sequenced packet from an address we don't reckognize,
+
+	// if we received a sequenced packet from an address we don't recognize,
 	// send an out of band disconnect packet to it
 	NET_OutOfBandPrint( NS_SERVER, from, "disconnect" );
 }
@@ -856,7 +875,7 @@ void SV_CalcPings( void ) {
 ==================
 SV_CheckTimeouts
 
-If a packet has not been received from a client for timeout->integer 
+If a packet has not been received from a client for timeout->integer
 seconds, drop the conneciton.  Server time is used instead of
 realtime to avoid dropping the local client while debugging.
 
@@ -890,7 +909,7 @@ void SV_CheckTimeouts( void ) {
 			// wait several frames so a debugger session doesn't
 			// cause a timeout
 			if ( ++cl->timeoutCount > 5 ) {
-				SV_DropClient (cl, "timed out"); 
+				SV_DropClient (cl, "timed out");
 				cl->state = CS_FREE;	// don't bother with zombie state
 			}
 		} else {
@@ -942,12 +961,12 @@ SV_CheckCvars
 void SV_CheckCvars( void ) {
 	static int lastModHostname = -1, lastModFramerate = -1, lastModSnapsMin = -1, lastModSnapsMax = -1;
 	qboolean changed = qfalse;
-	
+
 	if ( sv_hostname->modificationCount != lastModHostname ) {
 		char hostname[MAX_INFO_STRING];
 		char *c = hostname;
 		lastModHostname = sv_hostname->modificationCount;
-		
+
 		strcpy( hostname, sv_hostname->string );
 		while( *c )
 		{
@@ -972,15 +991,19 @@ void SV_CheckCvars( void ) {
 		client_t *cl = NULL;
 		int i=0;
 		int minSnaps = Com_Clampi( 1, sv_snapsMax->integer, sv_snapsMin->integer ); // between 1 and sv_snapsMax ( 1 <-> 40 )
-		int maxSnaps = min( sv_fps->integer, sv_snapsMax->integer ); // can't produce more than sv_fps snapshots/sec, but can send less than sv_fps snapshots/sec
+		int maxSnaps = Q_min( sv_fps->integer, sv_snapsMax->integer ); // can't produce more than sv_fps snapshots/sec, but can send less than sv_fps snapshots/sec
 
 		lastModFramerate = sv_fps->modificationCount;
 		lastModSnapsMin = sv_snapsMin->modificationCount;
 		lastModSnapsMax = sv_snapsMax->modificationCount;
 
 		for ( i=0, cl=svs.clients; i<sv_maxclients->integer; i++, cl++ ) {
-			int val = Com_Clampi( minSnaps, maxSnaps, cl->wishSnaps );
-			cl->snapshotMsec = 1000/val;
+			int val = 1000/Com_Clampi( minSnaps, maxSnaps, cl->wishSnaps );
+			if ( val != cl->snapshotMsec ) {
+				// Reset last sent snapshot so we avoid desync between server frame time and snapshot send time
+				cl->nextSnapshotTime = -1;
+				cl->snapshotMsec = val;
+			}
 		}
 	}
 }
@@ -1086,7 +1109,7 @@ void SV_Frame( int msec ) {
 		sv.time += frameMsec;
 
 		// let everything in the world think and move
-		VM_Call( gvm, GAME_RUN_FRAME, sv.time );
+		GVM_RunFrame( sv.time );
 	}
 
 	//rww - RAGDOLL_BEGIN

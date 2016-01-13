@@ -1,3 +1,21 @@
+#============================================================================
+# Copyright (C) 2013 - 2015, OpenJK contributors
+# 
+# This file is part of the OpenJK source code.
+# 
+# OpenJK is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+#============================================================================
+
 cmake_minimum_required(VERSION 2.8.8)
 
 # Make sure the user is not executing this script directly
@@ -9,7 +27,7 @@ set(MPGameIncludeDirectories "${MPDir}" "${MPDir}/libraries")
 if(WIN32)
 	set(MPGameLibraries "winmm")
 endif(WIN32)
-set(MPGameDefines ${MPSharedDefines} "QAGAME" "MISSIONPACK" )
+set(MPGameDefines ${MPSharedDefines} "_GAME" )
 set(MPGameGameFiles
 	"${MPDir}/game/ai_dominance.cpp"
 	"${MPDir}/game/ai_dominance_astar.cpp"
@@ -27,6 +45,7 @@ set(MPGameGameFiles
 	"${MPDir}/game/bg_panimate.cpp"
 	"${MPDir}/game/bg_pmove.cpp"
 	"${MPDir}/game/bg_saber.cpp"
+	"${MPDir}/game/bg_saberData.cpp"
 	"${MPDir}/game/bg_saberLoad.cpp"
 	"${MPDir}/game/bg_slidemove.cpp"
 	"${MPDir}/game/bg_vehicleLoad.cpp"
@@ -53,9 +72,7 @@ set(MPGameGameFiles
 	"${MPDir}/game/g_object.cpp"
 	"${MPDir}/game/g_session.cpp"
 	"${MPDir}/game/g_spawn.cpp"
-	"${MPDir}/game/g_strap.cpp"
 	"${MPDir}/game/g_svcmds.cpp"
-	"${MPDir}/game/g_syscalls.cpp"
 	"${MPDir}/game/g_target.cpp"
 	"${MPDir}/game/g_team.cpp"
 	"${MPDir}/game/g_timer.cpp"
@@ -143,7 +160,6 @@ set(MPGameGameFiles
 	"${MPDir}/game/bg_local.h"
 	"${MPDir}/game/bg_public.h"
 	"${MPDir}/game/bg_saga.h"
-	"${MPDir}/game/bg_strap.h"
 	"${MPDir}/game/bg_vehicles.h"
 	"${MPDir}/game/bg_weapons.h"
 	"${MPDir}/game/chars.h"
@@ -188,6 +204,7 @@ set(MPGameCommonFiles
 	"${MPDir}/qcommon/q_shared.cpp"
 	"${MPDir}/qcommon/disablewarnings.h"
 	"${MPDir}/qcommon/q_shared.h"
+	"${MPDir}/qcommon/q_platform.h"
 	"${MPDir}/qcommon/tags.h"
 	)
 source_group("common" FILES ${MPGameCommonFiles})
@@ -195,7 +212,6 @@ set(MPGameFiles ${MPGameFiles} ${MPGameCommonFiles})
 
 set(MPGameCgameFiles
 	"${MPDir}/cgame/animtable.h"
-	"${MPDir}/cgame/cg_local.h"
 	"${MPDir}/cgame/cg_public.h"
 	)
 source_group("cgame" FILES ${MPGameCgameFiles})
@@ -462,11 +478,39 @@ if(NOT WIN32)
 	set_target_properties(${MPGame} PROPERTIES PREFIX "")
 endif(NOT WIN32)
 
-if(WIN32)
-	install(TARGETS ${MPGame} RUNTIME DESTINATION "JKGalaxies")
-else(WIN32)
-	install(TARGETS ${MPGame} LIBRARY DESTINATION "JKGalaxies")
-endif(WIN32)
+if(MakeApplicationBundles AND BuildMPEngine)
+	install(TARGETS ${MPGame}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/OpenJK"
+		COMPONENT ${JKAMPCoreComponent})
+	install(TARGETS ${MPGame}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/base"
+		COMPONENT ${JKAMPCoreComponent})
+elseif(WIN32)
+	install(TARGETS ${MPGame}
+		RUNTIME
+		DESTINATION "${JKAInstallDir}/OpenJK"
+		COMPONENT ${JKAMPCoreComponent})
+	if (WIN64)
+		# Don't do this on 32-bit Windows to avoid overwriting
+		# vanilla JKA's DLLs
+		install(TARGETS ${MPGame}
+			RUNTIME
+			DESTINATION "${JKAInstallDir}/base"
+			COMPONENT ${JKAMPCoreComponent})
+	endif()
+else()
+	install(TARGETS ${MPGame}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/OpenJK"
+		COMPONENT ${JKAMPCoreComponent})
+	install(TARGETS ${MPGame}
+		LIBRARY
+		DESTINATION "${JKAInstallDir}/base"
+		COMPONENT ${JKAMPCoreComponent})
+endif()
+
 set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPGameDefines};${ReleaseDefines}")
 set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPGameDefines};${ReleaseDefines}")
 set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPGameDefines};${ReleaseDefines}")

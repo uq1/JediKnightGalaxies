@@ -12,7 +12,6 @@ Bartender
 	rank		crewman
 	playerTeam	TEAM_NEUTRAL
 	enemyTeam	TEAM_NEUTRAL
-//	race		human
 	class		CLASS_BARTENDER
 	walkSpeed	55
 	runSpeed	200

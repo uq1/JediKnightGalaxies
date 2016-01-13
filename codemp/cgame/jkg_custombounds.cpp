@@ -21,12 +21,12 @@ static JkgCBBc_t CBBs[1024]; // CBBs = Custom Bounding Boxes
 static void CBB_InitParseBuff(parsebuff_t *pb) {
 	memset(pb,0,sizeof(parsebuff_t));
 	pb->arg = 1;
-	pb->argc = trap_Argc();
+	pb->argc = trap->Cmd_Argc();
 }
 
 static const char *CBB_NextToken(parsebuff_t *pb) {
 	if (pb->arg > pb->argc) return NULL;
-	trap_Argv(pb->arg++,pb->buff, sizeof(pb->buff));
+	trap->Cmd_Argv(pb->arg++,pb->buff, sizeof(pb->buff));
 	return pb->buff;
 }
 
@@ -41,7 +41,7 @@ static int CBB_ParseVector(parsebuff_t *pb, vec3_t *vec) {
 	for (i=0; i<3; i++) {
 		token = CBB_NextToken(pb);
 		if (!token) {
-			CG_Printf("WARNING: ^3Error processing custom bounding box info: Could not parse vector");
+			trap->Print("WARNING: ^3Error processing custom bounding box info: Could not parse vector");
 			return 1;
 		}
 		(*vec)[i] = atof(token);
@@ -53,7 +53,7 @@ static int CBB_ParseInt(parsebuff_t *pb, int *num) {
 	const char *token;
 	token = CBB_NextToken(pb);
 	if (!token) {
-		CG_Printf("WARNING: ^3Error processing custom bounding box info: Could not parse int");
+		trap->Print("WARNING: ^3Error processing custom bounding box info: Could not parse int");
 		return 1;
 	}
 	*num = atoi(token);

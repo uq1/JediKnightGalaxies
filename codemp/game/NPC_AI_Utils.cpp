@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // These utilities are meant for strictly non-player, non-team NPCs.  
 // These functions are in their own file because they are only intended
 // for use with NPCs who's logic has been overriden from the original
@@ -37,7 +59,7 @@ int	AI_GetGroupSize( vec3_t origin, int radius, team_t playerTeam, gentity_t *av
 	}
 
 	//Get the number of entities in a given space
-	numEnts = trap_EntitiesInBox( mins, maxs, radiusEnts, MAX_RADIUS_ENTS );
+	numEnts = trap->EntitiesInBox( mins, maxs, radiusEnts, MAX_RADIUS_ENTS );
 
 	//Cull this list
 	for ( j = 0; j < numEnts; j++ )
@@ -98,7 +120,7 @@ int AI_ClosestGroupEntityNumToPoint( AIGroupInfo_t *group, vec3_t point )
 
 	for ( i = 0; i < group->numGroup; i++ )
 	{
-		cost = trap_Nav_GetPathCost( group->member[i].waypoint, markerWP );
+		cost = trap->Nav_GetPathCost( group->member[i].waypoint, markerWP );
 		if ( cost < bestCost )
 		{
 			bestCost = cost;
@@ -158,7 +180,7 @@ void AI_SortGroupByPathCostToEnemy( AIGroupInfo_t *group )
 			group->member[i].waypoint = NAV_FindClosestWaypointForEnt( group->enemy, WAYPOINT_NONE );
 			if ( group->member[i].waypoint != WAYPOINT_NONE )
 			{
-				group->member[i].pathCostToEnemy = trap_Nav_GetPathCost( group->member[i].waypoint, group->enemyWP );
+				group->member[i].pathCostToEnemy = trap->Nav_GetPathCost( group->member[i].waypoint, group->enemyWP );
 				//at least one of us has a path, so do sorting
 				sort = qtrue;
 			}
@@ -332,7 +354,7 @@ qboolean AI_ValidateNoEnemyGroupMember( AIGroupInfo_t *group, gentity_t *member 
 	{
 		return qfalse;
 	}
-	if ( !trap_InPVS( member->r.currentOrigin, center ) )
+	if ( !trap->InPVS( member->r.currentOrigin, center ) )
 	{//not within PVS of the group enemy
 		return qfalse;
 	}
@@ -415,7 +437,7 @@ qboolean AI_ValidateGroupMember( AIGroupInfo_t *group, gentity_t *member )
 		{//he's fighting someone else, leave him out
 			return qfalse;
 		}
-		if ( !trap_InPVS( member->r.currentOrigin, group->enemy->r.currentOrigin ) )
+		if ( !trap->InPVS( member->r.currentOrigin, group->enemy->r.currentOrigin ) )
 		{//not within PVS of the group enemy
 			return qfalse;
 		}
@@ -533,7 +555,7 @@ void AI_GetGroup( gentity_t *self )
 		{
 			member = &g_entities[self->NPC->group->member[j];
 
-			if ( trap_InPVS( waiter->r.currentOrigin, member->r.currentOrigin ) )
+			if ( trap->InPVS( waiter->r.currentOrigin, member->r.currentOrigin ) )
 			{//this waiter is within PVS of a current member
 			}
 		}
@@ -1100,7 +1122,7 @@ gentity_t *AI_DistributeAttack( gentity_t *attacker, gentity_t *enemy, team_t te
 	}
 
 	//Get the number of entities in a given space
-	numEnts = trap_EntitiesInBox( mins, maxs, radiusEnts, MAX_RADIUS_ENTS );
+	numEnts = trap->EntitiesInBox( mins, maxs, radiusEnts, MAX_RADIUS_ENTS );
 
 	//Cull this list
 	for ( j = 0; j < numEnts; j++ )

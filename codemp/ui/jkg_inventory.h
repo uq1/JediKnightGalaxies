@@ -90,6 +90,7 @@ void JKG_Inventory_CloseDialog ( char **args );
 void JKG_Inventory_Arrow ( char **args );
 void JKG_Inventory_Arrow_New ( itemDef_t *item, int amount );
 void JKG_Inventory_CheckTooltip ( char **args );
+void JKG_Inventory_OpenOther(char** args);
 
 void JKG_Inventory_UpdateNotify(int msg);
 int JKG_Inventory_FeederCount ( void );

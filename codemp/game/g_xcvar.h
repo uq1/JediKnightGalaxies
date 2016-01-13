@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
 
 #ifdef XCVAR_PROTO
 	#define XCVAR_DEF( name, defVal, update, flags, announce ) extern vmCvar_t name;
@@ -11,7 +33,7 @@
 	#define XCVAR_DEF( name, defVal, update, flags, announce ) { & name , #name , defVal , update , flags , announce },
 #endif
 
-XCVAR_DEF( bg_fighterAltControl,		"0",			NULL,				CVAR_SERVERINFO,								qtrue )
+XCVAR_DEF( bg_fighterAltControl,		"0",			NULL,				CVAR_SYSTEMINFO,								qtrue )
 XCVAR_DEF( capturelimit,				"8",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_NORESTART,	qtrue )
 XCVAR_DEF( com_optvehtrace,				"0",			NULL,				CVAR_NONE,										qtrue )
 XCVAR_DEF( d_altRoutes,					"0",			NULL,				CVAR_CHEAT,										qfalse )
@@ -41,7 +63,8 @@ XCVAR_DEF( g_adaptRespawn,				"1",			NULL,				CVAR_NONE,										qtrue )
 XCVAR_DEF( g_allowDuelSuicide,			"1",			NULL,				CVAR_ARCHIVE,									qtrue )
 XCVAR_DEF( g_allowHighPingDuelist,		"1",			NULL,				CVAR_NONE,										qtrue )
 XCVAR_DEF( g_allowNPC,					"1",			NULL,				CVAR_CHEAT,										qtrue )
-XCVAR_DEF( g_allowVote,					"1",			NULL,				CVAR_ARCHIVE,									qfalse )
+XCVAR_DEF( g_allowTeamVote,				"1",			NULL,				CVAR_ARCHIVE,									qfalse )
+XCVAR_DEF( g_allowVote,					"-1",			NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_antiFakePlayer,			"1",			NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_armBreakage,				"0",			NULL,				CVAR_NONE,										qtrue )
 XCVAR_DEF( g_austrian,					"0",			NULL,				CVAR_ARCHIVE,									qfalse )
@@ -50,9 +73,7 @@ XCVAR_DEF( g_banIPs,					"",				NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_charRestrictRGB,			"1",			NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_duelWeaponDisable,			"1",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_LATCH,		qtrue )
 XCVAR_DEF( g_debugAlloc,				"0",			NULL,				CVAR_NONE,										qfalse )
-#ifndef FINAL_BUILD
 XCVAR_DEF( g_debugDamage,				"0",			NULL,				CVAR_NONE,										qfalse )
-#endif
 XCVAR_DEF( g_debugMelee,				"0",			NULL,				CVAR_SERVERINFO,								qtrue )
 XCVAR_DEF( g_debugMove,					"0",			NULL,				CVAR_NONE,										qfalse )
 XCVAR_DEF( g_debugSaberLocks,			"0",			NULL,				CVAR_CHEAT,										qfalse )
@@ -65,6 +86,7 @@ XCVAR_DEF( g_dismember,					"2",			NULL,				CVAR_ARCHIVE,									qtrue )
 XCVAR_DEF( g_ff_objectives,				"0",			NULL,				CVAR_CHEAT|CVAR_NORESTART,						qtrue )
 XCVAR_DEF( g_filterBan,					"1",			NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_forceBasedTeams,			"0",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_LATCH,		qfalse )
+XCVAR_DEF( g_forceClientUpdateRate,		"250",			NULL,				CVAR_NONE,										qfalse )
 XCVAR_DEF( g_forceDodge,				"1",			NULL,				CVAR_NONE,										qtrue )
 XCVAR_DEF( g_forcePowerDisable,			"1",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_LATCH,		qtrue )
 XCVAR_DEF( g_forceRegenTime,			"240",			NULL,				CVAR_ARCHIVE,									qtrue )
@@ -131,6 +153,7 @@ XCVAR_DEF( g_teamForceBalance,			"0",			NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_timeouttospec,				"70",			NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_userinfoValidate,			"25165823",		NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_useWhileThrowing,			"1",			NULL,				CVAR_NONE,										qtrue )
+XCVAR_DEF( g_voteDelay,					"3000",			NULL,				CVAR_NONE,										qfalse )
 XCVAR_DEF( g_warmup,					"20",			NULL,				CVAR_ARCHIVE,									qtrue )
 XCVAR_DEF( gamedate,					__DATE__,		NULL,				CVAR_ROM,										qfalse )
 XCVAR_DEF( gamename,					GAMEVERSION,	NULL,				CVAR_SERVERINFO|CVAR_ROM,						qfalse )
@@ -147,7 +170,7 @@ XCVAR_DEF( timelimit,					"45",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_NOR
 XCVAR_DEF( jkg_shop_replenish_time,		"300",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_debugThreading,			"0",			NULL,				CVAR_CHEAT,										true )
 XCVAR_DEF( jkg_startingStats,			"100/25",		NULL,				CVAR_ARCHIVE,									true )
-XCVAR_DEF( jkg_startingCredits,			"500",			NULL,				CVAR_ARCHIVE|CVAR_LATCH,						false )
+XCVAR_DEF( jkg_startingCredits,			"500",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		false )
 XCVAR_DEF( jkg_bounty,					"10",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_creditsPerKill,			"150",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( g_listEntity,				"0",			NULL,				CVAR_CHEAT,										false )
@@ -155,8 +178,8 @@ XCVAR_DEF( jkg_arearestrictions,		"0",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_deathTimer,				"1",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_antifakeplayer,			"0",			NULL,				CVAR_ARCHIVE,									false )
 XCVAR_DEF( jkg_chatFloodProtect,		"1",			NULL,				CVAR_ARCHIVE,									false )
-XCVAR_DEF( jkg_startingGun,				"pistol_DL-18",	NULL,				CVAR_ARCHIVE|CVAR_LATCH,						true )
-XCVAR_DEF( jkg_startingSaberDuel,		"saber_kyle",	NULL,				CVAR_ARCHIVE|CVAR_LATCH,						true )
+XCVAR_DEF( jkg_startingGun,				"pistol_DL-18",	NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO,					true )
+XCVAR_DEF( jkg_startingSaberDuel,		"saber_kyle",	NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO,					true )
 XCVAR_DEF( g_banfile,					"",				NULL,				CVAR_ARCHIVE,									false )
 XCVAR_DEF( jkg_healthRegen,				"1",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_healthRegenDelay,		"60000",		NULL,				CVAR_ARCHIVE,									true )

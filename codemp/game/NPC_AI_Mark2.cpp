@@ -1,3 +1,25 @@
+/*
+===========================================================================
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 #include "b_local.h"
 #include "g_nav.h"
 
@@ -52,7 +74,7 @@ void NPC_Mark2_Part_Explode( gentity_t *self, int bolt )
 		mdxaBone_t	boltMatrix;
 		vec3_t		org, dir;
 
-		trap_G2API_GetBoltMatrix( self->ghoul2, 0, 
+		trap->G2API_GetBoltMatrix( self->ghoul2, 0, 
 					bolt,
 					&boltMatrix, self->r.currentAngles, self->r.currentOrigin, level.time,
 					NULL, self->modelScale );
@@ -88,7 +110,7 @@ void NPC_Mark2_Pain(gentity_t *self, gentity_t *attacker, int damage)
 		{
 			if (self->locationDamage[hitLoc] >= AMMO_POD_HEALTH)
 			{			
-				newBolt = trap_G2API_AddBolt( self->ghoul2, 0, va("torso_canister%d",(i+1)) );
+				newBolt = trap->G2API_AddBolt( self->ghoul2, 0, va("torso_canister%d",(i+1)) );
 				if ( newBolt != -1 )
 				{
 					NPC_Mark2_Part_Explode(self,newBolt);
@@ -139,9 +161,9 @@ void Mark2_FireBlaster(qboolean advance)
 	static	vec3_t	muzzle;
 	gentity_t	*missile;
 	mdxaBone_t	boltMatrix;
-	int bolt = trap_G2API_AddBolt(NPC->ghoul2, 0, "*flash");
+	int bolt = trap->G2API_AddBolt(NPC->ghoul2, 0, "*flash");
 
-	trap_G2API_GetBoltMatrix( NPC->ghoul2, 0, 
+	trap->G2API_GetBoltMatrix( NPC->ghoul2, 0, 
 				bolt,
 				&boltMatrix, NPC->r.currentAngles, NPC->r.currentOrigin, level.time,
 				NULL, NPC->modelScale );
