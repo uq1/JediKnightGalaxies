@@ -200,7 +200,16 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 		CG_FillRect( SB_SCORELINE_X - 5, y + 2, 640 - SB_SCORELINE_X * 2 + 10, largeFormat?SB_NORMAL_HEIGHT:SB_INTER_HEIGHT, hcolor );
 	}
 
-	CG_Text_Paint (SB_NAME_X, y, 0.9f * scale, colorWhite, ci->name,0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_MEDIUM );
+	//quick hack:
+	//#include "jkg_chatbox.cpp"
+	/*#ifndefine MAX_NOTIFICATION_CHARS
+	#define MAX_NOTIFICATION_CHARS			350
+	#endif*/
+	char		text[MAX_NOTIFICATION_CHARS]; // extra bytes for name
+	Text_ConvertExtToNormal(text);		//this converts xRBG names into regular text - se jkg_chatbox.cpp
+
+
+	CG_Text_Paint (SB_NAME_X, y, 0.9f * scale, colorWhite, ci->name,0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_MEDIUM );	//this is probably what I want --futuza_score
 
 	if ( score->ping != -1 )
 	{
