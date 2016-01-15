@@ -1171,7 +1171,7 @@ BroadCastTeamChange
 Let everyone know about a team change
 =================
 */
-void BroadcastTeamChange( gclient_t *client, int oldTeam )
+void BroadcastTeamChange( gclient_t *client, int oldTeam )														//--futuza notes:  fixme - change so that client->pers.netname is passed to our color converter func or at least parse out rbg stuffs see jkg_chatbox.h for functions
 {
 	client->ps.fd.forceDoInit = 1; //every time we change teams make sure our force powers are set right
 

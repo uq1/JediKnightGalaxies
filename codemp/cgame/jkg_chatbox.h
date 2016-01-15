@@ -10,24 +10,19 @@
 //                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
 //                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
 //                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
-// jkg_chatcmds.h
-// JKG - Chat command processing
-// Heavily based on the engine's command tokenizer
-// Copyright (c) 2013 Jedi Knight Galaxies
+// jkg_chatbox.h
+// JKG - Chatbox function defnitions
+// Copyright (c) 2016 Jedi Knight Galaxies
 
-typedef void (*xccommand_t) ( void );
+#ifndef JKG_CHATBOX_H
+#define JKG_CHATBOX_H
+
+float Text_GetWidth(const char *text, int iFontIndex, float scale);		//figure out our text's width
+static float ExtColor_GetLevel(char chr);
+static int Text_ExtColorCodes(const char *text, vec4_t color);			
+const char *Text_ConvertExtToNormal(const char *text);				//convert RBG colors to normal colors
+void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontIndex, const int limit, float scale);	//draw text on screen
+
+#endif
 
 
-int		CCmd_Argc( void );
-char	*CCmd_Argv( int arg );
-void	CCmd_ArgvBuffer( int arg, char *buffer, int bufferLength );
-char	*CCmd_Args( void );
-char *CCmd_ArgsFrom( int arg );
-void	CCmd_ArgsBuffer( char *buffer, int bufferLength );
-char *CCmd_Cmd();
-qboolean CCmd_Execute(const char *command);
-void CCmd_TokenizeString( const char *text_in );
-void	CCmd_AddCommand( const char *cmd_name, xccommand_t function );
-void	CCmd_RemoveCommand( const char *cmd_name );
-
-void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontIndex, const int limit, float scale);
