@@ -13,8 +13,8 @@
         "selectsound":      "sound/weapons/select_carbine.wav",
         
 //        "gunposition":      "11.0 -2.5 -7.0",
-        "gunposition":      "9.0 -3.0 -4.5",
-        "ironsightsposition": "8.0 -0.2 -5.5",
+        "gunposition":      "9.0 -3.0 -5.0",
+        "ironsightsposition": "9.0 0 -4.5",
         "ironsightsfov": "20",
     
         "firemode0": {
@@ -49,6 +49,9 @@
             "hit":          { "impactfx": "blasters/red_flesh_impact" },
             "deathfx": "blasters/shot_redorange_vaporize",
 	    "displayName":  "Semi"
+        },
+        "scope": {
+                "mask":     "models/weapons/ee-3_rifle/scope_Mask"
         }
 	},
     
