@@ -18,7 +18,7 @@
 			group				none
 			style				WINDOW_STYLE_SHADER
 			rect				0 0 80 68
-			background			"gfx/menus/menu_box_ingame"
+			background			"gfx/menus/menu_top_mp"
 			forecolor			1 1 1 1
 			visible				1
 			decoration
@@ -35,9 +35,10 @@
 			textalign			ITEM_ALIGN_CENTER
 			textalignx			38
 			textaligny			0     
-			font				2
-			textscale			1
-			forecolor			1 .682 0 1
+			font				5
+			textstyle			3
+			textscale			0.7
+			forecolor			1 1 1 1
 			visible				1
 			action 
 			{ 
@@ -57,9 +58,10 @@
 			textalign			ITEM_ALIGN_CENTER
 			textalignx			38
 			textaligny			0     
-			font				2
-			textscale			1
-			forecolor			1 .682 0 1
+			font				5
+			textstyle			3
+			textscale			0.7
+			forecolor			1 1 1 1
 			visible				1
 			action 
 			{ 
