@@ -234,6 +234,7 @@ typedef struct weaponVisualFireMode_s
 	char				switchToSound[MAX_QPATH];
 	char				crosshairShader[MAX_QPATH];	// what to change the crosshair to (if applicable)
 	short				overrideIndicatorFrame;	 // frame to override the firing mode shader with (since these aren't always in order)
+	qboolean			displayExplosive;	// display both Blast Damage and Fallout Damage in the UI?
 
     union
     {
@@ -366,12 +367,12 @@ typedef struct weaponVisualFireMode_s
 
 typedef struct weaponVisual_s
 {
-#ifdef _CGAME
+#if defined (_CGAME) || (_UI)
 	char description[512];			// The description of this weapon to display in UI.
 #endif	
 	// Server needs to know the world model for its Ghoul 2 instances.
 	char world_model[MAX_QPATH];	// The model used for 3D rendering.
-#ifdef _CGAME
+#if defined (_CGAME) || (_UI)
 	char view_model[MAX_QPATH];		// The model used when in first person mode.
 	
 	char icon[MAX_QPATH];		    // The icon of this weapon to be used in the HUD.

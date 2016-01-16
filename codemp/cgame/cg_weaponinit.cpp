@@ -322,7 +322,7 @@ void JKG_LoadWeaponAssets ( weaponInfo_t *weaponInfo, const weaponData_t *weapon
     const weaponVisual_t *weaponVisuals = &weaponData->visuals;
     
     weaponInfo->indicatorType = weaponVisuals->indicatorType;
-	for ( i = 0; i < 4; i++ )
+	for ( i = 0; i < 3; i++ )
     {
         if ( weaponVisuals->groupedIndicatorShaders[i][0] )
         {
@@ -487,9 +487,9 @@ void CG_RegisterWeapon( int weaponNum, int variation ) {
 	{
 	    CG_LoadViewWeapon (weaponInfo, weaponData->visuals.view_model);
 	}
-	else
+	else if (weaponData->visuals.view_model[0] != '\0')
 	{
-	    weaponInfo->viewModel = trap->R_RegisterModel(weaponData->visuals.view_model);
+		weaponInfo->viewModel = trap->R_RegisterModel(weaponData->visuals.view_model);
 	}
 
 	// calc midpoint for rotation

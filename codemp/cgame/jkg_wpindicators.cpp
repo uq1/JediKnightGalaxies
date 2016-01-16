@@ -68,8 +68,9 @@ void JKG_WeaponIndicators_Update(const centity_t *cent, const playerState_t *ps)
 	}
 
 	if (ps) {	// This is my weapon
-        switch ( weaponInfo->indicatorType )
+        switch ( weaponData->visuals.indicatorType )
         {
+			default:
             case IND_NORMAL:
 				if ( weaponData->visuals.visualFireModes[ps->firingMode].overrideIndicatorFrame != -1 )
 				{
@@ -158,10 +159,10 @@ void JKG_WeaponIndicators_Update(const centity_t *cent, const playerState_t *ps)
 			    }
                 break;
                 
-            default:
+            /*default:
             case IND_NONE:
                 trap->R_OverrideShaderFrame (weaponInfo->fireModeIndicator, 0, cg.time);
-                break;
+                break;*/
         }
 	} else {
 		// This isnt me, check if the player uses a different weapon than i do, if so, clear the display

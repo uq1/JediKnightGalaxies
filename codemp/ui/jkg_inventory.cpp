@@ -1,2195 +1,764 @@
 #include "ui_local.h"
 #include "jkg_inventory.h"
-#include <expat.h>
-//Just for this file since it has a lot of strcpy to const types ~eezstreet
-#pragma warning (disable:4090)
 
-static cgItemInstance_t itemsInFilter[256];
+static int nNumInventoryItems = 0;			// number of items in the list
+static cgItemInstance_t* pItems = nullptr;	// pointer to array of items
+static int nPosition = 0;					// position in the item list (changed with arrow buttons)
+static int nSelected = -1;					// selected item in the list (-1 for no selection)
 
-void JKG_Inventory_UpdateVisuals( void );
-static void JKG_Inventory_Examine_Button ( int forceOff );
 
-struct
-{
-    qboolean active;
-	qboolean inShop;
-	qboolean ACIopen;
-    menuDef_t *menu;
-    cgItemInstance_t *selectedItem;
-	int selectedItemIndex;
-	qboolean examineMenuOpen;
-} inventoryState;
+static void JKG_ConstructInventoryList() {
+	nNumInventoryItems = (int)cgImports->InventoryDataRequest(0);
+	pItems = (cgItemInstance_t*)cgImports->InventoryDataRequest(1);
 
-#define MAX_INVENTORY_WEIGHT	50 //NOTENOTE: if you change this here, be sure to do the same in game
+	// Clear the selected item, if it's invalid
+	if (nSelected >= nNumInventoryItems) {
+		nSelected = -1;
+	}
+}
 
 /*
-======================
-BG_GetWeaponDataFromStr
-
-Given an index, variation and string, it will attempt to find that information
-======================
+==========================
+DESCRIPTION CONSTRUCTION
+==========================
 */
-#ifndef _GAME
-#define DWORD unsigned long
-weaponDataGrab_t BG_GetWeaponDataFromStr(int weapon, int variation, char *text)
-{
-	weaponData_t *weaponData = cgImports->GetWeaponDatas( weapon, variation );
-	weaponDataGrab_t retVal;
-	memset(&retVal, 0, sizeof(weaponDataGrab_t));
+// Flags
+static int nLineOffset = 0;
+static int bfTagFields = 0;
+static int bfFireModeTags[MAX_FIREMODES] = { 0 };
+typedef enum {
+	/* Weapons */
+	IDTAG_ROLLING = 0,
+	IDTAG_NOSPRINT = 1,
+	IDTAG_FIREMODE = 2,
+	IDTAG_LAST_FIREMODE = 18,
+	/* Weapon firing modes */
+	IDMTAG_BOUNCING = 0,		// Mode has bouncing shots
+	IDMTAG_BLEED = 1,			// Mode can cause bleeding
+	IDMTAG_DISINTEGRATE = 2,	// Mode disintegrates targets
+	IDMTAG_FIRECONTROL = 3,		// Full auto/burst/semi auto
+	/* Armor */
+	/* Consumables */
+	/* Other */
+	IDTAG_MAX = 32,
+} uiItemDescTags;
 
+// Item description types
+typedef enum {
+	IDTYPE_NODRAW = 0,			// Doesn't use firing mode schema (melee, lightsaber, etc)
+	IDTYPE_GRENADE,				// Grenades (only WP_THERMAL)
+	IDTYPE_CHARGEMINE,			// Charges and mines (only WP_TRIP_MINES and WP_DETPACK)
+	IDTYPE_EXPLOSIVEGUN,		// Explosive projectile weapon (has special flag checked?)
+	IDTYPE_PROJECTILE,			// Any other projectile weapon (blasters, slugthrowers, etc)
+} uiItemDescTypes;
 
-	//Next, check for various text strings
-	if(!Q_stricmp(text, "name"))
-	{
-		//retVal.data = weaponData->displayName;
-		retVal.data.a = (char *)malloc(256);
-		strcpy(retVal.data.a, weaponData->displayName);
-		retVal.isString = qtrue;
-		return retVal;
+// Returns the proper tag that should appear with Blast Damage
+char* JKG_GetBlastDamageTag(weaponData_t* pData, const int nFiringMode) {
+	if (nFiringMode > pData->numFiringModes || nFiringMode < 0 || nFiringMode > MAX_FIREMODES) {
+		return "";
 	}
-	else if(!Q_stricmp(text, "classname"))
-	{
-		retVal.data.a = (char *)malloc(256);
-		strcpy(retVal.data.a, weaponData->classname);
-		retVal.isString = qtrue;
-		return retVal;
+	weaponFireModeStats_t* pFireMode = &pData->firemodes[nFiringMode];
+	if (pFireMode->secondaryDmgHandle == NULL_HANDLE) {
+		return ""; // We can't have Blast Damage if there's no accompanying Fallout Damage. Use regular Damage instead.
 	}
-	else if(!Q_stricmp(text, "ammoIndex"))
-	{
-//		retVal.data = (void *)&weaponData->ammoIndex;
-		retVal.data.uc = weaponData->ammoIndex;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "hasCookAbility"))
-	{
-		//retVal.data = (void *)&weaponData->hasCookAbility;
-		retVal.data.uc = weaponData->hasCookAbility;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "hasKnockBack"))
-	{
-		//retVal.data = (void *)&weaponData->hasKnockBack;
-		retVal.data.uc = weaponData->hasKnockBack;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "hasRollAbility"))
-	{
-		//retVal.data = (void *)&weaponData->hasRollAbility;
-		retVal.data.uc = weaponData->hasRollAbility;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	/*else if(!Q_stricmp(text, "hasSecondary"))
-	{
-		//retVal.data = (void *)&weaponData->hasSecondary;
-		retVal.data.uc = weaponData->hasSecondary;
-		retVal.byteCount = 1;
-		return retVal;
-	}*/
-	else if(!Q_stricmp(text, "zoomType"))
-	{
-		//retVal.data = (void *)&weaponData->zoomType;
-		retVal.data.uc = weaponData->zoomType;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "startZoomFov"))
-	{
-		/*float fData = weaponData->startZoomFov;
-		DWORD dwVal = *(DWORD *)&fData;
-		retVal.data = (void *)fData;*/
-		retVal.data.f = weaponData->startZoomFov;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "endZoomFov"))
-	{
-		/*float fData = weaponData->endZoomFov;
-		DWORD dwVal = *(DWORD *)&fData;
-		retVal.data = (void *)fData;*/
-		retVal.data.f = weaponData->endZoomFov;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "zoomTime"))
-	{
-		/*float fData = weaponData->zoomTime;
-		DWORD dwVal = *(DWORD *)&fData;
-		retVal.data = (void *)fData;*/
-		retVal.data.f = weaponData->zoomTime;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "speedModifier"))
-	{
-		/*float fData = weaponData->speedModifier;
-		DWORD dwVal = *(DWORD *)&fData;
-		retVal.data = (void *)fData;*/
-		retVal.data.f = weaponData->speedModifier;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "reloadModifier"))
-	{
-		/*float fData = weaponData->reloadModifier;
-		DWORD dwVal = *(DWORD *)&fData;
-		retVal.data = (void *)fData;*/
-		retVal.data.f = weaponData->reloadModifier;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-baseDamage"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[0].baseDamage;
-		retVal.data.i = weaponData->firemodes[0].baseDamage;
-		retVal.byteCount = 2;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-baseDamage"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[1].baseDamage;
-		retVal.data.i = weaponData->firemodes[1].baseDamage;
-		retVal.byteCount = 2;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-applyGravity"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[0].applyGravity;
-		retVal.data.uc = weaponData->firemodes[0].applyGravity;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-applyGravity"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[1].applyGravity;
-		retVal.data.uc = weaponData->firemodes[1].applyGravity;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-hitscan"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[0].hitscan;
-		retVal.data.uc = weaponData->firemodes[0].hitscan;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-hitscan"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[1].hitscan;
-		retVal.data.uc = weaponData->firemodes[1].hitscan;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-shotCount"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[0].shotCount;
-		retVal.data.uc = weaponData->firemodes[0].shotCount;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-shotCount"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[1].shotCount;
-		retVal.data.uc = weaponData->firemodes[1].shotCount;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-cost"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[0].cost;
-		retVal.data.uc = weaponData->firemodes[0].cost;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-cost"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[1].cost;
-		retVal.data.uc = weaponData->firemodes[1].cost;
-		retVal.byteCount = 1;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-delay"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[0].delay;
-		retVal.data.i = weaponData->firemodes[0].delay;
-		retVal.byteCount = 2;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-delay"))
-	{
-		//retVal.data = (void *)&weaponData->firemodes[1].delay;
-		retVal.data.i = weaponData->firemodes[1].delay;
-		retVal.byteCount = 2;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-delaypm"))
-	{
-		float pm = (float)(1000 / weaponData->firemodes[0].delay) * 6;
-		//strcpy((char *)retVal.data, va("%i", (short)pm));
-		//retVal.data = (void *)(((float)weaponData->firemodes[0].delay / 1000)*60);
-		retVal.data.f = pm;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-delaypm"))
-	{
-		float pm = (float)(1000 / weaponData->firemodes[1].delay) * 6;
-		//strcpy((char *)retVal.data, va("%i", (short)pm));
-		//retVal.data = (void *)&(((float)weaponData->firemodes[1].delay / 1000)*60);
-		retVal.data.f = pm;
-		retVal.byteCount = 2;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-range"))
-	{
-		retVal.data.f = weaponData->firemodes[0].range;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-range"))
-	{
-		retVal.data.f = weaponData->firemodes[1].range;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-rangeSplash"))
-	{
-		retVal.data.f = weaponData->firemodes[0].rangeSplash;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-rangeSplash"))
-	{
-		retVal.data.f = weaponData->firemodes[1].rangeSplash;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-recoil"))
-	{
-		retVal.data.f = weaponData->firemodes[0].recoil;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-recoil"))
-	{
-		retVal.data.f = weaponData->firemodes[1].recoil;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-spread"))
-	{
-		//retVal.data.f = weaponData->firemodes[0].spread;
-		retVal.data.f = 0;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-spread"))
-	{
-		//retVal.data.f = weaponData->firemodes[1].spread;
-		retVal.data.f = 0;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm1-vel"))
-	{
-		retVal.data.f = weaponData->firemodes[0].speed/48;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	else if(!Q_stricmp(text, "fm2-vel"))
-	{
-		retVal.data.f = weaponData->firemodes[1].speed/48;
-		retVal.isFloat = qtrue;
-		return retVal;
-	}
-	return retVal;
-}
-#endif
-
-void JKG_Inventory_ConstructCreditsText( void )
-{
-	itemDef_t *creditItem = Menu_FindItemByName(inventoryState.menu, "invmain_credits");
-	int credits = (int)cgImports->InventoryDataRequest( 3 );
-	sprintf(creditItem->text, "%i", credits);
+	return ""; // Damage stuff isn't loaded yet :<
 }
 
-void JKG_Inventory_ConstructWeightText( void )
-{
-	cgItemInstance_t *inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-	itemDef_t *weightItem = Menu_FindItemByName(inventoryState.menu, "invmain_weight");
-	int numItems = *(int *)cgImports->InventoryDataRequest( 0 );
-	int i, weight=0;
-	char completeString[10];
+// Returns the proper tag that should appear with Fallout Damage
+char* JKG_GetFalloutDamageTag(weaponData_t* pData, const int nFiringMode) {
+	if (nFiringMode > pData->numFiringModes || nFiringMode < 0 || nFiringMode > MAX_FIREMODES) {
+		return "";
+	}
+	weaponFireModeStats_t* pFireMode = &pData->firemodes[nFiringMode];
+	if (pFireMode->secondaryDmgHandle == NULL_HANDLE) {
+		return ""; // Does not exist
+	}
+	return ""; // Damage stuff isn't loaded yet :<
+}
 
-	if(!weightItem)
-	{
+// Returns the proper tag that should appear (with either "Damage: " or "Direct Damage: ")
+char* JKG_GetDamageTag(weaponData_t* pData, const int nFiringMode) {
+	if (nFiringMode > pData->numFiringModes || nFiringMode < 0 || nFiringMode > MAX_FIREMODES) {
+		return "";
+	}
+	weaponFireModeStats_t* pFireMode = &pData->firemodes[nFiringMode];
+	if (pData->weaponBaseIndex == WP_THERMAL || pData->weaponBaseIndex == WP_TRIP_MINE || pData->weaponBaseIndex == WP_DET_PACK ||
+		pData->visuals.visualFireModes[nFiringMode].displayExplosive) {
+		// Most likely referring to blast damage
+		return JKG_GetBlastDamageTag(pData, nFiringMode);
+	}
+	return ""; // Damage stuff isn't loaded yet :<
+}
+
+// Returns the type of a firing mode
+uiItemDescTypes JKG_GetFiringModeType(weaponData_t* pData, const int nFiringMode) {
+	if (nFiringMode > pData->numFiringModes || nFiringMode < 0 || nFiringMode > MAX_FIREMODES) {
+		return IDTYPE_NODRAW;
+	}
+	switch (pData->weaponBaseIndex) {
+		case WP_THERMAL:
+			return IDTYPE_GRENADE;
+		case WP_TRIP_MINE:
+		case WP_DET_PACK:
+			return IDTYPE_CHARGEMINE;
+		case WP_MELEE:
+		case WP_EMPLACED_GUN:
+		case WP_SABER:
+		case WP_NONE:
+			return IDTYPE_NODRAW;
+		default:
+			{
+				if (pData->visuals.visualFireModes[nFiringMode].displayExplosive) {
+					return IDTYPE_EXPLOSIVEGUN;
+				} else {
+					return IDTYPE_PROJECTILE;
+				}
+			}
+			break;
+	}
+}
+
+// Returns the recoil string (Light, Medium, Heavy, Intense)
+const char* JKG_GetRecoilString(weaponData_t* pData, const int nFiringMode) {
+	if (nFiringMode > pData->numFiringModes || nFiringMode < 0 || nFiringMode > MAX_FIREMODES) {
+		return "";
+	}
+	weaponFireModeStats_t* pFireMode = &pData->firemodes[nFiringMode];
+	if (pFireMode->recoil <= 0.9f) {
+		return UI_GetStringEdString2("@JKG_INVENTORY_WEP_RECOIL_LIGHT");
+	} else if (pFireMode->recoil <= 1.5f) {
+		return UI_GetStringEdString2("@JKG_INVENTORY_WEP_RECOIL_MEDIUM");
+	} else if (pFireMode->recoil <= 3.0f) {
+		return UI_GetStringEdString2("@JKG_INVENTORY_WEP_RECOIL_HEAVY");
+	} else {
+		return UI_GetStringEdString2("@JKG_INVENTORY_WEP_RECOIL_INTENSE");
+	}
+}
+
+// Returns the string that should appear on nLineNum of an item description
+char* JKG_GetItemDescLine(cgItemInstance_t* pItem, int nLineNum) {
+	/* Weapon variables */
+	bool bDontCareAboutAccuracy = false;
+	int nFiringMode = 0;
+
+	/* Misc */
+	int nAccuracyBase;
+	int nAccuracyMax;
+	int nCookTime;
+	int nRPM;
+	int nFireTime;
+	weaponData_t* pWeaponData;
+	uiItemDescTypes idType;
+	weaponFireModeStats_t *pFireMode;
+	weaponVisualFireMode_t *pVFireMode;
+
+
+	assert(pItem != nullptr);
+
+	// If we're drawing the first line, subsequent line draws are therefore guaranteed.
+	// We should clear all of the flags that we need to ensure a correct display.
+	if (nLineNum == 0) {
+		nLineOffset = 0;
+		bfTagFields = 0;
+		memset(bfFireModeTags, 0, sizeof(bfFireModeTags));
+	} else {
+		nLineNum += nLineOffset;
+	}
+
+	switch (pItem->id->itemType) {
+		case ITEM_WEAPON:
+			if (nLineNum == 0) {
+				return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_WEAPON");
+			}
+			pWeaponData = GetWeaponData(pItem->id->weapon, pItem->id->variation);
+			
+			// Reload time / cook time
+			if (nLineNum == 1) {
+				switch (pItem->id->weapon) {
+					case WP_THERMAL:
+						// Cook time
+						if (pWeaponData->hasCookAbility) {
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_COOKTIME"), pWeaponData->weaponReloadTime);
+						} else {
+							nLineNum++;
+							nLineOffset++;
+						}
+						break;
+					case WP_SABER:
+					case WP_MELEE:
+					case WP_TRIP_MINE:
+					case WP_DET_PACK:
+						// Get offset / don't display anything for this line
+						nLineNum++;
+						nLineOffset++;
+						break;
+					default:
+						// Reload time
+						if (pWeaponData->weaponReloadTime > 1000) {
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_RELOADTIME_SEC"),
+								(float)(pWeaponData->weaponReloadTime / 1000.0f));
+						} else {
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_RELOADTIME"), pWeaponData->weaponReloadTime);
+						}
+					}
+			}
+
+			// Movement penalty/bonus, if there is one.
+			if (nLineNum == 2) {
+				const float fSpeedModifier = pWeaponData->speedModifier;
+				if (fSpeedModifier >= 1.0f) {
+					// Movement speed bonus
+					float fMovementBonus = fSpeedModifier - 1.0f;
+					if (fMovementBonus <= 0.001f) {
+						// Movement bonuses below 0.1% are too difficult to notice, and plus this can sometimes occur if there's a
+						// floating point precision issue, so we just offset and continue.
+						nLineNum++;
+						nLineOffset++;
+					} else {
+						// Convert to percentage and draw
+						fMovementBonus += 100.0f;
+						return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_SPEEDBONUS"), fMovementBonus);
+					}
+				} else {
+					// Movement speed penalty
+					float fMovementPenalty = 1.0f - fSpeedModifier;
+					if (fMovementPenalty <= 0.001f) {
+						// See above. Offset it.
+						nLineNum++;
+						nLineOffset++;
+					} else {
+						// You know what to do.
+						fMovementPenalty += 100.0f;
+						return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_SPEEDPENALTY"), fMovementPenalty);
+					}
+				}
+			}
+
+			if (nLineNum == 3) {
+				// Additional weapon tags
+				if (pWeaponData->hasRollAbility && !(bfTagFields & (1 << IDTAG_ROLLING))) {
+					nLineOffset--; // Shift the other lines down
+					bfTagFields |= (1 << IDTAG_ROLLING); // Flag it so we don't draw it again
+					return (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_ROLLING");
+				}
+			}
+
+			if (pItem->id->weapon == WP_SABER) {
+				// TODO
+				goto blankLine;
+			}
+
+			if (pItem->id->weapon == WP_THERMAL || pItem->id->weapon == WP_TRIP_MINE || pItem->id->weapon == WP_DET_PACK) {
+				// Don't care about accuracy rating for these weapons.
+				// TODO: make this a flag in the .itm file
+				bDontCareAboutAccuracy = true;
+			}
+
+			// For mines and charges:
+			// nLineNum 4 is blank
+			// nLineNum 5 is fire mode number
+			// nLineNum 6 is blast damage
+			// nLineNum 7 is fallout damage
+			// nLineNum 8 is additional tags
+			// For charges, the second fire mode is ignored (it's always the detonator)
+
+			// For grenades:
+			// nLineNum 4 is blank
+			// nLineNum 5 is fire mode number
+			// nLineNum 6 is blast damage
+			// nLineNum 7 is fallout damage
+			// nLineNum 8 is cook time
+			// nLineNum 9 is additional tags
+			// For charges, the second fire mode is ignored (it's always the detonator)
+
+			// For weapons with an explosive firing mode:
+			// nLineNum 4 is blank
+			// nLineNum 5 is fire mode number
+			// nLineNum 6 is blast damage (?)
+			// nLineNum 7 is fallout damage, if it exists (otherwise everything is pushed down)
+			// nLineNum 8 is accuracy rating
+			// nLineNum 9 is recoil
+			// nLineNum 10 is fire rate
+			// nLineNum 11 is additional tags
+
+			// For projectile weapons (ie, everything else)
+			// nLineNum 4 is blank
+			// nLineNum 5 is fire mode number
+			// nLineNum 6 is damage
+			// nLineNum 7 is accuracy rating
+			// nLineNum 8 is recoil
+			// nLineNum 9 is fire rate
+			// nLineNum 10 is additional tags
+
+			// Figure out which firing mode we haven't done yet.
+			for (int i = 0; i < pWeaponData->numFiringModes; i++) {
+				if (!(bfTagFields & (1 << (i + IDTAG_FIREMODE)))) {
+					if (i == 1 && pWeaponData->weaponBaseIndex == WP_DET_PACK) {
+						// Plunger mode... we don't care about this one and shouldn't draw it
+						continue;
+					}
+					nFiringMode = i;
+					break;
+				}
+			}
+
+			if (nFiringMode == pWeaponData->numFiringModes) {
+				return "";		// Don't draw anything for this line
+			}
+
+			idType = JKG_GetFiringModeType(pWeaponData, nFiringMode);
+			pFireMode = &pWeaponData->firemodes[nFiringMode];
+			pVFireMode = &pWeaponData->visuals.visualFireModes[nFiringMode];
+
+			if (idType == IDTYPE_NODRAW) {
+				return "";
+			}
+
+			switch (nLineNum) {
+				case 4:
+					goto blankLine;
+				case 5:
+					// Fire mode number
+					if (pWeaponData->numFiringModes > 3) {
+						return va(UI_GetStringEdString2("@JKG_INVENTORY_FIRING_MODE"), nFiringMode + 1);
+					}
+					else {
+						switch (nFiringMode) {
+							case 0:
+								return (char*)UI_GetStringEdString2("@JKG_INVENTORY_PRIMARY_FIRE");
+							case 1:
+								return (char*)UI_GetStringEdString2("@JKG_INVENTORY_SECONDARY_FIRE");
+							case 2:
+								return (char*)UI_GetStringEdString2("@JKG_INVENTORY_TERTIARY_FIRE");
+						}
+					}
+					break;
+				case 6:
+					switch (idType) {
+						case IDTYPE_CHARGEMINE:
+						case IDTYPE_GRENADE:
+						case IDTYPE_EXPLOSIVEGUN:
+							return "";	// FIXME - blast damage
+						case IDTYPE_PROJECTILE:
+							int nDamage = pFireMode->baseDamage <= 0 ? 0 : pFireMode->baseDamage; // FIXME
+							char* szDamageTag = JKG_GetDamageTag(pWeaponData, nFiringMode);
+							int nShotCount = pFireMode->shotCount;
+							if (nShotCount > 1) {
+								return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_DAMAGE_SCATTERGUN"), nDamage, nShotCount, szDamageTag);
+							} else {
+								return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_DAMAGE"), nDamage, szDamageTag);
+							}
+							break;
+					}
+					break;
+				case 7:
+					switch (idType) {
+						case IDTYPE_CHARGEMINE:
+						case IDTYPE_EXPLOSIVEGUN:
+						case IDTYPE_GRENADE:
+							return ""; // FIXME: fallout damage
+						case IDTYPE_PROJECTILE:
+							// Accuracy rating
+							int nAccuracyBase = pFireMode->weaponAccuracy.accuracyRating;
+							int nAccuracyMax = pFireMode->weaponAccuracy.maxAccuracyAdd + nAccuracyBase;
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_ACCURACY"), nAccuracyBase, nAccuracyMax);
+							break;
+					}
+					break;
+				case 8:
+					// Grenades: Cook time
+					// Charges/Mines: Additional tags
+					// Explosive weapons: Accuracy rating
+					// Projectile weapons: recoil
+					switch (idType) {
+						case IDTYPE_EXPLOSIVEGUN:
+							// Accuracy rating
+							nAccuracyBase = pFireMode->weaponAccuracy.accuracyRating;
+							nAccuracyMax = pFireMode->weaponAccuracy.maxAccuracyAdd + nAccuracyBase;
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_ACCURACY"), nAccuracyBase, nAccuracyMax);
+						case IDTYPE_GRENADE:
+							nCookTime = pWeaponData->weaponReloadTime;
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_COOKTIME"), nCookTime);
+						case IDTYPE_PROJECTILE:
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_RECOIL"), JKG_GetRecoilString(pWeaponData, nFiringMode));
+						case IDTYPE_CHARGEMINE:
+							goto additionalTags;
+					}
+					break;
+				case 9:
+					// Grenades: additional tags
+					// Charges/Mines: Additional tags
+					// Explosive weapons: Recoil
+					// Projectile weapons: Fire rate
+					switch (idType) {
+						case IDTYPE_EXPLOSIVEGUN:
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_RECOIL"), JKG_GetRecoilString(pWeaponData, nFiringMode));
+						case IDTYPE_PROJECTILE:
+							nFireTime = pFireMode->delay;
+							nRPM = (int)((1000.0f / nFireTime) * 60.0f);
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_FIRETIME"), nRPM);
+						default:
+							goto additionalTags;
+					}
+					break;
+				case 10:
+					// Explosive weapons: Fire rate
+					// Everything else: additional tags
+					if (idType == IDTYPE_EXPLOSIVEGUN) {
+						nFireTime = pFireMode->delay;
+						nRPM = (int)((1000.0f / nFireTime) * 60.0f);
+						return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_FIRETIME"), nRPM);
+					}
+				default:
+additionalTags:
+					{
+						if (!(bfFireModeTags[nFiringMode] & (1 << IDMTAG_FIRECONTROL))) {
+							char* szReturnValue = nullptr;
+							if (pFireMode->shotsPerBurst == 1) {
+								szReturnValue = (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_SEMI_AUTO");
+							}
+							else if (pFireMode->shotsPerBurst == 0) {
+								szReturnValue = (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_FULL_AUTO");
+							}
+							else {
+								szReturnValue = (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_BURST");
+							}
+							bfFireModeTags[nFiringMode] |= (1 << IDMTAG_FIRECONTROL);
+							nLineOffset--;
+							return szReturnValue;
+						}
+						else {
+							bfTagFields |= (1 << (nFiringMode + IDTAG_FIREMODE));
+							return JKG_GetItemDescLine(pItem, nLineNum);
+						}
+					}
+					break;
+			}
+			break;
+		case ITEM_ARMOR:
+			if (nLineNum == 0) {
+				return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_ARMOR");
+			}
+			break;
+		case ITEM_CONSUMABLE:
+			if (nLineNum == 0) {
+				return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_CONSUMABLE");
+			}
+			break;
+	}
+blankLine:
+	return "";
+}
+
+/*
+==========================
+OWNERDRAW STUFF
+==========================
+*/
+
+extern void Item_Text_Paint(itemDef_t *item);
+
+// Draws the "Credits: X" text
+void JKG_Inventory_OwnerDraw_CreditsText(itemDef_t* item)
+{
+	int credits = (int)cgImports->InventoryDataRequest(3);
+	float x = item->window.rect.x;
+	float y = item->window.rect.y;
+	int font = item->iMenuFont;
+	float scale = item->textscale;
+	char buffer[256];
+	trap->SE_GetStringTextString("JKG_INVENTORY_CREDITS", buffer, sizeof(buffer));
+
+	char* text = va("%s %i", buffer, credits);
+	size_t len = strlen(text);
+	trap->R_Font_DrawString(x, y, text, item->window.foreColor, font, len * 10, scale);
+}
+
+// Draws each item icon in the inventory list (ownerDrawID being the slot)
+void JKG_Inventory_OwnerDraw_ItemIcon(itemDef_t* item, int ownerDrawID) {
+	int nItemNum = ownerDrawID + nPosition;
+	if (nItemNum >= nNumInventoryItems) {
 		return;
 	}
+	cgItemInstance_t* pItem = &pItems[nItemNum];
+	qhandle_t shader = trap->R_RegisterShaderNoMip(pItem->id->itemIcon);
+	trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h,
+		0, 0, 1, 1, shader);
+}
 
-	for(i = 0; i < numItems; i++)
-	{
-		if(!inventory[i].id)
-		{
+// Draws each item name in the inventory list (ownerDrawID being the slot)
+void JKG_Inventory_OwnerDraw_ItemName(itemDef_t* item, int ownerDrawID) {
+	int nItemNum = ownerDrawID + nPosition;
+	if (nItemNum >= nNumInventoryItems) {
+		memset(item->text, 0, sizeof(item->text));
+		Item_Text_Paint(item); // FIXME: should we really be trying to paint a blank string?
+		return;
+	}
+	cgItemInstance_t* pItem = &pItems[nItemNum];
+	strcpy(item->text, pItem->id->displayName);
+	Item_Text_Paint(item);
+}
+
+// Draws additional stuff below the item name
+// Top line. OwnerDrawID is the item slot number
+void JKG_Inventory_OwnerDraw_ItemTagTop(itemDef_t* item, int ownerDrawID) {
+	int nItemNum = ownerDrawID + nPosition;
+	memset(item->text, 0, sizeof(item->text));
+	if (nItemNum >= nNumInventoryItems) {
+		Item_Text_Paint(item);
+		return;
+	}
+	cgItemInstance_t* pItem = &pItems[nItemNum];
+	// If it's in an ACI slot, mention this
+	// FIXME: pItem->equipped should be valid!! but it's not!!
+	int* pACI = (int*)cgImports->InventoryDataRequest(2);
+	assert(pACI != nullptr);
+	for (int i = 0; i < 10; i++) { // FIXME: use something other than literal 10, in case ACI size goes up or down
+		if (pACI[i] == nItemNum) {
+			strcpy(item->text, va(UI_GetStringEdString2("@JKG_INVENTORY_INACI"), i));
+			memcpy(item->window.foreColor, colorTable[CT_CYAN], sizeof(item->window.foreColor));
 			break;
 		}
-		weight += inventory[i].id->weight;
 	}
-	sprintf(completeString, "%i / %i", weight, MAX_INVENTORY_WEIGHT);
-
-	strcpy((char *)weightItem->text, completeString); //Bad const, I know.
-
-	JKG_Inventory_ConstructCreditsText();
+	Item_Text_Paint(item);
 }
 
-void JKG_Inventory_OpenDialog ( char **args )
-{
-    trap->Cvar_Set ("ui_hidehud", "1");
-    inventoryState.active = qtrue;
-	inventoryState.ACIopen = qtrue;
-    
-    Menu_ClearFocus (inventoryState.menu);
-    Menu_ItemDisable (inventoryState.menu, "main_dialog", qfalse);
-
-	Menu_ShowGroup (inventoryState.menu, "aci_selection_na", qfalse);
-	Menu_ShowGroup (inventoryState.menu, "destroyMenu", qfalse);
-	JKG_Inventory_ConstructWeightText();
-
-	//Do special stuff depending on whether we're opening it from a shop menu
-	if(inventoryState.inShop)
-	{
-		Menu_ShowItemByName (inventoryState.menu, "inv_exit", qfalse);
-		Menu_ShowItemByName (inventoryState.menu, "inv_exit_alt", qtrue);
-		Menu_ShowGroup(inventoryState.menu, "shoptab", qtrue);
-		Menu_ShowItemByName (inventoryState.menu, "shoptab_highlight", qfalse);
-		Menu_ShowItemByName (inventoryState.menu, "btn_destroy", qfalse);
-		Menu_ShowItemByName (inventoryState.menu, "btn_sell", qtrue);
-	}
-	else
-	{
-		Menu_ShowItemByName (inventoryState.menu, "inv_exit", qtrue);
-		Menu_ShowItemByName (inventoryState.menu, "inv_exit_alt", qfalse);
-		Menu_ShowGroup(inventoryState.menu, "shoptab", qfalse);
-		Menu_ShowItemByName (inventoryState.menu, "btn_destroy", qtrue);
-		Menu_ShowItemByName (inventoryState.menu, "btn_sell", qfalse);
-	}
-	// Begone, examine menu!
-	JKG_Inventory_Examine_Button(qtrue);
+// Bottom line. OwnerDrawID is the item slot number
+void JKG_Inventory_OwnerDraw_ItemTagBottom(itemDef_t* item, int ownerDrawID) {
+	int nItemNum = ownerDrawID + nPosition;
+	memset(item->text, 0, sizeof(item->text));
+	// Currently not used
+	//if (nItemNum >= nNumInventoryItems) {
+		Item_Text_Paint(item);
+		return;
+	//}
 }
 
-void JKG_Inventory_OpenOther(char** args) {
-	JKG_Inventory_UpdateNotify(0);
-}
-
-void JKG_Inventory_CloseFromShop( char **args )
-{
-	inventoryState.ACIopen = qfalse;
-	inventoryState.examineMenuOpen = qfalse;
-	Menus_CloseByName(inventoryState.menu->window.name);
-}
-
-void JKG_Inventory_CloseDialog ( char **args )
-{
-	if(!inventoryState.inShop)
-	{
-		trap->Cvar_Set ("ui_hidehud", "0");
+// Draws the highlight when an item is selected (ownerDrawID being the slot)
+void JKG_Inventory_OwnerDraw_SelHighlight(itemDef_t* item, int ownerDrawID) {
+	int nItemNum = ownerDrawID + nPosition;
+	if (nItemNum != nSelected) {
+		return;	// Don't draw the highlight because it's not the one that we have selected
 	}
-    inventoryState.active = qfalse;
-	inventoryState.examineMenuOpen = qfalse;
-
-	Menu_ShowGroup (inventoryState.menu, "aci_selection_na", qfalse);
-	Menu_ShowGroup (inventoryState.menu, "destroyMenu", qfalse);
-
-	// Do special stuff if we were in a shop menu before
-	if(inventoryState.inShop)
-	{
-		JKG_Shop_RestoreShopMenu();
-	}
-	inventoryState.inShop = qfalse;
-	inventoryState.ACIopen = qfalse;
-	//JKG_Shop_UpdateNotify(1);
+	trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y,
+		item->window.rect.w, item->window.rect.h, 0, 0, 1, 1,
+		item->window.background);
 }
 
-extern int Item_ListBox_MaxScroll ( itemDef_t *item );
-extern displayContextDef_t *DC;
-void JKG_Inventory_Arrow ( char **args )
-{
-	const char *name;
-	itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "inventory_feederstuff");
-	listBoxDef_t *listPtr = item->typeData.listbox;
-	int max = Item_ListBox_MaxScroll(item);
-	int viewmax = (item->window.rect.w / listPtr->elementWidth);
-	int numItems = *(int *)cgImports->InventoryDataRequest( 0 );
-	int amount = atoi(args[0]);
-
-	if(numItems <= 0)
-	{
-		//This doesn't work if we have no items in our inventory ~eez
+// Draws the selected item's icon
+void JKG_Inventory_OwnerDraw_SelItemIcon(itemDef_t* item) {
+	if (nSelected == -1) {
 		return;
 	}
-
-	if(amount >= 2)
-	{
-		amount = -1;
-	}
-
-	if (String_Parse(args, &name))
-	{
-		if (( item->window.rect.h > (listPtr->elementHeight*2)) &&  (listPtr->elementStyle == LISTBOX_IMAGE))
-		{
-			viewmax = (item->window.rect.h / listPtr->elementHeight);
-		}
-		else 
-		{
-			viewmax = (item->window.rect.w / listPtr->elementWidth);
-		}
-		if(amount < 0)
-		{
-			listPtr->cursorPos = listPtr->startPos;
-			listPtr->cursorPos += amount;
-		}
-		else if(amount > 0)
-		{
-			listPtr->startPos += amount;
-			listPtr->cursorPos = listPtr->startPos;
-		}
-		if (listPtr->cursorPos < 0) {
-			listPtr->cursorPos = 0;
-			return;
-		}
-		if (listPtr->cursorPos < listPtr->startPos) {
-			listPtr->startPos = listPtr->cursorPos;
-		}
-		if (listPtr->cursorPos >= listPtr->startPos + viewmax) {
-			listPtr->startPos = listPtr->cursorPos - viewmax + 1;
-		}
-		if (listPtr->startPos >= DC->feederCount(item->special))
-		{
-			listPtr->startPos = DC->feederCount(item->special)-1;
-		}
-		if (listPtr->cursorPos > DC->feederCount(item->special))
-		{
-			listPtr->cursorPos = DC->feederCount(item->special);
-		}
-		item->cursorPos = listPtr->cursorPos;
-	}
-	JKG_Inventory_UpdateVisuals();
+	cgItemInstance_t* pItem = &pItems[nSelected];
+	qhandle_t shader = trap->R_RegisterShaderNoMip(pItem->id->itemIcon);
+	trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y,
+		item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, shader);
 }
 
-void JKG_Inventory_Arrow_New ( itemDef_t *item, int amount )
-{
-	listBoxDef_t *listPtr = item->typeData.listbox;
-	int max = Item_ListBox_MaxScroll(item);
-	int viewmax = (item->window.rect.w / listPtr->elementWidth);
-	int numItems = *(int *)cgImports->InventoryDataRequest( 0 );
-
-	if(numItems <= 0)
-	{
-		//This doesn't work if we have no items in our inventory ~eez
+// Draws the selected item's name
+void JKG_Inventory_OwnerDraw_SelItemName(itemDef_t* item) {
+	if (nSelected == -1) {
 		return;
 	}
-
-	{
-		if (( item->window.rect.h > (listPtr->elementHeight*2)) &&  (listPtr->elementStyle == LISTBOX_IMAGE))
-		{
-			viewmax = (item->window.rect.h / listPtr->elementHeight);
-		}
-		else 
-		{
-			viewmax = (item->window.rect.w / listPtr->elementWidth);
-		}
-		if(amount < 0)
-		{
-			listPtr->cursorPos = listPtr->startPos;
-			listPtr->cursorPos += amount;
-		}
-		else if(amount > 0)
-		{
-			listPtr->startPos += amount;
-			listPtr->cursorPos = listPtr->startPos;
-		}
-		if (listPtr->cursorPos < 0) {
-			listPtr->cursorPos = 0;
-			return;
-		}
-		if (listPtr->cursorPos < listPtr->startPos) {
-			listPtr->startPos = listPtr->cursorPos;
-		}
-		if (listPtr->cursorPos >= listPtr->startPos + viewmax) {
-			listPtr->startPos = listPtr->cursorPos - viewmax + 1;
-		}
-		if (listPtr->startPos >= DC->feederCount(item->special))
-		{
-			listPtr->startPos = DC->feederCount(item->special)-1;
-		}
-		if (listPtr->cursorPos > DC->feederCount(item->special))
-		{
-			listPtr->cursorPos = DC->feederCount(item->special);
-		}
-		item->cursorPos = listPtr->cursorPos;
-	}
-	JKG_Inventory_UpdateVisuals();
+	cgItemInstance_t* pItem = &pItems[nSelected];
+	strcpy(item->text, pItem->id->displayName);
+	Item_Text_Paint(item);
 }
 
-int JKG_Inventory_FeederCount ( void )
-{
-	int numItems = *(int *)cgImports->InventoryDataRequest( 0 );
-	cgItemInstance_t *inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-	int c = 0;
-	int i;
-	memset(itemsInFilter, 0, sizeof(itemsInFilter));
-	if(ui_inventoryFilter.integer == JKGIFILTER_ALL)
-	{
-		return numItems;
-	}
-	else
-	{
-		for(i = 0; i < numItems; i++)
-		{
-			if(!inventory[i].id)
-			{
-				return 0;
-			}
-			switch(ui_inventoryFilter.integer)
-			{
-				case JKGIFILTER_ARMOR:
-					if(inventory[i].id->itemType == ITEM_ARMOR || inventory[i].id->itemType == ITEM_CLOTHING)
-					{
-						itemsInFilter[c] = inventory[i];
-						itemsInFilter[c].amount[0] = i; //HAX
-						c++;
-					}
-					break;
-				case JKGIFILTER_WEAPONS:
-					if(inventory[i].id->itemType == ITEM_WEAPON)
-					{
-						itemsInFilter[c] = inventory[i];
-						itemsInFilter[c].amount[0] = i; //HAX
-						c++;
-					}
-					break;
-				case JKGIFILTER_CONSUMABLES:
-					if(inventory[i].id->itemType == ITEM_BUFF)
-					{
-						itemsInFilter[c] = inventory[i];
-						itemsInFilter[c].amount[0] = i; //HAX
-						c++;
-					}
-					break;
-				case JKGIFILTER_MISC:
-					if(inventory[i].id->itemType == ITEM_UNKNOWN)
-					{
-						itemsInFilter[c] = inventory[i];
-						itemsInFilter[c].amount[0] = i; //HAX
-						c++;
-					}
-					break;
-			}
-		}
-	}
-	return c;
-}
-
-static int GetACISlotForWeapon ( int weaponId )
-{
-	cgItemInstance_t *inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-	int *playerACI = (int *)cgImports->InventoryDataRequest( 2 );
-    int i;
-    for ( i = 0; i < MAX_ACI_SLOTS; i++ )
-    {
-		if (playerACI[i] >= 0)
-		{
-			if(inventory[playerACI[i]].id)
-			{
-				if(inventory[playerACI[i]].id->varID == weaponId)
-				{
-					return i;
-				}
-			}
-		}
-    }
-    
-    return -1;
-}
-
-static qboolean IsWeaponInACI ( int weaponId )
-{
-    return GetACISlotForWeapon (weaponId) != -1;
-}
-
-static int GetACISlotForItem ( int itemID )
-{
-	cgItemInstance_t *inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-	int *playerACI = (int *)cgImports->InventoryDataRequest( 2 );
-	int i;
-    for ( i = 0; i < MAX_ACI_SLOTS; i++ )
-    {
-		if ( playerACI[i] >= 0 )
-        {
-			if( inventory[playerACI[i]].id->itemID == itemID )
-			{
-				return i;
-			}
-        }
-    }
-    
-    return -1;
-}
-
-static qboolean IsItemInACI ( int weaponId )
-{
-    return GetACISlotForItem (weaponId) != -1;
-}
-
-void UpdateButtonStates ( void )
-{
-    qboolean equipped;
-
-	if ( !inventoryState.menu )
-	{
+// Draws the selected item's description (ownerDrawID being the line number)
+void JKG_Inventory_OwnerDraw_SelItemDesc(itemDef_t* item, int ownerDrawID) {
+	if (nSelected == -1) {
 		return;
 	}
-    
-	if ( !inventoryState.active || !inventoryState.selectedItem || !inventoryState.selectedItem->id )
-    {
-		if(inventoryState.inShop)
-		{
-			Menu_ItemDisable (inventoryState.menu, "btn_sell", qtrue);
+	cgItemInstance_t* pItem = &pItems[nSelected];
+	strcpy(item->text, JKG_GetItemDescLine(pItem, ownerDrawID));
+	Item_Text_Paint(item);
+}
+
+// Draws the interaction buttons
+void JKG_Inventory_OwnerDraw_Interact(itemDef_t* item, int ownerDrawID) {
+	cgItemInstance_t* pItem = nullptr;
+	memset(item->text, 0, sizeof(item->text));
+	if (nSelected == -1) {
+		return;
+	}
+	pItem = &pItems[nSelected];
+	if (ownerDrawID == 0) {
+		// Assign to ACI
+		if (pItem->id->itemType == ITEM_ARMOR) {
+			if (pItem->equipped) {
+				strcpy(item->text, UI_GetStringEdString2("@JKG_INVENTORY_UNEQUIP"));
+				item->action = "jkgscript inv_unequip";
+			}
+			else {
+				strcpy(item->text, UI_GetStringEdString2("@JKG_INVENTORY_EQUIP"));
+				item->action = "jkgscript inv_equip";
+			}
 		}
-		inventoryState.selectedItem = NULL;
-		inventoryState.selectedItemIndex = -1;
-		Menu_ShowGroup(inventoryState.menu, "itemselections", qfalse); //Hide currently selected item
-		Menu_ItemDisable (inventoryState.menu, "btn_equip", qtrue);
-		Menu_ItemDisable (inventoryState.menu, "btn_unequip", qtrue);
-		Menu_ItemDisable (inventoryState.menu, "btn_useitem", qtrue);
-		Menu_ItemDisable (inventoryState.menu, "btn_aci", qtrue);
-		Menu_ItemDisable (inventoryState.menu, "btn_examine", qtrue);
-        return;
-    }
-    
-    equipped = inventoryState.selectedItem->equipped;
-
-	if( !inventoryState.selectedItem->id->xml )
-	{
-		Menu_ShowItemByName (inventoryState.menu, "btn_na1", qtrue);
-		Menu_ItemDisable (inventoryState.menu, "btn_examine", 1);
+		else {
+			strcpy(item->text, UI_GetStringEdString2("@JKG_INVENTORY_ACI"));
+			item->action = "clearfocus ; show interact1 ; show interact_submenu1_assignaci ; hide interact_submenu2_destroy ; hide interact2; disable inv_feederSel 1";
+		}
+	} else if (ownerDrawID == 1) {
+		// Destroy button
+		strcpy(item->text, UI_GetStringEdString2("@JKG_INVENTORY_DESTROY"));
+		item->action = "clearfocus ; show interact2 ; show interact_submenu2_destroy ; disable inv_feederSel 1 ; hide interact_submenu1_assignaci ; hide interact1";
 	}
-	else
-	{
-		Menu_ShowItemByName (inventoryState.menu, "btn_na1", qfalse);
-		Menu_ItemDisable (inventoryState.menu, "btn_examine", 0);
+	else if (ownerDrawID == 2) {
+		// On consumables, this is the "use" button
+		if (pItem->id->itemType != ITEM_ARMOR && pItem->id->itemType != ITEM_CLOTHING &&
+			pItem->id->itemType != ITEM_WEAPON) {
+			strcpy(item->text, UI_GetStringEdString2("@JKG_INVENTORY_USE"));
+		}
+		item->action = "jkgscript inv_use";
 	}
-
-    switch ( inventoryState.selectedItem->id->itemType )
-    {
-        case ITEM_ARMOR:
-            Menu_ShowItemByName (inventoryState.menu, "btn_equip", !equipped);
-            Menu_ShowItemByName (inventoryState.menu, "btn_unequip", equipped);
-            
-            Menu_ItemDisable (inventoryState.menu, "btn_equip", equipped);
-            Menu_ItemDisable (inventoryState.menu, "btn_unequip", !equipped);
-            
-			Menu_ShowItemByName (inventoryState.menu, "btn_na3", qtrue);
-            Menu_ItemDisable (inventoryState.menu, "btn_useitem", 1);
-            Menu_ItemDisable (inventoryState.menu, "btn_aci", 1);
-            
-			Menu_ShowItemByName (inventoryState.menu, "btn_na2", qtrue);
-            Menu_ItemDisable (inventoryState.menu, "btn_aci2", 1);
-            Menu_ShowItemByName (inventoryState.menu, "btn_aci2", qfalse);
-			if(inventoryState.inShop)
-			{
-				Menu_ItemDisable (inventoryState.menu, "btn_sell", equipped);
-			}
-			else
-			{
-				Menu_ItemDisable (inventoryState.menu, "btn_destroy", equipped);
-			}
-        break;
-        
-        case ITEM_WEAPON:
-        {
-            qboolean weaponInACI = IsWeaponInACI (inventoryState.selectedItem->id->varID);
-        
-			Menu_ShowItemByName (inventoryState.menu, "btn_na4", qtrue);
-            Menu_ShowItemByName (inventoryState.menu, "btn_equip", qtrue);
-            Menu_ShowItemByName (inventoryState.menu, "btn_unequip", qfalse);
-            
-            Menu_ItemDisable (inventoryState.menu, "btn_equip", qtrue);
-            Menu_ItemDisable (inventoryState.menu, "btn_unequip", qtrue);
-            
-			Menu_ShowItemByName (inventoryState.menu, "btn_na3", qtrue);
-            Menu_ItemDisable (inventoryState.menu, "btn_useitem", 1);
-            
-            Menu_ShowItemByName (inventoryState.menu, "btn_aci", !weaponInACI);
-            Menu_ShowItemByName (inventoryState.menu, "btn_aci2", weaponInACI);
-            
-            Menu_ItemDisable (inventoryState.menu, "btn_aci", weaponInACI);
-            Menu_ItemDisable (inventoryState.menu, "btn_aci2", !weaponInACI);
-
-			if(inventoryState.inShop)
-			{
-				Menu_ItemDisable (inventoryState.menu, "btn_sell", weaponInACI);
-			}
-			else
-			{
-				Menu_ItemDisable (inventoryState.menu, "btn_destroy", weaponInACI);
-			}
-        }
-        break;
-        
-        default:
-			{
-				qboolean itemInACI = IsItemInACI (inventoryState.selectedItem->id->itemID);
-				qboolean itemACIAble = (inventoryState.selectedItem->id->pSpell > 0);
-				//TODO: add consumable stuff
-				Menu_ItemDisable (inventoryState.menu, "btn_useitem", 0);
-				Menu_ItemDisable (inventoryState.menu, "btn_equip", 1);
-				Menu_ItemDisable (inventoryState.menu, "btn_unequip", 1);
-				Menu_ShowItemByName (inventoryState.menu, "btn_equip", qtrue);
-				Menu_ShowItemByName (inventoryState.menu, "btn_unequip", qfalse);
-
-				if(itemInACI)
-				{
-					Menu_ShowItemByName (inventoryState.menu, "btn_aci", qfalse);
-					Menu_ItemDisable (inventoryState.menu, "btn_aci2", qfalse);
-					Menu_ItemDisable (inventoryState.menu, "btn_aci", qtrue);
-					Menu_ShowItemByName (inventoryState.menu, "btn_aci2", qtrue);
-				}
-				else
-				{
-					Menu_ShowItemByName (inventoryState.menu, "btn_aci", qtrue);
-					Menu_ShowItemByName (inventoryState.menu, "btn_aci2", qfalse);
-					Menu_ItemDisable (inventoryState.menu, "btn_aci", !itemACIAble);
-					Menu_ItemDisable (inventoryState.menu, "btn_aci2", qtrue);
-				}
-
-				//Menu_ShowItemByName (inventoryState.menu, "btn_aci", qtrue);
-				//Menu_ShowItemByName (inventoryState.menu, "btn_aci2", qfalse);
-				//Menu_ItemDisable (inventoryState.menu, "btn_aci", 1);
-				if(inventoryState.inShop)
-				{
-					Menu_ItemDisable (inventoryState.menu, "btn_sell", qfalse);
-				}
-				else
-				{
-					Menu_ItemDisable (inventoryState.menu, "btn_destroy", qfalse);
-				}
-			}
-        break;
-    }
 }
 
-qboolean JKG_Inventory_FeederSelection ( int index )
-{
-    int numItems = JKG_Inventory_FeederCount();
-	itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "inventory_feederstuff");
-	listBoxDef_t *listPtr = item->typeData.listbox;
-    cgItemInstance_t *inventory = NULL;
-    
-	//Sanity check
-    if ( index < 0 || index >= numItems )
-    {
-        return qfalse;
-    }
-    
-	// Get information on the item
-	if(ui_inventoryFilter.integer == JKGIFILTER_ALL)
-	{
-		inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-		inventoryState.selectedItem = &inventory[index];
-		inventoryState.selectedItemIndex = index;
+extern void Item_RunScript(itemDef_t *item, const char *s);
+void JKG_Inventory_OwnerDraw_Interact_Button(int ownerDrawID, int key) {
+	itemDef_t* pTarget = nullptr;
+	menuDef_t* pTargetMenu = nullptr;
+	if (key != A_MOUSE1 && key != A_MOUSE2) {
+		return;
 	}
-	else
-	{
-		cgItemInstance_t *inventory2 = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-		inventory = itemsInFilter;
-		inventoryState.selectedItem = &itemsInFilter[index];
-		inventoryState.selectedItemIndex = index;
+	pTargetMenu = Menus_FindByName("jkg_inventory");
+	if (pTargetMenu == nullptr) {
+		// how in the f-ck did you get here...
+		return;
 	}
-
-	// Hide NA buttons
-	Menu_ShowGroup(inventoryState.menu, "btn_nas", qfalse);
-    
-	// Update the "equip", "destroy" etc buttons to more appropriate stylings
-    UpdateButtonStates();
-
-	// Show the special selection graphic that BlasTech made ~eezstreet
-	Menu_ShowGroup(inventoryState.menu, "itemselections", qfalse); //Hide currently selected item
-	Menu_ShowItemByName(inventoryState.menu, va("feeder_selection%i", index-listPtr->startPos), qtrue);
-	// Hack: hide the button highlights (this doesn't bring them out of focus however, which is good)
-	Menu_ShowGroup(inventoryState.menu, "btn_hilights", qfalse);
-
-    
-    return qtrue;
+	pTarget = Menu_FindItemByName(pTargetMenu, va("interact%i_button", ownerDrawID + 1));
+	if (pTarget == nullptr) {
+		// the item is probably not defined
+		return;
+	}
+	Item_RunScript(pTarget, pTarget->action);
 }
 
-const char *JKG_Inventory_FeederItemText ( int index, int column, qhandle_t *handle1, qhandle_t *handle2, qhandle_t *handle3 )
-{
-	int numItems = *(int *)cgImports->InventoryDataRequest( 0 );
-    cgItemInstance_t *inventory;
-    
-    if ( index < 0 || index >= numItems )
-    {
-        return NULL;
-    }
-    
-	inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-    switch ( column )
-    {
-        case 0:
-            return inventory[index].id->displayName;
-        case 1:
-            return inventory[index].equipped ? "Y" : NULL;
-        case 2:
-            return va ("%i", inventory[index].id->weight);
-        default:
-            return NULL;
-    }
+bool JKG_Inventory_ShouldDraw_Interact(int nWhich) {
+	if (nSelected == -1) {
+		return false;
+	}
+	return true;
+}
+
+/*
+==========================
+BUTTON PRESSES
+==========================
+*/
+void JKG_Inventory_SelectItem(char** args) {
+	int nWhich = atoi(args[0]);
+	if (nPosition + nWhich >= nNumInventoryItems) {
+		nSelected = -1;
+	} else {
+		nSelected = nPosition + nWhich;
+	}
+}
+
+void JKG_Inventory_ArrowUp(char** args) {
+	if (nPosition > 0) {
+		nPosition--;
+	}
+	JKG_ConstructInventoryList();
+}
+
+void JKG_Inventory_ArrowDown(char** args) {
+	if (nPosition < nNumInventoryItems-1) {
+		nPosition++;
+	}
+	JKG_ConstructInventoryList();
+}
+
+void JKG_Inventory_ACISlot(char** args) {
+	int nSlot = atoi(args[0]);
+	cgImports->InventoryAttachToACI(nSelected, nSlot, true);
+}
+
+void JKG_Inventory_ACISlotAuto(char** args) {
+	cgImports->InventoryAttachToACI(nSelected, -1, true);
+}
+
+void JKG_Inventory_ACIRemove(char** args) {
+	cgImports->InventoryAttachToACI(nSelected, -1, false);
+}
+
+void JKG_Inventory_Destroy(char** args) {
+	if (nSelected == -1) {
+		return;
+	}
+	cgImports->SendClientCommand(va("inventoryDestroy %d", nSelected));
+}
+
+void JKG_Inventory_Use(char** args) {
+	if (nSelected == -1) {
+		return;
+	}
+	cgImports->SendClientCommand(va("inventoryUse %d", nSelected));
+}
+
+void JKG_Inventory_EquipArmor(char** args) {
+	if (nSelected == -1) {
+		return;
+	}
+	cgImports->SendClientCommand(va("equip %d", nSelected));
+}
+
+void JKG_Inventory_UnequipArmor(char** args) {
+	if (nSelected == -1) {
+		return;
+	}
+	cgImports->SendClientCommand(va("unequip %d", nSelected));
+}
+
+void JKG_Inventory_Interact(char** args) {
+	int nArg = atoi(args[0]);
+	if (nSelected == -1) {
+		return;
+	}
+	cgItemInstance_t* pItem = &pItems[nSelected];
+	switch (nArg) {
+		default:
+		case 0:
+			// Assign to ACI / Equip
+			if (pItem->id->itemType == ITEM_ARMOR) {
+
+			}
+			else {
+				cgImports->InventoryAttachToACI(nSelected, -1, true);
+			}
+			JKG_Inventory_UpdateNotify(1);
+			break;
+		case 1:
+			// Does nothing / this is entirely handled by menu code
+			break;
+		case 2:
+			// Use item
+			JKG_Inventory_UpdateNotify(1);
+			break;
+	}
 }
 
 void JKG_Inventory_UpdateNotify(int msg) {
-    switch ( msg )
-    {
-        case 0: // open
-            memset (&inventoryState, 0, sizeof (inventoryState));
-            inventoryState.active = qtrue;
-			inventoryState.inShop = qfalse;
-            
-            inventoryState.menu = Menus_FindByName ("jkg_inventory");
-            if ( inventoryState.menu && Menus_ActivateByName ("jkg_inventory") )
-            {
-                trap->Key_SetCatcher (trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
-            }
-        break;
-        
-        case 1: // update!
-            UpdateButtonStates();
-			JKG_Inventory_UpdateVisuals();
-			JKG_Inventory_ConstructCreditsText();
-			break;
-		case 2:	// open as shop menu
-			memset (&inventoryState, 0, sizeof (inventoryState));
-            inventoryState.active = qtrue;
-			inventoryState.inShop = qtrue;
-
-            inventoryState.menu = Menus_FindByName ("jkg_inventory");
-            if ( inventoryState.menu && Menus_ActivateByName ("jkg_inventory") )
-            {
-                trap->Key_SetCatcher (trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
-            }
-        break;
-    }
-}
-
-enum inventoryButtons_e
-{
-    INV_BTN_USEITEM,
-    INV_BTN_EQUIP,
-    INV_BTN_ASSIGN2ACI,
-    INV_BTN_UNEQUIP,
-    INV_BTN_UNASSIGN4ACI,
-	INV_BTN_DESTROYITEM,
-	INV_BTN_DESTROYITEM_CONFIRM,
-	INV_BTN_DESTROYITEM_DENY,
-	INV_BTN_EXAMINE,
-	INV_BTN_SELL,
-	INV_BTN_SELL_CONFIRM,
-	INV_BTN_SELL_DENY,
-};
-
-void JKG_Inventory_ACI_Button ( char **args )
-{
-    int slot;
-	cgItemInstance_t *inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-    if ( !Int_Parse (args, &slot) )
-    {
-        return;
-    }
-    
-    if ( slot < 0 || slot >= MAX_ACI_SLOTS )
-    {
-        return;
-    }
-
-
-	if(!inventory)
+	switch (msg)
 	{
-		return;
-	}
-
-	if(!inventoryState.selectedItem)
-	{
-		return;
-	}
-
-    if(ui_inventoryFilter.integer != JKGIFILTER_ALL)
-	{
-		cgImports->InventoryAttachToACI (inventoryState.selectedItem->amount[0], slot, 1);	// eezstreet: cannot simply do item-inventory because filters use different pointers!
-	}
-	else
-	{
-		cgImports->InventoryAttachToACI (inventoryState.selectedItem-inventory, slot, 1);
-	}
-    
-    Menu_ShowGroup (inventoryState.menu, "aci_selection", qfalse);
-    Menu_ClearFocus (inventoryState.menu);
-    
-    Menu_ItemDisable (inventoryState.menu, "main_dialog", qfalse);
-	Menu_ItemDisable (inventoryState.menu, "arrows", qfalse);
-
-	Menu_ShowGroup (inventoryState.menu, "aci_selection_na", qfalse);
-	inventoryState.ACIopen = qfalse;
-    UpdateButtonStates();
-	JKG_Inventory_UpdateVisuals();
-}
-void JKG_Inventory_ACI_Button_Clean(int slot)
-{
-	cgItemInstance_t *inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-    
-    if ( slot < 0 || slot >= MAX_ACI_SLOTS )
-    {
-        return;
-    }
-
-	if(!inventory)
-	{
-		return;
-	}
-
-	if(!inventoryState.selectedItem)
-	{
-		return;
-	}
-    
-	if(ui_inventoryFilter.integer)
-		cgImports->InventoryAttachToACI (inventoryState.selectedItem->amount[0], slot, 1);	// eezstreet: cannot simply do item-inventory because filters use different pointers!
-	else
-		cgImports->InventoryAttachToACI (inventoryState.selectedItem-inventory, slot, 1);
-    
-    Menu_ShowGroup (inventoryState.menu, "aci_selection", qfalse);
-    Menu_ClearFocus (inventoryState.menu);
-    
-    Menu_ItemDisable (inventoryState.menu, "main_dialog", qfalse);
-	Menu_ItemDisable (inventoryState.menu, "arrows", qfalse);
-
-	Menu_ShowGroup (inventoryState.menu, "aci_selection_na", qfalse);
-	inventoryState.ACIopen = qfalse;
-    UpdateButtonStates();
-	JKG_Inventory_UpdateVisuals();
-}
-
-//eezstreet: New function for showing NA greyovers and disabling NA buttons
-static void JKG_ACI_GreyBlast(void)
-{
-	int i;
-	cgItemInstance_t *inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-	int *playerACI = (int *)cgImports->InventoryDataRequest( 2 );
-
-	if(!inventory)
-	{
-		return;
-	}
-
-	Menu_ShowGroup (inventoryState.menu, "aci_selection_na", qfalse);
-	for(i = 0; i < MAX_ACI_SLOTS; i++)
-	{
-		if(playerACI[i] < 0 || !inventory[playerACI[i]].id || !inventory[playerACI[i]].id->itemID)
+	case 0: // open
+		if (Menus_FindByName("jkg_inventory") && Menus_ActivateByName("jkg_inventory"))
 		{
-			//No item in slot
-			Menu_ItemDisable (inventoryState.menu, va("btn_aci_slot%i", i), qfalse);
-			continue; //Unsure..I think this means when there's no item in slot, but could be a null ptr..
+			trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
 		}
-		//Special case for slot number 10..it uses 0s
-		/*if(i == 9)
+		JKG_ConstructInventoryList();
+		break;
+
+	case 1: // update!
+		trap->Print("debug: [Inventory::UpdateNotify]\n");
+		JKG_ConstructInventoryList();
+		break;
+	case 2:	// open as shop menu
+		if (Menus_FindByName("jkg_inventory") && Menus_ActivateByName("jkg_inventory"))
 		{
-			Menu_ShowItemByName(inventoryState.menu, "btn_aci_slot0_na", qtrue);
-			Menu_ItemDisable (inventoryState.menu, "btn_aci_slot0", qtrue);
+			trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
 		}
-		else
-		{*/
-			Menu_ShowItemByName(inventoryState.menu, va("btn_aci_slot%i_na", i), qtrue);
-			Menu_ItemDisable (inventoryState.menu, va("btn_aci_slot%i", i), qtrue);
-		//}
-			// Wow, was I drunk when I wrote the above, or what?
-	}
-}
-
-
-#pragma region XML
-#pragma region XMLdecl
-//===============
-// XML Handling
-//===============
-
-static int		last_tableline;
-#pragma endregion
-
-#pragma region XML Element Start
-static void XMLCALL JKGXML_Start_Element(void *userData, const char *name, const char **atts)
-{
-	int *depthPtr = (int *)userData;
-	int itemType = inventoryState.selectedItem->id->itemType;
-	if(!Q_stricmp(name, "test"))
-	{
-		Com_Printf("^2XML ok\n");
-		*depthPtr += 1;
-		return;
-	}
-	if(*depthPtr == 0)
-	{
-		if(!Q_stricmp(name, "ItemXML"))
-		{
-			*depthPtr += 1;
-			return;
-		}
-	}
-	else if(*depthPtr == 1)
-	{
-		//Global scope
-		containingCat++;
-		lastDepth2 = 1;
-		if(containingCat == 3)
-		{
-			//There are special graphics on the last category, attributes providing.
-			if(!Q_stricmp(atts[0], "type"))
-			{
-				if(!Q_stricmp(atts[1], "twocoltable"))
-				{
-					//Loop through next attributes
-					int i;
-					for(i = 2; atts[i]; i += 2)
-					{
-						if(!Q_stricmp(atts[i], "col1"))
-						{
-							itemDef_t *item = Menu_FindItemByName(inventoryState.menu, va("examine%iCat3_tableHeaders",
-								itemType));
-							if(!item)
-							{
-								return;
-							}
-
-							strcpy(item->text, atts[i+1]);
-						}
-						else if(!Q_stricmp(atts[i], "col2"))
-						{
-							itemDef_t *item = Menu_FindItemByName(inventoryState.menu, va("examine%iCat3_tableHeaders",
-								itemType));
-							if(!item)
-							{
-								return;
-							}
-
-							strcpy(item->text2, atts[i+1]);
-						}
-					}
-				}
-				last_tableline = 1;
-			}
-		}
-		/*if(!Q_stricmp(name, "ProductionInfo"))
-		{
-			containingCat = CONTAINCAT_PRODUCTIONINFO;
-		}
-		else if(!Q_stricmp(name, "Usage"))
-		{
-			containingCat = CONTAINCAT_USAGE;
-		}
-		else if(!Q_stricmp(name, "TechnicalSpecifications"))
-		{
-			containingCat = CONTAINCAT_TECHSPEC;
-		}*/
-	}
-	else if(*depthPtr == 2 || *depthPtr == 3)
-	{
-		int numAttributes = 0;
-		int wp;
-		int variation;
-		int i;
-		weaponDataGrab_t wpG;
-		for(i = 0; atts[i]; i += 2)
-		{
-			numAttributes++;
-		}
-		memset(&wpG, 0, sizeof(weaponDataGrab_t));
-		wp = inventoryState.selectedItem->id->weapon;
-		variation = inventoryState.selectedItem->id->variation;
-		if(numAttributes > 0)
-		{
-			wpG = BG_GetWeaponDataFromStr(wp, variation, const_cast<char *>(atts[1]));
-		}
-		formatStr[0] = '\0';
-
-		if(!Q_stricmp(atts[0], "filler"))
-		{
-			//if(wpG.data)
-			{
-				if(!Q_stricmp(atts[2], "format"))
-				{
-					strcpy(formatStr, atts[3]);
-				}
-			}
-		}
-		//Within another tag - first level
-		if(!containingCat)
-		{
-			//Hmmm..Are you using the <test> tags wrong??
-			*depthPtr += 1;
-			return;
-		}
-		// Check the itemType
-		if(numAttributes > 0)
-		{
-			useAutoFill = qtrue;
-			autoFill = wpG;
-		}
-		else
-		{
-			useAutoFill = qfalse;
-
-		}
-	}
-	*depthPtr += 1;
-}
-#pragma endregion
-
-#pragma region JKG_Inventory_ExamineMenuNumForItemType
-int JKG_Inventory_ExamineMenuNumForItemType(const int itemType)
-{
-	switch(itemType)
-	{
-		case ITEM_WEAPON:
-			return 1;
-
-		case ITEM_ARMOR:
-		case ITEM_CLOTHING:
-			return 2;
-
-		case ITEM_BUFF:
-		case ITEM_UNKNOWN:
-			return 3;
-
-		default:
-			return 0;
-	}
-}
-#pragma endregion
-
-#pragma region XML Element End
-static void XMLCALL JKGXML_End_Element(void *userData, const char *name)
-{
-	int *depthPtr = (int *)userData;
-	itemDef_t *item = Menu_FindItemByName(inventoryState.menu, va("examine%iCat%i_text%i", JKG_Inventory_ExamineMenuNumForItemType(inventoryState.selectedItem->id->itemType),
-		lastCat, lastDepth2));
-	
-	if(*depthPtr == 2)
-	{
-		item = Menu_FindItemByName(inventoryState.menu, va("examine%iCat%i_title", JKG_Inventory_ExamineMenuNumForItemType(inventoryState.selectedItem->id->itemType),
-					lastCat));
-		/*switch(containingCat)
-		{
-			case CONTAINCAT_PRODUCTIONINFO:
-				strcpy(item->text, "Production Information");
-				break;
-			case CONTAINCAT_USAGE:
-				strcpy(item->text, "Usage");
-				break;
-			case CONTAINCAT_TECHSPEC:
-				strcpy(item->text, "Technical Specs");
-				break;
-		}*/
-		if(item)
-			strcpy(item->text, name);
-
-		lastDepth2 = 1;
-		lastCat++;
-	}
-	else
-	{
-		if(!item && containingCat != CONTAINCAT_TECHSPEC)
-		{
-			*depthPtr -= 1;
-			return;
-		}
-		switch(containingCat)
-		{
-			case CONTAINCAT_PRODUCTIONINFO:
-				{
-					// Cool side effect: virtually infinite possibilities!
-					strcpy(item->text, name);
-					if(useAutoFill)
-					{
-						if(autoFill.byteCount == 1)
-						{
-							if(formatStr[0] != '\0')
-							{
-								sprintf(item->text2, formatStr, (int)autoFill.data.uc);
-							}
-							else
-							{
-								strcpy(item->text2, va("%i", (int)autoFill.data.uc));
-							}
-						}
-						else if(autoFill.isFloat)
-						{
-							if(formatStr[0] != '\0')
-							{
-								sprintf(item->text2, formatStr, autoFill.data.f);
-							}
-							else
-							{
-								strcpy(item->text2, va("%f", autoFill.data.f));
-							}
-						}
-						else if(autoFill.isString)
-						{
-							if(formatStr[0] != '\0')
-							{
-								sprintf(item->text2, formatStr, autoFill.data.a);
-							}
-							else
-							{
-								strcpy(item->text2, va("%s", autoFill.data.a));
-							}
-							free(autoFill.data.a);
-						}
-						else
-						{
-							if(formatStr[0] != '\0')
-							{
-								sprintf(item->text2, formatStr, autoFill.data.i);
-							}
-							else
-							{
-								strcpy(item->text2, va("%i", autoFill.data.i));
-							}
-						}
-					}
-					else
-					{
-						strcpy(item->text2, last_content);
-					}
-				}
-				break;
-			case CONTAINCAT_USAGE:
-				{
-					strcpy(item->text, name);
-					if(useAutoFill)
-					{
-						if(autoFill.byteCount == 1)
-						{
-							if(formatStr[0] != '\0')
-							{
-								sprintf(item->text2, formatStr, (int)autoFill.data.uc);
-							}
-							else
-							{
-								strcpy(item->text2, va("%i", (int)autoFill.data.uc));
-							}
-						}
-						else if(autoFill.isFloat)
-						{
-							if(formatStr[0] != '\0')
-							{
-								sprintf(item->text2, formatStr, autoFill.data.f);
-							}
-							else
-							{
-								strcpy(item->text2, va("%f", autoFill.data.f));
-							}
-						}
-						else if(autoFill.isString)
-						{
-							if(formatStr[0] != '\0')
-							{
-								sprintf(item->text2, formatStr, autoFill.data.a);
-							}
-							else
-							{
-								strcpy(item->text2, va("%s", autoFill.data.a));
-							}
-							free(autoFill.data.a);
-						}
-						else
-						{
-							if(formatStr[0] != '\0')
-							{
-								sprintf(item->text2, formatStr, autoFill.data.i);
-							}
-							else
-							{
-								strcpy(item->text2, va("%i", autoFill.data.i));
-							}
-						}
-					}
-					else
-					{
-						strcpy(item->text2, last_content);
-					}
-				}
-				break;
-			case CONTAINCAT_TECHSPEC:
-				{
-					if(*depthPtr == 3)
-					{
-						//Technical specification
-						itemDef_t *item = Menu_FindItemByName(inventoryState.menu, va("examine%iCat%i_text%i", JKG_Inventory_ExamineMenuNumForItemType(inventoryState.selectedItem->id->itemType), containingCat,
-							last_tableline));
-
-						strcpy(item->text, name);
-						last_tableline++;
-					}
-					else if(*depthPtr == 4)
-					{
-						itemDef_t *item = Menu_FindItemByName(inventoryState.menu, va("examine%iCat%i_text%idata", JKG_Inventory_ExamineMenuNumForItemType(inventoryState.selectedItem->id->itemType), containingCat,
-							last_tableline));
-
-						if(!Q_stricmp(name, "Primary"))
-						{
-							if(useAutoFill)
-							{
-								if(formatStr[0]  == '\0')
-								{
-									if(autoFill.isFloat)
-									{
-										sprintf(item->text, "%f", autoFill.data.f);
-									}
-									else if(autoFill.isString)
-									{
-										strcpy(item->text, autoFill.data.a);
-										free(autoFill.data.a);
-									}
-									else if(autoFill.byteCount == 1)
-									{
-										sprintf(item->text, "%i", (int)autoFill.data.uc);
-									}
-									else
-									{
-										sprintf(item->text, "%i", autoFill.data.i);
-									}
-								}
-								else
-								{
-									if(autoFill.isFloat)
-									{
-										sprintf(item->text, formatStr, autoFill.data.f);
-									}
-									else if(autoFill.isString)
-									{
-										sprintf(item->text, formatStr, autoFill.data.a);
-										free(autoFill.data.a);
-									}
-									else if(autoFill.byteCount == 1)
-									{
-										sprintf(item->text, formatStr, (int)autoFill.data.uc);
-									}
-									else
-									{
-										sprintf(item->text, formatStr, autoFill.data.i);
-									}
-								}
-							}
-							else
-							{
-								strcpy(item->text, last_content);
-							}
-						}
-						else if(!Q_stricmp(name, "Secondary"))
-						{
-							if(useAutoFill)
-							{
-								if(formatStr[0]  == '\0')
-								{
-									if(autoFill.isFloat)
-									{
-										sprintf(item->text2, "%f", autoFill.data.f);
-									}
-									else if(autoFill.isString)
-									{
-										strcpy(item->text2, autoFill.data.a);
-										free(autoFill.data.a);
-									}
-									else if(autoFill.byteCount == 1)
-									{
-										sprintf(item->text2, "%i", (int)autoFill.data.uc);
-									}
-									else
-									{
-										sprintf(item->text2, "%i", autoFill.data.i);
-									}
-								}
-								else
-								{
-									if(autoFill.isFloat)
-									{
-										sprintf(item->text2, formatStr, autoFill.data.f);
-									}
-									else if(autoFill.isString)
-									{
-										sprintf(item->text2, formatStr, autoFill.data.a);
-										free(autoFill.data.a);
-									}
-									else if(autoFill.byteCount == 1)
-									{
-										sprintf(item->text2, formatStr, (int)autoFill.data.uc);
-									}
-									else
-									{
-										sprintf(item->text2, formatStr, autoFill.data.i);
-									}
-								}
-							}
-							else
-							{
-								strcpy(item->text2, last_content);
-							}
-						}
-					}
-					
-				}
-				break;
-		}
-		lastDepth2++;
-	}
-	formatStr[0] = '\0';
-	*depthPtr -= 1;
-}
-#pragma endregion
-static void XMLCALL JKGXML_ParseCharacters(void *data, const char *content, int length)
-{
-	char           *tmp = (char *)malloc(length + 1);
-	strncpy(tmp, content, length);
-	tmp[length] = '\0';
-	data = (void *) tmp;
-	last_content = tmp;
-}
-
-static void JKG_Inventory_ExamineMenuClear ()
-{
-	// For each item type
-	for ( int i = 0; i < NUM_ITEM_TYPES; i++ )
-	{
-		itemDef_t *header = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat3_tableHeaders", i));
-
-		if ( header != NULL )
-		{
-			header->text[0] = '\0';
-			header->text2[0] = '\0';
-		}
-		
-		int j = 1;
-		itemDef_t *title = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat%i_title", i, j));
-		while ( title != NULL )
-		{
-			int k = 1;
-
-			title->text[0] = '\0';
-
-			itemDef_t *text = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat%i_text%i", i, j, k));
-			while ( text != NULL )
-			{
-				text->text[0] = '\0';
-				text->text2[0] = '\0';
-
-				itemDef_t *data = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat%i_text%idata", i, j, k));
-				if ( data != NULL )
-				{
-					data->text[0] = '\0';
-				}
-
-				k++;
-				text = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat%i_text%i", i, j, k));
-			}
-
-			j++;
-			title = Menu_FindItemByName (inventoryState.menu, va ("examine%iCat%i_title", i, j));
-		}
-	}
-}
-
-void JKG_Inventory_Examine_ParseXML ( void )
-{
-	XML_Parser parse = XML_ParserCreate(NULL);
-	int depth = 0;
-	int len;
-	fileHandle_t f;
-	char buffer[MAX_XML_BUFFER_SIZE];
-
-	JKG_Inventory_ExamineMenuClear ();
-
-	if(!inventoryState.selectedItem->id->xml)
-		return;
-	//Before we go off doing XML related stuff, let's make sure the file exists!
-	len = trap->FS_Open(inventoryState.selectedItem->id->xml, &f, FS_READ);
-	if(!f)
-	{
-		Com_Printf("^3WARNING: JKG_Inventory_Examine_ParseXML: %s NULL handle\n", inventoryState.selectedItem->id->xml);
-		return;
-	}
-	if(!len || len == -1)
-	{
-		Com_Printf("^3WARNING: JKG_Inventory_Examine_ParseXML: %s NULL len\n", inventoryState.selectedItem->id->xml);
-		trap->FS_Close(f);
-		return;
-	}
-	if(len >= MAX_XML_BUFFER_SIZE)
-	{
-		Com_Printf("^3WARNING: JKG_Inventory_Examine_ParseXML: %s large len\n", inventoryState.selectedItem->id->xml);
-		trap->FS_Close(f);
-		return;
-	}
-	lastCat = 1;
-	lastDepth2 = 1;
-	containingCat = 0;
-	//Set the XML related information
-	XML_SetUserData(parse, &depth);
-	XML_SetElementHandler(parse, JKGXML_Start_Element, JKGXML_End_Element);
-	XML_SetCharacterDataHandler(parse, JKGXML_ParseCharacters);
-	//Read the file and parse the data
-	trap->FS_Read(buffer, MAX_XML_BUFFER_SIZE, f);
-	trap->FS_Close(f);
-	buffer[len] = '\0';
-	if(XML_Parse(parse, buffer, (int)strlen(buffer), qtrue) == XML_STATUS_ERROR)
-	{
-		Com_Printf("^3WARNING: XML: %s at line %i\n",
-			XML_ErrorString(XML_GetErrorCode(parse)),
-			XML_GetCurrentLineNumber(parse));
-		return;
-	}
-	XML_ParserFree(parse);
-}
-
-#pragma endregion
-static void JKG_Inventory_Examine_Button ( int forceOff )
-{
-	int i;
-	qboolean examineMenuUp = qfalse;
-	if(!forceOff)
-	{
-		for(i = 1; i < 4; i++)
-		{
-			itemDef_t *item = Menu_FindItemByName(inventoryState.menu, va("examine%i_bg", i));
-			if(item->window.flags & WINDOW_VISIBLE)
-			{
-				examineMenuUp = qtrue;
-				break;
-			}
-		}
-	}
-	if(!examineMenuUp && (forceOff == 2 || forceOff == 0))
-	{
-		char actualTextCheck[256];
-		Menu_ItemDisable (inventoryState.menu, "main_dialog", qtrue);
-		Menu_ItemDisable (inventoryState.menu, "arrows", qtrue);
-		Menu_ItemDisable (inventoryState.menu, "btn_examine", qfalse);
-		if(!inventoryState.selectedItem)
-		{
-			// ERR what. Should have an item selected!
-			JKG_Inventory_Examine_Button(qtrue);
-			return;
-		}
-		if(inventoryState.selectedItem->id->displayName[0] == '@')
-			trap->SE_GetStringTextString(inventoryState.selectedItem->id->displayName+1, actualTextCheck, sizeof(actualTextCheck));
-		else
-			strcpy(actualTextCheck, inventoryState.selectedItem->id->displayName);
-		//OK, next we have to update the background object to reflect the different item types
-		switch(inventoryState.selectedItem->id->itemType)
-		{
-			case ITEM_WEAPON:
-				{
-					itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "examine1_title");
-					strcpy(item->text, actualTextCheck);
-					item->textRect.w = 0; //Hack to recalculate centering
-					Menu_ShowGroup (inventoryState.menu, "examine1Menu", qtrue);
-					Menu_ShowGroup (inventoryState.menu, "examine2Menu", qfalse);
-					Menu_ShowGroup (inventoryState.menu, "examine3Menu", qfalse);
-				}
-				break;
-			case ITEM_CLOTHING:
-			case ITEM_ARMOR:
-				{
-					itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "examine2_title");
-					item->textRect.w = 0;
-					Menu_ShowGroup (inventoryState.menu, "examine1Menu", qfalse);
-					Menu_ShowGroup (inventoryState.menu, "examine2Menu", qtrue);
-					Menu_ShowGroup (inventoryState.menu, "examine3Menu", qfalse);
-					strcpy(item->text, actualTextCheck);
-				}
-				break;
-			case ITEM_BUFF:
-			case ITEM_UNKNOWN:
-			case ITEM_CONSUMABLE:
-				{
-					itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "examine3_title");
-					item->textRect.w = 0;
-					Menu_ShowGroup (inventoryState.menu, "examine1Menu", qfalse);
-					Menu_ShowGroup (inventoryState.menu, "examine2Menu", qfalse);
-					Menu_ShowGroup (inventoryState.menu, "examine3Menu", qtrue);
-					strcpy(item->text, actualTextCheck);
-				}
-				break;
-
-			default:
-				break;
-		}
-		JKG_Inventory_Examine_ParseXML();
-		inventoryState.examineMenuOpen = qtrue;
-	}
-	else if(examineMenuUp || forceOff == 1)
-	{
-		Menu_ShowGroup (inventoryState.menu, "examine1Menu", qfalse);
-		Menu_ShowGroup (inventoryState.menu, "examine2Menu", qfalse);
-		Menu_ShowGroup (inventoryState.menu, "examine3Menu", qfalse);
-		Menu_ItemDisable (inventoryState.menu, "main_dialog", qfalse);
-		Menu_ItemDisable (inventoryState.menu, "arrows", qfalse);
-		UpdateButtonStates();
-		inventoryState.examineMenuOpen = qfalse;
-	}
-}
-void JKG_Inventory_Script_Button ( char **args )
-{
-    int button;
-    cgItemInstance_t *inventory;
-	int itemSlot;
-	itemDef_t *textItem = Menu_FindItemByName(inventoryState.menu, "destroy_text");
-    
-    if ( !Int_Parse (args, &button) )
-    {
-        return;
-    }
-    
-	if ( !inventoryState.selectedItem || !inventoryState.selectedItem->id )
-    {
-        return;
-    }
-    
-	inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-	itemSlot = (ui_inventoryFilter.integer == JKGIFILTER_ALL) ? inventoryState.selectedItem - inventory : inventoryState.selectedItem->amount[0];
-    switch ( button )
-    {
-        case INV_BTN_USEITEM:
-			cgImports->SendClientCommand(va ("inventoryUse %d", itemSlot));
-            UpdateButtonStates();
-			JKG_Inventory_UpdateVisuals();
-			break;
-        
-        case INV_BTN_EQUIP:
-			cgImports->SendClientCommand(va ("equip %d", itemSlot));
-            UpdateButtonStates();
-			break;
-        
-        case INV_BTN_ASSIGN2ACI:
-			{
-				itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "aci_background"); //Kind of a hacky approach but whatever
-				if(item->window.flags & WINDOW_VISIBLE)
-				{
-					    Menu_ShowGroup (inventoryState.menu, "aci_selection", qfalse);
-						Menu_ItemDisable (inventoryState.menu, "arrows", qfalse);
-						Menu_ClearFocus (inventoryState.menu);
-    
-						Menu_ItemDisable (inventoryState.menu, "main_dialog", qfalse);
-
-						Menu_ShowGroup (inventoryState.menu, "aci_selection_na", qfalse);
-						UpdateButtonStates();
-						inventoryState.ACIopen = qfalse;
-				}
-				else
-				{
-					Menu_ItemDisable (inventoryState.menu, "main_dialog", qtrue);
-					Menu_ItemDisable (inventoryState.menu, "arrows", qtrue);
-					Menu_ItemDisable (inventoryState.menu, "btn_aci", qfalse);
-					Menu_ShowGroup (inventoryState.menu, "aci_selection", qtrue);
-					JKG_ACI_GreyBlast();
-					inventoryState.ACIopen = qtrue;
-				}
-			}
-			break;
-        
-        case INV_BTN_UNEQUIP:
-			cgImports->SendClientCommand(va ("unequip %d", itemSlot));
-            UpdateButtonStates();
-			break;
-        
-        case INV_BTN_UNASSIGN4ACI:
-			cgImports->InventoryAttachToACI( itemSlot, GetACISlotForItem( inventoryState.selectedItem->id->itemID ), 0 );
-            UpdateButtonStates();
-			break;
-
-		case INV_BTN_DESTROYITEM:
-			{
-				itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "destroy_bg"); //Kind of a hacky approach but whatever
-				if(item->window.flags & WINDOW_VISIBLE)
-				{
-					Menu_ItemDisable (inventoryState.menu, "main_dialog", qfalse);
-					Menu_ItemDisable (inventoryState.menu, "arrows", qfalse);
-					Menu_ShowGroup (inventoryState.menu, "destroyMenu", qfalse);
-					UpdateButtonStates();
-				}
-				else
-				{
-					Menu_ItemDisable (inventoryState.menu, "main_dialog", qtrue);
-					Menu_ItemDisable (inventoryState.menu, "arrows", qtrue);
-					Menu_ItemDisable (inventoryState.menu, "btn_destroy", qfalse);
-					Menu_ShowGroup (inventoryState.menu, "destroyMenu", qtrue);
-					strcpy(textItem->text, inventoryState.selectedItem->id->displayName);
-				}
-			}
-			break;
-
-		case INV_BTN_DESTROYITEM_CONFIRM:
-			cgImports->SendClientCommand(va ("inventoryDestroy %d", itemSlot));
-			Menu_ItemDisable (inventoryState.menu, "main_dialog", qfalse);
-			Menu_ShowGroup (inventoryState.menu, "destroyMenu", qfalse);
-			JKG_Inventory_ConstructWeightText(); // Item has been removed, so update weight text
-			break;
-		case INV_BTN_DESTROYITEM_DENY:
-			//Same as above, but without the actual killing of the item
-			Menu_ItemDisable (inventoryState.menu, "main_dialog", qfalse);
-			Menu_ShowGroup (inventoryState.menu, "destroyMenu", qfalse);
-			break;
-		case INV_BTN_SELL:
-			{
-				{
-					itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "sell_bg"); //Kind of a hacky approach but whatever
-					textItem = Menu_FindItemByName(inventoryState.menu, "sell_text");
-					if(item->window.flags & WINDOW_VISIBLE)
-					{
-						Menu_ItemDisable (inventoryState.menu, "main_dialog", qfalse);
-						Menu_ItemDisable (inventoryState.menu, "arrows", qfalse);
-						Menu_ShowGroup (inventoryState.menu, "sellMenu", qfalse);
-						UpdateButtonStates();
-					}
-					else
-					{
-						Menu_ItemDisable (inventoryState.menu, "main_dialog", qtrue);
-						Menu_ItemDisable (inventoryState.menu, "arrows", qtrue);
-						Menu_ItemDisable (inventoryState.menu, "btn_sell", qfalse);
-						Menu_ShowGroup (inventoryState.menu, "sellMenu", qtrue);
-						strcpy(textItem->text, inventoryState.selectedItem->id->displayName);
-					}
-				}
-			}
-			break;
-		case INV_BTN_SELL_CONFIRM:
-			cgImports->SendClientCommand(va ("inventorySell %d", itemSlot));
-			Menu_ItemDisable (inventoryState.menu, "main_dialog", qfalse);
-			Menu_ShowGroup (inventoryState.menu, "sellMenu", qfalse);
-			JKG_Inventory_ConstructWeightText(); // Item has been removed, so update weight text
-			break;
-		case INV_BTN_SELL_DENY:
-			Menu_ItemDisable (inventoryState.menu, "main_dialog", qfalse);
-			Menu_ShowGroup (inventoryState.menu, "sellMenu", qfalse);
-			break;
-		case INV_BTN_EXAMINE:
-			JKG_Inventory_Examine_Button(qfalse);
-			break;
-    }
-}
-
-//Add-on for making weapon icons work ~eezstreet
-qhandle_t JKG_GetInventoryIcon(unsigned int index)
-{
-	if(ui_inventoryFilter.integer == 0)
-	{
-		if(index < MAX_INVENTORY_ITEMS)
-		{
-			return trap->R_RegisterShaderNoMip((char *)cgImports->InventoryDataRequest( index + 50 ) ); //HACK
-		}
-		else
-		{
-			return (qhandle_t)NULL;
-		}
-	}
-	else
-	{
-		if(index < MAX_INVENTORY_ITEMS)
-		{
-			return trap->R_RegisterShaderNoMip((char *)cgImports->InventoryDataRequest( itemsInFilter[index].amount[0] + 50 ));
-		}
-		else
-		{
-			return (qhandle_t)NULL;
-		}
-	}
-}
-
-// Add-on for tooltips ~eezstreet
-qboolean JKG_CursorInItem(float cx, float cy, unsigned int feederPos, itemDef_t *item)
-{
-	//cx/y = cursor x/y
-	//feederPos = visual position in the feeder (NOT ABSOLUTE)
-	listBoxDef_t *listPtr = item->typeData.listbox;
-	int maxW = (int)(item->window.rect.w / (listPtr->elementWidth+listPtr->elementSpacingW)); //FIXED
-	int maxH = (int)(item->window.rect.h / (listPtr->elementHeight+listPtr->elementSpacingH));
-	cgItemInstance_t *inventory = NULL;
-
-	//Basic check #1: Divide by zero
-	if(maxW <= 0 || maxH <= 0)
-	{
-		return qfalse;
-	}
-	maxW += 1;
-	maxH += 1;
-
-	//Basic checks->is the cursor within the feeder's rect?
-	if(cx > (item->window.rect.x + item->window.rect.w))
-	{
-		return qfalse;
-	}
-	else if(cx < item->window.rect.x)
-	{
-		return qfalse;
-	}
-	if(cy > (item->window.rect.y + item->window.rect.h))
-	{
-		return qfalse;
-	}
-	else if(cy < item->window.rect.y)
-	{
-		return qfalse;
-	}
-
-	cx -= item->window.rect.x;
-	cy -= item->window.rect.y;
-	if(ui_inventoryFilter.integer == JKGIFILTER_ALL)
-	{
-		inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-	}
-	else
-	{
-		inventory = itemsInFilter;
-	}
-	if(!inventory[(listPtr->startPos > 0) ? (listPtr->startPos+feederPos) : feederPos].id)
-	{
-		return qfalse;
-	}
-	
-	if(feederPos >= maxH)
-	{
-		//Vertical rows
-		if(cy < (((listPtr->elementSpacingH+listPtr->elementHeight)*((feederPos % maxH)+1))-listPtr->elementSpacingH))
-		{
-			if(cy > ((listPtr->elementSpacingH+listPtr->elementHeight)*((feederPos % maxH))))
-			{
-				if(cx > (int)((listPtr->elementSpacingW+listPtr->elementWidth)*(feederPos / maxW)-1))
-				{
-					if(cx < (int)((listPtr->elementSpacingW+listPtr->elementWidth)*(((feederPos+maxH) / maxH))-listPtr->elementSpacingW))
-					{
-						return qtrue;
-					}
-					else
-					{
-						return qfalse;
-					}
-				}
-				else
-				{
-					return qfalse;
-				}
-			}
-			else
-			{
-				return qfalse;
-			}
-		}
-		else
-		{
-			return qfalse;
-		}
-	}
-	else
-	{
-		//First column
-		if(cx < listPtr->elementWidth)
-		{
-			if(cy < ((listPtr->elementHeight+listPtr->elementSpacingH)*(feederPos+1)-listPtr->elementSpacingH))
-			{
-				if(cy > ((listPtr->elementWidth+listPtr->elementSpacingW)*feederPos))
-				{
-					return qtrue;
-				}
-				else
-				{
-					return qfalse;
-				}
-			}
-			else
-			{
-				return qfalse;
-			}
-		}
-		else
-		{
-			return qfalse;
-		}
-	}
-
-	return qfalse;
-}
-
-#define MAX_TOOLTIP_LINES		32
-#define MAX_TOOLTIP_LINELEN		64
-
-static char toolTextLines[MAX_TOOLTIP_LINES][MAX_TOOLTIP_LINELEN];	//TODO: dynamic allocation
-static char toolText[(MAX_TOOLTIP_LINES*MAX_TOOLTIP_LINELEN)+MAX_TOOLTIP_LINES+1];
-static int topTextLength = 0;
-static int toolLines = 0;
-static int biggestLine = 0;
-static float toolAlignment[MAX_TOOLTIP_LINES]; // HAX
-
-void JKG_Inventory_Tooltip_AddLine(itemDef_t *toolTip, const char *text)
-{
-	//TODO: add coloring
-	int lineLength;
-	strcpy(toolTextLines[toolLines], text);
-	toolAlignment[toolLines] = (toolTip->window.rect.w - (trap->R_Font_StrLenPixels(toolTextLines[toolLines], toolTip->iMenuFont, 1.0f)*toolTip->textscale))/2;
-	lineLength = strlen(text);
-	if(lineLength > strlen(toolTextLines[biggestLine]))
-	{
-		biggestLine = toolLines;
-	}
-	toolLines++;
-}
-
-//This gets called every time you move the mouse. Surprisingly, this does not affect FPS too much
-void JKG_Inventory_ConstructToolTip ( int itemNumber, float cX, float cY )
-{
-	//Gather our variables
-	char actualTextCheck[256];
-	int i;
-	int totalTTLength = 1;
-	float lineWidth = 0.0f, lineHeight = 0.0f;
-	cgItemInstance_t *inventory = NULL;
-	itemDef_t *toolTipItem = Menu_FindItemByName(inventoryState.menu, "inventory_tooltest");
-	//Check for filtering
-	if(ui_inventoryFilter.integer == JKGIFILTER_ALL)
-	{
-		inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-	}
-	else
-	{
-		inventory = itemsInFilter;
-	}
-
-	//Check for length
-	if( itemNumber >= JKG_Inventory_FeederCount() )
-	{
-		return;
-	}
-
-	//Reset all previous data
-	for(i = 0; i < toolLines; i++)
-	{
-		toolTextLines[i][0] = 0;
-	}
-	toolLines = 0;
-
-	//Build the actual text on the tooltip
-	//Name
-	strcpy(toolTextLines[toolLines], inventory[itemNumber].id->displayName);
-	trap->SE_GetStringTextString(inventory[itemNumber].id->displayName+1, actualTextCheck, sizeof(actualTextCheck));
-	topTextLength = strlen(actualTextCheck); //NOTENOTE: Whenever we add a new possible line to the tooltip, we check the length (so we don't loop through every line again)
-	if(topTextLength > 0)
-	{
-		strcpy(toolTextLines[toolLines], actualTextCheck);
-	}
-	else
-	{
-		strcpy(toolTextLines[toolLines], inventory[itemNumber].id->displayName);
-	}
-	toolAlignment[toolLines] = (toolTipItem->window.rect.w - (trap->R_Font_StrLenPixels(toolTextLines[toolLines], toolTipItem->iMenuFont, 1.0f)*toolTipItem->textscale))/2;
-	toolLines++;
-	biggestLine = 0;
-	//The biggest line is always assumed to be this line in this case, because the first line is...AWESOME!
-	switch(inventory[itemNumber].id->itemType)
-	{
-		case ITEM_WEAPON:
-			JKG_Inventory_Tooltip_AddLine(toolTipItem, "Weapon");
-			break;
-		case ITEM_ARMOR:
-			JKG_Inventory_Tooltip_AddLine(toolTipItem, "Armor");
-			break;
-		case ITEM_CLOTHING:
-			JKG_Inventory_Tooltip_AddLine(toolTipItem, "Clothing");
-			break;
-		case ITEM_BUFF:
-		case ITEM_CONSUMABLE:
-			JKG_Inventory_Tooltip_AddLine(toolTipItem, "Consumable");
-			break;
-		default:
-			break;
-	}
-	if(inventory[itemNumber].id->weight)
-	{
-		JKG_Inventory_Tooltip_AddLine(toolTipItem,  va("Weight: %i", inventory[itemNumber].id->weight));
-	}
-	if(IsWeaponInACI(inventory[itemNumber].id->varID))
-	{
-		JKG_Inventory_Tooltip_AddLine(toolTipItem, va("Equipped to ACI Slot %i", GetACISlotForWeapon(inventory[itemNumber].id->varID)));
-	}
-	//Grab the width of the biggest line
-	if(!toolTipItem)
-	{
-		//Item not found, ABORT ABORT ABORT
-		return;
-	}
-	else
-	{
-		/*if(actualTextCheck[0] != 0)
-			lineWidth = (DC->textWidth(toolTextLines[biggestLine], 1, toolTipItem->iMenuFont) * toolTipItem->textscale);
-		else
-			lineWidth = (DC->textWidth(inventory[itemNumber].id->displayName, 1, toolTipItem->iMenuFont) * toolTipItem->textscale);*/
-		lineWidth = (DC->textWidth(toolTextLines[biggestLine], 1, toolTipItem->iMenuFont) * toolTipItem->textscale);
-		toolTipItem->window.rect.w = lineWidth+70; //35px padding on each side, 18pt font //this is a really absurd measurement but ok
-	}
-	if(toolLines <= 0)
-	{ //Check: Do we have any tooltip lines?
-		return;
-	}
-
-	//Grab the height of the combined lines
-	lineHeight = DC->textHeight(toolTextLines[biggestLine], toolTipItem->textscale, toolTipItem->iMenuFont);
-	toolTipItem->window.rect.h = (lineHeight*toolLines)+40; //20px padding on each side
-
-	//Change the position of the toolTipItem
-	//TODO: Perform OOB checks here
-	toolTipItem->window.rect.x = cX + 10;
-	toolTipItem->window.rect.y = cY - 10;
-	//strcpy(toolTipItem->text, toolText);
-	toolTipItem->textRect.x = cX + 10;
-	toolTipItem->textRect.y = cY + 30;
-	//HACK: Align the text properly
-	//toolTipItem->textalignx = toolTipItem->window.rect.w/2 - (((int)strlen(toolTextLines[biggestLine]) > 8) ? ((strlen(toolTextLines[biggestLine])/5)) : 0); //HACK for non monospace fonts
-	toolTipItem->textalignx = (toolTipItem->window.rect.w - (trap->R_Font_StrLenPixels(toolTextLines[biggestLine], toolTipItem->iMenuFont, 1.0f)*toolTipItem->textscale))/2;
-	toolTipItem->textRect.w = toolTipItem->window.rect.w;
-	toolTipItem->textRect.h = toolTipItem->window.rect.h;
-	toolTipItem->textaligny = (toolTipItem->textRect.h/2)-4;
-}
-
-void JKG_Inventory_CheckTooltip ( char **args )
-{
-	int i = 0;
-	itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "inventory_feederstuff");
-	itemDef_t *toolTipItem = Menu_FindItemByName(inventoryState.menu, "inventory_tooltest");
-	listBoxDef_t *listPtr = item->typeData.listbox;
-	int numWidth = item->window.rect.w/(listPtr->elementSpacingW+listPtr->elementWidth)+1;
-	int numHeight = item->window.rect.h/(listPtr->elementSpacingH+listPtr->elementHeight)+1;
-	qboolean showToolTip = qfalse;
-	for(i=0; i < (numWidth*numHeight); i++)
-	{
-		if(JKG_CursorInItem(DC->cursorx, DC->cursory, i, item))
-		{
-			//Do fun stuff here
-			showToolTip = qtrue;
-			break;
-		}
-	}
-	if(showToolTip)
-	{
-		cgItemInstance_t *inventory = NULL;
-		inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-		//Show the tooltip
-		Menu_ShowItemByName(inventoryState.menu, "inventory_tooltest", qtrue);
-		JKG_Inventory_ConstructToolTip((listPtr->startPos > 0) ? (listPtr->startPos+i) : i, DC->cursorx, DC->cursory);
-	}
-	else
-	{
-		Menu_ShowItemByName(inventoryState.menu, "inventory_tooltest", qfalse);
-	}
-}
-
-qboolean IsWithinCursor(float x, float y, float w, float h)
-{
-	if(DC->cursorx > x+w)
-	{
-		return qfalse;
-	}
-	else if(DC->cursorx < x)
-	{
-		return qfalse;
-	}
-	else if(DC->cursory > y+h)
-	{
-		return qfalse;
-	}
-	else if(DC->cursory < y)
-	{
-		return qfalse;
-	}
-	return qtrue;
-}
-
-void JKG_Inventory_DrawTooltip()
-{
-	int i;
-	itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "inventory_tooltest");
-	int txtHeight = trap->R_Font_HeightPixels(item->iMenuFont, item->textscale);
-	itemDef_t *itemCheck = Menu_FindItemByName(inventoryState.menu, "inventory_feederstuff");
-	if(!IsWithinCursor(itemCheck->window.rect.x, itemCheck->window.rect.y, itemCheck->window.rect.w, itemCheck->window.rect.h))
-	{
-		//HACK: Hide the tooltip item altogether
-		Menu_ShowItemByName(inventoryState.menu, "inventory_tooltest", qfalse);
-		return;
-	}
-	//OK. Draw the text. Rest -should- be handled by default ownerdraw stuff, but you never know.
-	for(i = 0; i < toolLines; i++)
-	{
-		//FIXMEFIXED: Show the correct text (display name)
-		DC->drawText(item->textRect.x + toolAlignment[i], item->textRect.y+(i*txtHeight)-item->textaligny, item->textscale, item->window.foreColor, toolTextLines[i], 0, -1, ITEM_TEXTSTYLE_NORMAL, item->iMenuFont);
-		//trap->R_Font_DrawString(item->textRect.x, item->textRect.y+(i*txtHeight), toolTextLines[i], colorWhite, 1, -1, item->textscale);
-	}
-}
-void JKG_Inventory_CheckACIKeyStroke(int key)
-{
-	if(!inventoryState.ACIopen)
-	{
-		return;
-	}
-	else
-	{
-		JKG_Inventory_ACI_Button_Clean(key-A_0);
-	}
-}
-void JKG_Inventory_UpdateVisuals( void )
-{
-	int i;
-	itemDef_t *item = Menu_FindItemByName(inventoryState.menu, "inventory_feederstuff");
-	cgItemInstance_t *inventory = (cgItemInstance_t *)cgImports->InventoryDataRequest( 1 );
-	listBoxDef_t *listPtr = item->typeData.listbox;
-	int numItems = JKG_Inventory_FeederCount();
-	int maxW = (int)(item->window.rect.w / (listPtr->elementWidth+listPtr->elementSpacingW)); //FIXED
-	int maxH = (int)(item->window.rect.h / (listPtr->elementHeight+listPtr->elementSpacingH));
-	for(i = listPtr->startPos; i < listPtr->startPos + ((maxW+1)*(maxH+1)) && i < numItems; i++)
-	{
-		if(!inventory[i].id)
-		{
-			break;
-		}
-		if(ui_inventoryFilter.integer != JKGIFILTER_ALL)
-		{
-			if(IsItemInACI(itemsInFilter[i].id->itemID))
-			{
-				Menu_ShowItemByName(inventoryState.menu, va("feeder_tag%i", i-listPtr->startPos+1), qtrue);
-			}
-			else
-			{
-				Menu_ShowItemByName(inventoryState.menu, va("feeder_tag%i", i-listPtr->startPos+1), qfalse);
-			}
-		}
-		else
-		{
-			if(IsItemInACI(inventory[i].id->itemID))
-			{
-				Menu_ShowItemByName(inventoryState.menu, va("feeder_tag%i", i-listPtr->startPos+1), qtrue);
-			}
-			else
-			{
-				Menu_ShowItemByName(inventoryState.menu, va("feeder_tag%i", i-listPtr->startPos+1), qfalse);
-			}
-		}
-	}
-	for(; i < listPtr->startPos + ((maxW+1)*(maxH+1)); i++)
-	{
-		Menu_ShowItemByName(inventoryState.menu, va("feeder_tag%i", i-listPtr->startPos+1), qfalse);
+		break;
 	}
 }
