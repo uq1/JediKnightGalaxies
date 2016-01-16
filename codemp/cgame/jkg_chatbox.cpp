@@ -7,6 +7,7 @@
 #include "cg_local.h"
 #include "../ui/ui_shared.h"
 #include "jkg_chatcmds.h"
+#include "jkg_chatbox.h"
 
 extern displayContextDef_t cgDC;
 
