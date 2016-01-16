@@ -2680,11 +2680,15 @@ void JKG_RenderGenericWeaponWorld ( centity_t *cent, const weaponDrawData_t *wea
 	    
 	    if ( weaponData->weaponRender.generic.muzzleEffect )
 	    {
+			matrix3_t axis;
 			int boltNum = trap->G2API_AddBolt(cent->ghoul2, 1, "*flash");
-	        trap->FX_PlayBoltedEffectID (
+			AnglesToAxis(cent->lerpAngles, axis);
+			trap->FX_PlayEntityEffectID(weaponData->weaponRender.generic.muzzleEffect,
+				flashOrigin, axis, cent->boltInfo, cent->currentState.number, -1, -1);
+	        /*trap->FX_PlayBoltedEffectID (
 	            weaponData->weaponRender.generic.muzzleEffect,
 	            cent->lerpOrigin, cent->ghoul2, boltNum, s->number, 1, 0, qtrue
-	        );
+	        );*/
 	    }
 	    
 	    if ( weaponData->weaponRender.generic.muzzleLightIntensity > 0.0f )
