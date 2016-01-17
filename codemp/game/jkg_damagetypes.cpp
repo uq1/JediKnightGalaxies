@@ -43,18 +43,27 @@ static struct
     int damage;
     int damageInterval;
 } damageTypeData[] = {
-    { DT_ANNIHILATION,  0,              0,          0,      0    },
-    { DT_CONCUSSION,    0,              10000,      0,      0    },
-    { DT_CUT,           0,              10000,      0,      0    },
-    { DT_DISINTEGRATE,  0,              0,          0,      0    },
-    { DT_ELECTRIC,      0,              10000,      5,      500  },
-    { DT_EXPLOSION,     DAMAGE_RADIUS,  0,          0,      0    },
-    { DT_FIRE,          0,              10000,      2,      1000 },
-    { DT_FREEZE,        0,              500,        2,      1000 },
-    { DT_IMPLOSION,     DAMAGE_RADIUS,  0,          0,      0    },
-    { DT_STUN,          0,              2000,       0,      0    },
-    { DT_CARBONITE,     0,              4000,       2,      1000 }
+    { DT_DISINTEGRATE,  0,              0,          0,      0		},
+    { DT_ELECTRIC,      0,              10000,      5,      500		},
+    { DT_EXPLOSION,     DAMAGE_RADIUS,  0,          0,      0		},
+    { DT_FIRE,          0,              10000,      2,      1000	},
+    { DT_FREEZE,        0,              500,        2,      1000	},
+    { DT_IMPLOSION,     DAMAGE_RADIUS,  0,          0,      0		},	// Not used.
+    { DT_STUN,          0,              2000,       0,      0		},	// Not used.
+    { DT_CARBONITE,     0,              4000,       2,      1000	},
+
+	{ DT_BLASTER,		0,				0,			0,		0		},
+	{ DT_SLUG,			0,				0,			0,		0		},	
+	{ DT_ACP,			0,				0,			0,		0		},
+	{ DT_PULSE,			0,				0,			0,		0		},
+	{ DT_ION,			0,				0,			0,		0		},
+	{ DT_SONIC,			0,				0,			0,		0		},
+	{ DT_BLEED,			0,				10000,		1,		500		},
+	{ DT_COLD,			0,				5000,		0,		0		}
+
 };
+
+void JKG_RemoveDamageType(gentity_t *ent, damageType_t type);
 
 static const float damageAreaHeight = 4.0f;
 
@@ -211,12 +220,31 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage )
         {
             case DT_STUN:
             case DT_CARBONITE:
-            case DT_FREEZE:
                 player->client->ps.freezeLegsAnim = player->client->ps.legsAnim;
                 player->client->ps.freezeTorsoAnim = player->client->ps.torsoAnim;
                 player->client->pmlock = player->client->pmfreeze = qtrue;
                 VectorClear (player->client->ps.velocity);
             break;
+
+			case DT_FREEZE:
+				JKG_RemoveDamageType(player, DT_FIRE);		// Remove fire...
+				JKG_RemoveDamageType(player, DT_COLD);		// And cold...
+				player->client->ps.freezeLegsAnim = player->client->ps.legsAnim;
+				player->client->ps.freezeTorsoAnim = player->client->ps.torsoAnim;
+				player->client->pmlock = player->client->pmfreeze = qtrue;
+				VectorClear(player->client->ps.velocity);
+			break;
+
+			case DT_COLD:
+				// FIXME: change player speed
+				JKG_RemoveDamageType(player, DT_FIRE);
+			break;
+
+			case DT_FIRE:
+				// Fire effectively thaws the player
+				JKG_RemoveDamageType(player, DT_COLD);
+				JKG_RemoveDamageType(player, DT_FREEZE);
+			break;
             
             case DT_EXPLOSION:
                 flags |= DAMAGE_RADIUS;

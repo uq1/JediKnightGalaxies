@@ -106,6 +106,9 @@ LANG_ENGLISH        "512 x 386"
 REFERENCE           OTHER_X
 LANG_ENGLISH        "(Other) _ _ _ _ x _ _ _ _"
 
+REFERENCE			FIT_TO_DESKTOP
+LANG_ENGLISH		"Fit to desktop"
+
 REFERENCE           FULLSCREEN
 LANG_ENGLISH        "Full screen"
 
@@ -123,6 +126,9 @@ LANG_ENGLISH        "Geometric detail"
 
 REFERENCE           LODSCALE
 LANG_ENGLISH        "Level of detail distance"
+
+REFERENCE			LODCURVEERROR
+LANG_ENGLISH		"Patch detail"
 
 REFERENCE           NEAR
 LANG_ENGLISH        "Near"
@@ -487,6 +493,9 @@ LANG_ENGLISH        "/me Action"
 
 REFERENCE           SAYTARGET
 LANG_ENGLISH        "Tell"
+
+REFERENCE			SAYTEAM
+LANG_ENGLISH		"Team chat"
 
 REFERENCE           SCROLLUP
 LANG_ENGLISH        "Scroll up"

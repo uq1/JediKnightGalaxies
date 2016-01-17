@@ -4919,6 +4919,18 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 		return;
 	}
 
+	// Scrollwheel support for inventory --eez
+#ifdef _UI
+	if (Q_stricmp(menu->window.name, "jkg_inventory") == 0) {
+		if (key == A_MWHEELDOWN) {
+			JKG_Inventory_ArrowUp(nullptr);
+		}
+		else if (key == A_MWHEELUP) {
+			JKG_Inventory_ArrowDown(nullptr);
+		}
+	}
+#endif
+
 	if (g_editingField && down) 
 	{
 		if (!Item_TextField_HandleKey(g_editItem, key)) 

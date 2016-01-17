@@ -2078,9 +2078,6 @@ double QuinticBezierInterpolate(double phase, double p0, double p1, double p2, d
 // Bit of damage types stuff here...
 typedef enum damageType_e
 {
-    DT_ANNIHILATION,
-    DT_CONCUSSION,
-    DT_CUT,
     DT_DISINTEGRATE,
     DT_ELECTRIC,
     DT_EXPLOSION,
@@ -2089,6 +2086,15 @@ typedef enum damageType_e
     DT_IMPLOSION,
     DT_STUN,
     DT_CARBONITE,
+
+	DT_BLASTER,
+	DT_SLUG,
+	DT_ACP,
+	DT_PULSE,
+	DT_ION,
+	DT_SONIC,
+	DT_BLEED,
+	DT_COLD,
     
     NUM_DAMAGE_TYPES
 } damageType_t;

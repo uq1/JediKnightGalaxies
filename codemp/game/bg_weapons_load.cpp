@@ -223,25 +223,7 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
             
             for ( i = 0; i < numTypes; i++ )
             {
-                if ( Q_stricmp (types[i], "annihilate") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_ANNIHILATION);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "concussion") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_CONCUSSION);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "cut") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_CUT);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "disintegrate") == 0 )
+				if ( Q_stricmp (types[i], "disintegrate") == 0 )
 				{
 					int dType = (int)darea.damageType;
 					dType |= (1 << DT_DISINTEGRATE);
@@ -288,6 +270,54 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
 					int dType = (int)darea.damageType;
 					dType |= (1 << DT_CARBONITE);
                     darea.damageType = dType;
+				}
+				else if (Q_stricmp(types[i], "blaster") == 0)
+				{
+					int dType = (int)darea.damageType;
+					dType |= (1 << DT_BLASTER);
+					darea.damageType = dType;
+				}
+				else if (Q_stricmp(types[i], "slug") == 0 || Q_stricmp(types[i], "slugthrower") == 0)
+				{
+					int dType = (int)darea.damageType;
+					dType |= (1 << DT_SLUG);
+					darea.damageType = dType;
+				}
+				else if (Q_stricmp(types[i], "acp") == 0)
+				{
+					int dType = (int)darea.damageType;
+					dType |= (1 << DT_ACP);
+					darea.damageType = dType;
+				}
+				else if (Q_stricmp(types[i], "pulse") == 0)
+				{
+					int dType = (int)darea.damageType;
+					dType |= (1 << DT_PULSE);
+					darea.damageType = dType;
+				}
+				else if (Q_stricmp(types[i], "ion") == 0)
+				{
+					int dType = (int)darea.damageType;
+					dType |= (1 << DT_ION);
+					darea.damageType = dType;
+				}
+				else if (Q_stricmp(types[i], "sonic") == 0)
+				{
+					int dType = (int)darea.damageType;
+					dType |= (1 << DT_SONIC);
+					darea.damageType = dType;
+				}
+				else if (Q_stricmp(types[i], "bleed") == 0)
+				{
+					int dType = (int)darea.damageType;
+					dType |= (1 << DT_BLEED);
+					darea.damageType = dType;
+				}
+				else if (Q_stricmp(types[i], "cold") == 0)
+				{
+					int dType = (int)darea.damageType;
+					dType |= (1 << DT_COLD);
+					darea.damageType = dType;
 				}
                 else
 				{
@@ -712,6 +742,9 @@ static void BG_ParseVisualsFireMode ( weaponVisualFireMode_t *fireMode, cJSON *f
 	{
 		fireMode->overrideIndicatorFrame = cJSON_ToInteger (node);
 	}
+
+	node = cJSON_GetObjectItem (fireModeNode, "displayExplosive");
+	fireMode->displayExplosive = (qboolean)cJSON_ToBooleanOpt(node, qtrue);
     
     // TODO: Need to tie this to the table in cg_weapons.c somehow...
     // Weapon Render

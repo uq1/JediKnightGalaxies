@@ -10,7 +10,7 @@
 		outOfBoundsClick						// this closes the window if it gets a click out of the rectangle
 		rect					55 40 128 128
 		focusColor				1 1 1 1
-
+		shadowColor				0.1 0.1 0.1 0.25			// shadow color
 
 		// Overall window backdrop
 		itemDef 
@@ -19,7 +19,7 @@
 			group				none
 			style				WINDOW_STYLE_SHADER
 			rect				0 0 128 128
-			background			"gfx/menus/menu_box_ingame"
+			background			"gfx/menus/menu_top_mp"
 			forecolor			1 1 1 1
 			visible				1
 			decoration
@@ -33,7 +33,7 @@
 			name				button1
 			group				buttons
 			style				WINDOW_STYLE_SHADER
-			rect				2 4 124 30   
+			rect				2 4 124 15   
 			background			"gfx/menus/menu_buttonback"			// Frame around button
 			forecolor			1 1 1 1
 			decoration
@@ -45,7 +45,7 @@
 			name				button2
 			group				buttons
 			style				WINDOW_STYLE_SHADER
-			rect				2 34 124 30   
+			rect				2 34 124 15   
 			background			"gfx/menus/menu_buttonback"			// Frame around button
 			forecolor			1 1 1 1
 			decoration
@@ -57,7 +57,7 @@
 			name				button3
 			group				buttons
 			style				WINDOW_STYLE_SHADER
-			rect				2 64 124 30   
+			rect				2 64 124 15   
 			background			"gfx/menus/menu_buttonback"			// Frame around button
 			forecolor			1 1 1 1
 			decoration
@@ -69,7 +69,7 @@
 			name				button4
 			group				buttons
 			style				WINDOW_STYLE_SHADER
-			rect				2 94 124 30   
+			rect				2 94 124 15   
 			background			"gfx/menus/menu_buttonback"			// Frame around button
 			forecolor			1 1 1 1
 			decoration
@@ -89,10 +89,11 @@
 			textalign			ITEM_ALIGN_CENTER
 			textalignx			62
 			textaligny			0     
-			font				2
-			textscale			1
-			forecolor			1 .682 0 1
-			cvarTest			"ui_about_gametype"
+			font				5
+			textstyle			3
+			textscale			0.6
+			forecolor			1 1 1 1
+			/*cvarTest			"ui_about_gametype"
 			showCvar 
 			{ 
 				"4" ;
@@ -101,7 +102,7 @@
 				"7" ;
 				"8" ;
 				"9" ;
-			}
+			}*/
 			visible				1 
 			action 
 			{ 
@@ -129,10 +130,11 @@
 			textalign			ITEM_ALIGN_CENTER
 			textalignx			62
 			textaligny			0     
-			font				2
-			textscale			1
-			forecolor			1 0.2 0.2 1
-			cvarTest			"ui_about_gametype"
+			font				5
+			textstyle			3
+			textscale			0.6
+			forecolor			1 1 1 1
+			/*cvarTest			"ui_about_gametype"
 			showCvar 
 			{ 
 
@@ -142,7 +144,7 @@
 				"7" ;
 				"8" ;
 				"9" ;
-			}
+			}*/
 			visible				1 
 			action 
 			{ 
@@ -170,10 +172,11 @@
 			textalign			ITEM_ALIGN_CENTER
 			textalignx			62
 			textaligny			0     
-			font				2
-			textscale			1
-			forecolor			0.2 0.2 1 1
-			cvarTest			"ui_about_gametype"
+			font				5
+			textstyle			3
+			textscale			0.6
+			forecolor			1 1 1 1
+			/*cvarTest			"ui_about_gametype"
 			showCvar 
 			{ 
 
@@ -183,7 +186,7 @@
 				"7" ;
 				"8" ;
 				"9" ;
-			}
+			}*/
 			visible				1 
 			action 
 			{ 
@@ -217,10 +220,11 @@
 			textalign			ITEM_ALIGN_CENTER
 			textalignx			62
 			textaligny			0     
-			font				2
-			textscale			1
-			forecolor			1 0.2 0.2 1
-			cvarTest			"ui_about_gametype"
+			font				5
+			textstyle			3
+			textscale			0.6
+			forecolor			1 1 1 1
+			/*cvarTest			"ui_about_gametype"
 			showCvar 
 			{ 
 				"4" ; 
@@ -229,7 +233,7 @@
 				"7" ; 
 				"8" ;
 				"9" ;
-			}
+			}*/
 			visible				1
 			decoration
 		}
@@ -244,10 +248,11 @@
 			textalign			ITEM_ALIGN_CENTER
 			textalignx			62
 			textaligny			0     
-			font				2
-			textscale			1
-			forecolor			0.2 0.2 1 1
-			cvarTest			"ui_about_gametype"
+			font				5
+			textstyle			3
+			textscale			0.6
+			forecolor			1 1 1 1
+			/*cvarTest			"ui_about_gametype"
 			showCvar 
 			{ 
 				"4" ; 
@@ -256,83 +261,10 @@
 				"7" ; 
 				"8" ;
 				"9" ;
-			}
+			}*/
 			visible				1
 			decoration
 		}
-
-		
-
-		itemDef 
-		{
-			name				team
-			text				@MP_INGAME_JOIN_SINGLE
-			type				1
-			style				2	
-			rect				2 34 124 30   
-			textalign			ITEM_ALIGN_CENTER
-			textalignx			62
-			textaligny			0     
-			font				2
-			textscale			1
-			forecolor			1 0.2 0.2 1
-			cvarTest			"ui_about_gametype"
-			showCvar 
-			{ 
-				"2"
-			}
-			visible				1 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ;
-				exec			"cmd duelteam single" ; 
-				uiScript		closeingame 
-			}
-			mouseEnter 
-			{ 
-				show			button2
-			}
-			mouseExit 
-			{ 
-				hide			button2
-			}
-		}
-
-		itemDef 
-		{
-			name				team
-			text				@MP_INGAME_JOIN_DOUBLE
-			type				1
-			style				2	
-			rect				2 64 124 30   
-			textalign			ITEM_ALIGN_CENTER
-			textalignx			62
-			textaligny			0     
-			font				2
-			textscale			1
-			forecolor			0.2 0.2 1 1
-			cvarTest			"ui_about_gametype"
-			showCvar 
-			{ 
-				"2"
-			}
-			visible				1 
-			action 
-			{ 
-				play			"sound/interface/button1.wav" ;
-				exec			"cmd duelteam double" ; 
-				uiScript		closeingame 
-			}
-			mouseEnter 
-			{ 
-				show			button3
-			}
-			mouseExit 
-			{ 
-				hide			button3
-			}
-		}
- 
  
 		itemDef 
 		{
@@ -344,10 +276,11 @@
 			textalign			ITEM_ALIGN_CENTER
 			textalignx			62
 			textaligny			0     
-			font				2
-			textscale			1
-			forecolor			1 .682 0 1
-			cvarTest			"ui_about_gametype"
+			font				5
+			textstyle			3
+			textscale			0.6
+			forecolor			1 1 1 1
+			/*cvarTest			"ui_about_gametype"
 			showCvar 
 			{ 
 
@@ -357,7 +290,7 @@
 				"7" ;
 				"8" ;
 				"9" ;
-			}
+			}*/
 			visible				1 
 			action 
 			{ 
@@ -378,7 +311,7 @@
 		//---------------------------------
 		// NON-TEAM JOIN
 		//---------------------------------
-		itemDef 
+		/*itemDef 
 		{
 			name				team
 			text				@MENUS_JOIN_GAME
@@ -389,6 +322,7 @@
 			textalignx			62
 			textaligny			0     
 			font				2
+			textstyle			3
 			textscale			1
 			forecolor			1 .682 0 1
 			cvarTest			"ui_about_gametype"
@@ -430,6 +364,7 @@
 			textalignx			62
 			textaligny			0     
 			font				2
+			textstyle			3
 			textscale			1
 			forecolor			1 .682 0 1
 			cvarTest			"ui_about_gametype"
@@ -458,7 +393,7 @@
 			{ 
 				hide			button3
 			}
-		}
+		}*/
 
 	}
 }

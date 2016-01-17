@@ -4188,25 +4188,10 @@ JEDI KNIGHT GALAXIES
 // Replacement code for hacks in jkg_wpindicators.c --eez
 void R_OverrideShaderFrame( qhandle_t shader, int desiredFrame, int time )
 {
-	/*float animFrequency = 1;
-	float floattime = (float)time * 0.001f;
-	float desiredTime;
-	shader_t *sh;
-	int i;
-
-	if( shader <= 0 ) return;
-
-	sh = tr.shaders[shader];
-
-	for ( i = 0; i < (sh->numUnfoggedPasses ? sh->numUnfoggedPasses : 1); i++ )
-	{
-		if( sh->stages[i].bundle[0].numImageAnimations > 1 )
-		{
-			animFrequency = sh->stages[i].bundle[0].imageAnimationSpeed;
-		}
+	shader_t* thisShader = tr.shaders[shader];
+	// WTF hack here...
+	thisShader->frameOverride = desiredFrame;
+	if (thisShader->next != nullptr && !Q_stricmp(thisShader->next->name, thisShader->name)) {
+		thisShader->next->frameOverride = desiredFrame;
 	}
-
-	desiredTime = ( 1 / animFrequency ) * ( (float)desiredFrame + 0.5 );
-	sh->timeOffset = floattime - desiredTime;*/
-	tr.shaders[shader]->frameOverride = desiredFrame;
 }

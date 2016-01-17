@@ -394,3 +394,5 @@ void JKG_UI_SetClass( const char *className, itemDef_t *item );
 // new ui
 
 extern uiImport_t *trap;
+
+void JKG_DrawCreditsText(itemDef_t* item);

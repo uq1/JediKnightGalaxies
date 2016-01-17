@@ -47,10 +47,20 @@ static void CO_InventoryAttachToACI ( int itemNum, int slot, int attach )
     {
         JKG_CG_FillACISlot (itemNum, slot);
     }
-    else
+	else if (slot == -1)
     {
-        JKG_CG_ClearACISlot (slot);
-    }
+		// No slot specified, find the first one that has this item
+		for (int i = 0; i < MAX_ACI_SLOTS; i++) {
+			if (cg.playerACI[i] == itemNum) {
+				JKG_CG_ClearACISlot(i);
+				return;
+			}
+		}
+	}
+	else
+	{
+		JKG_CG_ClearACISlot(slot);
+	}
 }
 
 extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
@@ -71,7 +81,7 @@ static void *CO_InventoryDataRequest ( int data )
     switch ( data )
     {	// FIXME: enumerable --eez
         case 0: // inventory count
-            return (void *)&cg.numItemsInInventory;
+            return (void *)cg.numItemsInInventory;
         case 1: // inventory list
             return (void *)cg.playerInventory;
         case 2:
