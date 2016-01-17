@@ -203,9 +203,8 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 
 
 	vec4_t dummy;	//dummy float to pass into dumb function, because it's dumb.  
-
 	Text_DrawText(SB_NAME_X, y, ci->name, dummy, FONT_MEDIUM, -1, 0.9f*scale);	//new better way, allows us to use RBG colors
-	//CG_Text_Paint(SB_NAME_X, y, 0.9f * scale, colorWhite, Text_ConvertExtToNormal(ci->name), 0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_MEDIUM);	//old way of drawing scoreboard names
+	//CG_Text_Paint(SB_NAME_X, y, 0.9f * scale, colorWhite, ci->name, 0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_MEDIUM);	//old way of drawing scoreboard names
 
 	if ( score->ping != -1 )
 	{

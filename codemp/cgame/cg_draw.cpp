@@ -33,6 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 // Jedi Knight Galaxies
 #include "jkg_hud.h"
+#include "jkg_chatbox.h"
 
 extern float CG_RadiusForCent( centity_t *cent );
 qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y);
@@ -1676,10 +1677,19 @@ static float CG_DrawEnemyInfo ( float y )
 
 	y += size;
 
-	CG_Text_Paint( 630 - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );
+
+	//I have no idea what this is lol - maybe leaderboard thing that shows up in the top right of jka?  --futuza
+	//CG_Text_Paint( 630 - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );	//futuza note: old way
+	Text_DrawText(630 - Text_GetWidth(ci->name, FONT_SMALL2, 1.0f) + xOffset, y, ci->name, colorWhite, FONT_SMALL2, 0, 1.0f);				//futuza note: new way
 
 	y += 15;
-	CG_Text_Paint( 630 - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );
+	//note might want to change this back, title's probably can't use color codes anyway
+	//CG_Text_Paint( 630 - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );			//futuza note: old way
+	Text_DrawText(630 - Text_GetWidth(title, FONT_SMALL2, 1.0f) + xOffset, y, title, colorWhite, FONT_SMALL2, 0, 1.0f);							//futuza note: new way
+
+	//ohhh is this dueling only?
+	//okay okay
+	
 
 	return y + BIGCHAR_HEIGHT + 2;
 }
@@ -2362,7 +2372,7 @@ static void CG_DrawTeamOverlay() {
 		if ( ci->infoValid && (( cgs.party.active && TeamFriendly( i )) || ( !cgs.party.active && ci->team == cg.snap->ps.persistant[PERS_TEAM] )))
 		{
 			plyrs++;
-			len = (float)trap->R_Font_StrLenPixels(ci->name, MenuFontToHandle(1), 1) *0.5f; //CG_DrawStrlen(ci->name);
+			len = (float)trap->R_Font_StrLenPixels(Text_ConvertExtToNormal(ci->name), MenuFontToHandle(1), 1) *0.5f; //CG_DrawStrlen(ci->name);		//futuza note: deals with filling in the actual space and figuring out how wide to make it
 			if (len > pwidth)
 				pwidth = len;
 		}
@@ -2423,9 +2433,11 @@ static void CG_DrawTeamOverlay() {
 			MAKERGBA(hcolor,0,0,0,1);
 			CG_DrawRect(x+2, y+2, 20, 20, 1, hcolor);
 
+
 			// Draw player name
 			MAKERGBA(hcolor,1,1,1,1);		
-			trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		//--futuza notes: drawing player names
+			//trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		//old way
+			Text_DrawText(x + 26, y + 2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		// futuza note: xRBG color code fix for teamoverlay
 			MAKERGBA(hcolor,0,0,0,1);
 			CG_DrawRect(x+24, y+2, pwidth+8 , 13, 1, hcolor);
 
@@ -5591,8 +5603,8 @@ static void CG_DrawCrosshairNames( void ) {
 	tcolor[2] = colorTable[baseColor][2];
 	tcolor[3] = color[3]*0.5f;
 
-	CG_SanitizeString(name, sanitized);
-
+	//CG_SanitizeString(JKG_xRBG_ConvertExtToNormal(name), sanitized);				//"fixed" not really (q_shared.h now has a const and non-const version) ehhh whatever this is safe enough
+	CG_SanitizeString(const_cast<char*>(JKG_xRBG_ConvertExtToNormal(name)), sanitized); //fixme, why const_cast why!? wow. such unsafe. very hack. maybe not so bad? http://stackoverflow.com/questions/856542/elegant-solution-to-duplicate-const-and-non-const-getters
 	if (isVeh)
 	{
 		char str[MAX_STRING_CHARS];
