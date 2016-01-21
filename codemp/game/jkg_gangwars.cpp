@@ -16,7 +16,7 @@
 	#include "g_local.h"
 #elif defined(_CGAME)
 	#include "cgame/cg_local.h"
-#elif defined(_UI)
+#elif defined(IN_UI)
 	#include "ui/ui_local.h"
 #endif
 
@@ -69,7 +69,7 @@ void JKG_BG_ParseGangWarsTeam(const char *filename)
 
 	memset(bgGangWarsTeams[bgnumGangWarTeams].modelStore, 0, sizeof(bgGangWarsTeams[bgnumGangWarTeams].modelStore));
 	
-#if defined(_GAME) || defined(_UI)
+#if defined(_GAME) || defined(IN_UI)
 	bgGangWarsTeams[bgnumGangWarTeams].teamIcon = 0;
 #elif defined(_CGAME)
 	if (BG_GetPairedValue(buffer, "icon", parseBuf))

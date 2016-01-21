@@ -232,7 +232,7 @@ YOU SHOULD NOT HAVE BOTH DES_RISC1 AND DES_RISC2 DEFINED!!!!!
 
 //////////////////////////////////////////////////////////////////////
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 
 /* opensslconf.h */
 /* WARNING: Generated automatically from opensslconf.h.in by Configure. */

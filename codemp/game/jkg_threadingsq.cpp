@@ -29,13 +29,12 @@
 #endif
 
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #define MUTEX_INIT(a) InitializeCriticalSection(&(a)->lock)
 #define MUTEX_LOCK(a) EnterCriticalSection(&(a)->lock)
 #define MUTEX_UNLOCK(a) LeaveCriticalSection(&(a)->lock);
 #define MUTEX_FREE(a) DeleteCriticalSection(&(a)->lock);
-#endif
-#ifdef __linux__
+#else
 #define MUTEX_INIT(a) pthread_mutex_init(&(a)->lock, NULL)
 #define MUTEX_LOCK(a) pthread_mutex_lock(&(a)->lock)
 #define MUTEX_UNLOCK(a) pthread_mutex_unlock(&(a)->lock);

@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 gangWarsTeam_t bgGangWarsTeams[32];
 int bgnumGangWarTeams;
 
-#if defined(_GAME) || defined(_CGAME) || defined(_UI)
+#if defined(_GAME) || defined(_CGAME) || defined(IN_UI)
 void (*Com_Error)( int level, const char *error, ... );
 void (*Com_Printf)( const char *msg, ... );
 #endif

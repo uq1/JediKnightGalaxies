@@ -30,7 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #if defined(_GAME)
 	#include "g_local.h"
-#elif defined(_UI)
+#elif defined(IN_UI)
 	#include "../ui/ui_local.h"
 #elif defined(_CGAME)
 	#include "../cgame/cg_local.h"
@@ -58,7 +58,7 @@ void BG_ClearVehicleParseParms(void)
 	VehicleParms[0] = 0;
 }
 
-#if !defined(_UI)
+#if !defined(IN_UI)
 //These funcs are actually shared in both projects
 extern void G_SetAnimalVehicleFunctions( vehicleInfo_t *pVehInfo );
 extern void G_SetSpeederVehicleFunctions( vehicleInfo_t *pVehInfo );
@@ -244,14 +244,14 @@ static qboolean BG_ParseVehWeaponParm( vehWeaponInfo_t *vehWeapon, const char *p
 #endif
 		break;
 	case VF_SHADER:	// (cgame only) take the string, call trap_R_RegisterShader
-#ifdef _UI
+#ifdef IN_UI
 		*(int *)(b+vehWeaponField->ofs) = trap->R_RegisterShaderNoMip( value );
 #elif CGAME
 		*(int *)(b+vehWeaponField->ofs) = trap->R_RegisterShader( value );
 #endif
 		break;
 	case VF_SHADER_NOMIP:// (cgame only) take the string, call trap_R_RegisterShaderNoMip
-#if defined(_CGAME) || defined(_UI)
+#if defined(_CGAME) || defined(IN_UI)
 		*(int *)(b+vehWeaponField->ofs) = trap->R_RegisterShaderNoMip( value );
 #endif
 		break;
@@ -634,7 +634,7 @@ void BG_SetSharedVehicleFunctions( vehicleInfo_t *pVehInfo )
 	G_SetSharedVehicleFunctions(pVehInfo);
 #endif
 
-#if !defined(_UI)
+#if !defined(IN_UI)
 	switch( pVehInfo->type )
 	{
 		case VH_SPEEDER:
@@ -791,14 +791,14 @@ static qboolean BG_ParseVehicleParm( vehicleInfo_t *vehicle, const char *parmNam
 #endif
 		break;
 	case VF_SHADER:	// (cgame only) take the string, call trap_R_RegisterShader
-#ifdef _UI
+#ifdef IN_UI
 		*(int *)(b+vehField->ofs) = trap->R_RegisterShaderNoMip( value );
 #elif _CGAME
 		*(int *)(b+vehField->ofs) = trap->R_RegisterShader( value );
 #endif
 		break;
 	case VF_SHADER_NOMIP:// (cgame only) take the string, call trap_R_RegisterShaderNoMip
-#if defined(_CGAME) || defined(_UI)
+#if defined(_CGAME) || defined(IN_UI)
 		*(int *)(b+vehField->ofs) = trap->R_RegisterShaderNoMip( value );
 #endif
 		break;
@@ -1399,7 +1399,7 @@ void BG_GetVehicleSkinName(char *skinname, int len)
 		Q_strncpyz( skinname, g_vehicleInfo[vIndex].skin, len );
 }
 
-#if !defined(_UI)
+#if !defined(IN_UI)
 //so cgame can assign the function pointer for the vehicle attachment without having to
 //bother with all the other funcs that don't really exist cgame-side.
 extern int BG_GetTime(void);
