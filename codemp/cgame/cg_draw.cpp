@@ -5603,8 +5603,8 @@ static void CG_DrawCrosshairNames( void ) {
 	tcolor[2] = colorTable[baseColor][2];
 	tcolor[3] = color[3]*0.5f;
 
-	//CG_SanitizeString(JKG_xRBG_ConvertExtToNormal(name), sanitized);				//"fixed" not really (q_shared.h now has a const and non-const version) ehhh whatever this is safe enough
-	CG_SanitizeString(const_cast<char*>(JKG_xRBG_ConvertExtToNormal(name)), sanitized); //fixme, why const_cast why!? wow. such unsafe. very hack. maybe not so bad? http://stackoverflow.com/questions/856542/elegant-solution-to-duplicate-const-and-non-const-getters
+	CG_SanitizeString(JKG_xRBG_ConvertExtToNormal(name), sanitized);				//fixed (q_shared.h now has a const and non-const version)
+	//CG_SanitizeString(const_cast<char*>(JKG_xRBG_ConvertExtToNormal(name)), sanitized); //fixme, why const_cast why!? wow. such unsafe. very hack. 
 	if (isVeh)
 	{
 		char str[MAX_STRING_CHARS];
