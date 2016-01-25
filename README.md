@@ -1,5 +1,5 @@
 # Jedi Knight Galaxies #
-[IRC](https://kiwiirc.com/client/irc.arloria.net/?nick=Padawan|?&theme=cli#jkgalaxies"): irc.arloria.net / #JKGalaxies
+[IRC](https://kiwiirc.com/client/irc.arloria.net/?nick=Padawan|?&theme=cli#jkgalaxies): irc.arloria.net / #JKGalaxies
 
 FAQ: http://jkhub.org/topic/6613-jkg-faq/
 
