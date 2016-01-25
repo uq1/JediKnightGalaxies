@@ -7,7 +7,7 @@ Downloads:
 [Binaries](http://jkhub.org/files/file/2544-jedi-knight-galaxies-binaries/) , [Assets](http://jkhub.org/files/file/2543-jedi-knight-galaxies-assets/) , 
 [Map Bundle #1](http://jkhub.org/files/file/2652-jedi-knight-galaxies-map-bundle-1/)
 
-Forum: http://www.tinyurl.com/JKHJKG
+Forum: http://www.tinyurl.com/JKGJKH
 
 
 
