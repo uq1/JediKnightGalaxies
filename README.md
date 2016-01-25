@@ -16,6 +16,7 @@ Please use discretion when making issue requests on GitHub. The forum is a bette
 http://jkhub.org/topic/5600-compilation-guide/
 
 ## Installation of Game ##
+JKG is currently only available on Windows, but we have a mac version being worked on and hopefully a linux one soon.
 
 First, you need Jedi Academy installed. If you don't already own the game you can buy it from online stores such as [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN) or [Play](http://www.play.com/Games/PC/4-/127805/Star-Wars-Jedi-Knight-Jedi-Academy/Product.html?searchstring=jedi+academy&searchsource=0&searchtype=allproducts&urlrefer=search). 
 
