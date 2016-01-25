@@ -1,5 +1,5 @@
 # Jedi Knight Galaxies #
-IRC: irc.arloria.net / #JKGalaxies
+[IRC](https://kiwiirc.com/client/irc.arloria.net/?nick=Padawan|?&theme=cli#jkgalaxies"): irc.arloria.net / #JKGalaxies
 
 FAQ: http://jkhub.org/topic/6613-jkg-faq/
 
@@ -8,6 +8,7 @@ Downloads:
 [Map Bundle #1](http://jkhub.org/files/file/2652-jedi-knight-galaxies-map-bundle-1/)
 
 Forum: http://www.tinyurl.com/JKHJKG
+
 
 
 Please use discretion when making issue requests on GitHub. The forum is a better place for larger discussions on changes that aren't actually bugs.
@@ -58,8 +59,23 @@ Please be aware of the implications of the GPLv2 licence. In short, be prepared 
 * If you make a nice change, please consider back-porting to upstream via pull request as described above. This is so everyone benefits without having to reinvent the wheel for every project.
 
 
-### Current Project Goals
-*Phase 1: Versus (this is the current iteration). The goal here is to have a functioning arena based shooter (similar to games such as Call of Duty or Unreal Tournament) with the beginnings of some later RPG elements such as armor, pazaak card game, etc.  There are two major milestones currently being worked on: [Milestone 2](https://github.com/JKGDevs/JediKnightGalaxies/issues?q=issue+milestone%3A%22Versus+Revision+2%22) and [Milestone 3](https://github.com/JKGDevs/JediKnightGalaxies/issues?q=issue+milestone%3A%22Versus+Revision+3%22).  Milestone 2 mainly features smaller bug fixes needed to make the game stable, while Milestone 3 includes new features like better melee, fixed saber systems, armor, shields, etc. in addition to some bug fixes not addressed in Milestone 2.
+## Current Project Goals ##
+These are very much subject to change, especially phases later than Versus.
+
+### Phase 1:  Versus (current iteration). ###
+* The goal here is to have a functioning arena based shooter (similar to games such as Call of Duty or Unreal Tournament) with the beginnings of some later RPG elements such as armor, pazaak card game, etc.  There are two major milestones currently being worked on: [Milestone 2](https://github.com/JKGDevs/JediKnightGalaxies/issues?q=issue+milestone%3A%22Versus+Revision+2%22) and [Milestone 3](https://github.com/JKGDevs/JediKnightGalaxies/issues?q=issue+milestone%3A%22Versus+Revision+3%22).  Milestone 2 mainly features smaller bug fixes needed to make the game stable, while Milestone 3 includes new features like better melee, fixed saber systems, armor, shields, etc. in addition to some bug fixes not addressed in Milestone 2.
+
+#### Phase 2: Coop ####
+* The main features that are added here include the NPC system and fleshing out of the dialogue system. They also include overhauls to the chat systems and more.  We may also attempt some MoBA like features (still needs discussion).
+
+#### Phase 3: RPG ####
+* Open World RPG. The main features added here include quests, (more) minigames, and AI for existing minigames, like Pazaak. Also includes levelling up, experience, single person quests, large planet-themed maps, etc. This mode will mainly focus on implementing things from a single player's perspective.
+
+#### Phase 4: LMO ####
+* Features to the main game include group quests, Looking For Group system, and a lot of the dungeons that were designed for Phase 2 brought back. Includes a master server based architecture and functioning account system.  At this point, the game is pretty much done.
+* Later possible expansions: space battles, more worlds, additional minigames
+
+
 
 
 This project is based on [OpenJK](https://github.com/JACoders/OpenJK)
