@@ -43,7 +43,7 @@ In order to run a dedicated server, you must use the JKGalaxiesDed binary. Runni
 
 ## Developer Notes ##
 
-JKG is licensed under GPLv2 as free software. You are free to use, modify and redistribute JKG following the terms in LICENSE.txt.
+JKG is licensed under GPLv2 as free software. You are free to use, modify and redistribute JKG following the terms in [LICENSE.txt](https://github.com/JKGDevs/JediKnightGalaxies/blob/master/LICENSE.txt).
 
 Please be aware of the implications of the GPLv2 licence. In short, be prepared to share your code under the same GPLv2 licence.  
 
