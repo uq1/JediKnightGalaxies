@@ -174,15 +174,70 @@ static void AddToBuffer(const char *text)
 	RespLen += len;
 }
 
-/* Forward declaration of the command arrays, in case a command wants to access it */
-#ifdef _WIN32
-// HACKHACKHACKHACKHACKHACK: this is just ew imo ~ Xycaleth
-admCmd_t adminCmds[];
-admRconCmd_t rconCmds[];
-#else
-static admCmd_t adminCmds[];
-static admRconCmd_t rconCmds[];
+/******************************************************/
+/*        Define rcon/admin command tables            */
+/******************************************************/
+static void AdmCmd_AmHelp(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmPlayers(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmKick(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmSabotage(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmGrantVIP(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmRevokeVIP(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmTele(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmGod(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmNoClip(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmNoTarget(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmSilence(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmBan(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmUnBan(gentity_t *ent, int clientNum, int rank);
+static void AdmCmd_AmLoot(gentity_t *ent, int clientNum, int rank);
+
+static void RconCmd_AmGrant(void);
+static void RconCmd_AmSpeak(void);
+static void RconCmd_AmCP(void);
+static void RconCmd_AmBan(void);
+static void RconCmd_AmBanIP(void);
+static void RconCmd_AmUnBan(void);
+static void RconCmd_AmListBans(void);
+static void RconCmd_AmClearBans(void);
+
+static admCmd_t adminCmds[] = {
+	{"amhelp",		ADMRANK_VIP,		AdmCmd_AmHelp},
+	{"amkick",		ADMRANK_LITEADMIN,	AdmCmd_AmKick},
+	{"amsabotage",	ADMRANK_ADMIN,		AdmCmd_AmSabotage},
+	{"amgrantvip",	ADMRANK_ADMIN,		AdmCmd_AmGrantVIP},
+	{"amrevokevip",	ADMRANK_ADMIN,		AdmCmd_AmRevokeVIP},
+	{"amtele",		ADMRANK_DEVELOPER,	AdmCmd_AmTele},
+	{"amgod",		ADMRANK_ADMIN,		AdmCmd_AmGod},
+	{"amnoclip",	ADMRANK_ADMIN,		AdmCmd_AmNoClip},
+	{"amnotarget",	ADMRANK_ADMIN,		AdmCmd_AmNoTarget},
+	{"amsilence",	ADMRANK_LITEADMIN,	AdmCmd_AmSilence},
+	{"amplayers",	ADMRANK_DEVELOPER,	AdmCmd_AmPlayers},
+	{"amban",		ADMRANK_ADMIN,		AdmCmd_AmBan},
+	{"amunban",		ADMRANK_ADMIN,		AdmCmd_AmUnBan},
+
+#ifdef _DEBUG
+	//eezstreet add
+	{"amloot",		ADMRANK_ADMIN,		AdmCmd_AmLoot},
 #endif
+
+	/* Sentinel to terminate the table */
+	{NULL,			0,					NULL},
+};
+
+static admRconCmd_t rconCmds[] = {
+	{"amgrant",		RconCmd_AmGrant},
+	{"amban",		RconCmd_AmBan},
+	{"ambanip",		RconCmd_AmBanIP},
+	{"amunban",		RconCmd_AmUnBan},
+	{"amlistbans",	RconCmd_AmListBans},
+	{"amclearbans", RconCmd_AmClearBans},
+	
+	{"amspeak",		RconCmd_AmSpeak},
+	{"amprint",		RconCmd_AmCP},
+	/* Sentinel to terminate the table */
+	{NULL,			NULL},
+};
 
 /***************************************************************/
 /*          Define admin commands below this point             */
@@ -1226,49 +1281,6 @@ static void RconCmd_AmClearBans(void)
 {
 	JKG_Bans_Clear();
 }
-
-/******************************************************/
-/*        Define rcon/admin command tables            */
-/******************************************************/
-
-static admCmd_t adminCmds[] = {
-	{"amhelp",		ADMRANK_VIP,		AdmCmd_AmHelp},
-	{"amkick",		ADMRANK_LITEADMIN,	AdmCmd_AmKick},
-	{"amsabotage",	ADMRANK_ADMIN,		AdmCmd_AmSabotage},
-	{"amgrantvip",	ADMRANK_ADMIN,		AdmCmd_AmGrantVIP},
-	{"amrevokevip",	ADMRANK_ADMIN,		AdmCmd_AmRevokeVIP},
-	{"amtele",		ADMRANK_DEVELOPER,	AdmCmd_AmTele},
-	{"amgod",		ADMRANK_ADMIN,		AdmCmd_AmGod},
-	{"amnoclip",	ADMRANK_ADMIN,		AdmCmd_AmNoClip},
-	{"amnotarget",	ADMRANK_ADMIN,		AdmCmd_AmNoTarget},
-	{"amsilence",	ADMRANK_LITEADMIN,	AdmCmd_AmSilence},
-	{"amplayers",	ADMRANK_DEVELOPER,	AdmCmd_AmPlayers},
-	{"amban",		ADMRANK_ADMIN,		AdmCmd_AmBan},
-	{"amunban",		ADMRANK_ADMIN,		AdmCmd_AmUnBan},
-
-#ifdef _DEBUG
-	//eezstreet add
-	{"amloot",		ADMRANK_ADMIN,		AdmCmd_AmLoot},
-#endif
-
-	/* Sentinel to terminate the table */
-	{NULL,			0,					NULL},
-};
-
-static admRconCmd_t rconCmds[] = {
-	{"amgrant",		RconCmd_AmGrant},
-	{"amban",		RconCmd_AmBan},
-	{"ambanip",		RconCmd_AmBanIP},
-	{"amunban",		RconCmd_AmUnBan},
-	{"amlistbans",	RconCmd_AmListBans},
-	{"amclearbans", RconCmd_AmClearBans},
-	
-	{"amspeak",		RconCmd_AmSpeak},
-	{"amprint",		RconCmd_AmCP},
-	/* Sentinel to terminate the table */
-	{NULL,			NULL},
-};
-
 
 /******************************************************/
 /*                Internal functions                  */

@@ -89,6 +89,10 @@ void JKG_Bans_LoadBans()
 	cJSON *root, *banlist, *item, *ip;
 	banentry_t *entry;
 
+	if (!g_banfile.string[0]) {
+		return;
+	}
+
 	len = trap->FS_Open(g_banfile.string, &f, FS_READ);
 	if (len < 1) {
 		return;

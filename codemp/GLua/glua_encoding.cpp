@@ -14,7 +14,7 @@
 
 /* Encodes data to base64 */
 static int GLua_Encoding_EncodeBase64(lua_State *L) {
-	unsigned int len;
+	size_t len;
 	unsigned int encodelen;
 	const char *data = luaL_checklstring(L, 1, &len);
 	char *b64;
@@ -33,7 +33,7 @@ static int GLua_Encoding_EncodeBase64(lua_State *L) {
 
 /* Decodes data from base64 */
 static int GLua_Encoding_DecodeBase64(lua_State *L) {
-	unsigned int len;
+	size_t len;
 	unsigned int decodelen;
 	const char *b64 = luaL_checklstring(L, 1, &len);
 	char *data;
@@ -51,7 +51,7 @@ static int GLua_Encoding_DecodeBase64(lua_State *L) {
 
 /* Encodes data to url-safe base64 */
 static int GLua_Encoding_EncodeBase64URL(lua_State *L) {
-	unsigned int len;
+	size_t len;
 	unsigned int encodelen;
 	const char *data = luaL_checklstring(L, 1, &len);
 	char *b64;
@@ -70,7 +70,7 @@ static int GLua_Encoding_EncodeBase64URL(lua_State *L) {
 
 /* Decodes data from url-safe base64 */
 static int GLua_Encoding_DecodeBase64URL(lua_State *L) {
-	unsigned int len;
+	size_t len;
 	unsigned int decodelen;
 	const char *b64 = luaL_checklstring(L, 1, &len);
 	char *data;
@@ -88,7 +88,7 @@ static int GLua_Encoding_DecodeBase64URL(lua_State *L) {
 
 /* Encodes data to base128 */
 static int GLua_Encoding_EncodeBase128(lua_State *L) {
-	unsigned int len;
+	size_t len;
 	unsigned int encodelen;
 	const char *data = luaL_checklstring(L, 1, &len);
 	char *b128;
@@ -107,7 +107,7 @@ static int GLua_Encoding_EncodeBase128(lua_State *L) {
 
 /* Decodes data from base128 */
 static int GLua_Encoding_DecodeBase128(lua_State *L) {
-	unsigned int len;
+	size_t len;
 	unsigned int decodelen;
 	const char *b128 = luaL_checklstring(L, 1, &len);
 	char *data;
@@ -125,8 +125,8 @@ static int GLua_Encoding_DecodeBase128(lua_State *L) {
 
 /* Encodes data into Hex notation */
 static int GLua_Encoding_EncodeHex(lua_State *L) {
-	unsigned int i;
-	unsigned int len;
+	size_t i;
+	size_t len;
 	const char *data = luaL_checklstring(L, 1, &len);
 	luaL_Buffer B;
 	unsigned char tmp;
@@ -144,8 +144,8 @@ static int GLua_Encoding_EncodeHex(lua_State *L) {
 
 /* Decodes data from Hex notation */
 static int GLua_Encoding_DecodeHex(lua_State *L) {
-	unsigned int i;
-	unsigned int len;
+	size_t i;
+	size_t len;
 	const char *data = luaL_checklstring(L, 1, &len);
 	luaL_Buffer B;
 	unsigned char newchar;

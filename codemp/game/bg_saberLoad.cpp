@@ -34,7 +34,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #if defined(_GAME)
 	#include "g_local.h"
-#elif defined(_UI)
+#elif defined(IN_UI)
 	#include "../ui/ui_local.h"
 #elif defined(_CGAME)
 	#include "../cgame/cg_local.h"
@@ -68,7 +68,7 @@ int BG_SoundIndex(char *sound)
 {
 #if defined(_GAME)
 	return G_SoundIndex(sound);
-#elif defined(_CGAME) || defined(_UI)
+#elif defined(_CGAME) || defined(IN_UI)
 	return trap->S_RegisterSound(sound);
 #endif
 }

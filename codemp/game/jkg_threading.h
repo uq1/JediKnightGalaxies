@@ -17,7 +17,7 @@
 #include <windows.h>
 #endif
 
-#ifdef __linux__
+#ifndef _WIN32
 #include <pthread.h>
 #endif
 

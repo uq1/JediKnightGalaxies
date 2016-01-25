@@ -33,7 +33,7 @@ itemData_t *JKG_GetItemByWeaponIndex ( int weaponIndex )
     return NULL;
 }
 
-stringID_table_t WPTable[]; // From bg_saga.c
+extern stringID_table_t WPTable[]; // From bg_saga.c
 
 static qboolean JKG_ParseItem ( const char *itemFilePath, itemData_t *itemData )
 {

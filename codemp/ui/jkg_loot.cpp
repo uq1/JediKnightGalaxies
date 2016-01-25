@@ -250,7 +250,7 @@ void JKG_ProcessLoot(){
 	int			/*i,*/ j/*, temp*/;
 	//menuDef_t *menu;
 
-	nextToken = '\0';
+	nextToken = nullptr;
 
 	Pzk_InitParseBuff(&pb);
 

@@ -4524,7 +4524,7 @@ static qboolean PM_CanStand ( void )
         for ( y = pm->mins[1] + 5.0f; y <= (pm->maxs[1] - 5.0f); y += 10.0f )
         {
             vec3_t start = { x, y, pm->maxs[2] };
-            vec3_t end = { x, y, pm->ps->standheight };
+            vec3_t end = { x, y, (float)pm->ps->standheight };
 
             VectorAdd (start, pm->ps->origin, start);
             VectorAdd (end, pm->ps->origin, end);

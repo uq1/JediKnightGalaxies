@@ -5,7 +5,7 @@
 	#include "g_local.h"
 #elif defined(_CGAME)
 	#include "cgame/cg_local.h"
-#elif defined(_UI)
+#elif defined(IN_UI)
 	#include "ui/ui_local.h"
 #endif
 

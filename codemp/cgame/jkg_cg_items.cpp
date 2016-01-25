@@ -301,7 +301,7 @@ void JKG_CG_DeltaFeed ( const char *mode )
 }
 
 
-stringID_table_t WPTable[]; // From bg_saga.c
+extern stringID_table_t WPTable[]; // From bg_saga.c
 static int lastUsedItemID = 1;
 static qboolean JKG_CG_ParseItem ( const char *itemFilePath, cgItemData_t *itemData )
 {

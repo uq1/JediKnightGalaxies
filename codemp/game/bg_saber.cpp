@@ -720,7 +720,7 @@ extern gentity_t g_entities[];
 
 #elif defined _CGAME
 
-#include "..\cgame\cg_local.h" //ahahahahhahahaha@$!$!
+#include "../cgame/cg_local.h" //ahahahahhahahaha@$!$!
 
 #endif
 
