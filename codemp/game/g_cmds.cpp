@@ -1174,7 +1174,6 @@ Let everyone know about a team change
 */
 void BroadcastTeamChange( gclient_t *client, int oldTeam )														//--futuza notes:  ^xRBG fix applied
 {
-	//wait wait...maybe this is just a linker error I mean I should be able to assign a const pointer to the value of a char array
 
 	client->ps.fd.forceDoInit = 1; //every time we change teams make sure our force powers are set right
 
