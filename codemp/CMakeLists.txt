@@ -725,13 +725,13 @@ endforeach(GameLib)
 
 if(WIN32)
 	include(InstallZIP)
-	add_zip_command(openjk.pk3
+	add_zip_command(jkgalaxies.pk3
 		FILES ${GameLibFullPaths}
 		DEPENDS "${GameLibsBuilt}")
 	add_custom_target(Assets
 		ALL
-		DEPENDS openjk.pk3)
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/openjk.pk3
-		DESTINATION "${JKAInstallDir}/OpenJK"
+		DEPENDS jkgalaxies.pk3)
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/jkgalaxies.pk3
+		DESTINATION "${JKAInstallDir}/JKG"
 		COMPONENT ${JKAMPCoreComponent})
 endif()

@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "sequencer.h"
+
 class CSequencer;
 
 #define MAX_TASK_NAME	64

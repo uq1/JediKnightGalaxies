@@ -46,7 +46,7 @@ static int GLua_BitStream_Create(lua_State *L) {
 
 /* Creates a new bitstream for reading */
 static int GLua_BitStream_Read(lua_State *L) {
-	unsigned int length;
+	size_t length;
 	const char *data = luaL_checklstring(L, 1, &length);
 	GLua_Bitstream_t *stream;
 
@@ -309,8 +309,8 @@ static int GLua_BitStream_WriteString(lua_State *L) {
 
 static int GLua_BitStream_WriteData(lua_State *L) {
 	GLua_Bitstream_t *stream = GLua_CheckBitStream(L, 1);
-	unsigned int length;
-	unsigned int deslength;
+	size_t length;
+	size_t deslength;
 	const char *val = luaL_checklstring(L,2, &length);
 
 	if (!lua_isnoneornil(L,3)) {

@@ -30,7 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 	#include "g_local.h"
 #elif defined(_CGAME)
 	#include "cgame/cg_local.h"
-#elif defined(_UI)
+#elif defined(IN_UI)
 	#include "ui/ui_local.h"
 #endif
 

@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // 
 // string allocation/managment
 
-#if defined(_UI)
+#if defined(IN_UI)
 	#include "ui/ui_local.h"
 	#include "ui_jkgscript.h"
 	#include "jkg_inventory.h"
@@ -8146,12 +8146,12 @@ Keyword Hash
 
 typedef struct keywordHash_s
 {
-	char *keyword;
+	const char *keyword;
 	qboolean (*func)(itemDef_t *item, int handle);
 	struct keywordHash_s *next;
 } keywordHash_t;
 
-int KeywordHash_Key(char *keyword) {
+int KeywordHash_Key(const char *keyword) {
 	int register hash, i;
 
 	hash = 0;
@@ -8178,7 +8178,7 @@ void KeywordHash_Add(keywordHash_t *table[], keywordHash_t *key) {
 	table[hash] = key;
 }
 
-keywordHash_t *KeywordHash_Find(keywordHash_t *table[], char *keyword)
+keywordHash_t *KeywordHash_Find(keywordHash_t *table[], const char *keyword)
 {
 	keywordHash_t *key;
 	int hash;
@@ -9576,7 +9576,7 @@ qboolean ItemParse_cvarFloat( itemDef_t *item, int handle ) {
 	return qfalse;
 }
 
-#ifdef _UI
+#ifdef IN_UI
 char currLanguage[32][128];
 static const char languageString[32] = "@MENUS_MYLANGUAGE";
 #endif
@@ -9603,7 +9603,7 @@ qboolean ItemParse_cvarStrList( itemDef_t *item, int handle ) {
 #ifndef _CGAME
 		for (; multiPtr->count < uiInfo.playerSpeciesCount; multiPtr->count++)
 		{
-			multiPtr->cvarList[multiPtr->count] = String_Alloc(strupr(va("@MENUS_%s",uiInfo.playerSpecies[multiPtr->count].Name )));	//look up translation
+			multiPtr->cvarList[multiPtr->count] = String_Alloc(Q_strupr(va("@MENUS_%s",uiInfo.playerSpecies[multiPtr->count].Name )));	//look up translation
 			multiPtr->cvarStr[multiPtr->count] = uiInfo.playerSpecies[multiPtr->count].Name;	//value
 		}
 #endif
