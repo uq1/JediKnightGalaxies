@@ -4581,7 +4581,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 	cg.crosshairClientTime = cg.time;
 }
 
-void CG_SanitizeString( char *in, char *out )		//todo: fix logic to match tr_font.cpp's RE_Font_DrawString()
+void CG_SanitizeString( char *in, char *out )
 {
 	int i = 0;
 	int r = 0;

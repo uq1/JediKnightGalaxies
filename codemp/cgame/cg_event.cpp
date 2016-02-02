@@ -3023,7 +3023,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				{ //add to the chat box
 					//hear it in the world spot.
 					char vchatstr[1024];
-					strcpy(vchatstr, va("<%s: %s>\n", ci->name, descr));	//futuza: fixed xRBB color codes
+					strcpy(vchatstr, va("<%s: %s>\n", ci->name, descr));	//futuza: fixed xRGsB color codes
 					if (jkg_nokillmessages.integer!=1) {
 					trap->Print(vchatstr); //Disables rendering of kill messages as it is not needed in a MMO?
 					}
