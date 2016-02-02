@@ -1658,31 +1658,44 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 					break;
 				}
 				
-				/*
+				
 				//futuza: if we found an x, then trying to use extended ^xRBG color code
 				
 				
-				chars[] = "Name^xRGBOtherPart^xRGBThing^xRGThing^xThing";
+				//chars[] = "Name^xRGBOtherPart^xRGBThing^xRGThing^xThing";
 
 				//extended color Code formtat: xRGB - where RGB are hexadecimal values 0-f
-				if(*psText == 'x' || psText == 'X')
+				else if(*psText == 'x' || *psText == 'X')			//Futuza NOTICE: still broken, just committing to work on this @ home
 				{
 					vec4_t color;	//holds our color values
+					VectorCopy4(rgba, color);
 					if( Text_ExtColorCodes(psText, color) )	//if not valid, process like normal text
 					{
 						//color[0] is red
 						//color[1] is green
 						//color[2] is blue
 						//color[3] is background/opacity
-						//rbga == color total
+		
+						//backdrop shadow
+						if (!gbInShadow)
+						{
+							vec4_t tempColor;
+							Com_Memcpy(tempColor, color, sizeof(tempColor));
+							tempColor[3] = rgba ? rgba[3] : 1.0f;
+							RE_SetColor(tempColor);
+						}
 
-						//stuff
-						RE_Font_DrawString(xx, oy, s, color, iFontHandle, iMaxPixelWidth, fScale);	//main call (recursive)
-						//need to adjust what s is, so we're only passing part of psText's array.  See jkg_chatbox.cpp Text_DrawText()
+						//move pointer to part after ^xRGB
+						for (int i = 0; i<5; i++)
+							*psText++;	
+
+						break;
+
+						//RE_Font_DrawString(xx, oy, s, color, iFontHandle, iMaxPixelWidth, fScale);	//main call (recursive)
 					}
 				}
 				
-				*/
+				
 
 
 			}
