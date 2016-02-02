@@ -2437,7 +2437,7 @@ static void CG_DrawTeamOverlay() {
 			// Draw player name
 			MAKERGBA(hcolor,1,1,1,1);		
 			//trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		//old way
-			Text_DrawText(x + 26, y + 2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		// futuza note: xRBG color code fix for teamoverlay
+			Text_DrawText(x + 26, y + 2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		// futuza note: xRGB fix (see tr_font.cpp) should allow us to use old way, not necessary?
 			MAKERGBA(hcolor,0,0,0,1);
 			CG_DrawRect(x+24, y+2, pwidth+8 , 13, 1, hcolor);
 
@@ -4581,7 +4581,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 	cg.crosshairClientTime = cg.time;
 }
 
-void CG_SanitizeString( char *in, char *out )
+void CG_SanitizeString( char *in, char *out )		//todo: fix logic to match tr_font.cpp's RE_Font_DrawString()
 {
 	int i = 0;
 	int r = 0;
@@ -4599,6 +4599,11 @@ void CG_SanitizeString( char *in, char *out )
 				in[i+1] <= 57) //'9'
 			{ //only skip it if there's a number after it for the color
 				i += 2;
+				continue;
+			}
+			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code
+			{
+				i += 5;
 				continue;
 			}
 			else
@@ -5603,8 +5608,7 @@ static void CG_DrawCrosshairNames( void ) {
 	tcolor[2] = colorTable[baseColor][2];
 	tcolor[3] = color[3]*0.5f;
 
-	CG_SanitizeString(JKG_xRBG_ConvertExtToNormal(name), sanitized);				//fixed (q_shared.h now has a const and non-const version)
-	//CG_SanitizeString(const_cast<char*>(JKG_xRBG_ConvertExtToNormal(name)), sanitized); //fixme, why const_cast why!? wow. such unsafe. very hack. 
+	CG_SanitizeString(name, sanitized);												//--futuza note: changed CG_SanitizeString() to allow ^xRGB names
 	if (isVeh)
 	{
 		char str[MAX_STRING_CHARS];
@@ -5863,8 +5867,7 @@ static qboolean CG_DrawFollow( void )
 	CG_Text_Paint(320 - CG_Text_Width(s, 1.0f, FONT_MEDIUM) / 2, 60, 1.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM);
 	
 	s = cgs.clientinfo[ cg.snap->ps.clientNum ].name;
-	CG_Text_Paint(320 - CG_Text_Width(Text_ConvertExtToNormal(s), 2.0f, FONT_MEDIUM) / 2, 80, 2.0f, colorWhite, Text_ConvertExtToNormal(s), 0, 0, 0, FONT_MEDIUM);		//Futuza: ^xRBG fix
-	
+	CG_Text_Paint(320 - CG_Text_Width(s, 2.0f, FONT_MEDIUM) / 2, 80, 2.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM);
 
 	return qtrue;
 }

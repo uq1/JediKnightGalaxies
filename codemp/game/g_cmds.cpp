@@ -1172,29 +1172,25 @@ BroadCastTeamChange
 Let everyone know about a team change
 =================
 */
-void BroadcastTeamChange( gclient_t *client, int oldTeam )														//--futuza notes:  ^xRBG fix applied
+void BroadcastTeamChange( gclient_t *client, int oldTeam )														//--futuza notes:  ^xRGB fix applied from tr_font.cpp now supports extended colors
 {
 
 	client->ps.fd.forceDoInit = 1; //every time we change teams make sure our force powers are set right
 
 	if ( client->sess.sessionTeam == TEAM_RED ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-			//client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.redTeam].joinstring)) );
+			client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.redTeam].joinstring)) );
 			//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEREDTEAM")) );
-			JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString2(bgGangWarsTeams[level.redTeam].joinstring)));		
 	} else if ( client->sess.sessionTeam == TEAM_BLUE ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-			//client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].joinstring)) );
+			client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].joinstring)) );
 		//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBLUETEAM")));
-		JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].joinstring)));
 	} else if ( client->sess.sessionTeam == TEAM_SPECTATOR && oldTeam != TEAM_SPECTATOR ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-		//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));
-		JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));
+		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));
 	} else if ( client->sess.sessionTeam == TEAM_FREE ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-		//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBATTLE")));
-		JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString("MP_SVGAME", "JOINEDTHEBATTLE")));
+		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBATTLE")));
 	}
 
 	G_LogPrintf ( "setteam:  %i %s %s\n",
@@ -4483,7 +4479,7 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 
 		if (challenged->client->ps.duelIndex == ent->s.number && challenged->client->ps.duelTime >= level.time)
 		{
-			trap->SendServerCommand( /*challenged-g_entities*/-1, va("print \"%s %s %s!\n\"", JKG_xRBG_ConvertExtToNormal(challenged->client->pers.netname), G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"), ent->client->pers.netname));		//--futuza note: test this, make sure I didn't break dueling
+			trap->SendServerCommand( /*challenged-g_entities*/-1, va("print \"%s %s %s!\n\"", challenged->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"), ent->client->pers.netname));		//--futuza note: test this, make sure I didn't break dueling with my RGB fix
 
 			ent->client->ps.duelInProgress = qtrue;
 			challenged->client->ps.duelInProgress = qtrue;
@@ -4528,8 +4524,8 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 		else
 		{
 			//Print the message that a player has been challenged in private, only announce the actual duel initiation in private
-			trap->SendServerCommand(challenged - g_entities, va("cp \"%s %s\n\"", JKG_xRBG_ConvertExtToNormal(ent->client->pers.netname), G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGE")));			//--futuza: these two lines need testing make sure ^xRBG fix didn't break anything
-			trap->SendServerCommand(ent - g_entities, va("cp \"%s %s\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGED"), JKG_xRBG_ConvertExtToNormal(challenged->client->pers.netname)));
+			trap->SendServerCommand(challenged - g_entities, va("cp \"%s %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGE")));
+			trap->SendServerCommand(ent - g_entities, va("cp \"%s %s\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGED"), challenged->client->pers.netname));
 		}
 
 		challenged->client->ps.fd.privateDuelTime = 0; //reset the timer in case this player just got out of a duel. He should still be able to accept the challenge.
@@ -4978,7 +4974,7 @@ void ClientCommand( int clientNum ) {
 	{
 		//DEBUG: Show how many credits you have
 		int credits = ent->client->ps.credits;
-		trap->SendServerCommand(clientNum, va("print \"You have %i credits, %s.\n\"", Q_max(0, credits), JKG_xRBG_ConvertExtToNormal(ent->client->pers.netname) ));		//--Futuza note: ^xRBG fix
+		trap->SendServerCommand(clientNum, va("print \"You have %i credits, %s.\n\"", Q_max(0, credits), ent->client->pers.netname));
 		return;
 	}
 	else if ( Q_stricmp (cmd, "closeVendor") == 0 )

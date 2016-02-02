@@ -2513,8 +2513,7 @@ void JKG_ClearGenericMemoryObject(GenericMemoryObject *gmo);
 void JKG_GenericMemoryObject_AddElement(GenericMemoryObject *gmo, void *element);
 void JKG_GenericMemoryObject_DeleteElement(GenericMemoryObject *gmo, unsigned int number);
 void Q_RGBCopy( vec4_t *output, vec4_t source );
-//const char *JKG_xRBG_ConvertExtToNormal(const char *text);	//for converting ^xRBG names to regular ^1names, this one is not needed
-char *JKG_xRBG_ConvertExtToNormal(const char *text);	//for converting ^xRBG names to regular ^1names return nonconst
+char *JKG_xRBG_ConvertExtToNormal(const char *text);	//for converting ^xRGB names to regular ^1names return nonconst
 qboolean Text_IsExtColorCode(const char *text);
 qboolean StringContainsWord(const char *haystack, const char *needle);
 qboolean Q_stratt( char *dest, unsigned int iSize, char *source );

@@ -886,12 +886,10 @@ void JKG_Pazaak_DrawNames(int player, float x, float y, float w, float h) {
 		text = PzkState.name_opponent;
 	}
 	if (player == 2) {
-		//width = (float)trap->R_Font_StrLenPixels(JKG_xRBG_ConvertExtToNormal(text), MenuFontToHandle(1), 1) * 0.5;	//--futuza: ^xRBG fix
-		width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;	//--test RGB fix
+		width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;	
 		x=x-width;
 	}
-	//trap->R_Font_DrawString(x, y, JKG_xRBG_ConvertExtToNormal(text), colorWhite, MenuFontToHandle(1), -1, 0.5);		//--futuza: ^xRBG fix
-	trap->R_Font_DrawString(x, y, text, colorWhite, MenuFontToHandle(1), -1, 0.5);	//--test RGB fix
+	trap->R_Font_DrawString(x, y, text, colorWhite, MenuFontToHandle(1), -1, 0.5);	//--futuza note: ^xRGB code will make certain blue colors hard to see, needs a different outline or something
 }
 
 void JKG_Pazaak_DrawPoints(int player, float x, float y, float w, float h) {
@@ -921,7 +919,7 @@ void JKG_Pazaak_DrawPoints(int player, float x, float y, float w, float h) {
 		width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
 		x=x-width;
 	}
-	trap->R_Font_DrawString(x, y, JKG_xRBG_ConvertExtToNormal(text), colorWhite, MenuFontToHandle(1), -1, 0.5);		//futuza ^xRBG fix
+	trap->R_Font_DrawString(x, y, text, colorWhite, MenuFontToHandle(1), -1, 0.5);
 }
 
 void JKG_Pazaak_DrawTimeout(float x, float y, float w, float h) {

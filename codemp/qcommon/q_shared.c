@@ -1972,95 +1972,9 @@ static int Text_ExtColorCodes(const char *text, vec4_t color)
 
 // This function converts a text with extended color codes (^xRGB) into a text with normal color codes
 // The extended colors will be clamped so the closest normal color available
-// Used to display text with extended colorcodes in the console
+// Used primarily to display text with extended colorcodes in the console
 
-//lol tis silly to return a const
-/*const char *JKG_xRBG_ConvertExtToNormal(const char *text)	//for converting ^xRBG names to regular ^1names
-{
-	static char buff[2048];
-	const char *r;		// Reader
-	char *w;			// Writer
-	char *cutoff;
-	vec4_t color;
-	int hicolors;
-	int i;
-	r = text;
-	w = buff;
-	cutoff = &buff[2046];
-	while (*r) {
-		if (w >= cutoff) {
-			// Time to stop, we reached the limit
-			*w = 0;
-			return &buff[0];
-		}
-		if (*r == '^' && *(r + 1) == 'x') {
-			if (Text_ExtColorCodes(r + 1, color)) {
-				// Extended colorcode alright, determine which base color is closest to this one
-				*w = *r;	// write the ^
-				w++;
-				r += 5;
-
-				// Determine how many of the R G and B components are over 50%
-				hicolors = 0;
-				for (i = 0; i<3; i++) {
-					if (color[i] >= 0.5f) {
-						hicolors++;
-					}
-				}
-				switch (hicolors) {
-				case 0:
-					// Color is black
-					*w = '0';
-					break;
-				case 1:
-					// It's a primary color, find out which
-					if (color[0] >= 0.5f) {
-						// It's red
-						*w = '1';
-					}
-					else if (color[1] >= 0.5f) {
-						// It's green
-						*w = '2';
-					}
-					else {
-						// Must be blue
-						*w = '4';
-					}
-					break;
-				case 2:
-					// It's a secondary color, find out which
-					if (color[0] >= 0.5f && color[1] >= 0.5f) {
-						// It's yellow
-						*w = '3';
-					}
-					else if (color[1] >= 0.5f && color[2] >= 0.5f) {
-						// It's cyan
-						*w = '5';
-					}
-					else {
-						// Must be purple
-						*w = '6';
-					}
-					break;
-				case 3:
-					// Color is white
-					*w = '7';
-					break;
-				default:
-					assert(0);	// Never happens, telling the compiler so
-				}
-				w++;
-				continue;
-			}
-		}
-		*w = *r;
-		r++; w++;
-	}
-	*w = *r;	// Write the null terminator
-	return &buff[0];
-}*/
-
-//futuza tip:  recommend changing this a bit per xycaleth's advice here: https://github.com/JKGDevs/JediKnightGalaxies/commit/83337b157a30b7d848a95431d993b391903f4081
+//futuza note:  I accidentally wrote this wrong should be xRGB not RBG oh well too late to change now.
 char *JKG_xRBG_ConvertExtToNormal(const char *text)	//for converting ^xRBG names to regular ^1names, return a non-const
 {
 	static char buff[2048];
