@@ -1464,6 +1464,52 @@ int RE_Font_HeightPixels(const int iFontHandle, const float fScale)
 	return(0);
 }
 
+//JKG code paste - futuza
+
+static float ExtColor_GetLevel(char chr) {
+	if (chr >= '0' && chr <= '9') {
+		return ((float)(chr - '0') / 15.0f);
+	}
+	if (chr >= 'A' && chr <= 'F') {
+		return ((float)(chr - 'A' + 10) / 15.0f);
+	}
+	if (chr >= 'a' && chr <= 'f') {
+		return ((float)(chr - 'a' + 10) / 15.0f);
+	}
+	return -1;
+}
+
+static int Text_ExtColorCodes(const char *text, vec4_t color) {
+	const char *r, *g, *b;
+	float red, green, blue;
+	r = text + 1;
+	g = text + 2;
+	b = text + 3;
+	// Get the color levels (if the numbers are invalid, it'll return -1, which we can use to validate)
+	red = ExtColor_GetLevel(*r);
+	green = ExtColor_GetLevel(*g);
+	blue = ExtColor_GetLevel(*b);
+	// Determine if all 3 are valid
+	if (red == -1 || green == -1 || blue == -1) {
+		return 0;
+	}
+
+	// We're clear to go, lets construct our color
+
+	color[0] = red;
+	color[1] = green;
+	color[2] = blue;
+
+	// HACK: Since cgame will use a palette override to implement dynamic opacity (like the chatbox)
+	// we must ensure we use that alpha as well.
+	// So copy the alpha of colorcode 0 (^0) instead of assuming 1.0
+
+	//color[3] =*(float *)(0x56DF54 /*0x56DF48 + 12*/);
+	color[3] = 1.0f;
+	return 1;
+}
+
+
 // iMaxPixelWidth is -1 for "all of string", else pixel display count...
 //
 void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, const int iFontHandle, int iMaxPixelWidth, const float fScale)
@@ -1611,6 +1657,34 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 					}
 					break;
 				}
+				
+				/*
+				//futuza: if we found an x, then trying to use extended ^xRBG color code
+				
+				
+				chars[] = "Name^xRGBOtherPart^xRGBThing^xRGThing^xThing";
+
+				//extended color Code formtat: xRGB - where RGB are hexadecimal values 0-f
+				if(*psText == 'x' || psText == 'X')
+				{
+					vec4_t color;	//holds our color values
+					if( Text_ExtColorCodes(psText, color) )	//if not valid, process like normal text
+					{
+						//color[0] is red
+						//color[1] is green
+						//color[2] is blue
+						//color[3] is background/opacity
+						//rbga == color total
+
+						//stuff
+						RE_Font_DrawString(xx, oy, s, color, iFontHandle, iMaxPixelWidth, fScale);	//main call (recursive)
+						//need to adjust what s is, so we're only passing part of psText's array.  See jkg_chatbox.cpp Text_DrawText()
+					}
+				}
+				
+				*/
+
+
 			}
 			//purposely falls thrugh
 		default:

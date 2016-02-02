@@ -5860,10 +5860,11 @@ static qboolean CG_DrawFollow( void )
 		s = CG_GetStringEdString("MP_INGAME", "FOLLOWING");
 	}
 
-	CG_Text_Paint ( 320 - CG_Text_Width ( s, 1.0f, FONT_MEDIUM ) / 2, 60, 1.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM );
-
+	CG_Text_Paint(320 - CG_Text_Width(s, 1.0f, FONT_MEDIUM) / 2, 60, 1.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM);
+	
 	s = cgs.clientinfo[ cg.snap->ps.clientNum ].name;
-	CG_Text_Paint ( 320 - CG_Text_Width ( s, 2.0f, FONT_MEDIUM ) / 2, 80, 2.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM );
+	CG_Text_Paint(320 - CG_Text_Width(Text_ConvertExtToNormal(s), 2.0f, FONT_MEDIUM) / 2, 80, 2.0f, colorWhite, Text_ConvertExtToNormal(s), 0, 0, 0, FONT_MEDIUM);		//Futuza: ^xRBG fix
+	
 
 	return qtrue;
 }
