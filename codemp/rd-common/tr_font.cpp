@@ -1416,7 +1416,7 @@ int RE_Font_StrLenPixels(const char *psText, const int iFontHandle, const float 
 //
 int RE_Font_StrLenChars(const char *psText)
 {
-	// logic for this function's letter counting must be kept same in this function and RE_Font_DrawString()
+	// logic for this function's letter counting must be kept same in this function and RE_Font_DrawString(), also CG_SanitizeString() in cg_draw.cpp
 	//
 	int iCharCount = 0;
 
@@ -1435,6 +1435,17 @@ int RE_Font_StrLenChars(const char *psText)
 					*psText <= '9')
 				{
 					psText++;
+				}
+
+				//--futuza: extended xRGB color codes
+				else if (*psText == 'x' || *psText == 'X')	
+				{
+					//safety check
+					const char *r = psText + 1, *g = psText + 2, *b = psText + 3;
+					if (ExtColor_GetLevel(*r) == -1 || ExtColor_GetLevel(*g) == -1 || ExtColor_GetLevel(*b) == -1)	//if one is invalid don't advance past ^xRGB text
+						break;
+
+					psText += 4;	//advance past ^xRGB
 				}
 				else
 				{
@@ -1611,6 +1622,27 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 					}
 					break;
 				}
+				
+				//--futuza:  extended color code format: ^xRGB - where each RGB char is a hexadecimal value 0-f
+				else if(*psText == 'x' || *psText == 'X')
+				{
+					vec4_t color;	//holds our color values
+					VectorCopy4(rgba, color);
+					if( Text_ExtColorCodes(psText, color) )	//if not valid, process like normal text
+					{
+						//backdrop shadow
+						if (!gbInShadow)
+						{
+							vec4_t tempColor;
+							Com_Memcpy(tempColor, color, sizeof(tempColor));
+							tempColor[3] = rgba ? rgba[3] : 1.0f;
+							RE_SetColor(tempColor);
+						}
+						psText += 4;	//move pointer to after ^xRGB
+						break;
+					}
+				}
+
 			}
 			//purposely falls thrugh
 		default:
@@ -1781,5 +1813,50 @@ void R_ReloadFonts_f(void)
 	}
 }
 
+
+//Jedi Knight Galaxies - extended ^xRGB color code functions  --futuza
+
+//returns a -1 if invalid, otherwise returns float color similar to how g_color_table() works
+static float ExtColor_GetLevel(char chr) 
+{
+	if (chr >= '0' && chr <= '9') 
+	{
+		return ((float)(chr - '0') / 15.0f);
+	}
+	if (chr >= 'A' && chr <= 'F') 
+	{
+		return ((float)(chr - 'A' + 10) / 15.0f);
+	}
+	if (chr >= 'a' && chr <= 'f') 
+	{
+		return ((float)(chr - 'a' + 10) / 15.0f);
+	}
+	return -1;
+}
+
+//return 0 if invalid RGB color, otherwise return a 1 and modify color to contain appropriate colors
+static int Text_ExtColorCodes(const char *text, vec4_t color) 
+{
+	const char *r, *g, *b;
+	float red, green, blue;
+	r = text + 1;
+	g = text + 2;
+	b = text + 3;
+	// Get the color levels (if the numbers are invalid, it'll return -1, which we can use to validate)
+	red = ExtColor_GetLevel(*r);
+	green = ExtColor_GetLevel(*g);
+	blue = ExtColor_GetLevel(*b);
+	// Determine if all 3 are valid
+	if (red == -1 || green == -1 || blue == -1) {
+		return 0;
+	}
+
+	// We're clear to go, lets construct our color
+	color[0] = red;
+	color[1] = green;
+	color[2] = blue;
+	color[3] = 1.0f;
+	return 1;
+}
 
 // end

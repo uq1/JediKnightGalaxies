@@ -5131,6 +5131,12 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if ( knockback > 200 ) {
 		knockback = 200;
 	}
+
+	//futuza: low damage results in no knockback
+	/*if (knockback < 35)
+	{
+		knockback = 0;
+	}*/
 	if ( targ->flags & FL_NO_KNOCKBACK ) {
 		knockback = 0;
 	}

@@ -16,6 +16,8 @@
 4. If challenged by more than one person within the 10 second grace period, system will respond to new challengers with, "Sorry this person has already been challenged by another opponent, ask them again later."
 5. When you accept a match, toggle god mode on for both players/make invincible.  This will be a server cfg setting, that can be turned on/off (so if it is a problem, people can't cheat using pazaak for invincibility in a match).
 6. When match finishes, turn off god mode.
+
+Note: the godmode bit is currently in the glua code under pzktest, but isn't a cfg setting yet
 */
 
 #include "ui_shared.h"
@@ -884,10 +886,10 @@ void JKG_Pazaak_DrawNames(int player, float x, float y, float w, float h) {
 		text = PzkState.name_opponent;
 	}
 	if (player == 2) {
-		width = (float)trap->R_Font_StrLenPixels(JKG_xRBG_ConvertExtToNormal(text), MenuFontToHandle(1), 1) * 0.5;	//--futuza: ^xRBG fix
+		width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;	
 		x=x-width;
 	}
-	trap->R_Font_DrawString(x, y, JKG_xRBG_ConvertExtToNormal(text), colorWhite, MenuFontToHandle(1), -1, 0.5);		//--futuza: ^xRBG fix
+	trap->R_Font_DrawString(x, y, text, colorWhite, MenuFontToHandle(1), -1, 0.5);	//--futuza note: ^xRGB code will make certain blue colors hard to see, needs a different outline or something
 }
 
 void JKG_Pazaak_DrawPoints(int player, float x, float y, float w, float h) {
@@ -917,7 +919,7 @@ void JKG_Pazaak_DrawPoints(int player, float x, float y, float w, float h) {
 		width = (float)trap->R_Font_StrLenPixels(text, MenuFontToHandle(1), 1) * 0.5;
 		x=x-width;
 	}
-	trap->R_Font_DrawString(	x, y , text, colorWhite, MenuFontToHandle(1), -1, 0.5);
+	trap->R_Font_DrawString(x, y, text, colorWhite, MenuFontToHandle(1), -1, 0.5);
 }
 
 void JKG_Pazaak_DrawTimeout(float x, float y, float w, float h) {

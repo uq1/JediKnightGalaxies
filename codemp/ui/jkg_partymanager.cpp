@@ -9,7 +9,6 @@
 ////////////////////////////////////////////////////////////
 
 
-//todo: futuza fix ^xRBG names using JKG_xRBG_ConvertExtToNormal() from q_shared.h
 #include "ui_local.h"
 
 // UI includes

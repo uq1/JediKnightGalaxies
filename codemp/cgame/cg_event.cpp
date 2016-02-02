@@ -289,8 +289,7 @@ clientkilled:
 				char sKilledStr[256];
 				trap->SE_GetStringTextString("MP_INGAME_PLACE_WITH",     sPlaceWith, sizeof(sPlaceWith));
 				trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
-
-				s = va("%s %s.\n%s %s %i.", sKilledStr, JKG_xRBG_ConvertExtToNormal(targetName),			//--futuza: ^xRBG name fix
+				s = va("%s %s.\n%s %s %i.", sKilledStr, targetName,
 					CG_PlaceString( cg.snap->ps.persistant[PERS_RANK] + 1 ), 
 					sPlaceWith,
 					cg.snap->ps.persistant[PERS_SCORE] );
@@ -298,7 +297,7 @@ clientkilled:
 		} else {
 			char sKilledStr[256];
 			trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
-			s = va("%s %s", sKilledStr, JKG_xRBG_ConvertExtToNormal(targetName));						//--futuza: ^xRBG name fix
+			s = va("%s %s", sKilledStr, targetName);
 		}
 
 		CG_CenterPrint( s, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
@@ -308,7 +307,7 @@ clientkilled:
 	// check for double client messages
 	if ( !attackerInfo ) {
 		attacker = ENTITYNUM_WORLD;
-		strcpy( attackerName, "noname" );																	//--futuza: possible RBG color name fix needed
+		strcpy( attackerName, "noname" );																	//--futuza: needs RGB fix testing (should work, but not tested)
 	} else {
 		Q_strncpyz( attackerName, Info_ValueForKey( attackerInfo, "n" ), sizeof(attackerName) - 2);
 		strcat( attackerName, S_COLOR_WHITE );
@@ -418,15 +417,14 @@ clientkilled:
 		if (message) {
 			message = (char *)CG_GetStringEdString("MP_INGAME", message);
 			if (jkg_nokillmessages.integer!=1) {
-				trap->Print( "%s %s %s\n", 
-					JKG_xRBG_ConvertExtToNormal(targetName), message, JKG_xRBG_ConvertExtToNormal(attackerName)); //Disables rendering of kill messages as it is not needed in a MMO?	//--futuza: ^xRBG fix
+				trap->Print("%s %s %s\n", targetName, message, attackerName); //Disables rendering of kill messages as it is not needed in a MMO?	//--futuza: ^xRGB fix
 			}
 			return;
 		}
 	}
 	if (jkg_nokillmessages.integer!=1) {
 		// we don't know what it was
-		trap->Print("%s %s\n", JKG_xRBG_ConvertExtToNormal(targetName), (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC"));  //Disables rendering of kill messages as it is not needed in a MMO?  //--futuza: ^xRBG fix
+		trap->Print("%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC"));
 	}
 }
 
@@ -759,7 +757,8 @@ void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 
 			if (ci)
 			{
-				Com_sprintf(printMsg, sizeof(printMsg), "%s^7 ", JKG_xRBG_ConvertExtToNormal(ci->name));	//--futuza: possible ^xRBG fix, needs testing, but this concerns ctf
+				//--futuza: possible ^xRGB fix, needs testing, but this concerns ctf
+				Com_sprintf(printMsg, sizeof(printMsg), "%s^7 ", ci->name);
 				strLen = strlen(printMsg);
 			}
 
@@ -791,7 +790,7 @@ void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 
 	if (ci)
 	{
-		Com_sprintf(printMsg, sizeof(printMsg), "%s^7 %s", JKG_xRBG_ConvertExtToNormal(ci->name), psStringEDString);
+		Com_sprintf(printMsg, sizeof(printMsg), "%s^7 %s", ci->name, psStringEDString);
 	}
 	else
 	{
@@ -3024,7 +3023,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				{ //add to the chat box
 					//hear it in the world spot.
 					char vchatstr[1024];
-					strcpy(vchatstr, va("<%s: %s>\n", JKG_xRBG_ConvertExtToNormal(ci->name), descr));	//futuza: fixed xRBB color codes
+					strcpy(vchatstr, va("<%s: %s>\n", ci->name, descr));	//futuza: fixed xRGsB color codes
 					if (jkg_nokillmessages.integer!=1) {
 					trap->Print(vchatstr); //Disables rendering of kill messages as it is not needed in a MMO?
 					}
