@@ -89,7 +89,7 @@ static const char *SanitizeName( const char *name ) {
 
 	idx++;
 	idx &= 3;
-	SanitizeString2((char *)name, &clean[idx][0]);
+	SanitizeString2((char *)name, &clean[idx][0]);	//--futuza: use this instead Global_SanitizeString()
 	return clean[idx];
 }
 

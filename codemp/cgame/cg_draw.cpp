@@ -5429,8 +5429,8 @@ void CG_DrawNPCNames( void )
 
 		//CG_Printf("%i screen coords are %fx%f. (%f %f %f)\n", cent->currentState.number, x, y, origin[0], origin[1], origin[2]);
 
-		CG_SanitizeString(str1, sanitized1);
-		CG_SanitizeString(str2, sanitized2);
+		CG_SanitizeString(str1, sanitized1);		//--futuza: Global_SanitizeString
+		CG_SanitizeString(str2, sanitized2);		
 		
 		size = dist * 0.0002;
 		
@@ -5609,7 +5609,7 @@ static void CG_DrawCrosshairNames( void ) {
 	tcolor[2] = colorTable[baseColor][2];
 	tcolor[3] = color[3]*0.5f;
 
-	CG_SanitizeString(name, sanitized);												//--futuza note: changed CG_SanitizeString() to allow ^xRGB names
+	CG_SanitizeString(name, sanitized);												//--futuza note: please replace with: Global_SanitizeString
 	if (isVeh)
 	{
 		char str[MAX_STRING_CHARS];

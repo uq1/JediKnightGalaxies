@@ -509,6 +509,8 @@ JKGStringType_t JKG_CheckIfNumber(const char *string)
 SanitizeString
 
 Remove case and control characters
+
+//futuza: todo replace this with Global_SanitizeString if possible, note this also removes case so we have to account for that
 ==================
 */
 void SanitizeString( char *in, char *out ) {
@@ -3035,7 +3037,7 @@ int G_ClientNumberFromStrippedName ( const char* name )
 	gclient_t*	cl;
 
 	// check for a name match
-	SanitizeString2( (char*)name, s2 );
+	SanitizeString2( (char*)name, s2 );			//futuza: Global_SanitizeString
 	Q_strlwr(s2);
 	for ( i=0; i < level.numConnectedClients ; i++ ) 
 	{
@@ -3224,7 +3226,7 @@ int G_ClientNumberFromStrippedSubstring ( const char* name, qboolean checkAll )
 	gclient_t	*cl;
 
 	// check for a name match
-	SanitizeString2( (char*)name, s2 );
+	SanitizeString2( (char*)name, s2 );			//futuza: Global_SanitizeString
 	Q_strlwr(s2);
 	for ( i=0 ; i < level.numConnectedClients ; i++ ) 
 	{
