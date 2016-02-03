@@ -2060,9 +2060,14 @@ char *JKG_xRBG_ConvertExtToNormal(const char *text)	//for converting ^xRBG names
 	return &buff[0];
 }
 
+//didn't provide a limit value okay?
+void Global_SanitizeString(char *in, char *out)
+{
+	Global_SanitizeString(in, out, MAX_QPATH);
+}
 
-//got sick of rewritting SanitizeString() functions, so here's a global one		--futuza  todo: change every single damn sanitizestring() call to refer to this one
-void Global_SanitizeString(char *in, char *out, int limit = MAX_QPATH) //note: users can optionally pass in a limit value, rather then using the default
+//got sick of rewritting SanitizeString() functions, so here's a global one		--futuza  todo: remove references to other SanitizeString functions
+void Global_SanitizeString(char *in, char *out, int limit) //note: users can optionally pass in a limit value, rather then using the default
 {
 	int i = 0;
 	int r = 0;
@@ -2082,9 +2087,16 @@ void Global_SanitizeString(char *in, char *out, int limit = MAX_QPATH) //note: u
 				i += 2;
 				continue;
 			}
-			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code
+			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code  note: needs safety checking
 			{
-				i += 5;
+				for (int l = 2; l < 7; l++)
+				{
+					if (in[i + l] == NULL)
+						;					//if we hit end of string do nothing
+					else
+						i++;
+				}
+				//i += 5;
 				continue;
 			}
 			else
@@ -2094,7 +2106,7 @@ void Global_SanitizeString(char *in, char *out, int limit = MAX_QPATH) //note: u
 			}
 		}
 
-		if (in[i] < 32)
+		if (in[i] < 32)		//if a control character?
 		{
 			i++;
 			continue;

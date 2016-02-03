@@ -89,8 +89,10 @@ static const char *SanitizeName( const char *name ) {
 
 	idx++;
 	idx &= 3;
-	SanitizeString2((char *)name, &clean[idx][0]);	//--futuza: use this instead Global_SanitizeString()
+	//SanitizeString2((char *)name, &clean[idx][0]);	//--futuza: use this instead Global_SanitizeString()
+	Global_SanitizeString((char *)name, &clean[idx][0], MAX_NAME_LENGTH);
 	return clean[idx];
+	
 }
 
 static const char	*Cmd_ConcatArgs( int start ) {
