@@ -2059,3 +2059,50 @@ char *JKG_xRBG_ConvertExtToNormal(const char *text)	//for converting ^xRBG names
 	*w = *r;	// Write the null terminator
 	return &buff[0];
 }
+
+
+//got sick of rewritting SanitizeString() functions, so here's a global one		--futuza  todo: change every single damn sanitizestring() call to refer to this one
+void Global_SanitizeString(char *in, char *out, int limit = MAX_QPATH) //note: users can optionally pass in a limit value, rather then using the default
+{
+	int i = 0;
+	int r = 0;
+
+	while (in[i])
+	{
+		if (i >= limit - 1)						
+		{ //the ui truncates the name here...
+			break;
+		}
+
+		if (in[i] == '^')
+		{
+			if (in[i + 1] >= 48 && //'0'
+				in[i + 1] <= 57) //'9'
+			{ //only skip it if there's a number after it for the color
+				i += 2;
+				continue;
+			}
+			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code
+			{
+				i += 5;
+				continue;
+			}
+			else
+			{ //just skip the ^
+				i++;
+				continue;
+			}
+		}
+
+		if (in[i] < 32)
+		{
+			i++;
+			continue;
+		}
+
+		out[r] = in[i];
+		r++;
+		i++;
+	}
+	out[r] = 0;
+}

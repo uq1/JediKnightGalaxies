@@ -4581,6 +4581,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 	cg.crosshairClientTime = cg.time;
 }
 
+//--futuza todo: use Global_SanitizeString() instead (q_shared.c)
 void CG_SanitizeString( char *in, char *out )
 {
 	int i = 0;
