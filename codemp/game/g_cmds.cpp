@@ -509,6 +509,8 @@ JKGStringType_t JKG_CheckIfNumber(const char *string)
 SanitizeString
 
 Remove case and control characters
+
+//futuza: todo replace this with Global_SanitizeString if possible, note this also removes case so we have to account for that
 ==================
 */
 void SanitizeString( char *in, char *out ) {
@@ -2995,7 +2997,15 @@ void SanitizeString2( char *in, char *out )
 			}
 			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code
 			{
-				i += 5;
+
+				for (int l = 2; l < 7; l++)
+				{
+					if (in[i + l] == NULL)
+						;					//if we hit end of string do nothing
+					else
+						i++;
+				}
+				//i += 5;
 				continue;
 			}
 			else
@@ -3035,12 +3045,14 @@ int G_ClientNumberFromStrippedName ( const char* name )
 	gclient_t*	cl;
 
 	// check for a name match
-	SanitizeString2( (char*)name, s2 );
+	//SanitizeString2( (char*)name, s2 );			//futuza: Global_SanitizeString
+	Global_SanitizeString((char*)name, s2, MAX_NAME_LENGTH);		//fixed
 	Q_strlwr(s2);
 	for ( i=0; i < level.numConnectedClients ; i++ ) 
 	{
 		cl = &level.clients[level.sortedClients[i]];
-		SanitizeString2( cl->pers.netname, n2 );
+		//SanitizeString2( cl->pers.netname, n2 );
+		Global_SanitizeString(cl->pers.netname, n2, MAX_NAME_LENGTH);
 		Q_strlwr(n2);
 		if ( !strcmp( n2, s2 ) ) 
 		{
@@ -3224,12 +3236,14 @@ int G_ClientNumberFromStrippedSubstring ( const char* name, qboolean checkAll )
 	gclient_t	*cl;
 
 	// check for a name match
-	SanitizeString2( (char*)name, s2 );
+	//SanitizeString2( (char*)name, s2 );			//futuza: Global_SanitizeString
+	Global_SanitizeString((char*)name, s2, MAX_NAME_LENGTH);
 	Q_strlwr(s2);
 	for ( i=0 ; i < level.numConnectedClients ; i++ ) 
 	{
 		cl = &level.clients[level.sortedClients[i]];
-		SanitizeString2( cl->pers.netname, n2 );
+		//SanitizeString2( cl->pers.netname, n2 );
+		Global_SanitizeString(cl->pers.netname, n2, MAX_NAME_LENGTH);
 		Q_strlwr(n2);
 		if ( strstr( n2, s2 ) ) 
 		{

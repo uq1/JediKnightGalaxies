@@ -1416,7 +1416,7 @@ int RE_Font_StrLenPixels(const char *psText, const int iFontHandle, const float 
 //
 int RE_Font_StrLenChars(const char *psText)
 {
-	// logic for this function's letter counting must be kept same in this function and RE_Font_DrawString(), also CG_SanitizeString() in cg_draw.cpp
+	// logic for this function's letter counting must be kept same in this function and RE_Font_DrawString(), also CG_SanitizeString()/Global_SanitizeString() in cg_draw.cpp and q_shared.c
 	//
 	int iCharCount = 0;
 

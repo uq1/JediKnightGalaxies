@@ -2840,7 +2840,7 @@ CENTER PRINTING
 ===============================================================================
 */
 
-#define CG_CP_NUMBER_OF_CHARACTERS_IN_LINE	50
+#define CG_CP_NUMBER_OF_CHARACTERS_IN_LINE	75		//--futuza: original value 50
 
 /*
 ==============
@@ -4602,11 +4602,17 @@ void CG_SanitizeString( char *in, char *out )
 				i += 2;
 				continue;
 			}
-			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code
+			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code  note: needs safety checking
 			{
-				i += 5;
+				for (int l = 2; l < 7; l++)
+				{
+					if (in[i + l] == NULL)
+						;					//if we hit end of string do nothing
+					else
+						i++;
+				}
+				//i += 5;
 				continue;
-			}
 			else
 			{ //just skip the ^
 				i++;
@@ -5429,8 +5435,10 @@ void CG_DrawNPCNames( void )
 
 		//CG_Printf("%i screen coords are %fx%f. (%f %f %f)\n", cent->currentState.number, x, y, origin[0], origin[1], origin[2]);
 
-		CG_SanitizeString(str1, sanitized1);
-		CG_SanitizeString(str2, sanitized2);
+		//CG_SanitizeString(str1, sanitized1);		//--futuza: Global_SanitizeString
+		//CG_SanitizeString(str2, sanitized2);
+		Global_SanitizeString(str1, sanitized1, 128);
+		Global_SanitizeString(str2, sanitized2, 128);
 		
 		size = dist * 0.0002;
 		
@@ -5609,7 +5617,8 @@ static void CG_DrawCrosshairNames( void ) {
 	tcolor[2] = colorTable[baseColor][2];
 	tcolor[3] = color[3]*0.5f;
 
-	CG_SanitizeString(name, sanitized);												//--futuza note: changed CG_SanitizeString() to allow ^xRGB names
+	//CG_SanitizeString(name, sanitized);												//--futuza note: please replace with: Global_SanitizeString
+	Global_SanitizeString(name, sanitized, 128);
 	if (isVeh)
 	{
 		char str[MAX_STRING_CHARS];
