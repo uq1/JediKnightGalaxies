@@ -1172,11 +1172,15 @@ BroadCastTeamChange
 Let everyone know about a team change
 =================
 */
-void BroadcastTeamChange( gclient_t *client, int oldTeam )														//--futuza notes:  ^xRGB fix applied from tr_font.cpp now supports extended colors
+void BroadcastTeamChange( gclient_t *client, int oldTeam )														
 {
 
 	client->ps.fd.forceDoInit = 1; //every time we change teams make sure our force powers are set right
+	
+	//BUG\FIXME: messages are getting cut off if names aren't a certain length when they mix ^1 and ^xRGB color codes, see github issue: https://github.com/JKGDevs/JediKnightGalaxies/issues/131#issuecomment-179015083
+	//lazy fix: convert to regular colors with JKG_xRBG_ConvertExtToNormal()
 
+	//--futuza notes:  ^xRGB fix applied from tr_font.cpp now supports extended colors
 	if ( client->sess.sessionTeam == TEAM_RED ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
 			client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.redTeam].joinstring)) );
@@ -1187,7 +1191,7 @@ void BroadcastTeamChange( gclient_t *client, int oldTeam )														//--futu
 		//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBLUETEAM")));
 	} else if ( client->sess.sessionTeam == TEAM_SPECTATOR && oldTeam != TEAM_SPECTATOR ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));
+		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));		
 	} else if ( client->sess.sessionTeam == TEAM_FREE ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
 		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBATTLE")));
@@ -2965,6 +2969,8 @@ void JKG_BindChatCommands( void )
 SanitizeString2
 
 Rich's revised version of SanitizeString
+
+--futuza: todo: use GlobalSanitizeString() in q_shared.c instead
 ==================
 */
 void SanitizeString2( char *in, char *out )
@@ -2985,6 +2991,11 @@ void SanitizeString2( char *in, char *out )
 				in[i+1] <= 57) //'9'
 			{ //only skip it if there's a number after it for the color
 				i += 2;
+				continue;
+			}
+			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code
+			{
+				i += 5;
 				continue;
 			}
 			else
