@@ -2122,46 +2122,34 @@ void Global_SanitizeString(char *in, char *out)
 	Global_SanitizeString(in, out, MAX_QPATH);
 }
 
-//got sick of rewritting SanitizeString() functions, so here's a global one		--futuza  todo: remove references to other SanitizeString functions
-void Global_SanitizeString(char *in, char *out, int limit) //note: users can optionally pass in a limit value, rather then using the default
+//--futuza: got sick of rewritting SanitizeString() functions, so here's a global one
+void Global_SanitizeString(char *in, char *out, int limit)		//note: users can optionally pass in a limit value, rather then using the default
 {
 	int i = 0;
 	int r = 0;
 
 	while (in[i])
 	{
-		if (i >= limit - 1)						
-		{ //the ui truncates the name here...
+		if (i >= limit - 1)		//the ui truncates the name here...
 			break;
-		}
 
 		if (in[i] == '^')
 		{
-			if (in[i + 1] >= 48 && //'0'
-				in[i + 1] <= 57) //'9'
-			{ //only skip it if there's a number after it for the color
+			if (in[i + 1] == 'x' || in[i + 1] == 'X')	//if ^xRGB
+			{
+				if (ExtColor_IsValid(in[i + 2]) && ExtColor_IsValid(in[i + 3]) && ExtColor_IsValid(in[i + 4]))	//if a valid color
+				{
+					i += 5;
+					continue;
+				}
+			}
+			else if (isdigit(in[i + 1]))	//if ^0-9
+			{
 				i += 2;
 				continue;
 			}
-			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code  
-			{
-				for (int l = 2; l < 7; l++)											//--futuza: todo optomize, we have some redundant logic (pro
-				{
-					if (in[i + l] == NULL)
-						;					//if we hit end of string do nothing
-					else if (ExtColor_IsValid(in[i + l]))	//make sure our color is valid ,  possible issue if we do ^xzzz since z's are not valid
-						i++;
-					else									//don't count non-valids, leave them in
-						;
-				}
-				//i += 5;
-				continue;
-			}
-			else
-			{ //just skip the ^
-				i++;
-				continue;
-			}
+			else	//treat ^'s without color codes like a normal char
+				;
 		}
 
 		if (in[i] < 32)		//if a control character?
@@ -2175,4 +2163,5 @@ void Global_SanitizeString(char *in, char *out, int limit) //note: users can opt
 		i++;
 	}
 	out[r] = 0;
+
 }
