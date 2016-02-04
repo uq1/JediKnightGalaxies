@@ -416,8 +416,8 @@ clientkilled:
 
 		if (message) {
 			message = (char *)CG_GetStringEdString("MP_INGAME", message);
-			if (jkg_nokillmessages.integer!=1) {
-				trap->Print("%s %s %s\n", JKG_xRBG_ConvertExtToNormal(targetName), message, JKG_xRBG_ConvertExtToNormal(attackerName)); //Disables rendering of kill messages as it is not needed in a MMO?	//--futuza: ^xRGB fix needed (not accepting ^xRGB naturally for some reason)
+			if (jkg_nokillmessages.integer!=1) {		//Disables rendering of kill messages as it is not needed in a MMO?
+				trap->Print("%s %s %s\n", JKG_xRBG_ConvertExtToNormal(targetName), message, JKG_xRBG_ConvertExtToNormal(attackerName)); 	//--futuza: ^xRGB fix needed (not accepting ^xRGB naturally for some reason)
 			}
 			return;
 		}
