@@ -2087,7 +2087,7 @@ void Global_SanitizeString(char *in, char *out, int limit) //note: users can opt
 				i += 2;
 				continue;
 			}
-			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code  note: needs safety checking
+			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code  note: possible issue if we do ^xzzz since z's are not valid
 			{
 				for (int l = 2; l < 7; l++)
 				{
