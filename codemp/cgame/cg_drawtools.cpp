@@ -264,7 +264,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 						s+=2;
 						continue;
 					}
-					else if(*(s+1) == 'x' && Text_IsExtColorCode((s+1)))
+					else if (*(s + 1) == 'x' && Text_IsExtColorCode((s + 1)) || *(s + 1) == 'X' && Text_IsExtColorCode((s + 1)))		//--futuza: fixing to include 'X'
 					{
 						s+=5;
 						continue;
@@ -310,7 +310,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 					s+= 2;
 					continue;
 				}
-				else if(*(s+1) == 'x')
+				else if(*(s+1) == 'x' || *(s+1) == 'X')		//--futuza: fixing to include 'X'
 				{
 					if(strlen(s) > 5)
 					{
