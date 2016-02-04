@@ -4613,6 +4613,7 @@ void CG_SanitizeString( char *in, char *out )
 				}
 				//i += 5;
 				continue;
+			}
 			else
 			{ //just skip the ^
 				i++;
