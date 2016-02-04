@@ -1188,7 +1188,7 @@ char *Q_CleanStr( char *string ) {
 	d = string;
 	while ((c = *s) != 0 ) {
 		// eezstreet fix: deal with non standard color codes as well..
-		if( s[0] == '^' && s[1] == 'x' &&
+		/*if( s[0] == '^' && s[1] == 'x' &&
 			((s[2] >= '0' && s[2] <= '9') ||
 			(s[2] >= 'a' && s[2] <= 'f') ||
 			(s[2] >= 'A' && s[2] <= 'F')) &&
@@ -1197,7 +1197,8 @@ char *Q_CleanStr( char *string ) {
 			(s[3] >= 'A' && s[3] <= 'F')) &&
 			((s[4] >= '0' && s[4] <= '9') ||
 			(s[4] >= 'a' && s[4] <= 'f') ||
-			(s[4] >= 'A' && s[4] <= 'F')) )
+			(s[4] >= 'A' && s[4] <= 'F')) )*/
+		if (*s == '^' && (s[1] == 'X' || s[1] == 'x') && (ExtColor_IsValid(s[2]) && ExtColor_IsValid(s[3]) && ExtColor_IsValid(s[4])) )	//--futuza this is cleaner and better, cuz we can use either x/X
 		{
 			s+=4;
 		}
@@ -1214,6 +1215,7 @@ char *Q_CleanStr( char *string ) {
 	return string;
 }
 
+
 /*
 ==================
 Q_StripColor
@@ -1223,10 +1225,13 @@ Strips coloured strings in-place using multiple passes: "fgs^^56fds" -> "fgs^6fd
 This function modifies INPUT (is mutable)
 
 (Also strips ^8 and ^9)
+
+//--Futuza todo: simplify this whole damn function
 ==================
 */
 void Q_StripColor(char *text)
 {
+	/*
 	qboolean doPass = qtrue;
 	char *read;
 	char *write;
@@ -1237,11 +1242,18 @@ void Q_StripColor(char *text)
 		read = write = text;
 		while ( *read )
 		{
-			if ( Q_IsColorStringExt(read) )
+			if ( Q_IsColorStringExt(read) )		//if (*read == '^' && *read + 1 >= '0' && *read + 1 <= '9')	//--futuza: explaining the damn function, because it is fracking unreadable
 			{
 				doPass = qtrue;
 				read += 2;
 			}
+
+			if (*read == '^' && (read[1] == 'X' || read[1] == 'x') && (ExtColor_IsValid(read[2]) && ExtColor_IsValid(read[3]) && ExtColor_IsValid(read[4])))	//if ^xRGB (and a valid one)
+			{
+				doPass = qtrue;
+				read += 5;
+			}
+
 			else
 			{
 				// Avoid writing the same data over itself
@@ -1258,8 +1270,37 @@ void Q_StripColor(char *text)
 			// Add trailing NUL byte if string has shortened
 			*write = '\0';
 		}
-	}
+	}*/
+	Q_StripColor_Simple(text);	//just use simple version, original version is idiotic
 }
+
+//simplified Q_StripColor - courtesy of eezstreet
+void Q_StripColor_Simple(char *text)
+{
+	int nOffset = 0;
+
+	while (*text)	//while not null
+	{
+		if (*text == '^')	//if we encounter color code
+		{
+			if (text[1] == 'x' || text[1] == 'X')	//xRGB color codes
+			{
+				if ( ExtColor_IsValid(text[2]) && ExtColor_IsValid(text[3]) && ExtColor_IsValid(text[4]) ) //valid color?
+					nOffset += 5;
+			}
+			else if ( isdigit(text[1]) )	//number color codes	--futuza: possibly unsafe to use isdigit? if so change to check 0-9 range instead
+			{
+				nOffset += 2;
+			}
+		}
+		text[0] = text[nOffset];
+		nOffset++;
+		text++;
+	}
+
+}
+
+
 
 /*
 Q_strstrip
@@ -1911,6 +1952,21 @@ qboolean Text_IsExtColorCode(const char *text) {
 So far only JKG_xRBG_ConvertExtToNormal() can be used.  Might add some more from jkg_chatbox.h later
 
 */
+
+static qboolean ExtColor_IsValid(char chr)
+{
+	if (chr >= '0' && chr <= '9')
+		return qtrue;
+
+	if (chr >= 'A' && chr <= 'F')
+		return qtrue;
+
+	if (chr >= 'a' && chr <= 'f')
+		return qtrue;
+
+	return qfalse;
+}
+
 static vec4_t tColorTable[10] = 
 {
 	{ 0, 0, 0, 1 }, // ^0
@@ -2087,14 +2143,16 @@ void Global_SanitizeString(char *in, char *out, int limit) //note: users can opt
 				i += 2;
 				continue;
 			}
-			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code  note: possible issue if we do ^xzzz since z's are not valid
+			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code  
 			{
-				for (int l = 2; l < 7; l++)
+				for (int l = 2; l < 7; l++)											//--futuza: todo optomize, we have some redundant logic (pro
 				{
 					if (in[i + l] == NULL)
 						;					//if we hit end of string do nothing
-					else
+					else if (ExtColor_IsValid(in[i + l]))	//make sure our color is valid ,  possible issue if we do ^xzzz since z's are not valid
 						i++;
+					else									//don't count non-valids, leave them in
+						;
 				}
 				//i += 5;
 				continue;

@@ -2513,6 +2513,8 @@ void JKG_ClearGenericMemoryObject(GenericMemoryObject *gmo);
 void JKG_GenericMemoryObject_AddElement(GenericMemoryObject *gmo, void *element);
 void JKG_GenericMemoryObject_DeleteElement(GenericMemoryObject *gmo, unsigned int number);
 void Q_RGBCopy( vec4_t *output, vec4_t source );
+static qboolean ExtColor_IsValid(char chr);			//check if ^xRGB valid, returns -1 if not valid
+void Q_StripColor_Simple(char *text);				//simplifying strip mining operations
 char *JKG_xRBG_ConvertExtToNormal(const char *text);	//for converting ^xRGB names to regular ^1names return nonconst
 void Global_SanitizeString(char *in, char *out);
 void Global_SanitizeString(char *in, char *out, int limit);

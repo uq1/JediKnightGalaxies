@@ -1389,6 +1389,22 @@ int RE_Font_StrLenPixels(const char *psText, const int iFontHandle, const float 
 				psText += iAdvanceCount;
 				continue;
 			}
+			else if (*psText == 'x' || *psText == 'X')
+			{
+				//stuff
+				const char *r = psText + 1, *g = psText + 2, *b = psText + 3;
+				if (ExtColor_GetLevel(*r) == -1 || ExtColor_GetLevel(*g) == -1 || ExtColor_GetLevel(*b) == -1)	//if one is invalid don't advance past ^xRGB text
+					;	//do nothing
+
+				else
+				{
+					uiLetter = AnyLanguage_ReadCharFromString(psText, &iAdvanceCount, NULL);
+					psText += iAdvanceCount;	//not sure if I need to advance more here...?  --futuza
+					continue;
+					//psText +=4;	
+				}
+			}
+
 		}
 
 		if (uiLetter == 0x0A)
@@ -1442,9 +1458,10 @@ int RE_Font_StrLenChars(const char *psText)
 				{
 					//safety check
 					const char *r = psText + 1, *g = psText + 2, *b = psText + 3;
-					if (ExtColor_GetLevel(*r) == -1 || ExtColor_GetLevel(*g) == -1 || ExtColor_GetLevel(*b) == -1)	//if one is invalid don't advance past ^xRGB text
-						break;
+					if (ExtColor_GetLevel(*r) == -1 || ExtColor_GetLevel(*g) == -1 || ExtColor_GetLevel(*b) == -1)	//if one is invalid don't advance past ^xRGB text and just count it as a normal char
+						iCharCount++;
 
+					else
 					psText += 4;	//advance past ^xRGB
 				}
 				else
