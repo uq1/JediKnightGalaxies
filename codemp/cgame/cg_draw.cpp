@@ -4581,7 +4581,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 	cg.crosshairClientTime = cg.time;
 }
 
-//--futuza todo: use Global_SanitizeString() instead (q_shared.c)
+//--futuza notice:  this function is depreciated use Global_SanitizeString() instead (you can pass it 128 for the limit for CG_draw functions)
 void CG_SanitizeString( char *in, char *out )
 {
 	int i = 0;
@@ -5436,7 +5436,7 @@ void CG_DrawNPCNames( void )
 
 		//CG_Printf("%i screen coords are %fx%f. (%f %f %f)\n", cent->currentState.number, x, y, origin[0], origin[1], origin[2]);
 
-		//CG_SanitizeString(str1, sanitized1);		//--futuza: Global_SanitizeString
+		//CG_SanitizeString(str1, sanitized1);		//--futuza: depreciated
 		//CG_SanitizeString(str2, sanitized2);
 		Global_SanitizeString(str1, sanitized1, 128);
 		Global_SanitizeString(str2, sanitized2, 128);
@@ -5618,7 +5618,7 @@ static void CG_DrawCrosshairNames( void ) {
 	tcolor[2] = colorTable[baseColor][2];
 	tcolor[3] = color[3]*0.5f;
 
-	//CG_SanitizeString(name, sanitized);												//--futuza note: please replace with: Global_SanitizeString
+	//CG_SanitizeString(name, sanitized);												//--futuza note: depreciated
 	Global_SanitizeString(name, sanitized, 128);
 	if (isVeh)
 	{
