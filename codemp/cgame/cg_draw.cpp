@@ -6535,7 +6535,7 @@ void CG_ChatBox_AddString(char *chatStr, int fadeLevel)
 					i+=2;
 					continue;
 				}
-				if (chat->string[i+1] == 'x' && Text_IsExtColorCode(&chat->string[i+1])) {
+				if (chat->string[i + 1] == 'x' && Text_IsExtColorCode(&chat->string[i + 1]) || chat->string[i + 1] == 'X' && Text_IsExtColorCode(&chat->string[i + 1])) {		//futuza also allow 'X'
 					i+=5;
 					continue;
 				}

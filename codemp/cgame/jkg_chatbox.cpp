@@ -91,7 +91,7 @@ float Text_GetWidth(const char *text, int iFontIndex, float scale) {
 				t+=2;
 				continue;
 			}
-			if (*(t+1) == 'x') {
+			if (*(t+1) == 'x' || *(t+1) == 'X') {
 				if (Text_IsExtColorCode(t+1)) {
 					t+=5;
 					continue;
@@ -181,7 +181,7 @@ const char *Text_ConvertExtToNormal(const char *text) {
 			*w = 0;
 			return &buff[0];
 		}
-		if (*r == '^' && *(r+1) == 'x') {
+		if (*r == '^' && *(r + 1) == 'x' || *r == '^' && *(r + 1) == 'X') {
 			if (Text_ExtColorCodes(r+1, color)) {
 				// Extended colorcode alright, determine which base color is closest to this one
 				*w = *r;	// write the ^
@@ -260,7 +260,7 @@ void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontI
 				t+=2;
 				continue;
 			}
-			if (*(t+1) == 'x') {
+			if (*(t + 1) == 'x' || *(t + 1) == 'X') {
 				// Extended colorcode
 				if (Text_ExtColorCodes(t+1, color)) {
 					t+=5;
@@ -316,7 +316,7 @@ const char *ChatBox_PrintableText(int iFontIndex, float scale) {
 				u++; t++;
 				continue;
 			}
-			if (*(t+1) == 'x' && Text_IsExtColorCode(t+1)) {
+			if (*(t + 1) == 'x' && Text_IsExtColorCode(t + 1) || *(t + 1) == 'X' && Text_IsExtColorCode(t + 1)) {
 				int i;
 				for (i=0; i<5; i++) {
 					*u = *t;
@@ -494,7 +494,8 @@ void ChatBox_HandleKey(int key, qboolean down) {
 		if (cb_data.cursor < cb_data.len) {
 			if (cb_data.buff[cb_data.cursor+1] == '^' && (cb_data.buff[cb_data.cursor+2] >= '0' && cb_data.buff[cb_data.cursor+2] <= '9')) {
 				cb_data.cursor += 3;
-			} else if (cb_data.buff[cb_data.cursor+1] == '^' && cb_data.buff[cb_data.cursor+2] == 'x' && Text_IsExtColorCode(&cb_data.buff[cb_data.cursor+2])) {
+			}
+			else if (cb_data.buff[cb_data.cursor + 1] == '^' && ( (cb_data.buff[cb_data.cursor + 2] == 'x' && Text_IsExtColorCode(&cb_data.buff[cb_data.cursor + 2])) ||  (cb_data.buff[cb_data.cursor + 2] == 'X' && Text_IsExtColorCode(&cb_data.buff[cb_data.cursor + 2]))) ) {
 				cb_data.cursor += 6;
 			} else {
 				cb_data.cursor++;
@@ -509,7 +510,8 @@ void ChatBox_HandleKey(int key, qboolean down) {
 			if (cb_data.buff[cb_data.cursor-2] == '^' && (cb_data.buff[cb_data.cursor-1] >= '0' && cb_data.buff[cb_data.cursor-1] <= '9')) {
 				// Jump over the color code
 				cb_data.cursor -= 3;
-			} else if (cb_data.cursor > 4 && cb_data.buff[cb_data.cursor-5] == '^' && cb_data.buff[cb_data.cursor-4] == 'x' && Text_IsExtColorCode(&cb_data.buff[cb_data.cursor-4])) { 
+			}
+			else if (cb_data.cursor > 4 && cb_data.buff[cb_data.cursor - 5] == '^' && ( (cb_data.buff[cb_data.cursor - 4] == 'x' && Text_IsExtColorCode(&cb_data.buff[cb_data.cursor - 4]) || (cb_data.buff[cb_data.cursor - 4] == 'X' && Text_IsExtColorCode(&cb_data.buff[cb_data.cursor - 4]) )))) {
 				// Jump over extended color code
 				cb_data.cursor -= 6;
 			} else {
