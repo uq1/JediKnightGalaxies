@@ -221,7 +221,7 @@ static int GLua_Sys_StripColorcodes(lua_State *L) {
 				i+=2;
 				continue;
 			}
-			if (*(i+1) == 'x') {
+			if (*(i + 1) == 'x' || *(i + 1) == 'X') {
 				if (Text_IsExtColorCode(i+1, false)) {
 					i+=5;
 					continue;
