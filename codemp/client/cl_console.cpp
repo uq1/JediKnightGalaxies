@@ -389,6 +389,29 @@ static void Con_Linefeed (qboolean skipnotify)
 		con.text[(con.current%con.totallines)*con.linewidth+i] = (ColorIndex(COLOR_WHITE)<<8) | ' ';
 }
 
+
+/*
+=============
+RGB_GetLevel
+
+Returns value of RGB color for one channel, uses hexadecimal requests
+==============
+*/
+static float RGB_GetLevel(char chr)
+{
+	if (chr >= '0' && chr <= '9') {
+		return ((float)(chr - '0') / 15.0f);
+	}
+	if (chr >= 'A' && chr <= 'F') {
+		return ((float)(chr - 'A' + 10) / 15.0f);
+	}
+	if (chr >= 'a' && chr <= 'f') {
+		return ((float)(chr - 'a' + 10) / 15.0f);
+	}
+	return -1;
+}
+
+
 /*
 ================
 CL_ConsolePrint
@@ -402,6 +425,8 @@ void CL_ConsolePrint( const char *txt) {
 	int		y;
 	int		c, l;
 	int		color;
+	vec4_t	colorRGB;					//For ^xRGB color codes	--Futuza
+	qboolean ext_RGB = qfalse;			//for ^xRGB color codes	--Futuza
 	qboolean skipnotify = qfalse;		// NERVE - SMF
 	int prev;							// NERVE - SMF
 
@@ -433,10 +458,31 @@ void CL_ConsolePrint( const char *txt) {
 
 	color = ColorIndex(COLOR_WHITE);
 
-	while ( (c = (unsigned char) *txt) != 0 ) {
+	while ( (c = (unsigned char) *txt) != 0 ) 
+	{
 		if ( Q_IsColorString( (unsigned char*) txt ) ) {
 			color = ColorIndex( *(txt+1) );
 			txt += 2;
+			continue;
+		}
+
+		//--futuza:  todo fix this mess to use ExtColor_IsValid(txt[2]) etc instead
+		//if a ^xRGB 
+		if (	*txt == '^' && (txt[1] == 'X' || txt[1] == 'x') && 
+				((txt[2] >= '0' && txt[2] <= '9') || (txt[2] >= 'A' && txt[2] <= 'F') || (txt[2] >= 'a' && txt[2] <= 'f')) &&
+				((txt[3] >= '0' && txt[3] <= '9') || (txt[3] >= 'A' && txt[3] <= 'F') || (txt[3] >= 'a' && txt[3] <= 'f')) &&
+				((txt[4] >= '0' && txt[4] <= '9') || (txt[4] >= 'A' && txt[4] <= 'F') || (txt[4] >= 'a' && txt[4] <= 'f'))
+			)
+		{
+			ext_RGB = qtrue;	//set RGB flag
+
+			//--futuza: get color value
+			colorRGB[0] = RGB_GetLevel(txt[2]);
+			colorRGB[1] = RGB_GetLevel(txt[3]);
+			colorRGB[2] = RGB_GetLevel(txt[3]);
+			colorRGB[3] = 1.0f;
+
+			txt += 5;
 			continue;
 		}
 
@@ -464,13 +510,32 @@ void CL_ConsolePrint( const char *txt) {
 			con.x = 0;
 			break;
 		default:	// display character and advance
-			y = con.current % con.totallines;
-			con.text[y*con.linewidth+con.x] = (short) ((color << 8) | c);
-			con.x++;
-			if (con.x >= con.linewidth) {
-				Con_Linefeed(skipnotify);
+
+			//special response for ^xRGB
+			if (ext_RGB)
+			{
+				//--Futuza: todo - make this work somehow with a float vector of colors
+				y = con.current % con.totallines;
+				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);	//fix this somehow - help magic code gods
+				con.x++;
+
+				if (con.x >= con.linewidth)
+					Con_Linefeed(skipnotify);
+
+				break;
 			}
-			break;
+
+			//anything else
+			else
+			{
+				y = con.current % con.totallines;
+				con.text[y*con.linewidth+con.x] = (short) ((color << 8) | c);
+				con.x++;
+				if (con.x >= con.linewidth) {
+					Con_Linefeed(skipnotify);
+				}
+				break;
+			}
 		}
 	}
 
