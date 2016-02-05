@@ -2049,7 +2049,7 @@ char *JKG_xRBG_ConvertExtToNormal(const char *text)	//for converting ^xRBG names
 			*w = 0;
 			return &buff[0];
 		}
-		if (*r == '^' && *(r + 1) == 'x') {
+		if (*r == '^' && (*(r + 1) == 'x' || *(r + 1) == 'X')) {
 			if (Text_ExtColorCodes(r + 1, color)) {
 				// Extended colorcode alright, determine which base color is closest to this one
 				*w = *r;	// write the ^
