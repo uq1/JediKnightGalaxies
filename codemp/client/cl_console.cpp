@@ -835,7 +835,7 @@ void Con_DrawSolidConsole( float frac ) {
 			//
 			re->Font_DrawString(con.xadjust*(con.xadjust + (1*SMALLCHAR_WIDTH/*(aesthetics)*/)), con.yadjust*(y), sTemp, g_color_table[currentColor], iFontIndexForAsian, -1, fFontScaleForAsian);
 		}
-		else
+		else	//--futuza: fix me RGB colors this bit-packing stuff is riiidonculous
 		{
 			for (x=0 ; x<con.linewidth ; x++) {
 				if ( ( text[x] & 0xff ) == ' ' ) {
@@ -856,6 +856,41 @@ void Con_DrawSolidConsole( float frac ) {
 
 	re->SetColor( NULL );
 }
+
+/*
+
+--futuza:  --Xycaleth's Idea for fixing above:
+
+
+Xycaleth 
+i was going to suggest something like making RGB colours the default, with the colour indexes being special cases of an RGB colour
+
+Xycaleth 
+take a look at how the console text gets drawn: https://github.com/JKGDevs/JediKnightGalaxies/blob/master/codemp/client/cl_console.cpp#L820-L851
+
+Xycaleth
+it shifts the top 8 bits of the text to check if it’s a colour
+
+Xycaleth
+instead of that, maybe you can have a separate array (alongside con.text) which just says what the starting points of a new colour are
+
+Xycaleth
+con.textColors maybe?
+
+Xycaleth
+textColorStart_t has { int startChar; vec3_t color; }
+
+Xycaleth
+and then textColorStart_t textColors[bignumber];
+textColorStart_t would be a part of console_t
+you need a record of all the color changes throughout your text  (console text* )
+
+say you have ^0Darth^1Fut^0uza
+you’d have 3 entries in your textColors array
+{ 0, black}, { 5, red }, { 8, black }
+the size of the array needs to be the same size as con.text
+
+*/
 
 
 
