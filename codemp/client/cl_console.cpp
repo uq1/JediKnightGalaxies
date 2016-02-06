@@ -466,21 +466,14 @@ void CL_ConsolePrint( const char *txt) {
 			continue;
 		}
 
-		//--futuza:  todo fix this mess to use ExtColor_IsValid(txt[2]) etc instead
 		//if a ^xRGB 
-		if (	*txt == '^' && (txt[1] == 'X' || txt[1] == 'x') && 
-				((txt[2] >= '0' && txt[2] <= '9') || (txt[2] >= 'A' && txt[2] <= 'F') || (txt[2] >= 'a' && txt[2] <= 'f')) &&
-				((txt[3] >= '0' && txt[3] <= '9') || (txt[3] >= 'A' && txt[3] <= 'F') || (txt[3] >= 'a' && txt[3] <= 'f')) &&
-				((txt[4] >= '0' && txt[4] <= '9') || (txt[4] >= 'A' && txt[4] <= 'F') || (txt[4] >= 'a' && txt[4] <= 'f'))
-			)
+		if (*txt == '^' && (txt[1] == 'x' || txt[1] == 'X') && 
+			((colorRGB[0] = RGB_GetLevel(txt[2]) != -1) && (colorRGB[1] = RGB_GetLevel(txt[3]) != -1) && (colorRGB[2] = RGB_GetLevel(txt[4]) != -1))
+			)	//kill 2 birds with one stone, check validity and get colors
 		{
 			ext_RGB = qtrue;	//set RGB flag
 
-			//--futuza: get color value
-			colorRGB[0] = RGB_GetLevel(txt[2]);
-			colorRGB[1] = RGB_GetLevel(txt[3]);
-			colorRGB[2] = RGB_GetLevel(txt[3]);
-			colorRGB[3] = 1.0f;
+			colorRGB[3] = 1.0f;	//set alpha
 
 			txt += 5;
 			continue;
