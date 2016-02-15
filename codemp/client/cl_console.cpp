@@ -509,7 +509,15 @@ void CL_ConsolePrint( const char *txt) {
 			{
 				//--Futuza: todo - make this work somehow with a float vector of colors
 				y = con.current % con.totallines;
-				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);	//fix this somehow - help magic code gods
+				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);	//fix this somehow - help magic code gods  --futuza: ignore for now?
+
+				//something like this?
+				con.textColorStart[con.x].size = +con.x;			//set size (is this even really needed?)
+				con.textColorStart[con.x].color[0] = colorRGB[0];	//set colors
+				con.textColorStart[con.x].color[1] = colorRGB[1];
+				con.textColorStart[con.x].color[2] = colorRGB[2];
+				con.textColorStart[con.x].color[3] = colorRGB[3];
+				con.textColorStart[con.x].isExtended = true;	//set xRGB flag
 				con.x++;
 
 				if (con.x >= con.linewidth)
@@ -523,6 +531,7 @@ void CL_ConsolePrint( const char *txt) {
 			{
 				y = con.current % con.totallines;
 				con.text[y*con.linewidth+con.x] = (short) ((color << 8) | c);
+				con.textColorStart[con.x].isExtended = false;	//not an xRGB
 				con.x++;
 				if (con.x >= con.linewidth) {
 					Con_Linefeed(skipnotify);
@@ -658,20 +667,36 @@ void Con_DrawNotify (void)
 
 			v +=  iPixelHeightToAdvance;
 		}
+
+		//futuza fixme: rgb console text
 		else
 		{
-			for (x = 0 ; x < con.linewidth ; x++) {
+			for (x = 0 ; x < con.linewidth ; x++) 
+			{
 				if ( ( text[x] & 0xff ) == ' ' ) {
 					continue;
 				}
-				if ( ( (text[x]>>8)&Q_COLOR_BITS ) != currentColor ) {
-					currentColor = (text[x]>>8)&Q_COLOR_BITS;
-					re->SetColor( g_color_table[currentColor] );
+
+				if (con.textColorStart[x].isExtended) //is xRGB color
+				{
+					re->SetColor(con.textColorStart[x].color);	//set the color for
 				}
+
+				//not xRGB color
+				else
+				{
+					if (((text[x] >> 8)&Q_COLOR_BITS) != currentColor)
+					{
+						currentColor = (text[x] >> 8)&Q_COLOR_BITS;
+						re->SetColor(g_color_table[currentColor]);
+					}
+				}
+
 				if (!cl_conXOffset)
 				{
 					cl_conXOffset = Cvar_Get ("cl_conXOffset", "0", 0);
 				}
+
 				SCR_DrawSmallChar( (int)(cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH), v, text[x] & 0xff );
 			}
 
@@ -788,7 +813,7 @@ void Con_DrawSolidConsole( float frac ) {
 	}
 
 	currentColor = 7;
-	re->SetColor( g_color_table[currentColor & 15] );
+	re->SetColor( g_color_table[currentColor & 15] );	//--futuza:  set color to white?  Why not just say g_color_table[7]?  always evaluates to 7, unnecessary bit math?
 
 	static int iFontIndexForAsian = 0;
 	const float fFontScaleForAsian = 0.75f*con.yadjust;
@@ -837,16 +862,28 @@ void Con_DrawSolidConsole( float frac ) {
 		}
 		else	//--futuza: fix me RGB colors this bit-packing stuff is riiidonculous
 		{
-			for (x=0 ; x<con.linewidth ; x++) {
+			for (x=0 ; x<con.linewidth ; x++) 
+			{
 				if ( ( text[x] & 0xff ) == ' ' ) {
 					continue;
 				}
 
-				if ( ( (text[x]>>8)&Q_COLOR_BITS ) != currentColor ) {
-					currentColor = (text[x]>>8)&Q_COLOR_BITS;
-					re->SetColor( g_color_table[currentColor] );
+				if (con.textColorStart[x].isExtended) //is xRGB color
+				{
+					re->SetColor(con.textColorStart[x].color);	//set the color for
+					SCR_DrawSmallChar((int)(con.xadjust + (x + 1)*SMALLCHAR_WIDTH), y, text[x] & 0xff);
 				}
-				SCR_DrawSmallChar(  (int) (con.xadjust + (x+1)*SMALLCHAR_WIDTH), y, text[x] & 0xff );
+
+				//not extended color
+				else
+				{
+					if( ( (text[x]>>8)&Q_COLOR_BITS ) != currentColor ) 
+					{
+						currentColor = (text[x]>>8)&Q_COLOR_BITS;
+						re->SetColor( g_color_table[currentColor] );
+					}
+				}
+				SCR_DrawSmallChar((int)(con.xadjust + (x + 1)*SMALLCHAR_WIDTH), y, text[x] & 0xff);
 			}
 		}
 	}

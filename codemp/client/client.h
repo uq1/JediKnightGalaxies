@@ -352,6 +352,18 @@ typedef struct console_s {
 	int		times[NUM_CON_TIMES];	// cls.realtime time the line was generated
 								// for transparent notify lines
 	vec4_t	color;
+
+
+	//jkg RGB color fix
+	struct TextColors 
+	{
+		short size{ 0 };
+		vec4_t color;	//{ 1.0, 1.0, 1.0, 1.0 };
+		bool isExtended = false;
+		//const vec4_t whitecolor{ 1.0, 1.0, 1.0, 1.0 };	//setting for default white color
+
+	}textColorStart[CON_TEXTSIZE];	//uses white as the default color
+
 } console_t;
 
 extern	clientStatic_t		cls;
