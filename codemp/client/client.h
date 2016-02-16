@@ -357,12 +357,12 @@ typedef struct console_s {
 	//jkg RGB color fix
 	struct TextColors 
 	{
-		//short size{ 0 };
 		vec4_t color;
-		//bool isExtended = false;
+		
 		//const vec4_t whitecolor{ 1.0, 1.0, 1.0, 1.0 };	//setting for default white color
 
 	}textColorStart[CON_TEXTSIZE];
+
 
 } console_t;
 

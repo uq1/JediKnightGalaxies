@@ -426,7 +426,7 @@ void CL_ConsolePrint( const char *txt) {
 	int		c, l;
 	int		color;
 	vec4_t	colorRGB;					//For ^xRGB color codes	--Futuza
-	qboolean ext_RGB = qfalse;			//for ^xRGB color codes	--Futuza
+	unsigned short f_RGB = 0;			//0 = false, 1 = reg ^1, 2 = xRGB 
 	qboolean skipnotify = qfalse;		// NERVE - SMF
 	int prev;							// NERVE - SMF
 
@@ -462,6 +462,7 @@ void CL_ConsolePrint( const char *txt) {
 	{
 		if ( Q_IsColorString( (unsigned char*) txt ) ) {
 			color = ColorIndex( *(txt+1) );
+			f_RGB = 1;
 			txt += 2;
 			continue;
 		}
@@ -471,7 +472,7 @@ void CL_ConsolePrint( const char *txt) {
 			((colorRGB[0] = RGB_GetLevel(txt[2]) != -1) && (colorRGB[1] = RGB_GetLevel(txt[3]) != -1) && (colorRGB[2] = RGB_GetLevel(txt[4]) != -1))
 			)	//kill 2 birds with one stone, check validity and get colors
 		{
-			ext_RGB = qtrue;	//set RGB flag
+			f_RGB = 2;	//set RGB flag
 
 			colorRGB[3] = 1.0f;	//set alpha
 
@@ -503,16 +504,17 @@ void CL_ConsolePrint( const char *txt) {
 			con.x = 0;
 			break;
 		default:	// display character and advance
-			if (ext_RGB)	//--futuza: special response for ^xRGB
+			if (f_RGB == 2)	//--futuza: special response for ^xRGB
 			{
 				int cur_pos = (con.current % con.totallines)*con.linewidth + con.x;
-
-				//something like this?
-				/*con.textColorStart[cur_pos].color[0] = colorRGB[0];	//set colors
+				//set colors
+				/*
+				con.textColorStart[cur_pos].color[0] = colorRGB[0];	
 				con.textColorStart[cur_pos].color[1] = colorRGB[1];
 				con.textColorStart[cur_pos].color[2] = colorRGB[2];
-				con.textColorStart[cur_pos].color[3] = colorRGB[3];*/
-				memcpy(con.textColorStart[cur_pos].color, colorRGB, sizeof(colorRGB));	//simpler
+				con.textColorStart[cur_pos].color[3] = colorRGB[3];
+				*/
+				memcpy(con.textColorStart[cur_pos].color, colorRGB, sizeof(con.textColorStart[cur_pos].color));	//simpler
 			}
 
 			//anything else
@@ -521,9 +523,14 @@ void CL_ConsolePrint( const char *txt) {
 				int cur_pos = (con.current % con.totallines)*con.linewidth + con.x;
 				//y = con.current % con.totallines;
 				//con.text[y*con.linewidth+con.x] = (short) ((color << 8) | c);
-				memcpy(con.textColorStart[cur_pos].color, g_color_table[color], sizeof(g_color_table));		//set colors using color table values
+				con.textColorStart[cur_pos].color[0] = 1; con.textColorStart[cur_pos].color[1] = 1; con.textColorStart[cur_pos].color[2] = 1; con.textColorStart[cur_pos].color[3] = 1;		//set to default white color
+				if (f_RGB = 1)
+				{
+					memcpy(con.textColorStart[cur_pos].color, g_color_table[color], sizeof(con.textColorStart[cur_pos].color));		//set colors using color table values
+				}
 			}
 
+			f_RGB = 0;	//reset flag
 			con.x++;
 			if (con.x >= con.linewidth) {
 				Con_Linefeed(skipnotify);
