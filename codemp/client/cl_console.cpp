@@ -426,7 +426,7 @@ void CL_ConsolePrint( const char *txt) {
 	int		c, l;
 	int		color;
 	vec4_t	colorRGB;					//For ^xRGB color codes	--Futuza
-	unsigned short f_RGB = 0;			//0 = false, 1 = reg ^1, 2 = xRGB 
+	unsigned int f_RGB = 0;			//0 = false, 1 = reg ^1, 2 = xRGB 
 	qboolean skipnotify = qfalse;		// NERVE - SMF
 	int prev;							// NERVE - SMF
 
@@ -473,9 +473,7 @@ void CL_ConsolePrint( const char *txt) {
 			)	//kill 2 birds with one stone, check validity and get colors
 		{
 			f_RGB = 2;	//set RGB flag
-
 			colorRGB[3] = 1.0f;	//set alpha
-
 			txt += 5;
 			continue;
 		}
@@ -524,7 +522,7 @@ void CL_ConsolePrint( const char *txt) {
 				//y = con.current % con.totallines;
 				//con.text[y*con.linewidth+con.x] = (short) ((color << 8) | c);
 				con.textColorStart[cur_pos].color[0] = 1; con.textColorStart[cur_pos].color[1] = 1; con.textColorStart[cur_pos].color[2] = 1; con.textColorStart[cur_pos].color[3] = 1;		//set to default white color
-				if (f_RGB = 1)
+				if (f_RGB == 1)
 				{
 					memcpy(con.textColorStart[cur_pos].color, g_color_table[color], sizeof(con.textColorStart[cur_pos].color));		//set colors using color table values
 				}
