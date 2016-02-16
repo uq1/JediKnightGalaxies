@@ -503,41 +503,32 @@ void CL_ConsolePrint( const char *txt) {
 			con.x = 0;
 			break;
 		default:	// display character and advance
-
-			//special response for ^xRGB
-			if (ext_RGB)
+			if (ext_RGB)	//--futuza: special response for ^xRGB
 			{
-				//--Futuza: todo - make this work somehow with a float vector of colors
-				y = con.current % con.totallines;
-				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);	//fix this somehow - help magic code gods  --futuza: ignore for now?
+				int cur_pos = (con.current % con.totallines)*con.linewidth + con.x;
 
 				//something like this?
-				con.textColorStart[con.x].size = +con.x;			//set size (is this even really needed?)
-				con.textColorStart[con.x].color[0] = colorRGB[0];	//set colors
-				con.textColorStart[con.x].color[1] = colorRGB[1];
-				con.textColorStart[con.x].color[2] = colorRGB[2];
-				con.textColorStart[con.x].color[3] = colorRGB[3];
-				con.textColorStart[con.x].isExtended = true;	//set xRGB flag
-				con.x++;
-
-				if (con.x >= con.linewidth)
-					Con_Linefeed(skipnotify);
-
-				break;
+				/*con.textColorStart[cur_pos].color[0] = colorRGB[0];	//set colors
+				con.textColorStart[cur_pos].color[1] = colorRGB[1];
+				con.textColorStart[cur_pos].color[2] = colorRGB[2];
+				con.textColorStart[cur_pos].color[3] = colorRGB[3];*/
+				memcpy(con.textColorStart[cur_pos].color, colorRGB, sizeof(colorRGB));	//simpler
 			}
 
 			//anything else
 			else
 			{
-				y = con.current % con.totallines;
-				con.text[y*con.linewidth+con.x] = (short) ((color << 8) | c);
-				con.textColorStart[con.x].isExtended = false;	//not an xRGB
-				con.x++;
-				if (con.x >= con.linewidth) {
-					Con_Linefeed(skipnotify);
-				}
-				break;
+				int cur_pos = (con.current % con.totallines)*con.linewidth + con.x;
+				//y = con.current % con.totallines;
+				//con.text[y*con.linewidth+con.x] = (short) ((color << 8) | c);
+				memcpy(con.textColorStart[cur_pos].color, g_color_table[color], sizeof(g_color_table));		//set colors using color table values
 			}
+
+			con.x++;
+			if (con.x >= con.linewidth) {
+				Con_Linefeed(skipnotify);
+			}
+			break;
 		}
 	}
 
@@ -677,9 +668,12 @@ void Con_DrawNotify (void)
 					continue;
 				}
 
-				if (con.textColorStart[x].isExtended) //is xRGB color
+
+				int cur_pos = (con.current % con.totallines) *con.linewidth + x;
+				//old way
+				/*if (con.textColorStart[cur_pos].isExtended)//is xRGB color
 				{
-					re->SetColor(con.textColorStart[x].color);	//set the color for
+					re->SetColor(con.textColorStart[cur_pos].color);	//set the color for
 				}
 
 				//not xRGB color
@@ -690,14 +684,15 @@ void Con_DrawNotify (void)
 						currentColor = (text[x] >> 8)&Q_COLOR_BITS;
 						re->SetColor(g_color_table[currentColor]);
 					}
-				}
+				}*/
+				re->SetColor(con.textColorStart[cur_pos].color);	//set the color
 
 				if (!cl_conXOffset)
 				{
 					cl_conXOffset = Cvar_Get ("cl_conXOffset", "0", 0);
 				}
 
-				SCR_DrawSmallChar( (int)(cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH), v, text[x] & 0xff );
+				SCR_DrawSmallChar( (int)(cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH), v, text[x] /*& 0xff*/ );
 			}
 
 			v += SMALLCHAR_HEIGHT;
@@ -868,10 +863,10 @@ void Con_DrawSolidConsole( float frac ) {
 					continue;
 				}
 
-				if (con.textColorStart[x].isExtended) //is xRGB color
+				int cur_pos = (con.current % con.totallines) *con.linewidth + x;
+				/*if (con.textColorStart[cur_pos].isExtended)//is xRGB color
 				{
-					re->SetColor(con.textColorStart[x].color);	//set the color for
-					SCR_DrawSmallChar((int)(con.xadjust + (x + 1)*SMALLCHAR_WIDTH), y, text[x] & 0xff);
+					re->SetColor(con.textColorStart[cur_pos].color);	//set the color for xRGB
 				}
 
 				//not extended color
@@ -882,8 +877,9 @@ void Con_DrawSolidConsole( float frac ) {
 						currentColor = (text[x]>>8)&Q_COLOR_BITS;
 						re->SetColor( g_color_table[currentColor] );
 					}
-				}
-				SCR_DrawSmallChar((int)(con.xadjust + (x + 1)*SMALLCHAR_WIDTH), y, text[x] & 0xff);
+				}*/
+				re->SetColor(con.textColorStart[cur_pos].color);
+				SCR_DrawSmallChar((int)(con.xadjust + (x + 1)*SMALLCHAR_WIDTH), y, text[x] /*& 0xff*/);
 			}
 		}
 	}
