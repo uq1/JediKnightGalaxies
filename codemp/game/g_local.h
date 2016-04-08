@@ -200,42 +200,8 @@ typedef struct {
 	unsigned int memAllocated;
 } assistStructure_t;
 
-//============================================================================
-// Treasure Class system
-
-class TreasureClass;
-typedef union { TreasureClass* tc; itemData_t* itm; } uTreasure;
-struct TreasureOdds {
-	uTreasure Treasure;
-	unsigned odds;
-	bool bTC;
-	bool bUnresolved;
-};
-
-class TreasureClass {
-protected:
-	std::vector<TreasureOdds> vTreasure;
-	std::string sName;
-	bool bValid;
-	unsigned totalChance;
-	unsigned numPicks;
-public:
-	TreasureClass(const char* fileName);
-	TreasureClass(void* json);
-	inv_t& GenerateLoot(inv_t& in, unsigned numPicks = 1);
-	const std::string& GetName() { return sName; }
-	bool IsValid() { return bValid; }
-	unsigned GetNumPicks() { return numPicks; }
-
-	void AddTo(const char* sRef, unsigned odds = 1);
-	void AddToNoEvaluate(const char* sRef, unsigned odds = 1);
-	//void DeleteFrom(const char* sRef);
-	//void ChangeOdds(const char* sRef, unsigned newOdds);
-
-	void EvaluateOdds();
-};
-
 #ifdef _GAME
+class TreasureClass;
 extern std::unordered_map<std::string, TreasureClass*> mTreasureRegistry;
 #endif
 
@@ -506,6 +472,8 @@ struct gentity_s {
 	gentity_t  *currentlyLooting;
 	qboolean	isAtWorkbench;	//nw
 	vendorStruct_t vendorData;
+	const char* szTreasureClass;			// Used on death
+	const char* szVendorTreasureClass;		// Used for vendor stock
 	assistStructure_t	assistData;			// keeps a record of who hit us in this life
 
 	// For NPC waypoint following..
@@ -538,6 +506,8 @@ struct gentity_s {
 	int			next_rifle_butt_time;
 	int			next_flamer_time;
 	int			next_kick_time;
+
+	qboolean	bVendor;
 };
 
 //used for objective dependancy stuff
@@ -1926,8 +1896,6 @@ void G_UpdateCvars( void );
 /**************************************************
 * jkg_items.c
 **************************************************/
-void JKG_VendorInit(void);
-void JKG_CreateNewVendor(gentity_t *ent, int desiredVendorID, qboolean random, qboolean refreshStock);
 void JKG_SP_target_vendor(gentity_t *ent);
 void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item);
 void JKG_CheckVendorReplenish(void);

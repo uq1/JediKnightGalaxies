@@ -30,6 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "jkg_admin.h"
 #include "jkg_chatcmds.h"
 #include "jkg_utilityfunc.h"
+#include "jkg_treasureclass.h"
 
 //rww - for getting bot commands...
 int AcceptBotCommand(char *cmd, gentity_t *pl);
@@ -3833,7 +3834,39 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	ent->client->ps.shotsRemaining = 0;
 }
 
-
+/*
+=================
+Cmd_TcEval_f
+=================
+*/
+void Cmd_TcEval_f(gentity_t *ent, bool bMulti = false) {
+	// usage: tcEval <tc> <samples>
+	if (trap->Argc() != 3 && !bMulti) {
+		trap->SendServerCommand(ent - g_entities, "print \"usage: tcEval <tc> <samples>\n\"");
+		return;
+	}
+	else if (trap->Argc() != 3 && bMulti) {
+		trap->SendServerCommand(ent - g_entities, "print \"usage: tcEvalMulti <tc> <samples>\n\"");
+		return;
+	}
+	char buffer[MAX_TOKEN_CHARS];
+	int nSamples = 0;
+	trap->Argv(2, buffer, sizeof(buffer));
+	nSamples = atoi(buffer);
+	trap->Argv(1, buffer, sizeof(buffer));
+	if (nSamples <= 0) {
+		return;
+	}
+	Q_strlwr(buffer);
+	std::string sSearch = buffer;
+	auto tc = umTreasureClasses.find(sSearch);
+	if (tc == umTreasureClasses.end()) {
+		trap->SendServerCommand(ent - g_entities, "print \"could not find treasure class.\n\"");
+		return;
+	}
+	TreasureClass* pTC = tc->second;
+	pTC->PrintDropRates(ent, nSamples, bMulti);
+}
 
 /*
 =================
@@ -4839,13 +4872,20 @@ void ClientCommand( int clientNum ) {
 		return;
 	}
 
-	//eezstreet add
 	if(Q_stricmp(cmd, "itemLookup") == 0) {
 		JKG_ItemLookup_f(ent);
 		return;
 	}
 	if(Q_stricmp(cmd, "itemCheck") == 0) {
 		JKG_ItemCheck_f(ent);
+		return;
+	}
+	if (Q_stricmp(cmd, "tcEval") == 0) {
+		Cmd_TcEval_f(ent);
+		return;
+	}
+	if (Q_stricmp(cmd, "tcEvalMulti") == 0) {
+		Cmd_TcEval_f(ent, true);
 		return;
 	}
 
@@ -5131,12 +5171,6 @@ void ClientCommand( int clientNum ) {
 		trap->Print("----------------------------------------------\n");
 	}
 #endif //__AUTOWAYPOINT__ // __DOMINANCE_NPC__
-	/*
-	else if (Q_stricmp (cmd, "kylesmash") == 0)
-	{
-		TryGrapple(ent);
-	}
-	*/
 	//for convenient powerduel testing in release
 	else if (Q_stricmp(cmd, "killother") == 0 && CheatsOk( ent ))
 	{

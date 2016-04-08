@@ -45,6 +45,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "jkg_damagetypes.h"
 #include "bg_items.h"
 #include "jkg_easy_items.h"
+#include "jkg_treasureclass.h"
 
 #include <assert.h>
 
@@ -372,9 +373,6 @@ extern void BG_ClearVehicleParseParms(void);
 extern void JKG_InitItems(void);
 void ActivateCrashHandler();
 
-extern void JKG_RetrieveDuelCache( void );
-extern void JKG_SaveDuelCache( void );
-
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 	vmCvar_t	mapname;
@@ -569,7 +567,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	
 	// setup master item table
 	JKG_InitItems();
-	JKG_VendorInit();
 
 	JKG_InitializeConstants();
 	
@@ -646,10 +643,6 @@ void DeactivateCrashHandler();
 void G_ShutdownGame( int restart ) {
 	int i = 0;
 	gentity_t *ent;
-
-	// Cache some stuff for Duel, if necessary. 
-	if( restart && (level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL))
-		JKG_SaveDuelCache();
 
 	if(JKG_ThreadingInitialized())
 	{

@@ -4,6 +4,7 @@
 
 #include "jkg_items.h"
 #include "g_local.h"
+#include "jkg_treasureclass.h"
 #include <json/cJSON.h>
 
 #define MAX_ITEM_FILE_LENGTH (16384)
@@ -13,7 +14,7 @@ itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
 lootTable_t lootLookupTable[MAX_LOOT_TABLE_SIZE];
 vendorStruct_t *vendorLookupTable[32];
 
-static int lastUsedItemID = 1;
+int lastUsedItemID = 1;
 static int lastUsedVendorID;
 
 extern void NPC_ConversationAnimation(gentity_t *NPC);
@@ -675,7 +676,7 @@ void JKG_PickItemsClean( gentity_t *ent, lootTable_t *loot )
 	}
 }
 
-
+extern void JKG_TC_Init(const char* szTCDirectory);
 void JKG_InitItems ( void )
 {
 	memset(itemLookupTable, 0, sizeof(itemLookupTable));
@@ -690,6 +691,7 @@ void JKG_InitItems ( void )
 		Com_Error (ERR_FATAL, "No master loot table.");
 		return;
 	}
+	JKG_TC_Init("ext_data/treasure");
 }
 
 void JKG_StopLooting(int clientNum, gentity_t *targetEnt)
@@ -698,236 +700,16 @@ void JKG_StopLooting(int clientNum, gentity_t *targetEnt)
 	targetEnt->currentLooter = NULL;
 }
 
-static randomItemStruct_t randomStock;
-#define MAX_RANDOM_VENDOR_BUFFER_SIZE	4096
-static void JKG_ParseRandomVendorFile(const char *fileName)
-{
-	//Generates the randomStock based on the fileName.
-	//In phases 1-2, this is very minimal
-	//In phase 3, this sorts the database more towards ilvls and stuff
-	//In phase 4, this uses SQL
-	int len;
-	int i = 0;
-	char buffer[MAX_RANDOM_VENDOR_BUFFER_SIZE];
-	char temp[MAX_RANDOM_VENDOR_BUFFER_SIZE];
-	fileHandle_t f;
-
-	len = trap->FS_Open(fileName, &f, FS_READ);
-	if(!len || !f)
-	{
-		Com_Printf("No random vendor file found. Vendors will not work.\n");
-		if(!len)
-		{
-			trap->FS_Close(f);
-		}
-		return;
-	}
-	if(len >= MAX_RANDOM_VENDOR_BUFFER_SIZE)
-	{
-		Com_Printf("Random vendor file >= MAX_RANDOM_VENDOR_BUFFER_SIZE. Vendors will not work.\n");
-		trap->FS_Close(f);
-		return;
-	}
-
-	trap->FS_Read(buffer, len, f);
-	trap->FS_Close(f);
-	buffer[len] = '\0';
-
-	//Now we parse the file
-	//First line specifies how many items the vendor will put up for sale at any one time
-	while(buffer[i] != '\n' && buffer[i] != '\r')
-	{
-		if(buffer[i] == '\0')
-		{
-			return; //New lines are required!
-		}
-		i++;
-	}
-	i++;
-	Q_strncpyz(temp, buffer, i);
-	randomStock.numPickedItems = atoi(temp);
-
-	if(buffer[i] == '\n' || buffer[i] == '\r')
-	{
-		i++;
-	}
-	//Next line is a bit trickier
-	{
-		int offset = i;
-		int offset2 = 0;
-		qboolean comma = qfalse;
-		qboolean nextIsWeapon = qfalse;
-		qboolean nextIsItem = qfalse;
-		qboolean closingQuote = qfalse;
-		qboolean dashOkay = qfalse;
-		qboolean handleDash = qfalse;
-		char fieldBuffer[16];
-		char valueBuffer[64];
-		while(buffer[i] != '\n' && buffer[i] != '\r' && buffer[i] != '\0')
-		{
-			if(comma)
-			{
-				offset = i;
-				comma = qfalse;
-				i++;
-				continue;
-			}
-			if(buffer[i] == ',')
-			{
-				if(closingQuote)
-				{
-					Com_Printf(" *** ERROR PARSING %s *** : Found ,, expected \"\n", fileName);
-					return;
-				}
-				dashOkay=qfalse;
-				if(handleDash)
-				{
-					Q_strncpyz(valueBuffer, buffer+offset, i-offset+1);
-					randomStock.rarity[randomStock.numItems-1] = atoi(valueBuffer);
-					handleDash = qfalse;
-				}
-				nextIsWeapon = qfalse;
-				nextIsItem = qfalse;
-				comma = qtrue;
-				i++;
-				continue;
-			}
-			else if(buffer[i] == '-' && dashOkay)
-			{
-				//Next field deals with dashes. These state the rarity
-				handleDash = qtrue;
-				offset = i+1;
-			}
-			else if(buffer[i] == ':')
-			{
-				if(closingQuote)
-				{
-					Com_Printf(" *** ERROR PARSING %s *** : Found :, expected \"\n", fileName);
-					return;
-				}
-				if(nextIsWeapon || nextIsItem)
-				{
-					Com_Printf(" *** ERROR PARSING %s *** : Found :, expected ,\n", fileName);
-					return;
-				}
-				//Grab field name
-				Q_strncpyz(fieldBuffer, buffer+offset, i-offset+1);				//Compare field names
-				if(!Q_stricmp(fieldBuffer, "weapon"))
-				{
-					//The next field will be a weapon
-					nextIsWeapon = qtrue;
-				}
-				else if(!Q_stricmp(fieldBuffer, "item"))
-				{
-					//The next field will be an item
-					nextIsItem = qtrue;
-				}
-			}
-			else if(buffer[i] == '"')
-			{
-				if(!closingQuote)
-				{
-					//Next one will be a closing quote
-					closingQuote = qtrue;
-					offset2 = i+1;
-				}
-				else
-				{
-					//Grab the contents of our previous field
-					dashOkay=qtrue;
-					closingQuote = qfalse;
-					Q_strncpyz(valueBuffer, buffer+offset2, (i-offset2+1));
-					//Check our type
-					if(nextIsItem)
-					{
-						//OK, add an item to our stock
-						randomStock.itemId[randomStock.numItems] = atoi(valueBuffer);
-						randomStock.rarity[randomStock.numItems] = 1;
-						randomStock.numItems++;
-					}
-					else if(nextIsWeapon)
-					{
-						//Add a weapon to our stock
-						weaponData_t *weapon = BG_GetWeaponByClassName (valueBuffer);
-						itemData_t *item = JKG_GetItemByWeaponIndex(BG_GetWeaponIndex((unsigned int)weapon->weaponBaseIndex, (unsigned int)weapon->weaponModIndex));
-						int itemID = 0;
-						if(!weapon)
-						{
-							Com_Error(ERR_FATAL, "Could not find weapon from class name in random vendor file: %s", valueBuffer);
-							return;
-						}
-						else
-						{
-							if(!item)
-							{
-								Com_Error(ERR_FATAL, "Weapon in vendor file (%s) must have associated item file!", valueBuffer);
-								return;
-							}
-							else
-							{
-								//OK ALL FINE K
-								itemID = item->itemID;
-								randomStock.itemId[randomStock.numItems] = itemID;
-								randomStock.rarity[randomStock.numItems] = 1;
-								randomStock.numItems++;
-							}
-						}
-					}
-					//Unknown?
-					else
-					{
-						Com_Printf("*** ERROR PARSING %s *** Unknown value for field\n", fileName);
-					}
-				}
-			}
-			i++;
-		}
-	}
-}
-
-void JKG_VendorInit(void)
-{
-	lastUsedVendorID = 0;
-	level.lastVendorCheck = 0;
-	level.lastVendorUpdateTime = 0;
-	level.lastUpdatedVendor = -1;
-	memset(&randomStock, 0, sizeof(randomItemStruct_t));
-	JKG_ParseRandomVendorFile("ext_data/vendors.dat");
-}
-
 extern void JKG_target_vendor_use(gentity_t *ent, gentity_t *other, gentity_t *activator);
 
-void JKG_CreateNewVendor(gentity_t *ent, int desiredVendorID, qboolean random, qboolean refreshStock)
+// Regenerates a vendor's stock. Also flags the NPC as a vendor.
+void JKG_RegenerateStock(gentity_t *ent)
 {
-	//Adds vendor properties to an NPC
-	/*
-	// UQ1: Moved to G_Damage with civies... I don't want them in this BS_
-	if(ent->NPC)
-	{
-		//Protip: don't be an idiot and shoot at potential customers :P
-		ent->NPC->defaultBehavior = BS_CINEMATIC;
-		ent->NPC->behaviorState = BS_CINEMATIC;
-	}
-	*/
-	if(desiredVendorID == -1)
-	{
-		//Use new vendor ID
-		desiredVendorID = lastUsedVendorID;
-		lastUsedVendorID++;
-		refreshStock = qtrue;
-	}
-	else if(desiredVendorID >= 32)
-	{
-		Com_Printf("^1WARNING: Max vendor IDs (32) reached.\n");
-		lastUsedVendorID = desiredVendorID = 0;
-		refreshStock = qfalse;
-	}
-
 	// Give the ent god mode, etc
 	ent->flags |= FL_GODMODE;
 	ent->flags |= FL_NOTARGET;
 	ent->flags |= FL_NO_KNOCKBACK;
-	//FIXME: Getting a Error in this swift, npc files need a scripts on its own. --Stoiss
+
 	if ( ent->client )
 	{
 		switch (ent->client->NPC_class)
@@ -960,74 +742,8 @@ void JKG_CreateNewVendor(gentity_t *ent, int desiredVendorID, qboolean random, q
 		ent->client->enemyTeam = NPCTEAM_NEUTRAL;
 		ent->client->playerTeam = NPCTEAM_NEUTRAL;
 	}
-
-	//refreshStock overrides random
-	if(refreshStock && random)
-	{
-		//Generate random loot -- TODO: Fix this ugly, ugly mess
-		int randomLoot = Q_irand(0, randomStock.numItems-1);
-		qboolean alreadyUsed[256];		// capped at max number of weapons? or items? unsure.
-		int i;
-		int iterator = 0, numRare = 0;
-		int rarityTable[2048];
-		srand(time(NULL));
-		ent->vendorData.sale = qfalse; //Can't be on sale when we start
-		ent->vendorData.numItemsInStock = randomStock.numPickedItems;
-		//Null some datas!
-		memset(&ent->vendorData.itemsInStock, 0, sizeof(ent->vendorData.itemsInStock));
-		memset(&ent->vendorData.itemsOnSale, 0, sizeof(ent->vendorData.itemsOnSale));
-		memset(&ent->vendorData.priceReductions, 0, sizeof(ent->vendorData.priceReductions));
-		memset(&alreadyUsed, 0, sizeof(alreadyUsed));
-		//Build a rarity table
-		for(i = 0; i < randomStock.numItems; i++)
-		{
-			int j;
-			for(j = 0; j < randomStock.rarity[i]; j++)
-			{
-				rarityTable[numRare++] = i;
-			}
-		}
-		i = 0;
-#define MAX_ITERATIONS 320
-		while(i < ent->vendorData.numItemsInStock && iterator < MAX_ITERATIONS)
-		{
-			int randNum, randRarity;
-			iterator++;
-			randRarity = (rand() % numRare); //Q_irand(0, numRare-1);
-			randNum = randomStock.itemId[rarityTable[randRarity]];
-			if(!alreadyUsed[rarityTable[randRarity]])
-			{
-				//Copy this item into our stock, because it's not used
-				//ent->vendorData.itemsInStock[i] = randomStock.itemId[randRarity];
-				ent->vendorData.itemsInStock[i] = randNum;
-				alreadyUsed[rarityTable[randRarity]] = qtrue;
-			}
-			else
-			{
-				continue;
-			}
-			i++;
-		}
-		//Reset our number of items in stock to reflect how many items actually are in stock
-		ent->vendorData.numItemsInStock = i;
-		//Add us to the vendor lookup table
-		ent->vendorData.ourID = desiredVendorID;
-		vendorLookupTable[desiredVendorID] = &ent->vendorData;
-		level.vendors[desiredVendorID] = ent->s.number;
-		if(desiredVendorID == lastUsedVendorID)
-		{
-			lastUsedVendorID++;
-		}
-	}
-	else if(!refreshStock)
-	{
-		ent->vendorData = *vendorLookupTable[desiredVendorID];
-	}
-	else
-	{
-		//Don't generate loot?? predetermined loot isn't available yet..
-		return;
-	}
+	
+	ent->s.seed = Q_irand(0, QRAND_MAX-1);
 }
 
 void JKG_DeleteVendor(gentity_t *ent)
@@ -1116,7 +832,8 @@ void JKG_target_vendor_use(gentity_t *ent, gentity_t *other, gentity_t *activato
 
 	if(!vendorTarget->vendorData.numItemsInStock)
 	{
-		JKG_CreateNewVendor(vendorTarget, -1, qtrue, qtrue);
+		vendorTarget->bVendor = true;
+		vendorTarget->s.seed = Q_irand(0, QRAND_MAX-1);
 	}
 
 	vendorTarget->flags |= FL_GODMODE;
@@ -1158,7 +875,6 @@ void JKG_target_vendor_use(gentity_t *ent, gentity_t *other, gentity_t *activato
 
 	//trap->Print("Shop opened.\n");
 	//Actual meat of the function: activate the vendor menu for this client
-	JKG_RefreshClientVendorStock(activator, vendorTarget);
 	trap->SendServerCommand(activator->s.number, "shopopen");
 
 	if( vendorTarget->s.eType == ET_NPC )
@@ -1180,7 +896,8 @@ void JKG_SP_target_vendor(gentity_t *ent)
 
 	if(targetVendor)
 	{
-		JKG_CreateNewVendor(targetVendor, -1, qtrue, qtrue);
+		targetVendor->bVendor = true;
+		targetVendor->s.seed = Q_irand(0, QRAND_MAX-1);
 
 		if( targetVendor->client && targetVendor->s.eType == ET_NPC )
 		{
@@ -1330,12 +1047,6 @@ void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item)
 	}
 }
 
-void JKG_RefreshVendorStock(gentity_t *vendor)
-{
-	JKG_CreateNewVendor(vendor, vendor->vendorData.ourID, qtrue, qtrue);
-	JKG_RefreshVendorStockForAll(vendor);
-}
-
 // Okay, I promised I wouldn't make any special features for Versus, but this can be ported to an RPG setup with relative ease.
 // Run this function every so often to ensure that vendors are replenished on demand.
 void JKG_CheckVendorReplenish(void)
@@ -1351,85 +1062,8 @@ void JKG_CheckVendorReplenish(void)
 			return;
 		}
 		// K...all should be fine. Issue an update for this targetted vendor.
-		JKG_RefreshVendorStock(&g_entities[level.vendors[level.lastUpdatedVendor]]);
+		gentity_t* pEnt = &g_entities[level.vendors[level.lastUpdatedVendor]];
+		pEnt->s.seed = Q_irand(0, QRAND_MAX-1);	// idk..
 		level.lastVendorCheck = level.time;
 	}
-}
-
-// New stuff for duel mode, cache all the client inventories so we don't lose our data when changing
-void JKG_Easy_AddItemToInventory(itemInstance_t *buffer, inv_t *inventory, unsigned int itemID);
-void JKG_RetrieveDuelCache( void )
-{
-	// TODO: reformat this code
-	fileHandle_t f;
-	int len = trap->FS_Open("server/dcache.cache", &f, FS_READ);
-	if( !len || len < 0 ) return;
-	if( !f || f == -1 ) return;
-	void *buf = malloc(len + 1);
-	trap->FS_Read(buf, len, f);
-	trap->FS_Close(f);
-	cJSON *json = cJSON_ParsePooled((const char *)buf, NULL, 0);
-	if(!json)
-	{
-		free(buf);
-		return;
-	}
-	for(int i = 0; i < level.numConnectedClients; i++)
-	{
-		cJSON *playerNode = cJSON_GetObjectItem(json, va("p%i", i+1));
-		int numItems = cJSON_ToInteger(cJSON_GetObjectItem(playerNode, "num"));
-		for(int j = 0; j < numItems; j++)
-		{
-			cJSON *itemNode = cJSON_GetObjectItem(playerNode, va("i%i", j+1));
-			if(itemNode)
-			{
-				// At this point, we're left in a kinda interesting situation.
-				// Clients have our inventory networked ... or do they?
-				// It shouldn't be cleared at that point, at least I don't think.
-				itemInstance_t blah;
-				blah.calc1 = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "calc1"));
-				blah.calc2 = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "calc2"));
-				blah.defense = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "def"));
-				blah.durabilityCurrent = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "dur"));
-				blah.equipped = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "equ"));
-				blah.itemQuality = cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "qua"));
-
-				// now comes the fun part, getting the item instance from the lookup table...let's hope that this doesn't break.
-				blah.id = &itemLookupTable[cJSON_ToInteger(cJSON_GetObjectItem(itemNode, "id"))];
-			}
-		}
-	}
-	free(buf);
-}
-
-void JKG_SaveDuelCache( void )
-{
-	// TODO: reformat this code
-	fileHandle_t f;
-	int len = trap->FS_Open("server/dcache.cache", &f, FS_WRITE);
-	if( !f || f == -1 ) return;
-
-	cJSONStream *json = cJSON_Stream_New(3, 0, 0, 0);
-	for(int i = 0; i < level.numConnectedClients; i++)
-	{
-		cJSON_Stream_BeginObject(json, va("p%i", i+1));
-		cJSON_Stream_WriteInteger(json, "num", g_entities[i].inventory->elements);
-		for(int j = 0; j < g_entities[i].inventory->elements; j++)
-		{
-			itemInstance_t *itm = &g_entities[i].inventory->items[j];
-			cJSON_Stream_BeginObject(json, va("i%i", j+1));
-			cJSON_Stream_WriteInteger(json, "id", itm->id->itemID);
-			cJSON_Stream_WriteInteger(json, "calc1", itm->calc1);
-			cJSON_Stream_WriteInteger(json, "calc2", itm->calc2);
-			cJSON_Stream_WriteInteger(json, "def", itm->defense);
-			cJSON_Stream_WriteInteger(json, "dur", itm->durabilityCurrent);
-			cJSON_Stream_WriteInteger(json, "equ", itm->equipped);
-			cJSON_Stream_WriteInteger(json, "qua", itm->itemQuality);
-			cJSON_Stream_EndBlock(json);
-		}
-		cJSON_Stream_EndBlock(json);
-	}
-	const char *buf = cJSON_Stream_Finalize(json);
-	trap->FS_Write(buf, strlen(buf), f);
-	trap->FS_Close(f);
 }

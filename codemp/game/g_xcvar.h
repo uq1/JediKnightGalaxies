@@ -184,4 +184,5 @@ XCVAR_DEF( g_banfile,					"",				NULL,				CVAR_ARCHIVE,									false )
 XCVAR_DEF( jkg_healthRegen,				"1",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_healthRegenDelay,		"60000",		NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_healthRegenSpeed,		"2500",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_safeTreasureClasses,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH,						false )
 #undef XCVAR_DEF
