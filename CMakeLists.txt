@@ -24,7 +24,7 @@ option(BuildDestinationExternal "Copy final build files to directory specified b
 set(BinaryDestination ${CMAKE_CURRENT_BINARY_DIR} CACHE STRING "Binary Destination")
 
 # Project name
-set(ProjectName "OpenJK" CACHE STRING "Project Name")
+set(ProjectName "Jedi Knight Galaxies" CACHE STRING "Project Name")
 project(${ProjectName})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
