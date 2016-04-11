@@ -27,19 +27,46 @@ static qboolean JKG_CG_ItemInInventory ( int itemNum )
     return qfalse;
 }
 
-void JKG_CG_FillACISlot ( int itemNum, int slot )
+void JKG_CG_FillACISlot(int itemNum, int slot)
 {
-    cgItemData_t *item;
-    
-    if ( itemNum < 0 || itemNum >= MAX_INVENTORY_ITEMS )
-    {
-        return;
-    }
-    
-    if ( slot < 0 || slot >= MAX_ACI_SLOTS )
-    {
-        return;
-    }
+	cgItemData_t *item;
+
+	if (itemNum < 0 || itemNum >= MAX_INVENTORY_ITEMS)
+	{
+		return;
+	}
+
+	if (slot >= MAX_ACI_SLOTS)
+	{
+		return;
+	}
+
+	// Find out if we have the item already in our ACI
+	if (itemNum > cg.numItemsInInventory)
+	{
+		return;
+	}
+
+	for (int i = 0; i < MAX_ACI_SLOTS; i++) {
+		if (cg.playerACI[i] == itemNum) {
+			cg.playerACI[i] = -1;
+		}
+	}
+
+	// A slot of -1 means that we pick the first available one
+	if (slot == -1) {
+		for (int i = 0; i < MAX_ACI_SLOTS; i++) {
+			if (cg.playerACI[i] == -1) {
+				slot = i;
+				break;
+			}
+		}
+	}
+
+	if (slot == -1) {
+		trap->Print("Couldn't assign %i to ACI, ACI is full\n", itemNum);
+		return;
+	}
     
 	item = cg.playerInventory[itemNum].id;
 	if(!item)

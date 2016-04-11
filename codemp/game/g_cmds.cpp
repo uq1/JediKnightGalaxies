@@ -30,6 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "jkg_admin.h"
 #include "jkg_chatcmds.h"
 #include "jkg_utilityfunc.h"
+#include "jkg_treasureclass.h"
 
 //rww - for getting bot commands...
 int AcceptBotCommand(char *cmd, gentity_t *pl);
@@ -1155,7 +1156,7 @@ void Cmd_Kill_f( gentity_t *ent ) {
 		return;		// Cant /kill in tempspec
 	}
 
-	if (ent->health <= 0) {
+	if (ent->health <= 0) {		//awww sad, zombies can't commit suicide
 		return;
 	}
 
@@ -1164,6 +1165,7 @@ void Cmd_Kill_f( gentity_t *ent ) {
 	player_die (ent, ent, ent, 100000, MOD_SUICIDE);
 }
 
+
 /*
 =================
 BroadCastTeamChange
@@ -1171,24 +1173,30 @@ BroadCastTeamChange
 Let everyone know about a team change
 =================
 */
-void BroadcastTeamChange( gclient_t *client, int oldTeam )														//--futuza notes:  fixme - change so that client->pers.netname is passed to our color converter func or at least parse out rbg stuffs see jkg_chatbox.h for functions
+void BroadcastTeamChange( gclient_t *client, int oldTeam )														//--futuza notes:  ^xRBG fix applied
 {
+	//wait wait...maybe this is just a linker error I mean I should be able to assign a const pointer to the value of a char array
+
 	client->ps.fd.forceDoInit = 1; //every time we change teams make sure our force powers are set right
 
 	if ( client->sess.sessionTeam == TEAM_RED ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-			client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.redTeam].joinstring)) );
+			//client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.redTeam].joinstring)) );
 			//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEREDTEAM")) );
+			JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString2(bgGangWarsTeams[level.redTeam].joinstring)));		
 	} else if ( client->sess.sessionTeam == TEAM_BLUE ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-			client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].joinstring)) );
+			//client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].joinstring)) );
 		//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBLUETEAM")));
+		JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].joinstring)));
 	} else if ( client->sess.sessionTeam == TEAM_SPECTATOR && oldTeam != TEAM_SPECTATOR ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));
+		//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));
+		JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));
 	} else if ( client->sess.sessionTeam == TEAM_FREE ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBATTLE")));
+		//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBATTLE")));
+		JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString("MP_SVGAME", "JOINEDTHEBATTLE")));
 	}
 
 	G_LogPrintf ( "setteam:  %i %s %s\n",
@@ -2598,7 +2606,7 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 	switch ( mode ) {
 	default:
 	case SAY_ALL:		// Local area chat
-		G_LogPrintf( "say: %s: %s\n", ent->client->pers.netname, ChatBox_UnescapeChat(chatText) );
+		G_LogPrintf( "say: %s: %s\n", ent->client->pers.netname, ChatBox_UnescapeChat(chatText) );							//don't apply ^xRBG fix because we use own chat function
 		Com_sprintf (name, sizeof(name), "%s%c%c" EC ": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE );
 		color = COLOR_GREEN;
 		normalRadius = 1280;
@@ -3384,7 +3392,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 		}
 			
 		Com_sprintf ( level.voteString, sizeof(level.voteString ), "%s %s", arg1, arg2 );
-		Com_sprintf ( level.voteDisplayString, sizeof(level.voteDisplayString), "kick %s", g_entities[n].client->pers.netname );
+		Com_sprintf ( level.voteDisplayString, sizeof(level.voteDisplayString), "kick %s", g_entities[n].client->pers.netname );		//--futuza note: maybe need to use JKG_xRBG_ConvertExtToNormal() ^xRBG fix here ...unsure
 	}
 	else if ( !Q_stricmp ( arg1, "kick" ) )
 	{
@@ -3464,7 +3472,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	Q_strncpyz( level.voteStringClean, level.voteString, sizeof( level.voteStringClean ) );
 	Q_strstrip( level.voteStringClean, "\"\n\r", NULL );
 
-	trap->SendServerCommand( -1, va("print \"%s^7 %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLCALLEDVOTE") ) );
+	trap->SendServerCommand( -1, va("print \"%s^7 %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLCALLEDVOTE") ) );				//--futuza: note apply ^xRBG fix?
 
 	// start the voting, the caller autoamtically votes yes
 	level.voteTime = level.time;
@@ -3634,7 +3642,7 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 		if ( level.clients[i].pers.connected == CON_DISCONNECTED )
 			continue;
 		if (level.clients[i].sess.sessionTeam == team)
-			trap->SendServerCommand( i, va("print \"%s called a team vote.\n\"", ent->client->pers.netname ) );
+			trap->SendServerCommand( i, va("print \"%s called a team vote.\n\"", ent->client->pers.netname ) );			//--futuza note: apply ^xRBG fix?
 	}
 
 	// start the voting, the caller autoamtically votes yes
@@ -3826,7 +3834,39 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	ent->client->ps.shotsRemaining = 0;
 }
 
-
+/*
+=================
+Cmd_TcEval_f
+=================
+*/
+void Cmd_TcEval_f(gentity_t *ent, bool bMulti = false) {
+	// usage: tcEval <tc> <samples>
+	if (trap->Argc() != 3 && !bMulti) {
+		trap->SendServerCommand(ent - g_entities, "print \"usage: tcEval <tc> <samples>\n\"");
+		return;
+	}
+	else if (trap->Argc() != 3 && bMulti) {
+		trap->SendServerCommand(ent - g_entities, "print \"usage: tcEvalMulti <tc> <samples>\n\"");
+		return;
+	}
+	char buffer[MAX_TOKEN_CHARS];
+	int nSamples = 0;
+	trap->Argv(2, buffer, sizeof(buffer));
+	nSamples = atoi(buffer);
+	trap->Argv(1, buffer, sizeof(buffer));
+	if (nSamples <= 0) {
+		return;
+	}
+	Q_strlwr(buffer);
+	std::string sSearch = buffer;
+	auto tc = umTreasureClasses.find(sSearch);
+	if (tc == umTreasureClasses.end()) {
+		trap->SendServerCommand(ent - g_entities, "print \"could not find treasure class.\n\"");
+		return;
+	}
+	TreasureClass* pTC = tc->second;
+	pTC->PrintDropRates(ent, nSamples, bMulti);
+}
 
 /*
 =================
@@ -4477,7 +4517,7 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 
 		if (challenged->client->ps.duelIndex == ent->s.number && challenged->client->ps.duelTime >= level.time)
 		{
-			trap->SendServerCommand( /*challenged-g_entities*/-1, va("print \"%s %s %s!\n\"", challenged->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"), ent->client->pers.netname) );
+			trap->SendServerCommand( /*challenged-g_entities*/-1, va("print \"%s %s %s!\n\"", JKG_xRBG_ConvertExtToNormal(challenged->client->pers.netname), G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"), ent->client->pers.netname));		//--futuza note: test this, make sure I didn't break dueling
 
 			ent->client->ps.duelInProgress = qtrue;
 			challenged->client->ps.duelInProgress = qtrue;
@@ -4522,8 +4562,8 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 		else
 		{
 			//Print the message that a player has been challenged in private, only announce the actual duel initiation in private
-			trap->SendServerCommand( challenged-g_entities, va("cp \"%s %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGE")) );
-			trap->SendServerCommand( ent-g_entities, va("cp \"%s %s\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGED"), challenged->client->pers.netname) );
+			trap->SendServerCommand(challenged - g_entities, va("cp \"%s %s\n\"", JKG_xRBG_ConvertExtToNormal(ent->client->pers.netname), G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGE")));			//--futuza: these two lines need testing make sure ^xRBG fix didn't break anything
+			trap->SendServerCommand(ent - g_entities, va("cp \"%s %s\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGED"), JKG_xRBG_ConvertExtToNormal(challenged->client->pers.netname)));
 		}
 
 		challenged->client->ps.fd.privateDuelTime = 0; //reset the timer in case this player just got out of a duel. He should still be able to accept the challenge.
@@ -4832,13 +4872,20 @@ void ClientCommand( int clientNum ) {
 		return;
 	}
 
-	//eezstreet add
 	if(Q_stricmp(cmd, "itemLookup") == 0) {
 		JKG_ItemLookup_f(ent);
 		return;
 	}
 	if(Q_stricmp(cmd, "itemCheck") == 0) {
 		JKG_ItemCheck_f(ent);
+		return;
+	}
+	if (Q_stricmp(cmd, "tcEval") == 0) {
+		Cmd_TcEval_f(ent);
+		return;
+	}
+	if (Q_stricmp(cmd, "tcEvalMulti") == 0) {
+		Cmd_TcEval_f(ent, true);
 		return;
 	}
 
@@ -4972,7 +5019,7 @@ void ClientCommand( int clientNum ) {
 	{
 		//DEBUG: Show how many credits you have
 		int credits = ent->client->ps.credits;
-		trap->SendServerCommand( clientNum, va("print \"You have %i credits, %s.\n\"", Q_max (0, credits), ent->client->pers.netname) );
+		trap->SendServerCommand(clientNum, va("print \"You have %i credits, %s.\n\"", Q_max(0, credits), JKG_xRBG_ConvertExtToNormal(ent->client->pers.netname) ));		//--Futuza note: ^xRBG fix
 		return;
 	}
 	else if ( Q_stricmp (cmd, "closeVendor") == 0 )
@@ -5124,12 +5171,6 @@ void ClientCommand( int clientNum ) {
 		trap->Print("----------------------------------------------\n");
 	}
 #endif //__AUTOWAYPOINT__ // __DOMINANCE_NPC__
-	/*
-	else if (Q_stricmp (cmd, "kylesmash") == 0)
-	{
-		TryGrapple(ent);
-	}
-	*/
 	//for convenient powerduel testing in release
 	else if (Q_stricmp(cmd, "killother") == 0 && CheatsOk( ent ))
 	{

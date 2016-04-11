@@ -1,5 +1,4 @@
-#ifndef JKG_INVENTORY_H
-#define JKG_INVENTORY_H
+#pragma once
 
 #include "game/bg_items.h"
 #include "game/bg_weapons.h"
@@ -33,7 +32,6 @@ static weaponDataGrab_t autoFill;
 static char formatStr[64];
 
 int JKG_Inventory_ExamineMenuNumForItemType(const int itemType);
-weaponDataGrab_t BG_GetWeaponDataFromStr(int weapon, int variation, char *text);
 #pragma endregion
 
 /* Structure Definitions */
@@ -85,23 +83,6 @@ typedef struct
 	qboolean equipped;
 } cgItemInstance_t;
 
-void JKG_Inventory_OpenDialog ( char **args );
-void JKG_Inventory_CloseDialog ( char **args );
-void JKG_Inventory_Arrow ( char **args );
-void JKG_Inventory_Arrow_New ( itemDef_t *item, int amount );
-void JKG_Inventory_CheckTooltip ( char **args );
-void JKG_Inventory_OpenOther(char** args);
-
-void JKG_Inventory_UpdateNotify(int msg);
-int JKG_Inventory_FeederCount ( void );
-qboolean JKG_Inventory_FeederSelection ( int index );
-const char *JKG_Inventory_FeederItemText ( int index, int column, qhandle_t *handle1, qhandle_t *handle2, qhandle_t *handle3 );
-
-void JKG_Inventory_Script_Button ( char **args );
-void JKG_Inventory_ACI_Button ( char **args );
-qhandle_t JKG_GetInventoryIcon(unsigned int index);
-void JKG_Inventory_ConstructWeightText( void );
-
 void JKG_Shop_OpenDialog(char **args);
 void JKG_Shop_CloseDialog ( char **args );
 void JKG_Shop_ItemSelect(char **args);
@@ -118,12 +99,32 @@ void JKG_Shop_OpenInventoryMenu(char **args);
 void JKG_Shop_UpdateNotify(int msg);
 void JKG_Inventory_CloseFromShop( char **args );
 
-void JKG_Inventory_DrawTooltip(void);
 void JKG_Shop_RestoreShopMenu(void);
 
 void JKG_Shop_ArrowPrevClean(void);
 void JKG_Shop_ArrowNextClean(void);
 
 void JKG_Inventory_CheckACIKeyStroke(int key);
+void JKG_Inventory_UpdateNotify(int msg);
 
-#endif
+void JKG_Inventory_OwnerDraw_CreditsText(itemDef_t* item);
+void JKG_Inventory_OwnerDraw_ItemIcon(itemDef_t* item, int ownerDrawID);
+void JKG_Inventory_OwnerDraw_ItemName(itemDef_t* item, int ownerDrawID);
+void JKG_Inventory_OwnerDraw_SelHighlight(itemDef_t* item, int ownerDrawID);
+void JKG_Inventory_OwnerDraw_SelItemIcon(itemDef_t* item);
+void JKG_Inventory_OwnerDraw_SelItemName(itemDef_t* item);
+void JKG_Inventory_OwnerDraw_SelItemDesc(itemDef_t* item, int ownerDrawID);
+void JKG_Inventory_OwnerDraw_ItemTagTop(itemDef_t* item, int ownerDrawID);
+void JKG_Inventory_OwnerDraw_ItemTagBottom(itemDef_t* item, int ownerDrawID);
+void JKG_Inventory_OwnerDraw_Interact(itemDef_t* item, int ownerDrawID);
+void JKG_Inventory_OwnerDraw_Interact_Button(int ownerDrawID, int key);
+void JKG_Inventory_SelectItem(char** args);
+void JKG_Inventory_ArrowUp(char** args);
+void JKG_Inventory_ArrowDown(char** args);
+void JKG_Inventory_Use(char** args);
+void JKG_Inventory_Destroy(char** args);
+void JKG_Inventory_ACISlot(char** args);
+void JKG_Inventory_ACISlotAuto(char** args);
+void JKG_Inventory_ACIRemove(char** args);
+void JKG_Inventory_EquipArmor(char** args);
+void JKG_Inventory_UnequipArmor(char** args);

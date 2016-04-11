@@ -15,6 +15,9 @@
 // Heavily based on the engine's command tokenizer
 // Copyright (c) 2013 Jedi Knight Galaxies
 
+#ifndef CGAME_JKG_CHATCMDS_H
+#define CGAME_JKG_CHATCMDS_H
+
 typedef void (*xccommand_t) ( void );
 
 
@@ -31,3 +34,5 @@ void	CCmd_AddCommand( const char *cmd_name, xccommand_t function );
 void	CCmd_RemoveCommand( const char *cmd_name );
 
 void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontIndex, const int limit, float scale);
+
+#endif

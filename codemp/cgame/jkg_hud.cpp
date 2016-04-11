@@ -349,6 +349,11 @@ static void CG_DrawForcePower( menuDef_t *menuHUD )
 	qboolean	flash=qfalse;
 	itemDef_t	*focusItem;
 	vec4_t	opacity;
+	vec4_t	glowColor;
+
+	vec4_t	fadecolor = { 1, 1, 1, 0.5f };
+	static vec4_t	draincolor = { 1, 0.4f, 0.4f, 1 };
+	static vec4_t	fillcolor = { 0.4f, 1, 0.4f, 1 };
 	
 	MAKERGBA( opacity, 1, 1, 1, 1*cg.jkg_HUDOpacity );
 
@@ -433,9 +438,11 @@ static void CG_DrawForcePower( menuDef_t *menuHUD )
 
 	{
 		char *Force = va("%i / %i", cg.predictedPlayerState.forcePower, maxForcePower);
-		trap->R_Font_DrawString( focusItem->window.rect.x + (focusItem->window.rect.w / 2) - (trap->R_Font_StrLenPixels(Force, 1, 0.4)/2),
-				focusItem->window.rect.y - 2/* + (trap->R_Font_HeightPixels(1, 1.0)*0.4)*/,
-				Force, colorWhite, 1, -1, 0.4f );
+		VectorCopy4(colorWhite, glowColor);
+		glowColor[3] *= cg.jkg_HUDOpacity;
+		trap->R_Font_DrawString(focusItem->window.rect.x + (focusItem->window.rect.w / 2) - (trap->R_Font_StrLenPixels(Force, 1, 0.6) / 2),
+			focusItem->window.rect.y - 2/* + (trap->R_Font_HeightPixels(1, 1.0)*0.4)*/,
+			Force, glowColor, cgs.media.hudfont1, -1, 0.6f);
 	}
 }
 

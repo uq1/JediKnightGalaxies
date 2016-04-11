@@ -23,8 +23,8 @@ static qboolean coTrapEscape = qfalse;
 
 qboolean UI_RunSvCommand(const char *command);
 void JKG_PartyMngt_UpdateNotify(int msg);
-void JKG_Inventory_UpdateNotify(int msg);
 void JKG_Shop_UpdateNotify(int msg);
+void JKG_Inventory_UpdateNotify(int msg);
 
 void CO_SetEscapeTrapped( qboolean trapped )
 {

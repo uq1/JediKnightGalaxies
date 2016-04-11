@@ -772,7 +772,7 @@ static qboolean turretG2_find_enemies( gentity_t *self )
 			continue;
 		}
 
-		if ( target->vendorData.ourID )
+		if ( target->szVendorTreasureClass != nullptr )
 		{
 			continue;
 		}

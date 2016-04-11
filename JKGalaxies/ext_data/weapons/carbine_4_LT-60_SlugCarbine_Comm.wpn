@@ -76,7 +76,7 @@
     },
     
     "firemode0": {
-        "damage":       16,
+        "damage":       13,
         "ballistic":    true,
         "ammocost":     1,
         "firedelay":    120,
@@ -96,7 +96,7 @@
     },
     
     "firemode1": {
-        "damage":       20,
+        "damage":       13,
         "ballistic":    true,
         "ammocost":     1,
         "firedelay":    120,

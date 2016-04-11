@@ -43,8 +43,20 @@ LANG_ENGLISH        "Assign to ACI"
 REFERENCE           UNASSIGNACI
 LANG_ENGLISH        "Unassign from ACI"
 
+REFERENCE			ACI
+LANG_ENGLISH		"ACI"
+
+REFERENCE			ACI_AUTO
+LANG_ENGLISH		"Auto"
+
+REFERENCE			ACI_REMOVE
+LANG_ENGLISH		"Remove"
+
 REFERENCE           ASSIGNACILONG
 LANG_ENGLISH        "Assign to Active Combat Inventory Slot"
+
+REFERENCE			INACI
+LANG_ENGLISH		"Equipped in ACI Slot %i"
 
 REFERENCE           DESTROY
 LANG_ENGLISH        "Destroy"
@@ -72,6 +84,289 @@ LANG_ENGLISH        "View Inventory"
 
 REFERENCE           TOSHOP
 LANG_ENGLISH        "Back to Shop"
+
+REFERENCE			FILTER_ALL
+LANG_ENGLISH		"All"
+
+REFERENCE			FILTER_WEAPONS
+LANG_ENGLISH		"Weapons"
+
+REFERENCE			FILTER_ARMOR
+LANG_ENGLISH		"Armor"
+
+REFERENCE			FILTER_AID
+LANG_ENGLISH		"Aid"
+
+REFERENCE			FILTER_MISC
+LANG_ENGLISH		"Misc"
+
+// The below aren't used yet
+REFERENCE			FILTER_AMMO
+LANG_ENGLISH		"Ammo"
+
+REFERENCE			FILTER_CUSTOM
+LANG_ENGLISH		"Custom"
+
+REFERENCE			FILTER_CRAFTING
+LANG_ENGLISH		"Crafting Components"
+
+REFERENCE			FILTER_JUNK
+LANG_ENGLISH		"Junk"
+
+REFERENCE			FILTER_QUEST
+LANG_ENGLISH		"Quest Items"
+
+// Not for player inventory
+REFERENCE			FILTER_DROID
+LANG_ENGLISH		"Droids"
+
+REFERENCE			FILTER_BIKES
+LANG_ENGLISH		"Speeder Bikes"
+
+REFERENCE			FILTER_SHIPS
+LANG_ENGLISH		"Transport Ships"
+
+REFERENCE			FILTER_FIGHTERS
+LANG_ENGLISH		"Starfighters"
+
+// Container types
+REFERENCE			CONTAINER_CORPSE
+LANG_ENGLISH		"Corpse"		// not very Star Warzy
+
+REFERENCE			CONTAINER_CRATE
+LANG_ENGLISH		"Crate"
+
+REFERENCE			CONTAINER_WORKBENCH
+LANG_ENGLISH		"Workbench"
+
+REFERENCE			CONTAINER_SHOPKEEPER
+LANG_ENGLISH		"Shopkeeper"
+
+REFERENCE			CONTAINER_CARGO_HOLD
+LANG_ENGLISH		"Cargo Hold"
+
+REFERENCE			ITEM_TYPE
+LANG_ENGLISH		"Item Type: "
+
+REFERENCE			ITYPE_WEAPON
+LANG_ENGLISH		"Weapon"
+
+REFERENCE			ITYPE_ARMOR
+LANG_ENGLISH		"Armor"
+
+REFERENCE			ITYPE_CONSUMABLE
+LANG_ENGLISH		"Consumable"
+
+REFERENCE			ITYPE_AMMO
+LANG_ENGLISH		"Ammo"
+
+REFERENCE			ITYPE_MISC
+LANG_ENGLISH		"Misc"
+
+REFERENCE			ITYPE_JUNK
+LANG_ENGLISH		"Junk"
+
+REFERENCE			ITYPE_QUEST
+LANG_ENGLISH		"Quest Item"
+
+REFERENCE			ITYPE_CRAFTING
+LANG_ENGLISH		"Crafting Component"
+
+REFERENCE 			ARM_DEFENSE
+LANG_ENGLISH		"Armor: "
+
+REFERENCE			ARM_MOVESPEED
+LANG_ENGLISH		"Movement Speed: -%i%%"
+
+REFERENCE			WEP_DAMAGE
+LANG_ENGLISH		"Damage: %i%s"
+
+REFERENCE			WEP_DAMAGE_SCATTERGUN
+LANG_ENGLISH		"Damage: %ix%i%s"
+
+REFERENCE			WEP_DDAMAGE
+LANG_ENGLISH		"Direct Damage: %i%s"
+
+REFERENCE			WEP_BDAMAGE
+LANG_ENGLISH		"Blast Damage: %i%s"
+
+REFERENCE			WEP_FDAMAGE
+LANG_ENGLISH		"Fallout Damage: %i%s"
+
+REFERENCE			WEP_DAMAGETAG_BLASTER
+LANG_ENGLISH		" (blaster)"
+
+REFERENCE			WEP_DAMAGETAG_SLUG
+LANG_ENGLISH		" (slug)"
+
+REFERENCE			WEP_DAMAGETAG_ACP
+LANG_ENGLISH		" (ACP)"
+
+REFERENCE			WEP_DAMAGETAG_PULSE
+LANG_ENGLISH		" (pulse)"
+
+REFERENCE			WEP_DAMAGETAG_ION
+LANG_ENGLISH		" (ion)"
+
+REFERENCE			WEP_DAMAGETAG_SONIC
+LANG_ENGLISH		" (sonic)"
+
+REFERENCE			WEP_DAMAGETAG_COLD
+LANG_ENGLISH		" (cold)"
+
+REFERENCE			WEP_DAMAGETAG_FIRE
+LANG_ENGLISH		" (fire)"
+
+REFERENCE			WEP_DAMAGETAG_FREEZE
+LANG_ENGLISH		" (freeze)"
+
+REFERENCE			WEP_DAMAGETAG_ELECTRIC
+LANG_ENGLISH		" (electric)"
+
+REFERENCE			WEP_TAG_BLEED
+LANG_ENGLISH		"Inflicts bleed damage"
+
+REFERENCE			WEP_TAG_CARBONITE
+LANG_ENGLISH		"Encases the target in carbonite"
+
+REFERENCE			WEP_TAG_FREEZE
+LANG_ENGLISH		"Freezes targets"
+
+REFERENCE			WEP_TAG_STUN
+NOTES				Not used.
+LANG_ENGLISH		"Stuns targets"
+
+REFERENCE			WEP_TAG_NOSPRINT
+NOTES				Not used.
+LANG_ENGLISH		"Disables sprinting while equipped"
+
+REFERENCE			WEP_TAG_ROLLING
+LANG_ENGLISH		"Lightweight"
+
+REFERENCE			WEP_TAG_LEMONS
+NOTES				Not used.
+LANG_ENGLISH		"IF I HAD LEMONS, I'D MAKE THEM EXPLODE!"
+
+REFERENCE			WEP_TAG_DISINTEGRATE
+LANG_ENGLISH		"Disintegrates targets"
+
+REFERENCE			WEP_TAG_BOUNCING_SHOTS
+LANG_ENGLISH		"Bouncing shots"
+
+REFERENCE			WEP_TAG_FULL_AUTO
+LANG_ENGLISH		"Fully automatic"
+
+REFERENCE			WEP_TAG_SEMI_AUTO
+LANG_ENGLISH		"Semi-automatic"
+
+REFERENCE			WEP_TAG_BURST
+LANG_ENGLISH		"Burst fire"
+
+REFERENCE			WEP_FIRETIME
+LANG_ENGLISH		"Fires %i Rounds per Minute"
+
+REFERENCE			WEP_RELOADTIME
+LANG_ENGLISH		"Reload time: %i milliseconds"
+
+REFERENCE			WEP_BLASTRADIUS_QUAKE3
+NOTES				One meter is 36.5 units
+LANG_ENGLISH		"Blast Radius: %.1f units"
+
+REFERENCE			WEP_BLASTRADIUS_METRIC
+LANG_ENGLISH		"Blast Radius: %.2f meters"
+
+REFERENCE			WEP_BLASTRADIUS_IMPERIAL
+LANG_ENGLISH		"Blast Radius: %.2f yards"
+
+REFERENCE			WEP_RELOADTIME_SEC
+NOTES				For when the reload time is > 1000 milliseconds
+LANG_ENGLISH		"Reload time: %2.3f seconds"
+
+REFERENCE			WEP_COOKTIME
+NOTES				Always handled in seconds, not milliseconds
+LANG_ENGLISH		"Cook time: %.3f seconds"
+
+REFERENCE			WEP_SPEEDPENALTY
+LANG_ENGLISH		"Movement penalty: -%i%%"
+
+REFERENCE			WEP_SPEEDBONUS
+LANG_ENGLISH		"Movement bonus: +%i%%"
+
+REFERENCE			WEP_AMMOTYPE 				// Not used?
+LANG_ENGLISH		"Accepts %s ammo"
+
+REFERENCE			WEP_ACCURACY
+LANG_ENGLISH		"Accuracy Rating: %i - %i"
+
+REFERENCE			WEP_RECOIL
+LANG_ENGLISH		"Recoil: %s"
+
+REFERENCE			WEP_RECOIL_NONE
+LANG_ENGLISH		"Non-existent"
+
+REFERENCE			WEP_RECOIL_LIGHT
+NOTES				For vertical recoil not exceeding 0.9
+LANG_ENGLISH		"Light"
+
+REFERENCE			WEP_RECOIL_MEDIUM
+NOTES				For vertical recoil between 0.9 and 1.5
+LANG_ENGLISH		"Medium"
+
+REFERENCE			WEP_RECOIL_HEAVY
+NOTES				For vertical recoil between 1.5 and 3.0
+LANG_ENGLISH		"Heavy"
+
+REFERENCE			WEP_RECOIL_INTENSE
+NOTES				For vertical recoil above 3.0
+LANG_ENGLISH		"Intense"	
+
+REFERENCE			EXPLANATION_ELECTRIC
+LANG_ENGLISH		"Electric Damage. Medium damage towards organic targets and armor, high damage towards droids and shields."
+
+REFERENCE			EXPLANATION_EXPLOSIVE
+LANG_ENGLISH		"Deals damage in a radius."
+
+REFERENCE			EXPLANATION_FIRE
+LANG_ENGLISH		"Fire Damage. Has a chance to ignite the target. Very strong against organic targets."
+
+REFERENCE			EXPLANATION_FREEZE
+LANG_ENGLISH		"Has a chance to freeze the target."
+
+REFERENCE			EXPLANATION_STUN
+LANG_ENGLISH		"Has a chance to stun the target."
+
+REFERENCE			EXPLANATION_CARBONITE
+LANG_ENGLISH		"Has a chance to encase the target in carbonite."
+
+REFERENCE			EXPLANATION_BLASTER
+LANG_ENGLISH		"Blaster damage. Well rounded damage, with a weakness towards shields."
+
+REFERENCE			EXPLANATION_SLUG
+LANG_ENGLISH		"Slug damage. Highly effective against organic targets, and penetrates shields. However, it is weak against armor and droids."
+
+REFERENCE			EXPLANATION_ACP
+LANG_ENGLISH		"ACP damage. Effective against shields and organic targets, weak against electrical systems and armor."
+
+REFERENCE			EXPLANATION_PULSE
+LANG_ENGLISH		"Pulse damage. Completely ignores armor, but relatively ineffective towards shields. Moderately effective against organic targets."
+
+REFERENCE			EXPLANATION_ION
+LANG_ENGLISH		"Ion damage. Completely ignores most armor, and extremely strong against shields. Very weak against organic targets."
+
+REFERENCE			EXPLANATION_SONIC
+LANG_ENGLISH		"Sonic damage. Somewhat effective against armor, shields, and organic targets. Ineffective against droids."
+
+REFERENCE			PRIMARY_FIRE
+LANG_ENGLISH		"Primary Firing Mode"
+
+REFERENCE			SECONDARY_FIRE
+LANG_ENGLISH		"Secondary Firing Mode"
+
+REFERENCE			TERTIARY_FIRE
+LANG_ENGLISH		"Tertiary Firing Mode"
+
+REFERENCE			FIRING_MODE
+LANG_ENGLISH		"Firing Mode %i"
 
 ENDMARKER
 

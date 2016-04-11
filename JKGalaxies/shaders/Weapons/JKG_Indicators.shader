@@ -1025,6 +1025,133 @@ models/weapons/e-60r_rocketlauncher/indicator
     }
 }
 
+// EE-3 Carbine Rifle
+
+models/weapons/ee-3_rifle/numbers1
+{
+	polygonOffset
+	q3map_nolightmap
+    {
+        animMap 1 gfx/digits/e_numbers0 gfx/digits/e_numbers1 gfx/digits/e_numbers2 gfx/digits/e_numbers3 gfx/digits/e_numbers4 gfx/digits/e_numbers5 gfx/digits/e_numbers6 gfx/digits/e_numbers7 gfx/digits/e_numbers8 gfx/digits/e_numbers9 gfx/colors/black gfx/digits/e_numbers- 
+        blendFunc GL_ONE GL_ONE
+        glow
+    }
+}
+
+models/weapons/ee-3_rifle/numbers2
+{
+	polygonOffset
+	q3map_nolightmap
+    {
+        animMap 1 gfx/digits/e_numbers0 gfx/digits/e_numbers1 gfx/digits/e_numbers2 gfx/digits/e_numbers3 gfx/digits/e_numbers4 gfx/digits/e_numbers5 gfx/digits/e_numbers6 gfx/digits/e_numbers7 gfx/digits/e_numbers8 gfx/digits/e_numbers9 gfx/colors/black gfx/digits/e_numbers- 
+        blendFunc GL_ONE GL_ONE
+        glow
+    }
+}
+
+models/weapons/ee-3_rifle/numbers3
+{
+	polygonOffset
+	q3map_nolightmap
+    {
+        animMap 1 gfx/digits/e_numbers0 gfx/digits/e_numbers1 gfx/digits/e_numbers2 gfx/digits/e_numbers3 gfx/digits/e_numbers4 gfx/digits/e_numbers5 gfx/digits/e_numbers6 gfx/digits/e_numbers7 gfx/digits/e_numbers8 gfx/digits/e_numbers9 gfx/colors/black gfx/digits/e_numbers- 
+        blendFunc GL_ONE GL_ONE
+        glow
+    }
+}
+
+// EE-3 Carbine
+
+models/weapons/ee-3_carbine/numbers1
+{
+	polygonOffset
+	q3map_nolightmap
+    {
+        animMap 1 gfx/digits/e_numbers0 gfx/digits/e_numbers1 gfx/digits/e_numbers2 gfx/digits/e_numbers3 gfx/digits/e_numbers4 gfx/digits/e_numbers5 gfx/digits/e_numbers6 gfx/digits/e_numbers7 gfx/digits/e_numbers8 gfx/digits/e_numbers9 gfx/colors/black gfx/digits/e_numbers- 
+        blendFunc GL_ONE GL_ONE
+        glow
+    }
+}
+
+models/weapons/ee-3_carbine/numbers2
+{
+	polygonOffset
+	q3map_nolightmap
+    {
+        animMap 1 gfx/digits/e_numbers0 gfx/digits/e_numbers1 gfx/digits/e_numbers2 gfx/digits/e_numbers3 gfx/digits/e_numbers4 gfx/digits/e_numbers5 gfx/digits/e_numbers6 gfx/digits/e_numbers7 gfx/digits/e_numbers8 gfx/digits/e_numbers9 gfx/colors/black gfx/digits/e_numbers- 
+        blendFunc GL_ONE GL_ONE
+        glow
+    }
+}
+
+models/weapons/ee-3_carbine/numbers3
+{
+	polygonOffset
+	q3map_nolightmap
+    {
+        animMap 1 gfx/digits/e_numbers0 gfx/digits/e_numbers1 gfx/digits/e_numbers2 gfx/digits/e_numbers3 gfx/digits/e_numbers4 gfx/digits/e_numbers5 gfx/digits/e_numbers6 gfx/digits/e_numbers7 gfx/digits/e_numbers8 gfx/digits/e_numbers9 gfx/colors/black gfx/digits/e_numbers- 
+        blendFunc GL_ONE GL_ONE
+        glow
+    }
+}
+
+models/weapons/ee-3_carbine/firemode
+{
+	polygonOffset
+	q3map_nolightmap
+    {
+        animMap 1 gfx/colors/black models/weapons/ee-3_rifle/firemode_auto models/weapons/ee-3_rifle/firemode_warning 
+        blendFunc GL_ONE GL_ONE
+        glow
+    }
+}
+
+// EE-3 Pistol
+
+models/weapons/ee-3_pistol/numbers1
+{
+	polygonOffset
+	q3map_nolightmap
+    {
+        animMap 1 gfx/digits/e_numbers0 gfx/digits/e_numbers1 gfx/digits/e_numbers2 gfx/digits/e_numbers3 gfx/digits/e_numbers4 gfx/digits/e_numbers5 gfx/digits/e_numbers6 gfx/digits/e_numbers7 gfx/digits/e_numbers8 gfx/digits/e_numbers9 gfx/colors/black gfx/digits/e_numbers- 
+        blendFunc GL_ONE GL_ONE
+        glow
+    }
+}
+
+models/weapons/ee-3_pistol/numbers2
+{
+	polygonOffset
+	q3map_nolightmap
+    {
+        animMap 1 gfx/digits/e_numbers0 gfx/digits/e_numbers1 gfx/digits/e_numbers2 gfx/digits/e_numbers3 gfx/digits/e_numbers4 gfx/digits/e_numbers5 gfx/digits/e_numbers6 gfx/digits/e_numbers7 gfx/digits/e_numbers8 gfx/digits/e_numbers9 gfx/colors/black gfx/digits/e_numbers- 
+        blendFunc GL_ONE GL_ONE
+        glow
+    }
+}
+
+models/weapons/ee-3_pistol/numbers3
+{
+	polygonOffset
+	q3map_nolightmap
+    {
+        animMap 1 gfx/digits/e_numbers0 gfx/digits/e_numbers1 gfx/digits/e_numbers2 gfx/digits/e_numbers3 gfx/digits/e_numbers4 gfx/digits/e_numbers5 gfx/digits/e_numbers6 gfx/digits/e_numbers7 gfx/digits/e_numbers8 gfx/digits/e_numbers9 gfx/colors/black gfx/digits/e_numbers- 
+        blendFunc GL_ONE GL_ONE
+        glow
+    }
+}
+
+models/weapons/ee-3_pistol/firemode
+{
+	polygonOffset
+	q3map_nolightmap
+    {
+        animMap 1 gfx/colors/black models/weapons/ee-3_rifle/firemode_auto models/weapons/ee-3_rifle/firemode_warning 
+        blendFunc GL_ONE GL_ONE
+        glow
+    }
+}
+
 // ELG-3A pistol
 
 models/weapons/elg-3a_pistol/indicator_firemode

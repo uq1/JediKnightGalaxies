@@ -24,7 +24,7 @@ option(BuildDestinationExternal "Copy final build files to directory specified b
 set(BinaryDestination ${CMAKE_CURRENT_BINARY_DIR} CACHE STRING "Binary Destination")
 
 # Project name
-set(ProjectName "OpenJK" CACHE STRING "Project Name")
+set(ProjectName "Jedi Knight Galaxies" CACHE STRING "Project Name")
 project(${ProjectName})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -100,6 +100,7 @@ message("Architecture is ${Architecture}")
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 message("Git revision is ${GIT_SHA1}")
+message("Git refspec is ${GIT_REFSPEC}")
 
 # Binary names
 set(MPEngine "jkgalaxies.${Architecture}")

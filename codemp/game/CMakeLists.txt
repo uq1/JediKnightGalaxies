@@ -104,6 +104,7 @@ set(MPGameGameFiles
 	"${MPDir}/game/jkg_team.cpp"
 	"${MPDir}/game/jkg_threading.cpp"
 	"${MPDir}/game/jkg_threadingsq.cpp"
+	"${MPDir}/game/jkg_treasureclass.cpp"
 	"${MPDir}/game/jkg_utilityfunc.cpp"
 	"${MPDir}/game/NPC.cpp"
 	"${MPDir}/game/NPC_AI_Atst.cpp"

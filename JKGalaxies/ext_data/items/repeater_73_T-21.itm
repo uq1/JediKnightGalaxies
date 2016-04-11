@@ -5,6 +5,7 @@
 	"weapon":		"WP_REPEATER",
 	"variation":		"4",
 	"weight":		"22",
+	"cost":		"2800",
 	"xml":			"",
 	"itemIcon":		"models/weapons/t-21_repeater/icon_default"
 }
