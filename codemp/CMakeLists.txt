@@ -23,6 +23,24 @@ if(NOT InOpenJK)
 	message(FATAL_ERROR "Use the top-level cmake script!")
 endif(NOT InOpenJK)
 
+# Create the file which has git hash and branch
+set(git_cmd "git")
+set(git_rev_parse "rev-parse")
+set(git_branch_arg "--abbrev-ref")
+set(git_hash_arg "HEAD")
+
+execute_process(COMMAND ${git_cmd} ${git_rev_parse} ${git_branch_arg} "HEAD"
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	OUTPUT_VARIABLE git_branch
+	OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${git_cmd} ${git_rev_parse} ${git_hash_arg}
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	OUTPUT_VARIABLE git_hash
+	OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+set(git_file "./git.h")
+file(WRITE ${git_file} "\#define GIT_BRANCH \"${git_branch}\"\n#define GIT_HASH \"${git_hash}\"\n")
+
 set(MPSharedDefines ${SharedDefines})
 
 #    Add Game Project

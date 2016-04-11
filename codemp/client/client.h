@@ -276,9 +276,6 @@ typedef struct serverInfo_s {
 	int			ping;
 	qboolean	visible;
 	qboolean	needPassword;
-	int			trueJedi;
-	int			weaponDisable;
-	int			forceDisable;
 } serverInfo_t;
 
 typedef struct clientStatic_s {
