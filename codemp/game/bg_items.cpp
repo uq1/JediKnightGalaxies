@@ -907,6 +907,12 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 
 	lastUsedItemID++;
 
+	// Visuals
+#ifdef _CGAME
+	jsonNode = cJSON_GetObjectItem(json, "itemIcon");
+	Q_strncpyz(itemData->visuals.itemIcon, cJSON_ToStringOpt(jsonNode, "gfx/Item_Icons/default.tga"), MAX_QPATH);
+#endif
+
 	jsonNode = cJSON_GetObjectItem(json, "itemtype");
 	str = cJSON_ToString(jsonNode);
 	if (Q_stricmp(str, "armor") == 0)
