@@ -247,6 +247,7 @@ Client only-received an item packet
 ====================
 */
 #ifdef _CGAME
+extern void JKG_CG_FillACISlot(int itemNum, int slot);
 void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 	switch (packetType) {
 		case IPT_ADD:
@@ -265,6 +266,7 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 				int itemQuantity = atoi(CG_Argv(3));
 				itemInstance_t item = BG_ItemInstance(itemID, itemQuantity);
 				BG_GiveItem(item);
+				JKG_CG_FillACISlot(cg.playerInventory->size() - 1, -1);	// WARNING: this should be avoided with items that can stack
 			}
 			break;
 		case IPT_QUANT:
