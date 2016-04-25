@@ -31,7 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "bg_vehicles.h"
 #include "g_public.h"
 #include "bg_ammo.h"
-#include "jkg_items.h"
+#include "bg_items.h"
 
 #include "qcommon/game_version.h"
 
@@ -202,7 +202,6 @@ typedef struct {
 
 #ifdef _GAME
 class TreasureClass;
-extern std::unordered_map<std::string, TreasureClass*> mTreasureRegistry;
 #endif
 
 //============================================================================
@@ -467,11 +466,9 @@ struct gentity_s {
 	// For scripted NPCs
 	char		*npcscript;
 
-	inv_t *inventory;
 	gentity_t  *currentLooter;
 	gentity_t  *currentlyLooting;
 	qboolean	isAtWorkbench;	//nw
-	vendorStruct_t vendorData;
 	const char* szTreasureClass;			// Used on death
 	const char* szVendorTreasureClass;		// Used for vendor stock
 	assistStructure_t	assistData;			// keeps a record of who hit us in this life
@@ -508,6 +505,13 @@ struct gentity_s {
 	int			next_kick_time;
 
 	qboolean	bVendor;
+
+	/////////////////////////////////////////
+	// 
+	// EVERYTHING ABOVE THIS POINT MUST BE POD
+	//
+	/////////////////////////////////////////
+	std::vector<itemInstance_t>* inventory;
 };
 
 //used for objective dependancy stuff
@@ -1061,7 +1065,7 @@ struct gclient_s {
 	qboolean	didSaberOffSound;				// eez add
 	float		ironsightsBlend;			// only used in ~1 place, but it's used to prevent noscoping
 
-	gentity_t	*currentVendor;
+	gentity_t	*currentTrader;				// who we are currently trading with
 };
 
 //Interest points
@@ -1894,11 +1898,10 @@ void G_RegisterCvars( void );
 void G_UpdateCvars( void );
 
 /**************************************************
-* jkg_items.c
+* jkg_vendor.cpp
 **************************************************/
 void JKG_SP_target_vendor(gentity_t *ent);
-void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item);
-void JKG_CheckVendorReplenish(void);
+void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activator);
 
 /**************************************************
 * jkg_astar.cpp - New A* Routing Implementation.
@@ -1913,12 +1916,8 @@ void NPC_ClearLookTarget( gentity_t *self );
 
 // Refactored included functions
 void SetTeamQuick(gentity_t *ent, int team, qboolean doBegin);
-void JKG_Easy_DIMA_Init(inv_t *inventory);
 void JKG_CBB_SendAll(int client);
 void JKG_PlayerIsolationClear(int client);
-void JKG_A_GiveEntItem( unsigned int itemIndex, int qualityOverride, inv_t *inventory, gclient_t *owner );
-void JKG_A_GiveEntItemForcedToACI( unsigned int itemIndex, int qualityOverride, inv_t *inventory, gclient_t *owner, unsigned int ACIslot );
-void JKG_A_RollItem( unsigned int itemIndex, int qualityOverride, inv_t *inventory );
 #endif
 
 extern gameImport_t *trap;

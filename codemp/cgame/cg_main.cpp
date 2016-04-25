@@ -2687,31 +2687,13 @@ Ghoul2 Insert End
 	cg.forceHUDActive = qtrue;
 	cg.forceHUDTotalFlashTime = 0;
 	cg.forceHUDNextFlashTime = 0;
+	cg.playerInventory = new std::vector<itemInstance_t>();
+	cg.ourTradeItems = new std::vector<itemInstance_t>();
+	cg.otherTradeItems = new std::vector<itemInstance_t>();
 
-	cg.numItemsInInventory = 0;
-
-	//eezstreet add
-	JKG_CG_InitItems();
-	JKG_CG_InitArmor();
+	BG_InitItems();
 	BG_LoadDefaultWeaponItems();
-
-	/*i = WP_NONE+1;
-	while (i <= LAST_USEABLE_WEAPON)
-	{
-		item = BG_FindItemForWeapon(i);
-
-		if (item && item->icon && item->icon[0])
-		{
-			cgs.media.weaponIcons[i] = trap->R_RegisterShaderNoMip(item->icon);
-			cgs.media.weaponIcons_NA[i] = trap->R_RegisterShaderNoMip(va("%s_na", item->icon));
-		}
-		else
-		{ //make sure it is zero'd (default shader)
-			cgs.media.weaponIcons[i] = 0;
-			cgs.media.weaponIcons_NA[i] = 0;
-		}
-		i++;
-	}*/
+	JKG_CG_InitArmor();
 
 	trap->Cvar_VariableStringBuffer("com_buildscript", buf, sizeof(buf));
 	if (atoi(buf))
@@ -2982,6 +2964,9 @@ void CG_Shutdown( void )
 
 	// some mods may need to do cleanup work here,
 	// like closing files or archiving session data
+	delete cg.playerInventory;
+	delete cg.ourTradeItems;
+	delete cg.otherTradeItems;
 }
 
 /*

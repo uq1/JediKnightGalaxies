@@ -1081,12 +1081,12 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 			vec4_t col = {0.11f, 0.11f, 0.11f, 1.0f};
 			qhandle_t shader = cgs.media.whiteShader;	//dummy
 			col[3] *= cg.jkg_HUDOpacity;
-			if ( i < MAX_ACI_SLOTS && cg.playerACI[i] >= 0 && cg.playerInventory[cg.playerACI[i]].id && cg.playerInventory[cg.playerACI[i]].id->itemID )
+			if ( i < MAX_ACI_SLOTS && cg.playerACI[i] >= 0 && (*cg.playerInventory)[cg.playerACI[i]].id && (*cg.playerInventory)[cg.playerACI[i]].id->itemID )
 			{
 			    int weapon, variation;
-				if(cg.playerInventory[cg.playerACI[i]].id->itemType == ITEM_WEAPON)
+				if((*cg.playerInventory)[cg.playerACI[i]].id->itemType == ITEM_WEAPON)
 				{
-					if ( BG_GetWeaponByIndex (cg.playerInventory[cg.playerACI[i]].id->varID, &weapon, &variation) )
+					if ( BG_GetWeaponByIndex ((*cg.playerInventory)[cg.playerACI[i]].id->weaponData.varID, &weapon, &variation) )
 					{
 						const weaponInfo_t *weaponInfo = CG_WeaponInfo (weapon, variation);
 						shader = weaponInfo->hudIcon;
@@ -1109,7 +1109,7 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 					col[0] = 1.0f;
 					col[1] = 1.0f;
 					col[2] = 1.0f;
-					shader = trap->R_RegisterShaderNoMip(cg.playerInventory[cg.playerACI[i]].id->itemIcon);
+					shader = trap->R_RegisterShaderNoMip((*cg.playerInventory)[cg.playerACI[i]].id->visuals.itemIcon);
 				}
 			}
 			if(shader != cgs.media.whiteShader)

@@ -1215,8 +1215,6 @@ extern vmCvar_t jkg_autoreload;
 #define	DEBUGNAME(x) if(cg_debugEvents.integer){trap->Print(x"\n");}
 #define	DEBUGNAME2(x, y) if(cg_debugEvents.integer){trap->Print(x"\n", y);}
 extern void CG_ChatBox_AddString(char *chatStr, int fadeLevel); //cg_draw.c
-extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
-extern void JKG_CG_SetACISlot(const unsigned short slot);
 void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	entityState_t	*es;
 	int				event;
@@ -3300,15 +3298,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_MISSILE_DIE:
 		JKG_RenderProjectileDeath (cent, cent->currentState.origin, cent->currentState.angles, cent->currentState.firingMode);
 	    break;
-
-	case EV_ITEM_BREAK:
-		DEBUGNAME ("EV_ITEM_BREAK");
-		trap->S_StartSound(NULL, cg.snap->ps.clientNum, CHAN_AUTO, CGitemLookupTable[es->eventParm].itemType == ITEM_ARMOR ? cgs.media.armorBreakSound : cgs.media.weaponBreakSound);
-		break;
-
-	case EV_BULLET:
-		trap->Print("^3WARNING: EV_BULLET passed\n");
-		break;
 	default:
 		DEBUGNAME("UNKNOWN");
 		trap->Error( ERR_DROP, "Unknown event: %i", event );

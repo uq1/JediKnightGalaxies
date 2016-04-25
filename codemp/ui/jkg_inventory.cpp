@@ -2,14 +2,14 @@
 #include "jkg_inventory.h"
 
 static int nNumInventoryItems = 0;			// number of items in the list
-static cgItemInstance_t* pItems = nullptr;	// pointer to array of items
+static itemInstance_t* pItems = nullptr;	// pointer to array of items
 static int nPosition = 0;					// position in the item list (changed with arrow buttons)
 static int nSelected = -1;					// selected item in the list (-1 for no selection)
 
 
 static void JKG_ConstructInventoryList() {
 	nNumInventoryItems = (int)cgImports->InventoryDataRequest(0);
-	pItems = (cgItemInstance_t*)cgImports->InventoryDataRequest(1);
+	pItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
 
 	// Clear the selected item, if it's invalid
 	if (nSelected >= nNumInventoryItems) {
@@ -136,7 +136,7 @@ const char* JKG_GetRecoilString(weaponData_t* pData, const int nFiringMode) {
 }
 
 // Returns the string that should appear on nLineNum of an item description
-char* JKG_GetItemDescLine(cgItemInstance_t* pItem, int nLineNum) {
+char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum) {
 	/* Weapon variables */
 	bool bDontCareAboutAccuracy = false;
 	int nFiringMode = 0;
@@ -170,11 +170,11 @@ char* JKG_GetItemDescLine(cgItemInstance_t* pItem, int nLineNum) {
 			if (nLineNum == 0) {
 				return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_WEAPON");
 			}
-			pWeaponData = GetWeaponData(pItem->id->weapon, pItem->id->variation);
+			pWeaponData = GetWeaponData(pItem->id->weaponData.weapon, pItem->id->weaponData.variation);
 			
 			// Reload time / cook time
 			if (nLineNum == 1) {
-				switch (pItem->id->weapon) {
+				switch (pItem->id->weaponData.weapon) {
 					case WP_THERMAL:
 						// Cook time
 						if (pWeaponData->hasCookAbility) {
@@ -243,12 +243,12 @@ char* JKG_GetItemDescLine(cgItemInstance_t* pItem, int nLineNum) {
 				}
 			}
 
-			if (pItem->id->weapon == WP_SABER) {
+			if (pItem->id->weaponData.weapon == WP_SABER) {
 				// TODO
 				goto blankLine;
 			}
 
-			if (pItem->id->weapon == WP_THERMAL || pItem->id->weapon == WP_TRIP_MINE || pItem->id->weapon == WP_DET_PACK) {
+			if (pItem->id->weaponData.weapon == WP_THERMAL || pItem->id->weaponData.weapon == WP_TRIP_MINE || pItem->id->weaponData.weapon == WP_DET_PACK) {
 				// Don't care about accuracy rating for these weapons.
 				// TODO: make this a flag in the .itm file
 				bDontCareAboutAccuracy = true;
@@ -480,8 +480,8 @@ void JKG_Inventory_OwnerDraw_ItemIcon(itemDef_t* item, int ownerDrawID) {
 	if (nItemNum >= nNumInventoryItems) {
 		return;
 	}
-	cgItemInstance_t* pItem = &pItems[nItemNum];
-	qhandle_t shader = trap->R_RegisterShaderNoMip(pItem->id->itemIcon);
+	itemInstance_t* pItem = &pItems[nItemNum];
+	qhandle_t shader = trap->R_RegisterShaderNoMip(pItem->id->visuals.itemIcon);
 	trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h,
 		0, 0, 1, 1, shader);
 }
@@ -494,7 +494,7 @@ void JKG_Inventory_OwnerDraw_ItemName(itemDef_t* item, int ownerDrawID) {
 		Item_Text_Paint(item); // FIXME: should we really be trying to paint a blank string?
 		return;
 	}
-	cgItemInstance_t* pItem = &pItems[nItemNum];
+	itemInstance_t* pItem = &pItems[nItemNum];
 	strcpy(item->text, pItem->id->displayName);
 	Item_Text_Paint(item);
 }
@@ -508,7 +508,7 @@ void JKG_Inventory_OwnerDraw_ItemTagTop(itemDef_t* item, int ownerDrawID) {
 		Item_Text_Paint(item);
 		return;
 	}
-	cgItemInstance_t* pItem = &pItems[nItemNum];
+	itemInstance_t* pItem = &pItems[nItemNum];
 	// If it's in an ACI slot, mention this
 	// FIXME: pItem->equipped should be valid!! but it's not!!
 	int* pACI = (int*)cgImports->InventoryDataRequest(2);
@@ -550,8 +550,8 @@ void JKG_Inventory_OwnerDraw_SelItemIcon(itemDef_t* item) {
 	if (nSelected == -1) {
 		return;
 	}
-	cgItemInstance_t* pItem = &pItems[nSelected];
-	qhandle_t shader = trap->R_RegisterShaderNoMip(pItem->id->itemIcon);
+	itemInstance_t* pItem = &pItems[nSelected];
+	qhandle_t shader = trap->R_RegisterShaderNoMip(pItem->id->visuals.itemIcon);
 	trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y,
 		item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, shader);
 }
@@ -561,7 +561,7 @@ void JKG_Inventory_OwnerDraw_SelItemName(itemDef_t* item) {
 	if (nSelected == -1) {
 		return;
 	}
-	cgItemInstance_t* pItem = &pItems[nSelected];
+	itemInstance_t* pItem = &pItems[nSelected];
 	strcpy(item->text, pItem->id->displayName);
 	Item_Text_Paint(item);
 }
@@ -571,14 +571,14 @@ void JKG_Inventory_OwnerDraw_SelItemDesc(itemDef_t* item, int ownerDrawID) {
 	if (nSelected == -1) {
 		return;
 	}
-	cgItemInstance_t* pItem = &pItems[nSelected];
+	itemInstance_t* pItem = &pItems[nSelected];
 	strcpy(item->text, JKG_GetItemDescLine(pItem, ownerDrawID));
 	Item_Text_Paint(item);
 }
 
 // Draws the interaction buttons
 void JKG_Inventory_OwnerDraw_Interact(itemDef_t* item, int ownerDrawID) {
-	cgItemInstance_t* pItem = nullptr;
+	itemInstance_t* pItem = nullptr;
 	memset(item->text, 0, sizeof(item->text));
 	if (nSelected == -1) {
 		return;
@@ -716,7 +716,7 @@ void JKG_Inventory_Interact(char** args) {
 	if (nSelected == -1) {
 		return;
 	}
-	cgItemInstance_t* pItem = &pItems[nSelected];
+	itemInstance_t* pItem = &pItems[nSelected];
 	switch (nArg) {
 		default:
 		case 0:

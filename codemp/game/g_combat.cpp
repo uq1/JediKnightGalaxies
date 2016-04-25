@@ -710,10 +710,9 @@ body_die
 ==================
 */
 //eezstreet add: body use function
-extern void JKG_PickItemsClean( gentity_t *ent, lootTable_t *loot );
-extern lootTable_t lootLookupTable[MAX_LOOT_TABLE_SIZE];
 static void LootBodyProper( gentity_t *self, gentity_t *other, gentity_t *activator){
-	int i;
+	return;
+	/*int i;
 	char str[900];
 	if(!activator->client)
 		return;
@@ -745,7 +744,7 @@ static void LootBodyProper( gentity_t *self, gentity_t *other, gentity_t *activa
 	
 	#ifdef _DEBUG
 	Com_Printf(str);
-	#endif
+	#endif*/
 }
 void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath ) {
 	// NOTENOTE No gibbing right now, this is star wars.
@@ -2569,9 +2568,8 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 		/* JKG - Muzzle Calculation End */
 
 		/* JKG (eez) - drop items */
-		if(self->client->deathLootIndex != -1 && lootLookupTable[self->client->deathLootIndex].numItems > 0)
+		if(self->client->deathLootIndex != -1)
 		{
-			JKG_PickItemsClean(self, &lootLookupTable[self->client->deathLootIndex]);
 			//Let's try this the other way, for effect!
 			self->r.svFlags |= SVF_PLAYER_USABLE;
 			self->painDebounceTime = 0;
@@ -4658,39 +4656,6 @@ void G_LocationBasedDamageModifier(gentity_t *ent, vec3_t point, int mod, int df
 	default:
 		break; //do nothing then
 	}
-
-	//eezstreet add - Defense n Armor
-	if( ent->client && ent->inventory && ent->s.eType != ET_NPC && !(ent->r.svFlags & SVF_BOT) && hitLoc != HL_NONE )
-	{ //Valid player
-		int armorItem = ent->client->armorItems[armorSlot];
-		itemInstance_t *item = &ent->inventory->items[armorItem];
-		if(armorItem && item->id->itemID)
-		{ //Valid item and armor
-			/*if((item->durabilityCurrent > 0 && item->id->baseDurabilityMax > 0) ||
-				item->id->baseDurabilityMax <= 0)
-			{
-				*damage *= ((125 - item->defense)/125); //Defense formula
-				//One point of defense is worth 0.8% damage reduction
-				if(Q_irand(1,10) == 1) //Random probability - 1 in 10 chance of losing durability
-				{
-					if(item->id->baseDurabilityMax > 0)
-					{ //This item has a max durability of > 0 (because some items are indestructible)
-						item->durabilityCurrent--;
-						if(item->durabilityCurrent <= 0)
-						{ //Item breaks.
-							//lolol do item breaking code here
-						}
-					}
-				}
-			}*/
-			// durability check removed for now
-			if(item->defense > 0)
-			{
-				*damage *= ((100 - item->defense)/100); //Defense formula
-			}
-		}
-	}
-
 }
 /*
 ===================================

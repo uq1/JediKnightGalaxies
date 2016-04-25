@@ -44,7 +44,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 //#include "jkg_navmesh_creator.h"
 #include "jkg_damagetypes.h"
 #include "bg_items.h"
-#include "jkg_easy_items.h"
 #include "jkg_treasureclass.h"
 
 #include <assert.h>
@@ -370,7 +369,6 @@ static void JKG_RegisteServerCallback ( asyncTask_t *task )
 
 extern void RemoveAllWP(void);
 extern void BG_ClearVehicleParseParms(void);
-extern void JKG_InitItems(void);
 void ActivateCrashHandler();
 
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
@@ -566,7 +564,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	JKG_InitializeStanceData();
 	
 	// setup master item table
-	JKG_InitItems();
+	BG_InitItems();
 
 	JKG_InitializeConstants();
 	
@@ -631,8 +629,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	JKG_BindChatCommands();
 }
-
-
 
 /*
 =================
@@ -749,10 +745,6 @@ void G_ShutdownGame( int restart ) {
 	}
 
 	NPC_Cleanup();
-
-	JKG_Easy_DIMA_Cleanup();
-//	G_TerminateMemory(); // wipe all allocs made with G_Alloc
-	//JKG_Nav_Shutdown();
 #ifndef NO_CRYPTOGRAPHY
 	EVP_cleanup();
 #endif
@@ -3104,9 +3096,6 @@ void G_RunFrame( int levelTime ) {
 
     // Damage players
     JKG_DamagePlayers();
-
-	// Update any sort of vendors that need updating because of cvars, etc
-	JKG_CheckVendorReplenish();
 
 #ifdef _G_FRAME_PERFANAL
 	trap->PrecisionTimer_Start(&timer_ItemRun);
