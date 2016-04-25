@@ -17,6 +17,7 @@ const stringID_table_s itemPacketNames[] = {
 	ENUM2STRING(IPT_CLEAR),
 	ENUM2STRING(IPT_OPEN),
 	ENUM2STRING(IPT_QUANT),
+	ENUM2STRING(IPT_RESET),
 	{ nullptr, IPT_NULL }
 };
 
@@ -212,30 +213,40 @@ Server only-send an item packet
 #ifdef _GAME
 void BG_SendItemPacket(itemPacketType_t packetType, gentity_t* ent, void* memData, int intData, int intData2) {
 	const char* packetName = BG_ItemPacketName(packetType);
+	char packet[MAX_STRING_CHARS] = {0};
 	switch(packetType) {
 		case IPT_ADD:
 		case IPT_ADDACI:
 			{
 				itemInstance_t* pItem = (itemInstance_t*)memData;
-				trap->SendServerCommand(ent - g_entities, va("pInv %s %i %i", packetName, pItem->id->itemID, pItem->quantity));
+				Com_sprintf(packet, sizeof(packet), "pInv %s %i %i", packetName, pItem->id->itemID, pItem->quantity);
 			}
 			break;
 		case IPT_REM:
 			{
 				int itemSlot = intData;
-				trap->SendServerCommand(ent - g_entities, va("pInv %s %i", packetName, itemSlot));
+				Com_sprintf(packet, sizeof(packet), "pInv %s %i", packetName, itemSlot);
 			}
 			break;
 		case IPT_OPEN:
 		case IPT_CLEAR:
-			trap->SendServerCommand(ent - g_entities, va("pInv %s", packetName));
+			Com_sprintf(packet, sizeof(packet), "pInv %s", packetName);
 			break;
 		case IPT_QUANT:
-			trap->SendServerCommand(ent - g_entities, va("pInv %s %i %i", packetName, intData, intData2));
+			Com_sprintf(packet, sizeof(packet), "pInv %s %i %i", packetName, intData, intData2);
+			break;
+		case IPT_RESET:
+			Com_sprintf(packet, sizeof(packet), "pInv %s %i ", packetName, intData);
+			{
+				for(auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+					Q_strcat(packet, sizeof(packet), va("%i %i", it->id->itemID, it->quantity));
+				}
+			}
 			break;
 		default:
 			break;
 	}
+	trap->SendServerCommand(ent - g_entities, packet);
 }
 #endif
 
@@ -288,6 +299,18 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 			// Open the inventory menu
 			uiImports->InventoryNotify(0);
 			break;
+		case IPT_RESET:
+			cg.playerInventory->clear();
+			{
+				int numItems = atoi(CG_Argv(2));
+				for (int i = 0; i < numItems; i++) {
+					int itemID = atoi(CG_Argv(3 + (2 * i)));
+					int quant = atoi(CG_Argv(4 + (2 * i)));
+					itemInstance_t item = BG_ItemInstance(itemID, quant);
+					cg.playerInventory->push_back(item);
+				}
+			}
+			break;
 	}
 }
 #endif
@@ -311,10 +334,10 @@ void BG_SendTradePacket(itemTradePacketType_t packetType, gentity_t* ent, gentit
 			{
 				int numItems = intData;
 				itemInstance_t* pItems = (itemInstance_t*)memData;
-				strcpy(packet, va("pTrade %i %i %i ", packetType, other->s.number, numItems));
+				Com_sprintf(packet, sizeof(packet), "pTrade %i %i %i ", packetType, other->s.number, numItems);
 				for(int i = 0; i < numItems; i++) {
 					itemInstance_t* pItem = &pItems[i];
-					Com_sprintf(packet, sizeof(packet), "%i %i ", pItem->id->itemID, pItem->quantity);
+					Q_strcat(packet, sizeof(packet), va("%i %i ", pItem->id->itemID, pItem->quantity));
 				}
 			}
 			break;
@@ -366,8 +389,8 @@ void BG_ReceivedTradePacket(itemTradePacketType_t packet) {
 				}
 				int numItems = atoi(CG_Argv(3));
 				for (int i = 0; i < numItems; i++) {
-					int itemID = atoi(CG_Argv(4 + i));
-					int quantity = atoi(CG_Argv(5 + i));
+					int itemID = atoi(CG_Argv(4 + (2*i)));
+					int quantity = atoi(CG_Argv(5 + (2*i)));
 					itemInstance_t item = BG_ItemInstance(itemID, quantity);
 					cg.otherTradeItems->push_back(item);
 				}
@@ -382,8 +405,8 @@ void BG_ReceivedTradePacket(itemTradePacketType_t packet) {
 				int otherEntity = atoi(CG_Argv(2));
 				int numItems = atoi(CG_Argv(3));
 				for (int i = 0; i < numItems; i++) {
-					int itemID = atoi(CG_Argv(4 + i));
-					int quantity = atoi(CG_Argv(5 + i));
+					int itemID = atoi(CG_Argv(4 + (2 * i)));
+					int quantity = atoi(CG_Argv(5 + (2 * i)));
 					itemInstance_t item = BG_ItemInstance(itemID, quantity);
 					cg.otherTradeItems->push_back(item);
 				}

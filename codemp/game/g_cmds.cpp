@@ -4512,6 +4512,11 @@ void ClientCommand( int clientNum ) {
 		return;
 	}
 
+	if (!Q_stricmp(cmd, "resendInv")) {
+		BG_SendItemPacket(IPT_RESET, ent, nullptr, ent->inventory->size(), 0);
+		return;
+	}
+
 	if (Q_stricmp(cmd, "voice_cmd") == 0)
 	{
 		Cmd_VoiceCommand_f(ent);

@@ -74,6 +74,7 @@ typedef enum
 	IPT_CLEAR,	// Clears the client inventory
 	IPT_OPEN,	// Tells the client to open their inventory
 	IPT_QUANT,	// An item's quantity has been changed
+	IPT_RESET,	// Reset the player's inventory (usually only done after a vid_restart)
 	IPT_NULL	// null packet
 } itemPacketType_t;
 

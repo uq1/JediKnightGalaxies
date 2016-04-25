@@ -2639,6 +2639,9 @@ Ghoul2 Insert Start
 	// Jedi Knight Galaxies
 	CinBuild_Init();
 	CG_SetupChatCmds();
+
+	/* The server needs to send our inventory to us. Tell us them that we're ready to receive it. */
+	trap->SendClientCommand("resendInv");
 /*
 Ghoul2 Insert End
 */
