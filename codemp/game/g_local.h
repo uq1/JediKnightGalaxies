@@ -463,6 +463,8 @@ struct gentity_s {
 	int			grenadeWeapon;		// The cookable grenade type that has been set (it can explode in your pocket).
 	int			grenadeVariation;	// The cookable grenade variation that has been set (it can explode in your pocket).
 
+	char		treasureclass[MAX_QPATH];
+
 	// For scripted NPCs
 	char		*npcscript;
 
@@ -1902,6 +1904,12 @@ void G_UpdateCvars( void );
 **************************************************/
 void JKG_SP_target_vendor(gentity_t *ent);
 void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activator);
+
+/**************************************************
+* jkg_treasureclass.cpp
+**************************************************/
+void JKG_TC_Init(const char* szTCDirectory);
+void JKG_TC_Shutdown();
 
 /**************************************************
 * jkg_astar.cpp - New A* Routing Implementation.

@@ -324,6 +324,7 @@ Server only-send a trade packet to the client
 */
 #ifdef _GAME
 void BG_SendTradePacket(itemTradePacketType_t packetType, gentity_t* ent, gentity_t* other, void* memData, int intData, int intData2) {
+	const char* packetName = BG_TradePacketName(packetType);
 	char packet[MAX_STRING_CHARS] = {0};
 	if(!ent || !other) {
 		return;
@@ -334,7 +335,7 @@ void BG_SendTradePacket(itemTradePacketType_t packetType, gentity_t* ent, gentit
 			{
 				int numItems = intData;
 				itemInstance_t* pItems = (itemInstance_t*)memData;
-				Com_sprintf(packet, sizeof(packet), "pTrade %i %i %i ", packetType, other->s.number, numItems);
+				Com_sprintf(packet, sizeof(packet), "pTrade %s %i %i ", packetName, other->s.number, numItems);
 				for(int i = 0; i < numItems; i++) {
 					itemInstance_t* pItem = &pItems[i];
 					Q_strcat(packet, sizeof(packet), va("%i %i ", pItem->id->itemID, pItem->quantity));
@@ -344,19 +345,19 @@ void BG_SendTradePacket(itemTradePacketType_t packetType, gentity_t* ent, gentit
 		case IPT_TRADECANCEL:
 		case IPT_TRADETRANS:
 		case IPT_TRADEREADY:
-			Com_sprintf(packet, sizeof(packet), "pTrade %i", packetType);
+			Com_sprintf(packet, sizeof(packet), "pTrade %s", packetType);
 			break;
 		case IPT_TRADESINGLE:
 			{
 				itemInstance_t* item = (itemInstance_t*)memData;
 				int credits = intData;
-				Com_sprintf(packet, sizeof(packet), "pTrade %i %i %i %i", packetType, credits, item->id->itemID, item->quantity);
+				Com_sprintf(packet, sizeof(packet), "pTrade %s %i %i %i", packetName, credits, item->id->itemID, item->quantity);
 			}
 			break;
 		case IPT_TRADECREDITS:
 			{
 				int credits = intData;
-				Com_sprintf(packet, sizeof(packet), "pTrade %i %i", packetType, credits);
+				Com_sprintf(packet, sizeof(packet), "pTrade %s %i", packetName, credits);
 			}
 			break;
 	}
@@ -525,7 +526,7 @@ Finds the next stack in a vector of item instances, starting from the current.
 ====================
 */
 int BG_NextStack(const std::vector<itemInstance_t>& container, const int itemID, const int prevStack) {
-	for (auto it = container.begin() + prevStack; it != container.end(); ++it) {
+	for (auto it = container.begin() + prevStack + 1; it != container.end(); ++it) {
 		if (it->id != nullptr && it->id->itemID == itemID) {
 			return it - container.begin();
 		}

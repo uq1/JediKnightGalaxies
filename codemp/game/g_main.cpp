@@ -566,6 +566,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// setup master item table
 	BG_InitItems();
 
+	JKG_TC_Init("ext_data/treasure");
+
 	JKG_InitializeConstants();
 	
 	// Create items for weapons
@@ -664,6 +666,8 @@ void G_ShutdownGame( int restart ) {
 	BG_ClearAnimsets(); //free all dynamic allocations made through the engine
 
 	BG_ShutdownWeaponG2Instances();
+
+	JKG_TC_Shutdown();
 
 //	Com_Printf("... Gameside GHOUL2 Cleanup\n");
 	while (i < MAX_GENTITIES)

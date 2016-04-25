@@ -11,10 +11,32 @@ Run every time the vendor needs to refresh its stock.
 ====================
 */
 static void JKG_target_vendor_think(gentity_t* self) {
-	gentity_t* npc = &g_entities[self->genericValue1];
+	gentity_t* npc = nullptr;
+	if (self->genericValue1 == -1) {
+		// We weren't able to find the entity upon init, let's give it another shot now.
+		npc = G_Find(npc, FOFS(targetname), self->target);
+		if (npc != nullptr) {
+			self->genericValue1 = npc->s.number;
+			npc->genericValue1 = ENTITYNUM_NONE;
+			npc->use = JKG_target_vendor_use;
+			npc->r.svFlags |= SVF_PLAYER_USABLE;
+		}
+		else {
+			self->nextthink = level.time + 5000;
+			return;
+		}
+	}
+	else {
+		npc = &g_entities[self->genericValue1];
+	}
+
+	npc->flags |= FL_GODMODE;
+	npc->flags |= FL_NOTARGET;
+	npc->flags |= FL_NO_KNOCKBACK;
+
 	TreasureClass* pTC = nullptr;
 	vector<int> items;
-	auto tc = umTreasureClasses.find(self->targetname);
+	auto tc = umTreasureClasses.find(self->treasureclass);
 
 	if (tc == umTreasureClasses.end()) {
 		Com_Printf("couldn't find vendor treasure class: %s\n", self->targetname);
@@ -117,7 +139,7 @@ void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activat
 		}
 	}
 	
-	BG_SendTradePacket(IPT_TRADEOPEN, activator, self, &self->inventory[0], self->inventory->size(), 0);
+	BG_SendTradePacket(IPT_TRADEOPEN, activator, self, &(*self->inventory)[0], self->inventory->size(), 0);
 
 	if (self->s.eType == ET_NPC)
 	{
@@ -128,6 +150,7 @@ void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activat
 	activator->client->ps.useDelay = level.time + 500;
 	activator->client->currentTrader = self;
 	activator->client->pmnomove = true;
+	self->genericValue1 = activator->s.number;
 }
 
 /*
@@ -138,7 +161,16 @@ Vendor spawning function. Requires an NPC as a target.
 ====================
 */
 void JKG_SP_target_vendor(gentity_t *ent) {
+
+	char* tc;
+	G_SpawnString("treasureclass", "genericvendor", &tc);
+	if (Q_stricmp(tc, "genericvendor")) {
+		tc = Q_strlwr(tc);
+	}
+	Q_strncpyz(ent->treasureclass, tc, sizeof(ent->treasureclass));
+
 	gentity_t *targetVendor = NULL;
+	ent->genericValue1 = -1;
 	ent->think = JKG_target_vendor_think;
 	ent->nextthink = level.time + 50;
 	targetVendor = G_Find(targetVendor, FOFS(targetname), ent->target);
@@ -146,6 +178,7 @@ void JKG_SP_target_vendor(gentity_t *ent) {
 		return;
 	}
 	targetVendor->use = JKG_target_vendor_use;
+	targetVendor->r.svFlags |= SVF_PLAYER_USABLE;
 	targetVendor->flags |= FL_GODMODE;
 	targetVendor->flags |= FL_NOTARGET;
 	targetVendor->flags |= FL_NO_KNOCKBACK;
@@ -153,9 +186,5 @@ void JKG_SP_target_vendor(gentity_t *ent) {
 	// Generic value 1 = Vendor entity number
 	// targetname gets set to the treasureclass. seems pretty hack but it's a good idea
 	ent->genericValue1 = targetVendor->s.number;
-
-	char* tc;
-	G_SpawnString("treasureclass", "genericvendor", &tc);
-	tc = Q_strlwr(tc);
-	strcpy(ent->targetname, tc);
+	targetVendor->genericValue1 = ENTITYNUM_NONE;
 }

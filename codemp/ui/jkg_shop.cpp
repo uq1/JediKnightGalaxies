@@ -109,35 +109,36 @@ void JKG_Shop_UpdateShopStuff(int filterVal)
 			switch(filterVal)
 			{
 				case JKGIFILTER_ALL:
-					UIshopItems[UInumShopItems++] = UIunfilteredShopItems[i];
+					UIshopItems.push_back(UIunfilteredShopItems[i]);
 					break;
 				case JKGIFILTER_ARMOR:
 					if(UIunfilteredShopItems[i].id->itemType == ITEM_ARMOR || UIunfilteredShopItems[i].id->itemType == ITEM_CLOTHING)
 					{
-						UIshopItems[UInumShopItems++] = UIunfilteredShopItems[i];
+						UIshopItems.push_back(UIunfilteredShopItems[i]);
 					}
 					break;
 				case JKGIFILTER_WEAPONS:
 					if(UIunfilteredShopItems[i].id->itemType == ITEM_WEAPON)
 					{
-						UIshopItems[UInumShopItems++] = UIunfilteredShopItems[i];
+						UIshopItems.push_back(UIunfilteredShopItems[i]);
 					}
 					break;
 				case JKGIFILTER_CONSUMABLES:
 					if(UIunfilteredShopItems[i].id->itemType == ITEM_CONSUMABLE)
 					{
-						UIshopItems[UInumShopItems++] = UIunfilteredShopItems[i];
+						UIshopItems.push_back(UIunfilteredShopItems[i]);
 					}
 					break;
 				case JKGIFILTER_MISC:
 					if(UIunfilteredShopItems[i].id->itemType == ITEM_UNKNOWN)
 					{
-						UIshopItems[UInumShopItems++] = UIunfilteredShopItems[i];
+						UIshopItems.push_back(UIunfilteredShopItems[i]);
 					}
 					break;
 			}
 		}
 	}
+	UInumShopItems = UIshopItems.size();
 
 	//Update all the shop items
 	for(i = 0; i < numElements; i++)
@@ -341,6 +342,9 @@ void JKG_Shop_ItemSelect(char **args)
 		//Too high...bug?
 		return;
 	}
+	else if (shopMenuPosition + arg0 > UInumShopItems) {
+		return;
+	}
 
 	shopState.selectedShopItem = shopMenuPosition+arg0;
 	JKG_Shop_UpdateShopStuff(ui_inventoryFilter.integer);
@@ -475,7 +479,7 @@ void JKG_Shop_BuyConfirm_Yes(char **args)
 	{
 		// Here's a thought...why not send the item ID _instead_ of the selected index?
 		// 100% guaranteed to work then --eez
-		cgImports->SendClientCommand(va("buyVendor %i", UIshopItems[shopState.selectedShopItem-1]));
+		cgImports->SendClientCommand(va("buyVendor %i", shopState.selectedShopItem-1));
 	}
 	Menu_ItemDisable(shopState.menu, "shop_preview", qfalse);
 	Menu_ItemDisable(shopState.menu, "shop_feederSel", qfalse);

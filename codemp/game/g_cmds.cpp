@@ -373,6 +373,7 @@ void JKG_BuyItem_f(gentity_t *ent)
 	itemInstance_t* pItem = &(*trader->inventory)[item];
 	BG_SendTradePacket(IPT_TRADESINGLE, ent, trader, pItem, pItem->id->baseCost, 0);
 	BG_GiveItemNonNetworked(ent, *pItem);
+	ent->client->ps.credits -= pItem->id->baseCost;
 }
 
 /*
