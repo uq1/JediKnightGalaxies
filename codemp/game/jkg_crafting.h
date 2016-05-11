@@ -1,11 +1,7 @@
 #pragma once
 #include "jkg_dynarrays.h"
 
-#ifndef __linux__
 typedef enum
-#else
-enum
-#endif
 {
 	CRAFTING_WORKBENCH,
 	CRAFTING_WELDING,

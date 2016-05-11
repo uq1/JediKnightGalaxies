@@ -2117,7 +2117,7 @@ char *JKG_xRBG_ConvertExtToNormal(const char *text)	//for converting ^xRBG names
 }
 
 //didn't provide a limit value okay?
-void Global_SanitizeString(char *in, char *out)
+void Global_SanitizeString_MaxQPath(char *in, char *out)
 {
 	Global_SanitizeString(in, out, MAX_QPATH);
 }

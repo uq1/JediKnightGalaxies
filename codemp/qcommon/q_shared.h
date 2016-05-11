@@ -2517,7 +2517,7 @@ static qboolean ExtColor_IsValid(char chr);			//check if ^xRGB valid, returns -1
 //static float ExtColor_GetLevel(char chr);			//get color values for ^xRGB
 void Q_StripColor_Simple(char *text);				//simplifying strip mining operations
 char *JKG_xRBG_ConvertExtToNormal(const char *text);	//for converting ^xRGB names to regular ^1names return nonconst
-void Global_SanitizeString(char *in, char *out);
+void Global_SanitizeString_MaxQPath(char *in, char *out);
 void Global_SanitizeString(char *in, char *out, int limit);
 qboolean Text_IsExtColorCode(const char *text);
 qboolean StringContainsWord(const char *haystack, const char *needle);
