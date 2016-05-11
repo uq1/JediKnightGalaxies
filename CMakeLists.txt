@@ -31,6 +31,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # Customizable options
 option(BuildPortableVersion "Build portable version (does not read or write files from your user/home directory" OFF)
+option(BuildSkipCryptography "Remove unused Cryptography." ON)
 
 option(BuildMPEngine "Whether to create projects for the MP client (jkgalaxies.exe)" ON)
 option(BuildMPDed "Whether to create projects for the MP dedicated server (jkgalaxiesded.exe)" ON)
@@ -217,6 +218,10 @@ endif()
 # Settings
 if(BuildPortableVersion)
 	set(SharedDefines ${SharedDefines} "_PORTABLE_VERSION")
+endif()
+
+if(BuildSkipCryptography)
+	set(SharedDefines ${SharedDefines} "NO_CRYPTOGRAPHY")
 endif()
 
 set(JKGDir "${CMAKE_SOURCE_DIR}/JKGalaxies")
