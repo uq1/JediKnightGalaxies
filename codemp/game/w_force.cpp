@@ -4989,10 +4989,10 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 	self->s.forcePower = self->client->ps.forcePower;
 
 	//The stance in relation to power level is no longer applicable with the crazy new akimbo/staff stances.
-	if (!self->client->ps.fd.saberAnimLevel)
-	{
+	/*if (!self->client->ps.fd.saberAnimLevel)
+	{ // Removed this, it was locking out the saber cycle ~~ ooxavenue
 		self->client->ps.fd.saberAnimLevel = FORCE_LEVEL_1;
-	}
+	}*/ 
 
 	if (self->client->ps.fd.forcePowerSelected < 0)
 	{ //bad
