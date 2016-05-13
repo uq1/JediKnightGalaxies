@@ -260,6 +260,34 @@ int BodyRemovalPadTime( gentity_t *ent )
 	if ( !ent || !ent->client )
 		return 0;
 
+	if (jkg_removenpcbody.integer)
+	{
+		int time = 0;
+
+		switch (ent->client->NPC_class)
+		{
+		case CLASS_MOUSE:
+		case CLASS_GONK:
+		case CLASS_R2D2:
+		case CLASS_R5D2:
+		//case CLASS_PROTOCOL:
+		case CLASS_MARK1:
+		case CLASS_MARK2:
+		case CLASS_PROBE:
+		case CLASS_SEEKER:
+		case CLASS_REMOTE:
+		case CLASS_SENTRY:
+		case CLASS_INTERROGATOR:
+			time = jkg_removenpctime_droid.integer;
+			break;
+		default:
+			time = jkg_removenpctime_default.integer;
+			break;
+		}
+
+		return time;
+	}
+
 	return Q3_INFINITE;
 }
 
@@ -522,11 +550,14 @@ static void DeadThink ( void )
 				class_t	npc_class;
 
 				// Start the body effect first, then delay 400ms before ditching the corpse
-				// NPC_RemoveBodyEffect();
-				// removed for now
+				if (jkg_removenpcbody.integer)
+				{
+					 NPC_RemoveBodyEffect();
+					// removed for now
 
-				//FIXME: keep it running through physics somehow?
-				//NPC->think = NPC_RemoveBody;
+					//FIXME: keep it running through physics somehow?
+					NPC->think = NPC_RemoveBody;
+				}
 				NPC->nextthink = level.time + FRAMETIME;
 			//	if ( NPC->client->playerTeam == NPCTEAM_FORGE )
 			//		NPCInfo->timeOfDeath = level.time + FRAMETIME * 8;
