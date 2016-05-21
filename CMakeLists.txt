@@ -31,6 +31,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # Customizable options
 option(BuildPortableVersion "Build portable version (does not read or write files from your user/home directory" OFF)
+option(BuildSkipCryptography "Remove unused Cryptography." ON)
+option(BuildBinaryPK3 "Whether to create a PK3 for Binary files (currently only works on windows)" ON)
 
 option(BuildMPEngine "Whether to create projects for the MP client (jkgalaxies.exe)" ON)
 option(BuildMPDed "Whether to create projects for the MP dedicated server (jkgalaxiesded.exe)" ON)
@@ -170,6 +172,7 @@ else()
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 	if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment")
@@ -216,6 +219,10 @@ endif()
 # Settings
 if(BuildPortableVersion)
 	set(SharedDefines ${SharedDefines} "_PORTABLE_VERSION")
+endif()
+
+if(BuildSkipCryptography)
+	set(SharedDefines ${SharedDefines} "NO_CRYPTOGRAPHY")
 endif()
 
 set(JKGDir "${CMAKE_SOURCE_DIR}/JKGalaxies")

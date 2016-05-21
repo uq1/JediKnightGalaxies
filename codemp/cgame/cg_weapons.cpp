@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "fx_local.h"
 #include "cg_weapons.h"
 
-#include "ghoul2/g2.h"
+#include "ghoul2/G2.h"
 
 extern vec4_t	bluehudtint;
 extern vec4_t	redhudtint;

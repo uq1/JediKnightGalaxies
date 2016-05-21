@@ -391,6 +391,9 @@ set(MPGameLuaSource
 source_group("Libraries\\Lua\\Source Files" FILES ${MPGameLuaSource})
 set(MPGameFiles ${MPGameFiles} ${MPGameLuaSource})
 
+if(BuildSkipCryptography)
+# Do nothing
+else()
 set(MPGameSSLHeader
 	"${MPDir}/libraries/openssl/aes.h"
 	"${MPDir}/libraries/openssl/asn1.h"
@@ -468,14 +471,14 @@ set(MPGameSSLHeader
 source_group("Libraries\\OpenSSL\\Header Files" FILES ${MPGameSSLHeader})
 set(MPGameFiles ${MPGameFiles} ${MPGameSSLHeader})
 
-add_library(${MPGame} SHARED ${MPGameFiles})
 if(WIN32)
 	target_link_libraries(${MPGame} "${MPDir}/libraries/openssl/ssleay32.lib" "${MPDir}/libraries/openssl/libeay32.lib")
 else()
 	target_link_libraries(${MPGame} "ssl" "crypto")
 endif()
+endif() # End BuildSkipCryptography
 
-
+add_library(${MPGame} SHARED ${MPGameFiles})
 
 if(NOT WIN32)
 	# remove "lib" prefix for .so/.dylib files
