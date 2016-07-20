@@ -400,8 +400,15 @@ void G_Throw( gentity_t *targ, vec3_t newDir, float push )
 
 static void G_FreeFakeClient(gclient_t **cl)
 {
-	free( *cl );
-	*cl = NULL;
+	// This code was problematic when NPCs had to get cleanned up 
+	// If you check base, this func was empty and had a lengthy explanation.
+	// I believe that this code is a serverside crash waiting to happen 
+	// I think it should be removed but I could be wrong ~~ ooxavenue
+	if (!(jkg_removenpcbody.integer)) 
+	{
+		free(*cl);
+		*cl = NULL;
+	}
 }
 
 //allocate a veh object
