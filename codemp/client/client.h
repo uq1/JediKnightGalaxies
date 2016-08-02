@@ -359,7 +359,7 @@ typedef struct console_s {
 	//note, not yet implemented - ignored for now
 	struct TextColors 
 	{
-		vec4_t color[MAX_COLOR_CHANGES] =
+		/*vec4_t color[MAX_COLOR_CHANGES] =
 		{
 			//{1.0f, 1.0f, 1.0f, 1.0f}
 		};
@@ -367,7 +367,7 @@ typedef struct console_s {
 		//const vec4_t whitecolor{ 1.0, 1.0, 1.0, 1.0 };	//setting for default white color
 		bool isRGB[MAX_COLOR_CHANGES] = { 0 };
 		int markers[MAX_COLOR_CHANGES] = { 0 };
-		int total = 0;
+		int total = 0;*/
 
 	}textColorStart;
 
