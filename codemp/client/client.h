@@ -361,10 +361,10 @@ typedef struct console_s {
 	{
 		vec4_t color[MAX_COLOR_CHANGES] =
 		{
-			{1.0f, 1.0f, 1.0f, 1.0f}
+			//{1.0f, 1.0f, 1.0f, 1.0f}
 		};
 		
-		const vec4_t whitecolor{ 1.0, 1.0, 1.0, 1.0 };	//setting for default white color
+		//const vec4_t whitecolor{ 1.0, 1.0, 1.0, 1.0 };	//setting for default white color
 		bool isRGB[MAX_COLOR_CHANGES] = { 0 };
 		int markers[MAX_COLOR_CHANGES] = { 0 };
 		int total = 0;
