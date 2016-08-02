@@ -426,7 +426,7 @@ void CL_ConsolePrint( const char *txt) {
 	int		c, l;
 	int		color;
 	vec4_t	colorRGB;					//For ^xRGB color codes	--Futuza
-	qboolean ext_RGB = qfalse;			//for ^xRGB color codes	--Futuza
+	unsigned int f_RGB = 0;				//0 = false, 1 = reg ^1, 2 = xRGB
 	qboolean skipnotify = qfalse;		// NERVE - SMF
 	int prev;							// NERVE - SMF
 
@@ -462,7 +462,9 @@ void CL_ConsolePrint( const char *txt) {
 	{
 		if ( Q_IsColorString( (unsigned char*) txt ) ) {
 			color = ColorIndex( *(txt+1) );
+			f_RGB = 1;
 			txt += 2;
+			//cur_pos += 2;
 			continue;
 		}
 
@@ -471,11 +473,10 @@ void CL_ConsolePrint( const char *txt) {
 			((colorRGB[0] = RGB_GetLevel(txt[2]) != -1) && (colorRGB[1] = RGB_GetLevel(txt[3]) != -1) && (colorRGB[2] = RGB_GetLevel(txt[4]) != -1))
 			)	//kill 2 birds with one stone, check validity and get colors
 		{
-			ext_RGB = qtrue;	//set RGB flag
-
+			f_RGB = 2;	//set RGB flag
 			colorRGB[3] = 1.0f;	//set alpha
-
 			txt += 5;
+			//cur_pos += 5;
 			continue;
 		}
 
@@ -503,11 +504,50 @@ void CL_ConsolePrint( const char *txt) {
 			con.x = 0;
 			break;
 		default:	// display character and advance
-
-			//special response for ^xRGB
-			if (ext_RGB)
+			if (f_RGB == 2)	//special response for ^xRGB
 			{
 				//--Futuza: todo - make this work somehow with a float vector of colors
+				
+				/*
+				    Right now we default to displaying colors in the console via the original stupid bit shifting method - should just use our vector of colors we created up above
+					started working on a solution in '...JediKnightGalaxies\codemp\client\client.h' that uses a struct named textColorStart to accomplish this, 
+					will need to implement some sort of call to con.text using vector color codes instead of the bitshifting.
+
+					Please also note, that the behavior of the current method is that it uses one of the 8 original colors, rather then custom rgb colors for in console text,
+					or defaults to all white colors when "/name" is used.
+
+
+					IRC Notes on ideas:
+
+					Xycaleth
+					i was going to suggest something like making RGB colours the default, with the colour indexes being special cases of an RGB colour
+
+					Xycaleth
+					take a look at how the console text gets drawn: https://github.com/JKGDevs/JediKnightGalaxies/blob/master/codemp/client/cl_console.cpp#L820-L851
+
+					Xycaleth
+					it shifts the top 8 bits of the text to check if it’s a colour
+
+					Xycaleth
+					instead of that, maybe you can have a separate array (alongside con.text) which just says what the starting points of a new colour are
+
+					Xycaleth
+					con.textColors maybe?
+
+					Xycaleth
+					textColorStart_t has { int startChar; vec3_t color; }
+
+					Xycaleth
+					and then textColorStart_t textColors[bignumber];
+					textColorStart_t would be a part of console_t
+					you need a record of all the color changes throughout your text  (console text* )
+					say you have ^0Darth^1Fut^0uza
+					you’d have 3 entries in your textColors array
+					{ 0, black}, { 5, red }, { 8, black }
+					the size of the array needs to be the same size as con.text
+
+				*/
+
 				y = con.current % con.totallines;
 				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);	//fix this somehow - help magic code gods
 				con.x++;
@@ -522,7 +562,7 @@ void CL_ConsolePrint( const char *txt) {
 			else
 			{
 				y = con.current % con.totallines;
-				con.text[y*con.linewidth+con.x] = (short) ((color << 8) | c);
+				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);
 				con.x++;
 				if (con.x >= con.linewidth) {
 					Con_Linefeed(skipnotify);
@@ -658,21 +698,23 @@ void Con_DrawNotify (void)
 
 			v +=  iPixelHeightToAdvance;
 		}
+
+		//futuza fixme: rgb console text (see above in CL_ConsolePrint for notes)
 		else
 		{
-			for (x = 0 ; x < con.linewidth ; x++) {
-				if ( ( text[x] & 0xff ) == ' ' ) {
+			for (x = 0; x < con.linewidth; x++) {
+				if ((text[x] & 0xff) == ' ') {
 					continue;
 				}
-				if ( ( (text[x]>>8)&Q_COLOR_BITS ) != currentColor ) {
-					currentColor = (text[x]>>8)&Q_COLOR_BITS;
-					re->SetColor( g_color_table[currentColor] );
+				if (((text[x] >> 8)&Q_COLOR_BITS) != currentColor) {
+					currentColor = (text[x] >> 8)&Q_COLOR_BITS;
+					re->SetColor(g_color_table[currentColor]);
 				}
 				if (!cl_conXOffset)
 				{
-					cl_conXOffset = Cvar_Get ("cl_conXOffset", "0", 0);
+					cl_conXOffset = Cvar_Get("cl_conXOffset", "0", 0);
 				}
-				SCR_DrawSmallChar( (int)(cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH), v, text[x] & 0xff );
+				SCR_DrawSmallChar((int)(cl_conXOffset->integer + con.xadjust + (x + 1)*SMALLCHAR_WIDTH), v, text[x] & 0xff);
 			}
 
 			v += SMALLCHAR_HEIGHT;
@@ -788,7 +830,7 @@ void Con_DrawSolidConsole( float frac ) {
 	}
 
 	currentColor = 7;
-	re->SetColor( g_color_table[currentColor & 15] );
+	re->SetColor( g_color_table[currentColor & 15] );	//--futuza:  set color to white?  Why not just say g_color_table[7]?  always evaluates to 7, unnecessary bit math?
 
 	static int iFontIndexForAsian = 0;
 	const float fFontScaleForAsian = 0.75f*con.yadjust;
@@ -835,18 +877,18 @@ void Con_DrawSolidConsole( float frac ) {
 			//
 			re->Font_DrawString(con.xadjust*(con.xadjust + (1*SMALLCHAR_WIDTH/*(aesthetics)*/)), con.yadjust*(y), sTemp, g_color_table[currentColor], iFontIndexForAsian, -1, fFontScaleForAsian);
 		}
-		else
+		else	//--futuza: fix me RGB colors (see above in CL_ConsolePrint for notes)
 		{
-			for (x=0 ; x<con.linewidth ; x++) {
-				if ( ( text[x] & 0xff ) == ' ' ) {
+			for (x = 0; x<con.linewidth; x++) {
+				if ((text[x] & 0xff) == ' ') {
 					continue;
 				}
 
-				if ( ( (text[x]>>8)&Q_COLOR_BITS ) != currentColor ) {
-					currentColor = (text[x]>>8)&Q_COLOR_BITS;
-					re->SetColor( g_color_table[currentColor] );
+				if (((text[x] >> 8)&Q_COLOR_BITS) != currentColor) {
+					currentColor = (text[x] >> 8)&Q_COLOR_BITS;
+					re->SetColor(g_color_table[currentColor]);
 				}
-				SCR_DrawSmallChar(  (int) (con.xadjust + (x+1)*SMALLCHAR_WIDTH), y, text[x] & 0xff );
+				SCR_DrawSmallChar((int)(con.xadjust + (x + 1)*SMALLCHAR_WIDTH), y, text[x] & 0xff);
 			}
 		}
 	}
@@ -856,7 +898,6 @@ void Con_DrawSolidConsole( float frac ) {
 
 	re->SetColor( NULL );
 }
-
 
 
 /*

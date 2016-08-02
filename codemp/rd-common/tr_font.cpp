@@ -1863,8 +1863,8 @@ static int Text_ExtColorCodes(const char *text, vec4_t color)
 	red = ExtColor_GetLevel(*r);
 	green = ExtColor_GetLevel(*g);
 	blue = ExtColor_GetLevel(*b);
-	// Determine if all 3 are valid
-	if (red == -1 || green == -1 || blue == -1) {
+	// Determine if all 3 are valid - if value less than 0
+	if (red < 0 || green < 0 || blue < 0) {
 		return 0;
 	}
 
