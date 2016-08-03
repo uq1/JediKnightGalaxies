@@ -465,20 +465,19 @@ void CL_ConsolePrint( const char *txt) {
 			color = ColorIndex( *(txt+1) );
 			f_RGB = 1;
 			txt += 2;
-			//cur_pos += 2;
 			continue;
 		}
 
 		//if a ^xRGB 
-		if (*txt == '^' && (txt[1] == 'x' || txt[1] == 'X') && 
-			((colorRGB[0] = RGB_GetLevel(txt[2]) != -1) && (colorRGB[1] = RGB_GetLevel(txt[3]) != -1) && (colorRGB[2] = RGB_GetLevel(txt[4]) != -1))
-			)	//kill 2 birds with one stone, check validity and get colors
-		{
-			f_RGB = 2;	//set RGB flag
-			colorRGB[3] = 1.0f;	//set alpha
-			txt += 5;
-			//cur_pos += 5;
-			continue;
+		if (*txt == '^' && (txt[1] == 'x' || txt[1] == 'X'))
+		{	colorRGB[0] = RGB_GetLevel(txt[2]); colorRGB[1] = RGB_GetLevel(txt[3]); colorRGB[2] = RGB_GetLevel(txt[4]);	//grab color values
+			if (colorRGB[0] >= 0 && colorRGB[1] >= 0 && colorRGB[2] >= 0)	//as long as they're all valid colors
+			{
+				f_RGB = 2;	//set RGB flag
+				colorRGB[3] = 1.0f;	//set alpha
+				txt += 5;
+				continue;
+			}
 		}
 
 		// count word length
@@ -551,17 +550,13 @@ void CL_ConsolePrint( const char *txt) {
 
 				y = con.current % con.totallines;	//calculate position
 
-				con.textColorStart.total++; //increase total colors
-				con.textColorStart.isRGB[y*con.linewidth + con.x] = true; //mark as an RGB
-				con.textColorStart.markers[y*con.linewidth + con.x] = y*con.linewidth + con.x; //record starting spot
-				
+				con.textColorStart.isRGB[y*con.linewidth + con.x] = true; //mark as an RGB				
 				//store color
 				con.textColorStart.color[y*con.linewidth + con.x][0] = colorRGB[0]; con.textColorStart.color[y*con.linewidth + con.x][1] = colorRGB[1];
 				con.textColorStart.color[y*con.linewidth + con.x][2] = colorRGB[2]; con.textColorStart.color[y*con.linewidth + con.x][3] = colorRGB[3];
 
-				//con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);	//fix this somehow - help magic code gods
+				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);	//fix this somehow - help magic code gods
 				con.x++;
-
 				if (con.x >= con.linewidth)
 					Con_Linefeed(skipnotify);
 
@@ -573,6 +568,7 @@ void CL_ConsolePrint( const char *txt) {
 			{
 				y = con.current % con.totallines;
 				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);
+				con.textColorStart.isRGB[y*con.linewidth + con.x] = false;		//mark it as not rgb
 				con.x++;
 				if (con.x >= con.linewidth) {
 					Con_Linefeed(skipnotify);
@@ -732,12 +728,13 @@ void Con_DrawNotify (void)
 				{
 					std::copy(std::begin(con.textColorStart.color[x]), std::end(con.textColorStart.color[x]), std::begin(advCurrentColor));	//update current color
 					re->SetColor(advCurrentColor);
-					//re->SetColor(con.textColorStart.whitecolor);	//test code...make everything white for xRGB
+					currentColor = -1;
 				}
 
-				else if (((text[x] >> 8)&Q_COLOR_BITS) != currentColor) {
+				if ( (((text[x] >> 8)&Q_COLOR_BITS) != currentColor ) && con.textColorStart.isRGB == false) {
 					currentColor = (text[x] >> 8)&Q_COLOR_BITS;
 					re->SetColor(g_color_table[currentColor]);
+					std::copy(std::begin(g_color_table[currentColor]), std::end(g_color_table[currentColor]), std::begin(advCurrentColor));	//update our advCurrentColor 
 				}
 				if (!cl_conXOffset)
 				{
@@ -925,12 +922,13 @@ void Con_DrawSolidConsole( float frac ) {
 				{
 					std::copy(std::begin(con.textColorStart.color[x]), std::end(con.textColorStart.color[x]), std::begin(advCurrentColor));	//update current color
 					re->SetColor(advCurrentColor);
-					//re->SetColor(con.textColorStart.whitecolor);	//test code...make everything white for xRGB
+					currentColor = -1;	//update currentColor to record a change
 				}
 
-				else if (((text[x] >> 8)&Q_COLOR_BITS) != currentColor) {
+				if ( (((text[x] >> 8)&Q_COLOR_BITS) != currentColor ) && con.textColorStart.isRGB==false) {	//if contains a ^ color && not a xRGB
 					currentColor = (text[x] >> 8)&Q_COLOR_BITS;
 					re->SetColor(g_color_table[currentColor]);
+					std::copy(std::begin(g_color_table[currentColor]), std::end(g_color_table[currentColor]), std::begin(advCurrentColor));	//update our advCurrentColor 
 				}
 				SCR_DrawSmallChar((int)(con.xadjust + (x + 1)*SMALLCHAR_WIDTH), y, text[x] & 0xff);
 			}

@@ -366,8 +366,8 @@ typedef struct console_s {
 		
 		const vec4_t whitecolor{ 1.0, 1.0, 1.0, 1.0 };	//setting for default white color
 		bool isRGB[CON_TEXTSIZE] = { 0 };
-		int markers[CON_TEXTSIZE] = { 0 };
-		int total = 0;
+		//int markers[CON_TEXTSIZE] = { 0 };
+		//int total = 0;
 
 	}textColorStart;
 
