@@ -30,6 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "qcommon/game_version.h"
 
 
+
 int g_console_field_width = 78;
 
 console_t	con;
@@ -548,8 +549,17 @@ void CL_ConsolePrint( const char *txt) {
 
 				*/
 
-				y = con.current % con.totallines;
-				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);	//fix this somehow - help magic code gods
+				y = con.current % con.totallines;	//calculate position
+
+				con.textColorStart.total++; //increase total colors
+				con.textColorStart.isRGB[y*con.linewidth + con.x] = true; //mark as an RGB
+				con.textColorStart.markers[y*con.linewidth + con.x] = y*con.linewidth + con.x; //record starting spot
+				
+				//store color
+				con.textColorStart.color[y*con.linewidth + con.x][0] = colorRGB[0]; con.textColorStart.color[y*con.linewidth + con.x][1] = colorRGB[1];
+				con.textColorStart.color[y*con.linewidth + con.x][2] = colorRGB[2]; con.textColorStart.color[y*con.linewidth + con.x][3] = colorRGB[3];
+
+				//con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);	//fix this somehow - help magic code gods
 				con.x++;
 
 				if (con.x >= con.linewidth)
@@ -642,9 +652,11 @@ void Con_DrawNotify (void)
 	int		time;
 	int		skip;
 	int		currentColor;
+	vec4_t	advCurrentColor;	//--futuza: same as currentColor, but not so basic
 	const char* chattext;
 
 	currentColor = 7;
+	std::copy(std::begin(con.textColorStart.whitecolor), std::end(con.textColorStart.whitecolor), std::begin(advCurrentColor)); //--futuza: set color to white for advCurrentColor
 	re->SetColor( g_color_table[currentColor & 15] );
 
 	v = 0;
@@ -703,10 +715,27 @@ void Con_DrawNotify (void)
 		else
 		{
 			for (x = 0; x < con.linewidth; x++) {
+
 				if ((text[x] & 0xff) == ' ') {
 					continue;
 				}
-				if (((text[x] >> 8)&Q_COLOR_BITS) != currentColor) {
+
+				//idea for tomorrow to try: 8/4/2016 --futuza: maybe x isn't holding the value needed?
+
+				//if xRGB && the color != advCurrentColor
+				if (con.textColorStart.isRGB[x] && 
+				   (con.textColorStart.color[x][0] != advCurrentColor[0] ||
+					con.textColorStart.color[x][1] != advCurrentColor[1] ||
+					con.textColorStart.color[x][2] != advCurrentColor[2] ||
+					con.textColorStart.color[x][3] != advCurrentColor[3] ) 
+					)	
+				{
+					std::copy(std::begin(con.textColorStart.color[x]), std::end(con.textColorStart.color[x]), std::begin(advCurrentColor));	//update current color
+					re->SetColor(advCurrentColor);
+					//re->SetColor(con.textColorStart.whitecolor);	//test code...make everything white for xRGB
+				}
+
+				else if (((text[x] >> 8)&Q_COLOR_BITS) != currentColor) {
 					currentColor = (text[x] >> 8)&Q_COLOR_BITS;
 					re->SetColor(g_color_table[currentColor]);
 				}
@@ -766,6 +795,7 @@ void Con_DrawSolidConsole( float frac ) {
 	int				lines;
 //	qhandle_t		conShader;
 	int				currentColor;
+	vec4_t			advCurrentColor;
 
 	lines = (int) (cls.glconfig.vidHeight * frac);
 	if (lines <= 0)
@@ -830,6 +860,7 @@ void Con_DrawSolidConsole( float frac ) {
 	}
 
 	currentColor = 7;
+	std::copy(std::begin(con.textColorStart.whitecolor), std::end(con.textColorStart.whitecolor), std::begin(advCurrentColor)); //--futuza: set color to white for advCurrentColor
 	re->SetColor( g_color_table[currentColor & 15] );	//--futuza:  set color to white?  Why not just say g_color_table[7]?  always evaluates to 7, unnecessary bit math?
 
 	static int iFontIndexForAsian = 0;
@@ -884,7 +915,20 @@ void Con_DrawSolidConsole( float frac ) {
 					continue;
 				}
 
-				if (((text[x] >> 8)&Q_COLOR_BITS) != currentColor) {
+				//if xRGB && the color != advCurrentColor
+				if (con.textColorStart.isRGB[x] &&
+					   (con.textColorStart.color[x][0] != advCurrentColor[0] ||
+						con.textColorStart.color[x][1] != advCurrentColor[1] ||
+						con.textColorStart.color[x][2] != advCurrentColor[2] ||
+						con.textColorStart.color[x][3] != advCurrentColor[3])
+					)
+				{
+					std::copy(std::begin(con.textColorStart.color[x]), std::end(con.textColorStart.color[x]), std::begin(advCurrentColor));	//update current color
+					re->SetColor(advCurrentColor);
+					//re->SetColor(con.textColorStart.whitecolor);	//test code...make everything white for xRGB
+				}
+
+				else if (((text[x] >> 8)&Q_COLOR_BITS) != currentColor) {
 					currentColor = (text[x] >> 8)&Q_COLOR_BITS;
 					re->SetColor(g_color_table[currentColor]);
 				}
