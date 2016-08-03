@@ -650,7 +650,7 @@ void Con_DrawNotify (void)
 	const char* chattext;
 
 	currentColor = 7;
-	std::copy(std::begin(con.textColorStart.whitecolor), std::end(con.textColorStart.whitecolor), std::begin(advCurrentColor)); //--futuza: set color to white for advCurrentColor
+	VectorCopy4(con.textColorStart.whitecolor, advCurrentColor);	//set advCurrentColor to white
 	re->SetColor( g_color_table[currentColor & 15] );
 
 	v = 0;
@@ -714,7 +714,6 @@ void Con_DrawNotify (void)
 					continue;
 				}
 
-				//idea for tomorrow to try: 8/4/2016 --futuza: maybe x isn't holding the value needed?
 
 				//if xRGB && the color != advCurrentColor
 				if (con.textColorStart.isRGB[x] && !VectorCompare4(con.textColorStart.color[x], advCurrentColor))
@@ -850,7 +849,7 @@ void Con_DrawSolidConsole( float frac ) {
 	}
 
 	currentColor = 7;
-	std::copy(std::begin(con.textColorStart.whitecolor), std::end(con.textColorStart.whitecolor), std::begin(advCurrentColor)); //--futuza: set color to white for advCurrentColor
+	VectorCopy4(con.textColorStart.whitecolor, advCurrentColor);
 	re->SetColor( g_color_table[currentColor & 15] );	//--futuza:  set color to white?  Why not just say g_color_table[7]?  always evaluates to 7, unnecessary bit math?
 
 	static int iFontIndexForAsian = 0;
@@ -913,7 +912,7 @@ void Con_DrawSolidConsole( float frac ) {
 					currentColor = -1;	//update currentColor to record a change
 				}
 
-				if ( (((text[x] >> 8)&Q_COLOR_BITS) != currentColor ) && con.textColorStart.isRGB==false) {	//if contains a ^ color && not a xRGB
+				if ( (((text[x] >> 8)&Q_COLOR_BITS) != currentColor ) && con.textColorStart.isRGB==false) {	//if different color and not !xrgb
 					currentColor = (text[x] >> 8)&Q_COLOR_BITS;
 					re->SetColor(g_color_table[currentColor]);
 					VectorCopy4(g_color_table[currentColor], advCurrentColor);	//update our advCurrentColor 
