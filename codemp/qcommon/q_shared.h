@@ -916,6 +916,7 @@ void		VectorInverse( vec3_t vec );
 void		CrossProduct( const vec3_t vec1, const vec3_t vec2, vec3_t vecOut );
 float		DotProduct( const vec3_t vec1, const vec3_t vec2 );
 qboolean	VectorCompare( const vec3_t vec1, const vec3_t vec2 );
+qboolean	VectorCompare4(const vec4_t vec1, const vec4_t vec2);
 void		SnapVector( float *v );
 
 #define		VectorAddM( vec1, vec2, vecOut )		((vecOut)[0]=(vec1)[0]+(vec2)[0], (vecOut)[1]=(vec1)[1]+(vec2)[1], (vecOut)[2]=(vec1)[2]+(vec2)[2])

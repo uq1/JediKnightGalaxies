@@ -551,9 +551,7 @@ void CL_ConsolePrint( const char *txt) {
 				y = con.current % con.totallines;	//calculate position
 
 				con.textColorStart.isRGB[y*con.linewidth + con.x] = true; //mark as an RGB				
-				//store color
-				con.textColorStart.color[y*con.linewidth + con.x][0] = colorRGB[0]; con.textColorStart.color[y*con.linewidth + con.x][1] = colorRGB[1];
-				con.textColorStart.color[y*con.linewidth + con.x][2] = colorRGB[2]; con.textColorStart.color[y*con.linewidth + con.x][3] = colorRGB[3];
+				VectorCopy4(colorRGB, con.textColorStart.color[y*con.linewidth + con.x]);	//store colors
 
 				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);	//fix this somehow - help magic code gods
 				con.x++;
@@ -719,22 +717,17 @@ void Con_DrawNotify (void)
 				//idea for tomorrow to try: 8/4/2016 --futuza: maybe x isn't holding the value needed?
 
 				//if xRGB && the color != advCurrentColor
-				if (con.textColorStart.isRGB[x] && 
-				   (con.textColorStart.color[x][0] != advCurrentColor[0] ||
-					con.textColorStart.color[x][1] != advCurrentColor[1] ||
-					con.textColorStart.color[x][2] != advCurrentColor[2] ||
-					con.textColorStart.color[x][3] != advCurrentColor[3] ) 
-					)	
+				if (con.textColorStart.isRGB[x] && !VectorCompare4(con.textColorStart.color[x], advCurrentColor))
 				{
-					std::copy(std::begin(con.textColorStart.color[x]), std::end(con.textColorStart.color[x]), std::begin(advCurrentColor));	//update current color
+					VectorCopy4(con.textColorStart.color[x], advCurrentColor);	//update current color
 					re->SetColor(advCurrentColor);
-					currentColor = -1;
+					currentColor = -1;	//update currentColor to record a change
 				}
 
 				if ( (((text[x] >> 8)&Q_COLOR_BITS) != currentColor ) && con.textColorStart.isRGB == false) {
 					currentColor = (text[x] >> 8)&Q_COLOR_BITS;
 					re->SetColor(g_color_table[currentColor]);
-					std::copy(std::begin(g_color_table[currentColor]), std::end(g_color_table[currentColor]), std::begin(advCurrentColor));	//update our advCurrentColor 
+					VectorCopy4(g_color_table[currentColor], advCurrentColor);	//update our advCurrentColor 
 				}
 				if (!cl_conXOffset)
 				{
@@ -913,14 +906,9 @@ void Con_DrawSolidConsole( float frac ) {
 				}
 
 				//if xRGB && the color != advCurrentColor
-				if (con.textColorStart.isRGB[x] &&
-					   (con.textColorStart.color[x][0] != advCurrentColor[0] ||
-						con.textColorStart.color[x][1] != advCurrentColor[1] ||
-						con.textColorStart.color[x][2] != advCurrentColor[2] ||
-						con.textColorStart.color[x][3] != advCurrentColor[3])
-					)
+				if (con.textColorStart.isRGB[x] && !VectorCompare4(con.textColorStart.color[x], advCurrentColor) )
 				{
-					std::copy(std::begin(con.textColorStart.color[x]), std::end(con.textColorStart.color[x]), std::begin(advCurrentColor));	//update current color
+					VectorCopy4(con.textColorStart.color[x], advCurrentColor);	//update current color
 					re->SetColor(advCurrentColor);
 					currentColor = -1;	//update currentColor to record a change
 				}
@@ -928,8 +916,9 @@ void Con_DrawSolidConsole( float frac ) {
 				if ( (((text[x] >> 8)&Q_COLOR_BITS) != currentColor ) && con.textColorStart.isRGB==false) {	//if contains a ^ color && not a xRGB
 					currentColor = (text[x] >> 8)&Q_COLOR_BITS;
 					re->SetColor(g_color_table[currentColor]);
-					std::copy(std::begin(g_color_table[currentColor]), std::end(g_color_table[currentColor]), std::begin(advCurrentColor));	//update our advCurrentColor 
+					VectorCopy4(g_color_table[currentColor], advCurrentColor);	//update our advCurrentColor 
 				}
+
 				SCR_DrawSmallChar((int)(con.xadjust + (x + 1)*SMALLCHAR_WIDTH), y, text[x] & 0xff);
 			}
 		}
