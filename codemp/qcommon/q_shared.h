@@ -2525,8 +2525,8 @@ qboolean Text_IsExtColorCode(const char *text);
 qboolean StringContainsWord(const char *haystack, const char *needle);
 qboolean Q_stratt( char *dest, unsigned int iSize, char *source );
 
-//Gets current build time
-static inline void getBuildTimeStamp(char* outStr)	//to use : char myarray[17]; getBuildTimeStamp(myarray); 
+//Gets current time
+static inline void getGalacticTimeStamp(char* outStr)	//to use : char myarray[17]; getBuildTimeStamp(myarray); 
 {
 	char result[17];
 	time_t t = time(0);   // get time now

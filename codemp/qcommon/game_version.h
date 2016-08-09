@@ -29,18 +29,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../win32/AutoVersion.h"
 
 #define JKG_VERSION "1.4.05"
+#define LASTBUILD " -Built: " __DATE__
+
 // Current version of the multi player game
 #ifdef _DEBUG
 	#define JKG_VERSION_SUFFIX "d"
-	#define	JK_VERSION		"(debug)JAmp: v" VERSION_STRING_DOTTED "/JKG: v" JKG_VERSION JKG_VERSION_SUFFIX
+	#define	JK_VERSION		"(debug)JAmp: v" VERSION_STRING_DOTTED "/JKG: v" JKG_VERSION JKG_VERSION_SUFFIX LASTBUILD
 	
 #elif defined FINAL_BUILD
 	#define JKG_VERSION_SUFFIX ""
-	#define	JK_VERSION		"JAmp: v" VERSION_STRING_DOTTED "/JKG: v" JKG_VERSION JKG_VERSION_SUFFIX
+	#define	JK_VERSION		"JAmp: v" VERSION_STRING_DOTTED "/JKG: v" JKG_VERSION JKG_VERSION_SUFFIX LASTBUILD
 	
 #else
 	#define JKG_VERSION_SUFFIX "r"
-	#define	JK_VERSION		"(internal)JAmp: v" VERSION_STRING_DOTTED "/JKG: v" JKG_VERSION JKG_VERSION_SUFFIX
+	#define	JK_VERSION		"(internal)JAmp: v" VERSION_STRING_DOTTED "/JKG: v" JKG_VERSION JKG_VERSION_SUFFIX LASTBUILD
 #endif
 
 #define	GAMEVERSION	"Jedi Knight Galaxies v" JKG_VERSION JKG_VERSION_SUFFIX
