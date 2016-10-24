@@ -138,10 +138,11 @@ const char* JKG_GetRecoilString(weaponData_t* pData, const int nFiringMode) {
 }
 
 // Returns the string that should appear on nLineNum of an item description
-char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum) {
+#define MAX_RECURSION_LEVEL	5
+char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLevel) {
 	/* Weapon variables */
 	bool bDontCareAboutAccuracy = false;
-	int nFiringMode = 0;
+	int nFiringMode = -1;
 
 	/* Misc */
 	int nAccuracyBase;
@@ -154,6 +155,9 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum) {
 	weaponFireModeStats_t *pFireMode;
 	weaponVisualFireMode_t *pVFireMode;
 
+	if (recursionLevel >= MAX_RECURSION_LEVEL) {
+		return ""; // base case to stop stack overflow
+	}
 
 	assert(pItem != nullptr);
 
@@ -172,7 +176,7 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum) {
 			if (nLineNum == 0) {
 				return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_WEAPON");
 			}
-			pWeaponData = GetWeaponData(pItem->id->weaponData.weapon, pItem->id->weaponData.variation);
+			pWeaponData = (weaponData_t*)cgImports->GetWeaponDatas(pItem->id->weaponData.weapon, pItem->id->weaponData.variation);
 			
 			// Reload time / cook time
 			if (nLineNum == 1) {
@@ -239,7 +243,6 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum) {
 			if (nLineNum == 3) {
 				// Additional weapon tags
 				if (pWeaponData->hasRollAbility && !(bfTagFields & (1 << IDTAG_ROLLING))) {
-					nLineOffset--; // Shift the other lines down
 					bfTagFields |= (1 << IDTAG_ROLLING); // Flag it so we don't draw it again
 					return (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_ROLLING");
 				}
@@ -304,7 +307,7 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum) {
 				}
 			}
 
-			if (nFiringMode == pWeaponData->numFiringModes) {
+			if (nFiringMode >= pWeaponData->numFiringModes || nFiringMode < 0) {
 				return "";		// Don't draw anything for this line
 			}
 
@@ -317,22 +320,21 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum) {
 			}
 
 			switch (nLineNum) {
+				case 3:
+					nLineOffset++;
 				case 4:
 					goto blankLine;
 				case 5:
 					// Fire mode number
-					if (pWeaponData->numFiringModes > 3) {
-						return va(UI_GetStringEdString2("@JKG_INVENTORY_FIRING_MODE"), nFiringMode + 1);
-					}
-					else {
-						switch (nFiringMode) {
-							case 0:
-								return (char*)UI_GetStringEdString2("@JKG_INVENTORY_PRIMARY_FIRE");
-							case 1:
-								return (char*)UI_GetStringEdString2("@JKG_INVENTORY_SECONDARY_FIRE");
-							case 2:
-								return (char*)UI_GetStringEdString2("@JKG_INVENTORY_TERTIARY_FIRE");
-						}
+					switch (nFiringMode) {
+						case 0:
+							return (char*)UI_GetStringEdString2("@JKG_INVENTORY_PRIMARY_FIRE");
+						case 1:
+							return (char*)UI_GetStringEdString2("@JKG_INVENTORY_SECONDARY_FIRE");
+						case 2:
+							return (char*)UI_GetStringEdString2("@JKG_INVENTORY_TERTIARY_FIRE");
+						default:
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_FIRING_MODE"), nFiringMode + 1);
 					}
 					break;
 				case 6:
@@ -343,6 +345,12 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum) {
 							return "";	// FIXME - blast damage
 						case IDTYPE_PROJECTILE:
 							int nDamage = pFireMode->baseDamage <= 0 ? 0 : pFireMode->baseDamage; // FIXME
+							if (nDamage <= 0) { // No damage. Don't draw.
+								char* out = JKG_GetItemDescLine(pItem, nLineNum - nLineOffset + 1, recursionLevel + 1);
+								nLineOffset++;
+								return out;
+							}
+
 							char* szDamageTag = JKG_GetDamageTag(pWeaponData, nFiringMode);
 							int nShotCount = pFireMode->shotCount;
 							if (nShotCount > 1) {
@@ -382,7 +390,7 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum) {
 							nCookTime = pWeaponData->weaponReloadTime;
 							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_COOKTIME"), nCookTime);
 						case IDTYPE_PROJECTILE:
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_RECOIL"), JKG_GetRecoilString(pWeaponData, nFiringMode));
+							return (char*)JKG_GetRecoilString(pWeaponData, nFiringMode);
 						case IDTYPE_CHARGEMINE:
 							goto additionalTags;
 					}
@@ -394,7 +402,7 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum) {
 					// Projectile weapons: Fire rate
 					switch (idType) {
 						case IDTYPE_EXPLOSIVEGUN:
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_RECOIL"), JKG_GetRecoilString(pWeaponData, nFiringMode));
+							return (char*)JKG_GetRecoilString(pWeaponData, nFiringMode);
 						case IDTYPE_PROJECTILE:
 							nFireTime = pFireMode->delay;
 							nRPM = (int)((1000.0f / nFireTime) * 60.0f);
@@ -416,10 +424,10 @@ additionalTags:
 					{
 						if (!(bfFireModeTags[nFiringMode] & (1 << IDMTAG_FIRECONTROL))) {
 							char* szReturnValue = nullptr;
-							if (pFireMode->shotsPerBurst == 1) {
+							if (pFireMode->firingType == FT_SEMI) {
 								szReturnValue = (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_SEMI_AUTO");
 							}
-							else if (pFireMode->shotsPerBurst == 0) {
+							else if (pFireMode->firingType == FT_AUTOMATIC) {
 								szReturnValue = (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_FULL_AUTO");
 							}
 							else {
@@ -431,7 +439,23 @@ additionalTags:
 						}
 						else {
 							bfTagFields |= (1 << (nFiringMode + IDTAG_FIREMODE));
-							return JKG_GetItemDescLine(pItem, nLineNum);
+							// Mines and charges have offset of 5?
+							// Grenades have offset of 7?
+							// Explosive weapons have offset of 8?
+							// Projectiles have offset of 7?
+							if (idType == IDTYPE_CHARGEMINE) {
+								nLineOffset -= 5;
+							}
+							else if (idType == IDTYPE_GRENADE) {
+								nLineOffset -= 7;
+							}
+							else if (idType == IDTYPE_EXPLOSIVEGUN) {
+								nLineOffset -= 8;
+							}
+							else if (idType == IDTYPE_PROJECTILE) {
+								nLineOffset -= 7;
+							}
+							return JKG_GetItemDescLine(pItem, nLineNum, recursionLevel + 1);
 						}
 					}
 					break;
@@ -574,7 +598,7 @@ void JKG_Inventory_OwnerDraw_SelItemDesc(itemDef_t* item, int ownerDrawID) {
 		return;
 	}
 	itemInstance_t* pItem = &pItems[nSelected];
-	strcpy(item->text, JKG_GetItemDescLine(pItem, ownerDrawID));
+	strcpy(item->text, JKG_GetItemDescLine(pItem, ownerDrawID, 0));
 	Item_Text_Paint(item);
 }
 
