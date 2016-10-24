@@ -2,20 +2,46 @@
 #include "jkg_inventory.h"
 
 static int nNumInventoryItems = 0;			// number of items in the list
-static itemInstance_t* pItems = nullptr;	// pointer to array of items
+static std::vector<std::pair<int, itemInstance_t*>> pItems;	// list of items
 static int nPosition = 0;					// position in the item list (changed with arrow buttons)
 static int nSelected = -1;					// selected item in the list (-1 for no selection)
 
 
 static void JKG_ConstructInventoryList() {
+	itemInstance_t* pAllItems = nullptr;
+
+	pItems.clear();
+
+	if (cgImports == nullptr) {
+		// This gets called when the game starts (because ui_inventoryFilter was modified), so just return
+		return;
+	}
+
 	nNumInventoryItems = (int)cgImports->InventoryDataRequest(0);
 	if (nNumInventoryItems > 0) {
-		pItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
+		pAllItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
+		for (int i = 0; i < nNumInventoryItems; i++) {
+			itemInstance_t* pThisItem = &pAllItems[i];
+			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR && pThisItem->id->itemType != ITEM_CLOTHING) {
+				continue;
+			}
+			else if (ui_inventoryFilter.integer == JKGIFILTER_WEAPONS && pThisItem->id->itemType != ITEM_WEAPON) {
+				continue;
+			}
+			else if (ui_inventoryFilter.integer == JKGIFILTER_CONSUMABLES && pThisItem->id->itemType != ITEM_CONSUMABLE) {
+				continue;
+			}
+			else if (ui_inventoryFilter.integer == JKGIFILTER_MISC) {
+				continue; // FIXME
+			}
+			pItems.push_back(std::make_pair(i, pThisItem));
+		}
 	}
 
 	// Clear the selected item, if it's invalid
-	if (nSelected >= nNumInventoryItems) {
+	if (nSelected >= pItems.size()) {
 		nSelected = -1;
+		Menu_ShowItemByName(Menus_FindByName("jkg_inventory"), "shop_preview", qfalse);
 	}
 }
 
@@ -503,10 +529,10 @@ void JKG_Inventory_OwnerDraw_CreditsText(itemDef_t* item)
 // Draws each item icon in the inventory list (ownerDrawID being the slot)
 void JKG_Inventory_OwnerDraw_ItemIcon(itemDef_t* item, int ownerDrawID) {
 	int nItemNum = ownerDrawID + nPosition;
-	if (nItemNum >= nNumInventoryItems) {
+	if (nItemNum >= pItems.size()) {
 		return;
 	}
-	itemInstance_t* pItem = &pItems[nItemNum];
+	itemInstance_t* pItem = pItems[nItemNum].second;
 	qhandle_t shader = trap->R_RegisterShaderNoMip(pItem->id->visuals.itemIcon);
 	trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h,
 		0, 0, 1, 1, shader);
@@ -515,12 +541,12 @@ void JKG_Inventory_OwnerDraw_ItemIcon(itemDef_t* item, int ownerDrawID) {
 // Draws each item name in the inventory list (ownerDrawID being the slot)
 void JKG_Inventory_OwnerDraw_ItemName(itemDef_t* item, int ownerDrawID) {
 	int nItemNum = ownerDrawID + nPosition;
-	if (nItemNum >= nNumInventoryItems) {
+	if (nItemNum >= pItems.size()) {
 		memset(item->text, 0, sizeof(item->text));
 		Item_Text_Paint(item); // FIXME: should we really be trying to paint a blank string?
 		return;
 	}
-	itemInstance_t* pItem = &pItems[nItemNum];
+	itemInstance_t* pItem = pItems[nItemNum].second;
 	strcpy(item->text, pItem->id->displayName);
 	Item_Text_Paint(item);
 }
@@ -530,11 +556,11 @@ void JKG_Inventory_OwnerDraw_ItemName(itemDef_t* item, int ownerDrawID) {
 void JKG_Inventory_OwnerDraw_ItemTagTop(itemDef_t* item, int ownerDrawID) {
 	int nItemNum = ownerDrawID + nPosition;
 	memset(item->text, 0, sizeof(item->text));
-	if (nItemNum >= nNumInventoryItems) {
+	if (nItemNum >= pItems.size()) {
 		Item_Text_Paint(item);
 		return;
 	}
-	itemInstance_t* pItem = &pItems[nItemNum];
+	itemInstance_t* pItem = pItems[nItemNum].second;
 	// If it's in an ACI slot, mention this
 	// FIXME: pItem->equipped should be valid!! but it's not!!
 	int* pACI = (int*)cgImports->InventoryDataRequest(2);
@@ -573,10 +599,10 @@ void JKG_Inventory_OwnerDraw_SelHighlight(itemDef_t* item, int ownerDrawID) {
 
 // Draws the selected item's icon
 void JKG_Inventory_OwnerDraw_SelItemIcon(itemDef_t* item) {
-	if (nSelected == -1) {
+	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
 	}
-	itemInstance_t* pItem = &pItems[nSelected];
+	itemInstance_t* pItem = pItems[nSelected].second;
 	qhandle_t shader = trap->R_RegisterShaderNoMip(pItem->id->visuals.itemIcon);
 	trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y,
 		item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, shader);
@@ -584,20 +610,20 @@ void JKG_Inventory_OwnerDraw_SelItemIcon(itemDef_t* item) {
 
 // Draws the selected item's name
 void JKG_Inventory_OwnerDraw_SelItemName(itemDef_t* item) {
-	if (nSelected == -1) {
+	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
 	}
-	itemInstance_t* pItem = &pItems[nSelected];
+	itemInstance_t* pItem = pItems[nSelected].second;
 	strcpy(item->text, pItem->id->displayName);
 	Item_Text_Paint(item);
 }
 
 // Draws the selected item's description (ownerDrawID being the line number)
 void JKG_Inventory_OwnerDraw_SelItemDesc(itemDef_t* item, int ownerDrawID) {
-	if (nSelected == -1) {
+	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
 	}
-	itemInstance_t* pItem = &pItems[nSelected];
+	itemInstance_t* pItem = pItems[nSelected].second;
 	strcpy(item->text, JKG_GetItemDescLine(pItem, ownerDrawID, 0));
 	Item_Text_Paint(item);
 }
@@ -606,10 +632,10 @@ void JKG_Inventory_OwnerDraw_SelItemDesc(itemDef_t* item, int ownerDrawID) {
 void JKG_Inventory_OwnerDraw_Interact(itemDef_t* item, int ownerDrawID) {
 	itemInstance_t* pItem = nullptr;
 	memset(item->text, 0, sizeof(item->text));
-	if (nSelected == -1) {
+	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
 	}
-	pItem = &pItems[nSelected];
+	pItem = pItems[nSelected].second;
 	if (ownerDrawID == 0) {
 		// Assign to ACI
 		if (pItem->id->itemType == ITEM_ARMOR) {
@@ -662,7 +688,7 @@ void JKG_Inventory_OwnerDraw_Interact_Button(int ownerDrawID, int key) {
 }
 
 bool JKG_Inventory_ShouldDraw_Interact(int nWhich) {
-	if (nSelected == -1) {
+	if (nSelected == -1 || nSelected > pItems.size()) {
 		return false;
 	}
 	return true;
@@ -675,10 +701,13 @@ BUTTON PRESSES
 */
 void JKG_Inventory_SelectItem(char** args) {
 	int nWhich = atoi(args[0]);
-	if (nPosition + nWhich >= nNumInventoryItems) {
+	if (nPosition + nWhich >= pItems.size()) {
 		nSelected = -1;
+		Menu_ShowItemByName(Menus_FindByName("jkg_inventory"), "shop_preview", qfalse);
+
 	} else {
 		nSelected = nPosition + nWhich;
+		Menu_ShowItemByName(Menus_FindByName("jkg_inventory"), "shop_preview", qtrue);
 	}
 }
 
@@ -690,7 +719,7 @@ void JKG_Inventory_ArrowUp(char** args) {
 }
 
 void JKG_Inventory_ArrowDown(char** args) {
-	if (nPosition < nNumInventoryItems-1) {
+	if (nPosition < pItems.size()-1) {
 		nPosition++;
 	}
 	JKG_ConstructInventoryList();
@@ -698,51 +727,51 @@ void JKG_Inventory_ArrowDown(char** args) {
 
 void JKG_Inventory_ACISlot(char** args) {
 	int nSlot = atoi(args[0]);
-	cgImports->InventoryAttachToACI(nSelected, nSlot, true);
+	cgImports->InventoryAttachToACI(pItems[nSelected].first, nSlot, true);
 }
 
 void JKG_Inventory_ACISlotAuto(char** args) {
-	cgImports->InventoryAttachToACI(nSelected, -1, true);
+	cgImports->InventoryAttachToACI(pItems[nSelected].first, -1, true);
 }
 
 void JKG_Inventory_ACIRemove(char** args) {
-	cgImports->InventoryAttachToACI(nSelected, -1, false);
+	cgImports->InventoryAttachToACI(pItems[nSelected].first, -1, false);
 }
 
 void JKG_Inventory_Destroy(char** args) {
-	if (nSelected == -1) {
+	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
 	}
-	cgImports->SendClientCommand(va("inventoryDestroy %d", nSelected));
+	cgImports->SendClientCommand(va("inventoryDestroy %d", pItems[nSelected].first));
 }
 
 void JKG_Inventory_Use(char** args) {
-	if (nSelected == -1) {
+	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
 	}
-	cgImports->SendClientCommand(va("inventoryUse %d", nSelected));
+	cgImports->SendClientCommand(va("inventoryUse %d", pItems[nSelected].first));
 }
 
 void JKG_Inventory_EquipArmor(char** args) {
-	if (nSelected == -1) {
+	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
 	}
-	cgImports->SendClientCommand(va("equip %d", nSelected));
+	cgImports->SendClientCommand(va("equip %d", pItems[nSelected].first));
 }
 
 void JKG_Inventory_UnequipArmor(char** args) {
-	if (nSelected == -1) {
+	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
 	}
-	cgImports->SendClientCommand(va("unequip %d", nSelected));
+	cgImports->SendClientCommand(va("unequip %d", pItems[nSelected].first));
 }
 
 void JKG_Inventory_Interact(char** args) {
 	int nArg = atoi(args[0]);
-	if (nSelected == -1) {
+	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
 	}
-	itemInstance_t* pItem = &pItems[nSelected];
+	itemInstance_t* pItem = pItems[nSelected].second;
 	switch (nArg) {
 		default:
 		case 0:
@@ -751,7 +780,7 @@ void JKG_Inventory_Interact(char** args) {
 
 			}
 			else {
-				cgImports->InventoryAttachToACI(nSelected, -1, true);
+				cgImports->InventoryAttachToACI(pItems[nSelected].first, -1, true);
 			}
 			JKG_Inventory_UpdateNotify(1);
 			break;
@@ -767,6 +796,14 @@ void JKG_Inventory_Interact(char** args) {
 
 void JKG_Inventory_Open(char** args) {
 	JKG_Inventory_UpdateNotify(0);
+}
+
+void JKG_Inventory_ReconstructList(char** args) {
+	JKG_ConstructInventoryList();
+}
+
+void JKG_UI_InventoryFilterChanged() {
+	JKG_ConstructInventoryList();
 }
 
 void JKG_Inventory_UpdateNotify(int msg) {

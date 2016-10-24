@@ -10,8 +10,8 @@ extern vmCvar_t ui_inventoryFilter;
 
 typedef enum {
 	JKGIFILTER_ALL,
-	JKGIFILTER_ARMOR,
 	JKGIFILTER_WEAPONS,
+	JKGIFILTER_ARMOR,
 	JKGIFILTER_CONSUMABLES,
 	JKGIFILTER_MISC,
 } jkgFilterItems_t;
