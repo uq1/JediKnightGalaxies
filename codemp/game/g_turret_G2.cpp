@@ -751,6 +751,9 @@ static qboolean turretG2_find_enemies( gentity_t *self )
 		{
 			continue;
 		}
+		if (target->NPC) {
+			continue; // Don't target NPCs (for now)
+		}
 		if ( self->alliedTeam )
 		{
 			if ( target->client )
@@ -886,7 +889,8 @@ void turretG2_base_think( gentity_t *self )
 	if ( self->enemy )
 	{
 		if ( self->enemy->health < 0 
-			|| !self->enemy->inuse )
+			|| !self->enemy->inuse
+			|| self->enemy->NPC ) // dont shoot at NPCs (for now)
 		{
 			self->enemy = NULL;
 		}
