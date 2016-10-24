@@ -352,15 +352,18 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLeve
 					goto blankLine;
 				case 5:
 					// Fire mode number
+					if (pWeaponData->numFiringModes <= 1) {
+						return (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEAPON_STATS");
+					}
 					switch (nFiringMode) {
 						case 0:
-							return (char*)UI_GetStringEdString2("@JKG_INVENTORY_PRIMARY_FIRE");
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_PRIMARY_FIRE"), pWeaponData->visuals.visualFireModes[nFiringMode].displayName);
 						case 1:
-							return (char*)UI_GetStringEdString2("@JKG_INVENTORY_SECONDARY_FIRE");
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_SECONDARY_FIRE"), pWeaponData->visuals.visualFireModes[nFiringMode].displayName);
 						case 2:
-							return (char*)UI_GetStringEdString2("@JKG_INVENTORY_TERTIARY_FIRE");
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_TERTIARY_FIRE"), pWeaponData->visuals.visualFireModes[nFiringMode].displayName);
 						default:
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_FIRING_MODE"), nFiringMode + 1);
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_FIRING_MODE"), nFiringMode + 1, pWeaponData->visuals.visualFireModes[nFiringMode].displayName);
 					}
 					break;
 				case 6:

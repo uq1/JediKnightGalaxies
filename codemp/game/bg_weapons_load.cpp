@@ -717,7 +717,8 @@ static void BG_ParseVisualsFireMode ( weaponVisualFireMode_t *fireMode, cJSON *f
     isTripmine = (qboolean)(Q_stricmp (fireMode->type, "tripmine") == 0);
     isDetpack = (qboolean)(Q_stricmp (fireMode->type, "detpack") == 0);
 
-	ReadString (fireModeNode, "displayName", fireMode->displayName, 128);
+	ReadString (fireModeNode, "displayName", fireMode->displayName, sizeof(fireMode->displayName));
+	Q_strncpyz(fireMode->displayName, CG_GetStringEdString2(fireMode->displayName), sizeof(fireMode->displayName));
 
 	ReadString (fireModeNode, "crosshairShader", fireMode->crosshairShader, MAX_QPATH);
 	ReadString (fireModeNode, "switchToSound", fireMode->switchToSound, MAX_QPATH);
