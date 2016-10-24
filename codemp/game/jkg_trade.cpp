@@ -139,6 +139,11 @@ void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activat
 		}
 	}
 	
+	if (self->inventory->size() == 0) {
+		trap->SendServerCommand(g_entities - activator, "print\"That vendor cannot be traded with (it lacks a treasure class..!)\"");
+		activator->client->ps.useDelay = level.time + 500;
+		return;
+	}
 	BG_SendTradePacket(IPT_TRADEOPEN, activator, self, &(*self->inventory)[0], self->inventory->size(), 0);
 
 	if (self->s.eType == ET_NPC)
