@@ -61,3 +61,4 @@ void JKG_Inventory_ACISlotAuto(char** args);
 void JKG_Inventory_ACIRemove(char** args);
 void JKG_Inventory_EquipArmor(char** args);
 void JKG_Inventory_UnequipArmor(char** args);
+void JKG_Inventory_Open(char** args);

@@ -9,7 +9,9 @@ static int nSelected = -1;					// selected item in the list (-1 for no selection
 
 static void JKG_ConstructInventoryList() {
 	nNumInventoryItems = (int)cgImports->InventoryDataRequest(0);
-	pItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
+	if (nNumInventoryItems > 0) {
+		pItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
+	}
 
 	// Clear the selected item, if it's invalid
 	if (nSelected >= nNumInventoryItems) {
@@ -737,6 +739,10 @@ void JKG_Inventory_Interact(char** args) {
 			JKG_Inventory_UpdateNotify(1);
 			break;
 	}
+}
+
+void JKG_Inventory_Open(char** args) {
+	JKG_Inventory_UpdateNotify(0);
 }
 
 void JKG_Inventory_UpdateNotify(int msg) {
