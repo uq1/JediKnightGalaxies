@@ -1,16 +1,16 @@
 # Jedi Knight Galaxies project #
 IRC: irc.arloria.net / #JKGalaxies ([webchat](http://www.jkgalaxies.com/irc/))
 
-Forum: http://www.jkgalaxies.com/forum/
+Forum: https://jkhub.org/forum/117-jedi-knight-galaxies/
 
 Please use discretion when making issue requests on GitHub. The forum is a better place for larger discussions on changes that aren't actually bugs.
 
 ## Build Guide ##
-http://www.jkgalaxies.com/forum/viewtopic.php?f=17&t=173
+https://jkhub.org/topic/5600-compilation-guide/
 
 ## Installation of Game ##
 
-First, you need Jedi Academy installed. If you don't already own the game you can buy it from online stores such as [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN) or [Play](http://www.play.com/Games/PC/4-/127805/Star-Wars-Jedi-Knight-Jedi-Academy/Product.html?searchstring=jedi+academy&searchsource=0&searchtype=allproducts&urlrefer=search). 
+First, you need Jedi Academy installed. If you don't already own the game you can buy it from online stores such as [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN) or [Play](http://www.play.com/Games/PC/4-/127805/Star-Wars-Jedi-Knight-Jedi-Academy/Product.html?searchstring=jedi+academy&searchsource=0&searchtype=allproducts&urlrefer=search).
 
 Next, unpack the game binaries into any folder you choose. Desktop/JKG/ works fine.
 Copy assets0-3.pk3s from your base game into JKG's base folder.
