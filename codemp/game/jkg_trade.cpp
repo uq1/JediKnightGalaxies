@@ -59,7 +59,7 @@ static void JKG_target_vendor_think(gentity_t* self) {
 	// If the vendor has a client using it, we need to make sure to update that client
 	if (npc->genericValue1 != ENTITYNUM_NONE) {
 		gentity_t* patron = &g_entities[npc->genericValue1];
-		BG_SendTradePacket(IPT_TRADE, patron, npc, &npc->inventory[0], npc->inventory->size(), 0);
+		BG_SendTradePacket(IPT_TRADE, patron, npc, &(*npc->inventory)[0], npc->inventory->size(), 0);
 	}
 
 	self->nextthink = level.time + (jkg_shop_replenish_time.integer * 1000);
