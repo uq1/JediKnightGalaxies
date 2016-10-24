@@ -744,7 +744,7 @@ static void BG_ParseVisualsFireMode ( weaponVisualFireMode_t *fireMode, cJSON *f
 	}
 
 	node = cJSON_GetObjectItem (fireModeNode, "displayExplosive");
-	fireMode->displayExplosive = (qboolean)cJSON_ToBooleanOpt(node, qtrue);
+	fireMode->displayExplosive = (qboolean)cJSON_ToBooleanOpt(node, qfalse);
     
     // TODO: Need to tie this to the table in cg_weapons.c somehow...
     // Weapon Render
