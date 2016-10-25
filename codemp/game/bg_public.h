@@ -996,7 +996,6 @@ typedef enum {
 	EV_MISSILE_HIT,
 	EV_MISSILE_MISS,
 	EV_MISSILE_MISS_METAL,
-	EV_BULLET,				// otherEntity is the shooter
 
 	EV_PAIN,
 	EV_DEATH1,
@@ -1129,7 +1128,6 @@ typedef enum {
 	EV_GRENADE_COOK,
 	EV_EXPLOSIVE_ARM,
 	EV_MISSILE_DIE,
-	EV_ITEM_BREAK,		//Item gets broken due to loss of durability
 #ifdef __MMO__
 	EV_GOTO_ACI,		//Go to specific ACI slot (inexpensive)
 	EV_HITMARKER_ASSIST,

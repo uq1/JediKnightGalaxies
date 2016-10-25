@@ -44,7 +44,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 //#include "jkg_navmesh_creator.h"
 #include "jkg_damagetypes.h"
 #include "bg_items.h"
-#include "jkg_easy_items.h"
+#include "jkg_treasureclass.h"
 
 #include <assert.h>
 
@@ -369,11 +369,7 @@ static void JKG_RegisteServerCallback ( asyncTask_t *task )
 
 extern void RemoveAllWP(void);
 extern void BG_ClearVehicleParseParms(void);
-extern void JKG_InitItems(void);
 void ActivateCrashHandler();
-
-extern void JKG_RetrieveDuelCache( void );
-extern void JKG_SaveDuelCache( void );
 
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
@@ -568,8 +564,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	JKG_InitializeStanceData();
 	
 	// setup master item table
-	JKG_InitItems();
-	JKG_VendorInit();
+	BG_InitItems();
+
+	JKG_TC_Init("ext_data/treasure");
 
 	JKG_InitializeConstants();
 	
@@ -635,8 +632,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	JKG_BindChatCommands();
 }
 
-
-
 /*
 =================
 G_ShutdownGame
@@ -646,10 +641,6 @@ void DeactivateCrashHandler();
 void G_ShutdownGame( int restart ) {
 	int i = 0;
 	gentity_t *ent;
-
-	// Cache some stuff for Duel, if necessary. 
-	if( restart && (level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL))
-		JKG_SaveDuelCache();
 
 	if(JKG_ThreadingInitialized())
 	{
@@ -675,6 +666,8 @@ void G_ShutdownGame( int restart ) {
 	BG_ClearAnimsets(); //free all dynamic allocations made through the engine
 
 	BG_ShutdownWeaponG2Instances();
+
+	JKG_TC_Shutdown();
 
 //	Com_Printf("... Gameside GHOUL2 Cleanup\n");
 	while (i < MAX_GENTITIES)
@@ -756,10 +749,6 @@ void G_ShutdownGame( int restart ) {
 	}
 
 	NPC_Cleanup();
-
-	JKG_Easy_DIMA_Cleanup();
-//	G_TerminateMemory(); // wipe all allocs made with G_Alloc
-	//JKG_Nav_Shutdown();
 #ifndef NO_CRYPTOGRAPHY
 	EVP_cleanup();
 #endif
@@ -3111,9 +3100,6 @@ void G_RunFrame( int levelTime ) {
 
     // Damage players
     JKG_DamagePlayers();
-
-	// Update any sort of vendors that need updating because of cvars, etc
-	JKG_CheckVendorReplenish();
 
 #ifdef _G_FRAME_PERFANAL
 	trap->PrecisionTimer_Start(&timer_ItemRun);
