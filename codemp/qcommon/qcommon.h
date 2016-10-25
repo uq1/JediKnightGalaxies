@@ -489,6 +489,8 @@ void 	Cvar_WriteVariables( fileHandle_t f );
 
 void	Cvar_Init( void );
 
+cvar_t *Cvar_Unset(cvar_t *cv);
+
 char	*Cvar_InfoString( int bit );
 char	*Cvar_InfoString_Big( int bit );
 // returns an info string containing all the cvars that have the given bit set
@@ -1023,6 +1025,8 @@ inline int Round(float value)
 // Persistent data store API
 bool PD_Store ( const char *name, const void *data, size_t size );
 const void *PD_Load ( const char *name, size_t *size );
+
+uint32_t ConvertUTF8ToUTF32(char *utf8CurrentChar, char **utf8NextChar);
 
 #endif
 #endif // QCOMMON_H

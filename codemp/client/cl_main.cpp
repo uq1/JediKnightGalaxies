@@ -737,7 +737,7 @@ static void CL_UpdateGUID( const char *prefix, int prefix_len )
 
 		// initialize the cvar here in case it's unset or was user-created
 		// while tracking was disabled (removes CVAR_USER_CREATED)
-		Cvar_Get( "ja_guid", "", CVAR_USERINFO | CVAR_ROM, "Client GUID" );
+		Cvar_Get( "ja_guid", "", CVAR_USERINFO | CVAR_ROM );
 
 		if( len != QKEY_SIZE ) {
 			Cvar_Set( "ja_guid", "" );
@@ -750,7 +750,7 @@ static void CL_UpdateGUID( const char *prefix, int prefix_len )
 		uint32_t flags = Cvar_Flags("ja_guid");
 		// keep the cvar if it's user-created, but destroy it otherwise
 		if (flags != CVAR_NONEXISTENT && !(flags & CVAR_USER_CREATED)) {
-			cvar_t *ja_guid = Cvar_Get("ja_guid", "", 0, "Client GUID" );
+			cvar_t *ja_guid = Cvar_Get("ja_guid", "", 0 );
 			Cvar_Unset(ja_guid);
 		}
 	}
@@ -2747,6 +2747,7 @@ void CL_Init( void ) {
 
 	cl_lanForcePackets = Cvar_Get ("cl_lanForcePackets", "1", CVAR_ARCHIVE);
 
+	cl_enableGuid = Cvar_Get("cl_enableGuid", "1", CVAR_ARCHIVE);
 	cl_guidServerUniq = Cvar_Get ("cl_guidServerUniq", "1", CVAR_ARCHIVE);
 
 	// ~ and `, as keys and characters
