@@ -128,8 +128,8 @@ static void CG_Obituary( entityState_t *ent ) {
 	char		*message;
 	const char	*targetInfo;
 	const char	*attackerInfo;
-	char		targetName[32];
-	char		attackerName[32];
+	char		targetName[MAX_QPATH];						//increased from 32, to use MAX_QPATH
+	char		attackerName[MAX_QPATH];
 	gender_t	gender;
 	clientInfo_t	*ci;
 
@@ -143,6 +143,7 @@ static void CG_Obituary( entityState_t *ent ) {
 	}
 	ci = &cgs.clientinfo[target];
 
+
 	if ( attacker < 0 || attacker >= MAX_CLIENTS ) {
 		attacker = ENTITYNUM_WORLD;
 		attackerInfo = NULL;
@@ -154,7 +155,7 @@ static void CG_Obituary( entityState_t *ent ) {
 	if ( !targetInfo ) {
 		return;
 	}
-	Q_strncpyz( targetName, Info_ValueForKey( targetInfo, "n" ), sizeof(targetName) - 2);
+	Q_strncpyz( targetName, Info_ValueForKey( targetInfo, "n" ), sizeof(targetName) - 2);			//--futuza note:  possible RBG color fix needed here on targetName
 	strcat( targetName, S_COLOR_WHITE );
 
 	// check for single client messages
@@ -288,8 +289,7 @@ clientkilled:
 				char sKilledStr[256];
 				trap->SE_GetStringTextString("MP_INGAME_PLACE_WITH",     sPlaceWith, sizeof(sPlaceWith));
 				trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
-
-				s = va("%s %s.\n%s %s %i.", sKilledStr, targetName, 
+				s = va("%s %s.\n%s %s %i.", sKilledStr, targetName,
 					CG_PlaceString( cg.snap->ps.persistant[PERS_RANK] + 1 ), 
 					sPlaceWith,
 					cg.snap->ps.persistant[PERS_SCORE] );
@@ -297,7 +297,7 @@ clientkilled:
 		} else {
 			char sKilledStr[256];
 			trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
-			s = va("%s %s", sKilledStr, targetName );
+			s = va("%s %s", sKilledStr, targetName);
 		}
 
 		CG_CenterPrint( s, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
@@ -307,7 +307,7 @@ clientkilled:
 	// check for double client messages
 	if ( !attackerInfo ) {
 		attacker = ENTITYNUM_WORLD;
-		strcpy( attackerName, "noname" );
+		strcpy( attackerName, "noname" );																	//--futuza: needs RGB fix testing (should work, but not tested)
 	} else {
 		Q_strncpyz( attackerName, Info_ValueForKey( attackerInfo, "n" ), sizeof(attackerName) - 2);
 		strcat( attackerName, S_COLOR_WHITE );
@@ -416,16 +416,15 @@ clientkilled:
 
 		if (message) {
 			message = (char *)CG_GetStringEdString("MP_INGAME", message);
-			if (jkg_nokillmessages.integer!=1) {
-				trap->Print( "%s %s %s\n", 
-				targetName, message, attackerName); //Disables rendering of kill messages as it is not needed in a MMO?
+			if (jkg_nokillmessages.integer!=1) {		//Disables rendering of kill messages as it is not needed in a MMO?
+				trap->Print("%s %s %s\n", JKG_xRBG_ConvertExtToNormal(targetName), message, JKG_xRBG_ConvertExtToNormal(attackerName)); 	//--futuza: ^xRGB fix needed (so that server handles it too)
 			}
 			return;
 		}
 	}
 	if (jkg_nokillmessages.integer!=1) {
 		// we don't know what it was
-		trap->Print( "%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC") );  //Disables rendering of kill messages as it is not needed in a MMO?
+		trap->Print("%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC"));
 	}
 }
 
@@ -758,6 +757,7 @@ void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 
 			if (ci)
 			{
+				//--futuza: possible ^xRGB fix, needs testing, but this concerns ctf
 				Com_sprintf(printMsg, sizeof(printMsg), "%s^7 ", ci->name);
 				strLen = strlen(printMsg);
 			}
@@ -2580,6 +2580,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	//
 	// other events
 	//
+	//Player teleporting
 	case EV_PLAYER_TELEPORT_IN:
 		DEBUGNAME("EV_PLAYER_TELEPORT_IN");
 		/*{
@@ -3022,7 +3023,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				{ //add to the chat box
 					//hear it in the world spot.
 					char vchatstr[1024];
-					strcpy(vchatstr, va("<%s: %s>\n", ci->name, descr));
+					strcpy(vchatstr, va("<%s: %s>\n", ci->name, descr));	//futuza: fixed xRGB color codes
 					if (jkg_nokillmessages.integer!=1) {
 					trap->Print(vchatstr); //Disables rendering of kill messages as it is not needed in a MMO?
 					}

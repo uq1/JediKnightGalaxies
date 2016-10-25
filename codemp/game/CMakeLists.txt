@@ -391,6 +391,9 @@ set(MPGameLuaSource
 source_group("Libraries\\Lua\\Source Files" FILES ${MPGameLuaSource})
 set(MPGameFiles ${MPGameFiles} ${MPGameLuaSource})
 
+if(BuildSkipCryptography)
+# Do nothing
+else()
 set(MPGameSSLHeader
 	"${MPDir}/libraries/openssl/aes.h"
 	"${MPDir}/libraries/openssl/asn1.h"
@@ -468,10 +471,14 @@ set(MPGameSSLHeader
 source_group("Libraries\\OpenSSL\\Header Files" FILES ${MPGameSSLHeader})
 set(MPGameFiles ${MPGameFiles} ${MPGameSSLHeader})
 
+if(WIN32)
+	target_link_libraries(${MPGame} "${MPDir}/libraries/openssl/ssleay32.lib" "${MPDir}/libraries/openssl/libeay32.lib")
+else()
+	target_link_libraries(${MPGame} "ssl" "crypto")
+endif()
+endif() # End BuildSkipCryptography
+
 add_library(${MPGame} SHARED ${MPGameFiles})
-target_link_libraries(${MPGame} "${MPDir}/libraries/openssl/ssleay32.lib" "${MPDir}/libraries/openssl/libeay32.lib")
-
-
 
 if(NOT WIN32)
 	# remove "lib" prefix for .so/.dylib files
@@ -481,7 +488,7 @@ endif(NOT WIN32)
 if(MakeApplicationBundles AND BuildMPEngine)
 	install(TARGETS ${MPGame}
 		LIBRARY
-		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/OpenJK"
+		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/JKG"
 		COMPONENT ${JKAMPCoreComponent})
 	install(TARGETS ${MPGame}
 		LIBRARY
@@ -490,7 +497,7 @@ if(MakeApplicationBundles AND BuildMPEngine)
 elseif(WIN32)
 	install(TARGETS ${MPGame}
 		RUNTIME
-		DESTINATION "${JKAInstallDir}/OpenJK"
+		DESTINATION "${JKAInstallDir}/JKG"
 		COMPONENT ${JKAMPCoreComponent})
 	if (WIN64)
 		# Don't do this on 32-bit Windows to avoid overwriting
@@ -503,7 +510,7 @@ elseif(WIN32)
 else()
 	install(TARGETS ${MPGame}
 		LIBRARY
-		DESTINATION "${JKAInstallDir}/OpenJK"
+		DESTINATION "${JKAInstallDir}/JKG"
 		COMPONENT ${JKAMPCoreComponent})
 	install(TARGETS ${MPGame}
 		LIBRARY

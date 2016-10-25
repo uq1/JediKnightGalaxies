@@ -20,10 +20,9 @@
 
 typedef struct jkg_stack_s
 {
-#ifdef __linux__
+#ifndef _MSC_VER
 	pthread_mutex_t lock;
-#endif
-#ifdef _WIN32
+#else
 	CRITICAL_SECTION lock;
 #endif
 	int init;
@@ -32,10 +31,9 @@ typedef struct jkg_stack_s
 
 typedef struct jkg_queue_s
 {
-#ifdef __linux__
+#ifndef _MSC_VER
 	pthread_mutex_t lock;
-#endif
-#ifdef _WIN32
+#else
 	CRITICAL_SECTION lock;
 #endif
 	int init;

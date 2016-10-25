@@ -6,6 +6,9 @@
 //
 //////////////////////////////////
 
+#ifndef GAME_JKG_CHATCMDS_H
+#define GAME_JKG_CHATCMDS_H
+
 typedef void (*xccommand_t) (void);
 
 
@@ -21,3 +24,5 @@ void	CCmd_AddCommand( const char *cmd_name, xccommand_t function );
 void	CCmd_RemoveCommand( const char *cmd_name );
 int CCmd_Caller( void );
 char *CCmd_ConcatArgs( int start );
+
+#endif

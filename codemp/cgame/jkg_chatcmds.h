@@ -1,19 +1,10 @@
-//       ____ ___________________   ___           ____  __ _______   ___  ________  ___ ______________
-//      |    |\_   _____/\______ \ |   |         |    |/ _|\      \ |   |/  _____/ /   |   \__    ___/
-//      |    | |    __)_  |    |  \|   |         |      <  /   |   \|   /   \  ___/    ~    \|    |   
-//  /\__|    | |        \ |    `   \   |         |    |  \/    |    \   \    \_\  \    Y    /|    |   
-//  \________|/_______  //_______  /___|         |____|__ \____|__  /___|\______  /\___|_  / |____|   
-//                    \/         \/                      \/       \/            \/       \/           
-//                         ________    _____   ____       _____  ____  ___ ______________ _________   
-//                        /  _____/   /  _  \ |    |     /  _  \ \   \/  /|   \_   _____//   _____/   
-//                       /   \  ___  /  /_\  \|    |    /  /_\  \ \     / |   ||    __)_ \_____  \    
-//                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
-//                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
-//                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
 // jkg_chatcmds.h
 // JKG - Chat command processing
 // Heavily based on the engine's command tokenizer
 // Copyright (c) 2013 Jedi Knight Galaxies
+
+#ifndef CGAME_JKG_CHATCMDS_H
+#define CGAME_JKG_CHATCMDS_H
 
 typedef void (*xccommand_t) ( void );
 
@@ -31,3 +22,5 @@ void	CCmd_AddCommand( const char *cmd_name, xccommand_t function );
 void	CCmd_RemoveCommand( const char *cmd_name );
 
 void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontIndex, const int limit, float scale);
+
+#endif

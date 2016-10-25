@@ -2397,7 +2397,11 @@ void CG_LoadHudMenu()
 	cgDC.setColor = trap->R_SetColor;
 	cgDC.drawHandlePic = CG_DrawPic;
 	cgDC.drawStretchPic = trap->R_DrawStretchPic;
+#if	defined(__linux__)
+	cgDC.drawText = reinterpret_cast<void(*)(float, float, float, float[], const char *, float, int, int, int)>(&CG_Text_Paint);
+#else
 	cgDC.drawText = reinterpret_cast<void (__cdecl *)(float, float, float, float [], const char *, float, int, int, int)>(&CG_Text_Paint);
+#endif
 	cgDC.textWidth = CG_Text_Width;
 	cgDC.textHeight = CG_Text_Height;
 	cgDC.registerModel = trap->R_RegisterModel;

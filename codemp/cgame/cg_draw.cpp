@@ -33,6 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 // Jedi Knight Galaxies
 #include "jkg_hud.h"
+#include "jkg_chatbox.h"
 
 extern float CG_RadiusForCent( centity_t *cent );
 qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y);
@@ -1676,10 +1677,19 @@ static float CG_DrawEnemyInfo ( float y )
 
 	y += size;
 
-	CG_Text_Paint( 630 - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );
+
+	//I have no idea what this is lol - maybe leaderboard thing that shows up in the top right of jka?  --futuza
+	//CG_Text_Paint( 630 - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );	//futuza note: old way
+	Text_DrawText(630 - Text_GetWidth(ci->name, FONT_SMALL2, 1.0f) + xOffset, y, ci->name, colorWhite, FONT_SMALL2, 0, 1.0f);				//futuza note: new way
 
 	y += 15;
-	CG_Text_Paint( 630 - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );
+	//note might want to change this back, title's probably can't use color codes anyway
+	//CG_Text_Paint( 630 - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );			//futuza note: old way
+	Text_DrawText(630 - Text_GetWidth(title, FONT_SMALL2, 1.0f) + xOffset, y, title, colorWhite, FONT_SMALL2, 0, 1.0f);							//futuza note: new way
+
+	//ohhh is this dueling only?
+	//okay okay
+	
 
 	return y + BIGCHAR_HEIGHT + 2;
 }
@@ -2362,7 +2372,7 @@ static void CG_DrawTeamOverlay() {
 		if ( ci->infoValid && (( cgs.party.active && TeamFriendly( i )) || ( !cgs.party.active && ci->team == cg.snap->ps.persistant[PERS_TEAM] )))
 		{
 			plyrs++;
-			len = (float)trap->R_Font_StrLenPixels(ci->name, MenuFontToHandle(1), 1) *0.5f; //CG_DrawStrlen(ci->name);
+			len = (float)trap->R_Font_StrLenPixels(Text_ConvertExtToNormal(ci->name), MenuFontToHandle(1), 1) *0.5f; //CG_DrawStrlen(ci->name);		//futuza note: deals with filling in the actual space and figuring out how wide to make it
 			if (len > pwidth)
 				pwidth = len;
 		}
@@ -2423,9 +2433,11 @@ static void CG_DrawTeamOverlay() {
 			MAKERGBA(hcolor,0,0,0,1);
 			CG_DrawRect(x+2, y+2, 20, 20, 1, hcolor);
 
+
 			// Draw player name
 			MAKERGBA(hcolor,1,1,1,1);		
-			trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		//--futuza notes: drawing player names
+			//trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		//old way
+			Text_DrawText(x + 26, y + 2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		// futuza note: xRGB fix (see tr_font.cpp) should allow us to use old way, not necessary?
 			MAKERGBA(hcolor,0,0,0,1);
 			CG_DrawRect(x+24, y+2, pwidth+8 , 13, 1, hcolor);
 
@@ -2828,7 +2840,7 @@ CENTER PRINTING
 ===============================================================================
 */
 
-#define CG_CP_NUMBER_OF_CHARACTERS_IN_LINE	50
+#define CG_CP_NUMBER_OF_CHARACTERS_IN_LINE	75		//--futuza: original value 50
 
 /*
 ==============
@@ -4569,6 +4581,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 	cg.crosshairClientTime = cg.time;
 }
 
+//--futuza notice:  this function is depreciated use Global_SanitizeString() instead (you can pass it 128 for the limit for CG_draw functions)
 void CG_SanitizeString( char *in, char *out )
 {
 	int i = 0;
@@ -4587,6 +4600,18 @@ void CG_SanitizeString( char *in, char *out )
 				in[i+1] <= 57) //'9'
 			{ //only skip it if there's a number after it for the color
 				i += 2;
+				continue;
+			}
+			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code  note: needs safety checking
+			{
+				for (int l = 2; l < 7; l++)
+				{
+					if (in[i + l] == NULL)
+						;					//if we hit end of string do nothing
+					else
+						i++;
+				}
+				//i += 5;
 				continue;
 			}
 			else
@@ -5411,8 +5436,10 @@ void CG_DrawNPCNames( void )
 
 		//CG_Printf("%i screen coords are %fx%f. (%f %f %f)\n", cent->currentState.number, x, y, origin[0], origin[1], origin[2]);
 
-		CG_SanitizeString(str1, sanitized1);
-		CG_SanitizeString(str2, sanitized2);
+		//CG_SanitizeString(str1, sanitized1);		//--futuza: depreciated
+		//CG_SanitizeString(str2, sanitized2);
+		Global_SanitizeString(str1, sanitized1, 128);
+		Global_SanitizeString(str2, sanitized2, 128);
 		
 		size = dist * 0.0002;
 		
@@ -5591,8 +5618,8 @@ static void CG_DrawCrosshairNames( void ) {
 	tcolor[2] = colorTable[baseColor][2];
 	tcolor[3] = color[3]*0.5f;
 
-	CG_SanitizeString(name, sanitized);
-
+	//CG_SanitizeString(name, sanitized);												//--futuza note: depreciated
+	Global_SanitizeString(name, sanitized, 128);
 	if (isVeh)
 	{
 		char str[MAX_STRING_CHARS];
@@ -5848,10 +5875,10 @@ static qboolean CG_DrawFollow( void )
 		s = CG_GetStringEdString("MP_INGAME", "FOLLOWING");
 	}
 
-	CG_Text_Paint ( 320 - CG_Text_Width ( s, 1.0f, FONT_MEDIUM ) / 2, 60, 1.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM );
-
+	CG_Text_Paint(320 - CG_Text_Width(s, 1.0f, FONT_MEDIUM) / 2, 60, 1.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM);
+	
 	s = cgs.clientinfo[ cg.snap->ps.clientNum ].name;
-	CG_Text_Paint ( 320 - CG_Text_Width ( s, 2.0f, FONT_MEDIUM ) / 2, 80, 2.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM );
+	CG_Text_Paint(320 - CG_Text_Width(s, 2.0f, FONT_MEDIUM) / 2, 80, 2.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM);
 
 	return qtrue;
 }
@@ -6508,7 +6535,7 @@ void CG_ChatBox_AddString(char *chatStr, int fadeLevel)
 					i+=2;
 					continue;
 				}
-				if (chat->string[i+1] == 'x' && Text_IsExtColorCode(&chat->string[i+1])) {
+				if (chat->string[i + 1] == 'x' && Text_IsExtColorCode(&chat->string[i + 1]) || chat->string[i + 1] == 'X' && Text_IsExtColorCode(&chat->string[i + 1])) {		//futuza also allow 'X'
 					i+=5;
 					continue;
 				}

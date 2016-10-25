@@ -44,7 +44,9 @@
 // All instances of sprintf are change to snprintf to avoid buffer overflows
 // On windows, it's called sprintf_s instead of snprintf, so we'll do a little define here
 #ifdef WIN32
+#if (_MSC_VER < 1900)		//No longer necessary in vs2015  --Futuza
 #define snprintf sprintf_s
+#endif
 #endif
 
 #include <string.h>
@@ -3367,39 +3369,39 @@ int cJSON_ReadStringArrayv(cJSON * arry, int count, ...)
 
 // Type checking (inlined)
 
-__inline int cJSON_IsNULL(cJSON *item) {
+int cJSON_IsNULL(cJSON *item) {
 	return item->type == cJSON_NULL;
 }
 
-__inline int cJSON_IsTrue(cJSON *item) {
+int cJSON_IsTrue(cJSON *item) {
 	return item->type == cJSON_True;
 }
 
-__inline int cJSON_IsFalse(cJSON *item) {
+int cJSON_IsFalse(cJSON *item) {
 	return item->type == cJSON_False;
 }
 
-__inline int cJSON_IsBoolean(cJSON *item) {
+int cJSON_IsBoolean(cJSON *item) {
 	return item->type == cJSON_True || item->type == cJSON_False;
 }
 
-__inline int cJSON_IsNumber(cJSON *item) {
+int cJSON_IsNumber(cJSON *item) {
 	return item->type == cJSON_Number;
 }
 
-__inline int cJSON_IsString(cJSON *item) {
+int cJSON_IsString(cJSON *item) {
 	return item->type == cJSON_String;
 }
 
-__inline int cJSON_IsArray(cJSON *item) {
+int cJSON_IsArray(cJSON *item) {
 	return item->type == cJSON_Array;
 }
 
-__inline int cJSON_IsObject(cJSON *item) {
+int cJSON_IsObject(cJSON *item) {
 	return item->type == cJSON_Object;
 }
 
-__inline int cJSON_IsLinked(cJSON *item) {
+int cJSON_IsLinked(cJSON *item) {
 	return item->linked;
 }
 
@@ -3491,42 +3493,42 @@ const char *cJSON_ToStringOpt(cJSON *item, const char *defval)
 	}
 }
 
-__inline int cJSON_ToBoolean(cJSON *item)
+int cJSON_ToBoolean(cJSON *item)
 {
 	return cJSON_ToBooleanOpt(item, 0);
 }
 
-__inline double cJSON_ToNumber(cJSON *item)
+double cJSON_ToNumber(cJSON *item)
 {
 	return cJSON_ToNumberOpt(item, 0);
 }
 
-__inline int cJSON_ToInteger(cJSON *item)
+int cJSON_ToInteger(cJSON *item)
 {
 	return cJSON_ToIntegerOpt(item, 0);
 }
 
-__inline const char * cJSON_ToString(cJSON *item)
+const char * cJSON_ToString(cJSON *item)
 {
 	return cJSON_ToStringOpt(item, 0);
 }
 
-__inline int cJSON_ToBooleanRaw(cJSON *item)
+int cJSON_ToBooleanRaw(cJSON *item)
 {
 	return item->type == cJSON_True ? 1 : 0;
 }
 
-__inline double cJSON_ToNumberRaw(cJSON *item)
+double cJSON_ToNumberRaw(cJSON *item)
 {
 	return item->valuedouble;
 }
 
-__inline int cJSON_ToIntegerRaw(cJSON *item)
+int cJSON_ToIntegerRaw(cJSON *item)
 {
 	return item->valueint;
 }
 
-__inline const char * cJSON_ToStringRaw(cJSON *item)
+const char * cJSON_ToStringRaw(cJSON *item)
 {
 	return item->valuestring;
 }

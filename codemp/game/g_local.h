@@ -657,7 +657,7 @@ typedef struct clientSession_s {
 #define PSG_TEAMVOTED			(1<<1)		// already cast a team vote
 
 //
-#define MAX_NETNAME			36
+#define MAX_NETNAME			36				//--futuza:  making this bigger Max_QPATH size?
 #define	MAX_VOTE_COUNT		3
 
 // client data that stays across multiple respawns, but is cleared
