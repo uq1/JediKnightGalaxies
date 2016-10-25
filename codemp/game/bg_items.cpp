@@ -955,11 +955,11 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 	itemData->weight = item;
 
 	jsonNode = cJSON_GetObjectItem(json, "cost");
-	item = cJSON_ToIntegerOpt(json, 100);
+	item = cJSON_ToIntegerOpt(jsonNode, 100);
 	itemData->baseCost = item;
 
 	jsonNode = cJSON_GetObjectItem(json, "maxStack");
-	item = cJSON_ToIntegerOpt(json, 1);
+	item = cJSON_ToIntegerOpt(jsonNode, 1);
 	itemData->maxStack = item;
 
 	//Equipment Info
