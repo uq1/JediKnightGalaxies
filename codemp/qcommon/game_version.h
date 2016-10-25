@@ -34,17 +34,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #ifdef _DEBUG
 	#define JK_VERSION "" GIT_BRANCH " / " GIT_HASH " (debug)"
 	#define JKG_VERSION_SUFFIX "d"
-	#define	JK_VERSION		"(debug)JAmp: v" VERSION_STRING_DOTTED "/JKG: v" JKG_VERSION JKG_VERSION_SUFFIX
 	
 #elif defined FINAL_BUILD
 	#define JK_VERSION "" GIT_BRANCH " / " GIT_HASH ""
 	#define JKG_VERSION_SUFFIX ""
-	#define	JK_VERSION		"JAmp: v" VERSION_STRING_DOTTED "/JKG: v" JKG_VERSION JKG_VERSION_SUFFIX
 	
 #else
 	#define JK_VERSION "" GIT_BRANCH " / " GIT_HASH " (internal)"
 	#define JKG_VERSION_SUFFIX "r"
-	#define	JK_VERSION		"(internal)JAmp: v" VERSION_STRING_DOTTED "/JKG: v" JKG_VERSION JKG_VERSION_SUFFIX
 #endif
 
 #define	GAMEVERSION	"Jedi Knight Galaxies v" JKG_VERSION JKG_VERSION_SUFFIX

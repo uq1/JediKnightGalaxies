@@ -172,7 +172,6 @@ set(MPGameGameFiles
 	"${MPDir}/game/jkg_damagetypes.h"
 	"${MPDir}/game/jkg_dynarrays.h"
 	"${MPDir}/game/jkg_gangwars.h"
-	"${MPDir}/game/jkg_items.h"
 	"${MPDir}/game/jkg_keypairs.h"
 	"${MPDir}/game/jkg_navmesh_creator.h"
 	"${MPDir}/game/jkg_threading.h"
