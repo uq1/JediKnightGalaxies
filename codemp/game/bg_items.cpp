@@ -637,29 +637,31 @@ void BG_GiveItemNonNetworked(itemInstance_t item) {
 	cg.playerInventory->push_back(item);
 
 	// If this item is a weapon, which is not already in our ACI, and the ACI is not full, add it.
-	bool bInACIAlready = false;
-	int nFreeACISlot = -1;
-	for(int i = 0; i < MAX_ACI_SLOTS; i++) {
-		if(cg.playerACI[i] == -1 && nFreeACISlot == -1) {
-			nFreeACISlot = i;
-			continue;
-		} else if(cg.playerACI[i] == -1) {
-			continue;
-		} else if(cg.playerACI[i] >= cg.playerInventory->size()) {
-			// This item in our ACI is invalid, remove it
-			cg.playerACI[i] = -1;
-			continue;
+	if(item.id->itemType == ITEM_WEAPON) {
+		bool bInACIAlready = false;
+		int nFreeACISlot = -1;
+		for(int i = 0; i < MAX_ACI_SLOTS; i++) {
+			if(cg.playerACI[i] == -1 && nFreeACISlot == -1) {
+				nFreeACISlot = i;
+				continue;
+			} else if(cg.playerACI[i] == -1) {
+				continue;
+			} else if(cg.playerACI[i] >= cg.playerInventory->size()) {
+				// This item in our ACI is invalid, remove it
+				cg.playerACI[i] = -1;
+				continue;
+			}
+			if(!Q_stricmp((*cg.playerInventory)[cg.playerACI[i]].id->internalName, item.id->internalName)) {
+				bInACIAlready = true; 
+			}
+			if(bInACIAlready && nFreeACISlot >= 0) { // already found everything we need to know, just die
+				break;
+			}
 		}
-		if(!Q_stricmp((*cg.playerInventory)[cg.playerACI[i]].id->internalName, item.id->internalName)) {
-			bInACIAlready = true; 
-		}
-		if(bInACIAlready && nFreeACISlot >= 0) { // already found everything we need to know, just die
-			break;
-		}
-	}
 
-	if (!bInACIAlready && nFreeACISlot != -1) {
-		cg.playerACI[nFreeACISlot] = cg.playerInventory->size() - 1;
+		if (!bInACIAlready && nFreeACISlot != -1) {
+			cg.playerACI[nFreeACISlot] = cg.playerInventory->size() - 1;
+		}
 	}
 }
 #endif
