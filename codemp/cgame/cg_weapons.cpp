@@ -2389,7 +2389,14 @@ static void JKG_FireBlaster ( centity_t *cent, const weaponDrawData_t *weaponDat
     if ( s->number == cg.snap->ps.clientNum )
     {
 		//float pitchRecoil = thisWeaponData->firemodes[altFire].recoil;
+		int current = trap->GetCurrentCmdNumber();
+		usercmd_t ucmd;
+		trap->GetUserCmd(current, &ucmd);
+
 		float pitchRecoil = thisWeaponData->firemodes[cg.snap->ps.firingMode].recoil;
+		if (ucmd.upmove < 0) {
+			pitchRecoil /= 2.0f;	// Half recoil when we are crouched
+		}
 
 		if ( pitchRecoil )
 		{
