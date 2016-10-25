@@ -238,31 +238,21 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLeve
 			// Movement penalty/bonus, if there is one.
 			if (nLineNum == 2) {
 				const float fSpeedModifier = pWeaponData->speedModifier;
-				if (fSpeedModifier >= 1.0f) {
+				if (fSpeedModifier > 1.0f) {
 					// Movement speed bonus
 					float fMovementBonus = fSpeedModifier - 1.0f;
-					if (fMovementBonus <= 0.001f) {
-						// Movement bonuses below 0.1% are too difficult to notice, and plus this can sometimes occur if there's a
-						// floating point precision issue, so we just offset and continue.
-						nLineNum++;
-						nLineOffset++;
-					} else {
-						// Convert to percentage and draw
-						fMovementBonus += 100.0f;
-						return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_SPEEDBONUS"), fMovementBonus);
-					}
-				} else {
+					fMovementBonus *= 100.0f;
+					return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_SPEEDBONUS"), fMovementBonus);
+				} else if(fSpeedModifier < 1.0f) {
 					// Movement speed penalty
 					float fMovementPenalty = 1.0f - fSpeedModifier;
-					if (fMovementPenalty <= 0.001f) {
-						// See above. Offset it.
-						nLineNum++;
-						nLineOffset++;
-					} else {
-						// You know what to do.
-						fMovementPenalty += 100.0f;
-						return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_SPEEDPENALTY"), fMovementPenalty);
-					}
+					fMovementPenalty *= 100.0f;
+					return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_SPEEDPENALTY"), fMovementPenalty);
+				}
+				else {
+					// Not affected
+					nLineNum++;
+					nLineOffset++;
 				}
 			}
 
