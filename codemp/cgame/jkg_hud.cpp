@@ -107,34 +107,6 @@ static void CG_DrawSaberStyle( centity_t *cent, menuDef_t *menuHUD)
 	{
 		text = va( "Stance: %s", SaberStances[cg.predictedPlayerState.fd.saberDrawAnimLevel].saberName_technical );
 	}
-	/*switch ( cg.predictedPlayerState.fd.saberDrawAnimLevel )
-	{
-
-	case 1: //FORCE_LEVEL_1: Fast
-		text = "Style: Fast";
-		break;
-	case 2: //FORCE_LEVEL_2: Medium
-		text = "Style: Medium";
-		break;
-	case 3: //FORCE_LEVEL_3: Strong
-		text = "Style: Strong";
-		break;
-	case 4: //FORCE_LEVEL_4://Desann
-		text = "Style: Desann";
-		break;
-	case 5: //FORCE_LEVEL_5://Tavion
-		text = "Style: Tavion";
-		break;
-	case 6: //SS_DUAL
-		text = "Style: Dual";
-		break;
-	case 7: //SS_STAFF
-		text = "Style: Staff";
-		break;
-	default:	// ??? Should never happen
-		text = "Style: Unknown";
-		break;
-	}*/
 
 	// Now then, lets render this text ^_^
 
