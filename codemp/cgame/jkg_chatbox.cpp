@@ -255,19 +255,21 @@ void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontI
 	VectorCopy4(rgba, color);
 	while (*t) {
 		if (*t == '^') {
-			if (*(t+1) >= '0' && *(t+1) <= '9') {
-				VectorCopy4(tColorTable[*(t+1) - '0'], color);
-				t+=2;
+			if (*(t + 1) >= '0' && *(t + 1) <= '9') {
+				VectorCopy4(tColorTable[*(t + 1) - '0'], color);
+				t += 2;
 				continue;
 			}
 			if (*(t + 1) == 'x' || *(t + 1) == 'X') {
 				// Extended colorcode
-				if (Text_ExtColorCodes(t+1, color)) {
-					t+=5;
+				if (Text_ExtColorCodes(t + 1, color)) {
+					t += 5;
 					continue;
 				}
 			}
 		}
+		/*else if(*t !='^')
+			VectorCopy4(tColorTable[7], color);	//if not xRGB, just default to white*/
 		s[0] = *t;
 		trap->R_Font_DrawString(xx, y, s, color, iFontIndex, limit, scale);
 		xx += ((float)trap->R_Font_StrLenPixels(s, iFontIndex, 1) * scale);
