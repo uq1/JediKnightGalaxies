@@ -371,6 +371,32 @@ void JKG_BuyItem_f(gentity_t *ent)
 	}
 
 	itemInstance_t* pItem = &(*trader->inventory)[item];
+	if (pItem->id->baseCost > ent->client->ps.credits) 
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"You do not have enough credits to purchase that item.\n\"");
+		
+		//select random unhappy vendor sound to play
+		std::string snd;
+		switch (Q_irand(0, 5))
+		{	case 0: snd = "sound/vendor/generic/purchasefail00.mp3";
+				break;
+			case 1: snd = "sound/vendor/generic/purchasefail01.mp3";
+				break;
+			case 2: snd = "sound/vendor/generic/purchasefail02.mp3";
+				break;
+			case 3: snd = "sound/vendor/generic/purchasefail03.mp3";
+				break;
+			case 4: snd = "sound/vendor/generic/purchasefail04.mp3";
+				break;
+			case 5: snd = "sound/vendor/generic/purchasefail05.mp3";
+				break;
+			default: snd = "sound/vendor/generic/purchasefail00.mp3";
+				break;
+		}
+		G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd.c_str()));	//play sound
+		return;
+	}
+
 	BG_SendTradePacket(IPT_TRADESINGLE, ent, trader, pItem, pItem->id->baseCost, 0);
 	BG_GiveItemNonNetworked(ent, *pItem);
 	ent->client->ps.credits -= pItem->id->baseCost;
