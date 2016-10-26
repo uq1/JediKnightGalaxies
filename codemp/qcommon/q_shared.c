@@ -2166,7 +2166,7 @@ void Global_SanitizeString(char *in, char *out, int limit)		//note: users can op
 
 }
 
-static inline void getGalacticTimeStamp(char* outStr)	//to use : char myarray[17]; getBuildTimeStamp(myarray); 
+void getGalacticTimeStamp(char* outStr)	//to use : char myarray[17]; getBuildTimeStamp(myarray); 
 {
 	char result[17];
 	time_t t = time(0);   // get time now
