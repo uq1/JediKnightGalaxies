@@ -2853,26 +2853,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	{ //lower sens for emplaced guns and vehicles
 		mSensitivity = 0.2f;
 	}
-#ifdef VEH_CONTROL_SCHEME_4
-	else if (cg.predictedPlayerState.m_iVehicleNum//in a vehicle
-		&& !cg.predictedPlayerState.generic1 )//not as a passenger
-	{
-		centity_t *cent = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-		if ( cent->m_pVehicle
-			&& cent->m_pVehicle->m_pVehicleInfo
-			&& cent->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER )
-		{
-			BG_VehicleTurnRateForSpeed( cent->m_pVehicle, cent->currentState.speed, &mPitchOverride, &mYawOverride );
-			//mSensitivityOverride = 5.0f;//old default value
-			mSensitivityOverride = 0.0f;
-			bUseFighterPitch = qtrue;
-			trap->SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, mSensitivityOverride, cg.forceSelect, cg.itemSelect, bUseFighterPitch );
-			isFighter = qtrue;
-		}
-	} 
 
-	if ( !isFighter )
-#endif //VEH_CONTROL_SCHEME_4
 	{
 		if (cg.predictedPlayerState.m_iVehicleNum)
 		{
