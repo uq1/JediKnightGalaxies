@@ -2165,3 +2165,19 @@ void Global_SanitizeString(char *in, char *out, int limit)		//note: users can op
 	out[r] = 0;
 
 }
+
+static inline void getGalacticTimeStamp(char* outStr)	//to use : char myarray[17]; getBuildTimeStamp(myarray); 
+{
+	char result[17];
+	time_t t = time(0);   // get time now
+	struct tm * now = localtime(&t);
+
+	//format current time (UTC)
+	strftime(result, sizeof(result) - 1, "%y-%m-%d  %H:%M", now);
+
+	//store results
+	for (int i = 0; i<sizeof(result); i++)
+		outStr[i] = result[i];
+
+	return;
+}
