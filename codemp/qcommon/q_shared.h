@@ -1898,7 +1898,7 @@ typedef struct siegePers_s
 //
 #define	BUTTON_ATTACK			1
 #define	BUTTON_TALK				2			// displays talk balloon and disables actions
-#define	BUTTON_USE_HOLDABLE		4
+#define	BUTTON_UNUSED			4
 #define	BUTTON_GESTURE			8
 #define	BUTTON_WALKING			16			// walking can't just be infered from MOVE_RUN
 										// because a key pressed late in the frame will
@@ -1941,18 +1941,7 @@ typedef enum
 {
 	GENCMD_SABERSWITCH = 1,
 	GENCMD_ENGAGE_DUEL,
-	GENCMD_USE_SEEKER,
-	GENCMD_USE_FIELD,
-	GENCMD_USE_BACTA,
-	GENCMD_USE_ELECTROBINOCULARS,
 	GENCMD_ZOOM,
-	GENCMD_USE_SENTRY,
-	GENCMD_USE_JETPACK,
-	GENCMD_USE_BACTABIG,
-	GENCMD_USE_HEALTHDISP,
-	GENCMD_USE_AMMODISP,
-	GENCMD_USE_EWEB,
-	GENCMD_USE_CLOAK,
 	GENCMD_SABERATTACKCYCLE,
 	GENCMD_TAUNT,
 	GENCMD_BOW,

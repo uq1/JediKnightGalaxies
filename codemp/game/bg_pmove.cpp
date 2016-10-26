@@ -5594,139 +5594,6 @@ rest:
 	return qfalse; // continue with the rest of the weapon code
 }
 
-
-#define BOWCASTER_CHARGE_UNIT	200.0f	// bowcaster charging gives us one more unit every 200ms--if you change this, you'll have to do the same in g_weapon
-#define BRYAR_CHARGE_UNIT		200.0f	// bryar charging gives us one more unit every 200ms--if you change this, you'll have to do the same in g_weapon
-
-int PM_ItemUsable(playerState_t *ps, int forcedUse)
-{
-	vec3_t fwd, fwdorg, dest, pos;
-	vec3_t yawonly;
-	vec3_t mins, maxs;
-	vec3_t trtest;
-	trace_t tr;
-
-	if (ps->m_iVehicleNum)
-	{
-		return 0;
-	}
-
-	if (ps->pm_flags & PMF_USE_ITEM_HELD)
-	{ //force to let go first
-		return 0;
-	}
-
-	if (ps->duelInProgress)
-	{ //not allowed to use holdables while in a private duel.
-		return 0;
-	}
-
-	if (!forcedUse)
-	{
-		forcedUse = bg_itemlist[ps->stats[STAT_HOLDABLE_ITEM]].giTag;
-	}
-
-	if (!BG_IsItemSelectable(ps, forcedUse))
-	{
-		return 0;
-	}
-
-	switch (forcedUse)
-	{
-	case HI_MEDPAC:
-	case HI_MEDPAC_BIG:
-		if (ps->stats[STAT_HEALTH] >= ps->stats[STAT_MAX_HEALTH])
-		{
-			return 0;
-		}
-		if (ps->stats[STAT_HEALTH] <= 0 ||
-			(ps->eFlags & EF_DEAD))
-		{
-			return 0;
-		}
-
-		return 1;
-	case HI_SEEKER:
-		if (ps->eFlags & EF_SEEKERDRONE)
-		{
-			PM_AddEventWithParm(EV_ITEMUSEFAIL, SEEKER_ALREADYDEPLOYED);
-			return 0;
-		}
-
-		return 1;
-	case HI_SENTRY_GUN:
-		if (ps->fd.sentryDeployed)
-		{
-			PM_AddEventWithParm(EV_ITEMUSEFAIL, SENTRY_ALREADYPLACED);
-			return 0;
-		}
-
-		yawonly[ROLL] = 0;
-		yawonly[PITCH] = 0;
-		yawonly[YAW] = ps->viewangles[YAW];
-
-		VectorSet( mins, -8, -8, 0 );
-		VectorSet( maxs, 8, 8, 24 );
-
-		AngleVectors(yawonly, fwd, NULL, NULL);
-
-		fwdorg[0] = ps->origin[0] + fwd[0]*64;
-		fwdorg[1] = ps->origin[1] + fwd[1]*64;
-		fwdorg[2] = ps->origin[2] + fwd[2]*64;
-
-		trtest[0] = fwdorg[0] + fwd[0]*16;
-		trtest[1] = fwdorg[1] + fwd[1]*16;
-		trtest[2] = fwdorg[2] + fwd[2]*16;
-
-		pm->trace(&tr, ps->origin, mins, maxs, trtest, ps->clientNum, MASK_PLAYERSOLID);
-
-		if ((tr.fraction != 1 && tr.entityNum != ps->clientNum) || tr.startsolid || tr.allsolid)
-		{
-			PM_AddEventWithParm(EV_ITEMUSEFAIL, SENTRY_NOROOM);
-			return 0;
-		}
-
-		return 1;
-	case HI_SHIELD:
-		mins[0] = -8;
-		mins[1] = -8;
-		mins[2] = 0;
-
-		maxs[0] = 8;
-		maxs[1] = 8;
-		maxs[2] = 8;
-
-		AngleVectors (ps->viewangles, fwd, NULL, NULL);
-		fwd[2] = 0;
-		VectorMA(ps->origin, 64, fwd, dest);
-		pm->trace(&tr, ps->origin, mins, maxs, dest, ps->clientNum, MASK_SHOT );
-		if (tr.fraction > 0.9f && !tr.startsolid && !tr.allsolid)
-		{
-			VectorCopy(tr.endpos, pos);
-			VectorSet( dest, pos[0], pos[1], pos[2] - 4096 );
-			pm->trace( &tr, pos, mins, maxs, dest, ps->clientNum, MASK_SOLID );
-			if ( !tr.startsolid && !tr.allsolid )
-			{
-				return 1;
-			}
-		}
-		PM_AddEventWithParm(EV_ITEMUSEFAIL, SHIELD_NOROOM);
-		return 0;
-	case HI_JETPACK: //check for stuff here?
-		return 1;
-	case HI_HEALTHDISP:
-		return 1;
-	case HI_AMMODISP:
-		return 1;
-	case HI_EWEB:
-		return 1;
-	case HI_CLOAK: //check for stuff here?
-		return 1;
-	default:
-		return 1;
-	}
-}
-
 //cheesy vehicle weapon hackery
 qboolean PM_CanSetWeaponAnims(void)
 {
@@ -6346,78 +6213,6 @@ static void PM_Weapon( void )
 		pm->ps->weaponVariation = 0;
 		return;
 	}
-
-	// check for item using
-	if ( pm->cmd.buttons & BUTTON_USE_HOLDABLE ) {
-		// fix: rocket lock bug, one of many...
-		BG_ClearRocketLock( pm->ps );
-
-		if ( ! ( pm->ps->pm_flags & PMF_USE_ITEM_HELD ) ) {
-
-			if (pm_entSelf->s.NPC_class!=CLASS_VEHICLE
-				&& pm->ps->m_iVehicleNum)
-			{//riding a vehicle, can't use holdable items, this button operates as the weapon link/unlink toggle
-				return;
-			}
-
-			if (!pm->ps->stats[STAT_HOLDABLE_ITEM])
-			{
-				return;
-			}
-
-			if (!PM_ItemUsable(pm->ps, 0))
-			{
-				pm->ps->pm_flags |= PMF_USE_ITEM_HELD;
-				return;
-			}
-			else
-			{
-				if (pm->ps->stats[STAT_HOLDABLE_ITEMS] & (1 << bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag))
-				{
-					if (bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_BINOCULARS &&
-						bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_JETPACK &&
-						bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_HEALTHDISP &&
-						bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_AMMODISP &&
-						bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_CLOAK &&
-						bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_EWEB)
-					{ //never use up the binoculars or jetpack or dispensers or cloak or ...
-						pm->ps->stats[STAT_HOLDABLE_ITEMS] -= (1 << bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag);
-					}
-				}
-				else
-				{
-					return; //this should not happen...
-				}
-
-				pm->ps->pm_flags |= PMF_USE_ITEM_HELD;
-				PM_AddEvent( EV_USE_ITEM0 + bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag );
-
-				if (bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_BINOCULARS &&
-					bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_JETPACK &&
-					bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_HEALTHDISP &&
-					bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_AMMODISP &&
-					bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_CLOAK &&
-					bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag != HI_EWEB)
-				{
-					pm->ps->stats[STAT_HOLDABLE_ITEM] = 0;
-					BG_CycleInven(pm->ps, 1);
-				}
-			}
-			return;
-		}
-	} else {
-		pm->ps->pm_flags &= ~PMF_USE_ITEM_HELD;
-	}
-
-	/*
-	if (pm->ps->weapon == WP_SABER || pm->ps->weapon == WP_MELEE)
-	{ //we can't toggle zoom while using saber (for obvious reasons) so make sure it's always off
-		pm->ps->zoomMode = 0;
-		pm->ps->zoomFov = 0;
-		pm->ps->zoomLocked = qfalse;
-		pm->ps->zoomLockTime = 0;
-	}
-	*/
 
 	if (killAfterItem)
 	{
@@ -9069,14 +8864,6 @@ void PmoveSingle (pmove_t *pmove) {
 
 	pm = pmove;
 
-	// JKG - Fix use_holdable+attack bug
-	if (pm->cmd.buttons & BUTTON_ATTACK && pm->cmd.buttons & BUTTON_USE_HOLDABLE)
-	{	
-		pm->cmd.buttons &= ~BUTTON_ATTACK;
-		pm->cmd.buttons &= ~BUTTON_USE_HOLDABLE;
-	}
-
-
 	//set up these "global" bg ents
 	pm_entSelf = PM_BGEntForNum(pm->ps->clientNum);
 	if (pm->ps->m_iVehicleNum)
@@ -9389,7 +9176,7 @@ void PmoveSingle (pmove_t *pmove) {
 
 	// clear the respawned flag if attack and use are cleared
 	if ( pm->ps->stats[STAT_HEALTH] > 0 && 
-		!( pm->cmd.buttons & (BUTTON_ATTACK | BUTTON_USE_HOLDABLE) ) ) {
+		!( pm->cmd.buttons & BUTTON_ATTACK ) ) {
 		pm->ps->pm_flags &= ~PMF_RESPAWNED;
 	}
 

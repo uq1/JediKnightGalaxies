@@ -198,8 +198,7 @@ Ghoul2 Insert End
 	//
 	// powerups have an accompanying ring or sphere
 	//
-	if ( item->giType == IT_POWERUP || item->giType == IT_HEALTH || 
-		item->giType == IT_ARMOR || item->giType == IT_HOLDABLE ) {
+	if ( item->giType == IT_POWERUP || item->giType == IT_HEALTH || item->giType == IT_ARMOR ) {
 		if ( item->world_model[1] ) {
 			itemInfo->models[1] = trap->R_RegisterModel( item->world_model[1] );
 		}
