@@ -3893,7 +3893,7 @@ static int Text_ExtColorCodes(const char *text, vec4_t color) {
 	return 1;
 }
 
-static void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontIndex, const int limit, float scale) {
+void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontIndex, const int limit, float scale) {
 	// Custom draw algo to ensure proper spacing in compliance with Text_GetWidth
 	char s[2];
 	const char *t = (char *)text;
