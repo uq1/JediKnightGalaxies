@@ -2526,26 +2526,14 @@ void Q_StripColor_Simple(char *text);				//simplifying strip mining operations
 char *JKG_xRBG_ConvertExtToNormal(const char *text);	//for converting ^xRGB names to regular ^1names return nonconst
 void Global_SanitizeString_MaxQPath(char *in, char *out);
 void Global_SanitizeString(char *in, char *out, int limit);
+static inline void getGalacticTimeStamp(char* outStr);	//Gets current time    to use : char myarray[17]; getBuildTimeStamp(myarray); 
 qboolean Text_IsExtColorCode(const char *text);
 qboolean StringContainsWord(const char *haystack, const char *needle);
 qboolean Q_stratt( char *dest, unsigned int iSize, char *source );
 
-//Gets current time
-static inline void getGalacticTimeStamp(char* outStr)	//to use : char myarray[17]; getBuildTimeStamp(myarray); 
-{
-	char result[17];
-	time_t t = time(0);   // get time now
-	struct tm * now = localtime(&t);
 
-	//format current time (UTC)
-	strftime(result, sizeof(result) - 1, "%y-%m-%d  %H:%M", now);
 
-	//store results
-	for(int i = 0; i<sizeof(result); i++)
-		outStr[i] = result[i];
 
-	return;
-}
 
 #ifndef ENGINE
 // FIXME

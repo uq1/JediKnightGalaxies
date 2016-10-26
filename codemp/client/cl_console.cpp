@@ -650,8 +650,8 @@ void Con_DrawNotify (void)
 	const char* chattext;
 
 	currentColor = 7;
-	VectorCopy4(con.textColorStart.whitecolor, advCurrentColor);	//set advCurrentColor to white
-	re->SetColor( g_color_table[currentColor & 15] );
+	VectorCopy4(g_color_table[currentColor], advCurrentColor);	//set advCurrentColor to white
+	re->SetColor( g_color_table[currentColor] );
 
 	v = 0;
 	for (i= con.current-NUM_CON_TIMES+1 ; i<=con.current ; i++)
@@ -849,8 +849,8 @@ void Con_DrawSolidConsole( float frac ) {
 	}
 
 	currentColor = 7;
-	VectorCopy4(con.textColorStart.whitecolor, advCurrentColor);
-	re->SetColor( g_color_table[currentColor & 15] );	//--futuza:  set color to white?  Why not just say g_color_table[7]?  always evaluates to 7, unnecessary bit math?
+	VectorCopy4(g_color_table[currentColor], advCurrentColor);
+	re->SetColor( g_color_table[currentColor] );	//--futuza:  set color to white?  Why not just say g_color_table[7]?  always evaluates to 7, unnecessary bit math?
 
 	static int iFontIndexForAsian = 0;
 	const float fFontScaleForAsian = 0.75f*con.yadjust;

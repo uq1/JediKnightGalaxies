@@ -361,8 +361,8 @@ typedef struct console_s {
 			//{1.0f, 1.0f, 1.0f, 1.0f}
 		};
 		
-		const vec4_t whitecolor{ 1.0, 1.0, 1.0, 1.0 };	//setting for default white color
-		bool isRGB[CON_TEXTSIZE] = { 0 };
+		//const vec4_t whitecolor{ 1.0, 1.0, 1.0, 1.0 };	//setting for default white color
+		bool isRGB[CON_TEXTSIZE];
 		//int markers[CON_TEXTSIZE] = { 0 };
 		//int total = 0;
 
