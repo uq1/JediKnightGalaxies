@@ -907,19 +907,18 @@ static void AdmCmd_AmUnBan(gentity_t *ent, int clientNum, int rank)
 |* Description:
 |* Generates an item with quality, and random properties where applicable
 |* 
-|* Syntax: amloot <itemid> <quality>
+|* Syntax: amloot <itemid>
 \******************************************************/
 extern itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
 static void AdmCmd_AmLoot(gentity_t *ent, int clientNum, int rank)
 {
-	unsigned int id;
-	unsigned int quality;
+/*	unsigned int id;
 	itemInstance_t item;
 	int i = 0, j = 0;
 
 	if (Cmd_Argc() < 3) 
 	{
-		trap->SendServerCommand(clientNum, "print \"Syntax: amloot <itemid> <quality>\n\"");
+		trap->SendServerCommand(clientNum, "print \"Syntax: amloot <itemid>\n\"");
 		return;
 	}
 	if(level.clients[clientNum].pers.connected != CON_CONNECTED)
@@ -929,11 +928,9 @@ static void AdmCmd_AmLoot(gentity_t *ent, int clientNum, int rank)
 	}
 
 	id = atoi(Cmd_Argv(1));
-	quality = atoi(Cmd_Argv(2));
 
     memset (&item, 0, sizeof (item));
 	item.id = &itemLookupTable[id];
-	item.itemQuality = quality;
 
 	if((ent->client->coreStats.weight - item.id->weight) <= 0)
 	{
@@ -948,7 +945,7 @@ static void AdmCmd_AmLoot(gentity_t *ent, int clientNum, int rank)
 
 	ent->inventory->items[i] = item;
 
-	G_LogPrintf("Admin: %s /amloot %s [Item ID %d quality %d]", ent->s.number, item.id->displayName, item.id->itemID, item.itemQuality);
+	G_LogPrintf("Admin: %s /amloot %s [Item ID %d]", ent->s.number, item.id->displayName, item.id->itemID);*/
 }
 
 

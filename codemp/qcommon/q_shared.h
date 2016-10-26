@@ -28,10 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // A user mod should never modify this file
 // Copyright (C) 1999-2000 Id Software, Inc., Copyright (c) 2013 Jedi Knight Galaxies
 
-
-#ifndef Q_SHARED_H
-#define Q_SHARED_H
-
 // Include Global Definitions Header...
 #include "../game/z_global_defines.h"
 #define PRODUCT_NAME		"jkgalaxies"
@@ -54,6 +50,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../qcommon/disablewarnings.h"
 
 #include "../game/teams.h" //npc team stuff
+
+#ifdef __cplusplus
+// For the random number generator
+#include <random>
+#include <cstdint>
+#endif
 
 #define MAX_WORLD_COORD		( 64 * 1024 )
 #define MIN_WORLD_COORD		( -64 * 1024 )
@@ -2114,6 +2116,7 @@ typedef struct trajectory_s {
 // The messages are delta compressed, so it doesn't really matter if
 // the structure size is fairly large
 
+#define SEED_MAX		65536
 typedef struct entityState_s {
 	int		number;			// entity index
 	int		eType;			// entityType_t
@@ -2289,6 +2292,8 @@ typedef struct entityState_s {
 	unsigned short	saberCrystal[2];
 
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
+	
+	unsigned short	seed;
 } entityState_t;
 
 typedef enum {
@@ -2543,6 +2548,7 @@ static inline void getGalacticTimeStamp(char* outStr)	//to use : char myarray[17
 }
 
 #ifndef ENGINE
+// FIXME
 typedef enum {
 	NA_BOT,
 	NA_BAD,					// an address lookup failed
@@ -2563,4 +2569,25 @@ typedef struct {
 } netadr_t;
 #endif // engine
 
-#endif	// __Q_SHARED_H
+#ifdef __cplusplus
+struct RNGenerator {
+private:
+	std::mt19937 pGenerator;
+public:
+	RNGenerator(uint_fast32_t nValue) : pGenerator(nValue) {}
+
+	void Reseed(const uint_fast32_t nValue) {
+		pGenerator.seed(nValue);
+	}
+
+	uint_fast32_t Irand(uint_fast32_t nMin, uint_fast32_t nMax) {
+		assert((nMax - nMin) < QRAND_MAX);
+		std::uniform_int_distribution<uint_fast32_t> gen(nMin, nMax);
+		return gen(pGenerator);
+	}
+
+	uint_fast32_t rand() {
+		return pGenerator();
+	}
+};
+#endif

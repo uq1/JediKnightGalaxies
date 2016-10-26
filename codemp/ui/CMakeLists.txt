@@ -86,7 +86,6 @@ set(MPUIUIFiles
 	"${MPDir}/ui/ui_servercmds.cpp"
 	"${MPDir}/ui/ui_shared.cpp"
 	"${MPDir}/ui/ui_stylesheets.cpp"
-	"${MPDir}/ui/aux_ui_exports.h"
 	"${MPDir}/ui/keycodes.h"
 	"${CMAKE_SOURCE_DIR}/JKGalaxies/ui/menudef.h" #Fixme: Better location plz
 	"${MPDir}/ui/ui_force.h"
