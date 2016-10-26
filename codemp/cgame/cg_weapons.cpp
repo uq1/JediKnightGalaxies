@@ -83,10 +83,15 @@ float JKG_CalculateSprintPhase( const playerState_t *ps )
 {
 	double phase;
     unsigned int time = ps->sprintTime & ~SPRINT_MSB;
+	float newBlend;
+
     if ( ps->sprintTime & SPRINT_MSB )
     {
         phase = CubicBezierInterpolate (Q_min (cg.time - time, SPRINT_TIME) / (double)SPRINT_TIME, 0.0, 0.0, 1.0, 1.0);
-        cg.sprintBlend = Q_min (1.0f, Q_max (0.0f, phase));
+		newBlend = Q_min(1.0f, Q_max(0.0f, phase));
+		if (newBlend >= cg.sprintBlend) {
+			cg.sprintBlend = newBlend;
+		}
     }
     else
     {

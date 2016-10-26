@@ -10467,7 +10467,7 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 	
 	if( PMOVE )
 	{
-		if( !pml.groundPlane && (pm->cmd.serverTime - 150) > pm->cmd.serverTime )
+		if( !pml.groundPlane && (pm->cmd.serverTime - 350) > pm->cmd.serverTime )
 		{
 			return qfalse;
 		}
