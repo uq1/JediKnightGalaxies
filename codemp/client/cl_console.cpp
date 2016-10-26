@@ -30,6 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "qcommon/game_version.h"
 
 
+
 int g_console_field_width = 78;
 
 console_t	con;
@@ -464,20 +465,19 @@ void CL_ConsolePrint( const char *txt) {
 			color = ColorIndex( *(txt+1) );
 			f_RGB = 1;
 			txt += 2;
-			//cur_pos += 2;
 			continue;
 		}
 
 		//if a ^xRGB 
-		if (*txt == '^' && (txt[1] == 'x' || txt[1] == 'X') && 
-			((colorRGB[0] = RGB_GetLevel(txt[2]) != -1) && (colorRGB[1] = RGB_GetLevel(txt[3]) != -1) && (colorRGB[2] = RGB_GetLevel(txt[4]) != -1))
-			)	//kill 2 birds with one stone, check validity and get colors
-		{
-			f_RGB = 2;	//set RGB flag
-			colorRGB[3] = 1.0f;	//set alpha
-			txt += 5;
-			//cur_pos += 5;
-			continue;
+		if (*txt == '^' && (txt[1] == 'x' || txt[1] == 'X'))
+		{	colorRGB[0] = RGB_GetLevel(txt[2]); colorRGB[1] = RGB_GetLevel(txt[3]); colorRGB[2] = RGB_GetLevel(txt[4]);	//grab color values
+			if (colorRGB[0] >= 0 && colorRGB[1] >= 0 && colorRGB[2] >= 0)	//as long as they're all valid colors
+			{
+				f_RGB = 2;	//set RGB flag
+				colorRGB[3] = 1.0f;	//set alpha
+				txt += 5;
+				continue;
+			}
 		}
 
 		// count word length
@@ -548,10 +548,13 @@ void CL_ConsolePrint( const char *txt) {
 
 				*/
 
-				y = con.current % con.totallines;
+				y = con.current % con.totallines;	//calculate position
+
+				con.textColorStart.isRGB[y*con.linewidth + con.x] = true; //mark as an RGB				
+				VectorCopy4(colorRGB, con.textColorStart.color[y*con.linewidth + con.x]);	//store colors
+
 				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);	//fix this somehow - help magic code gods
 				con.x++;
-
 				if (con.x >= con.linewidth)
 					Con_Linefeed(skipnotify);
 
@@ -563,6 +566,7 @@ void CL_ConsolePrint( const char *txt) {
 			{
 				y = con.current % con.totallines;
 				con.text[y*con.linewidth + con.x] = (short)((color << 8) | c);
+				con.textColorStart.isRGB[y*con.linewidth + con.x] = false;		//mark it as not rgb
 				con.x++;
 				if (con.x >= con.linewidth) {
 					Con_Linefeed(skipnotify);
@@ -642,9 +646,11 @@ void Con_DrawNotify (void)
 	int		time;
 	int		skip;
 	int		currentColor;
+	vec4_t	advCurrentColor;	//--futuza: same as currentColor, but not so basic
 	const char* chattext;
 
 	currentColor = 7;
+	VectorCopy4(con.textColorStart.whitecolor, advCurrentColor);	//set advCurrentColor to white
 	re->SetColor( g_color_table[currentColor & 15] );
 
 	v = 0;
@@ -703,12 +709,24 @@ void Con_DrawNotify (void)
 		else
 		{
 			for (x = 0; x < con.linewidth; x++) {
+
 				if ((text[x] & 0xff) == ' ') {
 					continue;
 				}
-				if (((text[x] >> 8)&Q_COLOR_BITS) != currentColor) {
+
+
+				//if xRGB && the color != advCurrentColor
+				if (con.textColorStart.isRGB[x] && !VectorCompare4(con.textColorStart.color[x], advCurrentColor))
+				{
+					VectorCopy4(con.textColorStart.color[x], advCurrentColor);	//update current color
+					re->SetColor(advCurrentColor);
+					currentColor = -1;	//update currentColor to record a change
+				}
+
+				if ( (((text[x] >> 8)&Q_COLOR_BITS) != currentColor ) && con.textColorStart.isRGB == false) {
 					currentColor = (text[x] >> 8)&Q_COLOR_BITS;
 					re->SetColor(g_color_table[currentColor]);
+					VectorCopy4(g_color_table[currentColor], advCurrentColor);	//update our advCurrentColor 
 				}
 				if (!cl_conXOffset)
 				{
@@ -766,6 +784,7 @@ void Con_DrawSolidConsole( float frac ) {
 	int				lines;
 //	qhandle_t		conShader;
 	int				currentColor;
+	vec4_t			advCurrentColor;
 
 	lines = (int) (cls.glconfig.vidHeight * frac);
 	if (lines <= 0)
@@ -830,6 +849,7 @@ void Con_DrawSolidConsole( float frac ) {
 	}
 
 	currentColor = 7;
+	VectorCopy4(con.textColorStart.whitecolor, advCurrentColor);
 	re->SetColor( g_color_table[currentColor & 15] );	//--futuza:  set color to white?  Why not just say g_color_table[7]?  always evaluates to 7, unnecessary bit math?
 
 	static int iFontIndexForAsian = 0;
@@ -884,10 +904,20 @@ void Con_DrawSolidConsole( float frac ) {
 					continue;
 				}
 
-				if (((text[x] >> 8)&Q_COLOR_BITS) != currentColor) {
+				//if xRGB && the color != advCurrentColor
+				if (con.textColorStart.isRGB[x] && !VectorCompare4(con.textColorStart.color[x], advCurrentColor) )
+				{
+					VectorCopy4(con.textColorStart.color[x], advCurrentColor);	//update current color
+					re->SetColor(advCurrentColor);
+					currentColor = -1;	//update currentColor to record a change
+				}
+
+				if ( (((text[x] >> 8)&Q_COLOR_BITS) != currentColor ) && con.textColorStart.isRGB==false) {	//if different color and not !xrgb
 					currentColor = (text[x] >> 8)&Q_COLOR_BITS;
 					re->SetColor(g_color_table[currentColor]);
+					VectorCopy4(g_color_table[currentColor], advCurrentColor);	//update our advCurrentColor 
 				}
+
 				SCR_DrawSmallChar((int)(con.xadjust + (x + 1)*SMALLCHAR_WIDTH), y, text[x] & 0xff);
 			}
 		}

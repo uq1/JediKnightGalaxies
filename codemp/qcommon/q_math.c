@@ -995,6 +995,12 @@ qboolean VectorCompare( const vec3_t vec1, const vec3_t vec2 ) {
 	return qtrue;
 }
 
+qboolean VectorCompare4(const vec4_t vec1, const vec4_t vec2) {
+	if (vec1[0] != vec2[0] || vec1[1] != vec2[1] || vec1[2] != vec2[2] || vec1[3] != vec2[3])
+		return qfalse;
+	return qtrue;
+}
+
 void SnapVector( float *v ) {
 #if defined(_MSC_VER) && !defined(idx64)
 	// pitiful attempt to reduce _ftol2 calls -rww

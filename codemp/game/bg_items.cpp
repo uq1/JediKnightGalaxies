@@ -451,7 +451,11 @@ void BG_ReceivedTradePacket(itemTradePacketType_t packet) {
 				itemInstance_t item = BG_ItemInstance(itemID, quantity);
 				BG_GiveItem(item);
 
-				// FIXME: play a sound effect if credits is > 0?
+				if (credits > 0)
+				{
+					//vec3_t origin;
+					trap->S_StartSound(cg.snap->ps.origin, -1, CHAN_AUTO, trap->S_RegisterSound("sound/vendor/generic/purchase02.mp3"));
+				}
 			}
 			cg.ourTradeItems->clear();
 			break;
