@@ -2436,8 +2436,8 @@ static void CG_DrawTeamOverlay() {
 
 			// Draw player name
 			MAKERGBA(hcolor,1,1,1,1);		
-			//trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		//old way
-			Text_DrawText(x + 26, y + 2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		// futuza note: xRGB fix (see tr_font.cpp) should allow us to use old way, not necessary?
+			trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		//old way
+			//Text_DrawText(x + 26, y + 2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		// futuza note: xRGB fix (see tr_font.cpp) should allow us to use old way, not necessary?
 			MAKERGBA(hcolor,0,0,0,1);
 			CG_DrawRect(x+24, y+2, pwidth+8 , 13, 1, hcolor);
 
