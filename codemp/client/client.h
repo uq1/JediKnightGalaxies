@@ -276,9 +276,6 @@ typedef struct serverInfo_s {
 	int			ping;
 	qboolean	visible;
 	qboolean	needPassword;
-	int			trueJedi;
-	int			weaponDisable;
-	int			forceDisable;
 } serverInfo_t;
 
 typedef struct clientStatic_s {
@@ -428,6 +425,7 @@ extern	cvar_t	*cl_conXOffset;
 extern	cvar_t	*cl_inGameVideo;
 
 extern	cvar_t	*cl_consoleKeys;
+extern	cvar_t	*cl_consoleUseScanCode;
 
 extern  cvar_t  *cl_lanForcePackets;
 

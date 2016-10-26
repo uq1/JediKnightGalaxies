@@ -32,7 +32,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "jkg_bans.h"
 #include "jkg_damagetypes.h"
 #include "jkg_utilityfunc.h"
-#include "jkg_easy_items.h"
 #include "qcommon/game_version.h"
 
 extern wpobject_t *gWPArray[MAX_WPARRAY_SIZE];
@@ -2358,12 +2357,6 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	// clear our inventory on ClientBegin because I forgot that this was a thing
 	trap->SendServerCommand(clientNum, "pInv clr");
 	ent->client->ps.credits = 0;
-
-	// eezstreet edit: set our item data
-	// TODO: fix this broken mess
-	memset(&ent->client->coreStats, 0, sizeof(ent->client->coreStats));
-	ent->client->coreStats.weight = MAX_INVENTORY_WEIGHT;
-	//eezstreet end
 	if ((ent->r.svFlags & SVF_BOT) && g_gametype.integer >= GT_TEAM)
 	{
 		if (allowTeamReset)
@@ -3339,11 +3332,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	
     client->ps.weapon = 0;
     client->ps.weaponId = BG_GetWeaponIndexFromClass (client->ps.weapon, 0);
-
-	/*
-	client->ps.stats[STAT_HOLDABLE_ITEMS] |= ( 1 << HI_BINOCULARS );
-	client->ps.stats[STAT_HOLDABLE_ITEM] = BG_GetItemIndexByTag(HI_BINOCULARS, IT_HOLDABLE);
-	*/
 	
 	// MOAR OVERRIDING OF WEAPONS.
 	if ( respawn )
@@ -3380,27 +3368,25 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 			{
 				int itemID;
 				//FIXME: The below assumes that there is a valid weapon item
-				itemID = JKG_GetItemByWeaponIndex(BG_GetWeaponIndex((unsigned int)weapon->weaponBaseIndex, (unsigned int)weapon->weaponModIndex))->itemID;
+				itemID = BG_GetItemByWeaponIndex(BG_GetWeaponIndex((unsigned int)weapon->weaponBaseIndex, (unsigned int)weapon->weaponModIndex))->itemID;
 
-				//while ( i < MAX_INVENTORY_ITEMS && cmdent->inventory[i].id )
-				for(i = 0; i < ent->inventory->elements; i++)
-				{
-					if(ent->inventory->items[i].id)
-					{
-						if(ent->inventory->items[i].id->itemID == itemID)
-						{
-							haveItem = qtrue;	// FIXME: remove this nonsense
+				for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+					if (it->id) {
+						if (it->id->itemID == itemID) {
+							haveItem = qtrue;
 							break;
 						}
 					}
 				}
-				if(!haveItem && ent->inventory->elements < 1)
+
+				if(!haveItem && ent->inventory->size() < 1)
 				{
 					// Don't have any sort of item in our inventory
 					if(ent->client->ps.credits < jkg_startingCredits.integer)
 					{
+						itemInstance_t item = BG_ItemInstance(itemID, 1);
 						ent->client->ps.credits = jkg_startingCredits.integer;
-						JKG_A_GiveEntItemForcedToACI(itemID, IQUAL_NORMAL, ent->inventory, ent->client, 0);
+						BG_GiveItem(ent, item, true);
 					}
 				}
 			}
@@ -3604,23 +3590,14 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 
 	// Loop through the items in our inventory to determine ammo count
 	memset(topAmmoValues, 0, sizeof(topAmmoValues));
-	for ( i = 0; i < ent->inventory->elements; i++ )
-	{
-		if(ent->inventory->items[i].id)
-		{
-			if(ent->inventory->items[i].id->itemType == ITEM_WEAPON)
-			{
-				itemInstance_t item = ent->inventory->items[i];
-				weaponData_t *wepData = GetWeaponData(item.id->weapon, item.id->variation);
-
-				if(wepData->ammoIndex > JKG_MAX_AMMO_INDICES)
-				{
-					continue;
-				}
-				if(topAmmoValues[wepData->ammoIndex] < wepData->ammoOnSpawn)
-				{
-					topAmmoValues[wepData->ammoIndex] = wepData->ammoOnSpawn;
-				}
+	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+		if (it->id && it->id->itemType == ITEM_WEAPON) {
+			weaponData_t* wepData = GetWeaponData(it->id->weaponData.weapon, it->id->weaponData.variation);
+			if (wepData->ammoIndex > JKG_MAX_AMMO_INDICES) {
+				continue;
+			}
+			if (topAmmoValues[wepData->ammoIndex] < wepData->ammoOnSpawn) {
+				topAmmoValues[wepData->ammoIndex] = wepData->ammoOnSpawn;
 			}
 		}
 	}
@@ -3729,7 +3706,6 @@ call trap->DropClient(), which will call this and do
 server system housekeeping.
 ============
 */
-extern void JKG_Easy_DIMA_CleanEntity(int entNum);
 void ClientDisconnect( int clientNum ) {
 	gentity_t	*ent;
 	gentity_t	*tent;
@@ -3746,7 +3722,7 @@ void ClientDisconnect( int clientNum ) {
 		return;
 	}
 
-	JKG_Easy_DIMA_FreeInventory( &ent->inventory );
+	ent->inventory->clear();
 	if( ent->assistData.memAllocated > 0 && ent->assistData.hitRecords )
 	{
 		free( ent->assistData.hitRecords );

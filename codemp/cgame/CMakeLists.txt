@@ -93,7 +93,6 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/fx_bryarpistol.cpp"
 	"${MPDir}/cgame/jkg_autowaypoint.cpp"
 	"${MPDir}/cgame/jkg_cg_damagetypes.cpp"
-	"${MPDir}/cgame/jkg_cg_items.cpp"
 	"${MPDir}/cgame/jkg_cg_weaponholster.cpp"
 	"${MPDir}/cgame/jkg_chatbox.cpp"
 	"${MPDir}/cgame/jkg_chatcmds.cpp"
@@ -111,12 +110,9 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/fx_local.h"
 	"${MPDir}/cgame/jkg_cg_auxlib.h"
 	"${MPDir}/cgame/jkg_cg_damagetypes.h"
-	"${MPDir}/cgame/jkg_cg_items.h"
 	"${MPDir}/cgame/jkg_chatcmds.h"
-	"${MPDir}/cgame/jkg_eshader.h"
 	"${MPDir}/cgame/jkg_hud.h"
 	"${MPDir}/cgame/jkg_navmesh_visualiser.h"
-	"${MPDir}/cgame/jkg_patcher.h"
 	"${CMAKE_SOURCE_DIR}/JKGalaxies/ui/menudef.h" #Fixme: Don't like the way JKGalaxies folder is included. 
 	)
 source_group("cgame" FILES ${MPCGameCgameFiles})

@@ -1077,7 +1077,7 @@ void CFxScheduler::AddScheduledEffects( bool portal )
 		{ //only render portal fx on the skyportal pass and vice versa
 			if (effect->mBoltNum == -1)
 			{// ok, are we spawning a bolt on effect or a normal one?
-				if ( effect->mEntNum != ENTITYNUM_NONE )
+				if ( effect->mEntNum != ENTITYNUM_NONE && effect->mEntNum != -1 )
 				{
 					// Find out where the entity currently is
 					TCGVectorData	*data = (TCGVectorData*)cl.mSharedMemory;
