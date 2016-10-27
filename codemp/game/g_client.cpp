@@ -2498,7 +2498,8 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	// Give this player Operator rights if he's 127.0.0.1
 	if (!Q_strncmp(client->sess.IP, "127.0.0.1:",10)) {
 		// He's localhost, give operator rights
-		client->sess.adminRank = ADMRANK_OPERATOR;
+		//client->sess.adminRank = ADMRANK_OPERATOR;
+		;	//temporary fix, do nothing since this defaults host to a cheating bastard --Futuza
 	}
 
 	if (g_gametype.integer == GT_POWERDUEL && client->sess.sessionTeam != TEAM_SPECTATOR &&
