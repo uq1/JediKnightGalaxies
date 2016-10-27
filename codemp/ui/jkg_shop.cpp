@@ -96,7 +96,7 @@ void JKG_Shop_UpdateShopStuff(int filterVal)
 	//Update the filters, first and foremost
 	itemInstance_t* itemInstances = (itemInstance_t*)cgImports->InventoryDataRequest(4);
 	UIunfilteredShopItems.clear();
-	UInumUnfilteredShopItems = (int)cgImports->InventoryDataRequest( 5 );
+	UInumUnfilteredShopItems = *(size_t*)cgImports->InventoryDataRequest( 5 );
 	for (int i = 0; i < UInumUnfilteredShopItems; i++) {
 		UIunfilteredShopItems.push_back(itemInstances[i]);
 	}
@@ -183,7 +183,7 @@ void JKG_Shop_UpdateShopStuff(int filterVal)
 		item2 = Menu_FindItemByName(shopState.menu, va("shop_feederBO%i", i+1));
 		if(item2)
 		{
-			int credits = (int)cgImports->InventoryDataRequest( 3 );
+			int credits = *(int*)cgImports->InventoryDataRequest( 3 );
 			if(credits < UIshopItems[i+shopMenuPosition].id->baseCost)
 			{
 				Menu_ShowItemByName(shopState.menu, va("shop_feederBO%i", i+1), qtrue);
@@ -268,7 +268,7 @@ hideItAll:
 void JKG_Shop_UpdateCreditDisplay(void)
 {
 	itemDef_t *item = Menu_FindItemByName(shopState.menu, "shopmain_credits");
-	int credits = (int)cgImports->InventoryDataRequest( 3 );
+	int credits = *(int*)cgImports->InventoryDataRequest( 3 );
 	if(!item)
 	{
 		return;
@@ -330,7 +330,7 @@ void JKG_Shop_ItemSelect(char **args)
 	itemDef_t *item = Menu_FindItemByName(shopState.menu, "shop_dummyFeeder");
 	listBoxDef_t *listPtr = item->typeData.listbox;
 	itemData_t *lookupTable = (itemData_t *)cgImports->InventoryDataRequest( 6 );
-	int credits = (int)cgImports->InventoryDataRequest( 3 );
+	int credits = *(int*)cgImports->InventoryDataRequest( 3 );
 	int arg0 = atoi(args[0]);
 	if(arg0 <= 0)
 	{
