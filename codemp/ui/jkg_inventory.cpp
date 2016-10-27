@@ -1,7 +1,7 @@
 #include "ui_local.h"
 #include "jkg_inventory.h"
 
-static int nNumInventoryItems = 0;			// number of items in the list
+static size_t nNumInventoryItems = 0;			// number of items in the list
 static std::vector<std::pair<int, itemInstance_t*>> pItems;	// list of items
 static int nPosition = 0;					// position in the item list (changed with arrow buttons)
 static int nSelected = -1;					// selected item in the list (-1 for no selection)
@@ -17,7 +17,7 @@ static void JKG_ConstructInventoryList() {
 		return;
 	}
 
-	nNumInventoryItems = (int)cgImports->InventoryDataRequest(0);
+	nNumInventoryItems = *(size_t*)cgImports->InventoryDataRequest(0);
 	if (nNumInventoryItems > 0) {
 		pAllItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
 		for (int i = 0; i < nNumInventoryItems; i++) {
@@ -506,7 +506,7 @@ extern void Item_Text_Paint(itemDef_t *item);
 // Draws the "Credits: X" text
 void JKG_Inventory_OwnerDraw_CreditsText(itemDef_t* item)
 {
-	int credits = (int)cgImports->InventoryDataRequest(3);
+	int credits = *(int*)cgImports->InventoryDataRequest(3);
 	float x = item->window.rect.x;
 	float y = item->window.rect.y;
 	int font = item->iMenuFont;
