@@ -736,6 +736,8 @@ void JKG_Inventory_Destroy(char** args) {
 		return;
 	}
 	cgImports->SendClientCommand(va("inventoryDestroy %d", pItems[nSelected].first));
+	pItems.erase(pItems.begin() + nSelected);
+	nSelected = -1;
 }
 
 void JKG_Inventory_Use(char** args) {

@@ -2894,6 +2894,12 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 				cg.weaponSelect = 0;
 			}
 
+			if (cg.playerACI[cg.weaponSelect] >= cg.playerInventory->size()) {
+				// Destroyed the weapon we were carrying
+				cg.playerACI[cg.weaponSelect] = -1;
+				cg.weaponSelect = 0;
+			}
+
 			if(cg.playerACI[cg.weaponSelect] >= 0 && cg.playerInventory->size() > 0)
 			{
 				if(cg.playerACI[cg.weaponSelect] >= MAX_INVENTORY_ITEMS)

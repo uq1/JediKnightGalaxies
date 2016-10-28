@@ -2186,10 +2186,11 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	}
 
 	value = Info_ValueForKey (userinfo, "clver");
-	
+#ifndef _DEBUG
 	if ( !isBot && Q_stricmp(value, JKG_VERSION)) {
 		return "Please update your client-side.";
 	}
+#endif
 
 	if ( !isBot && g_needpass.integer ) {
 		// check for a password
