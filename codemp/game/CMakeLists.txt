@@ -26,7 +26,10 @@ endif(NOT InOpenJK)
 set(MPGameIncludeDirectories "${MPDir}" "${MPDir}/libraries")
 if(WIN32)
 	set(MPGameLibraries "winmm")
+else()
+	set(MPGameLibraries "pthread")
 endif(WIN32)
+
 set(MPGameDefines ${MPSharedDefines} "_GAME" )
 set(MPGameGameFiles
 	"${MPDir}/game/ai_dominance.cpp"
@@ -469,10 +472,10 @@ endif() # End BuildSkipCryptography
 
 add_library(${MPGame} SHARED ${MPGameFiles})
 
-if(NOT WIN32)
+if(NOT MSVC)
 	# remove "lib" prefix for .so/.dylib files
 	set_target_properties(${MPGame} PROPERTIES PREFIX "")
-endif(NOT WIN32)
+endif()
 
 if(MakeApplicationBundles AND BuildMPEngine)
 	install(TARGETS ${MPGame}
@@ -507,12 +510,13 @@ else()
 		COMPONENT ${JKAMPCoreComponent})
 endif()
 
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPGameDefines};${ReleaseDefines}")
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPGameDefines};${ReleaseDefines}")
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPGameDefines};${ReleaseDefines}")
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPGameDefines};${DebugDefines}")
+set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS "${MPGameDefines}")
+
+# Hide symbols not explicitly marked public.
+set_property(TARGET ${MPGame} APPEND PROPERTY COMPILE_OPTIONS ${OPENJK_VISIBILITY_FLAGS})
+
 set_target_properties(${MPGame} PROPERTIES INCLUDE_DIRECTORIES "${MPGameIncludeDirectories}")
-set_target_properties(${MPGame} PROPERTIES PROJECT_LABEL "MP Game Library (game)")
+set_target_properties(${MPGame} PROPERTIES PROJECT_LABEL "Server Game Library (game)")
 # no libraries used
 if(MPGameLibraries)
 	target_link_libraries(${MPGame} ${MPGameLibraries})

@@ -105,7 +105,7 @@ void JKG_Shop_UpdateShopStuff(int filterVal)
 	{
 		for(i = 0; i < UInumUnfilteredShopItems; i++)
 		{
-			int itemID = UIunfilteredShopItems[i].id->itemID;
+			//int itemID = UIunfilteredShopItems[i].id->itemID;
 			switch(filterVal)
 			{
 				case JKGIFILTER_ALL:
@@ -289,7 +289,7 @@ void JKG_Shop_UpdateNotify(int msg)
 			shopState.menu = Menus_FindByName("jkg_shop");
 			if(shopState.menu && Menus_ActivateByName("jkg_shop"))
 			{
-				trap->Key_SetCatcher (trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
+				trap->Key_SetCatcher (trap->Key_GetCatcher() | KEYCATCH_UI /*& ~KEYCATCH_CONSOLE*/);
 			}
 			shopState.selectedShopItem = 0;
 			break;
@@ -502,7 +502,7 @@ void JKG_Shop_BuyConfirm_Display(char **args)
 {
 	//This sets the text on the display
 	itemDef_t *item = Menu_FindItemByName(shopState.menu, "shop_buyconfirm_text");
-	itemData_t *lookupTable = (itemData_t *)cgImports->InventoryDataRequest( 6 );
+	//itemData_t *lookupTable = (itemData_t *)cgImports->InventoryDataRequest( 6 );
 	if(item)
 	{
 		strcpy(item->text, va("Buy this item for %i credits?", UIshopItems[shopState.selectedShopItem - 1].id->baseCost));

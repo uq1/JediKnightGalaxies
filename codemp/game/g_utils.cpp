@@ -1704,8 +1704,8 @@ Try and use an entity in the world, directly ahead of us
 #define USE_DISTANCE_MAX	1024.0f	// Max distance for use
 
 extern void Touch_Button(gentity_t *ent, gentity_t *other, trace_t *trace );
-static vec3_t	playerMins = {-15, -15, DEFAULT_MINS_2};
-static vec3_t	playerMaxs = {15, 15, DEFAULT_MAXS_2};
+//static vec3_t	playerMins = {-15, -15, DEFAULT_MINS_2};
+//static vec3_t	playerMaxs = {15, 15, DEFAULT_MAXS_2};
 void GLua_NPCEV_OnUse(gentity_t *self, gentity_t *other, gentity_t *activator);
 
 void TryUse( gentity_t *ent )

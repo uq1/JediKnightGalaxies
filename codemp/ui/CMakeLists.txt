@@ -163,10 +163,10 @@ set(LibExpat
 	)
 set(MPUILibraries ${MPUILibraries} ${LibExpat})
 
-if(NOT WIN32)
+if(NOT MSVC)
 	# remove "lib" prefix for .so/.dylib files
 	set_target_properties(${MPUI} PROPERTIES PREFIX "")
-endif(NOT WIN32)
+endif()
 
 if(MakeApplicationBundles AND BuildMPEngine)
 	install(TARGETS ${MPUI}
@@ -201,12 +201,13 @@ else()
 		COMPONENT ${JKAMPCoreComponent})
 endif()
 
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPUIDefines};${ReleaseDefines}")
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPUIDefines};${ReleaseDefines}")
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPUIDefines};${ReleaseDefines}")
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPUIDefines};${DebugDefines}")
+set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS "${MPUIDefines}")
+
+# Hide symbols not explicitly marked public.
+set_property(TARGET ${MPUI} APPEND PROPERTY COMPILE_OPTIONS ${OPENJK_VISIBILITY_FLAGS})
+
 set_target_properties(${MPUI} PROPERTIES INCLUDE_DIRECTORIES "${MPUIIncludeDirectories}")
-set_target_properties(${MPUI} PROPERTIES PROJECT_LABEL "MP UI Library (uix86.dll)")
+set_target_properties(${MPUI} PROPERTIES PROJECT_LABEL "UI Library (uix86.dll)")
 # no libraries used
 if(MPUILibraries)
 	target_link_libraries(${MPUI} ${MPUILibraries})

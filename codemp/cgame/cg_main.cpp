@@ -150,21 +150,10 @@ static void C_GetLerpData(void);
 static int	CG_RagCallback(int callType);
 static void C_ImpactMark(void);
 
-#define MAX_MISC_ENTS	4000
-
-//static refEntity_t	*MiscEnts = 0;
-//static float		*Radius = 0;
-static refEntity_t	MiscEnts[MAX_MISC_ENTS]; //statically allocated for now.
-static float		Radius[MAX_MISC_ENTS];
-static float		zOffset[MAX_MISC_ENTS]; //some models need a z offset for culling, because of stupid wrong model origins
-
-static int			NumMiscEnts = 0;
-
 extern autoMapInput_t cg_autoMapInput; //cg_view.c
 extern int cg_autoMapInputTime;
 extern vec3_t cg_autoMapAngle;
 
-void CG_MiscEnt(void);
 void CG_DoCameraShake( vec3_t origin, float intensity, int radius, int time );
 
 //do we have any force powers that we would normally need to cycle to?

@@ -1953,7 +1953,7 @@ So far only JKG_xRBG_ConvertExtToNormal() can be used.  Might add some more from
 
 */
 
-static qboolean ExtColor_IsValid(char chr)
+qboolean ExtColor_IsValid(char chr)
 {
 	if (chr >= '0' && chr <= '9')
 		return qtrue;
