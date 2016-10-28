@@ -26,7 +26,10 @@ endif(NOT InOpenJK)
 set(MPGameIncludeDirectories "${MPDir}" "${MPDir}/libraries")
 if(WIN32)
 	set(MPGameLibraries "winmm")
+else()
+	set(MPGameLibraries "pthread")
 endif(WIN32)
+
 set(MPGameDefines ${MPSharedDefines} "_GAME" )
 set(MPGameGameFiles
 	"${MPDir}/game/ai_dominance.cpp"

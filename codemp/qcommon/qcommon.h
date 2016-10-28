@@ -562,8 +562,6 @@ void FS_HomeRmdir( const char *homePath, qboolean recursive );
 
 qboolean FS_FileExists( const char *file );
 
-int		FS_LoadStack();
-
 char   *FS_BuildOSPath( const char *base, const char *game, const char *qpath );
 qboolean FS_CompareZipChecksum(const char *zipfile);
 
@@ -677,6 +675,8 @@ qboolean FS_CheckDirTraversal(const char *checkdir);
 qboolean FS_idPak( char *pak, char *base );
 qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring );
 void FS_Rename( const char *from, const char *to );
+
+qboolean FS_WriteToTemporaryFile( const void *data, size_t dataLength, char **tempFileName );
 
 
 /*
@@ -1026,7 +1026,9 @@ inline int Round(float value)
 bool PD_Store ( const char *name, const void *data, size_t size );
 const void *PD_Load ( const char *name, size_t *size );
 
-uint32_t ConvertUTF8ToUTF32(char *utf8CurrentChar, char **utf8NextChar);
+uint32_t ConvertUTF8ToUTF32( char *utf8CurrentChar, char **utf8NextChar );
+
+#include "sys/sys_public.h"
 
 #endif
 #endif // QCOMMON_H
