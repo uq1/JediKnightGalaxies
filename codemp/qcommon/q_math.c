@@ -24,6 +24,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 // q_math.c -- stateless support routines that are included in each code module
 #include "q_shared.h"
+#ifdef __cplusplus
+#include <cmath>
+#else
+#include <math.h>
+#endif
 
 vec3_t		vec3_origin = {0,0,0};
 matrix3_t	axisDefault = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
@@ -1303,7 +1308,11 @@ qboolean Q_isnan (float f)
 #ifdef _WIN32
 	return (qboolean)(_isnan (f) != 0);
 #else
+#ifdef __cplusplus
+return (qboolean)(std::isnan (f) != 0);
+#else
 	return (qboolean)(isnan (f) != 0);
+#endif
 #endif
 }
 

@@ -2262,9 +2262,9 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	ent->UsesELS = 1;
 	// read or initialize the session data
 	if ( firstTime || level.newSession ) {
-		G_InitSessionData( client, userinfo, isBot );
+		G_InitClientSessionData( client, userinfo, isBot );
 	}
-	G_ReadSessionData( client );
+	G_ReadClientSessionData( client );
 
 	if (!isBot && firstTime) {
 		client->sess.validated = 0;
@@ -2328,8 +2328,6 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	return NULL;
 }
 
-void G_WriteClientSessionData( gclient_t *client );
-
 /*
 ===========
 ClientBegin
@@ -2389,7 +2387,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 			ent->client->ps.persistant[ PERS_TEAM ] = ent->client->sess.sessionTeam;
 
 			preSess = ent->client->sess.sessionTeam;
-			G_ReadSessionData( ent->client );
+			G_ReadClientSessionData( ent->client );
 			ent->client->sess.sessionTeam = (team_t)preSess;
 			G_WriteClientSessionData(ent->client);
 			if ( !ClientUserinfoChanged( clientNum ) )

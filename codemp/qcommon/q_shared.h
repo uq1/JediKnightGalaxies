@@ -34,7 +34,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #define CLIENT_WINDOW_TITLE "Jedi Knight Galaxies"
 #define CLIENT_CONSOLE_TITLE "Jedi Knight Galaxies Console"
-#define HOMEPATH_NAME_UNIX ".jkgalaxies"
+#define HOMEPATH_NAME_UNIX "jkgalaxies"
 #define HOMEPATH_NAME_WIN "JKGalaxies"
 #define HOMEPATH_NAME_MACOSX HOMEPATH_NAME_WIN
 
@@ -145,73 +145,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 	#define idppc	0
 #endif
 
-short ShortSwap( short l );
-int LongSwap( int l );
-float FloatSwap( const float *f );
-
-
 #include "qcommon/q_platform.h"
-
-// ================================================================
-// TYPE DEFINITIONS
-// ================================================================
-
-typedef unsigned char byte;
-typedef unsigned short word;
-typedef unsigned long ulong;
-
-#ifndef __cplusplus
-typedef enum {qfalse, qtrue}	qboolean;	// cuz apparently the engine still includes this in C files for some reason --eez
-#else
-typedef bool qboolean;
-#define qfalse false
-#define qtrue true
-#endif
 
 #define Q_min(x,y) ((x)<(y)?(x):(y))
 #define Q_max(x,y) ((x)>(y)?(x):(y))
 
 #if defined (_MSC_VER) && (_MSC_VER >= 1600)
-
-	#include <stdint.h>
-
 	// vsnprintf is ISO/IEC 9899:1999
 	// abstracting this to make it portable
 	int Q_vsnprintf( char *str, size_t size, const char *format, va_list args );
 
 #elif defined (_MSC_VER)
 
-	#include <io.h>
-
-	typedef signed __int64 int64_t;
-	typedef signed __int32 int32_t;
-	typedef signed __int16 int16_t;
-	typedef signed __int8  int8_t;
-	typedef unsigned __int64 uint64_t;
-	typedef unsigned __int32 uint32_t;
-	typedef unsigned __int16 uint16_t;
-	typedef unsigned __int8  uint8_t;
-
 	// vsnprintf is ISO/IEC 9899:1999
 	// abstracting this to make it portable
 	int Q_vsnprintf( char *str, size_t size, const char *format, va_list args );
 #else // not using MSVC
 
-	#include <stdint.h>
-
 	#define Q_vsnprintf vsnprintf
 
 #endif
-
-// 32 bit field aliasing
-typedef union byteAlias_u {
-	float f;
-	int32_t i;
-	uint32_t ui;
-	qboolean qb;
-	byte b[4];
-	char c[4];
-} byteAlias_t;
 
 typedef union fileBuffer_u {
 	void *v;
@@ -2330,15 +2283,9 @@ typedef struct qtime_s {
 
 
 // server browser sources
-//[MasterServer]
 #define AS_LOCAL			0
-#define AS_FAVORITES		2
 #define AS_GLOBAL			1
-#define AS_GLOBAL2			3
-#define AS_GLOBAL3			4
-#define AS_GLOBAL4			5
-#define AS_GLOBAL5			6
-//[/MasterServer]
+#define AS_FAVORITES		2
 
 
 
@@ -2520,7 +2467,7 @@ void JKG_ClearGenericMemoryObject(GenericMemoryObject *gmo);
 void JKG_GenericMemoryObject_AddElement(GenericMemoryObject *gmo, void *element);
 void JKG_GenericMemoryObject_DeleteElement(GenericMemoryObject *gmo, unsigned int number);
 void Q_RGBCopy( vec4_t *output, vec4_t source );
-static qboolean ExtColor_IsValid(char chr);			//check if ^xRGB valid, returns -1 if not valid
+qboolean ExtColor_IsValid(char chr);			//check if ^xRGB valid, returns -1 if not valid
 //static float ExtColor_GetLevel(char chr);			//get color values for ^xRGB
 void Q_StripColor_Simple(char *text);				//simplifying strip mining operations
 char *JKG_xRBG_ConvertExtToNormal(const char *text);	//for converting ^xRGB names to regular ^1names return nonconst

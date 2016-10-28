@@ -2116,6 +2116,10 @@ extern const char *gametypeStringShort[GT_MAX_GAME_TYPE];
 const char *BG_GetGametypeString( int gametype );
 int BG_GetGametypeForString( const char *gametype );
 
+void Q_FSBinaryDump( const char *filename, const void *buffer, size_t len );
+void Q_FSWriteJSON( void *root, fileHandle_t f );
+void Q_FSWriteString( fileHandle_t f, const char *msg );
+
 bool JKG_ParseHiltFiles( void );
 void JKG_CleanSaberHilts( void );
 

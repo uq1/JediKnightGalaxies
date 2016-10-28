@@ -490,20 +490,21 @@ void Field_BigDraw( field_t *edit, int x, int y, int width, qboolean showCursor,
 Field_Paste
 ================
 */
+void Field_CharEvent( field_t *edit, int ch );
 void Field_Paste( field_t *edit ) {
-	char	*cbd;
-	int		pasteLen, i;
+	char	*cbd, *c;
 
-	cbd = Sys_GetClipboardData();
+	c = cbd = Sys_GetClipboardData();
 
 	if ( !cbd ) {
 		return;
 	}
 
 	// send as if typed, so insert / overstrike works properly
-	pasteLen = strlen( cbd );
-	for ( i = 0 ; i < pasteLen ; i++ ) {
-		Field_CharEvent( edit, cbd[i] );
+	while( *c )
+	{
+		uint32_t utf32 = ConvertUTF8ToUTF32( c, &c );
+		Field_CharEvent( edit, ConvertUTF32ToExpectedCharset( utf32 ) );
 	}
 
 	Z_Free( cbd );

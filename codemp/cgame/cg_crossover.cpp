@@ -100,7 +100,7 @@ static void *CO_PartyMngtDataRequest(int data) {
 	} else if (data == 1) {
 		return &cgs.partyList;
 	} else if (data == 2) {
-		return (void *)cgs.partyListTime;
+		return /*(void *)*/&cgs.partyListTime;
 	} else {
 		return 0;
 	}
