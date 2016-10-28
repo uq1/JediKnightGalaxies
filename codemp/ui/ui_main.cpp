@@ -52,6 +52,8 @@ USER INTERFACE MAIN
 #include "jkg_inventory.h"
 #include "jkg_gangwars_ui.h"
 
+#include <cctype>
+
 #include "qcommon/game_version.h"
 
 extern void UI_SaberAttachToChar( itemDef_t *item );
