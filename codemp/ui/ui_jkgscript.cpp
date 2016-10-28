@@ -162,7 +162,7 @@ JKGkeywordHashUI_t JKGScripts[] = {
 	{"loot_item",			JKG_LootScript_Item,			0		},
 
 	// Shop
-	{"shop_open",			JKG_Shop_OpenDialog,			0		},
+	/*{"shop_open",			JKG_Shop_OpenDialog,			0		},
 	{"shop_close",			JKG_Shop_CloseDialog,			0		},
 	{"shop_arrow_next",		JKG_Shop_ArrowNext,				0		},
 	{"shop_arrow_prev",		JKG_Shop_ArrowPrev,				0		},
@@ -172,7 +172,7 @@ JKGkeywordHashUI_t JKGScripts[] = {
 	{"shop_buyconfirm_yes",	JKG_Shop_BuyConfirm_Yes,		0		},
 	{"shop_buyconfirm_no",	JKG_Shop_BuyConfirm_No,			0		},
 	{"shop_buyconfirm",		JKG_Shop_BuyConfirm_Display,	0		},
-	{"shop_openinventory",	JKG_Shop_OpenInventoryMenu,		0		},
+	{"shop_openinventory",	JKG_Shop_OpenInventoryMenu,		0		},*/
 
 	{0,						0,					    		0		},
 };

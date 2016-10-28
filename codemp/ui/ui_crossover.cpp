@@ -23,7 +23,13 @@ static qboolean coTrapEscape = qfalse;
 
 qboolean UI_RunSvCommand(const char *command);
 void JKG_PartyMngt_UpdateNotify(int msg);
-void JKG_Shop_UpdateNotify(int msg);
+void JKG_Shop_UpdateNotify(int msg) {
+	menuDef_t* menu = Menus_FindByName("jkg_shop");
+	if (menu && Menus_ActivateByName("jkg_shop"))
+	{
+		trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
+	}
+}
 void JKG_Inventory_UpdateNotify(int msg);
 
 void CO_SetEscapeTrapped( qboolean trapped )

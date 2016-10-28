@@ -6,8 +6,6 @@
 
 extern vmCvar_t ui_inventoryFilter;
 
-#define MAX_XML_BUFFER_SIZE	4096
-
 typedef enum {
 	JKGIFILTER_ALL,
 	JKGIFILTER_WEAPONS,
@@ -16,26 +14,6 @@ typedef enum {
 	JKGIFILTER_MISC,
 } jkgFilterItems_t;
 
-void JKG_Shop_OpenDialog(char **args);
-void JKG_Shop_CloseDialog ( char **args );
-void JKG_Shop_ItemSelect(char **args);
-void JKG_Shop_ArrowPrev(char **args);
-void JKG_Shop_ArrowNext(char **args);
-void JKG_Shop_Update(char **args);
-void JKG_Shop_UpdateShopStuff(int filterVal);
-void JKG_Shop_ClearFocus(char **args);
-void JKG_Shop_BuyConfirm_Yes(char **args);
-void JKG_Shop_BuyConfirm_No(char **args);
-void JKG_Shop_UpdateCreditDisplay(void);
-void JKG_Shop_BuyConfirm_Display(char **args);
-void JKG_Shop_OpenInventoryMenu(char **args);
-void JKG_Shop_UpdateNotify(int msg);
-void JKG_Inventory_CloseFromShop( char **args );
-
-void JKG_Shop_RestoreShopMenu(void);
-
-void JKG_Shop_ArrowPrevClean(void);
-void JKG_Shop_ArrowNextClean(void);
 
 void JKG_Inventory_CheckACIKeyStroke(int key);
 void JKG_Inventory_UpdateNotify(int msg);
