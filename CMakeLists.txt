@@ -124,7 +124,7 @@ message("Architecture is ${Architecture}")
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 message("Git revision is ${GIT_SHA1}")
-#message("Git refspec is ${GIT_REFSPEC}")
+message("Git refspec is ${GIT_REFSPEC}")
 
 # Binary names
 set(MPEngine "jkgalaxies.${Architecture}")
