@@ -27,7 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "jkg_gangwars.h"
 #include "../ui/menudef.h"			// for the voice chats
 #include "../GLua/glua.h"
-#include "jkg_admin.h"
 #include "jkg_chatcmds.h"
 #include "jkg_utilityfunc.h"
 #include "jkg_treasureclass.h"
@@ -59,13 +58,7 @@ CheatsOk
 ==================
 */
 qboolean	CheatsOk( gentity_t *ent ) {
-	if (ent->client->sess.adminRank >= ADMRANK_DEVELOPER)
-	{
-		return qtrue;
-	}
-	if (ent->client->sess.canUseCheats)
-		return qtrue;
-	if ( !sv_cheats.integer ) {
+	if ( !sv_cheats.integer && !ent->client->sess.canUseCheats ) {
 		trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
 		return qfalse;
 	}
@@ -75,7 +68,6 @@ qboolean	CheatsOk( gentity_t *ent ) {
 	}
 	return qtrue;
 }
-
 
 /*
 ==================
@@ -1068,6 +1060,10 @@ argv(0) god
 void Cmd_God_f( gentity_t *ent ) {
 	char *msg = NULL;
 
+	if ( !CheatsOk( ent ) ) {
+		return;
+	}
+
 	ent->flags ^= FL_GODMODE;
 	if ( !(ent->flags & FL_GODMODE) )
 		msg = "godmode OFF";
@@ -1090,6 +1086,10 @@ argv(0) notarget
 void Cmd_Notarget_f( gentity_t *ent ) {
 	char *msg = NULL;
 
+	if ( !CheatsOk( ent ) ) {
+		return;
+	}
+
 	ent->flags ^= FL_NOTARGET;
 	if ( !(ent->flags & FL_NOTARGET) )
 		msg = "notarget OFF";
@@ -1109,6 +1109,10 @@ argv(0) noclip
 */
 void Cmd_Noclip_f( gentity_t *ent ) {
 	char *msg = NULL;
+
+	if ( !CheatsOk( ent ) ) {
+		return;
+	}
 
 	ent->client->noclip = !ent->client->noclip;
 	if ( !ent->client->noclip )
@@ -1132,6 +1136,10 @@ hide the scoreboard, and take a special screenshot
 */
 void Cmd_LevelShot_f( gentity_t *ent )
 {
+	if ( !CheatsOk( ent ) ) {
+		return;
+	}
+
 	if ( !ent->client->pers.localClient )
 	{
 		trap->SendServerCommand(ent-g_entities, "print \"The levelshot command must be executed by a local client\n\"");
@@ -4481,9 +4489,6 @@ void ClientCommand( int clientNum ) {
 	if (level.clients[clientNum].pers.connected != CON_CONNECTED)
 		return;
 
-	// Check for admin commands
-	if (JKG_Admin_Execute(cmd, ent)) return;
-
 	// Check for Glua bound commands
 	if (GLua_Command(clientNum, cmd)) return;
 
@@ -5646,7 +5651,7 @@ void ClientCommand( int clientNum ) {
 
 		trap->Argv(1, str, sizeof(str));
 
-		if (!str || !str[0])
+		if (!str[0])
 		{
 			trap->Print("Format: /warzone_changeflagteam <flag #> <team name>\n");
 			WARZONE_ShowInfo();

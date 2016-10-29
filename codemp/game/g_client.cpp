@@ -28,7 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 // GLua include
 #include "../GLua/glua.h"
-#include "jkg_admin.h"
 #include "jkg_bans.h"
 #include "jkg_damagetypes.h"
 #include "jkg_utilityfunc.h"
@@ -40,27 +39,6 @@ extern int gWPNum;
 // Warzone...
 extern void Calculate_Warzone_Flag_Spawns ( void );
 extern gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent );
-
-
-static const char	*NET_AdrToString (netadr_t a)
-{
-	static	char	s[64];
-
-	if (a.type == NA_LOOPBACK) {
-		Com_sprintf (s, sizeof(s), "loopback");
-	} else if (a.type == NA_BOT) {
-		Com_sprintf (s, sizeof(s), "bot");
-	} else if (a.type == NA_IP) {
-		Com_sprintf (s, sizeof(s), "%i.%i.%i.%i:%hu",
-			a.ip[0], a.ip[1], a.ip[2], a.ip[3], BigShort(a.port));
-	} else {
-		Com_sprintf (s, sizeof(s), "%02x%02x%02x%02x.%02x%02x%02x%02x%02x%02x:%hu",
-		a.ipx[0], a.ipx[1], a.ipx[2], a.ipx[3], a.ipx[4], a.ipx[5], a.ipx[6], a.ipx[7], a.ipx[8], a.ipx[9],
-		BigShort(a.port));
-	}
-
-	return s;
-}
 
 // g_client.c -- client functions that don't happen every frame
 
@@ -2275,9 +2253,6 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 		client->sess.validated = 1;
 		client->sess.noq3fill = 1;
 	}
-
-	// FIXME: Need to replace this
-	//Q_strncpyz(client->sess.IP, NET_AdrToString(svs->clients[clientNum].netchan.remoteAddress), sizeof(client->sess.IP));
 
 	if( isBot ) {
 		ent->r.svFlags |= SVF_BOT;
