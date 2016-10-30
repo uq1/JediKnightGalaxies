@@ -1767,10 +1767,15 @@ float CG_DrawRadar ( float y )
 		return y;
 	}
 
-	if ( (cg.predictedPlayerState.pm_flags & PMF_FOLLOW) || cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_SPECTATOR )
+	if ( (cg.predictedPlayerState.pm_flags & PMF_FOLLOW) || 
+		cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_SPECTATOR ||
+		cg.predictedPlayerState.pm_type == PM_SPECTATOR )
 	{
 		return y;
 	}
+	
+	if( cg.predictedPlayerState.zoomMode != 0)
+		return y;
 
 	local = &cgs.clientinfo[ cg.snap->ps.clientNum ];
 	if ( !local->infoValid )
