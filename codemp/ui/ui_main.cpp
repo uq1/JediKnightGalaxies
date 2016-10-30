@@ -2574,6 +2574,25 @@ static void UI_OwnerDraw(itemDef_t *item, float x, float y, float w, float h, fl
 		JKG_Inventory_OwnerDraw_ItemTagBottom(item, ownerDrawID);
 		break;
 
+	case UI_JKG_SHOP_LEFTICON:
+		JKG_ShopIconLeft(item, ownerDrawID);
+		break;
+	case UI_JKG_SHOP_RIGHTICON:
+		JKG_ShopIconRight(item, ownerDrawID);
+		break;
+	case UI_JKG_SHOP_LEFTSELECT:
+		JKG_Shop_InventorySelection(item, ownerDrawID);
+		break;
+	case UI_JKG_SHOP_RIGHTSELECT:
+		JKG_Shop_ShopSelection(item, ownerDrawID);
+		break;
+	case UI_JKG_SHOP_LEFTNAME:
+		JKG_Shop_InventoryItemName(item, ownerDrawID);
+		break;
+	case UI_JKG_SHOP_RIGHTNAME:
+		JKG_Shop_ShopItemName(item, ownerDrawID);
+		break;
+
 	case UI_SKIN_COLOR:
 		UI_DrawSkinColor(&rect, scale, color, textStyle, uiSkinColor, TEAM_FREE, TEAM_BLUE, iMenuFont);
 		break;

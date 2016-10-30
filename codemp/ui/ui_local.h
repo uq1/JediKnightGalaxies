@@ -408,6 +408,7 @@ void JKG_UI_LoadStylesheet( const char *text );
 void JKG_UI_SetClass( const char *className, itemDef_t *item );
 
 void JKG_UI_InventoryFilterChanged();
+void JKG_ShopInventorySortChanged();
 
 // new ui
 

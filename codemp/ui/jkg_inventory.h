@@ -40,3 +40,19 @@ void JKG_Inventory_ACIRemove(char** args);
 void JKG_Inventory_EquipArmor(char** args);
 void JKG_Inventory_UnequipArmor(char** args);
 void JKG_Inventory_Open(char** args);
+
+//
+// Shop specific stuff
+//
+
+void JKG_ConstructShopLists();
+void JKG_ShopInventorySortChanged();
+void JKG_ShopArrow(char** args);
+void JKG_ShopIconLeft(itemDef_t* item, int nOwnerDrawID);
+void JKG_ShopIconRight(itemDef_t* item, int nOwnerDrawID);
+void JKG_Shop_InventorySelection(itemDef_t* item, int nOwnerDrawID);
+void JKG_Shop_ShopSelection(itemDef_t* item, int nOwnerDrawID);
+void JKG_Shop_InventoryItemName(itemDef_t* item, int nOwnerDrawID);
+void JKG_Shop_ShopItemName(itemDef_t* item, int nOwnerDrawID);
+void JKG_Shop_SelectLeft(char** args);
+void JKG_Shop_SelectRight(char** args);

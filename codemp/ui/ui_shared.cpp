@@ -40,7 +40,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "ghoul2/G2.h"
 
 extern void UI_UpdateCharacterSkin( void );
-extern void JKG_Shop_UpdateShopStuff(int filterVal);
 
 const char *HolocronIcons[NUM_FORCE_POWERS] = {
 	"gfx/mp/f_icon_lt_heal",		//FP_HEAL,
@@ -3756,14 +3755,6 @@ qboolean Item_Multi_HandleKey(itemDef_t *item, int key)
 					{
 						DC->setCVar(item->cvar, va("%f", value ));
 					}
-#ifdef UI
-					if(!item->special && item->action && !Q_stricmp(item->window.name, "filtertab_btn"))
-					{	//Mega haxx in order to get the shop display to look right
-						char *arggg = va("-%i", (int)value);
-						JKG_Shop_Update(&arggg);
-						JKG_Shop_ClearFocus(&arggg);
-					}
-#endif
 				}
 				if (item->special)
 				{//its a feeder?
@@ -5169,39 +5160,6 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 			}
 			break;
 	}
-#ifdef UI
-	if(menu->window.name && !Q_stricmp(menu->window.name, "jkg_shop"))
-	{
-		if(key == A_MWHEELDOWN)
-		{
-			JKG_Shop_ArrowNextClean();
-		}
-		else if(key == A_MWHEELUP)
-		{
-			JKG_Shop_ArrowPrevClean();
-		}
-		return;
-	}
-	else if(menu->window.name && !Q_stricmp(menu->window.name, "jkg_inventory"))
-	{
-		switch(key)
-		{
-			case A_0:
-			case A_1:
-			case A_2:
-			case A_3:
-			case A_4:
-			case A_5:
-			case A_6:
-			case A_7:
-			case A_8:
-			case A_9:
-				JKG_Inventory_CheckACIKeyStroke(key);
-				return;
-				break;
-		}
-	}
-#endif
 	inHandler = qfalse;
 }
 

@@ -43,6 +43,10 @@ static void JKG_ConstructInventoryList() {
 		nSelected = -1;
 		Menu_ShowItemByName(Menus_FindByName("jkg_inventory"), "shop_preview", qfalse);
 	}
+
+	if (nPosition >= pItems.size()) {
+		nPosition = 0;
+	}
 }
 
 /*
@@ -798,7 +802,16 @@ void JKG_Inventory_ReconstructList(char** args) {
 }
 
 void JKG_UI_InventoryFilterChanged() {
-	JKG_ConstructInventoryList();
+	menuDef_t* focusedMenu = Menu_GetFocused();
+	if (focusedMenu == nullptr) {
+		return;
+	}
+	if (!Q_stricmp(focusedMenu->window.name, "jkg_inventory")) {
+		JKG_ConstructInventoryList();
+	}
+	else if (!Q_stricmp(focusedMenu->window.name, "jkg_shop")) {
+		JKG_ConstructShopLists();
+	}
 }
 
 void JKG_Inventory_UpdateNotify(int msg) {

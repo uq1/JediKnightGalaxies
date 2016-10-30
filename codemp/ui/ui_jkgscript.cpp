@@ -162,6 +162,11 @@ JKGkeywordHashUI_t JKGScripts[] = {
 	{"loot_item",			JKG_LootScript_Item,			0		},
 
 	// Shop
+	{ "shop_arrow",			JKG_ShopArrow,					0		},
+	{ "shop_left_button",	JKG_Shop_SelectLeft,			0		},
+	{ "shop_right_button",	JKG_Shop_SelectRight,			0		},
+
+	// Shop
 	/*{"shop_open",			JKG_Shop_OpenDialog,			0		},
 	{"shop_close",			JKG_Shop_CloseDialog,			0		},
 	{"shop_arrow_next",		JKG_Shop_ArrowNext,				0		},
