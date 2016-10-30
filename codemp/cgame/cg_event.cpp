@@ -48,7 +48,7 @@ extern int cg_vehicleAmmoWarningTime;
 
 extern void JKG_SwapToSaber(int saberNum, clientInfo_t *ci, const char *newSaber, int weapon, int variation);
 
-vmCvar_t	jkg_nokillmessages;
+//vmCvar_t	jkg_nokillmessages;
 
 //I know, not siege, but...
 typedef enum
@@ -416,16 +416,12 @@ clientkilled:
 
 		if (message) {
 			message = (char *)CG_GetStringEdString("MP_INGAME", message);
-			if (jkg_nokillmessages.integer!=1) {		//Disables rendering of kill messages as it is not needed in a MMO?
-				trap->Print("%s %s %s\n", JKG_xRBG_ConvertExtToNormal(targetName), message, JKG_xRBG_ConvertExtToNormal(attackerName)); 	//--futuza: ^xRGB fix needed (so that server handles it too)
-			}
+			trap->Print("%s %s %s\n", targetName, message, attackerName); 	//--futuza: ^xRGB fix needed (so that server handles it too)
 			return;
 		}
 	}
-	if (jkg_nokillmessages.integer!=1) {
-		// we don't know what it was
-		trap->Print("%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC"));
-	}
+	// we don't know what it was
+	trap->Print("%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC"));
 }
 
 //==========================================================================
@@ -3021,10 +3017,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				{ //add to the chat box
 					//hear it in the world spot.
 					char vchatstr[1024];
-					strcpy(vchatstr, va("<%s: %s>\n", ci->name, descr));	//futuza: fixed xRGB color codes
-					if (jkg_nokillmessages.integer!=1) {
-					trap->Print(vchatstr); //Disables rendering of kill messages as it is not needed in a MMO?
-					}
+					Q_strncpyz(vchatstr, va("<%s: %s>\n", ci->name, descr), sizeof(vchatstr));	//futuza: fixed xRGB color codes
+					trap->Print("*%s", vchatstr);
 					CG_ChatBox_AddString(vchatstr, 100);
 				}
 
