@@ -5303,6 +5303,40 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 	//check for teamnodmg
 	//NOTE: non-client objects hitting clients (and clients hitting clients) purposely doesn't obey this teamnodmg (for emplaced guns)
+	if ( attacker && !targ->client )
+	{//attacker hit a non-client
+		if ( level.gametype >= GT_TEAM )
+		{
+			if ( targ->teamnodmg )
+			{//targ shouldn't take damage from a certain team
+				if ( attacker->client )
+				{//a client hit a non-client object
+					if ( targ->teamnodmg == attacker->client->sess.sessionTeam )
+					{
+						return;
+					}
+				}
+				else if ( attacker->teamnodmg )
+				{//a non-client hit a non-client object
+					//FIXME: maybe check alliedTeam instead?
+					if ( targ->teamnodmg == attacker->teamnodmg )
+					{
+						if (attacker->activator &&
+							attacker->activator->inuse &&
+							attacker->activator->s.number < MAX_CLIENTS &&
+							attacker->activator->client &&
+							attacker->activator->client->sess.sessionTeam != targ->teamnodmg)
+						{ //uh, let them damage it I guess.
+						}
+						else
+						{
+							return;
+						}
+					}
+				}
+			}
+		}
+	}
 
 	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
 	if ( attacker->client && targ != attacker && targ->health > 0
