@@ -407,7 +407,7 @@ public:
 		std::rotate (freeAndAllocated, freeAndAllocated + 1, freeAndAllocated + N);
 		numFree--;
 
-		highWatermark = max (highWatermark, N - numFree);
+		highWatermark = Q_max(highWatermark, N - numFree);
 
 		return ptr;
 	}
@@ -508,7 +508,7 @@ class PagedPoolAllocator
 
 				delete[] pages;
 				pages = newPages;
-				
+
 				ptr = pages[numPages].Alloc ();
 				if ( ptr == NULL )
 				{

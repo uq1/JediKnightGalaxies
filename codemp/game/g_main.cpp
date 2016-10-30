@@ -39,7 +39,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // Include GLua 
 #include "../GLua/glua.h"
 #include "json/cJSON.h"
-#include "jkg_admin.h"
 #include "jkg_bans.h"
 //#include "jkg_navmesh_creator.h"
 #include "jkg_damagetypes.h"
@@ -381,9 +380,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	OpenSSL_add_all_algorithms();
 #endif
 
-	// Initialize admin commands
-	JKG_Admin_Init();
-
 	//Init RMG to 0, it will be autoset to 1 if there is terrain on the level.
 	trap->Cvar_Set("RMG", "0");
 	RMG.integer = 0;
@@ -459,7 +455,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_CacheGametype();
 
-	G_InitWorldSession();
+	G_ReadSessionData();
 
 	// initialize all entities for this game
 	memset( g_entities, 0, MAX_GENTITIES * sizeof(g_entities[0]) );

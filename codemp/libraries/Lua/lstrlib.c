@@ -208,7 +208,7 @@ static const char *classend (MatchState *ms, const char *p) {
       return p+1;
     }
     case '[': {
-      if (*p == '^') p++;
+      if (*p == '^') p++;			//--futuza:  investigate ^xRGB importance
       do {  /* look for a `]' */
         if (*p == '\0')
           luaL_error(ms->L, "malformed pattern (missing " LUA_QL("]") ")");

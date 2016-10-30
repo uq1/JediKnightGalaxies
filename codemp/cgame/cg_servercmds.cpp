@@ -1119,7 +1119,8 @@ static void JKG_FireModeUpdate(void)
 	char *previousFM = const_cast<char *>(CG_Argv(1));
 	int previousFMInt = atoi(previousFM);
 	if( wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound &&
-		wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound[0] )
+		wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound[0] &&
+		wpData->numFiringModes > 1 )
 	{
 		trap->S_StartLocalSound( trap->S_RegisterSound( wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound ), CHAN_AUTO );
 	}

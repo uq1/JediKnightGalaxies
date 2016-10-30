@@ -4,10 +4,8 @@
 #include "qcommon/q_shared.h"
 
 #include "glua.h"
-#include "../game/jkg_admin.h"
 
 #define ConvertVec(a, b) (b[0] = a->x, b[1] = a->y, b[2] = a->z)
-
 
 static int GLua_Sys_GetCvarString(lua_State *L) {
 	const char *cvarname = luaL_checkstring(L,1);
@@ -221,7 +219,7 @@ static int GLua_Sys_StripColorcodes(lua_State *L) {
 				i+=2;
 				continue;
 			}
-			if (*(i+1) == 'x') {
+			if (*(i + 1) == 'x' || *(i + 1) == 'X') {
 				if (Text_IsExtColorCode(i+1, false)) {
 					i+=5;
 					continue;
@@ -236,13 +234,6 @@ static int GLua_Sys_StripColorcodes(lua_State *L) {
 	lua_pushstring(L, output);
 	free(output);
 	return 1;
-}
-
-static int GLua_Sys_AdminNotify(lua_State *L) {
-	int rank = luaL_checkint(L, 1);
-	const char *str = luaL_checkstring(L,2);
-	JKG_AdminNotify((admrank_e)rank, str);
-	return 0;
 }
 
 static const struct luaL_reg sys_f [] = {
@@ -267,7 +258,6 @@ static const struct luaL_reg sys_f [] = {
 	{"MapName", GLua_Sys_MapName},
 	{"SpotWouldTelefrag", GLua_Sys_SpotWouldTelefrag},
 	{"StripColorcodes", GLua_Sys_StripColorcodes},
-	{"AdminNotify",	GLua_Sys_AdminNotify},
 	{NULL, NULL},
 };
 

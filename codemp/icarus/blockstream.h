@@ -58,6 +58,9 @@ enum
 	PUSH_BACK
 };
 
+void *ICARUS_Malloc(int iSize);
+void ICARUS_Free(void *pMem);
+
 // Templates
 
 // CBlockMember

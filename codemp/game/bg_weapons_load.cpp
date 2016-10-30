@@ -8,7 +8,7 @@
 	#include "g_local.h"
 #elif defined(_CGAME)
 	#include "cgame/cg_local.h"
-#elif defined(_UI)
+#elif defined(IN_UI)
 	#include "ui/ui_local.h"
 #endif
 
@@ -947,7 +947,7 @@ static void BG_ParseWPNSaberData ( weaponData_t *wp, cJSON *json )
 	ReadString( json, "crystal", wp->sab.defaultcrystal, sizeof( wp->sab.defaultcrystal ) );
 }
 
-stringID_table_t WPTable[]; // From bg_saga.c
+extern stringID_table_t WPTable[]; // From bg_saga.c
 
 #define MAX_WEAPON_FILE_LENGTH (16384) // 16kb should be enough, 4kb apparently wasn't!
 static qboolean BG_ParseWeaponFile ( const char *weaponFilePath )

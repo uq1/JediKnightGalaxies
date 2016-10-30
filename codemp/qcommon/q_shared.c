@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 gangWarsTeam_t bgGangWarsTeams[32];
 int bgnumGangWarTeams;
 
-#if defined(_GAME) || defined(_CGAME) || defined(_UI)
+#if defined(_GAME) || defined(_CGAME) || defined(IN_UI)
 void (*Com_Error)( int level, const char *error, ... );
 void (*Com_Printf)( const char *msg, ... );
 #endif
@@ -1188,7 +1188,7 @@ char *Q_CleanStr( char *string ) {
 	d = string;
 	while ((c = *s) != 0 ) {
 		// eezstreet fix: deal with non standard color codes as well..
-		if( s[0] == '^' && s[1] == 'x' &&
+		/*if( s[0] == '^' && s[1] == 'x' &&
 			((s[2] >= '0' && s[2] <= '9') ||
 			(s[2] >= 'a' && s[2] <= 'f') ||
 			(s[2] >= 'A' && s[2] <= 'F')) &&
@@ -1197,7 +1197,8 @@ char *Q_CleanStr( char *string ) {
 			(s[3] >= 'A' && s[3] <= 'F')) &&
 			((s[4] >= '0' && s[4] <= '9') ||
 			(s[4] >= 'a' && s[4] <= 'f') ||
-			(s[4] >= 'A' && s[4] <= 'F')) )
+			(s[4] >= 'A' && s[4] <= 'F')) )*/
+		if (*s == '^' && (s[1] == 'X' || s[1] == 'x') && (ExtColor_IsValid(s[2]) && ExtColor_IsValid(s[3]) && ExtColor_IsValid(s[4])) )	//--futuza this is cleaner and better, cuz we can use either x/X
 		{
 			s+=4;
 		}
@@ -1214,6 +1215,7 @@ char *Q_CleanStr( char *string ) {
 	return string;
 }
 
+
 /*
 ==================
 Q_StripColor
@@ -1223,10 +1225,13 @@ Strips coloured strings in-place using multiple passes: "fgs^^56fds" -> "fgs^6fd
 This function modifies INPUT (is mutable)
 
 (Also strips ^8 and ^9)
+
+//--Futuza todo: simplify this whole damn function
 ==================
 */
 void Q_StripColor(char *text)
 {
+	/*
 	qboolean doPass = qtrue;
 	char *read;
 	char *write;
@@ -1237,11 +1242,18 @@ void Q_StripColor(char *text)
 		read = write = text;
 		while ( *read )
 		{
-			if ( Q_IsColorStringExt(read) )
+			if ( Q_IsColorStringExt(read) )		//if (*read == '^' && *read + 1 >= '0' && *read + 1 <= '9')	//--futuza: explaining the damn function, because it is fracking unreadable
 			{
 				doPass = qtrue;
 				read += 2;
 			}
+
+			if (*read == '^' && (read[1] == 'X' || read[1] == 'x') && (ExtColor_IsValid(read[2]) && ExtColor_IsValid(read[3]) && ExtColor_IsValid(read[4])))	//if ^xRGB (and a valid one)
+			{
+				doPass = qtrue;
+				read += 5;
+			}
+
 			else
 			{
 				// Avoid writing the same data over itself
@@ -1258,8 +1270,37 @@ void Q_StripColor(char *text)
 			// Add trailing NUL byte if string has shortened
 			*write = '\0';
 		}
-	}
+	}*/
+	Q_StripColor_Simple(text);	//just use simple version, original version is idiotic
 }
+
+//simplified Q_StripColor - courtesy of eezstreet
+void Q_StripColor_Simple(char *text)
+{
+	int nOffset = 0;
+
+	while (*text)	//while not null
+	{
+		if (*text == '^')	//if we encounter color code
+		{
+			if (text[1] == 'x' || text[1] == 'X')	//xRGB color codes
+			{
+				if ( ExtColor_IsValid(text[2]) && ExtColor_IsValid(text[3]) && ExtColor_IsValid(text[4]) ) //valid color?
+					nOffset += 5;
+			}
+			else if ( isdigit(text[1]) )	//number color codes	--futuza: possibly unsafe to use isdigit? if so change to check 0-9 range instead
+			{
+				nOffset += 2;
+			}
+		}
+		text[0] = text[nOffset];
+		nOffset++;
+		text++;
+	}
+
+}
+
+
 
 /*
 Q_strstrip
@@ -1911,6 +1952,21 @@ qboolean Text_IsExtColorCode(const char *text) {
 So far only JKG_xRBG_ConvertExtToNormal() can be used.  Might add some more from jkg_chatbox.h later
 
 */
+
+qboolean ExtColor_IsValid(char chr)
+{
+	if (chr >= '0' && chr <= '9')
+		return qtrue;
+
+	if (chr >= 'A' && chr <= 'F')
+		return qtrue;
+
+	if (chr >= 'a' && chr <= 'f')
+		return qtrue;
+
+	return qfalse;
+}
+
 static vec4_t tColorTable[10] = 
 {
 	{ 0, 0, 0, 1 }, // ^0
@@ -1972,9 +2028,10 @@ static int Text_ExtColorCodes(const char *text, vec4_t color)
 
 // This function converts a text with extended color codes (^xRGB) into a text with normal color codes
 // The extended colors will be clamped so the closest normal color available
-// Used to display text with extended colorcodes in the console
+// Used primarily to display text with extended colorcodes in the console
 
-const char *JKG_xRBG_ConvertExtToNormal(const char *text)	//for converting ^xRBG names to regular ^1names
+//futuza note:  I accidentally wrote this wrong should be xRGB not RBG oh well too late to change now.
+char *JKG_xRBG_ConvertExtToNormal(const char *text)	//for converting ^xRBG names to regular ^1names, return a non-const
 {
 	static char buff[2048];
 	const char *r;		// Reader
@@ -1992,7 +2049,7 @@ const char *JKG_xRBG_ConvertExtToNormal(const char *text)	//for converting ^xRBG
 			*w = 0;
 			return &buff[0];
 		}
-		if (*r == '^' && *(r + 1) == 'x') {
+		if (*r == '^' && (*(r + 1) == 'x' || *(r + 1) == 'X')) {
 			if (Text_ExtColorCodes(r + 1, color)) {
 				// Extended colorcode alright, determine which base color is closest to this one
 				*w = *r;	// write the ^
@@ -2057,4 +2114,70 @@ const char *JKG_xRBG_ConvertExtToNormal(const char *text)	//for converting ^xRBG
 	}
 	*w = *r;	// Write the null terminator
 	return &buff[0];
+}
+
+//didn't provide a limit value okay?
+void Global_SanitizeString_MaxQPath(char *in, char *out)
+{
+	Global_SanitizeString(in, out, MAX_QPATH);
+}
+
+//--futuza: got sick of rewritting SanitizeString() functions, so here's a global one
+void Global_SanitizeString(char *in, char *out, int limit)		//note: users can optionally pass in a limit value, rather then using the default
+{
+	int i = 0;
+	int r = 0;
+
+	while (in[i])
+	{
+		if (i >= limit - 1)		//the ui truncates the name here...
+			break;
+
+		if (in[i] == '^')
+		{
+			if (in[i + 1] == 'x' || in[i + 1] == 'X')	//if ^xRGB
+			{
+				if (ExtColor_IsValid(in[i + 2]) && ExtColor_IsValid(in[i + 3]) && ExtColor_IsValid(in[i + 4]))	//if a valid color
+				{
+					i += 5;
+					continue;
+				}
+			}
+			else if (isdigit(in[i + 1]))	//if ^0-9
+			{
+				i += 2;
+				continue;
+			}
+			else	//treat ^'s without color codes like a normal char
+				;
+		}
+
+		if (in[i] < 32)		//if a control character?
+		{
+			i++;
+			continue;
+		}
+
+		out[r] = in[i];
+		r++;
+		i++;
+	}
+	out[r] = 0;
+
+}
+
+void getGalacticTimeStamp(char* outStr)	//to use : char myarray[17]; getBuildTimeStamp(myarray); 
+{
+	char result[17];
+	time_t t = time(0);   // get time now
+	struct tm * now = localtime(&t);
+
+	//format current time (UTC)
+	strftime(result, sizeof(result) - 1, "%y-%m-%d  %H:%M", now);
+
+	//store results
+	for (int i = 0; i<sizeof(result); i++)
+		outStr[i] = result[i];
+
+	return;
 }

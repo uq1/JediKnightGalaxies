@@ -150,21 +150,10 @@ static void C_GetLerpData(void);
 static int	CG_RagCallback(int callType);
 static void C_ImpactMark(void);
 
-#define MAX_MISC_ENTS	4000
-
-//static refEntity_t	*MiscEnts = 0;
-//static float		*Radius = 0;
-static refEntity_t	MiscEnts[MAX_MISC_ENTS]; //statically allocated for now.
-static float		Radius[MAX_MISC_ENTS];
-static float		zOffset[MAX_MISC_ENTS]; //some models need a z offset for culling, because of stupid wrong model origins
-
-static int			NumMiscEnts = 0;
-
 extern autoMapInput_t cg_autoMapInput; //cg_view.c
 extern int cg_autoMapInputTime;
 extern vec3_t cg_autoMapAngle;
 
-void CG_MiscEnt(void);
 void CG_DoCameraShake( vec3_t origin, float intensity, int radius, int time );
 
 //do we have any force powers that we would normally need to cycle to?
@@ -2397,7 +2386,11 @@ void CG_LoadHudMenu()
 	cgDC.setColor = trap->R_SetColor;
 	cgDC.drawHandlePic = CG_DrawPic;
 	cgDC.drawStretchPic = trap->R_DrawStretchPic;
+#if	defined(__linux__)
+	cgDC.drawText = reinterpret_cast<void(*)(float, float, float, float[], const char *, float, int, int, int)>(&CG_Text_Paint);
+#else
 	cgDC.drawText = reinterpret_cast<void (__cdecl *)(float, float, float, float [], const char *, float, int, int, int)>(&CG_Text_Paint);
+#endif
 	cgDC.textWidth = CG_Text_Width;
 	cgDC.textHeight = CG_Text_Height;
 	cgDC.registerModel = trap->R_RegisterModel;
@@ -3039,20 +3032,6 @@ static qboolean CG_IncomingConsoleCommand( void ) {
 	//return qtrue if the command is ok. Otherwise, you can set char 0 on the command str to 0 and return
 	//qfalse to not execute anything, or you can fill conCommand in with something valid and return 0
 	//in order to have that string executed in place. Some example code:
-#if 0
-	TCGIncomingConsoleCommand *icc = &cg.sharedBuffer.icc;
-	if ( strstr( icc->conCommand, "wait" ) )
-	{ //filter out commands contaning wait
-		Com_Printf( "You can't use commands containing the string wait with MyMod v1.0\n" );
-		icc->conCommand[0] = 0;
-		return qfalse;
-	}
-	else if ( strstr( icc->conCommand, "blah" ) )
-	{ //any command containing the string "blah" is redirected to "quit"
-		strcpy( icc->conCommand, "quit" );
-		return qfalse;
-	}
-#endif
 	return qtrue;
 }
 
@@ -3146,7 +3125,6 @@ Q_EXPORT cgameExport_t* QDECL GetModuleAPI( int apiVersion, cgameImport_t *impor
 	cge.G2Trace					= C_G2Trace;
 	cge.G2Mark					= C_G2Mark;
 	cge.RagCallback				= CG_RagCallback;
-	cge.IncomingConsoleCommand	= CG_IncomingConsoleCommand;
 	cge.NoUseableForce			= CG_NoUseableForce;
 	cge.GetOrigin				= CG_GetOrigin;
 	cge.GetAngles				= CG_GetAngles;

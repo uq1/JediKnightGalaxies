@@ -399,8 +399,15 @@ void G_Throw( gentity_t *targ, vec3_t newDir, float push )
 
 static void G_FreeFakeClient(gclient_t **cl)
 {
-	free( *cl );
-	*cl = NULL;
+	// This code was problematic when NPCs had to get cleanned up 
+	// If you check base, this func was empty and had a lengthy explanation.
+	// I believe that this code is a serverside crash waiting to happen 
+	// I think it should be removed but I could be wrong ~~ ooxavenue
+	if (!(jkg_removenpcbody.integer)) 
+	{
+		free(*cl);
+		*cl = NULL;
+	}
 }
 
 //allocate a veh object
@@ -1622,8 +1629,8 @@ Try and use an entity in the world, directly ahead of us
 #define USE_DISTANCE_MAX	1024.0f	// Max distance for use
 
 extern void Touch_Button(gentity_t *ent, gentity_t *other, trace_t *trace );
-static vec3_t	playerMins = {-15, -15, DEFAULT_MINS_2};
-static vec3_t	playerMaxs = {15, 15, DEFAULT_MAXS_2};
+//static vec3_t	playerMins = {-15, -15, DEFAULT_MINS_2};
+//static vec3_t	playerMaxs = {15, 15, DEFAULT_MAXS_2};
 void GLua_NPCEV_OnUse(gentity_t *self, gentity_t *other, gentity_t *activator);
 
 void TryUse( gentity_t *ent )

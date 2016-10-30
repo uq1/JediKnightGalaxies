@@ -5096,6 +5096,12 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if ( knockback > 200 ) {
 		knockback = 200;
 	}
+
+	//futuza: low damage results in no knockback
+	/*if (knockback < 35)
+	{
+		knockback = 0;
+	}*/
 	if ( targ->flags & FL_NO_KNOCKBACK ) {
 		knockback = 0;
 	}
@@ -5297,18 +5303,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 	//check for teamnodmg
 	//NOTE: non-client objects hitting clients (and clients hitting clients) purposely doesn't obey this teamnodmg (for emplaced guns)
-
-	#ifdef BASE_COMPAT
-		// battlesuit protects from all radius damage (but takes knockback)
-		// and protects 50% against all damage
-		if ( client && client->ps.powerups[PW_BATTLESUIT] ) {
-			G_AddEvent( targ, EV_POWERUP_BATTLESUIT, 0 );
-			if ( ( dflags & DAMAGE_RADIUS ) || ( mod == MOD_FALLING ) ) {
-				return;
-			}
-			damage *= 0.5;
-		}
-	#endif
 
 	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
 	if ( attacker->client && targ != attacker && targ->health > 0

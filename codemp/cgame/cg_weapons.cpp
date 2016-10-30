@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "fx_local.h"
 #include "cg_weapons.h"
 
-#include "ghoul2/g2.h"
+#include "ghoul2/G2.h"
 
 extern vec4_t	bluehudtint;
 extern vec4_t	redhudtint;
@@ -83,10 +83,15 @@ float JKG_CalculateSprintPhase( const playerState_t *ps )
 {
 	double phase;
     unsigned int time = ps->sprintTime & ~SPRINT_MSB;
+	float newBlend;
+
     if ( ps->sprintTime & SPRINT_MSB )
     {
         phase = CubicBezierInterpolate (Q_min (cg.time - time, SPRINT_TIME) / (double)SPRINT_TIME, 0.0, 0.0, 1.0, 1.0);
-        cg.sprintBlend = Q_min (1.0f, Q_max (0.0f, phase));
+		newBlend = Q_min(1.0f, Q_max(0.0f, phase));
+		if (newBlend >= cg.sprintBlend) {
+			cg.sprintBlend = newBlend;
+		}
     }
     else
     {
@@ -1864,14 +1869,6 @@ void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
 			return;
 		}
 	}
-
-	#ifdef BASE_COMPAT
-	// play quad sound if needed
-	if ( cent->currentState.powerups & ( 1 << PW_QUAD ) ) {
-		//trap->S_StartSound (NULL, cent->currentState.number, CHAN_ITEM, cgs.media.quadSound );
-	}
-	#endif // BASE_COMPAT
-
 
 	// play a sound
 	if (altFire)

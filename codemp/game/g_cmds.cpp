@@ -27,7 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "jkg_gangwars.h"
 #include "../ui/menudef.h"			// for the voice chats
 #include "../GLua/glua.h"
-#include "jkg_admin.h"
 #include "jkg_chatcmds.h"
 #include "jkg_utilityfunc.h"
 #include "jkg_treasureclass.h"
@@ -59,13 +58,7 @@ CheatsOk
 ==================
 */
 qboolean	CheatsOk( gentity_t *ent ) {
-	if (ent->client->sess.adminRank >= ADMRANK_DEVELOPER)
-	{
-		return qtrue;
-	}
-	if (ent->client->sess.canUseCheats)
-		return qtrue;
-	if ( !sv_cheats.integer ) {
+	if ( !sv_cheats.integer && !ent->client->sess.canUseCheats ) {
 		trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
 		return qfalse;
 	}
@@ -75,7 +68,6 @@ qboolean	CheatsOk( gentity_t *ent ) {
 	}
 	return qtrue;
 }
-
 
 /*
 ==================
@@ -371,6 +363,32 @@ void JKG_BuyItem_f(gentity_t *ent)
 	}
 
 	itemInstance_t* pItem = &(*trader->inventory)[item];
+	if (pItem->id->baseCost > ent->client->ps.credits) 
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"You do not have enough credits to purchase that item.\n\"");
+		
+		//select random unhappy vendor sound to play
+		std::string snd;
+		switch (Q_irand(0, 5))
+		{	case 0: snd = "sound/vendor/generic/purchasefail00.mp3";
+				break;
+			case 1: snd = "sound/vendor/generic/purchasefail01.mp3";
+				break;
+			case 2: snd = "sound/vendor/generic/purchasefail02.mp3";
+				break;
+			case 3: snd = "sound/vendor/generic/purchasefail03.mp3";
+				break;
+			case 4: snd = "sound/vendor/generic/purchasefail04.mp3";
+				break;
+			case 5: snd = "sound/vendor/generic/purchasefail05.mp3";
+				break;
+			default: snd = "sound/vendor/generic/purchasefail00.mp3";
+				break;
+		}
+		G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd.c_str()));	//play sound
+		return;
+	}
+
 	BG_SendTradePacket(IPT_TRADESINGLE, ent, trader, pItem, pItem->id->baseCost, 0);
 	BG_GiveItemNonNetworked(ent, *pItem);
 	ent->client->ps.credits -= pItem->id->baseCost;
@@ -506,6 +524,8 @@ JKGStringType_t JKG_CheckIfNumber(const char *string)
 SanitizeString
 
 Remove case and control characters
+
+//futuza: todo replace this with Global_SanitizeString if possible, note this also removes case so we have to account for that
 ==================
 */
 void SanitizeString( char *in, char *out ) {
@@ -1019,6 +1039,10 @@ argv(0) god
 void Cmd_God_f( gentity_t *ent ) {
 	char *msg = NULL;
 
+	if ( !CheatsOk( ent ) ) {
+		return;
+	}
+
 	ent->flags ^= FL_GODMODE;
 	if ( !(ent->flags & FL_GODMODE) )
 		msg = "godmode OFF";
@@ -1041,6 +1065,10 @@ argv(0) notarget
 void Cmd_Notarget_f( gentity_t *ent ) {
 	char *msg = NULL;
 
+	if ( !CheatsOk( ent ) ) {
+		return;
+	}
+
 	ent->flags ^= FL_NOTARGET;
 	if ( !(ent->flags & FL_NOTARGET) )
 		msg = "notarget OFF";
@@ -1060,6 +1088,10 @@ argv(0) noclip
 */
 void Cmd_Noclip_f( gentity_t *ent ) {
 	char *msg = NULL;
+
+	if ( !CheatsOk( ent ) ) {
+		return;
+	}
 
 	ent->client->noclip = !ent->client->noclip;
 	if ( !ent->client->noclip )
@@ -1083,6 +1115,10 @@ hide the scoreboard, and take a special screenshot
 */
 void Cmd_LevelShot_f( gentity_t *ent )
 {
+	if ( !CheatsOk( ent ) ) {
+		return;
+	}
+
 	if ( !ent->client->pers.localClient )
 	{
 		trap->SendServerCommand(ent-g_entities, "print \"The levelshot command must be executed by a local client\n\"");
@@ -1131,30 +1167,29 @@ BroadCastTeamChange
 Let everyone know about a team change
 =================
 */
-void BroadcastTeamChange( gclient_t *client, int oldTeam )														//--futuza notes:  ^xRBG fix applied
+void BroadcastTeamChange( gclient_t *client, int oldTeam )														
 {
-	//wait wait...maybe this is just a linker error I mean I should be able to assign a const pointer to the value of a char array
 
 	client->ps.fd.forceDoInit = 1; //every time we change teams make sure our force powers are set right
+	
+	//BUG\FIXME: messages are getting cut off if names aren't a certain length when they mix ^1 and ^xRGB color codes, see github issue: https://github.com/JKGDevs/JediKnightGalaxies/issues/131#issuecomment-179015083
+	//lazy fix: convert to regular colors with JKG_xRBG_ConvertExtToNormal()
 
+	//--futuza notes:  ^xRGB fix applied from tr_font.cpp now supports extended colors
 	if ( client->sess.sessionTeam == TEAM_RED ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-			//client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.redTeam].joinstring)) );
+			client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.redTeam].joinstring)) );
 			//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEREDTEAM")) );
-			JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString2(bgGangWarsTeams[level.redTeam].joinstring)));		
 	} else if ( client->sess.sessionTeam == TEAM_BLUE ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-			//client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].joinstring)) );
+			client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].joinstring)) );
 		//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBLUETEAM")));
-		JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString2(bgGangWarsTeams[level.blueTeam].joinstring)));
 	} else if ( client->sess.sessionTeam == TEAM_SPECTATOR && oldTeam != TEAM_SPECTATOR ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-		//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));
-		JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));
+		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));		
 	} else if ( client->sess.sessionTeam == TEAM_FREE ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-		//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBATTLE")));
-		JKG_xRBG_ConvertExtToNormal(client->pers.netname), G_GetStringEdString("MP_SVGAME", "JOINEDTHEBATTLE")));
+		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBATTLE")));
 	}
 
 	G_LogPrintf ( "setteam:  %i %s %s\n",
@@ -2624,6 +2659,8 @@ void JKG_BindChatCommands( void )
 SanitizeString2
 
 Rich's revised version of SanitizeString
+
+--futuza: todo: use GlobalSanitizeString() in q_shared.c instead
 ==================
 */
 void SanitizeString2( char *in, char *out )
@@ -2644,6 +2681,19 @@ void SanitizeString2( char *in, char *out )
 				in[i+1] <= 57) //'9'
 			{ //only skip it if there's a number after it for the color
 				i += 2;
+				continue;
+			}
+			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code
+			{
+
+				for (int l = 2; l < 7; l++)
+				{
+					if (in[i + l] == NULL)
+						;					//if we hit end of string do nothing
+					else
+						i++;
+				}
+				//i += 5;
 				continue;
 			}
 			else
@@ -2683,12 +2733,14 @@ int G_ClientNumberFromStrippedName ( const char* name )
 	gclient_t*	cl;
 
 	// check for a name match
-	SanitizeString2( (char*)name, s2 );
+	//SanitizeString2( (char*)name, s2 );			//futuza: Global_SanitizeString
+	Global_SanitizeString((char*)name, s2, MAX_NAME_LENGTH);		//fixed
 	Q_strlwr(s2);
 	for ( i=0; i < level.numConnectedClients ; i++ ) 
 	{
 		cl = &level.clients[level.sortedClients[i]];
-		SanitizeString2( cl->pers.netname, n2 );
+		//SanitizeString2( cl->pers.netname, n2 );
+		Global_SanitizeString(cl->pers.netname, n2, MAX_NAME_LENGTH);
 		Q_strlwr(n2);
 		if ( !strcmp( n2, s2 ) ) 
 		{
@@ -2872,12 +2924,14 @@ int G_ClientNumberFromStrippedSubstring ( const char* name, qboolean checkAll )
 	gclient_t	*cl;
 
 	// check for a name match
-	SanitizeString2( (char*)name, s2 );
+	//SanitizeString2( (char*)name, s2 );			//futuza: Global_SanitizeString
+	Global_SanitizeString((char*)name, s2, MAX_NAME_LENGTH);
 	Q_strlwr(s2);
 	for ( i=0 ; i < level.numConnectedClients ; i++ ) 
 	{
 		cl = &level.clients[level.sortedClients[i]];
-		SanitizeString2( cl->pers.netname, n2 );
+		//SanitizeString2( cl->pers.netname, n2 );
+		Global_SanitizeString(cl->pers.netname, n2, MAX_NAME_LENGTH);
 		Q_strlwr(n2);
 		if ( strstr( n2, s2 ) ) 
 		{
@@ -4041,7 +4095,7 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 
 		if (challenged->client->ps.duelIndex == ent->s.number && challenged->client->ps.duelTime >= level.time)
 		{
-			trap->SendServerCommand( /*challenged-g_entities*/-1, va("print \"%s %s %s!\n\"", JKG_xRBG_ConvertExtToNormal(challenged->client->pers.netname), G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"), ent->client->pers.netname));		//--futuza note: test this, make sure I didn't break dueling
+			trap->SendServerCommand( /*challenged-g_entities*/-1, va("print \"%s %s %s!\n\"", challenged->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"), ent->client->pers.netname));		//--futuza note: test this, make sure I didn't break dueling with my RGB fix
 
 			ent->client->ps.duelInProgress = qtrue;
 			challenged->client->ps.duelInProgress = qtrue;
@@ -4086,8 +4140,8 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 		else
 		{
 			//Print the message that a player has been challenged in private, only announce the actual duel initiation in private
-			trap->SendServerCommand(challenged - g_entities, va("cp \"%s %s\n\"", JKG_xRBG_ConvertExtToNormal(ent->client->pers.netname), G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGE")));			//--futuza: these two lines need testing make sure ^xRBG fix didn't break anything
-			trap->SendServerCommand(ent - g_entities, va("cp \"%s %s\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGED"), JKG_xRBG_ConvertExtToNormal(challenged->client->pers.netname)));
+			trap->SendServerCommand(challenged - g_entities, va("cp \"%s %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGE")));
+			trap->SendServerCommand(ent - g_entities, va("cp \"%s %s\n\"", G_GetStringEdString("MP_SVGAME", "PLDUELCHALLENGED"), challenged->client->pers.netname));
 		}
 
 		challenged->client->ps.fd.privateDuelTime = 0; //reset the timer in case this player just got out of a duel. He should still be able to accept the challenge.
@@ -4285,9 +4339,6 @@ void ClientCommand( int clientNum ) {
 	if (level.clients[clientNum].pers.connected != CON_CONNECTED)
 		return;
 
-	// Check for admin commands
-	if (JKG_Admin_Execute(cmd, ent)) return;
-
 	// Check for Glua bound commands
 	if (GLua_Command(clientNum, cmd)) return;
 
@@ -4296,11 +4347,6 @@ void ClientCommand( int clientNum ) {
 
 	if (!Q_stricmp( cmd, "taskreport" )) {
 		JKG_PrintTasksTable( clientNum );
-		return;
-	}
-
-	if (!Q_stricmp(cmd, "reload")) {
-		Cmd_Reload_f(ent);
 		return;
 	}
 
@@ -4536,7 +4582,7 @@ void ClientCommand( int clientNum ) {
 	{
 		//DEBUG: Show how many credits you have
 		int credits = ent->client->ps.credits;
-		trap->SendServerCommand(clientNum, va("print \"You have %i credits, %s.\n\"", Q_max(0, credits), JKG_xRBG_ConvertExtToNormal(ent->client->pers.netname) ));		//--Futuza note: ^xRBG fix
+		trap->SendServerCommand(clientNum, va("print \"You have %i credits, %s.\n\"", Q_max(0, credits), ent->client->pers.netname));
 		return;
 	}
 	else if ( Q_stricmp (cmd, "closeVendor") == 0 )
@@ -5450,7 +5496,7 @@ void ClientCommand( int clientNum ) {
 
 		trap->Argv(1, str, sizeof(str));
 
-		if (!str || !str[0])
+		if (!str[0])
 		{
 			trap->Print("Format: /warzone_changeflagteam <flag #> <team name>\n");
 			WARZONE_ShowInfo();

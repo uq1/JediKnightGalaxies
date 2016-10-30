@@ -633,7 +633,7 @@ typedef struct clientSession_s {
 #define PSG_TEAMVOTED			(1<<1)		// already cast a team vote
 
 //
-#define MAX_NETNAME			36
+#define MAX_NETNAME			36				//--futuza:  making this bigger Max_QPATH size?
 #define	MAX_VOTE_COUNT		3
 
 // client data that stays across multiple respawns, but is cleared
@@ -1358,6 +1358,7 @@ void Cmd_ToggleSaber_f(gentity_t *ent);
 void Cmd_EngageDuel_f(gentity_t *ent);
 void G_LeaveVehicle( gentity_t *ent, qboolean ConCheck );
 void SanitizeString2( char *in, char *out );
+void Cmd_Reload_f(gentity_t *ent);
 
 void JKG_BindChatCommands( void );
 void CCmd_Cleanup();
@@ -1695,10 +1696,10 @@ void Svcmd_GameMem_f( void );
 //
 // g_session.c
 //
-void G_ReadSessionData( gclient_t *client );
-void G_InitSessionData( gclient_t *client, char *userinfo, qboolean isBot );
-
-void G_InitWorldSession( void );
+void G_ReadClientSessionData( gclient_t *client );
+void G_WriteClientSessionData( const gclient_t *client );
+void G_InitClientSessionData( gclient_t *client, char *userinfo, qboolean isBot );
+void G_ReadSessionData( void );
 void G_WriteSessionData( void );
 
 // NPC_spawn.cpp

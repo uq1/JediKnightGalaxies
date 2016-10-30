@@ -28,7 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 // GLua include
 #include "../GLua/glua.h"
-#include "jkg_admin.h"
 #include "jkg_bans.h"
 #include "jkg_damagetypes.h"
 #include "jkg_utilityfunc.h"
@@ -40,27 +39,6 @@ extern int gWPNum;
 // Warzone...
 extern void Calculate_Warzone_Flag_Spawns ( void );
 extern gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent );
-
-
-static const char	*NET_AdrToString (netadr_t a)
-{
-	static	char	s[64];
-
-	if (a.type == NA_LOOPBACK) {
-		Com_sprintf (s, sizeof(s), "loopback");
-	} else if (a.type == NA_BOT) {
-		Com_sprintf (s, sizeof(s), "bot");
-	} else if (a.type == NA_IP) {
-		Com_sprintf (s, sizeof(s), "%i.%i.%i.%i:%hu",
-			a.ip[0], a.ip[1], a.ip[2], a.ip[3], BigShort(a.port));
-	} else {
-		Com_sprintf (s, sizeof(s), "%02x%02x%02x%02x.%02x%02x%02x%02x%02x%02x:%hu",
-		a.ipx[0], a.ipx[1], a.ipx[2], a.ipx[3], a.ipx[4], a.ipx[5], a.ipx[6], a.ipx[7], a.ipx[8], a.ipx[9],
-		BigShort(a.port));
-	}
-
-	return s;
-}
 
 // g_client.c -- client functions that don't happen every frame
 
@@ -2186,10 +2164,11 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	}
 
 	value = Info_ValueForKey (userinfo, "clver");
-	
+#ifndef _DEBUG
 	if ( !isBot && Q_stricmp(value, JKG_VERSION)) {
 		return "Please update your client-side.";
 	}
+#endif
 
 	if ( !isBot && g_needpass.integer ) {
 		// check for a password
@@ -2262,9 +2241,9 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	ent->UsesELS = 1;
 	// read or initialize the session data
 	if ( firstTime || level.newSession ) {
-		G_InitSessionData( client, userinfo, isBot );
+		G_InitClientSessionData( client, userinfo, isBot );
 	}
-	G_ReadSessionData( client );
+	G_ReadClientSessionData( client );
 
 	if (!isBot && firstTime) {
 		client->sess.validated = 0;
@@ -2274,9 +2253,6 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 		client->sess.validated = 1;
 		client->sess.noq3fill = 1;
 	}
-
-	// FIXME: Need to replace this
-	//Q_strncpyz(client->sess.IP, NET_AdrToString(svs->clients[clientNum].netchan.remoteAddress), sizeof(client->sess.IP));
 
 	if( isBot ) {
 		ent->r.svFlags |= SVF_BOT;
@@ -2327,8 +2303,6 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 
 	return NULL;
 }
-
-void G_WriteClientSessionData( gclient_t *client );
 
 /*
 ===========
@@ -2389,7 +2363,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 			ent->client->ps.persistant[ PERS_TEAM ] = ent->client->sess.sessionTeam;
 
 			preSess = ent->client->sess.sessionTeam;
-			G_ReadSessionData( ent->client );
+			G_ReadClientSessionData( ent->client );
 			ent->client->sess.sessionTeam = (team_t)preSess;
 			G_WriteClientSessionData(ent->client);
 			if ( !ClientUserinfoChanged( clientNum ) )
@@ -2498,7 +2472,8 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	// Give this player Operator rights if he's 127.0.0.1
 	if (!Q_strncmp(client->sess.IP, "127.0.0.1:",10)) {
 		// He's localhost, give operator rights
-		client->sess.adminRank = ADMRANK_OPERATOR;
+		//client->sess.adminRank = ADMRANK_OPERATOR;
+		;	//temporary fix, do nothing since this defaults host to a cheating bastard --Futuza
 	}
 
 	if (g_gametype.integer == GT_POWERDUEL && client->sess.sessionTeam != TEAM_SPECTATOR &&

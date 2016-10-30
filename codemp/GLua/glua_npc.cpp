@@ -547,6 +547,7 @@ static int GLua_NPC_GetActiveForce(lua_State *L) {
 	return 1;
 }
 
+
 static int GLua_NPC_SetGodMode(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	int active = lua_toboolean(L,2);

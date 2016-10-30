@@ -1,15 +1,3 @@
-//       ____ ___________________   ___           ____  __ _______   ___  ________  ___ ______________
-//      |    |\_   _____/\______ \ |   |         |    |/ _|\      \ |   |/  _____/ /   |   \__    ___/
-//      |    | |    __)_  |    |  \|   |         |      <  /   |   \|   /   \  ___/    ~    \|    |   
-//  /\__|    | |        \ |    `   \   |         |    |  \/    |    \   \    \_\  \    Y    /|    |   
-//  \________|/_______  //_______  /___|         |____|__ \____|__  /___|\______  /\___|_  / |____|   
-//                    \/         \/                      \/       \/            \/       \/           
-//                         ________    _____   ____       _____  ____  ___ ______________ _________   
-//                        /  _____/   /  _  \ |    |     /  _  \ \   \/  /|   \_   _____//   _____/   
-//                       /   \  ___  /  /_\  \|    |    /  /_\  \ \     / |   ||    __)_ \_____  \    
-//                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
-//                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
-//                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
 // cg_public.h
 // Copyright (C) 1999-2000 Id Software, Inc. (c) 2013 Jedi Knight Galaxies
 
@@ -140,11 +128,6 @@ typedef struct TCGG2Mark_s {
 	float		size;
 	vec3_t		start, dir;
 } TCGG2Mark;
-
-// CG_INCOMING_CONSOLE_COMMAND
-typedef struct TCGIncomingConsoleCommand_s {
-	char conCommand[1024];
-} TCGIncomingConsoleCommand;
 
 // CG_FX_CAMERASHAKE
 typedef struct TCGCameraShake_s {
@@ -500,7 +483,6 @@ typedef struct cgameExport_s {
 	void			(*G2Trace)					( void );
 	void			(*G2Mark)					( void );
 	int				(*RagCallback)				( int callType );
-	qboolean		(*IncomingConsoleCommand)	( void );
 	qboolean		(*NoUseableForce)			( void );
 	void			(*GetOrigin)				( int entID, vec3_t out );
 	void			(*GetAngles)				( int entID, vec3_t out );

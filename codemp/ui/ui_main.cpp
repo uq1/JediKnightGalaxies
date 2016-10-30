@@ -52,9 +52,9 @@ USER INTERFACE MAIN
 #include "jkg_inventory.h"
 #include "jkg_gangwars_ui.h"
 
-#include "qcommon/game_version.h"
+#include <cctype>
 
-#define strnicmp Q_stricmpn
+#include "qcommon/game_version.h"
 
 extern void UI_SaberAttachToChar( itemDef_t *item );
 
@@ -81,7 +81,7 @@ char *forcepowerDesc[NUM_FORCE_POWERS] =
 };
 
 // Movedata Sounds
-typedef enum
+enum
 {
 	MDS_NONE = 0,
 	MDS_FORCE_JUMP,
@@ -90,7 +90,7 @@ typedef enum
 	MDS_MOVE_SOUNDS_MAX
 };
 
-typedef enum
+enum
 {
 	MD_ACROBATICS = 0,
 	MD_SINGLE_FAST,
@@ -103,7 +103,7 @@ typedef enum
 
 // Some hard coded badness
 // At some point maybe this should be externalized to a .dat file
-char *datapadMoveTitleData[MD_MOVE_TITLE_MAX] =
+const char *datapadMoveTitleData[MD_MOVE_TITLE_MAX] =
 {
 	"@MENUS_ACROBATICS",
 	"@MENUS_SINGLE_FAST",
@@ -113,7 +113,7 @@ char *datapadMoveTitleData[MD_MOVE_TITLE_MAX] =
 	"@MENUS_SABER_STAFF",
 };
 
-char *datapadMoveTitleBaseAnims[MD_MOVE_TITLE_MAX] =
+const char *datapadMoveTitleBaseAnims[MD_MOVE_TITLE_MAX] =
 {
 	"BOTH_RUN1",
 	"BOTH_SABERFAST_STANCE",
@@ -125,11 +125,11 @@ char *datapadMoveTitleBaseAnims[MD_MOVE_TITLE_MAX] =
 
 #define MAX_MOVES 16
 
-typedef struct 
+typedef struct datpadmovedata_s
 {
-	char	*title;	
-	char	*desc;	
-	char	*anim;
+	const char	*title;
+	const char	*desc;
+	const char	*anim;
 	short	sound;
 } datpadmovedata_t;
 
@@ -376,15 +376,6 @@ animation_t *UI_AnimsetAlloc(void)
 	return bgAllAnims[uiNumAllAnims].anims;
 }
 
-int UI_SourceForLAN()
-{
-	if(ui_netSource.integer > AS_FAVORITES)
-	{
-		return AS_GLOBAL;
-	}
-	return ui_netSource.integer;
-}
-
 /*
 ======================
 UI_ParseAnimationFile
@@ -402,7 +393,6 @@ int UI_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 	int			i;
 	char		*token;
 	float		fps;
-	int			skip;
 	int			usedIndex = -1;
 	int			nextIndex = uiNumAllAnims;
 
@@ -465,7 +455,7 @@ int UI_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 	if (!UIPAFtextLoaded || !isHumanoid)
 	{ //rww - We are always using the same animation config now. So only load it once.
 		len = trap->FS_Open( filename, &f, FS_READ );
-		if ( (len <= 0) || (len >= sizeof( UIPAFtext ) - 1) ) 
+		if ( (len <= 0) || (len >= sizeof( UIPAFtext ) - 1) )
 		{
 			if (len > 0)
 			{
@@ -485,7 +475,6 @@ int UI_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 
 	// parse the text
 	text_p = UIPAFtext;
-	skip = 0;	// quiet the compiler warning
 
 	//FIXME: have some way of playing anims backwards... negative numFrames?
 
@@ -561,7 +550,7 @@ int UI_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 	if (isHumanoid)
 	{
 		bgAllAnims[0].anims = animset;
-		strcpy(bgAllAnims[0].filename, filename);
+		Q_strncpyz(bgAllAnims[0].filename, filename, sizeof(bgAllAnims[0].filename));
 		UIPAFtextLoaded = qtrue;
 
 		usedIndex = 0;
@@ -569,7 +558,7 @@ int UI_ParseAnimationFile(const char *filename, animation_t *animset, qboolean i
 	else
 	{
 		bgAllAnims[nextIndex].anims = animset;
-		strcpy(bgAllAnims[nextIndex].filename, filename);
+		Q_strncpyz(bgAllAnims[nextIndex].filename, filename, sizeof(bgAllAnims[nextIndex].filename));
 
 		usedIndex = nextIndex;
 
@@ -617,7 +606,7 @@ static const serverFilter_t serverFilters[] = {
 	{"JKG", "JKG" },
 	{"Non-JKG", "" }
 };
-static const int numServerFilters = sizeof(serverFilters) / sizeof(serverFilter_t);
+static const int numServerFilters = ARRAY_LEN( serverFilters );
 
 static const char *skillLevels[] = {
 	"SKILL1",//"I Can Win",
@@ -626,11 +615,9 @@ static const char *skillLevels[] = {
 	"SKILL4",//"Hardcore",
 	"SKILL5"//"Nightmare"
 };
-static const int numSkillLevels = sizeof(skillLevels) / sizeof(const char*);
+static const size_t numSkillLevels = ARRAY_LEN( skillLevels );
 
-
-
-static const char *teamArenaGameTypes[] = {
+static const char *gameTypes[] = {
 	"FFA",
 	"Duel",
 	"PowerDuel",
@@ -641,23 +628,19 @@ static const char *teamArenaGameTypes[] = {
 	"TeamTournament",
 	"Warzone",
 };
-static int const numTeamArenaGameTypes = sizeof(teamArenaGameTypes) / sizeof(const char*);
+static const int numGameTypes = ARRAY_LEN( gameTypes );
 
-
-
-static char* netnames[] = {
+static char* netNames[] = {
 	"???",
 	"UDP",
-	"IPX",
 	NULL
 };
 
-static int gamecodetoui[] = {4,2,3,0,5,1,6};
-static int uitogamecode[] = {4,6,2,3,1,5,7};
+static const int numNetNames = ARRAY_LEN( netNames ) - 1;
 
 const char *UI_GetStringEdString(const char *refSection, const char *refName);
 
-const char *UI_TeamName(int team)  {
+const char *UI_TeamName(int team) {
 	if (team==TEAM_RED)
 		return "RED";
 	else if (team==TEAM_BLUE)
@@ -684,7 +667,7 @@ static const char *GetCRDelineatedString( const char *psStripFileRef, const char
 		psList++;
 	}
 
-	strcpy(sTemp,psList);
+	Q_strncpyz(sTemp,psList, sizeof(sTemp));
 	p = strchr(sTemp,'\n');
 	if (p) {
 		*p = '\0';
@@ -700,6 +683,33 @@ static const char *GetMonthAbbrevString( int iMonth )
 	return p ? p : "Jan";	// sanity
 }
 
+#define UIAS_LOCAL				0
+#define UIAS_GLOBAL1			1
+#define UIAS_GLOBAL2			2
+#define UIAS_GLOBAL3			3
+#define UIAS_GLOBAL4			4
+#define UIAS_GLOBAL5			5
+#define UIAS_FAVORITES			6
+
+#define UI_MAX_MASTER_SERVERS	5
+
+// Convert ui's net source to AS_* used by trap calls.
+int UI_SourceForLAN( void ) {
+	switch ( ui_netSource.integer ) {
+	default:
+	case UIAS_LOCAL:
+		return AS_LOCAL;
+	case UIAS_GLOBAL1:
+	case UIAS_GLOBAL2:
+	case UIAS_GLOBAL3:
+	case UIAS_GLOBAL4:
+	case UIAS_GLOBAL5:
+		return AS_GLOBAL;
+	case UIAS_FAVORITES:
+		return AS_FAVORITES;
+	}
+}
+
 /*
 static const char *netSources[] = {
 	"Local",
@@ -709,14 +719,54 @@ static const char *netSources[] = {
 };
 static const int numNetSources = sizeof(netSources) / sizeof(const char*);
 */
-//[MasterServer]
-static const int numNetSources = AS_GLOBAL5+1;	// now hard-entered in StringEd file
-//[/MasterServer]
+static const int numNetSources = AS_FAVORITES+UI_MAX_MASTER_SERVERS;	// now hard-entered in StringEd file
+
+class CaseInsensitiveHash
+{
+public:
+	std::size_t operator()( const std::string& s ) const
+	{
+		std::size_t hash = 0;
+		for ( std::size_t i = 0; i < s.size(); i++ )
+		{
+			int c = std::tolower( s[i] );
+			hash += c * (i + 119);
+		}
+
+		return hash ^ (hash >> 10) ^ (hash >> 20);
+	}
+};
+
+#include <unordered_map>
+#include <string>
+static std::unordered_map<std::string, std::string, CaseInsensitiveHash> masterServers{ { "masterjk3.ravensoft.com", "Raven Software"}, { "master.jkhub.org", "JKHub.org"} };
+//static std::unordered_map<const char *, const char *, CaseInsensitiveHash> masterServers{ { "masterjk3.ravensoft.com", "Raven Software"}, { "master.jkhub.org", "JKHub.org"} };
+
 static const char *GetNetSourceString(int iSource)
 {
-	const char *p = GetCRDelineatedString("MP_INGAME","NET_SOURCES", iSource);
+	// LANG_ENGLISH    "Local\nJKHub.org\nFavorites\nRaven Software\nQTracker\nRaven Software\nRaven Software\nRaven Software"
+	static char result[256] = {0};
 
-	return p ? p : "??";
+	Q_strncpyz( result, GetCRDelineatedString( "MP_INGAME", "NET_SOURCES", UI_SourceForLAN() ), sizeof(result) );
+
+	if ( iSource >= UIAS_GLOBAL1 && iSource <= UIAS_GLOBAL5 ) {
+		char masterstr[MAX_CVAR_VALUE_STRING], cvarname[sizeof("sv_master1")];
+
+		Com_sprintf(cvarname, sizeof(cvarname), "sv_master%d", iSource);
+		trap->Cvar_VariableStringBuffer(cvarname, masterstr, sizeof(masterstr));
+		if(*masterstr)
+		{
+			auto search = masterServers.find(masterstr);
+			if(search != masterServers.end())
+			{
+				Q_strncpyz(result, search->second.c_str(), sizeof(result) );
+				return result;
+			}
+		}
+		//Q_strcat( result, sizeof(result), va( " %d", iSource ) );
+	}
+
+	return result;
 }
 
 void AssetCache() {
@@ -1017,13 +1067,10 @@ void UI_Refresh( int realtime )
 	} 
 	// draw cursor
 	UI_SetColor( NULL );
-	if (Menu_Count() > 0 && !uiInfo.hideCursor) {
-		// JKG - Dont draw the cursor during the loading screen
-		uiClientState_t	cstate;
-		trap->GetClientState( &cstate );
-		if( cstate.connState <= CA_DISCONNECTED || cstate.connState >= CA_ACTIVE ) {
-			UI_DrawHandlePic( uiInfo.uiDC.cursorx, uiInfo.uiDC.cursory, 48, 48, uiInfo.uiDC.Assets.cursor);
-		}
+	// JKG - Dont draw the cursor during the loading screen
+	if (Menu_Count() > 0 && !uiInfo.hideCursor && (trap->Key_GetCatcher() & KEYCATCH_UI)) {
+		UI_DrawHandlePic( (float)uiInfo.uiDC.cursorx, (float)uiInfo.uiDC.cursory, 48.0f, 48.0f, uiInfo.uiDC.Assets.cursor);
+		//UI_DrawHandlePic( uiInfo.uiDC.cursorx, uiInfo.uiDC.cursory, 48, 48, uiInfo.uiDC.Assets.cursor);
 	}
 
 #ifndef NDEBUG
@@ -1097,11 +1144,11 @@ char *GetMenuBuffer(const char *filename) {
 
 	len = trap->FS_Open( filename, &f, FS_READ );
 	if ( !f ) {
-		trap->Print( va( S_COLOR_RED "menu file not found: %s, using default\n", filename ) );
+		trap->Print( S_COLOR_RED "menu file not found: %s, using default\n", filename );
 		return defaultMenu;
 	}
 	if ( len >= MAX_MENUFILE ) {
-		trap->Print( va( S_COLOR_RED "menu file too large: %s is %i, max allowed is %i\n", filename, len, MAX_MENUFILE ) );
+		trap->Print( S_COLOR_RED "menu file too large: %s is %i, max allowed is %i\n", filename, len, MAX_MENUFILE );
 		trap->FS_Close( f );
 		return defaultMenu;
 	}
@@ -1899,9 +1946,9 @@ static void UI_DrawNetSource(rectDef_t *rect, float scale, vec4_t color, int tex
 {
 	if (ui_netSource.integer < 0 || ui_netSource.integer >= numNetSources)
 	{
-		ui_netSource.integer = 0;
+		trap->Cvar_Set("ui_netSource", "0");
+		trap->Cvar_Update(&ui_netSource);
 	}
-	//[/MasterServer]
 
 	trap->SE_GetStringTextString("MENUS_SOURCE", holdSPString, sizeof(holdSPString) );
 	Text_Paint(rect->x, rect->y, scale, color, va("%s %s",holdSPString,
@@ -3338,21 +3385,46 @@ static qboolean UI_TeamMember_HandleKey(int flags, float *special, int key, qboo
 
 static qboolean UI_NetSource_HandleKey(int flags, float *special, int key) {
 	if (key == A_MOUSE1 || key == A_MOUSE2 || key == A_ENTER || key == A_KP_ENTER) {
+		int value = ui_netSource.integer;
 
 		if (key == A_MOUSE2) {
-			ui_netSource.integer--;
+			value--;
 		} else {
-			ui_netSource.integer++;
+			value++;
 		}
 
-		if (ui_netSource.integer >= numNetSources) {
-			ui_netSource.integer = 0;
-		} else if (ui_netSource.integer < 0) {
-			ui_netSource.integer = numNetSources - 1;
+		if(value >= UIAS_GLOBAL1 && value <= UIAS_GLOBAL5)
+		{
+			char masterstr[2], cvarname[sizeof("sv_master1")];
+
+			while(value >= UIAS_GLOBAL1 && value <= UIAS_GLOBAL5)
+			{
+				Com_sprintf(cvarname, sizeof(cvarname), "sv_master%d", value);
+				trap->Cvar_VariableStringBuffer(cvarname, masterstr, sizeof(masterstr));
+				if(*masterstr)
+					break;
+
+				if (key == A_MOUSE2) {
+					value--;
+				} else {
+					value++;
+				}
+			}
 		}
 
-		UI_BuildServerDisplayList(1);
-		trap->Cvar_Set( "ui_netSource", va("%d", ui_netSource.integer));
+		if (value >= numNetSources) {
+			value = 0;
+		} else if (value < 0) {
+			value = numNetSources - 1;
+		}
+
+		trap->Cvar_Set( "ui_netSource", va("%d", value));
+		trap->Cvar_Update(&ui_netSource);
+
+		UI_BuildServerDisplayList(qtrue);
+		if (!(ui_netSource.integer >= UIAS_GLOBAL1 && ui_netSource.integer <= UIAS_GLOBAL5)) {
+			UI_StartServerRefresh(qtrue);
+		}
 		return qtrue;
 	}
 	return qfalse;
@@ -5996,6 +6068,11 @@ static void UI_BuildServerDisplayList(int force) {
 
 			clients = atoi(Info_ValueForKey(info, "clients"));
 			uiInfo.serverStatus.numPlayersOnServers += clients;
+			
+			if ( Q_stricmp( Info_ValueForKey( info, "game" ), "jkg" ) != 0 ) {
+				trap->LAN_MarkServerVisible(UI_SourceForLAN(), i, qfalse);
+				continue;
+			}
 
 			if (ui_browserShowEmpty.integer == 0) {
 				if (clients == 0) {
@@ -6020,13 +6097,13 @@ static void UI_BuildServerDisplayList(int force) {
 				}
 			}
 
-			if (ui_serverFilterType.integer > 0) {
+			/*if (ui_serverFilterType.integer > 0) {
 				if (Q_stricmp(Info_ValueForKey(info, "game"), serverFilters[ui_serverFilterType.integer].basedir) != 0 &&
 					serverFilters[ui_serverFilterType.integer].basedir[0]) {
 						trap->LAN_MarkServerVisible(UI_SourceForLAN(), i, qfalse);
 						continue;
 				}
-			}
+			}*/
 			// make sure we never add a favorite server twice
 			if (ui_netSource.integer == AS_FAVORITES) {
 				UI_RemoveServerFromDisplayList(i);
@@ -6678,7 +6755,7 @@ static const char *UI_SelectedTeamHead(int index, int *actual) {
 
 	for (i=0; i<uiInfo.q3HeadCount; i++)
 	{
-		if (uiInfo.q3HeadNames[i] && strstr(uiInfo.q3HeadNames[i], teamname))
+		if (uiInfo.q3HeadNames[i][0] && strstr(uiInfo.q3HeadNames[i], teamname))
 		{
 			if (c==index)
 			{
@@ -6694,7 +6771,6 @@ static const char *UI_SelectedTeamHead(int index, int *actual) {
 	return "";
 }
 
-
 static int UI_GetIndexFromSelection(int actual) {
 	int i, c;
 	c = 0;
@@ -6709,13 +6785,10 @@ static int UI_GetIndexFromSelection(int actual) {
 	return 0;
 }
 
-static void UI_UpdatePendingPings() { 
+static void UI_UpdatePendingPings() {
 	trap->LAN_ResetPings(UI_SourceForLAN());
 	uiInfo.serverStatus.refreshActive = qtrue;
 	uiInfo.serverStatus.refreshtime = uiInfo.uiDC.realTime + 1000;
-
-
-
 }
 
 static const char *UI_FeederItemText(float feederID, int index, int column, 
@@ -6781,10 +6854,16 @@ static const char *UI_FeederItemText(float feederID, int index, int column,
 						//	*handle3 = uiInfo.uiDC.Assets.needPass;
 						//}
 						// Don't do this, instead we will render a text field at some point that claims that they need a password
-						if ( ui_netSource.integer == AS_LOCAL ) {
+						if ( ui_netSource.integer == UIAS_LOCAL ) {
+							int nettype = atoi(Info_ValueForKey(info, "nettype"));
+
+							if (nettype < 0 || nettype >= numNetNames) {
+								nettype = 0;
+							}
+
 							Com_sprintf( hostname, sizeof(hostname), "%s [%s]",
-								Info_ValueForKey(info, "hostname"),
-								netnames[atoi(Info_ValueForKey(info, "nettype"))] );
+											Info_ValueForKey(info, "hostname"),
+											netNames[nettype] );
 							return hostname;
 						}
 						else {
@@ -6805,14 +6884,12 @@ static const char *UI_FeederItemText(float feederID, int index, int column,
 					return clientBuff;
 				case SORT_GAME : 
 					game = atoi(Info_ValueForKey(info, "gametype"));
-					if (game >= 0 && game < numTeamArenaGameTypes) {
-						strcpy(needPass,teamArenaGameTypes[game]);
+					if (game >= 0 && game < numGameTypes) {
+						Q_strncpyz( needPass, gameTypes[game], sizeof( needPass ) );
 					} else {
-						if (ping <= 0)
-						{
-							strcpy(needPass,"Inactive");
-						}
-						strcpy(needPass,"Unknown");
+						if ( ping <= 0 )
+							Q_strncpyz( needPass, "Inactive", sizeof( needPass ) );
+						Q_strncpyz( needPass, "Unknown", sizeof( needPass ) );
 					}
 
 					return needPass;
@@ -6870,42 +6947,45 @@ static const char *UI_FeederItemText(float feederID, int index, int column,
 		}
 		else if (feederID == FEEDER_PLAYER_SPECIES) 
 		{
-			return uiInfo.playerSpecies[index].Name;
-		} 
+			if (index >= 0 && index < uiInfo.playerSpeciesCount)
+			{
+				return uiInfo.playerSpecies[index].Name;
+			}
+		}
 		else if (feederID == FEEDER_LANGUAGES) 
 		{
 			return 0;
 		} 
 		else if (feederID == FEEDER_COLORCHOICES)
 		{
-			if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorCount) 
+			if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorCount)
 			{
-				*handle1 = trap->R_RegisterShaderNoMip( uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorShader[index]);
-				return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorShader[index];
+				*handle1 = trap->R_RegisterShaderNoMip(uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Color[index].shader);
+				return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Color[index].shader;
 			}
 		}
 		else if (feederID == FEEDER_PLAYER_SKIN_HEAD)
 		{
-			if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadCount) 
+			if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadCount)
 			{
-				*handle1 = trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadNames[index]));
-				return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadNames[index];
+				*handle1 = trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHead[index].name));
+				return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHead[index].name;
 			}
 		}
 		else if (feederID == FEEDER_PLAYER_SKIN_TORSO)
 		{
-			if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoCount) 
+			if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoCount)
 			{
-				*handle1 = trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoNames[index]));
-				return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoNames[index];
+				*handle1 = trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorso[index].name));
+				return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorso[index].name;
 			}
 		}
 		else if (feederID == FEEDER_PLAYER_SKIN_LEGS)
 		{
-			if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegCount) 
+			if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegCount)
 			{
-				*handle1 = trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegNames[index]));
-				return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegNames[index];
+				*handle1 = trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLeg[index].name));
+				return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLeg[index].name;
 			}
 		}
 		else if (feederID == FEEDER_SIEGE_BASE_CLASS)
@@ -7018,35 +7098,35 @@ static qhandle_t UI_FeederItemImage(float feederID, int index) {
 			return uiInfo.mapList[index].levelShot;
 		}
 	}
-	else if (feederID == FEEDER_PLAYER_SKIN_HEAD) 
+	else if (feederID == FEEDER_PLAYER_SKIN_HEAD)
 	{
-		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadCount) 
+		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadCount)
 		{
 			//return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadIcons[index];
-			return trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadNames[index]));
+			return trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHead[index].name));
 		}
-	} 
-	else if (feederID == FEEDER_PLAYER_SKIN_TORSO) 
+	}
+	else if (feederID == FEEDER_PLAYER_SKIN_TORSO)
 	{
-		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoCount) 
+		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoCount)
 		{
 			//return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoIcons[index];
-			return trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoNames[index]));
+			return trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorso[index].name));
 		}
-	} 
-	else if (feederID == FEEDER_PLAYER_SKIN_LEGS) 
+	}
+	else if (feederID == FEEDER_PLAYER_SKIN_LEGS)
 	{
-		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegCount) 
+		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegCount)
 		{
 			//return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegIcons[index];
-			return trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegNames[index]));
+			return trap->R_RegisterShaderNoMip(va("models/players/%s/icon_%s", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLeg[index].name));
 		}
-	} 
+	}
 	else if (feederID == FEEDER_COLORCHOICES)
 	{
-		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorCount) 
+		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorCount)
 		{
-			return trap->R_RegisterShaderNoMip( uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorShader[index]);
+			return trap->R_RegisterShaderNoMip(uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Color[index].shader);
 		}
 	}
 
@@ -7235,7 +7315,12 @@ qboolean UI_FeederSelection(float feederFloat, int index, itemDef_t *item)
 		const char *mapName = NULL;
 		uiInfo.serverStatus.currentServer = index;
 		trap->LAN_GetServerInfo(UI_SourceForLAN(), uiInfo.serverStatus.displayServers[index], info, MAX_STRING_CHARS);
-		uiInfo.serverStatus.currentServerPreview = trap->R_RegisterShaderNoMip(va("levelshots/%s", Info_ValueForKey(info, "mapname")));
+		// ugly hack as server doesn't presort jkg servers and we don't want a "bad" map to show up
+		if (Q_stricmp(Info_ValueForKey(info, "game"), "jkg")) {
+			uiInfo.serverStatus.currentServerPreview = 0;
+		} else {
+			uiInfo.serverStatus.currentServerPreview = trap->R_RegisterShaderNoMip(va("levelshots/%s", Info_ValueForKey(info, "mapname")));
+		}
 		if (uiInfo.serverStatus.currentServerCinematic >= 0) {
 			trap->CIN_StopCinematic(uiInfo.serverStatus.currentServerCinematic);
 			uiInfo.serverStatus.currentServerCinematic = -1;
@@ -7270,34 +7355,34 @@ qboolean UI_FeederSelection(float feederFloat, int index, itemDef_t *item)
 	} else if (feederID == FEEDER_DEMOS) {
 		uiInfo.demoIndex = index;
 	}
-	else if (feederID == FEEDER_COLORCHOICES) 
+	else if (feederID == FEEDER_COLORCHOICES)
 	{
 		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorCount)
 		{
-			Item_RunScript(item, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorActionText[index]);
+			Item_RunScript(item, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Color[index].actionText);
 		}
 	}
-	else if (feederID == FEEDER_PLAYER_SKIN_HEAD) 
+	else if (feederID == FEEDER_PLAYER_SKIN_HEAD)
 	{
 		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadCount)
 		{
-			trap->Cvar_Set("ui_char_skin_head", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadNames[index]);
+			trap->Cvar_Set("ui_char_skin_head", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHead[index].name);
 		}
-	} 
-	else if (feederID == FEEDER_PLAYER_SKIN_TORSO) 
+	}
+	else if (feederID == FEEDER_PLAYER_SKIN_TORSO)
 	{
 		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoCount)
 		{
-			trap->Cvar_Set("ui_char_skin_torso", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoNames[index]);
+			trap->Cvar_Set("ui_char_skin_torso", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorso[index].name);
 		}
-	} 
-	else if (feederID == FEEDER_PLAYER_SKIN_LEGS) 
+	}
+	else if (feederID == FEEDER_PLAYER_SKIN_LEGS)
 	{
 		if (index >= 0 && index < uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegCount)
 		{
-			trap->Cvar_Set("ui_char_skin_legs", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegNames[index]);
+			trap->Cvar_Set("ui_char_skin_legs", uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLeg[index].name);
 		}
-	} 
+	}
 	else if (feederID == FEEDER_PLAYER_SPECIES) 
 	{
 		uiInfo.playerSpeciesIndex = index;
@@ -7702,8 +7787,7 @@ void UI_InitGangWars(void)
 UI_ParseColorData
 =================
 */
-//static qboolean UI_ParseColorData(char* buf, playerSpeciesInfo_t &species)
-static qboolean UI_ParseColorData(char* buf, playerSpeciesInfo_t *species,char*	file)
+static qboolean UI_ParseColorData(char* buf, playerSpeciesInfo_t *species, char* file)
 {
 	const char	*token;
 	const char	*p;
@@ -7711,38 +7795,67 @@ static qboolean UI_ParseColorData(char* buf, playerSpeciesInfo_t *species,char*	
 	p = buf;
 	COM_BeginParseSession(file);
 	species->ColorCount = 0;
+	species->ColorMax = 16;
+	species->Color = (playerColor_t *)malloc(species->ColorMax * sizeof(playerColor_t));
 
-	while ( p )
+	while (p)
 	{
-		token = COM_ParseExt( &p, qtrue );	//looking for the shader
-		if ( token[0] == 0 )
+		token = COM_ParseExt(&p, qtrue);	//looking for the shader
+		if (token[0] == 0)
 		{
-			return species->ColorCount;
+			return (qboolean)(species->ColorCount);
 		}
-		Q_strncpyz( species->ColorShader[species->ColorCount], token, sizeof(species->ColorShader[0]) );
+		if (species->ColorCount >= species->ColorMax)
+		{
+			species->ColorMax *= 2;
+			species->Color = (playerColor_t *)realloc(species->Color, species->ColorMax * sizeof(playerColor_t));
+		}
 
-		token = COM_ParseExt( &p, qtrue );	//looking for action block {
-		if ( token[0] != '{' )
+		memset(&species->Color[species->ColorCount], 0, sizeof(playerColor_t));
+
+		Q_strncpyz(species->Color[species->ColorCount].shader, token, MAX_QPATH);
+
+		token = COM_ParseExt(&p, qtrue);	//looking for action block {
+		if (token[0] != '{')
 		{
 			return qfalse;
 		}
 
-		assert(!species->ColorActionText[species->ColorCount][0]);
-		token = COM_ParseExt( &p, qtrue );	//looking for action commands
+		token = COM_ParseExt(&p, qtrue);	//looking for action commands
 		while (token[0] != '}')
 		{
-			if ( token[0] == 0)
+			if (token[0] == 0)
 			{	//EOF
 				return qfalse;
 			}
-			assert(species->ColorCount < sizeof(species->ColorActionText)/sizeof(species->ColorActionText[0]) );
-			Q_strcat(species->ColorActionText[species->ColorCount], sizeof(species->ColorActionText[0]), token);
-			Q_strcat(species->ColorActionText[species->ColorCount], sizeof(species->ColorActionText[0]), " ");
-			token = COM_ParseExt( &p, qtrue );	//looking for action commands or final }
+			Q_strcat(species->Color[species->ColorCount].actionText, ACTION_BUFFER_SIZE, token);
+			Q_strcat(species->Color[species->ColorCount].actionText, ACTION_BUFFER_SIZE, " ");
+			token = COM_ParseExt(&p, qtrue);	//looking for action commands or final }
 		}
 		species->ColorCount++;	//next color please
 	}
 	return qtrue;//never get here
+}
+
+
+static void UI_FreeSpecies(playerSpeciesInfo_t *species)
+{
+	free(species->SkinHead);
+	free(species->SkinTorso);
+	free(species->SkinLeg);
+	free(species->Color);
+	memset(species, 0, sizeof(playerSpeciesInfo_t));
+}
+
+void UI_FreeAllSpecies(void)
+{
+	int i;
+
+	for (i = 0; i < uiInfo.playerSpeciesCount; i++)
+	{
+		UI_FreeSpecies(&uiInfo.playerSpecies[i]);
+	}
+	free(uiInfo.playerSpecies);
 }
 
 /*
@@ -7750,123 +7863,151 @@ static qboolean UI_ParseColorData(char* buf, playerSpeciesInfo_t *species,char*	
 UI_BuildPlayerModel_List
 =================
 */
-static void UI_BuildPlayerModel_List( qboolean inGameLoad )
+// If you got alot of models, up this value even higher.
+// Default was 2048, maybe safe at 8192, but keeping at 4096
+// We may want to move this to a header file, but its only ever used here
+// ~~ ooxavenue
+#define PLAYER_SPEC_MAX 4096//2048
+static void UI_BuildPlayerModel_List(qboolean inGameLoad)
 {
 	int		numdirs;
-	char	dirlist[2048];
+	char	dirlist[PLAYER_SPEC_MAX];
 	char*	dirptr;
 	int		dirlen;
 	int		i;
 	int		j;
 
-
 	uiInfo.playerSpeciesCount = 0;
 	uiInfo.playerSpeciesIndex = 0;
-	memset(uiInfo.playerSpecies, 0, sizeof (uiInfo.playerSpecies) );
+	uiInfo.playerSpeciesMax = 8;
+	uiInfo.playerSpecies = (playerSpeciesInfo_t *)malloc(uiInfo.playerSpeciesMax * sizeof(playerSpeciesInfo_t));
 
 	// iterate directory of all player models
-	numdirs = trap->FS_GetFileList("models/players", "/", dirlist, 2048 );
-	dirptr  = dirlist;
-	for (i=0; i<numdirs; i++,dirptr+=dirlen+1)
+	numdirs = trap->FS_GetFileList("models/players", "/", dirlist, PLAYER_SPEC_MAX);
+	dirptr = dirlist;
+	for (i = 0; i<numdirs; i++, dirptr += dirlen + 1)
 	{
-		char	filelist[2048];
+		char	filelist[PLAYER_SPEC_MAX];
 		char*	fileptr;
 		int		filelen;
 		int f = 0;
-		char fpath[2048];
+		char fpath[PLAYER_SPEC_MAX];
 
 		dirlen = strlen(dirptr);
 
 		if (dirlen)
 		{
-			if (dirptr[dirlen-1]=='/')
-				dirptr[dirlen-1]='\0';
+			if (dirptr[dirlen - 1] == '/')
+				dirptr[dirlen - 1] = '\0';
 		}
 		else
 		{
 			continue;
 		}
 
-		if (!strcmp(dirptr,".") || !strcmp(dirptr,".."))
+		if (!strcmp(dirptr, ".") || !strcmp(dirptr, ".."))
 			continue;
 
-		Com_sprintf(fpath, 2048, "models/players/%s/PlayerChoice.txt", dirptr);
+		Com_sprintf(fpath, PLAYER_SPEC_MAX, "models/players/%s/PlayerChoice.txt", dirptr);
 		filelen = trap->FS_Open(fpath, &f, FS_READ);
 
 		if (f)
-		{ 
-			char buffer[2048];
-			char	skinname[64];
-			int		numfiles;
-			int		iSkinParts=0;
+		{
+			playerSpeciesInfo_t *species;
+			char                 skinname[64];
+			int                  numfiles;
+			int                  iSkinParts = 0;
+			char                *buffer = NULL;
 
-			trap->FS_Read(&buffer, filelen, f);
+			buffer = (char *)malloc(filelen + 1);
+			if (!buffer)
+			{
+				Com_Error(ERR_FATAL, "Could not allocate buffer to read %s", fpath);
+			}
+
+			trap->FS_Read(buffer, filelen, f);
 			trap->FS_Close(f);
-			buffer[filelen] = 0;	//ensure trailing NULL
+
+			buffer[filelen] = 0;
 
 			//record this species
-			Q_strncpyz( uiInfo.playerSpecies[uiInfo.playerSpeciesCount].Name, dirptr, sizeof(uiInfo.playerSpecies[0].Name) );
+			if (uiInfo.playerSpeciesCount >= uiInfo.playerSpeciesMax)
+			{
+				uiInfo.playerSpeciesMax *= 2;
+				uiInfo.playerSpecies = (playerSpeciesInfo_t *)realloc(uiInfo.playerSpecies, uiInfo.playerSpeciesMax*sizeof(playerSpeciesInfo_t));
+			}
+			species = &uiInfo.playerSpecies[uiInfo.playerSpeciesCount];
+			memset(species, 0, sizeof(playerSpeciesInfo_t));
+			Q_strncpyz(species->Name, dirptr, MAX_QPATH);
 
-			if (!UI_ParseColorData(buffer,&uiInfo.playerSpecies[uiInfo.playerSpeciesCount],fpath))
+			if (!UI_ParseColorData(buffer, species, fpath))
 			{
 				Com_Printf(S_COLOR_RED"UI_BuildPlayerModel_List: Errors parsing '%s'\n", fpath);
 			}
 
-			numfiles = trap->FS_GetFileList( va("models/players/%s",dirptr), ".skin", filelist, 2048 );
-			fileptr  = filelist;
-			for (j=0; j<numfiles; j++,fileptr+=filelen+1)
+			species->SkinHeadMax = 8;
+			species->SkinTorsoMax = 8;
+			species->SkinLegMax = 8;
+
+			species->SkinHead = (skinName_t *)malloc(species->SkinHeadMax * sizeof(skinName_t));
+			species->SkinTorso = (skinName_t *)malloc(species->SkinTorsoMax * sizeof(skinName_t));
+			species->SkinLeg = (skinName_t *)malloc(species->SkinLegMax * sizeof(skinName_t));
+
+			free(buffer);
+
+			numfiles = trap->FS_GetFileList(va("models/players/%s", dirptr), ".skin", filelist, PLAYER_SPEC_MAX);
+			fileptr = filelist;
+			for (j = 0; j<numfiles; j++, fileptr += filelen + 1)
 			{
-				if (trap->Cvar_VariableValue("fs_copyfiles") > 0 )
+				if (trap->Cvar_VariableValue("fs_copyfiles") > 0)
 				{
-					trap->FS_Open(va("models/players/%s/%s",dirptr,fileptr), &f, FS_READ);
-					if (f) trap->FS_Close(f);
+					trap->FS_Open(va("models/players/%s/%s", dirptr, fileptr), &f, FS_READ);
+					if (f)
+						trap->FS_Close(f);
 				}
 
 				filelen = strlen(fileptr);
-				COM_StripExtension(fileptr,skinname, sizeof(skinname));
+				COM_StripExtension(fileptr, skinname, sizeof(skinname));
 
 				if (bIsImageFile(dirptr, skinname))
 				{ //if it exists
-					if (strnicmp(skinname,"head_",5) == 0)
+					if (Q_stricmpn(skinname, "head_", 5) == 0)
 					{
-						if (uiInfo.playerSpecies[uiInfo.playerSpeciesCount].SkinHeadCount < MAX_PLAYERMODELS) 
+						if (species->SkinHeadCount >= species->SkinHeadMax)
 						{
-							Q_strncpyz(
-								uiInfo.playerSpecies[uiInfo.playerSpeciesCount].SkinHeadNames[uiInfo.playerSpecies[uiInfo.playerSpeciesCount].SkinHeadCount++], 
-								skinname, 
-								sizeof(uiInfo.playerSpecies[0].SkinHeadNames[0])
-								);
-							iSkinParts |= 1<<0;
+							species->SkinHeadMax *= 2;
+							species->SkinHead = (skinName_t *)realloc(species->SkinHead, species->SkinHeadMax*sizeof(skinName_t));
 						}
-					} else
-						if (strnicmp(skinname,"torso_",6) == 0)
+						Q_strncpyz(species->SkinHead[species->SkinHeadCount++].name, skinname, SKIN_LENGTH);
+						iSkinParts |= 1 << 0;
+					}
+					else
+					if (Q_stricmpn(skinname, "torso_", 6) == 0)
+					{
+						if (species->SkinTorsoCount >= species->SkinTorsoMax)
 						{
-							if (uiInfo.playerSpecies[uiInfo.playerSpeciesCount].SkinTorsoCount < MAX_PLAYERMODELS) 
-							{
-								Q_strncpyz(uiInfo.playerSpecies[uiInfo.playerSpeciesCount].SkinTorsoNames[uiInfo.playerSpecies[uiInfo.playerSpeciesCount].SkinTorsoCount++], 
-									skinname, 
-									sizeof(uiInfo.playerSpecies[0].SkinTorsoNames[0])
-									);
-								iSkinParts |= 1<<1;
-							}
-						} else
-							if (strnicmp(skinname,"lower_",6) == 0)
-							{
-								if (uiInfo.playerSpecies[uiInfo.playerSpeciesCount].SkinLegCount < MAX_PLAYERMODELS) 
-								{
-									Q_strncpyz(uiInfo.playerSpecies[uiInfo.playerSpeciesCount].SkinLegNames[uiInfo.playerSpecies[uiInfo.playerSpeciesCount].SkinLegCount++], 
-										skinname, 
-										sizeof(uiInfo.playerSpecies[0].SkinLegNames[0]) 
-										);
-									iSkinParts |= 1<<2;
-								}
-							}
-
+							species->SkinTorsoMax *= 2;
+							species->SkinTorso = (skinName_t *)realloc(species->SkinTorso, species->SkinTorsoMax*sizeof(skinName_t));
+						}
+						Q_strncpyz(species->SkinTorso[species->SkinTorsoCount++].name, skinname, SKIN_LENGTH);
+						iSkinParts |= 1 << 1;
+					}
+					else
+					if (Q_stricmpn(skinname, "lower_", 6) == 0)
+					{
+						if (species->SkinLegCount >= species->SkinLegMax)
+						{
+							species->SkinLegMax *= 2;
+							species->SkinLeg = (skinName_t *)realloc(species->SkinLeg, species->SkinLegMax*sizeof(skinName_t));
+						}
+						Q_strncpyz(species->SkinLeg[species->SkinLegCount++].name, skinname, SKIN_LENGTH);
+						iSkinParts |= 1 << 2;
+					}
 				}
 			}
 			if (iSkinParts != 7)
 			{	//didn't get a skin for each, then skip this model.
-				memset(&uiInfo.playerSpecies[uiInfo.playerSpeciesCount], 0, sizeof(uiInfo.playerSpecies[uiInfo.playerSpeciesCount]));//undo the colors
+				UI_FreeSpecies(species);
 				continue;
 			}
 			uiInfo.playerSpeciesCount++;
@@ -7874,21 +8015,29 @@ static void UI_BuildPlayerModel_List( qboolean inGameLoad )
 			{
 				int g2Model;
 				void *ghoul2 = 0;
-				Com_sprintf( fpath, sizeof( fpath ), "models/players/%s/model.glm", dirptr );
+				Com_sprintf(fpath, sizeof(fpath), "models/players/%s/model.glm", dirptr);
 				g2Model = trap->G2API_InitGhoul2Model(&ghoul2, fpath, 0, 0, 0, 0, 0);
 				if (g2Model >= 0)
 				{
 					//					trap->G2API_RemoveGhoul2Model( &ghoul2, 0 );
-					trap->G2API_CleanGhoul2Models (&ghoul2);
+					trap->G2API_CleanGhoul2Models(&ghoul2);
 				}
 			}
-			if (uiInfo.playerSpeciesCount >= MAX_PLAYERMODELS)
-			{
-				return;
-			}
 		}
-	}	
+	}
+}
 
+static qhandle_t UI_RegisterShaderNoMip( const char *name ) {
+	if ( *name == '*' ) {
+		char buf[MAX_CVAR_VALUE_STRING];
+
+		trap->Cvar_VariableStringBuffer( name+1, buf, sizeof( buf ) );
+
+		if ( buf[0] )
+			return trap->R_RegisterShaderNoMip( buf );
+	}
+
+	return trap->R_RegisterShaderNoMip( name );
 }
 
 /*
@@ -7903,6 +8052,9 @@ UI_Init
 void UI_Init( qboolean inGameLoad ) {
 	const char *menuSet;
 	int start;
+
+	// Get the list of possible languages
+	uiInfo.languageCount = trap->SE_GetNumLanguages();	// this does a dir scan, so use carefully
 
 	uiInfo.inGameLoad = inGameLoad;
 
@@ -7928,7 +8080,7 @@ void UI_Init( qboolean inGameLoad ) {
 
 
 	//UI_Load();
-	uiInfo.uiDC.registerShaderNoMip = trap->R_RegisterShaderNoMip;
+	uiInfo.uiDC.registerShaderNoMip = UI_RegisterShaderNoMip;
 	uiInfo.uiDC.setColor = UI_SetColor;
 	uiInfo.uiDC.drawHandlePic = UI_DrawHandlePic;
 	uiInfo.uiDC.drawStretchPic = trap->R_DrawStretchPic;
@@ -8270,7 +8422,7 @@ static void UI_PrintTime ( char *buf, int bufsize, int time ) {
 		Com_sprintf( buf, bufsize, "%d hr %2d min", time / 3600, (time % 3600) / 60 );
 	} else if (time > 60) { // mins
 		Com_sprintf( buf, bufsize, "%2d min %2d sec", time / 60, time % 60 );
-	} else  { // secs
+	} else { // secs
 		Com_sprintf( buf, bufsize, "%2d sec", time );
 	}
 }
@@ -8279,7 +8431,6 @@ void Text_PaintCenter(float x, float y, float scale, vec4_t color, const char *t
 	int len = Text_Width(text, scale, iMenuFont);
 	Text_Paint(x - len / 2, y, scale, color, text, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, iMenuFont);
 }
-
 
 static void UI_DisplayDownloadInfo( const char *downloadName, float centerPoint, float yStart, float scale, int iMenuFont) {
 	char sDownLoading[256];
@@ -8300,17 +8451,17 @@ static void UI_DisplayDownloadInfo( const char *downloadName, float centerPoint,
 	UI_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, colorLtGreyAlpha );
 
 	s = GetCRDelineatedString("MENUS","DOWNLOAD_STUFF", 0);	// "Downloading:"
-	strcpy(sDownLoading,s?s:"");
+	Q_strncpyz(sDownLoading,s?s:"", sizeof(sDownLoading));
 	s = GetCRDelineatedString("MENUS","DOWNLOAD_STUFF", 1);	// "Estimated time left:"
-	strcpy(sEstimatedTimeLeft,s?s:"");
+	Q_strncpyz(sEstimatedTimeLeft,s?s:"", sizeof(sEstimatedTimeLeft));
 	s = GetCRDelineatedString("MENUS","DOWNLOAD_STUFF", 2);	// "Transfer rate:"
-	strcpy(sTransferRate,s?s:"");
+	Q_strncpyz(sTransferRate,s?s:"", sizeof(sTransferRate));
 	s = GetCRDelineatedString("MENUS","DOWNLOAD_STUFF", 3);	// "of"
-	strcpy(sOf,s?s:"");
+	Q_strncpyz(sOf,s?s:"", sizeof(sOf));
 	s = GetCRDelineatedString("MENUS","DOWNLOAD_STUFF", 4);	// "copied"
-	strcpy(sCopied,s?s:"");
+	Q_strncpyz(sCopied,s?s:"", sizeof(sCopied));
 	s = GetCRDelineatedString("MENUS","DOWNLOAD_STUFF", 5);	// "sec."
-	strcpy(sSec,s?s:"");
+	Q_strncpyz(sSec,s?s:"", sizeof(sSec));
 
 	downloadSize = trap->Cvar_VariableValue( "cl_downloadSize" );
 	downloadCount = trap->Cvar_VariableValue( "cl_downloadCount" );
@@ -8542,17 +8693,15 @@ static void UI_StopServerRefresh( void )
 	}
 	uiInfo.serverStatus.refreshActive = qfalse;
 	Com_Printf("%d servers listed in browser with %d players.\n",
-		uiInfo.serverStatus.numDisplayServers,
-		uiInfo.serverStatus.numPlayersOnServers);
+					uiInfo.serverStatus.numDisplayServers,
+					uiInfo.serverStatus.numPlayersOnServers);
 	count = trap->LAN_GetServerCount(UI_SourceForLAN());
 	if (count - uiInfo.serverStatus.numDisplayServers > 0) {
-		Com_Printf("%d servers not listed due to filters, packet loss, or pings higher than %d\n",
-			count - uiInfo.serverStatus.numDisplayServers,
-			(int) trap->Cvar_VariableValue("cl_maxPing"));
+		Com_Printf("%d servers not listed due to filters, packet loss, invalid info, or pings higher than %d\n",
+						count - uiInfo.serverStatus.numDisplayServers,
+						(int) trap->Cvar_VariableValue("cl_maxPing"));
 	}
-
 }
-
 
 /*
 =================
@@ -8566,13 +8715,13 @@ static void UI_DoServerRefresh( void )
 	if (!uiInfo.serverStatus.refreshActive) {
 		return;
 	}
-	if (ui_netSource.integer != AS_FAVORITES) {
-		if (ui_netSource.integer == AS_LOCAL) {
-			if (!trap->LAN_GetServerCount(UI_SourceForLAN())) {
+	if (ui_netSource.integer != UIAS_FAVORITES) {
+		if (ui_netSource.integer == UIAS_LOCAL) {
+			if (!trap->LAN_GetServerCount(AS_LOCAL)) {
 				wait = qtrue;
 			}
 		} else {
-			if (trap->LAN_GetServerCount(UI_SourceForLAN()) < 0) {
+			if (trap->LAN_GetServerCount(AS_GLOBAL) < 0) {
 				wait = qtrue;
 			}
 		}
@@ -8604,12 +8753,12 @@ UI_StartServerRefresh
 */
 static void UI_StartServerRefresh(qboolean full)
 {
-	int		i;
 	char	*ptr;
+	int		lanSource;
 
 	qtime_t q;
 	trap->RealTime(&q);
-	trap->Cvar_Set( va("ui_lastServerRefresh_%i", ui_netSource.integer), va("%s-%i, %i @ %i:%2i", GetMonthAbbrevString(q.tm_mon),q.tm_mday, 1900+q.tm_year,q.tm_hour,q.tm_min));
+ 	trap->Cvar_Set( va("ui_lastServerRefresh_%i", ui_netSource.integer), va("%s-%i, %i @ %i:%02i", GetMonthAbbrevString(q.tm_mon),q.tm_mday, 1900+q.tm_year,q.tm_hour,q.tm_min));
 
 	if (!full) {
 		UI_UpdatePendingPings();
@@ -8621,32 +8770,26 @@ static void UI_StartServerRefresh(qboolean full)
 	// clear number of displayed servers
 	uiInfo.serverStatus.numDisplayServers = 0;
 	uiInfo.serverStatus.numPlayersOnServers = 0;
+	lanSource = UI_SourceForLAN();
 	// mark all servers as visible so we store ping updates for them
-	trap->LAN_MarkServerVisible(UI_SourceForLAN(), -1, qtrue);
+	trap->LAN_MarkServerVisible(lanSource, -1, qtrue);
 	// reset all the pings
-	trap->LAN_ResetPings(UI_SourceForLAN());
+	trap->LAN_ResetPings(lanSource);
 	//
-	if( ui_netSource.integer == AS_LOCAL ) {
+	if( ui_netSource.integer == UIAS_LOCAL ) {
 		trap->Cmd_ExecuteText( EXEC_NOW, "localservers\n" );
 		uiInfo.serverStatus.refreshtime = uiInfo.uiDC.realTime + 1000;
 		return;
 	}
 
 	uiInfo.serverStatus.refreshtime = uiInfo.uiDC.realTime + 5000;
-
-	if( UI_SourceForLAN() != AS_LOCAL && UI_SourceForLAN() != AS_FAVORITES) {
-		if( ui_netSource.integer == AS_GLOBAL ) {
-			i = 1;
-		}
-		else {
-			i = ui_netSource.integer - AS_FAVORITES + 1;
-		}
-
+	if( ui_netSource.integer >= UIAS_GLOBAL1 && ui_netSource.integer <= UIAS_GLOBAL5 ) {
 		ptr = UI_Cvar_VariableString("debug_protocol");
 		if (strlen(ptr)) {
-			trap->Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d %s\n", i, ptr));
+			trap->Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d %s full empty\n", ui_netSource.integer-1, ptr));
 		}
 		else {
+			/*
 			// cleaned this up slightly --eez
 			if(!Q_stricmp(serverFilters[ui_serverFilterType.integer].description, "JKG"))
 			{
@@ -8657,7 +8800,8 @@ static void UI_StartServerRefresh(qboolean full)
 			else
 			{
 				trap->Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d %s\n", i, UI_Cvar_VariableString("protocol") ) );
-			}
+			}*/
+			trap->Cmd_ExecuteText( EXEC_NOW, va( "globalservers %d %d full empty\n", ui_netSource.integer-1, (int)trap->Cvar_VariableValue( "protocol" ) ) );
 		}
 	}
 }

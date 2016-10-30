@@ -250,7 +250,7 @@ void JKG_ProcessLoot(){
 	int			/*i,*/ j/*, temp*/;
 	//menuDef_t *menu;
 
-	nextToken = '\0';
+	nextToken = nullptr;
 
 	Pzk_InitParseBuff(&pb);
 
@@ -263,7 +263,7 @@ void JKG_ProcessLoot(){
 			//Initialize menu
 			Menus_CloseAll();
 			if (Menus_ActivateByName("jkg_lootmenu"))
-				trap->Key_SetCatcher( trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE );
+				trap->Key_SetCatcher( trap->Key_GetCatcher() | KEYCATCH_UI /*& ~KEYCATCH_CONSOLE*/ );
 			Menu_ClearFocus(Menus_FindByName("jkg_lootmenu"));
 			lootUIData.loot_running = qtrue;
 			continue;

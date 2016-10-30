@@ -1,4 +1,4 @@
-#include "..\game\g_local.h"
+#include "../game/g_local.h"
 
 //====================================================================================================
 // File         : scenario_flags.c
@@ -102,7 +102,7 @@ void Warzone_Flag_Loadpositions( void )
 		{
 			if (statnum == 0)
 			{
-				(int)num_flags = atoi(t);
+				num_flags = atoi(t);
 				
 				if (num_flags < 2)
 				{
@@ -118,7 +118,7 @@ void Warzone_Flag_Loadpositions( void )
 				}
 			}
 
-			(float)stats[statnum] = (float)atof(va("%s", t));
+			stats[statnum] = (float)atof(va("%s", t));
 
 			statnum++;
 		}
@@ -138,11 +138,11 @@ void Warzone_Flag_Loadpositions( void )
 		{
 			if (reference <= 2)
 			{
-				(float)origin[reference] = (float)stats[statnum];
+				origin[reference] = (float)stats[statnum];
 			}
 			else
 			{
-				(int)team = (float)stats[statnum];
+				team = (float)stats[statnum];
 			}
 
 			statnum++;

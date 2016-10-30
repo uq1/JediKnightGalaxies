@@ -140,6 +140,15 @@ function PazaakGame:SetPlayers(ply1, ply2)
 	end
 	self.Players[1].Player = ply1
 	self.Players[2].Player = ply2
+	
+	--futuza: enable invincibility if there are 2 players
+	if ply2 then
+	self.Players[1].Player.GodMode = true
+	self.Players[1].Player.NoKnockback = true
+	self.Players[2].Player.GodMode = true
+	self.Players[2].Player.NoKnockback = true
+	print( tostring(self.Players[1].Player:GetName()) .. " and " .. tostring(self.Players[2].Player:GetName()) .. " have been made invulnerable for a Pazaak match." )
+	end
 end
 
 function PazaakGame:SetAILevel(level)
@@ -1075,9 +1084,18 @@ function PazaakGame:CleanUp()
 	timer.Remove(self.TimeoutName)
 	timer.Remove(self.TimerName)
 	
+	--remove player invincibility: futuza
+	self.Players[1].Player.GodMode = false
+	self.Players[1].Player.NoKnockback = false
+	self.Players[2].Player.GodMode = false
+	self.Players[2].Player.NoKnockback = false
+	print( "Invulnerability disabled for " .. tostring(self.Players[1].Player:GetName()) .. " and " .. tostring(self.Players[2].Player:GetName()) )
+
+	
 	-- Close the pazaak board and we're finished
 	self.Players[1].Player:SendCommand("pzk stop")
 	self.Players[2].Player:SendCommand("pzk stop")
+	
 	
 	if self.FinishCallback then
 		self.FinishCallback(self.Winner)

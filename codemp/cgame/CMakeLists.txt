@@ -111,10 +111,8 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/jkg_cg_auxlib.h"
 	"${MPDir}/cgame/jkg_cg_damagetypes.h"
 	"${MPDir}/cgame/jkg_chatcmds.h"
-	"${MPDir}/cgame/jkg_eshader.h"
 	"${MPDir}/cgame/jkg_hud.h"
 	"${MPDir}/cgame/jkg_navmesh_visualiser.h"
-	"${MPDir}/cgame/jkg_patcher.h"
 	"${CMAKE_SOURCE_DIR}/JKGalaxies/ui/menudef.h" #Fixme: Don't like the way JKGalaxies folder is included. 
 	)
 source_group("cgame" FILES ${MPCGameCgameFiles})
@@ -171,15 +169,15 @@ set(MPCGameFiles ${MPCGameFiles} ${MPCGameJSONLibrary})
 	
 add_library(${MPCGame} SHARED ${MPCGameFiles})
 
-if(NOT WIN32)
+if(NOT MSVC)
 	# remove "lib" prefix for .so/.dylib files
 	set_target_properties(${MPCGame} PROPERTIES PREFIX "")
-endif(NOT WIN32)
+endif()
 
 if(MakeApplicationBundles AND BuildMPEngine)
 	install(TARGETS ${MPCGame}
 		LIBRARY
-		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/OpenJK"
+		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/JKG"
 		COMPONENT ${JKAMPCoreComponent})
 	install(TARGETS ${MPCGame}
 		LIBRARY
@@ -188,7 +186,7 @@ if(MakeApplicationBundles AND BuildMPEngine)
 elseif(WIN32)
 	install(TARGETS ${MPCGame}
 		RUNTIME
-		DESTINATION "${JKAInstallDir}/OpenJK"
+		DESTINATION "${JKAInstallDir}/JKG"
 		COMPONENT ${JKAMPCoreComponent})
 	if (WIN64)
 		# Don't do this on 32-bit Windows to avoid overwriting
@@ -201,7 +199,7 @@ elseif(WIN32)
 else()
 	install(TARGETS ${MPCGame}
 		LIBRARY
-		DESTINATION "${JKAInstallDir}/OpenJK"
+		DESTINATION "${JKAInstallDir}/JKG"
 		COMPONENT ${JKAMPCoreComponent})
 	install(TARGETS ${MPCGame}
 		LIBRARY
@@ -209,10 +207,11 @@ else()
 		COMPONENT ${JKAMPCoreComponent})
 endif()
 
-set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPCGameDefines};${ReleaseDefines}")
-set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPCGameDefines};${ReleaseDefines}")
-set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPCGameDefines};${ReleaseDefines}")
-set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPCGameDefines};${DebugDefines}")
+set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS "${MPCGameDefines}")
+
+# Hide symbols not explicitly marked public.
+set_property(TARGET ${MPCGame} APPEND PROPERTY COMPILE_OPTIONS ${OPENJK_VISIBILITY_FLAGS})
+
 set_target_properties(${MPCGame} PROPERTIES INCLUDE_DIRECTORIES "${MPCGameIncludeDirectories}")
 set_target_properties(${MPCGame} PROPERTIES PROJECT_LABEL "Client Side Module (cgame)")
 # no libraries used

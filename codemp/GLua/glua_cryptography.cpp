@@ -85,7 +85,7 @@ static int GLua_Cryptography_Digest(lua_State *L) {
 	unsigned int digestlen;
 
 	const char *digestname = luaL_checkstring(L,1);
-	unsigned int length;
+	size_t length;
 	const char *data = luaL_checklstring(L, 2, &length);
 
 	md = EVP_get_digestbyname(digestname);
@@ -118,13 +118,13 @@ static int GLua_Cryptography_Encrypt(lua_State *L) {
 
 	const char *ciphername = luaL_checkstring(L,1);
 	
-	unsigned int length;
+	size_t length;
 	const unsigned char *data = (const unsigned char *)luaL_checklstring(L, 2, &length);
 
-	unsigned int keylen;
+	size_t keylen;
 	const char *key = luaL_checklstring(L, 3, &keylen);
 
-	unsigned int ivlen;
+	size_t ivlen;
 	const char *iv = luaL_optlstring(L, 4, NULL, &ivlen);
 
 	unsigned int blocklen;
@@ -192,13 +192,13 @@ static int GLua_Cryptography_Decrypt(lua_State *L) {
 
 	const char *ciphername = luaL_checkstring(L,1);
 	
-	unsigned int length;
+	size_t length;
 	const unsigned char *data = (const unsigned char *)luaL_checklstring(L, 2, &length);
 
-	unsigned int keylen;
+	size_t keylen;
 	const char *key = luaL_checklstring(L, 3, &keylen);
 
-	unsigned int ivlen;
+	size_t ivlen;
 	const char *iv = luaL_optlstring(L, 4, NULL, &ivlen);
 
 	unsigned int blocklen;
@@ -311,7 +311,7 @@ static int GLua_DigestContext_Init(lua_State *L) {
 
 static int GLua_DigestContext_Update(lua_State *L) {
 	GLua_EVP_MD_CTX_t *ctx = GLua_CheckDigestContext(L, 1);
-	unsigned int len;
+	size_t len;
 	const char *data = luaL_checklstring(L, 2, &len);
 
 	if (!ctx->md) {

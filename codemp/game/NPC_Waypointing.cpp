@@ -1439,7 +1439,7 @@ qboolean DOM_NPC_ClearPathBetweenSpots( vec3_t from, vec3_t dest, int impactEntN
 	//vec3_t	mins = {-18, -18, -24};
 	vec3_t	mins = {-8, -8, -6};
 	//vec3_t	maxs = {18, 18, 48};
-	vec3_t	maxs = {8, 8, NPC->client->ps.crouchheight};
+	vec3_t	maxs = {8, 8, (float)NPC->client->ps.crouchheight};
 
 	VectorCopy(from, org);
 	org[2]+=STEPSIZE;
@@ -1513,7 +1513,7 @@ qboolean DOM_NPC_CrouchPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum
 	//vec3_t	mins = {-18, -18, -24};
 	vec3_t	mins = {-8, -8, -6};
 	//vec3_t	maxs = {18, 18, 48};
-	vec3_t	maxs = {8, 8, NPC->client->ps.crouchheight};
+	vec3_t	maxs = {8, 8, (float)NPC->client->ps.crouchheight};
 
 	VectorCopy(NPC->s.origin, org);
 	org[2]+=STEPSIZE;
@@ -2600,7 +2600,7 @@ qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum 
 	//vec3_t	mins = {-18, -18, -24};
 	vec3_t	mins = {-8, -8, -6};
 	//vec3_t	maxs = {18, 18, 48};
-	vec3_t	maxs = {8, 8, NPC->client->ps.crouchheight};
+	vec3_t	maxs = {8, 8, (float)NPC->client->ps.crouchheight};
 
 	VectorCopy(NPC->s.origin, org);
 	//org[2]+=STEPSIZE;

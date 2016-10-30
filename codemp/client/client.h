@@ -326,6 +326,7 @@ typedef struct clientStatic_s {
 
 #define	CON_TEXTSIZE	0x30000 //was 32768
 #define	NUM_CON_TIMES	4
+#define MAX_COLOR_CHANGES 99
 
 typedef struct console_s {
 	qboolean	initialized;
@@ -349,6 +350,25 @@ typedef struct console_s {
 	int		times[NUM_CON_TIMES];	// cls.realtime time the line was generated
 								// for transparent notify lines
 	vec4_t	color;
+
+
+	//jkg RGB color console fix --futuza
+	//note, not yet implemented - ignored for now
+	struct TextColors 
+	{
+		vec4_t color[CON_TEXTSIZE] =
+		{
+			//{1.0f, 1.0f, 1.0f, 1.0f}
+		};
+		
+		//const vec4_t whitecolor{ 1.0, 1.0, 1.0, 1.0 };	//setting for default white color
+		bool isRGB[CON_TEXTSIZE];
+		//int markers[CON_TEXTSIZE] = { 0 };
+		//int total = 0;
+
+	}textColorStart;
+
+
 } console_t;
 
 extern	clientStatic_t		cls;

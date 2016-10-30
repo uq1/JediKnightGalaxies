@@ -279,7 +279,7 @@ int CFxScheduler::RegisterEffect( const char *file, bool bHasCorrectPath /*= fal
 	COM_StripExtension( file, sfile, sizeof( sfile ) );
 
 	std::string s = sfile;
-	transform(s.begin(), s.end(), s.begin(), ::tolower);
+	std::transform(s.begin(), s.end(), s.begin(), ::tolower);
 
 	Com_DPrintf("Registering effect : %s\n", sfile);
 
@@ -928,7 +928,7 @@ void CFxScheduler::PlayEffect( int id, vec3_t origin, matrix3_t axis, const int 
 
 				if ( sfx == NULL )
 				{
-					Com_Error (ERR_DROP, "ERROR: Failed to allocate EFX from memory pool.\n");
+					Com_Error (ERR_DROP, "ERROR: Failed to allocate EFX from memory pool.");
 					return;
 				}
 

@@ -288,7 +288,7 @@ int Export_BotLibLoadMap(const char *mapname)
 #endif
 	int errnum;
 
-	if (!BotLibSetup("BotLoadMap")) return BLERR_LIBRARYNOTSETUP;
+	if (!BotLibSetup("BotLoadMap")) return BLERR_LIBRARYNOTSETUP;				//--futuza note: map loading info
 	//
 	botimport.Print(PRT_MESSAGE, "------------ Map Loading ------------\n");
 	//startup AAS for the current map, model and sound index

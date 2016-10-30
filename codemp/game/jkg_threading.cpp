@@ -27,7 +27,7 @@
 
 /* OpenSSL Thread Safety */
 #ifndef NO_CRYPTOGRAPHY
-#ifdef _WIN32
+#ifdef _MSC_VER
 static HANDLE *lock_cs = 0;
 
 void JKG_OPENSSL_ThreadLock(int mode, int type, const char *file, int line) {
@@ -68,10 +68,7 @@ void JKG_OPENSSL_ThreadSyncCleanup(void) {
 
 	lock_cs = 0;
 }
-
-#endif
-
-#ifdef PTHREADS
+#else
 static pthread_mutex_t *lock_cs = 0;
 static long *lock_count = 0;
 
@@ -99,8 +96,8 @@ void JKG_OPENSSL_ThreadSyncInit(void) {
 		return;
 	}
 
-	lock_cs = OPENSSL_malloc(CRYPTO_num_locks() * sizeof(pthread_mutex_t));
-	lock_count = OPENSSL_malloc(CRYPTO_num_locks() * sizeof(long));
+	lock_cs = reinterpret_cast<pthread_mutex_t *>(OPENSSL_malloc(CRYPTO_num_locks() * sizeof(pthread_mutex_t)));
+	lock_count = reinterpret_cast<long *>(OPENSSL_malloc(CRYPTO_num_locks() * sizeof(long)));
 	for (i=0; i<CRYPTO_num_locks(); i++) {
 		lock_count[i]=0;
 		pthread_mutex_init(&(lock_cs[i]),NULL);
@@ -130,7 +127,7 @@ void JKG_OPENSSL_ThreadSyncCleanup(void) {
 #endif
 
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 static void				*backgrounderHandle = NULL;
 static unsigned long	backgrounderId = 0;
 
@@ -141,7 +138,7 @@ static qboolean initCriticalSections = qfalse;
 
 static qboolean shuttingDown = qfalse;
 static qboolean			backgrounderActive = qfalse;
-#ifdef __linux__
+#ifndef _MSC_VER
 pthread_t backgrounderHandle;
 
 void *cs_G_Printf = NULL;
@@ -257,10 +254,9 @@ void JKG_ThreadingDebugPrint( const char *message )
 #endif
 
 void JKG_ThreadSleep ( int msec ) {
-#ifdef _WIN32
+#ifdef _MSC_VER
 	Sleep( msec );
-#endif
-#ifdef __linux__
+#else
 	struct timespec timeOut, remains;
 
 	timeOut.tv_sec = 0;
@@ -272,14 +268,14 @@ void JKG_ThreadSleep ( int msec ) {
 
 void JKG_EnterCriticalSection( void *section )
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
 	if ( initCriticalSections ) EnterCriticalSection( (LPCRITICAL_SECTION)section );
 #endif
 }
 
 void JKG_LeaveCriticalSection( void *section )
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
 	if ( initCriticalSections ) LeaveCriticalSection( (LPCRITICAL_SECTION)section );
 #endif
 }
@@ -327,10 +323,9 @@ void JKG_MainThreadPoller ( void )
 	return;
 }
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 static unsigned long __stdcall JKG_BackgroundWorker ( void *lulz /*Pass something useful if you need*/ )
-#endif
-#ifdef __linux__
+#else
 static void *JKG_BackgroundWorker ( void *lulz /*Pass something useful if you need*/ )
 #endif
 {
@@ -397,14 +392,14 @@ void JKG_PrintTasksTable ( int clientNum )
 
 void JKG_InitThreading ( void )
 {
-#ifdef __linux__
+#ifndef _MSC_VER
 	int pthErr;
 #endif
 	Com_Printf( "^5Initializing Background Worker...\n" );
 
 	//memset( asyncTasks, 0, sizeof(*asyncTasks) );
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 	InitializeCriticalSection( &cs_G_Printf );
 	initCriticalSections = qtrue;
 	Com_Printf( "Initialized critical sections\n" );
@@ -418,13 +413,12 @@ void JKG_InitThreading ( void )
 	JKG_Task_Init();
 	Com_Printf( "Initialized task queue management\n" );
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 	backgrounderHandle = CreateThread( NULL, 0, JKG_BackgroundWorker, NULL, 0, &backgrounderId );
 	if ( !backgrounderHandle ) {
 		Com_Error( ERR_DROP, "Failed to initialize thread system!" );
 	}
-#endif
-#ifdef __linux__
+#else
 	pthErr = pthread_create( &backgrounderHandle, NULL, JKG_BackgroundWorker, NULL );
 	if ( pthErr ) {
 		Com_Error( ERR_DROP, "Failed to initialize thread system!" );
@@ -448,11 +442,10 @@ void JKG_ShutdownThreading ( int maxWaitTime )
 	while ( shuttingDown ) {
 		JKG_MainThreadPoller();		// Keep processing queries
 		if ( trap->Milliseconds() > startMurder + maxWaitTime ) {
-#ifdef _WIN32
+#ifdef _MSC_VER
 			TerminateThread( backgrounderHandle, 0 );
 			CloseHandle( backgrounderHandle );
-#endif
-#ifdef __linux__
+#else
 			pthread_cancel( backgrounderHandle );
 #endif
 #ifndef FINAL_BUILD
@@ -469,7 +462,7 @@ void JKG_ShutdownThreading ( int maxWaitTime )
 	Com_Printf( "^5Took %i milliseconds\n", killDuration );
 #endif
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 	initCriticalSections = qfalse;
 	DeleteCriticalSection( &cs_G_Printf );
 #endif

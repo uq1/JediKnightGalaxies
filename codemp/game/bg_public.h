@@ -1,15 +1,3 @@
-//       ____ ___________________   ___           ____  __ _______   ___  ________  ___ ______________
-//      |    |\_   _____/\______ \ |   |         |    |/ _|\      \ |   |/  _____/ /   |   \__    ___/
-//      |    | |    __)_  |    |  \|   |         |      <  /   |   \|   /   \  ___/    ~    \|    |   
-//  /\__|    | |        \ |    `   \   |         |    |  \/    |    \   \    \_\  \    Y    /|    |   
-//  \________|/_______  //_______  /___|         |____|__ \____|__  /___|\______  /\___|_  / |____|   
-//                    \/         \/                      \/       \/            \/       \/           
-//                         ________    _____   ____       _____  ____  ___ ______________ _________   
-//                        /  _____/   /  _  \ |    |     /  _  \ \   \/  /|   \_   _____//   _____/   
-//                       /   \  ___  /  /_\  \|    |    /  /_\  \ \     / |   ||    __)_ \_____  \    
-//                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
-//                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
-//                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
 // bg_public.h
 /*
 ===========================================================================
@@ -814,11 +802,6 @@ typedef enum {
 typedef enum {
 	PW_NONE,
 
-	#ifdef BASE_COMPAT
-		PW_QUAD,
-		PW_BATTLESUIT,
-	#endif // BASE_COMPAT
-
 	PW_PULL,
 
 	PW_REDFLAG,
@@ -975,11 +958,6 @@ typedef enum {
 	EV_DEATH2,
 	EV_DEATH3,
 	EV_OBITUARY,
-
-	#ifdef BASE_COMPAT
-		EV_POWERUP_QUAD,
-		EV_POWERUP_BATTLESUIT,
-	#endif // BASE_COMPAT
 
 	EV_FORCE_DRAINED,
 
@@ -2085,6 +2063,10 @@ int BG_GetPairedValue(char *buf, char *key, char *outbuf);
 extern const char *gametypeStringShort[GT_MAX_GAME_TYPE];
 const char *BG_GetGametypeString( int gametype );
 int BG_GetGametypeForString( const char *gametype );
+
+void Q_FSBinaryDump( const char *filename, const void *buffer, size_t len );
+void Q_FSWriteJSON( void *root, fileHandle_t f );
+void Q_FSWriteString( fileHandle_t f, const char *msg );
 
 bool JKG_ParseHiltFiles( void );
 void JKG_CleanSaberHilts( void );
