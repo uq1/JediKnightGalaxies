@@ -136,12 +136,6 @@ int CGVM_RagCallback( int callType ) {
 	return cge->RagCallback( callType );
 }
 
-qboolean CGVM_IncomingConsoleCommand( void ) {
-	VMSwap v( cgvm );
-
-	return cge->IncomingConsoleCommand();
-}
-
 qboolean CGVM_NoUseableForce( void ) {
 	VMSwap v( cgvm );
 
