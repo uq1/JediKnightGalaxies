@@ -287,10 +287,10 @@ NOTES				Always handled in seconds, not milliseconds
 LANG_ENGLISH		"Cook time: %.3f seconds"
 
 REFERENCE			WEP_SPEEDPENALTY
-LANG_ENGLISH		"Movement penalty: %.0f%%"
+LANG_ENGLISH		"Movement penalty: -%i%%"
 
 REFERENCE			WEP_SPEEDBONUS
-LANG_ENGLISH		"Movement bonus: +%.0f%%"
+LANG_ENGLISH		"Movement bonus: +%i%%"
 
 REFERENCE			WEP_AMMOTYPE 				// Not used?
 LANG_ENGLISH		"Accepts %s ammo"
@@ -356,19 +356,16 @@ LANG_ENGLISH		"Ion damage. Completely ignores most armor, and extremely strong a
 REFERENCE			EXPLANATION_SONIC
 LANG_ENGLISH		"Sonic damage. Somewhat effective against armor, shields, and organic targets. Ineffective against droids."
 
-REFERENCE     WEAPON_STATS
-LANG_ENGLISH  "Weapon Stats"
-
 REFERENCE			PRIMARY_FIRE
-LANG_ENGLISH		"Primary Firing Mode (%s)"
+LANG_ENGLISH		"Primary Firing Mode"
 
 REFERENCE			SECONDARY_FIRE
-LANG_ENGLISH		"Secondary Firing Mode (%s)"
+LANG_ENGLISH		"Secondary Firing Mode"
 
 REFERENCE			TERTIARY_FIRE
-LANG_ENGLISH		"Tertiary Firing Mode (%s)"
+LANG_ENGLISH		"Tertiary Firing Mode"
 
 REFERENCE			FIRING_MODE
-LANG_ENGLISH		"Firing Mode %i (%s)"
+LANG_ENGLISH		"%ith firing mode"
 
 ENDMARKER
