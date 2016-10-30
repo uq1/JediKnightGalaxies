@@ -2247,7 +2247,7 @@ typedef struct entityState_s {
 
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 	
-	unsigned short	seed;
+	unsigned int	seed;
 } entityState_t;
 
 typedef enum {
