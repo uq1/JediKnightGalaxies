@@ -3448,6 +3448,9 @@ void ClientThink_real( gentity_t *ent ) {
 				Cmd_EngageDuel_f(ent);
 			}
 			break;
+		case GENCMD_RELOAD:
+			Cmd_Reload_f(ent);
+			break;
 		case GENCMD_USE_SEEKER:
 			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_SEEKER)) &&
 				G_ItemUsable(&ent->client->ps, HI_SEEKER) )

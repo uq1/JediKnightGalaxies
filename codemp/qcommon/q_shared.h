@@ -1913,7 +1913,8 @@ typedef enum
 	GENCMD_BOW,
 	GENCMD_MEDITATE,
 	GENCMD_FLOURISH,
-	GENCMD_GLOAT
+	GENCMD_GLOAT,
+	GENCMD_RELOAD
 } genCmds_t;
 
 // usercmd_t is sent to the server each client frame
