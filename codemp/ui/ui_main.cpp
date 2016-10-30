@@ -2002,7 +2002,7 @@ static void UI_DrawOpponentName(rectDef_t *rect, float scale, vec4_t color, int 
 	Text_Paint(rect->x, rect->y, scale, color, UI_Cvar_VariableString("ui_opponentName"), 0, 0, textStyle, iMenuFont);
 }
 
-static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
+static int UI_OwnerDrawWidth(int ownerDraw, int ownerDrawID, float scale) {
 	int i, value, iUse = 0;
 	const char *text;
 	const char *s = NULL;
@@ -2124,6 +2124,18 @@ static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
 			break;
 		case UI_SERVERREFRESHDATE:
 			s = UI_Cvar_VariableString(va("ui_lastServerRefresh_%i", ui_netSource.integer));
+			break;
+		case UI_JKG_SHOP_LEFTNAME:
+			s = JKG_Shop_LeftNameText(ownerDrawID);
+			break;
+		case UI_JKG_SHOP_RIGHTNAME:
+			s = JKG_Shop_RightNameText(ownerDrawID);
+			break;
+		case UI_JKG_SHOP_LEFTPRICE:
+			s = JKG_Shop_LeftPriceText(ownerDrawID);
+			break;
+		case UI_JKG_SHOP_RIGHTPRICE:
+			s = JKG_Shop_RightPriceText(ownerDrawID);
 			break;
     default:
       break;
@@ -2591,6 +2603,12 @@ static void UI_OwnerDraw(itemDef_t *item, float x, float y, float w, float h, fl
 		break;
 	case UI_JKG_SHOP_RIGHTNAME:
 		JKG_Shop_ShopItemName(item, ownerDrawID);
+		break;
+	case UI_JKG_SHOP_LEFTPRICE:
+		JKG_Shop_InventoryItemCost(item, ownerDrawID);
+		break;
+	case UI_JKG_SHOP_RIGHTPRICE:
+		JKG_Shop_ShopItemCost(item, ownerDrawID);
 		break;
 
 	case UI_SKIN_COLOR:

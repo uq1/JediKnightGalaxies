@@ -2263,7 +2263,7 @@ void CG_Text_PaintWithCursor(float x, float y, float scale, vec4_t color, const 
 	CG_Text_Paint(x, y, scale, color, text, 0, limit, style, iMenuFont);
 }
 
-static int CG_OwnerDrawWidth(int ownerDraw, float scale) {
+static int CG_OwnerDrawWidth(int ownerDraw, int ownerDrawWidth, float scale) {
 	switch (ownerDraw) {
 	  case CG_GAME_TYPE:
 			return CG_Text_Width(BG_GetGametypeString( cgs.gametype ), scale, FONT_MEDIUM);

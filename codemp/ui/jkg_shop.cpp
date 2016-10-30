@@ -274,6 +274,69 @@ void JKG_Shop_ShopItemName(itemDef_t* item, int nOwnerDrawID) {
 }
 
 //
+// The cost of the item that shows on each button
+// 
+
+void JKG_Shop_InventoryItemCost(itemDef_t* item, int nOwnerDrawID) {
+	if (nInventoryScroll + nOwnerDrawID >= nNumberInventoryItems) {
+		memset(item->text, 0, sizeof(item->text));
+		Item_Text_Paint(item); // FIXME: should we really be trying to paint a blank string?
+		return; // There isn't an item in this slot.
+	}
+	itemInstance_t* pItem = vInventoryItems[nInventoryScroll + nOwnerDrawID].second;
+	sprintf(item->text, "%i", pItem->id->baseCost / 2);
+	Item_Text_Paint(item);
+}
+
+void JKG_Shop_ShopItemCost(itemDef_t* item, int nOwnerDrawID) {
+	if (nShopScroll + nOwnerDrawID >= nNumberShopItems) {
+		memset(item->text, 0, sizeof(item->text));
+		Item_Text_Paint(item); // FIXME: should we really be trying to paint a blank string?
+		return; // There isn't an item in this slot.
+	}
+	itemInstance_t* pItem = vShopItems[nShopScroll + nOwnerDrawID].second;
+	sprintf(item->text, "%i", pItem->id->baseCost);
+	Item_Text_Paint(item);
+}
+
+//
+// These four functions are used to calculate the width of the text for alignment purposes
+// See UI_OwnerDrawWidth in ui_main.cpp for more information.
+//
+
+char* JKG_Shop_LeftNameText(int ownerDrawID) {
+	if (nInventoryScroll + ownerDrawID >= nNumberInventoryItems) {
+		return nullptr;
+	}
+	itemInstance_t* pItem = vInventoryItems[nInventoryScroll + ownerDrawID].second;
+	return pItem->id->displayName;
+}
+
+char* JKG_Shop_LeftPriceText(int ownerDrawID) {
+	if (nInventoryScroll + ownerDrawID >= nNumberInventoryItems) {
+		return nullptr;
+	}
+	itemInstance_t* pItem = vInventoryItems[nInventoryScroll + ownerDrawID].second;
+	return va("%i", pItem->id->baseCost / 2);
+}
+
+char* JKG_Shop_RightNameText(int ownerDrawID) {
+	if (nShopScroll + ownerDrawID >= nNumberShopItems) {
+		return nullptr;
+	}
+	itemInstance_t* pItem = vShopItems[nShopScroll + ownerDrawID].second;
+	return pItem->id->displayName;
+}
+
+char* JKG_Shop_RightPriceText(int ownerDrawID) {
+	if (nShopScroll + ownerDrawID >= nNumberShopItems) {
+		return nullptr;
+	}
+	itemInstance_t* pItem = vShopItems[nShopScroll + ownerDrawID].second;
+	return va("%i", pItem->id->baseCost);
+}
+
+//
 // The action that gets performed when we select an item
 //
 

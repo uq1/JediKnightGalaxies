@@ -5192,6 +5192,11 @@ void Item_SetTextExtents(itemDef_t *item, int *width, int *height, const char *t
 
 	// keeps us from computing the widths and heights more than once
 	if (*width == 0 || (item->type == ITEM_TYPE_OWNERDRAW && item->textalignment == ITEM_ALIGN_CENTER)
+		|| item->window.ownerDraw == UI_JKG_ITEM_NAME
+		|| item->window.ownerDraw == UI_JKG_SHOP_LEFTNAME
+		|| item->window.ownerDraw == UI_JKG_SHOP_RIGHTNAME
+		|| item->window.ownerDraw == UI_JKG_SHOP_LEFTPRICE
+		|| item->window.ownerDraw == UI_JKG_SHOP_RIGHTPRICE
 		|| (item->type == ITEM_TYPE_TEXT && item->typeData.text && item->typeData.text->customText && item->textalignment != ITEM_ALIGN_LEFT)
 #ifndef _CGAME
 		|| (item->text && item->text[0]=='@' && item->asset != se_language.modificationCount )	//string package language changed
@@ -5202,7 +5207,7 @@ void Item_SetTextExtents(itemDef_t *item, int *width, int *height, const char *t
 
 		if (item->type == ITEM_TYPE_OWNERDRAW && (item->textalignment == ITEM_ALIGN_CENTER || item->textalignment == ITEM_ALIGN_RIGHT)) 
 		{
-			originalWidth += DC->ownerDrawWidth(item->window.ownerDraw, item->textscale);
+			originalWidth += DC->ownerDrawWidth(item->window.ownerDraw, item->window.ownerDrawID, item->textscale);
 		} 
 		else if (item->type == ITEM_TYPE_EDITFIELD && item->textalignment == ITEM_ALIGN_CENTER && item->cvar) 
 		{
