@@ -3171,28 +3171,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		CG_Obituary( es );
 		break;
 
-	//
-	// powerup events
-	//
-#ifdef BASE_COMPAT
-	case EV_POWERUP_QUAD:
-		DEBUGNAME("EV_POWERUP_QUAD");
-		if ( es->number == cg.snap->ps.clientNum ) {
-			cg.powerupActive = PW_QUAD;
-			cg.powerupTime = cg.time;
-		}
-		//trap->S_StartSound (NULL, es->number, CHAN_ITEM, cgs.media.quadSound );
-		break;
-	case EV_POWERUP_BATTLESUIT:
-		DEBUGNAME("EV_POWERUP_BATTLESUIT");
-		if ( es->number == cg.snap->ps.clientNum ) {
-			cg.powerupActive = PW_BATTLESUIT;
-			cg.powerupTime = cg.time;
-		}
-		//trap->S_StartSound (NULL, es->number, CHAN_ITEM, cgs.media.protectSound );
-		break;
-#endif // BASE_COMPAT
-
 	case EV_FORCE_DRAINED:
 		DEBUGNAME("EV_FORCE_DRAINED");
 		ByteToDir( es->eventParm, dir );
