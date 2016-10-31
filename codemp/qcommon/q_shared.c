@@ -1180,7 +1180,6 @@ int Q_parseColor( const char *p, float *color ) {
 	}
 	else if ( strlen(p) >= 4 && (c == 'x' || c == 'X') )
 	{
-		p++; // skip over the 'x' or 'X'
 		float red = HexColor_GetLevel(*p);
 		float green = HexColor_GetLevel(*(p+1));
 		float blue = HexColor_GetLevel(*(p+2));

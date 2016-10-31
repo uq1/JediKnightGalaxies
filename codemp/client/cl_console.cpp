@@ -478,7 +478,7 @@ void CL_ConsolePrint( const char *txt) {
 			break;
 		default:	// display character and advance
 			y = con.current % con.totallines;
-			con.text[y*con.linewidth+con.x] = (color << 20) | c;
+			con.text[y*con.linewidth+con.x] = color | c;
 			con.x++;
 			if (con.x >= con.linewidth) {
 				Con_Linefeed(skipnotify);
@@ -541,9 +541,9 @@ void Con_DrawInput (void) {
 
 static QINLINE void Q_UnPackRGB( const int32_t colorIn, float *colorOut )
 {
-	colorOut[0] = ((colorIn >> 28));// * (1 / 255.0f);
-	colorOut[1] = ((colorIn >> 24) & 0xf);// * (1 / 255.0f);
-	colorOut[2] = ((colorIn >> 20) & 0xf);// * (1 / 255.0f);
+	colorOut[0] = ((colorIn >> 28) & 0x0000000F) / (float)0xF;// * (1 / 255.0f);
+	colorOut[1] = ((colorIn >> 24) & 0x0000000F) / (float)0xF;// * (1 / 255.0f);
+	colorOut[2] = ((colorIn >> 20) & 0x0000000F) / (float)0xF;// * (1 / 255.0f);
 }
 
 /*
@@ -687,7 +687,7 @@ void Con_DrawSolidConsole( float frac ) {
 	int				row;
 	int				lines;
 //	qhandle_t		conShader;
-	int				currentColor;
+	int	currentColor;
 
 	lines = (int) (cls.glconfig.vidHeight * frac);
 	if (lines <= 0)
@@ -752,7 +752,7 @@ void Con_DrawSolidConsole( float frac ) {
 	}
 	
 	//currentColor = 7;
-	currentColor = 0xfff00000;
+	currentColor = 0xfff;
 	re->SetColor( colorWhite );
 
 	/*currentColor = 7;
@@ -811,9 +811,10 @@ void Con_DrawSolidConsole( float frac ) {
 					continue;
 				}
 
-				if ( ( text[x] & 0xfff00000 ) != currentColor ) {
+				int newColor = (text[x] >> 20) & 0x00000FFF;
+				if ( newColor != currentColor ) {
 					vec4_t setColor;
-					currentColor = text[x] & 0xfff00000;
+					currentColor = newColor << 20; // FIXME: shifting to the left...only to reshift when unpacking
 					Q_UnPackRGB( currentColor, setColor );
 					setColor[3] = 1.0f;
 					re->SetColor( setColor );
