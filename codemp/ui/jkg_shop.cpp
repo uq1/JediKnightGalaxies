@@ -34,97 +34,108 @@ void JKG_ConstructShopLists() {
 	nNumberUnfilteredIItems = *(size_t*)cgImports->InventoryDataRequest(0);
 	nNumberUnfilteredSItems = *(size_t*)cgImports->InventoryDataRequest(5);
 
-	itemInstance_t* pAllInventoryItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
-	itemInstance_t* pAllShopItems = (itemInstance_t*)cgImports->InventoryDataRequest(4);
+	if (nNumberUnfilteredIItems > 0) {
+		itemInstance_t* pAllInventoryItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
 
-	//
-	// Filter the shop and inventory items based on the value of the cvar
-	//
-	for (int i = 0; i < nNumberUnfilteredIItems; i++) {
-		itemInstance_t* pThisItem = &pAllInventoryItems[i];
-		if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR) {
-			continue;
+		//
+		// Filter the items
+		//
+		for (int i = 0; i < nNumberUnfilteredIItems; i++) {
+			itemInstance_t* pThisItem = &pAllInventoryItems[i];
+			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR) {
+				continue;
+			}
+			else if (ui_inventoryFilter.integer == JKGIFILTER_WEAPONS && pThisItem->id->itemType != ITEM_WEAPON) {
+				continue;
+			}
+			else if (ui_inventoryFilter.integer == JKGIFILTER_CONSUMABLES && pThisItem->id->itemType != ITEM_CONSUMABLE) {
+				continue;
+			}
+			else if (ui_inventoryFilter.integer == JKGIFILTER_MISC) {
+				continue; // FIXME
+			}
+			vInventoryItems.push_back(make_pair(i, pThisItem));
 		}
-		else if (ui_inventoryFilter.integer == JKGIFILTER_WEAPONS && pThisItem->id->itemType != ITEM_WEAPON) {
-			continue;
-		}
-		else if (ui_inventoryFilter.integer == JKGIFILTER_CONSUMABLES && pThisItem->id->itemType != ITEM_CONSUMABLE) {
-			continue;
-		}
-		else if (ui_inventoryFilter.integer == JKGIFILTER_MISC) {
-			continue; // FIXME
-		}
-		vInventoryItems.push_back(make_pair(i, pThisItem));
-	}
 
-	for (int i = 0; i < nNumberUnfilteredSItems; i++) {
-		itemInstance_t* pThisItem = &pAllShopItems[i];
-		if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR) {
-			continue;
+		//
+		// Sort the filtered list of items
+		//
+		if (ui_inventorySortMode.integer == 0) {
+			// If it's 0, then we're sorting by item name
+			sort(vInventoryItems.begin(), vInventoryItems.end(),
+				[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
+				if (ui_inventorySortType.integer) {
+					return Q_stricmp(UI_GetStringEdString2(a.second->id->displayName), UI_GetStringEdString3(b.second->id->displayName)) > 0;
+				}
+				else {
+					return Q_stricmp(UI_GetStringEdString2(b.second->id->displayName), UI_GetStringEdString3(a.second->id->displayName)) > 0;
+				}
+			});
 		}
-		else if (ui_inventoryFilter.integer == JKGIFILTER_WEAPONS && pThisItem->id->itemType != ITEM_WEAPON) {
-			continue;
+		else if (ui_inventorySortMode.integer == 1) {
+			// If it's 1, then we're sorting by price
+			sort(vInventoryItems.begin(), vInventoryItems.end(),
+				[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
+				if (ui_inventorySortType.integer) {
+					return a.second->id->baseCost > b.second->id->baseCost;
+				}
+				else {
+					return a.second->id->baseCost < b.second->id->baseCost;
+				}
+			});
 		}
-		else if (ui_inventoryFilter.integer == JKGIFILTER_CONSUMABLES && pThisItem->id->itemType != ITEM_CONSUMABLE) {
-			continue;
-		}
-		else if (ui_inventoryFilter.integer == JKGIFILTER_MISC) {
-			continue;
-		}
-		vShopItems.push_back(make_pair(i, pThisItem));
-	}
-
-	//
-	// Sort the lists of items
-	//
-	if (ui_inventorySortMode.integer == 0) {
-		// If it's 0, then we're sorting by item name
-		sort(vInventoryItems.begin(), vInventoryItems.end(),
-			[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
-			if (ui_inventorySortType.integer) {
-				return Q_stricmp(UI_GetStringEdString2(a.second->id->displayName), UI_GetStringEdString3(b.second->id->displayName)) > 0;
-			}
-			else {
-				return Q_stricmp(UI_GetStringEdString2(b.second->id->displayName), UI_GetStringEdString3(a.second->id->displayName)) > 0;
-			}
-		});
-	}
-	else if (ui_inventorySortMode.integer == 1) {
-		// If it's 1, then we're sorting by price
-		sort(vInventoryItems.begin(), vInventoryItems.end(),
-			[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
-			if (ui_inventorySortType.integer) {
-				return a.second->id->baseCost > b.second->id->baseCost;
-			}
-			else {
-				return a.second->id->baseCost < b.second->id->baseCost;
-			}
-		});
 	}
 
-	if (ui_shopSortMode.integer == 0) {
-		// If it's 0, then we're sorting by item name
-		sort(vShopItems.begin(), vShopItems.end(),
-			[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
-			if (ui_shopSortType.integer) {
-				return Q_stricmp(UI_GetStringEdString2(a.second->id->displayName), UI_GetStringEdString3(b.second->id->displayName)) > 0;
+	if (nNumberUnfilteredSItems > 0) {
+		itemInstance_t* pAllShopItems = (itemInstance_t*)cgImports->InventoryDataRequest(4);
+
+		//
+		// Filter the list of items
+		//
+		for (int i = 0; i < nNumberUnfilteredSItems; i++) {
+			itemInstance_t* pThisItem = &pAllShopItems[i];
+			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR) {
+				continue;
 			}
-			else {
-				return Q_stricmp(UI_GetStringEdString2(b.second->id->displayName), UI_GetStringEdString3(a.second->id->displayName)) > 0;
+			else if (ui_inventoryFilter.integer == JKGIFILTER_WEAPONS && pThisItem->id->itemType != ITEM_WEAPON) {
+				continue;
 			}
-		});
-	}
-	else if (ui_shopSortMode.integer == 1) {
-		// If it's 1, then we're sorting by price
-		sort(vShopItems.begin(), vShopItems.end(),
-			[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
-			if (ui_shopSortType.integer) {
-				return a.second->id->baseCost > b.second->id->baseCost;
+			else if (ui_inventoryFilter.integer == JKGIFILTER_CONSUMABLES && pThisItem->id->itemType != ITEM_CONSUMABLE) {
+				continue;
 			}
-			else {
-				return a.second->id->baseCost < b.second->id->baseCost;
+			else if (ui_inventoryFilter.integer == JKGIFILTER_MISC) {
+				continue;
 			}
-		});
+			vShopItems.push_back(make_pair(i, pThisItem));
+		}
+
+		//
+		// Sort the filtered list of items
+		//
+		if (ui_shopSortMode.integer == 0) {
+			// If it's 0, then we're sorting by item name
+			sort(vShopItems.begin(), vShopItems.end(),
+				[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
+				if (ui_shopSortType.integer) {
+					return Q_stricmp(UI_GetStringEdString2(a.second->id->displayName), UI_GetStringEdString3(b.second->id->displayName)) > 0;
+				}
+				else {
+					return Q_stricmp(UI_GetStringEdString2(b.second->id->displayName), UI_GetStringEdString3(a.second->id->displayName)) > 0;
+				}
+			});
+		}
+		else if (ui_shopSortMode.integer == 1) {
+			// If it's 1, then we're sorting by price
+			sort(vShopItems.begin(), vShopItems.end(),
+				[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
+				if (ui_shopSortType.integer) {
+					return a.second->id->baseCost > b.second->id->baseCost;
+				}
+				else {
+					return a.second->id->baseCost < b.second->id->baseCost;
+				}
+			});
+		}
 	}
 
 	// Reset the selection/scroll if it goes out of bounds
@@ -455,4 +466,24 @@ void JKG_Shop_SortSelectionPrice(itemDef_t* item, int ownerDrawID) {
 
 	trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h,
 		0, 0, 1, 1, item->window.background);
+}
+
+void JKG_Shop_BuyItem(char** args) {
+	if (bLeftSelected) {
+		return; // Can't buy an item from your inventory
+	}
+	if (nSelected < 0 || nSelected >= nNumberShopItems) {
+		return; // Invalid selection
+	}
+	cgImports->SendClientCommand(va("buyVendor %i", nSelected));
+}
+
+void JKG_Shop_SellItem(char** args) {
+	if (!bLeftSelected) {
+		return; // Can't sell an item from the shop
+	}
+	if (nSelected < 0 || nSelected >= nNumberInventoryItems) {
+		return; // Invalid selection
+	}
+	cgImports->SendClientCommand(va("inventorySell %i", nSelected));
 }

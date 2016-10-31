@@ -2009,12 +2009,14 @@ static void CG_ServerCommand( void ) {
 	if( !strcmp( cmd, "pInv" ))
 	{
 		BG_ReceivedItemPacket(BG_ItemPacketFromName(CG_Argv(1)));
+		uiImports->ItemsUpdated();
 		return;
 	}
 
 	if (!strcmp(cmd, "pTrade"))
 	{
 		BG_ReceivedTradePacket(BG_TradePacketFromName(CG_Argv(1)));
+		uiImports->ItemsUpdated();
 		return;
 	}
 

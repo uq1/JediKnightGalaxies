@@ -166,6 +166,8 @@ JKGkeywordHashUI_t JKGScripts[] = {
 	{ "shop_left_button",	JKG_Shop_SelectLeft,			0		},
 	{ "shop_right_button",	JKG_Shop_SelectRight,			0		},
 	{ "shop_sort",			JKG_Shop_Sort,					0		},
+	{ "shop_buy",			JKG_Shop_BuyItem,				0		},
+	{ "shop_sell",			JKG_Shop_SellItem,				0		},
 
 	{0,						0,					    		0		},
 };

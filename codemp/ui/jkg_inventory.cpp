@@ -7,7 +7,7 @@ static int nPosition = 0;					// position in the item list (changed with arrow b
 static int nSelected = -1;					// selected item in the list (-1 for no selection)
 
 
-static void JKG_ConstructInventoryList() {
+void JKG_ConstructInventoryList() {
 	itemInstance_t* pAllItems = nullptr;
 
 	pItems.clear();

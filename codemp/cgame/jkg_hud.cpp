@@ -1053,7 +1053,10 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 			vec4_t col = {0.11f, 0.11f, 0.11f, 1.0f};
 			qhandle_t shader = cgs.media.whiteShader;	//dummy
 			col[3] *= cg.jkg_HUDOpacity;
-			if ( i < MAX_ACI_SLOTS && cg.playerACI[i] >= 0 && (*cg.playerInventory)[cg.playerACI[i]].id && (*cg.playerInventory)[cg.playerACI[i]].id->itemID )
+			if (cg.playerACI[i] >= cg.playerInventory->size()) {
+				cg.playerACI[i] = -1;
+			}
+			if ( cg.playerACI[i] >= 0 && (*cg.playerInventory)[cg.playerACI[i]].id && (*cg.playerInventory)[cg.playerACI[i]].id->itemID )
 			{
 			    int weapon, variation;
 				if((*cg.playerInventory)[cg.playerACI[i]].id->itemType == ITEM_WEAPON)

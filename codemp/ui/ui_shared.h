@@ -651,6 +651,7 @@ typedef struct uiCrossoverExports_s
 	void			(*PartyMngtNotify)( int msg );
 	void			(*InventoryNotify)( int msg );
 	void			(*ShopNotify)( int msg );
+	void			(*ItemsUpdated)();
 } uiCrossoverExports_t;
 
 typedef struct cgCrossoverExports_s
