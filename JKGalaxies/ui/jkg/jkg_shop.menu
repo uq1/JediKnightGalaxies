@@ -52,193 +52,159 @@
 		//
 		//////////////////////////////////////////////////
 
-		///////////////////////////
-		// Left tab - sort by name
-		///////////////////////////
-
-		// Background
-		
-		itemDef
-		{
-			name		shopLeft_LeftSortBG
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-			rect		48 55 232 29
-			background	"gfx/ui/inv_filtertab"
-			forecolor	1 1 1 1
-			visible		1
-			decoration
-		}
-
-		// Highlight
-
-		itemDef
-		{
-			name		shopLeft_LeftSortHL
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-			rect		48 55 232 29
-			background	"gfx/ui/inv_filtertab"
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		// Selection
-
-		itemDef
-		{
-			name		shopLeft_LeftSortSL
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-			rect		48 55 232 29
-			background	"gfx/ui/inv_filtertab"
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1087
-			ownerdrawid	1
-			decoration
-		}
-
-		// The actual control
-
-		//itemDef
-		//{
-		//}
-
-		///////////////////////////
-		// Right tab - sort by price
-		///////////////////////////
-
-		// Background
-		
-		itemDef
-		{
-			name		shopLeft_RightSortBG
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-			rect		203 52 113 35
-			background	"gfx/ui/shop_invtab"
-			forecolor	1 1 1 1
-			visible		1
-			decoration
-		}
-
-		// Highlight
-
-		itemDef
-		{
-			name		shopLeft_RightSortHL
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-			rect		203 52 113 35
-			background	"gfx/ui/shop_invtab"
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		// Selection
-
-		itemDef
-		{
-			name		shopLeft_RightSortSL
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-			rect		203 52 113 35
-			background	"gfx/ui/shop_invtab"
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1088
-			ownerdrawid	1
-			decoration
-		}
-
-		// The actual control
-
-		//itemDef
-		//{
-		//}
-
-		///////////////////////////
-		// Item icons
-		///////////////////////////
-
-		itemDef
-		{
-			name		shopLeft_feederItemIC0
-			group		shop_left
-			rect		113 77 54 54
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1083
-			ownerdrawid	0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopLeft_feederItemIC1
-			group		shop_left
-			rect		113 135 54 54
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1083
-			ownerdrawid	1
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopLeft_feederItemIC2
-			group		shop_left
-			rect		113 194 54 54
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1083
-			ownerdrawid	2
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopLeft_feederItemIC3
-			group		shop_left
-			rect		113 252 54 54
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1083
-			ownerdrawid	3
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopLeft_feederItemIC4
-			group		shop_left
-			rect		113 310 54 54
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1083
-			ownerdrawid	4
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopLeft_feederItemIC5
-			group		shop_left
-			rect		113 368 54 54
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1083
-			ownerdrawid	5
-			decoration
-		}
 
 		///////////////////////////
 		// Item selection buttons
 		///////////////////////////
+
+		// Highlight images - hidden by default, these are shown on mouse events
+
+		itemDef
+		{
+			name		shopLeft_feederItemHL0
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 63 263 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemHL1
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 121 263 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemHL2
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 180 263 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemHL3
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 238 263 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemHL4
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 296 263 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemHL5
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 354 263 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+		
+
+		// Background images - these get rendered no matter what
+
+		itemDef
+		{
+			name		shopLeft_feederItemBG0
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 63 263 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemBG1
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 121 263 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemBG2
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 180 263 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemBG3
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 238 263 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemBG4
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 296 263 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemBG5
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 354 263 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
 
 		// Selection images - these get rendered when we have something selected
 
@@ -326,156 +292,249 @@
 			decoration
 		}
 
-
-		// Highlight images - hidden by default, these are shown on mouse events
-
 		itemDef
 		{
-			name		shopLeft_feederItemHL0
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 63 263 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopLeft_feederItemHL1
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 121 263 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopLeft_feederItemHL2
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 180 263 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopLeft_feederItemHL3
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 238 263 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopLeft_feederItemHL4
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 296 263 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopLeft_feederItemHL5
-			group		shop_left
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 354 263 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-		
-
-		// Background images - these get rendered no matter what
-
-		itemDef
-		{
-			name		shopLeft_feederItemBG0
+			name		shopLeft_feederItemSL0x
 			group		shop_left
 			style		WINDOW_STYLE_SHADER
 	    		background	"gfx/ui/shop_itembutton"
 			rect		71 63 263 81
 			forecolor	1 1 1 1
 			visible		1
+			ownerdraw	1091
+			ownerdrawid	0
 			decoration
 		}
 
 		itemDef
 		{
-			name		shopLeft_feederItemBG1
+			name		shopLeft_feederItemSL1x
 			group		shop_left
 			style		WINDOW_STYLE_SHADER
 	    		background	"gfx/ui/shop_itembutton"
 			rect		71 121 263 81
 			forecolor	1 1 1 1
 			visible		1
+			ownerdraw	1091
+			ownerdrawid	1
 			decoration
 		}
 
 		itemDef
 		{
-			name		shopLeft_feederItemBG2
+			name		shopLeft_feederItemSL2x
 			group		shop_left
 			style		WINDOW_STYLE_SHADER
 	    		background	"gfx/ui/shop_itembutton"
 			rect		71 180 263 81
 			forecolor	1 1 1 1
 			visible		1
+			ownerdraw	1091
+			ownerdrawid	2
 			decoration
 		}
 
 		itemDef
 		{
-			name		shopLeft_feederItemBG3
+			name		shopLeft_feederItemSL3x
 			group		shop_left
 			style		WINDOW_STYLE_SHADER
 	    		background	"gfx/ui/shop_itembutton"
 			rect		71 238 263 81
 			forecolor	1 1 1 1
 			visible		1
+			ownerdraw	1091
+			ownerdrawid	3
 			decoration
 		}
 
 		itemDef
 		{
-			name		shopLeft_feederItemBG4
+			name		shopLeft_feederItemSL4x
 			group		shop_left
 			style		WINDOW_STYLE_SHADER
 	    		background	"gfx/ui/shop_itembutton"
 			rect		71 296 263 81
 			forecolor	1 1 1 1
 			visible		1
+			ownerdraw	1091
+			ownerdrawid	4
 			decoration
 		}
 
 		itemDef
 		{
-			name		shopLeft_feederItemBG5
+			name		shopLeft_feederItemSL5x
 			group		shop_left
 			style		WINDOW_STYLE_SHADER
 	    		background	"gfx/ui/shop_itembutton"
 			rect		71 354 263 81
 			forecolor	1 1 1 1
 			visible		1
+			ownerdraw	1091
+			ownerdrawid	5
 			decoration
 		}
 
+		itemDef
+		{
+			name		shopLeft_feederItemSL0y
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 63 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1091
+			ownerdrawid	0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemSL1y
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 121 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1091
+			ownerdrawid	1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemSL2y
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 180 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1091
+			ownerdrawid	2
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemSL3y
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 238 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1091
+			ownerdrawid	3
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemSL4y
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 296 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1091
+			ownerdrawid	4
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemSL5y
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		71 354 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1091
+			ownerdrawid	5
+			decoration
+		}
+
+		///////////////////////////
+		// Item icons
+		///////////////////////////
+
+		itemDef
+		{
+			name		shopLeft_feederItemIC0
+			group		shop_left
+			rect		113 77 54 54
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1083
+			ownerdrawid	0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemIC1
+			group		shop_left
+			rect		113 135 54 54
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1083
+			ownerdrawid	1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemIC2
+			group		shop_left
+			rect		113 194 54 54
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1083
+			ownerdrawid	2
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemIC3
+			group		shop_left
+			rect		113 252 54 54
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1083
+			ownerdrawid	3
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemIC4
+			group		shop_left
+			rect		113 310 54 54
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1083
+			ownerdrawid	4
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemIC5
+			group		shop_left
+			rect		113 368 54 54
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1083
+			ownerdrawid	5
+			decoration
+		}
 
 		// Button hotspots - these correspond to the areas in purple on the implementation
 
@@ -484,7 +543,7 @@
 			name		shopLeft_feederItemBN0
 			group		shop_left
 			type		ITEM_TYPE_BUTTON
-			rect		105 76 195 56
+			rect		105 87 195 45
 			forecolor	1 1 1 1
 			visible		1
 
@@ -619,7 +678,7 @@
 			name		shopLeft_feederItemBN5
 			group		shop_left
 			type		ITEM_TYPE_BUTTON
-			rect		105 367 195 56
+			rect		105 367 195 42
 			forecolor	1 1 1 1
 			visible		1
 
@@ -641,11 +700,319 @@
 			}
 		}
 
-		//////////////////////////////////////////////////
-		//
-		// Right pane - this is the shop's inventory
-		//
-		//////////////////////////////////////////////////
+		///////////////////////////
+		// Text that gets rendered on the buttons
+		///////////////////////////
+
+		// Names
+		itemDef
+		{
+			name		shopLeft_feederItemNM0
+			group		shop_left
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		113 100 109 23
+			visible		1
+			ownerdraw	1093
+			ownerdrawid	0
+			decoration
+			autowrapped
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemNM1
+			group		shop_left
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		113 161 109 23
+			visible		1
+			ownerdraw	1093
+			ownerdrawid	1
+			decoration
+			autowrapped
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemNM2
+			group		shop_left
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		113 220 109 23
+			visible		1
+			ownerdraw	1093
+			ownerdrawid	2
+			decoration
+			autowrapped
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemNM3
+			group		shop_left
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		113 278 109 23
+			visible		1
+			ownerdraw	1093
+			ownerdrawid	3
+			decoration
+			autowrapped
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemNM4
+			group		shop_left
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		113 336 109 23
+			visible		1
+			ownerdraw	1093
+			ownerdrawid	4
+			decoration
+			autowrapped
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemNM5
+			group		shop_left
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		113 394 109 23
+			visible		1
+			ownerdraw	1093
+			ownerdrawid	5
+			decoration
+			autowrapped
+		}
+
+		// Costs
+		itemDef
+		{
+			name		shopLeft_feederItemPC0
+			group		shop_left
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		240 112 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1095
+			ownerdrawid	0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemPC1
+			group		shop_left
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		240 173 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1095
+			ownerdrawid	1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemPC2
+			group		shop_left
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		240 232 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1095
+			ownerdrawid	2
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemPC3
+			group		shop_left
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		240 290 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1095
+			ownerdrawid	3
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemPC4
+			group		shop_left
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		240 348 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1095
+			ownerdrawid	4
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopLeft_feederItemPC5
+			group		shop_left
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		240 406 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1095
+			ownerdrawid	5
+			decoration
+		}
+		
+		///////////////////////////
+		// Arrows to scroll up and down
+		///////////////////////////
+
+		/////////////////
+		// Up
+
+		// Highlight
+		itemDef
+		{
+			name		shopLeft_ArrowUpHL
+			style		WINDOW_STYLE_SHADER
+			group		shop_left
+			rect		74 73 266 19
+			background	"gfx/ui/shop_arrow_up"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
+
+		// Background
+		itemDef
+		{
+			name		shopLeft_ArrowUpBG
+			style		WINDOW_STYLE_SHADER
+			group		shop_left
+			rect		74 73 266 19
+			background	"gfx/ui/shop_arrow_up"
+			forecolor	1 1 1 1
+			visible		1
+			decoration
+		}
+
+		// Selection zone
+		itemDef
+		{
+			name		shopLeft_ArrowUpBN
+			type		ITEM_TYPE_BUTTON
+			group		shop_left
+			rect		140 76 126 11
+			forecolor	1 1 1 1
+			visible		1
+			
+			mouseEnter
+			{
+				show		shopLeft_ArrowUpHL
+			}
+			
+			mouseExit
+			{
+				hide		shopLeft_ArrowUpHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_arrow left up 1
+			}
+		}
+
+		/////////////////
+		// Down
+
+		// Highlight
+		itemDef
+		{
+			name		shopLeft_ArrowDnHL
+			style		WINDOW_STYLE_SHADER
+			group		shop_left
+			rect		67 408 271 17
+			background	"gfx/ui/shop_arrow_dn"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
+
+		// Background
+		itemDef
+		{
+			name		shopLeft_ArrowDnBG
+			style		WINDOW_STYLE_SHADER
+			group		shop_left
+			rect		67 408 271 17
+			background	"gfx/ui/shop_arrow_dn"
+			forecolor	1 1 1 1
+			visible		1
+			decoration
+		}
+
+		// Selection zone
+		itemDef
+		{
+			name		shopLeft_ArrowDnBN
+			type		ITEM_TYPE_BUTTON
+			group		shop_left
+			rect		140 410 126 11
+			forecolor	1 1 1 1
+			visible		1
+			
+			mouseEnter
+			{
+				show		shopLeft_ArrowDnHL
+			}
+			
+			mouseExit
+			{
+				hide		shopLeft_ArrowDnHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_arrow left down 1
+			}
+		}
 
 		///////////////////////////
 		// Left tab - sort by name
@@ -655,12 +1022,12 @@
 		
 		itemDef
 		{
-			name		shopRight_LeftSortBG
-			group		shop_right
+			name		shopLeft_LeftSortBG
+			group		shop_left
 			style		WINDOW_STYLE_SHADER
-			rect		291 55 232 29
+			rect		48 55 232 29
 			background	"gfx/ui/inv_filtertab"
-			forecolor	1 1 1 1
+			forecolor	1 1 1 0.5
 			visible		1
 			decoration
 		}
@@ -669,10 +1036,10 @@
 
 		itemDef
 		{
-			name		shopRight_LeftSortHL
-			group		shop_right
+			name		shopLeft_LeftSortHL
+			group		shop_left
 			style		WINDOW_STYLE_SHADER
-			rect		291 55 232 29
+			rect		48 55 232 29
 			background	"gfx/ui/inv_filtertab"
 			forecolor	1 1 1 1
 			visible		0
@@ -683,10 +1050,10 @@
 
 		itemDef
 		{
-			name		shopRight_LeftSortSL
-			group		shop_right
+			name		shopLeft_LeftSortSL
+			group		shop_left
 			style		WINDOW_STYLE_SHADER
-			rect		291 55 232 29
+			rect		48 55 232 29
 			background	"gfx/ui/inv_filtertab"
 			forecolor	1 1 1 1
 			visible		1
@@ -697,9 +1064,36 @@
 
 		// The actual control
 
-		//itemDef
-		//{
-		//}
+		itemDef
+		{
+			name		shopLeft_LeftSortBN
+			group		shop_left
+			type		ITEM_TYPE_BUTTON
+			rect		107 63 115 12
+			font		5
+			textscale	0.4
+			textalign	ITEM_ALIGN_CENTER
+			textalignx	62
+			text		@JKG_SHOP_TAB_NAME
+			forecolor	1 1 1 1
+			visible		1
+			
+			mouseEnter
+			{
+				show		shopLeft_LeftSortHL
+			}
+
+			mouseExit
+			{
+				hide		shopLeft_LeftSortHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_sort left name
+			}
+		}
 
 		///////////////////////////
 		// Right tab - sort by price
@@ -709,10 +1103,10 @@
 		
 		itemDef
 		{
-			name		shopRight_RightSortBG
-			group		shop_right
+			name		shopLeft_RightSortBG
+			group		shop_left
 			style		WINDOW_STYLE_SHADER
-			rect		445 52 113 35
+			rect		203 52 113 35
 			background	"gfx/ui/shop_invtab"
 			forecolor	1 1 1 1
 			visible		1
@@ -723,10 +1117,10 @@
 
 		itemDef
 		{
-			name		shopRight_RightSortHL
-			group		shop_right
+			name		shopLeft_RightSortHL
+			group		shop_left
 			style		WINDOW_STYLE_SHADER
-			rect		445 52 113 35
+			rect		203 52 113 35
 			background	"gfx/ui/shop_invtab"
 			forecolor	1 1 1 1
 			visible		0
@@ -737,10 +1131,10 @@
 
 		itemDef
 		{
-			name		shopRight_RightSortSL
-			group		shop_right
+			name		shopLeft_RightSortSL
+			group		shop_left
 			style		WINDOW_STYLE_SHADER
-			rect		445 52 113 35
+			rect		203 52 113 35
 			background	"gfx/ui/shop_invtab"
 			forecolor	1 1 1 1
 			visible		1
@@ -751,9 +1145,449 @@
 
 		// The actual control
 
-		//itemDef
-		//{
-		//}
+		itemDef
+		{
+			name		shopLeft_RightSortBN
+			group		shop_left
+			type		ITEM_TYPE_BUTTON
+			rect		223 63 73 12
+			font		5
+			textscale	0.4
+			textalign	ITEM_ALIGN_CENTER
+			textalignx	36
+			text		@JKG_SHOP_TAB_PRICE
+			forecolor	1 1 1 1
+			visible		1
+			
+			mouseEnter
+			{
+				show		shopLeft_RightSortHL
+			}
+
+			mouseExit
+			{
+				hide		shopLeft_RightSortHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_sort left price
+			}
+		}
+
+		//////////////////////////////////////////////////
+		//
+		// Right pane - this is the shop's inventory
+		//
+		//////////////////////////////////////////////////
+
+		///////////////////////////
+		// Item selection buttons
+		///////////////////////////
+
+		// Highlight images - hidden by default, these are shown on mouse events
+
+		itemDef
+		{
+			name		shopRight_feederItemHL0
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 63 260 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemHL1
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 121 260 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemHL2
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 180 260 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemHL3
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 238 260 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemHL4
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 296 260 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemHL5
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 354 260 81
+			forecolor	1 1 1 0.5
+			visible		0
+			decoration
+		}
+
+
+		// Background images - these get rendered no matter what
+
+		itemDef
+		{
+			name		shopRight_feederItemBG0
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 63 260 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemBG1
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 121 260 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemBG2
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 180 260 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemBG3
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 238 260 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemBG4
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 296 260 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemBG5
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 354 260 81
+			forecolor	1 1 1 0.2
+			visible		1
+			decoration
+		}
+
+		// Selection images - these get rendered when we have something selected
+
+		itemDef
+		{
+			name		shopRight_feederItemSL0
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 63 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL1
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 121 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL2
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 180 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	2
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL3
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 238 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	3
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL4
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 296 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	4
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL5
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 354 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	5
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL0x
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 63 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL1x
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 121 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL2x
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 180 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	2
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL3x
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 238 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	3
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL4x
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 296 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	4
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL5x
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 354 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	5
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL0y
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 63 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL1y
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 121 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL2y
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 180 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	2
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL3y
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 238 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	3
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL4y
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 296 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	4
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemSL5y
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+	    		background	"gfx/ui/shop_itembutton"
+			rect		314 354 263 81
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1092
+			ownerdrawid	5
+			decoration
+		}
 
 		///////////////////////////
 		// Item icons
@@ -831,247 +1665,6 @@
 			decoration
 		}
 
-		///////////////////////////
-		// Item selection buttons
-		///////////////////////////
-
-		// Selection images - these get rendered when we have something selected
-
-		itemDef
-		{
-			name		shopRight_feederItemSL0
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 63 263 81
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1092
-			ownerdrawid	0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemSL1
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 121 263 81
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1092
-			ownerdrawid	1
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemSL2
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 180 263 81
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1092
-			ownerdrawid	2
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemSL3
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 238 263 81
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1092
-			ownerdrawid	3
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemSL4
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 296 263 81
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1092
-			ownerdrawid	4
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemSL5
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		71 354 263 81
-			forecolor	1 1 1 1
-			visible		1
-			ownerdraw	1092
-			ownerdrawid	5
-			decoration
-		}
-
-
-		// Highlight images - hidden by default, these are shown on mouse events
-
-		itemDef
-		{
-			name		shopRight_feederItemHL0
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 63 260 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemHL1
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 121 260 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemHL2
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 180 260 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemHL3
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 238 260 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemHL4
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 296 260 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemHL5
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 354 260 81
-			forecolor	1 1 1 1
-			visible		0
-			decoration
-		}
-
-
-		// Background images - these get rendered no matter what
-
-		itemDef
-		{
-			name		shopRight_feederItemBG0
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 63 260 81
-			forecolor	1 1 1 1
-			visible		1
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemBG1
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 121 260 81
-			forecolor	1 1 1 1
-			visible		1
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemBG2
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 180 260 81
-			forecolor	1 1 1 1
-			visible		1
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemBG3
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 238 260 81
-			forecolor	1 1 1 1
-			visible		1
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemBG4
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 296 260 81
-			forecolor	1 1 1 1
-			visible		1
-			decoration
-		}
-
-		itemDef
-		{
-			name		shopRight_feederItemBG5
-			group		shop_right
-			style		WINDOW_STYLE_SHADER
-	    		background	"gfx/ui/shop_itembutton"
-			rect		314 354 260 81
-			forecolor	1 1 1 1
-			visible		1
-			decoration
-		}
-
-
 		// Button hotspots - these correspond to the areas in purple on the implementation
 
 		itemDef
@@ -1079,7 +1672,7 @@
 			name		shopRight_feederItemBN0
 			group		shop_right
 			type		ITEM_TYPE_BUTTON
-			rect		348 76 195 56
+			rect		348 87 195 45
 			forecolor	1 1 1 1
 			visible		1
 
@@ -1103,7 +1696,7 @@
 
 		itemDef
 		{
-			name		shopRight_feederItemBN0
+			name		shopRight_feederItemBN1
 			group		shop_right
 			type		ITEM_TYPE_BUTTON
 			rect		348 134 195 56
@@ -1214,7 +1807,7 @@
 			name		shopRight_feederItemBN5
 			group		shop_right
 			type		ITEM_TYPE_BUTTON
-			rect		348 367 195 56
+			rect		348 367 195 42
 			forecolor	1 1 1 1
 			visible		1
 
@@ -1235,5 +1828,616 @@
 				clearfocus
 			}
 		}
+
+		///////////////////////////
+		// Text that gets rendered on the buttons
+		///////////////////////////
+
+		// Names
+		itemDef
+		{
+			name		shopRight_feederItemNM0
+			group		shop_right
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		356 100 109 23
+			visible		1
+			ownerdraw	1094
+			ownerdrawid	0
+			decoration
+			autowrapped
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemNM1
+			group		shop_right
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		356 161 109 23
+			visible		1
+			ownerdraw	1094
+			ownerdrawid	1
+			decoration
+			autowrapped
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemNM2
+			group		shop_right
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		356 220 109 23
+			visible		1
+			ownerdraw	1094
+			ownerdrawid	2
+			decoration
+			autowrapped
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemNM3
+			group		shop_right
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		356 278 109 23
+			visible		1
+			ownerdraw	1094
+			ownerdrawid	3
+			decoration
+			autowrapped
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemNM4
+			group		shop_right
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		356 336 109 23
+			visible		1
+			ownerdraw	1094
+			ownerdrawid	4
+			decoration
+			autowrapped
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemNM5
+			group		shop_right
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		356 394 109 23
+			visible		1
+			ownerdraw	1094
+			ownerdrawid	5
+			decoration
+			autowrapped
+		}
+
+		// Costs
+		itemDef
+		{
+			name		shopRight_feederItemPC0
+			group		shop_right
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		483 112 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1096
+			ownerdrawid	0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemPC1
+			group		shop_right
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		483 173 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1096
+			ownerdrawid	1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemPC2
+			group		shop_right
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		483 232 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1096
+			ownerdrawid	2
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemPC3
+			group		shop_right
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		483 290 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1096
+			ownerdrawid	3
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemPC4
+			group		shop_right
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		483 348 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1096
+			ownerdrawid	4
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopRight_feederItemPC5
+			group		shop_right
+			textalign	ITEM_ALIGN_RIGHT
+			font		5
+			textscale	0.4
+			forecolor	1 1 1 1
+			rect		483 406 54 23
+			textalignx	54
+			visible		1
+			ownerdraw	1096
+			ownerdrawid	5
+			decoration
+		}
+
+		///////////////////////////
+		// Arrows to scroll up and down
+		///////////////////////////
+
+		/////////////////
+		// Up
+
+		// Highlight
+		itemDef
+		{
+			name		shopRight_ArrowUpHL
+			style		WINDOW_STYLE_SHADER
+			group		shop_right
+			rect		320 73 266 19
+			background	"gfx/ui/shop_arrow_up"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
+
+		// Background
+		itemDef
+		{
+			name		shopRight_ArrowUpBG
+			style		WINDOW_STYLE_SHADER
+			group		shop_right
+			rect		320 73 266 19
+			background	"gfx/ui/shop_arrow_up"
+			forecolor	1 1 1 1
+			visible		1
+			decoration
+		}
+
+		// Selection zone
+		itemDef
+		{
+			name		shopRight_ArrowUpBN
+			type		ITEM_TYPE_BUTTON
+			group		shop_right
+			rect		384 76 126 11
+			forecolor	1 1 1 1
+			visible		1
+			
+			mouseEnter
+			{
+				show		shopRight_ArrowUpHL
+			}
+			
+			mouseExit
+			{
+				hide		shopRight_ArrowUpHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_arrow right up 1
+			}
+		}
+
+		/////////////////
+		// Down
+
+		// Highlight
+		itemDef
+		{
+			name		shopRight_ArrowDnHL
+			style		WINDOW_STYLE_SHADER
+			group		shop_right
+			rect		317 408 271 17
+			background	"gfx/ui/shop_arrow_dn"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
+
+		// Background
+		itemDef
+		{
+			name		shopRight_ArrowDnBG
+			style		WINDOW_STYLE_SHADER
+			group		shop_right
+			rect		317 408 271 17
+			background	"gfx/ui/shop_arrow_dn"
+			forecolor	1 1 1 1
+			visible		1
+			decoration
+		}
+
+		// Selection zone
+		itemDef
+		{
+			name		shopRight_ArrowDnBN
+			type		ITEM_TYPE_BUTTON
+			group		shop_right
+			rect		384 410 126 11
+			forecolor	1 1 1 1
+			visible		1
+			
+			mouseEnter
+			{
+				show		shopRight_ArrowDnHL
+			}
+			
+			mouseExit
+			{
+				hide		shopRight_ArrowDnHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_arrow right down 1
+			}
+		}
+
+		///////////////////////////
+		// Left tab - sort by name
+		///////////////////////////
+
+		// Background
+		
+		itemDef
+		{
+			name		shopRight_LeftSortBG
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+			rect		291 55 232 29
+			background	"gfx/ui/inv_filtertab"
+			forecolor	1 1 1 1
+			visible		1
+			decoration
+		}
+
+		// Highlight
+
+		itemDef
+		{
+			name		shopRight_LeftSortHL
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+			rect		291 55 232 29
+			background	"gfx/ui/inv_filtertab"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
+
+		// Selection
+
+		itemDef
+		{
+			name		shopRight_LeftSortSL
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+			rect		291 55 232 29
+			background	"gfx/ui/inv_filtertab"
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1087
+			ownerdrawid	1
+			decoration
+		}
+
+		// The actual control
+
+		itemDef
+		{
+			name		shopRight_LeftSortBN
+			group		shop_right
+			type		ITEM_TYPE_BUTTON
+			rect		349 63 115 12
+			font		5
+			textscale	0.4
+			textalign	ITEM_ALIGN_CENTER
+			textalignx	62
+			text		@JKG_SHOP_TAB_NAME
+			forecolor	1 1 1 1
+			visible		1
+			
+			mouseEnter
+			{
+				show		shopRight_LeftSortHL
+			}
+
+			mouseExit
+			{
+				hide		shopRight_LeftSortHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_sort right name
+			}
+		}
+
+		///////////////////////////
+		// Right tab - sort by price
+		///////////////////////////
+
+		// Background
+		
+		itemDef
+		{
+			name		shopRight_RightSortBG
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+			rect		445 52 113 35
+			background	"gfx/ui/shop_invtab"
+			forecolor	1 1 1 1
+			visible		1
+			decoration
+		}
+
+		// Highlight
+
+		itemDef
+		{
+			name		shopRight_RightSortHL
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+			rect		445 52 113 35
+			background	"gfx/ui/shop_invtab"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
+
+		// Selection
+
+		itemDef
+		{
+			name		shopRight_RightSortSL
+			group		shop_right
+			style		WINDOW_STYLE_SHADER
+			rect		445 52 113 35
+			background	"gfx/ui/shop_invtab"
+			forecolor	1 1 1 1
+			visible		1
+			ownerdraw	1088
+			ownerdrawid	1
+			decoration
+		}
+
+		// The actual control
+
+		itemDef
+		{
+			name		shopRight_RightSortBN
+			group		shop_right
+			type		ITEM_TYPE_BUTTON
+			rect		465 63 73 12
+			font		5
+			textscale	0.4
+			textalign	ITEM_ALIGN_CENTER
+			textalignx	36
+			text		@JKG_SHOP_TAB_PRICE
+			forecolor	1 1 1 1
+			visible		1
+			
+			mouseEnter
+			{
+				show		shopRight_RightSortHL
+			}
+
+			mouseExit
+			{
+				hide		shopRight_RightSortHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_sort right price
+			}
+		}
+
+		//////////////////////////////////////////////////
+		//
+		// Center items
+		//
+		//////////////////////////////////////////////////
+
+		// Filter option
+		itemDef
+		{
+			name		shopCenter_Filter
+			group		shop_center
+			type		ITEM_TYPE_MULTI
+			rect		259 430 132 19
+			font		5
+			textscale	0.4
+			textalign	ITEM_ALIGN_CENTER
+			textalignx	66
+			forecolor	1 1 1 1
+			visible		1
+			
+			cvar		"ui_inventoryFilter"
+			cvarFloatList
+			{
+				@JKG_INVENTORY_FILTER_ALL		0
+				@JKG_INVENTORY_FILTER_WEAPONS		1
+				@JKG_INVENTORY_FILTER_ARMOR		2
+				@JKG_INVENTORY_FILTER_AID		3
+				@JKG_INVENTORY_FILTER_MISC		4
+			}
+
+			text		@JKG_INVENTORY_FILTER
+		}
+
+		// Buy Button
+		itemDef
+		{
+			name		shopCenter_BuyHL
+			group		shop_center
+			style		WINDOW_STYLE_SHADER
+			rect		302 212 45 45
+			background	"gfx/ui/shop_buy"
+			forecolor	1 1 1 1
+			visible		0
+			decoration	
+		}
+
+		itemDef
+		{
+			name		shopCenter_BuyBG
+			group		shop_center
+			style		WINDOW_STYLE_SHADER
+			rect		302 212 45 45
+			background	"gfx/ui/shop_buy"
+			forecolor	1 1 1 1
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopCenter_BuyBN
+			group		shop_center
+			type		ITEM_TYPE_BUTTON
+			rect		306 215 36 36
+			forecolor	1 1 1 1
+			visible		1
+
+			mouseEnter
+			{
+				show		shopCenter_BuyHL
+			}
+
+			mouseExit
+			{
+				hide		shopCenter_BuyHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_buy
+			}
+		}
+
+		// Sell Button
+		itemDef
+		{
+			name		shopCenter_SellHL
+			group		shop_center
+			style		WINDOW_STYLE_SHADER
+			rect		300 255 46 46
+			background	"gfx/ui/shop_sell"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopCenter_SellBG
+			group		shop_center
+			style		WINDOW_STYLE_SHADER
+			rect		300 255 46 46
+			background	"gfx/ui/shop_sell"
+			forecolor	1 1 1 1
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopCenter_SellBN
+			group		shop_center
+			type		ITEM_TYPE_BUTTON
+			rect		306 260 36 36
+			forecolor	1 1 1 1
+			visible		1
+
+			mouseEnter
+			{
+				show		shopCenter_SellHL
+			}
+
+			mouseExit
+			{
+				hide		shopCenter_SellHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_sell
+			}
+		}	
 	}
 }
