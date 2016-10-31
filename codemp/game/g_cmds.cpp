@@ -1454,6 +1454,9 @@ void SetTeam( gentity_t *ent, char *s ) {
 	if ( !ClientUserinfoChanged( clientNum ) )
 		return;
 
+	// Wipe the client's inventory before they begin so they won't get their old inventory
+	BG_SendItemPacket(IPT_CLEAR, ent, nullptr, 0, 0);
+
 	if (!g_preventTeamBegin)
 	{
 		ClientBegin( clientNum, qfalse );
