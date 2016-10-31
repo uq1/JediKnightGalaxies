@@ -2053,6 +2053,20 @@ typedef struct {
 	float walkSpeedModifier;
 	float minimumSpeedModifier;
 	float sprintSpeedModifier;
+
+	// Stuff pertaining to stamina drains
+	struct Stamina {
+		int lossFromRolling;
+		int lossFromPunching;
+		int lossFromJumping;
+		int lossFromKicking;
+		int minSprintThreshold;
+		int minRollThreshold;
+		int minJumpThreshold;
+		int minPunchThreshold;
+		int minKickThreshold;
+	};
+	Stamina staminaDrains;
 } bgConstants_t;
 
 extern bgConstants_t bgConstants;

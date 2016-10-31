@@ -743,6 +743,10 @@ static qboolean turretG2_find_enemies( gentity_t *self )
 		{
 			continue;
 		}
+		if ( target->client && target->client->noclip )
+		{
+			continue;
+		}
 		if ( target->client && target->client->sess.sessionTeam == TEAM_SPECTATOR )
 		{
 			continue;

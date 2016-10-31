@@ -3472,4 +3472,3 @@ void Q_FSWriteString( fileHandle_t f, const char *msg ) {
 		trap->FS_Write( msg, strlen( msg ), f );
 	}
 }
-

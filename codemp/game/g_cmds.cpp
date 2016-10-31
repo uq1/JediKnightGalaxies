@@ -123,6 +123,48 @@ qboolean StringIsInteger( const char *s ) {
 
 /*
 ==================
+ClientNumberFromString
+Returns a player number for either a number or name string
+Returns -1 if invalid
+==================
+*/
+int ClientNumberFromString( gentity_t *to, const char *s, qboolean allowconnecting ) {
+	gclient_t	*cl;
+	int			idnum;
+	char		cleanInput[MAX_NETNAME];
+
+	if ( StringIsInteger( s ) )
+	{// numeric values could be slot numbers
+		idnum = atoi( s );
+		if ( idnum >= 0 && idnum < level.maxclients )
+		{
+			cl = &level.clients[idnum];
+			if ( cl->pers.connected == CON_CONNECTED )
+				return idnum;
+			else if ( allowconnecting && cl->pers.connected == CON_CONNECTING )
+				return idnum;
+		}
+	}
+
+	Q_strncpyz( cleanInput, s, sizeof(cleanInput) );
+	Q_StripColor( cleanInput );
+
+	for ( idnum=0,cl=level.clients; idnum < level.maxclients; idnum++,cl++ )
+	{// check for a name match
+		if ( cl->pers.connected != CON_CONNECTED )
+			if ( !allowconnecting || cl->pers.connected < CON_CONNECTING )
+				continue;
+
+		if ( !Q_stricmp( cl->pers.netname_nocolor, cleanInput ) )
+			return idnum;
+	}
+
+	trap->SendServerCommand( to-g_entities, va( "print \"User %s is not on the server\n\"", s ) );
+	return -1;
+}
+
+/*
+==================
 DeathmatchScoreboardMessage
 
 ==================
@@ -519,77 +561,6 @@ JKGStringType_t JKG_CheckIfNumber(const char *string)
 	return JKGSTR_DECIMAL;
 }
 
-/*
-==================
-SanitizeString
-
-Remove case and control characters
-
-//futuza: todo replace this with Global_SanitizeString if possible, note this also removes case so we have to account for that
-==================
-*/
-void SanitizeString( char *in, char *out ) {
-	while ( *in ) {
-		if ( *in == 27 ) {
-			in += 2;		// skip color code
-			continue;
-		}
-		if ( *in < 32 ) {
-			in++;
-			continue;
-		}
-		*out++ = tolower( (unsigned char) *in++ );
-	}
-
-	*out = 0;
-}
-
-/*
-==================
-ClientNumberFromString
-
-Returns a player number for either a number or name string
-Returns -1 if invalid
-==================
-*/
-int ClientNumberFromString( gentity_t *to, char *s ) {
-	gclient_t	*cl;
-	int			idnum;
-	char		s2[MAX_STRING_CHARS];
-	char		n2[MAX_STRING_CHARS];
-
-	// numeric values are just slot numbers
-	if (s[0] >= '0' && s[0] <= '9') {
-		idnum = atoi( s );
-		if ( idnum < 0 || idnum >= level.maxclients ) {
-			trap->SendServerCommand( to-g_entities, va("print \"Bad client slot: %i\n\"", idnum));
-			return -1;
-		}
-
-		cl = &level.clients[idnum];
-		if ( cl->pers.connected != CON_CONNECTED ) {
-			trap->SendServerCommand( to-g_entities, va("print \"Client %i is not active\n\"", idnum));
-			return -1;
-		}
-		return idnum;
-	}
-
-	// check for a name match
-	SanitizeString( s, s2 );
-	for ( idnum=0,cl=level.clients ; idnum < level.maxclients ; idnum++,cl++ ) {
-		if ( cl->pers.connected != CON_CONNECTED ) {
-			continue;
-		}
-		SanitizeString( cl->pers.netname, n2 );
-		if ( !strcmp( n2, s2 ) ) {
-			return idnum;
-		}
-	}
-
-	trap->SendServerCommand( to-g_entities, va("print \"User %s is not on the server\n\"", s));
-	return -1;
-}
-
 int G_ClientNumberFromStrippedSubstring ( const char* name, qboolean checkAll );
 int G_ClientNumberFromArg ( const char* name)
 {
@@ -634,7 +605,7 @@ qboolean G_VoteFraglimit(gentity_t *ent, int numArgs, const char *arg1, const ch
 }
 
 qboolean G_VoteKick(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
-	int clientid = ClientNumberFromString(ent, const_cast<char*>(arg2));
+	int clientid = ClientNumberFromString(ent, arg2, qtrue);
 	gentity_t *target = NULL;
 	if (clientid == -1)
 		return qfalse;
@@ -799,111 +770,76 @@ void Svcmd_ToggleAllowVote_f(void) {
 	}
 }
 
-/*
-==================
-Cmd_Give_f
-
-Give items to a client
-==================
-*/
-void Cmd_Give_f (gentity_t *cmdent, int baseArg)
+void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 {
-	char		name[MAX_TOKEN_CHARS];
-	gentity_t	*ent;
 	gitem_t		*it;
 	int			i;
-	qboolean	give_all;
-	gentity_t		*it_ent;
+	qboolean	give_all = qfalse;
+	gentity_t	*it_ent;
 	trace_t		trace;
-	char		arg[MAX_TOKEN_CHARS];
 
-	if ( !CheatsOk( cmdent ) ) {
-		return;
-	}
-
-	if (baseArg)
-	{
-		char otherindex[MAX_TOKEN_CHARS];
-
-		trap->Argv( 1, otherindex, sizeof( otherindex ) );
-
-		if (!otherindex[0])
-		{
-			Com_Printf("giveother requires that the second argument be a client index number.\n");
-			return;
-		}
-
-		i = atoi(otherindex);
-
-		if (i < 0 || i >= MAX_CLIENTS)
-		{
-			Com_Printf("%i is not a client index\n", i);
-			return;
-		}
-
-		ent = &g_entities[i];
-
-		if (!ent->inuse || !ent->client)
-		{
-			Com_Printf("%i is not an active client\n", i);
-			return;
-		}
-	}
-	else
-	{
-		ent = cmdent;
-	}
-
-	trap->Argv( 1+baseArg, name, sizeof( name ) );
-
-	if (Q_stricmp(name, "all") == 0)
+	if ( !Q_stricmp( name, "all" ) )
 		give_all = qtrue;
-	else
-		give_all = qfalse;
 
-	if (give_all || Q_stricmp( name, "health") == 0)
+	/*if ( give_all )
 	{
-		if (trap->Argc() == 3+baseArg) {
-			trap->Argv( 2+baseArg, arg, sizeof( arg ) );
-			ent->health = atoi(arg);
-			if (ent->health > ent->client->ps.stats[STAT_MAX_HEALTH]) {
-				ent->health = ent->client->ps.stats[STAT_MAX_HEALTH];
-			}
-		}
-		else {
+		for ( i=0; i<HI_NUM_HOLDABLE; i++ )
+			ent->client->ps.stats[STAT_HOLDABLE_ITEMS] |= (1 << i);
+	}*/
+
+	if ( give_all || !Q_stricmp( name, "health" ) )
+	{
+		if ( argc == 3 )
+			ent->health = Com_Clampi( 1, ent->client->ps.stats[STAT_MAX_HEALTH], atoi( args ) );
+		else
 			ent->health = ent->client->ps.stats[STAT_MAX_HEALTH];
-		}
-		if (!give_all)
+
+		if ( !give_all )
 			return;
 	}
 
-	if (give_all || Q_stricmp(name, "weapons") == 0)
+	if ( give_all || !Q_stricmp( name, "armor" ) || !Q_stricmp( name, "shield" ) )
 	{
-		ent->client->ps.stats[STAT_WEAPONS] = (1 << (LAST_USEABLE_WEAPON+1))  - ( 1 << WP_NONE );
-		if (!give_all)
+		if ( argc == 3 )
+			ent->client->ps.stats[STAT_ARMOR] = Com_Clampi( 0, ent->client->ps.stats[STAT_MAX_ARMOR], atoi( args ) );
+		else
+			ent->client->ps.stats[STAT_ARMOR] = ent->client->ps.stats[STAT_MAX_ARMOR];
+
+		if ( !give_all )
 			return;
 	}
-	
-	if ( !give_all && Q_stricmp(name, "weaponnum") == 0 )
+
+	/*if ( give_all || !Q_stricmp( name, "force" ) )
 	{
-		trap->Argv( 2+baseArg, arg, sizeof( arg ) );
-		ent->client->ps.stats[STAT_WEAPONS] |= (1 << atoi(arg));
+		if ( argc == 3 )
+			ent->client->ps.fd.forcePower = Com_Clampi( 0, ent->client->ps.fd.forcePowerMax, atoi( args ) );
+		else
+			ent->client->ps.fd.forcePower = ent->client->ps.fd.forcePowerMax;
+
+		if ( !give_all )
+			return;
+	}*/
+
+	if ( give_all || !Q_stricmp( name, "weapons" ) )
+	{
+		ent->client->ps.stats[STAT_WEAPONS] = (1 << (LAST_USEABLE_WEAPON+1)) - ( 1 << WP_NONE );
+		if ( !give_all )
+			return;
+	}
+
+	if ( !give_all && !Q_stricmp( name, "weaponnum" ) )
+	{
+		ent->client->ps.stats[STAT_WEAPONS] |= (1 << atoi( args ));
 		return;
 	}
-	
-	if ( !give_all && Q_stricmp (name, "weapon") == 0 )
+
+	if ( !give_all && !Q_stricmp( name, "weapon" ) )
 	{
-	    weaponData_t *weapon;
-	    
-	    trap->Argv (2 + baseArg, arg, sizeof (arg));
-	    weapon = BG_GetWeaponByClassName (arg);
+	    const weaponData_t *weapon = BG_GetWeaponByClassName ( args );
 	    if ( weapon )
 	    {
-	        int i = 0;
-			int itemID;
-	        
 			//FIXME: The below assumes that there is a valid weapon item
-			itemID = BG_GetItemByWeaponIndex(BG_GetWeaponIndex((unsigned int)weapon->weaponBaseIndex, (unsigned int)weapon->weaponModIndex))->itemID;
+			int itemID = BG_GetItemByWeaponIndex(BG_GetWeaponIndex((unsigned int)weapon->weaponBaseIndex, (unsigned int)weapon->weaponModIndex))->itemID;
 
 			itemInstance_t item = BG_ItemInstance(itemID, 1);
 			BG_GiveItem(ent, item);
@@ -914,22 +850,19 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 	    }
 	    else
 	    {
-	        trap->SendServerCommand (ent->s.number, va ("print \"'%s' does not exist.\n\"", arg));
+	        trap->SendServerCommand (ent->s.number, va ("print \"'%s' does not exist.\n\"", args));
 	    }
 	    return;
 	}
 
-	if (give_all || Q_stricmp(name, "ammo") == 0)
+	if ( give_all || !Q_stricmp( name, "ammo" ) )
 	{
 		int num = 999;
-		if (trap->Argc() == 3+baseArg) {
-			trap->Argv( 2+baseArg, arg, sizeof( arg ) );
-			num = atoi(arg);
-		}
-		for ( i = 0 ; i < JKG_MAX_AMMO_INDICES ; i++ ) {
+		if ( argc == 3 )
+			num = Com_Clampi( 0, 999, atoi( args ) );
+		for ( i=0; i<JKG_MAX_AMMO_INDICES; i++ )
 			ent->client->ammoTable[i] = num;		//FIXME: copy to proper ammo array
-		}
-		for ( i = 0; i <= 255; i++ )
+		for ( i=0; i<256; i++ )
 		{
 			int weapVar, weapBase;
 			if(!BG_GetWeaponByIndex(i, &weapBase, &weapVar))
@@ -939,32 +872,15 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 			ent->client->clipammo[i] = GetWeaponAmmoClip (weapBase, weapVar);
 		}
 		ent->client->ps.ammo = num;
-		if (!give_all)
+		if ( !give_all )
 			return;
 	}
-
-	if (give_all || Q_stricmp(name, "armor") == 0)
-	{
-		if (trap->Argc() == 3+baseArg) {
-			trap->Argv( 2+baseArg, arg, sizeof( arg ) );
-			ent->client->ps.stats[STAT_ARMOR] = atoi(arg);
-		} else {
-			ent->client->ps.stats[STAT_ARMOR] = ent->client->ps.stats[STAT_MAX_ARMOR];
-		}
-
-		if (!give_all)
-			return;
-	}
-
+	
 	//Inventory items -- eezstreet/JKG
-	if(!give_all && Q_stricmp(name, "item") == 0)
+	if( !give_all && !Q_stricmp( name, "item" ) )
 	{
-		int itemID = 0, j = 0;
-		qboolean inventoryFull = qtrue;
-
-		trap->Argv(2+baseArg, arg, sizeof( arg ) );
-		itemID = atoi(arg);
-
+		//qboolean inventoryFull = qtrue;
+		int itemID = atoi( args );
 		if(itemID)
 		{
 			if(!itemLookupTable[itemID].itemID)
@@ -977,9 +893,9 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 		}
 		else
 		{
-			itemInstance_t item = BG_ItemInstance(arg, 1);
+			itemInstance_t item = BG_ItemInstance(args, 1);
 			if (!item.id) {
-				trap->SendServerCommand(ent - g_entities, va("print \"%s refers to an item that does not exist\n\"", arg));
+				trap->SendServerCommand(ent - g_entities, va("print \"%s refers to an item that does not exist\n\"", args));
 				return;
 			}
 			BG_GiveItem(ent, item);
@@ -987,44 +903,112 @@ void Cmd_Give_f (gentity_t *cmdent, int baseArg)
 		return;
 	}
 
-	if (Q_stricmp(name, "credits") == 0 || Q_stricmp(name, "credit") == 0) {
-		int creditAmount;
-		trap->Argv(2+baseArg, arg, sizeof( arg ) );
-
-		creditAmount = atoi(arg);
-		ent->client->ps.credits += creditAmount;
-		int credits = ent->client->ps.credits;
-		trap->SendServerCommand( ent->client->ps.clientNum, va("print \"Your new balance is: %i credits\n\"", Q_max (0, credits)) );
-		return;
+	if ( give_all || !Q_stricmp( name, "credits" ) || !Q_stricmp( name, "credit" ) ) {
+		int num = 32000; // FIXME
+		// FIXME if we allow addition of large number to an already close to overflow...
+		if ( argc == 3 )
+			num = Com_Clampi( 0, INT_MAX-2, atoi( args ) ); // putting a minus 2 here for safety
+		ent->client->ps.credits = Com_Clampi( 0, INT_MAX-2, ent->client->ps.credits+num );
+		trap->SendServerCommand( ent->client->ps.clientNum, va("print \"Your new balance is: %i credits\n\"", ent->client->ps.credits ));
+		if ( !give_all )
+			return;
 	}
 
-	if ( give_all )
-	{
-		ent->client->ps.cloakFuel	= 100;
-		ent->client->ps.jetpackFuel	= 100;
-		ent->client->ps.credits = 32000; // FIXME
+	if ( give_all || !Q_stricmp( name, "cloak" ) || !Q_stricmp( name, "cloakFuel" ) ) {
+		int num = 100;
+		if ( argc == 3 )
+			num = Com_Clampi( 0, 100, atoi( args ) );
+		ent->client->ps.cloakFuel = num;
+		if ( !give_all )
+			return;
+	}
+
+	if ( give_all || !Q_stricmp( name, "jetpack" ) || !Q_stricmp( name, "jetpackFuel" ) ) {
+		int num = 100;
+		if ( argc == 3 )
+			num = Com_Clampi( 0, 100, atoi( args ) );
+		ent->client->ps.jetpackFuel = num;
+		if ( !give_all )
+			return;
 	}
 
 	// spawn a specific item right on the player
 	if ( !give_all ) {
-		it = BG_FindItem (name);
-		if (!it) {
+		it = BG_FindItem( name );
+		if ( !it )
 			return;
-		}
 
 		it_ent = G_Spawn();
 		VectorCopy( ent->r.currentOrigin, it_ent->s.origin );
 		it_ent->classname = it->classname;
-		G_SpawnItem (it_ent, it);
-			if ( !it_ent || !it_ent->inuse )
+		G_SpawnItem( it_ent, it );
+		if ( !it_ent || !it_ent->inuse )
 			return;
-		FinishSpawningItem(it_ent );
+		FinishSpawningItem( it_ent );
+		if ( !it_ent || !it_ent->inuse )
+			return;
 		memset( &trace, 0, sizeof( trace ) );
-		Touch_Item (it_ent, ent, &trace);
-		if (it_ent->inuse) {
+		Touch_Item( it_ent, ent, &trace );
+		if ( it_ent->inuse )
 			G_FreeEntity( it_ent );
-		}
 	}
+}
+
+void Cmd_Give_f( gentity_t *ent )
+{
+	char name[MAX_TOKEN_CHARS] = {0};
+
+	if ( !CheatsOk( ent ) ) {
+		return;
+	}
+
+	trap->Argv( 1, name, sizeof( name ) );
+	G_Give( ent, name, ConcatArgs( 2 ), trap->Argc() );
+}
+
+void Cmd_GiveOther_f( gentity_t *ent )
+{
+	char		name[MAX_TOKEN_CHARS] = {0};
+	int			i;
+	char		otherindex[MAX_TOKEN_CHARS];
+	gentity_t	*otherEnt = NULL;
+
+	/*if ( !CheatsOk( ent ) ) {
+		return;
+	}*/
+	// giveother doesn't care if the activator is dead or not
+	// so only check the intended target for life below
+	if ( !sv_cheats.integer && !ent->client->sess.canUseCheats ) {
+		trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
+		return;
+	}
+
+	if ( trap->Argc () < 3 ) {
+		trap->SendServerCommand( ent-g_entities, "print \"Usage: giveother <player id> <givestring>\n\"" );
+		return;
+	}
+
+	trap->Argv( 1, otherindex, sizeof( otherindex ) );
+	i = ClientNumberFromString( ent, otherindex, qfalse );
+	if ( i == -1 ) {
+		return;
+	}
+
+	otherEnt = &g_entities[i];
+	if ( !otherEnt->inuse || !otherEnt->client ) {
+		return;
+	}
+
+	if ( (otherEnt->health <= 0 || otherEnt->client->deathcamTime || otherEnt->client->tempSpectate >= level.time || otherEnt->client->sess.sessionTeam == TEAM_SPECTATOR) )
+	{
+		// Intentionally displaying for the command user
+		trap->SendServerCommand( ent-g_entities, va( "print \"%s\n\"", G_GetStringEdString( "MP_SVGAME", "MUSTBEALIVE" ) ) );
+		return;
+	}
+
+	trap->Argv( 2, name, sizeof( name ) );
+
+	G_Give( otherEnt, name, ConcatArgs( 3 ), trap->Argc()-1 );
 }
 
 /*
@@ -1169,13 +1153,8 @@ Let everyone know about a team change
 */
 void BroadcastTeamChange( gclient_t *client, int oldTeam )														
 {
-
 	client->ps.fd.forceDoInit = 1; //every time we change teams make sure our force powers are set right
-	
-	//BUG\FIXME: messages are getting cut off if names aren't a certain length when they mix ^1 and ^xRGB color codes, see github issue: https://github.com/JKGDevs/JediKnightGalaxies/issues/131#issuecomment-179015083
-	//lazy fix: convert to regular colors with JKG_xRBG_ConvertExtToNormal()
 
-	//--futuza notes:  ^xRGB fix applied from tr_font.cpp now supports extended colors
 	if ( client->sess.sessionTeam == TEAM_RED ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
 			client->pers.netname, G_GetStringEdString2(bgGangWarsTeams[level.redTeam].joinstring)) );
@@ -1467,6 +1446,9 @@ void SetTeam( gentity_t *ent, char *s ) {
 	if ( !ClientUserinfoChanged( clientNum ) )
 		return;
 
+	// Wipe the client's inventory before they begin so they won't get their old inventory
+	BG_SendItemPacket(IPT_CLEAR, ent, nullptr, 0, 0);
+
 	if (!g_preventTeamBegin)
 	{
 		ClientBegin( clientNum, qfalse );
@@ -1601,8 +1583,6 @@ JKG_Cmd_ItemAction_f
 */
 void JKG_Cmd_ItemAction_f (gentity_t *ent, int itemNum)
 {
-	itemInstance_t *itemInUse;
-	int i;
 	if(!ent->client)
 	{
 		return; //NOTENOTE: NPCs can perform item actions. Nifty, eh?
@@ -1697,11 +1677,7 @@ Destroys an item from your inventory
 void JKG_Cmd_DestroyItem_f(gentity_t *ent)
 {
 	char arg[64];
-	int i, inventoryID = -1;
-	itemInstance_t destroyedItem;
 	trap->Argv(1, arg, sizeof(arg));
-
-	memset(&destroyedItem, 0, sizeof(itemInstance_t));
 
 	if(trap->Argc() < 2)
 	{
@@ -1910,7 +1886,7 @@ argCheck:
 
 		trap->Argv( 1, arg, sizeof( arg ) );
 
-		if (arg && arg[0])
+		if (arg[0])
 		{ //if there's an arg, assume it's a combo team command from the UI.
 			Cmd_Team_f(ent);
 		}
@@ -1981,7 +1957,7 @@ void Cmd_Follow_f( gentity_t *ent ) {
 	}
 
 	trap->Argv( 1, arg, sizeof( arg ) );
-	i = ClientNumberFromString( ent, arg );
+	i = ClientNumberFromString( ent, arg, qfalse );
 	if ( i == -1 ) {
 		return;
 	}
@@ -2270,9 +2246,6 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 			s++;
 		}
 	}
-
-
-
 
 	if (chatText[0] == '/' || chatText[0] == '\\') {
 		// Command, special treatment
@@ -2651,101 +2624,28 @@ void JKG_BindChatCommands( void )
 	CCmd_AddCommand("say_team", CCmd_Say_Team);
 }
 
-// JKG BIG FIXME: We need to get everything together and work on a general SanitizeString that works across the board. I swear we have like seven functions
-// devoted to simply stripping a string of color codes. It's getting a bit ridiculous now. --eez
-
 /*
 ==================
-SanitizeString2
-
-Rich's revised version of SanitizeString
-
---futuza: todo: use GlobalSanitizeString() in q_shared.c instead
+ClientNumberFromString
+Returns a player number for a name string
+Returns -1 if invalid
 ==================
 */
-void SanitizeString2( char *in, char *out )
-{
-	int i = 0;
-	int r = 0;
+int G_ClientNumberFromStrippedName( const char *name ) {
+	gclient_t	*cl;
+	int			idnum;
+	char		cleanInput[MAX_NETNAME];
 
-	while (in[i])
-	{
-		if (i >= MAX_NAME_LENGTH-1)
-		{ // the ui truncates the name here..
-			break;
-		}
+	Q_strncpyz( cleanInput, name, sizeof(cleanInput) );
+	Q_StripColor( cleanInput );
 
-		if (in[i] == '^')
-		{
-			if (in[i+1] >= 48 && //'0'
-				in[i+1] <= 57) //'9'
-			{ //only skip it if there's a number after it for the color
-				i += 2;
-				continue;
-			}
-			else if (in[i + 1] == 'x' || in[i + 1] == 'X')		//if an extended RGB color code
-			{
-
-				for (int l = 2; l < 7; l++)
-				{
-					if (in[i + l] == NULL)
-						;					//if we hit end of string do nothing
-					else
-						i++;
-				}
-				//i += 5;
-				continue;
-			}
-			else
-			{ // just skip the ^
-				i++;
-				continue;
-			}
-		}
-
-		if (in[i] < 32)
-		{
-			i++;
+	for ( idnum=0,cl=level.clients; idnum < level.maxclients; idnum++,cl++ )
+	{// check for a name match
+		if ( cl->pers.connected != CON_CONNECTED )
 			continue;
-		}
 
-		out[r] = in[i];
-		r++;
-		i++;
-	}
-	out[r] = 0;
-}
-
-/*
-====================
-G_ClientNumberFromStrippedName
-
-Same as above, but strips special characters out of the names before comparing.
-Jedi Knight Galaxies - Fixed the code to return the correct client ID
-====================
-*/
-
-int G_ClientNumberFromStrippedName ( const char* name )
-{
-	char		s2[MAX_STRING_CHARS];
-	char		n2[MAX_STRING_CHARS];
-	int			i;
-	gclient_t*	cl;
-
-	// check for a name match
-	//SanitizeString2( (char*)name, s2 );			//futuza: Global_SanitizeString
-	Global_SanitizeString((char*)name, s2, MAX_NAME_LENGTH);		//fixed
-	Q_strlwr(s2);
-	for ( i=0; i < level.numConnectedClients ; i++ ) 
-	{
-		cl = &level.clients[level.sortedClients[i]];
-		//SanitizeString2( cl->pers.netname, n2 );
-		Global_SanitizeString(cl->pers.netname, n2, MAX_NAME_LENGTH);
-		Q_strlwr(n2);
-		if ( !strcmp( n2, s2 ) ) 
-		{
-			return level.sortedClients[i];
-		}
+		if ( !Q_stricmp( cl->pers.netname_nocolor, cleanInput ) )
+			return idnum;
 	}
 
 	return -1;
@@ -2843,7 +2743,7 @@ void Cmd_GameCommand_f( gentity_t *ent ) {
 	}
 
 	trap->Argv( 1, arg, sizeof( arg ) );
-	targetNum = ClientNumberFromString( ent, arg );
+	targetNum = ClientNumberFromString( ent, arg, qfalse );
 	if ( targetNum == -1 )
 		return;
 
@@ -2918,36 +2818,33 @@ Checks substrings rather than the full string and returns -2 on multiple matches
 
 int G_ClientNumberFromStrippedSubstring ( const char* name, qboolean checkAll )
 {
-	char		s2[MAX_STRING_CHARS];
-	char		n2[MAX_STRING_CHARS];
-	int			i, match = -1;
 	gclient_t	*cl;
+	int			idnum, match = -1;
+	char		cleanInput[MAX_NETNAME];
 
-	// check for a name match
-	//SanitizeString2( (char*)name, s2 );			//futuza: Global_SanitizeString
-	Global_SanitizeString((char*)name, s2, MAX_NAME_LENGTH);
-	Q_strlwr(s2);
-	for ( i=0 ; i < level.numConnectedClients ; i++ ) 
-	{
-		cl = &level.clients[level.sortedClients[i]];
-		//SanitizeString2( cl->pers.netname, n2 );
-		Global_SanitizeString(cl->pers.netname, n2, MAX_NAME_LENGTH);
-		Q_strlwr(n2);
-		if ( strstr( n2, s2 ) ) 
+	Q_strncpyz( cleanInput, name, sizeof(cleanInput) );
+	Q_StripColor( cleanInput );
+
+	for ( idnum=0,cl=level.clients; idnum < level.maxclients; idnum++,cl++ )
+	{// check for a name match
+		if ( cl->pers.connected != CON_CONNECTED )
+			continue;
+
+		if ( Q_stristr( cl->pers.netname_nocolor, cleanInput ) )
 		{
 			if( match != -1 )
 			{ //found more than one match
 				return -2;
 			}
-			match = level.sortedClients[i];
-			if (!checkAll) {
-				// Don't continue checking
+			match = idnum;
+			if (!checkAll)
+			{ // Don't continue checking
 				return match;
 			}
 		}
 	}
 
-	return match;
+	return match; // Could this just be -1? I'm not sure...
 }
 
 /*
@@ -4095,7 +3992,7 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 
 		if (challenged->client->ps.duelIndex == ent->s.number && challenged->client->ps.duelTime >= level.time)
 		{
-			trap->SendServerCommand( /*challenged-g_entities*/-1, va("print \"%s %s %s!\n\"", challenged->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"), ent->client->pers.netname));		//--futuza note: test this, make sure I didn't break dueling with my RGB fix
+			trap->SendServerCommand( /*challenged-g_entities*/-1, va("print \"%s %s %s!\n\"", challenged->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"), ent->client->pers.netname));
 
 			ent->client->ps.duelInProgress = qtrue;
 			challenged->client->ps.duelInProgress = qtrue;
@@ -4571,18 +4468,18 @@ void ClientCommand( int clientNum ) {
 
 	if (Q_stricmp (cmd, "give") == 0)
 	{
-		Cmd_Give_f (ent, 0);
+		Cmd_Give_f (ent);
 	}
 	else if (Q_stricmp (cmd, "giveother") == 0)
 	{ //for debugging pretty much
-		Cmd_Give_f (ent, 1);
+		Cmd_GiveOther_f (ent);
 	}
 	// Jedi Knight Galaxies begin
 	else if (Q_stricmp (cmd, "credits") == 0)
 	{
 		//DEBUG: Show how many credits you have
 		int credits = ent->client->ps.credits;
-		trap->SendServerCommand(clientNum, va("print \"You have %i credits, %s.\n\"", Q_max(0, credits), ent->client->pers.netname));
+		trap->SendServerCommand(clientNum, va("print \"You have %i credits, %s^7.\n\"", Q_max(0, credits), ent->client->pers.netname));
 		return;
 	}
 	else if ( Q_stricmp (cmd, "closeVendor") == 0 )

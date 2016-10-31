@@ -2536,29 +2536,6 @@ void CheckTournament( void ) {
 	}
 }
 
-void G_KickAllBots(void)
-{
-	int i;
-	char netname[36];
-	gclient_t	*cl;
-
-	for ( i=0 ; i< sv_maxclients.integer ; i++ )
-	{
-		cl = level.clients + i;
-		if ( cl->pers.connected != CON_CONNECTED )
-		{
-			continue;
-		}
-		if ( !(g_entities[i].r.svFlags & SVF_BOT) )
-		{
-			continue;
-		}
-		strcpy(netname, cl->pers.netname);
-		Q_CleanStr(netname);
-		trap->SendConsoleCommand( EXEC_INSERT, va("kick \"%s\"\n", netname) );
-	}
-}
-
 /*
 ==================
 CheckVote
