@@ -1178,7 +1178,7 @@ int Q_parseColor( const char *p, float *color ) {
 		memcpy( color, g_color_table[ColorIndex((int)c)], sizeof( vec3_t ) );
 		return 1;
 	}
-	else if ( strlen(p) >= 4 && (c == 'x' || c == 'X') )
+	else if ( strlen(p) >= 3 && (c == 'x' || c == 'X') )
 	{
 		float red = HexColor_GetLevel(*p);
 		float green = HexColor_GetLevel(*(p+1));
