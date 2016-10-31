@@ -820,7 +820,7 @@ void JKG_Inventory_UpdateNotify(int msg) {
 	case 0: // open
 		if (Menus_FindByName("jkg_inventory") && Menus_ActivateByName("jkg_inventory"))
 		{
-			trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI /*& ~KEYCATCH_CONSOLE*/);
+			trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI);
 		}
 		JKG_ConstructInventoryList();
 		break;
@@ -832,7 +832,7 @@ void JKG_Inventory_UpdateNotify(int msg) {
 	case 2:	// open as shop menu
 		if (Menus_FindByName("jkg_inventory") && Menus_ActivateByName("jkg_inventory"))
 		{
-			trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI/* & ~KEYCATCH_CONSOLE*/);
+			trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI);
 		}
 		break;
 	}
