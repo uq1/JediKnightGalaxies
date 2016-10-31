@@ -239,7 +239,7 @@ void BG_SendItemPacket(itemPacketType_t packetType, gentity_t* ent, void* memDat
 			Com_sprintf(packet, sizeof(packet), "pInv %s %i ", packetName, intData);
 			{
 				for(auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
-					Q_strcat(packet, sizeof(packet), va("%i %i", it->id->itemID, it->quantity));
+					Com_sprintf(packet, sizeof(packet), "%s %i %i", packet, it->id->itemID, it->quantity);
 				}
 			}
 			break;
