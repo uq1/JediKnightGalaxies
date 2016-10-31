@@ -487,3 +487,7 @@ void JKG_Shop_SellItem(char** args) {
 	}
 	cgImports->SendClientCommand(va("inventorySell %i", nSelected));
 }
+
+void JKG_Shop_Closed(char** args) {
+	cgImports->SendClientCommand("closeVendor");
+}
