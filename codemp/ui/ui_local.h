@@ -51,6 +51,7 @@ void UI_LoadArenas( void );
 void UI_LoadForceConfig_List( void );
 
 const char *UI_GetStringEdString2(const char *refName);
+const char* UI_GetStringEdString3(const char* refName);
 
 //
 // ui_players.c

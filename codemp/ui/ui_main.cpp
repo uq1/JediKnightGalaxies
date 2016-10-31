@@ -1015,6 +1015,21 @@ const char *UI_GetStringEdString2(const char *refName)
 	return text;
 }
 
+// This does LITERALLY the exact same thing, because if you call UI_GetStringEdString2 twice in one line (ie, with va) it won't work.
+// This bypasses this problem but is a messy temporary solution.
+const char* UI_GetStringEdString3(const char* refName) {
+	static char text[1024] = { 0 };
+	if (refName[0] == '@')
+	{
+		trap->SE_GetStringTextString(refName + 1, text, sizeof(text));
+	}
+	else
+	{
+		Q_strncpyz(text, refName, 1024);
+	}
+	return text;
+}
+
 void UI_SetColor( const float *rgba ) {
 	trap->R_SetColor( rgba );
 }
@@ -2609,6 +2624,12 @@ static void UI_OwnerDraw(itemDef_t *item, float x, float y, float w, float h, fl
 		break;
 	case UI_JKG_SHOP_RIGHTPRICE:
 		JKG_Shop_ShopItemCost(item, ownerDrawID);
+		break;
+	case UI_JKG_SHOP_LEFTTAB:
+		JKG_Shop_SortSelectionName(item, ownerDrawID);
+		break;
+	case UI_JKG_SHOP_RIGHTTAB:
+		JKG_Shop_SortSelectionPrice(item, ownerDrawID);
 		break;
 
 	case UI_SKIN_COLOR:

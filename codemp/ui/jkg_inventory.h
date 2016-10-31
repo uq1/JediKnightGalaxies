@@ -62,3 +62,6 @@ char* JKG_Shop_LeftNameText(int ownerDrawID);
 char* JKG_Shop_LeftPriceText(int ownerDrawID);
 char* JKG_Shop_RightNameText(int ownerDrawID);
 char* JKG_Shop_RightPriceText(int ownerDrawID);
+void JKG_Shop_Sort(char** args);
+void JKG_Shop_SortSelectionName(itemDef_t* item, int ownerDrawID);
+void JKG_Shop_SortSelectionPrice(itemDef_t* item, int ownerDrawID);

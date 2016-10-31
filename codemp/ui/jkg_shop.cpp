@@ -82,10 +82,10 @@ void JKG_ConstructShopLists() {
 		sort(vInventoryItems.begin(), vInventoryItems.end(),
 			[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
 			if (ui_inventorySortType.integer) {
-				return Q_stricmp(UI_GetStringEdString2(a.second->id->displayName), UI_GetStringEdString2(b.second->id->displayName));
+				return Q_stricmp(UI_GetStringEdString2(a.second->id->displayName), UI_GetStringEdString3(b.second->id->displayName)) > 0;
 			}
 			else {
-				return Q_stricmp(UI_GetStringEdString2(b.second->id->displayName), UI_GetStringEdString2(b.second->id->displayName));
+				return Q_stricmp(UI_GetStringEdString2(b.second->id->displayName), UI_GetStringEdString3(a.second->id->displayName)) > 0;
 			}
 		});
 	}
@@ -104,21 +104,21 @@ void JKG_ConstructShopLists() {
 
 	if (ui_shopSortMode.integer == 0) {
 		// If it's 0, then we're sorting by item name
-		sort(vShopItems.begin(), vInventoryItems.end(),
+		sort(vShopItems.begin(), vShopItems.end(),
 			[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
-			if (ui_inventorySortType.integer) {
-				return Q_stricmp(UI_GetStringEdString2(a.second->id->displayName), UI_GetStringEdString2(b.second->id->displayName));
+			if (ui_shopSortType.integer) {
+				return Q_stricmp(UI_GetStringEdString2(a.second->id->displayName), UI_GetStringEdString3(b.second->id->displayName)) > 0;
 			}
 			else {
-				return Q_stricmp(UI_GetStringEdString2(b.second->id->displayName), UI_GetStringEdString2(b.second->id->displayName));
+				return Q_stricmp(UI_GetStringEdString2(b.second->id->displayName), UI_GetStringEdString3(a.second->id->displayName)) > 0;
 			}
 		});
 	}
 	else if (ui_shopSortMode.integer == 1) {
 		// If it's 1, then we're sorting by price
-		sort(vShopItems.begin(), vInventoryItems.end(),
+		sort(vShopItems.begin(), vShopItems.end(),
 			[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
-			if (ui_inventorySortType.integer) {
+			if (ui_shopSortType.integer) {
 				return a.second->id->baseCost > b.second->id->baseCost;
 			}
 			else {
@@ -152,9 +152,22 @@ void JKG_ShopInventorySortChanged() {
 
 // The script that gets run when a shop arrow button is pressed
 void JKG_ShopArrow(char** args) {
-	const char* side = args[0];
-	const char* direction = args[1];
-	int count = atoi(args[2]);
+	const char* side;
+	const char* direction;
+	int count;
+
+	if (!String_Parse(args, &side)) {
+		trap->Print("Couldn't parse shop_arrow jkgscript\n");
+		return;
+	}
+	else if (!String_Parse(args, &direction)) {
+		trap->Print("Couldn't parse shop_arrow jkgscript\n");
+		return;
+	}
+	else if (!Int_Parse(args, &count)) {
+		trap->Print("Couldn't parse shop_arrow jkgscript\n");
+		return;
+	}
 
 	if (count <= 0) {
 		trap->Print("shop_arrow called with 0 or negative scroll value\n");
@@ -166,22 +179,22 @@ void JKG_ShopArrow(char** args) {
 	}
 
 	if (!Q_stricmp(side, "left")) {
-		if (nNumberInventoryItems > 0 && nInventoryScroll + count >= nNumberInventoryItems) {
-			nInventoryScroll = nNumberInventoryItems - 1;
+		if (nShopScroll == 0 && count < 0) {
+			nShopScroll = 0;
 		}
-		else if (nInventoryScroll + count < 0) {
-			nInventoryScroll = 0;
+		else if (nNumberInventoryItems > 0 && nInventoryScroll + count >= nNumberInventoryItems) {
+			nInventoryScroll = nNumberInventoryItems - 1;
 		}
 		else {
 			nInventoryScroll += count;
 		}
 	}
 	else if (!Q_stricmp(side, "right")) {
-		if (nNumberShopItems > 0 && nShopScroll + count >= nNumberShopItems) {
-			nShopScroll = nNumberShopItems - 1;
-		}
-		else if (nNumberShopItems + count < 0) {
+		if (nShopScroll == 0 && count < 0) {
 			nShopScroll = 0;
+		}
+		else if (nNumberShopItems > 0 && nShopScroll + count >= nNumberShopItems) {
+			nShopScroll = nNumberShopItems - 1;
 		}
 		else {
 			nShopScroll += count;
@@ -341,7 +354,11 @@ char* JKG_Shop_RightPriceText(int ownerDrawID) {
 //
 
 void JKG_Shop_SelectLeft(char** args) {
-	int id = atoi(args[0]);
+	int id;
+	if (!Int_Parse(args, &id)) {
+		trap->Print("Couldn't parse selectleft object\n");
+		return;
+	}
 	if (id + nInventoryScroll >= nNumberInventoryItems) {
 		nSelected = -1;
 		return;
@@ -351,11 +368,91 @@ void JKG_Shop_SelectLeft(char** args) {
 }
 
 void JKG_Shop_SelectRight(char** args) {
-	int id = atoi(args[0]);
+	int id;
+	if (!Int_Parse(args, &id)) {
+		trap->Print("Couldn't parse selectleft object\n");
+		return;
+	}
 	if (id + nShopScroll >= nNumberShopItems) {
 		nSelected = -1;
 		return;
 	}
 	bLeftSelected = false;
 	nSelected = nShopScroll + id;
+}
+
+void JKG_Shop_Sort(char** args) {
+	const char* side;
+	const char* criteria;
+
+	if (!String_Parse(args, &side)) {
+		trap->Print("Couldn't parse shop_sort script\n");
+		return;
+	}
+	else if (!String_Parse(args, &criteria)) {
+		trap->Print("Couldn't parse shop_sort script\n");
+		return;
+	}
+
+	if (!Q_stricmp(side, "left")) {
+		if (!Q_stricmp(criteria, "name")) {
+			trap->Cvar_Set("ui_inventorySortMode", "0");
+			trap->Cvar_Set("ui_inventorySortType", va("%i", !ui_inventorySortType.integer));
+		}
+		else if (!Q_stricmp(criteria, "price")) {
+			trap->Cvar_Set("ui_inventorySortMode", "1");
+			trap->Cvar_Set("ui_inventorySortType", va("%i", !ui_inventorySortType.integer));
+		}
+		else {
+			trap->Print("Side %s has bad criteria '%s' for filter!\n", side, criteria);
+			return;
+		}
+		// Set selection cursor back to first so we go back to the top of the list automatically
+		nInventoryScroll = 0;
+	}
+	else if (!Q_stricmp(side, "right")) {
+		if (!Q_stricmp(criteria, "name")) {
+			trap->Cvar_Set("ui_shopSortMode", "0");
+			trap->Cvar_Set("ui_shopSortType", va("%i", !ui_shopSortType.integer));
+		}
+		else if (!Q_stricmp(criteria, "price")) {
+			trap->Cvar_Set("ui_shopSortMode", "1");
+			trap->Cvar_Set("ui_shopSortType", va("%i", !ui_shopSortType.integer));
+		}
+		else {
+			trap->Print("Side %s has bad criteria '%s' for filter!\n", side, criteria);
+			return;
+		}
+		// Set selection cursor back to first so we go back to the top of the list automatically
+		nShopScroll = 0;
+	}
+	else {
+		trap->Print("Bad side '%s'\n", side);
+		return;
+	}
+	JKG_ConstructShopLists();
+}
+
+void JKG_Shop_SortSelectionName(itemDef_t* item, int ownerDrawID) {
+	if (ownerDrawID && ui_shopSortMode.integer != 0) {
+		return;
+	}
+	else if (!ownerDrawID && ui_inventorySortMode.integer != 0) {
+		return;
+	}
+
+	trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h,
+		0, 0, 1, 1, item->window.background);
+}
+
+void JKG_Shop_SortSelectionPrice(itemDef_t* item, int ownerDrawID) {
+	if (ownerDrawID && ui_shopSortMode.integer != 1) {
+		return;
+	}
+	else if (!ownerDrawID && ui_inventorySortMode.integer != 1) {
+		return;
+	}
+
+	trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h,
+		0, 0, 1, 1, item->window.background);
 }
