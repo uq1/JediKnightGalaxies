@@ -4807,12 +4807,14 @@ static QINLINE qboolean ShouldHitmarker( const gentity_t *attacker, const gentit
 		return qfalse;
 	if( attacker->NPC )
 		return qfalse;
+	if ( target->health <= 0 )
+		return qfalse;
 	if( target->s.eType == ET_MISSILE )
 		return qfalse;
 	if( target->s.eType == ET_GENERAL )
 	{
-		qboolean explosive = (mod == MOD_TRIP_MINE_SPLASH || mod == MOD_TIMED_MINE_SPLASH || mod == MOD_DET_PACK_SPLASH);
-		if( (target->s.weapon == WP_TRIP_MINE || target->s.weapon == WP_DET_PACK) && target->parent == attacker && explosive )
+		qboolean explosive = ( mod == MOD_TRIP_MINE_SPLASH || mod == MOD_TIMED_MINE_SPLASH || mod == MOD_DET_PACK_SPLASH );
+		if( ( target->s.weapon == WP_TRIP_MINE || target->s.weapon == WP_DET_PACK ) && target->parent == attacker && explosive )
 			return qfalse;
 	}
 	if( !target->client )
