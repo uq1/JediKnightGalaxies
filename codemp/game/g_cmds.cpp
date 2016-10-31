@@ -1583,8 +1583,6 @@ JKG_Cmd_ItemAction_f
 */
 void JKG_Cmd_ItemAction_f (gentity_t *ent, int itemNum)
 {
-	itemInstance_t *itemInUse;
-	int i;
 	if(!ent->client)
 	{
 		return; //NOTENOTE: NPCs can perform item actions. Nifty, eh?
@@ -1679,11 +1677,7 @@ Destroys an item from your inventory
 void JKG_Cmd_DestroyItem_f(gentity_t *ent)
 {
 	char arg[64];
-	int i, inventoryID = -1;
-	itemInstance_t destroyedItem;
 	trap->Argv(1, arg, sizeof(arg));
-
-	memset(&destroyedItem, 0, sizeof(itemInstance_t));
 
 	if(trap->Argc() < 2)
 	{
@@ -1892,7 +1886,7 @@ argCheck:
 
 		trap->Argv( 1, arg, sizeof( arg ) );
 
-		if (arg && arg[0])
+		if (arg[0])
 		{ //if there's an arg, assume it's a combo team command from the UI.
 			Cmd_Team_f(ent);
 		}
