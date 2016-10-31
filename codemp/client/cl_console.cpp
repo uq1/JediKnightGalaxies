@@ -564,7 +564,7 @@ void Con_DrawNotify (void)
 	const char* chattext;
 
 	//currentColor = 7;
-	currentColor = 0xfff00000;
+	currentColor = 0xfff;
 	re->SetColor( colorWhite );
 
 	v = 0;
@@ -625,9 +625,10 @@ void Con_DrawNotify (void)
 				if ( ( text[x] & 0xff ) == ' ' ) {
 					continue;
 				}
-				if ( ( text[x] & 0xfff00000 ) != currentColor ) {
+				int newColor = (text[x] >> 20) & 0x00000FFF;
+				if ( newColor != currentColor ) {
 					vec4_t setColor;
-					currentColor = text[x] & 0xfff00000;
+					currentColor = newColor << 20; // FIXME: shifting to the left...only to reshift when unpacking
 					Q_UnPackRGB( currentColor, setColor );
 					setColor[3] = 1.0f;
 					re->SetColor( setColor );
