@@ -155,7 +155,7 @@ static void CG_Obituary( entityState_t *ent ) {
 	if ( !targetInfo ) {
 		return;
 	}
-	Q_strncpyz( targetName, Info_ValueForKey( targetInfo, "n" ), sizeof(targetName) - 2);			//--futuza note:  possible RBG color fix needed here on targetName
+	Q_strncpyz( targetName, Info_ValueForKey( targetInfo, "n" ), sizeof(targetName) - 2);
 	strcat( targetName, S_COLOR_WHITE );
 
 	// check for single client messages
@@ -307,7 +307,7 @@ clientkilled:
 	// check for double client messages
 	if ( !attackerInfo ) {
 		attacker = ENTITYNUM_WORLD;
-		strcpy( attackerName, "noname" );																	//--futuza: needs RGB fix testing (should work, but not tested)
+		strcpy( attackerName, "noname" );
 	} else {
 		Q_strncpyz( attackerName, Info_ValueForKey( attackerInfo, "n" ), sizeof(attackerName) - 2);
 		strcat( attackerName, S_COLOR_WHITE );
@@ -416,7 +416,7 @@ clientkilled:
 
 		if (message) {
 			message = (char *)CG_GetStringEdString("MP_INGAME", message);
-			trap->Print("%s %s %s\n", targetName, message, attackerName); 	//--futuza: ^xRGB fix needed (so that server handles it too)
+			trap->Print("%s %s %s\n", targetName, message, attackerName);
 			return;
 		}
 	}
@@ -3017,7 +3017,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				{ //add to the chat box
 					//hear it in the world spot.
 					char vchatstr[1024];
-					Q_strncpyz(vchatstr, va("<%s: %s>\n", ci->name, descr), sizeof(vchatstr));	//futuza: fixed xRGB color codes
+					Q_strncpyz(vchatstr, va("<%s: %s>\n", ci->name, descr), sizeof(vchatstr));
 					trap->Print("*%s", vchatstr);
 					CG_ChatBox_AddString(vchatstr, 100);
 				}

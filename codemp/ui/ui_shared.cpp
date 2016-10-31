@@ -3906,24 +3906,6 @@ static const char *Text_PrintableText(const char *buff, itemDef_t *item) {
 			}
 			continue;
 		}
-		/*if (*t == '^') {
-			if (*(t+1) >= '0' && *(t+1) <= '9') {
-				*u = *t;
-				u++; t++;
-				*u = *t;
-				u++; t++;
-				continue;
-			}
-			if ( *(t + 1) == 'x' && Text_IsExtColorCode(t + 1) || *(t + 1) == 'X' && Text_IsExtColorCode(t + 1) )
-			{
-				int i;
-				for (i=0; i<5; i++) {
-					*u = *t;
-					u++; t++;
-				}
-				continue;
-			}
-		}*/
 		s[0] = *t;
 
 		w += (trap->R_Font_StrLenPixels(s, item->iMenuFont, 1) * item->textscale);
@@ -4147,19 +4129,9 @@ qboolean Item_TextField_HandleKey(itemDef_t *item, int key) {
 			if (item->cursorPos < len) {
 				int colorLen = Q_parseColorString( &buff[item->cursorPos+1], nullptr );
 				if( colorLen )
-				{
 					item->cursorPos += (colorLen + 1);
-				}
 				else
 					item->cursorPos++;
-				/*if (buff[item->cursorPos+1] == '^' && (buff[item->cursorPos+2] >= '0' && buff[item->cursorPos+2] <= '9')) {
-					item->cursorPos += 3;
-				}
-				else if (buff[item->cursorPos + 1] == '^' && (buff[item->cursorPos + 2] == 'x' || buff[item->cursorPos + 2] == 'X') && Text_IsExtColorCode(&buff[item->cursorPos + 2])) {
-					item->cursorPos += 6;
-				} else {
-					item->cursorPos++;
-				}*/
 				Item_TextField_UpdateScroll(item);
 			} 
 			return qtrue;
@@ -4167,30 +4139,12 @@ qboolean Item_TextField_HandleKey(itemDef_t *item, int key) {
 
 		if ( key == A_CURSOR_LEFT || key == A_KP_4 ) 
 		{
-			/*if ( item->cursorPos > 0 ) {
-				item->cursorPos--;
-			}
-			if (item->cursorPos < editPtr->paintOffset) {
-				editPtr->paintOffset--;
-			}*/
 			if ( item->cursorPos > 1 ) {
 				int colorLen = Q_parseColorString( &buff[item->cursorPos-2], nullptr );
 				if( colorLen )
-				{
 					item->cursorPos -= (colorLen + 1);
-				}
 				else
 					item->cursorPos++;
-				/*if (buff[item->cursorPos-2] == '^' && (buff[item->cursorPos-1] >= '0' && buff[item->cursorPos-1] <= '9')) {
-					// Jump over the color code
-					item->cursorPos -= 3;
-				}
-				else if (item->cursorPos > 4 && buff[item->cursorPos - 5] == '^' && (buff[item->cursorPos - 4] == 'x' || buff[item->cursorPos - 4] == 'X') && Text_IsExtColorCode(&buff[item->cursorPos - 4])) {
-					// Jump over extended color code
-					item->cursorPos -= 6;
-				} else {
-					item->cursorPos--;
-				}*/
 			} else if (item->cursorPos > 0) {
 				item->cursorPos--;
 			}

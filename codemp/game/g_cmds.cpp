@@ -2261,9 +2261,6 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 		}
 	}
 
-
-
-
 	if (chatText[0] == '/' || chatText[0] == '\\') {
 		// Command, special treatment
 		if (!CCmd_Execute(ent-g_entities, &chatText[1])) {
@@ -4138,7 +4135,7 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 
 		if (challenged->client->ps.duelIndex == ent->s.number && challenged->client->ps.duelTime >= level.time)
 		{
-			trap->SendServerCommand( /*challenged-g_entities*/-1, va("print \"%s %s %s!\n\"", challenged->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"), ent->client->pers.netname));		//--futuza note: test this, make sure I didn't break dueling with my RGB fix
+			trap->SendServerCommand( /*challenged-g_entities*/-1, va("print \"%s %s %s!\n\"", challenged->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELACCEPT"), ent->client->pers.netname));
 
 			ent->client->ps.duelInProgress = qtrue;
 			challenged->client->ps.duelInProgress = qtrue;

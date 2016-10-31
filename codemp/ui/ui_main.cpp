@@ -347,9 +347,6 @@ char *BG_GetUIPortraitFile(const int team, const short classIndex, const short c
 
 siegeClass_t *BG_GetClassOnBaseClass(const int team, const short classIndex, const short cntIndex);
 
-const char *JAMD5Check();
-void CheckEngineDll();
-
 extern uiCrossoverExports_t *UI_InitializeCrossoverAPI( cgCrossoverExports_t *cg );
 
 // TODO: remove
