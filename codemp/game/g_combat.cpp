@@ -5203,32 +5203,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		targ->client->ps.otherKillerDebounceTime = level.time + 25000;
 	}
 
-	if(attacker->client && !attacker->NPC)
-	{
-		if( mod >= MOD_STUN_BATON && mod <= MOD_SENTRY && attacker != targ )
-		{
-			if(mod == MOD_REPEATER && attacker->client->lastHitmarkerTime < (level.time-250))
-			{
-				// Small hack to prevent the ACP array gun from ear-raping people so much --eez
-#ifndef __MMO__ // UQ1: This is just a sound and a message? Worth the spam????
-				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
-#else //!__MMO__
-				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
-#endif //__MMO__
-				attacker->client->lastHitmarkerTime = level.time;
-			}
-			else if(attacker->client->lastHitmarkerTime < (level.time-100))
-			{
-#ifndef __MMO__
-				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
-#else //!__MMO__
-				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
-#endif //__MMO__
-				attacker->client->lastHitmarkerTime = level.time;
-			}
-		}
-	}
-
 	// check for completely getting out of the damage
 	if ( !(dflags & DAMAGE_NO_PROTECTION) ) {
 
@@ -5334,6 +5308,32 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 						}
 					}
 				}
+			}
+		}
+	}
+	
+	if(attacker->client && !attacker->NPC)
+	{
+		if( mod >= MOD_STUN_BATON && mod <= MOD_SENTRY && attacker != targ )
+		{
+			if(mod == MOD_REPEATER && attacker->client->lastHitmarkerTime < (level.time-250))
+			{
+				// Small hack to prevent the ACP array gun from ear-raping people so much --eez
+#ifndef __MMO__ // UQ1: This is just a sound and a message? Worth the spam????
+				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
+#else //!__MMO__
+				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
+#endif //__MMO__
+				attacker->client->lastHitmarkerTime = level.time;
+			}
+			else if(attacker->client->lastHitmarkerTime < (level.time-100))
+			{
+#ifndef __MMO__
+				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
+#else //!__MMO__
+				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
+#endif //__MMO__
+				attacker->client->lastHitmarkerTime = level.time;
 			}
 		}
 	}
