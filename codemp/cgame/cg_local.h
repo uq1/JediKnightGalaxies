@@ -1054,7 +1054,6 @@ Ghoul2 Insert End
 		ragCallbackBoneInSolid_t	rcbBoneInSolid;
 		ragCallbackTraceLine_t		rcbTraceLine;
 		TCGMiscEnt					miscEnt;
-		TCGIncomingConsoleCommand	icc;
 		autoMapInput_t				autoMapInput;
 		TCGCameraShake				cameraShake;
 	} sharedBuffer;

@@ -962,7 +962,7 @@ netField_t	entityStateFields[] =
 { NETF(saberCrystal[0]), 16 },
 
 { NETF(sightsTransition), 1 },
-{ NETF(seed), 16 },
+{ NETF(seed), 32 },
 };
 
 // if (int)f == f and (int)f + ( 1<<(FLOAT_INT_BITS-1) ) < ( 1 << FLOAT_INT_BITS )

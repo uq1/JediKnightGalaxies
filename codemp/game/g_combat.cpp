@@ -5203,32 +5203,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		targ->client->ps.otherKillerDebounceTime = level.time + 25000;
 	}
 
-	if(attacker->client && !attacker->NPC)
-	{
-		if( mod >= MOD_STUN_BATON && mod <= MOD_SENTRY && attacker != targ )
-		{
-			if(mod == MOD_REPEATER && attacker->client->lastHitmarkerTime < (level.time-250))
-			{
-				// Small hack to prevent the ACP array gun from ear-raping people so much --eez
-#ifndef __MMO__ // UQ1: This is just a sound and a message? Worth the spam????
-				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
-#else //!__MMO__
-				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
-#endif //__MMO__
-				attacker->client->lastHitmarkerTime = level.time;
-			}
-			else if(attacker->client->lastHitmarkerTime < (level.time-100))
-			{
-#ifndef __MMO__
-				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
-#else //!__MMO__
-				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
-#endif //__MMO__
-				attacker->client->lastHitmarkerTime = level.time;
-			}
-		}
-	}
-
 	// check for completely getting out of the damage
 	if ( !(dflags & DAMAGE_NO_PROTECTION) ) {
 
@@ -5303,18 +5277,66 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 	//check for teamnodmg
 	//NOTE: non-client objects hitting clients (and clients hitting clients) purposely doesn't obey this teamnodmg (for emplaced guns)
-
-	#ifdef BASE_COMPAT
-		// battlesuit protects from all radius damage (but takes knockback)
-		// and protects 50% against all damage
-		if ( client && client->ps.powerups[PW_BATTLESUIT] ) {
-			G_AddEvent( targ, EV_POWERUP_BATTLESUIT, 0 );
-			if ( ( dflags & DAMAGE_RADIUS ) || ( mod == MOD_FALLING ) ) {
-				return;
+	if ( attacker && !targ->client )
+	{//attacker hit a non-client
+		if ( level.gametype >= GT_TEAM )
+		{
+			if ( targ->teamnodmg )
+			{//targ shouldn't take damage from a certain team
+				if ( attacker->client )
+				{//a client hit a non-client object
+					if ( targ->teamnodmg == attacker->client->sess.sessionTeam )
+					{
+						return;
+					}
+				}
+				else if ( attacker->teamnodmg )
+				{//a non-client hit a non-client object
+					//FIXME: maybe check alliedTeam instead?
+					if ( targ->teamnodmg == attacker->teamnodmg )
+					{
+						if (attacker->activator &&
+							attacker->activator->inuse &&
+							attacker->activator->s.number < MAX_CLIENTS &&
+							attacker->activator->client &&
+							attacker->activator->client->sess.sessionTeam != targ->teamnodmg)
+						{ //uh, let them damage it I guess.
+						}
+						else
+						{
+							return;
+						}
+					}
+				}
 			}
-			damage *= 0.5;
 		}
-	#endif
+	}
+	
+	if(attacker->client && !attacker->NPC)
+	{
+		if( mod >= MOD_STUN_BATON && mod <= MOD_SENTRY && attacker != targ )
+		{
+			if(mod == MOD_REPEATER && attacker->client->lastHitmarkerTime < (level.time-250))
+			{
+				// Small hack to prevent the ACP array gun from ear-raping people so much --eez
+#ifndef __MMO__ // UQ1: This is just a sound and a message? Worth the spam????
+				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
+#else //!__MMO__
+				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
+#endif //__MMO__
+				attacker->client->lastHitmarkerTime = level.time;
+			}
+			else if(attacker->client->lastHitmarkerTime < (level.time-100))
+			{
+#ifndef __MMO__
+				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
+#else //!__MMO__
+				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
+#endif //__MMO__
+				attacker->client->lastHitmarkerTime = level.time;
+			}
+		}
+	}
 
 	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
 	if ( attacker->client && targ != attacker && targ->health > 0

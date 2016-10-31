@@ -2036,11 +2036,6 @@ void WP_FireMelee( gentity_t *ent, qboolean alt_fire )
 	vec3_t		mins, maxs, end;
 	vec3_t		muzzlePunch;
 
-	if( ent->client && (ent->client->ps.forcePower < 15 && ent->client->ps.torsoAnim != BOTH_MELEE1))
-	{	// Can't start a melee combo if we're under 10 force power --eez
-		return;
-	}
-
 	if ( ent->s.eType == ET_NPC 
 		&& ent->s.weapon != WP_SABER 
 		&& ent->enemy
@@ -2077,11 +2072,15 @@ void WP_FireMelee( gentity_t *ent, qboolean alt_fire )
 	// Melee "improvements" - sap a little bit of stamina for each punch
 	if (ent->client)
 	{
-		ent->client->ps.forcePower -= 9;
-		if( ent->client->ps.forcePower <= 0 )
+		int threshold = bgConstants.staminaDrains.minPunchThreshold;
+		if( threshold == 0 && ent->client->ps.forcePower <= 0 )
 		{
 			ent->client->ps.forcePower = 0;
 		}
+		else if (threshold && ent->client->ps.forcePower < threshold) {
+			return;
+		}
+		ent->client->ps.forcePower -= bgConstants.staminaDrains.lossFromPunching;
 	}
 
 	VectorMA(muzzlePunch, 20.0f, forward, muzzlePunch);
@@ -2118,15 +2117,11 @@ void WP_FireMelee( gentity_t *ent, qboolean alt_fire )
 
 		if ( tr_ent->takedamage )
 		{ //damage them, do more damage if we're in the second right hook
-			int dmg = MELEE_SWING1_DAMAGE;
-
-			if (ent->client && ent->client->ps.torsoAnim == BOTH_MELEE2)
-			{ //do a tad bit more damage on the second swing
-				dmg = MELEE_SWING2_DAMAGE;
+			int dmg = 40; // UQ1: (NPCs) Hitting with rifle but does more damage...
+			if (ent->s.weapon == WP_MELEE) {
+				weaponData_t* wpData = GetWeaponData(WP_MELEE, 0);
+				dmg = wpData->firemodes[0].baseDamage;
 			}
-
-			if ( ent->s.weapon != WP_MELEE )
-				dmg *= 4; // UQ1: (NPCs) Hitting with rifle but does more damage...
 
 			G_Damage( tr_ent, ent, ent, forward, tr.endpos, dmg, DAMAGE_NO_ARMOR, MOD_MELEE );
 		}

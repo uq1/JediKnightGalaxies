@@ -1913,6 +1913,11 @@ static qboolean PM_CheckJump( void )
 		return qfalse;		
 	}
 
+	// Don't allow jumping if we don't have the stamina for it
+	if (pm->ps->forcePower < bgConstants.staminaDrains.minJumpThreshold) {
+		return qfalse;
+	}
+
 	if ( pm->ps->weapon == WP_SABER )
 	{
 		saberInfo_t *saber1 = BG_MySaber( pm->ps->clientNum, 0 );
@@ -2811,6 +2816,12 @@ static qboolean PM_CheckJump( void )
 	if ( pm->ps->gravity > 0 && !BG_InSpecialJump( pm->ps->legsAnim ) )
 	{
 		PM_JumpForDir();
+
+		// Drain stamina as well
+		pm->ps->forcePower -= bgConstants.staminaDrains.lossFromJumping;
+		if (pm->ps->forcePower < 0) {
+			pm->ps->forcePower = 0;
+		}
 	}
 
 	return qtrue;
@@ -3556,7 +3567,7 @@ static void PM_WalkMove( void ) {
 	        pm->ps->sprintMustWait = 1;
 	    }
 	}
-	else if ( pm->ps->sprintMustWait && pm->ps->forcePower >= 25 )
+	else if ( pm->ps->sprintMustWait && pm->ps->forcePower >= bgConstants.staminaDrains.minSprintThreshold )
 	{
 	    pm->ps->sprintMustWait = 0;
 	}
@@ -3680,6 +3691,11 @@ static int PM_TryRoll( void )
 	trace_t	trace;
 	int		anim = -1;
 	vec3_t fwd, right, traceto, mins, maxs, fwdAngles;
+
+	if (pm->ps->forcePower < bgConstants.staminaDrains.minRollThreshold) {
+		// Not enough stamina to roll
+		return 0;
+	}
 
 	/* Old code
 	if ( BG_SaberInAttack( pm->ps->saberMove ) || BG_SaberInSpecialAttack( pm->ps->torsoAnim ) 
@@ -4019,6 +4035,12 @@ static void PM_CrashLand( void ) {
 				}
 				PM_SetAnim(SETANIM_BOTH,anim,SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 				didRoll = qtrue;
+
+				// Drain some stamina from rolling
+				pm->ps->forcePower -= bgConstants.staminaDrains.lossFromRolling;
+				if (pm->ps->forcePower < 0) {
+					pm->ps->forcePower = 0;
+				}
 			}
 		}
 	}
@@ -5618,6 +5640,11 @@ static void PM_Footsteps( void ) {
 				JKG_RemoveDamageType((gentity_t *)pm_entSelf, DT_FIRE);
 			}
 #endif
+			// Drain a little stamina from rolling
+			pm->ps->forcePower -= bgConstants.staminaDrains.lossFromRolling;
+			if (pm->ps->forcePower < 0) {
+				pm->ps->forcePower = 0;
+			}
 		}
 	}
 	else if ((pm->ps->pm_flags & PMF_ROLLING) && !BG_InRoll(pm->ps, pm->ps->legsAnim) &&
@@ -7734,7 +7761,7 @@ static void PM_Weapon( void )
 	#endif
 #endif
 			}
-			else if ( pm->cmd.buttons & BUTTON_IRONSIGHTS )
+			else if ( pm->cmd.buttons & BUTTON_IRONSIGHTS && pm->ps->forcePower >= bgConstants.staminaDrains.minKickThreshold )
 			{ //kicks
 				if (!BG_KickingAnim(pm->ps->torsoAnim) &&
 					!BG_KickingAnim(pm->ps->legsAnim))
@@ -7805,11 +7832,12 @@ static void PM_Weapon( void )
 				if (pm->ps->torsoAnim != pm->ps->legsAnim)
 				{
 					PM_SetAnim(SETANIM_BOTH, pm->ps->legsAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
+					pm->ps->forcePower -= bgConstants.staminaDrains.lossFromKicking;
 				}
 				pm->ps->weaponTime = 0;
 				return;
 			}
-			else if( pm->ps->forcePower >= 15 || pm->ps->torsoAnim == BOTH_MELEE1 )
+			else if( pm->ps->forcePower >= bgConstants.staminaDrains.minPunchThreshold || pm->ps->torsoAnim == BOTH_MELEE1 )
 			{ //just punch. We cannot start a melee combo if we are under 10 force power.
 				int desTAnim = BOTH_MELEE1;
 				if (pm->ps->torsoAnim == BOTH_MELEE1)

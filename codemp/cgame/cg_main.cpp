@@ -3130,20 +3130,6 @@ static qboolean CG_IncomingConsoleCommand( void ) {
 	//return qtrue if the command is ok. Otherwise, you can set char 0 on the command str to 0 and return
 	//qfalse to not execute anything, or you can fill conCommand in with something valid and return 0
 	//in order to have that string executed in place. Some example code:
-#if 0
-	TCGIncomingConsoleCommand *icc = &cg.sharedBuffer.icc;
-	if ( strstr( icc->conCommand, "wait" ) )
-	{ //filter out commands contaning wait
-		Com_Printf( "You can't use commands containing the string wait with MyMod v1.0\n" );
-		icc->conCommand[0] = 0;
-		return qfalse;
-	}
-	else if ( strstr( icc->conCommand, "blah" ) )
-	{ //any command containing the string "blah" is redirected to "quit"
-		strcpy( icc->conCommand, "quit" );
-		return qfalse;
-	}
-#endif
 	return qtrue;
 }
 
@@ -3237,7 +3223,6 @@ Q_EXPORT cgameExport_t* QDECL GetModuleAPI( int apiVersion, cgameImport_t *impor
 	cge.G2Trace					= C_G2Trace;
 	cge.G2Mark					= C_G2Mark;
 	cge.RagCallback				= CG_RagCallback;
-	cge.IncomingConsoleCommand	= CG_IncomingConsoleCommand;
 	cge.NoUseableForce			= CG_NoUseableForce;
 	cge.GetOrigin				= CG_GetOrigin;
 	cge.GetAngles				= CG_GetAngles;

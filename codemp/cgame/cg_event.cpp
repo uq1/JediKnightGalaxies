@@ -48,7 +48,7 @@ extern int cg_vehicleAmmoWarningTime;
 
 extern void JKG_SwapToSaber(int saberNum, clientInfo_t *ci, const char *newSaber, int weapon, int variation);
 
-vmCvar_t	jkg_nokillmessages;
+//vmCvar_t	jkg_nokillmessages;
 
 //I know, not siege, but...
 typedef enum
@@ -416,16 +416,12 @@ clientkilled:
 
 		if (message) {
 			message = (char *)CG_GetStringEdString("MP_INGAME", message);
-			if (jkg_nokillmessages.integer!=1) {		//Disables rendering of kill messages as it is not needed in a MMO?
-				trap->Print("%s %s %s\n", JKG_xRBG_ConvertExtToNormal(targetName), message, JKG_xRBG_ConvertExtToNormal(attackerName)); 	//--futuza: ^xRGB fix needed (so that server handles it too)
-			}
+			trap->Print("%s %s %s\n", targetName, message, attackerName); 	//--futuza: ^xRGB fix needed (so that server handles it too)
 			return;
 		}
 	}
-	if (jkg_nokillmessages.integer!=1) {
-		// we don't know what it was
-		trap->Print("%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC"));
-	}
+	// we don't know what it was
+	trap->Print("%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC"));
 }
 
 //==========================================================================
@@ -3021,10 +3017,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				{ //add to the chat box
 					//hear it in the world spot.
 					char vchatstr[1024];
-					strcpy(vchatstr, va("<%s: %s>\n", ci->name, descr));	//futuza: fixed xRGB color codes
-					if (jkg_nokillmessages.integer!=1) {
-					trap->Print(vchatstr); //Disables rendering of kill messages as it is not needed in a MMO?
-					}
+					Q_strncpyz(vchatstr, va("<%s: %s>\n", ci->name, descr), sizeof(vchatstr));	//futuza: fixed xRGB color codes
+					trap->Print("*%s", vchatstr);
 					CG_ChatBox_AddString(vchatstr, 100);
 				}
 
@@ -3170,28 +3164,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_OBITUARY");
 		CG_Obituary( es );
 		break;
-
-	//
-	// powerup events
-	//
-#ifdef BASE_COMPAT
-	case EV_POWERUP_QUAD:
-		DEBUGNAME("EV_POWERUP_QUAD");
-		if ( es->number == cg.snap->ps.clientNum ) {
-			cg.powerupActive = PW_QUAD;
-			cg.powerupTime = cg.time;
-		}
-		//trap->S_StartSound (NULL, es->number, CHAN_ITEM, cgs.media.quadSound );
-		break;
-	case EV_POWERUP_BATTLESUIT:
-		DEBUGNAME("EV_POWERUP_BATTLESUIT");
-		if ( es->number == cg.snap->ps.clientNum ) {
-			cg.powerupActive = PW_BATTLESUIT;
-			cg.powerupTime = cg.time;
-		}
-		//trap->S_StartSound (NULL, es->number, CHAN_ITEM, cgs.media.protectSound );
-		break;
-#endif // BASE_COMPAT
 
 	case EV_FORCE_DRAINED:
 		DEBUGNAME("EV_FORCE_DRAINED");
