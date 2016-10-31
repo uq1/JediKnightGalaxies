@@ -1137,8 +1137,8 @@ static void ClientCleanName( const char *in, char *out, int outSize ) {
 		}
 
 		//[FixMultilineNames]
-		if (ch == '\n') {
-			continue; // No multiline names
+		if ((unsigned char)ch < ' ') {
+			continue; // No control char names
 		}
 
 		// check colors

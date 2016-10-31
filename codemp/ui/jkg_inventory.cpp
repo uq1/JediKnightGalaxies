@@ -7,7 +7,7 @@ static int nPosition = 0;					// position in the item list (changed with arrow b
 static int nSelected = -1;					// selected item in the list (-1 for no selection)
 
 
-static void JKG_ConstructInventoryList() {
+void JKG_ConstructInventoryList() {
 	itemInstance_t* pAllItems = nullptr;
 
 	pItems.clear();
@@ -42,6 +42,10 @@ static void JKG_ConstructInventoryList() {
 	if (nSelected >= pItems.size()) {
 		nSelected = -1;
 		Menu_ShowItemByName(Menus_FindByName("jkg_inventory"), "shop_preview", qfalse);
+	}
+
+	if (nPosition >= pItems.size()) {
+		nPosition = 0;
 	}
 }
 
@@ -798,7 +802,16 @@ void JKG_Inventory_ReconstructList(char** args) {
 }
 
 void JKG_UI_InventoryFilterChanged() {
-	JKG_ConstructInventoryList();
+	menuDef_t* focusedMenu = Menu_GetFocused();
+	if (focusedMenu == nullptr) {
+		return;
+	}
+	if (!Q_stricmp(focusedMenu->window.name, "jkg_inventory")) {
+		JKG_ConstructInventoryList();
+	}
+	else if (!Q_stricmp(focusedMenu->window.name, "jkg_shop")) {
+		JKG_ConstructShopLists();
+	}
 }
 
 void JKG_Inventory_UpdateNotify(int msg) {

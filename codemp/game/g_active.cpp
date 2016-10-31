@@ -868,7 +868,7 @@ void ClientIntermissionThink( gclient_t *client ) {
 	// swap and latch button actions
 	client->oldbuttons = client->buttons;
 	client->buttons = client->pers.cmd.buttons;
-	if ( client->buttons & ( BUTTON_ATTACK | BUTTON_USE_HOLDABLE ) & ( client->oldbuttons ^ client->buttons ) ) {
+	if ( client->buttons & BUTTON_ATTACK & ( client->oldbuttons ^ client->buttons ) ) {
 		// this used to be an ^1 but once a player says ready, it should stick
 		client->readyToExit = qtrue;
 	}
@@ -1054,41 +1054,6 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 			ent->client->dangerTime = level.time;
 			ent->client->ps.eFlags &= ~EF_INVULNERABLE;
 			ent->client->invulnerableTimer = 0;
-			break;
-
-		//rww - Note that these must be in the same order (ITEM#-wise) as they are in holdable_t
-		case EV_USE_ITEM1: //seeker droid
-			ItemUse_Seeker(ent);
-			break;
-		case EV_USE_ITEM2: //shield
-			ItemUse_Shield(ent);
-			break;
-		case EV_USE_ITEM3: //medpack
-			ItemUse_MedPack(ent);
-			break;
-		case EV_USE_ITEM4: //big medpack
-			ItemUse_MedPack_Big(ent);
-			break;
-		case EV_USE_ITEM5: //binoculars
-			ItemUse_Binoculars(ent);
-			break;
-		case EV_USE_ITEM6: //sentry gun
-			ItemUse_Sentry(ent);
-			break;
-		case EV_USE_ITEM7: //jetpack
-			ItemUse_Jetpack(ent);
-			break;
-		case EV_USE_ITEM8: //health disp
-			//ItemUse_UseDisp(ent, HI_HEALTHDISP);
-			break;
-		case EV_USE_ITEM9: //ammo disp
-			//ItemUse_UseDisp(ent, HI_AMMODISP);
-			break;
-		case EV_USE_ITEM10: //eweb
-			ItemUse_UseEWeb(ent);
-			break;
-		case EV_USE_ITEM11: //cloak
-			ItemUse_UseCloak(ent);
 			break;
 
 		case EV_CHANGE_WEAPON:
@@ -1362,10 +1327,6 @@ qboolean G_StandingAnim( int anim )
 qboolean G_ActionButtonPressed(int buttons)
 {
 	if (buttons & BUTTON_ATTACK)
-	{
-		return qtrue;
-	}
-	else if (buttons & BUTTON_USE_HOLDABLE)
 	{
 		return qtrue;
 	}
@@ -2242,7 +2203,7 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 		SpectatorThink( ent, ucmd );
 		if (client->deathcamTime && level.time > client->deathcamTime) {
-			if ( ucmd->buttons & ( BUTTON_ATTACK | BUTTON_USE_HOLDABLE ) || client->deathcamForceRespawn) {
+			if ( ucmd->buttons & BUTTON_ATTACK || client->deathcamForceRespawn) {
 				respawn( ent );
 			}
 		}
@@ -2276,14 +2237,8 @@ void ClientThink_real( gentity_t *ent ) {
 		client->ps.eFlags &= ~EF_BODYPUSH;
 	}
 
-	if (client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_JETPACK))
-	{
-		client->ps.eFlags |= EF_JETPACK;
-	}
-	else
-	{
-		client->ps.eFlags &= ~EF_JETPACK;
-	}
+	// JETPACK FIXME
+	client->ps.eFlags &= ~EF_JETPACK;
 
 
 	// JKG - Implement no-move
@@ -3451,126 +3406,7 @@ void ClientThink_real( gentity_t *ent ) {
 		case GENCMD_RELOAD:
 			Cmd_Reload_f(ent);
 			break;
-		case GENCMD_USE_SEEKER:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_SEEKER)) &&
-				G_ItemUsable(&ent->client->ps, HI_SEEKER) )
-			{
-				ItemUse_Seeker(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_SEEKER, 0);
-				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_SEEKER);
-			}
-			break;
-		case GENCMD_USE_FIELD:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_SHIELD)) &&
-				G_ItemUsable(&ent->client->ps, HI_SHIELD) )
-			{
-				ItemUse_Shield(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_SHIELD, 0);
-				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_SHIELD);
-			}
-			break;
-		case GENCMD_USE_BACTA:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_MEDPAC)) &&
-				G_ItemUsable(&ent->client->ps, HI_MEDPAC) )
-			{
-				ItemUse_MedPack(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_MEDPAC, 0);
-				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_MEDPAC);
-			}
-			break;
-		case GENCMD_USE_BACTABIG:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_MEDPAC_BIG)) &&
-				G_ItemUsable(&ent->client->ps, HI_MEDPAC_BIG) )
-			{
-				ItemUse_MedPack_Big(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_MEDPAC_BIG, 0);
-				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_MEDPAC_BIG);
-			}
-			break;
-		case GENCMD_USE_ELECTROBINOCULARS:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_BINOCULARS)) &&
-				G_ItemUsable(&ent->client->ps, HI_BINOCULARS) )
-			{
-				ItemUse_Binoculars(ent);
-				if (ent->client->ps.zoomMode == 0)
-				{
-					G_AddEvent(ent, EV_USE_ITEM0+HI_BINOCULARS, 1);
-				}
-				else
-				{
-					G_AddEvent(ent, EV_USE_ITEM0+HI_BINOCULARS, 2);
-				}
-			}
-			break;
 		case GENCMD_ZOOM:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_BINOCULARS)) &&
-				G_ItemUsable(&ent->client->ps, HI_BINOCULARS) )
-			{
-				ItemUse_Binoculars(ent);
-				if (ent->client->ps.zoomMode == 0)
-				{
-					G_AddEvent(ent, EV_USE_ITEM0+HI_BINOCULARS, 1);
-				}
-				else
-				{
-					G_AddEvent(ent, EV_USE_ITEM0+HI_BINOCULARS, 2);
-				}
-			}
-			break;
-		case GENCMD_USE_SENTRY:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_SENTRY_GUN)) &&
-				G_ItemUsable(&ent->client->ps, HI_SENTRY_GUN) )
-			{
-				ItemUse_Sentry(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_SENTRY_GUN, 0);
-				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_SENTRY_GUN);
-			}
-			break;
-		case GENCMD_USE_JETPACK:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_JETPACK)) &&
-				G_ItemUsable(&ent->client->ps, HI_JETPACK) )
-			{
-				ItemUse_Jetpack(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_JETPACK, 0);
-			}
-			break;
-		case GENCMD_USE_HEALTHDISP:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_HEALTHDISP)) &&
-				G_ItemUsable(&ent->client->ps, HI_HEALTHDISP) )
-			{
-				//ItemUse_UseDisp(ent, HI_HEALTHDISP);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_HEALTHDISP, 0);
-			}
-			break;
-		case GENCMD_USE_AMMODISP:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_AMMODISP)) &&
-				G_ItemUsable(&ent->client->ps, HI_AMMODISP) )
-			{
-				//ItemUse_UseDisp(ent, HI_AMMODISP);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_AMMODISP, 0);
-			}
-			break;
-		case GENCMD_USE_EWEB:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_EWEB)) &&
-				G_ItemUsable(&ent->client->ps, HI_EWEB) )
-			{
-				ItemUse_UseEWeb(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_EWEB, 0);
-			}
-			break;
-		case GENCMD_USE_CLOAK:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_CLOAK)) &&
-				G_ItemUsable(&ent->client->ps, HI_CLOAK) )
-			{
-				if ( ent->client->ps.powerups[PW_CLOAKED] )
-				{//decloak
-					NPC_Humanoid_Decloak( ent );
-				}
-				else
-				{//cloak
-					NPC_Humanoid_Cloak( ent );
-				}
-			}
 			break;
 		case GENCMD_SABERATTACKCYCLE:
 			Cmd_SaberAttackCycle_f(ent);
