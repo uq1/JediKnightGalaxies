@@ -5510,8 +5510,7 @@ void PM_RocketLock( float lockDist, qboolean vehicleLock )
 static qboolean PM_DoChargedWeapons( void )
 //---------------------------------------
 {
-	qboolean	charging = qfalse,
-				altFire = qfalse;
+	qboolean	charging = qfalse;
 	weaponData_t *thisWeaponData = GetWeaponData( pm->ps->weapon, pm->ps->weaponVariation );
 		
 	/* See if this weapon is chargeable with the primary fire */
@@ -5520,17 +5519,16 @@ static qboolean PM_DoChargedWeapons( void )
 		if ( thisWeaponData->zoomType != ZOOM_NONE )
 		{
 			if ( thisWeaponData->firemodes[pm->ps->firingMode].chargeTime &&
-				pm->ps->stats[STAT_AMMO] >= thisWeaponData->firemodes[pm->ps->firingMode].cost)
-			    {
-                    		altFire = qfalse;
-                    		charging = qtrue;
+				pm->ps->stats[STAT_AMMO] >= thisWeaponData->firemodes[pm->ps->firingMode].cost) 
+			{
+                   charging = qtrue;
 		    }
 		        
 		    if ( pm->ps->zoomMode != 1 &&
 		            pm->ps->weaponstate == WEAPON_CHARGING_ALT )
 		    {
 		        pm->ps->weaponstate = WEAPON_READY;
-		        altFire = charging = qfalse;
+		        charging = qfalse;
 		    }
 		}
 		/* Check the primary fire for a charged weapon; Even if we're using zoom, we must retain original specs */
@@ -6280,6 +6278,18 @@ static void PM_Weapon( void )
 		}
 	}
 
+	weaponData = GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation);
+
+	if (pm->ps->weaponstate == WEAPON_FIRING && pm->ps->weapon >= WP_BRYAR_PISTOL && pm->ps->weapon <= WP_ROCKET_LAUNCHER) {
+		// Ultra super duper special case - we are changing from a firing animation to transition into sights
+		if (pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->torsoAnim == weaponData->anims.firing.torsoAnim) {
+			PM_StartTorsoAnim(weaponData->anims.sights.torsoAnim);
+		}
+		else if (!(pm->ps->ironsightsTime & IRONSIGHTS_MSB) && pm->ps->torsoAnim == weaponData->anims.sightsFiring.torsoAnim) {
+			PM_StartTorsoAnim(weaponData->anims.ready.torsoAnim);
+		}
+	}
+
 	if ( pm->ps->weaponTime > 0 ) {
 		return;
 	}
@@ -6289,8 +6299,6 @@ static void PM_Weapon( void )
 		PM_FinishWeaponChange();
 		return;
 	}
-	
-	weaponData = GetWeaponData( pm->ps->weapon, pm->ps->weaponVariation );
 
 	if ( pm->ps->weaponstate == WEAPON_RAISING || pm->ps->weaponstate == WEAPON_RELOADING )
 	{

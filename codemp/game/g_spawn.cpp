@@ -1706,9 +1706,9 @@ void SP_worldspawn( void )
 			G_SpawnString( "defaultWeapon", jkg_startingGun.string, &text );//pistol_DL-18
 			break;
 	}
-	if(text)
+	if(text && *text)
 	{
-		strcpy(level.startingWeapon, text);
+		Q_strncpyz(level.startingWeapon, text, sizeof(level.startingWeapon));
 		trap->Cvar_Set("jkg_startingGun", text);
 	}
 	g_entities[ENTITYNUM_WORLD].s.number = ENTITYNUM_WORLD;

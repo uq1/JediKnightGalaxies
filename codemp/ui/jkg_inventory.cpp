@@ -815,25 +815,24 @@ void JKG_UI_InventoryFilterChanged() {
 }
 
 void JKG_Inventory_UpdateNotify(int msg) {
+	menuDef_t* focusedMenu = Menu_GetFocused();
+
 	switch (msg)
 	{
 	case 0: // open
+		if (focusedMenu != nullptr && !Q_stricmp(focusedMenu->window.name, "jkg_inventory")) {
+			Menus_CloseByName("jkg_inventory");
+			return;
+		}
 		if (Menus_FindByName("jkg_inventory") && Menus_ActivateByName("jkg_inventory"))
 		{
-			trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI /*& ~KEYCATCH_CONSOLE*/);
+			trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI);
 		}
 		JKG_ConstructInventoryList();
 		break;
 
 	case 1: // update!
-		trap->Print("debug: [Inventory::UpdateNotify]\n");
 		JKG_ConstructInventoryList();
-		break;
-	case 2:	// open as shop menu
-		if (Menus_FindByName("jkg_inventory") && Menus_ActivateByName("jkg_inventory"))
-		{
-			trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI/* & ~KEYCATCH_CONSOLE*/);
-		}
 		break;
 	}
 }

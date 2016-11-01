@@ -17,7 +17,7 @@ void JKG_Shop_UpdateNotify(int msg) {
 	if (menu && Menus_ActivateByName("jkg_shop"))
 	{
 		JKG_ConstructShopLists();
-		trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI & ~KEYCATCH_CONSOLE);
+		trap->Key_SetCatcher( trap->Key_GetCatcher() | KEYCATCH_UI );
 	}
 }
 void JKG_Inventory_UpdateNotify(int msg);
