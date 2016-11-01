@@ -6278,6 +6278,18 @@ static void PM_Weapon( void )
 		}
 	}
 
+	weaponData = GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation);
+
+	if (pm->ps->weaponstate == WEAPON_FIRING && pm->ps->weapon >= WP_BRYAR_PISTOL && pm->ps->weapon <= WP_ROCKET_LAUNCHER) {
+		// Ultra super duper special case - we are changing from a firing animation to transition into sights
+		if (pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->torsoAnim == weaponData->anims.firing.torsoAnim) {
+			PM_StartTorsoAnim(weaponData->anims.sights.torsoAnim);
+		}
+		else if (!(pm->ps->ironsightsTime & IRONSIGHTS_MSB) && pm->ps->torsoAnim == weaponData->anims.sightsFiring.torsoAnim) {
+			PM_StartTorsoAnim(weaponData->anims.ready.torsoAnim);
+		}
+	}
+
 	if ( pm->ps->weaponTime > 0 ) {
 		return;
 	}
@@ -6287,8 +6299,6 @@ static void PM_Weapon( void )
 		PM_FinishWeaponChange();
 		return;
 	}
-	
-	weaponData = GetWeaponData( pm->ps->weapon, pm->ps->weaponVariation );
 
 	if ( pm->ps->weaponstate == WEAPON_RAISING || pm->ps->weaponstate == WEAPON_RELOADING )
 	{
