@@ -742,6 +742,7 @@ void G_CheckVendorNPCs( void )
 
 		if (!npc) continue;
 		if (npc->s.eType != ET_NPC) continue;
+		if (!npc->client) continue; // ?
 
 		switch( npc->client->NPC_class )
 		{// UQ1: Vendor types... Stand still for now...
