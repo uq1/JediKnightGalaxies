@@ -2643,12 +2643,7 @@ static void PM_WalkMove( void ) {
 	wishspeed *= scale;
 
 	// clamp the speed lower if ducking
-	if ( pm->ps->pm_flags & PMF_DUCKED ) {
-		if ( wishspeed > pm->ps->speed * pm_duckScale ) {
-			wishspeed = pm->ps->speed * pm_duckScale;
-		}
-	}
-	else if ( (pm->ps->pm_flags & PMF_ROLLING) && !BG_InRoll(pm->ps, pm->ps->legsAnim) &&
+	if ( (pm->ps->pm_flags & PMF_ROLLING) && !BG_InRoll(pm->ps, pm->ps->legsAnim) &&
 		!PM_InRollComplete(pm->ps, pm->ps->legsAnim))
 	{
 		if ( wishspeed > pm->ps->speed * pm_duckScale ) {
@@ -7261,6 +7256,7 @@ void BG_AdjustClientSpeed(playerState_t *ps, usercmd_t *cmd, int svTime)
 {
 	saberInfo_t	*saber;
 	float speedModifier = 1.0f;
+	weaponData_t* weaponData = GetWeaponData(ps->weapon, ps->weaponVariation);
 
 	//For prediction, always reset speed back to the last known server base speed
 	//If we didn't do this, under lag we'd eventually dwindle speed down to 0 even though
@@ -7305,12 +7301,12 @@ void BG_AdjustClientSpeed(playerState_t *ps, usercmd_t *cmd, int svTime)
 			speedModifier += bgConstants.strafeSpeedModifier;
 	}
 
-	if(!(cmd->buttons&BUTTON_WALKING) && !BG_IsSprinting(ps, cmd, qtrue) && ps->weapon != WP_SABER)
+	if(!(cmd->buttons&BUTTON_WALKING) && !(cmd->buttons&BUTTON_IRONSIGHTS) && !BG_IsSprinting(ps, cmd, qtrue) && ps->weapon != WP_SABER)
 	{
 		//ps->speed *= 0.9f;
 		speedModifier += bgConstants.baseSpeedModifier;
 	}
-	else if(cmd->buttons&BUTTON_WALKING)
+	else if(cmd->buttons&BUTTON_WALKING || cmd->buttons&BUTTON_IRONSIGHTS)
 	{
 		//ps->speed *= 0.8f;
 		speedModifier -= bgConstants.walkSpeedModifier;
@@ -7427,9 +7423,18 @@ void BG_AdjustClientSpeed(playerState_t *ps, usercmd_t *cmd, int svTime)
 		ps->speed *= saber->moveSpeedScale;
 	}
 
-	if(speedModifier < 0.5f)
+	if (pm->ps->pm_flags & PMF_DUCKED) {
+		speedModifier -= pm_duckScale;
+	}
+
+	speedModifier -= (1 - weaponData->speedModifier);
+	if (ps->weaponstate == WEAPON_RELOADING && ps->weaponTime > 0) {
+		speedModifier -= (1 - weaponData->reloadModifier);
+	}
+
+	if(speedModifier < bgConstants.minimumSpeedModifier)
 	{
-		speedModifier = 0.5f;
+		speedModifier = bgConstants.minimumSpeedModifier;
 	}
 
 	ps->speed *= speedModifier;
