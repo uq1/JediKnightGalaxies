@@ -2514,12 +2514,6 @@ void ClientThink_real( gentity_t *ent ) {
 		{ //can't go nearly as fast when dragging a body around
 			client->ps.speed *= 0.2f;
 		}
-		
-		client->ps.speed *= GetWeaponData (client->ps.weapon, client->ps.weaponVariation)->speedModifier;
-		if ( client->ps.weaponstate == WEAPON_RELOADING && client->ps.weaponTime > 0 )
-		{
-		    client->ps.speed *= GetWeaponData (client->ps.weapon, client->ps.weaponVariation)->reloadModifier;
-		}
 
 		client->ps.basespeed = client->ps.speed;
 	}

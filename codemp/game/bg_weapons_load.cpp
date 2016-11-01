@@ -510,9 +510,6 @@ static void BG_ParseWeaponStats ( weaponData_t *weaponData, cJSON *statsNode )
         return;
     }
 
-    node = cJSON_GetObjectItem (statsNode, "slot");
-    weaponData->weaponSlot = (unsigned char)cJSON_ToIntegerOpt (node, 0);
-
     node = cJSON_GetObjectItem (statsNode, "reloadtime");
     weaponData->weaponReloadTime = (unsigned short)cJSON_ToIntegerOpt (node, 0);
 
