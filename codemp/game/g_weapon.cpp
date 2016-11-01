@@ -3550,6 +3550,9 @@ gentity_t *WP_FireGenericGrenade( gentity_t *ent, int firemode, vec3_t origin, v
 	fCharge = (( ent->client ) ? ( level.time - ent->client->ps.weaponChargeTime ) : 1.0f ) / fSpeed;
 	fCharge = ( fCharge > 1.0f ) ? 1.0f : (( fCharge < 0.15f ) ? 0.15f : fCharge );
 
+	/* Make sure our grenade is not on the other side of a wall */
+	W_TraceSetStart(ent, origin, bolt->r.mins, bolt->r.maxs);
+
 	/* Set the physics object and make the grenade think (when to explode) */
 	bolt->flags                  |= FL_BOUNCE_HALF | FL_BOUNCE;
 	bolt->physicsObject			 = qtrue;
