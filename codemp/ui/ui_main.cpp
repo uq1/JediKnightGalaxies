@@ -43,7 +43,6 @@ USER INTERFACE MAIN
 #include "../game/jkg_gangwars.h"
 
 // JKG
-#include "jkg_ui_auxlib.h"
 #include "jkg_conversations.h"
 #include "jkg_pazaak.h"
 #include "jkg_partymanager.h"
@@ -8352,15 +8351,12 @@ void UI_SetActiveMenu( uiMenuCommand_t menu ) {
 			return;
 		case UIMENU_MAIN:
 			{
-				qboolean active = qfalse;
 				//trap->Cvar_Set( "sv_killserver", "1" );
 				trap->Key_SetCatcher( KEYCATCH_UI );
 				//trap->S_StartLocalSound( trap->S_RegisterSound("sound/misc/menu_background.wav", qfalse) , CHAN_LOCAL_SOUND );
 				//trap->S_StartBackgroundTrack("sound/misc/menu_background.wav", NULL);
 				if (uiInfo.inGameLoad) 
-				{
-					//				UI_LoadNonIngame();
-				}
+					UI_LoadNonIngame();
 
 				Menus_CloseAll();
 				Menus_ActivateByName("main");
@@ -8370,16 +8366,15 @@ void UI_SetActiveMenu( uiMenuCommand_t menu ) {
 				{
 					if (!ui_singlePlayerActive.integer) 
 					{
-					Menus_ActivateByName("error_popmenu");
-					active = qtrue;
-				} 
-				else 
-				{
-					trap->Cvar_Set("com_errorMessage", "");
+						Menus_ActivateByName("error_popmenu");
+					} 
+					else 
+					{
+						trap->Cvar_Set("com_errorMessage", "");
+					}
 				}
+				return;
 			}
-			return;
-		}
 
 		case UIMENU_TEAM:
 			trap->Key_SetCatcher( KEYCATCH_UI );

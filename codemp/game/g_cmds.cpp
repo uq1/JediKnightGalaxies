@@ -562,12 +562,10 @@ JKGStringType_t JKG_CheckIfNumber(const char *string)
 }
 
 int G_ClientNumberFromStrippedSubstring ( const char* name, qboolean checkAll );
-int G_ClientNumberFromArg ( const char* name)
+int G_ClientNumberFromArg ( const char *name )
 {
 	int client_id = 0;
-	char *cp;
-	
-	cp = (char *)name;
+	const char *cp = name;
 	while (*cp)
 	{
 		if ( *cp >= '0' && *cp <= '9' ) cp++;
@@ -4204,8 +4202,6 @@ ClientCommand
 =================
 */
 
-#include "jkg_threading.h"
-
 void ClientCommand( int clientNum ) {
 	gentity_t *ent;
 	char	cmd[MAX_TOKEN_CHARS];
@@ -4235,11 +4231,6 @@ void ClientCommand( int clientNum ) {
 
 	// Check team commands.
 	if ( TeamCommand( clientNum, cmd, NULL )) return;
-
-	if (!Q_stricmp( cmd, "taskreport" )) {
-		JKG_PrintTasksTable( clientNum );
-		return;
-	}
 
 	if (Q_stricmp (cmd, "say") == 0) {
 		Cmd_Say_f (ent, SAY_ALL, qfalse);

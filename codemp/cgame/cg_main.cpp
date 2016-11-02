@@ -2555,7 +2555,6 @@ void ChatBox_InitSystem();
 void MiniMap_Init();
 void JKG_WeaponIndicators_Init();
 
-#include "jkg_cg_auxlib.h"
 #include "jkg_chatcmds.h"
 
 /*static void CG_OpenPartyManagement( void ) {
