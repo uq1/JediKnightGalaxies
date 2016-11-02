@@ -825,7 +825,7 @@
 
 		memset( buffer, 0, sizeof( buffer ));
 
-		if ( iTime < 0 || iTime >= INT_MAX/*4294967296*/ ) // CHECKME is this change okay for the underlying system?
+		if (iTime < 0 || iTime >= INT_MAX - 1/*4294967296*/) // --futuza: fixed, can't check higher than INT_MAX
 		{
 			iTime = 0;
 		}
