@@ -155,8 +155,8 @@ typedef struct  itemFlagsDef_s {
 }	itemFlagsDef_t;
 
 itemFlagsDef_t itemFlags [] = {
-"WINDOW_INACTIVE",		WINDOW_INACTIVE,
-NULL,					(int) NULL
+{ "WINDOW_INACTIVE",		WINDOW_INACTIVE },
+{ NULL,					(int) NULL }
 };
 
 char *styles [] = {
@@ -493,7 +493,7 @@ bool PC_Screenspace_Parse(int handle, float *f, bool bXorWidth) {
 
 	if (!trap->PC_ReadToken(handle, &token))
 		return false;
-	if (token.string[strlen(token.string)-1] == '%%')
+	if (token.string[strlen(token.string)-1] == '%') // CHECKME was '%%' which isn't valid ofc
 		bUsePercentage = true;
 	if (token.string[0] == '-') {
 		if (!trap->PC_ReadToken(handle, &token))
@@ -5133,7 +5133,7 @@ void Item_SetTextExtents(itemDef_t *item, int *width, int *height, const char *t
 		|| item->window.ownerDraw == UI_JKG_SHOP_RIGHTPRICE
 		|| (item->type == ITEM_TYPE_TEXT && item->typeData.text && item->typeData.text->customText && item->textalignment != ITEM_ALIGN_LEFT)
 #ifndef _CGAME
-		|| (item->text && item->text[0]=='@' && item->asset != se_language.modificationCount )	//string package language changed
+		|| (item->text[0]=='@' && item->asset != se_language.modificationCount )	//string package language changed
 #endif
 		)
 	{
@@ -5165,7 +5165,7 @@ void Item_SetTextExtents(itemDef_t *item, int *width, int *height, const char *t
 
 		ToWindowCoords(&item->textRect.x, &item->textRect.y, &item->window);
 #ifndef _CGAME
-		if (item->text && item->text[0]=='@' )//string package
+		if (item->text[0]=='@' )//string package
 		{//mark language
 			item->asset = se_language.modificationCount;
 		}
@@ -5390,7 +5390,7 @@ void Item_Text_Paint(itemDef_t *item) {
 
 	DC->drawText(item->textRect.x, item->textRect.y, item->textscale, color, textPtr, 0, 0, item->textStyle, item->iMenuFont);
 
-	if (item->text2)	// Is there a second line of text?
+	if (item->text2[0])	// Is there a second line of text?
 	{
 		int fontHandle = (item->iMenuFont2) ? item->iMenuFont2 : item->iMenuFont;
 		float textscale = (item->textscale2) ? item->textscale2 : item->textscale;
@@ -7897,7 +7897,7 @@ void Menu_HandleMouseMove(menuDef_t *menu, float x, float y) {
 gohere:
 				if (pass == 1) {
 					overItem = menu->items[i];
-					if (overItem->type == ITEM_TYPE_TEXT && overItem->text) {
+					if (overItem->type == ITEM_TYPE_TEXT && overItem->text[0]) {
 						if (!Rect_ContainsPoint(&overItem->window.rect, x, y)) {
 							continue;
 						}

@@ -593,7 +593,6 @@ static int UI_HeadCountByColor( void );
 static void UI_ParseGameInfo(const char *teamFile);
 static const char *UI_SelectedMap(int index, int *actual);
 static int UI_GetIndexFromSelection(int actual);
-static void UI_SiegeClassCnt( const int team );
 
 
 int	uiSkinColor=TEAM_FREE;
@@ -2445,7 +2444,7 @@ extern void JKG_GangWars_TeamBLUEText( rectDef_t *rect, float scale, vec4_t colo
 static void UI_OwnerDraw(itemDef_t *item, float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle,int iMenuFont, int ownerDrawID) 
 {
 	rectDef_t rect;
-	int drawRank = 0, iUse = 0;
+	int iUse = 0;
 
 	rect.x = x + text_x;
 	rect.y = y + text_y;
@@ -4470,11 +4469,10 @@ void UI_GetVideoSetup ( void )
 // but it already had one on it.
 static void UI_SetBotButton ( void )
 {
-	int gameType = trap->Cvar_VariableValue( "g_gametype" );
 	int server;
 	menuDef_t *menu;
 	itemDef_t *item;
-	char *name = "addBot";
+	const char *name = "addBot";
 
 	server = trap->Cvar_VariableValue( "sv_running" );
 
@@ -6641,7 +6639,6 @@ UI_FeederCount
 static int UI_FeederCount(float feederID) 
 {
 	int count=0,i; 
-	static char info[MAX_STRING_CHARS];
 
 	switch ( (int)feederID )
 	{
@@ -7056,8 +7053,6 @@ static const char *UI_FeederItemText(float feederID, int index, int column,
 
 
 static qhandle_t UI_FeederItemImage(float feederID, int index) {
-	static char info[MAX_STRING_CHARS];
-
 	if (feederID == FEEDER_SABER_SINGLE_INFO) 
 	{
 		return 0;
@@ -8661,9 +8656,6 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 	if (connmsg.string[0]) {
 		Text_PaintCenter(centerPoint, yStart + 48, scale, colorWhite, connmsg.string, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM);
 	} else {
-		char IP[256] = "";
-		char PORT[256] = "";
-
 		if (!Q_stricmp(cstate.servername,"localhost")) {
 			trap->SE_GetStringTextString("MENUS_STARTING_UP", sStringEdTemp, sizeof(sStringEdTemp));
 			Text_PaintCenter(centerPoint, yStart + 48, scale, colorWhite, sStringEdTemp, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM);

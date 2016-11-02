@@ -557,7 +557,7 @@ void JKG_Inventory_OwnerDraw_ItemTagTop(itemDef_t* item, int ownerDrawID) {
 		Item_Text_Paint(item);
 		return;
 	}
-	itemInstance_t* pItem = pItems[nItemNum].second;
+	//UNUSED see below itemInstance_t* pItem = pItems[nItemNum].second;
 	// If it's in an ACI slot, mention this
 	// FIXME: pItem->equipped should be valid!! but it's not!!
 	int* pACI = (int*)cgImports->InventoryDataRequest(2);
@@ -574,7 +574,7 @@ void JKG_Inventory_OwnerDraw_ItemTagTop(itemDef_t* item, int ownerDrawID) {
 
 // Bottom line. OwnerDrawID is the item slot number
 void JKG_Inventory_OwnerDraw_ItemTagBottom(itemDef_t* item, int ownerDrawID) {
-	int nItemNum = ownerDrawID + nPosition;
+	//int nItemNum = ownerDrawID + nPosition;
 	memset(item->text, 0, sizeof(item->text));
 	// Currently not used
 	//if (nItemNum >= nNumInventoryItems) {

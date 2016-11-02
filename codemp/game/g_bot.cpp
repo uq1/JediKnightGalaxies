@@ -786,7 +786,6 @@ void G_CheckVendorNPCs( void )
 	{
 		gentity_t	*npc = NULL;
 		int			waypoint = irand(0, gWPNum-1);
-		int			random = irand(0,36);
 		int			tries = 0;
 
 		while (gWPArray[waypoint]->inuse == qfalse || !JKG_CheckBelowWaypoint(waypoint) || !JKG_CheckRoutingFrom( waypoint ))
@@ -1021,7 +1020,6 @@ extern int WARZONE_GetNumberOfRedFlags();
 void G_CheckMinimumNpcs( void ) {
 	int			minplayers;
 	int			botplayers = 0, i;
-	static int	checkminimumplayers_time;
 
 	if (gWPNum <= 0)
 	{

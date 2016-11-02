@@ -5210,13 +5210,13 @@ void PM_BeginWeaponChange( int weaponId ) {
 	if(!BG_GetWeaponByIndex(pm->cmd.weapon, &weapon, &variation))
 		return;
 	
-	if( pm->ps->clientNum >= MAX_CLIENTS )
+	/*if( pm->ps->clientNum >= MAX_CLIENTS )
 	{
 		if ( weaponId > 0 && pm->ps->clientNum, weaponId)
 		{
 			return;
 		}
-	}
+	}*/
 
 	// Don't allow while in blocking mode for sabers, otherwise this fucks EVERYTHING up...
 	if( pm->ps->weapon == WP_SABER && pm->ps->saberActionFlags & ( 1 << SAF_BLOCKING ) )
@@ -5891,7 +5891,6 @@ static void PM_Weapon( void )
 	int doStdAnim;
 	static qboolean jkg_didGrenadeCook[MAX_GENTITIES];
 	const weaponData_t *weaponData;
-	weaponData_t *wp = BG_GetWeaponDataByIndex(pm->ps->weaponId);
 
 #ifdef _GAME
 	if (pm->ps->clientNum >= MAX_CLIENTS &&
@@ -6896,7 +6895,7 @@ void PM_UpdateViewAngles( playerState_t *ps, const usercmd_t *cmd ) {
 	}
 }
 
-static qboolean PM_IsWeaponZoomed ( const weaponData_t *weapon )
+/*static qboolean PM_IsWeaponZoomed ( const weaponData_t *weapon )
 {
     if ( weapon->zoomType == ZOOM_NONE )
     {
@@ -6909,7 +6908,7 @@ static qboolean PM_IsWeaponZoomed ( const weaponData_t *weapon )
     }
     
     return qfalse;
-}
+}*/
 
 //-------------------------------------------
 void PM_AdjustAttackStates( pmove_t *pmove )
@@ -7981,7 +7980,7 @@ void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int ti
 	int					adddir = 0;
 	static int			dir;
 	static int			i;
-	static int			movementOffsets[8] = { 0, 22, 45, -22, 0, 22, -45, -22 };
+	//static int			movementOffsets[8] = { 0, 22, 45, -22, 0, 22, -45, -22 };
 	float				degrees_negative = 0;
 	float				degrees_positive = 0;
 	static float		dif;

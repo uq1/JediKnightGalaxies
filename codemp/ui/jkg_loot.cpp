@@ -92,7 +92,7 @@ enum {
 	DLGTYPE_OK,			// Ok only
 };
 
-static void JKG_LootDialogShow(const char *line1, const char *line2, int type, PDlgCallback callback)
+/*static void JKG_LootDialogShow(const char *line1, const char *line2, int type, PDlgCallback callback)
 {
 	menuDef_t *menu;
 
@@ -128,7 +128,7 @@ static void JKG_LootDialogShow(const char *line1, const char *line2, int type, P
 	} else if (type == DLGTYPE_YESNO) {
 		Menu_ShowItemByName(menu, "btn_dialogyesno", qtrue);
 	}
-}
+}*/
 
 static void JKG_LootDialogHide(void)
 {
@@ -288,13 +288,11 @@ void JKG_ProcessLoot(){
 					break;
 				}
 				Q_strncpyz(lootInContainer[j].name, nextToken, sizeof(lootInContainer[j].name));
-				j++;
 			}
 		}
 		if(!Q_stricmp(token, "sen")) {
 			//Set pointer to ent (ent number)
 			lootUIData.entListener = atoi(Pzk_NextToken(&pb));
 		}
-
 	}
 }
