@@ -140,6 +140,6 @@ XCVAR_DEF( ui_inventorySortMode,			"-1",					JKG_ShopInventorySortChanged,	CVAR_
 XCVAR_DEF( ui_inventorySortType,			"0",					JKG_ShopInventorySortChanged,	CVAR_INTERNAL )
 XCVAR_DEF( ui_shopSortMode,					"-1",					JKG_ShopInventorySortChanged,	CVAR_INTERNAL )
 XCVAR_DEF( ui_shopSortType,					"0",					JKG_ShopInventorySortChanged,	CVAR_INTERNAL )
-XCVAR_DEF( connmsg,							"",						NULL,							CVAR_ROM )
+XCVAR_DEF( connmsg,							"",						NULL,							CVAR_ROM|CVAR_INTERNAL )
 
 #undef XCVAR_DEF
