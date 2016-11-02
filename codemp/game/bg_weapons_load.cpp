@@ -1236,7 +1236,7 @@ void BG_ShutdownWeaponG2Instances(void) {
 	    unsigned int numVariations = BG_NumberOfWeaponVariations (i);
 	    for ( j = 0; j < numVariations; j++ )
 	    {
-			if(trap->G2_HaveWeGhoul2Models(g2WeaponInstances[id].ghoul2)) {
+			if(g2WeaponInstances[id].ghoul2 && trap->G2_HaveWeGhoul2Models(g2WeaponInstances[id].ghoul2)) {
 				trap->G2API_CleanGhoul2Models(&g2WeaponInstances[id].ghoul2);
 				g2WeaponInstances[id].ghoul2 = NULL;
 			}
