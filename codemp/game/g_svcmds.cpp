@@ -573,7 +573,7 @@ qboolean	ConsoleCommand( void ) {
 	}
 
 	if (Q_stricmp (cmd, "listip") == 0) {
-		trap->SendConsoleCommand( EXEC_NOW, "g_banIPs\n" );
+		Svcmd_ListIP_f();
 		return qtrue;
 	}
 
