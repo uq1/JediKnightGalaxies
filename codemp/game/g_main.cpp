@@ -235,6 +235,32 @@ void G_FindTeams( void ) {
 //	trap->Print ("%i teams with %i entities\n", c, c2);
 }
 
+char startingGun[MAX_CVAR_VALUE_STRING] = {0};
+void CacheOldGun(void)
+{
+	// Don't cache the spawn value change
+	if(level.spawning)
+		return;
+
+	Q_strncpyz(startingGun, jkg_startingGun.string, sizeof(startingGun));
+
+	if( g_gametype.integer != GT_DUEL && g_gametype.integer != GT_POWERDUEL )
+		Q_strncpyz(level.startingWeapon, startingGun, sizeof(level.startingWeapon));
+}
+
+char startingSaber[MAX_CVAR_VALUE_STRING] = {0};
+void CacheOldSaber(void)
+{
+	// Don't cache the spawn value change
+	if(level.spawning)
+		return;
+
+	Q_strncpyz(startingSaber, jkg_startingSaberDuel.string, sizeof(startingSaber));
+
+	if( g_gametype.integer == GT_DUEL || g_gametype.integer == GT_POWERDUEL )
+		Q_strncpyz(level.startingWeapon, startingSaber, sizeof(level.startingWeapon));
+}
+
 typedef struct {
 	vmCvar_t	*vmCvar;
 	char		*cvarName;
@@ -253,7 +279,7 @@ static cvarTable_t gameCvarTable[] = {
 		#include "g_xcvar.h"
 	#undef XCVAR_LIST
 };
-static int gameCvarTableSize = ARRAY_LEN( gameCvarTable );
+static const size_t gameCvarTableSize = ARRAY_LEN( gameCvarTable );
 
 /*
 ==============
@@ -261,17 +287,15 @@ G_RegisterCvars
 ==============
 */
 
-void G_RegisterCvars( void )
-{
-	cvarTable_t *cv;
-	int i = 0;
-	for( i = 0, cv = gameCvarTable; i < gameCvarTableSize; i++, cv++ )
-	{
+void G_RegisterCvars( void ) {
+	size_t i = 0;
+	const cvarTable_t *cv = NULL;
+
+	for ( i=0, cv=gameCvarTable; i<gameCvarTableSize; i++, cv++ ) {
 		trap->Cvar_Register( cv->vmCvar, cv->cvarName, cv->defaultString, cv->cvarFlags );
-		if( cv->update )
+		if ( cv->update )
 			cv->update();
 	}
-
 }
 
 /*
@@ -280,29 +304,24 @@ G_UpdateCvars
 ==============
 */
 
-void G_UpdateCvars( void )
-{
-	cvarTable_t *cv;
-	int i = 0;
-	for( i = 0, cv = gameCvarTable; i < gameCvarTableSize; i++, cv++ )
-	{
-		if( cv->vmCvar )
-		{
+void G_UpdateCvars( void ) {
+	size_t i = 0;
+	const cvarTable_t *cv = NULL;
+
+	for ( i=0, cv=gameCvarTable; i<gameCvarTableSize; i++, cv++ ) {
+		if ( cv->vmCvar ) {
 			int modCount = cv->vmCvar->modificationCount;
 			trap->Cvar_Update( cv->vmCvar );
-
-			if ( cv->vmCvar->modificationCount > modCount )
-			{
+			if ( cv->vmCvar->modificationCount != modCount ) {
 				if ( cv->update )
 					cv->update();
 
 				if ( cv->trackChange )
-					trap->SendServerCommand( -1, va("print \"Server: %s changed to %s\n\"", cv->cvarName, cv->vmCvar->string) );
+					trap->SendServerCommand( -1, va("print \"Server: %s changed to %s\n\"", cv->cvarName, cv->vmCvar->string ) );
 			}
 		}
 	}
 }
-
 
 sharedBuffer_t gSharedBuffer;
 
@@ -628,6 +647,9 @@ void DeactivateCrashHandler();
 void G_ShutdownGame( int restart ) {
 	int i = 0;
 	gentity_t *ent;
+
+	trap->Cvar_Set( "jkg_startingGun", startingGun );
+	trap->Cvar_Set( "jkg_startingSaberDuel", startingSaber );
 
 	if(JKG_ThreadingInitialized())
 	{
