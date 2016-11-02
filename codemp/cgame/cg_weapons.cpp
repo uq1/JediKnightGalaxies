@@ -2333,13 +2333,10 @@ void CG_CheckPlayerG2Weapons(playerState_t *ps, centity_t *cent)
 	}
 }
 
-
 /*
 Ghoul2 Insert End
 */
 
-
-static weaponInfo_t defaultWeapon;
 weaponInfo_t *CG_WeaponInfo ( unsigned int weaponNum, unsigned int variation )
 {
     static weaponInfo_t *lastInfo = NULL;

@@ -4738,7 +4738,6 @@ void CG_DrawNPCNames( void )
 		float			size, x, y, x2, y2, dist;
 		vec4_t			tclr =	{ 0.325f,	0.325f,	1.0f,	1.0f	};
 		vec4_t			tclr2 = { 0.325f,	0.325f,	1.0f,	1.0f	};
-		int				baseColor = CT_BLUE;
 		float			multiplier = 1.0f;
 
 		if (!cent)

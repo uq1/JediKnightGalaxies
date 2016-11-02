@@ -781,12 +781,6 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 	if ( !Q_stricmp( name, "all" ) )
 		give_all = qtrue;
 
-	/*if ( give_all )
-	{
-		for ( i=0; i<HI_NUM_HOLDABLE; i++ )
-			ent->client->ps.stats[STAT_HOLDABLE_ITEMS] |= (1 << i);
-	}*/
-
 	if ( give_all || !Q_stricmp( name, "health" ) )
 	{
 		if ( argc == 3 )

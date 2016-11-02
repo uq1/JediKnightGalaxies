@@ -996,7 +996,6 @@ static void CG_OffsetFirstPersonView( void ) {
 	vec3_t			predictedVelocity;
 	int				timeDelta;
 	int				kickTime;
-	qboolean rolling = BG_InRoll(&cg.predictedPlayerState, cg.predictedPlayerState.torsoAnim);
 	
 	if ( cg.snap->ps.pm_type == PM_INTERMISSION ) {
 		return;
@@ -2747,8 +2746,6 @@ extern qboolean PM_InKnockDown( playerState_t *ps );
 
 extern qboolean cgQueueLoad;
 extern void CG_ActualLoadDeferredPlayers( void );
-
-static int cg_siegeClassIndex = -2;
 
 void CinBuild_Visualize();
 

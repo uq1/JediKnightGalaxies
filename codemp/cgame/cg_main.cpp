@@ -1683,7 +1683,7 @@ const char *CG_GetStringEdString(char *refSection, char *refName)
 
 const char *CG_GetStringEdString2(char *refName)
 {
-	static char text[2][1024]={0};	//just incase it's nested
+	static char text[2][1024]={};	//just incase it's nested
 	static int		index = 0;
 
 	index ^= 1;
@@ -2558,9 +2558,9 @@ void JKG_WeaponIndicators_Init();
 #include "jkg_cg_auxlib.h"
 #include "jkg_chatcmds.h"
 
-static void CG_OpenPartyManagement( void ) {
+/*static void CG_OpenPartyManagement( void ) {
 	uiImports->PartyMngtNotify( 10 );
-}
+}*/
 
 static void CG_OpenInventory ( void )
 {
@@ -2580,7 +2580,6 @@ extern void JKG_CG_InitArmor( void );
 extern void CG_InitializeCrossoverAPI( void );
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 {
-	static gitem_t *item;
 	char buf[64];
 	const char	*s;
 	int i = 0;
@@ -3025,14 +3024,6 @@ static void _CG_MouseEvent( int x, int y ) {
 	cgDC.cursorx = cgs.cursorX;
 	cgDC.cursory = cgs.cursorY;
 	CG_MouseEvent( x, y );
-}
-
-static qboolean CG_IncomingConsoleCommand( void ) {
-	//rww - let mod authors filter client console messages so they can cut them off if they want.
-	//return qtrue if the command is ok. Otherwise, you can set char 0 on the command str to 0 and return
-	//qfalse to not execute anything, or you can fill conCommand in with something valid and return 0
-	//in order to have that string executed in place. Some example code:
-	return qtrue;
 }
 
 static void CG_GetOrigin( int entID, vec3_t out ) {

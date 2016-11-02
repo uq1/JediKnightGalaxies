@@ -1115,11 +1115,10 @@ int JKG_GetTransitionForFiringModeSet(int previous, int next)
 
 static void JKG_FireModeUpdate(void)
 {
-	weaponData_t *wpData = GetWeaponData( cg.predictedPlayerState.weapon, cg.predictedPlayerState.weaponVariation );
-	char *previousFM = const_cast<char *>(CG_Argv(1));
+	const weaponData_t *wpData = GetWeaponData( cg.predictedPlayerState.weapon, cg.predictedPlayerState.weaponVariation );
+	const char *previousFM = CG_Argv(1);
 	int previousFMInt = atoi(previousFM);
-	if( wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound &&
-		wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound[0] &&
+	if( wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound[0] &&
 		wpData->numFiringModes > 1 )
 	{
 		trap->S_StartLocalSound( trap->S_RegisterSound( wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound ), CHAN_AUTO );

@@ -1859,7 +1859,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 			assert(weaponInfo);
 
-			if(weaponData->visuals.selectSound && weaponData->visuals.selectSound[0])
+			if(weaponData->visuals.selectSound[0])
 			{
 				trap->S_StartSound( NULL, es->number, CHAN_AUTO, trap->S_RegisterSound(weaponData->visuals.selectSound) );
 			}
