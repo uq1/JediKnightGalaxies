@@ -24,7 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
 #include "g_local.h"
-#include "jkg_threading.h" // JKG Threading Header
 #include "jkg_gangwars.h"
 #include "g_ICARUScb.h"
 #include "g_nav.h"
@@ -357,29 +356,6 @@ G_InitGame
 
 ============
 */
-
-static void JKG_RegisteServerCallback ( asyncTask_t *task )
-{
-	cJSON *data;
-	const char *error;
-	if (task->errorCode) {
-		trap->Print("ERROR: Failed to register server: Error code %i\n", task->errorCode);
-		return;
-	}
-	data = (cJSON *)task->finalData;
-
-	if (cJSON_ToInteger(cJSON_GetObjectItem(data, "errorCode"))) {
-		error = cJSON_ToString(cJSON_GetObjectItem(data, "message"));
-		trap->Print("ERROR: Failed to register server: %s\n", error ? error : "Unknown error");
-		return;
-	}
-	trap->Print("Server successfully registered\n");
-}
-
-extern void RemoveAllWP(void);
-extern void BG_ClearVehicleParseParms(void);
-void ActivateCrashHandler();
-
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 	vmCvar_t	mapname;
@@ -650,13 +626,6 @@ void G_ShutdownGame( int restart ) {
 
 	trap->Cvar_Set( "jkg_startingGun", startingGun );
 	trap->Cvar_Set( "jkg_startingSaberDuel", startingSaber );
-
-	if(JKG_ThreadingInitialized())
-	{
-		//if (!level.serverInit) JKG_NewNetworkTask(LCMETHOD_SVSHUTDOWN, NULL, 0);
-	}
-	// Shutdown JKG's Threading System
-	JKG_ShutdownThreading( 7000 );
 
 	GLua_Close();
 

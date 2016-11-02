@@ -31,8 +31,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define MASK_CAMERACLIP (MASK_SOLID|CONTENTS_PLAYERCLIP)
 #define CAMERA_SIZE	4
 
-#include "jkg_cg_auxlib.h"
-
 //[TrueView]
 #define		MAX_TRUEVIEW_INFO_SIZE					8192
 char		true_view_info[MAX_TRUEVIEW_INFO_SIZE];

@@ -4204,8 +4204,6 @@ ClientCommand
 =================
 */
 
-#include "jkg_threading.h"
-
 void ClientCommand( int clientNum ) {
 	gentity_t *ent;
 	char	cmd[MAX_TOKEN_CHARS];
@@ -4235,11 +4233,6 @@ void ClientCommand( int clientNum ) {
 
 	// Check team commands.
 	if ( TeamCommand( clientNum, cmd, NULL )) return;
-
-	if (!Q_stricmp( cmd, "taskreport" )) {
-		JKG_PrintTasksTable( clientNum );
-		return;
-	}
 
 	if (Q_stricmp (cmd, "say") == 0) {
 		Cmd_Say_f (ent, SAY_ALL, qfalse);
