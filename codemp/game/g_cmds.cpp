@@ -562,12 +562,10 @@ JKGStringType_t JKG_CheckIfNumber(const char *string)
 }
 
 int G_ClientNumberFromStrippedSubstring ( const char* name, qboolean checkAll );
-int G_ClientNumberFromArg ( const char* name)
+int G_ClientNumberFromArg ( const char *name )
 {
 	int client_id = 0;
-	char *cp;
-	
-	cp = (char *)name;
+	const char *cp = name;
 	while (*cp)
 	{
 		if ( *cp >= '0' && *cp <= '9' ) cp++;
