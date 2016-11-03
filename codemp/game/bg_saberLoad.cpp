@@ -981,6 +981,8 @@ if(childNode)
 
 #undef JSONPARSE
 
+	cJSON_Delete(json);
+
 	hiltLookupTable->insert(std::make_pair(name, theHilt));
 
 	return true;
