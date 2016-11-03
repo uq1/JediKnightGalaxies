@@ -234,32 +234,6 @@ void G_FindTeams( void ) {
 //	trap->Print ("%i teams with %i entities\n", c, c2);
 }
 
-char startingGun[MAX_CVAR_VALUE_STRING] = {0};
-void CacheOldGun(void)
-{
-	// Don't cache the spawn value change
-	if(level.spawning)
-		return;
-
-	Q_strncpyz(startingGun, jkg_startingGun.string, sizeof(startingGun));
-
-	if( g_gametype.integer != GT_DUEL && g_gametype.integer != GT_POWERDUEL )
-		Q_strncpyz(level.startingWeapon, startingGun, sizeof(level.startingWeapon));
-}
-
-char startingSaber[MAX_CVAR_VALUE_STRING] = {0};
-void CacheOldSaber(void)
-{
-	// Don't cache the spawn value change
-	if(level.spawning)
-		return;
-
-	Q_strncpyz(startingSaber, jkg_startingSaberDuel.string, sizeof(startingSaber));
-
-	if( g_gametype.integer == GT_DUEL || g_gametype.integer == GT_POWERDUEL )
-		Q_strncpyz(level.startingWeapon, startingSaber, sizeof(level.startingWeapon));
-}
-
 typedef struct {
 	vmCvar_t	*vmCvar;
 	char		*cvarName;
@@ -623,9 +597,6 @@ void DeactivateCrashHandler();
 void G_ShutdownGame( int restart ) {
 	int i = 0;
 	gentity_t *ent;
-
-	trap->Cvar_Set( "jkg_startingGun", startingGun );
-	trap->Cvar_Set( "jkg_startingSaberDuel", startingSaber );
 
 	GLua_Close();
 

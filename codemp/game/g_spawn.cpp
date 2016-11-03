@@ -1711,7 +1711,7 @@ void SP_worldspawn( void )
 			break;
 		default:
 			{
-				G_SpawnString( "defaultWeapon", jkg_startingGun.string, &text );//pistol_DL-18
+				G_SpawnString( "defaultWeapon", "pistol_DL-18", &text );//pistol_DL-18
 				if(text && *text)
 				{
 					Q_strncpyz(level.startingWeapon, text, sizeof(level.startingWeapon));
