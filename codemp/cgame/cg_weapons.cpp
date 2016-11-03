@@ -694,6 +694,10 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 		angles[ROLL] += scale * cg.bobfracsin * 0.005 * (1.0f - ironSightsPhase);
 		angles[YAW] += scale * cg.bobfracsin * 0.01 * (1.0f - ironSightsPhase);
 		angles[PITCH] += cg.xyspeed * cg.bobfracsin * 0.005 * (1.0f - ironSightsPhase);
+
+		VectorMA(origin, jkg_sightsBobX.value * scale * cg.bobfracsin * ironSightsPhase, cg.refdef.viewaxis[0], origin);
+		VectorMA(origin, jkg_sightsBobY.value * scale * cg.bobfracsin * ironSightsPhase, cg.refdef.viewaxis[1], origin);
+		VectorMA(origin, jkg_sightsBobZ.value * scale * cg.bobfracsin * ironSightsPhase, cg.refdef.viewaxis[2], origin);
 	}
 
 #if 0

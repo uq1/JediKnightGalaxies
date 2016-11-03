@@ -222,4 +222,8 @@ XCVAR_DEF( jkg_gunlesscrosshair,				"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( jkg_noletterbox,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( jkg_waypoint_render,					"0",					NULL,					CVAR_CHEAT )
 XCVAR_DEF( jkg_debugBBox,						"0",					NULL,					CVAR_CHEAT )
+
+XCVAR_DEF( jkg_sightsBobX,						"0",					NULL,					CVAR_CHEAT )
+XCVAR_DEF( jkg_sightsBobY,						"0",					NULL,					CVAR_CHEAT )
+XCVAR_DEF( jkg_sightsBobZ,						"0",					NULL,					CVAR_CHEAT )
 #undef XCVAR_DEF
