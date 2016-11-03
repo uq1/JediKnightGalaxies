@@ -1918,6 +1918,10 @@ int BG_ProperForceIndex(int power)
 {
 	int i = 0;
 
+	if (power < 0) {
+		return -1;
+	}
+
 	while (i < NUM_FORCE_POWERS)
 	{
 		if (forcePowerSorted[i] == power)

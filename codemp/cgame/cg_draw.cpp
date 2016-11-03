@@ -343,7 +343,7 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, void *
 	trap->R_RenderScene( &refdef );
 }
 
-#define MAX_SHOWPOWERS NUM_FORCE_POWERS
+#define MAX_SHOWPOWERS NUM_FORCE_POWERS-1
 
 qboolean ForcePower_Valid(int i)
 {
