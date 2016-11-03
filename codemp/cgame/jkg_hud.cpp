@@ -164,7 +164,7 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 		return;
 	}
 
-	if (!cent->currentState.weapon ) // We don't have a weapon right now
+	if (!cent->currentState.weapon || cent->currentState.weapon == WP_MELEE ) // We don't have a weapon right now
 	{
 		return;
 	}
