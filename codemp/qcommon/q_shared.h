@@ -1511,11 +1511,6 @@ typedef enum {
 
 #define FALL_FADE_TIME			3000
 
-typedef int32_t					netint_t;
-typedef float					netfloat_t;
-typedef netint_t				netbool_t;
-typedef vec3_t					netvec3_t;
-
 //#define _ONEBIT_COMBO
 //Crazy optimization attempt to take all those 1 bit values and shove them into a single
 //send. May help us not have to send so many 1/0 bits to acknowledge modified values. -rww
@@ -1538,286 +1533,293 @@ typedef vec3_t					netvec3_t;
 // so if a playerState_t is transmitted, the entityState_t can be fully derived
 // from it.
 typedef struct playerState_s {
-	netint_t			commandTime;	// cmd->serverTime of last executed command
-	netint_t			pm_type;
-	netint_t			bobCycle;		// for view bobbing and footstep generation
-	netint_t			pm_flags;		// ducked, jump_held, etc
-	netint_t			pm_time;
+	int			commandTime;	// cmd->serverTime of last executed command
+	int			pm_type;
+	int			bobCycle;		// for view bobbing and footstep generation
+	int			pm_flags;		// ducked, jump_held, etc
+	int			pm_time;
 
-	netvec3_t			origin;
-	netvec3_t			velocity;
+	vec3_t		origin;
+	vec3_t		velocity;
 
-	netvec3_t			moveDir; //NOT sent over the net - nor should it be.
+	vec3_t		moveDir; //NOT sent over the net - nor should it be.
 
-	netint_t			weaponTime;
-	netint_t			weaponChargeTime;
-	netint_t			weaponChargeSubtractTime;
-	netint_t			gravity;
-	netfloat_t			speed;
-	netint_t			basespeed; //used in prediction to know base server g_speed value when modifying speed between updates
-	netint_t			delta_angles[3];	// add to command angles to get view direction
+	int			weaponTime;
+	int			weaponChargeTime;
+	int			weaponChargeSubtractTime;
+	int			gravity;
+	float		speed;
+	int			basespeed; //used in prediction to know base server g_speed value when modifying speed between updates
+	int			delta_angles[3];	// add to command angles to get view direction
 									// changed by spawns, rotating objects, and teleporters
 
-	netint_t			slopeRecalcTime; //this is NOT sent across the net and is maintained seperately on game and cgame in pmove code.
+	int			slopeRecalcTime; //this is NOT sent across the net and is maintained seperately on game and cgame in pmove code.
 
-	netint_t			useTime;
+	int			useTime;
 
-	netint_t			groundEntityNum;// ENTITYNUM_NONE = in air
+	int			groundEntityNum;// ENTITYNUM_NONE = in air
 
-	netint_t			legsTimer;		// don't change low priority animations until this runs out
-	netint_t			legsAnim;
+	int			legsTimer;		// don't change low priority animations until this runs out
+	int			legsAnim;
 
-	netint_t			torsoTimer;		// don't change low priority animations until this runs out
-	netint_t			torsoAnim;
+	int			torsoTimer;		// don't change low priority animations until this runs out
+	int			torsoAnim;
 
-	netbool_t			legsFlip; //set to opposite when the same anim needs restarting, sent over in only 1 bit. Cleaner and makes porting easier than having that god forsaken ANIM_TOGGLEBIT.
-	netbool_t			torsoFlip;
+	qboolean	legsFlip; //set to opposite when the same anim needs restarting, sent over in only 1 bit. Cleaner and makes porting easier than having that god forsaken ANIM_TOGGLEBIT.
+	qboolean	torsoFlip;
 
-	netint_t			movementDir;	// a number 0 to 7 that represents the reletive angle
+	int			movementDir;	// a number 0 to 7 that represents the reletive angle
 								// of movement to the view angle (axial and diagonals)
 								// when at rest, the value will remain unchanged
 								// used to twist the legs during strafing
 
-	netint_t			eFlags;			// copied to entityState_t->eFlags
-	netint_t			eFlags2;		// copied to entityState_t->eFlags2, EF2_??? used much less frequently
+	int			eFlags;			// copied to entityState_t->eFlags
+	int			eFlags2;		// copied to entityState_t->eFlags2, EF2_??? used much less frequently
 
-	netint_t			eventSequence;	// pmove generated events
-	netint_t			events[MAX_PS_EVENTS];
-	netint_t			eventParms[MAX_PS_EVENTS];
+	int			eventSequence;	// pmove generated events
+	int			events[MAX_PS_EVENTS];
+	int			eventParms[MAX_PS_EVENTS];
 
-	netint_t			externalEvent;	// events set on player from another source
-	netint_t			externalEventParm;
-	netint_t			externalEventTime;
+	int			externalEvent;	// events set on player from another source
+	int			externalEventParm;
+	int			externalEventTime;
 
-	netint_t			clientNum;		// ranges from 0 to MAX_CLIENTS-1
-	netint_t			weapon;			// copied to entityState_t->weapon
-	netint_t			weaponstate;
+	int			clientNum;		// ranges from 0 to MAX_CLIENTS-1
+	int			weapon;			// copied to entityState_t->weapon
+	int			weaponstate;
 
-	netvec3_t			viewangles;		// for fixed views
-	netint_t			viewheight;
+	vec3_t		viewangles;		// for fixed views
+	int			viewheight;
 
 	// damage feedback
-	netint_t			damageEvent;	// when it changes, latch the other parms
-	netint_t			damageYaw;
-	netint_t			damagePitch;
-	netint_t			damageCount;
-	netint_t			damageType;
+	int			damageEvent;	// when it changes, latch the other parms
+	int			damageYaw;
+	int			damagePitch;
+	int			damageCount;
+	int			damageType;
 
-	netint_t			painTime;		// used for both game and client side to process the pain twitch - NOT sent across the network
-	netint_t			painDirection;	// NOT sent across the network
-	netfloat_t			yawAngle;		// NOT sent across the network
-	netbool_t			yawing;			// NOT sent across the network
-	netfloat_t			pitchAngle;		// NOT sent across the network
-	netbool_t			pitching;		// NOT sent across the network
+	int			painTime;		// used for both game and client side to process the pain twitch - NOT sent across the network
+	int			painDirection;	// NOT sent across the network
+	float		yawAngle;		// NOT sent across the network
+	qboolean	yawing;			// NOT sent across the network
+	float		pitchAngle;		// NOT sent across the network
+	qboolean	pitching;		// NOT sent across the network
 
-	netint_t			stats[MAX_STATS];
-	netint_t			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
-	netint_t			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
-	netint_t			ammo;					// Total ammo available for reloading (like an ammo pool)	//FIXME: remove?
+	int			stats[MAX_STATS];
+	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
+	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
+	int			ammo;					// Total ammo available for reloading (like an ammo pool)	//FIXME: remove?
 
-	netint_t			unused[18];				// Unused fields	(see what I did here?)		
+	int		unused[18];				// Unused fields	(see what I did here?)		
 
-	netint_t			generic1;
-	netint_t			loopSound;
-	netint_t			jumppad_ent;	// jumppad entity hit this frame
+	int			generic1;
+	int			loopSound;
+	int			jumppad_ent;	// jumppad entity hit this frame
 
 	// not communicated over the net at all
-	netint_t			ping;			// server to game info for scoreboard
-	netint_t			pmove_framecount;	// FIXME: don't transmit over the network
-	netint_t			jumppad_frame;
-	netint_t			entityEventSequence;
+	int			ping;			// server to game info for scoreboard
+	int			pmove_framecount;	// FIXME: don't transmit over the network
+	int			jumppad_frame;
+	int			entityEventSequence;
 
-	netint_t			lastOnGround;	//last time you were on the ground
+	int			lastOnGround;	//last time you were on the ground
 
-	netbool_t			saberInFlight;
+	qboolean	saberInFlight;
 
-	netint_t			saberMove;
-	netint_t			saberBlocking;
-	netint_t			saberBlocked;
+	int			saberMove;
+	int			saberBlocking;
+	int			saberBlocked;
 
-	netint_t			saberLockTime;
-	netint_t			saberLockEnemy;
-	netint_t			saberLockFrame; //since we don't actually have the ability to get the current anim frame
-	netint_t			saberLockHits; //every x number of buttons hits, allow one push forward in a saber lock (server only)
-	netint_t			saberLockHitCheckTime; //so we don't allow more than 1 push per server frame
-	netint_t			saberLockHitIncrementTime; //so we don't add a hit per attack button press more than once per server frame
-	netbool_t			saberLockAdvance; //do an advance (sent across net as 1 bit)
+	int			saberLockTime;
+	int			saberLockEnemy;
+	int			saberLockFrame; //since we don't actually have the ability to get the current anim frame
+	int			saberLockHits; //every x number of buttons hits, allow one push forward in a saber lock (server only)
+	int			saberLockHitCheckTime; //so we don't allow more than 1 push per server frame
+	int			saberLockHitIncrementTime; //so we don't add a hit per attack button press more than once per server frame
+	qboolean	saberLockAdvance; //do an advance (sent across net as 1 bit)
 
-	netint_t			saberEntityNum;
-	netfloat_t			saberEntityDist;
-	netint_t			saberEntityState;
-	netint_t			saberThrowDelay;
-	netbool_t			saberCanThrow;
-	netint_t			saberDidThrowTime;
-	netint_t			saberDamageDebounceTime;
-	netint_t			saberHitWallSoundDebounceTime;
-	netint_t			saberEventFlags;
+	int			saberEntityNum;
+	float		saberEntityDist;
+	int			saberEntityState;
+	int			saberThrowDelay;
+	qboolean	saberCanThrow;
+	int			saberDidThrowTime;
+	int			saberDamageDebounceTime;
+	int			saberHitWallSoundDebounceTime;
+	int			saberEventFlags;
 
-	netint_t			rocketLockIndex;
-	netfloat_t			rocketLastValidTime;
-	netfloat_t			rocketLockTime;
-	netfloat_t			rocketTargetTime;
+	int			rocketLockIndex;
+	float		rocketLastValidTime;
+	float		rocketLockTime;
+	float		rocketTargetTime;
 
-	netint_t			emplacedIndex;
-	netfloat_t			emplacedTime;
+	int			emplacedIndex;
+	float		emplacedTime;
 
-	netbool_t			forceRestricted;
-	netint_t			saberIndex;
+	qboolean	forceRestricted;
+	int			saberIndex;
 
-	netint_t			genericEnemyIndex;
-	netfloat_t			droneFireTime;
-	netfloat_t			droneExistTime;
+	int			genericEnemyIndex;
+	float		droneFireTime;
+	float		droneExistTime;
 
-	netint_t			activeForcePass;
+	int			activeForcePass;
 
-	netbool_t			hasDetPackPlanted; //better than taking up an eFlag isn't it?
+	qboolean	hasDetPackPlanted; //better than taking up an eFlag isn't it?
 
-	netint_t			electrifyTime;
+	int			electrifyTime;
 
-	netint_t			saberAttackSequence;
-	netint_t			saberIdleWound;
-	netint_t			saberAttackWound;
-	netint_t			saberBlockTime;
+	int			saberAttackSequence;
+	int			saberIdleWound;
+	int			saberAttackWound;
+	int			saberBlockTime;
 
-	netint_t			otherKiller;
-	netint_t			otherKillerTime;
-	netint_t			otherKillerDebounceTime;
+	int			otherKiller;
+	int			otherKillerTime;
+	int			otherKillerDebounceTime;
 
-	forcedata_t			fd;
-	netbool_t			forceJumpFlip;
-	netint_t			forceHandExtend;
-	netint_t			forceHandExtendTime;
+	forcedata_t	fd;
+	qboolean	forceJumpFlip;
+	int			forceHandExtend;
+	int			forceHandExtendTime;
 
-	netint_t			forceRageDrainTime;
+	int			forceRageDrainTime;
 
-	netint_t			forceDodgeAnim;
-	netbool_t			quickerGetup;
+	int			forceDodgeAnim;
+	qboolean	quickerGetup;
 
-	netint_t			groundTime;		// time when first left ground
+	int			groundTime;		// time when first left ground
 
-	netint_t			footstepTime;
+	int			footstepTime;
 
-	netint_t			otherSoundTime;
-	netfloat_t			otherSoundLen;
+	int			otherSoundTime;
+	float		otherSoundLen;
 
-	netint_t			forceGripMoveInterval;
-	netint_t			forceGripChangeMovetype;
+	int			forceGripMoveInterval;
+	int			forceGripChangeMovetype;
 
-	netint_t			forceKickFlip;
+	int			forceKickFlip;
 
-	netint_t			duelIndex;
-	netint_t			duelTime;
-	netbool_t			duelInProgress;
+	int			duelIndex;
+	int			duelTime;
+	qboolean	duelInProgress;
 
-	netint_t			saberAttackChainCount;
+	int			saberAttackChainCount;
 
-	netint_t			saberHolstered;
+	int			saberHolstered;
 
-	netint_t			forceAllowDeactivateTime;
+	int			forceAllowDeactivateTime;
 
 	// zoom key
-	netint_t			zoomMode;		// 0 - not zoomed, 1 - disruptor weapon
-	netint_t			zoomTime;
-	netbool_t			zoomLocked;
-	netfloat_t			zoomFov;
-	netint_t			zoomLockTime;
+	int			zoomMode;		// 0 - not zoomed, 1 - disruptor weapon
+	int			zoomTime;
+	qboolean	zoomLocked;
+	float		zoomFov;
+	int			zoomLockTime;
 
-	netint_t			fallingToDeath;
+	int			fallingToDeath;
 
-	netint_t			useDelay;
+	int			useDelay;
 
-	netbool_t			inAirAnim;
+	qboolean	inAirAnim;
 
-	netvec3_t			lastHitLoc;
+	vec3_t		lastHitLoc;
 
-	netint_t			heldByClient; //can only be a client index - this client should be holding onto my arm using IK stuff.
+	int			heldByClient; //can only be a client index - this client should be holding onto my arm using IK stuff.
 
-	netint_t			ragAttach; //attach to ent while ragging
+	int			ragAttach; //attach to ent while ragging
 
-	netint_t			iModelScale;
+	int			iModelScale;
 
-	netint_t			brokenLimbs;
+	int			brokenLimbs;
 
 	//for looking at an entity's origin (NPCs and players)
-	netbool_t			hasLookTarget;
-	netint_t			lookTarget;
+	qboolean	hasLookTarget;
+	int			lookTarget;
 
-	netint_t			customRGBA[4];
+	int			customRGBA[4];
 
-	netint_t			standheight;
-	netint_t			crouchheight;
+	int			standheight;
+	int			crouchheight;
 
 	//If non-0, this is the index of the vehicle a player/NPC is riding.
-	netint_t			m_iVehicleNum;
+	int			m_iVehicleNum;
 
 	//lovely hack for keeping vehicle orientation in sync with prediction
-	netvec3_t			vehOrientation;
-	netbool_t			vehBoarding;
-	netint_t			vehSurfaces;
+	vec3_t		vehOrientation;
+	qboolean	vehBoarding;
+	int			vehSurfaces;
 
 	//vehicle turnaround stuff (need this in ps so it doesn't jerk too much in prediction)
-	netint_t			vehTurnaroundIndex;
-	netint_t			vehTurnaroundTime;
+	int			vehTurnaroundIndex;
+	int			vehTurnaroundTime;
 
 	//vehicle has weapons linked
-	netbool_t			vehWeaponsLinked;
+	qboolean	vehWeaponsLinked;
 
 	//when hyperspacing, you just go forward really fast for HYPERSPACE_TIME
-	netint_t			hyperSpaceTime;
-	netvec3_t			hyperSpaceAngles;
+	int			hyperSpaceTime;
+	vec3_t		hyperSpaceAngles;
 
 	//hacking when > time
-	netint_t			hackingTime;
+	int			hackingTime;
 	//actual hack amount - only for the proper percentage display when
 	//drawing progress bar (is there a less bandwidth-eating way to do
 	//this without a lot of hassle?)
-	netint_t			hackingBaseTime;
+	int			hackingBaseTime;
 
 	//keeps track of jetpack fuel
-	netint_t			jetpackFuel;
+	int			jetpackFuel;
 
 	//keeps track of cloak fuel
-	netint_t			cloakFuel;
+	int			cloakFuel;
 
 	// JKG SPECIFIC
 
-	netint_t			weaponVariation;
-	netint_t			weaponId;
-	netint_t			shotsRemaining;
-	netint_t			sprintMustWait;
+	unsigned char	weaponVariation;
+	unsigned char	weaponId;
+	unsigned char   shotsRemaining;
+	unsigned char	sprintMustWait;
 	
-	netint_t			saberActionFlags;
+	short			saberActionFlags;
 
-	netint_t 			damageTypeFlags;
-	netint_t 			freezeTorsoAnim;
-	netint_t 			freezeLegsAnim;
+	int 			damageTypeFlags;
+	int 			freezeTorsoAnim;
+	int 			freezeLegsAnim;
 
-	netint_t			firingMode;
-	netint_t			ironsightsTime;
-	netint_t			ironsightsDebounceStart;
-	netbool_t			isInSights;
+	unsigned char	firingMode;
+	unsigned int	ironsightsTime;
+	unsigned int	ironsightsDebounceStart;
+	qboolean		isInSights;
 
-	netint_t			sprintTime;
-	netint_t			sprintDebounceTime;
-	netbool_t			isSprinting;
+	unsigned int	sprintTime;
+	int				sprintDebounceTime;
+	qboolean		isSprinting;
 
-	netint_t			forcePower;
-	netfloat_t			saberSwingSpeed;
-	netfloat_t			saberMoveSwingSpeed;
+	signed short	forcePower;
+	float			saberSwingSpeed;
+	float			saberMoveSwingSpeed;
 
-	netint_t			saberPommel[2];
-	netint_t			saberShaft[2];
-	netint_t			saberEmitter[2];
-	netint_t			saberCrystal[2];
+	short			saberPommel[2];
+	short			saberShaft[2];
+	short			saberEmitter[2];
+	short			saberCrystal[2];
 
-	netint_t			blockPoints;
+	signed short	blockPoints;
 
-	netbool_t			sightsTransition;	// Are we in a sights transition? (Used for player animation)
-	netint_t			credits;
+	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
+	unsigned int	credits;
 } playerState_t;
 // For ironsights
 #define IRONSIGHTS_MSB (1 << 31)
 #define SPRINT_MSB IRONSIGHTS_MSB
+
+typedef struct siegePers_s
+{
+	qboolean	beatingTime;
+	int			lastTeam;
+	int			lastTime;
+} siegePers_t;
 
 //====================================================================
 
@@ -2036,182 +2038,182 @@ typedef struct trajectory_s {
 
 #define SEED_MAX		65536
 typedef struct entityState_s {
-	netint_t		number;			// entity index
-	netint_t		eType;			// entityType_t
-	netint_t		eFlags;
-	netint_t		eFlags2;		// EF2_??? used much less frequently
+	int		number;			// entity index
+	int		eType;			// entityType_t
+	int		eFlags;
+	int		eFlags2;		// EF2_??? used much less frequently
 
 	trajectory_t	pos;	// for calculating position
 	trajectory_t	apos;	// for calculating angles
 
-	netint_t		time;
-	netint_t		time2;
+	int		time;
+	int		time2;
 
-	netvec3_t		origin;
-	netvec3_t		origin2;
+	vec3_t	origin;
+	vec3_t	origin2;
 
-	netvec3_t		angles;
-	netvec3_t		angles2;
+	vec3_t	angles;
+	vec3_t	angles2;
 
 	//rww - these were originally because we shared g2 info client and server side. Now they
 	//just get used as generic values everywhere.
-	netint_t		bolt1;
-	netint_t		bolt2;
+	int		bolt1;
+	int		bolt2;
 
 	//rww - this is necessary for determining player visibility during a jedi mindtrick
-	netint_t		trickedentindex; //0-15
-	netint_t		trickedentindex2; //16-32
-	netint_t		trickedentindex3; //33-48
-	netint_t		trickedentindex4; //49-64
+	int		trickedentindex; //0-15
+	int		trickedentindex2; //16-32
+	int		trickedentindex3; //33-48
+	int		trickedentindex4; //49-64
 
-	netfloat_t		speed;
+	float	speed;
 
-	netint_t		fireflag;
+	int		fireflag;
 
-	netint_t		genericenemyindex;
+	int		genericenemyindex;
 
-	netint_t		activeForcePass;
+	int		activeForcePass;
 
-	netint_t		emplacedOwner;
+	int		emplacedOwner;
 
-	netint_t		otherEntityNum;	// shotgun sources, etc
-	netint_t		otherEntityNum2;
+	int		otherEntityNum;	// shotgun sources, etc
+	int		otherEntityNum2;
 
-	netint_t		groundEntityNum;	// ENTITYNUM_NONE = in air
+	int		groundEntityNum;	// ENTITYNUM_NONE = in air
 
-	netint_t		constantLight;	// r + (g<<8) + (b<<16) + (intensity<<24)
-	netint_t		loopSound;		// constantly loop this sound
-	netbool_t		loopIsSoundset; //qtrue if the loopSound index is actually a soundset index
+	int		constantLight;	// r + (g<<8) + (b<<16) + (intensity<<24)
+	int		loopSound;		// constantly loop this sound
+	qboolean	loopIsSoundset; //qtrue if the loopSound index is actually a soundset index
 
-	netint_t		soundSetIndex;
+	int		soundSetIndex;
 
-	netint_t		modelGhoul2;
-	netint_t		g2radius;
-	netint_t		modelindex;
-	netint_t		modelindex2;
-	netint_t		clientNum;		// 0 to (MAX_CLIENTS - 1), for players and corpses
-	netint_t		frame;
+	int		modelGhoul2;
+	int		g2radius;
+	int		modelindex;
+	int		modelindex2;
+	int		clientNum;		// 0 to (MAX_CLIENTS - 1), for players and corpses
+	int		frame;
 
-	netbool_t		saberInFlight;
-	netint_t		saberEntityNum;
-	netint_t		saberMove;
-	netint_t		forcePowersActive;
-	netint_t		saberHolstered;//sent in only only 2 bits - should be 0, 1 or 2
+	qboolean	saberInFlight;
+	int			saberEntityNum;
+	int			saberMove;
+	int			forcePowersActive;
+	int			saberHolstered;//sent in only only 2 bits - should be 0, 1 or 2
 
-	netbool_t		isPortalEnt; //this needs to be seperate for all entities I guess, which is why I couldn't reuse another value.
+	qboolean	isPortalEnt; //this needs to be seperate for all entities I guess, which is why I couldn't reuse another value.
 
-	netint_t		solid;			// for client side prediction, trap_linkentity sets this properly
+	int		solid;			// for client side prediction, trap_linkentity sets this properly
 
-	netint_t		event;			// impulse events -- muzzle flashes, footsteps, etc
-	netint_t		eventParm;
+	int		event;			// impulse events -- muzzle flashes, footsteps, etc
+	int		eventParm;
 
 	// so crosshair knows what it's looking at
-	netint_t		owner;
-	netint_t		teamowner;
-	netbool_t		shouldtarget;
+	int			owner;
+	int			teamowner;
+	qboolean	shouldtarget;
 
 	// for players
-	netint_t		powerups;		// bit flags
-	netint_t		weapon;			// determines weapon and flash model, etc
-	netint_t		legsAnim;
-	netint_t		torsoAnim;
+	int		powerups;		// bit flags
+	int		weapon;			// determines weapon and flash model, etc
+	int		legsAnim;
+	int		torsoAnim;
 
-	netbool_t		legsFlip; //set to opposite when the same anim needs restarting, sent over in only 1 bit. Cleaner and makes porting easier than having that god forsaken ANIM_TOGGLEBIT.
-	netbool_t		torsoFlip;
+	qboolean	legsFlip; //set to opposite when the same anim needs restarting, sent over in only 1 bit. Cleaner and makes porting easier than having that god forsaken ANIM_TOGGLEBIT.
+	qboolean	torsoFlip;
 
-	netint_t		forceFrame;		//if non-zero, force the anim frame
+	int		forceFrame;		//if non-zero, force the anim frame
 
-	netint_t		generic1;
+	int		generic1;
 
-	netint_t		heldByClient; //can only be a client index - this client should be holding onto my arm using IK stuff.
+	int		heldByClient; //can only be a client index - this client should be holding onto my arm using IK stuff.
 
-	netint_t		ragAttach; //attach to ent while ragging
+	int		ragAttach; //attach to ent while ragging
 
-	netint_t		iModelScale; //rww - transfer a percentage of the normal scale in a single int instead of 3 x-y-z scale values
+	int		iModelScale; //rww - transfer a percentage of the normal scale in a single int instead of 3 x-y-z scale values
 
-	netint_t		brokenLimbs;
+	int		brokenLimbs;
 
-	netint_t		boltToPlayer; //set to index of a real client+1 to bolt the ent to that client. Must be a real client, NOT an NPC.
+	int		boltToPlayer; //set to index of a real client+1 to bolt the ent to that client. Must be a real client, NOT an NPC.
 
 	//for looking at an entity's origin (NPCs and players)
-	netbool_t		hasLookTarget;
-	netint_t		lookTarget;
+	qboolean	hasLookTarget;
+	int			lookTarget;
 
-	netint_t		customRGBA[4];
+	int			customRGBA[4];
 
 	//I didn't want to do this, but I.. have no choice. However, we aren't setting this for all ents or anything,
 	//only ones we want health knowledge about on cgame (like siege objective breakables) -rww
-	netint_t		health;
-	netint_t		maxhealth; //so I know how to draw the stupid health bar
+	int			health;
+	int			maxhealth; //so I know how to draw the stupid health bar
 
 	//NPC-SPECIFIC FIELDS
 	//------------------------------------------------------------
-	netint_t		npcSaber1;
-	netint_t		npcSaber2;
+	int		npcSaber1;
+	int		npcSaber2;
 
 	//index values for each type of sound, gets the folder the sounds
 	//are in. I wish there were a better way to do this,
-	netint_t		csSounds_Std;
-	netint_t		csSounds_Combat;
-	netint_t		csSounds_Extra;
-	netint_t		csSounds_Jedi;
+	int		csSounds_Std;
+	int		csSounds_Combat;
+	int		csSounds_Extra;
+	int		csSounds_Jedi;
 
-	netint_t		surfacesOn; //a bitflag of corresponding surfaces from a lookup table. These surfaces will be forced on.
-	netint_t		surfacesOff; //same as above, but forced off instead.
+	int		surfacesOn; //a bitflag of corresponding surfaces from a lookup table. These surfaces will be forced on.
+	int		surfacesOff; //same as above, but forced off instead.
 
 	//Allow up to 4 PCJ lookup values to be stored here.
 	//The resolve to configstrings which contain the name of the
 	//desired bone.
-	netint_t		boneIndex1;
-	netint_t		boneIndex2;
-	netint_t		boneIndex3;
-	netint_t		boneIndex4;
+	int		boneIndex1;
+	int		boneIndex2;
+	int		boneIndex3;
+	int		boneIndex4;
 
 	//packed with x, y, z orientations for bone angles
-	netint_t		boneOrient;
+	int		boneOrient;
 
 	//I.. feel bad for doing this, but NPCs really just need to
 	//be able to control this sort of thing from the server sometimes.
 	//At least it's at the end so this stuff is never going to get sent
 	//over for anything that isn't an NPC.
-	netvec3_t		boneAngles1; //angles of boneIndex1
-	netvec3_t		boneAngles2; //angles of boneIndex2
-	netvec3_t		boneAngles3; //angles of boneIndex3
-	netvec3_t		boneAngles4; //angles of boneIndex4
+	vec3_t	boneAngles1; //angles of boneIndex1
+	vec3_t	boneAngles2; //angles of boneIndex2
+	vec3_t	boneAngles3; //angles of boneIndex3
+	vec3_t	boneAngles4; //angles of boneIndex4
 
-	netint_t		NPC_class; //we need to see what it is on the client for a few effects.
+	int		NPC_class; //we need to see what it is on the client for a few effects.
 
 	//If non-0, this is the index of the vehicle a player/NPC is riding.
-	netint_t		m_iVehicleNum;
+	int		m_iVehicleNum;
 
 	//rww - spare values specifically for use by mod authors.
 	//See netf_overrides.txt if you want to increase the send
 	//amount of any of these above 1 bit.
 
-	netint_t		weaponVariation;
-	netint_t		firingMode;
-	netint_t		weaponstate;
+	unsigned char	weaponVariation;
+	unsigned char	firingMode;
+	unsigned char	weaponstate;
 
-	netint_t 		damageTypeFlags;
+	int 			damageTypeFlags;
 
-    netint_t		attackTime;     // Time when attack button was first pressed
-	netint_t 		freezeTorsoAnim;
-	netint_t 		freezeLegsAnim;
+    int             attackTime;     // Time when attack button was first pressed
+	int 			freezeTorsoAnim;
+	int 			freezeLegsAnim;
 
-	netint_t		saberActionFlags;
+	unsigned int	saberActionFlags;
 
-	netint_t		forcePower;	// ugly I know but whatever --eez
-	netfloat_t		saberSwingSpeed;
-	netfloat_t		saberMoveSwingSpeed;
+	signed short	forcePower;	// ugly I know but whatever --eez
+	float			saberSwingSpeed;
+	float			saberMoveSwingSpeed;
 
-	netint_t		saberPommel[2];
-	netint_t		saberShaft[2];
-	netint_t		saberEmitter[2];
-	netint_t		saberCrystal[2];
+	unsigned short	saberPommel[2];
+	unsigned short	saberShaft[2];
+	unsigned short	saberEmitter[2];
+	unsigned short	saberCrystal[2];
 
-	netbool_t		sightsTransition;	// Are we in a sights transition? (Used for player animation)
+	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 	
-	netint_t		seed;
+	unsigned int	seed;
 } entityState_t;
 
 typedef enum {
