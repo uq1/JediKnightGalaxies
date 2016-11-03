@@ -28,6 +28,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // A user mod should never modify this file
 // Copyright (C) 1999-2000 Id Software, Inc., Copyright (c) 2013 Jedi Knight Galaxies
 
+#ifdef MEM_DEBUG
+#include <vld.h>
+#endif
+
 // Include Global Definitions Header...
 #include "../game/z_global_defines.h"
 #define PRODUCT_NAME		"jkgalaxies"
