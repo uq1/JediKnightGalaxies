@@ -2905,7 +2905,8 @@ void CG_PlayerAnimEventDo( centity_t *cent, animevent_t *animEvent )
 			{
 				animEvent->eventData[AED_BOLTINDEX] = trap->G2API_AddBolt( cent->ghoul2, 0, animEvent->stringData );
 			}
-			animEvent->stringData[0] = 0;
+			free(animEvent->stringData);
+			animEvent->stringData = nullptr;
 		}
 		if ( animEvent->eventData[AED_BOLTINDEX] != -1 )
 		{
