@@ -491,6 +491,7 @@ static void JKG_SprintViewmodelAnimation(vec3_t origin, vec3_t angles, weaponDat
 	float sprintRollAdd = /*jkg_debugSprintRoll.value*/ 0;
 	//int sprintStyle = (jkg_debugSprintStyle.integer != -2) ? jkg_debugSprintStyle.integer : weaponData->firstPersonSprintStyle;		// the cvar lets us switch gun sprinting styles on the fly
 	int sprintStyle = weaponData->firstPersonSprintStyle;
+	bool bExtremeYaw = false;
 
 	switch (sprintStyle)
 	{
@@ -512,6 +513,7 @@ static void JKG_SprintViewmodelAnimation(vec3_t origin, vec3_t angles, weaponDat
 		sprintPitchAdd = 15;
 		sprintYawAdd = 40;
 		sprintRollAdd = -10;
+		bExtremeYaw = true;
 		break;
 
 	case SPRINTSTYLE_RAISED:
@@ -536,6 +538,7 @@ static void JKG_SprintViewmodelAnimation(vec3_t origin, vec3_t angles, weaponDat
 		sprintPitchAdd = 15;
 		sprintYawAdd = 40;
 		sprintRollAdd = -10;
+		bExtremeYaw = true;
 		break;
 
 	case SPRINTSTYLE_SIDE_MEDIUM:
@@ -546,12 +549,22 @@ static void JKG_SprintViewmodelAnimation(vec3_t origin, vec3_t angles, weaponDat
 		sprintPitchAdd = 5;
 		sprintYawAdd = 40;
 		sprintRollAdd = -10;
+		bExtremeYaw = true;
 		break;
 	}
+
 	// Messy-ish code out the yin-yang here
-	angles[PITCH] += (sprintPitchAdd * sprintPhase);
-	angles[YAW] += (sprintYawAdd * sprintPhase);
-	angles[ROLL] += (sprintRollAdd * sprintPhase);
+	if (bExtremeYaw) {
+		float fPitchFactor = 1.0f - (abs(cg.predictedPlayerState.viewangles[PITCH]) / 90.0f);
+		angles[PITCH] += (sprintPitchAdd * sprintPhase) * fPitchFactor;
+		angles[YAW] += (sprintYawAdd * sprintPhase) * fPitchFactor;
+		angles[ROLL] += (sprintRollAdd * sprintPhase) * fPitchFactor;
+	}
+	else {
+		angles[PITCH] += (sprintPitchAdd * sprintPhase);
+		angles[YAW] += (sprintYawAdd * sprintPhase);
+		angles[ROLL] += (sprintRollAdd * sprintPhase);
+	}
 
 	VectorMA(origin, sprintXAdd * sprintPhase, cg.refdef.viewaxis[0], origin);
 	VectorMA(origin, sprintYAdd * sprintPhase, cg.refdef.viewaxis[1], origin);
