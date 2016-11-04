@@ -1047,21 +1047,27 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 
 	// Print background of the bars
 	for (i=0; i<MAX_ACI_SLOTS; i++) {
+		if (cg.playerACI[i] >= cg.playerInventory->size()) {
+			cg.playerACI[i] = -1;
+		}
+
+		if (cg.playerACI[i] < 0) {
+			continue;
+		}
+
+		itemInstance_t* playerItem = &(*cg.playerInventory)[cg.playerACI[i]];
 		focusItem = Menu_FindItemByName(menuHUD, va("slot%i", i));
 		if (focusItem)
 		{
 			vec4_t col = {0.11f, 0.11f, 0.11f, 1.0f};
 			qhandle_t shader = cgs.media.whiteShader;	//dummy
 			col[3] *= cg.jkg_HUDOpacity;
-			if (cg.playerACI[i] >= cg.playerInventory->size()) {
-				cg.playerACI[i] = -1;
-			}
 			if ( cg.playerACI[i] >= 0 && (*cg.playerInventory)[cg.playerACI[i]].id && (*cg.playerInventory)[cg.playerACI[i]].id->itemID )
 			{
 			    int weapon, variation;
-				if((*cg.playerInventory)[cg.playerACI[i]].id->itemType == ITEM_WEAPON)
+				if(playerItem->id->itemType == ITEM_WEAPON)
 				{
-					if ( BG_GetWeaponByIndex ((*cg.playerInventory)[cg.playerACI[i]].id->weaponData.varID, &weapon, &variation) )
+					if ( BG_GetWeaponByIndex (playerItem->id->weaponData.varID, &weapon, &variation) )
 					{
 						const weaponInfo_t *weaponInfo = CG_WeaponInfo (weapon, variation);
 						shader = weaponInfo->hudIcon;
@@ -1084,7 +1090,7 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 					col[0] = 1.0f;
 					col[1] = 1.0f;
 					col[2] = 1.0f;
-					shader = trap->R_RegisterShaderNoMip((*cg.playerInventory)[cg.playerACI[i]].id->visuals.itemIcon);
+					shader = trap->R_RegisterShaderNoMip(playerItem->id->visuals.itemIcon);
 				}
 			}
 			if(shader != cgs.media.whiteShader)
@@ -1099,6 +1105,14 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 		if (focusItem)
 		{
 			trap->R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, va("%i", i), opacity, cgDC.Assets.qhSmallFont, -1, 0.4f);
+		}
+
+		focusItem = Menu_FindItemByName(menuHUD, va("slotq%i", i));
+		if (focusItem && playerItem->id->maxStack > 1) {
+			char* text = va("%i", playerItem->quantity);
+			vec4_t color{ 0.52f, 0.65f, 0.96f, opacity[3] };
+			trap->R_Font_DrawString(focusItem->window.rect.x - trap->R_Font_StrLenPixels(text, cgDC.Assets.qhSmallFont, 0.4f),
+				focusItem->window.rect.y, text, color, cgDC.Assets.qhSmallFont, -1, 0.4f);
 		}
 	}
 
