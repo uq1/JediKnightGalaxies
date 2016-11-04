@@ -1,13 +1,5 @@
 language: cpp
 
-os:
-  - linux
-  - osx
-
-compiler:
-  - gcc
-  - clang
-
 addons:
   apt:
     packages:
@@ -28,8 +20,14 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
+      compiler: gcc
+    - os: linux
+      dist: trusty
+      sudo: required
+      compiler: clang
     - os: osx
       osx_image: xcode7.2
+      compiler: clang
 
 
 #dist: trusty
