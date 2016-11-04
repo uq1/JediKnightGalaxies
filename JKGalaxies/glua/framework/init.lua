@@ -34,11 +34,9 @@ include("managers/dialogues.lua")
 
 -- Enums
 include ("enums/cvars.lua")
-include ("enums/weapons.lua")
 include ("enums/forces.lua")
 include ("enums/ents.lua")
 include ("enums/trajectories.lua")
-include ("enums/adminranks.lua")
 
 -- Minigames
 include("minigames/init.lua")
