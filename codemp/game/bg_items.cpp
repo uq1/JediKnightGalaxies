@@ -194,7 +194,7 @@ itemData_t* BG_FindItemDataByName(const char* internalName) {
 	for (int i = 0; i < MAX_ITEM_TABLE_SIZE; i++) {
 		itemData_t* pItemData = &itemLookupTable[i];
 		if (pItemData->itemID == 0) {
-			break;
+			continue;
 		}
 		if (!Q_stricmp(pItemData->internalName, internalName)) {
 			return pItemData;
@@ -742,7 +742,7 @@ Server tells client to change quantity as well.
 */
 #ifdef _GAME
 void BG_ChangeItemStackQuantity(gentity_t* ent, int itemStack, int newQuantity) {
-	if(newQuantity == 0) {
+	if(newQuantity <= 0) {
 		BG_RemoveItemStack(ent, itemStack);
 		return;
 	}
@@ -816,12 +816,32 @@ BG_ConsumeItem
 ====================
 */
 #ifdef _GAME
-void BG_ConsumeItem(gentity_t* ent, int itemStackNum) {
-	// stub
-}
-#else
-void BG_ConsumeItem(int itemStackNum) {
-	// stub
+extern void GLua_ConsumeItem(gentity_t* consumer, itemInstance_t* item);
+qboolean BG_ConsumeItem(gentity_t* ent, int itemStackNum) {
+	itemInstance_t* item;
+	int consumeAmount;
+
+	if (itemStackNum < 0 || itemStackNum >= ent->inventory->size()) {
+		// Invalid inventory ID
+		return qfalse;
+	}
+
+	item = &(*ent->inventory)[itemStackNum];
+	if (item->id->itemType != ITEM_CONSUMABLE) {
+		// Not a consumable item
+		return qfalse;
+	}
+
+	consumeAmount = item->id->consumableData.consumeAmount;
+	if (consumeAmount > item->quantity) {
+		// Not enough quantity to consume this item
+		return qfalse;
+	}
+
+	GLua_ConsumeItem(ent, item);
+	BG_ChangeItemStackQuantity(ent, itemStackNum, item->quantity - consumeAmount);
+
+	return qtrue;
 }
 #endif
 
@@ -1070,6 +1090,15 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 			itemData->armorData.armorType = ARMTYPE_HEAVY;
 		else
 			itemData->armorData.armorType = ARMTYPE_MEDIUM;
+	}
+	else if (itemData->itemType == ITEM_CONSUMABLE) {
+		// consumeScript controls the script that gets run when we consume the item
+		jsonNode = cJSON_GetObjectItem(json, "consumeScript");
+		Q_strncpyz(itemData->consumableData.consumeScript, cJSON_ToStringOpt(jsonNode, "noscript"), MAX_CONSUMABLE_SCRIPTNAME);
+
+		// consumeAmount controls the amount of items in the stack that get consumed
+		jsonNode = cJSON_GetObjectItem(json, "consumeAmount");
+		itemData->consumableData.consumeAmount = cJSON_ToIntegerOpt(jsonNode, 1);
 	}
 
 	cJSON_Delete(json);

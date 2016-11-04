@@ -1775,10 +1775,11 @@ void CG_Weapon_f( void ) {
 		{
 			case ITEM_CONSUMABLE:
 				{
-					BG_ConsumeItem(cg.playerACI[num]);
+					trap->SendConsoleCommand(va("inventoryUse %i", cg.playerACI[num]));
 				}
 				break;
 		}
+		return;
 	}
 
 	// JKG - Manual saber detection

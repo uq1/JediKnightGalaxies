@@ -163,6 +163,33 @@ int ClientNumberFromString( gentity_t *to, const char *s, qboolean allowconnecti
 	return -1;
 }
 
+int G_ClientNumberFromStrippedSubstring(const char* name, qboolean checkAll);
+int G_ClientNumberFromArg(const char *name)
+{
+	int client_id = 0;
+	const char *cp = name;
+	while (*cp)
+	{
+		if (*cp >= '0' && *cp <= '9') cp++;
+		else
+		{
+			client_id = -1; //mark as alphanumeric
+			break;
+		}
+	}
+
+	if (client_id == 0)
+	{ // arg is assumed to be client number
+		client_id = atoi(name);
+	}
+	// arg is client name
+	if (client_id == -1)
+	{
+		client_id = G_ClientNumberFromStrippedSubstring(name, qfalse);
+	}
+	return client_id;
+}
+
 /*
 ==================
 DeathmatchScoreboardMessage
@@ -456,6 +483,21 @@ void JKG_CloseVendor_f (gentity_t *ent)
 
 /*
 ==================
+JKG_ConsumeItem_f
+
+==================
+*/
+void JKG_ConsumeItem_f(gentity_t* ent) {
+	char* args = ConcatArgs(1);
+	int argNum = atoi(args);
+
+	if (!BG_ConsumeItem(ent, argNum)) {
+		trap->SendServerCommand(ent - g_entities, "print \"Could not consume that item - either it is not a consumable or it is not a valid inventory item\n\"");
+	}
+}
+
+/*
+==================
 JKG_Crystal_f
 
 Sets the saber crystal
@@ -528,64 +570,6 @@ Good for testing desync
 void JKG_DumpWeaponList_f( gentity_t *ent )
 {
 	BG_DumpWeaponList("svweaponlist.txt");
-}
-
-/*
-==================
-JKG_CheckIfNumber
-
-Loops through a string and returns the following:
-0 if neither decimal nor alpha
-1 if alpha
-2 if decimal
-==================
-*/
-typedef enum
-{
-	JKGSTR_NONE,		// unknown string type
-	JKGSTR_ALPHA,		// string is plaintext/not a number
-	JKGSTR_DECIMAL		// string is a stringized number
-} JKGStringType_t;
-
-JKGStringType_t JKG_CheckIfNumber(const char *string)
-{
-	int i = 0;
-	while(string[i] != '\0')
-	{
-		if(isalpha((int)string[i]))
-			return JKGSTR_ALPHA;
-		else if(!isdigit((int)string[i]) && string[i] != '.')
-			return JKGSTR_NONE;
-		i++;
-	}
-	return JKGSTR_DECIMAL;
-}
-
-int G_ClientNumberFromStrippedSubstring ( const char* name, qboolean checkAll );
-int G_ClientNumberFromArg ( const char *name )
-{
-	int client_id = 0;
-	const char *cp = name;
-	while (*cp)
-	{
-		if ( *cp >= '0' && *cp <= '9' ) cp++;
-		else
-		{
-			client_id = -1; //mark as alphanumeric
-			break;
-		}
-	}
-
-	if ( client_id == 0 )
-	{ // arg is assumed to be client number
-		client_id = atoi(name);
-	}
-	// arg is client name
-	if ( client_id == -1 )
-	{
-		client_id = G_ClientNumberFromStrippedSubstring(name, qfalse);
-	}
-	return client_id;
 }
 
 /*
@@ -767,6 +751,12 @@ void Svcmd_ToggleAllowVote_f(void) {
 		Com_Printf("%s %s^7\n", validVoteStrings[index].string, ((g_allowVote.integer & (1 << index)) ? "^2Enabled" : "^1Disabled"));
 	}
 }
+
+/*
+==================
+Give cheat
+==================
+*/
 
 void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 {
@@ -1570,38 +1560,6 @@ void JKG_Cmd_Loot_f(gentity_t *ent, int otherNum, int lootID, qboolean trade)
 
 /*
 =================
-JKG_Cmd_ItemAction_f
-=================
-*/
-void JKG_Cmd_ItemAction_f (gentity_t *ent, int itemNum)
-{
-	if(!ent->client)
-	{
-		return; //NOTENOTE: NPCs can perform item actions. Nifty, eh?
-	}
-
-	if(ent->client->ps.stats[STAT_HEALTH] <= 0 ||
-		ent->client->ps.pm_type == PM_DEAD)
-	{
-		// Bugfix: Can no longer use items when dead --eez
-		Com_Printf("Can't use items while dead!\n");
-		return;
-	}
-	
-	if ( itemNum < 0 || itemNum >= MAX_INVENTORY_ITEMS )
-	{
-	    return;
-	}
-	if( itemNum > ent->inventory->size() )
-	{
-		//Nope.
-		return;
-	}
-	BG_ConsumeItem(ent, itemNum);
-}
-
-/*
-=================
 JKG_Cmd_ShowInv_f
 =================
 */
@@ -1677,7 +1635,7 @@ void JKG_Cmd_DestroyItem_f(gentity_t *ent)
 		return;
 	}
 
-	if(JKG_CheckIfNumber(arg) == JKGSTR_DECIMAL)
+	if (StringIsInteger(arg))
 	{
 		int inventoryID = atoi(arg);
 		if (inventoryID >= ent->inventory->size() || inventoryID < 0)
@@ -1714,7 +1672,7 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 	}
 
 	int nInvID = -1;
-	if(JKG_CheckIfNumber(arg) == JKGSTR_DECIMAL)
+	if (StringIsInteger(arg))
 	{
 		nInvID = atoi(arg);
 	}
@@ -4902,370 +4860,11 @@ void ClientCommand( int clientNum ) {
 		bCl = atoi(sarg);
 		Bot_SetForcedMovement(bCl, -1, -1, arg);
 	}
-	//end bot debug cmds
-/*#ifndef FINAL_BUILD
-	else if (Q_stricmp(cmd, "debugSetSaberMove") == 0)
-	{
-		Cmd_DebugSetSaberMove_f(ent);
-	}
-	else if (Q_stricmp(cmd, "debugSetBodyAnim") == 0)
-	{
-		Cmd_DebugSetBodyAnim_f(ent, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
-	}
-	else if (Q_stricmp(cmd, "debugDismemberment") == 0)
-	{
-		Cmd_Kill_f (ent);
-		if (ent->health < 1)
-		{
-			char	arg[MAX_STRING_CHARS];
-			int		iArg = 0;
-
-			if (trap->Argc() > 1)
-			{
-				trap->Argv( 1, arg, sizeof( arg ) );
-
-				if (arg[0])
-				{
-					iArg = atoi(arg);
-				}
-			}
-
-			DismembermentByNum(ent, iArg);
-		}
-	}
-	else if (Q_stricmp(cmd, "debugDropSaber") == 0)
-	{
-		if (ent->client->ps.weapon == WP_SABER &&
-			ent->client->ps.saberEntityNum &&
-			!ent->client->ps.saberInFlight)
-		{
-			saberKnockOutOfHand(&g_entities[ent->client->ps.saberEntityNum], ent, vec3_origin);
-		}
-	}
-	else if (Q_stricmp(cmd, "debugKnockMeDown") == 0)
-	{
-		if (BG_KnockDownable(&ent->client->ps))
-		{
-			ent->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
-			ent->client->ps.forceDodgeAnim = 0;
-			if (trap->Argc() > 1)
-			{
-				ent->client->ps.forceHandExtendTime = level.time + 1100;
-				ent->client->ps.quickerGetup = qfalse;
-			}
-			else
-			{
-				ent->client->ps.forceHandExtendTime = level.time + 700;
-				ent->client->ps.quickerGetup = qtrue;
-			}
-		}
-	}
-	else if (Q_stricmp(cmd, "debugSaberSwitch") == 0)
-	{
-		gentity_t *targ = NULL;
-
-		if (trap->Argc() > 1)
-		{
-			char	arg[MAX_STRING_CHARS];
-
-			trap->Argv( 1, arg, sizeof( arg ) );
-
-			if (arg[0])
-			{
-				int x = atoi(arg);
-				
-				if (x >= 0 && x < MAX_CLIENTS)
-				{
-					targ = &g_entities[x];
-				}
-			}
-		}
-
-		if (targ && targ->inuse && targ->client)
-		{
-			Cmd_ToggleSaber_f(targ);
-		}
-	}
-	else if (Q_stricmp(cmd, "debugIKGrab") == 0)
-	{
-		gentity_t *targ = NULL;
-
-		if (trap->Argc() > 1)
-		{
-			char	arg[MAX_STRING_CHARS];
-
-			trap->Argv( 1, arg, sizeof( arg ) );
-
-			if (arg[0])
-			{
-				int x = atoi(arg);
-				
-				if (x >= 0 && x < MAX_CLIENTS)
-				{
-					targ = &g_entities[x];
-				}
-			}
-		}
-
-		if (targ && targ->inuse && targ->client && ent->s.number != targ->s.number)
-		{
-			targ->client->ps.heldByClient = ent->s.number+1;
-		}
-	}
-	else if (Q_stricmp(cmd, "debugIKBeGrabbedBy") == 0)
-	{
-		gentity_t *targ = NULL;
-
-		if (trap->Argc() > 1)
-		{
-			char	arg[MAX_STRING_CHARS];
-
-			trap->Argv( 1, arg, sizeof( arg ) );
-
-			if (arg[0])
-			{
-				int x = atoi(arg);
-				
-				if (x >= 0 && x < MAX_CLIENTS)
-				{
-					targ = &g_entities[x];
-				}
-			}
-		}
-
-		if (targ && targ->inuse && targ->client && ent->s.number != targ->s.number)
-		{
-			ent->client->ps.heldByClient = targ->s.number+1;
-		}
-	}
-	else if (Q_stricmp(cmd, "debugIKRelease") == 0)
-	{
-		gentity_t *targ = NULL;
-
-		if (trap->Argc() > 1)
-		{
-			char	arg[MAX_STRING_CHARS];
-
-			trap->Argv( 1, arg, sizeof( arg ) );
-
-			if (arg[0])
-			{
-				int x = atoi(arg);
-				
-				if (x >= 0 && x < MAX_CLIENTS)
-				{
-					targ = &g_entities[x];
-				}
-			}
-		}
-
-		if (targ && targ->inuse && targ->client)
-		{
-			targ->client->ps.heldByClient = 0;
-		}
-	}
-	else if (Q_stricmp(cmd, "debugThrow") == 0)
-	{
-		trace_t tr;
-		vec3_t tTo, fwd;
-
-		if (ent->client->ps.weaponTime > 0 || ent->client->ps.forceHandExtend != HANDEXTEND_NONE ||
-			ent->client->ps.groundEntityNum == ENTITYNUM_NONE || ent->health < 1)
-		{
-			return;
-		}
-
-		AngleVectors(ent->client->ps.viewangles, fwd, 0, 0);
-		tTo[0] = ent->client->ps.origin[0] + fwd[0]*32;
-		tTo[1] = ent->client->ps.origin[1] + fwd[1]*32;
-		tTo[2] = ent->client->ps.origin[2] + fwd[2]*32;
-
-		trap->Trace(&tr, ent->client->ps.origin, 0, 0, tTo, ent->s.number, MASK_PLAYERSOLID);
-
-		if (tr.fraction != 1)
-		{
-			gentity_t *other = &g_entities[tr.entityNum];
-
-			if (other->inuse && other->client && other->client->ps.forceHandExtend == HANDEXTEND_NONE &&
-				other->client->ps.groundEntityNum != ENTITYNUM_NONE && other->health > 0 &&
-				(int)ent->client->ps.origin[2] == (int)other->client->ps.origin[2])
-			{
-				float pDif = 40.0f;
-				vec3_t entAngles, entDir;
-				vec3_t otherAngles, otherDir;
-				vec3_t intendedOrigin;
-				vec3_t boltOrg, pBoltOrg;
-				vec3_t tAngles, vDif;
-				vec3_t fwd, right;
-				trace_t tr;
-				trace_t tr2;
-
-				VectorSubtract( other->client->ps.origin, ent->client->ps.origin, otherDir );
-				VectorCopy( ent->client->ps.viewangles, entAngles );
-				entAngles[YAW] = vectoyaw( otherDir );
-				SetClientViewAngle( ent, entAngles );
-
-				ent->client->ps.forceHandExtend = HANDEXTEND_PRETHROW;
-				ent->client->ps.forceHandExtendTime = level.time + 5000;
-
-				ent->client->throwingIndex = other->s.number;
-				ent->client->doingThrow = level.time + 5000;
-				ent->client->beingThrown = 0;
-
-				VectorSubtract( ent->client->ps.origin, other->client->ps.origin, entDir );
-				VectorCopy( other->client->ps.viewangles, otherAngles );
-				otherAngles[YAW] = vectoyaw( entDir );
-				SetClientViewAngle( other, otherAngles );
-
-				other->client->ps.forceHandExtend = HANDEXTEND_PRETHROWN;
-				other->client->ps.forceHandExtendTime = level.time + 5000;
-
-				other->client->throwingIndex = ent->s.number;
-				other->client->beingThrown = level.time + 5000;
-				other->client->doingThrow = 0;
-
-				//Doing this now at a stage in the throw, isntead of initially.
-				//other->client->ps.heldByClient = ent->s.number+1;
-
-				G_EntitySound( other, CHAN_VOICE, G_SoundIndex("*pain100.wav") );
-				G_EntitySound( ent, CHAN_VOICE, G_SoundIndex("*jump1.wav") );
-				G_Sound(other, CHAN_AUTO, G_SoundIndex( "sound/movers/objects/objectHit.wav" ));
-
-				//see if we can move to be next to the hand.. if it's not clear, break the throw.
-				VectorClear(tAngles);
-				tAngles[YAW] = ent->client->ps.viewangles[YAW];
-				VectorCopy(ent->client->ps.origin, pBoltOrg);
-				AngleVectors(tAngles, fwd, right, 0);
-				boltOrg[0] = pBoltOrg[0] + fwd[0]*8 + right[0]*pDif;
-				boltOrg[1] = pBoltOrg[1] + fwd[1]*8 + right[1]*pDif;
-				boltOrg[2] = pBoltOrg[2];
-
-				VectorSubtract(boltOrg, pBoltOrg, vDif);
-				VectorNormalize(vDif);
-
-				VectorClear(other->client->ps.velocity);
-				intendedOrigin[0] = pBoltOrg[0] + vDif[0]*pDif;
-				intendedOrigin[1] = pBoltOrg[1] + vDif[1]*pDif;
-				intendedOrigin[2] = other->client->ps.origin[2];
-
-				trap->Trace(&tr, intendedOrigin, other->r.mins, other->r.maxs, intendedOrigin, other->s.number, other->clipmask);
-				trap->Trace(&tr2, ent->client->ps.origin, ent->r.mins, ent->r.maxs, intendedOrigin, ent->s.number, CONTENTS_SOLID);
-
-				if (tr.fraction == 1.0f && !tr.startsolid && tr2.fraction == 1.0f && !tr2.startsolid)
-				{
-					VectorCopy(intendedOrigin, other->client->ps.origin);
-				}
-				else
-				{ //if the guy can't be put here then it's time to break the throw off.
-					vec3_t oppDir;
-					int strength = 4;
-
-					other->client->ps.heldByClient = 0;
-					other->client->beingThrown = 0;
-					ent->client->doingThrow = 0;
-
-					ent->client->ps.forceHandExtend = HANDEXTEND_NONE;
-					G_EntitySound( ent, CHAN_VOICE, G_SoundIndex("*pain25.wav") );
-
-					other->client->ps.forceHandExtend = HANDEXTEND_NONE;
-					VectorSubtract(other->client->ps.origin, ent->client->ps.origin, oppDir);
-					VectorNormalize(oppDir);
-					other->client->ps.velocity[0] = oppDir[0]*(strength*40);
-					other->client->ps.velocity[1] = oppDir[1]*(strength*40);
-					other->client->ps.velocity[2] = 150;
-
-					VectorSubtract(ent->client->ps.origin, other->client->ps.origin, oppDir);
-					VectorNormalize(oppDir);
-					ent->client->ps.velocity[0] = oppDir[0]*(strength*40);
-					ent->client->ps.velocity[1] = oppDir[1]*(strength*40);
-					ent->client->ps.velocity[2] = 150;
-				}
-			}
-		}
-	}
-#endif
-#ifdef VM_MEMALLOC_DEBUG
-	else if (Q_stricmp(cmd, "debugTestAlloc") == 0)
-	{ //rww - small routine to stress the malloc trap stuff and make sure nothing bad is happening.
-		char *blah;
-		int i = 1;
-		int x;
-
-		//stress it. Yes, this will take a while. If it doesn't explode miserably in the process.
-		while (i < 32768)
-		{
-			x = 0;
-
-			trap->TrueMalloc((void **)&blah, i);
-			if (!blah)
-			{ //pointer is returned null if allocation failed
-				trap->SendServerCommand( -1, va("print \"Failed to alloc at %i!\n\"", i));
-				break;
-			}
-			while (x < i)
-			{ //fill the allocated memory up to the edge
-				if (x+1 == i)
-				{
-					blah[x] = 0;
-				}
-				else
-				{
-					blah[x] = 'A';
-				}
-				x++;
-			}
-			trap->TrueFree((void **)&blah);
-			if (blah)
-			{ //should be nullified in the engine after being freed
-				trap->SendServerCommand( -1, va("print \"Failed to free at %i!\n\"", i));
-				break;
-			}
-
-			i++;
-		}
-
-		trap->SendServerCommand( -1, "print \"Finished allocation test\n\"");
-	}
-#endif
-#ifndef FINAL_BUILD
-	else if (Q_stricmp(cmd, "debugShipDamage") == 0)
-	{
-		char	arg[MAX_STRING_CHARS];
-		char	arg2[MAX_STRING_CHARS];
-		int		shipSurf, damageLevel;
-
-		trap->Argv( 1, arg, sizeof( arg ) );
-		trap->Argv( 2, arg2, sizeof( arg2 ) );
-		shipSurf = SHIPSURF_FRONT+atoi(arg);
-		damageLevel = atoi(arg2);
-
-		G_SetVehDamageFlags( &g_entities[ent->s.m_iVehicleNum], shipSurf, damageLevel );
-	}
-	else if (Q_stricmp(cmd, "debugHealth") == 0)
-	{
-		trap->SendServerCommand( clientNum, va("print \"%i \n\"", ent->client->ps.stats[STAT_HEALTH]));
-		return;
-	}*/
 	else if (Q_stricmp(cmd, "debugInventory") == 0)
 	{
 		JKG_Cmd_ShowInv_f(ent);
 		return;
 	}
-/*#endif
-	else if (Q_stricmp(cmd, "bodyLoot") == 0)
-	{
-		char arg[MAX_STRING_CHARS];
-		char arg2[MAX_STRING_CHARS];
-		if(trap->Argc() < 3) //not enough args
-		{
-			trap->SendServerCommand( clientNum, "print \"Syntax: /bodyLoot <entity num> <loot ID>\n\"" );
-			return;
-		}
-		trap->Argv( 1, arg, sizeof ( arg ) );
-		trap->Argv( 2, arg2, sizeof ( arg2 ) );
-		JKG_Cmd_Loot_f( ent, atoi( arg ), atoi( arg2 ), qfalse );
-		return;
-	}*/
 	else if (Q_stricmp(cmd, "inventoryUse") == 0)
 	{
 		char arg[MAX_STRING_CHARS];
@@ -5275,7 +4874,7 @@ void ClientCommand( int clientNum ) {
 			return;
 		}
 		trap->Argv( 1, arg, sizeof(arg) );
-		JKG_Cmd_ItemAction_f( ent, atoi( arg ) );
+		JKG_ConsumeItem_f(ent);
 		return;
 	}
 	else if (Q_stricmp(cmd, "equip") == 0)

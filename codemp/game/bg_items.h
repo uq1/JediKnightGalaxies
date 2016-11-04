@@ -93,6 +93,12 @@ typedef struct {
 	armorTypes_t armorType;
 } itemArmorData_t;
 
+const int MAX_CONSUMABLE_SCRIPTNAME = 32;
+typedef struct {
+	char consumeScript[MAX_CONSUMABLE_SCRIPTNAME];
+	int consumeAmount;
+} itemConsumableData_t;
+
 // Wholly visual data below
 #ifndef _GAME
 typedef struct {
@@ -137,6 +143,7 @@ typedef struct {
 	union {
 		itemWeaponData_t weaponData;
 		itemArmorData_t armorData;
+		itemConsumableData_t consumableData;
 	};
 
 	//Stats
@@ -174,7 +181,6 @@ void BG_RemoveItemStack(int itemStackNum);
 void BG_RemoveItemNonNetworked(itemInstance_t item);
 void BG_ChangeItemStackQuantity(int itemStackNum, int newQuantity);
 void BG_AddItemToACI(int itemStackNum, int aciSlot);
-void BG_ConsumeItem(int itemStackNum);
 void BG_ReceivedTradePacket(itemTradePacketType_t packet);
 #elif _GAME
 void BG_GiveItem(gentity_t* ent, itemInstance_t item, qboolean ACI = false);
@@ -182,7 +188,7 @@ void BG_GiveItemNonNetworked(gentity_t* ent, itemInstance_t item);
 void BG_RemoveItemStack(gentity_t* ent, int itemStackNum);
 void BG_SendItemPacket(itemPacketType_t packetType, gentity_t* ent, void* memData, int intData, int intData2);
 void BG_ChangeItemStackQuantity(gentity_t* ent, int itemStackNum, int newQuantity);
-void BG_ConsumeItem(gentity_t* ent, int itemStackNum);
+qboolean BG_ConsumeItem(gentity_t* ent, int itemStackNum);
 void BG_SendTradePacket(itemTradePacketType_t packetType, gentity_t* ent, gentity_t* other, void* memData, int intData, int intData2);
 void BG_RemoveItemNonNetworked(gentity_t* ent, itemInstance_t item);
 #endif
