@@ -322,10 +322,6 @@ static void CG_DrawForcePower( menuDef_t *menuHUD )
 	itemDef_t	*focusItem;
 	vec4_t	opacity;
 	vec4_t	glowColor;
-
-	vec4_t	fadecolor = { 1, 1, 1, 0.5f };
-	static vec4_t	draincolor = { 1, 0.4f, 0.4f, 1 };
-	static vec4_t	fillcolor = { 0.4f, 1, 0.4f, 1 };
 	
 	MAKERGBA( opacity, 1, 1, 1, 1*cg.jkg_HUDOpacity );
 

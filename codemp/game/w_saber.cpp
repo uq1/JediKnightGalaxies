@@ -381,8 +381,7 @@ static QINLINE void SetSaberBoxSize(gentity_t *saberent)
 		return;
 	}
 
-	if ( owner->client->saber[1].model
-		&& owner->client->saber[1].model[0] )
+	if ( owner->client->saber[1].model[0] )
 	{
 		dualSabers = qtrue;
 	}
@@ -1516,17 +1515,15 @@ qboolean WP_SabersCheckLock( gentity_t *ent1, gentity_t *ent2 )
 	{
 		return qfalse;
 	}
-	if ( ent1->client->saber[1].model
-		&& ent1->client->saber[1].model[0]
-		&& !ent1->client->ps.saberHolstered
-		&& (ent1->client->saber[1].saberFlags&SFL_NOT_LOCKABLE) )
+	if ( ent1->client->saber[1].model[0] &&
+			!ent1->client->ps.saberHolstered &&
+			(ent1->client->saber[1].saberFlags&SFL_NOT_LOCKABLE) )
 	{
 		return qfalse;
 	}
-	if ( ent2->client->saber[1].model
-		&& ent2->client->saber[1].model[0]
-		&& !ent2->client->ps.saberHolstered
-		&& (ent2->client->saber[1].saberFlags&SFL_NOT_LOCKABLE) )
+	if ( ent2->client->saber[1].model[0] &&
+			!ent2->client->ps.saberHolstered &&
+			(ent2->client->saber[1].saberFlags&SFL_NOT_LOCKABLE) )
 	{
 		return qfalse;
 	}
@@ -4173,9 +4170,6 @@ static QINLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int rBl
 			|| (self->client->ps.m_iVehicleNum && self->client->ps.saberMove > LS_READY) )
 	   )
 	{ //this animation is that of the last attack movement, and so it should do full damage					// eezstreet note: this code here is what pissed off a lot of JK2 1.02 players. FIXME?
-		qboolean saberInSpecial = BG_SaberInSpecial(self->client->ps.saberMove);
-		qboolean inBackAttack = G_SaberInBackAttack(self->client->ps.saberMove);
-
 		float fDmg = 0.0f;
 		if ( self->client->ps.saberInFlight )
 		{
@@ -4896,9 +4890,7 @@ blockStuff:
 					defendStr++;
 				}
 				defendStr += Q_irand(0, otherOwner->client->saber[0].parryBonus );
-				if ( otherOwner->client->saber[1].model
-					&& otherOwner->client->saber[1].model[0]
-					&& !otherOwner->client->ps.saberHolstered )
+				if ( otherOwner->client->saber[1].model[0] && !otherOwner->client->ps.saberHolstered )
 				{
 					defendStr += Q_irand(0, otherOwner->client->saber[1].parryBonus );
 				}
@@ -4911,9 +4903,7 @@ blockStuff:
 #endif
 
 				attackBonus = Q_irand(0, self->client->saber[0].breakParryBonus );
-				if ( self->client->saber[1].model
-					&& self->client->saber[1].model[0]
-					&& !self->client->ps.saberHolstered )
+				if ( self->client->saber[1].model[0] && !self->client->ps.saberHolstered )
 				{
 					attackBonus += Q_irand(0, self->client->saber[1].breakParryBonus );
 				}
@@ -4984,7 +4974,7 @@ blockStuff:
 					{
 						otherIdleStr = SS_SHII_CHO;
 					}*/
-					int otherIdleStr = 1; // don't bother with this code yet. this is the stagger code --eez
+					//int otherIdleStr = 1; // don't bother with this code yet. this is the stagger code --eez
 
 					WP_SaberBlockNonRandom(otherOwner, self, tr.endpos, qfalse);
 					otherOwner->client->ps.saberEventFlags |= SEF_PARRIED;
@@ -6776,17 +6766,6 @@ qboolean saberCheckKnockdown_DuelLoss(gentity_t *saberent, gentity_t *saberOwner
 	saberOwner->client->ps.saberMove = LS_V1_BL; //rwwFIXMEFIXME: Ideally check which lock it was exactly and use the proper anim (same goes for the attacker)
 	saberOwner->client->ps.saberBlocked = BLOCKED_BOUNCE_MOVE;
 
-	if ( other && other->client )
-	{
-		disarmChance += other->client->saber[0].disarmBonus;
-		if ( other->client->saber[1].model
-			&& other->client->saber[1].model[0]
-			&& !other->client->ps.saberHolstered )
-		{
-			other->client->saber[1].disarmBonus;
-		}
-	}
-
 	disarmChance += saberOwner->client->saber[0].extraDisarmChance;
 
 	if ( Q_irand( 0, disarmChance ) >= 10)
@@ -6859,18 +6838,9 @@ qboolean saberCheckKnockdown_BrokenParry(gentity_t *saberent, gentity_t *saberOw
 		{
 			totalDistance = 20;
 		}
+		 
 		VectorScale(dif, totalDistance*distScale, dif);
 
-		if ( other && other->client )
-		{
-			disarmChance += other->client->saber[0].disarmBonus;
-			if ( other->client->saber[1].model
-				&& other->client->saber[1].model[0]
-				&& !other->client->ps.saberHolstered )
-			{
-				other->client->saber[1].disarmBonus;
-			}
-		}
 		return saberKnockOutOfHand(saberent, saberOwner, dif);
 	}
 
@@ -7997,10 +7967,9 @@ nextStep:
 			{ //don't to saber 1 if the left arm is broken
 				break;
 			}
-			if (rSaberNum > 0 
-				&& self->client->saber[1].model
-				&& self->client->saber[1].model[0]
-				&& self->client->ps.saberHolstered == 1 )
+			if (rSaberNum > 0 &&
+					self->client->saber[1].model[0] &&
+					self->client->ps.saberHolstered == 1 )
 			{ //don't to saber 2 if it's off
 				break;
 			}
@@ -8012,7 +7981,7 @@ nextStep:
 				VectorCopy(self->client->saber[rSaberNum].blade[rBladeNum].muzzleDir, self->client->saber[rSaberNum].blade[rBladeNum].muzzleDirOld);
 
 				if ( rBladeNum > 0 //more than one blade
-					&& (!self->client->saber[1].model||!self->client->saber[1].model[0])//not using dual blades
+					&& (!self->client->saber[1].model[0])//not using dual blades
 					&& self->client->saber[rSaberNum].numBlades > 1//using a multi-bladed saber
 					&& self->client->ps.saberHolstered == 1 )//
 				{ //don't to extra blades if they're off
@@ -8214,8 +8183,6 @@ qboolean WP_SaberBlockNonRandom( gentity_t *self, gentity_t *other, vec3_t hitlo
 	vec3_t clEye;
 	float rightdot;
 	float zdiff;
-	int oldMove = self->client->ps.saberMove;
-	int oldBlocked = self->client->ps.saberBlocked;
 	int desiredBlocked;
 
 	VectorCopy(self->client->ps.origin, clEye);
@@ -8293,7 +8260,7 @@ qboolean WP_SaberBlockNonRandom( gentity_t *self, gentity_t *other, vec3_t hitlo
 			/*if((level.time - self->client->saberProjBlockTime) < 2000)
 			{
 				// don't do a fast autoblock if we just press the button, this prevents crazy annomalies from happening --eez
-				self->client->ps.saberBlocked = oldMove;
+				self->client->ps.saberBlocked = self->client->ps.saberMove;
 				return qtrue;		// we blocked this
 			}*/
 		}

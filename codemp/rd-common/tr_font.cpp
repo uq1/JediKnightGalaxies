@@ -1479,7 +1479,6 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 {
 	static qboolean gbInShadow = qfalse;	// MUST default to this
 	float				fox, foy, fx, fy;
-	int					colour, offset;
 	const glyphInfo_t	*pLetter;
 	qhandle_t			hShader;
 
@@ -1555,7 +1554,7 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 	// Draw a dropshadow if required
 	if(iFontHandle & STYLE_DROPSHADOW)
 	{
-		offset = Round(curfont->GetPointSize() * fScale * 0.075f);
+		int offset = Round(curfont->GetPointSize() * fScale * 0.075f);
 
 		const vec4_t v4DKGREY2 = {0.15f, 0.15f, 0.15f, rgba?rgba[3]:1.0f};
 

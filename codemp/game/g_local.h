@@ -517,11 +517,7 @@ struct gentity_s {
 #define		MAX_OBJECTIVEDEPENDANCY	6
 
 //TAB bot orders/tactical options
-#ifndef __linux__
-typedef enum {
-#else
-enum {
-#endif
+typedef enum botOrder_e {
 	BOTORDER_NONE,  //no order
 	BOTORDER_KNEELBEFOREZOD,  //Kneel before the ordered person
 	BOTORDER_SEARCHANDDESTROY,	//Attack mode.  If given an entity the bot will search for
@@ -536,14 +532,9 @@ enum {
 	BOTORDER_SIEGECLASS_DEMOLITIONIST,
 	BOTORDER_SIEGECLASS_HEAVY_WEAPONS,
 	BOTORDER_MAX
-};
+} botOrder_t;
 
-#ifndef __linux__
-typedef enum {
-#else
-enum {
-#endif
-//[/Linux]
+typedef enum objectiveType_e {
 	OT_NONE,	//no OT selected or bad OT
 	OT_ATTACK,	//Attack this objective, for destroyable stationary objectives
 	OT_DEFEND,  //Defend this objective, for destroyable stationary objectives 
@@ -554,7 +545,7 @@ enum {
 	OT_VEHICLE,  //get this vehicle to the related trigger_once.
 	OT_WAIT		//This is used by the bots to while they are waiting for a vehicle to respawn
 	
-};
+} objectiveType_t;
 
 #define DAMAGEREDIRECT_HEAD		1
 #define DAMAGEREDIRECT_RLEG		2
