@@ -55,6 +55,7 @@
     "firemode0": {
         "damage":       65,
         "ammocost":     1,
+	"useQuantity":	true,
         "firedelay":    1000,
         "splashrange":  120,
         "projectileclass":"laserTrap",
@@ -64,6 +65,7 @@
     "firemode1": {
         "damage":       65,
         "ammocost":     1,
+	"useQuantity":	true,
         "firedelay":    1000,
         "splashrange":  120,
         "projectileclass":"laserTrap",

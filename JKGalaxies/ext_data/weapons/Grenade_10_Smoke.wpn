@@ -71,6 +71,7 @@
     "firemode0": {
         "damage":       7,
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
         "ammocost":     1,
@@ -91,6 +92,7 @@
     "firemode1": {
         "damage":       7,
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
         "ammocost":     1,

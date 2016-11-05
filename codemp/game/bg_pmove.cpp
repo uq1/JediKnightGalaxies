@@ -5582,7 +5582,12 @@ static qboolean PM_DoChargedWeapons( void )
 				{
 #ifdef _GAME
 					gentity_t *Gself = &g_entities[pm->ps->clientNum];
-					Gself->client->ammoTable[GetWeaponAmmoIndex(pm->ps->weapon, pm->ps->weaponVariation)] -= weaponFireData->cost;
+					if (weaponFireData->useQuantity) {
+						BG_AdjustItemStackQuantity(Gself, pm->cmd.invensel, -weaponFireData->cost);
+					}
+					else {
+						Gself->client->ammoTable[GetWeaponAmmoIndex(pm->ps->weapon, pm->ps->weaponVariation)] -= weaponFireData->cost;
+					}
 #endif
 					pm->ps->ammo -= weaponFireData->chargeSubtract;
 					pm->ps->weaponChargeSubtractTime = pm->cmd.serverTime + weaponFireData->chargeTime;
@@ -6648,8 +6653,13 @@ static void PM_Weapon( void )
 			if ((pm->ps->ammo - amount) >= 0) 
 			{
 #ifdef _GAME
-							gentity_t *Gself = &g_entities[pm->ps->clientNum];
-							Gself->client->ammoTable[GetWeaponAmmoIndex(pm->ps->weapon, pm->ps->weaponVariation)] -= amount;
+				gentity_t *Gself = &g_entities[pm->ps->clientNum];
+				if (weaponData->firemodes[pm->ps->firingMode].useQuantity) {
+					BG_AdjustItemStackQuantity(Gself, pm->cmd.invensel, -amount);
+				}
+				else {
+					Gself->client->ammoTable[GetWeaponAmmoIndex(pm->ps->weapon, pm->ps->weaponVariation)] -= amount;
+				}
 #endif
 				pm->ps->ammo -= amount;
 			}

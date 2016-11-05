@@ -3222,6 +3222,7 @@ void ClientThink_real( gentity_t *ent ) {
 	// PM will do its changes in there and afterwards we'll fetch the updated value
 	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation ))
 	{
+		weaponData_t* weaponData = GetWeaponData(ent->client->ps.weapon, ent->client.ps.weaponVariation);
 		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation) ];
 		ent->client->ps.ammo = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
 	}

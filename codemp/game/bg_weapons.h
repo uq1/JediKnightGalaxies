@@ -201,6 +201,8 @@ typedef struct weaponFireModeStats_s
 	qboolean    isGrenade;          // Is this firemode a grenade?
 	qboolean	grenadeBounces;		// Does this grenade bounce off of enemies, or does it explode on impact? (true for bounces on people)
 	int			grenadeBounceDMG;	// Determines the amount of damage to do when bouncing off of an enemy.
+	qboolean	useQuantity;		// Subtracts from quantity instead of ammo index when firing.
+									// This is separate because some fire modes (ie sequencer charge detonate) don't consume ammo
 
 	weaponAccuracyDetails_t weaponAccuracy; // replaces spread
 } weaponFireModeStats_t;

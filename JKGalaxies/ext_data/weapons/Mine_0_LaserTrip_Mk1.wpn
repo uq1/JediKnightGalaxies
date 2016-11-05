@@ -52,6 +52,7 @@
     
     "firemode0": {
         "damage":       60,
+	"useQuantity":	true,
         "ammocost":     1,
         "firedelay":    1000,
         "splashrange":  120,

@@ -182,6 +182,7 @@ void BG_RemoveItemNonNetworked(itemInstance_t item);
 void BG_ChangeItemStackQuantity(int itemStackNum, int newQuantity);
 void BG_AddItemToACI(int itemStackNum, int aciSlot);
 void BG_ReceivedTradePacket(itemTradePacketType_t packet);
+void BG_AdjustItemStackQuantity(int itemStack, int adjustment);
 #elif _GAME
 void BG_GiveItem(gentity_t* ent, itemInstance_t item, qboolean ACI = false);
 void BG_GiveItemNonNetworked(gentity_t* ent, itemInstance_t item);
@@ -191,4 +192,5 @@ void BG_ChangeItemStackQuantity(gentity_t* ent, int itemStackNum, int newQuantit
 qboolean BG_ConsumeItem(gentity_t* ent, int itemStackNum);
 void BG_SendTradePacket(itemTradePacketType_t packetType, gentity_t* ent, gentity_t* other, void* memData, int intData, int intData2);
 void BG_RemoveItemNonNetworked(gentity_t* ent, itemInstance_t item);
+void BG_AdjustItemStackQuantity(gentity_t* ent, int itemStack, int adjustment);
 #endif

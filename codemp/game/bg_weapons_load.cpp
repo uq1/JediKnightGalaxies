@@ -493,6 +493,9 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     node = cJSON_GetObjectItem (fireModeNode, "splashmeansofdeath");
     str = cJSON_ToStringOpt (node, "MOD_UNKNOWN");
     fireModeStats->weaponSplashMOD = GetIDForString (const_cast<stringID_table_t *>(MODTable), str);
+
+	node = cJSON_GetObjectItem(fireModeNode, "useQuantity");
+	fireModeStats->useQuantity = cJSON_ToBooleanOpt(node, qfalse);
 }
 
 //=========================================================

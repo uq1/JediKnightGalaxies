@@ -90,6 +90,7 @@
                           "damagetype": [ "fire" ]
                         },
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":1.7,
         "ammocost":     1,
@@ -123,6 +124,7 @@
                           "damagetype": [ "fire" ]
                         },
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":1.7,
         "ammocost":     1,

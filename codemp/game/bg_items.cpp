@@ -762,6 +762,27 @@ void BG_ChangeItemStackQuantity(int itemStack, int newQuantity) {
 
 /*
 ====================
+BG_AdjustItemStackQuantity
+
+Adds/subtracts item stack quantity
+====================
+*/
+#ifdef _GAME
+void BG_AdjustItemStackQuantity(gentity_t* ent, int itemStack, int adjustment) {
+	if(itemStack < 0 || itemStack >= ent->inventory->size()) {
+		trap->Print("client %i tried to change stack quantity of invalid slot %i!!\n", ent->s.number);
+		return;
+	}
+	BG_ChangeItemStackQuantity(ent, itemStack, (*cg.playerInventory)[itemStack].quantity + adjustment);
+}
+#else
+void BG_AdjustItemStackQuantity(int itemStack, int adjustment) {
+	BG_ChangeItemStackQuantity(itemStack, (*cg.playerInventory)[itemStack].quantity + adjustment);
+}
+#endif
+
+/*
+====================
 BG_AddItemToACI
 ====================
 */
