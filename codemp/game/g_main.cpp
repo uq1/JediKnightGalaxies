@@ -640,12 +640,6 @@ void G_ShutdownGame( int restart ) {
 				}
 				j++;
 			}
-
-			if(ent->assistData.memAllocated > 0)
-			{
-				free(ent->assistData.hitRecords);
-				ent->assistData.memAllocated = 0;
-			}
 		}
 		i++;
 	}

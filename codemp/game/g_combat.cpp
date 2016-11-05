@@ -2143,6 +2143,39 @@ void G_AddPowerDuelLoserScore(int team, int score)
 
 /*
 ==================
+JKG_CanAwardAssist
+==================
+*/
+qboolean JKG_CanAwardAssist(gentity_t* ent, entityHitRecord_t hitRecord) {
+	if (hitRecord.entWhoHit == nullptr) {
+		return qfalse;
+	}
+
+	// Non-players can't be awarded assists
+	if (hitRecord.entWhoHit - g_entities >= MAX_CLIENTS) {
+		return qfalse;
+	}
+
+	// Not allowed an assist when we are on the same team...
+	if (OnSameTeam(ent, hitRecord.entWhoHit)) {
+		return qfalse;
+	}
+
+	// ...or are ourself
+	if (ent == hitRecord.entWhoHit) {
+		return qfalse;
+	}
+
+	// Also don't give us an assist if we haven't actually "assisted"
+	if (hitRecord.timeHit + ASSIST_LAST_TIME > level.time) {
+		return qfalse;
+	}
+
+	return qtrue;
+}
+
+/*
+==================
 player_die
 ==================
 */
@@ -2364,62 +2397,34 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 	if(self->s.number < MAX_CLIENTS)
 	{
-		// Assists
-		if(self->assistData.hitRecords)
-		{
-			for(i = 0; i < self->assistData.numRecords; i++)
-			{
-				gclient_t *selfClient;
-				if( i >= (self->assistData.memAllocated/2) )
-				{
-					// what.
-					entityHitRecord_t *reallocated = (entityHitRecord_t *)realloc( self->assistData.hitRecords, (sizeof(entityHitRecord_t))*(self->assistData.memAllocated*2) );
-					//JKG_Assert(reallocated);
-					if(reallocated == NULL)
-					{
-						continue;
-					}
-					self->assistData.hitRecords = reallocated;
-					self->assistData.memAllocated *= 2;
-					//break;		// No need to break. There's probably more records to deal with.
-				}
-				if( !self->assistData.hitRecords[i].entWhoHit /*|| !self->assistData.hitRecords[i].entWhoHit->client*/ )
-				{
+		if (self->assists) {
+			for (auto it = self->assists->begin(); it != self->assists->end(); ++it) {
+				int awardedCredits;
+
+				if (!JKG_CanAwardAssist(attacker, *it)) {
 					continue;
 				}
-				if( ((self->assistData.hitRecords[i].entWhoHit-g_entities) > MAX_CLIENTS && g_entities[self->assistData.hitRecords[i].entWhoHit-g_entities].s.eType != ET_NPC) ||
-					(self->assistData.hitRecords[i].entWhoHit-g_entities) < 0)
-				{
-					continue;
-				}
-				selfClient = &level.clients[(self->assistData.hitRecords[i].entWhoHit-g_entities)];
-				if( (self->assistData.hitRecords[i].timeHit+ASSIST_LAST_TIME) > level.time &&
-					self->assistData.hitRecords[i].entWhoHit &&
-					!OnSameTeam(self, self->assistData.hitRecords[i].entWhoHit) &&
-					self->assistData.hitRecords[i].entWhoHit != attacker)		// attacker shouldn't be getting the assist! naughty naughty!
-				{
-					// Valid.
-					int assistCredits = (jkg_creditsPerKill.value/100)*self->assistData.hitRecords[i].damageDealt;
-					if(assistCredits >= 1)		// FIX: +0 credits on assist
-					{
-						if(assistCredits >= jkg_creditsPerKill.integer)
-						{
-							assistCredits = jkg_creditsPerKill.integer - 1;
-						}
-						selfClient->ps.credits += assistCredits;
-#ifndef __MMO__ // UQ1: Use events! 1 event with credits param...
-						//trap->SendServerCommand(self->assistData.hitRecords[i].entWhoHit->client->ps.clientNum, "hitmarker");
-						trap->SendServerCommand(selfClient->ps.clientNum,
-							va("notify 1 \"Assist: +%i Credits\"", assistCredits));
-						trap->SendServerCommand(selfClient->ps.clientNum, "hitmarker");
-#else //!__MMO__
-						G_AddEvent(self, EV_HITMARKER_ASSIST, assistCredits);
-#endif //__MMO__
+
+				// One point of damage is worth 1% of total credits earned per kill
+				awardedCredits = (jkg_creditsPerKill.value / 100) * it->damageDealt;
+
+				// Don't trigger it if we don't have any credits to award for this assist
+				if (awardedCredits > 0) {
+					if (awardedCredits >= jkg_creditsPerKill.integer) {
+						// Always award less than a full kill's worth of credits.
+						awardedCredits = jkg_creditsPerKill.integer - 1;
 					}
+
+					it->entWhoHit->client->ps.credits += awardedCredits;
+
+					// Do a hitmarker, as a hint that they got a reward
+					trap->SendServerCommand(it->entWhoHit - g_entities,
+						va("notify 1 \"Assist: +%i Credits\"", awardedCredits));
+					trap->SendServerCommand(it->entWhoHit - g_entities, "hitmarker");
 				}
 			}
-			self->assistData.numRecords = 0;
 		}
+		self->assists->clear();
 	}
 
 	G_BreakArm(self, 0); //unbreak anything we have broken
@@ -6006,60 +6011,22 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 		if(targ->client && !targ->NPC && !OnSameTeam(attacker, targ))
 		{
-			// Add to our assist data
+			// Add an assist to the records
+			entityHitRecord_t hitrecord{ attacker, level.time, take };
+			qboolean bAdded = qfalse;
 
-			// Check for memory first
-			if( targ->assistData.numRecords >= (targ->assistData.memAllocated/2) )
-			{
-				// Handle memory crapola
-				entityHitRecord_t *hitRecord = (entityHitRecord_t *)realloc(targ->assistData.hitRecords, (sizeof(entityHitRecord_t))*(targ->assistData.memAllocated*2));
-				//JKG_Assert(hitRecord);
-				if(!hitRecord)
-				{
-					return;
+			// If we have an assist record by this person already, then we need to add the damage
+			for (auto it = targ->assists->begin(); it != targ->assists->end(); ++it) {
+				if (it->entWhoHit == attacker) {
+					it->damageDealt += take;
+					bAdded = qtrue;
+					break;
 				}
-				targ->assistData.memAllocated *= 2;
-				targ->assistData.hitRecords = hitRecord;
 			}
 
-			// Make sure that we already haven't been added to the record
-			for(i = 0; i < targ->assistData.numRecords; i++)
-			{
-				if(i > targ->assistData.memAllocated)
-				{
-					break;
-				}
-
-				if(targ->assistData.hitRecords[i].entWhoHit == attacker && targ->assistData.hitRecords[i].timeHit+ASSIST_LAST_TIME < level.time)
-				{
-					// This guy has already inflicted damage, BUT he isn't considered a person who assisted our kill.
-					// In order to correct this, we'll be giving this guy what is considered to be a blank slate.
-					targ->assistData.hitRecords[i].damageDealt = take;
-					targ->assistData.hitRecords[i].timeHit = level.time;
-					break;
-				}
-				else if(targ->assistData.hitRecords[i].entWhoHit == attacker)
-				{
-					// This guy has already inflicted damage, BUT he's already hit us!
-					// Add on to the amount of damage that he did before, so the history is accurate.
-					targ->assistData.hitRecords[i].damageDealt += take;
-					targ->assistData.hitRecords[i].timeHit = level.time;
-					break;
-				}
-				else
-				{
-					// Not our target.
-					continue;
-				}
-			}
-			if(i == targ->assistData.numRecords)
-			{
-				// New guy! Fun fun...
-				targ->assistData.hitRecords[i].entWhoHit = attacker;
-				targ->assistData.hitRecords[i].damageDealt = take;
-				targ->assistData.hitRecords[i].timeHit = level.time;
-
-				targ->assistData.numRecords++;
+			// We didn't have an assist by this person already, go ahead and add an assist
+			if (!bAdded) {
+				targ->assists->push_back(hitrecord);
 			}
 		}
 	}

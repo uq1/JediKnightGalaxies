@@ -194,12 +194,6 @@ typedef struct {
 	unsigned int damageDealt;
 } entityHitRecord_t;
 
-typedef struct {
-	entityHitRecord_t *hitRecords;
-	unsigned int numRecords;
-	unsigned int memAllocated;
-} assistStructure_t;
-
 #ifdef _GAME
 class TreasureClass;
 #endif
@@ -473,7 +467,6 @@ struct gentity_s {
 	qboolean	isAtWorkbench;	//nw
 	const char* szTreasureClass;			// Used on death
 	const char* szVendorTreasureClass;		// Used for vendor stock
-	assistStructure_t	assistData;			// keeps a record of who hit us in this life
 
 	// For NPC waypoint following..
 	int			wpCurrent;
@@ -514,6 +507,7 @@ struct gentity_s {
 	//
 	/////////////////////////////////////////
 	std::vector<itemInstance_t>* inventory;
+	std::vector<entityHitRecord_t>* assists;
 };
 
 //used for objective dependancy stuff

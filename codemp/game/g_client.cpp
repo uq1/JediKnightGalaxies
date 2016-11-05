@@ -2400,10 +2400,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	ent->pain = 0;
 	ent->client = client;
 
-	// give the client a bit of initial mem to set up their damage history
-	// We realloc because the player might be changing teams.
-	ent->assistData.hitRecords = static_cast<entityHitRecord_t *>(realloc( ent->assistData.hitRecords, sizeof( entityHitRecord_t ) ));
-	ent->assistData.memAllocated = 1;
+	ent->assists->clear();
 
 	//assign the pointer for bg entity access
 	ent->playerState = &ent->client->ps;
@@ -3695,12 +3692,7 @@ void ClientDisconnect( int clientNum ) {
 	}
 
 	ent->inventory->clear();
-	if( ent->assistData.memAllocated > 0 && ent->assistData.hitRecords )
-	{
-		free( ent->assistData.hitRecords );
-		ent->assistData.memAllocated = 0;
-		ent->assistData.numRecords = 0;
-	}
+	ent->assists->clear();
 
 	GLua_Hook_PlayerDisconnect(clientNum);
 
