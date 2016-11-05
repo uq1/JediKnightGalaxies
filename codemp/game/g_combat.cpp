@@ -2144,10 +2144,12 @@ void G_AddPowerDuelLoserScore(int team, int score)
 /*
 ==================
 JKG_CanAwardAssist
+
+Checks if an individual hit record can award an assist.
 ==================
 */
-qboolean JKG_CanAwardAssist(gentity_t* ent, entityHitRecord_t hitRecord) {
-	if (hitRecord.entWhoHit == nullptr) {
+qboolean JKG_CanAwardAssist(gentity_t* deadEnt, gentity_t* killer, entityHitRecord_t hitRecord) {
+	if (hitRecord.entWhoHit == nullptr || deadEnt == nullptr || killer == nullptr) {
 		return qfalse;
 	}
 
@@ -2157,17 +2159,22 @@ qboolean JKG_CanAwardAssist(gentity_t* ent, entityHitRecord_t hitRecord) {
 	}
 
 	// Not allowed an assist when we are on the same team...
-	if (OnSameTeam(ent, hitRecord.entWhoHit)) {
+	if (OnSameTeam(deadEnt, hitRecord.entWhoHit)) {
 		return qfalse;
 	}
 
 	// ...or are ourself
-	if (ent == hitRecord.entWhoHit) {
+	if (deadEnt == hitRecord.entWhoHit) {
 		return qfalse;
 	}
 
 	// Also don't give us an assist if we haven't actually "assisted"
-	if (hitRecord.timeHit + ASSIST_LAST_TIME > level.time) {
+	if (hitRecord.timeHit + ASSIST_LAST_TIME < level.time) {
+		return qfalse;
+	}
+
+	// Don't give us an assist if we were the killer!
+	if (killer == hitRecord.entWhoHit) {
 		return qfalse;
 	}
 
@@ -2401,7 +2408,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			for (auto it = self->assists->begin(); it != self->assists->end(); ++it) {
 				int awardedCredits;
 
-				if (!JKG_CanAwardAssist(attacker, *it)) {
+				if (!JKG_CanAwardAssist(self, attacker, *it)) {
 					continue;
 				}
 
