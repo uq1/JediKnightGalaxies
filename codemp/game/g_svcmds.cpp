@@ -470,7 +470,17 @@ void	Svcmd_ForceTeam_f( void ) {
 	SetTeam( &g_entities[cl - level.clients], str );
 }
 
-char	*ConcatArgs( int start );
+/*
+=================
+Svcmd_CenterPrintAll_f
+
+cpa <message>
+=================
+*/
+char	*ConcatArgs(int start);
+void	Svcmd_CenterPrintAll_f(char* msg) {
+	trap->SendServerCommand(-1, va("cp \"%s\"", msg));
+}
 
 /*
 =================
@@ -596,6 +606,12 @@ qboolean	ConsoleCommand( void ) {
 		// everything else will NOT also be printed as a say command
 		//trap->SendServerCommand( -1, va("print \"server: %s\n\"", ConcatArgs(0) ) );
 		//return qtrue;
+	}
+
+	if (!Q_stricmp(cmd, "cpa")) {
+		Svcmd_CenterPrintAll_f(ConcatArgs(1));
+
+		return qtrue;
 	}
 
 	return qfalse;
