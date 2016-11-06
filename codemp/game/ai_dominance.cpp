@@ -886,14 +886,7 @@ END A* Pathfinding Code
 
 
 
-//TAB bot Behaviors
-//[Linux]
-#ifndef __linux__
-typedef enum
-#else
 enum
-#endif
-//[/Linux]
 {
 	BBEHAVE_NONE,  //use this if you don't want a behavior function to be run
 	BBEHAVE_STILL, //bot stands still

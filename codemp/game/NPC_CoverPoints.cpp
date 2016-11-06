@@ -88,8 +88,6 @@ qboolean AIMOD_LoadCoverPoints ( void )
 
 	for ( i = 0; i < num_cover_spots; i++ )
 	{
-		int j = 0;
-
 		trap->FS_Read( &(cover_nodes[i]), sizeof(int), f );
 
 		if (!(gWPArray[cover_nodes[i]]->flags & WPFLAG_COVER))

@@ -113,9 +113,11 @@ char* JKG_GetDamageTag(weaponData_t* pData, const int nFiringMode) {
 	if (nFiringMode > pData->numFiringModes || nFiringMode < 0 || nFiringMode > MAX_FIREMODES) {
 		return "";
 	}
-	weaponFireModeStats_t* pFireMode = &pData->firemodes[nFiringMode];
-	if (pData->weaponBaseIndex == WP_THERMAL || pData->weaponBaseIndex == WP_TRIP_MINE || pData->weaponBaseIndex == WP_DET_PACK ||
-		pData->visuals.visualFireModes[nFiringMode].displayExplosive) {
+
+	if (pData->weaponBaseIndex == WP_THERMAL ||
+			pData->weaponBaseIndex == WP_TRIP_MINE ||
+			pData->weaponBaseIndex == WP_DET_PACK ||
+			pData->visuals.visualFireModes[nFiringMode].displayExplosive) {
 		// Most likely referring to blast damage
 		return JKG_GetBlastDamageTag(pData, nFiringMode);
 	}
@@ -351,13 +353,13 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLeve
 					}
 					switch (nFiringMode) {
 						case 0:
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_PRIMARY_FIRE"), pWeaponData->visuals.visualFireModes[nFiringMode].displayName);
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_PRIMARY_FIRE"), pVFireMode->displayName);
 						case 1:
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_SECONDARY_FIRE"), pWeaponData->visuals.visualFireModes[nFiringMode].displayName);
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_SECONDARY_FIRE"), pVFireMode->displayName);
 						case 2:
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_TERTIARY_FIRE"), pWeaponData->visuals.visualFireModes[nFiringMode].displayName);
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_TERTIARY_FIRE"), pVFireMode->displayName);
 						default:
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_FIRING_MODE"), nFiringMode + 1, pWeaponData->visuals.visualFireModes[nFiringMode].displayName);
+							return va(UI_GetStringEdString2("@JKG_INVENTORY_FIRING_MODE"), nFiringMode + 1, pVFireMode->displayName);
 					}
 					break;
 				case 6:
@@ -367,6 +369,7 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLeve
 						case IDTYPE_EXPLOSIVEGUN:
 							return "";	// FIXME - blast damage
 						case IDTYPE_PROJECTILE:
+						{
 							int nDamage = pFireMode->baseDamage <= 0 ? 0 : pFireMode->baseDamage; // FIXME
 							if (nDamage <= 0) { // No damage. Don't draw.
 								char* out = JKG_GetItemDescLine(pItem, nLineNum - nLineOffset + 1, recursionLevel + 1);
@@ -382,6 +385,9 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLeve
 								return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_DAMAGE"), nDamage, szDamageTag);
 							}
 							break;
+						}
+						default:
+							break;
 					}
 					break;
 				case 7:
@@ -391,10 +397,13 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLeve
 						case IDTYPE_GRENADE:
 							return ""; // FIXME: fallout damage
 						case IDTYPE_PROJECTILE:
+						{
 							// Accuracy rating
 							int nAccuracyBase = pFireMode->weaponAccuracy.accuracyRating;
 							int nAccuracyMax = pFireMode->weaponAccuracy.maxAccuracyAdd + nAccuracyBase;
 							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_ACCURACY"), nAccuracyBase, nAccuracyMax);
+						}
+						default:
 							break;
 					}
 					break;
@@ -416,6 +425,8 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLeve
 							return (char*)JKG_GetRecoilString(pWeaponData, nFiringMode);
 						case IDTYPE_CHARGEMINE:
 							goto additionalTags;
+						default:
+							break;
 					}
 					break;
 				case 9:
@@ -442,6 +453,7 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLeve
 						nRPM = (int)((1000.0f / nFireTime) * 60.0f);
 						return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_FIRETIME"), nRPM);
 					}
+					// fall through
 				default:
 additionalTags:
 					{
@@ -494,7 +506,10 @@ additionalTags:
 				return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_CONSUMABLE");
 			}
 			break;
+		default:
+			break;
 	}
+
 blankLine:
 	return "";
 }

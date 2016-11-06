@@ -81,7 +81,6 @@ float Text_GetWidth(const char *text, int iFontIndex, float scale) {
 	return trap->R_Font_StrLenPixels(text, iFontIndex, scale);
 }
 
-//todo: move all xrgb color related functions to ui_shared.cpp/h since all ui functions should be able to use it other than just chatbox
 //void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontIndex, const int limit, float scale)	//now defined in ui_shared
 
 void ChatBox_NewChatMode() {

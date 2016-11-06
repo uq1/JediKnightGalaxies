@@ -2125,6 +2125,9 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 		}
 
 		return qfalse;
+
+	default:
+		break;
 	}
 
 	return qfalse;

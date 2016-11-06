@@ -4057,14 +4057,17 @@ qboolean Item_TextField_HandleKey(itemDef_t *item, int key) {
 		}
 
 		if (!DC->getOverstrikeMode()) {
-			if (( len == MAX_EDITFIELD - 1 ) || (editPtr->maxChars && len >= editPtr->maxChars)) {
+			if ( len == (MAX_EDITFIELD - 1) ||
+					(editPtr->maxChars && len >= editPtr->maxChars) ) {
 				// Filled up, ignore further input
 				return qtrue;
 			}
 			if (len != item->cursorPos)
 				memmove( &buff[item->cursorPos + 1], &buff[item->cursorPos], len + 1 - item->cursorPos );
 		} else {
-			if ((( len == MAX_EDITFIELD - 1 ) || editPtr->maxChars && item->cursorPos >= editPtr->maxChars) && item->cursorPos == len) {
+			if ( len == (MAX_EDITFIELD - 1) ||
+					((editPtr->maxChars && item->cursorPos >= editPtr->maxChars) &&
+					 item->cursorPos == len) ) {
 				// Filled up, ignore further input
 				return qtrue;
 			}
@@ -6050,17 +6053,18 @@ void Item_Bind_Fixed_Paint(itemDef_t *item)
 		textWidth = DC->textWidth(realText, 1.0f, item->iMenuFont);
 		textWidth *= textScale;
 
-		if(item->textalignment == ITEM_ALIGN_LEFT)
-		{
-			startingXPos = item->window.rect.x + item->textalignx;
-		}
-		else if(item->textalignment == ITEM_ALIGN_RIGHT)
+		if(item->textalignment == ITEM_ALIGN_RIGHT)
 		{
 			startingXPos = item->window.rect.x - textWidth + item->textalignx;
 		}
 		else if(item->textalignment == ITEM_ALIGN_CENTER)
 		{
 			startingXPos = item->window.rect.x - (textWidth/2)+ item->textalignx;
+		}
+		else
+		{
+			assert(item->textalignment == ITEM_ALIGN_LEFT);
+			startingXPos = item->window.rect.x + item->textalignx;
 		}
 
 		DC->drawText(startingXPos, item->window.rect.y/* + yAdj*/ + item->textaligny, textScale, item->window.foreColor, realText, 0, maxChars, item->textStyle,item->iMenuFont);
@@ -8052,10 +8056,8 @@ typedef struct keywordHash_s
 } keywordHash_t;
 
 int KeywordHash_Key(const char *keyword) {
-	int register hash, i;
-
-	hash = 0;
-	for (i = 0; keyword[i] != '\0'; i++) {
+	int hash = 0;
+	for (int i = 0; keyword[i] != '\0'; i++) {
 		if (keyword[i] >= 'A' && keyword[i] <= 'Z')
 			hash += (keyword[i] + ('a' - 'A')) * (119 + i);
 		else
@@ -10158,8 +10160,7 @@ static void Item_TextScroll_BuildLines ( itemDef_t* item )
 				scrollPtr->pLines[ scrollPtr->iLineCount ] = String_Alloc ( sLineForDisplay );
 				break;	// print this line
 			}
-			else 
-			if ( (DC->textWidth( sLineForDisplay, 1.0f, item->iMenuFont ) * item->textscale) >= iBoxWidth )
+			else if ( (DC->textWidth( sLineForDisplay, 1.0f, item->iMenuFont ) * item->textscale) >= iBoxWidth )
 			{					
 				// reached screen edge, so cap off string at bytepos after last good position...
 				//
@@ -10168,7 +10169,6 @@ static void Item_TextScroll_BuildLines ( itemDef_t* item )
 					// Special case, don't consider line breaking if you're on an asian punctuation char of
 					//	a language that doesn't use spaces...
 					//
-					uiLetter = uiLetter;	// breakpoint line only
 				}
 				else
 				{

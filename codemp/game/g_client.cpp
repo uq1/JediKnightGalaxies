@@ -1844,15 +1844,26 @@ char *G_ValidateUserinfo( const char *userinfo )
 }
 
 qboolean ClientUserinfoChanged( int clientNum ) {
-	gentity_t	*ent = g_entities + clientNum;
-	gclient_t	*client = ent->client;
-	int			teamLeader, team=TEAM_FREE, health=100, maxHealth=100;
-	char		*s=NULL,						*value=NULL,
-				userinfo[MAX_INFO_STRING]={0},	buf[MAX_INFO_STRING]={0},		oldClientinfo[MAX_INFO_STRING]={0},
-				model[MAX_QPATH]={0},			forcePowers[MAX_QPATH]={0},		oldname[MAX_NETNAME]={0},
-				className[MAX_QPATH]={0},		c1[MAX_INFO_STRING]={0},		c2[MAX_INFO_STRING]={0},
-				sex[MAX_INFO_STRING]={0};
-	qboolean	modelChanged = qfalse, female = qfalse;
+	gentity_t *ent = g_entities + clientNum;
+	gclient_t *client = ent->client;
+	int	teamLeader;
+	int team = TEAM_FREE;
+	int health = 100;
+	int maxHealth = 100;
+	char *s = NULL;
+	char *value = NULL;
+	char userinfo[MAX_INFO_STRING] = {0};
+	char oldClientinfo[MAX_INFO_STRING] = {0};
+	char model[MAX_QPATH] = {0};
+	char forcePowers[MAX_QPATH] = {0};
+	char oldname[MAX_NETNAME] = {0};
+	char c1[MAX_INFO_STRING] = {0};
+	char c2[MAX_INFO_STRING] = {0};
+	char sex[MAX_INFO_STRING] = {0};
+	qboolean modelChanged = qfalse;
+#if defined(__MMO__)
+	qboolean female = qfalse;
+#endif
 
 	trap->GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 
@@ -1988,8 +1999,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
 
 	if (level.gametype >= GT_TEAM) {
-		client->pers.teamInfo = qtrue;
-	} else {
 		s = Info_ValueForKey( userinfo, "teamoverlay" );
 		if ( ! *s || atoi( s ) != 0 ) {
 			client->pers.teamInfo = qtrue;
@@ -2400,10 +2409,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	ent->pain = 0;
 	ent->client = client;
 
-	// give the client a bit of initial mem to set up their damage history
-	// We realloc because the player might be changing teams.
-	ent->assistData.hitRecords = static_cast<entityHitRecord_t *>(realloc( ent->assistData.hitRecords, sizeof( entityHitRecord_t ) ));
-	ent->assistData.memAllocated = 1;
+	ent->assists->clear();
 
 	//assign the pointer for bg entity access
 	ent->playerState = &ent->client->ps;
@@ -3695,12 +3701,7 @@ void ClientDisconnect( int clientNum ) {
 	}
 
 	ent->inventory->clear();
-	if( ent->assistData.memAllocated > 0 && ent->assistData.hitRecords )
-	{
-		free( ent->assistData.hitRecords );
-		ent->assistData.memAllocated = 0;
-		ent->assistData.numRecords = 0;
-	}
+	ent->assists->clear();
 
 	GLua_Hook_PlayerDisconnect(clientNum);
 

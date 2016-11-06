@@ -1703,7 +1703,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{
 			gitem_t	*item;
 			int		index;
-			qboolean	newindex = qfalse;
 
 			index = cg_entities[es->eventParm].currentState.modelindex;		// player predicted
 
@@ -2049,7 +2048,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				if ( client && client->infoValid )
 				{
 					int saberNum = es->weapon;
-					int bladeNum = es->legsAnim;
 
 					if ( client->saber[saberNum].hitPersonEffect )
 					{//custom hit person effect
@@ -2172,7 +2170,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 					if ( client && client->infoValid )
 					{
 						int saberNum = es->weapon;
-						int bladeNum = es->legsAnim;
 
 						if ( client->saber[saberNum].blockEffect )
 						{//custom saber block effect

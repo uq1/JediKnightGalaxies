@@ -47,6 +47,7 @@ void			CGVM_AutomapInput			( void );
 void			CGVM_MiscEnt				( void );
 void			CGVM_CameraShake			( void );
 void			CGVM_MessageMode			( int mode );
+qboolean		CGVM_ChatboxOpen			( void );
 
 void CL_BindCGame( void );
 void CL_UnbindCGame( void );

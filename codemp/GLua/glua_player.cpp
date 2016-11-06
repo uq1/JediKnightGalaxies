@@ -1598,7 +1598,8 @@ static int GLua_Player_GetCurrentGunAmmoType(lua_State *L)
 // FIXME: this makes no sense whatsoever being a member of ply/player
 static int GLua_Player_GetGunAmmoType(lua_State *L)
 {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
+	GLua_CheckPlayer(L,1);
+
 	int weapon = lua_tointeger(L,2);
 	int variation = lua_tointeger(L,3);
 	weaponData_t *wp = GetWeaponData((unsigned char)weapon, (unsigned char)variation);

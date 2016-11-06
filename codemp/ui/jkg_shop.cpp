@@ -475,7 +475,7 @@ void JKG_Shop_BuyItem(char** args) {
 	if (nSelected < 0 || nSelected >= nNumberShopItems) {
 		return; // Invalid selection
 	}
-	cgImports->SendClientCommand(va("buyVendor %i", nSelected));
+	cgImports->SendClientCommand(va("buyVendor %i", vShopItems[nSelected].first));
 }
 
 void JKG_Shop_SellItem(char** args) {
@@ -485,7 +485,7 @@ void JKG_Shop_SellItem(char** args) {
 	if (nSelected < 0 || nSelected >= nNumberInventoryItems) {
 		return; // Invalid selection
 	}
-	cgImports->SendClientCommand(va("inventorySell %i", nSelected));
+	cgImports->SendClientCommand(va("inventorySell %i", vInventoryItems[nSelected].first));
 }
 
 void JKG_Shop_Closed(char** args) {

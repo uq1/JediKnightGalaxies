@@ -1538,7 +1538,6 @@ gentity_t *NPC_PickEnemy( gentity_t *closestTo, int enemyTeam, qboolean checkVis
 		minVis = VIS_360;
 	}
 
-#ifdef __UMM_WHY__ // UQ1: This is meant to be multiplayer...
 	if( findPlayersFirst )
 	{//try to find a player first
 		newenemy = &g_entities[0];
@@ -1587,7 +1586,7 @@ gentity_t *NPC_PickEnemy( gentity_t *closestTo, int enemyTeam, qboolean checkVis
 											}
 											else
 											{
-												Debug_Printf(&debugNPCAI, DEBUG_LEVEL_INFO, "%s saw %s trying to hide - hiddenDir %s targetDir %s dot %f\n", NPC->targetname, newenemy->targetname, vtos(newenemy->client->hiddenDir), vtos(diff), dot );
+												Debug_Printf(&d_npcai, DEBUG_LEVEL_INFO, "%s saw %s trying to hide - hiddenDir %s targetDir %s dot %f\n", NPC->targetname, newenemy->targetname, vtos(newenemy->client->hiddenDir), vtos(diff), dot );
 											}
 										}
 										else
@@ -1597,7 +1596,7 @@ gentity_t *NPC_PickEnemy( gentity_t *closestTo, int enemyTeam, qboolean checkVis
 									}
 									else
 									{
-										Debug_Printf(&debugNPCAI, DEBUG_LEVEL_INFO, "%s saw %s trying to hide - hiddenDist %f\n", NPC->targetname, newenemy->targetname, newenemy->client->hiddenDist );
+										Debug_Printf(&d_npcai, DEBUG_LEVEL_INFO, "%s saw %s trying to hide - hiddenDist %f\n", NPC->targetname, newenemy->targetname, newenemy->client->hiddenDist );
 									}
 								}
 
@@ -1665,7 +1664,6 @@ gentity_t *NPC_PickEnemy( gentity_t *closestTo, int enemyTeam, qboolean checkVis
 		return NULL;
 	}
 	*/
-#endif //__UMM_WHY__
 
 	num_choices = 0;
 	bestDist = 2048.0f; //Q3_INFINITE; // UQ1: errr... Q3_INFINITE??? silly silly use of cpu time...

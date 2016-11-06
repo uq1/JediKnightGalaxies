@@ -202,6 +202,12 @@ void CGVM_MessageMode( int mode ) {
 	cge->MessageMode( mode );
 }
 
+qboolean CGVM_ChatboxOpen( void ) {
+	VMSwap v( cgvm );
+
+	return cge->ChatboxOpen();
+}
+
 
 //
 // cgame syscalls

@@ -4398,6 +4398,16 @@ qboolean PM_AdjustStandAnimForSlope( void )
 	return qtrue;
 }
 
+qboolean PM_UsingIronSights(const pmove_t *pm) {
+	if (pm->ps->weapon == WP_THERMAL ||
+			pm->ps->weapon == WP_TRIP_MINE ||
+			pm->ps->weapon == WP_DET_PACK) {
+		return qfalse;
+	}
+
+	return (pm->cmd.buttons & BUTTON_IRONSIGHTS);
+}
+
 /*
 =================
 PM_LegsSlopeBackTransition
@@ -4805,11 +4815,9 @@ static void PM_Footsteps( void ) {
 		    
 		    footstep = qtrue;
 		}
-		else if ( !( pm->cmd.buttons & BUTTON_WALKING ) &&							// We are not holding the walk button.
-			(!(pm->cmd.buttons & BUTTON_IRONSIGHTS)) &&		// We are not in sights
-			!(pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) 
-			|| pm->ps->weapon == WP_THERMAL || pm->ps->weapon == WP_TRIP_MINE || pm->ps->weapon == WP_DET_PACK
-			)						// We are not in block mode (note: legs-only)
+		else if ( !(pm->cmd.buttons & BUTTON_WALKING) && // We are not holding the walk button
+				!PM_UsingIronSights(pm) &&
+				!(pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) ) // not in block mode
 		{ // Running, in other words.
 			bobmove = 0.4f;	// faster speeds bob faster
 			if ( pm->ps->clientNum >= MAX_CLIENTS &&
@@ -8861,7 +8869,7 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 		{
 			return qfalse;
 		}*/
-		if( abs(ps->velocity[2]) > 158.0f )
+		if( fabsf(ps->velocity[2]) > 158.0f )
 		{
 			return qfalse;
 		}
@@ -8874,7 +8882,7 @@ qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolea
 		{
 			return qfalse;
 		}*/
-		if( abs(ps->velocity[2]) > 158.0f )
+		if( fabsf(ps->velocity[2]) > 158.0f )
 		{
 			return qfalse;
 		}
@@ -9388,11 +9396,6 @@ void PmoveSingle (pmove_t *pmove) {
 		}
 	}
 
-	// Jedi Knight Galaxies, PM_LOCK
-	if (pm->ps->pm_type == PM_FREEZE || pm->ps->pm_type == PM_LOCK) {
-		return;		// no movement at all
-	}
-
 	if ( pm->ps->pm_type == PM_INTERMISSION || pm->ps->pm_type == PM_SPINTERMISSION) {
 		return;		// no movement at all
 	}
@@ -9403,6 +9406,11 @@ void PmoveSingle (pmove_t *pmove) {
 
 	// set mins, maxs, and viewheight
 	PM_CheckDuck ();
+
+	// Jedi Knight Galaxies, PM_LOCK
+	if (pm->ps->pm_type == PM_FREEZE || pm->ps->pm_type == PM_LOCK) {
+		return;		// no movement at all
+	}
 
 	if (pm->ps->pm_type == PM_JETPACK)
 	{

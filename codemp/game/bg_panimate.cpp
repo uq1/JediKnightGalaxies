@@ -2282,11 +2282,7 @@ void ParseAnimationEvtBlock(const char *aeb_filename, animevent_t *animEvents, a
 			}		
 			if ( Q_stricmp( "none", token ) != 0 && Q_stricmp( "NULL", token ) != 0 )
 			{//actually are specifying a bolt to use
-				if (!animEvents[curAnimEvent].stringData)
-				{ //eh, whatever. no dynamic stuff, so this will do.
-					animEvents[curAnimEvent].stringData = (char *) malloc(2048);
-				}
-				strcpy(animEvents[curAnimEvent].stringData, token);
+				Q_strncpyz(animEvents[curAnimEvent].stringData, token, sizeof(animEvents[curAnimEvent].stringData));
 			}
 			//NOTE: this string will later be used to add a bolt and store the index, as below:
 			//animEvent->eventData[AED_BOLTINDEX] = gi.G2API_AddBolt( &cent->gent->ghoul2[cent->gent->playerModel], animEvent->stringData );
@@ -2432,8 +2428,8 @@ int BG_ParseAnimationEvtFile( const char *as_filename, int animFileIndex, int ev
 			torsoAnimEvents[i].keyFrame = -1;	
 			legsAnimEvents[i].keyFrame = -1;
 			//we allow storage of one string, temporarily (in case we have to look up an index later, then make sure to set stringData to NULL so we only do the look-up once)
-			torsoAnimEvents[i].stringData = NULL;
-			legsAnimEvents[i].stringData = NULL;
+			torsoAnimEvents[i].stringData[0] = '\0';
+			legsAnimEvents[i].stringData[0] = '\0';
 			//Unique IDs, can be soundIndex of sound file to play OR effect index or footstep type, etc.
 			for ( j = 0; j < AED_ARRAY_SIZE; j++ )
 			{

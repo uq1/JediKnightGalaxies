@@ -29,8 +29,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
  * $Revision: 1.4 $
  *
  *****************************************************************************/
-#pragma warning(disable : 4701) //local variable may be used without having been initialized
-
 #include "g_local.h"
 
 #define MAX_GRAVITY_PULL 512

@@ -1370,26 +1370,19 @@ float RE_Font_StrLenPixelsNew( const char *psText, const int iFontHandle, const 
 	float maxLineWidth = 0.0f;
 	float thisLineWidth = 0.0f;
 	while ( *psText ) {
-		int iAdvanceCount, backupcount;
+		int iAdvanceCount;
 		unsigned int uiLetter = AnyLanguage_ReadCharFromString( psText, &iAdvanceCount, NULL );
-		backupcount = iAdvanceCount;
 		psText += iAdvanceCount;
 
 		if ( uiLetter == '^' ) {
-			psText -= backupcount; //that is necessary because Q_parseColorString works with strings that start with ^
+			psText -= iAdvanceCount; //that is necessary because Q_parseColorString works with strings that start with ^
 			int colorLen = Q_parseColorString( psText, nullptr );
 			if ( colorLen ) {
-				// Technically this loop is unnecessary since these characters are all ASCII but...
-				for( int i = 0; i < colorLen; i++ )
-				{
-					uiLetter = AnyLanguage_ReadCharFromString( psText, &iAdvanceCount, NULL );
-					psText += iAdvanceCount;
-				}
-				psText += backupcount;
+				colorLen *= iAdvanceCount; // should always be 1 since ^ is ASCII
+				psText += colorLen;
 				continue;
 			}
-			else
-				psText += backupcount; // addd it back anyway
+			psText += iAdvanceCount; // add back the ^ since it wasn't a color code
 		}
 
 		if ( uiLetter == '\n' ) {
@@ -1439,25 +1432,22 @@ int RE_Font_StrLenChars(const char *psText)
 	{
 		// in other words, colour codes and CR/LF don't count as chars, all else does...
 		//
-		int iAdvanceCount, backupcount;
+		int iAdvanceCount;
 		unsigned int uiLetter = AnyLanguage_ReadCharFromString( psText, &iAdvanceCount, NULL );
-		backupcount = iAdvanceCount;
 		psText += iAdvanceCount;
 
 		switch (uiLetter)
 		{
 			case '^':
 			{
-				psText -= backupcount; //that is necessary because Q_parseColorString works with strings that start with ^
+				psText -= iAdvanceCount; //that is necessary because Q_parseColorString works with strings that start with ^
 				int colorLen = Q_parseColorString( psText, nullptr );
-				if ( colorLen ) {
+				if ( colorLen )
 					psText += colorLen;
-				}
 				else
-				{
 					iCharCount++;
-				}
-				psText += backupcount;
+
+				psText += iAdvanceCount;
 				break;	// colour code (note next-char skip)
 			}
 			case 10:								break;	// linefeed
@@ -1489,7 +1479,6 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 {
 	static qboolean gbInShadow = qfalse;	// MUST default to this
 	float				fox, foy, fx, fy;
-	int					colour, offset;
 	const glyphInfo_t	*pLetter;
 	qhandle_t			hShader;
 
@@ -1565,7 +1554,7 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 	// Draw a dropshadow if required
 	if(iFontHandle & STYLE_DROPSHADOW)
 	{
-		offset = Round(curfont->GetPointSize() * fScale * 0.075f);
+		int offset = Round(curfont->GetPointSize() * fScale * 0.075f);
 
 		const vec4_t v4DKGREY2 = {0.15f, 0.15f, 0.15f, rgba?rgba[3]:1.0f};
 
@@ -1587,9 +1576,8 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 	qboolean bNextTextWouldOverflow = qfalse;
 	while (*psText && !bNextTextWouldOverflow)
 	{
-		int iAdvanceCount, backupcount;
+		int iAdvanceCount;
 		unsigned int uiLetter = AnyLanguage_ReadCharFromString( psText, &iAdvanceCount, NULL );
-		backupcount = iAdvanceCount;
 		psText += iAdvanceCount;
 
 		switch( uiLetter )
@@ -1618,7 +1606,7 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 		case '^':
 			if (uiLetter != '_')	// necessary because of fallthrough above
 			{
-				psText -= backupcount; //that is necessary because Q_parseColorString works with strings that start with ^
+				psText -= iAdvanceCount; //that is necessary because Q_parseColorString works with strings that start with ^
 				vec4_t color;
 				int colorLen = Q_parseColorString( psText, color );
 				if ( colorLen ) {
@@ -1629,7 +1617,7 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 					}
 					break;
 				}
-				psText += backupcount;
+				psText += iAdvanceCount;
 			}
 			//purposely falls thrugh
 		default:

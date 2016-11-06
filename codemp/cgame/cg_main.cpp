@@ -3074,6 +3074,10 @@ static void CG_FX_CameraShake( void ) {
 	CG_DoCameraShake( data->mOrigin, data->mIntensity, data->mRadius, data->mTime );
 }
 
+static qboolean CG_IsChatBoxOpen(void) {
+	return cg.isChatting;
+}
+
 /*
 ============
 GetModuleAPI
@@ -3126,6 +3130,7 @@ Q_EXPORT cgameExport_t* QDECL GetModuleAPI( int apiVersion, cgameImport_t *impor
 	cge.MiscEnt					= CG_MiscEnt;
 	cge.CameraShake				= CG_FX_CameraShake;
 	cge.MessageMode				= ChatBox_UseMessageMode;
+	cge.ChatboxOpen				= CG_IsChatBoxOpen;
 
 	return &cge;
 }

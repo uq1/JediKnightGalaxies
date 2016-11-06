@@ -494,6 +494,7 @@ typedef struct cgameExport_s {
 	void			(*MiscEnt)					( void );
 	void			(*CameraShake)				( void );
 	void			(*MessageMode)				( int mode );
+	qboolean		(*ChatboxOpen)				( void );
 } cgameExport_t;
 
 //linking of cgame library

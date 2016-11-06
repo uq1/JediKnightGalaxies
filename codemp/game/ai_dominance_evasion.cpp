@@ -296,27 +296,23 @@ evasionType_t DOM_Jedi_CheckFlipEvasions( gentity_t *self, float rightdot, float
 
 		if ( self->client->ps.weapon == WP_SABER )
 		{
-			if ( self->client->saber[0].model
-				&& self->client->saber[0].model[0]
-			&& (self->client->saber[0].saberFlags&SFL_NO_CARTWHEELS) )
+			if ( self->client->saber[0].model[0] &&
+					(self->client->saber[0].saberFlags&SFL_NO_CARTWHEELS) )
 			{
 				allowCartWheels = qfalse;
 			}
-			else if ( self->client->saber[1].model
-				&& self->client->saber[1].model[0]
-			&& (self->client->saber[1].saberFlags&SFL_NO_CARTWHEELS) )
+			else if ( self->client->saber[1].model[0] &&
+					(self->client->saber[1].saberFlags&SFL_NO_CARTWHEELS) )
 			{
 				allowCartWheels = qfalse;
 			}
-			if ( self->client->saber[0].model
-				&& self->client->saber[0].model[0]
-			&& (self->client->saber[0].saberFlags&SFL_NO_WALL_FLIPS) )
+			if ( self->client->saber[0].model[0] &&
+					(self->client->saber[0].saberFlags&SFL_NO_WALL_FLIPS) )
 			{
 				allowWallFlips = qfalse;
 			}
-			else if ( self->client->saber[1].model
-				&& self->client->saber[1].model[0]
-			&& (self->client->saber[1].saberFlags&SFL_NO_WALL_FLIPS) )
+			else if ( self->client->saber[1].model[0] &&
+					(self->client->saber[1].saberFlags&SFL_NO_WALL_FLIPS) )
 			{
 				allowWallFlips = qfalse;
 			}
@@ -476,15 +472,13 @@ evasionType_t DOM_Jedi_CheckFlipEvasions( gentity_t *self, float rightdot, float
 					qboolean allowWallRuns = qtrue;
 					if ( self->client->ps.weapon == WP_SABER )
 					{
-						if ( self->client->saber[0].model
-							&& self->client->saber[0].model[0] 
-						&& (self->client->saber[0].saberFlags&SFL_NO_WALL_RUNS) )
+						if ( self->client->saber[0].model[0] &&
+								(self->client->saber[0].saberFlags&SFL_NO_WALL_RUNS) )
 						{
 							allowWallRuns = qfalse;
 						}
-						else if ( self->client->saber[1].model
-							&& self->client->saber[1].model[0]
-						&& (self->client->saber[1].saberFlags&SFL_NO_WALL_RUNS) )
+						else if ( self->client->saber[1].model[0] &&
+								(self->client->saber[1].saberFlags&SFL_NO_WALL_RUNS) )
 						{
 							allowWallRuns = qfalse;
 						}

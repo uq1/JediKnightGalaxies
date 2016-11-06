@@ -294,8 +294,7 @@ void NORETURN QDECL Com_Error( int code, const char *fmt, ... ) {
 
 	Com_Shutdown ();
 
-	if( code == ERR_FATAL )
-		Sys_Error ("%s", com_errorMessage);
+	Sys_Error ("%s", com_errorMessage);
 }
 
 
@@ -646,7 +645,7 @@ Com_HashKey
 ============
 */
 int Com_HashKey(char *string, int maxlen) {
-	int register hash, i;
+	int hash, i;
 
 	hash = 0;
 	for (i = 0; i < maxlen && string[i] != '\0'; i++) {

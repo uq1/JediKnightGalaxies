@@ -2873,14 +2873,14 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 			gt = BG_GetGametypeForString( arg2 );
 			if ( gt == -1 )
 			{
-				trap->SendServerCommand( ent-g_entities, va( "print \"Gametype (%s) unrecognised, defaulting to FFA/Deathmatch\n\"", arg2 ) );
-				gt = GT_FFA;
+				trap->SendServerCommand( ent-g_entities, va( "print \"Gametype (%s) unrecognised, defaulting to TTFA/Faction War\n\"", arg2 ) );
+				gt = GT_TEAM;
 			}
 		}
 		else if ( gt < 0 || gt >= GT_MAX_GAME_TYPE )
 		{// numeric but out of range
-			trap->SendServerCommand( ent-g_entities, va( "print \"Gametype (%i) is out of range, defaulting to FFA/Deathmatch\n\"", gt ) );
-			gt = GT_FFA;
+			trap->SendServerCommand( ent-g_entities, va( "print \"Gametype (%i) is out of range, defaulting to TFFA/Faction War\n\"", gt ) );
+			gt = GT_TEAM;
 		}
 
 		if ( gt == GT_SINGLE_PLAYER )

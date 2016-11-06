@@ -7251,17 +7251,10 @@ void ChatBox_DrawChat(menuDef_t *menu);
 extern void CG_DrawStringExt( int x, int y, const char *string, const float *setColor, 
 		qboolean forceColor, qboolean shadow, int charWidth, int charHeight, int maxChars, qhandle_t textShader );
 
-void CG_DrawChatbox() {
-	menuDef_t *menuHUD;
+void CG_DrawChatboxH(menuDef_t *menuHUD) {
 	itemDef_t *item;
-	vec4_t		color;
 	vec4_t tmpCol;
 
-	menuHUD = Menus_FindByName("hud_chatbox");
-	if (!menuHUD) {
-		return;
-	}
-#pragma region h_
 	item = Menu_FindItemByName(menuHUD, "h_local");
 	if (item) {
 		VectorCopy4(item->window.foreColor, tmpCol);
@@ -7292,14 +7285,12 @@ void CG_DrawChatbox() {
 		trap->R_SetColor( tmpCol );
 		trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);
 	}
-#pragma endregion
-	ChatBox_DrawBackdrop(menuHUD);
+}
 
-
-
-#pragma region frame
-	item = Menu_FindItemByName(menuHUD, "frame");
+void CG_DrawChatboxFrame(menuDef_t *menuHUD) {
+	itemDef_t *item = Menu_FindItemByName(menuHUD, "frame");
 	if (item) {
+		vec4_t color;
 		MAKERGBA(color, 1, 1, 1, cg.jkg_HUDOpacity);
 		trap->R_SetColor( color );	
 		CG_DrawPic( 
@@ -7310,14 +7301,15 @@ void CG_DrawChatbox() {
 			item->window.background 
 			);	
 	}
-#pragma endregion
-#pragma region text
-	item = Menu_FindItemByName(menuHUD, "text");
+}
 
+void CG_DrawChatboxText(menuDef_t *menuHUD) {
+	itemDef_t *item = Menu_FindItemByName(menuHUD, "text");
 	if (item)
 	{
 		int i;
 		int line;
+		vec4_t color;
 
 		MAKERGBA(color,0,0,0,0.3f);
 		color[3] *= cg.jkg_HUDOpacity;
@@ -7339,8 +7331,20 @@ void CG_DrawChatbox() {
 		}
 		ChatBox_SetPaletteAlpha(1);
 	}
-#pragma endregion
+}
+
+void CG_DrawChatbox() {
+	menuDef_t *menuHUD = Menus_FindByName("hud_chatbox");
+	if (!menuHUD) {
+		return;
+	}
+
+	CG_DrawChatboxH(menuHUD);
+	ChatBox_DrawBackdrop(menuHUD);
+	CG_DrawChatboxFrame(menuHUD);
+	CG_DrawChatboxText(menuHUD);
 	
+	vec4_t color;
 	MAKERGBA(color, 1, 1, 1, 1*cg.jkg_HUDOpacity);
 	trap->R_SetColor(color);
 
@@ -7349,8 +7353,6 @@ void CG_DrawChatbox() {
 
 void ChatBox_CloseChat();
 static void CG_Draw2D( void ) {
-	float			inTime = cg.invenSelectTime+WEAPON_SELECT_TIME;
-	float			wpTime = cg.weaponSelectTime+WEAPON_SELECT_TIME;
 	float			fallTime; 
 	int				drawSelect = 0;
 	int				drawHUD	= cg_drawHUD.integer;
