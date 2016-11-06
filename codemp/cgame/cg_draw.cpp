@@ -149,9 +149,15 @@ int MenuFontToHandle(int iMenuFont)
 
 int CG_Text_Width(const char *text, float scale, int iMenuFont) 
 {
+	char tempBuffer[MAX_STRING_CHARS];
 	int iFontIndex = MenuFontToHandle(iMenuFont);
 
-	return trap->R_Font_StrLenPixels(text, iFontIndex, scale);
+	// Strip the color out of the string when determining size.
+	// Q_StripColor modifies the string, so we need to use a temporary buffer.
+	Q_strncpyz(tempBuffer, text, MAX_STRING_CHARS);
+	Q_StripColor(tempBuffer);
+
+	return trap->R_Font_StrLenPixels(tempBuffer, iFontIndex, scale);
 }
 
 int CG_Text_Height(const char *text, float scale, int iMenuFont) 
