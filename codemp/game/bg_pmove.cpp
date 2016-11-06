@@ -9386,11 +9386,6 @@ void PmoveSingle (pmove_t *pmove) {
 		}
 	}
 
-	// Jedi Knight Galaxies, PM_LOCK
-	if (pm->ps->pm_type == PM_FREEZE || pm->ps->pm_type == PM_LOCK) {
-		return;		// no movement at all
-	}
-
 	if ( pm->ps->pm_type == PM_INTERMISSION || pm->ps->pm_type == PM_SPINTERMISSION) {
 		return;		// no movement at all
 	}
@@ -9401,6 +9396,11 @@ void PmoveSingle (pmove_t *pmove) {
 
 	// set mins, maxs, and viewheight
 	PM_CheckDuck ();
+
+	// Jedi Knight Galaxies, PM_LOCK
+	if (pm->ps->pm_type == PM_FREEZE || pm->ps->pm_type == PM_LOCK) {
+		return;		// no movement at all
+	}
 
 	if (pm->ps->pm_type == PM_JETPACK)
 	{
