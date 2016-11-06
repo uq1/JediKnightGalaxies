@@ -1382,7 +1382,7 @@ float RE_Font_StrLenPixelsNew( const char *psText, const int iFontHandle, const 
 				psText += colorLen;
 				continue;
 			}
-			psText += backupcount; // add back the ^ since it wasn't a color code
+			psText += iAdvanceCount; // add back the ^ since it wasn't a color code
 		}
 
 		if ( uiLetter == '\n' ) {
