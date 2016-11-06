@@ -1988,8 +1988,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
 
 	if (level.gametype >= GT_TEAM) {
-		client->pers.teamInfo = qtrue;
-	} else {
 		s = Info_ValueForKey( userinfo, "teamoverlay" );
 		if ( ! *s || atoi( s ) != 0 ) {
 			client->pers.teamInfo = qtrue;
