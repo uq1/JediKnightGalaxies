@@ -142,7 +142,6 @@ typedef struct aliasInfo_s {
 typedef struct teamInfo_s {
 	const char *teamName;
 	const char *imageName;
-	const char *teamMembers[TEAM_MEMBERS];
 	qhandle_t teamIcon;
 	qhandle_t teamIcon_Metal;
 	qhandle_t teamIcon_Name;
@@ -158,11 +157,8 @@ typedef struct mapInfo_s {
 	const char *mapName;
 	const char *mapLoadName;
 	const char *imageName;
-	const char *opponentName;
-	int teamMembers;
 	int typeBits;
 	int cinematic;
-	int timeToBeat[MAX_GAMETYPES];
 	qhandle_t levelShot;
 	qboolean active;
 } mapInfo_t;
