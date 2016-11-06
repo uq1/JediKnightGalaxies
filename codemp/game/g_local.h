@@ -190,8 +190,8 @@ typedef enum
 
 typedef struct {
 	gentity_t *entWhoHit;
-	unsigned int timeHit;
-	unsigned int damageDealt;
+	int timeHit;
+	int damageDealt;
 } entityHitRecord_t;
 
 #ifdef _GAME
