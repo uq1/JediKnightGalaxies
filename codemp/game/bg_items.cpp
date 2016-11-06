@@ -311,6 +311,8 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 				}
 			}
 			break;
+		default:
+			break;
 	}
 }
 #endif

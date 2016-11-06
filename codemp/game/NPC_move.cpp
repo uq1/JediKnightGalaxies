@@ -94,6 +94,7 @@ qboolean NPC_ClearPathToGoal( vec3_t dir, gentity_t *goal )
 	return qfalse;
 }
 
+#if !defined(__DOMINANCE_NPC__)
 /*
 -------------------------
 NPC_CheckCombatMove
@@ -118,6 +119,7 @@ static QINLINE qboolean NPC_CheckCombatMove( void )
 
 	return qfalse;
 }
+#endif
 
 /*
 -------------------------

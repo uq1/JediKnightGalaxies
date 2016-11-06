@@ -1844,15 +1844,26 @@ char *G_ValidateUserinfo( const char *userinfo )
 }
 
 qboolean ClientUserinfoChanged( int clientNum ) {
-	gentity_t	*ent = g_entities + clientNum;
-	gclient_t	*client = ent->client;
-	int			teamLeader, team=TEAM_FREE, health=100, maxHealth=100;
-	char		*s=NULL,						*value=NULL,
-				userinfo[MAX_INFO_STRING]={0},	buf[MAX_INFO_STRING]={0},		oldClientinfo[MAX_INFO_STRING]={0},
-				model[MAX_QPATH]={0},			forcePowers[MAX_QPATH]={0},		oldname[MAX_NETNAME]={0},
-				className[MAX_QPATH]={0},		c1[MAX_INFO_STRING]={0},		c2[MAX_INFO_STRING]={0},
-				sex[MAX_INFO_STRING]={0};
-	qboolean	modelChanged = qfalse, female = qfalse;
+	gentity_t *ent = g_entities + clientNum;
+	gclient_t *client = ent->client;
+	int	teamLeader;
+	int team = TEAM_FREE;
+	int health = 100;
+	int maxHealth = 100;
+	char *s = NULL;
+	char *value = NULL;
+	char userinfo[MAX_INFO_STRING] = {0};
+	char oldClientinfo[MAX_INFO_STRING] = {0};
+	char model[MAX_QPATH] = {0};
+	char forcePowers[MAX_QPATH] = {0};
+	char oldname[MAX_NETNAME] = {0};
+	char c1[MAX_INFO_STRING] = {0};
+	char c2[MAX_INFO_STRING] = {0};
+	char sex[MAX_INFO_STRING] = {0};
+	qboolean modelChanged = qfalse;
+#if defined(__MMO__)
+	qboolean female = qfalse;
+#endif
 
 	trap->GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 

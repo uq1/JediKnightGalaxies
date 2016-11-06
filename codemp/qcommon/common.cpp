@@ -294,8 +294,7 @@ void NORETURN QDECL Com_Error( int code, const char *fmt, ... ) {
 
 	Com_Shutdown ();
 
-	if( code == ERR_FATAL )
-		Sys_Error ("%s", com_errorMessage);
+	Sys_Error ("%s", com_errorMessage);
 }
 
 

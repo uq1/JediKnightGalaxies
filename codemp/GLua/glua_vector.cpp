@@ -532,6 +532,7 @@ static const struct luaL_reg vector_m [] = {
 	{"Length", GLua_Vector_Length},
 	{"Normalize", GLua_Vector_Normalize},
 	{"GetNormalized", GLua_Vector_GetNormalized},
+	{"Distance", GLua_Vector_Distance},
 	{"DotProduct", GLua_Vector_DotProduct},
 	{"CrossProduct", GLua_Vector_CrossProduct},
 	{"ToAngles", GLua_Vector_ToAngles},

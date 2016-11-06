@@ -120,23 +120,18 @@ name_list_t NPC_NAME_LIST[8000];
 
 int NUM_HUMAN_NAMES = 0;
 
-/* */
-void
-Load_NPC_Names ( void )
-{				// Load bot first names from external file.
-	char			*s, *t;
-	int				len;
-	fileHandle_t	f;
-	char			*buf;
-	char			*loadPath;
-	int				num = 0;
+void AddNPCName(const char *name) {
+	Q_strncpyz(NPC_NAME_LIST[NUM_HUMAN_NAMES++].HumanNames, name, sizeof(NPC_NAME_LIST[0]));
+}
 
+void Load_NPC_Names()
+{
+	// Load bot first names from external file.
 	if (HumanNamesLoaded)
 		return;
 
-	loadPath = va( "npc_names_list.dat" );
-
-	len = trap->FS_Open( loadPath, &f, FS_READ );
+	fileHandle_t f;
+	int len = trap->FS_Open( "npc_names_list.dat", &f, FS_READ );
 
 	HumanNamesLoaded = qtrue;
 
@@ -146,13 +141,16 @@ Load_NPC_Names ( void )
 	}
 
 	if ( !len )
-	{			//empty file
+	{
+		//empty file
 		trap->FS_Close( f );
 		return;
 	}
 
-	if ( (buf = (char *)malloc( len + 1)) == 0 )
-	{			//alloc memory for buffer
+	char *buf;
+	if ( (buf = (char *)malloc(len + 1)) == 0 )
+	{			
+		//alloc memory for buffer
 		trap->FS_Close( f );
 		return;
 	}
@@ -161,38 +159,28 @@ Load_NPC_Names ( void )
 	buf[len] = 0;
 	trap->FS_Close( f );
 
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "NONAME");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "R2D2 Droid");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "R5D2 Droid");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "Protocol Droid");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "Weequay");
-	NUM_HUMAN_NAMES++;
+	AddNPCName("NONAME");
+	AddNPCName("R2D2 Droid");
+	AddNPCName("R5D2 Droid");
+	AddNPCName("Protocol Droid");
+	AddNPCName("Weequay");
 
-	for ( t = s = buf; *t; /* */ )
+	char *t;
+	for ( t = buf; *t; /* empty */ )
 	{
-		num++;
-		s = strchr( s, '\n' );
-		if ( !s || num > len )
-		{
+		// Find next new line
+		char *s = strchr( t, '\n' );
+		if ( !s )
 			break;
-		}
 
+		// Null out the blank lines
 		while ( *s == '\n' )
-		{
 			*s++ = 0;
-		}
 
 		if ( *t )
 		{
-			if ( !Q_strncmp( "//", va( "%s", t), 2) == 0 && strlen( va( "%s", t)) > 0 )
-			{	// Not a comment either... Record it in our list...
-				Q_strncpyz( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, va( "%s", t), strlen( va( "%s", t)) );
-				NUM_HUMAN_NAMES++;
-			}
+			if ( Q_strncmp("//", t, 2) != 0 && strlen(t) > 0)
+				AddNPCName(t);
 		}
 
 		t = s;
