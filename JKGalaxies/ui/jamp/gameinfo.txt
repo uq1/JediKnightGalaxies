@@ -5,9 +5,6 @@ gametypes {
   { "Faction Battle" 4 } 
   { "Capture the Flag" 5 } 
   { "Warzone" 6 }
-  { "Ticketed LMS" 7 } 
-  { "9-Lives LMS" 8 }
-  { "Roundbased LMS" 9 }
 }
 
 joingametypes {
@@ -18,8 +15,5 @@ joingametypes {
   { "Faction Battle" 4 } 
   { "Capture the Flag" 5 }
   { "Warzone" 6 }
-  { "Ticketed LMS" 7 } 
-  { "9-Lives LMS" 8 }
-  { "Roundbased LMS" 9 }
 }
 
