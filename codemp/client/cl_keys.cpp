@@ -1190,7 +1190,7 @@ static qboolean CL_BindUICommand( const char *cmd ) {
 		return qtrue;
 	if ( !Q_stricmp( cmd, "togglemenu" ) )
 		return qtrue;
-	if ( !Q_stricmp( cmd, "inventory" ) )
+	if ( !Q_stricmp( cmd, "inventory" ) && (!cls.cgameStarted || !CGVM_ChatboxOpen())) )
 		return qtrue;
 
 	return qfalse;
