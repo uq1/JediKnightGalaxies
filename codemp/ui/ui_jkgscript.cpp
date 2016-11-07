@@ -20,10 +20,8 @@ typedef struct JKGkeywordHashSv_s
 } JKGkeywordHashSv_t;
 
 int JKGKeywordHash_Key(char *keyword) {
-	int register hash, i;
-
-	hash = 0;
-	for (i = 0; keyword[i] != '\0'; i++) {
+	int hash = 0;
+	for (int i = 0; keyword[i] != '\0'; i++) {
 		if (keyword[i] >= 'A' && keyword[i] <= 'Z')
 			hash += (keyword[i] + ('a' - 'A')) * (119 + i);
 		else
