@@ -3623,7 +3623,7 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 		VectorCopy( ent->client->ps.origin, start );
 		start[2] += ent->client->ps.viewheight;
 	}
-	/* NPC will use their own origin and use the eye coördinates */
+	/* NPC will use their own origin and use the eye coordinates */
 	else
 	{
 		VectorCopy( ent->r.currentOrigin, start );
