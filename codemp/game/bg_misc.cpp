@@ -2078,7 +2078,7 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 		return qtrue;
 
 	case IT_ARMOR:
-		if ( ps->stats[STAT_ARMOR] >= ps->stats[STAT_MAX_ARMOR] ) {
+		if ( ps->stats[STAT_SHIELD] >= ps->stats[STAT_MAX_SHIELD] ) {
 			return qfalse;
 		}
 		return qtrue;
@@ -3366,10 +3366,6 @@ const char *gametypeStringShort[GT_MAX_GAME_TYPE] = {
 	"1v1",
 	"2v1",
 	"SP",
-#ifdef __RPG__
-	"RPGCITY",
-	"RPGWILD",
-#endif
 	"TDM",
 	"CTF",
 	"WZ",
@@ -3396,12 +3392,6 @@ const char *BG_GetGametypeString( int gametype )
 		return "Power Duel";
 	case GT_SINGLE_PLAYER:
 		return "Cooperative";
-#ifdef __RPG__
-	case GT_RPG_CITY:
-		return "RPG - City";
-	case GT_RPG_WILDERNESS:
-		return "RPG - Wilderness";
-#endif
 	case GT_TEAM:
 		return "Team Deathmatch";
 	case GT_CTF:

@@ -1008,26 +1008,6 @@ Ghoul2 Insert End
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flashdir);
 		}
 
-		if ( cent->currentState.weapon == WP_BRYAR_PISTOL ||
-			cent->currentState.weapon == WP_BRYAR_OLD)
-		{
-			// Hardcoded max charge time of 1 second
-			val = ( cg.time - cent->currentState.constantLight ) * 0.001f;
-			shader = cgs.media.bryarFrontFlash;
-		}
-		else if ( cent->currentState.weapon == WP_BOWCASTER )
-		{
-			// Hardcoded max charge time of 1 second
-			val = ( cg.time - cent->currentState.constantLight ) * 0.001f;
-			shader = cgs.media.greenFrontFlash;
-		}
-		else if ( cent->currentState.weapon == WP_DEMP2 )
-		{
-			val = ( cg.time - cent->currentState.constantLight ) * 0.001f;
-			shader = cgs.media.lightningFlash;
-			scale = 1.75f;
-		}
-
 		if ( val < 0.0f )
 		{
 			val = 0.0f;
@@ -1634,6 +1614,7 @@ int JKG_FindNewACISlot( int slotNum )
 void JKG_CG_FillACISlot(int itemNum, int slot)
 {
 	itemData_t *item;
+	qboolean alreadyInACI = qfalse;
 
 	if (itemNum < 0 || itemNum >= cg.playerInventory->size())
 	{
@@ -1649,6 +1630,37 @@ void JKG_CG_FillACISlot(int itemNum, int slot)
 	for (int i = 0; i < MAX_ACI_SLOTS; i++) {
 		if (cg.playerACI[i] == itemNum) {
 			cg.playerACI[i] = -1;
+			alreadyInACI = qtrue;
+		}
+	}
+
+	item = (*cg.playerInventory)[itemNum].id;
+
+	// If the item is a shield, then we need to remove all other shields in our ACI and inform the server that we equipped shield
+	// Unless of course we already had this item in the ACI, in which case we do nothing
+	if (item->itemType == ITEM_SHIELD && !alreadyInACI) {
+		for (int i = 0; i < MAX_ACI_SLOTS; i++) {
+			itemData_t* itemInThisSlot;
+			if (cg.playerACI[i] >= cg.playerInventory->size() || cg.playerACI[i] < 0) {
+				cg.playerACI[i] = -1;
+				continue;
+			}
+			
+			itemInThisSlot = (*cg.playerInventory)[cg.playerACI[i]].id;
+			if (itemInThisSlot->itemType == ITEM_SHIELD) {
+				cg.playerACI[i] = -1;
+				break;
+			}
+		}
+
+		trap->SendClientCommand(va("equipShield %i", itemNum));
+	}
+	else if (cg.playerACI[slot] > 0 && cg.playerACI[slot] < cg.playerInventory->size()) {
+		// Check to see if we're overwriting a shield (if so, unequip it)
+		itemData_t* itemInThisSlot;
+		itemInThisSlot = (*cg.playerInventory)[cg.playerACI[slot]].id;
+		if (itemInThisSlot->itemType == ITEM_SHIELD) {
+			trap->SendClientCommand("unequipShield");
 		}
 	}
 
@@ -1667,16 +1679,6 @@ void JKG_CG_FillACISlot(int itemNum, int slot)
 		return;
 	}
 
-	item = (*cg.playerInventory)[itemNum].id;
-	if (!item)
-	{
-		return;
-	}
-	if (!item->itemID)
-	{
-		return;
-	}
-
 
 	cg.playerACI[slot] = itemNum;
 }
@@ -1686,6 +1688,14 @@ void JKG_CG_ClearACISlot(int slot)
 	if (slot < 0 || slot >= MAX_ACI_SLOTS)
 	{
 		return;
+	}
+
+	if (cg.playerACI[slot] > 0 && cg.playerACI[slot] < cg.playerInventory->size()) {
+		itemInstance_t* item = &(*cg.playerInventory)[cg.playerACI[slot]];
+		if (item->id->itemType == ITEM_SHIELD) {
+			// inform the server that we've unequipped our shield
+			trap->SendClientCommand("unequipShield");
+		}
 	}
 
 	cg.playerACI[slot] = -1;
@@ -1773,7 +1783,7 @@ void CG_Weapon_f( void ) {
 		// Not a weapon. Check the type!
 		switch(itemType)
 		{
-			case ITEM_CONSUMABLE:
+			case ITEM_SHIELD:
 				{
 					trap->SendConsoleCommand(va("inventoryUse %i", cg.playerACI[num]));
 				}
@@ -2526,12 +2536,6 @@ static void JKG_RenderGenericProjectile ( const centity_t *cent, const weaponDra
              weaponData->projectileRender.generic.lightColor[2]
         );
     }
-#ifdef __EXPERIMENTAL_SHADOWS__
-	else
-	{// UQ1: Seems to me these all glow anyway??? Just some don't have D lighting...
-		CG_RecordLightPosition( cent->lerpOrigin );
-	}
-#endif //__EXPERIMENTAL_SHADOWS__
     
 	if ( weaponData->projectileRender.generic.runSound )
     {
@@ -2733,10 +2737,6 @@ static __inline void JKG_RenderChargingEffect ( centity_t *cent, const vec3_t mu
 		trap->FX_PlayEntityEffectID(chargingEffect, const_cast<float *>(muzzlePosition), axis, cent->boltInfo, cent->currentState.number, -1, -1);
         //trap->FX_PlayEffectID (chargingEffect, muzzlePosition, axis[0], -1, -1);
     }
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-	CG_RecordLightPosition( muzzlePosition );
-#endif //__EXPERIMENTAL_SHADOWS__
 }
 
 void JKG_RenderGenericWeaponWorld ( centity_t *cent, const weaponDrawData_t *weaponData, unsigned char firingMode, const vec3_t angles )
@@ -2769,10 +2769,6 @@ void JKG_RenderGenericWeaponWorld ( centity_t *cent, const weaponDrawData_t *wea
                 qfalse,
                 s->constantLight
             );
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-			CG_RecordLightPosition( flashOrigin );
-#endif //__EXPERIMENTAL_SHADOWS__
 	    }
 	}
 	
@@ -2974,10 +2970,6 @@ static void JKG_BlowGenericExplosive ( const centity_t *cent, const weaponDrawDa
         }
         
         trap->FX_PlayEffectID (weaponData->explosiveBlow.generic.explodeEffect, (float *)s->origin, forward, -1, -1, false);
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_RecordLightPosition( s->origin );
-#endif //__EXPERIMENTAL_SHADOWS__
     }
 }
 
@@ -3201,10 +3193,6 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
             qtrue,
             qtrue,
             s->constantLight);
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_RecordLightPosition( muzzle.origin );
-#endif //__EXPERIMENTAL_SHADOWS__
     }
     
     // TODO: At some point, I want to put this into a common function which the

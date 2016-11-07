@@ -42,7 +42,7 @@ void JKG_ConstructShopLists() {
 		//
 		for (int i = 0; i < nNumberUnfilteredIItems; i++) {
 			itemInstance_t* pThisItem = &pAllInventoryItems[i];
-			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR) {
+			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR && pThisItem->id->itemType != ITEM_SHIELD) {
 				continue;
 			}
 			else if (ui_inventoryFilter.integer == JKGIFILTER_WEAPONS && pThisItem->id->itemType != ITEM_WEAPON) {
@@ -77,10 +77,10 @@ void JKG_ConstructShopLists() {
 			sort(vInventoryItems.begin(), vInventoryItems.end(),
 				[](const pair<int, itemInstance_t*>& a, const pair<int, itemInstance_t*>& b) -> bool {
 				if (ui_inventorySortType.integer) {
-					return a.second->id->baseCost > b.second->id->baseCost;
+					return a.second->id->baseCost * a.second->quantity > b.second->id->baseCost * b.second->quantity;
 				}
 				else {
-					return a.second->id->baseCost < b.second->id->baseCost;
+					return a.second->id->baseCost * a.second->quantity < b.second->id->baseCost * b.second->quantity;
 				}
 			});
 		}
@@ -94,7 +94,7 @@ void JKG_ConstructShopLists() {
 		//
 		for (int i = 0; i < nNumberUnfilteredSItems; i++) {
 			itemInstance_t* pThisItem = &pAllShopItems[i];
-			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR) {
+			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR && pThisItem->id->itemType != ITEM_SHIELD) {
 				continue;
 			}
 			else if (ui_inventoryFilter.integer == JKGIFILTER_WEAPONS && pThisItem->id->itemType != ITEM_WEAPON) {
@@ -308,7 +308,7 @@ void JKG_Shop_InventoryItemCost(itemDef_t* item, int nOwnerDrawID) {
 		return; // There isn't an item in this slot.
 	}
 	itemInstance_t* pItem = vInventoryItems[nInventoryScroll + nOwnerDrawID].second;
-	sprintf(item->text, "%i", pItem->id->baseCost / 2);
+	sprintf(item->text, "%i", pItem->id->baseCost / 2 * pItem->quantity);
 	Item_Text_Paint(item);
 }
 
@@ -341,7 +341,7 @@ char* JKG_Shop_LeftPriceText(int ownerDrawID) {
 		return nullptr;
 	}
 	itemInstance_t* pItem = vInventoryItems[nInventoryScroll + ownerDrawID].second;
-	return va("%i", pItem->id->baseCost / 2);
+	return va("%i", pItem->id->baseCost / 2 * pItem->quantity);
 }
 
 char* JKG_Shop_RightNameText(int ownerDrawID) {

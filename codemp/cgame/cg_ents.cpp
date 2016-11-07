@@ -369,56 +369,6 @@ static void CG_EntityEffects( centity_t *cent ) {
 
 }
 
-localEntity_t *FX_AddOrientedLine(vec3_t start, vec3_t end, vec3_t normal, float stScale, float scale,
-								  float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader)
-{
-	localEntity_t	*le;
-	
-#ifdef _DEBUG
-	if (!shader)
-	{
-		Com_Printf("FX_AddLine: NULL shader\n");
-	}
-#endif
-
-	le = CG_AllocLocalEntity();
-	le->leType = LE_OLINE;
-
-	le->startTime = cg.time;
-	le->endTime = le->startTime + killTime;
-	le->data.line.width = scale;
-	le->data.line.dwidth = dscale;
-
-	le->alpha = startalpha;
-	le->dalpha = endalpha - startalpha;
-
-	le->refEntity.data.line.stscale = stScale;
-	le->refEntity.data.line.width = scale;
-
-	le->refEntity.customShader = shader;
-
-	// set origin
-	VectorCopy ( start, le->refEntity.origin);
-	VectorCopy ( end, le->refEntity.oldorigin );
-
-	AxisClear(le->refEntity.axis);
-	VectorCopy( normal, le->refEntity.axis[0] );
-	RotateAroundDirection( le->refEntity.axis, 0); // le->refEntity.data.sprite.rotation );	This is roll in quad land
-
-	le->refEntity.shaderRGBA[0] = 0xff;
-	le->refEntity.shaderRGBA[1] = 0xff;
-	le->refEntity.shaderRGBA[2] = 0xff;
-	le->refEntity.shaderRGBA[3] = 0xff;
-
-	le->color[0] = 1.0f;
-	le->color[1] = 1.0f;
-	le->color[2] = 1.0f;
-	le->color[3] = 1.0f;
-	le->lifeRate = 1.0f / ( le->endTime - le->startTime );
-
-	return(le);
-}
-
 /*
 ==================
 CG_Special

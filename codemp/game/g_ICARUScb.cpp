@@ -1369,7 +1369,7 @@ int Q3_GetFloat( int entID, int type, const char *name, float *value )
 			G_DebugPrint( WL_WARNING, "Q3_GetFloat: SET_ARMOR, %s not a client\n", ent->targetname );
 			return 0;
 		}
-		*value = ent->client->ps.stats[STAT_ARMOR];
+		*value = ent->client->ps.stats[STAT_SHIELD];
 		break;
 	case SET_WALKSPEED://## %d="0" # Change walkSpeed
 		return 0;
@@ -2588,10 +2588,10 @@ static void Q3_SetArmor( int entID, int data )
 		return;
 	}
 
-	ent->client->ps.stats[STAT_ARMOR] = data;
-	if ( ent->client->ps.stats[STAT_ARMOR] > ent->client->ps.stats[STAT_MAX_ARMOR] )
+	ent->client->ps.stats[STAT_SHIELD] = data;
+	if ( ent->client->ps.stats[STAT_SHIELD] > ent->client->ps.stats[STAT_MAX_SHIELD] )
 	{
-		ent->client->ps.stats[STAT_ARMOR] = ent->client->ps.stats[STAT_MAX_ARMOR];
+		ent->client->ps.stats[STAT_SHIELD] = ent->client->ps.stats[STAT_MAX_SHIELD];
 	}
 }
 

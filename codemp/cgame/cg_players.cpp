@@ -4604,7 +4604,6 @@ void CG_G2ServerBoneAngles(centity_t *cent)
 
 	while (i < 4)
 	{ //cycle through the 4 bone index values on the entstate
-#ifndef __MMO__
 		if (bone)
 		{ //if it's non-0 then it could have something in it.
 			const char *boneName = CG_ConfigString(CS_G2BONES+bone);
@@ -4621,7 +4620,6 @@ void CG_G2ServerBoneAngles(centity_t *cent)
 				trap->G2API_SetBoneAngles(cent->ghoul2, 0, boneName, boneAngles, flags, up, right, forward, cgs.gameModels, 100, cg.time);
 			}
 		}
-#endif //__MMO__
 
 		switch (i)
 		{
@@ -5316,7 +5314,6 @@ static void CG_PlayerSprites( centity_t *cent ) {
 	}
 }
 
-#ifndef __EXPERIMENTAL_SHADOWS__
 /*
 ===============
 CG_PlayerShadow
@@ -5423,266 +5420,6 @@ static qboolean CG_PlayerShadow( centity_t *cent, float *shadowPlane ) {
 
 	return qtrue;
 }
-#else // __EXPERIMENTAL_SHADOWS__
-
-vec3_t	PREVIOUS_LIGHT_POSITIONS[MAX_GENTITIES];
-int		PREVIOUS_NUM_LIGHT_POSITIONS = 0;
-vec3_t	LIGHT_POSITIONS[MAX_GENTITIES];
-int		NUM_LIGHT_POSITIONS = 0;
-
-void CG_ClearRecordedLights()
-{
-	memcpy(PREVIOUS_LIGHT_POSITIONS, LIGHT_POSITIONS, sizeof(vec3_t)*MAX_GENTITIES);
-	PREVIOUS_NUM_LIGHT_POSITIONS = NUM_LIGHT_POSITIONS;
-	NUM_LIGHT_POSITIONS = 0;
-}
-
-void CG_RecordLightPosition( vec3_t org )
-{
-	VectorCopy(org, LIGHT_POSITIONS[NUM_LIGHT_POSITIONS]);
-	NUM_LIGHT_POSITIONS++;
-}
-
-int LightOrgVisible ( vec3_t org1, vec3_t org2, int ignore )
-{// For when close enough is good enough...
-	trace_t tr;
-	CG_Trace( &tr, org1, NULL, NULL, org2, ignore, MASK_SOLID | MASK_OPAQUE | MASK_WATER );
-	if ( tr.fraction == 1 )
-	{
-		return ( 1 );
-	}
-
-	if (Distance(tr.endpos, org2) < 24)
-	{// Good enough...
-		return ( 1 );
-	}
-
-	return ( 0 );
-}
-
-void CG_GetFakeLightPostionFor( centity_t *cent, vec3_t org, vec3_t out_org )
-{// We need this because JKA engine is doing wierd shit with these positions...
-	vec3_t direction, good_org;
-	float distance = Distance(cent->lerpOrigin, org);
-
-	VectorSubtract(org, cent->lerpOrigin, direction);
-	direction[2]=0;
-	VectorMA (org, 0-(distance*distance), direction, good_org);
-
-	out_org[0] = good_org[0];
-	out_org[1] = good_org[1];
-	out_org[2] = good_org[2];
-}
-
-void CG_RecordAllShadows( centity_t *cent )
-{
-	int			i = 0;
-	vec3_t		start, end, mins = {-15, -15, 0}, maxs = {15, 15, 2};
-	trace_t		trace;
-	float		SHADOW_DISTANCE = 128.0f;
-
-	cent->shadowPlaneNumber = 0;
-
-	for (i = 0; i < PREVIOUS_NUM_LIGHT_POSITIONS; i++)
-	{
-		vec3_t light_org;
-
-		// send a trace down from the player to the ground
-		VectorCopy( cent->lerpOrigin, start );
-		VectorCopy( PREVIOUS_LIGHT_POSITIONS[i], end );
-
-		// Too far...
-		if (Distance(start, end) > 2048.0f) continue;
-
-		start[2]+=8;
-		
-		//  This light is not visibile to them...
-		if (!LightOrgVisible(start, end, cent->currentState.number)) continue;
-
-		VectorCopy( cent->lerpOrigin, end );
-
-		if (cg_shadows.integer == 2)
-		{ //stencil
-			end[2] -= 4096.0f;
-
-			trap->CM_BoxTrace( &trace, cent->lerpOrigin, end, mins, maxs, 0, MASK_PLAYERSOLID );
-
-			if ( trace.fraction == 1.0 || trace.startsolid || trace.allsolid )
-			{
-				trace.endpos[2] = cent->lerpOrigin[2]-25.0f;
-			}
-		}
-		else
-		{
-			end[2] -= SHADOW_DISTANCE;
-
-			trap->CM_BoxTrace( &trace, cent->lerpOrigin, end, mins, maxs, 0, MASK_PLAYERSOLID );
-
-			// no shadow if too high
-			if ( trace.fraction == 1.0 || trace.startsolid || trace.allsolid ) {
-				continue;
-			}
-		}
-
-		if (cg_shadows.integer == 2)
-		{ //stencil shadows need plane to be on ground
-			VectorSubtract( cent->lerpOrigin, cg.refdef.vieworg, cent->shadowPlaneDirections[cent->shadowPlaneNumber] );
-			CG_GetFakeLightPostionFor( cent, PREVIOUS_LIGHT_POSITIONS[i], light_org );
-			VectorCopy(light_org, cent->shadowPlaneDirections[cent->shadowPlaneNumber]);
-			cent->shadowPlanes[cent->shadowPlaneNumber] = trace.endpos[2];
-			cent->shadowPlaneNumber++;
-		}
-		else
-		{
-			VectorSubtract( cent->lerpOrigin, cg.refdef.vieworg, cent->shadowPlaneDirections[cent->shadowPlaneNumber] );
-			CG_GetFakeLightPostionFor( cent, PREVIOUS_LIGHT_POSITIONS[i], light_org );
-			VectorCopy(light_org, cent->shadowPlaneDirections[cent->shadowPlaneNumber]);
-			cent->shadowPlanes[cent->shadowPlaneNumber] = trace.endpos[2] + 1;
-			cent->shadowPlaneNumber++;
-		}
-	}
-}
-
-void CG_AddRefEntityToSceneWithShadows( centity_t *cent, refEntity_t legs )
-{
-	int		i = 0;
-	int		original_renderfx = legs.renderfx;
-	float	original_plane = legs.shadowPlane;
-	vec3_t	original_light_org;
-	refEntity_t new_legs[MAX_GENTITIES]; // we need a new refent for each shadow because the render func uses a pointer...
-
-	VectorCopy(legs.lightingOrigin, original_light_org);
-
-	//if (cent->currentState.number == cg.clientNum)
-	//	trap->Print("There are %i shadow origins and %i lighting origins (%i next frame).\n", cent->shadowPlaneNumber, PREVIOUS_NUM_LIGHT_POSITIONS, NUM_LIGHT_POSITIONS);
-
-	for (i = 0; i < cent->shadowPlaneNumber; i++)
-	{// Render each recorded shadow...
-		memcpy(&new_legs[i], &legs, sizeof(refEntity_t));
-		new_legs[i].renderfx = RF_SHADOW_ONLY;
-		new_legs[i].renderfx |= RF_SHADOW_PLANE;
-		new_legs[i].renderfx |= RF_LIGHTING_ORIGIN;
-		VectorCopy(cent->shadowPlaneDirections[i], new_legs[i].lightingOrigin);
-		new_legs[i].shadowPlane = cent->shadowPlanes[i];
-		trap->R_AddRefEntityToScene( &new_legs[i] );
-	}
-
-	// Now draw the normal model on top...
-	legs.renderfx = original_renderfx;
-	VectorCopy(original_light_org, legs.lightingOrigin);
-	legs.shadowPlane = original_plane;
-	trap->R_AddRefEntityToScene( &legs );
-}
-
-/*
-===============
-CG_PlayerShadow
-
-Returns the Z component of the surface being shadowed
-
-  should it return a full plane instead of a Z?
-===============
-*/
-static qboolean CG_PlayerShadow( centity_t *cent, float *shadowPlane ) {
-	vec3_t		end, mins = {-15, -15, 0}, maxs = {15, 15, 2};
-	trace_t		trace;
-	float		alpha;
-	float		radius = 24.0f;
-	float		SHADOW_DISTANCE = 128.0f;
-
-	*shadowPlane = 0;
-
-	if ( cg_shadows.integer == 0 ) {
-		return qfalse;
-	}
-
-	// no shadows when cloaked
-	if ( cent->currentState.powerups & ( 1 << PW_CLOAKED )) 
-	{
-		return qfalse;
-	}
-
-	if (cent->currentState.eFlags & EF_DEAD)
-	{
-		return qfalse;
-	}
-
-	if (CG_IsMindTricked(cent->currentState.trickedentindex,
-		cent->currentState.trickedentindex2,
-		cent->currentState.trickedentindex3,
-		cent->currentState.trickedentindex4,
-		cg.snap->ps.clientNum))
-	{
-		return qfalse; //this entity is mind-tricking the current client, so don't render it
-	}
-
-	if ( cg_shadows.integer == 1 )
-	{//dropshadow
-		if (cent->currentState.m_iVehicleNum &&
-			cent->currentState.NPC_class != CLASS_VEHICLE )
-		{//riding a vehicle, no dropshadow
-			return qfalse;
-		}
-	}
-	// send a trace down from the player to the ground
-	VectorCopy( cent->lerpOrigin, end );
-	if (cg_shadows.integer == 2)
-	{ //stencil
-		end[2] -= 4096.0f;
-
-		trap->CM_BoxTrace( &trace, cent->lerpOrigin, end, mins, maxs, 0, MASK_PLAYERSOLID );
-
-		if ( trace.fraction == 1.0 || trace.startsolid || trace.allsolid )
-		{
-			trace.endpos[2] = cent->lerpOrigin[2]-25.0f;
-		}
-	}
-	else
-	{
-		end[2] -= SHADOW_DISTANCE;
-
-		trap->CM_BoxTrace( &trace, cent->lerpOrigin, end, mins, maxs, 0, MASK_PLAYERSOLID );
-
-		// no shadow if too high
-		if ( trace.fraction == 1.0 || trace.startsolid || trace.allsolid ) {
-			cent->shadowPlaneNumber = 0;
-			return qfalse;
-		}
-	}
-
-	if (cg_shadows.integer == 2)
-	{ //stencil shadows need plane to be on ground
-		*shadowPlane = trace.endpos[2];
-	}
-	else
-	{
-		*shadowPlane = trace.endpos[2] + 1;
-	}
-
-	if ( cg_shadows.integer != 1 ) {	// no mark for stencil or projection shadows
-		CG_RecordAllShadows( cent );
-		return qtrue;
-	}
-
-	// fade the shadow out with height
-	alpha = 1.0 - trace.fraction;
-
-	// bk0101022 - hack / FPE - bogus planes?
-	//assert( DotProduct( trace.plane.normal, trace.plane.normal ) != 0.0f ) 
-
-	// add the mark as a temporary, so it goes directly to the renderer
-	// without taking a spot in the cg_marks array
-	if ( cent->currentState.NPC_class == CLASS_REMOTE
-		|| cent->currentState.NPC_class == CLASS_SEEKER )
-	{
-		radius = 8.0f;
-	}
-	CG_ImpactMark( cgs.media.shadowMarkShader, trace.endpos, trace.plane.normal, 
-		cent->pe.legs.yawAngle, alpha,alpha,alpha,1, qfalse, radius, qtrue );
-
-	return qtrue;
-}
-#endif //__EXPERIMENTAL_SHADOWS__
 
 /*
 ===============
@@ -6050,7 +5787,6 @@ void CG_AddRefEntityWithPowerups( const refEntity_t *ent, const entityState_t *s
 #define MAX_SHIELD_TIME	2000.0
 #define MIN_SHIELD_TIME	2000.0
 
-
 void CG_PlayerShieldHit(int entitynum, vec3_t dir, int amount)
 {
 	centity_t *cent;
@@ -6078,63 +5814,19 @@ void CG_PlayerShieldHit(int entitynum, vec3_t dir, int amount)
 		VectorScale(dir, -1, dir);
 		vectoangles(dir, cent->damageAngles);
 	}
+	cent->shieldHitTime = cg.time + 250;
 }
 
+void CG_PlayerShieldRecharging(int entitynum) {
+	centity_t* cent;
 
-void CG_DrawPlayerShield(centity_t *cent, vec3_t origin)
-{
-	refEntity_t ent;
-	int			alpha;
-	float		scale;
-	
-	// Don't draw the shield when the player is dead.
-	if (cent->currentState.eFlags & EF_DEAD)
-	{
+	if (entitynum < 0 || entitynum >= MAX_GENTITIES) {
 		return;
 	}
 
-	memset( &ent, 0, sizeof( ent ) );
-
-	VectorCopy( origin, ent.origin );
-	ent.origin[2] += 10.0;
-	AnglesToAxis( cent->damageAngles, ent.axis );
-
-	alpha = 255.0 * ((cent->damageTime - cg.time) / MIN_SHIELD_TIME) + random()*16;
-	if (alpha>255)
-		alpha=255;
-
-	// Make it bigger, but tighter if more solid
-	scale = 1.4 - ((float)alpha*(0.4/255.0));		// Range from 1.0 to 1.4
-	VectorScale( ent.axis[0], scale, ent.axis[0] );
-	VectorScale( ent.axis[1], scale, ent.axis[1] );
-	VectorScale( ent.axis[2], scale, ent.axis[2] );
-
-	ent.hModel = cgs.media.halfShieldModel;
-	ent.customShader = cgs.media.halfShieldShader;
-	ent.shaderRGBA[0] = alpha;
-	ent.shaderRGBA[1] = alpha;
-	ent.shaderRGBA[2] = alpha;
-	ent.shaderRGBA[3] = 255;
-	trap->R_AddRefEntityToScene( &ent );
+	cent = &cg_entities[entitynum];
+	cent->shieldRechargeTime = cg.time + 1000;
 }
-
-
-void CG_PlayerHitFX(centity_t *cent)
-{
-	// only do the below fx if the cent in question is...uh...me, and it's first person.
-	if (cent->currentState.clientNum != cg.predictedPlayerState.clientNum || cg.renderingThirdPerson)
-	{
-		if (cent->damageTime > cg.time
-			&& cent->currentState.NPC_class != CLASS_VEHICLE )
-		{
-			CG_DrawPlayerShield(cent, cent->lerpOrigin);
-		}
-
-		return;
-	}
-}
-
-
 
 /*
 =================
@@ -7446,198 +7138,6 @@ int CG_IsMindTricked(int trickIndex1, int trickIndex2, int trickIndex3, int tric
 
 #define SPEED_TRAIL_DISTANCE 6
 
-void CG_DrawPlayerSphere(centity_t *cent, vec3_t origin, float scale, int shader)
-{
-	refEntity_t ent;
-	vec3_t ang;
-	float vLen;
-	vec3_t viewDir;
-	
-	// Don't draw the shield when the player is dead.
-	if (cent->currentState.eFlags & EF_DEAD)
-	{
-		return;
-	}
-
-	memset( &ent, 0, sizeof( ent ) );
-
-	VectorCopy( origin, ent.origin );
-	ent.origin[2] += 9.0;
-
-	VectorSubtract(ent.origin, cg.refdef.vieworg, ent.axis[0]);
-	vLen = VectorLength(ent.axis[0]);
-	if (vLen <= 0.1f)
-	{	// Entity is right on vieworg.  quit.
-		return;
-	}
-
-	VectorCopy(ent.axis[0], viewDir);
-	VectorInverse(viewDir);
-	VectorNormalize(viewDir);
-
-	vectoangles(ent.axis[0], ang);
-	ang[ROLL] += 180.0f;
-	ang[PITCH] += 180.0f;
-	AnglesToAxis(ang, ent.axis);
-
-	VectorScale(ent.axis[0], scale, ent.axis[0]);
-	VectorScale(ent.axis[1], scale, ent.axis[1]);
-	VectorScale(ent.axis[2], scale, ent.axis[2]);
-
-	ent.nonNormalizedAxes = qtrue;
-
-	ent.hModel = cgs.media.halfShieldModel;
-	ent.customShader = shader;	
-
-	trap->R_AddRefEntityToScene( &ent );
-
-	if (!cg.renderingThirdPerson && cent->currentState.number == cg.predictedPlayerState.clientNum)
-	{ //don't do the rest then
-		return;
-	}
-	if (!cg_renderToTextureFX.integer)
-	{
-		return;
-	}
-
-	ang[PITCH] -= 180.0f;
-	AnglesToAxis(ang, ent.axis);
-
-	VectorScale(ent.axis[0], scale*0.5f, ent.axis[0]);
-	VectorScale(ent.axis[1], scale*0.5f, ent.axis[1]);
-	VectorScale(ent.axis[2], scale*0.5f, ent.axis[2]);
-
-	ent.renderfx = (RF_DISTORTION|RF_FORCE_ENT_ALPHA);
-	if (shader == cgs.media.invulnerabilityShader)
-	{ //ok, ok, this is a little hacky. sorry!
-		ent.shaderRGBA[0] = 0;
-		ent.shaderRGBA[1] = 255;
-		ent.shaderRGBA[2] = 0;
-		ent.shaderRGBA[3] = 100;
-	}
-
-	ent.radius = 256;
-
-	VectorMA(ent.origin, 40.0f, viewDir, ent.origin);
-
-	ent.customShader = trap->R_RegisterShader("effects/refract_2");
-	trap->R_AddRefEntityToScene( &ent );
-}
-
-void CG_AddLightningBeam(vec3_t start, vec3_t end)
-{
-	vec3_t	dir, chaos,
-			c1, c2,
-			v1, v2;
-	float	len,
-			s1, s2, s3;
-
-	addbezierArgStruct_t b;
-
-	VectorCopy(start, b.start);
-	VectorCopy(end, b.end);
-
-	VectorSubtract( b.end, b.start, dir );
-	len = VectorNormalize( dir );
-
-	// Get the base control points, we'll work from there
-	VectorMA( b.start, 0.3333f * len, dir, c1 );
-	VectorMA( b.start, 0.6666f * len, dir, c2 );
-
-	// get some chaos values that really aren't very chaotic :)
-	s1 = sin( cg.time * 0.005f ) * 2 + crandom() * 0.2f;
-	s2 = sin( cg.time * 0.001f );
-	s3 = sin( cg.time * 0.011f );
-
-	VectorSet( chaos, len * 0.01f * s1,
-						len * 0.02f * s2,
-						len * 0.04f * (s1 + s2 + s3));
-
-	VectorAdd( c1, chaos, c1 );
-	VectorScale( chaos, 4.0f, v1 );
-
-	VectorSet( chaos, -len * 0.02f * s3,
-						len * 0.01f * (s1 * s2),
-						-len * 0.02f * (s1 + s2 * s3));
-
-	VectorAdd( c2, chaos, c2 );
-	VectorScale( chaos, 2.0f, v2 );
-
-	VectorSet( chaos, 1.0f, 1.0f, 1.0f );
-
-	VectorCopy(c1, b.control1);
-	VectorCopy(vec3_origin, b.control1Vel);
-	VectorCopy(c2, b.control2);
-	VectorCopy(vec3_origin, b.control2Vel);
-
-	b.size1 = 6.0f;
-	b.size2 = 6.0f;
-	b.sizeParm = 0.0f;
-	b.alpha1 = 0.0f;
-	b.alpha2 = 0.2f;
-	b.alphaParm = 0.5f;
-	
-	/*
-	VectorCopy(WHITE, b.sRGB);
-	VectorCopy(WHITE, b.eRGB);
-	*/
-
-	b.sRGB[0] = 255;
-	b.sRGB[1] = 255;
-	b.sRGB[2] = 255;
-	VectorCopy(b.sRGB, b.eRGB);
-
-	b.rgbParm = 0.0f;
-	b.killTime = 50;
-	b.shader = trap->R_RegisterShader( "gfx/misc/electric2" );
-	b.flags = 0x00000001; //FX_ALPHA_LINEAR
-
-	trap->FX_AddBezier(&b);
-}
-
-void CG_AddRandomLightning(vec3_t start, vec3_t end)
-{
-	vec3_t inOrg, outOrg;
-
-	VectorCopy(start, inOrg);
-	VectorCopy(end, outOrg);
-
-	if ( rand() & 1 )
-	{
-		outOrg[0] += Q_irand(0, 24);
-		inOrg[0] += Q_irand(0, 8);
-	}
-	else
-	{
-		outOrg[0] -= Q_irand(0, 24);
-		inOrg[0] -= Q_irand(0, 8);
-	}
-
-	if ( rand() & 1 )
-	{
-		outOrg[1] += Q_irand(0, 24);
-		inOrg[1] += Q_irand(0, 8);
-	}
-	else
-	{
-		outOrg[1] -= Q_irand(0, 24);
-		inOrg[1] -= Q_irand(0, 8);
-	}
-
-	if ( rand() & 1 )
-	{
-		outOrg[2] += Q_irand(0, 50);
-		inOrg[2] += Q_irand(0, 40);
-	}
-	else
-	{
-		outOrg[2] -= Q_irand(0, 64);
-		inOrg[2] -= Q_irand(0, 40);
-	}
-
-	CG_AddLightningBeam(inOrg, outOrg);
-}
-
 //Checks to see if the model string has a * appended with a custom skin name after.
 //If so, it terminates the model string correctly, parses the skin name out, and returns
 //the handle of the registered skin.
@@ -8752,58 +8252,6 @@ void CG_CleanJetpackGhoul2(void)
 #define RARMBIT			(1 << (G2_MODELPART_RARM-10))
 #define RHANDBIT		(1 << (G2_MODELPART_RHAND-10))
 #define WAISTBIT		(1 << (G2_MODELPART_WAIST-10))
-
-#if 0
-static void CG_VehicleHeatEffect( vec3_t org, centity_t *cent )
-{
-	refEntity_t ent;
-	vec3_t ang;
-	float scale;
-	float vLen;
-	float alpha;
-
-	if (!cg_renderToTextureFX.integer)
-	{
-		return;
-	}
-	scale = 0.1f;
-
-	alpha = 200.0f;
-
-	memset( &ent, 0, sizeof( ent ) );
-
-	VectorCopy( org, ent.origin );
-
-	VectorSubtract(ent.origin, cg.refdef.vieworg, ent.axis[0]);
-	vLen = VectorLength(ent.axis[0]);
-	if (VectorNormalize(ent.axis[0]) <= 0.1f)
-	{	// Entity is right on vieworg.  quit.
-		return;
-	}
-
-	vectoangles(ent.axis[0], ang);
-	AnglesToAxis(ang, ent.axis);
-
-	//radius must be a power of 2, and is the actual captured texture size
-	ent.radius = 32;
-
-	VectorScale(ent.axis[0], scale, ent.axis[0]);
-	VectorScale(ent.axis[1], scale, ent.axis[1]);
-	VectorScale(ent.axis[2], -scale, ent.axis[2]);
-
-	ent.hModel = cgs.media.halfShieldModel;
-	ent.customShader = cgs.media.cloakedShader;
-
-	//make it partially transparent so it blends with the background
-	ent.renderfx = (RF_DISTORTION|RF_FORCE_ENT_ALPHA);
-	ent.shaderRGBA[0] = 255.0f;
-	ent.shaderRGBA[1] = 255.0f;
-	ent.shaderRGBA[2] = 255.0f;
-	ent.shaderRGBA[3] = alpha;
-
-	trap->R_AddRefEntityToScene( &ent );
-}
-#endif
 
 static int lastFlyBySound[MAX_GENTITIES] = {0};
 #define	FLYBYSOUNDTIME 2000
@@ -10560,9 +10008,6 @@ void CG_Player( centity_t *cent ) {
 	}
 	renderfx |= RF_LIGHTING_ORIGIN;			// use the same origin for all
 
-	// if we've been hit, display proper fullscreen fx
-	//CG_PlayerHitFX(cent);
-
 	VectorCopy( cent->lerpOrigin, legs.origin );
 
 	VectorCopy( cent->lerpOrigin, legs.lightingOrigin );
@@ -11288,11 +10733,7 @@ SkipTrueView:
 			legs.shaderRGBA[3] = ((cent->teamPowerEffectTime - cg.time)/8);
 
 			legs.customShader = trap->R_RegisterShader( "powerups/ysalimarishell" );
-#ifdef __EXPERIMENTAL_SHADOWS__
-			CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 			trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 
 			legs.customShader = 0;
 			legs.renderfx = preRFX;
@@ -12013,11 +11454,7 @@ stillDoSaber:
 				legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
 				legs.customShader = cgs.media.forceShell;
 		
-#ifdef __EXPERIMENTAL_SHADOWS__
-				CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 				trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 
 				legs.customShader = 0;	//reset to player model
 
@@ -12116,11 +11553,7 @@ stillDoSaber:
 		if ((cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) 
 			&& cg.snap->ps.clientNum != cent->currentState.number)
 		{//just draw him
-#ifdef __EXPERIMENTAL_SHADOWS__
-			CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 			trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__		}
 		}
 		else
 		{
@@ -12144,11 +11577,7 @@ stillDoSaber:
 				legs.customShader = 0; // use regular skin
 				legs.renderfx &= ~RF_RGB_TINT;
 				legs.renderfx |= RF_FORCE_ENT_ALPHA;
-#ifdef __EXPERIMENTAL_SHADOWS__
-				CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 				trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 			}
 		}
 	}
@@ -12157,57 +11586,17 @@ stillDoSaber:
 		if ((cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) 
 			&& cg.snap->ps.clientNum != cent->currentState.number)
 		{//just draw him
-#ifdef __EXPERIMENTAL_SHADOWS__
-			CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 			trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 		}
 		else
 		{
 			if (cg.renderingThirdPerson || cent->currentState.number != cg.predictedPlayerState.clientNum)
 			{
-				/*
-				legs.renderfx = 0;//&= ~(RF_RGB_TINT|RF_ALPHA_FADE);
-				legs.shaderRGBA[0] = legs.shaderRGBA[1] = legs.shaderRGBA[2] = legs.shaderRGBA[3] = 255;
-				legs.customShader = cgs.media.cloakedShader;
-
-				legs.nonNormalizedAxes = qtrue;
-
-				legs.modelScale[0] = 1.02f;
-				legs.modelScale[1] = 1.02f;
-				legs.modelScale[2] = 1.02f;
-				VectorScale( legs.axis[0], legs.modelScale[0], legs.axis[0] );
-				VectorScale( legs.axis[1], legs.modelScale[1], legs.axis[1] );
-				VectorScale( legs.axis[2], legs.modelScale[2], legs.axis[2] );
-
-				ScaleModelAxis(&legs);
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-				CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
-				trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
-				
-				legs.modelScale[0] = 0.98f;
-				legs.modelScale[1] = 0.98f;
-				legs.modelScale[2] = 0.98f;
-				VectorScale( legs.axis[0], legs.modelScale[0], legs.axis[0] );
-				VectorScale( legs.axis[1], legs.modelScale[1], legs.axis[1] );
-				VectorScale( legs.axis[2], legs.modelScale[2], legs.axis[2] );
-
-				ScaleModelAxis(&legs);
-				*/
-
 				if (cg_shadows.integer != 2 && cgs.glconfig.stencilBits >= 4 && cg_renderToTextureFX.integer)
 				{
 					trap->R_SetRefractionProperties(1.0f, 0.0f, qfalse, qfalse); //don't need to do this every frame.. but..
 					legs.customShader = 2; //crazy "refractive" shader
-#ifdef __EXPERIMENTAL_SHADOWS__
-					CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 					trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 					legs.customShader = 0;
 				}
 				else
@@ -12215,11 +11604,7 @@ stillDoSaber:
 					legs.renderfx = 0;//&= ~(RF_RGB_TINT|RF_ALPHA_FADE);
 					legs.shaderRGBA[0] = legs.shaderRGBA[1] = legs.shaderRGBA[2] = legs.shaderRGBA[3] = 255;
 					legs.customShader = cgs.media.cloakedShader;
-#ifdef __EXPERIMENTAL_SHADOWS__
-					CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 					trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 					legs.customShader = 0;
 				}
 			}
@@ -12229,18 +11614,13 @@ stillDoSaber:
 	if (!(cent->currentState.powerups & (1 << PW_CLOAKED)))
 	{ //don't add the normal model if cloaked
 		CG_CheckThirdPersonAlpha( cent, &legs );
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 		trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 	}
-	{ //eezstreet add
-		int ijk;
-		for(ijk = 0; ijk < ARMSLOT_MAX; ijk++)
-		{
-			memcpy(&armorG2[ijk], &legs, sizeof( armorG2[ijk] ));
-		}
+
+	int ijk;
+	for(ijk = 0; ijk < ARMSLOT_MAX; ijk++)
+	{
+		memcpy(&armorG2[ijk], &legs, sizeof( armorG2[ijk] ));
 	}
 
 	//cent->frame_minus2 = cent->frame_minus1;
@@ -12343,11 +11723,7 @@ stillDoSaber:
 
 		legs.customShader = cgs.media.playerShieldDamage;
 
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 		trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 	}
 
 	// =======================
@@ -12379,11 +11755,7 @@ stillDoSaber:
 			legs.customShader = cgs.media.electricBody2Shader;
 		}
 
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 		trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 	}
 
 	if (!cg.snap->ps.duelInProgress && cent->currentState.bolt1 && !(cent->currentState.eFlags & EF_DEAD) && cent->currentState.number != cg.snap->ps.clientNum && (!cg.snap->ps.duelInProgress || cg.snap->ps.duelIndex != cent->currentState.number))
@@ -12396,11 +11768,7 @@ stillDoSaber:
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
 		legs.customShader = cgs.media.forceSightBubble;
 		
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 		trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 	}
 
 	if ( CG_VehicleShouldDrawShields( cent ) //vehicle
@@ -12430,12 +11798,9 @@ stillDoSaber:
 			legs.customShader = cgs.media.playerShieldDamage;
 		}
 		
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 		trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 	}
+
 	//For now, these two are using the old shield shader. This is just so that you
 	//can tell it apart from the JM/duel shaders, but it's still very obvious.
 	if (cent->currentState.forcePowersActive & (1 << FP_PROTECT))
@@ -12481,11 +11846,31 @@ stillDoSaber:
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
 		legs.customShader = cgs.media.playerShieldDamage;
 		
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 		trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
+	}
+
+	// Render the shield effect if they've been hit recently
+	if (cent->shieldHitTime > cg.time) {
+		float t = (cent->shieldHitTime - cg.time) / 250.0f;
+		legs.shaderRGBA[0] = legs.shaderRGBA[1] = legs.shaderRGBA[2] = t * 255.0f;
+		legs.shaderRGBA[3] = 255.0f;
+
+		legs.renderfx &= ~RF_RGB_TINT;
+		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
+		legs.customShader = cgs.media.playerShieldDamage;
+		trap->R_AddRefEntityToScene(&legs);	//draw the shell
+	}
+
+	// ...or have started recharging their shield
+	if (cent->shieldRechargeTime > cg.time) {
+		float t = 1.0f - ((cent->shieldRechargeTime - cg.time) / 1000.0f);
+		legs.shaderRGBA[0] = legs.shaderRGBA[1] = legs.shaderRGBA[2] = t * 255.0f;
+		legs.shaderRGBA[3] = 255.0f;
+
+		legs.renderfx &= ~RF_RGB_TINT;
+		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
+		legs.customShader = cgs.media.playerShieldDamage;
+		trap->R_AddRefEntityToScene(&legs);	//draw the shell
 	}
 
 	if ((cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) && cg.snap->ps.clientNum != cent->currentState.number && cg_auraShell.integer)
@@ -12537,11 +11922,7 @@ stillDoSaber:
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
 		legs.customShader = cgs.media.sightShell;
 		
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 		trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 	}
 	
 	// JKG: Damage types and debuffs..
@@ -12580,11 +11961,7 @@ stillDoSaber:
 				legs.customShader = cgs.media.electricBody2Shader;
 			}
 
-#ifdef __EXPERIMENTAL_SHADOWS__
-			CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 			trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 
 			if ( random() > 0.9f )
 				trap->S_StartSound ( NULL, cent->currentState.number, CHAN_AUTO, cgs.media.crackleSound );
@@ -12610,24 +11987,8 @@ stillDoSaber:
 		legs.renderfx &= ~RF_RGB_TINT;
 		legs.customShader = cgs.media.playerShieldDamage;
 		
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_AddRefEntityToSceneWithShadows( cent, legs );	//draw the shell
-#else //!__EXPERIMENTAL_SHADOWS__
 		trap->R_AddRefEntityToScene( &legs );	//draw the shell
-#endif //__EXPERIMENTAL_SHADOWS__
 	}
-#if 0
-endOfCall:
-	
-	if (cgBoneAnglePostSet.refreshSet)
-	{
-		trap->G2API_SetBoneAngles(cgBoneAnglePostSet.ghoul2, cgBoneAnglePostSet.modelIndex, cgBoneAnglePostSet.boneName,
-			cgBoneAnglePostSet.angles, cgBoneAnglePostSet.flags, cgBoneAnglePostSet.up, cgBoneAnglePostSet.right,
-			cgBoneAnglePostSet.forward, cgBoneAnglePostSet.modelList, cgBoneAnglePostSet.blendTime, cgBoneAnglePostSet.currentTime);
-
-		cgBoneAnglePostSet.refreshSet = qfalse;
-	}
-#endif
 
     CG_DrawPlayerBBox (cent);
 	

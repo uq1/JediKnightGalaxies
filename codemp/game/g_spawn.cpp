@@ -1856,15 +1856,7 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 	//
 	if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 		handle = trap->PC_LoadSource(va("maps/%s_scenario.ovrents", mapname.string));
-	else
-#ifdef __RPG__
-	if (g_gametype.integer == GT_RPG_CITY)
-		handle = trap->PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
-	else if (g_gametype.integer == GT_RPG_WILDERNESS)
-		handle = trap->PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
-	else 
-#endif //__RPG__
-	if (g_gametype.integer == GT_SINGLE_PLAYER)
+	else if (g_gametype.integer == GT_SINGLE_PLAYER)
 		handle = trap->PC_LoadSource(va("maps/%s_coop.ovrents", mapname.string));
 	else
 		handle = trap->PC_LoadSource(va("maps/%s.ovrents", mapname.string));
@@ -1922,15 +1914,7 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 		// it's used to add new ents to existing pure ET map
 		if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 			handle = trap->PC_LoadSource(va("maps/%s_scenario.entities", mapname.string));
-		else
-#ifdef __RPG__
-		if (g_gametype.integer == GT_RPG_CITY)
-			handle = trap->PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
-		else if (g_gametype.integer == GT_RPG_WILDERNESS)
-			handle = trap->PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
-		else 
-#endif //__RPG__
-		if (g_gametype.integer == GT_SINGLE_PLAYER)
+		else if (g_gametype.integer == GT_SINGLE_PLAYER)
 			handle = trap->PC_LoadSource(va("maps/%s_coop.entities", mapname.string));
 		else
 			handle = trap->PC_LoadSource(va("maps/%s.entities", mapname.string));

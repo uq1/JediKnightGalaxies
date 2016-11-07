@@ -157,6 +157,9 @@ LANG_ENGLISH		"Quest Item"
 REFERENCE			ITYPE_CRAFTING
 LANG_ENGLISH		"Crafting Component"
 
+REFERENCE     ITYPE_SHIELD
+LANG_ENGLISH    "Shield"
+
 REFERENCE 			ARM_DEFENSE
 LANG_ENGLISH		"Armor: "
 
@@ -355,5 +358,14 @@ LANG_ENGLISH		"Tertiary Firing Mode (%s)"
 
 REFERENCE			FIRING_MODE
 LANG_ENGLISH		"Firing Mode %i (%s)"
+
+REFERENCE     SHIELD_CAPACITY
+LANG_ENGLISH    "Capacity: %i"
+
+REFERENCE     SHIELD_RECHARGE
+LANG_ENGLISH    "Recharges after %.1f seconds"
+
+REFERENCE     SHIELD_REGEN
+LANG_ENGLISH    "Recharges %.2f shields per second"
 
 ENDMARKER

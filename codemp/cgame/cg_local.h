@@ -367,12 +367,6 @@ typedef struct centity_s {
 
 	playerEntity_t	pe;
 
-//	int				errorTime;		// decay the error from this time
-//	vec3_t			errorOrigin;
-//	vec3_t			errorAngles;
-
-//	qboolean		extrapolated;	// false if origin / angles is an interpolation
-//	vec3_t			rawOrigin;
 	vec3_t			rawAngles;
 
 	vec3_t			beamEnd;
@@ -380,13 +374,6 @@ typedef struct centity_s {
 	// exact interpolated position of entity on this frame
 	vec3_t			lerpOrigin;
 	vec3_t			lerpAngles;
-
-#if 0
-	//add up bone offsets until next client frame before adding them in
-	qboolean		hasRagOffset;
-	vec3_t			ragOffsets;
-	int				ragOffsetTime;
-#endif
 
 	vec3_t			ragLastOrigin;
 	int				ragLastOriginTime;
@@ -472,17 +459,13 @@ typedef struct centity_s {
 	int				visibilityTime;		// Time of the last visibility check.
 	qboolean		visibilityState;	// 0 = No, 1 = Yes..
 	debuffVisualsData_t debuffVisuals;
+	int				shieldHitTime;
+	int				shieldRechargeTime;
 
 	//eezstreet add
 	void	*armorGhoul2[ARMSLOT_MAX];
 	int		equippedArmor[ARMSLOT_MAX];
 	int		previousEquippedArmor[ARMSLOT_MAX];
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-	float		shadowPlanes[MAX_GENTITIES];
-	vec3_t		shadowPlaneDirections[MAX_GENTITIES];
-	int			shadowPlaneNumber;
-#endif //__EXPERIMENTAL_SHADOWS__
 } centity_t;
 
 
@@ -504,39 +487,24 @@ typedef struct markPoly_s {
 
 typedef enum {
 	LE_MARK,
-	LE_EXPLOSION,
-	LE_SPRITE_EXPLOSION,
-	LE_FADE_SCALE_MODEL, // currently only for Demp2 shock sphere
 	LE_FRAGMENT,
 	LE_PUFF,
-	LE_MOVE_SCALE_FADE,
-	LE_FALL_SCALE_FADE,
-	LE_FADE_RGB,
-	LE_SCALE_FADE,
 	LE_SCOREPLUM,
 	LE_DAMAGEPLUM,
-	LE_OLINE,
-	LE_SHOWREFENTITY,
 	LE_LINE
 } leType_t;
 
 typedef enum {
 	LEF_PUFF_DONT_SCALE = 0x0001,			// do not scale size over time
 	LEF_TUMBLE			= 0x0002,			// tumble over time, used for ejecting shells
-	LEF_FADE_RGB		= 0x0004,			// explicitly fade
-	LEF_NO_RANDOM_ROTATE= 0x0008			// MakeExplosion adds random rotate which could be bad in some cases
 } leFlag_t;
 
 typedef enum {
 	LEMT_NONE,
-	LEMT_BURN,
-	LEMT_BLOOD
 } leMarkType_t;			// fragment local entities can leave marks on walls
 
 typedef enum {
 	LEBS_NONE,
-	LEBS_BLOOD,
-	LEBS_BRASS,
 	LEBS_METAL,
 	LEBS_ROCK
 } leBounceSoundType_t;	// fragment local entities can make sounds on impacts
@@ -1238,10 +1206,6 @@ typedef struct cgMedia_s {
 	qhandle_t	loadBarLEDCap;
 	qhandle_t	loadBarLEDSurround;
 
-	qhandle_t	bryarFrontFlash;
-	qhandle_t	greenFrontFlash;
-	qhandle_t	lightningFlash;
-
 	qhandle_t	itemHoloModel;
 	qhandle_t	redFlagModel;
 	qhandle_t	blueFlagModel;
@@ -1253,9 +1217,6 @@ typedef struct cgMedia_s {
 
 	qhandle_t	teamStatusBar;
 
-	qhandle_t	deferShader;
-
-	qhandle_t	radarShader;
 	qhandle_t	siegeItemShader;
 	qhandle_t	mAutomapPlayerIcon;
 	qhandle_t	mAutomapRocketIcon;
@@ -1340,11 +1301,6 @@ typedef struct cgMedia_s {
 	// wall mark shaders
 	qhandle_t	wakeMarkShader;
 
-	// Pain view shader
-	qhandle_t	viewPainShader;
-	qhandle_t	viewPainShader_Shields;
-	qhandle_t	viewPainShader_ShieldsAndHealth;
-
 	qhandle_t	itemRespawningPlaceholder;
 	qhandle_t	itemRespawningRezOut;
 
@@ -1354,24 +1310,6 @@ typedef struct cgMedia_s {
 	qhandle_t	forceShell;
 	qhandle_t	sightShell;
 
-	// Disruptor zoom graphics
-	qhandle_t	disruptorMask;
-	qhandle_t	disruptorInsert;
-	qhandle_t	disruptorLight;
-	qhandle_t	disruptorInsertTick;
-	qhandle_t	disruptorChargeShader;
-
-	// Binocular graphics
-	qhandle_t	binocularCircle;
-	qhandle_t	binocularMask;
-	qhandle_t	binocularArrow;
-	qhandle_t	binocularTri;
-	qhandle_t	binocularStatic;
-	qhandle_t	binocularOverlay;
-
-	// weapon effect models
-	qhandle_t	lightningExplosionModel;
-
 	// explosion assets
 	qhandle_t	explosionModel;
 	qhandle_t	surfaceExplosionShader;
@@ -1380,22 +1318,11 @@ typedef struct cgMedia_s {
 
 	qhandle_t	solidWhite;
 
-	qhandle_t	heartShader;
-
-	// All the player shells
-	qhandle_t	invulnerabilityShader;
-
 	// sounds
 	sfxHandle_t	selectSound;
 	sfxHandle_t	footsteps[FOOTSTEP_TOTAL][4];
 
-	sfxHandle_t	winnerSound;
-	sfxHandle_t	loserSound;
-
 	sfxHandle_t crackleSound;
-
-	sfxHandle_t	grenadeBounce1;
-	sfxHandle_t	grenadeBounce2;
 
 	sfxHandle_t teamHealSound;
 	sfxHandle_t teamRegenSound;
@@ -1422,9 +1349,6 @@ typedef struct cgMedia_s {
 
 	sfxHandle_t noforceSound;
 
-	sfxHandle_t deploySeeker;
-	sfxHandle_t medkitSound;
-
 	// teamplay sounds
 	sfxHandle_t redScoredSound;
 	sfxHandle_t blueScoredSound;
@@ -1437,18 +1361,12 @@ typedef struct cgMedia_s {
 	sfxHandle_t	redTookFlagSound;
 	sfxHandle_t blueTookFlagSound;
 
-	sfxHandle_t redYsalReturnedSound;
-	sfxHandle_t blueYsalReturnedSound;
-	sfxHandle_t	redTookYsalSound;
-	sfxHandle_t blueTookYsalSound;
-
 	sfxHandle_t	drainSound;
 
 	sfxHandle_t hitmarkerSound;
 	qhandle_t	hitmarkerGraphic;
 
 	//music blips
-	sfxHandle_t	happyMusic;
 	sfxHandle_t dramaticFailure;
 
 	// tournament sounds
@@ -1457,22 +1375,7 @@ typedef struct cgMedia_s {
 	sfxHandle_t	count1Sound;
 	sfxHandle_t	countFightSound;
 
-	// new stuff
-	qhandle_t patrolShader;
-	qhandle_t assaultShader;
-	qhandle_t campShader;
-	qhandle_t followShader;
-	qhandle_t defendShader;
-	qhandle_t retrieveShader;
-	qhandle_t escortShader;
-
-	qhandle_t swfTestShader;
-
 	qhandle_t halfShieldModel;
-	qhandle_t halfShieldShader;
-
-	qhandle_t demp2Shell;
-	qhandle_t demp2ShellShader;
 
 	qhandle_t cursor;
 	qhandle_t selectCursor;
@@ -1492,14 +1395,6 @@ typedef struct cgMedia_s {
 	qhandle_t	forceIconBackground;
 	qhandle_t	inventoryIconBackground;
 
-	sfxHandle_t	holocronPickup;
-
-	// Zoom
-	sfxHandle_t	zoomStart;
-	sfxHandle_t	zoomLoop;
-	sfxHandle_t	zoomEnd;
-	sfxHandle_t	disruptorZoomLoop;
-
 	qhandle_t	bdecal_bodyburn1;
 	qhandle_t	bdecal_saberglow;
 	qhandle_t	bdecal_burn1;
@@ -1507,10 +1402,6 @@ typedef struct cgMedia_s {
 
 	// For vehicles only now
 	sfxHandle_t	noAmmoSound;
-
-	// eezstreet add: breaking stuff!
-	sfxHandle_t	weaponBreakSound;
-	sfxHandle_t	armorBreakSound;
 
 	// JKG
 	qhandle_t	deathfont;
@@ -1533,62 +1424,6 @@ typedef struct cgMedia_s {
 // Stored FX handles
 //--------------------
 typedef struct cgEffects_s {
-	//concussion
-	fxHandle_t	concussionShotEffect;
-	fxHandle_t	concussionImpactEffect;
-
-	// BRYAR PISTOL
-	fxHandle_t	bryarShotEffect;
-	fxHandle_t	bryarPowerupShotEffect;
-	fxHandle_t	bryarWallImpactEffect;
-	fxHandle_t	bryarWallImpactEffect2;
-	fxHandle_t	bryarWallImpactEffect3;
-	fxHandle_t	bryarFleshImpactEffect;
-	fxHandle_t	bryarDroidImpactEffect;
-
-	// BLASTER
-	fxHandle_t  blasterShotEffect;
-	fxHandle_t  blasterWallImpactEffect;
-	fxHandle_t  blasterFleshImpactEffect;
-	fxHandle_t  blasterDroidImpactEffect;
-
-	// DISRUPTOR
-	fxHandle_t  disruptorRingsEffect;
-	fxHandle_t  disruptorProjectileEffect;
-	fxHandle_t  disruptorWallImpactEffect;
-	fxHandle_t  disruptorFleshImpactEffect;
-	fxHandle_t  disruptorAltMissEffect;
-	fxHandle_t  disruptorAltHitEffect;
-
-	// BOWCASTER
-	fxHandle_t	bowcasterShotEffect;
-	fxHandle_t	bowcasterImpactEffect;
-
-	// REPEATER
-	fxHandle_t  repeaterProjectileEffect;
-	fxHandle_t  repeaterAltProjectileEffect;
-	fxHandle_t  repeaterWallImpactEffect;
-	fxHandle_t  repeaterFleshImpactEffect;
-	fxHandle_t  repeaterAltWallImpactEffect;
-
-	// DEMP2
-	fxHandle_t  demp2ProjectileEffect;
-	fxHandle_t  demp2WallImpactEffect;
-	fxHandle_t  demp2FleshImpactEffect;
-
-	// FLECHETTE
-	fxHandle_t	flechetteShotEffect;
-	fxHandle_t	flechetteAltShotEffect;
-	fxHandle_t	flechetteWallImpactEffect;
-	fxHandle_t	flechetteFleshImpactEffect;
-
-	// ROCKET
-	fxHandle_t  rocketShotEffect;
-	fxHandle_t  rocketExplosionEffect;
-
-	// THERMAL
-	fxHandle_t	thermalExplosionEffect;
-	fxHandle_t	thermalShockwaveEffect;
 
 	// TRIPMINE
 	fxHandle_t	tripmineLaserFX;
@@ -1981,6 +1816,7 @@ void CG_AddRefEntityWithPowerups( const refEntity_t *ent, const entityState_t *s
 void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized );
 sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName );
 void CG_PlayerShieldHit(int entitynum, vec3_t angles, int amount);
+void CG_PlayerShieldRecharging(int entitynum);
 qboolean TeamFriendly( int player );
 void JKG_CG_InitArmor(void);
 void JKG_CG_EquipArmor(int client, int slot, int armorId);
@@ -2107,14 +1943,6 @@ void CG_DamagePlum( int client, vec3_t org, int damage );
 void CG_Chunks( int owner, vec3_t origin, const vec3_t normal, const vec3_t mins, const vec3_t maxs,
 						float speed, int numChunks, material_t chunkType, int customChunk, float baseScale );
 void CG_MiscModelExplosion( vec3_t mins, vec3_t maxs, int size, material_t chunkType );
-
-void CG_Bleed( vec3_t origin, int entityNum );
-
-localEntity_t *CG_MakeExplosion( vec3_t origin, vec3_t dir, 
-								qhandle_t hModel, int numframes, qhandle_t shader, int msec,
-								qboolean isSprite, float scale, int flags );// Overloaded in single player
-
-void CG_SurfaceExplosion( vec3_t origin, vec3_t normal, float radius, float shake_speed, qboolean smoke );
 
 void CG_TestLine( vec3_t start, vec3_t end, int time, unsigned int color, int radius);
 

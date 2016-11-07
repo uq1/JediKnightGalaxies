@@ -683,21 +683,17 @@ int BotAISetupClient(int client, struct bot_settings_s *settings, qboolean resta
 		bs->botWeaponWeights[WP_SABER] = 13;
 	}
 
-#ifndef __MMO__
 	//allocate a goal state
 	bs->gs = trap->BotAllocGoalState(client);
 
 	//allocate a weapon state
 	bs->ws = trap->BotAllocWeaponState();
-#endif //__MMO__
 
 	bs->inuse = qtrue;
 	bs->entitynum = client;
 	bs->setupcount = 4;
 	bs->entergame_time = FloatTime();
-#ifndef __MMO__
 	bs->ms = trap->BotAllocMoveState();
-#endif //__MMO__
 	numbots++;
 
 	//NOTE: reschedule the bot thinking
@@ -725,13 +721,11 @@ int BotAIShutdownClient(int client, qboolean restart) {
 		return qfalse;
 	}
 
-#ifndef __MMO__
 	trap->BotFreeMoveState(bs->ms);
 	//free the goal state`			
 	trap->BotFreeGoalState(bs->gs);
 	//free the weapon weights
 	trap->BotFreeWeaponState(bs->ws);
-#endif //__MMO__
 
 	//
 	//clear the bot state
@@ -754,9 +748,7 @@ when the level is changed
 */
 void BotResetState(bot_state_t *bs) {
 	int client, entitynum, inuse;
-#ifndef __MMO__
 	int movestate, goalstate, weaponstate;
-#endif //__MMO__
 	bot_settings_t settings;
 	playerState_t ps;							//current player state
 	float entergame_time;
@@ -767,34 +759,28 @@ void BotResetState(bot_state_t *bs) {
 	inuse = bs->inuse;
 	client = bs->client;
 	entitynum = bs->entitynum;
-#ifndef __MMO__
 	movestate = bs->ms;
 	goalstate = bs->gs;
 	weaponstate = bs->ws;
-#endif //__MMO__
 	entergame_time = bs->entergame_time;
 	//reset the whole state
 	memset(bs, 0, sizeof(bot_state_t));
 	//copy back some state stuff that should not be reset
-#ifndef __MMO__
 	bs->ms = movestate;
 	bs->gs = goalstate;
 	bs->ws = weaponstate;
-#endif //__MMO__
 	memcpy(&bs->cur_ps, &ps, sizeof(playerState_t));
 	memcpy(&bs->settings, &settings, sizeof(bot_settings_t));
 	bs->inuse = inuse;
 	bs->client = client;
 	bs->entitynum = entitynum;
 	bs->entergame_time = entergame_time;
-#ifndef __MMO__
 	//reset several states
 	if (bs->ms) trap->BotResetMoveState(bs->ms);
 	if (bs->gs) trap->BotResetGoalState(bs->gs);
 	if (bs->ws) trap->BotResetWeaponState(bs->ws);
 	if (bs->gs) trap->BotResetAvoidGoals(bs->gs);
 	if (bs->ms) trap->BotResetAvoidReach(bs->ms);
-#endif //__MMO__
 }
 
 /*

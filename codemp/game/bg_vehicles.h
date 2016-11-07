@@ -580,7 +580,7 @@ typedef struct Vehicle_s
 
 	// Current armor and shields of your vehicle (explodes if armor to 0).
 	int			m_iArmor;	//hull strength - STAT_HEALTH on NPC
-	int			m_iShields;	//energy shielding - STAT_ARMOR on NPC
+	int			m_iShields;	//energy shielding - STAT_SHIELD on NPC
 
 	//mp-specific
 	int			m_iHitDebounce;

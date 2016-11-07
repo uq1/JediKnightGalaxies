@@ -28,6 +28,7 @@ typedef enum jkgItemType_e
     ITEM_ARMOR,
     ITEM_CLOTHING,
 	ITEM_CONSUMABLE,
+	ITEM_SHIELD,
 
 	NUM_ITEM_TYPES
 } jkgItemType_t;
@@ -99,6 +100,19 @@ typedef struct {
 	int consumeAmount;
 } itemConsumableData_t;
 
+#define SHIELD_DEFAULT_CAPACITY	25
+#define SHIELD_DEFAULT_COOLDOWN	10000
+#define SHIELD_DEFAULT_REGEN	100
+typedef struct {
+	int capacity;	// Total amount that the shield can absorb
+	int cooldown;	// Time between when we received a hit and when the shield will start recharging
+	int regenrate;	// Time (ms) it takes to recharge one shield unit
+
+	char rechargeSoundEffect[MAX_QPATH];	// Sound that plays once we start charging
+	char brokenSoundEffect[MAX_QPATH];		// Sound that plays once the shield is broken
+	char equippedSoundEffect[MAX_QPATH];	// Sound that plays once the shield is equipped
+} itemShieldData_t;
+
 // Wholly visual data below
 #ifndef _GAME
 typedef struct {
@@ -144,6 +158,7 @@ typedef struct {
 		itemWeaponData_t weaponData;
 		itemArmorData_t armorData;
 		itemConsumableData_t consumableData;
+		itemShieldData_t shieldData;
 	};
 
 	//Stats

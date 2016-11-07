@@ -906,7 +906,6 @@ static void CG_RegisterSounds( void ) {
 
 	cgs.media.drainSound = trap->S_RegisterSound("sound/weapons/force/drained.mp3");
 
-	cgs.media.happyMusic = trap->S_RegisterSound("music/goodsmall.mp3");
 	cgs.media.dramaticFailure = trap->S_RegisterSound("music/badsmall.mp3");
 
 	//PRECACHE ALL MUSIC HERE (don't need to precache normally because it's streamed off the disk)
@@ -957,15 +956,8 @@ static void CG_RegisterSounds( void ) {
 	trap->R_RegisterModel ( "models/map_objects/mp/sphere.md3" );
 	trap->R_RegisterModel("models/items/remote.md3");
 
-	cgs.media.holocronPickup = trap->S_RegisterSound( "sound/player/holocron.wav" );
-
 	// No ammo sound
 	cgs.media.noAmmoSound = trap->S_RegisterSound( "sound/weapons/noammo.wav" );
-
-	// Zoom
-	cgs.media.zoomStart = trap->S_RegisterSound( "sound/interface/zoomstart.wav" );
-	cgs.media.zoomLoop	= trap->S_RegisterSound( "sound/interface/zoomloop.wav" );
-	cgs.media.zoomEnd	= trap->S_RegisterSound( "sound/interface/zoomend.wav" );
 
 	for (i=0 ; i<4 ; i++) {
 		Com_sprintf (name, sizeof(name), "sound/player/footsteps/stone_step%i.wav", i+1);
@@ -1091,17 +1083,6 @@ static void CG_RegisterSounds( void ) {
 	}
 
 	cg.loadLCARSStage = 2;
-
-	// FIXME: only needed with item
-	cgs.media.deploySeeker = trap->S_RegisterSound ("sound/chars/seeker/misc/hiss");
-	cgs.media.medkitSound = trap->S_RegisterSound ("sound/items/use_bacta.wav");
-	
-	cgs.media.winnerSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM006" );
-	cgs.media.loserSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM010" );
-
-	// eezstreet / JKG add: weapon/armor breaking
-	cgs.media.armorBreakSound = trap->S_RegisterSound( "sound/items/armor_break.wav" );
-	cgs.media.weaponBreakSound = trap->S_RegisterSound( "sound/items/weapon_break.wav" );
 }
 
 
@@ -1261,9 +1242,6 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.balloonShader = trap->R_RegisterShader( "gfx/mp/chat_icon" );
 	cgs.media.vchatShader = trap->R_RegisterShader( "gfx/mp/vchat_icon" );
 
-	cgs.media.deferShader = trap->R_RegisterShaderNoMip( "gfx/2d/defer.tga" );
-
-	cgs.media.radarShader			= trap->R_RegisterShaderNoMip ( "gfx/menus/radar/radar.png" );
 	cgs.media.siegeItemShader		= trap->R_RegisterShaderNoMip ( "gfx/menus/radar/goalitem" );
 	cgs.media.mAutomapPlayerIcon	= trap->R_RegisterShader( "gfx/menus/radar/arrow_w" );
 	cgs.media.mAutomapRocketIcon	= trap->R_RegisterShader( "gfx/menus/radar/rocket" );
@@ -1390,18 +1368,6 @@ static void CG_RegisterGraphics( void ) {
 		cgs.media.powerDuelAllyShader = trap->R_RegisterShader("gfx/mp/pduel_icon_double");//trap->R_RegisterShader("gfx/mp/pduel_gameicon_ally");
 	}
 
-	cgs.media.heartShader			= trap->R_RegisterShaderNoMip( "ui/assets/statusbar/selectedhealth.tga" );
-
-	cgs.media.invulnerabilityShader = trap->R_RegisterShader( "powerups/invulnerabilityshell");
-
-	// Binocular interface
-	cgs.media.binocularCircle		= trap->R_RegisterShader( "gfx/2d/binCircle" );
-	cgs.media.binocularMask			= trap->R_RegisterShader( "gfx/2d/binMask" );
-	cgs.media.binocularArrow		= trap->R_RegisterShader( "gfx/2d/binSideArrow" );
-	cgs.media.binocularTri			= trap->R_RegisterShader( "gfx/2d/binTopTri" );
-	cgs.media.binocularStatic		= trap->R_RegisterShader( "gfx/2d/binocularWindow" );
-	cgs.media.binocularOverlay		= trap->R_RegisterShader( "gfx/2d/binocularNumOverlay" );
-
 	cg.loadLCARSStage = 5;
 	CG_LoadingString( "Models" );
 
@@ -1479,10 +1445,6 @@ Ghoul2 Insert End
 	// wall marks
 	cgs.media.shadowMarkShader	= trap->R_RegisterShader( "markShadow" );
 	cgs.media.wakeMarkShader	= trap->R_RegisterShader( "wake" );
-
-	cgs.media.viewPainShader					= trap->R_RegisterShader( "gfx/misc/borgeyeflare" );
-	cgs.media.viewPainShader_Shields			= trap->R_RegisterShader( "gfx/mp/dmgshader_shields" );
-	cgs.media.viewPainShader_ShieldsAndHealth	= trap->R_RegisterShader( "gfx/mp/dmgshader_shieldsandhealth" );
 
 	CG_LoadingString( "Brush Models" );
 	// register the inline models
@@ -1629,14 +1591,6 @@ Ghoul2 Insert End
 
 	cgs.media.hitmarkerGraphic = trap->R_RegisterShaderNoMip("gfx/2d/crosshair_hitmarker.tga");
 
-	// new stuff
-	cgs.media.patrolShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/patrol.tga");
-	cgs.media.assaultShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/assault.tga");
-	cgs.media.campShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/camp.tga");
-	cgs.media.followShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/follow.tga");
-	cgs.media.defendShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/defend.tga");
-	cgs.media.retrieveShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/retrieve.tga");
-	cgs.media.escortShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/escort.tga");
 	cgs.media.cursor = trap->R_RegisterShaderNoMip( "menu/art/3_cursor2" );
 	cgs.media.sizeCursor = trap->R_RegisterShaderNoMip( "ui/assets/sizecursor.tga" );
 	cgs.media.selectCursor = trap->R_RegisterShaderNoMip( "ui/assets/selectcursor.tga" );
@@ -1645,21 +1599,8 @@ Ghoul2 Insert End
 	cgs.media.lowHealthAura = trap->R_RegisterShader("gfx/jkg/lowhealthaura.png");
 
 	cgs.media.halfShieldModel	= trap->R_RegisterModel ( "models/weaphits/testboom.md3" );
-	cgs.media.halfShieldShader	= trap->R_RegisterShader( "halfShieldShell" );
 
 	trap->FX_RegisterEffect("force/force_touch");
-/*
-	for (i=1; i<MAX_PARTICLES_AREAS; i++)
-	{
-		{
-			int rval;
-
-			rval = CG_NewParticleArea ( CS_PARTICLES + i);
-			if (!rval)
-				break;
-		}
-	}
-*/
 
 	// Jedi Knight Galaxies
 
@@ -2848,10 +2789,6 @@ Ghoul2 Insert End
 		trap->Cvar_Set("ui_blurbackground", "1");
 		cg.turnOnBlurCvar = qfalse;
 	}
-
-#ifdef SWF
-	cgs.media.swfTestShader = trap->R_RegisterShaderNoMip("animation/swf/test");
-#endif
 }
 
 //makes sure returned string is in localized format

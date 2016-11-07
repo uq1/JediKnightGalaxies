@@ -1024,6 +1024,11 @@ struct gclient_s {
 	int			deathLootIndex;
 	int			pickPocketLootIndex;
 	int			armorItems[ARMSLOT_MAX];
+	qboolean	shieldEquipped;
+	int			shieldRechargeTime;
+	int			shieldRegenTime;
+	int			shieldRechargeLast;
+	int			shieldRegenLast;
 
 	int		ammoTable[JKG_MAX_AMMO_INDICES];				// Max ammo indices increased to JKG_MAX_AMMO_INDICES
 
@@ -1043,9 +1048,7 @@ struct gclient_s {
 	int saberAttackSequence;				// FIXME: not used? --eez
 	int saberSaberBlockDebounce;
 
-#ifndef __MMO__
 	unsigned int numKillsThisLife;			// Killstreaks!
-#endif
 
 	char		botSoundDir[MAX_QPATH];
 	float		blockingLightningAccumulation;//Stoiss add
@@ -1256,7 +1259,6 @@ typedef struct level_locals_s {
 	int				serverInit;
 	char			party[MAX_CLIENTS][5];
 	teamPartyList_t	partyList[MAX_CLIENTS];
-	int vendors[32];							//List of vendors on the server
 
 	struct {
 		fileHandle_t	log;
@@ -1599,6 +1601,7 @@ gentity_t *SelectSpawnPoint ( vec3_t avoidPoint, vec3_t origin, vec3_t angles, t
 void MaintainBodyQueue(gentity_t *ent);
 void JKG_PermaSpectate(gentity_t *ent);
 void respawn (gentity_t *ent);
+qboolean JKG_ClientAlive(gentity_t* ent);
 void ClientRespawn (gentity_t *ent);
 void BeginIntermission (void);
 void InitBodyQue (void);
@@ -1839,6 +1842,13 @@ typedef enum userinfoValidationBits_e {
 	USERINFO_VALIDATION_CONTROLCHARS,
 	USERINFO_VALIDATION_MAX
 } userinfoValidationBits_t;
+
+/**************************************************
+* jkg_equip.cpp
+**************************************************/
+
+void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound);
+void JKG_ShieldUnequipped(gentity_t* ent);
 
 /**************************************************
 * jkg_team.c

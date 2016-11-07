@@ -424,49 +424,6 @@ clientkilled:
 	trap->Print("%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC"));
 }
 
-//==========================================================================
-
-void CG_ToggleBinoculars(centity_t *cent, int forceZoom)
-{
-	if (cent->currentState.number != cg.snap->ps.clientNum)
-	{
-		return;
-	}
-
-	if (cg.snap->ps.weaponstate != WEAPON_READY)
-	{ //So we can't fool it and reactivate while switching to the saber or something.
-		return;
-	}
-
-	/*
-	if (cg.snap->ps.weapon == WP_SABER)
-	{ //No.
-		return;
-	}
-	*/
-
-	if (forceZoom)
-	{
-		if (forceZoom == 2)
-		{
-			cg.snap->ps.zoomMode = 0;
-		}
-		else if (forceZoom == 1)
-		{
-			cg.snap->ps.zoomMode = 2;
-		}
-	}
-
-	if (cg.snap->ps.zoomMode == 0)
-	{
-		trap->S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_AUTO, cgs.media.zoomStart );
-	}
-	else if (cg.snap->ps.zoomMode == 2)
-	{
-		trap->S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_AUTO, cgs.media.zoomEnd );
-	}
-}
-
 //set the local timing bar
 extern int cg_genericTimerBar;
 extern int cg_genericTimerDur;
@@ -2288,36 +2245,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 		break;
 
-	//Jedi Knight Galaxies add
-#ifdef __MMO__
-	case EV_GOTO_ACI:
-		if (es->number == cg.clientNum)
-			JKG_CG_SetACISlot(es->eventParm);
-		break;
-	case EV_HITMARKER_ASSIST:
-		if (es->number == cg.clientNum)
-		{
-			// All this does is make a hitmarker display. Nothing too fancy.
-			trap->S_StartSound(NULL, cg.clientNum, CHAN_AUTO, cgs.media.hitmarkerSound);
-			cg.hitmarkerLastTime = cg.time + 1000;
-
-			if (es->eventParm > 0)
-				CG_Notifications_Add(va("\"Assist: +%i Credits\"", es->eventParm), qfalse);
-		}
-		break;
-	case EV_HITMARKER_KILL: // UQ1: Sound here too???
-		if (es->number == cg.clientNum)
-		{
-			// All this does is make a hitmarker display. Nothing too fancy.
-			trap->S_StartSound(NULL, cg.clientNum, CHAN_AUTO, cgs.media.hitmarkerSound);
-			cg.hitmarkerLastTime = cg.time + 1000;
-
-			if (es->eventParm > 0)
-				CG_Notifications_Add(va("\"Kill: +%i Credits\"", es->eventParm), qfalse);
-		}
-		break;
-#endif //__MMO__
-
 	case EV_WEAPON_TRACELINE:
 		DEBUGNAME("EV_WEAPON_TRACELINE");
 		if (cent->currentState.owner != cg.snap->ps.clientNum ||
@@ -2638,14 +2565,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		else if ( CG_VehicleWeaponImpact( cent ) )
 		{//a vehicle missile that used an overridden impact effect...
 		}
-		/*else if (cent->currentState.eFlags & EF_ALT_FIRING)
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qtrue, es->generic1);
-		}
-		else
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qfalse, 0);
-		}*/
 		else
 		{
 		    JKG_RenderProjectileMiss (cent, position, dir, (qboolean)(es->eFlags & EF_ALT_FIRING));
@@ -3065,6 +2984,16 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_SHIELD_HIT");
 		ByteToDir(es->eventParm, dir);
 		CG_PlayerShieldHit(es->otherEntityNum, dir, es->time2);
+		break;
+
+	case EV_SHIELD_BROKEN:
+		DEBUGNAME("EV_SHIELD_BROKEN")
+		// Doesn't do anything atm
+		break;
+
+	case EV_SHIELD_RECHARGE:
+		DEBUGNAME("EV_SHIELD_RECHARGE")
+		CG_PlayerShieldRecharging(es->otherEntityNum);
 		break;
 
 	case EV_DEBUG_LINE:

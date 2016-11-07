@@ -1,0 +1,14 @@
+{
+	"name":		"Merr-Sonn Courier Shield",
+	"internal":	"shield_courier",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/hud/psd_small",
+
+	"capacity":	50,
+	"cooldown":	10000,
+	"regenrate":	100,
+
+	"rechargeSoundEffect":	"sound/shield/shield_recharge",
+	"brokenSoundEffect":	"sound/shield/shield_broken",
+	"equippedSoundEffect":	"sound/shield/shield_equipped"
+}

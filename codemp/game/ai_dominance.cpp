@@ -4474,7 +4474,6 @@ void DOM_BotBehave_AttackBasic(bot_state_t *bs, gentity_t* target)
 				}
 			}
 
-#ifndef __MMO__
 	if (bs->virtualWeapon == WP_SABER)
 	{
 		// UQ1: Added, backstab check...
@@ -4489,7 +4488,6 @@ void DOM_BotBehave_AttackBasic(bot_state_t *bs, gentity_t* target)
 		if (DOM_BotBehave_CheckUseCrouchAttack(bs))
 			return;
 	}
-#endif //__MMO__
 
 	if(bs->meleeStrafeTime < level.time)
 	{//select a new strafing direction
@@ -4779,15 +4777,6 @@ void DOM_EnemyVisualUpdate(bot_state_t *bs)
 	{//bad!  This should never happen
 		return;
 	}
-
-#ifdef __MMO__
-	if (bs->enemySeenTime > level.time)
-	{// UQ1: Speed things up in MMO mode...
-		bs->frame_Enemy_Len = DOM_TargetDistance(bs, bs->currentEnemy, enemyOrigin);
-		bs->frame_Enemy_Vis = 1;
-		return;
-	}
-#endif //__MMO__
 
 	DOM_FindOrigin(bs->currentEnemy, enemyOrigin);
 	DOM_FindAngles(bs->currentEnemy, enemyAngles);
@@ -5350,7 +5339,6 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 		DOM_BotSearchAndDestroy(bs);
 	}
 
-#ifndef __MMO__
 	//check for hard impacts
 	//borrowed directly from impact code, so we might want to add in some fudge factor
 	//at some point.  mmmmMM, fudge.
@@ -5378,102 +5366,10 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 		}
 	}
 
-	//Chat Stuff
-	/*
-	if (bs->doChat && bs->chatTime <= level.time)
-	{
-		if (bs->chatTeam)
-		{
-			trap->EA_SayTeam(bs->client, bs->currentChat);
-			bs->chatTeam = 0;
-		}
-		else
-		{
-			trap->EA_Say(bs->client, bs->currentChat);
-		}
-		if (bs->doChat == 2)
-		{
-			BotReplyGreetings(bs);
-		}
-		bs->doChat = 0;
-	}
-	*/
-#endif //__MMO__
-
 	if(bs->duckTime > level.time)
 	{
 		trap->EA_Crouch(bs->client);
 	}
-
-	/*
-	// UQ1: Try forse jumping to enemies and waypoints as needed...
-	if(bs->botBehave == BBEHAVE_MOVETO 
-		&& !bs->currentEnemy 
-		&& bs->wpNext
-		&& bs->cur_ps.fd.forcePowerLevel[FP_LEVITATION] >= FORCE_LEVEL_1
-		&& VectorDistance(bs->cur_ps.origin, bs->wpNext->origin) <= 512)
-	{
-		if (bs->wpNext)
-		{
-			if (VectorDistanceNoHeight(bs->cur_ps.origin, bs->wpNext->origin) <= 16
-				&& bs->cur_ps.origin[2] >= bs->wpNext->origin[2] + 16)
-			{// We are there!
-
-			}
-			else if (bs->cur_ps.origin[2] + 16 < bs->wpNext->origin[2])
-			{
-				trap->EA_Jump(bs->client);
-
-				if (g_entities[bs->client].client->ps.groundEntityNum == ENTITYNUM_NONE)
-				{
-					g_entities[bs->client].client->ps.pm_flags |= PMF_JUMP_HELD;
-				}
-
-				if (g_entities[bs->client].client->ps.fd.forcePower < 30)
-				{
-					g_entities[bs->client].client->ps.fd.forcePower = 30; // UQ1: Cheating bots lol!
-
-					// UQ1: Gonna try something crazy here and let them really cheat when falling... hahehhe
-					// super save from certain death below jump back to safety like NPCs do...
-					if (bs->virtualWeapon == WP_SABER) // Jedi Only!
-						g_entities[bs->client].client->ps.velocity[2] = 127;
-				}
-			}
-		}
-	}
-	else if (bs->currentEnemy 
-		&& bs->cur_ps.fd.forcePowerLevel[FP_LEVITATION] >= FORCE_LEVEL_1
-		&& VectorDistance(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) <= 512)
-	{
-		if (g_entities[bs->client].client->ps.groundEntityNum != ENTITYNUM_NONE
-			&& VectorDistance(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) >= 128
-			&& VectorDistanceNoHeight(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) <= 128)
-		{// Wait till we get a better spot to jump from!
-
-		}
-		else if (VectorDistanceNoHeight(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) <= 16
-			&& bs->cur_ps.origin[2] >= bs->currentEnemy->r.currentOrigin[2] + 16)
-		{// We are there!
-
-		}
-		else if (bs->cur_ps.origin[2] + 16 < bs->currentEnemy->r.currentOrigin[2])
-		{
-			//if (bs->currentEnemy->client && bs->currentEnemy->client->ps.groundEntityNum != ENTITYNUM_NONE)
-			{
-				trap->EA_Jump(bs->client);
-
-				if (g_entities[bs->client].client->ps.groundEntityNum == ENTITYNUM_NONE)
-				{
-					g_entities[bs->client].client->ps.pm_flags |= PMF_JUMP_HELD;
-				}
-
-				if (g_entities[bs->client].client->ps.fd.forcePower < 30)
-					g_entities[bs->client].client->ps.fd.forcePower = 30; // UQ1: Cheating bots lol!
-			}
-		}
-	}
-	else
-	*/
 
 	if(bs->jumpTime > level.time)
 	{

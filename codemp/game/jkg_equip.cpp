@@ -110,3 +110,50 @@ void JKG_UnequipItem(gentity_t *ent, int iNum)
 		//trap->SendServerCommand(ent->client->ps.clientNum, "print \"You cannot unequip that item.\n\"");
 	}
 }
+
+void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound) {
+	if (shieldItemNumber < 0 || shieldItemNumber >= ent->inventory->size()) {
+		trap->SendServerCommand(ent - g_entities, "print \"Invalid inventory index.\n\"");
+		return;
+	}
+
+	if (ent->client->shieldEquipped) {
+		// Already have a shield equipped. Mark the other shield as not being equipped.
+		for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
+				it->equipped = qfalse;
+			}
+		}
+	}
+
+	itemInstance_t* item = &(*ent->inventory)[shieldItemNumber];
+	if (ent->client->ps.stats[STAT_MAX_SHIELD] == ent->client->ps.stats[STAT_SHIELD] && ent->client->ps.stats[STAT_SHIELD] != 0) {
+		// If we're at max shield, and upgrading capacity, increase our shield amount to match
+		ent->client->ps.stats[STAT_SHIELD] = item->id->shieldData.capacity;
+	}
+	item->equipped = qtrue;
+	ent->client->ps.stats[STAT_MAX_SHIELD] = item->id->shieldData.capacity;
+	ent->client->shieldEquipped = qtrue;
+	ent->client->shieldRechargeLast = ent->client->shieldRegenLast = level.time;
+	ent->client->shieldRechargeTime = item->id->shieldData.cooldown;
+	ent->client->shieldRegenTime = item->id->shieldData.regenrate;
+
+	if (playSound && item->id->shieldData.equippedSoundEffect[0]) {
+		G_Sound(ent, CHAN_AUTO, G_SoundIndex(item->id->shieldData.equippedSoundEffect));
+	}
+}
+
+void JKG_ShieldUnequipped(gentity_t* ent) {
+	if (ent->client->shieldEquipped) {
+		for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
+				it->equipped = qfalse;
+			}
+		}
+	}
+
+	ent->client->ps.stats[STAT_MAX_SHIELD] = 0;
+	ent->client->shieldEquipped = qfalse;
+	ent->client->shieldRechargeLast = ent->client->shieldRegenLast = level.time;
+	ent->client->shieldRegenTime = ent->client->shieldRechargeTime = 0;
+}

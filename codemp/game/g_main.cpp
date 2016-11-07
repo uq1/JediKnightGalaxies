@@ -976,8 +976,8 @@ void RemoveDuelDrawLoser(void)
 		return;
 	}
 
-	clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_ARMOR];
-	clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_ARMOR];
+	clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_SHIELD];
+	clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_SHIELD];
 
 	if (clFirst > clSec)
 	{
@@ -1037,8 +1037,8 @@ void AdjustTournamentScores( void ) {
 		level.clients[level.sortedClients[0]].pers.connected == CON_CONNECTED &&
 		level.clients[level.sortedClients[1]].pers.connected == CON_CONNECTED)
 	{
-		int clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_ARMOR];
-		int clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_ARMOR];
+		int clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_SHIELD];
+		int clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_SHIELD];
 		int clFailure = 0;
 		int clSuccess = 0;
 
@@ -2842,42 +2842,6 @@ void G_RunFrame( int levelTime ) {
 
 	FRAME_TIME = trap->Milliseconds();
 
-	// Run the main thread task poller (calling final callback functions that need to be on the main thread)
-	//JKG_MainThreadPoller();
-
-	// Jedi Knight Galaxies
-	// FIXME:
-	/*
-	if (jkg_fakeplayerban.integer && jkg_antifakeplayer.integer ) {
-		for (i = 0; i < MAX_CLIENTS; i++) {
-			cl = &level.clients[i];
-			if ( g_entities[i].r.svFlags & SVF_BOT )
-			{
-				continue;
-			}
-			if (cl->pers.connected != CON_DISCONNECTED) {
-				if (!cl->sess.noq3fill && level.time > (cl->sess.connTime + 8000) ) {
-					if (!Q_stricmp(cl->sess.IP, "localhost")) {
-						// Local host (this is the guy that did Create Server.. which isn't possible.., anyway, dont kick)
-						cl->sess.noq3fill = 1;
-						continue;
-					}
-					if (!ClientConnectionActive[i]) {
-						// Dead connection
-						if (jkg_fakeplayerbantime.string[0]) {
-							JKG_Bans_AddBan(svs->clients[i].netchan.remoteAddress, jkg_fakeplayerbantime.string, "Fake player DoS");
-							//trap->SendConsoleCommand(EXEC_NOW, va("addban %s %s Fake player DoS\n",cl->sess.IP, &jkg_fakeplayerbantime.string[0]));
-						}
-						trap->DropClient(i,"was kicked! Fake client detected.");
-						
-					} else {
-						cl->sess.noq3fill = 1;
-					}
-				}
-			}
-		}
-	}
-	*/
 	// Run lua timers
 	GLua_Timer();
 	GLua_Thread();
@@ -2885,26 +2849,6 @@ void G_RunFrame( int levelTime ) {
 	if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 		AdjustTickets();
 
-	/* JKG - Automatic healing when out-of-combat */
-	if(jkg_healthRegen.value > 0) {
-		for ( i = 0; i < MAX_CLIENTS; i++ )
-		{
-			gentity_t *ent = &g_entities[i];
-
-			if ( !ent || !ent->inuse || !ent->client || ( ent->damagePlumTime + jkg_healthRegenDelay.value ) >= level.time )
-			{
-				continue;
-			}
-
-			if ( ent->lastHealTime < level.time )
-			{
-				int maxHealth		= ent->client->ps.stats[STAT_MAX_HEALTH];
-				int pctage			= (maxHealth < 100) ? jkg_healthRegen.value : (maxHealth / 100) * jkg_healthRegen.value;		// Add 1% (of 1 HP, whichever is higher)
-				ent->health			= ent->client->ps.stats[STAT_HEALTH] = ((( ent->health + pctage ) > maxHealth ) ? maxHealth : ent->health + pctage );
-				ent->lastHealTime	= level.time + jkg_healthRegenSpeed.value;
-			}
-		}
-	}
 	if (gDoSlowMoDuel)
 	{
 		if (level.restarted)

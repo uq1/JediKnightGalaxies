@@ -123,11 +123,7 @@ Ghoul2 Insert Start
 */
 
 int G_BoneIndex( const char *name ) {
-#ifdef __MMO__
-	return 0;
-#else //!__MMO__
 	return G_FindConfigstringIndex (name, CS_G2BONES, MAX_G2BONES, qtrue);
-#endif //__MMO__
 }
 /*
 Ghoul2 Insert End

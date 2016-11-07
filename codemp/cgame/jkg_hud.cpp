@@ -630,8 +630,8 @@ static void CG_DrawArmor( menuDef_t *menuHUD )
 		return;
 	}
 
-	armor = ps->stats[STAT_ARMOR];
-	maxArmor = ps->stats[STAT_MAX_ARMOR];
+	armor = ps->stats[STAT_SHIELD];
+	maxArmor = ps->stats[STAT_MAX_SHIELD];
 
 
 	// TEST: just render the whole thing for now, we'll fix it later

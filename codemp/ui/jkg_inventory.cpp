@@ -22,7 +22,7 @@ void JKG_ConstructInventoryList() {
 		pAllItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
 		for (int i = 0; i < nNumInventoryItems; i++) {
 			itemInstance_t* pThisItem = &pAllItems[i];
-			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR && pThisItem->id->itemType != ITEM_CLOTHING) {
+			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR && pThisItem->id->itemType != ITEM_CLOTHING && pThisItem->id->itemType != ITEM_SHIELD) {
 				continue;
 			}
 			else if (ui_inventoryFilter.integer == JKGIFILTER_WEAPONS && pThisItem->id->itemType != ITEM_WEAPON) {
@@ -204,6 +204,23 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLeve
 	}
 
 	switch (pItem->id->itemType) {
+		case ITEM_SHIELD:
+			// Shield Item
+			// Capacity: ###
+			// Recharge Time: ### seconds
+			// Regeneration: # shields per second
+
+			switch (nLineNum) {
+				case 0:
+					return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_SHIELD");
+				case 1:
+					return va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_CAPACITY"), pItem->id->shieldData.capacity);
+				case 2:
+					return va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_RECHARGE"), pItem->id->shieldData.cooldown / 1000.0f);
+				case 3:
+					return va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_REGEN"), 1000.0f / pItem->id->shieldData.regenrate);
+			}
+			break;
 		case ITEM_WEAPON:
 			if (nLineNum == 0) {
 				return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_WEAPON");
@@ -671,8 +688,7 @@ void JKG_Inventory_OwnerDraw_Interact(itemDef_t* item, int ownerDrawID) {
 	}
 	else if (ownerDrawID == 2) {
 		// On consumables, this is the "use" button
-		if (pItem->id->itemType != ITEM_ARMOR && pItem->id->itemType != ITEM_CLOTHING &&
-			pItem->id->itemType != ITEM_WEAPON) {
+		if (pItem->id->itemType == ITEM_CONSUMABLE) {
 			strcpy(item->text, UI_GetStringEdString2("@JKG_INVENTORY_USE"));
 		}
 		item->action = "jkgscript inv_use";

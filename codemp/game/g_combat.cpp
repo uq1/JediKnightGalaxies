@@ -2354,7 +2354,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->client->pmnomove = qfalse;
 
 	// K, let's see if we can raise the killstreak on the attacker
-#ifndef __MMO__
 	if(jkg_bounty.integer)
 	{
 		if( attacker != self && attacker->client && !OnSameTeam(attacker, self) )
@@ -2362,7 +2361,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				attacker->client->numKillsThisLife++;
 			}
 	}
-#endif
 
 	// JKG: Give credits for each kill
 	if(attacker->s.number < MAX_CLIENTS && ( self->s.number < MAX_CLIENTS || self->s.eType == ET_NPC))
@@ -2370,7 +2368,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		// TODO: Divide equally amongst party (once new party interface is done)
 		if(!OnSameTeam(attacker, self) && attacker != self)
 		{
-#ifndef __MMO__
 			int credits = jkg_creditsPerKill.integer;
 			int bounty = (self->client->numKillsThisLife >= 3) ? self->client->numKillsThisLife*jkg_bounty.integer : 0;
 			attacker->client->ps.credits += (credits + bounty);
@@ -2382,12 +2379,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			{
 				trap->SendServerCommand(attacker-g_entities, va("notify 1 \"Kill: +%i Credits\"", credits));
 			}
-#else //!__MMO__
-			G_AddEvent(attacker, EV_HITMARKER_KILL, jkg_creditsPerKill.integer);
-#endif //__MMO__
 		}
 	}
-#ifndef __MMO__
 	if(jkg_bounty.integer)
 	{
 		if(self->client && attacker->client && self->client->numKillsThisLife >= 3 )
@@ -2400,7 +2393,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		}
 		self->client->numKillsThisLife = 0;
 	}
-#endif
 
 	if(self->s.number < MAX_CLIENTS)
 	{
@@ -3142,7 +3134,7 @@ int CheckArmor (gentity_t *ent, int damage, int dflags)
 		return 0;
 	}
 	// armor
-	count = client->ps.stats[STAT_ARMOR];
+	count = client->ps.stats[STAT_SHIELD];
 
 	// Jedi Knight Galaxies
 	// Reduce the damage the shields take, depending on the shield strengh.. for now, lets use 50%
@@ -3168,11 +3160,11 @@ int CheckArmor (gentity_t *ent, int damage, int dflags)
 
 	if (dflags & DAMAGE_HALF_ARMOR_REDUCTION)		// Armor isn't whittled so easily by sniper shots.
 	{
-		client->ps.stats[STAT_ARMOR] -= (int)(save*ARMOR_REDUCTION_FACTOR);
+		client->ps.stats[STAT_SHIELD] -= (int)(save*ARMOR_REDUCTION_FACTOR);
 	}
 	else
 	{
-		client->ps.stats[STAT_ARMOR] -= save;
+		client->ps.stats[STAT_SHIELD] -= save;
 	}
 
 	return save; //origdamage;
@@ -5356,20 +5348,12 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			if(mod == MOD_REPEATER && attacker->client->lastHitmarkerTime < (level.time-250))
 			{
 				// Small hack to prevent the ACP array gun from ear-raping people so much --eez
-#ifndef __MMO__ // UQ1: This is just a sound and a message? Worth the spam????
 				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
-#else //!__MMO__
-				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
-#endif //__MMO__
 				attacker->client->lastHitmarkerTime = level.time;
 			}
 			else if(attacker->client->lastHitmarkerTime < (level.time-100))
 			{
-#ifndef __MMO__
 				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
-#else //!__MMO__
-				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
-#endif //__MMO__
 				attacker->client->lastHitmarkerTime = level.time;
 			}
 		}
@@ -5385,7 +5369,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		} else {
 			attacker->client->ps.persistant[PERS_HITS]++;
 		}
-		attacker->client->ps.persistant[PERS_ATTACKEE_ARMOR] = (targ->health<<8)|(client->ps.stats[STAT_ARMOR]);
+		attacker->client->ps.persistant[PERS_ATTACKEE_ARMOR] = (targ->health<<8)|(client->ps.stats[STAT_SHIELD]);
 	}
 
 	// always give half damage if hurting self... but not in siege.  Heavy weapons need a counter.
@@ -5425,7 +5409,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 				//((CVehicleNPC *)targ->NPC)->m_ulFlags |= CVehicleNPC::VEH_BUCKING;
 			}
 
-			targ->m_pVehicle->m_iShields = targ->client->ps.stats[STAT_ARMOR];
+			targ->m_pVehicle->m_iShields = targ->client->ps.stats[STAT_SHIELD];
 			G_VehUpdateShields( targ );
 			targ->m_pVehicle->m_iArmor -= take;
 			if ( targ->m_pVehicle->m_iArmor <= 0 ) 
@@ -5763,44 +5747,31 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 	if (shieldAbsorbed)
 	{
-		/*
-		if ( targ->client->NPC_class == CLASS_VEHICLE )
-		{
-			targ->client->ps.electrifyTime = level.time + Q_irand( 500, 1000 );
-		}
-		else
-		*/
-		{
-			gentity_t	*evEnt;
+		// Play the shield hit effect
+		gentity_t	*evEnt;
+		evEnt = G_TempEntity(targ->r.currentOrigin, EV_SHIELD_HIT);
+		evEnt->s.otherEntityNum = targ->s.number;
+		evEnt->s.eventParm = DirToByte(dir);
+		evEnt->s.time2=shieldAbsorbed;
+		
+		if (targ->client) {
+			targ->client->shieldRechargeLast = targ->client->shieldRegenLast = level.time;
 
-			// Send off an event to show a shield shell on the player, pointing in the right direction.
-			//evEnt = G_TempEntity(vec3_origin, EV_SHIELD_HIT);
-			//rww - er.. what the? This isn't broadcast, why is it being set on vec3_origin?!
-			evEnt = G_TempEntity(targ->r.currentOrigin, EV_SHIELD_HIT);
-			evEnt->s.otherEntityNum = targ->s.number;
-			evEnt->s.eventParm = DirToByte(dir);
-			evEnt->s.time2=shieldAbsorbed;
-	/*
-			shieldAbsorbed *= 20;
+			// Break the shield if it's dead
+			if (targ->client->ps.stats[STAT_SHIELD] <= 0) {
+				gentity_t* evEnt2;
+				evEnt2 = G_TempEntity(targ->r.currentOrigin, EV_SHIELD_BROKEN);
+				evEnt2->s.otherEntityNum = targ->s.number;
 
-			if (shieldAbsorbed > 1500)
-			{
-				shieldAbsorbed = 1500;
+				// Play the sound on the server, since clients don't know about other clients's inventories
+				for (auto it = targ->inventory->begin(); it != targ->inventory->end(); ++it) {
+					if (it->equipped && it->id->itemType == ITEM_SHIELD) {
+						if (it->id->shieldData.brokenSoundEffect[0]) {
+							G_Sound(targ, CHAN_AUTO, G_SoundIndex(it->id->shieldData.brokenSoundEffect));
+						}
+					}
+				}
 			}
-			if (shieldAbsorbed < 200)
-			{
-				shieldAbsorbed = 200;
-			}
-
-			if (targ->client->ps.powerups[PW_SHIELDHIT] < (level.time + shieldAbsorbed))
-			{
-				targ->client->ps.powerups[PW_SHIELDHIT] = level.time + shieldAbsorbed;
-			}
-			//flicker for as many ms as damage was absorbed (*20)
-			//therefore 10 damage causes 1/5 of a seond of flickering, whereas
-			//a full 100 causes 2 seconds (but is reduced to 1.5f seconds due to the max)
-
-	*/
 		}
 	}
 

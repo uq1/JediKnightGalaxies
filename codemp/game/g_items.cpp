@@ -395,10 +395,10 @@ int Pickup_Health (gentity_t *ent, gentity_t *other) {
 
 int Pickup_Armor( gentity_t *ent, gentity_t *other ) 
 {
-	other->client->ps.stats[STAT_ARMOR] += ent->item->quantity;
-	if ( other->client->ps.stats[STAT_ARMOR] > other->client->ps.stats[STAT_MAX_ARMOR] * ent->item->giTag )
+	other->client->ps.stats[STAT_SHIELD] += ent->item->quantity;
+	if ( other->client->ps.stats[STAT_SHIELD] > other->client->ps.stats[STAT_MAX_SHIELD] * ent->item->giTag )
 	{
-		other->client->ps.stats[STAT_ARMOR] = other->client->ps.stats[STAT_MAX_ARMOR] * ent->item->giTag;
+		other->client->ps.stats[STAT_SHIELD] = other->client->ps.stats[STAT_MAX_SHIELD] * ent->item->giTag;
 	}
 
 	return adjustRespawnTime(RESPAWN_ARMOR, ent->item->giType, ent->item->giTag);

@@ -680,6 +680,15 @@ Server tells client to remove item as well.
 */
 #ifdef _GAME
 void BG_RemoveItemStack(gentity_t* ent, int itemStack) {
+	itemInstance_t item = (*ent->inventory)[itemStack];
+
+	// If it's something we have equipped, remove it
+	if (ent->client && ent->client->shieldEquipped) {
+		if (item.equipped && item.id->itemType == ITEM_SHIELD) {
+			JKG_ShieldUnequipped(ent);
+		}
+	}
+
 	ent->inventory->erase(ent->inventory->begin() + itemStack);
 
 	BG_SendItemPacket(IPT_REM, ent, nullptr, itemStack, 0);
@@ -701,11 +710,14 @@ Server does NOT tell client to remove item
 void BG_RemoveItemNonNetworked(gentity_t* ent, itemInstance_t item) {
 	itemData_t* pItemData = item.id;
 	int quantity = item.quantity;
+
 	for(auto it = ent->inventory->begin(); it != ent->inventory->end() && quantity > 0; ++it) {
 		if (pItemData->itemID == it->id->itemID) {
 			// This item ID matches
 			if (quantity >= it->quantity) {
 				quantity -= it->quantity;
+				if (pItemData->itemType == ITEM_SHIELD)
+
 				it = ent->inventory->erase(it);
 			}
 			else {
@@ -775,7 +787,7 @@ void BG_AdjustItemStackQuantity(gentity_t* ent, int itemStack, int adjustment) {
 		trap->Print("client %i tried to change stack quantity of invalid slot %i!!\n", ent->s.number);
 		return;
 	}
-	BG_ChangeItemStackQuantity(ent, itemStack, (*cg.playerInventory)[itemStack].quantity + adjustment);
+	BG_ChangeItemStackQuantity(ent, itemStack, (*ent->inventory)[itemStack].quantity + adjustment);
 }
 #else
 void BG_AdjustItemStackQuantity(int itemStack, int adjustment) {
@@ -1021,6 +1033,8 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 		itemData->itemType = ITEM_CLOTHING;
 	else if (Q_stricmp(str, "consumable") == 0)
 		itemData->itemType = ITEM_CONSUMABLE;
+	else if (Q_stricmp(str, "shield") == 0)
+		itemData->itemType = ITEM_SHIELD;
 	else
 		itemData->itemType = ITEM_UNKNOWN;
 
@@ -1122,6 +1136,33 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 		// consumeAmount controls the amount of items in the stack that get consumed
 		jsonNode = cJSON_GetObjectItem(json, "consumeAmount");
 		itemData->consumableData.consumeAmount = cJSON_ToIntegerOpt(jsonNode, 1);
+	}
+	else if (itemData->itemType == ITEM_SHIELD) {
+		memset(&itemData->shieldData, 0, sizeof(itemData->shieldData));
+
+		jsonNode = cJSON_GetObjectItem(json, "capacity");
+		itemData->shieldData.capacity = cJSON_ToIntegerOpt(jsonNode, SHIELD_DEFAULT_CAPACITY);
+
+		jsonNode = cJSON_GetObjectItem(json, "cooldown");
+		itemData->shieldData.cooldown = cJSON_ToIntegerOpt(jsonNode, SHIELD_DEFAULT_COOLDOWN);
+
+		jsonNode = cJSON_GetObjectItem(json, "regenrate");
+		itemData->shieldData.regenrate = cJSON_ToIntegerOpt(jsonNode, SHIELD_DEFAULT_REGEN);
+
+		jsonNode = cJSON_GetObjectItem(json, "rechargeSoundEffect");
+		if (jsonNode) {
+			Q_strncpyz(itemData->shieldData.rechargeSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
+		}
+
+		jsonNode = cJSON_GetObjectItem(json, "brokenSoundEffect");
+		if (jsonNode) {
+			Q_strncpyz(itemData->shieldData.brokenSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
+		}
+
+		jsonNode = cJSON_GetObjectItem(json, "equippedSoundEffect");
+		if (jsonNode) {
+			Q_strncpyz(itemData->shieldData.equippedSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
+		}
 	}
 
 	cJSON_Delete(json);

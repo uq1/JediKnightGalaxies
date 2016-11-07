@@ -836,8 +836,8 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 		}
 
 		// count down armor when over max
-		if ( client->ps.stats[STAT_ARMOR] > client->ps.stats[STAT_MAX_ARMOR] ) {
-			client->ps.stats[STAT_ARMOR]--;
+		if ( client->ps.stats[STAT_SHIELD] > client->ps.stats[STAT_MAX_SHIELD] ) {
+			client->ps.stats[STAT_SHIELD]--;
 		}
 	}
 
@@ -1380,7 +1380,7 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 	if ( !VectorCompare( vec3_origin, ent->client->ps.velocity ) 
 		|| actionPressed || ucmd->forwardmove || ucmd->rightmove || ucmd->upmove 
 		|| !G_StandingAnim( ent->client->ps.legsAnim ) 
-		|| (ent->health+ent->client->ps.stats[STAT_ARMOR]) != ent->client->idleHealth
+		|| (ent->health+ent->client->ps.stats[STAT_SHIELD]) != ent->client->idleHealth
 		|| VectorLength(viewChange) > 10
 		|| ent->client->ps.legsTimer > 0
 		|| ent->client->ps.torsoTimer > 0
@@ -1399,7 +1399,7 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 
 		if ( !VectorCompare( vec3_origin, ent->client->ps.velocity ) 
 			|| actionPressed || ucmd->forwardmove || ucmd->rightmove || ucmd->upmove 
-			|| (ent->health+ent->client->ps.stats[STAT_ARMOR]) != ent->client->idleHealth
+			|| (ent->health+ent->client->ps.stats[STAT_SHIELD]) != ent->client->idleHealth
 			|| ent->client->ps.zoomMode
 			|| (ent->client->ps.weaponstate != WEAPON_READY && ent->client->ps.weapon != WP_SABER)
 			|| (ent->client->ps.weaponTime > 0 && ent->client->ps.weapon == WP_SABER)
@@ -1438,7 +1438,7 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 			}
 		}
 		//
-		ent->client->idleHealth = (ent->health+ent->client->ps.stats[STAT_ARMOR]);
+		ent->client->idleHealth = (ent->health+ent->client->ps.stats[STAT_SHIELD]);
 		VectorCopy(ent->client->ps.viewangles, ent->client->idleViewAngles);
 		if ( ent->client->idleTime < level.time )
 		{
@@ -2115,6 +2115,45 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 
 		//client->ns.saberMoveSwingSpeed = SaberStances[client->ps.fd.saberAnimLevel].moves[client->ps.saberMove].animspeedscale;
+	}
+
+	// Automatically regenerate health and shield
+	if (jkg_healthRegen.value > 0 && JKG_ClientAlive(ent)) {
+		if (ent->lastHealTime < level.time && (ent->damagePlumTime + jkg_healthRegenDelay.value) < level.time)
+		{
+			int maxHealth = ent->client->ps.stats[STAT_MAX_HEALTH];
+			int pctage = (maxHealth < 100) ? jkg_healthRegen.value : (maxHealth / 100) * jkg_healthRegen.value;		// Add 1% (of 1 HP, whichever is higher)
+			ent->health = ent->client->ps.stats[STAT_HEALTH] = (((ent->health + pctage) > maxHealth) ? maxHealth : ent->health + pctage);
+			ent->lastHealTime = level.time + jkg_healthRegenSpeed.value;
+		}
+	}
+
+	if (ent->client->shieldEquipped && ent->client->ps.stats[STAT_SHIELD] < ent->client->ps.stats[STAT_MAX_SHIELD] && JKG_ClientAlive(ent)) {
+		if (ent->client->shieldRechargeLast + ent->client->shieldRechargeTime < level.time) {
+			if (ent->client->shieldRegenLast + ent->client->shieldRegenTime < level.time) {
+				ent->client->ps.stats[STAT_SHIELD]++;
+				ent->client->shieldRegenLast = level.time + ent->client->shieldRegenTime;
+			}
+
+			if (ent->client->shieldRechargeLast + ent->client->shieldRechargeTime >= level.previousTime) {
+				// In the previous frame, our shield was not recharging
+
+				// Play the sound effect for the shield recharging, if one exists
+				for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+					if (it->equipped && it->id->itemType == ITEM_SHIELD) {
+						if (it->id->shieldData.rechargeSoundEffect[0]) {
+							G_Sound(ent, CHAN_AUTO, G_SoundIndex(it->id->shieldData.rechargeSoundEffect));
+
+							// Play the effect for shield recharging
+							gentity_t* evEnt;
+							evEnt = G_TempEntity(ent->r.currentOrigin, EV_SHIELD_RECHARGE);
+							evEnt->s.otherEntityNum = ent->s.number;
+						}
+						break;
+					}
+				}
+			}
+		}
 	}
 
 	// mark the time, so the connection sprite can be removed
@@ -3222,7 +3261,7 @@ void ClientThink_real( gentity_t *ent ) {
 	// PM will do its changes in there and afterwards we'll fetch the updated value
 	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation ))
 	{
-		weaponData_t* weaponData = GetWeaponData(ent->client->ps.weapon, ent->client.ps.weaponVariation);
+		weaponData_t* weaponData = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation);
 		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation) ];
 		ent->client->ps.ammo = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
 	}

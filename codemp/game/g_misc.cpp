@@ -1079,7 +1079,7 @@ void shield_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *a
 		self->setTime = level.time + 100;
 
 		maxArmor = activator->client->ps.stats[STAT_MAX_HEALTH];
-		dif = maxArmor - activator->client->ps.stats[STAT_ARMOR];
+		dif = maxArmor - activator->client->ps.stats[STAT_SHIELD];
 
 		if (dif > 0)					// Already at full armor?
 		{
@@ -1110,7 +1110,7 @@ void shield_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *a
 			self->fly_sound_debounce_time = level.time + 100;
 			self->activator = activator;
 
-			activator->client->ps.stats[STAT_ARMOR] += add;
+			activator->client->ps.stats[STAT_SHIELD] += add;
 
 		}
 	}

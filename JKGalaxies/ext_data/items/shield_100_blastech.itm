@@ -1,0 +1,13 @@
+{
+	"name":		"BlasTech Industrial Shield",
+	"internal":	"shield_blastech",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/hud/psd_medium",
+	
+	"capacity":	100,
+	"cooldown":	0,
+	"regenrate":	2000,
+
+	"brokenSoundEffect":	"sound/shield/shield_broken",
+	"equippedSoundEffect":	"sound/shield/shield_equipped2"
+}

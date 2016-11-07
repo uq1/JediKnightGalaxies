@@ -1046,7 +1046,7 @@ qboolean Initialize( Vehicle_t *pVeh )
 	parent->client->pers.maxHealth = parent->client->ps.stats[STAT_MAX_HEALTH] = parent->NPC->stats.health = parent->health = parent->client->ps.stats[STAT_HEALTH] = pVeh->m_iArmor;
 	pVeh->m_iShields = pVeh->m_pVehicleInfo->shields;
 	G_VehUpdateShields( parent );
-	parent->client->ps.stats[STAT_ARMOR] = pVeh->m_iShields;
+	parent->client->ps.stats[STAT_SHIELD] = pVeh->m_iShields;
 	}
 	parent->mass = pVeh->m_pVehicleInfo->mass;
 	//initialize the ammo to max
@@ -1185,16 +1185,16 @@ static qboolean Update( Vehicle_t *pVeh, const usercmd_t *pUmcd )
 
 	//increment shields for rechargable shields
 	if ( pVeh->m_pVehicleInfo->shieldRechargeMS
-		&& parentPS->stats[STAT_ARMOR] > 0 //still have some shields left
-		&& parentPS->stats[STAT_ARMOR] < pVeh->m_pVehicleInfo->shields//its below max
+		&& parentPS->stats[STAT_SHIELD] > 0 //still have some shields left
+		&& parentPS->stats[STAT_SHIELD] < pVeh->m_pVehicleInfo->shields//its below max
 		&& pUmcd->serverTime-pVeh->lastShieldInc >= pVeh->m_pVehicleInfo->shieldRechargeMS )//enough time has passed
 	{
-		parentPS->stats[STAT_ARMOR]++;
-		if ( parentPS->stats[STAT_ARMOR] > pVeh->m_pVehicleInfo->shields )
+		parentPS->stats[STAT_SHIELD]++;
+		if ( parentPS->stats[STAT_SHIELD] > pVeh->m_pVehicleInfo->shields )
 		{
-			parentPS->stats[STAT_ARMOR] = pVeh->m_pVehicleInfo->shields;
+			parentPS->stats[STAT_SHIELD] = pVeh->m_pVehicleInfo->shields;
 		}
-		pVeh->m_iShields = parentPS->stats[STAT_ARMOR];
+		pVeh->m_iShields = parentPS->stats[STAT_SHIELD];
 		G_VehUpdateShields( parent );
 	}
 

@@ -547,28 +547,28 @@ static int GLua_Player_MaxHealth_Set(lua_State *L) {
 static int GLua_Player_MaxArmor_Get(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_MAX_ARMOR]);
+	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_MAX_SHIELD]);
 	return 1;
 }
 
 static int GLua_Player_MaxArmor_Set(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	level.clients[ply->clientNum].ps.stats[STAT_MAX_ARMOR] = luaL_checkinteger(L, 2);
+	level.clients[ply->clientNum].ps.stats[STAT_MAX_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 
 static int GLua_Player_Armor_Get(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_ARMOR]);
+	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_SHIELD]);
 	return 1;
 }
 
 static int GLua_Player_Armor_Set(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	level.clients[ply->clientNum].ps.stats[STAT_ARMOR] = luaL_checkinteger(L, 2);
+	level.clients[ply->clientNum].ps.stats[STAT_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 

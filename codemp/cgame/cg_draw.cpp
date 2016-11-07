@@ -621,7 +621,7 @@ float CG_DrawVehicleShields( const menuDef_t	*menuHUD, const centity_t *veh )
 	}
 
 	maxShields = veh->m_pVehicle->m_pVehicleInfo->shields;
-	currValue = cg.predictedVehicleState.stats[STAT_ARMOR];
+	currValue = cg.predictedVehicleState.stats[STAT_SHIELD];
 	percShields = (float)currValue/(float)maxShields;
 	// Print all the tics of the shield graphic
 	// Look at the amount of health left and show only as much of the graphic as there is health.
@@ -5846,7 +5846,7 @@ static void CG_DrawTemporaryStats()
 
 	CG_DrawBigString(8, SCREEN_HEIGHT-dmgIndicSize, s, 1.0f);
 
-	sprintf(s, "Armor: %i", cg.snap->ps.stats[STAT_ARMOR]);
+	sprintf(s, "Armor: %i", cg.snap->ps.stats[STAT_SHIELD]);
 
 	CG_DrawBigString(8, SCREEN_HEIGHT-112, s, 1.0f);
 }
@@ -7510,9 +7510,6 @@ static void CG_Draw2D( void ) {
 				}
 	      
 				//CG_DrawTemporaryStats();
-#ifdef __SWF__
-				CG_DrawPic(0, 0, 60, 60, cgs.media.swfTestShader);
-#endif
 
 				CG_DrawAmmoWarning();
 

@@ -80,7 +80,7 @@ void NPC_GalakMech_Init( gentity_t *ent )
 {
 	if (ent->NPC->behaviorState != BS_CINEMATIC)
 	{
-		ent->client->ps.stats[STAT_ARMOR] = GALAK_SHIELD_HEALTH;
+		ent->client->ps.stats[STAT_SHIELD] = GALAK_SHIELD_HEALTH;
 		ent->NPC->investigateCount = ent->NPC->investigateDebounceTime = 0;
 		ent->flags |= FL_SHIELDED;//reflect normal shots
 		//rwwFIXMEFIXME: Support PW_GALAK_SHIELD
@@ -281,7 +281,7 @@ void NPC_GM_Pain(gentity_t *self, gentity_t *attacker, int damage)
 			NPC_SetSurfaceOnOff( self, "torso_antenna", TURN_OFF );
 			NPC_SetSurfaceOnOff( self, "torso_antenna_base_cap", TURN_ON );
 			self->client->ps.powerups[PW_GALAK_SHIELD] = 0;//temp, for effect
-			self->client->ps.stats[STAT_ARMOR] = 0;//no more armor
+			self->client->ps.stats[STAT_SHIELD] = 0;//no more armor
 			self->NPC->investigateDebounceTime = 0;//stop recharging
 
 			NPC_SetAnim( self, SETANIM_BOTH, BOTH_ALERT1, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
@@ -1246,7 +1246,7 @@ void NPC_BSGM_Default( void )
 		WeaponThink( qtrue );
 	}
 	
-	if ( NPC->client->ps.stats[STAT_ARMOR] <= 0 )
+	if ( NPC->client->ps.stats[STAT_SHIELD] <= 0 )
 	{//armor gone
 	//	if ( !NPCInfo->investigateDebounceTime )
 		if (0)
@@ -1275,7 +1275,7 @@ void NPC_BSGM_Default( void )
 				VectorCopy( shieldMins, NPC->r.mins );
 				VectorCopy( shieldMaxs, NPC->r.maxs );
 				NPC->client->ps.crouchheight = NPC->client->ps.standheight = shieldMaxs[2];
-				NPC->client->ps.stats[STAT_ARMOR] = GALAK_SHIELD_HEALTH;
+				NPC->client->ps.stats[STAT_SHIELD] = GALAK_SHIELD_HEALTH;
 				NPCInfo->investigateDebounceTime = 0;
 				NPC->flags |= FL_SHIELDED;//reflect normal shots
 			//	NPC->fx_time = level.time;
@@ -1284,7 +1284,7 @@ void NPC_BSGM_Default( void )
 		}
 	}
 	/*
-	if ( NPC->client->ps.stats[STAT_ARMOR] > 0 )
+	if ( NPC->client->ps.stats[STAT_SHIELD] > 0 )
 	{//armor present
 		NPC->client->ps.powerups[PW_GALAK_SHIELD] = Q3_INFINITE;//temp, for effect
 		NPC_SetSurfaceOnOff( NPC, "torso_shield", TURN_ON );

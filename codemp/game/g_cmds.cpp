@@ -197,7 +197,6 @@ DeathmatchScoreboardMessage
 ==================
 */
 void DeathmatchScoreboardMessage( gentity_t *ent ) {
-#ifndef __MMO__ 
 	// UQ1: This is a very spammy one!
 	// Suggest, use an event for each player. Staggered over time. 
 	// Scores don't need to be instant, and in future maybe not even needed until after a match.
@@ -249,7 +248,6 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 	trap->SendServerCommand( ent-g_entities, va("scores %i %i %i%s", i, 
 		level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE],
 		string ) );
-#endif //__MMO__
 }
 
 /*
@@ -494,6 +492,19 @@ void JKG_ConsumeItem_f(gentity_t* ent) {
 	if (!BG_ConsumeItem(ent, argNum)) {
 		trap->SendServerCommand(ent - g_entities, "print \"Could not consume that item - either it is not a consumable or it is not a valid inventory item\n\"");
 	}
+}
+
+/*
+==================
+JKG_EquipShield_f
+
+==================
+*/
+void JKG_EquipShield_f(gentity_t* ent) {
+	char* args = ConcatArgs(1);
+	int argNum = atoi(args);
+
+	JKG_ShieldEquipped(ent, argNum, qtrue);
 }
 
 /*
@@ -780,12 +791,12 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 			return;
 	}
 
-	if ( give_all || !Q_stricmp( name, "armor" ) || !Q_stricmp( name, "shield" ) )
+	if ( give_all || !Q_stricmp( name, "shield" ) )
 	{
 		if ( argc == 3 )
-			ent->client->ps.stats[STAT_ARMOR] = Com_Clampi( 0, ent->client->ps.stats[STAT_MAX_ARMOR], atoi( args ) );
+			ent->client->ps.stats[STAT_SHIELD] = Com_Clampi( 0, ent->client->ps.stats[STAT_MAX_SHIELD], atoi( args ) );
 		else
-			ent->client->ps.stats[STAT_ARMOR] = ent->client->ps.stats[STAT_MAX_ARMOR];
+			ent->client->ps.stats[STAT_SHIELD] = ent->client->ps.stats[STAT_MAX_SHIELD];
 
 		if ( !give_all )
 			return;
@@ -1710,7 +1721,11 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 			}
 		}
 	}
-	ent->client->ps.credits += creditAmount / 2;
+	else if (item.id->itemType == ITEM_SHIELD && item.equipped) {
+		// If we're selling an equipped shield, kill it
+		JKG_ShieldUnequipped(ent);
+	}
+	ent->client->ps.credits += (creditAmount * item.quantity) / 2;
 	BG_RemoveItemStack(ent, nInvID);
 	trap->SendServerCommand(ent->s.number, va("inventory_update %i", ent->client->ps.credits));
 }
@@ -4892,6 +4907,14 @@ void ClientCommand( int clientNum ) {
 	else if (Q_stricmp(cmd, "inventorySell") == 0)
 	{
 		JKG_Cmd_SellItem_f(ent);
+	}
+	else if (Q_stricmp(cmd, "equipShield") == 0)
+	{
+		JKG_EquipShield_f(ent);
+	}
+	else if (Q_stricmp(cmd, "unequipShield") == 0)
+	{
+		JKG_ShieldUnequipped(ent);
 	}
 	else if (Q_stricmp(cmd, "testSetSaber1") == 0)
 	{

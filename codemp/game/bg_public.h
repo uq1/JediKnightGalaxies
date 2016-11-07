@@ -93,71 +93,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // Sprint animation time --eez
 #define SPRINT_TIME			(300)
 
-#ifdef __MMO__
-
-//
-// config strings are a general means of communicating variable length strings
-// from the server to all connected clients.
-//
-
-// CS_SERVERINFO and CS_SYSTEMINFO are defined in q_shared.h
-#define	CS_MUSIC				2
-#define	CS_MESSAGE				3		// from the map worldspawn's message field
-#define	CS_MOTD					4		// g_motd string for server message of the day
-#define	CS_WARMUP				5		// server time when the match will be restarted
-#define	CS_SCORES1				6
-#define	CS_SCORES2				7
-#define CS_VOTE_TIME			8
-#define CS_VOTE_STRING			9
-#define	CS_VOTE_YES				10
-#define	CS_VOTE_NO				11
-
-#define CS_TEAMVOTE_TIME		12
-#define CS_TEAMVOTE_STRING		14
-#define	CS_TEAMVOTE_YES			16
-#define	CS_TEAMVOTE_NO			18
-
-#define	CS_GAME_VERSION			20
-#define	CS_LEVEL_START_TIME		21		// so the timer only shows the current level
-#define	CS_INTERMISSION			22		// when 1, fraglimit/timelimit has been hit and intermission will start in a second or two
-#define CS_FLAGSTATUS			23		// string indicating flag status in CTF
-#define CS_SHADERSTATE			24
-#define CS_BOTINFO				25
-
-#define	CS_ITEMS				27		// string of 0's and 1's that tell which items are present
-
-#define CS_CLIENT_DUELWINNER	28		// current duel round winner - needed for printing at top of scoreboard
-#define CS_CLIENT_DUELISTS		29		// client numbers for both current duelists. Needed for a number of client-side things.
-#define CS_CLIENT_DUELHEALTHS	30		// nmckenzie: DUEL_HEALTH.  Hopefully adding this cs is safe and good?
-#define CS_GLOBAL_AMBIENT_SET	31
-
-#define CS_AMBIENT_SET			36	
-
-#define	CS_MODELS				(CS_AMBIENT_SET+MAX_AMBIENT_SETS)
-#define	CS_SKYBOXORG			(CS_MODELS+MAX_MODELS)		//rww - skybox info
-#define	CS_SOUNDS				(CS_SKYBOXORG+1)
-#define CS_ICONS				(CS_SOUNDS+MAX_SOUNDS)
-//#define	CS_PLAYERS				(CS_ICONS+MAX_ICONS)
-#define	CS_PLAYERS				(CS_ICONS+MAX_ICONS)
-//#define CS_G2BONES				(CS_PLAYERS+MAX_CLIENTS)
-//#define CS_G2BONES				(CS_PLAYERS+MAX_ICONS) // UQ1: Set this to MAX_ICONS (64) for now... See what happens...
-#define CS_G2BONES				(CS_PLAYERS+1) // UQ1: Just enough for the 1 bone ent we still use...
-#define CS_LOCATIONS			(CS_G2BONES+MAX_G2BONES)
-#define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS) 
-#define CS_EFFECTS				(CS_PARTICLES+MAX_LOCATIONS)
-#define	CS_LIGHT_STYLES			(CS_EFFECTS + MAX_FX)
-
-//rwwRMG - added:
-#define CS_TERRAINS				(CS_LIGHT_STYLES + (MAX_LIGHT_STYLES*3))
-#define CS_BSP_MODELS			(CS_TERRAINS + MAX_TERRAINS)
-
-// Jedi Knight Galaxies - Gang Wars
-#define CS_TEAMS				(CS_BSP_MODELS + MAX_SUB_BSP)
-
-#define CS_MAX					(CS_TEAMS + 1)
-
-#else //!__MMO__
-
 //
 // config strings are a general means of communicating variable length strings
 // from the server to all connected clients.
@@ -223,8 +158,6 @@ Ghoul2 Insert End
 
 #define CS_MAX					(CS_TEAMS + 1)
 
-#endif //__MMO__
-
 #if (CS_MAX) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
 #endif
@@ -289,12 +222,6 @@ typedef enum {
 	GT_DUEL,		// one on one tournament
 	GT_POWERDUEL,		// one on two tournament
 	GT_SINGLE_PLAYER,	// single player ffa
-
-#ifdef __RPG__
-	// UQ1: Added... Need to update gametypes file and menus to match...
-	GT_RPG_CITY,		// UQ1: New combined gametypes gametype. City area version.
-	GT_RPG_WILDERNESS,	// UQ1: New combined gametypes gametype. Wilderness area version.
-#endif //__RPG__
 
 	//-- team games go after this --
 
@@ -678,12 +605,12 @@ typedef enum {
 	//MAKE SURE STAT_WEAPONS REMAINS 4!!!!
 	//There is a hardcoded reference in msg.cpp to send it in 32 bits -rww
 	STAT_WEAPONS = 4,					// 16 bit fields
-	STAT_ARMOR,
+	STAT_SHIELD,
 	STAT_DEAD_YAW,					// look this direction when dead (FIXME: get rid of?)
 	STAT_CLIENTS_READY,				// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
 	STAT_MAX_HEALTH,				// Maximum health
 	// Jedi Knight Galaxies
-	STAT_MAX_ARMOR,					// Maximum shield/armor
+	STAT_MAX_SHIELD,				// Maximum shield
 	STAT_AMMO,						// Ammo in current weapon (ps->ammo contains total ammo in clips))
 	STAT_ACCURACY,					// Extra accuracy rating from weapon
 	STAT_CAPTURE_ENTITYNUM			// Warzone Flag Capture Entity...
@@ -807,7 +734,7 @@ typedef enum {
 	PW_REDFLAG,
 	PW_BLUEFLAG,
 
-	PW_SHIELDHIT, // FIXME: remove
+	PW_SHIELDHIT,
 
 	PW_SPEEDBURST,
 	PW_DISINT_4,
@@ -980,6 +907,8 @@ typedef enum {
 	EV_WEAPON_CHARGE_ALT,
 
 	EV_SHIELD_HIT,
+	EV_SHIELD_BROKEN,
+	EV_SHIELD_RECHARGE,
 
 	EV_DEBUG_LINE,
 	EV_TESTLINE,
@@ -1079,11 +1008,6 @@ typedef enum {
 	EV_GRENADE_COOK,
 	EV_EXPLOSIVE_ARM,
 	EV_MISSILE_DIE,
-#ifdef __MMO__
-	EV_GOTO_ACI,		//Go to specific ACI slot (inexpensive)
-	EV_HITMARKER_ASSIST,
-	EV_HITMARKER_KILL,
-#endif //__MMO__
 } entity_event_t;			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
 
 
@@ -1125,18 +1049,6 @@ typedef enum {
 
 // How many players on the overlay
 #define TEAM_MAXOVERLAY		32
-
-//team task
-typedef enum {
-	TEAMTASK_NONE,
-	TEAMTASK_OFFENSE,
-	TEAMTASK_DEFENSE,
-	TEAMTASK_PATROL,
-	TEAMTASK_FOLLOW,
-	TEAMTASK_RETRIEVE,
-	TEAMTASK_ESCORT,
-	TEAMTASK_CAMP
-} teamtask_t;
 
 // means of death
 typedef enum {

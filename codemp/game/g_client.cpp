@@ -744,14 +744,6 @@ BODYQUE
 =======================================================================
 */
 
-/*
-=======================================================================
-
-BODYQUE
-
-=======================================================================
-*/
-
 #define BODY_SINK_TIME		30000//45000
 
 /*
@@ -880,9 +872,7 @@ static qboolean CopyToBodyQue( gentity_t *ent ) {
 		islight = 1;
 	}
 
-#ifndef __MMO__
 	trap->SendServerCommand(-1, va("ircg %i %i %i %i %i", ent->s.number, body->s.number, body->s.weapon, body->s.weaponVariation, islight));
-#endif //__MMO__
 
 	body->r.svFlags = ent->r.svFlags | SVF_BROADCAST;
 	VectorCopy (ent->r.mins, body->r.mins);
@@ -990,6 +980,27 @@ void JKG_PermaSpectate(gentity_t *ent)
 		ent->takedamage = qfalse;
 		//trap->LinkEntity(ent);
 	}
+}
+
+qboolean JKG_ClientAlive(gentity_t* ent)
+{
+	if (ent->client->sess.sessionTeam == TEAM_SPECTATOR) {
+		return qfalse;
+	}
+
+	if (ent->client->tempSpectate > level.time) {
+		return qfalse;
+	}
+
+	if (ent->health <= 0 || ent->client->ps.stats[STAT_HEALTH] <= 0) {
+		return qfalse;
+	}
+
+	if (ent->client->deathcamTime && level.time > ent->client->deathcamTime) {
+		return qfalse;
+	}
+
+	return qtrue;
 }
 
 /*
@@ -1861,9 +1872,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	char c2[MAX_INFO_STRING] = {0};
 	char sex[MAX_INFO_STRING] = {0};
 	qboolean modelChanged = qfalse;
-#if defined(__MMO__)
-	qboolean female = qfalse;
-#endif
 
 	trap->GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 
@@ -1979,17 +1987,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	//Testing to see if this fixes the problem with a bot's team getting set incorrectly.
 	team = client->sess.sessionTeam;
 
-	// set max health
-	{
-		char *test = strchr(jkg_startingStats.string, '/');
-		char test2[16];
-		int len = test - jkg_startingStats.string;
-
-		strncpy(test2, jkg_startingStats.string, len);
-		test2[len] = '\0';
-
-		maxHealth = atoi(test2);
-	}
 	health = maxHealth; //atoi( Info_ValueForKey( userinfo, "handicap" ) );
 	client->pers.maxHealth = health;
 	// When the hell would the below ever be valid? NEVER --eez
@@ -2018,41 +2015,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 
 	Q_strncpyz( sex, Info_ValueForKey( userinfo, "sex"), sizeof( sex ) );
 
-//	strcpy(redTeam, Info_ValueForKey( userinfo, "g_redteam" ));
-//	strcpy(blueTeam, Info_ValueForKey( userinfo, "g_blueteam" ));
-
-#ifdef __MMO__
-	// UQ1: MY GOD! THE DIFFERENCE IN SPEED!!!!!!
-	// eez: Fixed, the define was backwards
-	// UQ1: Actually it was correct. This version sends less data for MMO mode. Some of the missing data is still needed in phase 1.
-
-	// send over a subset of the userinfo keys so other clients can
-	// print scoreboards, display models, and play custom sounds
-	buf[0] = '\0';
-	Q_strcat( buf, sizeof( buf ), va( "n\\%s\\", client->pers.netname ) );
-	Q_strcat( buf, sizeof( buf ), va( "t\\%i\\", client->sess.sessionTeam ) );
-	Q_strcat( buf, sizeof( buf ), va( "model\\%s\\", model ) );
-	Q_strcat( buf, sizeof( buf ), va( "ds\\%c\\", female ? 'f' : 'm' ) );
-	Q_strcat( buf, sizeof( buf ), va( "st\\%s\\", client->pers.saber1 ) );
-	Q_strcat( buf, sizeof( buf ), va( "st2\\%s\\", client->pers.saber2 ) );
-	Q_strcat( buf, sizeof( buf ), va( "c1\\%s\\", c1 ) );
-	Q_strcat( buf, sizeof( buf ), va( "c2\\%s\\", c2 ) );
-	Q_strcat( buf, sizeof( buf ), va( "hc\\%i\\", client->pers.maxHealth ) );
-	if ( ent->r.svFlags & SVF_BOT )
-		Q_strcat( buf, sizeof( buf ), va( "skill\\%s\\", Info_ValueForKey( userinfo, "skill" ) ) );
-	if ( level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL ) {
-		Q_strcat( buf, sizeof( buf ), va( "w\\%i\\", client->sess.wins ) );
-		Q_strcat( buf, sizeof( buf ), va( "l\\%i\\", client->sess.losses ) );
-	}
-	if ( level.gametype == GT_POWERDUEL )
-		Q_strcat( buf, sizeof( buf ), va( "dt\\%i\\", client->sess.duelTeam ) );
-	if ( level.gametype >= GT_TEAM ) {
-	//	Q_strcat( buf, sizeof( buf ), va( "tt\\%d\\", teamTask ) );
-		Q_strcat( buf, sizeof( buf ), va( "tl\\%d\\", teamLeader ) );
-	}
-	trap->GetConfigstring( CS_PLAYERS+clientNum, oldClientinfo, sizeof( oldClientinfo ) );
-	trap->SetConfigstring( CS_PLAYERS+clientNum, buf );
-#else //!__MMO__
 	// send over a subset of the userinfo keys so other clients can
 	// print scoreboards, display models, and play custom sounds
 	s = va("n\\%s\\t\\%i\\model\\%s\\w\\%i\\l\\%i\\dt\\%i\\sex\\%s",
@@ -2060,7 +2022,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 		client->sess.wins, client->sess.losses, client->sess.duelTeam, sex);
 	trap->GetConfigstring( CS_PLAYERS+clientNum, oldClientinfo, sizeof( oldClientinfo ) );
 	trap->SetConfigstring( CS_PLAYERS+clientNum, s );
-#endif //__MMO__
 
 	if ( modelChanged ) //only going to be true for allowable server-side custom skeleton cases
 	{ //update the server g2 instance if appropriate
@@ -2906,19 +2867,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	/* This player deserves an update, since he just joined a new team */
 	ent->client->pers.partyUpdate = qtrue;
 
-	// testing testing testing --eez
-	//ent->x.testInt = Q_irand(100,200);
-
-	/*for ( i = 0 ; i < MAX_WEAPONS ; i++ ) {
-		ent->client->ps.ammo[i] = 999;
-	}*/
-
 	//first we want the userinfo so we can see if we should update this client's saber -rww
-	/*if (level.clients[ent->s.clientNum].deathcamTime) {
-		level.clients[ent->s.clientNum].deathcamTime = 0;
-		if (!(ent->r.svFlags & SVF_BOT))
-			trap->SendServerCommand(ent->s.clientNum, "dcr");
-	}*/
 	trap->GetUserinfo( index, userinfo, sizeof(userinfo) );
 	while (l < MAX_SABERS)
 	{
@@ -3275,16 +3224,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	}
 	// clear entity values
 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
-	{
-		char *test = strchr(jkg_startingStats.string, '/');
-		char test2[16];
-		int len = test - jkg_startingStats.string;
 
-		strncpy(test2, jkg_startingStats.string, len);
-		test2[len] = '\0';
-
-		client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth = atoi(test2);
-	}
 	client->ps.eFlags = flags;
 	client->mGameFlags = gameFlags;
 
@@ -3410,24 +3350,8 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	// health will count down towards max_health
 	ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
 
-	client->ps.stats[STAT_MAX_ARMOR] = 100; // Default armor max
-	// Start with a small amount of armor as well.
-	if ( level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL )
-	{//no armor in duel
-		client->ps.stats[STAT_ARMOR] = 0;
-	}
-	else
-	{
-		char *test = strchr(jkg_startingStats.string, '/');
-		char test2[16];
-		int len;
-		test++;
-		len = strlen(jkg_startingStats.string)-(test-jkg_startingStats.string);
-
-		strncpy(test2, test, len);
-		test2[len] = '\0';
-		client->ps.stats[STAT_ARMOR] = client->ps.stats[STAT_MAX_ARMOR] * (float)(atoi(test2)/100.0f);
-	}
+	client->ps.stats[STAT_MAX_SHIELD] = 100; // Default armor max
+	client->ps.stats[STAT_SHIELD] = 0;
 
 	G_SetOrigin( ent, spawn_origin );
 	VectorCopy( spawn_origin, client->ps.origin );
@@ -3560,11 +3484,9 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 		ent->client->invulnerableTimer = level.time + g_spawnInvulnerability.integer;
 	}
 
-//#ifndef __MMO__
 	// UQ1: Again, use an event :)
 	if (!(ent->r.svFlags & SVF_BOT))
 		trap->SendServerCommand(ent->s.number, "dcr");
-//#endif //__MMO__
 
 	// Loop through the items in our inventory to determine ammo count
 	memset(topAmmoValues, 0, sizeof(topAmmoValues));
@@ -3593,6 +3515,16 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 		ent->client->clipammo[i] = GetWeaponAmmoClip (weapBase, weapVar);
 	}
 
+	// Check for shield equipping
+	if (ent->inventory) {
+		for (i = 0; i < ent->inventory->size(); i++) {
+			auto it = ent->inventory->begin() + i;
+			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
+				JKG_ShieldEquipped(ent, i, qfalse);
+			}
+		}
+	}
+
 	GLua_Hook_PlayerSpawned(ent->s.number);
 
 	// run the presend to set anything else
@@ -3607,11 +3539,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	trap->ICARUS_InitEnt( (sharedEntity_t *)ent );
 
 	// set their weapon
-#ifndef __MMO__
 	trap->SendServerCommand(client->ps.clientNum, "aciset 1");
-#else //__MMO__
-	G_AddEvent(ent, EV_GOTO_ACI, 1);
-#endif //__MMO__
 
 	// send important shop data to them ~eez
 	
