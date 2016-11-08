@@ -6,6 +6,6 @@
 	"variation":		"7",
 	"weight":		"2",
 	"cost":		"1025",
-	"xml":			"",
+	"maxStack":		5,
 	"itemIcon":		"models/weapons/grenade_cryoban/icon_default"
 }

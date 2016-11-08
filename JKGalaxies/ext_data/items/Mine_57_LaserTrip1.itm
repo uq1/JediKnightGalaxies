@@ -6,6 +6,6 @@
 	"variation":		"0",
 	"weight":		"1",
 	"cost":		"800",
-	"xml":			"Trip_Mine.xml",
+	"maxStack":		5,
 	"itemIcon":		"models/weapons/Mine_LaserTrip/icon_default"
 }

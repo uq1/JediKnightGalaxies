@@ -6,6 +6,6 @@
 	"variation":		"0",
 	"weight":		"1",
 	"cost":		"550",
-	"xml":			"xml/items/Sequencer_Charge.xml",
+	"maxStack":		5,
 	"itemIcon":		"models/weapons/Charge_Sequencer/icon_default"
 }

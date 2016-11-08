@@ -6,6 +6,6 @@
 	"variation":		"1",
 	"weight":		"1",
 	"cost":		"1050",
-	"xml":			"",
+	"maxStack":		5,
 	"itemIcon":		"models/weapons/Mine_LaserTrip/icon_mk2"
 }

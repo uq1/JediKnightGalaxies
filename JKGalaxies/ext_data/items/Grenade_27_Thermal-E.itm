@@ -6,6 +6,6 @@
 	"variation":		"2",
 	"weight":		"2",
 	"cost":		"1200",
-	"xml":			"xml/items/Class-E_Det.xml",
+	"maxStack":		3,
 	"itemIcon":		"models/weapons/Grenade_thermal/icon_default"
 }

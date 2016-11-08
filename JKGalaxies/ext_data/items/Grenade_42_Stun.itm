@@ -6,6 +6,6 @@
 	"variation":		"9",
 	"weight":		"1",
 	"cost":		"475",
-	"xml":			"",
+	"maxStack":		20,
 	"itemIcon":		"models/weapons/Grenade_Stun/icon_default"
 }

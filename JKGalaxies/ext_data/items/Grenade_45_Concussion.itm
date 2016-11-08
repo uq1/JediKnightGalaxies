@@ -6,6 +6,6 @@
 	"variation":		"6",
 	"weight":		"1",
 	"cost":		"450",
-	"xml":			"",
+	"maxStack":		10,
 	"itemIcon":		"models/weapons/Grenade_Concussion/icon_default"
 }

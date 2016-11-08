@@ -1995,19 +1995,38 @@ gentity_t *currentPMEnt = 0;
 // Call this BEFORE ps.weapon changes!
 void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation) {
 	gentity_t *ent = currentPMEnt;
-	
+	usercmd_t cmd;
+	weaponData_t* newWeapon = GetWeaponData(newweapon, newvariation);
+	weaponData_t* oldWeapon = GetWeaponData(ps->weapon, ps->weaponVariation);
+
+	trap->GetUsercmd(ps->clientNum, &cmd);
+
+	// Determine whether our new weapon is valid.
+	int selectedWeapon = cmd.invensel;
+	if (selectedWeapon >= ent->inventory->size() || selectedWeapon < 0) {
+		Com_Printf("Client %i selected inventory item %i (their inventory is only size %i!!)\n", ps->clientNum, selectedWeapon, ent->inventory->size());
+		return;
+	}
+
 	// Store the current ammo amount
-	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation ) != -1 )
+	if ( !oldWeapon->firemodes[0].useQuantity && oldWeapon->clipSize != -1 )
 	{
 		ent->client->clipammo[BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation)] = ent->client->ps.stats[STAT_AMMO];
 		ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)] = ent->client->ps.stats[STAT_TOTALAMMO];
 	}
 
-	// Get the new weapon's ammo stored in STAT_AMMO
-	if ( GetWeaponAmmoClip( newweapon, newvariation ) != -1 )
+	if ( !newWeapon->firemodes[0].useQuantity && newWeapon->clipSize != -1 )
 	{
+		// Get the new weapon's ammo stored in STAT_AMMO
 		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndexFromClass(newweapon, newvariation) ];
 		ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(newweapon, newvariation)];
+	}
+	else if (newWeapon->firemodes[0].useQuantity) {
+		// Get the weapon's ammo from the actual item's quantity
+		itemInstance_t* item = &(*ent->inventory)[selectedWeapon];
+
+		ent->client->ps.stats[STAT_AMMO] = item->quantity;
+		ent->client->ps.stats[STAT_TOTALAMMO] = item->quantity;
 	}
 }
 
@@ -3257,13 +3276,20 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 	}
 
-	// Since PM cant access clipammo, we'll put it in STAT_AMMO
-	// PM will do its changes in there and afterwards we'll fetch the updated value
-	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation ))
-	{
-		weaponData_t* weaponData = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation);
-		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation) ];
-		ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+	// Copy the ammo from the client ammo table into their networked stat
+	weaponData_t* weaponData = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation);
+	int inventoryItem = pmove.cmd.invensel;
+	if (inventoryItem > 0 && inventoryItem < ent->inventory->size()) {
+		// If we're using a weapon that uses stack quantity instead of ammo for its firing mode, we need to copy the quantity to the ammo
+		if (weaponData->numFiringModes > 0 && weaponData->firemodes[0].useQuantity) {
+			itemInstance_t* item = &(*ent->inventory)[inventoryItem];
+			ent->client->ps.stats[STAT_AMMO] = item->quantity;
+			ent->client->ps.stats[STAT_TOTALAMMO] = item->quantity;
+		}
+		else if (weaponData->clipSize) {
+			ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+		}
 	}
 
 	/* JKG - When a cooked grenade should explode in your hand.. */
@@ -3877,6 +3903,10 @@ void ClientEndFrame( gentity_t *ent ) {
 	int			i;
 	clientPersistant_t	*pers;
 	qboolean isNPC = qfalse;
+	usercmd_t clientcmd;
+	int selectedItem;
+
+	trap->GetUsercmd(ent->s.number, &clientcmd);
 
 	if (ent->s.eType == ET_NPC)
 	{
@@ -3934,11 +3964,26 @@ void ClientEndFrame( gentity_t *ent ) {
 	}
 
 	// Jedi Knight Galaxies - Update ammo of current weapon
-	ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
-	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation )) {
-		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation) ];
-	} else {
-		ent->client->ps.stats[STAT_AMMO] = ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+	selectedItem = clientcmd.invensel;
+	if (selectedItem >= 0 && selectedItem < ent->inventory->size()) {
+		weaponData_t* weaponData = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation);
+
+		if (weaponData->numFiringModes > 0 && weaponData->firemodes[0].useQuantity) {
+			// If useQuantity on the first firing mode is true, then we need to copy from the item stack's quantity
+			itemInstance_t* item = &(*ent->inventory)[selectedItem];
+			ent->client->ps.stats[STAT_TOTALAMMO] = item->quantity;
+			ent->client->ps.stats[STAT_AMMO] = item->quantity;
+		}
+		else {
+			// Use the regular ammo table instead
+			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[weaponData->ammoIndex];
+			if (weaponData->clipSize) {
+				ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[BG_GetWeaponIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+			}
+			else {
+				ent->client->ps.stats[STAT_AMMO] = ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[weaponData->ammoIndex];
+			}
+		}
 	}
 
 	ent->client->ps.stats[STAT_HEALTH] = ent->health;	// FIXME: get rid of ent->health...

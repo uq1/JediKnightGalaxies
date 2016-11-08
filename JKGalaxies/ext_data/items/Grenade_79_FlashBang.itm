@@ -6,6 +6,6 @@
 	"variation":		"0",
 	"weight":		"1",
 	"cost":		"325",
-	"xml":			"xml/items/Flash-Bang.xml",
+	"maxStack":		20,
 	"itemIcon":		"models/weapons/Grenade_FlashBang/icon_default"
 }

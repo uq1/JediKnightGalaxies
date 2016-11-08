@@ -6,6 +6,6 @@
 	"variation":		"5",
 	"weight":		"2",
 	"cost":		"1200",
-	"xml":			"",
+	"maxStack":		5,
 	"itemIcon":		"models/weapons/Grenade_CodeKey/icon_default"
 }
