@@ -30,8 +30,6 @@ extern int forcePowerNeeded[NUM_FORCE_POWER_LEVELS][NUM_FORCE_POWERS];
 qboolean G_PointInBounds( vec3_t point, vec3_t mins, vec3_t maxs );
 qboolean G_NameInTriggerClassList(char *list, char *str);
 
-extern siegeClass_t *BG_GetClassOnBaseClass(const int team, const short classIndex, const short cntIndex);
-
 extern void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *soundPath );
 
 //inits
@@ -4040,7 +4038,7 @@ void DOM_BotBehave_AttackMove(bot_state_t *bs)
 	if ( g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_AMMO] <= 0 )
 	{
 		//trap->Print("DEBUG: Reload!\n");
-		g_entities[bs->cur_ps.clientNum].client->ps.ammo = 100; // UQ1: NPCs need to cheat a little :)
+		g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_TOTALAMMO] = 100; // UQ1: NPCs need to cheat a little :)
 		g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_AMMO] = 100; // UQ1: NPCs need to cheat a little :)
 		g_entities[bs->cur_ps.clientNum].client->clipammo[bs->cur_ps.weapon] = 100;//GetWeaponAmmoClip( bs->cur_ps.weapon, g_entities[bs->cur_ps.clientNum].s.weaponVariation );
 

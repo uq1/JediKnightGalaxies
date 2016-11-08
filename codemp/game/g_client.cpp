@@ -975,8 +975,6 @@ void JKG_PermaSpectate(gentity_t *ent)
 		ent->client->ps.weapon = WP_NONE;
 		ent->client->ps.weaponVariation = 0;
 		ent->client->ps.stats[STAT_WEAPONS] = 0;
-		ent->client->ps.stats[STAT_HOLDABLE_ITEMS] = 0;
-		ent->client->ps.stats[STAT_HOLDABLE_ITEM] = 0;
 		ent->takedamage = qfalse;
 		//trap->LinkEntity(ent);
 	}
@@ -3269,14 +3267,9 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
         client->ps.weaponVariation = variation;
 	}
 
-	client->ps.stats[STAT_HOLDABLE_ITEMS] = 0;
-	client->ps.stats[STAT_HOLDABLE_ITEM] = 0;
-
 	if ( client->sess.sessionTeam == TEAM_SPECTATOR )
 	{
 		client->ps.stats[STAT_WEAPONS] = 0;
-		client->ps.stats[STAT_HOLDABLE_ITEMS] = 0;
-		client->ps.stats[STAT_HOLDABLE_ITEM] = 0;
 	}
 	else
 	{
@@ -3503,7 +3496,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	}
 	// FIXME: copy to proper ammo array in ent->client
 	memcpy(ent->client->ammoTable, topAmmoValues, sizeof(ent->client->ammoTable));	//Copy the top values to our ammo info
-	ent->client->ps.ammo = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation)->ammoOnSpawn;
+	ent->client->ps.stats[STAT_TOTALAMMO] = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation)->ammoOnSpawn;
 
 	for ( i = 0; i <= 255; i++ )
 	{

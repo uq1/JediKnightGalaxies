@@ -689,7 +689,7 @@ void CG_DrawVehicleAmmo( const menuDef_t *menuHUD, const centity_t *veh )
 	}
 
 	maxAmmo = veh->m_pVehicle->m_pVehicleInfo->weapon[0].ammoMax;
-	currValue = cg.predictedVehicleState.ammo;
+	currValue = cg.predictedVehicleState.stats[STAT_TOTALAMMO];
 	
 	inc = (float) maxAmmo / MAX_VHUD_AMMO_TICS;
 	for (i=1;i<=MAX_VHUD_AMMO_TICS;i++)
@@ -760,7 +760,7 @@ void CG_DrawVehicleAmmoUpper( const menuDef_t *menuHUD, const centity_t *veh )
 	}
 
 	maxAmmo = veh->m_pVehicle->m_pVehicleInfo->weapon[0].ammoMax;
-	currValue = cg.predictedVehicleState.ammo;
+	currValue = cg.predictedVehicleState.stats[STAT_TOTALAMMO];
 
 	inc = (float) maxAmmo / MAX_VHUD_AMMO_TICS;
 	for (i=1;i<MAX_VHUD_AMMO_TICS;i++)
@@ -832,7 +832,7 @@ void CG_DrawVehicleAmmoLower( const menuDef_t *menuHUD, const centity_t *veh )
 	}
 
 	maxAmmo = veh->m_pVehicle->m_pVehicleInfo->weapon[1].ammoMax;
-	currValue = cg.predictedVehicleState.ammo;
+	currValue = cg.predictedVehicleState.stats[STAT_TOTALAMMO];
 
 	inc = (float) maxAmmo / MAX_VHUD_AMMO_TICS;
 	for (i=1;i<MAX_VHUD_AMMO_TICS;i++)

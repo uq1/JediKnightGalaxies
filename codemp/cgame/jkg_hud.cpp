@@ -199,14 +199,14 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 		}
 		else
 		{
-			ammo = ps->ammo;
+			ammo = ps->stats[STAT_TOTALAMMO];
 		}
 
 		if ( GetWeaponAmmoClip( cent->currentState.weapon, cent->currentState.weaponVariation ))
 		{
 			// Display the amount of clips too
 			float temp;
-			temp = ceil(( float ) ps->ammo / ( float ) GetWeaponAmmoClip( cent->currentState.weapon, cent->currentState.weaponVariation ));
+			temp = ceil((float)ps->stats[STAT_TOTALAMMO] / (float)GetWeaponAmmoClip(cent->currentState.weapon, cent->currentState.weaponVariation));
 			text = va( "Ammo: %i (%i)", ammo, ( int ) temp );
 		}
 		else

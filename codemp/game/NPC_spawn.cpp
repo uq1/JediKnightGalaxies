@@ -892,7 +892,7 @@ void NPC_SetWeapons( gentity_t *ent )
 			ent->client->ps.stats[STAT_WEAPONS] |= ( 1 << curWeap );
 //			RegisterItem( FindItemForWeapon( (weapon_t)(curWeap) ) );	//precache the weapon
 			//rwwFIXMEFIXME: Precache
-			ent->client->ps.stats[STAT_AMMO] = ent->NPC->currentAmmo = ent->client->ps.ammo = 100;//FIXME: max ammo
+			ent->client->ps.stats[STAT_AMMO] = ent->NPC->currentAmmo = ent->client->ps.stats[STAT_TOTALAMMO] = 100;//FIXME: max ammo
 
 			if ( bestWeap == WP_SABER )
 			{
@@ -1224,7 +1224,7 @@ void NPC_Begin (gentity_t *ent)
 	/* JKG - Muzzle Calculation End */
 
 	//select the weapon
-	ent->NPC->currentAmmo = ent->client->ps.ammo;
+	ent->NPC->currentAmmo = ent->client->ps.stats[STAT_TOTALAMMO];
 	ent->client->ps.weaponstate = WEAPON_IDLE;
 
 	// [Weapon Variation]: Add a variation check here so the NPC will use the proper weapon you want

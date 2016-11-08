@@ -5576,7 +5576,7 @@ static qboolean PM_DoChargedWeapons( void )
 				}
 			}
 		} else {
-			if (pm->ps->ammo < (weaponFireData->cost + weaponFireData->cost))
+			if (pm->ps->stats[STAT_TOTALAMMO] < (weaponFireData->cost + weaponFireData->cost))
 			{
 				pm->ps->weaponstate = WEAPON_CHARGING;
 				if ((pm->ps->weaponChargeSubtractTime - pm->ps->weaponChargeTime) < weaponFireData->chargeMaximum) {
@@ -5597,7 +5597,7 @@ static qboolean PM_DoChargedWeapons( void )
 						Gself->client->ammoTable[GetWeaponAmmoIndex(pm->ps->weapon, pm->ps->weaponVariation)] -= weaponFireData->cost;
 					}
 #endif
-					pm->ps->ammo -= weaponFireData->chargeSubtract;
+					pm->ps->stats[STAT_TOTALAMMO] -= weaponFireData->chargeSubtract;
 					pm->ps->weaponChargeSubtractTime = pm->cmd.serverTime + weaponFireData->chargeTime;
 				}
 			}
@@ -6658,7 +6658,7 @@ static void PM_Weapon( void )
 				return;
 			}
 		} else {
-			if ((pm->ps->ammo - amount) >= 0) 
+			if ((pm->ps->stats[STAT_TOTALAMMO] - amount) >= 0)
 			{
 #ifdef _GAME
 				gentity_t *Gself = &g_entities[pm->ps->clientNum];
@@ -6669,7 +6669,7 @@ static void PM_Weapon( void )
 					Gself->client->ammoTable[GetWeaponAmmoIndex(pm->ps->weapon, pm->ps->weaponVariation)] -= amount;
 				}
 #endif
-				pm->ps->ammo -= amount;
+				pm->ps->stats[STAT_TOTALAMMO] -= amount;
 			}
 			else	// Not enough energy
 			{

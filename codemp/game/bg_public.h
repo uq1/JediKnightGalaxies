@@ -599,8 +599,6 @@ void Vmove( vmove_t *vmove );
 // NOTE: may not have more than 16
 typedef enum {
 	STAT_HEALTH,
-	STAT_HOLDABLE_ITEM,
-	STAT_HOLDABLE_ITEMS,
 	STAT_PERSISTANT_POWERUP,
 	//MAKE SURE STAT_WEAPONS REMAINS 4!!!!
 	//There is a hardcoded reference in msg.cpp to send it in 32 bits -rww
@@ -611,7 +609,8 @@ typedef enum {
 	STAT_MAX_HEALTH,				// Maximum health
 	// Jedi Knight Galaxies
 	STAT_MAX_SHIELD,				// Maximum shield
-	STAT_AMMO,						// Ammo in current weapon (ps->ammo contains total ammo in clips))
+	STAT_AMMO,						// Ammo in current weapon
+	STAT_TOTALAMMO,					// Total ammo
 	STAT_ACCURACY,					// Extra accuracy rating from weapon
 	STAT_CAPTURE_ENTITYNUM			// Warzone Flag Capture Entity...
 } statIndex_t;

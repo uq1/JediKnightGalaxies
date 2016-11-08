@@ -1474,7 +1474,7 @@ void ammo_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *act
 				}
 				i++;
 			}
-			activator->client->ps.ammo += add;
+			activator->client->ps.stats[STAT_TOTALAMMO] += add;
 			if (!self->genericValue12)
 			{
 				self->count -= add;
@@ -1483,47 +1483,6 @@ void ammo_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *act
 
 			self->fly_sound_debounce_time = level.time + 500;
 			self->activator = activator;
-
-			/*
-			if (self->count > MAX_AMMO_GIVE)
-			{
-				add = MAX_AMMO_GIVE;
-			}
-			else if (self->count<0)
-			{
-				add = 0;
-			}
-			else
-			{
-				add = self->count;
-			}
-
-			activator->client->ps.ammo[AMMO_BLASTER] += add;
-			activator->client->ps.ammo[AMMO_POWERCELL] += add;
-			activator->client->ps.ammo[AMMO_METAL_BOLTS] += add;
-
-			self->count -= add;
-			stop = 0;
-
-			self->fly_sound_debounce_time = level.time + 500;
-			self->activator = activator;
-
-			difBlaster = activator->client->ps.ammo[AMMO_BLASTER] - weaponAmmo[AMMO_BLASTER].ammoMax;
-			difPowerCell = activator->client->ps.ammo[AMMO_POWERCELL] - weaponAmmo[AMMO_POWERCELL].ammoMax;
-			difMetalBolts = activator->client->ps.ammo[AMMO_METAL_BOLTS] - weaponAmmo[AMMO_METAL_BOLTS].ammoMax;
-
-			// Find the highest one
-			highest = difBlaster;
-			if (difPowerCell>difBlaster)
-			{
-				highest = difPowerCell;
-			}
-
-			if (difMetalBolts > highest)
-			{
-				highest = difMetalBolts;
-			}
-			*/
 		}
 		// TODO: Add proper ammo array here
 	}

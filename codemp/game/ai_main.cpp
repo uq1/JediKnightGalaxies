@@ -1312,7 +1312,7 @@ int BotSelectChoiceWeapon(bot_state_t *bs, int weapon, int doselection)
 
 	while (i < WP_NUM_WEAPONS)
 	{
-		if (bs->cur_ps.ammo > GetWeaponData( bs->cur_ps.weapon, bs->cur_ps.weaponVariation )->firemodes[0].cost &&
+		if (bs->cur_ps.stats[STAT_TOTALAMMO] > GetWeaponData(bs->cur_ps.weapon, bs->cur_ps.weaponVariation)->firemodes[0].cost &&
 			i == weapon &&
 			(bs->cur_ps.stats[STAT_WEAPONS] & (1 << i)))
 		{

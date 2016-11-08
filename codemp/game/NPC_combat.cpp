@@ -554,7 +554,7 @@ void ChangeWeapon( gentity_t *ent, int newWeapon, int weapVariation )
 	ent->NPC->shotTime = 0;
 	ent->NPC->burstCount = 0;
 	ent->NPC->attackHold = 0;
-	ent->NPC->currentAmmo = ent->client->ps.ammo;
+	ent->NPC->currentAmmo = ent->client->ps.stats[STAT_TOTALAMMO];
 
 	switch ( newWeapon ) 
 	{
@@ -562,33 +562,6 @@ void ChangeWeapon( gentity_t *ent, int newWeapon, int weapVariation )
 		ent->NPC->aiFlags &= ~NPCAI_BURST_WEAPON;
 		ent->NPC->burstSpacing = 1000;//attackdebounce
 		break;
-
-		/*
-	case WP_BLASTER_PISTOL:
-		ent->NPC->aiFlags &= ~NPCAI_BURST_WEAPON;
-	//	ent->NPC->burstSpacing = 1000;//attackdebounce
-		if ( g_spskill.integer == 0 )
-			ent->NPC->burstSpacing = 1000;//attack debounce
-		else if ( g_spskill.integer == 1 )
-			ent->NPC->burstSpacing = 750;//attack debounce
-		else 
-			ent->NPC->burstSpacing = 500;//attack debounce
-		break;
-		*/
-		//rwwFIXMEFIXME: support WP_BLASTER_PISTOL and WP_BOT_LASER
-
-		/*
-	case WP_BOT_LASER://probe attack
-		ent->NPC->aiFlags &= ~NPCAI_BURST_WEAPON;
-	//	ent->NPC->burstSpacing = 600;//attackdebounce
-		if ( g_spskill.integer == 0 )
-			ent->NPC->burstSpacing = 600;//attack debounce
-		else if ( g_spskill.integer == 1 )
-			ent->NPC->burstSpacing = 400;//attack debounce
-		else 
-			ent->NPC->burstSpacing = 200;//attack debounce
-		break;
-		*/
 
 	case WP_SABER:
 		ent->NPC->aiFlags &= ~NPCAI_BURST_WEAPON;
@@ -927,7 +900,7 @@ void ShootThink( void )
 
 	ucmd.buttons |= BUTTON_ATTACK;
 
-	NPCInfo->currentAmmo = client->ps.ammo;	// checkme
+	NPCInfo->currentAmmo = client->ps.stats[STAT_TOTALAMMO];	// checkme
 
 	NPC_ApplyWeaponFireDelay();
 
@@ -936,17 +909,6 @@ void ShootThink( void )
 		if ( !NPCInfo->burstCount ) 
 		{
 			NPCInfo->burstCount = Q_irand( NPCInfo->burstMin, NPCInfo->burstMax );
-			/*
-			NPCInfo->burstCount = erandom( NPCInfo->burstMean );
-			if ( NPCInfo->burstCount < NPCInfo->burstMin ) 
-			{
-				NPCInfo->burstCount = NPCInfo->burstMin;
-			}
-			else if ( NPCInfo->burstCount > NPCInfo->burstMax ) 
-			{
-				NPCInfo->burstCount = NPCInfo->burstMax;
-			}
-			*/
 			delay = 0;
 		}
 		else 
@@ -1033,59 +995,11 @@ void WeaponThink( qboolean inCombat )
 	if ( NPC->client->ps.stats[STAT_AMMO] <= 0 )
 	{
 		//trap->Print("DEBUG: Reload!\n");
-		NPC->client->ps.ammo = 100; // UQ1: NPCs need to cheat a little :)
+		NPC->client->ps.stats[STAT_TOTALAMMO] = 100; // UQ1: NPCs need to cheat a little :)
 		//Add_Ammo (NPC, client->ps.weapon, 100);
 		Cmd_Reload_f (NPC);
 	}
 	// [/Weapon Variation]
-
-	/*if ( NPC->playerTeam == TEAM_BORG )
-	{//HACK!!!
-		if(!(NPC->client->ps.stats[STAT_WEAPONS] & ( 1 << WP_BORG_WEAPON )))
-			NPC->client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_BORG_WEAPON );
-
-		if ( client->ps.weapon != WP_BORG_WEAPON ) 
-		{
-			NPC_ChangeWeapon( WP_BORG_WEAPON );
-			Add_Ammo (NPC, client->ps.weapon, 10);
-			NPCInfo->currentAmmo = client->ps.ammo[client->ps.weapon];
-		}
-	}
-	else */
-	
-	/*if ( NPC->client->playerTeam == TEAM_SCAVENGERS )
-	{//HACK!!!
-		if(!(NPC->client->ps.stats[STAT_WEAPONS] & ( 1 << WP_BLASTER )))
-			NPC->client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_BLASTER );
-
-		if ( client->ps.weapon != WP_BLASTER )
-			 
-		{
-			NPC_ChangeWeapon( WP_BLASTER );
-			Add_Ammo (NPC, client->ps.weapon, 10);
-//			NPCInfo->currentAmmo = client->ps.ammo[client->ps.weapon];
-			NPCInfo->currentAmmo = client->ps.ammo[weaponData[client->ps.weapon].ammoIndex];	// checkme
-		}
-	}
-	else*/
-//MCG - End
-	{
-		// if the gun in our hands is out of ammo, we need to change
-		/*if ( client->ps.ammo[client->ps.weapon] == 0 ) 
-		{
-			NPCInfo->aiFlags |= NPCAI_CHECK_WEAPON;
-		}
-
-		if ( NPCInfo->aiFlags & NPCAI_CHECK_WEAPON ) 
-		{
-			NPCInfo->aiFlags &= ~NPCAI_CHECK_WEAPON;
-			bestWeapon = ChooseBestWeapon();
-			if ( bestWeapon != client->ps.weapon ) 
-			{
-				NPC_ChangeWeapon( bestWeapon );
-			}
-		}*/
-	}
 
 	ucmd.weapon = BG_GetWeaponIndexFromClass (client->ps.weapon, 0);
 	ShootThink();

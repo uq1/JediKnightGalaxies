@@ -51,7 +51,7 @@ void JKG_WeaponIndicators_Update(const centity_t *cent, const playerState_t *ps)
 		}
 		else
 		{
-			ammo = ps->ammo;
+			ammo = ps->stats[STAT_TOTALAMMO];
 		}
 
 	} else {

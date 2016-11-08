@@ -515,7 +515,7 @@ void TossClientWeapon(gentity_t *self, vec3_t direction, float speed)
 
 	// find the item type for this weapon
 	item		= BG_FindItemForWeapon( (weapon_t)weapon );
-	ammoSub		= (self->client->ps.ammo - bg_itemlist[BG_GetItemIndexByTag(weapon, IT_WEAPON)].quantity);
+	ammoSub = (self->client->ps.stats[STAT_TOTALAMMO] - bg_itemlist[BG_GetItemIndexByTag(weapon, IT_WEAPON)].quantity);
 
 	if (ammoSub < 0)
 	{
@@ -538,15 +538,15 @@ void TossClientWeapon(gentity_t *self, vec3_t direction, float speed)
 	launched->s.powerups = level.time + 1500;
 
 	launched->count = bg_itemlist[BG_GetItemIndexByTag(weapon, IT_WEAPON)].quantity;
-	self->client->ps.ammo -= bg_itemlist[BG_GetItemIndexByTag(weapon, IT_WEAPON)].quantity;
+	self->client->ps.stats[STAT_TOTALAMMO] -= bg_itemlist[BG_GetItemIndexByTag(weapon, IT_WEAPON)].quantity;
 
-	if (self->client->ps.ammo < 0)
+	if (self->client->ps.stats[STAT_TOTALAMMO] < 0)
 	{
-		launched->count -= (-self->client->ps.ammo);
-		self->client->ps.ammo = 0;
+		launched->count -= (-self->client->ps.stats[STAT_TOTALAMMO]);
+		self->client->ps.stats[STAT_TOTALAMMO] = 0;
 	}
 
-	if ((self->client->ps.ammo < 1 && weapon != WP_DET_PACK) ||
+	if ((self->client->ps.stats[STAT_TOTALAMMO] < 1 && weapon != WP_DET_PACK) ||
 		(weapon != WP_THERMAL && weapon != WP_DET_PACK && weapon != WP_TRIP_MINE))
 	{
 		int i = 0;

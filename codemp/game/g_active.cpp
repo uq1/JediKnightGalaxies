@@ -2000,14 +2000,14 @@ void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation) {
 	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation ) != -1 )
 	{
 		ent->client->clipammo[BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation)] = ent->client->ps.stats[STAT_AMMO];
-		ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)] = ent->client->ps.ammo;
+		ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)] = ent->client->ps.stats[STAT_TOTALAMMO];
 	}
 
 	// Get the new weapon's ammo stored in STAT_AMMO
 	if ( GetWeaponAmmoClip( newweapon, newvariation ) != -1 )
 	{
 		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndexFromClass(newweapon, newvariation) ];
-		ent->client->ps.ammo = ent->client->ammoTable[GetWeaponAmmoIndex(newweapon, newvariation)];
+		ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(newweapon, newvariation)];
 	}
 }
 
@@ -3263,7 +3263,7 @@ void ClientThink_real( gentity_t *ent ) {
 	{
 		weaponData_t* weaponData = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation);
 		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation) ];
-		ent->client->ps.ammo = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+		ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
 	}
 
 	/* JKG - When a cooked grenade should explode in your hand.. */
@@ -3302,7 +3302,7 @@ void ClientThink_real( gentity_t *ent ) {
 		{
 			ent->client->clipammo[BG_GetWeaponIndex( ent->s.weapon, ent->s.weaponVariation )] -= 1;
 		}
-		ent->client->ps.ammo -= 1;
+		ent->client->ps.stats[STAT_TOTALAMMO] -= 1;
 		ent->client->ammoTable[GetWeaponAmmoIndex( ent->s.weapon, ent->s.weaponVariation )] -= 1;
 
 		/* Return the correct weapon and variation for the client */
@@ -3934,11 +3934,11 @@ void ClientEndFrame( gentity_t *ent ) {
 	}
 
 	// Jedi Knight Galaxies - Update ammo of current weapon
-	ent->client->ps.ammo = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+	ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
 	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation )) {
 		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation) ];
 	} else {
-		ent->client->ps.stats[STAT_AMMO] = ent->client->ps.ammo = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+		ent->client->ps.stats[STAT_AMMO] = ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
 	}
 
 	ent->client->ps.stats[STAT_HEALTH] = ent->health;	// FIXME: get rid of ent->health...

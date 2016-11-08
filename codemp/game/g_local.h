@@ -774,8 +774,6 @@ struct gclient_s {
 	saberInfo_t	saber[MAX_SABERS];
 	void		*weaponGhoul2[MAX_SABERS];
 
-	int			tossableItemDebounce;
-
 	int			bodyGrabTime;
 	int			bodyGrabIndex;
 

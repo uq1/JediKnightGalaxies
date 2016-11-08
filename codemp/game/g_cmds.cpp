@@ -864,7 +864,7 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 			}
 			ent->client->clipammo[i] = GetWeaponAmmoClip (weapBase, weapVar);
 		}
-		ent->client->ps.ammo = num;
+		ent->client->ps.stats[STAT_TOTALAMMO] = num;
 		if ( !give_all )
 			return;
 	}
@@ -3318,7 +3318,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	}
 	
 	/* No more ammo left to place in the clip */
-	if ( ent->client->ps.ammo <= 0 && ent->client->ps.weapon != WP_SABER)
+	if (ent->client->ps.stats[STAT_TOTALAMMO] <= 0 && ent->client->ps.weapon != WP_SABER)
 	{
 		return;
 	}
@@ -3386,10 +3386,10 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	// TODO: Add sound
 
 	// Check if we have enough ammo remaining
-	ammotoadd = Q_min (ammotoadd, ent->client->ps.ammo);
+	ammotoadd = Q_min(ammotoadd, ent->client->ps.stats[STAT_TOTALAMMO]);
 
 	//Remove the ammo from 'bag'
-	ent->client->ps.ammo -= ammotoadd;
+	ent->client->ps.stats[STAT_TOTALAMMO] -= ammotoadd;
 	ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)] -= ammotoadd;
 
 	//Add the ammo to weapon

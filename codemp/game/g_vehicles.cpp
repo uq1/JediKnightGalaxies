@@ -1050,11 +1050,11 @@ qboolean Initialize( Vehicle_t *pVeh )
 	}
 	parent->mass = pVeh->m_pVehicleInfo->mass;
 	//initialize the ammo to max
-	parent->client->ps.ammo = pVeh->weaponStatus[i].ammo = pVeh->m_pVehicleInfo->weapon[i].ammoMax;
+	parent->client->ps.stats[STAT_TOTALAMMO] = pVeh->weaponStatus[i].ammo = pVeh->m_pVehicleInfo->weapon[i].ammoMax;
 	for ( i = 0; i < MAX_VEHICLE_TURRETS; i++ )
 	{
 		pVeh->turretStatus[i].nextMuzzle = (pVeh->m_pVehicleInfo->turret[i].iMuzzle[i]-1);
-		parent->client->ps.ammo = pVeh->turretStatus[i].ammo = pVeh->m_pVehicleInfo->turret[i].iAmmoMax;
+		parent->client->ps.stats[STAT_TOTALAMMO] = pVeh->turretStatus[i].ammo = pVeh->m_pVehicleInfo->turret[i].iAmmoMax;
 		if ( pVeh->m_pVehicleInfo->turret[i].bAI )
 		{//they're going to be finding enemies, init this to NONE
 			pVeh->turretStatus[i].enemyEntNum = ENTITYNUM_NONE;
@@ -1162,7 +1162,7 @@ static qboolean Update( Vehicle_t *pVeh, const usercmd_t *pUmcd )
 			//NOTE: in order to send the vehicle's ammo info to the client, we copy the ammo into the first 2 ammo slots on the vehicle NPC's client->ps.ammo array
 			if ( parent && parent->client )
 			{
-				parent->client->ps.ammo = pVeh->weaponStatus[i].ammo;
+				parent->client->ps.stats[STAT_TOTALAMMO] = pVeh->weaponStatus[i].ammo;
 			}
 		}
 	}
@@ -1178,7 +1178,7 @@ static qboolean Update( Vehicle_t *pVeh, const usercmd_t *pUmcd )
 			//NOTE: in order to send the vehicle's ammo info to the client, we copy the ammo into the first 2 ammo slots on the vehicle NPC's client->ps.ammo array
 			if ( parent && parent->client )
 			{
-				parent->client->ps.ammo = pVeh->turretStatus[i].ammo;
+				parent->client->ps.stats[STAT_TOTALAMMO] = pVeh->turretStatus[i].ammo;
 			}
 		}
 	}
