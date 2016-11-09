@@ -4430,96 +4430,7 @@ NPC NAMEPLATES
 =====================================
 */
 
-qboolean HumanNamesLoaded = qfalse;
-
-// JKGFIXME: yea, this is pretty obvious that this was jacked from somewhere, just have no clue where from --eez
-typedef struct
-{// FIXME: Add other species name files...
-	char	HumanNames[MAX_QPATH];
-} name_list_t;
-
-name_list_t NPC_NAME_LIST[8000];
-
-int NUM_HUMAN_NAMES = 0;
-
-void Load_NPC_Names ( void )
-{				// Load bot first names from external file.
-	char			*s, *t;
-	int				len;
-	fileHandle_t	f;
-	char			*buf;
-	char			*loadPath;
-	int				num = 0;
-
-	if (HumanNamesLoaded)
-		return;
-
-	loadPath = va( "npc_names_list.dat" );
-
-	len = trap->FS_Open( loadPath, &f, FS_READ );
-
-	HumanNamesLoaded = qtrue;
-
-	if ( !f )
-	{
-		return;
-	}
-
-	if ( !len )
-	{			//empty file
-		trap->FS_Close( f );
-		return;
-	}
-
-	if ( (buf = (char *)malloc( len + 1)) == 0 )
-	{			//alloc memory for buffer
-		trap->FS_Close( f );
-		return;
-	}
-
-	trap->FS_Read( buf, len, f );
-	buf[len] = 0;
-	trap->FS_Close( f );
-
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "NONAME");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "R2D2 Droid");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "R5D2 Droid");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "Protocol Droid");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "Weequay");
-	NUM_HUMAN_NAMES++;
-
-	for ( t = s = buf; *t; /* */ )
-	{
-		num++;
-		s = strchr( s, '\n' );
-		if ( !s || num > len )
-		{
-			break;
-		}
-
-		while ( *s == '\n' )
-		{
-			*s++ = 0;
-		}
-
-		if ( *t )
-		{
-			if ( !Q_strncmp( "//", va( "%s", t), 2) == 0 && strlen( va( "%s", t)) > 0 )
-			{	// Not a comment either... Record it in our list...
-				Q_strncpyz( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, va( "%s", t), strlen( va( "%s", t)) );
-				NUM_HUMAN_NAMES++;
-			}
-		}
-
-		t = s;
-	}
-
-	NUM_HUMAN_NAMES--;
-}
+#include "game/bg_npcnames.h"
 
 void CG_DrawNPCNames( void )
 {// Float a NPC name above their head!
@@ -4527,7 +4438,7 @@ void CG_DrawNPCNames( void )
 	int				i;
 
 	// Load the list on first check...
-	Load_NPC_Names();
+	BG_Load_NPC_Names();
 
 	for (i = MAX_CLIENTS; i < MAX_GENTITIES; i++)
 	{// Cycle through them...
@@ -4558,7 +4469,7 @@ void CG_DrawNPCNames( void )
 		switch( cent->currentState.NPC_class )
 		{// UQ1: Supported Class Types...
 		case CLASS_CIVILIAN:
-			str2 = va("< Civilian >");
+			str2 = "< Civilian >";
 			tclr[0] = 0.125f;
 			tclr[1] = 0.125f;
 			tclr[2] = 0.7f;
@@ -4570,7 +4481,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_REBEL:
-			str2 = va("< Rebel >");
+			str2 = "< Rebel >";
 			tclr[0] = 0.125f;
 			tclr[1] = 0.125f;
 			tclr[2] = 0.7f;
@@ -4585,9 +4496,9 @@ void CG_DrawNPCNames( void )
 		case CLASS_KYLE:
 		case CLASS_LUKE:
 		case CLASS_JAN:
-		case CLASS_MONMOTHA:			
+		case CLASS_MONMOTHA:
 		case CLASS_MORGANKATARN:
-			str2 = va("< Jedi >");
+			str2 = "< Jedi >";
 			tclr[0] = 0.125f;
 			tclr[1] = 0.325f;
 			tclr[2] = 0.7f;
@@ -4599,7 +4510,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_GENERAL_VENDOR:
-			str2 = va("< General Vendor >");
+			str2 = "< General Vendor >";
 			tclr[0] = 0.525f;
 			tclr[1] = 0.525f;
 			tclr[2] = 1.0f;
@@ -4611,7 +4522,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_WEAPONS_VENDOR:
-			str2 = va("< Weapons Vendor >");
+			str2 = "< Weapons Vendor >";
 			tclr[0] = 0.525f;
 			tclr[1] = 0.525f;
 			tclr[2] = 1.0f;
@@ -4623,7 +4534,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_ARMOR_VENDOR:
-			str2 = va("< Armor Vendor >");
+			str2 = "< Armor Vendor >";
 			tclr[0] = 0.525f;
 			tclr[1] = 0.525f;
 			tclr[2] = 1.0f;
@@ -4635,7 +4546,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_SUPPLIES_VENDOR:
-			str2 = va("< Supplies Vendor >");
+			str2 = "< Supplies Vendor >";
 			tclr[0] = 0.525f;
 			tclr[1] = 0.525f;
 			tclr[2] = 1.0f;
@@ -4647,7 +4558,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_FOOD_VENDOR:
-			str2 = va("< Food Vendor >");
+			str2 = "< Food Vendor >";
 			tclr[0] = 0.525f;
 			tclr[1] = 0.525f;
 			tclr[2] = 1.0f;
@@ -4659,7 +4570,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_MEDICAL_VENDOR:
-			str2 = va("< Medical Vendor >");
+			str2 = "< Medical Vendor >";
 			tclr[0] = 0.525f;
 			tclr[1] = 0.525f;
 			tclr[2] = 1.0f;
@@ -4671,7 +4582,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_GAMBLER_VENDOR:
-			str2 = va("< Gambling Vendor >");
+			str2 = "< Gambling Vendor >";
 			tclr[0] = 0.525f;
 			tclr[1] = 0.525f;
 			tclr[2] = 1.0f;
@@ -4683,7 +4594,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_TRADE_VENDOR:
-			str2 = va("< Trade Vendor >");
+			str2 = "< Trade Vendor >";
 			tclr[0] = 0.525f;
 			tclr[1] = 0.525f;
 			tclr[2] = 1.0f;
@@ -4695,7 +4606,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_ODDITIES_VENDOR:
-			str2 = va("< Oddities Vendor >");
+			str2 = "< Oddities Vendor >";
 			tclr[0] = 0.525f;
 			tclr[1] = 0.525f;
 			tclr[2] = 1.0f;
@@ -4707,7 +4618,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_DRUG_VENDOR:
-			str2 = va("< Drug Vendor >");
+			str2 = "< Drug Vendor >";
 			tclr[0] = 0.525f;
 			tclr[1] = 0.525f;
 			tclr[2] = 1.0f;
@@ -4719,7 +4630,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_TRAVELLING_VENDOR:
-			str2 = va("< Travelling Vendor >");
+			str2 = "< Travelling Vendor >";
 			tclr[0] = 0.525f;
 			tclr[1] = 0.525f;
 			tclr[2] = 1.0f;
@@ -4732,7 +4643,7 @@ void CG_DrawNPCNames( void )
 			break;
 			//Stoiss add: Faq coler names for npcs in this class
 			case CLASS_JKG_FAQ_IMP_DROID:
-				str2 = va("< Imperial FAQ Droid >");//red coler
+			str2 = "< Imperial FAQ Droid >";//red coler
 			tclr[0] = 1.0f;
 			tclr[1] = 0.125f;
 			tclr[2] = 0.125f;
@@ -4744,7 +4655,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 			case CLASS_JKG_FAQ_ALLIANCE_DROID:
-				str2 = va("< Alliance FAQ Droid >");//Dark Blue coler
+			str2 = "< Alliance FAQ Droid >";//Dark Blue coler
 			tclr[0] = 0.125f;
 			tclr[1] = 0.125f;
 			tclr[2] = 0.7f;
@@ -4756,7 +4667,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 			case CLASS_JKG_FAQ_SPY_DROID:
-				str2 = va("< Faq Spy Droid >");//Yellow colder
+			str2 = "< Faq Spy Droid >";//Yellow colder
 			tclr[0] = 0.7f;
 			tclr[1] = 0.7f;
 			tclr[2] = 0.125f;
@@ -4769,7 +4680,7 @@ void CG_DrawNPCNames( void )
 			break;
 
 			case CLASS_JKG_FAQ_CRAFTER_DROID:
-				str2 = va("< Master Crafter >");//Yellow colder
+			str2 = "< Master Crafter >";//Yellow colder
 			tclr[0] = 0.7f;
 			tclr[1] = 0.7f;
 			tclr[2] = 0.125f;
@@ -4781,7 +4692,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 			case CLASS_JKG_FAQ_MERC_DROID:
-				str2 = va("< Merc FAQ Droid >");//Yellow colder. fixme: need a better coler for mercs
+			str2 = "< Merc FAQ Droid >";//Yellow colder. fixme: need a better coler for mercs
 			tclr[0] = 1.0f;
 			tclr[1] = 0.225f;
 			tclr[2] = 0.125f;
@@ -4793,7 +4704,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 			case CLASS_JKG_FAQ_JEDI_MENTOR:
-				str2 = va("< Jedi Mentor >");// Blue coler
+			str2 = "< Jedi Mentor >";// Blue coler
 			tclr[0] = 0.125f;
 			tclr[1] = 0.325f;
 			tclr[2] = 0.7f;
@@ -4805,7 +4716,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 			case CLASS_JKG_FAQ_SITH_MENTOR:
-				str2 = va("< Sith Mentor >");//oriange coler
+			str2 = "< Sith Mentor >";//oriange coler
 			tclr[0] = 1.0f;
 			tclr[1] = 0.225f;
 			tclr[2] = 0.125f;
@@ -4822,7 +4733,7 @@ void CG_DrawNPCNames( void )
 		case CLASS_IMPERIAL:
 		case CLASS_SHADOWTROOPER:
 		case CLASS_COMMANDO:
-			str2 = va("< Imperial >");
+			str2 = "< Imperial >";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.125f;
 			tclr[2] = 0.125f;
@@ -4834,7 +4745,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 			case CLASS_MERC://Stoiss add merc class
-			str2 = va("< Merc >");
+			str2 = "< Merc >";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.125f;
 			tclr[2] = 0.125f;
@@ -4847,7 +4758,7 @@ void CG_DrawNPCNames( void )
 			break;
 		case CLASS_TAVION:
 		case CLASS_DESANN:
-			str2 = va("< Sith Boss>");
+			str2 = "< Sith Boss>";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.325f;
 			tclr[2] = 0.125f;
@@ -4859,7 +4770,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 			case CLASS_REBORN:
-			str2 = va("< Sith >");
+			str2 = "< Sith >";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.325f;
 			tclr[2] = 0.125f;
@@ -4871,7 +4782,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 			case CLASS_REBORN_CULTIST:
-			str2 = va("< Sith Fighters >");
+			str2 = "< Sith Fighters >";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.325f;
 			tclr[2] = 0.125f;
@@ -4883,7 +4794,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_BOBAFETT:
-			str2 = va("< Bounty Hunter >");
+			str2 = "< Bounty Hunter >";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.225f;
 			tclr[2] = 0.125f;
@@ -4895,7 +4806,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_ATST:
-			str2 = va("< Vehicle >");
+			str2 = "< Vehicle >";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.225f;
 			tclr[2] = 0.125f;
@@ -4916,7 +4827,7 @@ void CG_DrawNPCNames( void )
 		case CLASS_SWAMP:
 		case CLASS_RANCOR:
 		case CLASS_WAMPA:
-			str2 = va("< Animal >");
+			str2 = "< Animal >";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.125f;
 			tclr[2] = 0.125f;
@@ -4928,7 +4839,7 @@ void CG_DrawNPCNames( void )
 			tclr2[3] = 1.0f;
 			break;
 		case CLASS_VEHICLE:
-			str2 = va("< Vehicle >");
+			str2 = "< Vehicle >";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.125f;
 			tclr[2] = 0.125f;
@@ -4942,7 +4853,7 @@ void CG_DrawNPCNames( void )
 		case CLASS_BESPIN_COP:
 		case CLASS_LANDO:
 		case CLASS_PRISONER:
-			str2 = va("< Rebel >");
+			str2 = "< Rebel >";
 			tclr[0] = 0.125f;
 			tclr[1] = 0.125f;
 			tclr[2] = 0.7f;
@@ -4965,7 +4876,7 @@ void CG_DrawNPCNames( void )
 		case CLASS_JAWA:
 			if (cent->playerState->persistant[PERS_TEAM] == NPCTEAM_ENEMY)
 			{
-				str2 = va("< Thug >");
+				str2 = "< Thug >";
 				tclr[0] = 0.5f;
 				tclr[1] = 0.5f;
 				tclr[2] = 0.125f;
@@ -4978,7 +4889,7 @@ void CG_DrawNPCNames( void )
 			}
 			else if (cent->playerState->persistant[PERS_TEAM] == NPCTEAM_PLAYER)
 			{
-				str2 = va("< Rebel >");
+				str2 = "< Rebel >";
 				tclr[0] = 0.125f;
 				tclr[1] = 0.125f;
 				tclr[2] = 0.7f;
@@ -4991,7 +4902,7 @@ void CG_DrawNPCNames( void )
 			}
 			else
 			{
-				str2 = va("< Civilian >");
+				str2 = "< Civilian >";
 				tclr[0] = 0.7f;
 				tclr[1] = 0.7f;
 				tclr[2] = 0.125f;
@@ -5060,7 +4971,7 @@ void CG_DrawNPCNames( void )
 			case CLASS_TRANDOSHAN:
 			case CLASS_UGNAUGHT:
 			case CLASS_JAWA:
-				str1 = va("%s", NPC_NAME_LIST[cent->currentState.generic1].HumanNames);
+				str1 = va("%s", BG_Get_NPC_Name(cent->currentState.generic1));
 				break;
 			case CLASS_STORMTROOPER:
 			case CLASS_SWAMPTROOPER:
@@ -5070,40 +4981,40 @@ void CG_DrawNPCNames( void )
 				str1 = va("TK-%i", cent->currentState.generic1);	// EVIL. for a number of reasons --eez
 				break;
 			case CLASS_ATST:				// technically droid...
-				str1 = va("AT-ST");
+				str1 = "AT-ST";
 				break;
 			case CLASS_CLAW:
-				str1 = va("Claw");
+				str1 = "Claw";
 				break;
 			case CLASS_FISH:
-				str1 = va("Sea Creature");
+				str1 = "Sea Creature";
 				break;
 			case CLASS_FLIER2:
-				str1 = va("Flier");
+				str1 = "Flier";
 				break;
 			case CLASS_GLIDER:
-				str1 = va("Glider");
+				str1 = "Glider";
 				break;
 			case CLASS_HOWLER:
-				str1 = va("Howler");
+				str1 = "Howler";
 				break;
 			case CLASS_LIZARD:
-				str1 = va("Lizard");
+				str1 = "Lizard";
 				break;
 			case CLASS_MINEMONSTER:
-				str1 = va("Mine Monster");
+				str1 = "Mine Monster";
 				break;
 			case CLASS_SWAMP:
-				str1 = va("Swamp Monster");
+				str1 = "Swamp Monster";
 				break;
 			case CLASS_RANCOR:
-				str1 = va("Rancor");
+				str1 = "Rancor";
 				break;
 			case CLASS_WAMPA:
-				str1 = va("Wampa");
+				str1 = "Wampa";
 				break;
 			case CLASS_VEHICLE:
-				str1 = va("");
+				str1 = "";
 				break;
 			default:
 				//CG_Printf("NPC %i is not a civilian or vendor (class %i).\n", cent->currentState.number, cent->currentState.NPC_class);
