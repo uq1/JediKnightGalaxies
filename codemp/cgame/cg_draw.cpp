@@ -6555,7 +6555,6 @@ static void CG_Draw2DScreenTints( void )
 			if (cg.deathTime && !cg.deathcamFadeStart) {	
 				lowHealthPhase = 0;	// Dont glow red
 				hcolor[3] = 0.2f;
-				//CG_DrawRect(0, 0, 640, 480, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 				// Calculate the fadeout state
 				if (cg.deathTime) { // failsafe
 					hcolor[0] = hcolor[1] = hcolor[2] = 0; // Black
@@ -6565,10 +6564,10 @@ static void CG_Draw2DScreenTints( void )
 					} else if (cg.time - cg.deathTime < 6000) {
 						// In fade
 						hcolor[3] = ((float)(cg.time - cg.deathTime - 2000) / 4000.0f); // 0 to 4000 converted to 0.0f to 1.0f
-						CG_DrawRect(0, 0, 640, 480, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+						CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 					} else {
 						hcolor[3] = 1;
-						CG_DrawRect(0, 0, 640, 480, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+						CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 					}
 				}
 			} else if (cg.deathcamFadeStart) {
@@ -6584,11 +6583,11 @@ static void CG_Draw2DScreenTints( void )
 				if (cg.time - cg.deathcamFadeStart < 4000) {
 					// Fading back in ^_^
 					hcolor[3] = 1.0f - ((float)(cg.time - cg.deathcamFadeStart) / 4000.0f); // 0 to 4000 converted to 0.0f to 1.0f
-					CG_DrawRect(0, 0, 640, 480, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+					CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 				}
 				trap->R_SetColor(NULL);
 				// Display the 'you will be revived in xx seconds'
-				trap->R_DrawStretchPic(80,390, 480, 55, 0, 0, 1, 1, cgs.media.horizgradient);
+				CG_DrawPic(80, 390, 480, 55, cgs.media.horizgradient);
 				if (tr) {
 					x = 320 - (trap->R_Font_StrLenPixels(va("Your clone will be ready in %i seconds",tr), cgs.media.deathfont, 0.6f) / 2);
 					trap->R_Font_DrawString(x, 410, va("Your clone will be ready in %i seconds",tr), colorWhite, cgs.media.deathfont, -1, 0.6f);
@@ -6605,7 +6604,7 @@ static void CG_Draw2DScreenTints( void )
 			hcolor[3] = 0.6f * lowHealthPhase; // (float)(30 - cg.snap->ps.stats[STAT_HEALTH]) * 0.02f;
 			hcolor[3] *= fabs((sinf((float)cg.time / 750.0f)));
 			trap->R_SetColor(hcolor);
-			trap->R_DrawStretchPic(0,0,640,480,0, 0, 1, 1, cgs.media.lowHealthAura);
+			CG_DrawPic(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, cgs.media.lowHealthAura);
 			trap->R_SetColor(NULL);
 		}
 		if (cg.snap->ps.fd.forcePowersActive & (1 << FP_RAGE))
@@ -6635,7 +6634,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			if (!cg.renderingThirdPerson)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			
 			cgRageFadeTime = 0;
@@ -6690,7 +6689,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			if (!cg.renderingThirdPerson && rageTime)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			else
 			{
@@ -6700,7 +6699,7 @@ static void CG_Draw2DScreenTints( void )
 					hcolor[0] = 0.2f;
 					hcolor[1] = 0.2f;
 					hcolor[2] = 0.2f;
-					CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+					CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 				}
 				cgRageTime = 0;
 			}
@@ -6732,7 +6731,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			if (!cg.renderingThirdPerson)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			
 			cgRageRecFadeTime = 0;
@@ -6766,7 +6765,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			if (!cg.renderingThirdPerson && rageRecTime)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			else
 			{
@@ -6801,7 +6800,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			if (!cg.renderingThirdPerson)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			
 			cgAbsorbFadeTime = 0;
@@ -6835,7 +6834,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			if (!cg.renderingThirdPerson && absorbTime)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			else
 			{
@@ -6870,7 +6869,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			if (!cg.renderingThirdPerson)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			
 			cgProtectFadeTime = 0;
@@ -6904,7 +6903,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			if (!cg.renderingThirdPerson && protectTime)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			else
 			{
@@ -6926,7 +6925,7 @@ static void CG_Draw2DScreenTints( void )
 		hcolor[1] = 0;
 		hcolor[2] = 0;
 		
-		CG_DrawRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor  );
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 	}
 	else if ( (cg.refdef.viewContents&CONTENTS_SLIME) )
 	{//tint screen green
@@ -6936,7 +6935,7 @@ static void CG_Draw2DScreenTints( void )
 		hcolor[1] = 0.7f;
 		hcolor[2] = 0;
 		
-		CG_DrawRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor  );
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 	}
 	else if ( (cg.refdef.viewContents&CONTENTS_WATER) )
 	{//tint screen light blue -- FIXME: don't do this if CONTENTS_FOG? (in case someone *does* make a water shader with fog in it?)
@@ -6946,7 +6945,7 @@ static void CG_Draw2DScreenTints( void )
 		hcolor[1] = 0.2f;
 		hcolor[2] = 0.8f;
 		
-		CG_DrawRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor  );
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 	}
 }
 void Cin_ProcessFade();
@@ -7287,7 +7286,7 @@ static void CG_Draw2D( void ) {
 		hcolor[1] = 0;
 		hcolor[2] = 0;
 
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 
 		if (!gCGHasFallVector)
 		{
