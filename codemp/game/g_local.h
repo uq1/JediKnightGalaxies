@@ -873,8 +873,6 @@ struct gclient_s {
 	qboolean	noCorpse; //don't leave a corpse on respawn this time.
 
 	int			jetPackTime;
-
-	qboolean	jetPackOn;
 	int			jetPackToggleTime;
 	int			jetPackDebRecharge;
 	int			jetPackDebReduce;
@@ -1027,6 +1025,7 @@ struct gclient_s {
 	int			shieldRegenTime;
 	int			shieldRechargeLast;
 	int			shieldRegenLast;
+	itemJetpackData_t* pItemJetpack;
 
 	int		ammoTable[JKG_MAX_AMMO_INDICES];				// Max ammo indices increased to JKG_MAX_AMMO_INDICES
 
@@ -1847,6 +1846,8 @@ typedef enum userinfoValidationBits_e {
 
 void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound);
 void JKG_ShieldUnequipped(gentity_t* ent);
+void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber);
+void JKG_JetpackUnequipped(gentity_t* ent);
 
 /**************************************************
 * jkg_team.c

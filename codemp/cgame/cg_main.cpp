@@ -2549,9 +2549,6 @@ Ghoul2 Insert Start
 	CG_Init_CG();
 	CG_InitItems();
 
-	//create the global jetpack instance
-	CG_InitJetpackGhoul2();
-
 	CG_PmoveClientPointerUpdate();
 	
 	// Yum, ammo
@@ -2579,6 +2576,10 @@ Ghoul2 Insert End
 */
 
 	JKG_ParseHiltFiles();
+	JKG_LoadJetpacks();
+
+	//create the global jetpack instance
+	CG_InitJetpackGhoul2();
 
 	// this is kinda dumb as well, but I need to pre-load some fonts in order to have the text available
 	//	to say I'm loading the assets.... which includes loading the fonts. So I'll set these up as reasonable

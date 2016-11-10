@@ -1779,6 +1779,7 @@ typedef struct playerState_s {
 	unsigned char	weaponId;
 	unsigned char   shotsRemaining;
 	unsigned char	sprintMustWait;
+	int				jetpack;
 	
 	short			saberActionFlags;
 
@@ -2192,6 +2193,7 @@ typedef struct entityState_s {
 	unsigned char	weaponVariation;
 	unsigned char	firingMode;
 	unsigned char	weaponstate;
+	int				jetpack;
 
 	int 			damageTypeFlags;
 

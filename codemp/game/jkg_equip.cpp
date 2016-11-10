@@ -157,3 +157,107 @@ void JKG_ShieldUnequipped(gentity_t* ent) {
 	ent->client->shieldRechargeLast = ent->client->shieldRegenLast = level.time;
 	ent->client->shieldRegenTime = ent->client->shieldRechargeTime = 0;
 }
+
+void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber) {
+	if (jetpackItemNumber < 0 || jetpackItemNumber >= ent->inventory->size()) {
+		trap->SendServerCommand(ent - g_entities, "print \"Invalid item number.\n\"");
+		return;
+	}
+
+	itemInstance_t* item = &(*ent->inventory)[jetpackItemNumber];
+	if (item->id->itemType != ITEM_JETPACK) {
+		trap->SendServerCommand(ent - g_entities, "print \"That item is not a jetpack.\n\"");
+		return;
+	}
+
+	// Unequip the previous jetpack first
+	JKG_JetpackUnequipped(ent);
+
+	item->equipped = qtrue;
+
+	ent->client->pItemJetpack = &item->id->jetpackData;
+	ent->client->ps.jetpack = ent->client->pItemJetpack->pJetpackData - jetpackTable + 1;
+}
+
+void JKG_JetpackUnequipped(gentity_t* ent) {
+	// Iterate through the inventory and remove the jetpack that is equipped
+	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); it++) {
+		if (it->equipped && it->id->itemType == ITEM_JETPACK) {
+			it->equipped = qfalse;
+		}
+	}
+
+	ent->client->pItemJetpack = nullptr;
+	ent->client->ps.jetpack = 0;
+}
+
+#define JETPACK_TOGGLE_TIME		200
+void Jetpack_Off(gentity_t *ent)
+{ //create effects?
+	assert(ent && ent->client);
+
+	ent->client->ps.eFlags &= ~EF_JETPACK_ACTIVE;
+
+	jetpackData_t* jet = &jetpackTable[ent->client->ps.jetpack - 1];
+	G_Sound(ent, CHAN_AUTO, G_SoundIndex(/*"sound/jkg/jetpack/jetoff" "sound/boba/JETON"*/ jet->visuals.deactivateSound));
+}
+
+void Jetpack_On(gentity_t *ent)
+{ //create effects?
+	assert(ent && ent->client);
+
+	if (ent->client->ps.fd.forceGripBeingGripped >= level.time)
+	{ //can't turn on during grip interval
+		return;
+	}
+
+	if (ent->client->ps.fallingToDeath)
+	{ //too late!
+		return;
+	}
+
+	jetpackData_t* jet = &jetpackTable[ent->client->ps.jetpack - 1];
+	G_Sound(ent, CHAN_AUTO, G_SoundIndex(/*"sound/jkg/jetpack/jeton" "sound/boba/JETON"*/ jet->visuals.activateSound));
+
+	ent->client->ps.eFlags |= EF_JETPACK_ACTIVE;
+}
+
+void ItemUse_Jetpack(gentity_t *ent)
+{
+	assert(ent && ent->client);
+
+	if (ent->client->jetPackToggleTime >= level.time)
+	{
+		return;
+	}
+
+	if (ent->health <= 0 ||
+		ent->client->ps.stats[STAT_HEALTH] <= 0 ||
+		(ent->client->ps.eFlags & EF_DEAD) ||
+		ent->client->ps.pm_type == PM_DEAD)
+	{ //can't use it when dead under any circumstances.
+		return;
+	}
+
+	if (!ent->client->ps.jetpack) {
+		// they don't have a jetpack equipped
+		return;
+	}
+
+	if (!(ent->client->ps.eFlags & EF_JETPACK_ACTIVE) &&
+		ent->client->ps.jetpackFuel < 5)
+	{ //too low on fuel to start it up
+		return;
+	}
+
+	if (ent->client->ps.eFlags & EF_JETPACK_ACTIVE)
+	{
+		Jetpack_Off(ent);
+	}
+	else
+	{
+		Jetpack_On(ent);
+	}
+
+	ent->client->jetPackToggleTime = level.time + JETPACK_TOGGLE_TIME;
+}

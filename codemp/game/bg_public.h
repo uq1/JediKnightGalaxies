@@ -1901,6 +1901,23 @@ float JKG_CalculateIronsightsPhase ( const playerState_t *ps, int time, float *b
 
 qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolean PMOVE  );
 
+// Stuff that got moved from pmove to panimate
+qboolean BG_SabersOff(playerState_t *ps);
+void PM_AnimateJetpack(void);
+qboolean PM_AdjustStandAnimForSlope(void);
+int PM_LegsSlopeBackTransition(int desiredAnim);
+qboolean BG_WalkingAnim(int anim);
+qboolean BG_RunningAnim(int anim);
+qboolean BG_SwimmingAnim(int anim);
+qboolean BG_RollingAnim(int anim);
+qboolean BG_KnockdownAnim(int anim);
+qboolean BG_InSlopeAnim(int anim);
+qboolean PM_WeaponAnimate(void);
+qboolean PM_CanSetWeaponAnims(void);
+qboolean BG_SaberLockBreakAnim(int anim);
+qboolean PM_SaberInTransition(int move);
+qboolean BG_InSlopeAnim(int anim);
+
 extern int forcePowerDarkLight[NUM_FORCE_POWERS];
 
 double QuadraticBezierInterpolate(double phase, double p0, double p1, double p2);

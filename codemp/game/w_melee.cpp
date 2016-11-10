@@ -8,7 +8,7 @@ extern void G_GetBoltPosition( gentity_t *self, int boltIndex, vec3_t pos, int m
 extern qboolean BG_InKnockDown( int anim );
 
 qboolean G_IsInKnockDown(gentity_t* ent) {
-	return BG_InKnockDown(ent->client->ps.legsAnim) || BG_InKnockDown(ent->client->ps.torsoAnim);
+	return BG_KnockdownAnim(ent->client->ps.legsAnim) || BG_KnockdownAnim(ent->client->ps.torsoAnim);
 }
 
 qboolean G_KickDownable(gentity_t *ent)

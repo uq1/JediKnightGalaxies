@@ -2282,51 +2282,35 @@ void ClientThink_real( gentity_t *ent ) {
 		client->ps.eFlags &= ~EF_BODYPUSH;
 	}
 
-	// JETPACK FIXME
-	client->ps.eFlags &= ~EF_JETPACK;
 
-
-	// JKG - Implement no-move
+	// Set our pmove type
 	if (client->pmnomove) {
 		client->ps.pm_type = PM_NOMOVE;
-	} else if (client->pmfreeze) { // JKG - Implement freeze and lock
+	}
+	else if (client->pmlock) {
+		client->ps.pm_type = PM_LOCK;
+	}
+	else if (client->pmfreeze) {
 		ent->s.eFlags |= EF_FROZEN;
-		if (client->pmlock) {
-			client->ps.pm_type = PM_LOCK;
-		} else {
-			client->ps.pm_type = PM_FREEZE;
-		}
-	} else {
-		if ( client->noclip ) {
-			client->ps.pm_type = PM_NOCLIP;
-		} else if ( client->ps.eFlags & EF_DISINTEGRATION ) {
-			client->ps.pm_type = PM_NOCLIP;
-		} else if ( client->ps.stats[STAT_HEALTH] <= 0 ) {
-			client->ps.pm_type = PM_DEAD;
-		} else {
-			if (client->ps.forceGripChangeMovetype)
-			{
-				client->ps.pm_type = client->ps.forceGripChangeMovetype;
-			}
-			else
-			{
-				if (client->jetPackOn)
-				{
-					client->ps.pm_type = PM_JETPACK;
-					client->ps.eFlags |= EF_JETPACK_ACTIVE;
-					killJetFlags = qfalse;
-				}
-				else
-				{
-					client->ps.pm_type = PM_NORMAL;
-				}		
-			}
-		}
+		client->ps.pm_type = PM_FREEZE;
+	}
+	else if (client->noclip || client->ps.eFlags & EF_DISINTEGRATION) {
+		client->ps.pm_type = PM_NOCLIP;
+	}
+	else if (client->ps.stats[STAT_HEALTH] <= 0) {
+		client->ps.pm_type = PM_DEAD;
+	}
+	else if (client->ps.forceGripChangeMovetype) {
+		client->ps.pm_type = client->ps.forceGripChangeMovetype;
+	}
+	else if (client->ps.eFlags & EF_JETPACK_ACTIVE) {
+		client->ps.pm_type = PM_JETPACK;
+	}
+	else {
+		client->ps.pm_type = PM_NORMAL;
 	}
 
-	if (killJetFlags)
-	{
-		client->ps.eFlags &= ~EF_JETPACK_ACTIVE;
+	if (!(client->ps.eFlags & EF_JETPACK_ACTIVE)) {
 		client->ps.eFlags &= ~EF_JETPACK_FLAMING;
 	}
 

@@ -2549,7 +2549,6 @@ void G_BreakArm(gentity_t *ent, int arm)
 
 //Update the ghoul2 instance anims based on the playerstate values
 qboolean BG_SaberStanceAnim( int anim );
-qboolean PM_RunningAnim( int anim );
 void G_UpdateClientAnims(gentity_t *self, float animSpeedScale)
 {
 	static int f;
@@ -3514,6 +3513,9 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 			auto it = ent->inventory->begin() + i;
 			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
 				JKG_ShieldEquipped(ent, i, qfalse);
+			}
+			else if (it->equipped && it->id->itemType == ITEM_JETPACK) {
+				JKG_JetpackEquipped(ent, i);
 			}
 		}
 	}

@@ -94,7 +94,6 @@ extern qboolean PM_SaberInBrokenParry( int move );
 extern qboolean PM_SaberInDeflect( int move );
 extern qboolean BG_SpinningSaberAnim( int anim );
 extern qboolean BG_FlippingAnim( int anim );
-extern qboolean PM_RollingAnim( int anim );
 extern qboolean PM_InKnockDown( playerState_t *ps );
 extern qboolean BG_InRoll( playerState_t *ps, int anim );
 extern qboolean BG_CrouchAnim( int anim );
@@ -596,7 +595,7 @@ void WP_ResistForcePush( gentity_t *self, gentity_t *pusher, qboolean noPenalty 
 		&& self->client->ps.groundEntityNum != ENTITYNUM_NONE 
 		&& !BG_SpinningSaberAnim( self->client->ps.legsAnim ) 
 		&& !BG_FlippingAnim( self->client->ps.legsAnim ) 
-		&& !PM_RollingAnim( self->client->ps.legsAnim ) 
+		&& !BG_RollingAnim( self->client->ps.legsAnim ) 
 		&& !PM_InKnockDown( &self->client->ps ) 
 		&& !BG_CrouchAnim( self->client->ps.legsAnim ))
 	{//if on a surface and not in a spin or flip, play full body resist
@@ -743,7 +742,6 @@ void Boba_FlyStart( gentity_t *self )
 		//jet loop sound
 		self->s.loopSound = G_SoundIndex( "sound/boba/jethover.wav" );
 
-		self->s.eFlags |= EF_JETPACK;
 		self->client->ps.eFlags |= EF_JETPACK_ACTIVE;
 		self->client->ps.eFlags |= EF_JETPACK_FLAMING;
 
@@ -772,7 +770,6 @@ void Boba_FlyStop( gentity_t *self )
 	//stop jet loop sound
 	self->s.loopSound = 0;
 
-	self->s.eFlags &= ~EF_JETPACK;
 	self->client->ps.eFlags &= ~EF_JETPACK_ACTIVE;
 	self->client->ps.eFlags &= ~EF_JETPACK_FLAMING;
 
@@ -3035,7 +3032,7 @@ qboolean NPC_Humanoid_SaberBusy( gentity_t *self )
 		|| PM_SaberInBrokenParry( self->client->ps.saberMove ) 
 		//|| PM_SaberInDeflect( self->client->ps.saberMove ) 
 		|| BG_FlippingAnim( self->client->ps.torsoAnim ) 
-		|| PM_RollingAnim( self->client->ps.torsoAnim ) ) )
+		|| BG_RollingAnim( self->client->ps.torsoAnim ) ) )
 	{//my saber is not in a parrying position
 		return qtrue;
 	}

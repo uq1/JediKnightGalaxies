@@ -59,8 +59,6 @@ pml_t		pml;
 bgEntity_t *pm_entSelf = NULL;
 bgEntity_t *pm_entVeh = NULL;
 
-qboolean gPMDoSlowFall = qfalse;
-
 // movement parameters
 float	pm_stopspeed = 100.0f;
 float	pm_duckScale = 0.50f;
@@ -225,26 +223,6 @@ bgEntity_t *PM_BGEntForNum( int num )
 	return ent;
 }
 
-// FIXME: remove externs to it, declare it in bg_public.h
-qboolean BG_SabersOff( playerState_t *ps )
-{
-	if ( !ps->saberHolstered )
-	{
-		return qfalse;
-	}
-	if ( SaberStances[ps->fd.saberAnimLevel].isDualsOnly
-		|| SaberStances[ps->fd.saberAnimLevel].isStaffOnly ||
-		SaberStances[ps->fd.saberAnimLevel].isDualsFriendly ||
-		SaberStances[ps->fd.saberAnimLevel].isStaffFriendly)
-	{
-		if ( ps->saberHolstered < 2 )
-		{
-			return qfalse;
-		}
-	}
-	return qtrue;
-}
-
 qboolean BG_KnockDownable(playerState_t *ps)
 {
 	if (!ps)
@@ -266,169 +244,6 @@ qboolean BG_KnockDownable(playerState_t *ps)
 	return qtrue;
 }
 
-int PM_DualStanceForSingleStance ( int anim )
-{
-	switch(anim)
-	{
-		case BOTH_P1_S1_T_:
-			return BOTH_P6_S6_T_;
-			break;
-		case BOTH_P1_S1_BL:
-			return BOTH_P6_S6_BL;
-			break;
-		case BOTH_P1_S1_BR:
-			return BOTH_P6_S6_BR;
-			break;
-		case BOTH_P1_S1_TL:
-			return BOTH_P6_S6_TL;
-			break;
-		case BOTH_P1_S1_TR:
-			return BOTH_P6_S6_TR;
-			break;
-		case BOTH_SABERDUAL_STANCE:
-			return BOTH_H6_S6_BR;
-		case BOTH_STAND2:
-			return BOTH_SABERDUAL_STANCE;
-	}
-	return anim;
-}
-
-int PM_StaffStanceForSingleStance ( int anim )
-{
-	switch( anim )
-	{
-		case BOTH_STAND2:
-		case BOTH_SABERFAST_STANCE:
-			return BOTH_P7_S7_TL;
-		case BOTH_P7_S7_T_:
-			return BOTH_P7_S7_TR;
-	}
-	return anim;
-}
-
-int PM_GetSaberStance(void)
-{
-	int anim = BOTH_STAND2;
-	saberInfo_t *saber1 = BG_MySaber( pm->ps->clientNum, 0 );
-	saberInfo_t *saber2 = BG_MySaber( pm->ps->clientNum, 1 );
-
-	if (!pm->ps->saberEntityNum)
-	{ //lost it
-		return BOTH_STAND1;
-	}
-
-	if ( BG_SabersOff( pm->ps ) )
-	{
-		return BG_GetWeaponDataByIndex( pm->ps->weaponId )->anims.ready.torsoAnim;
-	}
-
-	if ( saber1
-		&& saber1->readyAnim != -1 )
-	{
-		return saber1->readyAnim;
-	}
-
-	if ( saber2
-		&& saber2->readyAnim != -1 )
-	{
-		return saber2->readyAnim;
-	}
-
-	if(!(pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) 
-		&& !(pm->ps->weaponstate == WEAPON_DROPPING 
-			|| pm->ps->weaponstate == WEAPON_RAISING)/* && bAllowRelaxedAnim*/ &&
-			!pm->cmd.upmove && !pm->cmd.forwardmove && !pm->cmd.rightmove &&
-			pm->ps->torsoAnim != BOTH_STAND1TO2 &&
-			pm->ps->torsoAnim != BOTH_STAND2TO1)
-	{
-
-		return SaberStances[pm->ps->fd.saberAnimLevel].offensiveStanceAnim;
-	}
-
-	if( pm->ps->saberActionFlags & (1 << SAF_BLOCKING) && pm->cmd.upmove <= 0)
-	{
-		if( (pm->cmd.forwardmove != 0 || pm->cmd.rightmove != 0) )
-		{
-			// Use a directional set of animations for blocking, which readies us for the parry --eez
-			if( pm->cmd.forwardmove < 0)
-			{
-				// moving backward/sideways
-				anim = BOTH_P7_S7_T_;
-			}
-			else if( pm->cmd.forwardmove != 0 )
-			{
-				anim = BOTH_P1_S1_T_; // use top as default, since most stances face that way anyway --eez
-			}
-			if( pm->cmd.rightmove != 0 )
-			{
-				// moving sideways
-				if(pm->cmd.rightmove > 0)	// moving right
-				{
-					if(anim == BOTH_P1_S1_T_)	// going forward
-					{
-						anim = BOTH_P1_S1_BL;
-					}
-					else if(anim == BOTH_P7_S7_T_)	// going backward
-					{
-						anim = BOTH_P1_S1_T_;
-					}
-					else								// just straight right
-					{
-						anim = BOTH_P1_S1_TR;
-					}
-				}
-				else						// moving left
-				{
-					if(anim == BOTH_P1_S1_T_)
-					{
-						// forward
-						anim = BOTH_P1_S1_BR;
-					}
-					else if(anim == BOTH_P7_S7_T_)	// going backward
-					{
-						anim = BOTH_P7_S7_T_;
-					}
-					else
-					{
-						anim = BOTH_P1_S1_TL;
-					}
-				}
-			}
-		}
-		if( pm->ps->saberActionFlags & ( 1 << SAF_PROJBLOCKING ) )
-		{
-			return SaberStances[pm->ps->fd.saberAnimLevel].projectileBlockAnim;
-		}
-		if( saber1 
-				&& saber2
-				&& !pm->ps->saberHolstered )
-		{
-			// c wut i did here? --eez
-			return PM_DualStanceForSingleStance( anim );
-		}
-		else if ( SaberStances[pm->ps->fd.saberAnimLevel].isStaffOnly )
-		{
-			return PM_StaffStanceForSingleStance( anim );
-		}
-		if ( anim != BOTH_STAND2 )
-		{ // so stances are still distinguished --eez
-			return anim;
-		}
-	}
-	anim = SaberStances[pm->ps->fd.saberAnimLevel].moves[LS_READY].anim;
-	return anim;
-}
-
-// FIXME: ew why?
-qboolean PM_DoSlowFall(void)
-{
-	if ( ( (pm->ps->legsAnim) == BOTH_WALL_RUN_RIGHT || (pm->ps->legsAnim) == BOTH_WALL_RUN_LEFT ) && pm->ps->legsTimer > 500 )
-	{
-		return qtrue;
-	}
-
-	return qfalse;
-}
 
 
 //FIXME: byebye
@@ -447,7 +262,7 @@ and returns.
 ====================================================================
 */
 
-static qboolean pm_flying = qfalse;
+
 
 #ifndef _GAME
 extern vmCvar_t cg_paused;
@@ -538,6 +353,204 @@ void PM_AddTouchEnt( int entityNum ) {
 	pm->numtouch++;
 }
 
+/*
+==============
+PM_ApplySpeedConstants
+
+Adjusts movement speed based on values from constants.json
+Only really used for WalkMove
+==============
+*/
+void PM_ApplySpeedConstants()
+{
+	saberInfo_t	*saber;
+	playerState_t* ps = pm->ps;
+	usercmd_t* cmd = &pm->cmd;
+	int svTime = pm->cmd.serverTime;
+	float speedModifier = 1.0f;
+	weaponData_t* weaponData = GetWeaponData(ps->weapon, ps->weaponVariation);
+
+	//For prediction, always reset speed back to the last known server base speed
+	//If we didn't do this, under lag we'd eventually dwindle speed down to 0 even though
+	//that would not be the correct predicted value.
+	ps->speed = ps->basespeed;
+
+	if (ps->forceHandExtend == HANDEXTEND_DODGE)
+	{
+		ps->speed = 0;
+	}
+
+	if (ps->forceHandExtend == HANDEXTEND_KNOCKDOWN ||
+		ps->forceHandExtend == HANDEXTEND_PRETHROWN ||
+		ps->forceHandExtend == HANDEXTEND_POSTTHROWN)
+	{
+		ps->speed = 0;
+	}
+
+
+	if (cmd->forwardmove < 0 && !(cmd->buttons&BUTTON_WALKING) && pm->ps->groundEntityNum != ENTITYNUM_NONE)
+	{//running backwards is slower than running forwards (like SP)
+		speedModifier += bgConstants.backwardsSpeedModifier;
+		if (ps->saberActionFlags & (1 << SAF_BLOCKING))
+		{
+			if (cmd->rightmove != 0)
+			{
+				speedModifier += bgConstants.backwardsDiagonalSpeedModifier;
+			}
+		}
+	}
+
+	if (cmd->rightmove != 0)
+	{
+		// strafing reduces speed significantly
+		//ps->speed *= 0.80f;
+		//speedModifier -= 0.25f;
+		if (BG_IsSprinting(ps, cmd, true))
+			speedModifier += bgConstants.strafeSpeedModifier / 4;
+		else if (cmd->forwardmove != 0)
+			speedModifier += bgConstants.strafeSpeedModifier / 1.5f;
+		else
+			speedModifier += bgConstants.strafeSpeedModifier;
+	}
+
+	if (!(cmd->buttons&BUTTON_WALKING) && !(cmd->buttons&BUTTON_IRONSIGHTS) && !BG_IsSprinting(ps, cmd, qtrue) && ps->weapon != WP_SABER)
+	{
+		//ps->speed *= 0.9f;
+		speedModifier += bgConstants.baseSpeedModifier;
+	}
+	else if (cmd->buttons&BUTTON_WALKING || cmd->buttons&BUTTON_IRONSIGHTS)
+	{
+		//ps->speed *= 0.8f;
+		speedModifier -= bgConstants.walkSpeedModifier;
+	}
+
+
+	if (ps->fd.forcePowersActive & (1 << FP_GRIP))
+	{
+		speedModifier -= 0.6f;
+	}
+
+	if (ps->fd.forcePowersActive & (1 << FP_SPEED))
+	{
+		speedModifier += 0.7f;
+	}
+	else if (ps->fd.forcePowersActive & (1 << FP_RAGE))
+	{
+		speedModifier += 0.3f;
+	}
+	else if (ps->fd.forceRageRecoveryTime > svTime)
+	{
+		speedModifier -= 0.25f;
+	}
+
+	if (ps->fd.forceGripCripple)
+	{
+		if (ps->fd.forcePowersActive & (1 << FP_RAGE))
+		{
+			speedModifier -= 0.1f;
+		}
+		else if (ps->fd.forcePowersActive & (1 << FP_SPEED))
+		{ //force speed will help us escape
+			speedModifier -= 0.2f;
+		}
+		else
+		{
+			speedModifier -= 0.8f;
+		}
+	}
+
+	if (BG_SaberInAttack(ps->saberMove) && cmd->forwardmove < 0)
+	{//if running backwards while attacking, don't run as fast.
+		ps->speed *= SaberStances[ps->fd.saberAnimLevel].attackBackSpeedModifier;
+	}
+	else if (BG_SpinningSaberAnim(ps->legsAnim))
+	{
+		if (ps->fd.saberAnimLevel == FORCE_LEVEL_3)
+		{
+			speedModifier -= 0.7f;
+		}
+		else
+		{
+			speedModifier -= 0.5f;
+		}
+	}
+	else if (ps->weapon == WP_SABER && BG_SaberInAttack(ps->saberMove))
+	{//if attacking with saber while running, drop your speed
+		speedModifier -= (1.0f - SaberStances[ps->fd.saberAnimLevel].attackSpeedModifier);
+	}
+	else if (ps->weapon == WP_SABER &&
+		PM_SaberInTransition(ps->saberMove))
+	{ //Now, we want to even slow down in transitions for level 3 (since it has chains and stuff now)
+		if (cmd->forwardmove < 0)
+		{
+			speedModifier -= (1.0f - SaberStances[ps->fd.saberAnimLevel].attackSpeedModifier);
+		}
+		else
+		{
+			speedModifier -= (1.0f - SaberStances[ps->fd.saberAnimLevel].transitionSpeedModifier)*1.5;
+		}
+	}
+
+	if (BG_InRoll(ps, ps->legsAnim) && ps->speed > 50)
+	{ //can't roll unless you're able to move normally
+		if ((ps->legsAnim) == BOTH_ROLL_B)
+		{ //backwards roll is pretty fast, should also be slower
+			if (ps->legsTimer > 800)
+			{
+				ps->speed = ps->legsTimer / 2.5f;
+			}
+			else
+			{
+				ps->speed = ps->legsTimer / 6.0f;//450;
+			}
+		}
+		else
+		{
+			if (ps->legsTimer > 800)
+			{
+				ps->speed = ps->legsTimer / 1.5f;//450;
+			}
+			else
+			{
+				ps->speed = ps->legsTimer / 5.0f;//450;
+			}
+		}
+		if (ps->speed > 600)
+		{
+			ps->speed = 600;
+		}
+		//Automatically slow down as the roll ends.
+	}
+
+	saber = BG_MySaber(ps->clientNum, 0);
+	if (saber
+		&& saber->moveSpeedScale != 1.0f)
+	{
+		ps->speed *= saber->moveSpeedScale;
+	}
+	saber = BG_MySaber(ps->clientNum, 1);
+	if (saber
+		&& saber->moveSpeedScale != 1.0f)
+	{
+		ps->speed *= saber->moveSpeedScale;
+	}
+
+	if (pm->ps->pm_flags & PMF_DUCKED) {
+		speedModifier -= pm_duckScale;
+	}
+
+	speedModifier -= (1 - weaponData->speedModifier);
+	if (ps->weaponstate == WEAPON_RELOADING && ps->weaponTime > 0) {
+		speedModifier -= (1 - weaponData->reloadModifier);
+	}
+
+	if (speedModifier < bgConstants.minimumSpeedModifier)
+	{
+		speedModifier = bgConstants.minimumSpeedModifier;
+	}
+
+	ps->speed *= speedModifier;
+}
 
 /*
 ==================
@@ -623,17 +636,13 @@ static void PM_Friction( void ) {
 		pEnt = pm_entSelf;
 	}
 
-	// apply ground friction, even if on ladder
-	if ( !pm_flying )
-	{
-		// apply ground friction
-		if ( pm->waterlevel <= 1 ) {
-			if ( pml.walking && !(pml.groundTrace.surfaceFlags & SURF_SLICK) ) {
-				// if getting knocked back, no friction
-				if ( ! (pm->ps->pm_flags & PMF_TIME_KNOCKBACK) ) {
-					control = speed < pm_stopspeed ? pm_stopspeed : speed;
-					drop += control*pm_friction*pml.frametime;
-				}
+	// apply ground friction
+	if ( pm->waterlevel <= 1 ) {
+		if ( pml.walking && !(pml.groundTrace.surfaceFlags & SURF_SLICK) ) {
+			// if getting knocked back, no friction
+			if ( ! (pm->ps->pm_flags & PMF_TIME_KNOCKBACK) ) {
+				control = speed < pm_stopspeed ? pm_stopspeed : speed;
+				drop += control*pm_friction*pml.frametime;
 			}
 		}
 	}
@@ -2500,35 +2509,11 @@ static void PM_AirMove( void ) {
 	VectorNormalize (pml.forward);
 	VectorNormalize (pml.right);
 
-	if ( gPMDoSlowFall )
-	{//no air-control
-		VectorClear( wishvel );
-	}
-	else if (pm->ps->pm_type == PM_JETPACK)
-	{ //reduced air control while not jetting
-		for ( i = 0 ; i < 2 ; i++ )
-		{
-			wishvel[i] = pml.forward[i]*fmove + pml.right[i]*smove;
-		}
-		wishvel[2] = 0;
-
-		if (pm->cmd.upmove <= 0)
-		{
-            VectorScale(wishvel, 3.0f, wishvel); // 0.8f - increasing jetpack power over all -Pande
-		}
-		else
-		{ //if we are jetting then we have more control than usual
-            VectorScale(wishvel, 5.0f, wishvel); //2.0f - more power for spacebar hold
-		}
-	}
-	else
+	for ( i = 0 ; i < 2 ; i++ )
 	{
-		for ( i = 0 ; i < 2 ; i++ )
-		{
-			wishvel[i] = pml.forward[i]*fmove + pml.right[i]*smove;
-		}
-		wishvel[2] = 0;
+		wishvel[i] = pml.forward[i]*fmove + pml.right[i]*smove;
 	}
+	wishvel[2] = 0;
 
 	VectorCopy (wishvel, wishdir);
 	wishspeed = VectorNormalize(wishdir);
@@ -2574,6 +2559,82 @@ static void PM_AirMove( void ) {
 
 /*
 ===================
+PM_JetpackMove
+
+===================
+*/
+#define JETPACK_FLOAT_SPEED         128.0f //up movement speed
+#define JETPACK_SINK_SPEED			192.0f //down movement speed
+static void PM_JetpackMove(void) {
+	// Pretty much blatantly copied from Tremulous, because they have good jetpacks
+	float scale;
+	float wishspeed;
+	vec3_t wishvel;
+	vec3_t wishdir;
+	jetpackData_t* jet = &jetpackTable[pm->ps->jetpack - 1];
+
+	PM_Friction();
+
+	scale = PM_CmdScale(&pm->cmd);
+
+	if (pm->cmd.upmove > 0)
+	{
+		pm->ps->eFlags |= EF_JETPACK_FLAMING; //going up
+	}
+	else
+	{
+		pm->ps->eFlags &= ~EF_JETPACK_FLAMING; //idling
+	}
+
+	for (int i = 0; i < 2; i++) {
+		wishvel[i] = scale * pml.forward[i] * pm->cmd.forwardmove + scale * pml.right[i] * pm->cmd.rightmove;
+
+		// Modify the wishvel based on the values in the .jet files
+		if (pm->ps->eFlags & EF_JETPACK_FLAMING) {
+			if (i) {
+				if (pm->cmd.forwardmove > 0) {
+					wishvel[i] *= jet->move.thrustFwd;
+				}
+				else {
+					wishvel[i] *= jet->move.thrustBack;
+				}
+			}
+			else {
+				wishvel[i] *= jet->move.thrustSide;
+			}
+		}
+		else if (i) {
+			if (pm->cmd.forwardmove > 0) {
+				wishvel[i] *= jet->move.forwardMove;
+			}
+			else {
+				wishvel[i] *= jet->move.backMove;
+			}
+		}
+		else {
+			wishvel[i] *= jet->move.sideMove;
+		}
+	}
+
+	if (pm->ps->eFlags & EF_JETPACK_FLAMING)
+		wishvel[2] = JETPACK_FLOAT_SPEED * jet->move.thrustUp;
+	else if (pm->cmd.upmove < 0)
+		wishvel[2] = -JETPACK_SINK_SPEED * jet->move.downMove;
+	else
+		wishvel[2] = jet->move.hoverGravity;
+
+	VectorCopy(wishvel, wishdir);
+	wishspeed = VectorNormalize(wishdir);
+
+	PM_Accelerate(wishdir, wishspeed, pm_flyaccelerate);
+
+	PM_StepSlideMove(qfalse);
+
+	PM_AnimateJetpack();
+}
+
+/*
+===================
 PM_WalkMove
 
 ===================
@@ -2609,6 +2670,7 @@ static void PM_WalkMove( void ) {
 		}
 	}
 
+	PM_ApplySpeedConstants();
 	PM_Friction ();
 
 	fmove = pm->cmd.forwardmove;
@@ -3833,17 +3895,14 @@ static void PM_CheckDuck (void)
 			if (pm->ps->pm_type != PM_JETPACK) {
 				pm->ps->pm_flags |= PMF_DUCKED;
 			}
-		}
-		else
-		{	// stand up if possible 
-			if (pm->ps->pm_flags & PMF_DUCKED)
+		} // stand up if possible 
+		else if (pm->ps->pm_flags & PMF_DUCKED)
+		{
+			// Xycaleth's fix for crochjumping through roof
+			if ( PM_CanStand() )
 			{
-				// Xycaleth's fix for crochjumping through roof
-                		if ( PM_CanStand() )
-	            		{
-		            		pm->maxs[2] = pm->ps->standheight;
-		            		pm->ps->pm_flags &= ~PMF_DUCKED;
-	            		}
+				pm->maxs[2] = pm->ps->standheight;
+				pm->ps->pm_flags &= ~PMF_DUCKED;
 			}
 		}
 	}
@@ -3864,159 +3923,6 @@ static void PM_CheckDuck (void)
 		pm->ps->viewheight = DEFAULT_VIEWHEIGHT;
 	}
 }
-
-//===================================================================
-// BEGIN ANIM CHECKS
-//===================================================================
-
-qboolean PM_WalkingAnim( int anim )
-{
-	switch ( anim )
-	{
-	case BOTH_WALK1:				//# Normal walk
-	case BOTH_WALK2:				//# Normal walk with saber
-	case BOTH_WALK_STAFF:			//# Normal walk with staff
-	case BOTH_WALK_DUAL:			//# Normal walk with staff
-	case BOTH_WALK5:				//# Tavion taunting Kyle (cin 22)
-	case BOTH_WALK6:				//# Slow walk for Luke (cin 12)
-	case BOTH_WALK7:				//# Fast walk
-	case BOTH_WALKBACK1:			//# Walk1 backwards
-	case BOTH_WALKBACK2:			//# Walk2 backwards
-	case BOTH_WALKBACK_STAFF:		//# Walk backwards with staff
-	case BOTH_WALKBACK_DUAL:		//# Walk backwards with dual
-	case BOTH_FEMALEEWALK:			//# JKG: Female walking
-	case BOTH_FEMALEEWALKBACK:		//# JKG: Femake walking (backwards)
-		return qtrue;
-		break;
-	}
-	return qfalse;
-}
-
-qboolean PM_RunningAnim( int anim )
-{
-	switch ( (anim) )
-	{
-	case BOTH_RUN1:			
-	case BOTH_RUN2:			
-	case BOTH_RUN_STAFF:
-	case BOTH_RUN_DUAL:
-	case BOTH_RUNBACK1:			
-	case BOTH_RUNBACK2:			
-	case BOTH_RUNBACK_STAFF:			
-	case BOTH_RUNBACK_DUAL:
-	case BOTH_RUN1START:			//# Start into full run1
-	case BOTH_RUN1STOP:			//# Stop from full run1
-	case BOTH_RUNSTRAFE_LEFT1:	//# Sidestep left: should loop
-	case BOTH_RUNSTRAFE_RIGHT1:	//# Sidestep right: should loop
-	case BOTH_FEMALERUN:
-		return qtrue;
-		break;
-	}
-	return qfalse;
-}
-
-qboolean PM_SwimmingAnim( int anim )
-{
-	switch ( anim )
-	{
-	case BOTH_SWIM_IDLE1:		//# Swimming Idle 1
-	case BOTH_SWIMFORWARD:		//# Swim forward loop
-	case BOTH_SWIMBACKWARD:		//# Swim backward loop
-		return qtrue;
-		break;
-	}
-	return qfalse;
-}
-
-qboolean PM_RollingAnim( int anim )
-{
-	switch ( anim )
-	{
-	case BOTH_ROLL_F:			//# Roll forward
-	case BOTH_ROLL_B:			//# Roll backward
-	case BOTH_ROLL_L:			//# Roll left
-	case BOTH_ROLL_R:			//# Roll right
-	//[KnockdownSys]
-	//added the force rolling getup animations from SP code.
-	case BOTH_GETUP_BROLL_B:
-	case BOTH_GETUP_BROLL_F:
-	case BOTH_GETUP_BROLL_L:
-	case BOTH_GETUP_BROLL_R:
-	case BOTH_GETUP_FROLL_B:
-	case BOTH_GETUP_FROLL_F:
-	case BOTH_GETUP_FROLL_L:
-	case BOTH_GETUP_FROLL_R:
-	//[/KnockdownSys]
-		return qtrue;
-		break;
-	}
-	return qfalse;
-}
-
-// FIXME: move into bg_sabers.cpp maybe
-qboolean PM_InSlopeAnim( int anim )
-{
-	switch ( anim )
-	{
-	case LEGS_LEFTUP1:			//# On a slope with left foot 4 higher than right
-	case LEGS_LEFTUP2:			//# On a slope with left foot 8 higher than right
-	case LEGS_LEFTUP3:			//# On a slope with left foot 12 higher than right
-	case LEGS_LEFTUP4:			//# On a slope with left foot 16 higher than right
-	case LEGS_LEFTUP5:			//# On a slope with left foot 20 higher than right
-	case LEGS_RIGHTUP1:			//# On a slope with RIGHT foot 4 higher than left
-	case LEGS_RIGHTUP2:			//# On a slope with RIGHT foot 8 higher than left
-	case LEGS_RIGHTUP3:			//# On a slope with RIGHT foot 12 higher than left
-	case LEGS_RIGHTUP4:			//# On a slope with RIGHT foot 16 higher than left
-	case LEGS_RIGHTUP5:			//# On a slope with RIGHT foot 20 higher than left
-	case LEGS_S1_LUP1:
-	case LEGS_S1_LUP2:
-	case LEGS_S1_LUP3:
-	case LEGS_S1_LUP4:
-	case LEGS_S1_LUP5:
-	case LEGS_S1_RUP1:
-	case LEGS_S1_RUP2:
-	case LEGS_S1_RUP3:
-	case LEGS_S1_RUP4:
-	case LEGS_S1_RUP5:
-	case LEGS_S3_LUP1:
-	case LEGS_S3_LUP2:
-	case LEGS_S3_LUP3:
-	case LEGS_S3_LUP4:
-	case LEGS_S3_LUP5:
-	case LEGS_S3_RUP1:
-	case LEGS_S3_RUP2:
-	case LEGS_S3_RUP3:
-	case LEGS_S3_RUP4:
-	case LEGS_S3_RUP5:
-	case LEGS_S4_LUP1:
-	case LEGS_S4_LUP2:
-	case LEGS_S4_LUP3:
-	case LEGS_S4_LUP4:
-	case LEGS_S4_LUP5:
-	case LEGS_S4_RUP1:
-	case LEGS_S4_RUP2:
-	case LEGS_S4_RUP3:
-	case LEGS_S4_RUP4:
-	case LEGS_S4_RUP5:
-	case LEGS_S5_LUP1:
-	case LEGS_S5_LUP2:
-	case LEGS_S5_LUP3:
-	case LEGS_S5_LUP4:
-	case LEGS_S5_LUP5:
-	case LEGS_S5_RUP1:
-	case LEGS_S5_RUP2:
-	case LEGS_S5_RUP3:
-	case LEGS_S5_RUP4:
-	case LEGS_S5_RUP5:
-		return qtrue;
-		break;
-	}
-	return qfalse;
-}
-
-//===================================================================
-// END ANIM CHECKS
-//===================================================================
 
 /*
 =================
@@ -4091,313 +3997,9 @@ void PM_FootSlopeTrace( float *pDiff, float *pInterval )
 
 /*
 =================
-PM_AdjustStandAnimForSlope
-
+PM_UsingIronSights
 =================
 */
-
-#define	SLOPE_RECALC_INT 100
-
-qboolean PM_AdjustStandAnimForSlope( void )
-{
-	float	diff;
-	float	interval;
-	int		destAnim;
-	int		legsAnim;
-	#define SLOPERECALCVAR pm->ps->slopeRecalcTime //this is purely convenience
-
-	if (!pm->ghoul2)
-	{ //probably just changed models and not quite in sync yet
-		return qfalse;
-	}
-
-	if ( pm->g2Bolts_LFoot == -1 || pm->g2Bolts_RFoot == -1 )
-	{//need these bolts!
-		return qfalse;
-	}
-
-	//step 1: find the 2 foot tags
-	PM_FootSlopeTrace( &diff, &interval );
-
-	//step 4: based on difference, choose one of the left/right slope-match intervals
-	if ( diff >= interval*5 )
-	{
-		destAnim = LEGS_LEFTUP5;
-	}
-	else if ( diff >= interval*4 )
-	{
-		destAnim = LEGS_LEFTUP4;
-	}
-	else if ( diff >= interval*3 )
-	{
-		destAnim = LEGS_LEFTUP3;
-	}
-	else if ( diff >= interval*2 )
-	{
-		destAnim = LEGS_LEFTUP2;
-	}
-	else if ( diff >= interval )
-	{
-		destAnim = LEGS_LEFTUP1;
-	}
-	else if ( diff <= interval*-5 )
-	{
-		destAnim = LEGS_RIGHTUP5;
-	}
-	else if ( diff <= interval*-4 )
-	{
-		destAnim = LEGS_RIGHTUP4;
-	}
-	else if ( diff <= interval*-3 )
-	{
-		destAnim = LEGS_RIGHTUP3;
-	}
-	else if ( diff <= interval*-2 )
-	{
-		destAnim = LEGS_RIGHTUP2;
-	}
-	else if ( diff <= interval*-1 )
-	{
-		destAnim = LEGS_RIGHTUP1;
-	}
-	else
-	{
-		return qfalse;
-	}
-
-	legsAnim = pm->ps->legsAnim;
-	//adjust for current legs anim
-	switch ( legsAnim )
-	{
-	case BOTH_STAND1:
-
-	case LEGS_S1_LUP1:
-	case LEGS_S1_LUP2:
-	case LEGS_S1_LUP3:
-	case LEGS_S1_LUP4:
-	case LEGS_S1_LUP5:
-	case LEGS_S1_RUP1:
-	case LEGS_S1_RUP2:
-	case LEGS_S1_RUP3:
-	case LEGS_S1_RUP4:
-	case LEGS_S1_RUP5:
-		destAnim = LEGS_S1_LUP1 + (destAnim-LEGS_LEFTUP1);
-		break;
-	case BOTH_STAND2:
-	case BOTH_SABERFAST_STANCE:
-	case BOTH_SABERSLOW_STANCE:
-	case BOTH_CROUCH1IDLE:
-	case BOTH_CROUCH1:
-	case LEGS_LEFTUP1:			//# On a slope with left foot 4 higher than right
-	case LEGS_LEFTUP2:			//# On a slope with left foot 8 higher than right
-	case LEGS_LEFTUP3:			//# On a slope with left foot 12 higher than right
-	case LEGS_LEFTUP4:			//# On a slope with left foot 16 higher than right
-	case LEGS_LEFTUP5:			//# On a slope with left foot 20 higher than right
-	case LEGS_RIGHTUP1:			//# On a slope with RIGHT foot 4 higher than left
-	case LEGS_RIGHTUP2:			//# On a slope with RIGHT foot 8 higher than left
-	case LEGS_RIGHTUP3:			//# On a slope with RIGHT foot 12 higher than left
-	case LEGS_RIGHTUP4:			//# On a slope with RIGHT foot 16 higher than left
-	case LEGS_RIGHTUP5:			//# On a slope with RIGHT foot 20 higher than left
-		//fine
-		break;
-	case BOTH_STAND3:
-	case LEGS_S3_LUP1:
-	case LEGS_S3_LUP2:
-	case LEGS_S3_LUP3:
-	case LEGS_S3_LUP4:
-	case LEGS_S3_LUP5:
-	case LEGS_S3_RUP1:
-	case LEGS_S3_RUP2:
-	case LEGS_S3_RUP3:
-	case LEGS_S3_RUP4:
-	case LEGS_S3_RUP5:
-		destAnim = LEGS_S3_LUP1 + (destAnim-LEGS_LEFTUP1);
-		break;
-	case BOTH_STAND4:
-	case LEGS_S4_LUP1:
-	case LEGS_S4_LUP2:
-	case LEGS_S4_LUP3:
-	case LEGS_S4_LUP4:
-	case LEGS_S4_LUP5:
-	case LEGS_S4_RUP1:
-	case LEGS_S4_RUP2:
-	case LEGS_S4_RUP3:
-	case LEGS_S4_RUP4:
-	case LEGS_S4_RUP5:
-		destAnim = LEGS_S4_LUP1 + (destAnim-LEGS_LEFTUP1);
-		break;
-	case BOTH_STAND5:
-	case LEGS_S5_LUP1:
-	case LEGS_S5_LUP2:
-	case LEGS_S5_LUP3:
-	case LEGS_S5_LUP4:
-	case LEGS_S5_LUP5:
-	case LEGS_S5_RUP1:
-	case LEGS_S5_RUP2:
-	case LEGS_S5_RUP3:
-	case LEGS_S5_RUP4:
-	case LEGS_S5_RUP5:
-		destAnim = LEGS_S5_LUP1 + (destAnim-LEGS_LEFTUP1);
-		break;
-	case BOTH_STAND6:
-	default:
-		return qfalse;
-		break;
-	}
-
-	//step 5: based on the chosen interval and the current legsAnim, pick the correct anim
-	//step 6: increment/decrement to the dest anim, not instant
-	if ( (legsAnim >= LEGS_LEFTUP1 && legsAnim <= LEGS_LEFTUP5)
-		|| (legsAnim >= LEGS_S1_LUP1 && legsAnim <= LEGS_S1_LUP5)
-		|| (legsAnim >= LEGS_S3_LUP1 && legsAnim <= LEGS_S3_LUP5)
-		|| (legsAnim >= LEGS_S4_LUP1 && legsAnim <= LEGS_S4_LUP5)
-		|| (legsAnim >= LEGS_S5_LUP1 && legsAnim <= LEGS_S5_LUP5) )
-	{//already in left-side up
-		if ( destAnim > legsAnim && SLOPERECALCVAR < pm->cmd.serverTime )
-		{
-			legsAnim++;
-			SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-		}
-		else if ( destAnim < legsAnim && SLOPERECALCVAR < pm->cmd.serverTime )
-		{
-			legsAnim--;
-			SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-		}
-		else //if (SLOPERECALCVAR < pm->cmd.serverTime)
-		{
-			legsAnim = destAnim;
-		}
-
-		destAnim = legsAnim;
-	}
-	else if ( (legsAnim >= LEGS_RIGHTUP1 && legsAnim <= LEGS_RIGHTUP5) 
-		|| (legsAnim >= LEGS_S1_RUP1 && legsAnim <= LEGS_S1_RUP5)
-		|| (legsAnim >= LEGS_S3_RUP1 && legsAnim <= LEGS_S3_RUP5)
-		|| (legsAnim >= LEGS_S4_RUP1 && legsAnim <= LEGS_S4_RUP5)
-		|| (legsAnim >= LEGS_S5_RUP1 && legsAnim <= LEGS_S5_RUP5) )
-	{//already in right-side up
-		if ( destAnim > legsAnim && SLOPERECALCVAR < pm->cmd.serverTime )
-		{
-			legsAnim++;
-			SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-		}
-		else if ( destAnim < legsAnim && SLOPERECALCVAR < pm->cmd.serverTime )
-		{
-			legsAnim--;
-			SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-		}
-		else //if (SLOPERECALCVAR < pm->cmd.serverTime)
-		{
-			legsAnim = destAnim;
-		}
-		
-		destAnim = legsAnim;
-	}
-	else
-	{//in a stand of some sort?
-		switch ( legsAnim )
-		{
-		case BOTH_STAND1:
-		case TORSO_WEAPONREADY1:
-		case TORSO_WEAPONREADY2:
-		case TORSO_WEAPONREADY3:
-		case TORSO_WEAPONREADY10:
-
-			if ( destAnim >= LEGS_S1_LUP1 && destAnim <= LEGS_S1_LUP5 )
-			{//going into left side up
-				destAnim = LEGS_S1_LUP1;
-				SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-			}
-			else if ( destAnim >= LEGS_S1_RUP1 && destAnim <= LEGS_S1_RUP5 )
-			{//going into right side up
-				destAnim = LEGS_S1_RUP1;
-				SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-			}
-			else
-			{//will never get here
-				return qfalse;
-			}
-			break;
-		case BOTH_STAND2:
-		case BOTH_SABERFAST_STANCE:
-		case BOTH_SABERSLOW_STANCE:
-		case BOTH_CROUCH1IDLE:
-			if ( destAnim >= LEGS_LEFTUP1 && destAnim <= LEGS_LEFTUP5 )
-			{//going into left side up
-				destAnim = LEGS_LEFTUP1;
-				SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-			}
-			else if ( destAnim >= LEGS_RIGHTUP1 && destAnim <= LEGS_RIGHTUP5 )
-			{//going into right side up
-				destAnim = LEGS_RIGHTUP1;
-				SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-			}
-			else
-			{//will never get here
-				return qfalse;
-			}
-			break;
-		case BOTH_STAND3:
-			if ( destAnim >= LEGS_S3_LUP1 && destAnim <= LEGS_S3_LUP5 )
-			{//going into left side up
-				destAnim = LEGS_S3_LUP1;
-				SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-			}
-			else if ( destAnim >= LEGS_S3_RUP1 && destAnim <= LEGS_S3_RUP5 )
-			{//going into right side up
-				destAnim = LEGS_S3_RUP1;
-				SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-			}
-			else
-			{//will never get here
-				return qfalse;
-			}
-			break;
-		case BOTH_STAND4:
-			if ( destAnim >= LEGS_S4_LUP1 && destAnim <= LEGS_S4_LUP5 )
-			{//going into left side up
-				destAnim = LEGS_S4_LUP1;
-				SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-			}
-			else if ( destAnim >= LEGS_S4_RUP1 && destAnim <= LEGS_S4_RUP5 )
-			{//going into right side up
-				destAnim = LEGS_S4_RUP1;
-				SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-			}
-			else
-			{//will never get here
-				return qfalse;
-			}
-			break;
-		case BOTH_STAND5:
-			if ( destAnim >= LEGS_S5_LUP1 && destAnim <= LEGS_S5_LUP5 )
-			{//going into left side up
-				destAnim = LEGS_S5_LUP1;
-				SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-			}
-			else if ( destAnim >= LEGS_S5_RUP1 && destAnim <= LEGS_S5_RUP5 )
-			{//going into right side up
-				destAnim = LEGS_S5_RUP1;
-				SLOPERECALCVAR = pm->cmd.serverTime + SLOPE_RECALC_INT;
-			}
-			else
-			{//will never get here
-				return qfalse;
-			}
-			break;
-		case BOTH_STAND6:
-		default:
-			return qfalse;
-			break;
-		}
-	}
-	//step 7: set the anim
-	//PM_SetAnim( SETANIM_LEGS, destAnim, SETANIM_FLAG_NORMAL);
-	PM_ContinueLegsAnim(destAnim);
-
-	return qtrue;
-}
-
 qboolean PM_UsingIronSights(const pmove_t *pm) {
 	if (pm->ps->weapon == WP_THERMAL ||
 			pm->ps->weapon == WP_TRIP_MINE ||
@@ -4406,75 +4008,6 @@ qboolean PM_UsingIronSights(const pmove_t *pm) {
 	}
 
 	return (pm->cmd.buttons & BUTTON_IRONSIGHTS);
-}
-
-/*
-=================
-PM_LegsSlopeBackTransition
-rww - slowly back out of slope leg anims, to prevent skipping between slope anims and general jittering
-=================
-*/
-int PM_LegsSlopeBackTransition(int desiredAnim)
-{
-	int anim = pm->ps->legsAnim;
-	int resultingAnim = desiredAnim;
-
-	switch ( anim )
-	{
-	case LEGS_LEFTUP2:			//# On a slope with left foot 8 higher than right
-	case LEGS_LEFTUP3:			//# On a slope with left foot 12 higher than right
-	case LEGS_LEFTUP4:			//# On a slope with left foot 16 higher than right
-	case LEGS_LEFTUP5:			//# On a slope with left foot 20 higher than right
-	case LEGS_RIGHTUP2:			//# On a slope with RIGHT foot 8 higher than left
-	case LEGS_RIGHTUP3:			//# On a slope with RIGHT foot 12 higher than left
-	case LEGS_RIGHTUP4:			//# On a slope with RIGHT foot 16 higher than left
-	case LEGS_RIGHTUP5:			//# On a slope with RIGHT foot 20 higher than left
-	case LEGS_S1_LUP2:
-	case LEGS_S1_LUP3:
-	case LEGS_S1_LUP4:
-	case LEGS_S1_LUP5:
-	case LEGS_S1_RUP2:
-	case LEGS_S1_RUP3:
-	case LEGS_S1_RUP4:
-	case LEGS_S1_RUP5:
-	case LEGS_S3_LUP2:
-	case LEGS_S3_LUP3:
-	case LEGS_S3_LUP4:
-	case LEGS_S3_LUP5:
-	case LEGS_S3_RUP2:
-	case LEGS_S3_RUP3:
-	case LEGS_S3_RUP4:
-	case LEGS_S3_RUP5:
-	case LEGS_S4_LUP2:
-	case LEGS_S4_LUP3:
-	case LEGS_S4_LUP4:
-	case LEGS_S4_LUP5:
-	case LEGS_S4_RUP2:
-	case LEGS_S4_RUP3:
-	case LEGS_S4_RUP4:
-	case LEGS_S4_RUP5:
-	case LEGS_S5_LUP2:
-	case LEGS_S5_LUP3:
-	case LEGS_S5_LUP4:
-	case LEGS_S5_LUP5:
-	case LEGS_S5_RUP2:
-	case LEGS_S5_RUP3:
-	case LEGS_S5_RUP4:
-	case LEGS_S5_RUP5:
-		if (pm->ps->slopeRecalcTime < pm->cmd.serverTime)
-		{
-			resultingAnim = anim-1;
-			pm->ps->slopeRecalcTime = pm->cmd.serverTime + 8;//SLOPE_RECALC_INT;
-		}
-		else
-		{
-			resultingAnim = anim;
-		}
-		VectorClear(pm->ps->velocity);
-		break;
-	}
-
-	return resultingAnim;
 }
 
 /*
@@ -4647,7 +4180,7 @@ static void PM_Footsteps( void ) {
 
 		bobmove = 0.5f;	// ducked characters bob much faster
 
-		if ( ( PM_RunningAnim(pm->ps->legsAnim) 
+		if ( ( BG_RunningAnim(pm->ps->legsAnim) 
 			|| PM_CanRollFromSoulCal( pm->ps ) 
 			|| pm->ps->saberActionFlags & (1 << SAF_BLOCKING) 
 			|| pm->cmd.buttons & BUTTON_SPRINT
@@ -5509,9 +5042,13 @@ void PM_RocketLock( float lockDist, qboolean vehicleLock )
 	}
 }
 
-//---------------------------------------
+/*
+======================
+PM_DoChargedWeapons
+
+======================
+*/
 static qboolean PM_DoChargedWeapons( void )
-//---------------------------------------
 {
 	qboolean	charging = qfalse;
 	weaponData_t *thisWeaponData = GetWeaponData( pm->ps->weapon, pm->ps->weaponVariation );
@@ -5625,22 +5162,6 @@ rest:
 	}
 
 	return qfalse; // continue with the rest of the weapon code
-}
-
-//cheesy vehicle weapon hackery
-qboolean PM_CanSetWeaponAnims(void)
-{
-    if (pm->ps->m_iVehicleNum)
-	{
-		return qfalse;
-	}
-
-	if(BG_IsSprinting (pm->ps, &pm->cmd, qtrue))
-	{
-		return qfalse;
-	}
-
-	return qtrue;
 }
 
 //perform player anim overrides while on vehicle.
@@ -5947,215 +5468,7 @@ static void PM_Weapon( void )
 		}
 	}
 
-	if (pm->ps->forceHandExtend == HANDEXTEND_WEAPONREADY &&
-		PM_CanSetWeaponAnims())
-	{ //reset into weapon stance
-		if (pm->ps->weapon != WP_SABER && pm->ps->weapon != WP_MELEE)
-		{ //saber handles its own anims
-			if (pm->ps->weapon == WP_DISRUPTOR && pm->ps->zoomMode == 1)
-			{
-				//PM_StartTorsoAnim( TORSO_WEAPONREADY4 );
-				PM_StartTorsoAnim( TORSO_RAISEWEAP1);
-			}
-			else
-			{
-				if (pm->ps->weapon == WP_EMPLACED_GUN)
-				{
-					PM_StartTorsoAnim( BOTH_GUNSIT1 );
-				}
-				else
-				{
-					//PM_StartTorsoAnim( WeaponReadyAnim[pm->ps->weapon] );
-					PM_StartTorsoAnim( TORSO_RAISEWEAP1);
-				}
-			}
-		}
-
-		//we now go into a weapon raise anim after every force hand extend.
-		//this is so that my holster-view-weapon-when-hand-extend stuff works.
-		pm->ps->weaponstate = WEAPON_RAISING;
-		pm->ps->weaponTime += 250;
-
-		pm->ps->forceHandExtend = HANDEXTEND_NONE;
-	}
-	else if (pm->ps->forceHandExtend != HANDEXTEND_NONE)
-	{ //nothing else should be allowed to happen during this time, including weapon fire
-		int desiredAnim = 0;
-		qboolean seperateOnTorso = qfalse;
-		qboolean playFullBody = qfalse;
-		int desiredOnTorso = 0;
-
-		switch(pm->ps->forceHandExtend)
-		{
-		case HANDEXTEND_FORCEPUSH:
-			desiredAnim = BOTH_FORCEPUSH;
-			break;
-		case HANDEXTEND_FORCEPULL:
-			desiredAnim = BOTH_FORCEPULL;
-			break;
-		case HANDEXTEND_FORCE_HOLD:
-			if ( (pm->ps->fd.forcePowersActive&(1<<FP_GRIP)) )
-			{//gripping
-				desiredAnim = BOTH_FORCEGRIP_HOLD;
-			}
-			else if ( (pm->ps->fd.forcePowersActive&(1<<FP_LIGHTNING)) )
-			{//lightning
-				if ( pm->ps->weapon == WP_MELEE
-					&& pm->ps->activeForcePass > FORCE_LEVEL_2 )
-				{//2-handed lightning
-					desiredAnim = BOTH_FORCE_2HANDEDLIGHTNING_HOLD;
-				}
-				else
-				{
-					desiredAnim = BOTH_FORCELIGHTNING_HOLD;
-				}
-			}
-			else if ( (pm->ps->fd.forcePowersActive&(1<<FP_DRAIN)) )
-			{//draining
-				desiredAnim = BOTH_FORCEGRIP_HOLD;
-			}
-			else
-			{//???
-				desiredAnim = BOTH_FORCEGRIP_HOLD;
-			}
-			break;
-		case HANDEXTEND_SABERPULL:
-			desiredAnim = BOTH_SABERPULL;
-			break;
-		case HANDEXTEND_CHOKE:
-			desiredAnim = BOTH_CHOKE3; //left-handed choke
-			break;
-		case HANDEXTEND_DODGE:
-			desiredAnim = pm->ps->forceDodgeAnim;
-			break;
-		case HANDEXTEND_KNOCKDOWN:
-			if (pm->ps->forceDodgeAnim)
-			{
-				if (pm->ps->forceDodgeAnim > 4)
-				{ //this means that we want to play a sepereate anim on the torso
-					int originalDAnim = pm->ps->forceDodgeAnim-8; //-8 is the original legs anim
-					if (originalDAnim == 2)
-					{
-						desiredAnim = BOTH_FORCE_GETUP_B1;
-					}
-					else if (originalDAnim == 3)
-					{
-						desiredAnim = BOTH_FORCE_GETUP_B3;
-					}
-					else
-					{
-						desiredAnim = BOTH_GETUP1;
-					}
-
-					//now specify the torso anim
-					seperateOnTorso = qtrue;
-					desiredOnTorso = BOTH_FORCEPUSH;
-				}
-				else if (pm->ps->forceDodgeAnim == 2)
-				{
-					desiredAnim = BOTH_FORCE_GETUP_B1;
-				}
-				else if (pm->ps->forceDodgeAnim == 3)
-				{
-					desiredAnim = BOTH_FORCE_GETUP_B3;
-				}
-				else
-				{
-					desiredAnim = BOTH_GETUP1;
-				}
-			}
-			else
-			{
-				desiredAnim = BOTH_KNOCKDOWN1;
-			}
-			break;
-		case HANDEXTEND_DUELCHALLENGE:
-			desiredAnim = BOTH_ENGAGETAUNT;
-			break;
-		case HANDEXTEND_TAUNT:
-			desiredAnim = pm->ps->forceDodgeAnim;
-			if ( desiredAnim != BOTH_ENGAGETAUNT 
-				&& VectorCompare( pm->ps->velocity, vec3_origin )
-				&& pm->ps->groundEntityNum != ENTITYNUM_NONE ) 
-			{
-				playFullBody = qtrue;
-			}
-			break;
-		case HANDEXTEND_PRETHROW:
-			desiredAnim = BOTH_A3_TL_BR;
-			playFullBody = qtrue;
-			break;
-		case HANDEXTEND_POSTTHROW:
-			desiredAnim = BOTH_D3_TL___;
-			playFullBody = qtrue;
-			break;
-		case HANDEXTEND_PRETHROWN:
-			desiredAnim = BOTH_KNEES1;
-			playFullBody = qtrue;
-			break;
-		case HANDEXTEND_POSTTHROWN:
-			if (pm->ps->forceDodgeAnim)
-			{
-				desiredAnim = BOTH_FORCE_GETUP_F2;
-			}
-			else
-			{
-				desiredAnim = BOTH_KNOCKDOWN5;
-			}
-			playFullBody = qtrue;
-			break;
-		case HANDEXTEND_DRAGGING:
-			desiredAnim = BOTH_B1_BL___;
-			break;
-		case HANDEXTEND_JEDITAUNT:
-			desiredAnim = BOTH_GESTURE1;
-			//playFullBody = qtrue;
-			break;
-			//Hmm... maybe use these, too?
-			//BOTH_FORCEHEAL_QUICK //quick heal (SP level 2 & 3)
-			//BOTH_MINDTRICK1 // wave (maybe for mind trick 2 & 3 - whole area, and for force seeing)
-			//BOTH_MINDTRICK2 // tap (maybe for mind trick 1 - one person)
-			//BOTH_FORCEGRIP_START //start grip
-			//BOTH_FORCEGRIP_HOLD //hold grip
-			//BOTH_FORCEGRIP_RELEASE //release grip
-			//BOTH_FORCELIGHTNING //quick lightning burst (level 1)
-			//BOTH_FORCELIGHTNING_START //start lightning
-			//BOTH_FORCELIGHTNING_HOLD //hold lightning
-			//BOTH_FORCELIGHTNING_RELEASE //release lightning
-		default:
-			desiredAnim = BOTH_FORCEPUSH;
-			break;
-		}
-
-		if (!seperateOnTorso)
-		{ //of seperateOnTorso, handle it after setting the legs
-			PM_SetAnim(SETANIM_TORSO, desiredAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
-			pm->ps->torsoTimer = 1;
-		}
-
-		if (playFullBody)
-		{ //sorry if all these exceptions are getting confusing. This one just means play on both legs and torso.
-			PM_SetAnim(SETANIM_BOTH, desiredAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
-			pm->ps->legsTimer = pm->ps->torsoTimer = 1;
-		}
-		else if (pm->ps->forceHandExtend == HANDEXTEND_DODGE || pm->ps->forceHandExtend == HANDEXTEND_KNOCKDOWN ||
-			(pm->ps->forceHandExtend == HANDEXTEND_CHOKE && pm->ps->groundEntityNum == ENTITYNUM_NONE) )
-		{ //special case, play dodge anim on whole body, choke anim too if off ground
-			if (seperateOnTorso)
-			{
-				PM_SetAnim(SETANIM_LEGS, desiredAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
-				pm->ps->legsTimer = 1;
-
-				PM_SetAnim(SETANIM_TORSO, desiredOnTorso, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
-				pm->ps->torsoTimer = 1;
-			}
-			else
-			{
-				PM_SetAnim(SETANIM_LEGS, desiredAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
-				pm->ps->legsTimer = 1;
-			}
-		}
-
+	if (!PM_WeaponAnimate()) {
 		return;
 	}
 
@@ -6199,33 +5512,6 @@ static void PM_Weapon( void )
 		if( !pm->ps->saberInFlight )
 		{
 			pm->ps->saberHolstered = 0;
-		}
-	}
-
-	if (PM_CanSetWeaponAnims())
-	{
-		if(BG_IsSprinting (pm->ps, &pm->cmd, qtrue))
-		{
-			// FIXME: ummm...what
-			if (pm->ps->weapon == WP_DET_PACK)
-			{
-				if (pm->ps->weapon == WP_THERMAL)
-				{
-					if ((pm->ps->torsoAnim) == GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.firing.torsoAnim &&
-						(pm->ps->weaponTime-200) <= 0)
-					{
-						PM_StartTorsoAnim( GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.ready.torsoAnim );
-					}
-				}
-				else
-				{
-					if ((pm->ps->torsoAnim) == GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.firing.torsoAnim &&
-						(pm->ps->weaponTime-700) <= 0)
-					{
-						PM_StartTorsoAnim( GetWeaponData (pm->ps->weapon, pm->ps->weaponVariation)->anims.ready.torsoAnim );
-					}
-				}
-			}
 		}
 	}
 
@@ -6913,21 +6199,6 @@ void PM_UpdateViewAngles( playerState_t *ps, const usercmd_t *cmd ) {
 	}
 }
 
-/*static qboolean PM_IsWeaponZoomed ( const weaponData_t *weapon )
-{
-    if ( weapon->zoomType == ZOOM_NONE )
-    {
-        return qfalse;
-    }
-    
-    if ( pm->ps->zoomMode != 1 )
-    {
-        return qfalse;
-    }
-    
-    return qfalse;
-}*/
-
 //-------------------------------------------
 void PM_AdjustAttackStates( pmove_t *pmove )
 //-------------------------------------------
@@ -7124,7 +6395,7 @@ void PM_AdjustAttackStates( pmove_t *pmove )
 	}
 }
 
-void BG_CmdForRoll( playerState_t *ps, int anim, usercmd_t *pCmd )
+void PM_CmdForRoll( playerState_t *ps, int anim, usercmd_t *pCmd )
 {
 	switch ( (anim) )
 	{
@@ -7269,1111 +6540,6 @@ void BG_CmdForRoll( playerState_t *ps, int anim, usercmd_t *pCmd )
 
 qboolean PM_SaberInTransition( int move );
 
-void BG_AdjustClientSpeed(playerState_t *ps, usercmd_t *cmd, int svTime)
-{
-	saberInfo_t	*saber;
-	float speedModifier = 1.0f;
-	weaponData_t* weaponData = GetWeaponData(ps->weapon, ps->weaponVariation);
-
-	//For prediction, always reset speed back to the last known server base speed
-	//If we didn't do this, under lag we'd eventually dwindle speed down to 0 even though
-	//that would not be the correct predicted value.
-	ps->speed = ps->basespeed;
-
-	if (ps->forceHandExtend == HANDEXTEND_DODGE)
-	{
-		ps->speed = 0;
-	}
-
-	if (ps->forceHandExtend == HANDEXTEND_KNOCKDOWN ||
-		ps->forceHandExtend == HANDEXTEND_PRETHROWN ||
-		ps->forceHandExtend == HANDEXTEND_POSTTHROWN)
-	{
-		ps->speed = 0;
-	}
-
-
-	if ( cmd->forwardmove < 0 && !(cmd->buttons&BUTTON_WALKING) && pm->ps->groundEntityNum != ENTITYNUM_NONE )
-	{//running backwards is slower than running forwards (like SP)
-		speedModifier += bgConstants.backwardsSpeedModifier;
-		if( ps->saberActionFlags & ( 1 << SAF_BLOCKING ) )
-		{
-			if( cmd->rightmove != 0 )
-			{
-				speedModifier += bgConstants.backwardsDiagonalSpeedModifier;
-			}
-		}
-	}
-
-	if(cmd->rightmove != 0)
-	{
-		// strafing reduces speed significantly
-		//ps->speed *= 0.80f;
-		//speedModifier -= 0.25f;
-		if(BG_IsSprinting(ps, cmd, true))
-			speedModifier += bgConstants.strafeSpeedModifier/4;
-		else if(cmd->forwardmove != 0)
-			speedModifier += bgConstants.strafeSpeedModifier/1.5f;
-		else
-			speedModifier += bgConstants.strafeSpeedModifier;
-	}
-
-	if(!(cmd->buttons&BUTTON_WALKING) && !(cmd->buttons&BUTTON_IRONSIGHTS) && !BG_IsSprinting(ps, cmd, qtrue) && ps->weapon != WP_SABER)
-	{
-		//ps->speed *= 0.9f;
-		speedModifier += bgConstants.baseSpeedModifier;
-	}
-	else if(cmd->buttons&BUTTON_WALKING || cmd->buttons&BUTTON_IRONSIGHTS)
-	{
-		//ps->speed *= 0.8f;
-		speedModifier -= bgConstants.walkSpeedModifier;
-	}
-
-
-	if (ps->fd.forcePowersActive & (1 << FP_GRIP))
-	{
-		speedModifier -= 0.6f;
-	}	
-
-	if (ps->fd.forcePowersActive & (1 << FP_SPEED))
-	{
-		speedModifier += 0.7f;
-	}
-	else if (ps->fd.forcePowersActive & (1 << FP_RAGE))
-	{
-		speedModifier += 0.3f;
-	}
-	else if (ps->fd.forceRageRecoveryTime > svTime)
-	{
-		speedModifier -= 0.25f;
-	}
-
-	if (ps->fd.forceGripCripple)
-	{
-		if (ps->fd.forcePowersActive & (1 << FP_RAGE))
-		{
-			speedModifier -= 0.1f;
-		}
-		else if (ps->fd.forcePowersActive & (1 << FP_SPEED))
-		{ //force speed will help us escape
-			speedModifier -= 0.2f;
-		}
-		else
-		{
-			speedModifier -= 0.8f;
-		}
-	}
-
-	if ( BG_SaberInAttack( ps->saberMove ) && cmd->forwardmove < 0 )
-	{//if running backwards while attacking, don't run as fast.
-		ps->speed *= SaberStances[ps->fd.saberAnimLevel].attackBackSpeedModifier;
-	}
-	else if ( BG_SpinningSaberAnim( ps->legsAnim ) )
-	{
-		if (ps->fd.saberAnimLevel == FORCE_LEVEL_3)
-		{
-			speedModifier -= 0.7f;
-		}
-		else
-		{
-			speedModifier -= 0.5f;
-		}
-	}
-	else if ( ps->weapon == WP_SABER && BG_SaberInAttack( ps->saberMove ) )
-	{//if attacking with saber while running, drop your speed
-		speedModifier -= (1.0f-SaberStances[ps->fd.saberAnimLevel].attackSpeedModifier);
-	}
-	else if (ps->weapon == WP_SABER &&
-		PM_SaberInTransition(ps->saberMove))
-	{ //Now, we want to even slow down in transitions for level 3 (since it has chains and stuff now)
-		if (cmd->forwardmove < 0)
-		{
-			speedModifier -= (1.0f-SaberStances[ps->fd.saberAnimLevel].attackSpeedModifier);
-		}
-		else
-		{
-			speedModifier -= (1.0f-SaberStances[ps->fd.saberAnimLevel].transitionSpeedModifier)*1.5;
-		}
-	}
-
-	if ( BG_InRoll( ps, ps->legsAnim ) && ps->speed > 50 )
-	{ //can't roll unless you're able to move normally
-		if ((ps->legsAnim) == BOTH_ROLL_B)
-		{ //backwards roll is pretty fast, should also be slower
-			if (ps->legsTimer > 800)
-			{
-				ps->speed = ps->legsTimer/2.5f;
-			}
-			else
-			{
-				ps->speed = ps->legsTimer/6.0f;//450;
-			}
-		}
-		else
-		{
-			if (ps->legsTimer > 800)
-			{
-				ps->speed = ps->legsTimer/1.5f;//450;
-			}
-			else
-			{
-				ps->speed = ps->legsTimer/5.0f;//450;
-			}
-		}
-		if (ps->speed > 600)
-		{
-			ps->speed = 600;
-		}
-		//Automatically slow down as the roll ends.
-	}
-
-	saber = BG_MySaber( ps->clientNum, 0 );
-	if ( saber 
-		&& saber->moveSpeedScale != 1.0f )
-	{
-		ps->speed *= saber->moveSpeedScale;
-	}
-	saber = BG_MySaber( ps->clientNum, 1 );
-	if ( saber 
-		&& saber->moveSpeedScale != 1.0f )
-	{
-		ps->speed *= saber->moveSpeedScale;
-	}
-
-	if (pm->ps->pm_flags & PMF_DUCKED) {
-		speedModifier -= pm_duckScale;
-	}
-
-	speedModifier -= (1 - weaponData->speedModifier);
-	if (ps->weaponstate == WEAPON_RELOADING && ps->weaponTime > 0) {
-		speedModifier -= (1 - weaponData->reloadModifier);
-	}
-
-	if(speedModifier < bgConstants.minimumSpeedModifier)
-	{
-		speedModifier = bgConstants.minimumSpeedModifier;
-	}
-
-	ps->speed *= speedModifier;
-}
-
-qboolean BG_InRollAnim( entityState_t *cent )
-{
-	switch ( (cent->legsAnim) )
-	{
-	case BOTH_ROLL_F:
-	case BOTH_ROLL_B:
-	case BOTH_ROLL_R:
-	case BOTH_ROLL_L:
-		return qtrue;
-	}
-	return qfalse;
-}
-
-qboolean BG_InKnockDown( int anim )
-{
-	switch ( (anim) )
-	{
-	case BOTH_KNOCKDOWN1:
-	case BOTH_KNOCKDOWN2:
-	case BOTH_KNOCKDOWN3:
-	case BOTH_KNOCKDOWN4:
-	case BOTH_KNOCKDOWN5:
-		return qtrue;
-		break;
-	case BOTH_GETUP1:
-	case BOTH_GETUP2:
-	case BOTH_GETUP3:
-	case BOTH_GETUP4:
-	case BOTH_GETUP5:
-	case BOTH_FORCE_GETUP_F1:
-	case BOTH_FORCE_GETUP_F2:
-	case BOTH_FORCE_GETUP_B1:
-	case BOTH_FORCE_GETUP_B2:
-	case BOTH_FORCE_GETUP_B3:
-	case BOTH_FORCE_GETUP_B4:
-	case BOTH_FORCE_GETUP_B5:
-	case BOTH_GETUP_BROLL_B:
-	case BOTH_GETUP_BROLL_F:
-	case BOTH_GETUP_BROLL_L:
-	case BOTH_GETUP_BROLL_R:
-	case BOTH_GETUP_FROLL_B:
-	case BOTH_GETUP_FROLL_F:
-	case BOTH_GETUP_FROLL_L:
-	case BOTH_GETUP_FROLL_R:
-		return qtrue;
-		break;
-	}
-	return qfalse;
-}
-
-qboolean BG_InRollES( entityState_t *ps, int anim )
-{
-	switch ( (anim) )
-	{
-	case BOTH_ROLL_F:
-	case BOTH_ROLL_B:
-	case BOTH_ROLL_R:
-	case BOTH_ROLL_L:
-		return qtrue;
-		break;
-	}
-	return qfalse;
-}
-
-void BG_IK_MoveArm(void *ghoul2, int lHandBolt, int time, entityState_t *ent, int basePose, vec3_t desiredPos, qboolean *ikInProgress,
-					 vec3_t origin, vec3_t angles, vec3_t scale, int blendTime, qboolean forceHalt)
-{
-	mdxaBone_t lHandMatrix;
-	vec3_t lHand;
-	vec3_t torg;
-	float distToDest;
-
-	if (!ghoul2)
-	{
-		return;
-	}
-
-	assert(bgHumanoidAnimations[basePose].firstFrame > 0);
-
-	if (!*ikInProgress && !forceHalt)
-	{
-		int baseposeAnim = basePose;
-		sharedSetBoneIKStateParams_t ikP;
-
-		//restrict the shoulder joint
-		//VectorSet(ikP.pcjMins,-50.0f,-80.0f,-15.0f);
-		//VectorSet(ikP.pcjMaxs,15.0f,40.0f,15.0f);
-
-		//for now, leaving it unrestricted, but restricting elbow joint.
-		//This lets us break the arm however we want in order to fling people
-		//in throws, and doesn't look bad.
-		VectorSet(ikP.pcjMins,0,0,0);
-		VectorSet(ikP.pcjMaxs,0,0,0);
-
-		//give the info on our entity.
-		ikP.blendTime = blendTime;
-		VectorCopy(origin, ikP.origin);
-		VectorCopy(angles, ikP.angles);
-		ikP.angles[PITCH] = 0;
-		ikP.pcjOverrides = 0;
-		ikP.radius = 10.0f;
-		VectorCopy(scale, ikP.scale);
-		
-		//base pose frames for the limb
-		ikP.startFrame = bgHumanoidAnimations[baseposeAnim].firstFrame + bgHumanoidAnimations[baseposeAnim].numFrames;
-		ikP.endFrame = bgHumanoidAnimations[baseposeAnim].firstFrame + bgHumanoidAnimations[baseposeAnim].numFrames;
-
-		ikP.forceAnimOnBone = qfalse; //let it use existing anim if it's the same as this one.
-
-		//we want to call with a null bone name first. This will init all of the
-		//ik system stuff on the g2 instance, because we need ragdoll effectors
-		//in order for our pcj's to know how to angle properly.
-		if (!trap->G2API_SetBoneIKState(ghoul2, time, NULL, IKS_DYNAMIC, &ikP))
-		{
-			assert(!"Failed to init IK system for g2 instance!");
-		}
-
-		//Now, create our IK bone state.
-		if (trap->G2API_SetBoneIKState(ghoul2, time, "lhumerus", IKS_DYNAMIC, &ikP))
-		{
-			//restrict the elbow joint
-			VectorSet(ikP.pcjMins,-90.0f,-20.0f,-20.0f);
-			VectorSet(ikP.pcjMaxs,30.0f,20.0f,-20.0f);
-
-			if (trap->G2API_SetBoneIKState(ghoul2, time, "lradius", IKS_DYNAMIC, &ikP))
-			{ //everything went alright.
-				*ikInProgress = qtrue;
-			}
-		}
-	}
-
-	if (*ikInProgress && !forceHalt)
-	{ //actively update our ik state.
-		sharedIKMoveParams_t ikM;
-		sharedRagDollUpdateParams_t tuParms;
-		vec3_t tAngles;
-
-		//set the argument struct up
-		VectorCopy(desiredPos, ikM.desiredOrigin); //we want the bone to move here.. if possible
-
-		VectorCopy(angles, tAngles);
-		tAngles[PITCH] = tAngles[ROLL] = 0;
-
-		trap->G2API_GetBoltMatrix(ghoul2, 0, lHandBolt, &lHandMatrix, tAngles, origin, time, 0, scale);
-		//Get the point position from the matrix.
-		lHand[0] = lHandMatrix.matrix[0][3];
-		lHand[1] = lHandMatrix.matrix[1][3];
-		lHand[2] = lHandMatrix.matrix[2][3];
-
-		VectorSubtract(lHand, desiredPos, torg);
-		distToDest = VectorLength(torg);
-
-		//closer we are, more we want to keep updated.
-		//if we're far away we don't want to be too fast or we'll start twitching all over.
-		if (distToDest < 2)
-		{ //however if we're this close we want very precise movement
-			ikM.movementSpeed = 0.4f;
-		}
-		else if (distToDest < 16)
-		{
-			ikM.movementSpeed = 0.9f;//8.0f;
-		}
-		else if (distToDest < 32)
-		{
-			ikM.movementSpeed = 0.8f;//4.0f;
-		}
-		else if (distToDest < 64)
-		{
-			ikM.movementSpeed = 0.7f;//2.0f;
-		}
-		else
-		{
-			ikM.movementSpeed = 0.6f;
-		}
-		VectorCopy(origin, ikM.origin); //our position in the world.
-
-		ikM.boneName[0] = 0;
-		if (trap->G2API_IKMove(ghoul2, time, &ikM))
-		{
-			//now do the standard model animate stuff with ragdoll update params.
-			VectorCopy(angles, tuParms.angles);
-			tuParms.angles[PITCH] = 0;
-
-			VectorCopy(origin, tuParms.position);
-			VectorCopy(scale, tuParms.scale);
-
-			tuParms.me = ent->number;
-			VectorClear(tuParms.velocity);
-
-			trap->G2API_AnimateG2Models(ghoul2, time, &tuParms);
-		}
-		else
-		{
-			*ikInProgress = qfalse;
-		}
-	}
-	else if (*ikInProgress)
-	{ //kill it
-		float cFrame, animSpeed;
-		int sFrame, eFrame, flags;
-
-		trap->G2API_SetBoneIKState(ghoul2, time, "lhumerus", IKS_NONE, NULL);
-		trap->G2API_SetBoneIKState(ghoul2, time, "lradius", IKS_NONE, NULL);
-		
-		//then reset the angles/anims on these PCJs
-		trap->G2API_SetBoneAngles(ghoul2, 0, "lhumerus", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 0, time);
-		trap->G2API_SetBoneAngles(ghoul2, 0, "lradius", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 0, time);
-
-		//Get the anim/frames that the pelvis is on exactly, and match the left arm back up with them again.
-		trap->G2API_GetBoneAnim(ghoul2, "pelvis", (const int)time, &cFrame, &sFrame, &eFrame, &flags, &animSpeed, 0, 0);
-		trap->G2API_SetBoneAnim(ghoul2, 0, "lhumerus", sFrame, eFrame, flags, animSpeed, time, sFrame, 300);
-		trap->G2API_SetBoneAnim(ghoul2, 0, "lradius", sFrame, eFrame, flags, animSpeed, time, sFrame, 300);
-
-		//And finally, get rid of all the ik state effector data by calling with null bone name (similar to how we init it).
-		trap->G2API_SetBoneIKState(ghoul2, time, NULL, IKS_NONE, NULL);
-		
-		*ikInProgress = qfalse;
-	}
-}
-
-//Adjust the head/neck desired angles
-void BG_UpdateLookAngles( int lookingDebounceTime, vec3_t lastHeadAngles, int time, vec3_t lookAngles, float lookSpeed, float minPitch, float maxPitch, float minYaw, float maxYaw, float minRoll, float maxRoll )
-{
-	static const float fFrameInter = 0.1f;
-	static vec3_t oldLookAngles;
-	static vec3_t lookAnglesDiff;
-	static int ang;
-
-	if ( lookingDebounceTime > time )
-	{
-		//clamp so don't get "Exorcist" effect
-		if ( lookAngles[PITCH] > maxPitch )
-		{
-			lookAngles[PITCH] = maxPitch;
-		}
-		else if ( lookAngles[PITCH] < minPitch )
-		{
-			lookAngles[PITCH] = minPitch;
-		}
-		if ( lookAngles[YAW] > maxYaw )
-		{
-			lookAngles[YAW] = maxYaw;
-		}
-		else if ( lookAngles[YAW] < minYaw )
-		{
-			lookAngles[YAW] = minYaw;
-		}
-		if ( lookAngles[ROLL] > maxRoll )
-		{
-			lookAngles[ROLL] = maxRoll;
-		}
-		else if ( lookAngles[ROLL] < minRoll )
-		{
-			lookAngles[ROLL] = minRoll;
-		}
-
-		//slowly lerp to this new value
-		//Remember last headAngles
-		VectorCopy( lastHeadAngles, oldLookAngles );
-		VectorSubtract( lookAngles, oldLookAngles, lookAnglesDiff );
-
-		for ( ang = 0; ang < 3; ang++ )
-		{
-			lookAnglesDiff[ang] = AngleNormalize180( lookAnglesDiff[ang] );
-		}
-
-		if( VectorLengthSquared( lookAnglesDiff ) )
-		{
-			lookAngles[PITCH] = AngleNormalize180( oldLookAngles[PITCH]+(lookAnglesDiff[PITCH]*fFrameInter*lookSpeed) );
-			lookAngles[YAW] = AngleNormalize180( oldLookAngles[YAW]+(lookAnglesDiff[YAW]*fFrameInter*lookSpeed) );
-			lookAngles[ROLL] = AngleNormalize180( oldLookAngles[ROLL]+(lookAnglesDiff[ROLL]*fFrameInter*lookSpeed) );
-		}
-	}
-	//Remember current lookAngles next time
-	VectorCopy( lookAngles, lastHeadAngles );
-}
-
-//for setting visual look (headturn) angles
-static void BG_G2ClientNeckAngles( void *ghoul2, int time, const vec3_t lookAngles, vec3_t headAngles, vec3_t neckAngles, vec3_t thoracicAngles, vec3_t headClampMinAngles, vec3_t headClampMaxAngles )
-{
-	vec3_t	lA;
-	VectorCopy( lookAngles, lA );
-	//clamp the headangles (which should now be relative to the cervical (neck) angles
-	if ( lA[PITCH] < headClampMinAngles[PITCH] )
-	{
-		lA[PITCH] = headClampMinAngles[PITCH];
-	}
-	else if ( lA[PITCH] > headClampMaxAngles[PITCH] )
-	{
-		lA[PITCH] = headClampMaxAngles[PITCH];
-	}
-
-	if ( lA[YAW] < headClampMinAngles[YAW] )
-	{
-		lA[YAW] = headClampMinAngles[YAW];
-	}
-	else if ( lA[YAW] > headClampMaxAngles[YAW] )
-	{
-		lA[YAW] = headClampMaxAngles[YAW];
-	}
-
-	if ( lA[ROLL] < headClampMinAngles[ROLL] )
-	{
-		lA[ROLL] = headClampMinAngles[ROLL];
-	}
-	else if ( lA[ROLL] > headClampMaxAngles[ROLL] )
-	{
-		lA[ROLL] = headClampMaxAngles[ROLL];
-	}
-
-	//split it up between the neck and cranium
-	if ( thoracicAngles[PITCH] )
-	{//already been set above, blend them
-		thoracicAngles[PITCH] = (thoracicAngles[PITCH] + (lA[PITCH] * 0.4f)) * 0.5f;
-	}
-	else
-	{
-		thoracicAngles[PITCH] = lA[PITCH] * 0.4f;
-	}
-	if ( thoracicAngles[YAW] )
-	{//already been set above, blend them
-		thoracicAngles[YAW] = (thoracicAngles[YAW] + (lA[YAW] * 0.1f)) * 0.5f;
-	}
-	else
-	{
-		thoracicAngles[YAW] = lA[YAW] * 0.1f;
-	}
-	if ( thoracicAngles[ROLL] )
-	{//already been set above, blend them
-		thoracicAngles[ROLL] = (thoracicAngles[ROLL] + (lA[ROLL] * 0.1f)) * 0.5f;
-	}
-	else
-	{
-		thoracicAngles[ROLL] = lA[ROLL] * 0.1f;
-	}
-
-	neckAngles[PITCH] = lA[PITCH] * 0.2f;
-	neckAngles[YAW] = lA[YAW] * 0.3f;
-	neckAngles[ROLL] = lA[ROLL] * 0.3f;
-
-	headAngles[PITCH] = lA[PITCH] * 0.4f;
-	headAngles[YAW] = lA[YAW] * 0.6f;
-	headAngles[ROLL] = lA[ROLL] * 0.6f;
-
-	trap->G2API_SetBoneAngles(ghoul2, 0, "cranium", headAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-	trap->G2API_SetBoneAngles(ghoul2, 0, "cervical", neckAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-	trap->G2API_SetBoneAngles(ghoul2, 0, "thoracic", thoracicAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-}
-
-//rww - Finally decided to convert all this stuff to BG form.
-static void BG_G2ClientSpineAngles( void *ghoul2, int motionBolt, vec3_t cent_lerpOrigin, vec3_t cent_lerpAngles, entityState_t *cent,
-							int time, vec3_t viewAngles, int ciLegs, int ciTorso, const vec3_t angles, vec3_t thoracicAngles,
-							vec3_t ulAngles, vec3_t llAngles, vec3_t modelScale, float *tPitchAngle, float *tYawAngle, int *corrTime )
-{
-	qboolean doCorr = qfalse;
-
-	//*tPitchAngle = viewAngles[PITCH];
-	viewAngles[YAW] = AngleDelta( cent_lerpAngles[YAW], angles[YAW] );
-	//*tYawAngle = viewAngles[YAW];
-
-	if ( !BG_FlippingAnim( cent->legsAnim ) &&
-		!BG_SpinningSaberAnim( cent->legsAnim ) &&
-		!BG_SpinningSaberAnim( cent->torsoAnim ) &&
-		!BG_InSpecialJump( cent->legsAnim ) &&
-		!BG_InSpecialJump( cent->torsoAnim ) &&
-		!BG_InDeathAnim(cent->legsAnim) &&
-		!BG_InDeathAnim(cent->torsoAnim) &&
-		!BG_InRollES(cent, cent->legsAnim) &&
-		!BG_InRollAnim(cent) &&
-		!BG_SaberInSpecial(cent->saberMove) &&
-		!BG_SaberInSpecialAttack(cent->torsoAnim) &&
-		!BG_SaberInSpecialAttack(cent->legsAnim) &&
-
-		!BG_InKnockDown(cent->torsoAnim) &&
-		!BG_InKnockDown(cent->legsAnim) &&
-		!BG_InKnockDown(ciTorso) &&
-		!BG_InKnockDown(ciLegs) &&
-
-		!BG_FlippingAnim( ciLegs ) &&
-		!BG_SpinningSaberAnim( ciLegs ) &&
-		!BG_SpinningSaberAnim( ciTorso ) &&
-		!BG_InSpecialJump( ciLegs ) &&
-		!BG_InSpecialJump( ciTorso ) &&
-		!BG_InDeathAnim(ciLegs) &&
-		!BG_InDeathAnim(ciTorso) &&
-		!BG_SaberInSpecialAttack(ciTorso) &&
-		!BG_SaberInSpecialAttack(ciLegs) &&
-
-		!(cent->eFlags & EF_DEAD) &&
-		(cent->legsAnim) != (cent->torsoAnim) &&
-		(ciLegs) != (ciTorso) &&
-		!cent->m_iVehicleNum)
-	{
-		doCorr = qtrue;
-	}
-
-	if (doCorr)
-	{//FIXME: no need to do this if legs and torso on are same frame
-		//adjust for motion offset
-		mdxaBone_t	boltMatrix;
-		vec3_t		motionFwd, motionAngles;
-		vec3_t		motionRt, tempAng;
-		int			ang;
-
-		trap->G2API_GetBoltMatrix_NoRecNoRot( ghoul2, 0, motionBolt, &boltMatrix, vec3_origin, cent_lerpOrigin, time, 0, modelScale);
-		//BG_GiveMeVectorFromMatrix( &boltMatrix, NEGATIVE_Y, motionFwd );
-		motionFwd[0] = -boltMatrix.matrix[0][1];
-		motionFwd[1] = -boltMatrix.matrix[1][1];
-		motionFwd[2] = -boltMatrix.matrix[2][1];
-
-		vectoangles( motionFwd, motionAngles );
-
-		//BG_GiveMeVectorFromMatrix( &boltMatrix, NEGATIVE_X, motionRt );
-		motionRt[0] = -boltMatrix.matrix[0][0];
-		motionRt[1] = -boltMatrix.matrix[1][0];
-		motionRt[2] = -boltMatrix.matrix[2][0];
-
-		vectoangles( motionRt, tempAng );
-		motionAngles[ROLL] = -tempAng[PITCH];
-
-		for ( ang = 0; ang < 3; ang++ )
-		{
-			viewAngles[ang] = AngleNormalize180( viewAngles[ang] - AngleNormalize180( motionAngles[ang] ) );
-		}
-	}
-
-	//distribute the angles differently up the spine
-	//NOTE: each of these distributions must add up to 1.0f
-	thoracicAngles[PITCH] = viewAngles[PITCH]*0.20f;
-	llAngles[PITCH] = viewAngles[PITCH]*0.40f;
-	ulAngles[PITCH] = viewAngles[PITCH]*0.40f;
-
-	thoracicAngles[YAW] = viewAngles[YAW]*0.20f;
-	ulAngles[YAW] = viewAngles[YAW]*0.35f;
-	llAngles[YAW] = viewAngles[YAW]*0.45f;
-
-	thoracicAngles[ROLL] = viewAngles[ROLL]*0.20f;
-	ulAngles[ROLL] = viewAngles[ROLL]*0.35f;
-	llAngles[ROLL] = viewAngles[ROLL]*0.45f;
-}
-
-/*
-==================
-CG_SwingAngles
-==================
-*/
-static float BG_SwingAngles( float destination, float swingTolerance, float clampTolerance,
-					float speed, float *angle, qboolean *swinging, int frametime ) {
-	float	swing;
-	float	move;
-	float	scale;
-
-	if ( !*swinging ) {
-		// see if a swing should be started
-		swing = AngleSubtract( *angle, destination );
-		if ( swing > swingTolerance || swing < -swingTolerance ) {
-			*swinging = qtrue;
-		}
-	}
-
-	if ( !*swinging ) {
-		return 0;
-	}
-	
-	// modify the speed depending on the delta
-	// so it doesn't seem so linear
-	swing = AngleSubtract( destination, *angle );
-	scale = fabs( swing );
-	if ( scale < swingTolerance * 0.5f ) {
-		scale = 0.5f;
-	} else if ( scale < swingTolerance ) {
-		scale = 1.0f;
-	} else {
-		scale = 2.0f;
-	}
-
-	// swing towards the destination angle
-	if ( swing >= 0 ) {
-		move = frametime * scale * speed;
-		if ( move >= swing ) {
-			move = swing;
-			*swinging = qfalse;
-		}
-		*angle = AngleMod( *angle + move );
-	} else if ( swing < 0 ) {
-		move = frametime * scale * -speed;
-		if ( move <= swing ) {
-			move = swing;
-			*swinging = qfalse;
-		}
-		*angle = AngleMod( *angle + move );
-	}
-
-	// clamp to no more than tolerance
-	swing = AngleSubtract( destination, *angle );
-	if ( swing > clampTolerance ) {
-		*angle = AngleMod( destination - (clampTolerance - 1) );
-	} else if ( swing < -clampTolerance ) {
-		*angle = AngleMod( destination + (clampTolerance - 1) );
-	}
-
-	return swing;
-}
-
-//#define BONE_BASED_LEG_ANGLES
-
-//I apologize for this function
-qboolean BG_InRoll2( entityState_t *es )
-{
-	switch ( (es->legsAnim) )
-	{
-	case BOTH_GETUP_BROLL_B:
-	case BOTH_GETUP_BROLL_F:
-	case BOTH_GETUP_BROLL_L:
-	case BOTH_GETUP_BROLL_R:
-	case BOTH_GETUP_FROLL_B:
-	case BOTH_GETUP_FROLL_F:
-	case BOTH_GETUP_FROLL_L:
-	case BOTH_GETUP_FROLL_R:
-	case BOTH_ROLL_F:
-	case BOTH_ROLL_B:
-	case BOTH_ROLL_R:
-	case BOTH_ROLL_L:
-		return qtrue;
-		break;
-	}
-	return qfalse;
-}
-
-
-extern qboolean BG_SaberLockBreakAnim( int anim ); //bg_panimate.c
-void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int time, vec3_t cent_lerpOrigin,
-					   vec3_t cent_lerpAngles, vec3_t legs[3], vec3_t legsAngles, qboolean *tYawing,
-					   qboolean *tPitching, qboolean *lYawing, float *tYawAngle, float *tPitchAngle,
-					   float *lYawAngle, int frametime, vec3_t turAngles, vec3_t modelScale, int ciLegs,
-					   int ciTorso, int *corrTime, vec3_t lookAngles, vec3_t lastHeadAngles, int lookTime,
-					   entityState_t *emplaced, int *crazySmoothFactor, int saberAnimFlags)
-{
-	int					adddir = 0;
-	static int			dir;
-	static int			i;
-	//static int			movementOffsets[8] = { 0, 22, 45, -22, 0, 22, -45, -22 };
-	float				degrees_negative = 0;
-	float				degrees_positive = 0;
-	static float		dif;
-	static float		dest;
-	static float		speed; //, speed_dif, speed_desired;
-	static const float	lookSpeed = 1.5f;
-#ifdef BONE_BASED_LEG_ANGLES
-	static float		legBoneYaw;
-#endif
-	static vec3_t		eyeAngles;
-	static vec3_t		neckAngles;
-	static vec3_t		velocity;
-	static vec3_t		torsoAngles, headAngles;
-	static vec3_t		velPos, velAng;
-	static vec3_t		ulAngles, llAngles, viewAngles, angles, thoracicAngles = {0,0,0};
-	static vec3_t		headClampMinAngles = {-25,-55,-10}, headClampMaxAngles = {50,50,10};
-
-	if ( cent->m_iVehicleNum || cent->forceFrame || BG_SaberLockBreakAnim(cent->legsAnim) || BG_SaberLockBreakAnim(cent->torsoAnim) )
-	{ //a vehicle or riding a vehicle - in either case we don't need to be in here
-		vec3_t forcedAngles;
-
-		VectorClear(forcedAngles);
-		forcedAngles[YAW] = cent_lerpAngles[YAW];
-		forcedAngles[ROLL] = cent_lerpAngles[ROLL];
-		AnglesToAxis( forcedAngles, legs );
-		VectorCopy(forcedAngles, legsAngles);
-		//JAC: turAngles should be updated as well.
-		VectorCopy(legsAngles, turAngles);
-
-		if (cent->number < MAX_CLIENTS)
-		{
-			trap->G2API_SetBoneAngles(ghoul2, 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-			trap->G2API_SetBoneAngles(ghoul2, 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-			trap->G2API_SetBoneAngles(ghoul2, 0, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-			trap->G2API_SetBoneAngles(ghoul2, 0, "thoracic", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-			trap->G2API_SetBoneAngles(ghoul2, 0, "cervical", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-		}
-		return;
-	}
-
-	if ((time+2000) < *corrTime)
-	{
-		*corrTime = 0;
-	}
-
-	VectorCopy( cent_lerpAngles, headAngles );
-	headAngles[YAW] = AngleMod( headAngles[YAW] );
-	VectorClear( legsAngles );
-	VectorClear( torsoAngles );
-	// --------- yaw -------------
-
-	// allow yaw to drift a bit
-	if ((( cent->legsAnim ) != BOTH_STAND1) || 
-		( cent->torsoAnim ) != GetWeaponData (cent->weapon, cent->weaponVariation)->anims.ready.torsoAnim  ) 
-	{
-		// if not standing still, always point all in the same direction
-		//cent->pe.torso.yawing = qtrue;	// always center
-		*tYawing = qtrue;
-		//cent->pe.torso.pitching = qtrue;	// always center
-		*tPitching = qtrue;
-		//cent->pe.legs.yawing = qtrue;	// always center
-		*lYawing = qtrue;
-	}
-
-	// adjust legs for movement dir
-	if ( cent->eFlags & EF_DEAD ) {
-		// don't let dead bodies twitch
-		dir = 0;
-	} else {
-		dir = cent->angles2[YAW];
-		if ( dir < 0 || dir > 7 ) {
-			Com_Error( ERR_DROP, "Bad player movement angle (%i)", dir );
-		}
-	}
-
-	torsoAngles[YAW] = headAngles[YAW];
-
-	//for now, turn torso instantly and let the legs swing to follow
-	*tYawAngle = torsoAngles[YAW];
-
-	// --------- pitch -------------
-
-	VectorCopy( cent->pos.trDelta, velocity );
-
-	if (BG_InRoll2(cent))
-	{ //don't affect angles based on vel then
-		VectorClear(velocity);
-	}
-	else if (cent->weapon == WP_SABER &&
-		BG_SaberInSpecial(cent->saberMove))
-	{
-		VectorClear(velocity);
-	}
-
-	speed = VectorNormalize( velocity );
-
-	if (!speed)
-	{
-		torsoAngles[YAW] = headAngles[YAW];
-	}
-
-	// only show a fraction of the pitch angle in the torso
-	if ( headAngles[PITCH] > 180 ) {
-		dest = (-360 + headAngles[PITCH]) * 0.75f;
-	} else {
-		dest = headAngles[PITCH] * 0.75f;
-	}
-
-	if (cent->m_iVehicleNum)
-	{ //swing instantly on vehicles
-		*tPitchAngle = dest;
-	}
-	else
-	{
-		BG_SwingAngles( dest, 15.0f, 30.0f, 0.1f, tPitchAngle, tPitching, frametime );
-	}
-	torsoAngles[PITCH] = *tPitchAngle;
-
-	// --------- roll -------------
-
-	if ( speed ) {
-		vec3_t	axis[3];
-		float	side;
-
-		speed *= 0.05f;
-
-		AnglesToAxis( legsAngles, axis );
-		side = speed * DotProduct( velocity, axis[1] );
-		legsAngles[ROLL] -= side;
-
-		side = speed * DotProduct( velocity, axis[0] );
-		legsAngles[PITCH] += side;
-	}
-
-	//legsAngles[YAW] = headAngles[YAW] + (movementOffsets[ dir ]*speed_dif);
-
-	//rww - crazy velocity-based leg angle calculation
-	legsAngles[YAW] = headAngles[YAW];
-	velPos[0] = cent_lerpOrigin[0] + velocity[0];
-	velPos[1] = cent_lerpOrigin[1] + velocity[1];
-	velPos[2] = cent_lerpOrigin[2];// + velocity[2];
-
-	if ( cent->groundEntityNum == ENTITYNUM_NONE ||
-		 cent->forceFrame ||
-		 (cent->weapon == WP_EMPLACED_GUN && emplaced) )
-	{ //off the ground, no direction-based leg angles (same if in saberlock)
-		VectorCopy(cent_lerpOrigin, velPos);
-	}
-
-	VectorSubtract(cent_lerpOrigin, velPos, velAng);
-
-	if (!VectorCompare(velAng, vec3_origin))
-	{
-		vectoangles(velAng, velAng);
-
-		if (velAng[YAW] <= legsAngles[YAW])
-		{
-			degrees_negative = (legsAngles[YAW] - velAng[YAW]);
-			degrees_positive = (360 - legsAngles[YAW]) + velAng[YAW];
-		}
-		else
-		{
-			degrees_negative = legsAngles[YAW] + (360 - velAng[YAW]);
-			degrees_positive = (velAng[YAW] - legsAngles[YAW]);
-		}
-
-		if ( degrees_negative < degrees_positive )
-		{
-			dif = degrees_negative;
-			adddir = 0;
-		}
-		else
-		{
-			dif = degrees_positive;
-			adddir = 1;
-		}
-
-		if (dif > 90)
-		{
-			dif = (180 - dif);
-		}
-
-		if (dif > 60)
-		{
-			dif = 60;
-		}
-
-		//Slight hack for when playing is running backward
-		if (dir == 3 || dir == 5)
-		{
-			dif = -dif;
-		}
-
-		if (adddir)
-		{
-			legsAngles[YAW] -= dif;
-		}
-		else
-		{
-			legsAngles[YAW] += dif;
-		}
-	}
-
-	if (cent->m_iVehicleNum)
-	{ //swing instantly on vehicles
-		*lYawAngle = legsAngles[YAW];
-	}
-	else
-	{
-		BG_SwingAngles( legsAngles[YAW], /*40*/0.0f, 90.0f, 0.65f, lYawAngle, lYawing, frametime );
-	}
-	legsAngles[YAW] = *lYawAngle;
-
-	/*
-	// pain twitch
-	CG_AddPainTwitch( cent, torsoAngles );
-	*/
-
-	legsAngles[ROLL] = 0;
-	torsoAngles[ROLL] = 0;
-
-//	VectorCopy(legsAngles, turAngles);
-
-	// pull the angles back out of the hierarchial chain
-	AnglesSubtract( headAngles, torsoAngles, headAngles );
-	AnglesSubtract( torsoAngles, legsAngles, torsoAngles );
-
-	legsAngles[PITCH] = 0;
-
-	if (cent->heldByClient)
-	{ //keep the base angles clear when doing the IK stuff, it doesn't compensate for it.
-	  //rwwFIXMEFIXME: Store leg angles off and add them to all the fed in angles for G2 functions?
-		VectorClear(legsAngles);
-		legsAngles[YAW] = cent_lerpAngles[YAW];
-	}
-
-#ifdef BONE_BASED_LEG_ANGLES
-	legBoneYaw = legsAngles[YAW];
-	VectorClear(legsAngles);
-	legsAngles[YAW] = cent_lerpAngles[YAW];
-#endif
-
-	VectorCopy(legsAngles, turAngles);
-
-	AnglesToAxis( legsAngles, legs );
-
-	VectorCopy( cent_lerpAngles, viewAngles );
-	viewAngles[YAW] = viewAngles[ROLL] = 0;
-	viewAngles[PITCH] *= 0.5f;
-
-	VectorSet( angles, 0, legsAngles[1], 0 );
-
-	angles[0] = legsAngles[0];
-	if ( angles[0] > 30 )
-	{
-		angles[0] = 30;
-	}
-	else if ( angles[0] < -30 )
-	{
-		angles[0] = -30;
-	}
-
-	if (cent->weapon == WP_EMPLACED_GUN &&
-		emplaced)
-	{ //if using an emplaced gun, then we want to make sure we're angled to "hold" it right
-		vec3_t facingAngles;
-		vec3_t savedAngles;
-
-		VectorSubtract(emplaced->pos.trBase, cent_lerpOrigin, facingAngles);
-		vectoangles(facingAngles, facingAngles);
-
-		if (emplaced->weapon == WP_NONE)
-		{ //e-web
-			VectorCopy(facingAngles, legsAngles);
-			AnglesToAxis( legsAngles, legs );
-		}
-		else
-		{ //misc emplaced
-			float dif = AngleSubtract(cent_lerpAngles[YAW], facingAngles[YAW]);
-
-			VectorSet(facingAngles, -16.0f, -dif, 0.0f);
-
-			if (cent->legsAnim == BOTH_STRAFE_LEFT1 || cent->legsAnim == BOTH_STRAFE_RIGHT1)
-			{ //try to adjust so it doesn't look wrong
-				if (crazySmoothFactor)
-				{ //want to smooth a lot during this because it chops around and looks like ass
-					*crazySmoothFactor = time + 1000;
-				}
-
-				BG_G2ClientSpineAngles(ghoul2, motionBolt, cent_lerpOrigin, cent_lerpAngles, cent, time,
-					viewAngles, ciLegs, ciTorso, angles, thoracicAngles, ulAngles, llAngles, modelScale,
-					tPitchAngle, tYawAngle, corrTime);
-				trap->G2API_SetBoneAngles(ghoul2, 0, "lower_lumbar", llAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-				trap->G2API_SetBoneAngles(ghoul2, 0, "upper_lumbar", ulAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-				trap->G2API_SetBoneAngles(ghoul2, 0, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time);
-
-				VectorAdd(facingAngles, thoracicAngles, facingAngles);
-
-				if (cent->legsAnim == BOTH_STRAFE_LEFT1)
-				{ //this one needs some further correction
-					facingAngles[YAW] -= 32.0f;
-				}
-			}
-			else
-			{
-				//trap->G2API_SetBoneAngles(ghoul2, 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-				//trap->G2API_SetBoneAngles(ghoul2, 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-				trap->G2API_SetBoneAngles(ghoul2, 0, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time);
-			}
-
-			VectorCopy(facingAngles, savedAngles);
-			VectorScale(facingAngles, 0.6f, facingAngles);
-			trap->G2API_SetBoneAngles(ghoul2, 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-			VectorScale(facingAngles, 0.8f, facingAngles);
-			trap->G2API_SetBoneAngles(ghoul2, 0, "upper_lumbar", facingAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-			VectorScale(facingAngles, 0.8f, facingAngles);
-			trap->G2API_SetBoneAngles(ghoul2, 0, "thoracic", facingAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-
-			//Now we want the head angled toward where we are facing
-			VectorSet(facingAngles, 0.0f, dif, 0.0f);
-			VectorScale(facingAngles, 0.6f, facingAngles);
-			trap->G2API_SetBoneAngles(ghoul2, 0, "cervical", facingAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-
-			return; //don't have to bother with the rest then
-		}
-	}
-
-	BG_G2ClientSpineAngles(ghoul2, motionBolt, cent_lerpOrigin, cent_lerpAngles, cent, time,
-		viewAngles, ciLegs, ciTorso, angles, thoracicAngles, ulAngles, llAngles, modelScale,
-		tPitchAngle, tYawAngle, corrTime);
-
-	VectorCopy(cent_lerpAngles, eyeAngles);
-
-	for ( i = 0; i < 3; i++ )
-	{
-		lookAngles[i] = AngleNormalize180( lookAngles[i] );
-		eyeAngles[i] = AngleNormalize180( eyeAngles[i] );
-	}
-	AnglesSubtract( lookAngles, eyeAngles, lookAngles );
-
-	BG_UpdateLookAngles(lookTime, lastHeadAngles, time, lookAngles, lookSpeed, -50.0f, 50.0f, -70.0f, 70.0f, -30.0f, 30.0f);
-
-	BG_G2ClientNeckAngles(ghoul2, time, lookAngles, headAngles, neckAngles, thoracicAngles, headClampMinAngles, headClampMaxAngles);
-
-#ifdef BONE_BASED_LEG_ANGLES
-	{
-		vec3_t bLAngles;
-		VectorClear(bLAngles);
-		bLAngles[ROLL] = AngleNormalize180((legBoneYaw - cent_lerpAngles[YAW]));
-		trap->G2API_SetBoneAngles(ghoul2, 0, "model_root", bLAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-
-		if (!llAngles[YAW])
-		{
-			llAngles[YAW] -= bLAngles[ROLL];
-		}
-	}
-#endif
-	trap->G2API_SetBoneAngles(ghoul2, 0, "lower_lumbar", llAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-	trap->G2API_SetBoneAngles(ghoul2, 0, "upper_lumbar", ulAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-	trap->G2API_SetBoneAngles(ghoul2, 0, "thoracic", thoracicAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-	//trap->G2API_SetBoneAngles(ghoul2, 0, "cervical", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time);
-}
-
-void BG_G2ATSTAngles(void *ghoul2, int time, vec3_t cent_lerpAngles )
-{//																							up			right		fwd
-	trap->G2API_SetBoneAngles(ghoul2, 0, "thoracic", cent_lerpAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time); 
-}
-
-static qboolean PM_AdjustAnglesForDualJumpAttack( playerState_t *ps, usercmd_t *ucmd )
-{
-	//ucmd->angles[PITCH] = ANGLE2SHORT( ps->viewangles[PITCH] ) - ps->delta_angles[PITCH];
-	//ucmd->angles[YAW] = ANGLE2SHORT( ps->viewangles[YAW] ) - ps->delta_angles[YAW];
-	return qtrue;
-}
-
 static void PM_CmdForSaberMoves(usercmd_t *ucmd)
 {
 	//DUAL FORWARD+JUMP+ATTACK
@@ -8493,10 +6659,7 @@ static void PM_CmdForSaberMoves(usercmd_t *ucmd)
 
 		if ( pm->ps->groundEntityNum == ENTITYNUM_NONE )
 		{//can only turn when your feet hit the ground
-			if (PM_AdjustAnglesForDualJumpAttack(pm->ps, ucmd))
-			{
-				PM_SetPMViewAngle(pm->ps, pm->ps->viewangles, ucmd);
-			}
+			PM_SetPMViewAngle(pm->ps, pm->ps->viewangles, ucmd);
 		}
 		//rwwFIXMEFIXME: Bother with bbox resizing like sp?
 	}
@@ -8538,183 +6701,6 @@ static void PM_CmdForSaberMoves(usercmd_t *ucmd)
 		ucmd->forwardmove = ucmd->rightmove = ucmd->upmove = 0;
 		//lock their viewangles during these attacks.
 		PM_SetPMViewAngle(pm->ps, pm->ps->viewangles, ucmd);
-	}
-}
-
-//constrain him based on the angles of his vehicle and the caps
-void PM_VehicleViewAngles(playerState_t *ps, bgEntity_t *veh, usercmd_t *ucmd)
-{
-	Vehicle_t *pVeh = veh->m_pVehicle;
-	qboolean setAngles = qtrue;
-	vec3_t clampMin;
-	vec3_t clampMax;
-	int i;
-
-	if ( veh->m_pVehicle->m_pPilot 
-		&& veh->m_pVehicle->m_pPilot->s.number == ps->clientNum )
-	{//set the pilot's viewangles to the vehicle's viewangles
-		if ( !BG_UnrestrainedPitchRoll( ps, veh->m_pVehicle ) )
-		{//only if not if doing special free-roll/pitch control
-			setAngles = qtrue;
-			clampMin[PITCH] = -pVeh->m_pVehicleInfo->lookPitch;
-			clampMax[PITCH] = pVeh->m_pVehicleInfo->lookPitch;
-			clampMin[YAW] = clampMax[YAW] = 0;
-			clampMin[ROLL] = clampMax[ROLL] = -1;
-		}
-	}
-	else 
-	{
-		//NOTE: passengers can look around freely, UNLESS they're controlling a turret!
-		for ( i = 0; i < MAX_VEHICLE_TURRETS; i++ )
-		{
-			if ( veh->m_pVehicle->m_pVehicleInfo->turret[i].passengerNum == ps->generic1 )
-			{//this turret is my station
-				setAngles = qtrue;
-				clampMin[PITCH] = veh->m_pVehicle->m_pVehicleInfo->turret[i].pitchClampUp;
-				clampMax[PITCH] = veh->m_pVehicle->m_pVehicleInfo->turret[i].pitchClampDown;
-				clampMin[YAW] = veh->m_pVehicle->m_pVehicleInfo->turret[i].yawClampRight;
-				clampMax[YAW] = veh->m_pVehicle->m_pVehicleInfo->turret[i].yawClampLeft;
-				clampMin[ROLL] = clampMax[ROLL] = 0;
-				break;
-			}
-		}
-	}
-	if ( setAngles )
-	{
-		for ( i = 0; i < 3; i++ )
-		{//clamp viewangles
-			if ( clampMin[i] == -1 || clampMax[i] == -1 )
-			{//no clamp
-			}
-			else if ( !clampMin[i] && !clampMax[i] )
-			{//no allowance
-				//ps->viewangles[i] = veh->playerState->viewangles[i];
-			}
-			else
-			{//allowance
-				if (ps->viewangles[i] > clampMax[i])
-				{
-					ps->viewangles[i] = clampMax[i];
-				}
-				else if (ps->viewangles[i] < clampMin[i])
-				{
-					ps->viewangles[i] = clampMin[i];
-				}
-			}
-		}
-
-		PM_SetPMViewAngle(ps, ps->viewangles, ucmd);
-	}
-}
-
-//force the vehicle to turn and travel to its forced destination point
-void PM_VehForcedTurning(bgEntity_t *veh)
-{
-	bgEntity_t *dst = PM_BGEntForNum(veh->playerState->vehTurnaroundIndex);
-	float pitchD, yawD;
-	vec3_t dir;
-
-	if (!veh || !veh->m_pVehicle)
-	{
-		return;
-	}
-
-	if (!dst)
-	{ //can't find dest ent?
-		return;
-	}
-
-	pm->cmd.upmove = veh->m_pVehicle->m_ucmd.upmove = 127;
-	pm->cmd.forwardmove = veh->m_pVehicle->m_ucmd.forwardmove = 0;
-	pm->cmd.rightmove = veh->m_pVehicle->m_ucmd.rightmove = 0;
-
-	VectorSubtract(dst->s.origin, veh->playerState->origin, dir);
-	vectoangles(dir, dir);
-
-	yawD = AngleSubtract(pm->ps->viewangles[YAW], dir[YAW]);
-	pitchD = AngleSubtract(pm->ps->viewangles[PITCH], dir[PITCH]);
-
-	yawD *= 0.6f*pml.frametime;
-	pitchD *= 0.6f*pml.frametime;
-
-	pm->ps->viewangles[YAW] = AngleSubtract(pm->ps->viewangles[YAW], yawD);
-	pm->ps->viewangles[PITCH] = AngleSubtract(pm->ps->viewangles[PITCH], pitchD);
-
-	PM_SetPMViewAngle(pm->ps, pm->ps->viewangles, &pm->cmd);
-}
-
-void PM_VehFaceHyperspacePoint(bgEntity_t *veh)
-{
-
-	if (!veh || !veh->m_pVehicle)
-	{
-		return;
-	}
-	else
-	{
-		float timeFrac = ((float)(pm->cmd.serverTime-veh->playerState->hyperSpaceTime))/HYPERSPACE_TIME;
-		float	turnRate, aDelta;
-		int		i, matchedAxes = 0;
-
-		pm->cmd.upmove = veh->m_pVehicle->m_ucmd.upmove = 127;
-		pm->cmd.forwardmove = veh->m_pVehicle->m_ucmd.forwardmove = 0;
-		pm->cmd.rightmove = veh->m_pVehicle->m_ucmd.rightmove = 0;
-		
-		turnRate = (90.0f*pml.frametime);
-		for ( i = 0; i < 3; i++ )
-		{
-			aDelta = AngleSubtract(veh->playerState->hyperSpaceAngles[i], veh->m_pVehicle->m_vOrientation[i]);
-			if ( fabs( aDelta ) < turnRate )
-			{//all is good
-				pm->ps->viewangles[i] = veh->playerState->hyperSpaceAngles[i];
-				matchedAxes++;
-			}
-			else
-			{
-				aDelta = AngleSubtract(veh->playerState->hyperSpaceAngles[i], pm->ps->viewangles[i]);
-				if ( fabs( aDelta ) < turnRate )
-				{
-					pm->ps->viewangles[i] = veh->playerState->hyperSpaceAngles[i];
-				}
-				else if ( aDelta > 0 )
-				{
-					if ( i == YAW )
-					{
-						pm->ps->viewangles[i] = AngleNormalize360( pm->ps->viewangles[i]+turnRate );
-					}
-					else
-					{
-						pm->ps->viewangles[i] = AngleNormalize180( pm->ps->viewangles[i]+turnRate );
-					}
-				}
-				else
-				{
-					if ( i == YAW )
-					{
-						pm->ps->viewangles[i] = AngleNormalize360( pm->ps->viewangles[i]-turnRate );
-					}
-					else
-					{
-						pm->ps->viewangles[i] = AngleNormalize180( pm->ps->viewangles[i]-turnRate );
-					}
-				}
-			}
-		}
-
-		PM_SetPMViewAngle(pm->ps, pm->ps->viewangles, &pm->cmd);
-		
-		if ( timeFrac < HYPERSPACE_TELEPORT_FRAC )
-		{//haven't gone through yet
-			if ( matchedAxes < 3 )
-			{//not facing the right dir yet
-				//keep hyperspace time up to date
-				veh->playerState->hyperSpaceTime += pml.msec;
-			}
-			else if ( !(veh->playerState->eFlags2&EF2_HYPERSPACE))
-			{//flag us as ready to hyperspace!
-				veh->playerState->eFlags2 |= EF2_HYPERSPACE;
-			}
-		}
 	}
 }
 
@@ -8761,10 +6747,7 @@ void BG_VehicleAdjustBBoxForOrientation( Vehicle_t *veh, vec3_t origin, vec3_t m
 		VectorMA( point[4], -veh->m_pVehicleInfo->height, axis[2], point[6] );
 		VectorMA( point[5], veh->m_pVehicleInfo->height/2.0f, axis[2], point[5] );
 		VectorMA( point[5], -veh->m_pVehicleInfo->height, axis[2], point[7] );
-		/*
-		VectorMA( origin, veh->m_pVehicleInfo->height/2.0f, axis[2], point[4] );
-		VectorMA( origin, -veh->m_pVehicleInfo->height/2.0f, axis[2], point[5] );
-		*/
+
 		//Now inflate a bbox around these points
 		VectorCopy( origin, newMins );
 		VectorCopy( origin, newMaxs );
@@ -8802,118 +6785,100 @@ void BG_VehicleAdjustBBoxForOrientation( Vehicle_t *veh, vec3_t origin, vec3_t m
 		//FIXME: make it as close as possible?  Or actually prevent the change in m_vOrientation?  Or push away from anything we hit?
 	}
 }
+
+/*
+================
+BG_IsSprinting
+
+================
+*/
+qboolean BG_IsSprinting(const playerState_t *ps, const usercmd_t *cmd, qboolean PMOVE)
+{
+	if (!(cmd->buttons & BUTTON_SPRINT) && !ps->isSprinting)
+	{
+		return qfalse;
+	}
+
+	if (ps->saberActionFlags & (1 << SAF_BLOCKING))
+	{
+		return qfalse;
+	}
+
+	if (ps->pm_type == PM_JETPACK)
+	{
+		return qfalse;
+	}
+
+	if (ps->persistant[PERS_TEAM] == TEAM_SPECTATOR) {
+		return qfalse;
+	}
+
+	if ((ps->ironsightsTime & IRONSIGHTS_MSB) && ps->weapon != WP_THERMAL && ps->weapon != WP_TRIP_MINE && ps->weapon != WP_DET_PACK)
+	{	// Can't be sprinting while using iron sights (grenades do not count!)
+		return qfalse;
+	}
+
+	if (ps->weaponstate == WEAPON_RELOADING)
+	{
+		return false; // Cannot sprint while reloading.
+	}
+
+
+	// Only when on the ground.
+
+	if (PMOVE)
+	{
+		if (!pml.groundPlane && (pm->cmd.serverTime - 350) > pm->cmd.serverTime)
+		{
+			return qfalse;
+		}
+		if (ps->pm_type == PM_FLOAT)
+		{
+			return qfalse;
+		}
+		if (fabsf(ps->velocity[2]) > 158.0f)
+		{
+			return qfalse;
+		}
+	}
+#ifdef _GAME
+	else if (fabsf(ps->velocity[2]) > 158.0f)
+	{
+		return qfalse;
+	}
+#endif
+
+
+	if (BG_KnockdownAnim(ps->torsoAnim) || BG_RollingAnim(ps->torsoAnim) ||
+		BG_SwimmingAnim(ps->torsoAnim))
+	{
+		return qfalse;
+	}
+
+	if (cmd->upmove < 0)
+	{
+		return qfalse;	// can't be done while crouching (fixme: use something else here like sneaking?)
+	}
+
+	if (cmd->forwardmove <= 0)
+	{
+		return qfalse; // MUST be moving, and moving forward.
+	}
+
+	if (ps->sprintMustWait)
+	{
+		return qfalse;
+	}
+
+	return qtrue;
+}
+
 /*
 ================
 PmoveSingle
 
 ================
 */
-extern int BG_EmplacedView(vec3_t baseAngles, vec3_t angles, float *newYaw, float constraint);
-extern qboolean BG_FighterUpdate(Vehicle_t *pVeh, const usercmd_t *pUcmd, vec3_t trMins, vec3_t trMaxs, float gravity,
-					  void (*traceFunc)( trace_t *results, const vec3_t start, const vec3_t lmins, const vec3_t lmaxs, const vec3_t end, int passEntityNum, int contentMask )); //FighterNPC.c
-
-#define JETPACK_HOVER_HEIGHT	64
-
-//#define _TESTING_VEH_PREDICTION
-
-// Check to see if we're sprinting
-qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolean PMOVE  )
-{
-	    if ( !(cmd->buttons & BUTTON_SPRINT) && !ps->isSprinting )
-        {
-            return qfalse;
-        }
-
-        if (ps->saberActionFlags & (1 << SAF_BLOCKING))
-        {
-                return qfalse;
-        }
-
-		if (ps->pm_type == PM_JETPACK)
-        {
-                return qfalse;
-        }
-
-        if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
-                return qfalse;
-        }
-
-        if( (ps->ironsightsTime & IRONSIGHTS_MSB) && ps->weapon != WP_THERMAL && ps->weapon != WP_TRIP_MINE && ps->weapon != WP_DET_PACK )
-        {	// Can't be sprinting while using iron sights (grenades do not count!)
-                return qfalse;
-        }
-
-        if( ps->weaponstate == WEAPON_RELOADING )
-        {
-                return false; // Cannot sprint while reloading.
-        }
-
-
-	// Only when on the ground.
-	
-	if( PMOVE )
-	{
-		if( !pml.groundPlane && (pm->cmd.serverTime - 350) > pm->cmd.serverTime )
-		{
-			return qfalse;
-		}
-		if( ps->pm_type == PM_FLOAT )
-		{
-			return qfalse;
-		}
-		if( pm_flying )
-		{
-			return qfalse;
-		}
-		/*if( ps->groundEntityNum == ENTITYNUM_NONE )
-		{
-			return qfalse;
-		}*/
-		if( fabsf(ps->velocity[2]) > 158.0f )
-		{
-			return qfalse;
-		}
-	}
-#ifdef _GAME
-	else
-	{
-		// A lot of important gameside things require us to check if we're in mid air.
-		/*if( ps->groundEntityNum == ENTITYNUM_NONE )
-		{
-			return qfalse;
-		}*/
-		if( fabsf(ps->velocity[2]) > 158.0f )
-		{
-			return qfalse;
-		}
-	}
-#endif
-	
-
-	if( BG_InKnockDown( ps->torsoAnim ) || PM_RollingAnim( ps->torsoAnim ) ||
-		PM_SwimmingAnim( ps->torsoAnim ) )
-	{
-		return qfalse;
-	}
-
-	if(cmd->upmove < 0)
-	{
-		return qfalse;	// can't be done while crouching (fixme: use something else here like sneaking?)
-	}
-
-	if(cmd->forwardmove <= 0)
-	{
-		return qfalse; // MUST be moving, and moving forward.
-	}
-    
-    if ( ps->sprintMustWait )
-    {
-        return qfalse;
-    }
-    
-    return qtrue;
-}
-
 void PmoveSingle (pmove_t *pmove) {
 	qboolean stiffenedUp = qfalse;
 	float gDist = 0;
@@ -8939,8 +6904,6 @@ void PmoveSingle (pmove_t *pmove) {
 	{ //no vehicle ent
 		pm_entVeh = NULL;
 	}
-
-	gPMDoSlowFall = PM_DoSlowFall();
 
 	// this counter lets us debug movement problems with a journal
 	// by setting a conditional breakpoint fot the previous frame
@@ -9148,9 +7111,6 @@ void PmoveSingle (pmove_t *pmove) {
 	if ( GetWeaponData( pm->ps->weapon, pm->ps->weaponVariation )->zoomType != ZOOM_NONE && pm->ps->zoomMode == 1 )
 	{
 		pm->cmd.upmove = pm->cmd.upmove < 0 ? pm->cmd.upmove : 0;
-		// Xy: TEMPORARY 'fix' mainly for close weapons video deadline.
-		// Need to discuss what the best thing to would be when scoping and player moves...
-		//pm->cmd.forwardmove = pm->cmd.rightmove = 0;
 	}
 
 	if (stiffenedUp)
@@ -9168,7 +7128,7 @@ void PmoveSingle (pmove_t *pmove) {
 
 	if ( BG_InRoll( pm->ps, pm->ps->legsAnim ) )
 	{ //can't roll unless you're able to move normally
-		BG_CmdForRoll( pm->ps, pm->ps->legsAnim, &pm->cmd );
+		PM_CmdForRoll( pm->ps, pm->ps->legsAnim, &pm->cmd );
 	}
 	
 	// Xy: Go back to walking speed when ironsights are up
@@ -9185,8 +7145,6 @@ void PmoveSingle (pmove_t *pmove) {
 	}
 
 	PM_CmdForSaberMoves(&pm->cmd);
-
-	BG_AdjustClientSpeed(pm->ps, &pm->cmd, pm->cmd.serverTime);
 
 	if ( pm->ps->stats[STAT_HEALTH] <= 0 ) {
 		pm->tracemask &= ~CONTENTS_BODY;	// corpses can fly through bodies
@@ -9282,35 +7240,6 @@ void PmoveSingle (pmove_t *pmove) {
 
 	pml.frametime = pml.msec * 0.001f;
 
-	if (pm->ps->clientNum >= MAX_CLIENTS &&
-		pm_entSelf &&
-		pm_entSelf->s.NPC_class == CLASS_VEHICLE)
-	{ //we are a vehicle
-		bgEntity_t *veh = pm_entSelf;
-		assert( veh && veh->m_pVehicle);
-		if ( veh && veh->m_pVehicle )
-		{
-			veh->m_pVehicle->m_fTimeModifier = pml.frametime*60.0f;
-		}
-	}
-	else if (pm_entSelf->s.NPC_class!=CLASS_VEHICLE
-		&&pm->ps->m_iVehicleNum)
-	{
-		bgEntity_t *veh = pm_entVeh;
-
-		if (veh && veh->playerState &&
-			(pm->cmd.serverTime-veh->playerState->hyperSpaceTime) < HYPERSPACE_TIME)
-		{ //going into hyperspace, turn to face the right angles
-            PM_VehFaceHyperspacePoint(veh);
-		}
-		else if (veh && veh->playerState &&
-			veh->playerState->vehTurnaroundIndex &&
-			veh->playerState->vehTurnaroundTime > pm->cmd.serverTime)
-		{ //riding this vehicle, turn my view too
-            PM_VehForcedTurning(veh);
-		}
-	}
-
 	if ( pm->ps->legsAnim == BOTH_FORCEWALLRUNFLIP_ALT &&
 		pm->ps->legsTimer > 0 )
 	{
@@ -9328,8 +7257,6 @@ void PmoveSingle (pmove_t *pmove) {
 		PM_AdjustAnglesForWallRunUpFlipAlt( &pm->cmd );
 	}
 
-//	PM_AdjustAngleForWallRun(pm->ps, &pm->cmd, qtrue);
-//	PM_AdjustAnglesForStabDown( pm->ps, &pm->cmd );
 	PM_AdjustAngleForWallJump( pm->ps, &pm->cmd, qtrue );
 	PM_AdjustAngleForWallRunUp( pm->ps, &pm->cmd, qtrue );
 	PM_AdjustAngleForWallRun( pm->ps, &pm->cmd, qtrue );
@@ -9344,8 +7271,6 @@ void PmoveSingle (pmove_t *pmove) {
 	{
 		PM_SetPMViewAngle(pm->ps, pm->ps->viewangles, &pm->cmd);
 	}
-
-	pm_flying = qfalse;
 
 	// update the viewangles
 	PM_UpdateViewAngles( pm->ps, &pm->cmd );
@@ -9412,97 +7337,6 @@ void PmoveSingle (pmove_t *pmove) {
 		return;		// no movement at all
 	}
 
-	if (pm->ps->pm_type == PM_JETPACK)
-	{
-		gDist = PM_GroundDistance();
-		savedGravity = pm->ps->gravity;
-
-		if (gDist < JETPACK_HOVER_HEIGHT+64)
-		{
-			pm->ps->gravity *= 0.1f;
-		}
-		else
-		{
-			pm->ps->gravity *= 0.25f;
-		}
-	}
-	else if (gPMDoSlowFall)
-	{
-		savedGravity = pm->ps->gravity;
-		pm->ps->gravity *= 0.5f;
-	}
-
-	//if we're in jetpack mode then see if we should be jetting around
-	if (pm->ps->pm_type == PM_JETPACK)
-	{
-		if (pm->cmd.rightmove > 0)
-		{
-			PM_ContinueLegsAnim(BOTH_FORCEJUMPRIGHT1);
-		}
-		else if (pm->cmd.rightmove < 0)
-		{
-            PM_ContinueLegsAnim(BOTH_FORCEJUMPLEFT1);
-		}
-		else if (pm->cmd.forwardmove > 0)
-		{
-			PM_ContinueLegsAnim(BOTH_FORCEJUMP1);
-		}
-		else if (pm->cmd.forwardmove < 0)
-		{
-			PM_ContinueLegsAnim(BOTH_FORCEJUMPBACK1);
-		}
-		else
-		{
-			PM_ContinueLegsAnim(BOTH_INAIR1);
-		}
-
-		if (pm->ps->weapon == WP_SABER &&
-			BG_SpinningSaberAnim( pm->ps->legsAnim ))
-		{ //make him stir around since he shouldn't have any real control when spinning
-			pm->ps->velocity[0] += Q_irand(-100, 100);
-			pm->ps->velocity[1] += Q_irand(-100, 100);
-		}
-
-		if (pm->cmd.upmove > 0 && pm->ps->velocity[2] < 256)
-		{ //cap upward velocity off at 256. Seems reasonable.
-			float addIn = 12.0f;
-
-			if (pm->ps->velocity[2] > 0)
-			{
-				addIn = 12.0f - (gDist / 64.0f);
-			}
-
-			if (addIn > 0.0f)
-			{
-				pm->ps->velocity[2] += addIn;
-			}
-
-			pm->ps->eFlags |= EF_JETPACK_FLAMING; //going up
-		}
-		else
-		{
-			pm->ps->eFlags &= ~EF_JETPACK_FLAMING; //idling
-
-			if (pm->ps->velocity[2] < 256)
-			{
-				if (pm->ps->velocity[2] < -100)
-				{
-					pm->ps->velocity[2] = -100;
-				}
-				if (gDist < JETPACK_HOVER_HEIGHT)
-				{ //make sure we're always hovering off the ground somewhat while jetpack is active
-					pm->ps->velocity[2] += 2;
-				}
-			}
-		}
-	}
-
-	if (pm->ps->clientNum >= MAX_CLIENTS &&
-		pm_entSelf && pm_entSelf->m_pVehicle)
-	{ //Now update our mins/maxs to match our m_vOrientation based on our length, width & height
-		BG_VehicleAdjustBBoxForOrientation( pm_entSelf->m_pVehicle, pm->ps->origin, pm->mins, pm->maxs, pm->ps->clientNum, pm->tracemask, pm->trace );
-	}
-
 	// set groundentity
 	PM_GroundTrace();
 
@@ -9512,21 +7346,15 @@ void PmoveSingle (pmove_t *pmove) {
 	}
 
 	if ( pm->ps->pm_type == PM_DEAD ) {
-		if (pm->ps->clientNum >= MAX_CLIENTS &&
-			pm_entSelf &&
-			pm_entSelf->s.NPC_class == CLASS_VEHICLE &&
-			pm_entSelf->m_pVehicle->m_pVehicleInfo->type != VH_ANIMAL)
-		{//vehicles don't use deadmove
-		}
-		else
-		{
-			PM_DeadMove ();
-		}
+		PM_DeadMove ();
 	}
 
 	PM_DropTimers();
 
-	if (pm_flying || pm->ps->pm_type == PM_FLOAT) {
+	if (pm->ps->pm_type == PM_JETPACK) {
+		PM_JetpackMove();
+	}
+	else if (pm->ps->pm_type == PM_FLOAT) {
 		PM_FlyMove();
 	}
 	else if (pm->ps->pm_flags & PMF_TIME_WATERJUMP) {
@@ -9569,11 +7397,6 @@ void PmoveSingle (pmove_t *pmove) {
 	// snap velocity to integer coordinates to save network bandwidth
 	if ( !pm->pmove_float )
 		trap->SnapVector( pm->ps->velocity );
-
- 	if (pm->ps->pm_type == PM_JETPACK || gPMDoSlowFall )
-	{
-		pm->ps->gravity = savedGravity;
-	}
 
 	if (pm->ps->m_iVehicleNum)
 	{ //riding a vehicle, see if we should do some anim overrides
@@ -10218,7 +8041,7 @@ qboolean PM_GettingUpFromKnockDown( float standheight, float crouchheight )
 		{//racc - not ready to getup yet.  Just set the movement.
 			if ( pm->ps->legsAnim == BOTH_LK_DL_ST_T_SB_1_L )
 			{//racc - apprenently this move has a special cmd for it.
-				BG_CmdForRoll( pm->ps, pm->ps->legsAnim, &pm->cmd );
+				PM_CmdForRoll( pm->ps, pm->ps->legsAnim, &pm->cmd );
 			}
 			else
 			{

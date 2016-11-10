@@ -1610,6 +1610,35 @@ int JKG_FindNewACISlot( int slotNum )
 	}
 	return -1;
 }
+/*
+===============
+JKG_RemoveACIItemsOfType
+Removes any ACI items that match a specific type
+===============
+*/
+
+void JKG_RemoveACIItemsOfType(jkgItemType_t itemType) {
+	for (int i = 0; i < MAX_ACI_SLOTS; i++) {
+		itemData_t* itemInThisSlot;
+		if (cg.playerACI[i] >= cg.playerInventory->size() || cg.playerACI[i] < 0) {
+			cg.playerACI[i] = -1;
+			continue;
+		}
+
+		itemInThisSlot = (*cg.playerInventory)[cg.playerACI[i]].id;
+		if (itemInThisSlot->itemType == itemType) {
+			cg.playerACI[i] = -1;
+			break;
+		}
+	}
+}
+
+/*
+===============
+JKG_CG_FillACISlot
+Assign an item to an ACI slot
+===============
+*/
 
 void JKG_CG_FillACISlot(int itemNum, int slot)
 {
@@ -1639,28 +1668,22 @@ void JKG_CG_FillACISlot(int itemNum, int slot)
 	// If the item is a shield, then we need to remove all other shields in our ACI and inform the server that we equipped shield
 	// Unless of course we already had this item in the ACI, in which case we do nothing
 	if (item->itemType == ITEM_SHIELD && !alreadyInACI) {
-		for (int i = 0; i < MAX_ACI_SLOTS; i++) {
-			itemData_t* itemInThisSlot;
-			if (cg.playerACI[i] >= cg.playerInventory->size() || cg.playerACI[i] < 0) {
-				cg.playerACI[i] = -1;
-				continue;
-			}
-			
-			itemInThisSlot = (*cg.playerInventory)[cg.playerACI[i]].id;
-			if (itemInThisSlot->itemType == ITEM_SHIELD) {
-				cg.playerACI[i] = -1;
-				break;
-			}
-		}
-
+		JKG_RemoveACIItemsOfType(ITEM_SHIELD);
 		trap->SendClientCommand(va("equipShield %i", itemNum));
 	}
+	else if (item->itemType == ITEM_JETPACK && !alreadyInACI) {
+		JKG_RemoveACIItemsOfType(ITEM_JETPACK);
+		trap->SendClientCommand(va("equipJetpack %i", itemNum));
+	}
 	else if (cg.playerACI[slot] > 0 && cg.playerACI[slot] < cg.playerInventory->size()) {
-		// Check to see if we're overwriting a shield (if so, unequip it)
+		// Check to see if we're overwriting a shield/jetpack (if so, unequip it)
 		itemData_t* itemInThisSlot;
 		itemInThisSlot = (*cg.playerInventory)[cg.playerACI[slot]].id;
 		if (itemInThisSlot->itemType == ITEM_SHIELD) {
 			trap->SendClientCommand("unequipShield");
+		}
+		else if (itemInThisSlot->itemType == ITEM_JETPACK) {
+			trap->SendClientCommand("unequipJetpack");
 		}
 	}
 
@@ -1783,7 +1806,7 @@ void CG_Weapon_f( void ) {
 		// Not a weapon. Check the type!
 		switch(itemType)
 		{
-			case ITEM_SHIELD:
+			case ITEM_CONSUMABLE:
 				{
 					trap->SendConsoleCommand(va("inventoryUse %i", cg.playerACI[num]));
 				}

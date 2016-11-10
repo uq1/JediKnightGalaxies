@@ -940,6 +940,7 @@ netField_t	entityStateFields[] =
 { NETF(weaponVariation), 8 },
 { NETF(firingMode), 8 },
 { NETF(weaponstate), 8 },
+{ NETF(jetpack), 8 },
 
 { NETF(damageTypeFlags), 32 },	// FIXME: does this really need to be sent as 32 bits? :/
 
@@ -1395,6 +1396,7 @@ netField_t	playerStateFields[] =
 { PSF(weaponId), 8 },
 { PSF(shotsRemaining), 8 },
 { PSF(sprintMustWait), 8 },
+{ PSF(jetpack), 8 },
 
 { PSF(saberActionFlags), 16 },
 
@@ -1577,6 +1579,7 @@ netField_t	pilotPlayerStateFields[] =
 { PSF(weaponVariation), 8 },
 { PSF(weaponId), 8 },
 { PSF(shotsRemaining), 8 },
+{ PSF(jetpack), 8 },
 
 { PSF(damageTypeFlags), 32 },
 { PSF(freezeTorsoAnim), 32 },

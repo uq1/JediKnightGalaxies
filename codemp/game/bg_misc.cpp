@@ -2946,6 +2946,7 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 	s->saberEntityNum = ps->saberEntityNum;
 	s->saberMove = ps->saberMove;
 	s->forcePowersActive = ps->fd.forcePowersActive;
+	s->jetpack = ps->jetpack;
 
 	if (ps->duelInProgress)
 	{

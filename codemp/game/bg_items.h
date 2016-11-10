@@ -5,6 +5,8 @@
 #pragma once
 
 #include "qcommon/q_shared.h"
+#include "bg_jetpacks.h"
+
 #ifdef _GAME
 typedef struct gentity_s gentity_t;
 #endif
@@ -26,9 +28,10 @@ typedef enum jkgItemType_e
     ITEM_UNKNOWN,
     ITEM_WEAPON,
     ITEM_ARMOR,
-    ITEM_CLOTHING,
+    ITEM_CLOTHING,		// Classified as "armor" in the filter
 	ITEM_CONSUMABLE,
-	ITEM_SHIELD,
+	ITEM_SHIELD,		// Classified as "armor" in the filter
+	ITEM_JETPACK,		// Classified as "armor" in the filter
 
 	NUM_ITEM_TYPES
 } jkgItemType_t;
@@ -79,27 +82,31 @@ typedef enum
 } itemTradePacketType_t;
 
 /*
- * Structures
+ * Item-specific structures
  */
 
+// Weapons
 typedef struct {
 	unsigned int weapon;
 	unsigned int variation;
 	int varID;
 } itemWeaponData_t;
 
+// Armor
 typedef struct {
 	unsigned int armorID;
 	unsigned int armorSlot;
 	armorTypes_t armorType;
 } itemArmorData_t;
 
-const int MAX_CONSUMABLE_SCRIPTNAME = 32;
+// Consumables
+#define MAX_CONSUMABLE_SCRIPTNAME	32
 typedef struct {
 	char consumeScript[MAX_CONSUMABLE_SCRIPTNAME];
 	int consumeAmount;
 } itemConsumableData_t;
 
+// Shields
 #define SHIELD_DEFAULT_CAPACITY	25
 #define SHIELD_DEFAULT_COOLDOWN	10000
 #define SHIELD_DEFAULT_REGEN	100
@@ -113,7 +120,15 @@ typedef struct {
 	char equippedSoundEffect[MAX_QPATH];	// Sound that plays once the shield is equipped
 } itemShieldData_t;
 
-// Wholly visual data below
+// Jetpacks
+typedef struct {
+	char			ref[MAX_QPATH];	// Reference to a jetpackData_t
+	jetpackData_t*	pJetpackData;	// Pointer to the actual jetpackData_t. Filled upon item load and copied to gclient_t/cg_t
+} itemJetpackData_t;
+
+/*
+ * Visual item daa
+ */
 #ifndef _GAME
 typedef struct {
 	char itemIcon[MAX_QPATH];
@@ -159,6 +174,7 @@ typedef struct {
 		itemArmorData_t armorData;
 		itemConsumableData_t consumableData;
 		itemShieldData_t shieldData;
+		itemJetpackData_t jetpackData;
 	};
 
 	//Stats

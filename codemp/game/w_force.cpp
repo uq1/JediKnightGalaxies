@@ -639,7 +639,7 @@ int ForcePowerUsableOn(gentity_t *attacker, gentity_t *other, forcePowers_t forc
 		(forcePower == FP_PUSH ||
 		forcePower == FP_PULL))
 	{
-		if (BG_InKnockDown(other->client->ps.legsAnim))
+		if (BG_KnockdownAnim(other->client->ps.legsAnim))
 		{
 			return 0;
 		}

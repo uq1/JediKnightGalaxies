@@ -4669,10 +4669,8 @@ rww - end dismemberment/lbd
 #define PLAYER_KNOCKDOWN_HOLD_EXTRA_TIME 0
 
 void NPC_SetPainEvent( gentity_t *self );
-qboolean PM_RollingAnim( int anim );
 qboolean PM_InKnockDown( playerState_t *ps );
 qboolean BG_CrouchAnim( int anim );
-qboolean BG_KnockDownAnim( int anim );
 qboolean PM_LockedAnim( int anim );
 
 //[KnockdownSys] - Jedi Knight Galaxies - using knockdown system from OJP
@@ -4685,7 +4683,7 @@ void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, fl
 	{
 		return;
 	}
-	if ( (self->flags & FL_GODMODE) || (self->client->noclip) || (self->client->jetPackOn)) {
+	if ( (self->flags & FL_GODMODE) || (self->client->noclip) || (self->client->ps.eFlags & EF_JETPACK_ACTIVE)) {
 		return;	// Dont knock down when havin godmode or noclip, or when usin a jetpack
 	}
 
@@ -4753,9 +4751,7 @@ void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, fl
 		G_CheckLedgeDive( self, 72, pushDir, qfalse, qfalse );
 
 
-		if ( /*!BG_SpinningSaberAnim( self->client->ps.legsAnim )  //racc - I've removed this requirement since it's over used by staffs/duals.
-			&& !BG_FlippingAnim( self->client->ps.legsAnim ) 
-			&&*/ !PM_RollingAnim( self->client->ps.legsAnim ) 
+		if ( !BG_RollingAnim( self->client->ps.legsAnim ) 
 			&& !PM_InKnockDown( &self->client->ps ) )
 		{
 			int knockAnim = BOTH_KNOCKDOWN1;//default knockdown
@@ -4795,7 +4791,7 @@ void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, fl
 			}
 			else
 			{//player holds extra long so you have more time to decide to do the quick getup
-				if ( BG_KnockDownAnim( self->client->ps.legsAnim ) )
+				if ( BG_KnockdownAnim( self->client->ps.legsAnim ) )
 				{
 					self->client->ps.legsTimer += PLAYER_KNOCKDOWN_HOLD_EXTRA_TIME;
 					self->client->ps.torsoTimer += PLAYER_KNOCKDOWN_HOLD_EXTRA_TIME;
@@ -5595,13 +5591,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			}
 			else
 			{
-
-				if (client->jetPackOn)
-				{ //disable jetpack temporarily
-					Jetpack_Off(targ);
-					client->jetPackToggleTime = level.time + Q_irand(3000, 10000);
-				}
-
 				if ( client->NPC_class == CLASS_PROTOCOL || client->NPC_class == CLASS_SEEKER ||
 					client->NPC_class == CLASS_R2D2 || client->NPC_class == CLASS_R5D2 ||
 					client->NPC_class == CLASS_MOUSE || client->NPC_class == CLASS_GONK )

@@ -518,6 +518,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	// and here is some stance data too
 	JKG_InitializeStanceData();
+
+	// Jetpacks, as well
+	JKG_LoadJetpacks();
 	
 	// setup master item table
 	BG_InitItems();
@@ -3135,33 +3138,36 @@ void G_RunFrame( int levelTime ) {
 
 #define JETPACK_DEFUEL_RATE		200 //approx. 20 seconds of idle use from a fully charged fuel amt
 #define JETPACK_REFUEL_RATE		150 //seems fair
-			if (ent->client->jetPackOn)
-			{ //using jetpack, drain fuel
-				if (ent->client->jetPackDebReduce < level.time)
-				{
-					if (ent->client->pers.cmd.upmove > 0)
-					{ //take more if they're thrusting
-						ent->client->ps.jetpackFuel -= 2;
-					}
-					else
+			if (ent->client->ps.jetpack) {
+				jetpackData_t* jet = &jetpackTable[ent->client->ps.jetpack - 1];
+
+				if (ent->client->ps.eFlags & EF_JETPACK_ACTIVE)
+				{ //using jetpack, drain fuel
+					if (ent->client->jetPackDebReduce < level.time)
 					{
 						ent->client->ps.jetpackFuel--;
+						if (ent->client->ps.jetpackFuel <= 0)
+						{ //turn it off
+							ent->client->ps.jetpackFuel = 0;
+							Jetpack_Off(ent);
+						}
+
+						if (ent->client->pers.cmd.upmove > 0) {
+							// Using thrust, take away fuel more quickly
+							ent->client->jetPackDebReduce = level.time + (JETPACK_DEFUEL_RATE / jet->thrustConsumption);
+						}
+						else {
+							ent->client->jetPackDebReduce = level.time + (JETPACK_DEFUEL_RATE / jet->fuelConsumption);
+						}
 					}
-					
-					if (ent->client->ps.jetpackFuel <= 0)
-					{ //turn it off
-						ent->client->ps.jetpackFuel = 0;
-						Jetpack_Off(ent);
-					}
-					ent->client->jetPackDebReduce = level.time + JETPACK_DEFUEL_RATE;
 				}
-			}
-			else if (ent->client->ps.jetpackFuel < 100)
-			{ //recharge jetpack
-				if (ent->client->jetPackDebRecharge < level.time)
-				{
-					ent->client->ps.jetpackFuel++;
-					ent->client->jetPackDebRecharge = level.time + JETPACK_REFUEL_RATE;
+				else if (ent->client->ps.jetpackFuel < jet->fuelCapacity)
+				{ //recharge jetpack
+					if (ent->client->jetPackDebRecharge < level.time)
+					{
+						ent->client->ps.jetpackFuel++;
+						ent->client->jetPackDebRecharge = level.time + (JETPACK_REFUEL_RATE / jet->fuelRegeneration);
+					}
 				}
 			}
 

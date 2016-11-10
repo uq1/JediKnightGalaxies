@@ -1664,7 +1664,7 @@ void TryUse( gentity_t *ent )
 		}
 	}
 
-	if (ent->client->jetPackOn)
+	if (ent->client->ps.eFlags & EF_JETPACK_ACTIVE)
 	{ //can't use anything else to jp is off
 		goto tryJetPack;
 	}
@@ -1835,35 +1835,11 @@ void TryUse( gentity_t *ent )
 
 tryJetPack:
 	//if we got here, we didn't actually use anything else, so try to toggle jetpack if we are in the air, or if it is already on
-	if (0)	// FIXME: implement jetpack
+	if ((ent->client->ps.eFlags & EF_JETPACK_ACTIVE) || ent->client->ps.groundEntityNum == ENTITYNUM_NONE && ent->client->ps.jetpack)
 	{
-		if (ent->client->jetPackOn || ent->client->ps.groundEntityNum == ENTITYNUM_NONE)
-		{
-			ItemUse_Jetpack(ent);
-			return;
-		}
+		ItemUse_Jetpack(ent);
+		return;
 	}
-
-	/* No, this is broken and silly anyway. Oh and it also asserts the game atm due to g2 bugs. -Pande
-	if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_AMMODISP)) 
-			&& G_ItemUsable(&ent->client->ps, HI_AMMODISP) )
-	{ //if you used nothing, then try spewing out some ammo
-		trace_t trToss;
-		vec3_t fAng;
-		vec3_t fwd;
-
-		VectorSet(fAng, 0.0f, ent->client->ps.viewangles[YAW], 0.0f);
-		AngleVectors(fAng, fwd, 0, 0);
-
-        VectorMA(ent->client->ps.origin, 64.0f, fwd, fwd);		
-		trap->Trace(&trToss, ent->client->ps.origin, playerMins, playerMaxs, fwd, ent->s.number, ent->clipmask, 0, 0, 0);
-		if (trToss.fraction == 1.0f && !trToss.allsolid && !trToss.startsolid)
-		{
-			ItemUse_UseDisp(ent, HI_AMMODISP);
-			G_AddEvent(ent, EV_USE_ITEM0+HI_AMMODISP, 0);
-			return;
-		}
-	} */
 }
 
 qboolean G_PointInBounds( vec3_t point, vec3_t mins, vec3_t maxs )

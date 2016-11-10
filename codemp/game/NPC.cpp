@@ -1927,14 +1927,12 @@ void NPC_RunBehavior( int team, int bState )
 	{//bounty hunter
 		if ( Boba_Flying( NPC ) )
 		{
-			NPC->s.eFlags |= EF_JETPACK;
 			NPC->client->ps.eFlags |= EF_JETPACK_ACTIVE;
 			NPC->client->ps.eFlags |= EF_JETPACK_FLAMING;
 			NPC_BehaviorSet_Seeker(bState);
 		}
 		else
 		{
-			NPC->s.eFlags &= ~EF_JETPACK;
 			NPC->client->ps.eFlags &= ~EF_JETPACK_ACTIVE;
 			NPC->client->ps.eFlags &= ~EF_JETPACK_FLAMING;
 			NPC_BehaviorSet_Jedi( bState );

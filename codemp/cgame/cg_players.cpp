@@ -3288,7 +3288,6 @@ CG_SetLerpFrameAnimation
 ===============
 */
 qboolean BG_SaberStanceAnim( int anim );
-qboolean PM_RunningAnim( int anim );
 static void CG_SetLerpFrameAnimation( centity_t *cent, clientInfo_t *ci, lerpFrame_t *lf, int newAnimation, float animSpeedMult, qboolean torsoOnly, qboolean flipState) {
 	animation_t	*anim;
 	float animSpeed;
@@ -3925,8 +3924,6 @@ static void CG_ClearLerpFrame( centity_t *cent, clientInfo_t *ci, lerpFrame_t *l
 CG_PlayerAnimation
 ===============
 */
-qboolean PM_WalkingAnim( int anim );
-
 static void CG_PlayerAnimation( centity_t *cent, int *legsOld, int *legs, float *legsBackLerp,
 						int *torsoOld, int *torso, float *torsoBackLerp ) {
 	clientInfo_t	*ci;
@@ -3940,8 +3937,8 @@ static void CG_PlayerAnimation( centity_t *cent, int *legsOld, int *legs, float 
 		return;
 	}
 
-	if (!PM_RunningAnim(cent->currentState.legsAnim) &&
-		!PM_WalkingAnim(cent->currentState.legsAnim))
+	if (!BG_RunningAnim(cent->currentState.legsAnim) &&
+		!BG_WalkingAnim(cent->currentState.legsAnim))
 	{ //if legs are not in a walking/running anim then just animate at standard speed
 		speedScale *= 1.0f;
 	}
@@ -8214,39 +8211,45 @@ static void CG_ForceElectrocution( centity_t *cent, const vec3_t origin, vec3_t 
 	}
 }
 
-void *cg_g2JetpackInstance = NULL;
+std::vector<void*> g2JetpackInstances;
 
-#define JETPACK_MODEL "models/weapons2/jetpack/model.glm"
+static void CG_InitJetpackModel(const jetpackData_t& jetpack) {
+	void* jetpackInstance = nullptr;
 
-void CG_InitJetpackGhoul2(void)
-{
-	if (cg_g2JetpackInstance)
-	{
-		assert(!"Tried to init jetpack inst, already init'd");
-		return;
+	if (!jetpack.visuals.modelName[0]) {
+		return; // Doesn't have a model, don't bother
 	}
 
-	trap->G2API_InitGhoul2Model(&cg_g2JetpackInstance, JETPACK_MODEL, 0, 0, 0, 0, 0);
+	trap->G2API_InitGhoul2Model(&jetpackInstance, jetpack.visuals.modelName, 0, 0, 0, 0, 0);
 
-	assert(cg_g2JetpackInstance);
+	assert(jetpackInstance);
 
 	//Indicate which bolt on the player we will be attached to
 	//In this case bolt 0 is rhand, 1 is lhand, and 2 is the bolt
 	//for the jetpack (*chestg)
-	trap->G2API_SetBoltInfo(cg_g2JetpackInstance, 0, 2);
+	trap->G2API_SetBoltInfo(jetpackInstance, 0, 2);
 
-	//Add the bolts jet effects will be played from
-	trap->G2API_AddBolt(cg_g2JetpackInstance, 0, "torso_ljet");
-	trap->G2API_AddBolt(cg_g2JetpackInstance, 0, "torso_rjet");
+	// Add places for the flame effect to bolt to
+	for (auto it = jetpack.visuals.effectBolts.begin(); it != jetpack.visuals.effectBolts.end(); ++it) {
+		trap->G2API_AddBolt(jetpackInstance, 0, it->boneBolt);
+	}
+
+	g2JetpackInstances.push_back(jetpackInstance);
+}
+
+void CG_InitJetpackGhoul2(void)
+{
+	for (int i = 0; i < numLoadedJetpacks; i++) {
+		CG_InitJetpackModel(jetpackTable[i]);
+	}
 }
 
 void CG_CleanJetpackGhoul2(void)
 {
-	if (cg_g2JetpackInstance)
-	{
-		trap->G2API_CleanGhoul2Models(&cg_g2JetpackInstance);
-		cg_g2JetpackInstance = NULL;
+	for (auto it = g2JetpackInstances.begin(); it != g2JetpackInstances.end(); ++it) {
+		trap->G2API_CleanGhoul2Models(&(*it));
 	}
+	g2JetpackInstances.clear();
 }
 
 #define RARMBIT			(1 << (G2_MODELPART_RARM-10))
@@ -9572,67 +9575,44 @@ void CG_Player( centity_t *cent ) {
 
 	CG_VehicleEffects(cent);
 
-	if ((cent->currentState.eFlags & EF_JETPACK) && !(cent->currentState.eFlags & EF_DEAD) &&
-		cg_g2JetpackInstance)
+	if (cent->currentState.jetpack && !(cent->currentState.eFlags & EF_DEAD))
 	{ //should have a jetpack attached
 		//1 is rhand weap, 2 is lhand weap (akimbo sabs), 3 is jetpack
 		if (!trap->G2API_HasGhoul2ModelOnIndex(&(cent->ghoul2), 3))
 		{
-			trap->G2API_CopySpecificGhoul2Model(cg_g2JetpackInstance, 0, cent->ghoul2, 3); 
+			trap->G2API_CopySpecificGhoul2Model(g2JetpackInstances[cent->currentState.jetpack-1], 0, cent->ghoul2, 3);
 		}
 
 		if (cent->currentState.eFlags & EF_JETPACK_ACTIVE)
-		{
+		{	// Jetpack is active, let's make it look nice
 			mdxaBone_t mat;
 			vec3_t flamePos, flameDir;
-			int n = 0;
-			// Just 1 flame
-			while (n < 2)
-			{
-				//Get the position/dir of the flame bolt on the jetpack model bolted to the player
-				trap->G2API_GetBoltMatrix(cent->ghoul2, 3, n, &mat, cent->turAngles, cent->lerpOrigin, cg.time, cgs.gameModels, cent->modelScale);
-				BG_GiveMeVectorFromMatrix(&mat, ORIGIN, flamePos);
+			jetpackData_t* jet = &jetpackTable[cent->currentState.jetpack - 1];
+			fxHandle_t flameEffect;
+			sfxHandle_t flameSound;
 
-				if (n == 0)
-				{
-					//BG_GiveMeVectorFromMatrix(&mat, NEGATIVE_Y, flameDir);
-					//VectorMA(flamePos, -4.5f, flameDir, flamePos);
-					BG_GiveMeVectorFromMatrix(&mat, POSITIVE_X, flameDir);
-					//VectorMA(flamePos, -6.0f, flameDir, flamePos);
-				}
-				else
-				{
-					//BG_GiveMeVectorFromMatrix(&mat, NEGATIVE_Y, flameDir);
-					//VectorMA(flamePos, -4.5f, flameDir, flamePos);
-					BG_GiveMeVectorFromMatrix(&mat, POSITIVE_X, flameDir);
-					//VectorMA(flamePos, -6.0f, flameDir, flamePos);
-				}
-
-				if (cent->currentState.eFlags & EF_JETPACK_FLAMING)
-				{ //create effects
-					//FIXME: Just one big effect
-					//Play the effect
-					trap->FX_PlayEffectID(cgs.effects.mJetpack, flamePos, flameDir, -1, -1, false);
-					trap->FX_PlayEffectID(cgs.effects.mJetpack, flamePos, flameDir, -1, -1, false);
-
-					//Keep the jet fire sound looping
-					trap->S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
-						trap->S_RegisterSound( "sound/jkg/jetpack/jetlp" /*"sound/effects/fire_lp"*/ ) );
-				}
-				else
-				{ //just idling
-					//FIXME: Different smaller effect for idle
-					//Play the effect
-
-					trap->FX_PlayEffectID(cgs.effects.mJetpack, flamePos, flameDir, -1, -1, false);
-				}
-
-				n++;
+			if (cent->currentState.eFlags & EF_JETPACK_FLAMING) {
+				flameEffect = trap->FX_RegisterEffect(jet->visuals.thrustEffect);
+				flameSound = trap->S_RegisterSound(jet->visuals.thrustSound);
 			}
-			trap->S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
-			trap->S_RegisterSound( "sound/jkg/jetpack/jethover" /*"sound/effects/fire_lp"*/ ) );
-			//trap->S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
-				//trap->S_RegisterSound( "sound/boba/JETHOVER" ) );
+			else {
+				flameEffect = trap->FX_RegisterEffect(jet->visuals.hoverEffect);
+				flameSound = trap->S_RegisterSound(jet->visuals.idleSound);
+			}
+
+			// Play an effect on each effect bolt
+			for (int i = 0; i < jet->visuals.effectBolts.size(); i++) {
+				const char* boltName = jet->visuals.effectBolts[i].boneBolt;
+
+				trap->G2API_GetBoltMatrix(cent->ghoul2, 3, i, &mat, cent->turAngles, cent->lerpOrigin, cg.time, cgs.gameModels, cent->modelScale);
+				BG_GiveMeVectorFromMatrix(&mat, ORIGIN, flamePos);
+				BG_GiveMeVectorFromMatrix(&mat, POSITIVE_X, flameDir);
+
+				trap->FX_PlayEffectID(flameEffect, flamePos, flameDir, -1, -1, false);
+			}
+
+			// Play a sound effect (originating at the player, I guess) 
+			trap->S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, flameSound);
 		}
 	}
 	else if (trap->G2API_HasGhoul2ModelOnIndex(&(cent->ghoul2), 3))

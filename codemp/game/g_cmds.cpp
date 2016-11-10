@@ -509,6 +509,19 @@ void JKG_EquipShield_f(gentity_t* ent) {
 
 /*
 ==================
+JKG_EquipJetpack_f
+
+==================
+*/
+void JKG_EquipJetpack_f(gentity_t* ent) {
+	char* args = ConcatArgs(1);
+	int argNum = atoi(args);
+
+	JKG_JetpackEquipped(ent, argNum);
+}
+
+/*
+==================
 JKG_Crystal_f
 
 Sets the saber crystal
@@ -1724,6 +1737,9 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 	else if (item.id->itemType == ITEM_SHIELD && item.equipped) {
 		// If we're selling an equipped shield, kill it
 		JKG_ShieldUnequipped(ent);
+	}
+	else if (item.id->itemType == ITEM_JETPACK && item.equipped) {
+		JKG_JetpackUnequipped(ent);
 	}
 	ent->client->ps.credits += (creditAmount * item.quantity) / 2;
 	BG_RemoveItemStack(ent, nInvID);
@@ -4915,6 +4931,14 @@ void ClientCommand( int clientNum ) {
 	else if (Q_stricmp(cmd, "unequipShield") == 0)
 	{
 		JKG_ShieldUnequipped(ent);
+	}
+	else if (Q_stricmp(cmd, "equipJetpack") == 0)
+	{
+		JKG_EquipJetpack_f(ent);
+	}
+	else if (Q_stricmp(cmd, "unequipJetpack") == 0)
+	{
+		JKG_JetpackUnequipped(ent);
 	}
 	else if (Q_stricmp(cmd, "testSetSaber1") == 0)
 	{

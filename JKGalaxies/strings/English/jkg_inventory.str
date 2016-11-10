@@ -160,6 +160,9 @@ LANG_ENGLISH		"Crafting Component"
 REFERENCE     ITYPE_SHIELD
 LANG_ENGLISH    "Shield"
 
+REFERENCE     ITYPE_JETPACK
+LANG_ENGLISH    "Jetpack"
+
 REFERENCE 			ARM_DEFENSE
 LANG_ENGLISH		"Armor: "
 
@@ -367,5 +370,17 @@ LANG_ENGLISH    "Recharges after %.1f seconds"
 
 REFERENCE     SHIELD_REGEN
 LANG_ENGLISH    "Recharges %.2f shields per second"
+
+REFERENCE     JETPACK_IDLECONSUMPTION
+LANG_ENGLISH    "Idle Consumption: %.2f"
+
+REFERENCE     JETPACK_THRUSTCONSUMPTION
+LANG_ENGLISH    "Thrust Consumption: %.2f"
+
+REFERENCE     JETPACK_FUELREGEN
+LANG_ENGLISH    "Fuel Regeneration: %.2f"
+
+REFERENCE     JETPACK_HOVERGRAVITY
+LANG_ENGLISH    "Hover Gravity: %.2"
 
 ENDMARKER

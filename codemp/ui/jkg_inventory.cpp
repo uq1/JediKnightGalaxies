@@ -22,7 +22,11 @@ void JKG_ConstructInventoryList() {
 		pAllItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
 		for (int i = 0; i < nNumInventoryItems; i++) {
 			itemInstance_t* pThisItem = &pAllItems[i];
-			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR && pThisItem->id->itemType != ITEM_CLOTHING && pThisItem->id->itemType != ITEM_SHIELD) {
+			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR 
+				&& pThisItem->id->itemType != ITEM_ARMOR 
+				&& pThisItem->id->itemType != ITEM_CLOTHING 
+				&& pThisItem->id->itemType != ITEM_SHIELD
+				&& pThisItem->id->itemType != ITEM_JETPACK) {
 				continue;
 			}
 			else if (ui_inventoryFilter.integer == JKGIFILTER_WEAPONS && pThisItem->id->itemType != ITEM_WEAPON) {
@@ -204,6 +208,28 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLeve
 	}
 
 	switch (pItem->id->itemType) {
+		case ITEM_JETPACK:
+			// Jetpack
+			// Capacity: ###
+			// Idle Fuel Consumption: ###
+			// Thrusting Fuel Consumption: ###
+			// Fuel Regeneration: ###
+			// Hover Gravity: ###
+			switch (nLineNum) {
+				case 0:
+					return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_JETPACK");
+				case 1:
+					return va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_CAPACITY"), pItem->id->jetpackData.pJetpackData->fuelCapacity);
+				case 2:
+					return va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_IDLECONSUMPTION"), pItem->id->jetpackData.pJetpackData->fuelConsumption);
+				case 3:
+					return va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_THRUSTCONSUMPTION"), pItem->id->jetpackData.pJetpackData->thrustConsumption);
+				case 4:
+					return va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_FUELREGEN"), pItem->id->jetpackData.pJetpackData->fuelRegeneration);
+				case 5:
+					return va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_HOVERGRAVITY"), pItem->id->jetpackData.pJetpackData->move.hoverGravity);
+			}
+			break;
 		case ITEM_SHIELD:
 			// Shield Item
 			// Capacity: ###

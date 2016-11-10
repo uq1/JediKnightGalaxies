@@ -42,7 +42,11 @@ void JKG_ConstructShopLists() {
 		//
 		for (int i = 0; i < nNumberUnfilteredIItems; i++) {
 			itemInstance_t* pThisItem = &pAllInventoryItems[i];
-			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR && pThisItem->id->itemType != ITEM_SHIELD) {
+			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR 
+				&& pThisItem->id->itemType != ITEM_ARMOR 
+				&& pThisItem->id->itemType != ITEM_SHIELD
+				&& pThisItem->id->itemType != ITEM_JETPACK
+				&& pThisItem->id->itemType != ITEM_CLOTHING) {
 				continue;
 			}
 			else if (ui_inventoryFilter.integer == JKGIFILTER_WEAPONS && pThisItem->id->itemType != ITEM_WEAPON) {
@@ -94,7 +98,11 @@ void JKG_ConstructShopLists() {
 		//
 		for (int i = 0; i < nNumberUnfilteredSItems; i++) {
 			itemInstance_t* pThisItem = &pAllShopItems[i];
-			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR && pThisItem->id->itemType != ITEM_ARMOR && pThisItem->id->itemType != ITEM_SHIELD) {
+			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR 
+				&& pThisItem->id->itemType != ITEM_ARMOR 
+				&& pThisItem->id->itemType != ITEM_SHIELD
+				&& pThisItem->id->itemType != ITEM_JETPACK
+				&& pThisItem->id->itemType != ITEM_CLOTHING) {
 				continue;
 			}
 			else if (ui_inventoryFilter.integer == JKGIFILTER_WEAPONS && pThisItem->id->itemType != ITEM_WEAPON) {

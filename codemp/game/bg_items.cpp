@@ -687,6 +687,9 @@ void BG_RemoveItemStack(gentity_t* ent, int itemStack) {
 		if (item.equipped && item.id->itemType == ITEM_SHIELD) {
 			JKG_ShieldUnequipped(ent);
 		}
+		else if (item.equipped && item.id->itemType == ITEM_JETPACK) {
+			JKG_JetpackUnequipped(ent);
+		}
 	}
 
 	ent->inventory->erase(ent->inventory->begin() + itemStack);
@@ -716,8 +719,6 @@ void BG_RemoveItemNonNetworked(gentity_t* ent, itemInstance_t item) {
 			// This item ID matches
 			if (quantity >= it->quantity) {
 				quantity -= it->quantity;
-				if (pItemData->itemType == ITEM_SHIELD)
-
 				it = ent->inventory->erase(it);
 			}
 			else {
@@ -1035,6 +1036,8 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 		itemData->itemType = ITEM_CONSUMABLE;
 	else if (Q_stricmp(str, "shield") == 0)
 		itemData->itemType = ITEM_SHIELD;
+	else if (Q_stricmp(str, "jetpack") == 0)
+		itemData->itemType = ITEM_JETPACK;
 	else
 		itemData->itemType = ITEM_UNKNOWN;
 
@@ -1164,6 +1167,15 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 			Q_strncpyz(itemData->shieldData.equippedSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
 		}
 	}
+	else if (itemData->itemType == ITEM_JETPACK) {
+		jsonNode = cJSON_GetObjectItem(json, "jetpack");
+		Q_strncpyz(itemData->jetpackData.ref, cJSON_ToString(jsonNode), sizeof(itemData->jetpackData.ref));
+
+		itemData->jetpackData.pJetpackData = JKG_FindJetpackByName(itemData->jetpackData.ref);
+		if (itemData->jetpackData.pJetpackData == nullptr) {
+			Com_Printf(S_COLOR_YELLOW "WARNING: %s is a jetpack, but doesn't have a valid reference to a .jet file!\n", itemFilePath);
+		}
+	}
 
 	cJSON_Delete(json);
 
@@ -1196,6 +1208,7 @@ static bool BG_LoadItems(void)
 		if (!BG_LoadItem(va("ext_data/items/%s", itemFile), &dummy))
 		{
 			failed++;
+			itemFile += strlen(itemFile) + 1;
 			continue;
 		}
 
