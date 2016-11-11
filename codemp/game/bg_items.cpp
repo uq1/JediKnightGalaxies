@@ -31,10 +31,6 @@ const stringID_table_s tradePacketNames[] = {
 	{ nullptr, IPT_NULL }
 };
 
-#ifdef _CGAME
-cgArmorData_t armorMasterTable[MAX_ARMOR_PIECES];
-#endif
-
 /*
 ====================
 BG_ItemPacketFromName
@@ -1074,62 +1070,10 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 		itemData->weaponData.varID = BG_GetWeaponIndex(itemData->weaponData.weapon, itemData->weaponData.variation);
 	}
 	else if (itemData->itemType == ITEM_ARMOR) {
-		//This is an armor piece. Grab the data.
-		const char *armorSlot;
-		jsonNode = cJSON_GetObjectItem(json, "armorID");
-		item = cJSON_ToNumber(jsonNode);
-		itemData->armorData.armorID = item;
-
-		jsonNode = cJSON_GetObjectItem(json, "armorSlot");
-		armorSlot = cJSON_ToString(jsonNode);
-
-		if (!Q_stricmp(armorSlot, "head")){
-			itemData->armorData.armorSlot = ARMSLOT_HEAD;
-		}
-		else if (!Q_stricmp(armorSlot, "neck")){
-			itemData->armorData.armorSlot = ARMSLOT_NECK;
-		}
-		else if (!Q_stricmp(armorSlot, "body") || !Q_stricmp(armorSlot, "torso")){
-			itemData->armorData.armorSlot = ARMSLOT_TORSO;
-		}
-		else if (!Q_stricmp(armorSlot, "robe")){
-			itemData->armorData.armorSlot = ARMSLOT_ROBE;
-		}
-		else if (!Q_stricmp(armorSlot, "legs")){
-			itemData->armorData.armorSlot = ARMSLOT_LEGS;
-		}
-		else if (!Q_stricmp(armorSlot, "hands") || !Q_stricmp(armorSlot, "hand") || !Q_stricmp(armorSlot, "gloves")){
-			itemData->armorData.armorSlot = ARMSLOT_GLOVES;
-		}
-		else if (!Q_stricmp(armorSlot, "boots") || !Q_stricmp(armorSlot, "foot") || !Q_stricmp(armorSlot, "feet")){
-			itemData->armorData.armorSlot = ARMSLOT_BOOTS;
-		}
-		else if (!Q_stricmp(armorSlot, "shoulder") || !Q_stricmp(armorSlot, "pauldron") || !Q_stricmp(armorSlot, "pauldrons")){
-			itemData->armorData.armorSlot = ARMSLOT_SHOULDER;
-		}
-		else if (!Q_stricmp(armorSlot, "implant") || !Q_stricmp(armorSlot, "implants")){
-			itemData->armorData.armorSlot = ARMSLOT_IMPLANTS;
-		}
-
-		//Armor Type
-
-		//Light armor drains less force power and has no reduction to speed.
-		//Medium armor has a reduction to speed equivalent to %(Defense - Weight) / # medium/heavy armor pieces equipped
-		//Heavy armor has a chance to completely negate damage equal to its defense - weight / # heavy armor pieces equipped. (Capped at 15%)
-		//Also, it reduces speed equivalent to %(Defense - Weight) / # heavy armor pieces equipped.
-		//Note that damage negation only applies to the limb that corresponds to its slot.
-
-		jsonNode = cJSON_GetObjectItem(json, "armorType");
-		str = cJSON_ToString(jsonNode);
-
-		if (Q_stricmp(str, "light") == 0)
-			itemData->armorData.armorType = ARMTYPE_LIGHT;
-		else if (Q_stricmp(str, "medium") == 0)
-			itemData->armorData.armorType = ARMTYPE_MEDIUM;
-		else if (Q_stricmp(str, "heavy") == 0)
-			itemData->armorData.armorType = ARMTYPE_HEAVY;
-		else
-			itemData->armorData.armorType = ARMTYPE_MEDIUM;
+		jsonNode = cJSON_GetObjectItem(json, "armor");
+		Q_strncpyz(itemData->armorData.ref, cJSON_ToStringOpt(jsonNode, ""), sizeof(itemData->armorData.ref));
+		
+		itemData->armorData.pArm = JKG_FindArmorByName(itemData->armorData.ref);
 	}
 	else if (itemData->itemType == ITEM_CONSUMABLE) {
 		// consumeScript controls the script that gets run when we consume the item

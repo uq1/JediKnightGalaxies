@@ -3104,10 +3104,10 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 
 /*
 ================
-CheckArmor
+CheckShield
 ================
 */
-int CheckArmor (gentity_t *ent, int damage, int dflags)
+int CheckShield (gentity_t *ent, int damage, int dflags)
 {
 	gclient_t	*client;
 	int			save;
@@ -4659,6 +4659,18 @@ void G_LocationBasedDamageModifier(gentity_t *ent, vec3_t point, int mod, int df
 	default:
 		break; //do nothing then
 	}
+
+	if (ent->client && (ent - g_entities) < MAX_CLIENTS) {
+		// Remove damage based on EHP
+		int armor = ent->client->ps.armor[armorSlot];
+		if (armor--) {
+			armorData_t* pArm = &armorTable[armor];
+			int ehp = pArm->ehp;
+			float modifier = (ent->client->ps.stats[STAT_MAX_HEALTH] / (float)(ent->client->ps.stats[STAT_MAX_HEALTH] + ehp));
+
+			*damage *= modifier;
+		}
+	}
 }
 /*
 ===================================
@@ -4862,7 +4874,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	gclient_t	*client;
 	int			take;
 	int			save;
-	int			asave;
+	int			ssave;
+
 	int			knockback;
 	int			subamt = 0;
 	float		famt = 0;
@@ -4948,23 +4961,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		return; // No team damage in warzone gametype.
 
 	// TODO: GLua hook!
-
-	if (mod == MOD_DEMP2 && targ && targ->inuse && targ->client)
-	{
-		if ( targ->client->ps.electrifyTime < level.time )
-		{//electrocution effect
-			if (targ->s.eType == ET_NPC && targ->s.NPC_class == CLASS_VEHICLE &&
-				targ->m_pVehicle && (targ->m_pVehicle->m_pVehicleInfo->type == VH_SPEEDER || targ->m_pVehicle->m_pVehicleInfo->type == VH_WALKER))
-			{ //do some extra stuff to speeders/walkers
-				targ->client->ps.electrifyTime = level.time + Q_irand( 3000, 4000 );
-			}
-			else if ( targ->s.NPC_class != CLASS_VEHICLE 
-				|| (targ->m_pVehicle && targ->m_pVehicle->m_pVehicleInfo->type != VH_FIGHTER) )
-			{//don't do this to fighters
-				targ->client->ps.electrifyTime = level.time + Q_irand( 300, 800 );
-			}
-		}
-	}
 
 	if (!targ->takedamage) {
 		return;
@@ -5092,15 +5088,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	}
 	// reduce damage by the attacker's handicap value
 	// unless they are rocket jumping
-
-	if ( !(dflags&DAMAGE_NO_HIT_LOC) )
-	{//see if we should modify it by damage location
-		if (targ->inuse && (targ->client || targ->s.eType == ET_NPC) &&
-			attacker->inuse && (attacker->client || attacker->s.eType == ET_NPC))
-		{ //check for location based damage stuff.
-			G_LocationBasedDamageModifier(targ, point, mod, dflags, &damage);
-		}
-	}
 
 	client = targ->client;
 
@@ -5381,242 +5368,21 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	save = 0;
 
 	// save some from armor
-	asave = CheckArmor (targ, take, dflags);
+	ssave = CheckShield (targ, take, dflags);
 
-	if (asave)
+	if (ssave)
 	{
-		shieldAbsorbed = asave;
+		shieldAbsorbed = ssave;
 	}
 
-	take -= asave;
-	if ( targ->client )
-	{//update vehicle shields and armor, check for explode 
-		if ( targ->client->NPC_class == CLASS_VEHICLE &&
-			targ->m_pVehicle )
-		{//FIXME: should be in its own function in g_vehicles.c now, too big to be here
-			int surface = -1;
-			if ( attacker )
-			{//so we know the last guy who shot at us
-				targ->enemy = attacker;
-			}
+	take -= ssave;
 
-			if ( targ->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL )
-			{
-				//((CVehicleNPC *)targ->NPC)->m_ulFlags |= CVehicleNPC::VEH_BUCKING;
-			}
-
-			targ->m_pVehicle->m_iShields = targ->client->ps.stats[STAT_SHIELD];
-			G_VehUpdateShields( targ );
-			targ->m_pVehicle->m_iArmor -= take;
-			if ( targ->m_pVehicle->m_iArmor <= 0 ) 
-			{
-				targ->s.eFlags |= EF_DEAD;
-				targ->client->ps.eFlags |= EF_DEAD;
-				targ->m_pVehicle->m_iArmor = 0;
-			}
-			if ( targ->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER )
-			{//get the last surf that was hit
-				if ( targ->client && targ->client->g2LastSurfaceTime == level.time)
-				{
-					char hitSurface[MAX_QPATH];
-
-					trap->G2API_GetSurfaceName(targ->ghoul2, targ->client->g2LastSurfaceHit, 0, hitSurface);
-
-					if (hitSurface[0])
-					{
-						surface = G_ShipSurfaceForSurfName( &hitSurface[0] );
-
-						if ( take && surface > 0 )
-						{//hit a certain part of the ship
-							int deathPoint = 0;
-
-							targ->locationDamage[surface] += take;
-
-							switch(surface)
-							{
-							case SHIPSURF_FRONT:
-								deathPoint = targ->m_pVehicle->m_pVehicleInfo->health_front;
-								break;
-							case SHIPSURF_BACK:
-								deathPoint = targ->m_pVehicle->m_pVehicleInfo->health_back;
-								break;
-							case SHIPSURF_RIGHT:
-								deathPoint = targ->m_pVehicle->m_pVehicleInfo->health_right;
-								break;
-							case SHIPSURF_LEFT:
-								deathPoint = targ->m_pVehicle->m_pVehicleInfo->health_left;
-								break;
-							default:
-								break;
-							}
-
-							//presume 0 means it wasn't set and so it should never die.
-							if ( deathPoint )
-							{
-								if ( targ->locationDamage[surface] >= deathPoint)
-								{ //this area of the ship is now dead
-									if ( G_FlyVehicleDestroySurface( targ, surface ) )
-									{//actually took off a surface
-										G_VehicleSetDamageLocFlags( targ, surface, deathPoint );
-									}
-								}
-								else
-								{
-									G_VehicleSetDamageLocFlags( targ, surface, deathPoint );
-								}
-							}
-						}
-					}
-				}
-			}
-			if ( targ->m_pVehicle->m_pVehicleInfo->type != VH_ANIMAL )
-			{
-				/*
-				if ( targ->m_pVehicle->m_iArmor <= 0 ) 
-				{//vehicle all out of armor
-					Vehicle_t *pVeh = targ->m_pVehicle;
-					if ( pVeh->m_iDieTime == 0 )
-					{//just start the flaming effect and explosion delay, if it's not going already...
-						pVeh->m_pVehicleInfo->StartDeathDelay( pVeh, 0 );
-					}
-				}
-				else*/
-				if ( attacker 
-						//&& attacker->client 
-						&& targ != attacker
-						&& point 
-						&& !VectorCompare( targ->client->ps.origin, point )
-						&& targ->m_pVehicle->m_LandTrace.fraction >= 1.0f)
-				{//just took a hit, knock us around
-					vec3_t	vUp, impactDir;
-					float	impactStrength = (damage/200.0f)*10.0f;
-					float	dot = 0.0f;
-					if ( impactStrength > 10.0f )
-					{
-						impactStrength = 10.0f;
-					}
-					//pitch or roll us based on where we were hit
-					AngleVectors( targ->m_pVehicle->m_vOrientation, NULL, NULL, vUp );
-					VectorSubtract( point, targ->r.currentOrigin, impactDir );
-					VectorNormalize( impactDir );
-					if ( surface <= 0 )
-					{//no surf guess where we were hit, then
-						vec3_t	vFwd, vRight;
-						AngleVectors( targ->m_pVehicle->m_vOrientation, vFwd, vRight, vUp );
-						dot = DotProduct( vRight, impactDir );
-						if ( dot > 0.4f )
-						{
-							surface = SHIPSURF_RIGHT;
-						}
-						else if ( dot < -0.4f )
-						{
-							surface = SHIPSURF_LEFT;
-						}
-						else
-						{
-							dot = DotProduct( vFwd, impactDir );
-							if ( dot > 0.0f )
-							{
-								surface = SHIPSURF_FRONT;
-							}
-							else
-							{
-								surface = SHIPSURF_BACK;
-							}
-						}
-					}
-					switch ( surface )
-					{
-					case SHIPSURF_FRONT:
-						dot = DotProduct( vUp, impactDir );
-						if ( dot > 0 )
-						{
-							targ->m_pVehicle->m_vOrientation[PITCH] += impactStrength;
-						}
-						else
-						{
-							targ->m_pVehicle->m_vOrientation[PITCH] -= impactStrength;
-						}
-						break;
-					case SHIPSURF_BACK:
-						dot = DotProduct( vUp, impactDir );
-						if ( dot > 0 )
-						{
-							targ->m_pVehicle->m_vOrientation[PITCH] -= impactStrength;
-						}
-						else
-						{
-							targ->m_pVehicle->m_vOrientation[PITCH] += impactStrength;
-						}
-						break;
-					case SHIPSURF_RIGHT:
-						dot = DotProduct( vUp, impactDir );
-						if ( dot > 0 )
-						{
-							targ->m_pVehicle->m_vOrientation[ROLL] -= impactStrength;
-						}
-						else
-						{
-							targ->m_pVehicle->m_vOrientation[ROLL] += impactStrength;
-						}
-						break;
-					case SHIPSURF_LEFT:
-						dot = DotProduct( vUp, impactDir );
-						if ( dot > 0 )
-						{
-							targ->m_pVehicle->m_vOrientation[ROLL] += impactStrength;
-						}
-						else
-						{
-							targ->m_pVehicle->m_vOrientation[ROLL] -= impactStrength;
-						}
-						break;
-					}
-
-				}
-			}
-		}
-	}
-
-	if ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT )
-	{//FIXME: screw with non-animal vehicles, too?
-		if ( client )
-		{
-			if ( client->NPC_class == CLASS_VEHICLE 
-				&& targ->m_pVehicle
-				&& targ->m_pVehicle->m_pVehicleInfo
-				&& targ->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER )
-			{//all damage goes into the disruption of shields and systems
-				take = 0;
-			}
-			else
-			{
-				if ( client->NPC_class == CLASS_PROTOCOL || client->NPC_class == CLASS_SEEKER ||
-					client->NPC_class == CLASS_R2D2 || client->NPC_class == CLASS_R5D2 ||
-					client->NPC_class == CLASS_MOUSE || client->NPC_class == CLASS_GONK )
-				{
-					// DEMP2 does more damage to these guys.
-					take *= 2;
-				}
-				else if ( client->NPC_class == CLASS_PROBE || client->NPC_class == CLASS_INTERROGATOR ||
-							client->NPC_class == CLASS_MARK1 || client->NPC_class == CLASS_MARK2 || client->NPC_class == CLASS_SENTRY ||
-							client->NPC_class == CLASS_ATST )
-				{
-					// DEMP2 does way more damage to these guys.
-					take *= 5;
-				}
-				else
-				{
-					if (take > 0)
-					{
-						take /= 3;
-						if (take < 1)
-						{
-							take = 1;
-						}
-					}
-				}
-			}
+	if (take > 0 && !(dflags&DAMAGE_NO_HIT_LOC))
+	{//see if we should modify it by damage location
+		if (targ->inuse && (targ->client || targ->s.eType == ET_NPC) &&
+			attacker->inuse && (attacker->client || attacker->s.eType == ET_NPC))
+		{ //check for location based damage stuff.
+			G_LocationBasedDamageModifier(targ, point, mod, dflags, &take);
 		}
 	}
 
@@ -5636,7 +5402,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		} else {
 			client->ps.persistant[PERS_ATTACKER] = ENTITYNUM_WORLD;
 		}
-		client->damage_armor += asave;
+		client->damage_armor += ssave;
 		client->damage_blood += take;
 		client->damage_knockback += knockback;
 		if ( dir ) {
@@ -5764,7 +5530,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		}
 	}
 
-	if (( asave || take ) && targ && targ->client && !targ->NPC )
+	if (( ssave || take ) && targ && targ->client && !targ->NPC )
 	{
 		targ->client->pers.partyUpdate = qtrue;
 	}
@@ -5974,8 +5740,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	}
 	if(attacker->client && !attacker->NPC)
 	{
-		int i;
-
 		if(targ->client && !targ->NPC && !OnSameTeam(attacker, targ))
 		{
 			// Add an assist to the records

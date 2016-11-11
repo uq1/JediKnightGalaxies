@@ -21,7 +21,6 @@ JKG_ParseJetpackMovement
 Parses the "movement" block of a jetpack.
 ============================
 */
-
 static void JKG_ParseJetpackMovement(cJSON* jsonNode, jetpackData_t& jetpackData) {
 	cJSON* child;
 	
@@ -61,7 +60,6 @@ Parses the visual elements of a jetpack.
 FIXME: Should precache?
 ============================
 */
-
 static void JKG_ParseJetpackVisuals(cJSON* jsonNode, jetpackData_t& jetpackData) {
 	cJSON* child;
 	int boltSize;
@@ -108,7 +106,6 @@ JKG_ParseJetpack
 Parses a jetpack file, from memory.
 ============================
 */
-
 static qboolean JKG_ParseJetpack(char* buffer, const char* fileName, jetpackData_t& jetpackData) {
 	char errorBuffer[JETPACK_ERRBUFFER] {0};
 	cJSON* json;
@@ -117,7 +114,7 @@ static qboolean JKG_ParseJetpack(char* buffer, const char* fileName, jetpackData
 	
 	json = cJSON_ParsePooled(buffer, errorBuffer, sizeof(errorBuffer));
 	if (json == nullptr) {
-		Com_Printf(S_COLOR_RED "%s: %s\n", fileName, buffer);
+		Com_Printf(S_COLOR_RED "%s: %s\n", fileName, errorBuffer);
 		return qfalse;
 	}
 
@@ -128,9 +125,7 @@ static qboolean JKG_ParseJetpack(char* buffer, const char* fileName, jetpackData
 		cJSON_Delete(json);
 		return qfalse;
 	}
-	else {
-		Q_strncpyz(jetpackData.ref, cJSON_ToString(jsonNode), sizeof(jetpackData.ref));
-	}
+	Q_strncpyz(jetpackData.ref, cJSON_ToString(jsonNode), sizeof(jetpackData.ref));
 
 	jsonNode = cJSON_GetObjectItem(json, "fuelCapacity");
 	jetpackData.fuelCapacity = cJSON_ToIntegerOpt(jsonNode, 100);
@@ -164,7 +159,6 @@ Loads an individual jetpack (.jet) file.
 Called on both the client and the server.
 ============================
 */
-
 static qboolean JKG_LoadJetpack(const char* fileName, const char* dir, jetpackData_t& jetpackData) {
 	int fileLen;
 	fileHandle_t f;
@@ -204,7 +198,6 @@ Loads all of the jetpack items.
 Called on both the client and the server.
 ============================
 */
-
 void JKG_LoadJetpacks() {
 	char jetpackFiles[JETPACK_NAMEBUFFER] {0}; 
 	const char* jetpack;
@@ -239,7 +232,6 @@ JKG_FindJetpackByName
 Should be used sparingly.
 ============================
 */
-
 jetpackData_t* JKG_FindJetpackByName(const char* jetpackName) {
 	for (int i = 0; i < numLoadedJetpacks; i++) {
 		jetpackData_t* jetData = &jetpackTable[i];

@@ -1484,21 +1484,12 @@ typedef struct forcedata_s {
 	int			privateDuelTime;
 } forcedata_t;
 
-
-typedef enum {
-	SENTRY_NOROOM = 1,
-	SENTRY_ALREADYPLACED,
-	SHIELD_NOROOM,
-	SEEKER_ALREADYDEPLOYED
-} itemUseFail_t;
-
 // bit field limits
 #define	MAX_STATS				16
 #define	MAX_PERSISTANT			16
 #define	MAX_POWERUPS			16
 #define	MAX_WEAPONS				19
-#define MAX_AMMO_TRANSMIT		16 // This is needed because the ammo array is 19 but only 16 sized array is networked
-#define MAX_AMMO				MAX_WEAPONS
+#define MAX_ARMOR				16
 
 #define	MAX_PS_EVENTS			2
 
@@ -1608,8 +1599,9 @@ typedef struct playerState_s {
 	int			stats[MAX_STATS];
 	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
 	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
+	int			armor[MAX_ARMOR];
 
-	int		unused[18];				// Unused fields	(see what I did here?)		
+	int			unused[2];			// Unused field to keep the alignment correct (?)
 
 	int			generic1;
 	int			loopSound;
@@ -2211,6 +2203,8 @@ typedef struct entityState_s {
 	unsigned short	saberShaft[2];
 	unsigned short	saberEmitter[2];
 	unsigned short	saberCrystal[2];
+
+	int				armor[MAX_ARMOR];
 
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 	

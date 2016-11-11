@@ -4,12 +4,116 @@
 
 #include "g_local.h"
 
-void initACI(gclient_t *client)
-{
-    memset (&client->coreStats.ACISlots, 0, sizeof (client->coreStats.ACISlots));
-    client->coreStats.aciSlotsUsed = 0;
+/*
+====================================
+JKG_ShieldEquipped
+
+====================================
+*/
+void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound) {
+	if (shieldItemNumber < 0 || shieldItemNumber >= ent->inventory->size()) {
+		trap->SendServerCommand(ent - g_entities, "print \"Invalid inventory index.\n\"");
+		return;
+	}
+
+	if (ent->client->shieldEquipped) {
+		// Already have a shield equipped. Mark the other shield as not being equipped.
+		for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
+				it->equipped = qfalse;
+			}
+		}
+	}
+
+	itemInstance_t* item = &(*ent->inventory)[shieldItemNumber];
+	if (ent->client->ps.stats[STAT_MAX_SHIELD] == ent->client->ps.stats[STAT_SHIELD] && ent->client->ps.stats[STAT_SHIELD] != 0) {
+		// If we're at max shield, and upgrading capacity, increase our shield amount to match
+		ent->client->ps.stats[STAT_SHIELD] = item->id->shieldData.capacity;
+	}
+	item->equipped = qtrue;
+	ent->client->ps.stats[STAT_MAX_SHIELD] = item->id->shieldData.capacity;
+	ent->client->shieldEquipped = qtrue;
+	ent->client->shieldRechargeLast = ent->client->shieldRegenLast = level.time;
+	ent->client->shieldRechargeTime = item->id->shieldData.cooldown;
+	ent->client->shieldRegenTime = item->id->shieldData.regenrate;
+
+	if (playSound && item->id->shieldData.equippedSoundEffect[0]) {
+		G_Sound(ent, CHAN_AUTO, G_SoundIndex(item->id->shieldData.equippedSoundEffect));
+	}
 }
 
+/*
+====================================
+JKG_ShieldEquipped
+
+====================================
+*/
+void JKG_ShieldUnequipped(gentity_t* ent) {
+	if (ent->client->shieldEquipped) {
+		for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
+				it->equipped = qfalse;
+			}
+		}
+	}
+
+	ent->client->ps.stats[STAT_MAX_SHIELD] = 0;
+	ent->client->shieldEquipped = qfalse;
+	ent->client->shieldRechargeLast = ent->client->shieldRegenLast = level.time;
+	ent->client->shieldRegenTime = ent->client->shieldRechargeTime = 0;
+}
+
+/*
+====================================
+JKG_JetpackEquipped
+
+====================================
+*/
+void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber) {
+	if (jetpackItemNumber < 0 || jetpackItemNumber >= ent->inventory->size()) {
+		trap->SendServerCommand(ent - g_entities, "print \"Invalid item number.\n\"");
+		return;
+	}
+
+	itemInstance_t* item = &(*ent->inventory)[jetpackItemNumber];
+	if (item->id->itemType != ITEM_JETPACK) {
+		trap->SendServerCommand(ent - g_entities, "print \"That item is not a jetpack.\n\"");
+		return;
+	}
+
+	// Unequip the previous jetpack first
+	JKG_JetpackUnequipped(ent);
+
+	item->equipped = qtrue;
+
+	ent->client->pItemJetpack = &item->id->jetpackData;
+	ent->client->ps.jetpack = ent->client->pItemJetpack->pJetpackData - jetpackTable + 1;
+}
+
+/*
+====================================
+JKG_JetpackUnequipped
+
+====================================
+*/
+void JKG_JetpackUnequipped(gentity_t* ent) {
+	// Iterate through the inventory and remove the jetpack that is equipped
+	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); it++) {
+		if (it->equipped && it->id->itemType == ITEM_JETPACK) {
+			it->equipped = qfalse;
+		}
+	}
+
+	ent->client->pItemJetpack = nullptr;
+	ent->client->ps.jetpack = 0;
+}
+
+/*
+====================================
+JKG_EquipItem
+
+====================================
+*/
 void JKG_EquipItem(gentity_t *ent, int iNum)
 {
 	if(!ent->client)
@@ -48,26 +152,15 @@ void JKG_EquipItem(gentity_t *ent, int iNum)
 		trap->SendServerCommand (ent->s.number, va ("chw %d", item.id->weaponData.varID));
 	}
 	else if (item.id->itemType == ITEM_ARMOR){
-	    // Unequip the armor which is currently equipped at the slot the new armor will use.
-	    int prevEquipped = -1;
-
-		for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
-			if (iNum == it - ent->inventory->begin()) {
-				continue;
-			}
-
-			if (it->id->itemType == ITEM_ARMOR && it->equipped && item.id->armorData.armorSlot == it->id->armorData.armorSlot) {
-				it->equipped = false;
-				prevEquipped = it - ent->inventory->begin();
-				break;
-			}
-		}
-
+		armorData_t* pArm = item.id->armorData.pArm;
+		ent->client->ps.armor[pArm->slot] = pArm - armorTable + 1;
 		(*ent->inventory)[iNum].equipped = true;
-		ent->client->armorItems[item.id->armorData.armorSlot] = iNum;
-
-		trap->SendServerCommand( ent->s.number, va("ieq %d %d", iNum, prevEquipped ));
-		trap->SendServerCommand( -1, va("aequi %i %i %i", ent->client->ps.clientNum, item.id->armorData.armorSlot, item.id->armorData.armorID));
+	}
+	else if (item.id->itemType == ITEM_SHIELD) {
+		JKG_ShieldEquipped(ent, iNum, qtrue);
+	}
+	else if (item.id->itemType == ITEM_JETPACK) {
+		JKG_JetpackEquipped(ent, iNum);
 	}
 	else
 	{
@@ -75,8 +168,15 @@ void JKG_EquipItem(gentity_t *ent, int iNum)
 	}
 }
 
+/*
+====================================
+JKG_UnequipItem
+
+====================================
+*/
 void JKG_UnequipItem(gentity_t *ent, int iNum)
 {
+	itemInstance_t* item;
 	if(!ent->client)
 		return;
 
@@ -86,111 +186,38 @@ void JKG_UnequipItem(gentity_t *ent, int iNum)
 	    return;
 	}
 
-	if(!(*ent->inventory)[iNum].equipped)
+	item = &(*ent->inventory)[iNum];
+
+	if(!item->equipped)
 	{
-		//trap->SendServerCommand(ent->client->ps.clientNum, "print \"That item is not equipped.\n\"");
 		return;
 	}
 
-	if((*ent->inventory)[iNum].id->itemType == ITEM_WEAPON)
+	if(item->id->itemType == ITEM_WEAPON)
 	{
-		(*ent->inventory)[iNum].equipped = qfalse;
+		item->equipped = qfalse;
 	    trap->SendServerCommand (ent->s.number, va ("iueq %i", iNum));
 	    trap->SendServerCommand (ent->s.number, "chw 0");
 	}
-	else if((*ent->inventory)[iNum].id->itemType == ITEM_ARMOR)
+	else if(item->id->itemType == ITEM_ARMOR)
 	{
-		(*ent->inventory)[iNum].equipped = qfalse;
-		ent->client->armorItems[(*ent->inventory)[iNum].id->armorData.armorSlot] = 0;
-		trap->SendServerCommand (ent->s.number, va ("iueq %i", iNum));
-		trap->SendServerCommand(-1, va("aequi %i %i 0", ent->client->ps.clientNum, (*ent->inventory)[iNum].id->armorData.armorSlot));
+		item->equipped = qfalse;
+		ent->client->ps.armor[item->id->armorData.pArm->slot] = 0;
 	}
-	else
-	{
-		//trap->SendServerCommand(ent->client->ps.clientNum, "print \"You cannot unequip that item.\n\"");
+	else if (item->id->itemType == ITEM_SHIELD) {
+		JKG_ShieldUnequipped(ent);
 	}
-}
-
-void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound) {
-	if (shieldItemNumber < 0 || shieldItemNumber >= ent->inventory->size()) {
-		trap->SendServerCommand(ent - g_entities, "print \"Invalid inventory index.\n\"");
-		return;
-	}
-
-	if (ent->client->shieldEquipped) {
-		// Already have a shield equipped. Mark the other shield as not being equipped.
-		for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
-			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
-				it->equipped = qfalse;
-			}
-		}
-	}
-
-	itemInstance_t* item = &(*ent->inventory)[shieldItemNumber];
-	if (ent->client->ps.stats[STAT_MAX_SHIELD] == ent->client->ps.stats[STAT_SHIELD] && ent->client->ps.stats[STAT_SHIELD] != 0) {
-		// If we're at max shield, and upgrading capacity, increase our shield amount to match
-		ent->client->ps.stats[STAT_SHIELD] = item->id->shieldData.capacity;
-	}
-	item->equipped = qtrue;
-	ent->client->ps.stats[STAT_MAX_SHIELD] = item->id->shieldData.capacity;
-	ent->client->shieldEquipped = qtrue;
-	ent->client->shieldRechargeLast = ent->client->shieldRegenLast = level.time;
-	ent->client->shieldRechargeTime = item->id->shieldData.cooldown;
-	ent->client->shieldRegenTime = item->id->shieldData.regenrate;
-
-	if (playSound && item->id->shieldData.equippedSoundEffect[0]) {
-		G_Sound(ent, CHAN_AUTO, G_SoundIndex(item->id->shieldData.equippedSoundEffect));
+	else if (item->id->itemType == ITEM_JETPACK) {
+		JKG_JetpackUnequipped(ent);
 	}
 }
 
-void JKG_ShieldUnequipped(gentity_t* ent) {
-	if (ent->client->shieldEquipped) {
-		for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
-			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
-				it->equipped = qfalse;
-			}
-		}
-	}
+/*
+====================================
+Jetpack_Off
 
-	ent->client->ps.stats[STAT_MAX_SHIELD] = 0;
-	ent->client->shieldEquipped = qfalse;
-	ent->client->shieldRechargeLast = ent->client->shieldRegenLast = level.time;
-	ent->client->shieldRegenTime = ent->client->shieldRechargeTime = 0;
-}
-
-void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber) {
-	if (jetpackItemNumber < 0 || jetpackItemNumber >= ent->inventory->size()) {
-		trap->SendServerCommand(ent - g_entities, "print \"Invalid item number.\n\"");
-		return;
-	}
-
-	itemInstance_t* item = &(*ent->inventory)[jetpackItemNumber];
-	if (item->id->itemType != ITEM_JETPACK) {
-		trap->SendServerCommand(ent - g_entities, "print \"That item is not a jetpack.\n\"");
-		return;
-	}
-
-	// Unequip the previous jetpack first
-	JKG_JetpackUnequipped(ent);
-
-	item->equipped = qtrue;
-
-	ent->client->pItemJetpack = &item->id->jetpackData;
-	ent->client->ps.jetpack = ent->client->pItemJetpack->pJetpackData - jetpackTable + 1;
-}
-
-void JKG_JetpackUnequipped(gentity_t* ent) {
-	// Iterate through the inventory and remove the jetpack that is equipped
-	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); it++) {
-		if (it->equipped && it->id->itemType == ITEM_JETPACK) {
-			it->equipped = qfalse;
-		}
-	}
-
-	ent->client->pItemJetpack = nullptr;
-	ent->client->ps.jetpack = 0;
-}
-
+====================================
+*/
 #define JETPACK_TOGGLE_TIME		200
 void Jetpack_Off(gentity_t *ent)
 { //create effects?
@@ -199,9 +226,16 @@ void Jetpack_Off(gentity_t *ent)
 	ent->client->ps.eFlags &= ~EF_JETPACK_ACTIVE;
 
 	jetpackData_t* jet = &jetpackTable[ent->client->ps.jetpack - 1];
-	G_Sound(ent, CHAN_AUTO, G_SoundIndex(/*"sound/jkg/jetpack/jetoff" "sound/boba/JETON"*/ jet->visuals.deactivateSound));
+	if (jet->visuals.deactivateSound[0])
+		G_Sound(ent, CHAN_AUTO, G_SoundIndex(jet->visuals.deactivateSound));
 }
 
+/*
+====================================
+Jetpack_On
+
+====================================
+*/
 void Jetpack_On(gentity_t *ent)
 { //create effects?
 	assert(ent && ent->client);
@@ -217,11 +251,18 @@ void Jetpack_On(gentity_t *ent)
 	}
 
 	jetpackData_t* jet = &jetpackTable[ent->client->ps.jetpack - 1];
-	G_Sound(ent, CHAN_AUTO, G_SoundIndex(/*"sound/jkg/jetpack/jeton" "sound/boba/JETON"*/ jet->visuals.activateSound));
+	if (jet->visuals.activateSound[0])
+		G_Sound(ent, CHAN_AUTO, G_SoundIndex(jet->visuals.activateSound));
 
 	ent->client->ps.eFlags |= EF_JETPACK_ACTIVE;
 }
 
+/*
+====================================
+ItemUse_Jetpack
+
+====================================
+*/
 void ItemUse_Jetpack(gentity_t *ent)
 {
 	assert(ent && ent->client);

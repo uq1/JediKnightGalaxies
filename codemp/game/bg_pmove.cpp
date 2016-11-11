@@ -387,6 +387,14 @@ void PM_ApplySpeedConstants()
 		ps->speed = 0;
 	}
 
+	for (int i = 0; i < MAX_ARMOR; i++) {
+		int armor = ps->armor[i];
+		if (armor--) {
+			armorData_t* pArm = &armorTable[armor];
+			speedModifier -= (1.0f - pArm->movemodifier);
+		}
+	}
+
 
 	if (cmd->forwardmove < 0 && !(cmd->buttons&BUTTON_WALKING) && pm->ps->groundEntityNum != ENTITYNUM_NONE)
 	{//running backwards is slower than running forwards (like SP)

@@ -741,12 +741,6 @@ typedef struct renderInfo_s
 //EEZSTREET EDIT: STAT STRUCTURE
 struct statData_s
 {
-	//"Fake" stats
-	//char		*ACISave[MAX_ACI_SLOTS];	//Never access this directly, except for saving/loading procedures.
-	int			ACISlots[MAX_ACI_SLOTS];	//Use this for weapon code. If slot is used, then
-	                                        // it contains the internal weapon index of the weapon in said slot.
-	int         aciSlotsUsed;               // Bitfield of slots used
-
 	//"Real" stats
 	int			weight;
 };
@@ -1019,7 +1013,6 @@ struct gclient_s {
 	struct statData_s	coreStats;
 	int			deathLootIndex;
 	int			pickPocketLootIndex;
-	int			armorItems[ARMSLOT_MAX];
 	qboolean	shieldEquipped;
 	int			shieldRechargeTime;
 	int			shieldRegenTime;

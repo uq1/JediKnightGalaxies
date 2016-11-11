@@ -31,6 +31,7 @@ set(MPCGameDefines ${MPSharedDefines} "_CGAME" )
 set(MPCGameGameFiles
 	"${MPDir}/game/animtable.cpp"
 	"${MPDir}/game/bg_ammo.cpp"
+	"${MPDir}/game/bg_armor.cpp"
 	"${MPDir}/game/bg_constants.cpp"
 	"${MPDir}/game/bg_g2_utils.cpp"
 	"${MPDir}/game/bg_items.cpp"
@@ -54,6 +55,7 @@ set(MPCGameGameFiles
 	"${MPDir}/game/jkg_gangwars.cpp"
 	"${MPDir}/game/anims.h"
 	"${MPDir}/game/bg_ammo.h"
+	"${MPDir}/game/bg_armor.h"
 	"${MPDir}/game/bg_items.h"
 	"${MPDir}/game/bg_jetpacks.h"
 	"${MPDir}/game/bg_local.h"

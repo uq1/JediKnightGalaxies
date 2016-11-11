@@ -461,11 +461,6 @@ typedef struct centity_s {
 	debuffVisualsData_t debuffVisuals;
 	int				shieldHitTime;
 	int				shieldRechargeTime;
-
-	//eezstreet add
-	void	*armorGhoul2[ARMSLOT_MAX];
-	int		equippedArmor[ARMSLOT_MAX];
-	int		previousEquippedArmor[ARMSLOT_MAX];
 } centity_t;
 
 
@@ -1810,6 +1805,8 @@ void CG_AddGhoul2Mark(int shader, float size, vec3_t start, vec3_t end, int entn
 void CG_CreateNPCClient(clientInfo_t **ci);
 void CG_DestroyNPCClient(clientInfo_t **ci);
 
+void CG_ArmorChanged(centity_t* cent, entityState_t* to, entityState_t* from);
+
 void CG_Player( centity_t *cent );
 void CG_ResetPlayerEntity( centity_t *cent );
 void CG_AddRefEntityWithPowerups( const refEntity_t *ent, const entityState_t *state, int team );
@@ -1818,8 +1815,6 @@ sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName );
 void CG_PlayerShieldHit(int entitynum, vec3_t angles, int amount);
 void CG_PlayerShieldRecharging(int entitynum);
 qboolean TeamFriendly( int player );
-void JKG_CG_InitArmor(void);
-void JKG_CG_EquipArmor(int client, int slot, int armorId);
 
 //
 // cg_predict.c

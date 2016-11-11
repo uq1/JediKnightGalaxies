@@ -2516,7 +2516,6 @@ void CG_SetupChatCmds() {
 }
 
 extern void JKG_CG_InitItems( void );
-extern void JKG_CG_InitArmor( void );
 extern void CG_InitializeCrossoverAPI( void );
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 {
@@ -2627,9 +2626,9 @@ Ghoul2 Insert End
 	cg.ourTradeItems = new std::vector<itemInstance_t>();
 	cg.otherTradeItems = new std::vector<itemInstance_t>();
 
+	JKG_LoadArmor();
 	BG_InitItems();
 	BG_LoadDefaultWeaponItems();
-	JKG_CG_InitArmor();
 
 	trap->Cvar_VariableStringBuffer("com_buildscript", buf, sizeof(buf));
 	if (atoi(buf))
@@ -2861,6 +2860,8 @@ void CG_Shutdown( void )
 
 	// Jedi Knight Galaxies, terminate the crossover
 	trap->CO_Shutdown();
+
+	JKG_UnloadArmor();
 
 //	Com_Printf("... FX System Cleanup\n");
 	trap->FX_FreeSystem();

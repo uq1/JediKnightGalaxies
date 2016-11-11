@@ -521,6 +521,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	// Jetpacks, as well
 	JKG_LoadJetpacks();
+
+	// armor is good too
+	JKG_LoadArmor();
 	
 	// setup master item table
 	BG_InitItems();
@@ -618,6 +621,7 @@ void G_ShutdownGame( int restart ) {
 	BG_ClearAnimsets(); //free all dynamic allocations made through the engine
 
 	BG_ShutdownWeaponG2Instances();
+	JKG_UnloadArmor();
 
 	JKG_TC_Shutdown();
 

@@ -986,6 +986,16 @@ static void CG_General( centity_t *cent ) {
 					trap->G2API_SetBoneAngles(clEnt->ghoul2, 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
 					trap->G2API_SetBoneAngles(clEnt->ghoul2, 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
 					trap->G2API_SetBoneAngles(clEnt->ghoul2, 0, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
+					for (int i = 0; i < MAX_ARMOR; i++) {
+						if (clEnt->currentState.armor[i]) {
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "model_root", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "pelvis", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "thoracic", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
+						}
+					}
 				}
 				else
 				{
@@ -996,36 +1006,6 @@ static void CG_General( centity_t *cent ) {
 				}
 
 				trap->G2API_DuplicateGhoul2Instance(clEnt->ghoul2, &cent->ghoul2);
-			}
-
-			//eezstreet add: armor rendering
-			for(i = 0; i < ARMSLOT_MAX; i++)
-			{
-				if(!clEnt->armorGhoul2[i] || !trap->G2_HaveWeGhoul2Models(clEnt->armorGhoul2[i]))
-				{
-					continue;
-				}
-				if (clEnt->localAnimIndex < NUM_RESERVED_ANIMSETS)
-				{ //humanoid
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "model_root", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "pelvis", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time); 
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "thoracic", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time); 
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
-				}
-				else
-				{
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "model_root", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "pelvis", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time); 
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-				}
-
-				if(clEnt && clEnt->armorGhoul2[i])
-				{
-					trap->G2API_DuplicateGhoul2Instance(clEnt->armorGhoul2[i], &cent->armorGhoul2[i]);
-				}
 			}
 
 			if (!cent->ghoul2)
@@ -1078,24 +1058,9 @@ static void CG_General( centity_t *cent ) {
 				}
 			}
 
-			clEnt->torsoBolt |= limbBit; //reinit model after copying limbless one to queue
-			//This causes issues after respawning.. just keep track of limbs cut/made on server or something.
-			/*
-			if (cent->currentState.modelGhoul2 == G2_MODELPART_WAIST)
-			{
-				clEnt->torsoBolt |= (1 << (G2_MODELPART_HEAD-10));
-				clEnt->torsoBolt |= (1 << (G2_MODELPART_RARM-10));
-				clEnt->torsoBolt |= (1 << (G2_MODELPART_LARM-10));
-				clEnt->torsoBolt |= (1 << (G2_MODELPART_RHAND-10));
-			}
-			else if (cent->currentState.modelGhoul2 == G2_MODELPART_RARM)
-			{
-				clEnt->torsoBolt |= (1 << (G2_MODELPART_RHAND-10));
-			}
-			*/
+			clEnt->torsoBolt |= limbBit;
 
 			VectorCopy(cent->lerpOrigin, cent->turAngles);
-		//	return;
 		}
 
 		//Use origin smoothing since dismembered limbs use ExPhys
@@ -1259,18 +1224,13 @@ Ghoul2 Insert End
 			trap->G2API_SetBoneAngles(cent->ghoul2, 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
 			trap->G2API_SetBoneAngles(cent->ghoul2, 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
 			trap->G2API_SetBoneAngles(cent->ghoul2, 0, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
-		}
-		for(i = 0; i < ARMSLOT_MAX; i++)
-		{
-			if(cent->armorGhoul2[i] && trap->G2_HaveWeGhoul2Models(cent->armorGhoul2[i]))
-			{
-				cent->lerpAngles[PITCH] = 0;
-				cent->lerpAngles[ROLL] = 0;
-				trap->G2API_SetBoneAngles(cent->armorGhoul2[i], 0, "pelvis", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time); 
-				trap->G2API_SetBoneAngles(cent->armorGhoul2[i], 0, "thoracic", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time); 
-				trap->G2API_SetBoneAngles(cent->armorGhoul2[i], 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-				trap->G2API_SetBoneAngles(cent->armorGhoul2[i], 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-				trap->G2API_SetBoneAngles(cent->armorGhoul2[i], 0, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
+
+			for (i = 0; i < MAX_ARMOR; i++) {
+				trap->G2API_SetBoneAngles(cent->ghoul2, 4+i, "pelvis", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
+				trap->G2API_SetBoneAngles(cent->ghoul2, 4+i, "thoracic", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
+				trap->G2API_SetBoneAngles(cent->ghoul2, 4+i, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
+				trap->G2API_SetBoneAngles(cent->ghoul2, 4+i, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
+				trap->G2API_SetBoneAngles(cent->ghoul2, 4+i, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
 			}
 		}
 	}

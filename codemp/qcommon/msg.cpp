@@ -990,6 +990,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 	int			trunc;
 	float		fullFloat;
 	int			*fromF, *toF;
+	int			armorbits;
 
 	numFields = (int)ARRAY_LEN( entityStateFields );
 
@@ -1020,6 +1021,12 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 	if ( to->number < 0 || to->number >= MAX_GENTITIES ) {
 		Com_Error (ERR_FATAL, "MSG_WriteDeltaEntity: Bad entity number: %i", to->number );
 	}
+
+	///////////////////////////////////////////
+	//
+	// Changes in the main fields
+	//
+	///////////////////////////////////////////
 
 	lc = 0;
 	// build the change vector as bytes so it is endian independent
@@ -1054,6 +1061,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 
 	oldsize += numFields;
 
+	// Send all of the fields
 	for ( i = 0, field = entityStateFields ; i < lc ; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
@@ -1095,6 +1103,38 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 				MSG_WriteBits( msg, *toF, field->bits );
 			}
 		}
+	}
+
+	//////////////////////////////////
+	//
+	// Arrays
+	//
+	//////////////////////////////////
+
+	armorbits = 0;
+	for (i = 0; i < MAX_ARMOR; i++) {
+		if (from->armor[i] != to->armor[i]) {
+			armorbits |= 1 << i;
+		}
+	}
+
+	if (!armorbits) {
+		MSG_WriteBits(msg, 0, 1);	// no change
+		oldsize += 4;
+		return;
+	}
+
+	if (armorbits) {
+		MSG_WriteBits(msg, 1, 1); // changed
+		MSG_WriteBits(msg, armorbits, MAX_ARMOR);
+		for (i = 0; i < MAX_ARMOR; i++) {
+			if (armorbits & (1 << i)) {
+				MSG_WriteLong(msg, to->armor[i]);
+			}
+		}
+	}
+	else {
+		MSG_WriteBits(msg, 0, 1); // no change
 	}
 }
 
@@ -1220,6 +1260,22 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 		toF = (int *)( (byte *)to + field->offset );
 		// no change
 		*toF = *fromF;
+	}
+
+	// Read the arrays
+	if (MSG_ReadBits(msg, 1)) {
+		int bits;
+
+		// parse armor
+		if (MSG_ReadBits(msg, 1)) {
+			LOG("PS_ARMOR");
+			bits = MSG_ReadBits(msg, MAX_ARMOR);
+			for (i = 0; i < MAX_ARMOR; i++) {
+				if (bits & (1 << i)) {
+					to->armor[i] = MSG_ReadLong(msg);
+				}
+			}
+		}
 	}
 
 	if ( print ) {
@@ -1871,9 +1927,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 #endif
 	int				i;
 	playerState_t	dummy;
-	int				statsbits;
-	int				persistantbits;
-	int				powerupbits;
+	int				statsbits, persistentbits, powerupbits, armorbits;
 	int				numFields;
 	netField_t		*field;
 	netField_t		*PSFields = playerStateFields;
@@ -1989,10 +2043,10 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 			statsbits |= 1<<i;
 		}
 	}
-	persistantbits = 0;
+	persistentbits = 0;
 	for (i=0 ; i<MAX_PERSISTANT ; i++) {
 		if (to->persistant[i] != from->persistant[i]) {
-			persistantbits |= 1<<i;
+			persistentbits |= 1<<i;
 		}
 	}
 	powerupbits = 0;
@@ -2001,8 +2055,14 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 			powerupbits |= 1<<i;
 		}
 	}
+	armorbits = 0;
+	for (i = 0; i < MAX_ARMOR; i++){
+		if (to->armor[i] != from->armor[i]) {
+			armorbits |= 1 << i;
+		}
+	}
 
-	if (!statsbits && !persistantbits && !powerupbits) {
+	if (!statsbits && !persistentbits && !powerupbits && !armorbits) {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 		oldsize += 4;
 #ifdef _ONEBIT_COMBO
@@ -2036,11 +2096,11 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	}
 
 
-	if ( persistantbits ) {
+	if ( persistentbits ) {
 		MSG_WriteBits( msg, 1, 1 );	// changed
-		MSG_WriteBits( msg, persistantbits, MAX_PERSISTANT );
+		MSG_WriteBits( msg, persistentbits, MAX_PERSISTANT );
 		for (i=0 ; i<MAX_PERSISTANT ; i++)
-			if (persistantbits & (1<<i) )
+			if (persistentbits & (1<<i) )
 				MSG_WriteShort (msg, to->persistant[i]);
 	} else {
 		MSG_WriteBits( msg, 0, 1 );	// no change
@@ -2054,6 +2114,19 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 				MSG_WriteLong( msg, to->powerups[i] );
 	} else {
 		MSG_WriteBits( msg, 0, 1 );	// no change
+	}
+
+	if(armorbits) {
+		MSG_WriteBits(msg, 1, 1); // changed
+		MSG_WriteBits(msg, armorbits, MAX_ARMOR);
+		for (i = 0; i < MAX_ARMOR; i++) {
+			if (armorbits & (1 << i)) {
+				MSG_WriteLong(msg, to->armor[i]);
+			}
+		}
+	}
+	else {
+		MSG_WriteBits(msg, 0, 1); // no change
 	}
 
 #ifdef _ONEBIT_COMBO
@@ -2246,6 +2319,17 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 				}
 			}
 		}
+
+		// parse armor
+		if (MSG_ReadBits(msg, 1)) {
+			LOG("PS_ARMOR");
+			bits = MSG_ReadBits(msg, MAX_ARMOR);
+			for (i = 0; i < MAX_ARMOR; i++) {
+				if (bits & (1 << i)) {
+					to->armor[i] = MSG_ReadLong(msg);
+				}
+			}
+		}
 	}
 
 	if ( print ) {
@@ -2277,269 +2361,6 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 	}
 #endif
 }
-
-/*
-// New data gathered to tune Q3 to JK2MP. Takes longer to crunch and gain was minimal.
-int msg_hData[256] =
-{
-	3163878,		// 0
-	473992,			// 1
-	564019,			// 2
-	136497,			// 3
-	129559,			// 4
-	283019,			// 5
-	75812,			// 6
-	179836,			// 7
-	85958,			// 8
-	168542,			// 9
-	78898,			// 10
-	82007,			// 11
-	48613,			// 12
-	138741,			// 13
-	35482,			// 14
-	47433,			// 15
-	65214,			// 16
-	51636,			// 17
-	63741,			// 18
-	52823,			// 19
-	42464,			// 20
-	44495,			// 21
-	45347,			// 22
-	40260,			// 23
-	59168,			// 24
-	44990,			// 25
-	52957,			// 26
-	42700,			// 27
-	42414,			// 28
-	36451,			// 29
-	45653,			// 30
-	44667,			// 31
-	125336,			// 32
-	38435,			// 33
-	53658,			// 34
-	42621,			// 35
-	40932,			// 36
-	33409,			// 37
-	35470,			// 38
-	40769,			// 39
-	33813,			// 40
-	32480,			// 41
-	33664,			// 42
-	32303,			// 43
-	32394,			// 44
-	34822,			// 45
-	37724,			// 46
-	48016,			// 47
-	94212,			// 48
-	53774,			// 49
-	54522,			// 50
-	44044,			// 51
-	42800,			// 52
-	47597,			// 53
-	29742,			// 54
-	30237,			// 55
-	34291,			// 56
-	106496,			// 57
-	20963,			// 58
-	19342,			// 59
-	20603,			// 60
-	19568,			// 61
-	23013,			// 62
-	23939,			// 63
-	44995,			// 64
-	37128,			// 65
-	44264,			// 66
-	46636,			// 67
-	56400,			// 68
-	32746,			// 69
-	23458,			// 70
-	29702,			// 71
-	25305,			// 72
-	20159,			// 73
-	19645,			// 74
-	20593,			// 75
-	21729,			// 76
-	19362,			// 77
-	24760,			// 78
-	22788,			// 79
-	25085,			// 80
-	21074,			// 81
-	97271,			// 82
-	22048,			// 83
-	24131,			// 84
-	19287,			// 85
-	20296,			// 86
-	20131,			// 87
-	86477,			// 88
-	25352,			// 89
-	20872,			// 90
-	21382,			// 91
-	38744,			// 92
-	137256,			// 93
-	26025,			// 94
-	22243,			// 95
-	23974,			// 96
-	43305,			// 97
-	28191,			// 98
-	34638,			// 99
-	37613,			// 100
-	46003,			// 101
-	31415,			// 102
-	25746,			// 103
-	28338,			// 104
-	34689,			// 105
-	24948,			// 106
-	27110,			// 107
-	39950,			// 108
-	32793,			// 109
-	42639,			// 110
-	47883,			// 111
-	37439,			// 112
-	23875,			// 113
-	36092,			// 114
-	46471,			// 115
-	37392,			// 116
-	33063,			// 117
-	29604,			// 118
-	42140,			// 119
-	61745,			// 120
-	45618,			// 121
-	51779,			// 122
-	49684,			// 123
-	57644,			// 124
-	65021,			// 125
-	67318,			// 126
-	88197,			// 127
-	258378,			// 128
-	76806,			// 129
-	72430,			// 130
-	64936,			// 131
-	62196,			// 132
-	56461,			// 133
-	166474,			// 134
-	70036,			// 135
-	40735,			// 136
-	29598,			// 137
-	26966,			// 138
-	26093,			// 139
-	25853,			// 140
-	26065,			// 141
-	26176,			// 142
-	26777,			// 143
-	26684,			// 144
-	23880,			// 145
-	22932,			// 146
-	24566,			// 147
-	24305,			// 148
-	26399,			// 149
-	23487,			// 150
-	24485,			// 151
-	25956,			// 152
-	26065,			// 153
-	26151,			// 154
-	23111,			// 155
-	23900,			// 156
-	22128,			// 157
-	24096,			// 158
-	20863,			// 159
-	24298,			// 160
-	22572,			// 161
-	22364,			// 162
-	20813,			// 163
-	21414,			// 164
-	21570,			// 165
-	20799,			// 166
-	20971,			// 167
-	22485,			// 168
-	20397,			// 169
-	88096,			// 170
-	17802,			// 171
-	20091,			// 172
-	84250,			// 173
-	21953,			// 174
-	21406,			// 175
-	23401,			// 176
-	19546,			// 177
-	19180,			// 178
-	18843,			// 179
-	20673,			// 180
-	19918,			// 181
-	20640,			// 182
-	20326,			// 183
-	21174,			// 184
-	21736,			// 185
-	22511,			// 186
-	20290,			// 187
-	23303,			// 188
-	19800,			// 189
-	25465,			// 190
-	22801,			// 191
-	28831,			// 192
-	26663,			// 193
-	36485,			// 194
-	45768,			// 195
-	49795,			// 196
-	36026,			// 197
-	24119,			// 198
-	18543,			// 199
-	19261,			// 200
-	17137,			// 201
-	19435,			// 202
-	23672,			// 203
-	22988,			// 204
-	18107,			// 205
-	18734,			// 206
-	19847,			// 207
-	101897,			// 208
-	18405,			// 209
-	21260,			// 210
-	17818,			// 211
-	18971,			// 212
-	19317,			// 213
-	19112,			// 214
-	19395,			// 215
-	20688,			// 216
-	18438,			// 217
-	18945,			// 218
-	29309,			// 219
-	19666,			// 220
-	18735,			// 221
-	87691,			// 222
-	18478,			// 223
-	22634,			// 224
-	20984,			// 225
-	20079,			// 226
-	18624,			// 227
-	20045,			// 228
-	18369,			// 229
-	19014,			// 230
-	83179,			// 231
-	20899,			// 232
-	17854,			// 233
-	19332,			// 234
-	17875,			// 235
-	28647,			// 236
-	17465,			// 237
-	20277,			// 238
-	18994,			// 239
-	22192,			// 240
-	17443,			// 241
-	20243,			// 242
-	28174,			// 243
-	134871,			// 244
-	17753,			// 245
-	18924,			// 246
-	18281,			// 247
-	18937,			// 248
-	17419,			// 249
-	20679,			// 250
-	17865,			// 251
-	17984,			// 252
-	58615,			// 253
-	35506,			// 254
-	123499,			// 255
-};
-*/
 
 // Q3 TA freq. table.
 int msg_hData[256] = {

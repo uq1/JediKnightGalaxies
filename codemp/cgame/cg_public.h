@@ -456,6 +456,7 @@ typedef struct cgameImport_s {
 	void			(*G2API_CleanEntAttachments)			( void );
 	qboolean		(*G2API_OverrideServer)					( void *serverInstance );
 	void			(*G2API_GetSurfaceName)					( void *ghoul2, int surfNumber, int modelIndex, char *fillBuf );
+	int				(*G2API_GetSurfaceCount)				( void* ghoul2 );
 
 	uiCrossoverExports_t *(*CO_InitCrossover)				( cgCrossoverExports_t *co );
 	void			(*CO_Shutdown)							( void );

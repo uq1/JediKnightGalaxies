@@ -2899,6 +2899,10 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 		s->eType = ET_PLAYER;
 	}
 
+	for (i = 0; i < MAX_ARMOR; i++) {
+		s->armor[i] = ps->armor[i];
+	}
+
 	s->number = ps->clientNum;
 
 	s->pos.trType = TR_INTERPOLATE;

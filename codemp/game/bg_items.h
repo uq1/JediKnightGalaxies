@@ -6,6 +6,7 @@
 
 #include "qcommon/q_shared.h"
 #include "bg_jetpacks.h"
+#include "bg_armor.h"
 
 #ifdef _GAME
 typedef struct gentity_s gentity_t;
@@ -94,9 +95,8 @@ typedef struct {
 
 // Armor
 typedef struct {
-	unsigned int armorID;
-	unsigned int armorSlot;
-	armorTypes_t armorType;
+	char ref[MAX_QPATH];
+	armorData_t* pArm;
 } itemArmorData_t;
 
 // Consumables
@@ -127,26 +127,12 @@ typedef struct {
 } itemJetpackData_t;
 
 /*
- * Visual item daa
+ * Visual item data
  */
 #ifndef _GAME
 typedef struct {
 	char itemIcon[MAX_QPATH];
 } itemVisualData_t;
-
-typedef struct
-{
-	unsigned int id;
-	char model[MAX_QPATH];
-	char skin[MAX_QPATH];
-	unsigned int slot;
-	qboolean surfOff;
-	char surfOffThisString[512];
-	char surfOffLowerString[512];
-	char surfOnThisString[512];
-} cgArmorData_t;
-
-extern cgArmorData_t armorMasterTable[MAX_ARMOR_PIECES];
 #endif
 
 extern int lastUsedItemID;
