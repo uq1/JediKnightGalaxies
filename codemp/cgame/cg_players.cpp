@@ -925,6 +925,34 @@ void JKG_G2_HideSelectedSurfaces(void* g2, const std::vector<std::string>& hideS
 
 /*
 ====================
+CG_ApplyArmorToPlayerModel
+
+Applies a piece of armor to the player model. Returns false if no GHOUL2 instance
+====================
+*/
+qboolean CG_ApplyArmorToPlayerModel(void* g2, armorData_t* pArm, int i) {
+	if (!pArm->visuals.pGHOUL2) {
+		return qfalse;
+	}
+
+	int bolt = trap->G2API_AddBolt(g2, 4 + i, "root");
+	trap->G2API_SetBoltInfo(pArm->visuals.pGHOUL2->instance, 0, bolt);
+
+	// Show only the surfaces that we want to on the model that we want to copy
+	JKG_G2_ShowOnlySelectedSurfaces(pArm->visuals.pGHOUL2->instance, pArm->visuals.pGHOUL2->numSurfaces, pArm->visuals.armorOnSurfs);
+	trap->G2API_CopySpecificGhoul2Model(pArm->visuals.pGHOUL2->instance, 0, g2, 4 + i);
+	JKG_G2_HideSelectedSurfaces(g2, pArm->visuals.bodyOffSurfs);
+
+	// Copy the frame animations from model_root bone so that it doesn't give us a T-pose (at least) when we first equip it.
+	float frame = 0.0, speed = 0.0;
+	int start = 0, end = 0, flags = 0;
+	trap->G2API_GetBoneAnim(g2, "model_root", cg.time, &frame, &start, &end, &flags, &speed, 0, 0);
+	trap->G2API_SetBoneAnim(g2, 4 + i, "model_root", start, end, flags, speed, cg.time, frame, 150);
+	return qtrue;
+}
+
+/*
+====================
 CG_ArmorChanged
 
 Check to see if our armor was changed this frame
@@ -942,28 +970,11 @@ void CG_ArmorChanged(centity_t* cent, entityState_t* to, entityState_t* from) {
 				trap->G2API_RemoveGhoul2Model(&cent->ghoul2, 4 + i);
 			}
 			if (prevArmor--) {
-				JKG_G2_ShowOnlySelectedSurfaces(cent->ghoul2, armorTable[prevArmor].visuals.bodyOffSurfs);
+				JKG_G2_ShowSelectedSurfaces(cent->ghoul2, armorTable[prevArmor].visuals.bodyOffSurfs);
 			}
 
 			if (armor--) {
-				armorData_t* pArm = &armorTable[armor];
-				if (!pArm->visuals.pGHOUL2) {
-					continue;
-				}
-
-				int bolt = trap->G2API_AddBolt(cent->ghoul2, 4 + i, "root");
-				trap->G2API_SetBoltInfo(pArm->visuals.pGHOUL2->instance, 0, bolt);
-
-				// Show only the surfaces that we want to on the model that we want to copy
-				JKG_G2_ShowOnlySelectedSurfaces(pArm->visuals.pGHOUL2->instance, pArm->visuals.pGHOUL2->numSurfaces, pArm->visuals.armorOnSurfs);
-				trap->G2API_CopySpecificGhoul2Model(pArm->visuals.pGHOUL2->instance, 0, cent->ghoul2, 4 + i);
-				JKG_G2_HideSelectedSurfaces(cent->ghoul2, pArm->visuals.bodyOffSurfs);
-
-				// Copy the frame animations from model_root bone so that it doesn't give us a T-pose (at least) when we first equip it.
-				float frame = 0.0, speed = 0.0;
-				int start = 0, end = 0, flags = 0;
-				trap->G2API_GetBoneAnim(cent->ghoul2, "model_root", cg.time, &frame, &start, &end, &flags, &speed, 0, 0);
-				trap->G2API_SetBoneAnim(cent->ghoul2, 4 + i, "model_root", start, end, flags, speed, cg.time, frame, 150);
+				CG_ApplyArmorToPlayerModel(cent->ghoul2, &armorTable[armor], i);
 			}
 		}
 	}
@@ -1992,6 +2003,8 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	if (clientNum != -1)
 	{ //don't want it using an invalid pointer to share
 		trap->G2API_ClearAttachedInstance(clientNum);
+
+		centity_t* cent = &cg_entities[clientNum];
 	}
 
 	// Check if the ghoul2 model changed in any way.  This is safer than assuming we have a legal cent shile loading info.
@@ -2058,6 +2071,14 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 			}
 
 			cg_entities[clientNum].currentState.torsoAnim = 0;
+		}
+
+		// Apply the armor here too
+		for (int i = 0; i < MAX_ARMOR; i++) {
+			int armor = cent->currentState.armor[i];
+			if (armor--) {
+				CG_ApplyArmorToPlayerModel(ci->ghoul2Model, &armorTable[armor], i);
+			}
 		}
 
 		if (cg_entities[clientNum].ghoul2 && trap->G2_HaveWeGhoul2Models(cg_entities[clientNum].ghoul2))

@@ -2610,6 +2610,13 @@ char *G2API_GetSurfaceName(CGhoul2Info_v& ghoul2, int modelIndex, int surfNumber
 	return noSurface;
 }
 
+int G2API_GetSurfaceCount(CGhoul2Info_v& ghoul2) {
+	CGhoul2Info *ghlInfo = &ghoul2[0];
+	if (G2_SetupModelPointers(ghlInfo)) {
+		model_t	*mod = (model_t *)ghlInfo->currentModel;
+		return mod->mdxm->numSurfaces;
+	}
+}
 
 int	G2API_GetSurfaceIndex(CGhoul2Info *ghlInfo, const char *surfaceName)
 {
