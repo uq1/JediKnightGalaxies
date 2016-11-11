@@ -483,7 +483,7 @@ void AddScore( gentity_t *ent, vec3_t origin, int score )
 	}
 
 	ent->client->ps.persistant[PERS_SCORE] += score;
-	if ( level.gametype >= GT_TEAM && !g_dontPenalizeTeam )
+	if ( level.gametype >= GT_TEAM && level.gametype != GT_CTF && !g_dontPenalizeTeam )
 		level.teamScores[ ent->client->ps.persistant[PERS_TEAM] ] += score;
 	CalculateRanks();
 }
@@ -6014,8 +6014,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	}
 	if(attacker->client && !attacker->NPC)
 	{
-		int i;
-
 		if(targ->client && !targ->NPC && !OnSameTeam(attacker, targ))
 		{
 			// Add an assist to the records
