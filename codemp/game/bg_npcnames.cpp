@@ -1,6 +1,8 @@
 #include "bg_npcnames.h"
 #include <string>
 #include <vector>
+#include <iostream>
+#include <sstream>
 
 #if defined(_GAME)
     #include "g_local.h"
@@ -44,30 +46,21 @@ void BG_Load_NPC_Names()
 		return;
 	}
 	
-	std::vector<char> buf(len + 1);
+	std::string buf( len, '\0' );
 	trap->FS_Read( &buf[0], len, f );
-	buf[len] = 0;
 	trap->FS_Close( f );
+	std::istringstream input( buf );
 
-	const char *t;
-	for ( t = buf.data(); *t; /* empty */ )
+	std::string line;
+	while( std::getline( input, line ) )
 	{
-		// Find next new line
-		char *s = strchr( t, '\n' );
-		if ( !s )
-			break;
+		auto slash = line.find( "//" );
+		if( slash == 0 )
+			continue;
+		else if( slash != std::string::npos )
+			line.erase( slash );
 
-		// Null out the blank lines
-		while ( *s == '\n' )
-			*s++ = 0;
-
-		if ( *t )
-		{
-			if ( Q_strncmp("//", t, 2) != 0 && strlen(t) > 0)
-				npcNames.push_back( t );
-		}
-
-		t = s;
+		npcNames.push_back( line );
 	}
 
 #if defined(_GAME)
