@@ -176,6 +176,6 @@ void BG_InitializeAmmo ( void )
     
     if ( !LoadAmmo() )
     {
-        Com_Error (ERR_DISCONNECT, "No ammo data file not found.");
+        Com_Error (ERR_DROP, "No ammo data file not found.");
     }
 }
