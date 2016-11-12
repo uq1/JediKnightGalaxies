@@ -17,17 +17,11 @@
 //
 // =======================================================================================================================================
 
-// Disable stupid warnings...
-#pragma warning( disable : 4710 )
-
 #include <vector>
 
 #include "g_local.h"
 #include "ai_main.h"
 #include "qcommon/q_shared.h"
-
-// Disable stupid warnings...
-#pragma warning( disable : 4710 )
 
 #define MAX_NODELINKS       32
 
@@ -607,7 +601,6 @@ int ASTAR_FindPathFast(int from, int to, int *pathlist, qboolean shorten)
 {
 	//all the data we have to hold...since we can't do dynamic allocation, has to be MAX_WPARRAY_SIZE
 	//we can probably lower this later - eg, the open list should never have more than at most a few dozen items on it
-	int			badwp = -1;
 	int			numOpen = 0;
 	int			atNode, temp, newnode = -1;
 	qboolean	found = qfalse;

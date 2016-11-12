@@ -294,8 +294,7 @@ void NORETURN QDECL Com_Error( int code, const char *fmt, ... ) {
 
 	Com_Shutdown ();
 
-	if( code == ERR_FATAL )
-		Sys_Error ("%s", com_errorMessage);
+	Sys_Error ("%s", com_errorMessage);
 }
 
 
@@ -646,7 +645,7 @@ Com_HashKey
 ============
 */
 int Com_HashKey(char *string, int maxlen) {
-	int register hash, i;
+	int hash, i;
 
 	hash = 0;
 	for (i = 0; i < maxlen && string[i] != '\0'; i++) {
@@ -1256,7 +1255,7 @@ void Com_Init( char *commandLine ) {
 
 		clver = Cvar_Get("clver", JKG_VERSION, CVAR_ROM|CVAR_USERINFO);
 
-		com_affinity = Cvar_Get( "com_affinity", "1", CVAR_ARCHIVE );
+		com_affinity = Cvar_Get( "com_affinity", "0", CVAR_ARCHIVE );
 
 		com_bootlogo = Cvar_Get( "com_bootlogo", "1", CVAR_ARCHIVE);
 
@@ -1929,6 +1928,47 @@ void Field_AutoComplete( field_t *field ) {
 	completionField = field;
 
 	Field_CompleteCommand( completionField->buffer, qtrue, qtrue );
+}
+
+/*
+===============
+Converts a UTF-8 character to UTF-32.
+===============
+*/
+uint32_t ConvertUTF8ToUTF32(char *utf8CurrentChar, char **utf8NextChar)
+{
+	uint32_t utf32 = 0;
+	char *c = utf8CurrentChar;
+
+	if ((*c & 0x80) == 0)
+		utf32 = *c++;
+	else if ((*c & 0xE0) == 0xC0) // 110x xxxx
+	{
+		utf32 |= (*c++ & 0x1F) << 6;
+		utf32 |= (*c++ & 0x3F);
+	}
+	else if ((*c & 0xF0) == 0xE0) // 1110 xxxx
+	{
+		utf32 |= (*c++ & 0x0F) << 12;
+		utf32 |= (*c++ & 0x3F) << 6;
+		utf32 |= (*c++ & 0x3F);
+	}
+	else if ((*c & 0xF8) == 0xF0) // 1111 0xxx
+	{
+		utf32 |= (*c++ & 0x07) << 18;
+		utf32 |= (*c++ & 0x3F) << 12;
+		utf32 |= (*c++ & 0x3F) << 6;
+		utf32 |= (*c++ & 0x3F);
+	}
+	else
+	{
+		Com_DPrintf("Unrecognised UTF-8 lead byte: 0x%x\n", (unsigned int)*c);
+		c++;
+	}
+
+	*utf8NextChar = c;
+
+	return utf32;
 }
 
 /*

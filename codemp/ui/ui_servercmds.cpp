@@ -2,44 +2,7 @@
 
 #include "ui_local.h"
 
-// Do want access to argc, argv and Cmd_TokenizeString
-static	int			*cmd_argc = (int *)0xB3CC08;
-static	char		**cmd_argv = (char **)0xB39808;		// points into cmd_tokenized
-
-// ENGINE: void __usercall Cmd_TokenizeString(const char *text_in<eax>)
-static void Cmd_TokenizeString ( const char *text_in )
-{
-	_asm
-	{
-		pushad
-		mov		eax, text_in
-		mov		ebx, 0x436C50
-		call	ebx
-		popad
-	}
-}
-
-/*
-============
-Cmd_Argc
-============
-*/
-int		Cmd_Argc( void ) {
-	return *cmd_argc;
-}
-
-/*
-============
-Cmd_Argv
-============
-*/
-char	*Cmd_Argv( int arg ) {
-	if ( (unsigned)arg >= *cmd_argc ) {
-		return "";
-	}
-	return *(cmd_argv + arg);
-}
-
+#if 0
 static void UI_ServerRedirect( void )
 {
 	// clc.serverMessage will be no more than 1024 bytes so there's
@@ -63,13 +26,12 @@ static void UI_ServerRedirect( void )
 	trap->Cvar_Set( "cflag", Cmd_Argv(2) );
 	trap->Cvar_Set( "connmsg", Cmd_Argv(3) );
 	trap->Cmd_ExecuteText( EXEC_NOW, va( "connect \"%s\"", connAddress ) ); // Also with EXEC_NOW, no need to pass a trailing \n
-
-	return;
 }
+#endif
 
 qboolean UI_ServerCommand( const char *cmd_string )
 {
-	char *cmd;
+	//char *cmd;
 
 	if ( !cmd_string[0] ) {
 		return qfalse;
@@ -80,6 +42,8 @@ qboolean UI_ServerCommand( const char *cmd_string )
 		return qfalse;
 	}
 
+	// TODO: This should be reimplemented at some point.
+#if 0
 	Cmd_TokenizeString( cmd_string );
 
 	if ( Cmd_Argc() == 0 ) {
@@ -95,6 +59,7 @@ qboolean UI_ServerCommand( const char *cmd_string )
 		//UI_PromptUpdate(); // Just an example of a UI Server Command that we could have
 		//return qtrue;
 	}
+#endif
 
 	return qfalse;
 }

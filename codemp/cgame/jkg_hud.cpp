@@ -107,34 +107,6 @@ static void CG_DrawSaberStyle( centity_t *cent, menuDef_t *menuHUD)
 	{
 		text = va( "Stance: %s", SaberStances[cg.predictedPlayerState.fd.saberDrawAnimLevel].saberName_technical );
 	}
-	/*switch ( cg.predictedPlayerState.fd.saberDrawAnimLevel )
-	{
-
-	case 1: //FORCE_LEVEL_1: Fast
-		text = "Style: Fast";
-		break;
-	case 2: //FORCE_LEVEL_2: Medium
-		text = "Style: Medium";
-		break;
-	case 3: //FORCE_LEVEL_3: Strong
-		text = "Style: Strong";
-		break;
-	case 4: //FORCE_LEVEL_4://Desann
-		text = "Style: Desann";
-		break;
-	case 5: //FORCE_LEVEL_5://Tavion
-		text = "Style: Tavion";
-		break;
-	case 6: //SS_DUAL
-		text = "Style: Dual";
-		break;
-	case 7: //SS_STAFF
-		text = "Style: Staff";
-		break;
-	default:	// ??? Should never happen
-		text = "Style: Unknown";
-		break;
-	}*/
 
 	// Now then, lets render this text ^_^
 
@@ -192,7 +164,7 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 		return;
 	}
 
-	if (!cent->currentState.weapon ) // We don't have a weapon right now
+	if (!cent->currentState.weapon || cent->currentState.weapon == WP_MELEE ) // We don't have a weapon right now
 	{
 		return;
 	}
@@ -227,14 +199,14 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 		}
 		else
 		{
-			ammo = ps->ammo;
+			ammo = ps->stats[STAT_TOTALAMMO];
 		}
 
 		if ( GetWeaponAmmoClip( cent->currentState.weapon, cent->currentState.weaponVariation ))
 		{
 			// Display the amount of clips too
 			float temp;
-			temp = ceil(( float ) ps->ammo / ( float ) GetWeaponAmmoClip( cent->currentState.weapon, cent->currentState.weaponVariation ));
+			temp = ceil((float)ps->stats[STAT_TOTALAMMO] / (float)GetWeaponAmmoClip(cent->currentState.weapon, cent->currentState.weaponVariation));
 			text = va( "Ammo: %i (%i)", ammo, ( int ) temp );
 		}
 		else
@@ -350,10 +322,6 @@ static void CG_DrawForcePower( menuDef_t *menuHUD )
 	itemDef_t	*focusItem;
 	vec4_t	opacity;
 	vec4_t	glowColor;
-
-	vec4_t	fadecolor = { 1, 1, 1, 0.5f };
-	static vec4_t	draincolor = { 1, 0.4f, 0.4f, 1 };
-	static vec4_t	fillcolor = { 0.4f, 1, 0.4f, 1 };
 	
 	MAKERGBA( opacity, 1, 1, 1, 1*cg.jkg_HUDOpacity );
 
@@ -662,8 +630,8 @@ static void CG_DrawArmor( menuDef_t *menuHUD )
 		return;
 	}
 
-	armor = ps->stats[STAT_ARMOR];
-	maxArmor = ps->stats[STAT_MAX_ARMOR];
+	armor = ps->stats[STAT_SHIELD];
+	maxArmor = ps->stats[STAT_MAX_SHIELD];
 
 
 	// TEST: just render the whole thing for now, we'll fix it later
@@ -1075,18 +1043,27 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 
 	// Print background of the bars
 	for (i=0; i<MAX_ACI_SLOTS; i++) {
+		if (cg.playerACI[i] >= cg.playerInventory->size()) {
+			cg.playerACI[i] = -1;
+		}
+
+		if (cg.playerACI[i] < 0) {
+			continue;
+		}
+
+		itemInstance_t* playerItem = &(*cg.playerInventory)[cg.playerACI[i]];
 		focusItem = Menu_FindItemByName(menuHUD, va("slot%i", i));
 		if (focusItem)
 		{
 			vec4_t col = {0.11f, 0.11f, 0.11f, 1.0f};
 			qhandle_t shader = cgs.media.whiteShader;	//dummy
 			col[3] *= cg.jkg_HUDOpacity;
-			if ( i < MAX_ACI_SLOTS && cg.playerACI[i] >= 0 && cg.playerInventory[cg.playerACI[i]].id && cg.playerInventory[cg.playerACI[i]].id->itemID )
+			if ( cg.playerACI[i] >= 0 && (*cg.playerInventory)[cg.playerACI[i]].id && (*cg.playerInventory)[cg.playerACI[i]].id->itemID )
 			{
 			    int weapon, variation;
-				if(cg.playerInventory[cg.playerACI[i]].id->itemType == ITEM_WEAPON)
+				if(playerItem->id->itemType == ITEM_WEAPON)
 				{
-					if ( BG_GetWeaponByIndex (cg.playerInventory[cg.playerACI[i]].id->varID, &weapon, &variation) )
+					if ( BG_GetWeaponByIndex (playerItem->id->weaponData.varID, &weapon, &variation) )
 					{
 						const weaponInfo_t *weaponInfo = CG_WeaponInfo (weapon, variation);
 						shader = weaponInfo->hudIcon;
@@ -1109,7 +1086,7 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 					col[0] = 1.0f;
 					col[1] = 1.0f;
 					col[2] = 1.0f;
-					shader = trap->R_RegisterShaderNoMip(cg.playerInventory[cg.playerACI[i]].id->itemIcon);
+					shader = trap->R_RegisterShaderNoMip(playerItem->id->visuals.itemIcon);
 				}
 			}
 			if(shader != cgs.media.whiteShader)
@@ -1124,6 +1101,14 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 		if (focusItem)
 		{
 			trap->R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, va("%i", i), opacity, cgDC.Assets.qhSmallFont, -1, 0.4f);
+		}
+
+		focusItem = Menu_FindItemByName(menuHUD, va("slotq%i", i));
+		if (focusItem && playerItem->id->maxStack > 1) {
+			char* text = va("%i", playerItem->quantity);
+			vec4_t color{ 0.52f, 0.65f, 0.96f, opacity[3] };
+			trap->R_Font_DrawString(focusItem->window.rect.x - trap->R_Font_StrLenPixels(text, cgDC.Assets.qhSmallFont, 0.4f),
+				focusItem->window.rect.y, text, color, cgDC.Assets.qhSmallFont, -1, 0.4f);
 		}
 	}
 

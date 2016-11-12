@@ -20,10 +20,8 @@ typedef struct JKGkeywordHashSv_s
 } JKGkeywordHashSv_t;
 
 int JKGKeywordHash_Key(char *keyword) {
-	int register hash, i;
-
-	hash = 0;
-	for (i = 0; keyword[i] != '\0'; i++) {
+	int hash = 0;
+	for (int i = 0; keyword[i] != '\0'; i++) {
 		if (keyword[i] >= 'A' && keyword[i] <= 'Z')
 			hash += (keyword[i] + ('a' - 'A')) * (119 + i);
 		else
@@ -86,221 +84,6 @@ JKGkeywordHashSv_t *JKGKeywordHashSv_Find(JKGkeywordHashSv_t *table[], char *key
 }
 
 void Menu_ShowItemByName(menuDef_t *menu, const char *p, qboolean bShow);
-/*
-void JKAG_LoginAcc(void) {
-	menuDef_t *menu;
-	itemDef_t *tmp;
-	const char *username;
-	const char *password;
-	menu = Menus_FindByName("JKAG_login");
-	if (!menu) return;
-	tmp = Menu_FindItemByName(menu,"jkag_username");
-	if (!tmp) return;
-	username = ((editFieldDef_t *)tmp->typeData)->buffer;
-	tmp = Menu_FindItemByName(menu,"jkag_password");
-	if (!tmp) return;
-	password = ((editFieldDef_t *)tmp->typeData)->buffer;
-	// Alright we got it all, update the UI and send the login message
-	Menu_ShowItemByName(menu, "main", qfalse);
-	Menu_ShowItemByName(menu, "backdrops", qfalse);
-	Menu_ShowItemByName(menu, "login_back", qtrue);
-	Menu_ShowItemByName(menu, "login_msg", qtrue);
-	cgImports->SendClientCommand(va("~clLogin \"%s\" \"%s\"", username, password));
-	//trap->Cmd_ExecuteText(EXEC_NOW, va("~clLogin \"%s\" \"%s\"", username, password));
-}
-
-void JKAG_RegisterAcc() {
-	menuDef_t *menu;
-	itemDef_t *tmp;
-	const char *username;
-	const char *password;
-	const char *email;
-	menu = Menus_FindByName("JKAG_login");
-	if (!menu) return;
-	tmp = Menu_FindItemByName(menu,"jkag_regusername");
-	if (!tmp) return;
-	username = ((editFieldDef_t *)tmp->typeData)->buffer;
-	tmp = Menu_FindItemByName(menu,"jkag_regpassword");
-	if (!tmp) return;
-	password = ((editFieldDef_t *)tmp->typeData)->buffer;
-	tmp = Menu_FindItemByName(menu,"jkag_regemail");
-	if (!tmp) return;
-	email = ((editFieldDef_t *)tmp->typeData)->buffer;
-	// Alright we got it all, update the UI and send the login message
-	Menu_ShowItemByName(menu, "main", qfalse);
-	Menu_ShowItemByName(menu, "reg2", qfalse);
-	Menu_ShowItemByName(menu, "backdrops", qfalse);
-	Menu_ShowItemByName(menu, "reg_msg", qfalse);
-	cgImports->SendClientCommand(va("~clRegister \"%s\" \"%s\" \"%s\"", username, password, email));
-	//trap->Cmd_ExecuteText(EXEC_NOW, va("~clRegister \"%s\" \"%s\" \"%s\"", username, password, email));
-}
-
-void JKAG_Login_Esc() {
-	// Escape key handler for the login UI
-	// We can be in 5 places, with 5 responses:
-	// 1. Main menu -> go to 'leave'
-	// 2. Reg/login screen, while processing -> ignore
-	// 3. Reg/login screen, after processing -> mimic Go Back
-	// 4. Registration screen -> go back to main
-	// 5. Leave server screen -> go back to main
-	menuDef_t *menu;
-	itemDef_t *tmp;
-	menu = Menus_FindByName("JKAG_login");
-	if (!menu) return;
-	// Check situation 1: if login_background is visible, main is shown
-	tmp = Menu_FindItemByName(menu,"login_background");
-	if (tmp && tmp->window.flags & WINDOW_VISIBLE) {
-		// We got situation 1, switch to leave window
-		Menu_ShowItemByName(menu, "main", qfalse);
-		Menu_ShowItemByName(menu, "backdrops", qfalse);
-		Menu_ShowItemByName(menu, "quit", qtrue);
-		return;
-	}
-	// Check situation 2, if either reg_msg or login_msg is visible, we're busy logging in/registering
-	tmp = Menu_FindItemByName(menu,"reg_msg");
-	if (tmp && tmp->window.flags & WINDOW_VISIBLE) return;
-	tmp = Menu_FindItemByName(menu,"login_msg");
-	if (tmp && tmp->window.flags & WINDOW_VISIBLE) return;
-	
-	// Check situation 3, if login_fail or reg_success is visible, go to main menu, if reg_fail is visible, go to reg2
-	tmp = Menu_FindItemByName(menu,"login_fail");
-	if (tmp && tmp->window.flags & WINDOW_VISIBLE) {
-		Menu_ShowItemByName(menu, "login_back", qfalse);
-		Menu_ShowItemByName(menu, "login_fail", qfalse);
-		Menu_ShowItemByName(menu, "backdrops", qfalse);
-		Menu_ShowItemByName(menu, "main", qtrue);
-
-		tmp = Menu_FindItemByName(menu,"jkag_username");
-		((editFieldDef_t *)tmp->typeData)->buffer[0] = 0;
-		tmp->cursorPos = 0;
-
-		tmp = Menu_FindItemByName(menu,"jkag_password");
-		((editFieldDef_t *)tmp->typeData)->buffer[0] = 0;
-		tmp->cursorPos = 0;
-		return;
-	}
-	tmp = Menu_FindItemByName(menu,"reg_success");
-	if (tmp && tmp->window.flags & WINDOW_VISIBLE) {
-		Menu_ShowItemByName(menu, "reg_success", qfalse);
-		Menu_ShowItemByName(menu, "reg_general", qfalse);
-		Menu_ShowItemByName(menu, "backdrops", qfalse);
-		Menu_ShowItemByName(menu, "main", qtrue);
-
-		tmp = Menu_FindItemByName(menu,"jkag_username");
-		((editFieldDef_t *)tmp->typeData)->buffer[0] = 0;
-		tmp->cursorPos = 0;
-
-		tmp = Menu_FindItemByName(menu,"jkag_password");
-		((editFieldDef_t *)tmp->typeData)->buffer[0] = 0;
-		tmp->cursorPos = 0;
-		return;
-	}
-	tmp = Menu_FindItemByName(menu,"reg_fail");
-	if (tmp && tmp->window.flags & WINDOW_VISIBLE) {
-		Menu_ShowItemByName(menu, "reg_fail", qfalse);
-		Menu_ShowItemByName(menu, "backdrops", qfalse);
-		Menu_ShowItemByName(menu, "reg2", qtrue);
-		return;
-	}
-	// Check situation 4
-	// if jkag_register_disagree or jkag_register_back is visible, we're in the registration screen
-	tmp = Menu_FindItemByName(menu,"jkag_register_disagree");
-	if (tmp && tmp->window.flags & WINDOW_VISIBLE) {
-		Menu_ShowItemByName(menu, "reg_general", qfalse);
-		Menu_ShowItemByName(menu, "reg", qfalse);
-		Menu_ShowItemByName(menu, "backdrops", qfalse);
-		Menu_ShowItemByName(menu, "main", qtrue);
-		
-		tmp = Menu_FindItemByName(menu,"jkag_username");
-		((editFieldDef_t *)tmp->typeData)->buffer[0] = 0;
-		tmp->cursorPos = 0;
-
-		tmp = Menu_FindItemByName(menu,"jkag_password");
-		((editFieldDef_t *)tmp->typeData)->buffer[0] = 0;
-		tmp->cursorPos = 0;
-		return;
-	}
-	
-	tmp = Menu_FindItemByName(menu,"jkag_register_back");
-	if (tmp && tmp->window.flags & WINDOW_VISIBLE) {
-		Menu_ShowItemByName(menu, "reg_general", qfalse);
-		Menu_ShowItemByName(menu, "reg2", qfalse);
-		Menu_ShowItemByName(menu, "backdrops", qfalse);
-		Menu_ShowItemByName(menu, "main", qtrue);
-		
-		tmp = Menu_FindItemByName(menu,"jkag_username");
-		((editFieldDef_t *)tmp->typeData)->buffer[0] = 0;
-		tmp->cursorPos = 0;
-
-		tmp = Menu_FindItemByName(menu,"jkag_password");
-		((editFieldDef_t *)tmp->typeData)->buffer[0] = 0;
-		tmp->cursorPos = 0;
-		return;
-	}
-	// Check situation 5
-	// If jkag_quit_no is visible, we're in the 'leave the server' screen
-	tmp = Menu_FindItemByName(menu,"jkag_quit_no");
-	if (tmp && tmp->window.flags & WINDOW_VISIBLE) {
-		Menu_ShowItemByName(menu, "quit", qfalse);
-		Menu_ShowItemByName(menu, "backdrops", qfalse);
-		Menu_ShowItemByName(menu, "main", qtrue);
-		return;
-	}
-}
-
-
-void JKAG_Cmd_clLoginResp() {
-	char buff[512];
-	menuDef_t *menu;
-	itemDef_t *tmp;
-	menu = Menus_FindByName("JKAG_login");
-	if (!menu) return;
-
-	trap->Argv(1,buff,sizeof(buff));
-	if (buff[0] == 's') {
-		// Success
-		Menus_CloseByName("JKAG_login");
-		trap->Syscall_UI();
-		trap->Print("Login successful!\n");
-		trap->Syscall_CG();
-	} else {
-		// Failed
-		Menu_ShowItemByName(menu, "login_msg", qfalse);
-		Menu_ShowItemByName(menu, "login_fail", qtrue);
-		trap->Argv(2,buff,sizeof(buff));
-		tmp = Menu_FindItemByName(menu, "login_fail_desc");
-		if (tmp && tmp->typeData) {
-			Q_strncpyz(((textDef_t *)tmp->typeData)->text,buff,sizeof(((textDef_t *)tmp->typeData)->text));
-			((textDef_t *)tmp->typeData)->customText = 1;
-		}
-	}
-}
-
-void JKAG_Cmd_clRegisterResp() {
-	char buff[512];
-	menuDef_t *menu;
-	itemDef_t *tmp;
-	menu = Menus_FindByName("JKAG_login");
-	if (!menu) return;
-
-	trap->Argv(1,buff,sizeof(buff));
-	if (buff[0] == 's') {
-		// Success
-		Menu_ShowItemByName(menu, "reg_msg", qfalse);
-		Menu_ShowItemByName(menu, "reg_success", qtrue);
-	} else {
-		// Failed
-		Menu_ShowItemByName(menu, "reg_msg", qfalse);
-		Menu_ShowItemByName(menu, "reg_fail", qtrue);
-		trap->Argv(2,buff,sizeof(buff));
-		tmp = Menu_FindItemByName(menu, "reg_fail_desc");
-		if (tmp && tmp->typeData) {
-			Q_strncpyz(((textDef_t *)tmp->typeData)->text,buff,sizeof(((textDef_t *)tmp->typeData)->text));
-			((textDef_t *)tmp->typeData)->customText = 1;
-		}
-	}
-
-}*/
 
 void JKG_SendEscape(char ** args) {
 	cgImports->EscapeTrapped();
@@ -363,33 +146,28 @@ JKGkeywordHashUI_t JKGScripts[] = {
 	{"inv_button",			JKG_Inventory_SelectItem,		0		},
 	{"inv_arrow_next",		JKG_Inventory_ArrowDown,		0		},
 	{"inv_arrow_prev",		JKG_Inventory_ArrowUp,			0		},
-	{ "inv_use",			JKG_Inventory_Use,				0		},
-	{ "inv_destroy",		JKG_Inventory_Destroy,			0		},
-	{ "inv_acislot",		JKG_Inventory_ACISlot,			0		},
-	{ "inv_aciauto",		JKG_Inventory_ACISlotAuto,		0		},
-	{ "inv_aciremove",		JKG_Inventory_ACIRemove,		0		},
-	{ "inv_equip",			JKG_Inventory_EquipArmor,		0		},
-	{ "inv_unequip",		JKG_Inventory_UnequipArmor,		0		},
+	{"inv_use",				JKG_Inventory_Use,				0		},
+	{"inv_destroy",			JKG_Inventory_Destroy,			0		},
+	{"inv_acislot",			JKG_Inventory_ACISlot,			0		},
+	{"inv_aciauto",			JKG_Inventory_ACISlotAuto,		0		},
+	{"inv_aciremove",		JKG_Inventory_ACIRemove,		0		},
+	{"inv_equip",			JKG_Inventory_EquipArmor,		0		},
+	{"inv_unequip",			JKG_Inventory_UnequipArmor,		0		},
+	{"inv_open_other",		JKG_Inventory_Open,				0		},
 
 	// Looting
 	{"loot_button",			JKG_LootScript_Button,			0		},
 	{"loot_item",			JKG_LootScript_Item,			0		},
+
 	// Shop
-	{"shop_open",			JKG_Shop_OpenDialog,			0		},
-	{"shop_close",			JKG_Shop_CloseDialog,			0		},
-	{"shop_arrow_next",		JKG_Shop_ArrowNext,				0		},
-	{"shop_arrow_prev",		JKG_Shop_ArrowPrev,				0		},
-	{"shop_feederSel",		JKG_Shop_ItemSelect,			0		},
-	{"shop_update",			JKG_Shop_Update,				0		},
-	{"shop_clearfocus",		JKG_Shop_ClearFocus,			0		},
-	{"shop_buyconfirm_yes",	JKG_Shop_BuyConfirm_Yes,		0		},
-	{"shop_buyconfirm_no",	JKG_Shop_BuyConfirm_No,			0		},
-	{"shop_buyconfirm",		JKG_Shop_BuyConfirm_Display,	0		},
-	{"shop_openinventory",	JKG_Shop_OpenInventoryMenu,		0		},
-	//Login System
-	/*{"loginacc",			JKAG_LoginAcc,  				0		},
-	{"registeracc",			JKAG_RegisterAcc,				0		},
-	{"login_esc",			JKAG_Login_Esc,			    	0		},*/
+	{ "shop_arrow",			JKG_ShopArrow,					0		},
+	{ "shop_left_button",	JKG_Shop_SelectLeft,			0		},
+	{ "shop_right_button",	JKG_Shop_SelectRight,			0		},
+	{ "shop_sort",			JKG_Shop_Sort,					0		},
+	{ "shop_buy",			JKG_Shop_BuyItem,				0		},
+	{ "shop_sell",			JKG_Shop_SellItem,				0		},
+	{ "shop_close",			JKG_Shop_Closed,				0		},
+
 	{0,						0,					    		0		},
 };
 

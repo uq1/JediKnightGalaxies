@@ -41,7 +41,6 @@ extern qboolean PM_SpinningSaberAnim( int anim );
 extern qboolean PM_SpinningAnim( int anim );
 extern qboolean PM_InKnockDown( playerState_t *ps );
 extern qboolean BG_FlippingAnim( int anim );
-extern qboolean PM_RollingAnim( int anim );
 extern qboolean PM_InCartwheel( int anim );
 extern qboolean BG_CrouchAnim( int anim );
 
@@ -268,7 +267,7 @@ void NPC_ChoosePainAnimation( gentity_t *self, gentity_t *other, vec3_t point, i
 	}
 	else 
 	{
-		if ( other && other->s.weapon == WP_SABER || /*mod == MOD_ELECTROCUTE ||*/ mod == MOD_CRUSH/*FIXME:MOD_FORCE_GRIP*/ )
+		if ( (other && other->s.weapon == WP_SABER) || /*mod == MOD_ELECTROCUTE ||*/ mod == MOD_CRUSH/*FIXME:MOD_FORCE_GRIP*/ )
 		{
 			pain_chance = 1.0f;//always take pain from saber
 		}
@@ -302,7 +301,7 @@ void NPC_ChoosePainAnimation( gentity_t *self, gentity_t *other, vec3_t point, i
 				||*/ PM_SpinningAnim( self->client->ps.legsAnim )
 				|| BG_SaberInSpecialAttack( self->client->ps.torsoAnim )
 				|| PM_InKnockDown( &self->client->ps )
-				|| PM_RollingAnim( self->client->ps.legsAnim )
+				|| BG_RollingAnim( self->client->ps.legsAnim )
 				|| (BG_FlippingAnim( self->client->ps.legsAnim )&&!PM_InCartwheel( self->client->ps.legsAnim )) )
 			{//strong attacks, rolls, knockdowns, flips and spins cannot be interrupted by pain
 			}

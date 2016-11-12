@@ -23,11 +23,11 @@ if(NOT InOpenJK)
 	message(FATAL_ERROR "Use the top-level cmake script!")
 endif(NOT InOpenJK)
 
-set(MPUIIncludeDirectories "${MPDir}" "${OpenJKLibDir}" "${OpenJKLibDir}/libexpat/include")
+set(MPUIIncludeDirectories "${MPDir}" "${OpenJKLibDir}")
 if(WIN32)
 	set(MPUILibraries "odbc32" "odbccp32") # what are these even?
 endif(WIN32)
-set(MPUIDefines ${MPSharedDefines} "UI_EXPORTS" "MISSIONPACK" "_USRDLL" "_UI" "XML_STATIC")
+set(MPUIDefines ${MPSharedDefines} "UI_EXPORTS" "MISSIONPACK" "_USRDLL" "IN_UI")
 
 set(MPUIGameFiles
 	"${MPDir}/game/animtable.cpp"
@@ -86,11 +86,9 @@ set(MPUIUIFiles
 	"${MPDir}/ui/ui_servercmds.cpp"
 	"${MPDir}/ui/ui_shared.cpp"
 	"${MPDir}/ui/ui_stylesheets.cpp"
-	"${MPDir}/ui/aux_ui_exports.h"
 	"${MPDir}/ui/keycodes.h"
 	"${CMAKE_SOURCE_DIR}/JKGalaxies/ui/menudef.h" #Fixme: Better location plz
 	"${MPDir}/ui/ui_force.h"
-	"${MPDir}/ui/jkg_ui_auxlib.h"
 	"${MPDir}/ui/jkg_conversations.h"
 	"${MPDir}/ui/jkg_gangwars_ui.h"
 	"${MPDir}/ui/jkg_inventory.h"
@@ -134,80 +132,37 @@ set(MPUILibJson
 source_group("Libraries\\Json" FILES ${MPUILibJson})
 set(MPUIFiles ${MPUIFiles} ${MPUILibJson})
 
-set(MPUILibExpat
-	"${OpenJKLibDir}/libexpat/include/amigaconfig.h"
-	"${OpenJKLibDir}/libexpat/include/ascii.h"
-	"${OpenJKLibDir}/libexpat/include/asciitab.h"
-	"${OpenJKLibDir}/libexpat/include/expat.h"
-	"${OpenJKLibDir}/libexpat/include/expat_external.h"
-	"${OpenJKLibDir}/libexpat/include/iasciitab.h"
-	"${OpenJKLibDir}/libexpat/include/internal.h"
-	"${OpenJKLibDir}/libexpat/include/latin1tab.h"
-	"${OpenJKLibDir}/libexpat/include/macconfig.h"
-	"${OpenJKLibDir}/libexpat/include/nametab.h"
-	"${OpenJKLibDir}/libexpat/include/utf8tab.h"
-	"${OpenJKLibDir}/libexpat/include/watcomconfig.h"
-	"${OpenJKLibDir}/libexpat/include/winconfig.h"
-	"${OpenJKLibDir}/libexpat/include/xmlrole.h"
-	"${OpenJKLibDir}/libexpat/include/xmltok.h"
-	"${OpenJKLibDir}/libexpat/include/xmltok_impl.h"
-	)
-source_group("Libraries\\Expat" FILES ${MPUILibExpat})
-set(MPUIFiles ${MPUIFiles} ${MPUILibExpat})
-
 add_library(${MPUI} SHARED ${MPUIFiles})
-set(LibExpat
-	#"${OpenJKLibDir}/libexpat/lib/libexpat.lib"
-	"${OpenJKLibDir}/libexpat/lib/libexpatMT.lib"
-	#"${OpenJKLibDir}/libexpat/lib/libexpatw.lib"
-	#"${OpenJKLibDir}/libexpat/lib/libexpatwMT.lib"
-	)
-set(MPUILibraries ${MPUILibraries} ${LibExpat})
 
-if(NOT WIN32)
+if(NOT MSVC)
 	# remove "lib" prefix for .so/.dylib files
 	set_target_properties(${MPUI} PROPERTIES PREFIX "")
-endif(NOT WIN32)
+endif()
 
 if(MakeApplicationBundles AND BuildMPEngine)
 	install(TARGETS ${MPUI}
 		LIBRARY
-		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/OpenJK"
-		COMPONENT ${JKAMPCoreComponent})
-	install(TARGETS ${MPUI}
-		LIBRARY
-		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/base"
+		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/JKG"
 		COMPONENT ${JKAMPCoreComponent})
 elseif(WIN32)
 	install(TARGETS ${MPUI}
 		RUNTIME
-		DESTINATION "${JKAInstallDir}/OpenJK"
+		DESTINATION "${JKAInstallDir}/JKG"
 		COMPONENT ${JKAMPCoreComponent})
-	if (WIN64)
-		# Don't do this on 32-bit Windows to avoid overwriting
-		# vanilla JKA's DLLs
-		install(TARGETS ${MPUI}
-			RUNTIME
-			DESTINATION "${JKAInstallDir}/base"
-			COMPONENT ${JKAMPCoreComponent})
-	endif()
 else()
 	install(TARGETS ${MPUI}
 		LIBRARY
-		DESTINATION "${JKAInstallDir}/OpenJK"
-		COMPONENT ${JKAMPCoreComponent})
-	install(TARGETS ${MPUI}
-		LIBRARY
-		DESTINATION "${JKAInstallDir}/base"
+		DESTINATION "${JKAInstallDir}/JKG"
 		COMPONENT ${JKAMPCoreComponent})
 endif()
 
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPUIDefines};${ReleaseDefines}")
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPUIDefines};${ReleaseDefines}")
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPUIDefines};${ReleaseDefines}")
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPUIDefines};${DebugDefines}")
+set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS "${MPUIDefines}")
+
+# Hide symbols not explicitly marked public.
+set_property(TARGET ${MPUI} APPEND PROPERTY COMPILE_OPTIONS ${OPENJK_VISIBILITY_FLAGS})
+
 set_target_properties(${MPUI} PROPERTIES INCLUDE_DIRECTORIES "${MPUIIncludeDirectories}")
-set_target_properties(${MPUI} PROPERTIES PROJECT_LABEL "MP UI Library (uix86.dll)")
+set_target_properties(${MPUI} PROPERTIES PROJECT_LABEL "UI Library (uix86.dll)")
 # no libraries used
 if(MPUILibraries)
 	target_link_libraries(${MPUI} ${MPUILibraries})

@@ -26,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g_local.h"
 #include "bg_saga.h"
 #include "qcommon/q_shared.h"
-#include "jkg_easy_items.h"
 
 // Include GLua
 #include "../GLua/glua.h"
@@ -124,11 +123,7 @@ Ghoul2 Insert Start
 */
 
 int G_BoneIndex( const char *name ) {
-#ifdef __MMO__
-	return 0;
-#else //!__MMO__
 	return G_FindConfigstringIndex (name, CS_G2BONES, MAX_G2BONES, qtrue);
-#endif //__MMO__
 }
 /*
 Ghoul2 Insert End
@@ -400,8 +395,15 @@ void G_Throw( gentity_t *targ, vec3_t newDir, float push )
 
 static void G_FreeFakeClient(gclient_t **cl)
 {
-	free( *cl );
-	*cl = NULL;
+	// This code was problematic when NPCs had to get cleanned up 
+	// If you check base, this func was empty and had a lengthy explanation.
+	// I believe that this code is a serverside crash waiting to happen 
+	// I think it should be removed but I could be wrong ~~ ooxavenue
+	if (!(jkg_removenpcbody.integer)) 
+	{
+		free(*cl);
+		*cl = NULL;
+	}
 }
 
 //allocate a veh object
@@ -719,12 +721,8 @@ void G_InitGentity( gentity_t *e ) {
 	// Jedi Knight Galaxies - Wipe spawnvars
 	JKG_Pairs_Clear(&g_spawnvars[e->s.number]);
 
-	// Mainly for the benefit of players. For players, inventories are created
-	// at ClientBegin time, but only freed at ClientDisconnect or G_ShutdownGame.
-	// ClientBegin is called every time a player changes team. To avoid leaks,
-	// we free the inventory here and then realloc it.
-	JKG_Easy_DIMA_FreeInventory( &e->inventory );
-	e->inventory = JKG_Easy_DIMA_AllocInventory();
+	e->inventory = new std::vector<itemInstance_t>();
+	e->assists = new std::vector<entityHitRecord_t>();
 
 	trap->ICARUS_FreeEnt( (sharedEntity_t *)e );	//ICARUS information must be added after this point
 }
@@ -1150,9 +1148,8 @@ void G_FreeEntity( gentity_t *ed ) {
 	}
 	ed->UsesELS = 0;
 	ed->IDCode = 0;
-
-	JKG_Easy_DIMA_FreeInventory( &ed->inventory );
-
+	delete ed->inventory;
+	delete ed->assists;
 	memset (ed, 0, sizeof(*ed));
 	ed->classname = "freed";
 	ed->freetime = level.time;
@@ -1617,81 +1614,6 @@ qboolean ValidUseTarget( gentity_t *ent )
 	return qtrue;
 }
 
-//use an ammo/health dispenser on another client
-void G_UseDispenserOn(gentity_t *ent, int dispType, gentity_t *target)
-{
-	if (dispType == HI_HEALTHDISP)
-	{
-		target->client->ps.stats[STAT_HEALTH] += 4;
-
-		if (target->client->ps.stats[STAT_HEALTH] > target->client->ps.stats[STAT_MAX_HEALTH])
-		{
-			target->client->ps.stats[STAT_HEALTH] = target->client->ps.stats[STAT_MAX_HEALTH];
-		}
-
-		target->client->isMedHealed = level.time + 500;
-		target->health = target->client->ps.stats[STAT_HEALTH];
-	}
-	else if (dispType == HI_AMMODISP)
-	{
-		if (ent->client->medSupplyDebounce < level.time)
-		{ //do the next increment
-			//increment based on the amount of ammo used per normal shot.
-			int ammoMax = GetWeaponAmmoMax( target->client->ps.weapon, target->client->ps.weaponVariation );
-
-			target->client->ps.ammo += GetWeaponData( target->client->ps.weapon, target->client->ps.weaponVariation )->firemodes[0].cost;
-
-			if ( target->client->ps.ammo > ammoMax )
-			{
-				target->client->ps.ammo = ammoMax;
-			}
-
-			//base the next supply time on how long the weapon takes to fire. Seems fair enough.
-			ent->client->medSupplyDebounce = level.time + GetWeaponData( target->client->ps.weapon, target->client->ps.weaponVariation )->firemodes[0].delay;
-		}
-		target->client->isMedSupplied = level.time + 500;
-	}
-}
-
-//see if this guy needs servicing from a specific type of dispenser
-int G_CanUseDispOn(gentity_t *ent, int dispType)
-{
-	if (!ent->client || !ent->inuse || ent->health < 1 ||
-		ent->client->ps.stats[STAT_HEALTH] < 1)
-	{ //dead or invalid
-		return 0;
-	}
-
-	if (dispType == HI_HEALTHDISP)
-	{
-        if (ent->client->ps.stats[STAT_HEALTH] < ent->client->ps.stats[STAT_MAX_HEALTH])
-		{ //he's hurt
-			return 1;
-		}
-
-		//otherwise no
-		return 0;
-	}
-	else if (dispType == HI_AMMODISP)
-	{
-		if (ent->client->ps.weapon <= WP_NONE || ent->client->ps.weapon > LAST_USEABLE_WEAPON)
-		{ //not a player-useable weapon
-			return 0;
-		}
-
-		if (ent->client->ps.ammo < GetWeaponAmmoMax( ent->client->ps.weapon, ent->client->ps.weaponVariation ))
-		{ //needs more ammo for current weapon
-			return 1;
-		}
-
-		//needs none
-		return 0;
-	}
-
-	//invalid type?
-	return 0;
-}
-
 /*
 ==============
 TryUse
@@ -1705,10 +1627,9 @@ Try and use an entity in the world, directly ahead of us
 #define USE_DISTANCE_MAX	1024.0f	// Max distance for use
 
 extern void Touch_Button(gentity_t *ent, gentity_t *other, trace_t *trace );
-static vec3_t	playerMins = {-15, -15, DEFAULT_MINS_2};
-static vec3_t	playerMaxs = {15, 15, DEFAULT_MAXS_2};
+//static vec3_t	playerMins = {-15, -15, DEFAULT_MINS_2};
+//static vec3_t	playerMaxs = {15, 15, DEFAULT_MAXS_2};
 void GLua_NPCEV_OnUse(gentity_t *self, gentity_t *other, gentity_t *activator);
-extern void JKG_target_vendor_use(gentity_t *ent, gentity_t *other, gentity_t *activator);
 
 void TryUse( gentity_t *ent )
 {
@@ -1743,7 +1664,7 @@ void TryUse( gentity_t *ent )
 		}
 	}
 
-	if (ent->client->jetPackOn)
+	if (ent->client->ps.eFlags & EF_JETPACK_ACTIVE)
 	{ //can't use anything else to jp is off
 		goto tryJetPack;
 	}
@@ -1886,61 +1807,6 @@ void TryUse( gentity_t *ent )
 		}
 	}
 
-#if 0 //ye olde method
-	if (ent->client->ps.stats[STAT_HOLDABLE_ITEM] > 0 &&
-		bg_itemlist[ent->client->ps.stats[STAT_HOLDABLE_ITEM]].giType == IT_HOLDABLE)
-	{
-		if (bg_itemlist[ent->client->ps.stats[STAT_HOLDABLE_ITEM]].giTag == HI_HEALTHDISP ||
-			bg_itemlist[ent->client->ps.stats[STAT_HOLDABLE_ITEM]].giTag == HI_AMMODISP)
-		{ //has a dispenser item selected
-            if (target && target->client && target->health > 0 && OnSameTeam(ent, target) &&
-				G_CanUseDispOn(target, bg_itemlist[ent->client->ps.stats[STAT_HOLDABLE_ITEM]].giTag))
-			{ //a live target that's on my team, we can use him
-				G_UseDispenserOn(ent, bg_itemlist[ent->client->ps.stats[STAT_HOLDABLE_ITEM]].giTag, target);
-
-				//for now, we will use the standard use anim
-				if (ent->client->ps.torsoAnim == BOTH_BUTTON_HOLD)
-				{ //extend the time
-					ent->client->ps.torsoTimer = 500;
-				}
-				else
-				{
-					G_SetAnim( ent, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
-				}
-				ent->client->ps.weaponTime = ent->client->ps.torsoTimer;
-				return;
-			}
-		}
-	}
-#else
-    if ( ((ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_HEALTHDISP)) || (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_AMMODISP))) &&
-		target && target->inuse && target->client && target->health > 0 && OnSameTeam(ent, target) &&
-		(G_CanUseDispOn(target, HI_HEALTHDISP) || G_CanUseDispOn(target, HI_AMMODISP)) )
-	{ //a live target that's on my team, we can use him
-		if (G_CanUseDispOn(target, HI_HEALTHDISP))
-		{
-			G_UseDispenserOn(ent, HI_HEALTHDISP, target);
-		}
-		if (G_CanUseDispOn(target, HI_AMMODISP))
-		{
-			G_UseDispenserOn(ent, HI_AMMODISP, target);
-		}
-
-		//for now, we will use the standard use anim
-		if (ent->client->ps.torsoAnim == BOTH_BUTTON_HOLD)
-		{ //extend the time
-			ent->client->ps.torsoTimer = 500;
-		}
-		else
-		{
-			G_SetAnim( ent, NULL, SETANIM_TORSO, BOTH_BUTTON_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
-		}
-		ent->client->ps.weaponTime = ent->client->ps.torsoTimer;
-		return;
-	}
-
-#endif
-
 	//Check for a use command
 	if ( ValidUseTarget( target ) )
 	{
@@ -1955,13 +1821,7 @@ void TryUse( gentity_t *ent )
 		}
 
 		ent->client->ps.weaponTime = ent->client->ps.torsoTimer;
-		/*
-		NPC_SetAnim( ent, SETANIM_TORSO, BOTH_FORCEPUSH, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
-		if ( !VectorLengthSquared( ent->client->ps.velocity ) )
-		{
-			NPC_SetAnim( ent, SETANIM_LEGS, BOTH_FORCEPUSH, SETANIM_FLAG_NORMAL|SETANIM_FLAG_HOLD );
-		}
-		*/
+
 		if ( target->touch == Touch_Button )
 		{//pretend we touched it
 			target->touch(target, ent, NULL);
@@ -1975,35 +1835,12 @@ void TryUse( gentity_t *ent )
 
 tryJetPack:
 	//if we got here, we didn't actually use anything else, so try to toggle jetpack if we are in the air, or if it is already on
-	if (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_JETPACK))
+	if ((ent->client->ps.eFlags & EF_JETPACK_ACTIVE) ||
+		(ent->client->ps.groundEntityNum == ENTITYNUM_NONE && ent->client->ps.jetpack))
 	{
-		if (ent->client->jetPackOn || ent->client->ps.groundEntityNum == ENTITYNUM_NONE)
-		{
-			ItemUse_Jetpack(ent);
-			return;
-		}
+		ItemUse_Jetpack(ent);
+		return;
 	}
-
-	/* No, this is broken and silly anyway. Oh and it also asserts the game atm due to g2 bugs. -Pande
-	if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_AMMODISP)) 
-			&& G_ItemUsable(&ent->client->ps, HI_AMMODISP) )
-	{ //if you used nothing, then try spewing out some ammo
-		trace_t trToss;
-		vec3_t fAng;
-		vec3_t fwd;
-
-		VectorSet(fAng, 0.0f, ent->client->ps.viewangles[YAW], 0.0f);
-		AngleVectors(fAng, fwd, 0, 0);
-
-        VectorMA(ent->client->ps.origin, 64.0f, fwd, fwd);		
-		trap->Trace(&trToss, ent->client->ps.origin, playerMins, playerMaxs, fwd, ent->s.number, ent->clipmask, 0, 0, 0);
-		if (trToss.fraction == 1.0f && !trToss.allsolid && !trToss.startsolid)
-		{
-			ItemUse_UseDisp(ent, HI_AMMODISP);
-			G_AddEvent(ent, EV_USE_ITEM0+HI_AMMODISP, 0);
-			return;
-		}
-	} */
 }
 
 qboolean G_PointInBounds( vec3_t point, vec3_t mins, vec3_t maxs )

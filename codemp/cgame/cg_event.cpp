@@ -48,7 +48,7 @@ extern int cg_vehicleAmmoWarningTime;
 
 extern void JKG_SwapToSaber(int saberNum, clientInfo_t *ci, const char *newSaber, int weapon, int variation);
 
-vmCvar_t	jkg_nokillmessages;
+//vmCvar_t	jkg_nokillmessages;
 
 //I know, not siege, but...
 typedef enum
@@ -128,7 +128,7 @@ static void CG_Obituary( entityState_t *ent ) {
 	char		*message;
 	const char	*targetInfo;
 	const char	*attackerInfo;
-	char		targetName[MAX_QPATH];						//increased from 32, to use MAX_QPATH standards people standards
+	char		targetName[MAX_QPATH];						//increased from 32, to use MAX_QPATH
 	char		attackerName[MAX_QPATH];
 	gender_t	gender;
 	clientInfo_t	*ci;
@@ -155,7 +155,7 @@ static void CG_Obituary( entityState_t *ent ) {
 	if ( !targetInfo ) {
 		return;
 	}
-	Q_strncpyz( targetName, Info_ValueForKey( targetInfo, "n" ), sizeof(targetName) - 2);			//--futuza note:  possible RBG color fix needed here on targetName
+	Q_strncpyz( targetName, Info_ValueForKey( targetInfo, "n" ), sizeof(targetName) - 2);
 	strcat( targetName, S_COLOR_WHITE );
 
 	// check for single client messages
@@ -289,8 +289,7 @@ clientkilled:
 				char sKilledStr[256];
 				trap->SE_GetStringTextString("MP_INGAME_PLACE_WITH",     sPlaceWith, sizeof(sPlaceWith));
 				trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
-
-				s = va("%s %s.\n%s %s %i.", sKilledStr, JKG_xRBG_ConvertExtToNormal(targetName),			//--futuza: ^xRBG name fix
+				s = va("%s %s.\n%s %s %i.", sKilledStr, targetName,
 					CG_PlaceString( cg.snap->ps.persistant[PERS_RANK] + 1 ), 
 					sPlaceWith,
 					cg.snap->ps.persistant[PERS_SCORE] );
@@ -298,7 +297,7 @@ clientkilled:
 		} else {
 			char sKilledStr[256];
 			trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
-			s = va("%s %s", sKilledStr, JKG_xRBG_ConvertExtToNormal(targetName));						//--futuza: ^xRBG name fix
+			s = va("%s %s", sKilledStr, targetName);
 		}
 
 		CG_CenterPrint( s, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
@@ -308,7 +307,7 @@ clientkilled:
 	// check for double client messages
 	if ( !attackerInfo ) {
 		attacker = ENTITYNUM_WORLD;
-		strcpy( attackerName, "noname" );																	//--futuza: possible RBG color name fix needed
+		strcpy( attackerName, "noname" );
 	} else {
 		Q_strncpyz( attackerName, Info_ValueForKey( attackerInfo, "n" ), sizeof(attackerName) - 2);
 		strcat( attackerName, S_COLOR_WHITE );
@@ -417,60 +416,12 @@ clientkilled:
 
 		if (message) {
 			message = (char *)CG_GetStringEdString("MP_INGAME", message);
-			if (jkg_nokillmessages.integer!=1) {
-				trap->Print( "%s %s %s\n", 
-					JKG_xRBG_ConvertExtToNormal(targetName), message, JKG_xRBG_ConvertExtToNormal(attackerName)); //Disables rendering of kill messages as it is not needed in a MMO?	//--futuza: ^xRBG fix
-			}
+			trap->Print("%s %s %s\n", targetName, message, attackerName);
 			return;
 		}
 	}
-	if (jkg_nokillmessages.integer!=1) {
-		// we don't know what it was
-		trap->Print("%s %s\n", JKG_xRBG_ConvertExtToNormal(targetName), (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC"));  //Disables rendering of kill messages as it is not needed in a MMO?  //--futuza: ^xRBG fix
-	}
-}
-
-//==========================================================================
-
-void CG_ToggleBinoculars(centity_t *cent, int forceZoom)
-{
-	if (cent->currentState.number != cg.snap->ps.clientNum)
-	{
-		return;
-	}
-
-	if (cg.snap->ps.weaponstate != WEAPON_READY)
-	{ //So we can't fool it and reactivate while switching to the saber or something.
-		return;
-	}
-
-	/*
-	if (cg.snap->ps.weapon == WP_SABER)
-	{ //No.
-		return;
-	}
-	*/
-
-	if (forceZoom)
-	{
-		if (forceZoom == 2)
-		{
-			cg.snap->ps.zoomMode = 0;
-		}
-		else if (forceZoom == 1)
-		{
-			cg.snap->ps.zoomMode = 2;
-		}
-	}
-
-	if (cg.snap->ps.zoomMode == 0)
-	{
-		trap->S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_AUTO, cgs.media.zoomStart );
-	}
-	else if (cg.snap->ps.zoomMode == 2)
-	{
-		trap->S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_AUTO, cgs.media.zoomEnd );
-	}
+	// we don't know what it was
+	trap->Print("%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC"));
 }
 
 //set the local timing bar
@@ -486,77 +437,6 @@ void CG_LocalTimingBar(int startTime, int duration)
 	cg_genericTimerColor[1] = 1.0f;
 	cg_genericTimerColor[2] = 0.0f;
 	cg_genericTimerColor[3] = 1.0f;
-}
-
-/*
-===============
-CG_UseItem
-===============
-*/
-static void CG_UseItem( centity_t *cent ) {
-	clientInfo_t *ci;
-	int			itemNum, clientNum;
-	gitem_t		*item;
-	entityState_t *es;
-
-	es = &cent->currentState;
-	
-	itemNum = (es->event & ~EV_EVENT_BITS) - EV_USE_ITEM0;
-	if ( itemNum < 0 || itemNum > HI_NUM_HOLDABLE ) {
-		itemNum = 0;
-	}
-
-	// print a message if the local player
-	if ( es->number == cg.snap->ps.clientNum ) {
-		if ( !itemNum ) {
-			//CG_CenterPrint( "No item to use", SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
-		} else {
-			item = BG_FindItemForHoldable( (holdable_t)itemNum );
-		}
-	}
-
-	switch ( itemNum ) {
-	default:
-	case HI_NONE:
-		//trap->S_StartSound (NULL, es->number, CHAN_BODY, cgs.media.useNothingSound );
-		break;
-
-	case HI_BINOCULARS:
-		CG_ToggleBinoculars(cent, es->eventParm);
-		break;
-
-	case HI_SEEKER:
-		trap->S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.deploySeeker );
-		break;
-
-	case HI_SHIELD:
-	case HI_SENTRY_GUN:
-		break;
-
-//	case HI_MEDKIT:
-	case HI_MEDPAC:
-	case HI_MEDPAC_BIG:
-		clientNum = cent->currentState.clientNum;
-		if ( clientNum >= 0 && clientNum < MAX_CLIENTS ) {
-			ci = &cgs.clientinfo[ clientNum ];
-			ci->medkitUsageTime = cg.time;
-		}
-		//Different sound for big bacta?
-		trap->S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.medkitSound );
-		break;
-	case HI_JETPACK:
-		break; //Do something?
-	case HI_HEALTHDISP:
-		//CG_LocalTimingBar(cg.time, TOSS_DEBOUNCE_TIME);
-		break;
-	case HI_AMMODISP:
-		//CG_LocalTimingBar(cg.time, TOSS_DEBOUNCE_TIME);
-		break;
-	case HI_EWEB:
-		break;
-	case HI_CLOAK:
-		break; //Do something?
-	}
 }
 
 
@@ -759,7 +639,8 @@ void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 
 			if (ci)
 			{
-				Com_sprintf(printMsg, sizeof(printMsg), "%s^7 ", JKG_xRBG_ConvertExtToNormal(ci->name));	//--futuza: possible ^xRBG fix, needs testing, but this concerns ctf
+				//--futuza: possible ^xRGB fix, needs testing, but this concerns ctf
+				Com_sprintf(printMsg, sizeof(printMsg), "%s^7 ", ci->name);
 				strLen = strlen(printMsg);
 			}
 
@@ -791,7 +672,7 @@ void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 
 	if (ci)
 	{
-		Com_sprintf(printMsg, sizeof(printMsg), "%s^7 %s", JKG_xRBG_ConvertExtToNormal(ci->name), psStringEDString);
+		Com_sprintf(printMsg, sizeof(printMsg), "%s^7 %s", ci->name, psStringEDString);
 	}
 	else
 	{
@@ -1215,8 +1096,6 @@ extern vmCvar_t jkg_autoreload;
 #define	DEBUGNAME(x) if(cg_debugEvents.integer){trap->Print(x"\n");}
 #define	DEBUGNAME2(x, y) if(cg_debugEvents.integer){trap->Print(x"\n", y);}
 extern void CG_ChatBox_AddString(char *chatStr, int fadeLevel); //cg_draw.c
-extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
-extern void JKG_CG_SetACISlot(const unsigned short slot);
 void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	entityState_t	*es;
 	int				event;
@@ -1781,7 +1660,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{
 			gitem_t	*item;
 			int		index;
-			qboolean	newindex = qfalse;
 
 			index = cg_entities[es->eventParm].currentState.modelindex;		// player predicted
 
@@ -1937,7 +1815,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 			assert(weaponInfo);
 
-			if(weaponData->visuals.selectSound && weaponData->visuals.selectSound[0])
+			if(weaponData->visuals.selectSound[0])
 			{
 				trap->S_StartSound( NULL, es->number, CHAN_AUTO, trap->S_RegisterSound(weaponData->visuals.selectSound) );
 			}
@@ -2127,7 +2005,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				if ( client && client->infoValid )
 				{
 					int saberNum = es->weapon;
-					int bladeNum = es->legsAnim;
 
 					if ( client->saber[saberNum].hitPersonEffect )
 					{//custom hit person effect
@@ -2250,7 +2127,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 					if ( client && client->infoValid )
 					{
 						int saberNum = es->weapon;
-						int bladeNum = es->legsAnim;
 
 						if ( client->saber[saberNum].blockEffect )
 						{//custom saber block effect
@@ -2368,36 +2244,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 		}
 		break;
-
-	//Jedi Knight Galaxies add
-#ifdef __MMO__
-	case EV_GOTO_ACI:
-		if (es->number == cg.clientNum)
-			JKG_CG_SetACISlot(es->eventParm);
-		break;
-	case EV_HITMARKER_ASSIST:
-		if (es->number == cg.clientNum)
-		{
-			// All this does is make a hitmarker display. Nothing too fancy.
-			trap->S_StartSound(NULL, cg.clientNum, CHAN_AUTO, cgs.media.hitmarkerSound);
-			cg.hitmarkerLastTime = cg.time + 1000;
-
-			if (es->eventParm > 0)
-				CG_Notifications_Add(va("\"Assist: +%i Credits\"", es->eventParm), qfalse);
-		}
-		break;
-	case EV_HITMARKER_KILL: // UQ1: Sound here too???
-		if (es->number == cg.clientNum)
-		{
-			// All this does is make a hitmarker display. Nothing too fancy.
-			trap->S_StartSound(NULL, cg.clientNum, CHAN_AUTO, cgs.media.hitmarkerSound);
-			cg.hitmarkerLastTime = cg.time + 1000;
-
-			if (es->eventParm > 0)
-				CG_Notifications_Add(va("\"Kill: +%i Credits\"", es->eventParm), qfalse);
-		}
-		break;
-#endif //__MMO__
 
 	case EV_WEAPON_TRACELINE:
 		DEBUGNAME("EV_WEAPON_TRACELINE");
@@ -2523,59 +2369,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 		break;
 
-// cleaned the below up. this was a huge mess before --eez
-	case EV_USE_ITEM0:
-	case EV_USE_ITEM1:
-	case EV_USE_ITEM2:
-	case EV_USE_ITEM3:
-	case EV_USE_ITEM4:
-	case EV_USE_ITEM5:
-	case EV_USE_ITEM6:
-	case EV_USE_ITEM7:
-	case EV_USE_ITEM8:
-	case EV_USE_ITEM9:
-	case EV_USE_ITEM10:
-	case EV_USE_ITEM11:
-	case EV_USE_ITEM12:
-	case EV_USE_ITEM13:
-	case EV_USE_ITEM14:
-		DEBUGNAME2("EV_USE_ITEM%i", event-EV_USE_ITEM0);
-		CG_UseItem( cent );
-		break;
-
-	case EV_ITEMUSEFAIL:
-		DEBUGNAME("EV_ITEMUSEFAIL");
-		if (cg.snap->ps.clientNum == es->number)
-		{
-			char *psStringEDRef = NULL;
-
-			switch(es->eventParm)
-			{
-			case SENTRY_NOROOM:
-				psStringEDRef = (char *)CG_GetStringEdString("MP_INGAME", "SENTRY_NOROOM");
-				break;
-			case SENTRY_ALREADYPLACED:
-				psStringEDRef = (char *)CG_GetStringEdString("MP_INGAME", "SENTRY_ALREADYPLACED");
-				break;
-			case SHIELD_NOROOM:
-				psStringEDRef = (char *)CG_GetStringEdString("MP_INGAME", "SHIELD_NOROOM");
-				break;
-			case SEEKER_ALREADYDEPLOYED:
-				psStringEDRef = (char *)CG_GetStringEdString("MP_INGAME", "SEEKER_ALREADYDEPLOYED");
-				break;
-			default:
-				break;
-			}
-
-			if (!psStringEDRef)
-			{
-				break;
-			}
-
-			Com_Printf("%s\n", psStringEDRef);
-		}
-		break;
-
 	//=================================================================
 
 	//
@@ -2584,57 +2377,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	//Player teleporting
 	case EV_PLAYER_TELEPORT_IN:
 		DEBUGNAME("EV_PLAYER_TELEPORT_IN");
-		/*{
-			trace_t tr;
-			vec3_t playerMins = {-15, -15, DEFAULT_MINS_2+8};
-			vec3_t playerMaxs = {15, 15, DEFAULT_MAXS_2};
-			vec3_t ang, pos, dpos;
-
-			VectorClear(ang);
-			ang[ROLL] = 1;
-
-			VectorCopy(position, dpos);
-			dpos[2] -= 4096;
-
-			CG_Trace(&tr, position, playerMins, playerMaxs, dpos, es->number, MASK_SOLID);
-			VectorCopy(tr.endpos, pos);
-			
-			trap->S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.teleInSound );
-
-			if (tr.fraction == 1)
-			{
-				break;
-			}
-			trap->FX_PlayEffectID(cgs.effects.mSpawn, pos, ang, -1, -1);
-		}*/ 
 		// Pande: is annoying, doesn't fit aesthetically, and the effect relies on gfx from Mace's stargate stuff.
 		break;
 
 	case EV_PLAYER_TELEPORT_OUT:
 		DEBUGNAME("EV_PLAYER_TELEPORT_OUT");
-		/*{
-			trace_t tr;
-			vec3_t playerMins = {-15, -15, DEFAULT_MINS_2+8};
-			vec3_t playerMaxs = {15, 15, DEFAULT_MAXS_2};
-			vec3_t ang, pos, dpos;
-
-			VectorClear(ang);
-			ang[ROLL] = 1;
-
-			VectorCopy(position, dpos);
-			dpos[2] -= 4096;
-
-			CG_Trace(&tr, position, playerMins, playerMaxs, dpos, es->number, MASK_SOLID);
-			VectorCopy(tr.endpos, pos);
-
-			trap->S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.teleOutSound );
-
-			if (tr.fraction == 1)
-			{
-				break;
-			}
-			trap->FX_PlayEffectID(cgs.effects.mSpawn, pos, ang, -1, -1);
-		} */ 
 		// Pande: is annoying, doesn't fit aesthetically, and the effect relies on gfx from Mace's stargate stuff.
 		break;
 
@@ -2818,14 +2565,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		else if ( CG_VehicleWeaponImpact( cent ) )
 		{//a vehicle missile that used an overridden impact effect...
 		}
-		/*else if (cent->currentState.eFlags & EF_ALT_FIRING)
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qtrue, es->generic1);
-		}
-		else
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qfalse, 0);
-		}*/
 		else
 		{
 		    JKG_RenderProjectileMiss (cent, position, dir, (qboolean)(es->eFlags & EF_ALT_FIRING));
@@ -3024,10 +2763,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				{ //add to the chat box
 					//hear it in the world spot.
 					char vchatstr[1024];
-					strcpy(vchatstr, va("<%s: %s>\n", JKG_xRBG_ConvertExtToNormal(ci->name), descr));	//futuza: fixed xRBB color codes
-					if (jkg_nokillmessages.integer!=1) {
-					trap->Print(vchatstr); //Disables rendering of kill messages as it is not needed in a MMO?
-					}
+					Q_strncpyz(vchatstr, va("<%s: %s>\n", ci->name, descr), sizeof(vchatstr));
+					trap->Print("*%s", vchatstr);
 					CG_ChatBox_AddString(vchatstr, 100);
 				}
 
@@ -3174,28 +2911,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		CG_Obituary( es );
 		break;
 
-	//
-	// powerup events
-	//
-#ifdef BASE_COMPAT
-	case EV_POWERUP_QUAD:
-		DEBUGNAME("EV_POWERUP_QUAD");
-		if ( es->number == cg.snap->ps.clientNum ) {
-			cg.powerupActive = PW_QUAD;
-			cg.powerupTime = cg.time;
-		}
-		//trap->S_StartSound (NULL, es->number, CHAN_ITEM, cgs.media.quadSound );
-		break;
-	case EV_POWERUP_BATTLESUIT:
-		DEBUGNAME("EV_POWERUP_BATTLESUIT");
-		if ( es->number == cg.snap->ps.clientNum ) {
-			cg.powerupActive = PW_BATTLESUIT;
-			cg.powerupTime = cg.time;
-		}
-		//trap->S_StartSound (NULL, es->number, CHAN_ITEM, cgs.media.protectSound );
-		break;
-#endif // BASE_COMPAT
-
 	case EV_FORCE_DRAINED:
 		DEBUGNAME("EV_FORCE_DRAINED");
 		ByteToDir( es->eventParm, dir );
@@ -3271,6 +2986,16 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		CG_PlayerShieldHit(es->otherEntityNum, dir, es->time2);
 		break;
 
+	case EV_SHIELD_BROKEN:
+		DEBUGNAME("EV_SHIELD_BROKEN")
+		// Doesn't do anything atm
+		break;
+
+	case EV_SHIELD_RECHARGE:
+		DEBUGNAME("EV_SHIELD_RECHARGE")
+		CG_PlayerShieldRecharging(es->otherEntityNum);
+		break;
+
 	case EV_DEBUG_LINE:
 		DEBUGNAME("EV_DEBUG_LINE");
 		CG_Beam( cent );
@@ -3300,15 +3025,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_MISSILE_DIE:
 		JKG_RenderProjectileDeath (cent, cent->currentState.origin, cent->currentState.angles, cent->currentState.firingMode);
 	    break;
-
-	case EV_ITEM_BREAK:
-		DEBUGNAME ("EV_ITEM_BREAK");
-		trap->S_StartSound(NULL, cg.snap->ps.clientNum, CHAN_AUTO, CGitemLookupTable[es->eventParm].itemType == ITEM_ARMOR ? cgs.media.armorBreakSound : cgs.media.weaponBreakSound);
-		break;
-
-	case EV_BULLET:
-		trap->Print("^3WARNING: EV_BULLET passed\n");
-		break;
 	default:
 		DEBUGNAME("UNKNOWN");
 		trap->Error( ERR_DROP, "Unknown event: %i", event );

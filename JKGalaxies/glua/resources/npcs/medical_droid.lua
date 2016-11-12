@@ -50,7 +50,7 @@ function NPC:OnUse(other, activator)
 	
 	local dlg = dialogue.CreateDialogueObject ("medical_droid_dlg")
 	if not dlg then
-		print("ERROR: Cannot find dialogue ("'medical_droid_dlg'")
+		print("ERROR: Cannot find dialogue medical_droid_dlg")
 		return
 	end
 	dlg:RunDialogue(self, ply)

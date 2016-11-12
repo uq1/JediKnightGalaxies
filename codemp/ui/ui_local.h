@@ -51,6 +51,7 @@ void UI_LoadArenas( void );
 void UI_LoadForceConfig_List( void );
 
 const char *UI_GetStringEdString2(const char *refName);
+const char* UI_GetStringEdString3(const char* refName);
 
 //
 // ui_players.c
@@ -141,7 +142,6 @@ typedef struct aliasInfo_s {
 typedef struct teamInfo_s {
 	const char *teamName;
 	const char *imageName;
-	const char *teamMembers[TEAM_MEMBERS];
 	qhandle_t teamIcon;
 	qhandle_t teamIcon_Metal;
 	qhandle_t teamIcon_Name;
@@ -157,11 +157,8 @@ typedef struct mapInfo_s {
 	const char *mapName;
 	const char *mapLoadName;
 	const char *imageName;
-	const char *opponentName;
-	int teamMembers;
 	int typeBits;
 	int cinematic;
-	int timeToBeat[MAX_GAMETYPES];
 	qhandle_t levelShot;
 	qboolean active;
 } mapInfo_t;
@@ -238,17 +235,32 @@ typedef struct modInfo_s {
 	const char *modDescr;
 } modInfo_t;
 
-typedef struct playerSpeciesInfo_s {
+#define SKIN_LENGTH			16
+#define ACTION_BUFFER_SIZE	128
+
+typedef struct {
+	char name[SKIN_LENGTH];
+} skinName_t;
+
+typedef struct {
+	char shader[MAX_QPATH];
+	char actionText[ACTION_BUFFER_SIZE];
+} playerColor_t;
+
+typedef struct {
 	char		Name[64];
 	int			SkinHeadCount;
-	char		SkinHeadNames[MAX_PLAYERMODELS][16];
+	int			SkinHeadMax;
+	skinName_t	*SkinHead;
 	int			SkinTorsoCount;
-	char		SkinTorsoNames[MAX_PLAYERMODELS][16];
+	int			SkinTorsoMax;
+	skinName_t	*SkinTorso;
 	int			SkinLegCount;
-	char		SkinLegNames[MAX_PLAYERMODELS][16];
-	char		ColorShader[MAX_PLAYERMODELS][64];
+	int			SkinLegMax;
+	skinName_t	*SkinLeg;
+	int			ColorMax;
 	int			ColorCount;
-	char		ColorActionText[MAX_PLAYERMODELS][128];
+	playerColor_t	*Color;
 } playerSpeciesInfo_t;
 
 typedef struct uiInfo_s {
@@ -342,8 +354,9 @@ typedef struct uiInfo_s {
 
 	qboolean				inGameLoad;
 
+	int						playerSpeciesMax;
 	int						playerSpeciesCount;
-	playerSpeciesInfo_t		playerSpecies[MAX_PLAYERMODELS];
+	playerSpeciesInfo_t		*playerSpecies;
 	int						playerSpeciesIndex;
 
 	short					movesTitleIndex;
@@ -390,6 +403,9 @@ qboolean UI_ServerCommand( const char *cmd_string );
 
 void JKG_UI_LoadStylesheet( const char *text );
 void JKG_UI_SetClass( const char *className, itemDef_t *item );
+
+void JKG_UI_InventoryFilterChanged();
+void JKG_ShopInventorySortChanged();
 
 // new ui
 

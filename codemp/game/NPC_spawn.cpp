@@ -109,131 +109,32 @@ extern void NPC_Rancor_Pain				(gentity_t *self, gentity_t *attacker, int damage
 
 //--------------------------------------------------------------
 
-qboolean HumanNamesLoaded = qfalse;
-
-typedef struct
-{// FIXME: Add other species name files...
-	char	HumanNames[MAX_QPATH];
-} name_list_t;
-
-name_list_t NPC_NAME_LIST[8000];
-
-int NUM_HUMAN_NAMES = 0;
-
-/* */
-void
-Load_NPC_Names ( void )
-{				// Load bot first names from external file.
-	char			*s, *t;
-	int				len;
-	fileHandle_t	f;
-	char			*buf;
-	char			*loadPath;
-	int				num = 0;
-
-	if (HumanNamesLoaded)
-		return;
-
-	loadPath = va( "npc_names_list.dat" );
-
-	len = trap->FS_Open( loadPath, &f, FS_READ );
-
-	HumanNamesLoaded = qtrue;
-
-	if ( !f )
-	{
-		return;
-	}
-
-	if ( !len )
-	{			//empty file
-		trap->FS_Close( f );
-		return;
-	}
-
-	if ( (buf = (char *)malloc( len + 1)) == 0 )
-	{			//alloc memory for buffer
-		trap->FS_Close( f );
-		return;
-	}
-
-	trap->FS_Read( buf, len, f );
-	buf[len] = 0;
-	trap->FS_Close( f );
-
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "NONAME");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "R2D2 Droid");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "R5D2 Droid");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "Protocol Droid");
-	NUM_HUMAN_NAMES++;
-	strcpy( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, "Weequay");
-	NUM_HUMAN_NAMES++;
-
-	for ( t = s = buf; *t; /* */ )
-	{
-		num++;
-		s = strchr( s, '\n' );
-		if ( !s || num > len )
-		{
-			break;
-		}
-
-		while ( *s == '\n' )
-		{
-			*s++ = 0;
-		}
-
-		if ( *t )
-		{
-			if ( !Q_strncmp( "//", va( "%s", t), 2) == 0 && strlen( va( "%s", t)) > 0 )
-			{	// Not a comment either... Record it in our list...
-				Q_strncpyz( NPC_NAME_LIST[NUM_HUMAN_NAMES].HumanNames, va( "%s", t), strlen( va( "%s", t)) );
-				NUM_HUMAN_NAMES++;
-			}
-		}
-
-		t = s;
-	}
-
-	free( buf );
-
-	NUM_HUMAN_NAMES--;
-
-	trap->Print( "^4*** ^3%s^4: ^5There are ^7%i^5 NPC names in the database.\n", GAME_VERSION, NUM_HUMAN_NAMES );
-}
+#include "bg_npcnames.h"
 
 void SelectNPCNameFromList( gentity_t *NPC )
 {
 	// Load names on first check...
-	Load_NPC_Names();
+	BG_Load_NPC_Names();
 
 	if (StringContainsWord(NPC->NPC_type, "r2d2"))
 	{
-		NPC->s.generic1 = 1; // Init the NPC name...
-		NPC->client->ps.generic1 = NPC->s.generic1; // Init the NPC name...
+		NPC->client->ps.generic1 = 1; // Init the NPC name...
 	}
 	else if (StringContainsWord(NPC->NPC_type, "r5d2"))
 	{
-		NPC->s.generic1 = 2; // Init the NPC name...
-		NPC->client->ps.generic1 = NPC->s.generic1; // Init the NPC name...
+		NPC->client->ps.generic1 = 2; // Init the NPC name...
 	}
 	else if (StringContainsWord(NPC->NPC_type, "protocol"))
 	{
-		NPC->s.generic1 = 3; // Init the NPC name...
-		NPC->client->ps.generic1 = NPC->s.generic1; // Init the NPC name...
+		NPC->client->ps.generic1 = 3; // Init the NPC name...
 	}
 	else if (StringContainsWord(NPC->NPC_type, "weequay"))
 	{
-		NPC->s.generic1 = 4; // Init the NPC name...
-		NPC->client->ps.generic1 = NPC->s.generic1; // Init the NPC name...
+		NPC->client->ps.generic1 = 4; // Init the NPC name...
 	}
 	else
 	{
-		NPC->s.generic1 = irand(4, NUM_HUMAN_NAMES); // Init the NPC name...
-		NPC->client->ps.generic1 = NPC->s.generic1; // Init the NPC name...
+		NPC->client->ps.generic1 = Q_irand(5, BG_Num_NPC_Names()-1); // Init the NPC name...
 	}
 }
 
@@ -904,7 +805,7 @@ void NPC_SetWeapons( gentity_t *ent )
 			ent->client->ps.stats[STAT_WEAPONS] |= ( 1 << curWeap );
 //			RegisterItem( FindItemForWeapon( (weapon_t)(curWeap) ) );	//precache the weapon
 			//rwwFIXMEFIXME: Precache
-			ent->client->ps.stats[STAT_AMMO] = ent->NPC->currentAmmo = ent->client->ps.ammo = 100;//FIXME: max ammo
+			ent->client->ps.stats[STAT_AMMO] = ent->NPC->currentAmmo = ent->client->ps.stats[STAT_TOTALAMMO] = 100;//FIXME: max ammo
 
 			if ( bestWeap == WP_SABER )
 			{
@@ -1037,14 +938,8 @@ void NPC_Begin (gentity_t *ent)
 	// UQ1: Mark every NPC's spawn position. For patrolling that spot and stuff...
 	VectorCopy(ent->client->ps.origin, ent->spawn_pos);
 
-	// UQ1: Give them a name (for kills)...
-	//strcpy(ent->client->pers.netname, va("a %s NPC", ent->NPC_type));
-	
-	if (ent->s.generic1 <= 0)
+	if (ent->client->ps.generic1 <= 0)
 	{// UQ1: Find their name type to send to an id to the client for names...
-//		int i;
-
-		ent->s.generic1 = 0; // Init the type...
 		ent->client->ps.generic1 = 0; // Init the type...
 
 		switch( ent->client->NPC_class )
@@ -1053,16 +948,13 @@ void NPC_Begin (gentity_t *ent)
 		case CLASS_SWAMPTROOPER:
 		case CLASS_IMPWORKER:
 		case CLASS_SHADOWTROOPER:
-			ent->s.generic1 = ent->client->ps.generic1 = irand(100, 999);
-			strcpy(ent->client->pers.netname, va("TK-%i", ent->client->ps.generic1));
+			ent->s.generic1 = ent->client->ps.generic1 = Q_irand(100, 999);
+			Com_sprintf( ent->client->pers.netname, sizeof(ent->client->pers.netname), "TK-%i", ent->client->ps.generic1 );
 			break;
 		default:
 			SelectNPCNameFromList(ent);
-			strcpy(ent->client->pers.netname, va("%s", NPC_NAME_LIST[ent->client->ps.generic1].HumanNames));
+			Q_strncpyz(ent->client->pers.netname, BG_Get_NPC_Name(ent->client->ps.generic1), sizeof(ent->client->pers.netname));
 		}
-
-		//if (StringContainsWord(ent->NPC_type, NPC_NAMES[i]))
-		//trap->Print("NPC %i given name %s.\n", ent->s.number, NPC_NAMES[ent->s.generic1]);
 	}
 
 	// Init patrol range...
@@ -1236,7 +1128,7 @@ void NPC_Begin (gentity_t *ent)
 	/* JKG - Muzzle Calculation End */
 
 	//select the weapon
-	ent->NPC->currentAmmo = ent->client->ps.ammo;
+	ent->NPC->currentAmmo = ent->client->ps.stats[STAT_TOTALAMMO];
 	ent->client->ps.weaponstate = WEAPON_IDLE;
 
 	// [Weapon Variation]: Add a variation check here so the NPC will use the proper weapon you want
@@ -1903,11 +1795,8 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 		}
 	}
 
-	if (newent->s.generic1 <= 0)
+	if (newent->client->ps.generic1 <= 0)
 	{// UQ1: Find their name type to send to an id to the client for names...
-//		int i;
-
-		newent->s.generic1 = 0; // Init the type...
 		newent->client->ps.generic1 = 0; // Init the type...
 
 		switch( newent->client->NPC_class )
@@ -1916,17 +1805,13 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 		case CLASS_SWAMPTROOPER:
 		case CLASS_IMPWORKER:
 		case CLASS_SHADOWTROOPER:
-			newent->s.generic1 = newent->client->ps.generic1 = irand(100, 999);
-			strcpy(newent->client->pers.netname, va("TK-%i", newent->client->ps.generic1));
+			newent->s.generic1 = newent->client->ps.generic1 = Q_irand(100, 999);
+			Com_sprintf( newent->client->pers.netname, sizeof(newent->client->pers.netname), "TK-%i", newent->client->ps.generic1 );
 			break;
 		default:
 			SelectNPCNameFromList(newent);
-			strcpy(newent->client->pers.netname, va("%s", NPC_NAME_LIST[newent->client->ps.generic1].HumanNames));
-			break;
+			Q_strncpyz(newent->client->pers.netname, BG_Get_NPC_Name(newent->client->ps.generic1), sizeof(newent->client->pers.netname));
 		}
-
-		//if (StringContainsWord(ent->NPC_type, NPC_NAMES[i]))
-		//trap->Print("NPC %i given name %s.\n", ent->s.number, NPC_NAMES[ent->s.generic1]);
 	}
 	
 	//FIXME: Call CopyParms

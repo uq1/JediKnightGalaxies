@@ -31,7 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 	#include "g_local.h"
 #elif defined(_CGAME)
 	#include "cgame/cg_local.h"
-#elif defined(_UI)
+#elif defined(IN_UI)
 	#include "ui/ui_local.h"
 #endif
 
@@ -210,7 +210,7 @@ weaponData_t *GetWeaponData( unsigned char baseIndex, unsigned char modIndex )
 	}
 
 	/* This is a serious error, this is a weapon we don't know! */
-	Com_Error( ERR_DISCONNECT, "No weapon with base %i and variation %i could be found.", baseIndex, modIndex );
+	Com_Error( ERR_DROP, "No weapon with base %i and variation %i could be found.", baseIndex, modIndex );
 	return NULL;
 }
 

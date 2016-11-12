@@ -8,7 +8,7 @@
 	#include "g_local.h"
 #elif defined(_CGAME)
 	#include "cgame/cg_local.h"
-#elif defined(_UI)
+#elif defined(IN_UI)
 	#include "ui/ui_local.h"
 #endif
 
@@ -102,6 +102,8 @@ static const stringID_table_t MODTable[] =
 	{ NULL, -1 }
 };
 
+/*
+// legacy jka table
 static const stringID_table_t AmmoTable[] =
 {
     ENUM2STRING (AMMO_NONE),
@@ -118,7 +120,7 @@ static const stringID_table_t AmmoTable[] =
 	ENUM2STRING (AMMO_MAX),
 	
 	{ NULL, -1 }
-};
+};*/
 
 #ifdef _GAME
 #include "jkg_damagetypes.h"
@@ -491,6 +493,9 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     node = cJSON_GetObjectItem (fireModeNode, "splashmeansofdeath");
     str = cJSON_ToStringOpt (node, "MOD_UNKNOWN");
     fireModeStats->weaponSplashMOD = GetIDForString (const_cast<stringID_table_t *>(MODTable), str);
+
+	node = cJSON_GetObjectItem(fireModeNode, "useQuantity");
+	fireModeStats->useQuantity = cJSON_ToBooleanOpt(node, qfalse);
 }
 
 //=========================================================
@@ -509,9 +514,6 @@ static void BG_ParseWeaponStats ( weaponData_t *weaponData, cJSON *statsNode )
     {
         return;
     }
-
-    node = cJSON_GetObjectItem (statsNode, "slot");
-    weaponData->weaponSlot = (unsigned char)cJSON_ToIntegerOpt (node, 0);
 
     node = cJSON_GetObjectItem (statsNode, "reloadtime");
     weaponData->weaponReloadTime = (unsigned short)cJSON_ToIntegerOpt (node, 0);
@@ -717,11 +719,12 @@ static void BG_ParseVisualsFireMode ( weaponVisualFireMode_t *fireMode, cJSON *f
     isTripmine = (qboolean)(Q_stricmp (fireMode->type, "tripmine") == 0);
     isDetpack = (qboolean)(Q_stricmp (fireMode->type, "detpack") == 0);
 
-	ReadString (fireModeNode, "displayName", fireMode->displayName, 128);
+	ReadString (fireModeNode, "displayName", fireMode->displayName, sizeof(fireMode->displayName));
+	Q_strncpyz(fireMode->displayName, CG_GetStringEdString2(fireMode->displayName), sizeof(fireMode->displayName));
 
 	ReadString (fireModeNode, "crosshairShader", fireMode->crosshairShader, MAX_QPATH);
 	ReadString (fireModeNode, "switchToSound", fireMode->switchToSound, MAX_QPATH);
-	if(!fireMode->switchToSound || !fireMode->switchToSound[0])
+	if(!fireMode->switchToSound[0])
 	{
 		if(fmLoadCounter == 0)
 		{
@@ -744,7 +747,7 @@ static void BG_ParseVisualsFireMode ( weaponVisualFireMode_t *fireMode, cJSON *f
 	}
 
 	node = cJSON_GetObjectItem (fireModeNode, "displayExplosive");
-	fireMode->displayExplosive = (qboolean)cJSON_ToBooleanOpt(node, qtrue);
+	fireMode->displayExplosive = (qboolean)cJSON_ToBooleanOpt(node, qfalse);
     
     // TODO: Need to tie this to the table in cg_weapons.c somehow...
     // Weapon Render
@@ -857,8 +860,6 @@ static void BG_ParseVisualsFireMode ( weaponVisualFireMode_t *fireMode, cJSON *f
 #endif
 static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
 {
-    cJSON *node = NULL;
-    cJSON *child = NULL;
     weaponVisual_t *weaponVisuals = &weaponData->visuals;
 
     ReadString (visualsNode, "worldmodel", weaponVisuals->world_model, sizeof (weaponVisuals->world_model));
@@ -868,7 +869,7 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
     ReadString (visualsNode, "hudnaicon", weaponVisuals->icon_na, sizeof (weaponVisuals->icon_na));
     ReadString (visualsNode, "selectsound", weaponVisuals->selectSound, sizeof (weaponVisuals->selectSound));
     
-    child = cJSON_GetObjectItem (visualsNode, "indicators");
+    cJSON *child = cJSON_GetObjectItem (visualsNode, "indicators");
     if ( child )
     {
         int numGroupIndicators = 0;
@@ -900,7 +901,7 @@ static void BG_ParseVisuals ( weaponData_t *weaponData, cJSON *visualsNode )
     ReadString (visualsNode, "gunposition", weaponVisuals->gunPosition, sizeof (weaponVisuals->gunPosition));
     ReadString (visualsNode, "ironsightsPosition", weaponVisuals->ironsightsPosition, sizeof (weaponVisuals->ironsightsPosition));
     
-    node = cJSON_GetObjectItem (visualsNode, "ironsightsFov");
+    cJSON *node = cJSON_GetObjectItem (visualsNode, "ironsightsFov");
     weaponVisuals->ironsightsFov = (float)cJSON_ToNumberOpt (node, 0.0);
     
     // Scope toggle
@@ -946,7 +947,7 @@ static void BG_ParseWPNSaberData ( weaponData_t *wp, cJSON *json )
 	ReadString( json, "crystal", wp->sab.defaultcrystal, sizeof( wp->sab.defaultcrystal ) );
 }
 
-stringID_table_t WPTable[]; // From bg_saga.c
+extern stringID_table_t WPTable[]; // From bg_saga.c
 
 #define MAX_WEAPON_FILE_LENGTH (16384) // 16kb should be enough, 4kb apparently wasn't!
 static qboolean BG_ParseWeaponFile ( const char *weaponFilePath )
@@ -1062,6 +1063,8 @@ static qboolean BG_ParseWeaponFile ( const char *weaponFilePath )
     return qtrue;
 }
 
+#if 0
+
 #define WEAPON_DATA_CACHE_VERSION (1)
 typedef struct weaponDataCacheHeader_s
 {
@@ -1142,6 +1145,8 @@ static void WriteWeaponCacheFile ( weaponData_t *weaponDataTable, int *numLoaded
     free (buffer);
 }
 
+#endif
+
 qboolean BG_LoadWeapons ( weaponData_t *weaponDataTable, unsigned int *numLoadedWeapons, unsigned int *numWeapons )
 {
     int i;
@@ -1202,8 +1207,8 @@ void BG_InitWeaponG2Instances(void) {
 	        const weaponData_t *weaponData = GetWeaponData (i, j);
 			const int id = BG_GetWeaponIndex(i, j);
 
-			if( weaponData && weaponData->classname && weaponData->classname[0] &&			// stop with these goddamn asserts...
-				weaponData->visuals.world_model && weaponData->visuals.world_model[0])		// hard to code with all this background noise going on --eez
+			if( weaponData && weaponData->classname[0] &&			// stop with these goddamn asserts...
+				weaponData->visuals.world_model[0])		// hard to code with all this background noise going on --eez
 			{
 				void *ghoul2 = NULL;
 	        
@@ -1234,7 +1239,7 @@ void BG_ShutdownWeaponG2Instances(void) {
 	    unsigned int numVariations = BG_NumberOfWeaponVariations (i);
 	    for ( j = 0; j < numVariations; j++ )
 	    {
-			if(trap->G2_HaveWeGhoul2Models(g2WeaponInstances[id].ghoul2)) {
+			if(g2WeaponInstances[id].ghoul2 && trap->G2_HaveWeGhoul2Models(g2WeaponInstances[id].ghoul2)) {
 				trap->G2API_CleanGhoul2Models(&g2WeaponInstances[id].ghoul2);
 				g2WeaponInstances[id].ghoul2 = NULL;
 			}

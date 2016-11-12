@@ -31,7 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "bg_vehicles.h"
 #include "g_public.h"
 #include "bg_ammo.h"
-#include "jkg_items.h"
+#include "bg_items.h"
 
 #include "qcommon/game_version.h"
 
@@ -190,19 +190,12 @@ typedef enum
 
 typedef struct {
 	gentity_t *entWhoHit;
-	unsigned int timeHit;
-	unsigned int damageDealt;
+	int timeHit;
+	int damageDealt;
 } entityHitRecord_t;
-
-typedef struct {
-	entityHitRecord_t *hitRecords;
-	unsigned int numRecords;
-	unsigned int memAllocated;
-} assistStructure_t;
 
 #ifdef _GAME
 class TreasureClass;
-extern std::unordered_map<std::string, TreasureClass*> mTreasureRegistry;
 #endif
 
 //============================================================================
@@ -464,17 +457,16 @@ struct gentity_s {
 	int			grenadeWeapon;		// The cookable grenade type that has been set (it can explode in your pocket).
 	int			grenadeVariation;	// The cookable grenade variation that has been set (it can explode in your pocket).
 
+	char		treasureclass[MAX_QPATH];
+
 	// For scripted NPCs
 	char		*npcscript;
 
-	inv_t *inventory;
 	gentity_t  *currentLooter;
 	gentity_t  *currentlyLooting;
 	qboolean	isAtWorkbench;	//nw
-	vendorStruct_t vendorData;
 	const char* szTreasureClass;			// Used on death
 	const char* szVendorTreasureClass;		// Used for vendor stock
-	assistStructure_t	assistData;			// keeps a record of who hit us in this life
 
 	// For NPC waypoint following..
 	int			wpCurrent;
@@ -508,6 +500,14 @@ struct gentity_s {
 	int			next_kick_time;
 
 	qboolean	bVendor;
+
+	/////////////////////////////////////////
+	// 
+	// EVERYTHING ABOVE THIS POINT MUST BE POD
+	//
+	/////////////////////////////////////////
+	std::vector<itemInstance_t>* inventory;
+	std::vector<entityHitRecord_t>* assists;
 };
 
 //used for objective dependancy stuff
@@ -517,11 +517,7 @@ struct gentity_s {
 #define		MAX_OBJECTIVEDEPENDANCY	6
 
 //TAB bot orders/tactical options
-#ifndef __linux__
-typedef enum {
-#else
-enum {
-#endif
+typedef enum botOrder_e {
 	BOTORDER_NONE,  //no order
 	BOTORDER_KNEELBEFOREZOD,  //Kneel before the ordered person
 	BOTORDER_SEARCHANDDESTROY,	//Attack mode.  If given an entity the bot will search for
@@ -536,14 +532,9 @@ enum {
 	BOTORDER_SIEGECLASS_DEMOLITIONIST,
 	BOTORDER_SIEGECLASS_HEAVY_WEAPONS,
 	BOTORDER_MAX
-};
+} botOrder_t;
 
-#ifndef __linux__
-typedef enum {
-#else
-enum {
-#endif
-//[/Linux]
+typedef enum objectiveType_e {
 	OT_NONE,	//no OT selected or bad OT
 	OT_ATTACK,	//Attack this objective, for destroyable stationary objectives
 	OT_DEFEND,  //Defend this objective, for destroyable stationary objectives 
@@ -554,7 +545,7 @@ enum {
 	OT_VEHICLE,  //get this vehicle to the related trigger_once.
 	OT_WAIT		//This is used by the bots to while they are waiting for a vehicle to respawn
 	
-};
+} objectiveType_t;
 
 #define DAMAGEREDIRECT_HEAD		1
 #define DAMAGEREDIRECT_RLEG		2
@@ -627,7 +618,7 @@ typedef struct clientSession_s {
 #define PSG_TEAMVOTED			(1<<1)		// already cast a team vote
 
 //
-#define MAX_NETNAME			36
+#define MAX_NETNAME			36				//--futuza:  making this bigger Max_QPATH size?
 #define	MAX_VOTE_COUNT		3
 
 // client data that stays across multiple respawns, but is cleared
@@ -750,12 +741,6 @@ typedef struct renderInfo_s
 //EEZSTREET EDIT: STAT STRUCTURE
 struct statData_s
 {
-	//"Fake" stats
-	//char		*ACISave[MAX_ACI_SLOTS];	//Never access this directly, except for saving/loading procedures.
-	int			ACISlots[MAX_ACI_SLOTS];	//Use this for weapon code. If slot is used, then
-	                                        // it contains the internal weapon index of the weapon in said slot.
-	int         aciSlotsUsed;               // Bitfield of slots used
-
 	//"Real" stats
 	int			weight;
 };
@@ -782,8 +767,6 @@ struct gclient_s {
 
 	saberInfo_t	saber[MAX_SABERS];
 	void		*weaponGhoul2[MAX_SABERS];
-
-	int			tossableItemDebounce;
 
 	int			bodyGrabTime;
 	int			bodyGrabIndex;
@@ -884,8 +867,6 @@ struct gclient_s {
 	qboolean	noCorpse; //don't leave a corpse on respawn this time.
 
 	int			jetPackTime;
-
-	qboolean	jetPackOn;
 	int			jetPackToggleTime;
 	int			jetPackDebRecharge;
 	int			jetPackDebReduce;
@@ -1032,7 +1013,12 @@ struct gclient_s {
 	struct statData_s	coreStats;
 	int			deathLootIndex;
 	int			pickPocketLootIndex;
-	int			armorItems[ARMSLOT_MAX];
+	qboolean	shieldEquipped;
+	int			shieldRechargeTime;
+	int			shieldRegenTime;
+	int			shieldRechargeLast;
+	int			shieldRegenLast;
+	itemJetpackData_t* pItemJetpack;
 
 	int		ammoTable[JKG_MAX_AMMO_INDICES];				// Max ammo indices increased to JKG_MAX_AMMO_INDICES
 
@@ -1052,16 +1038,14 @@ struct gclient_s {
 	int saberAttackSequence;				// FIXME: not used? --eez
 	int saberSaberBlockDebounce;
 
-#ifndef __MMO__
 	unsigned int numKillsThisLife;			// Killstreaks!
-#endif
 
 	char		botSoundDir[MAX_QPATH];
 	float		blockingLightningAccumulation;//Stoiss add
 	qboolean	didSaberOffSound;				// eez add
 	float		ironsightsBlend;			// only used in ~1 place, but it's used to prevent noscoping
 
-	gentity_t	*currentVendor;
+	gentity_t	*currentTrader;				// who we are currently trading with
 };
 
 //Interest points
@@ -1265,7 +1249,6 @@ typedef struct level_locals_s {
 	int				serverInit;
 	char			party[MAX_CLIENTS][5];
 	teamPartyList_t	partyList[MAX_CLIENTS];
-	int vendors[32];							//List of vendors on the server
 
 	struct {
 		fileHandle_t	log;
@@ -1348,11 +1331,11 @@ void BroadcastTeamChange( gclient_t *client, int oldTeam );
 void SetTeam( gentity_t *ent, char *s );
 void Cmd_FollowCycle_f( gentity_t *ent, int dir );
 void Cmd_SaberAttackCycle_f(gentity_t *ent);
-int G_ItemUsable(playerState_t *ps, int forcedUse);
 void Cmd_ToggleSaber_f(gentity_t *ent);
 void Cmd_EngageDuel_f(gentity_t *ent);
 void G_LeaveVehicle( gentity_t *ent, qboolean ConCheck );
 void SanitizeString2( char *in, char *out );
+void Cmd_Reload_f(gentity_t *ent);
 
 void JKG_BindChatCommands( void );
 void CCmd_Cleanup();
@@ -1360,21 +1343,10 @@ void CCmd_Cleanup();
 //
 // g_items.c
 //
-void ItemUse_Binoculars(gentity_t *ent);
-void ItemUse_Shield(gentity_t *ent);
-void ItemUse_Sentry(gentity_t *ent);
 
 void Jetpack_Off(gentity_t *ent);
 void Jetpack_On(gentity_t *ent);
 void ItemUse_Jetpack(gentity_t *ent);
-void ItemUse_UseCloak( gentity_t *ent );
-void ItemUse_UseDisp(gentity_t *ent, int type);
-void ItemUse_UseEWeb(gentity_t *ent);
-void G_PrecacheDispensers(void);
-
-void ItemUse_Seeker(gentity_t *ent);
-void ItemUse_MedPack(gentity_t *ent);
-void ItemUse_MedPack_Big(gentity_t *ent);
 
 void G_CheckTeamItems( void );
 void G_RunItem( gentity_t *ent );
@@ -1619,6 +1591,7 @@ gentity_t *SelectSpawnPoint ( vec3_t avoidPoint, vec3_t origin, vec3_t angles, t
 void MaintainBodyQueue(gentity_t *ent);
 void JKG_PermaSpectate(gentity_t *ent);
 void respawn (gentity_t *ent);
+qboolean JKG_ClientAlive(gentity_t* ent);
 void ClientRespawn (gentity_t *ent);
 void BeginIntermission (void);
 void InitBodyQue (void);
@@ -1701,10 +1674,10 @@ void Svcmd_GameMem_f( void );
 //
 // g_session.c
 //
-void G_ReadSessionData( gclient_t *client );
-void G_InitSessionData( gclient_t *client, char *userinfo, qboolean isBot );
-
-void G_InitWorldSession( void );
+void G_ReadClientSessionData( gclient_t *client );
+void G_WriteClientSessionData( const gclient_t *client );
+void G_InitClientSessionData( gclient_t *client, char *userinfo, qboolean isBot );
+void G_ReadSessionData( void );
 void G_WriteSessionData( void );
 
 // NPC_spawn.cpp
@@ -1861,6 +1834,15 @@ typedef enum userinfoValidationBits_e {
 } userinfoValidationBits_t;
 
 /**************************************************
+* jkg_equip.cpp
+**************************************************/
+
+void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound);
+void JKG_ShieldUnequipped(gentity_t* ent);
+void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber);
+void JKG_JetpackUnequipped(gentity_t* ent);
+
+/**************************************************
 * jkg_team.c
 **************************************************/
 
@@ -1894,11 +1876,16 @@ void G_RegisterCvars( void );
 void G_UpdateCvars( void );
 
 /**************************************************
-* jkg_items.c
+* jkg_vendor.cpp
 **************************************************/
 void JKG_SP_target_vendor(gentity_t *ent);
-void JKG_Vendor_Buy(gentity_t *ent, gentity_t *targetVendor, int item);
-void JKG_CheckVendorReplenish(void);
+void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activator);
+
+/**************************************************
+* jkg_treasureclass.cpp
+**************************************************/
+void JKG_TC_Init(const char* szTCDirectory);
+void JKG_TC_Shutdown();
 
 /**************************************************
 * jkg_astar.cpp - New A* Routing Implementation.
@@ -1913,12 +1900,8 @@ void NPC_ClearLookTarget( gentity_t *self );
 
 // Refactored included functions
 void SetTeamQuick(gentity_t *ent, int team, qboolean doBegin);
-void JKG_Easy_DIMA_Init(inv_t *inventory);
 void JKG_CBB_SendAll(int client);
 void JKG_PlayerIsolationClear(int client);
-void JKG_A_GiveEntItem( unsigned int itemIndex, int qualityOverride, inv_t *inventory, gclient_t *owner );
-void JKG_A_GiveEntItemForcedToACI( unsigned int itemIndex, int qualityOverride, inv_t *inventory, gclient_t *owner, unsigned int ACIslot );
-void JKG_A_RollItem( unsigned int itemIndex, int qualityOverride, inv_t *inventory );
 #endif
 
 extern gameImport_t *trap;

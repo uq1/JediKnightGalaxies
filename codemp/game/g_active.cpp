@@ -149,9 +149,6 @@ Check for lava / slime contents and drowning
 =============
 */
 void P_WorldEffects( gentity_t *ent ) {
-#ifdef BASE_COMPAT
-	qboolean	envirosuit = qfalse;
-#endif
 	int			waterlevel;
 
 	if ( ent->client->noclip ) {
@@ -161,20 +158,10 @@ void P_WorldEffects( gentity_t *ent ) {
 
 	waterlevel = ent->waterlevel;
 
-	#ifdef BASE_COMPAT
-		envirosuit = ent->client->ps.powerups[PW_BATTLESUIT] > level.time;
-	#endif // BASE_COMPAT
-
 	//
 	// check for drowning
 	//
 	if ( waterlevel == 3 ) {
-		#ifdef BASE_COMPAT
-			// envirosuit give air
-			if ( envirosuit )
-				ent->client->airOutTime = level.time + 10000;
-		#endif // BASE_COMPAT
-
 		// if out of air, start drowning
 		if ( ent->client->airOutTime < level.time) {
 			// drown!
@@ -213,18 +200,11 @@ void P_WorldEffects( gentity_t *ent ) {
 	{
 		if ( ent->health > 0 && ent->pain_debounce_time <= level.time )
 		{
-		#ifdef BASE_COMPAT
-			if ( envirosuit )
-				G_AddEvent( ent, EV_POWERUP_BATTLESUIT, 0 );
-			else
-		#endif
-			{
-				if ( ent->watertype & CONTENTS_LAVA )
-					G_Damage( ent, NULL, NULL, NULL, NULL, 30*waterlevel, 0, MOD_LAVA );
+			if ( ent->watertype & CONTENTS_LAVA )
+				G_Damage( ent, NULL, NULL, NULL, NULL, 30*waterlevel, 0, MOD_LAVA );
 
-				if ( ent->watertype & CONTENTS_SLIME )
-					G_Damage( ent, NULL, NULL, NULL, NULL, 10*waterlevel, 0, MOD_SLIME );
-			}
+			if ( ent->watertype & CONTENTS_SLIME )
+				G_Damage( ent, NULL, NULL, NULL, NULL, 10*waterlevel, 0, MOD_SLIME );
 		}
 	}
 }
@@ -856,8 +836,8 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 		}
 
 		// count down armor when over max
-		if ( client->ps.stats[STAT_ARMOR] > client->ps.stats[STAT_MAX_ARMOR] ) {
-			client->ps.stats[STAT_ARMOR]--;
+		if ( client->ps.stats[STAT_SHIELD] > client->ps.stats[STAT_MAX_SHIELD] ) {
+			client->ps.stats[STAT_SHIELD]--;
 		}
 	}
 
@@ -888,7 +868,7 @@ void ClientIntermissionThink( gclient_t *client ) {
 	// swap and latch button actions
 	client->oldbuttons = client->buttons;
 	client->buttons = client->pers.cmd.buttons;
-	if ( client->buttons & ( BUTTON_ATTACK | BUTTON_USE_HOLDABLE ) & ( client->oldbuttons ^ client->buttons ) ) {
+	if ( client->buttons & BUTTON_ATTACK & ( client->oldbuttons ^ client->buttons ) ) {
 		// this used to be an ^1 but once a player says ready, it should stick
 		client->readyToExit = qtrue;
 	}
@@ -1076,41 +1056,6 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 			ent->client->invulnerableTimer = 0;
 			break;
 
-		//rww - Note that these must be in the same order (ITEM#-wise) as they are in holdable_t
-		case EV_USE_ITEM1: //seeker droid
-			ItemUse_Seeker(ent);
-			break;
-		case EV_USE_ITEM2: //shield
-			ItemUse_Shield(ent);
-			break;
-		case EV_USE_ITEM3: //medpack
-			ItemUse_MedPack(ent);
-			break;
-		case EV_USE_ITEM4: //big medpack
-			ItemUse_MedPack_Big(ent);
-			break;
-		case EV_USE_ITEM5: //binoculars
-			ItemUse_Binoculars(ent);
-			break;
-		case EV_USE_ITEM6: //sentry gun
-			ItemUse_Sentry(ent);
-			break;
-		case EV_USE_ITEM7: //jetpack
-			ItemUse_Jetpack(ent);
-			break;
-		case EV_USE_ITEM8: //health disp
-			//ItemUse_UseDisp(ent, HI_HEALTHDISP);
-			break;
-		case EV_USE_ITEM9: //ammo disp
-			//ItemUse_UseDisp(ent, HI_AMMODISP);
-			break;
-		case EV_USE_ITEM10: //eweb
-			ItemUse_UseEWeb(ent);
-			break;
-		case EV_USE_ITEM11: //cloak
-			ItemUse_UseCloak(ent);
-			break;
-
 		case EV_CHANGE_WEAPON:
 		{
 			ent->client->pers.partyUpdate = qtrue;
@@ -1278,8 +1223,6 @@ void SendPendingPredictableEvents( playerState_t *ps ) {
 	}
 }
 
-static const float maxJediMasterDistance = 2500.0f * 2500.0f; // x^2, optimisation
-static const float maxJediMasterFOV = 100.0f;
 static const float maxForceSightDistance = Square( 1500.0f ) * 1500.0f; // x^2, optimisation
 static const float maxForceSightFOV = 100.0f;
 
@@ -1385,10 +1328,6 @@ qboolean G_ActionButtonPressed(int buttons)
 	{
 		return qtrue;
 	}
-	else if (buttons & BUTTON_USE_HOLDABLE)
-	{
-		return qtrue;
-	}
 	else if (buttons & BUTTON_GESTURE)
 	{
 		return qtrue;
@@ -1441,7 +1380,7 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 	if ( !VectorCompare( vec3_origin, ent->client->ps.velocity ) 
 		|| actionPressed || ucmd->forwardmove || ucmd->rightmove || ucmd->upmove 
 		|| !G_StandingAnim( ent->client->ps.legsAnim ) 
-		|| (ent->health+ent->client->ps.stats[STAT_ARMOR]) != ent->client->idleHealth
+		|| (ent->health+ent->client->ps.stats[STAT_SHIELD]) != ent->client->idleHealth
 		|| VectorLength(viewChange) > 10
 		|| ent->client->ps.legsTimer > 0
 		|| ent->client->ps.torsoTimer > 0
@@ -1460,7 +1399,7 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 
 		if ( !VectorCompare( vec3_origin, ent->client->ps.velocity ) 
 			|| actionPressed || ucmd->forwardmove || ucmd->rightmove || ucmd->upmove 
-			|| (ent->health+ent->client->ps.stats[STAT_ARMOR]) != ent->client->idleHealth
+			|| (ent->health+ent->client->ps.stats[STAT_SHIELD]) != ent->client->idleHealth
 			|| ent->client->ps.zoomMode
 			|| (ent->client->ps.weaponstate != WEAPON_READY && ent->client->ps.weapon != WP_SABER)
 			|| (ent->client->ps.weaponTime > 0 && ent->client->ps.weapon == WP_SABER)
@@ -1499,7 +1438,7 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 			}
 		}
 		//
-		ent->client->idleHealth = (ent->health+ent->client->ps.stats[STAT_ARMOR]);
+		ent->client->idleHealth = (ent->health+ent->client->ps.stats[STAT_SHIELD]);
 		VectorCopy(ent->client->ps.viewangles, ent->client->idleViewAngles);
 		if ( ent->client->idleTime < level.time )
 		{
@@ -1813,9 +1752,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 			{
 				anim = ent->client->saber[0].tauntAnim;
 			}
-			else if ( ent->client->saber[1].model 
-					&& ent->client->saber[1].model[0]
-					&& ent->client->saber[1].tauntAnim != -1 )
+			else if ( ent->client->saber[1].model[0] &&
+					ent->client->saber[1].tauntAnim != -1 )
 			{
 				anim = ent->client->saber[1].tauntAnim;
 			}
@@ -1825,9 +1763,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 				{
 				case SS_MAKASHI:
 				case SS_JUYO:
-					if ( ent->client->ps.saberHolstered == 1 
-						&& ent->client->saber[1].model 
-						&& ent->client->saber[1].model[0] )
+					if ( ent->client->ps.saberHolstered == 1 &&
+							ent->client->saber[1].model[0] )
 					{//turn off second saber
 						G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOff );
 					}
@@ -1844,9 +1781,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 					anim = BOTH_ENGAGETAUNT;
 					break;
 				case SS_DUAL:
-					if ( ent->client->ps.saberHolstered == 1 
-						&& ent->client->saber[1].model 
-						&& ent->client->saber[1].model[0] )
+					if ( ent->client->ps.saberHolstered == 1 &&
+							ent->client->saber[1].model[0] )
 					{//turn on second saber
 						G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOn );
 					}
@@ -1873,9 +1809,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 			{
 				anim = ent->client->saber[0].bowAnim;
 			}
-			else if ( ent->client->saber[1].model 
-					&& ent->client->saber[1].model[0]
-					&& ent->client->saber[1].bowAnim != -1 )
+			else if ( ent->client->saber[1].model[0] &&
+					ent->client->saber[1].bowAnim != -1 )
 			{
 				anim = ent->client->saber[1].bowAnim;
 			}
@@ -1883,9 +1818,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 			{
 				anim = BOTH_BOW;
 			}
-			if ( ent->client->ps.saberHolstered == 1 
-				&& ent->client->saber[1].model 
-				&& ent->client->saber[1].model[0] )
+			if ( ent->client->ps.saberHolstered == 1 &&
+					ent->client->saber[1].model[0] )
 			{//turn off second saber
 				G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOff );
 			}
@@ -1900,9 +1834,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 			{
 				anim = ent->client->saber[0].meditateAnim;
 			}
-			else if ( ent->client->saber[1].model 
-					&& ent->client->saber[1].model[0]
-					&& ent->client->saber[1].meditateAnim != -1 )
+			else if ( ent->client->saber[1].model[0] &&
+					ent->client->saber[1].meditateAnim != -1 )
 			{
 				anim = ent->client->saber[1].meditateAnim;
 			}
@@ -1912,9 +1845,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 			}
 			// Jedi Knight Galaxies, Fix sound bug
 			if (ent->client->ps.weapon == WP_SABER) {
-				if ( ent->client->ps.saberHolstered == 1 
-					&& ent->client->saber[1].model 
-					&& ent->client->saber[1].model[0] )
+				if ( ent->client->ps.saberHolstered == 1 &&
+						ent->client->saber[1].model[0] )
 				{//turn off second saber
 					G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOff );
 				}
@@ -1928,9 +1860,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 		case TAUNT_FLOURISH:
 			if ( ent->client->ps.weapon == WP_SABER )
 			{
-				if ( ent->client->ps.saberHolstered == 1 
-					&& ent->client->saber[1].model 
-					&& ent->client->saber[1].model[0] )
+				if ( ent->client->ps.saberHolstered == 1 &&
+						ent->client->saber[1].model[0] )
 				{//turn on second saber
 					G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOn );
 				}
@@ -1943,9 +1874,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 				{
 					anim = ent->client->saber[0].flourishAnim;
 				}
-				else if ( ent->client->saber[1].model 
-					&& ent->client->saber[1].model[0]
-					&& ent->client->saber[1].flourishAnim != -1 )
+				else if ( ent->client->saber[1].model[0] &&
+						ent->client->saber[1].flourishAnim != -1 )
 				{
 					anim = ent->client->saber[1].flourishAnim;
 				}
@@ -1979,9 +1909,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 			{
 				anim = ent->client->saber[0].gloatAnim;
 			}
-			else if ( ent->client->saber[1].model 
-					&& ent->client->saber[1].model[0]
-					&& ent->client->saber[1].gloatAnim != -1 )
+			else if ( ent->client->saber[1].model[0] &&
+					ent->client->saber[1].gloatAnim != -1 )
 			{
 				anim = ent->client->saber[1].gloatAnim;
 			}
@@ -2006,9 +1935,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 					anim = BOTH_VICTORY_STRONG;
 					break;
 				case SS_DUAL:
-					if ( ent->client->ps.saberHolstered == 1 
-						&& ent->client->saber[1].model 
-						&& ent->client->saber[1].model[0] )
+					if ( ent->client->ps.saberHolstered == 1 &&
+							ent->client->saber[1].model[0] )
 					{//turn on second saber
 						G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOn );
 					}
@@ -2067,19 +1995,38 @@ gentity_t *currentPMEnt = 0;
 // Call this BEFORE ps.weapon changes!
 void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation) {
 	gentity_t *ent = currentPMEnt;
-	
-	// Store the current ammo amount
-	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation ) != -1 )
-	{
-		ent->client->clipammo[BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation)] = ent->client->ps.stats[STAT_AMMO];
-		ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)] = ent->client->ps.ammo;
+	usercmd_t cmd;
+	weaponData_t* newWeapon = GetWeaponData(newweapon, newvariation);
+	weaponData_t* oldWeapon = GetWeaponData(ps->weapon, ps->weaponVariation);
+
+	trap->GetUsercmd(ps->clientNum, &cmd);
+
+	// Determine whether our new weapon is valid.
+	int selectedWeapon = cmd.invensel;
+	if (selectedWeapon >= ent->inventory->size() || selectedWeapon < 0) {
+		Com_Printf("Client %i selected inventory item %i (their inventory is only size %i!!)\n", ps->clientNum, selectedWeapon, ent->inventory->size());
+		return;
 	}
 
-	// Get the new weapon's ammo stored in STAT_AMMO
-	if ( GetWeaponAmmoClip( newweapon, newvariation ) != -1 )
+	// Store the current ammo amount
+	if ( !oldWeapon->firemodes[0].useQuantity && oldWeapon->clipSize != -1 )
 	{
+		ent->client->clipammo[BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation)] = ent->client->ps.stats[STAT_AMMO];
+		ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)] = ent->client->ps.stats[STAT_TOTALAMMO];
+	}
+
+	if ( !newWeapon->firemodes[0].useQuantity && newWeapon->clipSize != -1 )
+	{
+		// Get the new weapon's ammo stored in STAT_AMMO
 		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndexFromClass(newweapon, newvariation) ];
-		ent->client->ps.ammo = ent->client->ammoTable[GetWeaponAmmoIndex(newweapon, newvariation)];
+		ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(newweapon, newvariation)];
+	}
+	else if (newWeapon->firemodes[0].useQuantity) {
+		// Get the weapon's ammo from the actual item's quantity
+		itemInstance_t* item = &(*ent->inventory)[selectedWeapon];
+
+		ent->client->ps.stats[STAT_AMMO] = item->quantity;
+		ent->client->ps.stats[STAT_TOTALAMMO] = item->quantity;
 	}
 }
 
@@ -2106,7 +2053,6 @@ void ClientThink_real( gentity_t *ent ) {
 	usercmd_t	*ucmd;
 	qboolean	isNPC = qfalse;
 	qboolean	controlledByPlayer = qfalse;
-	qboolean	killJetFlags = qtrue;
 	int i;
 
 	client = ent->client;
@@ -2189,6 +2135,45 @@ void ClientThink_real( gentity_t *ent ) {
 		//client->ns.saberMoveSwingSpeed = SaberStances[client->ps.fd.saberAnimLevel].moves[client->ps.saberMove].animspeedscale;
 	}
 
+	// Automatically regenerate health and shield
+	if (jkg_healthRegen.value > 0 && JKG_ClientAlive(ent)) {
+		if (ent->lastHealTime < level.time && (ent->damagePlumTime + jkg_healthRegenDelay.value) < level.time)
+		{
+			int maxHealth = ent->client->ps.stats[STAT_MAX_HEALTH];
+			int pctage = (maxHealth < 100) ? jkg_healthRegen.value : (maxHealth / 100) * jkg_healthRegen.value;		// Add 1% (of 1 HP, whichever is higher)
+			ent->health = ent->client->ps.stats[STAT_HEALTH] = (((ent->health + pctage) > maxHealth) ? maxHealth : ent->health + pctage);
+			ent->lastHealTime = level.time + jkg_healthRegenSpeed.value;
+		}
+	}
+
+	if (ent->client->shieldEquipped && ent->client->ps.stats[STAT_SHIELD] < ent->client->ps.stats[STAT_MAX_SHIELD] && JKG_ClientAlive(ent)) {
+		if (ent->client->shieldRechargeLast + ent->client->shieldRechargeTime < level.time) {
+			if (ent->client->shieldRegenLast + ent->client->shieldRegenTime < level.time) {
+				ent->client->ps.stats[STAT_SHIELD]++;
+				ent->client->shieldRegenLast = level.time + ent->client->shieldRegenTime;
+			}
+
+			if (ent->client->shieldRechargeLast + ent->client->shieldRechargeTime >= level.previousTime) {
+				// In the previous frame, our shield was not recharging
+
+				// Play the sound effect for the shield recharging, if one exists
+				for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+					if (it->equipped && it->id->itemType == ITEM_SHIELD) {
+						if (it->id->shieldData.rechargeSoundEffect[0]) {
+							G_Sound(ent, CHAN_AUTO, G_SoundIndex(it->id->shieldData.rechargeSoundEffect));
+
+							// Play the effect for shield recharging
+							gentity_t* evEnt;
+							evEnt = G_TempEntity(ent->r.currentOrigin, EV_SHIELD_RECHARGE);
+							evEnt->s.otherEntityNum = ent->s.number;
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+
 	// mark the time, so the connection sprite can be removed
 	ucmd = &ent->client->pers.cmd;
 
@@ -2262,7 +2247,7 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 		SpectatorThink( ent, ucmd );
 		if (client->deathcamTime && level.time > client->deathcamTime) {
-			if ( ucmd->buttons & ( BUTTON_ATTACK | BUTTON_USE_HOLDABLE ) || client->deathcamForceRespawn) {
+			if ( ucmd->buttons & BUTTON_ATTACK || client->deathcamForceRespawn) {
 				respawn( ent );
 			}
 		}
@@ -2296,57 +2281,35 @@ void ClientThink_real( gentity_t *ent ) {
 		client->ps.eFlags &= ~EF_BODYPUSH;
 	}
 
-	if (client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_JETPACK))
-	{
-		client->ps.eFlags |= EF_JETPACK;
-	}
-	else
-	{
-		client->ps.eFlags &= ~EF_JETPACK;
-	}
 
-
-	// JKG - Implement no-move
+	// Set our pmove type
 	if (client->pmnomove) {
 		client->ps.pm_type = PM_NOMOVE;
-	} else if (client->pmfreeze) { // JKG - Implement freeze and lock
+	}
+	else if (client->pmlock) {
+		client->ps.pm_type = PM_LOCK;
+	}
+	else if (client->pmfreeze) {
 		ent->s.eFlags |= EF_FROZEN;
-		if (client->pmlock) {
-			client->ps.pm_type = PM_LOCK;
-		} else {
-			client->ps.pm_type = PM_FREEZE;
-		}
-	} else {
-		if ( client->noclip ) {
-			client->ps.pm_type = PM_NOCLIP;
-		} else if ( client->ps.eFlags & EF_DISINTEGRATION ) {
-			client->ps.pm_type = PM_NOCLIP;
-		} else if ( client->ps.stats[STAT_HEALTH] <= 0 ) {
-			client->ps.pm_type = PM_DEAD;
-		} else {
-			if (client->ps.forceGripChangeMovetype)
-			{
-				client->ps.pm_type = client->ps.forceGripChangeMovetype;
-			}
-			else
-			{
-				if (client->jetPackOn)
-				{
-					client->ps.pm_type = PM_JETPACK;
-					client->ps.eFlags |= EF_JETPACK_ACTIVE;
-					killJetFlags = qfalse;
-				}
-				else
-				{
-					client->ps.pm_type = PM_NORMAL;
-				}		
-			}
-		}
+		client->ps.pm_type = PM_FREEZE;
+	}
+	else if (client->noclip || client->ps.eFlags & EF_DISINTEGRATION) {
+		client->ps.pm_type = PM_NOCLIP;
+	}
+	else if (client->ps.stats[STAT_HEALTH] <= 0) {
+		client->ps.pm_type = PM_DEAD;
+	}
+	else if (client->ps.forceGripChangeMovetype) {
+		client->ps.pm_type = client->ps.forceGripChangeMovetype;
+	}
+	else if (client->ps.eFlags & EF_JETPACK_ACTIVE) {
+		client->ps.pm_type = PM_JETPACK;
+	}
+	else {
+		client->ps.pm_type = PM_NORMAL;
 	}
 
-	if (killJetFlags)
-	{
-		client->ps.eFlags &= ~EF_JETPACK_ACTIVE;
+	if (!(client->ps.eFlags & EF_JETPACK_ACTIVE)) {
 		client->ps.eFlags &= ~EF_JETPACK_FLAMING;
 	}
 
@@ -2578,12 +2541,6 @@ void ClientThink_real( gentity_t *ent ) {
 		if (client->bodyGrabIndex != ENTITYNUM_NONE)
 		{ //can't go nearly as fast when dragging a body around
 			client->ps.speed *= 0.2f;
-		}
-		
-		client->ps.speed *= GetWeaponData (client->ps.weapon, client->ps.weaponVariation)->speedModifier;
-		if ( client->ps.weaponstate == WEAPON_RELOADING && client->ps.weaponTime > 0 )
-		{
-		    client->ps.speed *= GetWeaponData (client->ps.weapon, client->ps.weaponVariation)->reloadModifier;
 		}
 
 		client->ps.basespeed = client->ps.speed;
@@ -3237,8 +3194,7 @@ void ClientThink_real( gentity_t *ent ) {
 						lockHits -= 1;
 					}
 					lockHits += ent->client->saber[0].lockBonus;
-					if ( ent->client->saber[1].model
-						&& ent->client->saber[1].model[0]
+					if ( ent->client->saber[1].model[0]
 						&& !ent->client->ps.saberHolstered )
 					{
 						lockHits += ent->client->saber[1].lockBonus;
@@ -3303,12 +3259,20 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 	}
 
-	// Since PM cant access clipammo, we'll put it in STAT_AMMO
-	// PM will do its changes in there and afterwards we'll fetch the updated value
-	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation ))
-	{
-		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation) ];
-		ent->client->ps.ammo = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+	// Copy the ammo from the client ammo table into their networked stat
+	weaponData_t* weaponData = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation);
+	int inventoryItem = pmove.cmd.invensel;
+	if (inventoryItem > 0 && inventoryItem < ent->inventory->size()) {
+		// If we're using a weapon that uses stack quantity instead of ammo for its firing mode, we need to copy the quantity to the ammo
+		if (weaponData->numFiringModes > 0 && weaponData->firemodes[0].useQuantity) {
+			itemInstance_t* item = &(*ent->inventory)[inventoryItem];
+			ent->client->ps.stats[STAT_AMMO] = item->quantity;
+			ent->client->ps.stats[STAT_TOTALAMMO] = item->quantity;
+		}
+		else if (weaponData->clipSize) {
+			ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+		}
 	}
 
 	/* JKG - When a cooked grenade should explode in your hand.. */
@@ -3347,7 +3311,7 @@ void ClientThink_real( gentity_t *ent ) {
 		{
 			ent->client->clipammo[BG_GetWeaponIndex( ent->s.weapon, ent->s.weaponVariation )] -= 1;
 		}
-		ent->client->ps.ammo -= 1;
+		ent->client->ps.stats[STAT_TOTALAMMO] -= 1;
 		ent->client->ammoTable[GetWeaponAmmoIndex( ent->s.weapon, ent->s.weaponVariation )] -= 1;
 
 		/* Return the correct weapon and variation for the client */
@@ -3468,126 +3432,10 @@ void ClientThink_real( gentity_t *ent ) {
 				Cmd_EngageDuel_f(ent);
 			}
 			break;
-		case GENCMD_USE_SEEKER:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_SEEKER)) &&
-				G_ItemUsable(&ent->client->ps, HI_SEEKER) )
-			{
-				ItemUse_Seeker(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_SEEKER, 0);
-				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_SEEKER);
-			}
-			break;
-		case GENCMD_USE_FIELD:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_SHIELD)) &&
-				G_ItemUsable(&ent->client->ps, HI_SHIELD) )
-			{
-				ItemUse_Shield(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_SHIELD, 0);
-				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_SHIELD);
-			}
-			break;
-		case GENCMD_USE_BACTA:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_MEDPAC)) &&
-				G_ItemUsable(&ent->client->ps, HI_MEDPAC) )
-			{
-				ItemUse_MedPack(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_MEDPAC, 0);
-				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_MEDPAC);
-			}
-			break;
-		case GENCMD_USE_BACTABIG:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_MEDPAC_BIG)) &&
-				G_ItemUsable(&ent->client->ps, HI_MEDPAC_BIG) )
-			{
-				ItemUse_MedPack_Big(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_MEDPAC_BIG, 0);
-				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_MEDPAC_BIG);
-			}
-			break;
-		case GENCMD_USE_ELECTROBINOCULARS:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_BINOCULARS)) &&
-				G_ItemUsable(&ent->client->ps, HI_BINOCULARS) )
-			{
-				ItemUse_Binoculars(ent);
-				if (ent->client->ps.zoomMode == 0)
-				{
-					G_AddEvent(ent, EV_USE_ITEM0+HI_BINOCULARS, 1);
-				}
-				else
-				{
-					G_AddEvent(ent, EV_USE_ITEM0+HI_BINOCULARS, 2);
-				}
-			}
+		case GENCMD_RELOAD:
+			Cmd_Reload_f(ent);
 			break;
 		case GENCMD_ZOOM:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_BINOCULARS)) &&
-				G_ItemUsable(&ent->client->ps, HI_BINOCULARS) )
-			{
-				ItemUse_Binoculars(ent);
-				if (ent->client->ps.zoomMode == 0)
-				{
-					G_AddEvent(ent, EV_USE_ITEM0+HI_BINOCULARS, 1);
-				}
-				else
-				{
-					G_AddEvent(ent, EV_USE_ITEM0+HI_BINOCULARS, 2);
-				}
-			}
-			break;
-		case GENCMD_USE_SENTRY:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_SENTRY_GUN)) &&
-				G_ItemUsable(&ent->client->ps, HI_SENTRY_GUN) )
-			{
-				ItemUse_Sentry(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_SENTRY_GUN, 0);
-				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_SENTRY_GUN);
-			}
-			break;
-		case GENCMD_USE_JETPACK:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_JETPACK)) &&
-				G_ItemUsable(&ent->client->ps, HI_JETPACK) )
-			{
-				ItemUse_Jetpack(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_JETPACK, 0);
-			}
-			break;
-		case GENCMD_USE_HEALTHDISP:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_HEALTHDISP)) &&
-				G_ItemUsable(&ent->client->ps, HI_HEALTHDISP) )
-			{
-				//ItemUse_UseDisp(ent, HI_HEALTHDISP);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_HEALTHDISP, 0);
-			}
-			break;
-		case GENCMD_USE_AMMODISP:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_AMMODISP)) &&
-				G_ItemUsable(&ent->client->ps, HI_AMMODISP) )
-			{
-				//ItemUse_UseDisp(ent, HI_AMMODISP);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_AMMODISP, 0);
-			}
-			break;
-		case GENCMD_USE_EWEB:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_EWEB)) &&
-				G_ItemUsable(&ent->client->ps, HI_EWEB) )
-			{
-				ItemUse_UseEWeb(ent);
-				G_AddEvent(ent, EV_USE_ITEM0+HI_EWEB, 0);
-			}
-			break;
-		case GENCMD_USE_CLOAK:
-			if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_CLOAK)) &&
-				G_ItemUsable(&ent->client->ps, HI_CLOAK) )
-			{
-				if ( ent->client->ps.powerups[PW_CLOAKED] )
-				{//decloak
-					NPC_Humanoid_Decloak( ent );
-				}
-				else
-				{//cloak
-					NPC_Humanoid_Cloak( ent );
-				}
-			}
 			break;
 		case GENCMD_SABERATTACKCYCLE:
 			Cmd_SaberAttackCycle_f(ent);
@@ -4038,6 +3886,10 @@ void ClientEndFrame( gentity_t *ent ) {
 	int			i;
 	clientPersistant_t	*pers;
 	qboolean isNPC = qfalse;
+	usercmd_t clientcmd;
+	int selectedItem;
+
+	trap->GetUsercmd(ent->s.number, &clientcmd);
 
 	if (ent->s.eType == ET_NPC)
 	{
@@ -4095,11 +3947,26 @@ void ClientEndFrame( gentity_t *ent ) {
 	}
 
 	// Jedi Knight Galaxies - Update ammo of current weapon
-	ent->client->ps.ammo = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
-	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation )) {
-		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation) ];
-	} else {
-		ent->client->ps.stats[STAT_AMMO] = ent->client->ps.ammo = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+	selectedItem = clientcmd.invensel;
+	if (selectedItem >= 0 && selectedItem < ent->inventory->size()) {
+		weaponData_t* weaponData = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation);
+
+		if (weaponData->numFiringModes > 0 && weaponData->firemodes[0].useQuantity) {
+			// If useQuantity on the first firing mode is true, then we need to copy from the item stack's quantity
+			itemInstance_t* item = &(*ent->inventory)[selectedItem];
+			ent->client->ps.stats[STAT_TOTALAMMO] = item->quantity;
+			ent->client->ps.stats[STAT_AMMO] = item->quantity;
+		}
+		else {
+			// Use the regular ammo table instead
+			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[weaponData->ammoIndex];
+			if (weaponData->clipSize) {
+				ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[BG_GetWeaponIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+			}
+			else {
+				ent->client->ps.stats[STAT_AMMO] = ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[weaponData->ammoIndex];
+			}
+		}
 	}
 
 	ent->client->ps.stats[STAT_HEALTH] = ent->health;	// FIXME: get rid of ent->health...

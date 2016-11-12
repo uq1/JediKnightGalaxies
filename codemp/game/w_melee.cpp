@@ -6,6 +6,11 @@
 extern void G_GetBoltPosition( gentity_t *self, int boltIndex, vec3_t pos, int modelIndex ); //NPC_utils.c
 
 extern qboolean BG_InKnockDown( int anim );
+
+qboolean G_IsInKnockDown(gentity_t* ent) {
+	return BG_KnockdownAnim(ent->client->ps.legsAnim) || BG_KnockdownAnim(ent->client->ps.torsoAnim);
+}
+
 qboolean G_KickDownable(gentity_t *ent)
 {
 	if (!d_saberKickTweak.integer)
@@ -18,8 +23,7 @@ qboolean G_KickDownable(gentity_t *ent)
 		return qfalse;
 	}
 
-	if (BG_InKnockDown(ent->client->ps.legsAnim) ||
-		BG_InKnockDown(ent->client->ps.torsoAnim))
+	if (G_IsInKnockDown(ent))
 	{
 		return qfalse;
 	}
@@ -67,6 +71,7 @@ gentity_t *G_KickTrace( gentity_t *ent, vec3_t kickDir, float kickDist, vec3_t k
 	vec3_t	traceOrg, traceEnd, kickMins, kickMaxs;
 	trace_t	trace;
 	gentity_t	*hitEnt = NULL;
+
 	VectorSet(kickMins, -2.0f, -2.0f, -2.0f);
 	VectorSet(kickMaxs, 2.0f, 2.0f, 2.0f);
 	//FIXME: variable kick height?
@@ -136,9 +141,9 @@ gentity_t *G_KickTrace( gentity_t *ent, vec3_t kickDir, float kickDist, vec3_t k
 					G_Damage( hitEnt, ent, ent, kickDir, trace.endpos, kickDamage, DAMAGE_NO_KNOCKBACK, MOD_MELEE );
 				}
 			}
-			if ( hitEnt->client 
+			if (hitEnt->client  && hitEnt->takedamage && !(hitEnt->flags & FL_GODMODE)
 				&& !(hitEnt->client->ps.pm_flags&PMF_TIME_KNOCKBACK) //not already flying through air?  Intended to stop multiple hits, but...
-				&& G_CanBeEnemy(ent, hitEnt) )
+				&& G_CanBeEnemy(ent, hitEnt))
 			{//FIXME: this should not always work
 				if ( hitEnt->health <= 0 )
 				{//we kicked a dead guy
@@ -184,6 +189,10 @@ void G_KickSomeMofos(gentity_t *ent)
 	int	  kickPush = flrand( 50.0f, 100.0f );
 	qboolean doKick = qfalse;
 	renderInfo_t *ri = &ent->client->renderInfo;
+
+	if (G_IsInKnockDown(ent)) {
+		return;
+	}
 
 	VectorSet(kickDir, 0.0f, 0.0f, 0.0f);
 	VectorSet(kickEnd, 0.0f, 0.0f, 0.0f);

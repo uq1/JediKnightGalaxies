@@ -120,7 +120,7 @@ DLG.Nodes = {
 		Type = 6,
 		ScriptFunc = function(owner, ply, data)
 			
-				owner:SetAnimBoth("BOTH_TALK2)
+				owner:SetAnimBoth("BOTH_TALK2")
 				owner:SetAnimHoldTime(3, 5000)
 		end,
 		HasCondition = false,

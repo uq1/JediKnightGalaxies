@@ -38,7 +38,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 #include "chars.h"
 #include "inv.h"
-#include "syn.h"
 
 extern void DOM_StandardBotAI(bot_state_t *bs, float thinktime);
 extern int PassLovedOneCheck(bot_state_t *bs, gentity_t *ent);
@@ -366,7 +365,7 @@ void BotInputToUserCommand(bot_input_t *bi, gentity_t *bot, usercmd_t *ucmd, int
 	//if (bi->actionflags & ACTION_ALT_ATTACK) ucmd->buttons |= BUTTON_ALT_ATTACK;
 //	if (bi->actionflags & ACTION_TALK) ucmd->buttons |= BUTTON_TALK;
 	if (bi->actionflags & ACTION_GESTURE) ucmd->buttons |= BUTTON_GESTURE;
-	if (bi->actionflags & ACTION_USE) ucmd->buttons |= BUTTON_USE_HOLDABLE;
+	if (bi->actionflags & ACTION_USE) ucmd->buttons |= BUTTON_UNUSED;
 	if (bi->actionflags & ACTION_WALK) ucmd->buttons |= BUTTON_WALKING;
 
 	if (bi->actionflags & ACTION_FORCEPOWER) ucmd->buttons |= BUTTON_FORCEPOWER;
@@ -684,21 +683,17 @@ int BotAISetupClient(int client, struct bot_settings_s *settings, qboolean resta
 		bs->botWeaponWeights[WP_SABER] = 13;
 	}
 
-#ifndef __MMO__
 	//allocate a goal state
 	bs->gs = trap->BotAllocGoalState(client);
 
 	//allocate a weapon state
 	bs->ws = trap->BotAllocWeaponState();
-#endif //__MMO__
 
 	bs->inuse = qtrue;
 	bs->entitynum = client;
 	bs->setupcount = 4;
 	bs->entergame_time = FloatTime();
-#ifndef __MMO__
 	bs->ms = trap->BotAllocMoveState();
-#endif //__MMO__
 	numbots++;
 
 	//NOTE: reschedule the bot thinking
@@ -726,13 +721,11 @@ int BotAIShutdownClient(int client, qboolean restart) {
 		return qfalse;
 	}
 
-#ifndef __MMO__
 	trap->BotFreeMoveState(bs->ms);
 	//free the goal state`			
 	trap->BotFreeGoalState(bs->gs);
 	//free the weapon weights
 	trap->BotFreeWeaponState(bs->ws);
-#endif //__MMO__
 
 	//
 	//clear the bot state
@@ -755,9 +748,7 @@ when the level is changed
 */
 void BotResetState(bot_state_t *bs) {
 	int client, entitynum, inuse;
-#ifndef __MMO__
 	int movestate, goalstate, weaponstate;
-#endif //__MMO__
 	bot_settings_t settings;
 	playerState_t ps;							//current player state
 	float entergame_time;
@@ -768,34 +759,28 @@ void BotResetState(bot_state_t *bs) {
 	inuse = bs->inuse;
 	client = bs->client;
 	entitynum = bs->entitynum;
-#ifndef __MMO__
 	movestate = bs->ms;
 	goalstate = bs->gs;
 	weaponstate = bs->ws;
-#endif //__MMO__
 	entergame_time = bs->entergame_time;
 	//reset the whole state
 	memset(bs, 0, sizeof(bot_state_t));
 	//copy back some state stuff that should not be reset
-#ifndef __MMO__
 	bs->ms = movestate;
 	bs->gs = goalstate;
 	bs->ws = weaponstate;
-#endif //__MMO__
 	memcpy(&bs->cur_ps, &ps, sizeof(playerState_t));
 	memcpy(&bs->settings, &settings, sizeof(bot_settings_t));
 	bs->inuse = inuse;
 	bs->client = client;
 	bs->entitynum = entitynum;
 	bs->entergame_time = entergame_time;
-#ifndef __MMO__
 	//reset several states
 	if (bs->ms) trap->BotResetMoveState(bs->ms);
 	if (bs->gs) trap->BotResetGoalState(bs->gs);
 	if (bs->ws) trap->BotResetWeaponState(bs->ws);
 	if (bs->gs) trap->BotResetAvoidGoals(bs->gs);
 	if (bs->ms) trap->BotResetAvoidReach(bs->ms);
-#endif //__MMO__
 }
 
 /*
@@ -1327,7 +1312,7 @@ int BotSelectChoiceWeapon(bot_state_t *bs, int weapon, int doselection)
 
 	while (i < WP_NUM_WEAPONS)
 	{
-		if (bs->cur_ps.ammo > GetWeaponData( bs->cur_ps.weapon, bs->cur_ps.weaponVariation )->firemodes[0].cost &&
+		if (bs->cur_ps.stats[STAT_TOTALAMMO] > GetWeaponData(bs->cur_ps.weapon, bs->cur_ps.weaponVariation)->firemodes[0].cost &&
 			i == weapon &&
 			(bs->cur_ps.stats[STAT_WEAPONS] & (1 << i)))
 		{
@@ -1546,7 +1531,6 @@ int BotAIStartFrame(int time) {
 	int i;
 	int elapsed_time, thinktime;
 	static int local_time;
-	static int botlib_residual;
 	static int lastbotthink_time;
 
 	if (gUpdateVars < level.time)

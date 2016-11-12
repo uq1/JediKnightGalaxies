@@ -36,7 +36,6 @@ void			CGVM_Trace					( void );
 void			CGVM_G2Trace				( void );
 void			CGVM_G2Mark					( void );
 int				CGVM_RagCallback			( int callType );
-qboolean		CGVM_IncomingConsoleCommand	( void );
 qboolean		CGVM_NoUseableForce			( void );
 void			CGVM_GetOrigin				( int entID, vec3_t out );
 void			CGVM_GetAngles				( int entID, vec3_t out );
@@ -48,6 +47,7 @@ void			CGVM_AutomapInput			( void );
 void			CGVM_MiscEnt				( void );
 void			CGVM_CameraShake			( void );
 void			CGVM_MessageMode			( int mode );
+qboolean		CGVM_ChatboxOpen			( void );
 
 void CL_BindCGame( void );
 void CL_UnbindCGame( void );

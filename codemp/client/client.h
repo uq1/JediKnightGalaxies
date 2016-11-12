@@ -326,11 +326,12 @@ typedef struct clientStatic_s {
 
 #define	CON_TEXTSIZE	0x30000 //was 32768
 #define	NUM_CON_TIMES	4
+#define MAX_COLOR_CHANGES 99
 
 typedef struct console_s {
 	qboolean	initialized;
 
-	short	text[CON_TEXTSIZE];
+	int32_t	text[CON_TEXTSIZE];
 	int		current;		// line where next message will be printed
 	int		x;				// offset in current line for next print
 	int		display;		// bottom of console displays this line
@@ -405,6 +406,7 @@ extern	cvar_t	*cl_conXOffset;
 extern	cvar_t	*cl_inGameVideo;
 
 extern	cvar_t	*cl_consoleKeys;
+extern	cvar_t	*cl_consoleUseScanCode;
 
 extern  cvar_t  *cl_lanForcePackets;
 

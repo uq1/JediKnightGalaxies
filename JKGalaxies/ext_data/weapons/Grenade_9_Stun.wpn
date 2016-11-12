@@ -90,6 +90,7 @@
 //                          "damage": 50,		// Damage to do per damagedelay
 //                          "damagetype": [ "stun" ] },
         "ballistic":    true,
+	"useQuantity":	true,
         "grenadeBounces": false,
         "collisionsize":1.7,
         "ammocost":     1,
@@ -118,6 +119,7 @@
 //                          "damage": 50,		// Damage to do per damagedelay
 //                          "damagetype": [ "stun" ] },
         "ballistic":    true,
+	"useQuantity":	true,
         "grenadeBounces": false,
         "collisionsize":1.7,
         "ammocost":     1,

@@ -1355,17 +1355,10 @@ CFontInfo *GetFont(int index)
 	return pFont;
 }
 
-
-int RE_Font_StrLenPixels(const char *psText, const int iFontHandle, const float fScale)
-{
-	float		fMaxWidth = 0.0f;
-	float		fThisWidth = 0.0f;
-	CFontInfo	*curfont;
-
-	curfont = GetFont(iFontHandle);
-	if(!curfont)
-	{
-		return(0);
+float RE_Font_StrLenPixelsNew( const char *psText, const int iFontHandle, const float fScale ) {
+	CFontInfo *curfont = GetFont(iFontHandle);
+	if ( !curfont ) {
+		return 0.0f;
 	}
 
 	float fScaleAsian = fScale;
@@ -1374,49 +1367,64 @@ int RE_Font_StrLenPixels(const char *psText, const int iFontHandle, const float 
 		fScaleAsian = fScale * 0.75f;
 	}
 
-	while(*psText)
-	{
+	float maxLineWidth = 0.0f;
+	float thisLineWidth = 0.0f;
+	while ( *psText ) {
 		int iAdvanceCount;
 		unsigned int uiLetter = AnyLanguage_ReadCharFromString( psText, &iAdvanceCount, NULL );
 		psText += iAdvanceCount;
 
-		if (uiLetter == '^' )
-		{
-			if (*psText >= '0' &&
-				*psText <= '9')
-			{
-				uiLetter = AnyLanguage_ReadCharFromString( psText, &iAdvanceCount, NULL );
-				psText += iAdvanceCount;
+		if ( uiLetter == '^' ) {
+			psText -= iAdvanceCount; //that is necessary because Q_parseColorString works with strings that start with ^
+			int colorLen = Q_parseColorString( psText, nullptr );
+			if ( colorLen ) {
+				colorLen *= iAdvanceCount; // should always be 1 since ^ is ASCII
+				psText += colorLen;
 				continue;
 			}
+			psText += iAdvanceCount; // add back the ^ since it wasn't a color code
 		}
 
-		if (uiLetter == 0x0A)
-		{
-			fThisWidth = 0.0f;
+		if ( uiLetter == '\n' ) {
+			thisLineWidth = 0.0f;
 		}
-		else
-		{
-			int iPixelAdvance = curfont->GetLetterHorizAdvance( uiLetter );
+		else {
+			float iPixelAdvance = (float)curfont->GetLetterHorizAdvance( uiLetter );
 
 			float fValue = iPixelAdvance * ((uiLetter > (unsigned)g_iNonScaledCharRange) ? fScaleAsian : fScale);
-			fThisWidth += curfont->mbRoundCalcs ? Round( fValue ) : fValue;
-			if (fThisWidth > fMaxWidth)
-			{
-				fMaxWidth = fThisWidth;
+
+			/*if ( r_aspectCorrectFonts->integer == 1 ) {
+				fValue *= ((float)(SCREEN_WIDTH * glConfig.vidHeight) / (float)(SCREEN_HEIGHT * glConfig.vidWidth));
+			}
+			else if ( r_aspectCorrectFonts->integer == 2 ) {
+				fValue = ceilf(
+					fValue * ((float)(SCREEN_WIDTH * glConfig.vidHeight) / (float)(SCREEN_HEIGHT * glConfig.vidWidth))
+				);
+			}*/
+			thisLineWidth += curfont->mbRoundCalcs
+				? roundf( fValue )
+				: /*(r_aspectCorrectFonts->integer == 2)
+					? ceilf( fValue )
+					:*/ fValue;
+			if ( thisLineWidth > maxLineWidth ) {
+				maxLineWidth = thisLineWidth;
 			}
 		}
 	}
+	return maxLineWidth;
+}
 
+int RE_Font_StrLenPixels(const char *psText, const int iFontHandle, const float fScale)
+{
 	// using ceil because we need to make sure that all the text is contained within the integer pixel width we're returning
-	return (int)ceilf(fMaxWidth);
+	return (int)ceilf( RE_Font_StrLenPixelsNew( psText, iFontHandle, fScale ) );
 }
 
 // not really a font function, but keeps naming consistant...
 //
 int RE_Font_StrLenChars(const char *psText)
 {
-	// logic for this function's letter counting must be kept same in this function and RE_Font_DrawString()
+	// logic for this function's letter counting must be kept same in this function and RE_Font_DrawString(), also CG_SanitizeString()/Global_SanitizeString() in cg_draw.cpp and q_shared.c
 	//
 	int iCharCount = 0;
 
@@ -1431,16 +1439,17 @@ int RE_Font_StrLenChars(const char *psText)
 		switch (uiLetter)
 		{
 			case '^':
-				if (*psText >= '0' &&
-					*psText <= '9')
-				{
-					psText++;
-				}
+			{
+				psText -= iAdvanceCount; //that is necessary because Q_parseColorString works with strings that start with ^
+				int colorLen = Q_parseColorString( psText, nullptr );
+				if ( colorLen )
+					psText += colorLen;
 				else
-				{
 					iCharCount++;
-				}
+
+				psText += iAdvanceCount;
 				break;	// colour code (note next-char skip)
+			}
 			case 10:								break;	// linefeed
 			case 13:								break;	// return
 			case '_':	iCharCount += (GetLanguageEnum() == eThai && (((unsigned char *)psText)[0] >= TIS_GLYPHS_START))?0:1; break;	// special word-break hack
@@ -1470,7 +1479,6 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 {
 	static qboolean gbInShadow = qfalse;	// MUST default to this
 	float				fox, foy, fx, fy;
-	int					colour, offset;
 	const glyphInfo_t	*pLetter;
 	qhandle_t			hShader;
 
@@ -1487,26 +1495,26 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 //	// test code only
 //	if (GetLanguageEnum() == eTaiwanese)
 //	{
-//		psText = "Wp:¶}·F§a ¿p·G´µ¡A§Æ±æ§A¹³¥L­Ì»¡ªº¤@¼Ë¦æ¡C";
+//		psText = "Wp:Â¶}Â·FÂ§a Â¿pÂ·GÂ´ÂµÂ¡AÂ§Ã†Â±Ã¦Â§AÂ¹Â³Â¥LÂ­ÃŒÂ»Â¡ÂªÂºÂ¤@Â¼Ã‹Â¦Ã¦Â¡C";
 //	}
 //	else
 //	if (GetLanguageEnum() == eChinese)
 //	{
-//		//psText = "Ó¶±øÕ½³¡II  Ô¼º²?ÄªÁÖË¹  ÈÎÎñÊ§°Ü  ÄãÒªÌ×ÓÃ»­ÃæÉè¶¨µÄ±ä¸üÂð£¿  Ô¤Éè,S3 Ñ¹Ëõ,DXT1 Ñ¹Ëõ,DXT5 Ñ¹Ëõ,16 Bit,32 Bit";
-//		psText = "Ó¶±øÕ½³¡II";
+//		//psText = "Ã“Â¶Â±Ã¸Ã•Â½Â³Â¡II  Ã”Â¼ÂºÂ²?Ã„ÂªÃÃ–Ã‹Â¹  ÃˆÃŽÃŽÃ±ÃŠÂ§Â°Ãœ  Ã„Ã£Ã’ÂªÃŒÃ—Ã“ÃƒÂ»Â­ÃƒÃ¦Ã‰Ã¨Â¶Â¨ÂµÃ„Â±Ã¤Â¸Ã¼Ã‚Ã°Â£Â¿  Ã”Â¤Ã‰Ã¨,S3 Ã‘Â¹Ã‹Ãµ,DXT1 Ã‘Â¹Ã‹Ãµ,DXT5 Ã‘Â¹Ã‹Ãµ,16 Bit,32 Bit";
+//		psText = "Ã“Â¶Â±Ã¸Ã•Â½Â³Â¡II";
 //	}
 //	else
 //	if (GetLanguageEnum() == eThai)
 //	{
-//		//psText = "ÁÒµÃ°Ò¹¼ÅÔµÀÑ³±ìÍØµÊÒË¡ÃÃÁÃËÑÊÊÓËÃÑºÍÑ¡¢ÃÐä·Â·Õèãªé¡Ñº¤ÍÁ¾ÔÇàµÍÃì";
-//		psText = "ÁÒµÃ°Ò¹¼ÅÔµ";
-//		psText = "ÃËÑÊÊÓËÃÑº";
-//		psText = "ÃËÑÊÊÓËÃÑº   ÍÒ_¡Ô¹_¤ÍÃì·_1415";
+//		//psText = "ÃÃ’ÂµÃƒÂ°Ã’Â¹Â¼Ã…Ã”ÂµÃ€Ã‘Â³Â±Ã¬ÃÃ˜ÂµÃŠÃ’Ã‹Â¡ÃƒÃƒÃÃƒÃ‹Ã‘ÃŠÃŠÃ“Ã‹ÃƒÃ‘ÂºÃÃ‘Â¡Â¢ÃƒÃÃ¤Â·Ã‚Â·Ã•Ã¨Ã£ÂªÃ©Â¡Ã‘ÂºÂ¤ÃÃÂ¾Ã”Ã‡Ã ÂµÃÃƒÃ¬";
+//		psText = "ÃÃ’ÂµÃƒÂ°Ã’Â¹Â¼Ã…Ã”Âµ";
+//		psText = "ÃƒÃ‹Ã‘ÃŠÃŠÃ“Ã‹ÃƒÃ‘Âº";
+//		psText = "ÃƒÃ‹Ã‘ÃŠÃŠÃ“Ã‹ÃƒÃ‘Âº   ÃÃ’_Â¡Ã”Â¹_Â¤ÃÃƒÃ¬Â·_1415";
 //	}
 //	else
 //	if (GetLanguageEnum() == eKorean)
 //	{
-//		psText = "Wp:¼îÅ¸ÀÓÀÌ´Ù ¸Ö¸°. ±×µéÀÌ ¸»ÇÑ´ë·Î ³×°¡ ÀßÇÒÁö ±â´ëÇÏ°Ú´Ù.";
+//		psText = "Wp:Â¼Ã®Ã…Â¸Ã€Ã“Ã€ÃŒÂ´Ã™ Â¸Ã–Â¸Â°. Â±Ã—ÂµÃ©Ã€ÃŒ Â¸Â»Ã‡Ã‘Â´Ã«Â·ÃŽ Â³Ã—Â°Â¡ Ã€ÃŸÃ‡Ã’ÃÃ¶ Â±Ã¢Â´Ã«Ã‡ÃÂ°ÃšÂ´Ã™.";
 //	}
 //	else
 //	if (GetLanguageEnum() == eJapanese)
@@ -1518,14 +1526,14 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 //	else
 //	if (GetLanguageEnum() == eRussian)
 //	{
-////		//psText = "Íà âåðøèíå õîëìà ñòîèò ñòàðûé äîì ñ ïðèâèäåíèÿìè è áàøíÿ ñ âîëøåáíûìè ÷àñàìè."
-//		psText = "Íà âåðøèíå õîëìà ñòîèò";
+////		//psText = "ÃÃ  Ã¢Ã¥Ã°Ã¸Ã¨Ã­Ã¥ ÃµÃ®Ã«Ã¬Ã  Ã±Ã²Ã®Ã¨Ã² Ã±Ã²Ã Ã°Ã»Ã© Ã¤Ã®Ã¬ Ã± Ã¯Ã°Ã¨Ã¢Ã¨Ã¤Ã¥Ã­Ã¨Ã¿Ã¬Ã¨ Ã¨ Ã¡Ã Ã¸Ã­Ã¿ Ã± Ã¢Ã®Ã«Ã¸Ã¥Ã¡Ã­Ã»Ã¬Ã¨ Ã·Ã Ã±Ã Ã¬Ã¨."
+//		psText = "ÃÃ  Ã¢Ã¥Ã°Ã¸Ã¨Ã­Ã¥ ÃµÃ®Ã«Ã¬Ã  Ã±Ã²Ã®Ã¨Ã²";
 //	}
 //	else
 //	if (GetLanguageEnum() == ePolish)
 //	{
-//		psText = "za³o¿ony w 1364 roku, jest najstarsz¹ polsk¹ uczelni¹ i nale¿y...";
-//		psText = "za³o¿ony nale¿y";
+//		psText = "zaÂ³oÂ¿ony w 1364 roku, jest najstarszÂ¹ polskÂ¹ uczelniÂ¹ i naleÂ¿y...";
+//		psText = "zaÂ³oÂ¿ony naleÂ¿y";
 //	}
 
 
@@ -1546,7 +1554,7 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 	// Draw a dropshadow if required
 	if(iFontHandle & STYLE_DROPSHADOW)
 	{
-		offset = Round(curfont->GetPointSize() * fScale * 0.075f);
+		int offset = Round(curfont->GetPointSize() * fScale * 0.075f);
 
 		const vec4_t v4DKGREY2 = {0.15f, 0.15f, 0.15f, rgba?rgba[3]:1.0f};
 
@@ -1598,19 +1606,18 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 		case '^':
 			if (uiLetter != '_')	// necessary because of fallthrough above
 			{
-				if (*psText >= '0' &&
-					*psText <= '9')
-				{
-					colour = ColorIndex(*psText++);
-					if (!gbInShadow)
-					{
-						vec4_t color;
-						Com_Memcpy( color, g_color_table[colour], sizeof( color ) );
+				psText -= iAdvanceCount; //that is necessary because Q_parseColorString works with strings that start with ^
+				vec4_t color;
+				int colorLen = Q_parseColorString( psText, color );
+				if ( colorLen ) {
+					psText += colorLen;
+					if ( !gbInShadow ) {
 						color[3] = rgba ? rgba[3] : 1.0f;
 						RE_SetColor( color );
 					}
 					break;
 				}
+				psText += iAdvanceCount;
 			}
 			//purposely falls thrugh
 		default:
@@ -1780,6 +1787,3 @@ void R_ReloadFonts_f(void)
 		Com_Printf( "Problem encountered finding current fonts, ignoring.\n" );	// poo. Oh well, forget it.
 	}
 }
-
-
-// end

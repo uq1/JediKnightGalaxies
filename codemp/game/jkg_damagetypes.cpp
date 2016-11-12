@@ -49,7 +49,7 @@ static struct
     { DT_FIRE,          0,              10000,      2,      1000	},
     { DT_FREEZE,        0,              500,        2,      1000	},
     { DT_IMPLOSION,     DAMAGE_RADIUS,  0,          0,      0		},	// Not used.
-    { DT_STUN,          0,              2000,       0,      0		},	// Not used.
+    { DT_STUN,          0,              2000,       0,      0		},
     { DT_CARBONITE,     0,              4000,       2,      1000	},
 
 	{ DT_BLASTER,		0,				0,			0,		0		},
@@ -64,8 +64,6 @@ static struct
 };
 
 void JKG_RemoveDamageType(gentity_t *ent, damageType_t type);
-
-static const float damageAreaHeight = 4.0f;
 
 void JKG_InitDamageSystem ( void )
 {
@@ -328,7 +326,7 @@ qhandle_t JKG_RegisterDamageSettings ( const damageSettings_t *settings )
 
 void JKG_RemoveDamageType ( gentity_t *ent, damageType_t type )
 {
-	if( type >= MAX_DAMAGE_SETTINGS )
+	if( type >= (damageType_t)MAX_DAMAGE_SETTINGS )
 		return;
 
     switch ( type )

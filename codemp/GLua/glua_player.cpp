@@ -547,28 +547,28 @@ static int GLua_Player_MaxHealth_Set(lua_State *L) {
 static int GLua_Player_MaxArmor_Get(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_MAX_ARMOR]);
+	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_MAX_SHIELD]);
 	return 1;
 }
 
 static int GLua_Player_MaxArmor_Set(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	level.clients[ply->clientNum].ps.stats[STAT_MAX_ARMOR] = luaL_checkinteger(L, 2);
+	level.clients[ply->clientNum].ps.stats[STAT_MAX_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 
 static int GLua_Player_Armor_Get(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_ARMOR]);
+	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_SHIELD]);
 	return 1;
 }
 
 static int GLua_Player_Armor_Set(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	level.clients[ply->clientNum].ps.stats[STAT_ARMOR] = luaL_checkinteger(L, 2);
+	level.clients[ply->clientNum].ps.stats[STAT_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 
@@ -920,6 +920,36 @@ static int GLua_Player_HasNoClip(lua_State *L) {
 		lua_pushboolean(L,1);
 	} else {
 		lua_pushboolean(L,0);
+	}
+	return 1;
+}
+
+//futuza: adding NoKnockback for players
+static int GLua_Player_SetNoKnockback(lua_State *L) {	
+	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
+	int active = lua_toboolean(L, 2);
+	gentity_t *ent;
+	if (!ply) return 0;
+	ent = &g_entities[ply->clientNum];
+	if (active) {
+		ent->flags |= FL_NO_KNOCKBACK;
+	}
+	else {
+		ent->flags &= ~FL_NO_KNOCKBACK;
+	}
+	return 0;
+}
+
+static int GLua_Player_HasNoKnockback(lua_State *L) {
+	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
+	gentity_t *ent;
+	if (!ply) return 0;
+	ent = &g_entities[ply->clientNum];
+	if (ent->flags & FL_NO_KNOCKBACK) {
+		lua_pushboolean(L, 1);
+	}
+	else {
+		lua_pushboolean(L, 0);
 	}
 	return 1;
 }
@@ -1389,66 +1419,6 @@ static int GLua_Player_GetNoMove(lua_State *L) {
 	return 1;
 }
 
-static int GLua_Player_GiveHoldable(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
-	gentity_t *ent;
-	int item = luaL_checkinteger(L,2);
-	if (!ply) return 0;
-	ent = &g_entities[ply->clientNum];
-	if (item < 0 || item >= HI_NUM_HOLDABLE) {
-		return 0;
-	}
-	ent->client->ps.stats[STAT_HOLDABLE_ITEMS] |= (1 << item);
-	return 0;
-}
-
-void Jetpack_Off(gentity_t *ent);
-void NPC_Humanoid_Decloak( gentity_t *self );
-
-static int GLua_Player_TakeHoldable(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
-	gentity_t *ent;
-	int item = luaL_checkinteger(L,2);
-	if (!ply) return 0;
-	ent = &g_entities[ply->clientNum];
-	if (item < 0 || item >= HI_NUM_HOLDABLE) {
-		return 0;
-	}
-	ent->client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << item);
-	switch (item) {
-		case HI_JETPACK:
-			Jetpack_Off(ent);
-			break;
-		case HI_CLOAK:
-			NPC_Humanoid_Decloak(ent);
-			break;
-		default:
-			break;
-	}
-	return 0;
-}
-
-static int GLua_Player_HasHoldable(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
-	gentity_t *ent;
-	int item = luaL_checkinteger(L,2);
-	if (!ply) return 0;
-	ent = &g_entities[ply->clientNum];
-	if (item < 0 || item >= HI_NUM_HOLDABLE) {
-		return 0;
-	}
-	lua_pushboolean(L, (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & item));;
-	return 1;
-}
-
-static int GLua_Player_StripHoldables(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
-	if (!ply) return 0;
-	level.clients[ply->clientNum].ps.stats[STAT_HOLDABLE_ITEMS] = 0;
-	level.clients[ply->clientNum].pers.cmd.invensel = 0;
-	return 0;
-}
-
 static int GLua_Player_InDeathcam(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
 	if (!ply) return 0;
@@ -1628,7 +1598,8 @@ static int GLua_Player_GetCurrentGunAmmoType(lua_State *L)
 // FIXME: this makes no sense whatsoever being a member of ply/player
 static int GLua_Player_GetGunAmmoType(lua_State *L)
 {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
+	GLua_CheckPlayer(L,1);
+
 	int weapon = lua_tointeger(L,2);
 	int variation = lua_tointeger(L,3);
 	weaponData_t *wp = GetWeaponData((unsigned char)weapon, (unsigned char)variation);
@@ -1644,16 +1615,13 @@ static int GLua_Player_PossessingItem(lua_State *L)
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
 	int itemID = lua_tointeger(L,2);
 	gentity_t *ent;
-	int i;
 
 	if(!ply) return 0;
 
 	ent = &g_entities[ply->clientNum];
-	for(i = 0; i < ent->inventory->elements; i++)
-	{
-		if(ent->inventory->items[i].id && ent->inventory->items[i].id->itemID == itemID)
-		{
-			lua_pushboolean(L, 1);	// return qtrue
+	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+		if (it->id->itemID == itemID) {
+			lua_pushboolean(L, 1);
 			return 1;
 		}
 	}
@@ -1667,23 +1635,19 @@ static int GLua_Player_PossessingWeapon(lua_State *L)
 	int weapon = lua_tointeger(L, 2);
 	int variation = lua_tointeger(L, 3);
 	gentity_t *ent;
-	int i;
 
 	if(!ply) return 0;
 
 	ent = &g_entities[ply->clientNum];
 	if(!ent) return 0;
 
-	for(i = 0; i < ent->inventory->elements; i++)
-	{
-		if( ent->inventory->items[i].id )
-		{
-			if( ent->inventory->items[i].id->weapon == weapon &&
-				ent->inventory->items[i].id->variation == variation )
-			{
-				lua_pushboolean(L, 1); // return qtrue
-				return 1;
-			}
+	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+		if (it->id->itemType != ITEM_WEAPON) {
+			continue;
+		}
+		if (it->id->weaponData.weapon == weapon && it->id->weaponData.variation == variation) {
+			lua_pushboolean(L, 1);
+			return 1;
 		}
 	}
 	lua_pushboolean(L, 0);	// return qfalse
@@ -1787,10 +1751,6 @@ static const struct luaL_reg player_m [] = {
 	{"GetFreeze", GLua_Player_GetFreeze},
 	{"SetNoMove", GLua_Player_SetNoMove},
 	{"GetNoMove", GLua_Player_GetNoMove},
-	{"GiveHoldable", GLua_Player_GiveHoldable},
-	{"TakeHoldable", GLua_Player_TakeHoldable},
-	{"HasHoldable", GLua_Player_HasHoldable},
-	{"StripHoldables", GLua_Player_StripHoldables},
 	{"ServerTransfer", GLua_Player_ServerTransfer},
 	// stuff for credits --eez
 	{"GetCreditCount", GLua_Player_GetCreditCount},
@@ -1833,6 +1793,7 @@ static const struct GLua_Prop player_p [] = {
 	{"Entity",	GLua_Player_GetEntity,		NULL},
 	{"GodMode", GLua_Player_HasGodMode,		GLua_Player_SetGodMode},
 	{"NoClip",	GLua_Player_HasNoClip,		GLua_Player_SetNoClip},
+	{"NoKnockback", GLua_Player_HasNoKnockback, GLua_Player_SetNoKnockback },		//futuza: adding NoKnockback for players
 	{"NoTarget",GLua_Player_HasNoTarget,	GLua_Player_SetNoTarget},
 	{"Gravity", GLua_Player_GetGravity,		GLua_Player_SetGravity},
 	{"Undying", GLua_Player_GetUndying,		GLua_Player_SetUndying},

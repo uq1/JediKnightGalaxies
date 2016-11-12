@@ -30,8 +30,6 @@ extern int forcePowerNeeded[NUM_FORCE_POWER_LEVELS][NUM_FORCE_POWERS];
 qboolean G_PointInBounds( vec3_t point, vec3_t mins, vec3_t maxs );
 qboolean G_NameInTriggerClassList(char *list, char *str);
 
-extern siegeClass_t *BG_GetClassOnBaseClass(const int team, const short classIndex, const short cntIndex);
-
 extern void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *soundPath );
 
 //inits
@@ -886,14 +884,7 @@ END A* Pathfinding Code
 
 
 
-//TAB bot Behaviors
-//[Linux]
-#ifndef __linux__
-typedef enum
-#else
 enum
-#endif
-//[/Linux]
 {
 	BBEHAVE_NONE,  //use this if you don't want a behavior function to be run
 	BBEHAVE_STILL, //bot stands still
@@ -1997,7 +1988,7 @@ void DOM_IncreaseWaypointLinkCost(bot_state_t *bs)
 			if (bs->wpLast->neighbors[i].cost)
 				bs->wpLast->neighbors[i].cost *= 2;
 			else
-				bs->wpLast->neighbors[i].cost = 999999.9f;
+				bs->wpLast->neighbors[i].cost = 999999; // wtf 999999.9f
 
 			//trap->Print("BOT DEBUG: Increasing cost of wp %i link %i.\n", bs->wpLast->index, i);
 			break;
@@ -2243,7 +2234,7 @@ void DOM_UQ1_UcmdMoveForDir ( bot_state_t *bs, usercmd_t *cmd, vec3_t dir )
 	cmd->rightmove = DotProduct( right, dir ) * speed;
 
 	//cmd->upmove = abs(forward[3] ) * dir[3] * speed; // LOL BRO DO YOU EVEN VECTOR? --eez
-	cmd->upmove = abs(forward[2] ) * dir[2] * speed;
+	cmd->upmove = fabsf(forward[2] ) * dir[2] * speed;
 }
 
 void DOM_BotMove(bot_state_t *bs, vec3_t dest, qboolean wptravel, qboolean strafe)
@@ -2721,7 +2712,7 @@ int DOM_GetNearestVisibleWP_Goal(vec3_t org, int ignore, int badwp)
 				|| (gWPArray[i]->flags & WPFLAG_FORCEPULL) )
 			{//boost the distance for these waypoints so that we will try to avoid using them
 				//if at all possible
-				flLen =+ 500;
+				flLen += 500;
 			}
 
 			if (flLen < bestdist /*&& (g_RMG.integer || BotPVSCheck(org, gWPArray[i]->origin))*/ && OrgVisibleBox(org, mins, maxs, gWPArray[i]->origin, ignore))
@@ -2781,7 +2772,7 @@ int DOM_GetNearestVisibleWP(vec3_t org, int ignore, int badwp)
 				|| (gWPArray[i]->flags & WPFLAG_FORCEPULL) )
 			{//boost the distance for these waypoints so that we will try to avoid using them
 				//if at all possible
-				flLen =+ 500;
+				flLen += 500;
 			}
 
 			if (flLen < bestdist /*&& (g_RMG.integer || BotPVSCheck(org, gWPArray[i]->origin))*/ && OrgVisibleBox(org, mins, maxs, gWPArray[i]->origin, ignore))
@@ -2840,7 +2831,7 @@ int DOM_GetNearestVisibleWP_NOBOX(vec3_t org, int ignore, int badwp)
 				|| (gWPArray[i]->flags & WPFLAG_FORCEPULL) )
 			{//boost the distance for these waypoints so that we will try to avoid using them
 				//if at all possible
-				flLen =+ 500;
+				flLen += 500;
 			}
 
 			VectorCopy(gWPArray[i]->origin, wpOrg);
@@ -3147,7 +3138,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 	qboolean recalcroute = qfalse;
 	qboolean findwp = qfalse;
 	int badwp = -2;
-	int destwp = -1;
+	//int destwp = -1;
 	float distthen, distnow;
 
 	if(!bs->wpCurrent || bs->wpCurrent <= 0)
@@ -4047,7 +4038,7 @@ void DOM_BotBehave_AttackMove(bot_state_t *bs)
 	if ( g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_AMMO] <= 0 )
 	{
 		//trap->Print("DEBUG: Reload!\n");
-		g_entities[bs->cur_ps.clientNum].client->ps.ammo = 100; // UQ1: NPCs need to cheat a little :)
+		g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_TOTALAMMO] = 100; // UQ1: NPCs need to cheat a little :)
 		g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_AMMO] = 100; // UQ1: NPCs need to cheat a little :)
 		g_entities[bs->cur_ps.clientNum].client->clipammo[bs->cur_ps.weapon] = 100;//GetWeaponAmmoClip( bs->cur_ps.weapon, g_entities[bs->cur_ps.clientNum].s.weaponVariation );
 
@@ -4078,10 +4069,10 @@ float DOM_TargetDistance(bot_state_t *bs, gentity_t* target, vec3_t targetorigin
 
 	if(strcmp(target->classname, "misc_siege_item") == 0
 		|| strcmp(target->classname, "func_breakable") == 0 
-		|| target->client && target->client->NPC_class == CLASS_RANCOR) 
+		|| (target->client && target->client->NPC_class == CLASS_RANCOR)) 
 	{//flatten origin heights and measure
 		VectorCopy(targetorigin, enemyOrigin);
-		if(fabs(enemyOrigin[2] - bs->eye[2]) < 150)
+		if(fabsf(enemyOrigin[2] - bs->eye[2]) < 150)
 		{//don't flatten unless you're on the same relative plane
 			enemyOrigin[2] = bs->eye[2];
 		}
@@ -4094,9 +4085,9 @@ float DOM_TargetDistance(bot_state_t *bs, gentity_t* target, vec3_t targetorigin
 		{//assume this is a misc_siege_item.  These have absolute based mins/maxs.
 			//Scale for the entity's bounding box
 			float adjustor;
-			float x = fabs(bs->eye[0] - enemyOrigin[0]);
-			float y = fabs(bs->eye[1] - enemyOrigin[1]);
-			float z = fabs(bs->eye[2] - enemyOrigin[2]);
+			float x = fabsf(bs->eye[0] - enemyOrigin[0]);
+			float y = fabsf(bs->eye[1] - enemyOrigin[1]);
+			float z = fabsf(bs->eye[2] - enemyOrigin[2]);
 			
 			//find the general direction of the impact to determine which bbox length to
 			//scale with
@@ -4481,7 +4472,6 @@ void DOM_BotBehave_AttackBasic(bot_state_t *bs, gentity_t* target)
 				}
 			}
 
-#ifndef __MMO__
 	if (bs->virtualWeapon == WP_SABER)
 	{
 		// UQ1: Added, backstab check...
@@ -4496,7 +4486,6 @@ void DOM_BotBehave_AttackBasic(bot_state_t *bs, gentity_t* target)
 		if (DOM_BotBehave_CheckUseCrouchAttack(bs))
 			return;
 	}
-#endif //__MMO__
 
 	if(bs->meleeStrafeTime < level.time)
 	{//select a new strafing direction
@@ -4786,15 +4775,6 @@ void DOM_EnemyVisualUpdate(bot_state_t *bs)
 	{//bad!  This should never happen
 		return;
 	}
-
-#ifdef __MMO__
-	if (bs->enemySeenTime > level.time)
-	{// UQ1: Speed things up in MMO mode...
-		bs->frame_Enemy_Len = DOM_TargetDistance(bs, bs->currentEnemy, enemyOrigin);
-		bs->frame_Enemy_Vis = 1;
-		return;
-	}
-#endif //__MMO__
 
 	DOM_FindOrigin(bs->currentEnemy, enemyOrigin);
 	DOM_FindAngles(bs->currentEnemy, enemyAngles);
@@ -5357,7 +5337,6 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 		DOM_BotSearchAndDestroy(bs);
 	}
 
-#ifndef __MMO__
 	//check for hard impacts
 	//borrowed directly from impact code, so we might want to add in some fudge factor
 	//at some point.  mmmmMM, fudge.
@@ -5385,102 +5364,10 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 		}
 	}
 
-	//Chat Stuff
-	/*
-	if (bs->doChat && bs->chatTime <= level.time)
-	{
-		if (bs->chatTeam)
-		{
-			trap->EA_SayTeam(bs->client, bs->currentChat);
-			bs->chatTeam = 0;
-		}
-		else
-		{
-			trap->EA_Say(bs->client, bs->currentChat);
-		}
-		if (bs->doChat == 2)
-		{
-			BotReplyGreetings(bs);
-		}
-		bs->doChat = 0;
-	}
-	*/
-#endif //__MMO__
-
 	if(bs->duckTime > level.time)
 	{
 		trap->EA_Crouch(bs->client);
 	}
-
-	/*
-	// UQ1: Try forse jumping to enemies and waypoints as needed...
-	if(bs->botBehave == BBEHAVE_MOVETO 
-		&& !bs->currentEnemy 
-		&& bs->wpNext
-		&& bs->cur_ps.fd.forcePowerLevel[FP_LEVITATION] >= FORCE_LEVEL_1
-		&& VectorDistance(bs->cur_ps.origin, bs->wpNext->origin) <= 512)
-	{
-		if (bs->wpNext)
-		{
-			if (VectorDistanceNoHeight(bs->cur_ps.origin, bs->wpNext->origin) <= 16
-				&& bs->cur_ps.origin[2] >= bs->wpNext->origin[2] + 16)
-			{// We are there!
-
-			}
-			else if (bs->cur_ps.origin[2] + 16 < bs->wpNext->origin[2])
-			{
-				trap->EA_Jump(bs->client);
-
-				if (g_entities[bs->client].client->ps.groundEntityNum == ENTITYNUM_NONE)
-				{
-					g_entities[bs->client].client->ps.pm_flags |= PMF_JUMP_HELD;
-				}
-
-				if (g_entities[bs->client].client->ps.fd.forcePower < 30)
-				{
-					g_entities[bs->client].client->ps.fd.forcePower = 30; // UQ1: Cheating bots lol!
-
-					// UQ1: Gonna try something crazy here and let them really cheat when falling... hahehhe
-					// super save from certain death below jump back to safety like NPCs do...
-					if (bs->virtualWeapon == WP_SABER) // Jedi Only!
-						g_entities[bs->client].client->ps.velocity[2] = 127;
-				}
-			}
-		}
-	}
-	else if (bs->currentEnemy 
-		&& bs->cur_ps.fd.forcePowerLevel[FP_LEVITATION] >= FORCE_LEVEL_1
-		&& VectorDistance(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) <= 512)
-	{
-		if (g_entities[bs->client].client->ps.groundEntityNum != ENTITYNUM_NONE
-			&& VectorDistance(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) >= 128
-			&& VectorDistanceNoHeight(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) <= 128)
-		{// Wait till we get a better spot to jump from!
-
-		}
-		else if (VectorDistanceNoHeight(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) <= 16
-			&& bs->cur_ps.origin[2] >= bs->currentEnemy->r.currentOrigin[2] + 16)
-		{// We are there!
-
-		}
-		else if (bs->cur_ps.origin[2] + 16 < bs->currentEnemy->r.currentOrigin[2])
-		{
-			//if (bs->currentEnemy->client && bs->currentEnemy->client->ps.groundEntityNum != ENTITYNUM_NONE)
-			{
-				trap->EA_Jump(bs->client);
-
-				if (g_entities[bs->client].client->ps.groundEntityNum == ENTITYNUM_NONE)
-				{
-					g_entities[bs->client].client->ps.pm_flags |= PMF_JUMP_HELD;
-				}
-
-				if (g_entities[bs->client].client->ps.fd.forcePower < 30)
-					g_entities[bs->client].client->ps.fd.forcePower = 30; // UQ1: Cheating bots lol!
-			}
-		}
-	}
-	else
-	*/
 
 	if(bs->jumpTime > level.time)
 	{
@@ -5838,7 +5725,7 @@ void Update_DOM_Goal_Lists ( void )
 
 int DOM_Find_Goal_EntityNum ( int ignoreEnt, int ignoreEnt2, vec3_t current_org, int teamNum )
 {// Return standard goals only for soldiers...
-	gentity_t *goal = NULL;
+	//gentity_t *goal = NULL;
 	int loop = 0;
 
 	if (next_DOM_goal_update < level.time)
@@ -6378,7 +6265,7 @@ void DOM_objectiveType_Attack(bot_state_t *bs, gentity_t *target)
 		VectorSet(temp, -369, 858, -231);
 		if(Distance(bs->origin, temp) < DEFEND_MAXDISTANCE)
 		{//automatically see target.
-			int desiredweap = DOM_FavoriteWeapon(bs, target);
+			//int desiredweap = DOM_FavoriteWeapon(bs, target);
 			if(!(bs->cur_ps.stats[STAT_WEAPONS] & ( 1 << WP_DEMP2))
 				&& !(bs->cur_ps.stats[STAT_WEAPONS] & ( 1 << WP_ROCKET_LAUNCHER ))
 				&& !(bs->cur_ps.stats[STAT_WEAPONS] & ( 1 << WP_CONCUSSION ))
@@ -6681,7 +6568,7 @@ void DOM_objectiveType_Vehicle(bot_state_t *bs)
 		DOM_FindOrigin(bs->tacticEntity, objOrigin);
 
 		//RAFIXME:  Get rid of that crappy use stuff when we can.
-		bs->noUseTime =+ level.time + 5000;
+		bs->noUseTime += level.time + 5000;
 
 		bs->DestIgnore = bs->tacticEntity->s.number;
 		DOM_BotMove(bs, objOrigin, qfalse, qfalse);

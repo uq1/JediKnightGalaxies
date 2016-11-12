@@ -29,10 +29,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../ui/ui_shared.h"
 #include "game/bg_saga.h"
 
-// TEST
-#include "jkg_cg_auxlib.h"
-#include "json/cJSON.h"
-
 extern menuDef_t *menuScoreboard;
 
 void CG_CameraZoomIn( void )
@@ -187,31 +183,6 @@ static void CG_scrollScoresUp_f( void) {
 	}
 }
 
-#if 0
-static void CG_spWin_f( void) {
-	trap->Cvar_Set("cg_cameraOrbit", "2");
-	trap->Cvar_Set("cg_cameraOrbitDelay", "35");
-	trap->Cvar_Set("cg_thirdPerson", "1");
-	trap->Cvar_Set("cg_thirdPersonAngle", "0");
-	trap->Cvar_Set("cg_thirdPersonRange", "100");
-	CG_AddBufferedSound(cgs.media.winnerSound);
-	//trap->S_StartLocalSound(cgs.media.winnerSound, CHAN_ANNOUNCER);
-	CG_CenterPrint(CG_GetStringEdString("MP_INGAME", "YOU_WIN"), SCREEN_HEIGHT * .30, 0);
-}
-
-static void CG_spLose_f( void) {
-	trap->Cvar_Set("cg_cameraOrbit", "2");
-	trap->Cvar_Set("cg_cameraOrbitDelay", "35");
-	trap->Cvar_Set("cg_thirdPerson", "1");
-	trap->Cvar_Set("cg_thirdPersonAngle", "0");
-	trap->Cvar_Set("cg_thirdPersonRange", "100");
-	CG_AddBufferedSound(cgs.media.loserSound);
-	//trap->S_StartLocalSound(cgs.media.loserSound, CHAN_ANNOUNCER);
-	CG_CenterPrint(CG_GetStringEdString("MP_INGAME", "YOU_LOSE"), SCREEN_HEIGHT * .30, 0);
-}
-#endif
-
-
 static void CG_TellTarget_f( void ) {
 	int		clientNum;
 	char	command[128];
@@ -315,32 +286,16 @@ static void CG_PrintWeaponMuzzleOffset_f ( void )
     }
 }
 
-
-// TEST
-int testMasterFinalFunc (asyncTask_t *task) {
-	cJSON *data = (cJSON *)task->finalData;
-	
-	if (task->errorCode == 0) {
-		Com_Printf("Test successful! (bounce: %i - %i)\n", cJSON_ToInteger(cJSON_GetObjectItem(data, "bounce")), trap->Milliseconds());
-	} else {
-		Com_Printf("Test failed!\n");
-	}
-	return 0;
-}
-
 static void JKG_OpenInventoryMenu_f ( void )
 {
 	if (cgs.gametype != GT_DUEL) 
-	{
-    uiImports->InventoryNotify (0);
-	}
+		uiImports->InventoryNotify (0);
 }
 
 void JKG_OpenShopMenu_f ( void )
-{	if (cgs.gametype != GT_DUEL) 
-	{
-	uiImports->ShopNotify( 0 );
-	}
+{
+	if (cgs.gametype != GT_DUEL) 
+		uiImports->ShopNotify( 0 );
 }
 
 static void JKG_UseACI_f ( void )
@@ -455,8 +410,6 @@ static consoleCommand_t	commands[] = {
 	{ "startOrbit", CG_StartOrbit_f },
 	//{ "camera", CG_Camera_f },
 	{ "loaddeferred", CG_LoadDeferredPlayers },
-	{ "forcenext", CG_NextForcePower_f },
-	{ "forceprev", CG_PrevForcePower_f },
 	// Jedi Knight Galaxies
 	{ "startcin", CG_StartCinematic },
 	{ "stopcin", CG_StopCinematic },

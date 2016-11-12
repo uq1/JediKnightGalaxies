@@ -99,6 +99,7 @@
                           "damagetype": [ "freeze" ],	// Valid are annihilate, concussion, cut, disintegrate, electric, explosion, fire, freeze, carbonite, implosion, stun. 
                           "penetration": 3 },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":1.7,
         "ammocost":     1,
@@ -140,6 +141,7 @@
                           "damagetype": [ "freeze" ],	// Valid are annihilate, concussion, cut, disintegrate, electric, explosion, fire, freeze, carbonite, implosion, stun. 
                           "penetration": 3 },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":1.7,
         "ammocost":     1,

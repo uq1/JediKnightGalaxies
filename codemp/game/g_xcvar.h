@@ -168,8 +168,6 @@ XCVAR_DEF( timelimit,					"45",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_NOR
 
 // Jedi Knight Galaxies
 XCVAR_DEF( jkg_shop_replenish_time,		"300",			NULL,				CVAR_ARCHIVE,									true )
-XCVAR_DEF( jkg_debugThreading,			"0",			NULL,				CVAR_CHEAT,										true )
-XCVAR_DEF( jkg_startingStats,			"100/25",		NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_startingCredits,			"500",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		false )
 XCVAR_DEF( jkg_bounty,					"10",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_creditsPerKill,			"150",			NULL,				CVAR_ARCHIVE,									true )
@@ -185,4 +183,8 @@ XCVAR_DEF( jkg_healthRegen,				"1",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_healthRegenDelay,		"60000",		NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_healthRegenSpeed,		"2500",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_safeTreasureClasses,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH,						false )
+XCVAR_DEF( jkg_removenpcbody,			"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
+XCVAR_DEF( jkg_removenpctime_default,	"10000",		NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
+XCVAR_DEF( jkg_removenpctime_droid,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
+
 #undef XCVAR_DEF

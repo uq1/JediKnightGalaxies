@@ -1,0 +1,25 @@
+{
+	"ref":		"stgloves",
+	"slot":		"gloves",
+	"ehp":		0,
+	"movemodifier":	1.0,
+
+	"visuals": {
+		"model":	"models/players/stormtrooper/model.glm*default",
+		"modelGroup":	"stormtrooper",
+
+		"armorOnSurfaces": [
+			"l_hand",
+			"l_hand_plate",
+			"r_hand",
+			"r_hand_plate"
+		],
+
+		"bodyOffSurfaces": [
+			"l_hand",
+			"l_hand_plate",
+			"r_hand",
+			"r_hand_plate"
+		]
+	}
+}

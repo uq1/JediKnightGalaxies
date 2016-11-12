@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // 
 // string allocation/managment
 
-#if defined(_UI)
+#if defined(IN_UI)
 	#include "ui/ui_local.h"
 	#include "ui_jkgscript.h"
 	#include "jkg_inventory.h"
@@ -40,7 +40,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "ghoul2/G2.h"
 
 extern void UI_UpdateCharacterSkin( void );
-extern void JKG_Shop_UpdateShopStuff(int filterVal);
 
 const char *HolocronIcons[NUM_FORCE_POWERS] = {
 	"gfx/mp/f_icon_lt_heal",		//FP_HEAL,
@@ -156,8 +155,8 @@ typedef struct  itemFlagsDef_s {
 }	itemFlagsDef_t;
 
 itemFlagsDef_t itemFlags [] = {
-"WINDOW_INACTIVE",		WINDOW_INACTIVE,
-NULL,					(int) NULL
+{ "WINDOW_INACTIVE",		WINDOW_INACTIVE },
+{ NULL,					(int) NULL }
 };
 
 char *styles [] = {
@@ -494,7 +493,7 @@ bool PC_Screenspace_Parse(int handle, float *f, bool bXorWidth) {
 
 	if (!trap->PC_ReadToken(handle, &token))
 		return false;
-	if (token.string[strlen(token.string)-1] == '%%')
+	if (token.string[strlen(token.string)-1] == '%') // CHECKME was '%%' which isn't valid ofc
 		bUsePercentage = true;
 	if (token.string[0] == '-') {
 		if (!trap->PC_ReadToken(handle, &token))
@@ -3756,14 +3755,6 @@ qboolean Item_Multi_HandleKey(itemDef_t *item, int key)
 					{
 						DC->setCVar(item->cvar, va("%f", value ));
 					}
-#ifdef UI
-					if(!item->special && item->action && !Q_stricmp(item->window.name, "filtertab_btn"))
-					{	//Mega haxx in order to get the shop display to look right
-						char *arggg = va("-%i", (int)value);
-						JKG_Shop_Update(&arggg);
-						JKG_Shop_ClearFocus(&arggg);
-					}
-#endif
 				}
 				if (item->special)
 				{//its a feeder?
@@ -3810,6 +3801,8 @@ void Enter_EditField(itemDef_t *item)
 // JKG - TextField items are fully recoded to actually work good
 
 static float Text_GetWidth(const char *text, int iFontIndex, float scale) {
+	return trap->R_Font_StrLenPixels(text, iFontIndex, scale);
+	#if 0
 	// Fixed algorithm to get text length accurately
 	char s[2];
 	const char *t = (char *)text;
@@ -3823,7 +3816,7 @@ static float Text_GetWidth(const char *text, int iFontIndex, float scale) {
 				t+=2;
 				continue;
 			}
-			if (*(t+1) == 'x') {
+			if (*(t + 1) == 'x' || *(t + 1) == 'X') {
 				if (Text_IsExtColorCode(t+1)) {
 					t+=5;
 					continue;
@@ -3835,65 +3828,19 @@ static float Text_GetWidth(const char *text, int iFontIndex, float scale) {
 		t++;
 	}
 	return w;
+	#endif
 }
 
-static vec4_t tColorTable[10] = {
-	{0, 0, 0, 1}, // 0
-	{1, 0, 0, 1}, // ^1
-	{0, 1, 0, 1}, // ^2
-	{1, 1, 0, 1}, // ^3
-	{0, 0, 1, 1}, // ^4
-	{0, 1, 1, 1}, // ^5
-	{1, 0, 1, 1}, // ^6
-	{1, 1, 1, 1}, // ^7
-	{0, 0, 0, 1}, // ^8
-	{1, 0, 0, 1}  // ^9
-};
-
-static float ExtColor_GetLevel(char chr) {
-	if (chr >= '0' && chr <= '9') {
-		return ( (float)(chr-'0') / 15.0f );
-	}
-	if (chr >= 'A' && chr <= 'F') {
-		return ( (float)(chr-'A'+10) / 15.0f );
-	}
-	if (chr >= 'a' && chr <= 'f') {
-		return ( (float)(chr-'a'+10) / 15.0f );
-	}
-	return -1;
-}
-
-static int Text_ExtColorCodes(const char *text, vec4_t color) {
-	const char *r, *g, *b;
-	float red, green, blue;
-	r = text+1;
-	g = text+2;
-	b = text+3;
-	// Get the color levels (if the numbers are invalid, it'll return -1, which we can use to validate)
-	red = ExtColor_GetLevel(*r);
-	green = ExtColor_GetLevel(*g);
-	blue = ExtColor_GetLevel(*b);
-	// Determine if all 3 are valid
-	if (red == -1 || green == -1 || blue == -1) {
-		return 0;
-	}
-
-	// We're clear to go, lets construct our color
-
-	color[0] = red;
-	color[1] = green;
-	color[2] = blue;
-
-	// HACK: Since cgame will use a palette override to implement dynamic opacity (like the chatbox)
-	// we must ensure we use that alpha as well.
-	// So copy the alpha of colorcode 0 (^0) instead of assuming 1.0
-
-	//color[3] =*(float *)(0x56DF54 /*0x56DF48 + 12*/);
-	color[3] = 1.0f;
-	return 1;
-}
-
-static void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontIndex, const int limit, float scale) {
+void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontIndex, const int limit, float scale) {
+	trap->R_Font_DrawString(	x,		// int ox
+								y,		// int oy
+								text,	// const char *text
+								rgba,	// paletteRGBA_c c
+								iFontIndex,	// const int iFontHandle
+								!limit?-1:limit,		// iCharLimit (-1 = none)
+								scale	// const float scale = 1.0f
+							);
+#if 0	
 	// Custom draw algo to ensure proper spacing in compliance with Text_GetWidth
 	char s[2];
 	const char *t = (char *)text;
@@ -3909,7 +3856,7 @@ static void Text_DrawText(int x, int y, const char *text, const float* rgba, int
 				t+=2;
 				continue;
 			}
-			if (*(t+1) == 'x') {
+			if (*(t + 1) == 'x' || *(t + 1) == 'X') {
 				// Extended colorcode
 				if (Text_ExtColorCodes(t+1, color)) {
 					t+=5;
@@ -3922,6 +3869,7 @@ static void Text_DrawText(int x, int y, const char *text, const float* rgba, int
 		xx += ((float)trap->R_Font_StrLenPixels(s, iFontIndex & 0xFFFF, 1) * scale);
 		t++;
 	}
+#endif
 }
 
 static const char *Text_PrintableText(const char *buff, itemDef_t *item) {
@@ -3940,22 +3888,14 @@ static const char *Text_PrintableText(const char *buff, itemDef_t *item) {
 	s[1] = 0;
 
 	while (*t) {
-		if (*t == '^') {
-			if (*(t+1) >= '0' && *(t+1) <= '9') {
+		int colorLen = Q_parseColorString( t, nullptr );
+		if ( colorLen ) {
+			for( int i = 0; i < colorLen; i++ )
+			{
 				*u = *t;
 				u++; t++;
-				*u = *t;
-				u++; t++;
-				continue;
 			}
-			if (*(t+1) == 'x' && Text_IsExtColorCode(t+1)) {
-				int i;
-				for (i=0; i<5; i++) {
-					*u = *t;
-					u++; t++;
-				}
-				continue;
-			}
+			continue;
 		}
 		s[0] = *t;
 
@@ -4117,14 +4057,17 @@ qboolean Item_TextField_HandleKey(itemDef_t *item, int key) {
 		}
 
 		if (!DC->getOverstrikeMode()) {
-			if (( len == MAX_EDITFIELD - 1 ) || (editPtr->maxChars && len >= editPtr->maxChars)) {
+			if ( len == (MAX_EDITFIELD - 1) ||
+					(editPtr->maxChars && len >= editPtr->maxChars) ) {
 				// Filled up, ignore further input
 				return qtrue;
 			}
 			if (len != item->cursorPos)
 				memmove( &buff[item->cursorPos + 1], &buff[item->cursorPos], len + 1 - item->cursorPos );
 		} else {
-			if ((( len == MAX_EDITFIELD - 1 ) || editPtr->maxChars && item->cursorPos >= editPtr->maxChars) && item->cursorPos == len) {
+			if ( len == (MAX_EDITFIELD - 1) ||
+					((editPtr->maxChars && item->cursorPos >= editPtr->maxChars) &&
+					 item->cursorPos == len) ) {
 				// Filled up, ignore further input
 				return qtrue;
 			}
@@ -4178,13 +4121,11 @@ qboolean Item_TextField_HandleKey(itemDef_t *item, int key) {
 				item->cursorPos++;
 			}*/
 			if (item->cursorPos < len) {
-				if (buff[item->cursorPos+1] == '^' && (buff[item->cursorPos+2] >= '0' && buff[item->cursorPos+2] <= '9')) {
-					item->cursorPos += 3;
-				} else if (buff[item->cursorPos+1] == '^' && buff[item->cursorPos+2] == 'x' && Text_IsExtColorCode(&buff[item->cursorPos+2])) {
-					item->cursorPos += 6;
-				} else {
+				int colorLen = Q_parseColorString( &buff[item->cursorPos+1], nullptr );
+				if( colorLen )
+					item->cursorPos += (colorLen + 1);
+				else
 					item->cursorPos++;
-				}
 				Item_TextField_UpdateScroll(item);
 			} 
 			return qtrue;
@@ -4192,22 +4133,12 @@ qboolean Item_TextField_HandleKey(itemDef_t *item, int key) {
 
 		if ( key == A_CURSOR_LEFT || key == A_KP_4 ) 
 		{
-			/*if ( item->cursorPos > 0 ) {
-				item->cursorPos--;
-			}
-			if (item->cursorPos < editPtr->paintOffset) {
-				editPtr->paintOffset--;
-			}*/
 			if ( item->cursorPos > 1 ) {
-				if (buff[item->cursorPos-2] == '^' && (buff[item->cursorPos-1] >= '0' && buff[item->cursorPos-1] <= '9')) {
-					// Jump over the color code
-					item->cursorPos -= 3;
-				} else if (item->cursorPos > 4 && buff[item->cursorPos-5] == '^' && buff[item->cursorPos-4] == 'x' && Text_IsExtColorCode(&buff[item->cursorPos-4])) { 
-					// Jump over extended color code
-					item->cursorPos -= 6;
-				} else {
-					item->cursorPos--;
-				}
+				int colorLen = Q_parseColorString( &buff[item->cursorPos-2], nullptr );
+				if( colorLen )
+					item->cursorPos -= (colorLen + 1);
+				else
+					item->cursorPos++;
 			} else if (item->cursorPos > 0) {
 				item->cursorPos--;
 			}
@@ -5166,39 +5097,6 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 			}
 			break;
 	}
-#ifdef UI
-	if(menu->window.name && !Q_stricmp(menu->window.name, "jkg_shop"))
-	{
-		if(key == A_MWHEELDOWN)
-		{
-			JKG_Shop_ArrowNextClean();
-		}
-		else if(key == A_MWHEELUP)
-		{
-			JKG_Shop_ArrowPrevClean();
-		}
-		return;
-	}
-	else if(menu->window.name && !Q_stricmp(menu->window.name, "jkg_inventory"))
-	{
-		switch(key)
-		{
-			case A_0:
-			case A_1:
-			case A_2:
-			case A_3:
-			case A_4:
-			case A_5:
-			case A_6:
-			case A_7:
-			case A_8:
-			case A_9:
-				JKG_Inventory_CheckACIKeyStroke(key);
-				return;
-				break;
-		}
-	}
-#endif
 	inHandler = qfalse;
 }
 
@@ -5231,9 +5129,14 @@ void Item_SetTextExtents(itemDef_t *item, int *width, int *height, const char *t
 
 	// keeps us from computing the widths and heights more than once
 	if (*width == 0 || (item->type == ITEM_TYPE_OWNERDRAW && item->textalignment == ITEM_ALIGN_CENTER)
+		|| item->window.ownerDraw == UI_JKG_ITEM_NAME
+		|| item->window.ownerDraw == UI_JKG_SHOP_LEFTNAME
+		|| item->window.ownerDraw == UI_JKG_SHOP_RIGHTNAME
+		|| item->window.ownerDraw == UI_JKG_SHOP_LEFTPRICE
+		|| item->window.ownerDraw == UI_JKG_SHOP_RIGHTPRICE
 		|| (item->type == ITEM_TYPE_TEXT && item->typeData.text && item->typeData.text->customText && item->textalignment != ITEM_ALIGN_LEFT)
 #ifndef _CGAME
-		|| (item->text && item->text[0]=='@' && item->asset != se_language.modificationCount )	//string package language changed
+		|| (item->text[0]=='@' && item->asset != se_language.modificationCount )	//string package language changed
 #endif
 		)
 	{
@@ -5241,7 +5144,7 @@ void Item_SetTextExtents(itemDef_t *item, int *width, int *height, const char *t
 
 		if (item->type == ITEM_TYPE_OWNERDRAW && (item->textalignment == ITEM_ALIGN_CENTER || item->textalignment == ITEM_ALIGN_RIGHT)) 
 		{
-			originalWidth += DC->ownerDrawWidth(item->window.ownerDraw, item->textscale);
+			originalWidth += DC->ownerDrawWidth(item->window.ownerDraw, item->window.ownerDrawID, item->textscale);
 		} 
 		else if (item->type == ITEM_TYPE_EDITFIELD && item->textalignment == ITEM_ALIGN_CENTER && item->cvar) 
 		{
@@ -5265,7 +5168,7 @@ void Item_SetTextExtents(itemDef_t *item, int *width, int *height, const char *t
 
 		ToWindowCoords(&item->textRect.x, &item->textRect.y, &item->window);
 #ifndef _CGAME
-		if (item->text && item->text[0]=='@' )//string package
+		if (item->text[0]=='@' )//string package
 		{//mark language
 			item->asset = se_language.modificationCount;
 		}
@@ -5490,7 +5393,7 @@ void Item_Text_Paint(itemDef_t *item) {
 
 	DC->drawText(item->textRect.x, item->textRect.y, item->textscale, color, textPtr, 0, 0, item->textStyle, item->iMenuFont);
 
-	if (item->text2)	// Is there a second line of text?
+	if (item->text2[0])	// Is there a second line of text?
 	{
 		int fontHandle = (item->iMenuFont2) ? item->iMenuFont2 : item->iMenuFont;
 		float textscale = (item->textscale2) ? item->textscale2 : item->textscale;
@@ -6150,17 +6053,18 @@ void Item_Bind_Fixed_Paint(itemDef_t *item)
 		textWidth = DC->textWidth(realText, 1.0f, item->iMenuFont);
 		textWidth *= textScale;
 
-		if(item->textalignment == ITEM_ALIGN_LEFT)
-		{
-			startingXPos = item->window.rect.x + item->textalignx;
-		}
-		else if(item->textalignment == ITEM_ALIGN_RIGHT)
+		if(item->textalignment == ITEM_ALIGN_RIGHT)
 		{
 			startingXPos = item->window.rect.x - textWidth + item->textalignx;
 		}
 		else if(item->textalignment == ITEM_ALIGN_CENTER)
 		{
 			startingXPos = item->window.rect.x - (textWidth/2)+ item->textalignx;
+		}
+		else
+		{
+			assert(item->textalignment == ITEM_ALIGN_LEFT);
+			startingXPos = item->window.rect.x + item->textalignx;
 		}
 
 		DC->drawText(startingXPos, item->window.rect.y/* + yAdj*/ + item->textaligny, textScale, item->window.foreColor, realText, 0, maxChars, item->textStyle,item->iMenuFont);
@@ -7997,7 +7901,7 @@ void Menu_HandleMouseMove(menuDef_t *menu, float x, float y) {
 gohere:
 				if (pass == 1) {
 					overItem = menu->items[i];
-					if (overItem->type == ITEM_TYPE_TEXT && overItem->text) {
+					if (overItem->type == ITEM_TYPE_TEXT && overItem->text[0]) {
 						if (!Rect_ContainsPoint(&overItem->window.rect, x, y)) {
 							continue;
 						}
@@ -8146,16 +8050,14 @@ Keyword Hash
 
 typedef struct keywordHash_s
 {
-	char *keyword;
+	const char *keyword;
 	qboolean (*func)(itemDef_t *item, int handle);
 	struct keywordHash_s *next;
 } keywordHash_t;
 
-int KeywordHash_Key(char *keyword) {
-	int register hash, i;
-
-	hash = 0;
-	for (i = 0; keyword[i] != '\0'; i++) {
+int KeywordHash_Key(const char *keyword) {
+	int hash = 0;
+	for (int i = 0; keyword[i] != '\0'; i++) {
 		if (keyword[i] >= 'A' && keyword[i] <= 'Z')
 			hash += (keyword[i] + ('a' - 'A')) * (119 + i);
 		else
@@ -8178,7 +8080,7 @@ void KeywordHash_Add(keywordHash_t *table[], keywordHash_t *key) {
 	table[hash] = key;
 }
 
-keywordHash_t *KeywordHash_Find(keywordHash_t *table[], char *keyword)
+keywordHash_t *KeywordHash_Find(keywordHash_t *table[], const char *keyword)
 {
 	keywordHash_t *key;
 	int hash;
@@ -9576,7 +9478,7 @@ qboolean ItemParse_cvarFloat( itemDef_t *item, int handle ) {
 	return qfalse;
 }
 
-#ifdef _UI
+#ifdef IN_UI
 char currLanguage[32][128];
 static const char languageString[32] = "@MENUS_MYLANGUAGE";
 #endif
@@ -9603,7 +9505,7 @@ qboolean ItemParse_cvarStrList( itemDef_t *item, int handle ) {
 #ifndef _CGAME
 		for (; multiPtr->count < uiInfo.playerSpeciesCount; multiPtr->count++)
 		{
-			multiPtr->cvarList[multiPtr->count] = String_Alloc(strupr(va("@MENUS_%s",uiInfo.playerSpecies[multiPtr->count].Name )));	//look up translation
+			multiPtr->cvarList[multiPtr->count] = String_Alloc(Q_strupr(va("@MENUS_%s",uiInfo.playerSpecies[multiPtr->count].Name )));	//look up translation
 			multiPtr->cvarStr[multiPtr->count] = uiInfo.playerSpecies[multiPtr->count].Name;	//value
 		}
 #endif
@@ -9646,7 +9548,7 @@ qboolean ItemParse_cvarStrList( itemDef_t *item, int handle ) {
 		}
 
 		//a normal StringAlloc ptr
-		if ((int)psString > 0)	
+		if (psString)	
 		{
 			if (*psString == '}') {
 				return qtrue;
@@ -9709,7 +9611,7 @@ qboolean ItemParse_cvarFloatList( itemDef_t *item, int handle )
 		}
 			
 		//a normal StringAlloc ptr
-		if ((int)string > 0)	
+		if (string)	
 		{
 			if (*string == '}') 
 			{
@@ -10258,8 +10160,7 @@ static void Item_TextScroll_BuildLines ( itemDef_t* item )
 				scrollPtr->pLines[ scrollPtr->iLineCount ] = String_Alloc ( sLineForDisplay );
 				break;	// print this line
 			}
-			else 
-			if ( (DC->textWidth( sLineForDisplay, 1.0f, item->iMenuFont ) * item->textscale) >= iBoxWidth )
+			else if ( (DC->textWidth( sLineForDisplay, 1.0f, item->iMenuFont ) * item->textscale) >= iBoxWidth )
 			{					
 				// reached screen edge, so cap off string at bytepos after last good position...
 				//
@@ -10268,7 +10169,6 @@ static void Item_TextScroll_BuildLines ( itemDef_t* item )
 					// Special case, don't consider line breaking if you're on an asian punctuation char of
 					//	a language that doesn't use spaces...
 					//
-					uiLetter = uiLetter;	// breakpoint line only
 				}
 				else
 				{
@@ -11149,7 +11049,7 @@ static qboolean Menu_OverActiveItem(menuDef_t *menu, float x, float y) {
 					Rect_ContainsPoint(&menu->items[i]->window.selectionZone, x, y) &&
 					menu->items[i]->type != ITEM_TYPE_SLIDER) {
 					itemDef_t *overItem = menu->items[i];
-					if (overItem->type == ITEM_TYPE_TEXT && overItem->text) {
+					if (overItem->type == ITEM_TYPE_TEXT && *overItem->text) {
 						if (Rect_ContainsPoint(&overItem->window.selectionZone, x, y)) {
 							return qtrue;
 						} else {
@@ -11161,7 +11061,7 @@ static qboolean Menu_OverActiveItem(menuDef_t *menu, float x, float y) {
 				}
 				else if (Rect_ContainsPoint(&menu->items[i]->window.rect, x, y)) {
 					itemDef_t *overItem = menu->items[i];
-					if (overItem->type == ITEM_TYPE_TEXT && overItem->text) {
+					if (overItem->type == ITEM_TYPE_TEXT && *overItem->text) {
 						if (Rect_ContainsPoint(&overItem->window.rect, x, y)) {
 							return qtrue;
 						} else {

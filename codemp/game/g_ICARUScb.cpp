@@ -1369,7 +1369,7 @@ int Q3_GetFloat( int entID, int type, const char *name, float *value )
 			G_DebugPrint( WL_WARNING, "Q3_GetFloat: SET_ARMOR, %s not a client\n", ent->targetname );
 			return 0;
 		}
-		*value = ent->client->ps.stats[STAT_ARMOR];
+		*value = ent->client->ps.stats[STAT_SHIELD];
 		break;
 	case SET_WALKSPEED://## %d="0" # Change walkSpeed
 		return 0;
@@ -2588,10 +2588,10 @@ static void Q3_SetArmor( int entID, int data )
 		return;
 	}
 
-	ent->client->ps.stats[STAT_ARMOR] = data;
-	if ( ent->client->ps.stats[STAT_ARMOR] > ent->client->ps.stats[STAT_MAX_ARMOR] )
+	ent->client->ps.stats[STAT_SHIELD] = data;
+	if ( ent->client->ps.stats[STAT_SHIELD] > ent->client->ps.stats[STAT_MAX_SHIELD] )
 	{
-		ent->client->ps.stats[STAT_ARMOR] = ent->client->ps.stats[STAT_MAX_ARMOR];
+		ent->client->ps.stats[STAT_SHIELD] = ent->client->ps.stats[STAT_MAX_SHIELD];
 	}
 }
 
@@ -2625,7 +2625,7 @@ static qboolean Q3_SetBState( int entID, const char *bs_name )
 	}
 
 	bSID = (bState_t)(GetIDForString( BSTable, bs_name ));
-	if ( bSID > -1 )
+	if ( bSID != (bState_t)-1 )
 	{
 		if ( bSID == BS_SEARCH || bSID == BS_WANDER )
 		{
@@ -2751,7 +2751,7 @@ static qboolean Q3_SetTempBState( int entID, const char *bs_name )
 	}
 
 	bSID = (bState_t)(GetIDForString( BSTable, bs_name ));
-	if ( bSID > -1 )
+	if ( bSID != (bState_t)-1 )
 	{
 		ent->NPC->tempBehavior = bSID;
 	}
@@ -2801,7 +2801,7 @@ static void Q3_SetDefaultBState( int entID, const char *bs_name )
 	}
 
 	bSID = (bState_t)(GetIDForString( BSTable, bs_name ));
-	if ( bSID > -1 )
+	if ( bSID != (bState_t)-1 )
 	{
 		ent->NPC->defaultBehavior = bSID;
 	}

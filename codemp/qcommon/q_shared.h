@@ -5,6 +5,7 @@ Copyright (C) 2000 - 2013, Raven Software, Inc.
 Copyright (C) 2001 - 2013, Activision, Inc.
 Copyright (C) 2005 - 2015, ioquake3 contributors
 Copyright (C) 2013 - 2015, OpenJK contributors
+Copyright (C) 2016, Jedi Knight Galaxies Developers
 
 This file is part of the OpenJK source code.
 
@@ -27,13 +28,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // A user mod should never modify this file
 // Copyright (C) 1999-2000 Id Software, Inc., Copyright (c) 2013 Jedi Knight Galaxies
 
+#ifdef MEM_DEBUG
+#include <vld.h>
+#endif
+
 // Include Global Definitions Header...
 #include "../game/z_global_defines.h"
 #define PRODUCT_NAME		"jkgalaxies"
 
 #define CLIENT_WINDOW_TITLE "Jedi Knight Galaxies"
 #define CLIENT_CONSOLE_TITLE "Jedi Knight Galaxies Console"
-#define HOMEPATH_NAME_UNIX ".jkgalaxies"
+#define HOMEPATH_NAME_UNIX "jkgalaxies"
 #define HOMEPATH_NAME_WIN "JKGalaxies"
 #define HOMEPATH_NAME_MACOSX HOMEPATH_NAME_WIN
 
@@ -144,73 +149,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 	#define idppc	0
 #endif
 
-short ShortSwap( short l );
-int LongSwap( int l );
-float FloatSwap( const float *f );
-
-
 #include "qcommon/q_platform.h"
-
-// ================================================================
-// TYPE DEFINITIONS
-// ================================================================
-
-typedef unsigned char byte;
-typedef unsigned short word;
-typedef unsigned long ulong;
-
-#ifndef __cplusplus
-typedef enum {qfalse, qtrue}	qboolean;	// cuz apparently the engine still includes this in C files for some reason --eez
-#else
-typedef bool qboolean;
-#define qfalse false
-#define qtrue true
-#endif
 
 #define Q_min(x,y) ((x)<(y)?(x):(y))
 #define Q_max(x,y) ((x)>(y)?(x):(y))
 
 #if defined (_MSC_VER) && (_MSC_VER >= 1600)
-
-	#include <stdint.h>
-
 	// vsnprintf is ISO/IEC 9899:1999
 	// abstracting this to make it portable
 	int Q_vsnprintf( char *str, size_t size, const char *format, va_list args );
 
 #elif defined (_MSC_VER)
 
-	#include <io.h>
-
-	typedef signed __int64 int64_t;
-	typedef signed __int32 int32_t;
-	typedef signed __int16 int16_t;
-	typedef signed __int8  int8_t;
-	typedef unsigned __int64 uint64_t;
-	typedef unsigned __int32 uint32_t;
-	typedef unsigned __int16 uint16_t;
-	typedef unsigned __int8  uint8_t;
-
 	// vsnprintf is ISO/IEC 9899:1999
 	// abstracting this to make it portable
 	int Q_vsnprintf( char *str, size_t size, const char *format, va_list args );
 #else // not using MSVC
 
-	#include <stdint.h>
-
 	#define Q_vsnprintf vsnprintf
 
 #endif
-
-// 32 bit field aliasing
-typedef union byteAlias_u {
-	float f;
-	int32_t i;
-	uint32_t ui;
-	qboolean qb;
-	byte b[4];
-	char c[4];
-} byteAlias_t;
 
 typedef union fileBuffer_u {
 	void *v;
@@ -838,6 +796,8 @@ extern vec4_t g_color_table[Q_COLOR_BITS+1];
 #define	MAKERGB( v, r, g, b ) v[0]=r;v[1]=g;v[2]=b
 #define	MAKERGBA( v, r, g, b, a ) v[0]=r;v[1]=g;v[2]=b;v[3]=a
 
+int Q_parseColorString( const char *p, float *color );
+
 struct cplane_s;
 
 extern	vec3_t		vec3_origin;
@@ -918,6 +878,7 @@ void		VectorInverse( vec3_t vec );
 void		CrossProduct( const vec3_t vec1, const vec3_t vec2, vec3_t vecOut );
 float		DotProduct( const vec3_t vec1, const vec3_t vec2 );
 qboolean	VectorCompare( const vec3_t vec1, const vec3_t vec2 );
+qboolean	VectorCompare4(const vec4_t vec1, const vec4_t vec2);
 void		SnapVector( float *v );
 
 #define		VectorAddM( vec1, vec2, vecOut )		((vecOut)[0]=(vec1)[0]+(vec2)[0], (vecOut)[1]=(vec1)[1]+(vec2)[1], (vecOut)[2]=(vec1)[2]+(vec2)[2])
@@ -1140,35 +1101,6 @@ const char *Q_strchrs( const char *string, const char *search );
 
 //=============================================
 
-// 64-bit integers for global rankings interface
-// implemented as a struct for qvm compatibility
-typedef struct qint64_s {
-	byte	b0;
-	byte	b1;
-	byte	b2;
-	byte	b3;
-	byte	b4;
-	byte	b5;
-	byte	b6;
-	byte	b7;
-} qint64;
-
-//=============================================
-/*
-short	BigShort(short l);
-short	LittleShort(short l);
-int		BigLong (int l);
-int		LittleLong (int l);
-qint64  BigLong64 (qint64 l);
-qint64  LittleLong64 (qint64 l);
-float	BigFloat (const float *l);
-float	LittleFloat (const float *l);
-
-void	Swap_Init (void);
-*/
-
-int FloatAsInt( float f );
-
 char	* QDECL va(const char *format, ...);
 
 #define TRUNCATE_LENGTH	64
@@ -1188,7 +1120,7 @@ qboolean Info_Validate( const char *s );
 qboolean Info_NextPair( const char **s, char *key, char *value );
 
 // this is only here so the functions in q_shared.c and bg_*.c can link
-#if defined( _GAME ) || defined( _CGAME ) || defined( _UI )
+#if defined( _GAME ) || defined( _CGAME ) || defined( IN_UI )
 	extern void (*Com_Error)( int level, const char *error, ... );
 	extern void (*Com_Printf)( const char *msg, ... );
 #else
@@ -1552,21 +1484,12 @@ typedef struct forcedata_s {
 	int			privateDuelTime;
 } forcedata_t;
 
-
-typedef enum {
-	SENTRY_NOROOM = 1,
-	SENTRY_ALREADYPLACED,
-	SHIELD_NOROOM,
-	SEEKER_ALREADYDEPLOYED
-} itemUseFail_t;
-
 // bit field limits
 #define	MAX_STATS				16
 #define	MAX_PERSISTANT			16
 #define	MAX_POWERUPS			16
 #define	MAX_WEAPONS				19
-#define MAX_AMMO_TRANSMIT		16 // This is needed because the ammo array is 19 but only 16 sized array is networked
-#define MAX_AMMO				MAX_WEAPONS
+#define MAX_ARMOR				16
 
 #define	MAX_PS_EVENTS			2
 
@@ -1676,9 +1599,9 @@ typedef struct playerState_s {
 	int			stats[MAX_STATS];
 	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
 	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
-	int			ammo;					// Total ammo available for reloading (like an ammo pool)	//FIXME: remove?
+	int			armor[MAX_ARMOR];
 
-	int		unused[18];				// Unused fields	(see what I did here?)		
+	int			unused[2];			// Unused field to keep the alignment correct (?)
 
 	int			generic1;
 	int			loopSound;
@@ -1848,6 +1771,7 @@ typedef struct playerState_s {
 	unsigned char	weaponId;
 	unsigned char   shotsRemaining;
 	unsigned char	sprintMustWait;
+	int				jetpack;
 	
 	short			saberActionFlags;
 
@@ -1898,7 +1822,7 @@ typedef struct siegePers_s
 //
 #define	BUTTON_ATTACK			1
 #define	BUTTON_TALK				2			// displays talk balloon and disables actions
-#define	BUTTON_USE_HOLDABLE		4
+#define	BUTTON_UNUSED			4
 #define	BUTTON_GESTURE			8
 #define	BUTTON_WALKING			16			// walking can't just be infered from MOVE_RUN
 										// because a key pressed late in the frame will
@@ -1941,24 +1865,14 @@ typedef enum
 {
 	GENCMD_SABERSWITCH = 1,
 	GENCMD_ENGAGE_DUEL,
-	GENCMD_USE_SEEKER,
-	GENCMD_USE_FIELD,
-	GENCMD_USE_BACTA,
-	GENCMD_USE_ELECTROBINOCULARS,
 	GENCMD_ZOOM,
-	GENCMD_USE_SENTRY,
-	GENCMD_USE_JETPACK,
-	GENCMD_USE_BACTABIG,
-	GENCMD_USE_HEALTHDISP,
-	GENCMD_USE_AMMODISP,
-	GENCMD_USE_EWEB,
-	GENCMD_USE_CLOAK,
 	GENCMD_SABERATTACKCYCLE,
 	GENCMD_TAUNT,
 	GENCMD_BOW,
 	GENCMD_MEDITATE,
 	GENCMD_FLOURISH,
-	GENCMD_GLOAT
+	GENCMD_GLOAT,
+	GENCMD_RELOAD
 } genCmds_t;
 
 // usercmd_t is sent to the server each client frame
@@ -2271,6 +2185,7 @@ typedef struct entityState_s {
 	unsigned char	weaponVariation;
 	unsigned char	firingMode;
 	unsigned char	weaponstate;
+	int				jetpack;
 
 	int 			damageTypeFlags;
 
@@ -2289,9 +2204,11 @@ typedef struct entityState_s {
 	unsigned short	saberEmitter[2];
 	unsigned short	saberCrystal[2];
 
+	int				armor[MAX_ARMOR];
+
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 	
-	unsigned short	seed;
+	unsigned int	seed;
 } entityState_t;
 
 typedef enum {
@@ -2328,15 +2245,9 @@ typedef struct qtime_s {
 
 
 // server browser sources
-//[MasterServer]
 #define AS_LOCAL			0
-#define AS_FAVORITES		2
 #define AS_GLOBAL			1
-#define AS_GLOBAL2			3
-#define AS_GLOBAL3			4
-#define AS_GLOBAL4			5
-#define AS_GLOBAL5			6
-//[/MasterServer]
+#define AS_FAVORITES		2
 
 
 
@@ -2518,10 +2429,13 @@ void JKG_ClearGenericMemoryObject(GenericMemoryObject *gmo);
 void JKG_GenericMemoryObject_AddElement(GenericMemoryObject *gmo, void *element);
 void JKG_GenericMemoryObject_DeleteElement(GenericMemoryObject *gmo, unsigned int number);
 void Q_RGBCopy( vec4_t *output, vec4_t source );
-const char *JKG_xRBG_ConvertExtToNormal(const char *text);	//for converting ^xRBG names to regular ^1names  kind of hacky
-qboolean Text_IsExtColorCode(const char *text);
+void getGalacticTimeStamp(char* outStr);	//Gets current time    to use : char myarray[17]; getBuildTimeStamp(myarray); 
 qboolean StringContainsWord(const char *haystack, const char *needle);
 qboolean Q_stratt( char *dest, unsigned int iSize, char *source );
+
+
+
+
 
 #ifndef ENGINE
 // FIXME

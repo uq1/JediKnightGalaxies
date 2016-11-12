@@ -26,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "bg_local.h"
 #include "w_saber.h"
 
-extern qboolean BG_SabersOff( playerState_t *ps );
 saberInfo_t *BG_MySaber( int clientNum, int saberNum );
 
 int PM_irand_timesync(int val1, int val2)
@@ -375,7 +374,7 @@ saberMoveName_t PM_CheckStabDown( void )
 
 	if ( ent &&
 		(ent->s.eType == ET_PLAYER || ent->s.eType == ET_NPC) &&
-		BG_InKnockDown( ent->s.legsAnim ) && SaberStances[pm->ps->fd.saberAnimLevel].specialMoves.allowStabDown )
+		BG_KnockdownAnim( ent->s.legsAnim ) && SaberStances[pm->ps->fd.saberAnimLevel].specialMoves.allowStabDown )
 	{//guy is on the ground below me, do a top-down attack
 		if ( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
 		{
@@ -461,70 +460,15 @@ qboolean PM_SaberInTransition( int move );
 
 int saberMoveTransitionAngle[Q_NUM_QUADS][Q_NUM_QUADS] = 
 {
-	0,//Q_BR,Q_BR,
-	45,//Q_BR,Q_R,
-	90,//Q_BR,Q_TR,
-	135,//Q_BR,Q_T,
-	180,//Q_BR,Q_TL,
-	215,//Q_BR,Q_L,
-	270,//Q_BR,Q_BL,
-	45,//Q_BR,Q_B,
-	45,//Q_R,Q_BR,
-	0,//Q_R,Q_R,
-	45,//Q_R,Q_TR,
-	90,//Q_R,Q_T,
-	135,//Q_R,Q_TL,
-	180,//Q_R,Q_L,
-	215,//Q_R,Q_BL,
-	90,//Q_R,Q_B,
-	90,//Q_TR,Q_BR,
-	45,//Q_TR,Q_R,
-	0,//Q_TR,Q_TR,
-	45,//Q_TR,Q_T,
-	90,//Q_TR,Q_TL,
-	135,//Q_TR,Q_L,
-	180,//Q_TR,Q_BL,
-	135,//Q_TR,Q_B,
-	135,//Q_T,Q_BR,
-	90,//Q_T,Q_R,
-	45,//Q_T,Q_TR,
-	0,//Q_T,Q_T,
-	45,//Q_T,Q_TL,
-	90,//Q_T,Q_L,
-	135,//Q_T,Q_BL,
-	180,//Q_T,Q_B,
-	180,//Q_TL,Q_BR,
-	135,//Q_TL,Q_R,
-	90,//Q_TL,Q_TR,
-	45,//Q_TL,Q_T,
-	0,//Q_TL,Q_TL,
-	45,//Q_TL,Q_L,
-	90,//Q_TL,Q_BL,
-	135,//Q_TL,Q_B,
-	215,//Q_L,Q_BR,
-	180,//Q_L,Q_R,
-	135,//Q_L,Q_TR,
-	90,//Q_L,Q_T,
-	45,//Q_L,Q_TL,
-	0,//Q_L,Q_L,
-	45,//Q_L,Q_BL,
-	90,//Q_L,Q_B,
-	270,//Q_BL,Q_BR,
-	215,//Q_BL,Q_R,
-	180,//Q_BL,Q_TR,
-	135,//Q_BL,Q_T,
-	90,//Q_BL,Q_TL,
-	45,//Q_BL,Q_L,
-	0,//Q_BL,Q_BL,
-	45,//Q_BL,Q_B,
-	45,//Q_B,Q_BR,
-	90,//Q_B,Q_R,
-	135,//Q_B,Q_TR,
-	180,//Q_B,Q_T,
-	135,//Q_B,Q_TL,
-	90,//Q_B,Q_L,
-	45,//Q_B,Q_BL,
-	0//Q_B,Q_B,
+	// Q_BR, Q_R, Q_TR, Q_T, Q_TL, Q_L, Q_BL, Q_B
+	{     0,  45,   90, 135,  180, 215,  270,  45 },
+	{    45,   0,   45,  90,  135, 180,  215,  90 },
+	{    90,  45,    0,  45,  90,  135,  180, 135 },
+	{   135,  90,   45,   0,  45,   90,  135, 180 },
+	{   180, 135,   90,  45,   0,   45,   90, 135 },
+	{   215, 180,   135, 90,  45,    0,   45,  90 },
+	{   270, 215,   180, 135, 90,   45,    0,  45 },
+	{    45,  90,   135, 180, 135,  90,   45,   0 }
 };
 
 int PM_SaberAttackChainAngle( int move1, int move2, int stance )
@@ -720,7 +664,7 @@ extern gentity_t g_entities[];
 
 #elif defined _CGAME
 
-#include "..\cgame\cg_local.h" //ahahahahhahahaha@$!$!
+#include "../cgame/cg_local.h" //ahahahahhahahaha@$!$!
 
 #endif
 
@@ -2452,9 +2396,6 @@ int PM_KickMoveForConditions(void)
 	return kickMove;
 }
 
-qboolean PM_InSlopeAnim( int anim );
-qboolean PM_RunningAnim( int anim );
-
 int bg_parryDebounce[NUM_FORCE_POWER_LEVELS] =
 {
 	500,//if don't even have defense, can't use defense!
@@ -2800,12 +2741,12 @@ void PM_WeaponLightsaber(void)
 			PM_SetSaberMove( LS_READY );
 		}
 
-		if ((pm->ps->legsAnim) != (pm->ps->torsoAnim) && !PM_InSlopeAnim(pm->ps->legsAnim) &&
+		if ((pm->ps->legsAnim) != (pm->ps->torsoAnim) && !BG_InSlopeAnim(pm->ps->legsAnim) &&
 			pm->ps->torsoTimer <= 0 && !(pm->ps->saberActionFlags & (1 << SAF_BLOCKING)))
 		{
 			PM_SetAnim(SETANIM_TORSO,(pm->ps->legsAnim),SETANIM_FLAG_OVERRIDE);
 		}
-		else if ((PM_InSlopeAnim(pm->ps->legsAnim) || pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) && pm->ps->torsoTimer <= 0 &&
+		else if ((BG_InSlopeAnim(pm->ps->legsAnim) || pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) && pm->ps->torsoTimer <= 0 &&
 			!PM_SaberInParry(pm->ps->saberMove) && !PM_SaberInKnockaway(pm->ps->saberMove) &&
 			!PM_SaberInBrokenParry(pm->ps->saberMove) && !PM_SaberInReflect(pm->ps->saberMove))
 		{
@@ -2926,10 +2867,10 @@ void PM_WeaponLightsaber(void)
 				  && (pm->ps->torsoAnim == BOTH_SABERDUAL_STANCE//not already attacking
 					  || pm->ps->torsoAnim == BOTH_SABERPULL//not already attacking
 					  || pm->ps->torsoAnim == BOTH_STAND1//not already attacking
-					  || PM_RunningAnim( pm->ps->torsoAnim ) //not already attacking
-					  || PM_WalkingAnim( pm->ps->torsoAnim ) //not already attacking
+					  || BG_RunningAnim( pm->ps->torsoAnim ) //not already attacking
+					  || BG_WalkingAnim( pm->ps->torsoAnim ) //not already attacking
 					  || PM_JumpingAnim( pm->ps->torsoAnim )//not already attacking
-					  || PM_SwimmingAnim( pm->ps->torsoAnim ))//not already attacking
+					  || BG_SwimmingAnim( pm->ps->torsoAnim ))//not already attacking
 				)
 			  )
 			)
@@ -2942,36 +2883,11 @@ void PM_WeaponLightsaber(void)
 
    // don't allow attack until all buttons are up
 	//This is bad. It freezes the attack state and the animations if you hold the button after respawning, and it looks strange.
-	/*
-	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
-		return;
-	}
-	*/
 
 	// check for dead player
 	if ( pm->ps->stats[STAT_HEALTH] <= 0 ) {
 		return;
 	}
-
-	/*
-
-	if (pm->ps->weaponstate == WEAPON_READY ||
-		pm->ps->weaponstate == WEAPON_IDLE)
-	{
-		if (pm->ps->saberMove != LS_READY && pm->ps->weaponTime <= 0 && !pm->ps->saberBlocked)
-		{
-			PM_SetSaberMove( LS_READY );
-		}
-	}
-
-	if(PM_RunningAnim(pm->ps->torsoAnim))
-	{
-		if ((pm->ps->torsoAnim) != (pm->ps->legsAnim))
-		{
-			PM_SetAnim(SETANIM_TORSO,(pm->ps->legsAnim),SETANIM_FLAG_OVERRIDE);
-		}
-	}
-	*/
 
 	// make weapon function
 	if ( pm->ps->weaponTime > 0 )
@@ -3547,10 +3463,6 @@ weapChecks:
 					anim = PM_GetSaberStance();
 				}
 
-//				if (PM_RunningAnim(anim) && !pm->cmd.forwardmove && !pm->cmd.rightmove)
-//				{ //semi-hacky (if not moving on x-y and still playing the running anim, force the player out of it)
-//					anim = PM_GetSaberStance();
-//				}
 				newmove = LS_READY;
 			}
 
@@ -3808,7 +3720,7 @@ void PM_SetSaberMove(short newMove)
 			anim = PM_GetSaberStance();
 		}
 
-		if (PM_InSlopeAnim( anim ))
+		if (BG_InSlopeAnim( anim ))
 		{
 			anim = PM_GetSaberStance();
 		}
@@ -3982,8 +3894,7 @@ saberInfo_t *BG_MySaber( int clientNum, int saberNum )
 	gentity_t *ent = &g_entities[clientNum];
 	if ( ent->inuse && ent->client )
 	{
-		if ( !ent->client->saber[saberNum].model 
-			|| !ent->client->saber[saberNum].model[0] )
+		if ( !ent->client->saber[saberNum].model[0] )
 		{ //don't have saber anymore!
 			return NULL;
 		}
@@ -4003,11 +3914,9 @@ saberInfo_t *BG_MySaber( int clientNum, int saberNum )
 			ci = cent->npcClient;
 		}
 	}
-	if ( ci 
-		&& ci->infoValid )
+	if ( ci && ci->infoValid )
 	{
-		if ( !ci->saber[saberNum].model 
-			|| !ci->saber[saberNum].model[0] )
+		if ( !ci->saber[saberNum].model[0] )
 		{ //don't have sabers anymore!
 			return NULL;
 		}

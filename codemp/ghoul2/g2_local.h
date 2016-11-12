@@ -210,7 +210,7 @@ qboolean	G2_Stop_Bone_Angles(const char *fileName, boneInfo_v &blist, const char
 //rww - RAGDOLL_BEGIN
 void		G2_Animate_Bone_List(CGhoul2Info_v &ghoul2, const int currentTime, const int index,CRagDollUpdateParams *params);
 //rww - RAGDOLL_END
-void		G2_Init_Bone_List(boneInfo_v &blist);
+void		G2_Init_Bone_List(boneInfo_v &blist, int numBones);
 int			G2_Find_Bone_In_List(boneInfo_v &blist, const int boneNum);
 void		G2_RemoveRedundantBoneOverrides(boneInfo_v &blist, int *activeBones);
 qboolean	G2_Set_Bone_Angles_Matrix(const char *fileName, boneInfo_v &blist, const char *boneName, const mdxaBone_t &matrix, const int flags, qhandle_t *modelList, const int modelIndex, const int blendTime, const int currentTime);
@@ -317,6 +317,7 @@ void		G2API_CleanGhoul2Models(CGhoul2Info_v **ghoul2Ptr);
 int			G2API_GetParentSurface(CGhoul2Info *ghlInfo, const int index);
 int			G2API_GetSurfaceIndex(CGhoul2Info *ghlInfo, const char *surfaceName);
 char		*G2API_GetSurfaceName(CGhoul2Info_v& ghoul2, int modelIndex, int surfNumber);
+int			G2API_GetSurfaceCount(CGhoul2Info_v& ghoul2);
 char		*G2API_GetGLAName(CGhoul2Info_v &ghoul2, int modelIndex);
 qboolean	G2API_SetBoneAnglesMatrix(CGhoul2Info *ghlInfo, const char *boneName, const mdxaBone_t &matrix, const int flags, qhandle_t *modelList, int blendTime = 0, int currentTime = 0);
 qboolean	G2API_SetNewOrigin(CGhoul2Info_v &ghoul2, const int boltIndex);

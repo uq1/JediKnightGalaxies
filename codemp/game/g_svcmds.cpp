@@ -28,12 +28,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 // Include GLua 
 #include "../GLua/glua.h"
-#include "jkg_admin.h"
 #ifdef __UNUSED__
 #include "jkg_navmesh_creator.h"
 #endif //__UNUSED__
-#include "jkg_threading.h"
-#include "json/cJSON.h"
 
 
 /*
@@ -64,17 +61,14 @@ If 0, then only addresses matching the list will be allowed.  This lets you easi
 ==============================================================================
 */
 
-typedef struct ipFilter_s
-{
-	unsigned	mask;
-	unsigned	compare;
+typedef struct ipFilter_s {
+	uint32_t mask, compare;
 } ipFilter_t;
 
-// VVFIXME - We don't need this at all, but this is the quick way.
-#define	MAX_IPFILTERS	1024
+#define	MAX_IPFILTERS (1024)
 
 static ipFilter_t	ipFilters[MAX_IPFILTERS];
-static int			numIPFilters;
+static int	numIPFilters;
 
 extern void AIMod_TimeMapPaths();
 
@@ -83,28 +77,20 @@ extern void AIMod_TimeMapPaths();
 StringToFilter
 =================
 */
-static qboolean StringToFilter (char *s, ipFilter_t *f)
-{
-	char	num[128];
-	int		i, j;
-	byte	b[4];
-	byte	m[4];
+static qboolean StringToFilter( char *s, ipFilter_t *f ) {
+	char num[128];
+	int i, j;
+	byteAlias_t b, m;
 
-	for (i=0 ; i<4 ; i++)
-	{
-		b[i] = 0;
-		m[i] = 0;
-	}
+	b.ui = m.ui = 0u;
 
-	for (i=0 ; i<4 ; i++)
-	{
-		if (*s < '0' || *s > '9')
-		{
-			if (*s == '*') // 'match any'
-			{
+	for ( i=0; i<4; i++ ) {
+		if ( *s < '0' || *s > '9' ) {
+			if ( *s == '*' ) {
+				// 'match any'
 				// b[i] and m[i] to 0
 				s++;
-				if (!*s)
+				if ( !*s )
 					break;
 				s++;
 				continue;
@@ -114,22 +100,22 @@ static qboolean StringToFilter (char *s, ipFilter_t *f)
 		}
 
 		j = 0;
-		while (*s >= '0' && *s <= '9')
-		{
+		while ( *s >= '0' && *s <= '9' )
 			num[j++] = *s++;
-		}
-		num[j] = 0;
-		b[i] = atoi(num);
-		m[i] = 255;
 
-		if (!*s)
+		num[j] = 0;
+		b.b[i] = (byte)atoi( num );
+		m.b[i] = 0xFF;
+
+		if ( !*s )
 			break;
+
 		s++;
 	}
-	
-	f->mask = *(unsigned *)m;
-	f->compare = *(unsigned *)b;
-	
+
+	f->mask = m.ui;
+	f->compare = b.ui;
+
 	return qtrue;
 }
 
@@ -138,38 +124,30 @@ static qboolean StringToFilter (char *s, ipFilter_t *f)
 UpdateIPBans
 =================
 */
-static void UpdateIPBans (void)
-{
-	byte	b[4];
-	byte	m[4];
-	int		i, j;
-	char	iplist_final[MAX_CVAR_VALUE_STRING];
-	char	ip[NET_ADDRSTRMAXLEN];
+static void UpdateIPBans( void ) {
+	byteAlias_t b, m;
+	int i, j;
+	char ip[NET_ADDRSTRMAXLEN], iplist_final[MAX_CVAR_VALUE_STRING];
 
 	*iplist_final = 0;
-	for (i = 0 ; i < numIPFilters ; i++)
-	{
-		if (ipFilters[i].compare == 0xffffffff)
+	for ( i=0; i<numIPFilters; i++ ) {
+		if ( ipFilters[i].compare == 0xFFFFFFFFu )
 			continue;
 
-		*(unsigned *)b = ipFilters[i].compare;
-		*(unsigned *)m = ipFilters[i].mask;
+		b.ui = ipFilters[i].compare;
+		m.ui = ipFilters[i].mask;
 		*ip = 0;
-		for (j = 0 ; j < 4 ; j++)
-		{
-			if (m[j]!=255)
-				Q_strcat(ip, sizeof(ip), "*");
+		for ( j=0; j<4; j++ ) {
+			if ( m.b[j] != 0xFF )
+				Q_strcat( ip, sizeof( ip ), "*" );
 			else
-				Q_strcat(ip, sizeof(ip), va("%i", b[j]));
-			Q_strcat(ip, sizeof(ip), (j<3) ? "." : " ");
+				Q_strcat( ip, sizeof( ip ), va( "%i", b.b[j] ) );
+			Q_strcat( ip, sizeof( ip ), (j<3) ? "." : " " );
 		}
-		if (strlen(iplist_final)+strlen(ip) < MAX_CVAR_VALUE_STRING)
-		{
-			Q_strcat( iplist_final, sizeof(iplist_final), ip);
-		}
-		else
-		{
-			Com_Printf("g_banIPs overflowed at MAX_CVAR_VALUE_STRING\n");
+		if ( strlen( iplist_final )+strlen( ip ) < MAX_CVAR_VALUE_STRING )
+			Q_strcat( iplist_final, sizeof( iplist_final ), ip );
+		else {
+			Com_Printf( "g_banIPs overflowed at MAX_CVAR_VALUE_STRING\n" );
 			break;
 		}
 	}
@@ -182,31 +160,31 @@ static void UpdateIPBans (void)
 G_FilterPacket
 =================
 */
-qboolean G_FilterPacket (char *from)
-{
-	int				i;
-	unsigned int	in;
-	byte m[4];
+qboolean G_FilterPacket( char *from ) {
+	int i;
+	uint32_t in;
+	byteAlias_t m;
 	char *p;
 
 	i = 0;
 	p = from;
-	while (*p && i < 4) {
-		m[i] = 0;
-		while (*p >= '0' && *p <= '9') {
-			m[i] = m[i]*10 + (*p - '0');
+	while ( *p && i < 4 ) {
+		m.b[i] = 0;
+		while ( *p >= '0' && *p <= '9' ) {
+			m.b[i] = m.b[i]*10 + (*p - '0');
 			p++;
 		}
-		if (!*p || *p == ':')
+		if ( !*p || *p == ':' )
 			break;
 		i++, p++;
 	}
-	
-	in = *(unsigned int *)m;
 
-	for (i=0 ; i<numIPFilters ; i++)
-		if ( (in & ipFilters[i].mask) == ipFilters[i].compare)
+	in = m.ui;
+
+	for ( i=0; i<numIPFilters; i++ ) {
+		if ( (in & ipFilters[i].mask) == ipFilters[i].compare )
 			return g_filterBan.integer != 0;
+	}
 
 	return g_filterBan.integer == 0;
 }
@@ -216,25 +194,23 @@ qboolean G_FilterPacket (char *from)
 AddIP
 =================
 */
-static void AddIP( char *str )
-{
-	int		i;
+static void AddIP( char *str ) {
+	int i;
 
-	for (i = 0 ; i < numIPFilters ; i++)
-		if (ipFilters[i].compare == 0xffffffff)
-			break;		// free spot
-	if (i == numIPFilters)
-	{
-		if (numIPFilters == MAX_IPFILTERS)
-		{
-			trap->Print ("IP filter list is full\n");
+	for ( i=0; i<numIPFilters; i++ ) {
+		if ( ipFilters[i].compare == 0xFFFFFFFFu )
+			break; // free spot
+	}
+	if ( i == numIPFilters ) {
+		if ( numIPFilters == MAX_IPFILTERS ) {
+			trap->Print( "IP filter list is full\n" );
 			return;
 		}
 		numIPFilters++;
 	}
-	
-	if (!StringToFilter (str, &ipFilters[i]))
-		ipFilters[i].compare = 0xffffffffu;
+
+	if ( !StringToFilter( str, &ipFilters[i] ) )
+		ipFilters[i].compare = 0xFFFFFFFFu;
 
 	UpdateIPBans();
 }
@@ -244,22 +220,21 @@ static void AddIP( char *str )
 G_ProcessIPBans
 =================
 */
-void G_ProcessIPBans(void) 
-{
-	char *s, *t;
-	char		str[MAX_TOKEN_CHARS];
+void G_ProcessIPBans( void ) {
+	char *s = NULL, *t = NULL, str[MAX_CVAR_VALUE_STRING] = {0};
 
-	Q_strncpyz( str, g_banIPs.string, sizeof(str) );
+	Q_strncpyz( str, g_banIPs.string, sizeof( str ) );
 
-	for (t = s = g_banIPs.string; *t; /* */ ) {
-		s = strchr(s, ' ');
-		if (!s)
+	for ( t=s=g_banIPs.string; *t; t=s ) {
+		s = strchr( s, ' ' );
+		if ( !s )
 			break;
-		while (*s == ' ')
+
+		while ( *s == ' ' )
 			*s++ = 0;
-		if (*t)
+
+		if ( *t )
 			AddIP( t );
-		t = s;
 	}
 }
 
@@ -315,6 +290,22 @@ void Svcmd_RemoveIP_f (void)
 	}
 
 	trap->Print ( "Didn't find %s.\n", str );
+}
+
+void Svcmd_ListIP_f (void)
+{
+	int		i, count = 0;
+	byteAlias_t b;
+
+	for(i = 0; i < numIPFilters; i++) {
+		if ( ipFilters[i].compare == 0xffffffffu )
+			continue;
+
+		b.ui = ipFilters[i].compare;
+		trap->Print ("%i.%i.%i.%i\n", b.b[0], b.b[1], b.b[2], b.b[3]);
+		count++;
+	}
+	trap->Print ("%i bans.\n", count);
 }
 
 /*
@@ -421,7 +412,7 @@ ClientForString
 gclient_t	*ClientForString( const char *s ) {
 	gclient_t	*cl;
 	int			idnum;
-	char		cleanName[MAX_STRING_CHARS];
+	char		cleanInput[MAX_STRING_CHARS];
 
 	// numeric values could be slot numbers
 	if ( StringIsInteger( s ) ) {
@@ -434,15 +425,15 @@ gclient_t	*ClientForString( const char *s ) {
 		}
 	}
 
+	Q_strncpyz( cleanInput, s, sizeof(cleanInput) );
+	Q_StripColor( cleanInput );
+
 	// check for a name match
 	for ( idnum=0,cl=level.clients ; idnum < level.maxclients ; idnum++,cl++ ) {
 		if ( cl->pers.connected != CON_CONNECTED ) {
 			continue;
 		}
-		Q_strncpyz(cleanName, cl->pers.netname, sizeof(cleanName));
-		Q_StripColor(cleanName);
-		//Q_CleanStr(cleanName);
-		if ( !Q_stricmp( cleanName, s ) ) {
+		if ( !Q_stricmp( cl->pers.netname_nocolor, cleanInput ) ) {
 			return cl;
 		}
 	}
@@ -479,7 +470,17 @@ void	Svcmd_ForceTeam_f( void ) {
 	SetTeam( &g_entities[cl - level.clients], str );
 }
 
-char	*ConcatArgs( int start );
+/*
+=================
+Svcmd_CenterPrintAll_f
+
+cpa <message>
+=================
+*/
+char	*ConcatArgs(int start);
+void	Svcmd_CenterPrintAll_f(char* msg) {
+	trap->SendServerCommand(-1, va("cp \"%s\"", msg));
+}
 
 /*
 =================
@@ -487,18 +488,6 @@ ConsoleCommand
 
 =================
 */
-
-int testMasterFinalFunc (struct asyncTask_s *task) {
-	cJSON *data = (cJSON *)task->finalData;
-
-	if (task->errorCode == 0) {
-		trap->Print("Test successful! (bounce: %i - %i)", cJSON_ToInteger(cJSON_GetObjectItem(data, "bounce")), level.time);
-	} else {
-		trap->Print("Test failed!");
-	}
-	return 0;
-}
-
 qboolean	ConsoleCommand( void ) {
 	char	cmd[MAX_TOKEN_CHARS];
 
@@ -531,9 +520,6 @@ qboolean	ConsoleCommand( void ) {
 		GLua_Run(line);
 		return qtrue;
 	}
-
-	// Check for admin commands
-	if (JKG_Admin_ExecuteRcon(cmd)) return qtrue;
 
 #if 0
 	if (!Q_stricmp (cmd, "disasm")) {
@@ -597,7 +583,7 @@ qboolean	ConsoleCommand( void ) {
 	}
 
 	if (Q_stricmp (cmd, "listip") == 0) {
-		trap->SendConsoleCommand( EXEC_NOW, "g_banIPs\n" );
+		Svcmd_ListIP_f();
 		return qtrue;
 	}
 
@@ -620,6 +606,12 @@ qboolean	ConsoleCommand( void ) {
 		// everything else will NOT also be printed as a say command
 		//trap->SendServerCommand( -1, va("print \"server: %s\n\"", ConcatArgs(0) ) );
 		//return qtrue;
+	}
+
+	if (!Q_stricmp(cmd, "cpa")) {
+		Svcmd_CenterPrintAll_f(ConcatArgs(1));
+
+		return qtrue;
 	}
 
 	return qfalse;

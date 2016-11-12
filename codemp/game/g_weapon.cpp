@@ -581,91 +581,6 @@ void RocketDie(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int d
 	self->nextthink = level.time;
 }
 
-//---------------------------------------------------------
-static void WP_FireRocket( gentity_t *ent, qboolean altFire )
-//---------------------------------------------------------
-{
-	int	damage	= ROCKET_DAMAGE;
-	int	vel = ROCKET_VELOCITY;
-	int dif = 0;
-	float rTime;
-	gentity_t *missile;
-
-	if ( altFire )
-	{
-		vel *= 0.5f;
-	}
-
-	missile = CreateMissile( muzzle, forward, vel, 10000, ent, altFire );
-
-	if (ent->client && ent->client->ps.rocketLockIndex != ENTITYNUM_NONE)
-	{
-		float lockTimeInterval = 1200.0f/16.0f;
-		rTime = ent->client->ps.rocketLockTime;
-
-		if (rTime == -1)
-		{
-			rTime = ent->client->ps.rocketLastValidTime;
-		}
-		dif = ( level.time - rTime ) / lockTimeInterval;
-
-		if (dif < 0)
-		{
-			dif = 0;
-		}
-
-		//It's 10 even though it locks client-side at 8, because we want them to have a sturdy lock first, and because there's a slight difference in time between server and client
-		if ( dif >= 10 && rTime != -1 )
-		{
-			missile->enemy = &g_entities[ent->client->ps.rocketLockIndex];
-
-			if (missile->enemy && missile->enemy->client && missile->enemy->health > 0 && !OnSameTeam(ent, missile->enemy))
-			{ //if enemy became invalid, died, or is on the same team, then don't seek it
-				missile->angle = 0.5f;
-				missile->think = rocketThink;
-				missile->nextthink = level.time + ROCKET_ALT_THINK_TIME;
-			}
-		}
-
-		ent->client->ps.rocketLockIndex = ENTITYNUM_NONE;
-		ent->client->ps.rocketLockTime = 0;
-		ent->client->ps.rocketTargetTime = 0;
-	}
-
-	missile->classname = "rocket_proj";
-	missile->s.weapon = WP_ROCKET_LAUNCHER;
-
-	// Make it easier to hit things
-	VectorSet( missile->r.maxs, ROCKET_SIZE, ROCKET_SIZE, ROCKET_SIZE );
-	VectorScale( missile->r.maxs, -1, missile->r.mins );
-
-	missile->damage = damage;
-	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
-	if (altFire)
-	{
-		missile->methodOfDeath = MOD_ROCKET_HOMING;
-		missile->splashMethodOfDeath = MOD_ROCKET_HOMING_SPLASH;
-	}
-	else
-	{
-		missile->methodOfDeath = MOD_ROCKET;
-		missile->splashMethodOfDeath = MOD_ROCKET_SPLASH;
-	}
-//===testing being able to shoot rockets out of the air==================================
-	missile->health = 10;
-	missile->takedamage = qtrue;
-	missile->r.contents = MASK_SHOT;
-	missile->die = RocketDie;
-//===testing being able to shoot rockets out of the air==================================
-	
-	missile->clipmask = MASK_SHOT;
-	missile->splashDamage = ROCKET_SPLASH_DAMAGE;
-	missile->splashRadius = ROCKET_SPLASH_RADIUS;
-
-	// we don't want it to ever bounce
-	missile->bounceCount = 0;
-}
-
 /*
 ======================================================================
 
@@ -2036,11 +1951,6 @@ void WP_FireMelee( gentity_t *ent, qboolean alt_fire )
 	vec3_t		mins, maxs, end;
 	vec3_t		muzzlePunch;
 
-	if( ent->client && (ent->client->ps.forcePower < 15 && ent->client->ps.torsoAnim != BOTH_MELEE1))
-	{	// Can't start a melee combo if we're under 10 force power --eez
-		return;
-	}
-
 	if ( ent->s.eType == ET_NPC 
 		&& ent->s.weapon != WP_SABER 
 		&& ent->enemy
@@ -2077,11 +1987,15 @@ void WP_FireMelee( gentity_t *ent, qboolean alt_fire )
 	// Melee "improvements" - sap a little bit of stamina for each punch
 	if (ent->client)
 	{
-		ent->client->ps.forcePower -= 9;
-		if( ent->client->ps.forcePower <= 0 )
+		int threshold = bgConstants.staminaDrains.minPunchThreshold;
+		if( threshold == 0 && ent->client->ps.forcePower <= 0 )
 		{
 			ent->client->ps.forcePower = 0;
 		}
+		else if (threshold && ent->client->ps.forcePower < threshold) {
+			return;
+		}
+		ent->client->ps.forcePower -= bgConstants.staminaDrains.lossFromPunching;
 	}
 
 	VectorMA(muzzlePunch, 20.0f, forward, muzzlePunch);
@@ -2118,15 +2032,11 @@ void WP_FireMelee( gentity_t *ent, qboolean alt_fire )
 
 		if ( tr_ent->takedamage )
 		{ //damage them, do more damage if we're in the second right hook
-			int dmg = MELEE_SWING1_DAMAGE;
-
-			if (ent->client && ent->client->ps.torsoAnim == BOTH_MELEE2)
-			{ //do a tad bit more damage on the second swing
-				dmg = MELEE_SWING2_DAMAGE;
+			int dmg = 40; // UQ1: (NPCs) Hitting with rifle but does more damage...
+			if (ent->s.weapon == WP_MELEE) {
+				weaponData_t* wpData = GetWeaponData(WP_MELEE, 0);
+				dmg = wpData->firemodes[0].baseDamage;
 			}
-
-			if ( ent->s.weapon != WP_MELEE )
-				dmg *= 4; // UQ1: (NPCs) Hitting with rifle but does more damage...
 
 			G_Damage( tr_ent, ent, ent, forward, tr.endpos, dmg, DAMAGE_NO_ARMOR, MOD_MELEE );
 		}
@@ -2940,7 +2850,7 @@ void FireVehicleWeapon( gentity_t *ent, qboolean alt_fire )
 					//NOTE: in order to send the vehicle's ammo info to the client, we copy the ammo into the first 2 ammo slots on the vehicle NPC's client->ps.ammo array
 					if ( pVeh->m_pParentEntity && ((gentity_t*)(pVeh->m_pParentEntity))->client )
 					{
-						((gentity_t*)(pVeh->m_pParentEntity))->client->ps.ammo = pVeh->weaponStatus[weaponNum].ammo;
+						((gentity_t*)(pVeh->m_pParentEntity))->client->ps.stats[STAT_TOTALAMMO] = pVeh->weaponStatus[weaponNum].ammo;
 					}
 					//done!
 					//we'll get in here again next frame and try the next muzzle...
@@ -2956,7 +2866,7 @@ void FireVehicleWeapon( gentity_t *ent, qboolean alt_fire )
 				//NOTE: in order to send the vehicle's ammo info to the client, we copy the ammo into the first 2 ammo slots on the vehicle NPC's client->ps.ammo array
 				if ( pVeh->m_pParentEntity && ((gentity_t*)(pVeh->m_pParentEntity))->client )
 				{
-					((gentity_t*)(pVeh->m_pParentEntity))->client->ps.ammo = pVeh->weaponStatus[weaponNum].ammo;
+					((gentity_t*)(pVeh->m_pParentEntity))->client->ps.stats[STAT_TOTALAMMO] = pVeh->weaponStatus[weaponNum].ammo;
 				}
 			}
 			if ( cumulativeDelay )
@@ -3555,6 +3465,9 @@ gentity_t *WP_FireGenericGrenade( gentity_t *ent, int firemode, vec3_t origin, v
 	fCharge = (( ent->client ) ? ( level.time - ent->client->ps.weaponChargeTime ) : 1.0f ) / fSpeed;
 	fCharge = ( fCharge > 1.0f ) ? 1.0f : (( fCharge < 0.15f ) ? 0.15f : fCharge );
 
+	/* Make sure our grenade is not on the other side of a wall */
+	W_TraceSetStart(ent, origin, bolt->r.mins, bolt->r.maxs);
+
 	/* Set the physics object and make the grenade think (when to explode) */
 	bolt->flags                  |= FL_BOUNCE_HALF | FL_BOUNCE;
 	bolt->physicsObject			 = qtrue;
@@ -3710,7 +3623,7 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 		VectorCopy( ent->client->ps.origin, start );
 		start[2] += ent->client->ps.viewheight;
 	}
-	/* NPC will use their own origin and use the eye coördinates */
+	/* NPC will use their own origin and use the eye coordinates */
 	else
 	{
 		VectorCopy( ent->r.currentOrigin, start );

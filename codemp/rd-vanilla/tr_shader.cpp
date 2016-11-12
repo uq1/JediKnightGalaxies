@@ -1243,7 +1243,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		//
 		else if ( !Q_stricmp( token, "animMap" ) || !Q_stricmp( token, "clampanimMap" ) || !Q_stricmp( token, "oneshotanimMap" ))
 		{
-			#define	MAX_IMAGE_ANIMATIONS	32
+			#define	MAX_IMAGE_ANIMATIONS	64
 			image_t *images[MAX_IMAGE_ANIMATIONS];
 			bool bClamp = !Q_stricmp( token, "clampanimMap" );
 			bool oneShot = !Q_stricmp( token, "oneshotanimMap" );
@@ -3328,7 +3328,7 @@ static inline const int *R_FindLightmap( const int *lightmapIndex )
 		return lightmapIndex;
 	
 	// bail if no world dir
-	if( tr.worldDir == NULL || !*tr.worldDir )
+	if( !*tr.worldDir )
 	{
 		return lightmapsVertex;
 	}

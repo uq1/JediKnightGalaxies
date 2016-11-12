@@ -1,15 +1,3 @@
-//       ____ ___________________   ___           ____  __ _______   ___  ________  ___ ______________
-//      |    |\_   _____/\______ \ |   |         |    |/ _|\      \ |   |/  _____/ /   |   \__    ___/
-//      |    | |    __)_  |    |  \|   |         |      <  /   |   \|   /   \  ___/    ~    \|    |   
-//  /\__|    | |        \ |    `   \   |         |    |  \/    |    \   \    \_\  \    Y    /|    |   
-//  \________|/_______  //_______  /___|         |____|__ \____|__  /___|\______  /\___|_  / |____|   
-//                    \/         \/                      \/       \/            \/       \/           
-//                         ________    _____   ____       _____  ____  ___ ______________ _________   
-//                        /  _____/   /  _  \ |    |     /  _  \ \   \/  /|   \_   _____//   _____/   
-//                       /   \  ___  /  /_\  \|    |    /  /_\  \ \     / |   ||    __)_ \_____  \    
-//                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
-//                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
-//                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
 // bg_public.h
 /*
 ===========================================================================
@@ -105,71 +93,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // Sprint animation time --eez
 #define SPRINT_TIME			(300)
 
-#ifdef __MMO__
-
-//
-// config strings are a general means of communicating variable length strings
-// from the server to all connected clients.
-//
-
-// CS_SERVERINFO and CS_SYSTEMINFO are defined in q_shared.h
-#define	CS_MUSIC				2
-#define	CS_MESSAGE				3		// from the map worldspawn's message field
-#define	CS_MOTD					4		// g_motd string for server message of the day
-#define	CS_WARMUP				5		// server time when the match will be restarted
-#define	CS_SCORES1				6
-#define	CS_SCORES2				7
-#define CS_VOTE_TIME			8
-#define CS_VOTE_STRING			9
-#define	CS_VOTE_YES				10
-#define	CS_VOTE_NO				11
-
-#define CS_TEAMVOTE_TIME		12
-#define CS_TEAMVOTE_STRING		14
-#define	CS_TEAMVOTE_YES			16
-#define	CS_TEAMVOTE_NO			18
-
-#define	CS_GAME_VERSION			20
-#define	CS_LEVEL_START_TIME		21		// so the timer only shows the current level
-#define	CS_INTERMISSION			22		// when 1, fraglimit/timelimit has been hit and intermission will start in a second or two
-#define CS_FLAGSTATUS			23		// string indicating flag status in CTF
-#define CS_SHADERSTATE			24
-#define CS_BOTINFO				25
-
-#define	CS_ITEMS				27		// string of 0's and 1's that tell which items are present
-
-#define CS_CLIENT_DUELWINNER	28		// current duel round winner - needed for printing at top of scoreboard
-#define CS_CLIENT_DUELISTS		29		// client numbers for both current duelists. Needed for a number of client-side things.
-#define CS_CLIENT_DUELHEALTHS	30		// nmckenzie: DUEL_HEALTH.  Hopefully adding this cs is safe and good?
-#define CS_GLOBAL_AMBIENT_SET	31
-
-#define CS_AMBIENT_SET			36	
-
-#define	CS_MODELS				(CS_AMBIENT_SET+MAX_AMBIENT_SETS)
-#define	CS_SKYBOXORG			(CS_MODELS+MAX_MODELS)		//rww - skybox info
-#define	CS_SOUNDS				(CS_SKYBOXORG+1)
-#define CS_ICONS				(CS_SOUNDS+MAX_SOUNDS)
-//#define	CS_PLAYERS				(CS_ICONS+MAX_ICONS)
-#define	CS_PLAYERS				(CS_ICONS+MAX_ICONS)
-//#define CS_G2BONES				(CS_PLAYERS+MAX_CLIENTS)
-//#define CS_G2BONES				(CS_PLAYERS+MAX_ICONS) // UQ1: Set this to MAX_ICONS (64) for now... See what happens...
-#define CS_G2BONES				(CS_PLAYERS+1) // UQ1: Just enough for the 1 bone ent we still use...
-#define CS_LOCATIONS			(CS_G2BONES+MAX_G2BONES)
-#define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS) 
-#define CS_EFFECTS				(CS_PARTICLES+MAX_LOCATIONS)
-#define	CS_LIGHT_STYLES			(CS_EFFECTS + MAX_FX)
-
-//rwwRMG - added:
-#define CS_TERRAINS				(CS_LIGHT_STYLES + (MAX_LIGHT_STYLES*3))
-#define CS_BSP_MODELS			(CS_TERRAINS + MAX_TERRAINS)
-
-// Jedi Knight Galaxies - Gang Wars
-#define CS_TEAMS				(CS_BSP_MODELS + MAX_SUB_BSP)
-
-#define CS_MAX					(CS_TEAMS + 1)
-
-#else //!__MMO__
-
 //
 // config strings are a general means of communicating variable length strings
 // from the server to all connected clients.
@@ -235,8 +158,6 @@ Ghoul2 Insert End
 
 #define CS_MAX					(CS_TEAMS + 1)
 
-#endif //__MMO__
-
 #if (CS_MAX) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
 #endif
@@ -301,12 +222,6 @@ typedef enum {
 	GT_DUEL,		// one on one tournament
 	GT_POWERDUEL,		// one on two tournament
 	GT_SINGLE_PLAYER,	// single player ffa
-
-#ifdef __RPG__
-	// UQ1: Added... Need to update gametypes file and menus to match...
-	GT_RPG_CITY,		// UQ1: New combined gametypes gametype. City area version.
-	GT_RPG_WILDERNESS,	// UQ1: New combined gametypes gametype. Wilderness area version.
-#endif //__RPG__
 
 	//-- team games go after this --
 
@@ -465,7 +380,7 @@ typedef struct animevent_s
 	animEventType_t	eventType;
 	unsigned short	keyFrame;			//Frame to play event on
 	signed short	eventData[AED_ARRAY_SIZE];	//Unique IDs, can be soundIndex of sound file to play OR effect index or footstep type, etc.
-	char			*stringData;		//we allow storage of one string, temporarily (in case we have to look up an index later, then make sure to set stringData to NULL so we only do the look-up once)
+	char			stringData[2048];		//we allow storage of one string, temporarily (in case we have to look up an index later, then make sure to set stringData to NULL so we only do the look-up once)
 } animevent_t;
 
 typedef struct bgLoadedAnim_s {
@@ -551,7 +466,7 @@ extern int bgForcePowerCost[NUM_FORCE_POWERS][NUM_FORCE_POWER_LEVELS];
 #define	PMF_FIX_MINS		128		// mins have been brought up, keep tracing down to fix them
 #define	PMF_TIME_WATERJUMP	256		// pm_time is waterjump
 #define	PMF_RESPAWNED		512		// clear after attack and jump buttons come up
-#define	PMF_USE_ITEM_HELD	1024
+#define	PMF_UNUSED			1024
 #define PMF_UPDATE_ANIM		2048	// The server updated the animation, the pmove should set the ghoul2 anim to match.
 #define PMF_FOLLOW			4096	// spectate following another player
 #define PMF_SCOREBOARD		8192	// spectate as a scoreboard
@@ -684,19 +599,18 @@ void Vmove( vmove_t *vmove );
 // NOTE: may not have more than 16
 typedef enum {
 	STAT_HEALTH,
-	STAT_HOLDABLE_ITEM,
-	STAT_HOLDABLE_ITEMS,
 	STAT_PERSISTANT_POWERUP,
 	//MAKE SURE STAT_WEAPONS REMAINS 4!!!!
 	//There is a hardcoded reference in msg.cpp to send it in 32 bits -rww
 	STAT_WEAPONS = 4,					// 16 bit fields
-	STAT_ARMOR,
+	STAT_SHIELD,
 	STAT_DEAD_YAW,					// look this direction when dead (FIXME: get rid of?)
 	STAT_CLIENTS_READY,				// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
 	STAT_MAX_HEALTH,				// Maximum health
 	// Jedi Knight Galaxies
-	STAT_MAX_ARMOR,					// Maximum shield/armor
-	STAT_AMMO,						// Ammo in current weapon (ps->ammo contains total ammo in clips))
+	STAT_MAX_SHIELD,				// Maximum shield
+	STAT_AMMO,						// Ammo in current weapon
+	STAT_TOTALAMMO,					// Total ammo
 	STAT_ACCURACY,					// Extra accuracy rating from weapon
 	STAT_CAPTURE_ENTITYNUM			// Warzone Flag Capture Entity...
 } statIndex_t;
@@ -814,17 +728,12 @@ typedef enum {
 typedef enum {
 	PW_NONE,
 
-	#ifdef BASE_COMPAT
-		PW_QUAD,
-		PW_BATTLESUIT,
-	#endif // BASE_COMPAT
-
 	PW_PULL,
 
 	PW_REDFLAG,
 	PW_BLUEFLAG,
 
-	PW_SHIELDHIT, // FIXME: remove
+	PW_SHIELDHIT,
 
 	PW_SPEEDBURST,
 	PW_DISINT_4,
@@ -834,26 +743,6 @@ typedef enum {
 	PW_NUM_POWERUPS
 
 } powerup_t;
-
-typedef enum {
-	HI_NONE,
-
-	HI_SEEKER,
-	HI_SHIELD,
-	HI_MEDPAC,
-	HI_MEDPAC_BIG,
-	HI_BINOCULARS,
-	HI_SENTRY_GUN,
-	HI_JETPACK,
-
-	HI_HEALTHDISP,
-	HI_AMMODISP,
-	HI_EWEB,
-	HI_CLOAK,
-
-	HI_NUM_HOLDABLE
-} holdable_t;
-
 
 typedef enum {
 	CTFMESSAGE_FRAGGED_FLAG_CARRIER,
@@ -955,25 +844,6 @@ typedef enum {
 
 	EV_USE,			// +Use key
 
-	EV_USE_ITEM0,
-	EV_USE_ITEM1,
-	EV_USE_ITEM2,
-	EV_USE_ITEM3,
-	EV_USE_ITEM4,
-	EV_USE_ITEM5,
-	EV_USE_ITEM6,
-	EV_USE_ITEM7,
-	EV_USE_ITEM8,
-	EV_USE_ITEM9,
-	EV_USE_ITEM10,
-	EV_USE_ITEM11,
-	EV_USE_ITEM12,
-	EV_USE_ITEM13,
-	EV_USE_ITEM14,
-	EV_USE_ITEM15,
-
-	EV_ITEMUSEFAIL,
-
 	EV_ITEM_RESPAWN,
 	EV_ITEM_POP,
 	EV_PLAYER_TELEPORT_IN,
@@ -1008,18 +878,12 @@ typedef enum {
 	EV_MISSILE_HIT,
 	EV_MISSILE_MISS,
 	EV_MISSILE_MISS_METAL,
-	EV_BULLET,				// otherEntity is the shooter
 
 	EV_PAIN,
 	EV_DEATH1,
 	EV_DEATH2,
 	EV_DEATH3,
 	EV_OBITUARY,
-
-	#ifdef BASE_COMPAT
-		EV_POWERUP_QUAD,
-		EV_POWERUP_BATTLESUIT,
-	#endif // BASE_COMPAT
 
 	EV_FORCE_DRAINED,
 
@@ -1042,6 +906,8 @@ typedef enum {
 	EV_WEAPON_CHARGE_ALT,
 
 	EV_SHIELD_HIT,
+	EV_SHIELD_BROKEN,
+	EV_SHIELD_RECHARGE,
 
 	EV_DEBUG_LINE,
 	EV_TESTLINE,
@@ -1141,12 +1007,6 @@ typedef enum {
 	EV_GRENADE_COOK,
 	EV_EXPLOSIVE_ARM,
 	EV_MISSILE_DIE,
-	EV_ITEM_BREAK,		//Item gets broken due to loss of durability
-#ifdef __MMO__
-	EV_GOTO_ACI,		//Go to specific ACI slot (inexpensive)
-	EV_HITMARKER_ASSIST,
-	EV_HITMARKER_KILL,
-#endif //__MMO__
 } entity_event_t;			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
 
 
@@ -1188,18 +1048,6 @@ typedef enum {
 
 // How many players on the overlay
 #define TEAM_MAXOVERLAY		32
-
-//team task
-typedef enum {
-	TEAMTASK_NONE,
-	TEAMTASK_OFFENSE,
-	TEAMTASK_DEFENSE,
-	TEAMTASK_PATROL,
-	TEAMTASK_FOLLOW,
-	TEAMTASK_RETRIEVE,
-	TEAMTASK_ESCORT,
-	TEAMTASK_CAMP
-} teamtask_t;
 
 // means of death
 typedef enum {
@@ -1267,8 +1115,6 @@ typedef enum {
 	IT_HEALTH,				// EFX: static external sphere + rotating internal
 	IT_POWERUP,				// instant on, timer based
 							// EFX: rotate + external ring that rotates
-	IT_HOLDABLE,			// single use, holdable item
-							// EFX: rotate + bob
 	IT_PERSISTANT_POWERUP,
 	IT_TEAM
 } itemType_t;
@@ -1303,7 +1149,6 @@ float vectoyaw( const vec3_t vec );
 gitem_t	*BG_FindItem( const char *classname );
 gitem_t	*BG_FindItemForWeapon( weapon_t weapon );
 gitem_t	*BG_FindItemForPowerup( powerup_t pw );
-gitem_t	*BG_FindItemForHoldable( holdable_t pw );
 #define	ITEM_INDEX(x) ((x)-bg_itemlist)
 
 qboolean	BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const playerState_t *ps );
@@ -2056,6 +1901,23 @@ float JKG_CalculateIronsightsPhase ( const playerState_t *ps, int time, float *b
 
 qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolean PMOVE  );
 
+// Stuff that got moved from pmove to panimate
+qboolean BG_SabersOff(playerState_t *ps);
+void PM_AnimateJetpack(void);
+qboolean PM_AdjustStandAnimForSlope(void);
+int PM_LegsSlopeBackTransition(int desiredAnim);
+qboolean BG_WalkingAnim(int anim);
+qboolean BG_RunningAnim(int anim);
+qboolean BG_SwimmingAnim(int anim);
+qboolean BG_RollingAnim(int anim);
+qboolean BG_KnockdownAnim(int anim);
+qboolean BG_InSlopeAnim(int anim);
+qboolean PM_WeaponAnimate(void);
+qboolean PM_CanSetWeaponAnims(void);
+qboolean BG_SaberLockBreakAnim(int anim);
+qboolean PM_SaberInTransition(int move);
+qboolean BG_InSlopeAnim(int anim);
+
 extern int forcePowerDarkLight[NUM_FORCE_POWERS];
 
 double QuadraticBezierInterpolate(double phase, double p0, double p1, double p2);
@@ -2119,6 +1981,20 @@ typedef struct {
 	float walkSpeedModifier;
 	float minimumSpeedModifier;
 	float sprintSpeedModifier;
+
+	// Stuff pertaining to stamina drains
+	struct Stamina {
+		int lossFromRolling;
+		int lossFromPunching;
+		int lossFromJumping;
+		int lossFromKicking;
+		int minSprintThreshold;
+		int minRollThreshold;
+		int minJumpThreshold;
+		int minPunchThreshold;
+		int minKickThreshold;
+	};
+	Stamina staminaDrains;
 } bgConstants_t;
 
 extern bgConstants_t bgConstants;
@@ -2129,6 +2005,10 @@ int BG_GetPairedValue(char *buf, char *key, char *outbuf);
 extern const char *gametypeStringShort[GT_MAX_GAME_TYPE];
 const char *BG_GetGametypeString( int gametype );
 int BG_GetGametypeForString( const char *gametype );
+
+void Q_FSBinaryDump( const char *filename, const void *buffer, size_t len );
+void Q_FSWriteJSON( void *root, fileHandle_t f );
+void Q_FSWriteString( fileHandle_t f, const char *msg );
 
 bool JKG_ParseHiltFiles( void );
 void JKG_CleanSaberHilts( void );

@@ -1339,7 +1339,7 @@ void AIMOD_SaveCoverPoints ( void )
 
 	for ( i = 0; i < num_cover_spots; i++ )											//loop through all the nodes
 	{
-		int j = 0;
+		//int j = 0;
 
 		trap->FS_Write( &(cover_nodes[i]), sizeof(int), f );
 
@@ -1391,8 +1391,6 @@ qboolean AIMOD_LoadCoverPoints ( void )
 
 	for ( i = 0; i < num_cover_spots; i++ )
 	{
-		int j = 0;
-
 		trap->FS_Read( &(cover_nodes[i]), sizeof(int), f );
 
 		if (!(nodes[cover_nodes[i]].type & NODE_COVER))
@@ -1756,8 +1754,8 @@ AIMOD_MAPPING_CreateSpecialNodeFlags ( int node )
 {	// Need to check for duck (etc) nodes and mark them...
 	trace_t tr;
 	vec3_t	up, temp, uporg;
-	vec3_t	tankMaxsSize = {96, 96, 0};
-	vec3_t	tankMinsSize = {-96, -96, 0};
+	//vec3_t	tankMaxsSize = {96, 96, 0};
+	//vec3_t	tankMinsSize = {-96, -96, 0};
 
 	VectorCopy( nodes[node].origin, temp );
 	temp[2] += 1;
@@ -2672,8 +2670,6 @@ void CG_ShowSlope ( void ) {
 	trace_t	 trace;
 	vec3_t	forward, right, up, start, end;
 	vec3_t	testangles;
-	vec3_t	boxMins= {-1, -1, -1};
-	vec3_t	boxMaxs= {1, 1, 1};
 	float	pitch, roll, yaw, roof;
 	vec3_t	slopeangles;
 
@@ -3869,8 +3865,6 @@ void AIMod_AutoWaypoint_StandardMethod( void )
 	int			start_time = trap->Milliseconds();
 	int			update_timer = 0;
 	float		waypoint_scatter_realtime_modifier = 1.0f;
-	float		waypoint_scatter_realtime_modifier_alt = 0.5f; // 0.3f;
-	int			wp_loop = 0;
 
 	trap->Cvar_Set("jkg_waypoint_render", "0");
 	trap->UpdateScreen();
@@ -4397,8 +4391,6 @@ void AIMod_AutoWaypoint_StandardMethod( void )
 
 					if (temp_roof <= mapMaxs[2]/*< 64000*/ && HeightDistance(temp_org, temp_org2) >= 128)
 					{// Looks like it goes up!
-						int z = 0;
-
 						VectorCopy(org, temp_org);
 						temp_org[2] += 24;
 
@@ -4414,8 +4406,6 @@ void AIMod_AutoWaypoint_StandardMethod( void )
 
 					if (temp_roof >= mapMins[2]/*> -64000*/ && HeightDistance(temp_org, temp_org2) >= 128)
 					{// Looks like it goes up!
-						int z = 0;
-
 						VectorCopy(org, temp_org);
 						temp_org[2] -= 24;
 
@@ -5512,7 +5502,7 @@ AIMod_AutoWaypoint_Optimizer ( void )
 	// UQ1: start - First handle the command line options...
 	trap->Cmd_Argv( 1, str, sizeof(str) );
 
-	if (!quiet && str && str[0])
+	if (!quiet && str[0])
 	{// Use player specified area seperation...
 		float area_sep = 0.0f;
 
@@ -5540,7 +5530,7 @@ AIMod_AutoWaypoint_Optimizer ( void )
 
 		trap->Cmd_Argv( 2, str, sizeof(str) );
 
-		if (str && str[0])
+		if (str[0])
 		{// Use player specified area seperation...
 			if (!Q_stricmp(str, "badsurfsonly"))
 				bad_surfaces_only = qtrue;
@@ -5555,7 +5545,7 @@ AIMod_AutoWaypoint_Optimizer ( void )
 
 			trap->Cmd_Argv( 3, str, sizeof(str) );
 
-			if (str && str[0])
+			if (str[0])
 			{// Use player specified area seperation...
 				if (!Q_stricmp(str, "badsurfsonly"))
 					bad_surfaces_only = qtrue;
@@ -5570,7 +5560,7 @@ AIMod_AutoWaypoint_Optimizer ( void )
 
 				trap->Cmd_Argv( 4, str, sizeof(str) );
 
-				if (str && str[0])
+				if (str[0])
 				{// Use player specified area seperation...
 					if (!Q_stricmp(str, "badsurfsonly"))
 						bad_surfaces_only = qtrue;
@@ -5585,7 +5575,7 @@ AIMod_AutoWaypoint_Optimizer ( void )
 
 					trap->Cmd_Argv( 5, str, sizeof(str) );
 
-					if (str && str[0])
+					if (str[0])
 					{// Use player specified area seperation...
 						if (!Q_stricmp(str, "badsurfsonly"))
 							bad_surfaces_only = qtrue;

@@ -1615,8 +1615,6 @@ BSP Options
 extern void EWebPrecache(void); //g_items.c
 float g_cullDistance;
 
-extern vmCvar_t jkg_startingGun;
-extern vmCvar_t jkg_startingSaberDuel;
 void SP_worldspawn( void ) 
 {
 	char		*text, temp[32];
@@ -1700,16 +1698,29 @@ void SP_worldspawn( void )
 	switch( level.gametype ) {
 		case GT_DUEL:
 		case GT_POWERDUEL:
-			G_SpawnString( "defaultWeapon", jkg_startingSaberDuel.string, &text );
+			{
+				G_SpawnString( "defaultWeapon", jkg_startingSaberDuel.string, &text );
+				if(text && *text)
+				{
+					Q_strncpyz(level.startingWeapon, text, sizeof(level.startingWeapon));
+					trap->Cvar_Set( "jkg_startingSaberDuel", text );
+				}
+				else
+					Q_strncpyz(level.startingWeapon, jkg_startingSaberDuel.string, sizeof(level.startingWeapon));
+			}
 			break;
 		default:
-			G_SpawnString( "defaultWeapon", jkg_startingGun.string, &text );//pistol_DL-18
+			{
+				G_SpawnString( "defaultWeapon", "pistol_DL-18", &text );//pistol_DL-18
+				if(text && *text)
+				{
+					Q_strncpyz(level.startingWeapon, text, sizeof(level.startingWeapon));
+					trap->Cvar_Set( "jkg_startingGun", text );
+				}
+				else
+					Q_strncpyz(level.startingWeapon, jkg_startingGun.string, sizeof(level.startingWeapon));
+			}
 			break;
-	}
-	if(text)
-	{
-		strcpy(level.startingWeapon, text);
-		trap->Cvar_Set("jkg_startingGun", text);
 	}
 	g_entities[ENTITYNUM_WORLD].s.number = ENTITYNUM_WORLD;
 	g_entities[ENTITYNUM_WORLD].r.ownerNum = ENTITYNUM_NONE;
@@ -1845,15 +1856,7 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 	//
 	if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 		handle = trap->PC_LoadSource(va("maps/%s_scenario.ovrents", mapname.string));
-	else
-#ifdef __RPG__
-	if (g_gametype.integer == GT_RPG_CITY)
-		handle = trap->PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
-	else if (g_gametype.integer == GT_RPG_WILDERNESS)
-		handle = trap->PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
-	else 
-#endif //__RPG__
-	if (g_gametype.integer == GT_SINGLE_PLAYER)
+	else if (g_gametype.integer == GT_SINGLE_PLAYER)
 		handle = trap->PC_LoadSource(va("maps/%s_coop.ovrents", mapname.string));
 	else
 		handle = trap->PC_LoadSource(va("maps/%s.ovrents", mapname.string));
@@ -1911,15 +1914,7 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 		// it's used to add new ents to existing pure ET map
 		if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 			handle = trap->PC_LoadSource(va("maps/%s_scenario.entities", mapname.string));
-		else
-#ifdef __RPG__
-		if (g_gametype.integer == GT_RPG_CITY)
-			handle = trap->PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
-		else if (g_gametype.integer == GT_RPG_WILDERNESS)
-			handle = trap->PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
-		else 
-#endif //__RPG__
-		if (g_gametype.integer == GT_SINGLE_PLAYER)
+		else if (g_gametype.integer == GT_SINGLE_PLAYER)
 			handle = trap->PC_LoadSource(va("maps/%s_coop.entities", mapname.string));
 		else
 			handle = trap->PC_LoadSource(va("maps/%s.entities", mapname.string));

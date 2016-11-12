@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #if defined(_GAME)
 	#include "g_local.h"
-#elif defined(_UI)
+#elif defined(IN_UI)
 	#include "../ui/ui_local.h"
 #elif defined(_CGAME)
 	#include "../cgame/cg_local.h"
@@ -922,10 +922,10 @@ void PM_StepSlideMove( qboolean gravity ) {
 	{
 		// apply ground friction, even if on ladder
 		if (pEnt &&
-			pEnt->s.NPC_class == CLASS_ATST ||
+			(pEnt->s.NPC_class == CLASS_ATST ||
 				(pEnt->s.NPC_class == CLASS_VEHICLE &&
 					pEnt->m_pVehicle &&
-					pEnt->m_pVehicle->m_pVehicleInfo->type == VH_WALKER)
+					pEnt->m_pVehicle->m_pVehicleInfo->type == VH_WALKER))
 			)
 		{//AT-STs can step high
 			up[2] += 66.0f;

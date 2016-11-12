@@ -159,7 +159,6 @@ void SCR_DrawSmallChar( int x, int y, int ch ) {
 					   cls.charSetShader );
 }
 
-
 /*
 ==================
 SCR_DrawBigString[Color]
@@ -182,8 +181,9 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	s = string;
 	xx = x;
 	while ( *s ) {
-		if ( !noColorEscape && Q_IsColorString( s ) ) {
-			s += 2;
+		int colorLen = Q_parseColorString( s, nullptr );
+		if ( !noColorEscape && colorLen ) {
+			s += colorLen;
 			continue;
 		}
 		SCR_DrawChar( xx+2, y+2, size, *s );
@@ -197,14 +197,14 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	xx = x;
 	re->SetColor( setColor );
 	while ( *s ) {
-		if ( Q_IsColorString( s ) ) {
+		int colorLen = Q_parseColorString( s, color );
+		if ( colorLen ) {
 			if ( !forceColor ) {
-				Com_Memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ) );
 				color[3] = setColor[3];
 				re->SetColor( color );
 			}
 			if ( !noColorEscape ) {
-				s += 2;
+				s += colorLen;
 				continue;
 			}
 		}
@@ -249,14 +249,14 @@ void SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, 
 	xx = x;
 	re->SetColor( setColor );
 	while ( *s ) {
-		if ( Q_IsColorString( s ) ) {
+		int colorLen = Q_parseColorString( s, color );
+		if ( colorLen ) {
 			if ( !forceColor ) {
-				Com_Memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ) );
 				color[3] = setColor[3];
 				re->SetColor( color );
 			}
 			if ( !noColorEscape ) {
-				s += 2;
+				s += colorLen;
 				continue;
 			}
 		}
@@ -277,12 +277,13 @@ static int SCR_Strlen( const char *str ) {
 	int count = 0;
 
 	while ( *s ) {
-		if ( Q_IsColorString( s ) ) {
-			s += 2;
-		} else {
-			count++;
-			s++;
+		int colorLen = Q_parseColorString( s, nullptr );
+		if( colorLen ) {
+			s += colorLen;
+			continue;
 		}
+		count++;
+		s++;
 	}
 
 	return count;

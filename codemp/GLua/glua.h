@@ -10,7 +10,7 @@ extern "C" {
 // Stack balancing asserts
 #ifdef _DEBUG
 	#define STACKGUARD_INIT(L) int luastackguard = lua_gettop(L);
-	#define STACKGUARD_CHECK(L) if (lua_gettop(L) != luastackguard) assert(!"WARNING: Lua stack unbalanced in " __FUNCTION__);
+	#define STACKGUARD_CHECK(L) if (lua_gettop(L) != luastackguard) assert(!"WARNING: Lua stack unbalanced");
 #else
 	#define STACKGUARD_INIT(L)
 	#define STACKGUARD_CHECK(L)
@@ -107,6 +107,8 @@ void GLua_Hook_PlayerDeathcam(int clientNum, int *deathcamtime, int *forcerespaw
 int GLua_Hook_SelectInitialSpawn(int clientNum, gentity_t **spawnpoint, int team, vec3_t spawnorigin, vec3_t spawnangles);
 int GLua_Hook_SelectSpawn(int clientNum, gentity_t **spawnpoint, int team, vec3_t avoidpoint, vec3_t spawnorigin, vec3_t spawnangles);
 int GLua_Hook_SelectSpectatorSpawn(int clientNum, gentity_t **spawnpoint, vec3_t spawnorigin, vec3_t spawnangles);
+// Items
+void GLua_ConsumeItem(gentity_t* consumer, itemInstance_t* item);
 
 // ---
 void GLua_Run(const char *line);

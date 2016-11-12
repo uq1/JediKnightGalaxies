@@ -1,9 +1,0 @@
-{
-	"id":		"2",
-	"model":	"stormtrooper",
-	"skin":		"default_comm-b",
-	"surf":		"1",
-	"slot":		"shoulder",
-	"surfLower":	"torso_r_shoulder,torso_shoulder_pad,torso_l_shoulder",
-	"surfOnUpper":	"torso_pauldron,l_arm_shoulder,r_arm_shoulder_aug,sand_pouch1"
-}

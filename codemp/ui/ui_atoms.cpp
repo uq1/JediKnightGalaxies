@@ -28,8 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 #include "ui_local.h"
 
-qboolean		m_entersound;		// after a frame, so caching won't disrupt the sound
-
 void QDECL UI_Printf( const char *msg, ... ) {
 	va_list		argptr;
 	char		text[1024] = {0};
@@ -52,21 +50,6 @@ void QDECL UI_Error( const char *msg, ... ) {
 	trap->Error( ERR_DROP, text );
 }
 
-qboolean newUI = qfalse;
-
-
-/*
-=================
-UI_ClampCvar
-=================
-*/
-float UI_ClampCvar( float min, float max, float value )
-{
-	if ( value < min ) return min;
-	if ( value > max ) return max;
-	return value;
-}
-
 /*
 =================
 UI_StartDemoLoop
@@ -76,7 +59,6 @@ void UI_StartDemoLoop( void ) {
 	trap->Cmd_ExecuteText( EXEC_APPEND, "d1\n" );
 }
 
-
 char *UI_Argv( int arg ) {
 	static char	buffer[MAX_STRING_CHARS];
 
@@ -84,7 +66,6 @@ char *UI_Argv( int arg ) {
 
 	return buffer;
 }
-
 
 char *UI_Cvar_VariableString( const char *var_name ) {
 	static char	buffer[MAX_STRING_CHARS];
@@ -94,6 +75,7 @@ char *UI_Cvar_VariableString( const char *var_name ) {
 	return buffer;
 }
 
+#ifdef _DEBUG
 static void	UI_Cache_f() {
 	int i;
 	Display_CacheAll();
@@ -104,71 +86,7 @@ static void	UI_Cache_f() {
 		}
 	}
 }
-
-#include "json/cJSON.h"
-#include "jkg_ui_auxlib.h"
-
-// TEST
-int testMasterFinalFunc (asyncTask_t *task) {
-	cJSON *data = (cJSON *)task->finalData;
-	
-	if (task->errorCode == 0) {
-		Com_Printf("Test successful! (bounce: %i - %i)\n", cJSON_ToInteger(cJSON_GetObjectItem(data, "bounce")), trap->Milliseconds());
-	} else {
-		Com_Printf("Test failed!\n");
-	}
-	return 0;
-}
-
-int termsMasterFinalFunc (asyncTask_t *task) {
-	cJSON *data = (cJSON *)task->finalData;
-	
-	if (task->errorCode == 0) {
-		Com_Printf("Terms of use:\n%s\n", cJSON_ToStringOpt(cJSON_GetObjectItem(data, "message"), ""));
-	} else {
-		Com_Printf("Could not obtain terms of use!\n");
-	}
-	return 0;
-}
-
-int registerFinalFunc (asyncTask_t *task) {
-	cJSON *data = (cJSON *)task->finalData;
-	
-	if (task->errorCode == 0) {
-		if (cJSON_ToInteger(cJSON_GetObjectItem(data, "errorCode"))) {
-			Com_Printf("Registration failed: %s\n", cJSON_ToString(cJSON_GetObjectItem(data, "message")));
-		} else {
-			Com_Printf("Registration successful\n");
-		}
-	} else {
-		Com_Printf("Registration request failed\n");
-	}
-	return 0;
-}
-
-int loginFinalFunc (asyncTask_t *task) {
-	int errorcode;
-	cJSON *data = (cJSON *)task->finalData;
-	
-	if (task->errorCode == 0) {
-		errorcode = cJSON_ToInteger(cJSON_GetObjectItem(data, "errorCode"));
-		if (errorcode == 0) {
-			Com_Printf("Login successful!\n");
-		} else if (errorcode == 1) {
-			Com_Printf("Bad username or password!\n");
-		} else if (errorcode == 7) {
-			Com_Printf("Could not access database, please try again in a moment!\n");
-		} else if (errorcode == 8) {
-			Com_Printf("Account is not yet activated!\n");
-		}
-	} else {
-		Com_Printf("Login request failed\n");
-	}
-	return 0;
-}
-
-
-
+#endif
 
 /*
 =================
@@ -194,42 +112,6 @@ qboolean UI_ConsoleCommand( int realTime ) {
 		UI_Report();
 		return qtrue;
 	}
-	/*if ( Q_stricmp (cmd, "ui_testmaster") == 0) {
-		JKG_GLUI_Task_Test(testMasterFinalFunc);
-		return qtrue;
-	}
-
-	if ( Q_stricmp (cmd, "ui_testterms") == 0) {
-		JKG_GLUI_Task_GetTermsOfUse(termsMasterFinalFunc);
-		return qtrue;
-	}
-
-	if ( Q_stricmp (cmd, "ui_testregister") == 0 ) {
-		char username[32];
-		char password[32];
-		char email[64];
-
-		trap->Argv(1, username, 32);
-		trap->Argv(2, password, 32);
-		trap->Argv(3, email, 32);
-
-		JKG_GLUI_Task_RegisterUser(username, password, email, registerFinalFunc);
-		return qtrue;
-	}
-
-	if ( Q_stricmp (cmd, "ui_testlogin") == 0 ) {
-		char username[32];
-		char password[32];
-
-		trap->Argv(1, username, 32);
-		trap->Argv(2, password, 32);
-
-		JKG_GLUI_Task_Login(username, password, loginFinalFunc);
-		return qtrue;
-	}*/
-
-	
-	
 
 	if ( Q_stricmp (cmd, "ui_report") == 0 ) {
 		UI_Report();

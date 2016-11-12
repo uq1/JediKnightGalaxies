@@ -126,7 +126,7 @@ stringID_table_t ClassTable[] =
 	//Stoiss end
 
 	ENUM2STRING(CLASS_BOT_FAKE_NPC),
-	"",	-1
+	{ "",	-1 }
 };
 
 stringID_table_t BSTable[] =
@@ -142,10 +142,11 @@ stringID_table_t BSTable[] =
 	ENUM2STRING(BS_REMOVE),//# Waits for player to leave PVS then removes itself
 	ENUM2STRING(BS_CINEMATIC),//# Does nothing but face it's angles and move to a goal if it has one
 	//the rest are internal only
-	"",				-1,
+	{ "",				-1 }
 };
 
-#define stringIDExpand(str, strEnum)	str, strEnum, ENUM2STRING(strEnum)
+#define stringIDExpand(str, strEnum) { str, strEnum }, \
+	ENUM2STRING(strEnum)
 
 stringID_table_t BSETTable[] =
 {
@@ -166,7 +167,7 @@ stringID_table_t BSETTable[] =
 	ENUM2STRING(BSET_FFIRE),//# script to run when player shoots their own teammates
 	ENUM2STRING(BSET_FFDEATH),//# script to run when player kills a teammate
 	stringIDExpand("", BSET_INVALID),
-	"",				-1,
+	{ "",				-1 }
 };
 
 extern stringID_table_t WPTable[];
@@ -2353,7 +2354,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 					{
 					//	RegisterItem( FindItemForWeapon( (weapon_t)(NPC->client->ps.weapon) ) );	//precache the weapon
 					    NPC->client->ps.stats[STAT_AMMO] = 100;
-						NPC->client->ps.ammo = 100;//FIXME: max ammo!
+						NPC->client->ps.stats[STAT_TOTALAMMO] = 100;//FIXME: max ammo!
 					}
 				}
 				continue;

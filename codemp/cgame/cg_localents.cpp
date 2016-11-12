@@ -114,69 +114,6 @@ or generates more localentities along a trail.
 
 /*
 ================
-CG_BloodTrail
-
-Leave expanding blood puffs behind gibs
-================
-*/
-void CG_BloodTrail( localEntity_t *le ) {
-	int		t;
-	int		t2;
-	int		step;
-	vec3_t	newOrigin;
-	localEntity_t	*blood;
-
-	step = 150;
-	t = step * ( (cg.time - cg.frametime + step ) / step );
-	t2 = step * ( cg.time / step );
-
-	for ( ; t <= t2; t += step ) {
-		BG_EvaluateTrajectory( &le->pos, t, newOrigin );
-
-		blood = CG_SmokePuff( newOrigin, vec3_origin, 
-					  20,		// radius
-					  1, 1, 1, 1,	// color
-					  2000,		// trailTime
-					  t,		// startTime
-					  0,		// fadeInTime
-					  0,		// flags
-					  /*cgs.media.bloodTrailShader*/0 );
-		// use the optimized version
-		blood->leType = LE_FALL_SCALE_FADE;
-		// drop a total of 40 units over its lifetime
-		blood->pos.trDelta[2] = 40;
-	}
-}
-
-
-/*
-================
-CG_FragmentBounceMark
-================
-*/
-void CG_FragmentBounceMark( localEntity_t *le, trace_t *trace ) {
-	int			radius;
-
-	if ( le->leMarkType == LEMT_BLOOD ) {
-
-		radius = 16 + (rand()&31);
-//		CG_ImpactMark( cgs.media.bloodMarkShader, trace->endpos, trace->plane.normal, random()*360,
-//			1,1,1,1, qtrue, radius, qfalse );
-	} else if ( le->leMarkType == LEMT_BURN ) {
-
-		radius = 8 + (rand()&15);
-//		CG_ImpactMark( cgs.media.burnMarkShader, trace->endpos, trace->plane.normal, random()*360,
-//			1,1,1,1, qtrue, radius, qfalse );
-	}
-
-
-	// don't allow a fragment to make multiple marks, or they
-	// pile up while settling
-	le->leMarkType = LEMT_NONE;
-}
-
-/*
-================
 CG_FragmentBounceSound
 ================
 */
@@ -316,11 +253,6 @@ void CG_AddFragment( localEntity_t *le ) {
 
 		trap->R_AddRefEntityToScene( &le->refEntity );
 
-		// add a blood trail
-		if ( le->leBounceSoundType == LEBS_BLOOD ) {
-			CG_BloodTrail( le );
-		}
-
 		return;
 	}
 
@@ -334,9 +266,6 @@ void CG_AddFragment( localEntity_t *le ) {
 
 	if (!trace.startsolid)
 	{
-		// leave a mark
-		CG_FragmentBounceMark( le, &trace );
-
 		// do a bouncy sound
 		CG_FragmentBounceSound( le, &trace );
 
@@ -360,97 +289,6 @@ TRIVIAL LOCAL ENTITIES
 These only do simple scaling or modulation before passing to the renderer
 =====================================================================
 */
-
-/*
-====================
-CG_AddFadeRGB
-====================
-*/
-void CG_AddFadeRGB( localEntity_t *le ) {
-	refEntity_t *re;
-	float c;
-
-	re = &le->refEntity;
-
-	c = ( le->endTime - cg.time ) * le->lifeRate;
-	c *= 0xff;
-
-	re->shaderRGBA[0] = le->color[0] * c;
-	re->shaderRGBA[1] = le->color[1] * c;
-	re->shaderRGBA[2] = le->color[2] * c;
-	re->shaderRGBA[3] = le->color[3] * c;
-
-	trap->R_AddRefEntityToScene( re );
-}
-
-static void CG_AddFadeScaleModel( localEntity_t *le )
-{
-	refEntity_t	*ent = &le->refEntity;
-
-	float frac = ( cg.time - le->startTime )/((float)( le->endTime - le->startTime ));
-
-	frac *= frac * frac; // yes, this is completely ridiculous...but it causes the shell to grow slowly then "explode" at the end
-
-	ent->nonNormalizedAxes = qtrue;
-
-	AxisCopy( axisDefault, ent->axis );
-
-	VectorScale( ent->axis[0], le->radius * frac, ent->axis[0] );
-	VectorScale( ent->axis[1], le->radius * frac, ent->axis[1] );
-	VectorScale( ent->axis[2], le->radius * 0.5f * frac, ent->axis[2] );
-
-	frac = 1.0f - frac;
-
-	ent->shaderRGBA[0] = le->color[0] * frac;
-	ent->shaderRGBA[1] = le->color[1] * frac;
-	ent->shaderRGBA[2] = le->color[2] * frac;
-	ent->shaderRGBA[3] = le->color[3] * frac;
-
-	// add the entity
-	trap->R_AddRefEntityToScene( ent );
-}
-
-/*
-==================
-CG_AddMoveScaleFade
-==================
-*/
-static void CG_AddMoveScaleFade( localEntity_t *le ) {
-	refEntity_t	*re;
-	float		c;
-	vec3_t		delta;
-	float		len;
-
-	re = &le->refEntity;
-
-	if ( le->fadeInTime > le->startTime && cg.time < le->fadeInTime ) {
-		// fade / grow time
-		c = 1.0 - (float) ( le->fadeInTime - cg.time ) / ( le->fadeInTime - le->startTime );
-	}
-	else {
-		// fade / grow time
-		c = ( le->endTime - cg.time ) * le->lifeRate;
-	}
-
-	re->shaderRGBA[3] = 0xff * c * le->color[3];
-
-	if ( !( le->leFlags & LEF_PUFF_DONT_SCALE ) ) {
-		re->radius = le->radius * ( 1.0 - c ) + 8;
-	}
-
-	BG_EvaluateTrajectory( &le->pos, cg.time, re->origin );
-
-	// if the view would be "inside" the sprite, kill the sprite
-	// so it doesn't add too much overdraw
-	VectorSubtract( re->origin, cg.refdef.vieworg, delta );
-	len = VectorLength( delta );
-	if ( len < le->radius ) {
-		CG_FreeLocalEntity( le );
-		return;
-	}
-
-	trap->R_AddRefEntityToScene( re );
-}
 
 /*
 ==================
@@ -488,166 +326,6 @@ static void CG_AddPuff( localEntity_t *le ) {
 	}
 
 	trap->R_AddRefEntityToScene( re );
-}
-
-/*
-===================
-CG_AddScaleFade
-
-For rocket smokes that hang in place, fade out, and are
-removed if the view passes through them.
-There are often many of these, so it needs to be simple.
-===================
-*/
-static void CG_AddScaleFade( localEntity_t *le ) {
-	refEntity_t	*re;
-	float		c;
-	vec3_t		delta;
-	float		len;
-
-	re = &le->refEntity;
-
-	// fade / grow time
-	c = ( le->endTime - cg.time ) * le->lifeRate;
-
-	re->shaderRGBA[3] = 0xff * c * le->color[3];
-	re->radius = le->radius * ( 1.0 - c ) + 8;
-
-	// if the view would be "inside" the sprite, kill the sprite
-	// so it doesn't add too much overdraw
-	VectorSubtract( re->origin, cg.refdef.vieworg, delta );
-	len = VectorLength( delta );
-	if ( len < le->radius ) {
-		CG_FreeLocalEntity( le );
-		return;
-	}
-
-	trap->R_AddRefEntityToScene( re );
-}
-
-
-/*
-=================
-CG_AddFallScaleFade
-
-This is just an optimized CG_AddMoveScaleFade
-For blood mists that drift down, fade out, and are
-removed if the view passes through them.
-There are often 100+ of these, so it needs to be simple.
-=================
-*/
-static void CG_AddFallScaleFade( localEntity_t *le ) {
-	refEntity_t	*re;
-	float		c;
-	vec3_t		delta;
-	float		len;
-
-	re = &le->refEntity;
-
-	// fade time
-	c = ( le->endTime - cg.time ) * le->lifeRate;
-
-	re->shaderRGBA[3] = 0xff * c * le->color[3];
-
-	re->origin[2] = le->pos.trBase[2] - ( 1.0 - c ) * le->pos.trDelta[2];
-
-	re->radius = le->radius * ( 1.0 - c ) + 16;
-
-	// if the view would be "inside" the sprite, kill the sprite
-	// so it doesn't add too much overdraw
-	VectorSubtract( re->origin, cg.refdef.vieworg, delta );
-	len = VectorLength( delta );
-	if ( len < le->radius ) {
-		CG_FreeLocalEntity( le );
-		return;
-	}
-
-	trap->R_AddRefEntityToScene( re );
-}
-
-
-
-/*
-================
-CG_AddExplosion
-================
-*/
-static void CG_AddExplosion( localEntity_t *ex ) {
-	refEntity_t	*ent;
-
-	ent = &ex->refEntity;
-
-	// add the entity
-	trap->R_AddRefEntityToScene(ent);
-
-	// add the dlight
-	if ( ex->light ) {
-		float		light;
-
-		light = (float)( cg.time - ex->startTime ) / ( ex->endTime - ex->startTime );
-		if ( light < 0.5 ) {
-			light = 1.0;
-		} else {
-			light = 1.0 - ( light - 0.5 ) * 2;
-		}
-		light = ex->light * light;
-		trap->R_AddLightToScene(ent->origin, light, ex->lightColor[0], ex->lightColor[1], ex->lightColor[2] );
-	}
-}
-
-/*
-================
-CG_AddSpriteExplosion
-================
-*/
-static void CG_AddSpriteExplosion( localEntity_t *le ) {
-	refEntity_t	re;
-	float c;
-
-	re = le->refEntity;
-
-	c = ( le->endTime - cg.time ) / ( float ) ( le->endTime - le->startTime );
-	if ( c > 1 ) {
-		c = 1.0;	// can happen during connection problems
-	}
-
-	re.shaderRGBA[0] = 0xff;
-	re.shaderRGBA[1] = 0xff;
-	re.shaderRGBA[2] = 0xff;
-	re.shaderRGBA[3] = 0xff * c * 0.33;
-
-	re.reType = RT_SPRITE;
-	re.radius = 42 * ( 1.0 - c ) + 30;
-
-	trap->R_AddRefEntityToScene( &re );
-
-	// add the dlight
-	if ( le->light ) {
-		float		light;
-
-		light = (float)( cg.time - le->startTime ) / ( le->endTime - le->startTime );
-		if ( light < 0.5 ) {
-			light = 1.0;
-		} else {
-			light = 1.0 - ( light - 0.5 ) * 2;
-		}
-		light = le->light * light;
-		trap->R_AddLightToScene(re.origin, light, le->lightColor[0], le->lightColor[1], le->lightColor[2] );
-	}
-}
-
-
-/*
-===================
-CG_AddRefEntity
-===================
-*/
-void CG_AddRefEntity( localEntity_t *le ) {
-	if (le->endTime < cg.time) {
-		CG_FreeLocalEntity( le );
-		return;
-	}
-	trap->R_AddRefEntityToScene( &le->refEntity );
 }
 
 /*
@@ -829,51 +507,6 @@ void CG_AddDamagePlum( localEntity_t *le ) {
 
 /*
 ===================
-CG_AddOLine
-
-For forcefields/other rectangular things
-===================
-*/
-void CG_AddOLine( localEntity_t *le )
-{
-	refEntity_t	*re;
-	float		frac, alpha;
-
-	re = &le->refEntity;
-
-	frac = (cg.time - le->startTime) / ( float ) ( le->endTime - le->startTime );
-	if ( frac > 1 ) 
-		frac = 1.0;	// can happen during connection problems
-	else if (frac < 0)
-		frac = 0.0;
-
-	// Use the liferate to set the scale over time.
-	re->data.line.width = le->data.line.width + (le->data.line.dwidth * frac);
-	if (re->data.line.width <= 0)
-	{
-		CG_FreeLocalEntity( le );
-		return;
-	}
-
-	// We will assume here that we want additive transparency effects.
-	alpha = le->alpha + (le->dalpha * frac);
-	re->shaderRGBA[0] = 0xff * alpha;
-	re->shaderRGBA[1] = 0xff * alpha;
-	re->shaderRGBA[2] = 0xff * alpha;
-	re->shaderRGBA[3] = 0xff * alpha;	// Yes, we could apply c to this too, but fading the color is better for lines.
-
-	re->shaderTexCoord[0] = 1;
-	re->shaderTexCoord[1] = 1;
-
-	re->rotation = 90;
-
-	re->reType = RT_ORIENTEDLINE;
-
-	trap->R_AddRefEntityToScene( re );
-}
-
-/*
-===================
 CG_AddLine
 
 for beams and the like.
@@ -921,18 +554,6 @@ void CG_AddLocalEntities( void ) {
 		case LE_MARK:
 			break;
 
-		case LE_SPRITE_EXPLOSION:
-			CG_AddSpriteExplosion( le );
-			break;
-
-		case LE_EXPLOSION:
-			CG_AddExplosion( le );
-			break;
-
-		case LE_FADE_SCALE_MODEL:
-			CG_AddFadeScaleModel( le );
-			break;
-
 		case LE_FRAGMENT:			// gibs and brass
 			CG_AddFragment( le );
 			break;
@@ -941,36 +562,12 @@ void CG_AddLocalEntities( void ) {
 			CG_AddPuff( le );
 			break;
 
-		case LE_MOVE_SCALE_FADE:		// water bubbles
-			CG_AddMoveScaleFade( le );
-			break;
-
-		case LE_FADE_RGB:				// teleporters, railtrails
-			CG_AddFadeRGB( le );
-			break;
-
-		case LE_FALL_SCALE_FADE: // gib blood trails
-			CG_AddFallScaleFade( le );
-			break;
-
-		case LE_SCALE_FADE:		// rocket trails
-			CG_AddScaleFade( le );
-			break;
-
 		case LE_SCOREPLUM:
 			CG_AddScorePlum( le );
 			break;
 
 		case LE_DAMAGEPLUM:
 			CG_AddDamagePlum( le );
-			break;
-
-		case LE_OLINE:
-			CG_AddOLine( le );
-			break;
-
-		case LE_SHOWREFENTITY:
-			CG_AddRefEntity( le );
 			break;
 
 		case LE_LINE:					// oriented lines for FX

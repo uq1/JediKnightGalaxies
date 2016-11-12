@@ -61,6 +61,7 @@ gentity_t *G_PreDefSound(vec3_t org, int pdSound)
 
 	return te;
 }
+
 const int forcePowerMinRank[NUM_FORCE_POWER_LEVELS][NUM_FORCE_POWERS] = //0 == neutral
 {
 	{
@@ -638,7 +639,7 @@ int ForcePowerUsableOn(gentity_t *attacker, gentity_t *other, forcePowers_t forc
 		(forcePower == FP_PUSH ||
 		forcePower == FP_PULL))
 	{
-		if (BG_InKnockDown(other->client->ps.legsAnim))
+		if (BG_KnockdownAnim(other->client->ps.legsAnim))
 		{
 			return 0;
 		}
@@ -791,7 +792,7 @@ qboolean WP_ForcePowerUsable( gentity_t *self, forcePowers_t forcePower )
 		}
 
 		if ( (self->client->saber[0].saberFlags&SFL_TWO_HANDED)
-			|| (self->client->saber[0].model && self->client->saber[0].model[0]) )
+			|| self->client->saber[0].model[0] )
 		{//this saber requires the use of two hands OR our other hand is using an active saber too
 			if ( (self->client->saber[0].forceRestrictions&(1<<forcePower)) )
 			{//this power is verboten when using this saber
@@ -799,8 +800,7 @@ qboolean WP_ForcePowerUsable( gentity_t *self, forcePowers_t forcePower )
 			}
 		}
 
-		if ( self->client->saber[0].model 
-			&& self->client->saber[0].model[0] )
+		if ( self->client->saber[0].model[0] )
 		{//both sabers on
 			if ( g_saberRestrictForce.integer )
 			{
@@ -913,10 +913,7 @@ void WP_ForcePowerRegenerate( gentity_t *self, int overrideAmt )
 	{ //cap it off at the max (default 100)
 		self->client->ps.forcePower = 100;
 	}
-	else
-	{
-		int x = 0;
-	}
+
 	//self->x.forcePower = self->client->ns.forcePower;
 	self->s.saberSwingSpeed = self->client->ps.saberSwingSpeed;
 	self->s.saberMoveSwingSpeed = self->client->ps.saberMoveSwingSpeed;
@@ -1819,13 +1816,13 @@ void ForceLightningDamage( gentity_t *self, gentity_t *traceEnt, vec3_t dir, vec
 				int	dmg = 1;
 				
 				//2 handed lightning mod
-				if ( self->client->ps.torsoAnim == BOTH_FORCE_2HANDEDLIGHTNING
+				if ( (self->client->ps.torsoAnim == BOTH_FORCE_2HANDEDLIGHTNING
 					|| self->client->ps.torsoAnim == BOTH_FORCE_2HANDEDLIGHTNING_START
 					|| self->client->ps.torsoAnim == BOTH_FORCE_2HANDEDLIGHTNING_HOLD
 					|| self->client->ps.torsoAnim == BOTH_FORCE_2HANDEDLIGHTNING_RELEASE
 					|| self->client->ps.weapon == WP_NONE
 					|| self->client->ps.weapon == WP_MELEE
-					|| self->client->ps.weapon == WP_SABER 
+					|| self->client->ps.weapon == WP_SABER)
 					&& self->client->ps.saberHolstered
 					&& self->client->ps.fd.forcePowerLevel[FP_LIGHTNING] > FORCE_LEVEL_3 )
 				{//2-handed lightning
@@ -4989,10 +4986,10 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 	self->s.forcePower = self->client->ps.forcePower;
 
 	//The stance in relation to power level is no longer applicable with the crazy new akimbo/staff stances.
-	if (!self->client->ps.fd.saberAnimLevel)
-	{
+	/*if (!self->client->ps.fd.saberAnimLevel)
+	{ // Removed this, it was locking out the saber cycle ~~ ooxavenue
 		self->client->ps.fd.saberAnimLevel = FORCE_LEVEL_1;
-	}
+	}*/ 
 
 	if (self->client->ps.fd.forcePowerSelected < 0)
 	{ //bad

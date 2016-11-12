@@ -1,15 +1,3 @@
-//       ____ ___________________   ___           ____  __ _______   ___  ________  ___ ______________
-//      |    |\_   _____/\______ \ |   |         |    |/ _|\      \ |   |/  _____/ /   |   \__    ___/
-//      |    | |    __)_  |    |  \|   |         |      <  /   |   \|   /   \  ___/    ~    \|    |   
-//  /\__|    | |        \ |    `   \   |         |    |  \/    |    \   \    \_\  \    Y    /|    |   
-//  \________|/_______  //_______  /___|         |____|__ \____|__  /___|\______  /\___|_  / |____|   
-//                    \/         \/                      \/       \/            \/       \/           
-//                         ________    _____   ____       _____  ____  ___ ______________ _________   
-//                        /  _____/   /  _  \ |    |     /  _  \ \   \/  /|   \_   _____//   _____/   
-//                       /   \  ___  /  /_\  \|    |    /  /_\  \ \     / |   ||    __)_ \_____  \    
-//                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
-//                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
-//                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
 // ui_shared.h
 // Copyright (C) 2013 Jedi Knight Galaxies
 /*
@@ -538,7 +526,7 @@ typedef struct displayContextDef_s {
 	void			(*Error)							( int level, const char *error, ... );
 	void			(*Print)							( const char *msg, ... );
 	void			(*Pause)							( qboolean b );
-	int				(*ownerDrawWidth)					( int ownerDraw, float scale );
+	int				(*ownerDrawWidth)					( int ownerDraw, int ownerDrawID, float scale );
 	sfxHandle_t		(*registerSound)					( const char *name );
 	void			(*startBackgroundTrack)				( const char *intro, const char *loop, qboolean bReturnWithoutStarting );
 	void			(*stopBackgroundTrack)				( void );
@@ -637,6 +625,7 @@ void Controls_SetDefaults( void );
 
 void CL_InitMultiMasterServer(void);
 void CL_ShutdownMultiMasterServer(void);
+void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontIndex, const int limit, float scale);
 
 
 /*
@@ -662,6 +651,7 @@ typedef struct uiCrossoverExports_s
 	void			(*PartyMngtNotify)( int msg );
 	void			(*InventoryNotify)( int msg );
 	void			(*ShopNotify)( int msg );
+	void			(*ItemsUpdated)();
 } uiCrossoverExports_t;
 
 typedef struct cgCrossoverExports_s

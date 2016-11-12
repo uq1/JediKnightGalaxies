@@ -384,14 +384,14 @@ static int GLua_NPC_MaxHealth(lua_State *L) {
 static int GLua_NPC_MaxArmor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	lua_pushinteger(L,npc->client->ps.stats[STAT_MAX_ARMOR]);
+	lua_pushinteger(L,npc->client->ps.stats[STAT_MAX_SHIELD]);
 	return 1;
 }
 
 static int GLua_NPC_Armor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	lua_pushinteger(L,npc->client->ps.stats[STAT_ARMOR]);
+	lua_pushinteger(L,npc->client->ps.stats[STAT_SHIELD]);
 	return 1;
 }
 
@@ -412,14 +412,14 @@ static int GLua_NPC_SetMaxHealth(lua_State *L) {
 static int GLua_NPC_SetArmor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	npc->client->ps.stats[STAT_ARMOR] = luaL_checkinteger(L, 2);
+	npc->client->ps.stats[STAT_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 
 static int GLua_NPC_SetMaxArmor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	npc->client->ps.stats[STAT_MAX_ARMOR] = luaL_checkinteger(L, 2);
+	npc->client->ps.stats[STAT_MAX_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 
@@ -547,6 +547,7 @@ static int GLua_NPC_GetActiveForce(lua_State *L) {
 	return 1;
 }
 
+
 static int GLua_NPC_SetGodMode(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	int active = lua_toboolean(L,2);
@@ -635,7 +636,7 @@ static int GLua_NPC_SetBehaviorState(lua_State *L) {
 		bSID = (bState_t)luaL_checkinteger(L,2);
 	}
 
-	if ( bSID > -1 )
+	if ( bSID != (bState_t)-1 )
 	{
 		if ( bSID == BS_SEARCH || bSID == BS_WANDER )
 		{
@@ -668,7 +669,6 @@ static int GLua_NPC_SetBehaviorState(lua_State *L) {
 				}
 			}
 		}
-		
 
 		npc->NPC->tempBehavior = BS_DEFAULT;//need to clear any temp behaviour
 		if ( npc->NPC->behaviorState == BS_NOCLIP && bSID != BS_NOCLIP )

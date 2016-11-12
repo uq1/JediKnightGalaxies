@@ -94,13 +94,14 @@ qboolean NPC_ClearPathToGoal( vec3_t dir, gentity_t *goal )
 	return qfalse;
 }
 
+#if !defined(__DOMINANCE_NPC__)
 /*
 -------------------------
 NPC_CheckCombatMove
 -------------------------
 */
 
-QINLINE qboolean NPC_CheckCombatMove( void )
+static QINLINE qboolean NPC_CheckCombatMove( void )
 {
 	//return NPCInfo->combatMove;
 	if ( ( NPCInfo->goalEntity && NPC->enemy && NPCInfo->goalEntity == NPC->enemy ) || ( NPCInfo->combatMove ) )
@@ -118,6 +119,7 @@ QINLINE qboolean NPC_CheckCombatMove( void )
 
 	return qfalse;
 }
+#endif
 
 /*
 -------------------------
@@ -148,7 +150,7 @@ NPC_GetMoveInformation
 -------------------------
 */
 
-QINLINE qboolean NPC_GetMoveInformation( vec3_t dir, float *distance )
+static QINLINE qboolean NPC_GetMoveInformation( vec3_t dir, float *distance )
 {
 	//NOTENOTE: Use path stacks!
 

@@ -33,6 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 // Jedi Knight Galaxies
 #include "qcommon/game_version.h"
+#include "../game/bg_items.h"
 
 /*
 =================
@@ -64,12 +65,12 @@ static void CG_ParseScores( void ) {
 	memset( cg.scores, 0, sizeof( cg.scores ) );
 	for ( i = 0 ; i < readScores ; i++ ) {
 		//
-		cg.scores[i].client = atoi( CG_Argv( i * 14 + 4 ) );
-		cg.scores[i].score = atoi( CG_Argv( i * 14 + 5 ) );
-		cg.scores[i].ping = atoi( CG_Argv( i * 14 + 6 ) );
-		cg.scores[i].time = atoi( CG_Argv( i * 14 + 7 ) );
-		cg.scores[i].scoreFlags = atoi( CG_Argv( i * 14 + 8 ) );
-		powerups = atoi( CG_Argv( i * 14 + 9 ) );
+		cg.scores[i].client = atoi( CG_Argv( i * 6 + 4 ) );
+		cg.scores[i].score = atoi( CG_Argv( i * 6 + 5 ) );
+		cg.scores[i].ping = atoi( CG_Argv( i * 6 + 6 ) );
+		cg.scores[i].time = atoi( CG_Argv( i * 6 + 7 ) );
+		cg.scores[i].scoreFlags = atoi( CG_Argv( i * 6 + 8 ) );
+		powerups = atoi( CG_Argv( i * 6 + 9 ) );
 
 		if ( cg.scores[i].client < 0 || cg.scores[i].client >= MAX_CLIENTS ) {
 			cg.scores[i].client = 0;
@@ -221,20 +222,10 @@ static void JKG_ShopConfirm( void )
 
 	/* Change the credit count in the shop UI */
 	cg.snap->ps.credits = creditCount;
-	cg.playerInventory[cg.numItemsInInventory-1].id = &CGitemLookupTable[itemID];		// MEGA UNSTABLE HACK HERE
 
-	if(CGitemLookupTable[itemID].itemType == ITEM_WEAPON)
-	{
-		/* It's a weapon, so let's put it in the ACI */
-		for(int i = 0; i < MAX_ACI_SLOTS; i++)
-		{
-			if(cg.playerACI[i] == -1)
-			{
-				/* This slot doesn't have an item in it, so let's assign it */
-				cg.playerACI[i] = cg.numItemsInInventory-1;
-				break;
-			}
-		}
+	if (itemLookupTable[itemID].itemType == ITEM_WEAPON) {
+		// Auto-assign weapons to the ACI.
+		BG_AddItemToACI(cg.playerInventory->size() - 1, -1);
 	}
 
 	/* Notify the UI about changes in the shop */
@@ -244,30 +235,11 @@ static void JKG_ShopConfirm( void )
 /*
 ==================
 JKG_AddToACI
-See comment in g_cmds.c --eez
+AddToACI <itemID>
 ==================
 */
-
 static void JKG_AddToACI( void )
 {
-	int itemID = atoi(CG_Argv(1));
-
-	cg.playerInventory[cg.numItemsInInventory-1].id = &CGitemLookupTable[itemID];		// MEGA UNSTABLE HACK HERE USE EXTREME CAUTION
-
-	if(CGitemLookupTable[itemID].itemType == ITEM_WEAPON)
-	{
-		// hm, go for ACI now
-		int i = 0;
-		for(; i < MAX_ACI_SLOTS; i++)
-		{
-			if(cg.playerACI[i] == -1)
-			{
-				cg.playerACI[i] = cg.numItemsInInventory-1;
-				break;
-			}
-			
-		}
-	}
 }
 
 
@@ -947,14 +919,6 @@ void CG_KillCEntityG2(int entNum)
 		cent->ghoul2 = NULL;
 	}
 
-	//eezstreet add: Armor rendering removal
-	for(j = 0; j < ARMSLOT_MAX; j++)
-	{
-		trap->G2API_CleanGhoul2Models(&cent->armorGhoul2[j]);
-		cent->armorGhoul2[j] = NULL;
-	}
-	//eezstreet end
-
 	if (cent->grip_arm && trap->G2_HaveWeGhoul2Models(cent->grip_arm))
 	{
 		trap->G2API_CleanGhoul2Models(&cent->grip_arm);
@@ -986,15 +950,6 @@ void CG_KillCEntityInstances(void)
 	while (i < MAX_GENTITIES)
 	{
 		cent = &cg_entities[i];
-
-		if ( i < MAX_CLIENTS && cent->currentState.number == i )
-		{
-			// Kill armor g2 instances
-			for ( int j = 0; j < ARMSLOT_MAX; j++ )
-			{
-				JKG_CG_EquipArmor (i, j, 0);
-			}
-		}
 
 		if (i >= MAX_CLIENTS && cent->currentState.number == i)
 		{ //do not clear G2 instances on client ents, they are constant
@@ -1087,8 +1042,7 @@ static void CG_MapRestart( void ) {
 	}
 	*/
 	trap->Cvar_Set("cg_thirdPerson", "0");
-	cg.numItemsInInventory = 0;
-	memset(cg.playerInventory, 0, sizeof(cg.playerInventory));
+	cg.playerInventory->clear();
 	memset(cg.playerACI, -1, sizeof(cg.playerACI));
 }
 
@@ -1142,11 +1096,11 @@ int JKG_GetTransitionForFiringModeSet(int previous, int next)
 
 static void JKG_FireModeUpdate(void)
 {
-	weaponData_t *wpData = GetWeaponData( cg.predictedPlayerState.weapon, cg.predictedPlayerState.weaponVariation );
-	char *previousFM = const_cast<char *>(CG_Argv(1));
+	const weaponData_t *wpData = GetWeaponData( cg.predictedPlayerState.weapon, cg.predictedPlayerState.weaponVariation );
+	const char *previousFM = CG_Argv(1);
 	int previousFMInt = atoi(previousFM);
-	if( wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound &&
-		wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound[0] )
+	if( wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound[0] &&
+		wpData->numFiringModes > 1 )
 	{
 		trap->S_StartLocalSound( trap->S_RegisterSound( wpData->visuals.visualFireModes[ cg.predictedPlayerState.firingMode ].switchToSound ), CHAN_AUTO );
 	}
@@ -1424,12 +1378,9 @@ void Cin_ProcessCinematicBinary_f();
 void Cmd_CBB_f(void);
 void CinBuild_Cmd_f();
 void ChatBox_CloseChat();
-const char *Text_ConvertExtToNormal(const char *text);
 extern void JKG_OpenShopMenu_f ( void );
 extern int shopItems[128];
 extern int numShopItems;
-extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
-extern void JKG_CG_SetACISlot(const unsigned short slot);
 
 static void CG_ServerCommand( void ) {
 	const char	*cmd;
@@ -1447,12 +1398,6 @@ static void CG_ServerCommand( void ) {
 	// Check the crossover
 	if ( uiImports->HandleServerCommand( cmd ) )
 		return;
-
-	// Check Jedi Knight Galaxies commands (not handled by the UI)
-	//if (!strcmp(cmd, "~svrGiveVersionData")) {
-	//	trap->SendClientCommand(va("~svrVersionData %s", JKA_G_CLIENTSIDE_VERSION));
-	//	return;
-	//}
 
 	if (!strcmp(cmd, "svr")) { // Server redirect
 		CG_ServerRedirect();
@@ -1503,19 +1448,7 @@ static void CG_ServerCommand( void ) {
 
 	if (!strcmp(cmd, "clearinv"))
 	{
-		cg.numItemsInInventory = 0;
-		memset(cg.playerACI, -1, sizeof(*cg.playerACI));
-		memset(cg.playerInventory, 0, sizeof(*cg.playerInventory));
-		return;
-	}
-
-	if ( !strcmp( cmd, "scl" ) )
-	{
-		//if (!( trap->Key_GetCatcher() & KEYCATCH_UI ))
-		//Well, I want it to come up even if the briefing display is up.
-		{
-			trap->OpenUIMenu(UIMENU_CLASSSEL); //UIMENU_CLASSSEL
-		}
+		cg.playerInventory->clear();
 		return;
 	}
 
@@ -1637,7 +1570,8 @@ static void CG_ServerCommand( void ) {
 	//eezstreet add
 	if ( !strcmp (cmd, "aciset") )
 	{
-		JKG_CG_SetACISlot((const unsigned short)atoi(CG_Argv(1)));
+		int number = atoi(CG_Argv(1));
+		cg.weaponSelect = number;
 		return;
 	}
 
@@ -1648,7 +1582,10 @@ static void CG_ServerCommand( void ) {
 	        int newItem = atoi (CG_Argv (1));
 	        int oldItem = atoi (CG_Argv (2));
 	        
-	        JKG_CG_EquipItem (newItem, oldItem);
+			(*cg.playerInventory)[newItem].equipped = true;
+			if (oldItem != -1) {
+				(*cg.playerInventory)[oldItem].equipped = false;
+			}
 	        uiImports->InventoryNotify( 1 );
 	    }
 	    return;
@@ -1659,7 +1596,7 @@ static void CG_ServerCommand( void ) {
 	    if ( trap->Cmd_Argc() == 2 )
 	    {
 	        int slot = atoi (CG_Argv (1));
-	        JKG_CG_UnequipItem (slot);
+			(*cg.playerInventory)[slot].equipped = false;
 	        uiImports->InventoryNotify( 1 );
 	    }
 	    
@@ -1669,20 +1606,6 @@ static void CG_ServerCommand( void ) {
 	{
 		cg.predictedPlayerState.credits = atoi(CG_Argv(1));
 		uiImports->InventoryNotify (1);
-		return;
-	}
-
-	if(!strcmp(cmd, "aequi"))
-	{ //Armor Equip
-		if ( trap->Cmd_Argc () >= 2 )
-		{
-			int client = atoi (CG_Argv (1));
-			int slot = atoi (CG_Argv (2));
-			int armor = atoi (CG_Argv (3));
-
-			JKG_CG_EquipArmor (client, slot, armor);
-		}
-		
 		return;
 	}
 
@@ -1782,55 +1705,6 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
-	//==================================
-	// Jedi Knight Galaxies
-	// Shop Menu Implementation
-	//==================================
-	if ( !strcmp( cmd, "shopopen" ) ) {
-		JKG_OpenShopMenu_f();
-		return;
-	}
-
-	if ( !strcmp( cmd, "shoprefresh" ) ) {
-		//Clear the shop
-		memset(shopItems, 0, sizeof(shopItems));
-		numShopItems = trap->Cmd_Argc()-1;
-		//Refresh its contents
-		if(numShopItems > 0)
-		{
-			int i;
-			for(i = 0; i < numShopItems; i++)
-			{
-				int itemNumber = atoi(CG_Argv(i+1));
-				if(itemNumber < 0 || itemNumber > MAX_ITEM_TABLE_SIZE)
-				{
-					//obvious troll is obvious
-					return;
-				}
-				else if(!CGitemLookupTable[itemNumber].itemID)
-				{
-					//Item with this ID does not exist. ABORT ABORT!
-					continue;
-				}
-				shopItems[i] = itemNumber;
-			}
-		}
-		return;
-	}
-
-	if( !strcmp(cmd, "shopupdate"))
-	{
-		cg.snap->ps.credits = atoi(CG_Argv(1));
-		uiImports->ShopNotify(1);
-		return;
-	}
-
-	if( !strcmp(cmd, "shopconfirm") )
-	{
-		JKG_ShopConfirm();
-		return;
-	}
-
 	if( !strcmp(cmd, "AddToACI") )
 	{
 		JKG_AddToACI();
@@ -1882,7 +1756,7 @@ static void CG_ServerCommand( void ) {
 			Q_strncpyz( text, CG_Argv(2), sizeof (text) );
 			CG_RemoveChatEscapeChar( text );
 			CG_ChatBox_AddString(text, atoi(CG_Argv(1)));
-			trap->Print( "*%s\n", Text_ConvertExtToNormal(text) );
+			trap->Print( "*%s\n", text );
 		}
 		return;
 	}
@@ -1892,7 +1766,7 @@ static void CG_ServerCommand( void ) {
 		Q_strncpyz( text, CG_Argv(2), MAX_SAY_TEXT );
 		CG_RemoveChatEscapeChar( text );
 		CG_ChatBox_AddString(text, atoi(CG_Argv(1)));
-		trap->Print( "*%s\n", Text_ConvertExtToNormal(text) );
+		trap->Print( "*%s\n", text );
 
 		return;
 	}
@@ -1926,7 +1800,7 @@ static void CG_ServerCommand( void ) {
 			Com_sprintf(text, MAX_SAY_TEXT, "%s<%s>^%s%s", name, loc, color, message);
 			CG_RemoveChatEscapeChar( text );
 			CG_ChatBox_AddString(text, fadeLevel);
-			trap->Print( "*%s\n", Text_ConvertExtToNormal(text) );
+			trap->Print( "*%s\n", text );
 		}
 		return;
 	}
@@ -1957,7 +1831,7 @@ static void CG_ServerCommand( void ) {
 		Com_sprintf(text, MAX_SAY_TEXT, "%s<%s> ^%s%s", name, loc, color, message);
 		CG_RemoveChatEscapeChar( text );
 		CG_ChatBox_AddString(text, fadeLevel);
-		trap->Print( "*%s\n", Text_ConvertExtToNormal(text) );
+		trap->Print( "*%s\n", text );
 
 		return;
 	}
@@ -1998,14 +1872,6 @@ static void CG_ServerCommand( void ) {
 		}
 		return;
 	}
-
-	/* basejka code
-	if ( Q_stricmp (cmd, "remapShader") == 0 ) {
-		if (trap->Cmd_Argc() == 4) {
-			trap->R_RemapShader(CG_Argv(1), CG_Argv(2), CG_Argv(3));
-		}
-	}
-	*/
 	//[/OverflowProtection]
 
 	// loaddeferred can be both a servercmd and a consolecmd
@@ -2104,12 +1970,17 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
-	//eezstreet add
 	if( !strcmp( cmd, "pInv" ))
 	{
-	    char buffer[1024] = { 0 };
-	    Q_strncpyz (buffer, CG_Argv(IPPARSE_MODE), sizeof (buffer));
-		JKG_CG_DeltaFeed(buffer);
+		BG_ReceivedItemPacket(BG_ItemPacketFromName(CG_Argv(1)));
+		uiImports->ItemsUpdated();
+		return;
+	}
+
+	if (!strcmp(cmd, "pTrade"))
+	{
+		BG_ReceivedTradePacket(BG_TradePacketFromName(CG_Argv(1)));
+		uiImports->ItemsUpdated();
 		return;
 	}
 

@@ -24,7 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
 #include "g_local.h"
-#include "jkg_threading.h" // JKG Threading Header
 #include "jkg_gangwars.h"
 #include "g_ICARUScb.h"
 #include "g_nav.h"
@@ -39,12 +38,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // Include GLua 
 #include "../GLua/glua.h"
 #include "json/cJSON.h"
-#include "jkg_admin.h"
 #include "jkg_bans.h"
 //#include "jkg_navmesh_creator.h"
 #include "jkg_damagetypes.h"
 #include "bg_items.h"
-#include "jkg_easy_items.h"
 #include "jkg_treasureclass.h"
 
 #include <assert.h>
@@ -237,15 +234,6 @@ void G_FindTeams( void ) {
 //	trap->Print ("%i teams with %i entities\n", c, c2);
 }
 
-static void G_ValidateGametype( void ) {
-	// check some things
-	if ( g_gametype.integer < 0 || g_gametype.integer >= GT_MAX_GAME_TYPE ) {
-		trap->Print( "g_gametype %i is out of range, defaulting to 0\n", g_gametype.integer );
-		trap->Cvar_Set( "g_gametype", "0" );
-		trap->Cvar_Update( &g_gametype );
-	}
-}
-
 typedef struct {
 	vmCvar_t	*vmCvar;
 	char		*cvarName;
@@ -264,7 +252,7 @@ static cvarTable_t gameCvarTable[] = {
 		#include "g_xcvar.h"
 	#undef XCVAR_LIST
 };
-static int gameCvarTableSize = ARRAY_LEN( gameCvarTable );
+static const size_t gameCvarTableSize = ARRAY_LEN( gameCvarTable );
 
 /*
 ==============
@@ -272,17 +260,15 @@ G_RegisterCvars
 ==============
 */
 
-void G_RegisterCvars( void )
-{
-	cvarTable_t *cv;
-	int i = 0;
-	for( i = 0, cv = gameCvarTable; i < gameCvarTableSize; i++, cv++ )
-	{
+void G_RegisterCvars( void ) {
+	size_t i = 0;
+	const cvarTable_t *cv = NULL;
+
+	for ( i=0, cv=gameCvarTable; i<gameCvarTableSize; i++, cv++ ) {
 		trap->Cvar_Register( cv->vmCvar, cv->cvarName, cv->defaultString, cv->cvarFlags );
-		if( cv->update )
+		if ( cv->update )
 			cv->update();
 	}
-
 }
 
 /*
@@ -291,29 +277,24 @@ G_UpdateCvars
 ==============
 */
 
-void G_UpdateCvars( void )
-{
-	cvarTable_t *cv;
-	int i = 0;
-	for( i = 0, cv = gameCvarTable; i < gameCvarTableSize; i++, cv++ )
-	{
-		if( cv->vmCvar )
-		{
+void G_UpdateCvars( void ) {
+	size_t i = 0;
+	const cvarTable_t *cv = NULL;
+
+	for ( i=0, cv=gameCvarTable; i<gameCvarTableSize; i++, cv++ ) {
+		if ( cv->vmCvar ) {
 			int modCount = cv->vmCvar->modificationCount;
 			trap->Cvar_Update( cv->vmCvar );
-
-			if ( cv->vmCvar->modificationCount > modCount )
-			{
+			if ( cv->vmCvar->modificationCount != modCount ) {
 				if ( cv->update )
 					cv->update();
 
 				if ( cv->trackChange )
-					trap->SendServerCommand( -1, va("print \"Server: %s changed to %s\n\"", cv->cvarName, cv->vmCvar->string) );
+					trap->SendServerCommand( -1, va("print \"Server: %s changed to %s\n\"", cv->cvarName, cv->vmCvar->string ) );
 			}
 		}
 	}
 }
-
 
 sharedBuffer_t gSharedBuffer;
 
@@ -349,30 +330,6 @@ G_InitGame
 
 ============
 */
-
-static void JKG_RegisteServerCallback ( asyncTask_t *task )
-{
-	cJSON *data;
-	const char *error;
-	if (task->errorCode) {
-		trap->Print("ERROR: Failed to register server: Error code %i\n", task->errorCode);
-		return;
-	}
-	data = (cJSON *)task->finalData;
-
-	if (cJSON_ToInteger(cJSON_GetObjectItem(data, "errorCode"))) {
-		error = cJSON_ToString(cJSON_GetObjectItem(data, "message"));
-		trap->Print("ERROR: Failed to register server: %s\n", error ? error : "Unknown error");
-		return;
-	}
-	trap->Print("Server successfully registered\n");
-}
-
-extern void RemoveAllWP(void);
-extern void BG_ClearVehicleParseParms(void);
-extern void JKG_InitItems(void);
-void ActivateCrashHandler();
-
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 	vmCvar_t	mapname;
@@ -382,9 +339,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 #ifndef NO_CRYPTOGRAPHY
 	OpenSSL_add_all_algorithms();
 #endif
-
-	// Initialize admin commands
-	JKG_Admin_Init();
 
 	//Init RMG to 0, it will be autoset to 1 if there is terrain on the level.
 	trap->Cvar_Set("RMG", "0");
@@ -461,7 +415,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_CacheGametype();
 
-	G_InitWorldSession();
+	G_ReadSessionData();
 
 	// initialize all entities for this game
 	memset( g_entities, 0, MAX_GENTITIES * sizeof(g_entities[0]) );
@@ -564,9 +518,17 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	// and here is some stance data too
 	JKG_InitializeStanceData();
+
+	// Jetpacks, as well
+	JKG_LoadJetpacks();
+
+	// armor is good too
+	JKG_LoadArmor();
 	
 	// setup master item table
-	JKG_InitItems();
+	BG_InitItems();
+
+	JKG_TC_Init("ext_data/treasure");
 
 	JKG_InitializeConstants();
 	
@@ -632,8 +594,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	JKG_BindChatCommands();
 }
 
-
-
 /*
 =================
 G_ShutdownGame
@@ -643,13 +603,6 @@ void DeactivateCrashHandler();
 void G_ShutdownGame( int restart ) {
 	int i = 0;
 	gentity_t *ent;
-
-	if(JKG_ThreadingInitialized())
-	{
-		//if (!level.serverInit) JKG_NewNetworkTask(LCMETHOD_SVSHUTDOWN, NULL, 0);
-	}
-	// Shutdown JKG's Threading System
-	JKG_ShutdownThreading( 7000 );
 
 	GLua_Close();
 
@@ -668,6 +621,9 @@ void G_ShutdownGame( int restart ) {
 	BG_ClearAnimsets(); //free all dynamic allocations made through the engine
 
 	BG_ShutdownWeaponG2Instances();
+	JKG_UnloadArmor();
+
+	JKG_TC_Shutdown();
 
 //	Com_Printf("... Gameside GHOUL2 Cleanup\n");
 	while (i < MAX_GENTITIES)
@@ -690,12 +646,6 @@ void G_ShutdownGame( int restart ) {
 					trap->G2API_CleanGhoul2Models(&ent->client->weaponGhoul2[j]);
 				}
 				j++;
-			}
-
-			if(ent->assistData.memAllocated > 0)
-			{
-				free(ent->assistData.hitRecords);
-				ent->assistData.memAllocated = 0;
 			}
 		}
 		i++;
@@ -749,10 +699,6 @@ void G_ShutdownGame( int restart ) {
 	}
 
 	NPC_Cleanup();
-
-	JKG_Easy_DIMA_Cleanup();
-//	G_TerminateMemory(); // wipe all allocs made with G_Alloc
-	//JKG_Nav_Shutdown();
 #ifndef NO_CRYPTOGRAPHY
 	EVP_cleanup();
 #endif
@@ -1037,8 +983,8 @@ void RemoveDuelDrawLoser(void)
 		return;
 	}
 
-	clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_ARMOR];
-	clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_ARMOR];
+	clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_SHIELD];
+	clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_SHIELD];
 
 	if (clFirst > clSec)
 	{
@@ -1098,8 +1044,8 @@ void AdjustTournamentScores( void ) {
 		level.clients[level.sortedClients[0]].pers.connected == CON_CONNECTED &&
 		level.clients[level.sortedClients[1]].pers.connected == CON_CONNECTED)
 	{
-		int clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_ARMOR];
-		int clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_ARMOR];
+		int clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_SHIELD];
+		int clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_SHIELD];
 		int clFailure = 0;
 		int clSuccess = 0;
 
@@ -2544,29 +2490,6 @@ void CheckTournament( void ) {
 	}
 }
 
-void G_KickAllBots(void)
-{
-	int i;
-	char netname[36];
-	gclient_t	*cl;
-
-	for ( i=0 ; i< sv_maxclients.integer ; i++ )
-	{
-		cl = level.clients + i;
-		if ( cl->pers.connected != CON_CONNECTED )
-		{
-			continue;
-		}
-		if ( !(g_entities[i].r.svFlags & SVF_BOT) )
-		{
-			continue;
-		}
-		strcpy(netname, cl->pers.netname);
-		Q_CleanStr(netname);
-		trap->SendConsoleCommand( EXEC_INSERT, va("kick \"%s\"\n", netname) );
-	}
-}
-
 /*
 ==================
 CheckVote
@@ -2926,42 +2849,6 @@ void G_RunFrame( int levelTime ) {
 
 	FRAME_TIME = trap->Milliseconds();
 
-	// Run the main thread task poller (calling final callback functions that need to be on the main thread)
-	//JKG_MainThreadPoller();
-
-	// Jedi Knight Galaxies
-	// FIXME:
-	/*
-	if (jkg_fakeplayerban.integer && jkg_antifakeplayer.integer ) {
-		for (i = 0; i < MAX_CLIENTS; i++) {
-			cl = &level.clients[i];
-			if ( g_entities[i].r.svFlags & SVF_BOT )
-			{
-				continue;
-			}
-			if (cl->pers.connected != CON_DISCONNECTED) {
-				if (!cl->sess.noq3fill && level.time > (cl->sess.connTime + 8000) ) {
-					if (!Q_stricmp(cl->sess.IP, "localhost")) {
-						// Local host (this is the guy that did Create Server.. which isn't possible.., anyway, dont kick)
-						cl->sess.noq3fill = 1;
-						continue;
-					}
-					if (!ClientConnectionActive[i]) {
-						// Dead connection
-						if (jkg_fakeplayerbantime.string[0]) {
-							JKG_Bans_AddBan(svs->clients[i].netchan.remoteAddress, jkg_fakeplayerbantime.string, "Fake player DoS");
-							//trap->SendConsoleCommand(EXEC_NOW, va("addban %s %s Fake player DoS\n",cl->sess.IP, &jkg_fakeplayerbantime.string[0]));
-						}
-						trap->DropClient(i,"was kicked! Fake client detected.");
-						
-					} else {
-						cl->sess.noq3fill = 1;
-					}
-				}
-			}
-		}
-	}
-	*/
 	// Run lua timers
 	GLua_Timer();
 	GLua_Thread();
@@ -2969,26 +2856,6 @@ void G_RunFrame( int levelTime ) {
 	if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 		AdjustTickets();
 
-	/* JKG - Automatic healing when out-of-combat */
-	if(jkg_healthRegen.value > 0) {
-		for ( i = 0; i < MAX_CLIENTS; i++ )
-		{
-			gentity_t *ent = &g_entities[i];
-
-			if ( !ent || !ent->inuse || !ent->client || ( ent->damagePlumTime + jkg_healthRegenDelay.value ) >= level.time )
-			{
-				continue;
-			}
-
-			if ( ent->lastHealTime < level.time )
-			{
-				int maxHealth		= ent->client->ps.stats[STAT_MAX_HEALTH];
-				int pctage			= (maxHealth < 100) ? jkg_healthRegen.value : (maxHealth / 100) * jkg_healthRegen.value;		// Add 1% (of 1 HP, whichever is higher)
-				ent->health			= ent->client->ps.stats[STAT_HEALTH] = ((( ent->health + pctage ) > maxHealth ) ? maxHealth : ent->health + pctage );
-				ent->lastHealTime	= level.time + jkg_healthRegenSpeed.value;
-			}
-		}
-	}
 	if (gDoSlowMoDuel)
 	{
 		if (level.restarted)
@@ -3104,9 +2971,6 @@ void G_RunFrame( int levelTime ) {
 
     // Damage players
     JKG_DamagePlayers();
-
-	// Update any sort of vendors that need updating because of cvars, etc
-	JKG_CheckVendorReplenish();
 
 #ifdef _G_FRAME_PERFANAL
 	trap->PrecisionTimer_Start(&timer_ItemRun);
@@ -3278,33 +3142,36 @@ void G_RunFrame( int levelTime ) {
 
 #define JETPACK_DEFUEL_RATE		200 //approx. 20 seconds of idle use from a fully charged fuel amt
 #define JETPACK_REFUEL_RATE		150 //seems fair
-			if (ent->client->jetPackOn)
-			{ //using jetpack, drain fuel
-				if (ent->client->jetPackDebReduce < level.time)
-				{
-					if (ent->client->pers.cmd.upmove > 0)
-					{ //take more if they're thrusting
-						ent->client->ps.jetpackFuel -= 2;
-					}
-					else
+			if (ent->client->ps.jetpack) {
+				jetpackData_t* jet = &jetpackTable[ent->client->ps.jetpack - 1];
+
+				if (ent->client->ps.eFlags & EF_JETPACK_ACTIVE)
+				{ //using jetpack, drain fuel
+					if (ent->client->jetPackDebReduce < level.time)
 					{
 						ent->client->ps.jetpackFuel--;
+						if (ent->client->ps.jetpackFuel <= 0)
+						{ //turn it off
+							ent->client->ps.jetpackFuel = 0;
+							Jetpack_Off(ent);
+						}
+
+						if (ent->client->pers.cmd.upmove > 0) {
+							// Using thrust, take away fuel more quickly
+							ent->client->jetPackDebReduce = level.time + (JETPACK_DEFUEL_RATE / jet->thrustConsumption);
+						}
+						else {
+							ent->client->jetPackDebReduce = level.time + (JETPACK_DEFUEL_RATE / jet->fuelConsumption);
+						}
 					}
-					
-					if (ent->client->ps.jetpackFuel <= 0)
-					{ //turn it off
-						ent->client->ps.jetpackFuel = 0;
-						Jetpack_Off(ent);
-					}
-					ent->client->jetPackDebReduce = level.time + JETPACK_DEFUEL_RATE;
 				}
-			}
-			else if (ent->client->ps.jetpackFuel < 100)
-			{ //recharge jetpack
-				if (ent->client->jetPackDebRecharge < level.time)
-				{
-					ent->client->ps.jetpackFuel++;
-					ent->client->jetPackDebRecharge = level.time + JETPACK_REFUEL_RATE;
+				else if (ent->client->ps.jetpackFuel < jet->fuelCapacity)
+				{ //recharge jetpack
+					if (ent->client->jetPackDebRecharge < level.time)
+					{
+						ent->client->ps.jetpackFuel++;
+						ent->client->jetPackDebRecharge = level.time + (JETPACK_REFUEL_RATE / jet->fuelRegeneration);
+					}
 				}
 			}
 

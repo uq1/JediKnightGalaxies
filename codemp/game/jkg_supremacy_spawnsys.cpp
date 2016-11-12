@@ -1,13 +1,13 @@
 /*
-¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+=============================================================================
 Unique1's Experimental OM SpawnSys Code.
-¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+=============================================================================
 OrgVisibleBox
 CheckAboveOK_Player
 CheckBelowOK
 CheckEntitiesInSpot
 Extrapolate_Advanced_Spawnpoint
-¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+=============================================================================
 */
 
 #include "g_local.h"
@@ -136,7 +136,7 @@ qboolean CheckEntitiesInSpot(vec3_t point)
 		
 		if (entitynum < MAX_CLIENTS 
 			&& ent->client 
-			&& ent->client->ps.origin
+			//&& ent->client->ps.origin
 			&& Distance(point, ent->client->ps.origin) < 128)
 		{// Bad point.
 			return qtrue;
@@ -606,14 +606,6 @@ SelectWarzoneSpectatorSpawnpoint
 Selects a Spectator spawnpoint for the Warzone gametype for ent.
 ============
 */
-/*
-===========
-SelectWarzoneSpawnpoint
-
-Selects a spawnpoint for the Warzone gametype for ent.
-============
-*/
-
 gentity_t *SelectWarzoneSpectatorSpawnpoint ( gentity_t *ent )
 {
 	gentity_t *tent = NULL;
@@ -624,46 +616,9 @@ gentity_t *SelectWarzoneSpectatorSpawnpoint ( gentity_t *ent )
 	{// Spawn around flag...
 		if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 		{
-			int spawnpoint_num = 0;
-			int num_flags = 0;
-			int test_flag = 0;
-			int flagnum = -1;
-			int last_flag_num = -1;
-			qboolean notgood = qtrue;
-//			vec3_t newspawn;
+			int num_flags = GetNumberOfWarzoneFlags();
+			int flagnum = irand(0, num_flags-1);
 
-			/*
-			// UQ1: Try to use NPC spots... Cleaner code for JKG...
-			NPC_SelectWarzoneSpawnpoint ( ent->client->sess.sessionTeam );
-
-			if (!(NPC_SPAWNPOINT[0] == 0 && NPC_SPAWNPOINT[1] == 0 && NPC_SPAWNPOINT[2] == 0))
-			{// Looks good... Use it!
-				// Make a temp spawnpoint entity...
-				tent = G_TempEntity (NPC_SPAWNPOINT, EV_NONE);
-				VectorCopy(NPC_SPAWNPOINT, tent->s.origin);
-				VectorCopy(NPC_SPAWNPOINT, tent->r.currentOrigin);
-				VectorCopy(NPC_SPAWNPOINT, tent->s.pos.trBase);
-				G_SetOrigin(tent, NPC_SPAWNPOINT);
-				VectorCopy(ent->s.angles, tent->s.angles);
-				VectorCopy(ent->s.angles, tent->r.currentAngles);
-
-				ent->enemy = ent;
-
-				tent->s.time = 1;
-				tent->s.time2 = 1;
-				//	tent->s.density = 0;
-
-				trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5.\n", ent->client->pers.netname, NPC_SPAWNFLAG);
-
-				return tent;
-			}
-			*/
-
-			num_flags = GetNumberOfWarzoneFlags();
-
-			flagnum = irand(0, num_flags-1);
-
-			//for (flagnum = 0; flagnum < num_flags; flagnum++)
 			{// Find a close waypoint...
 				int		i;
 				float	bestdist;
@@ -794,6 +749,8 @@ gentity_t *SelectWarzoneSpectatorSpawnpoint ( gentity_t *ent )
 
 gentity_t *SelectWarzoneSpectatorSpawnpoint2 ( gentity_t *ent )
 {
+	return nullptr;
+#if 0
 	gentity_t *tent = NULL;
 
 	int spawnpoint_num = 0;
@@ -801,7 +758,7 @@ gentity_t *SelectWarzoneSpectatorSpawnpoint2 ( gentity_t *ent )
 	int test_flag = 0;
 	int flagnum = -1;
 	qboolean notgood = qtrue;
-	vec3_t newspawn, good_angles;//, temp_angles;
+	vec3_t newspawn, good_angles;
 
 	num_flags = GetNumberOfWarzoneFlags();
 
@@ -809,50 +766,9 @@ gentity_t *SelectWarzoneSpectatorSpawnpoint2 ( gentity_t *ent )
 	{// We have flags on the map... Find one that belongs to us..
 		vec3_t	upOrg, good_pos, temp_pos, good_dir;
 		trace_t tr;
-		float	best_dist = 0.0f;
-//		vec3_t	look_target;
-		qboolean look_target_found = qfalse;
-		qboolean bad = qtrue;
-		int		tries = 0;
-//		vec3_t  forward;
-
-//		int		choices[256];
-		int		upto = 0;
-
-		/*
-		for (flagnum = 0; flagnum <= num_flags; flagnum++)
-		{
-			if (flag_list[flagnum].flagentity->s.modelindex == TEAM_RED || flag_list[flagnum].flagentity->s.modelindex == TEAM_BLUE)
-			{
-				choices[upto] = flagnum;
-				upto++;
-			}
-		}
-		upto--;
-
-		if (upto > 0) // Select a team's flag if we can!
-			flagnum = choices[Q_irand(0, upto)];
-		else // Any flag will do... Should be impossible,,,
-			flagnum = Q_irand(0, num_flags);
-		*/
 
 		gentity_t *spawnPoint = SelectWarzoneSpectatorSpawnpoint2( ent );
 		VectorCopy(spawnPoint->s.origin, newspawn);
-
-		//trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 (^4SPECTATOR^5) at flag ^7%i^5.\n", ent->client->pers.netname, flagnum);
-		
-		/*
-		for (spawnpoint_num = 0; spawnpoint_num < flag_list[flagnum].num_spawnpoints; spawnpoint_num++)
-		{
-			float distance = VectorDistance(flag_list[flagnum].flagentity->s.origin, flag_list[flagnum].spawnpoints[spawnpoint_num]);
-			
-			if (distance >= best_dist)
-			{
-				VectorCopy(flag_list[flagnum].spawnpoints[spawnpoint_num], newspawn);
-				best_dist = distance;
-			}
-		}
-		*/
 
 		VectorCopy(newspawn, upOrg);
 		//upOrg[2]+=65000;
@@ -892,6 +808,7 @@ gentity_t *SelectWarzoneSpectatorSpawnpoint2 ( gentity_t *ent )
 //	tent->s.density = 0;
 
 	return tent;
+#endif
 }
 
 vec3_t	NPC_SPAWNPOINT;
@@ -1273,44 +1190,10 @@ gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent )
 	{// Spawn around flag...
 		if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 		{
-			int spawnpoint_num = 0;
-			int num_flags = 0;
-			int test_flag = 0;
 			int flagnum = -1;
-			int last_flag_num = -1;
-			qboolean notgood = qtrue;
-//			vec3_t newspawn;
-
-			/*
-			// UQ1: Try to use NPC spots... Cleaner code for JKG...
-			NPC_SelectWarzoneSpawnpoint ( ent->client->sess.sessionTeam );
-
-			if (!(NPC_SPAWNPOINT[0] == 0 && NPC_SPAWNPOINT[1] == 0 && NPC_SPAWNPOINT[2] == 0))
-			{// Looks good... Use it!
-				// Make a temp spawnpoint entity...
-				tent = G_TempEntity (NPC_SPAWNPOINT, EV_NONE);
-				VectorCopy(NPC_SPAWNPOINT, tent->s.origin);
-				VectorCopy(NPC_SPAWNPOINT, tent->r.currentOrigin);
-				VectorCopy(NPC_SPAWNPOINT, tent->s.pos.trBase);
-				G_SetOrigin(tent, NPC_SPAWNPOINT);
-				VectorCopy(ent->s.angles, tent->s.angles);
-				VectorCopy(ent->s.angles, tent->r.currentAngles);
-
-				ent->enemy = ent;
-
-				tent->s.time = 1;
-				tent->s.time2 = 1;
-				//	tent->s.density = 0;
-
-				trap->Print("^3*** ^3WarZone^5: Spawning ^3%s^5 at flag ^7%i^5.\n", ent->client->pers.netname, NPC_SPAWNFLAG);
-
-				return tent;
-			}
-			*/
-
 			int team_flags_total = 0;
 			int team_flags[256];
-			num_flags = GetNumberOfWarzoneFlags();
+			int num_flags = GetNumberOfWarzoneFlags();
 
 			// Count this team's flags and record them...
 			for (flagnum = 0; flagnum < num_flags; flagnum++)
@@ -1543,17 +1426,11 @@ void NPC_SelectWarzoneSpawnpoint ( int TEAM )
 	{// Spawn around flag...
 		if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 		{
-			int spawnpoint_num = 0;
-			int num_flags = 0;
-			int test_flag = 0;
 			int flagnum = -1;
-			int last_flag_num = -1;
-			qboolean notgood = qtrue;
-//			vec3_t newspawn;
 
 			int team_flags_total = 0;
 			int team_flags[256];
-			num_flags = GetNumberOfWarzoneFlags();
+			int num_flags = GetNumberOfWarzoneFlags();
 
 			// Count this team's flags and record them...
 			for (flagnum = 0; flagnum < num_flags; flagnum++)

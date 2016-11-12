@@ -27,6 +27,7 @@ set(MPGameIncludeDirectories "${MPDir}" "${MPDir}/libraries")
 if(WIN32)
 	set(MPGameLibraries "winmm")
 endif(WIN32)
+
 set(MPGameDefines ${MPSharedDefines} "_GAME" )
 set(MPGameGameFiles
 	"${MPDir}/game/ai_dominance.cpp"
@@ -38,10 +39,13 @@ set(MPGameGameFiles
 	"${MPDir}/game/ai_wpnav.cpp"
 	"${MPDir}/game/animtable.cpp"
 	"${MPDir}/game/bg_ammo.cpp"
+	"${MPDir}/game/bg_armor.cpp"
 	"${MPDir}/game/bg_constants.cpp"
 	"${MPDir}/game/bg_g2_utils.cpp"
 	"${MPDir}/game/bg_items.cpp"
+	"${MPDir}/game/bg_jetpacks.cpp"
 	"${MPDir}/game/bg_misc.cpp"
+	"${MPDir}/game/bg_npcnames.cpp"
 	"${MPDir}/game/bg_panimate.cpp"
 	"${MPDir}/game/bg_pmove.cpp"
 	"${MPDir}/game/bg_saber.cpp"
@@ -57,7 +61,6 @@ set(MPGameGameFiles
 	"${MPDir}/game/g_client.cpp"
 	"${MPDir}/game/g_cmds.cpp"
 	"${MPDir}/game/g_combat.cpp"
-	#"${MPDir}/game/g_cvar.cpp"
 	"${MPDir}/game/g_exphysics.cpp"
 	"${MPDir}/game/g_ICARUScb.cpp"
 	"${MPDir}/game/g_items.cpp"
@@ -83,18 +86,13 @@ set(MPGameGameFiles
 	"${MPDir}/game/g_vehicles.cpp"
 	"${MPDir}/game/g_vehicleTurret.cpp"
 	"${MPDir}/game/g_weapon.cpp"
-	"${MPDir}/game/jkg_admin.cpp"
 	"${MPDir}/game/jkg_bans.cpp"
 	"${MPDir}/game/jkg_chatcmds.cpp"
-	"${MPDir}/game/jkg_crafting.cpp"
 	"${MPDir}/game/jkg_custombounds.cpp"
 	"${MPDir}/game/jkg_damagetypes.cpp"
 	"${MPDir}/game/jkg_dynarrays.cpp"
 	"${MPDir}/game/jkg_equip.cpp"
 	"${MPDir}/game/jkg_gangwars.cpp"
-	"${MPDir}/game/jkg_item_sub.cpp"
-	"${MPDir}/game/jkg_items.cpp"
-	"${MPDir}/game/jkg_items_easy.cpp"
 	"${MPDir}/game/jkg_keypairs.cpp"
 	"${MPDir}/game/jkg_playerisolation.cpp"
 	"${MPDir}/game/jkg_rconbans.cpp"
@@ -102,8 +100,7 @@ set(MPGameGameFiles
 	"${MPDir}/game/jkg_supremacy_flagsys.cpp"
 	"${MPDir}/game/jkg_supremacy_spawnsys.cpp"
 	"${MPDir}/game/jkg_team.cpp"
-	"${MPDir}/game/jkg_threading.cpp"
-	"${MPDir}/game/jkg_threadingsq.cpp"
+	"${MPDir}/game/jkg_trade.cpp"
 	"${MPDir}/game/jkg_treasureclass.cpp"
 	"${MPDir}/game/jkg_utilityfunc.cpp"
 	"${MPDir}/game/NPC.cpp"
@@ -153,18 +150,19 @@ set(MPGameGameFiles
 	"${MPDir}/game/ai.h"
 	"${MPDir}/game/ai_main.h"
 	"${MPDir}/game/anims.h"
-	"${MPDir}/game/aux_exports.h"
 	"${MPDir}/game/b_local.h"
 	"${MPDir}/game/b_public.h"
 	"${MPDir}/game/bg_ammo.h"
+	"${MPDir}/game/bg_armor.h"
 	"${MPDir}/game/bg_items.h"
+	"${MPDir}/game/bg_jetpacks.h"
 	"${MPDir}/game/bg_local.h"
+	"${MPDir}/game/bg_npcnames.h"
 	"${MPDir}/game/bg_public.h"
 	"${MPDir}/game/bg_saga.h"
 	"${MPDir}/game/bg_vehicles.h"
 	"${MPDir}/game/bg_weapons.h"
 	"${MPDir}/game/chars.h"
-	"${MPDir}/game/g_headers.h"
 	"${MPDir}/game/g_ICARUScb.h"
 	"${MPDir}/game/g_local.h"
 	"${MPDir}/game/g_nav.h"
@@ -172,27 +170,18 @@ set(MPGameGameFiles
 	"${MPDir}/game/g_team.h"
 	"${MPDir}/game/g_xcvar.h"
 	"${MPDir}/game/inv.h"
-	"${MPDir}/game/jkg_admin.h"
-	"${MPDir}/game/jkg_asmdefines.h"
 	"${MPDir}/game/jkg_bans.h"
 	"${MPDir}/game/jkg_chatcmds.h"
-	"${MPDir}/game/jkg_crafting.h"
 	"${MPDir}/game/jkg_damagetypes.h"
 	"${MPDir}/game/jkg_dynarrays.h"
-	"${MPDir}/game/jkg_easy_items.h"
 	"${MPDir}/game/jkg_gangwars.h"
-	"${MPDir}/game/jkg_items.h"
 	"${MPDir}/game/jkg_keypairs.h"
-	"${MPDir}/game/jkg_libcurl.h"
 	"${MPDir}/game/jkg_navmesh_creator.h"
-	"${MPDir}/game/jkg_threading.h"
-	"${MPDir}/game/jkg_threadingsq.h"
 	"${MPDir}/game/jkg_utilityfunc.h"
 	"${MPDir}/game/match.h"
 	"${MPDir}/game/npc_headers.h"
 	"${MPDir}/game/say.h"
 	"${MPDir}/game/surfaceflags.h"
-	"${MPDir}/game/syn.h"
 	"${MPDir}/game/teams.h"
 	"${MPDir}/game/w_saber.h"
 	"${MPDir}/game/z_global_defines.h"
@@ -392,6 +381,9 @@ set(MPGameLuaSource
 source_group("Libraries\\Lua\\Source Files" FILES ${MPGameLuaSource})
 set(MPGameFiles ${MPGameFiles} ${MPGameLuaSource})
 
+if(BuildSkipCryptography)
+# Do nothing
+else()
 set(MPGameSSLHeader
 	"${MPDir}/libraries/openssl/aes.h"
 	"${MPDir}/libraries/openssl/asn1.h"
@@ -469,55 +461,44 @@ set(MPGameSSLHeader
 source_group("Libraries\\OpenSSL\\Header Files" FILES ${MPGameSSLHeader})
 set(MPGameFiles ${MPGameFiles} ${MPGameSSLHeader})
 
+if(WIN32)
+	target_link_libraries(${MPGame} "${MPDir}/libraries/openssl/ssleay32.lib" "${MPDir}/libraries/openssl/libeay32.lib")
+else()
+	target_link_libraries(${MPGame} "ssl" "crypto")
+endif()
+endif() # End BuildSkipCryptography
+
 add_library(${MPGame} SHARED ${MPGameFiles})
-target_link_libraries(${MPGame} "${MPDir}/libraries/openssl/ssleay32.lib" "${MPDir}/libraries/openssl/libeay32.lib")
 
-
-
-if(NOT WIN32)
+if(NOT MSVC)
 	# remove "lib" prefix for .so/.dylib files
 	set_target_properties(${MPGame} PROPERTIES PREFIX "")
-endif(NOT WIN32)
+endif()
 
 if(MakeApplicationBundles AND BuildMPEngine)
 	install(TARGETS ${MPGame}
 		LIBRARY
-		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/OpenJK"
-		COMPONENT ${JKAMPCoreComponent})
-	install(TARGETS ${MPGame}
-		LIBRARY
-		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/base"
+		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/JKG"
 		COMPONENT ${JKAMPCoreComponent})
 elseif(WIN32)
 	install(TARGETS ${MPGame}
 		RUNTIME
-		DESTINATION "${JKAInstallDir}/OpenJK"
+		DESTINATION "${JKAInstallDir}/JKG"
 		COMPONENT ${JKAMPCoreComponent})
-	if (WIN64)
-		# Don't do this on 32-bit Windows to avoid overwriting
-		# vanilla JKA's DLLs
-		install(TARGETS ${MPGame}
-			RUNTIME
-			DESTINATION "${JKAInstallDir}/base"
-			COMPONENT ${JKAMPCoreComponent})
-	endif()
 else()
 	install(TARGETS ${MPGame}
 		LIBRARY
-		DESTINATION "${JKAInstallDir}/OpenJK"
-		COMPONENT ${JKAMPCoreComponent})
-	install(TARGETS ${MPGame}
-		LIBRARY
-		DESTINATION "${JKAInstallDir}/base"
+		DESTINATION "${JKAInstallDir}/JKG"
 		COMPONENT ${JKAMPCoreComponent})
 endif()
 
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPGameDefines};${ReleaseDefines}")
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPGameDefines};${ReleaseDefines}")
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPGameDefines};${ReleaseDefines}")
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPGameDefines};${DebugDefines}")
+set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS "${MPGameDefines}")
+
+# Hide symbols not explicitly marked public.
+set_property(TARGET ${MPGame} APPEND PROPERTY COMPILE_OPTIONS ${OPENJK_VISIBILITY_FLAGS})
+
 set_target_properties(${MPGame} PROPERTIES INCLUDE_DIRECTORIES "${MPGameIncludeDirectories}")
-set_target_properties(${MPGame} PROPERTIES PROJECT_LABEL "MP Game Library (game)")
+set_target_properties(${MPGame} PROPERTIES PROJECT_LABEL "Server Game Library (game)")
 # no libraries used
 if(MPGameLibraries)
 	target_link_libraries(${MPGame} ${MPGameLibraries})

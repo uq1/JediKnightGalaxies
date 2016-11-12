@@ -150,21 +150,10 @@ static void C_GetLerpData(void);
 static int	CG_RagCallback(int callType);
 static void C_ImpactMark(void);
 
-#define MAX_MISC_ENTS	4000
-
-//static refEntity_t	*MiscEnts = 0;
-//static float		*Radius = 0;
-static refEntity_t	MiscEnts[MAX_MISC_ENTS]; //statically allocated for now.
-static float		Radius[MAX_MISC_ENTS];
-static float		zOffset[MAX_MISC_ENTS]; //some models need a z offset for culling, because of stupid wrong model origins
-
-static int			NumMiscEnts = 0;
-
 extern autoMapInput_t cg_autoMapInput; //cg_view.c
 extern int cg_autoMapInputTime;
 extern vec3_t cg_autoMapAngle;
 
-void CG_MiscEnt(void);
 void CG_DoCameraShake( vec3_t origin, float intensity, int radius, int time );
 
 //do we have any force powers that we would normally need to cycle to?
@@ -917,7 +906,6 @@ static void CG_RegisterSounds( void ) {
 
 	cgs.media.drainSound = trap->S_RegisterSound("sound/weapons/force/drained.mp3");
 
-	cgs.media.happyMusic = trap->S_RegisterSound("music/goodsmall.mp3");
 	cgs.media.dramaticFailure = trap->S_RegisterSound("music/badsmall.mp3");
 
 	//PRECACHE ALL MUSIC HERE (don't need to precache normally because it's streamed off the disk)
@@ -968,15 +956,8 @@ static void CG_RegisterSounds( void ) {
 	trap->R_RegisterModel ( "models/map_objects/mp/sphere.md3" );
 	trap->R_RegisterModel("models/items/remote.md3");
 
-	cgs.media.holocronPickup = trap->S_RegisterSound( "sound/player/holocron.wav" );
-
 	// No ammo sound
 	cgs.media.noAmmoSound = trap->S_RegisterSound( "sound/weapons/noammo.wav" );
-
-	// Zoom
-	cgs.media.zoomStart = trap->S_RegisterSound( "sound/interface/zoomstart.wav" );
-	cgs.media.zoomLoop	= trap->S_RegisterSound( "sound/interface/zoomloop.wav" );
-	cgs.media.zoomEnd	= trap->S_RegisterSound( "sound/interface/zoomend.wav" );
 
 	for (i=0 ; i<4 ; i++) {
 		Com_sprintf (name, sizeof(name), "sound/player/footsteps/stone_step%i.wav", i+1);
@@ -1102,17 +1083,6 @@ static void CG_RegisterSounds( void ) {
 	}
 
 	cg.loadLCARSStage = 2;
-
-	// FIXME: only needed with item
-	cgs.media.deploySeeker = trap->S_RegisterSound ("sound/chars/seeker/misc/hiss");
-	cgs.media.medkitSound = trap->S_RegisterSound ("sound/items/use_bacta.wav");
-	
-	cgs.media.winnerSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM006" );
-	cgs.media.loserSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM010" );
-
-	// eezstreet / JKG add: weapon/armor breaking
-	cgs.media.armorBreakSound = trap->S_RegisterSound( "sound/items/armor_break.wav" );
-	cgs.media.weaponBreakSound = trap->S_RegisterSound( "sound/items/weapon_break.wav" );
 }
 
 
@@ -1272,9 +1242,6 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.balloonShader = trap->R_RegisterShader( "gfx/mp/chat_icon" );
 	cgs.media.vchatShader = trap->R_RegisterShader( "gfx/mp/vchat_icon" );
 
-	cgs.media.deferShader = trap->R_RegisterShaderNoMip( "gfx/2d/defer.tga" );
-
-	cgs.media.radarShader			= trap->R_RegisterShaderNoMip ( "gfx/menus/radar/radar.png" );
 	cgs.media.siegeItemShader		= trap->R_RegisterShaderNoMip ( "gfx/menus/radar/goalitem" );
 	cgs.media.mAutomapPlayerIcon	= trap->R_RegisterShader( "gfx/menus/radar/arrow_w" );
 	cgs.media.mAutomapRocketIcon	= trap->R_RegisterShader( "gfx/menus/radar/rocket" );
@@ -1401,18 +1368,6 @@ static void CG_RegisterGraphics( void ) {
 		cgs.media.powerDuelAllyShader = trap->R_RegisterShader("gfx/mp/pduel_icon_double");//trap->R_RegisterShader("gfx/mp/pduel_gameicon_ally");
 	}
 
-	cgs.media.heartShader			= trap->R_RegisterShaderNoMip( "ui/assets/statusbar/selectedhealth.tga" );
-
-	cgs.media.invulnerabilityShader = trap->R_RegisterShader( "powerups/invulnerabilityshell");
-
-	// Binocular interface
-	cgs.media.binocularCircle		= trap->R_RegisterShader( "gfx/2d/binCircle" );
-	cgs.media.binocularMask			= trap->R_RegisterShader( "gfx/2d/binMask" );
-	cgs.media.binocularArrow		= trap->R_RegisterShader( "gfx/2d/binSideArrow" );
-	cgs.media.binocularTri			= trap->R_RegisterShader( "gfx/2d/binTopTri" );
-	cgs.media.binocularStatic		= trap->R_RegisterShader( "gfx/2d/binocularWindow" );
-	cgs.media.binocularOverlay		= trap->R_RegisterShader( "gfx/2d/binocularNumOverlay" );
-
 	cg.loadLCARSStage = 5;
 	CG_LoadingString( "Models" );
 
@@ -1490,10 +1445,6 @@ Ghoul2 Insert End
 	// wall marks
 	cgs.media.shadowMarkShader	= trap->R_RegisterShader( "markShadow" );
 	cgs.media.wakeMarkShader	= trap->R_RegisterShader( "wake" );
-
-	cgs.media.viewPainShader					= trap->R_RegisterShader( "gfx/misc/borgeyeflare" );
-	cgs.media.viewPainShader_Shields			= trap->R_RegisterShader( "gfx/mp/dmgshader_shields" );
-	cgs.media.viewPainShader_ShieldsAndHealth	= trap->R_RegisterShader( "gfx/mp/dmgshader_shieldsandhealth" );
 
 	CG_LoadingString( "Brush Models" );
 	// register the inline models
@@ -1640,14 +1591,6 @@ Ghoul2 Insert End
 
 	cgs.media.hitmarkerGraphic = trap->R_RegisterShaderNoMip("gfx/2d/crosshair_hitmarker.tga");
 
-	// new stuff
-	cgs.media.patrolShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/patrol.tga");
-	cgs.media.assaultShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/assault.tga");
-	cgs.media.campShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/camp.tga");
-	cgs.media.followShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/follow.tga");
-	cgs.media.defendShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/defend.tga");
-	cgs.media.retrieveShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/retrieve.tga");
-	cgs.media.escortShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/escort.tga");
 	cgs.media.cursor = trap->R_RegisterShaderNoMip( "menu/art/3_cursor2" );
 	cgs.media.sizeCursor = trap->R_RegisterShaderNoMip( "ui/assets/sizecursor.tga" );
 	cgs.media.selectCursor = trap->R_RegisterShaderNoMip( "ui/assets/selectcursor.tga" );
@@ -1656,21 +1599,8 @@ Ghoul2 Insert End
 	cgs.media.lowHealthAura = trap->R_RegisterShader("gfx/jkg/lowhealthaura.png");
 
 	cgs.media.halfShieldModel	= trap->R_RegisterModel ( "models/weaphits/testboom.md3" );
-	cgs.media.halfShieldShader	= trap->R_RegisterShader( "halfShieldShell" );
 
 	trap->FX_RegisterEffect("force/force_touch");
-/*
-	for (i=1; i<MAX_PARTICLES_AREAS; i++)
-	{
-		{
-			int rval;
-
-			rval = CG_NewParticleArea ( CS_PARTICLES + i);
-			if (!rval)
-				break;
-		}
-	}
-*/
 
 	// Jedi Knight Galaxies
 
@@ -1694,7 +1624,7 @@ const char *CG_GetStringEdString(char *refSection, char *refName)
 
 const char *CG_GetStringEdString2(char *refName)
 {
-	static char text[2][1024]={0};	//just incase it's nested
+	static char text[2][1024]={};	//just incase it's nested
 	static int		index = 0;
 
 	index ^= 1;
@@ -2274,7 +2204,7 @@ void CG_Text_PaintWithCursor(float x, float y, float scale, vec4_t color, const 
 	CG_Text_Paint(x, y, scale, color, text, 0, limit, style, iMenuFont);
 }
 
-static int CG_OwnerDrawWidth(int ownerDraw, float scale) {
+static int CG_OwnerDrawWidth(int ownerDraw, int ownerDrawWidth, float scale) {
 	switch (ownerDraw) {
 	  case CG_GAME_TYPE:
 			return CG_Text_Width(BG_GetGametypeString( cgs.gametype ), scale, FONT_MEDIUM);
@@ -2397,7 +2327,11 @@ void CG_LoadHudMenu()
 	cgDC.setColor = trap->R_SetColor;
 	cgDC.drawHandlePic = CG_DrawPic;
 	cgDC.drawStretchPic = trap->R_DrawStretchPic;
+#if	defined(__linux__)
+	cgDC.drawText = reinterpret_cast<void(*)(float, float, float, float[], const char *, float, int, int, int)>(&CG_Text_Paint);
+#else
 	cgDC.drawText = reinterpret_cast<void (__cdecl *)(float, float, float, float [], const char *, float, int, int, int)>(&CG_Text_Paint);
+#endif
 	cgDC.textWidth = CG_Text_Width;
 	cgDC.textHeight = CG_Text_Height;
 	cgDC.registerModel = trap->R_RegisterModel;
@@ -2562,12 +2496,11 @@ void ChatBox_InitSystem();
 void MiniMap_Init();
 void JKG_WeaponIndicators_Init();
 
-#include "jkg_cg_auxlib.h"
 #include "jkg_chatcmds.h"
 
-static void CG_OpenPartyManagement( void ) {
+/*static void CG_OpenPartyManagement( void ) {
 	uiImports->PartyMngtNotify( 10 );
-}
+}*/
 
 static void CG_OpenInventory ( void )
 {
@@ -2583,11 +2516,9 @@ void CG_SetupChatCmds() {
 }
 
 extern void JKG_CG_InitItems( void );
-extern void JKG_CG_InitArmor( void );
 extern void CG_InitializeCrossoverAPI( void );
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 {
-	static gitem_t *item;
 	char buf[64];
 	const char	*s;
 	int i = 0;
@@ -2617,9 +2548,6 @@ Ghoul2 Insert Start
 	CG_Init_CG();
 	CG_InitItems();
 
-	//create the global jetpack instance
-	CG_InitJetpackGhoul2();
-
 	CG_PmoveClientPointerUpdate();
 	
 	// Yum, ammo
@@ -2639,11 +2567,18 @@ Ghoul2 Insert Start
 	// Jedi Knight Galaxies
 	CinBuild_Init();
 	CG_SetupChatCmds();
+
+	/* The server needs to send our inventory to us. Tell us them that we're ready to receive it. */
+	trap->SendClientCommand("resendInv");
 /*
 Ghoul2 Insert End
 */
 
 	JKG_ParseHiltFiles();
+	JKG_LoadJetpacks();
+
+	//create the global jetpack instance
+	CG_InitJetpackGhoul2();
 
 	// this is kinda dumb as well, but I need to pre-load some fonts in order to have the text available
 	//	to say I'm loading the assets.... which includes loading the fonts. So I'll set these up as reasonable
@@ -2687,31 +2622,13 @@ Ghoul2 Insert End
 	cg.forceHUDActive = qtrue;
 	cg.forceHUDTotalFlashTime = 0;
 	cg.forceHUDNextFlashTime = 0;
+	cg.playerInventory = new std::vector<itemInstance_t>();
+	cg.ourTradeItems = new std::vector<itemInstance_t>();
+	cg.otherTradeItems = new std::vector<itemInstance_t>();
 
-	cg.numItemsInInventory = 0;
-
-	//eezstreet add
-	JKG_CG_InitItems();
-	JKG_CG_InitArmor();
+	JKG_LoadArmor();
+	BG_InitItems();
 	BG_LoadDefaultWeaponItems();
-
-	/*i = WP_NONE+1;
-	while (i <= LAST_USEABLE_WEAPON)
-	{
-		item = BG_FindItemForWeapon(i);
-
-		if (item && item->icon && item->icon[0])
-		{
-			cgs.media.weaponIcons[i] = trap->R_RegisterShaderNoMip(item->icon);
-			cgs.media.weaponIcons_NA[i] = trap->R_RegisterShaderNoMip(va("%s_na", item->icon));
-		}
-		else
-		{ //make sure it is zero'd (default shader)
-			cgs.media.weaponIcons[i] = 0;
-			cgs.media.weaponIcons_NA[i] = 0;
-		}
-		i++;
-	}*/
 
 	trap->Cvar_VariableStringBuffer("com_buildscript", buf, sizeof(buf));
 	if (atoi(buf))
@@ -2725,24 +2642,6 @@ Ghoul2 Insert End
 	cgs.media.weaponIconBackground		= trap->R_RegisterShaderNoMip( "gfx/hud/background");
 	cgs.media.forceIconBackground		= trap->R_RegisterShaderNoMip( "gfx/hud/background_f");
 	cgs.media.inventoryIconBackground	= trap->R_RegisterShaderNoMip( "gfx/hud/background_i");
-
-	//rww - precache holdable item icons here
-	while (i < bg_numItems)
-	{
-		if (bg_itemlist[i].giType == IT_HOLDABLE)
-		{
-			if (bg_itemlist[i].icon)
-			{
-				cgs.media.invenIcons[bg_itemlist[i].giTag] = trap->R_RegisterShaderNoMip(bg_itemlist[i].icon);
-			}
-			else
-			{
-				cgs.media.invenIcons[bg_itemlist[i].giTag] = 0;
-			}
-		}
-
-		i++;
-	}
 
 	//rww - precache force power icons here
 	i = 0;
@@ -2890,10 +2789,6 @@ Ghoul2 Insert End
 		trap->Cvar_Set("ui_blurbackground", "1");
 		cg.turnOnBlurCvar = qfalse;
 	}
-
-#ifdef SWF
-	cgs.media.swfTestShader = trap->R_RegisterShaderNoMip("animation/swf/test");
-#endif
 }
 
 //makes sure returned string is in localized format
@@ -2966,6 +2861,8 @@ void CG_Shutdown( void )
 	// Jedi Knight Galaxies, terminate the crossover
 	trap->CO_Shutdown();
 
+	JKG_UnloadArmor();
+
 //	Com_Printf("... FX System Cleanup\n");
 	trap->FX_FreeSystem();
 	trap->ROFF_Clean();
@@ -2982,188 +2879,15 @@ void CG_Shutdown( void )
 
 	// some mods may need to do cleanup work here,
 	// like closing files or archiving session data
-}
-
-/*
-===============
-CG_NextForcePower_f
-===============
-*/
-void CG_NextForcePower_f( void )
-{
-	int current;
-	usercmd_t cmd;
-	if ( !cg.snap )
-	{
-		return;
-	}
-
-	if (cg.predictedPlayerState.pm_type == PM_SPECTATOR)
-	{
-		return;
-	}
-
-	current = trap->GetCurrentCmdNumber();
-	trap->GetUserCmd(current, &cmd);
-	if ((cmd.buttons & BUTTON_USE) || CG_NoUseableForce())
-	{
-		CG_NextInventory_f();
-		return;
-	}
-
-	if (cg.snap->ps.pm_flags & PMF_FOLLOW)
-	{
-		return;
-	}
-
-//	BG_CycleForce(&cg.snap->ps, 1);
-	if (cg.forceSelect != -1)
-	{
-		cg.snap->ps.fd.forcePowerSelected = cg.forceSelect;
-	}
-
-	BG_CycleForce(&cg.snap->ps, 1);
-
-	if (cg.snap->ps.fd.forcePowersKnown & (1 << cg.snap->ps.fd.forcePowerSelected))
-	{
-		cg.forceSelect = cg.snap->ps.fd.forcePowerSelected;
-		cg.forceSelectTime = cg.time;
-	}
-}
-
-/*
-===============
-CG_PrevForcePower_f
-===============
-*/
-void CG_PrevForcePower_f( void )
-{
-	int current;
-	usercmd_t cmd;
-	if ( !cg.snap )
-	{
-		return;
-	}
-
-	if (cg.predictedPlayerState.pm_type == PM_SPECTATOR)
-	{
-		return;
-	}
-
-	current = trap->GetCurrentCmdNumber();
-	trap->GetUserCmd(current, &cmd);
-	if ((cmd.buttons & BUTTON_USE) || CG_NoUseableForce())
-	{
-		CG_PrevInventory_f();
-		return;
-	}
-
-	if (cg.snap->ps.pm_flags & PMF_FOLLOW)
-	{
-		return;
-	}
-
-//	BG_CycleForce(&cg.snap->ps, -1);
-	if (cg.forceSelect != -1)
-	{
-		cg.snap->ps.fd.forcePowerSelected = cg.forceSelect;
-	}
-
-	BG_CycleForce(&cg.snap->ps, -1);
-
-	if (cg.snap->ps.fd.forcePowersKnown & (1 << cg.snap->ps.fd.forcePowerSelected))
-	{
-		cg.forceSelect = cg.snap->ps.fd.forcePowerSelected;
-		cg.forceSelectTime = cg.time;
-	}
-}
-
-void CG_NextInventory_f(void)
-{
-	if ( !cg.snap )
-	{
-		return;
-	}
-
-	if (cg.snap->ps.pm_flags & PMF_FOLLOW)
-	{
-		return;
-	}
-
-	if (cg.predictedPlayerState.pm_type == PM_SPECTATOR)
-	{
-		return;
-	}
-
-	if (cg.itemSelect != -1)
-	{
-		cg.snap->ps.stats[STAT_HOLDABLE_ITEM] = BG_GetItemIndexByTag(cg.itemSelect, IT_HOLDABLE);
-	}
-	BG_CycleInven(&cg.snap->ps, 1);
-
-	if (cg.snap->ps.stats[STAT_HOLDABLE_ITEM])
-	{
-		cg.itemSelect = bg_itemlist[cg.snap->ps.stats[STAT_HOLDABLE_ITEM]].giTag;
-		cg.invenSelectTime = cg.time;
-	}
-}
-
-void CG_PrevInventory_f(void)
-{
-	if ( !cg.snap )
-	{
-		return;
-	}
-
-	if (cg.snap->ps.pm_flags & PMF_FOLLOW)
-	{
-		return;
-	}
-
-	if (cg.predictedPlayerState.pm_type == PM_SPECTATOR)
-	{
-		return;
-	}
-
-	if (cg.itemSelect != -1)
-	{
-		cg.snap->ps.stats[STAT_HOLDABLE_ITEM] = BG_GetItemIndexByTag(cg.itemSelect, IT_HOLDABLE);
-	}
-	BG_CycleInven(&cg.snap->ps, -1);
-
-	if (cg.snap->ps.stats[STAT_HOLDABLE_ITEM])
-	{
-		cg.itemSelect = bg_itemlist[cg.snap->ps.stats[STAT_HOLDABLE_ITEM]].giTag;
-		cg.invenSelectTime = cg.time;
-	}
+	delete cg.playerInventory;
+	delete cg.ourTradeItems;
+	delete cg.otherTradeItems;
 }
 
 static void _CG_MouseEvent( int x, int y ) {
 	cgDC.cursorx = cgs.cursorX;
 	cgDC.cursory = cgs.cursorY;
 	CG_MouseEvent( x, y );
-}
-
-static qboolean CG_IncomingConsoleCommand( void ) {
-	//rww - let mod authors filter client console messages so they can cut them off if they want.
-	//return qtrue if the command is ok. Otherwise, you can set char 0 on the command str to 0 and return
-	//qfalse to not execute anything, or you can fill conCommand in with something valid and return 0
-	//in order to have that string executed in place. Some example code:
-#if 0
-	TCGIncomingConsoleCommand *icc = &cg.sharedBuffer.icc;
-	if ( strstr( icc->conCommand, "wait" ) )
-	{ //filter out commands contaning wait
-		Com_Printf( "You can't use commands containing the string wait with MyMod v1.0\n" );
-		icc->conCommand[0] = 0;
-		return qfalse;
-	}
-	else if ( strstr( icc->conCommand, "blah" ) )
-	{ //any command containing the string "blah" is redirected to "quit"
-		strcpy( icc->conCommand, "quit" );
-		return qfalse;
-	}
-#endif
-	return qtrue;
 }
 
 static void CG_GetOrigin( int entID, vec3_t out ) {
@@ -3215,6 +2939,10 @@ static void CG_FX_CameraShake( void ) {
 	CG_DoCameraShake( data->mOrigin, data->mIntensity, data->mRadius, data->mTime );
 }
 
+static qboolean CG_IsChatBoxOpen(void) {
+	return cg.isChatting;
+}
+
 /*
 ============
 GetModuleAPI
@@ -3256,7 +2984,6 @@ Q_EXPORT cgameExport_t* QDECL GetModuleAPI( int apiVersion, cgameImport_t *impor
 	cge.G2Trace					= C_G2Trace;
 	cge.G2Mark					= C_G2Mark;
 	cge.RagCallback				= CG_RagCallback;
-	cge.IncomingConsoleCommand	= CG_IncomingConsoleCommand;
 	cge.NoUseableForce			= CG_NoUseableForce;
 	cge.GetOrigin				= CG_GetOrigin;
 	cge.GetAngles				= CG_GetAngles;
@@ -3268,6 +2995,7 @@ Q_EXPORT cgameExport_t* QDECL GetModuleAPI( int apiVersion, cgameImport_t *impor
 	cge.MiscEnt					= CG_MiscEnt;
 	cge.CameraShake				= CG_FX_CameraShake;
 	cge.MessageMode				= ChatBox_UseMessageMode;
+	cge.ChatboxOpen				= CG_IsChatBoxOpen;
 
 	return &cge;
 }

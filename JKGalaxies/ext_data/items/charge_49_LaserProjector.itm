@@ -4,6 +4,6 @@
 	"itemtype":             "weapon",
 	"weapon":		"WP_DET_PACK",
 	"variation":		"1",
-	"xml":			"",
+	"maxStack":		5,
 	"itemIcon":		"models/weapons/LaserProjector/icon_default"
 }

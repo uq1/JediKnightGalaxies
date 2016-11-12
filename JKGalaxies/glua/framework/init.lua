@@ -17,6 +17,7 @@ include("extensions/util.lua")
 -- Modules
 include("modules/entstorage.lua")
 include("modules/commands.lua")
+include("modules/items.lua")
 include("modules/chatcommands.lua")
 include("modules/hooks.lua")
 include("modules/timer.lua")
@@ -34,17 +35,12 @@ include("managers/dialogues.lua")
 
 -- Enums
 include ("enums/cvars.lua")
-include ("enums/weapons.lua")
 include ("enums/forces.lua")
 include ("enums/ents.lua")
 include ("enums/trajectories.lua")
-include ("enums/adminranks.lua")
 
 -- Minigames
 include("minigames/init.lua")
-
--- Inventory
-include ("inventory/init.lua")
 
 -- Post-framework-init extensions
 include("extensions/player.lua")

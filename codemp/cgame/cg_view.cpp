@@ -31,8 +31,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define MASK_CAMERACLIP (MASK_SOLID|CONTENTS_PLAYERCLIP)
 #define CAMERA_SIZE	4
 
-#include "jkg_cg_auxlib.h"
-
 //[TrueView]
 #define		MAX_TRUEVIEW_INFO_SIZE					8192
 char		true_view_info[MAX_TRUEVIEW_INFO_SIZE];
@@ -996,7 +994,6 @@ static void CG_OffsetFirstPersonView( void ) {
 	vec3_t			predictedVelocity;
 	int				timeDelta;
 	int				kickTime;
-	qboolean rolling = BG_InRoll(&cg.predictedPlayerState, cg.predictedPlayerState.torsoAnim);
 	
 	if ( cg.snap->ps.pm_type == PM_INTERMISSION ) {
 		return;
@@ -2748,13 +2745,10 @@ extern qboolean PM_InKnockDown( playerState_t *ps );
 extern qboolean cgQueueLoad;
 extern void CG_ActualLoadDeferredPlayers( void );
 
-static int cg_siegeClassIndex = -2;
-
 void CinBuild_Visualize();
 
 int LastACRun = 0;
 void JKG_AntiDebug();
-extern cgItemData_t CGitemLookupTable[MAX_ITEM_TABLE_SIZE];
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback ) {
 	int		inwater;
 	const char *cstr;
@@ -2854,26 +2848,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	{ //lower sens for emplaced guns and vehicles
 		mSensitivity = 0.2f;
 	}
-#ifdef VEH_CONTROL_SCHEME_4
-	else if (cg.predictedPlayerState.m_iVehicleNum//in a vehicle
-		&& !cg.predictedPlayerState.generic1 )//not as a passenger
-	{
-		centity_t *cent = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-		if ( cent->m_pVehicle
-			&& cent->m_pVehicle->m_pVehicleInfo
-			&& cent->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER )
-		{
-			BG_VehicleTurnRateForSpeed( cent->m_pVehicle, cent->currentState.speed, &mPitchOverride, &mYawOverride );
-			//mSensitivityOverride = 5.0f;//old default value
-			mSensitivityOverride = 0.0f;
-			bUseFighterPitch = qtrue;
-			trap->SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, mSensitivityOverride, cg.forceSelect, cg.itemSelect, bUseFighterPitch );
-			isFighter = qtrue;
-		}
-	} 
 
-	if ( !isFighter )
-#endif //VEH_CONTROL_SCHEME_4
 	{
 		if (cg.predictedPlayerState.m_iVehicleNum)
 		{
@@ -2891,27 +2866,33 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		}
 		else
 		{
-			if(cg.playerACI[cg.weaponSelect] >= 0)
+			if (cg.weaponSelect >= MAX_ACI_SLOTS) {
+				cg.weaponSelect = 0;
+			}
+
+			if (cg.playerACI[cg.weaponSelect] >= cg.playerInventory->size()) {
+				// Destroyed the weapon we were carrying
+				cg.playerACI[cg.weaponSelect] = -1;
+				cg.weaponSelect = 0;
+			}
+
+			if(cg.playerACI[cg.weaponSelect] >= 0 && cg.playerInventory->size() > 0)
 			{
-				if(cg.weaponSelect >= MAX_ACI_SLOTS)
-				{
-					cg.weaponSelect = 0;
-				}
 				if(cg.playerACI[cg.weaponSelect] >= MAX_INVENTORY_ITEMS)
 				{
 					goto defaultCmd;
 				}
-				if(cg.playerInventory[cg.playerACI[cg.weaponSelect]].id)
+				if((*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id)
 				{
 					if(cg.holsterState && 
-						cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->weapon != WP_SABER)
+						(*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id->weaponData.weapon != WP_SABER)
 					{
 						// Set us up using Melee if our holstered weapon is not a saber (and we're holstered)
 						trap->SetUserCmdValue( BG_GetWeaponIndex(WP_MELEE, 0), mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
 					}
 					else
 					{
-						trap->SetUserCmdValue( cg.playerInventory[cg.playerACI[cg.weaponSelect]].id->varID, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
+						trap->SetUserCmdValue( (*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id->weaponData.varID, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
 					}
 				}
 				else

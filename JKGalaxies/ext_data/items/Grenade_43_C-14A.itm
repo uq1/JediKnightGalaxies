@@ -5,7 +5,7 @@
 	"weapon":		"WP_THERMAL",
 	"variation":		"8",
 	"weight":		"1",
-	"cost":		"500",
-	"xml":			"",
+	"cost":		"125",
+	"maxStack":		10,
 	"itemIcon":		"models/weapons/Grenade_C-14A/icon_default"
 }

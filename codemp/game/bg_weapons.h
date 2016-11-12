@@ -1,15 +1,3 @@
-//       ____ ___________________   ___           ____  __ _______   ___  ________  ___ ______________
-//      |    |\_   _____/\______ \ |   |         |    |/ _|\      \ |   |/  _____/ /   |   \__    ___/
-//      |    | |    __)_  |    |  \|   |         |      <  /   |   \|   /   \  ___/    ~    \|    |   
-//  /\__|    | |        \ |    `   \   |         |    |  \/    |    \   \    \_\  \    Y    /|    |   
-//  \________|/_______  //_______  /___|         |____|__ \____|__  /___|\______  /\___|_  / |____|   
-//                    \/         \/                      \/       \/            \/       \/           
-//                         ________    _____   ____       _____  ____  ___ ______________ _________   
-//                        /  _____/   /  _  \ |    |     /  _  \ \   \/  /|   \_   _____//   _____/   
-//                       /   \  ___  /  /_\  \|    |    /  /_\  \ \     / |   ||    __)_ \_____  \    
-//                       \    \_\  \/    |    \    |___/    |    \/     \ |   ||        \/        \   
-//                        \______  /\____|__  /_______ \____|__  /___/\  \|___/_______  /_______  /   
-//                               \/         \/        \/	   \/	   \_/			  \/        \/ (c)
 // bg_weapons.h
 // This has been modified beyond it's original purpose. In the past, weapons were hardcoded
 // with a weaponData_t struct that barely contained any useful information about the weapon,
@@ -213,6 +201,8 @@ typedef struct weaponFireModeStats_s
 	qboolean    isGrenade;          // Is this firemode a grenade?
 	qboolean	grenadeBounces;		// Does this grenade bounce off of enemies, or does it explode on impact? (true for bounces on people)
 	int			grenadeBounceDMG;	// Determines the amount of damage to do when bouncing off of an enemy.
+	qboolean	useQuantity;		// Subtracts from quantity instead of ammo index when firing.
+									// This is separate because some fire modes (ie sequencer charge detonate) don't consume ammo
 
 	weaponAccuracyDetails_t weaponAccuracy; // replaces spread
 } weaponFireModeStats_t;
@@ -367,12 +357,12 @@ typedef struct weaponVisualFireMode_s
 
 typedef struct weaponVisual_s
 {
-#if defined (_CGAME) || (_UI)
+#if defined (_CGAME) || (IN_UI)
 	char description[512];			// The description of this weapon to display in UI.
 #endif	
 	// Server needs to know the world model for its Ghoul 2 instances.
 	char world_model[MAX_QPATH];	// The model used for 3D rendering.
-#if defined (_CGAME) || (_UI)
+#if defined (_CGAME) || (IN_UI)
 	char view_model[MAX_QPATH];		// The model used when in first person mode.
 	
 	char icon[MAX_QPATH];		    // The icon of this weapon to be used in the HUD.
@@ -458,7 +448,6 @@ typedef struct
 	unsigned char	weaponBaseIndex;		// Base index, determines the type of weapon this is.
 	unsigned char	weaponModIndex;			// Mod index, determines which alternate version of the base weapon this is.
 	unsigned short	weaponReloadTime;		// The time required to reload the weapon (or the time till she blows, for grenades).
-	unsigned char	weaponSlot;				// The slot this weapon uses, i.e. main weapon, secondary weapon or grenade.
 	
 	unsigned char	ammoIndex;				// Ammo index, determines the type of weapon clips used.
 	unsigned int	ammoOnSpawn;			// Ammo given upon spawning with this weapon.

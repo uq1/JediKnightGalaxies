@@ -369,160 +369,14 @@ static void CG_EntityEffects( centity_t *cent ) {
 
 }
 
-localEntity_t *FX_AddOrientedLine(vec3_t start, vec3_t end, vec3_t normal, float stScale, float scale,
-								  float dscale, float startalpha, float endalpha, float killTime, qhandle_t shader)
-{
-	localEntity_t	*le;
-	
-#ifdef _DEBUG
-	if (!shader)
-	{
-		Com_Printf("FX_AddLine: NULL shader\n");
-	}
-#endif
-
-	le = CG_AllocLocalEntity();
-	le->leType = LE_OLINE;
-
-	le->startTime = cg.time;
-	le->endTime = le->startTime + killTime;
-	le->data.line.width = scale;
-	le->data.line.dwidth = dscale;
-
-	le->alpha = startalpha;
-	le->dalpha = endalpha - startalpha;
-
-	le->refEntity.data.line.stscale = stScale;
-	le->refEntity.data.line.width = scale;
-
-	le->refEntity.customShader = shader;
-
-	// set origin
-	VectorCopy ( start, le->refEntity.origin);
-	VectorCopy ( end, le->refEntity.oldorigin );
-
-	AxisClear(le->refEntity.axis);
-	VectorCopy( normal, le->refEntity.axis[0] );
-	RotateAroundDirection( le->refEntity.axis, 0); // le->refEntity.data.sprite.rotation );	This is roll in quad land
-
-	le->refEntity.shaderRGBA[0] = 0xff;
-	le->refEntity.shaderRGBA[1] = 0xff;
-	le->refEntity.shaderRGBA[2] = 0xff;
-	le->refEntity.shaderRGBA[3] = 0xff;
-
-	le->color[0] = 1.0f;
-	le->color[1] = 1.0f;
-	le->color[2] = 1.0f;
-	le->color[3] = 1.0f;
-	le->lifeRate = 1.0f / ( le->endTime - le->startTime );
-
-	return(le);
-}
-
-void FX_DrawPortableShield(centity_t *cent)
-{
-	//rww - this code differs a bit from the draw code in EF, I don't know why I had to do
-	//it this way yet it worked in EF the other way.
-
-	int				xaxis, height, posWidth, negWidth, team;
-	vec3_t			start, end, normal;
-	localEntity_t	*le;
-	qhandle_t		shader;
-	char			buf[1024];
-
-	trap->Cvar_VariableStringBuffer("cl_paused", buf, sizeof(buf));
-
-	if (atoi(buf))
-	{ //rww - fix to keep from rendering repeatedly while HUD menu is up
-		return;
-	}
-
-	if (cent->currentState.eFlags & EF_NODRAW)
-	{
-		return;
-	}
-
-	// decode the data stored in time2
-	xaxis = ((cent->currentState.time2 >> 24) & 1);
-	height = ((cent->currentState.time2 >> 16) & 255);
-	posWidth = ((cent->currentState.time2 >> 8) & 255);
-	negWidth = (cent->currentState.time2 & 255);
-
-	team = (cent->currentState.otherEntityNum2);
-
-	VectorClear(normal);
-
-	VectorCopy(cent->lerpOrigin, start);
-	VectorCopy(cent->lerpOrigin, end);
-
-	if (xaxis) // drawing along x-axis
-	{
-		start[0] -= negWidth;
-		end[0] += posWidth;
-	}
-	else
-	{
-		start[1] -= negWidth;
-		end[1] += posWidth;
-	}
-
-	normal[0] = 1;
-	normal[1] = 1;
-
-	start[2] += height/2;
-	end[2] += height/2;
-
-	if (team == TEAM_RED)
-	{
-		if (cent->currentState.trickedentindex)
-		{
-			shader = trap->R_RegisterShader( "gfx/misc/red_dmgshield" );
-		}
-		else
-		{
-			shader = trap->R_RegisterShader( "gfx/misc/red_portashield" );
-		}
-	}
-	else
-	{
-		if (cent->currentState.trickedentindex)
-		{
-			shader = trap->R_RegisterShader( "gfx/misc/blue_dmgshield" );
-		}
-		else
-		{
-			shader = trap->R_RegisterShader( "gfx/misc/blue_portashield" );
-		}
-	}
-
-	le = FX_AddOrientedLine(start, end, normal, 1.0f, height, 0.0f, 1.0f, 1.0f, 50.0f, shader);
-}
-
 /*
 ==================
 CG_Special
+Not used.
 ==================
 */
 void CG_Special( centity_t *cent ) {
-	entityState_t		*s1;
-
-	s1 = &cent->currentState;
-
-	if (!s1)
-	{
-		return;
-	}
-
-	// if set to invisible, skip
-	if (!s1->modelindex) {
-		return;
-	}
-
-	if (s1->modelindex == HI_SHIELD) 
-	{	// The portable shield should go through a different rendering function.
-		FX_DrawPortableShield(cent);
-		return;
-	}
+	return;
 }
 
 /*
@@ -537,77 +391,6 @@ void CG_SetGhoul2Info( refEntity_t *ent, const centity_t *cent)
 	VectorCopy( cent->modelScale, ent->modelScale);
 	ent->radius = cent->radius;
 	VectorCopy (cent->lerpAngles, ent->angles);
-}
-
-
-
-// create 8 new points on screen around a model so we can see it's bounding box
-void CG_CreateBBRefEnts(entityState_t *s1, vec3_t origin )
-{
-//g2r
-	/*
-#if _DEBUG
-	refEntity_t		point[8];
-	int				i;
-	vec3_t			angles = {0,0,0};
-
-	for (i=0; i<8; i++)
-	{
-		memset (&point[i], 0, sizeof(refEntity_t));
-		point[i].reType = RT_SPRITE;
-		point[i].radius = 1;
-		point[i].customShader = trap->R_RegisterShader("textures/tests/circle");
-		point[i].shaderRGBA[0] = 255;
-		point[i].shaderRGBA[1] = 255;
-		point[i].shaderRGBA[2] = 255;
-		point[i].shaderRGBA[3] = 255;
-
-		AnglesToAxis( angles, point[i].axis );
-
-		// now, we need to put the correct origins into each origin from the mins and max's
-		switch(i)
-		{
-		case 0:
-			VectorCopy(s1->mins, point[i].origin);
-   			break;
-		case 1:
-			VectorCopy(s1->mins, point[i].origin);
-			point[i].origin[0] = s1->maxs[0];
-   			break;
-		case 2:
-			VectorCopy(s1->mins, point[i].origin);
-			point[i].origin[1] = s1->maxs[1];
-   			break;
-		case 3:
-			VectorCopy(s1->mins, point[i].origin);
-			point[i].origin[0] = s1->maxs[0];
-			point[i].origin[1] = s1->maxs[1];
-   			break;
-		case 4:
-			VectorCopy(s1->maxs, point[i].origin);
-   			break;
-		case 5:
-			VectorCopy(s1->maxs, point[i].origin);
-			point[i].origin[0] = s1->mins[0];
-   			break;
-		case 6:
-			VectorCopy(s1->maxs, point[i].origin);
-			point[i].origin[1] = s1->mins[1];
-   			break;
-		case 7:
-			VectorCopy(s1->maxs, point[i].origin);
-			point[i].origin[0] = s1->mins[0];
-			point[i].origin[1] = s1->mins[1];
-   			break;
-		}
-
-		// add the original origin to each point and then stuff them out there
-		VectorAdd(point[i].origin, origin, point[i].origin);
-
-		trap->R_AddRefEntityToScene (&point[i]);
-	}
-#endif
-	*/
 }
 
 // write in the axis and stuff
@@ -1203,6 +986,16 @@ static void CG_General( centity_t *cent ) {
 					trap->G2API_SetBoneAngles(clEnt->ghoul2, 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
 					trap->G2API_SetBoneAngles(clEnt->ghoul2, 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
 					trap->G2API_SetBoneAngles(clEnt->ghoul2, 0, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
+					for (int i = 0; i < MAX_ARMOR; i++) {
+						if (clEnt->currentState.armor[i]) {
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "model_root", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "pelvis", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "thoracic", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
+							trap->G2API_SetBoneAngles(clEnt->ghoul2, 4 + i, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
+						}
+					}
 				}
 				else
 				{
@@ -1213,36 +1006,6 @@ static void CG_General( centity_t *cent ) {
 				}
 
 				trap->G2API_DuplicateGhoul2Instance(clEnt->ghoul2, &cent->ghoul2);
-			}
-
-			//eezstreet add: armor rendering
-			for(i = 0; i < ARMSLOT_MAX; i++)
-			{
-				if(!clEnt->armorGhoul2[i] || !trap->G2_HaveWeGhoul2Models(clEnt->armorGhoul2[i]))
-				{
-					continue;
-				}
-				if (clEnt->localAnimIndex < NUM_RESERVED_ANIMSETS)
-				{ //humanoid
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "model_root", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "pelvis", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time); 
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "thoracic", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time); 
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
-				}
-				else
-				{
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "model_root", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "pelvis", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time); 
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-					trap->G2API_SetBoneAngles(clEnt->armorGhoul2[i], 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-				}
-
-				if(clEnt && clEnt->armorGhoul2[i])
-				{
-					trap->G2API_DuplicateGhoul2Instance(clEnt->armorGhoul2[i], &cent->armorGhoul2[i]);
-				}
 			}
 
 			if (!cent->ghoul2)
@@ -1295,24 +1058,9 @@ static void CG_General( centity_t *cent ) {
 				}
 			}
 
-			clEnt->torsoBolt |= limbBit; //reinit model after copying limbless one to queue
-			//This causes issues after respawning.. just keep track of limbs cut/made on server or something.
-			/*
-			if (cent->currentState.modelGhoul2 == G2_MODELPART_WAIST)
-			{
-				clEnt->torsoBolt |= (1 << (G2_MODELPART_HEAD-10));
-				clEnt->torsoBolt |= (1 << (G2_MODELPART_RARM-10));
-				clEnt->torsoBolt |= (1 << (G2_MODELPART_LARM-10));
-				clEnt->torsoBolt |= (1 << (G2_MODELPART_RHAND-10));
-			}
-			else if (cent->currentState.modelGhoul2 == G2_MODELPART_RARM)
-			{
-				clEnt->torsoBolt |= (1 << (G2_MODELPART_RHAND-10));
-			}
-			*/
+			clEnt->torsoBolt |= limbBit;
 
 			VectorCopy(cent->lerpOrigin, cent->turAngles);
-		//	return;
 		}
 
 		//Use origin smoothing since dismembered limbs use ExPhys
@@ -1476,18 +1224,13 @@ Ghoul2 Insert End
 			trap->G2API_SetBoneAngles(cent->ghoul2, 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
 			trap->G2API_SetBoneAngles(cent->ghoul2, 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
 			trap->G2API_SetBoneAngles(cent->ghoul2, 0, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
-		}
-		for(i = 0; i < ARMSLOT_MAX; i++)
-		{
-			if(cent->armorGhoul2[i] && trap->G2_HaveWeGhoul2Models(cent->armorGhoul2[i]))
-			{
-				cent->lerpAngles[PITCH] = 0;
-				cent->lerpAngles[ROLL] = 0;
-				trap->G2API_SetBoneAngles(cent->armorGhoul2[i], 0, "pelvis", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time); 
-				trap->G2API_SetBoneAngles(cent->armorGhoul2[i], 0, "thoracic", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time); 
-				trap->G2API_SetBoneAngles(cent->armorGhoul2[i], 0, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-				trap->G2API_SetBoneAngles(cent->armorGhoul2[i], 0, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
-				trap->G2API_SetBoneAngles(cent->armorGhoul2[i], 0, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
+
+			for (i = 0; i < MAX_ARMOR; i++) {
+				trap->G2API_SetBoneAngles(cent->ghoul2, 4+i, "pelvis", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
+				trap->G2API_SetBoneAngles(cent->ghoul2, 4+i, "thoracic", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
+				trap->G2API_SetBoneAngles(cent->ghoul2, 4+i, "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
+				trap->G2API_SetBoneAngles(cent->ghoul2, 4+i, "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 100, cg.time);
+				trap->G2API_SetBoneAngles(cent->ghoul2, 4+i, "cranium", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_Z, NEGATIVE_Y, POSITIVE_X, cgs.gameModels, 100, cg.time);
 			}
 		}
 	}
@@ -1899,17 +1642,6 @@ Ghoul2 Insert End
 			}
 		}
 	}
-/*
-Ghoul2 Insert Start
-*/
-
-	if (debugBB.integer)
-	{
-		CG_CreateBBRefEnts(s1, cent->lerpOrigin);
-	}
-/*
-Ghoul2 Insert End
-*/
 }
 
 /*
@@ -2045,21 +1777,6 @@ Ghoul2 Insert End
 	}
 	else
 	{
-		if (item->giType == IT_HOLDABLE)
-		{
-			if (item->giTag == HI_SEEKER)
-			{
-				cent->lerpOrigin[2] += 5;
-			}
-			if (item->giTag == HI_SHIELD)
-			{
-				cent->lerpOrigin[2] += 2;
-			}
-			if (item->giTag == HI_BINOCULARS)
-			{
-				cent->lerpOrigin[2] += 2;
-			}
-		}
 		if (item->giType == IT_HEALTH)
 		{
 			cent->lerpOrigin[2] += 2;

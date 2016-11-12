@@ -28,11 +28,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 // GLua include
 #include "../GLua/glua.h"
-#include "jkg_admin.h"
 #include "jkg_bans.h"
 #include "jkg_damagetypes.h"
 #include "jkg_utilityfunc.h"
-#include "jkg_easy_items.h"
 #include "qcommon/game_version.h"
 
 extern wpobject_t *gWPArray[MAX_WPARRAY_SIZE];
@@ -41,27 +39,6 @@ extern int gWPNum;
 // Warzone...
 extern void Calculate_Warzone_Flag_Spawns ( void );
 extern gentity_t *SelectWarzoneSpawnpoint ( gentity_t *ent );
-
-
-static const char	*NET_AdrToString (netadr_t a)
-{
-	static	char	s[64];
-
-	if (a.type == NA_LOOPBACK) {
-		Com_sprintf (s, sizeof(s), "loopback");
-	} else if (a.type == NA_BOT) {
-		Com_sprintf (s, sizeof(s), "bot");
-	} else if (a.type == NA_IP) {
-		Com_sprintf (s, sizeof(s), "%i.%i.%i.%i:%hu",
-			a.ip[0], a.ip[1], a.ip[2], a.ip[3], BigShort(a.port));
-	} else {
-		Com_sprintf (s, sizeof(s), "%02x%02x%02x%02x.%02x%02x%02x%02x%02x%02x:%hu",
-		a.ipx[0], a.ipx[1], a.ipx[2], a.ipx[3], a.ipx[4], a.ipx[5], a.ipx[6], a.ipx[7], a.ipx[8], a.ipx[9],
-		BigShort(a.port));
-	}
-
-	return s;
-}
 
 // g_client.c -- client functions that don't happen every frame
 
@@ -767,14 +744,6 @@ BODYQUE
 =======================================================================
 */
 
-/*
-=======================================================================
-
-BODYQUE
-
-=======================================================================
-*/
-
 #define BODY_SINK_TIME		30000//45000
 
 /*
@@ -903,9 +872,7 @@ static qboolean CopyToBodyQue( gentity_t *ent ) {
 		islight = 1;
 	}
 
-#ifndef __MMO__
 	trap->SendServerCommand(-1, va("ircg %i %i %i %i %i", ent->s.number, body->s.number, body->s.weapon, body->s.weaponVariation, islight));
-#endif //__MMO__
 
 	body->r.svFlags = ent->r.svFlags | SVF_BROADCAST;
 	VectorCopy (ent->r.mins, body->r.mins);
@@ -1008,11 +975,30 @@ void JKG_PermaSpectate(gentity_t *ent)
 		ent->client->ps.weapon = WP_NONE;
 		ent->client->ps.weaponVariation = 0;
 		ent->client->ps.stats[STAT_WEAPONS] = 0;
-		ent->client->ps.stats[STAT_HOLDABLE_ITEMS] = 0;
-		ent->client->ps.stats[STAT_HOLDABLE_ITEM] = 0;
 		ent->takedamage = qfalse;
 		//trap->LinkEntity(ent);
 	}
+}
+
+qboolean JKG_ClientAlive(gentity_t* ent)
+{
+	if (ent->client->sess.sessionTeam == TEAM_SPECTATOR) {
+		return qfalse;
+	}
+
+	if (ent->client->tempSpectate > level.time) {
+		return qfalse;
+	}
+
+	if (ent->health <= 0 || ent->client->ps.stats[STAT_HEALTH] <= 0) {
+		return qfalse;
+	}
+
+	if (ent->client->deathcamTime && level.time > ent->client->deathcamTime) {
+		return qfalse;
+	}
+
+	return qtrue;
 }
 
 /*
@@ -1160,8 +1146,8 @@ static void ClientCleanName( const char *in, char *out, int outSize ) {
 		}
 
 		//[FixMultilineNames]
-		if (ch == '\n') {
-			continue; // No multiline names
+		if ((unsigned char)ch < ' ') {
+			continue; // No control char names
 		}
 
 		// check colors
@@ -1867,15 +1853,23 @@ char *G_ValidateUserinfo( const char *userinfo )
 }
 
 qboolean ClientUserinfoChanged( int clientNum ) {
-	gentity_t	*ent = g_entities + clientNum;
-	gclient_t	*client = ent->client;
-	int			teamLeader, team=TEAM_FREE, health=100, maxHealth=100;
-	char		*s=NULL,						*value=NULL,
-				userinfo[MAX_INFO_STRING]={0},	buf[MAX_INFO_STRING]={0},		oldClientinfo[MAX_INFO_STRING]={0},
-				model[MAX_QPATH]={0},			forcePowers[MAX_QPATH]={0},		oldname[MAX_NETNAME]={0},
-				className[MAX_QPATH]={0},		c1[MAX_INFO_STRING]={0},		c2[MAX_INFO_STRING]={0},
-				sex[MAX_INFO_STRING]={0};
-	qboolean	modelChanged = qfalse, female = qfalse;
+	gentity_t *ent = g_entities + clientNum;
+	gclient_t *client = ent->client;
+	int	teamLeader;
+	int team = TEAM_FREE;
+	int health = 100;
+	int maxHealth = 100;
+	char *s = NULL;
+	char *value = NULL;
+	char userinfo[MAX_INFO_STRING] = {0};
+	char oldClientinfo[MAX_INFO_STRING] = {0};
+	char model[MAX_QPATH] = {0};
+	char forcePowers[MAX_QPATH] = {0};
+	char oldname[MAX_NETNAME] = {0};
+	char c1[MAX_INFO_STRING] = {0};
+	char c2[MAX_INFO_STRING] = {0};
+	char sex[MAX_INFO_STRING] = {0};
+	qboolean modelChanged = qfalse;
 
 	trap->GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 
@@ -1991,17 +1985,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	//Testing to see if this fixes the problem with a bot's team getting set incorrectly.
 	team = client->sess.sessionTeam;
 
-	// set max health
-	{
-		char *test = strchr(jkg_startingStats.string, '/');
-		char test2[16];
-		int len = test - jkg_startingStats.string;
-
-		strncpy(test2, jkg_startingStats.string, len);
-		test2[len] = '\0';
-
-		maxHealth = atoi(test2);
-	}
 	health = maxHealth; //atoi( Info_ValueForKey( userinfo, "handicap" ) );
 	client->pers.maxHealth = health;
 	// When the hell would the below ever be valid? NEVER --eez
@@ -2011,8 +1994,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
 
 	if (level.gametype >= GT_TEAM) {
-		client->pers.teamInfo = qtrue;
-	} else {
 		s = Info_ValueForKey( userinfo, "teamoverlay" );
 		if ( ! *s || atoi( s ) != 0 ) {
 			client->pers.teamInfo = qtrue;
@@ -2032,41 +2013,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 
 	Q_strncpyz( sex, Info_ValueForKey( userinfo, "sex"), sizeof( sex ) );
 
-//	strcpy(redTeam, Info_ValueForKey( userinfo, "g_redteam" ));
-//	strcpy(blueTeam, Info_ValueForKey( userinfo, "g_blueteam" ));
-
-#ifdef __MMO__
-	// UQ1: MY GOD! THE DIFFERENCE IN SPEED!!!!!!
-	// eez: Fixed, the define was backwards
-	// UQ1: Actually it was correct. This version sends less data for MMO mode. Some of the missing data is still needed in phase 1.
-
-	// send over a subset of the userinfo keys so other clients can
-	// print scoreboards, display models, and play custom sounds
-	buf[0] = '\0';
-	Q_strcat( buf, sizeof( buf ), va( "n\\%s\\", client->pers.netname ) );
-	Q_strcat( buf, sizeof( buf ), va( "t\\%i\\", client->sess.sessionTeam ) );
-	Q_strcat( buf, sizeof( buf ), va( "model\\%s\\", model ) );
-	Q_strcat( buf, sizeof( buf ), va( "ds\\%c\\", female ? 'f' : 'm' ) );
-	Q_strcat( buf, sizeof( buf ), va( "st\\%s\\", client->pers.saber1 ) );
-	Q_strcat( buf, sizeof( buf ), va( "st2\\%s\\", client->pers.saber2 ) );
-	Q_strcat( buf, sizeof( buf ), va( "c1\\%s\\", c1 ) );
-	Q_strcat( buf, sizeof( buf ), va( "c2\\%s\\", c2 ) );
-	Q_strcat( buf, sizeof( buf ), va( "hc\\%i\\", client->pers.maxHealth ) );
-	if ( ent->r.svFlags & SVF_BOT )
-		Q_strcat( buf, sizeof( buf ), va( "skill\\%s\\", Info_ValueForKey( userinfo, "skill" ) ) );
-	if ( level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL ) {
-		Q_strcat( buf, sizeof( buf ), va( "w\\%i\\", client->sess.wins ) );
-		Q_strcat( buf, sizeof( buf ), va( "l\\%i\\", client->sess.losses ) );
-	}
-	if ( level.gametype == GT_POWERDUEL )
-		Q_strcat( buf, sizeof( buf ), va( "dt\\%i\\", client->sess.duelTeam ) );
-	if ( level.gametype >= GT_TEAM ) {
-	//	Q_strcat( buf, sizeof( buf ), va( "tt\\%d\\", teamTask ) );
-		Q_strcat( buf, sizeof( buf ), va( "tl\\%d\\", teamLeader ) );
-	}
-	trap->GetConfigstring( CS_PLAYERS+clientNum, oldClientinfo, sizeof( oldClientinfo ) );
-	trap->SetConfigstring( CS_PLAYERS+clientNum, buf );
-#else //!__MMO__
 	// send over a subset of the userinfo keys so other clients can
 	// print scoreboards, display models, and play custom sounds
 	s = va("n\\%s\\t\\%i\\model\\%s\\w\\%i\\l\\%i\\dt\\%i\\sex\\%s",
@@ -2074,7 +2020,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 		client->sess.wins, client->sess.losses, client->sess.duelTeam, sex);
 	trap->GetConfigstring( CS_PLAYERS+clientNum, oldClientinfo, sizeof( oldClientinfo ) );
 	trap->SetConfigstring( CS_PLAYERS+clientNum, s );
-#endif //__MMO__
 
 	if ( modelChanged ) //only going to be true for allowable server-side custom skeleton cases
 	{ //update the server g2 instance if appropriate
@@ -2187,10 +2132,11 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	}
 
 	value = Info_ValueForKey (userinfo, "clver");
-	
+#ifndef _DEBUG
 	if ( !isBot && Q_stricmp(value, JKG_VERSION)) {
 		return "Please update your client-side.";
 	}
+#endif
 
 	if ( !isBot && g_needpass.integer ) {
 		// check for a password
@@ -2263,9 +2209,9 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	ent->UsesELS = 1;
 	// read or initialize the session data
 	if ( firstTime || level.newSession ) {
-		G_InitSessionData( client, userinfo, isBot );
+		G_InitClientSessionData( client, userinfo, isBot );
 	}
-	G_ReadSessionData( client );
+	G_ReadClientSessionData( client );
 
 	if (!isBot && firstTime) {
 		client->sess.validated = 0;
@@ -2275,9 +2221,6 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 		client->sess.validated = 1;
 		client->sess.noq3fill = 1;
 	}
-
-	// FIXME: Need to replace this
-	//Q_strncpyz(client->sess.IP, NET_AdrToString(svs->clients[clientNum].netchan.remoteAddress), sizeof(client->sess.IP));
 
 	if( isBot ) {
 		ent->r.svFlags |= SVF_BOT;
@@ -2329,8 +2272,6 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	return NULL;
 }
 
-void G_WriteClientSessionData( gclient_t *client );
-
 /*
 ===========
 ClientBegin
@@ -2358,12 +2299,6 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	// clear our inventory on ClientBegin because I forgot that this was a thing
 	trap->SendServerCommand(clientNum, "pInv clr");
 	ent->client->ps.credits = 0;
-
-	// eezstreet edit: set our item data
-	// TODO: fix this broken mess
-	memset(&ent->client->coreStats, 0, sizeof(ent->client->coreStats));
-	ent->client->coreStats.weight = MAX_INVENTORY_WEIGHT;
-	//eezstreet end
 	if ((ent->r.svFlags & SVF_BOT) && g_gametype.integer >= GT_TEAM)
 	{
 		if (allowTeamReset)
@@ -2396,7 +2331,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 			ent->client->ps.persistant[ PERS_TEAM ] = ent->client->sess.sessionTeam;
 
 			preSess = ent->client->sess.sessionTeam;
-			G_ReadSessionData( ent->client );
+			G_ReadClientSessionData( ent->client );
 			ent->client->sess.sessionTeam = (team_t)preSess;
 			G_WriteClientSessionData(ent->client);
 			if ( !ClientUserinfoChanged( clientNum ) )
@@ -2433,10 +2368,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	ent->pain = 0;
 	ent->client = client;
 
-	// give the client a bit of initial mem to set up their damage history
-	// We realloc because the player might be changing teams.
-	ent->assistData.hitRecords = static_cast<entityHitRecord_t *>(realloc( ent->assistData.hitRecords, sizeof( entityHitRecord_t ) ));
-	ent->assistData.memAllocated = 1;
+	ent->assists->clear();
 
 	//assign the pointer for bg entity access
 	ent->playerState = &ent->client->ps;
@@ -2505,7 +2437,8 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	// Give this player Operator rights if he's 127.0.0.1
 	if (!Q_strncmp(client->sess.IP, "127.0.0.1:",10)) {
 		// He's localhost, give operator rights
-		client->sess.adminRank = ADMRANK_OPERATOR;
+		//client->sess.adminRank = ADMRANK_OPERATOR;
+		;	//temporary fix, do nothing since this defaults host to a cheating bastard --Futuza
 	}
 
 	if (g_gametype.integer == GT_POWERDUEL && client->sess.sessionTeam != TEAM_SPECTATOR &&
@@ -2538,7 +2471,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	G_ClearClientLog(clientNum);
 }
 
-static qboolean AllForceDisabled(int force)
+/*static qboolean AllForceDisabled(int force)
 {
 	int i;
 
@@ -2556,7 +2489,7 @@ static qboolean AllForceDisabled(int force)
 	}
 
 	return qfalse;
-}
+}*/
 
 //Convenient interface to set all my limb breakage stuff up -rww
 void G_BreakArm(gentity_t *ent, int arm)
@@ -2616,7 +2549,6 @@ void G_BreakArm(gentity_t *ent, int arm)
 
 //Update the ghoul2 instance anims based on the playerstate values
 qboolean BG_SaberStanceAnim( int anim );
-qboolean PM_RunningAnim( int anim );
 void G_UpdateClientAnims(gentity_t *self, float animSpeedScale)
 {
 	static int f;
@@ -2920,7 +2852,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	char				*value;
 	char				*saber;
 	qboolean			changedSaber = qfalse;
-	qboolean			inSiegeWithClass = qfalse;
 	int                 savedWeaponId = 0;
 	int					topAmmoValues[JKG_MAX_AMMO_INDICES];
 	qboolean			haveItem = qfalse;
@@ -2933,19 +2864,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	/* This player deserves an update, since he just joined a new team */
 	ent->client->pers.partyUpdate = qtrue;
 
-	// testing testing testing --eez
-	//ent->x.testInt = Q_irand(100,200);
-
-	/*for ( i = 0 ; i < MAX_WEAPONS ; i++ ) {
-		ent->client->ps.ammo[i] = 999;
-	}*/
-
 	//first we want the userinfo so we can see if we should update this client's saber -rww
-	/*if (level.clients[ent->s.clientNum].deathcamTime) {
-		level.clients[ent->s.clientNum].deathcamTime = 0;
-		if (!(ent->r.svFlags & SVF_BOT))
-			trap->SendServerCommand(ent->s.clientNum, "dcr");
-	}*/
 	trap->GetUserinfo( index, userinfo, sizeof(userinfo) );
 	while (l < MAX_SABERS)
 	{
@@ -3302,16 +3221,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	}
 	// clear entity values
 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
-	{
-		char *test = strchr(jkg_startingStats.string, '/');
-		char test2[16];
-		int len = test - jkg_startingStats.string;
 
-		strncpy(test2, jkg_startingStats.string, len);
-		test2[len] = '\0';
-
-		client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth = atoi(test2);
-	}
 	client->ps.eFlags = flags;
 	client->mGameFlags = gameFlags;
 
@@ -3339,11 +3249,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	
     client->ps.weapon = 0;
     client->ps.weaponId = BG_GetWeaponIndexFromClass (client->ps.weapon, 0);
-
-	/*
-	client->ps.stats[STAT_HOLDABLE_ITEMS] |= ( 1 << HI_BINOCULARS );
-	client->ps.stats[STAT_HOLDABLE_ITEM] = BG_GetItemIndexByTag(HI_BINOCULARS, IT_HOLDABLE);
-	*/
 	
 	// MOAR OVERRIDING OF WEAPONS.
 	if ( respawn )
@@ -3361,46 +3266,37 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
         client->ps.weaponVariation = variation;
 	}
 
-	client->ps.stats[STAT_HOLDABLE_ITEMS] = 0;
-	client->ps.stats[STAT_HOLDABLE_ITEM] = 0;
-
 	if ( client->sess.sessionTeam == TEAM_SPECTATOR )
 	{
 		client->ps.stats[STAT_WEAPONS] = 0;
-		client->ps.stats[STAT_HOLDABLE_ITEMS] = 0;
-		client->ps.stats[STAT_HOLDABLE_ITEM] = 0;
 	}
 	else
 	{
-		if (level.startingWeapon)
+		if (level.startingWeapon[0])
 		{
-			weaponData_t *weapon;
-			weapon = BG_GetWeaponByClassName (level.startingWeapon);
+			const weaponData_t *weapon = BG_GetWeaponByClassName (level.startingWeapon);
 			if(weapon)
 			{
-				int itemID;
 				//FIXME: The below assumes that there is a valid weapon item
-				itemID = JKG_GetItemByWeaponIndex(BG_GetWeaponIndex((unsigned int)weapon->weaponBaseIndex, (unsigned int)weapon->weaponModIndex))->itemID;
+				int itemID = BG_GetItemByWeaponIndex(BG_GetWeaponIndex((unsigned int)weapon->weaponBaseIndex, (unsigned int)weapon->weaponModIndex))->itemID;
 
-				//while ( i < MAX_INVENTORY_ITEMS && cmdent->inventory[i].id )
-				for(i = 0; i < ent->inventory->elements; i++)
-				{
-					if(ent->inventory->items[i].id)
-					{
-						if(ent->inventory->items[i].id->itemID == itemID)
-						{
-							haveItem = qtrue;	// FIXME: remove this nonsense
+				for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+					if (it->id) {
+						if (it->id->itemID == itemID) {
+							haveItem = qtrue;
 							break;
 						}
 					}
 				}
-				if(!haveItem && ent->inventory->elements < 1)
+
+				if(!haveItem && ent->inventory->size() < 1)
 				{
 					// Don't have any sort of item in our inventory
 					if(ent->client->ps.credits < jkg_startingCredits.integer)
 					{
+						itemInstance_t item = BG_ItemInstance(itemID, 1);
 						ent->client->ps.credits = jkg_startingCredits.integer;
-						JKG_A_GiveEntItemForcedToACI(itemID, IQUAL_NORMAL, ent->inventory, ent->client, 0);
+						BG_GiveItem(ent, item, true);
 					}
 				}
 			}
@@ -3446,24 +3342,8 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	// health will count down towards max_health
 	ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
 
-	client->ps.stats[STAT_MAX_ARMOR] = 100; // Default armor max
-	// Start with a small amount of armor as well.
-	if ( level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL )
-	{//no armor in duel
-		client->ps.stats[STAT_ARMOR] = 0;
-	}
-	else
-	{
-		char *test = strchr(jkg_startingStats.string, '/');
-		char test2[16];
-		int len;
-		test++;
-		len = strlen(jkg_startingStats.string)-(test-jkg_startingStats.string);
-
-		strncpy(test2, test, len);
-		test2[len] = '\0';
-		client->ps.stats[STAT_ARMOR] = client->ps.stats[STAT_MAX_ARMOR] * (float)(atoi(test2)/100.0f);
-	}
+	client->ps.stats[STAT_MAX_SHIELD] = 100; // Default armor max
+	client->ps.stats[STAT_SHIELD] = 0;
 
 	G_SetOrigin( ent, spawn_origin );
 	VectorCopy( spawn_origin, client->ps.origin );
@@ -3596,37 +3476,26 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 		ent->client->invulnerableTimer = level.time + g_spawnInvulnerability.integer;
 	}
 
-//#ifndef __MMO__
 	// UQ1: Again, use an event :)
 	if (!(ent->r.svFlags & SVF_BOT))
 		trap->SendServerCommand(ent->s.number, "dcr");
-//#endif //__MMO__
 
 	// Loop through the items in our inventory to determine ammo count
 	memset(topAmmoValues, 0, sizeof(topAmmoValues));
-	for ( i = 0; i < ent->inventory->elements; i++ )
-	{
-		if(ent->inventory->items[i].id)
-		{
-			if(ent->inventory->items[i].id->itemType == ITEM_WEAPON)
-			{
-				itemInstance_t item = ent->inventory->items[i];
-				weaponData_t *wepData = GetWeaponData(item.id->weapon, item.id->variation);
-
-				if(wepData->ammoIndex > JKG_MAX_AMMO_INDICES)
-				{
-					continue;
-				}
-				if(topAmmoValues[wepData->ammoIndex] < wepData->ammoOnSpawn)
-				{
-					topAmmoValues[wepData->ammoIndex] = wepData->ammoOnSpawn;
-				}
+	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+		if (it->id && it->id->itemType == ITEM_WEAPON) {
+			weaponData_t* wepData = GetWeaponData(it->id->weaponData.weapon, it->id->weaponData.variation);
+			if (wepData->ammoIndex > JKG_MAX_AMMO_INDICES) {
+				continue;
+			}
+			if (topAmmoValues[wepData->ammoIndex] < wepData->ammoOnSpawn) {
+				topAmmoValues[wepData->ammoIndex] = wepData->ammoOnSpawn;
 			}
 		}
 	}
 	// FIXME: copy to proper ammo array in ent->client
 	memcpy(ent->client->ammoTable, topAmmoValues, sizeof(ent->client->ammoTable));	//Copy the top values to our ammo info
-	ent->client->ps.ammo = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation)->ammoOnSpawn;
+	ent->client->ps.stats[STAT_TOTALAMMO] = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation)->ammoOnSpawn;
 
 	for ( i = 0; i <= 255; i++ )
 	{
@@ -3636,6 +3505,19 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 			break;
 		}
 		ent->client->clipammo[i] = GetWeaponAmmoClip (weapBase, weapVar);
+	}
+
+	// Check for shield equipping
+	if (ent->inventory) {
+		for (i = 0; i < ent->inventory->size(); i++) {
+			auto it = ent->inventory->begin() + i;
+			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
+				JKG_ShieldEquipped(ent, i, qfalse);
+			}
+			else if (it->equipped && it->id->itemType == ITEM_JETPACK) {
+				JKG_JetpackEquipped(ent, i);
+			}
+		}
 	}
 
 	GLua_Hook_PlayerSpawned(ent->s.number);
@@ -3652,11 +3534,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	trap->ICARUS_InitEnt( (sharedEntity_t *)ent );
 
 	// set their weapon
-#ifndef __MMO__
 	trap->SendServerCommand(client->ps.clientNum, "aciset 1");
-#else __MMO__
-	G_AddEvent(ent, EV_GOTO_ACI, 1);
-#endif //__MMO__
 
 	// send important shop data to them ~eez
 	
@@ -3729,7 +3607,6 @@ call trap->DropClient(), which will call this and do
 server system housekeeping.
 ============
 */
-extern void JKG_Easy_DIMA_CleanEntity(int entNum);
 void ClientDisconnect( int clientNum ) {
 	gentity_t	*ent;
 	gentity_t	*tent;
@@ -3746,13 +3623,8 @@ void ClientDisconnect( int clientNum ) {
 		return;
 	}
 
-	JKG_Easy_DIMA_FreeInventory( &ent->inventory );
-	if( ent->assistData.memAllocated > 0 && ent->assistData.hitRecords )
-	{
-		free( ent->assistData.hitRecords );
-		ent->assistData.memAllocated = 0;
-		ent->assistData.numRecords = 0;
-	}
+	ent->inventory->clear();
+	ent->assists->clear();
 
 	GLua_Hook_PlayerDisconnect(clientNum);
 

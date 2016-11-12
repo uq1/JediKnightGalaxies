@@ -1,0 +1,9 @@
+{
+	"name":             "Stormtrooper Gloves",
+	"internal":             "gloves_stormtrooper",
+	"itemtype":             "armor",
+	"armor":		"stgloves",
+	"weight":		"2",
+	"cost":			"0",
+	"itemIcon":		"gfx/item_icons/stormtrooper_helmet.tga"
+}

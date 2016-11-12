@@ -7,7 +7,6 @@
 /////////////////////////////////
 
 #include "cg_local.h"
-#include "jkg_eshader.h"
 
 static void DissectNumber(int number, int *hundreds, int *tens, int *ones) {
 	int h, t, o;
@@ -52,7 +51,7 @@ void JKG_WeaponIndicators_Update(const centity_t *cent, const playerState_t *ps)
 		}
 		else
 		{
-			ammo = ps->ammo;
+			ammo = ps->stats[STAT_TOTALAMMO];
 		}
 
 	} else {

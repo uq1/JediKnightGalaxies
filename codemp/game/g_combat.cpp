@@ -483,7 +483,7 @@ void AddScore( gentity_t *ent, vec3_t origin, int score )
 	}
 
 	ent->client->ps.persistant[PERS_SCORE] += score;
-	if ( level.gametype >= GT_TEAM && !g_dontPenalizeTeam )
+	if ( level.gametype >= GT_TEAM && level.gametype != GT_CTF && !g_dontPenalizeTeam )
 		level.teamScores[ ent->client->ps.persistant[PERS_TEAM] ] += score;
 	CalculateRanks();
 }
@@ -515,7 +515,7 @@ void TossClientWeapon(gentity_t *self, vec3_t direction, float speed)
 
 	// find the item type for this weapon
 	item		= BG_FindItemForWeapon( (weapon_t)weapon );
-	ammoSub		= (self->client->ps.ammo - bg_itemlist[BG_GetItemIndexByTag(weapon, IT_WEAPON)].quantity);
+	ammoSub = (self->client->ps.stats[STAT_TOTALAMMO] - bg_itemlist[BG_GetItemIndexByTag(weapon, IT_WEAPON)].quantity);
 
 	if (ammoSub < 0)
 	{
@@ -538,15 +538,15 @@ void TossClientWeapon(gentity_t *self, vec3_t direction, float speed)
 	launched->s.powerups = level.time + 1500;
 
 	launched->count = bg_itemlist[BG_GetItemIndexByTag(weapon, IT_WEAPON)].quantity;
-	self->client->ps.ammo -= bg_itemlist[BG_GetItemIndexByTag(weapon, IT_WEAPON)].quantity;
+	self->client->ps.stats[STAT_TOTALAMMO] -= bg_itemlist[BG_GetItemIndexByTag(weapon, IT_WEAPON)].quantity;
 
-	if (self->client->ps.ammo < 0)
+	if (self->client->ps.stats[STAT_TOTALAMMO] < 0)
 	{
-		launched->count -= (-self->client->ps.ammo);
-		self->client->ps.ammo = 0;
+		launched->count -= (-self->client->ps.stats[STAT_TOTALAMMO]);
+		self->client->ps.stats[STAT_TOTALAMMO] = 0;
 	}
 
-	if ((self->client->ps.ammo < 1 && weapon != WP_DET_PACK) ||
+	if ((self->client->ps.stats[STAT_TOTALAMMO] < 1 && weapon != WP_DET_PACK) ||
 		(weapon != WP_THERMAL && weapon != WP_DET_PACK && weapon != WP_TRIP_MINE))
 	{
 		int i = 0;
@@ -710,10 +710,9 @@ body_die
 ==================
 */
 //eezstreet add: body use function
-extern void JKG_PickItemsClean( gentity_t *ent, lootTable_t *loot );
-extern lootTable_t lootLookupTable[MAX_LOOT_TABLE_SIZE];
 static void LootBodyProper( gentity_t *self, gentity_t *other, gentity_t *activator){
-	int i;
+	return;
+	/*int i;
 	char str[900];
 	if(!activator->client)
 		return;
@@ -745,7 +744,7 @@ static void LootBodyProper( gentity_t *self, gentity_t *other, gentity_t *activa
 	
 	#ifdef _DEBUG
 	Com_Printf(str);
-	#endif
+	#endif*/
 }
 void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath ) {
 	// NOTENOTE No gibbing right now, this is star wars.
@@ -2144,6 +2143,46 @@ void G_AddPowerDuelLoserScore(int team, int score)
 
 /*
 ==================
+JKG_CanAwardAssist
+
+Checks if an individual hit record can award an assist.
+==================
+*/
+qboolean JKG_CanAwardAssist(gentity_t* deadEnt, gentity_t* killer, entityHitRecord_t hitRecord) {
+	if (hitRecord.entWhoHit == nullptr || deadEnt == nullptr || killer == nullptr) {
+		return qfalse;
+	}
+
+	// Non-players can't be awarded assists
+	if (hitRecord.entWhoHit - g_entities >= MAX_CLIENTS) {
+		return qfalse;
+	}
+
+	// Not allowed an assist when we are on the same team...
+	if (OnSameTeam(deadEnt, hitRecord.entWhoHit)) {
+		return qfalse;
+	}
+
+	// ...or are ourself
+	if (deadEnt == hitRecord.entWhoHit) {
+		return qfalse;
+	}
+
+	// Also don't give us an assist if we haven't actually "assisted"
+	if (hitRecord.timeHit + ASSIST_LAST_TIME < level.time) {
+		return qfalse;
+	}
+
+	// Don't give us an assist if we were the killer!
+	if (killer == hitRecord.entWhoHit) {
+		return qfalse;
+	}
+
+	return qtrue;
+}
+
+/*
+==================
 player_die
 ==================
 */
@@ -2171,7 +2210,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	int			i;
 	char		*killerName, *obit;
 	int			sPMType = 0;
-	char		buf[512] = {0};
 
 	if ( self->client->ps.pm_type == PM_DEAD ) {
 		return;
@@ -2316,7 +2354,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->client->pmnomove = qfalse;
 
 	// K, let's see if we can raise the killstreak on the attacker
-#ifndef __MMO__
 	if(jkg_bounty.integer)
 	{
 		if( attacker != self && attacker->client && !OnSameTeam(attacker, self) )
@@ -2324,15 +2361,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				attacker->client->numKillsThisLife++;
 			}
 	}
-#endif
 
 	// JKG: Give credits for each kill
-	if(attacker->s.number < MAX_CLIENTS && (self->s.number < MAX_CLIENTS || self->s.eType == ET_NPC))
+	if(attacker->s.number < MAX_CLIENTS && ( self->s.number < MAX_CLIENTS || self->s.eType == ET_NPC))
 	{
 		// TODO: Divide equally amongst party (once new party interface is done)
 		if(!OnSameTeam(attacker, self) && attacker != self)
 		{
-#ifndef __MMO__
 			int credits = jkg_creditsPerKill.integer;
 			int bounty = (self->client->numKillsThisLife >= 3) ? self->client->numKillsThisLife*jkg_bounty.integer : 0;
 			attacker->client->ps.credits += (credits + bounty);
@@ -2344,12 +2379,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			{
 				trap->SendServerCommand(attacker-g_entities, va("notify 1 \"Kill: +%i Credits\"", credits));
 			}
-#else //!__MMO__
-			G_AddEvent(attacker, EV_HITMARKER_KILL, jkg_creditsPerKill.integer);
-#endif //__MMO__
 		}
 	}
-#ifndef __MMO__
 	if(jkg_bounty.integer)
 	{
 		if(self->client && attacker->client && self->client->numKillsThisLife >= 3 )
@@ -2362,66 +2393,37 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		}
 		self->client->numKillsThisLife = 0;
 	}
-#endif
 
 	if(self->s.number < MAX_CLIENTS)
 	{
-		// Assists
-		if(self->assistData.hitRecords)
-		{
-			for(i = 0; i < self->assistData.numRecords; i++)
-			{
-				gclient_t *selfClient;
-				if( i >= (self->assistData.memAllocated/2) )
-				{
-					// what.
-					entityHitRecord_t *reallocated = (entityHitRecord_t *)realloc( self->assistData.hitRecords, (sizeof(entityHitRecord_t))*(self->assistData.memAllocated*2) );
-					//JKG_Assert(reallocated);
-					if(reallocated == NULL)
-					{
-						continue;
-					}
-					self->assistData.hitRecords = reallocated;
-					self->assistData.memAllocated *= 2;
-					//break;		// No need to break. There's probably more records to deal with.
-				}
-				if( !self->assistData.hitRecords[i].entWhoHit /*|| !self->assistData.hitRecords[i].entWhoHit->client*/ )
-				{
+		if (self->assists) {
+			for (auto it = self->assists->begin(); it != self->assists->end(); ++it) {
+				int awardedCredits;
+
+				if (!JKG_CanAwardAssist(self, attacker, *it)) {
 					continue;
 				}
-				if( ((self->assistData.hitRecords[i].entWhoHit-g_entities) > MAX_CLIENTS && g_entities[self->assistData.hitRecords[i].entWhoHit-g_entities].s.eType != ET_NPC) ||
-					(self->assistData.hitRecords[i].entWhoHit-g_entities) < 0)
-				{
-					continue;
-				}
-				selfClient = &level.clients[(self->assistData.hitRecords[i].entWhoHit-g_entities)];
-				if( (self->assistData.hitRecords[i].timeHit+ASSIST_LAST_TIME) > level.time &&
-					self->assistData.hitRecords[i].entWhoHit &&
-					!OnSameTeam(self, self->assistData.hitRecords[i].entWhoHit) &&
-					self->assistData.hitRecords[i].entWhoHit != attacker)		// attacker shouldn't be getting the assist! naughty naughty!
-				{
-					// Valid.
-					int assistCredits = (jkg_creditsPerKill.value/100)*self->assistData.hitRecords[i].damageDealt;
-					if(assistCredits >= 1)		// FIX: +0 credits on assist
-					{
-						if(assistCredits >= jkg_creditsPerKill.integer)
-						{
-							assistCredits = jkg_creditsPerKill.integer - 1;
-						}
-						selfClient->ps.credits += assistCredits;
-#ifndef __MMO__ // UQ1: Use events! 1 event with credits param...
-						//trap->SendServerCommand(self->assistData.hitRecords[i].entWhoHit->client->ps.clientNum, "hitmarker");
-						trap->SendServerCommand(selfClient->ps.clientNum,
-							va("notify 1 \"Assist: +%i Credits\"", assistCredits));
-						trap->SendServerCommand(selfClient->ps.clientNum, "hitmarker");
-#else //!__MMO__
-						G_AddEvent(self, EV_HITMARKER_ASSIST, assistCredits);
-#endif //__MMO__
+
+				// One point of damage is worth 1% of total credits earned per kill
+				awardedCredits = (jkg_creditsPerKill.value / 100) * it->damageDealt;
+
+				// Don't trigger it if we don't have any credits to award for this assist
+				if (awardedCredits > 0) {
+					if (awardedCredits >= jkg_creditsPerKill.integer) {
+						// Always award less than a full kill's worth of credits.
+						awardedCredits = jkg_creditsPerKill.integer - 1;
 					}
+
+					it->entWhoHit->client->ps.credits += awardedCredits;
+
+					// Do a hitmarker, as a hint that they got a reward
+					trap->SendServerCommand(it->entWhoHit - g_entities,
+						va("notify 1 \"Assist: +%i Credits\"", awardedCredits));
+					trap->SendServerCommand(it->entWhoHit - g_entities, "hitmarker");
 				}
 			}
-			self->assistData.numRecords = 0;
 		}
+		self->assists->clear();
 	}
 
 	G_BreakArm(self, 0); //unbreak anything we have broken
@@ -2569,9 +2571,8 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 		/* JKG - Muzzle Calculation End */
 
 		/* JKG (eez) - drop items */
-		if(self->client->deathLootIndex != -1 && lootLookupTable[self->client->deathLootIndex].numItems > 0)
+		if(self->client->deathLootIndex != -1)
 		{
-			JKG_PickItemsClean(self, &lootLookupTable[self->client->deathLootIndex]);
 			//Let's try this the other way, for effect!
 			self->r.svFlags |= SVF_PLAYER_USABLE;
 			self->painDebounceTime = 0;
@@ -2676,7 +2677,7 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 		
 		if (killerEnt && killerEnt->inuse && killerEnt->s.eType == ET_NPC)
 		{
-			if (killerEnt->client->pers.netname && killerEnt->client->pers.netname[0])
+			if (killerEnt->client->pers.netname[0])
 				killerName = killerEnt->client->pers.netname; // UQ1: NPCs have names now...
 			else
 				killerName = va("A %s NPC", killerEnt->NPC_type);
@@ -3103,10 +3104,10 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 
 /*
 ================
-CheckArmor
+CheckShield
 ================
 */
-int CheckArmor (gentity_t *ent, int damage, int dflags)
+int CheckShield (gentity_t *ent, int damage, int dflags)
 {
 	gclient_t	*client;
 	int			save;
@@ -3133,7 +3134,7 @@ int CheckArmor (gentity_t *ent, int damage, int dflags)
 		return 0;
 	}
 	// armor
-	count = client->ps.stats[STAT_ARMOR];
+	count = client->ps.stats[STAT_SHIELD];
 
 	// Jedi Knight Galaxies
 	// Reduce the damage the shields take, depending on the shield strengh.. for now, lets use 50%
@@ -3159,11 +3160,11 @@ int CheckArmor (gentity_t *ent, int damage, int dflags)
 
 	if (dflags & DAMAGE_HALF_ARMOR_REDUCTION)		// Armor isn't whittled so easily by sniper shots.
 	{
-		client->ps.stats[STAT_ARMOR] -= (int)(save*ARMOR_REDUCTION_FACTOR);
+		client->ps.stats[STAT_SHIELD] -= (int)(save*ARMOR_REDUCTION_FACTOR);
 	}
 	else
 	{
-		client->ps.stats[STAT_ARMOR] -= save;
+		client->ps.stats[STAT_SHIELD] -= save;
 	}
 
 	return save; //origdamage;
@@ -4659,38 +4660,17 @@ void G_LocationBasedDamageModifier(gentity_t *ent, vec3_t point, int mod, int df
 		break; //do nothing then
 	}
 
-	//eezstreet add - Defense n Armor
-	if( ent->client && ent->inventory && ent->s.eType != ET_NPC && !(ent->r.svFlags & SVF_BOT) && hitLoc != HL_NONE )
-	{ //Valid player
-		int armorItem = ent->client->armorItems[armorSlot];
-		itemInstance_t *item = &ent->inventory->items[armorItem];
-		if(armorItem && item->id->itemID)
-		{ //Valid item and armor
-			/*if((item->durabilityCurrent > 0 && item->id->baseDurabilityMax > 0) ||
-				item->id->baseDurabilityMax <= 0)
-			{
-				*damage *= ((125 - item->defense)/125); //Defense formula
-				//One point of defense is worth 0.8% damage reduction
-				if(Q_irand(1,10) == 1) //Random probability - 1 in 10 chance of losing durability
-				{
-					if(item->id->baseDurabilityMax > 0)
-					{ //This item has a max durability of > 0 (because some items are indestructible)
-						item->durabilityCurrent--;
-						if(item->durabilityCurrent <= 0)
-						{ //Item breaks.
-							//lolol do item breaking code here
-						}
-					}
-				}
-			}*/
-			// durability check removed for now
-			if(item->defense > 0)
-			{
-				*damage *= ((100 - item->defense)/100); //Defense formula
-			}
+	if (ent->client && (ent - g_entities) < MAX_CLIENTS) {
+		// Remove damage based on EHP
+		int armor = ent->client->ps.armor[armorSlot];
+		if (armor--) {
+			armorData_t* pArm = &armorTable[armor];
+			int ehp = pArm->ehp;
+			float modifier = (ent->client->ps.stats[STAT_MAX_HEALTH] / (float)(ent->client->ps.stats[STAT_MAX_HEALTH] + ehp));
+
+			*damage *= modifier;
 		}
 	}
-
 }
 /*
 ===================================
@@ -4701,10 +4681,8 @@ rww - end dismemberment/lbd
 #define PLAYER_KNOCKDOWN_HOLD_EXTRA_TIME 0
 
 void NPC_SetPainEvent( gentity_t *self );
-qboolean PM_RollingAnim( int anim );
 qboolean PM_InKnockDown( playerState_t *ps );
 qboolean BG_CrouchAnim( int anim );
-qboolean BG_KnockDownAnim( int anim );
 qboolean PM_LockedAnim( int anim );
 
 //[KnockdownSys] - Jedi Knight Galaxies - using knockdown system from OJP
@@ -4717,7 +4695,7 @@ void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, fl
 	{
 		return;
 	}
-	if ( (self->flags & FL_GODMODE) || (self->client->noclip) || (self->client->jetPackOn)) {
+	if ( (self->flags & FL_GODMODE) || (self->client->noclip) || (self->client->ps.eFlags & EF_JETPACK_ACTIVE)) {
 		return;	// Dont knock down when havin godmode or noclip, or when usin a jetpack
 	}
 
@@ -4785,9 +4763,7 @@ void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, fl
 		G_CheckLedgeDive( self, 72, pushDir, qfalse, qfalse );
 
 
-		if ( /*!BG_SpinningSaberAnim( self->client->ps.legsAnim )  //racc - I've removed this requirement since it's over used by staffs/duals.
-			&& !BG_FlippingAnim( self->client->ps.legsAnim ) 
-			&&*/ !PM_RollingAnim( self->client->ps.legsAnim ) 
+		if ( !BG_RollingAnim( self->client->ps.legsAnim ) 
 			&& !PM_InKnockDown( &self->client->ps ) )
 		{
 			int knockAnim = BOTH_KNOCKDOWN1;//default knockdown
@@ -4827,7 +4803,7 @@ void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, fl
 			}
 			else
 			{//player holds extra long so you have more time to decide to do the quick getup
-				if ( BG_KnockDownAnim( self->client->ps.legsAnim ) )
+				if ( BG_KnockdownAnim( self->client->ps.legsAnim ) )
 				{
 					self->client->ps.legsTimer += PLAYER_KNOCKDOWN_HOLD_EXTRA_TIME;
 					self->client->ps.torsoTimer += PLAYER_KNOCKDOWN_HOLD_EXTRA_TIME;
@@ -4837,9 +4813,34 @@ void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, fl
 	}
 }
 
+static QINLINE qboolean ShouldHitmarker( const gentity_t *attacker, const gentity_t *target, const int mod )
+{
+	if( !attacker->client )
+		return qfalse;
+	if( attacker->NPC )
+		return qfalse;
+	if ( target->health <= 0 )
+		return qfalse;
+	if( target->s.eType == ET_MISSILE )
+		return qfalse;
+	if( target->s.eType == ET_GENERAL )
+	{
+		qboolean explosive = ( mod == MOD_TRIP_MINE_SPLASH || mod == MOD_TIMED_MINE_SPLASH || mod == MOD_DET_PACK_SPLASH );
+		if( ( target->s.weapon == WP_TRIP_MINE || target->s.weapon == WP_DET_PACK ) && target->parent == attacker && explosive )
+			return qfalse;
+	}
+	if( !target->client )
+	{
+		if ( target->s.eType == ET_GENERAL && target->s.eType == WP_TURRET )
+			return qtrue;
+		return qfalse;
+	}
+	return qtrue;
+}
+
 /*
 ============
-T_Damage
+G_Damage
 
 targ		entity that is being damaged
 inflictor	entity that is causing the damage
@@ -4873,7 +4874,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	gclient_t	*client;
 	int			take;
 	int			save;
-	int			asave;
+	int			ssave;
+
 	int			knockback;
 	int			subamt = 0;
 	float		famt = 0;
@@ -4959,23 +4961,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		return; // No team damage in warzone gametype.
 
 	// TODO: GLua hook!
-
-	if (mod == MOD_DEMP2 && targ && targ->inuse && targ->client)
-	{
-		if ( targ->client->ps.electrifyTime < level.time )
-		{//electrocution effect
-			if (targ->s.eType == ET_NPC && targ->s.NPC_class == CLASS_VEHICLE &&
-				targ->m_pVehicle && (targ->m_pVehicle->m_pVehicleInfo->type == VH_SPEEDER || targ->m_pVehicle->m_pVehicleInfo->type == VH_WALKER))
-			{ //do some extra stuff to speeders/walkers
-				targ->client->ps.electrifyTime = level.time + Q_irand( 3000, 4000 );
-			}
-			else if ( targ->s.NPC_class != CLASS_VEHICLE 
-				|| (targ->m_pVehicle && targ->m_pVehicle->m_pVehicleInfo->type != VH_FIGHTER) )
-			{//don't do this to fighters
-				targ->client->ps.electrifyTime = level.time + Q_irand( 300, 800 );
-			}
-		}
-	}
 
 	if (!targ->takedamage) {
 		return;
@@ -5104,15 +5089,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	// reduce damage by the attacker's handicap value
 	// unless they are rocket jumping
 
-	if ( !(dflags&DAMAGE_NO_HIT_LOC) )
-	{//see if we should modify it by damage location
-		if (targ->inuse && (targ->client || targ->s.eType == ET_NPC) &&
-			attacker->inuse && (attacker->client || attacker->s.eType == ET_NPC))
-		{ //check for location based damage stuff.
-			G_LocationBasedDamageModifier(targ, point, mod, dflags, &damage);
-		}
-	}
-
 	client = targ->client;
 
 	if ( client ) {
@@ -5131,6 +5107,12 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if ( knockback > 200 ) {
 		knockback = 200;
 	}
+
+	//futuza: low damage results in no knockback
+	/*if (knockback < 35)
+	{
+		knockback = 0;
+	}*/
 	if ( targ->flags & FL_NO_KNOCKBACK ) {
 		knockback = 0;
 	}
@@ -5232,32 +5214,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		targ->client->ps.otherKillerDebounceTime = level.time + 25000;
 	}
 
-	if(attacker->client && !attacker->NPC)
-	{
-		if( mod >= MOD_STUN_BATON && mod <= MOD_SENTRY && attacker != targ )
-		{
-			if(mod == MOD_REPEATER && attacker->client->lastHitmarkerTime < (level.time-250))
-			{
-				// Small hack to prevent the ACP array gun from ear-raping people so much --eez
-#ifndef __MMO__ // UQ1: This is just a sound and a message? Worth the spam????
-				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
-#else //!__MMO__
-				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
-#endif //__MMO__
-				attacker->client->lastHitmarkerTime = level.time;
-			}
-			else if(attacker->client->lastHitmarkerTime < (level.time-100))
-			{
-#ifndef __MMO__
-				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
-#else //!__MMO__
-				G_AddEvent(attacker, EV_HITMARKER_ASSIST, 0);
-#endif //__MMO__
-				attacker->client->lastHitmarkerTime = level.time;
-			}
-		}
-	}
-
 	// check for completely getting out of the damage
 	if ( !(dflags & DAMAGE_NO_PROTECTION) ) {
 
@@ -5332,18 +5288,59 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 	//check for teamnodmg
 	//NOTE: non-client objects hitting clients (and clients hitting clients) purposely doesn't obey this teamnodmg (for emplaced guns)
-
-	#ifdef BASE_COMPAT
-		// battlesuit protects from all radius damage (but takes knockback)
-		// and protects 50% against all damage
-		if ( client && client->ps.powerups[PW_BATTLESUIT] ) {
-			G_AddEvent( targ, EV_POWERUP_BATTLESUIT, 0 );
-			if ( ( dflags & DAMAGE_RADIUS ) || ( mod == MOD_FALLING ) ) {
-				return;
+	if ( attacker && !targ->client )
+	{//attacker hit a non-client
+		if ( level.gametype >= GT_TEAM )
+		{
+			if ( targ->teamnodmg )
+			{//targ shouldn't take damage from a certain team
+				if ( attacker->client )
+				{//a client hit a non-client object
+					if ( targ->teamnodmg == attacker->client->sess.sessionTeam )
+					{
+						return;
+					}
+				}
+				else if ( attacker->teamnodmg )
+				{//a non-client hit a non-client object
+					//FIXME: maybe check alliedTeam instead?
+					if ( targ->teamnodmg == attacker->teamnodmg )
+					{
+						if (attacker->activator &&
+							attacker->activator->inuse &&
+							attacker->activator->s.number < MAX_CLIENTS &&
+							attacker->activator->client &&
+							attacker->activator->client->sess.sessionTeam != targ->teamnodmg)
+						{ //uh, let them damage it I guess.
+						}
+						else
+						{
+							return;
+						}
+					}
+				}
 			}
-			damage *= 0.5;
 		}
-	#endif
+	}
+
+	// hitmarker should use same ruels as base hit counter
+	if( ShouldHitmarker( attacker, targ, mod ) )
+	{
+		if( mod >= MOD_STUN_BATON && mod <= MOD_SENTRY )
+		{
+			if(mod == MOD_REPEATER && attacker->client->lastHitmarkerTime < (level.time-250))
+			{
+				// Small hack to prevent the ACP array gun from ear-raping people so much --eez
+				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
+				attacker->client->lastHitmarkerTime = level.time;
+			}
+			else if(attacker->client->lastHitmarkerTime < (level.time-100))
+			{
+				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
+				attacker->client->lastHitmarkerTime = level.time;
+			}
+		}
+	}
 
 	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
 	if ( attacker->client && targ != attacker && targ->health > 0
@@ -5355,7 +5352,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		} else {
 			attacker->client->ps.persistant[PERS_HITS]++;
 		}
-		attacker->client->ps.persistant[PERS_ATTACKEE_ARMOR] = (targ->health<<8)|(client->ps.stats[STAT_ARMOR]);
+		attacker->client->ps.persistant[PERS_ATTACKEE_ARMOR] = (targ->health<<8)|(client->ps.stats[STAT_SHIELD]);
 	}
 
 	// always give half damage if hurting self... but not in siege.  Heavy weapons need a counter.
@@ -5371,256 +5368,28 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	save = 0;
 
 	// save some from armor
-	asave = CheckArmor (targ, take, dflags);
+	ssave = CheckShield (targ, take, dflags);
 
-	if (asave)
+	if (ssave)
 	{
-		shieldAbsorbed = asave;
+		shieldAbsorbed = ssave;
 	}
 
-	take -= asave;
-	if ( targ->client )
-	{//update vehicle shields and armor, check for explode 
-		if ( targ->client->NPC_class == CLASS_VEHICLE &&
-			targ->m_pVehicle )
-		{//FIXME: should be in its own function in g_vehicles.c now, too big to be here
-			int surface = -1;
-			if ( attacker )
-			{//so we know the last guy who shot at us
-				targ->enemy = attacker;
-			}
+	take -= ssave;
 
-			if ( targ->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL )
-			{
-				//((CVehicleNPC *)targ->NPC)->m_ulFlags |= CVehicleNPC::VEH_BUCKING;
-			}
-
-			targ->m_pVehicle->m_iShields = targ->client->ps.stats[STAT_ARMOR];
-			G_VehUpdateShields( targ );
-			targ->m_pVehicle->m_iArmor -= take;
-			if ( targ->m_pVehicle->m_iArmor <= 0 ) 
-			{
-				targ->s.eFlags |= EF_DEAD;
-				targ->client->ps.eFlags |= EF_DEAD;
-				targ->m_pVehicle->m_iArmor = 0;
-			}
-			if ( targ->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER )
-			{//get the last surf that was hit
-				if ( targ->client && targ->client->g2LastSurfaceTime == level.time)
-				{
-					char hitSurface[MAX_QPATH];
-
-					trap->G2API_GetSurfaceName(targ->ghoul2, targ->client->g2LastSurfaceHit, 0, hitSurface);
-
-					if (hitSurface[0])
-					{
-						surface = G_ShipSurfaceForSurfName( &hitSurface[0] );
-
-						if ( take && surface > 0 )
-						{//hit a certain part of the ship
-							int deathPoint = 0;
-
-							targ->locationDamage[surface] += take;
-
-							switch(surface)
-							{
-							case SHIPSURF_FRONT:
-								deathPoint = targ->m_pVehicle->m_pVehicleInfo->health_front;
-								break;
-							case SHIPSURF_BACK:
-								deathPoint = targ->m_pVehicle->m_pVehicleInfo->health_back;
-								break;
-							case SHIPSURF_RIGHT:
-								deathPoint = targ->m_pVehicle->m_pVehicleInfo->health_right;
-								break;
-							case SHIPSURF_LEFT:
-								deathPoint = targ->m_pVehicle->m_pVehicleInfo->health_left;
-								break;
-							default:
-								break;
-							}
-
-							//presume 0 means it wasn't set and so it should never die.
-							if ( deathPoint )
-							{
-								if ( targ->locationDamage[surface] >= deathPoint)
-								{ //this area of the ship is now dead
-									if ( G_FlyVehicleDestroySurface( targ, surface ) )
-									{//actually took off a surface
-										G_VehicleSetDamageLocFlags( targ, surface, deathPoint );
-									}
-								}
-								else
-								{
-									G_VehicleSetDamageLocFlags( targ, surface, deathPoint );
-								}
-							}
-						}
-					}
-				}
-			}
-			if ( targ->m_pVehicle->m_pVehicleInfo->type != VH_ANIMAL )
-			{
-				/*
-				if ( targ->m_pVehicle->m_iArmor <= 0 ) 
-				{//vehicle all out of armor
-					Vehicle_t *pVeh = targ->m_pVehicle;
-					if ( pVeh->m_iDieTime == 0 )
-					{//just start the flaming effect and explosion delay, if it's not going already...
-						pVeh->m_pVehicleInfo->StartDeathDelay( pVeh, 0 );
-					}
-				}
-				else*/
-				if ( attacker 
-						//&& attacker->client 
-						&& targ != attacker
-						&& point 
-						&& !VectorCompare( targ->client->ps.origin, point )
-						&& targ->m_pVehicle->m_LandTrace.fraction >= 1.0f)
-				{//just took a hit, knock us around
-					vec3_t	vUp, impactDir;
-					float	impactStrength = (damage/200.0f)*10.0f;
-					float	dot = 0.0f;
-					if ( impactStrength > 10.0f )
-					{
-						impactStrength = 10.0f;
-					}
-					//pitch or roll us based on where we were hit
-					AngleVectors( targ->m_pVehicle->m_vOrientation, NULL, NULL, vUp );
-					VectorSubtract( point, targ->r.currentOrigin, impactDir );
-					VectorNormalize( impactDir );
-					if ( surface <= 0 )
-					{//no surf guess where we were hit, then
-						vec3_t	vFwd, vRight;
-						AngleVectors( targ->m_pVehicle->m_vOrientation, vFwd, vRight, vUp );
-						dot = DotProduct( vRight, impactDir );
-						if ( dot > 0.4f )
-						{
-							surface = SHIPSURF_RIGHT;
-						}
-						else if ( dot < -0.4f )
-						{
-							surface = SHIPSURF_LEFT;
-						}
-						else
-						{
-							dot = DotProduct( vFwd, impactDir );
-							if ( dot > 0.0f )
-							{
-								surface = SHIPSURF_FRONT;
-							}
-							else
-							{
-								surface = SHIPSURF_BACK;
-							}
-						}
-					}
-					switch ( surface )
-					{
-					case SHIPSURF_FRONT:
-						dot = DotProduct( vUp, impactDir );
-						if ( dot > 0 )
-						{
-							targ->m_pVehicle->m_vOrientation[PITCH] += impactStrength;
-						}
-						else
-						{
-							targ->m_pVehicle->m_vOrientation[PITCH] -= impactStrength;
-						}
-						break;
-					case SHIPSURF_BACK:
-						dot = DotProduct( vUp, impactDir );
-						if ( dot > 0 )
-						{
-							targ->m_pVehicle->m_vOrientation[PITCH] -= impactStrength;
-						}
-						else
-						{
-							targ->m_pVehicle->m_vOrientation[PITCH] += impactStrength;
-						}
-						break;
-					case SHIPSURF_RIGHT:
-						dot = DotProduct( vUp, impactDir );
-						if ( dot > 0 )
-						{
-							targ->m_pVehicle->m_vOrientation[ROLL] -= impactStrength;
-						}
-						else
-						{
-							targ->m_pVehicle->m_vOrientation[ROLL] += impactStrength;
-						}
-						break;
-					case SHIPSURF_LEFT:
-						dot = DotProduct( vUp, impactDir );
-						if ( dot > 0 )
-						{
-							targ->m_pVehicle->m_vOrientation[ROLL] += impactStrength;
-						}
-						else
-						{
-							targ->m_pVehicle->m_vOrientation[ROLL] -= impactStrength;
-						}
-						break;
-					}
-
-				}
-			}
-		}
-	}
-
-	if ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT )
-	{//FIXME: screw with non-animal vehicles, too?
-		if ( client )
-		{
-			if ( client->NPC_class == CLASS_VEHICLE 
-				&& targ->m_pVehicle
-				&& targ->m_pVehicle->m_pVehicleInfo
-				&& targ->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER )
-			{//all damage goes into the disruption of shields and systems
-				take = 0;
-			}
-			else
-			{
-
-				if (client->jetPackOn)
-				{ //disable jetpack temporarily
-					Jetpack_Off(targ);
-					client->jetPackToggleTime = level.time + Q_irand(3000, 10000);
-				}
-
-				if ( client->NPC_class == CLASS_PROTOCOL || client->NPC_class == CLASS_SEEKER ||
-					client->NPC_class == CLASS_R2D2 || client->NPC_class == CLASS_R5D2 ||
-					client->NPC_class == CLASS_MOUSE || client->NPC_class == CLASS_GONK )
-				{
-					// DEMP2 does more damage to these guys.
-					take *= 2;
-				}
-				else if ( client->NPC_class == CLASS_PROBE || client->NPC_class == CLASS_INTERROGATOR ||
-							client->NPC_class == CLASS_MARK1 || client->NPC_class == CLASS_MARK2 || client->NPC_class == CLASS_SENTRY ||
-							client->NPC_class == CLASS_ATST )
-				{
-					// DEMP2 does way more damage to these guys.
-					take *= 5;
-				}
-				else
-				{
-					if (take > 0)
-					{
-						take /= 3;
-						if (take < 1)
-						{
-							take = 1;
-						}
-					}
-				}
-			}
+	if (take > 0 && !(dflags&DAMAGE_NO_HIT_LOC))
+	{//see if we should modify it by damage location
+		if (targ->inuse && (targ->client || targ->s.eType == ET_NPC) &&
+			attacker->inuse && (attacker->client || attacker->s.eType == ET_NPC))
+		{ //check for location based damage stuff.
+			G_LocationBasedDamageModifier(targ, point, mod, dflags, &take);
 		}
 	}
 
 #ifndef FINAL_BUILD
 	if ( g_debugDamage.integer ) {
 		trap->Print( "%i: client:%i health:%i damage:%i armor:%i\n", level.time, targ->s.number,
-			targ->health, take, asave );
+			targ->health, take, ssave );
 	}
 #endif
 
@@ -5633,7 +5402,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		} else {
 			client->ps.persistant[PERS_ATTACKER] = ENTITYNUM_WORLD;
 		}
-		client->damage_armor += asave;
+		client->damage_armor += ssave;
 		client->damage_blood += take;
 		client->damage_knockback += knockback;
 		if ( dir ) {
@@ -5733,48 +5502,35 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 	if (shieldAbsorbed)
 	{
-		/*
-		if ( targ->client->NPC_class == CLASS_VEHICLE )
-		{
-			targ->client->ps.electrifyTime = level.time + Q_irand( 500, 1000 );
-		}
-		else
-		*/
-		{
-			gentity_t	*evEnt;
+		// Play the shield hit effect
+		gentity_t	*evEnt;
+		evEnt = G_TempEntity(targ->r.currentOrigin, EV_SHIELD_HIT);
+		evEnt->s.otherEntityNum = targ->s.number;
+		evEnt->s.eventParm = DirToByte(dir);
+		evEnt->s.time2=shieldAbsorbed;
+		
+		if (targ->client) {
+			targ->client->shieldRechargeLast = targ->client->shieldRegenLast = level.time;
 
-			// Send off an event to show a shield shell on the player, pointing in the right direction.
-			//evEnt = G_TempEntity(vec3_origin, EV_SHIELD_HIT);
-			//rww - er.. what the? This isn't broadcast, why is it being set on vec3_origin?!
-			evEnt = G_TempEntity(targ->r.currentOrigin, EV_SHIELD_HIT);
-			evEnt->s.otherEntityNum = targ->s.number;
-			evEnt->s.eventParm = DirToByte(dir);
-			evEnt->s.time2=shieldAbsorbed;
-	/*
-			shieldAbsorbed *= 20;
+			// Break the shield if it's dead
+			if (targ->client->ps.stats[STAT_SHIELD] <= 0) {
+				gentity_t* evEnt2;
+				evEnt2 = G_TempEntity(targ->r.currentOrigin, EV_SHIELD_BROKEN);
+				evEnt2->s.otherEntityNum = targ->s.number;
 
-			if (shieldAbsorbed > 1500)
-			{
-				shieldAbsorbed = 1500;
+				// Play the sound on the server, since clients don't know about other clients's inventories
+				for (auto it = targ->inventory->begin(); it != targ->inventory->end(); ++it) {
+					if (it->equipped && it->id->itemType == ITEM_SHIELD) {
+						if (it->id->shieldData.brokenSoundEffect[0]) {
+							G_Sound(targ, CHAN_AUTO, G_SoundIndex(it->id->shieldData.brokenSoundEffect));
+						}
+					}
+				}
 			}
-			if (shieldAbsorbed < 200)
-			{
-				shieldAbsorbed = 200;
-			}
-
-			if (targ->client->ps.powerups[PW_SHIELDHIT] < (level.time + shieldAbsorbed))
-			{
-				targ->client->ps.powerups[PW_SHIELDHIT] = level.time + shieldAbsorbed;
-			}
-			//flicker for as many ms as damage was absorbed (*20)
-			//therefore 10 damage causes 1/5 of a seond of flickering, whereas
-			//a full 100 causes 2 seconds (but is reduced to 1.5f seconds due to the max)
-
-	*/
 		}
 	}
 
-	if (( asave || take ) && targ && targ->client && !targ->NPC )
+	if (( ssave || take ) && targ && targ->client && !targ->NPC )
 	{
 		targ->client->pers.partyUpdate = qtrue;
 	}
@@ -5984,64 +5740,24 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	}
 	if(attacker->client && !attacker->NPC)
 	{
-		int i;
-
 		if(targ->client && !targ->NPC && !OnSameTeam(attacker, targ))
 		{
-			// Add to our assist data
+			// Add an assist to the records
+			entityHitRecord_t hitrecord{ attacker, level.time, take };
+			qboolean bAdded = qfalse;
 
-			// Check for memory first
-			if( targ->assistData.numRecords >= (targ->assistData.memAllocated/2) )
-			{
-				// Handle memory crapola
-				entityHitRecord_t *hitRecord = (entityHitRecord_t *)realloc(targ->assistData.hitRecords, (sizeof(entityHitRecord_t))*(targ->assistData.memAllocated*2));
-				//JKG_Assert(hitRecord);
-				if(!hitRecord)
-				{
-					return;
+			// If we have an assist record by this person already, then we need to add the damage
+			for (auto it = targ->assists->begin(); it != targ->assists->end(); ++it) {
+				if (it->entWhoHit == attacker) {
+					it->damageDealt += take;
+					bAdded = qtrue;
+					break;
 				}
-				targ->assistData.memAllocated *= 2;
-				targ->assistData.hitRecords = hitRecord;
 			}
 
-			// Make sure that we already haven't been added to the record
-			for(i = 0; i < targ->assistData.numRecords; i++)
-			{
-				if(i > targ->assistData.memAllocated)
-				{
-					break;
-				}
-
-				if(targ->assistData.hitRecords[i].entWhoHit == attacker && targ->assistData.hitRecords[i].timeHit+ASSIST_LAST_TIME < level.time)
-				{
-					// This guy has already inflicted damage, BUT he isn't considered a person who assisted our kill.
-					// In order to correct this, we'll be giving this guy what is considered to be a blank slate.
-					targ->assistData.hitRecords[i].damageDealt = take;
-					targ->assistData.hitRecords[i].timeHit = level.time;
-					break;
-				}
-				else if(targ->assistData.hitRecords[i].entWhoHit == attacker)
-				{
-					// This guy has already inflicted damage, BUT he's already hit us!
-					// Add on to the amount of damage that he did before, so the history is accurate.
-					targ->assistData.hitRecords[i].damageDealt += take;
-					targ->assistData.hitRecords[i].timeHit = level.time;
-					break;
-				}
-				else
-				{
-					// Not our target.
-					continue;
-				}
-			}
-			if(i == targ->assistData.numRecords)
-			{
-				// New guy! Fun fun...
-				targ->assistData.hitRecords[i].entWhoHit = attacker;
-				targ->assistData.hitRecords[i].damageDealt = take;
-				targ->assistData.hitRecords[i].timeHit = level.time;
-
-				targ->assistData.numRecords++;
+			// We didn't have an assist by this person already, go ahead and add an assist
+			if (!bAdded) {
+				targ->assists->push_back(hitrecord);
 			}
 		}
 	}

@@ -1046,15 +1046,15 @@ qboolean Initialize( Vehicle_t *pVeh )
 	parent->client->pers.maxHealth = parent->client->ps.stats[STAT_MAX_HEALTH] = parent->NPC->stats.health = parent->health = parent->client->ps.stats[STAT_HEALTH] = pVeh->m_iArmor;
 	pVeh->m_iShields = pVeh->m_pVehicleInfo->shields;
 	G_VehUpdateShields( parent );
-	parent->client->ps.stats[STAT_ARMOR] = pVeh->m_iShields;
+	parent->client->ps.stats[STAT_SHIELD] = pVeh->m_iShields;
 	}
 	parent->mass = pVeh->m_pVehicleInfo->mass;
 	//initialize the ammo to max
-	parent->client->ps.ammo = pVeh->weaponStatus[i].ammo = pVeh->m_pVehicleInfo->weapon[i].ammoMax;
+	parent->client->ps.stats[STAT_TOTALAMMO] = pVeh->weaponStatus[i].ammo = pVeh->m_pVehicleInfo->weapon[i].ammoMax;
 	for ( i = 0; i < MAX_VEHICLE_TURRETS; i++ )
 	{
 		pVeh->turretStatus[i].nextMuzzle = (pVeh->m_pVehicleInfo->turret[i].iMuzzle[i]-1);
-		parent->client->ps.ammo = pVeh->turretStatus[i].ammo = pVeh->m_pVehicleInfo->turret[i].iAmmoMax;
+		parent->client->ps.stats[STAT_TOTALAMMO] = pVeh->turretStatus[i].ammo = pVeh->m_pVehicleInfo->turret[i].iAmmoMax;
 		if ( pVeh->m_pVehicleInfo->turret[i].bAI )
 		{//they're going to be finding enemies, init this to NONE
 			pVeh->turretStatus[i].enemyEntNum = ENTITYNUM_NONE;
@@ -1162,7 +1162,7 @@ static qboolean Update( Vehicle_t *pVeh, const usercmd_t *pUmcd )
 			//NOTE: in order to send the vehicle's ammo info to the client, we copy the ammo into the first 2 ammo slots on the vehicle NPC's client->ps.ammo array
 			if ( parent && parent->client )
 			{
-				parent->client->ps.ammo = pVeh->weaponStatus[i].ammo;
+				parent->client->ps.stats[STAT_TOTALAMMO] = pVeh->weaponStatus[i].ammo;
 			}
 		}
 	}
@@ -1178,23 +1178,23 @@ static qboolean Update( Vehicle_t *pVeh, const usercmd_t *pUmcd )
 			//NOTE: in order to send the vehicle's ammo info to the client, we copy the ammo into the first 2 ammo slots on the vehicle NPC's client->ps.ammo array
 			if ( parent && parent->client )
 			{
-				parent->client->ps.ammo = pVeh->turretStatus[i].ammo;
+				parent->client->ps.stats[STAT_TOTALAMMO] = pVeh->turretStatus[i].ammo;
 			}
 		}
 	}
 
 	//increment shields for rechargable shields
 	if ( pVeh->m_pVehicleInfo->shieldRechargeMS
-		&& parentPS->stats[STAT_ARMOR] > 0 //still have some shields left
-		&& parentPS->stats[STAT_ARMOR] < pVeh->m_pVehicleInfo->shields//its below max
+		&& parentPS->stats[STAT_SHIELD] > 0 //still have some shields left
+		&& parentPS->stats[STAT_SHIELD] < pVeh->m_pVehicleInfo->shields//its below max
 		&& pUmcd->serverTime-pVeh->lastShieldInc >= pVeh->m_pVehicleInfo->shieldRechargeMS )//enough time has passed
 	{
-		parentPS->stats[STAT_ARMOR]++;
-		if ( parentPS->stats[STAT_ARMOR] > pVeh->m_pVehicleInfo->shields )
+		parentPS->stats[STAT_SHIELD]++;
+		if ( parentPS->stats[STAT_SHIELD] > pVeh->m_pVehicleInfo->shields )
 		{
-			parentPS->stats[STAT_ARMOR] = pVeh->m_pVehicleInfo->shields;
+			parentPS->stats[STAT_SHIELD] = pVeh->m_pVehicleInfo->shields;
 		}
-		pVeh->m_iShields = parentPS->stats[STAT_ARMOR];
+		pVeh->m_iShields = parentPS->stats[STAT_SHIELD];
 		G_VehUpdateShields( parent );
 	}
 
@@ -1386,25 +1386,6 @@ static qboolean Update( Vehicle_t *pVeh, const usercmd_t *pUmcd )
 			{
 				pVeh->weaponStatus[i].linked = qtrue;
 			}
-		}
-		else if ( (pVeh->m_ucmd.buttons&BUTTON_USE_HOLDABLE) ) 
-		//FIXME: implement... just a console command bound to a key?
-		{//pilot pressed the "weapon link" toggle button
-			playerState_t *pilotPS;
-			bgEntity_t *rider = NULL;
-			if (parent->s.owner != ENTITYNUM_NONE)
-			{
-				rider = PM_BGEntForNum(parent->s.owner); //&g_entities[parent->r.ownerNum];
-			}
-			pilotPS = rider->playerState;
-			if ( !pVeh->linkWeaponToggleHeld )//so we don't hold it down and toggle it back and forth
-			{//okay to toggle
-				if ( pVeh->m_pVehicleInfo->weapon[i].linkable == 1 )
-				{//link-toggleable
-					pVeh->weaponStatus[i].linked = !pVeh->weaponStatus[i].linked;
-				}
-			}
-			linkHeld = qtrue;
 		}
 	}
 	if ( linkHeld )

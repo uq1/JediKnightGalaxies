@@ -5,7 +5,7 @@
 	#include "g_local.h"
 #elif defined(_CGAME)
 	#include "cgame/cg_local.h"
-#elif defined(_UI)
+#elif defined(IN_UI)
 	#include "ui/ui_local.h"
 #endif
 
@@ -33,15 +33,25 @@ static void DefineBaselineConstants(void)
 	bgConstants.minimumSpeedModifier = 0.5f;
 	bgConstants.sprintSpeedModifier = 1.3f;
 	//Stoiss end
+
+	bgConstants.staminaDrains.lossFromJumping = 10;
+	bgConstants.staminaDrains.lossFromKicking = 5;
+	bgConstants.staminaDrains.lossFromPunching = 5;
+	bgConstants.staminaDrains.lossFromRolling = 10;
+	bgConstants.staminaDrains.minJumpThreshold = 20;
+	bgConstants.staminaDrains.minKickThreshold = 0;
+	bgConstants.staminaDrains.minPunchThreshold = 0;
+	bgConstants.staminaDrains.minRollThreshold = 20;
+	bgConstants.staminaDrains.minSprintThreshold = 25;
 }
 
 static void ParseConstantsFile ( const char *fileText )
 {
-	int i = 0;
+	//int i = 0;
     cJSON *json = NULL;
     char jsonError[MAX_STRING_CHARS] = { 0 };
 	cJSON *jsonNode;
-    const char *string = NULL;
+    //const char *string = NULL;
 
     json = cJSON_ParsePooled (fileText, jsonError, sizeof (jsonError));
     if ( json == NULL )
@@ -96,6 +106,36 @@ static void ParseConstantsFile ( const char *fileText )
 		jsonNode = cJSON_GetObjectItem (json, "sprintSpeedModifier");
 		bgConstants.sprintSpeedModifier = cJSON_ToNumber(jsonNode);
 		//Stoiss end
+
+		jsonNode = cJSON_GetObjectItem(json, "stamina");
+		if (jsonNode) {
+			cJSON* childNode = cJSON_GetObjectItem(jsonNode, "lossFromRolling");
+			bgConstants.staminaDrains.lossFromRolling = cJSON_ToInteger(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "lossFromPunching");
+			bgConstants.staminaDrains.lossFromPunching = cJSON_ToInteger(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "lossFromJumping");
+			bgConstants.staminaDrains.lossFromJumping = cJSON_ToInteger(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "lossFromKicking");
+			bgConstants.staminaDrains.lossFromKicking = cJSON_ToInteger(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "minSprintThreshold");
+			bgConstants.staminaDrains.minSprintThreshold = cJSON_ToInteger(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "minRollThreshold");
+			bgConstants.staminaDrains.minRollThreshold = cJSON_ToInteger(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "minJumpThreshold");
+			bgConstants.staminaDrains.minJumpThreshold = cJSON_ToInteger(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "minPunchThreshold");
+			bgConstants.staminaDrains.minPunchThreshold = cJSON_ToInteger(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "minKickThreshold");
+			bgConstants.staminaDrains.minKickThreshold = cJSON_ToInteger(childNode);
+		}
     }
     
     cJSON_Delete (json);
@@ -144,6 +184,6 @@ void JKG_InitializeConstants(void)
 	DefineBaselineConstants();
 	if(!ReadConstantsFile())
 	{
-		//Com_Error(ERR_DISCONNECT, "Unable to parse the constants file.");
+		//Com_Error(ERR_DROP, "Unable to parse the constants file.");
 	}
 }

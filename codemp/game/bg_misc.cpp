@@ -26,10 +26,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "jkg_gangwars.h"
+#include <json/cJSON.h>
 
 #if defined(_GAME)
 	#include "g_local.h"
-#elif defined(_UI)
+#elif defined(IN_UI)
 	#include "../ui/ui_local.h"
 #elif defined(_CGAME)
 	#include "../cgame/cg_local.h"
@@ -250,14 +251,14 @@ int forcePowerDarkLight[NUM_FORCE_POWERS] = //0 == neutral
 //Weapon and force power tables are also used in NPC parsing code and some other places.
 stringID_table_t WPTable[] =
 {
-	"NULL",WP_NONE,
+	{"NULL",WP_NONE},
 	ENUM2STRING(WP_NONE),
 	// Player weapons
 	ENUM2STRING(WP_STUN_BATON),
 	ENUM2STRING(WP_MELEE),
 	ENUM2STRING(WP_SABER),
 	ENUM2STRING(WP_BRYAR_PISTOL),
-	"WP_BLASTER_PISTOL", WP_BRYAR_PISTOL,
+	{"WP_BLASTER_PISTOL", WP_BRYAR_PISTOL},
 	ENUM2STRING(WP_BLASTER),
 	ENUM2STRING(WP_DISRUPTOR),
 	ENUM2STRING(WP_BOWCASTER),
@@ -272,7 +273,7 @@ stringID_table_t WPTable[] =
 	ENUM2STRING(WP_BRYAR_OLD),
 	ENUM2STRING(WP_EMPLACED_GUN),
 	ENUM2STRING(WP_TURRET),
-	"", 0
+	{"", 0}
 };
 
 stringID_table_t FPTable[] =
@@ -295,35 +296,12 @@ stringID_table_t FPTable[] =
 	ENUM2STRING(FP_SABER_OFFENSE),
 	ENUM2STRING(FP_SABER_DEFENSE),
 	ENUM2STRING(FP_SABERTHROW),
-	"",	-1
-};
-
-stringID_table_t HoldableTable[] =
-{
-	ENUM2STRING(HI_NONE),
-
-	ENUM2STRING(HI_SEEKER),
-	ENUM2STRING(HI_SHIELD),
-	ENUM2STRING(HI_MEDPAC),
-	ENUM2STRING(HI_MEDPAC_BIG),
-	ENUM2STRING(HI_BINOCULARS),
-	ENUM2STRING(HI_SENTRY_GUN),
-	ENUM2STRING(HI_JETPACK),
-	ENUM2STRING(HI_HEALTHDISP),
-	ENUM2STRING(HI_AMMODISP),
-	ENUM2STRING(HI_EWEB),
-	ENUM2STRING(HI_CLOAK),
-
-	"", -1
+	{"",	-1}
 };
 
 stringID_table_t PowerupTable[] =
 {
 	ENUM2STRING(PW_NONE),
-#ifdef BASE_COMPAT
-	ENUM2STRING(PW_QUAD),
-	ENUM2STRING(PW_BATTLESUIT),
-#endif
 	ENUM2STRING(PW_PULL),
 	ENUM2STRING(PW_REDFLAG),
 	ENUM2STRING(PW_BLUEFLAG),
@@ -333,7 +311,7 @@ stringID_table_t PowerupTable[] =
 	ENUM2STRING(PW_SPEED),
 	ENUM2STRING(PW_CLOAKED),
 
-	"", -1
+	{"", -1}
 };
 
 //======================================
@@ -421,7 +399,7 @@ int BG_GetValueGroup(char *buf, char *group, char *outbuf)
 
 				isGroup = qfalse;
 
-				while (buf[i] && buf[i] == ' ' || buf[i] == '\t' || buf[i] == '\n' || buf[i] == '\r')
+				while (buf[i] && (buf[i] == ' ' || buf[i] == '\t' || buf[i] == '\n' || buf[i] == '\r'))
 				{ //parse to the next valid character
 					i++;
 				}
@@ -1200,220 +1178,6 @@ Instant medpack pickup, heals 25
 		""					// description
 	},
 
-
-	//
-	// ITEMS
-	//
-
-/*QUAKED item_seeker (.3 .3 1) (-8 -8 -0) (8 8 16) suspended
-30 seconds of seeker drone
-*/
-	{
-		"item_seeker", 
-		"sound/weapons/w_pkup.wav",
-		{ "models/items/remote.md3", 
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/i_icon_seeker",
-/* pickup *///	"Seeker Drone",
-		120,
-		IT_HOLDABLE,
-		HI_SEEKER,
-/* precache */ "",
-/* sounds */ "",
-		"@MENUS_AN_ATTACK_DRONE_SIMILAR"					// description
-	},
-
-/*QUAKED item_shield (.3 .3 1) (-8 -8 -0) (8 8 16) suspended
-Portable shield
-*/
-	{
-		"item_shield", 
-		"sound/weapons/w_pkup.wav",
-		{ "models/map_objects/mp/shield.md3", 
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/i_icon_shieldwall",
-/* pickup *///	"Forcefield",
-		120,
-		IT_HOLDABLE,
-		HI_SHIELD,
-/* precache */ "",
-/* sounds */ "sound/weapons/detpack/stick.wav sound/movers/doors/forcefield_on.wav sound/movers/doors/forcefield_off.wav sound/movers/doors/forcefield_lp.wav sound/effects/bumpfield.wav",
-		"@MENUS_THIS_STATIONARY_ENERGY"					// description
-	},
-
-/*QUAKED item_medpac (.3 .3 1) (-8 -8 -0) (8 8 16) suspended
-Bacta canister pickup, heals 25 on use
-*/
-	{
-		"item_medpac",	//should be item_bacta
-		"sound/weapons/w_pkup.wav",
-		{ "models/map_objects/mp/bacta.md3", 
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/i_icon_bacta",
-/* pickup *///	"Bacta Canister",
-		25,
-		IT_HOLDABLE,
-		HI_MEDPAC,
-/* precache */ "",
-/* sounds */ "",
-		"@SP_INGAME_BACTA_DESC"					// description
-	},
-
-/*QUAKED item_medpac_big (.3 .3 1) (-8 -8 -0) (8 8 16) suspended
-Big bacta canister pickup, heals 50 on use
-*/
-	{
-		"item_medpac_big",	//should be item_bacta
-		"sound/weapons/w_pkup.wav",
-		{ "models/items/big_bacta.md3", 
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/i_icon_big_bacta",
-/* pickup *///	"Bacta Canister",
-		25,
-		IT_HOLDABLE,
-		HI_MEDPAC_BIG,
-/* precache */ "",
-/* sounds */ "",
-		"@SP_INGAME_BACTA_DESC"					// description
-	},
-
-/*QUAKED item_binoculars (.3 .3 1) (-8 -8 -0) (8 8 16) suspended
-These will be standard equipment on the player - DO NOT PLACE
-*/
-	{
-		"item_binoculars", 
-		"sound/weapons/w_pkup.wav",
-		{ "models/items/binoculars.md3", 
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/i_icon_zoom",
-/* pickup *///	"Binoculars",
-		60,
-		IT_HOLDABLE,
-		HI_BINOCULARS,
-/* precache */ "",
-/* sounds */ "",
-		"@SP_INGAME_LA_GOGGLES_DESC"					// description
-	},
-
-/*QUAKED item_sentry_gun (.3 .3 1) (-8 -8 -0) (8 8 16) suspended
-Sentry gun inventory pickup.
-*/
-	{
-		"item_sentry_gun", 
-		"sound/weapons/w_pkup.wav",
-		{ "models/items/psgun.glm", 
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/i_icon_sentrygun",
-/* pickup *///	"Sentry Gun",
-		120,
-		IT_HOLDABLE,
-		HI_SENTRY_GUN,
-/* precache */ "",
-/* sounds */ "",
-		"@MENUS_THIS_DEADLY_WEAPON_IS"					// description
-	},
-
-/*QUAKED item_jetpack (.3 .3 1) (-8 -8 -0) (8 8 16) suspended
-Do not place.
-*/
-	{
-		"item_jetpack", 
-		"sound/weapons/w_pkup.wav",
-		{ "models/items/psgun.glm", //FIXME: no model
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/i_icon_jetpack",
-/* pickup *///	"Sentry Gun",
-		120,
-		IT_HOLDABLE,
-		HI_JETPACK,
-/* precache */ "effects/boba/jet.efx",
-/* sounds */ "sound/chars/boba/JETON.wav sound/chars/boba/JETHOVER.wav sound/effects/fire_lp.wav",
-		"@MENUS_JETPACK_DESC"					// description
-	},
-
-/*QUAKED item_healthdisp (.3 .3 1) (-8 -8 -0) (8 8 16) suspended
-Do not place. For siege classes ONLY.
-*/
-	{
-		"item_healthdisp", 
-		"sound/weapons/w_pkup.wav",
-		{ "models/map_objects/mp/bacta.md3", //replace me
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/i_icon_healthdisp",
-/* pickup *///	"Sentry Gun",
-		120,
-		IT_HOLDABLE,
-		HI_HEALTHDISP,
-/* precache */ "",
-/* sounds */ "",
-		""					// description
-	},
-
-/*QUAKED item_ammodisp (.3 .3 1) (-8 -8 -0) (8 8 16) suspended
-Do not place. For siege classes ONLY.
-*/
-	{
-		"item_ammodisp", 
-		"sound/weapons/w_pkup.wav",
-		{ "models/map_objects/mp/bacta.md3", //replace me
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/i_icon_ammodisp",
-/* pickup *///	"Sentry Gun",
-		120,
-		IT_HOLDABLE,
-		HI_AMMODISP,
-/* precache */ "",
-/* sounds */ "",
-		""					// description
-	},
-
-/*QUAKED item_eweb_holdable (.3 .3 1) (-8 -8 -0) (8 8 16) suspended
-Do not place. For siege classes ONLY.
-*/
-	{
-		"item_eweb_holdable", 
-		"sound/interface/shieldcon_empty",
-		{ "models/map_objects/hoth/eweb_model.glm",
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/i_icon_eweb",
-/* pickup *///	"Sentry Gun",
-		120,
-		IT_HOLDABLE,
-		HI_EWEB,
-/* precache */ "",
-/* sounds */ "",
-		"@MENUS_EWEB_DESC"					// description
-	},
-
-/*QUAKED item_seeker (.3 .3 1) (-8 -8 -0) (8 8 16) suspended
-30 seconds of seeker drone
-*/
-	{
-		"item_cloak", 
-		"sound/weapons/w_pkup.wav",
-		{ "models/items/psgun.glm", //FIXME: no model
-		0, 0, 0} ,
-/* view */		NULL,			
-/* icon */		"gfx/hud/i_icon_cloak",
-/* pickup *///	"Seeker Drone",
-		120,
-		IT_HOLDABLE,
-		HI_CLOAK,
-/* precache */ "",
-/* sounds */ "",
-		"@MENUS_CLOAK_DESC"					// description
-	},
-
 	//
 	// WEAPONS 
 	//
@@ -2070,26 +1834,6 @@ gitem_t	*BG_FindItemForPowerup( powerup_t pw ) {
 
 
 /*
-==============
-BG_FindItemForHoldable
-==============
-*/
-gitem_t	*BG_FindItemForHoldable( holdable_t pw ) {
-	int		i;
-
-	for ( i = 0 ; i < bg_numItems ; i++ ) {
-		if ( bg_itemlist[i].giType == IT_HOLDABLE && bg_itemlist[i].giTag == pw ) {
-			return &bg_itemlist[i];
-		}
-	}
-
-	Com_Error( ERR_DROP, "HoldableItem not found" );
-
-	return NULL;
-}
-
-
-/*
 ===============
 BG_FindItemForWeapon
 
@@ -2173,6 +1917,10 @@ qboolean	BG_PlayerTouchesItem( playerState_t *ps, entityState_t *item, int atTim
 int BG_ProperForceIndex(int power)
 {
 	int i = 0;
+
+	if (power < 0) {
+		return -1;
+	}
 
 	while (i < NUM_FORCE_POWERS)
 	{
@@ -2283,80 +2031,6 @@ int BG_GetItemIndexByTag(int tag, int type)
 	return 0;
 }
 
-//yeah..
-qboolean BG_IsItemSelectable(playerState_t *ps, int item)
-{
-	if (item == HI_HEALTHDISP || item == HI_AMMODISP ||
-		item == HI_JETPACK)
-	{
-		return qfalse;
-	}
-	return qtrue;
-}
-
-void BG_CycleInven(playerState_t *ps, int direction)
-{
-	int i;
-	int dontFreeze = 0;
-	int original;
-
-	i = bg_itemlist[ps->stats[STAT_HOLDABLE_ITEM]].giTag;
-	original = i;
-
-	if (direction == 1)
-	{ //next
-		i++;
-		if (i == HI_NUM_HOLDABLE)
-		{
-			i = 1;
-		}
-	}
-	else
-	{ //previous
-		i--;
-		if (i == 0)
-		{
-			i = HI_NUM_HOLDABLE-1;
-		}
-	}
-
-	while (i != original)
-	{ //go in a full loop until hitting something, if hit nothing then select nothing
-		if (ps->stats[STAT_HOLDABLE_ITEMS] & (1 << i))
-		{ //we have it, select it.
-			if (BG_IsItemSelectable(ps, i))
-			{
-				ps->stats[STAT_HOLDABLE_ITEM] = BG_GetItemIndexByTag(i, IT_HOLDABLE);
-				break;
-			}
-		}
-
-		if (direction == 1)
-		{ //next
-			i++;
-		}
-		else
-		{ //previous
-			i--;
-		}
-
-		if (i <= 0)
-		{ //wrap around to the last
-			i = HI_NUM_HOLDABLE-1;
-		}
-		else if (i >= HI_NUM_HOLDABLE)
-		{ //wrap around to the first
-			i = 1;
-		}
-
-		dontFreeze++;
-		if (dontFreeze >= 32)
-		{ //yeah, sure, whatever (it's 2 am and I'm paranoid and can't frickin think)
-			break;
-		}
-	}
-}
-
 /*
 ================
 BG_CanItemBeGrabbed
@@ -2398,31 +2072,13 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 		{ //weaponstay stuff.. if this isn't dropped, and you already have it, you don't get it.
 			return qfalse;
 		}
-		/*if (item->giTag == WP_THERMAL || item->giTag == WP_TRIP_MINE || item->giTag == WP_DET_PACK)
-		{ //check to see if full on ammo for this, if so, then..
-			int ammoIndex = GetWeaponAmmoIndexSingle( item->giTag );
-			if ( ps->ammo[ammoIndex] >= GetWeaponAmmoMaxSingle( item->giTag ))
-			{ //don't need it
-				return qfalse;
-			}
-		}*/
 		return qtrue;	// weapons are always picked up
 
 	case IT_AMMO:
-		// TODO: make ammo items
-		/*if (item->giTag == -1)
-		{ //special case for "all ammo" packs
-			return qtrue;
-		}
-
-		if ( ps->ammo[item->giTag] >= GetWeaponAmmoMaxSingle( item->giTag ))
-		{
-			return qfalse;		// can't hold any more
-		}*/
 		return qtrue;
 
 	case IT_ARMOR:
-		if ( ps->stats[STAT_ARMOR] >= ps->stats[STAT_MAX_HEALTH]/* * item->giTag*/ ) {
+		if ( ps->stats[STAT_SHIELD] >= ps->stats[STAT_MAX_SHIELD] ) {
 			return qfalse;
 		}
 		return qtrue;
@@ -2470,22 +2126,8 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 
 		return qfalse;
 
-	case IT_HOLDABLE:
-		if ( ps->stats[STAT_HOLDABLE_ITEMS] & (1 << item->giTag))
-		{
-			return qfalse;
-		}
-		return qtrue;
-
-        case IT_BAD:
-            Com_Error( ERR_DROP, "BG_CanItemBeGrabbed: IT_BAD" );
-        default:
-#ifndef Q3_VM
-#ifndef NDEBUG // bk0001204
-          Com_Printf("BG_CanItemBeGrabbed: unknown enum %d\n", item->giType );
-#endif
-#endif
-         break;
+	default:
+		break;
 	}
 
 	return qfalse;
@@ -3257,6 +2899,10 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 		s->eType = ET_PLAYER;
 	}
 
+	for (i = 0; i < MAX_ARMOR; i++) {
+		s->armor[i] = ps->armor[i];
+	}
+
 	s->number = ps->clientNum;
 
 	s->pos.trType = TR_INTERPOLATE;
@@ -3304,6 +2950,7 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 	s->saberEntityNum = ps->saberEntityNum;
 	s->saberMove = ps->saberMove;
 	s->forcePowersActive = ps->fd.forcePowersActive;
+	s->jetpack = ps->jetpack;
 
 	if (ps->duelInProgress)
 	{
@@ -3724,10 +3371,6 @@ const char *gametypeStringShort[GT_MAX_GAME_TYPE] = {
 	"1v1",
 	"2v1",
 	"SP",
-#ifdef __RPG__
-	"RPGCITY",
-	"RPGWILD",
-#endif
 	"TDM",
 	"CTF",
 	"WZ",
@@ -3754,12 +3397,6 @@ const char *BG_GetGametypeString( int gametype )
 		return "Power Duel";
 	case GT_SINGLE_PLAYER:
 		return "Cooperative";
-#ifdef __RPG__
-	case GT_RPG_CITY:
-		return "RPG - City";
-	case GT_RPG_WILDERNESS:
-		return "RPG - Wilderness";
-#endif
 	case GT_TEAM:
 		return "Team Deathmatch";
 	case GT_CTF:
@@ -3810,4 +3447,30 @@ int BG_GetGametypeForString( const char *gametype )
 		return GT_WARZONE;
 	else
 		return GT_TEAM;
+}
+
+void Q_FSBinaryDump( const char *filename, const void *buffer, size_t len ) {
+	fileHandle_t f = NULL_FILE;
+	trap->FS_Open( filename, &f, FS_WRITE );
+	trap->FS_Write( buffer, (int)len, f );
+	trap->FS_Close( f );
+	f = NULL_FILE;
+}
+
+// serialise a JSON object and write it to the specified file
+void Q_FSWriteJSON( void *root, fileHandle_t f ) {
+	const char *serialised = NULL;
+
+	serialised = cJSON_Serialize( (cJSON *)root, 1 );
+	trap->FS_Write( serialised, strlen( serialised ), f );
+	trap->FS_Close( f );
+
+	free( (void *)serialised );
+	cJSON_Delete( (cJSON *)root );
+}
+
+void Q_FSWriteString( fileHandle_t f, const char *msg ) {
+	if ( f != NULL_FILE ) {
+		trap->FS_Write( msg, strlen( msg ), f );
+	}
 }
