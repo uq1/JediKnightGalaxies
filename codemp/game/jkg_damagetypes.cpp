@@ -398,7 +398,7 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
                     // FIXME: Need to know the attacker
                     // FIXME: Also need to add a new method of death.
                     ent->client->damageTypeLastEffectTime[i] = level.time;
-					G_Damage (ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, 2, 0, 0);
+					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, 2, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC), 0);
                 }
             }
             break;
@@ -407,7 +407,7 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
                 if ( (ent->client->damageTypeLastEffectTime[i] + 500) <= level.time )
                 {
                     ent->client->damageTypeLastEffectTime[i] = level.time;
-                    G_Damage (ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, 2, 0, 0);
+					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, 2, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC), 0);
                 }
             break;
 
