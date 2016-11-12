@@ -70,10 +70,8 @@ static void JKG_ParseJetpackVisuals(cJSON* jsonNode, jetpackData_t& jetpackData)
 	child = cJSON_GetObjectItem(jsonNode, "effectBolts");
 	boltSize = cJSON_GetArraySize(child);
 	for (int i = 0; i < boltSize; i++) {
-		jetpackData_t::jetpackVisualData_t::jetpackBolt_t bolt;
 		cJSON* arrayObj = cJSON_GetArrayItem(child, i);
-
-		Q_strncpyz(bolt.boneBolt, cJSON_ToString(arrayObj), MAX_QPATH);
+		std::string bolt = cJSON_ToString(arrayObj);
 		jetpackData.visuals.effectBolts.push_back(bolt);
 	}
 

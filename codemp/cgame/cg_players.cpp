@@ -2070,7 +2070,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 		}
 
 		// Apply the armor here too
-		for (int i = 0; i < MAX_ARMOR; i++) {
+		for (i = 0; i < MAX_ARMOR; i++) {
 			int armor = cent->currentState.armor[i];
 			if (armor--) {
 				CG_ApplyArmorToPlayerModel(ci->ghoul2Model, &armorTable[armor], i);
@@ -7016,7 +7016,7 @@ static void CG_InitJetpackModel(const jetpackData_t& jetpack) {
 
 	// Add places for the flame effect to bolt to
 	for (auto it = jetpack.visuals.effectBolts.begin(); it != jetpack.visuals.effectBolts.end(); ++it) {
-		trap->G2API_AddBolt(jetpackInstance, 0, it->boneBolt);
+		trap->G2API_AddBolt(jetpackInstance, 0, it->c_str());
 	}
 
 	g2JetpackInstances.push_back(jetpackInstance);

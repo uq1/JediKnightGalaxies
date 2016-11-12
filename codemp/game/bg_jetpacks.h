@@ -17,7 +17,7 @@ struct jetpackData_t {
 	float	fuelRegeneration;	// How much to modify fuel regeneration
 
 	// Movement related fields
-	struct jetpackMovementData_t {
+	struct {
 		float	hoverGravity;		// How much to modify gravity when hovering
 
 		float	forwardMove;		// How much to modify forward move (not during thrust)
@@ -29,17 +29,13 @@ struct jetpackData_t {
 		float	thrustBack;			// How much to modify backward move (in thrust)
 		float	thrustSide;			// How much to modify side move (in thrust)
 		float	thrustUp;			// How much to modify up move (in thrust)
-	};
-	jetpackMovementData_t move;
+	} move;
 
 	// Visual fields
-	struct jetpackVisualData_t {
+	struct {
 		char	modelName[MAX_QPATH];		// The model of the jetpack
 
-		struct jetpackBolt_t {
-			char	boneBolt[MAX_QPATH];	// The bone to bolt to
-		};
-		std::vector<jetpackBolt_t> effectBolts;
+		std::vector<std::string> effectBolts;
 
 		char	hoverEffect[MAX_QPATH];		// The effect to bolt on when hovering (not thrusting)
 		char	thrustEffect[MAX_QPATH];	// The effect to bolt on when thrusting (not hovering)
@@ -49,8 +45,7 @@ struct jetpackData_t {
 		char	thrustSound[MAX_QPATH];		// The sound to play when thrusting (not hovering)
 		char	activateSound[MAX_QPATH];	// The sound to play when the jetpack is turned on
 		char	deactivateSound[MAX_QPATH];	// The sound to play when the jetpack is turned off
-	};
-	jetpackVisualData_t visuals;
+	} visuals;
 };
 
 extern jetpackData_t jetpackTable[MAX_JETPACKS];

@@ -30,7 +30,7 @@ typedef struct {
 	float movemodifier;		// Affects how fast you can move with this piece of equipment
 	// More movement modifiers? (jump height? stamina usage?)
 
-	typedef struct {
+	struct {
 		armorG2Reference_t* pGHOUL2;					// Pointer to GHOUL2 data
 		std::vector<std::string> armorOnSurfs;			// Which surfaces to show on the armor (if any)
 		std::vector<std::string> bodyOffSurfs;			// Which surfaces to hide on the player (if any)
@@ -38,8 +38,7 @@ typedef struct {
 		// More model info? (bolting armor onto bones instead of replacing body parts?)
 
 		char equipSound[MAX_QPATH];						// A sound to play when the armor is equipped
-	} armorVisualData_t; //#visuals
-	armorVisualData_t visuals;
+	} visuals;
 } armorData_t;
 
 extern armorData_t armorTable[MAX_ARMOR_ITEMS];
