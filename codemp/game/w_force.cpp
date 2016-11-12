@@ -34,8 +34,6 @@ extern void NPC_UseResponse( gentity_t *self, gentity_t *user, qboolean useWhenD
 //NEEDED FOR MIND-TRICK on NPCS=========================================================
 extern void NPC_Humanoid_Decloak( gentity_t *self );
 
-extern vmCvar_t		g_saberRestrictForce;
-
 extern qboolean BG_FullBodyTauntAnim( int anim );
 
 extern bot_state_t *botstates[MAX_CLIENTS];

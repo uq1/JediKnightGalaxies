@@ -1134,8 +1134,6 @@ also called by CG_CheckPlayerstateEvents
 ==============
 */
 
-extern vmCvar_t jkg_autoreload;
-
 #define	DEBUGNAME(x) if(cg_debugEvents.integer){trap->Print(x"\n");}
 #define	DEBUGNAME2(x, y) if(cg_debugEvents.integer){trap->Print(x"\n", y);}
 extern void CG_ChatBox_AddString(char *chatStr, int fadeLevel); //cg_draw.c

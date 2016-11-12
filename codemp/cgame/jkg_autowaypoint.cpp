@@ -7279,8 +7279,6 @@ void CG_AddWaypointLinkLine( int wp_from, int wp_to )
 	trap->R_AddRefEntityToScene( &re );
 }
 
-extern vmCvar_t jkg_waypoint_render;
-
 qboolean CURRENTLY_RENDERRING = qfalse;
 
 qboolean InFOV( vec3_t spot, vec3_t from, vec3_t fromAngles, int hFOV, int vFOV )

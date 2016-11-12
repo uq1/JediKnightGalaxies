@@ -37,8 +37,6 @@ qboolean WP_SaberStyleValidForSaber( saberInfo_t *saber1, saberInfo_t *saber2, i
 qboolean saberCheckKnockdown_DuelLoss(gentity_t *saberent, gentity_t *saberOwner, gentity_t *other);
 qboolean BG_SabersOff( playerState_t *ps );
 
-extern vmCvar_t g_saberLockRandomNess;
-
 void P_SetTwitchInfo(gclient_t	*client)
 {
 	client->ps.painTime = level.time;
@@ -2024,7 +2022,6 @@ void G_PM_SwitchWeaponFiringMode(playerState_t *ps, int newweapon, int newvariat
 	ent->client->ps.firingMode = ent->client->firingModes[ BG_GetWeaponIndexFromClass(newweapon, newvariation) ];
 }
 
-extern vmCvar_t jkg_deathTimer;
 gentity_t *WP_FireGenericGrenade( gentity_t *ent, int firemode, vec3_t origin, vec3_t dir );
 void ClientThink_real( gentity_t *ent ) {
 	gclient_t	*client;

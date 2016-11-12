@@ -36,8 +36,6 @@ extern void WP_FireMelee( gentity_t *ent, qboolean alt_fire );
 extern qboolean NPC_FollowRoutes( void );
 extern qboolean NPC_HaveValidEnemy( void );
 
-extern vmCvar_t	g_saberRealisticCombat;
-
 void G_StartMatrixEffect( gentity_t *ent )
 { //perhaps write this at some point?
 

@@ -699,6 +699,11 @@ int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 		AddScore(other, ent->r.currentOrigin, CTF_RECOVERY_BONUS);
 		//ResetFlag will remove this entity!  We must return zero
 		Team_ReturnFlagSound(Team_ResetFlag(team), team);
+
+		if (jkg_creditsPerReturn.integer && other->client) {
+			trap->SendServerCommand(other->s.number, va("notify 1 \"Flag Returned: +%i Credits\"", jkg_creditsPerReturn.integer));
+			other->client->ps.credits += jkg_creditsPerReturn.integer;
+		}
 		return 0;
 	}
 
@@ -721,6 +726,10 @@ int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 
 	// other gets another 10 frag bonus
 	AddScore(other, ent->r.currentOrigin, CTF_CAPTURE_BONUS);
+	if (jkg_creditsPerCapture.integer && other->client) {
+		trap->SendServerCommand(other->s.number, va("notify 1 \"Flag Captured: +%i Credits\"", jkg_creditsPerCapture.integer));
+		other->client->ps.credits += jkg_creditsPerCapture.integer;
+	}
 
 	Team_CaptureFlagSound( ent, team );
 
@@ -730,12 +739,14 @@ int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 		if (!player->inuse || player == other)
 			continue;
 
-		if (player->client->sess.sessionTeam !=
-			cl->sess.sessionTeam) {
+		if (player->client->sess.sessionTeam != cl->sess.sessionTeam) {
 			player->client->pers.teamState.lasthurtcarrier = -5;
-		} else if (player->client->sess.sessionTeam ==
-			cl->sess.sessionTeam) {
+		} else if (player->client->sess.sessionTeam == cl->sess.sessionTeam) {
 			AddScore(player, ent->r.currentOrigin, CTF_TEAM_BONUS);
+			if (jkg_creditsPerTeamCapture.integer) {
+				trap->SendServerCommand(player->s.number, va("notify 1 \"Team Captured Flag: +%i Credits\"", jkg_creditsPerTeamCapture.integer));
+				player->client->ps.credits += jkg_creditsPerTeamCapture.integer;
+			}
 		}
 	}
 	Team_ResetFlags();

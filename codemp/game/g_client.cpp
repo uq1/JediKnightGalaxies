@@ -2123,7 +2123,6 @@ static qboolean CompareIPs( const char *ip1, const char *ip2 )
 
 extern int NextIDCode;
 
-extern vmCvar_t jkg_antifakeplayer;
 extern qboolean g_dontPenalizeTeam; //g_cmds.c
 #define NET_ADDRSTRMAXLEN 48 // maximum length of an IPv6 address string including trailing '\0'
 char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {

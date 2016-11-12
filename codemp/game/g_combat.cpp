@@ -2371,8 +2371,15 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		if(!OnSameTeam(attacker, self) && attacker != self)
 		{
 #ifndef __MMO__
-			int credits = jkg_creditsPerKill.integer;
-			int bounty = (self->client->numKillsThisLife >= 3) ? self->client->numKillsThisLife*jkg_bounty.integer : 0;
+			int credits;
+			// ITS A FEATURE NOT A BUG: use team capture credits for CTF instead of kills, so objectives are more important
+			if (g_gametype.integer == GT_CTF) {
+				credits = jkg_creditsPerTeamCapture.integer;
+			}
+			else {
+				credits = jkg_creditsPerKill.integer;
+			}
+			int bounty = (self->client->numKillsThisLife >= 2) ? self->client->numKillsThisLife*jkg_bounty.integer : 0;
 			attacker->client->ps.credits += (credits + bounty);
 			if(bounty > 0)
 			{
@@ -2383,18 +2390,18 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				trap->SendServerCommand(attacker-g_entities, va("notify 1 \"Kill: +%i Credits\"", credits));
 			}
 #else //!__MMO__
-			G_AddEvent(attacker, EV_HITMARKER_KILL, jkg_creditsPerKill.integer);
+			G_AddEvent(attacker, EV_HITMARKER_KILL, credits);
 #endif //__MMO__
 		}
 	}
 #ifndef __MMO__
 	if(jkg_bounty.integer)
 	{
-		if(self->client && attacker->client && self->client->numKillsThisLife >= 3 )
+		if(self->client && attacker->client && self->client->numKillsThisLife >= 2 )
 		{
 			trap->SendServerCommand(-1, va("chat 100 \"%s^7's bounty was claimed by %s.\"", self->client->pers.netname, attacker->client->pers.netname));
 		}
-		if(attacker->client && attacker->client->numKillsThisLife == 3)
+		if(attacker->client && attacker->client->numKillsThisLife == 2)
 		{
 			trap->SendServerCommand(-1, va("chat 100 \"%s ^7has a bounty on their head!\"", attacker->client->pers.netname));
 		}
@@ -2407,19 +2414,27 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		if (self->assists) {
 			for (auto it = self->assists->begin(); it != self->assists->end(); ++it) {
 				int awardedCredits;
+				int creditsPerKill;
 
 				if (!JKG_CanAwardAssist(self, attacker, *it)) {
 					continue;
 				}
 
+				if (g_gametype.integer == GT_CTF) {
+					creditsPerKill = jkg_creditsPerTeamCapture.integer;
+				}
+				else {
+					creditsPerKill = jkg_creditsPerKill.integer;
+				}
+
 				// One point of damage is worth 1% of total credits earned per kill
-				awardedCredits = (jkg_creditsPerKill.value / 100) * it->damageDealt;
+				awardedCredits = (creditsPerKill / 100.0f) * it->damageDealt;
 
 				// Don't trigger it if we don't have any credits to award for this assist
 				if (awardedCredits > 0) {
-					if (awardedCredits >= jkg_creditsPerKill.integer) {
+					if (awardedCredits >= creditsPerKill) {
 						// Always award less than a full kill's worth of credits.
-						awardedCredits = jkg_creditsPerKill.integer - 1;
+						awardedCredits = creditsPerKill - 1;
 					}
 
 					it->entWhoHit->client->ps.credits += awardedCredits;

@@ -80,11 +80,6 @@ typedef struct scrollInfo_s {
 
 
 #ifndef _CGAME	// Defined in ui_main.c, not in the namespace
-extern vmCvar_t	ui_char_color_red;
-extern vmCvar_t	ui_char_color_green;
-extern vmCvar_t	ui_char_color_blue;
-extern vmCvar_t	se_language;
-
 // Some extern functions hoisted from the middle of this file to get all the non-cgame,
 // non-namespace stuff together
 extern void UI_SaberDrawBlades( itemDef_t *item, vec3_t origin, vec3_t angles );

@@ -5,8 +5,6 @@
 //externs
 extern bot_state_t	*botstates[MAX_CLIENTS];
 
-extern vmCvar_t bot_fps;
-
 #define		MAX_OBJECTIVES			6
 
 //max allowed objective dependancy

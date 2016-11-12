@@ -31,7 +31,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define	MAX_RADIUS_ENTS		128
 #define	DEFAULT_RADIUS		45
 
-extern vmCvar_t		d_noGroupAI;
 qboolean AI_ValidateGroupMember( AIGroupInfo_t *group, gentity_t *member );
 
 extern void G_TestLine(vec3_t start, vec3_t end, int color, int time);

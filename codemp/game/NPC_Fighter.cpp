@@ -64,7 +64,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 extern float DotToSpot( vec3_t spot, vec3_t from, vec3_t fromAngles );
 #ifdef _GAME //SP or gameside MP
-extern vmCvar_t	cg_thirdPersonAlpha;
 extern vec3_t playerMins;
 extern vec3_t playerMaxs;
 extern cvar_t	*g_speederControlScheme;

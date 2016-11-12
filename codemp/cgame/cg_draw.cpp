@@ -1530,10 +1530,6 @@ static int impactSoundDebounceTime = 0;
 #define	RADAR_ASTEROID_RANGE				10000.0f
 #define	RADAR_MIN_ASTEROID_SURF_WARN_DIST	1200.0f
 
-extern vmCvar_t	d_poff;
-extern vmCvar_t	d_roff;
-extern vmCvar_t	d_yoff;
-
 float CG_DrawRadar ( float y )
 {
 	vec4_t			color;
@@ -2991,7 +2987,6 @@ void CG_LerpCrosshairPos( float *x, float *y )
 	cg_crosshairPrevPosY = *y;
 }
 
-extern vmCvar_t jkg_gunlesscrosshair;
 vec3_t cg_crosshairPos={0,0,0};
 /*static */void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	float		w, h;
@@ -4418,8 +4413,6 @@ qboolean CG_CheckClientVisibility ( centity_t *cent )
 	return qfalse;
 }
 
-extern vmCvar_t	d_poff;
-extern vmCvar_t	d_roff;
 #define clamp(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
 /*
@@ -6950,8 +6943,6 @@ static void CG_Draw2DScreenTints( void )
 }
 void Cin_ProcessFade();
 void Cin_ProcessFlash();
-
-extern vmCvar_t jkg_noletterbox;
 void CinBuild_Visualize2D();
 
 
@@ -7388,9 +7379,6 @@ Perform all drawing needed to completely fill the screen
 
 int Cin_ProcessMB();
 void Cin_ProcessCM();
-
-extern vmCvar_t r_bloom_factor;
-extern vmCvar_t r_bloom_threshold;
 
 extern void PP_PreRender (void);
 

@@ -34,8 +34,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 extern void CheckCameraLocation( vec3_t OldeyeOrigin );
 //[/TrueView]
 
-extern vmCvar_t	cg_thirdPersonAlpha;
-
 extern void CG_AddRadarEnt(centity_t *cent);	//cg_ents.c
 extern void CG_AddBracketedEnt(centity_t *cent);	//cg_ents.c
 extern qboolean CG_InFighter( void );
@@ -9651,7 +9649,6 @@ void SmoothTrueView(vec3_t eyeAngles)
 }
 //[/TrueView]
 
-extern vmCvar_t jkg_debugBBox;
 void CG_Cube( vec3_t mins, vec3_t maxs, vec3_t color, float alpha );
 void CG_DrawPlayerBBox ( const centity_t *cent )
 {

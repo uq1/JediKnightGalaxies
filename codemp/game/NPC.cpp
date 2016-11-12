@@ -53,8 +53,6 @@ extern qboolean Boba_Flying( gentity_t *self );
 extern qboolean NPC_HaveValidEnemy( void );
 extern qboolean NPC_Humanoid_ClearPathToSpot( vec3_t dest, int impactEntNum );
 
-extern vmCvar_t		g_saberRealisticCombat;
-
 //Local Variables
 gentity_t		*NPC;
 gNPC_t			*NPCInfo;
