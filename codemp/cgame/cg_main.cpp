@@ -888,22 +888,6 @@ static void CG_RegisterSounds( void ) {
 	trap->S_RegisterSound("sound/weapons/force/jump.mp3"); //PDSOUND_FORCEJUMP
 	trap->S_RegisterSound("sound/weapons/force/grip.mp3"); //PDSOUND_FORCEGRIP
 
-	if ( cgs.gametype >= GT_TEAM || com_buildScript.integer ) {
-		cgs.media.redLeadsSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM046");
-		cgs.media.blueLeadsSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM045");
-		cgs.media.teamsTiedSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM032" );
-
-		cgs.media.redScoredSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM044");
-		cgs.media.blueScoredSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM043" );
-
-		if ( cgs.gametype == GT_CTF || com_buildScript.integer ) {
-			cgs.media.redFlagReturnedSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM042" );
-			cgs.media.blueFlagReturnedSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM041" );
-			cgs.media.redTookFlagSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM040" );
-			cgs.media.blueTookFlagSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM039" );
-		}
-	}
-
 	cgs.media.drainSound = trap->S_RegisterSound("sound/weapons/force/drained.mp3");
 
 	cgs.media.happyMusic = trap->S_RegisterSound("music/goodsmall.mp3");

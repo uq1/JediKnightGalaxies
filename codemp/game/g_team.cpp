@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "g_local.h"
 #include "bg_saga.h"
+#include "jkg_gangwars.h"
 
 typedef struct teamgame_s {
 	float			last_flag_capture;
@@ -87,29 +88,6 @@ const char *TeamColorString(int team) {
 	return S_COLOR_WHITE;
 }
 
-// NULL for everyone
-/*
-void QDECL PrintMsg( gentity_t *ent, const char *fmt, ... ) {
-	char		msg[1024];
-	va_list		argptr;
-	char		*p;
-	
-	va_start (argptr,fmt);
-	if (vsprintf (msg, fmt, argptr) > sizeof(msg)) {
-		G_Error ( "PrintMsg overrun" );
-	}
-	va_end (argptr);
-
-	// double quotes are bad
-	while ((p = strchr(msg, '"')) != NULL)
-		*p = '\'';
-
-	trap->SendServerCommand ( ( (ent == NULL) ? -1 : ent-g_entities ), va("print \"%s\"", msg ));
-}
-*/
-//Printing messages to players via this method is no longer done, StringEd stuff is client only.
-
-
 //plIndex used to print pl->client->pers.netname
 //teamIndex used to print team name
 void PrintCTFMessage(int plIndex, int teamIndex, int ctfMessage)
@@ -155,39 +133,22 @@ AddTeamScore
 ==============
 */
 void AddTeamScore(vec3_t origin, int team, int score) {
-	gentity_t	*te;
-
-	te = G_TempEntity(origin, EV_GLOBAL_TEAM_SOUND );
-	te->r.svFlags |= SVF_BROADCAST;
-
 	if ( team == TEAM_RED ) {
 		if ( level.teamScores[ TEAM_RED ] + score == level.teamScores[ TEAM_BLUE ] ) {
-			//teams are tied sound
-			te->s.eventParm = GTS_TEAMS_ARE_TIED;
+			trap->SendServerCommand(-1, "chat 100 \"The teams are tied.\"");
 		}
 		else if ( level.teamScores[ TEAM_RED ] <= level.teamScores[ TEAM_BLUE ] &&
 					level.teamScores[ TEAM_RED ] + score > level.teamScores[ TEAM_BLUE ]) {
-			// red took the lead sound
-			te->s.eventParm = GTS_REDTEAM_TOOK_LEAD;
-		}
-		else {
-			// red scored sound
-			te->s.eventParm = GTS_REDTEAM_SCORED;
+			trap->SendServerCommand(-1, va("chat 100 \"%s have taken the lead.\"", bgGangWarsTeams[level.redTeam].name));
 		}
 	}
 	else {
 		if ( level.teamScores[ TEAM_BLUE ] + score == level.teamScores[ TEAM_RED ] ) {
-			//teams are tied sound
-			te->s.eventParm = GTS_TEAMS_ARE_TIED;
+			trap->SendServerCommand(-1, "chat 100 \"The teams are tied.\"");
 		}
 		else if ( level.teamScores[ TEAM_BLUE ] <= level.teamScores[ TEAM_RED ] &&
 					level.teamScores[ TEAM_BLUE ] + score > level.teamScores[ TEAM_RED ]) {
-			// blue took the lead sound
-			te->s.eventParm = GTS_BLUETEAM_TOOK_LEAD;
-		}
-		else {
-			// blue scored sound
-			te->s.eventParm = GTS_BLUETEAM_SCORED;
+			trap->SendServerCommand(-1, va("chat 100 \"%s have taken the lead.\"", bgGangWarsTeams[level.blueTeam].name));
 		}
 	}
 	level.teamScores[ team ] += score;
@@ -556,77 +517,33 @@ void Team_ResetFlags( void ) {
 }
 
 void Team_ReturnFlagSound( gentity_t *ent, int team ) {
-	gentity_t	*te;
-
 	if (ent == NULL) {
 		trap->Print ("Warning:  NULL passed to Team_ReturnFlagSound\n");
 		return;
 	}
 
-	te = G_TempEntity( ent->s.pos.trBase, EV_GLOBAL_TEAM_SOUND );
-	if( team == TEAM_BLUE ) {
-		te->s.eventParm = GTS_RED_RETURN;
-	}
-	else {
-		te->s.eventParm = GTS_BLUE_RETURN;
-	}
-	te->r.svFlags |= SVF_BROADCAST;
+	// Send chat instead of doing a sound
+	trap->SendServerCommand(-1, va("chat 100 \"%s\"", bgGangWarsTeams[team == TEAM_RED ? level.redTeam : level.blueTeam].flagreturnedstring));
 }
 
 void Team_TakeFlagSound( gentity_t *ent, int team ) {
-	gentity_t	*te;
-
 	if (ent == NULL) {
 		trap->Print ("Warning:  NULL passed to Team_TakeFlagSound\n");
 		return;
 	}
 
-	// only play sound when the flag was at the base
-	// or not picked up the last 10 seconds
-	switch(team) {
-		case TEAM_RED:
-			if( teamgame.blueStatus != FLAG_ATBASE ) {
-				if (teamgame.blueTakenTime > level.time - 10000)
-					return;
-			}
-			teamgame.blueTakenTime = level.time;
-			break;
-
-		case TEAM_BLUE:	// CTF
-			if( teamgame.redStatus != FLAG_ATBASE ) {
-				if (teamgame.redTakenTime > level.time - 10000)
-					return;
-			}
-			teamgame.redTakenTime = level.time;
-			break;
-	}
-
-	te = G_TempEntity( ent->s.pos.trBase, EV_GLOBAL_TEAM_SOUND );
-	if( team == TEAM_BLUE ) {
-		te->s.eventParm = GTS_RED_TAKEN;
-	}
-	else {
-		te->s.eventParm = GTS_BLUE_TAKEN;
-	}
-	te->r.svFlags |= SVF_BROADCAST;
+	// Send chat instead of doing a sound
+	trap->SendServerCommand(-1, va("chat 100 \"%s\"", bgGangWarsTeams[team == TEAM_RED ? level.blueTeam : level.redTeam].flagtakenstring));
 }
 
 void Team_CaptureFlagSound( gentity_t *ent, int team ) {
-	gentity_t	*te;
-
 	if (ent == NULL) {
 		trap->Print ("Warning:  NULL passed to Team_CaptureFlagSound\n");
 		return;
 	}
 
-	te = G_TempEntity( ent->s.pos.trBase, EV_GLOBAL_TEAM_SOUND );
-	if( team == TEAM_BLUE ) {
-		te->s.eventParm = GTS_BLUE_CAPTURE;
-	}
-	else {
-		te->s.eventParm = GTS_RED_CAPTURE;
-	}
-	te->r.svFlags |= SVF_BROADCAST;
+	// Send chat instead of doing a sound
+	trap->SendServerCommand(-1, va("chat 100 \"%s\"", bgGangWarsTeams[team == TEAM_RED ? level.redTeam : level.blueTeam].flagcapturedstring));
 }
 
 void Team_ReturnFlag( int team ) {

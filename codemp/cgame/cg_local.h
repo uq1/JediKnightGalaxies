@@ -1415,23 +1415,6 @@ typedef struct cgMedia_s {
 	sfxHandle_t deploySeeker;
 	sfxHandle_t medkitSound;
 
-	// teamplay sounds
-	sfxHandle_t redScoredSound;
-	sfxHandle_t blueScoredSound;
-	sfxHandle_t redLeadsSound;
-	sfxHandle_t blueLeadsSound;
-	sfxHandle_t teamsTiedSound;
-
-	sfxHandle_t redFlagReturnedSound;
-	sfxHandle_t blueFlagReturnedSound;
-	sfxHandle_t	redTookFlagSound;
-	sfxHandle_t blueTookFlagSound;
-
-	sfxHandle_t redYsalReturnedSound;
-	sfxHandle_t blueYsalReturnedSound;
-	sfxHandle_t	redTookYsalSound;
-	sfxHandle_t blueTookYsalSound;
-
 	sfxHandle_t	drainSound;
 
 	sfxHandle_t hitmarkerSound;
