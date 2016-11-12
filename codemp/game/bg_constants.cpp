@@ -184,6 +184,6 @@ void JKG_InitializeConstants(void)
 	DefineBaselineConstants();
 	if(!ReadConstantsFile())
 	{
-		//Com_Error(ERR_DISCONNECT, "Unable to parse the constants file.");
+		//Com_Error(ERR_DROP, "Unable to parse the constants file.");
 	}
 }

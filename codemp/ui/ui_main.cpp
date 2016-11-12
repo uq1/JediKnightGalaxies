@@ -1826,30 +1826,6 @@ static void UI_DrawEffects(rectDef_t *rect, float scale, vec4_t color)
 	UI_DrawHandlePic( rect->x, rect->y, rect->w, rect->h, uiSaberColorShaders[uiInfo.effectsColor]);
 }
 
-static void UI_DrawMapPreview(rectDef_t *rect, float scale, vec4_t color, qboolean net) {
-	int map = (net) ? ui_currentNetMap.integer : ui_currentMap.integer;
-	if (map < 0 || map > uiInfo.mapCount) {
-		if (net) {
-			ui_currentNetMap.integer = 0;
-			trap->Cvar_Set("ui_currentNetMap", "0");
-		} else {
-			ui_currentMap.integer = 0;
-			trap->Cvar_Set("ui_currentMap", "0");
-		}
-		map = 0;
-	}
-
-	if (uiInfo.mapList[map].levelShot == -1) {
-		uiInfo.mapList[map].levelShot = trap->R_RegisterShaderNoMip(uiInfo.mapList[map].imageName);
-	}
-
-	if (uiInfo.mapList[map].levelShot > 0) {
-		UI_DrawHandlePic( rect->x, rect->y, rect->w, rect->h, uiInfo.mapList[map].levelShot);
-	} else {
-		UI_DrawHandlePic( rect->x, rect->y, rect->w, rect->h, trap->R_RegisterShaderNoMip("menu/art/unknownmap_mp"));
-	}
-}						 
-
 // The game type on create server has changed - make the HUMAN/BOTS fields active 
 void UpdateBotButtons(void)
 {
@@ -1903,16 +1879,6 @@ static void UI_DrawNetFilter(rectDef_t *rect, float scale, vec4_t color, int tex
 
 	Text_Paint(rect->x, rect->y, scale, color, va("%s %s",holdSPString,
 		holdSPString2), 0, 0, textStyle, iMenuFont);
-}
-
-static const char *UI_AIFromName(const char *name) {
-	int j;
-	for (j = 0; j < uiInfo.aliasCount; j++) {
-		if (Q_stricmp(uiInfo.aliasList[j].name, name) == 0) {
-			return uiInfo.aliasList[j].ai;
-		}
-	}
-	return "Kyle";
 }
 
 static void UI_DrawAllMapsSelection(rectDef_t *rect, float scale, vec4_t color, int textStyle, qboolean net, int iMenuFont) {
@@ -2748,26 +2714,6 @@ static qboolean UI_OwnerDrawVisible(int flags) {
 	return vis;
 }
 
-static qboolean UI_Handicap_HandleKey(int flags, float *special, int key) {
-	if (key == A_MOUSE1 || key == A_MOUSE2 || key == A_ENTER || key == A_KP_ENTER) {
-		int h;
-		h = Com_Clamp( 5, 100, trap->Cvar_VariableValue("handicap") );
-		if (key == A_MOUSE2) {
-			h -= 5;
-		} else {
-			h += 5;
-		}
-		if (h > 100) {
-			h = 5;
-		} else if (h < 0) {
-			h = 100;
-		}
-		trap->Cvar_Set( "handicap", va( "%i", h) );
-		return qtrue;
-	}
-	return qfalse;
-}
-
 static qboolean UI_Effects_HandleKey(int flags, float *special, int key) {
 	if (key == A_MOUSE1 || key == A_MOUSE2 || key == A_ENTER || key == A_KP_ENTER) {
 		int team = (int)(trap->Cvar_VariableValue("ui_myteam"));
@@ -3145,29 +3091,6 @@ static qboolean UI_GameType_HandleKey(int flags, float *special, int key, qboole
 	return qfalse;
 }
 
-// If we're in the solo menu, don't let them see siege maps.
-static qboolean UI_InSoloMenu( void )
-{
-	menuDef_t *menu;
-	itemDef_t *item;
-	char *name = "solo_gametypefield";
-
-	menu = Menu_GetFocused();	// Get current menu (either video or ingame video, I would assume)
-
-	if (!menu)
-	{
-		return (qfalse);
-	}
-
-	item = Menu_FindItemByName(menu, name);
-	if (item)
-	{
-		return qtrue;
-	}
-
-	return (qfalse);
-}
-
 static qboolean UI_NetGameType_HandleKey(int flags, float *special, int key) 
 {
 	if (key == A_MOUSE1 || key == A_MOUSE2 || key == A_ENTER || key == A_KP_ENTER) 
@@ -3245,31 +3168,6 @@ static qboolean UI_JoinGameType_HandleKey(int flags, float *special, int key) {
 	}
 	return qfalse;
 }
-
-
-
-static qboolean UI_Skill_HandleKey(int flags, float *special, int key) {
-	if (key == A_MOUSE1 || key == A_MOUSE2 || key == A_ENTER || key == A_KP_ENTER) {
-		int i = trap->Cvar_VariableValue( "g_spSkill" );
-
-		if (key == A_MOUSE2) {
-			i--;
-		} else {
-			i++;
-		}
-
-		if (i < 1) {
-			i = numSkillLevels;
-		} else if (i > numSkillLevels) {
-			i = 1;
-		}
-
-		trap->Cvar_Set("g_spSkill", va("%i", i));
-		return qtrue;
-	}
-	return qfalse;
-}
-
 
 static qboolean UI_TeamName_HandleKey(int flags, float *special, int key, qboolean blue) {
 	if (key == A_MOUSE1 || key == A_MOUSE2 || key == A_ENTER || key == A_KP_ENTER) {
@@ -3926,17 +3824,6 @@ static void UI_LoadDemos( void )
 	uiInfo.loadedDemos = 0;
 	memset( uiInfo.demoList, 0, sizeof( uiInfo.demoList ) );
 	UI_LoadDemosInDirectory( &loadDemoContext, DEMO_DIRECTORY );
-}
-
-static qboolean UI_SetNextMap(int actual, int index) {
-	int i;
-	for (i = actual + 1; i < uiInfo.mapCount; i++) {
-		if (uiInfo.mapList[i].active) {
-			Menu_SetFeederSelection(NULL, FEEDER_MAPS, index + 1, "skirmish");
-			return qtrue;
-		}
-	}
-	return qfalse;
 }
 
 static void UI_Update(const char *name) {

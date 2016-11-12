@@ -23,11 +23,11 @@ if(NOT InOpenJK)
 	message(FATAL_ERROR "Use the top-level cmake script!")
 endif(NOT InOpenJK)
 
-set(MPUIIncludeDirectories "${MPDir}" "${OpenJKLibDir}" "${OpenJKLibDir}/libexpat/include")
+set(MPUIIncludeDirectories "${MPDir}" "${OpenJKLibDir}")
 if(WIN32)
 	set(MPUILibraries "odbc32" "odbccp32") # what are these even?
 endif(WIN32)
-set(MPUIDefines ${MPSharedDefines} "UI_EXPORTS" "MISSIONPACK" "_USRDLL" "IN_UI" "XML_STATIC")
+set(MPUIDefines ${MPSharedDefines} "UI_EXPORTS" "MISSIONPACK" "_USRDLL" "IN_UI")
 
 set(MPUIGameFiles
 	"${MPDir}/game/animtable.cpp"
@@ -132,35 +132,7 @@ set(MPUILibJson
 source_group("Libraries\\Json" FILES ${MPUILibJson})
 set(MPUIFiles ${MPUIFiles} ${MPUILibJson})
 
-set(MPUILibExpat
-	"${OpenJKLibDir}/libexpat/include/amigaconfig.h"
-	"${OpenJKLibDir}/libexpat/include/ascii.h"
-	"${OpenJKLibDir}/libexpat/include/asciitab.h"
-	"${OpenJKLibDir}/libexpat/include/expat.h"
-	"${OpenJKLibDir}/libexpat/include/expat_external.h"
-	"${OpenJKLibDir}/libexpat/include/iasciitab.h"
-	"${OpenJKLibDir}/libexpat/include/internal.h"
-	"${OpenJKLibDir}/libexpat/include/latin1tab.h"
-	"${OpenJKLibDir}/libexpat/include/macconfig.h"
-	"${OpenJKLibDir}/libexpat/include/nametab.h"
-	"${OpenJKLibDir}/libexpat/include/utf8tab.h"
-	"${OpenJKLibDir}/libexpat/include/watcomconfig.h"
-	"${OpenJKLibDir}/libexpat/include/winconfig.h"
-	"${OpenJKLibDir}/libexpat/include/xmlrole.h"
-	"${OpenJKLibDir}/libexpat/include/xmltok.h"
-	"${OpenJKLibDir}/libexpat/include/xmltok_impl.h"
-	)
-source_group("Libraries\\Expat" FILES ${MPUILibExpat})
-set(MPUIFiles ${MPUIFiles} ${MPUILibExpat})
-
 add_library(${MPUI} SHARED ${MPUIFiles})
-set(LibExpat
-	#"${OpenJKLibDir}/libexpat/lib/libexpat.lib"
-	"${OpenJKLibDir}/libexpat/lib/libexpatMT.lib"
-	#"${OpenJKLibDir}/libexpat/lib/libexpatw.lib"
-	#"${OpenJKLibDir}/libexpat/lib/libexpatwMT.lib"
-	)
-set(MPUILibraries ${MPUILibraries} ${LibExpat})
 
 if(NOT MSVC)
 	# remove "lib" prefix for .so/.dylib files
@@ -172,31 +144,15 @@ if(MakeApplicationBundles AND BuildMPEngine)
 		LIBRARY
 		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/JKG"
 		COMPONENT ${JKAMPCoreComponent})
-	install(TARGETS ${MPUI}
-		LIBRARY
-		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/base"
-		COMPONENT ${JKAMPCoreComponent})
 elseif(WIN32)
 	install(TARGETS ${MPUI}
 		RUNTIME
 		DESTINATION "${JKAInstallDir}/JKG"
 		COMPONENT ${JKAMPCoreComponent})
-	if (WIN64)
-		# Don't do this on 32-bit Windows to avoid overwriting
-		# vanilla JKA's DLLs
-		install(TARGETS ${MPUI}
-			RUNTIME
-			DESTINATION "${JKAInstallDir}/base"
-			COMPONENT ${JKAMPCoreComponent})
-	endif()
 else()
 	install(TARGETS ${MPUI}
 		LIBRARY
 		DESTINATION "${JKAInstallDir}/JKG"
-		COMPONENT ${JKAMPCoreComponent})
-	install(TARGETS ${MPUI}
-		LIBRARY
-		DESTINATION "${JKAInstallDir}/base"
 		COMPONENT ${JKAMPCoreComponent})
 endif()
 

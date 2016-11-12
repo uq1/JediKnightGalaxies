@@ -690,38 +690,3 @@ if(BuildMPDed)
 	set_target_properties(${MPDed} PROPERTIES PROJECT_LABEL "MP Dedicated Server (jkgalaxiesded.x86.exe)")
 	target_link_libraries(${MPDed} ${MPDedLibraries})
 endif(BuildMPDed)
-
-set(GameLibsBuilt)
-if(BuildMPGame)
-	set(GameLibsBuilt ${GameLibsBuilt} ${MPGame})
-endif()
-
-if(BuildMPCGame)
-	set(GameLibsBuilt ${GameLibsBuilt} ${MPCGame})
-endif()
-
-if(BuildMPUI)
-	set(GameLibsBuilt ${GameLibsBuilt} ${MPUI})
-endif()
-
-set(GameLibFullPaths)
-foreach(GameLib ${GameLibsBuilt})
-	set(GameLibFullPaths
-		${GameLibFullPaths}
-		${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${GameLib}${CMAKE_SHARED_LIBRARY_SUFFIX})
-endforeach(GameLib)
-
-if(BuildBinaryPK3)
-if(WIN32)
-	include(InstallZIP)
-	add_zip_command(jkgalaxies.pk3
-		FILES ${GameLibFullPaths}
-		DEPENDS "${GameLibsBuilt}")
-	add_custom_target(Assets
-		ALL
-		DEPENDS jkgalaxies.pk3)
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/jkgalaxies.pk3
-		DESTINATION "${JKAInstallDir}/JKG"
-		COMPONENT ${JKAMPCoreComponent})
-endif()
-endif()

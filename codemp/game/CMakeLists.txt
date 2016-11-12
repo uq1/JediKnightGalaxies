@@ -45,6 +45,7 @@ set(MPGameGameFiles
 	"${MPDir}/game/bg_items.cpp"
 	"${MPDir}/game/bg_jetpacks.cpp"
 	"${MPDir}/game/bg_misc.cpp"
+	"${MPDir}/game/bg_npcnames.cpp"
 	"${MPDir}/game/bg_panimate.cpp"
 	"${MPDir}/game/bg_pmove.cpp"
 	"${MPDir}/game/bg_saber.cpp"
@@ -156,6 +157,7 @@ set(MPGameGameFiles
 	"${MPDir}/game/bg_items.h"
 	"${MPDir}/game/bg_jetpacks.h"
 	"${MPDir}/game/bg_local.h"
+	"${MPDir}/game/bg_npcnames.h"
 	"${MPDir}/game/bg_public.h"
 	"${MPDir}/game/bg_saga.h"
 	"${MPDir}/game/bg_vehicles.h"
@@ -478,31 +480,15 @@ if(MakeApplicationBundles AND BuildMPEngine)
 		LIBRARY
 		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/JKG"
 		COMPONENT ${JKAMPCoreComponent})
-	install(TARGETS ${MPGame}
-		LIBRARY
-		DESTINATION "${JKAInstallDir}/${MPEngine}.app/Contents/MacOS/base"
-		COMPONENT ${JKAMPCoreComponent})
 elseif(WIN32)
 	install(TARGETS ${MPGame}
 		RUNTIME
 		DESTINATION "${JKAInstallDir}/JKG"
 		COMPONENT ${JKAMPCoreComponent})
-	if (WIN64)
-		# Don't do this on 32-bit Windows to avoid overwriting
-		# vanilla JKA's DLLs
-		install(TARGETS ${MPGame}
-			RUNTIME
-			DESTINATION "${JKAInstallDir}/base"
-			COMPONENT ${JKAMPCoreComponent})
-	endif()
 else()
 	install(TARGETS ${MPGame}
 		LIBRARY
 		DESTINATION "${JKAInstallDir}/JKG"
-		COMPONENT ${JKAMPCoreComponent})
-	install(TARGETS ${MPGame}
-		LIBRARY
-		DESTINATION "${JKAInstallDir}/base"
 		COMPONENT ${JKAMPCoreComponent})
 endif()
 

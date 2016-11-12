@@ -980,16 +980,6 @@ typedef struct cg_s {
 	int			VHUDFlashTime;
 	qboolean	VHUDTurboFlag;
 
-	// HUD stuff
-	float			HUDTickFlashTime;
-	qboolean		HUDArmorFlag;
-	qboolean		HUDHealthFlag;
-	qboolean		iconHUDActive;
-	float			iconHUDPercent;
-	float			iconSelectTime;
-	float			invenSelectTime;
-	float			forceSelectTime;
-
 	vec3_t			lastFPFlashPoint;
 
 /*
@@ -1892,7 +1882,6 @@ void CG_MissileHitPlayer( int weapon, vec3_t origin, vec3_t dir, int entityNum, 
 void CG_AddViewWeapon (playerState_t *ps);
 void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, int team, vec3_t newAngles, qboolean thirdPerson );
 void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups );
-void CG_DrawIconBackground(void);
 void CG_AnimateViewWeapon ( const playerState_t *ps );
 void JKG_CG_FillACISlot(int itemNum, int slot);
 void JKG_CG_ClearACISlot(int slot);

@@ -28,8 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 #include "ui_local.h"
 
-qboolean		m_entersound;		// after a frame, so caching won't disrupt the sound
-
 void QDECL UI_Printf( const char *msg, ... ) {
 	va_list		argptr;
 	char		text[1024] = {0};
@@ -52,21 +50,6 @@ void QDECL UI_Error( const char *msg, ... ) {
 	trap->Error( ERR_DROP, text );
 }
 
-qboolean newUI = qfalse;
-
-
-/*
-=================
-UI_ClampCvar
-=================
-*/
-float UI_ClampCvar( float min, float max, float value )
-{
-	if ( value < min ) return min;
-	if ( value > max ) return max;
-	return value;
-}
-
 /*
 =================
 UI_StartDemoLoop
@@ -76,7 +59,6 @@ void UI_StartDemoLoop( void ) {
 	trap->Cmd_ExecuteText( EXEC_APPEND, "d1\n" );
 }
 
-
 char *UI_Argv( int arg ) {
 	static char	buffer[MAX_STRING_CHARS];
 
@@ -84,7 +66,6 @@ char *UI_Argv( int arg ) {
 
 	return buffer;
 }
-
 
 char *UI_Cvar_VariableString( const char *var_name ) {
 	static char	buffer[MAX_STRING_CHARS];

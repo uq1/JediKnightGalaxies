@@ -210,7 +210,7 @@ weaponData_t *GetWeaponData( unsigned char baseIndex, unsigned char modIndex )
 	}
 
 	/* This is a serious error, this is a weapon we don't know! */
-	Com_Error( ERR_DISCONNECT, "No weapon with base %i and variation %i could be found.", baseIndex, modIndex );
+	Com_Error( ERR_DROP, "No weapon with base %i and variation %i could be found.", baseIndex, modIndex );
 	return NULL;
 }
 
