@@ -5389,7 +5389,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 #ifndef FINAL_BUILD
 	if ( g_debugDamage.integer ) {
 		trap->Print( "%i: client:%i health:%i damage:%i armor:%i\n", level.time, targ->s.number,
-			targ->health, take, asave );
+			targ->health, take, ssave );
 	}
 #endif
 

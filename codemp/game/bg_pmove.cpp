@@ -6889,9 +6889,7 @@ PmoveSingle
 */
 void PmoveSingle (pmove_t *pmove) {
 	qboolean stiffenedUp = qfalse;
-	float gDist = 0;
 	qboolean noAnimate = qfalse;
-	int savedGravity = 0;
 
 	pm = pmove;
 

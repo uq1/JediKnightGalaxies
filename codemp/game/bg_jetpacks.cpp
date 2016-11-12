@@ -11,8 +11,8 @@
 #define JETPACK_FILEBUFFER	4096
 #define JETPACK_ERRBUFFER	1024
 
-jetpackData_t jetpackTable[MAX_JETPACKS] = { 0 };
-int numLoadedJetpacks = 0;
+jetpackData_t jetpackTable[MAX_JETPACKS];
+int numLoadedJetpacks;
 
 /*
 ============================
@@ -110,7 +110,6 @@ static qboolean JKG_ParseJetpack(char* buffer, const char* fileName, jetpackData
 	char errorBuffer[JETPACK_ERRBUFFER] {0};
 	cJSON* json;
 	cJSON* jsonNode;
-	cJSON* child;
 	
 	json = cJSON_ParsePooled(buffer, errorBuffer, sizeof(errorBuffer));
 	if (json == nullptr) {

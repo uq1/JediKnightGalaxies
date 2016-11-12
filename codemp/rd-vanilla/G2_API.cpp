@@ -2616,6 +2616,7 @@ int G2API_GetSurfaceCount(CGhoul2Info_v& ghoul2) {
 		model_t	*mod = (model_t *)ghlInfo->currentModel;
 		return mod->mdxm->numSurfaces;
 	}
+	return -1;
 }
 
 int	G2API_GetSurfaceIndex(CGhoul2Info *ghlInfo, const char *surfaceName)

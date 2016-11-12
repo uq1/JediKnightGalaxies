@@ -1835,7 +1835,8 @@ void TryUse( gentity_t *ent )
 
 tryJetPack:
 	//if we got here, we didn't actually use anything else, so try to toggle jetpack if we are in the air, or if it is already on
-	if ((ent->client->ps.eFlags & EF_JETPACK_ACTIVE) || ent->client->ps.groundEntityNum == ENTITYNUM_NONE && ent->client->ps.jetpack)
+	if ((ent->client->ps.eFlags & EF_JETPACK_ACTIVE) ||
+		(ent->client->ps.groundEntityNum == ENTITYNUM_NONE && ent->client->ps.jetpack))
 	{
 		ItemUse_Jetpack(ent);
 		return;

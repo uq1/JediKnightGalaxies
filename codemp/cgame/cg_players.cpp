@@ -2003,17 +2003,13 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	if (clientNum != -1)
 	{ //don't want it using an invalid pointer to share
 		trap->G2API_ClearAttachedInstance(clientNum);
-
-		centity_t* cent = &cg_entities[clientNum];
 	}
 
 	// Check if the ghoul2 model changed in any way.  This is safer than assuming we have a legal cent shile loading info.
 	if (entitiesInitialized && ci->ghoul2Model && (oldGhoul2 != ci->ghoul2Model))
 	{	// Copy the new ghoul2 model to the centity.
-		animation_t *anim;
 		centity_t *cent = &cg_entities[clientNum];
-		
-		anim = &bgHumanoidAnimations[ (cent->currentState.legsAnim) ];
+		animation_t *anim = &bgHumanoidAnimations[ (cent->currentState.legsAnim) ];
 
 		if (anim)
 		{
@@ -2040,10 +2036,10 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 				trap->G2API_SetBoneAnim(ci->ghoul2Model, 4 + i, "model_root", firstFrame, anim->firstFrame + anim->numFrames, flags, animSpeed, cg.time, setFrame, 150);
 			}
 
-			cg_entities[clientNum].currentState.legsAnim = 0;
+			cent->currentState.legsAnim = 0;
 		}
 
-		anim = &bgHumanoidAnimations[ (cg_entities[clientNum].currentState.torsoAnim) ];
+		anim = &bgHumanoidAnimations[cent->currentState.torsoAnim];
 
 		if (anim)
 		{
@@ -2551,7 +2547,7 @@ void CG_PlayerAnimEventDo( centity_t *cent, animevent_t *animEvent )
 			theFxScheduler.PlayEffect( animEvent->eventData[AED_EFFECTINDEX], cent->lerpOrigin, qfalse );
 		}
 #else //my method
-		if (animEvent->stringData && animEvent->stringData[0] && cent && cent->ghoul2)
+		if (animEvent->stringData[0] && cent && cent->ghoul2)
 		{
 			animEvent->eventData[AED_MODELINDEX] = 0;
 			if ( ( Q_stricmpn( "*blade", animEvent->stringData, 6 ) == 0 
@@ -8246,8 +8242,6 @@ void CG_Player( centity_t *cent ) {
 
 			// Play an effect on each effect bolt
 			for (int i = 0; i < jet->visuals.effectBolts.size(); i++) {
-				const char* boltName = jet->visuals.effectBolts[i].boneBolt;
-
 				trap->G2API_GetBoltMatrix(cent->ghoul2, 3, i, &mat, cent->turAngles, cent->lerpOrigin, cg.time, cgs.gameModels, cent->modelScale);
 				BG_GiveMeVectorFromMatrix(&mat, ORIGIN, flamePos);
 				BG_GiveMeVectorFromMatrix(&mat, POSITIVE_X, flameDir);

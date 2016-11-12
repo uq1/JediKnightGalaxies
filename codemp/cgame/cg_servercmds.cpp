@@ -235,13 +235,11 @@ static void JKG_ShopConfirm( void )
 /*
 ==================
 JKG_AddToACI
-See comment in g_cmds.c --eez
+AddToACI <itemID>
 ==================
 */
-
 static void JKG_AddToACI( void )
 {
-	int itemID = atoi(CG_Argv(1));	// it passes along the item ID here though...?
 }
 
 

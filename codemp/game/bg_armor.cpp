@@ -11,11 +11,11 @@
 #define ARMOR_FILEBUFFER	4096
 #define ARMOR_ERRBUFFER		1024
 
-armorData_t armorTable[MAX_ARMOR_ITEMS] = { 0 };
-int numLoadedArmor = 0;
+armorData_t armorTable[MAX_ARMOR_ITEMS];
+int numLoadedArmor;
 
-static armorG2Reference_t g2Table[MAX_ARMOR_G2] = { 0 };
-static int numUsedG2 = 0;
+static armorG2Reference_t g2Table[MAX_ARMOR_G2];
+static int numUsedG2;
 
 #ifndef _GAME
 // FIXME: move into bg_g2_utils
