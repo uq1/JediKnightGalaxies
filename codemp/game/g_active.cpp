@@ -555,9 +555,9 @@ void	G_TouchTriggers( gentity_t *ent ) {
 		if ( !hit->touch && !ent->touch ) {
 			continue;
 		}
-		if ( !( hit->r.contents & CONTENTS_TRIGGER ) ) {
+		/*if ( !( hit->r.contents & CONTENTS_TRIGGER ) ) {
 			continue;
-		}
+		}*/
 
 		// ignore most entities if a spectator
 		if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
@@ -571,7 +571,7 @@ void	G_TouchTriggers( gentity_t *ent ) {
 
 		// use seperate code for determining if an item is picked up
 		// so you don't have to actually contact its bounding box
-		if ( hit->s.eType == ET_ITEM ) {
+		if ( hit->s.eType == ET_ITEM && hit->item && hit->item->giType != IT_TEAM) {
 			// [USE_ITEMS] Disable automatic item pickup for players
 			if ( ent->s.eType == ET_NPC && !BG_PlayerTouchesItem( &ent->client->ps, &hit->s, level.time ) ) {
 				continue;
