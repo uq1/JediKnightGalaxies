@@ -2053,7 +2053,6 @@ void ClientThink_real( gentity_t *ent ) {
 	usercmd_t	*ucmd;
 	qboolean	isNPC = qfalse;
 	qboolean	controlledByPlayer = qfalse;
-	qboolean	killJetFlags = qtrue;
 	int i;
 
 	client = ent->client;
