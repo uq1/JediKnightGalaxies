@@ -3841,7 +3841,7 @@ static void CG_RunLerpFrame( centity_t *cent, clientInfo_t *ci, lerpFrame_t *lf,
 		lf->animationNumber = 0;
 	}
 	// JKG: Freezing/stun
-	else if ( JKG_DamageTypeFreezes ((const damageType_t)cent->currentState.damageTypeFlags) )
+	else if (JKG_DamageTypeFreezes((const damageType_t)cent->currentState.damageTypeFlags) && cent->currentState.freezeTorsoAnim && cent->currentState.freezeTorsoAnim < MAX_ANIM_FILES)
 	{
 	    const animation_t *torsoAnimData = &bgAllAnims[cent->localAnimIndex].anims[cent->currentState.freezeTorsoAnim];
 	    int torsoAnimFrame = torsoAnimData->firstFrame + torsoAnimData->numFrames;
