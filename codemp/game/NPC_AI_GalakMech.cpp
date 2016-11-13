@@ -346,7 +346,7 @@ void NPC_GM_Pain(gentity_t *self, gentity_t *attacker, int damage)
 
 	if ( inflictor && inflictor->lastEnemy == self )
 	{//He force-pushed my own lobfires back at me
-		if ( mod == MOD_REPEATER_ALT && !Q_irand( 0, 2 ) )
+		/*if ( mod == MOD_REPEATER_ALT && !Q_irand( 0, 2 ) )
 		{
 			if ( TIMER_Done( self, "noRapid" ) )
 			{
@@ -371,7 +371,7 @@ void NPC_GM_Pain(gentity_t *self, gentity_t *attacker, int damage)
 			{//hopefully this will make us fire the laser
 				TIMER_Set( self, "noRapid", Q_irand( 1000, 2000 ) );
 			}
-		}
+		}*/
 	}
 }
 

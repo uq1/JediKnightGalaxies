@@ -88,8 +88,8 @@
         "spread":       1.4,
         "projectilespeed":2100.0,
         "projectileclass":"rocket_proj",
-        "meansofdeath": "MOD_ROCKET",
-        "splashmeansofdeath": "MOD_ROCKET_SPLASH",
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION",
             "accuracy": {
         "accuracyRating": 64,
         "accuracyRatingPerShot": 0,
@@ -116,8 +116,8 @@
         "spread":       1.4,
         "projectilespeed":3600.0,
         "projectileclass":"rocket_proj",
-        "meansofdeath": "MOD_ROCKET",
-        "splashmeansofdeath": "MOD_ROCKET_SPLASH",
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION",
             "accuracy": {
         "accuracyRating": 72,
         "accuracyRatingPerShot": 0,

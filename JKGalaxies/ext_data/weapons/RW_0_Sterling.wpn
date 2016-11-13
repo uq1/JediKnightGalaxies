@@ -73,21 +73,21 @@
         "spread":       0.5,
         "projectilespeed": 13000.0,	// 9 x 19 mm Parabellum velocity 1300 ft/s
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 45,
-        "accuracyRatingPerShot": 4,
-        "msToDrainAccuracy": 55,
-        "maxAccuracyAdd": 65,
-        "crouchModifier": 0.9,
-        "runModifier": 1.5,
-        "sightsModifier": 0.9,
-        "walkModifier": 1.3,
-        "inAirModifier": 1.6
+        "meansofdeath": "MOD_SLUGTHROWER",
+        "accuracy": {
+        	"accuracyRating": 45,
+        	"accuracyRatingPerShot": 4,
+        	"msToDrainAccuracy": 55,
+        	"maxAccuracyAdd": 65,
+        	"crouchModifier": 0.9,
+        	"runModifier": 1.5,
+        	"sightsModifier": 0.9,
+        	"walkModifier": 1.3,
+        	"inAirModifier": 1.6
         }
     },
 	
-	  "firemode1": {
+    "firemode1": {
         "damage":       16,
         "ballistic":    true,
         "ammocost":     1,
@@ -98,17 +98,17 @@
         "spread":       0.05,
         "projectilespeed": 13000.0,	// 9 x 19 mm Parabellum velocity 1300 ft/s
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 90,
-        "accuracyRatingPerShot": 4,
-        "msToDrainAccuracy": 55,
-        "maxAccuracyAdd": 65,
-        "crouchModifier": 0.9,
-        "runModifier": 1.5,
-        "sightsModifier": 0.9,
-        "walkModifier": 1.3,
-        "inAirModifier": 1.6
+        "meansofdeath": "MOD_SLUGTHROWER",
+        "accuracy": {
+        	"accuracyRating": 90,
+        	"accuracyRatingPerShot": 4,
+        	"msToDrainAccuracy": 55,
+        	"maxAccuracyAdd": 65,
+        	"crouchModifier": 0.9,
+        	"runModifier": 1.5,
+        	"sightsModifier": 0.9,
+        	"walkModifier": 1.3,
+        	"inAirModifier": 1.6
         }
     },
     

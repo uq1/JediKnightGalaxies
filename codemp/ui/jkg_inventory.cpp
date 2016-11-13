@@ -125,7 +125,14 @@ char* JKG_GetDamageTag(weaponData_t* pData, const int nFiringMode) {
 		// Most likely referring to blast damage
 		return JKG_GetBlastDamageTag(pData, nFiringMode);
 	}
-	return ""; // Damage stuff isn't loaded yet :<
+
+	meansOfDamage_t* means = JKG_GetMeansOfDamage(pData->firemodes[nFiringMode].weaponMOD);
+	if (means) {
+		return (char*)UI_GetStringEdString2(means->inventoryName);
+	}
+	else {
+		return "";
+	}
 }
 
 // Returns the type of a firing mode
@@ -423,9 +430,9 @@ char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLeve
 							char* szDamageTag = JKG_GetDamageTag(pWeaponData, nFiringMode);
 							int nShotCount = pFireMode->shotCount;
 							if (nShotCount > 1) {
-								return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_DAMAGE_SCATTERGUN"), nDamage, nShotCount, szDamageTag);
+								return va(UI_GetStringEdString3("@JKG_INVENTORY_WEP_DAMAGE_SCATTERGUN"), nDamage, nShotCount, szDamageTag);
 							} else {
-								return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_DAMAGE"), nDamage, szDamageTag);
+								return va(UI_GetStringEdString3("@JKG_INVENTORY_WEP_DAMAGE"), nDamage, szDamageTag);
 							}
 							break;
 						}

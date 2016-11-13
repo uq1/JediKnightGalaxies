@@ -408,8 +408,8 @@ static void turretG2_fire ( gentity_t *ent, vec3_t start, vec3_t dir )
 		bolt->dflags = (DAMAGE_NO_KNOCKBACK|DAMAGE_HEAVY_WEAP_CLASS);		// Don't push them around, or else we are constantly re-aiming
 		bolt->splashDamage = ent->splashDamage;
 		bolt->splashRadius = ent->splashDamage;
-		bolt->methodOfDeath = MOD_TARGET_LASER;//MOD_ENERGY;
-		bolt->splashMethodOfDeath = MOD_TARGET_LASER;//MOD_ENERGY;
+		bolt->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_BLASTER");//MOD_ENERGY;
+		bolt->splashMethodOfDeath = JKG_GetMeansOfDamageIndex("MOD_BLASTER");//MOD_ENERGY;
 		bolt->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 		//bolt->trigger_formation = qfalse;		// don't draw tail on first frame	
 

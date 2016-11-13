@@ -79,8 +79,8 @@
         "splashrange":  700,//250,
         "projectilespeed":5000.0,
         "projectileclass":"rocket_proj",
-        "meansofdeath": "MOD_ROCKET",	// Blow them to smithereens!
-        "splashmeansofdeath": "MOD_ROCKET_SPLASH",
+        "meansofdeath": "MOD_EXPLOSION",	// Blow them to smithereens!
+        "splashmeansofdeath": "MOD_EXPLOSION",
             "accuracy": {
         "accuracyRating": 20,
         "accuracyRatingPerShot": 16,
@@ -107,8 +107,8 @@
         "splashrange":  60,//30,
         "projectilespeed": 10000.0,
         "projectileclass":"flech_proj",
-        "meansofdeath": "MOD_CONC",
-        "splashmeansofdeath": "MOD_CONC",
+        "meansofdeath": "MOD_PULSE",
+        "splashmeansofdeath": "MOD_PULSE",
             "accuracy": {
         "accuracyRating": 24,
         "accuracyRatingPerShot": 20,

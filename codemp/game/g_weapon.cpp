@@ -206,7 +206,7 @@ void touch_GrenadeWithBouce( gentity_t *ent, gentity_t *other, trace_t *trace )
 {
 	if( other->takedamage )
 	{
-		G_Damage( other, ent, ent->parent, NULL, ent->s.origin, ent->genericValue9, 0, MOD_THERMAL );
+		G_Damage( other, ent, ent->parent, NULL, ent->s.origin, ent->genericValue9, 0, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION") );
 	}
 	G_BounceMissile( ent, trace );
 }
@@ -297,7 +297,7 @@ void WP_FireEmplacedMissile( gentity_t *ent, vec3_t start, vec3_t dir, qboolean 
 
 	missile->damage = damage;
 	missile->dflags = (DAMAGE_DEATH_KNOCKBACK|DAMAGE_HEAVY_WEAP_CLASS);
-	missile->methodOfDeath = MOD_VEHICLE;
+	missile->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 
 	if (ignore)
@@ -746,8 +746,8 @@ gentity_t *WP_FireThermalDetonator( gentity_t *ent, qboolean altFire )
 	bolt->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	bolt->s.weapon = WP_THERMAL;
 
-	bolt->methodOfDeath = MOD_THERMAL;
-	bolt->splashMethodOfDeath = MOD_THERMAL_SPLASH;
+	bolt->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
+	bolt->splashMethodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
 
 	bolt->s.pos.trTime = level.time;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
@@ -817,8 +817,8 @@ gentity_t *WP_DropThermalDetonator( gentity_t *ent, qboolean altFire )
 	bolt->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	bolt->s.weapon = WP_THERMAL;
 
-	bolt->methodOfDeath = MOD_THERMAL;
-	bolt->splashMethodOfDeath = MOD_THERMAL_SPLASH;
+	bolt->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
+	bolt->splashMethodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
 
 	bolt->s.pos.trTime = level.time;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
@@ -1015,16 +1015,16 @@ void laserTrapExplode( gentity_t *self )
 		const weaponFireModeStats_t *fireMode = GetEntsCurrentFireMode (self);
 		if ( fireMode->damageTypeHandle )
 		{
-		    JKG_DoSplashDamage (fireMode->damageTypeHandle, self->r.currentOrigin, self, self->activator, self, MOD_TRIP_MINE_SPLASH);
+			JKG_DoSplashDamage(fireMode->damageTypeHandle, self->r.currentOrigin, self, self->activator, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 		else
 		{
-		    G_RadiusDamage( self->r.currentOrigin, self->activator, self->splashDamage, self->splashRadius, self, self, MOD_TRIP_MINE_SPLASH/*MOD_LT_SPLASH*/ );
+			G_RadiusDamage(self->r.currentOrigin, self->activator, self->splashDamage, self->splashRadius, self, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 		
 		if ( fireMode->secondaryDmgHandle )
 		{
-		    JKG_DoSplashDamage (fireMode->secondaryDmgHandle, self->r.currentOrigin, self, self->activator, self, MOD_TRIP_MINE_SPLASH);
+			JKG_DoSplashDamage(fireMode->secondaryDmgHandle, self->r.currentOrigin, self, self->activator, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 
 		if( self->enemy && self->enemy->client && !OnSameTeam(self->activator, self->enemy) && self->activator != self->enemy )
@@ -1299,8 +1299,8 @@ void CreateLaserTrap( gentity_t *laserTrap, vec3_t start, gentity_t *owner )
 	laserTrap->splashDamage = LT_SPLASH_DAM;
 	laserTrap->splashRadius = LT_SPLASH_RAD;
 	laserTrap->damage = LT_DAMAGE;
-	laserTrap->methodOfDeath = MOD_TRIP_MINE_SPLASH;
-	laserTrap->splashMethodOfDeath = MOD_TRIP_MINE_SPLASH;
+	laserTrap->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
+	laserTrap->splashMethodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
 	laserTrap->s.eType = ET_GENERAL;
 	laserTrap->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	laserTrap->s.weapon = WP_TRIP_MINE;
@@ -1517,16 +1517,16 @@ void charge_stick (gentity_t *self, gentity_t *other, trace_t *trace)
 		
 		if ( fireMode->damageTypeHandle )
 		{
-		    JKG_DoSplashDamage (fireMode->damageTypeHandle, self->r.currentOrigin, self, self->parent, self, MOD_DET_PACK_SPLASH);
+			JKG_DoSplashDamage(fireMode->damageTypeHandle, self->r.currentOrigin, self, self->parent, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 		else
 		{
-		    G_RadiusDamage( self->r.currentOrigin, self->parent, self->splashDamage, self->splashRadius, self, self, MOD_DET_PACK_SPLASH );
+			G_RadiusDamage(self->r.currentOrigin, self->parent, self->splashDamage, self->splashRadius, self, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 		
 		if ( fireMode->secondaryDmgHandle )
 		{
-		    JKG_DoSplashDamage (fireMode->secondaryDmgHandle, self->r.currentOrigin, self, self->parent, self, MOD_DET_PACK_SPLASH);
+			JKG_DoSplashDamage(fireMode->secondaryDmgHandle, self->r.currentOrigin, self, self->parent, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 		
 		VectorCopy(trace->plane.normal, v);
@@ -1583,6 +1583,7 @@ void DetPackBlow(gentity_t *self)
 	vec3_t v;
 	gentity_t *te;
 	const weaponFireModeStats_t *fireMode = GetEntsCurrentFireMode (self);
+	int mod = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
 
 	self->pain = 0;
 	self->die = 0;
@@ -1590,35 +1591,33 @@ void DetPackBlow(gentity_t *self)
 
 	if ( self->target_ent )
 	{//we were attached to something, do *direct* damage to it!
-		//G_Damage( self->target_ent, self, &g_entities[self->r.ownerNum], v, self->r.currentOrigin, self->damage, 0, MOD_DET_PACK_SPLASH );
 		if ( fireMode->damageTypeHandle )
 		{
-		    JKG_DoDirectDamage (fireMode->damageTypeHandle, self->target_ent, self, self->parent, vec3_origin, self->r.currentOrigin, 0, MOD_DET_PACK_SPLASH);
+			JKG_DoDirectDamage(fireMode->damageTypeHandle, self->target_ent, self, self->parent, vec3_origin, self->r.currentOrigin, 0, mod);
 		}
 		else
 		{
-		    G_Damage( self->target_ent, self, &g_entities[self->r.ownerNum], v, self->r.currentOrigin, self->damage, 0, MOD_DET_PACK_SPLASH );
+			G_Damage(self->target_ent, self, &g_entities[self->r.ownerNum], v, self->r.currentOrigin, self->damage, 0, mod);
 		}
 		
 		if ( fireMode->secondaryDmgHandle )
 		{
-		    JKG_DoDirectDamage (fireMode->secondaryDmgHandle, self->target_ent, self, self->parent, vec3_origin, self->r.currentOrigin, 0, MOD_DET_PACK_SPLASH);
+			JKG_DoDirectDamage(fireMode->secondaryDmgHandle, self->target_ent, self, self->parent, vec3_origin, self->r.currentOrigin, 0, mod);
 		}
 	}
 	
-	//G_RadiusDamage( self->r.currentOrigin, self->parent, self->splashDamage, self->splashRadius, self, self, MOD_DET_PACK_SPLASH );
 	if ( fireMode->damageTypeHandle )
 	{
-	    JKG_DoSplashDamage (fireMode->damageTypeHandle, self->r.currentOrigin, self, self->parent, self, MOD_DET_PACK_SPLASH);
+		JKG_DoSplashDamage(fireMode->damageTypeHandle, self->r.currentOrigin, self, self->parent, self, mod);
 	}
 	else
 	{
-	    G_RadiusDamage( self->r.currentOrigin, self->parent, self->splashDamage, self->splashRadius, self, self, MOD_DET_PACK_SPLASH );
+	    G_RadiusDamage( self->r.currentOrigin, self->parent, self->splashDamage, self->splashRadius, self, self, mod );
 	}
 	
 	if ( fireMode->secondaryDmgHandle )
 	{
-	    JKG_DoSplashDamage (fireMode->secondaryDmgHandle, self->r.currentOrigin, self, self->parent, self, MOD_DET_PACK_SPLASH);
+	    JKG_DoSplashDamage (fireMode->secondaryDmgHandle, self->r.currentOrigin, self, self->parent, self, mod);
 	}
 	v[0] = 0;
 	v[1] = 0;
@@ -1683,8 +1682,8 @@ void drop_charge (gentity_t *self, vec3_t start, vec3_t dir)
 	bolt->damage = damage;
 	bolt->splashDamage = damage;
 	bolt->splashRadius = WP_GetWeaponSplashRange (self, qfalse);
-	bolt->methodOfDeath = MOD_DET_PACK_SPLASH;
-	bolt->splashMethodOfDeath = MOD_DET_PACK_SPLASH;
+	bolt->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
+	bolt->splashMethodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
 	bolt->clipmask = MASK_SHOT;
 	bolt->s.solid = 2;
 	bolt->r.contents = MASK_SHOT;
@@ -1855,6 +1854,7 @@ void WP_FireStunBaton( gentity_t *ent, qboolean alt_fire )
 	trace_t		tr;
 	vec3_t		mins, maxs, end;
 	vec3_t		muzzleStun;
+	int mod = JKG_GetMeansOfDamageIndex("MOD_ELECTRICAL");
 
 	if (!ent->client)
 	{
@@ -1906,19 +1906,18 @@ void WP_FireStunBaton( gentity_t *ent, qboolean alt_fire )
 		G_PlayEffect( EFFECT_STUNHIT, tr.endpos, tr.plane.normal );
 
 		G_Sound( tr_ent, CHAN_WEAPON, G_SoundIndex( va("sound/weapons/melee/punch%d", Q_irand(1, 4)) ) );
-		//G_Damage( tr_ent, ent, ent, forward, tr.endpos, STUN_BATON_DAMAGE, (DAMAGE_NO_KNOCKBACK|DAMAGE_HALF_ABSORB), MOD_STUN_BATON );
 		if ( fireMode->damageTypeHandle )
 		{
-		    JKG_DoDamage (fireMode->damageTypeHandle, tr_ent, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, MOD_STUN_BATON);
+		    JKG_DoDamage (fireMode->damageTypeHandle, tr_ent, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, mod);
 		}
 		else
 		{
-		    G_Damage( tr_ent, ent, ent, forward, tr.endpos, STUN_BATON_DAMAGE, (DAMAGE_NO_KNOCKBACK|DAMAGE_HALF_ABSORB), MOD_STUN_BATON );
+		    G_Damage( tr_ent, ent, ent, forward, tr.endpos, STUN_BATON_DAMAGE, (DAMAGE_NO_KNOCKBACK|DAMAGE_HALF_ABSORB), mod );
 		}
 		
 		if ( fireMode->secondaryDmgHandle )
 		{
-		    JKG_DoDamage (fireMode->secondaryDmgHandle, tr_ent, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, MOD_STUN_BATON);
+		    JKG_DoDamage (fireMode->secondaryDmgHandle, tr_ent, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, mod);
 		}
 
 		if (tr_ent->client)
@@ -2172,16 +2171,7 @@ gentity_t *WP_FireVehicleWeapon( gentity_t *ent, vec3_t start, vec3_t dir, vehWe
 		{
 			missile->clipmask |= CONTENTS_LIGHTSABER;
 		}
-		/*
-		if ( (vehWeapon->iFlags&VWF_KNOCKBACK) )
-		{
-			missile->dflags &= ~DAMAGE_DEATH_KNOCKBACK;
-		}
-		if ( (vehWeapon->iFlags&VWF_RADAR) )
-		{
-			missile->s.eFlags |= EF_RADAROBJECT;
-		}
-		*/
+
 		// Make it easier to hit things
 		VectorCopy( mins, missile->r.mins );
 		VectorCopy( maxs, missile->r.maxs );
@@ -2189,8 +2179,8 @@ gentity_t *WP_FireVehicleWeapon( gentity_t *ent, vec3_t start, vec3_t dir, vehWe
 		if ( vehWeapon->fWidth || vehWeapon->fHeight )
 		{//we assume it's a rocket-like thing
 			missile->s.weapon = WP_ROCKET_LAUNCHER;//does this really matter?
-			missile->methodOfDeath = MOD_VEHICLE;//MOD_ROCKET;
-			missile->splashMethodOfDeath = MOD_VEHICLE;//MOD_ROCKET;// ?SPLASH;
+			missile->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");//MOD_ROCKET;
+			missile->splashMethodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");//MOD_ROCKET;// ?SPLASH;
 
 			// we don't want it to ever bounce
 			missile->bounceCount = 0;
@@ -2200,8 +2190,8 @@ gentity_t *WP_FireVehicleWeapon( gentity_t *ent, vec3_t start, vec3_t dir, vehWe
 		else
 		{//a blaster-laser-like thing
 			missile->s.weapon = WP_BLASTER;//does this really matter?
-			missile->methodOfDeath = MOD_VEHICLE; //count as a heavy weap
-			missile->splashMethodOfDeath = MOD_VEHICLE;// ?SPLASH;
+			missile->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_BLASTER"); //count as a heavy weap
+			missile->splashMethodOfDeath = JKG_GetMeansOfDamageIndex("MOD_BLASTER");// ?SPLASH;
 			// we don't want it to bounce forever
 			missile->bounceCount = 8;
 		}
@@ -3691,7 +3681,7 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 		/* The traced entity is a client with saber defense 3 so we must check if we can manage to block this attack */
 		if ( traceEnt && traceEnt->client && traceEnt->client->ps.fd.forcePowerLevel[FP_SABER_DEFENSE] >= FORCE_LEVEL_3 )
 		{
-			if ( WP_SaberCanBlock( traceEnt, tr.endpos, 0, ( firemode ) ? MOD_DISRUPTOR_SNIPER : MOD_DISRUPTOR, qtrue, 0 ))
+			if ( WP_SaberCanBlock( traceEnt, tr.endpos, 0, WP_GetWeaponMOD(ent, firemode), qtrue, 0 ))
 			{
 				gentity_t *te = NULL;
 
@@ -3725,10 +3715,6 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 		/* This entity is capable of taking damage and is a client! Uses a different event */
 		if ( traceEnt->takedamage && traceEnt->client )
 		{
-			//tent = G_TempEntity( tr.endpos, EV_MISSILE_MISS );
-			//tent->s.otherEntityNum = traceEnt->s.number;
-			//tent->s.eventParm = DirToByte( tr.plane.normal );
-			//tent->s.eFlags |= EF_ALT_FIRING;
 		} 
 		else 
 		{
@@ -3740,27 +3726,22 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 					const weaponFireModeStats_t *fireMode = GetEntsCurrentFireMode (ent);
 					if ( fireMode->damageTypeHandle )
 					{
-					    JKG_DoDirectDamage (fireMode->damageTypeHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, ( firemode ) ? MOD_DISRUPTOR_SNIPER : MOD_DISRUPTOR);
+						JKG_DoDirectDamage(fireMode->damageTypeHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 					}
 					else
 					{
-					    G_Damage( traceEnt, ent, ent, forward, tr.endpos, iDamage, DAMAGE_NO_KNOCKBACK, ( firemode ) ? MOD_DISRUPTOR_SNIPER : MOD_DISRUPTOR );
+						G_Damage(traceEnt, ent, ent, forward, tr.endpos, iDamage, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 					}
 					    
 					if ( fireMode->secondaryDmgHandle )
 					{
-					    JKG_DoDirectDamage (fireMode->secondaryDmgHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, ( firemode ) ? MOD_DISRUPTOR_SNIPER : MOD_DISRUPTOR);
+						JKG_DoDirectDamage(fireMode->secondaryDmgHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 					}
-					//G_Damage( traceEnt, ent, ent, forward, tr.endpos, iDamage, DAMAGE_NO_KNOCKBACK, ( altFire ) ? MOD_DISRUPTOR_SNIPER : MOD_DISRUPTOR );
-					//tent = G_TempEntity( tr.endpos, EV_DISRUPTOR_HIT );
-					//tent->s.eventParm = DirToByte( tr.plane.normal );
 				}
 			}
 			/* This always shows the sniper miss event, it's used for both primary and secondary fire. */
 			else
 			{
-				//tent = G_TempEntity( tr.endpos, EV_DISRUPTOR_SNIPER_MISS );
-				//tent->s.eventParm = DirToByte( tr.plane.normal );
 				break;
 			}
 		}
@@ -3791,52 +3772,24 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 			/* Throw the damage at the client, we'll be able to see if we're disintegrating him after this! */
 			if ( fireMode->damageTypeHandle )
 			{
-			    JKG_DoDirectDamage (fireMode->damageTypeHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, ( firemode ) ? MOD_DISRUPTOR_SNIPER : MOD_DISRUPTOR);
+				JKG_DoDirectDamage(fireMode->damageTypeHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 			}
 			else
 			{
-			    G_Damage( traceEnt, ent, ent, forward, tr.endpos, iDamage, DAMAGE_NO_KNOCKBACK, ( firemode ) ? MOD_DISRUPTOR_SNIPER : MOD_DISRUPTOR );
+				G_Damage(traceEnt, ent, ent, forward, tr.endpos, iDamage, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 			}
 			    
 			if ( fireMode->secondaryDmgHandle )
 			{
-			    JKG_DoDirectDamage (fireMode->secondaryDmgHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, ( firemode ) ? MOD_DISRUPTOR_SNIPER : MOD_DISRUPTOR);
+				JKG_DoDirectDamage(fireMode->secondaryDmgHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 			}
-			//G_Damage( traceEnt, ent, ent, forward, tr.endpos, iDamage, DAMAGE_NO_KNOCKBACK, ( altFire ) ? MOD_DISRUPTOR_SNIPER : MOD_DISRUPTOR );
-
-			/* This client had health, is now dead and we can disruptify this client! */
-			/*if ( traceEnt->client && preHealth > 0 && traceEnt->health <= 0 && ( !ent || !ent->inuse || !ent->client || ent->s.eType != ET_NPC || ent->s.NPC_class != CLASS_VEHICLE || !ent->m_pVehicle || ent->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL ))
-			{
-				// JKG - Disintegration suppressor
-				if (!traceEnt->client->noDisintegrate) {
-					VectorCopy( preAng, traceEnt->client->ps.viewangles );
-					VectorCopy( tr.endpos, traceEnt->client->ps.lastHitLoc );
-					VectorClear( traceEnt->client->ps.velocity );
-
-					traceEnt->client->ps.eFlags		|= EF_DISINTEGRATION;
-					traceEnt->client->ps.legsAnim	 = preLegs;
-					traceEnt->client->ps.torsoAnim	 = preTorso;
-					traceEnt->r.contents			 = 0;
-				}
-			}*/
 
 			/* Remove the amount of damage hit on this client from our trace, this way even normal disruptor shots can continue! */
 			iDamage = iDamage - preHealth;
-
-			/* Create the event to show that this was a successful hit! */
-			if ( ent->s.weapon == WP_DISRUPTOR )
-			{
-				//tent = G_TempEntity( tr.endpos, EV_DISRUPTOR_HIT );
-				//tent->s.eventParm = DirToByte( tr.plane.normal );
-				//if ( traceEnt->client ) tent->s.weapon = 1;
-			}
 		}
 		/* We hit an entity that can't take damage.. therefore, show the mark and stop tracing */
 		else
 		{
-			/*tent = G_TempEntity( tr.endpos, EV_DISRUPTOR_HIT );
-			tent->s.eventParm = DirToByte( tr.plane.normal );*/
-			//tent->s.otherEntityNum = tr.entityNum;
 			return;
 		}
 

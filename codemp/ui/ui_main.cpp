@@ -7585,6 +7585,8 @@ void UI_Init( qboolean inGameLoad ) {
 	const char *menuSet;
 	int start;
 
+	JKG_LoadMeansOfDamage();
+
 	// Get the list of possible languages
 	uiInfo.languageCount = trap->SE_GetNumLanguages();	// this does a dir scan, so use carefully
 

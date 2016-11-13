@@ -57,7 +57,7 @@
         "firedelay":    1000,
         "splashrange":  120,
         "projectileclass":"laserTrap",
-        "splashmeansofdeath": "MOD_TRIP_MINE_SPLASH"
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "playeranims": {

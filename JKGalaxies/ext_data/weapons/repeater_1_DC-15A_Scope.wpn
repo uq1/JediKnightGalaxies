@@ -83,17 +83,17 @@
         "spread":       0.5,
         "projectilespeed": 4000.0,
         "projectileclass":"blaster_proj",
-        "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 55,
-        "accuracyRatingPerShot": 4,
-        "msToDrainAccuracy": 50,
-        "maxAccuracyAdd": 65,
-        "crouchModifier": 0.8,
-        "runModifier": 1.6,
-        "sightsModifier": 0.85,
-        "walkModifier": 1.3,
-        "inAirModifier": 1.8
+        "meansofdeath": "MOD_BLASTER",
+        "accuracy": {
+        	"accuracyRating": 55,
+        	"accuracyRatingPerShot": 4,
+        	"msToDrainAccuracy": 50,
+        	"maxAccuracyAdd": 65,
+        	"crouchModifier": 0.8,
+        	"runModifier": 1.6,
+        	"sightsModifier": 0.85,
+        	"walkModifier": 1.3,
+        	"inAirModifier": 1.8
         }
     },
         

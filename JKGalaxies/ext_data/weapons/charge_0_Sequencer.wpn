@@ -51,7 +51,7 @@
         "firedelay":    1000,
         "splashrange":  260,
         "projectileclass":"detpack",
-        "splashmeansofdeath": "MOD_DET_PACK_SPLASH"
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "firemode1": { },

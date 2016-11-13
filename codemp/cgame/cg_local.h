@@ -35,9 +35,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "cg_weapons.h"
 
-//eezstreet edit
 #include "jkg_cg_damagetypes.h"
 #include "game/jkg_gangwars.h"
+#include "game/bg_damage.h"
 
 // The entire cgame module is unloaded and reloaded on each level change,
 // so there is NO persistant data between levels on the client side.

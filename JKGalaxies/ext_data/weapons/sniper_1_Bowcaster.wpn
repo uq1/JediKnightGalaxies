@@ -87,17 +87,17 @@
         "spread":       0.5,
         "projectilespeed": 8000.0,
         "projectileclass": "bowcaster_proj",
-        "meansofdeath": "MOD_BOWCASTER",
-            "accuracy": {
-        "accuracyRating": 25,
-        "accuracyRatingPerShot": 6,
-        "msToDrainAccuracy": 140,
-        "maxAccuracyAdd": 65,
-        "crouchModifier": 0.9,
-        "runModifier": 1.6,
-        "sightsModifier": 0.65,
-        "walkModifier": 1.4,
-        "inAirModifier": 2.1
+        "meansofdeath": "MOD_ACP",
+        "accuracy": {
+        	"accuracyRating": 25,
+        	"accuracyRatingPerShot": 6,
+        	"msToDrainAccuracy": 140,
+        	"maxAccuracyAdd": 65,
+        	"crouchModifier": 0.9,
+        	"runModifier": 1.6,
+        	"sightsModifier": 0.65,
+        	"walkModifier": 1.4,
+        	"inAirModifier": 2.1
         }
     },
     

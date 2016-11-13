@@ -2549,6 +2549,8 @@ Ghoul2 Insert Start
 	CG_InitItems();
 
 	CG_PmoveClientPointerUpdate();
+
+	JKG_LoadMeansOfDamage();
 	
 	// Yum, ammo
 	BG_InitializeAmmo();

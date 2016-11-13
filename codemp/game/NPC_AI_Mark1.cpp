@@ -172,7 +172,7 @@ void Mark1Dead_FireRocket (void)
 	missile->damage = damage;
 	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
 	//missile->methodOfDeath = MOD_ENERGY;
-	missile->methodOfDeath = MOD_ROCKET;
+	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 	missile->splashDamage = BOWCASTER_SPLASH_DAMAGE;
 	missile->splashRadius = BOWCASTER_SPLASH_RADIUS;
@@ -216,7 +216,7 @@ void Mark1Dead_FireBlaster (void)
 
 	missile->damage = 1;
 	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
-	missile->methodOfDeath = MOD_BRYAR_PISTOL;
+	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 
 }
@@ -501,7 +501,7 @@ void Mark1_FireBlaster(void)
 
 	missile->damage = 1;
 	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
-	missile->methodOfDeath = MOD_BRYAR_PISTOL;
+	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 
 }
@@ -607,7 +607,7 @@ void Mark1_FireRocket(void)
 
 	missile->damage = damage;
 	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
-	missile->methodOfDeath = MOD_ROCKET;
+	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 	missile->splashDamage = BOWCASTER_SPLASH_DAMAGE;
 	missile->splashRadius = BOWCASTER_SPLASH_RADIUS;

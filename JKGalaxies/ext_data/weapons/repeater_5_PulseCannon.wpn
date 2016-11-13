@@ -79,17 +79,17 @@
         "spread":       0.8,
         "projectilespeed": 3000.0,
         "projectileclass":"blaster_proj",
-        "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 63,
-        "accuracyRatingPerShot": 2,
-        "msToDrainAccuracy": 72,
-        "maxAccuracyAdd": 75,
-        "crouchModifier": 0.9,
-        "runModifier": 1.5,
-        "sightsModifier": 0.88,
-        "walkModifier": 1.2,
-        "inAirModifier": 1.7
+        "meansofdeath": "MOD_PULSE",
+        "accuracy": {
+        	"accuracyRating": 63,
+        	"accuracyRatingPerShot": 2,
+        	"msToDrainAccuracy": 72,
+        	"maxAccuracyAdd": 75,
+        	"crouchModifier": 0.9,
+        	"runModifier": 1.5,
+        	"sightsModifier": 0.88,
+        	"walkModifier": 1.2,
+        	"inAirModifier": 1.7
         }
     },
     
@@ -107,18 +107,18 @@
         "spread":       0.8,
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_DISRUPTOR_SNIPER",
-        "splashmeansofdeath": "MOD_REPEATER_ALT_SPLASH",
-            "accuracy": {
-        "accuracyRating": 70,
-        "accuracyRatingPerShot": 7,
-        "msToDrainAccuracy": 72,
-        "maxAccuracyAdd": 65,
-        "crouchModifier": 0.92,
-        "runModifier": 1.6,
-        "sightsModifier": 0.9,
-        "walkModifier": 1.3,
-        "inAirModifier": 1.8
+        "meansofdeath": "MOD_PULSE",
+        "splashmeansofdeath": "MOD_PULSE",
+        "accuracy": {
+        	"accuracyRating": 70,
+        	"accuracyRatingPerShot": 7,
+        	"msToDrainAccuracy": 72,
+        	"maxAccuracyAdd": 65,
+        	"crouchModifier": 0.92,
+        	"runModifier": 1.6,
+        	"sightsModifier": 0.9,
+        	"walkModifier": 1.3,
+        	"inAirModifier": 1.8
         }
     },
     

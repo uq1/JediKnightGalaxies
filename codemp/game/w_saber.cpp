@@ -5700,22 +5700,7 @@ void WP_SaberStartMissileBlockCheck( gentity_t *self, usercmd_t *ucmd  )
 			{
 				NPC_Humanoid_Ambush( self );
 			}
-			if ( self->client->NPC_class == CLASS_BOBAFETT 
-				&& (self->client->ps.eFlags2&EF2_FLYING)//moveType == MT_FLYSWIM 
-				&& incoming->methodOfDeath != MOD_ROCKET_HOMING )
-			{//a hovering Boba Fett, not a tracking rocket
-				if ( !Q_irand( 0, 1 ) )
-				{//strafe
-					self->NPC->standTime = 0;
-					self->client->ps.fd.forcePowerDebounce[FP_SABER_DEFENSE] = level.time + Q_irand( 1000, 2000 );
-				}
-				if ( !Q_irand( 0, 1 ) )
-				{//go up/down
-					TIMER_Set( self, "heightChange", Q_irand( 1000, 3000 ) );
-					self->client->ps.fd.forcePowerDebounce[FP_SABER_DEFENSE] = level.time + Q_irand( 1000, 2000 );
-				}
-			}
-			else if ( NPC_Humanoid_SaberBlockGo( self, &self->NPC->last_ucmd, NULL, NULL, incoming, 0.0f ) != EVASION_NONE )
+			if ( NPC_Humanoid_SaberBlockGo( self, &self->NPC->last_ucmd, NULL, NULL, incoming, 0.0f ) != EVASION_NONE )
 			{//make sure to turn on your saber if it's not on
 				if ( self->client->NPC_class != CLASS_BOBAFETT )
 				{

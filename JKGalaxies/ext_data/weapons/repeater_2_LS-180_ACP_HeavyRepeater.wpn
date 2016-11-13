@@ -77,17 +77,17 @@
         "spread":       1.0,
         "projectilespeed": 8000.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 50,
-        "accuracyRatingPerShot": 5,
-        "msToDrainAccuracy": 75,
-        "maxAccuracyAdd": 75,
-        "crouchModifier": 0.95,
-        "runModifier": 1.5,
-        "sightsModifier": 0.99,
-        "walkModifier": 1.3,
-        "inAirModifier": 2
+        "meansofdeath": "MOD_ACP",
+        "accuracy": {
+        	"accuracyRating": 50,
+        	"accuracyRatingPerShot": 5,
+        	"msToDrainAccuracy": 75,
+        	"maxAccuracyAdd": 75,
+        	"crouchModifier": 0.95,
+        	"runModifier": 1.5,
+        	"sightsModifier": 0.99,
+        	"walkModifier": 1.3,
+        	"inAirModifier": 2
         }
     },
 
@@ -104,18 +104,18 @@
         "splashrange":  400,//200,
         "projectilespeed":1700.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER_ALT",
-        "splashmeansofdeath": "MOD_REPEATER_ALT",
-            "accuracy": {
-        "accuracyRating": 105,
-        "accuracyRatingPerShot": 15,
-        "msToDrainAccuracy": 75,
-        "maxAccuracyAdd": 150,
-        "crouchModifier": 1,
-        "runModifier": 2,
-        "sightsModifier": 1,
-        "walkModifier": 1.6,
-        "inAirModifier": 2.5
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION",
+        "accuracy": {
+        	"accuracyRating": 105,
+        	"accuracyRatingPerShot": 15,
+        	"msToDrainAccuracy": 75,
+        	"maxAccuracyAdd": 150,
+        	"crouchModifier": 1,
+        	"runModifier": 2,
+        	"sightsModifier": 1,
+        	"walkModifier": 1.6,
+        	"inAirModifier": 2.5
         }
     },
     
