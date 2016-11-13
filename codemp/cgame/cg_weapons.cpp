@@ -106,9 +106,6 @@ void CG_InitWeapons ( void )
 	memset (cg_weapons, 0, sizeof (cg_weapons));
 }
 
-/*
-Ghoul2 Insert Start
-*/
 // set up the appropriate ghoul2 info to a refent
 void CG_SetGhoul2InfoRef( refEntity_t *ent, refEntity_t	*s1)
 {
@@ -117,10 +114,6 @@ void CG_SetGhoul2InfoRef( refEntity_t *ent, refEntity_t	*s1)
 	ent->radius = s1->radius;
 	VectorCopy( s1->angles, ent->angles);
 }
-
-/*
-Ghoul2 Insert End
-*/
 
 /*
 =================
@@ -157,9 +150,7 @@ void CG_RegisterItemVisuals( int itemNum ) {
 	{
 		itemInfo->models[0] = trap->R_RegisterModel( item->world_model[0] );
 	}
-/*
-Ghoul2 Insert Start
-*/
+
 	if (!Q_stricmp(&item->world_model[0][strlen(item->world_model[0]) - 4], ".glm"))
 	{
 		handle = trap->G2API_InitGhoul2Model(&itemInfo->g2Models[0], item->world_model[0], 0 , 0, 0, 0, 0);
@@ -172,9 +163,7 @@ Ghoul2 Insert Start
 			itemInfo->radius[0] = 60;
 		}
 	}
-/*
-Ghoul2 Insert End
-*/
+
 	if (item->icon)
 	{
 		if (item->giType == IT_HEALTH)
@@ -635,10 +624,35 @@ static void JKG_SprintViewmodelAnimation(vec3_t origin, vec3_t angles, weaponDat
 
 /*
 ==============
+JKG_ViewmodelMomentum
+==============
+*/
+static void JKG_ViewmodelMomentum(vec3_t angles) {
+	static vec3_t prevAngles = { 0.0f };
+	vec3_t playAngles;
+	
+	VectorCopy(cg.predictedPlayerState.viewangles, playAngles);
+
+	vec3_t delta = {
+		AngleSubtract(playAngles[PITCH], prevAngles[PITCH]),
+		0,
+		AngleSubtract(playAngles[YAW], prevAngles[YAW])
+	};
+
+	// Damp the changes so it's not as jerky
+	const float f = std::abs(1.0f / jkg_viewmodelMomentumDamp.value);
+	const float dampRatio = 1.0f / std::pow(f, jkg_viewmodelMomentumInterval.value);
+	VectorMA(playAngles, dampRatio, delta, angles);
+
+	// Copy the new value over to the previous
+	VectorCopy(playAngles, prevAngles);
+}
+
+/*
+==============
 CG_CalculateWeaponPosition
 ==============
 */
-
 static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 	float	scale;
 	float	swayscale;
@@ -675,6 +689,11 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 			(LAND_DEFLECT_TIME + LAND_RETURN_TIME - delta) / LAND_RETURN_TIME;
 	}
 
+	// Move the gun around if we've been changing our view around a lot
+	if (jkg_viewmodelMomentum.integer) {
+		JKG_ViewmodelMomentum(angles);
+	}
+
 	// Tilt the gun at extreme low/high pitch values
 	JKG_ViewPitchGunTilt(origin, ironSightsPhase, sprintPhase);
 
@@ -700,15 +719,6 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 		VectorMA(origin, jkg_sightsBobZ.value * scale * cg.bobfracsin * ironSightsPhase, cg.refdef.viewaxis[2], origin);
 	}
 
-#if 0
-	// drop the weapon when stair climbing
-	delta = cg.time - cg.stepTime;
-	if ( delta < STEP_TIME/2 ) {
-		origin[2] -= cg.stepChange*0.25 * delta / (STEP_TIME/2);
-	} else if ( delta < STEP_TIME ) {
-		origin[2] -= cg.stepChange*0.25 * (STEP_TIME - delta) / (STEP_TIME/2);
-	}
-#endif
 }
 
 /*
@@ -777,9 +787,6 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	JKG_WeaponIndicators_Update(cent, ps);
 
 	weapon = CG_WeaponInfo (weaponNum, cent->currentState.weaponVariation);
-/*
-Ghoul2 Insert Start
-*/
 
 	memset( &gun, 0, sizeof( gun ) );
 
@@ -842,16 +849,6 @@ Ghoul2 Insert Start
 			cg.snap->ps.clientNum))
 		{
 			CG_AddWeaponWithPowerups( &gun, cent->currentState.powerups ); //don't draw the weapon if the player is invisible
-			/*
-			if ( weaponNum == WP_STUN_BATON )
-			{
-				gun.shaderRGBA[0] = gun.shaderRGBA[1] = gun.shaderRGBA[2] = 25;
-	
-				gun.customShader = trap->R_RegisterShader( "gfx/effects/stunPass" );
-				gun.renderfx = RF_RGB_TINT | RF_FIRST_PERSON | RF_DEPTHHACK;
-				trap->R_AddRefEntityToScene( &gun );
-			}
-			*/
 		}
 
 		if (weaponNum == WP_STUN_BATON)
@@ -900,66 +897,7 @@ Ghoul2 Insert Start
 				i++;
 			}
 		}
-		else
-		{
-            #if 0
-			// add the spinning barrel
-			if ( weapon->barrelModel ) {
-				memset( &barrel, 0, sizeof( barrel ) );
-				VectorCopy( parent->lightingOrigin, barrel.lightingOrigin );
-				barrel.shadowPlane = parent->shadowPlane;
-				barrel.renderfx = parent->renderfx;
-
-				barrel.hModel = weapon->barrelModel;
-				angles[YAW] = 0;
-				angles[PITCH] = 0;
-				angles[ROLL] = 0;
-
-				AnglesToAxis( angles, barrel.axis );
-
-				CG_PositionRotatedEntityOnTag( &barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel" );
-
-				CG_AddWeaponWithPowerups( &barrel, cent->currentState.powerups );
-			}
-			#endif
-		}
 	}
-/*
-Ghoul2 Insert End
-*/
-
-	
-	// E-11 Laser sight (WIP)
-	/*
-	if (weaponNum  == WP_BLASTER) {
-		refEntity_t tmp;
-		trace_t tr;
-		vec3_t org;
-		vec3_t dest;
-		vec3_t delta;
-		vec3_t dir;
-		memset( &tmp, 0, sizeof( tmp ) );
-		CG_PositionEntityOnTag( &tmp, &gun, gun.hModel, "tag_laser");
-		if (thirdPerson || !ps) {	
-			VectorCopy(tmp.origin, dest);
-			VectorCopy(tmp.axis[0], dir);
-			VectorMA(dest, 256, dir, org);
-			CG_G2Trace(&tr, dest, NULL, NULL, org, cent->currentState.number, MASK_PLAYERSOLID);
-			VectorCopy(tr.endpos, org);
-			VectorSubtract(dest, org, delta);
-			vectoangles(delta, dir);
-			AngleVectors(dir, dir, NULL, NULL);
-		} else {
-			VectorCopy(tmp.origin, dest);
-			VectorCopy(cg_crosshairPos, org);
-			VectorSubtract(dest, org, delta);
-			vectoangles(delta, dir);
-			AngleVectors(dir, dir, NULL, NULL);
-		}
-
-		trap->FX_PlayEffectID(trap->FX_RegisterEffect("blaster/laser.efx"), org, dir, -1, -1);				
-	}
-	*/
 
 	memset (&flash, 0, sizeof(flash));
 	CG_PositionEntityOnTag( &flash, &gun, gun.hModel, "tag_flash");
@@ -968,11 +906,8 @@ Ghoul2 Insert End
 
 	// Do special charge bits
 	//-----------------------
-	//[TrueView]
 	//Make the guns do their charging visual in True View.
 	if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number || cg_trueguns.integer) &&
-	//if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number) &&
-	//[/TrueView]
 		( ( cent->currentState.modelindex2 == WEAPON_CHARGING_ALT && cent->currentState.weapon == WP_BRYAR_PISTOL ) ||
 		  ( cent->currentState.modelindex2 == WEAPON_CHARGING_ALT && cent->currentState.weapon == WP_BRYAR_OLD ) ||
 		  ( cent->currentState.weapon == WP_BOWCASTER && cent->currentState.modelindex2 == WEAPON_CHARGING ) ||
@@ -1069,12 +1004,8 @@ Ghoul2 Insert End
 		}
 	}
 
-	//[TrueView]
 	if ( ps || cg.renderingThirdPerson || cg_trueguns.integer 
 		|| cent->currentState.number != cg.predictedPlayerState.clientNum ) 
-	//if ( ps || cg.renderingThirdPerson ||
-	//		cent->currentState.number != cg.predictedPlayerState.clientNum ) 
-	//[/TrueView] 
 	{	// Make sure we don't do the thirdperson model effects for the local player if we're in first person
 		vec3_t flashorigin, flashdir;
 		refEntity_t	flash;
@@ -1162,7 +1093,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	float		fovOffset;
 	vec3_t		angles;
 	weaponInfo_t	*weapon;
-	//[TrueView]
 	float	cgFov;
 
 	if(!cg.renderingThirdPerson && (cg_trueguns.integer || cg.predictedPlayerState.weapon == WP_SABER
@@ -1176,8 +1106,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	{
 		cgFov = cg_fov.value;
 	}
-	//float	cgFov = cg_fov.value;
-	//[TrueView]
 
 	if (cgFov < 1)
 	{
@@ -1198,7 +1126,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	}
 
 	// no gun if in third person view or a camera is active
-	//if ( cg.renderingThirdPerson || cg.cameraMode) {
 	if ( cg.renderingThirdPerson ) {
 		return;
 	}
@@ -1210,11 +1137,8 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	}
 
 	// allow the gun to be completely removed
-		//[TrueView]
 	if ( !cg_drawGun.integer || cg.predictedPlayerState.zoomMode || cg_trueguns.integer
 		|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE) {
-	//if ( !cg_drawGun.integer || cg.predictedPlayerState.zoomMode) {
-	//[TrueView]
 		vec3_t		origin;
 
 		if ( cg.predictedPlayerState.eFlags & EF_FIRING ) {
@@ -1841,94 +1765,6 @@ void CG_GetClientWeaponMuzzleBoltPoint(int clIndex, vec3_t to)
 	BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, to);
 }
 
-/*
-================
-CG_FireWeapon
-
-Caused by an EV_FIRE_WEAPON event
-================
-*/
-void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
-	entityState_t *ent;
-	int				c;
-	weaponInfo_t	*weap;
-	vec3_t			viewangles;
-
-	trap->JKG_GetViewAngles(viewangles);
-	
-
-	ent = &cent->currentState;
-	if ( ent->weapon == WP_NONE ) {
-		return;
-	}
-	if ( ent->weapon >= WP_NUM_WEAPONS ) {
-		trap->Error( ERR_DROP, "CG_FireWeapon: ent->weapon >= WP_NUM_WEAPONS" );
-		return;
-	}
-	weap = CG_WeaponInfo (ent->weapon, 0);
-	cent->muzzleFlashTime = cg.time;
-
-	if ( cg.predictedPlayerState.clientNum == cent->currentState.number )
-	{
-		weaponData_t *thisWeaponData = GetWeaponData( cg.snap->ps.weapon, cg.snap->ps.weaponVariation );
-		float		  fRecoil		 = thisWeaponData->firemodes[cg.snap->ps.firingMode].recoil;
-
-		if ( fRecoil )
-		{
-			float fYawRecoil = flrand( 0.15 * fRecoil, 0.25 * fRecoil );
-			CGCam_Shake( flrand( 0.85 * fRecoil, 0.15 * fRecoil), 100 );
-			viewangles[YAW] += Q_irand( 0, 1 ) ? -fYawRecoil : fYawRecoil; // yaw
-			viewangles[PITCH] -= fRecoil; // pitch
-		}
-	}
-	// lightning gun only does this this on initial press
-	if ( ent->weapon == WP_DEMP2 ) {
-		if ( cent->pe.lightningFiring ) {
-			return;
-		}
-	}
-
-	// play a sound
-	if (altFire)
-	{
-		// play a sound
-		for ( c = 0 ; c < 4 ; c++ ) {
-			if ( !weap->altFlashSound[c] ) {
-				break;
-			}
-		}
-		if ( c > 0 ) {
-			c = rand() % c;
-			if ( weap->altFlashSound[c] )
-			{
-				trap->S_StartSound( NULL, ent->number, CHAN_WEAPON, weap->altFlashSound[c] );
-			}
-		}
-//		if ( weap->altFlashSnd )
-//		{
-//			trap->S_StartSound( NULL, ent->number, CHAN_WEAPON, weap->altFlashSnd );
-//		}
-	}
-	else
-	{	
-		// play a sound
-		for ( c = 0 ; c < 4 ; c++ ) {
-			if ( !weap->flashSound[c] ) {
-				break;
-			}
-		}
-		if ( c > 0 ) {
-			c = rand() % c;
-			if ( weap->flashSound[c] )
-			{
-				trap->S_StartSound( NULL, ent->number, CHAN_WEAPON, weap->flashSound[c] );
-			}
-		}
-	}
-
-	trap->JKG_SetViewAngles(viewangles);
-}
-
 qboolean CG_VehicleWeaponImpact( centity_t *cent )
 {//see if this is a missile entity that's owned by a vehicle and should do a special, overridden impact effect
 	if ((cent->currentState.eFlags&EF_JETPACK_ACTIVE)//hack so we know we're a vehicle Weapon shot
@@ -2053,10 +1889,6 @@ qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 	return qtrue;
 
 }
-
-/*
-Ghoul2 Insert Start
-*/
 
 // clean out any g2 models we instanciated for copying purposes
 void CG_ShutDownG2Weapons(void)
@@ -2296,10 +2128,6 @@ void CG_CheckPlayerG2Weapons(playerState_t *ps, centity_t *cent)
 	}
 }
 
-/*
-Ghoul2 Insert End
-*/
-
 weaponInfo_t *CG_WeaponInfo ( unsigned int weaponNum, unsigned int variation )
 {
     static weaponInfo_t *lastInfo = NULL;
@@ -2313,10 +2141,6 @@ weaponInfo_t *CG_WeaponInfo ( unsigned int weaponNum, unsigned int variation )
         weaponInfo_t *info = &cg_weapons[0];
         unsigned int i;
         
-        #ifdef _DEBUG
-        //CG_Printf ("Attempting to load weapon %d, variation %d\n", weaponNum, variation);
-        #endif
-        
         CG_RegisterWeapon (weaponNum, variation);
         
         for ( i = 0; i < MAX_WEAPON_TABLE_SIZE; i++, info++ )
@@ -2329,7 +2153,6 @@ weaponInfo_t *CG_WeaponInfo ( unsigned int weaponNum, unsigned int variation )
         }
     }
     
-    //CG_Printf (S_COLOR_RED "Failed to find weapon info for weapon %d, variation %d.\n", weaponNum, variation);
     return CG_WeaponInfo (0, 0);
 }
 
@@ -2670,7 +2493,6 @@ static __inline void JKG_RenderChargingEffect ( centity_t *cent, const vec3_t mu
     else
     {
 		trap->FX_PlayEntityEffectID(chargingEffect, const_cast<float *>(muzzlePosition), axis, cent->boltInfo, cent->currentState.number, -1, -1);
-        //trap->FX_PlayEffectID (chargingEffect, muzzlePosition, axis[0], -1, -1);
     }
 }
 
@@ -3088,12 +2910,6 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
         CG_AddWeaponWithPowerups (&gun, s->powerups);
     }
     
-    /*static const char *barrelModels[] = {
-        "models/weapons2/stun_baton/baton_barrel.md3",
-        "models/weapons2/stun_baton/baton_barrel2.md3",
-        "models/weapons2/stun_baton/baton_barrel3.md3"
-    };*/
-    
     // Draw barrel models if any
     for ( i = 0; i < 4; i++ )
     {
@@ -3117,9 +2933,6 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
     if ( (s->modelindex2 == WEAPON_CHARGING || s->modelindex2 == WEAPON_CHARGING_ALT) &&
             weaponData->weaponRender.generic.chargingEffect )
     {
-        //vec3_t origin, angles;
-        //JKG_GetMuzzleLocation (cent, hand.angles, origin, angles);
-    
         JKG_RenderChargingEffect (
             cent,
             muzzle.origin,

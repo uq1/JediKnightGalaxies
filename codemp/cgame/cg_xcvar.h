@@ -226,4 +226,7 @@ XCVAR_DEF( jkg_debugBBox,						"0",					NULL,					CVAR_CHEAT )
 XCVAR_DEF( jkg_sightsBobX,						"0.0001",				NULL,					CVAR_CHEAT )
 XCVAR_DEF( jkg_sightsBobY,						"0.0001",				NULL,					CVAR_CHEAT )
 XCVAR_DEF( jkg_sightsBobZ,						"0.00005",				NULL,					CVAR_CHEAT )
+XCVAR_DEF( jkg_viewmodelMomentum,				"1",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( jkg_viewmodelMomentumDamp,			"0.666666",				NULL,					CVAR_CHEAT )
+XCVAR_DEF( jkg_viewmodelMomentumInterval,		"2.5",					NULL,					CVAR_CHEAT )
 #undef XCVAR_DEF

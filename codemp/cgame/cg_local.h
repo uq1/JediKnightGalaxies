@@ -1875,7 +1875,6 @@ void CG_WeaponClean_f( void );
 void CG_RegisterWeapon( int weaponNum, int variation );
 void CG_RegisterItemVisuals( int itemNum );
 
-void CG_FireWeapon( centity_t *cent, qboolean alt_fire );
 void CG_MissileHitWall(int weapon, int clientNum, vec3_t origin, vec3_t dir, impactSound_t soundType, qboolean alt_fire, int charge);
 void CG_MissileHitPlayer( int weapon, vec3_t origin, vec3_t dir, int entityNum, qboolean alt_fire);
 
