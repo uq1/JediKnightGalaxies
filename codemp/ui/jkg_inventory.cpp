@@ -630,7 +630,7 @@ void JKG_Inventory_OwnerDraw_ItemTagTop(itemDef_t* item, int ownerDrawID) {
 	int* pACI = (int*)cgImports->InventoryDataRequest(2);
 	assert(pACI != nullptr);
 	for (int i = 0; i < MAX_ACI_SLOTS; i++) {
-		if (pACI[i] == nItemNum) {
+		if (pACI[i] == pItems[nItemNum].first) {
 			Com_sprintf(item->text, sizeof(item->text), UI_GetStringEdString2("@JKG_INVENTORY_INACI"), i);
 			Item_Text_Paint(item);
 			return;
@@ -672,7 +672,7 @@ void JKG_Inventory_OwnerDraw_ItemTagBottom(itemDef_t* item, int ownerDrawID) {
 	assert(pACI != nullptr);
 
 	for (int i = 0; i < MAX_ACI_SLOTS; i++) {
-		if (pACI[i] == nItemNum) {
+		if (pACI[i] == pItems[nItemNum].first) {
 			inACI = qtrue;
 			break;
 		}
