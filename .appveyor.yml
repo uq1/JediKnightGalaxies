@@ -20,9 +20,8 @@ build_script:
 - cmd: cmake --build . --target ALL_BUILD --config Release
 
 after_build:
-- cmd: >-
-    cmake --build . --target INSTALL --config Release
-    7z a jkgalaxies-win32.zip DESTDIR/JediAcademy/*.exe DESTDIR/JediAcademy/JKG/*.dll DESTDIR/JediAcademy/*.dll
+  - cmd: cmake --build . --target INSTALL --config Release
+  - cmd: 7z a jkgalaxies-win32.zip DESTDIR/JediAcademy/*.exe DESTDIR/JediAcademy/JKG/*.dll DESTDIR/JediAcademy/*.dll
     
 artifacts:
  - path: build/jkgalaxies-win32.zip
