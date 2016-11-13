@@ -5281,6 +5281,9 @@ static void UI_RunMenuScript(char **args)
 		{
 			UI_ClampMaxPlayers();
 		}
+		else if (Q_stricmp(name, "clearfocus") == 0) {
+			// Kind of hack. The clearfocus script already gets called prior to this (where?) causes breakage.
+		}
 		else 
 		{
 			Com_Printf("unknown UI script %s\n", name);
