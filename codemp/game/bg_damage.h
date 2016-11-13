@@ -8,8 +8,8 @@
 #include <vector>
 #include <string>
 
-#define MAX_OBIT_LENGTH			32
-#define MAX_MEANSOFDAMAGE_NAME	32
+#define MAX_OBIT_LENGTH			64
+#define MAX_MEANSOFDAMAGE_NAME	64
 
 struct meansOfDamage_t {
 	char ref[MAX_MEANSOFDAMAGE_NAME];
