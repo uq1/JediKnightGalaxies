@@ -629,6 +629,8 @@ JKG_ViewmodelMomentum
 */
 static void JKG_ViewmodelMomentum(vec3_t angles) {
 	static vec3_t prevAngles = { 0.0f };
+	static vec3_t prevAngles2 = { 0.0f };
+
 	vec3_t playAngles;
 	
 	VectorCopy(cg.predictedPlayerState.viewangles, playAngles);
@@ -639,12 +641,18 @@ static void JKG_ViewmodelMomentum(vec3_t angles) {
 		AngleSubtract(playAngles[YAW], prevAngles[YAW])
 	};
 
+	// Average the difference over three frames to get the smoothest result
+	delta[PITCH] += AngleSubtract(prevAngles[PITCH], prevAngles2[PITCH]);
+	delta[ROLL] += AngleSubtract(prevAngles[YAW], prevAngles2[YAW]);
+	VectorScale(delta, 0.5f, delta);
+
 	// Damp the changes so it's not as jerky
 	const float f = std::abs(1.0f / jkg_viewmodelMomentumDamp.value);
 	const float dampRatio = 1.0f / std::pow(f, jkg_viewmodelMomentumInterval.value);
 	VectorMA(playAngles, dampRatio, delta, angles);
 
 	// Copy the new value over to the previous
+	VectorCopy(prevAngles, prevAngles2);
 	VectorCopy(playAngles, prevAngles);
 }
 
