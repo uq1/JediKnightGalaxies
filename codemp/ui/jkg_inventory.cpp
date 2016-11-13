@@ -617,35 +617,81 @@ void JKG_Inventory_OwnerDraw_ItemName(itemDef_t* item, int ownerDrawID) {
 // Top line. OwnerDrawID is the item slot number
 void JKG_Inventory_OwnerDraw_ItemTagTop(itemDef_t* item, int ownerDrawID) {
 	int nItemNum = ownerDrawID + nPosition;
+
 	memset(item->text, 0, sizeof(item->text));
-	if (nItemNum >= pItems.size()) {
+	memcpy(item->window.foreColor, colorTable[CT_CYAN], sizeof(item->window.foreColor));
+
+	if (nItemNum >= pItems.size() || nItemNum < 0) {
 		Item_Text_Paint(item);
 		return;
 	}
-	//UNUSED see below itemInstance_t* pItem = pItems[nItemNum].second;
+
 	// If it's in an ACI slot, mention this
-	// FIXME: pItem->equipped should be valid!! but it's not!!
 	int* pACI = (int*)cgImports->InventoryDataRequest(2);
 	assert(pACI != nullptr);
-	for (int i = 0; i < 10; i++) { // FIXME: use something other than literal 10, in case ACI size goes up or down
+	for (int i = 0; i < MAX_ACI_SLOTS; i++) {
 		if (pACI[i] == nItemNum) {
-			strcpy(item->text, va(UI_GetStringEdString2("@JKG_INVENTORY_INACI"), i));
-			memcpy(item->window.foreColor, colorTable[CT_CYAN], sizeof(item->window.foreColor));
-			break;
+			Com_sprintf(item->text, sizeof(item->text), UI_GetStringEdString2("@JKG_INVENTORY_INACI"), i);
+			Item_Text_Paint(item);
+			return;
 		}
 	}
+
+	// Got here, so check and see if it is equipped, or quantity is > 0
+	itemInstance_t* pItem = pItems[nItemNum].second;
+	if (pItem->equipped) {
+		Q_strncpyz(item->text, UI_GetStringEdString2("@JKG_INVENTORY_EQUIPPED"), sizeof(item->text));
+		Item_Text_Paint(item);
+		return;
+	}
+	else if (pItem->id->maxStack > 1) {
+		Com_sprintf(item->text, sizeof(item->text), UI_GetStringEdString2("@JKG_INVENTORY_QUANTITY"), pItem->quantity);
+		Item_Text_Paint(item);
+		return;
+	}
+
 	Item_Text_Paint(item);
 }
 
 // Bottom line. OwnerDrawID is the item slot number
+// Only used if we have an item in the ACI that also has a quantity
 void JKG_Inventory_OwnerDraw_ItemTagBottom(itemDef_t* item, int ownerDrawID) {
-	//int nItemNum = ownerDrawID + nPosition;
+	int nItemNum = ownerDrawID + nPosition;
+	qboolean inACI = qfalse;
+
 	memset(item->text, 0, sizeof(item->text));
-	// Currently not used
-	//if (nItemNum >= nNumInventoryItems) {
+	memcpy(item->window.foreColor, colorTable[CT_CYAN], sizeof(item->window.foreColor));
+	
+	// Check for the item being valid
+	if (nItemNum >= pItems.size() || nItemNum < 0) {
 		Item_Text_Paint(item);
 		return;
-	//}
+	}
+
+	int* pACI = (int*)cgImports->InventoryDataRequest(2);
+	assert(pACI != nullptr);
+
+	for (int i = 0; i < MAX_ACI_SLOTS; i++) {
+		if (pACI[i] == nItemNum) {
+			inACI = qtrue;
+			break;
+		}
+	}
+
+	if (!inACI) {
+		// Can't be triggered (for now) unless it's also equipped
+		Item_Text_Paint(item);
+		return;
+	}
+
+	itemInstance_t* pItem = pItems[nItemNum].second;
+	if (pItem->id->maxStack > 1) {
+		Com_sprintf(item->text, sizeof(item->text), UI_GetStringEdString2("@JKG_INVENTORY_QUANTITY"), pItem->quantity);
+		Item_Text_Paint(item);
+		return;
+	}
+	Item_Text_Paint(item);
+	return;
 }
 
 // Draws the highlight when an item is selected (ownerDrawID being the slot)

@@ -58,6 +58,12 @@ LANG_ENGLISH        "Assign to Active Combat Inventory Slot"
 REFERENCE			INACI
 LANG_ENGLISH		"Equipped in ACI Slot %i"
 
+REFERENCE		EQUIPPED
+LANG_ENGLISH		"Equipped"
+
+REFERENCE		QUANTITY
+LANG_ENGLISH		"Quantity: %i"
+
 REFERENCE           DESTROY
 LANG_ENGLISH        "Destroy"
 
