@@ -2024,9 +2024,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			{
 				trap->SendServerCommand(attacker-g_entities, va("notify 1 \"Kill: +%i Credits\"", credits));
 			}
-#else //!__MMO__
-			G_AddEvent(attacker, EV_HITMARKER_KILL, credits);
-#endif //__MMO__
 		}
 	}
 	if(jkg_bounty.integer)
