@@ -288,12 +288,21 @@ static void CG_PrintWeaponMuzzleOffset_f ( void )
 
 static void JKG_OpenInventoryMenu_f ( void )
 {
+	if (cg.demoPlayback) {
+		// Don't do this in a demo
+		return;
+	}
+
 	if (cgs.gametype != GT_DUEL) 
 		uiImports->InventoryNotify (0);
 }
 
 void JKG_OpenShopMenu_f ( void )
 {
+	if (cg.demoPlayback) {
+		// Don't do this in a demo
+		return;
+	}
 	if (cgs.gametype != GT_DUEL) 
 		uiImports->ShopNotify( 0 );
 }

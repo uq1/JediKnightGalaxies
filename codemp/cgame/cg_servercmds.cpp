@@ -220,6 +220,11 @@ static void JKG_ShopConfirm( void )
 	int creditCount = atoi(CG_Argv(1));
 	int itemID = atoi(CG_Argv(2));
 
+	if (cg.demoPlayback) {
+		// Don't do this in a demo
+		return;
+	}
+
 	/* Change the credit count in the shop UI */
 	cg.snap->ps.credits = creditCount;
 

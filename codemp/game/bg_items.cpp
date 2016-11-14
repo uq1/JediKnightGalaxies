@@ -437,16 +437,18 @@ void BG_ReceivedTradePacket(itemTradePacketType_t packet) {
 				}
 				cg.currentlyTradingWith = otherEntity;
 
-				// Open the appropriate menu
-				centity_t* cent = &cg_entities[otherEntity];
-				if (cent->currentState.eType == ET_PLAYER) {
-					// TODO - trade between players
-				}
-				else if (cent->currentState.eType == ET_NPC) {
-					JKG_OpenShopMenu_f();
-				}
-				else {
-					// TODO - corpse/container looting
+				// Open the appropriate menu, if not in a demo
+				if (!cg.demoPlayback) {
+					centity_t* cent = &cg_entities[otherEntity];
+					if (cent->currentState.eType == ET_PLAYER) {
+						// TODO - trade between players
+					}
+					else if (cent->currentState.eType == ET_NPC) {
+						JKG_OpenShopMenu_f();
+					}
+					else {
+						// TODO - corpse/container looting
+					}
 				}
 			}
 			break;
