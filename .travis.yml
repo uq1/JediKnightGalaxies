@@ -35,7 +35,6 @@ before_deploy:
   - echo "zipping into $DEPLOY_FILE_NAME"
   - cd $(pwd)/build/DESTDIR
   - zip -r $DEPLOY_FILE_NAME . -i 1/
-  - cd ../..
   - echo "deploying $DEPLOY_FILE_NAME to GitHub"
 
 deploy:
