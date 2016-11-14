@@ -807,7 +807,10 @@ BUTTON PRESSES
 ==========================
 */
 void JKG_Inventory_SelectItem(char** args) {
-	int nWhich = atoi(args[0]);
+	int nWhich;
+	if (!Int_Parse(args, &nWhich)) {
+		return;
+	}
 	if (nPosition + nWhich >= pItems.size()) {
 		nSelected = -1;
 		Menu_ShowItemByName(Menus_FindByName("jkg_inventory"), "shop_preview", qfalse);
@@ -833,7 +836,10 @@ void JKG_Inventory_ArrowDown(char** args) {
 }
 
 void JKG_Inventory_ACISlot(char** args) {
-	int nSlot = atoi(args[0]);
+	int nSlot;
+	if (!Int_Parse(args, &nSlot)) {
+		return;
+	}
 	cgImports->InventoryAttachToACI(pItems[nSelected].first, nSlot, true);
 }
 
@@ -876,7 +882,10 @@ void JKG_Inventory_UnequipArmor(char** args) {
 }
 
 void JKG_Inventory_Interact(char** args) {
-	int nArg = atoi(args[0]);
+	int nArg;
+	if (!Int_Parse(args, &nArg)) {
+		return;
+	}
 	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
 	}
