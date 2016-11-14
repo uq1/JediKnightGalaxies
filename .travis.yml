@@ -41,7 +41,7 @@ before_deploy:
 deploy:
   provider: releases
   api_key: $GITHUB_KEY
-  file_glob: true
+  overwrite: true
   file: "$DEPLOY_FILE_NAME"
   skip_cleanup: true
   on:
