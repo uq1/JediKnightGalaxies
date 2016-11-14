@@ -15,17 +15,20 @@
 		"numberPicksMin": 1,
 		"numberPicksMax": 1,
 		"picks": {
-			"pistol_KYD-21": 1,
-			"pistol_Suppressor_Adv": 1,
-			"pistol_Q2": 1,
-			"Grenade_C-14A": 2,
-			"Grenade_Plasma": 2,
-			"carbine_LT-60": 2,
-			"carbine_LT-60_S": 2,
-			"pistol_ELG-3A": 1,
-			"pistol_Suppressor": 1,
-			"pistol_ACP": 1,
-			"pistol_L8": 1
+			"pistol_KYD-21": 2,
+			"pistol_Suppressor_Adv": 2,
+			"pistol_Q2": 2,
+			"Grenade_C-14A": 3,
+			"Grenade_Plasma": 3,
+			"carbine_LT-60": 3,
+			"carbine_LT-60_S": 3,
+			"pistol_ELG-3A": 2,
+			"pistol_Suppressor": 3,
+			"pistol_ACP": 2,
+			"pistol_L8": 2,
+			"shield_knockoff2": 1,
+			"shield_blastech_imp": 2,
+			"shield_atgar": 1
 			
 		}
 	},
@@ -58,7 +61,11 @@
 			"rifle_ACP_BR_Launcher": 3,
 			"rifle_E-11A": 4,
 			"sniper_Bryar": 2,
-			"sniper_Dressy": 2
+			"sniper_Dressy": 2,
+			"shield_oviedo": 1,
+			"shield_golan_ds1": 2,
+			"shield_prax_small": 3,
+			"shield_bacnor_dread": 1
 		}
 	},
 	"genericvendor-late": {
@@ -82,7 +89,13 @@
 			"sniper_Bowcaster_H_S": 2,
 			"sniper_DXR6": 2,
 			"sniper_DLT-19_SB": 4,
-			"sniper_ACP": 1
+			"sniper_ACP": 1,
+			"shield_blastech_fleet": 2,
+			"shield_sorusuub": 4,
+			"shield_merrsonn_port": 2,
+			"shield_merrsonn_super": 1,
+			"shield_prax_medium": 3,
+			"shield_golan_ds2": 1
 		}
 	},
 	"genericvendor-rare": {
@@ -93,7 +106,9 @@
 			"launcher_W-90": 5,
 			"chem_CR-24": 10,
 			"launcher_Stouker": 5,
-			"Grenade_CryoBan": 2
+			"Grenade_CryoBan": 2,
+			"shield_knockoff2": 4,
+			"shield_merrsonn_ultra": 3
 		}
 	}
 }

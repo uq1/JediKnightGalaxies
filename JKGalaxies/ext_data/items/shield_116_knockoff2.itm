@@ -1,0 +1,14 @@
+{
+	"name":		"Questionable Knockoff Shield",
+	"internal":	"shield_knockoff2",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/Item_Icons/psd_knockoff_bloody_glow",
+	"cost":		"80",
+	
+	"capacity":	13,
+	"cooldown":	3285,
+	"regenrate":	1337,
+
+	"brokenSoundEffect":	"sound/shield/shield_broken",
+	"equippedSoundEffect":	"sound/shield/shield_equipped2"
+}

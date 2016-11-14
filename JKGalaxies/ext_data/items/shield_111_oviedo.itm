@@ -1,0 +1,15 @@
+{
+	"name":		"Oviedo Engineering Shield (Discontinued)",
+	"internal":	"shield_oviedo",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/Item_Icons/psd_bespin_m_glow",
+	"cost":		"700",
+	
+	"capacity":	65,
+	"cooldown":	8000,
+	"regenrate":	250,
+
+	"rechargeSoundEffect":	"sound/shield/shield_recharge",
+	"brokenSoundEffect":	"sound/shield/shield_broken",
+	"equippedSoundEffect":	"sound/shield/shield_equipped2"
+}

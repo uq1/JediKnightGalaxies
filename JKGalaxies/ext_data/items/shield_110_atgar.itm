@@ -1,0 +1,15 @@
+{
+	"name":		"Atgar Personal Shield",
+	"internal":	"shield_atgar",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/Item_Icons/psd_cannister_s_glow",
+	"cost":		"750",
+	
+	"capacity":	60,
+	"cooldown":	6000,
+	"regenrate":	333,
+
+	"rechargeSoundEffect":	"sound/shield/shield_recharge",
+	"brokenSoundEffect":	"sound/shield/shield_broken",
+	"equippedSoundEffect":	"sound/shield/shield_equipped2"
+}

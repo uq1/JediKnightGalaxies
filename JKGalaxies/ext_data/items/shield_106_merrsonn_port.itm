@@ -1,0 +1,15 @@
+{
+	"name":		"Merr-Sonn PSX-1 Portable Shield",
+	"internal":	"shield_merrsonn_port",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/Item_Icons/psd_engine_s_glow",
+	"cost":		"1500",
+	
+	"capacity":	50,
+	"cooldown":	10000,
+	"regenrate":	200,
+
+	"rechargeSoundEffect":	"sound/shield/shield_recharge",
+	"brokenSoundEffect":	"sound/shield/shield_broken",
+	"equippedSoundEffect":	"sound/shield/shield_equipped2"
+}

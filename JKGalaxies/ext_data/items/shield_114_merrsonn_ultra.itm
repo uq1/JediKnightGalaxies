@@ -1,0 +1,15 @@
+{
+	"name":		"Merr-Sonn PSX-2A Ultracharge",
+	"internal":	"shield_merrsonn_ultra",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/Item_Icons/psd_engine_s_glow",
+	"cost":		"2000",
+	
+	"capacity":	50,
+	"cooldown":	5000,
+	"regenrate":	111,
+
+	"rechargeSoundEffect":	"sound/shield/shield_recharge",
+	"brokenSoundEffect":	"sound/shield/shield_broken",
+	"equippedSoundEffect":	"sound/shield/shield_equipped2"
+}

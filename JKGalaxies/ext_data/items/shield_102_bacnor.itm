@@ -1,0 +1,14 @@
+{
+	"name":		"Bacnor Arms Dreadnought Shield",
+	"internal":	"shield_bacnor_dread",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/hud/i_icon_shieldwall",
+	"cost":		"800",
+	
+	"capacity":	100,
+	"cooldown":	0,
+	"regenrate":	1000,
+
+	"brokenSoundEffect":	"sound/shield/shield_broken",
+	"equippedSoundEffect":	"sound/shield/shield_equipped2"
+}
