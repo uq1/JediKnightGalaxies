@@ -86,8 +86,8 @@
         "spread":       0.15,
         "projectilespeed":2600.0,
         "projectileclass":"rocket_proj",
-        "meansofdeath": "MOD_ROCKET",
-        "splashmeansofdeath": "MOD_ROCKET_SPLASH",
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION",
             "accuracy": {
         "accuracyRating": 52,
         "accuracyRatingPerShot": 0,

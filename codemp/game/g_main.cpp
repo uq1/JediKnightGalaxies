@@ -351,6 +351,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	trap->SV_RegisterSharedMemory(gSharedBuffer.raw);
 
+	JKG_LoadMeansOfDamage();
+
 	//Load external vehicle data
 	BG_VehicleLoadParms();
 
@@ -508,6 +510,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	BG_InitializeAmmo();
 	
 	/* Initialize the weapon data table */
+	JKG_LoadMeansOfDamage();
 	BG_InitializeWeapons();
 
 	Com_Printf("-------------- serverside weapon G2\n");

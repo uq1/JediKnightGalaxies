@@ -39,7 +39,7 @@
         "damage":       20,
         "firedelay":    400,
         "range":        8.0,
-        "meansofdeath": "MOD_STUN_BATON"
+        "meansofdeath": "MOD_ELECTRICAL"
     },
 
 	// FIXME implement better charge mode
@@ -50,7 +50,7 @@
         "chargedelay":   400,
         "firedelay":     400,
         "range":         8.0,
-        "meansofdeath":  "MOD_STUN_BATON"
+        "meansofdeath":  "MOD_ELECTRICAL"
     },
     
     "playeranims": {

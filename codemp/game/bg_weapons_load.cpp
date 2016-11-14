@@ -1,6 +1,7 @@
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_local.h"
+#include "bg_damage.h"
 #include <json/cJSON.h>
 #include "../cgame/animtable.h"
 
@@ -53,74 +54,6 @@ static void BG_ParseFireModeFiringType ( weaponFireModeStats_t *fireMode, const 
         fireMode->firingType = FT_BURST;
     }
 }
-
-static const stringID_table_t MODTable[] =
-{
-	ENUM2STRING (MOD_STUN_BATON),
-	ENUM2STRING (MOD_MELEE),
-	ENUM2STRING (MOD_SABER),
-	ENUM2STRING (MOD_BRYAR_PISTOL),
-	ENUM2STRING (MOD_BRYAR_PISTOL_ALT),
-	ENUM2STRING (MOD_BLASTER),
-	ENUM2STRING (MOD_TURBLAST),
-	ENUM2STRING (MOD_DISRUPTOR),
-	ENUM2STRING (MOD_DISRUPTOR_SPLASH),
-	ENUM2STRING (MOD_DISRUPTOR_SNIPER),
-	ENUM2STRING (MOD_BOWCASTER),
-	ENUM2STRING (MOD_REPEATER),
-	ENUM2STRING (MOD_REPEATER_ALT),
-	ENUM2STRING (MOD_REPEATER_ALT_SPLASH),
-	ENUM2STRING (MOD_DEMP2),
-	ENUM2STRING (MOD_DEMP2_ALT),
-	ENUM2STRING (MOD_FLECHETTE),
-	ENUM2STRING (MOD_FLECHETTE_ALT_SPLASH),
-	ENUM2STRING (MOD_ROCKET),
-	ENUM2STRING (MOD_ROCKET_SPLASH),
-	ENUM2STRING (MOD_ROCKET_HOMING),
-	ENUM2STRING (MOD_ROCKET_HOMING_SPLASH),
-	ENUM2STRING (MOD_THERMAL),
-	ENUM2STRING (MOD_THERMAL_SPLASH),
-	ENUM2STRING (MOD_TRIP_MINE_SPLASH),
-	ENUM2STRING (MOD_TIMED_MINE_SPLASH),
-	ENUM2STRING (MOD_DET_PACK_SPLASH),
-	ENUM2STRING (MOD_VEHICLE),
-	ENUM2STRING (MOD_CONC),
-	ENUM2STRING (MOD_CONC_ALT),
-	ENUM2STRING (MOD_FORCE_DARK),
-	ENUM2STRING (MOD_SENTRY),
-	ENUM2STRING (MOD_WATER),
-	ENUM2STRING (MOD_SLIME),
-	ENUM2STRING (MOD_LAVA),
-	ENUM2STRING (MOD_CRUSH),
-	ENUM2STRING (MOD_TELEFRAG),
-	ENUM2STRING (MOD_FALLING),
-	ENUM2STRING (MOD_SUICIDE),
-	ENUM2STRING (MOD_TARGET_LASER),
-	ENUM2STRING (MOD_TRIGGER_HURT),
-	ENUM2STRING (MOD_TEAM_CHANGE),
-	
-	{ NULL, -1 }
-};
-
-/*
-// legacy jka table
-static const stringID_table_t AmmoTable[] =
-{
-    ENUM2STRING (AMMO_NONE),
-	ENUM2STRING (AMMO_FORCE),
-	ENUM2STRING (AMMO_BLASTER),
-	ENUM2STRING (AMMO_POWERCELL),
-	ENUM2STRING (AMMO_METAL_BOLTS),
-	ENUM2STRING (AMMO_CONCUSSION),
-	ENUM2STRING (AMMO_ROCKETS),
-	ENUM2STRING (AMMO_EMPLACED),
-	ENUM2STRING (AMMO_THERMAL),
-	ENUM2STRING (AMMO_TRIPMINE),
-	ENUM2STRING (AMMO_DETPACK),
-	ENUM2STRING (AMMO_MAX),
-	
-	{ NULL, -1 }
-};*/
 
 #ifdef _GAME
 #include "jkg_damagetypes.h"
@@ -488,11 +421,11 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     
     node = cJSON_GetObjectItem (fireModeNode, "meansofdeath");
     str = cJSON_ToStringOpt (node, "MOD_UNKNOWN");
-    fireModeStats->weaponMOD = GetIDForString (const_cast<stringID_table_t *>(MODTable), str);
+	fireModeStats->weaponMOD = JKG_GetMeansOfDamageIndex(str);
     
     node = cJSON_GetObjectItem (fireModeNode, "splashmeansofdeath");
     str = cJSON_ToStringOpt (node, "MOD_UNKNOWN");
-    fireModeStats->weaponSplashMOD = GetIDForString (const_cast<stringID_table_t *>(MODTable), str);
+	fireModeStats->weaponSplashMOD = JKG_GetMeansOfDamageIndex(str);
 
 	node = cJSON_GetObjectItem(fireModeNode, "useQuantity");
 	fireModeStats->useQuantity = cJSON_ToBooleanOpt(node, qfalse);

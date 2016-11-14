@@ -84,7 +84,7 @@
         "spread":       0.2,
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL"
+        "meansofdeath": "MOD_BLASTER"
     },
     
     "firemode1": {
@@ -99,7 +99,7 @@
         "spread":       0.2,
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL"
+        "meansofdeath": "MOD_BLASTER"
     },
     
     "playeranims": {

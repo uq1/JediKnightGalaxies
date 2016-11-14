@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "ui_public.h"
 #include "keycodes.h"
 #include "../game/bg_public.h"
+#include "game/bg_damage.h"
 #include "ui_shared.h"
 
 // ui_cvar.c

@@ -82,8 +82,8 @@
         "splashrange":  420,//210,
         "projectilespeed":13000.0,
         "projectileclass":"conc_proj",
-        "meansofdeath": "MOD_CONC",
-        "splashmeansofdeath": "MOD_CONC",
+        "meansofdeath": "MOD_PULSE",
+        "splashmeansofdeath": "MOD_PULSE",
             "accuracy": {
         "accuracyRating": 38,
         "accuracyRatingPerShot": 10,

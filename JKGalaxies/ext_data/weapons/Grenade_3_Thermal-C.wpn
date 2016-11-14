@@ -116,8 +116,8 @@
         "spread":       1.0,
         "projectilespeed":1100.0,
         "projectileclass":"thermal_detonator",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "firemode1": {
@@ -156,8 +156,8 @@
         "spread":       1.0,
         "projectilespeed":400.0,
         "projectileclass":"thermal_detonator",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "playeranims": {

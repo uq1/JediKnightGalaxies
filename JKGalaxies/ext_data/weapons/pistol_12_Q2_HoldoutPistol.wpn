@@ -78,12 +78,12 @@
         "spread":       0.3,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL",
-            "accuracy": {
-        "accuracyRating": 15,
-        "accuracyRatingPerShot": 1,
-        "msToDrainAccuracy": 35,
-        "maxAccuracyAdd": 35
+        "meansofdeath": "MOD_BLASTER",
+        "accuracy": {
+        	"accuracyRating": 15,
+        	"accuracyRatingPerShot": 1,
+        	"msToDrainAccuracy": 35,
+        	"maxAccuracyAdd": 35
         }
     },
     
@@ -102,11 +102,11 @@
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 1,
-        "accuracyRatingPerShot": 1,
-        "msToDrainAccuracy": 35,
-        "maxAccuracyAdd": 1
+        "accuracy": {
+        	"accuracyRating": 1,
+        	"accuracyRatingPerShot": 1,
+        	"msToDrainAccuracy": 35,
+        	"maxAccuracyAdd": 1
         }
     },
     

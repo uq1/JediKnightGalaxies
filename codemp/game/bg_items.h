@@ -61,14 +61,16 @@ typedef enum
 
 typedef enum
 {
-	IPT_ADD,	// Added an item to the inventory
-	IPT_REM,	// Removed an item from the inventory
-	IPT_ADDACI,	// Added an item to the inventory (and it is being forced to the ACI)
-	IPT_CLEAR,	// Clears the client inventory
-	IPT_OPEN,	// Tells the client to open their inventory
-	IPT_QUANT,	// An item's quantity has been changed
-	IPT_RESET,	// Reset the player's inventory (usually only done after a vid_restart)
-	IPT_NULL	// null packet
+	IPT_ADD,		// Added an item to the inventory
+	IPT_REM,		// Removed an item from the inventory
+	IPT_ADDACI,		// Added an item to the inventory (and it is being forced to the ACI)
+	IPT_CLEAR,		// Clears the client inventory
+	IPT_OPEN,		// Tells the client to open their inventory
+	IPT_QUANT,		// An item's quantity has been changed
+	IPT_RESET,		// Reset the player's inventory (usually only done after a vid_restart)
+	IPT_EQUIP,		// Equipped an item
+	IPT_UNEQUIP,	// Unequipped an item
+	IPT_NULL		// null packet
 } itemPacketType_t;
 
 typedef enum

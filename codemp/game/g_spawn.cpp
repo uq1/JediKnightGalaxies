@@ -268,8 +268,6 @@ void SP_target_give (gentity_t *ent);
 void SP_target_delay (gentity_t *ent);
 void SP_target_speaker (gentity_t *ent);
 void SP_target_print (gentity_t *ent);
-void SP_target_laser (gentity_t *self);
-void SP_target_character (gentity_t *ent);
 void SP_target_score( gentity_t *ent );
 void SP_target_teleporter( gentity_t *ent );
 void SP_target_relay (gentity_t *ent);
@@ -638,7 +636,6 @@ spawn_t	spawns[] = {
 	{ "target_give", qtrue,							SP_target_give },
 	{ "target_interest", qtrue,						SP_target_interest },
 	{ "target_kill", qtrue,							SP_target_kill },
-	{ "target_laser", qtrue,						SP_target_laser },
 	{ "target_level_change", qtrue,						SP_target_level_change },
 	{ "target_location", qtrue,						SP_target_location },
 	{ "target_play_music", qtrue,						SP_target_play_music },

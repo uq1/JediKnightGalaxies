@@ -81,17 +81,17 @@
         "spread":       2.0,
         "projectilespeed": 6000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL",
-            "accuracy": {
-        "accuracyRating": 100,
-        "accuracyRatingPerShot": 12,
-        "msToDrainAccuracy": 150,
-        "maxAccuracyAdd": 64,
-        "crouchModifier": 0.95,
-        "runModifier": 1.2,
-        "sightsModifier": 0.75,
-        "walkModifier": 1.1,
-        "inAirModifier": 1.8
+        "meansofdeath": "MOD_PULSE",
+        "accuracy": {
+        	"accuracyRating": 100,
+        	"accuracyRatingPerShot": 12,
+        	"msToDrainAccuracy": 150,
+        	"maxAccuracyAdd": 64,
+        	"crouchModifier": 0.95,
+        	"runModifier": 1.2,
+        	"sightsModifier": 0.75,
+        	"walkModifier": 1.1,
+        	"inAirModifier": 1.8
         }
     },
     
@@ -108,8 +108,8 @@
         "spread":       1.0,
         "projectilespeed":1800.0,
         "projectileclass":"thermal_detonator",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "playeranims": {

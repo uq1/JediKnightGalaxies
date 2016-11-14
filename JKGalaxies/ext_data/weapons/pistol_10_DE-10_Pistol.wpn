@@ -76,8 +76,8 @@
         "spread":       0.1,
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL",
-        "splashmeansofdeath": "MOD_BRYAR_PISTOL",
+        "meansofdeath": "MOD_BLASTER",
+        "splashmeansofdeath": "MOD_BLASTER",
         "accuracy": {
 			"accuracyRating": 15,
 			"accuracyRatingPerShot": 5,

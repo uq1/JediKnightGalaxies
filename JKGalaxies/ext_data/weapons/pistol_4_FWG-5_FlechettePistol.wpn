@@ -85,8 +85,8 @@
         "spread":       0.0,
         "projectilespeed":1600.0,//7000.0,
         "projectileclass":"flech_proj",
-        "meansofdeath": "MOD_FLECHETTE",
-        "splashmeansofdeath": "MOD_FLECHETTE",
+        "meansofdeath": "MOD_SLUGTHROWER",
+        "splashmeansofdeath": "MOD_SLUGTHROWER",
 		"accuracy": {
 			"accuracyRating": 24,
 			"crouchModifier": 0.5

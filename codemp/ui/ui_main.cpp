@@ -5281,6 +5281,9 @@ static void UI_RunMenuScript(char **args)
 		{
 			UI_ClampMaxPlayers();
 		}
+		else if (Q_stricmp(name, "clearfocus") == 0) {
+			// Kind of hack. The clearfocus script already gets called prior to this (where?) causes breakage.
+		}
 		else 
 		{
 			Com_Printf("unknown UI script %s\n", name);
@@ -7584,6 +7587,8 @@ UI_Init
 void UI_Init( qboolean inGameLoad ) {
 	const char *menuSet;
 	int start;
+
+	JKG_LoadMeansOfDamage();
 
 	// Get the list of possible languages
 	uiInfo.languageCount = trap->SE_GetNumLanguages();	// this does a dir scan, so use carefully

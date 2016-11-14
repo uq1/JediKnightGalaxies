@@ -3410,6 +3410,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 
 	//Add the ammo to weapon
 	ent->client->clipammo[weaponIndex] += ammotoadd;
+	ent->client->ps.stats[STAT_AMMO] += ammotoadd;
 
 	//Take us out of ironsights
 	//ent->client->ns.ironsightsTime &= ~IRONSIGHTS_MSB;

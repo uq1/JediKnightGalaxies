@@ -44,7 +44,7 @@ void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound
 
 /*
 ====================================
-JKG_ShieldEquipped
+JKG_ShieldUnequipped
 
 ====================================
 */
@@ -148,8 +148,6 @@ void JKG_EquipItem(gentity_t *ent, int iNum)
 		}
 
 		(*ent->inventory)[iNum].equipped = true;
-	    trap->SendServerCommand (ent->s.number, va ("ieq %d %d", iNum, prevEquipped));
-		trap->SendServerCommand (ent->s.number, va ("chw %d", item.id->weaponData.varID));
 	}
 	else if (item.id->itemType == ITEM_ARMOR){
 		armorData_t* pArm = item.id->armorData.pArm;
@@ -165,7 +163,9 @@ void JKG_EquipItem(gentity_t *ent, int iNum)
 	else
 	{
 		trap->SendServerCommand(ent->client->ps.clientNum, "print \"You cannot equip that item.\n\"");
+		return;
 	}
+	BG_SendItemPacket(IPT_EQUIP, ent, nullptr, iNum, 0);
 }
 
 /*
@@ -196,7 +196,6 @@ void JKG_UnequipItem(gentity_t *ent, int iNum)
 	if(item->id->itemType == ITEM_WEAPON)
 	{
 		item->equipped = qfalse;
-	    trap->SendServerCommand (ent->s.number, va ("iueq %i", iNum));
 	    trap->SendServerCommand (ent->s.number, "chw 0");
 	}
 	else if(item->id->itemType == ITEM_ARMOR)
@@ -210,6 +209,7 @@ void JKG_UnequipItem(gentity_t *ent, int iNum)
 	else if (item->id->itemType == ITEM_JETPACK) {
 		JKG_JetpackUnequipped(ent);
 	}
+	BG_SendItemPacket(IPT_UNEQUIP, ent, nullptr, iNum, 0);
 }
 
 /*

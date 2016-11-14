@@ -74,7 +74,7 @@
         "spread":       0.2,
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER",
+        "meansofdeath": "MOD_ACP",
         "accuracy": {
 			"accuracyRating": 45,
 			"accuracyRatingPerShot": 6,

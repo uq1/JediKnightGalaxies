@@ -99,17 +99,17 @@
         "spread":       0.2,
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 45,
-        "accuracyRatingPerShot": 4,
-        "msToDrainAccuracy": 74,
-        "maxAccuracyAdd": 80,
-        "crouchModifier": 0.96,
-        "runModifier": 1.7,
-        "sightsModifier": 0.95,
-        "walkModifier": 1.2,
-        "inAirModifier": 1.9
+        "meansofdeath": "MOD_ACP",
+        "accuracy": {
+        	"accuracyRating": 45,
+        	"accuracyRatingPerShot": 4,
+        	"msToDrainAccuracy": 74,
+        	"maxAccuracyAdd": 80,
+        	"crouchModifier": 0.96,
+        	"runModifier": 1.7,
+        	"sightsModifier": 0.95,
+        	"walkModifier": 1.2,
+        	"inAirModifier": 1.9
         }
     },
 
@@ -123,17 +123,17 @@
         "spread":       0.2,
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 35,
-        "accuracyRatingPerShot": 3,
-        "msToDrainAccuracy": 75,
-        "maxAccuracyAdd": 75,
-        "crouchModifier": 0.7,
-        "runModifier": 1.7,
-        "sightsModifier": 0.5,
-        "walkModifier": 1.2,
-        "inAirModifier": 1.9
+        "meansofdeath": "MOD_ACP",
+        "accuracy": {
+        	"accuracyRating": 35,
+        	"accuracyRatingPerShot": 3,
+        	"msToDrainAccuracy": 75,
+        	"maxAccuracyAdd": 75,
+        	"crouchModifier": 0.7,
+        	"runModifier": 1.7,
+        	"sightsModifier": 0.5,
+        	"walkModifier": 1.2,
+        	"inAirModifier": 1.9
         }
     },
     
@@ -150,18 +150,18 @@
         "splashrange":  280,//140,
         "projectilespeed":2400.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER_ALT",
-        "splashmeansofdeath": "MOD_REPEATER_ALT",
-            "accuracy": {
-        "accuracyRating": 95,
-        "accuracyRatingPerShot": 8,
-        "msToDrainAccuracy": 75,
-        "maxAccuracyAdd": 100,
-        "crouchModifier": 0.95,
-        "runModifier": 1.7,
-        "sightsModifier": 0.93,
-        "walkModifier": 1.3,
-        "inAirModifier": 2
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION",
+        "accuracy": {
+        	"accuracyRating": 95,
+        	"accuracyRatingPerShot": 8,
+        	"msToDrainAccuracy": 75,
+        	"maxAccuracyAdd": 100,
+        	"crouchModifier": 0.95,
+        	"runModifier": 1.7,
+        	"sightsModifier": 0.93,
+        	"walkModifier": 1.3,
+        	"inAirModifier": 2
         }
     },
     

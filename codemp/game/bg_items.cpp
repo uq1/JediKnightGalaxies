@@ -18,6 +18,8 @@ const stringID_table_s itemPacketNames[] = {
 	ENUM2STRING(IPT_OPEN),
 	ENUM2STRING(IPT_QUANT),
 	ENUM2STRING(IPT_RESET),
+	ENUM2STRING(IPT_EQUIP),
+	ENUM2STRING(IPT_UNEQUIP),
 	{ nullptr, IPT_NULL }
 };
 
@@ -219,6 +221,8 @@ void BG_SendItemPacket(itemPacketType_t packetType, gentity_t* ent, void* memDat
 			}
 			break;
 		case IPT_REM:
+		case IPT_EQUIP:
+		case IPT_UNEQUIP:
 			{
 				int itemSlot = intData;
 				Com_sprintf(packet, sizeof(packet), "pInv %s %i", packetName, itemSlot);
@@ -278,6 +282,7 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 			break;
 		case IPT_QUANT:
 			{
+				// Change the quantity on an item stack
 				int itemStack = atoi(CG_Argv(2));
 				int newQuant = atoi(CG_Argv(3));
 				(*cg.playerInventory)[itemStack].quantity = newQuant;
@@ -296,6 +301,7 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 			uiImports->InventoryNotify(0);
 			break;
 		case IPT_RESET:
+			// Clear the inventory and fill it with fresh data (usually from a vid_restart)
 			cg.playerInventory->clear();
 			{
 				int numItems = atoi(CG_Argv(2));
@@ -305,6 +311,26 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 					itemInstance_t item = BG_ItemInstance(itemID, quant);
 					cg.playerInventory->push_back(item);
 				}
+			}
+			break;
+		case IPT_EQUIP:
+			// Equipped an item
+			{
+				int invID = atoi(CG_Argv(2));
+				if(invID < 0 || invID >= cg.playerInventory->size()) {
+					return;
+				}
+				(*cg.playerInventory)[invID].equipped = qtrue;
+			}
+			break;
+		case IPT_UNEQUIP:
+			// Unequipped an item
+			{
+				int invID = atoi(CG_Argv(2));
+				if(invID < 0 || invID >= cg.playerInventory->size()) {
+					return;
+				}
+				(*cg.playerInventory)[invID].equipped = qfalse;
 			}
 			break;
 		default:

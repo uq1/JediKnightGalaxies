@@ -32,6 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g_public.h"
 #include "bg_ammo.h"
 #include "bg_items.h"
+#include "bg_damage.h"
 
 #include "qcommon/game_version.h"
 

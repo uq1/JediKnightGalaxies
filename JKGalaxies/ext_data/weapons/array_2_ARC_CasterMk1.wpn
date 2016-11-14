@@ -88,12 +88,12 @@
         "spread":       0.6,
         "projectilespeed": 7000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 20,
-        "accuracyRatingPerShot": 12,
-        "msToDrainAccuracy": 150,
-        "maxAccuracyAdd": 56
+        "meansofdeath": "MOD_ELECTRICAL",
+        "accuracy": {
+        	"accuracyRating": 20,
+        	"accuracyRatingPerShot": 12,
+        	"msToDrainAccuracy": 150,
+        	"maxAccuracyAdd": 56
         }
     },
 
@@ -107,12 +107,12 @@
         "spread":       0.4,
         "projectilespeed": 7000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 46,
-        "accuracyRatingPerShot": 1,
-        "msToDrainAccuracy": 150,
-        "maxAccuracyAdd": 80
+        "meansofdeath": "MOD_ELECTRICAL",
+        "accuracy": {
+        	"accuracyRating": 46,
+        	"accuracyRatingPerShot": 1,
+        	"msToDrainAccuracy": 150,
+        	"maxAccuracyAdd": 80
         }
     },
     

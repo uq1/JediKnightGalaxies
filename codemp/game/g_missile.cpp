@@ -540,19 +540,6 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		return;
 	}
 
-	/*
-	if ( !other->takedamage && ent->s.weapon == WP_THERMAL && !ent->alt_fire )
-	{//rolling thermal det - FIXME: make this an eFlag like bounce & stick!!!
-		//G_BounceRollMissile( ent, trace );
-		if ( ent->owner && ent->owner->s.number == 0 ) 
-		{
-			G_MissileAddAlerts( ent );
-		}
-		//gi.linkentity( ent );
-		return;
-	}
-	*/
-
 	if ((other->r.contents & CONTENTS_LIGHTSABER) && !isKnockedSaber)
 	{ //hit this person's saber, so..
 		gentity_t *otherOwner = &g_entities[other->r.ownerNum];
@@ -572,72 +559,8 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		}
 	}
 
-	if (other->flags & FL_DMG_BY_HEAVY_WEAP_ONLY)
-	{
-		if (ent->methodOfDeath != MOD_REPEATER_ALT &&
-			ent->methodOfDeath != MOD_ROCKET &&
-			ent->methodOfDeath != MOD_FLECHETTE_ALT_SPLASH &&
-			ent->methodOfDeath != MOD_ROCKET_HOMING &&
-			ent->methodOfDeath != MOD_THERMAL &&
-			ent->methodOfDeath != MOD_THERMAL_SPLASH &&
-			ent->methodOfDeath != MOD_TRIP_MINE_SPLASH &&
-			ent->methodOfDeath != MOD_TIMED_MINE_SPLASH &&
-			ent->methodOfDeath != MOD_DET_PACK_SPLASH &&
-			ent->methodOfDeath != MOD_VEHICLE &&
-			ent->methodOfDeath != MOD_CONC &&
-			ent->methodOfDeath != MOD_CONC_ALT &&
-			ent->methodOfDeath != MOD_SABER &&
-			ent->methodOfDeath != MOD_TURBLAST)
-		{
-			vec3_t fwd;
-
-			if (trace)
-			{
-				VectorCopy(trace->plane.normal, fwd);
-			}
-			else
-			{ //oh well
-				AngleVectors(other->r.currentAngles, fwd, NULL, NULL);
-			}
-
-			G_DeflectMissile(other, ent, fwd);
-			G_MissileBounceEffect(ent, ent->r.currentOrigin, fwd);
-			return;
-		}
-	}
-
-	if ((other->flags & FL_SHIELDED) &&
-		ent->s.weapon != WP_ROCKET_LAUNCHER &&
-		ent->s.weapon != WP_THERMAL &&
-		ent->s.weapon != WP_TRIP_MINE &&
-		ent->s.weapon != WP_DET_PACK &&
-		ent->s.weapon != WP_EMPLACED_GUN &&
-		ent->methodOfDeath != MOD_REPEATER_ALT &&
-		ent->methodOfDeath != MOD_FLECHETTE_ALT_SPLASH && 
-		ent->methodOfDeath != MOD_TURBLAST &&
-		ent->methodOfDeath != MOD_VEHICLE &&
-		ent->methodOfDeath != MOD_CONC &&
-		ent->methodOfDeath != MOD_CONC_ALT &&
-		!(ent->dflags&DAMAGE_HEAVY_WEAP_CLASS) )
-	{// entity is shielded
-		vec3_t fwd;
-
-		if (other->client)
-		{
-			AngleVectors(other->client->ps.viewangles, fwd, NULL, NULL);
-		}
-		else
-		{
-			AngleVectors(other->r.currentAngles, fwd, NULL, NULL);
-		}
-
-		G_DeflectMissile(other, ent, fwd);
-		G_MissileBounceEffect(ent, ent->r.currentOrigin, fwd);
-		return;
-	}
-
 	// SABERFIXME: make this based on .wpn file? some conc rifles should be able to be deflected...
-	if (other->takedamage && other->client &&
+	/*if (other->takedamage && other->client &&
 		ent->s.weapon != WP_ROCKET_LAUNCHER &&
 		ent->s.weapon != WP_THERMAL &&
 		ent->s.weapon != WP_TRIP_MINE &&
@@ -661,10 +584,6 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		te->s.weapon = 0;//saberNum
 		te->s.legsAnim = 0;//bladeNum
 
-		/*if (other->client->ps.velocity[2] > 0 ||
-			other->client->pers.cmd.forwardmove ||
-			other->client->pers.cmd.rightmove)
-			*/
 		if (other->client->ps.velocity[2] > 0 ||
 			other->client->pers.cmd.forwardmove < 0) //now we only do it if jumping or running backward. Should be able to full-on charge.
 		{
@@ -692,7 +611,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		}
 		return;
 	}
-	else if ((other->r.contents & CONTENTS_LIGHTSABER) && !isKnockedSaber)
+	else */if ((other->r.contents & CONTENTS_LIGHTSABER) && !isKnockedSaber)
 	{ //hit this person's saber, so..
 		gentity_t *otherOwner = &g_entities[other->r.ownerNum];
 
@@ -700,11 +619,11 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 			ent->s.weapon != WP_ROCKET_LAUNCHER &&
 			ent->s.weapon != WP_THERMAL &&
 			ent->s.weapon != WP_TRIP_MINE &&
-			ent->s.weapon != WP_DET_PACK &&
+			ent->s.weapon != WP_DET_PACK/* &&
 			ent->methodOfDeath != MOD_REPEATER_ALT &&
 			ent->methodOfDeath != MOD_FLECHETTE_ALT_SPLASH &&
 			ent->methodOfDeath != MOD_CONC &&
-			ent->methodOfDeath != MOD_CONC_ALT /*&&
+			ent->methodOfDeath != MOD_CONC_ALT &&
 			otherOwner->client->ps.saberBlockTime < level.time*/)
 		{ //for now still deflect even if saberBlockTime >= level.time because it hit the actual saber
 			vec3_t fwd;
@@ -773,7 +692,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 			AngleVectors(other->r.currentAngles, fwd, NULL, NULL);
 		}
 		VectorScale(ent->s.pos.trDelta, 0.2, ent->s.pos.trDelta);
-		G_Damage(other, ent, ent->parent, fwd, ent->s.origin, ent->genericValue9, 0, MOD_THERMAL);
+		G_Damage(other, ent, ent->parent, fwd, ent->s.origin, ent->genericValue9, 0, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		G_DeflectMissile(other, ent, fwd);
 		//G_MissileBounceEffect(ent, ent->r.currentOrigin, fwd);
 		return;

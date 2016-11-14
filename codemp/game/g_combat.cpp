@@ -274,107 +274,6 @@ int G_GetHitLocation(gentity_t *target, vec3_t ppoint)
 	return HL_NONE;
 }
 
-/*
-int G_PickPainAnim( gentity_t *self, vec3_t point, int damage )
-{
-	switch( G_GetHitLocation( self, point ) )
-	{
-	case HL_FOOT_RT:
-		return BOTH_PAIN12;
-		//PAIN12 = right foot
-		break;
-	case HL_FOOT_LT:
-		return -1;
-		break;
-	case HL_LEG_RT:
-		if ( !Q_irand( 0, 1 ) )
-		{
-			return BOTH_PAIN11;
-		}
-		else
-		{
-			return BOTH_PAIN13;
-		}
-		//PAIN11 = twitch right leg
-		//PAIN13 = right knee
-		break;
-	case HL_LEG_LT:
-		return BOTH_PAIN14;
-		//PAIN14 = twitch left leg
-		break;
-	case HL_BACK_RT:
-		return BOTH_PAIN7;
-		//PAIN7 = med left shoulder
-		break;
-	case HL_BACK_LT:
-		return Q_irand( BOTH_PAIN15, BOTH_PAIN16 );
-		//PAIN15 = med right shoulder
-		//PAIN16 = twitch right shoulder
-		break;
-	case HL_BACK:
-		if ( !Q_irand( 0, 1 ) )
-		{
-			return BOTH_PAIN1;
-		}
-		else
-		{
-			return BOTH_PAIN5;
-		}
-		//PAIN1 = back
-		//PAIN5 = same as 1
-		break;
-	case HL_CHEST_RT:
-		return BOTH_PAIN3;
-		//PAIN3 = long, right shoulder
-		break;
-	case HL_CHEST_LT:
-		return BOTH_PAIN2;
-		//PAIN2 = long, left shoulder
-		break;
-	case HL_WAIST:
-	case HL_CHEST:
-		if ( !Q_irand( 0, 3 ) )
-		{
-			return BOTH_PAIN6;
-		}
-		else if ( !Q_irand( 0, 2 ) )
-		{
-			return BOTH_PAIN8;
-		}
-		else if ( !Q_irand( 0, 1 ) )
-		{
-			return BOTH_PAIN17;
-		}
-		else
-		{
-			return BOTH_PAIN19;
-		}
-		//PAIN6 = gut
-		//PAIN8 = chest
-		//PAIN17 = twitch crotch
-		//PAIN19 = med crotch
-		break;
-	case HL_ARM_RT:
-	case HL_HAND_RT:
-		return BOTH_PAIN9;
-		//PAIN9 = twitch right arm
-		break;
-	case HL_ARM_LT:
-	case HL_HAND_LT:
-		return BOTH_PAIN10;
-		//PAIN10 = twitch left arm
-		break;
-	case HL_HEAD:
-		return BOTH_PAIN4;
-		//PAIN4 = head
-		break;
-	default:
-		return -1;
-		break;
-	}
-}
-*/
-
 void ExplodeDeath( gentity_t *self ) 
 {
 //	gentity_t	*tent;
@@ -389,19 +288,6 @@ void ExplodeDeath( gentity_t *self )
 
 //	tent = G_TempEntity( self->s.origin, EV_FX_EXPLOSION );
 	AngleVectors(self->s.angles, forward, NULL, NULL);
-
-/*	
-	if ( self->fxID > 0 )
-	{
-		G_PlayEffect( self->fxID, self->r.currentOrigin, forward );
-	}
-	else
-	*/
-
-	{
-//		CG_SurfaceExplosion( self->r.currentOrigin, forward, 20.0f, 12.0f, ((self->spawnflags&4)==qfalse) );	//FIXME: This needs to be consistent to all exploders!
-//		G_Sound(self, self->sounds );
-	}
 	
 	if(self->splashDamage > 0 && self->splashRadius > 0)
 	{
@@ -660,43 +546,11 @@ void TossClientItems( gentity_t *self ) {
 	}
 }
 
-
 /*
 ==================
-LookAtKiller
+BodyRid
 ==================
 */
-void LookAtKiller( gentity_t *self, gentity_t *inflictor, gentity_t *attacker ) {
-	vec3_t		dir;
-	vec3_t		angles;
-
-	if ( attacker && attacker != self ) {
-		VectorSubtract (attacker->s.pos.trBase, self->s.pos.trBase, dir);
-	} else if ( inflictor && inflictor != self ) {
-		VectorSubtract (inflictor->s.pos.trBase, self->s.pos.trBase, dir);
-	} else {
-		self->client->ps.stats[STAT_DEAD_YAW] = self->s.angles[YAW];
-		return;
-	}
-
-	self->client->ps.stats[STAT_DEAD_YAW] = vectoyaw ( dir );
-
-	angles[YAW] = vectoyaw ( dir );
-	angles[PITCH] = 0; 
-	angles[ROLL] = 0;
-}
-
-/*
-==================
-GibEntity
-==================
-*/
-void GibEntity( gentity_t *self, int killer ) {
-	G_AddEvent( self, EV_GIB_PLAYER, killer );
-	self->takedamage = qfalse;
-	self->s.eType = ET_INVISIBLE;
-	self->r.contents = 0;
-}
 
 void BodyRid(gentity_t *ent)
 {
@@ -709,43 +563,6 @@ void BodyRid(gentity_t *ent)
 body_die
 ==================
 */
-//eezstreet add: body use function
-static void LootBodyProper( gentity_t *self, gentity_t *other, gentity_t *activator){
-	return;
-	/*int i;
-	char str[900];
-	if(!activator->client)
-		return;
-		
-	if ( (self->painDebounceTime + 200) > level.time )
-	{
-	    // Debounce uses so that we don't get spam of "object is busy" messages.
-	    return;
-	}
-		
-	if(self->currentLooter != NULL){
-	    // FIXME: Send command to client to show a dialog box
-		trap->SendServerCommand( activator->client->ps.clientNum, "print \"That object is busy\n\"" );
-		return;
-	}
-	self->currentLooter = activator;
-	trap->SendServerCommand( activator->client->ps.clientNum, "loot ol" );
-
-	str[0] = '\0';
-
-	i = 0;
-	while(self->inventory->items[i].id) {
-		Q_strcat (str, sizeof (str), va("\"%s\" ", self->inventory->items[i].id->displayName));
-		i++;
-	}
-	activator->currentlyLooting = self;
-	trap->SendServerCommand( activator->client->ps.clientNum, va("loot sil %s", str ));
-	trap->SendServerCommand( activator->client->ps.clientNum, va("loot sen %i", self->s.number));
-	
-	#ifdef _DEBUG
-	Com_Printf(str);
-	#endif*/
-}
 void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath ) {
 	// NOTENOTE No gibbing right now, this is star wars.
 	qboolean doDisint = qfalse;
@@ -761,7 +578,6 @@ void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int d
 			  meansOfDeath == MOD_TELEFRAG ||
 			  meansOfDeath == MOD_FALLING ||
 			  meansOfDeath == MOD_SUICIDE ||
-			  meansOfDeath == MOD_TARGET_LASER ||
 			  meansOfDeath == MOD_TRIGGER_HURT) )
 		{
 			self->think = G_FreeEntity;
@@ -817,53 +633,6 @@ void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int d
 		return;
 	}
 }
-
-
-// these are just for logging, the client prints its own messages
-char	*modNames[MOD_MAX] = {
-	"MOD_UNKNOWN",
-	"MOD_STUN_BATON",
-	"MOD_MELEE",
-	"MOD_SABER",
-	"MOD_BRYAR_PISTOL",
-	"MOD_BRYAR_PISTOL_ALT",
-	"MOD_BLASTER",
-	"MOD_TURBLAST",
-	"MOD_DISRUPTOR",
-	"MOD_DISRUPTOR_SPLASH",
-	"MOD_DISRUPTOR_SNIPER",
-	"MOD_BOWCASTER",
-	"MOD_REPEATER",
-	"MOD_REPEATER_ALT",
-	"MOD_REPEATER_ALT_SPLASH",
-	"MOD_DEMP2",
-	"MOD_DEMP2_ALT",
-	"MOD_FLECHETTE",
-	"MOD_FLECHETTE_ALT_SPLASH",
-	"MOD_ROCKET",
-	"MOD_ROCKET_SPLASH",
-	"MOD_ROCKET_HOMING",
-	"MOD_ROCKET_HOMING_SPLASH",
-	"MOD_THERMAL",
-	"MOD_THERMAL_SPLASH",
-	"MOD_TRIP_MINE_SPLASH",
-	"MOD_TIMED_MINE_SPLASH",
-	"MOD_DET_PACK_SPLASH",
-	"MOD_VEHICLE",
-	"MOD_CONC",
-	"MOD_CONC_ALT",
-	"MOD_FORCE_DARK",
-	"MOD_SENTRY",
-	"MOD_WATER",
-	"MOD_SLIME",
-	"MOD_LAVA",
-	"MOD_CRUSH",
-	"MOD_TELEFRAG",
-	"MOD_FALLING",
-	"MOD_SUICIDE",
-	"MOD_TARGET_LASER",
-	"MOD_TRIGGER_HURT"
-};
 
 qboolean G_InKnockDown( playerState_t *ps )
 {
@@ -1460,42 +1229,14 @@ int G_PickDeathAnim( gentity_t *self, vec3_t point, int damage, int mod, int hit
 	case BOTH_DEAD16:
 	case BOTH_DEADBACKWARD1:		//# First thrown backward death finished pose
 	case BOTH_DEADBACKWARD2:		//# Second thrown backward death finished pose
-		deathAnim = -2;
-		/*
-		if ( PM_FinishedCurrentLegsAnim( self ) )
-		{//done with the anim
-			deathAnim = BOTH_DEADFLOP2;
-		}
-		else
-		{
-			deathAnim = -2;
-		}
-		break;
-	case BOTH_DEADFLOP2:
-		deathAnim = BOTH_DEADFLOP2;
-		break;
-		*/
 	case BOTH_DEATH10:			//# 
 	case BOTH_DEAD10:
 	case BOTH_DEATH15:			//# 
 	case BOTH_DEAD15:
 	case BOTH_DEADFORWARD1:		//# First thrown forward death finished pose
 	case BOTH_DEADFORWARD2:		//# Second thrown forward death finished pose
-		deathAnim = -2;
-		/*
-		if ( PM_FinishedCurrentLegsAnim( self ) )
-		{//done with the anim
-			deathAnim = BOTH_DEADFLOP1;
-		}
-		else
-		{
-			deathAnim = -2;
-		}
-		break;
-		*/
 	case BOTH_DEADFLOP1:
 		deathAnim = -2;
-		//deathAnim = BOTH_DEADFLOP1;
 		break;
 	case BOTH_DEAD3:				//# Third Death finished pose
 	case BOTH_DEAD4:				//# Fourth Death finished pose
@@ -2210,6 +1951,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	int			i;
 	char		*killerName, *obit;
 	int			sPMType = 0;
+	meansOfDamage_t* means = nullptr;
 
 	if ( self->client->ps.pm_type == PM_DEAD ) {
 		return;
@@ -2238,120 +1980,16 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		}
 	}
 
-	if (self->s.eType == ET_NPC &&
-		self->s.NPC_class == CLASS_VEHICLE &&
-		self->m_pVehicle &&
-		!self->m_pVehicle->m_pVehicleInfo->explosionDelay &&
-		(self->m_pVehicle->m_pPilot || self->m_pVehicle->m_iNumPassengers > 0 || self->m_pVehicle->m_pDroidUnit))
-	{ //kill everyone on board in the name of the attacker... if the vehicle has no death delay
-		gentity_t *murderer = NULL;
-		gentity_t *killEnt;
-		i = 0;
-
-		if (self->client->ps.otherKillerTime >= level.time)
-		{ //use the last attacker
-			murderer = &g_entities[self->client->ps.otherKiller];
-			if (!murderer->inuse || !murderer->client)
-			{
-				murderer = NULL;
-			}
-			else
-			{
-				if (murderer->s.number >= MAX_CLIENTS &&
-					murderer->s.eType == ET_NPC &&
-					murderer->s.NPC_class == CLASS_VEHICLE &&
-					murderer->m_pVehicle &&
-					murderer->m_pVehicle->m_pPilot)
-				{
-					gentity_t *murderPilot = &g_entities[murderer->m_pVehicle->m_pPilot->s.number];
-					if (murderPilot->inuse && murderPilot->client)
-					{ //give the pilot of the offending vehicle credit for the kill
-						murderer = murderPilot;
-					}
-				}
-			}
-		}
-		else if (attacker && attacker->inuse && attacker->client)
-		{
-			if (attacker->s.number >= MAX_CLIENTS &&
-				attacker->s.eType == ET_NPC &&
-				attacker->s.NPC_class == CLASS_VEHICLE &&
-				attacker->m_pVehicle &&
-				attacker->m_pVehicle->m_pPilot)
-			{ //set vehicles pilot's killer as murderer
-				murderer = &g_entities[attacker->m_pVehicle->m_pPilot->s.number];
-				if (murderer->inuse && murderer->client &&murderer->client->ps.otherKillerTime >= level.time)
-				{
-					murderer = &g_entities[murderer->client->ps.otherKiller];
-					if (!murderer->inuse || !murderer->client)
-					{
-						murderer = NULL;
-					}
-				}
-				else
-				{
-					murderer = NULL;
-				}
-			}
-			else
-			{
-				murderer = &g_entities[attacker->s.number];
-			}
-		}
-		else if (self->m_pVehicle->m_pPilot)
-		{
-			murderer = (gentity_t *)self->m_pVehicle->m_pPilot;
-			if (!murderer->inuse || !murderer->client)
-			{
-				murderer = NULL;
-			}
-		}
-
-		//no valid murderer.. just use self I guess
-		if (!murderer)
-		{
-			murderer = self;
-		}
-
-		if ( self->m_pVehicle->m_pVehicleInfo->hideRider )
-		{//pilot is *inside* me, so kill him, too
-			killEnt = (gentity_t *)self->m_pVehicle->m_pPilot;
-			if (killEnt && killEnt->inuse && killEnt->client)
-			{
-				G_Damage(killEnt, murderer, murderer, NULL, killEnt->client->ps.origin, 99999, DAMAGE_NO_PROTECTION, MOD_BLASTER);
-			}
-			if ( self->m_pVehicle->m_pVehicleInfo )
-			{//FIXME: this wile got stuck in an endless loop, that's BAD!!  This method SUCKS (not initting "i", not incrementing it or using it directly, all sorts of badness), so I'm rewriting it
-				//while (i < self->m_pVehicle->m_iNumPassengers)
-				int numPass = self->m_pVehicle->m_iNumPassengers;
-				for ( i = 0; i < numPass && self->m_pVehicle->m_iNumPassengers; i++ )
-				{//go through and eject the last passenger
-					killEnt = (gentity_t *)self->m_pVehicle->m_ppPassengers[self->m_pVehicle->m_iNumPassengers-1];
-					if ( killEnt )
-					{
-						self->m_pVehicle->m_pVehicleInfo->Eject(self->m_pVehicle, (bgEntity_t *)killEnt, qtrue);
-						if ( killEnt->inuse && killEnt->client )
-						{
-							G_Damage(killEnt, murderer, murderer, NULL, killEnt->client->ps.origin, 99999, DAMAGE_NO_PROTECTION, MOD_BLASTER);
-						}
-					}
-				}
-			}
-		}
-		killEnt = (gentity_t *)self->m_pVehicle->m_pDroidUnit;
-		if (killEnt && killEnt->inuse && killEnt->client)
-		{
-			killEnt->flags &= ~FL_UNDYING;
-			G_Damage(killEnt, murderer, murderer, NULL, killEnt->client->ps.origin, 99999, DAMAGE_NO_PROTECTION, MOD_BLASTER);
-		}
-	}
-
 	self->client->ps.emplacedIndex = 0;
 	// JKG (Xy): Reset these to qfalse. Not sure if you want to keep these while you're dead
 	// but it doesn't seem like you would.
 	self->client->pmfreeze = qfalse;
 	self->client->pmlock = qfalse;
 	self->client->pmnomove = qfalse;
+
+	if (meansOfDeath != -1) {
+		means = JKG_GetMeansOfDamage(meansOfDeath);
+	}
 
 	// K, let's see if we can raise the killstreak on the attacker
 	if(jkg_bounty.integer)
@@ -2432,18 +2070,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->client->bodyGrabIndex = ENTITYNUM_NONE;
 	self->client->bodyGrabTime = 0;
 
-	//eezstreet add
-	if(self->client && self->currentlyLooting != NULL){
-		//We are looting a target, or so the game thinks so.
-		self->currentlyLooting = NULL;
-		if(self->client->ps.clientNum < level.maxclients){
-			//We are a player.
-			trap->SendServerCommand(self->client->ps.clientNum, "loot cl"); //Close the menu. Don't want this still up after death!
-		}
-	}
-	//eezstreet end
-
-
 	if (self->client->holdingObjectiveItem > 0)
 	{ //carrying a siege objective item - make sure it updates and removes itself from us now in case this is an instant death-respawn situation
 		gentity_t *objectiveItem = &g_entities[self->client->holdingObjectiveItem];
@@ -2470,50 +2096,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		self->client->noCorpse = qtrue;
 	}
 
-	if ( self->client->NPC_class != CLASS_VEHICLE
-		&& self->client->ps.m_iVehicleNum )
-	{ //I'm riding a vehicle
-		//tell it I'm getting off
-		gentity_t *veh = &g_entities[self->client->ps.m_iVehicleNum];
-
-		if (veh->inuse && veh->client && veh->m_pVehicle)
-		{
-			veh->m_pVehicle->m_pVehicleInfo->Eject(veh->m_pVehicle, (bgEntity_t *)self, qtrue);
-
-			if (veh->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER)
-			{ //go into "die in ship" mode with flag
-				self->client->ps.eFlags2 |= EF2_SHIP_DEATH;
-
-				//put me over where my vehicle exploded
-				G_SetOrigin(self, veh->client->ps.origin);
-				VectorCopy(veh->client->ps.origin, self->client->ps.origin);
-			}
-		}
-		//droids throw heads if they haven't yet
-		switch(self->client->NPC_class)
-		{
-		case CLASS_R2D2:
-			if ( !trap->G2API_GetSurfaceRenderStatus( self->ghoul2, 0, "head" ) )
-			{
-				vec3_t	up;
-				AngleVectors( self->r.currentAngles, NULL, NULL, up );
-				G_PlayEffectID( G_EffectIndex("chunks/r2d2head_veh"), self->r.currentOrigin, up );
-			}
-			break;
-
-		case CLASS_R5D2:
-			if ( !trap->G2API_GetSurfaceRenderStatus( self->ghoul2, 0, "head" ) )
-			{
-				vec3_t	up;
-				AngleVectors( self->r.currentAngles, NULL, NULL, up );
-				G_PlayEffectID( G_EffectIndex("chunks/r5d2head_veh"), self->r.currentOrigin, up );
-			}
-			break;
-		default:
-			break;
-		}
-	}
-
 	if ( self->NPC )
 	{
 		if ( self->client && NPC_Humanoid_WaitingAmbush( self ) )
@@ -2533,30 +2115,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			G_FreeEntity( self->NPC->tempGoal );
 			self->NPC->tempGoal = NULL;
 		}
-		/*
-		if ( self->s.eFlags & EF_LOCKED_TO_WEAPON )
-		{
-			// dumb, just get the NPC out of the chair
-extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 
-			usercmd_t cmd, *ad_cmd;
-
-			memset( &cmd, 0, sizeof( usercmd_t ));
-
-			//gentity_t *old = self->owner;
-
-			if ( self->owner )
-			{
-				self->owner->s.frame = self->owner->startFrame = self->owner->endFrame = 0;
-				self->owner->svFlags &= ~SVF_ANIMATING;
-			}
-
-			cmd.buttons |= BUTTON_USE;
-			ad_cmd = &cmd;
-			RunEmplacedWeapon( self, &ad_cmd );
-			//self->owner = old;
-		}
-		*/
 		//if ( self->client->NPC_class == CLASS_BOBAFETT && self->client->moveType == MT_FLYSWIM )
 		if ( self->s.NPC_class == CLASS_RANCOR )
 		{
@@ -2569,16 +2128,6 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 			trap->G2API_CleanGhoul2Models( &self->client->weaponGhoul2[0] );
 		}
 		/* JKG - Muzzle Calculation End */
-
-		/* JKG (eez) - drop items */
-		if(self->client->deathLootIndex != -1)
-		{
-			//Let's try this the other way, for effect!
-			self->r.svFlags |= SVF_PLAYER_USABLE;
-			self->painDebounceTime = 0;
-			self->use = LootBodyProper;
-		}
-		/* JKG (eez) - drop items end */
 	}
 	else
 	{
@@ -2618,13 +2167,6 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 			gSlowMoDuelTime = level.time;
 		}
 	}
-	/*
-	else if (self->NPC && attacker && attacker->client && attacker->s.number < MAX_CLIENTS && !gDoSlowMoDuel)
-	{
-		gDoSlowMoDuel = qtrue;
-		gSlowMoDuelTime = level.time;
-	}
-	*/
 
 	//Make sure the jetpack is turned off.
 	Jetpack_Off(self);
@@ -2689,10 +2231,11 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 		}
 	}
 
-	if ( meansOfDeath < 0 || meansOfDeath >= sizeof( modNames ) / sizeof( modNames[0] ) ) {
+	if (means) {
+		obit = means->ref;
+	}
+	else {
 		obit = "<bad obituary>";
-	} else {
-		obit = modNames[ meansOfDeath ];
 	}
 
 	G_LogPrintf("Kill: %i %i %i: %s killed %s by %s\n", 
@@ -2884,15 +2427,6 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 	}
 	self->client->ps.zoomMode = 0;	// Turn off zooming when we die
 
-	//rww - 07/19/02 - I removed this because it isn't working and it's ugly (for people on the outside)
-	/*
-	self->s.angles[0] = 0;
-	self->s.angles[2] = 0;
-	LookAtKiller (self, inflictor, attacker);
-
-	VectorCopy( self->s.angles, self->client->ps.viewangles );
-	*/
-
 	self->s.loopSound = 0;
 	self->s.loopIsSoundset = qfalse;
 
@@ -2912,16 +2446,6 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 	// remove powerups
 	memset( self->client->ps.powerups, 0, sizeof(self->client->ps.powerups) );
 
-	// NOTENOTE No gib deaths right now, this is star wars.
-	/*
-	// never gib in a nodrop
-	if ( (self->health <= GIB_HEALTH && !(contents & CONTENTS_NODROP) && g_blood.integer) || meansOfDeath == MOD_SUICIDE) 
-	{
-		// gib death
-		GibEntity( self, killer );
-	} 
-	else 
-	*/
 	{
 		// normal death
 		
@@ -2953,28 +2477,14 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 
 			//[FullDismemberment]
 			//weapon dismemberment so saber isn't the only one  
-			if (meansOfDeath == MOD_SABER
-				|| meansOfDeath == MOD_DISRUPTOR_SNIPER
-				|| meansOfDeath == MOD_TURBLAST
-				|| meansOfDeath == MOD_FLECHETTE
-				|| meansOfDeath == MOD_FLECHETTE_ALT_SPLASH
-				|| meansOfDeath == MOD_CONC)//saber or heavy melee (claws)
-			//if (meansOfDeath == MOD_SABER || (meansOfDeath == MOD_MELEE && G_HeavyMelee( attacker )) )//saber or heavy melee (claws)
+			if (means->dismemberment.canDismember)
 			{ //update the anim on the actual skeleton (so bolt point will reflect the correct position) and then check for dismem
 				G_UpdateClientAnims(self, 1.0f);
 				G_CheckForDismemberment(self, attacker, self->pos1, damage, anim, qfalse);
 			}
 
 			//GIBBING!!!
-			if (meansOfDeath == MOD_ROCKET				//rocket
-				|| meansOfDeath == MOD_ROCKET_SPLASH	//rocket
-				|| meansOfDeath == MOD_ROCKET_HOMING
-				|| meansOfDeath == MOD_ROCKET_HOMING_SPLASH
-				|| meansOfDeath == MOD_CONC_ALT
-				|| meansOfDeath == MOD_THERMAL			//thermal
-				|| meansOfDeath == MOD_THERMAL_SPLASH	//thermal
-				|| meansOfDeath == MOD_DET_PACK_SPLASH
-				|| meansOfDeath == MOD_TELEFRAG)			//telefrag
+			if (means->dismemberment.blowChunks)			//telefrag
 			{
 				G_UpdateClientAnims(self, 1.0f);
 				G_CheckForBlowingUp(self, attacker, self->pos1, damage, anim, qfalse);
@@ -2982,9 +2492,6 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 			//[/FullDismemberment]
 
 		}
-		//eezstreet edit
-		//NO.
-		//DO NOT FUCKING WANT.
 		else if (self->NPC && self->client && self->client->NPC_class != CLASS_MARK1 &&
 			self->client->NPC_class != CLASS_VEHICLE)
 		{ //in this case if we're an NPC it's my guess that we want to get removed straight away.
@@ -3036,17 +2543,6 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 		}
 		G_UseTargets2( self, self, self->target4 );
 	}
-	
-	/*
-	if ( !deathScript && !(self->svFlags&SVF_KILLED_SELF) )
-	{
-		//Should no longer run scripts
-		//WARNING!!! DO NOT DO THIS WHILE RUNNING A SCRIPT, ICARUS WILL CRASH!!!
-		//FIXME: shouldn't ICARUS handle this internally?
-		ICARUS_FreeEnt(self);
-	}
-	*/
-	//rwwFIXMEFIXME: Do this too?
 
 	// Free up any timers we may have on us.
 	TIMER_Clear2( self );
@@ -3107,7 +2603,7 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 CheckShield
 ================
 */
-int CheckShield (gentity_t *ent, int damage, int dflags)
+int CheckShield (gentity_t *ent, int damage, int dflags, meansOfDamage_t* means)
 {
 	gclient_t	*client;
 	int			save;
@@ -3121,24 +2617,19 @@ int CheckShield (gentity_t *ent, int damage, int dflags)
 
 	client = ent->client;
 
+	if (means == nullptr)
+		return 0;
+
 	if (!client)
 		return 0;
 
 	if (dflags & DAMAGE_NO_ARMOR)
 		return 0;
 
-	if ( client->NPC_class == CLASS_VEHICLE
-		&& ent->m_pVehicle
-		&& ent->client->ps.electrifyTime > level.time )
-	{//ion-cannon has disabled this ship's shields, take damage on hull!
+	if (means->modifiers.ignoreShield)
 		return 0;
-	}
-	// armor
-	count = client->ps.stats[STAT_SHIELD];
 
-	// Jedi Knight Galaxies
-	// Reduce the damage the shields take, depending on the shield strengh.. for now, lets use 50%
-	//damage *= 0.5f;
+	count = client->ps.stats[STAT_SHIELD];
 
 	if (dflags & DAMAGE_HALF_ABSORB)
 	{	// Half the damage gets absorbed by the shields, rather than 100%
@@ -3149,23 +2640,19 @@ int CheckShield (gentity_t *ent, int damage, int dflags)
 		save = damage;
 	}
 
+	if (dflags & DAMAGE_HALF_ARMOR_REDUCTION) {
+		save * ARMOR_REDUCTION_FACTOR;
+	}
+
 	// save is the most damage that the armor is elibigle to protect, of course, but it's limited by the total armor.
 	if (save >= count) {
 		save = count;
-		//origdamage = origdamage - (save /* * 2 */);
 	}
 
 	if (!save)
 		return 0;
 
-	if (dflags & DAMAGE_HALF_ARMOR_REDUCTION)		// Armor isn't whittled so easily by sniper shots.
-	{
-		client->ps.stats[STAT_SHIELD] -= (int)(save*ARMOR_REDUCTION_FACTOR);
-	}
-	else
-	{
-		client->ps.stats[STAT_SHIELD] -= save;
-	}
+	client->ps.stats[STAT_SHIELD] -= save;
 
 	return save; //origdamage;
 }
@@ -3251,43 +2738,6 @@ static int G_CheckForLedge( gentity_t *self, vec3_t fallCheckDir, float checkDis
 	return 0;
 }
 //[/KnockdownSys]
-
-/*
-================
-RaySphereIntersections
-================
-*/
-int RaySphereIntersections( vec3_t origin, float radius, vec3_t point, vec3_t dir, vec3_t intersections[2] ) {
-	float b, c, d, t;
-
-	//	| origin - (point + t * dir) | = radius
-	//	a = dir[0]^2 + dir[1]^2 + dir[2]^2;
-	//	b = 2 * (dir[0] * (point[0] - origin[0]) + dir[1] * (point[1] - origin[1]) + dir[2] * (point[2] - origin[2]));
-	//	c = (point[0] - origin[0])^2 + (point[1] - origin[1])^2 + (point[2] - origin[2])^2 - radius^2;
-
-	// normalize dir so a = 1
-	VectorNormalize(dir);
-	b = 2 * (dir[0] * (point[0] - origin[0]) + dir[1] * (point[1] - origin[1]) + dir[2] * (point[2] - origin[2]));
-	c = (point[0] - origin[0]) * (point[0] - origin[0]) +
-		(point[1] - origin[1]) * (point[1] - origin[1]) +
-		(point[2] - origin[2]) * (point[2] - origin[2]) -
-		radius * radius;
-
-	d = b * b - 4 * c;
-	if (d > 0) {
-		t = (- b + sqrt(d)) / 2;
-		VectorMA(point, t, dir, intersections[0]);
-		t = (- b - sqrt(d)) / 2;
-		VectorMA(point, t, dir, intersections[1]);
-		return 2;
-	}
-	else if (d == 0) {
-		t = (- b ) / 2;
-		VectorMA(point, t, dir, intersections[0]);
-		return 1;
-	}
-	return 0;
-}
 
 /*
 ===================================
@@ -4571,13 +4021,17 @@ void G_CheckForBlowingUp(gentity_t *ent, gentity_t *enemy, vec3_t point, int dam
 }
 //[/FullDismemberment]
 
-void G_LocationBasedDamageModifier(gentity_t *ent, vec3_t point, int mod, int dflags, int *damage)
+void G_LocationBasedDamageModifier(gentity_t *ent, vec3_t point, int mod, int dflags, int *damage, meansOfDamage_t* means)
 {
 	int hitLoc = -1;
 	int armorSlot = 0;
 
 	if (!g_locationBasedDamage.integer)
 	{ //then leave it alone
+		return;
+	}
+
+	if (means == nullptr) {
 		return;
 	}
 
@@ -4660,13 +4114,15 @@ void G_LocationBasedDamageModifier(gentity_t *ent, vec3_t point, int mod, int df
 		break; //do nothing then
 	}
 
-	if (ent->client && (ent - g_entities) < MAX_CLIENTS) {
+	if (ent->client && (ent - g_entities) < MAX_CLIENTS && !means->modifiers.ignoreArmor) {
 		// Remove damage based on EHP
 		int armor = ent->client->ps.armor[armorSlot];
 		if (armor--) {
 			armorData_t* pArm = &armorTable[armor];
 			int ehp = pArm->ehp;
 			float modifier = (ent->client->ps.stats[STAT_MAX_HEALTH] / (float)(ent->client->ps.stats[STAT_MAX_HEALTH] + ehp));
+
+			modifier *= means->modifiers.armor;
 
 			*damage *= modifier;
 		}
@@ -4815,6 +4271,8 @@ void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, fl
 
 static QINLINE qboolean ShouldHitmarker( const gentity_t *attacker, const gentity_t *target, const int mod )
 {
+	meansOfDamage_t* means = JKG_GetMeansOfDamage(mod);
+
 	if( !attacker->client )
 		return qfalse;
 	if( attacker->NPC )
@@ -4825,7 +4283,7 @@ static QINLINE qboolean ShouldHitmarker( const gentity_t *attacker, const gentit
 		return qfalse;
 	if( target->s.eType == ET_GENERAL )
 	{
-		qboolean explosive = ( mod == MOD_TRIP_MINE_SPLASH || mod == MOD_TIMED_MINE_SPLASH || mod == MOD_DET_PACK_SPLASH );
+		qboolean explosive = means ? means->hitmarkerExplosives : qfalse;
 		if( ( target->s.weapon == WP_TRIP_MINE || target->s.weapon == WP_DET_PACK ) && target->parent == attacker && explosive )
 			return qfalse;
 	}
@@ -4881,6 +4339,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	float		famt = 0;
 	float		hamt = 0;
 	float		shieldAbsorbed = 0;
+
+	meansOfDamage_t* means = JKG_GetMeansOfDamage(mod);
 	
 	if ( !damage )
 	{
@@ -4929,28 +4389,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		}
 	}
 
-	if (targ
-		&& targ->client
-		&& targ->s.eType == ET_NPC 
-		&& attacker 
-		&& attacker->s.eType == ET_PLAYER
-		&& OnSameTeam( targ, attacker)
-		&& targ != attacker)
-	{// UQ1: NPCs don't take damage from same team players (unless they suicide somehow, like falling).
-		return;
-	}
-
-	if (targ
-		&& targ->client
-		&& targ->s.eType == ET_NPC 
-		&& attacker 
-		&& attacker->s.eType == ET_NPC
-		&& attacker->client->playerTeam == targ->client->playerTeam
-		&& targ != attacker)
-	{// UQ1: NPCs don't take damage from other same team NPCs (unless they suicide somehow, like falling).
-		return;
-	}
-
 	if (targ && targ->damageRedirect)
 	{
 		G_Damage(&g_entities[targ->damageRedirectTo], inflictor, attacker, dir, point, damage, dflags, mod);
@@ -4974,64 +4412,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if ((targ->flags & FL_DMG_BY_SABER_ONLY) && mod != MOD_SABER)
 	{ //saber-only damage
 		return;
-	}
-
-	if ( targ->client )
-	{//don't take damage when in a walker, or fighter
-		//unless the walker/fighter is dead!!! -rww
-		if ( targ->client->ps.clientNum < MAX_CLIENTS && targ->client->ps.m_iVehicleNum )
-		{
-			gentity_t *veh = &g_entities[targ->client->ps.m_iVehicleNum];
-			if ( veh->m_pVehicle && veh->health > 0 )
-			{
-				if ( veh->m_pVehicle->m_pVehicleInfo->type == VH_WALKER ||
-					 veh->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER)
-				{
-					if (!(dflags & DAMAGE_NO_PROTECTION))
-					{
-						return;
-					}
-				}
-			}
-		}
-	}
-
-    // TODO: Rewrite a lot of this code. Heavy weapon attribute should be assigned to weapons.
-	if ((targ->flags & FL_DMG_BY_HEAVY_WEAP_ONLY))
-	{ //only take damage from explosives and such
-		if (mod != MOD_REPEATER_ALT &&
-			mod != MOD_ROCKET &&
-			mod != MOD_FLECHETTE_ALT_SPLASH &&
-			mod != MOD_ROCKET_HOMING &&
-			mod != MOD_THERMAL &&
-			mod != MOD_THERMAL_SPLASH &&
-			mod != MOD_TRIP_MINE_SPLASH &&
-			mod != MOD_TIMED_MINE_SPLASH &&
-			mod != MOD_DET_PACK_SPLASH &&
-			mod != MOD_VEHICLE &&
-			mod != MOD_CONC &&
-			mod != MOD_CONC_ALT &&
-			mod != MOD_SABER &&
-			mod != MOD_TURBLAST &&
-			mod != MOD_SUICIDE &&
-			mod != MOD_FALLING &&
-			mod != MOD_CRUSH &&
-			mod != MOD_TELEFRAG &&
-			mod != MOD_TRIGGER_HURT)
-		{
-			return;
-		}
-	}
-
-	if (targ->flags & FL_BBRUSH)
-	{
-		if (mod == MOD_DEMP2 ||
-			mod == MOD_DEMP2_ALT ||
-			mod == MOD_BRYAR_PISTOL ||
-			mod == MOD_BRYAR_PISTOL_ALT)
-		{ //these don't damage bbrushes.. ever
-			return;
-		}
 	}
 
 	if (targ && targ->client && targ->client->ps.duelInProgress)
@@ -5326,19 +4706,10 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	// hitmarker should use same ruels as base hit counter
 	if( ShouldHitmarker( attacker, targ, mod ) )
 	{
-		if( mod >= MOD_STUN_BATON && mod <= MOD_SENTRY )
+		if(attacker->client->lastHitmarkerTime < (level.time-100))
 		{
-			if(mod == MOD_REPEATER && attacker->client->lastHitmarkerTime < (level.time-250))
-			{
-				// Small hack to prevent the ACP array gun from ear-raping people so much --eez
-				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
-				attacker->client->lastHitmarkerTime = level.time;
-			}
-			else if(attacker->client->lastHitmarkerTime < (level.time-100))
-			{
-				trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
-				attacker->client->lastHitmarkerTime = level.time;
-			}
+			trap->SendServerCommand(attacker->client->ps.clientNum, "hitmarker");
+			attacker->client->lastHitmarkerTime = level.time;
 		}
 	}
 
@@ -5368,7 +4739,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	save = 0;
 
 	// save some from armor
-	ssave = CheckShield (targ, take, dflags);
+	ssave = CheckShield (targ, take, dflags, means);
 
 	if (ssave)
 	{
@@ -5382,8 +4753,12 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		if (targ->inuse && (targ->client || targ->s.eType == ET_NPC) &&
 			attacker->inuse && (attacker->client || attacker->s.eType == ET_NPC))
 		{ //check for location based damage stuff.
-			G_LocationBasedDamageModifier(targ, point, mod, dflags, &take);
+			G_LocationBasedDamageModifier(targ, point, mod, dflags, &take, means);
 		}
+	}
+
+	if (means && take > 0) {
+		take *= means->modifiers.organic;
 	}
 
 #ifndef FINAL_BUILD
@@ -5538,23 +4913,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	// do the damage
 	if (take) 
 	{
-		if (targ->client && targ->s.number < MAX_CLIENTS &&
-			(mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT))
-		{ //uh.. shock them or something. what the hell, I don't know.
-            if (targ->client->ps.weaponTime <= 0)
-			{ //yeah, we were supposed to be beta a week ago, I don't feel like
-				//breaking the game so I'm gonna be safe and only do this only
-				//if your weapon is not busy
-				targ->client->ps.weaponTime = 2000;
-				targ->client->ps.electrifyTime = level.time + 2000;
-				if (targ->client->ps.weaponstate == WEAPON_CHARGING ||
-					targ->client->ps.weaponstate == WEAPON_CHARGING_ALT)
-				{
-					targ->client->ps.weaponstate = WEAPON_READY;
-				}
-			}
-		}
-
 		if ( !(dflags & DAMAGE_NO_PROTECTION) ) 
 		{//rage overridden by no_protection
 			if (targ->client && (targ->client->ps.fd.forcePowersActive & (1 << FP_RAGE)) && (inflictor->client || attacker->client))

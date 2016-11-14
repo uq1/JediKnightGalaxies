@@ -90,8 +90,8 @@
         "splashrange":  440,//220,
         "projectilespeed":1200.0,
         "projectileclass":"repeater_alt_proj",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "firemode1": {
@@ -110,8 +110,8 @@
         "splashrange":  440,//220,
         "projectilespeed":900.0,
         "projectileclass":"repeater_alt_proj",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "playeranims": {
