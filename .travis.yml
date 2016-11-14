@@ -34,7 +34,7 @@ before_deploy:
   - export DEPLOY_FILE_NAME=jkgalaxies_$TRAVIS_OS_NAME.zip
   - echo "zipping into $DEPLOY_FILE_NAME"
   - cd $(pwd)/build/DESTDIR
-  - zip -r $DEPLOY_FILE_NAME 1/
+  - zip -r $DEPLOY_FILE_NAME . -i 1/
   - cd ../..
   - echo "deploying $DEPLOY_FILE_NAME to GitHub"
 
@@ -42,7 +42,7 @@ deploy:
   provider: releases
   api_key: $GITHUB_KEY
   file_glob: true
-  file: "./prefix/JediAcademy/$DEPLOY_FILE_NAME"
+  file: "$DEPLOY_FILE_NAME"
   skip_cleanup: true
   on:
     tags: true
