@@ -37,7 +37,7 @@
             "miss":         { "impactfx": "blasters/yellow_impacttiny" },
             "hit":          { "impactfx": "blasters/yellow_impacttiny" },
             "deathfx": "blasters/shot_yellow_vaporize",
-			"displayName": "Semi"
+			"displayName": "Auto"
         },
         
         "firemode1": {
@@ -74,7 +74,7 @@
         "damage":       25,
         "ammocost":     1,
         "firedelay":    300,
-        "firingtype":   "semi",
+        "firingtype":   "auto",
         "range":	1500.0,
         "recoil":       0.3,
         "spread":       0.1,
@@ -89,7 +89,7 @@
     },
 	
 	"firemode1": {
-		"damage":       20,
+		"damage":       23,
         "ammocost":     1,
 		"burstshotdelay": 100,
         "firedelay":    500,
