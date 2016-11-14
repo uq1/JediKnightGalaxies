@@ -70,11 +70,10 @@
     
     "firemode0": {
         "damage":       35,//70,
-//        "damage": {
-//                          "damageradius": { "start": 80 },
-//                          "damage":          70,
-//                          "damagetype": [ "explosion" ] },
-//        "ballistic":    true,
+	"damage": {
+		"damage": 35,
+		"damagetype": [ "bleed" ]
+	},
         "collisionsize": 8.0,//32.0,	// To simulate the fact that the shells are supposed to explode right before impact with target in order to disperse the flechettes
         "ammocost":     1,
         "firedelay":    1000,

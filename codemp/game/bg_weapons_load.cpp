@@ -164,12 +164,6 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
 					dType |= (1 << DT_DISINTEGRATE);
                     darea.damageType = dType;
 				}
-                else if ( Q_stricmp (types[i], "electric") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_ELECTRIC);
-                    darea.damageType = dType;
-				}
                 else if ( Q_stricmp (types[i], "explosion") == 0 )
 				{
 					int dType = (int)darea.damageType;
@@ -205,42 +199,6 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
 					int dType = (int)darea.damageType;
 					dType |= (1 << DT_CARBONITE);
                     darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "blaster") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_BLASTER);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "slug") == 0 || Q_stricmp(types[i], "slugthrower") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_SLUG);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "acp") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_ACP);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "pulse") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_PULSE);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "ion") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_ION);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "sonic") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_SONIC);
-					darea.damageType = dType;
 				}
 				else if (Q_stricmp(types[i], "bleed") == 0)
 				{

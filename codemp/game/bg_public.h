@@ -1885,20 +1885,12 @@ double QuinticBezierInterpolate(double phase, double p0, double p1, double p2, d
 typedef enum damageType_e
 {
     DT_DISINTEGRATE,
-    DT_ELECTRIC,
     DT_EXPLOSION,
     DT_FIRE,
     DT_FREEZE,
     DT_IMPLOSION,
     DT_STUN,
     DT_CARBONITE,
-
-	DT_BLASTER,
-	DT_SLUG,
-	DT_ACP,
-	DT_PULSE,
-	DT_ION,
-	DT_SONIC,
 	DT_BLEED,
 	DT_COLD,
     

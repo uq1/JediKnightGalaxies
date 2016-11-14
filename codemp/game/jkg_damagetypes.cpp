@@ -43,24 +43,15 @@ static struct
     int damage;
     int damageInterval;
 } damageTypeData[] = {
-    { DT_DISINTEGRATE,  0,              0,          0,      0		},
-    { DT_ELECTRIC,      0,              10000,      5,      500		},
-    { DT_EXPLOSION,     DAMAGE_RADIUS,  0,          0,      0		},
-    { DT_FIRE,          0,              10000,      2,      1000	},
-    { DT_FREEZE,        0,              500,        2,      1000	},
-    { DT_IMPLOSION,     DAMAGE_RADIUS,  0,          0,      0		},	// Not used.
-    { DT_STUN,          0,              2000,       0,      0		},
-    { DT_CARBONITE,     0,              4000,       2,      1000	},
-
-	{ DT_BLASTER,		0,				0,			0,		0		},
-	{ DT_SLUG,			0,				0,			0,		0		},	
-	{ DT_ACP,			0,				0,			0,		0		},
-	{ DT_PULSE,			0,				0,			0,		0		},
-	{ DT_ION,			0,				0,			0,		0		},
-	{ DT_SONIC,			0,				0,			0,		0		},
-	{ DT_BLEED,			0,				10000,		1,		500		},
-	{ DT_COLD,			0,				5000,		0,		0		}
-
+    { DT_DISINTEGRATE,  0,									0,          0,      0		},
+    { DT_EXPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},
+    { DT_FIRE,          0,									10000,      2,      1000	},
+    { DT_FREEZE,        0,									500,        2,      1000	},
+    { DT_IMPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},	// Not used.
+    { DT_STUN,          0,									2000,       0,      0		},
+    { DT_CARBONITE,     0,									4000,       2,      1000	},
+	{ DT_BLEED,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	10000,		1,		500		},
+	{ DT_COLD,			0,									5000,		0,		0		}
 };
 
 void JKG_RemoveDamageType(gentity_t *ent, damageType_t type);
@@ -410,6 +401,18 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, 2, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC), 0);
                 }
             break;
+
+			case DT_BLEED:
+				if ((ent->client->damageTypeLastEffectTime[i] + 500) <= level.time)
+				{
+					// play the wounding effect
+					G_PlayEffectID(G_EffectIndex("blood/Blood_WoundBig"), ent->s.origin, ent->s.angles);
+
+					// do damage
+					ent->client->damageTypeLastEffectTime[i] = level.time;
+					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, 2, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC | DAMAGE_NO_ARMOR), 0);
+				}
+			break;
 
 			default:
 			break;

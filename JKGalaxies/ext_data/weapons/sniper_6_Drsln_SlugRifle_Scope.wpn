@@ -67,7 +67,10 @@
     },
     
     "firemode0": {
-        "damage":       97,
+	"damage": {
+		"damage": 97,
+		"damagetype": [ "bleed" ]
+	},
         "ballistic":    true,
         "ammocost":     1,
         "firedelay":    1500,

@@ -73,7 +73,10 @@
     },
     
     "firemode0": {
-        "damage":       13, //Will still deal about 17 damage per shot against unarmored targets once damage types are implemented... Still an extremely powerful early weapon
+        "damage": {
+		"damage": 13,
+		"damagetype": [ "bleed" ]
+	},
         "ballistic":    true,
         "ammocost":     1,
         "firedelay":    120,
@@ -93,7 +96,10 @@
     },
     
     "firemode1": {
-        "damage":       13,
+        "damage": {
+		"damage": 13,
+		"damagetype": [ "bleed" ]
+	},
         "ballistic":    true,
         "ammocost":     1,
         "firedelay":    120,

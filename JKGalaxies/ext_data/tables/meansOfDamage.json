@@ -537,5 +537,21 @@
 			"deathMessage": "@JKG_INGAME_DIED_STUNNED",
 			"suicideMessage": "@JKG_INGAME_DIED_STUNNED"
 		}
+	},
+
+	"MOD_BLEEDING": { // Referenced in code
+		// Bleeding, by slugthrower
+		"inventoryName": "@JKG_INVENTORY_MOD_BLEEDING",
+
+		"modifiers": {
+			"ignoreArmor": true,
+			"ignoreShield": true
+		},
+
+		"killFeed": {
+			"killMessage": "@JKG_INGAME_KILLED_BLEEDING",
+			"deathMessage": "@JKG_INGAME_DIED_BLEEDING",
+			"suicideMessage": "@JKG_INGAME_SUICIDE_BLEEDING"
+		}
 	}
 }
