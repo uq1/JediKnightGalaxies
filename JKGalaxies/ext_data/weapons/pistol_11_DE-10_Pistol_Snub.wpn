@@ -71,7 +71,7 @@
         "firedelay":    480,
         "firingtype":   "semi",
         "range":	2500.0,
-        "recoil":       5.0,
+        "recoil":       4.2,
         "spread":       0.3,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
