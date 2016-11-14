@@ -30,6 +30,23 @@ matrix:
       osx_image: xcode7.2
       compiler: clang
 
+before_deploy:
+  - export DEPLOY_FILE_NAME=jkgalaxies_$TRAVIS_OS_NAME.zip
+  - echo "zipping directory"
+  - cd ./prefix/JediAcademy
+  - zip -r $DEPLOY_FILE_NAME 1/
+  - cd ../..
+  - echo "deploying $DEPLOY_FILE_NAME to GitHub"
+
+deploy:
+  provider: releases
+  api_key: " 8fae8c3136da607ced3991b0f1bf76a4524eb5fc"
+  file_glob: true
+  file: "./prefix/JediAcademy/$DEPLOY_FILE_NAME"
+  skip_cleanup: true
+  on:
+    tags: true
+
 
 #dist: trusty
 
