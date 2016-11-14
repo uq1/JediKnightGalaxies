@@ -54,7 +54,7 @@
             "miss":         { "impactfx": "blasters/blue_impacttiny" },
             "hit":          { "impactfx": "blasters/blue_impacttiny" },
             "deathfx": "blasters/shot_White_vaporize",
-	    "displayName":  "Flare"
+	    "displayName":  "Sting"
         }
     },
     
@@ -70,9 +70,9 @@
     },
     
     "firemode0": {
-        "damage":       25,
+        "damage":       28,
         "ammocost":     1,
-        "firedelay":    600,
+        "firedelay":    475,
         "firingtype":   "semi",
         "range":	3200.0,
         "recoil":       1.0,
