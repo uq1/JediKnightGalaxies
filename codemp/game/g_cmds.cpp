@@ -2166,8 +2166,6 @@ int G_Say_GetFadeLevel(int distance, int range) {
 
 }
 
-extern vmCvar_t		jkg_chatFloodProtect;
-
 qboolean CCmd_Execute(int clientNum, const char *command);
 void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) {
 	int			j;
@@ -3636,8 +3634,6 @@ void Cmd_ToggleSaber_f(gentity_t *ent)
 		}
 	}
 }
-
-extern vmCvar_t		d_saberStanceDebug;
 
 extern qboolean WP_SaberCanTurnOffSomeBlades( saberInfo_t *saber );
 void Cmd_SaberAttackCycle_f(gentity_t *ent)

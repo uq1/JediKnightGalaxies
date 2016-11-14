@@ -33,7 +33,6 @@ extern qboolean BG_SabersOff( playerState_t *ps );
 extern void CG_DrawAlert( vec3_t origin, float rating );
 extern void G_AddVoiceEvent( gentity_t *self, int event, int speakDebounceTime );
 extern void ForceJump( gentity_t *self, usercmd_t *ucmd );
-extern vmCvar_t	g_saberRealisticCombat;
 
 extern void NPC_SetLookTarget( gentity_t *self, int entNum, int clearTime );
 extern void NPC_TempLookTarget( gentity_t *self, int lookEntNum, int minLookTime, int maxLookTime );

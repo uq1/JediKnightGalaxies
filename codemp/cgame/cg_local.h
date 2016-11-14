@@ -1334,18 +1334,6 @@ typedef struct cgMedia_s {
 
 	sfxHandle_t noforceSound;
 
-	// teamplay sounds
-	sfxHandle_t redScoredSound;
-	sfxHandle_t blueScoredSound;
-	sfxHandle_t redLeadsSound;
-	sfxHandle_t blueLeadsSound;
-	sfxHandle_t teamsTiedSound;
-
-	sfxHandle_t redFlagReturnedSound;
-	sfxHandle_t blueFlagReturnedSound;
-	sfxHandle_t	redTookFlagSound;
-	sfxHandle_t blueTookFlagSound;
-
 	sfxHandle_t	drainSound;
 
 	sfxHandle_t hitmarkerSound;

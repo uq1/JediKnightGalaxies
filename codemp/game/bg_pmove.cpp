@@ -264,10 +264,6 @@ and returns.
 
 
 
-#ifndef _GAME
-extern vmCvar_t cg_paused;
-#endif
-
 void BG_VehicleTurnRateForSpeed( Vehicle_t *pVeh, float speed, float *mPitchOverride, float *mYawOverride )
 {
 	if ( pVeh && pVeh->m_pVehicleInfo )

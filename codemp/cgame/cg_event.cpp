@@ -853,8 +853,6 @@ also called by CG_CheckPlayerstateEvents
 ==============
 */
 
-extern vmCvar_t jkg_autoreload;
-
 #define	DEBUGNAME(x) if(cg_debugEvents.integer){trap->Print(x"\n");}
 #define	DEBUGNAME2(x, y) if(cg_debugEvents.integer){trap->Print(x"\n", y);}
 extern void CG_ChatBox_AddString(char *chatStr, int fadeLevel); //cg_draw.c
@@ -2567,49 +2565,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			trap->S_StartSound (NULL, cg.snap->ps.clientNum, CHAN_MENU1, CG_CustomSound( es->number, s ) );
 		}
 		break;
-
-	case EV_GLOBAL_TEAM_SOUND:	// play from the player's head so it never diminishes
-		{
-			DEBUGNAME("EV_GLOBAL_TEAM_SOUND");
-			switch( es->eventParm ) {
-				case GTS_RED_CAPTURE: // CTF: red team captured the blue flag, 1FCTF: red team captured the neutral flag
-				case GTS_BLUE_CAPTURE: // CTF: blue team captured the red flag, 1FCTF: blue team captured the neutral flag
-					break;
-				case GTS_RED_RETURN: // CTF: blue flag returned, 1FCTF: never used
-					CG_AddBufferedSound( cgs.media.blueFlagReturnedSound );
-					break;
-				case GTS_BLUE_RETURN: // CTF red flag returned, 1FCTF: neutral flag returned
-					CG_AddBufferedSound( cgs.media.redFlagReturnedSound );
-					break;
-
-				case GTS_RED_TAKEN: // CTF: red team took blue flag, 1FCTF: blue team took the neutral flag
-					// if this player picked up the flag then a sound is played in CG_CheckLocalSounds
-					CG_AddBufferedSound( cgs.media.redTookFlagSound );
-					break;
-				case GTS_BLUE_TAKEN: // CTF: blue team took the red flag, 1FCTF red team took the neutral flag
-					// if this player picked up the flag then a sound is played in CG_CheckLocalSounds
-					CG_AddBufferedSound( cgs.media.blueTookFlagSound );
-					break;
-				case GTS_REDTEAM_SCORED:
-					CG_AddBufferedSound(cgs.media.redScoredSound);
-					break;
-				case GTS_BLUETEAM_SCORED:
-					CG_AddBufferedSound(cgs.media.blueScoredSound);
-					break;
-				case GTS_REDTEAM_TOOK_LEAD:
-					CG_AddBufferedSound(cgs.media.redLeadsSound);
-					break;
-				case GTS_BLUETEAM_TOOK_LEAD:
-					CG_AddBufferedSound(cgs.media.blueLeadsSound);
-					break;
-				case GTS_TEAMS_ARE_TIED:
-					CG_AddBufferedSound( cgs.media.teamsTiedSound );
-					break;
-				default:
-					break;
-			}
-			break;
-		}
 
 	case EV_ENTITY_SOUND:
 		DEBUGNAME("EV_ENTITY_SOUND");

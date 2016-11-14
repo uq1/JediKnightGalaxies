@@ -4,8 +4,6 @@
 #include "game/bg_weapons.h"
 #include "qcommon/q_shared.h"
 
-extern vmCvar_t ui_inventoryFilter;
-
 typedef enum {
 	JKGIFILTER_ALL,
 	JKGIFILTER_WEAPONS,

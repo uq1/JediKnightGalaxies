@@ -43,8 +43,6 @@ typedef struct banentry_s {
 static banentry_t *bans = 0;
 static unsigned int nextBanId = 1;
 
-extern vmCvar_t g_banfile;
-
 void JKG_Bans_Clear()
 {
 	banentry_t *entry, *next = 0;

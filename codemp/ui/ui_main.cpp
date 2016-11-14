@@ -8097,8 +8097,6 @@ This will also be overlaid on the cgame info screen during loading
 to prevent it from blinking away too rapidly on local or lan games.
 ========================
 */
-extern vmCvar_t connmsg;
-
 void UI_DrawConnectScreen( qboolean overlay ) {
 	const char *s;
 	uiClientState_t	cstate;

@@ -34,8 +34,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 extern void CheckCameraLocation( vec3_t OldeyeOrigin );
 //[/TrueView]
 
-extern vmCvar_t	cg_thirdPersonAlpha;
-
 extern void CG_AddRadarEnt(centity_t *cent);	//cg_ents.c
 extern void CG_AddBracketedEnt(centity_t *cent);	//cg_ents.c
 extern qboolean CG_InFighter( void );
@@ -3258,7 +3256,7 @@ static void CG_RunLerpFrame( centity_t *cent, clientInfo_t *ci, lerpFrame_t *lf,
 		lf->animationNumber = 0;
 	}
 	// JKG: Freezing/stun
-	else if ( JKG_DamageTypeFreezes ((const damageType_t)cent->currentState.damageTypeFlags) )
+	else if (JKG_DamageTypeFreezes((const damageType_t)cent->currentState.damageTypeFlags) && cent->currentState.freezeTorsoAnim && cent->currentState.freezeTorsoAnim < MAX_ANIM_FILES)
 	{
 	    const animation_t *torsoAnimData = &bgAllAnims[cent->localAnimIndex].anims[cent->currentState.freezeTorsoAnim];
 	    int torsoAnimFrame = torsoAnimData->firstFrame + torsoAnimData->numFrames;
@@ -7795,7 +7793,6 @@ void SmoothTrueView(vec3_t eyeAngles)
 }
 //[/TrueView]
 
-extern vmCvar_t jkg_debugBBox;
 void CG_Cube( vec3_t mins, vec3_t maxs, vec3_t color, float alpha );
 void CG_DrawPlayerBBox ( const centity_t *cent )
 {

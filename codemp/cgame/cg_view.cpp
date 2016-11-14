@@ -629,7 +629,6 @@ CG_OffsetThirdPersonView
 
 ===============
 */
-extern vmCvar_t cg_thirdPersonHorzOffset;
 extern qboolean BG_UnrestrainedPitchRoll( playerState_t *ps, Vehicle_t *pVeh );
 static void CG_OffsetThirdPersonView( void ) 
 {

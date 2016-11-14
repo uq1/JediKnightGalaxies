@@ -16,10 +16,6 @@
 #include "jkg_cg_damagetypes.h"
 
 #ifdef __WEAPON_HOLSTER__
-extern vmCvar_t	d_poff;
-extern vmCvar_t	d_roff;
-extern vmCvar_t	d_yoff;
-
 qboolean CG_SnapRefEntToBone(centity_t *cent, refEntity_t *refEnt, const char *bone_name)
 {
 	centity_t *cl = cent;

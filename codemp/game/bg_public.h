@@ -864,7 +864,6 @@ typedef enum {
 	EV_VOICECMD_SOUND,
 	EV_GENERAL_SOUND,
 	EV_GLOBAL_SOUND,		// no attenuation
-	EV_GLOBAL_TEAM_SOUND,
 	EV_ENTITY_SOUND,
 
 	EV_PLAY_ROFF,
@@ -1007,22 +1006,6 @@ typedef enum {
 	EV_EXPLOSIVE_ARM,
 	EV_MISSILE_DIE,
 } entity_event_t;			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
-
-
-typedef enum {
-	GTS_RED_CAPTURE,
-	GTS_BLUE_CAPTURE,
-	GTS_RED_RETURN,
-	GTS_BLUE_RETURN,
-	GTS_RED_TAKEN,
-	GTS_BLUE_TAKEN,
-	GTS_REDTEAM_SCORED,
-	GTS_BLUETEAM_SCORED,
-	GTS_REDTEAM_TOOK_LEAD,
-	GTS_BLUETEAM_TOOK_LEAD,
-	GTS_TEAMS_ARE_TIED
-} global_team_sound_t;
-
 
 
 typedef enum {

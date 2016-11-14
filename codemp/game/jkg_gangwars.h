@@ -17,12 +17,15 @@ typedef struct {
 	qboolean useTeamColors;	// Use team colors for this team? (ie force red team/blue team colors
 
 	// STRINGS
-	char longname[128];
-	char joinstring[128];
-	char toomanystring[128];
-	char leadstring[128];
-	char menujoinstring[128];
-	char menustring[128];
+	char longname[64];
+	char joinstring[64];
+	char toomanystring[64];
+	char leadstring[64];
+	char menujoinstring[64];
+	char menustring[64];
+	char flagtakenstring[64];
+	char flagreturnedstring[64];
+	char flagcapturedstring[64];
 
 	// Scoreboard / Join Screen colors
 	vec4_t teamColor;

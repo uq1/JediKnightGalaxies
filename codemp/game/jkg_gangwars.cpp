@@ -72,72 +72,74 @@ void JKG_BG_ParseGangWarsTeam(const char *filename)
 #if defined(_GAME) || defined(IN_UI)
 	bgGangWarsTeams[bgnumGangWarTeams].teamIcon = 0;
 #elif defined(_CGAME)
-	if (BG_GetPairedValue(buffer, "icon", parseBuf))
-	{
+	if (BG_GetPairedValue(buffer, "icon", parseBuf)){
 		bgGangWarsTeams[bgnumGangWarTeams].teamIcon = trap->R_RegisterShader(parseBuf);
-	}
-	else
-	{
+	} 
+	else {
 		bgGangWarsTeams[bgnumGangWarTeams].teamIcon = trap->R_RegisterShader("sprites/team_red");
 	}
 #endif
 
-	if ( BG_GetPairedValue( buffer, "useTeamColors", parseBuf ) )
-	{
+	if ( BG_GetPairedValue( buffer, "useTeamColors", parseBuf ) ) {
 		bgGangWarsTeams[bgnumGangWarTeams].useTeamColors = (qboolean)atoi(parseBuf);
 	}
-	else
-	{
+	else {
 		bgGangWarsTeams[bgnumGangWarTeams].useTeamColors = qfalse;
 	}
 
-	if (BG_GetPairedValue(buffer, "joinstring", parseBuf))
-	{
+	if (BG_GetPairedValue(buffer, "joinstring", parseBuf)) {
 		strcpy(bgGangWarsTeams[bgnumGangWarTeams].joinstring, parseBuf);
 	}
-	else
-	{
+	else {
 		bgGangWarsTeams[bgnumGangWarTeams].joinstring[0] = 0;
 	}
-	if (BG_GetPairedValue(buffer, "leadstring", parseBuf))
-	{
+	if (BG_GetPairedValue(buffer, "leadstring", parseBuf)) {
 		strcpy(bgGangWarsTeams[bgnumGangWarTeams].leadstring, parseBuf);
 	}
-	else
-	{
+	else {
 		bgGangWarsTeams[bgnumGangWarTeams].leadstring[0] = 0;
 	}
-	if (BG_GetPairedValue(buffer, "longname", parseBuf))
-	{
+	if (BG_GetPairedValue(buffer, "longname", parseBuf)) {
 		strcpy(bgGangWarsTeams[bgnumGangWarTeams].longname, parseBuf);
 	}
-	else
-	{
+	else {
 		bgGangWarsTeams[bgnumGangWarTeams].longname[0] = 0;
 	}
-	if (BG_GetPairedValue(buffer, "menujoinstring", parseBuf))
-	{
+	if (BG_GetPairedValue(buffer, "menujoinstring", parseBuf)) {
 		strcpy(bgGangWarsTeams[bgnumGangWarTeams].menujoinstring, parseBuf);
 	}
-	else
-	{
+	else {
 		bgGangWarsTeams[bgnumGangWarTeams].menujoinstring[0] = 0;
 	}
-	if (BG_GetPairedValue(buffer, "menustring", parseBuf))
-	{
+	if (BG_GetPairedValue(buffer, "menustring", parseBuf)) {
 		strcpy(bgGangWarsTeams[bgnumGangWarTeams].menustring, parseBuf);
 	}
-	else
-	{
+	else {
 		bgGangWarsTeams[bgnumGangWarTeams].menustring[0] = 0;
 	}
-	if (BG_GetPairedValue(buffer, "toomanystring", parseBuf))
-	{
+	if (BG_GetPairedValue(buffer, "toomanystring", parseBuf)) {
 		strcpy(bgGangWarsTeams[bgnumGangWarTeams].toomanystring, parseBuf);
 	}
-	else
-	{
+	else {
 		bgGangWarsTeams[bgnumGangWarTeams].toomanystring[0] = 0;
+	}
+	if (BG_GetPairedValue(buffer, "flagtakenstring", parseBuf))  {
+		strcpy(bgGangWarsTeams[bgnumGangWarTeams].flagtakenstring, parseBuf);
+	}
+	else {
+		bgGangWarsTeams[bgnumGangWarTeams].flagtakenstring[0] = 0;
+	}
+	if (BG_GetPairedValue(buffer, "flagreturnedstring", parseBuf)) {
+		strcpy(bgGangWarsTeams[bgnumGangWarTeams].flagreturnedstring, parseBuf);
+	}
+	else {
+		bgGangWarsTeams[bgnumGangWarTeams].flagreturnedstring[0] = 0;
+	}
+	if (BG_GetPairedValue(buffer, "flagcapturedstring", parseBuf)) {
+		strcpy(bgGangWarsTeams[bgnumGangWarTeams].flagcapturedstring, parseBuf);
+	}
+	else {
+		bgGangWarsTeams[bgnumGangWarTeams].flagcapturedstring[0] = 0;
 	}
 
 	// Team colors! :3
