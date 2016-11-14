@@ -33,7 +33,7 @@ matrix:
 before_deploy:
   - export DEPLOY_FILE_NAME=jkgalaxies_$TRAVIS_OS_NAME.zip
   - echo "zipping into $DEPLOY_FILE_NAME"
-  - cd ./build/JKGDevs/JediKnightGalaxies/build
+  - cd $(pwd)/build/DESTDIR
   - zip -r $DEPLOY_FILE_NAME 1/
   - cd ../..
   - echo "deploying $DEPLOY_FILE_NAME to GitHub"
