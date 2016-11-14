@@ -2644,6 +2644,8 @@ int CheckShield (gentity_t *ent, int damage, int dflags, meansOfDamage_t* means)
 		save * ARMOR_REDUCTION_FACTOR;
 	}
 
+	save *= means->modifiers.shield;
+
 	// save is the most damage that the armor is elibigle to protect, of course, but it's limited by the total armor.
 	if (save >= count) {
 		save = count;
