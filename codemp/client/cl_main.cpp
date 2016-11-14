@@ -369,9 +369,6 @@ void CL_Record_f( void ) {
 	// write the checksum feed
 	MSG_WriteLong(&buf, clc.checksumFeed);
 
-	// Filler for old RMG system.
-	MSG_WriteShort ( &buf, 0 );
-
 	// finished writing the client packet
 	MSG_WriteByte( &buf, svc_EOF );
 
