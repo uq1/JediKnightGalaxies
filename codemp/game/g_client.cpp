@@ -1719,7 +1719,7 @@ static userinfoValidate_t userinfoFields[] = {
 //	UIF( color2,			1, 1 ),	// NOT IN JKG
 //	UIF( handicap,			1, 1 ),
 	UIF( sex,				0, 1 ),
-	UIF( cg_predictItems,	1, 1 ),
+	UIF( cg_predictItems,	0, 1 ), // NOT IN JKG anymore, changing to optional for time being
 //	UIF( saber1,			1, 1 ), // NOT IN JKG
 //	UIF( saber2,			1, 1 ),	// NOT IN JKG
 	UIF( char_color_red,	1, 1 ),
@@ -1883,11 +1883,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	s = Info_ValueForKey( userinfo, "ip" );
 	if ( !strcmp( s, "localhost" ) && !(ent->r.svFlags & SVF_BOT) )
 		client->pers.localClient = qtrue;
-
-	// check the item prediction
-	s = Info_ValueForKey( userinfo, "cg_predictItems" );
-	if ( !atoi( s ) )	client->pers.predictItemPickup = qfalse;
-	else				client->pers.predictItemPickup = qtrue;
 
 	// set name
 	Q_strncpyz( oldname, client->pers.netname, sizeof( oldname ) );

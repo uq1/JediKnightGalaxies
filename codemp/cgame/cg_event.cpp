@@ -1702,18 +1702,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			gitem_t	*item;
 			int		index;
 
-			index = cg_entities[es->eventParm].currentState.modelindex;		// player predicted
-
-			if (cg_entities[es->eventParm].weapon >= cg.time)
-			{ //rww - an unfortunately necessary hack to prevent double item pickups
-				break;
-			}
-
-			//Hopefully even if this entity is somehow removed and replaced with, say, another
-			//item, this time will have expired by the time that item needs to be picked up.
-			//Of course, it's quite possible this will fail miserably, so if you've got a better
-			//solution then please do use it.
-			cg_entities[es->eventParm].weapon = cg.time+500;
+			index = es->eventParm;		// player predicted
 
 			if ( index < 1 || index >= bg_numItems ) {
 				break;
@@ -1723,7 +1712,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			if ( /*item->giType != IT_POWERUP && */item->giType != IT_TEAM) {
 				if (item->pickup_sound && item->pickup_sound[0])
 				{
-					trap->S_StartSound (NULL, es->number, CHAN_AUTO,	trap->S_RegisterSound( item->pickup_sound ) );
+					trap->S_StartSound (NULL, es->number, CHAN_AUTO, trap->S_RegisterSound( item->pickup_sound ) );
 				}
 			}
 
