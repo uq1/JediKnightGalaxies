@@ -3,9 +3,9 @@
 	"internal":	"shield_merrsonn_ultra",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/Item_Icons/psd_engine_s_glow",
-	"cost":		"2000",
+	"cost":		"1500",
 	
-	"capacity":	50,
+	"capacity":	70,
 	"cooldown":	5000,
 	"regenrate":	111,
 

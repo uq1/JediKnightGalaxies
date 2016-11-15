@@ -6,7 +6,7 @@
 	"cost":		"80",
 	
 	"capacity":	13,
-	"cooldown":	3285,
+	"cooldown":	7285,
 	"regenrate":	1337,
 
 	"brokenSoundEffect":	"sound/shield/shield_broken",

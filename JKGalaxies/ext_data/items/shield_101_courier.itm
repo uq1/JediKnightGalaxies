@@ -1,8 +1,9 @@
 {
 	"name":		"Merr-Sonn Courier Shield",
-	"internal":	"shield_courier",
+	"internal":	"shield_merrsonn_cour",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/hud/psd_small",
+	"cost":		"600",
 
 	"capacity":	50,
 	"cooldown":	10000,

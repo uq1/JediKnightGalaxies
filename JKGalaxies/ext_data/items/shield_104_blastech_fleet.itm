@@ -3,11 +3,11 @@
 	"internal":	"shield_blastech_fleet",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/hud/i_icon_shieldwall",
-	"cost":		"1200",
+	"cost":		"1550",
 	
 	"capacity":	150,
 	"cooldown":	0,
-	"regenrate":	830,
+	"regenrate":	930,
 
 	"brokenSoundEffect":	"sound/shield/shield_broken",
 	"equippedSoundEffect":	"sound/shield/shield_equipped2"

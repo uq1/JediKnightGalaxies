@@ -5,9 +5,9 @@
 	"itemIcon":	"gfx/Item_Icons/psd_cannister_s_glow",
 	"cost":		"750",
 	
-	"capacity":	60,
+	"capacity":	50,
 	"cooldown":	6000,
-	"regenrate":	333,
+	"regenrate":	415,
 
 	"rechargeSoundEffect":	"sound/shield/shield_recharge",
 	"brokenSoundEffect":	"sound/shield/shield_broken",

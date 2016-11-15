@@ -5,7 +5,7 @@
 	"itemIcon":	"gfx/Item_Icons/ps_golan_s_glow",
 	"cost":		"900",
 	
-	"capacity":	10,
+	"capacity":	15,
 	"cooldown":	3000,
 	"regenrate":	100,
 

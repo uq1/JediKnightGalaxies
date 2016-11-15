@@ -3,9 +3,9 @@
 	"internal":	"shield_merrsonn_port",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/Item_Icons/psd_engine_s_glow",
-	"cost":		"1500",
+	"cost":		"1300",
 	
-	"capacity":	50,
+	"capacity":	60,
 	"cooldown":	10000,
 	"regenrate":	200,
 

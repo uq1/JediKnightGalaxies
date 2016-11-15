@@ -1,9 +1,9 @@
 {
-	"name":		"Oviedo Engineering Shield (Discontinued)",
+	"name":		"Oviedo Engineering Shield",
 	"internal":	"shield_oviedo",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/Item_Icons/psd_bespin_m_glow",
-	"cost":		"700",
+	"cost":		"900",
 	
 	"capacity":	65,
 	"cooldown":	8000,
