@@ -1893,6 +1893,7 @@ typedef enum damageType_e
     DT_CARBONITE,
 	DT_BLEED,
 	DT_COLD,
+	DT_POISON,
     
     NUM_DAMAGE_TYPES
 } damageType_t;

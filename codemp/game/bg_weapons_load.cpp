@@ -212,6 +212,12 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
 					dType |= (1 << DT_COLD);
 					darea.damageType = dType;
 				}
+				else if (Q_stricmp(types[i], "poison") == 0)
+				{
+					int dType = (int)darea.damageType;
+					dType |= (1 << DT_POISON);
+					darea.damageType = dType;
+				}
                 else
 				{
                     Com_Printf ("Unknown damage type used: %s.\n", types[i]);

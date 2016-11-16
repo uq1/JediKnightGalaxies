@@ -553,5 +553,23 @@
 			"deathMessage": "@JKG_INGAME_DIED_BLEEDING",
 			"suicideMessage": "@JKG_INGAME_SUICIDE_BLEEDING"
 		}
+	},
+	
+	"MOD_POISONED": { // Referenced in code
+		// Poisoned, by monsters/grenades/environment
+		"inventoryName": "@JKG_INVENTORY_MOD_POISONED",
+
+		"modifiers": {
+			"ignoreArmor": true,
+			"ignoreShield": true,
+			"droid": 0.0,
+			"organic": 1.1
+		},
+
+		"killFeed": {
+			"killMessage": "@JKG_INGAME_KILLED_POISONED",
+			"deathMessage": "@JKG_INGAME_DIED_POISONED",
+			"suicideMessage": "@JKG_INGAME_SUICIDE_POISONED"
+		}
 	}
 }

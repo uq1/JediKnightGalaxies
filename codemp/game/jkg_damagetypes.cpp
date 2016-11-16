@@ -50,8 +50,9 @@ static struct
     { DT_IMPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},	// Not used.
     { DT_STUN,          0,									2000,       0,      0		},
     { DT_CARBONITE,     0,									4000,       2,      1000	},
-	{ DT_BLEED,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	10000,		1,		500		},
-	{ DT_COLD,			0,									5000,		0,		0		}
+	{ DT_BLEED,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	3500,		1,		500		},
+	{ DT_COLD,			0,									5000,		0,		0		},
+	{ DT_POISON,		DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	5000,		1,		1000	}
 };
 
 void JKG_RemoveDamageType(gentity_t *ent, damageType_t type);
@@ -340,6 +341,10 @@ void JKG_RemoveDamageType ( gentity_t *ent, damageType_t type )
 void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 {
     int i = 0;
+
+
+
+
     
     if ( ent->health <= 0 )
     {
@@ -405,14 +410,41 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 			case DT_BLEED:
 				if ((ent->client->damageTypeLastEffectTime[i] + 500) <= level.time)
 				{
+					//have a 4/10 chance of bleeding
+					if (Q_irand(1, 10) < 6)
+						return;
+
 					// play the wounding effect
 					G_PlayEffectID(G_EffectIndex("blood/Blood_WoundBig"), ent->s.origin, ent->s.angles);
 
 					// do damage
 					ent->client->damageTypeLastEffectTime[i] = level.time;
-					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, 2, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC | DAMAGE_NO_ARMOR), 0);
+					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, Q_irand(1, 2), (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC | DAMAGE_NO_ARMOR), 0);
 				}
 			break;
+
+			//--futuza
+			case DT_POISON:
+				if ((ent->client->damageTypeLastEffectTime[i] + 1000) <= level.time)
+				{
+					//50% chance to resist poison
+					if (Q_irand(1, 2) == 2)
+						return;
+
+					float dmg_mod = 0.1f; int curr_dmg = 5;	//defaults
+
+					if (dmg_mod * ent->client->ps.stats[STAT_HEALTH] > 1)	//grab percentage of enemies health and make that the damage
+						curr_dmg = dmg_mod * ent->client->ps.stats[STAT_HEALTH];
+					else
+						curr_dmg = 1;
+
+					//TODO: play poison effect
+
+
+					// do damage
+					ent->client->damageTypeLastEffectTime[i] = level.time;
+					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, curr_dmg, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC | DAMAGE_NO_ARMOR), 0);
+				}
 
 			default:
 			break;

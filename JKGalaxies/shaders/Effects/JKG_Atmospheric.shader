@@ -184,6 +184,7 @@ gfx/atmospheric/cloud3_128
     }
 }
 
+
 gfx/atmospheric/cloud3_64
 {
 	qer_editorimage	gfx/atmospheric/cloud3_64
@@ -248,6 +249,7 @@ gfx/atmospheric/cloud4_128
         rgbGen vertex
     }
 }
+
 
 gfx/atmospheric/cloud4_64
 {

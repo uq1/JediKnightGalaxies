@@ -245,3 +245,12 @@ LANG_ENGLISH		"bled out."
 
 REFERENCE		SUICIDE_BLEEDING
 LANG_ENGLISH		"drowned in a pool of blood."
+
+REFERENCE		KILLED_POISONED
+LANG_ENGLISH		"was poisoned by"
+
+REFERENCE		DIED_POISONED
+LANG_ENGLISH		"absorbed too many toxins."
+
+REFERENCE		SUICIDE_POISONED
+LANG_ENGLISH		"poisoned themselves."
