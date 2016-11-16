@@ -93,7 +93,7 @@
 								   "falloff": "constant"
 								},
 				"duration": 15000,
-				"damage": 1,
+				"damage": 0,
 				"damagedelay": 500,
 				"delay": 750,
 				"damagetype": ["poison"],
@@ -143,7 +143,7 @@
 								   "falloff": "constant"
 								},
 				"duration": 15000,
-				"damage": 1,
+				"damage": 0,
 				"damagedelay": 500,
 				"delay": 750,
 				"damagetype": ["poison"],

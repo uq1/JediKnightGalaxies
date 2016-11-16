@@ -41,7 +41,7 @@ static struct
     int damageFlags;
     int debuffLifeTime;
     int damage;
-    int damageInterval;
+    int damageInterval;	
 } damageTypeData[] = {
     { DT_DISINTEGRATE,  0,									0,          0,      0		},
     { DT_EXPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},
@@ -50,9 +50,9 @@ static struct
     { DT_IMPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},	// Not used.
     { DT_STUN,          0,									2000,       0,      0		},
     { DT_CARBONITE,     0,									4000,       2,      1000	},
-	{ DT_BLEED,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	3500,		1,		500		},
+	{ DT_BLEED,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	5000,		1,		1000	},
 	{ DT_COLD,			0,									5000,		0,		0		},
-	{ DT_POISON,		DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	5000,		1,		1000	}
+	{ DT_POISON,		DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	7000,		1,		1000	}
 };
 
 void JKG_RemoveDamageType(gentity_t *ent, damageType_t type);
@@ -408,10 +408,19 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
             break;
 
 			case DT_BLEED:
-				if ((ent->client->damageTypeLastEffectTime[i] + 500) <= level.time)
+				if ((ent->client->damageTypeLastEffectTime[i] + 1000) <= level.time)
 				{
-					//have a 4/10 chance of bleeding
-					if (Q_irand(1, 10) < 6)
+
+					float dmg_mod = 0.04f; int curr_dmg = 5;	//defaults
+					/*todo:
+					 Check .wpn file of the weapon being fired for a modifier and set dmg_mod to the value if present*/
+
+					if (dmg_mod * ent->client->ps.stats[STAT_HEALTH] > 1)	//grab percentage of enemies health*mod = dmg
+						curr_dmg = dmg_mod * ent->client->ps.stats[STAT_HEALTH];
+					else
+						curr_dmg = 1;
+
+					if (ent->client->ps.stats[STAT_HEALTH] == 1)	//--futuza: requested by Silverfang, don't allow players to die from bleed.  -_- not sure I like
 						return;
 
 					// play the wounding effect
@@ -419,11 +428,10 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 
 					// do damage
 					ent->client->damageTypeLastEffectTime[i] = level.time;
-					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, Q_irand(1, 2), (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC | DAMAGE_NO_ARMOR), 0);
+					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, curr_dmg, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC | DAMAGE_NO_ARMOR), 0);
 				}
 			break;
 
-			//--futuza
 			case DT_POISON:
 				if ((ent->client->damageTypeLastEffectTime[i] + 1000) <= level.time)
 				{
@@ -431,15 +439,15 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 					if (Q_irand(1, 2) == 2)
 						return;
 
-					float dmg_mod = 0.1f; int curr_dmg = 5;	//defaults
+					float dmg_mod = 0.05f; int curr_dmg = 5;	//poison does default 5% dmg per second over 7 seconds
 
 					if (dmg_mod * ent->client->ps.stats[STAT_HEALTH] > 1)	//grab percentage of enemies health and make that the damage
 						curr_dmg = dmg_mod * ent->client->ps.stats[STAT_HEALTH];
 					else
 						curr_dmg = 1;
 
-					//TODO: play poison effect
-
+					//TODO: play poison effect - no such efx yet
+					//G_PlayEffectID(G_EffectIndex("Explosives/Toxic_Wound"), ent->s.origin, ent->s.angles);
 
 					// do damage
 					ent->client->damageTypeLastEffectTime[i] = level.time;
