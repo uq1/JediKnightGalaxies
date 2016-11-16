@@ -1,4 +1,4 @@
-//Shaders for JKG Poison Coulds
+//Shaders for JKG Poison Clouds
 // ------------------------------------------------------------------------------------------
 
 gfx/atmospheric/testpoison01_256
