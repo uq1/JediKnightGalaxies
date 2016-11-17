@@ -414,7 +414,6 @@ Touch_Item
 */
 void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 	int			respawn;
-	qboolean	predict;
 
 	if (ent->genericValue10 > level.time &&
 		other &&
@@ -514,29 +513,22 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 
 	G_LogPrintf( "Item: %i %s\n", other->s.number, ent->item->classname );
 
-	predict = other->client->pers.predictItemPickup;
-
 	// call the item-specific pickup function
 	switch( ent->item->giType ) {
 	case IT_WEAPON:
 		respawn = Pickup_Weapon(ent, other);
-		predict = qtrue;
 		break;
 	case IT_AMMO:
 		respawn = Pickup_Ammo(ent, other);
-		predict = qtrue;
 		break;
 	case IT_ARMOR:
 		respawn = Pickup_Armor(ent, other);
-		predict = qtrue;
 		break;
 	case IT_HEALTH:
 		respawn = Pickup_Health(ent, other);
-		predict = qtrue;
 		break;
 	case IT_POWERUP:
 		respawn = Pickup_Powerup(ent, other);
-		predict = qfalse;
 		break;
 	case IT_TEAM:
 		respawn = Pickup_Team(ent, other);
@@ -550,18 +542,7 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 	}
 
 	// play the normal pickup sound
-	if (predict) {
-		if (other->client)
-		{
-			BG_AddPredictableEventToPlayerstate( EV_ITEM_PICKUP, ent->s.number, &other->client->ps);
-		}
-		else
-		{
-			G_AddPredictableEvent( other, EV_ITEM_PICKUP, ent->s.number );
-		}
-	} else {
-		G_AddEvent( other, EV_ITEM_PICKUP, ent->s.number );
-	}
+	G_AddEvent( other, EV_ITEM_PICKUP, ent->s.modelindex );
 
 	// powerup pickups are global broadcasts
 	if ( /*ent->item->giType == IT_POWERUP ||*/ ent->item->giType == IT_TEAM) {

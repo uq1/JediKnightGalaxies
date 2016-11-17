@@ -30,6 +30,22 @@ matrix:
       osx_image: xcode7.2
       compiler: clang
 
+before_deploy:
+  - export DEPLOY_FILE_NAME=jkgalaxies_$TRAVIS_OS_NAME.zip
+  - echo "zipping into $DEPLOY_FILE_NAME"
+  - cd $(pwd)/build/DESTDIR
+  - zip -r $DEPLOY_FILE_NAME . -i \*
+  - echo "deploying $DEPLOY_FILE_NAME to GitHub"
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_KEY
+  overwrite: true
+  file: "$DEPLOY_FILE_NAME"
+  skip_cleanup: true
+  on:
+    tags: true
+
 
 #dist: trusty
 

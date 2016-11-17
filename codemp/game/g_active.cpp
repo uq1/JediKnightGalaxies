@@ -571,10 +571,19 @@ void	G_TouchTriggers( gentity_t *ent ) {
 
 		// use seperate code for determining if an item is picked up
 		// so you don't have to actually contact its bounding box
-		if ( hit->s.eType == ET_ITEM && hit->item && hit->item->giType != IT_TEAM) {
+		if ( hit->s.eType == ET_ITEM ) {
 			// [USE_ITEMS] Disable automatic item pickup for players
-			if ( ent->s.eType == ET_NPC && !BG_PlayerTouchesItem( &ent->client->ps, &hit->s, level.time ) ) {
-				continue;
+			if ( ent->s.eType == ET_NPC ) {
+				if ( !BG_PlayerTouchesItem( &ent->client->ps, &hit->s, level.time ) )
+					continue;
+			}
+			else if ( ent->s.number < MAX_CLIENTS )
+			{
+				if( !hit->item || hit->item->giType != IT_TEAM )
+					continue;
+
+				if ( !BG_PlayerTouchesItem( &ent->client->ps, &hit->s, level.time ) )
+					continue;
 			}
 			// [/USE_ITEMS]
 		} else {
