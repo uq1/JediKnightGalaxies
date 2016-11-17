@@ -413,7 +413,7 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 					if (ent->client->ps.stats[STAT_HEALTH] == 1)	//--futuza: requested by Silverfang, don't allow players to die from bleed.  -_- not sure I like
 						return;
 
-					float dmg_mod = 0.04f; int curr_dmg = 5;	//defaults
+					float dmg_mod = 0.04f; int curr_dmg = 5;
 					/*todo:
 					 Check .wpn file of the weapon being fired for a modifier and set dmg_mod to the value if present*/
 
@@ -433,10 +433,10 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 				//if health <=20%, do 1dmg every 2 secs 
 				else if (((ent->client->damageTypeLastEffectTime[i] + 2000) <= level.time) && (ent->client->ps.stats[STAT_HEALTH] <= ent->client->ps.stats[STAT_MAX_HEALTH] * 0.2))
 				{
-					if (ent->client->ps.stats[STAT_HEALTH] == 1)	//--futuza: requested by Silverfang, don't allow players to die from bleed.  -_- not sure I like
+					if (ent->client->ps.stats[STAT_HEALTH] == 1)	//no death from bleed
 						return;
 					
-					// play the wounding effect
+					
 					G_PlayEffectID(G_EffectIndex("blood/Blood_WoundBig"), ent->s.origin, ent->s.angles);
 
 					ent->client->damageTypeLastEffectTime[i] = level.time;
