@@ -31,7 +31,7 @@ matrix:
       compiler: clang
 
 before_deploy:
-  - export DEPLOY_FILE_NAME=jkgalaxies_$TRAVIS_OS_NAME.zip
+  - export DEPLOY_FILE_NAME=jkgalaxies_$TRAVIS_OS_NAME-$CC.zip
   - echo "zipping into $DEPLOY_FILE_NAME"
   - cd $(pwd)/build/DESTDIR
   - zip -r $DEPLOY_FILE_NAME . -i \*
