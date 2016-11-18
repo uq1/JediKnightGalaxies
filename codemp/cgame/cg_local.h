@@ -2224,6 +2224,7 @@ extern void JKG_DrawWeaponHolsters( centity_t *cent, refEntity_t legs, float sha
 
 // jkg_cg_damagetypes.c -- UQ1: Moved to stop cg_local.h recursive #include error...
 void JKG_PlayerDebuffVisuals ( centity_t *cent, refEntity_t *refEntity );
+void JKG_WeaponDebuffVisuals ( centity_t *cent, refEntity_t *refEntity );
 
 // -------------
 // Crossover API
