@@ -129,13 +129,6 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 
 	// this is the snapshot we are creating
 	frame = &client->frames[ client->netchan.outgoingSequence & PACKET_MASK ];
-	
-	// bots never acknowledge, but it doesn't matter since the only use case is for serverside demos
-	// in which case we can delta against the very last message every time
-	deltaMessage = client->deltaMessage;
-	if ( client->demo.isBot ) {
-		client->deltaMessage = client->netchan.outgoingSequence;
-	}
 
 	// bots never acknowledge, but it doesn't matter since the only use case is for serverside demos
 	// in which case we can delta against the very last message every time

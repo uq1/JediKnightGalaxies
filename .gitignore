@@ -189,6 +189,9 @@ pip-log.txt
 ## JKG
 #############
 
+# in case someone accidentally has install folder in their local repo
+[Ii]nstall
+
 # we require Boost in some branches
 codemp/libraries/boost/*
 
