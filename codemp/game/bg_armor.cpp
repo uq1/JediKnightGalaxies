@@ -211,6 +211,9 @@ static qboolean JKG_ParseArmorFile(char* buffer, const char* fileName, armorData
 	jsonNode = cJSON_GetObjectItem(json, "ehp");
 	armorData.ehp = cJSON_ToIntegerOpt(jsonNode, 0);
 
+	jsonNode = cJSON_GetObjectItem(json, "hp");
+	armorData.hp = cJSON_ToIntegerOpt(jsonNode, 0);
+
 	jsonNode = cJSON_GetObjectItem(json, "movemodifier");
 	armorData.movemodifier = cJSON_ToNumberOpt(jsonNode, 1.0);
 
