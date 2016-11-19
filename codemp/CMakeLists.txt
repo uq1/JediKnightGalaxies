@@ -581,6 +581,7 @@ if(BuildMPEngine)
 			COMPONENT ${JKAMPClientComponent})
 		install(CODE "
 			include(BundleUtilities)
+			set(BU_CHMOD_BUNDLE_ITEMS ON)
 			fixup_bundle(\"${CMAKE_INSTALL_PREFIX}/${JKAInstallDir}/${MPEngine}.app\" \"\" \"\")
 			" COMPONENT Runtime)
 	else(MakeApplicationBundles)
