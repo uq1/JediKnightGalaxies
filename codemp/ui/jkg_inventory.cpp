@@ -5,11 +5,14 @@ static size_t nNumInventoryItems = 0;			// number of items in the list
 static std::vector<std::pair<int, itemInstance_t*>> pItems;	// list of items
 static int nPosition = 0;					// position in the item list (changed with arrow buttons)
 static int nSelected = -1;					// selected item in the list (-1 for no selection)
+static std::vector<std::string> vItemDescLines;	// item description
 
+static void JKG_ConstructItemDescription(itemInstance_t* pItem);
 
 void JKG_ConstructInventoryList() {
 	itemInstance_t* pAllItems = nullptr;
 
+	vItemDescLines.clear();
 	pItems.clear();
 
 	if (cgImports == nullptr) {
@@ -48,8 +51,8 @@ void JKG_ConstructInventoryList() {
 		Menu_ShowItemByName(Menus_FindByName("jkg_inventory"), "shop_preview", qfalse);
 	}
 
-	if (nPosition >= pItems.size()) {
-		nPosition = 0;
+	if (nSelected < pItems.size() && nSelected >= 0) {
+		JKG_ConstructItemDescription(pItems[nSelected].second);
 	}
 }
 
@@ -58,41 +61,9 @@ void JKG_ConstructInventoryList() {
 DESCRIPTION CONSTRUCTION
 ==========================
 */
-// Flags
-static int nLineOffset = 0;
-static int bfTagFields = 0;
-static int bfFireModeTags[MAX_FIREMODES] = { 0 };
-typedef enum {
-	/* Weapons */
-	IDTAG_ROLLING = 0,
-	IDTAG_NOSPRINT = 1,
-	IDTAG_FIREMODE = 2,
-	IDTAG_LAST_FIREMODE = 18,
-	/* Weapon firing modes */
-	IDMTAG_BOUNCING = 0,		// Mode has bouncing shots
-	IDMTAG_BLEED = 1,			// Mode can cause bleeding
-	IDMTAG_DISINTEGRATE = 2,	// Mode disintegrates targets
-	IDMTAG_FIRECONTROL = 3,		// Full auto/burst/semi auto
-	/* Armor */
-	/* Consumables */
-	/* Other */
-	IDTAG_MAX = 32,
-} uiItemDescTags;
-
-// Item description types
-typedef enum {
-	IDTYPE_NODRAW = 0,			// Doesn't use firing mode schema (melee, lightsaber, etc)
-	IDTYPE_GRENADE,				// Grenades (only WP_THERMAL)
-	IDTYPE_CHARGEMINE,			// Charges and mines (only WP_TRIP_MINES and WP_DETPACK)
-	IDTYPE_EXPLOSIVEGUN,		// Explosive projectile weapon (has special flag checked?)
-	IDTYPE_PROJECTILE,			// Any other projectile weapon (blasters, slugthrowers, etc)
-} uiItemDescTypes;
 
 // Returns the proper tag that should appear with Blast Damage
 char* JKG_GetBlastDamageTag(weaponData_t* pData, const int nFiringMode) {
-	if (nFiringMode > pData->numFiringModes || nFiringMode < 0 || nFiringMode > MAX_FIREMODES) {
-		return "";
-	}
 	weaponFireModeStats_t* pFireMode = &pData->firemodes[nFiringMode];
 	if (pFireMode->secondaryDmgHandle == NULL_HANDLE) {
 		return ""; // We can't have Blast Damage if there's no accompanying Fallout Damage. Use regular Damage instead.
@@ -102,9 +73,6 @@ char* JKG_GetBlastDamageTag(weaponData_t* pData, const int nFiringMode) {
 
 // Returns the proper tag that should appear with Fallout Damage
 char* JKG_GetFalloutDamageTag(weaponData_t* pData, const int nFiringMode) {
-	if (nFiringMode > pData->numFiringModes || nFiringMode < 0 || nFiringMode > MAX_FIREMODES) {
-		return "";
-	}
 	weaponFireModeStats_t* pFireMode = &pData->firemodes[nFiringMode];
 	if (pFireMode->secondaryDmgHandle == NULL_HANDLE) {
 		return ""; // Does not exist
@@ -114,52 +82,12 @@ char* JKG_GetFalloutDamageTag(weaponData_t* pData, const int nFiringMode) {
 
 // Returns the proper tag that should appear (with either "Damage: " or "Direct Damage: ")
 char* JKG_GetDamageTag(weaponData_t* pData, const int nFiringMode) {
-	if (nFiringMode > pData->numFiringModes || nFiringMode < 0 || nFiringMode > MAX_FIREMODES) {
-		return "";
-	}
-
-	if (pData->weaponBaseIndex == WP_THERMAL ||
-			pData->weaponBaseIndex == WP_TRIP_MINE ||
-			pData->weaponBaseIndex == WP_DET_PACK ||
-			pData->visuals.visualFireModes[nFiringMode].displayExplosive) {
-		// Most likely referring to blast damage
-		return JKG_GetBlastDamageTag(pData, nFiringMode);
-	}
-
 	meansOfDamage_t* means = JKG_GetMeansOfDamage(pData->firemodes[nFiringMode].weaponMOD);
 	if (means) {
 		return (char*)UI_GetStringEdString2(means->inventoryName);
 	}
 	else {
 		return "";
-	}
-}
-
-// Returns the type of a firing mode
-uiItemDescTypes JKG_GetFiringModeType(weaponData_t* pData, const int nFiringMode) {
-	if (nFiringMode > pData->numFiringModes || nFiringMode < 0 || nFiringMode > MAX_FIREMODES) {
-		return IDTYPE_NODRAW;
-	}
-	switch (pData->weaponBaseIndex) {
-		case WP_THERMAL:
-			return IDTYPE_GRENADE;
-		case WP_TRIP_MINE:
-		case WP_DET_PACK:
-			return IDTYPE_CHARGEMINE;
-		case WP_MELEE:
-		case WP_EMPLACED_GUN:
-		case WP_SABER:
-		case WP_NONE:
-			return IDTYPE_NODRAW;
-		default:
-			{
-				if (pData->visuals.visualFireModes[nFiringMode].displayExplosive) {
-					return IDTYPE_EXPLOSIVEGUN;
-				} else {
-					return IDTYPE_PROJECTILE;
-				}
-			}
-			break;
 	}
 }
 
@@ -180,388 +108,316 @@ const char* JKG_GetRecoilString(weaponData_t* pData, const int nFiringMode) {
 	}
 }
 
-// Returns the string that should appear on nLineNum of an item description
-#define MAX_RECURSION_LEVEL	5
-char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum, int recursionLevel) {
-	/* Weapon variables */
-	bool bDontCareAboutAccuracy = false;
-	int nFiringMode = -1;
+// Returns the slot name (Head, Shoulder, ...) for armor
+const char* JKG_GetArmorSlotString(armorData_t* pData) {
+	switch (pData->slot) {
+		case ARMSLOT_HEAD:
+			return UI_GetStringEdString3("@JKG_INVENTORY_SLOT_HEAD");
+		case ARMSLOT_NECK:
+			return UI_GetStringEdString3("@JKG_INVENTORY_SLOT_NECK");
+		case ARMSLOT_TORSO:
+			return UI_GetStringEdString3("@JKG_INVENTORY_SLOT_TORSOT");
+		case ARMSLOT_ROBE:
+			return UI_GetStringEdString3("@JKG_INVENTORY_SLOT_ROBE");
+		case ARMSLOT_LEGS:
+			return UI_GetStringEdString3("@JKG_INVENTORY_SLOT_LEGS");
+		case ARMSLOT_GLOVES:
+			return UI_GetStringEdString3("@JKG_INVENTORY_SLOT_GLOVES");
+		case ARMSLOT_BOOTS:
+			return UI_GetStringEdString3("@JKG_INVENTORY_SLOT_BOOTS");
+		case ARMSLOT_SHOULDER:
+			return UI_GetStringEdString3("@JKG_INVENTORY_SLOT_SHOULDER");
+		case ARMSLOT_IMPLANTS:
+			return UI_GetStringEdString3("@JKG_INVENTORY_SLOT_IMPLANT");
+	}
+	return "";
+}
 
-	/* Misc */
-	int nAccuracyBase;
-	int nAccuracyMax;
-	int nCookTime;
-	int nRPM;
-	int nFireTime;
-	weaponData_t* pWeaponData;
-	uiItemDescTypes idType;
-	weaponFireModeStats_t *pFireMode;
-	weaponVisualFireMode_t *pVFireMode;
+// Create a jetpack item's description
+static void JKG_ConstructJetpackDescription(itemInstance_t* pItem) {
+	// Jetpack
+	// Capacity: ###
+	// Idle Fuel Consumption: ###
+	// Thrusting Fuel Consumption: ###
+	// Fuel Regeneration: ###
+	// Hover Gravity: ###
+	vItemDescLines.push_back(UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_JETPACK"));
+	vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_CAPACITY"), pItem->id->jetpackData.pJetpackData->fuelCapacity));
+	vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_IDLECONSUMPTION"), pItem->id->jetpackData.pJetpackData->fuelConsumption));
+	vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_THRUSTCONSUMPTION"), pItem->id->jetpackData.pJetpackData->thrustConsumption));
+	vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_FUELREGEN"), pItem->id->jetpackData.pJetpackData->fuelRegeneration));
+	vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_HOVERGRAVITY"), pItem->id->jetpackData.pJetpackData->move.hoverGravity));
+}
 
-	if (recursionLevel >= MAX_RECURSION_LEVEL) {
-		return ""; // base case to stop stack overflow
+// Create a shield item's description
+static void JKG_ConstructShieldDescription(itemInstance_t* pItem) {
+	// Shield Item
+	// Capacity: ###
+	// Recharge Time: ### seconds
+	// Regeneration: # shields per second
+	vItemDescLines.push_back(UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_SHIELD"));
+	vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_CAPACITY"), pItem->id->shieldData.capacity));
+	vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_RECHARGE"), pItem->id->shieldData.cooldown / 1000.0f));
+	vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_REGEN"), 1000.0f / pItem->id->shieldData.regenrate));
+}
+
+// Create an armor item's description
+static void JKG_ConstructArmorDescription(itemInstance_t* pItem) {
+	// Armor Item
+	// Equipped in %s slot
+	// Armor: %i (%.2f reduced %s damage taken)
+	// Movement Speed: (+)%.1f%%
+	// Maximum Health: (+)%i
+	armorData_t* pArmorData = pItem->id->armorData.pArm;
+
+	vItemDescLines.push_back(UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_ARMOR"));
+	vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_EQUIPPEDSLOT"), JKG_GetArmorSlotString(pArmorData)));
+	if (pArmorData->ehp) {
+		int maxHP = cgImports->GetPredictedPlayerState()->stats[STAT_MAX_HEALTH];
+		int itemHP = pArmorData->hp;
+		float damageReduction;
+
+		// If the item is already equipped...then that means that the HP modifier is already applied!
+		// Applying the HP modifier to the calculation (again) will lead to a bugged display
+		if (pItem->equipped) {
+			damageReduction = 1.0f - (pArmorData->ehp / (float)(maxHP + pArmorData->ehp));
+		}
+		else {
+			damageReduction = 1.0f - (pArmorData->ehp / (float)(maxHP + itemHP + pArmorData->ehp));
+		}
+
+		damageReduction *= 100.0f;
+		if (pArmorData->ehp < 0) {
+			vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_NEG_DEFENSE"), pArmorData->ehp, damageReduction, JKG_GetArmorSlotString(pArmorData)));
+		}
+		else {
+			vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_DEFENSE"), pArmorData->ehp, damageReduction, JKG_GetArmorSlotString(pArmorData)));
+		}
+	}
+	if (pArmorData->movemodifier >= 0.005 || pArmorData->movemodifier <= -0.005) {
+		// only differences above 0.5% movement speed will actually matter
+		float speed = (1.0f - pArmorData->movemodifier) * 100.0f;
+		if (speed < 0) {
+			vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_MOVESPEED"), speed));
+		}
+		else {
+			vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_MOVESPEED_POS"), speed));
+		}
+	}
+	if (pArmorData->hp) {
+		if (pArmorData->hp > 0) {
+			vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_MAXHEALTH_POS"), pArmorData->hp));
+		}
+		else {
+			vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_MAXHEALTH_NEG"), pArmorData->hp));
+		}
+	}
+}
+
+// Convert units into feet
+static QINLINE float JKG_UnitsToFeet(float units) {
+	return units / 8.0f; // according to ensiform
+}
+
+// Convert units into meters (metres if you're bad at spelling)
+static QINLINE float JKG_UnitsToMeters(float units) {
+	return units * 0.305f; // according to ensiform
+}
+
+// Add information about a weapon's firing mode
+static void JKG_ConstructFiringModeDescription(weaponData_t* pWP, int firemode) {
+	// Primary/Secondary/Tertiary/Firing Mode %i (%s)
+	/*
+	[Projectile Weapons]
+		Damage: %i-%i (%s)
+		Accuracy Rating: %i-%i
+		Recoil: %s
+		Fires %i projectiles per minute
+		Additional tags
+
+	[Grenades]
+		Blast Damage: %i-%i (%s)
+		Blast Radius: %i
+		(if present) Fallout Damage: %i-%i (%s)
+
+	[Explosive Firing Modes]
+		Direct Damage: %i-%i (%s)
+		Blast Damage: %i-%i (%s)
+		Blast Radius: %i
+		(if present) Fallout Damage: %i-%i (%s)
+		Accuracy Rating: %i-%i
+		Recoil: %s
+		Fires %i projectiles per minute
+		Additional tags
+	*/
+	weaponFireModeStats_t* pFM = &pWP->firemodes[firemode];
+	weaponVisualFireMode_t* pVFM = &pWP->visuals.visualFireModes[firemode];
+
+	if (firemode == 1 && pWP->weaponBaseIndex == WP_DET_PACK) {
+		// Ultra fringe case...don't draw the plunger mode
+		return;
 	}
 
-	assert(pItem != nullptr);
+	switch (firemode) {
+		case 0:
+			vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_PRIMARY_FIRE"), pVFM->displayName));
+			break;
+		case 1:
+			vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_SECONDARY_FIRE"), pVFM->displayName));
+			break;
+		case 2:
+			vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_TERTIARY_FIRE"), pVFM->displayName));
+			break;
+		default:
+			vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_FIRING_MODE"), firemode + 1, pVFM->displayName));
+			break;
+	}
 
-	// If we're drawing the first line, subsequent line draws are therefore guaranteed.
-	// We should clear all of the flags that we need to ensure a correct display.
-	if (nLineNum == 0) {
-		nLineOffset = 0;
-		bfTagFields = 0;
-		memset(bfFireModeTags, 0, sizeof(bfFireModeTags));
-	} else {
-		nLineNum += nLineOffset;
+	if (pWP->weaponBaseIndex != WP_TRIP_MINE && pWP->weaponBaseIndex != WP_DET_PACK && pWP->weaponBaseIndex != WP_THERMAL && pFM->baseDamage > 0) {
+		// Damage
+		char* szDamageTag = JKG_GetDamageTag(pWP, firemode);
+
+		if (pFM->rangeSplash) {
+			if (pFM->shotCount > 1) {
+				vItemDescLines.push_back(va(UI_GetStringEdString3("@JKG_INVENTORY_WEP_BDAMAGE_SCATTERGUN"), pFM->baseDamage, pFM->shotCount, szDamageTag));
+			}
+			else {
+				vItemDescLines.push_back(va(UI_GetStringEdString3("@JKG_INVENTORY_WEP_BDAMAGE"), pFM->baseDamage, szDamageTag));
+			}
+			vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_BRADIUS"), 
+				(int)pFM->rangeSplash, JKG_UnitsToFeet(pFM->rangeSplash), JKG_UnitsToMeters(pFM->rangeSplash)));
+		}
+		else if (pFM->shotCount > 1) {
+			vItemDescLines.push_back(va(UI_GetStringEdString3("@JKG_INVENTORY_WEP_DAMAGE_SCATTERGUN"), pFM->baseDamage, pFM->shotCount, szDamageTag));
+		}
+		else {
+			vItemDescLines.push_back(va(UI_GetStringEdString3("@JKG_INVENTORY_WEP_DAMAGE"), pFM->baseDamage, szDamageTag));
+		}
+
+		// Accuracy rating
+		int nAccuracyBase = pFM->weaponAccuracy.accuracyRating;
+		int nAccuracyMax = pFM->weaponAccuracy.maxAccuracyAdd + nAccuracyBase;
+		vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_ACCURACY"), nAccuracyBase, nAccuracyMax));
+
+		// Recoil
+		vItemDescLines.push_back(JKG_GetRecoilString(pWP, firemode));
+
+		// Fire rate
+		int nFireTime = pFM->delay;
+		int nRPM = (int)((1000.0f / nFireTime) * 60.0f);
+		vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_FIRETIME"), nRPM));
+
+		// Fire control
+		switch (pFM->firingType) {
+			case FT_SEMI:
+				vItemDescLines.push_back(UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_SEMI_AUTO"));
+				break;
+			case FT_AUTOMATIC:
+				vItemDescLines.push_back(UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_FULL_AUTO"));
+				break;
+			default:
+				vItemDescLines.push_back(UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_BURST"));
+				break;
+		}
+	}
+	else if (pFM->baseDamage > 0) {
+		char* szDamageTag = JKG_GetDamageTag(pWP, firemode);
+		vItemDescLines.push_back(va(UI_GetStringEdString3("@JKG_INVENTORY_WEP_BDAMAGE"), pFM->baseDamage, szDamageTag));
+		vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_BRADIUS"), 
+			(int)pFM->rangeSplash, JKG_UnitsToFeet(pFM->rangeSplash), JKG_UnitsToMeters(pFM->rangeSplash)));
+	}
+
+	vItemDescLines.push_back(""); // Add a blank line at the end because formatting is good (TM)
+}
+
+// Create a weapon item's description
+static void JKG_ConstructWeaponDescription(itemInstance_t* pItem) {
+	// Weapon Item
+	// Reload Time --OR-- Cook Time: %.2f seconds/ %i milliseconds
+	// Speed Bonus/Penalty: (+)%.2f
+	// Additional tags
+	// Fire mode
+	weaponData_t* wp = cgImports->GetWeaponDatas(pItem->id->weaponData.weapon, pItem->id->weaponData.variation);
+
+	vItemDescLines.push_back(UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_WEAPON"));
+
+	if (wp->hasCookAbility) {
+		vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_COOKTIME"), wp->weaponReloadTime));
+	}
+	else if (wp->weaponReloadTime > 1000) {
+		vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_RELOADTIME_SEC"), (float)(wp->weaponReloadTime / 1000.0f)));
+	}
+	else if (wp->weaponReloadTime > 0) {
+		vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_RELOADTIME"), wp->weaponReloadTime));
+	}
+
+	const float fSpeedModifier = wp->speedModifier;
+	if (fSpeedModifier > 1.0f) {
+		// Movement speed bonus
+		float fMovementBonus = fSpeedModifier - 1.0f;
+		fMovementBonus *= 100.0f;
+		vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_SPEEDBONUS"), fMovementBonus));
+	}
+	else if (fSpeedModifier < 1.0f) {
+		// Movement speed penalty
+		float fMovementPenalty = 1.0f - fSpeedModifier;
+		fMovementPenalty *= 100.0f;
+		vItemDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_SPEEDPENALTY"), fMovementPenalty));
+	}
+
+	if (wp->hasRollAbility) {
+		vItemDescLines.push_back(UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_ROLLING"));
+	}
+
+	vItemDescLines.push_back(""); // Push a blank line because we like nice formatting
+
+	if (wp->weaponBaseIndex != WP_SABER) { // FIXME: sabers don't really have a good item description yet
+		for (int i = 0; i < wp->numFiringModes; i++) {
+			JKG_ConstructFiringModeDescription(wp, i);
+		}
+	}
+}
+
+// Create a consumable item's description
+static void JKG_ConstructConsumableDescription(itemInstance_t* pItem) {
+	vItemDescLines.push_back(UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_CONSUMABLE"));
+}
+
+// Construct each type of item description
+static void JKG_ConstructItemDescription(itemInstance_t* pItem) {
+	vItemDescLines.clear();
+
+	if (pItem == nullptr) {
+		return;
 	}
 
 	switch (pItem->id->itemType) {
 		case ITEM_JETPACK:
-			// Jetpack
-			// Capacity: ###
-			// Idle Fuel Consumption: ###
-			// Thrusting Fuel Consumption: ###
-			// Fuel Regeneration: ###
-			// Hover Gravity: ###
-			switch (nLineNum) {
-				case 0:
-					return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_JETPACK");
-				case 1:
-					return va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_CAPACITY"), pItem->id->jetpackData.pJetpackData->fuelCapacity);
-				case 2:
-					return va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_IDLECONSUMPTION"), pItem->id->jetpackData.pJetpackData->fuelConsumption);
-				case 3:
-					return va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_THRUSTCONSUMPTION"), pItem->id->jetpackData.pJetpackData->thrustConsumption);
-				case 4:
-					return va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_FUELREGEN"), pItem->id->jetpackData.pJetpackData->fuelRegeneration);
-				case 5:
-					return va(UI_GetStringEdString2("@JKG_INVENTORY_JETPACK_HOVERGRAVITY"), pItem->id->jetpackData.pJetpackData->move.hoverGravity);
-			}
+			JKG_ConstructJetpackDescription(pItem);
 			break;
 		case ITEM_SHIELD:
-			// Shield Item
-			// Capacity: ###
-			// Recharge Time: ### seconds
-			// Regeneration: # shields per second
-
-			switch (nLineNum) {
-				case 0:
-					return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_SHIELD");
-				case 1:
-					return va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_CAPACITY"), pItem->id->shieldData.capacity);
-				case 2:
-					return va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_RECHARGE"), pItem->id->shieldData.cooldown / 1000.0f);
-				case 3:
-					return va(UI_GetStringEdString2("@JKG_INVENTORY_SHIELD_REGEN"), 1000.0f / pItem->id->shieldData.regenrate);
-			}
-			break;
-		case ITEM_WEAPON:
-			if (nLineNum == 0) {
-				return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_WEAPON");
-			}
-			pWeaponData = (weaponData_t*)cgImports->GetWeaponDatas(pItem->id->weaponData.weapon, pItem->id->weaponData.variation);
-			
-			// Reload time / cook time
-			if (nLineNum == 1) {
-				switch (pItem->id->weaponData.weapon) {
-					case WP_THERMAL:
-						// Cook time
-						if (pWeaponData->hasCookAbility) {
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_COOKTIME"), pWeaponData->weaponReloadTime);
-						} else {
-							nLineNum++;
-							nLineOffset++;
-						}
-						break;
-					case WP_SABER:
-					case WP_MELEE:
-					case WP_TRIP_MINE:
-					case WP_DET_PACK:
-						// Get offset / don't display anything for this line
-						nLineNum++;
-						nLineOffset++;
-						break;
-					default:
-						// Reload time
-						if (pWeaponData->weaponReloadTime > 1000) {
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_RELOADTIME_SEC"),
-								(float)(pWeaponData->weaponReloadTime / 1000.0f));
-						} else {
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_RELOADTIME"), pWeaponData->weaponReloadTime);
-						}
-					}
-			}
-
-			// Movement penalty/bonus, if there is one.
-			if (nLineNum == 2) {
-				const float fSpeedModifier = pWeaponData->speedModifier;
-				if (fSpeedModifier > 1.0f) {
-					// Movement speed bonus
-					float fMovementBonus = fSpeedModifier - 1.0f;
-					fMovementBonus *= 100.0f;
-					return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_SPEEDBONUS"), fMovementBonus);
-				} else if(fSpeedModifier < 1.0f) {
-					// Movement speed penalty
-					float fMovementPenalty = 1.0f - fSpeedModifier;
-					fMovementPenalty *= 100.0f;
-					return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_SPEEDPENALTY"), fMovementPenalty);
-				}
-				else {
-					// Not affected
-					nLineNum++;
-					nLineOffset++;
-				}
-			}
-
-			if (nLineNum == 3) {
-				// Additional weapon tags
-				if (pWeaponData->hasRollAbility && !(bfTagFields & (1 << IDTAG_ROLLING))) {
-					bfTagFields |= (1 << IDTAG_ROLLING); // Flag it so we don't draw it again
-					return (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_ROLLING");
-				}
-			}
-
-			if (pItem->id->weaponData.weapon == WP_SABER) {
-				// TODO
-				goto blankLine;
-			}
-
-			if (pItem->id->weaponData.weapon == WP_THERMAL || pItem->id->weaponData.weapon == WP_TRIP_MINE || pItem->id->weaponData.weapon == WP_DET_PACK) {
-				// Don't care about accuracy rating for these weapons.
-				// TODO: make this a flag in the .itm file
-				bDontCareAboutAccuracy = true;
-			}
-
-			// For mines and charges:
-			// nLineNum 4 is blank
-			// nLineNum 5 is fire mode number
-			// nLineNum 6 is blast damage
-			// nLineNum 7 is fallout damage
-			// nLineNum 8 is additional tags
-			// For charges, the second fire mode is ignored (it's always the detonator)
-
-			// For grenades:
-			// nLineNum 4 is blank
-			// nLineNum 5 is fire mode number
-			// nLineNum 6 is blast damage
-			// nLineNum 7 is fallout damage
-			// nLineNum 8 is cook time
-			// nLineNum 9 is additional tags
-			// For charges, the second fire mode is ignored (it's always the detonator)
-
-			// For weapons with an explosive firing mode:
-			// nLineNum 4 is blank
-			// nLineNum 5 is fire mode number
-			// nLineNum 6 is blast damage (?)
-			// nLineNum 7 is fallout damage, if it exists (otherwise everything is pushed down)
-			// nLineNum 8 is accuracy rating
-			// nLineNum 9 is recoil
-			// nLineNum 10 is fire rate
-			// nLineNum 11 is additional tags
-
-			// For projectile weapons (ie, everything else)
-			// nLineNum 4 is blank
-			// nLineNum 5 is fire mode number
-			// nLineNum 6 is damage
-			// nLineNum 7 is accuracy rating
-			// nLineNum 8 is recoil
-			// nLineNum 9 is fire rate
-			// nLineNum 10 is additional tags
-
-			// Figure out which firing mode we haven't done yet.
-			for (int i = 0; i < pWeaponData->numFiringModes; i++) {
-				if (!(bfTagFields & (1 << (i + IDTAG_FIREMODE)))) {
-					if (i == 1 && pWeaponData->weaponBaseIndex == WP_DET_PACK) {
-						// Plunger mode... we don't care about this one and shouldn't draw it
-						continue;
-					}
-					nFiringMode = i;
-					break;
-				}
-			}
-
-			if (nFiringMode >= pWeaponData->numFiringModes || nFiringMode < 0) {
-				return "";		// Don't draw anything for this line
-			}
-
-			idType = JKG_GetFiringModeType(pWeaponData, nFiringMode);
-			pFireMode = &pWeaponData->firemodes[nFiringMode];
-			pVFireMode = &pWeaponData->visuals.visualFireModes[nFiringMode];
-
-			if (idType == IDTYPE_NODRAW) {
-				return "";
-			}
-
-			switch (nLineNum) {
-				case 3:
-					nLineOffset++;
-				case 4:
-					goto blankLine;
-				case 5:
-					// Fire mode number
-					if (pWeaponData->numFiringModes <= 1) {
-						return (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEAPON_STATS");
-					}
-					switch (nFiringMode) {
-						case 0:
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_PRIMARY_FIRE"), pVFireMode->displayName);
-						case 1:
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_SECONDARY_FIRE"), pVFireMode->displayName);
-						case 2:
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_TERTIARY_FIRE"), pVFireMode->displayName);
-						default:
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_FIRING_MODE"), nFiringMode + 1, pVFireMode->displayName);
-					}
-					break;
-				case 6:
-					switch (idType) {
-						case IDTYPE_CHARGEMINE:
-						case IDTYPE_GRENADE:
-						case IDTYPE_EXPLOSIVEGUN:
-							return "";	// FIXME - blast damage
-						case IDTYPE_PROJECTILE:
-						{
-							int nDamage = pFireMode->baseDamage <= 0 ? 0 : pFireMode->baseDamage; // FIXME
-							if (nDamage <= 0) { // No damage. Don't draw.
-								char* out = JKG_GetItemDescLine(pItem, nLineNum - nLineOffset + 1, recursionLevel + 1);
-								nLineOffset++;
-								return out;
-							}
-
-							char* szDamageTag = JKG_GetDamageTag(pWeaponData, nFiringMode);
-							int nShotCount = pFireMode->shotCount;
-							if (nShotCount > 1) {
-								return va(UI_GetStringEdString3("@JKG_INVENTORY_WEP_DAMAGE_SCATTERGUN"), nDamage, nShotCount, szDamageTag);
-							} else {
-								return va(UI_GetStringEdString3("@JKG_INVENTORY_WEP_DAMAGE"), nDamage, szDamageTag);
-							}
-							break;
-						}
-						default:
-							break;
-					}
-					break;
-				case 7:
-					switch (idType) {
-						case IDTYPE_CHARGEMINE:
-						case IDTYPE_EXPLOSIVEGUN:
-						case IDTYPE_GRENADE:
-							return ""; // FIXME: fallout damage
-						case IDTYPE_PROJECTILE:
-						{
-							// Accuracy rating
-							int nAccuracyBase = pFireMode->weaponAccuracy.accuracyRating;
-							int nAccuracyMax = pFireMode->weaponAccuracy.maxAccuracyAdd + nAccuracyBase;
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_ACCURACY"), nAccuracyBase, nAccuracyMax);
-						}
-						default:
-							break;
-					}
-					break;
-				case 8:
-					// Grenades: Cook time
-					// Charges/Mines: Additional tags
-					// Explosive weapons: Accuracy rating
-					// Projectile weapons: recoil
-					switch (idType) {
-						case IDTYPE_EXPLOSIVEGUN:
-							// Accuracy rating
-							nAccuracyBase = pFireMode->weaponAccuracy.accuracyRating;
-							nAccuracyMax = pFireMode->weaponAccuracy.maxAccuracyAdd + nAccuracyBase;
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_ACCURACY"), nAccuracyBase, nAccuracyMax);
-						case IDTYPE_GRENADE:
-							nCookTime = pWeaponData->weaponReloadTime;
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_COOKTIME"), nCookTime);
-						case IDTYPE_PROJECTILE:
-							return (char*)JKG_GetRecoilString(pWeaponData, nFiringMode);
-						case IDTYPE_CHARGEMINE:
-							goto additionalTags;
-						default:
-							break;
-					}
-					break;
-				case 9:
-					// Grenades: additional tags
-					// Charges/Mines: Additional tags
-					// Explosive weapons: Recoil
-					// Projectile weapons: Fire rate
-					switch (idType) {
-						case IDTYPE_EXPLOSIVEGUN:
-							return (char*)JKG_GetRecoilString(pWeaponData, nFiringMode);
-						case IDTYPE_PROJECTILE:
-							nFireTime = pFireMode->delay;
-							nRPM = (int)((1000.0f / nFireTime) * 60.0f);
-							return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_FIRETIME"), nRPM);
-						default:
-							goto additionalTags;
-					}
-					break;
-				case 10:
-					// Explosive weapons: Fire rate
-					// Everything else: additional tags
-					if (idType == IDTYPE_EXPLOSIVEGUN) {
-						nFireTime = pFireMode->delay;
-						nRPM = (int)((1000.0f / nFireTime) * 60.0f);
-						return va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_FIRETIME"), nRPM);
-					}
-					// fall through
-				default:
-additionalTags:
-					{
-						if (!(bfFireModeTags[nFiringMode] & (1 << IDMTAG_FIRECONTROL))) {
-							char* szReturnValue = nullptr;
-							if (pFireMode->firingType == FT_SEMI) {
-								szReturnValue = (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_SEMI_AUTO");
-							}
-							else if (pFireMode->firingType == FT_AUTOMATIC) {
-								szReturnValue = (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_FULL_AUTO");
-							}
-							else {
-								szReturnValue = (char*)UI_GetStringEdString2("@JKG_INVENTORY_WEP_TAG_BURST");
-							}
-							bfFireModeTags[nFiringMode] |= (1 << IDMTAG_FIRECONTROL);
-							nLineOffset--;
-							return szReturnValue;
-						}
-						else {
-							bfTagFields |= (1 << (nFiringMode + IDTAG_FIREMODE));
-							// Mines and charges have offset of 5?
-							// Grenades have offset of 7?
-							// Explosive weapons have offset of 8?
-							// Projectiles have offset of 7?
-							if (idType == IDTYPE_CHARGEMINE) {
-								nLineOffset -= 5;
-							}
-							else if (idType == IDTYPE_GRENADE) {
-								nLineOffset -= 7;
-							}
-							else if (idType == IDTYPE_EXPLOSIVEGUN) {
-								nLineOffset -= 8;
-							}
-							else if (idType == IDTYPE_PROJECTILE) {
-								nLineOffset -= 7;
-							}
-							return JKG_GetItemDescLine(pItem, nLineNum, recursionLevel + 1);
-						}
-					}
-					break;
-			}
+			JKG_ConstructShieldDescription(pItem);
 			break;
 		case ITEM_ARMOR:
-			if (nLineNum == 0) {
-				return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_ARMOR");
-			}
+			JKG_ConstructArmorDescription(pItem);
+			break;
+		case ITEM_WEAPON:
+			JKG_ConstructWeaponDescription(pItem);
 			break;
 		case ITEM_CONSUMABLE:
-			if (nLineNum == 0) {
-				return (char*)UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_CONSUMABLE");
-			}
+			JKG_ConstructConsumableDescription(pItem);
 			break;
 		default:
 			break;
 	}
+}
 
-blankLine:
-	return "";
+// Returns the string that should appear on nLineNum of an item description
+const char* JKG_GetItemDescLine(itemInstance_t* pItem, int nLineNum) {
+	if (nLineNum >= vItemDescLines.size() || nLineNum < 0) {
+		return "";
+	}
+	return vItemDescLines[nLineNum].c_str();
 }
 
 /*
@@ -732,7 +588,7 @@ void JKG_Inventory_OwnerDraw_SelItemDesc(itemDef_t* item, int ownerDrawID) {
 		return;
 	}
 	itemInstance_t* pItem = pItems[nSelected].second;
-	strcpy(item->text, JKG_GetItemDescLine(pItem, ownerDrawID, 0));
+	strcpy(item->text, JKG_GetItemDescLine(pItem, ownerDrawID));
 	Item_Text_Paint(item);
 }
 
@@ -814,10 +670,13 @@ void JKG_Inventory_SelectItem(char** args) {
 	if (nPosition + nWhich >= pItems.size()) {
 		nSelected = -1;
 		Menu_ShowItemByName(Menus_FindByName("jkg_inventory"), "shop_preview", qfalse);
-
+		
+		JKG_ConstructItemDescription(nullptr);
 	} else {
 		nSelected = nPosition + nWhich;
 		Menu_ShowItemByName(Menus_FindByName("jkg_inventory"), "shop_preview", qtrue);
+
+		JKG_ConstructItemDescription(pItems[nSelected].second);
 	}
 }
 

@@ -665,6 +665,7 @@ typedef struct cgCrossoverExports_s
 	weaponData_t*	(*GetWeaponDatas)( unsigned char weapon, unsigned char variation );
 	int				(*GetRedTeam)( void );
 	int				(*GetBlueTeam)( void );
+	playerState_t*	(*GetPredictedPlayerState)(void);
 } cgCrossoverExports_t;
 
 #ifdef UI_EXPORTS

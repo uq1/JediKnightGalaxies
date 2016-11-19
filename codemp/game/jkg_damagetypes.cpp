@@ -417,6 +417,8 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 				take *= Q_min(health / (float)maxHealth, 0.33f);
 				interval /= Q_min(health / (float)maxHealth, 0.33f);
 				break;
+			default:
+				break;
 		}
         
 		// Check for the damage type being removed

@@ -2656,7 +2656,7 @@ int CheckShield (gentity_t *ent, int damage, int dflags, meansOfDamage_t* means)
 	}
 
 	if (dflags & DAMAGE_HALF_ARMOR_REDUCTION) {
-		save * ARMOR_REDUCTION_FACTOR;
+		save *= ARMOR_REDUCTION_FACTOR;
 	}
 
 	save *= means->modifiers.shield;
