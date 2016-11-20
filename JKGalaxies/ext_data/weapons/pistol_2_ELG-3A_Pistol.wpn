@@ -54,7 +54,7 @@
             ],
             "projectilefx": "blasters/shot_Stunblast_small",
             "hit":          { "impactfx": "saber/ignitionflare_blue" },
-	    "displayName":  "Charged"
+	    "displayName":  "Stun"
         }
     },
     
