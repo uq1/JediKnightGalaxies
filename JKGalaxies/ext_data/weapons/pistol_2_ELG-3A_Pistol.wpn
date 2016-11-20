@@ -83,7 +83,12 @@
     },
     
     "firemode1": {
-        "damage":       20,
+        "damage": {
+                               "damageradius": { "start": 8,
+                                                     "function": [ "constant"] },
+                               "damage":       10,
+                               "damagetype": [ "stun" ]
+                        },
         "collisionsize": 8.0,
         "maxchargetime": 500,
         "chargedamage": 1.5,
