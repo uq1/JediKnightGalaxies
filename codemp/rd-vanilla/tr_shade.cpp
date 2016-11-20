@@ -273,10 +273,15 @@ void R_BindAnimatedImage( textureBundle_t *bundle ) {
 			index = bundle->numImageAnimations - 1;
 		}
 	}
-	else if( tess.shader->frameOverride == -1 )
+	else if( tess.shader->frameOverride == -1 || index >= bundle->numImageAnimations)
 	{
 		// loop
-		index %= bundle->numImageAnimations; // but wot about this.. irrelevant.
+		if (bundle->numImageAnimations != 0) {
+			index %= bundle->numImageAnimations;
+		}
+		else {
+			index = 0;
+		}
 	}
 
 	GL_Bind( *((image_t**)bundle->image + index) );
