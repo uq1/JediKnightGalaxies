@@ -110,6 +110,23 @@ void JKG_JetpackUnequipped(gentity_t* ent) {
 
 /*
 ====================================
+JKG_ArmorChanged
+
+Our armor has been changed. Recalculate stats.
+====================================
+*/
+void JKG_ArmorChanged(gentity_t* ent) {
+	ent->client->ps.stats[STAT_MAX_HEALTH] = 100; // FIXME: not use a magic number
+
+	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+		if (it->equipped && it->id->itemType == ITEM_ARMOR) {
+			ent->client->ps.stats[STAT_MAX_HEALTH] += it->id->armorData.pArm->hp;
+		}
+	}
+}
+
+/*
+====================================
 JKG_EquipItem
 
 ====================================
@@ -153,6 +170,7 @@ void JKG_EquipItem(gentity_t *ent, int iNum)
 		armorData_t* pArm = item.id->armorData.pArm;
 		ent->client->ps.armor[pArm->slot] = pArm - armorTable + 1;
 		(*ent->inventory)[iNum].equipped = true;
+		JKG_ArmorChanged(ent);
 	}
 	else if (item.id->itemType == ITEM_SHIELD) {
 		JKG_ShieldEquipped(ent, iNum, qtrue);
@@ -197,6 +215,7 @@ void JKG_UnequipItem(gentity_t *ent, int iNum)
 	{
 		item->equipped = qfalse;
 	    trap->SendServerCommand (ent->s.number, "chw 0");
+		JKG_ArmorChanged(ent);
 	}
 	else if(item->id->itemType == ITEM_ARMOR)
 	{

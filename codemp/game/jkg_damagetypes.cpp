@@ -50,7 +50,7 @@ static struct
     { DT_IMPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},	// Not used.
     { DT_STUN,          0,									2000,       0,      0		},
     { DT_CARBONITE,     0,									4000,       2,      1000	},
-	{ DT_BLEED,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	5000,		1,		1000	},
+	{ DT_BLEED,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	5000,		4,		1000	},
 	{ DT_COLD,			0,									5000,		0,		0		},
 	{ DT_POISON,		DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	7000,		1,		1000	}
 };
@@ -189,6 +189,10 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage )
     {
         return;
     }
+
+	if (!JKG_ClientAlive(player)) {	// Don't allow us to be debuffed if we are dead
+
+	}
     
     SmallestVectorToBBox (dir, area->origin, player->r.absmin, player->r.absmax);
     dir[2] += 24.0f; // Push the player up a bit to get some air time.
@@ -341,15 +345,12 @@ void JKG_RemoveDamageType ( gentity_t *ent, damageType_t type )
 void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 {
     int i = 0;
+	int health = ent->client->ps.stats[STAT_HEALTH];
+	int maxHealth = ent->client->ps.stats[STAT_MAX_HEALTH];
 
-
-
-
-    
-    if ( ent->health <= 0 )
+    if ( !JKG_ClientAlive(ent) )
     {
-        // dead, remove all damage types
-        // and clear timers.
+        // dead, remove all damage types and clear timers.
         if ( ent->client->ps.damageTypeFlags > 0 )
         {
             for ( i = 0; i < NUM_DAMAGE_TYPES; i++ )
@@ -358,117 +359,95 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
                 JKG_RemoveDamageType (ent, damageType);
             }
         }
-        
         return;
     }
     
+	// Iterate through all of the damage types to check for periodic effects
     for ( i = 0; i < NUM_DAMAGE_TYPES; i++ )
     {
         damageType_t damageType = (damageType_t)i;
+		int take = damageTypeData[damageType].damage;
+		int flags = damageTypeData[damageType].damageFlags | DAMAGE_NO_KNOCKBACK;	// Damage from debuffs never inflicts knockback
+		int interval = damageTypeData[damageType].damageInterval;
+		bool removeType = (ent->client->damageTypeTime[i] + damageTypeData[i].debuffLifeTime) < level.time;
+		int means = MOD_UNKNOWN;
+		vec3_t p;
 
+		VectorCopy(ent->client->ps.origin, p);
+
+		// Don't do periodic effects if we don't have this effect on us
         if ( !(ent->client->ps.damageTypeFlags & (1 << damageType)) )
         {
             continue;
         }
-        
-        if ( (ent->client->damageTypeTime[i] + damageTypeData[i].debuffLifeTime) < level.time )
-        {
-            // Debuff lifetime has ended
-            JKG_RemoveDamageType (ent, damageType);
-            continue;
-        }
-        
-        switch ( damageType )
-        {
-            case DT_FIRE:
-            {
-                vec3_t p;
-                VectorCopy (ent->client->ps.origin, p);
-                p[2] -= 12.0f; // Water about half way up your thighs will extinguish the flames.
-                if ( trap->PointContents (p, ent->s.number) & CONTENTS_WATER )
-                {
-                    JKG_RemoveDamageType (ent, DT_FIRE);
-                }
-                else if ( (ent->client->damageTypeLastEffectTime[i] + 500) <= level.time )
-                {
-                    // FIXME: Need to know the attacker
-                    // FIXME: Also need to add a new method of death.
-                    ent->client->damageTypeLastEffectTime[i] = level.time;
-					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, 2, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC), 0);
-                }
-            }
-            break;
-            
-            case DT_FREEZE:
-                if ( (ent->client->damageTypeLastEffectTime[i] + 500) <= level.time )
-                {
-                    ent->client->damageTypeLastEffectTime[i] = level.time;
-					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, 2, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC), 0);
-                }
-            break;
 
+		// Specific behavior based on the type
+		switch (damageType) {
+			case DT_FIRE:
+				means = JKG_GetMeansOfDamageIndex("MOD_IGNITED");
+
+				// Remove the effect if we are in water
+				p[2] -= 12.0f; // Water about half way up your thighs will extinguish the flames.
+				if (trap->PointContents(p, ent->s.number) & CONTENTS_WATER)
+				{
+					removeType = true;
+				}
+				break;
+			case DT_FREEZE:
+				means = JKG_GetMeansOfDamageIndex("MOD_FROZEN");
+
+				// Remove the effect if we are in lava
+				p[2] -= 12.0f; // Lava up to about halfway to your thighs will thaw you
+				if (trap->PointContents(p, ent->s.number) & CONTENTS_LAVA)
+				{
+					removeType = true;
+				}
+				break;
 			case DT_BLEED:
-				if ( ((ent->client->damageTypeLastEffectTime[i] + 1000) <= level.time ) && (ent->client->ps.stats[STAT_HEALTH] > ent->client->ps.stats[STAT_MAX_HEALTH] * 0.2))
-				{
-					if (ent->client->ps.stats[STAT_HEALTH] == 1)	//--futuza: requested by Silverfang, don't allow players to die from bleed.  -_- not sure I like
-						return;
+				means = JKG_GetMeansOfDamageIndex("MOD_BLEEDING");
 
-					float dmg_mod = 0.04f; int curr_dmg = 5;
-					/*todo:
-					 Check .wpn file of the weapon being fired for a modifier and set dmg_mod to the value if present*/
-
-					if (dmg_mod * ent->client->ps.stats[STAT_HEALTH] > 1)	//grab percentage of enemies health*mod = dmg
-						curr_dmg = dmg_mod * ent->client->ps.stats[STAT_HEALTH];
-					else
-						curr_dmg = 1;
-
-					// play the wounding effect
-					G_PlayEffectID(G_EffectIndex("blood/Blood_WoundBig"), ent->s.origin, ent->s.angles);
-
-					// do damage
-					ent->client->damageTypeLastEffectTime[i] = level.time;
-					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, curr_dmg, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC | DAMAGE_NO_ARMOR), 0);
-				}
-
-				//if health <=20%, do 1dmg every 2 secs 
-				else if (((ent->client->damageTypeLastEffectTime[i] + 2000) <= level.time) && (ent->client->ps.stats[STAT_HEALTH] <= ent->client->ps.stats[STAT_MAX_HEALTH] * 0.2))
-				{
-					if (ent->client->ps.stats[STAT_HEALTH] == 1)	//no death from bleed
-						return;
-					
-					
-					G_PlayEffectID(G_EffectIndex("blood/Blood_WoundBig"), ent->s.origin, ent->s.angles);
-
-					ent->client->damageTypeLastEffectTime[i] = level.time;
-					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, 1, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC | DAMAGE_NO_ARMOR), 0);
-				}
-			break;
-
+				// Damage -and- interval both get scaled as a percentage of overall health
+				take *= Q_min(health / (float)maxHealth, 0.25f);
+				interval /= Q_min(health / (float)maxHealth, 0.25f);
+				break;
 			case DT_POISON:
-				if ((ent->client->damageTypeLastEffectTime[i] + 1000) <= level.time)
-				{
-					//50% chance to resist poison
-					if (Q_irand(1, 2) == 2)
-						return;
+				// FIXME: this doesn't have an associated meansOfDamage entry!!!
 
-					float dmg_mod = 0.05f; int curr_dmg = 5;	//poison does default 5% dmg per second over 7 seconds
-
-					if (dmg_mod * ent->client->ps.stats[STAT_HEALTH] > 1)	//grab percentage of enemies health and make that the damage
-						curr_dmg = dmg_mod * ent->client->ps.stats[STAT_HEALTH];
-					else
-						curr_dmg = 1;
-
-					//TODO: play poison effect - no such efx yet
-					//G_PlayEffectID(G_EffectIndex("Explosives/Toxic_Wound"), ent->s.origin, ent->s.angles);
-
-					// do damage
-					ent->client->damageTypeLastEffectTime[i] = level.time;
-					G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, curr_dmg, (DAMAGE_NO_KNOCKBACK | DAMAGE_NO_HIT_LOC | DAMAGE_NO_ARMOR), 0);
-				}
-
+				// Damage -and- interval both get scaled as a percentage of overall health
+				take *= Q_min(health / (float)maxHealth, 0.33f);
+				interval /= Q_min(health / (float)maxHealth, 0.33f);
+				break;
 			default:
-			break;
-        }
+				break;
+		}
+        
+		// Check for the damage type being removed
+		if (removeType)
+		{
+			JKG_RemoveDamageType(ent, damageType);
+			continue;
+		}
+
+		// Scale the damage that we take as being a percentage of overall health.
+		take = take * 100.0f / maxHealth;
+
+		// Only allow debuffs to whittle us down to 1 HP, not kill us
+		if (health - take <= 0) {
+			take = 0;
+		}
+
+		// Do the damage and special effects related to the debuff
+		if (ent->client->damageTypeLastEffectTime[i] + interval <= level.time) {
+			ent->client->damageTypeLastEffectTime[i] = level.time;
+			if (take > 0) {
+				G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, take, flags, means);
+
+				if (damageType == DT_BLEED) {
+					// spurt blood -- should be done on the client? -- make this nicer and spurt blood from where we got hit
+					G_PlayEffectID(G_EffectIndex("blood/Blood_WoundBig"), ent->s.origin, ent->s.angles);
+				}
+			}
+		}
     }
 }
 

@@ -106,6 +106,10 @@ static void *CO_PartyMngtDataRequest(int data) {
 	}
 }
 
+static playerState_t* CO_GetPredictedPlayerState() {
+	return &cg.predictedPlayerState;
+}
+
 void CG_InitializeCrossoverAPI( void )
 {
 	co.GetBlueTeam = CO_GetBlueTeam;
@@ -116,6 +120,7 @@ void CG_InitializeCrossoverAPI( void )
 	co.InventoryDataRequest = CO_InventoryDataRequest;
 	co.PartyMngtDataRequest = CO_PartyMngtDataRequest;
 	co.SendClientCommand = trap->SendClientCommand;
+	co.GetPredictedPlayerState = CO_GetPredictedPlayerState;
 
 	uiImports = trap->CO_InitCrossover( &co );
 }

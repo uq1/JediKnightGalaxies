@@ -187,8 +187,7 @@ void QDECL G_LogWeaponItem(int client, int itemid)
 void G_LogWeaponOutput(void)
 {
 #ifdef LOGGING_WEAPONS
-	int i, j, curwp;
-	float pershot;
+	int i, j;
 	fileHandle_t weaponfile;
 	char string[1024];
 
