@@ -171,6 +171,7 @@ XCVAR_DEF( jkg_shop_replenish_time,		"300",			NULL,				CVAR_ARCHIVE,									tru
 XCVAR_DEF( jkg_startingStats,			"100/25",		NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_startingCredits,			"500",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		false )
 XCVAR_DEF( jkg_bounty,					"75",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_killsPerBounty,			"2",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_creditsPerKill,			"150",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_creditsPerTeamCapture,	"100",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_creditsPerCapture,		"300",			NULL,				CVAR_ARCHIVE,									true )
