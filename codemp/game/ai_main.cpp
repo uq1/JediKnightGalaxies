@@ -1486,54 +1486,6 @@ void BotReplyGreetings(bot_state_t *bs)
 	}
 }
 
-//movement overrides
-void Bot_SetForcedMovement(int bot, int forward, int right, int up)
-{
-	bot_state_t *bs;
-
-	bs = botstates[bot];
-
-	if (!bs)
-	{ //not a bot
-		return;
-	}
-
-	if (forward != -1)
-	{
-		if (bs->forceMove_Forward)
-		{
-			bs->forceMove_Forward = 0;
-		}
-		else
-		{
-			bs->forceMove_Forward = forward;
-		}
-	}
-	if (right != -1)
-	{
-		if (bs->forceMove_Right)
-		{
-			bs->forceMove_Right = 0;
-		}
-		else
-		{
-			bs->forceMove_Right = right;
-		}
-	}
-	if (up != -1)
-	{
-		if (bs->forceMove_Up)
-		{
-			bs->forceMove_Up = 0;
-		}
-		else
-		{
-			bs->forceMove_Up = up;
-		}
-	}
-}
-
-
 int gUpdateVars = 0;
 
 /*
