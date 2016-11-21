@@ -364,7 +364,7 @@ void ChatBox_HandleKey(int key, qboolean down) {
 					trap->SendClientCommand(va("tell %i \"%s\"\n", cb_privtarget, ChatBox_EscapeChat(cb_data.buff)));
 					break;
 				case CHM_TEAM:
-					trap->SendClientCommand(va("say_team \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
+					trap->SendClientCommand(va("sayteam \"%s\"\n", ChatBox_EscapeChat(cb_data.buff)));
 					break;
 				default:
 					break;
@@ -699,10 +699,7 @@ void ChatBox_InterruptChat() {
 		// Instead of just going away, we still send the current message :P
 		if (cb_data.buff[0] == '/' || cb_data.buff[0] == '\\') {
 			// Never send commands on death, as this can have unwanted consequences
-			cg.isChatting = 0;
-			cb_fadeTime = trap->Milliseconds();
-			cb_fadeMode = 3;
-			trap->Key_SetCatcher(0);
+			ChatBox_CloseChat();
 			return;
 		}
 		
@@ -715,11 +712,6 @@ void ChatBox_InterruptChat() {
 		ChatBox_HandleKey(A_ENTER, qtrue);
 		// Now, this here is supposed to close the chatbox
 		// If it does not however, we'll have this as a fallback
-		if (cg.isChatting) {
-			cg.isChatting = 0;
-			cb_fadeTime = trap->Milliseconds();
-			cb_fadeMode = 3;
-			trap->Key_SetCatcher(0);
-		}
+		ChatBox_CloseChat();
 	}
 }
