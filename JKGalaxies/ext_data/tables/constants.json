@@ -31,14 +31,14 @@
 	"stamina" : {
 		// All of these fields are related to stamina, except for stamina drain from sprint, which is a cvar.
 		"lossFromRolling": 10,		// The amount of stamina lost from rolling
-		"lossFromPunching": 5,		// ...
+		"lossFromPunching": 0,		// ...
 		"lossFromJumping": 10,
 		"lossFromKicking": 5,
 
 		"minSprintThreshold": 25,	// The minimum amount of stamina needed to trigger sprinting
-		"minRollThreshold": 20,		// ...
-		"minJumpThreshold": 20,
-		"minPunchThreshold": 0,
-		"minKickThreshold": 0
+		"minRollThreshold": 15,		// ...
+		"minJumpThreshold": 15,
+		"minPunchThreshold": 5,
+		"minKickThreshold": 10
 	}
 }
