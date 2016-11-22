@@ -1076,6 +1076,35 @@ void JKG_DumpWeaponList_f( gentity_t *ent )
 
 /*
 ==================
+G_ClientNumFromArg
+==================
+*/
+int G_ClientNumberFromArg(const char *name)
+{
+	int client_id = 0;
+	const char *cp = name;
+	while (*cp)
+	{
+		if (*cp >= '0' && *cp <= '9') cp++;
+		else
+		{
+			client_id = -1; //mark as alphanumeric
+			break;
+		}
+	}
+
+	if (client_id == 0)
+	{ // arg is assumed to be client number
+		client_id = atoi(name);
+	}
+	// arg is client name
+	if (client_id == -1)
+	{
+		client_id = G_ClientNumberFromStrippedSubstring(name, qfalse);
+	}
+	return client_id;
+}
+
 /*
 ==================
 Give cheat
@@ -1847,16 +1876,35 @@ void Cmd_Team_f( gentity_t *ent ) {
 
 /*
 =================
-JKG_Cmd_Loot_f
+JKG_Cmd_ItemAction_f
 =================
 */
-void JKG_Cmd_Loot_f(gentity_t *ent, int otherNum, int lootID, qboolean trade)
+void JKG_Cmd_ItemAction_f(gentity_t *ent, int itemNum)
 {
-	return;
-}
+	if (!ent->client)
+	{
+		return; //NOTENOTE: NPCs can perform item actions. Nifty, eh?
+	}
 
-/*
-=================
+	if (ent->client->ps.stats[STAT_HEALTH] <= 0 ||
+		ent->client->ps.pm_type == PM_DEAD)
+	{
+		// Bugfix: Can no longer use items when dead --eez
+		Com_Printf("Can't use items while dead!\n");
+		return;
+	}
+
+	if (itemNum < 0 || itemNum >= MAX_INVENTORY_ITEMS)
+	{
+		return;
+	}
+	if (itemNum > ent->inventory->size())
+	{
+		//Nope.
+		return;
+	}
+	BG_ConsumeItem(ent, itemNum);
+}
 
 /*
 ==================
@@ -1885,7 +1933,8 @@ void Cmd_ResendInv_f(gentity_t* ent) {
 	BG_SendItemPacket(IPT_RESET, ent, nullptr, ent->inventory->size(), 0);
 }
 
-
+/*
+=================
 JKG_Cmd_ShowInv_f
 =================
 */
@@ -2397,16 +2446,6 @@ static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, cons
 	if ( mode == SAY_TEAM  && !OnSameTeam(ent, other) ) {
 		return;
 	}
-	/*
-	// no chatting to players in tournements
-	if ( (level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL)
-		&& other->client->sess.sessionTeam == TEAM_FREE
-		&& ent->client->sess.sessionTeam != TEAM_FREE ) {
-		//Hmm, maybe some option to do so if allowed?  Or at least in developer mode...
-		return;
-	}
-	*/
-	//They've requested I take this out.
 
 	if (locMsg)
 	{
@@ -4326,7 +4365,9 @@ static const command_t commands[] = {
 	{ "debuginventory",			JKG_Cmd_ShowInv_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "dismember",				Cmd_Dismember_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "dumpweaponlist_sv",		JKG_DumpWeaponList_f,		0 },
-	{ "equip",					JKG_Cmd_EquipItem_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "equip",					JKG_Cmd_EquipItem_f,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "equipjetpack",			JKG_EquipJetpack_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "equipshield",			JKG_EquipShield_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "follow",					Cmd_Follow_f,				CMD_NOINTERMISSION },
 	{ "follownext",				Cmd_FollowNext_f,			CMD_NOINTERMISSION },
 	{ "followprev",				Cmd_FollowPrev_f,			CMD_NOINTERMISSION },
@@ -4367,7 +4408,9 @@ static const command_t commands[] = {
 	{ "tell",					Cmd_Tell_f,					0 },
 	{ "t_use",					Cmd_TUse_f,					CMD_ONLYALIVE | CMD_NEEDCHEATS },
 	{ "togglesaber",			Cmd_ToggleSaber_f,			CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR },
-	{ "unequip",				JKG_Cmd_UnequipItem_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "unequip",				JKG_Cmd_UnequipItem_f,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "unequipjetpack",			JKG_JetpackUnequipped,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "unequipshield",			JKG_ShieldUnequipped,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "voice_cmd",				Cmd_VoiceCommand_f,			CMD_NOINTERMISSION|CMD_NOSPECTATOR },
 	{ "vote",					Cmd_Vote_f,					CMD_NOINTERMISSION },
 	{ "where",					Cmd_Where_f,				0 },
@@ -4399,19 +4442,18 @@ void ClientCommand( int clientNum ) {
 	if ( TeamCommand( clientNum, cmd, NULL )) return;
 
 	const command_t *command = (command_t *)Q_LinearSearch( cmd, commands, numCommands, sizeof( commands[0] ), cmdcmp );
+
 	if ( !command )
 	{
 		trap->SendServerCommand( clientNum, va( "print \"Unknown command %s\n\"", cmd ) );
 		return;
 	}
-
 	else if ( (command->flags & CMD_NOINTERMISSION) && ( level.intermissionQueued || level.intermissiontime ) )
 	{
 		// It's intermission time and this command couldn't be done during intermission.
 		trap->SendServerCommand(clientNum, va("print \"%s (%s) \n\"", G_GetStringEdString("MP_SVGAME", "CANNOT_TASK_INTERMISSION"), cmd));
 		return;
 	}
-
 	else if ( (command->flags & CMD_NEEDCHEATS) && !CheatsOk( ent ) )
 	{
 		// This command requires cheats and we don't have cheats
@@ -4428,23 +4470,6 @@ void ClientCommand( int clientNum ) {
 		trap->SendServerCommand(clientNum, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBEALIVE")));
 		return;
 	}
-	}
-	else if (Q_stricmp(cmd, "equipShield") == 0)
-	{
-		JKG_EquipShield_f(ent);
-	}
-	else if (Q_stricmp(cmd, "unequipShield") == 0)
-	{
-		JKG_ShieldUnequipped(ent);
-	}
-	else if (Q_stricmp(cmd, "equipJetpack") == 0)
-	{
-		JKG_EquipJetpack_f(ent);
-	}
-	else if (Q_stricmp(cmd, "unequipJetpack") == 0)
-	{
-		JKG_JetpackUnequipped(ent);
-
 	else if ( (command->flags & CMD_NOSPECTATOR) && ent->client->sess.sessionTeam == TEAM_SPECTATOR )
 	{
 		// This command requires us to not be a spectator and we are.
@@ -4455,7 +4480,7 @@ void ClientCommand( int clientNum ) {
 			trap->SendServerCommand(clientNum, "print \"That command cannot be used as a spectator.\n\"");
 		return;
 	}
-
-	else
-		command->function( ent );
+	else {
+		command->function(ent);
+	}
 }
