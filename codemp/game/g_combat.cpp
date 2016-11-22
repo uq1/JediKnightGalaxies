@@ -4756,8 +4756,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		}
 	}
 
-	take -= ssave;
-
 	if (take > 0 && !(dflags&DAMAGE_NO_HIT_LOC))
 	{//see if we should modify it by damage location
 		if (targ->inuse && (targ->client || targ->s.eType == ET_NPC) &&

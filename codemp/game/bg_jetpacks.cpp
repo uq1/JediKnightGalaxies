@@ -50,6 +50,9 @@ static void JKG_ParseJetpackMovement(cJSON* jsonNode, jetpackData_t& jetpackData
 
 	child = cJSON_GetObjectItem(jsonNode, "thrustUp");
 	jetpackData.move.thrustUp = cJSON_ToNumberOpt(child, 1.0);
+
+	child = cJSON_GetObjectItem(jsonNode, "fwdThrustAmt");
+	jetpackData.move.fwdThrustAmt = cJSON_ToNumberOpt(child, 2.0);
 }
 
 /*
