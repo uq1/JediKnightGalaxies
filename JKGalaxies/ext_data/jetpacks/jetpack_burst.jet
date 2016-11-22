@@ -31,7 +31,9 @@
 		"thrustFwd": 4.0,
 		"thrustBack": 1.0,
 		"thrustSide": 1.0,
-		"thrustUp": 5.0
+		"thrustUp": 5.0,
+
+		"fwdThrustAmt": 2.0
 	},
 
 	"visuals": {

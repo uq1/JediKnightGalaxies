@@ -229,7 +229,6 @@ qboolean BG_DirectFlippingAnim( int anim )
 	case BOTH_FLIP_L:			//# Flip left
 	case BOTH_FLIP_R:			//# Flip right
 		return qtrue;
-		break;
 	}
 
 	return qfalse;
@@ -303,7 +302,6 @@ qboolean BG_SaberInAttack( int move )
 	case LS_DUAL_LR:
 	case LS_HILT_BASH:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -455,7 +453,6 @@ qboolean BG_SaberInIdle( int move )
 	case LS_DRAW:
 	case LS_PUTAWAY:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -473,7 +470,6 @@ qboolean BG_InExtraDefenseSaberMove( int move )
 	case LS_A3_SPECIAL:
 	case LS_JUMPATTACK_DUAL:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -519,7 +515,6 @@ qboolean BG_FlippingAnim( int anim )
 	case BOTH_FLIP_ATTACK7:
 	case BOTH_A7_SOULCAL:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -627,7 +622,6 @@ qboolean BG_SpinningSaberAnim( int anim )
 	case BOTH_JUMPFLIPSLASHDOWN1:
 	case BOTH_JUMPFLIPSTABDOWN:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -712,7 +706,6 @@ qboolean BG_KickingAnim( int anim )
 	case BOTH_GETUP_FROLL_B:
 	case BOTH_GETUP_FROLL_F:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -731,7 +724,6 @@ int BG_InGrappleMove(int anim)
 	case BOTH_PLAYER_PA_2:
 	case BOTH_PLAYER_PA_FLY:
 		return 3; //getting the shit beaten out of you
-		break;
 	}
 
 	return 0;
@@ -746,28 +738,20 @@ int BG_BrokenParryForAttack( int move, int stance )
 	{
 	case Q_B:
 		return LS_V1_B_;
-		break;
 	case Q_BR:
 		return LS_V1_BR;
-		break;
 	case Q_R:
 		return LS_V1__R;
-		break;
 	case Q_TR:
 		return LS_V1_TR;
-		break;
 	case Q_T:
 		return LS_V1_T_;
-		break;
 	case Q_TL:
 		return LS_V1_TL;
-		break;
 	case Q_L:
 		return LS_V1__L;
-		break;
 	case Q_BL:
 		return LS_V1_BL;
-		break;
 	}
 	return LS_NONE;
 }
@@ -791,19 +775,14 @@ int BG_BrokenParryForParry( int move )
 		break;
 	case LS_PARRY_UR:
 		return LS_H1_TR;
-		break;
 	case LS_PARRY_UL:
 		return LS_H1_TL;
-		break;
 	case LS_PARRY_LR:
 		return LS_H1_BR;
-		break;
 	case LS_PARRY_LL:
 		return LS_H1_BL;
-		break;
 	case LS_READY:
 		return LS_H1_B_;//???
-		break;
 	}
 	return LS_NONE;
 }
@@ -816,20 +795,15 @@ int BG_KnockawayForParry( int move )
 	{
 	case BLOCKED_TOP://LS_PARRY_UP:
 		return LS_K1_T_;//push up
-		break;
 	case BLOCKED_UPPER_RIGHT://LS_PARRY_UR:
 	default://case LS_READY:
 		return LS_K1_TR;//push up, slightly to right
-		break;
 	case BLOCKED_UPPER_LEFT://LS_PARRY_UL:
 		return LS_K1_TL;//push up and to left
-		break;
 	case BLOCKED_LOWER_RIGHT://LS_PARRY_LR:
 		return LS_K1_BR;//push down and to left
-		break;
 	case BLOCKED_LOWER_LEFT://LS_PARRY_LL:
 		return LS_K1_BL;//push down and to right
-		break;
 	}
 	//return LS_NONE;
 }
@@ -874,10 +848,8 @@ qboolean BG_InSpecialDeathAnim( int anim )
 	case BOTH_DEATH_FALLING_UP:	//# Death anim when falling on back
 	case BOTH_DEATH_CROUCHED:	//# Death anim when crouched
 		return qtrue;
-		break;
 	default:
 		return qfalse;
-		break;
 	}
 }
 
@@ -968,10 +940,8 @@ qboolean BG_InDeathAnim ( int anim )
 	case BOTH_DISMEMBER_RARM:	//#
 	case BOTH_DISMEMBER_LARM:	//#
 		return qtrue;
-		break;
 	default:
 		return BG_InSpecialDeathAnim( anim );
-		break;
 	}
 }
 
@@ -1031,12 +1001,9 @@ qboolean BG_InSaberLock( int anim )
 	case BOTH_LK_ST_ST_S_L_2:
 	case BOTH_LK_ST_ST_T_L_2:
 		return qtrue;
-		break;
 	default:
 		return BG_InSaberLockOld( anim );
-		break;
 	}
-	//return qfalse;
 }
 
 //Called only where pm is valid (not all require pm, but some do):
@@ -1050,7 +1017,6 @@ qboolean PM_InCartwheel( int anim )
 	case BOTH_CARTWHEEL_LEFT:
 	case BOTH_CARTWHEEL_RIGHT:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -1065,11 +1031,7 @@ qboolean BG_InKnockDownOnGround( playerState_t *ps )
 	case BOTH_KNOCKDOWN4:
 	case BOTH_KNOCKDOWN5:
 	case BOTH_RELEASED:
-		//if ( PM_AnimLength( g_entities[ps->clientNum].client->clientInfo.animFileIndex, (animNumber_t)ps->legsAnim ) - ps->legsAnimTimer > 300 )
-		{//at end of fall down anim
-			return qtrue;
-		}
-		break;
+		return qtrue;
 	case BOTH_GETUP1:
 	case BOTH_GETUP2:
 	case BOTH_GETUP3:
@@ -1138,25 +1100,18 @@ int PM_SaberBounceForAttack( int stance, int move )
 	case Q_B:
 	case Q_BR:
 		return LS_B1_BR;
-		break;
 	case Q_R:
 		return LS_B1__R;
-		break;
 	case Q_TR:
 		return LS_B1_TR;
-		break;
 	case Q_T:
 		return LS_B1_T_;
-		break;
 	case Q_TL:
 		return LS_B1_TL;
-		break;
 	case Q_L:
 		return LS_B1__L;
-		break;
 	case Q_BL:
 		return LS_B1_BL;
-		break;
 	}
 	return LS_NONE;
 }
@@ -1167,28 +1122,20 @@ int PM_SaberDeflectionForQuad( int quad )
 	{
 	case Q_B:
 		return LS_D1_B_;
-		break;
 	case Q_BR:
 		return LS_D1_BR;
-		break;
 	case Q_R:
 		return LS_D1__R;
-		break;
 	case Q_TR:
 		return LS_D1_TR;
-		break;
 	case Q_T:
 		return LS_D1_T_;
-		break;
 	case Q_TL:
 		return LS_D1_TL;
-		break;
 	case Q_L:
 		return LS_D1__L;
-		break;
 	case Q_BL:
 		return LS_D1_BL;
-		break;
 	}
 	return LS_NONE;
 }
@@ -1319,10 +1266,7 @@ qboolean PM_InGetUp( playerState_t *ps )
 		break;
 	default:
 		return PM_InForceGetUp( ps );
-		break;
 	}
-	//what the hell, redundant, but...
-	return qfalse;
 }
 //[/KnockdownSys]
 
@@ -1341,7 +1285,6 @@ qboolean PM_InKnockDown( playerState_t *ps )
 	//special anims:
 	case BOTH_RELEASED:
 		return qtrue;
-		break;
 	case BOTH_LK_DL_ST_T_SB_1_L:
 		if ( ps->legsTimer < 550 )
 		{
@@ -1353,64 +1296,11 @@ qboolean PM_InKnockDown( playerState_t *ps )
 		{
 			return qtrue;
 		}
-		/*
-		else if ( ps->clientNum < MAX_CLIENTS 
-			&& ps->legsAnimTimer < 300 + PLAYER_KNOCKDOWN_HOLD_EXTRA_TIME )
-		{
-			return qtrue;
-		}
-		*/
 		break;
 	default:
 		return PM_InGetUp( ps );
-		break;
 	}
-	return qfalse;
-
-	/* basejka code
-	switch ( (ps->legsAnim) )
-	{
-	case BOTH_KNOCKDOWN1:
-	case BOTH_KNOCKDOWN2:
-	case BOTH_KNOCKDOWN3:
-	case BOTH_KNOCKDOWN4:
-	case BOTH_KNOCKDOWN5:
-	//[MELEE]
-	case BOTH_PLAYER_PA_3_FLY:
-	//[/MELEE]
-		return qtrue;
-		break;
-	case BOTH_GETUP1:
-	case BOTH_GETUP2:
-	case BOTH_GETUP3:
-	case BOTH_GETUP4:
-	case BOTH_GETUP5:
-	case BOTH_FORCE_GETUP_F1:
-	case BOTH_FORCE_GETUP_F2:
-	case BOTH_FORCE_GETUP_B1:
-	case BOTH_FORCE_GETUP_B2:
-	case BOTH_FORCE_GETUP_B3:
-	case BOTH_FORCE_GETUP_B4:
-	case BOTH_FORCE_GETUP_B5:
-	case BOTH_GETUP_BROLL_B:
-	case BOTH_GETUP_BROLL_F:
-	case BOTH_GETUP_BROLL_L:
-	case BOTH_GETUP_BROLL_R:
-	case BOTH_GETUP_FROLL_B:
-	case BOTH_GETUP_FROLL_F:
-	case BOTH_GETUP_FROLL_L:
-	case BOTH_GETUP_FROLL_R:
-		if ( ps->legsTimer )
-		{
-			return qtrue;
-		}
-		break;
-	}
-	return qfalse;
-	*/
-	//[/KnockdownSys]
 }
-//[/SPPortCompete]
 
 qboolean PM_PainAnim( int anim )
 {
@@ -1435,7 +1325,6 @@ qboolean PM_PainAnim( int anim )
 		case BOTH_PAIN17:			//# 
 		case BOTH_PAIN18:			//# 
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -1470,7 +1359,6 @@ qboolean PM_JumpingAnim( int anim )
 		case BOTH_FORCEINAIRRIGHT1:		//# In air loop (from jump right)
 		case BOTH_FORCELANDRIGHT1:		//# Landing right(from in air loop)
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -1489,21 +1377,12 @@ qboolean PM_LandingAnim( int anim )
 		case BOTH_FORCELANDLEFT1:	//# Landing left(from in air loop)
 		case BOTH_FORCELANDRIGHT1:	//# Landing right(from in air loop)
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
 
 qboolean PM_SpinningAnim( int anim )
 {
-	/*
-	switch ( anim )
-	{
-	//FIXME: list any other spinning anims
-	default:
-		break;
-	}
-	*/
 	return BG_SpinningSaberAnim( anim );
 }
 
@@ -1552,7 +1431,6 @@ qboolean PM_InOnGroundAnim ( int anim )
 	case BOTH_GETUP_FROLL_L:
 	case BOTH_GETUP_FROLL_R:
 		return qtrue;
-		break;
 	}
 
 	return qfalse;
@@ -1609,7 +1487,6 @@ qboolean BG_SuperBreakLoseAnim( int anim )
 	case BOTH_LK_ST_S_S_SB_1_L:	//super break I lost
 	case BOTH_LK_ST_S_T_SB_1_L:	//super break I lost
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -1637,7 +1514,6 @@ qboolean BG_SuperBreakWinAnim( int anim )
 	case BOTH_LK_ST_S_S_SB_1_W:	//super break I won
 	case BOTH_LK_ST_S_T_SB_1_W:	//super break I won
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -1688,13 +1564,10 @@ qboolean BG_SaberLockBreakAnim( int anim )
 	case BOTH_LK_ST_S_T_B_1_L:	//normal break I lost
 	case BOTH_LK_ST_S_T_B_1_W:	//normal break I won
 		return qtrue;
-		break;
 	}
 	return (BG_SuperBreakLoseAnim(anim)||BG_SuperBreakWinAnim(anim));
 }
 
-//[SPPortCompete]
-//[KnockdownSys]
 qboolean BG_KnockDownAnim( int anim )
 {//racc - is this a "normal" knockdown animation?
 	switch ( anim )
@@ -1727,16 +1600,9 @@ qboolean PM_KnockDownAnimExtended( int anim )
 	case BOTH_PLAYER_PA_3_FLY:
 		return qtrue;
 		break;
-	/*
-	default:
-		return PM_InGetUp( ps );
-		break;
-	*/
 	}
 	return qfalse;
 }
-//[/KnockdownSys]
-//[/SPPortCompete]
 
 qboolean BG_FullBodyTauntAnim( int anim )
 {
@@ -1758,7 +1624,6 @@ qboolean BG_FullBodyTauntAnim( int anim )
 	case BOTH_VICTORY_DUAL:
 	case BOTH_VICTORY_STAFF:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -1840,19 +1705,14 @@ int PM_DualStanceForSingleStance(int anim)
 	{
 	case BOTH_P1_S1_T_:
 		return BOTH_P6_S6_T_;
-		break;
 	case BOTH_P1_S1_BL:
 		return BOTH_P6_S6_BL;
-		break;
 	case BOTH_P1_S1_BR:
 		return BOTH_P6_S6_BR;
-		break;
 	case BOTH_P1_S1_TL:
 		return BOTH_P6_S6_TL;
-		break;
 	case BOTH_P1_S1_TR:
 		return BOTH_P6_S6_TR;
-		break;
 	case BOTH_SABERDUAL_STANCE:
 		return BOTH_H6_S6_BR;
 	case BOTH_STAND2:
@@ -1991,7 +1851,6 @@ int PM_GetSaberStance(void)
 			&& saber2
 			&& !pm->ps->saberHolstered)
 		{
-			// c wut i did here? --eez
 			return PM_DualStanceForSingleStance(anim);
 		}
 		else if (SaberStances[pm->ps->fd.saberAnimLevel].isStaffOnly)
@@ -2024,11 +1883,24 @@ void PM_AnimateJetpack(void) {
 	}
 	else if (pm->cmd.forwardmove > 0)
 	{
-		PM_ContinueLegsAnim(BOTH_FORCEJUMP1);
+		if (pm->cmd.buttons & BUTTON_SPRINT) {
+			PM_ContinueLegsAnim(BOTH_FORCELONGLEAP_START);
+		}
+		else if(pm->ps->legsAnim == BOTH_FORCELONGLEAP_START || pm->ps->legsAnim == BOTH_FORCELONGLEAP_LAND) {
+			PM_ContinueLegsAnim(BOTH_FORCELONGLEAP_LAND);
+		}
+		else {
+			PM_ContinueLegsAnim(BOTH_FORCEJUMP1);
+		}
 	}
 	else if (pm->cmd.forwardmove < 0)
 	{
-		PM_ContinueLegsAnim(BOTH_FORCEJUMPBACK1);
+		if (pm->ps->legsAnim == BOTH_FORCELONGLEAP_START || pm->ps->legsAnim == BOTH_FORCELONGLEAP_LAND) {
+			PM_ContinueLegsAnim(BOTH_FORCELONGLEAP_LAND);
+		}
+		else {
+			PM_ContinueLegsAnim(BOTH_FORCEJUMPBACK1);
+		}
 	}
 	else
 	{
@@ -2065,7 +1937,6 @@ qboolean BG_WalkingAnim(int anim)
 	case BOTH_FEMALEEWALK:			//# JKG: Female walking
 	case BOTH_FEMALEEWALKBACK:		//# JKG: Femake walking (backwards)
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -2088,7 +1959,6 @@ qboolean BG_RunningAnim(int anim)
 	case BOTH_RUNSTRAFE_RIGHT1:	//# Sidestep right: should loop
 	case BOTH_FEMALERUN:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -2101,7 +1971,6 @@ qboolean BG_SwimmingAnim(int anim)
 	case BOTH_SWIMFORWARD:		//# Swim forward loop
 	case BOTH_SWIMBACKWARD:		//# Swim backward loop
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -2123,7 +1992,6 @@ qboolean BG_RollingAnim(int anim)
 	case BOTH_GETUP_FROLL_L:
 	case BOTH_GETUP_FROLL_R:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -2183,7 +2051,6 @@ qboolean BG_InSlopeAnim(int anim)
 	case LEGS_S5_RUP4:
 	case LEGS_S5_RUP5:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -2342,7 +2209,6 @@ qboolean PM_AdjustStandAnimForSlope(void)
 	case BOTH_STAND6:
 	default:
 		return qfalse;
-		break;
 	}
 
 	//step 5: based on the chosen interval and the current legsAnim, pick the correct anim
@@ -2782,19 +2648,7 @@ qboolean PM_WeaponAnimate(void)
 			break;
 		case HANDEXTEND_JEDITAUNT:
 			desiredAnim = BOTH_GESTURE1;
-			//playFullBody = qtrue;
 			break;
-			//Hmm... maybe use these, too?
-			//BOTH_FORCEHEAL_QUICK //quick heal (SP level 2 & 3)
-			//BOTH_MINDTRICK1 // wave (maybe for mind trick 2 & 3 - whole area, and for force seeing)
-			//BOTH_MINDTRICK2 // tap (maybe for mind trick 1 - one person)
-			//BOTH_FORCEGRIP_START //start grip
-			//BOTH_FORCEGRIP_HOLD //hold grip
-			//BOTH_FORCEGRIP_RELEASE //release grip
-			//BOTH_FORCELIGHTNING //quick lightning burst (level 1)
-			//BOTH_FORCELIGHTNING_START //start lightning
-			//BOTH_FORCELIGHTNING_HOLD //hold lightning
-			//BOTH_FORCELIGHTNING_RELEASE //release lightning
 		default:
 			desiredAnim = BOTH_FORCEPUSH;
 			break;
@@ -2877,7 +2731,6 @@ qboolean BG_InRollES(entityState_t *ps, int anim)
 	case BOTH_ROLL_R:
 	case BOTH_ROLL_L:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -3280,7 +3133,6 @@ qboolean BG_InRoll2(entityState_t *es)
 	case BOTH_ROLL_R:
 	case BOTH_ROLL_L:
 		return qtrue;
-		break;
 	}
 	return qfalse;
 }
@@ -3740,7 +3592,6 @@ void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int ti
 		trap->G2API_SetBoneAngles(ghoul2, 4 + i, "upper_lumbar", ulAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time);
 		trap->G2API_SetBoneAngles(ghoul2, 4 + i, "thoracic", thoracicAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time);
 	}
-	//trap->G2API_SetBoneAngles(ghoul2, 0, "cervical", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, 0, 0, time);
 }
 
 void BG_G2ATSTAngles(void *ghoul2, int time, vec3_t cent_lerpAngles)
@@ -3783,34 +3634,6 @@ void BG_FlipPart(playerState_t *ps, int part)
 qboolean	BGPAFtextLoaded = qfalse;
 animation_t	bgHumanoidAnimations[MAX_TOTALANIMATIONS]; //humanoid animations are the only ones that are statically allocated.
 
-//#define CONVENIENT_ANIMATION_FILE_DEBUG_THING
-
-#ifdef CONVENIENT_ANIMATION_FILE_DEBUG_THING
-void SpewDebugStuffToFile()
-{
-	fileHandle_t f;
-	int i = 0;
-
-	trap->FS_FOpenFile("file_of_debug_stuff_MP.txt", &f, FS_WRITE);
-
-	if (!f)
-	{
-		return;
-	}
-
-	BGPAFtext[0] = 0;
-
-	while (i < MAX_ANIMATIONS)
-	{
-		strcat(BGPAFtext, va("%i %i\n", i, bgHumanoidAnimations[i].frameLerp));
-		i++;
-	}
-
-	trap->FS_Write(BGPAFtext, strlen(BGPAFtext), f);
-	trap->FS_FCloseFile(f);
-}
-#endif
-
 bgLoadedAnim_t bgAllAnims[MAX_ANIM_FILES];
 int bgNumAllAnims = NUM_RESERVED_ANIMSETS; //start off at 3, because 0 will always be assigned to humanoid, and 1 will always be rockettrooper, AND 2 IS FOR JKG MWAHAHAHAA
 
@@ -3824,18 +3647,6 @@ void BG_InitAnimsets(void)
 //ALWAYS call on game/cgame shutdown
 void BG_ClearAnimsets(void)
 {
-	/*
-	int i = 1;
-
-	while (i < bgNumAllAnims)
-	{
-		if (bgAllAnims[i].anims)
-		{
-			strap->TrueFree((void **)&bgAllAnims[i].anims);
-		}
-		i++;
-	}
-	*/
 }
 
 animation_t *BG_AnimsetAlloc(void)
@@ -3848,21 +3659,6 @@ animation_t *BG_AnimsetAlloc(void)
 
 void BG_AnimsetFree(animation_t *animset)
 {
-	/*
-	if (!animset)
-	{
-		return;
-	}
-
-	strap->TrueFree((void **)&animset);
-
-#ifdef _DEBUG
-	if (animset)
-	{
-		assert(!"Failed to free anim set");
-	}
-#endif
-	*/
 }
 
 #ifndef _GAME //none of this is actually needed serverside. Could just be moved to cgame code but it's here since it
@@ -5097,19 +4893,6 @@ void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int
 		}
 	}
 
-	/*
-	if (BG_InSpecialJump(anim))
-	{
-		setAnimFlags |= SETANIM_FLAG_RESTART;
-	}
-	*/
-	//Don't know why I put this here originally but it's messing stuff up now and it isn't needed.
-
-//	if (BG_InRoll(ps, ps->legsAnim))
-//	{ //never interrupt a roll
-//		return;
-//	}
-
 	if (setAnimFlags&SETANIM_FLAG_OVERRIDE)
 	{
 		if (setAnimParts & SETANIM_TORSO)
@@ -5178,9 +4961,6 @@ float BG_GetTorsoAnimPoint(playerState_t *ps, int AnimIndex)
 
 	animPercentage = currentPoint/attackAnimLength;
 
-
-	//Com_Printf("%f\n", animPercentage);
-
 	return animPercentage;
 }
 
@@ -5217,8 +4997,6 @@ float BG_GetLegsAnimPoint(playerState_t * ps, int AnimIndex)
 	currentPoint = ps->legsTimer;
 
 	animPercentage = currentPoint/attackAnimLength;
-
-	//Com_Printf("%f\n", animPercentage);
 
 	return animPercentage;
 }

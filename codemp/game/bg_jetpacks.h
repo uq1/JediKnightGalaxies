@@ -29,6 +29,8 @@ struct jetpackData_t {
 		float	thrustBack;			// How much to modify backward move (in thrust)
 		float	thrustSide;			// How much to modify side move (in thrust)
 		float	thrustUp;			// How much to modify up move (in thrust)
+
+		float	fwdThrustAmt;		// How much to modify movement speed when in forward thrust
 	} move;
 
 	// Visual fields
