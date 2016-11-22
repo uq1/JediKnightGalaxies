@@ -2443,18 +2443,20 @@ static void PM_JetpackMove(void) {
 	vec3_t wishdir;
 	jetpackData_t* jet = &jetpackTable[pm->ps->jetpack - 1];
 	qboolean forwardThrust = qfalse;
+	qboolean thrustAllowed = jetpackTable[pm->ps->jetpack - 1].move.thrustAllowed;
+	qboolean fwdThrustAllowed = jetpackTable[pm->ps->jetpack - 1].move.fwdThrustAllowed;
 
 	PM_Friction();
 
 	scale = PM_CmdScale(&pm->cmd);
 
-	if ((pm->cmd.buttons & BUTTON_SPRINT) && pm->cmd.forwardmove > 0) {
+	if (fwdThrustAllowed && (pm->cmd.buttons & BUTTON_SPRINT) && pm->cmd.forwardmove > 0) {
 		forwardThrust = qtrue;
 		pm->ps->eFlags |= EF_JETPACK_FLAMING;
 		pm->cmd.upmove = 0;
 		pm->cmd.rightmove = 0;
 	}
-	else if (pm->cmd.upmove > 0)
+	else if (pm->cmd.upmove > 0 && thrustAllowed)
 	{
 		pm->ps->eFlags |= EF_JETPACK_FLAMING; //going up
 	}
