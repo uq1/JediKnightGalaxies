@@ -2362,7 +2362,9 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	ent->pain = 0;
 	ent->client = client;
 
-	ent->assists->clear();
+	if (ent->assists != nullptr) {
+		ent->assists->clear();
+	}
 
 	//assign the pointer for bg entity access
 	ent->playerState = &ent->client->ps;
@@ -3621,8 +3623,12 @@ void ClientDisconnect( int clientNum ) {
 		return;
 	}
 
-	ent->inventory->clear();
-	ent->assists->clear();
+	if (ent->inventory != nullptr) {
+		ent->inventory->clear();
+	}
+	if (ent->assists != nullptr) {
+		ent->assists->clear();
+	}
 
 	GLua_Hook_PlayerDisconnect(clientNum);
 

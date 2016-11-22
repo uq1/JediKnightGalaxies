@@ -23,6 +23,12 @@ Parses the "movement" block of a jetpack.
 */
 static void JKG_ParseJetpackMovement(cJSON* jsonNode, jetpackData_t& jetpackData) {
 	cJSON* child;
+
+	child = cJSON_GetObjectItem(jsonNode, "thrustAllowed");
+	jetpackData.move.thrustAllowed = cJSON_ToBooleanOpt(child, true);
+
+	child = cJSON_GetObjectItem(jsonNode, "fwdThrustAllowed");
+	jetpackData.move.fwdThrustAllowed = cJSON_ToBooleanOpt(child, true);
 	
 	child = cJSON_GetObjectItem(jsonNode, "hoverGravity");
 	jetpackData.move.hoverGravity = cJSON_ToNumberOpt(child, -1.0);

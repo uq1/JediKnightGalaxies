@@ -239,6 +239,7 @@ if(BuildMPEngine OR BuildMPDed)
 		"${MPDir}/qcommon/huffman.cpp"
 		"${MPDir}/qcommon/md4.cpp"
 		"${MPDir}/qcommon/md5.cpp"
+		"${MPDir}/qcommon/md5.h"
 		"${MPDir}/qcommon/MiniHeap.h"
 		"${MPDir}/qcommon/msg.cpp"
 		"${MPDir}/qcommon/matcomp.h"
@@ -310,6 +311,7 @@ if(BuildMPEngine OR BuildMPDed)
 		"${MPDir}/server/server.h"
 		"${MPDir}/server/sv_bot.cpp"
 		"${MPDir}/server/sv_ccmds.cpp"
+		"${MPDir}/server/sv_challenge.cpp"
 		"${MPDir}/server/sv_client.cpp"
 		"${MPDir}/server/sv_game.cpp"
 		"${MPDir}/server/sv_init.cpp"
@@ -564,6 +566,7 @@ if(BuildMPEngine)
 		endif()
 	else(WIN32)
 		if(MakeApplicationBundles)
+			set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 			add_executable(${MPEngine} MACOSX_BUNDLE ${MPEngineFiles})
 			set_target_properties(${MPEngine} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${MPDir}/macosx/OpenJKInfo.plist")
 		else(MakeApplicationBundles)
@@ -576,6 +579,11 @@ if(BuildMPEngine)
 			BUNDLE
 			DESTINATION ${JKAInstallDir}
 			COMPONENT ${JKAMPClientComponent})
+		install(CODE "
+			include(BundleUtilities)
+			set(BU_CHMOD_BUNDLE_ITEMS ON)
+			fixup_bundle(\"${CMAKE_INSTALL_PREFIX}/${JKAInstallDir}/${MPEngine}.app\" \"\" \"\")
+			" COMPONENT Runtime)
 	else(MakeApplicationBundles)
 		install(TARGETS ${MPEngine}
 			RUNTIME

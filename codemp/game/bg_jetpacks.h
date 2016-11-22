@@ -18,6 +18,9 @@ struct jetpackData_t {
 
 	// Movement related fields
 	struct {
+		bool	thrustAllowed;		// Whether thrusting is allowed
+		bool	fwdThrustAllowed;	// Whether forward thrusting is allowed
+
 		float	hoverGravity;		// How much to modify gravity when hovering
 
 		float	forwardMove;		// How much to modify forward move (not during thrust)

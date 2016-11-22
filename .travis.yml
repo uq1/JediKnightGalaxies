@@ -10,7 +10,6 @@ addons:
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cmake; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install sdl2 --universal; fi
 
 script:
@@ -27,13 +26,13 @@ matrix:
       sudo: required
       compiler: clang
     - os: osx
-      osx_image: xcode7.2
+      osx_image: xcode7.3
       compiler: clang
 
 before_deploy:
-  - export DEPLOY_FILE_NAME=jkgalaxies_$TRAVIS_OS_NAME.zip
+  - export DEPLOY_FILE_NAME=jkgalaxies_$TRAVIS_OS_NAME-$CC.zip
   - echo "zipping into $DEPLOY_FILE_NAME"
-  - cd $(pwd)/build/DESTDIR
+  - cd $(pwd)/build/install
   - zip -r $DEPLOY_FILE_NAME . -i \*
   - echo "deploying $DEPLOY_FILE_NAME to GitHub"
 

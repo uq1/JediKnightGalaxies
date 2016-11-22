@@ -1269,12 +1269,11 @@ void CL_KeyDownEvent( int key, unsigned time )
 		kg.anykeydown = qtrue;
 	}
 
-	/*if( kg.keys[A_ALT].down && key == A_ENTER )
+	if ( cl_allowAltEnter->integer && kg.keys[A_ALT].down && key == A_ENTER )
 	{
-		Cvar_SetValue( "r_fullscreen",
-			!Cvar_VariableIntegerValue( "r_fullscreen" ) );
+		Cvar_SetValue( "r_fullscreen", !Cvar_VariableIntegerValue( "r_fullscreen" ) );
 		return;
-	}*/
+	}
 
 	// console key is hardcoded, so the user can never unbind it
 	if ( key == A_CONSOLE || (kg.keys[A_SHIFT].down && key == A_ESCAPE) ) {
@@ -1410,10 +1409,6 @@ Normal keyboard characters, already shifted / capslocked / etc
 ===================
 */
 void CL_CharEvent( int key ) {
-	// the console key should never be used as a char
-	if ( key == '`' || key == '~' )
-		return;
-
 	// delete is not a printable character and is otherwise handled by Field_KeyDownEvent
 	if ( key == 127 )
 		return;

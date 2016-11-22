@@ -130,7 +130,7 @@
         "damage":       18,
         "ammocost":     1,
         "firedelay":    90,
-		"burstfiredelay":	500,
+	"burstshotdelay":	500,
         "firingtype":   "burst",
 		"shotsperburst": 4,
         "range":        3500.0,
