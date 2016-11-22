@@ -2756,11 +2756,6 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	float mPitchOverride = 0.0f;
 	float mYawOverride = 0.0f;
 	static centity_t *veh = NULL;
-#ifdef VEH_CONTROL_SCHEME_4
-	float mSensitivityOverride = 0.0f;
-	qboolean bUseFighterPitch = qfalse;
-	qboolean	isFighter = qfalse;
-#endif
 
 	if (cgQueueLoad)
 	{ //do this before you start messing around with adding ghoul2 refents and crap
@@ -2811,29 +2806,6 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	// we can draw is the information screen
 	if ( !cg.snap || ( cg.snap->snapFlags & SNAPFLAG_NOT_ACTIVE ) )
 	{
-#if 0	
-		// Transition from zero to negative one on the snapshot timeout.
-		// The reason we do this is because the first client frame is responsible for
-		// some farily slow processing (such as weather) and we dont want to include
-		// that processing time into our calculations
-		if ( !cg.snapshotTimeoutTime )
-		{
-			cg.snapshotTimeoutTime = -1;
-		}
-		// Transition the snapshot timeout time from -1 to the current time in 
-		// milliseconds which will start the timeout.
-		else if ( cg.snapshotTimeoutTime == -1 )
-		{		
-			cg.snapshotTimeoutTime = trap->Milliseconds ( );
-		}
-
-		// If we have been waiting too long then just error out
-		if ( cg.snapshotTimeoutTime > 0 && (trap->Milliseconds ( ) - cg.snapshotTimeoutTime > cg_snapshotTimeout.integer * 1000) )
-		{
-			Com_Error ( ERR_DROP, CG_GetStringEdString("MP_SVGAME", "SNAPSHOT_TIMEOUT"));
-			return;
-		}
-#endif	
 		CG_DrawInformation();
 		return;
 	}
@@ -2943,22 +2915,6 @@ defaultCmd:
 		{
 			cg.renderingThirdPerson = 0;
 		}
-		/*
-		else if (cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE ||
-			BG_InGrappleMove(cg.predictedPlayerState.torsoAnim) || BG_InGrappleMove(cg.predictedPlayerState.legsAnim) ||
-			cg.predictedPlayerState.forceHandExtend == HANDEXTEND_KNOCKDOWN || cg.predictedPlayerState.fallingToDeath ||
-			cg.predictedPlayerState.m_iVehicleNum || PM_InKnockDown(&cg.predictedPlayerState))
-		{
-			if (cg_fpls.integer && cg.predictedPlayerState.weapon == WP_SABER)
-			{ //force to first person for fpls
-				cg.renderingThirdPerson = 0;
-			}
-			else
-			{
-				cg.renderingThirdPerson = 1;
-			}
-		}
-		*/
 		//[/TrueView]
 		else if ( cg.predictedPlayerState.zoomMode )
 	    {

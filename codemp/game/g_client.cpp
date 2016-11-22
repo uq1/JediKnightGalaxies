@@ -3186,8 +3186,12 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 
 	client->ps.duelIndex = ENTITYNUM_NONE;
 
-	//spawn with 100
-	client->ps.jetpackFuel = 100;
+	if (client->ps.jetpack) {
+		client->ps.jetpackFuel = jetpackTable[client->ps.jetpack - 1].fuelCapacity;
+	}
+	else {
+		client->ps.jetpackFuel = 0;
+	}
 	client->ps.cloakFuel = 100;
 
 	// start out with full block points --eez

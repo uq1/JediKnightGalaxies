@@ -52,7 +52,7 @@ static struct
     { DT_CARBONITE,     0,									4000,       2,      1000	},
 	{ DT_BLEED,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	5000,		4,		1000	},
 	{ DT_COLD,			0,									5000,		0,		0		},
-	{ DT_POISON,		DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	7000,		1,		1000	}
+	{ DT_POISON,		DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	7000,		5,		1000	}
 };
 
 void JKG_RemoveDamageType(gentity_t *ent, damageType_t type);
@@ -179,7 +179,7 @@ static int CalculateDamageForDistance ( const damageArea_t *area, const vec3_t p
     return d;
 }
 
-static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage )
+static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, int mod )
 {
     vec3_t dir;
     int i = 0;
@@ -267,7 +267,7 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage )
             VectorCopy (area->context.direction, dir);
         }
         
-        G_Damage (player, area->context.inflictor, area->context.attacker, dir, player->client->ps.origin, damage, flags | area->context.damageFlags, 0);
+        G_Damage (player, area->context.inflictor, area->context.attacker, dir, player->client->ps.origin, damage, flags | area->context.damageFlags, mod);
         if ( player->health <= 0 )
         {
             // Dead...
@@ -407,15 +407,17 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 				means = JKG_GetMeansOfDamageIndex("MOD_BLEEDING");
 
 				// Damage -and- interval both get scaled as a percentage of overall health
-				take *= Q_min(health / (float)maxHealth, 0.25f);
-				interval /= Q_min(health / (float)maxHealth, 0.25f);
+				take *= Q_max(health / (float)maxHealth, 0.25f);
+				interval /= Q_max(health / (float)maxHealth, 0.25f);
 				break;
 			case DT_POISON:
 				// FIXME: this doesn't have an associated meansOfDamage entry!!!
+				means = JKG_GetMeansOfDamageIndex("MOD_POISONED");
 
-				// Damage -and- interval both get scaled as a percentage of overall health
-				take *= Q_min(health / (float)maxHealth, 0.33f);
-				interval /= Q_min(health / (float)maxHealth, 0.33f);
+				// The damage that you get from poison is a percentage of your overall health.
+				// So instead of doing 5 damage, it does 5% of your current health.
+				// At 100 hp it does 5 damage, at 50 hp it does 3 damage.
+				take = Q_max(health * (take / 100.0f), 1);
 				break;
 			default:
 				break;
@@ -568,7 +570,7 @@ static void DamagePlayersInArea ( damageArea_t *area )
         
         // Apply the damage and its effects.
         damage = CalculateDamageForDistance (area, ent->r.absmin, ent->r.absmax, playerOrigin, damageRadius);
-		DebuffPlayer (ent, area, damage);
+		DebuffPlayer (ent, area, damage, area->context.methodOfDeath);
     }
 }
 
@@ -668,7 +670,7 @@ void JKG_DoDirectDamage ( qhandle_t handle, gentity_t *targ, gentity_t *inflicto
     area.lastDamageTime = 0;
     VectorCopy (origin, area.origin);
     
-	DebuffPlayer (targ, &area, damage);
+	DebuffPlayer (targ, &area, damage, mod);
 }
 
 //=========================================================
