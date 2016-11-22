@@ -2646,19 +2646,7 @@ int CheckShield (gentity_t *ent, int damage, int dflags, meansOfDamage_t* means)
 
 	count = client->ps.stats[STAT_SHIELD];
 
-	if (dflags & DAMAGE_HALF_ABSORB)
-	{	// Half the damage gets absorbed by the shields, rather than 100%
-		save = ceil( damage * ARMOR_PROTECTION );
-	}
-	else
-	{	// All the damage gets absorbed by the shields.
-		save = damage;
-	}
-
-	if (dflags & DAMAGE_HALF_ARMOR_REDUCTION) {
-		save *= ARMOR_REDUCTION_FACTOR;
-	}
-
+	save = damage;
 	save *= means->modifiers.shield;
 
 	// save is the most damage that the armor is elibigle to protect, of course, but it's limited by the total armor.
@@ -2666,12 +2654,7 @@ int CheckShield (gentity_t *ent, int damage, int dflags, meansOfDamage_t* means)
 		save = count;
 	}
 
-	if (!save)
-		return 0;
-
-	client->ps.stats[STAT_SHIELD] -= save;
-
-	return save; //origdamage;
+	return save;
 }
 
 
@@ -4761,6 +4744,16 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if (ssave)
 	{
 		shieldAbsorbed = ssave;
+		if (targ->client) {
+			if (targ->client->ps.stats[STAT_SHIELD] >= ssave) {
+				targ->client->ps.stats[STAT_SHIELD] -= ssave;
+				take = 0;
+			}
+			else if (targ->client->ps.stats[STAT_SHIELD]) {
+				take = targ->client->ps.stats[STAT_SHIELD];
+				targ->client->ps.stats[STAT_SHIELD] -= ssave;
+			}
+		}
 	}
 
 	take -= ssave;
