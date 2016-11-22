@@ -140,7 +140,7 @@ void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activat
 	}
 	
 	if (self->inventory->size() == 0) {
-		trap->SendServerCommand(g_entities - activator, "print\"That vendor cannot be traded with (it lacks a treasure class..!)\"");
+		trap->SendServerCommand(g_entities - activator, "print\"That vendor cannot be traded with (it lacks a treasure class..!)\n\"");
 		activator->client->ps.useDelay = level.time + 500;
 		return;
 	}

@@ -53,7 +53,6 @@ void MSG_Clear (msg_t *buf);
 void MSG_WriteData (msg_t *buf, const void *data, int length);
 void MSG_Bitstream( msg_t *buf );
 
-
 struct usercmd_s;
 struct entityState_s;
 struct playerState_s;
@@ -93,7 +92,6 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 						   , qboolean force );
 void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 						 int number );
-
 
 #ifdef _ONEBIT_COMBO
 void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to, int *bitComboDelta, int *bitNumDelta, qboolean isVehiclePS = qfalse );
@@ -487,9 +485,9 @@ void 	Cvar_WriteVariables( fileHandle_t f );
 // writes lines containing "set variable value" for all variables
 // with the archive flag set to true.
 
-void	Cvar_Init( void );
-
 cvar_t *Cvar_Unset(cvar_t *cv);
+
+void	Cvar_Init( void );
 
 char	*Cvar_InfoString( int bit );
 char	*Cvar_InfoString_Big( int bit );
@@ -727,13 +725,14 @@ void 		NORETURN QDECL Com_Error( int code, const char *fmt, ... );
 void 		NORETURN Com_Quit_f( void );
 int			Com_EventLoop( void );
 int			Com_Milliseconds( void );	// will be journaled properly
-unsigned	Com_BlockChecksum( const void *buffer, int length );
+uint32_t	Com_BlockChecksum( const void *buffer, int length );
 char		*Com_MD5File(const char *filename, int length, const char *prefix, int prefix_len);
 int      Com_HashKey(char *string, int maxlen);
 int			Com_Filter(char *filter, char *name, int casesensitive);
 int			Com_FilterPath(char *filter, char *name, int casesensitive);
 int			Com_RealTime(qtime_t *qtime);
 qboolean	Com_SafeMode( void );
+void		Com_RunAndTimeServerPacket(netadr_t *evFrom, msg_t *buf);
 
 void		Com_StartupVariable( const char *match );
 // checks for and removes command line "+set var arg" constructs
@@ -764,6 +763,7 @@ extern	cvar_t	*com_G2Report;
 #endif
 
 extern	cvar_t	*com_affinity;
+extern	cvar_t	*com_busyWait;
 
 // both client and server must agree to pause
 extern	cvar_t	*cl_paused;
@@ -775,7 +775,6 @@ extern	int		time_frontend;
 extern	int		time_backend;		// renderer backend time
 
 extern	int		com_frameTime;
-extern	int		com_frameMsec;
 
 extern	qboolean	com_errorEntered;
 
@@ -955,6 +954,7 @@ void SV_Init( void );
 void SV_Shutdown( char *finalmsg );
 void SV_Frame( int msec );
 void SV_PacketEvent( netadr_t from, msg_t *msg );
+int SV_FrameMsec( void );
 qboolean SV_GameCommand( void );
 
 

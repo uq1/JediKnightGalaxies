@@ -1757,6 +1757,18 @@ void Q_RemoveFromBitflags( uint32_t *bits, int index, uint32_t bitsPerByte ) {
 	bits[index / bitsPerByte] &= ~(1 << (index % bitsPerByte));
 }
 
+void *Q_LinearSearch( const void *key, const void *ptr, size_t count,
+	size_t size, cmpFunc_t cmp )
+{
+	size_t i;
+	for ( i = 0; i < count; i++ )
+	{
+		if ( cmp( key, ptr ) == 0 ) return (void *)ptr;
+		ptr = (const char *)ptr + size;
+	}
+	return NULL;
+}
+
 //====================================================================
 
 // JKG Add - Generic Memory Objects

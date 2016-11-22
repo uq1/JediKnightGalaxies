@@ -115,7 +115,7 @@
     
     "firemode1": {
         "damage": {       
-			"damage": 20,
+			"damage": 10,
 			"damageType": [ "stun" ]
 		},
         "collisionsize": 20.0,
@@ -148,9 +148,9 @@
         "damage":       18,
         "ammocost":     1,
         "firedelay":    90,
-		"burstfiredelay":	500,
+	"burstshotdelay":	500,
         "firingtype":   "burst",
-		"shotsperburst": 4,
+	"shotsperburst": 4,
         "range":        3500.0,
         "recoil":       0.9,
         "spread":       0.5,

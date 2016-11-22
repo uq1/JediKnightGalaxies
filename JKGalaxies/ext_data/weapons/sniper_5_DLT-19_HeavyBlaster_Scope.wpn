@@ -87,20 +87,20 @@
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
         "accuracy": {
-        	"accuracyRating": 18,
+        	"accuracyRating": 15,
         	"accuracyRatingPerShot": 5,
         	"msToDrainAccuracy": 125,
         	"maxAccuracyAdd": 70,
         	"crouchModifier": 0.85,
         	"runModifier": 2.1,
-        	"sightsModifier": 0.55,
+        	"sightsModifier": 0.35,
         	"walkModifier": 1.5,
         	"inAirModifier": 2.4
         }
     },
     
     "firemode1": {
-        "damage":       15,
+        "damage":       18,
         "ammocost":     1,
         "firedelay":    300,
         "firingtype":   "semi",

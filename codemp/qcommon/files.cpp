@@ -3347,7 +3347,7 @@ void FS_Startup( const char *gameName ) {
 	fs_copyfiles = Cvar_Get( "fs_copyfiles", "0", CVAR_INIT );
 	fs_cdpath = Cvar_Get ("fs_cdpath", "", CVAR_INIT|CVAR_PROTECTED );
 	fs_basepath = Cvar_Get ("fs_basepath", Sys_DefaultInstallPath(), CVAR_INIT|CVAR_PROTECTED );
-	fs_basegame = Cvar_Get ("fs_basegame", "", CVAR_INIT );
+	fs_basegame = Cvar_Get ("fs_basegame", "JKG", CVAR_INIT );
 	homePath = Sys_DefaultHomePath();
 	if (!homePath || !homePath[0]) {
 		homePath = fs_basepath->string;
@@ -3796,8 +3796,8 @@ void FS_InitFilesystem( void ) {
 	// if we can't find default.cfg, assume that the paths are
 	// busted and error out now, rather than getting an unreadable
 	// graphics screen when the font fails to load
-	if ( FS_ReadFile( "mpdefault.cfg", NULL ) <= 0 ) {
-		Com_Error( ERR_FATAL, "Couldn't load mpdefault.cfg" );
+	if ( FS_ReadFile( "JKG_Defaults.cfg", NULL ) <= 0 ) {
+		Com_Error( ERR_FATAL, "Couldn't load JKG_Defaults.cfg" );
 		// bk001208 - SafeMode see below, FIXME?
 	}
 

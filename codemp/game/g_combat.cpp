@@ -1924,6 +1924,36 @@ qboolean JKG_CanAwardAssist(gentity_t* deadEnt, gentity_t* killer, entityHitReco
 
 /*
 ==================
+JKG_CanAwardBounty
+
+==================
+*/
+qboolean JKG_CanAwardBounty(gentity_t* dead, gentity_t* attacker) {
+	if (!jkg_bounty.integer || !jkg_killsPerBounty.integer) {
+		// Don't award bounties when the cvar is turned off.
+		return qfalse;
+	}
+
+	if (dead == attacker) {
+		// Can't award bounty to self.
+		return qfalse;
+	}
+
+	if (!dead->client || !attacker->client || attacker->s.number >= MAX_CLIENTS) {
+		// Can't award bounty when the dead is not a client, or the attacker is not a player
+		return qfalse;
+	}
+
+	if (OnSameTeam(dead, attacker)) {
+		// Can't award bounty when the attacker and dead are on the same team.
+		return qfalse;
+	}
+
+	return qtrue;
+}
+
+/*
+==================
 player_die
 ==================
 */
@@ -1992,12 +2022,9 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	}
 
 	// K, let's see if we can raise the killstreak on the attacker
-	if(jkg_bounty.integer)
+	if(JKG_CanAwardBounty(self, attacker))
 	{
-		if( attacker != self && attacker->client && !OnSameTeam(attacker, self) )
-			{
-				attacker->client->numKillsThisLife++;
-			}
+		attacker->client->numKillsThisLife++;
 	}
 
 	// JKG: Give credits for each kill
@@ -2014,7 +2041,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			else {
 				credits = jkg_creditsPerKill.integer;
 			}
-			int bounty = (self->client->numKillsThisLife >= 2) ? self->client->numKillsThisLife*jkg_bounty.integer : 0;
+
+			int bounty = (self->client->numKillsThisLife >= jkg_killsPerBounty.integer) ? self->client->numKillsThisLife*jkg_bounty.integer : 0;
 			attacker->client->ps.credits += (credits + bounty);
 			if(bounty > 0)
 			{
@@ -2026,18 +2054,22 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			}
 		}
 	}
-	if(jkg_bounty.integer)
+	if(JKG_CanAwardBounty(self, attacker))
 	{
-		if(self->client && attacker->client && self->client->numKillsThisLife >= 2 )
+		if(self->client->numKillsThisLife >= jkg_killsPerBounty.integer)
 		{
 			trap->SendServerCommand(-1, va("chat 100 \"%s^7's bounty was claimed by %s.\"", self->client->pers.netname, attacker->client->pers.netname));
 		}
-		if(attacker->client && attacker->client->numKillsThisLife == 2)
+		if(attacker->client->numKillsThisLife == jkg_killsPerBounty.integer)
 		{
 			trap->SendServerCommand(-1, va("chat 100 \"%s ^7has a bounty on their head!\"", attacker->client->pers.netname));
 		}
-		self->client->numKillsThisLife = 0;
 	}
+	else if (self->client->numKillsThisLife >= jkg_killsPerBounty.integer) {
+		trap->SendServerCommand(-1, va("chat 100 \"%s" S_COLOR_WHITE "'s bounty went unclaimed.\n\"", self->client->pers.netname));
+	}
+
+	self->client->numKillsThisLife = 0;
 
 	if(self->s.number < MAX_CLIENTS)
 	{

@@ -40,8 +40,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #ifdef _GAME
 // FIXME: remove
 extern void G_CheapWeaponFire(int entNum, int ev);
-// FIXME: remove..
-extern qboolean TryGrapple(gentity_t *ent); //g_cmds.c
 extern void JKG_RemoveDamageType ( gentity_t *ent, damageType_t type );
 #endif
 
@@ -5626,49 +5624,7 @@ static void PM_Weapon( void )
 				(pm->cmd.buttons & BUTTON_ATTACK) &&
 				(pm->cmd.buttons & BUTTON_IRONSIGHTS))
 			{ //ok, grapple time
-#if 0 //eh, I want to try turning the saber off, but can't do that reliably for prediction..
-				qboolean icandoit = qtrue;
-				if (pm->ps->weaponTime > 0)
-				{ //weapon busy
-					icandoit = qfalse;
-				}
-				if (pm->ps->forceHandExtend != HANDEXTEND_NONE)
-				{ //force power or knockdown or something
-					icandoit = qfalse;
-				}
-				if (pm->ps->weapon != WP_SABER && pm->ps->weapon != WP_MELEE)
-				{
-					icandoit = qfalse;
-				}
-
-				if (icandoit)
-				{
-					//G_SetAnim(ent, &ent->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_GRAB, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD, 0);
-					PM_SetAnim(SETANIM_BOTH, BOTH_KYLE_GRAB, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
-					if (pm->ps->torsoAnim == BOTH_KYLE_GRAB)
-					{ //providing the anim set succeeded..
-						pm->ps->torsoTimer += 500; //make the hand stick out a little longer than it normally would
-						if (pm->ps->legsAnim == pm->ps->torsoAnim)
-						{
-							pm->ps->legsTimer = pm->ps->torsoTimer;
-						}
-						pm->ps->weaponTime = pm->ps->torsoTimer;
-						return;
-					}
-				}
-#else
-	#ifdef _GAME
-				if (pm_entSelf)
-				{
-					if (TryGrapple((gentity_t *)pm_entSelf))
-					{
-						return;
-					}
-				}
-	#else
 				return;
-	#endif
-#endif
 			}
 			else if ( pm->cmd.buttons & BUTTON_IRONSIGHTS && pm->ps->forcePower >= bgConstants.staminaDrains.minKickThreshold )
 			{ //kicks

@@ -31,26 +31,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "jkg_utilityfunc.h"
 #include "jkg_treasureclass.h"
 
-//rww - for getting bot commands...
 int AcceptBotCommand(char *cmd, gentity_t *pl);
-//end rww
-
 void Cmd_NPC_f( gentity_t *ent );
-
 extern void AIMod_CheckMapPaths ( gentity_t *ent );
 extern void AIMod_CheckObjectivePaths ( gentity_t *ent );
-
-extern void WARZONE_SaveGameInfo ( void );
-extern void WARZONE_LoadGameInfo ( void );
-extern void WARZONE_AddHealthCrate ( vec3_t origin, vec3_t angles );
-extern void WARZONE_AddAmmoCrate ( vec3_t origin, vec3_t angles );
-extern void WARZONE_AddFlag ( vec3_t origin, int team );
-extern void WARZONE_ChangeFlagTeam ( int flag_number, int new_team );
-extern void WARZONE_RaiseAllWarzoneEnts ( int modifier );
-extern void WARZONE_ShowInfo ( void );
-extern void WARZONE_RemoveAllWarzoneEnts ( void );
-extern void WARZONE_RemoveAmmoCrate ( void );
-extern void WARZONE_RemoveHealthCrate ( void );
 
 /*
 ==================
@@ -58,15 +42,7 @@ CheatsOk
 ==================
 */
 qboolean	CheatsOk( gentity_t *ent ) {
-	if ( !sv_cheats.integer && !ent->client->sess.canUseCheats ) {
-		trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
-		return qfalse;
-	}
-	if ( ent->health <= 0 || (ent->client && ent->client->deathcamTime) ) {
-		trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBEALIVE")));
-		return qfalse;
-	}
-	return qtrue;
+	return sv_cheats.integer || ent->client->sess.canUseCheats;
 }
 
 /*
@@ -121,6 +97,78 @@ qboolean StringIsInteger( const char *s ) {
 	return foundDigit;
 }
 
+
+/*
+==================
+G_ClientNumberFromName
+
+Finds the client number of the client with the given name
+==================
+*/
+int G_ClientNumberFromName(const char* name)
+{
+	char		cleanInput[MAX_NETNAME];
+	char		cleanName[MAX_NETNAME];
+	int			i;
+	gclient_t*	cl;
+
+	Q_strncpyz(cleanInput, name, sizeof(cleanInput));
+	Q_StripColor(cleanInput);
+	for (i = 0, cl = level.clients; i < level.maxclients; i++, cl++)
+	{// check for a name match
+		if (cl->pers.connected != CON_CONNECTED)
+			continue;
+		Q_strncpyz(cleanName, cl->pers.netname, sizeof(cleanName));
+		Q_StripColor(cleanName);
+		if (!Q_stricmp(cleanName, cleanInput))
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+/*
+==================
+G_ClientNumberFromStrippedSubstring
+
+Same as above, but strips special characters out of the names before comparing.
+Checks substrings rather than the full string and returns -2 on multiple matches (if specified to do so)
+==================
+*/
+
+int G_ClientNumberFromStrippedSubstring(const char* name, qboolean checkAll)
+{
+	gclient_t	*cl;
+	int			idnum, match = -1;
+	char		cleanInput[MAX_NETNAME];
+
+	Q_strncpyz(cleanInput, name, sizeof(cleanInput));
+	Q_StripColor(cleanInput);
+
+	for (idnum = 0, cl = level.clients; idnum < level.maxclients; idnum++, cl++)
+	{// check for a name match
+		if (cl->pers.connected != CON_CONNECTED)
+			continue;
+
+		if (Q_stristr(cl->pers.netname_nocolor, cleanInput))
+		{
+			if (match != -1)
+			{ //found more than one match
+				return -2;
+			}
+			match = idnum;
+			if (!checkAll)
+			{ // Don't continue checking
+				return match;
+			}
+		}
+	}
+
+	return match; // Could this just be -1? I'm not sure...
+}
+
 /*
 ==================
 ClientNumberFromString
@@ -163,31 +211,58 @@ int ClientNumberFromString( gentity_t *to, const char *s, qboolean allowconnecti
 	return -1;
 }
 
-int G_ClientNumberFromStrippedSubstring(const char* name, qboolean checkAll);
-int G_ClientNumberFromArg(const char *name)
-{
-	int client_id = 0;
-	const char *cp = name;
-	while (*cp)
-	{
-		if (*cp >= '0' && *cp <= '9') cp++;
-		else
-		{
-			client_id = -1; //mark as alphanumeric
-			break;
-		}
+
+
+/*
+=================
+Cmd_Kill_f
+=================
+*/
+void Cmd_Kill_f(gentity_t *ent) {
+	if (ent->client->sess.sessionTeam == TEAM_SPECTATOR) {
+		return;
+	}
+	if (ent->client->tempSpectate >= level.time) {
+		return;		// Cant /kill in tempspec
 	}
 
-	if (client_id == 0)
-	{ // arg is assumed to be client number
-		client_id = atoi(name);
+	if (ent->health <= 0) {		//awww sad, zombies can't commit suicide
+		return;
 	}
-	// arg is client name
-	if (client_id == -1)
+
+	ent->flags &= ~FL_GODMODE;
+	ent->client->ps.stats[STAT_HEALTH] = ent->health = -999;
+	player_die(ent, ent, ent, 100000, MOD_SUICIDE);
+}
+
+/*
+=================
+Cmd_KillOther_f
+
+=================
+*/
+void Cmd_KillOther_f(gentity_t* ent) {
+	if (trap->Argc() > 1)
 	{
-		client_id = G_ClientNumberFromStrippedSubstring(name, qfalse);
+		char sArg[MAX_STRING_CHARS];
+		int entNum = 0;
+
+		trap->Argv(1, sArg, sizeof(sArg));
+
+		entNum = ClientNumberFromString(ent, sArg, qfalse);
+
+		if (entNum >= 0 && entNum < MAX_GENTITIES)
+		{
+			gentity_t *kEnt = &g_entities[entNum];
+
+			if (kEnt->inuse && kEnt->client)
+			{
+				kEnt->flags &= ~FL_GODMODE;
+				kEnt->client->ps.stats[STAT_HEALTH] = kEnt->health = -999;
+				player_die(kEnt, kEnt, kEnt, 100000, MOD_SUICIDE);
+			}
+		}
 	}
-	return client_id;
 }
 
 /*
@@ -198,7 +273,7 @@ DeathmatchScoreboardMessage
 */
 void DeathmatchScoreboardMessage( gentity_t *ent ) {
 	// UQ1: This is a very spammy one!
-	// Suggest, use an event for each player. Staggered over time. 
+	// Suggest, use an event for each player. Staggered over time.
 	// Scores don't need to be instant, and in future maybe not even needed until after a match.
 	char		entry[1024];
 	char		string[1400];
@@ -213,7 +288,7 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 	scoreFlags = 0;
 
 	numSorted = level.numConnectedClients;
-	
+
 	if (numSorted > MAX_CLIENT_SCORE_SEND)
 	{
 		numSorted = MAX_CLIENT_SCORE_SEND;
@@ -245,7 +320,7 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 	//still want to know the total # of clients
 	i = level.numConnectedClients;
 
-	trap->SendServerCommand( ent-g_entities, va("scores %i %i %i%s", i, 
+	trap->SendServerCommand( ent-g_entities, va("scores %i %i %i%s", i,
 		level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE],
 		string ) );
 }
@@ -259,6 +334,407 @@ Request current scoreboard information
 */
 void Cmd_Score_f( gentity_t *ent ) {
 	DeathmatchScoreboardMessage( ent );
+}
+
+/*
+==================
+Cmd_Credits_f
+
+==================
+*/
+void Cmd_Credits_f(gentity_t* ent) {
+	trap->SendServerCommand(ent - g_entities, va("print \"You have %i credits.\n\"", ent->client->ps.credits));
+}
+
+/*
+==================
+Cmd_Pay_f
+
+==================
+*/
+#define PAY_DISTANCE	256
+void Cmd_Pay_f(gentity_t* ent) {
+	trace_t tr;
+	vec3_t traceStart, traceEnd, forward;
+	char creditBuffer[MAX_STRING_CHARS];
+	int credits;
+
+	if (trap->Argc() != 2) {
+		trap->SendServerCommand(ent - g_entities, "print \"Usage: /pay <# of credits, or \"all\">\n\"");
+		return;
+	}
+
+	trap->Argv(1, creditBuffer, MAX_STRING_CHARS);
+
+	if (!Q_stricmp(creditBuffer, "all")) {
+		credits = ent->client->ps.credits;
+	}
+	else {
+		credits = atoi(creditBuffer);
+
+		if (credits <= 0) {
+			trap->SendServerCommand(ent - g_entities, "print \"You can't pay that amount of money.\n\"");
+			return;
+		}
+		else if (credits > ent->client->ps.credits) {
+			trap->SendServerCommand(ent - g_entities, "print \"You can't afford that!\n\"");
+			return;
+		}
+	}
+
+	AngleVectors(ent->client->ps.viewangles, forward, nullptr, nullptr);
+	traceEnd[0] = ent->client->ps.origin[0] + forward[0] * PAY_DISTANCE;
+	traceEnd[1] = ent->client->ps.origin[1] + forward[1] * PAY_DISTANCE;
+	traceEnd[2] = (ent->client->ps.origin[2] + ent->client->ps.viewheight) + forward[2] * PAY_DISTANCE;
+
+	VectorCopy(ent->client->ps.origin, traceStart);
+	traceStart[2] += ent->client->ps.viewheight;
+
+	trap->Trace(&tr, traceStart, nullptr, nullptr, traceEnd, ent->s.number, MASK_PLAYERSOLID, 0, 0, 0);
+	if (tr.fraction >= 1.0f) {
+		trap->SendServerCommand(ent - g_entities, "print \"Couldn't find anything to pay.\n\"");
+		return;
+	}
+	if (tr.entityNum >= MAX_CLIENTS) {
+		trap->SendServerCommand(ent - g_entities, "print \"You can't pay that entity money!\n\"");
+		return;
+	}
+
+	gentity_t* target = &g_entities[tr.entityNum];
+	target->client->ps.credits += credits;
+	ent->client->ps.credits -= credits;
+
+	trap->SendServerCommand(ent - g_entities, va("print \"You paid %i to %s\n\"", credits, target->client->pers.netname));
+	trap->SendServerCommand(tr.entityNum, va("%s " S_COLOR_WHITE "paid you %i credits.\n\"", ent->client->pers.netname, credits));
+	G_SoundAtLoc(target->client->ps.origin, CHAN_AUTO, G_SoundIndex("sound/vendor/generic/purchase02.mp3"));
+}
+
+/*
+==================
+Cmd_Relax_f
+
+==================
+*/
+void Cmd_Relax_f(gentity_t* ent) {
+	if (ent->client->ps.eFlags & EF_RAG) {
+		trap->SendServerCommand(ent - g_entities, "print \"Ragdoll OFF\n\"");
+		ent->client->ps.eFlags &= ~EF_RAG;
+	}
+	else {
+		trap->SendServerCommand(ent - g_entities, "print \"Ragdoll ON\n\"");
+		ent->client->ps.eFlags |= EF_RAG;
+	}
+}
+
+/*
+==================
+Cmd_Wrists_f
+
+/wrists
+==================
+*/
+void Cmd_Wrists_f(gentity_t* ent) {
+	gGAvoidDismember = 1;
+	player_die(ent, ent, ent, 100000, MOD_SUICIDE);
+	gGAvoidDismember = 2;
+	G_CheckForDismemberment(ent, ent, ent->client->ps.origin, 999, ent->client->ps.legsAnim, qfalse);
+	gGAvoidDismember = 0;
+}
+
+/*
+==================
+Cmd_ArbitraryPrint_f
+
+==================
+*/
+void Cmd_ArbitraryPrint_f(gentity_t* ent) {
+	trap->SendServerCommand(-1, "cp \"Blah blah blah\n\"");
+}
+
+/*
+==================
+Cmd_HeadExplodey_f
+
+==================
+*/
+void DismembermentTest(gentity_t *self);
+void Cmd_HeadExplodey_f(gentity_t* ent) {
+	Cmd_Kill_f(ent);
+	DismembermentTest(ent);
+}
+
+/*
+==================
+Cmd_LoveAndPeace_f
+
+Missing the kissing animation.
+==================
+*/
+void Cmd_LoveAndPeace_f(gentity_t* ent) {
+	trace_t tr;
+	vec3_t fPos;
+
+	AngleVectors(ent->client->ps.viewangles, fPos, 0, 0);
+
+	fPos[0] = ent->client->ps.origin[0] + fPos[0] * 40;
+	fPos[1] = ent->client->ps.origin[1] + fPos[1] * 40;
+	fPos[2] = ent->client->ps.origin[2] + fPos[2] * 40;
+
+	trap->Trace(&tr, ent->client->ps.origin, 0, 0, fPos, ent->s.number, ent->clipmask, 0, 0, 0);
+
+	if (tr.entityNum < MAX_CLIENTS && tr.entityNum != ent->s.number)
+	{
+		gentity_t *other = &g_entities[tr.entityNum];
+
+		if (other && other->inuse && other->client)
+		{
+			vec3_t entDir;
+			vec3_t otherDir;
+			vec3_t entAngles;
+			vec3_t otherAngles;
+
+			if (ent->client->ps.weapon == WP_SABER && !ent->client->ps.saberHolstered)
+			{
+				Cmd_ToggleSaber_f(ent);
+			}
+
+			if (other->client->ps.weapon == WP_SABER && !other->client->ps.saberHolstered)
+			{
+				Cmd_ToggleSaber_f(other);
+			}
+
+			if ((ent->client->ps.weapon != WP_SABER || ent->client->ps.saberHolstered) &&
+				(other->client->ps.weapon != WP_SABER || other->client->ps.saberHolstered))
+			{
+				VectorSubtract(other->client->ps.origin, ent->client->ps.origin, otherDir);
+				VectorCopy(ent->client->ps.viewangles, entAngles);
+				entAngles[YAW] = vectoyaw(otherDir);
+				SetClientViewAngle(ent, entAngles);
+
+				G_SetAnim(ent, nullptr, SETANIM_BOTH, /*BOTH_KISSER1LOOP*/BOTH_STAND1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_HOLDLESS);
+				ent->client->ps.saberMove = LS_NONE;
+				ent->client->ps.saberBlocked = 0;
+				ent->client->ps.saberBlocking = 0;
+
+				VectorSubtract(ent->client->ps.origin, other->client->ps.origin, entDir);
+				VectorCopy(other->client->ps.viewangles, otherAngles);
+				otherAngles[YAW] = vectoyaw(entDir);
+				SetClientViewAngle(other, otherAngles);
+
+				G_SetAnim(other, nullptr, SETANIM_BOTH, /*BOTH_KISSEE1LOOP*/BOTH_STAND1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_HOLDLESS);
+				other->client->ps.saberMove = LS_NONE;
+				other->client->ps.saberBlocked = 0;
+				other->client->ps.saberBlocking = 0;
+			}
+		}
+	}
+}
+
+/*
+==================
+Cmd_Holdme_f
+
+==================
+*/
+void Cmd_Holdme_f(gentity_t* ent) {
+	if (trap->Argc() > 1)
+	{
+		char sArg[MAX_STRING_CHARS];
+		int entNum = 0;
+
+		trap->Argv(1, sArg, sizeof(sArg));
+
+		entNum = atoi(sArg);
+
+		if (entNum >= 0 &&
+			entNum < MAX_GENTITIES)
+		{
+			gentity_t *grabber = &g_entities[entNum];
+
+			if (grabber->inuse && grabber->client && grabber->ghoul2)
+			{
+				if (!grabber->s.number)
+				{ //switch cl 0 and entitynum_none, so we can operate on the "if non-0" concept
+					ent->client->ps.ragAttach = ENTITYNUM_NONE;
+				}
+				else
+				{
+					ent->client->ps.ragAttach = grabber->s.number;
+				}
+			}
+		}
+	}
+	else
+	{
+		ent->client->ps.ragAttach = 0;
+	}
+}
+
+/*
+==================
+Cmd_KnockMeDown_f
+
+==================
+*/
+void Cmd_KnockMeDown_f(gentity_t* ent) {
+	if (BG_KnockDownable(&ent->client->ps))
+	{
+		ent->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
+		ent->client->ps.forceDodgeAnim = 0;
+		if (trap->Argc() > 1)
+		{
+			ent->client->ps.forceHandExtendTime = level.time + 1100;
+			ent->client->ps.quickerGetup = qfalse;
+		}
+		else
+		{
+			ent->client->ps.forceHandExtendTime = level.time + 700;
+			ent->client->ps.quickerGetup = qtrue;
+		}
+	}
+}
+
+/*
+==================
+Cmd_Butterfingers_f
+
+==================
+*/
+qboolean saberKnockOutOfHand(gentity_t *saberent, gentity_t *saberOwner, vec3_t velocity);
+void Cmd_Butterfingers_f(gentity_t* ent) {
+	if (ent->client->ps.weapon == WP_SABER &&
+		ent->client->ps.saberEntityNum &&
+		!ent->client->ps.saberInFlight)
+	{
+		saberKnockOutOfHand(&g_entities[ent->client->ps.saberEntityNum], ent, vec3_origin);
+	}
+}
+
+/*
+==================
+Cmd_Dismember_f
+
+==================
+*/
+extern void DismembermentByNum(gentity_t *self, int num);
+void Cmd_Dismember_f(gentity_t* ent) {
+	Cmd_Kill_f(ent);
+	if (ent->health < 1)
+	{
+		char	arg[MAX_STRING_CHARS];
+		int		iArg = 0;
+
+		if (trap->Argc() > 1)
+		{
+			trap->Argv(1, arg, sizeof(arg));
+
+			if (arg[0])
+			{
+				iArg = atoi(arg);
+			}
+		}
+
+		DismembermentByNum(ent, iArg);
+	}
+}
+
+/*
+==================
+Cmd_CloseEntities_f
+
+==================
+*/
+void Cmd_CloseEntities_f(gentity_t* ent) {
+	trap->Print("----------------------------------------------\n");
+	trap->Print("Entities Within Range.\n");
+	trap->Print("----------------------------------------------\n");
+
+	for (int i = MAX_CLIENTS; i < MAX_GENTITIES; i++)
+	{
+		gentity_t *item = &g_entities[i];
+		float dist = 0.0f;
+
+		if (!item) continue;
+		if (!item->classname || !item->classname[0]) continue;
+
+		dist = Distance(ent->r.currentOrigin, item->s.origin);
+
+		if (dist > 256) continue;
+
+		trap->Print("Entity %i", i);
+
+		switch (item->s.eType) {
+		case ET_GENERAL:
+			trap->Print("[ET_GENERAL         ]");
+			break;
+		case ET_PLAYER:
+			trap->Print("[ET_PLAYER          ]");
+			break;
+		case ET_ITEM:
+			trap->Print("[ET_ITEM            ]");
+			break;
+		case ET_MISSILE:
+			trap->Print("[ET_MISSILE         ]");
+			break;
+		case ET_MOVER:
+			trap->Print("[ET_MOVER           ]");
+			break;
+		case ET_BEAM:
+			trap->Print("[ET_BEAM            ]");
+			break;
+		case ET_PORTAL:
+			trap->Print("[ET_PORTAL          ]");
+			break;
+		case ET_SPEAKER:
+			trap->Print("[ET_SPEAKER         ]");
+			break;
+		case ET_PUSH_TRIGGER:
+			trap->Print("[ET_PUSH_TRIGGER    ]");
+			break;
+		case ET_TELEPORT_TRIGGER:
+			trap->Print("[ET_TELEPORT_TRIGGER]");
+			break;
+		case ET_INVISIBLE:
+			trap->Print("[ET_INVISIBLE       ]");
+			break;
+		case ET_NPC:
+			trap->Print("[ET_NPC             ]");
+			break;
+		default:
+			trap->Print("[%3i                ]", item->s.eType);
+			break;
+		}
+
+		trap->Print(" [%s] at a distance of %f.\n", item->classname, dist);
+	}
+
+	trap->Print("----------------------------------------------\n");
+}
+
+/*
+==================
+Cmd_TUse_f
+
+==================
+*/
+void Cmd_TUse_f(gentity_t* ent) {
+	if (trap->Argc() > 1)
+	{
+		char sArg[MAX_STRING_CHARS];
+		gentity_t *targ;
+
+		trap->Argv(1, sArg, sizeof(sArg));
+		targ = G_Find(NULL, FOFS(targetname), sArg);
+
+		while (targ)
+		{
+			if (targ->use)
+			{
+				targ->use(targ, ent, ent);
+			}
+			targ = G_Find(targ, FOFS(targetname), sArg);
+		}
+	}
 }
 
 /*
@@ -430,10 +906,10 @@ void JKG_BuyItem_f(gentity_t *ent)
 	}
 
 	itemInstance_t* pItem = &(*trader->inventory)[item];
-	if (pItem->id->baseCost > ent->client->ps.credits) 
+	if (pItem->id->baseCost > ent->client->ps.credits)
 	{
 		trap->SendServerCommand(ent - g_entities, "print \"You do not have enough credits to purchase that item.\n\"");
-		
+
 		//select random unhappy vendor sound to play
 		std::string snd;
 		switch (Q_irand(0, 5))
@@ -533,12 +1009,6 @@ void JKG_Crystal_f ( gentity_t *ent, int saberNum )
 	char *args = ConcatArgs(1);
 	int argNum = atoi(args);
 
-	/* Temporary -- We don't need cheats for right now in order to activate the saber system color stuff */
-	/*if(!CheatsOk(ent))
-	{
-		return;
-	}*/
-
 	if(argNum)
 	{
 		if(argNum < 0)
@@ -570,6 +1040,14 @@ void JKG_Crystal_f ( gentity_t *ent, int saberNum )
 	}
 }
 
+void Cmd_Crystal1_f(gentity_t* ent) {
+	JKG_Crystal_f(ent, 0);
+}
+
+void Cmd_Crystal2_f(gentity_t* ent) {
+	JKG_Crystal_f(ent, 1);
+}
+
 /*
 ==================
 JKG_PrintWeaponList_f
@@ -598,184 +1076,6 @@ void JKG_DumpWeaponList_f( gentity_t *ent )
 
 /*
 ==================
-Callvote Functionality
-==================
-*/
-
-qboolean G_VoteFraglimit(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
-	int n = Com_Clampi(0, 0x7FFFFFFF, atoi(arg2));
-	Com_sprintf(level.voteString, sizeof(level.voteString), "%s %i", arg1, n);
-	Com_sprintf(level.voteDisplayString, sizeof(level.voteDisplayString), "%s", level.voteString);
-	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
-	return qtrue;
-}
-
-qboolean G_VoteKick(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
-	int clientid = ClientNumberFromString(ent, arg2, qtrue);
-	gentity_t *target = NULL;
-	if (clientid == -1)
-		return qfalse;
-	target = &g_entities[clientid];
-	if (!target || !target->inuse || !target->client)
-		return qfalse;
-	Com_sprintf(level.voteString, sizeof(level.voteString), "clientkick %d", clientid);
-	Com_sprintf(level.voteDisplayString, sizeof(level.voteDisplayString), "kick %s", target->client->pers.netname);
-	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
-	return qtrue;
-}
-
-const char *G_GetArenaInfoByMap(const char *map);
-void Cmd_MapList_f(gentity_t *ent) {
-	int i, toggle = 0;
-	char map[24] = "--", buf[512] = { 0 };
-	Q_strcat(buf, sizeof(buf), "Map list:");
-	for (i = 0; i<level.arenas.num; i++) {
-		Q_strncpyz(map, Info_ValueForKey(level.arenas.infos[i], "map"), sizeof(map));
-		Q_StripColor(map);
-		if (G_DoesMapSupportGametype(map, level.gametype)) {
-			char *tmpMsg = va(" ^%c%s", (++toggle & 1) ? COLOR_GREEN : COLOR_YELLOW, map);
-			if (strlen(buf) + strlen(tmpMsg) >= sizeof(buf)) {
-				trap->SendServerCommand(ent - g_entities, va("print \"%s\"", buf));
-				buf[0] = '\0';
-			}
-			Q_strcat(buf, sizeof(buf), tmpMsg);
-		}
-	}
-	trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", buf));
-}
-qboolean G_VoteMap(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
-	char s[MAX_CVAR_VALUE_STRING] = { 0 }, bspName[MAX_QPATH] = { 0 }, *mapName = NULL, *mapName2 = NULL;
-	fileHandle_t fp = NULL_FILE;
-	const char *arenaInfo;
-	// didn't specify a map, show available maps
-	if (numArgs < 3) {
-		Cmd_MapList_f(ent);
-		return qfalse;
-	}
-	if (strchr(arg2, '\\')) {
-		trap->SendServerCommand(ent - g_entities, "print \"Can't have mapnames with a \\\n\"");
-		return qfalse;
-	}
-	Com_sprintf(bspName, sizeof(bspName), "maps/%s.bsp", arg2);
-	if (trap->FS_Open(bspName, &fp, FS_READ) <= 0) {
-		trap->SendServerCommand(ent - g_entities, va("print \"Can't find map %s on server\n\"", bspName));
-		if (fp != NULL_FILE)
-			trap->FS_Close(fp);
-		return qfalse;
-	}
-	trap->FS_Close(fp);
-	if (!G_DoesMapSupportGametype(arg2, level.gametype)) {
-		trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOVOTE_MAPNOTSUPPORTEDBYGAME")));
-		return qfalse;
-	}
-	// preserve the map rotation
-	trap->Cvar_VariableStringBuffer("nextmap", s, sizeof(s));
-	if (*s)
-		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %s; set nextmap \"%s\"", arg1, arg2, s);
-	else
-		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %s", arg1, arg2);
-	arenaInfo = G_GetArenaInfoByMap(arg2);
-	if (arenaInfo) {
-		mapName = Info_ValueForKey(arenaInfo, "longname");
-		mapName2 = Info_ValueForKey(arenaInfo, "map");
-	}
-	if (!mapName || !mapName[0])
-		mapName = "ERROR";
-	if (!mapName2 || !mapName2[0])
-		mapName2 = "ERROR";
-	Com_sprintf(level.voteDisplayString, sizeof(level.voteDisplayString), "map %s (%s)", mapName, mapName2);
-	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
-	return qtrue;
-}
-qboolean G_VoteMapRestart(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
-	int n = Com_Clampi(0, 60, atoi(arg2));
-	if (numArgs < 3)
-		n = 5;
-	Com_sprintf(level.voteString, sizeof(level.voteString), "%s %i", arg1, n);
-	Q_strncpyz(level.voteDisplayString, level.voteString, sizeof(level.voteDisplayString));
-	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
-	return qtrue;
-}
-
-qboolean G_VoteNextmap(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
-	char s[MAX_CVAR_VALUE_STRING];
-	trap->Cvar_VariableStringBuffer("nextmap", s, sizeof(s));
-	if (!*s) {
-		trap->SendServerCommand(ent - g_entities, "print \"nextmap not set.\n\"");
-		return qfalse;
-	}
-	Com_sprintf(level.voteString, sizeof(level.voteString), "vstr nextmap");
-	Q_strncpyz(level.voteDisplayString, level.voteString, sizeof(level.voteDisplayString));
-	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
-	return qtrue;
-}
-
-qboolean G_VoteTimelimit(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
-	float tl = Com_Clamp(0.0f, 35790.0f, atof(arg2));
-	if (Q_isintegral(tl))
-		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %i", arg1, (int)tl);
-	else
-		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %.3f", arg1, tl);
-	Q_strncpyz(level.voteDisplayString, level.voteString, sizeof(level.voteDisplayString));
-	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
-	return qtrue;
-}
-qboolean G_VoteWarmup(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
-	int n = Com_Clampi(0, 1, atoi(arg2));
-	Com_sprintf(level.voteString, sizeof(level.voteString), "%s %i", arg1, n);
-	Q_strncpyz(level.voteDisplayString, level.voteString, sizeof(level.voteDisplayString));
-	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
-	return qtrue;
-}
-typedef struct voteString_s {
-	const char	*string;
-	const char	*aliases; // space delimited list of aliases, will always show the real vote string
-	qboolean(*func)(gentity_t *ent, int numArgs, const char *arg1, const char *arg2);
-	int	numArgs; // number of REQUIRED arguments, not total/optional arguments
-	uint32_t	validGT; // bit-flag of valid gametypes
-	qboolean voteDelay; // if true, will delay executing the vote string after it's accepted by g_voteDelay
-	const char	*shortHelp; // NULL if no arguments needed
-} voteString_t;
-
-static voteString_t validVoteStrings[] = {
-	// vote string aliases # args valid gametypes exec delay short help
-	{ "fraglimit", "frags", G_VoteFraglimit, 1, GTB_ALL, qtrue, "<num>" },
-	{ "kick", NULL, G_VoteKick, 1, GTB_ALL, qfalse, "<client name>" },
-	{ "map", NULL, G_VoteMap, 0, GTB_ALL, qtrue, "<name>" },
-	{ "map_restart", "restart", G_VoteMapRestart, 0, GTB_ALL, qtrue, "<optional delay>" },
-	{ "nextmap", NULL, G_VoteNextmap, 0, GTB_ALL, qtrue, NULL },
-	{ "timelimit", "time", G_VoteTimelimit, 1, GTB_ALL, qtrue, "<num>" },
-};
-static const int validVoteStringsSize = ARRAY_LEN(validVoteStrings);
-
-void Svcmd_ToggleAllowVote_f(void) {
-	if (trap->Argc() == 1) {
-		int i = 0;
-		for (i = 0; i<validVoteStringsSize; i++) {
-			if ((g_allowVote.integer & (1 << i)))	trap->Print("%2d [X] %s\n", i, validVoteStrings[i].string);
-			else									trap->Print("%2d [ ] %s\n", i, validVoteStrings[i].string);
-		}
-		return;
-	}
-	else {
-		char arg[8] = { 0 };
-		int index;
-
-		trap->Argv(1, arg, sizeof(arg));
-		index = atoi(arg);
-
-		if (index < 0 || index >= validVoteStringsSize) {
-			Com_Printf("ToggleAllowVote: Invalid range: %i [0, %i]\n", index, validVoteStringsSize - 1);
-			return;
-		}
-
-		trap->Cvar_Set("g_allowVote", va("%i", (1 << index) ^ (g_allowVote.integer & ((1 << validVoteStringsSize) - 1))));
-		trap->Cvar_Update(&g_allowVote);
-
-		Com_Printf("%s %s^7\n", validVoteStrings[index].string, ((g_allowVote.integer & (1 << index)) ? "^2Enabled" : "^1Disabled"));
-	}
-}
-
 /*
 ==================
 Give cheat
@@ -826,17 +1126,15 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 			return;
 	}*/
 
-	if ( give_all || !Q_stricmp( name, "weapons" ) )
+	if ( give_all || !Q_stricmp( name, "stamina" ) )
 	{
-		ent->client->ps.stats[STAT_WEAPONS] = (1 << (LAST_USEABLE_WEAPON+1)) - ( 1 << WP_NONE );
+		if ( argc == 3 )
+			ent->client->ps.forcePower = Com_Clampi( 0, ent->client->ps.fd.forcePowerMax, atoi( args ) );
+		else
+			ent->client->ps.forcePower = ent->client->ps.fd.forcePowerMax;
+
 		if ( !give_all )
 			return;
-	}
-
-	if ( !give_all && !Q_stricmp( name, "weaponnum" ) )
-	{
-		ent->client->ps.stats[STAT_WEAPONS] |= (1 << atoi( args ));
-		return;
 	}
 
 	if ( !give_all && !Q_stricmp( name, "weapon" ) )
@@ -850,7 +1148,7 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 			itemInstance_t item = BG_ItemInstance(itemID, 1);
 			BG_GiveItem(ent, item);
 			trap->SendServerCommand (ent->s.number, va ("print \"'%s' was added to your inventory.\n\"", itemLookupTable[itemID].displayName));
-			
+
 			// UQ1: Added - update their ACI...
 			trap->SendServerCommand(ent->s.number, va("AddToACI %i", itemID));
 	    }
@@ -881,11 +1179,10 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 		if ( !give_all )
 			return;
 	}
-	
+
 	//Inventory items -- eezstreet/JKG
 	if( !give_all && !Q_stricmp( name, "item" ) )
 	{
-		//qboolean inventoryFull = qtrue;
 		int itemID = atoi( args );
 		if(itemID)
 		{
@@ -1126,30 +1423,6 @@ void Cmd_LevelShot_f( gentity_t *ent )
 	trap->SendServerCommand( ent-g_entities, "clientLevelShot" );
 }
 
-
-/*
-=================
-Cmd_Kill_f
-=================
-*/
-void Cmd_Kill_f( gentity_t *ent ) {
-	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
-		return;
-	}
-	if ( ent->client->tempSpectate > level.time) {
-		return;		// Cant /kill in tempspec
-	}
-
-	if (ent->health <= 0) {		//awww sad, zombies can't commit suicide
-		return;
-	}
-
-	ent->flags &= ~FL_GODMODE;
-	ent->client->ps.stats[STAT_HEALTH] = ent->health = -999;
-	player_die (ent, ent, ent, 100000, MOD_SUICIDE);
-}
-
-
 /*
 =================
 BroadCastTeamChange
@@ -1157,7 +1430,7 @@ BroadCastTeamChange
 Let everyone know about a team change
 =================
 */
-void BroadcastTeamChange( gclient_t *client, int oldTeam )														
+void BroadcastTeamChange( gclient_t *client, int oldTeam )
 {
 	client->ps.fd.forceDoInit = 1; //every time we change teams make sure our force powers are set right
 
@@ -1171,7 +1444,7 @@ void BroadcastTeamChange( gclient_t *client, int oldTeam )
 		//client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBLUETEAM")));
 	} else if ( client->sess.sessionTeam == TEAM_SPECTATOR && oldTeam != TEAM_SPECTATOR ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
-		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));		
+		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHESPECTATORS")));
 	} else if ( client->sess.sessionTeam == TEAM_FREE ) {
 		trap->SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " %s\n\"",
 		client->pers.netname, G_GetStringEdString("MP_SVGAME", "JOINEDTHEBATTLE")));
@@ -1311,14 +1584,14 @@ void SetTeam( gentity_t *ent, char *s ) {
 				/*
 				if (g_forceBasedTeams.integer && ent->client->ps.fd.forceSide == FORCE_DARKSIDE)
 				{
-					trap->SendServerCommand( ent->client->ps.clientNum, 
+					trap->SendServerCommand( ent->client->ps.clientNum,
 						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYRED_SWITCH")) );
 				}
 				else
 				*/
 				{
 					//JAC: Invalid clientNum was being used
-					trap->SendServerCommand( ent-g_entities, 
+					trap->SendServerCommand( ent-g_entities,
 						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYRED")) );
 				}
 				return; // ignore the request
@@ -1328,14 +1601,14 @@ void SetTeam( gentity_t *ent, char *s ) {
 				/*
 				if (g_forceBasedTeams.integer && ent->client->ps.fd.forceSide == FORCE_LIGHTSIDE)
 				{
-					trap->SendServerCommand( ent->client->ps.clientNum, 
+					trap->SendServerCommand( ent->client->ps.clientNum,
 						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYBLUE_SWITCH")) );
 				}
 				else
 				*/
 				{
 					//JAC: Invalid clientNum was being used
-					trap->SendServerCommand( ent-g_entities, 
+					trap->SendServerCommand( ent-g_entities,
 						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYBLUE")) );
 				}
 				return; // ignore the request
@@ -1377,7 +1650,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 	{
 		team = TEAM_SPECTATOR;
 	}
-	else if ( g_maxGameClients.integer > 0 && 
+	else if ( g_maxGameClients.integer > 0 &&
 		level.numNonSpectatorClients >= g_maxGameClients.integer )
 	{
 		team = TEAM_SPECTATOR;
@@ -1471,8 +1744,8 @@ to free floating spectator mode
 */
 void StopFollowing( gentity_t *ent ) {
 	int i=0;
-	ent->client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;	
-	ent->client->sess.sessionTeam = TEAM_SPECTATOR;	
+	ent->client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;
+	ent->client->sess.sessionTeam = TEAM_SPECTATOR;
 	ent->client->sess.spectatorState = SPECTATOR_FREE;
 	ent->client->ps.pm_flags &= ~PMF_FOLLOW;
 	ent->r.svFlags &= ~SVF_BOT;
@@ -1513,7 +1786,7 @@ void Cmd_Team_f( gentity_t *ent ) {
 
 	oldTeam = ent->client->sess.sessionTeam;
 
-	if ( trap->Argc() != 2 ) {		
+	if ( trap->Argc() != 2 ) {
 		switch ( oldTeam ) {
 		case TEAM_BLUE:
 			trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", bgGangWarsTeams[level.blueTeam].longname) );
@@ -1584,6 +1857,35 @@ void JKG_Cmd_Loot_f(gentity_t *ent, int otherNum, int lootID, qboolean trade)
 
 /*
 =================
+
+/*
+==================
+Cmd_ItemUse_f
+
+==================
+*/
+void Cmd_ItemUse_f(gentity_t* ent) {
+	char arg[MAX_STRING_CHARS];
+	if (trap->Argc() < 2)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"Syntax: /inventoryUse <item num>\n\"");
+		return;
+	}
+	trap->Argv(1, arg, sizeof(arg));
+	JKG_Cmd_ItemAction_f(ent, atoi(arg));
+}
+
+/*
+==================
+Cmd_ResendInv_f
+
+==================
+*/
+void Cmd_ResendInv_f(gentity_t* ent) {
+	BG_SendItemPacket(IPT_RESET, ent, nullptr, ent->inventory->size(), 0);
+}
+
+
 JKG_Cmd_ShowInv_f
 =================
 */
@@ -1600,9 +1902,9 @@ void JKG_Cmd_ShowInv_f(gentity_t *ent)
 	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
 		Q_strcat(buffer, sizeof(buffer), va(S_COLOR_WHITE "%12i | %8i | %-45s | %i\n", i, it->id->itemID, it->id->displayName, it->quantity));
 	}
-	
+
 	Q_strcat (buffer, sizeof (buffer), va( "%i total items", i));
-	
+
 	trap->SendServerCommand (ent->s.number, va ("print \"%s\n\"", buffer));
 }
 
@@ -1622,7 +1924,7 @@ void JKG_Cmd_EquipItem_f(gentity_t *ent)
 		trap->SendServerCommand( ent->s.number, "print \"Usage: /equip <item num>\n\"" );
 		return;
 	}
-	
+
 	trap->Argv (1, arg, sizeof(arg));
 
 	JKG_EquipItem (ent, atoi (arg));
@@ -1636,7 +1938,7 @@ void JKG_Cmd_UnequipItem_f(gentity_t *ent)
 		trap->SendServerCommand( ent->s.number, "print \"Usage: /unequip <item num>\n\"" );
 		return;
 	}
-	
+
 	trap->Argv (1, arg, sizeof(arg));
 
 	JKG_UnequipItem (ent, atoi (arg));
@@ -1686,12 +1988,19 @@ void JKG_Cmd_DestroyItem_f(gentity_t *ent)
 
 void JKG_Cmd_SellItem_f(gentity_t *ent)
 {
+	gentity_t* trader = ent->client->currentTrader;
 	// TODO: put proper pricing here
 	char arg[64];
 	trap->Argv(1, arg, sizeof(arg));
 	if(trap->Argc() < 2)
 	{
-		trap->SendServerCommand(ent->client->ps.clientNum, "print \"Syntax: /inventorySell <inventory ID or internal>\n\"");
+		trap->SendServerCommand(ent->s.number, "print \"Syntax: /inventorySell <inventory ID or internal>\n\"");
+		return;
+	}
+
+	if(trader == NULL)
+	{
+		trap->SendServerCommand(ent->s.number, "print \"You are not at a vendor.\n\"");
 		return;
 	}
 
@@ -2101,13 +2410,13 @@ static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, cons
 
 	if (locMsg)
 	{
-		trap->SendServerCommand( other-g_entities, va("%s %i \"%s\" \"%s\" \"%c\" \"%s\"", 
+		trap->SendServerCommand( other-g_entities, va("%s %i \"%s\" \"%s\" \"%c\" \"%s\"",
 			mode == SAY_TEAM ? "ltchat" : "lchat",
 			fadeLevel, name, locMsg, color, message));
 	}
 	else
 	{
-		trap->SendServerCommand( other-g_entities, va("%s %i \"%s%c%c%s\"", 
+		trap->SendServerCommand( other-g_entities, va("%s %i \"%s%c%c%s\"",
 			mode == SAY_TEAM ? "tchat" : "chat",
 			fadeLevel, name, Q_COLOR_ESCAPE, color, message));
 	}
@@ -2204,12 +2513,12 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 
 	ent->client->lastChatMessage = level.time;
 
-	
+
 	if ( g_gametype.integer < GT_TEAM && mode == SAY_TEAM ) {
 		mode = SAY_YELL;
 	}
 
-	if (strlen(chatText) > 511) {
+	if (strlen(chatText) >= MAX_SAY_TEXT) {
 		// Malicious use, ignore
 		trap->SendServerCommand( ent-g_entities, "chat 100 \"^7System: ^1Malicious use of chat detected, message blocked\"");
 		return;
@@ -2256,13 +2565,13 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 		G_LogPrintf( "sayteam: %s: %s\n", ent->client->pers.netname, ChatBox_UnescapeChat(chatText) );
 		if (Team_GetLocationMsg(ent, location, sizeof(location)))
 		{
-			Com_sprintf (name, sizeof(name), EC "(%s%c%c" EC ")" EC ": ", 
+			Com_sprintf (name, sizeof(name), EC "(%s%c%c" EC ")" EC ": ",
 				ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE );
 			locMsg = location;
 		}
 		else
 		{
-			Com_sprintf (name, sizeof(name), EC "(%s%c%c" EC ")" EC ": ", 
+			Com_sprintf (name, sizeof(name), EC "(%s%c%c" EC ")" EC ": ",
 				ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE );
 		}
 		color = COLOR_CYAN;
@@ -2370,39 +2679,6 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 	}
 }
 
-
-/*
-==================
-Cmd_Say_f
-==================
-*/
-static void Cmd_Say_f( gentity_t *ent, int mode, qboolean arg0 ) {
-	char		*p;
-
-	if ( trap->Argc () < 2 && !arg0 ) {
-		return;
-	}
-
-	if (arg0)
-	{
-		p = ConcatArgs( 0 );
-	}
-	else
-	{
-		p = ConcatArgs( 1 );
-	}
-	
-	//Raz: BOF
-	if ( strlen( p ) > MAX_SAY_TEXT )
-	{
-		p[MAX_SAY_TEXT-1] = '\0';
-		G_SecurityLogPrintf( "Cmd_Say_f from %d (%s) has been truncated: %s\n", ent->s.number, ent->client->pers.netname, p );
-	}
-
-
-	G_Say( ent, NULL, mode, p );
-}
-
 /*
 ==================
 Cmd_SayAct_f - Actions
@@ -2416,14 +2692,6 @@ static void Cmd_SayAct_f( gentity_t *ent ) {
 	}
 
 	p = ConcatArgs( 1 );
-	
-	//Raz: BOF
-	if ( strlen( p ) > MAX_SAY_TEXT )
-	{
-		p[MAX_SAY_TEXT-1] = '\0';
-		G_SecurityLogPrintf( "Cmd_SayAct_f from %d (%s) has been truncated: %s\n", ent->s.number, ent->client->pers.netname, p );
-	}
-
 
 	G_Say( ent, NULL, SAY_ACT, p );
 }
@@ -2468,28 +2736,26 @@ Cmd_SayTeam_f - Team Chat
 VERSUS ONLY
 ==================
 */
-static void Cmd_SayTeam_f( gentity_t *ent ) {
+static void Cmd_SayTeam_f(gentity_t *ent) {
 	char		*p;
 
-	if ( trap->Argc () < 2 ) {
+	if (trap->Argc() < 2) {
 		return;
 	}
 
-	p = ConcatArgs( 1 );
-	
-	//Raz: BOF
-	if ( strlen( p ) > MAX_SAY_TEXT )
-	{
-		p[MAX_SAY_TEXT-1] = '\0';
-		G_SecurityLogPrintf( "Cmd_SayTeam_f from %d (%s) has been truncated: %s\n", ent->s.number, ent->client->pers.netname, p );
-	}
+	p = ConcatArgs(1);
 
-	G_Say( ent, NULL, SAY_TEAM, p );
+	if (g_gametype.integer < GT_TEAM) {
+		G_Say(ent, NULL, SAY_GLOBAL, p);
+	}
+	else {
+		G_Say(ent, NULL, SAY_TEAM, p);
+	}
 }
 
 /*
 ==================
-Cmd_SayWhisper_f - Yell
+Cmd_SayWhisper_f - Whisper
 ==================
 */
 static void Cmd_SayWhisper_f( gentity_t *ent ) {
@@ -2500,16 +2766,25 @@ static void Cmd_SayWhisper_f( gentity_t *ent ) {
 	}
 
 	p = ConcatArgs( 1 );
-	
-	//Raz: BOF
-	if ( strlen( p ) > MAX_SAY_TEXT )
-	{
-		p[MAX_SAY_TEXT-1] = '\0';
-		G_SecurityLogPrintf( "Cmd_SayWhisper_f from %d (%s) has been truncated: %s\n", ent->s.number, ent->client->pers.netname, p );
-	}
-
 
 	G_Say( ent, NULL, SAY_WHISPER, p );
+}
+
+/*
+==================
+Cmd_SayLocal_f
+==================
+*/
+static void Cmd_SayLocal_f(gentity_t* ent) {
+	char		*p;
+
+	if (trap->Argc() < 2) {
+		return;
+	}
+
+	p = ConcatArgs(1);
+
+	G_Say(ent, NULL, SAY_ALL, p);
 }
 
 /*
@@ -2540,13 +2815,6 @@ static void Cmd_Tell_f( gentity_t *ent ) {
 	}
 
 	p = ConcatArgs( 2 );
-
-	//Raz: BOF
-	if ( strlen( p ) > MAX_SAY_TEXT )
-	{
-		p[MAX_SAY_TEXT-1] = '\0';
-		G_SecurityLogPrintf( "Cmd_Tell_f from %d (%s) has been truncated: %s\n", ent->s.number, ent->client->pers.netname, p );
-	}
 
 	G_LogPrintf( "tell: %s to %s: %s\n", ent->client->pers.netname, target->client->pers.netname, p );
 	G_Say( ent, target, SAY_TELL, p );
@@ -2600,7 +2868,7 @@ void JKG_BindChatCommands( void )
 	CCmd_AddCommand("sayact", CCmd_SayAct);
 	CCmd_AddCommand("saywhisper", CCmd_SayWhisper);
 	CCmd_AddCommand("tell", CCmd_Tell);
-	CCmd_AddCommand("say_team", CCmd_Say_Team);
+	CCmd_AddCommand("sayteam", CCmd_Say_Team);
 }
 
 /*
@@ -2655,6 +2923,11 @@ static void Cmd_VoiceCommand_f(gentity_t *ent)
 		return;
 	}
 
+	if ( ent->health <= 0 || ent->client->tempSpectate >= level.time || (ent->client && ent->client->deathcamTime) ) {
+		trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBEALIVE")));
+		return;
+	}
+
 	trap->Argv(1, arg, sizeof(arg));
 
 	if (arg[0] == '*')
@@ -2690,54 +2963,6 @@ static void Cmd_VoiceCommand_f(gentity_t *ent)
 	te->r.svFlags |= SVF_BROADCAST;
 }
 
-
-static char	*gc_orders[] = {
-	"hold your position",
-	"hold this position",
-	"come here",
-	"cover me",
-	"guard location",
-	"search and destroy",
-	"report"
-};
-static size_t numgc_orders = ARRAY_LEN( gc_orders );
-
-void Cmd_GameCommand_f( gentity_t *ent ) {
-	int				targetNum;
-	unsigned int	order;
-	gentity_t		*target;
-	char			arg[MAX_TOKEN_CHARS] = {0};
-
-	if ( trap->Argc() != 3 ) {
-		trap->SendServerCommand( ent-g_entities, va( "print \"Usage: gc <player id> <order 0-%d>\n\"", numgc_orders - 1 ) );
-		return;
-	}
-
-	trap->Argv( 2, arg, sizeof( arg ) );
-	order = atoi( arg );
-
-	if ( order >= numgc_orders ) {
-		trap->SendServerCommand( ent-g_entities, va("print \"Bad order: %i\n\"", order));
-		return;
-	}
-
-	trap->Argv( 1, arg, sizeof( arg ) );
-	targetNum = ClientNumberFromString( ent, arg, qfalse );
-	if ( targetNum == -1 )
-		return;
-
-	target = &g_entities[targetNum];
-	if ( !target->inuse || !target->client )
-		return;
-
-	G_LogPrintf( "tell: %s to %s: %s\n", ent->client->pers.netname, target->client->pers.netname, gc_orders[order] );
-	G_Say( ent, target, SAY_TELL, gc_orders[order] );
-	// don't tell to the player self if it was already directed to this player
-	// also don't send the chat back to a bot
-	if ( ent != target && !(ent->r.svFlags & SVF_BOT) )
-		G_Say( ent, ent, SAY_TELL, gc_orders[order] );
-}
-
 /*
 ==================
 Cmd_Where_f
@@ -2757,322 +2982,377 @@ void Cmd_Where_f( gentity_t *ent ) {
 
 /*
 ==================
-G_ClientNumberFromName
-
-Finds the client number of the client with the given name
-==================
-*/
-int G_ClientNumberFromName ( const char* name )
-{
-	char		cleanInput[MAX_NETNAME];
-	char		cleanName[MAX_NETNAME];
-	int			i;
-	gclient_t*	cl;
-
-	Q_strncpyz( cleanInput, name, sizeof( cleanInput ) );
-	Q_StripColor( cleanInput );
-	for ( i=0,cl=level.clients; i < level.maxclients; i++,cl++ )
-	{// check for a name match
-		if ( cl->pers.connected != CON_CONNECTED )
-			continue;
-		Q_strncpyz( cleanName, cl->pers.netname, sizeof( cleanName ) );
-		Q_StripColor( cleanName );
-		if ( !Q_stricmp( cleanName, cleanInput ) )
-		{
-			return i;
-		}
-	}
-
-	return -1;
-}
-
-/*
-==================
-G_ClientNumberFromStrippedSubstring
-
-Same as above, but strips special characters out of the names before comparing.
-Checks substrings rather than the full string and returns -2 on multiple matches (if specified to do so)
-==================
-*/
-
-int G_ClientNumberFromStrippedSubstring ( const char* name, qboolean checkAll )
-{
-	gclient_t	*cl;
-	int			idnum, match = -1;
-	char		cleanInput[MAX_NETNAME];
-
-	Q_strncpyz( cleanInput, name, sizeof(cleanInput) );
-	Q_StripColor( cleanInput );
-
-	for ( idnum=0,cl=level.clients; idnum < level.maxclients; idnum++,cl++ )
-	{// check for a name match
-		if ( cl->pers.connected != CON_CONNECTED )
-			continue;
-
-		if ( Q_stristr( cl->pers.netname_nocolor, cleanInput ) )
-		{
-			if( match != -1 )
-			{ //found more than one match
-				return -2;
-			}
-			match = idnum;
-			if (!checkAll)
-			{ // Don't continue checking
-				return match;
-			}
-		}
-	}
-
-	return match; // Could this just be -1? I'm not sure...
-}
-
-/*
-==================
 Cmd_CallVote_f
 ==================
 */
-const char *G_GetArenaInfoByMap( const char *map );
-void Cmd_CallVote_f( gentity_t *ent ) {
-	int		i;
-	char	arg1[MAX_CVAR_VALUE_STRING], arg2[MAX_CVAR_VALUE_STRING];
-	char	*mapName = NULL;
-	const char *arenaInfo = NULL;
 
-	if ( !g_allowVote.integer ) {
-		trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOVOTE")) );
-		return;
+/*
+==================
+Callvote Functionality
+==================
+*/
+
+qboolean G_VoteFraglimit(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	int n = Com_Clampi(0, 0x7FFFFFFF, atoi(arg2));
+	Com_sprintf(level.voteString, sizeof(level.voteString), "%s %i", arg1, n);
+	Com_sprintf(level.voteDisplayString, sizeof(level.voteDisplayString), "%s", level.voteString);
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+
+qboolean G_VoteClientkick( gentity_t *ent, int numArgs, const char *arg1, const char *arg2 ) {
+	int n = atoi ( arg2 );
+
+	if ( n < 0 || n >= level.maxclients ) {
+		trap->SendServerCommand( ent-g_entities, va( "print \"invalid client number %d.\n\"", n ) );
+		return qfalse;
 	}
 
-	if ( level.voteTime || level.voteExecuteTime >= level.time ) {
-		trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "VOTEINPROGRESS")) );
-		return;
+	if ( g_entities[n].client->pers.connected == CON_DISCONNECTED ) {
+		trap->SendServerCommand( ent-g_entities, va( "print \"there is no client with the client number %d.\n\"", n ) );
+		return qfalse;
 	}
 
-	if (level.gametype != GT_DUEL && level.gametype != GT_POWERDUEL)
-	{
-		if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
-			trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOSPECVOTE")) );
+	Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %s", arg1, arg2 );
+	Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s %s", arg1, g_entities[n].client->pers.netname );
+	Q_strncpyz( level.voteStringClean, level.voteString, sizeof( level.voteStringClean ) );
+	return qtrue;
+}
+
+qboolean G_VoteKick(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	int clientid = ClientNumberFromString(ent, arg2, qtrue);
+	gentity_t *target = NULL;
+	if (clientid == -1)
+		return qfalse;
+	target = &g_entities[clientid];
+	if (!target || !target->inuse || !target->client)
+		return qfalse;
+	Com_sprintf(level.voteString, sizeof(level.voteString), "clientkick %d", clientid);
+	Com_sprintf(level.voteDisplayString, sizeof(level.voteDisplayString), "kick %s", target->client->pers.netname);
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+
+qboolean G_VoteGametype( gentity_t *ent, int numArgs, const char *arg1, const char *arg2 ) {
+	int gt = atoi( arg2 );
+	// ffa, ctf, tdm, etc
+	if ( arg2[0] && isalpha( arg2[0] ) ) {
+		gt = BG_GetGametypeForString( arg2 );
+		if ( gt == -1 )
+		{
+			trap->SendServerCommand( ent-g_entities, va( "print \"Gametype (%s) unrecognised, defaulting to Faction Battle\n\"", arg2 ) );
+			gt = GT_TEAM;
+		}
+	}
+	// numeric but out of range
+	else if ( gt < 0 || gt >= GT_MAX_GAME_TYPE ) {
+		trap->SendServerCommand( ent-g_entities, va( "print \"Gametype (%i) is out of range, defaulting to Faction Battle\n\"", gt ) );
+		gt = GT_TEAM;
+	}
+	// logically invalid gametypes, or gametypes not fully implemented in MP
+	if ( gt == GT_SINGLE_PLAYER ) {
+		trap->SendServerCommand( ent-g_entities, va( "print \"This gametype is not supported (%s).\n\"", arg2 ) );
+		return qfalse;
+	}
+	level.votingGametype = qtrue;
+	level.votingGametypeTo = gt;
+	Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %d", arg1, gt );
+	Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s %s", arg1, BG_GetGametypeString(gt) );
+	Q_strncpyz( level.voteStringClean, level.voteString, sizeof( level.voteStringClean ) );
+	return qtrue;
+}
+
+const char *G_GetArenaInfoByMap(const char *map);
+void Cmd_MapList_f(gentity_t *ent) {
+	int i, toggle = 0;
+	char map[24] = "--", buf[512] = { 0 };
+	Q_strcat(buf, sizeof(buf), "Map list:");
+	for (i = 0; i<level.arenas.num; i++) {
+		Q_strncpyz(map, Info_ValueForKey(level.arenas.infos[i], "map"), sizeof(map));
+		Q_StripColor(map);
+		if (G_DoesMapSupportGametype(map, level.gametype)) {
+			char *tmpMsg = va(" ^%c%s", (++toggle & 1) ? COLOR_GREEN : COLOR_YELLOW, map);
+			if (strlen(buf) + strlen(tmpMsg) >= sizeof(buf)) {
+				trap->SendServerCommand(ent - g_entities, va("print \"%s\"", buf));
+				buf[0] = '\0';
+			}
+			Q_strcat(buf, sizeof(buf), tmpMsg);
+		}
+	}
+	trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", buf));
+}
+qboolean G_VoteMap(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	char s[MAX_CVAR_VALUE_STRING] = { 0 }, bspName[MAX_QPATH] = { 0 }, *mapName = NULL, *mapName2 = NULL;
+	fileHandle_t fp = NULL_FILE;
+	const char *arenaInfo;
+	// didn't specify a map, show available maps
+	if (numArgs < 3) {
+		Cmd_MapList_f(ent);
+		return qfalse;
+	}
+	if (strchr(arg2, '\\')) {
+		trap->SendServerCommand(ent - g_entities, "print \"Can't have mapnames with a \\\n\"");
+		return qfalse;
+	}
+	Com_sprintf(bspName, sizeof(bspName), "maps/%s.bsp", arg2);
+	if (trap->FS_Open(bspName, &fp, FS_READ) <= 0) {
+		trap->SendServerCommand(ent - g_entities, va("print \"Can't find map %s on server\n\"", bspName));
+		if (fp != NULL_FILE)
+			trap->FS_Close(fp);
+		return qfalse;
+	}
+	trap->FS_Close(fp);
+	if (!G_DoesMapSupportGametype(arg2, level.gametype)) {
+		trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOVOTE_MAPNOTSUPPORTEDBYGAME")));
+		return qfalse;
+	}
+	// preserve the map rotation
+	trap->Cvar_VariableStringBuffer("nextmap", s, sizeof(s));
+	if (*s)
+		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %s; set nextmap \"%s\"", arg1, arg2, s);
+	else
+		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %s", arg1, arg2);
+	arenaInfo = G_GetArenaInfoByMap(arg2);
+	if (arenaInfo) {
+		mapName = Info_ValueForKey(arenaInfo, "longname");
+		mapName2 = Info_ValueForKey(arenaInfo, "map");
+	}
+	if (!mapName || !mapName[0])
+		mapName = "ERROR";
+	if (!mapName2 || !mapName2[0])
+		mapName2 = "ERROR";
+	Com_sprintf(level.voteDisplayString, sizeof(level.voteDisplayString), "map %s (%s)", mapName, mapName2);
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+qboolean G_VoteMapRestart(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	int n = Com_Clampi(0, 60, atoi(arg2));
+	if (numArgs < 3)
+		n = 5;
+	Com_sprintf(level.voteString, sizeof(level.voteString), "%s %i", arg1, n);
+	Q_strncpyz(level.voteDisplayString, level.voteString, sizeof(level.voteDisplayString));
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+
+qboolean G_VoteNextmap(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	char s[MAX_CVAR_VALUE_STRING];
+	trap->Cvar_VariableStringBuffer("nextmap", s, sizeof(s));
+	if (!*s) {
+		trap->SendServerCommand(ent - g_entities, "print \"nextmap not set.\n\"");
+		return qfalse;
+	}
+	Com_sprintf(level.voteString, sizeof(level.voteString), "vstr nextmap");
+	Q_strncpyz(level.voteDisplayString, level.voteString, sizeof(level.voteDisplayString));
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+
+qboolean G_VoteTimelimit(gentity_t *ent, int numArgs, const char *arg1, const char *arg2) {
+	float tl = Com_Clamp(0.0f, 35790.0f, atof(arg2));
+	if (Q_isintegral(tl))
+		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %i", arg1, (int)tl);
+	else
+		Com_sprintf(level.voteString, sizeof(level.voteString), "%s %.3f", arg1, tl);
+	Q_strncpyz(level.voteDisplayString, level.voteString, sizeof(level.voteDisplayString));
+	Q_strncpyz(level.voteStringClean, level.voteString, sizeof(level.voteStringClean));
+	return qtrue;
+}
+
+typedef struct voteString_s {
+	const char	*string;
+	const char	*aliases; // space delimited list of aliases, will always show the real vote string
+	qboolean(*func)(gentity_t *ent, int numArgs, const char *arg1, const char *arg2);
+	int	numArgs; // number of REQUIRED arguments, not total/optional arguments
+	uint32_t	validGT; // bit-flag of valid gametypes
+	qboolean voteDelay; // if true, will delay executing the vote string after it's accepted by g_voteDelay
+	const char	*shortHelp; // NULL if no arguments needed
+} voteString_t;
+
+static voteString_t validVoteStrings[] = {
+	// vote string aliases # args valid gametypes exec delay short help
+	{ "clientkick", NULL, G_VoteClientkick, 1, GTB_ALL, qfalse, "<clientnum>" },
+	{ "fraglimit", "frags", G_VoteFraglimit, 1, GTB_ALL, qtrue, "<num>" },
+	{ "g_gametype", "gametype gt mode", G_VoteGametype, 1, GTB_ALL, qtrue, "<num or name>" },
+	{ "kick", NULL, G_VoteKick, 1, GTB_ALL, qfalse, "<client name>" },
+	{ "map", NULL, G_VoteMap, 0, GTB_ALL, qtrue, "<name>" },
+	{ "map_restart", "restart", G_VoteMapRestart, 0, GTB_ALL, qtrue, "<optional delay>" },
+	{ "nextmap", NULL, G_VoteNextmap, 0, GTB_ALL, qtrue, NULL },
+	{ "timelimit", "time", G_VoteTimelimit, 1, GTB_ALL, qtrue, "<num>" },
+};
+static const int validVoteStringsSize = ARRAY_LEN(validVoteStrings);
+
+void Svcmd_ToggleAllowVote_f(void) {
+	if (trap->Argc() == 1) {
+		int i = 0;
+		for (i = 0; i<validVoteStringsSize; i++) {
+			if ((g_allowVote.integer & (1 << i)))	trap->Print("%2d [X] %s\n", i, validVoteStrings[i].string);
+			else									trap->Print("%2d [ ] %s\n", i, validVoteStrings[i].string);
+		}
+		return;
+	}
+	else {
+		char arg[8] = { 0 };
+		int index;
+
+		trap->Argv(1, arg, sizeof(arg));
+		index = atoi(arg);
+
+		if (index < 0 || index >= validVoteStringsSize) {
+			Com_Printf("ToggleAllowVote: Invalid range: %i [0, %i]\n", index, validVoteStringsSize - 1);
 			return;
 		}
+
+		trap->Cvar_Set("g_allowVote", va("%i", (1 << index) ^ (g_allowVote.integer & ((1 << validVoteStringsSize) - 1))));
+		trap->Cvar_Update(&g_allowVote);
+
+		Com_Printf("%s %s^7\n", validVoteStrings[index].string, ((g_allowVote.integer & (1 << index)) ? "^2Enabled" : "^1Disabled"));
+	}
+}
+
+const char *G_GetArenaInfoByMap( const char *map );
+void Cmd_CallVote_f( gentity_t *ent ) {
+	int				i=0, numArgs=0;
+	char			arg1[MAX_CVAR_VALUE_STRING] = {0};
+	char			arg2[MAX_CVAR_VALUE_STRING] = {0};
+	voteString_t *vote = NULL;
+
+	// not allowed to vote at all
+	if ( !g_allowVote.integer ) {
+		trap->SendServerCommand( ent-g_entities, va( "print \"%s\n\"", G_GetStringEdString( "MP_SVGAME", "NOVOTE" ) ) );
+		return;
+	}
+
+	// vote in progress
+	else if ( level.voteTime ) {
+		trap->SendServerCommand( ent-g_entities, va( "print \"%s\n\"", G_GetStringEdString( "MP_SVGAME", "VOTEINPROGRESS" ) ) );
+		return;
+	}
+
+	// can't vote as a spectator, except in (power)duel
+	else if ( level.gametype != GT_DUEL && level.gametype != GT_POWERDUEL && ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
+		trap->SendServerCommand( ent-g_entities, va( "print \"%s\n\"", G_GetStringEdString( "MP_SVGAME", "NOSPECVOTE" ) ) );
+		return;
 	}
 
 	// make sure it is a valid command to vote on
+	numArgs = trap->Argc();
 	trap->Argv( 1, arg1, sizeof( arg1 ) );
-	trap->Argv( 2, arg2, sizeof( arg2 ) );
+	if ( numArgs > 1 )
+		Q_strncpyz( arg2, ConcatArgs( 2 ), sizeof( arg2 ) );
 
-	//Raz: callvote exploit, filter \n and \r ==> in both args
-	if ( strchr( arg1, ';' ) || strchr( arg2, ';' ) ||
-		 strchr( arg1, '\r' ) || strchr( arg2, '\r' ) ||
-		 strchr( arg1, '\n' ) || strchr( arg2, '\n' ) )
-	{
+	// filter ; \n \r
+	if ( Q_strchrs( arg1, ";\r\n" ) || Q_strchrs( arg2, ";\r\n" ) ) {
 		trap->SendServerCommand( ent-g_entities, "print \"Invalid vote string.\n\"" );
 		return;
 	}
 
-	if ( Q_stricmp( arg1, "map_restart" ) &&
-		 Q_stricmp( arg1, "nextmap" ) &&
-		 Q_stricmp( arg1, "map" ) &&
-		 Q_stricmp( arg1, "g_gametype" ) &&
-		 Q_stricmp( arg1, "kick" ) &&
-		 Q_stricmp( arg1, "clientkick" ) &&
-		 Q_stricmp( arg1, "timelimit" ) &&
-		 Q_stricmp( arg1, "fraglimit" ) &&
-		 Q_stricmp( arg1, "capturelimit" ) )
-	{
+	// check for invalid votes
+	for ( i=0; i<validVoteStringsSize; i++ ) {
+		if ( !(g_allowVote.integer & (1<<i)) )
+			continue;
+
+		if ( !Q_stricmp( arg1, validVoteStrings[i].string ) )
+			break;
+
+		// see if they're using an alias, and set arg1 to the actual vote string
+		if ( validVoteStrings[i].aliases ) {
+			char tmp[MAX_TOKEN_CHARS] = {0}, *p = NULL;
+			const char *delim = " ";
+			Q_strncpyz( tmp, validVoteStrings[i].aliases, sizeof( tmp ) );
+			p = strtok( tmp, delim );
+			while ( p != NULL ) {
+				if ( !Q_stricmp( arg1, p ) ) {
+					Q_strncpyz( arg1, validVoteStrings[i].string, sizeof( arg1 ) );
+					goto validVote;
+				}
+				p = strtok( NULL, delim );
+			}
+		}
+	}
+	// invalid vote string, abandon ship
+	if ( i == validVoteStringsSize ) {
+		char buf[1024] = {0};
+		int toggle = 0;
 		trap->SendServerCommand( ent-g_entities, "print \"Invalid vote string.\n\"" );
-		trap->SendServerCommand( ent-g_entities, "print \"Vote commands are: map_restart, nextmap, map <mapname>, g_gametype <n>, kick <player>, clientkick <clientnum>, timelimit <time>, fraglimit <frags>, capturelimit <captures>.\n\"" );
+		trap->SendServerCommand( ent-g_entities, "print \"Allowed vote strings are: \"" );
+		for ( i=0; i<validVoteStringsSize; i++ ) {
+			if ( !(g_allowVote.integer & (1<<i)) )
+				continue;
+
+			toggle = !toggle;
+			if ( validVoteStrings[i].shortHelp ) {
+				Q_strcat( buf, sizeof( buf ), va( "^%c%s %s ",
+					toggle ? COLOR_GREEN : COLOR_YELLOW,
+					validVoteStrings[i].string,
+					validVoteStrings[i].shortHelp ) );
+			}
+			else {
+				Q_strcat( buf, sizeof( buf ), va( "^%c%s ",
+					toggle ? COLOR_GREEN : COLOR_YELLOW,
+					validVoteStrings[i].string ) );
+			}
+		}
+
+		//FIXME: buffer and send in multiple messages in case of overflow
+		trap->SendServerCommand( ent-g_entities, va( "print \"%s\n\"", buf ) );
+		return;
+	}
+
+validVote:
+	vote = &validVoteStrings[i];
+	if ( !(vote->validGT & (1<<level.gametype)) ) {
+		trap->SendServerCommand( ent-g_entities, va( "print \"%s is not applicable in this gametype.\n\"", arg1 ) );
+		return;
+	}
+
+	if ( numArgs < vote->numArgs+2 ) {
+		trap->SendServerCommand( ent-g_entities, va( "print \"%s requires more arguments: %s\n\"", arg1, vote->shortHelp ) );
 		return;
 	}
 
 	level.votingGametype = qfalse;
 
-	// if there is still a vote to be executed
+	level.voteExecuteDelay = vote->voteDelay ? g_voteDelay.integer : 0;
+
+	// there is still a vote to be executed, execute it and store the new vote
 	if ( level.voteExecuteTime ) {
 		level.voteExecuteTime = 0;
-		trap->SendConsoleCommand( EXEC_APPEND, va("%s\n", level.voteString ) );
+		trap->SendConsoleCommand( EXEC_APPEND, va( "%s\n", level.voteString ) );
 	}
 
-	// special case for g_gametype, check for bad values
-	if ( !Q_stricmp( arg1, "g_gametype" ) )
-	{
-		int gt = atoi( arg2 );
-
-		if ( arg2[0] && isalpha( arg2[0] ) )
-		{// ffa, ctf, tdm, etc
-			gt = BG_GetGametypeForString( arg2 );
-			if ( gt == -1 )
-			{
-				trap->SendServerCommand( ent-g_entities, va( "print \"Gametype (%s) unrecognised, defaulting to TTFA/Faction War\n\"", arg2 ) );
-				gt = GT_TEAM;
-			}
-		}
-		else if ( gt < 0 || gt >= GT_MAX_GAME_TYPE )
-		{// numeric but out of range
-			trap->SendServerCommand( ent-g_entities, va( "print \"Gametype (%i) is out of range, defaulting to TFFA/Faction War\n\"", gt ) );
-			gt = GT_TEAM;
-		}
-
-		if ( gt == GT_SINGLE_PLAYER )
-		{// logically invalid gametypes, or gametypes not fully implemented in MP
-			trap->SendServerCommand( ent-g_entities, "print \"This gametype is not supported (%s).\n\"" );
+	// pass the args onto vote-specific handlers for parsing/filtering
+	if ( vote->func ) {
+		if ( !vote->func( ent, numArgs, arg1, arg2 ) )
 			return;
-		}
-
-		level.votingGametype = qtrue;
-		level.votingGametypeTo = gt;
-
-		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %d", arg1, gt );
-		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s %s", arg1, BG_GetGametypeString( gt ) );
+	}
+	// otherwise assume it's a command
+	else {
+		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s \"%s\"", arg1, arg2 );
+		Q_strncpyz( level.voteDisplayString, level.voteString, sizeof( level.voteDisplayString ) );
 		Q_strncpyz( level.voteStringClean, level.voteString, sizeof( level.voteStringClean ) );
 	}
-	else if ( !Q_stricmp( arg1, "map" ) ) 
-	{
-		// special case for map changes, we want to reset the nextmap setting
-		// this allows a player to change maps, but not upset the map rotation
-		char	s[MAX_CVAR_VALUE_STRING];
-
-		if (!G_DoesMapSupportGametype(arg2, level.gametype))
-		{
-			//trap->SendServerCommand( ent-g_entities, "print \"You can't vote for this map, it isn't supported by the current gametype.\n\"" );
-			trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOVOTE_MAPNOTSUPPORTEDBYGAME")) );
-			return;
-		}
-
-		trap->Cvar_VariableStringBuffer( "nextmap", s, sizeof(s) );
-		if (*s) {
-			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %s; set nextmap \"%s\"", arg1, arg2, s );
-		} else {
-			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %s", arg1, arg2 );
-		}
-		
-		arenaInfo	= G_GetArenaInfoByMap(arg2);
-		if (arenaInfo)
-		{
-			mapName = Info_ValueForKey(arenaInfo, "longname");
-		}
-
-		if (!mapName || !mapName[0])
-		{
-			mapName = "ERROR";
-		}
-
-		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "map %s", mapName);
-	}
-	else if ( !Q_stricmp ( arg1, "clientkick" ) )
-	{
-		int n = atoi ( arg2 );
-
-		if ( n < 0 || n >= MAX_CLIENTS )
-		{
-			trap->SendServerCommand( ent-g_entities, va("print \"invalid client number %d.\n\"", n ) );
-			return;
-		}
-
-		if ( g_entities[n].client->pers.connected != CON_CONNECTED )
-		{
-			trap->SendServerCommand( ent-g_entities, va("print \"there is no client with the client number %d.\n\"", n ) );
-			return;
-		}
-			
-		Com_sprintf ( level.voteString, sizeof(level.voteString ), "%s %s", arg1, arg2 );
-		Com_sprintf ( level.voteDisplayString, sizeof(level.voteDisplayString), "kick %s", g_entities[n].client->pers.netname );		//--futuza note: maybe need to use JKG_xRBG_ConvertExtToNormal() ^xRBG fix here ...unsure
-	}
-	else if ( !Q_stricmp ( arg1, "kick" ) )
-	{
-		int clientid = G_ClientNumberFromName ( arg2 );
-
-		if ( clientid == -1 )
-		{
-			trap->SendServerCommand( ent-g_entities, va("print \"there is no client named '%s' currently on the server.\n\"", arg2 ) );
-			return;
-		}
-
-		Com_sprintf ( level.voteString, sizeof(level.voteString ), "clientkick %d", clientid );
-		Com_sprintf ( level.voteDisplayString, sizeof(level.voteDisplayString), "kick %s", g_entities[clientid].client->pers.netname );
-	}
-	else if ( !Q_stricmp( arg1, "nextmap" ) ) 
-	{
-		char	s[MAX_STRING_CHARS];
-
-		trap->Cvar_VariableStringBuffer( "nextmap", s, sizeof(s) );
-		if (!*s) {
-			trap->SendServerCommand( ent-g_entities, "print \"nextmap not set.\n\"" );
-			return;
-		}
-		Com_sprintf( level.voteString, sizeof( level.voteString ), "vstr nextmap");
-		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
-	}
-
-	//Raz: bounds checking
-	else if ( !Q_stricmp( arg1, "timelimit" ) )
-	{
-		float tl = Com_Clamp( 0.0f, 35790.0f, atof( arg2 ) );
-		if ( trap->Argc() < 3 )
-		{
-			trap->SendServerCommand( ent-g_entities, "print \"Usage: /callvote timelimit <time>.\n\"" );
-			return;
-		}
-		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %.3f", arg1, tl );
-		if ( Q_isintegral( tl ) )
-			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %i", arg1, (int)tl );
-		else
-			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %.3f", arg1, tl );
-			Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
-	}
-	else if ( !Q_stricmp( arg1, "fraglimit" ) )
-	{
-		int n = Com_Clampi( 0, 0x7FFFFFFF, atoi( arg2 ) );
-		if ( trap->Argc() < 3 )
-		{
-			trap->SendServerCommand( ent-g_entities, "print \"Usage: /callvote fraglimit <frags>.\n\"" );
-			return;
-		}
-		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %i", arg1, n );
-	}
-	else if ( !Q_stricmp( arg1, "capturelimit" ) )
-	{
-		int n = Com_Clampi( 0, 0x7FFFFFFF, atoi( arg2 ) );
-		if ( trap->Argc() < 3 )
-		{
-			trap->SendServerCommand( ent-g_entities, "print \"Usage: /callvote capturelimit <captures>.\n\"" );
-			return;
-		}
-		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %i", arg1, n );
-	}
-	else if ( !Q_stricmp( arg1, "map_restart" ) )
-	{
-		int n = Com_Clampi( 0, 60, atoi( arg2 ) );
-		if ( trap->Argc() < 3 )
-			n = 5;
-		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %i", arg1, n );
-	}
-	else
-	{
-		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s \"%s\"", arg1, arg2 );
-		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
-	}
-
-	Q_strncpyz( level.voteStringClean, level.voteString, sizeof( level.voteStringClean ) );
 	Q_strstrip( level.voteStringClean, "\"\n\r", NULL );
 
-	trap->SendServerCommand( -1, va("print \"%s^7 %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLCALLEDVOTE") ) );				//--futuza: note apply ^xRBG fix?
+	trap->SendServerCommand( -1, va( "print \"%s^7 %s (%s)\n\"", ent->client->pers.netname, G_GetStringEdString( "MP_SVGAME", "PLCALLEDVOTE" ), level.voteStringClean ) );
 
-	// start the voting, the caller autoamtically votes yes
+	// start the voting, the caller automatically votes yes
 	level.voteTime = level.time;
 	level.voteYes = 1;
 	level.voteNo = 0;
 
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
+	for ( i=0; i<level.maxclients; i++ ) {
 		level.clients[i].mGameFlags &= ~PSG_VOTED;
 		level.clients[i].pers.vote = 0;
 	}
+
 	ent->client->mGameFlags |= PSG_VOTED;
 	ent->client->pers.vote = 1;
 
-	trap->SetConfigstring( CS_VOTE_TIME, va("%i", level.voteTime ) );
-	trap->SetConfigstring( CS_VOTE_STRING, level.voteDisplayString );	
-	trap->SetConfigstring( CS_VOTE_YES, va("%i", level.voteYes ) );
-	trap->SetConfigstring( CS_VOTE_NO, va("%i", level.voteNo ) );	
+	trap->SetConfigstring( CS_VOTE_TIME,	va( "%i", level.voteTime ) );
+	trap->SetConfigstring( CS_VOTE_STRING,	level.voteDisplayString );
+	trap->SetConfigstring( CS_VOTE_YES,		va( "%i", level.voteYes ) );
+	trap->SetConfigstring( CS_VOTE_NO,		va( "%i", level.voteNo ) );
 }
 
 /*
@@ -3112,7 +3392,7 @@ void Cmd_Vote_f( gentity_t *ent ) {
 	} else {
 		level.voteNo++;
 		ent->client->pers.vote = 2;
-		trap->SetConfigstring( CS_VOTE_NO, va("%i", level.voteNo ) );	
+		trap->SetConfigstring( CS_VOTE_NO, va("%i", level.voteNo ) );
 	}
 
 	// a majority will be determined in CheckVote, which will also account
@@ -3225,7 +3505,7 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 		if ( level.clients[i].pers.connected == CON_DISCONNECTED )
 			continue;
 		if (level.clients[i].sess.sessionTeam == team)
-			trap->SendServerCommand( i, va("print \"%s called a team vote.\n\"", ent->client->pers.netname ) );			//--futuza note: apply ^xRBG fix?
+			trap->SendServerCommand( i, va("print \"%s called a team vote.\n\"", ent->client->pers.netname ) );
 	}
 
 	// start the voting, the caller autoamtically votes yes
@@ -3291,7 +3571,7 @@ void Cmd_TeamVote_f( gentity_t *ent ) {
 	} else {
 		level.teamVoteNo[cs_offset]++;
 		ent->client->pers.teamvote = 2;
-		trap->SetConfigstring( CS_TEAMVOTE_NO + cs_offset, va("%i", level.teamVoteNo[cs_offset] ) );	
+		trap->SetConfigstring( CS_TEAMVOTE_NO + cs_offset, va("%i", level.teamVoteNo[cs_offset] ) );
 	}
 
 	// a majority will be determined in TeamCheckVote, which will also account
@@ -3312,9 +3592,6 @@ void Cmd_Reload_f( gentity_t *ent ) {
 
 	weapon = ent->client->ps.weapon;
 
-    #ifdef _DEBUG
-    //trap->SendServerCommand (-1, va ("print \"Weapon %s/%d has clip size of %d.\n\"", WPTable[weapon + 1], ent->client->ps.weaponVariation, GetWeaponAmmoClip(weapon, ent->client->ps.weaponVariation)));
-    #endif
 	if ( GetWeaponAmmoClip( weapon, ent->client->ps.weaponVariation ) == -1 )
 	{
 		// Current weapon does not use a clip, bail
@@ -3330,13 +3607,13 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	{//We're in a knockdown, or something ugly like that...DO NOT WANT!
 		return;
 	}
-	
+
 	/* No more ammo left to place in the clip */
 	if (ent->client->ps.stats[STAT_TOTALAMMO] <= 0 && ent->client->ps.weapon != WP_SABER)
 	{
 		return;
 	}
-	
+
 	// Can't reload while sprinting
 	if ( BG_IsSprinting (&ent->client->ps, &ent->client->pers.cmd, qfalse) )
 	{
@@ -3351,10 +3628,10 @@ void Cmd_Reload_f( gentity_t *ent ) {
 
 	// Can't reload while on an emplaced gun
 	if ( ent->client->ps.emplacedIndex )
-	{ 
+	{
 		return;
 	}
-	
+
     // Can't reload while charging the weapon
 	if ( ent->client->ps.weaponstate == WEAPON_CHARGING || ent->client->ps.weaponstate == WEAPON_CHARGING_ALT )
 	{
@@ -3370,25 +3647,21 @@ void Cmd_Reload_f( gentity_t *ent ) {
 
 	ammotoadd = GetWeaponAmmoClip( weapon, ent->client->ps.weaponVariation );
 	weaponIndex = BG_GetWeaponIndex(weapon, ent->client->ps.weaponVariation);
-	
+
 	if (ent->client->clipammo[weaponIndex] >= ammotoadd)	{
 		// Current clip is full
 		return;
 	}
-	
+
 	ammotoadd -= ent->client->clipammo[weaponIndex];
 
-    #ifdef _DEBUG
-    //trap->SendServerCommand (-1, va ("print \"Reloading weapon %s.\n\"", WPTable[weapon + 1]));
-    #endif
-    
 	evt						= G_TempEntity( ent->s.pos.trBase, EV_RELOAD );
 	evt->s.time				= ent->s.number;
 	evt->s.eventParm		= weapon;
 	evt->s.weaponVariation	= ent->client->ps.weaponVariation;
 
 	ent->client->ps.weaponstate = WEAPON_RELOADING;
-	
+
 	// We're in a zoom and start a reload, remove the zoom!
 	if ( ent->client->ps.zoomMode )
 	{
@@ -3421,9 +3694,11 @@ void Cmd_Reload_f( gentity_t *ent ) {
 /*
 =================
 Cmd_TcEval_f
+Cmd_TcEvalMulti_f
+
 =================
 */
-void Cmd_TcEval_f(gentity_t *ent, bool bMulti = false) {
+static void EvaluateTreasureClass(gentity_t *ent, bool bMulti) {
 	// usage: tcEval <tc> <samples>
 	if (trap->Argc() != 3 && !bMulti) {
 		trap->SendServerCommand(ent - g_entities, "print \"usage: tcEval <tc> <samples>\n\"");
@@ -3450,6 +3725,14 @@ void Cmd_TcEval_f(gentity_t *ent, bool bMulti = false) {
 	}
 	TreasureClass* pTC = tc->second;
 	pTC->PrintDropRates(ent, nSamples, bMulti);
+}
+
+void Cmd_TcEval_f(gentity_t* ent) {
+	EvaluateTreasureClass(ent, false);
+}
+
+void Cmd_TcEvalMulti_f(gentity_t* ent) {
+	EvaluateTreasureClass(ent, true);
 }
 
 /*
@@ -3642,7 +3925,7 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 	int i, j;
 
 	qboolean usingSiegeStyle = qfalse;
-	
+
 	if ( !ent || !ent->client )
 	{
 		return;
@@ -3701,7 +3984,7 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 		if (ent->client->saber[0].model[0] && ent->client->saber[1].model[0])
 		{ //no cycling for akimbo
 			if ( WP_SaberCanTurnOffSomeBlades( &ent->client->saber[1] ) )
-			{//can turn second saber off 
+			{//can turn second saber off
 
 				int i = 0;
 				int j = 0;
@@ -3841,22 +4124,7 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 		{
 			trap->SendServerCommand( ent-g_entities, va("print \"SABERSTANCEDEBUG: Attempted to cycle stance normally.\n\"") );
 		}
-	/*
-	#ifndef FINAL_BUILD
-		switch ( selectLevel )
-		{
-		case FORCE_LEVEL_1:
-			trap->SendServerCommand( ent-g_entities, va("print \"Lightsaber Combat Style: %sfast\n\"", S_COLOR_BLUE) );
-			break;
-		case FORCE_LEVEL_2:
-			trap->SendServerCommand( ent-g_entities, va("print \"Lightsaber Combat Style: %smedium\n\"", S_COLOR_YELLOW) );
-			break;
-		case FORCE_LEVEL_3:
-			trap->SendServerCommand( ent-g_entities, va("print \"Lightsaber Combat Style: %sstrong\n\"", S_COLOR_RED) );
-			break;
-		}
-	#endif
-	*/
+
 		if ( !usingSiegeStyle )
 		{
 			//make sure it's valid, change it if not
@@ -3925,14 +4193,6 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 		return;
 	}
 
-	/*
-	if (!ent->client->ps.saberHolstered)
-	{ //must have saber holstered at the start of the duel
-		return;
-	}
-	*/
-	//NOTE: No longer doing this..
-
 	if (ent->client->ps.saberInFlight)
 	{
 		return;
@@ -3959,11 +4219,6 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 			challenged->health < 1 || challenged->client->ps.stats[STAT_HEALTH] < 1 ||
 			challenged->client->ps.weapon != WP_SABER || challenged->client->ps.duelInProgress ||
 			challenged->client->ps.saberInFlight)
-		{
-			return;
-		}
-
-		if (level.gametype >= GT_TEAM && OnSameTeam(ent, challenged))
 		{
 			return;
 		}
@@ -4029,175 +4284,105 @@ void Cmd_EngageDuel_f(gentity_t *ent)
 	}
 }
 
-#ifndef FINAL_BUILD
-extern stringID_table_t animTable[MAX_ANIMATIONS+1];
-
-void Cmd_DebugSetSaberMove_f(gentity_t *self)
-{
-	int argNum = trap->Argc();
-	char arg[MAX_STRING_CHARS];
-
-	if (argNum < 2)
-	{
-		return;
-	}
-
-	trap->Argv( 1, arg, sizeof( arg ) );
-
-	if (!arg[0])
-	{
-		return;
-	}
-
-	self->client->ps.saberMove = atoi(arg);
-	self->client->ps.saberBlocked = BLOCKED_BOUNCE_MOVE;
-
-	if (self->client->ps.saberMove >= LS_MOVE_MAX)
-	{
-		self->client->ps.saberMove = LS_MOVE_MAX-1;
-	}
-
-	Com_Printf("Anim for move: %s\n", animTable[SaberStances[self->client->ps.fd.saberAnimLevel].moves[self->client->ps.saberMove].anim].name);
-}
-
-void Cmd_DebugSetBodyAnim_f(gentity_t *self, int flags)
-{
-	int argNum = trap->Argc();
-	char arg[MAX_STRING_CHARS];
-	int i = 0;
-
-	if (argNum < 2)
-	{
-		return;
-	}
-
-	trap->Argv( 1, arg, sizeof( arg ) );
-
-	if (!arg[0])
-	{
-		return;
-	}
-
-	while (i < MAX_ANIMATIONS)
-	{
-		if (!Q_stricmp(arg, animTable[i].name))
-		{
-			break;
-		}
-		i++;
-	}
-
-	if (i == MAX_ANIMATIONS)
-	{
-		Com_Printf("Animation '%s' does not exist\n", arg);
-		return;
-	}
-
-	G_SetAnim(self, NULL, SETANIM_BOTH, i, flags);
-
-	Com_Printf("Set body anim to %s\n", arg);
-}
-#endif
-
-void StandardSetBodyAnim(gentity_t *self, int anim, int flags)
-{
-	G_SetAnim(self, NULL, SETANIM_BOTH, anim, flags);
-}
-
-void DismembermentTest(gentity_t *self);
-
-void Bot_SetForcedMovement(int bot, int forward, int right, int up);
-
-#ifndef FINAL_BUILD
-extern void DismembermentByNum(gentity_t *self, int num);
-extern void G_SetVehDamageFlags( gentity_t *veh, int shipSurf, int damageLevel );
-#endif
-
-static int G_ClientNumFromNetname(char *name)
-{
-	int i = 0;
-	gentity_t *ent;
-
-	while (i < MAX_CLIENTS)
-	{
-		ent = &g_entities[i];
-
-		if (ent->inuse && ent->client &&
-			!Q_stricmp(ent->client->pers.netname, name))
-		{
-			return ent->s.number;
-		}
-		i++;
-	}
-
-	return -1;
-}
-
-qboolean TryGrapple(gentity_t *ent)
-{
-	if (ent->client->ps.weaponTime > 0)
-	{ //weapon busy
-		return qfalse;
-	}
-	if (ent->client->ps.forceHandExtend != HANDEXTEND_NONE)
-	{ //force power or knockdown or something
-		return qfalse;
-	}
-	if (ent->client->grappleState)
-	{ //already grappling? but weapontime should be > 0 then..
-		return qfalse;
-	}
-
-	if (ent->client->ps.weapon != WP_SABER && ent->client->ps.weapon != WP_MELEE)
-	{
-		return qfalse;
-	}
-
-	if (ent->client->ps.weapon == WP_SABER && !ent->client->ps.saberHolstered)
-	{
-		Cmd_ToggleSaber_f(ent);
-		if (!ent->client->ps.saberHolstered)
-		{ //must have saber holstered
-			return qfalse;
-		}
-	}
-
-	//G_SetAnim(ent, &ent->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_PA_1, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
-	G_SetAnim(ent, &ent->client->pers.cmd, SETANIM_BOTH, BOTH_KYLE_GRAB, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
-	if (ent->client->ps.torsoAnim == BOTH_KYLE_GRAB)
-	{ //providing the anim set succeeded..
-		ent->client->ps.torsoTimer += 500; //make the hand stick out a little longer than it normally would
-		if (ent->client->ps.legsAnim == ent->client->ps.torsoAnim)
-		{
-			ent->client->ps.legsTimer = ent->client->ps.torsoTimer;
-		}
-		ent->client->ps.weaponTime = ent->client->ps.torsoTimer;
-		return qtrue;
-	}
-
-	return qfalse;
-}
-
-#ifndef FINAL_BUILD
-qboolean saberKnockOutOfHand(gentity_t *saberent, gentity_t *saberOwner, vec3_t velocity);
-#endif
-
 /*
 =================
 ClientCommand
 =================
 */
 
-void ClientCommand( int clientNum ) {
-	gentity_t *ent;
-	char	cmd[MAX_TOKEN_CHARS];
+// Types
+using cmdFunc_t = void(*)(gentity_t *);
 
-	ent = g_entities + clientNum;
-	if ( !ent->client ) {
+// Flags
+#define CMD_NEEDCHEATS			1		// Cheats must be allowed for this command to work
+#define CMD_ONLYALIVE			2		// The user needs to be alive for this command to work
+#define CMD_NOINTERMISSION		4		// This command is not allowed during intermission
+#define CMD_NOSPECTATOR			8		// Not allowed to be used as a spectator
+
+typedef struct command_s
+{
+	const char	*cmdName;
+	cmdFunc_t	function;
+	uint32_t	flags;
+} command_t;
+
+int cmdcmp( const void *a, const void *b ) {
+	return Q_stricmp( (const char *)a, ((command_t*)b)->cmdName );
+}
+
+static const command_t commands[] = {
+	{ "arbitraryprint",			Cmd_ArbitraryPrint_f,		CMD_NEEDCHEATS },
+	{ "butterfingers",			Cmd_Butterfingers_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "buyvendor",				JKG_BuyItem_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "callvote",				Cmd_CallVote_f,				CMD_NOINTERMISSION },
+	{ "callteamvote",			Cmd_CallTeamVote_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "checkbotreach",			AIMod_CheckMapPaths,		CMD_NEEDCHEATS },
+	{ "checkobjectivesreach",	AIMod_CheckObjectivePaths,	CMD_NEEDCHEATS },
+	{ "closeentities",			Cmd_CloseEntities_f,		0 },
+	{ "closeVendor",			JKG_CloseVendor_f,			0 },
+	{ "credits",				Cmd_Credits_f,				0 },
+	{ "crystal1",				Cmd_Crystal1_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE | CMD_NEEDCHEATS },
+	{ "crystal2",				Cmd_Crystal2_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE | CMD_NEEDCHEATS },
+	{ "debuginventory",			JKG_Cmd_ShowInv_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "dismember",				Cmd_Dismember_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "dumpweaponlist_sv",		JKG_DumpWeaponList_f,		0 },
+	{ "equip",					JKG_Cmd_EquipItem_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "follow",					Cmd_Follow_f,				CMD_NOINTERMISSION },
+	{ "follownext",				Cmd_FollowNext_f,			CMD_NOINTERMISSION },
+	{ "followprev",				Cmd_FollowPrev_f,			CMD_NOINTERMISSION },
+	{ "give",					Cmd_Give_f,					CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_NEEDCHEATS },
+	{ "giveother",				Cmd_GiveOther_f,			CMD_NOINTERMISSION | CMD_NEEDCHEATS },
+	{ "god",					Cmd_God_f,					CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_NEEDCHEATS },
+	{ "handcut",				Cmd_Wrists_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "headexplodey",			Cmd_HeadExplodey_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "holdme",					Cmd_Holdme_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "inventorydestroy",		JKG_Cmd_DestroyItem_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "inventorysell",			JKG_Cmd_SellItem_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "inventoryuse",			Cmd_ItemUse_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "itemcheck",				JKG_ItemCheck_f,			0 },
+	{ "itemlookup",				JKG_ItemLookup_f,			0 },
+	{ "kill",					Cmd_Kill_f,					CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "killother",				Cmd_KillOther_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION },
+	{ "knockmedown",			Cmd_KnockMeDown_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "levelshot",				Cmd_LevelShot_f,			CMD_NEEDCHEATS },
+	{ "loveandpeace",			Cmd_LoveAndPeace_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "noclip",					Cmd_Noclip_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NEEDCHEATS },
+	{ "notarget",				Cmd_Notarget_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_NEEDCHEATS },
+	{ "npc",					Cmd_NPC_f,					CMD_NEEDCHEATS },
+	{ "pay",					Cmd_Pay_f,					CMD_NOSPECTATOR | CMD_NOINTERMISSION },
+	{ "printweaponlist_sv",		JKG_PrintWeaponList_f,		0 },
+	{ "relax",					Cmd_Relax_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "say",					Cmd_SayLocal_f,				0 },
+	{ "sayact",					Cmd_SayAct_f,				0 },
+	{ "sayglobal",				Cmd_SayGlobal_f,			0 },
+	{ "sayteam",				Cmd_SayTeam_f,				0 },
+	{ "sayyell",				Cmd_SayYell_f,				0 },
+	{ "saywhisper",				Cmd_SayWhisper_f,			0 },
+	{ "score",					Cmd_Score_f,				0 },
+	{ "setviewpos",				Cmd_SetViewpos_f,			0 },
+	{ "tceval",					Cmd_TcEval_f,				0 },
+	{ "tcevalmulti",			Cmd_TcEvalMulti_f,			0 },
+	{ "team",					Cmd_Team_f,					CMD_NOINTERMISSION },
+	{ "teamvote",				Cmd_TeamVote_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "tell",					Cmd_Tell_f,					0 },
+	{ "t_use",					Cmd_TUse_f,					CMD_ONLYALIVE | CMD_NEEDCHEATS },
+	{ "togglesaber",			Cmd_ToggleSaber_f,			CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "unequip",				JKG_Cmd_UnequipItem_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "voice_cmd",				Cmd_VoiceCommand_f,			CMD_NOINTERMISSION|CMD_NOSPECTATOR },
+	{ "vote",					Cmd_Vote_f,					CMD_NOINTERMISSION },
+	{ "where",					Cmd_Where_f,				0 },
+	{ "wrists",					Cmd_Wrists_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+};
+
+static const size_t numCommands = ARRAY_LEN( commands );
+
+void ClientCommand( int clientNum ) {
+	gentity_t *ent = g_entities + clientNum;
+	if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
 		return;		// not fully in game yet
 	}
 
-
+	char cmd[MAX_TOKEN_CHARS];
 	trap->Argv( 0, cmd, sizeof( cmd ) );
 
 	//rww - redirect bot commands
@@ -4207,719 +4392,42 @@ void ClientCommand( int clientNum ) {
 	}
 	//end rww
 
-	// IMPORTANT!!
-	// DO NOT LET CONNECTING CLIENTS GO BEYOND THIS POINT!
-	if (level.clients[clientNum].pers.connected != CON_CONNECTED)
-		return;
-
 	// Check for Glua bound commands
 	if (GLua_Command(clientNum, cmd)) return;
 
 	// Check team commands.
 	if ( TeamCommand( clientNum, cmd, NULL )) return;
 
-	if (Q_stricmp (cmd, "say") == 0) {
-		Cmd_Say_f (ent, SAY_ALL, qfalse);
+	const command_t *command = (command_t *)Q_LinearSearch( cmd, commands, numCommands, sizeof( commands[0] ), cmdcmp );
+	if ( !command )
+	{
+		trap->SendServerCommand( clientNum, va( "print \"Unknown command %s\n\"", cmd ) );
 		return;
 	}
 
-
-	if (Q_stricmp (cmd, "sayact") == 0) {
-		Cmd_SayAct_f (ent);
+	else if ( (command->flags & CMD_NOINTERMISSION) && ( level.intermissionQueued || level.intermissiontime ) )
+	{
+		// It's intermission time and this command couldn't be done during intermission.
+		trap->SendServerCommand(clientNum, va("print \"%s (%s) \n\"", G_GetStringEdString("MP_SVGAME", "CANNOT_TASK_INTERMISSION"), cmd));
 		return;
 	}
 
-	if (Q_stricmp (cmd, "sayglobal") == 0) {
-		Cmd_SayGlobal_f (ent);
+	else if ( (command->flags & CMD_NEEDCHEATS) && !CheatsOk( ent ) )
+	{
+		// This command requires cheats and we don't have cheats
+		trap->SendServerCommand(clientNum, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
 		return;
 	}
-
-	if (Q_stricmp (cmd, "sayyell") == 0) {
-		Cmd_SayYell_f (ent);
+	else if ( (command->flags & CMD_ONLYALIVE)
+		&& (ent->health <= 0
+			|| ent->client->tempSpectate >= level.time
+			|| ent->client->deathcamTime ) )
+	{
+		// This command requires us to be alive and we aren't.
+		// FIXME: When `develop` gets merged, use JKG_ClientAlive !!!
+		trap->SendServerCommand(clientNum, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBEALIVE")));
 		return;
 	}
-
-	if (Q_stricmp (cmd, "saywhisper") == 0) {
-		Cmd_SayWhisper_f (ent);
-		return;
-	}
-
-	if (Q_stricmp (cmd, "say_team") == 0) {
-		if (g_gametype.integer < GT_TEAM)
-		{ //not a team game, just refer to regular say.
-			Cmd_Say_f (ent, SAY_ALL, qfalse);
-		}
-		else
-		{
-			Cmd_Say_f (ent, SAY_TEAM, qfalse);
-		}
-		return;
-	}
-	if (Q_stricmp (cmd, "tell") == 0) {
-		Cmd_Tell_f ( ent );
-		return;
-	}
-	if (Q_stricmp (cmd, "togglesaber") == 0)
-	{
-		Cmd_ToggleSaber_f(ent);
-		return;
-	}
-
-	if (!Q_stricmp (cmd, "crystal1"))
-	{
-		JKG_Crystal_f(ent, 0);
-		return;
-	}
-
-	if(!Q_stricmp (cmd, "crystal2"))
-	{
-		JKG_Crystal_f(ent, 1);
-		return;
-	}
-
-	if (!Q_stricmp(cmd, "resendInv")) {
-		BG_SendItemPacket(IPT_RESET, ent, nullptr, ent->inventory->size(), 0);
-		return;
-	}
-
-	if (Q_stricmp(cmd, "voice_cmd") == 0)
-	{
-		Cmd_VoiceCommand_f(ent);
-		return;
-	}
-
-	if (Q_stricmp (cmd, "score") == 0) {
-		Cmd_Score_f (ent);
-		return;
-	}
-
-	if (Q_stricmp (cmd, "printweaponlist_sv") == 0) {
-		JKG_PrintWeaponList_f(ent);
-		return;
-	}
-
-	if (Q_stricmp (cmd, "dumpweaponlist_sv") == 0) {
-		JKG_DumpWeaponList_f(ent);
-		return;
-	}
-
-	if(Q_stricmp(cmd, "itemLookup") == 0) {
-		JKG_ItemLookup_f(ent);
-		return;
-	}
-	if(Q_stricmp(cmd, "itemCheck") == 0) {
-		JKG_ItemCheck_f(ent);
-		return;
-	}
-	if (Q_stricmp(cmd, "tcEval") == 0) {
-		Cmd_TcEval_f(ent);
-		return;
-	}
-	if (Q_stricmp(cmd, "tcEvalMulti") == 0) {
-		Cmd_TcEval_f(ent, true);
-		return;
-	}
-
-	// ignore all other commands when at intermission
-	if (level.intermissiontime)
-	{
-		qboolean giveError = qfalse;
-		//rwwFIXMEFIXME: This is terrible, write it differently
-
-		if (!Q_stricmp(cmd, "give"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "giveother"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "god"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "notarget"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "noclip"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "kill"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "teamtask"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "levelshot"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "follow"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "follownext"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "followprev"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "team"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "duelteam"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "siegeclass"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "forcechanged"))
-		{ //special case: still update force change
-			Cmd_ForceChanged_f (ent);
-			return;
-		}
-		else if (!Q_stricmp(cmd, "where"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "callvote"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "vote"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "callteamvote"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "teamvote"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "gc"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "setviewpos"))
-		{
-			giveError = qtrue;
-		}
-		else if (!Q_stricmp(cmd, "stats"))
-		{
-			giveError = qtrue;
-		}
-		// Jedi Knight Galaxies begin
-		else if (!Q_stricmp(cmd, "buyVendor"))
-		{
-			giveError = qtrue;
-		}
-		// Jedi Knight Galaxies end
-
-		if (giveError)
-		{
-			trap->SendServerCommand( clientNum, va("print \"%s (%s) \n\"", G_GetStringEdString("MP_SVGAME", "CANNOT_TASK_INTERMISSION"), cmd ) );
-		}
-		else
-		{
-			Cmd_Say_f (ent, qfalse, qtrue);
-		}
-		return;
-	}
-
-	if (Q_stricmp (cmd, "give") == 0)
-	{
-		Cmd_Give_f (ent);
-	}
-	else if (Q_stricmp (cmd, "giveother") == 0)
-	{ //for debugging pretty much
-		Cmd_GiveOther_f (ent);
-	}
-	// Jedi Knight Galaxies begin
-	else if (Q_stricmp (cmd, "credits") == 0)
-	{
-		//DEBUG: Show how many credits you have
-		int credits = ent->client->ps.credits;
-		trap->SendServerCommand(clientNum, va("print \"You have %i credits, %s^7.\n\"", Q_max(0, credits), ent->client->pers.netname));
-		return;
-	}
-	else if ( Q_stricmp (cmd, "closeVendor") == 0 )
-	{
-		JKG_CloseVendor_f (ent);
-	}
-	else if (!Q_stricmp(cmd, "buyVendor"))
-	{
-		JKG_BuyItem_f(ent);
-		return;
-	}
-	// Jedi Knight Galaxies end
-	else if (Q_stricmp (cmd, "t_use") == 0 && CheatsOk(ent))
-	{ //debug use map object
-		if (trap->Argc() > 1)
-		{
-			char sArg[MAX_STRING_CHARS];
-			gentity_t *targ;
-
-			trap->Argv( 1, sArg, sizeof( sArg ) );
-			targ = G_Find( NULL, FOFS(targetname), sArg );
-
-			while (targ)
-			{
-				if (targ->use)
-				{
-					targ->use(targ, ent, ent);
-				}
-				targ = G_Find( targ, FOFS(targetname), sArg );
-			}
-		}
-	}
-	else if (Q_stricmp (cmd, "god") == 0)
-		Cmd_God_f (ent);
-	else if (Q_stricmp (cmd, "notarget") == 0)
-		Cmd_Notarget_f (ent);
-	else if (Q_stricmp (cmd, "noclip") == 0)
-		Cmd_Noclip_f (ent);
-	else if ( Q_stricmp( cmd, "NPC" ) == 0 && CheatsOk(ent) )
-	{
-		Cmd_NPC_f( ent );
-	}
-	else if (Q_stricmp (cmd, "kill") == 0)
-		Cmd_Kill_f (ent);
-	#ifdef _DEBUG
-	else if (Q_stricmp (cmd, "levelshot") == 0)
-		Cmd_LevelShot_f (ent);
-	#endif
-	else if (Q_stricmp (cmd, "follow") == 0)
-		Cmd_Follow_f (ent);
-	else if (Q_stricmp (cmd, "follownext") == 0)
-		Cmd_FollowCycle_f (ent, 1);
-	else if (Q_stricmp (cmd, "followprev") == 0)
-		Cmd_FollowCycle_f (ent, -1);
-	else if (Q_stricmp (cmd, "team") == 0)
-		Cmd_Team_f (ent);
-	else if (Q_stricmp (cmd, "duelteam") == 0)
-		Cmd_DuelTeam_f (ent);
-	else if (Q_stricmp (cmd, "forcechanged") == 0)
-		Cmd_ForceChanged_f (ent);
-	else if (Q_stricmp (cmd, "where") == 0)
-		Cmd_Where_f (ent);
-	else if (Q_stricmp (cmd, "callvote") == 0)
-		Cmd_CallVote_f (ent);
-	else if (Q_stricmp (cmd, "vote") == 0)
-		Cmd_Vote_f (ent);
-	else if (Q_stricmp (cmd, "callteamvote") == 0)
-		Cmd_CallTeamVote_f (ent);
-	else if (Q_stricmp (cmd, "teamvote") == 0)
-		Cmd_TeamVote_f (ent);
-	else if (Q_stricmp (cmd, "gc") == 0)
-		Cmd_GameCommand_f( ent );
-	else if (Q_stricmp (cmd, "setviewpos") == 0)
-		Cmd_SetViewpos_f( ent );
-#ifdef __AUTOWAYPOINT__ // __DOMINANCE_NPC__
-	else if (Q_stricmp (cmd, "checkbotreach") == 0 && !Q_strncmp(ent->client->sess.IP, "127.0.0.1:",10))	{
-		AIMod_CheckMapPaths( ent );
-	}
-	else if (Q_stricmp (cmd, "checkobjectivesreach") == 0 && !Q_strncmp(ent->client->sess.IP, "127.0.0.1:",10))	{
-		AIMod_CheckObjectivePaths( ent );
-	}
-	else if (Q_stricmp (cmd, "closeentities") == 0 && !Q_strncmp(ent->client->sess.IP, "127.0.0.1:",10))	{
-
-		int i = 0;
-
-		trap->Print("----------------------------------------------\n");
-		trap->Print("Entities Within Range.\n");
-		trap->Print("----------------------------------------------\n");
-		
-		for (i = MAX_CLIENTS; i < MAX_GENTITIES; i++)
-		{
-			gentity_t *item = &g_entities[i];
-			float dist = 0.0f;
-
-			if (!item) continue;
-			if (!item->classname || !item->classname[0]) continue;
-
-			dist = Distance(ent->r.currentOrigin, item->s.origin);
-
-			if (dist > 256) continue;
-
-			trap->Print("Entity %i", i);
-
-			switch ( item->s.eType ) {
-			case ET_GENERAL:
-				trap->Print("[ET_GENERAL         ]");
-				break;
-			case ET_PLAYER:
-				trap->Print("[ET_PLAYER          ]");
-				break;
-			case ET_ITEM:
-				trap->Print("[ET_ITEM            ]");
-				break;
-			case ET_MISSILE:
-				trap->Print("[ET_MISSILE         ]");
-				break;
-			case ET_MOVER:
-				trap->Print("[ET_MOVER           ]");
-				break;
-			case ET_BEAM:
-				trap->Print("[ET_BEAM            ]");
-				break;
-			case ET_PORTAL:
-				trap->Print("[ET_PORTAL          ]");
-				break;
-			case ET_SPEAKER:
-				trap->Print("[ET_SPEAKER         ]");
-				break;
-			case ET_PUSH_TRIGGER:
-				trap->Print("[ET_PUSH_TRIGGER    ]");
-				break;
-			case ET_TELEPORT_TRIGGER:
-				trap->Print("[ET_TELEPORT_TRIGGER]");
-				break;
-			case ET_INVISIBLE:
-				trap->Print("[ET_INVISIBLE       ]");
-				break;
-			case ET_NPC:
-				trap->Print("[ET_NPC             ]");
-				break;
-			default:
-				trap->Print("[%3i                ]", item->s.eType);
-				break;
-			}
-
-			trap->Print(" [%s] at a distance of %f.\n", item->classname, dist);
-		}
-
-		trap->Print("----------------------------------------------\n");
-	}
-#endif //__AUTOWAYPOINT__ // __DOMINANCE_NPC__
-	//for convenient powerduel testing in release
-	else if (Q_stricmp(cmd, "killother") == 0 && CheatsOk( ent ))
-	{
-		if (trap->Argc() > 1)
-		{
-			char sArg[MAX_STRING_CHARS];
-			int entNum = 0;
-
-			trap->Argv( 1, sArg, sizeof( sArg ) );
-
-			entNum = G_ClientNumFromNetname(sArg);
-
-			if (entNum >= 0 && entNum < MAX_GENTITIES)
-			{
-				gentity_t *kEnt = &g_entities[entNum];
-
-				if (kEnt->inuse && kEnt->client)
-				{
-					kEnt->flags &= ~FL_GODMODE;
-					kEnt->client->ps.stats[STAT_HEALTH] = kEnt->health = -999;
-					player_die (kEnt, kEnt, kEnt, 100000, MOD_SUICIDE);
-				}
-			}
-		}
-	}
-#ifdef _DEBUG
-	else if (Q_stricmp(cmd, "relax") == 0 && CheatsOk( ent ))
-	{
-		if (ent->client->ps.eFlags & EF_RAG)
-		{
-			ent->client->ps.eFlags &= ~EF_RAG;
-		}
-		else
-		{
-			ent->client->ps.eFlags |= EF_RAG;
-		}
-	}
-	else if (Q_stricmp(cmd, "holdme") == 0 && CheatsOk( ent ))
-	{
-		if (trap->Argc() > 1)
-		{
-			char sArg[MAX_STRING_CHARS];
-			int entNum = 0;
-
-			trap->Argv( 1, sArg, sizeof( sArg ) );
-
-			entNum = atoi(sArg);
-
-			if (entNum >= 0 &&
-				entNum < MAX_GENTITIES)
-			{
-				gentity_t *grabber = &g_entities[entNum];
-
-				if (grabber->inuse && grabber->client && grabber->ghoul2)
-				{
-					if (!grabber->s.number)
-					{ //switch cl 0 and entitynum_none, so we can operate on the "if non-0" concept
-						ent->client->ps.ragAttach = ENTITYNUM_NONE;
-					}
-					else
-					{
-						ent->client->ps.ragAttach = grabber->s.number;
-					}
-				}
-			}
-		}
-		else
-		{
-			ent->client->ps.ragAttach = 0;
-		}
-	}
-	else if (Q_stricmp(cmd, "limb_break") == 0 && CheatsOk( ent ))
-	{
-		if (trap->Argc() > 1)
-		{
-			char sArg[MAX_STRING_CHARS];
-			int breakLimb = 0;
-
-			trap->Argv( 1, sArg, sizeof( sArg ) );
-			if (!Q_stricmp(sArg, "right"))
-			{
-				breakLimb = BROKENLIMB_RARM;
-			}
-			else if (!Q_stricmp(sArg, "left"))
-			{
-				breakLimb = BROKENLIMB_LARM;
-			}
-
-			G_BreakArm(ent, breakLimb);
-		}
-	}
-	else if (Q_stricmp(cmd, "headexplodey") == 0 && CheatsOk( ent ))
-	{
-		Cmd_Kill_f (ent);
-		if (ent->health < 1)
-		{
-			DismembermentTest(ent);
-		}
-	}
-	else if (Q_stricmp(cmd, "debugstupidthing") == 0 && CheatsOk( ent ))
-	{
-		int i = 0;
-		gentity_t *blah;
-		while (i < MAX_GENTITIES)
-		{
-			blah = &g_entities[i];
-			if (blah->inuse && blah->classname && blah->classname[0] && !Q_stricmp(blah->classname, "NPC_Vehicle"))
-			{
-				Com_Printf("Found it.\n");
-			}
-			i++;
-		}
-	}
-	else if (Q_stricmp(cmd, "arbitraryprint") == 0 && CheatsOk( ent ))
-	{
-		trap->SendServerCommand( -1, va("cp \"Blah blah blah\n\""));
-	}
-	else if (Q_stricmp(cmd, "handcut") == 0 && CheatsOk( ent ))
-	{
-		int bCl = 0;
-		char sarg[MAX_STRING_CHARS];
-
-		if (trap->Argc() > 1)
-		{
-			trap->Argv( 1, sarg, sizeof( sarg ) );
-
-			if (sarg[0])
-			{
-				bCl = atoi(sarg);
-
-				if (bCl >= 0 && bCl < MAX_GENTITIES)
-				{
-					gentity_t *hEnt = &g_entities[bCl];
-
-					if (hEnt->client)
-					{
-						if (hEnt->health > 0)
-						{
-							gGAvoidDismember = 1;
-							hEnt->flags &= ~FL_GODMODE;
-							hEnt->client->ps.stats[STAT_HEALTH] = hEnt->health = -999;
-							player_die (hEnt, hEnt, hEnt, 100000, MOD_SUICIDE);
-						}
-						gGAvoidDismember = 2;
-						G_CheckForDismemberment(hEnt, ent, hEnt->client->ps.origin, 999, hEnt->client->ps.legsAnim, qfalse);
-						gGAvoidDismember = 0;
-					}
-				}
-			}
-		}
-	}
-	else if (Q_stricmp(cmd, "loveandpeace") == 0 && CheatsOk( ent ))
-	{
-		trace_t tr;
-		vec3_t fPos;
-
-		AngleVectors(ent->client->ps.viewangles, fPos, 0, 0);
-
-		fPos[0] = ent->client->ps.origin[0] + fPos[0]*40;
-		fPos[1] = ent->client->ps.origin[1] + fPos[1]*40;
-		fPos[2] = ent->client->ps.origin[2] + fPos[2]*40;
-
-		trap->Trace(&tr, ent->client->ps.origin, 0, 0, fPos, ent->s.number, ent->clipmask, 0, 0, 0);
-
-		if (tr.entityNum < MAX_CLIENTS && tr.entityNum != ent->s.number)
-		{
-			gentity_t *other = &g_entities[tr.entityNum];
-
-			if (other && other->inuse && other->client)
-			{
-				vec3_t entDir;
-				vec3_t otherDir;
-				vec3_t entAngles;
-				vec3_t otherAngles;
-
-				if (ent->client->ps.weapon == WP_SABER && !ent->client->ps.saberHolstered)
-				{
-					Cmd_ToggleSaber_f(ent);
-				}
-
-				if (other->client->ps.weapon == WP_SABER && !other->client->ps.saberHolstered)
-				{
-					Cmd_ToggleSaber_f(other);
-				}
-
-				if ((ent->client->ps.weapon != WP_SABER || ent->client->ps.saberHolstered) &&
-					(other->client->ps.weapon != WP_SABER || other->client->ps.saberHolstered))
-				{
-					VectorSubtract( other->client->ps.origin, ent->client->ps.origin, otherDir );
-					VectorCopy( ent->client->ps.viewangles, entAngles );
-					entAngles[YAW] = vectoyaw( otherDir );
-					SetClientViewAngle( ent, entAngles );
-
-					StandardSetBodyAnim(ent, /*BOTH_KISSER1LOOP*/BOTH_STAND1, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_HOLDLESS);
-					ent->client->ps.saberMove = LS_NONE;
-					ent->client->ps.saberBlocked = 0;
-					ent->client->ps.saberBlocking = 0;
-
-					VectorSubtract( ent->client->ps.origin, other->client->ps.origin, entDir );
-					VectorCopy( other->client->ps.viewangles, otherAngles );
-					otherAngles[YAW] = vectoyaw( entDir );
-					SetClientViewAngle( other, otherAngles );
-
-					StandardSetBodyAnim(other, /*BOTH_KISSEE1LOOP*/BOTH_STAND1, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_HOLDLESS);
-					other->client->ps.saberMove = LS_NONE;
-					other->client->ps.saberBlocked = 0;
-					other->client->ps.saberBlocking = 0;
-				}
-			}
-		}
-	}
-#endif
-	else if (Q_stricmp(cmd, "thedestroyer") == 0 && CheatsOk( ent ) && ent && ent->client && ent->client->ps.saberHolstered && ent->client->ps.weapon == WP_SABER)
-	{
-		Cmd_ToggleSaber_f(ent);
-
-		if (!ent->client->ps.saberHolstered)
-		{
-		}
-	}
-	//begin bot debug cmds
-	else if (Q_stricmp(cmd, "debugBMove_Forward") == 0 && CheatsOk(ent))
-	{
-		int arg = 4000;
-		int bCl = 0;
-		char sarg[MAX_STRING_CHARS];
-
-		assert(trap->Argc() > 1);
-		trap->Argv( 1, sarg, sizeof( sarg ) );
-
-		assert(sarg[0]);
-		bCl = atoi(sarg);
-		Bot_SetForcedMovement(bCl, arg, -1, -1);
-	}
-	else if (Q_stricmp(cmd, "debugBMove_Back") == 0 && CheatsOk(ent))
-	{
-		int arg = -4000;
-		int bCl = 0;
-		char sarg[MAX_STRING_CHARS];
-
-		assert(trap->Argc() > 1);
-		trap->Argv( 1, sarg, sizeof( sarg ) );
-
-		assert(sarg[0]);
-		bCl = atoi(sarg);
-		Bot_SetForcedMovement(bCl, arg, -1, -1);
-	}
-	else if (Q_stricmp(cmd, "debugBMove_Right") == 0 && CheatsOk(ent))
-	{
-		int arg = 4000;
-		int bCl = 0;
-		char sarg[MAX_STRING_CHARS];
-
-		assert(trap->Argc() > 1);
-		trap->Argv( 1, sarg, sizeof( sarg ) );
-
-		assert(sarg[0]);
-		bCl = atoi(sarg);
-		Bot_SetForcedMovement(bCl, -1, arg, -1);
-	}
-	else if (Q_stricmp(cmd, "debugBMove_Left") == 0 && CheatsOk(ent))
-	{
-		int arg = -4000;
-		int bCl = 0;
-		char sarg[MAX_STRING_CHARS];
-
-		assert(trap->Argc() > 1);
-		trap->Argv( 1, sarg, sizeof( sarg ) );
-
-		assert(sarg[0]);
-		bCl = atoi(sarg);
-		Bot_SetForcedMovement(bCl, -1, arg, -1);
-	}
-	else if (Q_stricmp(cmd, "debugBMove_Up") == 0 && CheatsOk(ent))
-	{
-		int arg = 4000;
-		int bCl = 0;
-		char sarg[MAX_STRING_CHARS];
-
-		assert(trap->Argc() > 1);
-		trap->Argv( 1, sarg, sizeof( sarg ) );
-
-		assert(sarg[0]);
-		bCl = atoi(sarg);
-		Bot_SetForcedMovement(bCl, -1, -1, arg);
-	}
-	else if (Q_stricmp(cmd, "debugInventory") == 0)
-	{
-		JKG_Cmd_ShowInv_f(ent);
-		return;
-	}
-	else if (Q_stricmp(cmd, "inventoryUse") == 0)
-	{
-		char arg[MAX_STRING_CHARS];
-		if(trap->Argc() < 2)
-		{
-			trap->SendServerCommand( clientNum, "print \"Syntax: /inventoryUse <item num>\n\"" );
-			return;
-		}
-		trap->Argv( 1, arg, sizeof(arg) );
-		JKG_ConsumeItem_f(ent);
-		return;
-	}
-	else if (Q_stricmp(cmd, "equip") == 0)
-	{
-		JKG_Cmd_EquipItem_f (ent);
-	}
-	else if (Q_stricmp(cmd, "unequip") == 0)
-	{
-		JKG_Cmd_UnequipItem_f (ent);
-	}
-	else if (Q_stricmp(cmd, "inventoryDestroy") == 0)
-	{
-		JKG_Cmd_DestroyItem_f(ent);
-	}
-	else if (Q_stricmp(cmd, "inventorySell") == 0)
-	{
-		JKG_Cmd_SellItem_f(ent);
 	}
 	else if (Q_stricmp(cmd, "equipShield") == 0)
 	{
@@ -4936,150 +4444,18 @@ void ClientCommand( int clientNum ) {
 	else if (Q_stricmp(cmd, "unequipJetpack") == 0)
 	{
 		JKG_JetpackUnequipped(ent);
-	}
-	else if (Q_stricmp(cmd, "testSetSaber1") == 0)
-	{
-		char str[MAX_TOKEN_CHARS];
 
-		trap->Argv(1, str, sizeof(str));
-
-		G_SetSaber( ent, 0, str, false );
-	}
-	//
-	// BEGIN - Warzone Gametype Editing...
-	//
-	else if(!Q_stricmp (cmd, "warzone_savegameinfo") && CheatsOk( ent )) 
+	else if ( (command->flags & CMD_NOSPECTATOR) && ent->client->sess.sessionTeam == TEAM_SPECTATOR )
 	{
-		WARZONE_SaveGameInfo();
-	} 
-	else if(!Q_stricmp (cmd, "warzone_loadgameinfo") && CheatsOk( ent )) 
-	{
-		WARZONE_LoadGameInfo();
-	} 
-	else if(!Q_stricmp (cmd, "warzone_addhealthcrate") && CheatsOk( ent )) 
-	{
-		WARZONE_AddHealthCrate( ent->r.currentOrigin, ent->r.currentAngles );
-	} 
-	else if(!Q_stricmp (cmd, "warzone_addammocrate") && CheatsOk( ent )) 
-	{
-		WARZONE_AddAmmoCrate( ent->r.currentOrigin, ent->r.currentAngles );
-#ifdef __VEHICLES__
-	} 
-	else if(!Q_stricmp (cmd, "warzone_addvehicle") && CheatsOk( ent )) 
-	{
-		int  vehicleType;
-		char str[MAX_TOKEN_CHARS];
-
-		trap->Argv(1, str, sizeof(str));
-
-		if (!Q_stricmp(str,"heavy")) 
-		{
-			vehicleType = VEHICLE_CLASS_HEAVY_TANK;
-		} 
-		else if (!Q_stricmp(str,"medium")) 
-		{
-			vehicleType = VEHICLE_CLASS_MEDIUM_TANK;
-		} 
-		else if (!Q_stricmp(str,"flame")) 
-		{
-			vehicleType = VEHICLE_CLASS_FLAMETANK;
-		} 
-		else 
-		{
-			vehicleType = VEHICLE_CLASS_LIGHT_TANK;
-		}
-
-		WARZONE_AddVehicle( ent->r.currentOrigin, ent->r.currentAngles, vehicleType );
-#endif //__VEHICLES__
-	} 
-	else if(!Q_stricmp (cmd, "warzone_addflag") && CheatsOk( ent )) 
-	{
-		int  team;
-		char str[MAX_TOKEN_CHARS];
-
-		trap->Argv(1, str, sizeof(str));
-
-		if (!Q_stricmp(str,"red")) 
-		{
-			team = TEAM_RED;
-		} 
-		else if (!Q_stricmp(str,"blue")) 
-		{
-			team = TEAM_BLUE;
-		} 
-		else 
-		{
-			team = TEAM_FREE;
-		}
-
-		WARZONE_AddFlag( ent->r.currentOrigin, team );
-	} 
-	else if(!Q_stricmp (cmd, "warzone_changeflagteam") && CheatsOk( ent )) 
-	{
-		int  team = 0, flag_number = 0;
-		char str[MAX_TOKEN_CHARS];
-
-		trap->Argv(1, str, sizeof(str));
-
-		if (!str[0])
-		{
-			trap->Print("Format: /warzone_changeflagteam <flag #> <team name>\n");
-			WARZONE_ShowInfo();
-			return;
-		}
-
-		flag_number = atoi(str);
-
-		trap->Argv(2, str, sizeof(str));
-
-		if (!Q_stricmp(str,"red")) 
-		{
-			team = TEAM_RED;
-		} 
-		else if (!Q_stricmp(str,"blue")) 
-		{
-			team = TEAM_BLUE;
-		} 
-		else 
-		{
-			team = TEAM_FREE;
-		}
-		
-		WARZONE_ChangeFlagTeam( flag_number, team );
-	} 
-	else if(!Q_stricmp (cmd, "warzone_raiseents") && CheatsOk( ent )) 
-	{
-		WARZONE_RaiseAllWarzoneEnts( -1 );
-	} 
-	else if(!Q_stricmp (cmd, "warzone_removeents") && CheatsOk( ent )) 
-	{
-		WARZONE_RemoveAllWarzoneEnts();
-	} 
-	else if(!Q_stricmp (cmd, "warzone_removeammocrate") && CheatsOk( ent )) 
-	{
-		WARZONE_RemoveAmmoCrate();
-	} 
-	else if(!Q_stricmp (cmd, "warzone_removehealthcrate") && CheatsOk( ent )) 
-	{
-		WARZONE_RemoveHealthCrate();
-	} 
-	else if(!Q_stricmp (cmd, "warzone_showinfo") && CheatsOk( ent )) 
-	{
-		WARZONE_ShowInfo();
-	}
-	//
-	// END - Warzone Gametype Editing...
-	//
-	else
-	{
-		if (Q_stricmp(cmd, "addbot") == 0)
-		{ //because addbot isn't a recognized command unless you're the server, but it is in the menus regardless
-//			trap->SendServerCommand( clientNum, va("print \"You can only add bots as the server.\n\"" ) );
-			trap->SendServerCommand( clientNum, va("print \"%s.\n\"", G_GetStringEdString("MP_SVGAME", "ONLY_ADD_BOTS_AS_SERVER")));
-		}
+		// This command requires us to not be a spectator and we are.
+		// FIXME: Use a string from MP_SVGAME!!
+		if (command->flags & CMD_ONLYALIVE)
+			trap->SendServerCommand(clientNum, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBEALIVE")));
 		else
-		{
-			trap->SendServerCommand( clientNum, va("print \"unknown cmd %s\n\"", cmd ) );
-		}
+			trap->SendServerCommand(clientNum, "print \"That command cannot be used as a spectator.\n\"");
+		return;
 	}
+
+	else
+		command->function( ent );
 }
