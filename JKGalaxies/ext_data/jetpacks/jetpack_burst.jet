@@ -7,10 +7,10 @@
 	// fuelRegeneration - scale of how fast fuel gets regenerated
 
 	"ref":			"jetpack_burst",
-	"fuelCapacity":		10,
-	"fuelConsumption":	2.0,
+	"fuelCapacity":		15,
+	"fuelConsumption":	3.0,
 	"thrustConsumption":	3.0,
-	"fuelRegeneration":	0.1,
+	"fuelRegeneration":	0.15,
 	
 	"movement": {
 		// Movement - done on both client and server
@@ -21,18 +21,22 @@
 		// downMove - amount to modify downward movement by
 		// thrustFwd/thrustBack/thrustSide - same as above, but when thrusting
 		// thrustUp - amount to modify upward movement by
-		"hoverGravity":	"0.0",
+		// thrustAllowed - bool, whether we're allowed to thrust with this jetpack (sprint key)
+		// fwdThrustAllowed - bool, whether thrusts (if allowed) should do horizontal thrust
+		"hoverGravity":	375.0,
 
-		"forwardMove": 3.0,
-		"backMove": 3.0,
+		"forwardMove": 2.5,
+		"backMove": 1.5,
 		"sideMode": 1.0,
 		"downMove": 1.0,
-
-		"thrustFwd": 4.0,
+		
+		"thrustAllowed": 0,
+		"thrustFwd": 3.0,
 		"thrustBack": 1.0,
 		"thrustSide": 1.0,
-		"thrustUp": 5.0,
-
+		"thrustUp": 2.0,
+		
+		"fwdThrustAllowed": 0,
 		"fwdThrustAmt": 2.0
 	},
 
