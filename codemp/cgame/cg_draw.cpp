@@ -1473,19 +1473,11 @@ static float CG_DrawEnemyInfo ( float y )
 
 	y += size;
 
-
-	//I have no idea what this is lol - maybe leaderboard thing that shows up in the top right of jka?  --futuza
-	//CG_Text_Paint( 630 - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );	//futuza note: old way
-	Text_DrawText(630 - Text_GetWidth(ci->name, FONT_SMALL2, 1.0f) + xOffset, y, ci->name, colorWhite, FONT_SMALL2, 0, 1.0f);				//futuza note: new way
+	Text_DrawText(630 - Text_GetWidth(ci->name, FONT_SMALL2, 1.0f) + xOffset, y, ci->name, colorWhite, FONT_SMALL2, 0, 1.0f);
 
 	y += 15;
-	//note might want to change this back, title's probably can't use color codes anyway
-	//CG_Text_Paint( 630 - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );			//futuza note: old way
-	Text_DrawText(630 - Text_GetWidth(title, FONT_SMALL2, 1.0f) + xOffset, y, title, colorWhite, FONT_SMALL2, 0, 1.0f);							//futuza note: new way
 
-	//ohhh is this dueling only?
-	//okay okay
-	
+	Text_DrawText(630 - Text_GetWidth(title, FONT_SMALL2, 1.0f) + xOffset, y, title, colorWhite, FONT_SMALL2, 0, 1.0f);	
 
 	return y + BIGCHAR_HEIGHT + 2;
 }
@@ -5817,9 +5809,11 @@ void CG_DrawFlagStatus()
 void CG_DrawJetpackCloak(menuDef_t *menuHUD) {
 
 	itemDef_t	*focusItem;
-	float		percent = 100;
-	qhandle_t	pic = 0;
+	float		percent = 100.0f;
+	qhandle_t	pic = NULL_HANDLE;
 	vec4_t opacity;
+	int jetpack = cg.snap->ps.jetpack;
+	int jetpackFuel = cg.snap->ps.jetpackFuel;
 	
 	MAKERGBA( opacity, 1, 1, 1, 1*cg.jkg_HUDOpacity );
 
@@ -5830,25 +5824,25 @@ void CG_DrawJetpackCloak(menuDef_t *menuHUD) {
 		pic = trap->R_RegisterShader("gfx/jkghud/ico_cloak.png");
 	}
 
-	if (cg.snap->ps.jetpackFuel < 100)
+	if (jetpack != 0 && jetpackFuel < jetpackTable[jetpack -1].fuelCapacity)
 	{ // Jetpack is being used or is recharging
 		if (cg.snap->ps.cloakFuel >= 100 || (cg.time >> 10 & 1)) {
-			percent = cg.snap->ps.jetpackFuel;
+			percent = jetpackFuel / (float)jetpackTable[jetpack - 1].fuelCapacity * 100.0f;
 			pic = trap->R_RegisterShader("gfx/jkghud/ico_jetpack.png");
 		}
 	}
 	if (cg.snap->ps.cloakFuel < 100) {
-		if (cg.snap->ps.jetpackFuel >= 100 || !(cg.time >> 10 & 1)) {
+		if (jetpackFuel >= jetpackTable[jetpack - 1].fuelCapacity || !(cg.time >> 10 & 1)) {
 			percent = cg.snap->ps.cloakFuel;
 			pic = trap->R_RegisterShader("gfx/jkghud/ico_cloak.png");
 		}
 	}
 
-	if (percent == 100 && cg.snap->ps.weapon != WP_SABER) {
+	if (percent >= 100 && cg.snap->ps.weapon != WP_SABER) {
 		return;
 	}
 
-	percent /= 100;
+	percent /= 100.0f;
 	//percent *= 0.75f;
 
 	focusItem = Menu_FindItemByName(menuHUD, "bar1");
@@ -5881,59 +5875,6 @@ void CG_DrawJetpackCloak(menuDef_t *menuHUD) {
 	}
 }
 
-
-//draw meter showing jetpack fuel when it's not full
-#define JPFUELBAR_H			100.0f
-#define JPFUELBAR_W			20.0f
-#define JPFUELBAR_X			(SCREEN_WIDTH-JPFUELBAR_W-8.0f)
-#define JPFUELBAR_Y			260.0f
-void CG_DrawJetpackFuel(void)
-{
-	vec4_t aColor;
-	vec4_t bColor;
-	vec4_t cColor;
-	float x = JPFUELBAR_X;
-	float y = JPFUELBAR_Y;
-	float percent = ((float)cg.snap->ps.jetpackFuel/100.0f)*JPFUELBAR_H;
-
-	if (percent > JPFUELBAR_H)
-	{
-		return;
-	}
-
-	if (percent < 0.1f)
-	{
-		percent = 0.1f;
-	}
-
-	//color of the bar
-	aColor[0] = 0.5f;
-	aColor[1] = 0.0f;
-	aColor[2] = 0.0f;
-	aColor[3] = 0.8f;
-
-	//color of the border
-	bColor[0] = 0.0f;
-	bColor[1] = 0.0f;
-	bColor[2] = 0.0f;
-	bColor[3] = 0.3f;
-
-	//color of greyed out "missing fuel"
-	cColor[0] = 0.5f;
-	cColor[1] = 0.5f;
-	cColor[2] = 0.5f;
-	cColor[3] = 0.1f;
-
-	//draw the background (black)
-	CG_DrawRect(x, y, JPFUELBAR_W, JPFUELBAR_H, 1.0f, colorTable[CT_BLACK]);
-
-	//now draw the part to show how much health there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f+(JPFUELBAR_H-percent), JPFUELBAR_W-1.0f, JPFUELBAR_H-1.0f-(JPFUELBAR_H-percent), aColor);
-
-	//then draw the other part greyed out
-	CG_FillRect(x+1.0f, y+1.0f, JPFUELBAR_W-1.0f, JPFUELBAR_H-percent, cColor);
-}
-
 //draw meter showing e-web health when it is in use
 #define EWEBHEALTH_H			100.0f
 #define EWEBHEALTH_W			20.0f
@@ -5957,16 +5898,6 @@ void CG_DrawEWebHealth(void)
 	if (percent < 0.1f)
 	{
 		percent = 0.1f;
-	}
-
-	//kind of hacky, need to pass a coordinate in here
-	if (cg.snap->ps.jetpackFuel < 100)
-	{
-		x -= (JPFUELBAR_W+8.0f);
-	}
-	if (cg.snap->ps.cloakFuel < 100)
-	{
-		x -= (JPFUELBAR_W+8.0f);
 	}
 
 	//color of the bar
@@ -5996,83 +5927,6 @@ void CG_DrawEWebHealth(void)
 	//then draw the other part greyed out
 	CG_FillRect(x+1.0f, y+1.0f, EWEBHEALTH_W-1.0f, EWEBHEALTH_H-percent, cColor);
 }
-
-//draw meter showing cloak fuel when it's not full
-#define CLFUELBAR_H			100.0f
-#define CLFUELBAR_W			20.0f
-#define CLFUELBAR_X			(SCREEN_WIDTH-CLFUELBAR_W-8.0f)
-#define CLFUELBAR_Y			260.0f
-void CG_DrawCloakFuel(void)
-{
-	vec4_t aColor;
-	vec4_t bColor;
-	vec4_t cColor;
-	float x = CLFUELBAR_X;
-	float y = CLFUELBAR_Y;
-	float percent = ((float)cg.snap->ps.cloakFuel/100.0f)*CLFUELBAR_H;
-
-	if (percent > CLFUELBAR_H)
-	{
-		return;
-	}
-
-	if ( cg.snap->ps.jetpackFuel < 100 )
-	{//if drawing jetpack fuel bar too, then move this over...?
-		x -= (JPFUELBAR_W+8.0f);
-	}
-
-	if (percent < 0.1f)
-	{
-		percent = 0.1f;
-	}
-
-	//color of the bar
-	aColor[0] = 0.0f;
-	aColor[1] = 0.0f;
-	aColor[2] = 0.6f;
-	aColor[3] = 0.8f;
-
-	//color of the border
-	bColor[0] = 0.0f;
-	bColor[1] = 0.0f;
-	bColor[2] = 0.0f;
-	bColor[3] = 0.3f;
-
-	//color of greyed out "missing fuel"
-	cColor[0] = 0.1f;
-	cColor[1] = 0.1f;
-	cColor[2] = 0.3f;
-	cColor[3] = 0.1f;
-
-	//draw the background (black)
-	CG_DrawRect(x, y, CLFUELBAR_W, CLFUELBAR_H, 1.0f, colorTable[CT_BLACK]);
-
-	//now draw the part to show how much fuel there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f+(CLFUELBAR_H-percent), CLFUELBAR_W-1.0f, CLFUELBAR_H-1.0f-(CLFUELBAR_H-percent), aColor);
-
-	//then draw the other part greyed out
-	CG_FillRect(x+1.0f, y+1.0f, CLFUELBAR_W-1.0f, CLFUELBAR_H-percent, cColor);
-}
-
-int cgRageTime = 0;
-int cgRageFadeTime = 0;
-float cgRageFadeVal = 0;
-
-int cgRageRecTime = 0;
-int cgRageRecFadeTime = 0;
-float cgRageRecFadeVal = 0;
-
-int cgAbsorbTime = 0;
-int cgAbsorbFadeTime = 0;
-float cgAbsorbFadeVal = 0;
-
-int cgProtectTime = 0;
-int cgProtectFadeTime = 0;
-float cgProtectFadeVal = 0;
-
-int cgYsalTime = 0;
-int cgYsalFadeTime = 0;
-float cgYsalFadeVal = 0;
 
 qboolean gCGHasFallVector = qfalse;
 vec3_t gCGFallVector;
@@ -6248,83 +6102,6 @@ void CG_ChatBox_AddString(char *chatStr, int fadeLevel)
 		}
 	}
 }
-/*
-//insert item into array (rearranging the array if necessary)
-void CG_ChatBox_ArrayInsert(chatBoxItem_t **array, int insPoint, int maxNum, chatBoxItem_t *item)
-{
-    if (array[insPoint])
-	{ //recursively call, to move everything up to the top
-		if (insPoint+1 >= maxNum)
-		{
-			CG_Error("CG_ChatBox_ArrayInsert: Exceeded array size");
-		}
-		CG_ChatBox_ArrayInsert(array, insPoint+1, maxNum, array[insPoint]);
-	}
-
-	//now that we have moved anything that would be in this slot up, insert what we want into the slot
-	array[insPoint] = item;
-}
-
-//go through all the chat strings and draw them if they are not yet expired
-static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
-{
-	chatBoxItem_t *drawThese[MAX_CHATBOX_ITEMS];
-	int numToDraw = 0;
-	int linesToDraw = 0;
-	int i = 0;
-	int x = 30;
-	int y = cg.scoreBoardShowing ? 475 : cg_chatBoxHeight.integer;
-	float fontScale = 0.65f;
-
-	if (!cg_chatBox.integer)
-	{
-		return;
-	}
-
-	memset(drawThese, 0, sizeof(drawThese));
-
-	while (i < MAX_CHATBOX_ITEMS)
-	{
-		if (cg.chatItems[i].time >= cg.time)
-		{
-			int check = numToDraw;
-			int insertionPoint = numToDraw;
-
-			while (check >= 0)
-			{
-				if (drawThese[check] &&
-					cg.chatItems[i].time < drawThese[check]->time)
-				{ //insert here
-					insertionPoint = check;
-				}
-				check--;
-			}
-			CG_ChatBox_ArrayInsert(drawThese, insertionPoint, MAX_CHATBOX_ITEMS, &cg.chatItems[i]);
-			numToDraw++;
-			linesToDraw += cg.chatItems[i].lines;
-		}
-		i++;
-	}
-
-	if (!numToDraw)
-	{ //nothing, then, just get out of here now.
-		return;
-	}
-
-	//move initial point up so we draw bottom-up (visually)
-	y -= (CHATBOX_FONT_HEIGHT*fontScale)*linesToDraw;
-
-	//we have the items we want to draw, just quickly loop through them now
-	i = 0;
-	while (i < numToDraw)
-	{
-		CG_Text_Paint(x, y, fontScale, colorWhite, drawThese[i]->string, 0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL );
-		y += ((CHATBOX_FONT_HEIGHT*fontScale)*drawThese[i]->lines);
-		i++;
-	}
-}
-*/
-
 
 //===============================================================
 //
@@ -6600,309 +6377,6 @@ static void CG_Draw2DScreenTints( void )
 			CG_DrawPic(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, cgs.media.lowHealthAura);
 			trap->R_SetColor(NULL);
 		}
-		if (cg.snap->ps.fd.forcePowersActive & (1 << FP_RAGE))
-		{
-			if (!cgRageTime)
-			{
-				cgRageTime = cg.time;
-			}
-			
-			rageTime = (float)(cg.time - cgRageTime);
-			
-			rageTime /= 9000;
-			
-			if (rageTime < 0)
-			{
-				rageTime = 0;
-			}
-			if (rageTime > 0.15f)
-			{
-				rageTime = 0.15f;
-			}
-			
-			hcolor[3] = rageTime;
-			hcolor[0] = 0.7f;
-			hcolor[1] = 0;
-			hcolor[2] = 0;
-			
-			if (!cg.renderingThirdPerson)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			
-			cgRageFadeTime = 0;
-			cgRageFadeVal = 0;
-		}
-		else if (cgRageTime)
-		{
-			if (!cgRageFadeTime)
-			{
-				cgRageFadeTime = cg.time;
-				cgRageFadeVal = 0.15f;
-			}
-			
-			rageTime = cgRageFadeVal;
-			
-			cgRageFadeVal -= (cg.time - cgRageFadeTime)*0.000005f;
-			
-			if (rageTime < 0)
-			{
-				rageTime = 0;
-			}
-			if (rageTime > 0.15f)
-			{
-				rageTime = 0.15f;
-			}
-			
-			if (cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-			{
-				float checkRageRecTime = rageTime;
-				
-				if (checkRageRecTime < 0.15f)
-				{
-					checkRageRecTime = 0.15f;
-				}
-				
-				hcolor[3] = checkRageRecTime;
-				hcolor[0] = rageTime*4;
-				if (hcolor[0] < 0.2f)
-				{
-					hcolor[0] = 0.2f;
-				}
-				hcolor[1] = 0.2f;
-				hcolor[2] = 0.2f;
-			}
-			else
-			{
-				hcolor[3] = rageTime;
-				hcolor[0] = 0.7f;
-				hcolor[1] = 0;
-				hcolor[2] = 0;
-			}
-			
-			if (!cg.renderingThirdPerson && rageTime)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			else
-			{
-				if (cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-				{
-					hcolor[3] = 0.15f;
-					hcolor[0] = 0.2f;
-					hcolor[1] = 0.2f;
-					hcolor[2] = 0.2f;
-					CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-				}
-				cgRageTime = 0;
-			}
-		}
-		else if (cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-		{
-			if (!cgRageRecTime)
-			{
-				cgRageRecTime = cg.time;
-			}
-			
-			rageRecTime = (float)(cg.time - cgRageRecTime);
-			
-			rageRecTime /= 9000;
-			
-			if (rageRecTime < 0.15f)//0)
-			{
-				rageRecTime = 0.15f;//0;
-			}
-			if (rageRecTime > 0.15f)
-			{
-				rageRecTime = 0.15f;
-			}
-			
-			hcolor[3] = rageRecTime;
-			hcolor[0] = 0.2f;
-			hcolor[1] = 0.2f;
-			hcolor[2] = 0.2f;
-			
-			if (!cg.renderingThirdPerson)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			
-			cgRageRecFadeTime = 0;
-			cgRageRecFadeVal = 0;
-		}
-		else if (cgRageRecTime)
-		{
-			if (!cgRageRecFadeTime)
-			{
-				cgRageRecFadeTime = cg.time;
-				cgRageRecFadeVal = 0.15f;
-			}
-			
-			rageRecTime = cgRageRecFadeVal;
-			
-			cgRageRecFadeVal -= (cg.time - cgRageRecFadeTime)*0.000005f;
-			
-			if (rageRecTime < 0)
-			{
-				rageRecTime = 0;
-			}
-			if (rageRecTime > 0.15f)
-			{
-				rageRecTime = 0.15f;
-			}
-			
-			hcolor[3] = rageRecTime;
-			hcolor[0] = 0.2f;
-			hcolor[1] = 0.2f;
-			hcolor[2] = 0.2f;
-			
-			if (!cg.renderingThirdPerson && rageRecTime)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			else
-			{
-				cgRageRecTime = 0;
-			}
-		}
-		
-		if (cg.snap->ps.fd.forcePowersActive & (1 << FP_ABSORB))
-		{
-			if (!cgAbsorbTime)
-			{
-				cgAbsorbTime = cg.time;
-			}
-			
-			absorbTime = (float)(cg.time - cgAbsorbTime);
-			
-			absorbTime /= 9000;
-			
-			if (absorbTime < 0)
-			{
-				absorbTime = 0;
-			}
-			if (absorbTime > 0.15f)
-			{
-				absorbTime = 0.15f;
-			}
-			
-			hcolor[3] = absorbTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0;
-			hcolor[2] = 0.7f;
-			
-			if (!cg.renderingThirdPerson)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			
-			cgAbsorbFadeTime = 0;
-			cgAbsorbFadeVal = 0;
-		}
-		else if (cgAbsorbTime)
-		{
-			if (!cgAbsorbFadeTime)
-			{
-				cgAbsorbFadeTime = cg.time;
-				cgAbsorbFadeVal = 0.15f;
-			}
-			
-			absorbTime = cgAbsorbFadeVal;
-			
-			cgAbsorbFadeVal -= (cg.time - cgAbsorbFadeTime)*0.000005f;
-			
-			if (absorbTime < 0)
-			{
-				absorbTime = 0;
-			}
-			if (absorbTime > 0.15f)
-			{
-				absorbTime = 0.15f;
-			}
-			
-			hcolor[3] = absorbTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0;
-			hcolor[2] = 0.7f;
-			
-			if (!cg.renderingThirdPerson && absorbTime)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			else
-			{
-				cgAbsorbTime = 0;
-			}
-		}
-		
-		if (cg.snap->ps.fd.forcePowersActive & (1 << FP_PROTECT))
-		{
-			if (!cgProtectTime)
-			{
-				cgProtectTime = cg.time;
-			}
-			
-			protectTime = (float)(cg.time - cgProtectTime);
-			
-			protectTime /= 9000;
-			
-			if (protectTime < 0)
-			{
-				protectTime = 0;
-			}
-			if (protectTime > 0.15f)
-			{
-				protectTime = 0.15f;
-			}
-			
-			hcolor[3] = protectTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0.7f;
-			hcolor[2] = 0;
-			
-			if (!cg.renderingThirdPerson)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			
-			cgProtectFadeTime = 0;
-			cgProtectFadeVal = 0;
-		}
-		else if (cgProtectTime)
-		{
-			if (!cgProtectFadeTime)
-			{
-				cgProtectFadeTime = cg.time;
-				cgProtectFadeVal = 0.15f;
-			}
-			
-			protectTime = cgProtectFadeVal;
-			
-			cgProtectFadeVal -= (cg.time - cgProtectFadeTime)*0.000005f;
-			
-			if (protectTime < 0)
-			{
-				protectTime = 0;
-			}
-			if (protectTime > 0.15f)
-			{
-				protectTime = 0.15f;
-			}
-			
-			hcolor[3] = protectTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0.7f;
-			hcolor[2] = 0;
-			
-			if (!cg.renderingThirdPerson && protectTime)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			else
-			{
-				cgProtectTime = 0;
-			}
-		}
 		
 		if (cg.snap->ps.rocketLockIndex != ENTITYNUM_NONE && (cg.time - cg.snap->ps.rocketLockTime) > 0)
 		{
@@ -7006,6 +6480,12 @@ void CG_DrawChatboxFrame(menuDef_t *menuHUD) {
 
 void CG_DrawChatboxText(menuDef_t *menuHUD) {
 	itemDef_t *item = Menu_FindItemByName(menuHUD, "text");
+	float opacity = 1.0f;
+
+	if (cg.snap->ps.pm_type != PM_SPECTATOR) {
+		opacity = cg.jkg_HUDOpacity;
+	}
+
 	if (item)
 	{
 		int i;
@@ -7013,18 +6493,18 @@ void CG_DrawChatboxText(menuDef_t *menuHUD) {
 		vec4_t color;
 
 		MAKERGBA(color,0,0,0,0.3f);
-		color[3] *= cg.jkg_HUDOpacity;
+		color[3] *= opacity;
 		CG_FillRect(item->window.rect.x-5, item->window.rect.y-2, item->window.rect.w+10, item->window.rect.h+4, color);
 		VectorCopy(colorWhite, color);
-		color[3] *= cg.jkg_HUDOpacity;
+		color[3] *= opacity;
 		// Center and draw the text, positioning will be finetuned later on :P
 		line = 0;
-		for (i=0; i<12; i++) {
-			int idx = (cg.chatItemNext + i) % 12;
+		for (i=0; i<11; i++) {
+			int idx = (cg.chatItemNext + i) % 11;
 			if (cg.chatItems[idx].active) {
-				ChatBox_SetPaletteAlpha(cg.chatItems[idx].alpha*cg.jkg_HUDOpacity);
-				color[3] = cg.chatItems[idx].alpha*cg.jkg_HUDOpacity;
-				CG_DrawStringExt(item->window.rect.x, item->window.rect.y + (line * 8),
+				ChatBox_SetPaletteAlpha(cg.chatItems[idx].alpha*opacity);
+				color[3] = cg.chatItems[idx].alpha*opacity;
+				CG_DrawStringExt(item->window.rect.x-5, item->window.rect.y + (line * 8) - 2,
 					cg.chatItems[idx].string,
 					color, qfalse, qfalse, 5, 8, strlen(cg.chatItems[idx].string), cgs.media.charset_Segoeui);
 				line += cg.chatItems[idx].lines;
@@ -7061,29 +6541,6 @@ static void CG_Draw2D( void ) {
 	// if we are taking a levelshot for the menu, don't draw anything
 	if ( cg.levelShot ) {
 		return;
-	}
-
-	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR)
-	{
-		cgRageTime = 0;
-		cgRageFadeTime = 0;
-		cgRageFadeVal = 0;
-
-		cgRageRecTime = 0;
-		cgRageRecFadeTime = 0;
-		cgRageRecFadeVal = 0;
-
-		cgAbsorbTime = 0;
-		cgAbsorbFadeTime = 0;
-		cgAbsorbFadeVal = 0;
-
-		cgProtectTime = 0;
-		cgProtectFadeTime = 0;
-		cgProtectFadeVal = 0;
-
-		cgYsalTime = 0;
-		cgYsalFadeTime = 0;
-		cgYsalFadeVal = 0;
 	}
 	
 	if (cg.cinematicState) {
@@ -7138,8 +6595,6 @@ static void CG_Draw2D( void ) {
 		return;
 	}
 
-	
-
 	if ( cg_draw2D.integer == 0 ) {
 		// Screeny purposes
 		CG_DrawGrenade();
@@ -7150,7 +6605,6 @@ static void CG_Draw2D( void ) {
 
 	if ( cg.snap->ps.pm_type == PM_INTERMISSION ) {
 		CG_DrawIntermission();
-		//CG_ChatBox_DrawStrings();
 		return;
 	}
 
@@ -7196,10 +6650,7 @@ static void CG_Draw2D( void ) {
 			CG_DrawCrosshair(NULL, 0);
 			CG_DrawCrosshairNames();
 			CG_SaberClashFlare();
-			if (cg.isChatting) {
-				ChatBox_CloseChat();
-			}
-
+			CG_DrawChatbox();	// Only show the chatbox when we're alive (JKG)
 		} else {
 			// don't draw any status if dead or the scoreboard is being explicitly shown
 			if ( cg.snap->ps.stats[STAT_HEALTH] > 0 && !cg.deathcamFadeStart ) { //!cg.showScores && to bring back scoreboard on tab press.
@@ -7314,8 +6765,6 @@ static void CG_Draw2D( void ) {
 	if ( !cg.scoreBoardShowing) {
 		CG_DrawCenterString();
 	}
-	// always draw chat
-	//CG_ChatBox_DrawStrings();
 }
 
 static void CG_DrawMiscStaticModels (void) {

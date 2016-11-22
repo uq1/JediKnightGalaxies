@@ -689,115 +689,6 @@ static void CG_TouchTriggerPrediction( void ) {
 	}
 }
 
-#if 0
-static ID_INLINE void CG_EntityStateToPlayerState( entityState_t *s, playerState_t *ps )
-{
-	//currently unused vars commented out for speed.. only uncomment if you need them.
-	ps->clientNum = s->number;
-	VectorCopy( s->pos.trBase, ps->origin );
-	VectorCopy( s->pos.trDelta, ps->velocity );
-	ps->saberLockFrame = s->forceFrame;
-	ps->legsAnim = s->legsAnim;
-	ps->torsoAnim = s->torsoAnim;
-	ps->legsFlip = s->legsFlip;
-	ps->torsoFlip = s->torsoFlip;
-	ps->clientNum = s->clientNum;
-	ps->saberMove = s->saberMove;
-
-	/*
-	VectorCopy( s->apos.trBase, ps->viewangles );
-
-	ps->fd.forceMindtrickTargetIndex = s->trickedentindex;
-	ps->fd.forceMindtrickTargetIndex2 = s->trickedentindex2;
-	ps->fd.forceMindtrickTargetIndex3 = s->trickedentindex3;
-	ps->fd.forceMindtrickTargetIndex4 = s->trickedentindex4;
-
-	ps->electrifyTime = s->emplacedOwner;
-
-	ps->speed = s->speed;
-
-	ps->genericEnemyIndex = s->genericenemyindex;
-
-	ps->activeForcePass = s->activeForcePass;
-
-	ps->movementDir = s->angles2[YAW];
-
-	ps->eFlags = s->eFlags;
-
-	ps->saberInFlight = s->saberInFlight;
-	ps->saberEntityNum = s->saberEntityNum;
-
-	ps->fd.forcePowersActive = s->forcePowersActive;
-
-	if (s->bolt1)
-	{
-		ps->duelInProgress = qtrue;
-	}
-	else
-	{
-		ps->duelInProgress = qfalse;
-	}
-
-	if (s->bolt2)
-	{
-		ps->dualBlade = qtrue;
-	}
-	else
-	{
-		ps->dualBlade = qfalse;
-	}
-
-	ps->emplacedIndex = s->otherEntityNum2;
-
-	ps->saberHolstered = s->saberHolstered; //reuse bool in entitystate for players differently
-
-	ps->genericEnemyIndex = -1; //no real option for this
-
-	//The client has no knowledge of health levels (except for the client entity)
-	if (s->eFlags & EF_DEAD)
-	{
-		ps->stats[STAT_HEALTH] = 0;
-	}
-	else
-	{
-		ps->stats[STAT_HEALTH] = 100;
-	}
-
-	if ( ps->externalEvent ) {
-		s->event = ps->externalEvent;
-		s->eventParm = ps->externalEventParm;
-	} else if ( ps->entityEventSequence < ps->eventSequence ) {
-		int		seq;
-
-		if ( ps->entityEventSequence < ps->eventSequence - MAX_PS_EVENTS) {
-			ps->entityEventSequence = ps->eventSequence - MAX_PS_EVENTS;
-		}
-		seq = ps->entityEventSequence & (MAX_PS_EVENTS-1);
-		s->event = ps->events[ seq ] | ( ( ps->entityEventSequence & 3 ) << 8 );
-		s->eventParm = ps->eventParms[ seq ];
-		ps->entityEventSequence++;
-	}
-
-	ps->weapon = s->weapon;
-	ps->groundEntityNum = s->groundEntityNum;
-
-	for ( i = 0 ; i < MAX_POWERUPS ; i++ ) {
-		if (s->powerups & (1 << i))
-		{
-			ps->powerups[i] = 30;
-		}
-		else
-		{
-			ps->powerups[i] = 0;
-		}
-	}
-
-	ps->loopSound = s->loopSound;
-	ps->generic1 = s->generic1;
-	*/
-}
-#endif
-
 playerState_t cgSendPSPool[ MAX_GENTITIES ];
 playerState_t *cgSendPS[MAX_GENTITIES];
 
@@ -1210,6 +1101,7 @@ void CG_PredictPlayerState( void ) {
 			}
 		}
 
+		// VMove vs PMove
 		veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
 		if( veh->m_pVehicle )
 		{
@@ -1269,126 +1161,36 @@ void CG_PredictPlayerState( void ) {
 
 			//THIS is pretty much bad, but...
 			cg_pmove.ps->fd.saberAnimLevelBase = cg_pmove.ps->fd.saberAnimLevel;
-			/*if ( cg_pmove.ps->saberHolstered == 1 )
-			{
-				if ( ci->saber[0].numBlades > 0 )
-				{
-					cg_pmove.ps->fd.saberAnimLevelBase = SS_STAFF;
+
+			// Predict jetpack activation
+			if (cg.predictedPlayerState.jetpack) {
+				static int onTime = 0, offTime = 0;
+				if (!onTime) {
+					onTime = cg.time + 1000;
 				}
-				else if ( ci->saber[1].model[0] )
-				{
-					cg_pmove.ps->fd.saberAnimLevelBase = SS_DUAL;
+				if (!offTime) {
+					offTime = cg.time + 1000;
 				}
-			}*/
+
+				if (cg.predictedPlayerState.jetpackFuel > 5 && cg.predictedPlayerState.groundEntityNum == ENTITYNUM_NONE && (cg_pmove.cmd.buttons & BUTTON_USE))
+				{
+					if (cg.predictedPlayerState.pm_type != PM_JETPACK && offTime < cg.time) {
+						onTime = cg.time + 1000;
+						cg.predictedPlayerState.pm_type = PM_JETPACK;
+						cg.predictedPlayerState.eFlags |= EF_JETPACK_ACTIVE;
+					}
+
+					if (cg.predictedPlayerState.pm_type == PM_JETPACK && onTime < cg.time) {
+						offTime = cg.time + 1000;
+						cg.predictedPlayerState.pm_type = PM_NORMAL;
+						cg.predictedPlayerState.eFlags &= ~EF_JETPACK_ACTIVE;
+					}
+				}
+			}
 	
 			Pmove (&cg_pmove);
 			if (cg.deathcamTime) {
 				DeathcamClamp(&cg.predictedPlayerState);
-			}
-		}
-
-		if (CG_Piloting(cg.predictedPlayerState.m_iVehicleNum) &&
-			cg.predictedPlayerState.pm_type != PM_INTERMISSION)
-		{ //we're riding a vehicle, let's predict it
-			centity_t *veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-			int x, zd, zu;
-
-			if (veh->m_pVehicle)
-			{ //make sure pointer is set up to go to our predicted state
-				veh->m_pVehicle->m_vOrientation = &cg.predictedVehicleState.vehOrientation[0];
-
-				//keep this updated based on what the playerstate says
-				veh->m_pVehicle->m_iRemovedSurfaces = cg.predictedVehicleState.vehSurfaces;
-
-				trap->GetUserCmd( cmdNum, &veh->m_pVehicle->m_ucmd );
-
-				if ( veh->m_pVehicle->m_ucmd.buttons & BUTTON_TALK )
-				{ //forced input if "chat bubble" is up
-					veh->m_pVehicle->m_ucmd.buttons = BUTTON_TALK;
-					veh->m_pVehicle->m_ucmd.forwardmove = 0;
-					veh->m_pVehicle->m_ucmd.rightmove = 0;
-					veh->m_pVehicle->m_ucmd.upmove = 0;
-				}
-				cg_vehPmove.ps = &cg.predictedVehicleState;
-				cg_vehPmove.animations = bgAllAnims[veh->localAnimIndex].anims;
-
-				memcpy(&cg_vehPmove.cmd, &veh->m_pVehicle->m_ucmd, sizeof(usercmd_t));
-				/*
-				cg_vehPmove.cmd.rightmove = 0; //no vehicle can move right/left
-				cg_vehPmove.cmd.upmove = 0; //no vehicle can move up/down
-				*/
-
-				cg_vehPmove.gametype = cgs.gametype;
-				cg_vehPmove.ghoul2 = veh->ghoul2;
-
-				cg_vehPmove.nonHumanoid = (veh->localAnimIndex > 0);
-
-				/*
-				x = (veh->currentState.solid & 255);
-				zd = (veh->currentState.solid & 255);
-				zu = (veh->currentState.solid & 255) - 32;
-
-				cg_vehPmove.mins[0] = cg_vehPmove.mins[1] = -x;
-				cg_vehPmove.maxs[0] = cg_vehPmove.maxs[1] = x;
-				cg_vehPmove.mins[2] = -zd;
-				cg_vehPmove.maxs[2] = zu;
-				*/
-				//I think this was actually wrong.. just copy-pasted from id code. Oh well.
-				x = (veh->currentState.solid)&255;
-				zd = (veh->currentState.solid>>8)&255;
-				zu = (veh->currentState.solid>>15)&255;
-				
-				zu -= 32; //I don't quite get the reason for this.
-				zd = -zd;
-
-				//z/y must be symmetrical (blah)
-				cg_vehPmove.mins[0] = cg_vehPmove.mins[1] = -x;
-				cg_vehPmove.maxs[0] = cg_vehPmove.maxs[1] = x;
-				cg_vehPmove.mins[2] = zd;
-				cg_vehPmove.maxs[2] = zu;
-
-				VectorCopy(veh->modelScale, cg_vehPmove.modelScale);
-
-				if (!cg_vehPmoveSet)
-				{ //do all the one-time things
-					cg_vehPmove.trace = CG_Trace;
-					cg_vehPmove.pointcontents = CG_PointContents;
-					cg_vehPmove.tracemask = MASK_PLAYERSOLID;
-					cg_vehPmove.debugLevel = 0;
-					cg_vehPmove.g2Bolts_LFoot = -1;
-					cg_vehPmove.g2Bolts_RFoot = -1;
-
-					cg_vehPmove.baseEnt = (bgEntity_t *)cg_entities;
-					cg_vehPmove.entSize = sizeof(centity_t);
-
-					cg_vehPmoveSet = qtrue;
-				}
-				
-				cg_vehPmove.noFootsteps = ( cgs.dmflags & DF_NO_FOOTSTEPS ) > 0;
-				cg_vehPmove.pmove_fixed = pmove_fixed.integer;
-				cg_vehPmove.pmove_msec = pmove_msec.integer;
-
-				cg_entities[cg.predictedPlayerState.clientNum].playerState = &cg.predictedPlayerState;
-				veh->playerState = &cg.predictedVehicleState;
-
-				//update boarding value sent from server. boarding is not predicted, but no big deal
-				veh->m_pVehicle->m_iBoarding = cg.predictedVehicleState.vehBoarding;
-
-				Pmove(&cg_vehPmove);
-				/*
-				if ( !cg_paused.integer )
-				{
-					Com_Printf( "%d - PITCH change %4.2f\n", cg.time, AngleSubtract(veh->m_pVehicle->m_vOrientation[0],veh->m_pVehicle->m_vPrevOrientation[0]) );
-				}
-				*/
-				if ( cg_showVehBounds.integer )
-				{
-					vec3_t NPCDEBUG_RED = {1.0, 0.0, 0.0};
-					vec3_t absmin, absmax;
-					VectorAdd( cg_vehPmove.ps->origin, cg_vehPmove.mins, absmin );
-					VectorAdd( cg_vehPmove.ps->origin, cg_vehPmove.maxs, absmax );
-					CG_Cube( absmin, absmax, NPCDEBUG_RED, 0.25 );
-				}
 			}
 		}
 
@@ -1398,9 +1200,6 @@ void CG_PredictPlayerState( void ) {
 		if (!cg.deathcamTime) {
 			CG_TouchTriggerPrediction();
 		}
-
-		// check for predictable events that changed from previous predictions
-		//CG_CheckChangedPredictableEvents(&cg.predictedPlayerState);
 	}
 
 	if ( cg_showMiss.integer > 1 ) {

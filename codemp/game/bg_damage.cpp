@@ -199,5 +199,5 @@ int JKG_GetMeansOfDamageIndex(const std::string& ref) {
 			return i;
 		}
 	}
-	return -1;
+	return MOD_UNKNOWN;
 }

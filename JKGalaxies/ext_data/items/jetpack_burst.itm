@@ -1,0 +1,8 @@
+{
+	"name":		"Burst Jetpack",
+	"internal":	"jetpack_burst",
+	"itemtype":	"jetpack",
+	"cost":		1500,
+	"itemIcon":	"gfx/hud/i_icon_jetpack.tga",
+	"jetpack":	"jetpack_burst"
+}

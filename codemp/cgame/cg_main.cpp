@@ -2476,7 +2476,6 @@ Will perform callbacks to make the loading info screen update.
 */
 
 void CinBuild_Init();
-void ChatBox_InitSystem();
 void MiniMap_Init();
 void JKG_WeaponIndicators_Init();
 
@@ -2507,8 +2506,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 	const char	*s;
 	int i = 0;
 
-	// Do the engine patches
-	ChatBox_InitSystem();
 	trap->Cvar_Set("connmsg", ""); // Clear connection message override
 
 	BG_InitAnimsets(); //clear it out

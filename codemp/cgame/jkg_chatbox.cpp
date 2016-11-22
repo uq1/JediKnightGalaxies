@@ -69,19 +69,12 @@ void ChatBox_CloseChat() {
 }
 
 void ChatBox_SetPaletteAlpha(float alpha) {
-	// This modifies the alpha of the JA color palette
-	// As well as the drop shadow color
-	// Always reset this back to 1 after you're done!
 	trap->JKG_SetColorTableAlpha(alpha);
-	// Drop shadow color
-	//*(float *)(0x5582B8 + 12) = alpha;		// FIXME: this address didn't look correct in the first place --eez
 }
 
 float Text_GetWidth(const char *text, int iFontIndex, float scale) {
 	return trap->R_Font_StrLenPixels(text, iFontIndex, scale);
 }
-
-//void Text_DrawText(int x, int y, const char *text, const float* rgba, int iFontIndex, const int limit, float scale)	//now defined in ui_shared
 
 void ChatBox_NewChatMode() {
     char *p = strchr (cb_data.buff, ' ');
@@ -99,7 +92,7 @@ void ChatBox_NewChatMode() {
 	cb_data.scroll = 0;
 	cb_data.len = 0;
 	cb_data.offset = Text_GetWidth(chatModeText[cb_chatmode], cgDC.Assets.qhSmall4Font, 0.6f);
-	cb_data.maxwidth = 205 - cb_data.offset;
+	cb_data.maxwidth = 305 - cb_data.offset;
 }
 
 
@@ -447,57 +440,39 @@ qboolean ChatBox_CanUseChat() {
 		return qfalse;
 	if (cg.deathcamTime)
 		return qfalse;
-	if ( cg.snap->ps.pm_type == PM_INTERMISSION || cg.snap->ps.pm_type == PM_SPECTATOR )
+	if ( cg.snap->ps.pm_type == PM_INTERMISSION )
 		return qfalse;
 	return qtrue;
 }
 
 void ChatBox_MessageMode() {
-	// Since this gets called from the engine, the VM info might be incorrect
-	// So override it so cgame is active, then restore later on	
-	//int ActiveVM = *(int *)0x12A4F18;
 	if (!ChatBox_CanUseChat()) {
 		return;
 	}
 
-	//*(int *)0x12A4F18 = *(int *)0x8AF0FC; // CurrentVm = cgvm;
 	ChatBox_InitChat();
 
 	// VERSUS ONLY --eez
 	cb_chatmode = CHM_GLOBAL;
 	ChatBox_NewChatMode();
-
-	// Restore the active VM
-	//*(int *)0x12A4F18 = ActiveVM;
 }
 
 void ChatBox_MessageMode2() {
-	// Since this gets called from the engine, the VM info might be incorrect
-	// So override it so cgame is active, then restore later on	
-	//int ActiveVM = *(int *)0x12A4F18;
 	if (!ChatBox_CanUseChat()) {
 		return;
 	}
 
-	//*(int *)0x12A4F18 = *(int *)0x8AF0FC; // CurrentVm = cgvm;
 	ChatBox_InitChat();
 	cb_chatmode = CHM_TEAM;
 	ChatBox_NewChatMode();
-
-	// Restore the active VM
-	//*(int *)0x12A4F18 = ActiveVM;
 }
 
 void ChatBox_MessageMode3() {	// Private chat (aim trace)
-	// Since this gets called from the engine, the VM info might be incorrect
-	// So override it so cgame is active, then restore later on	
-	//int ActiveVM = *(int *)0x12A4F18;
 	int target;
 
 	if (!ChatBox_CanUseChat()) {
 		return;
 	}
-	//*(int *)0x12A4F18 = *(int *)0x8AF0FC; // CurrentVm = cgvm;
 	target = CG_CrosshairPlayer();
 	if (target >= 0 && target < MAX_CLIENTS) {
 		ChatBox_InitChat();
@@ -505,28 +480,16 @@ void ChatBox_MessageMode3() {	// Private chat (aim trace)
 		cb_privtarget = target;
 		ChatBox_NewChatMode();	
 	}
-	
-	// Restore the active VM
-	//*(int *)0x12A4F18 = ActiveVM;
 }
 
 void ChatBox_MessageMode4() {
-	// Since this gets called from the engine, the VM info might be incorrect
-	// So override it so cgame is active, then restore later on	
-	//int ActiveVM = *(int *)0x12A4F18;
 	if (!ChatBox_CanUseChat()) {
 		return;
 	}
 
-	// VERSUS ONLY --eez
-
-	//*(int *)0x12A4F18 = *(int *)0x8AF0FC; // CurrentVm = cgvm;
 	ChatBox_InitChat();
 	cb_chatmode = CHM_ACTION;
 	ChatBox_NewChatMode();
-
-	// Restore the active VM
-	//*(int *)0x12A4F18 = ActiveVM;
 }
 
 void ChatBox_UseMessageMode(int whichOne)
@@ -546,22 +509,6 @@ void ChatBox_UseMessageMode(int whichOne)
 			ChatBox_MessageMode4();
 			break;
 	}
-}
-
-void ChatBox_InitSystem() {
-	// Relink the messagemode<x> commands to our custom functions
-	/*Cmd_EditCommand("messagemode", ChatBox_MessageMode);
-	Cmd_EditCommand("messagemode2", ChatBox_MessageMode2);
-	Cmd_EditCommand("messagemode3", ChatBox_MessageMode3);
-	Cmd_EditCommand("messagemode4", ChatBox_MessageMode4);*/
-}
-
-void ChatBox_ShutdownSystem() {
-	// Relink the messagemode<x> commands to their engine functions
-	/*Cmd_EditCommand("messagemode", (void *)0x417040);
-	Cmd_EditCommand("messagemode2", (void *)0x417080);
-	Cmd_EditCommand("messagemode3", (void *)0x4170C0);
-	Cmd_EditCommand("messagemode4", (void *)0x417130);*/
 }
 
 void ChatBox_DrawBackdrop(menuDef_t *menu) {
@@ -593,7 +540,6 @@ void ChatBox_DrawBackdrop(menuDef_t *menu) {
 		}
 	}
 	
-#pragma region h_chat
 	item = Menu_FindItemByName(menu, "h_chat");
 	if (item) {
 		VectorCopy4(item->window.foreColor, color);
@@ -602,7 +548,6 @@ void ChatBox_DrawBackdrop(menuDef_t *menu) {
 		trap->R_SetColor( color );
 		trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, 0, 1, 1, cgs.media.whiteShader);
 	}
-#pragma endregion
 }
 
 void ChatBox_DrawChat(menuDef_t *menu) {
@@ -611,23 +556,20 @@ void ChatBox_DrawChat(menuDef_t *menu) {
 	unsigned int offset;
 	int cursorpos;
 	vec4_t	newColor;
+	float opacity = 1.0f;
 
-	MAKERGBA(newColor, colorCyan[0], colorCyan[1], colorCyan[2], colorCyan[3]*cg.jkg_HUDOpacity);
+	if (cg.snap->ps.pm_type != PM_SPECTATOR) {
+		opacity = cg.jkg_HUDOpacity;
+	}
+
+	MAKERGBA(newColor, colorCyan[0], colorCyan[1], colorCyan[2], colorCyan[3]*opacity);
 
 	if (!cg.isChatting) {
 		return;
 	}
-#pragma region t_chat
+
 	item = Menu_FindItemByName(menu, "t_chat");
 	if (item) {
-		/*trap->R_Font_DrawString(
-				item->window.rect.x,
-				item->window.rect.y,
-				chatModeText[cb_chatmode],
-				newColor,
-				cgDC.Assets.qhSmall4Font,
-				-1,
-				0.6f);*/
 		CG_DrawStringExt(
 			item->window.rect.x,
 			item->window.rect.y + 12,
@@ -640,17 +582,8 @@ void ChatBox_DrawChat(menuDef_t *menu) {
 		text = ChatBox_PrintableText(cgDC.Assets.qhSmall4Font, 0.6f);
 		offset = cb_data.cursor - cb_data.scroll;
 
-		MAKERGBA(newColor, colorWhite[0], colorWhite[1], colorWhite[2], colorWhite[3]*cg.jkg_HUDOpacity);
+		MAKERGBA(newColor, colorWhite[0], colorWhite[1], colorWhite[2], colorWhite[3]*opacity);
 		
-		// We use Text_DrawText here to ensure correct spacing
-		/*Text_DrawText(
-				item->window.rect.x + cb_data.offset,
-				item->window.rect.y,
-				text,
-				newColor,
-				cgDC.Assets.qhSmall4Font,
-				-1,
-				0.6f);*/
 		CG_DrawStringExt(
 			item->window.rect.x + cb_data.offset,
 			item->window.rect.y + 12,
@@ -664,22 +597,11 @@ void ChatBox_DrawChat(menuDef_t *menu) {
 		if (cg.time >> 8 & 1) {
 			// Draw the cursor
 			if (offset > strlen(text)) {
-				// Shouldn't happen.. but still, just in case
-				//cursorpos = Text_GetWidth(text, cgDC.Assets.qhSmall4Font, 0.6f);
 				cursorpos = 0;
 			} else {
 				((char *)text)[offset] = 0;
-				//cursorpos = Text_GetWidth(text, cgDC.Assets.qhSmall4Font, 0.6f);
 				cursorpos = (int)strlen(text) * 3;
 			}
-			/*Text_DrawText(
-					item->window.rect.x + cb_data.offset + cursorpos,
-					item->window.rect.y,
-					cb_data.overwrite ? "_" : "|" ,
-					newColor,
-					cgDC.Assets.qhSmall4Font,
-					-1,
-					0.6f);*/
 			CG_DrawStringExt(
 				item->window.rect.x + cb_data.offset + cursorpos,
 				item->window.rect.y + 12,
@@ -691,7 +613,6 @@ void ChatBox_DrawChat(menuDef_t *menu) {
 				cgs.media.charset_Arial);
 		}
 	}
-#pragma endregion
 }
 
 void ChatBox_InterruptChat() {
