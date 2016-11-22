@@ -244,21 +244,15 @@ static void JKG_LoadFireModeAssets ( weaponDrawData_t *drawData, const weaponFir
     
     if ( fireModeVisuals->projectileRender.generic.projectileEffect[0] )
         drawData->projectileRender.generic.projectileEffect = trap->FX_RegisterEffect (fireModeVisuals->projectileRender.generic.projectileEffect);
-    else if ( fireMode->ammo && fireMode->ammo->fx )
-        drawData->projectileRender.generic.projectileEffect = fireMode->ammo->fx;
         
     if ( fireModeVisuals->projectileRender.generic.projectileModel[0] )
         drawData->projectileRender.generic.projectileModel = trap->R_RegisterModel (fireModeVisuals->projectileRender.generic.projectileModel);
-    else if ( fireMode->ammo && fireMode->ammo->model )
-        drawData->projectileRender.generic.projectileModel = fireMode->ammo->model;
         
     if ( fireModeVisuals->projectileRender.generic.runSound[0] )
         drawData->projectileRender.generic.runSound = trap->S_RegisterSound (fireModeVisuals->projectileRender.generic.runSound);
         
     if ( fireModeVisuals->projectileRender.generic.deathEffect[0] )
         drawData->projectileRender.generic.deathEffect = trap->FX_RegisterEffect (fireModeVisuals->projectileRender.generic.deathEffect);
-    else if ( fireMode->ammo && fireMode->ammo->deathFx )
-        drawData->projectileRender.generic.deathEffect = fireMode->ammo->deathFx;
     
     // Projectile miss event
     if ( isTripmine || isDetpack )
@@ -270,8 +264,6 @@ static void JKG_LoadFireModeAssets ( weaponDrawData_t *drawData, const weaponFir
     {
         if ( fireModeVisuals->projectileMiss.generic.impactEffect[0] )
             drawData->projectileMiss.generic.impactEffect = trap->FX_RegisterEffect (fireModeVisuals->projectileMiss.generic.impactEffect);
-        else if ( fireMode->ammo && fireMode->ammo->missFx )
-            drawData->projectileMiss.generic.impactEffect = fireMode->ammo->missFx;
             
         if ( fireModeVisuals->projectileMiss.grenade.shockwaveEffect[0] )
             drawData->projectileMiss.grenade.shockwaveEffect = trap->FX_RegisterEffect (fireModeVisuals->projectileMiss.grenade.shockwaveEffect);
@@ -280,8 +272,6 @@ static void JKG_LoadFireModeAssets ( weaponDrawData_t *drawData, const weaponFir
     // Projectile hit event
     if ( fireModeVisuals->projectileHitPlayer.generic.impactEffect[0] )
         drawData->projectileHitPlayer.generic.impactEffect = trap->FX_RegisterEffect (fireModeVisuals->projectileHitPlayer.generic.impactEffect);
-    else if ( fireMode->ammo && fireMode->ammo->hitFx )
-        drawData->projectileHitPlayer.generic.impactEffect = fireMode->ammo->hitFx;
         
     if ( fireModeVisuals->projectileHitPlayer.grenade.shockwaveEffect[0] )
         drawData->projectileHitPlayer.grenade.shockwaveEffect = trap->FX_RegisterEffect (fireModeVisuals->projectileHitPlayer.grenade.shockwaveEffect);

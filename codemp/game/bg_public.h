@@ -1898,6 +1898,7 @@ typedef enum damageType_e
     NUM_DAMAGE_TYPES
 } damageType_t;
 qboolean JKG_DamageTypeFreezes ( const damageType_t damageType );
+extern stringID_table_t debuffTable[];
 
 typedef struct {
 	float baseJumpHeight;

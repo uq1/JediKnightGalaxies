@@ -2849,7 +2849,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	char				*saber;
 	qboolean			changedSaber = qfalse;
 	int                 savedWeaponId = 0;
-	int					topAmmoValues[JKG_MAX_AMMO_INDICES];
+	int					topAmmoValues[MAX_AMMO_TYPES];
 	qboolean			haveItem = qfalse;
 	qboolean			use_secondary_spawnpoint = qfalse;
 	int					savedCredits;
@@ -3485,7 +3485,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
 		if (it->id && it->id->itemType == ITEM_WEAPON) {
 			weaponData_t* wepData = GetWeaponData(it->id->weaponData.weapon, it->id->weaponData.variation);
-			if (wepData->ammoIndex > JKG_MAX_AMMO_INDICES) {
+			if (wepData->ammoIndex > MAX_AMMO_TYPES) {
 				continue;
 			}
 			if (topAmmoValues[wepData->ammoIndex] < wepData->ammoOnSpawn) {

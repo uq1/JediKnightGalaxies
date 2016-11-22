@@ -3474,3 +3474,19 @@ void Q_FSWriteString( fileHandle_t f, const char *msg ) {
 		trap->FS_Write( msg, strlen( msg ), f );
 	}
 }
+
+// convert a debuff string into an integer
+
+stringID_table_t debuffTable[] = {
+	{ "disintegrate", DT_DISINTEGRATE },
+	{ "explosion", DT_EXPLOSION },
+	{ "fire", DT_FIRE },
+	{ "freeze", DT_FREEZE },
+	{ "implosion", DT_IMPLOSION },
+	{ "stun", DT_STUN },
+	{ "carbonite", DT_CARBONITE },
+	{ "bleed", DT_BLEED },
+	{ "cold", DT_COLD },
+	{ "poison", DT_POISON },
+	{ "", -1 }
+};

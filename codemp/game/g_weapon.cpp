@@ -3926,11 +3926,6 @@ int WP_GetWeaponDamage( gentity_t *ent, int firemode )
 		damage = thisWeaponData->firemodes[firemode].baseDamage;
 	}
 		
-	if ( thisWeaponData->firemodes[firemode].ammo )
-	{
-		damage *= thisWeaponData->firemodes[firemode].ammo->damageModifier;
-	}
-		
 	return damage;
 }
 

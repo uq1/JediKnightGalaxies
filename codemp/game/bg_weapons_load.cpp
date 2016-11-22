@@ -158,69 +158,12 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
             
             for ( i = 0; i < numTypes; i++ )
             {
-				if ( Q_stricmp (types[i], "disintegrate") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_DISINTEGRATE);
-                    darea.damageType = dType;
+				int num = GetIDForString(debuffTable, types[i]);
+				if (num == -1) {
+					Com_Printf("Unknown damage type used: %s.\n", types[i]);
 				}
-                else if ( Q_stricmp (types[i], "explosion") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_EXPLOSION);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "fire") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= ( 1 << DT_FIRE );
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "freeze") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_FREEZE);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "implosion") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_IMPLOSION);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "stun") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_STUN);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "carbonite") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_CARBONITE);
-                    darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "bleed") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_BLEED);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "cold") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_COLD);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "poison") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_POISON);
-					darea.damageType = dType;
-				}
-                else
-				{
-                    Com_Printf ("Unknown damage type used: %s.\n", types[i]);
+				else {
+					darea.damageType |= (1 << num);
 				}
             }
         }
@@ -249,11 +192,8 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     }
     
     node = cJSON_GetObjectItem (fireModeNode, "ammo");
-    str = cJSON_ToString (node);
-    if ( str && str[0] )
-    {
-        fireModeStats->ammo = BG_GetAmmo (str);
-    }
+    str = cJSON_ToStringOpt (node, "noammo");
+	fireModeStats->ammo = BG_GetAmmo (str);
 
     node = cJSON_GetObjectItem (fireModeNode, "damage");
 #ifdef _GAME
@@ -327,9 +267,6 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     
     node = cJSON_GetObjectItem (fireModeNode, "recoil");
     fireModeStats->recoil = (float)cJSON_ToNumberOpt (node, 0.0);
-    
-    //node = cJSON_GetObjectItem (fireModeNode, "spread");
-    //fireModeStats->spread = (float)cJSON_ToNumberOpt (node, 0.0);
 
 	node = cJSON_GetObjectItem (fireModeNode, "accuracy");
 	if( node )
@@ -414,16 +351,6 @@ static void BG_ParseWeaponStats ( weaponData_t *weaponData, cJSON *statsNode )
 
     node = cJSON_GetObjectItem (statsNode, "reloadtime");
     weaponData->weaponReloadTime = (unsigned short)cJSON_ToIntegerOpt (node, 0);
-
-    node = cJSON_GetObjectItem (statsNode, "ammoIndex");
-    ammo = cJSON_ToStringOpt (node, "AMMO_NONE");
-	weaponData->ammoIndex = BG_GetAmmo(ammo)->ammoIndex;
-
-	node = cJSON_GetObjectItem (statsNode, "ammoOnSpawn");
-	weaponData->ammoOnSpawn = (unsigned int)cJSON_ToIntegerOpt (node, ((weaponData->ammoIndex < AMMO_ROCKETS) ? 400 : ((weaponData->ammoIndex != AMMO_ROCKETS) ? 444 : 10)));	// Gives 300 ammo for non-explosives
-
-	node = cJSON_GetObjectItem (statsNode, "ammoOnPickup");
-	weaponData->ammoOnPickup = (unsigned int)cJSON_ToIntegerOpt (node, ((weaponData->ammoIndex < AMMO_ROCKETS) ? 20 : 1));	// Gives 20 ammo for non-explosives
 
 	node = cJSON_GetObjectItem (statsNode, "clipSize");
 	weaponData->clipSize = (unsigned int)cJSON_ToIntegerOpt (node, 0);

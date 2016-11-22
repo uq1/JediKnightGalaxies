@@ -35,11 +35,6 @@ void JKGKeywordHashUI_Add(JKGkeywordHashUI_t *table[], JKGkeywordHashUI_t *key) 
 	int hash;
 
 	hash = JKGKeywordHash_Key(key->keyword);
-/*
-	if (table[hash]) {
-		int collision = qtrue;
-	}
-*/
 	key->next = table[hash];
 	table[hash] = key;
 }
@@ -61,11 +56,6 @@ void JKGKeywordHashSv_Add(JKGkeywordHashSv_t *table[], JKGkeywordHashSv_t *key) 
 	int hash;
 
 	hash = JKGKeywordHash_Key(key->keyword);
-/*
-	if (table[hash]) {
-		int collision = qtrue;
-	}
-*/
 	key->next = table[hash];
 	table[hash] = key;
 }
@@ -93,7 +83,6 @@ void JKG_SendEscape(char ** args) {
 #include "jkg_pazaak.h"
 #include "jkg_partymanager.h"
 #include "jkg_slice.h"
-#include "jkg_lootui.h"
 #include "jkg_inventory.h"
 
 extern void UI_BuildQ3Model_List( void );
@@ -155,10 +144,6 @@ JKGkeywordHashUI_t JKGScripts[] = {
 	{"inv_unequip",			JKG_Inventory_UnequipArmor,		0		},
 	{"inv_open_other",		JKG_Inventory_Open,				0		},
 
-	// Looting
-	{"loot_button",			JKG_LootScript_Button,			0		},
-	{"loot_item",			JKG_LootScript_Item,			0		},
-
 	// Shop
 	{ "shop_arrow",			JKG_ShopArrow,					0		},
 	{ "shop_left_button",	JKG_Shop_SelectLeft,			0		},
@@ -177,9 +162,6 @@ JKGkeywordHashSv_t JKGCmds[] = {
 	{"pzk",				JKG_ProcessPazaak_f,		    0		},
 	{"pmr",				PartyMngt_ShowMessage_f,	    0		},
 	{"slc",				JKG_Slice_ProcessCommand_f,		0		},
-	{"loot",			JKG_ProcessLoot,				0		},
-	/*{"~clLoginResp",	JKAG_Cmd_clLoginResp		    0		},
-	{"~clRegisterResp",	JKAG_Cmd_clRegisterResp,	    0		},*/
 	{0,					0,							    0		},
 };
 

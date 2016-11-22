@@ -815,6 +815,25 @@ void JKG_ItemLookup_f(gentity_t *ent)
 
 /*
 ==================
+JKG_MyAmmo_f
+
+Prints a list of all the ammo that you have
+==================
+*/
+static void JKG_MyAmmo_f(gentity_t* ent) {
+	trap->SendServerCommand(ent - g_entities, "print \"=============================================\n\"");
+	for (int i = 0; i < numAmmoLoaded; i++) {
+		if (!ent->client->ammoTable[i]) {
+			continue;
+		}
+		ammo_t* ammo = &ammoTable[i];
+		trap->SendServerCommand(ent - g_entities, va("print \"%s: %i/%i\n\"", ammo->name, ent->client->ammoTable[i], ammo->ammoMax));
+	}
+	trap->SendServerCommand(ent - g_entities, "print \"=============================================\n\"");
+}
+
+/*
+==================
 JKG_ItemCheck_f
 
 Gives details about an item
@@ -1144,17 +1163,6 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 			return;
 	}
 
-	/*if ( give_all || !Q_stricmp( name, "force" ) )
-	{
-		if ( argc == 3 )
-			ent->client->ps.fd.forcePower = Com_Clampi( 0, ent->client->ps.fd.forcePowerMax, atoi( args ) );
-		else
-			ent->client->ps.fd.forcePower = ent->client->ps.fd.forcePowerMax;
-
-		if ( !give_all )
-			return;
-	}*/
-
 	if ( give_all || !Q_stricmp( name, "stamina" ) )
 	{
 		if ( argc == 3 )
@@ -1193,7 +1201,7 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 		int num = 999;
 		if ( argc == 3 )
 			num = Com_Clampi( 0, 999, atoi( args ) );
-		for ( i=0; i<JKG_MAX_AMMO_INDICES; i++ )
+		for ( i=0; i<MAX_AMMO_TYPES; i++ )
 			ent->client->ammoTable[i] = num;		//FIXME: copy to proper ammo array
 		for ( i=0; i<256; i++ )
 		{
@@ -1305,16 +1313,6 @@ void Cmd_GiveOther_f( gentity_t *ent )
 	char		otherindex[MAX_TOKEN_CHARS];
 	gentity_t	*otherEnt = NULL;
 
-	/*if ( !CheatsOk( ent ) ) {
-		return;
-	}*/
-	// giveother doesn't care if the activator is dead or not
-	// so only check the intended target for life below
-	if ( !sv_cheats.integer && !ent->client->sess.canUseCheats ) {
-		trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
-		return;
-	}
-
 	if ( trap->Argc () < 3 ) {
 		trap->SendServerCommand( ent-g_entities, "print \"Usage: giveother <player id> <givestring>\n\"" );
 		return;
@@ -1355,10 +1353,6 @@ argv(0) god
 void Cmd_God_f( gentity_t *ent ) {
 	char *msg = NULL;
 
-	if ( !CheatsOk( ent ) ) {
-		return;
-	}
-
 	ent->flags ^= FL_GODMODE;
 	if ( !(ent->flags & FL_GODMODE) )
 		msg = "godmode OFF";
@@ -1381,10 +1375,6 @@ argv(0) notarget
 void Cmd_Notarget_f( gentity_t *ent ) {
 	char *msg = NULL;
 
-	if ( !CheatsOk( ent ) ) {
-		return;
-	}
-
 	ent->flags ^= FL_NOTARGET;
 	if ( !(ent->flags & FL_NOTARGET) )
 		msg = "notarget OFF";
@@ -1404,10 +1394,6 @@ argv(0) noclip
 */
 void Cmd_Noclip_f( gentity_t *ent ) {
 	char *msg = NULL;
-
-	if ( !CheatsOk( ent ) ) {
-		return;
-	}
 
 	ent->client->noclip = !ent->client->noclip;
 	if ( !ent->client->noclip )
@@ -1431,10 +1417,6 @@ hide the scoreboard, and take a special screenshot
 */
 void Cmd_LevelShot_f( gentity_t *ent )
 {
-	if ( !CheatsOk( ent ) ) {
-		return;
-	}
-
 	if ( !ent->client->pers.localClient )
 	{
 		trap->SendServerCommand(ent-g_entities, "print \"The levelshot command must be executed by a local client\n\"");
@@ -4387,6 +4369,7 @@ static const command_t commands[] = {
 	{ "knockmedown",			Cmd_KnockMeDown_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "levelshot",				Cmd_LevelShot_f,			CMD_NEEDCHEATS },
 	{ "loveandpeace",			Cmd_LoveAndPeace_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "myammo",					JKG_MyAmmo_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "noclip",					Cmd_Noclip_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NEEDCHEATS },
 	{ "notarget",				Cmd_Notarget_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_NEEDCHEATS },
 	{ "npc",					Cmd_NPC_f,					CMD_NEEDCHEATS },

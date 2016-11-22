@@ -1161,7 +1161,7 @@ void ammo_generic_power_converter_use( gentity_t *self, gentity_t *other, gentit
 		//self->setTime = level.time + 100;
 		self->fly_sound_debounce_time = level.time + 500;
 		self->activator = activator;
-		while (i < JKG_MAX_AMMO_INDICES)
+		while (i < MAX_AMMO_TYPES)
 		{
 			add = 1;
 			activator->client->ammoTable[i] += add;

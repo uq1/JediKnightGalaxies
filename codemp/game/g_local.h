@@ -1020,7 +1020,7 @@ struct gclient_s {
 	int			shieldRegenLast;
 	itemJetpackData_t* pItemJetpack;
 
-	int		ammoTable[JKG_MAX_AMMO_INDICES];				// Max ammo indices increased to JKG_MAX_AMMO_INDICES
+	int		ammoTable[MAX_AMMO_TYPES];		// Max ammo indices increased to JKG_MAX_AMMO_INDICES
 
 	unsigned int numDroneShotsInBurst;
 	unsigned int lastHitmarkerTime;			// Timer to ensure that we don't get ear-raped whenever we hit someone with a scattergun --eez
