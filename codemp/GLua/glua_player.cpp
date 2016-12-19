@@ -1587,26 +1587,8 @@ static int GLua_Player_GetCurrentGunAmmoType(lua_State *L)
 	ent = &g_entities[ply->clientNum];
 	if(!ent) return 0;
 
-	wp = GetWeaponData((unsigned char)ent->client->ps.weapon, (unsigned char)ent->client->ps.weaponVariation);
-	if(!wp) return 0;
+	lua_pushinteger(L, ent->client->ps.ammoType);
 
-	lua_pushinteger(L, wp->ammoIndex);
-
-	return 1;
-}
-
-// FIXME: this makes no sense whatsoever being a member of ply/player
-static int GLua_Player_GetGunAmmoType(lua_State *L)
-{
-	GLua_CheckPlayer(L,1);
-
-	int weapon = lua_tointeger(L,2);
-	int variation = lua_tointeger(L,3);
-	weaponData_t *wp = GetWeaponData((unsigned char)weapon, (unsigned char)variation);
-
-	if(!wp) return 0;
-
-	lua_pushinteger(L, wp->ammoIndex);
 	return 1;
 }
 
@@ -1758,7 +1740,7 @@ static const struct luaL_reg player_m [] = {
 	{"ModifyCreditCount", GLua_Player_ModifyCreditCount},
 	// add 6/2/13
 	{"GetCurrentGunAmmoType", GLua_Player_GetCurrentGunAmmoType},
-	{"GetGunAmmoType", GLua_Player_GetGunAmmoType},
+	//{"GetGunAmmoType", GLua_Player_GetGunAmmoType},	// removed 12/11/2016
 	{"PossessingItem", GLua_Player_PossessingItem},
 	{"PossessingWeapon", GLua_Player_PossessingWeapon},
 	// add 8/18/13
@@ -1805,10 +1787,7 @@ static const struct GLua_Prop player_p [] = {
 	{"NoDrops", GLua_Player_GetNoDrops, GLua_Player_SetNoDrops},
 	{"AdminRank",	GLua_Player_GetAdminRank,	NULL},
 	{"CustomTeam", GLua_Player_GetCustomTeam, GLua_Player_SetCustomTeam},
-	//eezstreet add
-	{"CurrentlyLooting", GLua_Player_CurrentlyLooting_Get, GLua_Player_CurrentlyLooting_Set},
 	{"CanUseCheats", GLua_Player_CanUseCheats_Get, GLua_Player_CanUseCheats_Set},
-	//eezstreet end
 	{NULL,		NULL,						NULL},
 };
 

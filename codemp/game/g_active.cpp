@@ -2005,6 +2005,8 @@ void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation) {
 	usercmd_t cmd;
 	weaponData_t* newWeapon = GetWeaponData(newweapon, newvariation);
 	weaponData_t* oldWeapon = GetWeaponData(ps->weapon, ps->weaponVariation);
+	int oldWeaponIndex = BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation);
+	int newWeaponIndex = BG_GetWeaponIndexFromClass(newweapon, newvariation);
 
 	trap->GetUsercmd(ps->clientNum, &cmd);
 
@@ -2018,15 +2020,17 @@ void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation) {
 	// Store the current ammo amount
 	if ( !oldWeapon->firemodes[0].useQuantity && oldWeapon->clipSize != -1 )
 	{
-		ent->client->clipammo[BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation)] = ent->client->ps.stats[STAT_AMMO];
-		ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)] = ent->client->ps.stats[STAT_TOTALAMMO];
+		ent->client->clipammo[oldWeaponIndex] = ent->client->ps.stats[STAT_AMMO];
+		ent->client->ammoTable[ent->client->ps.ammoType] = ent->client->ps.stats[STAT_TOTALAMMO];
+		ent->client->ammoTypes[oldWeaponIndex] = ent->client->ps.ammoType;
 	}
 
 	if ( !newWeapon->firemodes[0].useQuantity && newWeapon->clipSize != -1 )
 	{
 		// Get the new weapon's ammo stored in STAT_AMMO
-		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ BG_GetWeaponIndexFromClass(newweapon, newvariation) ];
-		ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(newweapon, newvariation)];
+		ent->client->ps.ammoType = ent->client->ammoTypes[newWeaponIndex];
+		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[newWeaponIndex];
+		ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
 	}
 	else if (newWeapon->firemodes[0].useQuantity) {
 		// Get the weapon's ammo from the actual item's quantity
@@ -2034,6 +2038,7 @@ void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation) {
 
 		ent->client->ps.stats[STAT_AMMO] = item->quantity;
 		ent->client->ps.stats[STAT_TOTALAMMO] = item->quantity;
+		ent->client->ps.ammoType = 0;
 	}
 }
 
@@ -2107,7 +2112,6 @@ void ClientThink_real( gentity_t *ent ) {
 
 		if(!SaberStances[client->ps.fd.saberAnimLevel].moves[LS_READY].anim)
 		{
-			// fake and gay
 			for(i = client->ps.fd.saberAnimLevel+1; j < MAX_STANCES; j++)
 			{
 				i++;
@@ -2122,7 +2126,7 @@ void ClientThink_real( gentity_t *ent ) {
 				}
 			}
 		}
-		// TODO: finish this code
+
 		if (client->saber[0].model[0] && client->saber[1].model[0])
 		{
 			// Use a duals friendly stance whenever we're using duals, derp.
@@ -2137,8 +2141,6 @@ void ClientThink_real( gentity_t *ent ) {
 				}
 			}
 		}
-
-		//client->ns.saberMoveSwingSpeed = SaberStances[client->ps.fd.saberAnimLevel].moves[client->ps.saberMove].animspeedscale;
 	}
 
 	// Automatically regenerate health and shield
@@ -2191,11 +2193,9 @@ void ClientThink_real( gentity_t *ent ) {
 	// sanity check the command time to prevent speedup cheating
 	if ( ucmd->serverTime > level.time + 200 ) {
 		ucmd->serverTime = level.time + 200;
-//		trap->Print("serverTime <<<<<\n" );
 	}
 	if ( ucmd->serverTime < level.time - 1000 ) {
 		ucmd->serverTime = level.time - 1000;
-//		trap->Print("serverTime >>>>>\n" );
 	} 
 
 	// ironsights related crap here
@@ -2229,8 +2229,6 @@ void ClientThink_real( gentity_t *ent ) {
 
 	if ( pmove_fixed.integer || client->pers.pmoveFixed ) {
 		ucmd->serverTime = ((ucmd->serverTime + pmove_msec.integer-1) / pmove_msec.integer) * pmove_msec.integer;
-		//if (ucmd->serverTime - client->ps.commandTime <= 0)
-		//	return;
 	}
 
 	//
@@ -2382,121 +2380,100 @@ void ClientThink_real( gentity_t *ent ) {
 		//FIXME: swoop should keep turning (and moving forward?) for a little bit?
 		if ( ent->NPC->combatMove == qfalse )
 		{
-			//if ( !(ucmd->buttons & BUTTON_USE) )
-			if (1)
-			{//Not leaning
-				qboolean Flying = (ucmd->upmove && (ent->client->ps.eFlags2&EF2_FLYING));//ent->client->moveType == MT_FLYSWIM);
-				qboolean Climbing = (ucmd->upmove && ent->watertype&CONTENTS_LADDER );
+			qboolean Flying = (ucmd->upmove && (ent->client->ps.eFlags2&EF2_FLYING));//ent->client->moveType == MT_FLYSWIM);
+			qboolean Climbing = (ucmd->upmove && ent->watertype&CONTENTS_LADDER );
 
-				//client->ps.friction = 6;
+			//client->ps.friction = 6;
 
-				if ( ucmd->forwardmove || ucmd->rightmove || Flying )
-				{
-					//if ( ent->NPC->behaviorState != BS_FORMATION )
-					{//In - Formation NPCs set thier desiredSpeed themselves
-						if ( ucmd->buttons & BUTTON_WALKING )
+			if ( ucmd->forwardmove || ucmd->rightmove || Flying )
+			{
+				//if ( ent->NPC->behaviorState != BS_FORMATION )
+				{//In - Formation NPCs set thier desiredSpeed themselves
+					if ( ucmd->buttons & BUTTON_WALKING )
+					{
+						ent->NPC->desiredSpeed = NPC_GetWalkSpeed( ent );//ent->NPC->stats.walkSpeed;
+					}
+					else//running
+					{
+						ent->NPC->desiredSpeed = NPC_GetRunSpeed( ent );//ent->NPC->stats.runSpeed;
+					}
+
+					if ( ent->NPC->currentSpeed >= 80 && !controlledByPlayer )
+					{//At higher speeds, need to slow down close to stuff
+						//Slow down as you approach your goal
+					//	if ( ent->NPC->distToGoal < SLOWDOWN_DIST && client->race != RACE_BORG && !(ent->NPC->aiFlags&NPCAI_NO_SLOWDOWN) )//128
+						if ( ent->NPC->distToGoal < SLOWDOWN_DIST && !(ent->NPC->aiFlags&NPCAI_NO_SLOWDOWN) )//128
 						{
-							ent->NPC->desiredSpeed = NPC_GetWalkSpeed( ent );//ent->NPC->stats.walkSpeed;
-						}
-						else//running
-						{
-							ent->NPC->desiredSpeed = NPC_GetRunSpeed( ent );//ent->NPC->stats.runSpeed;
-						}
-
-						if ( ent->NPC->currentSpeed >= 80 && !controlledByPlayer )
-						{//At higher speeds, need to slow down close to stuff
-							//Slow down as you approach your goal
-						//	if ( ent->NPC->distToGoal < SLOWDOWN_DIST && client->race != RACE_BORG && !(ent->NPC->aiFlags&NPCAI_NO_SLOWDOWN) )//128
-							if ( ent->NPC->distToGoal < SLOWDOWN_DIST && !(ent->NPC->aiFlags&NPCAI_NO_SLOWDOWN) )//128
+							if ( ent->NPC->desiredSpeed > MIN_NPC_SPEED )
 							{
-								if ( ent->NPC->desiredSpeed > MIN_NPC_SPEED )
-								{
-									float slowdownSpeed = ((float)ent->NPC->desiredSpeed) * ent->NPC->distToGoal / SLOWDOWN_DIST;
+								float slowdownSpeed = ((float)ent->NPC->desiredSpeed) * ent->NPC->distToGoal / SLOWDOWN_DIST;
 
-									ent->NPC->desiredSpeed = ceil(slowdownSpeed);
-									if ( ent->NPC->desiredSpeed < MIN_NPC_SPEED )
-									{//don't slow down too much
-										ent->NPC->desiredSpeed = MIN_NPC_SPEED;
-									}
+								ent->NPC->desiredSpeed = ceil(slowdownSpeed);
+								if ( ent->NPC->desiredSpeed < MIN_NPC_SPEED )
+								{//don't slow down too much
+									ent->NPC->desiredSpeed = MIN_NPC_SPEED;
 								}
 							}
 						}
 					}
 				}
-				else if ( Climbing )
-				{
-					ent->NPC->desiredSpeed = ent->NPC->stats.walkSpeed;
+			}
+			else if ( Climbing )
+			{
+				ent->NPC->desiredSpeed = ent->NPC->stats.walkSpeed;
+			}
+			else
+			{//We want to stop
+				ent->NPC->desiredSpeed = 0;
+			}
+
+			NPC_Accelerate( ent, qfalse, qfalse );
+
+			if ( ent->NPC->currentSpeed <= 24 && ent->NPC->desiredSpeed < ent->NPC->currentSpeed )
+			{//No-one walks this slow
+				client->ps.speed = ent->NPC->currentSpeed = 0;//Full stop
+				ucmd->forwardmove = 0;
+				ucmd->rightmove = 0;
+			}
+			else
+			{
+				if (ent->NPC->currentSpeed <= ent->NPC->stats.walkSpeed)
+				{//Play the walkanim
+					ucmd->buttons |= BUTTON_WALKING;
 				}
 				else
-				{//We want to stop
-					ent->NPC->desiredSpeed = 0;
-				}
-
-				NPC_Accelerate( ent, qfalse, qfalse );
-
-				if ( ent->NPC->currentSpeed <= 24 && ent->NPC->desiredSpeed < ent->NPC->currentSpeed )
-				{//No-one walks this slow
-					client->ps.speed = ent->NPC->currentSpeed = 0;//Full stop
-					ucmd->forwardmove = 0;
-					ucmd->rightmove = 0;
-				}
-				else
 				{
-					if ( ent->NPC->currentSpeed <= ent->NPC->stats.walkSpeed )
-					{//Play the walkanim
-						ucmd->buttons |= BUTTON_WALKING;
-					}
-					else
+					ucmd->buttons &= ~BUTTON_WALKING;
+				}
+
+				if (ent->NPC->currentSpeed > 0)
+				{//We should be moving
+					if (Climbing || Flying)
 					{
-						ucmd->buttons &= ~BUTTON_WALKING;
-					}
-
-					if ( ent->NPC->currentSpeed > 0 )
-					{//We should be moving
-						if ( Climbing || Flying )
-						{
-							if ( !ucmd->upmove )
-							{//We need to force them to take a couple more steps until stopped
-								ucmd->upmove = ent->NPC->last_ucmd.upmove;//was last_upmove;
-							}
-						}
-						else if ( !ucmd->forwardmove && !ucmd->rightmove )
+						if (!ucmd->upmove)
 						{//We need to force them to take a couple more steps until stopped
-							ucmd->forwardmove = ent->NPC->last_ucmd.forwardmove;//was last_forwardmove;
-							ucmd->rightmove = ent->NPC->last_ucmd.rightmove;//was last_rightmove;
+							ucmd->upmove = ent->NPC->last_ucmd.upmove;//was last_upmove;
 						}
 					}
+					else if (!ucmd->forwardmove && !ucmd->rightmove)
+					{//We need to force them to take a couple more steps until stopped
+						ucmd->forwardmove = ent->NPC->last_ucmd.forwardmove;//was last_forwardmove;
+						ucmd->rightmove = ent->NPC->last_ucmd.rightmove;//was last_rightmove;
+					}
+				}
 
-					client->ps.speed = ent->NPC->currentSpeed;
-				//	if ( player && player->client && player->client->ps.viewEntity == ent->s.number )
-				//	{
-				//	}
-				//	else
-					//rwwFIXMEFIXME: do this and also check for all real client
-					if (1)
-					{
-						//Slow down on turns - don't orbit!!!
-						float turndelta = 0; 
-						// if the NPC is locked into a Yaw, we want to check the lockedDesiredYaw...otherwise the NPC can't walk backwards, because it always thinks it trying to turn according to desiredYaw
-						//if( client->renderInfo.renderFlags & RF_LOCKEDANGLE ) // yeah I know the RF_ flag is a pretty ugly hack...
-						if (0) //rwwFIXMEFIXME: ...
-						{	
-							turndelta = (180 - fabs( AngleDelta( ent->r.currentAngles[YAW], ent->NPC->lockedDesiredYaw ) ))/180;
-						}
-						else
-						{
-							turndelta = (180 - fabs( AngleDelta( ent->r.currentAngles[YAW], ent->NPC->desiredYaw ) ))/180;
-						}
-												
-						if ( turndelta < 0.75f )
-						{
-							client->ps.speed = 0;
-						}
-						else if ( ent->NPC->distToGoal < 100 && turndelta < 1.0 )
-						{//Turn is greater than 45 degrees or closer than 100 to goal
-							client->ps.speed = floor(((float)(client->ps.speed))*turndelta);
-						}
-					}
+				client->ps.speed = ent->NPC->currentSpeed;
+
+				//Slow down on turns - don't orbit!!!
+				float turndelta = (180 - fabs(AngleDelta(ent->r.currentAngles[YAW], ent->NPC->desiredYaw))) / 180;
+
+				if (turndelta < 0.75f)
+				{
+					client->ps.speed = 0;
+				}
+				else if (ent->NPC->distToGoal < 100 && turndelta < 1.0)
+				{//Turn is greater than 45 degrees or closer than 100 to goal
+					client->ps.speed = floor(((float)(client->ps.speed))*turndelta);
 				}
 			}
 		}
@@ -2509,13 +2486,6 @@ void ClientThink_real( gentity_t *ent ) {
 
 		if (ucmd->buttons & BUTTON_WALKING)
 		{ //sort of a hack I guess since MP handles walking differently from SP (has some proxy cheat prevention methods)
-			/*
-			if (ent->client->ps.speed > 64)
-			{
-				ent->client->ps.speed = 64;
-			}
-			*/
-
 			if (ucmd->forwardmove > bgConstants.walkingSpeed)
  			{
 				ucmd->forwardmove = bgConstants.walkingSpeed;	
@@ -2678,10 +2648,6 @@ void ClientThink_real( gentity_t *ent ) {
 				}
 			}
 
-			/*
-			trap->SendServerCommand( ent-g_entities, va("print \"%s %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELWINNER")) );
-			trap->SendServerCommand( duelAgainst-g_entities, va("print \"%s %s\n\"", ent->client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLDUELWINNER")) );
-			*/
 			//Private duel announcements are now made globally because we only want one duel at a time.
 			if (ent->health > 0 && ent->client->ps.stats[STAT_HEALTH] > 0)
 			{
@@ -2811,13 +2777,6 @@ void ClientThink_real( gentity_t *ent ) {
 		else if (thrower->inuse && thrower->client && thrower->ghoul2 &&
 			trap->G2_HaveWeGhoul2Models(thrower->ghoul2))
 		{
-#if 0
-			int lHandBolt = trap->G2API_AddBolt(thrower->ghoul2, 0, "*l_hand");
-			int pelBolt = trap->G2API_AddBolt(thrower->ghoul2, 0, "pelvis");
-
-
-			if (lHandBolt != -1 && pelBolt != -1)
-#endif
 			{
 				float pDif = 40.0f;
 				vec3_t boltOrg, pBoltOrg;
@@ -2836,26 +2795,11 @@ void ClientThink_real( gentity_t *ent ) {
 				tAngles[PITCH] = tAngles[ROLL] = 0;
 
 				//Get the direction between the pelvis and position of the hand
-#if 0
-				mdxaBone_t boltMatrix, pBoltMatrix;
-
-				trap->G2API_GetBoltMatrix(thrower->ghoul2, 0, lHandBolt, &boltMatrix, tAngles, thrower->client->ps.origin, level.time, 0, thrower->modelScale);
-				boltOrg[0] = boltMatrix.matrix[0][3];
-				boltOrg[1] = boltMatrix.matrix[1][3];
-				boltOrg[2] = boltMatrix.matrix[2][3];
-
-				trap->G2API_GetBoltMatrix(thrower->ghoul2, 0, pelBolt, &pBoltMatrix, tAngles, thrower->client->ps.origin, level.time, 0, thrower->modelScale);
-				pBoltOrg[0] = pBoltMatrix.matrix[0][3];
-				pBoltOrg[1] = pBoltMatrix.matrix[1][3];
-				pBoltOrg[2] = pBoltMatrix.matrix[2][3];
-#else //above tends to not work once in a while, for various reasons I suppose.
 				VectorCopy(thrower->client->ps.origin, pBoltOrg);
 				AngleVectors(tAngles, fwd, right, 0);
 				boltOrg[0] = pBoltOrg[0] + fwd[0]*8 + right[0]*pDif;
 				boltOrg[1] = pBoltOrg[1] + fwd[1]*8 + right[1]*pDif;
 				boltOrg[2] = pBoltOrg[2];
-#endif
-				//G_TestLine(boltOrg, pBoltOrg, 0x0000ff, 50);
 
 				VectorSubtract(ent->client->ps.origin, boltOrg, vDif);
 				if (VectorLength(vDif) > 32.0f && (thrower->client->doingThrow - level.time) < 4500)
@@ -2952,32 +2896,6 @@ void ClientThink_real( gentity_t *ent ) {
 		ent->client->ps.heldByClient = 0;
 	}
 
-	/*
-	if ( client->ps.powerups[PW_HASTE] ) {
-		client->ps.speed *= 1.3;
-	}
-	*/
-
-	//Will probably never need this again, since we have g2 properly serverside now.
-	//But just in case.
-	/*
-	if (client->ps.usingATST && ent->health > 0)
-	{ //we have special shot clip boxes as an ATST
-		ent->r.contents |= CONTENTS_NOSHOT;
-		ATST_ManageDamageBoxes(ent);
-	}
-	else
-	{
-		ent->r.contents &= ~CONTENTS_NOSHOT;
-		client->damageBoxHandle_Head = 0;
-		client->damageBoxHandle_RLeg = 0;
-		client->damageBoxHandle_LLeg = 0;
-	}
-	*/
-
-	//rww - moved this stuff into the pmove code so that it's predicted properly
-	//BG_AdjustClientSpeed(&client->ps, &client->pers.cmd, level.time);
-
 	// set up for pmove
 	oldEventSequence = client->ps.eventSequence;
 
@@ -3043,9 +2961,6 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 	}
 
-//	WP_ForcePowersUpdate( ent, msec, ucmd); //update any active force powers
-//	WP_SaberPositionUpdate(ent, ucmd); //check the server-side saber point, do apprioriate server-side actions (effects are cs-only)
-
 	//NOTE: can't put USE here *before* PMove!!
 	if ( ent->client->ps.useDelay > level.time 
 		&& ent->client->ps.m_iVehicleNum )
@@ -3105,23 +3020,6 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 	}
 
-	//point the saber data to the right place
-#if 0
-	k = 0;
-	while (k < MAX_SABERS)
-	{
-		if (ent->client->saber[k].model[0])
-		{
-			pm.saber[k] = &ent->client->saber[k];
-		}
-		else
-		{
-			pm.saber[k] = NULL;
-		}
-		k++;
-	}
-#endif
-
 	//I'll just do this every frame in case the scale changes in realtime (don't need to update the g2 inst for that)
 	VectorCopy(ent->modelScale, pmove.modelScale);
 	//rww end bgghoul2
@@ -3130,7 +3028,7 @@ void ClientThink_real( gentity_t *ent ) {
 	pmove.debugMelee = g_debugMelee.integer;
 	pmove.stepSlideFix = g_stepSlideFix.integer;
 
-	//eezstreet: FEMALE FRIENDLY
+	// BIG FIXME: do this only when userinfo changes ... !
 	if(ent->client && !ent->NPC)
 	{
 		char			userinfo[MAX_INFO_STRING];
@@ -3169,9 +3067,7 @@ void ClientThink_real( gentity_t *ent ) {
 		{
 			vec3_t lockDir, lockAng;
 
-			//VectorClear( ent->client->ps.velocity );
 			VectorSubtract( blockOpp->r.currentOrigin, ent->r.currentOrigin, lockDir );
-			//lockAng[YAW] = vectoyaw( defDir );
 			vectoangles(lockDir, lockAng);
 			SetClientViewAngle( ent, lockAng );
 		}
@@ -3266,6 +3162,7 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 
 	// Copy the ammo from the client ammo table into their networked stat
+	int weaponClass = BG_GetWeaponIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation);
 	weaponData_t* weaponData = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation);
 	int inventoryItem = pmove.cmd.invensel;
 	if (inventoryItem > 0 && inventoryItem < ent->inventory->size()) {
@@ -3276,8 +3173,9 @@ void ClientThink_real( gentity_t *ent ) {
 			ent->client->ps.stats[STAT_TOTALAMMO] = item->quantity;
 		}
 		else if (weaponData->clipSize) {
-			ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
-			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+			ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[weaponClass];
+			ent->client->ps.ammoType = ent->client->ammoTypes[weaponClass];
+			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
 		}
 	}
 
@@ -3313,12 +3211,14 @@ void ClientThink_real( gentity_t *ent ) {
 		ent->client->ps.weaponChargeTime = 0;
 
 		/* Remove a count since we don't do this now. */
-		if(ent->client->clipammo[BG_GetWeaponIndex( ent->s.weapon, ent->s.weaponVariation )])
+		if(ent->client->clipammo[weaponClass])
 		{
-			ent->client->clipammo[BG_GetWeaponIndex( ent->s.weapon, ent->s.weaponVariation )] -= 1;
+			ent->client->clipammo[weaponClass] -= 1;
 		}
 		ent->client->ps.stats[STAT_TOTALAMMO] -= 1;
-		ent->client->ammoTable[GetWeaponAmmoIndex( ent->s.weapon, ent->s.weaponVariation )] -= 1;
+		ent->client->ammoTypes[weaponClass] = -1;
+		ent->client->ammoTable[ent->client->ps.ammoType] -= 1;
+		ent->client->ps.ammoType = -1;
 
 		/* Return the correct weapon and variation for the client */
 		ent->s.weapon = preWeapon;
@@ -3965,12 +3865,12 @@ void ClientEndFrame( gentity_t *ent ) {
 		}
 		else {
 			// Use the regular ammo table instead
-			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[weaponData->ammoIndex];
+			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
 			if (weaponData->clipSize) {
 				ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[BG_GetWeaponIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
 			}
 			else {
-				ent->client->ps.stats[STAT_AMMO] = ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[weaponData->ammoIndex];
+				ent->client->ps.stats[STAT_AMMO] = ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
 			}
 		}
 	}

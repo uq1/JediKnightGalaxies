@@ -4992,7 +4992,7 @@ static qboolean PM_DoChargedWeapons( void )
 						BG_AdjustItemStackQuantity(Gself, pm->cmd.invensel, -weaponFireData->cost);
 					}
 					else {
-						Gself->client->ammoTable[GetWeaponAmmoIndex(pm->ps->weapon, pm->ps->weaponVariation)] -= weaponFireData->cost;
+						Gself->client->ammoTable[pm->ps->ammoType] -= weaponFireData->cost;
 					}
 #endif
 					pm->ps->stats[STAT_TOTALAMMO] -= weaponFireData->chargeSubtract;
@@ -5771,7 +5771,7 @@ static void PM_Weapon( void )
 					BG_AdjustItemStackQuantity(Gself, pm->cmd.invensel, -amount);
 				}
 				else {
-					Gself->client->ammoTable[GetWeaponAmmoIndex(pm->ps->weapon, pm->ps->weaponVariation)] -= amount;
+					Gself->client->ammoTable[pm->ps->ammoType] -= amount;
 				}
 #endif
 				pm->ps->stats[STAT_TOTALAMMO] -= amount;

@@ -157,8 +157,6 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 
 void Add_Ammo (gentity_t *ent, int weapon, int count)
 {
-	//int ammoIndex = GetWeaponAmmoIndex( weapon, ent->s.weaponVariation );
-	//int ammoMax = GetWeaponAmmoMax( weapon, ent->s.weaponVariation );
 	int ammoIndex = weapon;
 	int ammoMax = GetAmmoMax(ammoIndex);
 
@@ -203,28 +201,9 @@ int Pickup_Ammo (gentity_t *ent, gentity_t *other)
 
 
 int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
-	int		quantity;
+	// Don't do anything ATM
+	/*int		quantity;
 	weaponData_t *wep;
-
-	if ( ent->count < 0 ) {
-		quantity = 0; // None for you, sir!
-	} else {
-		if ( ent->count ) {
-			quantity = ent->count;
-		} else {
-			wep = GetWeaponData(ent->item->giTag, ent->s.weaponVariation);
-			quantity = wep->ammoOnPickup;
-		}
-
-		// dropped items and teamplay weapons always have full ammo
-		if ( ! (ent->flags & FL_DROPPED_ITEM) && level.gametype != GT_TEAM ) {
-			if ( other->client->ammoTable[ ent->item->giTag ] < quantity*0.5f ) {
-				quantity = quantity - other->client->ammoTable[ ent->item->giTag ];
-			} else {
-				quantity = quantity*0.5f;		// only add half the value.
-			}
-		}
-	}
 
 	// Check if the player already has the weapon in his inventory
 	if (other->client->ps.stats[STAT_WEAPONS] & ( 1 << ent->item->giTag )) {
@@ -276,7 +255,7 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
 	{
 		return adjustRespawnTime(RESPAWN_TEAM_WEAPON, ent->item->giType, ent->item->giTag);
 	}
-
+	*/
 	return adjustRespawnTime(5, ent->item->giType, ent->item->giTag);
 }
 

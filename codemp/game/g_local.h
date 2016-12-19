@@ -56,7 +56,6 @@ extern vec3_t gPainPoint;
 
 // the "gameversion" client command will print this plus compile date
 #define SECURITY_LOG "security.log"
-#define JKG_ERRMSG "Please report this error to the game support section on the JKG forums:\nhttp://jkgalaxies.com"
 
 #define BODY_QUEUE_SIZE		64
 
@@ -993,6 +992,7 @@ struct gclient_s {
 	int			InCinematic;
 	int			clipammo[256];		// Ammo in current clip of specific weapon
 	int			firingModes[256];	// Different firing modes for each gun so it automagically remembers
+	int			ammoTypes[256];		// Different ammo types for each gun so it automagically remembers
 	qboolean	customGravity;
 	qboolean	pmfreeze;
 	qboolean	pmlock;

@@ -1767,19 +1767,21 @@ typedef struct playerState_s {
 
 	// JKG SPECIFIC
 
-	unsigned char	weaponVariation;
-	unsigned char	weaponId;
-	unsigned char   shotsRemaining;
-	unsigned char	sprintMustWait;
+	int				weaponVariation;
+	int				weaponId;
+	int				shotsRemaining;
+	int				sprintMustWait;
 	int				jetpack;
 	
-	short			saberActionFlags;
+	int				saberActionFlags;
 
 	int 			damageTypeFlags;
 	int 			freezeTorsoAnim;
 	int 			freezeLegsAnim;
 
-	unsigned char	firingMode;
+	int				firingMode;
+	int				ammoType;
+
 	unsigned int	ironsightsTime;
 	unsigned int	ironsightsDebounceStart;
 	qboolean		isInSights;
@@ -1788,16 +1790,16 @@ typedef struct playerState_s {
 	int				sprintDebounceTime;
 	qboolean		isSprinting;
 
-	signed short	forcePower;
+	int				forcePower;
 	float			saberSwingSpeed;
 	float			saberMoveSwingSpeed;
 
-	short			saberPommel[2];
-	short			saberShaft[2];
-	short			saberEmitter[2];
-	short			saberCrystal[2];
+	int				saberPommel[2];
+	int				saberShaft[2];
+	int				saberEmitter[2];
+	int				saberCrystal[2];
 
-	signed short	blockPoints;
+	int				blockPoints;
 
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 	unsigned int	credits;
@@ -2182,10 +2184,10 @@ typedef struct entityState_s {
 	//See netf_overrides.txt if you want to increase the send
 	//amount of any of these above 1 bit.
 
-	unsigned char	weaponVariation;
-	unsigned char	firingMode;
-	unsigned char	weaponstate;
-	int				jetpack;
+	int				weaponVariation;
+	int				firingMode;
+	int				weaponstate;
+	int				ammoType;		// Only used for projectiles to change graphics
 
 	int 			damageTypeFlags;
 
@@ -2193,18 +2195,19 @@ typedef struct entityState_s {
 	int 			freezeTorsoAnim;
 	int 			freezeLegsAnim;
 
-	unsigned int	saberActionFlags;
+	int				saberActionFlags;
 
-	signed short	forcePower;	// ugly I know but whatever --eez
+	int				forcePower;	// ugly I know but whatever --eez
 	float			saberSwingSpeed;
 	float			saberMoveSwingSpeed;
 
-	unsigned short	saberPommel[2];
-	unsigned short	saberShaft[2];
-	unsigned short	saberEmitter[2];
-	unsigned short	saberCrystal[2];
+	int				saberPommel[2];
+	int				saberShaft[2];
+	int				saberEmitter[2];
+	int				saberCrystal[2];
 
 	int				armor[MAX_ARMOR];
+	int				jetpack;
 
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 	

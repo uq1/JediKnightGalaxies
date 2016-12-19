@@ -7,10 +7,11 @@
 #include "qcommon/q_shared.h"
 
 #define MAX_AMMO_NAME	32
-#define MAX_AMMO_TYPES	64
+#define MAX_AMMO_TYPES	256
 
 struct ammo_t {
 	char name[MAX_AMMO_NAME];
+	char shortname[MAX_AMMO_NAME];
 	char substitute[MAX_AMMO_NAME];
 	int ammoIndex;
 	int ammoMax;
@@ -42,6 +43,8 @@ struct ammo_t {
 
 void BG_InitializeAmmo ( void );
 ammo_t *BG_GetAmmo ( const char *ammoName );
+ammo_t *BG_GetAmmo ( const int ammoIndex );
+void BG_GetAllAmmoSubstitutions(int ammoIndex, std::vector<ammo_t*>& outSubs);
 
 extern ammo_t ammoTable[MAX_AMMO_TYPES];
 extern int numAmmoLoaded;

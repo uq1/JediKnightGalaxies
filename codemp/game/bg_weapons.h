@@ -505,12 +505,6 @@ typedef enum
 
 } weaponSlot_t;
 
-/* These shouldn't be used since they don't take variations into account (execeptions only) */
-#define GetWeaponAmmoIndexSingle( a )		GetWeaponAmmoIndex( a, 0 )				// Replenish items. Allowed because we assume variations use the same ammo type (otherwise, bad luck?)
-#define GetWeaponAmmoMaxSingle( a )			GetWeaponAmmoMax( a, 0 )				// Replenish items. Allowed because we assume variations use the same ammo type (otherwise, bad luck?)
-#define GetWeaponPrimaryCostSingle( a )		GetWeaponData( a, 0 )->firemodes[0].cost		// CG_WeaponCheck for weapon select drawing (Trash the function?)!
-#define GetWeaponSecondaryCostSingle( a )	GetWeaponData( a, 0 )->firemodes[1].cost	// CG_WeaponCheck for weapon select drawing (Trash the function?)!
-
 /* This is the main function to get weapon data for each variation */
 void            BG_InitializeWeapons ( void );
 void            BG_InitializeWeaponData ( weaponData_t *weaponData );
@@ -519,6 +513,7 @@ int             BG_GetWeaponIndex ( unsigned int weapon, unsigned int variation 
 qboolean        BG_GetWeaponByIndex ( int index, int *weapon, int *variation );
 weaponData_t   *BG_GetWeaponByClassName ( const char *className );
 int             BG_GetWeaponIndexFromClass ( int weapon, int variation );
+qboolean		BG_WeaponCanUseSpecialAmmo ( weaponData_t* wp );
 
 unsigned int BG_NumberOfLoadedWeapons ( void );
 unsigned int BG_NumberOfWeaponVariations ( unsigned char weaponId );
@@ -527,9 +522,7 @@ weaponData_t *BG_GetWeaponDataByIndex( int index );
 //void			GetWeaponInitialization( void );
 weaponData_t   *GetWeaponData( unsigned char baseIndex, unsigned char modIndex );
 weaponData_t   *GetWeaponDataUnsafe ( unsigned char weapon, unsigned char variation );
-unsigned char   GetWeaponAmmoIndex ( unsigned char baseIndex, unsigned char modIndex );
 short           GetWeaponAmmoClip ( unsigned char baseIndex, unsigned char modIndex );
-short           GetWeaponAmmoMax ( unsigned char baseIndex, unsigned char modIndex );
 short           GetAmmoMax ( unsigned char ammoIndex );
 
 qboolean BG_DumpWeaponList ( const char *filename );

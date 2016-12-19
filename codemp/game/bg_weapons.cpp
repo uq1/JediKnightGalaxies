@@ -167,6 +167,22 @@ qboolean BG_WeaponVariationExists ( unsigned int weaponId, unsigned int variatio
     return BG_GetWeaponIndex (weaponId, variation) != numLoadedWeapons;
 }
 
+qboolean BG_WeaponCanUseSpecialAmmo (weaponData_t* wp) {
+	if (wp->weaponBaseIndex == WP_NONE || wp->weaponBaseIndex == WP_MELEE) {
+		return qfalse; // Can't cycle ammo on these weapons
+	}
+
+	if (wp->numFiringModes == 0) {
+		return qfalse; // No firing modes on this weapon
+	}
+
+	if (wp->firemodes[0].useQuantity) {
+		return qfalse; // It drains quantity from the item stack, so it's not a weapon that can have its ammo cycled
+	}
+
+	return qtrue;
+}
+
 weaponData_t *GetWeaponDataUnsafe ( unsigned char weapon, unsigned char variation )
 {
     static weaponData_t *lastWeapon = NULL;
@@ -214,19 +230,9 @@ weaponData_t *GetWeaponData( unsigned char baseIndex, unsigned char modIndex )
 	return NULL;
 }
 
-unsigned char GetWeaponAmmoIndex ( unsigned char baseIndex, unsigned char modIndex )
-{
-    return GetWeaponData( baseIndex, modIndex )->ammoIndex;
-}
-
 short GetWeaponAmmoClip ( unsigned char baseIndex, unsigned char modIndex )
 {
     return GetWeaponData( baseIndex, modIndex )->clipSize;
-}
-
-short GetWeaponAmmoMax ( unsigned char baseIndex, unsigned char modIndex )
-{
-    return ammoTable[GetWeaponData( baseIndex, modIndex )->ammoIndex].ammoMax;
 }
 
 short GetAmmoMax ( unsigned char ammoIndex )

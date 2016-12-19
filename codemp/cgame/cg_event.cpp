@@ -1510,30 +1510,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 			else
 			{
-				/*int weap = 0;
-
-				if (es->eventParm && es->eventParm < WP_NUM_WEAPONS)
-				{
-					cg.snap->ps.stats[STAT_WEAPONS] &= ~(1 << es->eventParm);
-					weap = cg.snap->ps.weapon;
-				}
-				else if (es->eventParm)
-				{
-					weap = (es->eventParm-WP_NUM_WEAPONS);
-				}
-				CG_OutOfAmmoChange(weap);
-				*/
 				trap->S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.noAmmoSound );
-				// Autoreload disabled, for now
-				/*if ( jkg_autoreload.integer )
-				{
-					// If we wanna auto-reload, check if its possible and go for it
-					if ( GetWeaponAmmoClip( cg.snap->ps.weapon, cg.snap->ps.weaponVariation ) && cg.snap->ps.ammo[GetWeaponAmmoIndex( cg.snap->ps.weapon, cg.snap->ps.weaponVariation )] > 0 )
-					{
-						
-						//trap->SendClientCommand("reload");
-					}
-				}*/
 			}
 		}
 		break;

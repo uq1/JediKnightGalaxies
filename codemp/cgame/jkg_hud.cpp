@@ -302,8 +302,65 @@ static void JKG_DrawFiringMode( menuDef_t *menuHUD )
 	}
 
 	textWidth = trap->R_Font_StrLenPixels(text, cgDC.Assets.qhSmall3Font, 0.4f);
-	//trap->R_Font_DrawString(focusItem->window.rect.x + ((focusItem->window.rect.w/2) - (width/2)), focusItem->window.rect.y, text, opacity, cgDC.Assets.qhSmall3Font, -1, 0.5f);
 	trap->R_Font_DrawString(x + ((w/2) - (textWidth/2)), y, text, opacity, cgDC.Assets.qhSmall3Font, -1, 0.4f);
+}
+
+/*
+================
+JKG_DrawAmmoType
+================
+*/
+static void JKG_DrawAmmoType(menuDef_t* menuHUD) {
+	playerState_t* ps = &cg.predictedPlayerState;
+	weaponData_t* wp = BG_GetWeaponDataByIndex(ps->weaponId);
+	ammo_t* ammo = BG_GetAmmo(ps->ammoType);
+	char* displayStr;
+	vec4_t opacity;
+	float textWidth;
+	float x, y, w;
+
+	// Check whether we have an ammo type
+	if (ammo == nullptr) {
+		return;
+	}
+
+	// Check whether we have a valid firing mode
+	if (ps->firingMode < 0 || ps->firingMode >= wp->numFiringModes) {
+		return;
+	}
+
+	// Check against using an invalid weapon type
+	if (wp->weaponBaseIndex == WP_SABER || wp->weaponBaseIndex == WP_NONE || wp->weaponBaseIndex == WP_MELEE) {
+		return;
+	}
+
+	// Check against the weapon using quantity
+	if (wp->firemodes[ps->firingMode].useQuantity) {
+		return;
+	}
+
+	if (cg.jkg_WHUDOpacity  < 1.0f)
+	{
+		MAKERGBA(opacity, 1, 1, 1, cg.jkg_WHUDOpacity);
+	}
+	else
+	{
+		MAKERGBA(opacity, 1, 1, 1, cg.jkg_HUDOpacity);
+	}
+
+	if (cg.lastAmmoType != ps->ammoType) {
+		vec4_t colorCopy = { 0.2, 0.72, 0.86, 1 };
+		Q_RGBCopy(&opacity, colorCopy);
+	}
+
+	// Set us some basic defaults (for now. these will be replaced by the jkg_hud.menu)
+	x = 500.0f;
+	y = 440.0f;
+	w = 120.0f;
+
+	displayStr = va("Loaded: %s", CG_GetStringEdString2(ammo->shortname));
+	textWidth = trap->R_Font_StrLenPixels(displayStr, cgDC.Assets.qhSmall3Font, 0.4f);
+	trap->R_Font_DrawString(x + ((w / 2) - (textWidth / 2)), y, displayStr, opacity, cgDC.Assets.qhSmall3Font, -1, 0.4f);
 }
 
 /*

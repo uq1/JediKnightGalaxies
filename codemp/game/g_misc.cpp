@@ -1457,7 +1457,7 @@ void ammo_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *act
 		if (self->count)	// Has it got any power left?
 		{
 			int i = 0;
-			while (i < JKG_MAX_AMMO_INDICES)
+			while (i < MAX_AMMO_TYPES)
 			{
 				add = xweaponAmmo[i].ammoMax*0.1f;
 				if (add < 1)

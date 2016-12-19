@@ -947,6 +947,7 @@ netField_t	entityStateFields[] =
 { NETF(freezeLegsAnim), 16 },
 
 { NETF(saberActionFlags), 16 },
+{ NETF(ammoType), 8 },
 { NETF(forcePower), 16 },
 { NETF(saberSwingSpeed), 0 },
 { NETF(saberMoveSwingSpeed), 0 },
@@ -1452,6 +1453,7 @@ netField_t	playerStateFields[] =
 { PSF(sprintMustWait), 8 },
 { PSF(jetpack), 8 },
 
+{ PSF(ammoType), 8 },
 { PSF(saberActionFlags), 16 },
 
 { PSF(damageTypeFlags), 32 },

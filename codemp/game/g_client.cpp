@@ -3480,33 +3480,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	if (!(ent->r.svFlags & SVF_BOT))
 		trap->SendServerCommand(ent->s.number, "dcr");
 
-	// Loop through the items in our inventory to determine ammo count
-	memset(topAmmoValues, 0, sizeof(topAmmoValues));
-	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
-		if (it->id && it->id->itemType == ITEM_WEAPON) {
-			weaponData_t* wepData = GetWeaponData(it->id->weaponData.weapon, it->id->weaponData.variation);
-			if (wepData->ammoIndex > MAX_AMMO_TYPES) {
-				continue;
-			}
-			if (topAmmoValues[wepData->ammoIndex] < wepData->ammoOnSpawn) {
-				topAmmoValues[wepData->ammoIndex] = wepData->ammoOnSpawn;
-			}
-		}
-	}
-	// FIXME: copy to proper ammo array in ent->client
-	memcpy(ent->client->ammoTable, topAmmoValues, sizeof(ent->client->ammoTable));	//Copy the top values to our ammo info
-	ent->client->ps.stats[STAT_TOTALAMMO] = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation)->ammoOnSpawn;
-
-	for ( i = 0; i <= 255; i++ )
-	{
-		int weapVar, weapBase;
-		if(!BG_GetWeaponByIndex(i, &weapBase, &weapVar))
-		{
-			break;
-		}
-		ent->client->clipammo[i] = GetWeaponAmmoClip (weapBase, weapVar);
-	}
-
 	// Check for shield equipping
 	if (ent->inventory) {
 		for (i = 0; i < ent->inventory->size(); i++) {

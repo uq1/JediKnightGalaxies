@@ -14,7 +14,7 @@
 #endif
 
 ammo_t ammoTable[MAX_AMMO_TYPES];
-static unsigned int numAmmoLoaded = 0;
+int numAmmoLoaded = 0;
 
 /*
 ============================
@@ -23,6 +23,7 @@ BG_GetAmmo
 Gets a specific ammo type by name
 ============================
 */
+// Overload 1: Get by string reference
 ammo_t *BG_GetAmmo(const char *ammoName) {
 	for (int i = 0; i < numAmmoLoaded; i++) {
 		if (!Q_stricmp(ammoName, ammoTable[i].name)) {
@@ -30,6 +31,14 @@ ammo_t *BG_GetAmmo(const char *ammoName) {
 		}
 	}
 	return nullptr;
+}
+
+// Overload 2: Get by integer
+ammo_t *BG_GetAmmo(const int ammoIndex) {
+	if (ammoIndex < 0 || ammoIndex >= MAX_AMMO_TYPES) {
+		return nullptr;
+	}
+	return &ammoTable[ammoIndex];
 }
 
 /*
@@ -124,6 +133,8 @@ static qboolean JKG_ParseSingleAmmo(cJSON* json) {
 
 	ammo->ammoIndex = numAmmoLoaded;
 	Q_strncpyz(ammo->name, name, sizeof(ammo->name));
+
+	Q_strncpyz(ammo->shortname, cJSON_ToStringOpt(cJSON_GetObjectItem(json, "shortname"), ""), sizeof(ammo->shortname));
 
 	// Parse substitutes (we need to establish the link later)
 	ammo->pSub = nullptr;

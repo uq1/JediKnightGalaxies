@@ -3698,14 +3698,13 @@ void Cmd_Reload_f( gentity_t *ent ) {
 
 	//Remove the ammo from 'bag'
 	ent->client->ps.stats[STAT_TOTALAMMO] -= ammotoadd;
-	ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)] -= ammotoadd;
+	ent->client->ammoTable[ent->client->ps.ammoType] -= ammotoadd;
 
 	//Add the ammo to weapon
 	ent->client->clipammo[weaponIndex] += ammotoadd;
 	ent->client->ps.stats[STAT_AMMO] += ammotoadd;
 
 	//Take us out of ironsights
-	//ent->client->ns.ironsightsTime &= ~IRONSIGHTS_MSB;
 	ent->client->ps.ironsightsDebounceStart = level.time + ent->client->ps.weaponTime;
 
 	// Don't shoot any more bullets!
@@ -3937,6 +3936,86 @@ void Cmd_ToggleSaber_f(gentity_t *ent)
 			}
 		}
 	}
+}
+
+/*
+=================
+Cmd_AmmoCycle_f
+=================
+*/
+void Cmd_AmmoCycle_f(gentity_t* ent) {
+	int weapon = ent->client->ps.weapon;
+	int variation = ent->client->ps.weaponVariation;
+	weaponData_t* wp = GetWeaponData(weapon, variation);
+	int weaponIndex = BG_GetWeaponIndex(weapon, variation);
+	int fireMode = ent->client->ps.firingMode;
+	int currentAmmo = ent->client->ps.ammoType;
+	int desiredAmmo = -1;
+	std::vector<ammo_t*> allValidAmmos;
+
+	if (!BG_WeaponCanUseSpecialAmmo(wp)) {
+		// It's not a weapon that has special ammo capabilities
+		return;
+	}
+
+	if (GetWeaponAmmoClip(weapon, variation) == -1)
+	{
+		// Current weapon does not use a clip, bail
+		return;
+	}
+
+	if (ent->client->ps.weaponTime > 0 && ent->client->ps.weaponstate != WEAPON_READY) {
+		// Weapon is busy, cannot reload at this moment
+		return;
+	}
+
+	if (ent->client->ps.forceHandExtend != HANDEXTEND_NONE && !PM_InKnockDown(&ent->client->ps))
+	{//We're in a knockdown, or something ugly like that...DO NOT WANT!
+		return;
+	}
+
+	// Determine if we have ammo to cycle to.
+	BG_GetAllAmmoSubstitutions(wp->firemodes[fireMode].ammo->ammoIndex, allValidAmmos);
+
+	if (allValidAmmos.size() == 0) {
+		// Our weapon...is not linked up correctly? or something? It doesn't have any ammo...
+		return;
+	}
+
+	// Find the first ammo that has an ammo index higher than our current one.
+	for (auto it : allValidAmmos) {
+		if (ent->client->ammoTable[it->ammoIndex]) {
+			if (it->ammoIndex > currentAmmo) {
+				desiredAmmo = it->ammoIndex;
+				break;
+			}
+		}
+	}
+
+	if (desiredAmmo == -1) {
+		// Not found - probably because we were on the last one. Find the first.
+		for (auto it : allValidAmmos) {
+			if (ent->client->ammoTable[it->ammoIndex]) {
+				desiredAmmo = it->ammoIndex;
+				break;
+			}
+		}
+	}
+
+	if (desiredAmmo == -1 || desiredAmmo == currentAmmo) {
+		// Either we don't have ammo we can swap to, or we aren't actually changing our ammo
+		return;
+	}
+
+	// Set our ammo to be the desired ammo type
+	ent->client->ps.stats[STAT_TOTALAMMO] += ent->client->ps.stats[STAT_AMMO];
+	ent->client->ps.stats[STAT_AMMO] = 0;
+	ent->client->ps.ammoType = desiredAmmo;
+	ent->client->ammoTypes[weaponIndex] = desiredAmmo;
+	ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
+
+	// Trigger a reload
+	Cmd_Reload_f(ent);
 }
 
 extern qboolean WP_SaberCanTurnOffSomeBlades( saberInfo_t *saber );
