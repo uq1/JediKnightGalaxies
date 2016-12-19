@@ -1,0 +1,80 @@
+// Jedi Knight Galaxies - Jedi Academy Base Ammo and example file
+{
+	// The name of the field is the reference name of the ammo.
+	//
+	// From there there are a few basic fields:
+	//	shortname: The name as displayed on the HUD
+	//	longname: The name as displayed in the ammo UI
+	//	max: Maximum amount of ammo of this type that can be held
+	//	substitute: What ammo this type can subtitute for. For example, Flaming Slugthrower Ammo can substitute for Slugthrower Ammo.
+	//	overrides: Properties of the weapon that can be overridden. This is an object block with the following fields:
+	//		setDamage: Set the damage of bullets fired
+	//		addDamage: Add damage to bullets fired (can be negative)
+	//		multiplyDamage: Multiplies damage to bullets fired
+	//		setDebuffs: Sets this bullet's debuffs ("damagetype" in the .wpn file)
+	"AMMO_NONE": {
+		"shortname": "None",
+		"substitute": "",
+		"max": 0
+	},
+
+	"AMMO_FORCE": {
+		"shortname": "Force",
+		"substitute": "",
+		"max": 1000
+	},
+
+	"AMMO_BLASTER": {
+		"shortname": "Blaster",
+		"substitute": "",
+		"max": 3000
+	},
+
+	"AMMO_POWERCELL": {
+		"shortname": "Power Cell",
+		"substitute": "",
+		"max": 3000
+	},
+
+	"AMMO_METAL_BOLTS": {
+		"shortname": "Metallic Bolts",
+		"substitute": "",
+		"max": 3000
+	},
+
+	"AMMO_CONCUSSION": {
+		"shortname": "Concussion",
+		"substitute": "",
+		"max": 500
+	},
+
+	"AMMO_ROCKETS": {
+		"shortname": "Rockets",
+		"subtitute": "",
+		"max": 25
+	},
+
+	"AMMO_EMPLACED": {
+		"shortname": "Emplaced",
+		"substitute": "",
+		"max": 800
+	},
+
+	"AMMO_THERMAL": {
+		"shortname": "Thermals",
+		"substitute": "",
+		"max": 10
+	},
+
+	"AMMO_TRIPMINE": {
+		"shortname": "Trip Mines",
+		"substitute": "",
+		"max": 10
+	},
+
+	"AMMO_DETPACK": {
+		"shortname": "Det Packs",
+		"substitute": "",
+		"max": 10
+	}
+}
