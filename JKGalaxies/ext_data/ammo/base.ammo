@@ -6,75 +6,78 @@
 	//	shortname: The name as displayed on the HUD
 	//	longname: The name as displayed in the ammo UI
 	//	max: Maximum amount of ammo of this type that can be held
-	//	substitute: What ammo this type can subtitute for. For example, Flaming Slugthrower Ammo can substitute for Slugthrower Ammo.
-	//	overrides: Properties of the weapon that can be overridden. This is an object block with the following fields:
-	//		setDamage: Set the damage of bullets fired
-	//		addDamage: Add damage to bullets fired (can be negative)
-	//		multiplyDamage: Multiplies damage to bullets fired
-	//		setDebuffs: Sets this bullet's debuffs ("damagetype" in the .wpn file)
+	//	basedOn: What ammo this type can basedOn for. For example, Flaming Slugthrower Ammo can basedOn for Slugthrower Ammo.
+	//	"overrides": {			// Properties of the weapon that can be overridden. This is an object block that can override any field from .wpn files:
+	//		"damage": {
+	//			"set": 50,		// Sets to a flat number
+	//			"add": 5,		// Adds a flat number to original number from .wpn file (can be negative)
+	//			"multiply": 1.2	// Multiplies original number from .wpn file
+	//		}
+	//		"damagetype": [ "explosive", "fire" ]
+	//		}
 	"AMMO_NONE": {
 		"shortname": "None",
-		"substitute": "",
+		"basedOn": "",
 		"max": 0
 	},
 
 	"AMMO_FORCE": {
 		"shortname": "Force",
-		"substitute": "",
+		"basedOn": "",
 		"max": 1000
 	},
 
 	"AMMO_BLASTER": {
 		"shortname": "Blaster",
-		"substitute": "",
+		"basedOn": "",
 		"max": 3000
 	},
 
 	"AMMO_POWERCELL": {
 		"shortname": "Power Cell",
-		"substitute": "",
+		"basedOn": "",
 		"max": 3000
 	},
 
 	"AMMO_METAL_BOLTS": {
 		"shortname": "Metallic Bolts",
-		"substitute": "",
+		"basedOn": "",
 		"max": 3000
 	},
 
 	"AMMO_CONCUSSION": {
 		"shortname": "Concussion",
-		"substitute": "",
+		"basedOn": "",
 		"max": 500
 	},
 
 	"AMMO_ROCKETS": {
 		"shortname": "Rockets",
-		"subtitute": "",
+		"basedOn": "",
 		"max": 25
 	},
 
 	"AMMO_EMPLACED": {
 		"shortname": "Emplaced",
-		"substitute": "",
+		"basedOn": "",
 		"max": 800
 	},
 
 	"AMMO_THERMAL": {
 		"shortname": "Thermals",
-		"substitute": "",
+		"basedOn": "",
 		"max": 10
 	},
 
 	"AMMO_TRIPMINE": {
 		"shortname": "Trip Mines",
-		"substitute": "",
+		"basedOn": "",
 		"max": 10
 	},
 
 	"AMMO_DETPACK": {
 		"shortname": "Det Packs",
-		"substitute": "",
+		"basedOn": "",
 		"max": 10
 	}
 }
