@@ -12,7 +12,7 @@
 	//			"set": 50,		// Sets to a flat number
 	//			"add": 5,		// Adds a flat number to original number from .wpn file (can be negative)
 	//			"multiply": 1.2	// Multiplies original number from .wpn file
-	//		}
+	//		},
 	//		"damagetype": [ "explosive", "fire" ]
 	//		}
 	"AMMO_NONE": {
