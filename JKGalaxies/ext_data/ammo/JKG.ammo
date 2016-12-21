@@ -472,6 +472,9 @@
 			},
 			"SplashRange": {
 				"set": 200
+			},
+			"bounces": {
+				"set": 0
 			}
 		}
 	},
