@@ -6,7 +6,7 @@
 	//	shortname: The name as displayed on the HUD
 	//	longname: The name as displayed in the ammo UI
 	//	max: Maximum amount of ammo of this type that can be held
-	//	basedOn: What ammo this type can basedOn for. For example, Flaming Slugthrower Ammo can basedOn for Slugthrower Ammo.
+	//	basedOn: What ammo this type is based on. For example, Flaming Slugthrower Ammo is based on Slugthrower Ammo.
 	//	"overrides": {			// Properties of the weapon that can be overridden. This is an object block that can override any field from .wpn files:
 	//		"damage": {
 	//			"set": 50,		// Sets to a flat number
