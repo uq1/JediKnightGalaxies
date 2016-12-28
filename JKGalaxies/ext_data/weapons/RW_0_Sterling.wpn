@@ -74,6 +74,8 @@
         "projectilespeed": 13000.0,	// 9 x 19 mm Parabellum velocity 1300 ft/s
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_SLUGTHROWER",
+	"ammobase": "AMMO_SLUGS",
+	"ammodefault": "AMMO_SLUGS",
         "accuracy": {
         	"accuracyRating": 45,
         	"accuracyRatingPerShot": 4,
@@ -99,6 +101,8 @@
         "projectilespeed": 13000.0,	// 9 x 19 mm Parabellum velocity 1300 ft/s
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_SLUGTHROWER",
+	"ammobase": "AMMO_SLUGS",
+	"ammodefault": "AMMO_SLUGS",
         "accuracy": {
         	"accuracyRating": 90,
         	"accuracyRatingPerShot": 4,
