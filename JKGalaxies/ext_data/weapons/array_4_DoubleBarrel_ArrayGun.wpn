@@ -62,7 +62,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   1750,
-        "ammoIndex":         "pulsecannon",
         "ammoOnSpawn":   60,
         "ammoOnPickup":   24,
         "clipSize":              6,
@@ -82,6 +81,8 @@
         "projectilespeed": 6000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_PULSE",
+	"ammobase": "AMMO_AA-35_POWERCELL",
+	"ammodefault": "AMMO_AA-35_POWERCELL",
         "accuracy": {
         	"accuracyRating": 100,
         	"accuracyRatingPerShot": 12,
