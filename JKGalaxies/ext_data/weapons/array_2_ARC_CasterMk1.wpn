@@ -89,6 +89,8 @@
         "projectilespeed": 7000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_ELECTRICAL",
+	"ammobase": "AMMO_ARC_POWERPACK",
+	"ammodefault": "AMMO_ARC_POWERPACK",
         "accuracy": {
         	"accuracyRating": 20,
         	"accuracyRatingPerShot": 12,
@@ -108,6 +110,8 @@
         "projectilespeed": 7000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_ELECTRICAL",
+	"ammobase": "AMMO_ARC_POWERPACK",
+	"ammodefault": "AMMO_ARC_POWERPACK",
         "accuracy": {
         	"accuracyRating": 46,
         	"accuracyRatingPerShot": 1,
