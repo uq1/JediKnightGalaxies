@@ -175,6 +175,20 @@
 		}
 	},
 	
+		"AMMO_FLARE" {
+		"shortname": "Flares",
+		"longname": "BlasTech Flares",
+		"max": 18
+		"overrides": {		
+			"ClipSize": {
+				"set": 1,
+			},
+			"ammocost": {
+				"set": 1,
+			}
+		}
+	},
+	
 		"AMMO_AA_POWERPAK" {
 		"shortname": "AA810 PowerPaks",
 		"longname": "Adostic Arms PowerPaks",
