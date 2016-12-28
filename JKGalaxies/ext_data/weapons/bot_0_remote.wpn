@@ -57,7 +57,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   750,
-        "ammoIndex":         "trandopowercell",
         "ammoOnSpawn":   100,
         "ammoOnPickup":   20,
         "clipSize":              10,
@@ -76,7 +75,9 @@
         "spread":       0.1,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL"
+        "meansofdeath": "MOD_BRYAR_PISTOL",
+        "ammoBase": "AMMO_ACP_POWERCELL_S",
+        "ammoDefault": "AMMO_ACP_POWERCELL_S"
     },
     
     "playeranims": {
