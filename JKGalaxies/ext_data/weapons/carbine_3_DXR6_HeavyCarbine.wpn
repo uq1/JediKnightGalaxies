@@ -115,8 +115,10 @@
         "spread":       0.0,
         "projectilespeed": 6500.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_PULSE",
-        "splashmeansofdeath": "MOD_PULSE",
+        "meansofdeath": "MOD_DISRUPTOR",
+        "splashmeansofdeath": "MOD_DISRUPTOR",
+	"ammoBase": "AMMO_POWERCELL_L",
+	"ammoDefault": "AMMO_POWERCELL_S",
         "accuracy": {
         	"accuracyRating": 35,
         	"accuracyRatingPerShot": 8,
