@@ -66,9 +66,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2250,
-        "ammoIndex":         "7.62slugs",
-        "ammoOnSpawn":   300,
-        "ammoOnPickup":   60,
         "clipSize":              30,
         "flags":        [ "roll", "togglezoom" ],
         "startzoomfov": 30.0,
@@ -89,6 +86,8 @@
         "projectilespeed": 28000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_SLUGTHROWER",
+	"ammobase": "AMMO_SLUGS",
+	"ammodefault": "AMMO_SLUGS",
         "accuracy": {
         	"accuracyRating": 32,
         	"accuracyRatingPerShot": 2,
@@ -113,6 +112,8 @@
         "projectilespeed": 28000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_SLUGTHROWER",
+	"ammobase": "AMMO_SLUGS",
+	"ammodefault": "AMMO_SLUGS",
         "accuracy": {
         	"accuracyRating": 16,
         	"accuracyRatingPerShot": 3,
