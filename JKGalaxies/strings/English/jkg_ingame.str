@@ -102,6 +102,12 @@ LANG_ENGLISH		"was blasted by"
 REFERENCE		DIED_BLASTER
 LANG_ENGLISH		"was blasted."
 
+REFERENCE		KILLED_DISRUPTOR
+LANG_ENGLISH		"was demolecularized by"
+
+REFERENCE		DIED_DISRUPTOR
+LANG_ENGLISH		"was demolecularized."
+
 REFERENCE		SUICIDE_SHOT_MALE
 LANG_ENGLISH		"shot himself."
 
@@ -124,7 +130,7 @@ REFERENCE		DIED_ACP
 LANG_ENGLISH		"was bombarded with charged particles."
 
 REFERENCE		KILLED_PULSE
-LANG_ENGLISH		"was disrupted by"
+LANG_ENGLISH		"was pulsed by"
 
 REFERENCE		DIED_PULSE
 LANG_ENGLISH		"felt a strong pulsation."
