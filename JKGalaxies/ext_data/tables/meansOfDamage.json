@@ -273,6 +273,27 @@
 			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_SHOT_GENDERLESS"
 		}
 	},
+	
+	"MOD_DISRUPTOR": {
+		// Disruptor weapons
+		"inventoryName": "@JKG_INVENTORY_MOD_DISRUPTOR",
+
+		"modifiers": {
+			"armor": 1.2,
+			"organic": 1.2,
+			"shield": 0.6,
+			"droid": 1.0
+		}
+	},
+
+		"killFeed": {
+			"killMessage": "@JKG_INGAME_KILLED_DISRUPTOR",
+			"deathMessage": "@JKG_INGAME_DIED_DISRUPTOR",
+			"suicideMessageMale": "@JKG_INGAME_SUICIDE_SHOT_MALE",
+			"suicideMessageFemale": "@JKG_INGAME_SUICIDE_SHOT_FEMALE",
+			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_SHOT_GENDERLESS"
+		}
+	},
 
 	"MOD_SLUGTHROWER": {
 		// Slugthrower weapons
