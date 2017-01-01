@@ -297,6 +297,7 @@ typedef struct skin_s {
 	_skinSurface_t	*surfaces[128];
 } skin_t;
 
+#ifndef rd_gwz_x86_EXPORTS
 /*
 Ghoul2 Insert End
 */
@@ -333,6 +334,7 @@ Ghoul2 Insert End
 	int			 numLods;
 	qboolean	bspInstance;
 } model_t;
+#endif //rd_gwz_x86_EXPORTS
 
 #define	MAX_RENDER_STRINGS			8
 #define	MAX_RENDER_STRING_LENGTH	32
@@ -373,11 +375,20 @@ typedef int stereoFrame_t;
 ** being run right now.  These are constant once the OpenGL
 ** subsystem is initialized.
 */
+#ifndef rd_gwz_x86_EXPORTS
 typedef enum { // r_ext_preferred_tc_method
 	TC_NONE,
 	TC_S3TC,
 	TC_S3TC_DXT
 } textureCompression_t;
+#else //rd_gwz_x86_EXPORTS
+typedef enum { // r_ext_preferred_tc_method
+	TC_NONE,
+	TC_S3TC,
+	TC_S3TC_DXT,
+	TC_S3TC_ARB
+} textureCompression_t;
+#endif //rd_gwz_x86_EXPORTS
 
 typedef struct glconfig_s {
 	const char				*renderer_string;

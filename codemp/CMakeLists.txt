@@ -64,6 +64,11 @@ if(BuildMPEngine)
 	add_subdirectory("${MPDir}/rd-vanilla")
 endif()
 
+#	 Add Warzone JKA Renderer Project
+if(BuildMPEngine)
+	add_subdirectory("${MPDir}/rd-gwz")
+endif()
+
 #    Common things between Engine and Dedicated Server
 if(BuildMPEngine OR BuildMPDed)
 

@@ -29,7 +29,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../qcommon/MiniHeap.h"
 #include "../qcommon/qcommon.h"
 #include "qcommon/qcommon.h"	// <-- this line here, doesn't make a difference if i add or remove it, it still fails with vm_t
+#ifndef rd_gwz_x86_EXPORTS
 #include "../ghoul2/ghoul2_shared.h"
+#else //rd_gwz_x86_EXPORTS
+#include "../rd-gwz/ghoul2/ghoul2_shared.h"
+#endif //rd_gwz_x86_EXPORTS
 
 #define	REF_API_VERSION 7
 
@@ -342,6 +346,32 @@ typedef struct refimport_s {
 	// Persistent data store
 	bool			(*PD_Store)							( const char *name, const void *data, size_t size );
 	const void *	(*PD_Load)							( const char *name, size_t *size );
+
+	void *(*CM_GetShaderData)								(void);
+	uint32_t(*CM_GetShaderDataCount)					(void);
+	void *(*CM_GetLeafsData)								(void);
+	uint32_t(*CM_GetLeafsDataCount)						(void);
+	void *(*CM_GetLeafBrushesData)						(void);
+	uint32_t(*CM_GetLeafBrushesDataCount)				(void);
+	void *(*CM_GetLeafSurfacesData)						(void);
+	uint32_t(*CM_GetLeafSurfacesDataCount)				(void);
+	void *(*CM_GetPlanesData)								(void);
+	uint32_t(*CM_GetPlanesDataCount)					(void);
+	void *(*CM_GetBrushSidesData)							(void);
+	uint32_t(*CM_GetBrushSidesDataCount)				(void);
+	void *(*CM_GetBrushesData)							(void);
+	uint32_t(*CM_GetBrushesDataCount)					(void);
+	void *(*CM_GetSubmodelsData)							(void);
+	uint32_t(*CM_GetSubmodelsDataCount)					(void);
+	void *(*CM_GetNodesData)								(void);
+	uint32_t(*CM_GetNodesDataCount)						(void);
+	void *(*CM_GetEntityStringData)						(void);
+	uint32_t(*CM_GetEntityStringDataCount)				(void);
+	void *(*CM_GetVisibilityData)						(void);
+	uint32_t(*CM_GetVisibilityDataClusterCount)			(void);
+	uint32_t(*CM_GetVisibilityDataClusterBytesCount)	(void);
+	void *(*CM_GetPatchesData)						(void);
+	uint32_t(*CM_GetPatchesDataCount)					(void);
 } refimport_t;
 
 // this is the only function actually exported at the linker level

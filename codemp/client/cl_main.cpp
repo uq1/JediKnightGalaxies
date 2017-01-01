@@ -2333,6 +2333,58 @@ static void *CM_GetCachedMapDiskImage( void ) { return gpvCachedMapDiskImage; }
 static void CM_SetCachedMapDiskImage( void *ptr ) { gpvCachedMapDiskImage = ptr; }
 static void CM_SetUsingCache( qboolean usingCache ) { gbUsingCachedMapDataRightNow = usingCache; }
 
+extern void *ShaderData;
+extern uint32_t ShaderDataCount;
+extern void *LeafsData;
+extern uint32_t LeafsDataCount;
+extern void *LeafBrushesData;
+extern uint32_t LeafBrushesDataCount;
+extern void *LeafSurfacesData;
+extern uint32_t LeafSurfacesDataCount;
+extern void *PlanesData;
+extern uint32_t PlanesDataCount;
+extern void *BrushSidesData;
+extern uint32_t BrushSidesDataCount;
+extern void *BrushesData;
+extern uint32_t BrushesDataCount;
+extern void *SubmodelsData;
+extern uint32_t SubmodelsDataCount;
+extern void *NodesData;
+extern uint32_t NodesDataCount;
+extern void *EntityStringData;
+extern uint32_t EntityStringDataCount;
+extern void *VisibilityData;
+extern uint32_t VisibilityDataClusterCount;
+extern uint32_t VisibilityDataClusterBytesCount;
+extern void *PatchesData;
+extern uint32_t PatchesDataCount;
+
+static void *CM_GetShaderData(void) { return ShaderData; }
+static uint32_t CM_GetShaderDataCount(void) { return ShaderDataCount; }
+static void *CM_GetLeafsData(void) { return LeafsData; }
+static uint32_t CM_GetLeafsDataCount(void) { return LeafsDataCount; }
+static void *CM_GetLeafBrushesData(void) { return LeafBrushesData; }
+static uint32_t CM_GetLeafBrushesDataCount(void) { return LeafBrushesDataCount; }
+static void *CM_GetLeafSurfacesData(void) { return LeafSurfacesData; }
+static uint32_t CM_GetLeafSurfacesDataCount(void) { return LeafSurfacesDataCount; }
+static void *CM_GetPlanesData(void) { return PlanesData; }
+static uint32_t CM_GetPlanesDataCount(void) { return PlanesDataCount; }
+static void *CM_GetBrushSidesData(void) { return BrushSidesData; }
+static uint32_t CM_GetBrushSidesDataCount(void) { return BrushSidesDataCount; }
+static void *CM_GetBrushesData(void) { return BrushesData; }
+static uint32_t CM_GetBrushesDataCount(void) { return BrushesDataCount; }
+static void *CM_GetSubmodelsData(void) { return SubmodelsData; }
+static uint32_t CM_GetSubmodelsDataCount(void) { return SubmodelsDataCount; }
+static void *CM_GetNodesData(void) { return NodesData; }
+static uint32_t CM_GetNodesDataCount(void) { return NodesDataCount; }
+static void *CM_GetEntityStringData(void) { return EntityStringData; }
+static uint32_t CM_GetEntityStringDataCount(void) { return EntityStringDataCount; }
+static void *CM_GetVisibilityData(void) { return VisibilityData; }
+static uint32_t CM_GetVisibilityDataClusterCount(void) { return VisibilityDataClusterCount; }
+static uint32_t CM_GetVisibilityDataClusterBytesCount(void) { return VisibilityDataClusterBytesCount; }
+static void *CM_GetPatchesData(void) { return PatchesData; }
+static uint32_t CM_GetPatchesDataCount(void) { return PatchesDataCount; }
+
 #define G2_VERT_SPACE_SERVER_SIZE 256
 IHeapAllocator *G2VertSpaceServer = NULL;
 CMiniHeap IHeapAllocator_singleton(G2_VERT_SPACE_SERVER_SIZE * 1024);
@@ -2456,6 +2508,32 @@ void CL_InitRef( void ) {
 
 	ri.PD_Store = PD_Store;
 	ri.PD_Load = PD_Load;
+
+	ri.CM_GetShaderData = CM_GetShaderData;
+	ri.CM_GetShaderDataCount = CM_GetShaderDataCount;
+	ri.CM_GetLeafsData = CM_GetLeafsData;
+	ri.CM_GetLeafsDataCount = CM_GetLeafsDataCount;
+	ri.CM_GetLeafBrushesData = CM_GetLeafBrushesData;
+	ri.CM_GetLeafBrushesDataCount = CM_GetLeafBrushesDataCount;
+	ri.CM_GetLeafSurfacesData = CM_GetLeafSurfacesData;
+	ri.CM_GetLeafSurfacesDataCount = CM_GetLeafSurfacesDataCount;
+	ri.CM_GetPlanesData = CM_GetPlanesData;
+	ri.CM_GetPlanesDataCount = CM_GetPlanesDataCount;
+	ri.CM_GetBrushSidesData = CM_GetBrushSidesData;
+	ri.CM_GetBrushSidesDataCount = CM_GetBrushSidesDataCount;
+	ri.CM_GetBrushesData = CM_GetBrushesData;
+	ri.CM_GetBrushesDataCount = CM_GetBrushesDataCount;
+	ri.CM_GetSubmodelsData = CM_GetSubmodelsData;
+	ri.CM_GetSubmodelsDataCount = CM_GetSubmodelsDataCount;
+	ri.CM_GetNodesData = CM_GetNodesData;
+	ri.CM_GetNodesDataCount = CM_GetNodesDataCount;
+	ri.CM_GetEntityStringData = CM_GetEntityStringData;
+	ri.CM_GetEntityStringDataCount = CM_GetEntityStringDataCount;
+	ri.CM_GetVisibilityData = CM_GetVisibilityData;
+	ri.CM_GetVisibilityDataClusterCount = CM_GetVisibilityDataClusterCount;
+	ri.CM_GetVisibilityDataClusterBytesCount = CM_GetVisibilityDataClusterBytesCount;
+	ri.CM_GetPatchesData = CM_GetPatchesData;
+	ri.CM_GetPatchesDataCount = CM_GetPatchesDataCount;
 
 	ret = GetRefAPI( REF_API_VERSION, &ri );
 

@@ -33,9 +33,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 #ifdef USE_INTERNAL_JPEG
 #define JPEG_INTERNALS
-#include "jpeg-8c/jpeglib.h"
+#include "jpeg-9a/jpeglib.h"
 #else
-#include <jpeglib.h>
+#include "../libraries/jpeg-9a/include/jpeglib.h"
 #endif
 
 static void R_JPGErrorExit(j_common_ptr cinfo)

@@ -18,7 +18,7 @@
 
 #include "resource.h"
 #include "glw_win.h"
-#include "win_local.h"
+//#include "win_local.h"
 #include "qcommon/stringed_ingame.h"
 extern void WG_CheckHardwareGamma( void );
 extern void WG_RestoreGamma( void );

@@ -129,6 +129,7 @@ message("Git refspec is ${GIT_REFSPEC}")
 # Binary names
 set(MPEngine "jkgalaxies.${Architecture}")
 set(MPVanillaRenderer "rd-galaxies_${Architecture}")
+set(MPWarzoneRenderer "rd-gwz_${Architecture}")
 set(MPDed "jkgalaxiesded.${Architecture}")
 set(MPGame "game${Architecture}")
 set(MPCGame "cgame${Architecture}")

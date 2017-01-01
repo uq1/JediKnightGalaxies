@@ -34,6 +34,18 @@ void (*Com_Error)( int level, const char *error, ... );
 void (*Com_Printf)( const char *msg, ... );
 #endif
 
+float Q_clamp(float min, float value, float max) {
+	if (value < min) return min;
+	if (value > max) return max;
+	return value;
+}
+
+int Q_clampi(int min, int value, int max) {
+	if (value < min) return min;
+	if (value > max) return max;
+	return value;
+}
+
 /**************************************************
 * Q_stratt
 *
