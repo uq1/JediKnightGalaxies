@@ -1650,11 +1650,8 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				stage->bundle[0].image[0] = tr.whiteImage;
 
 				// UQ1: Testing - Force glow to obvious glow components...
-				if (ForceGlow(stage->bundle[0].image[0]->imgName))
-				{
-					//ri->Printf (PRINT_WARNING, "%s forcably marked as a glow shader.\n", stage->bundle[0].image[0]->imgName);
-					stage->glow = qtrue;
-				}
+				//ri->Printf (PRINT_WARNING, "%s forcably marked as a glow shader.\n", stage->bundle[0].image[0]->imgName);
+				stage->glow = qtrue;
 				//UQ1: END - Testing - Force glow to obvious glow components...
 				continue;
 			}
@@ -1669,14 +1666,6 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				} else {
 					stage->bundle[0].image[0] = tr.lightmaps[shader.lightmapIndex[0]];
 				}
-
-				// UQ1: Testing - Force glow to obvious glow components...
-				if (ForceGlow(stage->bundle[0].image[0]->imgName))
-				{
-					//ri->Printf (PRINT_WARNING, "%s forcably marked as a glow shader.\n", stage->bundle[0].image[0]->imgName);
-					stage->glow = qtrue;
-				}
-				//UQ1: END - Testing - Force glow to obvious glow components...
 
 				continue;
 			}
@@ -1694,14 +1683,6 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				} else {
 					stage->bundle[0].image[0] = tr.deluxemaps[shader.lightmapIndex[0]];
 				}
-
-				// UQ1: Testing - Force glow to obvious glow components...
-				if (ForceGlow(stage->bundle[0].image[0]->imgName))
-				{
-					//ri->Printf (PRINT_WARNING, "%s forcably marked as a glow shader.\n", stage->bundle[0].image[0]->imgName);
-					stage->glow = qtrue;
-				}
-				//UQ1: END - Testing - Force glow to obvious glow components...
 				continue;
 			}
 			else
@@ -1767,13 +1748,11 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 				stage->bundle[0].image[0] = R_FindImageFile( token, type, flags );
 
-				// UQ1: Testing - Force glow to obvious glow components...
-				if (flags & IMGFLAG_GLOW)
+				if ((flags & IMGFLAG_GLOW) || stage->bundle[0].image[0] == tr.whiteImage)
 				{
-					//ri->Printf (PRINT_WARNING, "%s forcably marked as a glow shader.\n", stage->bundle[0].image[0]->imgName);
 					stage->glow = qtrue;
+					flags |= IMGFLAG_GLOW;
 				}
-				//UQ1: END - Testing - Force glow to obvious glow components...
 
 				if ( !stage->bundle[0].image[0] )
 				{
@@ -1823,7 +1802,6 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 					flags |= IMGFLAG_SRGB;
 			}
 
-
 			if (ForceGlow(token) || stage->glow)
 			{
 				flags |= IMGFLAG_GLOW;
@@ -1831,13 +1809,11 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 			stage->bundle[0].image[0] = R_FindImageFile( token, type, flags );
 
-			// UQ1: Testing - Force glow to obvious glow components...
-			if (flags & IMGFLAG_GLOW)
+			if ((flags & IMGFLAG_GLOW) || stage->bundle[0].image[0] == tr.whiteImage)
 			{
-				//ri->Printf (PRINT_WARNING, "%s forcably marked as a glow shader.\n", stage->bundle[0].image[0]->imgName);
 				stage->glow = qtrue;
+				flags |= IMGFLAG_GLOW;
 			}
-			//UQ1: END - Testing - Force glow to obvious glow components...
 
 			if ( !stage->bundle[0].image[0] )
 			{
@@ -5426,60 +5402,69 @@ static qboolean CollapseStagesToGLSL(void)
 
 			if (pStage->type == ST_DIFFUSEMAP)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is DiffuseMap.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is DiffuseMap.", i);
 			}
 			else if (pStage->type == ST_NORMALMAP)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is NormalMap.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is NormalMap.", i);
 			}
 			else if (pStage->type == ST_NORMALPARALLAXMAP)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is NormalParallaxMap.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is NormalParallaxMap.", i);
 			}
 			else if (pStage->type == ST_SPECULARMAP)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is SpecularMap.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is SpecularMap.", i);
 			}
 			/*else if (pStage->type == ST_SUBSURFACEMAP)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is SubsurfaceMap.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is SubsurfaceMap.", i);
 			}*/
 			else if (pStage->type == ST_OVERLAYMAP)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is OverlayMap.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is OverlayMap.", i);
 			}
 			else if (pStage->type == ST_STEEPMAP)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is SteepMap.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is SteepMap.", i);
 			}
 			else if (pStage->type == ST_STEEPMAP2)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is SteepMap2.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is SteepMap2.", i);
 			}
 			else if (pStage->type == ST_SPLATCONTROLMAP)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is SplatControlMap.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is SplatControlMap.", i);
 			}
 			else if (pStage->type == ST_SPLATMAP1)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap1.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap1.", i);
 			}
 			else if (pStage->type == ST_SPLATMAP2)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap2.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap2.", i);
 			}
 			else if (pStage->type == ST_SPLATMAP3)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap3.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap3.", i);
 			}
 			else if (pStage->type == ST_SPLATMAP4)
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap4.\n", i);
+				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap4.", i);
+			}
+			else if (pStage->type == ST_GLSL)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is GLSL.", i);
 			}
 			else
 			{
-				ri->Printf(PRINT_WARNING, "     Stage %i is %i.\n", i, pStage->type);
+				ri->Printf(PRINT_WARNING, "     Stage %i is %i.", i, pStage->type);
 			}
+
+			if (pStage->glow)
+				ri->Printf(PRINT_WARNING, " [ glow ]\n");
+			else
+				ri->Printf(PRINT_WARNING, "\n");
 		}
 	}
 #endif
@@ -6285,24 +6270,6 @@ static shader_t *FinishShader( void ) {
 
 //========================================================================================
 
-qboolean SkipBracedSection_Depth(const char **program, int depth) {
-	char			*token;
-
-	do {
-		token = COM_ParseExt(program, qtrue);
-		if (token[1] == 0) {
-			if (token[0] == '{') {
-				depth++;
-			}
-			else if (token[0] == '}') {
-				depth--;
-			}
-		}
-	} while (depth && *program);
-
-	return (qboolean)(depth == 0);
-}
-
 /*
 ====================
 FindShaderInShaderText
@@ -6354,7 +6321,7 @@ static const char *FindShaderInShaderText( const char *shadername ) {
 		}
 		else {
 			// skip the definition
-			SkipBracedSection_Depth( &p, 0 );
+			SkipBracedSection( &p, 0 );
 		}
 	}
 
@@ -7521,7 +7488,7 @@ static void ScanAndLoadShaderFiles( void )
 				break;
 			}
 
-			if(!SkipBracedSection_Depth(&p, 1))
+			if(!SkipBracedSection(&p, 1))
 			{
 				ri->Printf(PRINT_WARNING, "WARNING: Ignoring shader file %s. Shader \"%s\" on line %d missing closing brace.\n",
 							filename, shaderName, shaderLine);
@@ -7704,5 +7671,22 @@ void R_InitShaders( qboolean server ) {
 		ScanAndLoadShaderFiles();
 
 		CreateExternalShaders();
+	}
+}
+
+/*
+=============================
+JEDI KNIGHT GALAXIES
+=============================
+*/
+
+// Replacement code for hacks in jkg_wpindicators.c --eez
+void R_OverrideShaderFrame(qhandle_t shader, int desiredFrame, int time)
+{
+	shader_t* thisShader = tr.shaders[shader];
+	// WTF hack here...
+	thisShader->frameOverride = desiredFrame;
+	if (thisShader->next != nullptr && !Q_stricmp(thisShader->next->name, thisShader->name)) {
+		thisShader->next->frameOverride = desiredFrame;
 	}
 }

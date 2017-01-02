@@ -36,7 +36,6 @@ frame.
 
 // copied and adapted from tr_mesh.c
 
-#ifdef __MDR__
 /*
 =============
 R_MDRCullModel
@@ -434,5 +433,3 @@ void RB_MDRSurfaceAnim( mdrSurface_t *surface )
 
 	tess.numVertexes += surface->numVerts;
 }
-
-#endif //__MDR__

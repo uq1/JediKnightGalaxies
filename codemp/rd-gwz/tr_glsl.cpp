@@ -2901,9 +2901,9 @@ int GLSL_BeginLoadGPUShaders(void)
 			Q_strcat(extradefines, 1024, "#define USE_TESSELLATION\n");
 
 #ifdef HEIGHTMAP_TESSELATION2
-			if (!GLSL_BeginLoadGPUShader(&tr.lightallShader[i], "lightall", attribs, qtrue, qtrue, qtrue, extradefines, qtrue, "330", fallbackShader_lightall_vp, fallbackShader_lightall_fp, fallbackShader_genericTessControl_cp, fallbackShader_genericTessControl_ep, fallbackShader_genericGeometry))
+			if (!GLSL_BeginLoadGPUShader(&tr.lightallShader[i], "lightall", attribs, qtrue, qtrue, qtrue, extradefines, qtrue, NULL, fallbackShader_lightall_vp, fallbackShader_lightall_fp, fallbackShader_genericTessControl_cp, fallbackShader_genericTessControl_ep, fallbackShader_genericGeometry))
 #else
-			if (!GLSL_BeginLoadGPUShader(&tr.lightallShader[i], "lightall", attribs, qtrue, qtrue, qfalse, extradefines, qtrue, "330", fallbackShader_lightall_vp, fallbackShader_lightall_fp, fallbackShader_genericTessControl_cp, fallbackShader_genericTessControl_ep, NULL))
+			if (!GLSL_BeginLoadGPUShader(&tr.lightallShader[i], "lightall", attribs, qtrue, qtrue, qfalse, extradefines, qtrue, NULL, fallbackShader_lightall_vp, fallbackShader_lightall_fp, fallbackShader_genericTessControl_cp, fallbackShader_genericTessControl_ep, NULL))
 #endif
 			{
 				ri->Error(ERR_FATAL, "Could not load lightall shader!");
@@ -2913,14 +2913,14 @@ int GLSL_BeginLoadGPUShaders(void)
 		{
 			Q_strcat(extradefines, 1024, "#define USE_ICR_CULLING\n");
 
-			if (!GLSL_BeginLoadGPUShader(&tr.lightallShader[i], "lightall", attribs, qtrue, qfalse, qtrue, extradefines, qtrue, "330", fallbackShader_lightall_vp, fallbackShader_lightall_fp, NULL, NULL, fallbackShader_lightall_gs))
+			if (!GLSL_BeginLoadGPUShader(&tr.lightallShader[i], "lightall", attribs, qtrue, qfalse, qtrue, extradefines, qtrue, NULL, fallbackShader_lightall_vp, fallbackShader_lightall_fp, NULL, NULL, fallbackShader_lightall_gs))
 			{
 				ri->Error(ERR_FATAL, "Could not load lightall shader!");
 			}
 		}
 		else
 		{
-			if (!GLSL_BeginLoadGPUShader(&tr.lightallShader[i], "lightall", attribs, qtrue, qfalse, qfalse, extradefines, qtrue, "330", fallbackShader_lightall_vp, fallbackShader_lightall_fp, NULL, NULL, NULL))
+			if (!GLSL_BeginLoadGPUShader(&tr.lightallShader[i], "lightall", attribs, qtrue, qfalse, qfalse, extradefines, qtrue, NULL, fallbackShader_lightall_vp, fallbackShader_lightall_fp, NULL, NULL, NULL))
 			{
 				ri->Error(ERR_FATAL, "Could not load lightall shader!");
 			}
@@ -3591,7 +3591,7 @@ int GLSL_BeginLoadGPUShaders(void)
 	attribs = ATTR_POSITION | ATTR_TEXCOORD0;
 	extradefines[0] = '\0';
 
-	if (!GLSL_BeginLoadGPUShader(&tr.fakedepthSteepParallaxShader, "fakedepthSteepParallax", attribs, qtrue, qfalse, qfalse, extradefines, qtrue, "330", fallbackShader_fakeDepthSteepParallax_vp, fallbackShader_fakeDepthSteepParallax_fp, NULL, NULL, NULL))
+	if (!GLSL_BeginLoadGPUShader(&tr.fakedepthSteepParallaxShader, "fakedepthSteepParallax", attribs, qtrue, qfalse, qfalse, extradefines, qtrue, NULL, fallbackShader_fakeDepthSteepParallax_vp, fallbackShader_fakeDepthSteepParallax_fp, NULL, NULL, NULL))
 	{
 		ri->Error(ERR_FATAL, "Could not load fake depth steep parallax shader!");
 	}

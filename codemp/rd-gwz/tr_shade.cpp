@@ -154,7 +154,11 @@ void R_BindAnimatedImageToTMU( textureBundle_t *bundle, int tmu ) {
 		index = Q_ftol( tess.shaderTime * bundle->imageAnimationSpeed * FUNCTABLE_SIZE );
 		index >>= FUNCTABLE_SIZE2;
 
-		if ( index < 0 ) {
+		if (tess.shader->frameOverride != -1)
+		{
+			index = tess.shader->frameOverride;
+		}
+		else if (index < 0) {
 			index = 0;	// may happen with shader time offsets
 		}
 	}
@@ -167,10 +171,15 @@ void R_BindAnimatedImageToTMU( textureBundle_t *bundle, int tmu ) {
 			index = bundle->numImageAnimations - 1;
 		}
 	}
-	else
+	else if (tess.shader->frameOverride == -1 || index >= bundle->numImageAnimations)
 	{
 		// loop
-		index %= bundle->numImageAnimations;
+		if (bundle->numImageAnimations != 0) {
+			index %= bundle->numImageAnimations;
+		}
+		else {
+			index = 0;
+		}
 	}
 
 	GL_BindToTMU( bundle->image[ index ], tmu );

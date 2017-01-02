@@ -119,7 +119,6 @@ qhandle_t R_RegisterMD3(const char *name, model_t *mod)
 	return 0;
 }
 
-#ifdef __MDR__
 /*
 ====================
 R_RegisterMDR
@@ -157,7 +156,6 @@ qhandle_t R_RegisterMDR(const char *name, model_t *mod)
 	
 	return mod->index;
 }
-#endif //__MDR__
 
 /*
 ====================
@@ -206,9 +204,7 @@ typedef struct
 static modelExtToLoaderMap_t modelLoaders[ ] =
 {
 	{ "iqm", R_RegisterIQM },
-#ifdef __MDR__
 	{ "mdr", R_RegisterMDR },
-#endif //__MDR__
 	{ "md3", R_RegisterMD3 },
 	/* 
 	Ghoul 2 Insert Start
@@ -1192,7 +1188,6 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, const char *modN
 }
 
 
-#ifdef __MDR__
 /*
 =================
 R_LoadMDR
@@ -1535,7 +1530,6 @@ static qboolean R_LoadMDR( model_t *mod, void *buffer, int filesize, const char 
 	
 	return qtrue;
 }
-#endif //__MDR__
 
 
 //=============================================================================
@@ -1664,7 +1658,6 @@ static mdvTag_t *R_GetTag( mdvModel_t *mod, int frame, const char *_tagName ) {
 	return NULL;
 }
 
-#ifdef __MDR__
 void R_GetAnimTag( mdrHeader_t *mod, int framenum, const char *tagName, mdvTag_t * dest)
 {
 	int				i, j, k;
@@ -1705,7 +1698,6 @@ void R_GetAnimTag( mdrHeader_t *mod, int framenum, const char *tagName, mdvTag_t
 	AxisClear( dest->axis );
 	VectorClear( dest->origin );
 }
-#endif //__MDR__
 
 /*
 ================
@@ -1715,7 +1707,7 @@ R_LerpTag
 int R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFrame, 
 					 float frac, const char *tagName ) {
 	mdvTag_t	*start, *end;
-//	mdvTag_t	start_space, end_space;
+	mdvTag_t	start_space, end_space;
 	int		i;
 	float		frontLerp, backLerp;
 	model_t		*model;
@@ -1723,7 +1715,6 @@ int R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFram
 	model = R_GetModelByHandle( handle );
 	if ( !model->data.mdv[0] )
 	{
-#ifdef __MDR__
 		if(model->type == MOD_MDR)
 		{
 			start = &start_space;
@@ -1731,9 +1722,7 @@ int R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFram
 			R_GetAnimTag((mdrHeader_t *) model->data.mdr, startFrame, tagName, start);
 			R_GetAnimTag((mdrHeader_t *) model->data.mdr, endFrame, tagName, end);
 		}
-		else 
-#endif //__MDR__
-		if( model->type == MOD_IQM ) {
+		else if( model->type == MOD_IQM ) {
 			return R_IQMLerpTag( tag, (iqmData_t *)model->data.iqm,
 					startFrame, endFrame,
 					frac, tagName );
@@ -1798,7 +1787,6 @@ void R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs ) {
 		VectorCopy( frame->bounds[1], maxs );
 		
 		return;
-#ifdef __MDR__
 	} else if (model->type == MOD_MDR) {
 		mdrHeader_t	*header;
 		mdrFrame_t	*frame;
@@ -1810,7 +1798,6 @@ void R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs ) {
 		VectorCopy( frame->bounds[1], maxs );
 		
 		return;
-#endif //__MDR__
 	} else if(model->type == MOD_IQM) {
 		iqmData_t *iqmData;
 		

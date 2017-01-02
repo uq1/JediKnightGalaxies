@@ -30,6 +30,9 @@ PFNGLDEBUGMESSAGEINSERTARBPROC qglDebugMessageInsertARB;
 PFNGLDEBUGMESSAGECALLBACKARBPROC qglDebugMessageCallbackARB;
 PFNGLGETDEBUGMESSAGELOGARBPROC qglGetDebugMessageLogARB;
 
+PFNGLLOCKARRAYSEXTPROC qglLockArraysEXT;
+PFNGLUNLOCKARRAYSEXTPROC qglUnlockArraysEXT;
+
 PFNGLACTIVETEXTUREPROC qglActiveTexture;
 PFNGLVERTEXATTRIBDIVISORPROC qglVertexAttribDivisor;
 PFNGLGETSTRINGIPROC qglGetStringi;
@@ -494,6 +497,30 @@ void GLimp_InitCoreFunctions()
 	GetGLFunction(qglDeleteSync, "glDeleteSync", qtrue);
 	GetGLFunction(qglClientWaitSync, "glClientWaitSync", qtrue);
 	GetGLFunction(qglWaitSync, "glWaitSync", qtrue);
+
+
+
+
+	GetGLFunction(qglActiveTexture, "glActiveTexture", qtrue);
+	GetGLFunction(qglBufferStorage, "glBufferStorage", qtrue);
+
+	/*
+	GetGLFunction(qglDebugMessageControlARB, "glDebugMessageControlARB", qtrue);
+	GetGLFunction(qglDebugMessageInsertARB, "glDebugMessageInsertARB", qtrue);
+	GetGLFunction(qglDebugMessageCallbackARB, "glDebugMessageCallbackARB", qtrue);
+	GetGLFunction(qglGetDebugMessageLogARB, "glGetDebugMessageLogARB", qtrue);
+
+	GetGLFunction(qglLockArraysEXT, "glLockArraysEXT", qtrue);
+	GetGLFunction(qglUnlockArraysEXT, "glUnlockArraysEXT", qtrue);
+
+	GetGLFunction(qglVertexAttribDivisor, "glVertexAttribDivisor", qtrue);
+	GetGLFunction(qglGetStringi, "glGetStringi", qtrue);
+	GetGLFunction(qglFenceSync, "glFenceSync", qtrue);
+	GetGLFunction(qglDeleteSync, "glDeleteSync", qtrue);
+	GetGLFunction(qglClientWaitSync, "glClientWaitSync", qtrue);
+	GetGLFunction(qglWaitSync, "glWaitSync", qtrue);
+	GetGLFunction(qglBufferStorage, "glBufferStorage", qtrue);
+	*/
 }
 
 void GLW_InitTextureCompression(void);
@@ -575,6 +602,10 @@ void GLimp_InitExtensions()
 		ri->Printf(PRINT_ALL, result[2], extension);
 	}
 
+	// GL_EXT_clamp_to_edge
+	glConfig.clampToEdgeAvailable = qtrue;
+	Com_Printf("...using GL_EXT_texture_edge_clamp\n");
+
 	// GL_ARB_texture_storage
 	extension = "GL_ARB_texture_storage";
 	glRefConfig.immutableTextures = qfalse;
@@ -619,6 +650,26 @@ void GLimp_InitExtensions()
 		ri->Printf(PRINT_ALL, result[2], extension);
 	}
 
+	// GL_EXT_texture_env_add
+	glConfig.textureEnvAddAvailable = qfalse;
+	if (GLimp_HaveExtension("EXT_texture_env_add"))
+	{
+		if (r_ext_texture_env_add->integer)
+		{
+			glConfig.textureEnvAddAvailable = qtrue;
+			Com_Printf("...using GL_EXT_texture_env_add\n");
+		}
+		else
+		{
+			glConfig.textureEnvAddAvailable = qfalse;
+			Com_Printf("...ignoring GL_EXT_texture_env_add\n");
+		}
+	}
+	else
+	{
+		Com_Printf("...GL_EXT_texture_env_add not found\n");
+	}
+
 	// GL_ARB_debug_output
 	extension = "GL_ARB_debug_output";
 	if (GLimp_HaveExtension(extension))
@@ -654,6 +705,63 @@ void GLimp_InitExtensions()
 		glRefConfig.timerQuery = loaded;
 
 		ri->Printf(PRINT_ALL, result[loaded], extension);
+	}
+
+	// GL_ARB_multitexture
+	if (GLimp_HaveExtension("GL_ARB_multitexture"))
+	{
+#define GL_MAX_ACTIVE_TEXTURES_ARB          0x84E2
+
+		if (r_ext_multitexture->integer)
+		{
+			if (qglActiveTexture)
+			{
+				GLint glint = 0;
+				qglGetIntegerv(GL_MAX_ACTIVE_TEXTURES_ARB, &glint);
+				glConfig.maxActiveTextures = (int)glint;
+
+				if (glConfig.maxActiveTextures > 1)
+				{
+					Com_Printf("...using GL_ARB_multitexture\n");
+				}
+				else
+				{
+					Com_Printf("...not using GL_ARB_multitexture, < 2 texture units\n");
+				}
+			}
+		}
+		else
+		{
+			Com_Printf("...ignoring GL_ARB_multitexture\n");
+		}
+	}
+	else
+	{
+		Com_Printf("...GL_ARB_multitexture not found\n");
+	}
+
+	// GL_EXT_compiled_vertex_array
+	qglLockArraysEXT = NULL;
+	qglUnlockArraysEXT = NULL;
+	if (GLimp_HaveExtension("GL_EXT_compiled_vertex_array"))
+	{
+		if (r_ext_compiled_vertex_array->integer)
+		{
+			Com_Printf("...using GL_EXT_compiled_vertex_array\n");
+			qglLockArraysEXT = (void (APIENTRY *)(int, int)) GL_GetProcAddress("glLockArraysEXT");
+			qglUnlockArraysEXT = (void (APIENTRY *)(void)) GL_GetProcAddress("glUnlockArraysEXT");
+			if (!qglLockArraysEXT || !qglUnlockArraysEXT) {
+				Com_Error(ERR_FATAL, "bad getprocaddress");
+			}
+		}
+		else
+		{
+			Com_Printf("...ignoring GL_EXT_compiled_vertex_array\n");
+		}
+	}
+	else
+	{
+		Com_Printf("...GL_EXT_compiled_vertex_array not found\n");
 	}
 
 	// use float lightmaps?

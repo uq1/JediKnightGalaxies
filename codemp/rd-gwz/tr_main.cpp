@@ -2027,7 +2027,6 @@ static void R_AddEntitySurface (int entityNum)
 
 				R_AddMD3Surfaces( ent );
 				break;
-#ifdef __MDR__
 			case MOD_MDR:
 				if ( R_CullEntitySurface( ent ) ) {
 					// Well, that's a lot of stuff we don't need to draw...
@@ -2037,7 +2036,6 @@ static void R_AddEntitySurface (int entityNum)
 
 				R_MDRAddAnimSurfaces( ent );
 				break;
-#endif //__MDR__
 			case MOD_IQM:
 				if ( R_CullEntitySurface( ent ) ) {
 					// Well, that's a lot of stuff we don't need to draw...
@@ -2395,7 +2393,6 @@ void R_RenderPshadowMaps(const refdef_t *fd)
 				}
 				break;
 
-#ifdef __MDR__
 				case MOD_MDR:
 				{
 					// FIXME: never actually tested this
@@ -2406,7 +2403,7 @@ void R_RenderPshadowMaps(const refdef_t *fd)
 					radius = frame->radius;
 				}
 				break;
-#endif //__MDR__
+
 				case MOD_IQM:
 				{
 					// FIXME: never actually tested this

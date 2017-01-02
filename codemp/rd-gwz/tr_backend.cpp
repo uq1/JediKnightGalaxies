@@ -3052,26 +3052,21 @@ void RB_ShowImages( void ) {
 
 	RB_SetGL2D();
 
-	qglClear( GL_COLOR_BUFFER_BIT );
+	qglClear(GL_COLOR_BUFFER_BIT);
 
-#ifdef __USE_QGL_FINISH__
 	qglFinish();
-#else if __USE_QGL_FLUSH__
-	qglFlush();
-#endif //__USE_QGL_FINISH__
 
 	start = ri->Milliseconds();
 
-	for ( i=0 ; i<tr.numImages ; i++ ) {
-		image = tr.images[i];
-
-		w = (glConfig.vidWidth * r_superSampleMultiplier->value) / 20;
-		h = (glConfig.vidHeight * r_superSampleMultiplier->value) / 15;
-		x = (float)(i % 20) * (float)w;
-		y = (float)((float)i / 20) * (float)h;
+	image = tr.images;
+	for (i = 0; i < tr.numImages; i++, image = image->poolNext) {
+		w = glConfig.vidWidth / 20;
+		h = glConfig.vidHeight / 15;
+		x = i % 20 * w;
+		y = i / 20 * h;
 
 		// show in proportional size in mode 2
-		if ( r_showImages->integer == 2 ) {
+		if (r_showImages->integer == 2) {
 			w *= image->uploadWidth / 512.0f;
 			h *= image->uploadHeight / 512.0f;
 		}
@@ -3090,14 +3085,10 @@ void RB_ShowImages( void ) {
 		}
 	}
 
-#ifdef __USE_QGL_FINISH__
 	qglFinish();
-#else if __USE_QGL_FLUSH__
-	qglFlush();
-#endif //__USE_QGL_FINISH__
 
 	end = ri->Milliseconds();
-	ri->Printf( PRINT_ALL, "%i msec to draw all images\n", end - start );
+	ri->Printf(PRINT_ALL, "%i msec to draw all images\n", end - start);
 
 }
 

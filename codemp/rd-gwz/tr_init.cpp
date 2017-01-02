@@ -1464,7 +1464,7 @@ static void GfxInfo_f( void )
 	ri->Printf( PRINT_ALL, "picmip: %d\n", r_picmip->integer );
 	ri->Printf( PRINT_ALL, "texture bits: %d\n", r_texturebits->integer );
 	ri->Printf( PRINT_ALL, "multitexture: %s\n", enablestrings[qglActiveTexture != 0] );
-	//ri->Printf( PRINT_ALL, "compiled vertex arrays: %s\n", enablestrings[qglLockArraysEXT != 0 ] );
+	ri->Printf( PRINT_ALL, "compiled vertex arrays: %s\n", enablestrings[qglLockArraysEXT != 0 ] );
 	ri->Printf( PRINT_ALL, "texenv add: %s\n", enablestrings[glConfig.textureEnvAddAvailable != 0] );
 	ri->Printf( PRINT_ALL, "compressed textures: %s\n", enablestrings[glConfig.textureCompression!=TC_NONE] );
 	if ( r_vertexLight->integer )
@@ -1971,124 +1971,6 @@ void RE_SetLightStyle (int style, int color);
 R_Init
 ===============
 */
-#if 0
-void R_Init( void ) {
-	int	err;
-	int i;
-	byte *ptr;
-
-	ri->Printf( PRINT_ALL, "----- R_Init -----\n" );
-
-	// clear all our internal state
-	Com_Memset( &tr, 0, sizeof( tr ) );
-	Com_Memset( &backEnd, 0, sizeof( backEnd ) );
-	Com_Memset( &tess, 0, sizeof( tess ) );
-
-//#ifdef _WIN32
-//	tr.wv = (WinVars_t *)ri->GetWinVars();
-//#endif
-
-//	Swap_Init();
-
-	//
-	// init function tables
-	//
-	for ( i = 0; i < FUNCTABLE_SIZE; i++ )
-	{
-		tr.sinTable[i]		= sin( DEG2RAD( i * 360.0f / ( ( float ) ( FUNCTABLE_SIZE - 1 ) ) ) );
-		tr.squareTable[i]	= ( i < FUNCTABLE_SIZE/2 ) ? 1.0f : -1.0f;
-		tr.sawToothTable[i] = (float)i / FUNCTABLE_SIZE;
-		tr.inverseSawToothTable[i] = 1.0f - tr.sawToothTable[i];
-
-		if ( i < FUNCTABLE_SIZE / 2 )
-		{
-			if ( i < FUNCTABLE_SIZE / 4 )
-			{
-				tr.triangleTable[i] = ( float ) i / ( FUNCTABLE_SIZE / 4 );
-			}
-			else
-			{
-				tr.triangleTable[i] = 1.0f - tr.triangleTable[i-FUNCTABLE_SIZE / 4];
-			}
-		}
-		else
-		{
-			tr.triangleTable[i] = -tr.triangleTable[i-FUNCTABLE_SIZE/2];
-		}
-	}
-
-	R_InitFogTable();
-
-	R_NoiseInit();
-	R_ImageLoader_Init();
-	R_Register();
-
-	max_polys = r_maxpolys->integer;
-	if (max_polys < MAX_POLYS)
-		max_polys = MAX_POLYS;
-
-	max_polyverts = r_maxpolyverts->integer;
-	if (max_polyverts < MAX_POLYVERTS)
-		max_polyverts = MAX_POLYVERTS;
-
-	ptr = (byte*)ri->Hunk_Alloc( sizeof( *backEndData ) + sizeof(srfPoly_t) * max_polys + sizeof(polyVert_t) * max_polyverts, h_low);
-	backEndData = (backEndData_t *) ptr;
-	backEndData->polys = (srfPoly_t *) ((char *) ptr + sizeof( *backEndData ));
-	backEndData->polyVerts = (polyVert_t *) ((char *) ptr + sizeof( *backEndData ) + sizeof(srfPoly_t) * max_polys);
-	R_InitNextFrame();
-
-	for ( int i = 0; i < MAXLIGHTMAPS; i++ )
-	{
-		RE_SetLightStyle (i, -1);
-	}
-
-	InitOpenGL();
-
-	R_InitImages();
-
-	FBO_Init();
-
-	int shadersStartTime = GLSL_BeginLoadGPUShaders();
-
-#ifdef __ORIGINAL_OCCLUSION__
-	//if (r_occlusion->integer)
-	{
-		OQ_InitOcclusionQuery();
-	}
-#endif //__ORIGINAL_OCCLUSION__
-
-	R_InitVBOs();
-
-	R_InitShaders (qfalse);
-
-	R_InitSkins();
-
-	R_InitFonts();
-
-	R_ModelInit();
-
-	R_InitDecals();
-
-#ifdef __SURFACESPRITES__
-extern void R_InitWorldEffects(void);
-	R_InitWorldEffects();
-#endif //__SURFACESPRITES__
-
-	R_InitQueries();
-
-	GLSL_EndLoadGPUShaders (shadersStartTime);
-
-	err = qglGetError();
-	if ( err != GL_NO_ERROR )
-		ri->Printf (PRINT_ALL, "glGetError() = 0x%x\n", err);
-
-	RestoreGhoul2InfoArray();
-
-	// print info
-	GfxInfo_f();
-	ri->Printf( PRINT_ALL, "----- finished R_Init -----\n" );
-}
-#else
 void R_Init(void) {
 	byte *ptr;
 	int i;
@@ -2130,8 +2012,8 @@ void R_Init(void) {
 
 	R_InitFogTable();
 
-	R_ImageLoader_Init();
 	R_NoiseInit();
+	R_ImageLoader_Init();
 	R_Register();
 
 	max_polys = Q_min(r_maxpolys->integer, MAX_POLYS);
@@ -2148,8 +2030,6 @@ void R_Init(void) {
 	backEndData->polyVerts = (polyVert_t *)ptr;
 	ptr += sizeof(*backEndData->polyVerts) * max_polyverts;
 
-	//backEndData->perFrameMemory = new(ptr) Allocator(ptr + sizeof(*backEndData->perFrameMemory), PER_FRAME_MEMORY_BYTES);
-
 	R_InitNextFrame();
 
 	for (int i = 0; i < MAX_LIGHT_STYLES; i++)
@@ -2157,19 +2037,22 @@ void R_Init(void) {
 		RE_SetLightStyle(i, -1);
 	}
 
-	//R_InitImagesPool();
-
 	InitOpenGL();
 
-	R_InitVBOs();
-
-	//R_InitBackEndFrameData();
 	R_InitImages();
 
 	FBO_Init();
 
 	int shadersStartTime = GLSL_BeginLoadGPUShaders();
 
+#ifdef __ORIGINAL_OCCLUSION__
+	//if (r_occlusion->integer)
+	{
+		OQ_InitOcclusionQuery();
+	}
+#endif //__ORIGINAL_OCCLUSION__
+
+	R_InitVBOs();
 
 	R_InitShaders(qfalse);
 
@@ -2180,6 +2063,11 @@ void R_Init(void) {
 	R_ModelInit();
 
 	R_InitDecals();
+
+#ifdef __SURFACESPRITES__
+	extern void R_InitWorldEffects(void);
+	R_InitWorldEffects();
+#endif //__SURFACESPRITES__
 
 	R_InitQueries();
 
@@ -2197,7 +2085,6 @@ void R_Init(void) {
 	GfxInfo_f();
 	ri->Printf(PRINT_ALL, "----- finished R_Init -----\n");
 }
-#endif
 
 /*
 ===============
@@ -2211,11 +2098,6 @@ extern void R_ShutdownWorldEffects(void);
 void RE_Shutdown( qboolean destroyWindow, qboolean restarting ) {
 
 	ri->Printf(PRINT_ALL, "RE_Shutdown( %i )\n", destroyWindow);
-
-	/*for (size_t i = 0; i < numCommands; i++)
-		ri->Cmd_RemoveCommand(commands[i].cmd);
-
-	R_ShutdownBackEndFrameData();*/
 
 	R_ShutdownFonts();
 	if (tr.registered) {
@@ -2515,6 +2397,9 @@ Q_EXPORT refexport_t* QDECL GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	/*
 	Ghoul2 Insert End
 	*/
+
+	// Jedi Knight Galaxies
+	re.OverrideShaderFrame = R_OverrideShaderFrame;
 
 	return &re;
 }

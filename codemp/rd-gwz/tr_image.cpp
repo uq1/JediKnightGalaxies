@@ -23,55 +23,67 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "glext.h"
 
-// Calculates log2 of number.  
-double log2d( double n )  
-{
-    // log(n)/log(2) is log2.  
-    return log( n ) / (double)log( (double)2 );  
-}
-
-int log2(int val) {
-	int answer;
-
-	answer = 0;
-	while ((val >>= 1) != 0) {
-		answer++;
-	}
-	return answer;
-}
-
 static byte			 s_intensitytable[256];
 static unsigned char s_gammatable[256];
 
 int		gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int		gl_filter_max = GL_LINEAR;
 
-#define FILE_HASH_SIZE		1024
-static	image_t*		hashTable[FILE_HASH_SIZE];
+#define FILE_HASH_SIZE 1553 // Prime numbers are a good size for hash tables :)
+#define NUM_IMAGES_PER_POOL_ALLOC 512
+
+static struct ImagesPool
+{
+	image_t *pPool;
+	ImagesPool *pNext;
+} *imagesPool;
+
+static image_t *hashTable[FILE_HASH_SIZE];
+
+/*
+Extends the size of the images pool allocator
+*/
+static void R_ExtendImagesPool()
+{
+	ImagesPool *pool = (ImagesPool *)Z_Malloc(sizeof(*pool), TAG_GENERAL);
+	image_t *freeImages = (image_t *)Z_Malloc(sizeof(*freeImages) * NUM_IMAGES_PER_POOL_ALLOC, TAG_IMAGE_T);
+
+	for (int i = 0; i < (NUM_IMAGES_PER_POOL_ALLOC - 1); i++)
+	{
+		freeImages[i].poolNext = &freeImages[i + 1];
+	}
+	freeImages[NUM_IMAGES_PER_POOL_ALLOC - 1].poolNext = tr.imagesFreeList;
+
+	pool->pPool = freeImages;
+	pool->pNext = imagesPool;
+	imagesPool = pool;
+
+	tr.imagesFreeList = freeImages;
+}
 
 /*
 ** R_GammaCorrect
 */
-void R_GammaCorrect( byte *buffer, int bufSize ) {
+void R_GammaCorrect(byte *buffer, int bufSize) {
 	int i;
 
-	for ( i = 0; i < bufSize; i++ ) {
+	for (i = 0; i < bufSize; i++) {
 		buffer[i] = s_gammatable[buffer[i]];
 	}
 }
 
 typedef struct {
-	char *name;
+	const char *name;
 	int	minimize, maximize;
 } textureMode_t;
 
 textureMode_t modes[] = {
-	{"GL_NEAREST", GL_NEAREST, GL_NEAREST},
-	{"GL_LINEAR", GL_LINEAR, GL_LINEAR},
-	{"GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST},
-	{"GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR},
-	{"GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST},
-	{"GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR}
+	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
+	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
+	{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
+	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
+	{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
+	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
 };
 
 /*
@@ -79,7 +91,7 @@ textureMode_t modes[] = {
 return a hash value for the filename
 ================
 */
-static long generateHashValue( const char *fname ) {
+static long generateHashValue(const char *fname) {
 	int		i;
 	long	hash;
 	char	letter;
@@ -88,13 +100,13 @@ static long generateHashValue( const char *fname ) {
 	i = 0;
 	while (fname[i] != '\0') {
 		letter = tolower(fname[i]);
-		if (letter =='.') break;				// don't include extension
-		if (letter =='\\') letter = '/';		// damn path names
-		hash+=(long)(letter)*(i+119);
+		if (letter == '.') break;				// don't include extension
+		if (letter == '\\') letter = '/';		// damn path names
+		hash += (long)(letter)*(i + 119);
 		i++;
 	}
-	hash &= (FILE_HASH_SIZE-1);
-	return hash;
+
+	return hash % FILE_HASH_SIZE;
 }
 
 /*
@@ -102,47 +114,47 @@ static long generateHashValue( const char *fname ) {
 GL_TextureMode
 ===============
 */
-void GL_TextureMode( const char *string ) {
+void GL_TextureMode(const char *string) {
 	int		i;
 	image_t	*glt;
 
-	for ( i=0 ; i< 6 ; i++ ) {
-		if ( !Q_stricmp( modes[i].name, string ) ) {
+	for (i = 0; i< 6; i++) {
+		if (!Q_stricmp(modes[i].name, string)) {
 			break;
 		}
 	}
 
 
-	if ( i == 6 ) {
-		ri->Printf (PRINT_ALL, "bad filter name\n");
+	if (i == 6) {
+		ri->Printf(PRINT_ALL, "bad filter name\n");
 		return;
 	}
 
 	gl_filter_min = modes[i].minimize;
 	gl_filter_max = modes[i].maximize;
-	
-	if ( r_ext_texture_filter_anisotropic->value > glConfig.maxTextureFilterAnisotropy )
+
+	if (r_ext_texture_filter_anisotropic->value > glConfig.maxTextureFilterAnisotropy)
 	{
-		ri->Cvar_SetValue ("r_ext_texture_filter_anisotropic", glConfig.maxTextureFilterAnisotropy);
+		ri->Cvar_SetValue("r_ext_texture_filter_anisotropic", glConfig.maxTextureFilterAnisotropy);
 	}
 
 	// change all the existing mipmap texture objects
-	for ( i = 0 ; i < tr.numImages ; i++ ) {
-		glt = tr.images[ i ];
-		if ( glt->flags & IMGFLAG_MIPMAP ) {
-			GL_Bind (glt);
+	glt = tr.images;
+	for (i = 0; i < tr.numImages; i++, glt = glt->poolNext) {
+		if (glt->flags & IMGFLAG_MIPMAP) {
+			GL_Bind(glt);
 			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
 			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
-			
-			if ( r_ext_texture_filter_anisotropic->value > 0.0f )
+
+			if (r_ext_texture_filter_anisotropic->value > 0.0f)
 			{
-				if ( glConfig.maxTextureFilterAnisotropy > 1.0f )
+				if (glConfig.maxTextureFilterAnisotropy > 1.0f)
 				{
-					qglTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
+					qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
 				}
 				else
 				{
-					qglTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
+					qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
 				}
 			}
 		}
@@ -154,21 +166,22 @@ void GL_TextureMode( const char *string ) {
 R_SumOfUsedImages
 ===============
 */
-int R_SumOfUsedImages( void ) {
+int R_SumOfUsedImages(void) {
 	int	total;
 	int i;
+	image_t *image = tr.images;
 
 	total = 0;
-	for ( i = 0; i < tr.numImages; i++ ) {
-		if ( tr.images[i]->frameUsed == tr.frameCount ) {
-			total += tr.images[i]->uploadWidth * tr.images[i]->uploadHeight;
+	for (i = 0; i < tr.numImages; i++, image = image->poolNext) {
+		if (image->frameUsed == tr.frameCount) {
+			total += image->uploadWidth * image->uploadHeight;
 		}
 	}
 
 	return total;
 }
 
-static float GetReadableSize( int bytes, char **units )
+static float GetReadableSize(int bytes, const char **units)
 {
 	float result = bytes;
 	*units = "b ";
@@ -199,111 +212,87 @@ static float GetReadableSize( int bytes, char **units )
 R_ImageList_f
 ===============
 */
-void R_ImageList_f( void ) {
+void R_ImageList_f(void) {
 	int i;
 	int estTotalSize = 0;
-	char *sizeSuffix;
+	const char *sizeSuffix;
+	image_t *image = tr.images;
 
 	ri->Printf(PRINT_ALL, "\n      -w-- -h-- type  -size- --name-------\n");
 
-	for ( i = 0 ; i < tr.numImages ; i++ )
+	for (i = 0; i < tr.numImages; i++, image = image->poolNext)
 	{
-		image_t *image = tr.images[i];
-		char *format = "???? ";
+		const char *format = "???? ";
 		int estSize;
 
 		estSize = image->uploadHeight * image->uploadWidth;
 
-		switch(image->internalFormat)
+		switch (image->internalFormat)
 		{
-			case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:
-				format = "sDXT1";
-				// 64 bits per 16 pixels, so 4 bits per pixel
-				estSize /= 2;
-				break;
-			case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT:
-				format = "sDXT5";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB:
-				format = "sBPTC";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT:
-				format = "LATC ";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-				format = "DXT1 ";
-				// 64 bits per 16 pixels, so 4 bits per pixel
-				estSize /= 2;
-				break;
-			case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-				format = "DXT5 ";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_RGBA_BPTC_UNORM_ARB:
-				format = "BPTC ";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_RGB4_S3TC:
-				format = "S3TC ";
-				// same as DXT1?
-				estSize /= 2;
-				break;
-			case GL_RGBA4:
-			case GL_RGBA8:
-			case GL_RGBA:
-				format = "RGBA ";
-				// 4 bytes per pixel
-				estSize *= 4;
-				break;
-			case GL_LUMINANCE8:
-			case GL_LUMINANCE16:
-			case GL_LUMINANCE:
-				format = "L    ";
-				// 1 byte per pixel?
-				break;
-			case GL_RGB5:
-			case GL_RGB8:
-			case GL_RGB:
-				format = "RGB  ";
-				// 3 bytes per pixel?
-				estSize *= 3;
-				break;
-			case GL_LUMINANCE8_ALPHA8:
-			case GL_LUMINANCE16_ALPHA16:
-			case GL_LUMINANCE_ALPHA:
-				format = "LA   ";
-				// 2 bytes per pixel?
-				estSize *= 2;
-				break;
-			case GL_SRGB:
-			case GL_SRGB8:
-				format = "sRGB ";
-				// 3 bytes per pixel?
-				estSize *= 3;
-				break;
-			case GL_SRGB_ALPHA:
-			case GL_SRGB8_ALPHA8:
-				format = "sRGBA";
-				// 4 bytes per pixel?
-				estSize *= 4;
-				break;
-			case GL_SLUMINANCE:
-			case GL_SLUMINANCE8:
-				format = "sL   ";
-				// 1 byte per pixel?
-				break;
-			case GL_SLUMINANCE_ALPHA:
-			case GL_SLUMINANCE8_ALPHA8:
-				format = "sLA  ";
-				// 2 byte per pixel?
-				estSize *= 2;
-				break;
-			case GL_DEPTH_COMPONENT24:
-				format = "D24  ";
-				break;
+		case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:
+			format = "sDXT1";
+			// 64 bits per 16 pixels, so 4 bits per pixel
+			estSize /= 2;
+			break;
+		case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT:
+			format = "sDXT5";
+			// 128 bits per 16 pixels, so 1 byte per pixel
+			break;
+		case GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB:
+			format = "sBPTC";
+			// 128 bits per 16 pixels, so 1 byte per pixel
+			break;
+		case GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT:
+			format = "LATC ";
+			// 128 bits per 16 pixels, so 1 byte per pixel
+			break;
+		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+			format = "DXT1 ";
+			// 64 bits per 16 pixels, so 4 bits per pixel
+			estSize /= 2;
+			break;
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+			format = "DXT5 ";
+			// 128 bits per 16 pixels, so 1 byte per pixel
+			break;
+		case GL_COMPRESSED_RGBA_BPTC_UNORM_ARB:
+			format = "BPTC ";
+			// 128 bits per 16 pixels, so 1 byte per pixel
+			break;
+		case GL_RGB4_S3TC:
+			format = "S3TC ";
+			// same as DXT1?
+			estSize /= 2;
+			break;
+		case GL_RGBA4:
+		case GL_RGBA8:
+		case GL_RGBA:
+			format = "RGBA ";
+			// 4 bytes per pixel
+			estSize *= 4;
+			break;
+		case GL_RGB5:
+		case GL_RGB8:
+		case GL_RGB:
+			format = "RGB  ";
+			// 3 bytes per pixel?
+			estSize *= 3;
+			break;
+		case GL_SRGB:
+		case GL_SRGB8:
+			format = "sRGB ";
+			// 3 bytes per pixel?
+			estSize *= 3;
+			break;
+		case GL_SRGB_ALPHA:
+		case GL_SRGB8_ALPHA8:
+			format = "sRGBA";
+			// 4 bytes per pixel?
+			estSize *= 4;
+			break;
+		case GL_DEPTH_COMPONENT24:
+			format = "D24  ";
+			break;
 		}
 
 		// mipmap adds about 50%
@@ -318,9 +307,9 @@ void R_ImageList_f( void ) {
 
 	float printSize = GetReadableSize(estTotalSize, &sizeSuffix);
 
-	ri->Printf (PRINT_ALL, " ---------\n");
-	ri->Printf (PRINT_ALL, " approx %i bytes (%.2f%s)\n", estTotalSize, printSize, sizeSuffix);
-	ri->Printf (PRINT_ALL, " %i total images\n\n", tr.numImages );
+	ri->Printf(PRINT_ALL, " ---------\n");
+	ri->Printf(PRINT_ALL, " approx %i bytes (%.2f%s)\n", estTotalSize, printSize, sizeSuffix);
+	ri->Printf(PRINT_ALL, " %i total images\n\n", tr.numImages);
 }
 
 //=======================================================================
@@ -334,12 +323,12 @@ Used to resample images in a more general than quartering fashion.
 This will only be filtered properly if the resampled size
 is greater than half the original size.
 
-If a larger shrinking is needed, use the mipmap function 
+If a larger shrinking is needed, use the mipmap function
 before or after.
 ================
 */
-static void ResampleTexture( byte *in, int inwidth, int inheight, byte *out,  
-							int outwidth, int outheight ) {
+static void ResampleTexture(byte *in, int inwidth, int inheight, byte *out,
+	int outwidth, int outheight) {
 	int		i, j;
 	byte	*inrow, *inrow2;
 	int		frac, fracstep;
@@ -348,32 +337,32 @@ static void ResampleTexture( byte *in, int inwidth, int inheight, byte *out,
 
 	if (outwidth>2048)
 		ri->Error(ERR_DROP, "ResampleTexture: max width");
-								
-	fracstep = inwidth*0x10000/outwidth;
 
-	frac = fracstep>>2;
-	for ( i=0 ; i<outwidth ; i++ ) {
-		p1[i] = 4*(frac>>16);
+	fracstep = inwidth * 0x10000 / outwidth;
+
+	frac = fracstep >> 2;
+	for (i = 0; i<outwidth; i++) {
+		p1[i] = 4 * (frac >> 16);
 		frac += fracstep;
 	}
-	frac = 3*(fracstep>>2);
-	for ( i=0 ; i<outwidth ; i++ ) {
-		p2[i] = 4*(frac>>16);
+	frac = 3 * (fracstep >> 2);
+	for (i = 0; i<outwidth; i++) {
+		p2[i] = 4 * (frac >> 16);
 		frac += fracstep;
 	}
 
-	for (i=0 ; i<outheight ; i++) {
-		inrow = in + 4*inwidth*(int)((i+0.25)*inheight/outheight);
-		inrow2 = in + 4*inwidth*(int)((i+0.75)*inheight/outheight);
-		for (j=0 ; j<outwidth ; j++) {
+	for (i = 0; i<outheight; i++) {
+		inrow = in + 4 * inwidth*(int)((i + 0.25)*inheight / outheight);
+		inrow2 = in + 4 * inwidth*(int)((i + 0.75)*inheight / outheight);
+		for (j = 0; j<outwidth; j++) {
 			pix1 = inrow + p1[j];
 			pix2 = inrow + p2[j];
 			pix3 = inrow2 + p1[j];
 			pix4 = inrow2 + p2[j];
-			*out++ = (pix1[0] + pix2[0] + pix3[0] + pix4[0])>>2;
-			*out++ = (pix1[1] + pix2[1] + pix3[1] + pix4[1])>>2;
-			*out++ = (pix1[2] + pix2[2] + pix3[2] + pix4[2])>>2;
-			*out++ = (pix1[3] + pix2[3] + pix3[3] + pix4[3])>>2;
+			*out++ = (pix1[0] + pix2[0] + pix3[0] + pix4[0]) >> 2;
+			*out++ = (pix1[1] + pix2[1] + pix3[1] + pix4[1]) >> 2;
+			*out++ = (pix1[2] + pix2[2] + pix3[2] + pix4[2]) >> 2;
+			*out++ = (pix1[3] + pix2[3] + pix3[3] + pix4[3]) >> 2;
 		}
 	}
 }
@@ -384,7 +373,7 @@ static void RGBAtoYCoCgA(const byte *in, byte *out, int width, int height)
 
 	for (y = 0; y < height; y++)
 	{
-		const byte *inbyte  = in  + y * width * 4;
+		const byte *inbyte = in + y * width * 4;
 		byte       *outbyte = out + y * width * 4;
 
 		for (x = 0; x < width; x++)
@@ -411,7 +400,7 @@ static void YCoCgAtoRGBA(const byte *in, byte *out, int width, int height)
 
 	for (y = 0; y < height; y++)
 	{
-		const byte *inbyte  = in  + y * width * 4;
+		const byte *inbyte = in + y * width * 4;
 		byte       *outbyte = out + y * width * 4;
 
 		for (x = 0; x < width; x++)
@@ -421,10 +410,10 @@ static void YCoCgAtoRGBA(const byte *in, byte *out, int width, int height)
 			_Y = *inbyte++;
 			Co = *inbyte++;
 			Cg = *inbyte++;
-			a  = *inbyte++;
+			a = *inbyte++;
 
-			*outbyte++ = CLAMP(_Y + Co - Cg,       0, 255); // R = Y + Co - Cg
-			*outbyte++ = CLAMP(_Y      + Cg - 128, 0, 255); // G = Y + Cg
+			*outbyte++ = CLAMP(_Y + Co - Cg, 0, 255); // R = Y + Co - Cg
+			*outbyte++ = CLAMP(_Y + Cg - 128, 0, 255); // G = Y + Cg
 			*outbyte++ = CLAMP(_Y - Co - Cg + 256, 0, 255); // B = Y - Co - Cg
 			*outbyte++ = a;
 		}
@@ -442,7 +431,7 @@ static void RGBAtoNormal(const byte *in, byte *out, int width, int height, qbool
 	max = 1;
 	for (y = 0; y < height; y++)
 	{
-		const byte *inbyte  = in  + y * width * 4;
+		const byte *inbyte = in + y * width * 4;
 		byte       *outbyte = out + y * width * 4 + 3;
 
 		for (x = 0; x < width; x++)
@@ -452,7 +441,7 @@ static void RGBAtoNormal(const byte *in, byte *out, int width, int height, qbool
 			*outbyte = result;
 			max = MAX(max, *outbyte);
 			outbyte += 4;
-			inbyte  += 4;
+			inbyte += 4;
 		}
 	}
 
@@ -520,13 +509,13 @@ static void RGBAtoNormal(const byte *in, byte *out, int width, int height, qbool
 				}
 			}
 
-			normal[0] =        s[0]            -     s[2]
-						 + 2 * s[3]            - 2 * s[5]
-						 +     s[6]            -     s[8];
+			normal[0] = s[0] - s[2]
+				+ 2 * s[3] - 2 * s[5]
+				+ s[6] - s[8];
 
-			normal[1] =        s[0] + 2 * s[1] +     s[2]
+			normal[1] = s[0] + 2 * s[1] + s[2]
 
-						 -     s[6] - 2 * s[7] -     s[8];
+				- s[6] - 2 * s[7] - s[8];
 
 			normal[2] = s[4] * 4;
 
@@ -558,7 +547,7 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 	// copy in to out
 	for (y = 2; y < height - 2; y += 2)
 	{
-		inbyte  = in  + (y * width + 2) * 4 + component;
+		inbyte = in + (y * width + 2) * 4 + component;
 		outbyte = out + (y * width + 2) * 4 + component;
 
 		for (x = 2; x < width - 2; x += 2)
@@ -568,7 +557,7 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 			inbyte += 8;
 		}
 	}
-	
+
 	for (y = 3; y < height - 3; y += 2)
 	{
 		// diagonals
@@ -630,14 +619,14 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 		//COPYSAMPLE(sg, line3); line3 += 8; COPYSAMPLE(sh, line3); line3 += 8; COPYSAMPLE(si, line3); line3 += 8;
 		//                                   COPYSAMPLE(sk, line4); line4 += 8;
 
-		                         sa = *line1; line1 += 8;
+		sa = *line1; line1 += 8;
 		sc = *line2; line2 += 8; sd = *line2; line2 += 8; se = *line2; line2 += 8;
 		sg = *line3; line3 += 8; sh = *line3; line3 += 8; si = *line3; line3 += 8;
-		                         sk = *line4; line4 += 8;
+		sk = *line4; line4 += 8;
 
 		outbyte = out + (y * width + x) * 4 + component;
 
-		for ( ; x < width - 3; x += 2)
+		for (; x < width - 3; x += 2)
 		{
 			int NWd, NEd, NWp, NEp;
 
@@ -669,7 +658,7 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 			NWd = abs(sd - si);
 			NEd = abs(se - sh);
 
-			if (NWd > 100 || NEd > 100 || abs(NWp-NEp) > 200)
+			if (NWd > 100 || NEd > 100 || abs(NWp - NEp) > 200)
 			{
 				if (NWd < NEd)
 					*outbyte = NWp >> 1;
@@ -698,10 +687,10 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 			//COPYSAMPLE(sg, sh); COPYSAMPLE(sh, si); COPYSAMPLE(si, sj);
 			//                    COPYSAMPLE(sk, sl);
 
-			         sa = sb;
+			sa = sb;
 			sc = sd; sd = se; se = sf;
 			sg = sh; sh = si; si = sj;
-			         sk = sl;
+			sk = sl;
 		}
 	}
 
@@ -718,7 +707,7 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 			inbyte += 8;
 		}
 	}
-	
+
 	for (y = 2; y < height - 3; y++)
 	{
 		// horizontal & vertical
@@ -758,7 +747,7 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 
 		//x = (y + 1) % 2;
 		x = (y + 1) % 2 + 2;
-		
+
 		// optimization one
 		//            SAMPLE2(sa, x-1, y-2);
 		//SAMPLE2(sc, x-2, y-1); SAMPLE2(sd, x,   y-1);
@@ -768,7 +757,7 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 
 		line1 = in + ((y - 2) * width + (x - 1)) * 4 + component;
 		line2 = in + ((y - 1) * width + (x - 2)) * 4 + component;
-		line3 = in + ((y    ) * width + (x - 1)) * 4 + component;
+		line3 = in + ((y)* width + (x - 1)) * 4 + component;
 		line4 = in + ((y + 1) * width + (x - 2)) * 4 + component;
 		line5 = in + ((y + 2) * width + (x - 1)) * 4 + component;
 
@@ -776,17 +765,17 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 		//COPYSAMPLE(sc, line2); line2 += 8; COPYSAMPLE(sd, line2); line2 += 8;
 		//                 COPYSAMPLE(sf, line3); line3 += 8;
 		//COPYSAMPLE(sh, line4); line4 += 8; COPYSAMPLE(si, line4); line4 += 8;
-        //                 COPYSAMPLE(sk, line5); line5 += 8;
+		//                 COPYSAMPLE(sk, line5); line5 += 8;
 
-		             sa = *line1; line1 += 8;
+		sa = *line1; line1 += 8;
 		sc = *line2; line2 += 8; sd = *line2; line2 += 8;
-		             sf = *line3; line3 += 8;
+		sf = *line3; line3 += 8;
 		sh = *line4; line4 += 8; si = *line4; line4 += 8;
-		             sk = *line5; line5 += 8;
+		sk = *line5; line5 += 8;
 
 		outbyte = out + (y * width + x) * 4 + component;
 
-		for ( ; x < width - 3; x+=2)
+		for (; x < width - 3; x += 2)
 		{
 			int hd, vd, hp, vp;
 
@@ -815,12 +804,12 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 			sj = *line4; line4 += 8;
 			sl = *line5; line5 += 8;
 
-			hp = sf + sg; 
+			hp = sf + sg;
 			vp = sd + si;
 			hd = abs(sf - sg);
 			vd = abs(sd - si);
 
-			if (hd > 100 || vd > 100 || abs(hp-vp) > 200)
+			if (hd > 100 || vd > 100 || abs(hp - vp) > 200)
 			{
 				if (hd < vd)
 					*outbyte = hp >> 1;
@@ -839,7 +828,7 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 
 				if (hdd > vdd)
 					*outbyte = hp >> 1;
-				else 
+				else
 					*outbyte = vp >> 1;
 			}
 
@@ -850,11 +839,11 @@ static void DoFCBI(byte *in, byte *out, int width, int height, int component)
 			//          COPYSAMPLE(sf, sg);
 			//COPYSAMPLE(sh, si); COPYSAMPLE(si, sj);
 			//          COPYSAMPLE(sk, sl);
-			    sa = sb;
+			sa = sb;
 			sc = sd; sd = se;
-			    sf = sg;
+			sf = sg;
 			sh = si; si = sj;
-			    sk = sl;
+			sk = sl;
 		}
 	}
 }
@@ -868,7 +857,7 @@ static void DoFCBIQuick(byte *in, byte *out, int width, int height, int componen
 	// copy in to out
 	for (y = 2; y < height - 2; y += 2)
 	{
-		inbyte  = in  + (y * width + 2) * 4 + component;
+		inbyte = in + (y * width + 2) * 4 + component;
 		outbyte = out + (y * width + 2) * 4 + component;
 
 		for (x = 2; x < width - 2; x += 2)
@@ -894,7 +883,7 @@ static void DoFCBIQuick(byte *in, byte *out, int width, int height, int componen
 
 		outbyte = out + (y * width + x) * 4 + component;
 
-		for ( ; x < width - 4; x += 2)
+		for (; x < width - 4; x += 2)
 		{
 			int NWd, NEd, NWp, NEp;
 
@@ -921,8 +910,8 @@ static void DoFCBIQuick(byte *in, byte *out, int width, int height, int componen
 	// hack: copy out to in again
 	for (y = 3; y < height - 3; y += 2)
 	{
-		inbyte  = out + (y * width + 3) * 4 + component;
-		outbyte = in  + (y * width + 3) * 4 + component;
+		inbyte = out + (y * width + 3) * 4 + component;
+		outbyte = in + (y * width + 3) * 4 + component;
 
 		for (x = 3; x < width - 3; x += 2)
 		{
@@ -931,7 +920,7 @@ static void DoFCBIQuick(byte *in, byte *out, int width, int height, int componen
 			inbyte += 8;
 		}
 	}
-	
+
 	for (y = 2; y < height - 3; y++)
 	{
 		byte sd, sf, sg, si;
@@ -939,23 +928,23 @@ static void DoFCBIQuick(byte *in, byte *out, int width, int height, int componen
 
 		x = (y + 1) % 2 + 2;
 
-		line2 = in + ((y - 1) * width + (x    )) * 4 + component;
-		line3 = in + ((y    ) * width + (x - 1)) * 4 + component;
-		line4 = in + ((y + 1) * width + (x    )) * 4 + component;
+		line2 = in + ((y - 1) * width + (x)) * 4 + component;
+		line3 = in + ((y)* width + (x - 1)) * 4 + component;
+		line4 = in + ((y + 1) * width + (x)) * 4 + component;
 
 		outbyte = out + (y * width + x) * 4 + component;
 
 		sf = *line3; line3 += 8;
 
-		for ( ; x < width - 3; x+=2)
+		for (; x < width - 3; x += 2)
 		{
 			int hd, vd, hp, vp;
 
 			sd = *line2; line2 += 8;
 			sg = *line3; line3 += 8;
 			si = *line4; line4 += 8;
-			
-			hp = sf + sg; 
+
+			hp = sf + sg;
 			vp = sd + si;
 			hd = abs(sf - sg);
 			vd = abs(sd - si);
@@ -984,10 +973,10 @@ static void DoLinear(byte *in, byte *out, int width, int height)
 	{
 		x = 2;
 
-		inbyte  = in  + (y * width + x) * 4;
+		inbyte = in + (y * width + x) * 4;
 		outbyte = out + (y * width + x) * 4;
 
-		for ( ; x < width - 2; x += 2)
+		for (; x < width - 2; x += 2)
 		{
 			COPYSAMPLE(outbyte, inbyte);
 			outbyte += 8;
@@ -997,7 +986,7 @@ static void DoLinear(byte *in, byte *out, int width, int height)
 
 	for (y = 1; y < height - 1; y += 2)
 	{
-		byte sd[4] = {0}, se[4] = {0}, sh[4] = {0}, si[4] = {0};
+		byte sd[4] = { 0 }, se[4] = { 0 }, sh[4] = { 0 }, si[4] = { 0 };
 		byte *line2, *line3;
 
 		x = 1;
@@ -1010,13 +999,13 @@ static void DoLinear(byte *in, byte *out, int width, int height)
 
 		outbyte = out + (y * width + x) * 4;
 
-		for ( ; x < width - 1; x += 2)
+		for (; x < width - 1; x += 2)
 		{
 			COPYSAMPLE(se, line2); line2 += 8;
 			COPYSAMPLE(si, line3); line3 += 8;
 
 			for (i = 0; i < 4; i++)
-			{	
+			{
 				*outbyte++ = (sd[i] + si[i] + se[i] + sh[i]) >> 2;
 			}
 
@@ -1032,17 +1021,17 @@ static void DoLinear(byte *in, byte *out, int width, int height)
 	{
 		x = 1;
 
-		inbyte  = out + (y * width + x) * 4;
-		outbyte = in  + (y * width + x) * 4;
+		inbyte = out + (y * width + x) * 4;
+		outbyte = in + (y * width + x) * 4;
 
-		for ( ; x < width - 1; x += 2)
+		for (; x < width - 1; x += 2)
 		{
 			COPYSAMPLE(outbyte, inbyte);
 			outbyte += 8;
 			inbyte += 8;
 		}
 	}
-	
+
 	for (y = 1; y < height - 1; y++)
 	{
 		byte sd[4], sf[4], sg[4], si[4];
@@ -1050,15 +1039,15 @@ static void DoLinear(byte *in, byte *out, int width, int height)
 
 		x = y % 2 + 1;
 
-		line2 = in + ((y - 1) * width + (x    )) * 4;
-		line3 = in + ((y    ) * width + (x - 1)) * 4;
-		line4 = in + ((y + 1) * width + (x    )) * 4;
+		line2 = in + ((y - 1) * width + (x)) * 4;
+		line3 = in + ((y)* width + (x - 1)) * 4;
+		line4 = in + ((y + 1) * width + (x)) * 4;
 
 		COPYSAMPLE(sf, line3); line3 += 8;
 
 		outbyte = out + (y * width + x) * 4;
 
-		for ( ; x < width - 1; x += 2)
+		for (; x < width - 1; x += 2)
 		{
 			COPYSAMPLE(sd, line2); line2 += 8;
 			COPYSAMPLE(sg, line3); line3 += 8;
@@ -1077,14 +1066,16 @@ static void DoLinear(byte *in, byte *out, int width, int height)
 }
 
 
-static void ExpandHalfTextureToGrid( byte *data, int width, int height)
+static void ExpandHalfTextureToGrid(byte *data, int width, int height)
 {
-	for (int y = height / 2; y > 0; y--)
-	{
-		byte *outbyte = data + ((y * 2 - 1) * (width)     - 2) * 4;
-		byte *inbyte  = data + (y           * (width / 2) - 1) * 4;
+	int x, y;
 
-		for (int x = width / 2; x > 0; x--)
+	for (y = height / 2; y > 0; y--)
+	{
+		byte *outbyte = data + ((y * 2 - 1) * (width)-2) * 4;
+		byte *inbyte = data + (y           * (width / 2) - 1) * 4;
+
+		for (x = width / 2; x > 0; x--)
 		{
 			COPYSAMPLE(outbyte, inbyte);
 
@@ -1100,7 +1091,7 @@ static void FillInNormalizedZ(const byte *in, byte *out, int width, int height)
 
 	for (y = 0; y < height; y++)
 	{
-		const byte *inbyte  = in  + y * width * 4;
+		const byte *inbyte = in + y * width * 4;
 		byte       *outbyte = out + y * width * 4;
 
 		for (x = 0; x < width; x++)
@@ -1111,7 +1102,7 @@ static void FillInNormalizedZ(const byte *in, byte *out, int width, int height)
 			nx = *inbyte++;
 			ny = *inbyte++;
 			inbyte++;
-			h  = *inbyte++;
+			h = *inbyte++;
 
 			fnx = OffsetByteToFloat(nx);
 			fny = OffsetByteToFloat(ny);
@@ -1155,10 +1146,10 @@ static void FCBIByBlock(byte *data, int width, int height, qboolean clampToEdge,
 			int x2, y2;
 			int workwidth, workheight, fullworkwidth, fullworkheight;
 
-			workwidth =  MIN(WORKBLOCK_SIZE, width  - x);
+			workwidth = MIN(WORKBLOCK_SIZE, width - x);
 			workheight = MIN(WORKBLOCK_SIZE, height - y);
 
-			fullworkwidth =  workwidth  + WORKBLOCK_BORDER * 2;
+			fullworkwidth = workwidth + WORKBLOCK_BORDER * 2;
 			fullworkheight = workheight + WORKBLOCK_BORDER * 2;
 
 			//memset(workdata, 0, WORKBLOCK_REALSIZE * WORKBLOCK_REALSIZE * 4);
@@ -1178,7 +1169,7 @@ static void FCBIByBlock(byte *data, int width, int height, qboolean clampToEdge,
 				}
 
 				outbyte = workdata + y2   * fullworkwidth * 4;
-				inbyte  = data     + srcy * width         * 4;		
+				inbyte = data + srcy * width * 4;
 
 				for (x2 = 0; x2 < fullworkwidth; x2 += 2)
 				{
@@ -1205,32 +1196,32 @@ static void FCBIByBlock(byte *data, int width, int height, qboolean clampToEdge,
 			{
 				switch (r_imageUpsampleType->integer)
 				{
-					case 0:
-						break;
-					case 1:
-						DoFCBIQuick(workdata, outdata, fullworkwidth, fullworkheight, 0);
-						break;
-					case 2:
-					default:
-						DoFCBI(workdata, outdata, fullworkwidth, fullworkheight, 0);
-						break;
+				case 0:
+					break;
+				case 1:
+					DoFCBIQuick(workdata, outdata, fullworkwidth, fullworkheight, 0);
+					break;
+				case 2:
+				default:
+					DoFCBI(workdata, outdata, fullworkwidth, fullworkheight, 0);
+					break;
 				}
 			}
 			else
 			{
 				switch (r_imageUpsampleType->integer)
 				{
-					case 0:
-						break;
-					case 1:
-						DoFCBIQuick(workdata, outdata, fullworkwidth, fullworkheight, 0);
-						DoFCBIQuick(workdata, outdata, fullworkwidth, fullworkheight, 1);
-						break;
-					case 2:
-					default:
-						DoFCBI(workdata, outdata, fullworkwidth, fullworkheight, 0);
-						DoFCBI(workdata, outdata, fullworkwidth, fullworkheight, 1);
-						break;
+				case 0:
+					break;
+				case 1:
+					DoFCBIQuick(workdata, outdata, fullworkwidth, fullworkheight, 0);
+					DoFCBIQuick(workdata, outdata, fullworkwidth, fullworkheight, 1);
+					break;
+				case 2:
+				default:
+					DoFCBI(workdata, outdata, fullworkwidth, fullworkheight, 0);
+					DoFCBI(workdata, outdata, fullworkwidth, fullworkheight, 1);
+					break;
 				}
 			}
 
@@ -1238,7 +1229,7 @@ static void FCBIByBlock(byte *data, int width, int height, qboolean clampToEdge,
 			for (y2 = 0; y2 < workheight; y2++)
 			{
 				inbyte = outdata + ((y2 + WORKBLOCK_BORDER) * fullworkwidth + WORKBLOCK_BORDER) * 4;
-				outbyte = data +   ((y + y2)                * width         + x)                * 4;
+				outbyte = data + ((y + y2)                * width + x) * 4;
 				for (x2 = 0; x2 < workwidth; x2++)
 				{
 					COPYSAMPLE(outbyte, inbyte);
@@ -1259,11 +1250,11 @@ Scale up the pixel values in a texture to increase the
 lighting range
 ================
 */
-void R_LightScaleTexture (byte *in, int inwidth, int inheight, qboolean only_gamma )
+void R_LightScaleTexture(byte *in, int inwidth, int inheight, qboolean only_gamma)
 {
-	if ( only_gamma )
+	if (only_gamma)
 	{
-		if ( !glConfig.deviceSupportsGamma )
+		if (!glConfig.deviceSupportsGamma)
 		{
 			int		i, c;
 			byte	*p;
@@ -1271,8 +1262,7 @@ void R_LightScaleTexture (byte *in, int inwidth, int inheight, qboolean only_gam
 			p = in;
 
 			c = inwidth*inheight;
-
-			for (i=0 ; i<c ; i++, p+=4)
+			for (i = 0; i<c; i++, p += 4)
 			{
 				p[0] = s_gammatable[p[0]];
 				p[1] = s_gammatable[p[1]];
@@ -1289,9 +1279,9 @@ void R_LightScaleTexture (byte *in, int inwidth, int inheight, qboolean only_gam
 
 		c = inwidth*inheight;
 
-		if ( glConfig.deviceSupportsGamma )
+		if (glConfig.deviceSupportsGamma)
 		{
-			for (i=0 ; i<c ; i++, p+=4)
+			for (i = 0; i<c; i++, p += 4)
 			{
 				p[0] = s_intensitytable[p[0]];
 				p[1] = s_intensitytable[p[1]];
@@ -1300,7 +1290,7 @@ void R_LightScaleTexture (byte *in, int inwidth, int inheight, qboolean only_gam
 		}
 		else
 		{
-			for (i=0 ; i<c ; i++, p+=4)
+			for (i = 0; i<c; i++, p += 4)
 			{
 				p[0] = s_gammatable[s_intensitytable[p[0]]];
 				p[1] = s_gammatable[s_intensitytable[p[1]]];
@@ -1319,7 +1309,7 @@ Operates in place, quartering the size of the texture
 Proper linear filter
 ================
 */
-static void R_MipMap2( byte *in, int inWidth, int inHeight ) {
+static void R_MipMap2(byte *in, int inWidth, int inHeight) {
 	int			i, j, k;
 	byte		*outpix;
 	int			inWidthMask, inHeightMask;
@@ -1329,46 +1319,46 @@ static void R_MipMap2( byte *in, int inWidth, int inHeight ) {
 
 	outWidth = inWidth >> 1;
 	outHeight = inHeight >> 1;
-	temp = (unsigned int *)ri->Hunk_AllocateTempMemory( outWidth * outHeight * 4 );
+	temp = (unsigned int *)ri->Hunk_AllocateTempMemory(outWidth * outHeight * 4);
 
 	inWidthMask = inWidth - 1;
 	inHeightMask = inHeight - 1;
 
-	for ( i = 0 ; i < outHeight ; i++ ) {
-		for ( j = 0 ; j < outWidth ; j++ ) {
-			outpix = (byte *) ( temp + i * outWidth + j );
-			for ( k = 0 ; k < 4 ; k++ ) {
-				total = 
-					1 * (&in[ 4*(((i*2-1)&inHeightMask)*inWidth + ((j*2-1)&inWidthMask)) ])[k] +
-					2 * (&in[ 4*(((i*2-1)&inHeightMask)*inWidth + ((j*2  )&inWidthMask)) ])[k] +
-					2 * (&in[ 4*(((i*2-1)&inHeightMask)*inWidth + ((j*2+1)&inWidthMask)) ])[k] +
-					1 * (&in[ 4*(((i*2-1)&inHeightMask)*inWidth + ((j*2+2)&inWidthMask)) ])[k] +
+	for (i = 0; i < outHeight; i++) {
+		for (j = 0; j < outWidth; j++) {
+			outpix = (byte *)(temp + i * outWidth + j);
+			for (k = 0; k < 4; k++) {
+				total =
+					1 * (&in[4 * (((i * 2 - 1)&inHeightMask)*inWidth + ((j * 2 - 1)&inWidthMask))])[k] +
+					2 * (&in[4 * (((i * 2 - 1)&inHeightMask)*inWidth + ((j * 2)&inWidthMask))])[k] +
+					2 * (&in[4 * (((i * 2 - 1)&inHeightMask)*inWidth + ((j * 2 + 1)&inWidthMask))])[k] +
+					1 * (&in[4 * (((i * 2 - 1)&inHeightMask)*inWidth + ((j * 2 + 2)&inWidthMask))])[k] +
 
-					2 * (&in[ 4*(((i*2  )&inHeightMask)*inWidth + ((j*2-1)&inWidthMask)) ])[k] +
-					4 * (&in[ 4*(((i*2  )&inHeightMask)*inWidth + ((j*2  )&inWidthMask)) ])[k] +
-					4 * (&in[ 4*(((i*2  )&inHeightMask)*inWidth + ((j*2+1)&inWidthMask)) ])[k] +
-					2 * (&in[ 4*(((i*2  )&inHeightMask)*inWidth + ((j*2+2)&inWidthMask)) ])[k] +
+					2 * (&in[4 * (((i * 2)&inHeightMask)*inWidth + ((j * 2 - 1)&inWidthMask))])[k] +
+					4 * (&in[4 * (((i * 2)&inHeightMask)*inWidth + ((j * 2)&inWidthMask))])[k] +
+					4 * (&in[4 * (((i * 2)&inHeightMask)*inWidth + ((j * 2 + 1)&inWidthMask))])[k] +
+					2 * (&in[4 * (((i * 2)&inHeightMask)*inWidth + ((j * 2 + 2)&inWidthMask))])[k] +
 
-					2 * (&in[ 4*(((i*2+1)&inHeightMask)*inWidth + ((j*2-1)&inWidthMask)) ])[k] +
-					4 * (&in[ 4*(((i*2+1)&inHeightMask)*inWidth + ((j*2  )&inWidthMask)) ])[k] +
-					4 * (&in[ 4*(((i*2+1)&inHeightMask)*inWidth + ((j*2+1)&inWidthMask)) ])[k] +
-					2 * (&in[ 4*(((i*2+1)&inHeightMask)*inWidth + ((j*2+2)&inWidthMask)) ])[k] +
+					2 * (&in[4 * (((i * 2 + 1)&inHeightMask)*inWidth + ((j * 2 - 1)&inWidthMask))])[k] +
+					4 * (&in[4 * (((i * 2 + 1)&inHeightMask)*inWidth + ((j * 2)&inWidthMask))])[k] +
+					4 * (&in[4 * (((i * 2 + 1)&inHeightMask)*inWidth + ((j * 2 + 1)&inWidthMask))])[k] +
+					2 * (&in[4 * (((i * 2 + 1)&inHeightMask)*inWidth + ((j * 2 + 2)&inWidthMask))])[k] +
 
-					1 * (&in[ 4*(((i*2+2)&inHeightMask)*inWidth + ((j*2-1)&inWidthMask)) ])[k] +
-					2 * (&in[ 4*(((i*2+2)&inHeightMask)*inWidth + ((j*2  )&inWidthMask)) ])[k] +
-					2 * (&in[ 4*(((i*2+2)&inHeightMask)*inWidth + ((j*2+1)&inWidthMask)) ])[k] +
-					1 * (&in[ 4*(((i*2+2)&inHeightMask)*inWidth + ((j*2+2)&inWidthMask)) ])[k];
+					1 * (&in[4 * (((i * 2 + 2)&inHeightMask)*inWidth + ((j * 2 - 1)&inWidthMask))])[k] +
+					2 * (&in[4 * (((i * 2 + 2)&inHeightMask)*inWidth + ((j * 2)&inWidthMask))])[k] +
+					2 * (&in[4 * (((i * 2 + 2)&inHeightMask)*inWidth + ((j * 2 + 1)&inWidthMask))])[k] +
+					1 * (&in[4 * (((i * 2 + 2)&inHeightMask)*inWidth + ((j * 2 + 2)&inWidthMask))])[k];
 				outpix[k] = total / 36;
 			}
 		}
 	}
 
-	Com_Memcpy( in, temp, outWidth * outHeight * 4 );
-	ri->Hunk_FreeTempMemory( temp );
+	Com_Memcpy(in, temp, outWidth * outHeight * 4);
+	ri->Hunk_FreeTempMemory(temp);
 }
 
 
-static void R_MipMapsRGB( byte *in, int inWidth, int inHeight)
+static void R_MipMapsRGB(byte *in, int inWidth, int inHeight)
 {
 	int			i, j, k;
 	int			outWidth, outHeight;
@@ -1376,17 +1366,17 @@ static void R_MipMapsRGB( byte *in, int inWidth, int inHeight)
 
 	outWidth = inWidth >> 1;
 	outHeight = inHeight >> 1;
-	temp = (byte *)ri->Hunk_AllocateTempMemory( outWidth * outHeight * 4 );
+	temp = (byte *)ri->Hunk_AllocateTempMemory(outWidth * outHeight * 4);
 
-	for ( i = 0 ; i < outHeight ; i++ ) {
-		byte *outbyte = temp + (  i          * outWidth ) * 4;
-		byte *inbyte1 = in   + (  i * 2      * inWidth  ) * 4;
-		byte *inbyte2 = in   + ( (i * 2 + 1) * inWidth  ) * 4;
-		for ( j = 0 ; j < outWidth ; j++ ) {
-			for ( k = 0 ; k < 3 ; k++ ) {
+	for (i = 0; i < outHeight; i++) {
+		byte *outbyte = temp + (i          * outWidth) * 4;
+		byte *inbyte1 = in + (i * 2 * inWidth) * 4;
+		byte *inbyte2 = in + ((i * 2 + 1) * inWidth) * 4;
+		for (j = 0; j < outWidth; j++) {
+			for (k = 0; k < 3; k++) {
 				float total, current;
 
-				current = ByteToFloat(inbyte1[0]); total  = sRGBtoRGB((double)current);
+				current = ByteToFloat(inbyte1[0]); total = sRGBtoRGB((double)current);
 				current = ByteToFloat(inbyte1[4]); total += sRGBtoRGB((double)current);
 				current = ByteToFloat(inbyte2[0]); total += sRGBtoRGB((double)current);
 				current = ByteToFloat(inbyte2[4]); total += sRGBtoRGB((double)current);
@@ -1405,8 +1395,8 @@ static void R_MipMapsRGB( byte *in, int inWidth, int inHeight)
 		}
 	}
 
-	Com_Memcpy( in, temp, outWidth * outHeight * 4 );
-	ri->Hunk_FreeTempMemory( temp );
+	Com_Memcpy(in, temp, outWidth * outHeight * 4);
+	ri->Hunk_FreeTempMemory(temp);
 }
 
 /*
@@ -1416,17 +1406,17 @@ R_MipMap
 Operates in place, quartering the size of the texture
 ================
 */
-static void R_MipMap (byte *in, int width, int height) {
+static void R_MipMap(byte *in, int width, int height) {
 	int		i, j;
 	byte	*out;
 	int		row;
 
-	if ( !r_simpleMipMaps->integer ) {
-		R_MipMap2( in, width, height );
+	if (!r_simpleMipMaps->integer) {
+		R_MipMap2(in, width, height);
 		return;
 	}
 
-	if ( width == 1 && height == 1 ) {
+	if (width == 1 && height == 1) {
 		return;
 	}
 
@@ -1435,33 +1425,33 @@ static void R_MipMap (byte *in, int width, int height) {
 	width >>= 1;
 	height >>= 1;
 
-	if ( width == 0 || height == 0 ) {
+	if (width == 0 || height == 0) {
 		width += height;	// get largest
-		for (i=0 ; i<width ; i++, out+=4, in+=8 ) {
-			out[0] = ( in[0] + in[4] )>>1;
-			out[1] = ( in[1] + in[5] )>>1;
-			out[2] = ( in[2] + in[6] )>>1;
-			out[3] = ( in[3] + in[7] )>>1;
+		for (i = 0; i<width; i++, out += 4, in += 8) {
+			out[0] = (in[0] + in[4]) >> 1;
+			out[1] = (in[1] + in[5]) >> 1;
+			out[2] = (in[2] + in[6]) >> 1;
+			out[3] = (in[3] + in[7]) >> 1;
 		}
 		return;
 	}
 
-	for (i=0 ; i<height ; i++, in+=row) {
-		for (j=0 ; j<width ; j++, out+=4, in+=8) {
-			out[0] = (in[0] + in[4] + in[row+0] + in[row+4])>>2;
-			out[1] = (in[1] + in[5] + in[row+1] + in[row+5])>>2;
-			out[2] = (in[2] + in[6] + in[row+2] + in[row+6])>>2;
-			out[3] = (in[3] + in[7] + in[row+3] + in[row+7])>>2;
+	for (i = 0; i<height; i++, in += row) {
+		for (j = 0; j<width; j++, out += 4, in += 8) {
+			out[0] = (in[0] + in[4] + in[row + 0] + in[row + 4]) >> 2;
+			out[1] = (in[1] + in[5] + in[row + 1] + in[row + 5]) >> 2;
+			out[2] = (in[2] + in[6] + in[row + 2] + in[row + 6]) >> 2;
+			out[3] = (in[3] + in[7] + in[row + 3] + in[row + 7]) >> 2;
 		}
 	}
 }
 
 
-static void R_MipMapLuminanceAlpha (const byte *in, byte *out, int width, int height)
+static void R_MipMapLuminanceAlpha(const byte *in, byte *out, int width, int height)
 {
 	int  i, j, row;
 
-	if ( width == 1 && height == 1 ) {
+	if (width == 1 && height == 1) {
 		return;
 	}
 
@@ -1469,64 +1459,63 @@ static void R_MipMapLuminanceAlpha (const byte *in, byte *out, int width, int he
 	width >>= 1;
 	height >>= 1;
 
-	if ( width == 0 || height == 0 ) {
+	if (width == 0 || height == 0) {
 		width += height;	// get largest
-
-		for (i=0 ; i<width ; i++, out+=4, in+=8 ) {
-			out[0] = 
-			out[1] = 
-			out[2] = (in[0] + in[4]) >> 1;
+		for (i = 0; i<width; i++, out += 4, in += 8) {
+			out[0] =
+				out[1] =
+				out[2] = (in[0] + in[4]) >> 1;
 			out[3] = (in[3] + in[7]) >> 1;
 		}
 		return;
 	}
 
-	for (i=0 ; i<height ; i++, in+=row) {
-		for (j=0 ; j<width ; j++, out+=4, in+=8) {
-			out[0] = 
-			out[1] = 
-			out[2] = (in[0] + in[4] + in[row  ] + in[row+4]) >> 2;
-			out[3] = (in[3] + in[7] + in[row+3] + in[row+7]) >> 2;
+	for (i = 0; i<height; i++, in += row) {
+		for (j = 0; j<width; j++, out += 4, in += 8) {
+			out[0] =
+				out[1] =
+				out[2] = (in[0] + in[4] + in[row] + in[row + 4]) >> 2;
+			out[3] = (in[3] + in[7] + in[row + 3] + in[row + 7]) >> 2;
 		}
 	}
 
 }
 
 
-static void R_MipMapNormalHeight (const byte *in, byte *out, int width, int height, qboolean swizzle)
+static void R_MipMapNormalHeight(const byte *in, byte *out, int width, int height, qboolean swizzle)
 {
 	int		i, j;
 	int		row;
 	int sx = swizzle ? 3 : 0;
 	int sa = swizzle ? 0 : 3;
 
-	if ( width == 1 && height == 1 ) {
+	if (width == 1 && height == 1) {
 		return;
 	}
 
 	row = width * 4;
 	width >>= 1;
 	height >>= 1;
-	
-	for (i=0 ; i<height ; i++, in+=row) {
-		for (j=0 ; j<width ; j++, out+=4, in+=8) {
+
+	for (i = 0; i<height; i++, in += row) {
+		for (j = 0; j<width; j++, out += 4, in += 8) {
 			vec3_t v;
 
-			v[0] =  OffsetByteToFloat(in[sx      ]);
-			v[1] =  OffsetByteToFloat(in[       1]);
-			v[2] =  OffsetByteToFloat(in[       2]);
+			v[0] = OffsetByteToFloat(in[sx]);
+			v[1] = OffsetByteToFloat(in[1]);
+			v[2] = OffsetByteToFloat(in[2]);
 
-			v[0] += OffsetByteToFloat(in[sx    +4]);
-			v[1] += OffsetByteToFloat(in[       5]);
-			v[2] += OffsetByteToFloat(in[       6]);
+			v[0] += OffsetByteToFloat(in[sx + 4]);
+			v[1] += OffsetByteToFloat(in[5]);
+			v[2] += OffsetByteToFloat(in[6]);
 
-			v[0] += OffsetByteToFloat(in[sx+row  ]);
-			v[1] += OffsetByteToFloat(in[   row+1]);
-			v[2] += OffsetByteToFloat(in[   row+2]);
+			v[0] += OffsetByteToFloat(in[sx + row]);
+			v[1] += OffsetByteToFloat(in[row + 1]);
+			v[2] += OffsetByteToFloat(in[row + 2]);
 
-			v[0] += OffsetByteToFloat(in[sx+row+4]);
-			v[1] += OffsetByteToFloat(in[   row+5]);
-			v[2] += OffsetByteToFloat(in[   row+6]);
+			v[0] += OffsetByteToFloat(in[sx + row + 4]);
+			v[1] += OffsetByteToFloat(in[row + 5]);
+			v[2] += OffsetByteToFloat(in[row + 6]);
 
 			VectorNormalizeFast(v);
 
@@ -1536,9 +1525,9 @@ static void R_MipMapNormalHeight (const byte *in, byte *out, int width, int heig
 			//v[2] = sqrt(MAX(v[2], 0.0f));
 
 			out[sx] = FloatToOffsetByte(v[0]);
-			out[1 ] = FloatToOffsetByte(v[1]);
-			out[2 ] = FloatToOffsetByte(v[2]);
-			out[sa] = MAX(MAX(in[sa], in[sa+4]), MAX(in[sa+row], in[sa+row+4]));
+			out[1] = FloatToOffsetByte(v[1]);
+			out[2] = FloatToOffsetByte(v[2]);
+			out[sa] = MAX(MAX(in[sa], in[sa + 4]), MAX(in[sa + row], in[sa + row + 4]));
 		}
 	}
 }
@@ -1551,7 +1540,7 @@ R_BlendOverTexture
 Apply a color blend over a set of pixels
 ==================
 */
-static void R_BlendOverTexture( byte *data, int pixelCount, byte blend[4] ) {
+static void R_BlendOverTexture(byte *data, int pixelCount, byte blend[4]) {
 	int		i;
 	int		inverseAlpha;
 	int		premult[3];
@@ -1561,38 +1550,38 @@ static void R_BlendOverTexture( byte *data, int pixelCount, byte blend[4] ) {
 	premult[1] = blend[1] * blend[3];
 	premult[2] = blend[2] * blend[3];
 
-	for ( i = 0 ; i < pixelCount ; i++, data+=4 ) {
-		data[0] = ( data[0] * inverseAlpha + premult[0] ) >> 9;
-		data[1] = ( data[1] * inverseAlpha + premult[1] ) >> 9;
-		data[2] = ( data[2] * inverseAlpha + premult[2] ) >> 9;
+	for (i = 0; i < pixelCount; i++, data += 4) {
+		data[0] = (data[0] * inverseAlpha + premult[0]) >> 9;
+		data[1] = (data[1] * inverseAlpha + premult[1]) >> 9;
+		data[2] = (data[2] * inverseAlpha + premult[2]) >> 9;
 	}
 }
 
 byte	mipBlendColors[16][4] = {
-	{0,0,0,0},
-	{255,0,0,128},
-	{0,255,0,128},
-	{0,0,255,128},
-	{255,0,0,128},
-	{0,255,0,128},
-	{0,0,255,128},
-	{255,0,0,128},
-	{0,255,0,128},
-	{0,0,255,128},
-	{255,0,0,128},
-	{0,255,0,128},
-	{0,0,255,128},
-	{255,0,0,128},
-	{0,255,0,128},
-	{0,0,255,128},
+	{ 0,0,0,0 },
+	{ 255,0,0,128 },
+	{ 0,255,0,128 },
+	{ 0,0,255,128 },
+	{ 255,0,0,128 },
+	{ 0,255,0,128 },
+	{ 0,0,255,128 },
+	{ 255,0,0,128 },
+	{ 0,255,0,128 },
+	{ 0,0,255,128 },
+	{ 255,0,0,128 },
+	{ 0,255,0,128 },
+	{ 0,0,255,128 },
+	{ 255,0,0,128 },
+	{ 0,255,0,128 },
+	{ 0,0,255,128 },
 };
 
-static void RawImage_SwizzleRA( byte *data, int width, int height )
+static void RawImage_SwizzleRA(byte *data, int width, int height)
 {
 	int i;
 	byte *ptr = data, swap;
 
-	for (i=0; i<width*height; i++, ptr+=4)
+	for (i = 0; i<width*height; i++, ptr += 4)
 	{
 		// swap red and alpha
 		swap = ptr[0];
@@ -1608,10 +1597,10 @@ RawImage_ScaleToPower2
 
 ===============
 */
-static void RawImage_ScaleToPower2( byte **data, int *inout_width, int *inout_height, int *inout_scaled_width, int *inout_scaled_height, imgType_t type, int flags, byte **resampledBuffer)
+static void RawImage_ScaleToPower2(byte **data, int *inout_width, int *inout_height, int *inout_scaled_width, int *inout_scaled_height, imgType_t type, int flags, byte **resampledBuffer)
 {
-	int width =         *inout_width;
-	int height =        *inout_height;
+	int width = *inout_width;
+	int height = *inout_height;
 	int scaled_width;
 	int scaled_height;
 	qboolean picmip = (qboolean)(flags & IMGFLAG_PICMIP);
@@ -1632,13 +1621,13 @@ static void RawImage_ScaleToPower2( byte **data, int *inout_width, int *inout_he
 		scaled_height = NextPowerOfTwo(height);
 	}
 
-	if ( r_roundImagesDown->integer && scaled_width > width )
+	if (r_roundImagesDown->integer && scaled_width > width)
 		scaled_width >>= 1;
-	if ( r_roundImagesDown->integer && scaled_height > height )
+	if (r_roundImagesDown->integer && scaled_height > height)
 		scaled_height >>= 1;
 
-	if ( picmip && data && resampledBuffer && r_imageUpsample->integer && 
-	     scaled_width < r_imageUpsampleMaxSize->integer && scaled_height < r_imageUpsampleMaxSize->integer)
+	if (picmip && data && resampledBuffer && r_imageUpsample->integer &&
+		scaled_width < r_imageUpsampleMaxSize->integer && scaled_height < r_imageUpsampleMaxSize->integer)
 	{
 		int finalwidth, finalheight;
 		//int startTime, endTime;
@@ -1648,23 +1637,23 @@ static void RawImage_ScaleToPower2( byte **data, int *inout_width, int *inout_he
 		finalwidth = scaled_width << r_imageUpsample->integer;
 		finalheight = scaled_height << r_imageUpsample->integer;
 
-		while ( finalwidth > r_imageUpsampleMaxSize->integer
-			|| finalheight > r_imageUpsampleMaxSize->integer ) {
+		while (finalwidth > r_imageUpsampleMaxSize->integer
+			|| finalheight > r_imageUpsampleMaxSize->integer) {
 			finalwidth >>= 1;
 			finalheight >>= 1;
 		}
 
-		while ( finalwidth > glConfig.maxTextureSize
-			|| finalheight > glConfig.maxTextureSize ) {
+		while (finalwidth > glConfig.maxTextureSize
+			|| finalheight > glConfig.maxTextureSize) {
 			finalwidth >>= 1;
 			finalheight >>= 1;
 		}
 
-		*resampledBuffer = (byte *)ri->Hunk_AllocateTempMemory( finalwidth * finalheight * 4 );
+		*resampledBuffer = (byte *)ri->Hunk_AllocateTempMemory(finalwidth * finalheight * 4);
 
 		if (scaled_width != width || scaled_height != height)
 		{
-			ResampleTexture (*data, width, height, *resampledBuffer, scaled_width, scaled_height);
+			ResampleTexture(*data, width, height, *resampledBuffer, scaled_width, scaled_height);
 		}
 		else
 		{
@@ -1709,11 +1698,11 @@ static void RawImage_ScaleToPower2( byte **data, int *inout_width, int *inout_he
 		width = scaled_width;
 		height = scaled_height;
 	}
-	else if ( scaled_width != width || scaled_height != height ) {
+	else if (scaled_width != width || scaled_height != height) {
 		if (data && resampledBuffer)
 		{
-			*resampledBuffer = (byte *)ri->Hunk_AllocateTempMemory( scaled_width * scaled_height * 4 );
-			ResampleTexture (*data, width, height, *resampledBuffer, scaled_width, scaled_height);
+			*resampledBuffer = (byte *)ri->Hunk_AllocateTempMemory(scaled_width * scaled_height * 4);
+			ResampleTexture(*data, width, height, *resampledBuffer, scaled_width, scaled_height);
 			*data = *resampledBuffer;
 		}
 		width = scaled_width;
@@ -1723,7 +1712,7 @@ static void RawImage_ScaleToPower2( byte **data, int *inout_width, int *inout_he
 	//
 	// perform optional picmip operation
 	//
-	if ( picmip ) {
+	if (picmip) {
 		scaled_width >>= r_picmip->integer;
 		scaled_height >>= r_picmip->integer;
 	}
@@ -1743,15 +1732,15 @@ static void RawImage_ScaleToPower2( byte **data, int *inout_width, int *inout_he
 	// scale both axis down equally so we don't have to
 	// deal with a half mip resampling
 	//
-	while ( scaled_width > glConfig.maxTextureSize
-		|| scaled_height > glConfig.maxTextureSize ) {
+	while (scaled_width > glConfig.maxTextureSize
+		|| scaled_height > glConfig.maxTextureSize) {
 		scaled_width >>= 1;
 		scaled_height >>= 1;
 	}
 
-	*inout_width         = width;
-	*inout_height        = height;
-	*inout_scaled_width  = scaled_width;
+	*inout_width = width;
+	*inout_height = height;
+	*inout_scaled_width = scaled_width;
 	*inout_scaled_height = scaled_height;
 }
 
@@ -1763,9 +1752,9 @@ static qboolean RawImage_HasAlpha(const byte *scan, int numPixels)
 	if (!scan)
 		return qtrue;
 
-	for ( i = 0; i < numPixels; i++ )
+	for (i = 0; i < numPixels; i++)
 	{
-		if ( scan[i*4 + 3] != 255 ) 
+		if (scan[i * 4 + 3] != 255)
 		{
 			return qtrue;
 		}
@@ -1777,11 +1766,11 @@ static qboolean RawImage_HasAlpha(const byte *scan, int numPixels)
 static GLenum RawImage_GetFormat(const byte *data, int numPixels, qboolean lightMap, imgType_t type, int flags)
 {
 	int samples = 3;
-	GLenum internalFormat = GL_RGB;
+	GLenum internalFormat = GL_RGB8;
 	qboolean forceNoCompression = (qboolean)(flags & IMGFLAG_NO_COMPRESSION);
 	qboolean normalmap = (qboolean)(type == IMGTYPE_NORMAL || type == IMGTYPE_NORMALHEIGHT);
 
-	if(normalmap)
+	if (normalmap)
 	{
 		if ((!RawImage_HasAlpha(data, numPixels) || (type == IMGTYPE_NORMAL)) && !forceNoCompression && (glRefConfig.textureCompression & TCR_LATC))
 		{
@@ -1789,29 +1778,31 @@ static GLenum RawImage_GetFormat(const byte *data, int numPixels, qboolean light
 		}
 		else
 		{
-			if ( !forceNoCompression && glConfig.textureCompression == TC_S3TC_ARB )
+			if (!forceNoCompression && glConfig.textureCompression == TC_S3TC_ARB)
 			{
 				internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 			}
-			else if ( r_texturebits->integer == 16 )
+			else if (r_texturebits->integer == 16)
 			{
 				internalFormat = GL_RGBA4;
 			}
-			else if ( r_texturebits->integer == 32 )
+			else if (r_texturebits->integer == 32)
 			{
 				internalFormat = GL_RGBA8;
 			}
 			else
 			{
-				internalFormat = GL_RGBA;
+				internalFormat = GL_RGBA8;
 			}
 		}
 	}
-	else if(lightMap)
+	else if (lightMap)
 	{
-		if(r_greyscale->integer)
+#if 0
+		if (r_greyscale->integer)
 			internalFormat = GL_LUMINANCE;
 		else
+#endif
 			internalFormat = GL_RGBA;
 	}
 	else
@@ -1822,133 +1813,119 @@ static GLenum RawImage_GetFormat(const byte *data, int numPixels, qboolean light
 		}
 
 		// select proper internal format
-		if ( samples == 3 )
+		if (samples == 3)
 		{
-			if(r_greyscale->integer)
+#if 0
+			if (r_greyscale->integer)
 			{
-				if(r_texturebits->integer == 16)
+				if (r_texturebits->integer == 16)
 					internalFormat = GL_LUMINANCE8;
-				else if(r_texturebits->integer == 32)
+				else if (r_texturebits->integer == 32)
 					internalFormat = GL_LUMINANCE16;
 				else
 					internalFormat = GL_LUMINANCE;
 			}
 			else
+#endif
 			{
-				if ( !forceNoCompression && (glRefConfig.textureCompression & TCR_BPTC) )
+				if (!forceNoCompression && (glRefConfig.textureCompression & TCR_BPTC))
 				{
 					internalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
 				}
-				else if ( !forceNoCompression && glConfig.textureCompression == TC_S3TC_ARB )
+				else if (!forceNoCompression && glConfig.textureCompression == TC_S3TC_ARB)
 				{
 					internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 				}
-				else if ( !forceNoCompression && glConfig.textureCompression == TC_S3TC )
+				else if (!forceNoCompression && glConfig.textureCompression == TC_S3TC)
 				{
 					internalFormat = GL_RGB4_S3TC;
 				}
-				else if ( r_texturebits->integer == 16 )
+				else if (r_texturebits->integer == 16)
 				{
 					internalFormat = GL_RGB5;
 				}
-				else if ( r_texturebits->integer == 32 )
+				else if (r_texturebits->integer == 32)
 				{
 					internalFormat = GL_RGB8;
 				}
 				else
 				{
-					internalFormat = GL_RGB;
+					internalFormat = GL_RGB8;
 				}
 			}
 		}
-		else if ( samples == 4 )
+		else if (samples == 4)
 		{
-			if(r_greyscale->integer)
+#if 0
+			if (r_greyscale->integer)
 			{
-				if(r_texturebits->integer == 16)
+				if (r_texturebits->integer == 16)
 					internalFormat = GL_LUMINANCE8_ALPHA8;
-				else if(r_texturebits->integer == 32)
+				else if (r_texturebits->integer == 32)
 					internalFormat = GL_LUMINANCE16_ALPHA16;
 				else
 					internalFormat = GL_LUMINANCE_ALPHA;
 			}
 			else
+#endif
 			{
-				if ( !forceNoCompression && (glRefConfig.textureCompression & TCR_BPTC) )
+				if (!forceNoCompression && (glRefConfig.textureCompression & TCR_BPTC))
 				{
 					internalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
 				}
-				else if ( !forceNoCompression && glConfig.textureCompression == TC_S3TC_ARB )
+				else if (!forceNoCompression && glConfig.textureCompression == TC_S3TC_ARB)
 				{
 					internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 				}
-				else if ( r_texturebits->integer == 16 )
+				else if (r_texturebits->integer == 16)
 				{
 					internalFormat = GL_RGBA4;
 				}
-				else if ( r_texturebits->integer == 32 )
+				else if (r_texturebits->integer == 32)
 				{
 					internalFormat = GL_RGBA8;
 				}
 				else
 				{
-					internalFormat = GL_RGBA;
+					internalFormat = GL_RGBA8;
 				}
 			}
 		}
 
 		if (flags & IMGFLAG_SRGB)
 		{
-			switch(internalFormat)
+			switch (internalFormat)
 			{
-				case GL_RGB:
-					internalFormat = GL_SRGB;
-					break;
+			case GL_RGB:
+				internalFormat = GL_SRGB8;
+				break;
 
-				case GL_RGB4:
-				case GL_RGB5:
-				case GL_RGB8:
-					internalFormat = GL_SRGB8;
-					break;
+			case GL_RGB4:
+			case GL_RGB5:
+			case GL_RGB8:
+				internalFormat = GL_SRGB8;
+				break;
 
-				case GL_RGBA:
-					internalFormat = GL_SRGB_ALPHA;
-					break;
+			case GL_RGBA:
+				internalFormat = GL_SRGB_ALPHA;
+				break;
 
-				case GL_RGBA4:
-				case GL_RGBA8:
-					internalFormat = GL_SRGB8_ALPHA8;
-					break;
+			case GL_RGBA4:
+			case GL_RGBA8:
+				internalFormat = GL_SRGB8_ALPHA8;
+				break;
 
-				case GL_LUMINANCE:
-					internalFormat = GL_SLUMINANCE;
-					break;
+			case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+				internalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
+				break;
 
-				case GL_LUMINANCE8:
-				case GL_LUMINANCE16:
-					internalFormat = GL_SLUMINANCE8;
-					break;
+			case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+				internalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
+				break;
 
-				case GL_LUMINANCE_ALPHA:
-					internalFormat = GL_SLUMINANCE_ALPHA;
-					break;
-
-				case GL_LUMINANCE8_ALPHA8:
-				case GL_LUMINANCE16_ALPHA16:
-					internalFormat = GL_SLUMINANCE8_ALPHA8;
-					break;
-
-				case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-					internalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
-					break;
-
-				case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-					internalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
-					break;
-
-				case GL_COMPRESSED_RGBA_BPTC_UNORM_ARB:
-					internalFormat = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB;
-					break;
+			case GL_COMPRESSED_RGBA_BPTC_UNORM_ARB:
+				internalFormat = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB;
+				break;
 			}
 		}
 	}
@@ -1956,38 +1933,38 @@ static GLenum RawImage_GetFormat(const byte *data, int numPixels, qboolean light
 	return internalFormat;
 }
 
-static int CalcNumMipmapLevels ( int width, int height )
+static int CalcNumMipmapLevels(int width, int height)
 {
-	return static_cast<int>(ceil ((double)log2 (max (width, height))) + 1);
+	return static_cast<int>(ceil(log2(Q_max(width, height))) + 1);
 }
 
-static qboolean IsBPTCTextureFormat( GLenum internalformat )
+static qboolean IsBPTCTextureFormat(GLenum internalformat)
 {
-	switch ( internalformat )
+	switch (internalformat)
 	{
-		case GL_COMPRESSED_RGBA_BPTC_UNORM_ARB:
-		case GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB:
-		case GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB:
-		case GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB:
-			return qtrue;
+	case GL_COMPRESSED_RGBA_BPTC_UNORM_ARB:
+	case GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB:
+	case GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB:
+	case GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB:
+		return qtrue;
 
-		default:
-			return qfalse;
+	default:
+		return qfalse;
 	}
 }
 
 static qboolean ShouldUseImmutableTextures(int imageFlags, GLenum internalformat)
 {
-	if ( glRefConfig.hardwareVendor == IHV_AMD )
+	if (glRefConfig.hardwareVendor == IHV_AMD)
 	{
 		// Corrupted texture data is seen when using BPTC + immutable textures
-		if ( IsBPTCTextureFormat( internalformat ) )
+		if (IsBPTCTextureFormat(internalformat))
 		{
 			return qfalse;
 		}
 	}
 
-	if ( imageFlags & IMGFLAG_MUTABLE )
+	if (imageFlags & IMGFLAG_MUTABLE)
 	{
 		return qfalse;
 	}
@@ -1995,60 +1972,60 @@ static qboolean ShouldUseImmutableTextures(int imageFlags, GLenum internalformat
 	return glRefConfig.immutableTextures;
 }
 
-static void RawImage_UploadTexture( byte *data, int x, int y, int width, int height, GLenum internalFormat, imgType_t type, int flags, qboolean subtexture )
+static void RawImage_UploadTexture(byte *data, int x, int y, int width, int height, GLenum internalFormat, imgType_t type, int flags, qboolean subtexture)
 {
 	int dataFormat, dataType;
 
-	switch(internalFormat)
+	switch (internalFormat)
 	{
-		case GL_DEPTH_COMPONENT:
-		case GL_DEPTH_COMPONENT16:
-		case GL_DEPTH_COMPONENT24:
-		case GL_DEPTH_COMPONENT32:
-			dataFormat = GL_DEPTH_COMPONENT;
-			dataType = GL_UNSIGNED_BYTE;
-			break;
-		case GL_RGBA16F:
-			dataFormat = GL_RGBA;
-			dataType = GL_HALF_FLOAT;
-			break;
-		default:
-			dataFormat = GL_RGBA;
-			dataType = GL_UNSIGNED_BYTE;
-			break;
+	case GL_DEPTH_COMPONENT:
+	case GL_DEPTH_COMPONENT16:
+	case GL_DEPTH_COMPONENT24:
+	case GL_DEPTH_COMPONENT32:
+		dataFormat = GL_DEPTH_COMPONENT;
+		dataType = GL_UNSIGNED_BYTE;
+		break;
+	case GL_RGBA16F:
+		dataFormat = GL_RGBA;
+		dataType = GL_HALF_FLOAT;
+		break;
+	default:
+		dataFormat = GL_RGBA;
+		dataType = GL_UNSIGNED_BYTE;
+		break;
 	}
 
-	if ( subtexture )
+	if (subtexture)
 	{
-		qglTexSubImage2D (GL_TEXTURE_2D, 0, x, y, width, height, dataFormat, dataType, data);
+		qglTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, dataFormat, dataType, data);
 	}
 	else
 	{
-		if ( !data )
+		if (ShouldUseImmutableTextures(flags, internalFormat))
 		{
-			qglTexImage2D (GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, dataType, data );
-		}
-		else if ( ShouldUseImmutableTextures( flags, internalFormat ) )
-		{
-			int numLevels = (flags & IMGFLAG_MIPMAP) ? CalcNumMipmapLevels (width, height) : 1;
+			int numLevels = (flags & IMGFLAG_MIPMAP) ? CalcNumMipmapLevels(width, height) : 1;
 
-			qglTexStorage2D (GL_TEXTURE_2D, numLevels, internalFormat, width, height);
-			qglTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, dataFormat, dataType, data);
+			qglTexStorage2D(GL_TEXTURE_2D, numLevels, internalFormat, width, height);
+
+			if (data != NULL)
+			{
+				qglTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, dataFormat, dataType, data);
+			}
 		}
 		else
 		{
-			qglTexImage2D (GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, dataType, data );
+			qglTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, dataType, data);
 		}
 	}
 
 	if ((flags & IMGFLAG_MIPMAP) &&
-		(data != NULL || !ShouldUseImmutableTextures(flags, internalFormat) ))
+		(data != NULL || !ShouldUseImmutableTextures(flags, internalFormat)))
 	{
 		// Don't need to generate mipmaps if we are generating an immutable texture and
 		// the data is NULL. All levels have already been allocated by glTexStorage2D.
 
 		int miplevel = 0;
-		
+
 		while (width > 1 || height > 1)
 		{
 			if (data)
@@ -2057,23 +2034,23 @@ static void RawImage_UploadTexture( byte *data, int x, int y, int width, int hei
 				{
 					if (internalFormat == GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT)
 					{
-						R_MipMapLuminanceAlpha( data, data, width, height );
+						R_MipMapLuminanceAlpha(data, data, width, height);
 					}
 					else
 					{
-						R_MipMapNormalHeight( data, data, width, height, qtrue);
+						R_MipMapNormalHeight(data, data, width, height, qtrue);
 					}
 				}
 				else if (flags & IMGFLAG_SRGB)
 				{
-					R_MipMapsRGB( data, width, height );
+					R_MipMapsRGB(data, width, height);
 				}
 				else
 				{
-					R_MipMap( data, width, height );
+					R_MipMap(data, width, height);
 				}
 			}
-			
+
 			width >>= 1;
 			height >>= 1;
 			if (width < 1)
@@ -2082,31 +2059,31 @@ static void RawImage_UploadTexture( byte *data, int x, int y, int width, int hei
 				height = 1;
 			miplevel++;
 
-			if ( data && r_colorMipLevels->integer )
-				R_BlendOverTexture( (byte *)data, width * height, mipBlendColors[miplevel] );
+			if (data && r_colorMipLevels->integer)
+				R_BlendOverTexture((byte *)data, width * height, mipBlendColors[miplevel]);
 
-			if ( subtexture )
+			if (subtexture)
 			{
 				x >>= 1;
 				y >>= 1;
-				qglTexSubImage2D( GL_TEXTURE_2D, miplevel, x, y, width, height, dataFormat, dataType, data );
+				qglTexSubImage2D(GL_TEXTURE_2D, miplevel, x, y, width, height, dataFormat, dataType, data);
 			}
 			else
 			{
-				if ( ShouldUseImmutableTextures(flags, internalFormat) )
+				if (ShouldUseImmutableTextures(flags, internalFormat))
 				{
-					qglTexSubImage2D (GL_TEXTURE_2D, miplevel, 0, 0, width, height, dataFormat, dataType, data );
+					qglTexSubImage2D(GL_TEXTURE_2D, miplevel, 0, 0, width, height, dataFormat, dataType, data);
 				}
 				else
 				{
-					qglTexImage2D (GL_TEXTURE_2D, miplevel, internalFormat, width, height, 0, dataFormat, dataType, data );
+					qglTexImage2D(GL_TEXTURE_2D, miplevel, internalFormat, width, height, 0, dataFormat, dataType, data);
 				}
 			}
 		}
 	}
 }
 
-static bool IsPowerOfTwo ( int i )
+static bool IsPowerOfTwo(int i)
 {
 	return (i & (i - 1)) == 0;
 }
@@ -2118,7 +2095,7 @@ Upload32
 ===============
 */
 extern qboolean charSet;
-static void Upload32( byte *data, int width, int height, imgType_t type, int flags,
+static void Upload32(byte *data, int width, int height, imgType_t type, int flags,
 	qboolean lightMap, GLenum internalFormat, int *pUploadWidth, int *pUploadHeight)
 {
 	byte		*scaledBuffer = NULL;
@@ -2128,12 +2105,12 @@ static void Upload32( byte *data, int width, int height, imgType_t type, int fla
 	int			i, c;
 	byte		*scan;
 
-	if ( !IsPowerOfTwo (width) || !IsPowerOfTwo (height) )
+	if (!IsPowerOfTwo(width) || !IsPowerOfTwo(height))
 	{
 		RawImage_ScaleToPower2(&data, &width, &height, &scaled_width, &scaled_height, type, flags, &resampledBuffer);
 	}
 
-	scaledBuffer = (byte *)ri->Hunk_AllocateTempMemory( sizeof( unsigned ) * scaled_width * scaled_height );
+	scaledBuffer = (byte *)ri->Hunk_AllocateTempMemory(sizeof(unsigned) * scaled_width * scaled_height);
 
 	//
 	// scan the texture for each channel's max values
@@ -2141,25 +2118,25 @@ static void Upload32( byte *data, int width, int height, imgType_t type, int fla
 	//
 	c = width*height;
 	scan = data;
-	
-	if( r_greyscale->integer )
+
+	if (r_greyscale->integer)
 	{
-		for ( i = 0; i < c; i++ )
+		for (i = 0; i < c; i++)
 		{
-			byte luma = LUMA(scan[i*4], scan[i*4 + 1], scan[i*4 + 2]);
-			scan[i*4] = luma;
-			scan[i*4 + 1] = luma;
-			scan[i*4 + 2] = luma;
+			byte luma = LUMA(scan[i * 4], scan[i * 4 + 1], scan[i * 4 + 2]);
+			scan[i * 4] = luma;
+			scan[i * 4 + 1] = luma;
+			scan[i * 4 + 2] = luma;
 		}
 	}
-	else if( r_greyscale->value )
+	else if (r_greyscale->value)
 	{
-		for ( i = 0; i < c; i++ )
+		for (i = 0; i < c; i++)
 		{
-			float luma = LUMA(scan[i*4], scan[i*4 + 1], scan[i*4 + 2]);
-			scan[i*4] = LERP(scan[i*4], luma, r_greyscale->value);
-			scan[i*4 + 1] = LERP(scan[i*4 + 1], luma, r_greyscale->value);
-			scan[i*4 + 2] = LERP(scan[i*4 + 2], luma, r_greyscale->value);
+			float luma = LUMA(scan[i * 4], scan[i * 4 + 1], scan[i * 4 + 2]);
+			scan[i * 4] = LERP(scan[i * 4], luma, r_greyscale->value);
+			scan[i * 4 + 1] = LERP(scan[i * 4 + 1], luma, r_greyscale->value);
+			scan[i * 4 + 2] = LERP(scan[i * 4 + 2], luma, r_greyscale->value);
 		}
 	}
 
@@ -2183,47 +2160,47 @@ static void Upload32( byte *data, int width, int height, imgType_t type, int fla
 	}
 
 	// copy or resample data as appropriate for first MIP level
-	if ( ( scaled_width == width ) && 
-		( scaled_height == height ) ) {
+	if ((scaled_width == width) &&
+		(scaled_height == height)) {
 		if (!(flags & IMGFLAG_MIPMAP))
 		{
-			RawImage_UploadTexture( data, 0, 0, scaled_width, scaled_height, internalFormat, type, flags, qfalse );
+			RawImage_UploadTexture(data, 0, 0, scaled_width, scaled_height, internalFormat, type, flags, qfalse);
 			//qglTexImage2D (GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			*pUploadWidth = scaled_width;
 			*pUploadHeight = scaled_height;
 
 			goto done;
 		}
-		Com_Memcpy (scaledBuffer, data, width*height*4);
+		Com_Memcpy(scaledBuffer, data, width*height * 4);
 	}
 	else
 	{
 		// use the normal mip-mapping function to go down from here
-		while ( width > scaled_width || height > scaled_height ) {
+		while (width > scaled_width || height > scaled_height) {
 
 			if (flags & IMGFLAG_SRGB)
 			{
-				R_MipMapsRGB( (byte *)data, width, height );
+				R_MipMapsRGB((byte *)data, width, height);
 			}
 			else
 			{
-				R_MipMap( (byte *)data, width, height );
+				R_MipMap((byte *)data, width, height);
 			}
 
 			width >>= 1;
 			height >>= 1;
-			if ( width < 1 ) {
+			if (width < 1) {
 				width = 1;
 			}
-			if ( height < 1 ) {
+			if (height < 1) {
 				height = 1;
 			}
 		}
-		Com_Memcpy( scaledBuffer, data, width * height * 4 );
+		Com_Memcpy(scaledBuffer, data, width * height * 4);
 	}
 
 	if (!(flags & IMGFLAG_NOLIGHTSCALE))
-		R_LightScaleTexture (scaledBuffer, scaled_width, scaled_height, (qboolean)(!(flags & IMGFLAG_MIPMAP)) );
+		R_LightScaleTexture(scaledBuffer, scaled_width, scaled_height, (qboolean)(!(flags & IMGFLAG_MIPMAP)));
 
 	*pUploadWidth = scaled_width;
 	*pUploadHeight = scaled_height;
@@ -2236,8 +2213,8 @@ done:
 	{
 		if (r_ext_texture_filter_anisotropic->value > 1.0f && glConfig.maxTextureFilterAnisotropy > 0.0f)
 		{
-			qglTexParameterf ( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-							  Com_Clamp( 1.0f, glConfig.maxTextureFilterAnisotropy, r_ext_texture_filter_anisotropic->value ) );
+			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+				Com_Clamp(1.0f, glConfig.maxTextureFilterAnisotropy, r_ext_texture_filter_anisotropic->value));
 		}
 
 		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
@@ -2245,21 +2222,21 @@ done:
 	}
 	else
 	{
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
 
 	GL_CheckErrors();
 
-	if ( scaledBuffer != 0 )
-		ri->Hunk_FreeTempMemory( scaledBuffer );
-	if ( resampledBuffer != 0 )
-		ri->Hunk_FreeTempMemory( resampledBuffer );
+	if (scaledBuffer != 0)
+		ri->Hunk_FreeTempMemory(scaledBuffer);
+	if (resampledBuffer != 0)
+		ri->Hunk_FreeTempMemory(resampledBuffer);
 }
 
 
-static void EmptyTexture( int width, int height, imgType_t type, int flags,
-	qboolean lightMap, GLenum internalFormat, int *pUploadWidth, int *pUploadHeight )
+static void EmptyTexture(int width, int height, imgType_t type, int flags,
+	qboolean lightMap, GLenum internalFormat, int *pUploadWidth, int *pUploadHeight)
 {
 	int			scaled_width, scaled_height;
 
@@ -2274,8 +2251,8 @@ static void EmptyTexture( int width, int height, imgType_t type, int flags,
 	{
 		if (r_ext_texture_filter_anisotropic->integer > 1 && glConfig.maxTextureFilterAnisotropy > 0.0f)
 		{
-			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-					(GLint)Com_Clamp( 1, glConfig.maxTextureFilterAnisotropy, r_ext_texture_filter_anisotropic->integer ) );
+			qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+				(GLint)Com_Clamp(1, glConfig.maxTextureFilterAnisotropy, r_ext_texture_filter_anisotropic->integer));
 		}
 
 		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
@@ -2283,29 +2260,87 @@ static void EmptyTexture( int width, int height, imgType_t type, int flags,
 	}
 	else
 	{
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
 
 	// Fix for sampling depth buffer on old nVidia cards
 	// from http://www.idevgames.com/forums/thread-4141-post-34844.html#pid34844
-	switch(internalFormat)
+	switch (internalFormat)
 	{
-		case GL_DEPTH_COMPONENT:
-		case GL_DEPTH_COMPONENT16:
-		case GL_DEPTH_COMPONENT24:
-		case GL_DEPTH_COMPONENT32:
-			qglTexParameterf(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE );
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-			break;
-		default:
-			break;
+	case GL_DEPTH_COMPONENT:
+	case GL_DEPTH_COMPONENT16:
+	case GL_DEPTH_COMPONENT24:
+	case GL_DEPTH_COMPONENT32:
+		//qglTexParameterf(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE );
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		break;
+	default:
+		break;
 	}
 
 	GL_CheckErrors();
 }
 
+static image_t *R_AllocImage()
+{
+	image_t *result;
+
+	if (!tr.imagesFreeList)
+	{
+		R_ExtendImagesPool();
+	}
+
+	// Remove from free list
+	result = tr.imagesFreeList;
+	tr.imagesFreeList = tr.imagesFreeList->poolNext;
+
+	// Add to list of used images
+	result->poolNext = tr.images;
+	tr.images = result;
+
+	tr.numImages++;
+
+	return result;
+}
+
+#if 0
+static void R_FreeImage(image_t *imageToFree)
+{
+	if (imageToFree)
+	{
+		// Images aren't deleted individually very often. Not a
+		// problem to do this really...
+		if (imageToFree == tr.images)
+		{
+			tr.images = imageToFree->poolNext;
+			imageToFree->poolNext = tr.imagesFreeList;
+			tr.imagesFreeList = imageToFree;
+
+			tr.numImages--;
+		}
+		else
+		{
+			image_t *image = tr.images;
+			while (image)
+			{
+				if (image->poolNext == imageToFree)
+				{
+					image->poolNext = imageToFree->poolNext;
+					imageToFree->poolNext = tr.imagesFreeList;
+					tr.imagesFreeList = imageToFree;
+
+					tr.numImages--;
+					break;
+				}
+
+				image = image->poolNext;
+			}
+		}
+	}
+}
+#endif
 
 /*
 ================
@@ -2314,31 +2349,26 @@ R_CreateImage
 This is the only way any image_t are created
 ================
 */
-image_t *R_CreateImage( const char *name, byte *pic, int width, int height, imgType_t type, int flags, int internalFormat ) {
+image_t *R_CreateImage(const char *name, byte *pic, int width, int height, imgType_t type, int flags, int internalFormat) {
 	image_t		*image;
 	qboolean	isLightmap = qfalse;
 	long		hash;
 	int         glWrapClampMode;
 
-	if (strlen(name) >= MAX_QPATH ) {
-		ri->Error (ERR_DROP, "R_CreateImage: \"%s\" is too long", name);
+	if (strlen(name) >= MAX_QPATH) {
+		ri->Error(ERR_DROP, "R_CreateImage: \"%s\" is too long", name);
 	}
-	if ( !strncmp( name, "*lightmap", 9 ) ) {
+	if (!strncmp(name, "*lightmap", 9)) {
 		isLightmap = qtrue;
 	}
 
-	if ( tr.numImages == MAX_DRAWIMAGES ) {
-		ri->Error( ERR_DROP, "R_CreateImage: MAX_DRAWIMAGES hit");
-	}
-
-	image = tr.images[tr.numImages] = (image_t *)ri->Hunk_Alloc( sizeof( image_t ), h_low );
-	image->texnum = 1024 + tr.numImages;
-	tr.numImages++;
+	image = R_AllocImage();
+	qglGenTextures(1, &image->texnum);
 
 	image->type = type;
 	image->flags = flags;
 
-	Q_strncpyz (image->imgName, name, sizeof (image->imgName));
+	Q_strncpyz(image->imgName, name, sizeof(image->imgName));
 
 	image->width = width;
 	image->height = height;
@@ -2358,13 +2388,14 @@ image_t *R_CreateImage( const char *name, byte *pic, int width, int height, imgT
 	image->internalFormat = internalFormat;
 
 	// lightmaps are always allocated on TMU 1
-	if ( isLightmap ) {
+	if (isLightmap) {
 		image->TMU = 1;
-	} else {
+	}
+	else {
 		image->TMU = 0;
 	}
 
-	GL_SelectTexture( image->TMU );
+	GL_SelectTexture(image->TMU);
 
 	if (image->flags & IMGFLAG_CUBEMAP)
 	{
@@ -2383,17 +2414,17 @@ image_t *R_CreateImage( const char *name, byte *pic, int width, int height, imgT
 		}
 		qglTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		if ( ShouldUseImmutableTextures( image->flags, internalFormat ) )
+		if (ShouldUseImmutableTextures(image->flags, internalFormat))
 		{
-			int numLevels = (image->flags & IMGFLAG_MIPMAP) ? CalcNumMipmapLevels (width, height) : 1;
+			int numLevels = (image->flags & IMGFLAG_MIPMAP) ? CalcNumMipmapLevels(width, height) : 1;
 
-			qglTexStorage2D (GL_TEXTURE_CUBE_MAP, numLevels, internalFormat, width, height);
+			qglTexStorage2D(GL_TEXTURE_CUBE_MAP, numLevels, internalFormat, width, height);
 
-			if ( pic != NULL )
+			if (pic != NULL)
 			{
-				for ( int i = 0; i < 6; i++ )
+				for (int i = 0; i < 6; i++)
 				{
-					qglTexSubImage2D (GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pic);
+					qglTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pic);
 				}
 			}
 		}
@@ -2419,22 +2450,22 @@ image_t *R_CreateImage( const char *name, byte *pic, int width, int height, imgT
 
 		if (pic)
 		{
-			Upload32( pic, image->width, image->height, image->type, image->flags,
+			Upload32(pic, image->width, image->height, image->type, image->flags,
 				isLightmap, image->internalFormat, &image->uploadWidth,
-				&image->uploadHeight );
+				&image->uploadHeight);
 		}
 		else
 		{
 			EmptyTexture(image->width, image->height, image->type, image->flags,
 				isLightmap, image->internalFormat, &image->uploadWidth,
-				&image->uploadHeight );
+				&image->uploadHeight);
 		}
 
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, glWrapClampMode );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, glWrapClampMode );
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, glWrapClampMode);
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, glWrapClampMode);
 	}
 
-	GL_SelectTexture( 0 );
+	GL_SelectTexture(0);
 
 	hash = generateHashValue(name);
 	image->next = hashTable[hash];
@@ -2443,7 +2474,7 @@ image_t *R_CreateImage( const char *name, byte *pic, int width, int height, imgT
 	return image;
 }
 
-void R_UpdateSubImage( image_t *image, byte *pic, int x, int y, int width, int height )
+void R_UpdateSubImage(image_t *image, byte *pic, int x, int y, int width, int height)
 {
 	byte *scaledBuffer = NULL;
 	byte *resampledBuffer = NULL;
@@ -2472,80 +2503,77 @@ void R_UpdateSubImage( image_t *image, byte *pic, int x, int y, int width, int h
 
 	RawImage_ScaleToPower2(&pic, &width, &height, &scaled_width, &scaled_height, image->type, image->flags, &resampledBuffer);
 
-	scaledBuffer = (byte *)ri->Hunk_AllocateTempMemory( sizeof( unsigned ) * scaled_width * scaled_height );
+	scaledBuffer = (byte *)ri->Hunk_AllocateTempMemory(sizeof(unsigned) * scaled_width * scaled_height);
 
-	if ( qglActiveTexture ) {
-		GL_SelectTexture( image->TMU );
-	}
-
-	GL_Bind(image);	
+	GL_SelectTexture(image->TMU);
+	GL_Bind(image);
 
 	// copy or resample data as appropriate for first MIP level
-	if ( ( scaled_width == width ) && 
-		( scaled_height == height ) ) {
+	if ((scaled_width == width) &&
+		(scaled_height == height)) {
 		if (!(image->flags & IMGFLAG_MIPMAP))
 		{
 			scaled_x = x * scaled_width / width;
 			scaled_y = y * scaled_height / height;
-			RawImage_UploadTexture( data, scaled_x, scaled_y, scaled_width, scaled_height, image->internalFormat, image->type, image->flags, qtrue );
+			RawImage_UploadTexture(data, scaled_x, scaled_y, scaled_width, scaled_height, image->internalFormat, image->type, image->flags, qtrue);
 			//qglTexSubImage2D( GL_TEXTURE_2D, 0, scaled_x, scaled_y, scaled_width, scaled_height, GL_RGBA, GL_UNSIGNED_BYTE, data );
 
 			GL_CheckErrors();
 			goto done;
 		}
-		Com_Memcpy (scaledBuffer, data, width*height*4);
+		Com_Memcpy(scaledBuffer, data, width*height * 4);
 	}
 	else
 	{
 		// use the normal mip-mapping function to go down from here
-		while ( width > scaled_width || height > scaled_height ) {
+		while (width > scaled_width || height > scaled_height) {
 
 			if (image->flags & IMGFLAG_SRGB)
 			{
-				R_MipMapsRGB( (byte *)data, width, height );
+				R_MipMapsRGB((byte *)data, width, height);
 			}
 			else
 			{
-				R_MipMap( (byte *)data, width, height );
+				R_MipMap((byte *)data, width, height);
 			}
 
 			width >>= 1;
 			height >>= 1;
 			x >>= 1;
 			y >>= 1;
-			if ( width < 1 ) {
+			if (width < 1) {
 				width = 1;
 			}
-			if ( height < 1 ) {
+			if (height < 1) {
 				height = 1;
 			}
 		}
-		Com_Memcpy( scaledBuffer, data, width * height * 4 );
+		Com_Memcpy(scaledBuffer, data, width * height * 4);
 	}
 
 	if (!(image->flags & IMGFLAG_NOLIGHTSCALE))
-		R_LightScaleTexture (scaledBuffer, scaled_width, scaled_height, (qboolean)(!(image->flags & IMGFLAG_MIPMAP)) );
+		R_LightScaleTexture(scaledBuffer, scaled_width, scaled_height, (qboolean)(!(image->flags & IMGFLAG_MIPMAP)));
 
 	scaled_x = x * scaled_width / width;
 	scaled_y = y * scaled_height / height;
-	RawImage_UploadTexture( (byte *)data, scaled_x, scaled_y, scaled_width, scaled_height, image->internalFormat, image->type, image->flags, qtrue );
+	RawImage_UploadTexture((byte *)data, scaled_x, scaled_y, scaled_width, scaled_height, image->internalFormat, image->type, image->flags, qtrue);
 
 done:
-	
-	GL_SelectTexture( 0 );
+
+	GL_SelectTexture(0);
 
 	GL_CheckErrors();
 
-	if ( scaledBuffer != 0 )
-		ri->Hunk_FreeTempMemory( scaledBuffer );
-	if ( resampledBuffer != 0 )
-		ri->Hunk_FreeTempMemory( resampledBuffer );
+	if (scaledBuffer != 0)
+		ri->Hunk_FreeTempMemory(scaledBuffer);
+	if (resampledBuffer != 0)
+		ri->Hunk_FreeTempMemory(resampledBuffer);
 }
 
 extern FBO_t *FBO_Create(const char *name, int width, int height);
 extern void FBO_Delete(FBO_t *fbo);
 extern void FBO_AttachTextureImage(image_t *img, int index);
-extern void FBO_SetupDrawBuffers();
+extern void FBO_SetupDrawBuffers( void );
 extern qboolean R_CheckFBO(const FBO_t * fbo);
 
 FBO_t *R_CreateNormalMapDestinationFBO( int width, int height )
@@ -3536,7 +3564,7 @@ void R_CreateBuiltinImages( void ) {
 
 	tr.renderImage = R_CreateImage("_render", NULL, width, height, IMGTYPE_COLORALPHA, IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE, hdrFormat);
 	//tr.previousRenderImage = R_CreateImage("_renderPreviousFrame", NULL, width, height, IMGTYPE_COLORALPHA, IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE, hdrFormat);
-
+	
 	tr.renderNormalImage = R_CreateImage("*normal", NULL, width, height, IMGTYPE_NORMAL, IMGFLAG_NOLIGHTSCALE | IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE, 0);
 	tr.renderPositionMapImage = R_CreateImage("*positionMap", NULL, width, height, IMGTYPE_COLORALPHA, IMGFLAG_NOLIGHTSCALE | IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE, GL_RGBA32F);
 	tr.waterPositionMapImage = R_CreateImage("*waterPositionMap", NULL, width, height, IMGTYPE_COLORALPHA, IMGFLAG_NOLIGHTSCALE | IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE, GL_RGBA32F);
@@ -3762,6 +3790,11 @@ R_InitImages
 */
 void	R_InitImages( void ) {
 	Com_Memset(hashTable, 0, sizeof(hashTable));
+
+	imagesPool = NULL;
+	tr.imagesFreeList = NULL;
+	R_ExtendImagesPool();
+
 	// build brightness translation tables
 	R_SetColorMappings();
 
@@ -3774,23 +3807,30 @@ void	R_InitImages( void ) {
 R_DeleteTextures
 ===============
 */
-void R_DeleteTextures( void ) {
-	int		i;
-
-	for ( i=0; i<tr.numImages ; i++ ) {
-		qglDeleteTextures( 1, &tr.images[i]->texnum );
+void R_DeleteTextures(void) {
+	image_t *image = tr.images;
+	while (image)
+	{
+		qglDeleteTextures(1, &image->texnum);
+		image = image->poolNext;
 	}
-	Com_Memset( tr.images, 0, sizeof( tr.images ) );
 
 	tr.numImages = 0;
 
-	Com_Memset( glState.currenttextures, 0, sizeof( glState.currenttextures ) );
-	if ( qglActiveTexture ) {
-		GL_SelectTexture( 1 );
-		qglBindTexture( GL_TEXTURE_2D, 0 );
-		GL_SelectTexture( 0 );
-		qglBindTexture( GL_TEXTURE_2D, 0 );
-	} else {
-		qglBindTexture( GL_TEXTURE_2D, 0 );
+	// Free pool and allocated images
+	while (imagesPool)
+	{
+		ImagesPool *pNext = imagesPool->pNext;
+		Z_Free(imagesPool->pPool);
+		Z_Free(imagesPool);
+
+		imagesPool = pNext;
 	}
+
+	Com_Memset(glState.currenttextures, 0, sizeof(glState.currenttextures));
+	GL_SelectTexture(1);
+	qglBindTexture(GL_TEXTURE_2D, 0);
+	GL_SelectTexture(0);
+	qglBindTexture(GL_TEXTURE_2D, 0);
 }
+

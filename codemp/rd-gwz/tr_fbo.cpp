@@ -40,7 +40,7 @@ qboolean R_CheckFBO(const FBO_t * fbo)
 
 	qglBindFramebuffer(GL_FRAMEBUFFER, id);
 
-	if(code == GL_FRAMEBUFFER_COMPLETE)
+	if (code == GL_FRAMEBUFFER_COMPLETE)
 	{
 		return qtrue;
 	}
@@ -48,47 +48,47 @@ qboolean R_CheckFBO(const FBO_t * fbo)
 	// an error occured
 	switch (code)
 	{
-		case GL_FRAMEBUFFER_COMPLETE:
-			break;
+	case GL_FRAMEBUFFER_COMPLETE:
+		break;
 
-		case GL_FRAMEBUFFER_UNSUPPORTED:
-			ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Unsupported framebuffer format\n", fbo->name);
-			break;
+	case GL_FRAMEBUFFER_UNSUPPORTED:
+		ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Unsupported framebuffer format\n", fbo->name);
+		break;
 
-		case GL_FRAMEBUFFER_UNDEFINED:
-			ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Default framebuffer was checked, but does not exist\n", fbo->name);
-			break;
+	case GL_FRAMEBUFFER_UNDEFINED:
+		ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Default framebuffer was checked, but does not exist\n", fbo->name);
+		break;
 
-		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-			ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete attachment\n", fbo->name);
-			break;
+	case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+		ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete attachment\n", fbo->name);
+		break;
 
-		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-			ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete, no attachments attached\n", fbo->name);
-			break;
+	case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+		ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete, no attachments attached\n", fbo->name);
+		break;
 
-		case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-			ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete, mismatched multisampling values\n", fbo->name);
-			break;
+	case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+		ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete, mismatched multisampling values\n", fbo->name);
+		break;
 
-		case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-			ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete, mismatched layer targets\n",
-					  fbo->name);
-			break;
+	case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+		ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete, mismatched layer targets\n",
+			fbo->name);
+		break;
 
-		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-			ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete, missing draw buffer\n", fbo->name);
-			break;
+	case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+		ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete, missing draw buffer\n", fbo->name);
+		break;
 
-		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-			ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete, missing read buffer\n", fbo->name);
-			break;
+	case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+		ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) Framebuffer incomplete, missing read buffer\n", fbo->name);
+		break;
 
-		default:
-			ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) unknown error 0x%X\n", fbo->name, code);
-			//ri->Error(ERR_FATAL, "R_CheckFBO: (%s) unknown error 0x%X", fbo->name, code);
-			//assert(0);
-			break;
+	default:
+		ri->Printf(PRINT_WARNING, "R_CheckFBO: (%s) unknown error 0x%X\n", fbo->name, code);
+		//ri->Error(ERR_FATAL, "R_CheckFBO: (%s) unknown error 0x%X", fbo->name, code);
+		//assert(0);
+		break;
 	}
 
 	return qfalse;
@@ -103,22 +103,22 @@ FBO_t          *FBO_Create(const char *name, int width, int height)
 {
 	FBO_t          *fbo;
 
-	if(strlen(name) >= MAX_QPATH)
+	if (strlen(name) >= MAX_QPATH)
 	{
 		ri->Error(ERR_DROP, "FBO_Create: \"%s\" is too long", name);
 	}
 
-	if(width <= 0 || width > glRefConfig.maxRenderbufferSize)
+	if (width <= 0 || width > glRefConfig.maxRenderbufferSize)
 	{
 		ri->Error(ERR_DROP, "FBO_Create: bad width %i", width);
 	}
 
-	if(height <= 0 || height > glRefConfig.maxRenderbufferSize)
+	if (height <= 0 || height > glRefConfig.maxRenderbufferSize)
 	{
 		ri->Error(ERR_DROP, "FBO_Create: bad height %i", height);
 	}
 
-	if(tr.numFBOs == MAX_FBOS)
+	if (tr.numFBOs == MAX_FBOS)
 	{
 		ri->Error(ERR_DROP, "FBO_Create: MAX_FBOS hit");
 	}
@@ -140,50 +140,50 @@ void FBO_CreateBuffer(FBO_t *fbo, int format, int index, int multisample)
 	GLenum attachment;
 	qboolean absent;
 
-	switch(format)
+	switch (format)
 	{
-		case GL_RGB:
-		case GL_RGBA:
-		case GL_RGB8:
-		case GL_RGBA8:
-		case GL_RGB16F:
-		case GL_RGBA16F:
-		case GL_RGB32F:
-		case GL_RGBA32F:
-			fbo->colorFormat = format;
-			pRenderBuffer = &fbo->colorBuffers[index];
-			attachment = GL_COLOR_ATTACHMENT0 + index;
-			break;
+	case GL_RGB:
+	case GL_RGBA:
+	case GL_RGB8:
+	case GL_RGBA8:
+	case GL_RGB16F:
+	case GL_RGBA16F:
+	case GL_RGB32F:
+	case GL_RGBA32F:
+		fbo->colorFormat = format;
+		pRenderBuffer = &fbo->colorBuffers[index];
+		attachment = GL_COLOR_ATTACHMENT0 + index;
+		break;
 
-		case GL_DEPTH_COMPONENT:
-		case GL_DEPTH_COMPONENT16:
-		case GL_DEPTH_COMPONENT24:
-		case GL_DEPTH_COMPONENT32:
-			fbo->depthFormat = format;
-			pRenderBuffer = &fbo->depthBuffer;
-			attachment = GL_DEPTH_ATTACHMENT;
-			break;
+	case GL_DEPTH_COMPONENT:
+	case GL_DEPTH_COMPONENT16:
+	case GL_DEPTH_COMPONENT24:
+	case GL_DEPTH_COMPONENT32:
+		fbo->depthFormat = format;
+		pRenderBuffer = &fbo->depthBuffer;
+		attachment = GL_DEPTH_ATTACHMENT;
+		break;
 
-		case GL_STENCIL_INDEX:
-		case GL_STENCIL_INDEX1:
-		case GL_STENCIL_INDEX4:
-		case GL_STENCIL_INDEX8:
-		case GL_STENCIL_INDEX16:
-			fbo->stencilFormat = format;
-			pRenderBuffer = &fbo->stencilBuffer;
-			attachment = GL_STENCIL_ATTACHMENT;
-			break;
+	case GL_STENCIL_INDEX:
+	case GL_STENCIL_INDEX1:
+	case GL_STENCIL_INDEX4:
+	case GL_STENCIL_INDEX8:
+	case GL_STENCIL_INDEX16:
+		fbo->stencilFormat = format;
+		pRenderBuffer = &fbo->stencilBuffer;
+		attachment = GL_STENCIL_ATTACHMENT;
+		break;
 
-		case GL_DEPTH_STENCIL:
-		case GL_DEPTH24_STENCIL8:
-			fbo->packedDepthStencilFormat = format;
-			pRenderBuffer = &fbo->packedDepthStencilBuffer;
-			attachment = 0; // special for stencil and depth
-			break;
+	case GL_DEPTH_STENCIL:
+	case GL_DEPTH24_STENCIL8:
+		fbo->packedDepthStencilFormat = format;
+		pRenderBuffer = &fbo->packedDepthStencilBuffer;
+		attachment = 0; // special for stencil and depth
+		break;
 
-		default:
-			ri->Printf(PRINT_WARNING, "FBO_CreateBuffer: invalid format %d\n", format);
-			return;
+	default:
+		ri->Printf(PRINT_WARNING, "FBO_CreateBuffer: invalid format %d\n", format);
+		return;
 	}
 
 	absent = (qboolean)(*pRenderBuffer == 0);
@@ -200,11 +200,11 @@ void FBO_CreateBuffer(FBO_t *fbo, int format, int index, int multisample)
 		qglRenderbufferStorage(GL_RENDERBUFFER, format, fbo->width, fbo->height);
 	}
 
-	if(absent)
+	if (absent)
 	{
 		if (attachment == 0)
 		{
-			qglFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,   GL_RENDERBUFFER, *pRenderBuffer);
+			qglFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, *pRenderBuffer);
 			qglFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, *pRenderBuffer);
 		}
 		else
@@ -220,7 +220,7 @@ R_AttachFBOTexture1D
 */
 void R_AttachFBOTexture1D(int texId, int index)
 {
-	if(index < 0 || index >= glRefConfig.maxColorAttachments)
+	if (index < 0 || index >= glRefConfig.maxColorAttachments)
 	{
 		ri->Printf(PRINT_WARNING, "R_AttachFBOTexture1D: invalid attachment index %i\n", index);
 		return;
@@ -236,13 +236,13 @@ R_AttachFBOTexture2D
 */
 void R_AttachFBOTexture2D(int target, int texId, int index)
 {
-	if(target != GL_TEXTURE_2D && (target < GL_TEXTURE_CUBE_MAP_POSITIVE_X || target > GL_TEXTURE_CUBE_MAP_NEGATIVE_Z))
+	if (target != GL_TEXTURE_2D && (target < GL_TEXTURE_CUBE_MAP_POSITIVE_X || target > GL_TEXTURE_CUBE_MAP_NEGATIVE_Z))
 	{
 		ri->Printf(PRINT_WARNING, "R_AttachFBOTexture2D: invalid target %i\n", target);
 		return;
 	}
 
-	if(index < 0 || index >= glRefConfig.maxColorAttachments)
+	if (index < 0 || index >= glRefConfig.maxColorAttachments)
 	{
 		ri->Printf(PRINT_WARNING, "R_AttachFBOTexture2D: invalid attachment index %i\n", index);
 		return;
@@ -258,7 +258,7 @@ R_AttachFBOTexture3D
 */
 void R_AttachFBOTexture3D(int texId, int index, int zOffset)
 {
-	if(index < 0 || index >= glRefConfig.maxColorAttachments)
+	if (index < 0 || index >= glRefConfig.maxColorAttachments)
 	{
 		ri->Printf(PRINT_WARNING, "R_AttachFBOTexture3D: invalid attachment index %i\n", index);
 		return;
@@ -301,7 +301,7 @@ void FBO_AttachTextureImage(image_t *img, int index)
 	glState.currentFBO->colorBuffers[index] = img->texnum;
 }
 
-void FBO_SetupDrawBuffers()
+void FBO_SetupDrawBuffers( void )
 {
 	if (!glState.currentFBO)
 	{
@@ -313,23 +313,23 @@ void FBO_SetupDrawBuffers()
 	int numBuffers = 0;
 	GLenum bufs[8];
 
-	while ( currentFBO->colorBuffers[numBuffers] != 0 )
+	while (currentFBO->colorBuffers[numBuffers] != 0)
 	{
 		numBuffers++;
 	}
 
-	if ( numBuffers == 0 )
+	if (numBuffers == 0)
 	{
-		qglDrawBuffer (GL_NONE);
+		qglDrawBuffer(GL_NONE);
 	}
 	else
 	{
-		for ( int i = 0; i < numBuffers; i++ )
+		for (int i = 0; i < numBuffers; i++)
 		{
 			bufs[i] = GL_COLOR_ATTACHMENT0 + i;
 		}
 
-		qglDrawBuffers (numBuffers, bufs);
+		qglDrawBuffers(numBuffers, bufs);
 	}
 }
 
@@ -342,7 +342,7 @@ void FBO_Bind(FBO_t * fbo)
 {
 	if (glState.currentFBO == fbo)
 		return;
-		
+
 	if (r_logFile->integer)
 	{
 		// don't just call LogComment, or we will get a call to va() every frame!
@@ -355,30 +355,13 @@ void FBO_Bind(FBO_t * fbo)
 	if (!fbo)
 	{
 		qglBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//qglBindRenderbuffer(GL_RENDERBUFFER, 0);
 		glState.currentFBO = NULL;
-		
-		return;
 	}
-		
-	qglBindFramebuffer(GL_FRAMEBUFFER, fbo->frameBuffer);
-
-	/*
-	   if(fbo->colorBuffers[0])
-	   {
-	   qglBindRenderbuffer(GL_RENDERBUFFER, fbo->colorBuffers[0]);
-	   }
-	 */
-
-	/*
-	   if(fbo->depthBuffer)
-	   {
-	   qglBindRenderbuffer(GL_RENDERBUFFER, fbo->depthBuffer);
-	   qglFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo->depthBuffer);
-	   }
-	 */
-
-	glState.currentFBO = fbo;
+	else
+	{
+		qglBindFramebuffer(GL_FRAMEBUFFER, fbo->frameBuffer);
+		glState.currentFBO = fbo;
+	}
 }
 
 /*
@@ -420,6 +403,7 @@ void FBO_Init(void)
 		hdrFormat = GL_RGB16F;
 	}
 
+#if 0
 	qglGetIntegerv(GL_MAX_SAMPLES, &multisample);
 
 	if (r_ext_framebuffer_multisample->integer < multisample)
@@ -434,6 +418,9 @@ void FBO_Init(void)
 	{
 		ri->Cvar_SetValue("r_ext_framebuffer_multisample", (float)multisample);
 	}
+#else
+	multisample = 0;
+#endif
 
 	//
 	// UQ1's waterPosition FBO...
@@ -582,7 +569,7 @@ void FBO_Init(void)
 	{
 		tr.renderFbo = FBO_Create("_render", tr.renderDepthImage->width, tr.renderDepthImage->height);
 		FBO_Bind(tr.renderFbo);
-
+		
 		//FBO_CreateBuffer(tr.renderFbo, hdrFormat, 0, 0);
 		GLSL_AttachTextures();
 
@@ -591,12 +578,6 @@ void FBO_Init(void)
 		FBO_SetupDrawBuffers();
 
 		R_CheckFBO(tr.renderFbo);
-
-		/*tr.previousRenderFbo = FBO_Create("_previousRenderFBO", tr.renderDepthImage->width, tr.renderDepthImage->height);
-		FBO_Bind(tr.previousRenderFbo);
-		FBO_AttachTextureImage(tr.previousRenderImage, 0);
-		FBO_SetupDrawBuffers();
-		R_CheckFBO(tr.previousRenderFbo);*/
 	}
 
 	// clear render buffer

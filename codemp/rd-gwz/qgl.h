@@ -185,6 +185,8 @@
 #define qglLoadMatrixd glLoadMatrixd
 #define qglLoadMatrixf glLoadMatrixf
 #define qglLoadName glLoadName
+#define qglLockArraysEXT glLockArraysEXT
+#define qglUnlockArraysEXT glUnlockArraysEXT
 #define qglLogicOp glLogicOp
 #define qglMap1d glMap1d
 #define qglMap1f glMap1f
@@ -387,6 +389,9 @@ extern PFNGLGENVERTEXARRAYSPROC qglGenVertexArrays;
 extern PFNGLDELETEVERTEXARRAYSPROC qglDeleteVertexArrays;
 extern PFNGLBINDVERTEXARRAYPROC qglBindVertexArray;
 extern PFNGLISVERTEXARRAYPROC qglIsVertexArray;
+
+extern PFNGLLOCKARRAYSEXTPROC qglLockArraysEXT;
+extern PFNGLUNLOCKARRAYSEXTPROC qglUnlockArraysEXT;
 
 // Buffer objects
 extern PFNGLBINDBUFFERPROC qglBindBuffer;
