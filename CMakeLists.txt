@@ -166,10 +166,10 @@ if(MSVC)
 	set(SharedDefines ${SharedDefines} "_SCL_SECURE_NO_WARNINGS")
 	set(SharedDefines ${SharedDefines} "_CRT_NONSTDC_NO_DEPRECATE")
 
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:SSE2")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:SSE2 /openmp /Ox /Ot /GT /Qvec-report:1")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
 
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2 /openmp /Ox /Ot /GT /Qvec-report:1")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 
 	# We don't try to control symbol visibility under MSVC.
@@ -178,6 +178,8 @@ if(MSVC)
 	# additional flags for debug configuration
 	#set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
 	#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
+	
+	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
 
 elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
 	# I hope this doesn't come back to bite me in the butt later on.
@@ -191,8 +193,8 @@ elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR ("${CMAKE_C_COMPILER_ID}" S
 	set(OPENJK_VISIBILITY_FLAGS "-fvisibility=hidden")
 
 	# removes the -rdynamic flag at linking (which causes crashes for some reason)
-	set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
-	set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
+	set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS " /LARGEADDRESSAWARE")
+	set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS " /LARGEADDRESSAWARE")
 
 	# additional flags for debug configuration
 	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")

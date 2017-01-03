@@ -78,6 +78,60 @@ const byte stylesDefault[MAXLIGHTMAPS] =
 	LS_LSNONE
 };
 
+/*
+=================
+SkipBracedSection
+
+The next token should be an open brace.
+Skips until a matching close brace is found.
+Internal brace depths are properly skipped.
+=================
+*/
+void SkipBracedSection_NoDepth(const char **program) {
+	char			*token;
+	int				depth;
+
+	depth = 0;
+	do {
+		token = COM_ParseExt(program, qtrue);
+		if (token[1] == 0) {
+			if (token[0] == '{') {
+				depth++;
+			}
+			else if (token[0] == '}') {
+				depth--;
+			}
+		}
+	} while (depth && *program);
+}
+
+/*
+=================
+SkipBracedSection
+
+The next token should be an open brace or set depth to 1 if already parsed it.
+Skips until a matching close brace is found.
+Internal brace depths are properly skipped.
+=================
+*/
+qboolean SkipBracedSection_Depth(const char **program, int depth) {
+	char			*token;
+
+	do {
+		token = COM_ParseExt(program, qtrue);
+		if (token[1] == 0) {
+			if (token[0] == '{') {
+				depth++;
+			}
+			else if (token[0] == '}') {
+				depth--;
+			}
+		}
+	} while (depth && *program);
+
+	return (qboolean)(depth == 0);
+}
+
 qhandle_t RE_RegisterShaderLightMap( const char *name, const int *lightmapIndexes, const byte *styles );
 
 void KillTheShaderHashTable(void)
@@ -3629,6 +3683,8 @@ static qboolean ParseShader( const char *name, const char **text )
 
 	s = 0;
 
+	shader.frameOverride = -1; // Initialize this, so things work right...
+
 	token = COM_ParseExt( text, qtrue );
 	if ( token[0] != '{' )
 	{
@@ -6321,7 +6377,7 @@ static const char *FindShaderInShaderText( const char *shadername ) {
 		}
 		else {
 			// skip the definition
-			SkipBracedSection( &p, 0 );
+			SkipBracedSection_Depth( &p, 0 );
 		}
 	}
 
@@ -7488,7 +7544,7 @@ static void ScanAndLoadShaderFiles( void )
 				break;
 			}
 
-			if(!SkipBracedSection(&p, 1))
+			if(!SkipBracedSection_Depth(&p, 1))
 			{
 				ri->Printf(PRINT_WARNING, "WARNING: Ignoring shader file %s. Shader \"%s\" on line %d missing closing brace.\n",
 							filename, shaderName, shaderLine);
@@ -7539,7 +7595,7 @@ static void ScanAndLoadShaderFiles( void )
 		hash = generateHashValue(token, MAX_SHADERTEXT_HASH);
 		shaderTextHashTableSizes[hash]++;
 		size++;
-		SkipBracedSection(&p, 0);
+		SkipBracedSection_NoDepth(&p);
 	}
 
 	size += MAX_SHADERTEXT_HASH;
@@ -7565,7 +7621,7 @@ static void ScanAndLoadShaderFiles( void )
 		hash = generateHashValue(token, MAX_SHADERTEXT_HASH);
 		shaderTextHashTable[hash][shaderTextHashTableSizes[hash]++] = oldp;
 
-		SkipBracedSection(&p, 0);
+		SkipBracedSection_NoDepth(&p);
 	}
 
 	return;
