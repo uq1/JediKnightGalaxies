@@ -64,9 +64,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2500,
-        "ammoIndex":         "concussion",
-        "ammoOnSpawn":   15,
-        "ammoOnPickup":   5,
         "clipSize":              5,
         "flags":        [ "knockback" ],
         "reloadmodifier": 0.5,
@@ -103,6 +100,8 @@
         "projectileclass":"conc_proj",
         "meansofdeath": "MOD_ION",
         "splashmeansofdeath": "MOD_ION",
+	"ammobase": "AMMO_CONCUSSION",
+	"ammodefault": "AMMO_CONCUSSION",
             "accuracy": {
         "accuracyRating": 42,
         "accuracyRatingPerShot": 12,
@@ -133,6 +132,8 @@
         "projectileclass":"conc_proj",
         "meansofdeath": "MOD_ION",
         "splashmeansofdeath": "MOD_ION",
+	"ammobase": "AMMO_CONCUSSION",
+	"ammodefault": "AMMO_CONCUSSION",
             "accuracy": {
         "accuracyRating": 24,
         "accuracyRatingPerShot": 20,
