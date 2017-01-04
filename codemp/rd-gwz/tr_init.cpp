@@ -658,7 +658,7 @@ static void InitOpenGL( void )
 		windowDesc.api = GRAPHICS_API_OPENGL;
 		windowDesc.gl.majorVersion = 3;
 		windowDesc.gl.minorVersion = 2;
-		windowDesc.gl.profile = GLPROFILE_CORE;
+		windowDesc.gl.profile = GLPROFILE_COMPATIBILITY; //GLPROFILE_CORE;
 		if (r_debugContext->integer)
 			windowDesc.gl.contextFlags = GLCONTEXT_DEBUG;
 

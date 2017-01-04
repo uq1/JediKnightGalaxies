@@ -285,7 +285,8 @@ static void __stdcall GLimp_OnError(GLenum source, GLenum type, GLuint id, GLenu
 	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB: typeText = "Undefined"; break;
 	case GL_DEBUG_TYPE_PORTABILITY_ARB: typeText = "Portability"; break;
 	case GL_DEBUG_TYPE_PERFORMANCE_ARB: typeText = "Performance"; break;
-	case GL_DEBUG_TYPE_OTHER_ARB: typeText = "Other"; break;
+	//case GL_DEBUG_TYPE_OTHER_ARB: typeText = "Other"; break;
+	case GL_DEBUG_TYPE_OTHER_ARB: return; break;
 	}
 
 	Com_Printf(S_COLOR_YELLOW "OpenGL -> [%s][%s][%s] %s\n", sourceText, severityText, typeText, message);
