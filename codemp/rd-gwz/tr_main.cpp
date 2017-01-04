@@ -1271,7 +1271,7 @@ be moving and rotating.
 Returns qtrue if it should be mirrored
 =================
 */
-qboolean R_GetPortalOrientations(drawSurf_t *drawSurf, int64_t entityNum,
+qboolean R_GetPortalOrientations(drawSurf_t *drawSurf, int entityNum,
 							 orientation_t *surface, orientation_t *camera,
 							 vec3_t pvsOrigin, qboolean *mirror ) {
 	int			i;
@@ -1390,7 +1390,7 @@ qboolean R_GetPortalOrientations(drawSurf_t *drawSurf, int64_t entityNum,
 	return qfalse;
 }
 
-static qboolean IsMirror(const drawSurf_t *drawSurf, int64_t entityNum)
+static qboolean IsMirror(const drawSurf_t *drawSurf, int entityNum)
 {
 	int			i;
 	cplane_t	originalPlane, plane;
@@ -1453,12 +1453,12 @@ static qboolean IsMirror(const drawSurf_t *drawSurf, int64_t entityNum)
 */
 static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf, vec4_t clipDest[128] ) {
 	float shortest = 100000000;
-	int64_t entityNum;
+	int entityNum;
 	int numTriangles;
 	shader_t *shader;
-	int64_t fogNum;
-//	int64_t dlighted;
-	int64_t postRender;
+	int fogNum;
+//	int dlighted;
+	int postRender;
 	vec4_t clip, eye;
 	int i;
 	unsigned int pointOr = 0;
@@ -1555,7 +1555,7 @@ R_MirrorViewBySurface
 Returns qtrue if another view has been rendered
 ========================
 */
-qboolean R_MirrorViewBySurface(drawSurf_t *drawSurf, int64_t entityNum) {
+qboolean R_MirrorViewBySurface(drawSurf_t *drawSurf, int entityNum) {
 	vec4_t			clipDest[128];
 	viewParms_t		newParms;
 	viewParms_t		oldParms;
@@ -1697,15 +1697,15 @@ static void R_RadixSort( drawSurf_t *source, int size )
   R_Radix( 1, size, scratch, source );
   R_Radix( 2, size, source, scratch );
   R_Radix( 3, size, scratch, source );
-  R_Radix( 4, size, source, scratch ); // added 4..7 for 64bit sorting
-  R_Radix( 5, size, scratch, source );
-  R_Radix( 6, size, source, scratch );
-  R_Radix( 7, size, scratch, source );
+  //R_Radix( 4, size, source, scratch ); // added 4..7 for 64bit sorting
+  //R_Radix( 5, size, scratch, source );
+  //R_Radix( 6, size, source, scratch );
+  //R_Radix( 7, size, scratch, source );
 #else
-  R_Radix( 7, size, source, scratch );
-  R_Radix( 6, size, scratch, source );
-  R_Radix( 5, size, source, scratch );
-  R_Radix( 4, size, scratch, source );
+  //R_Radix( 7, size, source, scratch );
+  //R_Radix( 6, size, scratch, source );
+  //R_Radix( 5, size, source, scratch );
+  //R_Radix( 4, size, scratch, source );
   R_Radix( 3, size, source, scratch );
   R_Radix( 2, size, scratch, source );
   R_Radix( 1, size, source, scratch );
@@ -1733,7 +1733,7 @@ R_AddDrawSurf
 =================
 */
 void R_AddDrawSurf( surfaceType_t *surface, shader_t *shader, 
-			int64_t fogIndex, int64_t dlightMap, int64_t postRender,
+			int fogIndex, int dlightMap, int postRender,
 					int cubemap) {
 	int			index;
 
@@ -1754,7 +1754,7 @@ void R_AddDrawSurf( surfaceType_t *surface, shader_t *shader,
 	// compared quickly during the qsorting process
 	tr.refdef.drawSurfs[index].sort = (shader->sortedIndex << QSORT_SHADERNUM_SHIFT) 
 		| tr.shiftedEntityNum | ( fogIndex << QSORT_FOGNUM_SHIFT ) 
-		| (postRender << QSORT_POSTRENDER_SHIFT) | (int64_t)dlightMap;
+		| (postRender << QSORT_POSTRENDER_SHIFT) | (int)dlightMap;
 	tr.refdef.drawSurfs[index].cubemapIndex = cubemap;
 	tr.refdef.drawSurfs[index].surface = surface;
 	tr.refdef.numDrawSurfs++;
@@ -1765,8 +1765,8 @@ void R_AddDrawSurf( surfaceType_t *surface, shader_t *shader,
 R_DecomposeSort
 =================
 */
-void R_DecomposeSort(const uint64_t sort, int64_t *entityNum, shader_t **shader,
-					int64_t *fogNum, int64_t *postRender) {
+void R_DecomposeSort(const int sort, int *entityNum, shader_t **shader,
+					int *fogNum, int *postRender) {
 	*fogNum = ( sort >> QSORT_FOGNUM_SHIFT ) & 31;
 	*shader = tr.sortedShaders[ ( sort >> QSORT_SHADERNUM_SHIFT ) & (MAX_SHADERS-1) ];
 	*entityNum = ( sort >> QSORT_REFENTITYNUM_SHIFT ) & REFENTITYNUM_MASK;
@@ -1781,10 +1781,10 @@ R_SortDrawSurfs
 */
 void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	shader_t		*shader;
-	int64_t			fogNum;
-	int64_t			entityNum;
-//	int64_t			dlighted;
-	int64_t			postRender;
+	int			fogNum;
+	int			entityNum;
+//	int			dlighted;
+	int			postRender;
 	int				i;
 
 	//ri->Printf(PRINT_ALL, "firstDrawSurf %d numDrawSurfs %d\n", (int)(drawSurfs - tr.refdef.drawSurfs), numDrawSurfs);

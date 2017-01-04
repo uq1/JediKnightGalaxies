@@ -1142,7 +1142,7 @@ void R_FoliageQuadStamp(vec4_t quadVerts[4])
 	RB_InstantQuad2(quadVerts, texCoords);
 }
 
-extern int64_t		r_numentities;
+extern int			r_numentities;
 extern int			r_firstSceneEntity;
 
 extern void TR_AxisToAngles ( const vec3_t axis[3], vec3_t angles );

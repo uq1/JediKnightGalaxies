@@ -27,7 +27,7 @@ int			r_firstSceneDrawSurf;
 int			r_numdlights;
 int			r_firstSceneDlight;
 
-int64_t		r_numentities;
+int			r_numentities;
 int			r_firstSceneEntity;
 
 int			r_numpolys;

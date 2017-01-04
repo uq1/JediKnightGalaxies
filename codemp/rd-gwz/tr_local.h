@@ -1044,7 +1044,7 @@ typedef struct shader_s {
 	byte		styles[MAXLIGHTMAPS];
 
 	int			index;					// this shader == tr.shaders[index]
-	int64_t		sortedIndex;			// this shader == tr.sortedShaders[sortedIndex]
+	int			sortedIndex;			// this shader == tr.sortedShaders[sortedIndex]
 
 	float		sort;					// lower numbered shaders draw before higher numbered
 
@@ -1508,7 +1508,7 @@ typedef struct {
 	// text messages for deform text shaders
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
 
-	int64_t		num_entities;
+	int			num_entities;
 	trRefEntity_t	*entities;
 
 	int			num_dlights;
@@ -1628,7 +1628,7 @@ typedef enum {
 } surfaceType_t;
 
 typedef struct drawSurf_s {
-	uint64_t			sort;			// bit combination for fast compares
+	int					sort;			// bit combination for fast compares
 	int                 cubemapIndex;
 	surfaceType_t		*surface;		// any of surface*_t
 } drawSurf_t;
@@ -1643,7 +1643,7 @@ typedef struct drawSurf_s {
 typedef struct srfPoly_s {
 	surfaceType_t	surfaceType;
 	qhandle_t		hShader;
-	int64_t			fogIndex;
+	int				fogIndex;
 	int				numVerts;
 	polyVert_t		*verts;
 } srfPoly_t;
@@ -1851,7 +1851,7 @@ typedef struct cullinfo_s {
 typedef struct msurface_s {
 	//int					viewCount;		// if == tr.viewCount, already added
 	struct shader_s		*shader;
-	int64_t				fogIndex;
+	int					fogIndex;
 	int                 cubemapIndex;
 	cullinfo_t          cullinfo;
 
@@ -2606,8 +2606,8 @@ typedef struct trGlobals_s {
 
 	trRefEntity_t			*currentEntity;
 	trRefEntity_t			worldEntity;		// point currentEntity at this when rendering world
-	int64_t					currentEntityNum;
-	int64_t					shiftedEntityNum;	// currentEntityNum << QSORT_REFENTITYNUM_SHIFT
+	int						currentEntityNum;
+	int						shiftedEntityNum;	// currentEntityNum << QSORT_REFENTITYNUM_SHIFT
 	model_t					*currentModel;
 
 	//
@@ -3111,10 +3111,10 @@ void R_AddLightningBoltSurfaces( trRefEntity_t *e );
 
 void R_AddPolygonSurfaces( void );
 
-void R_DecomposeSort(const uint64_t sort, int64_t *entityNum, shader_t **shader, int64_t *fogNum, int64_t *postRender);
+void R_DecomposeSort(const int sort, int *entityNum, shader_t **shader, int *fogNum, int *postRender);
 
 void R_AddDrawSurf( surfaceType_t *surface, shader_t *shader, 
-				   int64_t fogIndex, int64_t dlightMap, int64_t postRender, int cubemap );
+				   int fogIndex, int dlightMap, int postRender, int cubemap );
 bool R_IsPostRenderEntity ( int refEntityNum, const trRefEntity_t *refEntity );
 
 void R_CalcTexDirs(vec3_t sdir, vec3_t tdir, const vec3_t v1, const vec3_t v2,

@@ -5603,11 +5603,11 @@ static void FixRenderCommandList( int newShader ) {
 					int i;
 					drawSurf_t	*drawSurf;
 					shader_t	*shader;
-					int64_t		fogNum;
-					int64_t		entityNum;
-//					int64_t		dlightMap;
-					int64_t		sortedIndex;
-					int64_t		postRender;
+					int			fogNum;
+					int			entityNum;
+//					int			dlightMap;
+					int			sortedIndex;
+					int			postRender;
 					const drawSurfsCommand_t *ds_cmd =  (const drawSurfsCommand_t *)curCmd;
 
 					for( i = 0, drawSurf = ds_cmd->drawSurfs; i < ds_cmd->numDrawSurfs; i++, drawSurf++ ) {
@@ -6874,11 +6874,6 @@ most world construction surfaces.
 
 ===============
 */
-
-#include "../client/tinythread.h"
-#include "../client/fast_mutex.h"
-using namespace tthread;
-tthread::fast_mutex findshader_lock;
 
 shader_t *R_FindShader( const char *name, const int *lightmapIndexes, const byte *styles, qboolean mipRawImage ) {
 	char		strippedName[MAX_QPATH];

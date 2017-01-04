@@ -965,13 +965,13 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, qboolean in
 	float			originalTime;
 	FBO_t*			fbo = NULL;
 	shader_t		*oldShader = NULL;
-	int64_t			oldFogNum = -1;
-	int64_t			oldEntityNum = -1;
-	int64_t			oldDlighted = 0;
-	int64_t			oldPostRender = 0;
+	int			oldFogNum = -1;
+	int			oldEntityNum = -1;
+	int			oldDlighted = 0;
+	int			oldPostRender = 0;
 	int             oldCubemapIndex = -1;
 	int				oldDepthRange = 0;
-	uint64_t		oldSort = (uint64_t) -1;
+	uint		oldSort = (uint) -1;
 	qboolean		CUBEMAPPING = qfalse;
 	float			depth[2];
 	int				numOccluded = 0;
@@ -1004,10 +1004,10 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, qboolean in
 	{
 		drawSurf_t		*drawSurf;
 		shader_t		*shader = NULL;
-		int64_t			fogNum;
-		int64_t			entityNum;
-		int64_t			dlighted;
-		int64_t			postRender;
+		int			fogNum;
+		int			entityNum;
+		int			dlighted;
+		int			postRender;
 		int             cubemapIndex, newCubemapIndex;
 		int				depthRange;
 
@@ -1308,9 +1308,9 @@ typedef struct sortedDrawInfo_s {
 	int				shaderIndex = -1;
 	qboolean		isPostRender = qfalse;
 	int				cubemapIndex = 0;
-	uint64_t		sort = 0;
+	int				sort = 0;
 	shader_t		*shader = NULL;
-	uint64_t		numDrawSurfs = 0;
+	int				numDrawSurfs = 0;
 	drawSurf_t		*drawSurf[MAX_SHADER_MERGED_SURFACES];
 	int				entityNum[MAX_SHADER_MERGED_SURFACES];
 } sortedDrawInfo_t;
@@ -1323,11 +1323,11 @@ void RB_RenderDrawSurfList(drawSurf_t *drawSurfs, int numDrawSurfs, qboolean inQ
 	float			originalTime;
 	FBO_t*			fbo = NULL;
 	shader_t		*oldShader = NULL;
-	int64_t			oldEntityNum = -1;
-	int64_t			oldPostRender = 0;
+	int				oldEntityNum = -1;
+	int				oldPostRender = 0;
 	int             oldCubemapIndex = -1;
 	int				oldDepthRange = 0;
-	uint64_t		oldSort = (uint64_t)-1;
+	int				oldSort = (int)-1;
 	qboolean		CUBEMAPPING = qfalse;
 	float			depth[2];
 
@@ -1358,11 +1358,11 @@ void RB_RenderDrawSurfList(drawSurf_t *drawSurfs, int numDrawSurfs, qboolean inQ
 		// First draw world normally...
 		for (i = 0; i < numDrawSurfs; ++i)
 		{
-			int64_t			zero = 0;
+			int			zero = 0;
 			drawSurf_t		*drawSurf;
 			shader_t		*shader = NULL;
-			int64_t			entityNum;
-			int64_t			postRender;
+			int			entityNum;
+			int			postRender;
 			int             cubemapIndex, newCubemapIndex;
 			int				depthRange;
 
@@ -1590,12 +1590,12 @@ void RB_RenderDrawSurfList(drawSurf_t *drawSurfs, int numDrawSurfs, qboolean inQ
 
 		for (i = 0; i < numDrawSurfs; ++i)
 		{
-			int64_t			zero = 0;
+			int			zero = 0;
 			shader_t		*shader = NULL;
 			int             cubemapIndex, newCubemapIndex;
 			drawSurf_t		*drawSurf;
-			int64_t			entityNum;
-			int64_t			postRender;
+			int			entityNum;
+			int			postRender;
 			int				depthRange;
 
 			if (backEnd.depthFill && shader && shader->sort != SS_OPAQUE && shader->sort != SS_SEE_THROUGH) continue; // UQ1: No point thinking any more on this one...
@@ -1885,11 +1885,11 @@ void RB_RenderDrawSurfList(drawSurf_t *drawSurfs, int numDrawSurfs, qboolean inQ
 
 			for (i = 0; i < sorted->numDrawSurfs; ++i)
 			{
-				int64_t			zero = 0;
+				int			zero = 0;
 				drawSurf_t		*drawSurf;
 				shader_t		*shader = NULL;
-				int64_t			entityNum;
-				int64_t			postRender;
+				int			entityNum;
+				int			postRender;
 				int             cubemapIndex, newCubemapIndex;
 				int				depthRange;
 
