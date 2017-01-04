@@ -1546,7 +1546,7 @@ void R_Register( void )
 	r_tesselationAlpha = ri->Cvar_Get( "r_tesselationAlpha", "1.0", CVAR_ARCHIVE );
 
 	r_foliage = ri->Cvar_Get( "r_foliage", "2", CVAR_ARCHIVE | CVAR_LATCH );
-	r_foliagePasses = ri->Cvar_Get( "r_foliagePasses", "2", CVAR_ARCHIVE );
+	r_foliagePasses = ri->Cvar_Get( "r_foliagePasses", "16", CVAR_ARCHIVE );
 	r_foliageDistance = ri->Cvar_Get( "r_foliageDistance", /*"16384.0"*/"8192.0", CVAR_ARCHIVE );
 	r_foliageDensity = ri->Cvar_Get( "r_foliageDensity", "40.0", CVAR_ARCHIVE );
 	r_foliageShadows = ri->Cvar_Get( "r_foliageShadows", "0", CVAR_ARCHIVE );
