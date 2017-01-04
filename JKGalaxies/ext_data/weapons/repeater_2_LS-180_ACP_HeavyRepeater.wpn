@@ -60,9 +60,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   3250,
-        "ammoIndex":         "acp_belt",
-        "ammoOnSpawn":   900,
-        "ammoOnPickup":   360,
         "clipSize":              180,
         "reloadmodifier": 0.7,
         "speed":        0.7
@@ -78,6 +75,8 @@
         "projectilespeed": 8000.0,
         "projectileclass": "repeater_proj",
         "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_DRUM",
+	"ammodefault: "AMMO_ACP_DRUM",
         "accuracy": {
         	"accuracyRating": 50,
         	"accuracyRatingPerShot": 5,
@@ -106,6 +105,8 @@
         "projectileclass": "repeater_proj",
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION",
+	"ammobase": "AMMO_EXPLOSIVE_CANISTER",
+	"ammodefault: "AMMO_CANISTER_INCENDIARY",
         "accuracy": {
         	"accuracyRating": 105,
         	"accuracyRatingPerShot": 15,
