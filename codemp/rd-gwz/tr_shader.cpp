@@ -5356,7 +5356,7 @@ static qboolean CollapseStagesToGLSL(void)
 	numStages = 0;
 	for (i = 0; i < MAX_SHADER_STAGES; i++)
 	{
-		if (!stages[i].active && !stages[i].glow)
+		if (!stages[i].active)
 			continue;
 
 		if (i == numStages)

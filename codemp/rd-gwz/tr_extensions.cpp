@@ -285,10 +285,14 @@ static void __stdcall GLimp_OnError(GLenum source, GLenum type, GLuint id, GLenu
 	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB: typeText = "Undefined"; break;
 	case GL_DEBUG_TYPE_PORTABILITY_ARB: typeText = "Portability"; break;
 	case GL_DEBUG_TYPE_PERFORMANCE_ARB: typeText = "Performance"; break;
-	//case GL_DEBUG_TYPE_OTHER_ARB: typeText = "Other"; break;
-	case GL_DEBUG_TYPE_OTHER_ARB: return; break;
+	case GL_DEBUG_TYPE_OTHER_ARB: typeText = "Other"; break;
 	}
 
+	/* Don't need to spam free/allocate VBO stuff */
+	if (!StringContainsWord(message, "will use ") 
+		&& !StringContainsWord(message, "will allocate") 
+		&& !StringContainsWord(message, "allocate vbo")
+		&& !StringContainsWord(message, "freeing vbo"))
 	Com_Printf(S_COLOR_YELLOW "OpenGL -> [%s][%s][%s] %s\n", sourceText, severityText, typeText, message);
 }
 
