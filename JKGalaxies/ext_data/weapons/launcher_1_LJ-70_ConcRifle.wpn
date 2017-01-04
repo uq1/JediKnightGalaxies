@@ -98,8 +98,8 @@
         "splashrange":  420,//210,
         "projectilespeed":9000.0,
         "projectileclass":"conc_proj",
-        "meansofdeath": "MOD_ION",
-        "splashmeansofdeath": "MOD_ION",
+        "meansofdeath": "MOD_SONIC",
+        "splashmeansofdeath": "MOD_SONIC",
 	"ammobase": "AMMO_CONCUSSION",
 	"ammodefault": "AMMO_CONCUSSION",
             "accuracy": {
@@ -130,8 +130,8 @@
         "splashrange":  60,//30,
         "projectilespeed":9000.0,
         "projectileclass":"conc_proj",
-        "meansofdeath": "MOD_ION",
-        "splashmeansofdeath": "MOD_ION",
+        "meansofdeath": "MOD_SONIC",
+        "splashmeansofdeath": "MOD_SONIC",
 	"ammobase": "AMMO_CONCUSSION",
 	"ammodefault": "AMMO_CONCUSSION",
             "accuracy": {
