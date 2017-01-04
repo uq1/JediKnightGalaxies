@@ -56,16 +56,13 @@
             "miss":         { "impactfx": "weapons/blaster_impact_blue_huge_fire" },
             "hit":          { "impactfx": "weapons/blaster_impact_blue_huge" },
             "deathfx": "blasters/shot_bluegreen_vaporize",
-	    "displayName":  "Launcher"
+	    "displayName":  "Heavy Blaster"
         }
     },
     
     "stats": {
         "slot":         1,
         "reloadtime":   2750,
-        "ammoIndex":         "blaster_power_pack_l",
-        "ammoOnSpawn":   600,
-        "ammoOnPickup":   200,
         "clipSize":              100,
         "reloadmodifier": 0.7,
         "speed":        0.9
@@ -82,6 +79,8 @@
         "projectilespeed": 4000.0,
         "projectileclass":"blaster_proj",
         "meansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_ION_POWERPACK_L",
+	"ammodefault: "AMMO_ION_POWERPACK_L",
         "accuracy": {
         	"accuracyRating": 60,
         	"accuracyRatingPerShot": 4,
@@ -111,6 +110,8 @@
         "projectileclass": "repeater_alt_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_ION_POWERPACK_L",
+	"ammodefault: "AMMO_ION_POWERPACK_L",
         "accuracy": {
         	"accuracyRating": 85,
         	"accuracyRatingPerShot": 12,
