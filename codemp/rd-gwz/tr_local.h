@@ -45,6 +45,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //#define __MERGE_MODEL_SURFACES__
 #define __MERGE_MODEL_SURFACES2__	// merge entity surfaces into less draws...
 #define __LAZY_CUBEMAP__			// allow all surfaces to merge with different cubemaps... with our range based checks as well, should be good enough...
+#define __FRAME_OVERRIDE__			// JKG's frame override code... Added ifdef because i'm trying to hunt down a glow bug... Wasn't the issue...
 
 //#define __DYNAMIC_SHADOWS__
 #ifdef __DYNAMIC_SHADOWS__
@@ -2638,6 +2639,7 @@ typedef struct trGlobals_s {
 	// UQ1: Added shaders...
 	//
 
+	shaderProgram_t splashScreenShader;
 	shaderProgram_t generateNormalMapShader;
 	shaderProgram_t darkexpandShader;
 	shaderProgram_t hdrShader;

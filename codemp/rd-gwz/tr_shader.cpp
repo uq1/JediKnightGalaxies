@@ -1271,6 +1271,9 @@ qboolean ForceGlow ( char *shader )
 {
 	if (!shader) return qfalse;
 
+	//if (!StringContains(shader, "gfx/", 0) && !StringContains(shader, "models/weapon", 0))
+	//	ri->Printf(PRINT_WARNING, "Searching shader %s for glow names.\n", shader);
+
 	// UQ1: Testing - Force glow to obvious glow components...
 	// Note that this is absolutely a complete HACK... But the only other option is to remake every other map ever made for JKA...
 	// Worst case, we end up with a little extra glow - oh dear! the horror!!! :)
@@ -1282,11 +1285,19 @@ qboolean ForceGlow ( char *shader )
 	{
 		return qtrue;
 	}
-	//else if (StringContains(shader, "light", 0))
-	//{
-	//	return qtrue;
-	//}
-	else if (StringContains(shader, "pulse", 0) && !StringContains(shader, "/pulsecannon", 0))
+	/*else if (StringContains(shader, "_light", 0))
+	{// This one is bad, but for some reason JKG/something-with-sdl2-stuff seems to need it... *shrug*
+		return qtrue;
+	}*/
+	/*else if (StringContains(shader, "_light_gl", 0))
+	{
+		return qtrue;
+	}
+	else if (StringContains(shader, "_lightgl", 0))
+	{
+		return qtrue;
+	}*/
+	else if (StringContains(shader, "pulse", 0) && !StringContains(shader, "pulsecan", 0))
 	{
 		return qtrue;
 	}
@@ -1797,10 +1808,18 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 				if (ForceGlow(token) || stage->glow)
 				{
+					//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", token);
 					flags |= IMGFLAG_GLOW;
 				}
 
 				stage->bundle[0].image[0] = R_FindImageFile( token, type, flags );
+
+				if (stage->bundle[0].image[0] && ForceGlow(stage->bundle[0].image[0]->imgName))
+				{
+					//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[0]->imgName);
+					stage->glow = qtrue;
+					flags |= IMGFLAG_GLOW;
+				}
 
 				if ((flags & IMGFLAG_GLOW) || stage->bundle[0].image[0] == tr.whiteImage)
 				{
@@ -1858,10 +1877,18 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 			if (ForceGlow(token) || stage->glow)
 			{
+				//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", token);
 				flags |= IMGFLAG_GLOW;
 			}
 
 			stage->bundle[0].image[0] = R_FindImageFile( token, type, flags );
+
+			if (stage->bundle[0].image[0] && ForceGlow(stage->bundle[0].image[0]->imgName))
+			{
+				//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[0]->imgName);
+				stage->glow = qtrue;
+				flags |= IMGFLAG_GLOW;
+			}
 
 			if ((flags & IMGFLAG_GLOW) || stage->bundle[0].image[0] == tr.whiteImage)
 			{
@@ -1917,10 +1944,11 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 					stage->bundle[0].image[num] = R_FindImageFile( token, IMGTYPE_COLORALPHA, flags );
 
 					// UQ1: Testing - Force glow to obvious glow components...
-					if (ForceGlow(stage->bundle[0].image[num]->imgName))
+					if (stage->bundle[0].image[num] && ForceGlow(stage->bundle[0].image[num]->imgName))
 					{
-						//ri->Printf (PRINT_WARNING, "%s forcably marked as a glow shader.\n", stage->bundle[0].image[num]->imgName);
+						//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[num]->imgName);
 						stage->glow = qtrue;
+						flags |= IMGFLAG_GLOW;
 					}
 					//UQ1: END - Testing - Force glow to obvious glow components...
 
@@ -5328,7 +5356,7 @@ static qboolean CollapseStagesToGLSL(void)
 	numStages = 0;
 	for (i = 0; i < MAX_SHADER_STAGES; i++)
 	{
-		if (!stages[i].active)
+		if (!stages[i].active && !stages[i].glow)
 			continue;
 
 		if (i == numStages)
@@ -7739,10 +7767,12 @@ JEDI KNIGHT GALAXIES
 // Replacement code for hacks in jkg_wpindicators.c --eez
 void R_OverrideShaderFrame(qhandle_t shader, int desiredFrame, int time)
 {
+#ifdef __FRAME_OVERRIDE__
 	shader_t* thisShader = tr.shaders[shader];
 	// WTF hack here...
 	thisShader->frameOverride = desiredFrame;
 	if (thisShader->next != nullptr && !Q_stricmp(thisShader->next->name, thisShader->name)) {
 		thisShader->next->frameOverride = desiredFrame;
 	}
+#endif //__FRAME_OVERRIDE__
 }

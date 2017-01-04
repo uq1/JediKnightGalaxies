@@ -3166,6 +3166,7 @@ RB_SwapBuffers
 =============
 */
 const void	*RB_SwapBuffers( const void *data ) {
+#if 1
 	const swapBuffersCommand_t	*cmd;
 
 	// finish any 2D drawing if needed
@@ -3235,6 +3236,66 @@ const void	*RB_SwapBuffers( const void *data ) {
 	backEnd.projection2D = qfalse;
 
 	return (const void *)(cmd + 1);
+#else
+	const swapBuffersCommand_t	*cmd;
+
+	// finish any 2D drawing if needed
+	if (tess.numIndexes) {
+		RB_EndSurface();
+	}
+
+	ResetGhoul2RenderableSurfaceHeap();
+
+	// texture swapping test
+	if (r_showImages->integer) {
+		RB_ShowImages();
+	}
+
+	cmd = (const swapBuffersCommand_t *)data;
+
+	// we measure overdraw by reading back the stencil buffer and
+	// counting up the number of increments that have happened
+	if (r_measureOverdraw->integer) {
+		int i;
+		long sum = 0;
+		unsigned char *stencilReadback;
+
+		stencilReadback = (unsigned char *)ri->Hunk_AllocateTempMemory(glConfig.vidWidth * glConfig.vidHeight);
+		qglReadPixels(0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencilReadback);
+
+		for (i = 0; i < glConfig.vidWidth * glConfig.vidHeight; i++) {
+			sum += stencilReadback[i];
+		}
+
+		backEnd.pc.c_overDraw += sum;
+		ri->Hunk_FreeTempMemory(stencilReadback);
+	}
+
+	if (!backEnd.framePostProcessed)
+	{
+		if (tr.renderFbo)
+		{
+			FBO_FastBlit(tr.renderFbo, NULL, NULL, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		}
+	}
+
+	int frameNumber = backEndData->realFrameNumber;
+	//gpuFrame_t *currentFrame = backEndData->currentFrame;
+
+	//assert(!currentFrame->sync);
+	//currentFrame->sync = qglFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+	backEndData->realFrameNumber = frameNumber + 1;
+
+	GLimp_LogComment("***************** RB_SwapBuffers *****************\n\n\n");
+
+	ri->WIN_Present(&window);
+
+	backEnd.framePostProcessed = qfalse;
+	backEnd.projection2D = qfalse;
+
+	return (const void *)(cmd + 1);
+#endif
 }
 
 #ifdef __SURFACESPRITES__

@@ -4695,6 +4695,7 @@ void GLSL_EndLoadGPUShaders(int startTime)
 	GLSL_FinishGPUShader(&tr.ssgiBlurShader);
 #endif
 
+
 	numEtcShaders++;
 
 
@@ -5868,6 +5869,7 @@ void GLSL_ShutdownGPUShaders(void)
 
 
 	// UQ1: Added...
+	GLSL_DeleteGPUShader(&tr.splashScreenShader);
 	GLSL_DeleteGPUShader(&tr.darkexpandShader);
 	GLSL_DeleteGPUShader(&tr.hdrShader);
 	GLSL_DeleteGPUShader(&tr.magicdetailShader);
@@ -6352,4 +6354,43 @@ shaderProgram_t *GLSL_GetGenericShaderProgram(int stage)
 	}
 
 	return &tr.genericShader[shaderAttribs];
+}
+
+void GLSL_InitSplashScreenShader()
+{
+	const char *vs =
+		"#version 150 core\n"
+		"out vec2 var_TexCoords;\n"
+		"void main() {\n"
+		"  vec2 position = vec2(2.0 * float(gl_VertexID & 2) - 1.0, 4.0 * float(gl_VertexID & 1) - 1.0);\n"
+		"  gl_Position = vec4(position, 0.0, 1.0);\n"
+		"  var_TexCoords = vec2(position.x * 0.5 + 0.5, 2.0 - (position.y * 0.5 + 0.5));\n"
+		"}";
+
+	const char *fs =
+		"#version 150 core\n"
+		"uniform sampler2D u_SplashTexture;\n"
+		"in vec2 var_TexCoords;\n"
+		"out vec4 out_Color;\n"
+		"void main() {\n"
+		"  out_Color = texture(u_SplashTexture, var_TexCoords);\n"
+		"}";
+
+	GLuint vshader = qglCreateShader(GL_VERTEX_SHADER);
+	qglShaderSource(vshader, 1, &vs, NULL);
+	qglCompileShader(vshader);
+
+	GLuint fshader = qglCreateShader(GL_FRAGMENT_SHADER);
+	qglShaderSource(fshader, 1, &fs, NULL);
+	qglCompileShader(fshader);
+
+	GLuint program = qglCreateProgram();
+	qglAttachShader(program, vshader);
+	qglAttachShader(program, fshader);
+	qglLinkProgram(program);
+
+	size_t splashLen = strlen("splash");
+	tr.splashScreenShader.program = program;
+	tr.splashScreenShader.name = (char *)Z_Malloc(splashLen + 1, TAG_GENERAL);
+	Q_strncpyz(tr.splashScreenShader.name, "splash", splashLen + 1);
 }

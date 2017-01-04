@@ -6,10 +6,10 @@ varying vec3		var_Normal;
 varying vec3		var_VertPos;
 
 out vec4 out_Glow;
-/*out vec4 out_Position;
-out vec4 out_Normal;
+//out vec4 out_Position;
+//out vec4 out_Normal;
 
-#define unOpenGlIsFuckedUpify(x) ( x / 524288.0 )*/
+//#define unOpenGlIsFuckedUpify(x) ( x / 524288.0 )
 
 void main()
 {

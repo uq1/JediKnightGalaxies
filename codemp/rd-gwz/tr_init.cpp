@@ -423,36 +423,27 @@ cvar_t	*r_dynamicGlowDelta;
 cvar_t	*r_dynamicGlowIntensity;
 cvar_t	*r_dynamicGlowSoft;
 
+extern void GLSL_InitSplashScreenShader();
+
 extern void	RB_SetGL2D (void);
 void R_Splash()
 {
+	const GLfloat black[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	qglViewport(0, 0, glConfig.vidWidth, glConfig.vidHeight);
+	qglClearBufferfv(GL_COLOR, 0, black);
+
+	GLSL_InitSplashScreenShader();
+
+	GL_Cull(CT_TWO_SIDED);
+
 	image_t *pImage = R_FindImageFile("menu/splash", IMGTYPE_COLORALPHA, IMGFLAG_NONE);
-	extern void	RB_SetGL2D(void);
-	RB_SetGL2D();
 	if (pImage)
-	{//invalid paths?
 		GL_Bind(pImage);
-	}
-	GL_State(GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO);
 
-	const int width = 640;
-	const int height = 480;
-	const float x1 = 320 - width / 2;
-	const float x2 = 320 + width / 2;
-	const float y1 = 240 - height / 2;
-	const float y2 = 240 + height / 2;
-
-
-	qglBegin(GL_TRIANGLE_STRIP);
-	qglTexCoord2f(0, 0);
-	qglVertex2f(x1, y1);
-	qglTexCoord2f(1, 0);
-	qglVertex2f(x2, y1);
-	qglTexCoord2f(0, 1);
-	qglVertex2f(x1, y2);
-	qglTexCoord2f(1, 1);
-	qglVertex2f(x2, y2);
-	qglEnd();
+	GL_State(GLS_DEPTHTEST_DISABLE);
+	GLSL_BindProgram(&tr.splashScreenShader);
+	qglDrawArrays(GL_TRIANGLES, 0, 3);
 
 	ri->WIN_Present(&window);
 }
