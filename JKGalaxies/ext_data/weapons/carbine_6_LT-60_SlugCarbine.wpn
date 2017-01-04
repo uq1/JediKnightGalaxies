@@ -64,9 +64,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2250,
-        "ammoIndex":         "7.62slugs",
-        "ammoOnSpawn":   300,
-        "ammoOnPickup":   60,
         "clipSize":              30,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
@@ -86,6 +83,8 @@
         "projectilespeed": 28000.0,	// 7.62 x 51 mm NATO velocity 2800 ft/s
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_SLUGTHROWER",
+	"ammobase": "AMMO_SLUGS",
+	"ammodefault": "AMMO_SLUGS",
         "accuracy": {
         	"accuracyRating": 32,
         	"accuracyRatingPerShot": 3,
@@ -110,6 +109,8 @@
         "projectilespeed": 28000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_SLUGTHROWER",
+	"ammobase": "AMMO_SLUGS",
+	"ammodefault": "AMMO_SLUGS",
         "accuracy": {
         	"accuracyRating": 16,
         	"accuracyRatingPerShot": 2,
