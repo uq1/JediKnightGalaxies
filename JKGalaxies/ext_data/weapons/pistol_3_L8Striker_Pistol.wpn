@@ -60,9 +60,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   1000,
-        "ammoIndex":         "powerpak",
-        "ammoOnSpawn":   80,
-        "ammoOnPickup":   16,
         "clipSize":              8,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
@@ -80,7 +77,9 @@
         "projectilespeed": 5000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
-        "splashmeansofdeath": "MOD_BRYAR_PISTOL"
+        "splashmeansofdeath": "MOD_BRYAR_PISTOL",
+	"ammobase": "AMMO_AA_POWERPAK",
+	"ammodefault": "AMMO_AA_POWERPAK"
     },
     
     "firemode1": {
@@ -94,6 +93,8 @@
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_AA_POWERPAK",
+	"ammodefault": "AMMO_AA_POWERPAK",
 	"accuracy": {
 		"accuracyRating": 11,
 		"sightsModifier": 0.2
