@@ -2582,8 +2582,14 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		// If this stage has glow...	GLOWXXX
 		else if ( Q_stricmp( token, "glow" ) == 0 )
 		{
-			stage->glow = qtrue;
+			if (stage->bundle[0].image[0] && StringContains(stage->bundle[0].image[0]->imgName, "envmap_spec", 0))
+			{
+				ri->Printf(PRINT_WARNING, "Glow was forcably removed from JKG envmap_spec stage of %s shader.\n", shader.name);
+				stage->glow = qfalse;
+				continue;
+			}
 
+			stage->glow = qtrue;
 			continue;
 		}
 		//
