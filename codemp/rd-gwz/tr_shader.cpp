@@ -1816,7 +1816,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 				if (ForceGlow(token) || stage->glow)
 				{
-					ri->Printf(PRINT_WARNING, "%s detected as glow.\n", token);
+					//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", token);
 					flags |= IMGFLAG_GLOW;
 				}
 
@@ -1824,7 +1824,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 				if (stage->bundle[0].image[0] && ForceGlow(stage->bundle[0].image[0]->imgName))
 				{
-					ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[0]->imgName);
+					//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[0]->imgName);
 					stage->glow = qtrue;
 					flags |= IMGFLAG_GLOW;
 				}
@@ -1885,7 +1885,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 			if (ForceGlow(token) || stage->glow)
 			{
-				ri->Printf(PRINT_WARNING, "%s detected as glow.\n", token);
+				//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", token);
 				flags |= IMGFLAG_GLOW;
 			}
 
@@ -1893,7 +1893,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 			if (stage->bundle[0].image[0] && ForceGlow(stage->bundle[0].image[0]->imgName))
 			{
-				ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[0]->imgName);
+				//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[0]->imgName);
 				stage->glow = qtrue;
 				flags |= IMGFLAG_GLOW;
 			}
@@ -1954,7 +1954,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 					// UQ1: Testing - Force glow to obvious glow components...
 					if (stage->bundle[0].image[num] && ForceGlow(stage->bundle[0].image[num]->imgName))
 					{
-						ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[num]->imgName);
+						//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[num]->imgName);
 						stage->glow = qtrue;
 						flags |= IMGFLAG_GLOW;
 					}
