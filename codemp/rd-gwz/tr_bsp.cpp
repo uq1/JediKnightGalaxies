@@ -3544,7 +3544,7 @@ static void R_LoadCubemapWaypoints( void )
 
 			for (int j = 0; j < numcubeOrgs; j++)
 			{
-				if (Distance(cubeOrgs[j], surfOrigin) < 256)
+				if (Distance(cubeOrgs[j], surfOrigin) < 1024) //256) // Larger separation distance for JKG.
 				{
 					bad = qtrue;
 					break;

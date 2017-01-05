@@ -377,6 +377,7 @@ extern cvar_t	*r_parallaxScale;
 extern cvar_t	*r_blinnPhong;
 extern cvar_t	*r_skynum;
 extern cvar_t	*r_volumeLightStrength;
+extern cvar_t	*r_volumeSunLightStrength;
 extern cvar_t	*r_fog;
 extern cvar_t	*r_multithread;
 extern cvar_t	*r_multithread2;

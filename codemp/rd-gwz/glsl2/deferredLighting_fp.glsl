@@ -90,12 +90,6 @@ void main(void)
 	vec4 color = texture2D(u_DiffuseMap, var_TexCoords);
 	gl_FragColor = vec4(color.rgb, 1.0);
 
-#if defined(USE_SHADOWMAP)
-	float shadowValue = texture(u_ShadowMap, var_TexCoords/*gl_FragCoord.xy * r_FBufScale*/).r;
-	//gl_FragColor.rgb *= clamp(shadowValue, 0.4, 1.0);
-	gl_FragColor.rgb *= clamp(shadowValue, 0.85, 1.0);
-#endif //defined(USE_SHADOWMAP)
-
 	//vec4 glow = texture2D(u_GlowMap, var_TexCoords);
 	//float glowMult = clamp(1.0 - (length(glow) / 3.0), 0.0, 1.0);
 	float glowMult = 1.0;
@@ -128,6 +122,12 @@ void main(void)
 		gl_FragColor = vec4(normalize(norm.rgb), 1.0);
 		return;
 	}*/
+
+#if defined(USE_SHADOWMAP)
+	float shadowValue = texture(u_ShadowMap, var_TexCoords/*gl_FragCoord.xy * r_FBufScale*/).r;
+	//gl_FragColor.rgb *= clamp(shadowValue, 0.4, 1.0);
+	gl_FragColor.rgb *= clamp(shadowValue, 0.85, 1.0);
+#endif //defined(USE_SHADOWMAP)
 
 	norm.a = norm.a * 0.5 + 0.5;
 	norm.rgb = normalize(norm.rgb * 2.0 - 1.0);

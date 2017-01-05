@@ -1843,6 +1843,40 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 			continue;
 		}
 
+#if 0
+		if (stage > 0)
+		{
+			if (pStage->bundle[TB_DIFFUSEMAP].image[0])
+			{
+				ri->Printf(PRINT_WARNING, "Shader stage %i of %s is %s. Generic: %s.\n", stage, tess.shader->name, pStage->bundle[TB_DIFFUSEMAP].image[0]->imgName, isGeneric ? "true" : "false");
+			}
+		}
+#endif
+#if 0
+		if (pStage->glow)
+		{
+			if (pStage->bundle[TB_DIFFUSEMAP].image[0])
+			{
+				ri->Printf(PRINT_WARNING, "Shader stage %i of %s is glow. Diffuse: %s. Generic: %s.\n", stage, tess.shader->name, pStage->bundle[TB_DIFFUSEMAP].image[0]->imgName, isGeneric ? "true" : "false");
+			}
+			else
+			{
+				ri->Printf(PRINT_WARNING, "Shader stage %i of %s is glow without a diffuse image. Generic: %s.\n", stage, tess.shader->name, isGeneric ? "true" : "false");
+			}
+		}
+		else if (pStage->bundle[TB_DIFFUSEMAP].image[0] && (StringContainsWord(pStage->bundle[TB_DIFFUSEMAP].image[0]->imgName, "glow") || StringContainsWord(pStage->bundle[TB_DIFFUSEMAP].image[0]->imgName, "glw")))
+		{
+			if (pStage->bundle[TB_DIFFUSEMAP].image[0])
+			{
+				ri->Printf(PRINT_WARNING, "GLOW NOT GLOWING! Shader stage %i of %s is glow. Diffuse: %s. Generic: %s.\n", stage, tess.shader->name, pStage->bundle[TB_DIFFUSEMAP].image[0]->imgName, isGeneric ? "true" : "false");
+			}
+			else
+			{
+				ri->Printf(PRINT_WARNING, "GLOW NOT GLOWING! Shader stage %i of %s is glow without a diffuse image. Generic: %s.\n", stage, tess.shader->name, isGeneric ? "true" : "false");
+			}
+		}
+#endif
+
 		if ( pStage->isSurfaceSprite )
 		{
 #ifdef __SURFACESPRITES__
@@ -2215,31 +2249,6 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 			//stateBits |= GLS_DEPTHFUNC_LESS;
 			stateBits = GLS_DEPTHMASK_TRUE | GLS_DEPTHFUNC_LESS;
 		}*/
-
-#if 0
-		if (pStage->glow)
-		{
-			if (pStage->bundle[TB_DIFFUSEMAP].image[0])
-			{
-				ri->Printf(PRINT_WARNING, "Shader stage %i of %s is glow. Diffuse: %s. Generic: %s.\n", stage, tess.shader->name, pStage->bundle[TB_DIFFUSEMAP].image[0]->imgName, isGeneric ? "true" : "false");
-			}
-			else
-			{
-				ri->Printf(PRINT_WARNING, "Shader stage %i of %s is glow without a diffuse image. Generic: %s.\n", stage, tess.shader->name, isGeneric ? "true" : "false");
-			}
-		}
-		else if (pStage->bundle[TB_DIFFUSEMAP].image[0] && (StringContainsWord(pStage->bundle[TB_DIFFUSEMAP].image[0]->imgName, "glow") || StringContainsWord(pStage->bundle[TB_DIFFUSEMAP].image[0]->imgName, "glw")))
-		{
-			if (pStage->bundle[TB_DIFFUSEMAP].image[0])
-			{
-				ri->Printf(PRINT_WARNING, "GLOW NOT GLOWING! Shader stage %i of %s is glow. Diffuse: %s. Generic: %s.\n", stage, tess.shader->name, pStage->bundle[TB_DIFFUSEMAP].image[0]->imgName, isGeneric ? "true" : "false");
-			}
-			else
-			{
-				ri->Printf(PRINT_WARNING, "GLOW NOT GLOWING! Shader stage %i of %s is glow without a diffuse image. Generic: %s.\n", stage, tess.shader->name, isGeneric ? "true" : "false");
-			}
-		}
-#endif
 
 		if ( backEnd.currentEntity )
 		{

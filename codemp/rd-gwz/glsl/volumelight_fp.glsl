@@ -157,6 +157,14 @@ void main ( void )
 					}
 
 					lightColors[numInRange] = -(spotColor + 0.5); // + 0.5 to make sure all .rgb are negative...
+					if (i == SUN_ID) 
+					{
+						lightColors[numInRange] *= 0.22;
+					}
+					else
+					{
+						lightColors[numInRange] *= 0.5;
+					}
 				}
 				else
 				{// Not bright enough for a volumetric light...
@@ -180,7 +188,14 @@ void main ( void )
 					}
 
 					lightColors[numInRange] = -(spotColor + 0.5); // + 0.5 to make sure all .rgb are negative...
-					lightColors[numInRange] *= 0.22;
+					if (i == SUN_ID) 
+					{
+						lightColors[numInRange] *= 0.22;
+					}
+					else
+					{
+						lightColors[numInRange] *= 0.5;
+					}
 				}
 				else
 				{// Not bright enough for a volumetric light...

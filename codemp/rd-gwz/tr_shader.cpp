@@ -1271,12 +1271,20 @@ qboolean ForceGlow ( char *shader )
 {
 	if (!shader) return qfalse;
 
-	//if (!StringContains(shader, "gfx/", 0) && !StringContains(shader, "models/weapon", 0))
-	//	ri->Printf(PRINT_WARNING, "Searching shader %s for glow names.\n", shader);
-
 	// UQ1: Testing - Force glow to obvious glow components...
 	// Note that this is absolutely a complete HACK... But the only other option is to remake every other map ever made for JKA...
 	// Worst case, we end up with a little extra glow - oh dear! the horror!!! :)
+
+	if (StringContains(shader, "models/weapons/", 0) && !StringContains(shader, "glow", 0))
+	{// JKG...
+		return qfalse;
+	}
+
+	if (StringContains(shader, "models/ammo/", 0) && !StringContains(shader, "glow", 0))
+	{// JKG...
+		return qfalse;
+	}
+
 	if (StringContains(shader, "glw", 0))
 	{
 		return qtrue;
@@ -1297,7 +1305,7 @@ qboolean ForceGlow ( char *shader )
 	{
 		return qtrue;
 	}*/
-	else if (StringContains(shader, "pulse", 0) && !StringContains(shader, "pulsecan", 0))
+	else if (StringContains(shader, "pulse", 0) && !StringContains(shader, "pulsecan", 0) && !StringContains(shader, "shotgun", 0))
 	{
 		return qtrue;
 	}
@@ -1493,7 +1501,7 @@ qboolean ForceGlow ( char *shader )
 	{
 		return qtrue;
 	}
-	else if (StringContains(shader, "flash", 0)) // GFX
+	else if (StringContains(shader, "flash", 0) && !StringContains(shader, "flashbang", 0)) // GFX
 	{
 		return qtrue;
 	}
@@ -1501,15 +1509,15 @@ qboolean ForceGlow ( char *shader )
 	{
 		return qtrue;
 	}
-	else if (StringContains(shader, "shot", 0) && !StringContains(shader, "acp_arraygun", 0)) // GFX
+	else if (StringContains(shader, "shot", 0) && !StringContains(shader, "models/weapons", 0)) // GFX
 	{
 		return qtrue;
 	}
-	else if (StringContains(shader, "fire", 0)) // GFX
+	else if (StringContains(shader, "fire", 0) && !StringContains(shader, "firemode", 0)) // GFX
 	{
 		return qtrue;
 	}
-	else if (StringContains(shader, "flame", 0)) // GFX
+	else if (StringContains(shader, "flame", 0) && !StringContains(shader, "flamecarbine", 0)) // GFX
 	{
 		return qtrue;
 	}
@@ -1808,7 +1816,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 				if (ForceGlow(token) || stage->glow)
 				{
-					//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", token);
+					ri->Printf(PRINT_WARNING, "%s detected as glow.\n", token);
 					flags |= IMGFLAG_GLOW;
 				}
 
@@ -1816,7 +1824,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 				if (stage->bundle[0].image[0] && ForceGlow(stage->bundle[0].image[0]->imgName))
 				{
-					//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[0]->imgName);
+					ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[0]->imgName);
 					stage->glow = qtrue;
 					flags |= IMGFLAG_GLOW;
 				}
@@ -1877,7 +1885,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 			if (ForceGlow(token) || stage->glow)
 			{
-				//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", token);
+				ri->Printf(PRINT_WARNING, "%s detected as glow.\n", token);
 				flags |= IMGFLAG_GLOW;
 			}
 
@@ -1885,7 +1893,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 			if (stage->bundle[0].image[0] && ForceGlow(stage->bundle[0].image[0]->imgName))
 			{
-				//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[0]->imgName);
+				ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[0]->imgName);
 				stage->glow = qtrue;
 				flags |= IMGFLAG_GLOW;
 			}
@@ -1946,7 +1954,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 					// UQ1: Testing - Force glow to obvious glow components...
 					if (stage->bundle[0].image[num] && ForceGlow(stage->bundle[0].image[num]->imgName))
 					{
-						//ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[num]->imgName);
+						ri->Printf(PRINT_WARNING, "%s detected as glow.\n", stage->bundle[0].image[num]->imgName);
 						stage->glow = qtrue;
 						flags |= IMGFLAG_GLOW;
 					}
@@ -4959,7 +4967,7 @@ static void CollapseStagesToLightall(shaderStage_t *diffuse,
 	diffuse->glslShaderIndex = defs;
 }
 
-static qboolean CollapseStagesToGLSL(void)
+static int CollapseStagesToGLSL(void)
 {
 	int i, j, numStages;
 	qboolean skip = qfalse;
@@ -5473,7 +5481,7 @@ static qboolean CollapseStagesToGLSL(void)
 	}
 
 #if 0
-	if (numStages > 1)
+	if (numStages > 1 && !StringContainsWord(shader.name, "models/weapon"))
 	{
 		ri->Printf(PRINT_WARNING, "Shader %s has %i stages.\n", shader.name, numStages);
 
@@ -5553,7 +5561,7 @@ static qboolean CollapseStagesToGLSL(void)
 	}
 #endif
 
-	return (qboolean)numStages;
+	return numStages;
 }
 
 /*
@@ -6348,6 +6356,87 @@ static shader_t *FinishShader( void ) {
 
 	// determine which vertex attributes this shader needs
 	ComputeVertexAttribs();
+
+#if 0
+	if (stage > 1 && !StringContainsWord(shader.name, "models/weapon"))
+	{
+		ri->Printf(PRINT_WARNING, "Shader %s has %i stages.\n", shader.name, stage);
+
+		for (int i = 0; i < MAX_SHADER_STAGES; i++)
+		{
+			shaderStage_t *pStage = &stages[i];
+
+			if (!pStage->active)
+				continue;
+
+			if (pStage->type == ST_DIFFUSEMAP)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is DiffuseMap.", i);
+			}
+			else if (pStage->type == ST_NORMALMAP)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is NormalMap.", i);
+			}
+			else if (pStage->type == ST_NORMALPARALLAXMAP)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is NormalParallaxMap.", i);
+			}
+			else if (pStage->type == ST_SPECULARMAP)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is SpecularMap.", i);
+			}
+			/*else if (pStage->type == ST_SUBSURFACEMAP)
+			{
+			ri->Printf(PRINT_WARNING, "     Stage %i is SubsurfaceMap.", i);
+			}*/
+			else if (pStage->type == ST_OVERLAYMAP)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is OverlayMap.", i);
+			}
+			else if (pStage->type == ST_STEEPMAP)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is SteepMap.", i);
+			}
+			else if (pStage->type == ST_STEEPMAP2)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is SteepMap2.", i);
+			}
+			else if (pStage->type == ST_SPLATCONTROLMAP)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is SplatControlMap.", i);
+			}
+			else if (pStage->type == ST_SPLATMAP1)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap1.", i);
+			}
+			else if (pStage->type == ST_SPLATMAP2)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap2.", i);
+			}
+			else if (pStage->type == ST_SPLATMAP3)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap3.", i);
+			}
+			else if (pStage->type == ST_SPLATMAP4)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is SplatMap4.", i);
+			}
+			else if (pStage->type == ST_GLSL)
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is GLSL.", i);
+			}
+			else
+			{
+				ri->Printf(PRINT_WARNING, "     Stage %i is %i.", i, pStage->type);
+			}
+
+			if (pStage->glow)
+				ri->Printf(PRINT_WARNING, " [ glow ]\n");
+			else
+				ri->Printf(PRINT_WARNING, "\n");
+		}
+	}
+#endif
 
 	return GeneratePermanentShader();
 }

@@ -1170,9 +1170,9 @@ qboolean RB_VolumetricLight(FBO_t *hdrFbo, vec4i_t hdrBox, FBO_t *ldrFbo, vec4i_
 			}
 			else
 			{
-				CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][0] = dl->color[0]*min(r_volumeLightStrength->value*4.0*strengthMult, 1.0);
-				CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][1] = dl->color[1]*min(r_volumeLightStrength->value*4.0*strengthMult, 1.0);
-				CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][2] = dl->color[2]*min(r_volumeLightStrength->value*4.0*strengthMult, 1.0);
+				CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][0] = dl->color[0]*min(r_volumeLightStrength->value*strengthMult, 1.0);
+				CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][1] = dl->color[1]*min(r_volumeLightStrength->value*strengthMult, 1.0);
+				CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][2] = dl->color[2]*min(r_volumeLightStrength->value*strengthMult, 1.0);
 			}
 			NUM_CLOSE_VLIGHTS++;
 			continue;
@@ -1210,9 +1210,9 @@ qboolean RB_VolumetricLight(FBO_t *hdrFbo, vec4i_t hdrBox, FBO_t *ldrFbo, vec4i_
 				}
 				else
 				{
-					CLOSEST_VLIGHTS_COLORS[farthest_light][0] = dl->color[0]*min(r_volumeLightStrength->value*4.0*strengthMult, 1.0);
-					CLOSEST_VLIGHTS_COLORS[farthest_light][1] = dl->color[1]*min(r_volumeLightStrength->value*4.0*strengthMult, 1.0);
-					CLOSEST_VLIGHTS_COLORS[farthest_light][2] = dl->color[2]*min(r_volumeLightStrength->value*4.0*strengthMult, 1.0);
+					CLOSEST_VLIGHTS_COLORS[farthest_light][0] = dl->color[0]*min(r_volumeLightStrength->value*strengthMult, 1.0);
+					CLOSEST_VLIGHTS_COLORS[farthest_light][1] = dl->color[1]*min(r_volumeLightStrength->value*strengthMult, 1.0);
+					CLOSEST_VLIGHTS_COLORS[farthest_light][2] = dl->color[2]*min(r_volumeLightStrength->value*strengthMult, 1.0);
 				}
 			}
 		}
@@ -1239,9 +1239,9 @@ qboolean RB_VolumetricLight(FBO_t *hdrFbo, vec4i_t hdrBox, FBO_t *ldrFbo, vec4i_
 			CLOSEST_VLIGHTS_POSITIONS[NUM_CLOSE_VLIGHTS][0] = SUN_SCREEN_POSITION[0];
 			CLOSEST_VLIGHTS_POSITIONS[NUM_CLOSE_VLIGHTS][1] = SUN_SCREEN_POSITION[1];
 			CLOSEST_VLIGHTS_DISTANCES[NUM_CLOSE_VLIGHTS] = 0.1;
-			CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][0] = (backEnd.refdef.sunCol[0])*r_volumeLightStrength->value*strengthMult;
-			CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][1] = (backEnd.refdef.sunCol[1])*r_volumeLightStrength->value*strengthMult;
-			CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][2] = (backEnd.refdef.sunCol[2])*r_volumeLightStrength->value*strengthMult;
+			CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][0] = (backEnd.refdef.sunCol[0])*r_volumeLightStrength->value*r_volumeSunLightStrength->value*strengthMult;
+			CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][1] = (backEnd.refdef.sunCol[1])*r_volumeLightStrength->value*r_volumeSunLightStrength->value*strengthMult;
+			CLOSEST_VLIGHTS_COLORS[NUM_CLOSE_VLIGHTS][2] = (backEnd.refdef.sunCol[2])*r_volumeLightStrength->value*r_volumeSunLightStrength->value*strengthMult;
 			SUN_ID = NUM_CLOSE_VLIGHTS;
 			NUM_CLOSE_VLIGHTS++;
 		}
@@ -1266,9 +1266,9 @@ qboolean RB_VolumetricLight(FBO_t *hdrFbo, vec4i_t hdrBox, FBO_t *ldrFbo, vec4i_
 			CLOSEST_VLIGHTS_POSITIONS[farthest_light][0] = SUN_SCREEN_POSITION[0];
 			CLOSEST_VLIGHTS_POSITIONS[farthest_light][1] = SUN_SCREEN_POSITION[1];
 			CLOSEST_VLIGHTS_DISTANCES[farthest_light] = 0.1;
-			CLOSEST_VLIGHTS_COLORS[farthest_light][0] = (backEnd.refdef.sunCol[0])*r_volumeLightStrength->value*strengthMult;
-			CLOSEST_VLIGHTS_COLORS[farthest_light][1] = (backEnd.refdef.sunCol[1])*r_volumeLightStrength->value*strengthMult;
-			CLOSEST_VLIGHTS_COLORS[farthest_light][2] = (backEnd.refdef.sunCol[2])*r_volumeLightStrength->value*strengthMult;
+			CLOSEST_VLIGHTS_COLORS[farthest_light][0] = (backEnd.refdef.sunCol[0])*r_volumeLightStrength->value*r_volumeSunLightStrength->value*strengthMult;
+			CLOSEST_VLIGHTS_COLORS[farthest_light][1] = (backEnd.refdef.sunCol[1])*r_volumeLightStrength->value*r_volumeSunLightStrength->value*strengthMult;
+			CLOSEST_VLIGHTS_COLORS[farthest_light][2] = (backEnd.refdef.sunCol[2])*r_volumeLightStrength->value*r_volumeSunLightStrength->value*strengthMult;
 			SUN_ID = farthest_light;
 		}
 	}

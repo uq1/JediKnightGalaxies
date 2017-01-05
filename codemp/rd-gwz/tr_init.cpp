@@ -282,6 +282,7 @@ cvar_t	*r_parallaxScale;
 cvar_t	*r_blinnPhong;
 cvar_t  *r_skynum;
 cvar_t  *r_volumeLightStrength;
+cvar_t  *r_volumeSunLightStrength;
 cvar_t	*r_disableGfxDirEnhancement;
 cvar_t	*r_cubemapCullRange;
 cvar_t	*r_cubemapCullFalloffMult;
@@ -1684,7 +1685,8 @@ void R_Register( void )
 	r_parallaxScale = ri->Cvar_Get( "r_parallaxScale", "3.0", CVAR_ARCHIVE );
 	r_blinnPhong = ri->Cvar_Get( "r_blinnPhong", "0.5", CVAR_ARCHIVE );
 	r_skynum = ri->Cvar_Get( "r_skynum", "0", CVAR_ARCHIVE );
-	r_volumeLightStrength = ri->Cvar_Get( "r_volumeLightStrength", "0.15", CVAR_ARCHIVE );
+	r_volumeLightStrength = ri->Cvar_Get( "r_volumeLightStrength", "0.6", CVAR_ARCHIVE );
+	r_volumeSunLightStrength = ri->Cvar_Get("r_volumeSunLightStrength", "0.25", CVAR_ARCHIVE);
 	r_disableGfxDirEnhancement = ri->Cvar_Get( "r_disableGfxDirEnhancement", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_cubemapCullRange = ri->Cvar_Get( "r_cubemapCullRange", "768.0", CVAR_ARCHIVE );
 	r_cubemapCullFalloffMult = ri->Cvar_Get( "r_cubemapCullFalloffMult", "1.5", CVAR_ARCHIVE );
