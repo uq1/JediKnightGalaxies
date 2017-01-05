@@ -363,8 +363,8 @@
 #define qglVertexPointer glVertexPointer
 #define qglViewport glViewport
 
-#define qglPatchParameteri glPatchParameteri
-#define qglPatchParameterfv glPatchParameterfv
+//#define qglPatchParameteri glPatchParameteri
+//#define qglPatchParameterfv glPatchParameterfv
 
 // Drawing commands
 extern PFNGLDRAWRANGEELEMENTSPROC qglDrawRangeElements;
