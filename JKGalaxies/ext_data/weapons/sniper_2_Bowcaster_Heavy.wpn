@@ -76,8 +76,10 @@
 	"splashrange":	30,
         "projectilespeed": 9000.0,
         "projectileclass": "bowcaster_proj",
-        "meansofdeath": "MOD_ACP",
-		"splashmeansofdeath": "MOD_ACP",
+        "meansofdeath": "MOD_QUARREL",
+	"splashmeansofdeath": "MOD_QUARREL",
+	"ammobase": "AMMO_QUARREL",
+	"ammodefault": "AMMO_QUARREL",
             "accuracy": {
         "accuracyRating": 20,
         "accuracyRatingPerShot": 6,
