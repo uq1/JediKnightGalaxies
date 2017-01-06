@@ -55,9 +55,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   900,
-        "ammoIndex":         "trandopowercell",
-        "ammoOnSpawn":   100,
-        "ammoOnPickup":   20,
         "clipSize":              10,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7,
@@ -75,6 +72,8 @@
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
         "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_POWERCELL_S",
+	"ammodefault": "AMMO_ACP_POWERCELL_S",
         "accuracy": {
 			"accuracyRating": 45,
 			"accuracyRatingPerShot": 6,
