@@ -278,7 +278,7 @@
 		"AMMO_POWERCELL_S" {
 		"shortname": "Power Cells (small)",
 		"longname": "BlasTech Industries Power Cells (small)",
-		"basedOn": ""AMMO_POWERCELL_M",
+		"basedOn": "AMMO_POWERCELL_M",
 		"max": 480,
 		"overrides": {		
 			"ClipSize": {
@@ -380,7 +380,6 @@
 		"AMMO_SS_POWERPACK" {
 		"shortname": "ELG-3A Power Packs",
 		"longname": "SoruSubb Blaster Power Packs",
-		"basedOn": "",
 		"max": 360,
 		"overrides": {		
 			"ClipSize": {
@@ -460,6 +459,7 @@
 		"AMMO_MAUSER" {
 		"shortname": "7.92X57mm Slugs",
 		"longname": "7.92x57mm Mauser Slug Cartridges",
+		"basedOn": "AMMO_MAUSER_CLIP",
 		"max": 120
 	},
 	
