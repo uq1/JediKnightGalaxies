@@ -325,6 +325,9 @@ LANG_ENGLISH		"bleed"
 REFERENCE		MOD_POISONED
 LANG_ENGLISH		"poison"
 
+REFERENCE		MOD_QUARREL
+LANG_ENGLISH		"quarrel"
+
 REFERENCE		WEP_TAG_POISON
 LANG_ENGLISH		"Inflicts poison damage"
 
@@ -460,6 +463,12 @@ LANG_ENGLISH		"Ion damage. Completely ignores most armor, and extremely strong a
 
 REFERENCE		EXPLANATION_SONIC
 LANG_ENGLISH		"Sonic damage. Somewhat effective against armor, shields, and organic targets. Ineffective against droids."
+
+REFERENCE		EXPLANATION_DISRUPTOR
+LANG_ENGLISH		"Disruptor damage. Well rounded damage, with a weakness towards shields. Can cause disintegrations."
+
+REFERENCE		EXPLANATION_QUARREL
+LANG_ENGLISH		"Quarrel damage. Well rounded damage, can impale enemies."
 
 REFERENCE     		WEAPON_STATS
 LANG_ENGLISH  		"Weapon Stats"
