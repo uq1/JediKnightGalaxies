@@ -81,6 +81,8 @@
         "projectilespeed": 26000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_SLUGTHROWER",
+	"ammobase": "AMMO_MAUSER",
+	"ammodefault": "AMMO_MAUSER",
         "accuracy": {
         	"accuracyRating": 25,
         	"accuracyRatingPerShot": 6,
