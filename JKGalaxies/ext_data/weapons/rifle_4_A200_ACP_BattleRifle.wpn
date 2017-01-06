@@ -79,6 +79,8 @@
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
         "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_POWERCELL_M",
+	"ammodefault": "AMMO_ACP_POWERCELL_M",
         "accuracy": {
 			"accuracyRating": 45,
 			"accuracyRatingPerShot": 4,
@@ -103,6 +105,8 @@
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
         "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_POWERCELL_M",
+	"ammodefault": "AMMO_ACP_POWERCELL_M",
         "accuracy": {
         	"accuracyRating": 35,
         	"accuracyRatingPerShot": 3,
