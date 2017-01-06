@@ -490,6 +490,26 @@
 		}
 	},
 
+	"MOD_QUARREL": {
+		// Fire weapons
+		"inventoryName": "@JKG_INVENTORY_MOD_QUARREL",
+
+		"modifiers": {
+			"armor": 1.0,
+			"organic": 1.0,
+			"shield": 1.0,
+			"droid": 1.0
+		},
+
+		"killFeed": {
+			"killMessage": "@JKG_INGAME_KILLED_QUARREL",
+			"deathMessage": "@JKG_INGAME_DIED_QUARREL",
+			"suicideMessageMale": "@JKG_INGAME_SUICIDE_SHOT_MALE",
+			"suicideMessageFemale": "@JKG_INGAME_SUICIDE_SHOT_FEMALE",
+			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_SHOT_GENDERLESS"
+		}
+	},
+
 	//////////////////////////////////////////////
 	//
 	// Damage related to debuffs
