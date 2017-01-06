@@ -53,9 +53,6 @@
     "stats": {
         "slot":         0,
         "reloadtime":   2750,
-        "ammoIndex":         "quarrel",
-        "ammoOnSpawn":   60,
-        "ammoOnPickup":   12,
         "clipSize":              6,
         "flags":        [ "knockback" ],
         "reloadmodifier": 0.7
