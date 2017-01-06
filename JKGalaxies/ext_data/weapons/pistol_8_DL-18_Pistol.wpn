@@ -62,9 +62,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   875,
-        "ammoIndex":         "powerpak",
-        "ammoOnSpawn":   160,
-        "ammoOnPickup":   32,
         "clipSize":              16,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
@@ -80,7 +77,9 @@
         "spread":       0.4,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER"
+        "meansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_POWERPAK_L",
+	"ammodefault": "AMMO_POWERPAK_S"
     },
     
     "firemode1": {
@@ -102,7 +101,9 @@
         "spread":       1.0,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_STUNNED"
+        "meansofdeath": "MOD_STUNNED",
+	"ammobase": "AMMO_POWERPAK_L",
+	"ammodefault": "AMMO_POWERPAK_S"
     },
     
     "playeranims": {
