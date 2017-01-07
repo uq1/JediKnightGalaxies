@@ -56,8 +56,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2500,
-        "ammoOnSpawn":   480,
-        "ammoOnPickup":   240,
         "clipSize":              120,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
