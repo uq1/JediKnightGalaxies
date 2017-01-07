@@ -59,9 +59,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   2000,
-        "ammoIndex":         "acp_cartridge",
-        "ammoOnSpawn":   48,
-        "ammoOnPickup":   32,
         "clipSize":              2,
         "flags":        [ "roll", "togglezoom" ],
         "startzoomfov": 15.0,
@@ -79,6 +76,8 @@
         "projectilespeed": 9000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_ACP",
+	"ammobase" "AMMO_ACP_CARTRIDGE",
+	"ammodefault "AMMO_ACP_CARTRIDGE",
             "accuracy": {
         "accuracyRating": 20,
         "accuracyRatingPerShot": 20,
