@@ -57,9 +57,6 @@
     "stats": {
         "slot":         0,
         "reloadtime":   2750,
-        "ammoIndex":         "quarrel",
-        "ammoOnSpawn":   60,
-        "ammoOnPickup":   12,
         "clipSize":              6,
         "flags":        [ "togglezoom", "knockback" ],
         "reloadmodifier": 0.7,
@@ -82,8 +79,10 @@
 		"splashrange":	30,
         "projectilespeed": 9000.0,
         "projectileclass": "bowcaster_proj",
-        "meansofdeath": "MOD_ACP",
-		"splashmeansofdeath": "MOD_ACP",
+        "meansofdeath": "MOD_QUARREL",
+	"splashmeansofdeath": "MOD_QUARREL",
+	"ammobase": "AMMO_QUARREL",
+	"ammodefault": "AMMO_QUARREL",
             "accuracy": {
         "accuracyRating": 20,
         "accuracyRatingPerShot": 6,

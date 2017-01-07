@@ -64,9 +64,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2200,
-        "ammoIndex":         "blaster_power_pack_m",
-        "ammoOnSpawn":   600,
-        "ammoOnPickup":   120,
         "clipSize":              60,
         "flags":        [ "roll", "togglezoom" ],
         "startzoomfov": 20.0,
@@ -74,7 +71,7 @@
     },
     
     "firemode0": {
-        "damage":       20,
+        "damage":       30,
         "ammocost":     1,
         "firedelay":    143,
         "firingtype":   "semi",
@@ -86,6 +83,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_POWERPACK_L",
+	"ammodefault": "AMMO_POWERPACK_M",
             "accuracy": {
         "accuracyRating": 36,
         "accuracyRatingPerShot": 2,
@@ -101,32 +100,26 @@
     
     "firemode1": {
         "damage": {
-			"damage": 6,
-			"damageType": [ "stun" ]
-		},
-        "projectiles":  5,
+                               "damageradius": { "start": 8,
+                                                     "function": [ "constant"] },
+                               "damage":       10,
+                               "damagetype": [ "stun" ]
+                        },
+        "collisionsize": 8.0,
         "maxchargetime": 500,
-        "chargedamage": 1.8,
-        "chargedelay":  250,
-        "ammocost":     20,
-        "firedelay":    1200,
-        "range":        400.0,
+        "chargedamage": 1.5,
+        "chargedelay":  500,
+        "ammocost":     8,
+        "firedelay":    800,
+        "firingtype":   "semi",
+        "range":        700.0,
         "recoil":       0.5,
-        "spread":       3.0,
+        "spread":       1.0,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 45,
-        "accuracyRatingPerShot": 4,
-        "msToDrainAccuracy": 55,
-        "maxAccuracyAdd": 65,
-        "crouchModifier": 0.9,
-        "runModifier": 1.5,
-        "sightsModifier": 0.7,
-        "walkModifier": 1.3,
-        "inAirModifier": 1.6
-        }
+        "meansofdeath": "MOD_STUNNED",
+	"ammobase": "AMMO_POWERPACK_L",
+	"ammodefault": "AMMO_POWERPACK_M"
     },
     
     "playeranims": {

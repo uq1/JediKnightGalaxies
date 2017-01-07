@@ -50,9 +50,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   2500,
-        "ammoIndex":         "gasfuel",
-        "ammoOnSpawn":   198,
-        "ammoOnPickup":   99,
         "clipSize":              99,
         "flags":        [ "roll", "knockback" ],
         "reloadmodifier": 0.8,
@@ -77,6 +74,8 @@
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_FIRE",
+	"ammobase": "AMMO_GAS",
+	"ammodefault": "AMMO_GAS",
         "accuracy": {
         	"accuracyRating": 50,
         	"accuracyRatingPerShot": 0,
@@ -111,6 +110,8 @@
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_FIRE",
+	"ammobase": "AMMO_GAS",
+	"ammodefault": "AMMO_GAS",
         "accuracy": {
         	"accuracyRating": 64,
         	"accuracyRatingPerShot": 0,

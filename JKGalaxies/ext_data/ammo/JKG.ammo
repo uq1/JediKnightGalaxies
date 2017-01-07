@@ -175,6 +175,20 @@
 		}
 	},
 	
+		"AMMO_FLARE" {
+		"shortname": "Flares",
+		"longname": "BlasTech Flares",
+		"max": 18
+		"overrides": {		
+			"ClipSize": {
+				"set": 1,
+			},
+			"ammocost": {
+				"set": 1,
+			}
+		}
+	},
+	
 		"AMMO_AA_POWERPAK" {
 		"shortname": "AA810 PowerPaks",
 		"longname": "Adostic Arms PowerPaks",
@@ -264,7 +278,7 @@
 		"AMMO_POWERCELL_S" {
 		"shortname": "Power Cells (small)",
 		"longname": "BlasTech Industries Power Cells (small)",
-		"basedOn": ""AMMO_POWERCELL_M",
+		"basedOn": "AMMO_POWERCELL_M",
 		"max": 480,
 		"overrides": {		
 			"ClipSize": {
@@ -366,7 +380,6 @@
 		"AMMO_SS_POWERPACK" {
 		"shortname": "ELG-3A Power Packs",
 		"longname": "SoruSubb Blaster Power Packs",
-		"basedOn": "",
 		"max": 360,
 		"overrides": {		
 			"ClipSize": {
@@ -446,6 +459,7 @@
 		"AMMO_MAUSER" {
 		"shortname": "7.92X57mm Slugs",
 		"longname": "7.92x57mm Mauser Slug Cartridges",
+		"basedOn": "AMMO_MAUSER_CLIP",
 		"max": 120
 	},
 	

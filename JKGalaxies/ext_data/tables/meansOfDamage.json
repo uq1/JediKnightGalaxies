@@ -273,6 +273,27 @@
 			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_SHOT_GENDERLESS"
 		}
 	},
+	
+	"MOD_DISRUPTOR": {
+		// Disruptor weapons
+		"inventoryName": "@JKG_INVENTORY_MOD_DISRUPTOR",
+
+		"modifiers": {
+			"armor": 1.2,
+			"organic": 1.2,
+			"shield": 0.6,
+			"droid": 1.0
+		}
+	},
+
+		"killFeed": {
+			"killMessage": "@JKG_INGAME_KILLED_DISRUPTOR",
+			"deathMessage": "@JKG_INGAME_DIED_DISRUPTOR",
+			"suicideMessageMale": "@JKG_INGAME_SUICIDE_SHOT_MALE",
+			"suicideMessageFemale": "@JKG_INGAME_SUICIDE_SHOT_FEMALE",
+			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_SHOT_GENDERLESS"
+		}
+	},
 
 	"MOD_SLUGTHROWER": {
 		// Slugthrower weapons
@@ -387,9 +408,9 @@
 		"inventoryName": "@JKG_INVENTORY_MOD_SONIC",
 
 		"modifiers": {
-			"armor": 1.1,
-			"organic": 1.1,
-			"shield": 1.1,
+			"armor": 1.0,
+			"organic": 1.0,
+			"shield": 1.0,
 			"droid": 0.8
 		},
 
@@ -466,6 +487,26 @@
 			"suicideMessageMale": "@JKG_INGAME_SUICIDE_EXPLOSION_MALE",
 			"suicideMessageFemale": "@JKG_INGAME_SUICIDE_EXPLOSION_FEMALE",
 			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_EXPLOSION_GENDERLESS"
+		}
+	},
+
+	"MOD_QUARREL": {
+		// Fire weapons
+		"inventoryName": "@JKG_INVENTORY_MOD_QUARREL",
+
+		"modifiers": {
+			"armor": 1.0,
+			"organic": 1.0,
+			"shield": 1.0,
+			"droid": 1.0
+		},
+
+		"killFeed": {
+			"killMessage": "@JKG_INGAME_KILLED_QUARREL",
+			"deathMessage": "@JKG_INGAME_DIED_QUARREL",
+			"suicideMessageMale": "@JKG_INGAME_SUICIDE_SHOT_MALE",
+			"suicideMessageFemale": "@JKG_INGAME_SUICIDE_SHOT_FEMALE",
+			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_SHOT_GENDERLESS"
 		}
 	},
 

@@ -80,6 +80,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_POWERPACK_L",
+	"ammodefault": "AMMO_POWERPACK_M",
             "accuracy": {
         "accuracyRating": 35,
         "accuracyRatingPerShot": 3,
@@ -93,21 +95,30 @@
         }
     },
     
-//    "secondaryattack": {
-//        "damage":       3,
-//        "projectiles":  10,
-//        "maxchargetime": 500,
-//        "chargedamage": 1.8,
-//        "chargedelay":  250,
-//        "ammocost":     1,
-//        "firedelay":    1200,
-//        "range":        400.0,
-//        "recoil":       0.5,
-//        "spread":       3.0,
-//        "projectilespeed": 3000.0,
-//        "projectileclass": "blaster_proj",
-//        "meansofdeath": "MOD_BLASTER"
-//    },
+    "firemode1": {
+        "damage": {
+                               "damageradius": { "start": 8,
+                                                     "function": [ "constant"] },
+                               "damage":       10,
+                               "damagetype": [ "stun" ]
+                        },
+        "collisionsize": 8.0,
+        "maxchargetime": 500,
+        "chargedamage": 1.5,
+        "chargedelay":  500,
+        "ammocost":     8,
+        "firedelay":    800,
+        "firingtype":   "semi",
+        "range":        700.0,
+        "recoil":       0.5,
+        "spread":       1.0,
+        "projectilespeed": 3000.0,
+        "projectileclass": "blaster_proj",
+        "meansofdeath": "MOD_STUNNED",
+	"ammobase": "AMMO_POWERPACK_L",
+	"ammodefault": "AMMO_POWERPACK_M"
+    },
+    
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },

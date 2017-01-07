@@ -59,9 +59,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   750,
-        "ammoIndex":         "powerpak",
-        "ammoOnSpawn":   120,
-        "ammoOnPickup":   12,
         "clipSize":              6,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7,
@@ -79,6 +76,8 @@
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_SS_POWERPACK",
+	"ammodefault: "AMMO_MS_POWERPACK",
         "accuracy": {
         	"accuracyRating": 15,
         	"accuracyRatingPerShot": 1,
@@ -102,6 +101,8 @@
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_SS_POWERPACK",
+	"ammodefault: "AMMO_MS_POWERPACK",
         "accuracy": {
         	"accuracyRating": 1,
         	"accuracyRatingPerShot": 1,

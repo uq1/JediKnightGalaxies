@@ -60,9 +60,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2100,
-        "ammoIndex":         "g36powerpack",
-        "ammoOnSpawn":   400,
-        "ammoOnPickup":   80,
         "clipSize":              40,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
@@ -79,6 +76,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_PULSE",
         "splashmeansofdeath": "MOD_PULSE",
+	"ammobase": "AMMO_G36_POWERPACK",
+	"ammodefault": "AMMO_G36_POWERPACK",
         "accuracy": {
         	"accuracyRating": 28,
         	"accuracyRatingPerShot": 4,
@@ -103,7 +102,9 @@
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_PULSE",
-        "splashmeansofdeath": "MOD_PULSE"
+        "splashmeansofdeath": "MOD_PULSE",
+	"ammobase": "AMMO_G36_POWERPACK",
+	"ammodefault": "AMMO_G36_POWERPACK"
     },
     
     "playeranims": {

@@ -58,9 +58,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   2250,
-        "ammoIndex":         "acp_cartridge",
-        "ammoOnSpawn":   48,
-        "ammoOnPickup":   32,
         "clipSize":              8,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
@@ -78,6 +75,8 @@
         "projectilespeed": 6000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_ARRAY",
+	"ammodefault": "AMMO_ACP_ARRAY",
         "accuracy": {
         	"accuracyRating": 96,
         	"accuracyRatingPerShot": 12,
@@ -105,6 +104,8 @@
         "projectilespeed": 6000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_ARRAY",
+	"ammodefault": "AMMO_ACP_ARRAY",
         "accuracy": {
         	"accuracyRating": 96,
         	"accuracyRatingPerShot": 50,

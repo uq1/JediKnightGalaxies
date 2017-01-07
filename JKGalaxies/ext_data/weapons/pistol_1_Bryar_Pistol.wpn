@@ -62,9 +62,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   1000,
-        "ammoIndex":         "powercell_s",
-        "ammoOnSpawn":   160,
-        "ammoOnPickup":   32,
         "clipSize":              16,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
@@ -80,7 +77,9 @@
         "spread":       0.1,
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER"
+        "meansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_POWERCELL_L",
+	"ammodefault": "AMMO_POWERCELL_S"
     },
     
     "firemode1": {
@@ -98,7 +97,9 @@
         "projectilespeed": 6000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
-        "splashmeansofdeath": "MOD_BLASTER"
+        "splashmeansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_POWERCELL_L",
+	"ammodefault": "AMMO_POWERCELL_S"
     },
     
     "playeranims": {

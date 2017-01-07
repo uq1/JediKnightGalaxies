@@ -80,6 +80,8 @@
         "projectilespeed": 3000.0,
         "projectileclass":"blaster_proj",
         "meansofdeath": "MOD_PULSE",
+	"ammobase": "AMMO_PB10_POWERCELL",
+	"ammodefault": "AMMO_PB10_POWERCELL",
         "accuracy": {
         	"accuracyRating": 63,
         	"accuracyRatingPerShot": 2,
@@ -109,6 +111,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_PULSE",
         "splashmeansofdeath": "MOD_PULSE",
+	"ammobase": "AMMO_PB10_POWERCELL",
+	"ammodefault": "AMMO_PB10_POWERCELL",
         "accuracy": {
         	"accuracyRating": 70,
         	"accuracyRatingPerShot": 7,

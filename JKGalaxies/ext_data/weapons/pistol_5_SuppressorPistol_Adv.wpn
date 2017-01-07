@@ -61,9 +61,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   800,
-        "ammoIndex":         "trandopowercell",
-        "ammoOnSpawn":   100,
-        "ammoOnPickup":   20,
         "clipSize":              10,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7,
@@ -81,7 +78,8 @@
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_ACP",
-		
+	"ammobase": "AMMO_ACP_POWERCELL_S",
+	"ammodefault": "AMMO_ACP_POWERCELL_S",
 		"accuracy": {
 			"accuracyRating": 11,
 			"sightsModifier": 0.2
@@ -98,10 +96,11 @@
         "recoil":       0.3,
         "spread":       0.1,
 		"shotsperburst": 3,
-		
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_ACP"
+        "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_POWERCELL_S",
+	"ammodefault": "AMMO_ACP_POWERCELL_S"
 	},
     
     "playeranims": {

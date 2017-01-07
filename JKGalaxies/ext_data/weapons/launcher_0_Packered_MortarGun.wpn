@@ -29,7 +29,7 @@
             "projectilefx": "explosives/shot_mortar",
             "miss":         { "impactfx": "explosives/demomedium" },
             "hit":          { "impactfx": "explosives/demomedium" },
-	    "displayName":  "Regular"
+	    "displayName":  "Launcher"
         },
         
         "firemode1": {
@@ -49,9 +49,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2750,
-        "ammoIndex":         "antiarmor_charge",
-        "ammoOnSpawn":   12,
-        "ammoOnPickup":   4,
         "clipSize":              4,
 //        "flags":        [ "knockback" ],
         "reloadmodifier": 0.5,
@@ -73,6 +70,8 @@
         "projectileclass":"rocket_proj",
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION",
+	"ammobase": "AMMO_PACKERED_MORTAR",
+	"ammodefault: "AMMO_PACKERED_MORTAR",
         "accuracy": {
         	"accuracyRating": 72,
         	"accuracyRatingPerShot": 12,

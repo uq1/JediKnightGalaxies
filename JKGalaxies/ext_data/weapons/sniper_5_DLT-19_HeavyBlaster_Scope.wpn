@@ -64,9 +64,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2750,
-        "ammoIndex":         "blaster_power_pack_m",
-        "ammoOnSpawn":   120,
-        "ammoOnPickup":   40,
         "clipSize":              20,
         "flags":        [ "togglezoom" ],
         "startzoomfov": 20.0,
@@ -75,7 +72,7 @@
     
     "firemode0": {
         "damage":       97,
-        "ammocost":     5,
+        "ammocost":     15,
         "firedelay":    900,
         "firingtype":   "semi",
         "range":        8000.0,
@@ -86,6 +83,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
+	"ammobase" "AMMO_POWERPACK_L",
+	"ammodefault "AMMO_POWERPACK_M",
         "accuracy": {
         	"accuracyRating": 15,
         	"accuracyRatingPerShot": 5,
@@ -110,6 +109,8 @@
         "projectilespeed": 5000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
+	"ammobase" "AMMO_POWERPACK_L",
+	"ammodefault "AMMO_POWERPACK_M",
         "accuracy": {
         	"accuracyRating": 45,
         	"accuracyRatingPerShot": 2,

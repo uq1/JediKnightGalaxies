@@ -61,9 +61,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   1600,
-        "ammoIndex":         "powercell_l",
-        "ammoOnSpawn":   320,
-        "ammoOnPickup":   64,
         "clipSize":              32,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
@@ -81,6 +78,8 @@
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_POWERCELL_L",
+	"ammodefault": "AMMO_POWERCELL_L",
         "accuracy": {
         	"accuracyRating": 40,
         	"accuracyRatingPerShot": 12,
@@ -107,6 +106,8 @@
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_POWERCELL_L",
+	"ammodefault": "AMMO_POWERCELL_L",
         "accuracy": {
 			"accuracyRating": 18,
 			"accuracyRatingPerShot": 2,

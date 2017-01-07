@@ -57,9 +57,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   1500,
-        "ammoIndex":         "powerpak",
-        "ammoOnSpawn":   80,
-        "ammoOnPickup":   20,
         "clipSize":              10,
         "flags":        [ "roll", "togglezoom" ],
         "startzoomfov": 30.0,
@@ -78,6 +75,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_AA_POWERPAK",
+	"ammodefault": "AMMO_AA_POWERPAK",
         "accuracy": {
 			"accuracyRating": 15,
 			"accuracyRatingPerShot": 5,

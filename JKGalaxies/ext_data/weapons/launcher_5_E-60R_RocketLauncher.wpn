@@ -65,9 +65,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2000,
-        "ammoIndex":         "rocket1",
-        "ammoOnSpawn":   4,
-        "ammoOnPickup":   2,
         "clipSize":              1,
 //        "flags":        [ "knockback" ],
         "reloadmodifier": 0.5,
@@ -88,6 +85,8 @@
         "projectileclass":"rocket_proj",
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION",
+	"ammobase": "AMMO_ROCKETS",
+	"ammodefault: "AMMO_ROCKETS",
             "accuracy": {
         "accuracyRating": 52,
         "accuracyRatingPerShot": 0,
