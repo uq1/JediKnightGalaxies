@@ -8,7 +8,7 @@
 #endif
 #include "json/cJSON.h"
 
-#define MAX_MEANSOFDAMAGE_BUFFER	16384
+#define MAX_MEANSOFDAMAGE_BUFFER	32768
 #define MAX_MEANSOFDAMAGE_ERROR		1024
 
 std::vector<meansOfDamage_t> allMeansOfDamage;
@@ -148,7 +148,7 @@ void JKG_LoadMeansOfDamage() {
 
 	if (fileLen >= MAX_MEANSOFDAMAGE_BUFFER) {
 		trap->FS_Close(f);
-		trap->Print("%s is too big [%i >= %i (%i KB)]\n", MEANSOFDAMAGE_FILE, fileLen, fileLen / 1024);
+		trap->Print("%s is too big [%i >= %i (%i/%i KB)]\n", MEANSOFDAMAGE_FILE, fileLen, MAX_MEANSOFDAMAGE_BUFFER, fileLen / 1024, MAX_MEANSOFDAMAGE_BUFFER/1024);
 		return;
 	}
 
