@@ -2853,6 +2853,8 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	qboolean			use_secondary_spawnpoint = qfalse;
 	int					savedCredits;
 	int					savedAmmo[MAX_AMMO_TYPES] {0};
+	int					savedAmmoTypes[MAX_WEAPON_TABLE_SIZE] {0};
+	int					savedClipAmmo[MAX_WEAPON_TABLE_SIZE] {0};
 
 	index = ent - g_entities;
 	client = ent->client;
@@ -3124,9 +3126,16 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 		i++;
 	}
 
+	memcpy(savedAmmoTypes, client->ammoTypes, sizeof(savedAmmoTypes));
 	memcpy(savedAmmo, client->ammoTable, sizeof(savedAmmo));
+	memcpy(savedClipAmmo, client->clipammo, sizeof(savedClipAmmo));
+
 	memset (client, 0, sizeof(*client)); // bk FIXME: Com_Memset?
+
 	memcpy(client->ammoTable, savedAmmo, sizeof(savedAmmo));
+	memcpy(client->ammoTypes, savedAmmoTypes, sizeof(savedAmmoTypes));
+	memcpy(client->clipammo, savedClipAmmo, sizeof(savedClipAmmo));
+
 	client->bodyGrabIndex = ENTITYNUM_NONE;
 
 	//Get the skin RGB based on his userinfo
@@ -3301,9 +3310,11 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 						BG_GiveItem(ent, item, true);
 
 						// Give max ammo for both firing modes
+						ent->client->ammoTypes[item.id->weaponData.varID] = weapon->firemodes[0].ammoDefault->ammoIndex; // Set our ammo type to the default
+						ent->client->clipammo[item.id->weaponData.varID] = weapon->clipSize;
 						for (int i = 0; i < weapon->numFiringModes; i++) {
 							ammo_t* ammo = weapon->firemodes[i].ammoDefault;
-							BG_GiveAmmo(ent, ammo);
+							BG_GiveAmmo(ent, ammo);	// give us the actual ammo
 						}
 					}
 				}

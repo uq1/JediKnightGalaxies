@@ -947,6 +947,9 @@ void JKG_BuyItem_f(gentity_t *ent)
 		// TODO externalize this into a function (JKG_PostItemPurchase) for other item types (special ammo types) 
 		weaponData_t* wp = GetWeaponData(pItem->id->weaponData.weapon, pItem->id->weaponData.variation);
 		if (!wp->firemodes[0].useQuantity) {
+			// Set clip ammo to clipsize, and ammo type of weapon to first firing mode's ammo type
+			ent->client->clipammo[pItem->id->weaponData.varID] = wp->clipSize;
+			ent->client->ammoTypes[pItem->id->weaponData.varID] = wp->firemodes[0].ammoDefault->ammoIndex;
 			for (int i = 0; i < wp->numFiringModes; i++) {
 				ammo_t* ammoDefault = wp->firemodes[i].ammoDefault;
 				if (ammoDefault) {
@@ -4412,6 +4415,7 @@ int cmdcmp( const void *a, const void *b ) {
 }
 
 static const command_t commands[] = {
+	{ "ammocycle",				Cmd_AmmoCycle_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "arbitraryprint",			Cmd_ArbitraryPrint_f,		CMD_NEEDCHEATS },
 	{ "butterfingers",			Cmd_Butterfingers_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "buyvendor",				JKG_BuyItem_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR },
