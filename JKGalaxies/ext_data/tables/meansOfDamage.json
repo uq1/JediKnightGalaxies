@@ -383,6 +383,26 @@
 		}
 	},
 
+	"MOD_IONBLASTER": {
+		// Ion weapons
+		"inventoryName": "@JKG_INVENTORY_MOD_IONBLASTER",
+
+		"modifiers": {
+			"armor": 1.2,
+			"organic": 0.8,
+			"shield": 1.4,
+			"droid": 1.5
+		},
+
+		"killFeed": {
+			"killMessage": "@JKG_INGAME_KILLED_BLASTER",
+			"deathMessage": "@JKG_INGAME_DIED_BLASTER",
+			"suicideMessageMale": "@JKG_INGAME_SUICIDE_SHOT_MALE",
+			"suicideMessageFemale": "@JKG_INGAME_SUICIDE_SHOT_FEMALE",
+			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_SHOT_GENDERLESS"
+		}
+	},
+
 	"MOD_ELECTRICAL": { // Referenced in code
 		// Electrical weapons
 		"inventoryName": "@JKG_INVENTORY_MOD_ELECTRICAL",
