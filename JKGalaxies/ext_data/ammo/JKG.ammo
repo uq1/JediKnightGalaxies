@@ -239,7 +239,8 @@
 			"ClipSize": {
 				"set": 30
 			},
-			"damagetype": [ "ionblaster" ]
+			"meansofdeath": "MOD_IONBLASTER",
+        		"splashmeansofdeath": "MOD_IONBLASTER"
 		}
 	},
 	
@@ -252,7 +253,8 @@
 			"ClipSize": {
 				"set": 60
 			},
-			"damagetype": [ "ionblaster" ]
+        		"meansofdeath": "MOD_IONBLASTER",
+        		"splashmeansofdeath": "MOD_IONBLASTER"
 		}
 	},
 	
@@ -265,7 +267,8 @@
 			"ClipSize": {
 				"set": 120
 			},
-			"damagetype": [ "ionblaster" ]
+			"meansofdeath": "MOD_IONBLASTER",
+        		"splashmeansofdeath": "MOD_IONBLASTER"
 		}
 	},
 	
@@ -342,7 +345,8 @@
 			"ClipSize": {
 				"set": 16
 			},
-			"damagetype" [ "ionblaster" ]
+			"meansofdeath": "MOD_IONBLASTER",
+        		"splashmeansofdeath": "MOD_IONBLASTER"
 		}
 	},
 	
@@ -355,7 +359,8 @@
 			"ClipSize": {
 				"set": 32
 			},
-			"damagetype" [ "ionblaster" ]
+			"meansofdeath": "MOD_IONBLASTER",
+        		"splashmeansofdeath": "MOD_IONBLASTER"
 		}
 	},
 	
@@ -397,7 +402,8 @@
 			"ClipSize": {
 				"set": 12
 			},
-			"damagetype" [ "ionblaster" ]
+			"meansofdeath": "MOD_IONBLASTER",
+        		"splashmeansofdeath": "MOD_IONBLASTER"
 		}
 	},
 	
