@@ -43,6 +43,27 @@ ammo_t *BG_GetAmmo(const int ammoIndex) {
 
 /*
 ============================
+BG_GiveAmmo
+
+Not technically a BG function, it's a utility to prevent overflow
+============================
+*/
+#ifdef _GAME
+void BG_GiveAmmo(gentity_t* ent, ammo_t* ammo, qboolean max, int amount) {
+	if (max) {
+		ent->client->ammoTable[ammo->ammoIndex] = ammo->ammoMax;
+	}
+	else {
+		ent->client->ammoTable[ammo->ammoIndex] += amount;
+		if (ent->client->ammoTable[ammo->ammoIndex] > ammo->ammoMax) {
+			ent->client->ammoTable[ammo->ammoIndex] = ammo->ammoMax;
+		}
+	}
+}
+#endif
+
+/*
+============================
 BG_GetAllAmmoSubstitutions
 
 Gets all substitutions for a specifc ammo type

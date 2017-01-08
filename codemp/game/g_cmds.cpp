@@ -927,33 +927,34 @@ void JKG_BuyItem_f(gentity_t *ent)
 	itemInstance_t* pItem = &(*trader->inventory)[item];
 	if (pItem->id->baseCost > ent->client->ps.credits)
 	{
+		char* snd;
+
 		trap->SendServerCommand(ent - g_entities, "print \"You do not have enough credits to purchase that item.\n\"");
 
 		//select random unhappy vendor sound to play
-		std::string snd;
-		switch (Q_irand(0, 5))
-		{	case 0: snd = "sound/vendor/generic/purchasefail00.mp3";
-				break;
-			case 1: snd = "sound/vendor/generic/purchasefail01.mp3";
-				break;
-			case 2: snd = "sound/vendor/generic/purchasefail02.mp3";
-				break;
-			case 3: snd = "sound/vendor/generic/purchasefail03.mp3";
-				break;
-			case 4: snd = "sound/vendor/generic/purchasefail04.mp3";
-				break;
-			case 5: snd = "sound/vendor/generic/purchasefail05.mp3";
-				break;
-			default: snd = "sound/vendor/generic/purchasefail00.mp3";
-				break;
-		}
-		G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd.c_str()));	//play sound
+		snd = va("sound/vendor/generic/purchasefail0%i.mp3", Q_irand(0, 5));
+		G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd));	//play sound
 		return;
 	}
 
+	// Since the item is sent with a trade packet, the item is NOT needed to be networked, it already is through the trade packet
 	BG_SendTradePacket(IPT_TRADESINGLE, ent, trader, pItem, pItem->id->baseCost, 0);
 	BG_GiveItemNonNetworked(ent, *pItem);
-	ent->client->ps.credits -= pItem->id->baseCost;
+	ent->client->ps.credits -= pItem->id->baseCost;	// remove credits from player
+
+	if (pItem->id->itemType == ITEM_WEAPON) {
+		// If it's a weapon, we need to give the player some ammo - maybe half the maximum?
+		// TODO externalize this into a function (JKG_PostItemPurchase) for other item types (special ammo types) 
+		weaponData_t* wp = GetWeaponData(pItem->id->weaponData.weapon, pItem->id->weaponData.variation);
+		if (!wp->firemodes[0].useQuantity) {
+			for (int i = 0; i < wp->numFiringModes; i++) {
+				ammo_t* ammoDefault = wp->firemodes[i].ammoDefault;
+				if (ammoDefault) {
+					BG_GiveAmmo(ent, ammoDefault, qfalse, ammoDefault->ammoMax / 2);
+				}
+			}
+		}
+	}
 }
 
 /*
@@ -3975,7 +3976,7 @@ void Cmd_AmmoCycle_f(gentity_t* ent) {
 	}
 
 	// Determine if we have ammo to cycle to.
-	BG_GetAllAmmoSubstitutions(wp->firemodes[fireMode].ammo->ammoIndex, allValidAmmos);
+	BG_GetAllAmmoSubstitutions(wp->firemodes[fireMode].ammoBase->ammoIndex, allValidAmmos);
 
 	if (allValidAmmos.size() == 0) {
 		// Our weapon...is not linked up correctly? or something? It doesn't have any ammo...

@@ -171,7 +171,6 @@ typedef struct
 
 typedef struct weaponFireModeStats_s
 {
-    const ammo_t *ammo;             // Ammo
 									// Charge Base Damage: baseDamage * (( chargeTime / chargeDrain ) * chargeMuliplier )
 	short       baseDamage;		    // The amount of base damage this weapon does, goes through modifiers for skills.
 	qhandle_t   damageTypeHandle;   // For use with the more complex damage type system.
@@ -203,6 +202,8 @@ typedef struct weaponFireModeStats_s
 	int			grenadeBounceDMG;	// Determines the amount of damage to do when bouncing off of an enemy.
 	qboolean	useQuantity;		// Subtracts from quantity instead of ammo index when firing.
 									// This is separate because some fire modes (ie sequencer charge detonate) don't consume ammo
+	ammo_t*		ammoBase;			// The base ammo type that this weapon accepts
+	ammo_t*		ammoDefault;		// The default ammo type (BUY AMMO) that is used
 
 	weaponAccuracyDetails_t weaponAccuracy; // replaces spread
 } weaponFireModeStats_t;

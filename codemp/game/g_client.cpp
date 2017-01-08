@@ -2849,10 +2849,10 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	char				*saber;
 	qboolean			changedSaber = qfalse;
 	int                 savedWeaponId = 0;
-	int					topAmmoValues[MAX_AMMO_TYPES];
 	qboolean			haveItem = qfalse;
 	qboolean			use_secondary_spawnpoint = qfalse;
 	int					savedCredits;
+	int					savedAmmo[MAX_AMMO_TYPES] {0};
 
 	index = ent - g_entities;
 	client = ent->client;
@@ -3124,7 +3124,9 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 		i++;
 	}
 
+	memcpy(savedAmmo, client->ammoTable, sizeof(savedAmmo));
 	memset (client, 0, sizeof(*client)); // bk FIXME: Com_Memset?
+	memcpy(client->ammoTable, savedAmmo, sizeof(savedAmmo));
 	client->bodyGrabIndex = ENTITYNUM_NONE;
 
 	//Get the skin RGB based on his userinfo
@@ -3297,25 +3299,18 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 						itemInstance_t item = BG_ItemInstance(itemID, 1);
 						ent->client->ps.credits = jkg_startingCredits.integer;
 						BG_GiveItem(ent, item, true);
+
+						// Give max ammo for both firing modes
+						for (int i = 0; i < weapon->numFiringModes; i++) {
+							ammo_t* ammo = weapon->firemodes[i].ammoDefault;
+							BG_GiveAmmo(ent, ammo);
+						}
 					}
 				}
 			}
 		}
 	}
 
-// nmckenzie: DESERT_SIEGE... or well, siege generally.  This was over-writing the max value, which was NOT good for siege.
-//	client->ps.ammo[AMMO_POWERCELL] = ammoData[AMMO_POWERCELL].max;
-//	client->ps.ammo[AMMO_FORCE] = ammoData[AMMO_FORCE].max;
-//	client->ps.ammo[AMMO_METAL_BOLTS] = ammoData[AMMO_METAL_BOLTS].max;
-//	client->ps.ammo[AMMO_ROCKETS] = ammoData[AMMO_ROCKETS].max;
-/*
-	client->ps.stats[STAT_WEAPONS] = ( 1 << WP_BRYAR_PISTOL);
-	if ( level.gametype == GT_TEAM ) {
-		client->ps.ammo[WP_BRYAR_PISTOL] = 50;
-	} else {
-		client->ps.ammo[WP_BRYAR_PISTOL] = 100;
-	}
-*/
 	client->ps.rocketLockIndex = ENTITYNUM_NONE;
 	client->ps.rocketLockTime = 0;
 

@@ -1751,6 +1751,9 @@ void G_KickSomeMofos(gentity_t *ent);
 void G_GrabSomeMofos(gentity_t *self);
 void JKG_GrappleUpdate( gentity_t *self );
 
+// bg_ammo.cpp
+void BG_GiveAmmo(gentity_t* ent, ammo_t* ammo, qboolean max = qtrue, int amount = 0);
+
 // g_log.c
 void QDECL G_LogPrintf( const char *fmt, ... );
 void QDECL G_LogWeaponPickup(int client, int weaponid);

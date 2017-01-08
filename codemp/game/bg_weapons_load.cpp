@@ -190,10 +190,6 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     {
         return;
     }
-    
-    node = cJSON_GetObjectItem (fireModeNode, "ammo");
-    str = cJSON_ToStringOpt (node, "noammo");
-	fireModeStats->ammo = BG_GetAmmo (str);
 
     node = cJSON_GetObjectItem (fireModeNode, "damage");
 #ifdef _GAME
@@ -251,8 +247,7 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     node = cJSON_GetObjectItem (fireModeNode, "shotsperburst");
     fireModeStats->shotsPerBurst = (char)cJSON_ToIntegerOpt (node, 0);
     
-    // 0 means infinite delay (semi-automatic), otherwise n milliseconds between
-    // rounds in a burst.
+    // 0 means infinite delay (semi-automatic), otherwise n milliseconds between rounds in a burst.
     node = cJSON_GetObjectItem (fireModeNode, "burstshotdelay");
     fireModeStats->burstFireDelay = (short)cJSON_ToIntegerOpt (node, 0);
     
@@ -330,6 +325,14 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
 
 	node = cJSON_GetObjectItem(fireModeNode, "useQuantity");
 	fireModeStats->useQuantity = cJSON_ToBooleanOpt(node, qfalse);
+
+	if (!fireModeStats->useQuantity) {
+		node = cJSON_GetObjectItem(fireModeNode, "ammoBase");
+		fireModeStats->ammoBase = BG_GetAmmo(cJSON_ToStringOpt(node, "AMMO_NONE"));
+
+		node = cJSON_GetObjectItem(fireModeNode, "ammoDefault");
+		fireModeStats->ammoDefault = BG_GetAmmo(cJSON_ToStringOpt(node, "AMMO_NONE"));
+	}
 }
 
 //=========================================================
@@ -342,7 +345,6 @@ static void BG_ParseWeaponStats ( weaponData_t *weaponData, cJSON *statsNode )
 {
     cJSON *node;
     const char *flags[4];
-    const char *ammo;
     
     if ( statsNode == NULL )
     {
