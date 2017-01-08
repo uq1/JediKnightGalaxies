@@ -58,9 +58,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2250,
-        "ammoIndex":         "blaster_power_pack_m",
-        "ammoOnSpawn":   600,
-        "ammoOnPickup":   120,
         "clipSize":              60,
         "flags":        [ "roll", "togglezoom" ],
         "startzoomfov": 30.0,
