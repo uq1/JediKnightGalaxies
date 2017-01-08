@@ -4022,6 +4022,11 @@ void Cmd_AmmoCycle_f(gentity_t* ent) {
 	Cmd_Reload_f(ent);
 }
 
+/*
+=================
+Cmd_SaberAttackCycle_f
+=================
+*/
 extern qboolean WP_SaberCanTurnOffSomeBlades( saberInfo_t *saber );
 void Cmd_SaberAttackCycle_f(gentity_t *ent)
 {
@@ -4046,12 +4051,6 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 		// Don't use in the middle of a burst or in a saber move or while reloading --eez
 		return;
 	}
-	/*
-	if (ent->client->ps.weaponTime > 0)
-	{ //no switching attack level when busy
-		return;
-	}
-	*/
 
 	// Jedi Knight Galaxies, we cant swich saber style if we're not using a saber...
 	if (ent->client->ps.weapon != WP_SABER)
@@ -4246,6 +4245,82 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 	}
 }
 
+/*
+=================
+Cmd_BuyAllAmmo_f
+=================
+*/
+void Cmd_BuyAmmo_f(gentity_t* ent) {
+	int itemSlot;
+	char argBuffer[MAX_TOKEN_CHARS] {0};
+	int myCredits = ent->client->ps.credits;
+	int cost;
+	int totalCost = 0, numFiringModesFilled = 0, numUnitsPurchased = 0;
+
+	if (trap->Argc() != 2) {
+		trap->SendServerCommand(ent - g_entities, "print \"You need to select an item to buy ammo for.\n\"");
+		return;
+	}
+
+	trap->Argv(1, argBuffer, MAX_TOKEN_CHARS);
+	itemSlot = atoi(argBuffer);
+
+	if (itemSlot < 0 || itemSlot >= ent->inventory->size()) {
+		trap->SendServerCommand(ent - g_entities, "print \"Invalid item selected.\n\"");
+		return;
+	}
+
+	itemInstance_t& item = ent->inventory->at(itemSlot);
+	if (item.id->itemType != ITEM_WEAPON) {
+		trap->SendServerCommand(ent - g_entities, "print \"That item is not a weapon.\n\"");
+		return;
+	}
+
+	weaponData_t* wp = GetWeaponData(item.id->weaponData.weapon, item.id->weaponData.variation);
+	if (wp->firemodes[0].useQuantity || wp->clipSize <= 0) {
+		trap->SendServerCommand(ent - g_entities, "print \"You cannot purchase ammo for that weapon.\n\"");
+		return;
+	}
+
+	// Fill all firemodes to max until we run out of money
+	for (int i = 0; i < wp->numFiringModes; i++) {
+		ammo_t* ammo = wp->firemodes[i].ammoDefault;
+		int unitsRequested = ammo->ammoMax - ent->client->ammoTable[ammo->ammoIndex];
+
+		if (unitsRequested <= 0) {
+			continue; // our ammo is full
+		}
+		if (myCredits < ammo->pricePerUnit) {
+			continue; // we don't have enough money to afford one unit of ammo
+		}
+
+		cost = ammo->pricePerUnit * unitsRequested;
+
+		if (cost > myCredits) {
+			// We can't fill it all the way, so fill it as much as we can
+			cost = myCredits;
+			unitsRequested = floor(cost / ammo->pricePerUnit);
+			cost = unitsRequested * ammo->pricePerUnit;
+		}
+
+		// Buy the ammo and update stats
+		ent->client->ps.credits -= cost;
+		myCredits -= cost;
+		ent->client->ammoTable[ammo->ammoIndex] += unitsRequested;
+		numUnitsPurchased += unitsRequested;
+		totalCost += cost;
+		numFiringModesFilled++;
+	}
+
+	if (numUnitsPurchased <= 0) {
+		trap->SendServerCommand(ent - g_entities, "print \"Your ammo for that weapon is full.\n\"");
+		return;
+	}
+	trap->SendServerCommand(ent - g_entities, 
+		va("print \"Bought %i ammo for %i firing modes, spent %i credits total.\n\"", numUnitsPurchased, numFiringModesFilled, totalCost));
+}
+
+
 qboolean G_OtherPlayersDueling(void)
 {
 	int i = 0;
@@ -4418,7 +4493,8 @@ static const command_t commands[] = {
 	{ "ammocycle",				Cmd_AmmoCycle_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "arbitraryprint",			Cmd_ArbitraryPrint_f,		CMD_NEEDCHEATS },
 	{ "butterfingers",			Cmd_Butterfingers_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "buyvendor",				JKG_BuyItem_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "buyammo",				Cmd_BuyAmmo_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "buyvendor",				JKG_BuyItem_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "callvote",				Cmd_CallVote_f,				CMD_NOINTERMISSION },
 	{ "callteamvote",			Cmd_CallTeamVote_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "checkbotreach",			AIMod_CheckMapPaths,		CMD_NEEDCHEATS },
@@ -4426,8 +4502,8 @@ static const command_t commands[] = {
 	{ "closeentities",			Cmd_CloseEntities_f,		0 },
 	{ "closeVendor",			JKG_CloseVendor_f,			0 },
 	{ "credits",				Cmd_Credits_f,				0 },
-	{ "crystal1",				Cmd_Crystal1_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE | CMD_NEEDCHEATS },
-	{ "crystal2",				Cmd_Crystal2_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE | CMD_NEEDCHEATS },
+	{ "crystal1",				Cmd_Crystal1_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "crystal2",				Cmd_Crystal2_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "debuginventory",			JKG_Cmd_ShowInv_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "dismember",				Cmd_Dismember_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "dumpweaponlist_sv",		JKG_DumpWeaponList_f,		0 },
@@ -4437,9 +4513,9 @@ static const command_t commands[] = {
 	{ "follow",					Cmd_Follow_f,				CMD_NOINTERMISSION },
 	{ "follownext",				Cmd_FollowNext_f,			CMD_NOINTERMISSION },
 	{ "followprev",				Cmd_FollowPrev_f,			CMD_NOINTERMISSION },
-	{ "give",					Cmd_Give_f,					CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_NEEDCHEATS },
-	{ "giveother",				Cmd_GiveOther_f,			CMD_NOINTERMISSION | CMD_NEEDCHEATS },
-	{ "god",					Cmd_God_f,					CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_NEEDCHEATS },
+	{ "give",					Cmd_Give_f,					CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "giveother",				Cmd_GiveOther_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION },
+	{ "god",					Cmd_God_f,					CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "handcut",				Cmd_Wrists_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "headexplodey",			Cmd_HeadExplodey_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "holdme",					Cmd_Holdme_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
@@ -4448,16 +4524,16 @@ static const command_t commands[] = {
 	{ "inventoryuse",			Cmd_ItemUse_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "itemcheck",				JKG_ItemCheck_f,			0 },
 	{ "itemlookup",				JKG_ItemLookup_f,			0 },
-	{ "kill",					Cmd_Kill_f,					CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "kill",					Cmd_Kill_f,					CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "killother",				Cmd_KillOther_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION },
 	{ "knockmedown",			Cmd_KnockMeDown_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "levelshot",				Cmd_LevelShot_f,			CMD_NEEDCHEATS },
 	{ "loveandpeace",			Cmd_LoveAndPeace_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "myammo",					JKG_MyAmmo_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR },
-	{ "noclip",					Cmd_Noclip_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NEEDCHEATS },
-	{ "notarget",				Cmd_Notarget_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_NEEDCHEATS },
+	{ "noclip",					Cmd_Noclip_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_ONLYALIVE },
+	{ "notarget",				Cmd_Notarget_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "npc",					Cmd_NPC_f,					CMD_NEEDCHEATS },
-	{ "pay",					Cmd_Pay_f,					CMD_NOSPECTATOR | CMD_NOINTERMISSION },
+	{ "pay",					Cmd_Pay_f,					CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "printweaponlist_sv",		JKG_PrintWeaponList_f,		0 },
 	{ "relax",					Cmd_Relax_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "say",					Cmd_SayLocal_f,				0 },
@@ -4473,12 +4549,12 @@ static const command_t commands[] = {
 	{ "team",					Cmd_Team_f,					CMD_NOINTERMISSION },
 	{ "teamvote",				Cmd_TeamVote_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "tell",					Cmd_Tell_f,					0 },
-	{ "t_use",					Cmd_TUse_f,					CMD_ONLYALIVE | CMD_NEEDCHEATS },
-	{ "togglesaber",			Cmd_ToggleSaber_f,			CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "t_use",					Cmd_TUse_f,					CMD_NEEDCHEATS | CMD_ONLYALIVE },
+	{ "togglesaber",			Cmd_ToggleSaber_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "unequip",				JKG_Cmd_UnequipItem_f,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "unequipjetpack",			JKG_JetpackUnequipped,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "unequipshield",			JKG_ShieldUnequipped,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "voice_cmd",				Cmd_VoiceCommand_f,			CMD_NOINTERMISSION|CMD_NOSPECTATOR },
+	{ "voice_cmd",				Cmd_VoiceCommand_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "vote",					Cmd_Vote_f,					CMD_NOINTERMISSION },
 	{ "where",					Cmd_Where_f,				0 },
 	{ "wrists",					Cmd_Wrists_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },

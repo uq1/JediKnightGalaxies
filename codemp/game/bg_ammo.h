@@ -15,6 +15,7 @@ struct ammo_t {
 	char substitute[MAX_AMMO_NAME];
 	int ammoIndex;
 	int ammoMax;
+	float pricePerUnit;
 
 	ammo_t* pSub;	// pointer to the substitute..may point to itself!!
 

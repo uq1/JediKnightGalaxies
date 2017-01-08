@@ -170,6 +170,9 @@ static qboolean JKG_ParseSingleAmmo(cJSON* json) {
 	child = cJSON_GetObjectItem(json, "max");
 	ammo->ammoMax = cJSON_ToIntegerOpt(child, 999);
 
+	child = cJSON_GetObjectItem(json, "pricePerUnit");
+	ammo->pricePerUnit = cJSON_ToNumberOpt(child, 1.0);
+
 	child = cJSON_GetObjectItem(json, "overrides");
 	if (child) {
 		JKG_ParseAmmoOverrides(ammo, child);
