@@ -283,8 +283,7 @@
 			"organic": 1.2,
 			"shield": 0.6,
 			"droid": 1.0
-		}
-	},
+		},
 
 		"killFeed": {
 			"killMessage": "@JKG_INGAME_KILLED_DISRUPTOR",

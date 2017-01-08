@@ -101,7 +101,7 @@
         "splashmeansofdeath": "MOD_BLASTER",
 		"firingtype":   "semi",
 	"ammobase": "AMMO_POWERPACK_L",
-	"ammodefault": "AMMO_POWERPACK_S"
+	"ammodefault": "AMMO_POWERPACK_S",
         "accuracy": {
 			"accuracyRating": 18,
 			"accuracyRatingPerShot": 3,
@@ -121,7 +121,7 @@
                                                      "function": [ "constant"] },
                                "damage":       10,
                                "damagetype": [ "stun" ]
-                        },
+        },
         "collisionsize": 8.0,
         "maxchargetime": 500,
         "chargedamage": 1.5,
@@ -139,7 +139,7 @@
 	"ammodefault": "AMMO_POWERPACK_S"
     },
 	
-	"firemode2": {
+    "firemode2": {
         "damage":       18,
         "ammocost":     1,
         "firedelay":    90,
@@ -153,13 +153,13 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_L",
-	"ammodefault": "AMMO_POWERPACK_S"
-            "accuracy": {
-        "accuracyRating": 30,
-        "accuracyRatingPerShot": 2,
-        "msToDrainAccuracy": 286,
-        "maxAccuracyAdd": 60,
-        "sightsModifier": 0.35
+	"ammodefault": "AMMO_POWERPACK_S",
+        "accuracy": {
+        	"accuracyRating": 30,
+        	"accuracyRatingPerShot": 2,
+        	"msToDrainAccuracy": 286,
+        	"maxAccuracyAdd": 60,
+        	"sightsModifier": 0.35
         }
     },
     

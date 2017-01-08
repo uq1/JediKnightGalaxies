@@ -138,7 +138,7 @@ static qboolean JKG_ParseSingleAmmo(cJSON* json) {
 
 	// Parse substitutes (we need to establish the link later)
 	ammo->pSub = nullptr;
-	child = cJSON_GetObjectItem(json, "substitute");
+	child = cJSON_GetObjectItem(json, "basedOn");
 	if (child) {
 		Q_strncpyz(ammo->substitute, cJSON_ToString(child), sizeof(ammo->substitute));
 	}

@@ -86,7 +86,7 @@
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION",
 	"ammobase": "AMMO_ROCKETS",
-	"ammodefault: "AMMO_ROCKETS",
+	"ammodefault": "AMMO_ROCKETS",
             "accuracy": {
         "accuracyRating": 52,
         "accuracyRatingPerShot": 0,

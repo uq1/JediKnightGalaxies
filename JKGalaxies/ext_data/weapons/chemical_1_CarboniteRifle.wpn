@@ -84,7 +84,7 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_CARBONITE",
 	"ammobase": "AMMO_CARBONITE",
-	"ammodefault: "AMMO_CARBONITE"
+	"ammodefault": "AMMO_CARBONITE"
     },
     
     "firemode1": {
@@ -106,7 +106,7 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_CARBONITE",
 	"ammobase": "AMMO_CARBONITE",
-	"ammodefault: "AMMO_CARBONITE"
+	"ammodefault": "AMMO_CARBONITE"
     },
     
     "playeranims": {

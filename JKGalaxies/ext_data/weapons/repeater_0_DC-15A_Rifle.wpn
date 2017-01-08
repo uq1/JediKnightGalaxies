@@ -80,7 +80,7 @@
         "projectileclass":"blaster_proj",
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_L",
-	"ammodefault: "AMMO_ION_POWERPACK_L",
+	"ammodefault": "AMMO_ION_POWERPACK_L",
         "accuracy": {
         	"accuracyRating": 60,
         	"accuracyRatingPerShot": 4,
@@ -111,7 +111,7 @@
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_L",
-	"ammodefault: "AMMO_ION_POWERPACK_L",
+	"ammodefault": "AMMO_ION_POWERPACK_L",
         "accuracy": {
         	"accuracyRating": 85,
         	"accuracyRatingPerShot": 12,

@@ -71,7 +71,7 @@
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION",
 	"ammobase": "AMMO_PACKERED_MORTAR",
-	"ammodefault: "AMMO_PACKERED_MORTAR",
+	"ammodefault": "AMMO_PACKERED_MORTAR",
         "accuracy": {
         	"accuracyRating": 72,
         	"accuracyRatingPerShot": 12,

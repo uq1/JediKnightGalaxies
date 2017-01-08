@@ -95,13 +95,13 @@
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_L",
-	"ammodefault": "AMMO_POWERPACK_M"
-            "accuracy": {
-        "accuracyRating": 40,
-        "accuracyRatingPerShot": 8,
-        "msToDrainAccuracy": 50,
-        "maxAccuracyAdd": 80,
-        "sightsModifier": 0.4
+	"ammodefault": "AMMO_POWERPACK_M",
+        "accuracy": {
+        	"accuracyRating": 40,
+        	"accuracyRatingPerShot": 8,
+        	"msToDrainAccuracy": 50,
+        	"maxAccuracyAdd": 80,
+        	"sightsModifier": 0.4
         }
     },
     
@@ -117,13 +117,13 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_L",
-	"ammodefault": "AMMO_POWERPACK_M"
-            "accuracy": {
-        "accuracyRating": 20,
-        "accuracyRatingPerShot": 2,
-        "msToDrainAccuracy": 286,
-        "maxAccuracyAdd": 60,
-        "sightsModifier": 0.35
+	"ammodefault": "AMMO_POWERPACK_M",
+        "accuracy": {
+        	"accuracyRating": 20,
+        	"accuracyRatingPerShot": 2,
+        	"msToDrainAccuracy": 286,
+        	"maxAccuracyAdd": 60,
+        	"sightsModifier": 0.35
         }
     },
 	
@@ -141,13 +141,13 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_L",
-	"ammodefault": "AMMO_POWERPACK_M"
-            "accuracy": {
-        "accuracyRating": 30,
-        "accuracyRatingPerShot": 2,
-        "msToDrainAccuracy": 286,
-        "maxAccuracyAdd": 60,
-        "sightsModifier": 0.35
+	"ammodefault": "AMMO_POWERPACK_M",
+        "accuracy": {
+        	"accuracyRating": 30,
+        	"accuracyRatingPerShot": 2,
+        	"msToDrainAccuracy": 286,
+        	"maxAccuracyAdd": 60,
+        	"sightsModifier": 0.35
         }
     },
     

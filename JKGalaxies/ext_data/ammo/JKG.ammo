@@ -27,19 +27,19 @@
 		"max": 900
 	},
 	
-	"AMMO_ACP_POWERCELL_S" {
+	"AMMO_ACP_POWERCELL_S": {
 		"shortname": "Small ACP Power Cells",
 		"longname": "Trandoshan ACP Power Cells",
 		"max": 500
 	},
 	
-	"AMMO_ACP_OVERCELL_S" {
+	"AMMO_ACP_OVERCELL_S": {
 		"shortname": "Small Overcharged ACP Power Cells",
 		"longname": "Trandoshan Overcharged ACP Power Cells",
 		"basedOn": "AMMO_ACP_POWERCELL_S",
 		"max": 500,
 		"overrides": {
-			"damage" {
+			"damage": {
 				"multiply": 0.8
 			},
 			"clipsize": {
@@ -48,13 +48,13 @@
 		}
 	},
 	
-	"AMMO_ACP_POWERCELL_M" {
+	"AMMO_ACP_POWERCELL_M": {
 		"shortname": "Medium ACP Power Cells",
 		"longname": "Barrakan Arms ACP Power Cells",
 		"max": 600
 	},
 	
-	"AMMO_EXPLOSIVE_CANISTER" {
+	"AMMO_EXPLOSIVE_CANISTER": {
 		"shortname": "Explosive Canisters",
 		"longname": "Czerka Arms High Explosive Canisters",
 		"max": 12,
@@ -84,7 +84,7 @@
 		}
 	},
 	
-	"AMMO_CANISTER_INCENDIARY" {
+	"AMMO_CANISTER_INCENDIARY": {
 		"shortname": "Incendiary Canisters",
 		"longname": "Arakyd Industries Incendiary Canisters",
 		"basedOn": "AMMO_EXPLOSIVE_CANISTER",
@@ -111,12 +111,12 @@
 				"projectilemodel": "models/ammo/incendcan_proj.md3",
 				"projectilefx": "explosives/shot_mortar",
 				"miss":         { "impactfx": "explosives/burnmedium" },
-				"hit":          { "impactfx": "explosives/burnmedium" },
+				"hit":          { "impactfx": "explosives/burnmedium" }
 			}
 		}
 	},
 	
-	"AMMO_CANISTER_SMOKE" {
+	"AMMO_CANISTER_SMOKE": {
 		"shortname": "Smoke Canisters",
 		"longname": "Czerka Arms Smoke Canisters",
 		"basedOn": "AMMO_EXPLOSIVE_CANISTER",
@@ -148,54 +148,54 @@
 		}
 	},
 	
-		"AMMO_ACP_CARTRIDGE" {
+	"AMMO_ACP_CARTRIDGE": {
 		"shortname": "ACP Anti-Personnel Cartridges",
 		"longname": "Barrakan Arms ACP Anti-Personnel Cartridges",
 		"max": 80
 	},
 	
-		"AMMO_ACP_POWERCELL_L" {
+	"AMMO_ACP_POWERCELL_L": {
 		"shortname": "ACP Power Cartridges",
 		"longname": "Barrakan Arms ACP Power Cartridges",
 		"basedOn": "AMMO_ACP_CARTRIDGE",
 		"max": 80,
 		"overrides": {
 			"ClipSize": { 
-			"set": 10
-			}
+				"set": 10
+			},
 			"Damage": { 
-			"set": 45
-			}
+				"set": 45
+			},
 			"Recoil": { 
-			"set": 1.0
-			}
+				"set": 1.0
+			},
 			"FireDelay": {
-			"set": 500
+				"set": 500
 			}
 		}
 	},
 	
-		"AMMO_FLARE" {
+	"AMMO_FLARE": {
 		"shortname": "Flares",
 		"longname": "BlasTech Flares",
-		"max": 18
+		"max": 18,
 		"overrides": {		
 			"ClipSize": {
-				"set": 1,
+				"set": 1
 			},
 			"ammocost": {
-				"set": 1,
+				"set": 1
 			}
 		}
 	},
 	
-		"AMMO_AA_POWERPAK" {
+	"AMMO_AA_POWERPAK": {
 		"shortname": "AA810 PowerPaks",
 		"longname": "Adostic Arms PowerPaks",
 		"max": 500
 	},
 	
-		"AMMO_POWERPACK_S" {
+	"AMMO_POWERPACK_S": {
 		"shortname": "Blaster Power Packs (small)",
 		"longname": "BlasTech Industries Blaster Power Packs (small)",
 		"basedOn": "AMMO_POWERPACK_M",
@@ -207,7 +207,7 @@
 		}
 	},
 	
-		"AMMO_POWERPACK_M" {
+	"AMMO_POWERPACK_M": {
 		"shortname": "Blaster Power Packs (medium)",
 		"longname": "BlasTech Industries Blaster Power Packs (medium)",
 		"basedOn": "AMMO_POWERPACK_L",
@@ -219,7 +219,7 @@
 		}
 	},
 	
-		"AMMO_POWERPACK_L" {
+	"AMMO_POWERPACK_L": {
 		"shortname": "Blaster Power Packs (large)",
 		"longname": "BlasTech Industries Blaster Power Packs (large)",
 		"max": 960,
@@ -230,7 +230,7 @@
 		}
 	},
 	
-		"AMMO_ION_POWERPACK_S" {
+	"AMMO_ION_POWERPACK_S": {
 		"shortname": "Ionized Blaster Power Packs (small)",
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (small)",
 		"basedOn": "AMMO_POWERPACK_S",
@@ -244,7 +244,7 @@
 		}
 	},
 	
-		"AMMO_ION_POWERPACK_M" {
+	"AMMO_ION_POWERPACK_M": {
 		"shortname": "Ionized Blaster Power Packs (medium)",
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (medium)",
 		"basedOn": "AMMO_POWERPACK_M",
@@ -258,7 +258,7 @@
 		}
 	},
 	
-		"AMMO_ION_POWERPACK_L" {
+	"AMMO_ION_POWERPACK_L": {
 		"shortname": "Ionized Blaster Power Packs (large)",
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (large)",
 		"basedOn": "AMMO_POWERPACK_L",
@@ -272,13 +272,13 @@
 		}
 	},
 	
-		"AMMO_ARC_POWERPACK" {
+	"AMMO_ARC_POWERPACK": {
 		"shortname": "ARC Caster Power Packs",
 		"longname": "ARC Caster Power Packs",
 		"max": 640
 	},
 	
-		"AMMO_POWERCELL_S" {
+	"AMMO_POWERCELL_S": {
 		"shortname": "Power Cells (small)",
 		"longname": "BlasTech Industries Power Cells (small)",
 		"basedOn": "AMMO_POWERCELL_M",
@@ -290,19 +290,19 @@
 		}
 	},
 	
-		"AMMO_POWERCELL_M" {
+	"AMMO_POWERCELL_M": {
 		"shortname": "Power Cells (medium)",
 		"longname": "BlasTech Industries Power Cells (medium)",
 		"basedOn": "AMMO_POWERCELL_L",
 		"max": 600,
-		"overrides": {		
+		"overrides": {
 			"ClipSize": {
 				"set": 24
 			}
 		}
 	},
 	
-		"AMMO_POWERCELL_L" {
+	"AMMO_POWERCELL_L": {
 		"shortname": "Power Cells (large)",
 		"longname": "BlasTech Industries Power Cells (large)",
 		"max": 800,
@@ -313,7 +313,7 @@
 		}
 	},
 	
-		"AMMO_POWERPAK_S" {
+	"AMMO_POWERPAK_S": {
 		"shortname": "Standard PowerPaks (small)",
 		"longname": "BlasTech Industries PowerPaks (small)",
 		"basedOn": "AMMO_POWERPAK_L",
@@ -325,7 +325,7 @@
 		}
 	},
 	
-		"AMMO_POWERPAK_L" {
+	"AMMO_POWERPAK_L": {
 		"shortname": "Standard PowerPaks (large)",
 		"longname": "BlasTech Industries PowerPaks (large)",
 		"max": 512,
@@ -336,7 +336,7 @@
 		}
 	},
 	
-		"AMMO_ION_POWERPAK_S" {
+	"AMMO_ION_POWERPAK_S": {
 		"shortname": "Ionized PowerPaks (small)",
 		"longname": "BlasTech Industries Ionized PowerPaks (small)",
 		"basedOn": "AMMO_POWERPAK_S",
@@ -350,7 +350,7 @@
 		}
 	},
 	
-		"AMMO_ION_POWERPAK_L" {
+	"AMMO_ION_POWERPAK_L": {
 		"shortname": "Ionized PowerPaks (large)",
 		"longname": "BlasTech Industries Ionized PowerPaks (large)",
 		"basedOn": "AMMO_POWERPAK_L",
@@ -364,16 +364,16 @@
 		}
 	},
 	
-		"AMMO_KYD-21" {
+	"AMMO_KYD-21": {
 		"shortname": "KYD-21 PowerPaks",
 		"longname": "KYD-21 Blaster PowerPaks",
 		"max": 400
 	},
 	
-		"AMMO_MS_POWERPACK" {
+	"AMMO_MS_POWERPACK": {
 		"shortname": "Q2 Power Packs",
 		"longname": "Merr-Sonn Q2 Blaster Power Packs",
-		"basedOn": "AMMO_SS_POWERPACK"
+		"basedOn": "AMMO_SS_POWERPACK",
 		"max": 300,
 		"overrides": {		
 			"ClipSize": {
@@ -382,7 +382,7 @@
 		}
 	},
 	
-		"AMMO_SS_POWERPACK" {
+	"AMMO_SS_POWERPACK": {
 		"shortname": "ELG-3A Power Packs",
 		"longname": "SoruSubb Blaster Power Packs",
 		"max": 360,
@@ -393,7 +393,7 @@
 		}
 	},
 	
-		"AMMO_SS_ION_POWERPACK" {
+	"AMMO_SS_ION_POWERPACK": {
 		"shortname": "ELG-3A Ionized Power Packs",
 		"longname": "SoruSubb Ionized Blaster Power Packs",
 		"basedOn": "AMMO_SS_POWERPACK",
@@ -407,81 +407,81 @@
 		}
 	},
 	
-		"AMMO_CONCUSSION" {
+	"AMMO_CONCUSSION": {
 		"shortname": "Concussion Canisters",
 		"longname": "Concussion Canisters",
 		"max": 20
 	},
 	
-		"AMMO_STOUKER" {
+	"AMMO_STOUKER": {
 		"shortname": "Stouker Power Cells",
 		"longname": "Stouker Concussion Chamber Power Cells",
 		"max": 20
 	},
 	
-		"AMMO_ANTIARMOR_CHARGE" {
+	"AMMO_ANTIARMOR_CHARGE": {
 		"shortname": "Anti-Armor Charge",
 		"longname": "BlasTech Industries Anti-Armor Charge",
 		"max": 8
 	},
 	
-		"AMMO_FWG-5" {
+	"AMMO_FWG-5": {
 		"shortname": "Flechette Missiles",
 		"longname": "Malaxan Firepower Inc. Flechette Missiles",
 		"max": 80
 	},
 	
-		//Baktoid Combat Automata no longer exists, absorbed by the empire, BlasTech Industries produces missiles compatible with the E-60R
-		"AMMO_ROCKETS" {
+	//Baktoid Combat Automata no longer exists, absorbed by the empire, BlasTech Industries produces missiles compatible with the E-60R
+	"AMMO_ROCKETS": {
 		"shortname": "Rockets",
 		"longname": "BlasTech Industries Rockets",
 		"max": 25
 	},
 	
-		"AMMO_PACKERED_MORTAR" {
+	"AMMO_PACKERED_MORTAR": {
 		"shortname": "Mortar Shells",
 		"longname": "Packered High Explosive Mortar Shells",
 		"max": 24
 	},
 	
-		"AMMO_G36_POWERPACK" {
+	"AMMO_G36_POWERPACK": {
 		"shortname": "G36 Power Pack",
 		"longname": "Adostic Arms G36 Proton Power Pack",
 		"max": 800
 	},
 	
-		"AMMO_AA-35_POWERCELL" {
+	"AMMO_AA-35_POWERCELL": {
 		"shortname": "AA-35 Pulse Power Cells",
 		"longname": "Adostic Arms AA-35 Pulse Power Cells",
 		"max": 80
 	},
 	
-		"AMMO_PB10_POWERCELL" {
+	"AMMO_PB10_POWERCELL": {
 		"shortname": "PB10 Pulse Power Cells",
 		"longname": "Adostic Arms PB10 Pulse Power Cells",
 		"max": 750
 	},
 	
-		"AMMO_MAUSER" {
+	"AMMO_MAUSER": {
 		"shortname": "7.92X57mm Slugs",
 		"longname": "7.92x57mm Mauser Slug Cartridges",
 		"basedOn": "AMMO_MAUSER_CLIP",
 		"max": 120
 	},
 	
-		"AMMO_MAUSER_CLIP" {
+	"AMMO_MAUSER_CLIP": {
 		"shortname": "7.92x57mm x 5 Strip Clips",
 		"longname": "7.92x57mm x 5 Mauser Slug Strip Clips",
 		"max": 120
 	},
 	
-		"AMMO_QUARREL" {
+	"AMMO_QUARREL": {
 		"shortname": "Bowcaster Quarrels",
 		"longname": "Wookiee Bowcaster Quarrel Packs",
 		"max": 200
 	},
 	
-		"AMMO_QUARREL_EXPLOSIVE" {
+	"AMMO_QUARREL_EXPLOSIVE": {
 		"shortname": "Explosive Bowcaster Quarrels",
 		"longname": "Explosive Wookiee Bowcaster Quarrel Packs",
 		"basedOn": "AMMO_QUARREL",
@@ -499,13 +499,13 @@
 		}
 	},
 	
-		"AMMO_SLUGS" {
+	"AMMO_SLUGS": {
 		"shortname": "Small Caliber Slugs",
 		"longname": "Arakyd Industries Slug Cartridges",
 		"max": 600
 	},
 	
-		"AMMO_SLUGS_INCENDIARY" {
+	"AMMO_SLUGS_INCENDIARY": {
 		"shortname": "Small Caliber Incendiary Slugs",
 		"longname": "Czerka Arms Incendiary Slug Cartridges",
 		"basedOn": "AMMO_SLUGS",
@@ -515,13 +515,13 @@
 		}
 	},
 	
-		"AMMO_GAS" {
+	"AMMO_GAS": {
 		"shortname": "Gas Fuel Canister",
 		"longname": "Merr-Sonn Munitions Gas Fuel Canisters",
 		"max": 198
 	},
 	
-		"AMMO_CARBONITE" {
+	"AMMO_CARBONITE": {
 		"shortname": "Carbonite Canisters",
 		"longname": "Zann Consortium Carbonite Canisters",
 		"max": 198

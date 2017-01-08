@@ -76,7 +76,7 @@
         "projectileclass": "repeater_proj",
         "meansofdeath": "MOD_ACP",
 	"ammobase": "AMMO_ACP_DRUM",
-	"ammodefault: "AMMO_ACP_DRUM",
+	"ammodefault": "AMMO_ACP_DRUM",
         "accuracy": {
         	"accuracyRating": 50,
         	"accuracyRatingPerShot": 5,
@@ -106,7 +106,7 @@
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION",
 	"ammobase": "AMMO_EXPLOSIVE_CANISTER",
-	"ammodefault: "AMMO_CANISTER_INCENDIARY",
+	"ammodefault": "AMMO_CANISTER_INCENDIARY",
         "accuracy": {
         	"accuracyRating": 105,
         	"accuracyRatingPerShot": 15,
