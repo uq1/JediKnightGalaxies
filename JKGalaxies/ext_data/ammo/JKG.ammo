@@ -3,7 +3,8 @@
 	"AMMO_ACP_ARRAY": {
 		"shortname": "ACP Cartridges",
 		"longname": "Arakyd Industries ACP Array Cartridges",
-		"max": 80
+		"max": 80,
+		"pricePerUnit": 5
 	},
 	
 	"AMMO_ACP_SLUG": {
@@ -11,6 +12,7 @@
 		"longname": "Arakyd Industries ACP Slug Cartridges",
 		"basedOn": "AMMO_ACP_ARRAY",
 		"max": 80,
+		"pricePerUnit": 6,
 		"overrides": {
 			"Damage": {
 				"set": 40
@@ -24,13 +26,15 @@
 	"AMMO_ACP_DRUM": {
 		"shortname": "Disintegrating ACP Drums",
 		"longname": "Arakyd Industries Disintegrating ACP Belt Drums",
-		"max": 900
+		"max": 900,
+		"pricePerUnit": 0.75
 	},
 	
 	"AMMO_ACP_POWERCELL_S": {
 		"shortname": "Small ACP Power Cells",
 		"longname": "Trandoshan ACP Power Cells",
-		"max": 500
+		"max": 500,
+		"pricePerUnit": 1.2
 	},
 	
 	"AMMO_ACP_OVERCELL_S": {
@@ -38,6 +42,7 @@
 		"longname": "Trandoshan Overcharged ACP Power Cells",
 		"basedOn": "AMMO_ACP_POWERCELL_S",
 		"max": 500,
+		"pricePerUnit": 2,
 		"overrides": {
 			"damage": {
 				"multiply": 0.8
@@ -51,13 +56,15 @@
 	"AMMO_ACP_POWERCELL_M": {
 		"shortname": "Medium ACP Power Cells",
 		"longname": "Barrakan Arms ACP Power Cells",
-		"max": 600
+		"max": 600,
+		"pricePerUnit": 2
 	},
 	
 	"AMMO_EXPLOSIVE_CANISTER": {
 		"shortname": "Explosive Canisters",
 		"longname": "Czerka Arms High Explosive Canisters",
 		"max": 12,
+		"pricePerUnit": 80,
 		"overrides": {
 			"damage": {
 				"set": 40
@@ -67,6 +74,12 @@
 			},
 			"collisionsize": {
 				"set": 3.0
+			},
+			"ClipSize": {
+				"set": 1
+			},
+			"ammocost": {
+				"set": 1
 			},
 			"Visual": {
 				"muzzlefx":     "slugthrowers/muzzleflash",
@@ -89,6 +102,7 @@
 		"longname": "Arakyd Industries Incendiary Canisters",
 		"basedOn": "AMMO_EXPLOSIVE_CANISTER",
 		"max": 12,
+		"pricePerUnit": 80,
 		"overrides": {
 			"damage": {
 				"set": 30
@@ -98,6 +112,12 @@
 			},
 			"collisionsize": {
 				"set": 3.0
+			},
+			"ClipSize": {
+				"set": 1
+			},
+			"ammocost": {
+				"set": 1
 			},
 			"damagetype": [ "explosion", "fire" ],
 			"Visual": {
@@ -121,6 +141,7 @@
 		"longname": "Czerka Arms Smoke Canisters",
 		"basedOn": "AMMO_EXPLOSIVE_CANISTER",
 		"max": 12,
+		"pricePerUnit": 40,
 		"overrides": {
 			"damage": {
 				"set": 7
@@ -130,6 +151,12 @@
 			},
 			"collisionsize": {
 				"set": 3.0
+			},
+			"ClipSize": {
+				"set": 1
+			},
+			"ammocost": {
+				"set": 1
 			},
 			"Visual": {
 				"muzzlefx":     "slugthrowers/muzzleflash_extrasmoke",
@@ -151,7 +178,8 @@
 	"AMMO_ACP_CARTRIDGE": {
 		"shortname": "ACP Anti-Personnel Cartridges",
 		"longname": "Barrakan Arms ACP Anti-Personnel Cartridges",
-		"max": 80
+		"max": 80,
+		"pricePerUnit": 25
 	},
 	
 	"AMMO_ACP_POWERCELL_L": {
@@ -159,6 +187,7 @@
 		"longname": "Barrakan Arms ACP Power Cartridges",
 		"basedOn": "AMMO_ACP_CARTRIDGE",
 		"max": 80,
+		"pricePerUnit": 6,
 		"overrides": {
 			"ClipSize": { 
 				"set": 10
@@ -179,6 +208,7 @@
 		"shortname": "Flares",
 		"longname": "BlasTech Flares",
 		"max": 18,
+		"pricePerUnit": 15,
 		"overrides": {		
 			"ClipSize": {
 				"set": 1
@@ -235,6 +265,7 @@
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (small)",
 		"basedOn": "AMMO_POWERPACK_S",
 		"max": 480,
+		"pricePerUnit": 1.1,
 		"overrides": {		
 			"ClipSize": {
 				"set": 30
@@ -249,6 +280,7 @@
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (medium)",
 		"basedOn": "AMMO_POWERPACK_M",
 		"max": 600,
+		"pricePerUnit": 1.1,
 		"overrides": {		
 			"ClipSize": {
 				"set": 60
@@ -263,6 +295,7 @@
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (large)",
 		"basedOn": "AMMO_POWERPACK_L",
 		"max": 960,
+		"pricePerUnit": 1.1,
 		"overrides": {		
 			"ClipSize": {
 				"set": 120
@@ -275,7 +308,8 @@
 	"AMMO_ARC_POWERPACK": {
 		"shortname": "ARC Caster Power Packs",
 		"longname": "ARC Caster Power Packs",
-		"max": 640
+		"max": 640,
+		"pricePerUnit": 0.8
 	},
 	
 	"AMMO_POWERCELL_S": {
@@ -341,6 +375,7 @@
 		"longname": "BlasTech Industries Ionized PowerPaks (small)",
 		"basedOn": "AMMO_POWERPAK_S",
 		"max": 400,
+		"pricePerUnit": 1.1,
 		"overrides": {		
 			"ClipSize": {
 				"set": 16
@@ -355,6 +390,7 @@
 		"longname": "BlasTech Industries Ionized PowerPaks (large)",
 		"basedOn": "AMMO_POWERPAK_L",
 		"max": 512,
+		"pricePerUnit": 1.1,
 		"overrides": {		
 			"ClipSize": {
 				"set": 32
@@ -398,6 +434,7 @@
 		"longname": "SoruSubb Ionized Blaster Power Packs",
 		"basedOn": "AMMO_SS_POWERPACK",
 		"max": 360,
+		"pricePerUnit": 1.1,
 		"overrides": {		
 			"ClipSize": {
 				"set": 12
@@ -410,75 +447,87 @@
 	"AMMO_CONCUSSION": {
 		"shortname": "Concussion Canisters",
 		"longname": "Concussion Canisters",
-		"max": 20
+		"max": 20,
+		"pricePerUnit": 40
 	},
 	
 	"AMMO_STOUKER": {
 		"shortname": "Stouker Power Cells",
 		"longname": "Stouker Concussion Chamber Power Cells",
-		"max": 20
+		"max": 20,
+		"pricePerUnit": 45
 	},
 	
 	"AMMO_ANTIARMOR_CHARGE": {
 		"shortname": "Anti-Armor Charge",
 		"longname": "BlasTech Industries Anti-Armor Charge",
-		"max": 8
+		"max": 8,
+		"pricePerUnit": 50
 	},
 	
 	"AMMO_FWG-5": {
 		"shortname": "Flechette Missiles",
 		"longname": "Malaxan Firepower Inc. Flechette Missiles",
-		"max": 80
+		"max": 80,
+		"pricePerUnit": 10
 	},
 	
 	//Baktoid Combat Automata no longer exists, absorbed by the empire, BlasTech Industries produces missiles compatible with the E-60R
 	"AMMO_ROCKETS": {
 		"shortname": "Rockets",
 		"longname": "BlasTech Industries Rockets",
-		"max": 25
+		"max": 25,
+		"pricePerUnit": 60
 	},
 	
 	"AMMO_PACKERED_MORTAR": {
 		"shortname": "Mortar Shells",
 		"longname": "Packered High Explosive Mortar Shells",
-		"max": 24
+		"max": 24,
+		"pricePerUnit": 45
 	},
 	
 	"AMMO_G36_POWERPACK": {
 		"shortname": "G36 Power Pack",
 		"longname": "Adostic Arms G36 Proton Power Pack",
-		"max": 800
+		"max": 800,
+		"pricePerUnit": 1.5
 	},
 	
 	"AMMO_AA-35_POWERCELL": {
 		"shortname": "AA-35 Pulse Power Cells",
 		"longname": "Adostic Arms AA-35 Pulse Power Cells",
-		"max": 80
+		"max": 80,
+		"pricePerUnit": 1.5
 	},
 	
 	"AMMO_PB10_POWERCELL": {
 		"shortname": "PB10 Pulse Power Cells",
 		"longname": "Adostic Arms PB10 Pulse Power Cells",
-		"max": 750
+		"max": 750,
+		"pricePerUnit": 8
 	},
 	
 	"AMMO_MAUSER": {
 		"shortname": "7.92X57mm Slugs",
 		"longname": "7.92x57mm Mauser Slug Cartridges",
 		"basedOn": "AMMO_MAUSER_CLIP",
-		"max": 120
+		"max": 120,
+		"pricePerUnit": 0.5
 	},
 	
 	"AMMO_MAUSER_CLIP": {
 		"shortname": "7.92x57mm x 5 Strip Clips",
 		"longname": "7.92x57mm x 5 Mauser Slug Strip Clips",
-		"max": 120
+		"max": 120,
+		"pricePerUnit": 0.6
 	},
 	
 	"AMMO_QUARREL": {
 		"shortname": "Bowcaster Quarrels",
 		"longname": "Wookiee Bowcaster Quarrel Packs",
-		"max": 200
+		"max": 200,
+		"pricePerUnit": 10
 	},
 	
 	"AMMO_QUARREL_EXPLOSIVE": {
@@ -486,6 +535,7 @@
 		"longname": "Explosive Wookiee Bowcaster Quarrel Packs",
 		"basedOn": "AMMO_QUARREL",
 		"max": 120,
+		"pricePerUnit": 25,
 		"overrides": {
 			"Damage": {
 				"multiply": 0.7
@@ -502,7 +552,8 @@
 	"AMMO_SLUGS": {
 		"shortname": "Small Caliber Slugs",
 		"longname": "Arakyd Industries Slug Cartridges",
-		"max": 600
+		"max": 600,
+		"pricePerUnit": 1.5
 	},
 	
 	"AMMO_SLUGS_INCENDIARY": {
@@ -510,6 +561,7 @@
 		"longname": "Czerka Arms Incendiary Slug Cartridges",
 		"basedOn": "AMMO_SLUGS",
 		"max": 300,
+		"pricePerUnit": 2.5,
 		"overrides": {
 			"damagetype": [ "slug", "fire" ]
 		}
@@ -518,12 +570,14 @@
 	"AMMO_GAS": {
 		"shortname": "Gas Fuel Canister",
 		"longname": "Merr-Sonn Munitions Gas Fuel Canisters",
-		"max": 198
+		"max": 198,
+		"pricePerUnit": 1.5
 	},
 	
 	"AMMO_CARBONITE": {
 		"shortname": "Carbonite Canisters",
 		"longname": "Zann Consortium Carbonite Canisters",
-		"max": 198
+		"max": 198,
+		"pricePerUnit": 3
 	}
 }
