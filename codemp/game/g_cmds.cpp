@@ -1180,11 +1180,11 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 
 	if ( !give_all && !Q_stricmp( name, "weapon" ) )
 	{
-	    const weaponData_t *weapon = BG_GetWeaponByClassName ( args );
+	    weaponData_t *weapon = BG_GetWeaponByClassName ( args );
 	    if ( weapon )
 	    {
-			//FIXME: The below assumes that there is a valid weapon item
-			int itemID = BG_GetItemByWeaponIndex(BG_GetWeaponIndex((unsigned int)weapon->weaponBaseIndex, (unsigned int)weapon->weaponModIndex))->itemID;
+			int weaponID = BG_GetWeaponIndex(weapon->weaponBaseIndex, weapon->weaponModIndex);
+			int itemID = BG_GetItemByWeaponIndex(weaponID)->itemID;
 
 			itemInstance_t item = BG_ItemInstance(itemID, 1);
 			BG_GiveItem(ent, item);
@@ -1192,6 +1192,10 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 
 			// UQ1: Added - update their ACI...
 			trap->SendServerCommand(ent->s.number, va("AddToACI %i", itemID));
+			
+			if (BG_WeaponCanUseSpecialAmmo(weapon)) {
+				ent->client->ammoTypes[weaponID] = weapon->firemodes[0].ammoDefault->ammoIndex;
+			}
 	    }
 	    else
 	    {
@@ -1205,9 +1209,9 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 		int num = 999;
 		if ( argc == 3 )
 			num = Com_Clampi( 0, 999, atoi( args ) );
-		for ( i=0; i<MAX_AMMO_TYPES; i++ )
-			ent->client->ammoTable[i] = num;		//FIXME: copy to proper ammo array
-		for ( i=0; i<256; i++ )
+		for (i = 1; i < MAX_AMMO_TYPES; i++) // don't give NONE ammo
+			ent->client->ammoTable[i] = num;
+		for (i = 0; i < MAX_WEAPON_TABLE_SIZE; i++)
 		{
 			int weapVar, weapBase;
 			if(!BG_GetWeaponByIndex(i, &weapBase, &weapVar))
