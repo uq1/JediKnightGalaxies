@@ -46,6 +46,7 @@ void BG_InitializeAmmo ( void );
 ammo_t *BG_GetAmmo ( const char *ammoName );
 ammo_t *BG_GetAmmo ( const int ammoIndex );
 void BG_GetAllAmmoSubstitutions(int ammoIndex, std::vector<ammo_t*>& outSubs);
+bool BG_WeaponAcceptsAlternateAmmo(int weapon, int variation);
 
 extern ammo_t ammoTable[MAX_AMMO_TYPES];
 extern int numAmmoLoaded;

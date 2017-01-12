@@ -3962,7 +3962,7 @@ void Cmd_AmmoCycle_f(gentity_t* ent) {
 		return;
 	}
 
-	if (GetWeaponAmmoClip(weapon, variation) == -1)
+	if (GetWeaponAmmoClip(weapon, variation) <= 0)
 	{
 		// Current weapon does not use a clip, bail
 		return;

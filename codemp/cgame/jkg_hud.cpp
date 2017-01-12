@@ -207,12 +207,17 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 			// Display the amount of clips too
 			float temp;
 			temp = ceil((float)ps->stats[STAT_TOTALAMMO] / (float)GetWeaponAmmoClip(cent->currentState.weapon, cent->currentState.weaponVariation));
-			text = va( "Ammo: %i (%i)", ammo, ( int ) temp );
+			text = va( "Ammo: %i (%i) ", ammo, ( int ) temp );
 		}
 		else
 		{
-			text = va( "Ammo: %i", ammo );
-		}	
+			text = va( "Ammo: %i ", ammo );
+		}
+
+		if (BG_WeaponAcceptsAlternateAmmo(cent->currentState.weapon, cent->currentState.weaponVariation)) {
+			const ammo_t* ammo = BG_GetAmmo(cent->currentState.ammoType);
+			text = va("%s [%s]", text, CG_GetStringEdString2((char*)ammo->shortname));
+		}
 	}
 
 	// Now then, lets render this text ^_^

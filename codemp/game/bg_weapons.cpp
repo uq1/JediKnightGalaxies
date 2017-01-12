@@ -168,7 +168,7 @@ qboolean BG_WeaponVariationExists ( unsigned int weaponId, unsigned int variatio
 }
 
 qboolean BG_WeaponCanUseSpecialAmmo (weaponData_t* wp) {
-	if (wp->weaponBaseIndex == WP_NONE || wp->weaponBaseIndex == WP_MELEE) {
+	if (wp->weaponBaseIndex == WP_NONE || wp->weaponBaseIndex == WP_MELEE || wp->weaponBaseIndex == WP_SABER) {
 		return qfalse; // Can't cycle ammo on these weapons
 	}
 

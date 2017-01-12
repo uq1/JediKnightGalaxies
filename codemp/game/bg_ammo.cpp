@@ -88,6 +88,36 @@ void BG_GetAllAmmoSubstitutions(int ammoIndex, std::vector<ammo_t*>& outSubs) {
 
 /*
 ============================
+BG_WeaponAcceptsAlternateAmmo
+
+Returns true if the weapon accepts alternate ammo, false otherwise
+============================
+*/
+qboolean BG_WeaponAcceptsAlternateAmmo(int weapon, int variation) {
+	weaponData_t* wp = GetWeaponData(weapon, variation);
+
+	switch (weapon) {
+		case WP_SABER:
+		case WP_NONE:
+		case WP_MELEE:
+			return qfalse;
+		default:
+			break;
+	}
+
+	if (wp->clipSize <= 0) {
+		return qfalse;
+	}
+
+	if (wp->firemodes[0].useQuantity) {
+		return qfalse;
+	}
+
+	return qtrue;
+}
+
+/*
+============================
 JKG_ParseAmmoOverrides
 
 Overrides are things such as changing damage, effects, ...
