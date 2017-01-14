@@ -4540,6 +4540,7 @@ static const command_t commands[] = {
 	{ "pay",					Cmd_Pay_f,					CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "printweaponlist_sv",		JKG_PrintWeaponList_f,		0 },
 	{ "relax",					Cmd_Relax_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "resendInv",				Cmd_ResendInv_f,			0 },	
 	{ "say",					Cmd_SayLocal_f,				0 },
 	{ "sayact",					Cmd_SayAct_f,				0 },
 	{ "sayglobal",				Cmd_SayGlobal_f,			0 },
