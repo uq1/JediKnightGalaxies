@@ -126,7 +126,7 @@
         "maxchargetime": 500,
         "chargedamage": 1.5,
         "chargedelay":  500,
-        "ammocost":     8,
+        "ammocost":     15,
         "firedelay":    1500,
         "firingtype":   "semi",
         "range":        700.0,
