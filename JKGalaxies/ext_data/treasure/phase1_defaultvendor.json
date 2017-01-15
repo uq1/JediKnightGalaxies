@@ -42,6 +42,7 @@
 		"numberPicksMax": 1,
 		"picks": {
 			"Mine_LaserTrip1": 2,
+			"charge_Sequencer": 2,
 			"carbine_LT-60_C": 2,
 			"Grenade_C22Frag": 3,
 			"Grenade_Plasma": 2,
@@ -81,6 +82,8 @@
 			"Mine_LaserTrip2": 2,
 			"launcher_mortar": 3,
 			"launcher_E-60R": 3,
+			"launcher_stouker": 1,
+			"launcher_LJ-70": 1,
 			"array_pulse": 5,
 			"repeater_DC-15A": 4,
 			"repeater_DC-15A_S": 4,

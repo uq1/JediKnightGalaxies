@@ -383,7 +383,7 @@
 	},
 
 	"MOD_IONBLASTER": {
-		// Ion weapons
+		// Ionized Blasters
 		"inventoryName": "@JKG_INVENTORY_MOD_IONBLASTER",
 
 		"modifiers": {
