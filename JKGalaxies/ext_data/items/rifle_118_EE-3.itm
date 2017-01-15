@@ -5,6 +5,7 @@
 	"weapon":		"WP_DISRUPTOR",
 	"variation":		"8",
 	"weight":		"5",
-	"cost":		"1400",
+	"cost":		"1250",
+	"xml":		"",
 	"itemIcon":		"models/weapons/EE-3_Rifle/icon_default"
 }
