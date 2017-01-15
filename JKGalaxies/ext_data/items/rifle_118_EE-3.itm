@@ -1,0 +1,10 @@
+{
+	"name":             "@JKG_ITEMS_rifle_EE-3_Rifle",
+	"internal":             "rifle_EE-3",
+	"itemtype":             "weapon",
+	"weapon":		"WP_DISRUPTOR",
+	"variation":		"8",
+	"weight":		"5",
+	"cost":		"1400",
+	"itemIcon":		"models/weapons/EE-3_Rifle/icon_default"
+}

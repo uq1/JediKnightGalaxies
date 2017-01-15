@@ -6,13 +6,16 @@
     "description":      "@JKG_ITEMS_rifle_EE-3_Rifle",
     
     "visual": {
-        "viewmodel":        "models/weapons/ee-3_rifle/viewmodel.md3",
-        "worldmodel":       "models/weapons/ee-3_rifle/model.glm",
-        "hudicon":          "models/weapons/ee-3_rifle/icon_default",
-        "hudnaicon":        "models/weapons/ee-3_rifle/icon_default",
+        "viewmodel":        "models/weapons/EE-3_Rifle/viewmodel.md3",
+        "worldmodel":       "models/weapons/EE-3_Rifle/model.glm",
+        "hudicon":          "models/weapons/EE-3_Rifle/icon_default",
+        "hudnaicon":        "models/weapons/EE-3_Rifle/icon_default",
         "selectsound":      "sound/weapons/select_carbine.wav",
+		
+        "indicators": {
+            "ammo":         [ "models/weapons/EE-3_Rifle/numbers3", "models/weapons/EE-3_Rifle/numbers2", "models/weapons/EE-3_Rifle/numbers1" ]
+        },
         
-//        "gunposition":      "11.0 -2.5 -7.0",
         "gunposition":      "9.0 -3.0 -5.0",
         "ironsightsposition": "9.0 0 -4.5",
         "ironsightsfov": "20",
@@ -58,10 +61,7 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2250,
-        "ammoIndex":         "blaster_power_pack_m",
-        "ammoOnSpawn":   330,
-        "ammoOnPickup":   66,
-        "clipSize":              33,
+        "clipSize":              30,
         "flags":        [ "roll", "togglezoom" ],
         "startzoomfov": 30.0,
         "reloadmodifier": 0.7
@@ -81,7 +81,9 @@
         "projectilespeed": 5000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
-        "splashmeansofdeath": "MOD_BLASTER"
+        "splashmeansofdeath": "MOD_BLASTER",
+		"ammobase": "AMMO_POWERPACK_L",
+		"ammodefault": "AMMO_POWERPACK_M"
     },
 	
     "firemode1": {
@@ -95,7 +97,9 @@
         "projectilespeed": 5000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
-        "splashmeansofdeath": "MOD_BLASTER"
+        "splashmeansofdeath": "MOD_BLASTER",
+		"ammobase": "AMMO_POWERPACK_L",
+		"ammodefault": "AMMO_POWERPACK_M"
     },
     
 	"playeranims": {
