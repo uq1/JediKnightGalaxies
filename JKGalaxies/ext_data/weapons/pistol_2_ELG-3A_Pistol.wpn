@@ -77,8 +77,8 @@
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BRYAR_PISTOL",
-	"ammobase": "AMMO_SS_POWERPACK",
-	"ammodefault": "AMMO_SS_POWERPACK"
+		"ammobase": "AMMO_SS_POWERPACK",
+		"ammodefault": "AMMO_SS_POWERPACK"
     },
     
     "firemode1": {
@@ -93,7 +93,7 @@
         "chargedamage": 1.5,
         "chargedelay":  500,
         "ammocost":     5,
-        "firedelay":    400,
+        "firedelay":    1500,
         "firingtype":   "semi",
         "range":        1400.0,
         "recoil":       0.5,
@@ -101,8 +101,8 @@
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
-	"ammobase": "AMMO_SS_POWERPACK",
-	"ammodefault": "AMMO_SS_POWERPACK"
+		"ammobase": "AMMO_SS_POWERPACK",
+		"ammodefault": "AMMO_SS_POWERPACK"
     },
     
     "playeranims": {

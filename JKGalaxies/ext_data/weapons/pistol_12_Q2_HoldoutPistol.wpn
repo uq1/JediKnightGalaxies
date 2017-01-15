@@ -87,22 +87,26 @@
     },
     
     "firemode1": {
-        "damage":       20,
+        "damage": {
+                               "damageradius": { "start": 8,
+                                                     "function": [ "constant"] },
+                               "damage":       10,
+                               "damagetype": [ "stun" ]
+                        },
         "collisionsize": 8.0,
         "maxchargetime": 500,
         "chargedamage": 1.5,
         "chargedelay":  500,
-        "ammocost":     3,
-        "firedelay":    400,
+        "ammocost":     5,
+        "firedelay":    1500,
         "firingtype":   "semi",
         "range":        1400.0,
         "recoil":       0.5,
         "spread":       1.0,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-	"ammobase": "AMMO_SS_POWERPACK",
-	"ammodefault": "AMMO_MS_POWERPACK",
+		"ammobase": "AMMO_SS_POWERPACK",
+		"ammodefault": "AMMO_MS_POWERPACK",
         "accuracy": {
         	"accuracyRating": 1,
         	"accuracyRatingPerShot": 1,
