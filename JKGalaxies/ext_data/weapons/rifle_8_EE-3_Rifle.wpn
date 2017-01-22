@@ -16,8 +16,8 @@
             "ammo":         [ "models/weapons/EE-3_Rifle/numbers3", "models/weapons/EE-3_Rifle/numbers2", "models/weapons/EE-3_Rifle/numbers1" ]
         },
         
-        "gunposition":      "9.0 -3.0 -5.0",
-        "ironsightsposition": "9.0 0 -4.5",
+        "gunposition":      "7.0 -3.0 -5.0",
+        "ironsightsposition": "7.0 0 -4.5",
         "ironsightsfov": "20",
     
         "firemode0": {
