@@ -173,25 +173,25 @@ float fresnelTerm(vec3 normal, vec3 eyeVec)
 
 vec4 waterMapAtCoord ( vec2 coord )
 {
-	vec4 wmap = texture2D(u_WaterPositionMap, coord).xzya;
+	vec4 wmap = texture2D(u_WaterPositionMap, coord).xzyw;
 	wmap.y -= waveHeight;
 	return wmap;
 }
 
 vec4 waterMap2AtCoord ( vec2 coord )
 {
-	//return texture2D(u_WaterPositionMap2, coord).xzya;
-	return texture2D(u_WaterPositionMap, coord).xzya;
+	//return texture2D(u_WaterPositionMap2, coord).xzyw;
+	return texture2D(u_WaterPositionMap, coord).xzyw;
 }
 
 //#define unOpenGlIsFuckedUpify(x) ( x / 524288.0 )
 
 vec4 positionMapAtCoord ( vec2 coord )
 {
-	//return texture2D(u_PositionMap, coord).xzya;
+	//return texture2D(u_PositionMap, coord).xzyw;
 	vec4 pos = texture2D(u_PositionMap, coord);
 	pos.xyz *= 524288.0;
-	return pos.xzya;
+	return pos.xzyw;
 }
 
 float pw = (1.0/u_Dimensions.x);
@@ -624,7 +624,7 @@ void main ( void )
 	{
 		vec4 col2 = vec4(0.0);
 		vec3 screenCenterOrg = positionMapAtCoord(vec2(0.0)).xzy;
-		mainImage(col2, var_TexCoords, positionMap.xzya, waterMap.xzya, waterMap2.xzya, screenCenterOrg);
+		mainImage(col2, var_TexCoords, positionMap.xzyw, waterMap.xzyw, waterMap2.xzyw, screenCenterOrg);
 		color.rgb = col2.rgb;
 	}
 #else //!__TEST_WATER__

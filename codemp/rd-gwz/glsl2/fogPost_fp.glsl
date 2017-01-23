@@ -19,7 +19,7 @@ varying vec2		var_TexCoords;
 
 vec4 positionMapAtCoord ( vec2 coord )
 {
-	return texture2D(u_PositionMap, coord).xyza;
+	return texture2D(u_PositionMap, coord).xyzw;
 }
 
 float linearize(float depth)
