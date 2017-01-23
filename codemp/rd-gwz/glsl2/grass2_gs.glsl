@@ -95,9 +95,9 @@ vec4 randomBarycentricCoordinate() {
 
 vec4 GetControlMap(vec3 m_vertPos)
 {
-	vec4 xaxis = texture2D(u_SplatControlMap, (m_vertPos.yz * controlScale) * 0.5 + 0.5);
-	vec4 yaxis = texture2D(u_SplatControlMap, (m_vertPos.xz * controlScale) * 0.5 + 0.5);
-	vec4 zaxis = texture2D(u_SplatControlMap, (m_vertPos.xy * controlScale) * 0.5 + 0.5);
+	vec4 xaxis = texture(u_SplatControlMap, (m_vertPos.yz * controlScale) * 0.5 + 0.5);
+	vec4 yaxis = texture(u_SplatControlMap, (m_vertPos.xz * controlScale) * 0.5 + 0.5);
+	vec4 zaxis = texture(u_SplatControlMap, (m_vertPos.xy * controlScale) * 0.5 + 0.5);
 
 	return xaxis * 0.333 + yaxis * 0.333 + zaxis * 0.333;
 }
