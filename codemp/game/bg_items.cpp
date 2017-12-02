@@ -144,6 +144,22 @@ int BG_FindItemByInternal(const char *internalName)
 
 /*
 ====================
+BG_PrintItemList
+====================
+*/
+void BG_PrintItemList(void)
+{
+	for (int i = 0; i < MAX_ITEM_TABLE_SIZE; i++)
+	{
+		if (itemLookupTable[i].itemID)
+		{
+			trap->Print("%8i\t%s\n", itemLookupTable[i].itemID, itemLookupTable[i].internalName);
+		}
+	}
+}
+
+/*
+====================
 BG_HasWeaponItem
 ====================
 */
@@ -641,6 +657,12 @@ void BG_GiveItemNonNetworked(itemInstance_t item) {
 		return;
 	}
 
+	// The player cannot actually acquire ammo items.
+	if (item.id->itemType == ITEM_AMMO)
+	{
+		return;
+	}
+
 	// Fill any incomplete stacks.
 	int nItemID = item.id->itemID;
 	int nMaxStack = item.id->maxStack;
@@ -709,10 +731,10 @@ void BG_RemoveItemStack(gentity_t* ent, int itemStack) {
 	// If it's something we have equipped, remove it
 	if (ent->client && ent->client->shieldEquipped) {
 		if (item.equipped && item.id->itemType == ITEM_SHIELD) {
-			JKG_ShieldUnequipped(ent);
+			Cmd_ShieldUnequipped(ent);
 		}
 		else if (item.equipped && item.id->itemType == ITEM_JETPACK) {
-			JKG_JetpackUnequipped(ent);
+			Cmd_JetpackUnequipped(ent);
 		}
 	}
 
@@ -1062,6 +1084,8 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 		itemData->itemType = ITEM_SHIELD;
 	else if (Q_stricmp(str, "jetpack") == 0)
 		itemData->itemType = ITEM_JETPACK;
+	else if (Q_stricmp(str, "ammo") == 0)
+		itemData->itemType = ITEM_AMMO;
 	else
 		itemData->itemType = ITEM_UNKNOWN;
 
@@ -1096,6 +1120,14 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 		itemData->weaponData.variation = item;
 
 		itemData->weaponData.varID = BG_GetWeaponIndex(itemData->weaponData.weapon, itemData->weaponData.variation);
+	}
+	else if (itemData->itemType == ITEM_AMMO) {
+		jsonNode = cJSON_GetObjectItem(json, "ammoclass");
+		Q_strncpyz(itemData->ammoData.ref, cJSON_ToStringOpt(jsonNode, ""), sizeof(itemData->armorData.ref));
+		itemData->ammoData.ammoIndex = BG_GetAmmo(itemData->ammoData.ref) - ammoTable;
+
+		jsonNode = cJSON_GetObjectItem(json, "ammoquantity");
+		itemData->ammoData.quantity = cJSON_ToIntegerOpt(jsonNode, 1);
 	}
 	else if (itemData->itemType == ITEM_ARMOR) {
 		jsonNode = cJSON_GetObjectItem(json, "armor");

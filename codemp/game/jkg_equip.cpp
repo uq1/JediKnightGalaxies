@@ -44,11 +44,11 @@ void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound
 
 /*
 ====================================
-JKG_ShieldUnequipped
+Cmd_ShieldUnequipped
 
 ====================================
 */
-void JKG_ShieldUnequipped(gentity_t* ent) {
+void Cmd_ShieldUnequipped(gentity_t* ent) {
 	if (ent->client->shieldEquipped) {
 		for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
 			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
@@ -82,7 +82,7 @@ void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber) {
 	}
 
 	// Unequip the previous jetpack first
-	JKG_JetpackUnequipped(ent);
+	Cmd_JetpackUnequipped(ent);
 
 	item->equipped = qtrue;
 
@@ -92,11 +92,11 @@ void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber) {
 
 /*
 ====================================
-JKG_JetpackUnequipped
+Cmd_JetpackUnequipped
 
 ====================================
 */
-void JKG_JetpackUnequipped(gentity_t* ent) {
+void Cmd_JetpackUnequipped(gentity_t* ent) {
 	// Iterate through the inventory and remove the jetpack that is equipped
 	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); it++) {
 		if (it->equipped && it->id->itemType == ITEM_JETPACK) {
@@ -223,10 +223,10 @@ void JKG_UnequipItem(gentity_t *ent, int iNum)
 		ent->client->ps.armor[item->id->armorData.pArm->slot] = 0;
 	}
 	else if (item->id->itemType == ITEM_SHIELD) {
-		JKG_ShieldUnequipped(ent);
+		Cmd_ShieldUnequipped(ent);
 	}
 	else if (item->id->itemType == ITEM_JETPACK) {
-		JKG_JetpackUnequipped(ent);
+		Cmd_JetpackUnequipped(ent);
 	}
 	BG_SendItemPacket(IPT_UNEQUIP, ent, nullptr, iNum, 0);
 }

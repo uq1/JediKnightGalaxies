@@ -739,7 +739,7 @@ void Cmd_TUse_f(gentity_t* ent) {
 
 /*
 ==================
-JKG_ItemLookup_f
+Cmd_ItemLookup_f
 
 (eezstreet add)
 Looks up a range of items and prints them in a list.
@@ -747,7 +747,7 @@ Ideally a GM or admin-only command
 ==================
 */
 extern itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
-void JKG_ItemLookup_f(gentity_t *ent)
+void Cmd_ItemLookup_f(gentity_t *ent)
 {
 	unsigned int i;
 	int badItems = 0;
@@ -815,12 +815,12 @@ void JKG_ItemLookup_f(gentity_t *ent)
 
 /*
 ==================
-JKG_MyAmmo_f
+Cmd_MyAmmo_f
 
 Prints a list of all the ammo that you have
 ==================
 */
-static void JKG_MyAmmo_f(gentity_t* ent) {
+static void Cmd_MyAmmo_f(gentity_t* ent) {
 	trap->SendServerCommand(ent - g_entities, "print \"=============================================\n\"");
 	for (int i = 0; i < numAmmoLoaded; i++) {
 		if (!ent->client->ammoTable[i]) {
@@ -834,12 +834,12 @@ static void JKG_MyAmmo_f(gentity_t* ent) {
 
 /*
 ==================
-JKG_ItemCheck_f
+Cmd_ItemCheck_f
 
 Gives details about an item
 ==================
 */
-void JKG_ItemCheck_f(gentity_t *ent)
+void Cmd_ItemCheck_f(gentity_t *ent)
 {
 	char buffer[64];
 	int itemNum;
@@ -900,7 +900,7 @@ JKG_BuyItem_f
 
 ==================
 */
-void JKG_BuyItem_f(gentity_t *ent)
+void Cmd_BuyItem_f(gentity_t *ent)
 {
 	gentity_t* trader = ent->client->currentTrader;
 	if(trap->Argc() < 1)
@@ -938,8 +938,11 @@ void JKG_BuyItem_f(gentity_t *ent)
 	}
 
 	// Since the item is sent with a trade packet, the item is NOT needed to be networked, it already is through the trade packet
-	BG_SendTradePacket(IPT_TRADESINGLE, ent, trader, pItem, pItem->id->baseCost, 0);
-	BG_GiveItemNonNetworked(ent, *pItem);
+	if (pItem->id->itemType != ITEM_AMMO)
+	{
+		BG_SendTradePacket(IPT_TRADESINGLE, ent, trader, pItem, pItem->id->baseCost, 0);
+		BG_GiveItemNonNetworked(ent, *pItem);
+	}
 	ent->client->ps.credits -= pItem->id->baseCost;	// remove credits from player
 
 	if (pItem->id->itemType == ITEM_WEAPON) {
@@ -958,6 +961,10 @@ void JKG_BuyItem_f(gentity_t *ent)
 			}
 		}
 	}
+	else if (pItem->id->itemType == ITEM_AMMO) {
+		// If it's an ammo, it's not actually added to our inventory. Instead, it's given to us as ammo.
+		BG_GiveAmmo(ent, BG_GetAmmo(pItem->id->ammoData.ammoIndex), qfalse, pItem->id->ammoData.quantity);
+	}
 }
 
 /*
@@ -966,7 +973,7 @@ JKG_CloseVendor_f
 
 ==================
 */
-void JKG_CloseVendor_f (gentity_t *ent)
+void Cmd_CloseVendor_f (gentity_t *ent)
 {
 	if ( ent->client->currentTrader == NULL )
 	{
@@ -995,11 +1002,11 @@ void JKG_ConsumeItem_f(gentity_t* ent) {
 
 /*
 ==================
-JKG_EquipShield_f
+Cmd_EquipShield_f
 
 ==================
 */
-void JKG_EquipShield_f(gentity_t* ent) {
+void Cmd_EquipShield_f(gentity_t* ent) {
 	char* args = ConcatArgs(1);
 	int argNum = atoi(args);
 
@@ -1008,11 +1015,11 @@ void JKG_EquipShield_f(gentity_t* ent) {
 
 /*
 ==================
-JKG_EquipJetpack_f
+Cmd_EquipJetpack_f
 
 ==================
 */
-void JKG_EquipJetpack_f(gentity_t* ent) {
+void Cmd_EquipJetpack_f(gentity_t* ent) {
 	char* args = ConcatArgs(1);
 	int argNum = atoi(args);
 
@@ -1073,26 +1080,26 @@ void Cmd_Crystal2_f(gentity_t* ent) {
 
 /*
 ==================
-JKG_PrintWeaponList_f
+Cmd_PrintWeaponList_f
 
 Good for testing desync
 ==================
 */
 
-void JKG_PrintWeaponList_f( gentity_t *ent )
+void Cmd_PrintWeaponList_f( gentity_t *ent )
 {
 	BG_PrintWeaponList();
 }
 
 /*
 ==================
-JKG_DumpWeaponList_f
+Cmd_DumpWeaponList_f
 
 Good for testing desync
 ==================
 */
 
-void JKG_DumpWeaponList_f( gentity_t *ent )
+void Cmd_DumpWeaponList_f( gentity_t *ent )
 {
 	BG_DumpWeaponList("svweaponlist.txt");
 }
@@ -1237,7 +1244,17 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 				return;
 			}
 			itemInstance_t item = BG_ItemInstance(itemID, 1);
-			BG_GiveItem(ent, item);
+
+			// If we gave the player an ammo item, we need to actually give them ammo, not the ammo item itself
+			if (item.id->itemType == ITEM_AMMO)
+			{
+				BG_GiveAmmo(ent, BG_GetAmmo(item.id->ammoData.ammoIndex), qfalse, item.id->ammoData.quantity);
+			}
+			else
+			{
+				BG_GiveItem(ent, item);
+			}
+			
 		}
 		else
 		{
@@ -1246,7 +1263,17 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 				trap->SendServerCommand(ent - g_entities, va("print \"%s refers to an item that does not exist\n\"", args));
 				return;
 			}
-			BG_GiveItem(ent, item);
+
+			// If we gave the player an ammo item, we need to actually give them ammo, not the ammo item itself
+			if (item.id->itemType == ITEM_AMMO)
+			{
+				BG_GiveAmmo(ent, BG_GetAmmo(item.id->ammoData.ammoIndex), qfalse, item.id->ammoData.quantity);
+			}
+			else
+			{
+				BG_GiveItem(ent, item);
+			}
+			
 		}
 		return;
 	}
@@ -1928,7 +1955,7 @@ void Cmd_ResendInv_f(gentity_t* ent) {
 JKG_Cmd_ShowInv_f
 =================
 */
-void JKG_Cmd_ShowInv_f(gentity_t *ent)
+void Cmd_ShowInv_f(gentity_t *ent)
 {
     char buffer[MAX_STRING_CHARS] = { 0 };
 	int i = 0;
@@ -1955,7 +1982,7 @@ JKG_Cmd_EquipToACI_f / JKG_Cmd_Unequip_f
 
 extern void JKG_EquipItem(gentity_t *ent, int iNum);
 extern void JKG_UnequipItem(gentity_t *ent, int iNum);
-void JKG_Cmd_EquipItem_f(gentity_t *ent)
+void Cmd_EquipItem_f(gentity_t *ent)
 {
 	char arg[6];
 	if(trap->Argc() != 2)
@@ -1969,7 +1996,7 @@ void JKG_Cmd_EquipItem_f(gentity_t *ent)
 	JKG_EquipItem (ent, atoi (arg));
 }
 
-void JKG_Cmd_UnequipItem_f(gentity_t *ent)
+void Cmd_UnequipItem_f(gentity_t *ent)
 {
     char arg[6];
 	if(trap->Argc() != 2)
@@ -1985,11 +2012,11 @@ void JKG_Cmd_UnequipItem_f(gentity_t *ent)
 
 /*
 ==================
-JKG_Cmd_DestroyItem_f
+Cmd_DestroyItem_f
 Destroys an item from your inventory
 ==================
 */
-void JKG_Cmd_DestroyItem_f(gentity_t *ent)
+void Cmd_DestroyItem_f(gentity_t *ent)
 {
 	char arg[64];
 	trap->Argv(1, arg, sizeof(arg));
@@ -2025,7 +2052,7 @@ void JKG_Cmd_DestroyItem_f(gentity_t *ent)
 	}
 }
 
-void JKG_Cmd_SellItem_f(gentity_t *ent)
+void Cmd_SellItem_f(gentity_t *ent)
 {
 	gentity_t* trader = ent->client->currentTrader;
 	// TODO: put proper pricing here
@@ -2084,10 +2111,10 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 	}
 	else if (item.id->itemType == ITEM_SHIELD && item.equipped) {
 		// If we're selling an equipped shield, kill it
-		JKG_ShieldUnequipped(ent);
+		Cmd_ShieldUnequipped(ent);
 	}
 	else if (item.id->itemType == ITEM_JETPACK && item.equipped) {
-		JKG_JetpackUnequipped(ent);
+		Cmd_JetpackUnequipped(ent);
 	}
 	ent->client->ps.credits += (creditAmount * item.quantity) / 2;
 	BG_RemoveItemStack(ent, nInvID);
@@ -4498,22 +4525,22 @@ static const command_t commands[] = {
 	{ "arbitraryprint",			Cmd_ArbitraryPrint_f,		CMD_NEEDCHEATS },
 	{ "butterfingers",			Cmd_Butterfingers_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "buyammo",				Cmd_BuyAmmo_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "buyvendor",				JKG_BuyItem_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "buyvendor",				Cmd_BuyItem_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "callvote",				Cmd_CallVote_f,				CMD_NOINTERMISSION },
 	{ "callteamvote",			Cmd_CallTeamVote_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "checkbotreach",			AIMod_CheckMapPaths,		CMD_NEEDCHEATS },
 	{ "checkobjectivesreach",	AIMod_CheckObjectivePaths,	CMD_NEEDCHEATS },
 	{ "closeentities",			Cmd_CloseEntities_f,		0 },
-	{ "closeVendor",			JKG_CloseVendor_f,			0 },
+	{ "closeVendor",			Cmd_CloseVendor_f,			0 },
 	{ "credits",				Cmd_Credits_f,				0 },
 	{ "crystal1",				Cmd_Crystal1_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "crystal2",				Cmd_Crystal2_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "debuginventory",			JKG_Cmd_ShowInv_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "debuginventory",			Cmd_ShowInv_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "dismember",				Cmd_Dismember_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "dumpweaponlist_sv",		JKG_DumpWeaponList_f,		0 },
-	{ "equip",					JKG_Cmd_EquipItem_f,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "equipjetpack",			JKG_EquipJetpack_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "equipshield",			JKG_EquipShield_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "dumpweaponlist_sv",		Cmd_DumpWeaponList_f,		0 },
+	{ "equip",					Cmd_EquipItem_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "equipjetpack",			Cmd_EquipJetpack_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "equipshield",			Cmd_EquipShield_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "follow",					Cmd_Follow_f,				CMD_NOINTERMISSION },
 	{ "follownext",				Cmd_FollowNext_f,			CMD_NOINTERMISSION },
 	{ "followprev",				Cmd_FollowPrev_f,			CMD_NOINTERMISSION },
@@ -4523,22 +4550,22 @@ static const command_t commands[] = {
 	{ "handcut",				Cmd_Wrists_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "headexplodey",			Cmd_HeadExplodey_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "holdme",					Cmd_Holdme_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "inventorydestroy",		JKG_Cmd_DestroyItem_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "inventorysell",			JKG_Cmd_SellItem_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "inventorydestroy",		Cmd_DestroyItem_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "inventorysell",			Cmd_SellItem_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "inventoryuse",			Cmd_ItemUse_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "itemcheck",				JKG_ItemCheck_f,			0 },
-	{ "itemlookup",				JKG_ItemLookup_f,			0 },
+	{ "itemcheck",				Cmd_ItemCheck_f,			0 },
+	{ "itemlookup",				Cmd_ItemLookup_f,			0 },
 	{ "kill",					Cmd_Kill_f,					CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "killother",				Cmd_KillOther_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION },
 	{ "knockmedown",			Cmd_KnockMeDown_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "levelshot",				Cmd_LevelShot_f,			CMD_NEEDCHEATS },
 	{ "loveandpeace",			Cmd_LoveAndPeace_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "myammo",					JKG_MyAmmo_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "myammo",					Cmd_MyAmmo_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "noclip",					Cmd_Noclip_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_ONLYALIVE },
 	{ "notarget",				Cmd_Notarget_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "npc",					Cmd_NPC_f,					CMD_NEEDCHEATS },
 	{ "pay",					Cmd_Pay_f,					CMD_NOINTERMISSION | CMD_NOSPECTATOR },
-	{ "printweaponlist_sv",		JKG_PrintWeaponList_f,		0 },
+	{ "printweaponlist_sv",		Cmd_PrintWeaponList_f,		0 },
 	{ "relax",					Cmd_Relax_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "resendInv",				Cmd_ResendInv_f,			0 },	
 	{ "say",					Cmd_SayLocal_f,				0 },
@@ -4556,9 +4583,9 @@ static const command_t commands[] = {
 	{ "tell",					Cmd_Tell_f,					0 },
 	{ "t_use",					Cmd_TUse_f,					CMD_NEEDCHEATS | CMD_ONLYALIVE },
 	{ "togglesaber",			Cmd_ToggleSaber_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "unequip",				JKG_Cmd_UnequipItem_f,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "unequipjetpack",			JKG_JetpackUnequipped,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "unequipshield",			JKG_ShieldUnequipped,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "unequip",				Cmd_UnequipItem_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "unequipjetpack",			Cmd_JetpackUnequipped,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "unequipshield",			Cmd_ShieldUnequipped,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "voice_cmd",				Cmd_VoiceCommand_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "vote",					Cmd_Vote_f,					CMD_NOINTERMISSION },
 	{ "where",					Cmd_Where_f,				0 },

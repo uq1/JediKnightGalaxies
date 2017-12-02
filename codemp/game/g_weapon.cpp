@@ -3305,6 +3305,85 @@ void FireWeapon( gentity_t *ent, int firingMode )
 //// END LITTLE STUB
 
 /**************************************************
+* WP_ApplyAmmoOverride
+*
+* Applies a single ammo override.
+* FIXME: move this to BG code?
+**************************************************/
+
+void WP_ApplyAmmoOverride(int ammoType, weaponData_t* wp, int& value, ammoOverrideTypes_t type) {
+	ammo_t* ammo;
+
+	if (!BG_WeaponCanUseSpecialAmmo(wp)) {
+		return;
+	}
+	ammo = BG_GetAmmo(ammoType);
+	if (!ammo) {
+		return;
+	}
+
+	switch (type) {
+		case AOV_MEANS:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.means);
+			break;
+		case AOV_SPLASHMEANS:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.splashmeans);
+			break;
+		case AOV_DAMAGE:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.damage);
+			break;
+		case AOV_DEBUFFS:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.debuffs);
+			break;
+		case AOV_PROJECTILES:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.projectiles);
+			break;
+		case AOV_CLIPSIZE:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.clipSize);
+			break;
+		case AOV_AMMOCOST:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.ammocost);
+			break;
+		case AOV_FIREDELAY:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.fireDelay);
+			break;
+		case AOV_BOUNCES:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.bounces);
+			break;
+		default:
+			Com_Printf("Bad ammo override type: %i\n", type);
+			break;
+	}
+}
+
+void WP_ApplyAmmoOverride(int ammoType, weaponData_t* wp, double& value, ammoOverrideTypes_t type) {
+	ammo_t* ammo;
+
+	if (!BG_WeaponCanUseSpecialAmmo(wp)) {
+		return;
+	}
+	ammo = BG_GetAmmo(ammoType);
+	if (!ammo) {
+		return;
+	}
+
+	switch (type) {
+		case AOV_SPLASHRANGE:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.splashRange);
+			break;
+		case AOV_COLLISIONSIZE:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.collisionSize);
+			break;
+		case AOV_RECOIL:
+			JKG_ApplyAmmoOverride(value, ammo->overrides.recoil);
+			break;
+		default:
+			Com_Printf("Bad ammo override type: %i\n", type);
+			break;
+	}
+}
+
+/**************************************************
 * WP_CalculateAngles
 *
 * Calculates the angles for the current weapon.
@@ -3832,10 +3911,13 @@ qboolean WP_IsWeaponGrenade ( const gentity_t *ent, int firemode )
 float WP_GetWeaponBoxSize( gentity_t *ent, int firemode )
 {
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
+	double boxSize = thisWeaponData->firemodes[firemode].boxSize;
 
-	if ( thisWeaponData->firemodes[firemode].boxSize )
+	WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, boxSize, AOV_COLLISIONSIZE);
+
+	if ( boxSize )
 	{
-		return thisWeaponData->firemodes[firemode].boxSize;
+		return boxSize;
 	}
 
 	return 1.0f;
@@ -3852,10 +3934,13 @@ float WP_GetWeaponBoxSize( gentity_t *ent, int firemode )
 int WP_GetWeaponBounce( gentity_t *ent, int firemode )
 {
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
+	int bounceCount = thisWeaponData->firemodes[firemode].bounceCount;
 
-	if ( thisWeaponData->firemodes[firemode].bounceCount )
+	WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, bounceCount, AOV_BOUNCES);
+
+	if ( bounceCount )
 	{
-		return thisWeaponData->firemodes[firemode].bounceCount;
+		return bounceCount;
 	}
 
 	return 0;
@@ -3915,15 +4000,18 @@ int WP_GetWeaponDamage( gentity_t *ent, int firemode )
 {
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
 	int damage = 0;
+	int baseDamage = thisWeaponData->firemodes[firemode].baseDamage;
+
+	WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, baseDamage, AOV_DAMAGE);
 
 	if ( thisWeaponData->firemodes[firemode].chargeTime )
 	{
-		int chargeDamage = thisWeaponData->firemodes[firemode].baseDamage * WP_GetWeaponCharge( ent, firemode ) * thisWeaponData->firemodes[firemode].chargeMultiplier;
-		damage = ( thisWeaponData->firemodes[firemode].baseDamage > chargeDamage ) ? thisWeaponData->firemodes[firemode].baseDamage : chargeDamage;
+		int chargeDamage = baseDamage * WP_GetWeaponCharge( ent, firemode ) * thisWeaponData->firemodes[firemode].chargeMultiplier;
+		damage = ( baseDamage > chargeDamage ) ? baseDamage : chargeDamage;
 	}
 	else
 	{
-		damage = thisWeaponData->firemodes[firemode].baseDamage;
+		damage = baseDamage;
 	}
 		
 	return damage;
@@ -4117,8 +4205,11 @@ qboolean WP_GetWeaponGravity( gentity_t *ent, int firemode )
 int WP_GetWeaponMOD( gentity_t *ent, int firemode )
 {
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
+	int mod = thisWeaponData->firemodes[firemode].weaponMOD;
 
-	return thisWeaponData->firemodes[firemode].weaponMOD;
+	WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, mod, AOV_MEANS);
+
+	return mod;
 }
 
 /**************************************************
@@ -4132,8 +4223,11 @@ int WP_GetWeaponMOD( gentity_t *ent, int firemode )
 int WP_GetWeaponSplashMOD( gentity_t *ent, int firemode )
 {
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
+	int mod = thisWeaponData->firemodes[firemode].weaponSplashMOD;
 
-	return thisWeaponData->firemodes[firemode].weaponSplashMOD;
+	WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, mod, AOV_SPLASHMEANS);
+
+	return mod;
 }
 
 /**************************************************
@@ -4178,6 +4272,9 @@ qboolean WP_GetWeaponShotCount( gentity_t *ent, int firemode )
 		int iShotCount	= *pShotCount;
 		int i			= 0;
 		*pShotCount		= 0;
+
+		/* Modify for special ammo */
+		WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, iShotCount, AOV_PROJECTILES);
 
 		/* Run through each and fire every shot count */
 		for ( i = 0; i < iShotCount; i++ )

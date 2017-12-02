@@ -9,6 +9,33 @@
 #define MAX_AMMO_NAME	32
 #define MAX_AMMO_TYPES	256
 
+typedef enum {
+	AOV_MEANS,
+	AOV_SPLASHMEANS,
+	AOV_DAMAGE,
+	AOV_DEBUFFS,
+	AOV_PROJECTILES,
+	AOV_CLIPSIZE,
+	AOV_SPLASHRANGE,
+	AOV_COLLISIONSIZE,
+	AOV_RECOIL,
+	AOV_AMMOCOST,
+	AOV_FIREDELAY,
+	AOV_BOUNCES
+} ammoOverrideTypes_t;
+
+template <typename T>
+struct ammoOverride {
+	qboolean bIsPresent;
+	qboolean bSet;
+	qboolean bAdd;
+	qboolean bMultiply;
+
+	T set;
+	T add;
+	float multiply;
+};
+
 struct ammo_t {
 	char name[MAX_AMMO_NAME];
 	char shortname[MAX_AMMO_NAME];
@@ -20,25 +47,19 @@ struct ammo_t {
 	ammo_t* pSub;	// pointer to the substitute..may point to itself!!
 
 	struct {
-		// Change means of damage on the weapon
-		qboolean overrideMeans;
-		int means;
-
-		// The interpretation of this can be a bit confusing.
-		// If modifyDamage is set but not overrideDamage, multiply damage by the modifier.
-		// If modifyDamage and overrideDamage are both set, add damage
-		// If overrideDamage is set but not modifyDamage, set the damage
-		// If neither is set, then we don't do anything to damage
-		qboolean overrideDamage;
-		qboolean modifyDamage;
-		union {
-			int damage;
-			float modifier;
-		};
-
-		// Change the debuffs? It sets, not adds.
-		qboolean changeDebuffs;
-		int newDebuffs;
+		// Should correspond to the ammoOverrideTypes_t enum
+		ammoOverride<int> means;
+		ammoOverride<int> splashmeans;
+		ammoOverride<int> damage;
+		ammoOverride<int> debuffs;
+		ammoOverride<int> projectiles;
+		ammoOverride<int> clipSize;
+		ammoOverride<double> splashRange;
+		ammoOverride<double> collisionSize;
+		ammoOverride<double> recoil;
+		ammoOverride<int> ammocost;
+		ammoOverride<int> fireDelay;
+		ammoOverride<int> bounces;
 	} overrides;
 };
 
@@ -47,6 +68,9 @@ ammo_t *BG_GetAmmo ( const char *ammoName );
 ammo_t *BG_GetAmmo ( const int ammoIndex );
 void BG_GetAllAmmoSubstitutions(int ammoIndex, std::vector<ammo_t*>& outSubs);
 bool BG_WeaponAcceptsAlternateAmmo(int weapon, int variation);
+
+void JKG_ApplyAmmoOverride(int& value, const ammoOverride<int>& field);
+void JKG_ApplyAmmoOverride(double& value, const ammoOverride<double>& field);
 
 extern ammo_t ammoTable[MAX_AMMO_TYPES];
 extern int numAmmoLoaded;

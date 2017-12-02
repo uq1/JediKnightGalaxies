@@ -1841,9 +1841,9 @@ typedef enum userinfoValidationBits_e {
 **************************************************/
 
 void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound);
-void JKG_ShieldUnequipped(gentity_t* ent);
+void Cmd_ShieldUnequipped(gentity_t* ent);
 void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber);
-void JKG_JetpackUnequipped(gentity_t* ent);
+void Cmd_JetpackUnequipped(gentity_t* ent);
 
 /**************************************************
 * jkg_team.c

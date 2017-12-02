@@ -339,7 +339,7 @@ static void JKG_UseACI_f ( void )
     cg.weaponSelect = slot;
 }
 
-static void JKG_DumpWeaponList_f ( void )
+static void Cmd_DumpWeaponList_f ( void )
 {
     char filename[MAX_QPATH];
     if ( trap->Cmd_Argc() > 1 )
@@ -361,7 +361,7 @@ static void JKG_DumpWeaponList_f ( void )
     }
 }
 
-static void JKG_PrintWeaponList_f ( void )
+static void Cmd_PrintWeaponList_f ( void )
 {
 	BG_PrintWeaponList();
 }
@@ -375,6 +375,11 @@ static void JKG_ToggleCrouch ( void )
 	}
 	cg.crouchToggled = !cg.crouchToggled;
 	cg.crouchToggleTime = cg.time;
+}
+
+static void JKG_PrintItemList(void)
+{
+	BG_PrintItemList();
 }
 
 #ifdef __AUTOWAYPOINT__
@@ -393,35 +398,34 @@ typedef struct {
 } consoleCommand_t;
 
 static consoleCommand_t	commands[] = {
+	{ "loaddeferred", CG_LoadDeferredPlayers },
+	{ "nextframe", CG_TestModelNextFrame_f },
+	{ "nextskin", CG_TestModelNextSkin_f },
+	{ "prevframe", CG_TestModelPrevFrame_f },
+	{ "prevskin", CG_TestModelPrevSkin_f },
+	{ "scoresDown", CG_scrollScoresDown_f },
+	{ "scoresUp", CG_scrollScoresUp_f },
+	{ "sizeup", CG_SizeUp_f },
+	{ "sizedown", CG_SizeDown_f },
+	{ "startcin", CG_StartCinematic },
+	{ "startOrbit", CG_StartOrbit_f },
+	{ "stopcin", CG_StopCinematic },
+	{ "tcmd", CG_TargetCommand_f },
+	{ "tell_attacker", CG_TellAttacker_f },
+	{ "tell_target", CG_TellTarget_f },
 	{ "testgun", CG_TestGun_f },
 	{ "testmodel", CG_TestModel_f },
-	{ "nextframe", CG_TestModelNextFrame_f },
-	{ "prevframe", CG_TestModelPrevFrame_f },
-	{ "nextskin", CG_TestModelNextSkin_f },
-	{ "prevskin", CG_TestModelPrevSkin_f },
+	{ "weapnext", CG_NextWeapon_f },
+	{ "weapon", CG_Weapon_f },
+	{ "weaponclean", CG_WeaponClean_f },
+	{ "weapprev", CG_PrevWeapon_f },
 	{ "viewpos", CG_Viewpos_f },
 	{ "+scores", CG_ScoresDown_f },
 	{ "-scores", CG_ScoresUp_f },
-	{ "sizeup", CG_SizeUp_f },
-	{ "sizedown", CG_SizeDown_f },
-	{ "weapnext", CG_NextWeapon_f },
-	{ "weapprev", CG_PrevWeapon_f },
-	{ "weapon", CG_Weapon_f },
-	{ "weaponclean", CG_WeaponClean_f },
-	{ "tell_target", CG_TellTarget_f },
-	{ "tell_attacker", CG_TellAttacker_f },
-	{ "tcmd", CG_TargetCommand_f },
-	//JAC - Disable spWin and spLose as they're just used to troll people.
-	//{ "spWin", CG_spWin_f },
-	//{ "spLose", CG_spLose_f },
-	{ "scoresDown", CG_scrollScoresDown_f },
-	{ "scoresUp", CG_scrollScoresUp_f },
-	{ "startOrbit", CG_StartOrbit_f },
-	//{ "camera", CG_Camera_f },
-	{ "loaddeferred", CG_LoadDeferredPlayers },
+	
+	
 	// Jedi Knight Galaxies
-	{ "startcin", CG_StartCinematic },
-	{ "stopcin", CG_StopCinematic },
+	
 	{ "+camera", CG_Start360Camera },
 	{ "-camera", CG_Stop360Camera },
 	{ "cameraZoomIn", CG_CameraZoomIn },
@@ -431,8 +435,8 @@ static consoleCommand_t	commands[] = {
 	{ "useACI", JKG_UseACI_f },
 	{ "inventory", JKG_OpenInventoryMenu_f },
 	{ "shop", JKG_OpenShopMenu_f },
-	{ "dumpWeaponList", JKG_DumpWeaponList_f },
-	{ "printWeaponList", JKG_PrintWeaponList_f },
+	{ "dumpWeaponList", Cmd_DumpWeaponList_f },
+	{ "printWeaponList", Cmd_PrintWeaponList_f },
 
 #ifdef __AUTOWAYPOINT__
 	{ "awp", AIMod_AutoWaypoint },
@@ -475,6 +479,18 @@ qboolean CG_ConsoleCommand( void ) {
 	return qfalse;
 }
 
+/*
+=================
+CG_InitConsoleCommands
+
+Let the client system know about all of our commands
+so it can perform tab completion
+=================
+*/
+
+/*
+* These commands are on the server. We are adding command completion for them on the client.
+*/
 static const char *gcmds[] = {
 	"addbot",
 	"callteamvote",
@@ -500,7 +516,6 @@ static const char *gcmds[] = {
 	"sayteam",
 	"setviewpos",
 	"stats",
-	//"stopfollow",
 	"team",
 	"teamtask",
 	"teamvote",
@@ -510,16 +525,8 @@ static const char *gcmds[] = {
 	"where",
 	"zoom"
 };
-static size_t numgcmds = ARRAY_LEN( gcmds );
+static size_t numgcmds = ARRAY_LEN(gcmds);
 
-/*
-=================
-CG_InitConsoleCommands
-
-Let the client system know about all of our commands
-so it can perform tab completion
-=================
-*/
 void CG_InitConsoleCommands( void ) {
 	int		i;
 

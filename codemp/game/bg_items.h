@@ -33,6 +33,7 @@ typedef enum jkgItemType_e
 	ITEM_CONSUMABLE,
 	ITEM_SHIELD,		// Classified as "armor" in the filter
 	ITEM_JETPACK,		// Classified as "armor" in the filter
+	ITEM_AMMO,			// Not acquirable by the player.
 
 	NUM_ITEM_TYPES
 } jkgItemType_t;
@@ -128,20 +129,21 @@ typedef struct {
 	jetpackData_t*	pJetpackData;	// Pointer to the actual jetpackData_t. Filled upon item load and copied to gclient_t/cg_t
 } itemJetpackData_t;
 
-/*
- * Visual item data
- */
+// Ammo
+typedef struct {
+	char			ref[MAX_QPATH];	// Reference to an ammoData_t
+	int				ammoIndex;		// Which ammo index of the ammo table it points to
+	int				quantity;		// How much ammo to give when getting this item
+} itemAmmoData_t;
+
+// Visual item data
 #ifndef _GAME
 typedef struct {
 	char itemIcon[MAX_QPATH];
 } itemVisualData_t;
 #endif
 
-extern int lastUsedItemID;
-
-/*
- * 
- */
+// Itemdata is the core, immutable data of an item. Two items of the same base type share the same item data.
 typedef struct {
 	//Basic Item Information
 	char displayName[MAX_ITEM_NAME];
@@ -156,19 +158,21 @@ typedef struct {
 	itemVisualData_t visuals;
 #endif
 
-	//Equipment Data
+	// Data specific to the jkgItemType
 	union {
 		itemWeaponData_t weaponData;
 		itemArmorData_t armorData;
 		itemConsumableData_t consumableData;
 		itemShieldData_t shieldData;
 		itemJetpackData_t jetpackData;
+		itemAmmoData_t ammoData;
 	};
 
 	//Stats
 	unsigned int baseCost;
 } itemData_t;
 
+// The item instance is what is kept in a player's inventory.
 typedef struct {
 	itemData_t* id;
 	int quantity;
@@ -176,7 +180,11 @@ typedef struct {
 } itemInstance_t;
 
 extern itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
+extern int lastUsedItemID;
 
+/*
+ * Functions
+ */
 itemPacketType_t BG_ItemPacketFromName(const char* szPacketName);
 const char* BG_ItemPacketName(const int itemPacket);
 itemTradePacketType_t BG_TradePacketFromName(const char* szPacketName);
@@ -192,6 +200,7 @@ int BG_FirstStack(const std::vector<itemInstance_t>& container, const int itemID
 int BG_NextStack(const std::vector<itemInstance_t>& container, const int itemID, const int prevStack);
 void BG_LoadDefaultWeaponItems(void);
 void BG_InitItems();
+void BG_PrintItemList();
 #ifdef _CGAME
 void BG_GiveItem(itemInstance_t item);
 void BG_GiveItemNonNetworked(itemInstance_t item);

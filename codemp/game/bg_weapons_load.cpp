@@ -422,17 +422,6 @@ static void BG_ParseWeaponPlayerAnimations ( weaponData_t *weaponData, cJSON *pl
 		BG_ParseAnimationObject (node, &weaponData->anims.firing.torsoAnim, &weaponData->anims.firing.legsAnim);
 	}
     
-    /*node = cJSON_GetObjectItem (playerAnimNode, "idle");
-    BG_ParseAnimationObject (node, &weaponData->torsoFiringAnimation, &weaponData->legsFiringAnimation);
-    
-    node = cJSON_GetObjectItem (playerAnimNode, "drop");
-    BG_ParseAnimationObject (node, &weaponData->torsoFiringAnimation, &weaponData->legsFiringAnimation);
-    
-    node = cJSON_GetObjectItem (playerAnimNode, "raise");
-    BG_ParseAnimationObject (node, &weaponData->torsoFiringAnimation, &weaponData->legsFiringAnimation);*/
-
-	
-    
     node = cJSON_GetObjectItem (playerAnimNode, "reload");
 	if(node)
 	{

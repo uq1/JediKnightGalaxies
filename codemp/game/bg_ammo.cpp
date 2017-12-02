@@ -118,56 +118,177 @@ qboolean BG_WeaponAcceptsAlternateAmmo(int weapon, int variation) {
 
 /*
 ============================
+JKG_ApplyAmmoOverride
+
+Applies an ammo override (if present)
+============================
+*/
+void JKG_ApplyAmmoOverride(int& value, const ammoOverride<int>& field) {
+	if (!field.bIsPresent) {
+		return;
+	}
+
+	if (field.bSet) {
+		value = field.set;
+	}
+	if (field.bAdd) {
+		value += field.add;
+	}
+	if (field.multiply) {
+		value *= field.multiply;
+	}
+}
+
+void JKG_ApplyAmmoOverride(double& value, const ammoOverride<double>& field) {
+	if (!field.bIsPresent) {
+		return;
+	}
+
+	if (field.bSet) {
+		value = field.set;
+	}
+	if (field.bAdd) {
+		value += field.add;
+	}
+	if (field.multiply) {
+		value *= field.multiply;
+	}
+}
+
+/*
+============================
+JKG_ParseAmmoOverride_Int
+
+Parses a single ammo override
+============================
+*/
+static void JKG_ParseAmmoOverride_Int(cJSON* json, const char* name, ammoOverride<int>& field) {
+	cJSON* node = cJSON_GetObjectItem(json, name);
+	if (!node) {
+		field.bIsPresent = qfalse;
+	}
+	else {
+		cJSON* child;
+
+		field.bIsPresent = qtrue;
+		field.bAdd = qfalse;
+		field.bSet = qfalse;
+		field.bMultiply = qfalse;
+
+		child = cJSON_GetObjectItem(node, "set");
+		if (child) {
+			field.bSet = qtrue;
+			field.set = cJSON_ToInteger(child);
+		}
+
+		child = cJSON_GetObjectItem(node, "add");
+		if (child) {
+			field.bAdd = qtrue;
+			field.add = cJSON_ToInteger(child);
+		}
+
+		child = cJSON_GetObjectItem(node, "multiply");
+		if (child) {
+			field.bMultiply = qtrue;
+			field.multiply = cJSON_ToNumber(child);
+		}
+	}
+}
+
+/*
+============================
+JKG_ParseAmmoOverride_Float
+
+Parses a single ammo override
+============================
+*/
+static void JKG_ParseAmmoOverride_Float(cJSON* json, const char* name, ammoOverride<double>& field) {
+	cJSON* node = cJSON_GetObjectItem(json, name);
+	if (!node) {
+		field.bIsPresent = qfalse;
+	}
+	else {
+		cJSON* child;
+
+		field.bIsPresent = qtrue;
+		field.bAdd = qfalse;
+		field.bSet = qfalse;
+		field.bMultiply = qfalse;
+
+		child = cJSON_GetObjectItem(node, "set");
+		if (child) {
+			field.bSet = qtrue;
+			field.set = cJSON_ToNumber(child);
+		}
+
+		child = cJSON_GetObjectItem(node, "add");
+		if (child) {
+			field.bAdd = qtrue;
+			field.add = cJSON_ToNumber(child);
+		}
+
+		child = cJSON_GetObjectItem(node, "multiply");
+		if (child) {
+			field.bMultiply = qtrue;
+			field.multiply = cJSON_ToNumber(child);
+		}
+	}
+}
+
+/*
+============================
+JKG_ParseAmmoOverride_Means
+
+Parses a means of death override
+============================
+*/
+static void JKG_ParseAmmoOverride_Means(cJSON* json, const char* name, ammoOverride<int>& field) {
+	cJSON* node = cJSON_GetObjectItem(json, name);
+	if (!node) {
+		field.bIsPresent = qfalse;
+	}
+	else {
+		cJSON* child;
+
+		field.bIsPresent = qtrue;
+		field.bMultiply = qfalse;
+		field.bAdd = qfalse;
+
+		child = cJSON_GetObjectItem(json, "set");
+		if (child) {
+			field.bSet = qtrue;
+			field.set = JKG_GetMeansOfDamageIndex(cJSON_ToString(child));
+		}
+		else {
+			field.bSet = qfalse;
+		}
+	}
+}
+
+/*
+============================
 JKG_ParseAmmoOverrides
 
 Overrides are things such as changing damage, effects, ...
 ============================
 */
 static void JKG_ParseAmmoOverrides(ammo_t* ammo, cJSON* json) {
-	cJSON* child;
+	// means, splashmeans, debuffs all have special handling
+	
+	JKG_ParseAmmoOverride_Means(json, "means", ammo->overrides.means);
+	JKG_ParseAmmoOverride_Means(json, "splashmeans", ammo->overrides.splashmeans);
 
-	memset(&ammo->overrides, 0, sizeof(ammo->overrides));
 
-	child = cJSON_GetObjectItem(json, "setDamage");
-	if (child) {
-		ammo->overrides.overrideDamage = qtrue;
-		ammo->overrides.modifyDamage = qfalse;
-		ammo->overrides.damage = cJSON_ToInteger(child);
-	}
-	else {
-		child = cJSON_GetObjectItem(json, "addDamage");
-		if (child) {
-			ammo->overrides.modifyDamage = qtrue;
-			ammo->overrides.overrideDamage = qtrue;
-			ammo->overrides.damage = cJSON_ToInteger(child);
-		}
-		else {
-			child = cJSON_GetObjectItem(json, "multiplyDamage");
-			if (child) {
-				ammo->overrides.modifyDamage = qtrue;
-				ammo->overrides.overrideDamage = qfalse;
-				ammo->overrides.modifier = cJSON_ToNumber(child);
-			}
-		}
-	}
+	JKG_ParseAmmoOverride_Int(json, "damage", ammo->overrides.damage);
+	JKG_ParseAmmoOverride_Int(json, "projectiles", ammo->overrides.projectiles);
+	JKG_ParseAmmoOverride_Int(json, "clipSize", ammo->overrides.clipSize);
+	JKG_ParseAmmoOverride_Float(json, "splashRange", ammo->overrides.splashRange);
+	JKG_ParseAmmoOverride_Float(json, "collisionSize", ammo->overrides.collisionSize);
+	JKG_ParseAmmoOverride_Float(json, "recoil", ammo->overrides.recoil);
+	JKG_ParseAmmoOverride_Int(json, "ammocost", ammo->overrides.ammocost);
+	JKG_ParseAmmoOverride_Int(json, "fireDelay", ammo->overrides.fireDelay);
+	JKG_ParseAmmoOverride_Int(json, "bounces", ammo->overrides.bounces);
 
-	child = cJSON_GetObjectItem(json, "setDebuffs");
-	if (child) {
-		ammo->overrides.changeDebuffs = qtrue;
-
-		for (int i = 0; i < cJSON_GetArraySize(child); i++) {
-			cJSON* arrayItem = cJSON_GetArrayItem(child, i);
-			const char* str = cJSON_ToString(arrayItem);
-
-			int num = GetIDForString(debuffTable, str);
-			if (num == -1) {
-				Com_Printf("Unknown damage type used: %s.\n", str);
-			}
-			else {
-				ammo->overrides.newDebuffs |= (1 << num);
-			}
-		}
-	}
 }
 
 /*
