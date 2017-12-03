@@ -327,13 +327,22 @@ DamagePlum
 ===========
 */
 
-void DamagePlum( gentity_t *ent, vec3_t origin, int damage ) {
+void DamagePlum( gentity_t *ent, vec3_t origin, int damage, int meansOfDeath, qboolean shield, qboolean weak ) {
+	meansOfDamage_t* means = JKG_GetMeansOfDamage(meansOfDeath);
+	
+	if (means->plums.noDamagePlums)
+	{	// this means of death has no damage plums 
+		return;
+	}
 
 	if (ent->damagePlumTime != level.time) {
 		ent->damagePlum = G_TempEntity( origin, EV_DAMAGEPLUM );
 		ent->damagePlumTime = level.time;
 	} 
 	ent->damagePlum->s.time -= damage;
+	ent->damagePlum->s.eventParm = meansOfDeath;
+	ent->damagePlum->s.generic1 = shield;
+	ent->damagePlum->s.groundEntityNum = weak;
 }
 
 /*
@@ -347,6 +356,7 @@ void HealingPlum( gentity_t *ent, vec3_t origin, int amount ) {
 	gentity_t *plum;
 	plum = G_TempEntity( origin, EV_DAMAGEPLUM );
 	plum->s.time = amount;
+	plum->s.eventParm = MOD_UNKNOWN;
 
 	if ( ent && ent->client && !ent->NPC )
 	{
@@ -4965,11 +4975,11 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		{
 			if ( !point || ( dflags & DAMAGE_RADIUS ))
 			{
-				DamagePlum(targ, targ->r.currentOrigin, ( take > targ->health ) ? targ->health : take );
+				DamagePlum(targ, targ->r.currentOrigin, ( take > targ->health ) ? targ->health : take, mod, shieldAbsorbed, take <= (damage / 4) );
 			}
 			else
 			{
-				DamagePlum(targ, point, ( take > targ->health ) ? targ->health : take );
+				DamagePlum(targ, point, ( take > targ->health ) ? targ->health : take, mod, shieldAbsorbed, take <= (damage / 4) );
 			}
 		}
 		// -----------------------

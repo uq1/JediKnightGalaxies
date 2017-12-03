@@ -2000,15 +2000,12 @@ void JKG_PMTrace( trace_t *results, const vec3_t start, const vec3_t mins, const
 gentity_t *currentPMEnt = 0;
 // Should only be called from within Pmove, if the weapon is changed
 // Call this BEFORE ps.weapon changes!
-void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation) {
+void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation, usercmd_t& cmd) {
 	gentity_t *ent = currentPMEnt;
-	usercmd_t cmd;
 	weaponData_t* newWeapon = GetWeaponData(newweapon, newvariation);
 	weaponData_t* oldWeapon = GetWeaponData(ps->weapon, ps->weaponVariation);
 	int oldWeaponIndex = BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation);
 	int newWeaponIndex = BG_GetWeaponIndexFromClass(newweapon, newvariation);
-
-	trap->GetUsercmd(ps->clientNum, &cmd);
 
 	// Determine whether our new weapon is valid.
 	int selectedWeapon = cmd.invensel;

@@ -4604,7 +4604,7 @@ PM_BeginWeaponChange
 ===============
 */
 #ifdef _GAME
-void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation);
+void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation, usercmd_t& cmd);
 void G_PM_SwitchWeaponFiringMode(playerState_t *ps, int newweapon, int newvariation);
 #endif
 void PM_BeginWeaponChange( int weaponId ) {
@@ -4735,7 +4735,7 @@ void PM_FinishWeaponChange( void ) {
 	}
 
 #ifdef _GAME	// Handle proper switching of the weapon in case we're using clips
-	G_PM_SwitchWeaponClip(pm->ps, weapon, variation);
+	G_PM_SwitchWeaponClip(pm->ps, weapon, variation, pm->cmd);
 	G_PM_SwitchWeaponFiringMode(pm->ps, weapon, variation);
 #endif
 

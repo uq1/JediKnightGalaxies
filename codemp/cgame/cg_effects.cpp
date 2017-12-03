@@ -855,11 +855,14 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 CG_ScorePlum
 ==================
 */
-void CG_DamagePlum( int client, vec3_t org, int damage ) {
+void CG_DamagePlum( int client, vec3_t org, int damage, int means, qboolean shield, qboolean low ) {
 	localEntity_t	*le;
 	refEntity_t		*re;
 	vec3_t			angles;
 	static vec3_t lastPos;
+	meansOfDamage_t* pMeans;
+
+	pMeans = JKG_GetMeansOfDamage(means);
 
 	//if (cg_scorePlum.integer == 0) {
 	//	return;
@@ -872,8 +875,46 @@ void CG_DamagePlum( int client, vec3_t org, int damage ) {
 	le->endTime = cg.time + 4000;
 	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
 
-	
-	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
+	// Override the colors if we need to.
+	// This is ignored with healing plums
+	if (shield) {
+		if (pMeans->plums.overrideShieldDamagePlum) {
+			le->color[0] = pMeans->plums.overrideShieldDamagePlumColor[0];
+			le->color[1] = pMeans->plums.overrideShieldDamagePlumColor[1];
+			le->color[2] = pMeans->plums.overrideShieldDamagePlumColor[2];
+		}
+		else {
+			le->color[0] = 17.0f;
+			le->color[1] = 255.0f;
+			le->color[2] = 255.0f;
+		}
+	}
+	else if (low) {
+		if (pMeans->plums.overrideLowDamagePlum) {
+			le->color[0] = pMeans->plums.overrideLowDamagePlumColor[0];
+			le->color[1] = pMeans->plums.overrideLowDamagePlumColor[1];
+			le->color[2] = pMeans->plums.overrideLowDamagePlumColor[2];
+		}
+		else {
+			le->color[0] = 255.0f;
+			le->color[1] = 255.0f;
+			le->color[2] = 17.0f;
+		}
+	}
+	else {
+		if (pMeans->plums.overrideDamagePlum) {
+			le->color[0] = pMeans->plums.overrideDamagePlumColor[0];
+			le->color[1] = pMeans->plums.overrideDamagePlumColor[1];
+			le->color[2] = pMeans->plums.overrideDamagePlumColor[2];
+		}
+		else {
+			le->color[0] = 255.0f;
+			le->color[1] = 255.0f;
+			le->color[2] = 17.0f;
+		}
+	}
+
+	le->color[3] = 1.0;
 	le->radius = damage;
 	
 	VectorCopy( org, le->pos.trBase );

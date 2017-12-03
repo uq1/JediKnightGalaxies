@@ -1910,7 +1910,7 @@ localEntity_t *CG_SmokePuff( const vec3_t p,
 void CG_BubbleTrail( vec3_t start, vec3_t end, float spacing );
 void CG_GlassShatter(int entnum, vec3_t dmgPt, vec3_t dmgDir, float dmgRadius, int maxShards);
 void CG_ScorePlum( int client, vec3_t org, int score );
-void CG_DamagePlum( int client, vec3_t org, int damage );
+void CG_DamagePlum( int client, vec3_t org, int damage, int means, qboolean shield, qboolean max );
 
 void CG_Chunks( int owner, vec3_t origin, const vec3_t normal, const vec3_t mins, const vec3_t maxs,
 						float speed, int numChunks, material_t chunkType, int customChunk, float baseScale );

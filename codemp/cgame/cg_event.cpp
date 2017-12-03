@@ -2133,7 +2133,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_DAMAGEPLUM:
 		DEBUGNAME("EV_DAMAGEPLUM");
-		CG_DamagePlum( cent->currentState.otherEntityNum, cent->lerpOrigin, cent->currentState.time );
+		CG_DamagePlum( cent->currentState.otherEntityNum, cent->lerpOrigin, cent->currentState.time, 
+			cent->currentState.eventParm, cent->currentState.generic1, cent->currentState.groundEntityNum );
 		break;
 
 	case EV_CTFMESSAGE:

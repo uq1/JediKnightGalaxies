@@ -15,6 +15,26 @@ std::vector<meansOfDamage_t> allMeansOfDamage;
 
 /*
 =========================
+JKG_ParseJSONColor
+=========================
+*/
+static qboolean JKG_ParseJSONColor(cJSON* json, vec4_t& color)
+{
+	if (!cJSON_IsArray(json))
+	{
+		return qfalse;
+	}
+
+	for (int i = 0; i < cJSON_GetArraySize(json) && i < 4; i++)
+	{
+		color[i] = cJSON_ToNumber(cJSON_GetArrayItem(json, i));
+	}
+
+	return qtrue;
+}
+
+/*
+=========================
 JKG_ParseSingleMeansOfDamage
 
 =========================
@@ -93,6 +113,33 @@ static void JKG_ParseSingleMeansOfDamage(const char* name, cJSON* json) {
 		else {
 			child = cJSON_GetObjectItem(jsonNode, "suicideMessage");
 			Q_strncpyz(mod.killfeed.suicideMessage.message, cJSON_ToStringOpt(child, ""), MAX_OBIT_LENGTH);
+		}
+	}
+
+	jsonNode = cJSON_GetObjectItem(json, "plums");
+	if (jsonNode) {
+		child = cJSON_GetObjectItem(jsonNode, "hide");
+		mod.plums.noDamagePlums = cJSON_ToBooleanOpt(child, 0);
+
+		child = cJSON_GetObjectItem(jsonNode, "damageColor");
+		if (child) {
+			if (JKG_ParseJSONColor(child, mod.plums.overrideDamagePlumColor)) {
+				mod.plums.overrideDamagePlum = qtrue;
+			}
+		}
+
+		child = cJSON_GetObjectItem(jsonNode, "lowDamageColor");
+		if (child) {
+			if (JKG_ParseJSONColor(child, mod.plums.overrideLowDamagePlumColor)) {
+				mod.plums.overrideLowDamagePlum = qtrue;
+			}
+		}
+
+		child = cJSON_GetObjectItem(jsonNode, "shieldDamageColor");
+		if (child) {
+			if (JKG_ParseJSONColor(child, mod.plums.overrideShieldDamagePlumColor)) {
+				mod.plums.overrideShieldDamagePlum = qtrue;
+			}
 		}
 	}
 

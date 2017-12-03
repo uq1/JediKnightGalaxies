@@ -18,6 +18,19 @@ struct meansOfDamage_t {
 	qboolean hitmarkerExplosives;
 
 	struct {
+		qboolean noDamagePlums;
+
+		qboolean overrideDamagePlum;
+		vec4_t overrideDamagePlumColor;
+
+		qboolean overrideShieldDamagePlum;
+		vec4_t overrideShieldDamagePlumColor;
+
+		qboolean overrideLowDamagePlum;
+		vec4_t overrideLowDamagePlumColor;
+	} plums;
+
+	struct {
 		qboolean ignoreArmor;
 		qboolean ignoreShield;
 		float armor;

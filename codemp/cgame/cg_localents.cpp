@@ -445,9 +445,9 @@ void CG_AddDamagePlum( localEntity_t *le ) {
 		re->shaderRGBA[2] = 0x11;
 	} else {
 		// Show it as red if we sustained damage
-		re->shaderRGBA[0] = 0xff;
-		re->shaderRGBA[1] = 0x11;
-		re->shaderRGBA[2] = 0x11;
+		re->shaderRGBA[0] = le->color[0];
+		re->shaderRGBA[1] = le->color[1];
+		re->shaderRGBA[2] = le->color[2];
 	}
 	
 	if (c < 0.25)

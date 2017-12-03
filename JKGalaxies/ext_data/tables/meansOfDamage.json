@@ -56,6 +56,10 @@
 			"suicideMessageMale": "@MP_INGAME_SUICIDE_GENERICDEATH_MALE",
 			"suicideMessageFemale": "@MP_INGAME_SUICIDE_GENERICDEATH_FEMALE",
 			"suicideMessageNeuter":	"@MP_INGAME_SUICIDE_GENERICDEATH_GENDERLESS"
+		},
+
+		"plums": {
+			"hide": true
 		}
 	},
 	
@@ -179,6 +183,10 @@
 			"suicideMessageMale": "@MP_INGAME_SUICIDE_GENERICDEATH_MALE",
 			"suicideMessageFemale": "@MP_INGAME_SUICIDE_GENERICDEATH_FEMALE",
 			"suicideMessageNeuter":	"@MP_INGAME_SUICIDE_GENERICDEATH_GENDERLESS"
+		},
+
+		"plums": {
+			"hide": true
 		}
 	},
 
@@ -459,6 +467,12 @@
 			"suicideMessageMale": "@JKG_INGAME_SUICIDE_FROZEN_MALE",
 			"suicideMessageFemale": "@JKG_INGAME_SUICIDE_FROZEN_FEMALE",
 			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_FROZEN_GENDERLESS"
+		},
+
+		"plums": {
+			"damageColor": [ "11", "11", "255" ],
+			"lowDamageColor": [ "11", "11", "255" ],
+			"shieldDamageColor": [ "11", "11", "255" ]
 		}
 	},
 
@@ -479,6 +493,12 @@
 			"suicideMessageMale": "@JKG_INGAME_SUICIDE_IGNITED_MALE",
 			"suicideMessageFemale": "@JKG_INGAME_SUICIDE_IGNITED_FEMALE",
 			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_IGNITED_GENDERLESS"
+		},
+
+		"plums": {
+			"damageColor": [ "255", "169", "65" ],
+			"lowDamageColor": [ "255", "169", "65" ],
+			"shieldDamageColor": [ "255", "169", "65" ]
 		}
 	},
 
@@ -552,6 +572,12 @@
 			"suicideMessageMale": "@JKG_INGAME_SUICIDE_FROZEN_MALE",
 			"suicideMessageFemale": "@JKG_INGAME_SUICIDE_FROZEN_FEMALE",
 			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_FROZEN_GENDERLESS"
+		},
+
+		"plums": {
+			"damageColor": [ "255", "255", "255" ],
+			"lowDamageColor": [ "255", "255", "255" ],
+			"shieldDamageColor": [ "255", "255", "255" ]
 		}
 	},
 
@@ -565,6 +591,12 @@
 			"suicideMessageMale": "@JKG_INGAME_SUICIDE_CARBONITE_MALE",
 			"suicideMessageFemale": "@JKG_INGAME_SUICIDE_CARBONITE_FEMALE",
 			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_CARBONITE_GENDERLESS"
+		},
+
+		"plums": {
+			"damageColor": [ "255", "255", "255" ],
+			"lowDamageColor": [ "255", "255", "255" ],
+			"shieldDamageColor": [ "255", "255", "255" ]
 		}
 	},
 
@@ -585,6 +617,12 @@
 			"suicideMessageMale": "@JKG_INGAME_SUICIDE_IGNITED_MALE",
 			"suicideMessageFemale": "@JKG_INGAME_SUICIDE_IGNITED_FEMALE",
 			"suicideMessageNeuter": "@JKG_INGAME_SUICIDE_IGNITED_GENDERLESS"
+		},
+
+		"plums": {
+			"damageColor": [ "255", "169", "65" ],
+			"lowDamageColor": [ "255", "169", "65" ],
+			"shieldDamageColor": [ "255", "169", "65" ]
 		}
 	},
 
@@ -612,6 +650,11 @@
 			"killMessage": "@JKG_INGAME_KILLED_BLEEDING",
 			"deathMessage": "@JKG_INGAME_DIED_BLEEDING",
 			"suicideMessage": "@JKG_INGAME_SUICIDE_BLEEDING"
+		},
+
+		"plums": {
+			"damageColor": [ "255", "120", "200" ],
+			"lowDamageColor": [ "255", "120", "200" ]
 		}
 	},
 	
@@ -630,6 +673,11 @@
 			"killMessage": "@JKG_INGAME_KILLED_POISONED",
 			"deathMessage": "@JKG_INGAME_DIED_POISONED",
 			"suicideMessage": "@JKG_INGAME_SUICIDE_POISONED"
+		},
+
+		"plums": {
+			"damageColor": [ "15", "81", "22" ],
+			"lowDamageColor": [ "15", "81", "22" ]
 		}
 	}
 }
