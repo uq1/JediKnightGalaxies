@@ -653,8 +653,8 @@
 		},
 
 		"plums": {
-			"damageColor": [ "255", "120", "200" ],
-			"lowDamageColor": [ "255", "120", "200" ]
+			"damageColor": [ "99", "7", "7" ],
+			"lowDamageColor": [ "99", "7", "7" ]
 		}
 	},
 	
@@ -676,8 +676,8 @@
 		},
 
 		"plums": {
-			"damageColor": [ "15", "81", "22" ],
-			"lowDamageColor": [ "15", "81", "22" ]
+			"damageColor": [ "133", "25", "169" ],
+			"lowDamageColor": [ "133", "25", "169" ]
 		}
 	}
 }

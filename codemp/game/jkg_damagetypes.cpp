@@ -364,12 +364,13 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
     
 	// Iterate through all of the damage types to check for periodic effects
     for ( i = 0; i < NUM_DAMAGE_TYPES; i++ )
-    {
+   {
         damageType_t damageType = (damageType_t)i;
 		int take = damageTypeData[damageType].damage;
 		int flags = damageTypeData[damageType].damageFlags | DAMAGE_NO_KNOCKBACK;	// Damage from debuffs never inflicts knockback
 		int interval = damageTypeData[damageType].damageInterval;
 		bool removeType = (ent->client->damageTypeTime[i] + damageTypeData[i].debuffLifeTime) < level.time;
+		bool scaleDmg = false;	//if damage done should be scaled based on max health
 		int means = MOD_UNKNOWN;
 		vec3_t p;
 
@@ -393,6 +394,7 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 					removeType = true;
 				}
 				break;
+
 			case DT_FREEZE:
 				means = JKG_GetMeansOfDamageIndex("MOD_FROZEN");
 
@@ -403,13 +405,16 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 					removeType = true;
 				}
 				break;
+
 			case DT_BLEED:
 				means = JKG_GetMeansOfDamageIndex("MOD_BLEEDING");
 
 				// Damage -and- interval both get scaled as a percentage of overall health
 				take *= Q_max(health / (float)maxHealth, 0.25f);
 				interval /= Q_max(health / (float)maxHealth, 0.25f);
+				scaleDmg = true;
 				break;
+
 			case DT_POISON:
 				// FIXME: this doesn't have an associated meansOfDamage entry!!!
 				means = JKG_GetMeansOfDamageIndex("MOD_POISONED");
@@ -418,7 +423,9 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 				// So instead of doing 5 damage, it does 5% of your current health.
 				// At 100 hp it does 5 damage, at 50 hp it does 3 damage.
 				take = Q_max(health * (take / 100.0f), 1);
+				scaleDmg = true;
 				break;
+
 			default:
 				break;
 		}
@@ -431,23 +438,29 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 		}
 
 		// Scale the damage that we take as being a percentage of overall health.
-		take = take * 100.0f / maxHealth;
+		if(scaleDmg)
+			take = take * 100.0f / maxHealth;
 
 		// Only allow debuffs to whittle us down to 1 HP, not kill us
-		if (health - take <= 0) {
+		if (health - take <= 0) 
+		{
 			take = 0;
 		}
 
 		// Do the damage and special effects related to the debuff
-		if (ent->client->damageTypeLastEffectTime[i] + interval <= level.time) {
+		if (ent->client->damageTypeLastEffectTime[i] + interval <= level.time) 
+		{
 			ent->client->damageTypeLastEffectTime[i] = level.time;
-			if (take > 0) {
+			if (take > 0) 
+			{
 				G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, take, flags, means);
 
-				if (damageType == DT_BLEED) {
+				if (damageType == DT_BLEED) 
+				{
 					// spurt blood -- should be done on the client? -- make this nicer and spurt blood from where we got hit
 					G_PlayEffectID(G_EffectIndex("blood/Blood_WoundBig"), ent->s.origin, ent->s.angles);
 				}
+				//TODO: add additional damagetype effects, eg: poison "splotches" for DT_POISON etc
 			}
 		}
     }
