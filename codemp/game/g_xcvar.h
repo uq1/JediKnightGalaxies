@@ -190,5 +190,6 @@ XCVAR_DEF( jkg_safeTreasureClasses,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH,			
 XCVAR_DEF( jkg_removenpcbody,			"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
 XCVAR_DEF( jkg_removenpctime_default,	"10000",		NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
 XCVAR_DEF( jkg_removenpctime_droid,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
+XCVAR_DEF( jkg_allowDebuffKills,		"1",			NULL,				CVAR_ARCHIVE,									true )
 
 #undef XCVAR_DEF

@@ -45,14 +45,14 @@ static struct
 } damageTypeData[] = {
     { DT_DISINTEGRATE,  0,									0,          0,      0		},
     { DT_EXPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},
-    { DT_FIRE,          0,									10000,      2,      1000	},
-    { DT_FREEZE,        0,									500,        2,      1000	},
+    { DT_FIRE,          DAMAGE_NO_HIT_LOC|DAMAGE_NO_SELF_PROTECTION,					10000,      2,      1000	},
+    { DT_FREEZE,        DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	500,        2,      1000	},
     { DT_IMPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},	// Not used.
     { DT_STUN,          0,									2000,       0,      0		},
-    { DT_CARBONITE,     0,									4000,       2,      1000	},
+    { DT_CARBONITE,     DAMAGE_NO_HIT_LOC,					4000,       2,      1000	},
 	{ DT_BLEED,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	5000,		4,		1000	},
-	{ DT_COLD,			0,									5000,		0,		0		},
-	{ DT_POISON,		DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	7000,		5,		1000	}
+	{ DT_COLD,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	5000,		0,		0		},
+	{ DT_POISON,		DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC|DAMAGE_NO_SELF_PROTECTION,	7000,		5,		1000	}
 };
 
 void JKG_RemoveDamageType(gentity_t *ent, damageType_t type);
@@ -364,7 +364,7 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
     
 	// Iterate through all of the damage types to check for periodic effects
     for ( i = 0; i < NUM_DAMAGE_TYPES; i++ )
-   {
+    {
         damageType_t damageType = (damageType_t)i;
 		int take = damageTypeData[damageType].damage;
 		int flags = damageTypeData[damageType].damageFlags | DAMAGE_NO_KNOCKBACK;	// Damage from debuffs never inflicts knockback
@@ -441,10 +441,28 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 		if(scaleDmg)
 			take = take * 100.0f / maxHealth;
 
-		// Only allow debuffs to whittle us down to 1 HP, not kill us
-		if (health - take <= 0) 
+		//do we allow debuffs to kill stuff?
+		switch (jkg_allowDebuffKills.integer)
 		{
-			take = 0;
+			// Only allow debuffs to whittle us down to 1 HP, not kill us
+			case 0:
+				if (health - take <= 0)
+					take = 0;
+				break;
+
+			//debuffs are deadly
+			case 1:
+				break;
+
+			/* Futuza TODO: add in flags
+			//fire, poison, freeze/carbonite will kill, but others don't (like bleed)
+			case 2:
+				break;
+			*/
+
+			//debuffs are deadly
+			default:
+				break;
 		}
 
 		// Do the damage and special effects related to the debuff

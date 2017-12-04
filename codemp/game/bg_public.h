@@ -1884,7 +1884,7 @@ double QuinticBezierInterpolate(double phase, double p0, double p1, double p2, d
 // Bit of damage types stuff here...
 typedef enum damageType_e
 {
-    DT_DISINTEGRATE,
+    DT_DISINTEGRATE, //--futuza note: DT_IMPLOSION, DT_BLASTER, DT_SLUG, DT_ACP, DT_PULSE, DT_ION, DT_SONIC and DT_COLD are not currently used
     DT_EXPLOSION,
     DT_FIRE,
     DT_FREEZE,
