@@ -3070,6 +3070,11 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 
 	s->number = ps->clientNum;
 
+	for (i = 0; i < MAX_ARMOR; i++)
+	{
+		s->armor[i] = ps->armor[i];
+	}
+
 	s->pos.trType = TR_LINEAR_STOP;
 	VectorCopy( ps->origin, s->pos.trBase );
 	if ( snap ) {
@@ -3211,6 +3216,7 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	s->damageTypeFlags = ps->damageTypeFlags;
 	s->freezeLegsAnim = ps->freezeLegsAnim;
 	s->freezeTorsoAnim = ps->freezeTorsoAnim;
+	s->jetpack = ps->jetpack;
 
 //	s->sprintTime = ps->sprintTime;
 }
