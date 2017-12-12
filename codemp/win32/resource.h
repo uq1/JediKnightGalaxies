@@ -4,7 +4,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by JK2cgame.rc
 //
-#define VERSION_MINOR_RELEASE           0
+#define VERSION_MINOR_RELEASE           3
 #define VERSION_INTERNAL_BUILD          0
 #define IDS_STRING1                     1
 #define IDI_ICON1                       1
