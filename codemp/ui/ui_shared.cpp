@@ -3333,8 +3333,6 @@ qboolean Item_OwnerDraw_HandleKey(itemDef_t *item, int key)
 	return qfalse;
 }
 
-extern void JKG_Inventory_Arrow ( char **args );
-
 qboolean Item_ListBox_HandleKey(itemDef_t *item, int key, qboolean down, qboolean force) {
 	listBoxDef_t *listPtr = item->typeData.listbox;
 	int count = DC->feederCount(item->special);
@@ -4845,14 +4843,24 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 		return;
 	}
 
+#ifdef UI_EXPORTS
 	// Scrollwheel support for inventory --eez
-#ifdef _UI
-	if (Q_stricmp(menu->window.name, "jkg_inventory") == 0) {
-		if (key == A_MWHEELDOWN) {
-			JKG_Inventory_ArrowUp(nullptr);
+	if (key == A_MWHEELDOWN || key == A_MWHEELUP)
+	{
+		if (Q_stricmp(menu->window.name, "jkg_inventory") == 0)
+		{
+			if (key == A_MWHEELDOWN)
+			{
+				JKG_Inventory_ArrowDown(nullptr);
+			}
+			else
+			{
+				JKG_Inventory_ArrowUp(nullptr);
+			}
 		}
-		else if (key == A_MWHEELUP) {
-			JKG_Inventory_ArrowDown(nullptr);
+		else if (Q_stricmp(menu->window.name, "jkg_shop") == 0)
+		{
+			JKG_ScrollShop(key == A_MWHEELUP, DC->cursorx, DC->cursory);
 		}
 	}
 #endif

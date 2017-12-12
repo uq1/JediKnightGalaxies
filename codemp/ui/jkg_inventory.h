@@ -66,3 +66,4 @@ void JKG_Shop_SortSelectionPrice(itemDef_t* item, int ownerDrawID);
 void JKG_Shop_BuyItem(char** args);
 void JKG_Shop_SellItem(char** args);
 void JKG_Shop_Closed(char** args);
+void JKG_ScrollShop(qboolean bUp, int nMouseX, int nMouseY);

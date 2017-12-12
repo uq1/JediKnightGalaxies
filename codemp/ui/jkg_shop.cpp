@@ -227,6 +227,49 @@ void JKG_ShopArrow(char** args) {
 	JKG_ConstructShopLists();
 }
 
+// The action that occurs when scrolling with the mouse wheel
+void JKG_ScrollShop(qboolean bUp, int nMouseX, int nMouseY)
+{
+	int* ptScroll;
+	int nTotal;
+	int nCount;
+
+	if (bUp)
+	{
+		nCount = -1;
+	}
+	else
+	{
+		nCount = 1;
+	}
+
+	if (nMouseX < SCREEN_WIDTH / 2)
+	{
+		// scrolling the left side - the inventory side
+		ptScroll = (int*)&nInventoryScroll;
+		nTotal = nNumberInventoryItems;
+	}
+	else
+	{
+		// scrolling the right side - the shop side
+		ptScroll = (int*)&nShopScroll;
+		nTotal = nNumberShopItems;
+	}
+
+	if (*ptScroll + nCount < 0)
+	{
+		*ptScroll = 0;
+	}
+	else if (*ptScroll + nCount >= nTotal && nTotal > 0)
+	{
+		*ptScroll = nTotal - 1;
+	}
+	else
+	{
+		*ptScroll = *ptScroll + nCount;
+	}
+}
+
 //
 // The icon that shows up for each item button
 // 
