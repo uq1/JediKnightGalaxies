@@ -2853,7 +2853,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 				{
 					goto defaultCmd;
 				}
-				if((*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id)
+				if((*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id && (*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id->itemType == ITEM_WEAPON)
 				{
 					if(cg.holsterState && 
 						(*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id->weaponData.weapon != WP_SABER)
