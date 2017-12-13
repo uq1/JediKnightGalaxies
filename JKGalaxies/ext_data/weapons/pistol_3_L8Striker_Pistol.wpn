@@ -6,8 +6,8 @@
     "description":      "@JKG_ITEMS_pistol_L8Striker_Pistol",
     
     "visual": {
-        "viewmodel":        "models/weapons/l8striker_pistol/blaster_pistol.md3",
-        "worldmodel":       "models/weapons/l8striker_pistol/blaster_pistol_w.glm",
+        "viewmodel":        "models/weapons/l8striker_pistol/viewmodel.md3",
+        "worldmodel":       "models/weapons/l8striker_pistol/model.glm",
         "hudicon":          "models/weapons/l8striker_pistol/icon_rusty",
         "hudnaicon":        "models/weapons/l8striker_pistol/icon_rusty",
         "selectsound":      "sound/weapons/select_pistol.wav",
@@ -18,8 +18,8 @@
             "firemode":     "models/weapons/l8striker_pistol/firemode"
         },
         
-        "gunposition":      "12.0 -3.0 -4.3",
-        "ironsightsposition": "12.0 -0.3 -3.9",
+        "gunposition":      "11.0 -3.0 -4.8",
+        "ironsightsposition": "11.0 0.0 -4.0",
         "ironsightsfov": "72",
     
         "firemode0": {
@@ -53,13 +53,16 @@
             "miss":         { "impactfx": "blasters/yellow_impacttiny" },
             "hit":          { "impactfx": "blasters/yellow_impacttiny" },
             "deathfx": "blasters/shot_White_vaporize",
-	    "displayName":  "Regular"
+	    "displayName":  "Sting"
         }
     },
     
     "stats": {
         "slot":         2,
         "reloadtime":   1000,
+        "ammoIndex":         "powerpak",
+        "ammoOnSpawn":   80,
+        "ammoOnPickup":   16,
         "clipSize":              8,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
@@ -78,12 +81,12 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BRYAR_PISTOL",
-	"ammobase": "AMMO_AA_POWERPAK",
-	"ammodefault": "AMMO_AA_POWERPAK"
+		"ammobase": "AMMO_AA_POWERPAK",
+		"ammodefault": "AMMO_AA_POWERPAK"
     },
     
     "firemode1": {
-        "damage":       20,
+			"damage":       20,
         "ammocost":     1,
         "firedelay":    200,
         "firingtype":   "semi",
@@ -93,12 +96,12 @@
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
-	"ammobase": "AMMO_AA_POWERPAK",
-	"ammodefault": "AMMO_AA_POWERPAK",
-	"accuracy": {
-		"accuracyRating": 11,
-		"sightsModifier": 0.2
-	}
+		"ammobase": "AMMO_AA_POWERPAK",
+		"ammodefault": "AMMO_AA_POWERPAK",
+		"accuracy": {
+			"accuracyRating": 11,
+			"sightsModifier": 0.2
+		}
     },
     
     "playeranims": {
