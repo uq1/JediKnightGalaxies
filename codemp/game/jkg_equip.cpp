@@ -35,6 +35,7 @@ void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound
 	ent->client->shieldEquipped = qtrue;
 	ent->client->shieldRechargeLast = ent->client->shieldRegenLast = level.time;
 	ent->client->shieldRechargeTime = item->id->shieldData.cooldown;
+	ent->client->shieldRecharging = qfalse;
 	ent->client->shieldRegenTime = item->id->shieldData.regenrate;
 
 	if (playSound && item->id->shieldData.equippedSoundEffect[0]) {
@@ -60,6 +61,7 @@ void Cmd_ShieldUnequipped(gentity_t* ent) {
 	ent->client->ps.stats[STAT_MAX_SHIELD] = 0;
 	ent->client->shieldEquipped = qfalse;
 	ent->client->shieldRechargeLast = ent->client->shieldRegenLast = level.time;
+	ent->client->shieldRecharging = qfalse;
 	ent->client->shieldRegenTime = ent->client->shieldRechargeTime = 0;
 }
 

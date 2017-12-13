@@ -4936,6 +4936,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		
 		if (targ->client) {
 			targ->client->shieldRechargeLast = targ->client->shieldRegenLast = level.time;
+			targ->client->shieldRecharging = qfalse;
 
 			// Break the shield if it's dead
 			if (targ->client->ps.stats[STAT_SHIELD] <= 0) {

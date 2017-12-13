@@ -2158,8 +2158,9 @@ void ClientThink_real( gentity_t *ent ) {
 				ent->client->shieldRegenLast = level.time + ent->client->shieldRegenTime;
 			}
 
-			if (ent->client->shieldRechargeLast + ent->client->shieldRechargeTime >= level.previousTime) {
+			if (!ent->client->shieldRecharging) {
 				// In the previous frame, our shield was not recharging
+				ent->client->shieldRecharging = qtrue;
 
 				// Play the sound effect for the shield recharging, if one exists
 				for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {

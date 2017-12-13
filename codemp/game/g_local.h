@@ -1018,6 +1018,7 @@ struct gclient_s {
 	int			shieldRegenTime;
 	int			shieldRechargeLast;
 	int			shieldRegenLast;
+	qboolean	shieldRecharging;	// to make sure that the shield sound doesn't play twice
 	itemJetpackData_t* pItemJetpack;
 
 	int		ammoTable[MAX_AMMO_TYPES];		// Max ammo indices increased to JKG_MAX_AMMO_INDICES
