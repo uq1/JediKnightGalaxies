@@ -179,7 +179,7 @@ typedef struct {
 	bool equipped;
 } itemInstance_t;
 
-extern itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
+extern itemData_t* itemLookupTable;
 extern int lastUsedItemID;
 
 /*
@@ -200,6 +200,7 @@ int BG_FirstStack(const std::vector<itemInstance_t>& container, const int itemID
 int BG_NextStack(const std::vector<itemInstance_t>& container, const int itemID, const int prevStack);
 void BG_LoadDefaultWeaponItems(void);
 void BG_InitItems();
+void BG_ShutdownItems();
 void BG_PrintItemList();
 #ifdef _CGAME
 void BG_GiveItem(itemInstance_t item);

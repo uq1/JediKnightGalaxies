@@ -701,6 +701,9 @@ void G_ShutdownGame( int restart ) {
 		BotAIShutdown( restart );
 	}
 
+	BG_ShutdownItems();
+	BG_ShutdownWeapons();
+
 	NPC_Cleanup();
 #ifndef NO_CRYPTOGRAPHY
 	EVP_cleanup();

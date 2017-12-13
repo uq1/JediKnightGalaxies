@@ -51,7 +51,7 @@ weaponAmmo_t xweaponAmmo [] =
 	{ AMMO_DETPACK		, 0		, 0		, 10	}
 };
 
-static weaponData_t weaponDataTable[MAX_WEAPON_TABLE_SIZE];
+weaponData_t* weaponDataTable;
 static unsigned int numLoadedWeapons;
 static unsigned int numWeapons[MAX_WEAPONS];
 
@@ -275,6 +275,13 @@ void BG_AddWeaponData ( weaponData_t *weaponData )
 void BG_InitializeWeapons ( void )
 {
     weaponData_t predefinedWeapons;
+
+	weaponDataTable = (weaponData_t*)malloc(sizeof(weaponData_t) * MAX_WEAPON_TABLE_SIZE);
+	if (weaponDataTable == nullptr)
+	{
+		Com_Error(ERR_FATAL, "couldn't allocate memory for weapon data table...");
+		return;
+	}
     
     //BG_InitializeAmmo();
     numLoadedWeapons = 0;
@@ -300,6 +307,14 @@ void BG_InitializeWeapons ( void )
         #endif
         return;
     }
+}
+
+void BG_ShutdownWeapons()
+{
+	if (weaponDataTable != nullptr)
+	{
+		free(weaponDataTable);
+	}
 }
 
 qboolean BG_DumpWeaponList ( const char *filename )

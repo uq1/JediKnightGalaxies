@@ -509,6 +509,7 @@ typedef enum
 /* This is the main function to get weapon data for each variation */
 void            BG_InitializeWeapons ( void );
 void            BG_InitializeWeaponData ( weaponData_t *weaponData );
+void			BG_ShutdownWeapons();
 qboolean        BG_WeaponVariationExists ( unsigned int weaponId, unsigned int variation );
 int             BG_GetWeaponIndex ( unsigned int weapon, unsigned int variation );
 qboolean        BG_GetWeaponByIndex ( int index, int *weapon, int *variation );

@@ -8,7 +8,7 @@
 #endif
 #include <json/cJSON.h>
 
-itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
+itemData_t* itemLookupTable;
 
 const stringID_table_s itemPacketNames[] = {
 	ENUM2STRING(IPT_ADD),
@@ -1260,10 +1260,31 @@ Starts the loading process
 ====================
 */
 void BG_InitItems() {
+	itemLookupTable = (itemData_t*)malloc(sizeof(itemData_t) * MAX_ITEM_TABLE_SIZE);
+	if (itemLookupTable == nullptr)
+	{
+		Com_Error(ERR_DROP, "could not allocate memory for items...");
+		return;
+	}
+
 	memset(itemLookupTable, 0, sizeof(itemLookupTable));
 
 	if (BG_LoadItems() == false) {
 		Com_Error(ERR_DROP, "could not load items...");
 		return;
+	}
+}
+
+/*
+=====================
+BG_ShutdownItems
+
+Frees the memory associated with items
+=====================
+*/
+void BG_ShutdownItems() {
+	if (itemLookupTable != nullptr)
+	{
+		free(itemLookupTable);
 	}
 }

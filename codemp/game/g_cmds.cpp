@@ -579,18 +579,7 @@ Cmd_KnockMeDown_f
 void Cmd_KnockMeDown_f(gentity_t* ent) {
 	if (BG_KnockDownable(&ent->client->ps))
 	{
-		ent->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
-		ent->client->ps.forceDodgeAnim = 0;
-		if (trap->Argc() > 1)
-		{
-			ent->client->ps.forceHandExtendTime = level.time + 1100;
-			ent->client->ps.quickerGetup = qfalse;
-		}
-		else
-		{
-			ent->client->ps.forceHandExtendTime = level.time + 700;
-			ent->client->ps.quickerGetup = qtrue;
-		}
+		G_Knockdown(ent, ent, ent->s.origin, 10.0, qtrue);
 	}
 }
 
@@ -746,7 +735,7 @@ Looks up a range of items and prints them in a list.
 Ideally a GM or admin-only command
 ==================
 */
-extern itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
+
 void Cmd_ItemLookup_f(gentity_t *ent)
 {
 	unsigned int i;
