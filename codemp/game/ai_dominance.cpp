@@ -3139,7 +3139,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 	//int destwp = -1;
 	float distthen, distnow;
 
-	if(!bs->wpCurrent || bs->wpCurrent <= 0)
+	if(!bs->wpCurrent || bs->wpCurrent <= (wpobject_t*)0)
 	{////ok, we just did something other than wp navigation.  find the closest wp.
 		findwp = qtrue;
 		//trap->Print("(!bs->wpCurrent || bs->wpCurrent <= 0)\n");
