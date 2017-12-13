@@ -4240,7 +4240,10 @@ void NPC_Spawn_f( gentity_t *ent )
 {
 	char	npc_type[1024];
 	char	targetname[1024];
+	char	treasureclass[64];
 	qboolean	isVehicle = qfalse;
+	qboolean	isVendor = qfalse;
+	gentity_t* npc;
 
 	trap->Argv(2, npc_type, 1024);
 	if ( Q_stricmp( "vehicle", npc_type ) == 0 )
@@ -4249,12 +4252,24 @@ void NPC_Spawn_f( gentity_t *ent )
 		trap->Argv(3, npc_type, 1024);
 		trap->Argv(4, targetname, 1024);
 	}
+	else if (Q_stricmp("vendor", npc_type) == 0)
+	{
+		isVendor = qtrue;
+		trap->Argv(3, npc_type, 1024);
+		trap->Argv(4, treasureclass, 64);
+		trap->Argv(5, targetname, 1024);
+	}
 	else
 	{
 		trap->Argv(3, targetname, 1024);
 	}
 
-	NPC_SpawnType( ent, npc_type, targetname, isVehicle );
+	npc = NPC_SpawnType( ent, npc_type, targetname, isVehicle );
+
+	if (isVendor)
+	{
+		JKG_MakeNPCVendor(npc, treasureclass);
+	}
 }
 
 /*

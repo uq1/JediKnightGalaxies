@@ -630,7 +630,7 @@ void NPC_Touch(gentity_t *self, gentity_t *other, trace_t *trace)
 			NPCInfo->aiFlags |= NPCAI_TOUCHED_GOAL;
 		}
 
-		if( /*!(self->svFlags&SVF_LOCKEDENEMY) && !(self->svFlags&SVF_IGNORE_ENEMIES) &&*/ !(other->flags & FL_NOTARGET) )
+		if( !NPC->bVendor && !(other->flags & FL_NOTARGET) )
 		{
 			if ( self->client->enemyTeam )
 			{//See if we bumped into an enemy

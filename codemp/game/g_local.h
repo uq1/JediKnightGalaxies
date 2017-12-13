@@ -1884,6 +1884,10 @@ void G_UpdateCvars( void );
 **************************************************/
 void JKG_SP_target_vendor(gentity_t *ent);
 void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activator);
+void JKG_MakeNPCVendor(gentity_t* ent, char* szTreasureClassName);
+void JKG_GenericVendorUse(gentity_t* self, gentity_t* other, gentity_t* activator);
+void JKG_RegenerateStock(gentity_t* ent);
+
 
 /**************************************************
 * jkg_treasureclass.cpp

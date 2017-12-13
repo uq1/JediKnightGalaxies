@@ -193,3 +193,87 @@ void JKG_SP_target_vendor(gentity_t *ent) {
 	ent->genericValue1 = targetVendor->s.number;
 	targetVendor->genericValue1 = ENTITYNUM_NONE;
 }
+
+/*
+====================
+JKG_MakeNPCVendor
+
+Makes an NPC into a vendor (with the designated treasure class)
+====================
+*/
+void JKG_MakeNPCVendor(gentity_t* ent, char* szTreasureClassName)
+{
+	szTreasureClassName = Q_strlwr(szTreasureClassName);
+
+	Q_strncpyz(ent->treasureclass, szTreasureClassName, sizeof(ent->treasureclass));
+
+	ent->use = JKG_GenericVendorUse;
+	ent->r.svFlags |= SVF_PLAYER_USABLE;
+	ent->flags |= FL_GODMODE;
+	ent->flags |= FL_NOTARGET;
+	ent->flags |= FL_NO_KNOCKBACK;
+	ent->bVendor = true;
+	ent->s.seed = Q_irand(0, QRAND_MAX - 1);
+
+	JKG_RegenerateStock(ent);
+}
+
+/*
+====================
+JKG_GenericVendorUse
+
+Gets called when a vendor (spawned vendor, not placed with map) is used.
+====================
+*/
+void JKG_GenericVendorUse(gentity_t* self, gentity_t* other, gentity_t* activator)
+{
+	self->genericValue1 = other->s.number;
+
+	if (self->s.eType == ET_NPC)
+	{
+		NPC_FaceEntity(activator, qfalse);
+
+		if (self->client->NPC_class == CLASS_TRAVELLING_VENDOR)
+			self->NPC->walkDebounceTime = level.time + 60000; // UQ1: Wait 60 seconds before moving...
+	}
+
+	BG_SendTradePacket(IPT_TRADEOPEN, activator, self, &(*self->inventory)[0], self->inventory->size(), 0);
+}
+
+/*
+====================
+JKG_RegenerateStock
+
+Regenerates the stock of a vendor (generic)
+====================
+*/
+void JKG_RegenerateStock(gentity_t* ent)
+{
+	TreasureClass* pTC = nullptr;
+	vector<int> items;
+	auto tc = umTreasureClasses.find(ent->treasureclass);
+
+	if (tc == umTreasureClasses.end()) {
+		Com_Printf("couldn't find vendor treasure class: %s\n", ent->treasureclass);
+		return;
+	}
+	pTC = tc->second;
+
+	// Use the treasure class to pick items
+	ent->s.seed = Q_irand(0, 10000); // temp
+	ent->inventory->clear();
+	pTC->Pick(items, ent->s.seed);
+
+	// Add the items that we've picked to the vendor's inventory
+	for (auto it = items.begin(); it != items.end(); ++it) {
+		itemInstance_t item = BG_ItemInstance(*it, 1);
+		BG_GiveItemNonNetworked(ent, item);
+	}
+
+	// If the vendor has a client using it, we need to make sure to update that client
+	if (ent->genericValue1 != ENTITYNUM_NONE) {
+		gentity_t* patron = &g_entities[ent->genericValue1];
+		BG_SendTradePacket(IPT_TRADE, patron, ent, &(*ent->inventory)[0], ent->inventory->size(), 0);
+	}
+
+}

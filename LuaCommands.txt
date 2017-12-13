@@ -286,9 +286,6 @@ player:ModifyAmmo(ammotype:string, amount:number):nil - adds to, rather than set
 player:GetCurrentGunAmmoType():number - retrieves the ammo ID of the currently equipped weapon
 player:GetGunAmmoType(weapon:number, variation: number):number - retrieves the ammo ID of the weapon/variation given (NOTE: I have no clue why I put this in player/ply...)--eez
 
-player:GetWeapon(??? ???):number - TODO
-player:SetWeapon(??? ???):number - TODO
-
 player:PossessingItem(itemid:number):bool - returns true if we are possessing the item, returns false otherwise
 player:PossessingWeapon(weapon: number, variation:number):bool - returns true if we are possessing this weapon in our inventory, returns false otherwise
 
@@ -298,3 +295,31 @@ player:GetAdminAccount():string - Gets our current admin account
 player:ExecuteChatCommand(command:string):nil - Executes a chat command (such as /me). This includes Lua commands!
 
 --------------------------------------------------------------------------------------------------------
+
+	NPCs Library:
+
+--------------------------------------------------------------------------------------------------------
+
+NPC Class:
+
+NPC:GetTable():table - Returns a table with all variables assigned to this NPC.
+NPC:GetID():number - Returns this NPC's ID.
+NPC:IsValid():bool - Determines whether this NPC is valid.
+
+NPC:Kill():nil - Kills the NPC
+NPC:Teleport(position:vector, [angles:vector]):nil - Teleports the NPC to the given coordinates.
+
+NPC:SetPos(position:vector):nil - Sets the NPC's position.
+NPC:GetPos():vector - Returns the NPC's position.
+NPC:SetOrigin(position:vector):nil - Identical to SetPos.
+NPC:GetOrigin():vector - Identical to GetPos.
+NPC:SetAngles(angles:vector):nil - Sets the NPC's angles.
+NPC:GetAngles():vector - Gets the NPC's angles.
+NPC:SetNavGoal(position:vector):nil - Instructs the NPC to walk/run to the specified coordinates.
+NPC:SetNavGoal(position:entity):nil - Instructs the NPC to walk/run to the specified entity.
+NPC:SetNavGoal(position:string):nil - Instructs the NPC to walk/run to the entity with the given targetname.
+
+NPC:MakeVendor(tc:string):nil - Makes the NPC into a vendor with the given treasure class.
+NPC:RefreshVendorStock():nil - Refreshes the vendor's stock. DO NOT call this on map-created vendors (jkg_target_vendor), it won't work.
+
+There are more functions here that need to be documented.
