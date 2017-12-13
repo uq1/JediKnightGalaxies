@@ -142,8 +142,8 @@
     "firemode2": {
         "damage":       18,
         "ammocost":     1,
-        "firedelay":    90,
-	"burstshotdelay":	500,
+        "firedelay":    500,
+	"burstshotdelay":	90,
         "firingtype":   "burst",
 	"shotsperburst": 4,
         "range":        3500.0,
