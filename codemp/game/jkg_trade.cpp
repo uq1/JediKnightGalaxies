@@ -238,6 +238,10 @@ void JKG_GenericVendorUse(gentity_t* self, gentity_t* other, gentity_t* activato
 	}
 
 	BG_SendTradePacket(IPT_TRADEOPEN, activator, self, &(*self->inventory)[0], self->inventory->size(), 0);
+
+	activator->client->ps.useDelay = level.time + 500;
+	activator->client->currentTrader = self;
+	activator->client->pmnomove = true;
 }
 
 /*

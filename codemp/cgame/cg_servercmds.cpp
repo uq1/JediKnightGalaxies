@@ -228,23 +228,15 @@ static void JKG_ShopConfirm( void )
 	/* Change the credit count in the shop UI */
 	cg.snap->ps.credits = creditCount;
 
-	if (itemLookupTable[itemID].itemType == ITEM_WEAPON) {
-		// Auto-assign weapons to the ACI.
+	if (itemLookupTable[itemID].itemType == ITEM_WEAPON || itemLookupTable[itemID].itemType == ITEM_CONSUMABLE) {
+		// Auto-assign weapons and consumable items to the ACI.
+		// We don't auto assign jetpacks and shields because they might already have one equipped
+		// Maybe assign it if they don't have one equipped?
 		BG_AddItemToACI(cg.playerInventory->size() - 1, -1);
 	}
 
 	/* Notify the UI about changes in the shop */
 	uiImports->ShopNotify(1);
-}
-
-/*
-==================
-JKG_AddToACI
-AddToACI <itemID>
-==================
-*/
-static void JKG_AddToACI( void )
-{
 }
 
 
@@ -1707,12 +1699,6 @@ static void CG_ServerCommand( void ) {
 		clent->weapon = 0;
 		clent->ghoul2weapon = NULL; //force a weapon reinit
 
-		return;
-	}
-
-	if( !strcmp(cmd, "AddToACI") )
-	{
-		JKG_AddToACI();
 		return;
 	}
 

@@ -725,17 +725,14 @@ Server tells client to remove item as well.
 ====================
 */
 #ifdef _GAME
+extern void JKG_UnequipItem(gentity_t *ent, int iNum);
 void BG_RemoveItemStack(gentity_t* ent, int itemStack) {
 	itemInstance_t item = (*ent->inventory)[itemStack];
 
 	// If it's something we have equipped, remove it
-	if (ent->client && ent->client->shieldEquipped) {
-		if (item.equipped && item.id->itemType == ITEM_SHIELD) {
-			Cmd_ShieldUnequipped(ent);
-		}
-		else if (item.equipped && item.id->itemType == ITEM_JETPACK) {
-			Cmd_JetpackUnequipped(ent);
-		}
+	if (item.equipped)
+	{
+		JKG_UnequipItem(ent, itemStack);
 	}
 
 	ent->inventory->erase(ent->inventory->begin() + itemStack);

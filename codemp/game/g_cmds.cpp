@@ -1185,9 +1185,6 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 			itemInstance_t item = BG_ItemInstance(itemID, 1);
 			BG_GiveItem(ent, item);
 			trap->SendServerCommand (ent->s.number, va ("print \"'%s' was added to your inventory.\n\"", itemLookupTable[itemID].displayName));
-
-			// UQ1: Added - update their ACI...
-			trap->SendServerCommand(ent->s.number, va("AddToACI %i", itemID));
 			
 			if (BG_WeaponCanUseSpecialAmmo(weapon)) {
 				ent->client->ammoTypes[weaponID] = weapon->firemodes[0].ammoDefault->ammoIndex;
@@ -4276,6 +4273,13 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 	int myCredits = ent->client->ps.credits;
 	int cost;
 	int totalCost = 0, numFiringModesFilled = 0, numUnitsPurchased = 0;
+
+	gentity_t* trader = ent->client->currentTrader;
+	if (trader == nullptr)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"You need to be at a vendor in order to buy ammo.\n\"");
+		return;
+	}
 
 	if (trap->Argc() != 2) {
 		trap->SendServerCommand(ent - g_entities, "print \"You need to select an item to buy ammo for.\n\"");
