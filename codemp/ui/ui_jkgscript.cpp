@@ -151,6 +151,7 @@ JKGkeywordHashUI_t JKGScripts[] = {
 	{ "shop_sort",			JKG_Shop_Sort,					0		},
 	{ "shop_buy",			JKG_Shop_BuyItem,				0		},
 	{ "shop_sell",			JKG_Shop_SellItem,				0		},
+	{ "shop_buyammo",		JKG_Shop_BuyAmmo,				0		},
 	{ "shop_close",			JKG_Shop_Closed,				0		},
 
 	{0,						0,					    		0		},

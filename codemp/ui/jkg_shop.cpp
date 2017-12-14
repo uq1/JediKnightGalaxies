@@ -427,6 +427,20 @@ void JKG_Shop_SelectLeft(char** args) {
 	}
 	bLeftSelected = true;
 	nSelected = nInventoryScroll + id;
+
+	if (nSelected < 0)
+	{
+		return;
+	}
+
+	if (vInventoryItems[nSelected].second->id->itemType == ITEM_WEAPON)
+	{
+		Menu_ShowGroup(Menus_FindByName("jkg_shop"), "shop_ammobuttons", qtrue);
+	}
+	else
+	{
+		Menu_ShowGroup(Menus_FindByName("jkg_shop"), "shop_ammobuttons", qfalse);
+	}
 }
 
 void JKG_Shop_SelectRight(char** args) {
@@ -441,6 +455,8 @@ void JKG_Shop_SelectRight(char** args) {
 	}
 	bLeftSelected = false;
 	nSelected = nShopScroll + id;
+
+	Menu_ShowGroup(Menus_FindByName("jkg_shop"), "shop_ammobuttons", qfalse);
 }
 
 void JKG_Shop_Sort(char** args) {
@@ -537,6 +553,16 @@ void JKG_Shop_SellItem(char** args) {
 		return; // Invalid selection
 	}
 	cgImports->SendClientCommand(va("inventorySell %i", vInventoryItems[nSelected].first));
+}
+
+void JKG_Shop_BuyAmmo(char** args) {
+	if (!bLeftSelected) {
+		return; // Can't buy ammo for something that we don't own
+	}
+	if (nSelected < 0 || nSelected >= nNumberInventoryItems) {
+		return; // Invalid selection
+	}
+	cgImports->SendClientCommand(va("buyammo %i", vInventoryItems[nSelected].first));
 }
 
 void JKG_Shop_Closed(char** args) {
