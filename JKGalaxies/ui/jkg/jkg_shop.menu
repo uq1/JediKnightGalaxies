@@ -2341,28 +2341,6 @@
 		// Buy Ammo Button
 		itemDef
 		{
-			name		shopCenter_BuyAmmoHL
-			style		WINDOW_STYLE_SHADER
-			group		shop_ammobuttons
-			rect		302 158 45 45
-			background	"gfx/ui/shop_buyammo"
-			forecolor	1 1 1 1
-			visible		0
-		}
-
-		itemDef
-		{
-			name		shopCenter_BuyAmmoBG
-			style		WINDOW_STYLE_SHADER
-			forecolor	1 1 1 1
-			rect		302 158 45 45
-			background	"gfx/ui/shop_buyammo"
-			group		shop_ammobuttons
-			visible		0
-		}
-
-		itemDef
-		{
 			name		shopCenter_BuyAmmoBN
 			group		shop_ammobuttons
 			type		ITEM_TYPE_BUTTON
@@ -2387,31 +2365,29 @@
 			}
 		}
 
-		// Buy Button
 		itemDef
 		{
-			name		shopCenter_BuyHL
-			group		shop_center
+			name		shopCenter_BuyAmmoHL
 			style		WINDOW_STYLE_SHADER
-			rect		302 212 45 45
-			background	"gfx/ui/shop_buy"
+			group		shop_ammobuttons
+			rect		302 158 45 45
+			background	"gfx/ui/shop_buyammo"
 			forecolor	1 1 1 1
 			visible		0
-			decoration	
 		}
 
 		itemDef
 		{
-			name		shopCenter_BuyBG
-			group		shop_center
+			name		shopCenter_BuyAmmoBG
 			style		WINDOW_STYLE_SHADER
-			rect		302 212 45 45
-			background	"gfx/ui/shop_buy"
 			forecolor	1 1 1 1
-			visible		1
-			decoration
+			rect		302 158 45 45
+			background	"gfx/ui/shop_buyammo"
+			group		shop_ammobuttons
+			visible		0
 		}
 
+		// Buy Button
 		itemDef
 		{
 			name		shopCenter_BuyBN
@@ -2438,31 +2414,31 @@
 			}
 		}
 
-		// Sell Button
 		itemDef
 		{
-			name		shopCenter_SellHL
+			name		shopCenter_BuyHL
 			group		shop_center
 			style		WINDOW_STYLE_SHADER
-			rect		300 255 46 46
-			background	"gfx/ui/shop_sell"
+			rect		302 212 45 45
+			background	"gfx/ui/shop_buy"
 			forecolor	1 1 1 1
 			visible		0
-			decoration
+			decoration	
 		}
 
 		itemDef
 		{
-			name		shopCenter_SellBG
+			name		shopCenter_BuyBG
 			group		shop_center
 			style		WINDOW_STYLE_SHADER
-			rect		300 255 46 46
-			background	"gfx/ui/shop_sell"
+			rect		302 212 45 45
+			background	"gfx/ui/shop_buy"
 			forecolor	1 1 1 1
 			visible		1
 			decoration
 		}
 
+		// Sell Button
 		itemDef
 		{
 			name		shopCenter_SellBN
@@ -2487,6 +2463,30 @@
 			{
 				jkgscript	shop_sell
 			}
+		}
+
+		itemDef
+		{
+			name		shopCenter_SellHL
+			group		shop_center
+			style		WINDOW_STYLE_SHADER
+			rect		300 255 46 46
+			background	"gfx/ui/shop_sell"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopCenter_SellBG
+			group		shop_center
+			style		WINDOW_STYLE_SHADER
+			rect		300 255 46 46
+			background	"gfx/ui/shop_sell"
+			forecolor	1 1 1 1
+			visible		1
+			decoration
 		}	
 	}
 }
