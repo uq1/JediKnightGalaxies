@@ -2479,6 +2479,7 @@ public:
 	}
 
 	uint_fast32_t Irand(uint_fast32_t nMin, uint_fast32_t nMax) {
+		if (nMax < nMin) nMin = nMax;
 		assert((nMax - nMin) < QRAND_MAX);
 		std::uniform_int_distribution<uint_fast32_t> gen(nMin, nMax);
 		return gen(pGenerator);

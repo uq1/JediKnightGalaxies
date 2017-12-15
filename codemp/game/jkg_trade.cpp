@@ -59,7 +59,16 @@ static void JKG_target_vendor_think(gentity_t* self) {
 	// If the vendor has a client using it, we need to make sure to update that client
 	if (npc->genericValue1 != ENTITYNUM_NONE) {
 		gentity_t* patron = &g_entities[npc->genericValue1];
-		BG_SendTradePacket(IPT_TRADE, patron, npc, &(*npc->inventory)[0], npc->inventory->size(), 0);
+		if (npc->inventory->size() == 0)
+		{
+			BG_SendTradePacket(IPT_TRADECANCEL, patron, npc, nullptr, 0, 0);
+			npc->genericValue1 = ENTITYNUM_NONE;	// cancel the trade because we have no items
+		}
+		else
+		{
+			BG_SendTradePacket(IPT_TRADE, patron, npc, &(*npc->inventory)[0], npc->inventory->size(), 0);
+		}
+		
 	}
 
 	self->nextthink = level.time + (jkg_shop_replenish_time.integer * 1000);
@@ -214,6 +223,7 @@ void JKG_MakeNPCVendor(gentity_t* ent, char* szTreasureClassName)
 	ent->flags |= FL_NO_KNOCKBACK;
 	ent->bVendor = true;
 	ent->s.seed = Q_irand(0, QRAND_MAX - 1);
+	ent->genericValue1 = ENTITYNUM_NONE;
 
 	JKG_RegenerateStock(ent);
 }
@@ -277,7 +287,15 @@ void JKG_RegenerateStock(gentity_t* ent)
 	// If the vendor has a client using it, we need to make sure to update that client
 	if (ent->genericValue1 != ENTITYNUM_NONE) {
 		gentity_t* patron = &g_entities[ent->genericValue1];
-		BG_SendTradePacket(IPT_TRADE, patron, ent, &(*ent->inventory)[0], ent->inventory->size(), 0);
+		if (ent->inventory->size() == 0)
+		{
+			BG_SendTradePacket(IPT_TRADECANCEL, patron, ent, nullptr, 0, 0);
+			ent->genericValue1 = ENTITYNUM_NONE;	// cancel the trade because we have no items
+		}
+		else
+		{
+			BG_SendTradePacket(IPT_TRADE, patron, ent, &(*ent->inventory)[0], ent->inventory->size(), 0);
+		}
 	}
 
 }
