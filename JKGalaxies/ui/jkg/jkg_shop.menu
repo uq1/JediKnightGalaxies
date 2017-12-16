@@ -2387,6 +2387,25 @@
 			visible		0
 		}
 
+		// Buy ammo credit count
+		itemDef
+		{
+			name		shopCenter_BuyAmmoCredits
+			group		shop_ammobuttons
+			rect		302 202 50 23
+			font		5
+			textscale	0.4
+			textalign	ITEM_ALIGN_CENTER
+			textalignx	25
+			forecolor	1 1 1 1
+			decoration
+			visible		0
+
+			ownerdraw	1097
+
+			text		""
+		}
+
 		// Buy Button
 		itemDef
 		{

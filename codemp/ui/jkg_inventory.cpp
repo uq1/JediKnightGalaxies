@@ -20,9 +20,9 @@ void JKG_ConstructInventoryList() {
 		return;
 	}
 
-	nNumInventoryItems = *(size_t*)cgImports->InventoryDataRequest(0);
+	nNumInventoryItems = *(size_t*)cgImports->InventoryDataRequest(INVENTORYREQUEST_SIZE, -1);
 	if (nNumInventoryItems > 0) {
-		pAllItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
+		pAllItems = (itemInstance_t*)cgImports->InventoryDataRequest(INVENTORYREQUEST_ITEMS, -1);
 		for (int i = 0; i < nNumInventoryItems; i++) {
 			itemInstance_t* pThisItem = &pAllItems[i];
 			if (ui_inventoryFilter.integer == JKGIFILTER_ARMOR 
@@ -431,7 +431,7 @@ extern void Item_Text_Paint(itemDef_t *item);
 // Draws the "Credits: X" text
 void JKG_Inventory_OwnerDraw_CreditsText(itemDef_t* item)
 {
-	int credits = *(int*)cgImports->InventoryDataRequest(3);
+	int credits = *(int*)cgImports->InventoryDataRequest(INVENTORYREQUEST_CREDITS, -1);
 	float x = item->window.rect.x;
 	float y = item->window.rect.y;
 	int font = item->iMenuFont;
@@ -483,7 +483,7 @@ void JKG_Inventory_OwnerDraw_ItemTagTop(itemDef_t* item, int ownerDrawID) {
 	}
 
 	// If it's in an ACI slot, mention this
-	int* pACI = (int*)cgImports->InventoryDataRequest(2);
+	int* pACI = (int*)cgImports->InventoryDataRequest(INVENTORYREQUEST_ACI, -1);
 	assert(pACI != nullptr);
 	for (int i = 0; i < MAX_ACI_SLOTS; i++) {
 		if (pACI[i] == pItems[nItemNum].first) {
@@ -524,7 +524,7 @@ void JKG_Inventory_OwnerDraw_ItemTagBottom(itemDef_t* item, int ownerDrawID) {
 		return;
 	}
 
-	int* pACI = (int*)cgImports->InventoryDataRequest(2);
+	int* pACI = (int*)cgImports->InventoryDataRequest(INVENTORYREQUEST_ACI, -1);
 	assert(pACI != nullptr);
 
 	for (int i = 0; i < MAX_ACI_SLOTS; i++) {
@@ -759,20 +759,20 @@ void JKG_Inventory_Interact(char** args) {
 			else {
 				cgImports->InventoryAttachToACI(pItems[nSelected].first, -1, true);
 			}
-			JKG_Inventory_UpdateNotify(1);
+			JKG_Inventory_UpdateNotify(INVENTORYNOTIFY_UPDATE);
 			break;
 		case 1:
 			// Does nothing / this is entirely handled by menu code
 			break;
 		case 2:
 			// Use item
-			JKG_Inventory_UpdateNotify(1);
+			JKG_Inventory_UpdateNotify(INVENTORYNOTIFY_UPDATE);
 			break;
 	}
 }
 
 void JKG_Inventory_Open(char** args) {
-	JKG_Inventory_UpdateNotify(0);
+	JKG_Inventory_UpdateNotify(INVENTORYNOTIFY_OPEN);
 }
 
 void JKG_Inventory_ReconstructList(char** args) {
@@ -792,7 +792,7 @@ void JKG_UI_InventoryFilterChanged() {
 	}
 }
 
-void JKG_Inventory_UpdateNotify(int msg) {
+void JKG_Inventory_UpdateNotify(jkgInventoryNotify_e msg) {
 	menuDef_t* focusedMenu = Menu_GetFocused();
 
 	switch (msg)

@@ -93,7 +93,7 @@ void CG_TargetCommand_f( void ) {
 }
 
 void CG_OpenPartyManagement_f( void ) {
-	uiImports->PartyMngtNotify( 10 );
+	uiImports->PartyMngtNotify( PARTYNOTIFY_OPEN );
 }
 
 /*
@@ -293,8 +293,7 @@ static void JKG_OpenInventoryMenu_f ( void )
 		return;
 	}
 
-	if (cgs.gametype != GT_DUEL) 
-		uiImports->InventoryNotify (0);
+	uiImports->InventoryNotify (INVENTORYNOTIFY_OPEN);
 }
 
 void JKG_OpenShopMenu_f ( void )
@@ -304,7 +303,7 @@ void JKG_OpenShopMenu_f ( void )
 		return;
 	}
 	if (cgs.gametype != GT_DUEL) 
-		uiImports->ShopNotify( 0 );
+		uiImports->ShopNotify( SHOPNOTIFY_REFRESH );
 }
 
 static void JKG_UseACI_f ( void )
@@ -417,7 +416,7 @@ static consoleCommand_t	commands[] = {
 	{ "testmodel", CG_TestModel_f },
 	{ "weapnext", CG_NextWeapon_f },
 	{ "weapon", CG_Weapon_f },
-	{ "weaponclean", CG_WeaponClean_f },
+	{ "weaponclean", CG_Weapon_f },	// this exists to keep old binds in check
 	{ "weapprev", CG_PrevWeapon_f },
 	{ "viewpos", CG_Viewpos_f },
 	{ "+scores", CG_ScoresDown_f },

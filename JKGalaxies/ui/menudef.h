@@ -378,6 +378,7 @@
 #define UI_JKG_SHOP_RIGHTNAME	1094	// param: which item
 #define UI_JKG_SHOP_LEFTPRICE	1095	// param: which item
 #define UI_JKG_SHOP_RIGHTPRICE	1096	// param: which item
+#define UI_JKG_SHOP_AMMOPRICE	1097	// no param
 
 // Padding in case the shop needs more ownerdraw
 

@@ -49,17 +49,6 @@ int		ysalamiriLoopSound	= 0;
 
 int ForceShootDrain( gentity_t *self );
 
-gentity_t *G_PreDefSound(vec3_t org, int pdSound)
-{
-	gentity_t	*te;
-
-	te = G_TempEntity( org, EV_PREDEFSOUND );
-	te->s.eventParm = pdSound;
-	VectorCopy(org, te->s.origin);
-
-	return te;
-}
-
 const int forcePowerMinRank[NUM_FORCE_POWER_LEVELS][NUM_FORCE_POWERS] = //0 == neutral
 {
 	{

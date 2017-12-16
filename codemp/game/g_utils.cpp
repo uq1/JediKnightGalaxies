@@ -169,6 +169,17 @@ int G_SoundIndex( const char *name ) {
 	return G_FindConfigstringIndex (name, CS_SOUNDS, MAX_SOUNDS, qtrue);
 }
 
+gentity_t *G_PreDefSound(vec3_t org, int pdSound)
+{
+	gentity_t	*te;
+
+	te = G_TempEntity(org, EV_PREDEFSOUND);
+	te->s.eventParm = pdSound;
+	VectorCopy(org, te->s.origin);
+
+	return te;
+}
+
 int G_SoundSetIndex(const char *name)
 {
 	return G_FindConfigstringIndex (name, CS_AMBIENT_SET, MAX_AMBIENT_SETS, qtrue);

@@ -62,9 +62,6 @@ extern float aw_percent_complete;
 extern void AIMod_AutoWaypoint_DrawProgress( void );
 #endif //__AUTOWAYPOINT__
 
-// The time at which you died and the time it will take for you to rejoin game.
-int cg_siegeDeathTime = 0;
-
 #define MAX_HUD_TICS 4
 const char *armorTicName[MAX_HUD_TICS] = 
 {

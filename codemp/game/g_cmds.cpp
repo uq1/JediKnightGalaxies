@@ -406,7 +406,7 @@ void Cmd_Pay_f(gentity_t* ent) {
 
 	trap->SendServerCommand(ent - g_entities, va("print \"You paid %i to %s\n\"", credits, target->client->pers.netname));
 	trap->SendServerCommand(tr.entityNum, va("%s " S_COLOR_WHITE "paid you %i credits.\n\"", ent->client->pers.netname, credits));
-	G_SoundAtLoc(target->client->ps.origin, CHAN_AUTO, G_SoundIndex("sound/vendor/generic/purchase02.mp3"));
+	G_PreDefSound(ent->r.currentOrigin, PDSOUND_PAY);
 }
 
 /*
@@ -821,6 +821,8 @@ static void Cmd_MyAmmo_f(gentity_t* ent) {
 	trap->SendServerCommand(ent - g_entities, "print \"=============================================\n\"");
 }
 
+
+
 /*
 ==================
 Cmd_ItemCheck_f
@@ -953,6 +955,33 @@ void Cmd_BuyItem_f(gentity_t *ent)
 	else if (pItem->id->itemType == ITEM_AMMO) {
 		// If it's an ammo, it's not actually added to our inventory. Instead, it's given to us as ammo.
 		BG_GiveAmmo(ent, BG_GetAmmo(pItem->id->ammoData.ammoIndex), qfalse, pItem->id->ammoData.quantity);
+	}
+
+	G_PreDefSound(ent->r.currentOrigin, PDSOUND_VENDORPURCHASE);
+
+	// Tell other clients, if the item is not too cheap 
+	if (jkg_buyAnnounce.integer > 0)
+	{
+		char* sendStr = va("cbi %i %s", pItem->id->itemID, ent->client->pers.netname);
+		if (pItem->id->baseCost >= jkg_buyAnnounceThreshold.integer)
+		{
+			if (jkg_buyAnnounce.integer == 1)
+			{
+				// Announce ONLY to the same team !
+				for (int i = 0; i < level.numConnectedClients; i++)
+				{
+					if (level.clients[i].sess.sessionTeam == ent->client->sess.sessionTeam)
+					{
+						trap->SendServerCommand(level.clients[i].ps.clientNum, sendStr);
+					}
+				}
+			}
+			else
+			{
+				// Announce to EVERYONE !
+				trap->SendServerCommand(-1, sendStr);
+			}
+		}
 	}
 }
 
@@ -1200,18 +1229,28 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 	if ( give_all || !Q_stricmp( name, "ammo" ) )
 	{
 		int num = 999;
-		if ( argc == 3 )
-			num = Com_Clampi( 0, 999, atoi( args ) );
+
+		if (argc == 3)
+		{
+			num = atoi(args);
+			if (num < 0) num = 0;
+		}
+		
 		for (i = 1; i < MAX_AMMO_TYPES; i++) // don't give NONE ammo
 			ent->client->ammoTable[i] = num;
 		for (i = 0; i < MAX_WEAPON_TABLE_SIZE; i++)
 		{
 			int weapVar, weapBase;
+			weaponData_t* wp;
 			if(!BG_GetWeaponByIndex(i, &weapBase, &weapVar))
 			{
 				break;
 			}
-			ent->client->clipammo[i] = GetWeaponAmmoClip (weapBase, weapVar);
+			wp = GetWeaponDataUnsafe(weapBase, weapVar);
+			if (wp != nullptr)
+			{
+				ent->client->clipammo[i] = wp->clipSize;
+			}
 		}
 		ent->client->ps.stats[STAT_TOTALAMMO] = num;
 		if ( !give_all )
@@ -2105,6 +2144,8 @@ void Cmd_SellItem_f(gentity_t *ent)
 	ent->client->ps.credits += (creditAmount * item.quantity) / 2;
 	BG_RemoveItemStack(ent, nInvID);
 	trap->SendServerCommand(ent->s.number, va("inventory_update %i", ent->client->ps.credits));
+
+	G_PreDefSound(ent->r.currentOrigin, PDSOUND_TRADE);
 }
 /*
 =================
@@ -4263,6 +4304,63 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 }
 
 /*
+==================
+Cmd_AmmoPriceCheck_f
+
+Checks the price of refilling ammo.
+==================
+*/
+static void Cmd_AmmoPriceCheck_f(gentity_t* ent)
+{
+	qboolean silent = trap->Argc() > 2;
+	int cost;
+	int invID;
+	char buffer[1024]{ 0 };
+	weaponData_t* wp;
+	itemInstance_t* item;
+
+	if (trap->Argc() < 2)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"usage: /ammopricecheck <inventory ID>\n\"");
+		return;
+	}
+
+	trap->Argv(1, buffer, 1024);
+	invID = atoi(buffer);
+
+	if (ent->inventory == nullptr)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"Your inventory is NULL (?)\n\"");
+		return;
+	}
+
+	if (invID < 0 || invID >= ent->inventory->size())
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"Invalid item ID.\n\"");
+		return;
+	}
+
+	item = &(*ent->inventory)[invID];
+	if (item->id->itemType != ITEM_WEAPON)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"That item is not a weapon.\n\"");
+		return;
+	}
+
+	wp = GetWeaponData(item->id->weaponData.weapon, item->id->weaponData.variation);
+
+	cost = BG_GetRefillAmmoCost(ent->client->ammoTable, wp);
+
+	if (!silent)
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"It will take %i credits to fully load that weapon.\n\"", cost));
+		return;
+	}
+
+	trap->SendServerCommand(ent - g_entities, va("apc %i %i", invID, cost));
+}
+
+/*
 =================
 Cmd_BuyAllAmmo_f
 =================
@@ -4342,6 +4440,12 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 	}
 	trap->SendServerCommand(ent - g_entities, 
 		va("print \"Bought %i ammo for %i firing modes, spent %i credits total.\n\"", numUnitsPurchased, numFiringModesFilled, totalCost));
+
+
+	G_PreDefSound(ent->r.currentOrigin, PDSOUND_VENDORPURCHASE);
+
+	int newCost = BG_GetRefillAmmoCost(ent->client->ammoTable, wp);
+	trap->SendServerCommand(ent - g_entities, va("apc %i %i", itemSlot, newCost));
 }
 
 
@@ -4515,6 +4619,7 @@ int cmdcmp( const void *a, const void *b ) {
 
 static const command_t commands[] = {
 	{ "ammocycle",				Cmd_AmmoCycle_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "ammopricecheck",			Cmd_AmmoPriceCheck_f,		CMD_NOINTERMISSION },
 	{ "arbitraryprint",			Cmd_ArbitraryPrint_f,		CMD_NEEDCHEATS },
 	{ "butterfingers",			Cmd_Butterfingers_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "buyammo",				Cmd_BuyAmmo_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },

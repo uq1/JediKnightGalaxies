@@ -5,19 +5,27 @@
 #include "../ui/ui_shared.h"
 
 uiCrossoverExports_t *uiImports;
-
 cgCrossoverExports_t co;
 
+/*
+ *	Returns the index of the Gang Wars team that is in use by the map (red team)
+ */
 int CO_GetRedTeam( void )
 {
 	return cgs.redTeam;
 }
 
+/*
+ *	Returns the index of the Gang Wars team that is in use by the map (blue team)
+ */
 int CO_GetBlueTeam( void )
 {
 	return cgs.blueTeam;
 }
 
+/*
+ *	Returns qtrue if trapEscape is tripped (and sends an ~esc if it is)
+ */
 qboolean CO_EscapeTrapped( void )
 {
 	if( cg.trapEscape )
@@ -28,7 +36,11 @@ qboolean CO_EscapeTrapped( void )
 	return qfalse;
 }
 
-// TODO: put inventory/shop/pazaak crap into appropriate files, this is really bad --eez
+/*
+ *	Either puts an item into an ACI slot, or clears an ACI slot.
+ *	If slot is -1, it will pick the first available one.
+ *	If attach is qtrue, it will fill the slot (otherwise it will clear it)
+ */
 static void CO_InventoryAttachToACI ( int itemNum, int slot, int attach )
 {
     if ( attach )
@@ -51,65 +63,63 @@ static void CO_InventoryAttachToACI ( int itemNum, int slot, int attach )
 	}
 }
 
+/*
+ *	Performs a UI -> CG request for inventory and container UIs
+ */
 static size_t tempSize = 0;
-static void *CO_InventoryDataRequest ( int data )
+static void *CO_InventoryDataRequest ( jkgInventoryRequest_e data, int extra )
 {
-	if(data >= 50)
-	{
-		//HACK ALERT
-		if((*cg.playerInventory)[data-50].id && (data-50) >= 0 && (data-50) < MAX_INVENTORY_ITEMS)
-		{
-			return (*cg.playerInventory)[data-50].id->visuals.itemIcon;
-		}
-		else
-		{
-			return nullptr;
-		}
-	}
     switch ( data )
-    {	// FIXME: enumerable --eez
-        case 0: // inventory count
+    {
+        case INVENTORYREQUEST_SIZE:
 			tempSize = cg.playerInventory->size();
 			return &tempSize;
-		case 1: // inventory list
-			return (void *)(&(*cg.playerInventory)[0]);	// feels like hack
-        case 2:
+		case INVENTORYREQUEST_ITEMS:
+			return (void *)(&(*cg.playerInventory)[0]);
+        case INVENTORYREQUEST_ACI:
             return cg.playerACI;
-		case 3:
+		case INVENTORYREQUEST_CREDITS:
 			return &cg.predictedPlayerState.credits;
-		case 4:
+		case INVENTORYREQUEST_OTHERCONTAINERITEMS:
 			return (void*)(&(*cg.otherTradeItems)[0]);
-		case 5:
+		case INVENTORYREQUEST_OTHERCONTAINERSIZE:
 			tempSize = cg.otherTradeItems->size();
 			return &tempSize;
-		case 6:
+		case INVENTORYREQUEST_LOOKUPTABLE:
 			return itemLookupTable;
+		case INVENTORYREQUEST_ICONSHADER:
+			return (*cg.playerInventory)[extra].id->visuals.itemIcon;
         default:
             return NULL;
     }
 }
 
-static void *CO_PartyMngtDataRequest(int data) {
-	// FIXME: enumerable, this needs moved elsewhere also --eez
+/*
+ *	Performs a UI -> CG request for inventory and container UIs
+ */
+static void *CO_PartyMngtDataRequest(jkgPartyRequest_e data) {
 	// Team Management data request from UI
-	// Data 0 = Current party/invitations
-	// Data 1 = Seeking players
-	// Data 2 = Last seeking players refresh time (needed for delta feed)
-	if (data == 0) {
+	if (data == PARTYREQUEST_PARTY) {
 		return &cgs.party;
-	} else if (data == 1) {
+	} else if (data == PARTYREQUEST_SEEKERS) {
 		return &cgs.partyList;
-	} else if (data == 2) {
+	} else if (data == PARTYREQUEST_SEEKERTIME) {
 		return /*(void *)*/&cgs.partyListTime;
 	} else {
 		return 0;
 	}
 }
 
+/*
+ *	Gets the predicted player state
+ */
 static playerState_t* CO_GetPredictedPlayerState() {
 	return &cg.predictedPlayerState;
 }
 
+/*
+ *	Initializes the UI -> CG communication vector (Crossover API)
+ */
 void CG_InitializeCrossoverAPI( void )
 {
 	co.GetBlueTeam = CO_GetBlueTeam;

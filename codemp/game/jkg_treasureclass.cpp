@@ -68,7 +68,7 @@ void TreasureClass::Pick(std::vector<int>& rtItems, int32_t nSeed) {
 		if (nItemPicked == -1)
 		{
 			// failed to pick an item for this treasure class
-			Com_Printf("failed to pick for TC: %s\n", szClassName);
+			Com_Printf("failed to pick for TC: %s\n", szClassName.c_str());
 			return;
 		}
 		if (bUniquePicks) {	// Did we pick an item that we already have in this list? If so, we shouldn't add it.

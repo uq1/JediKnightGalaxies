@@ -1688,61 +1688,6 @@ void CG_Weapon_f( void ) {
 	cg.weaponSelectTime = cg.time;
 }
 
-
-//Version of the above which doesn't add +2 to a weapon.  The above can't
-//triger WP_MELEE or WP_STUN_BATON.  Derogatory comments go here.
-void CG_WeaponClean_f( void ) {
-	int		num;
-	qboolean doWeaponNotify = qtrue;
-
-	if ( !cg.snap ) {
-		return;
-	}
-	if ( cg.snap->ps.pm_flags & PMF_FOLLOW ) {
-		return;
-	}
-
-	if (cg.snap->ps.emplacedIndex)
-	{
-		return;
-	}
-
-	// sprint check --eez
-	int current = trap->GetCurrentCmdNumber();
-	usercmd_t ucmd;
-	trap->GetUserCmd(current, &ucmd);
-	if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, qfalse))
-	{
-		return;
-	}
-
-	num = atoi( CG_Argv( 1 ) );
-
-	if(!(*cg.playerInventory)[cg.playerACI[num]].id)
-	{
-		return;
-	}
-
-	if(num == cg.weaponSelect)
-	{
-		if((*cg.playerInventory)[cg.playerACI[num]].id->weaponData.varID == BG_GetWeaponIndex(WP_SABER, 0))
-		{
-			trap->SendClientCommand("togglesaber");
-		}
-		cg.holsterState = (cg.holsterState) ? qfalse : qtrue;
-		doWeaponNotify = qfalse;
-	}
-
-	if(CG_WeaponSelectable(num))
-	{
-		cg.weaponSelect = num;
-		if(doWeaponNotify)
-		{
-			CG_Notifications_Add((*cg.playerInventory)[cg.playerACI[num]].id->displayName, qtrue);
-		}
-	}
-}
-
 /*
 ===================================================================================================
 

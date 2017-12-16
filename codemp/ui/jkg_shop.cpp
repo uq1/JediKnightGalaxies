@@ -17,25 +17,52 @@ static size_t nNumberUnfilteredSItems;	/* The total number of shop items before 
 
 static vector<pair<int, itemInstance_t*>> vInventoryItems;	/* The inventory items, after filtering */
 static vector<pair<int, itemInstance_t*>> vShopItems;		/* The shop items, after filtering */
+static vector<pair<int, int>> vPriceCheckedAmmo;			/* Price check of ammo on items in inventory */
 
 static size_t nInventoryScroll = 0;		// How far we've scrolled in the menu
 static size_t nShopScroll = 0;			// How far we've scrolled in the menu
+static bool bPriceCheckComplete = false;// Whether or not we've completed the ammo price check
+static int nPriceCheckCost = -1;
+
+// This function updates the status of price checking. Only called when bPriceCheckComplete is false.
+void JKG_Shop_UpdatePriceCheck()
+{
+	int id = vInventoryItems[nSelected].first;
+
+	if (vInventoryItems[nSelected].second->id->itemType != ITEM_WEAPON)
+	{
+		return;	// don't worry about price checking something that isn't a weapon
+	}
+
+	for (auto it = vPriceCheckedAmmo.begin(); it != vPriceCheckedAmmo.end(); ++it)
+	{
+		if (it->first == id)
+		{
+			bPriceCheckComplete = true;
+			nPriceCheckCost = it->second;
+			return;
+		}
+	}
+}
 
 // This function constructs both the inventory and shop lists
 void JKG_ConstructShopLists() {
 	vInventoryItems.clear();
 	vShopItems.clear();
+	vPriceCheckedAmmo.clear();
+	bPriceCheckComplete = false;
+	nPriceCheckCost = -1;
 
 	if (cgImports == nullptr) {
 		// This gets called when the game starts, because ui_inventoryFilter gets modified
 		return;
 	}
 
-	nNumberUnfilteredIItems = *(size_t*)cgImports->InventoryDataRequest(0);
-	nNumberUnfilteredSItems = *(size_t*)cgImports->InventoryDataRequest(5);
+	nNumberUnfilteredIItems = *(size_t*)cgImports->InventoryDataRequest(INVENTORYREQUEST_SIZE, -1);
+	nNumberUnfilteredSItems = *(size_t*)cgImports->InventoryDataRequest(INVENTORYREQUEST_OTHERCONTAINERSIZE, -1);
 
 	if (nNumberUnfilteredIItems > 0) {
-		itemInstance_t* pAllInventoryItems = (itemInstance_t*)cgImports->InventoryDataRequest(1);
+		itemInstance_t* pAllInventoryItems = (itemInstance_t*)cgImports->InventoryDataRequest(INVENTORYREQUEST_ITEMS, -1);
 
 		//
 		// Filter the items
@@ -91,7 +118,7 @@ void JKG_ConstructShopLists() {
 	}
 
 	if (nNumberUnfilteredSItems > 0) {
-		itemInstance_t* pAllShopItems = (itemInstance_t*)cgImports->InventoryDataRequest(4);
+		itemInstance_t* pAllShopItems = (itemInstance_t*)cgImports->InventoryDataRequest(INVENTORYREQUEST_OTHERCONTAINERITEMS, -1);
 
 		//
 		// Filter the list of items
@@ -307,6 +334,7 @@ void JKG_Shop_InventorySelection(itemDef_t* item, int nOwnerDrawID) {
 	if (nSelected != nInventoryScroll + nOwnerDrawID) {
 		return; // The item we have selected is not this one.
 	}
+
 	trap->R_DrawStretchPic(item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h,
 		0, 0, 1, 1, item->window.background);
 }
@@ -374,8 +402,38 @@ void JKG_Shop_ShopItemCost(itemDef_t* item, int nOwnerDrawID) {
 	Item_Text_Paint(item);
 }
 
+void JKG_Shop_ShopAmmoCost(itemDef_t* item)
+{
+	if (!bLeftSelected)
+	{
+	return;
+	}
+	else if (nSelected < 0 || nSelected >= nNumberInventoryItems)
+	{
+		return;
+	}
+
+	itemInstance_t* pItem = vInventoryItems[nSelected].second;
+	if (pItem->id->itemType != ITEM_WEAPON)
+	{
+		return;
+	}
+
+	JKG_Shop_UpdatePriceCheck();
+	if (bPriceCheckComplete)
+	{
+		sprintf(item->text, "%i", nPriceCheckCost);
+	}
+	else
+	{
+		sprintf(item->text, "...");
+	}
+
+	Item_Text_Paint(item);
+}
+
 //
-// These four functions are used to calculate the width of the text for alignment purposes
+// These five functions are used to calculate the width of the text for alignment purposes
 // See UI_OwnerDrawWidth in ui_main.cpp for more information.
 //
 
@@ -411,6 +469,26 @@ char* JKG_Shop_RightPriceText(int ownerDrawID) {
 	return va("%i", pItem->id->baseCost);
 }
 
+char* JKG_ShopAmmoPriceText() {
+	if (nSelected < 0 || nSelected >= nNumberInventoryItems || !bLeftSelected) {
+		return nullptr;
+	}
+	itemInstance_t* pItem = vInventoryItems[nSelected].second;
+	if (pItem->id->itemType != ITEM_WEAPON) {
+		return nullptr;
+	}
+
+	JKG_Shop_UpdatePriceCheck();
+	if (bPriceCheckComplete)
+	{
+		return va("%i", nPriceCheckCost);
+	}
+	else
+	{
+		return "...";
+	}
+}
+
 //
 // The action that gets performed when we select an item
 //
@@ -427,6 +505,8 @@ void JKG_Shop_SelectLeft(char** args) {
 	}
 	bLeftSelected = true;
 	nSelected = nInventoryScroll + id;
+	bPriceCheckComplete = false;
+	nPriceCheckCost = -1;
 
 	if (nSelected < 0)
 	{
@@ -436,6 +516,20 @@ void JKG_Shop_SelectLeft(char** args) {
 	if (vInventoryItems[nSelected].second->id->itemType == ITEM_WEAPON)
 	{
 		Menu_ShowGroup(Menus_FindByName("jkg_shop"), "shop_ammobuttons", qtrue);
+
+		// Do a price check if we haven't cached one yet
+		for (auto it = vPriceCheckedAmmo.begin(); it != vPriceCheckedAmmo.end(); ++it)
+		{
+			if (it->first == vInventoryItems[nSelected].first)
+			{
+				bPriceCheckComplete = true;
+				nPriceCheckCost = it->second;
+				break;
+			}
+		}
+
+		// Perform a price check on this item
+		cgImports->SendClientCommand(va("ammopricecheck %i silent", vInventoryItems[nSelected].first));
 	}
 	else
 	{
@@ -567,4 +661,34 @@ void JKG_Shop_BuyAmmo(char** args) {
 
 void JKG_Shop_Closed(char** args) {
 	cgImports->SendClientCommand("closeVendor");
+}
+
+void JKG_ShopNotify(jkgShopNotify_e msg)
+{
+	// Only one type of notify, so no need to make a switch here.
+	menuDef_t* menu = Menus_FindByName("jkg_shop");
+	if (menu && Menus_ActivateByName("jkg_shop"))
+	{
+		JKG_ConstructShopLists();
+		trap->Key_SetCatcher(trap->Key_GetCatcher() | KEYCATCH_UI);
+	}
+}
+
+// Performed when a price check is returned by the server
+void JKG_Shop_PriceCheckComplete(int nInventoryID, int nPrice)
+{
+	std::pair<int, int> pair = std::make_pair(nInventoryID, nPrice);
+
+	// Remove the old cost record, if it exists
+	for (auto it = vPriceCheckedAmmo.begin(); it != vPriceCheckedAmmo.end(); ++it)
+	{
+		if (it->first == nInventoryID)
+		{
+			it = vPriceCheckedAmmo.erase(it);
+			bPriceCheckComplete = false;
+			break;
+		}
+	}
+
+	vPriceCheckedAmmo.push_back(pair);
 }

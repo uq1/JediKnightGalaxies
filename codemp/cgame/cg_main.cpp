@@ -2487,10 +2487,7 @@ void JKG_WeaponIndicators_Init();
 
 static void CG_OpenInventory ( void )
 {
-	if (cgs.gametype != GT_DUEL) 
-	{
-		uiImports->InventoryNotify( 0 );
-	}
+	uiImports->InventoryNotify( INVENTORYNOTIFY_OPEN );
 }
 
 void CG_SetupChatCmds() {
@@ -2498,7 +2495,6 @@ void CG_SetupChatCmds() {
 	CCmd_AddCommand ("inventory", CG_OpenInventory);
 }
 
-extern void JKG_CG_InitItems( void );
 extern void CG_InitializeCrossoverAPI( void );
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 {

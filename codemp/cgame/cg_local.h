@@ -1647,8 +1647,6 @@ void C_Trace( void );
 void C_G2Trace( void );
 void C_G2Mark( void );
 
-void CG_DrawMiscEnts(void);
-
 const char *CG_ConfigString( int index );
 const char *CG_Argv( int arg );
 
@@ -1662,11 +1660,8 @@ void CG_LoadMenus(const char *menuFile);
 void CG_KeyEvent(int key, qboolean down);
 void CG_MouseEvent(int x, int y);
 void CG_EventHandling(int type);
-void CG_RankRunFrame( void );
 void CG_SetScoreSelection(void *menu);
 void CG_BuildSpectatorString(void);
-void CG_NextForcePower_f(void);
-void CG_PrevForcePower_f(void);
 
 //
 // cg_view.c
@@ -1685,21 +1680,6 @@ float CG_ClampFov ( float fov );
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback );
 qboolean CG_CullPointAndRadius (const vec3_t pt, float radius);
 
-/*
-Ghoul2 Insert Start
-*/
-
-void CG_TestG2Model_f (void);
-void CG_TestModelSurfaceOnOff_f(void);
-void CG_ListModelSurfaces_f (void);
-void CG_ListModelBones_f (void);
-void CG_TestModelSetAnglespre_f(void);
-void CG_TestModelSetAnglespost_f(void);
-void CG_TestModelAnimate_f(void);
-/*
-Ghoul2 Insert End
-*/
-
 //
 // cg_drawtools.c
 //
@@ -1707,8 +1687,6 @@ void CG_FillRect( float x, float y, float width, float height, const float *colo
 void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
 void CG_DrawRotatePic( float x, float y, float width, float height,float angle, qhandle_t hShader );
 void CG_DrawRotatePic2( float x, float y, float width, float height,float angle, qhandle_t hShader );
-void CG_DrawString( float x, float y, const char *string,
-				   float charWidth, float charHeight, const float *modulate );
 
 void CG_DrawNumField (int x, int y, int width, int value,int charWidth,int charHeight,int style,qboolean zeroFill);
 
@@ -1722,7 +1700,6 @@ void CG_DrawSmallStringColor( int x, int y, const char *s, vec4_t color );
 int CG_DrawStrlen( const char *str );
 
 float	*CG_FadeColor( int startMsec, int totalMsec );
-float *CG_TeamColor( int team );
 void CG_TileClear( void );
 void CG_ColorForHealth( vec4_t hcolor );
 void CG_GetColorForHealth( int health, int armor, vec4_t hcolor );
@@ -1763,8 +1740,6 @@ void CG_GetTeamColor(vec4_t *color);
 const char *CG_GetGameStatusText(void);
 const char *CG_GetKillerText(void);
 void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, void *ghoul2, int g2radius, qhandle_t skin, vec3_t origin, vec3_t angles );
-void CG_Text_PaintChar(float x, float y, float width, float height, float scale, float s, float t, float s2, float t2, qhandle_t hShader);
-const char *CG_GameTypeString(void);
 qboolean CG_YourTeamHasFlag(void);
 qboolean CG_OtherTeamHasFlag(void);
 qhandle_t CG_StatusHandle(int task);
@@ -1859,13 +1834,9 @@ void CG_GetClientWeaponMuzzleBoltPoint(int clIndex, vec3_t to);
 void CG_NextWeapon_f( void );
 void CG_PrevWeapon_f( void );
 void CG_Weapon_f( void );
-void CG_WeaponClean_f( void );
 
 void CG_RegisterWeapon( int weaponNum, int variation );
 void CG_RegisterItemVisuals( int itemNum );
-
-void CG_MissileHitWall(int weapon, int clientNum, vec3_t origin, vec3_t dir, impactSound_t soundType, qboolean alt_fire, int charge);
-void CG_MissileHitPlayer( int weapon, vec3_t origin, vec3_t dir, int entityNum, qboolean alt_fire);
 
 void CG_AddViewWeapon (playerState_t *ps);
 void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, int team, vec3_t newAngles, qboolean thirdPerson );
@@ -1898,16 +1869,6 @@ void	CG_AddLocalEntities( void );
 //
 // cg_effects.c
 //
-localEntity_t *CG_SmokePuff( const vec3_t p,
-				   const vec3_t vel,
-				   float radius,
-				   float r, float g, float b, float a,
-				   float duration,
-				   int startTime,
-				   int fadeInTime,
-				   int leFlags,
-				   qhandle_t hShader );
-void CG_BubbleTrail( vec3_t start, vec3_t end, float spacing );
 void CG_GlassShatter(int entnum, vec3_t dmgPt, vec3_t dmgDir, float dmgRadius, int maxShards);
 void CG_ScorePlum( int client, vec3_t org, int score );
 void CG_DamagePlum( int client, vec3_t org, int damage, int means, qboolean shield, qboolean max );
@@ -1948,7 +1909,6 @@ void		CG_ParseEntitiesFromString( void );
 // cg_scoreboard.c
 //
 qboolean CG_DrawOldScoreboard( void );
-void CG_DrawOldTourneyScoreboard( void );
 
 //
 // cg_consolecmds.c
@@ -1980,57 +1940,26 @@ void CG_AdjustEyePos (const char *modelName);
 
 //===============================================
 
-void		BG_CycleInven(playerState_t *ps, int direction);
 int			BG_ProperForceIndex(int power);
 void		BG_CycleForce(playerState_t *ps, int direction);
 
 const char *CG_GetStringEdString(char *refSection, char *refName);
 const char *CG_GetStringEdString2(char *refName);
 
-// Gang Wars Stuff
-
 
 void FX_TurretProjectileThink(  centity_t *cent, const struct weaponInfo_s *weapon );
 
-//-----------------------------
-// Effects related prototypes
-//-----------------------------
-
-// Environmental effects
-void CG_Spark( vec3_t origin, vec3_t dir );
-
-
-//-----------------------------
-// Effects related prototypes
-//-----------------------------
-
-// Environmental effects
-void CG_Spark( vec3_t origin, vec3_t dir );
-
-// Weapon prototypes
-void FX_BryarHitWall( vec3_t origin, vec3_t normal );
-void FX_BryarAltHitWall( vec3_t origin, vec3_t normal, int power );
-void FX_BryarHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
-void FX_BryarAltHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
-
-void FX_BlasterProjectileThink( centity_t *cent, const struct weaponInfo_s *weapon );
-void FX_BlasterAltFireThink( centity_t *cent, const struct weaponInfo_s *weapon );
-void FX_BlasterWeaponHitWall( vec3_t origin, vec3_t normal );
-void FX_BlasterWeaponHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
 
 void		CG_Init_CG(void);
 void		CG_Init_CGents(void);
 
 
 void CG_SetGhoul2Info( refEntity_t *ent, const centity_t *cent);
-void CG_CreateBBRefEnts(entityState_t *s1, vec3_t origin );
 
 void CG_ShutDownG2Weapons(void);
 void CG_CopyG2WeaponInstance(centity_t *cent, int weaponNum, int weaponVariation, void *toGhoul2);
 void *CG_G2WeaponInstance(centity_t *cent, int weapon, int variation);
 void CG_CheckPlayerG2Weapons(playerState_t *ps, centity_t *cent);
-
-void CG_SetSiegeTimerCvar( int msec );
 
 void	CG_ClearLightStyles (void);
 void	CG_RunLightStyles (void);
