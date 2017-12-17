@@ -76,6 +76,12 @@
 		//gentity_t	*ent = &g_entities[clientNum];
 		char		 parm[1024] = {0};
 		char		 cmdLocal[1024] = {0};
+
+		// Only allowed in FFA and RPG modes
+		if (g_gametype.integer != GT_FFA)
+		{
+			return qfalse;
+		}
 	
 		/**************************************************
 		* Set the uiFeedback to qfalse, as we expect it to be.
