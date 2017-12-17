@@ -1106,6 +1106,7 @@ Ghoul2 Insert End
 	int					lastAmmo;
 	int					lastAmmoTime;
 	int					lastAmmoGun;
+	int					lastAmmoTypeTime;
 #endif
 	int					lastAmmoType;
 	int					lastFiringModeGun;

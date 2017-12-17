@@ -213,11 +213,6 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 		{
 			text = va( "Ammo: %i ", ammo );
 		}
-
-		if (BG_WeaponAcceptsAlternateAmmo(cent->currentState.weapon, cent->currentState.weaponVariation)) {
-			const ammo_t* ammo = BG_GetAmmo(cent->currentState.ammoType);
-			text = va("%s [%s]", text, CG_GetStringEdString2((char*)ammo->shortname));
-		}
 	}
 
 	// Now then, lets render this text ^_^
@@ -344,6 +339,12 @@ static void JKG_DrawAmmoType(menuDef_t* menuHUD) {
 		return;
 	}
 
+	// Check against the weapon having alternate ammo
+	if (!BG_WeaponAcceptsAlternateAmmo(ps->weapon, ps->weaponVariation))
+	{
+		return;
+	}
+
 	if (cg.jkg_WHUDOpacity  < 1.0f)
 	{
 		MAKERGBA(opacity, 1, 1, 1, cg.jkg_WHUDOpacity);
@@ -353,17 +354,27 @@ static void JKG_DrawAmmoType(menuDef_t* menuHUD) {
 		MAKERGBA(opacity, 1, 1, 1, cg.jkg_HUDOpacity);
 	}
 
-	if (cg.lastAmmoType != ps->ammoType) {
+#ifndef NO_SP_STYLE_AMMO
+	// Figure out whether or not we want to do the thing where we highlight the text whenever we consume ammo or change firing mode (or, change weapon)
+	if (cg.lastAmmoType != cg.predictedPlayerState.ammoType)
+	{
+		cg.lastAmmoType = cg.predictedPlayerState.ammoType;
+		cg.lastAmmoTypeTime = cg.time + 200; // matches SP 1:1
+	}
+
+	if (cg.lastAmmoTypeTime > cg.time)
+	{
 		vec4_t colorCopy = { 0.2, 0.72, 0.86, 1 };
 		Q_RGBCopy(&opacity, colorCopy);
 	}
+#endif
 
 	// Set us some basic defaults (for now. these will be replaced by the jkg_hud.menu)
 	x = 500.0f;
 	y = 440.0f;
 	w = 120.0f;
 
-	displayStr = va("Loaded: %s", CG_GetStringEdString2(ammo->shortname));
+	displayStr = (char*)CG_GetStringEdString2(ammo->shortname);
 	textWidth = trap->R_Font_StrLenPixels(displayStr, cgDC.Assets.qhSmall3Font, 0.4f);
 	trap->R_Font_DrawString(x + ((w / 2) - (textWidth / 2)), y, displayStr, opacity, cgDC.Assets.qhSmall3Font, -1, 0.4f);
 }
@@ -817,6 +828,7 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 		CG_DrawHealth(menuHUD);
 		CG_DrawForcePower(menuHUD);
 		JKG_DrawFiringMode(menuHUD);
+		JKG_DrawAmmoType(menuHUD);
 
 		focusItem = Menu_FindItemByName(menuHUD, "frame");
 		if (focusItem)
