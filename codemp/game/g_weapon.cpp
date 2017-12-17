@@ -4140,8 +4140,11 @@ static void WP_GetWeaponDirection( gentity_t *ent, int firemode, const vec3_t fo
 qboolean WP_GetWeaponGravity( gentity_t *ent, int firemode )
 {
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
+	int usesGravity = thisWeaponData->firemodes[firemode].applyGravity;
 
-	return thisWeaponData->firemodes[firemode].applyGravity;
+	JKG_ApplySimpleAmmoOverride(usesGravity, ammoTable[ent->s.ammoType].overrides.useGravity);
+
+	return usesGravity > 0;
 }
 
 /**************************************************
@@ -4239,6 +4242,7 @@ int WP_GetWeaponShotCount( gentity_t *ent, int firemode )
 float WP_GetWeaponSpeed( gentity_t *ent, int firemode )
 {
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
+	double fSpeed;
 
 	if(!thisWeaponData)
 	{
@@ -4246,9 +4250,12 @@ float WP_GetWeaponSpeed( gentity_t *ent, int firemode )
 		return 5125.0f;
 	}
 
-	if ( thisWeaponData->firemodes[firemode].speed )
+	fSpeed = thisWeaponData->firemodes[firemode].speed;
+	JKG_ApplyAmmoOverride(fSpeed, ammoTable[ent->s.ammoType].overrides.speed);
+
+	if ( fSpeed )
 	{
-		return thisWeaponData->firemodes[firemode].speed;
+		return fSpeed;
 	}
 
 	return 5125.0f;

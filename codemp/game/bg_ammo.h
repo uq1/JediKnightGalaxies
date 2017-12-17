@@ -47,6 +47,9 @@ struct ammo_t {
 		complexAmmoOverride<int> accuracyRatingBase;
 		complexAmmoOverride<int> accuracyRatingPerShot;
 		complexAmmoOverride<double> knockback;
+		complexAmmoOverride<double> speed;
+
+		std::pair<qboolean, int> useGravity;
 
 
 		std::pair<qboolean, int> hitscan;

@@ -582,6 +582,9 @@ static void JKG_ParseAmmoOverrides(ammo_t* ammo, cJSON* json) {
 	JKG_ParseAmmoOverride_Int(json, "accuracyRatingBase", ammo->overrides.accuracyRatingBase);
 	JKG_ParseAmmoOverride_Int(json, "accuracyRatingPerShot", ammo->overrides.accuracyRatingPerShot);
 	JKG_ParseAmmoOverride_Float(json, "knockback", ammo->overrides.knockback);
+	JKG_ParseAmmoOverride_Float(json, "speed", ammo->overrides.speed);
+
+	JKG_ParseSimpleOverrideInt(ammo->overrides.useGravity, "useGravity", json);
 
 	JKG_ParseSimpleOverrideInt(ammo->overrides.hitscan, "hitscan", json);
 
