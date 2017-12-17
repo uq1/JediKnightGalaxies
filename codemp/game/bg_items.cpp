@@ -1167,6 +1167,16 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 		if (jsonNode) {
 			Q_strncpyz(itemData->shieldData.equippedSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
 		}
+
+		jsonNode = cJSON_GetObjectItem(json, "chargedSoundEffect");
+		if (jsonNode) {
+			Q_strncpyz(itemData->shieldData.chargedSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
+		}
+
+		jsonNode = cJSON_GetObjectItem(json, "malfunctionSoundEffect");
+		if (jsonNode) {
+			Q_strncpyz(itemData->shieldData.malfunctionSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
+		}
 	}
 	else if (itemData->itemType == ITEM_JETPACK) {
 		jsonNode = cJSON_GetObjectItem(json, "jetpack");

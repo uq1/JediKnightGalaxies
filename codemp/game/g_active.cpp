@@ -2155,14 +2155,16 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 	}
 
-	if (ent->client->shieldEquipped && ent->client->ps.stats[STAT_SHIELD] < ent->client->ps.stats[STAT_MAX_SHIELD] && JKG_ClientAlive(ent)) {
+	if (ent->client->shieldEquipped && ent->client->ps.stats[STAT_SHIELD] < ent->client->ps.stats[STAT_MAX_SHIELD] && JKG_ClientAlive(ent)) 
+	{
 		if (ent->client->shieldRechargeLast + ent->client->shieldRechargeTime < level.time) {
 			if (ent->client->shieldRegenLast + ent->client->shieldRegenTime < level.time) {
 				ent->client->ps.stats[STAT_SHIELD]++;
 				ent->client->shieldRegenLast = level.time + ent->client->shieldRegenTime;
 			}
 
-			if (!ent->client->shieldRecharging) {
+			if (!ent->client->shieldRecharging) 
+			{
 				// In the previous frame, our shield was not recharging
 				ent->client->shieldRecharging = qtrue;
 

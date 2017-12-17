@@ -121,6 +121,8 @@ typedef struct {
 	char rechargeSoundEffect[MAX_QPATH];	// Sound that plays once we start charging
 	char brokenSoundEffect[MAX_QPATH];		// Sound that plays once the shield is broken
 	char equippedSoundEffect[MAX_QPATH];	// Sound that plays once the shield is equipped
+	char chargedSoundEffect[MAX_QPATH];		// Sound that plays once a shield is finished charging
+	char malfunctionSoundEffect[MAX_QPATH];	// Sound that plays if the shield has malfunctioned --futuza: to be added later
 } itemShieldData_t;
 
 // Jetpacks
