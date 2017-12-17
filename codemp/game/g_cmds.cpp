@@ -4071,10 +4071,12 @@ void Cmd_AmmoCycle_f(gentity_t* ent) {
 
 	// Set our ammo to be the desired ammo type
 	ent->client->ps.stats[STAT_TOTALAMMO] += ent->client->ps.stats[STAT_AMMO];
+	ent->client->ammoTable[ent->client->ps.ammoType] = ent->client->ps.stats[STAT_TOTALAMMO];
 	ent->client->ps.stats[STAT_AMMO] = 0;
 	ent->client->ps.ammoType = desiredAmmo;
 	ent->client->ammoTypes[weaponIndex] = desiredAmmo;
 	ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
+	ent->client->clipammo[weaponIndex] = 0;
 
 	// Trigger a reload
 	Cmd_Reload_f(ent);
