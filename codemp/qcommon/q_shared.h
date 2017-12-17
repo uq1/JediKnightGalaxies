@@ -1070,6 +1070,7 @@ typedef enum {
 
 //=============================================
 
+char* Q_strpnl(char* in);
 int Q_isprint( int c );
 int Q_islower( int c );
 int Q_isupper( int c );

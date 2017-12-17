@@ -683,4 +683,7 @@ extern saberStanceExternal_t SaberStances[MAX_STANCES];
 
 void JKG_InitializeStanceData( void );
 
+// Is actually defined in bg_ammo.cpp, just here to shut the compiler up
+int BG_GetRefillAmmoCost(int* ammo, weaponData_t* wp);
+
 #endif

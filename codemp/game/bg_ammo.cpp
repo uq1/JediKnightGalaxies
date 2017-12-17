@@ -63,6 +63,30 @@ void BG_GiveAmmo(gentity_t* ent, ammo_t* ammo, qboolean max, int amount) {
 #endif
 
 /*
+==============================
+BG_GetRefillAmmoCost
+
+Gets the cost of refilling ammo, given an array of ammo and a weapon
+==============================
+*/
+int BG_GetRefillAmmoCost(int* ammo, weaponData_t* wp)
+{
+	int totalCost = 0;
+	for (int i = 0; i < wp->numFiringModes; i++)
+	{
+		ammo_t* ammoType = wp->firemodes[i].ammoDefault;
+		if (ammoType == nullptr)
+		{
+			continue;	// bad linkage - shouldn't happen
+		}
+
+		int ammoCount = ammoType->ammoMax - ammo[ammoType->ammoIndex];
+		totalCost += ammoCount * ammoType->pricePerUnit;
+	}
+	return totalCost;
+}
+
+/*
 ============================
 BG_GetAllAmmoSubstitutions
 

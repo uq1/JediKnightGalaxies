@@ -643,15 +643,53 @@ Crossover API
 // The crossover API allows cgame and UI to communicate
 #include "game/bg_weapons.h"
 
+enum jkgPartyNotify_e
+{
+	PARTYNOTIFY_UPDATESTATE,
+	PARTYNOTIFY_UPDATESEEKERS,
+	PARTYNOTIFY_OPEN,
+};
+
+enum jkgPartyRequest_e
+{
+	PARTYREQUEST_PARTY,
+	PARTYREQUEST_SEEKERS,
+	PARTYREQUEST_SEEKERTIME,
+};
+
+enum jkgInventoryNotify_e
+{
+	INVENTORYNOTIFY_OPEN,
+	INVENTORYNOTIFY_UPDATE,
+};
+
+enum jkgInventoryRequest_e
+{
+	INVENTORYREQUEST_SIZE,
+	INVENTORYREQUEST_ITEMS,
+	INVENTORYREQUEST_ACI,
+	INVENTORYREQUEST_CREDITS,
+	INVENTORYREQUEST_OTHERCONTAINERITEMS,
+	INVENTORYREQUEST_OTHERCONTAINERSIZE,
+	INVENTORYREQUEST_LOOKUPTABLE,
+	INVENTORYREQUEST_ICONSHADER,
+};
+
+enum jkgShopNotify_e
+{
+	SHOPNOTIFY_REFRESH,
+};
+
 typedef struct uiCrossoverExports_s
 {
 	qboolean		(*HandleServerCommand)( const char *command );
 	void			(*SetEscapeTrap)( qboolean activate );
 
-	void			(*PartyMngtNotify)( int msg );
-	void			(*InventoryNotify)( int msg );
-	void			(*ShopNotify)( int msg );
+	void			(*PartyMngtNotify)( jkgPartyNotify_e msg );
+	void			(*InventoryNotify)( jkgInventoryNotify_e msg );
+	void			(*ShopNotify)( jkgShopNotify_e msg );
 	void			(*ItemsUpdated)();
+	void			(*InventoryPriceCheckResult)(int invID, int price);
 } uiCrossoverExports_t;
 
 typedef struct cgCrossoverExports_s
@@ -659,8 +697,8 @@ typedef struct cgCrossoverExports_s
 	void			(*SendClientCommand)( const char *command );
 	qboolean		(*EscapeTrapped)( void );
 
-	void*			(*PartyMngtDataRequest)( int data );
-	void*			(*InventoryDataRequest)( int data );
+	void*			(*PartyMngtDataRequest)( jkgPartyRequest_e data );
+	void*			(*InventoryDataRequest)( jkgInventoryRequest_e data, int extra );
 	void			(*InventoryAttachToACI)( int itemNum, int slot, int attach );
 	weaponData_t*	(*GetWeaponDatas)( unsigned char weapon, unsigned char variation );
 	int				(*GetRedTeam)( void );

@@ -41,8 +41,6 @@ extern int cg_saberFlashTime;
 extern vec3_t cg_saberFlashPos;
 extern char *showPowersName[];
 
-extern int cg_siegeDeathTime;
-extern int cg_siegeDeathDelay;
 extern int cg_vehicleAmmoWarning;
 extern int cg_vehicleAmmoWarningTime;
 
@@ -1388,15 +1386,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		CG_TryPlayCustomSound( NULL, es->number, CHAN_VOICE, "*pushfail.wav" );
 		break;
 		//End NPC sounds
-
-	case EV_SIEGESPEC:
-		DEBUGNAME("EV_SIEGESPEC");
-		if ( es->owner == cg.predictedPlayerState.clientNum )
-		{
-			cg_siegeDeathTime = es->time;
-		}
-
-		break;
 		
 	case EV_WATER_TOUCH:
 		DEBUGNAME("EV_WATER_TOUCH");
@@ -2042,6 +2031,19 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			case PDSOUND_FORCEGRIP:
 				sID = trap->S_RegisterSound("sound/weapons/force/grip.mp3");
 				break;
+
+			case PDSOUND_VENDORPURCHASE:
+				sID = trap->S_RegisterSound("sound/vendor/generic/purchase00.mp3");
+				break;
+
+			case PDSOUND_TRADE:
+				sID = trap->S_RegisterSound("sound/vendor/generic/purchase01.mp3");
+				break;
+
+			case PDSOUND_PAY:
+				sID = trap->S_RegisterSound("sound/vendor/generic/purchase02.mp3");
+				break;
+
 			default:
 				break;
 			}

@@ -314,7 +314,7 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 			break;
 		case IPT_OPEN:
 			// Open the inventory menu
-			uiImports->InventoryNotify(0);
+			uiImports->InventoryNotify(INVENTORYNOTIFY_OPEN);
 			break;
 		case IPT_RESET:
 			// Clear the inventory and fill it with fresh data (usually from a vid_restart)
@@ -492,12 +492,6 @@ void BG_ReceivedTradePacket(itemTradePacketType_t packet) {
 				int quantity = atoi(CG_Argv(4));
 				itemInstance_t item = BG_ItemInstance(itemID, quantity);
 				BG_GiveItem(item);
-
-				if (credits > 0)
-				{
-					//vec3_t origin;
-					trap->S_StartSound(cg.snap->ps.origin, -1, CHAN_AUTO, trap->S_RegisterSound("sound/vendor/generic/purchase02.mp3"));
-				}
 			}
 			cg.ourTradeItems->clear();
 			break;

@@ -209,38 +209,6 @@ static char ctfFlagStatusRemap[] = {
 };
 
 /*
-==================
-JKG_ShopConfirm
-See comment in g_cmds.c --eez
-==================
-*/
-
-static void JKG_ShopConfirm( void )
-{
-	int creditCount = atoi(CG_Argv(1));
-	int itemID = atoi(CG_Argv(2));
-
-	if (cg.demoPlayback) {
-		// Don't do this in a demo
-		return;
-	}
-
-	/* Change the credit count in the shop UI */
-	cg.snap->ps.credits = creditCount;
-
-	if (itemLookupTable[itemID].itemType == ITEM_WEAPON || itemLookupTable[itemID].itemType == ITEM_CONSUMABLE) {
-		// Auto-assign weapons and consumable items to the ACI.
-		// We don't auto assign jetpacks and shields because they might already have one equipped
-		// Maybe assign it if they don't have one equipped?
-		BG_AddItemToACI(cg.playerInventory->size() - 1, -1);
-	}
-
-	/* Notify the UI about changes in the shop */
-	uiImports->ShopNotify(1);
-}
-
-
-/*
 ================
 CG_SetConfigValues
 
@@ -1327,6 +1295,16 @@ static void CG_BodyQueueCopy(centity_t *cent, int clientNum, int knownWeapon, in
 	}
 }
 
+void JKG_ClientBoughtItem(const char* szPlayerName, int nItemID)
+{
+	if (nItemID < 0)
+	{
+		return;
+	}
+
+	Com_Printf("%s ^2purchased^7 %s!\n", szPlayerName, Q_strpnl((char*)CG_GetStringEdString2(itemLookupTable[nItemID].displayName)));
+}
+
 /*
 =================
 CG_ServerCommand
@@ -1583,7 +1561,7 @@ static void CG_ServerCommand( void ) {
 			if (oldItem != -1) {
 				(*cg.playerInventory)[oldItem].equipped = false;
 			}
-	        uiImports->InventoryNotify( 1 );
+	        uiImports->InventoryNotify( INVENTORYNOTIFY_UPDATE );
 	    }
 	    return;
 	}
@@ -1594,7 +1572,7 @@ static void CG_ServerCommand( void ) {
 	    {
 	        int slot = atoi (CG_Argv (1));
 			(*cg.playerInventory)[slot].equipped = false;
-	        uiImports->InventoryNotify( 1 );
+	        uiImports->InventoryNotify( INVENTORYNOTIFY_UPDATE );
 	    }
 	    
 	    return;
@@ -1602,7 +1580,7 @@ static void CG_ServerCommand( void ) {
 	if ( !strcmp (cmd, "inventory_update") )
 	{
 		cg.predictedPlayerState.credits = atoi(CG_Argv(1));
-		uiImports->InventoryNotify (1);
+		uiImports->InventoryNotify (INVENTORYNOTIFY_UPDATE);
 		return;
 	}
 
@@ -1897,7 +1875,7 @@ static void CG_ServerCommand( void ) {
 			}
 		}
 		/* Notify UI */
-		uiImports->PartyMngtNotify( 1 );
+		uiImports->PartyMngtNotify( PARTYNOTIFY_UPDATESEEKERS );
 		return;
 	}
 
@@ -1918,7 +1896,7 @@ static void CG_ServerCommand( void ) {
 		/* Win cake */
 
 		/* Notify UI */
-		uiImports->PartyMngtNotify( 0 );
+		uiImports->PartyMngtNotify( PARTYNOTIFY_UPDATESTATE );
 		return;
 	}
 
@@ -1957,7 +1935,7 @@ static void CG_ServerCommand( void ) {
 		cgs.party.members[0].status = 1;
 
 		/* Notify UI */
-		uiImports->PartyMngtNotify( 0 );
+		uiImports->PartyMngtNotify( PARTYNOTIFY_UPDATESTATE );
 		return;
 	}
 
@@ -1989,6 +1967,25 @@ static void CG_ServerCommand( void ) {
 	{
 		// add a notification to the display
 		CG_Notifications_Add((char *)CG_Argv(2), qfalse);	// first arg is ignored. it's supposed to specify the type of message but it's unused.
+		return;
+	}
+
+	if (!strcmp(cmd, "apc"))
+	{
+		// Ammo price check response
+		uiImports->InventoryPriceCheckResult(atoi(CG_Argv(1)), atoi(CG_Argv(2)));
+		return;
+	}
+
+	if (!strcmp(cmd, "cbi"))
+	{
+		// Client bought item
+		char* playerName = va("%s", CG_Argv(2));
+		for (int i = 3; i < trap->Cmd_Argc(); i++)
+		{
+			playerName = va("%s %s", playerName, CG_Argv(i));
+		}
+		JKG_ClientBoughtItem(playerName, atoi(CG_Argv(1)));
 		return;
 	}
 	//eezstreet end
