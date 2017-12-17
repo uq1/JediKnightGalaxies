@@ -17,12 +17,14 @@ static size_t nNumberUnfilteredSItems;	/* The total number of shop items before 
 
 static vector<pair<int, itemInstance_t*>> vInventoryItems;	/* The inventory items, after filtering */
 static vector<pair<int, itemInstance_t*>> vShopItems;		/* The shop items, after filtering */
+static vector<std::string> vShopItemDesc;					/* The description of the currently selected shop item */
 static vector<pair<int, int>> vPriceCheckedAmmo;			/* Price check of ammo on items in inventory */
 
 static size_t nInventoryScroll = 0;		// How far we've scrolled in the menu
 static size_t nShopScroll = 0;			// How far we've scrolled in the menu
 static bool bPriceCheckComplete = false;// Whether or not we've completed the ammo price check
 static int nPriceCheckCost = -1;
+static bool bExamineMenuOpen = false;	// Whether we are examining things
 
 // This function updates the status of price checking. Only called when bPriceCheckComplete is false.
 void JKG_Shop_UpdatePriceCheck()
@@ -49,6 +51,7 @@ void JKG_Shop_UpdatePriceCheck()
 void JKG_ConstructShopLists() {
 	vInventoryItems.clear();
 	vShopItems.clear();
+	vShopItemDesc.clear();
 	vPriceCheckedAmmo.clear();
 	bPriceCheckComplete = false;
 	nPriceCheckCost = -1;
@@ -57,6 +60,9 @@ void JKG_ConstructShopLists() {
 		// This gets called when the game starts, because ui_inventoryFilter gets modified
 		return;
 	}
+
+	Menu_ShowGroup(Menus_FindByName("jkg_shop"), "shop_examine", bExamineMenuOpen);
+	Menu_ShowGroup(Menus_FindByName("jkg_shop"), "shop_left", !bExamineMenuOpen);
 
 	nNumberUnfilteredIItems = *(size_t*)cgImports->InventoryDataRequest(INVENTORYREQUEST_SIZE, -1);
 	nNumberUnfilteredSItems = *(size_t*)cgImports->InventoryDataRequest(INVENTORYREQUEST_OTHERCONTAINERSIZE, -1);
@@ -181,6 +187,10 @@ void JKG_ConstructShopLists() {
 	}
 	else if (!bLeftSelected && nSelected >= nNumberShopItems) {
 		nSelected = -1;
+	}
+	else if (!bLeftSelected)
+	{
+		JKG_ConstructItemDescription(vShopItems[nSelected].second, vShopItemDesc);
 	}
 
 	if (nInventoryScroll >= nNumberInventoryItems) {
@@ -507,6 +517,7 @@ void JKG_Shop_SelectLeft(char** args) {
 	nSelected = nInventoryScroll + id;
 	bPriceCheckComplete = false;
 	nPriceCheckCost = -1;
+	vShopItemDesc.clear();
 
 	if (nSelected < 0)
 	{
@@ -549,8 +560,14 @@ void JKG_Shop_SelectRight(char** args) {
 	}
 	bLeftSelected = false;
 	nSelected = nShopScroll + id;
+	vShopItemDesc.clear();
 
 	Menu_ShowGroup(Menus_FindByName("jkg_shop"), "shop_ammobuttons", qfalse);
+
+	if (nSelected >= 0 && nSelected < vShopItems.size())
+	{
+		JKG_ConstructItemDescription(vShopItems[nSelected].second, vShopItemDesc);
+	}
 }
 
 void JKG_Shop_Sort(char** args) {
@@ -691,4 +708,29 @@ void JKG_Shop_PriceCheckComplete(int nInventoryID, int nPrice)
 	}
 
 	vPriceCheckedAmmo.push_back(pair);
+}
+
+// Ownerdraw: Draw the shop description line indicated
+void JKG_Shop_DrawShopDescriptionLine(itemDef_t* item, int nOwnerDrawID)
+{
+	if (!bExamineMenuOpen)
+	{
+		return;
+	}
+
+	if (nOwnerDrawID >= vShopItemDesc.size())
+	{
+		item->text[0] = '\0';
+		Item_Text_Paint(item);
+		return;
+	}
+
+	Q_strncpyz(item->text, vShopItemDesc[nOwnerDrawID].c_str(), sizeof(item->text));
+	Item_Text_Paint(item);
+}
+
+void JKG_Shop_Examine(char** args)
+{
+	bExamineMenuOpen = !bExamineMenuOpen;
+	JKG_ConstructShopLists();
 }

@@ -2506,6 +2506,9 @@ static void UI_OwnerDraw(itemDef_t *item, float x, float y, float w, float h, fl
 	case UI_JKG_SHOP_AMMOPRICE:
 		JKG_Shop_ShopAmmoCost(item);
 		break;
+	case UI_JKG_SHOP_ITEMDESC:
+		JKG_Shop_DrawShopDescriptionLine(item, ownerDrawID);
+		break;
 	case UI_JKG_SHOP_LEFTTAB:
 		JKG_Shop_SortSelectionName(item, ownerDrawID);
 		break;

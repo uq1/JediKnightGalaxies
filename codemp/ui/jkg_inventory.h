@@ -38,6 +38,7 @@ void JKG_Inventory_EquipArmor(char** args);
 void JKG_Inventory_UnequipArmor(char** args);
 void JKG_Inventory_Open(char** args);
 void JKG_ConstructInventoryList();
+void JKG_ConstructItemDescription(itemInstance_t* pItem, std::vector<std::string>& vDescLines);
 
 
 //
@@ -73,4 +74,5 @@ void JKG_Shop_Closed(char** args);
 void JKG_ScrollShop(qboolean bUp, int nMouseX, int nMouseY);
 void JKG_ShopNotify(jkgShopNotify_e msg);
 void JKG_Shop_PriceCheckComplete(int nInventoryID, int nPrice);
-void JKG_Shop_ResetPriceCheckData();
+void JKG_Shop_DrawShopDescriptionLine(itemDef_t* item, int nOwnerDrawID);
+void JKG_Shop_Examine(char** args);
