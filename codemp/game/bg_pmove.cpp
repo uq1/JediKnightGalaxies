@@ -4956,7 +4956,7 @@ static qboolean PM_DoChargedWeapons( void )
 		}
 
 		// Jedi Knight Galaxies - handle clips
-		if ( GetWeaponAmmoClip( pm->ps->weapon, pm->ps->weaponVariation ) ) {
+		if ( weaponFireData->clipSize ) {
 			if (pm->ps->stats[STAT_AMMO] < (weaponFireData->cost + weaponFireData->cost))
 			{
 				pm->ps->weaponstate = WEAPON_CHARGING;
@@ -5737,11 +5737,11 @@ static void PM_Weapon( void )
 	amount = weaponData->firemodes[pm->ps->firingMode].cost;
 
 	// take an ammo away if not infinite
-	if ( (pm->ps->clientNum < MAX_CLIENTS || pm_entSelf->s.eType == ET_NPC) && GetWeaponAmmoClip( pm->ps->weapon, pm->ps->weaponVariation ) != -1 )
+	if ( (pm->ps->clientNum < MAX_CLIENTS || pm_entSelf->s.eType == ET_NPC) && weaponData->firemodes[pm->ps->firingMode].clipSize != -1 )
 	{
 		// enough energy to fire this weapon?
 		// Jedi Knight Galaxies - Check clip also
-		if ( GetWeaponAmmoClip( pm->ps->weapon, pm->ps->weaponVariation ))
+		if ( weaponData->firemodes[pm->ps->firingMode].clipSize )
 		{
 			if ((pm->ps->stats[STAT_AMMO] - amount) >= 0) 
 			{

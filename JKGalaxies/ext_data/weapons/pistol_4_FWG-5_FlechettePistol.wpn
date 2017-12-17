@@ -59,7 +59,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   1500,
-        "clipSize":              8,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.6,
         "speed": 1
@@ -85,6 +84,7 @@
         "splashmeansofdeath": "MOD_SLUGTHROWER",
 	"ammobase": "AMMO_FWG-5",
 	"ammodefault": "AMMO_FWG-5",
+        "clipSize":              8,
 		"accuracy": {
 			"accuracyRating": 24,
 			"crouchModifier": 0.5

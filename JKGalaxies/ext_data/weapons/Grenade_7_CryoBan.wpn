@@ -70,7 +70,6 @@
         "ammoIndex":         "grenade_cryoban",
         "ammoOnSpawn":   2,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "roll" ]
     },
     
@@ -112,6 +111,7 @@
 //        "splashrange":  150,
         "projectilespeed":1200.0,
         "projectileclass":"repeater_alt_proj",
+        "clipSize":              0,
         "meansofdeath": "MOD_COLD",
         "splashmeansofdeath": "MOD_COLD"
     },
@@ -154,6 +154,7 @@
 //        "splashrange":  150,
         "projectilespeed":900.0,
         "projectileclass":"repeater_alt_proj",
+        "clipSize":              0,
         "meansofdeath": "MOD_COLD",
         "splashmeansofdeath": "MOD_COLD"
     },

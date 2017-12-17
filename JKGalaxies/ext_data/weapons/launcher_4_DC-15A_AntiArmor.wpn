@@ -78,7 +78,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2000,
-        "clipSize":              1,
         "flags":        [ "knockback", "togglezoom" ],
        "startzoomfov": 30.0,
         "reloadmodifier": 0.5,
@@ -98,6 +97,7 @@
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_L",
 	"ammodefault": "AMMO_ION_POWERPACK_L",
+        "clipSize":              100,
         "accuracy": {
         	"accuracyRating": 60,
         	"accuracyRatingPerShot": 4,
@@ -129,6 +129,7 @@
         "splashmeansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_L",
 	"ammodefault": "AMMO_ION_POWERPACK_L",
+        "clipSize":              100,
         "accuracy": {
         	"accuracyRating": 85,
         	"accuracyRatingPerShot": 12,
@@ -159,6 +160,7 @@
         "splashmeansofdeath": "MOD_EXPLOSION",
 	"ammobase": "AMMO_ANTIARMOR_CHARGE",
 	"ammodefault": "AMMO_ANTIARMOR_CHARGE",
+        "clipSize":              1,
             "accuracy": {
         "accuracyRating": 64,
         "accuracyRatingPerShot": 0,

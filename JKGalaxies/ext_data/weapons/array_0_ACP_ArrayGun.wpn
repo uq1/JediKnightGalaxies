@@ -58,7 +58,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   2250,
-        "clipSize":              8,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
@@ -77,6 +76,7 @@
         "meansofdeath": "MOD_ACP",
 	"ammobase": "AMMO_ACP_ARRAY",
 	"ammodefault": "AMMO_ACP_ARRAY",
+        "clipSize":              8,
         "accuracy": {
         	"accuracyRating": 96,
         	"accuracyRatingPerShot": 12,
@@ -106,6 +106,7 @@
         "meansofdeath": "MOD_ACP",
 	"ammobase": "AMMO_ACP_ARRAY",
 	"ammodefault": "AMMO_ACP_ARRAY",
+        "clipSize":              8,
         "accuracy": {
         	"accuracyRating": 96,
         	"accuracyRatingPerShot": 50,

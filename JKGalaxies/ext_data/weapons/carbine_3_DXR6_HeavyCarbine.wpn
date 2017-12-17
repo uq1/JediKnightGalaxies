@@ -67,7 +67,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2250,
-        "clipSize":              16,
         "flags":        [ "roll" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
@@ -86,6 +85,7 @@
         "splashmeansofdeath": "MOD_BLASTER",
 	"ammoBase": "AMMO_POWERCELL_L",
 	"ammoDefault": "AMMO_POWERCELL_S",
+        "clipSize":              16,
             "accuracy": {
         "accuracyRating": 25,
         "accuracyRatingPerShot": 6,
@@ -119,6 +119,7 @@
         "splashmeansofdeath": "MOD_DISRUPTOR",
 	"ammoBase": "AMMO_POWERCELL_L",
 	"ammoDefault": "AMMO_POWERCELL_S",
+        "clipSize":              16,
         "accuracy": {
         	"accuracyRating": 35,
         	"accuracyRatingPerShot": 8,

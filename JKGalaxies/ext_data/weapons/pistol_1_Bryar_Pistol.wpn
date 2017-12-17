@@ -62,7 +62,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   1000,
-        "clipSize":              16,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
@@ -78,6 +77,7 @@
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
+        "clipSize":              16,
 	"ammobase": "AMMO_POWERCELL_L",
 	"ammodefault": "AMMO_POWERCELL_S"
     },
@@ -98,6 +98,7 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
+        "clipSize":              16,
 	"ammobase": "AMMO_POWERCELL_L",
 	"ammodefault": "AMMO_POWERCELL_S"
     },

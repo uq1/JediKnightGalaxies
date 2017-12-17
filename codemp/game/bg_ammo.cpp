@@ -129,7 +129,7 @@ qboolean BG_WeaponAcceptsAlternateAmmo(int weapon, int variation) {
 			break;
 	}
 
-	if (wp->clipSize <= 0) {
+	if (wp->firemodes[0].clipSize <= 0) {
 		return qfalse;
 	}
 
@@ -138,6 +138,29 @@ qboolean BG_WeaponAcceptsAlternateAmmo(int weapon, int variation) {
 	}
 
 	return qtrue;
+}
+
+/*
+============================
+BG_AmmoIsBasedOn
+
+Returns true if the ammo in arg 1 is based on (can be substituted for) the ammo in arg 2
+============================
+*/
+qboolean BG_AmmoIsBasedOn(int ammoTypeIndex, int basedOnIndex)
+{
+	std::vector<ammo_t*> ammoTypes;
+	BG_GetAllAmmoSubstitutions(basedOnIndex, ammoTypes);
+
+	for (auto it = ammoTypes.begin(); it != ammoTypes.end(); ++it)
+	{
+		if ((*it)->ammoIndex == ammoTypeIndex)
+		{
+			return qtrue;
+		}
+	}
+
+	return qfalse;
 }
 
 /*

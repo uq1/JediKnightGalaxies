@@ -57,7 +57,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   1800,
-        "clipSize":              12,
         "flags":        [ "roll" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
@@ -80,6 +79,7 @@
         "meansofdeath": "MOD_SLUGTHROWER",
 	"ammobase": "AMMO_MAUSER_CLIP",
 	"ammodefault": "AMMO_MAUSER_CLIP",
+        "clipSize":              12,
         "accuracy": {
         	"accuracyRating": 35,
         	"accuracyRatingPerShot": 6,
@@ -95,7 +95,6 @@
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-//        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_RIFLERELOADL" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },

@@ -990,9 +990,9 @@ struct gclient_s {
 	// Jedi Knight Galaxies
 	int			IDCode;
 	int			InCinematic;
-	int			clipammo[256];		// Ammo in current clip of specific weapon
-	int			firingModes[256];	// Different firing modes for each gun so it automagically remembers
-	int			ammoTypes[256];		// Different ammo types for each gun so it automagically remembers
+	int			clipammo[256][MAX_FIREMODES];						// Ammo in current clip of specific weapon
+	int			firingModes[256];									// Different firing modes for each gun so it automagically remembers
+	int			ammoTypes[256][MAX_FIREMODES];						// Different ammo types for each gun so it automagically remembers
 	qboolean	customGravity;
 	qboolean	pmfreeze;
 	qboolean	pmlock;

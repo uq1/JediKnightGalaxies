@@ -41,7 +41,6 @@
 	"stats": {
 		"slot": 2,
 		"reloadtime": 1500,
-		"clipSize": 20,
 		"flags": ["roll"],
 		"reloadmodifier": 0.7
 	},
@@ -58,7 +57,8 @@
 		"projectileclass": "blaster_proj",
 		"meansofdeath": "MOD_BRYAR_PISTOL",
 		"ammobase": "AMMO_SS_POWERPACK",
-		"ammodefault": "AMMO_SS_POWERPACK"
+		"ammodefault": "AMMO_SS_POWERPACK",
+		"clipSize": 20
 	},
 
 	"playeranims": {

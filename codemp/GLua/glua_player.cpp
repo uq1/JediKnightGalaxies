@@ -1145,26 +1145,36 @@ static int GLua_Player_SetClipAmmo(lua_State *L) {
 	int weapon = luaL_checkint(L,2);
 	int var = luaL_optint(L,3,0);
 	int amt = luaL_checkint(L,4);
+	int firemode = luaL_optint(L, 5, 0);
+
 	if (!ply) return 0;
+
 	if (weapon < 0 || weapon >= MAX_WEAPONS) {
 		return 0;
 	}
+
+	weaponData_t* wp = GetWeaponData(weapon, var);
+
 	if (amt < 0) {
 		amt = 0;
-	} else if (amt > GetWeaponAmmoClip( weapon, var )) {
-		amt = GetWeaponAmmoClip( weapon, var );
+	} else if (amt > wp->firemodes[firemode].clipSize) {
+		amt = wp->firemodes[firemode].clipSize;
 	}
 
-	g_entities[ply->clientNum].client->clipammo[BG_GetWeaponIndex(weapon, var)] = amt;
+	if (firemode < 0)
+		firemode = 0;
+
+	g_entities[ply->clientNum].client->clipammo[BG_GetWeaponIndex(weapon, var)][firemode] = amt;
 	return 0;
 }
 
 static int GLua_Player_StripClipAmmo(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
-	int i;
+	int i,j;
 	if (!ply) return 0;
 	for (i=0; i < 256; i++) {
-		level.clients[ply->clientNum].clipammo[i] = 0;
+		for(j=0; j < MAX_FIREMODES; j++)
+			level.clients[ply->clientNum].clipammo[i][j] = 0;
 	}
 	return 0;
 }
@@ -1185,11 +1195,19 @@ static int GLua_Player_GetClipAmmo(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
 	int weapon = luaL_checkint(L,2);
 	int variation = luaL_checkint(L,3);
+	int weaponIndex;
+	int fireMode;
+
 	if (!ply) return 0;
+
 	if (weapon < 0 || weapon >= MAX_WEAPONS) {
 		return 0;
 	}
-	lua_pushinteger(L, g_entities[ply->clientNum].client->clipammo[BG_GetWeaponIndex(weapon, variation)]);
+
+	weaponIndex = BG_GetWeaponIndex(weapon, variation);
+	fireMode = g_entities[ply->clientNum].client->firingModes[weaponIndex];
+
+	lua_pushinteger(L, g_entities[ply->clientNum].client->clipammo[weaponIndex][fireMode]);
 	return 1;
 }
 

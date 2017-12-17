@@ -65,7 +65,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2000,
-        "clipSize":              1,
 //        "flags":        [ "knockback" ],
         "reloadmodifier": 0.5,
         "speed":        0.8
@@ -87,6 +86,7 @@
         "splashmeansofdeath": "MOD_EXPLOSION",
 	"ammobase": "AMMO_ROCKETS",
 	"ammodefault": "AMMO_ROCKETS",
+        "clipSize":              1,
             "accuracy": {
         "accuracyRating": 52,
         "accuracyRatingPerShot": 0,

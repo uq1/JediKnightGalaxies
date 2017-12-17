@@ -71,13 +71,12 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2400,
-        "clipSize":              12,
         "flags":        [ "togglezoom" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
     },
     
-	 "firemode0": {
+    "firemode0": {
         "damage":       25,
         "ammocost":     1,
         "firedelay":    300,
@@ -90,6 +89,7 @@
         "splashmeansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERCELL_L",
 	"ammodefault": "AMMO_POWERCELL_M",
+        "clipSize":              12,
             "accuracy": {
         "accuracyRating": 25,
         "accuracyRatingPerShot": 6,
@@ -123,6 +123,7 @@
         "splashmeansofdeath": "MOD_DISRUPTOR",
 	"ammobase": "AMMO_POWERCELL_L",
 	"ammodefault": "AMMO_POWERCELL_M",
+        "clipSize":              12,
             "accuracy": {
         "accuracyRating": 35,
         "accuracyRatingPerShot": 8,

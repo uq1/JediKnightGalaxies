@@ -66,7 +66,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   2000,
-        "clipSize":              24,
         "flags":        [ "roll", "togglezoom" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
@@ -85,6 +84,7 @@
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERCELL_L",
 	"ammodefault": "AMMO_POWERCELL_M",
+        "clipSize":              24,
             "accuracy": {
         "accuracyRating": 20,
         "accuracyRatingPerShot": 4,
@@ -116,6 +116,7 @@
         "splashmeansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERCELL_L",
 	"ammodefault": "AMMO_POWERCELL_M",
+        "clipSize":              24,
             "accuracy": {
         "accuracyRating": 40,
         "accuracyRatingPerShot": 6,
@@ -131,7 +132,6 @@
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-//        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_RIFLERELOADR" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },

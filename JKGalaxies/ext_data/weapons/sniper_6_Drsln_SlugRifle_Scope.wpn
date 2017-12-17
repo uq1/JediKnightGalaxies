@@ -60,7 +60,6 @@
         "ammoIndex":         "7.92slugs",
         "ammoOnSpawn":   120,
         "ammoOnPickup":   24,
-        "clipSize":              12,
         "flags":        [ "roll", "togglezoom" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
@@ -83,6 +82,7 @@
         "meansofdeath": "MOD_SLUGTHROWER",
 	"ammobase": "AMMO_MAUSER",
 	"ammodefault": "AMMO_MAUSER",
+        "clipSize":              12,
         "accuracy": {
         	"accuracyRating": 25,
         	"accuracyRatingPerShot": 6,
@@ -98,7 +98,6 @@
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-//        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_RIFLERELOADL" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },

@@ -50,8 +50,8 @@
             ],
             "projectilemodel": "models/ammo/incendcan_proj.md3",
             "projectilefx": "explosives/shot_mortar",
-            "miss":         { "impactfx": "explosives/burnmedium" },
-            "hit":          { "impactfx": "explosives/burnmedium" },
+            //"miss":         { "impactfx": "explosives/burnmedium" },
+            //"hit":          { "impactfx": "explosives/burnmedium" },
 	    "displayName":  "Launcher",
 	    "animtype":     "1"
         }
@@ -60,7 +60,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   3250,
-        "clipSize":              180,
         "reloadmodifier": 0.7,
         "speed":        0.7
     },
@@ -77,6 +76,7 @@
         "meansofdeath": "MOD_ACP",
 	"ammobase": "AMMO_ACP_DRUM",
 	"ammodefault": "AMMO_ACP_DRUM",
+        "clipSize":              180,
         "accuracy": {
         	"accuracyRating": 50,
         	"accuracyRatingPerShot": 5,
@@ -94,7 +94,7 @@
         "damage":       50,//100,
         "ballistic":    true,
         "collisionsize": 2.0,
-        "ammocost":     50,
+        "ammocost":     1,
         "firedelay":    2000,
         "firingtype":   "semi",
         "range":        40000.0,
@@ -107,6 +107,7 @@
         "splashmeansofdeath": "MOD_EXPLOSION",
 	"ammobase": "AMMO_EXPLOSIVE_CANISTER",
 	"ammodefault": "AMMO_CANISTER_INCENDIARY",
+        "clipSize":              3,
         "accuracy": {
         	"accuracyRating": 105,
         	"accuracyRatingPerShot": 15,

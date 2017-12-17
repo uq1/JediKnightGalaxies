@@ -53,7 +53,6 @@
     "stats": {
         "slot":         0,
         "reloadtime":   2750,
-        "clipSize":              6,
         "flags":        [ "knockback" ],
         "reloadmodifier": 0.7
     },
@@ -77,6 +76,7 @@
 	"splashmeansofdeath": "MOD_QUARREL",
 	"ammobase": "AMMO_QUARREL",
 	"ammodefault": "AMMO_QUARREL",
+        "clipSize":              6,
             "accuracy": {
         "accuracyRating": 20,
         "accuracyRatingPerShot": 6,

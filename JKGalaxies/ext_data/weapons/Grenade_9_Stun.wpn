@@ -70,7 +70,6 @@
         "ammoIndex":         "grenade_stun",
         "ammoOnSpawn":   4,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "roll" ]
     },
     
@@ -103,6 +102,7 @@
         "splashrange":  350,
         "projectilespeed":1200.0,
         "projectileclass":"repeater_alt_proj",
+        "clipSize":              0,
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
@@ -132,6 +132,7 @@
         "splashrange":  350,
         "projectilespeed":900.0,
         "projectileclass":"repeater_alt_proj",
+        "clipSize":              0,
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },

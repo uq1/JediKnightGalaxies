@@ -50,14 +50,12 @@
     "stats": {
         "slot":         2,
         "reloadtime":   2500,
-        "clipSize":              99,
         "flags":        [ "roll", "knockback" ],
         "reloadmodifier": 0.8,
         "speed":        0.7
     },
     
     "firemode0": {
-//        "damage":       8,
           "damage": {
                                  "damageradius": { "start": 16 },
 //                                   "duration":       2000,
@@ -76,6 +74,7 @@
         "meansofdeath": "MOD_FIRE",
 	"ammobase": "AMMO_GAS",
 	"ammodefault": "AMMO_GAS",
+        "clipSize":              99,
         "accuracy": {
         	"accuracyRating": 50,
         	"accuracyRatingPerShot": 0,
@@ -90,7 +89,6 @@
     },
     
     "firemode1": {
-//        "damage":       8,
           "damage": {
                                  "damageradius": { "start": 16 },
 //                                   "duration":       2000,
@@ -112,6 +110,7 @@
         "meansofdeath": "MOD_FIRE",
 	"ammobase": "AMMO_GAS",
 	"ammodefault": "AMMO_GAS",
+        "clipSize":              99,
         "accuracy": {
         	"accuracyRating": 64,
         	"accuracyRatingPerShot": 0,
@@ -128,7 +127,6 @@
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
        "reload":        { "torso": "TORSO_DROPWEAP1" },
-//      "reload":       { "torso": "BOTH_ROCKETRELOAD" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
 	"sprint":	{ "torso": "BOTH_RIFLERUN" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },

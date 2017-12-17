@@ -61,7 +61,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   850,
-        "clipSize":              16,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
@@ -78,7 +77,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_KYD-21",
-	"ammodefault": "AMMO_KYD-21"
+	"ammodefault": "AMMO_KYD-21",
+        "clipSize":              16
     },
     
     "firemode1": {
@@ -93,12 +93,12 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_KYD-21",
-	"ammodefault": "AMMO_KYD-21"
+	"ammodefault": "AMMO_KYD-21",
+        "clipSize":              16
     },
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-//        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_PISTOLRELOAD" },
         "sights":        { "torso": "TORSO_WEAPONREADY2", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK2" },

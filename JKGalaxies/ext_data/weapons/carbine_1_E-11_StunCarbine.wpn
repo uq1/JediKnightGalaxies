@@ -12,7 +12,6 @@
         "hudnaicon":        "models/weapons/E-11_StunCarbine/icon_default",
         "selectsound":      "sound/weapons/select_carbine.wav",
         
-//        "gunposition":      "7.0 -2.2 -7.4",
         "gunposition":      "7.0 -2.2 -6.7",
         "ironsightsposition": "13.0 0.0 -4.6",
         "ironsightsfov": "70",
@@ -75,13 +74,11 @@
     "stats": {
         "slot":         1,
         "reloadtime":   1750,
-        "clipSize":              30,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
     
     "firemode0": {
-//        "damage":       10,
         "damage": {
                                "damage":       0,
                                "damagetype": [ "stun" ]
@@ -100,7 +97,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_L",
-	"ammodefault": "AMMO_POWERPACK_S"
+	"ammodefault": "AMMO_POWERPACK_S",
+        "clipSize":              30
     },
 
     "firemode1": {
@@ -111,7 +109,7 @@
         "ballistic":    true,
         "bounces":     -5,
         "collisionsize": 3.0,
-        "ammocost":     15,
+        "ammocost":     1,
         "firedelay":    1500,
         "firingtype":   "semi",
         "range":        6000.0,
@@ -121,7 +119,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_FLARE",
-	"ammodefault": "AMMO_FLARE"
+	"ammodefault": "AMMO_FLARE",
+        "clipSize":              2
     },
     
 	"firemode2": {

@@ -146,6 +146,7 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 	const char		*text;
 	vec4_t			opacity;
 	const weaponInfo_t *weaponInfo;
+	weaponData_t* wp;
 
 	if( cg.jkg_WHUDOpacity  < 1.0f )
 	{
@@ -168,6 +169,8 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 	{
 		return;
 	}
+
+	wp = GetWeaponData(cent->currentState.weapon, cent->currentState.weaponVariation);
 
 #ifndef NO_SP_STYLE_AMMO
 	// Figure out whether or not we want to do the thing where we highlight the text whenever we consume ammo or change firing mode (or, change weapon)
@@ -193,24 +196,17 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 	}
 	else
 	{
-		if ( GetWeaponAmmoClip( cent->currentState.weapon, cent->currentState.weaponVariation ))
-		{
-			ammo = ps->stats[STAT_AMMO];
-		}
-		else
-		{
-			ammo = ps->stats[STAT_TOTALAMMO];
-		}
-
-		if ( GetWeaponAmmoClip( cent->currentState.weapon, cent->currentState.weaponVariation ))
+		if ( wp->firemodes[cent->currentState.firingMode].clipSize )
 		{
 			// Display the amount of clips too
 			float temp;
-			temp = ceil((float)ps->stats[STAT_TOTALAMMO] / (float)GetWeaponAmmoClip(cent->currentState.weapon, cent->currentState.weaponVariation));
+			ammo = ps->stats[STAT_AMMO];
+			temp = ceil((float)ps->stats[STAT_TOTALAMMO] / (float)wp->firemodes[cent->currentState.firingMode].clipSize);
 			text = va( "Ammo: %i (%i) ", ammo, ( int ) temp );
 		}
 		else
 		{
+			ammo = ps->stats[STAT_TOTALAMMO];
 			text = va( "Ammo: %i ", ammo );
 		}
 	}

@@ -64,7 +64,6 @@
     "stats": {
         "slot":         0,
         "reloadtime":   1800,
-        "clipSize":              20,
         "flags":        [ "togglezoom" ],
         "reloadmodifier": 0.7,
         "startzoomfov": 30
@@ -88,6 +87,7 @@
         "meansofdeath": "MOD_QUARREL",
 	"ammobase": "AMMO_QUARREL",
 	"ammodefault": "AMMO_QUARREL",
+        "clipSize":              20,
         "accuracy": {
         	"accuracyRating": 30,
         	"accuracyRatingPerShot": 5,

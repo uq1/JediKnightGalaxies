@@ -54,7 +54,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   4000,
-        "clipSize":              50,
         "reloadmodifier": 0.9,
         "speed":        0.9
     },
@@ -84,7 +83,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_CARBONITE",
 	"ammobase": "AMMO_CARBONITE",
-	"ammodefault": "AMMO_CARBONITE"
+	"ammodefault": "AMMO_CARBONITE",
+        "clipSize":              50
     },
     
     "firemode1": {
@@ -106,7 +106,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_CARBONITE",
 	"ammobase": "AMMO_CARBONITE",
-	"ammodefault": "AMMO_CARBONITE"
+	"ammodefault": "AMMO_CARBONITE",
+        "clipSize":              50
     },
     
     "playeranims": {

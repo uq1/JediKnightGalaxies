@@ -69,7 +69,6 @@
         "ammoIndex":         "grenade_c22frag",
         "ammoOnSpawn":   2,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "cookable", "roll" ]
     },
     
@@ -89,6 +88,7 @@
         "splashrange":  400,//200,
         "projectilespeed":1100.0,
         "projectileclass":"thermal_detonator",
+        "clipSize":              0,
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
@@ -110,6 +110,7 @@
         "splashrange":  400,//200,
         "projectilespeed":900.0,
         "projectileclass":"thermal_detonator",
+        "clipSize":              0,
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },

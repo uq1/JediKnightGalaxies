@@ -68,6 +68,7 @@ ammo_t *BG_GetAmmo ( const char *ammoName );
 ammo_t *BG_GetAmmo ( const int ammoIndex );
 void BG_GetAllAmmoSubstitutions(int ammoIndex, std::vector<ammo_t*>& outSubs);
 bool BG_WeaponAcceptsAlternateAmmo(int weapon, int variation);
+qboolean BG_AmmoIsBasedOn(int ammoTypeIndex, int basedOnIndex);
 
 void JKG_ApplyAmmoOverride(int& value, const ammoOverride<int>& field);
 void JKG_ApplyAmmoOverride(double& value, const ammoOverride<double>& field);
