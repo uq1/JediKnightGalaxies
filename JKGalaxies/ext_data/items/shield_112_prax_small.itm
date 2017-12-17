@@ -9,7 +9,8 @@
 	"cooldown":	5000,
 	"regenrate":	333,
 
-	"rechargeSoundEffect":	"sound/shield/shield_recharge",
-	"brokenSoundEffect":	"sound/shield/shield_broken",
-	"equippedSoundEffect":	"sound/shield/shield_equipped2"
+	"rechargeSoundEffect":	"sound/shield/shield_recharge3",
+	"brokenSoundEffect":	"sound/shield/shield_broken5",
+	"equippedSoundEffect":	"sound/shield/shield_equipped",
+	"chargedSoundEffect":	"sound/shield/shield_charged6"
 }
