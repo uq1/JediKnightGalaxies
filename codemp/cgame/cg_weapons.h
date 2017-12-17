@@ -153,23 +153,23 @@ typedef struct weaponEventsHandler_s
 {
     const char *handlerName;
 
-    void (*WeaponRenderWorld) ( centity_t *cent, const weaponDrawData_t *weaponData, unsigned char firingMode, const vec3_t angles );
+    void (*WeaponRenderWorld) ( centity_t *cent, const weaponDrawData_t *weaponData, const ammo_t* ammo, unsigned char firingMode, const vec3_t angles );
     void (*WeaponRenderView) ( const weaponDrawData_t *weaponData );
     void (*WeaponFire) ( centity_t *cent, const weaponDrawData_t *weaponData, unsigned char firingMode );
     void (*WeaponCharge) ( const centity_t *cent, const weaponDrawData_t *weaponData );
     
-    void (*TracelineRender) ( const weaponDrawData_t *weaponData, const vec3_t start, const vec3_t end );
+    void (*TracelineRender) ( const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t start, const vec3_t end );
     void (*GrenadeBounce) ( const centity_t *cent, const weaponDrawData_t *weaponData );
     
     void (*ExplosiveRender) ( const centity_t *cent, const weaponDrawData_t *weaponData, unsigned char firingMode );
     void (*ExplosiveBlow) ( const centity_t *cent, const weaponDrawData_t *weaponData );
     void (*ExplosiveArm) ( const centity_t *cent, const weaponDrawData_t *weaponData );
     
-    void (*ProjectileRender) ( const centity_t *cent, const weaponDrawData_t *weaponData );
-    void (*ProjectileMiss) ( const centity_t *cent, const weaponDrawData_t *weaponData, const vec3_t impactOrigin, const vec3_t impactNormal );
-    void (*ProjectileDeath) ( const centity_t *cent, const weaponDrawData_t *weaponData, const vec3_t impactOrigin, const vec3_t impactNormal );
-    void (*ProjectileHitPlayer) ( const weaponDrawData_t *weaponData, const vec3_t impactOrigin, const vec3_t impactNormal );
-    void (*ProjectileDeflected) ( const weaponDrawData_t *weaponData, const vec3_t origin, const vec3_t normal );
+    void (*ProjectileRender) ( const centity_t *cent, const weaponDrawData_t *weaponData, const ammo_t* ammoData );
+    void (*ProjectileMiss) ( const centity_t *cent, const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t impactOrigin, const vec3_t impactNormal );
+    void (*ProjectileDeath) ( const centity_t *cent, const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t impactOrigin, const vec3_t impactNormal );
+    void (*ProjectileHitPlayer) ( const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t impactOrigin, const vec3_t impactNormal );
+    void (*ProjectileDeflected) ( const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t origin, const vec3_t normal );
 } weaponEventsHandler_t;
 
 void CG_InitWeapons ( void );

@@ -189,7 +189,6 @@ typedef struct weaponFireModeStats_s
 	float		range;				// The maximum amount of range this weapon/mode can reach.
 	float		rangeSplash;		// The possible splash damage range. Damage calculation is done based on point of impact to end of radius.
 	float		recoil;			    // The weapon recoil to smash into the camera, repeaters for instance have low but much recoil.
-	//float		spread;			    // The amount of spread this weapon mode has, if any. Goes through multiplers!
 	float		speed;				// The speed override, set different then 0 to avoid using global speed.
 	firingType_t    firingType;     // Firing type (auto, semi, burst)
 	char        shotsPerBurst;      // Shots per burst

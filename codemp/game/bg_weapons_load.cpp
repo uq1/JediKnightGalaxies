@@ -220,7 +220,7 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     fireModeStats->hitscan = (char)cJSON_ToBooleanOpt (node, 0);
     
     node = cJSON_GetObjectItem (fireModeNode, "projectiles");
-    fireModeStats->shotCount = (char)cJSON_ToIntegerOpt (node, 0);
+    fireModeStats->shotCount = (char)cJSON_ToIntegerOpt (node, 1);
     
     node = cJSON_GetObjectItem (fireModeNode, "collisionsize");
     fireModeStats->boxSize = (float)cJSON_ToNumberOpt (node, 0.0);

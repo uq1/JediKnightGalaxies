@@ -5735,6 +5735,7 @@ static void PM_Weapon( void )
 	}
 
 	amount = weaponData->firemodes[pm->ps->firingMode].cost;
+	JKG_ApplyAmmoOverride(amount, ammoTable[pm->ps->ammoType].overrides.ammocost);
 
 	// take an ammo away if not infinite
 	if ( (pm->ps->clientNum < MAX_CLIENTS || pm_entSelf->s.eType == ET_NPC) && weaponData->firemodes[pm->ps->firingMode].clipSize != -1 )
@@ -5817,10 +5818,12 @@ static void PM_Weapon( void )
 	{
 		case FT_AUTOMATIC:
 			addTime = weaponData->firemodes[pm->ps->firingMode].delay;
+			JKG_ApplyAmmoOverride(addTime, ammoTable[pm->ps->ammoType].overrides.fireDelay);
 			break;
 		        
 		case FT_SEMI:
 			addTime = weaponData->firemodes[pm->ps->firingMode].delay;
+			JKG_ApplyAmmoOverride(addTime, ammoTable[pm->ps->ammoType].overrides.fireDelay);
 			pm->ps->shotsRemaining = SHOTS_TOGGLEBIT;
 			pm->ps->torsoTimer = addTime + 100;
 			break;
@@ -5836,6 +5839,7 @@ static void PM_Weapon( void )
 				addTime = weaponData->firemodes[pm->ps->firingMode].burstFireDelay;
 				pm->ps->shotsRemaining = (pm->ps->shotsRemaining - 1) & ~SHOTS_TOGGLEBIT;
 			}
+			JKG_ApplyAmmoOverride(addTime, ammoTable[pm->ps->ammoType].overrides.fireDelay);
 			pm->ps->torsoTimer = addTime;
 			break;		
 	}

@@ -1027,7 +1027,7 @@ Com_ExecuteCfg
 
 void Com_ExecuteCfg(void)
 {
-	Cbuf_ExecuteText(EXEC_NOW, "exec JKG_Defaults.cfg\n");
+	Cbuf_ExecuteText(EXEC_NOW, "exec " DEFAULTCONFIG_CFG "\n");
 	Cbuf_Execute(); // Always execute after exec to prevent text buffer overflowing
 
 	if(!Com_SafeMode())

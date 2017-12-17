@@ -3305,85 +3305,6 @@ void FireWeapon( gentity_t *ent, int firingMode )
 //// END LITTLE STUB
 
 /**************************************************
-* WP_ApplyAmmoOverride
-*
-* Applies a single ammo override.
-* FIXME: move this to BG code?
-**************************************************/
-
-void WP_ApplyAmmoOverride(int ammoType, weaponData_t* wp, int& value, ammoOverrideTypes_t type) {
-	ammo_t* ammo;
-
-	if (!BG_WeaponCanUseSpecialAmmo(wp)) {
-		return;
-	}
-	ammo = BG_GetAmmo(ammoType);
-	if (!ammo) {
-		return;
-	}
-
-	switch (type) {
-		case AOV_MEANS:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.means);
-			break;
-		case AOV_SPLASHMEANS:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.splashmeans);
-			break;
-		case AOV_DAMAGE:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.damage);
-			break;
-		case AOV_DEBUFFS:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.debuffs);
-			break;
-		case AOV_PROJECTILES:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.projectiles);
-			break;
-		case AOV_CLIPSIZE:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.clipSize);
-			break;
-		case AOV_AMMOCOST:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.ammocost);
-			break;
-		case AOV_FIREDELAY:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.fireDelay);
-			break;
-		case AOV_BOUNCES:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.bounces);
-			break;
-		default:
-			Com_Printf("Bad ammo override type: %i\n", type);
-			break;
-	}
-}
-
-void WP_ApplyAmmoOverride(int ammoType, weaponData_t* wp, double& value, ammoOverrideTypes_t type) {
-	ammo_t* ammo;
-
-	if (!BG_WeaponCanUseSpecialAmmo(wp)) {
-		return;
-	}
-	ammo = BG_GetAmmo(ammoType);
-	if (!ammo) {
-		return;
-	}
-
-	switch (type) {
-		case AOV_SPLASHRANGE:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.splashRange);
-			break;
-		case AOV_COLLISIONSIZE:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.collisionSize);
-			break;
-		case AOV_RECOIL:
-			JKG_ApplyAmmoOverride(value, ammo->overrides.recoil);
-			break;
-		default:
-			Com_Printf("Bad ammo override type: %i\n", type);
-			break;
-	}
-}
-
-/**************************************************
 * WP_CalculateAngles
 *
 * Calculates the angles for the current weapon.
@@ -3563,6 +3484,7 @@ gentity_t *WP_FireGenericGrenade( gentity_t *ent, int firemode, vec3_t origin, v
 	/* Set the sounds (static for now) for this weapon */
 	bolt->s.loopSound			 = G_SoundIndex( "sound/weapons/thermal/thermloop.wav" );
 	bolt->s.loopIsSoundset		 = qfalse;
+	bolt->s.ammoType			 = ent->s.ammoType;
 	
 	/* Copy the base origin, snap the vector, and copy the current origin */
 	VectorCopy( muzzle, bolt->s.pos.trBase );
@@ -3605,6 +3527,7 @@ gentity_t *WP_FireGenericMissile( gentity_t *ent, int firemode, vec3_t origin, v
 	/* Create the missile, fill in the name weapon, owner, methodOfDeath and such */
 	missile							 = CreateMissile( origin, dir, fSpeed, 10000, ent, firemode /* FIXME: This will always be primary fire when firemodes is done */ );
 	missile->classname				 = zClassname;
+	missile->s.ammoType				 = ent->s.ammoType;
 	missile->s.weapon				 = ent->s.weapon;
 	missile->s.weaponVariation		 = ent->s.weaponVariation;
 	missile->r.ownerNum				 = ent->s.number;
@@ -3752,6 +3675,7 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 		tent->s.weapon = ent->client->ps.weapon;
 		tent->s.weaponVariation = ent->client->ps.weaponVariation;
 		tent->s.firingMode = firemode;
+		tent->s.ammoType = ent->s.ammoType;
 		if ( firemode )
 		{
 			tent->s.eFlags |= EF_ALT_FIRING;
@@ -3890,6 +3814,14 @@ qboolean WP_GetWeaponIsHitscan( gentity_t* ent, int firemode )
 {
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
 
+	if (ent->client)
+	{
+		if (ammoTable[ent->client->ps.ammoType].overrides.hitscan.first)
+		{
+			return ammoTable[ent->client->ps.ammoType].overrides.hitscan.second > 0;
+		}
+	}
+
     return thisWeaponData->firemodes[firemode].hitscan;
 }
 	
@@ -3913,7 +3845,10 @@ float WP_GetWeaponBoxSize( gentity_t *ent, int firemode )
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
 	double boxSize = thisWeaponData->firemodes[firemode].boxSize;
 
-	WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, boxSize, AOV_COLLISIONSIZE);
+	if (ent->client)
+	{
+		JKG_ApplyAmmoOverride(boxSize, ammoTable[ent->client->ps.ammoType].overrides.collisionSize);
+	}
 
 	if ( boxSize )
 	{
@@ -3936,7 +3871,10 @@ int WP_GetWeaponBounce( gentity_t *ent, int firemode )
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
 	int bounceCount = thisWeaponData->firemodes[firemode].bounceCount;
 
-	WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, bounceCount, AOV_BOUNCES);
+	if (ent->client)
+	{
+		JKG_ApplyAmmoOverride(bounceCount, ammoTable[ent->client->ps.ammoType].overrides.bounces);
+	}
 
 	if ( bounceCount )
 	{
@@ -4002,7 +3940,10 @@ int WP_GetWeaponDamage( gentity_t *ent, int firemode )
 	int damage = 0;
 	int baseDamage = thisWeaponData->firemodes[firemode].baseDamage;
 
-	WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, baseDamage, AOV_DAMAGE);
+	if (ent->client)
+	{
+		JKG_ApplyAmmoOverride(baseDamage, ammoTable[ent->client->ps.ammoType].overrides.damage);
+	}
 
 	if ( thisWeaponData->firemodes[firemode].chargeTime )
 	{
@@ -4046,9 +3987,11 @@ static void WP_GetWeaponDirection( gentity_t *ent, int firemode, const vec3_t fo
 {
 
 	weaponData_t	*thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
-	int				 fKnockBack		= ( float )thisWeaponData->firemodes[firemode].baseDamage;
+	double				 fKnockBack		= ( double )thisWeaponData->firemodes[firemode].baseDamage;
 	float			 fSpreadModifiers = 1.0f;
 	vec3_t			 fAngles;
+
+	JKG_ApplyAmmoOverride(fKnockBack, ammoTable[ent->s.ammoType].overrides.knockback);
 		
 	/* Convert the forward to angle's to be able to modify it */
 	vectoangles( forward, fAngles );
@@ -4068,8 +4011,10 @@ static void WP_GetWeaponDirection( gentity_t *ent, int firemode, const vec3_t fo
 		bool bInIronsights  = (ent->client->pers.cmd.buttons & BUTTON_IRONSIGHTS);
 		bool bIsInAir		= (ent->client->ps.groundEntityNum == ENTITYNUM_NONE);
 
-		float fAccuracyRating =
-			thisWeaponData->firemodes[firemode].weaponAccuracy.accuracyRating + ent->client->ps.stats[STAT_ACCURACY];
+		int nAccuracyBaseRating = thisWeaponData->firemodes[firemode].weaponAccuracy.accuracyRating;
+		JKG_ApplyAmmoOverride(nAccuracyBaseRating, ammoTable[ent->s.ammoType].overrides.accuracyRatingBase);
+
+		int nAccuracyRating = nAccuracyBaseRating + ent->client->ps.stats[STAT_ACCURACY];
 
 		int accuracyDrainDebounce = ( ent->client->accuracyDebounce > level.time ) ? 0 : thisWeaponData->firemodes[firemode].weaponAccuracy.msToDrainAccuracy;
 
@@ -4131,12 +4076,12 @@ static void WP_GetWeaponDirection( gentity_t *ent, int firemode, const vec3_t fo
 		}
 
 		/* We have some extra slop to add, so let's add it now */
-		if( fAccuracyRating )
+		if( nAccuracyRating )
 		{
 			float pitch = 1.0f; // just putting in a dummy value here
 			float yaw = 1.0f;	// just putting in a dummy value here
 
-			WP_CalculateSpread( &pitch, &yaw, fAccuracyRating, fSpreadModifiers );
+			WP_CalculateSpread( &pitch, &yaw, nAccuracyRating, fSpreadModifiers );
 
 			fAngles[PITCH] += pitch;
 			fAngles[YAW] += yaw;
@@ -4148,7 +4093,12 @@ static void WP_GetWeaponDirection( gentity_t *ent, int firemode, const vec3_t fo
 		accuracyDrainDebounce *= fSpreadModifiers;
 
 		ent->client->accuracyDebounce = level.time + accuracyDrainDebounce;
-		ent->client->ps.stats[STAT_ACCURACY] += thisWeaponData->firemodes[firemode].weaponAccuracy.accuracyRatingPerShot;
+
+		int nAccuracyRatingPerShot = thisWeaponData->firemodes[firemode].weaponAccuracy.accuracyRatingPerShot;
+
+		JKG_ApplyAmmoOverride(nAccuracyRatingPerShot, ammoTable[ent->s.ammoType].overrides.accuracyRatingPerShot);
+
+		ent->client->ps.stats[STAT_ACCURACY] += nAccuracyRatingPerShot;
 		if( ent->client->ps.stats[STAT_ACCURACY] > thisWeaponData->firemodes[firemode].weaponAccuracy.maxAccuracyAdd )
 		{
 			ent->client->ps.stats[STAT_ACCURACY] = thisWeaponData->firemodes[firemode].weaponAccuracy.maxAccuracyAdd;
@@ -4207,7 +4157,10 @@ int WP_GetWeaponMOD( gentity_t *ent, int firemode )
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
 	int mod = thisWeaponData->firemodes[firemode].weaponMOD;
 
-	WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, mod, AOV_MEANS);
+	if (ent->client)
+	{
+		JKG_ApplySimpleAmmoOverride(mod, ammoTable[ent->client->ps.ammoType].overrides.means);
+	}
 
 	return mod;
 }
@@ -4225,7 +4178,10 @@ int WP_GetWeaponSplashMOD( gentity_t *ent, int firemode )
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
 	int mod = thisWeaponData->firemodes[firemode].weaponSplashMOD;
 
-	WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, mod, AOV_SPLASHMEANS);
+	if (ent->client)
+	{
+		JKG_ApplySimpleAmmoOverride(mod, ammoTable[ent->client->ps.ammoType].overrides.splashmeans);
+	}
 
 	return mod;
 }
@@ -4255,40 +4211,20 @@ float WP_GetWeaponRange( gentity_t *ent, int firemode )
 *
 * Gets the shot count for the currently selected
 * weapon with the appropriate mode. This references
-* the weapon table for this information. Recursive
-* function keeps calling the fire weapon function
-* to generate the required amount of shots.
+* the weapon table for this information.
 **************************************************/
 
-qboolean WP_GetWeaponShotCount( gentity_t *ent, int firemode )
+int WP_GetWeaponShotCount( gentity_t *ent, int firemode )
 {
+	// This function used to be recursive, but that's horrendously bad...
+	// Instead, we return the exact number of shots in one volley.
+
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
-	char *pShotCount = &thisWeaponData->firemodes[firemode].shotCount;
+	int nShotCount = thisWeaponData->firemodes[firemode].shotCount;
 
-	/* This weapon has multiple shots, generate the fire events */
-	if ( *pShotCount >= 2 )
-	{
-		/* Get the shot count and clear it to avoid recursive infinite loop */
-		int iShotCount	= *pShotCount;
-		int i			= 0;
-		*pShotCount		= 0;
+	JKG_ApplyAmmoOverride(nShotCount, ammoTable[ent->s.ammoType].overrides.projectiles);
 
-		/* Modify for special ammo */
-		WP_ApplyAmmoOverride(ent->client->ps.ammoType, thisWeaponData, iShotCount, AOV_PROJECTILES);
-
-		/* Run through each and fire every shot count */
-		for ( i = 0; i < iShotCount; i++ )
-		{
-			WP_FireGenericWeapon( ent, firemode );
-		}
-
-		/* Reset the table structure so the data has been preserved */
-		*pShotCount	= iShotCount;
-		return qtrue;
-	}
-
-	/* Nothing strange about it, let the original continue */
-	return qfalse;
+	return nShotCount;
 }
 
 
@@ -4358,21 +4294,17 @@ int WP_GetGrenadeBounceDamage( gentity_t *ent, int firemode )
 * the weapon table for this information.
 **************************************************/
 
-float WP_GetWeaponSplashRange( gentity_t *ent, int firemode )
+double WP_GetWeaponSplashRange( gentity_t *ent, int firemode )
 {
 	weaponData_t *thisWeaponData = GetWeaponData( ent->s.weapon, ent->s.weaponVariation );
+	double splashRange = thisWeaponData->firemodes[firemode].rangeSplash;
 
-	if(!thisWeaponData)
+	if (ent->client)
 	{
-		return 0.0f;
+		JKG_ApplyAmmoOverride(splashRange, ammoTable[ent->client->ps.ammoType].overrides.splashRange);
 	}
 
-	if ( thisWeaponData->firemodes[firemode].rangeSplash )
-	{
-		return thisWeaponData->firemodes[firemode].rangeSplash;
-	}
-
-	return 0.0f;
+	return splashRange;
 }
 
 /**************************************************
@@ -4387,6 +4319,8 @@ float WP_GetWeaponSplashRange( gentity_t *ent, int firemode )
 extern void BG_SetTorsoAnimTimer(playerState_t *ps, int time );
 void WP_FireGenericWeapon( gentity_t *ent, int firemode )
 {
+	int nShotCount;
+
 	BG_SetTorsoAnimTimer(&ent->client->ps, 200);
 
 	if ( ent && ent->client && ent->client->NPC_class == CLASS_VEHICLE )
@@ -4410,10 +4344,7 @@ void WP_FireGenericWeapon( gentity_t *ent, int firemode )
 	}
 	else
 	{
-		if ( WP_GetWeaponShotCount( ent, firemode ))
-		{
-			return;
-		}
+		nShotCount = WP_GetWeaponShotCount(ent, firemode);
 
 		WP_CalculateAngles( ent );
 		WP_CalculateMuzzlePoint( ent, forward, vright, up, muzzle );
@@ -4445,21 +4376,30 @@ void WP_FireGenericWeapon( gentity_t *ent, int firemode )
 			case WP_THERMAL:
 			{
 				vec3_t direction;
-				WP_GetWeaponDirection (ent, firemode, forward, direction);
-				WP_FireGenericGrenade( ent, firemode, muzzle, direction );
+				for (int i = 0; i < nShotCount; i++)
+				{
+					WP_GetWeaponDirection(ent, firemode, forward, direction);
+					WP_FireGenericGrenade(ent, firemode, muzzle, direction);
+				}
 				break;
 			}
 
 			//// REPLACE ME
 			case WP_TRIP_MINE:
 			{
-				WP_PlaceLaserTrap( ent, firemode );
+				for (int i = 0; i < nShotCount; i++)
+				{
+					WP_PlaceLaserTrap(ent, firemode);
+				}
 				break;
 			}
 
 			case WP_DET_PACK:
 			{
-				WP_DropDetPack( ent, firemode );
+				for (int i = 0; i < nShotCount; i++)
+				{
+					WP_DropDetPack(ent, firemode);
+				}
 				break;
 			}
 
@@ -4470,33 +4410,39 @@ void WP_FireGenericWeapon( gentity_t *ent, int firemode )
 					break;
 				}
 
-				WP_FireEmplaced( ent, !!firemode );
+				for (int i = 0; i < nShotCount; i++)
+				{
+					WP_FireEmplaced(ent, !!firemode);
+				}
 				break;
 			}
 			//// END REPLACE ME
 
 			default:
-			{
-				if ( WP_GetWeaponIsHitscan( ent, firemode ))
+				for(int i = 0; i < nShotCount; i++)
 				{
-					ent->client->ps.torsoTimer += 100;
-					WP_FireGenericTraceLine( ent, firemode );
-				}
-				else if ( WP_IsWeaponGrenade (ent, firemode) )
-				{
-					vec3_t direction;
-					WP_GetWeaponDirection (ent, firemode, forward, direction);
-					WP_FireGenericGrenade( ent, firemode, muzzle, direction );
-				}
-				else
-				{
-					vec3_t direction;
-					WP_GetWeaponDirection (ent, firemode, forward, direction);
+					if ( WP_GetWeaponIsHitscan( ent, firemode ))
+					{
+					
+						ent->client->ps.torsoTimer += 100;
+						WP_FireGenericTraceLine( ent, firemode );
+					}
+					else if ( WP_IsWeaponGrenade (ent, firemode) )
+					{
+						vec3_t direction;
+						WP_GetWeaponDirection (ent, firemode, forward, direction);
+						WP_FireGenericGrenade( ent, firemode, muzzle, direction );
+					}
+					else
+					{
+						vec3_t direction;
+						WP_GetWeaponDirection (ent, firemode, forward, direction);
 
-					ent->client->ps.torsoTimer += 100;
-					WP_FireGenericMissile( ent, firemode, muzzle, direction );
+						ent->client->ps.torsoTimer += 100;
+						WP_FireGenericMissile( ent, firemode, muzzle, direction );
+					}
 				}
-			}
+				break;
 		}
 
 		/* Reset the grenade cook timer, if any (with the proper weapon) */

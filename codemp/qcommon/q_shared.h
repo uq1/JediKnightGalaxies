@@ -35,6 +35,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // Include Global Definitions Header...
 #include "../game/z_global_defines.h"
 #define PRODUCT_NAME		"jkgalaxies"
+#define PRODUCT_SHORT_NAME	"JKG"
 
 #define CLIENT_WINDOW_TITLE "Jedi Knight Galaxies"
 #define CLIENT_CONSOLE_TITLE "Jedi Knight Galaxies Console"

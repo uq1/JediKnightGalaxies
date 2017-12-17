@@ -395,24 +395,63 @@ The .wpn file contains one field for each firing mode, starting with 0.
 
 .ammo files can contain multiple types of ammo. Ammo can be based on other types of ammo. Usually a weapon will require a base type, but supplies either the same base type of ammo by default, or a different one which is more specialized for it.
 
-Each object in the file is the linkage name for it, and they can contain the following fields:
+In these files, there is a special kind of type called a complexAmmo type. complexAmmo comes in two varieties: complexAmmoFloat (for floating point/decimal values) and complexAmmoInteger (for integer values)
+complexAmmo are an object with the following fields:
+ - set (either integer or float): If present, sets the override to some specific value.
+ - add (either integer or float): If present, either adds to the value (if positive) or subtracts (if negative)
+ - multiply (float): If present, multiplies the value by a specific amount.
+
+Here is an example of how complexAmmo types look in the files:
+```
+	"damage": {
+		"add": 5
+	}
+```
+This example would add 5 extra damage to each shot by the weapon. If we used "set" instead of "add", it would set the damage to 5. If we used "multiply" instead of "add", it would multiply the damage by 5.
+
+Each object in the ammo file is the linkage name for it, and they can contain the following fields:
 
  - shortname (string): The short name of the ammo, to show on the HUD.
  - basedOn (string, optional): The ammo that this type is based on.
  - max (integer): Maximum amount that the player can carry.
  - pricePerUnit (float): Number of credits that one of these is worth.
- - overrides (object): Each of the overrides in this section is an object with the following fields: set, add, and multiply. Set will set the override, add will add to the override, and multiply will multiply the override.
-  - means (special): Overrides the damage type/means of damage for the firing mode.
-  - splashmeans (special): Overrides the damage type/means of damage for the splash damage that the firing mode does.
-  - damage (special): Overrides the damage done.
-  - projectiles (special): Overrides the projectile count.
-  - clipSize (special): Overrides the weapon's clip size.
-  - splashRange (special): Overrides the splash radius.
-  - collisionSize (special): Overrides the projectile size.
-  - recoil (special): Overrides the recoil.
-  - ammocost (special): Overrides the ammo cost.
-  - fireDelay (special): Overrides the fire rate.
-  - bounces (special): Overrides the bounce count.
+ - overrides (object): Each of the fields in this section overrides the values of the weapon.
+  - means (string): Sets the means of damage on the weapon.
+  - splashmeans (string): Sets the splash means of damage on the weapon.
+  - damage (complexAmmoInteger): Overrides the damage done.
+  - projectiles (complexAmmoInteger): Overrides the projectile count.
+  - splashRange (complexAmmoFloat): Overrides the splash radius.
+  - collisionSize (complexAmmoFloat): Overrides the projectile size.
+  - recoil (complexAmmoFloat): Overrides the recoil.
+  - knockback (complexAmmoFloat): Overrides the weapon's knockback as it affects the player shooting it.
+  - accuracyRatingBase (complexAmmoInteger): Overrides the weapon's base accuracy rating.
+  - accuracyRatingPerShot (complexAmmoInteger): Overrides the weapon's accuracy per shot
+  - ammocost (complexAmmoInteger): Overrides the amount of ammo that is used by firing the weapon.
+  - fireDelay (complexAmmoInteger): Overrides the fire rate. (lower = faster firing)
+  - bounces (complexAmmoInteger): Overrides the number of times that the weapon can bounce.
+  - hitscan (integer): If 1, this ammo type converts the weapon into a hitscan weapon.
+  - visuals (object): Overrides the visual effects on the weapon. Contains the following field:
+   - crosshairShader (string): Overrides the crosshair shader that is in use.
+   - fire (object): Overrides properties of the firing effects of the weapon. Contains the following fields:
+    - muzzleLightIntensity (complexAmmoFloat): Modifies how large the dynamic light effect is that plays when the weapon fires.
+    - muzzleLightColor (array of float): Sets the color of the dynamic light effect that plays when the weapon is fired.
+    - chargingEffect (string): Sets the muzzle effect that plays while the weapon is charging.
+    - muzzleEffect (string): Sets the muzzle effect that plays when the weapon is fired.
+    - fireSound (array of string): Sets the sound effect of the weapon when it is fired. Randomly plays from one of the sound effects.
+   - traceline (object): Overrides properties of traceline effects that play when the weapon fires. Only used on hitscan firing modes. Contains the following fields:
+    - shader (string): Overrides the shader that shows as the traceline effect.
+    - minSize (complexAmmoFloat): Overrides the traceline effect minimum size.
+    - maxSize (complexAmmoFloat): Overrides the traceline effect maximum size.
+    - lifeTime (complexAmmoInteger): Overrides the traceline lifespan.
+   - projectile (object): Overrides properties of the projectile effects from the weapon. Only used on non-hitscan firing modes. Contains the following fields:
+    - model (string): Overrides the model that is used on the projectile.
+    - effect (string): Overrides the effect that is played on the projectile.
+    - runSound (string): Overrides the sound effect that plays on the projectile
+    - lightIntensity (complexAmmoFloat): Overrides the size of the dynamic light that shows up on the projectile.
+    - lightColor (array of float): Overrides the color of the light that shows on the projectile.
+    - miss (string): Overrides the effect that plays when the projectile falls out of range.
+    - hit (string): Overrides the effect that plays when the projectile hits something.
+    - deflect (string): Overrides the effect that plays when the projectile is deflected by a lightsaber.
 
 
 ## JETPACK FIELDS

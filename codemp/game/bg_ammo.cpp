@@ -16,6 +16,8 @@
 ammo_t ammoTable[MAX_AMMO_TYPES];
 int numAmmoLoaded = 0;
 
+const vec3_t defaultvec3 = { 1.0, 1.0, 1.0 };
+
 /*
 ============================
 BG_GetAmmo
@@ -170,7 +172,7 @@ JKG_ApplyAmmoOverride
 Applies an ammo override (if present)
 ============================
 */
-void JKG_ApplyAmmoOverride(int& value, const ammoOverride<int>& field) {
+void JKG_ApplyAmmoOverride(int& value, const complexAmmoOverride<int>& field) {
 	if (!field.bIsPresent) {
 		return;
 	}
@@ -186,7 +188,7 @@ void JKG_ApplyAmmoOverride(int& value, const ammoOverride<int>& field) {
 	}
 }
 
-void JKG_ApplyAmmoOverride(double& value, const ammoOverride<double>& field) {
+void JKG_ApplyAmmoOverride(double& value, const complexAmmoOverride<double>& field) {
 	if (!field.bIsPresent) {
 		return;
 	}
@@ -200,6 +202,54 @@ void JKG_ApplyAmmoOverride(double& value, const ammoOverride<double>& field) {
 	if (field.multiply) {
 		value *= field.multiply;
 	}
+}
+
+void JKG_ApplySimpleAmmoOverride(int& value, const std::pair<qboolean, int>& field)
+{
+	if (!field.first)
+	{
+		return;
+	}
+	value = field.second;
+}
+
+void JKG_ApplySimpleAmmoOverride(double& value, const std::pair<qboolean, double>& field)
+{
+	if (!field.first)
+	{
+		return;
+	}
+	value = field.second;
+}
+
+/*
+============================
+
+============================
+*/
+qboolean JKG_SimpleAmmoOverridePresent(const std::pair<qboolean, int>& field)
+{
+	return field.first;
+}
+
+qboolean JKG_SimpleAmmoOverridePresent(const std::pair<qboolean, double>& field)
+{
+	return field.first;
+}
+
+qboolean JKG_SimpleAmmoOverridePresent(const std::pair<qboolean, std::string>& field)
+{
+	return field.first;
+}
+
+qboolean JKG_SimpleAmmoOverridePresent(const std::pair<qboolean, std::vector<std::string>>& field)
+{
+	return field.first;
+}
+
+qboolean JKG_SimpleAmmoOverridePresent(const std::pair<qboolean, vec3_t>& field)
+{
+	return field.first;
 }
 
 /*
@@ -209,7 +259,7 @@ JKG_ParseAmmoOverride_Int
 Parses a single ammo override
 ============================
 */
-static void JKG_ParseAmmoOverride_Int(cJSON* json, const char* name, ammoOverride<int>& field) {
+static void JKG_ParseAmmoOverride_Int(cJSON* json, const char* name, complexAmmoOverride<int>& field) {
 	cJSON* node = cJSON_GetObjectItem(json, name);
 	if (!node) {
 		field.bIsPresent = qfalse;
@@ -249,7 +299,7 @@ JKG_ParseAmmoOverride_Float
 Parses a single ammo override
 ============================
 */
-static void JKG_ParseAmmoOverride_Float(cJSON* json, const char* name, ammoOverride<double>& field) {
+static void JKG_ParseAmmoOverride_Float(cJSON* json, const char* name, complexAmmoOverride<double>& field) {
 	cJSON* node = cJSON_GetObjectItem(json, name);
 	if (!node) {
 		field.bIsPresent = qfalse;
@@ -289,26 +339,222 @@ JKG_ParseAmmoOverride_Means
 Parses a means of death override
 ============================
 */
-static void JKG_ParseAmmoOverride_Means(cJSON* json, const char* name, ammoOverride<int>& field) {
+static void JKG_ParseAmmoOverride_Means(cJSON* json, const char* name, std::pair<qboolean, int>& field) {
 	cJSON* node = cJSON_GetObjectItem(json, name);
 	if (!node) {
-		field.bIsPresent = qfalse;
+		field.first = qfalse;
 	}
 	else {
-		cJSON* child;
+		field.first = qtrue;
+		field.second = JKG_GetMeansOfDamageIndex(cJSON_ToString(json));
+	}
+}
 
-		field.bIsPresent = qtrue;
-		field.bMultiply = qfalse;
-		field.bAdd = qfalse;
+/*
+============================
+JKG_ParseSimpleOverrideString
 
-		child = cJSON_GetObjectItem(json, "set");
-		if (child) {
-			field.bSet = qtrue;
-			field.set = JKG_GetMeansOfDamageIndex(cJSON_ToString(child));
+============================
+*/
+static void JKG_ParseSimpleOverrideString(std::pair<qboolean, std::string>& field, const char* nodeName, cJSON* json)
+{
+	cJSON* child = cJSON_GetObjectItem(json, nodeName);
+	if (child)
+	{
+		field.first = qtrue;
+		field.second = cJSON_ToString(child);
+	}
+	else
+	{
+		field.first = qfalse;
+	}
+}
+
+/*
+============================
+JKG_ParseSimpleOverrideFloat
+
+============================
+*/
+static void JKG_ParseSimpleOverrideFloat(std::pair<qboolean, float>& field, const char* nodeName, cJSON* json)
+{
+	cJSON* child = cJSON_GetObjectItem(json, nodeName);
+	if (child)
+	{
+		field.first = qtrue;
+		field.second = cJSON_ToNumber(child);
+	}
+	else
+	{
+		field.first = qfalse;
+	}
+}
+
+/*
+============================
+JKG_ParseSimpleOverrideInt
+
+============================
+*/
+static void JKG_ParseSimpleOverrideInt(std::pair<qboolean, int>& field, const char* nodeName, cJSON* json)
+{
+	cJSON* child = cJSON_GetObjectItem(json, nodeName);
+	if (child)
+	{
+		field.first = qtrue;
+		field.second = cJSON_ToInteger(json);
+	}
+	else
+	{
+		field.first = qfalse;
+	}
+}
+
+/*
+============================
+JKG_ParseSimpleOverrideVector
+
+============================
+*/
+static void JKG_ParseSimpleOverrideVector(std::pair<qboolean, std::vector<std::string>>& field, const char* nodeName, cJSON* json)
+{
+	cJSON* child = cJSON_GetObjectItem(json, nodeName);
+	if (child)
+	{
+		field.first = qtrue;
+		for (int i = 0; i < cJSON_GetArraySize(child); i++)
+		{
+			field.second.push_back(cJSON_ToString(cJSON_GetArrayItem(child, i)));
 		}
-		else {
-			field.bSet = qfalse;
+	}
+	else
+	{
+		field.first = qfalse;
+	}
+}
+
+/*
+============================
+JKG_ParseSimpleOverrideVec3
+
+============================
+*/
+static void JKG_ParseSimpleOverrideVec3(std::pair<qboolean, vec3_t>& field, const char* nodeName, cJSON* json)
+{
+	cJSON* child = cJSON_GetObjectItem(json, nodeName);
+	int max;
+
+	if (child)
+	{
+		field.first = qtrue;
+		max = cJSON_GetArraySize(child);
+		if (max != 3)
+		{
+			field.second[0] = field.second[1] = field.second[2] = 1.0f;
 		}
+		else
+		{
+			for (int i = 0; i < max; i++)
+			{
+				field.second[i] = cJSON_ToNumber(cJSON_GetArrayItem(child, i));
+			}
+		}
+	}
+	else
+	{
+		field.first = qfalse;
+	}
+}
+
+/*
+============================
+JKG_ParseAmmoOverrideVisuals
+
+Processes the visual aspect of an ammo override
+============================
+*/
+
+static void JKG_ParseAmmoOverrideVisuals(ammo_t* ammo, cJSON* json)
+{
+	cJSON* child;
+
+	if (json == nullptr)
+	{
+		ammo->visualOverrides.crosshairShader.first = qfalse;
+		goto dead1;
+	}
+	JKG_ParseSimpleOverrideString(ammo->visualOverrides.crosshairShader, "crosshairShader", json);
+
+	// weaponRender/weaponFire
+	child = cJSON_GetObjectItem(json, "fire");
+	if (child)
+	{
+		JKG_ParseAmmoOverride_Float(child, "muzzleLightIntensity", ammo->visualOverrides.muzzleLightIntensity);
+		JKG_ParseSimpleOverrideVec3(ammo->visualOverrides.muzzleLightColor, "muzzleLightColor", child);
+		JKG_ParseSimpleOverrideString(ammo->visualOverrides.chargingEffect, "chargingEffect", child);
+		JKG_ParseSimpleOverrideString(ammo->visualOverrides.muzzleEffect, "muzzleEffect", child);
+		JKG_ParseSimpleOverrideVector(ammo->visualOverrides.fireSound, "fireSound", child);
+	}
+	else
+	{
+dead1:
+		ammo->visualOverrides.muzzleLightIntensity.bIsPresent = qfalse;
+		ammo->visualOverrides.muzzleLightColor.first = qfalse;
+		ammo->visualOverrides.chargingEffect.first = qfalse;
+		ammo->visualOverrides.muzzleEffect.first = qfalse;
+		ammo->visualOverrides.fireSound.first = qfalse;
+		if (json == nullptr)
+		{
+			goto dead2;
+		}
+	}
+
+	// traceline
+	child = cJSON_GetObjectItem(json, "traceline");
+	if (child)
+	{
+		JKG_ParseSimpleOverrideString(ammo->visualOverrides.traceline.shader, "shader", child);
+		JKG_ParseAmmoOverride_Float(child, "minSize", ammo->visualOverrides.traceline.minSize);
+		JKG_ParseAmmoOverride_Float(child, "maxSize", ammo->visualOverrides.traceline.maxSize);
+		JKG_ParseAmmoOverride_Int(child, "lifeTime", ammo->visualOverrides.traceline.lifeTime);
+	}
+	else
+	{
+dead2:
+		ammo->visualOverrides.traceline.shader.first = qfalse;
+		ammo->visualOverrides.traceline.minSize.bIsPresent = qfalse;
+		ammo->visualOverrides.traceline.maxSize.bIsPresent = qfalse;
+		ammo->visualOverrides.traceline.lifeTime.bIsPresent = qfalse;
+		if (json == nullptr)
+		{
+			goto dead3;
+		}
+	}
+
+	// projectile
+	child = cJSON_GetObjectItem(json, "projectile");
+	if (child)
+	{
+		JKG_ParseSimpleOverrideString(ammo->visualOverrides.projectile.projectileModel, "model", child);
+		JKG_ParseSimpleOverrideString(ammo->visualOverrides.projectile.projectileEffect, "effect", child);
+		JKG_ParseSimpleOverrideString(ammo->visualOverrides.projectile.runSound, "runSound", child);
+		JKG_ParseAmmoOverride_Float(child, "lightIntensity", ammo->visualOverrides.projectile.lightIntensity);
+		JKG_ParseSimpleOverrideVec3(ammo->visualOverrides.projectile.lightColor, "lightColor", child);
+		JKG_ParseSimpleOverrideString(ammo->visualOverrides.projectile.deathEffect, "miss", child);
+		JKG_ParseSimpleOverrideString(ammo->visualOverrides.projectile.impactEffect, "hit", child);
+		JKG_ParseSimpleOverrideString(ammo->visualOverrides.projectile.deflectEffect, "deflect", child);
+	}
+	else
+	{
+dead3:
+		ammo->visualOverrides.projectile.projectileModel.first = qfalse;
+		ammo->visualOverrides.projectile.projectileEffect.first = qfalse;
+		ammo->visualOverrides.projectile.runSound.first = qfalse;;
+		ammo->visualOverrides.projectile.lightIntensity.bIsPresent = qfalse;
+		ammo->visualOverrides.projectile.lightColor.first = qfalse;
+		ammo->visualOverrides.projectile.deathEffect.first = qfalse;
+		ammo->visualOverrides.projectile.impactEffect.first = qfalse;
+		ammo->visualOverrides.projectile.deflectEffect.first = qfalse;
 	}
 }
 
@@ -316,11 +562,10 @@ static void JKG_ParseAmmoOverride_Means(cJSON* json, const char* name, ammoOverr
 ============================
 JKG_ParseAmmoOverrides
 
-Overrides are things such as changing damage, effects, ...
+Overrides are things such as changing damage, ...
 ============================
 */
 static void JKG_ParseAmmoOverrides(ammo_t* ammo, cJSON* json) {
-	// means, splashmeans, debuffs all have special handling
 	
 	JKG_ParseAmmoOverride_Means(json, "means", ammo->overrides.means);
 	JKG_ParseAmmoOverride_Means(json, "splashmeans", ammo->overrides.splashmeans);
@@ -328,14 +573,19 @@ static void JKG_ParseAmmoOverrides(ammo_t* ammo, cJSON* json) {
 
 	JKG_ParseAmmoOverride_Int(json, "damage", ammo->overrides.damage);
 	JKG_ParseAmmoOverride_Int(json, "projectiles", ammo->overrides.projectiles);
-	JKG_ParseAmmoOverride_Int(json, "clipSize", ammo->overrides.clipSize);
 	JKG_ParseAmmoOverride_Float(json, "splashRange", ammo->overrides.splashRange);
 	JKG_ParseAmmoOverride_Float(json, "collisionSize", ammo->overrides.collisionSize);
 	JKG_ParseAmmoOverride_Float(json, "recoil", ammo->overrides.recoil);
 	JKG_ParseAmmoOverride_Int(json, "ammocost", ammo->overrides.ammocost);
 	JKG_ParseAmmoOverride_Int(json, "fireDelay", ammo->overrides.fireDelay);
 	JKG_ParseAmmoOverride_Int(json, "bounces", ammo->overrides.bounces);
+	JKG_ParseAmmoOverride_Int(json, "accuracyRatingBase", ammo->overrides.accuracyRatingBase);
+	JKG_ParseAmmoOverride_Int(json, "accuracyRatingPerShot", ammo->overrides.accuracyRatingPerShot);
+	JKG_ParseAmmoOverride_Float(json, "knockback", ammo->overrides.knockback);
 
+	JKG_ParseSimpleOverrideInt(ammo->overrides.hitscan, "hitscan", json);
+
+	JKG_ParseAmmoOverrideVisuals(ammo, cJSON_GetObjectItem(json, "visuals"));
 }
 
 /*

@@ -3338,6 +3338,10 @@ vec3_t cg_crosshairPos={0,0,0};
 	if ( !hShader )
 	{
 		char* fmShader = wp->visuals.visualFireModes[cg.predictedPlayerState.firingMode].crosshairShader;
+		if (JKG_SimpleAmmoOverridePresent(ammoTable[cg.predictedPlayerState.ammoType].visualOverrides.crosshairShader))
+		{
+			fmShader = (char*)ammoTable[cg.predictedPlayerState.ammoType].visualOverrides.crosshairShader.second.c_str();
+		}
 		if ( fmShader[0] ) {
 			hShader = trap->R_RegisterShaderNoMip(fmShader);
 		}

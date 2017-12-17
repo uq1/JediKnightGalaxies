@@ -1572,7 +1572,7 @@ int			 WP_GetWeaponSplashMOD( gentity_t *ent, int firemode );
 float		 WP_GetWeaponRange( gentity_t *ent, int firemode );
 qboolean	 WP_GetWeaponShotCount( gentity_t *ent, qboolean altFire );
 float		 WP_GetWeaponSpeed( gentity_t *ent, int firemode );
-float		 WP_GetWeaponSplashRange( gentity_t *ent, int firemode );
+double		 WP_GetWeaponSplashRange( gentity_t *ent, int firemode );
 
 
 void WP_FireTurretMissile( gentity_t *ent, vec3_t start, vec3_t dir, qboolean altFire, int damage, int velocity, int mod, gentity_t *ignore );

@@ -535,6 +535,8 @@ issues.
 #	define Q3CONFIG_CFG PRODUCT_NAME ".cfg"
 #endif
 
+#define DEFAULTCONFIG_CFG PRODUCT_SHORT_NAME "_Defaults.cfg"
+
 qboolean FS_Initialized();
 
 void	FS_InitFilesystem (void);

@@ -300,7 +300,7 @@ int CFxScheduler::RegisterEffect( const char *file, bool bHasCorrectPath /*= fal
 	char			*bufParse = 0;
 
 	// if our file doesn't have an extension, add one
-	std::string finalFilename = file;
+	std::string finalFilename = s;
 	std::string effectsSubstr = finalFilename.substr(0, 7);
 
 	if (finalFilename.find('.') == std::string::npos)
