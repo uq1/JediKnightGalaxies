@@ -55,7 +55,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2250,
-        "clipSize":              30,
         "flags":        [ "roll" ],
         "startzoomfov": 30.0,
         "reloadmodifier": 0.7
@@ -77,7 +76,8 @@
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
 		"ammobase": "AMMO_POWERPACK_L",
-		"ammodefault": "AMMO_POWERPACK_M"
+		"ammodefault": "AMMO_POWERPACK_M",
+        "clipSize":              30
     },
 	
     "firemode1": {
@@ -93,7 +93,8 @@
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
 		"ammobase": "AMMO_POWERPACK_L",
-		"ammodefault": "AMMO_POWERPACK_M"
+		"ammodefault": "AMMO_POWERPACK_M",
+        "clipSize":              30
     },
     
 	"playeranims": {

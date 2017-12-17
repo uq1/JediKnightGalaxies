@@ -64,7 +64,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2250,
-        "clipSize":              30,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
@@ -85,6 +84,7 @@
         "meansofdeath": "MOD_SLUGTHROWER",
 	"ammobase": "AMMO_SLUGS",
 	"ammodefault": "AMMO_SLUGS",
+        "clipSize":              30,
         "accuracy": {
         	"accuracyRating": 32,
         	"accuracyRatingPerShot": 3,
@@ -111,6 +111,7 @@
         "meansofdeath": "MOD_SLUGTHROWER",
 	"ammobase": "AMMO_SLUGS",
 	"ammodefault": "AMMO_SLUGS",
+        "clipSize":              30,
         "accuracy": {
         	"accuracyRating": 16,
         	"accuracyRatingPerShot": 2,
@@ -122,7 +123,6 @@
 
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-//        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_RIFLERELOADB" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },

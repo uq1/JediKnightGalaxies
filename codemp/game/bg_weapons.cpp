@@ -230,11 +230,6 @@ weaponData_t *GetWeaponData( unsigned char baseIndex, unsigned char modIndex )
 	return NULL;
 }
 
-short GetWeaponAmmoClip ( unsigned char baseIndex, unsigned char modIndex )
-{
-    return GetWeaponData( baseIndex, modIndex )->clipSize;
-}
-
 short GetAmmoMax ( unsigned char ammoIndex )
 {
     return ammoTable[ammoIndex].ammoMax;

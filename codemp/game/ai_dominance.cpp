@@ -4038,7 +4038,7 @@ void DOM_BotBehave_AttackMove(bot_state_t *bs)
 		//trap->Print("DEBUG: Reload!\n");
 		g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_TOTALAMMO] = 100; // UQ1: NPCs need to cheat a little :)
 		g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_AMMO] = 100; // UQ1: NPCs need to cheat a little :)
-		g_entities[bs->cur_ps.clientNum].client->clipammo[bs->cur_ps.weapon] = 100;//GetWeaponAmmoClip( bs->cur_ps.weapon, g_entities[bs->cur_ps.clientNum].s.weaponVariation );
+		g_entities[bs->cur_ps.clientNum].client->clipammo[bs->cur_ps.weapon][bs->cur_ps.firingMode] = 100;//GetWeaponAmmoClip( bs->cur_ps.weapon, g_entities[bs->cur_ps.clientNum].s.weaponVariation );
 
 		//Add_Ammo (NPC, client->ps.weapon, 100);
 		Cmd_Reload_f (&g_entities[bs->cur_ps.clientNum]);

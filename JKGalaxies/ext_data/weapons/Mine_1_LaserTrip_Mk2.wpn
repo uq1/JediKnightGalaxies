@@ -48,7 +48,6 @@
         "ammoIndex":         "mine_lasertrip2",
         "ammoOnSpawn":   2,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "roll" ]
     },
     
@@ -59,6 +58,7 @@
         "firedelay":    1000,
         "splashrange":  120,
         "projectileclass":"laserTrap",
+        "clipSize":              0,
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
@@ -69,6 +69,7 @@
         "firedelay":    1000,
         "splashrange":  120,
         "projectileclass":"laserTrap",
+        "clipSize":              0,
         "splashmeansofdeath": "MOD_TRIP_MINE_SPLASH"
     },
     

@@ -3310,11 +3310,11 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 						BG_GiveItem(ent, item, true);
 
 						// Give max ammo for both firing modes
-						ent->client->ammoTypes[item.id->weaponData.varID] = weapon->firemodes[0].ammoDefault->ammoIndex; // Set our ammo type to the default
-						ent->client->clipammo[item.id->weaponData.varID] = weapon->clipSize;
 						for (int i = 0; i < weapon->numFiringModes; i++) {
 							ammo_t* ammo = weapon->firemodes[i].ammoDefault;
 							BG_GiveAmmo(ent, ammo);	// give us the actual ammo
+							ent->client->clipammo[item.id->weaponData.varID][i] = weapon->firemodes[i].clipSize;
+							ent->client->ammoTypes[item.id->weaponData.varID][i] = weapon->firemodes[i].ammoDefault->ammoIndex;
 						}
 					}
 				}

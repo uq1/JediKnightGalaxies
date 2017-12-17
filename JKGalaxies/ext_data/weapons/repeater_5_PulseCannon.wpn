@@ -61,10 +61,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2900,
-        "ammoIndex":         "pulsecannon",
-        "ammoOnSpawn":   600,
-        "ammoOnPickup":   150,
-        "clipSize":              75,
         "reloadmodifier": 0.7,
         "speed":        0.9
     },
@@ -82,6 +78,7 @@
         "meansofdeath": "MOD_PULSE",
 	"ammobase": "AMMO_PB10_POWERCELL",
 	"ammodefault": "AMMO_PB10_POWERCELL",
+        "clipSize":              75,
         "accuracy": {
         	"accuracyRating": 63,
         	"accuracyRatingPerShot": 2,
@@ -113,6 +110,7 @@
         "splashmeansofdeath": "MOD_PULSE",
 	"ammobase": "AMMO_PB10_POWERCELL",
 	"ammodefault": "AMMO_PB10_POWERCELL",
+        "clipSize":              75,
         "accuracy": {
         	"accuracyRating": 70,
         	"accuracyRatingPerShot": 7,

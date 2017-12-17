@@ -2010,6 +2010,8 @@ void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation, u
 	weaponData_t* oldWeapon = GetWeaponData(ps->weapon, ps->weaponVariation);
 	int oldWeaponIndex = BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation);
 	int newWeaponIndex = BG_GetWeaponIndexFromClass(newweapon, newvariation);
+	int oldFiringMode = ent->client->firingModes[oldWeaponIndex];
+	int newFiringMode = ent->client->firingModes[newWeaponIndex];
 
 	// Determine whether our new weapon is valid.
 	int selectedWeapon = cmd.invensel;
@@ -2019,18 +2021,18 @@ void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation, u
 	}
 
 	// Store the current ammo amount
-	if ( !oldWeapon->firemodes[0].useQuantity && oldWeapon->clipSize != -1 )
+	if ( !oldWeapon->firemodes[0].useQuantity && oldWeapon->firemodes[0].clipSize != -1 )
 	{
-		ent->client->clipammo[oldWeaponIndex] = ent->client->ps.stats[STAT_AMMO];
+		ent->client->clipammo[oldWeaponIndex][oldFiringMode] = ent->client->ps.stats[STAT_AMMO];
 		ent->client->ammoTable[ent->client->ps.ammoType] = ent->client->ps.stats[STAT_TOTALAMMO];
-		ent->client->ammoTypes[oldWeaponIndex] = ent->client->ps.ammoType;
+		ent->client->ammoTypes[oldWeaponIndex][oldFiringMode] = ent->client->ps.ammoType;
 	}
 
-	if ( !newWeapon->firemodes[0].useQuantity && newWeapon->clipSize != -1 )
+	if ( !newWeapon->firemodes[0].useQuantity && newWeapon->firemodes[0].clipSize != -1 )
 	{
 		// Get the new weapon's ammo stored in STAT_AMMO
-		ent->client->ps.ammoType = ent->client->ammoTypes[newWeaponIndex];
-		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[newWeaponIndex];
+		ent->client->ps.ammoType = ent->client->ammoTypes[newWeaponIndex][newFiringMode];
+		ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[newWeaponIndex][newFiringMode];
 		ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
 	}
 	else if (newWeapon->firemodes[0].useQuantity) {
@@ -3211,9 +3213,9 @@ void ClientThink_real( gentity_t *ent ) {
 			ent->client->ps.stats[STAT_AMMO] = item->quantity;
 			ent->client->ps.stats[STAT_TOTALAMMO] = item->quantity;
 		}
-		else if (weaponData->clipSize) {
-			ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[weaponClass];
-			ent->client->ps.ammoType = ent->client->ammoTypes[weaponClass];
+		else if (weaponData->firemodes[ent->client->ps.firingMode].clipSize) {
+			ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[weaponClass][ent->client->ps.firingMode];
+			ent->client->ps.ammoType = ent->client->ammoTypes[weaponClass][ent->client->ps.firingMode];
 			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
 		}
 	}
@@ -3250,12 +3252,12 @@ void ClientThink_real( gentity_t *ent ) {
 		ent->client->ps.weaponChargeTime = 0;
 
 		/* Remove a count since we don't do this now. */
-		if(ent->client->clipammo[weaponClass])
+		if(ent->client->clipammo[weaponClass][ent->client->ps.firingMode])
 		{
-			ent->client->clipammo[weaponClass] -= 1;
+			ent->client->clipammo[weaponClass][ent->client->ps.firingMode] -= 1;
 		}
 		ent->client->ps.stats[STAT_TOTALAMMO] -= 1;
-		ent->client->ammoTypes[weaponClass] = -1;
+		ent->client->ammoTypes[weaponClass][ent->client->ps.firingMode] = -1;
 		ent->client->ammoTable[ent->client->ps.ammoType] -= 1;
 		ent->client->ps.ammoType = -1;
 
@@ -3296,9 +3298,11 @@ void ClientThink_real( gentity_t *ent ) {
 		Pmove (&pmove);
 	}
 
-	if ( GetWeaponAmmoClip( ent->client->ps.weapon, ent->client->ps.weaponVariation ))
+	// It's possible for the weapon and variation to change in the middle of a pmove, so we re-get it here.
+	weaponData = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation);
+	if ( weaponData->firemodes[ent->client->ps.firingMode].clipSize )
 	{
-		ent->client->clipammo[ BG_GetWeaponIndexFromClass(ent->client->ps.weapon, ent->client->ps.weaponVariation) ] = ent->client->ps.stats[STAT_AMMO];
+		ent->client->clipammo[ ent->client->ps.weaponId ][ent->client->ps.firingMode] = ent->client->ps.stats[STAT_AMMO];
 	}
 
 	if (ent->client->solidHack)
@@ -3905,8 +3909,9 @@ void ClientEndFrame( gentity_t *ent ) {
 		else {
 			// Use the regular ammo table instead
 			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
-			if (weaponData->clipSize) {
-				ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[BG_GetWeaponIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)];
+			if (weaponData->firemodes[ent->client->ps.firingMode].clipSize) {
+				ent->client->ps.stats[STAT_AMMO] = 
+					ent->client->clipammo[BG_GetWeaponIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)][ent->client->ps.firingMode];
 			}
 			else {
 				ent->client->ps.stats[STAT_AMMO] = ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];

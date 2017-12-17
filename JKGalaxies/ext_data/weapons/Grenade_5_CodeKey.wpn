@@ -76,7 +76,6 @@
         "ammoIndex":         "grenade_codekey",
         "ammoOnSpawn":   1,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "roll" ]
     },
     
@@ -116,6 +115,7 @@
         "spread":       1.0,
         "projectilespeed":1100.0,
         "projectileclass":"thermal_detonator",
+        "clipSize":              0,
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
@@ -156,6 +156,7 @@
         "spread":       1.0,
         "projectilespeed":500.0,
         "projectileclass":"thermal_detonator",
+        "clipSize":              0,
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },

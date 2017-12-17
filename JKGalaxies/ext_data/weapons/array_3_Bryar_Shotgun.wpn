@@ -61,7 +61,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   1600,
-        "clipSize":              32,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
@@ -80,6 +79,7 @@
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERCELL_L",
 	"ammodefault": "AMMO_POWERCELL_L",
+        "clipSize":              32,
         "accuracy": {
         	"accuracyRating": 40,
         	"accuracyRatingPerShot": 12,
@@ -108,6 +108,7 @@
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERCELL_L",
 	"ammodefault": "AMMO_POWERCELL_L",
+        "clipSize":              32,
         "accuracy": {
 			"accuracyRating": 18,
 			"accuracyRatingPerShot": 2,

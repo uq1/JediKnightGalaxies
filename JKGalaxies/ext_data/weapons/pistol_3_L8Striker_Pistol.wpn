@@ -63,7 +63,6 @@
         "ammoIndex":         "powerpak",
         "ammoOnSpawn":   80,
         "ammoOnPickup":   16,
-        "clipSize":              8,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
@@ -98,6 +97,7 @@
         "meansofdeath": "MOD_BLASTER",
 		"ammobase": "AMMO_AA_POWERPAK",
 		"ammodefault": "AMMO_AA_POWERPAK",
+        "clipSize":              8,
 		"accuracy": {
 			"accuracyRating": 11,
 			"sightsModifier": 0.2

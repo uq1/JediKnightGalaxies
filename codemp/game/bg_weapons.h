@@ -204,6 +204,7 @@ typedef struct weaponFireModeStats_s
 									// This is separate because some fire modes (ie sequencer charge detonate) don't consume ammo
 	ammo_t*		ammoBase;			// The base ammo type that this weapon accepts
 	ammo_t*		ammoDefault;		// The default ammo type (BUY AMMO) that is used
+	int			clipSize;			// The size of one clip
 
 	weaponAccuracyDetails_t weaponAccuracy; // replaces spread
 } weaponFireModeStats_t;
@@ -449,8 +450,6 @@ typedef struct
 	unsigned char	weaponBaseIndex;		// Base index, determines the type of weapon this is.
 	unsigned char	weaponModIndex;			// Mod index, determines which alternate version of the base weapon this is.
 	unsigned short	weaponReloadTime;		// The time required to reload the weapon (or the time till she blows, for grenades).
-	
-	unsigned int	clipSize;				// Number of shots in one clip
 
 	unsigned char	numFiringModes;			// Number of firing modes on the gun.
 
@@ -524,7 +523,6 @@ weaponData_t *BG_GetWeaponDataByIndex( int index );
 //void			GetWeaponInitialization( void );
 weaponData_t   *GetWeaponData( unsigned char baseIndex, unsigned char modIndex );
 weaponData_t   *GetWeaponDataUnsafe ( unsigned char weapon, unsigned char variation );
-short           GetWeaponAmmoClip ( unsigned char baseIndex, unsigned char modIndex );
 short           GetAmmoMax ( unsigned char ammoIndex );
 
 qboolean BG_DumpWeaponList ( const char *filename );

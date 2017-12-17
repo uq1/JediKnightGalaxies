@@ -40,7 +40,6 @@
         "ammoIndex":         "charge_sequencer",
         "ammoOnSpawn":   4,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "roll" ]
     },
     
@@ -51,6 +50,7 @@
         "firedelay":    1000,
         "splashrange":  260,
         "projectileclass":"detpack",
+        "clipSize":              0,
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
     

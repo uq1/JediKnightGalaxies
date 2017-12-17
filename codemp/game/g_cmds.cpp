@@ -941,14 +941,13 @@ void Cmd_BuyItem_f(gentity_t *ent)
 		// TODO externalize this into a function (JKG_PostItemPurchase) for other item types (special ammo types) 
 		weaponData_t* wp = GetWeaponData(pItem->id->weaponData.weapon, pItem->id->weaponData.variation);
 		if (!wp->firemodes[0].useQuantity) {
-			// Set clip ammo to clipsize, and ammo type of weapon to first firing mode's ammo type
-			ent->client->clipammo[pItem->id->weaponData.varID] = wp->clipSize;
-			ent->client->ammoTypes[pItem->id->weaponData.varID] = wp->firemodes[0].ammoDefault->ammoIndex;
 			for (int i = 0; i < wp->numFiringModes; i++) {
 				ammo_t* ammoDefault = wp->firemodes[i].ammoDefault;
 				if (ammoDefault) {
 					BG_GiveAmmo(ent, ammoDefault, qfalse, ammoDefault->ammoMax / 2);
 				}
+				ent->client->clipammo[pItem->id->weaponData.varID][i] = wp->firemodes[i].clipSize;
+				ent->client->ammoTypes[pItem->id->weaponData.varID][i] = wp->firemodes[i].ammoDefault->ammoIndex;
 			}
 		}
 	}
@@ -1216,7 +1215,10 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 			trap->SendServerCommand (ent->s.number, va ("print \"'%s' was added to your inventory.\n\"", itemLookupTable[itemID].displayName));
 			
 			if (BG_WeaponCanUseSpecialAmmo(weapon)) {
-				ent->client->ammoTypes[weaponID] = weapon->firemodes[0].ammoDefault->ammoIndex;
+				for (i = 0; i < weapon->numFiringModes; i++)
+				{
+					ent->client->ammoTypes[weaponID][i] = weapon->firemodes[i].ammoDefault->ammoIndex;
+				}
 			}
 	    }
 	    else
@@ -1249,7 +1251,10 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 			wp = GetWeaponDataUnsafe(weapBase, weapVar);
 			if (wp != nullptr)
 			{
-				ent->client->clipammo[i] = wp->clipSize;
+				for (int j = 0; j < MAX_FIREMODES; j++)
+				{
+					ent->client->clipammo[i][j] = wp->firemodes[j].clipSize;
+				}
 			}
 		}
 		ent->client->ps.stats[STAT_TOTALAMMO] = num;
@@ -3672,12 +3677,17 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	int ammotoadd;
 	int weaponIndex;
 	gentity_t *evt;
+	weaponData_t* wp;
+	int clipSize;
 
 	weapon = ent->client->ps.weapon;
 
-	if ( GetWeaponAmmoClip( weapon, ent->client->ps.weaponVariation ) == -1 )
+	wp = GetWeaponData(weapon, ent->client->ps.weaponVariation);
+
+	clipSize = wp->firemodes[ent->client->ps.firingMode].clipSize;
+	if (clipSize == -1)
 	{
-		// Current weapon does not use a clip, bail
+		// Weapon doesn't use clips, bail
 		return;
 	}
 
@@ -3728,15 +3738,15 @@ void Cmd_Reload_f( gentity_t *ent ) {
 		return;
 	}
 
-	ammotoadd = GetWeaponAmmoClip( weapon, ent->client->ps.weaponVariation );
+	ammotoadd = clipSize;
 	weaponIndex = BG_GetWeaponIndex(weapon, ent->client->ps.weaponVariation);
 
-	if (ent->client->clipammo[weaponIndex] >= ammotoadd)	{
+	if (ent->client->clipammo[weaponIndex][ent->client->ps.firingMode] >= ammotoadd)	{
 		// Current clip is full
 		return;
 	}
 
-	ammotoadd -= ent->client->clipammo[weaponIndex];
+	ammotoadd -= ent->client->clipammo[weaponIndex][ent->client->ps.firingMode];
 
 	evt						= G_TempEntity( ent->s.pos.trBase, EV_RELOAD );
 	evt->s.time				= ent->s.number;
@@ -3763,7 +3773,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	ent->client->ammoTable[ent->client->ps.ammoType] -= ammotoadd;
 
 	//Add the ammo to weapon
-	ent->client->clipammo[weaponIndex] += ammotoadd;
+	ent->client->clipammo[weaponIndex][ent->client->ps.firingMode] += ammotoadd;
 	ent->client->ps.stats[STAT_AMMO] += ammotoadd;
 
 	//Take us out of ironsights
@@ -4020,7 +4030,7 @@ void Cmd_AmmoCycle_f(gentity_t* ent) {
 		return;
 	}
 
-	if (GetWeaponAmmoClip(weapon, variation) <= 0)
+	if (wp->firemodes[fireMode].clipSize <= 0)
 	{
 		// Current weapon does not use a clip, bail
 		return;
@@ -4074,9 +4084,9 @@ void Cmd_AmmoCycle_f(gentity_t* ent) {
 	ent->client->ammoTable[ent->client->ps.ammoType] = ent->client->ps.stats[STAT_TOTALAMMO];
 	ent->client->ps.stats[STAT_AMMO] = 0;
 	ent->client->ps.ammoType = desiredAmmo;
-	ent->client->ammoTypes[weaponIndex] = desiredAmmo;
+	ent->client->ammoTypes[weaponIndex][ent->client->ps.firingMode] = desiredAmmo;
 	ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
-	ent->client->clipammo[weaponIndex] = 0;
+	ent->client->clipammo[weaponIndex][ent->client->ps.firingMode] = 0;
 
 	// Trigger a reload
 	Cmd_Reload_f(ent);
@@ -4092,8 +4102,6 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 {
 	int selectLevel = 0;
 	int i, j;
-
-	qboolean usingSiegeStyle = qfalse;
 
 	if ( !ent || !ent->client )
 	{
@@ -4112,6 +4120,12 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 		return;
 	}
 
+	if (ent->client->ps.weaponstate != WEAPON_READY)
+	{
+		// Don't let us swap firing modes while changing weapons --eez
+		return;
+	}
+
 	// Jedi Knight Galaxies, we cant swich saber style if we're not using a saber...
 	if (ent->client->ps.weapon != WP_SABER)
 	{
@@ -4123,9 +4137,29 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 		{
 			ent->client->ps.firingMode = 0;
 		}
-		ent->client->saberStanceDebounce = level.time + 400;	// changed to 400 cuz 1000 was way too slow
+		ent->client->saberStanceDebounce = level.time + 400;
 		trap->SendServerCommand(ent->s.number, va("fmrefresh %i", previousFiringMode));
 		ent->client->firingModes[ent->client->ps.weaponId] = ent->client->ps.firingMode;
+
+		// Swap our ammo type (but don't trigger a reload) if the new firing mode doesn't accept our old ammo type
+		if (!BG_AmmoIsBasedOn(wp->firemodes[ent->client->ps.firingMode].ammoBase->ammoIndex,
+			wp->firemodes[previousFiringMode].ammoBase->ammoIndex))
+		{
+			ent->client->ammoTable[ent->client->ps.ammoType] = ent->client->ps.stats[STAT_TOTALAMMO];
+			ent->client->clipammo[ent->client->ps.weaponId][previousFiringMode] = ent->client->ps.stats[STAT_AMMO];
+			ent->client->ammoTypes[ent->client->ps.weaponId][previousFiringMode] = ent->client->ps.ammoType;
+			ent->client->ps.ammoType = ent->client->ammoTypes[ent->client->ps.weaponId][ent->client->ps.firingMode];
+			ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ent->client->ps.weaponId][ent->client->ps.firingMode];
+			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
+		}
+		else
+		{
+			// We need to copy the clipammo and ammo type from the previous firing mode over 
+			ent->client->clipammo[ent->client->ps.weaponId][ent->client->ps.firingMode] = 
+				ent->client->clipammo[ent->client->ps.weaponId][previousFiringMode];
+			ent->client->ammoTypes[ent->client->ps.weaponId][ent->client->ps.firingMode] =
+				ent->client->ammoTypes[ent->client->ps.weaponId][previousFiringMode];
+		}
 		return;
 	}
 	else
@@ -4288,12 +4322,6 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 			trap->SendServerCommand( ent-g_entities, va("print \"SABERSTANCEDEBUG: Attempted to cycle stance normally.\n\"") );
 		}
 
-		if ( !usingSiegeStyle )
-		{
-			//make sure it's valid, change it if not
-			WP_UseFirstValidSaberStyle( &ent->client->saber[0], &ent->client->saber[1], ent->client->ps.saberHolstered, &selectLevel );
-		}
-
 		if (ent->client->ps.weaponTime <= 0)
 		{ //not busy, set it now
 			ent->client->ps.fd.saberAnimLevelBase = ent->client->ps.fd.saberAnimLevel = selectLevel;
@@ -4401,7 +4429,7 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 	}
 
 	weaponData_t* wp = GetWeaponData(item.id->weaponData.weapon, item.id->weaponData.variation);
-	if (wp->firemodes[0].useQuantity || wp->clipSize <= 0) {
+	if (wp->firemodes[0].useQuantity || wp->firemodes[0].clipSize <= 0) {
 		trap->SendServerCommand(ent - g_entities, "print \"You cannot purchase ammo for that weapon.\n\"");
 		return;
 	}

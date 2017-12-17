@@ -227,7 +227,7 @@ int G_GetAmmoInCurrentClip ( const gentity_t *ent, unsigned int weapon, unsigned
         return 0;
     }
     
-    return ent->client->clipammo[index];
+    return ent->client->clipammo[index][firemode];
 }
 
 void G_SetAmmoInCurrentClip ( gentity_t *ent, unsigned int weapon, unsigned int variation, unsigned int firemode, unsigned int ammo )
@@ -241,7 +241,7 @@ void G_SetAmmoInCurrentClip ( gentity_t *ent, unsigned int weapon, unsigned int 
 	if ( index >= 256 ) // TODO: use a global #define for this
 		return;
     
-    ent->client->clipammo[index] = ammo;
+    ent->client->clipammo[index][firemode] = ammo;
 }
 
 void W_TraceSetStart( gentity_t *ent, vec3_t start, vec3_t mins, vec3_t maxs )

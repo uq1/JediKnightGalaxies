@@ -64,7 +64,6 @@
         "ammoIndex":         "blaster_power_pack_s",
         "ammoOnSpawn":   300,
         "ammoOnPickup":   90,
-        "clipSize":              30,
         "reloadmodifier": 0.7,
         "speed":        0.0
     },
@@ -80,6 +79,7 @@
         "projectilespeed": 5000.0,
         "projectileclass":"blaster_proj",
         "meansofdeath": "MOD_EXPLOSION",
+        "clipSize":              30,
         "accuracy": {
         	"accuracyRating": 65,
         	"accuracyRatingPerShot": 5,
@@ -104,6 +104,7 @@
         "projectilespeed": 5000.0,
         "projectileclass":"blaster_proj",
         "meansofdeath": "MOD_BLASTER",
+        "clipSize":              30,
         "accuracy": {
         	"accuracyRating": 85,
         	"accuracyRatingPerShot": 10,

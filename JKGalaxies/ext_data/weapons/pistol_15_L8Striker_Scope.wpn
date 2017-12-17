@@ -67,7 +67,6 @@
         "ammoIndex":         "powerpak",
         "ammoOnSpawn":   80,
         "ammoOnPickup":   16,
-        "clipSize":              8,
         "flags":        [ "roll", "togglezoom" ],
         "reloadmodifier": 0.7
     },
@@ -86,7 +85,8 @@
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BRYAR_PISTOL",
 		"ammobase": "AMMO_AA_POWERPAK",
-		"ammodefault": "AMMO_AA_POWERPAK"
+		"ammodefault": "AMMO_AA_POWERPAK",
+        "clipSize":              8
     },
     
     "firemode1": {
@@ -102,6 +102,7 @@
         "meansofdeath": "MOD_BLASTER",
 		"ammobase": "AMMO_AA_POWERPAK",
 		"ammodefault": "AMMO_AA_POWERPAK",
+        "clipSize":              8,
 		"accuracy": {
 			"accuracyRating": 11,
 			"sightsModifier": 0.2
@@ -110,7 +111,6 @@
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-//        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_PISTOLRELOAD" },
         "sights":        { "torso": "TORSO_WEAPONREADY2", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK2" },

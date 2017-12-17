@@ -49,7 +49,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2750,
-        "clipSize":              4,
 //        "flags":        [ "knockback" ],
         "reloadmodifier": 0.5,
         "speed":        0.8
@@ -72,6 +71,7 @@
         "splashmeansofdeath": "MOD_EXPLOSION",
 	"ammobase": "AMMO_PACKERED_MORTAR",
 	"ammodefault": "AMMO_PACKERED_MORTAR",
+        "clipSize":              4,
         "accuracy": {
         	"accuracyRating": 72,
         	"accuracyRatingPerShot": 12,

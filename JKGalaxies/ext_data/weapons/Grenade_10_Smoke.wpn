@@ -64,7 +64,6 @@
         "ammoIndex":         "grenade_smoke",
         "ammoOnSpawn":   2,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "cookable", "roll" ]
     },
     
@@ -84,6 +83,7 @@
         "splashrange":  800,
         "projectilespeed":1100.0,
         "projectileclass":"thermal_detonator",
+        "clipSize":              0,
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
@@ -105,6 +105,7 @@
         "splashrange":  800,
         "projectilespeed":1100.0,
         "projectileclass":"thermal_detonator",
+        "clipSize":              0,
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },

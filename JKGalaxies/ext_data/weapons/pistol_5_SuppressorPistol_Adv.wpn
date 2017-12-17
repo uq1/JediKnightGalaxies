@@ -61,7 +61,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   800,
-        "clipSize":              10,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7,
         "speed":        1.1
@@ -80,6 +79,7 @@
         "meansofdeath": "MOD_ACP",
 	"ammobase": "AMMO_ACP_POWERCELL_S",
 	"ammodefault": "AMMO_ACP_POWERCELL_S",
+        "clipSize":              10,
 		"accuracy": {
 			"accuracyRating": 11,
 			"sightsModifier": 0.2
@@ -100,12 +100,12 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_ACP",
 	"ammobase": "AMMO_ACP_POWERCELL_S",
-	"ammodefault": "AMMO_ACP_POWERCELL_S"
+	"ammodefault": "AMMO_ACP_POWERCELL_S",
+        "clipSize":              10
 	},
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-//        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_PISTOLRELOAD" },
         "sights":        { "torso": "TORSO_WEAPONREADY2", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK2" },

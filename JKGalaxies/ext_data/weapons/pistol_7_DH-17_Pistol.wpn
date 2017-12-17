@@ -65,7 +65,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   1500,
-        "clipSize":              30,
         "flags":        [ "roll", "togglezoom" ],
         "startzoomfov": 30.0,
         "reloadmodifier": 0.7
@@ -83,7 +82,8 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_M",
-	"ammodefault": "AMMO_POWERPACK_S"
+	"ammodefault": "AMMO_POWERPACK_S",
+        "clipSize":              30
     },
     
     "firemode1": {
@@ -100,12 +100,12 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_M",
-	"ammodefault": "AMMO_POWERPACK_S"
+	"ammodefault": "AMMO_POWERPACK_S",
+        "clipSize":              30
     },
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-//        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_RIFLERELOADL" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },

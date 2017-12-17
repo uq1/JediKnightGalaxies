@@ -139,11 +139,14 @@ static int GLua_Sys_SoundIndex(lua_State *L) {
 static int GLua_Sys_WeaponClipSize(lua_State *L) {
 	int wp = luaL_checkint(L,1);
 	int var = luaL_optint(L,2,0);
+	int fm = luaL_optint(L, 3, 0);
 	if (wp < 0 || wp >= MAX_WEAPONS) {
 		return 0;
 	}
 
-	lua_pushinteger(L, GetWeaponAmmoClip( wp, var ));	// If no clips are used, the size if 0, so that can be used to determine IF they're used at all
+	weaponData_t* wpd = GetWeaponData(wp, var);
+
+	lua_pushinteger(L, wpd->firemodes[fm].clipSize);	// If no clips are used, the size if 0, so that can be used to determine IF they're used at all
 	return 1;
 }
 

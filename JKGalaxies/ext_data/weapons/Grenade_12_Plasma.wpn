@@ -67,7 +67,6 @@
         "ammoIndex":         "grenade_plasma",
         "ammoOnSpawn":   1,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "cookable", "roll" ]
     },
   
@@ -102,6 +101,7 @@
 //        "splashrange":  560,//280,
         "projectilespeed":1200.0,
         "projectileclass":"repeater_alt_proj",
+        "clipSize":              0,
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
@@ -135,6 +135,7 @@
         "spread":       1.0,
         "projectilespeed":900.0,
         "projectileclass":"repeater_alt_proj",
+        "clipSize":              0,
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
