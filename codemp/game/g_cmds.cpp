@@ -4141,6 +4141,11 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 		trap->SendServerCommand(ent->s.number, va("fmrefresh %i", previousFiringMode));
 		ent->client->firingModes[ent->client->ps.weaponId] = ent->client->ps.firingMode;
 
+		// Grenades and other consumables don't use ammo  --futuza: this is a stupid fix need something that says: "if item doesn't use ammo" return
+		if (ent->client->ps.weapon == WP_THERMAL || ent->client->ps.weapon == WP_TRIP_MINE || ent->client->ps.weapon == WP_DET_PACK || ent->client->ps.weapon == WP_EMPLACED_GUN || ent->client->ps.weapon == WP_TURRET)
+			return;
+
+
 		// Swap our ammo type (but don't trigger a reload) if the new firing mode doesn't accept our old ammo type
 		if (!BG_AmmoIsBasedOn(wp->firemodes[ent->client->ps.firingMode].ammoBase->ammoIndex,
 			wp->firemodes[previousFiringMode].ammoBase->ammoIndex))
