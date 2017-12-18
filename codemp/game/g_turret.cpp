@@ -290,24 +290,7 @@ static void turret_aim( gentity_t *self )
 		// Aim at enemy
 		VectorCopy( self->enemy->r.currentOrigin, org );
 		org[2]+=self->enemy->r.maxs[2]*0.5f;
-		if (self->enemy->s.eType == ET_NPC &&
-			self->enemy->s.NPC_class == CLASS_VEHICLE &&
-			self->enemy->m_pVehicle &&
-			self->enemy->m_pVehicle->m_pVehicleInfo->type == VH_WALKER)
-		{ //hack!
-			org[2] += 32.0f;
-		}
-		/*
-		mdxaBone_t	boltMatrix;
-
-		// Getting the "eye" here
-		trap->G2API_GetBoltMatrix( self->ghoul2, self->playerModel,
-					self->torsoBolt,
-					&boltMatrix, self->r.currentAngles, self->s.origin, (cg.time?cg.time:level.time),
-					NULL, self->s.modelScale );
-
-		trap->G2API_GiveMeVectorFromMatrix( boltMatrix, ORIGIN, org2 );
-		*/
+		
 		VectorCopy( top->r.currentOrigin, org2 );
 
 		VectorSubtract( org, org2, enemyDir );

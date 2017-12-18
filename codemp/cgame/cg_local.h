@@ -334,11 +334,9 @@ typedef struct cgLoopSound_s {
 // centity_t have a direct corespondence with gentity_t in the game, but
 // only the entityState_t is directly communicated to the cgame
 typedef struct centity_s {
-	// This comment below is correct, but now m_pVehicle is the first thing in bg shared entity, so it goes first. - AReis
 	//rww - entstate must be first, to correspond with the bg shared entity structure
 	entityState_t	currentState;	// from cg.frame
 	playerState_t	*playerState;	//ptr to playerstate if applicable (for bg ents)
-	Vehicle_t		*m_pVehicle; //vehicle data
 	void			*ghoul2; //g2 instance
 	int				localAnimIndex; //index locally (game/cgame) to anim data for this skel
 	vec3_t			modelScale; //needed for g2 collision
@@ -812,9 +810,7 @@ typedef struct cg_s {
 	qboolean	renderingThirdPerson;		// during deaths, chasecams, etc
 
 	// prediction state
-	qboolean	hyperspace;				// true if prediction has hit a trigger_teleport
 	playerState_t	predictedPlayerState;
-	playerState_t	predictedVehicleState;
 
 	int lastPurchasedItem;
 
@@ -895,9 +891,6 @@ typedef struct cg_s {
 	// crosshair client ID
 	int			crosshairClientNum;
 	int			crosshairClientTime;
-
-	int			crosshairVehNum;
-	int			crosshairVehTime;
 
 	// powerup active flashing
 	int			powerupActive;
@@ -1013,9 +1006,6 @@ Ghoul2 Insert End
 
 	short				radarEntityCount;
 	short				radarEntities[MAX_CLIENTS+16];
-
-	short				bracketedEntityCount;
-	short				bracketedEntities[MAX_CLIENTS+16];
 
 	float				distanceCull;
 
@@ -1375,7 +1365,6 @@ typedef struct cgMedia_s {
 	qhandle_t	bdecal_burn1;
 	qhandle_t	mSaberDamageGlow;
 
-	// For vehicles only now
 	sfxHandle_t	noAmmoSound;
 
 	// JKG
@@ -1744,10 +1733,6 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, void *
 qboolean CG_YourTeamHasFlag(void);
 qboolean CG_OtherTeamHasFlag(void);
 qhandle_t CG_StatusHandle(int task);
-
-// why extern when you can zoidberg --eez
-qboolean CG_InFighter( void );
-qboolean CG_InATST( void );
 
 //
 // cg_player.c

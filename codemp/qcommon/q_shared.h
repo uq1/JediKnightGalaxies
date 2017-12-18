@@ -1796,9 +1796,6 @@ typedef struct playerState_s {
 	float			saberSwingSpeed;
 	float			saberMoveSwingSpeed;
 
-	int				saberPommel[2];
-	int				saberShaft[2];
-	int				saberEmitter[2];
 	int				saberCrystal[2];
 
 	int				blockPoints;
@@ -2179,9 +2176,6 @@ typedef struct entityState_s {
 
 	int		NPC_class; //we need to see what it is on the client for a few effects.
 
-	//If non-0, this is the index of the vehicle a player/NPC is riding.
-	int		m_iVehicleNum;
-
 	//rww - spare values specifically for use by mod authors.
 	//See netf_overrides.txt if you want to increase the send
 	//amount of any of these above 1 bit.
@@ -2203,9 +2197,6 @@ typedef struct entityState_s {
 	float			saberSwingSpeed;
 	float			saberMoveSwingSpeed;
 
-	int				saberPommel[2];
-	int				saberShaft[2];
-	int				saberEmitter[2];
 	int				saberCrystal[2];
 
 	int				armor[MAX_ARMOR];

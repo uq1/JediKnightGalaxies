@@ -417,51 +417,6 @@ static void G_FreeFakeClient(gclient_t **cl)
 	}
 }
 
-//allocate a veh object
-#define MAX_VEHICLES_AT_A_TIME		512//128
-static Vehicle_t g_vehiclePool[MAX_VEHICLES_AT_A_TIME];
-static qboolean g_vehiclePoolOccupied[MAX_VEHICLES_AT_A_TIME];
-static qboolean g_vehiclePoolInit = qfalse;
-void G_AllocateVehicleObject(Vehicle_t **pVeh)
-{
-	int i = 0;
-
-	if (!g_vehiclePoolInit)
-	{
-		g_vehiclePoolInit = qtrue;
-		memset(g_vehiclePoolOccupied, 0, sizeof(g_vehiclePoolOccupied));
-	}
-
-	while (i < MAX_VEHICLES_AT_A_TIME)
-	{ //iterate through and try to find a free one
-		if (!g_vehiclePoolOccupied[i])
-		{
-			g_vehiclePoolOccupied[i] = qtrue;
-			memset(&g_vehiclePool[i], 0, sizeof(Vehicle_t));
-			*pVeh = &g_vehiclePool[i];
-			return;
-		}
-		i++;
-	}
-	Com_Error(ERR_DROP, "Ran out of vehicle pool slots.");
-}
-
-//free the pointer, sort of a lame method
-void G_FreeVehicleObject(Vehicle_t *pVeh)
-{
-	int i = 0;
-	while (i < MAX_VEHICLES_AT_A_TIME)
-	{
-		if (g_vehiclePoolOccupied[i] &&
-			&g_vehiclePool[i] == pVeh)
-		{ //guess this is it
-			g_vehiclePoolOccupied[i] = qfalse;
-			break;
-		}
-		i++;
-	}
-}
-
 gclient_t *gClPtrs[MAX_GENTITIES];
 
 void G_CreateFakeClient(int entNum, gclient_t **cl)
@@ -1081,11 +1036,6 @@ void G_FreeEntity( gentity_t *ed ) {
 		trap->G2API_CleanGhoul2Models(&(ed->ghoul2));
 	}
 
-	if (ed->s.eType == ET_NPC && ed->m_pVehicle)
-	{ //tell the "vehicle pool" that this one is now free
-		G_FreeVehicleObject(ed->m_pVehicle);
-	}
-
 	if (ed->s.eType == ET_NPC && ed->client)
 	{ //this "client" structure is one of our dynamically allocated ones, so free the memory
 		int saberEntNum = -1;
@@ -1661,20 +1611,6 @@ void TryUse( gentity_t *ent )
 		return;
 	}
 
-	if (ent->s.number < MAX_CLIENTS && ent->client && ent->client->ps.m_iVehicleNum)
-	{
-		gentity_t *currentVeh = &g_entities[ent->client->ps.m_iVehicleNum];
-		if (currentVeh->inuse && currentVeh->m_pVehicle)
-		{
-			Vehicle_t *pVeh = currentVeh->m_pVehicle;
-			if (!pVeh->m_iBoarding)
-			{
-				pVeh->m_pVehicleInfo->Eject( pVeh, (bgEntity_t *)ent, qfalse );
-			}
-			return;
-		}
-	}
-
 	if (ent->client->ps.eFlags & EF_JETPACK_ACTIVE)
 	{ //can't use anything else to jp is off
 		goto tryJetPack;
@@ -1768,53 +1704,6 @@ void TryUse( gentity_t *ent )
 			default:
 				break;
 			}
-		}
-	}
-
-//Enable for corpse dragging
-#if 0
-	if (target->inuse && target->s.eType == ET_BODY &&
-		ent->client->bodyGrabTime < level.time)
-	{ //then grab the body
-		target->s.eFlags |= EF_RAG; //make sure it's in rag state
-		if (!ent->s.number)
-		{ //switch cl 0 and entitynum_none, so we can operate on the "if non-0" concept
-			target->s.ragAttach = ENTITYNUM_NONE;
-		}
-		else
-		{
-			target->s.ragAttach = ent->s.number;
-		}
-		ent->client->bodyGrabTime = level.time + 1000;
-		ent->client->bodyGrabIndex = target->s.number;
-		return;
-	}
-#endif
-
-	if (target && target->m_pVehicle && target->client &&
-		target->s.NPC_class == CLASS_VEHICLE &&
-		!ent->client->ps.zoomMode)
-	{ //if target is a vehicle then perform appropriate checks
-		Vehicle_t *pVeh = target->m_pVehicle;
-
-		if (pVeh->m_pVehicleInfo)
-		{
-			if ( ent->r.ownerNum == target->s.number )
-			{ //user is already on this vehicle so eject him
-				pVeh->m_pVehicleInfo->Eject( pVeh, (bgEntity_t *)ent, qfalse );
-			}
-			else
-			{ // Otherwise board this vehicle.
-				if (level.gametype < GT_TEAM ||
-					!target->alliedTeam ||
-					(target->alliedTeam == ent->client->sess.sessionTeam))
-				{ //not belonging to a team, or client is on same team
-					pVeh->m_pVehicleInfo->Board( pVeh, (bgEntity_t *)ent );
-				}
-			}
-			//clear the damn button!
-			ent->client->pers.cmd.buttons &= ~BUTTON_USE;
-			return;
 		}
 	}
 

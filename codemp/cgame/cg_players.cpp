@@ -36,7 +36,6 @@ extern void CheckCameraLocation( vec3_t OldeyeOrigin );
 
 extern void CG_AddRadarEnt(centity_t *cent);	//cg_ents.c
 extern void CG_AddBracketedEnt(centity_t *cent);	//cg_ents.c
-extern qboolean CG_InFighter( void );
 
 
 //for g2 surface routines
@@ -3094,13 +3093,6 @@ static void CG_SetLerpFrameAnimation( centity_t *cent, clientInfo_t *ci, lerpFra
 			lf->animationSpeed = animSpeedMult;
 		}
 
-		//vehicles may have torso etc but we only want to animate the root bone
-		if ( cent->currentState.NPC_class == CLASS_VEHICLE )
-		{
-			trap->G2API_SetBoneAnim(cent->ghoul2, 0, "model_root", firstFrame, lastFrame, flags, animSpeed,cg.time, beginFrame, blendTime);
-			return;
-		}
-
 		if (torsoOnly && !cent->noLumbar)
 		{ //rww - The guesswork based on the lerp frame figures is usually BS, so I've resorted to a call to get the frame of the bone directly.
 			float GBAcFrame = 0;
@@ -3386,24 +3378,20 @@ static void CG_PlayerAnimation( centity_t *cent, int *legsOld, int *legs, float 
 	*legs = cent->pe.legs.frame;
 	*legsBackLerp = cent->pe.legs.backlerp;
 
-	// If this is not a vehicle, you may lerm the frame (since vehicles never have a torso anim). -AReis
-	if ( cent->currentState.NPC_class != CLASS_VEHICLE )
-	{	
-		if( cent->currentState.saberActionFlags & ( 1 << SAF_BLOCKING ) && cent->currentState.saberMove == LS_READY)
-		{
-			speedScale *= 0.3;
-		}
-		else if( cent->currentState.sightsTransition )
-		{
-			speedScale *= 0.3;
-		}
-
-		CG_RunLerpFrame( cent, ci, &cent->pe.torso, cent->currentState.torsoFlip, cent->currentState.torsoAnim, speedScale, qtrue );
-
-		*torsoOld = cent->pe.torso.oldFrame;
-		*torso = cent->pe.torso.frame;
-		*torsoBackLerp = cent->pe.torso.backlerp;
+	if( cent->currentState.saberActionFlags & ( 1 << SAF_BLOCKING ) && cent->currentState.saberMove == LS_READY)
+	{
+		speedScale *= 0.3;
 	}
+	else if( cent->currentState.sightsTransition )
+	{
+		speedScale *= 0.3;
+	}
+
+	CG_RunLerpFrame( cent, ci, &cent->pe.torso, cent->currentState.torsoFlip, cent->currentState.torsoAnim, speedScale, qtrue );
+
+	*torsoOld = cent->pe.torso.oldFrame;
+	*torso = cent->pe.torso.frame;
+	*torsoBackLerp = cent->pe.torso.backlerp;
 }
 
 
@@ -4240,54 +4228,6 @@ static void CG_G2PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t legsAngle
 				cent->currentState.torsoAnim/*BOTH_DEAD1*/, vec3_origin, &cent->ikStatus, cent->lerpOrigin, cent->lerpAngles, cent->modelScale, 500, qtrue);
 		}
 	}
-	else if ( cent->m_pVehicle && cent->m_pVehicle->m_pVehicleInfo->type == VH_WALKER )
-	{
-		vec3_t lookAngles;
-
-		VectorCopy(cent->lerpAngles, legsAngles);
-		legsAngles[PITCH] = 0;
-		AnglesToAxis( legsAngles, legs );
-
-		VectorCopy(cent->lerpAngles, lookAngles);
-		lookAngles[YAW] = lookAngles[ROLL] = 0;
-
-		BG_G2ATSTAngles( cent->ghoul2, cg.time, lookAngles );
-	}
-	else
-	{
-		if (cent->currentState.eType == ET_NPC &&
-			cent->currentState.NPC_class == CLASS_VEHICLE &&
-			cent->m_pVehicle &&
-			cent->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER)
-		{ //fighters actually want to take pitch and roll into account for the axial angles
-			VectorCopy(cent->lerpAngles, legsAngles);
-			AnglesToAxis( legsAngles, legs );
-		}
-		else if (cent->currentState.eType == ET_NPC &&
-			cent->currentState.m_iVehicleNum &&
-			cent->currentState.NPC_class != CLASS_VEHICLE )
-		{ //an NPC bolted to a vehicle should use the full angles
-			VectorCopy(cent->lerpAngles, legsAngles);
-			AnglesToAxis( legsAngles, legs );
-		}
-		else
-		{
-			vec3_t nhAngles;
-
-			if (cent->currentState.eType == ET_NPC &&
-				cent->currentState.NPC_class == CLASS_VEHICLE &&
-				cent->m_pVehicle &&
-				cent->m_pVehicle->m_pVehicleInfo->type == VH_SPEEDER)
-			{ //yeah, a hack, sorry.
-				VectorSet(nhAngles, 0, cent->lerpAngles[YAW], cent->lerpAngles[ROLL]);
-			}
-			else
-			{
-				VectorSet(nhAngles, 0, cent->lerpAngles[YAW], 0);
-			}
-			AnglesToAxis( nhAngles, legs );
-		}
-	}
 
 	//See if we have any bone angles sent from the server
 	CG_G2ServerBoneAngles(cent);
@@ -4527,14 +4467,6 @@ static qboolean CG_PlayerShadow( centity_t *cent, float *shadowPlane ) {
 		return qfalse; //this entity is mind-tricking the current client, so don't render it
 	}
 
-	if ( cg_shadows.integer == 1 )
-	{//dropshadow
-		if (cent->currentState.m_iVehicleNum &&
-			cent->currentState.NPC_class != CLASS_VEHICLE )
-		{//riding a vehicle, no dropshadow
-			return qfalse;
-		}
-	}
 	// send a trace down from the player to the ground
 	VectorCopy( cent->lerpOrigin, end );
 	if (cg_shadows.integer == 2)
@@ -5487,17 +5419,7 @@ qboolean CG_G2TraceCollide(trace_t *tr, vec3_t const mins, vec3_t const maxs, co
 		angles[ROLL] = angles[PITCH] = 0;
 		angles[YAW] = g2Hit->lerpAngles[YAW];
 
-		if (com_optvehtrace.integer &&
-			g2Hit->currentState.eType == ET_NPC &&
-			g2Hit->currentState.NPC_class == CLASS_VEHICLE &&
-			g2Hit->m_pVehicle)
-		{
-			trap->G2API_CollisionDetectCache ( G2Trace, g2Hit->ghoul2, angles, g2Hit->lerpOrigin, cg.time, g2Hit->currentState.number, lastValidStart, lastValidEnd, g2Hit->modelScale, 0, cg_g2TraceLod.integer, fRadius );
-		}
-		else
-		{
-			trap->G2API_CollisionDetect ( G2Trace, g2Hit->ghoul2, angles, g2Hit->lerpOrigin, cg.time, g2Hit->currentState.number, lastValidStart, lastValidEnd, g2Hit->modelScale, 0, cg_g2TraceLod.integer, fRadius );
-		}
+		trap->G2API_CollisionDetect ( G2Trace, g2Hit->ghoul2, angles, g2Hit->lerpOrigin, cg.time, g2Hit->currentState.number, lastValidStart, lastValidEnd, g2Hit->modelScale, 0, cg_g2TraceLod.integer, fRadius );
 
 		if (G2Trace[0].mEntityNum != g2Hit->currentState.number)
 		{
@@ -5670,9 +5592,7 @@ void CG_SaberCompWork(vec3_t start, vec3_t end, centity_t *owner, int saberNum, 
 						if (trEnt->ghoul2)
 						{
 							if (trEnt->currentState.eType != ET_NPC ||
-								trEnt->currentState.NPC_class != CLASS_VEHICLE ||
-								!trEnt->m_pVehicle ||
-								trEnt->m_pVehicle->m_pVehicleInfo->type != VH_FIGHTER)
+								trEnt->currentState.NPC_class != CLASS_VEHICLE)
 							{ //don't do on fighters cause they have crazy full axial angles
 								int weaponMarkShader = 0, markShader = cgs.media.bdecal_saberglow;
 
@@ -6186,8 +6106,6 @@ int CG_IsMindTricked(int trickIndex1, int trickIndex2, int trickIndex3, int tric
 #define SPEED_TRAIL_DISTANCE 6
 
 //Create a temporary ghoul2 instance and get the gla name so we can try loading animation data and sounds.
-void BG_GetVehicleModelName(char *modelname, int len);
-void BG_GetVehicleSkinName(char *skinname, int len);
 
 void CG_CacheG2AnimInfo(char *modelName)
 {
@@ -6199,21 +6117,6 @@ void CG_CacheG2AnimInfo(char *modelName)
 
 	Q_strncpyz(useModel, modelName, sizeof( useModel ) );
 	Q_strncpyz(useSkin, modelName, sizeof( useSkin ) );
-
-	if (modelName[0] == '$')
-	{ //it's a vehicle name actually, let's precache the whole vehicle
-		BG_GetVehicleModelName(useModel, sizeof( useModel ) );
-		BG_GetVehicleSkinName(useSkin, sizeof( useSkin ) );
-		if ( useSkin[0] )
-		{ //use a custom skin
-			trap->R_RegisterSkin(va("models/players/%s/model_%s.skin", useModel, useSkin));
-		}
-		else
-		{
-			trap->R_RegisterSkin(va("models/players/%s/model_default.skin", useModel));
-		}
-		Q_strncpyz(useModel, va("models/players/%s/model.glm", useModel), sizeof( useModel ) );
-	}
 
 	trap->G2API_InitGhoul2Model(&g2, useModel, 0, 0, 0, 0, 0);
 
@@ -6256,11 +6159,6 @@ void CG_CacheG2AnimInfo(char *modelName)
 
 extern void CG_HandleNPCSounds(centity_t *cent);
 
-extern void G_CreateAnimalNPC( Vehicle_t **pVeh, const char *strAnimalType );
-extern void G_CreateSpeederNPC( Vehicle_t **pVeh, const char *strType );
-extern void G_CreateWalkerNPC( Vehicle_t **pVeh, const char *strAnimalType );
-extern void G_CreateFighterNPC( Vehicle_t **pVeh, const char *strType );
-
 extern playerState_t *cgSendPS[MAX_GENTITIES];
 void CG_G2AnimEntModelLoad(centity_t *cent)
 {
@@ -6279,61 +6177,7 @@ void CG_G2AnimEntModelLoad(centity_t *cent)
 
 		strcpy(modelName, cModelName);
 
-		if (cent->currentState.NPC_class == CLASS_VEHICLE && modelName[0] == '$')
-		{ //vehicles pass their veh names over as model names, then we get the model name from the veh type
-			//create a vehicle object clientside for this type
-			char *vehType = &modelName[1];
-			int iVehIndex = BG_VehicleGetIndex( vehType );
-			
-			switch( g_vehicleInfo[iVehIndex].type )
-			{
-				case VH_ANIMAL:
-					// Create the animal (making sure all it's data is initialized).
-					G_CreateAnimalNPC( &cent->m_pVehicle, vehType );
-					break;
-				case VH_SPEEDER:
-					// Create the speeder (making sure all it's data is initialized).
-					G_CreateSpeederNPC( &cent->m_pVehicle, vehType );
-					break;
-				case VH_FIGHTER:
-					// Create the fighter (making sure all it's data is initialized).
-					G_CreateFighterNPC( &cent->m_pVehicle, vehType );
-					break;
-				case VH_WALKER:
-					// Create the walker (making sure all it's data is initialized).
-					G_CreateWalkerNPC( &cent->m_pVehicle, vehType );
-					break;
-
-				default:
-					assert(!"vehicle with an unknown type - couldn't create vehicle_t");
-					break;
-			}
-			
-			//set up my happy prediction hack
-			cent->m_pVehicle->m_vOrientation = &cgSendPS[cent->currentState.number]->vehOrientation[0];
-
-			cent->m_pVehicle->m_pParentEntity = (bgEntity_t *)cent;
-
-			BG_GetVehicleModelName(modelName, sizeof( modelName ) );
-			if (cent->m_pVehicle->m_pVehicleInfo->skin &&
-				cent->m_pVehicle->m_pVehicleInfo->skin[0])
-			{ //use a custom skin
-				skinID = trap->R_RegisterSkin(va("models/players/%s/model_%s.skin", modelName, cent->m_pVehicle->m_pVehicleInfo->skin));
-			}
-			else
-			{
-				skinID = trap->R_RegisterSkin(va("models/players/%s/model_default.skin", modelName));
-			}
-			strcpy(modelName, va("models/players/%s/model.glm", modelName));
-
-			//this sound is *only* used for vehicles now
-			// JKG Galaxies - This is used for all weapons now
-			//cgs.media.noAmmoSound = trap->S_RegisterSound( "sound/weapons/noammo.wav" );
-		}
-		else
-		{
-			skinID = CG_HandleAppendedSkin(modelName); //get the skin if there is one.
-		}
+		skinID = CG_HandleAppendedSkin(modelName); //get the skin if there is one.
 
 		if (cent->ghoul2)
 		{ //clean it first!
@@ -6348,51 +6192,6 @@ void CG_G2AnimEntModelLoad(centity_t *cent)
 			char originalModelName[MAX_QPATH];
 			char *saber;
 			int j = 0;
-
-			if (cent->currentState.NPC_class == CLASS_VEHICLE &&
-				cent->m_pVehicle)
-			{ //do special vehicle stuff
-				char strTemp[128];
-				int i;
-
-				// Setup the default first bolt
-				i = trap->G2API_AddBolt( cent->ghoul2, 0, "model_root" );
-
-				// Setup the droid unit.
-				cent->m_pVehicle->m_iDroidUnitTag = trap->G2API_AddBolt( cent->ghoul2, 0, "*droidunit" );
-
-				// Setup the Exhausts.
-				for ( i = 0; i < MAX_VEHICLE_EXHAUSTS; i++ )
-				{
-					Com_sprintf( strTemp, 128, "*exhaust%i", i + 1 );
-					cent->m_pVehicle->m_iExhaustTag[i] = trap->G2API_AddBolt( cent->ghoul2, 0, strTemp );
-				}
-
-				// Setup the Muzzles.
-				for ( i = 0; i < MAX_VEHICLE_MUZZLES; i++ )
-				{
-					Com_sprintf( strTemp, 128, "*muzzle%i", i + 1 );
-					cent->m_pVehicle->m_iMuzzleTag[i] = trap->G2API_AddBolt( cent->ghoul2, 0, strTemp );
-					if ( cent->m_pVehicle->m_iMuzzleTag[i] == -1 )
-					{//ergh, try *flash?
-						Com_sprintf( strTemp, 128, "*flash%i", i + 1 );
-						cent->m_pVehicle->m_iMuzzleTag[i] = trap->G2API_AddBolt( cent->ghoul2, 0, strTemp );
-					}
-				}
-
-				// Setup the Turrets.
-				for ( i = 0; i < MAX_VEHICLE_TURRETS; i++ )
-				{
-					if ( cent->m_pVehicle->m_pVehicleInfo->turret[i].gunnerViewTag )
-					{
-						cent->m_pVehicle->m_iGunnerViewTag[i] = trap->G2API_AddBolt( cent->ghoul2, 0, cent->m_pVehicle->m_pVehicleInfo->turret[i].gunnerViewTag );
-					}
-					else
-					{
-						cent->m_pVehicle->m_iGunnerViewTag[i] = -1;
-					}
-				}
-			}
 
 			if (cent->currentState.npcSaber1)
 			{
@@ -6420,22 +6219,19 @@ void CG_G2AnimEntModelLoad(centity_t *cent)
 			}
 
 			// If this is a not vehicle, give it saber stuff...
-			if ( cent->currentState.NPC_class != CLASS_VEHICLE )
+			while (j < MAX_SABERS)
 			{
-				while (j < MAX_SABERS)
+				if (cent->npcClient->saber[j].model[0])
 				{
-					if (cent->npcClient->saber[j].model[0])
-					{
-						if (cent->npcClient->ghoul2Weapons[j])
-						{ //free the old instance(s)
-							trap->G2API_CleanGhoul2Models(&cent->npcClient->ghoul2Weapons[j]);
-							cent->npcClient->ghoul2Weapons[j] = 0;
-						}
-
-						CG_InitG2SaberData(j, cent->npcClient);
+					if (cent->npcClient->ghoul2Weapons[j])
+					{ //free the old instance(s)
+						trap->G2API_CleanGhoul2Models(&cent->npcClient->ghoul2Weapons[j]);
+						cent->npcClient->ghoul2Weapons[j] = 0;
 					}
-					j++;
+
+					CG_InitG2SaberData(j, cent->npcClient);
 				}
+				j++;
 			}
 
 			trap->G2API_SetSkin(cent->ghoul2, 0, skinID, skinID);
@@ -6493,22 +6289,13 @@ void CG_G2AnimEntModelLoad(centity_t *cent)
 				trap->G2API_AddBolt(cent->ghoul2, 0, "Motion");
 			}
 
-			// If this is a not vehicle...
-			if ( cent->currentState.NPC_class != CLASS_VEHICLE )
-			{
-				if (trap->G2API_AddBolt(cent->ghoul2, 0, "lower_lumbar") == -1)
-				{ //check now to see if we have this bone for setting anims and such
-					cent->noLumbar = qtrue;
-				}
-
-				if (trap->G2API_AddBolt(cent->ghoul2, 0, "face") == -1)
-				{ //check now to see if we have this bone for setting anims and such
-					cent->noFace = qtrue;
-				}
-			}
-			else
-			{
+			if (trap->G2API_AddBolt(cent->ghoul2, 0, "lower_lumbar") == -1)
+			{ //check now to see if we have this bone for setting anims and such
 				cent->noLumbar = qtrue;
+			}
+
+			if (trap->G2API_AddBolt(cent->ghoul2, 0, "face") == -1)
+			{ //check now to see if we have this bone for setting anims and such
 				cent->noFace = qtrue;
 			}
 
@@ -6531,195 +6318,7 @@ void CG_G2AnimEntModelLoad(centity_t *cent)
 	trap->S_Shutup(qfalse);
 }
 
-//for now this is just gonna create a big explosion on the area of the surface,
-//because I am lazy.
-static void CG_CreateSurfaceDebris(centity_t *cent, int surfNum, int fxID, qboolean throwPart)
-{
-	int lostPartFX = 0;
-	int b;
-	vec3_t v, d;
-	mdxaBone_t boltMatrix;
-	const char *surfName = bgToggleableSurfaces[surfNum];
-
-	if (!cent->ghoul2)
-	{ //oh no
-		return;
-	}
-
-	//let's add the surface as a bolt so we can get the base point of it
-	if (bgToggleableSurfaceDebris[surfNum] == 3)
-	{ //right wing flame
-		b = trap->G2API_AddBolt(cent->ghoul2, 0, "*r_wingdamage");
-		if ( throwPart
-			&& cent->m_pVehicle
-			&& cent->m_pVehicle->m_pVehicleInfo )
-		{
-			lostPartFX = cent->m_pVehicle->m_pVehicleInfo->iRWingFX;
-		}
-	}
-	else if (bgToggleableSurfaceDebris[surfNum] == 4)
-	{ //left wing flame
-		b = trap->G2API_AddBolt(cent->ghoul2, 0, "*l_wingdamage");
-		if ( throwPart
-			&& cent->m_pVehicle
-			&& cent->m_pVehicle->m_pVehicleInfo )
-		{
-			lostPartFX = cent->m_pVehicle->m_pVehicleInfo->iLWingFX;
-		}
-	}
-	else if (bgToggleableSurfaceDebris[surfNum] == 5)
-	{ //right wing flame 2
-		b = trap->G2API_AddBolt(cent->ghoul2, 0, "*r_wingdamage");
-		if ( throwPart
-			&& cent->m_pVehicle
-			&& cent->m_pVehicle->m_pVehicleInfo )
-		{
-			lostPartFX = cent->m_pVehicle->m_pVehicleInfo->iRWingFX;
-		}
-	}
-	else if (bgToggleableSurfaceDebris[surfNum] == 6)
-	{ //left wing flame 2
-		b = trap->G2API_AddBolt(cent->ghoul2, 0, "*l_wingdamage");
-		if ( throwPart
-			&& cent->m_pVehicle
-			&& cent->m_pVehicle->m_pVehicleInfo )
-		{
-			lostPartFX = cent->m_pVehicle->m_pVehicleInfo->iLWingFX;
-		}
-	}
-	else if (bgToggleableSurfaceDebris[surfNum] == 7)
-	{ //nose flame
-		b = trap->G2API_AddBolt(cent->ghoul2, 0, "*nosedamage");
-		if ( cent->m_pVehicle
-			&& cent->m_pVehicle->m_pVehicleInfo )
-		{
-			lostPartFX = cent->m_pVehicle->m_pVehicleInfo->iNoseFX;
-		}
-	}
-	else
-	{
-		b = trap->G2API_AddBolt(cent->ghoul2, 0, surfName);
-	}
-
-	if (b == -1)
-	{ //couldn't find this surface apparently
-		return;
-	}
-
-	//now let's get the position and direction of this surface and make a big explosion
-	trap->G2API_GetBoltMatrix(cent->ghoul2, 0, b, &boltMatrix, cent->lerpAngles, cent->lerpOrigin, cg.time,
-		cgs.gameModels, cent->modelScale);
-	BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, v);
-	BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, d);
-
-	trap->FX_PlayEffectID(fxID, v, d, -1, -1, false);
-	if ( throwPart && lostPartFX )
-	{//throw off a ship part, too
-		vec3_t	fxFwd;
-		AngleVectors( cent->lerpAngles, fxFwd, NULL, NULL );
-		trap->FX_PlayEffectID(lostPartFX, v, fxFwd, -1, -1, false);
-	}
-}
-
-//for now this is just gonna create a big explosion on the area of the surface,
-//because I am lazy.
-static void CG_CreateSurfaceSmoke(centity_t *cent, int shipSurf, int fxID)
-{
-	int b = -1;
-	vec3_t v, d;
-	mdxaBone_t boltMatrix;
-	const char *surfName = NULL;
-
-	if (!cent->ghoul2)
-	{ //oh no
-		return;
-	}
-
-	//let's add the surface as a bolt so we can get the base point of it
-	if ( shipSurf == SHIPSURF_FRONT )
-	{ //front flame/smoke
-		surfName = "*nosedamage";
-	}
-	else if (shipSurf == SHIPSURF_BACK )
-	{ //back flame/smoke
-		surfName = "*exhaust1";//FIXME: random?  Some point in-between?
-	}
-	else if (shipSurf == SHIPSURF_RIGHT )
-	{ //right wing flame/smoke
-		surfName = "*r_wingdamage";
-	}
-	else if (shipSurf == SHIPSURF_LEFT )
-	{ //left wing flame/smoke
-		surfName = "*l_wingdamage";
-	}
-	else
-	{//unknown surf!
-		return;
-	}
-	b = trap->G2API_AddBolt(cent->ghoul2, 0, surfName);
-	if (b == -1)
-	{ //couldn't find this surface apparently
-		return;
-	}
-
-	//now let's get the position and direction of this surface and make a big explosion
-	trap->G2API_GetBoltMatrix(cent->ghoul2, 0, b, &boltMatrix, cent->lerpAngles, cent->lerpOrigin, cg.time,
-		cgs.gameModels, cent->modelScale);
-	BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, v);
-	BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, d);
-
-	trap->FX_PlayEffectID(fxID, v, d, -1, -1, false);
-}
-
 #define SMOOTH_G2ANIM_LERPANGLES
-
-qboolean CG_VehicleShouldDrawShields( centity_t *vehCent )
-{
-	if ( vehCent->damageTime > cg.time //ship shields currently taking damage
-		&& vehCent->currentState.NPC_class == CLASS_VEHICLE 
-		&& vehCent->m_pVehicle
-		&& vehCent->m_pVehicle->m_pVehicleInfo )
-	{
-		return qtrue;
-	}
-	return qfalse;
-}
-
-/*
-extern	vmCvar_t		cg_showVehBounds;
-extern void BG_VehicleAdjustBBoxForOrientation( Vehicle_t *veh, vec3_t origin, vec3_t mins, vec3_t maxs,
-										int clientNum, int tracemask,
-										void (*localTrace)(trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentMask)); // bg_pmove.c
-*/
-qboolean CG_VehicleAttachDroidUnit( centity_t *droidCent, refEntity_t *legs )
-{
-	if ( droidCent
-		&& droidCent->currentState.owner 
-		&& droidCent->currentState.clientNum >= MAX_CLIENTS )
-	{//the only NPCs that can ride a vehicle are droids...???
-		centity_t *vehCent = &cg_entities[droidCent->currentState.owner];
-		if ( vehCent 
-			&& vehCent->m_pVehicle 
-			&& vehCent->ghoul2
-			&& vehCent->m_pVehicle->m_iDroidUnitTag != -1 )
-		{
-			mdxaBone_t boltMatrix;
-			vec3_t	fwd, rt, tempAng;
-
-			trap->G2API_GetBoltMatrix(vehCent->ghoul2, 0, vehCent->m_pVehicle->m_iDroidUnitTag, &boltMatrix, vehCent->lerpAngles, vehCent->lerpOrigin, cg.time,
-				cgs.gameModels, vehCent->modelScale);
-			BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, droidCent->lerpOrigin);
-			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, fwd);//WTF???
-			BG_GiveMeVectorFromMatrix(&boltMatrix, NEGATIVE_Y, rt);//WTF???
-			vectoangles( fwd, droidCent->lerpAngles );
-			vectoangles( rt, tempAng );
-			droidCent->lerpAngles[ROLL] = tempAng[PITCH];
-			
-			return qtrue;
-		}
-	}
-	return qfalse;
-}
 
 //
 //
@@ -6756,12 +6355,6 @@ void CG_G2Animated( centity_t *cent )
 			if (!(cent->npcLocalSurfOff & (1 << i)) &&
 				(cent->currentState.surfacesOff & (1 << i)))
 			{ //it wasn't off before but it's off now, so reflect this change in the g2 instance.
-				if (bgToggleableSurfaceDebris[i] > 0)
-				{ //make some local debris of this thing?
-					//FIXME: throw off the proper model effect, too
-					CG_CreateSurfaceDebris(cent, i, cgs.effects.mShipDestDestroyed, qtrue);
-				}
-
 				trap->G2API_SetSurfaceOnOff(cent->ghoul2, bgToggleableSurfaces[i], TURN_OFF);
 			}
 
@@ -7039,291 +6632,6 @@ void CG_CleanJetpackGhoul2(void)
 #define RHANDBIT		(1 << (G2_MODELPART_RHAND-10))
 #define WAISTBIT		(1 << (G2_MODELPART_WAIST-10))
 
-static int lastFlyBySound[MAX_GENTITIES] = {0};
-#define	FLYBYSOUNDTIME 2000
-int	cg_lastHyperSpaceEffectTime = 0;
-static QINLINE void CG_VehicleEffects(centity_t *cent)
-{
-	Vehicle_t *pVehNPC;
-
-	if (cent->currentState.eType != ET_NPC ||
-		cent->currentState.NPC_class != CLASS_VEHICLE ||
-		!cent->m_pVehicle)
-	{
-		return;
-	}
-
-	pVehNPC = cent->m_pVehicle;
-
-	if ( cent->currentState.clientNum == cg.predictedPlayerState.m_iVehicleNum//my vehicle
-		&& (cent->currentState.eFlags2&EF2_HYPERSPACE) )//hyperspacing
-	{//in hyperspace!
-		if ( cg.predictedVehicleState.hyperSpaceTime
-			&& (cg.time-cg.predictedVehicleState.hyperSpaceTime) < HYPERSPACE_TIME )
-		{
-			if ( !cg_lastHyperSpaceEffectTime
-				|| (cg.time - cg_lastHyperSpaceEffectTime) > HYPERSPACE_TIME+500 )
-			{//can't be from the last time we were in hyperspace, so play the effect!
-				trap->FX_PlayBoltedEffectID( cgs.effects.mHyperspaceStars, cent->lerpOrigin, cent->ghoul2, 0, 
-											cent->currentState.number, 0, 0, qtrue );
-				cg_lastHyperSpaceEffectTime = cg.time;
-			}
-		}
-	}
-
-	//FLYBY sound
-	if ( cent->currentState.clientNum != cg.predictedPlayerState.m_iVehicleNum
-		&& (pVehNPC->m_pVehicleInfo->soundFlyBy||pVehNPC->m_pVehicleInfo->soundFlyBy2) )
-	{//not my vehicle
-		if ( cent->currentState.speed && cg.predictedPlayerState.speed+cent->currentState.speed > 500 )
-		{//he's moving and between the two of us, we're moving fast
-			vec3_t diff;
-			VectorSubtract( cent->lerpOrigin, cg.predictedPlayerState.origin, diff );
-			if ( VectorLength( diff ) < 2048 )
-			{//close
-				vec3_t	myFwd, theirFwd;
-				AngleVectors( cg.predictedPlayerState.viewangles, myFwd, NULL, NULL );
-				VectorScale( myFwd, cg.predictedPlayerState.speed, myFwd );
-				AngleVectors( cent->lerpAngles, theirFwd, NULL, NULL );
-				VectorScale( theirFwd, cent->currentState.speed, theirFwd );
-				if ( lastFlyBySound[cent->currentState.clientNum]+FLYBYSOUNDTIME < cg.time )
-				{//okay to do a flyby sound on this vehicle
-					if ( DotProduct( myFwd, theirFwd ) < 500 )
-					{
-						int flyBySound = 0;
-						if ( pVehNPC->m_pVehicleInfo->soundFlyBy && pVehNPC->m_pVehicleInfo->soundFlyBy2 )
-						{
-							flyBySound = Q_irand(0,1)?pVehNPC->m_pVehicleInfo->soundFlyBy:pVehNPC->m_pVehicleInfo->soundFlyBy2;
-						}
-						else if ( pVehNPC->m_pVehicleInfo->soundFlyBy  )
-						{
-							flyBySound = pVehNPC->m_pVehicleInfo->soundFlyBy;
-						}
-						else //if ( pVehNPC->m_pVehicleInfo->soundFlyBy2 )
-						{
-							flyBySound = pVehNPC->m_pVehicleInfo->soundFlyBy2;
-						}
-						trap->S_StartSound(NULL, cent->currentState.clientNum, CHAN_LESS_ATTEN, flyBySound );
-						lastFlyBySound[cent->currentState.clientNum] = cg.time;
-					}
-				}
-			}
-		}
-	}
-
-	if ( !cent->currentState.speed//was stopped
-		&& cent->nextState.speed > 0//now moving forward
-		&& cent->m_pVehicle->m_pVehicleInfo->soundEngineStart )
-	{//engines rev up for the first time
-		trap->S_StartSound(NULL, cent->currentState.clientNum, CHAN_LESS_ATTEN, cent->m_pVehicle->m_pVehicleInfo->soundEngineStart );
-	}
-	// Animals don't exude any effects...
-	if ( pVehNPC->m_pVehicleInfo->type != VH_ANIMAL )
-	{
-		if (pVehNPC->m_pVehicleInfo->surfDestruction && cent->ghoul2)
-		{ //see if anything has been blown off
-			int i = 0;
-			qboolean surfDmg = qfalse;
-
-			while (i < BG_NUM_TOGGLEABLE_SURFACES)
-			{
-				if (bgToggleableSurfaceDebris[i] > 1)
-				{ //this is decidedly a destroyable surface, let's check its status
-					int surfTest = trap->G2API_GetSurfaceRenderStatus(cent->ghoul2, 0, bgToggleableSurfaces[i]);
-
-					if ( surfTest != -1
-						&& (surfTest&TURN_OFF) )
-					{ //it exists, but it's off...
-						surfDmg = qtrue;
-
-						//create some flames
-                        CG_CreateSurfaceDebris(cent, i, cgs.effects.mShipDestBurning, qfalse);
-					}
-				}
-
-				i++;
-			}
-
-			if (surfDmg)
-			{ //if any surface are damaged, neglect exhaust etc effects (so we don't have exhaust trails coming out of invisible surfaces)
-				return;
-			}
-		}
-
-		if ( pVehNPC->m_iLastFXTime <= cg.time )
-		{//until we attach it, we need to debounce this
-			vec3_t	fwd, rt, up;
-			vec3_t	flat;
-			float nextFXDelay = 50;
-			VectorSet(flat, 0, cent->lerpAngles[1], cent->lerpAngles[2]);
-			AngleVectors( flat, fwd, rt, up );
-			if ( cent->currentState.speed > 0 )
-			{//FIXME: only do this when accelerator is being pressed! (must have a driver?)
-				vec3_t	org;
-				qboolean doExhaust = qfalse;
-				VectorMA( cent->lerpOrigin, -16, up, org );
-				VectorMA( org, -42, fwd, org );
-				// Play damage effects.
-				//if ( pVehNPC->m_iArmor <= 75 )
-				if (0)
-				{//hurt
-					trap->FX_PlayEffectID( cgs.effects.mBlackSmoke, org, fwd, -1, -1, false );
-				}
-				else if ( pVehNPC->m_pVehicleInfo->iTrailFX )
-				{//okay, do normal trail
-					trap->FX_PlayEffectID( pVehNPC->m_pVehicleInfo->iTrailFX, org, fwd, -1, -1, false );
-				}
-				//=====================================================================
-				//EXHAUST FX
-				//=====================================================================
-				//do exhaust
-				if ( (cent->currentState.eFlags&EF_JETPACK_ACTIVE) )
-				{//cheap way of telling us the vehicle is in "turbo" mode
-					doExhaust = (pVehNPC->m_pVehicleInfo->iTurboFX!=0);
-				}
-				else
-				{
-					doExhaust = (pVehNPC->m_pVehicleInfo->iExhaustFX!=0);
-				}
-				if ( doExhaust && cent->ghoul2 )
-				{
-					int i;
-					int fx;
-
-					for ( i = 0; i < MAX_VEHICLE_EXHAUSTS; i++ )
-					{
-						// We hit an invalid tag, we quit (they should be created in order so tough luck if not).
-						if ( pVehNPC->m_iExhaustTag[i] == -1 )
-						{
-							break;
-						}
-
-						if ( (cent->currentState.brokenLimbs&(1<<SHIPSURF_DAMAGE_BACK_HEAVY)) )
-						{//engine has taken heavy damage
-							if ( !Q_irand( 0, 1 ) )
-							{//50% chance of not drawing this engine glow this frame
-								continue;
-							}
-						}
-						else if ( (cent->currentState.brokenLimbs&(1<<SHIPSURF_DAMAGE_BACK_LIGHT)) )
-						{//engine has taken light damage
-							if ( !Q_irand( 0, 4 ) )
-							{//20% chance of not drawing this engine glow this frame
-								continue;
-							}
-						}
-
-						if ( (cent->currentState.eFlags&EF_JETPACK_ACTIVE) //cheap way of telling us the vehicle is in "turbo" mode
-							&& pVehNPC->m_pVehicleInfo->iTurboFX )//they have a valid turbo exhaust effect to play
-						{
-							fx = pVehNPC->m_pVehicleInfo->iTurboFX;
-						}
-						else
-						{//play the normal one
-							fx = pVehNPC->m_pVehicleInfo->iExhaustFX;
-						}
-
-						if (pVehNPC->m_pVehicleInfo->type == VH_FIGHTER)
-						{
-							trap->FX_PlayBoltedEffectID(fx, cent->lerpOrigin, cent->ghoul2, pVehNPC->m_iExhaustTag[i], 
-														cent->currentState.number, 0, 0, qtrue);
-						}
-						else
-						{ //fixme: bolt these too
-							mdxaBone_t boltMatrix;
-							vec3_t boltOrg, boltDir;
-
-							trap->G2API_GetBoltMatrix(cent->ghoul2, 0, pVehNPC->m_iExhaustTag[i], &boltMatrix, flat,
-								cent->lerpOrigin, cg.time, cgs.gameModels, cent->modelScale);
-
-							BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, boltOrg);
-							VectorCopy(fwd, boltDir); //fixme?
-
-							trap->FX_PlayEffectID( fx, boltOrg, boltDir, -1, -1, false );
-						}
-					}
-				}
-				//=====================================================================
-				//WING TRAIL FX
-				//=====================================================================
-				//do trail
-				//FIXME: not in space!!!
-				if ( pVehNPC->m_pVehicleInfo->iTrailFX != 0 && cent->ghoul2 )
-				{
-					int i;
-					vec3_t boltOrg, boltDir;
-					mdxaBone_t boltMatrix;
-					vec3_t getBoltAngles;
-
-					VectorCopy(cent->lerpAngles, getBoltAngles);
-					if (pVehNPC->m_pVehicleInfo->type != VH_FIGHTER)
-					{ //only fighters use pitch/roll in refent axis
-                        getBoltAngles[PITCH] = getBoltAngles[ROLL] = 0.0f;
-					}
-
-					for ( i = 1; i < 5; i++ )
-					{
-						int trailBolt = trap->G2API_AddBolt(cent->ghoul2, 0, va("*trail%d",i) );
-						// We hit an invalid tag, we quit (they should be created in order so tough luck if not).
-						if ( trailBolt == -1 )
-						{
-							break;
-						}
-
-						trap->G2API_GetBoltMatrix(cent->ghoul2, 0, trailBolt, &boltMatrix, getBoltAngles,
-							cent->lerpOrigin, cg.time, cgs.gameModels, cent->modelScale);
-
-						BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, boltOrg);
-						VectorCopy(fwd, boltDir); //fixme?
-
-						trap->FX_PlayEffectID( pVehNPC->m_pVehicleInfo->iTrailFX, boltOrg, boltDir, -1, -1, false );
-					}
-				}
-			}
-			//FIXME armor needs to be sent over network
-			{
-				if ( (cent->currentState.eFlags&EF_DEAD) )
-				{//just plain dead, use flames 
-					vec3_t	up ={0,0,1};
-					vec3_t boltOrg;
-
-					VectorCopy( cent->lerpOrigin, boltOrg );
-					trap->FX_PlayEffectID( cgs.effects.mShipDestBurning, boltOrg, up, -1, -1, false );
-				}
-			}
-			if ( cent->currentState.brokenLimbs )
-			{
-				int i;
-				if ( !Q_irand( 0, 5 ) )
-				{
-					for ( i = SHIPSURF_FRONT; i <= SHIPSURF_LEFT; i++ )
-					{
-						if ( (cent->currentState.brokenLimbs&(1<<((i-SHIPSURF_FRONT)+SHIPSURF_DAMAGE_FRONT_HEAVY))) )
-						{//heavy damage, do both effects
-							if ( pVehNPC->m_pVehicleInfo->iInjureFX )
-							{
-								CG_CreateSurfaceSmoke( cent, i, pVehNPC->m_pVehicleInfo->iInjureFX );
-							}
-							if ( pVehNPC->m_pVehicleInfo->iDmgFX )
-							{
-								CG_CreateSurfaceSmoke( cent, i, pVehNPC->m_pVehicleInfo->iDmgFX );
-							}
-						}
-						else if ( (cent->currentState.brokenLimbs&(1<<((i-SHIPSURF_FRONT)+SHIPSURF_DAMAGE_FRONT_LIGHT))) )
-						{//only light damage
-							if ( pVehNPC->m_pVehicleInfo->iInjureFX )
-							{
-								CG_CreateSurfaceSmoke( cent, i, pVehNPC->m_pVehicleInfo->iInjureFX );
-							}
-						}
-					}
-				}
-			}
-			pVehNPC->m_iLastFXTime = cg.time + nextFXDelay;
-		}
-	}
-}
-
 /*
 ===============
 CG_Player
@@ -7335,13 +6643,7 @@ float CG_RadiusForCent( centity_t *cent )
 {
 	if ( cent->currentState.eType == ET_NPC )
 	{
-		if (cent->currentState.NPC_class == CLASS_VEHICLE &&
-			cent->m_pVehicle &&
-			cent->m_pVehicle->m_pVehicleInfo->g2radius)
-		{ //has override
-			return cent->m_pVehicle->m_pVehicleInfo->g2radius;
-		}
-		else if ( cent->currentState.g2radius )
+		if ( cent->currentState.g2radius )
 		{
 			return cent->currentState.g2radius;
 		}
@@ -7353,79 +6655,19 @@ float CG_RadiusForCent( centity_t *cent )
 	return 64.0f;
 }
 
-static float cg_vehThirdPersonAlpha = 1.0f;
-extern vec3_t	cg_crosshairPos;
 extern vec3_t	cameraCurLoc;
 void CG_CheckThirdPersonAlpha( centity_t *cent, refEntity_t *legs )
 {
 	float alpha = 1.0f;		
 	int	setFlags = 0;
 
-	if ( cent->m_pVehicle )
-	{//a vehicle 
-		if ( cg.predictedPlayerState.m_iVehicleNum != cent->currentState.clientNum//not mine
-			&& cent->m_pVehicle->m_pVehicleInfo
-			&& cent->m_pVehicle->m_pVehicleInfo->cameraOverride
-			&& cent->m_pVehicle->m_pVehicleInfo->cameraAlpha )//it has alpha
-		{//make sure it's not using any alpha
-			legs->renderfx |= RF_FORCE_ENT_ALPHA;
-			legs->shaderRGBA[3] = 255;
-			return;
-		}
-	}
-
 	if ( !cg.renderingThirdPerson )
 	{
 		return;
 	}
 
-	if ( cg.predictedPlayerState.m_iVehicleNum )
-	{//in a vehicle
-		if ( cg.predictedPlayerState.m_iVehicleNum == cent->currentState.clientNum )
-		{//this is my vehicle
-			if ( cent->m_pVehicle
-				&& cent->m_pVehicle->m_pVehicleInfo
-				&& cent->m_pVehicle->m_pVehicleInfo->cameraOverride
-				&& cent->m_pVehicle->m_pVehicleInfo->cameraAlpha )
-			{//vehicle has auto third-person alpha on
-				trace_t trace;
-				vec3_t	dir2Crosshair, end;
-				VectorSubtract( cg_crosshairPos, cameraCurLoc, dir2Crosshair );
-				VectorNormalize( dir2Crosshair );
-				VectorMA( cameraCurLoc, cent->m_pVehicle->m_pVehicleInfo->cameraRange*2.0f, dir2Crosshair, end );
-				CG_G2Trace( &trace, cameraCurLoc, vec3_origin, vec3_origin, end, ENTITYNUM_NONE, CONTENTS_BODY );
-				if ( trace.entityNum == cent->currentState.clientNum 
-					|| trace.entityNum == cg.predictedPlayerState.clientNum)
-				{//hit me or the vehicle I'm in
-					cg_vehThirdPersonAlpha -= 0.1f*cg.frametime/50.0f;
-					if ( cg_vehThirdPersonAlpha < cent->m_pVehicle->m_pVehicleInfo->cameraAlpha )
-					{
-						cg_vehThirdPersonAlpha = cent->m_pVehicle->m_pVehicleInfo->cameraAlpha;
-					}
-				}
-				else
-				{
-					cg_vehThirdPersonAlpha += 0.1f*cg.frametime/50.0f;
-					if ( cg_vehThirdPersonAlpha > 1.0f )
-					{
-						cg_vehThirdPersonAlpha = 1.0f;
-					}
-				}
-				alpha = cg_vehThirdPersonAlpha;
-			}
-			else
-			{//use the cvar
-				//reset this
-				cg_vehThirdPersonAlpha = 1.0f;
-				//use the cvar
-				alpha = cg_thirdPersonAlpha.value;
-			}
-		}
-	}
-	else if ( cg.predictedPlayerState.clientNum == cent->currentState.clientNum )
+	if ( cg.predictedPlayerState.clientNum == cent->currentState.clientNum )
 	{//it's me
-		//reset this
-		cg_vehThirdPersonAlpha = 1.0f;
 		//use the cvar
 		setFlags = RF_FORCE_ENT_ALPHA;
 		alpha = cg_thirdPersonAlpha.value;
@@ -7827,12 +7069,6 @@ void CG_DrawPlayerBBox ( const centity_t *cent )
         return;
     }
     
-    if ( cg.predictedPlayerState.m_iVehicleNum )
-    {
-        // Don't draw if we're in a vehicle.
-        return;
-    }
-    
     maxs[2] = cg.predictedPlayerState.viewheight - STANDARD_VIEWHEIGHT_OFFSET;
     
     VectorAdd (mins, cent->lerpOrigin, mins);
@@ -7961,12 +7197,9 @@ void CG_Player( centity_t *cent ) {
 	if (cent->currentState.iModelScale)
 	{ //if the server says we have a custom scale then set it now.
 		cent->modelScale[0] = cent->modelScale[1] = cent->modelScale[2] = cent->currentState.iModelScale/100.0f;
-		if ( cent->currentState.NPC_class != CLASS_VEHICLE )
+		if (cent->modelScale[2] && cent->modelScale[2] != 1.0f)
 		{
-			if (cent->modelScale[2] && cent->modelScale[2] != 1.0f)
-			{
-				cent->lerpOrigin[2] += 24 * (cent->modelScale[2] - 1);
-			}
+			cent->lerpOrigin[2] += 24 * (cent->modelScale[2] - 1);
 		}
 	}
 	else
@@ -7974,8 +7207,7 @@ void CG_Player( centity_t *cent ) {
 		VectorClear(cent->modelScale);
 	}
 
-	if ((cg_smoothClients.integer || cent->currentState.heldByClient) && (cent->currentState.groundEntityNum >= ENTITYNUM_WORLD || cent->currentState.eType == ET_TERRAIN) &&
-		!(cent->currentState.eFlags2 & EF2_HYPERSPACE) && cg.predictedPlayerState.m_iVehicleNum != cent->currentState.number)
+	if ((cg_smoothClients.integer || cent->currentState.heldByClient) && (cent->currentState.groundEntityNum >= ENTITYNUM_WORLD || cent->currentState.eType == ET_TERRAIN))
 	{ //always smooth when being thrown
 		vec3_t			posDif;
 		float			smoothFactor;
@@ -7990,12 +7222,6 @@ void CG_Player( centity_t *cent ) {
 			(cent->currentState.forcePowersActive & (1 << FP_RAGE)) )
 		{ //we're moving fast so don't smooth as much
 			smoothFactor = 0.6f;
-		}
-		else if (cent->currentState.eType == ET_NPC && cent->currentState.NPC_class == CLASS_VEHICLE &&
-			cent->m_pVehicle && cent->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER)
-		{ //greater smoothing for flying vehicles, since they move so fast
-			fTolerance = 6000000.0f;//500000.0f; //yeah, this is so wrong..but..
-			smoothFactor = 0.5f;
 		}
 		else
 		{
@@ -8018,56 +7244,6 @@ void CG_Player( centity_t *cent ) {
 	else
 	{
 		VectorCopy(cent->lerpOrigin, cent->beamEnd);
-	}
-
-	if (cent->currentState.m_iVehicleNum &&
-		cent->currentState.NPC_class != CLASS_VEHICLE)
-	{ //this player is riding a vehicle
-		centity_t *veh = &cg_entities[cent->currentState.m_iVehicleNum];
-
-		cent->lerpAngles[YAW] = veh->lerpAngles[YAW];
-
-		//Attach ourself to the vehicle
-        if (veh->m_pVehicle &&
-			cent->playerState &&
-			veh->playerState &&
-			cent->ghoul2 &&
-			veh->ghoul2 )
-		{
-			if ( veh->currentState.owner != cent->currentState.clientNum )
-			{//FIXME: what about visible passengers?
-				if ( CG_VehicleAttachDroidUnit( cent, &legs ) )
-				{
-					checkDroidShields = qtrue;
-				}
-			}
-			// fix for screen blinking when spectating person on vehicle and then
-			// switching to someone else, often happens on siege
-			else if ( veh->currentState.owner != ENTITYNUM_NONE &&
-				(cent->playerState->clientNum != cg.snap->ps.clientNum))
-			{//has a pilot...???
-				vec3_t oldPSOrg;
-
-				//make sure it has its pilot and parent set
-				veh->m_pVehicle->m_pPilot = (bgEntity_t *)&cg_entities[veh->currentState.owner];
-				veh->m_pVehicle->m_pParentEntity = (bgEntity_t *)veh;
-	            
-				VectorCopy(veh->playerState->origin, oldPSOrg);
-
-				//update the veh's playerstate org for getting the bolt
-				VectorCopy(veh->lerpOrigin, veh->playerState->origin);
-				VectorCopy(cent->lerpOrigin, cent->playerState->origin);
-
-				//Now do the attach
-				VectorCopy(veh->lerpAngles, veh->playerState->viewangles);
-				veh->m_pVehicle->m_pVehicleInfo->AttachRiders(veh->m_pVehicle);
-
-				//copy the "playerstate origin" to the lerpOrigin since that's what we use to display
-				VectorCopy(cent->playerState->origin, cent->lerpOrigin);
-
-				VectorCopy(oldPSOrg, veh->playerState->origin);
-			}
-		}
 	}
 
 	// the client number is stored in clientNum.  It can't be derived
@@ -8154,20 +7330,6 @@ void CG_Player( centity_t *cent ) {
 		}
 	}
 
-	if (cent->currentState.eType == ET_NPC &&
-		cent->currentState.NPC_class == CLASS_VEHICLE)
-	{ //add vehicles
-		CG_AddRadarEnt(cent);
-		if ( CG_InFighter() )
-		{//this is a vehicle, bracket it
-			if ( cg.predictedPlayerState.m_iVehicleNum != cent->currentState.clientNum )
-			{//don't add the vehicle I'm in... :)
-				CG_AddBracketedEnt(cent);
-			}
-		}
-
-	}
-
 	if (!cent->ghoul2)
 	{ //not ready yet?
 #ifdef _DEBUG
@@ -8200,8 +7362,7 @@ void CG_Player( centity_t *cent ) {
 
 	if (cg.predictedPlayerState.pm_type == PM_INTERMISSION)
 	{ //don't show all this shit during intermission
-		if ( cent->currentState.eType == ET_NPC
-			&& cent->currentState.NPC_class != CLASS_VEHICLE )
+		if ( cent->currentState.eType == ET_NPC )
 		{//NPC in intermission
 		}
 		else
@@ -8209,8 +7370,6 @@ void CG_Player( centity_t *cent ) {
 			return;
 		}
 	}
-
-	CG_VehicleEffects(cent);
 
 	if (cent->currentState.jetpack && !(cent->currentState.eFlags & EF_DEAD))
 	{ //should have a jetpack attached
@@ -8288,10 +7447,6 @@ void CG_Player( centity_t *cent ) {
 
 	if (cent->currentState.eFlags & EF_NODRAW)
 	{ //If nodraw, return here
-		return;
-	}
-	else if (cent->currentState.eFlags2 & EF2_SHIP_DEATH)
-	{ //died in ship, don't draw, we were "obliterated"
 		return;
 	}
 
@@ -8889,8 +8044,7 @@ SkipTrueView:
 		ci->frame = cent->pe.torso.frame;
 	}
 
-	if (cent->currentState.activeForcePass > FORCE_LEVEL_3
-		&& cent->currentState.NPC_class != CLASS_VEHICLE)
+	if (cent->currentState.activeForcePass > FORCE_LEVEL_3)
 	{
 		vec3_t axis[3];
 		vec3_t tAng, fAng, fxDir;
@@ -8937,8 +8091,7 @@ SkipTrueView:
 			trap->FX_PlayEntityEffectID(cgs.effects.forceDrain, efOrg, axis, -1, -1, -1, -1);
 		}
 	}
-	else if ( cent->currentState.activeForcePass 
-		&& cent->currentState.NPC_class != CLASS_VEHICLE)
+	else if ( cent->currentState.activeForcePass )
 	{//doing the electrocuting
 		vec3_t axis[3];
 		vec3_t tAng, fAng, fxDir;
@@ -10023,7 +9176,7 @@ stillDoSaber:
 	// Jedi Knight Galaxies, SP Shield effect
 
 	//[TrueView]
-	if (cent->damageTime > cg.time && cent->currentState.NPC_class != CLASS_VEHICLE &&
+	if (cent->damageTime > cg.time &&
 		(cg.renderingThirdPerson || cent->currentState.number != cg.snap->ps.clientNum
 		|| cg_trueguns.integer || cg.predictedPlayerState.weapon == WP_SABER
 		|| cg.predictedPlayerState.weapon == WP_MELEE))
@@ -10085,36 +9238,6 @@ stillDoSaber:
 		legs.renderfx &= ~RF_RGB_TINT;
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
 		legs.customShader = cgs.media.forceSightBubble;
-		
-		trap->R_AddRefEntityToScene( &legs );	//draw the shell
-	}
-
-	if ( CG_VehicleShouldDrawShields( cent ) //vehicle
-		|| (checkDroidShields && CG_VehicleShouldDrawShields( &cg_entities[cent->currentState.m_iVehicleNum] )) )//droid in vehicle
-	{//Vehicles have form-fitting shields
-		Vehicle_t *pVeh = cent->m_pVehicle;
-		if ( checkDroidShields )
-		{
-			pVeh = cg_entities[cent->currentState.m_iVehicleNum].m_pVehicle;
-		}
-		legs.shaderRGBA[0] = 255;
-		legs.shaderRGBA[1] = 255;
-		legs.shaderRGBA[2] = 255;
-		legs.shaderRGBA[3] = 10.0f+(sin((float)(cg.time/4))*128.0f);//112.0 * ((cent->damageTime - cg.time) / MIN_SHIELD_TIME) + random()*16;
-
-		legs.renderfx &= ~RF_RGB_TINT;
-		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
-
-		if ( pVeh 
-			&& pVeh->m_pVehicleInfo
-			&& pVeh->m_pVehicleInfo->shieldShaderHandle )
-		{//use the vehicle-specific shader
-			legs.customShader = pVeh->m_pVehicleInfo->shieldShaderHandle;
-		}
-		else
-		{
-			legs.customShader = cgs.media.playerShieldDamage;
-		}
 		
 		trap->R_AddRefEntityToScene( &legs );	//draw the shell
 	}
@@ -10312,16 +9435,6 @@ void CG_ResetPlayerEntity( centity_t *cent )
 
 	if (cent->currentState.eType == ET_NPC)
 	{
-		if (cent->currentState.NPC_class == CLASS_VEHICLE &&
-			cent->m_pVehicle &&
-			cent->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER &&
-			cg.predictedPlayerState.m_iVehicleNum &&
-			cent->currentState.number == cg.predictedPlayerState.m_iVehicleNum)
-		{ //holy hackery, batman!
-			//I don't think this will break anything. But really, do I ever?
-			return;
-		}
-
 		if (!cent->npcClient)
 		{
 			CG_CreateNPCClient(&cent->npcClient); //allocate memory for it

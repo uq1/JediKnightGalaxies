@@ -6020,39 +6020,8 @@ gentity_t * DOM_DetermineObjectiveType(gentity_t *bot, int team, int objective, 
 			{//ok, so they aren't linked to anything, try using them directly then
 				if(test->NPC_targetname)
 				{//vehicle objective
-					if(attacker == 1)
-					{//attack
-						*type = OT_VEHICLE;
-						return test;
-					}
-					else if( attacker == 2)
-					{//destroy the vehicle
-						gentity_t *vehicle = NULL;
-						//Find the vehicle
-						while ( (vehicle = G_Find( vehicle, FOFS( script_targetname ), test->NPC_targetname )) != NULL )
-						{
-							if (vehicle->inuse && vehicle->client && vehicle->s.eType == ET_NPC &&
-								vehicle->s.NPC_class == CLASS_VEHICLE && vehicle->m_pVehicle)
-							{
-								break;
-							}
-						}
-
-						if(!vehicle)
-						{//can't find the vehicle?!
-							*type = OT_WAIT;
-							return NULL;
-						}
-
-						test = vehicle;
-						*type = OT_ATTACK;
-						return test;
-					}
-					else
-					{
-						trap->Print("Bad attacker state for vehicle trigger_once objective in DOM_DetermineObjectiveType().\n");
-						return test;
-					}
+					*type = OT_WAIT;
+					return NULL;
 				}
 				else
 				{
@@ -6537,59 +6506,6 @@ void DOM_objectiveType_Warzone_DefendCapture(bot_state_t *bs)
 	}
 }
 
-//vehicle
-void DOM_objectiveType_Vehicle(bot_state_t *bs)
-{
-	gentity_t *vehicle = NULL;
-	gentity_t *botEnt = &g_entities[bs->client];
-
-	//find the vehicle that must trigger this trigger.
-	while ( (vehicle = G_Find( vehicle, FOFS( script_targetname ), bs->tacticEntity->NPC_targetname )) != NULL )
-	{
-		if (vehicle->inuse && vehicle->client && vehicle->s.eType == ET_NPC &&
-			vehicle->s.NPC_class == CLASS_VEHICLE && vehicle->m_pVehicle)
-		{
-			break;
-		}
-	}
-
-	if(!vehicle)
-	{//can't find the vehicle?!
-		return;
-	}
-
-	if (botEnt->inuse && botEnt->client 
-			&& botEnt->client->ps.m_iVehicleNum == vehicle->s.number)
-	{//in the vehicle
-		//move towards trigger point
-		vec3_t objOrigin;
-		DOM_FindOrigin(bs->tacticEntity, objOrigin);
-
-		//RAFIXME:  Get rid of that crappy use stuff when we can.
-		bs->noUseTime += level.time + 5000;
-
-		bs->DestIgnore = bs->tacticEntity->s.number;
-		DOM_BotMove(bs, objOrigin, qfalse, qfalse);
-	}
-	else if(vehicle->client->ps.m_iVehicleNum)
-	{//vehicle already occuped, cover it.
-		DOM_BotDefend(bs, vehicle);
-	}
-	else
-	{//go to the vehicle!
-		//hack!
-		vec3_t vehOrigin;
-		DOM_FindOrigin(vehicle, vehOrigin);
-
-		//bs->useTime = level.time + 100;
-				
-		bs->botBehave = BBEHAVE_MOVETO;
-		VectorCopy(vehOrigin, bs->DestPosition);		
-		bs->DestIgnore = vehicle->s.number;
-	}	
-}
-
-
 //Siege Objective attack/defend
 void DOM_BotObjective(bot_state_t *bs)
 {
@@ -6657,10 +6573,6 @@ void DOM_BotObjective(bot_state_t *bs)
 		else
 #endif //__WARZONE__
 		DOM_objectiveType_Touch(bs);
-	}
-	else if(bs->objectiveType == OT_VEHICLE)
-	{//vehicle techical
-		DOM_objectiveType_Vehicle(bs);
 	}
 	else if(bs->objectiveType == OT_WAIT)
 	{//just run around and attack people, since we're waiting for the objective to become valid.

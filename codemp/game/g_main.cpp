@@ -353,9 +353,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	JKG_LoadMeansOfDamage();
 
-	//Load external vehicle data
-	BG_VehicleLoadParms();
-
 	trap->Print ("------- Game Initialization -------\n");
 	trap->Print ("gamename: %s\n", GAMEVERSION);
 	trap->Print ("gamedate: %s\n", __DATE__);
@@ -1439,8 +1436,6 @@ void MoveClientToIntermission( gentity_t *ent ) {
 
 	// clean up powerup info
 	memset( ent->client->ps.powerups, 0, sizeof(ent->client->ps.powerups) );
-
-	G_LeaveVehicle( ent, qfalse );
 	
 	ent->client->ps.rocketLockIndex = ENTITYNUM_NONE;
 	ent->client->ps.rocketLockTime = 0;
@@ -3030,22 +3025,7 @@ void G_RunFrame( int levelTime ) {
 		}
 
 		if ( ent->s.eType == ET_ITEM || ent->physicsObject ) {
-#if 0 //use if body dragging enabled?
-			if (ent->s.eType == ET_BODY)
-			{ //special case for bodies
-				float grav = 3.0f;
-				float mass = 0.14f;
-				float bounce = 1.15f;
-
-				G_RunExPhys(ent, grav, mass, bounce, qfalse, NULL, 0);
-			}
-			else
-			{
-				G_RunItem( ent );
-			}
-#else
 			G_RunItem( ent );
-#endif
 			continue;
 		}
 
@@ -3057,39 +3037,6 @@ void G_RunFrame( int levelTime ) {
 		if ( i < MAX_CLIENTS ) 
 		{
 			G_CheckClientTimeouts ( ent );
-			
-			if (ent->client->inSpaceIndex && ent->client->inSpaceIndex != ENTITYNUM_NONE)
-			{ //we're in space, check for suffocating and for exiting
-                gentity_t *spacetrigger = &g_entities[ent->client->inSpaceIndex];
-
-				if (!spacetrigger->inuse ||
-					!G_PointInBounds(ent->client->ps.origin, spacetrigger->r.absmin, spacetrigger->r.absmax))
-				{ //no longer in space then I suppose
-                    ent->client->inSpaceIndex = 0;					
-				}
-				else
-				{ //check for suffocation
-                    if (ent->client->inSpaceSuffocation < level.time)
-					{ //suffocate!
-						if (ent->health > 0 && ent->takedamage)
-						{ //if they're still alive..
-							G_Damage(ent, spacetrigger, spacetrigger, NULL, ent->client->ps.origin, Q_irand(50, 70), DAMAGE_NO_ARMOR, MOD_SUICIDE);
-
-							if (ent->health > 0)
-							{ //did that last one kill them?
-								//play the choking sound
-								G_EntitySound(ent, CHAN_VOICE, G_SoundIndex(va( "*choke%d.wav", Q_irand( 1, 3 ) )));
-
-								//make them grasp their throat
-								ent->client->ps.forceHandExtend = HANDEXTEND_CHOKE;
-								ent->client->ps.forceHandExtendTime = level.time + 2000;
-							}
-						}
-
-						ent->client->inSpaceSuffocation = level.time + Q_irand(100, 200);
-					}
-				}
-			}
 
 			if (ent->client->isHacking)
 			{ //hacking checks

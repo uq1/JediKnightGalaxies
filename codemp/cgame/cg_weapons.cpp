@@ -767,7 +767,6 @@ sound should only be done on the world model case.
 
 // JKG - Weapon indicators
 void JKG_WeaponIndicators_Update(const centity_t *cent, const playerState_t *ps);
-extern vec3_t cg_crosshairPos;
 
 void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, int team, vec3_t newAngles, qboolean thirdPerson) {
 	refEntity_t	gun;
@@ -1135,12 +1134,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 	// no gun if in third person view or a camera is active
 	if ( cg.renderingThirdPerson ) {
-		return;
-	}
-
-	/* JKG - Don't render weapons while in a vehicle, uhuu */
-	if (cg.snap && cg.snap->ps.m_iVehicleNum )
-	{
 		return;
 	}
 
@@ -1716,21 +1709,6 @@ void CG_GetClientWeaponMuzzleBoltPoint(int clIndex, vec3_t to)
 
 	trap->G2API_GetBoltMatrix(cent->ghoul2, 1, 0, &boltMatrix, cent->turAngles, cent->lerpOrigin, cg.time, cgs.gameModels, cent->modelScale);
 	BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, to);
-}
-
-qboolean CG_VehicleWeaponImpact( centity_t *cent )
-{//see if this is a missile entity that's owned by a vehicle and should do a special, overridden impact effect
-	if ((cent->currentState.eFlags&EF_JETPACK_ACTIVE)//hack so we know we're a vehicle Weapon shot
-		&& cent->currentState.otherEntityNum2
-		&& g_vehWeaponInfo[cent->currentState.otherEntityNum2].iImpactFX)
-	{//missile is from a special vehWeapon
-		vec3_t normal;
-		ByteToDir( cent->currentState.eventParm, normal );
-
-		trap->FX_PlayEffectID( g_vehWeaponInfo[cent->currentState.otherEntityNum2].iImpactFX, cent->lerpOrigin, normal, -1, -1, false );
-		return qtrue;
-	}
-	return qfalse;
 }
 
 /*
@@ -2814,12 +2792,6 @@ qboolean JKG_ShouldRenderWeaponViewModel ( const centity_t *cent, const playerSt
 	}
 
 	if ( !cg.renderingThirdPerson && cg_trueguns.integer && ps->weapon != WP_SABER && ps->weapon != WP_MELEE )
-	{
-		return qfalse;
-	}
-
-	// Don't render weapons while in a vehicle
-	if ( ps->m_iVehicleNum )
 	{
 		return qfalse;
 	}

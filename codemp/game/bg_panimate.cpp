@@ -3070,8 +3070,7 @@ static void BG_G2ClientSpineAngles(void *ghoul2, int motionBolt, vec3_t cent_ler
 
 		!(cent->eFlags & EF_DEAD) &&
 		(cent->legsAnim) != (cent->torsoAnim) &&
-		(ciLegs) != (ciTorso) &&
-		!cent->m_iVehicleNum)
+		(ciLegs) != (ciTorso))
 	{
 		doCorr = qtrue;
 	}
@@ -3240,7 +3239,7 @@ void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int ti
 	static vec3_t		ulAngles, llAngles, viewAngles, angles, thoracicAngles = { 0, 0, 0 };
 	static vec3_t		headClampMinAngles = { -25, -55, -10 }, headClampMaxAngles = { 50, 50, 10 };
 
-	if (cent->m_iVehicleNum || cent->forceFrame || BG_SaberLockBreakAnim(cent->legsAnim) || BG_SaberLockBreakAnim(cent->torsoAnim))
+	if (cent->forceFrame || BG_SaberLockBreakAnim(cent->legsAnim) || BG_SaberLockBreakAnim(cent->torsoAnim))
 	{ //a vehicle or riding a vehicle - in either case we don't need to be in here
 		vec3_t forcedAngles;
 
@@ -3341,14 +3340,7 @@ void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int ti
 		dest = headAngles[PITCH] * 0.75f;
 	}
 
-	if (cent->m_iVehicleNum)
-	{ //swing instantly on vehicles
-		*tPitchAngle = dest;
-	}
-	else
-	{
-		BG_SwingAngles(dest, 15.0f, 30.0f, 0.1f, tPitchAngle, tPitching, frametime);
-	}
+	BG_SwingAngles(dest, 15.0f, 30.0f, 0.1f, tPitchAngle, tPitching, frametime);
 	torsoAngles[PITCH] = *tPitchAngle;
 
 	// --------- roll -------------
@@ -3436,14 +3428,7 @@ void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int ti
 		}
 	}
 
-	if (cent->m_iVehicleNum)
-	{ //swing instantly on vehicles
-		*lYawAngle = legsAngles[YAW];
-	}
-	else
-	{
-		BG_SwingAngles(legsAngles[YAW], /*40*/0.0f, 90.0f, 0.65f, lYawAngle, lYawing, frametime);
-	}
+	BG_SwingAngles(legsAngles[YAW], /*40*/0.0f, 90.0f, 0.65f, lYawAngle, lYawing, frametime);
 	legsAngles[YAW] = *lYawAngle;
 
 	/*

@@ -1046,31 +1046,7 @@ void NPC_Use( gentity_t *self, gentity_t *other, gentity_t *activator )
 
 	if(self->client && self->NPC)
 	{
-		// If this is a vehicle, let the other guy board it. Added 12/14/02 by AReis.
-		if ( self->client->NPC_class == CLASS_VEHICLE )
-		{
-			Vehicle_t *pVeh = self->m_pVehicle;
-
-			if ( pVeh && pVeh->m_pVehicleInfo )
-			{
-				//if I used myself, eject everyone on me
-				if ( other == self )
-				{
-					pVeh->m_pVehicleInfo->EjectAll( pVeh );
-				}
-				// If other is already riding this vehicle (self), eject him.
-				else if ( other->s.owner == self->s.number )
-				{
-					pVeh->m_pVehicleInfo->Eject( pVeh, (bgEntity_t *)other, qfalse );
-				}
-				// Otherwise board this vehicle.
-				else
-				{
-					pVeh->m_pVehicleInfo->Board( pVeh, (bgEntity_t *)other );
-				}
-			}
-		}
-		else if ( NPC_Humanoid_WaitingAmbush( NPC ) )
+		if ( NPC_Humanoid_WaitingAmbush( NPC ) )
 		{
 			NPC_Humanoid_Ambush( NPC );
 		}
@@ -1082,33 +1058,10 @@ void NPC_Use( gentity_t *self, gentity_t *other, gentity_t *activator )
 //			Add_Batteries( activator, &self->client->ps.batteryCharge );
 			//rwwFIXMEFIXME: support for this?
 		}
-		// Not using MEDICs anymore
-/*
-		if ( self->NPC->behaviorState == BS_MEDIC_HIDE && activator->client )
-		{//Heal me NOW, dammit!
-			if ( activator->health < activator->client->ps.stats[STAT_MAX_HEALTH] )
-			{//person needs help
-				if ( self->NPC->eventualGoal != activator )
-				{//not my current patient already
-					NPC_TakePatient( activator );
-					G_ActivateBehavior( self, BSET_USE );
-				}
-			}
-			else if ( !self->enemy && activator->s.number == 0 && !gi.VoiceVolume[self->s.number] && !(self->NPC->scriptFlags&SCF_NO_RESPONSE) )
-			{//I don't have an enemy and I'm not talking and I was used by the player
-				NPC_UseResponse( self, other, qfalse );
-			}
-		}
-*/
-//		else if ( self->behaviorSet[BSET_USE] )
 		if ( self->behaviorSet[BSET_USE] )
 		{
 			NPC_UseResponse( self, other, qtrue );
 		}
-//		else if ( isMedic( self ) )
-//		{//Heal me NOW, dammit!
-//			NPC_TakePatient( activator );
-//		}
 		else if ( !self->enemy 
 			&& activator->s.number < MAX_CLIENTS 
 			&& /*!gi.VoiceVolume[self->s.number] &&*/ !(self->NPC->scriptFlags&SCF_NO_RESPONSE) )

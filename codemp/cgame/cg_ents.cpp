@@ -541,58 +541,6 @@ static qboolean CG_RenderTimeEntBolt(centity_t *cent)
 	return qtrue;
 }
 
-/*
-static void CG_SiegeEntRenderAboveHead(centity_t *cent)
-{
-	int clientNum = cent->currentState.boltToPlayer-1;
-	centity_t *cl;
-	refEntity_t ent;
-	vec3_t renderAngles;
-
-	if (clientNum >= MAX_CLIENTS || clientNum < 0)
-	{
-		assert(0);
-		return;
-	}
-
-	cl = &cg_entities[clientNum];
-
-	memset(&ent, 0, sizeof(ent));
-
-	//Set the angles to the global auto rotating ones, and the origin to slightly above the client
-	VectorCopy(cg.autoAngles, renderAngles);
-	AnglesToAxis( renderAngles, ent.axis );
-	VectorCopy(cl->lerpOrigin, ent.origin);
-	ent.origin[2] += 50;
-
-	//Set the model (ghoul2 or md3/other)
-	if (cent->ghoul2)
-	{
-		ent.ghoul2 = cent->ghoul2;
-		ent.hModel = 0;
-	}
-	else
-	{
-		ent.ghoul2 = NULL;
-		ent.hModel = cgs.gameModels[cent->currentState.modelindex];
-	}
-
-	//Scale it up
-	ent.modelScale[0] = 1.5f;
-	ent.modelScale[1] = 1.5f;
-	ent.modelScale[2] = 1.5f;
-	ScaleModelAxis(&ent);
-
-	//Make it transparent
-	ent.renderfx = RF_FORCE_ENT_ALPHA;
-	ent.shaderRGBA[0] = ent.shaderRGBA[1] = ent.shaderRGBA[2] = 255;
-	ent.shaderRGBA[3] = 100;
-
-	//And finally add it
-	trap->R_AddRefEntityToScene(&ent);
-}
-*/
-
 void CG_AddRadarEnt(centity_t *cent) 
 {
 	static const size_t numRadarEnts = ARRAY_LEN( cg.radarEntities );
@@ -606,18 +554,6 @@ void CG_AddRadarEnt(centity_t *cent)
 	cg.radarEntities[cg.radarEntityCount++] = cent->currentState.number;
 }
 
-void CG_AddBracketedEnt(centity_t *cent) 
-{
-	static const size_t numBracketEnts = ARRAY_LEN( cg.bracketedEntities );
-	if (cg.bracketedEntityCount >= numBracketEnts)
-	{	
-#ifdef _DEBUG
-		Com_Printf("^3Warning: CG_AddBracketedEnt full. (%d max)\n", numBracketEnts);
-#endif
-		return;
-	}
-	cg.bracketedEntities[cg.bracketedEntityCount++] = cent->currentState.number;
-}
 /*
 ==================
 CG_General
@@ -665,13 +601,6 @@ static void CG_General( centity_t *cent ) {
 	{
 		CG_AddRadarEnt(cent);
 	}
-	if (cent->currentState.eFlags2 & EF2_BRACKET_ENTITY)
-	{
-		if ( CG_InFighter() )
-		{//only bracken when in a fighter
-			CG_AddBracketedEnt(cent);
-		}
-	}
 	
 	if (cent->currentState.boltToPlayer)
 	{ //Shove it into the player's left hand then.
@@ -703,13 +632,6 @@ static void CG_General( centity_t *cent ) {
 		{ //if it's set to smooth keep the smoothed lerp origin updated, as we don't want to smooth while bolted.
 			VectorCopy(cent->lerpOrigin, cent->turAngles);
 		}
-
-/* disabled for now
-		if (pl->currentState.number != cg.predictedPlayerState.clientNum)
-		{ //don't render thing above head to self
-			CG_SiegeEntRenderAboveHead(cent);
-		}
-*/
 	}
 	else if (cent->currentState.eFlags & EF_CLIENTSMOOTH)
 	{
@@ -1104,8 +1026,7 @@ static void CG_General( centity_t *cent ) {
 	}
 
 	if (cent->currentState.number >= MAX_CLIENTS &&
-		cent->currentState.activeForcePass == NUM_FORCE_POWERS+1&&
-		cent->currentState.NPC_class != CLASS_VEHICLE )
+		cent->currentState.activeForcePass == NUM_FORCE_POWERS+1 )
 	{
 		vec3_t				empAngles;
 		centity_t			*empOwn;
@@ -2212,14 +2133,7 @@ Ghoul2 Insert End
 	//add custom model
 	else
 	{
-		if ( g_vehWeaponInfo[s1->otherEntityNum2].iModel != NULL_HANDLE )
-		{
-			ent.hModel = g_vehWeaponInfo[s1->otherEntityNum2].iModel;
-		}
-		else
-		{//wtf?  how did we get here?
-			return;
-		}
+		return;
 	}
 
 	// spin as it moves
@@ -2372,38 +2286,6 @@ static void CG_Mover( centity_t *cent ) {
 
 	// create the render entity
 	memset (&ent, 0, sizeof(ent));
-
-	if ( (cent->currentState.eFlags2&EF2_HYPERSPACE) )
-	{//I'm the hyperspace brush
-		qboolean drawMe = qfalse;
-		if ( cg.predictedPlayerState.m_iVehicleNum
-			&& cg.predictedVehicleState.hyperSpaceTime
-			&& (cg.time-cg.predictedVehicleState.hyperSpaceTime) < HYPERSPACE_TIME
-			&& (cg.time-cg.predictedVehicleState.hyperSpaceTime) > 1000 )
-		{
-			if ( cg.snap 
-				&& cg.snap->ps.pm_type == PM_INTERMISSION )
-			{//in the intermission, stop drawing hyperspace ent
-			}
-			else if ( (cg.predictedVehicleState.eFlags2&EF2_HYPERSPACE) )
-			{//actually hyperspacing now
-				float timeFrac = ((float)(cg.time-cg.predictedVehicleState.hyperSpaceTime-1000))/(HYPERSPACE_TIME-1000);
-				if ( timeFrac < (HYPERSPACE_TELEPORT_FRAC+0.1f) )
-				{//still in hyperspace or just popped out
-					const float	alpha = timeFrac<0.5f?timeFrac/0.5f:1.0f;
-					drawMe = qtrue;
-					VectorMA( cg.refdef.vieworg, 1000.0f+((1.0f-timeFrac)*1000.0f), cg.refdef.viewaxis[0], cent->lerpOrigin );
-					VectorSet( cent->lerpAngles, cg.refdef.viewangles[PITCH], cg.refdef.viewangles[YAW]-90.0f, 0 );//cos( ( cg.time + 1000 ) *  scale ) * 4 );
-					ent.shaderRGBA[0] = ent.shaderRGBA[1] = ent.shaderRGBA[2] = 255;
-					ent.shaderRGBA[3] = alpha*255;
-				}
-			}
-		}
-		if ( !drawMe )
-		{//else, never draw
-			return;
-		}
-	}
 
 	if (cent->currentState.eFlags & EF_RADAROBJECT)
 	{
@@ -2847,20 +2729,6 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 		}
 	}
 
-	if (cg.predictedPlayerState.m_iVehicleNum &&
-		cg.predictedPlayerState.m_iVehicleNum == cent->currentState.number &&
-		cent->currentState.eType == ET_NPC && cent->currentState.NPC_class == CLASS_VEHICLE)
-	{ //special case for vehicle we are riding
-		centity_t *veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-
-		if (veh->currentState.owner == cg.predictedPlayerState.clientNum)
-		{ //only do this if the vehicle is pilotted by this client and predicting properly
-			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
-			return;
-		}
-	}
-
 	if ( cent->interpolate && cent->currentState.pos.trType == TR_INTERPOLATE ) {
 		CG_InterpolateEntityPosition( cent );
 		return;
@@ -2870,12 +2738,6 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 	// linear extrapolated clients
 	if ( cent->interpolate && cent->currentState.pos.trType == TR_LINEAR_STOP
 		&& ((cent->currentState.number != cg.clientNum && cent->currentState.number < MAX_CLIENTS) || cent->currentState.eType == ET_NPC) ) { // UQ1: NPCs too pls!!!
-		CG_InterpolateEntityPosition( cent );
-		goAway = qtrue;
-	}
-	else if (cent->interpolate &&
-		cent->currentState.eType == ET_NPC && cent->currentState.NPC_class == CLASS_VEHICLE)
-	{
 		CG_InterpolateEntityPosition( cent );
 		goAway = qtrue;
 	}
@@ -3054,13 +2916,6 @@ static void CG_AddCEntity( centity_t *cent ) {
 		{
 			return;
 		}
-		if ( cent->currentState.eType == ET_NPC )
-		{//NPC in intermission
-			if ( cent->currentState.NPC_class == CLASS_VEHICLE )
-			{//don't render vehicles in intermissions, allow other NPCs for scripts
-				return;
-			}
-		}
 	}
 
 	//Raz: don't render when we are in spec, happens occasionally on map_restart and such
@@ -3219,39 +3074,14 @@ void CG_AddPacketEntities( qboolean isPortal ) {
 
 	// Reset radar entities
 	cg.radarEntityCount = 0;
-	cg.bracketedEntityCount = 0;
 
 	// generate and add the entity from the playerstate
 	ps = &cg.predictedPlayerState;
 
 	CG_CheckPlayerG2Weapons(ps, &cg_entities[cg.predictedPlayerState.clientNum]);
 	BG_PlayerStateToEntityState( ps, &cg_entities[cg.predictedPlayerState.clientNum].currentState, qfalse );
-	
-	if (cg.predictedPlayerState.m_iVehicleNum)
-	{ //add the vehicle I'm riding first
-		//BG_PlayerStateToEntityState( &cg.predictedVehicleState, &cg_entities[cg.predictedPlayerState.m_iVehicleNum].currentState, qfalse );
-		//cg_entities[cg.predictedPlayerState.m_iVehicleNum].currentState.eType = ET_NPC;
-		centity_t *veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-
-		if (veh->currentState.owner == cg.predictedPlayerState.clientNum)
-		{
-			// TODO: vehicle extra/network states
-			BG_PlayerStateToEntityState( &cg.predictedVehicleState, &veh->currentState, qfalse );
-			veh->currentState.eType = ET_NPC;
-
-			veh->currentState.pos.trType = TR_INTERPOLATE;
-		}
-        CG_AddCEntity(veh);
-		veh->bodyHeight = cg.time; //indicate we have already been added
-	}
 
 	CG_AddCEntity( &cg_entities[cg.predictedPlayerState.clientNum] );
-
-	/*
-	// lerp the non-predicted value for lightning gun origins
-	CG_CalcEntityLerpPositions( &cg_entities[ cg.snap->ps.clientNum ] );
-	*/
-	//No longer have to do this.
 	
 	if ( cg.nextSnap )
 	{
@@ -3274,33 +3104,7 @@ void CG_AddPacketEntities( qboolean isPortal ) {
 		if (cg.snap->entities[ num ].number != cg.snap->ps.clientNum)
 		{
 			cent = &cg_entities[ cg.snap->entities[ num ].number ];
-			if (cent->currentState.eType == ET_PLAYER &&
-				cent->currentState.m_iVehicleNum)
-			{ //add his veh first
-				int j = 0;
-
-				while (j < cg.snap->numEntities)
-				{
-					if (cg.snap->entities[j].number == cent->currentState.m_iVehicleNum)
-					{
-						centity_t *veh = &cg_entities[cg.snap->entities[j].number];
-
-						CG_AddCEntity(veh);
-						veh->bodyHeight = cg.time; //indicate we have already been added
-						break;
-					}
-
-					j++;
-				}
-			}
-			else if (cent->currentState.eType == ET_NPC &&
-				cent->currentState.m_iVehicleNum &&
-				cent->bodyHeight == cg.time)
-			{ //never add a vehicle with a pilot, his pilot entity will get him added first.
-				//if we were to add the vehicle after the pilot, the pilot's bolt would lag a frame behind.
-				continue;
-			}
-			else if ( cg.nextSnap && (cent->currentState.eType == ET_MISSILE || cent->currentState.eType == ET_GENERAL) )
+			if ( cg.nextSnap && (cent->currentState.eType == ET_MISSILE || cent->currentState.eType == ET_GENERAL) )
 			{
 			    continue;
 			}

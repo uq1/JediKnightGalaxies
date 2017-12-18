@@ -39,7 +39,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #ifdef _GAME
 // FIXME: remove
-extern void G_CheapWeaponFire(int entNum, int ev);
 extern void JKG_RemoveDamageType ( gentity_t *ent, damageType_t type );
 #endif
 
@@ -228,11 +227,6 @@ qboolean BG_KnockDownable(playerState_t *ps)
 		return qfalse;
 	}
 
-	if (ps->m_iVehicleNum)
-	{ //riding a vehicle, don't knock me down
-		return qfalse;
-	}
-
 	if (ps->emplacedIndex)
 	{ //using emplaced gun or eweb, can't be knocked down
 		return qfalse;
@@ -242,64 +236,11 @@ qboolean BG_KnockDownable(playerState_t *ps)
 	return qtrue;
 }
 
-
-
-//FIXME: byebye
-//begin vehicle functions crudely ported from sp -rww
-/*
-====================================================================
-void pitch_roll_for_slope (edict_t *forwhom, vec3_t *slope, vec3_t storeAngles )
-
-MG
-
-This will adjust the pitch and roll of a monster to match
-a given slope - if a non-'0 0 0' slope is passed, it will
-use that value, otherwise it will use the ground underneath
-the monster.  If it doesn't find a surface, it does nothinh\g
-and returns.
-====================================================================
-*/
-
-
-
-void BG_VehicleTurnRateForSpeed( Vehicle_t *pVeh, float speed, float *mPitchOverride, float *mYawOverride )
-{
-	if ( pVeh && pVeh->m_pVehicleInfo )
-	{
-		float speedFrac = 1.0f;
-		if ( pVeh->m_pVehicleInfo->speedDependantTurning )
-		{
-			if ( pVeh->m_LandTrace.fraction >= 1.0f 
-				|| pVeh->m_LandTrace.plane.normal[2] < MIN_LANDING_SLOPE  )
-			{
-				speedFrac = (speed/(pVeh->m_pVehicleInfo->speedMax*0.75f));
-				if ( speedFrac < 0.25f )
-				{
-					speedFrac = 0.25f;
-				}
-				else if ( speedFrac > 1.0f )
-				{
-					speedFrac = 1.0f;
-				}
-			}
-		}
-		if ( pVeh->m_pVehicleInfo->mousePitch )
-		{
-			*mPitchOverride = pVeh->m_pVehicleInfo->mousePitch*speedFrac;
-		}
-		if ( pVeh->m_pVehicleInfo->mouseYaw )
-		{
-			*mYawOverride = pVeh->m_pVehicleInfo->mouseYaw*speedFrac;
-		}
-	}
-}
-
 // Following couple things don't belong in the DLL namespace!
 #ifdef _GAME
 	#if !defined(MACOS_X) && !defined(__GCC__) && !defined(__GNUC__)
 		typedef struct gentity_s gentity_t;
 	#endif
-	gentity_t *G_PlayEffectID( const int fxID, vec3_t org, vec3_t ang );
 #endif
 
 static void PM_GroundTraceMissed( void );
@@ -3559,212 +3500,163 @@ static void PM_CheckDuck (void)
 		pm->ps->pm_flags &= ~PMF_ROLLING;
 	}
 
-	if ( pm->ps->m_iVehicleNum > 0 && pm->ps->m_iVehicleNum < ENTITYNUM_NONE )
-	{//riding a vehicle or are a vehicle
-		//no ducking or rolling when on a vehicle
-		//right?  not even on ones that you just ride on top of?
-		pm->ps->pm_flags &= ~PMF_DUCKED;
-		pm->ps->pm_flags &= ~PMF_ROLLING;
-		//NOTE: we don't clear the pm->cmd.upmove here because 
-		//the vehicle code may need it later... but, for riders,
-		//it should have already been copied over to the vehicle, right?
+	if (pm->ps->clientNum < MAX_CLIENTS)
+	{
 
-		if (pm->ps->clientNum >= MAX_CLIENTS)
+		//
+		// UQ1: More realistic hitboxes for players/bots...
+		//
+		if (pm->ps->pm_flags & PMF_DUCKED)
 		{
-			return;
+			pm->maxs[2] = pm->ps->crouchheight;
+			pm->maxs[1] = 8;
+			pm->maxs[0] = 8;
+			pm->mins[1] = -8;
+			pm->mins[0] = -8;
 		}
-		if (pm_entVeh && pm_entVeh->m_pVehicle &&
-			(pm_entVeh->m_pVehicle->m_pVehicleInfo->type == VH_SPEEDER ||
-			 pm_entVeh->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL))
+		else if (!(pm->ps->pm_flags & PMF_DUCKED))
 		{
-			trace_t solidTr;
+			pm->maxs[2] = pm->ps->standheight-8;
+			pm->maxs[1] = 8;
+			pm->maxs[0] = 8;
+			pm->mins[1] = -8;
+			pm->mins[0] = -8;
+		}
+	}
 
-			pm->mins[0] = -16;
-			pm->mins[1] = -16;
-			pm->mins[2] = MINS_Z;
-
-			pm->maxs[0] = 16;
-			pm->maxs[1] = 16;
-			pm->maxs[2] = pm->ps->standheight;//DEFAULT_MAXS_2;
-			pm->ps->viewheight = DEFAULT_VIEWHEIGHT;
-
-			pm->trace (&solidTr, pm->ps->origin, pm->mins, pm->maxs, pm->ps->origin, pm->ps->m_iVehicleNum, pm->tracemask);
-			if (solidTr.startsolid || solidTr.allsolid || solidTr.fraction != 1.0f)
-			{ //whoops, can't fit here. Down to 0!
-				VectorClear(pm->mins);
-				VectorClear(pm->maxs);
-#ifdef _GAME
-				{
-					gentity_t *me = &g_entities[pm->ps->clientNum];
-					if (me->inuse && me->client)
-					{ //yeah, this is a really terrible hack.
-						me->client->solidHack = level.time + 200;
-					}
-				}
-#endif
-			}
+	if ( pm->ps->legsAnim == BOTH_JUMPATTACK6 )
+	{
+		//dynamically reduce bounding box to let character sail over heads of enemies
+		if ( ( pm->ps->legsTimer >= 1450
+				&& PM_AnimLength( 0, BOTH_JUMPATTACK6 ) - pm->ps->legsTimer >= 400 ) 
+			||(pm->ps->legsTimer >= 400
+				&& PM_AnimLength( 0, BOTH_JUMPATTACK6 ) - pm->ps->legsTimer >= 1100 ) )
+		{//in a part of the anim that we're pretty much sideways in, raise up the mins
+			pm->mins[2] = 0;
+			pm->ps->pm_flags |= PMF_FIX_MINS;
 		}
 	}
 	else
 	{
-		if (pm->ps->clientNum < MAX_CLIENTS)
-		{
-
-			//
-			// UQ1: More realistic hitboxes for players/bots...
-			//
-			if (pm->ps->pm_flags & PMF_DUCKED)
-			{
-				pm->maxs[2] = pm->ps->crouchheight;
-				pm->maxs[1] = 8;
-				pm->maxs[0] = 8;
-				pm->mins[1] = -8;
-				pm->mins[0] = -8;
-			}
-			else if (!(pm->ps->pm_flags & PMF_DUCKED))
-			{
-				pm->maxs[2] = pm->ps->standheight-8;
-				pm->maxs[1] = 8;
-				pm->maxs[0] = 8;
-				pm->mins[1] = -8;
-				pm->mins[0] = -8;
-			}
-		}
-
-		if ( pm->ps->legsAnim == BOTH_JUMPATTACK6 )
-		{
-			//dynamically reduce bounding box to let character sail over heads of enemies
-			if ( ( pm->ps->legsTimer >= 1450
-					&& PM_AnimLength( 0, BOTH_JUMPATTACK6 ) - pm->ps->legsTimer >= 400 ) 
-				||(pm->ps->legsTimer >= 400
-					&& PM_AnimLength( 0, BOTH_JUMPATTACK6 ) - pm->ps->legsTimer >= 1100 ) )
-			{//in a part of the anim that we're pretty much sideways in, raise up the mins
-				pm->mins[2] = 0;
-				pm->ps->pm_flags |= PMF_FIX_MINS;
-			}
-		}
-		else
-		{
-			if ( (pm->ps->pm_flags&PMF_FIX_MINS) )// pm->mins[2] > DEFAULT_MINS_2 )
-			{//drop the mins back down
-				//do a trace to make sure it's okay
-				trace_t	trace;
-				vec3_t end, curMins, curMaxs;
+		if ( (pm->ps->pm_flags&PMF_FIX_MINS) )// pm->mins[2] > DEFAULT_MINS_2 )
+		{//drop the mins back down
+			//do a trace to make sure it's okay
+			trace_t	trace;
+			vec3_t end, curMins, curMaxs;
 	
-				VectorSet( end, pm->ps->origin[0], pm->ps->origin[1], pm->ps->origin[2]+MINS_Z ); 
-				VectorSet( curMins, pm->mins[0], pm->mins[1], 0 ); 
-				VectorSet( curMaxs, pm->maxs[0], pm->maxs[1], pm->ps->standheight ); 
+			VectorSet( end, pm->ps->origin[0], pm->ps->origin[1], pm->ps->origin[2]+MINS_Z ); 
+			VectorSet( curMins, pm->mins[0], pm->mins[1], 0 ); 
+			VectorSet( curMaxs, pm->maxs[0], pm->maxs[1], pm->ps->standheight ); 
 
-				pm->trace( &trace, pm->ps->origin, curMins, curMaxs, end, pm->ps->clientNum, pm->tracemask );
-				if ( !trace.allsolid && !trace.startsolid )
-				{//should never start in solid
-					if ( trace.fraction >= 1.0f )
-					{//all clear
-						//drop the bottom of my bbox back down
-						pm->mins[2] = MINS_Z;
-						pm->ps->pm_flags &= ~PMF_FIX_MINS;
-					}
-					else
-					{//move me up so the bottom of my bbox will be where the trace ended, at least
-						//need to trace up, too
-						float updist = ((1.0f-trace.fraction) * -MINS_Z);
-						end[2] = pm->ps->origin[2]+updist; 
-						pm->trace( &trace, pm->ps->origin, curMins, curMaxs, end, pm->ps->clientNum, pm->tracemask );
-						if ( !trace.allsolid && !trace.startsolid )
-						{//should never start in solid
-							if ( trace.fraction >= 1.0f )
-							{//all clear
-								//move me up
-								pm->ps->origin[2] += updist;
-								//drop the bottom of my bbox back down
+			pm->trace( &trace, pm->ps->origin, curMins, curMaxs, end, pm->ps->clientNum, pm->tracemask );
+			if ( !trace.allsolid && !trace.startsolid )
+			{//should never start in solid
+				if ( trace.fraction >= 1.0f )
+				{//all clear
+					//drop the bottom of my bbox back down
+					pm->mins[2] = MINS_Z;
+					pm->ps->pm_flags &= ~PMF_FIX_MINS;
+				}
+				else
+				{//move me up so the bottom of my bbox will be where the trace ended, at least
+					//need to trace up, too
+					float updist = ((1.0f-trace.fraction) * -MINS_Z);
+					end[2] = pm->ps->origin[2]+updist; 
+					pm->trace( &trace, pm->ps->origin, curMins, curMaxs, end, pm->ps->clientNum, pm->tracemask );
+					if ( !trace.allsolid && !trace.startsolid )
+					{//should never start in solid
+						if ( trace.fraction >= 1.0f )
+						{//all clear
+							//move me up
+							pm->ps->origin[2] += updist;
+							//drop the bottom of my bbox back down
+							pm->mins[2] = MINS_Z;
+							pm->ps->pm_flags &= ~PMF_FIX_MINS;
+						}
+						else
+						{//crap, no room to expand, so just crouch us
+							if ( pm->ps->legsAnim != BOTH_JUMPATTACK6
+								|| pm->ps->legsTimer <= 200 )
+							{//at the end of the anim, and we can't leave ourselves like this
+								//so drop the maxs, put the mins back and move us up
+								pm->maxs[2] += MINS_Z;
+								pm->ps->origin[2] -= MINS_Z;
 								pm->mins[2] = MINS_Z;
+								//this way we'll be in a crouch when we're done
+								if ( pm->ps->legsAnim == BOTH_JUMPATTACK6 )
+								{
+									pm->ps->legsTimer = pm->ps->torsoTimer = 0;
+								}
+								pm->ps->pm_flags |= PMF_DUCKED;
+								//FIXME: do we need to set a crouch anim here?
 								pm->ps->pm_flags &= ~PMF_FIX_MINS;
 							}
-							else
-							{//crap, no room to expand, so just crouch us
-								if ( pm->ps->legsAnim != BOTH_JUMPATTACK6
-									|| pm->ps->legsTimer <= 200 )
-								{//at the end of the anim, and we can't leave ourselves like this
-									//so drop the maxs, put the mins back and move us up
-									pm->maxs[2] += MINS_Z;
-									pm->ps->origin[2] -= MINS_Z;
-									pm->mins[2] = MINS_Z;
-									//this way we'll be in a crouch when we're done
-									if ( pm->ps->legsAnim == BOTH_JUMPATTACK6 )
-									{
-										pm->ps->legsTimer = pm->ps->torsoTimer = 0;
-									}
-									pm->ps->pm_flags |= PMF_DUCKED;
-									//FIXME: do we need to set a crouch anim here?
-									pm->ps->pm_flags &= ~PMF_FIX_MINS;
-								}
-							}
-						}//crap, stuck
-					}
-				}//crap, stuck!
-			}
-
-			if ( !pm->mins[2] )
-			{
-				pm->mins[2] = MINS_Z;
-			}
+						}
+					}//crap, stuck
+				}
+			}//crap, stuck!
 		}
 
-		if (pm->ps->pm_type == PM_DEAD && pm->ps->clientNum < MAX_CLIENTS)
+		if ( !pm->mins[2] )
 		{
-			pm->maxs[2] = -8;
-			pm->ps->viewheight = DEAD_VIEWHEIGHT;
-			return;
+			pm->mins[2] = MINS_Z;
 		}
+	}
 
-		if (BG_InRoll(pm->ps, pm->ps->legsAnim) && !BG_KickingAnim(pm->ps->legsAnim))
-		{
-			pm->maxs[2] = pm->ps->crouchheight; //CROUCH_MAXS_2;
-			pm->ps->viewheight = DEFAULT_VIEWHEIGHT;
-			pm->ps->pm_flags &= ~PMF_DUCKED;
-			pm->ps->pm_flags |= PMF_ROLLING;
-			return;
-		}
-		else if (pm->ps->pm_flags & PMF_ROLLING)
-		{
-			// Xycaleth's fix for crochjumping through roof
-            		if ( PM_CanStand() )
-            		{
-               			 pm->maxs[2] = pm->ps->standheight;
-               			 pm->ps->pm_flags &= ~PMF_ROLLING;
-            		}
-		}
-		//[KnockdownSys]
-		else if ( PM_GettingUpFromKnockDown( pm->ps->standheight, pm->ps->crouchheight ) )
-		{//we're attempting to get up from a knockdown.
-			pm->ps->viewheight = pm->ps->crouchheight + STANDARD_VIEWHEIGHT_OFFSET;
-			return;
-		}
-		else if ( PM_InKnockDown( pm->ps ) )
-		{//forced crouch
-			pm->maxs[2] = pm->ps->crouchheight;
-			pm->ps->viewheight = pm->ps->crouchheight + STANDARD_VIEWHEIGHT_OFFSET;
+	if (pm->ps->pm_type == PM_DEAD && pm->ps->clientNum < MAX_CLIENTS)
+	{
+		pm->maxs[2] = -8;
+		pm->ps->viewheight = DEAD_VIEWHEIGHT;
+		return;
+	}
+
+	if (BG_InRoll(pm->ps, pm->ps->legsAnim) && !BG_KickingAnim(pm->ps->legsAnim))
+	{
+		pm->maxs[2] = pm->ps->crouchheight; //CROUCH_MAXS_2;
+		pm->ps->viewheight = DEFAULT_VIEWHEIGHT;
+		pm->ps->pm_flags &= ~PMF_DUCKED;
+		pm->ps->pm_flags |= PMF_ROLLING;
+		return;
+	}
+	else if (pm->ps->pm_flags & PMF_ROLLING)
+	{
+		// Xycaleth's fix for crochjumping through roof
+            	if ( PM_CanStand() )
+            	{
+               			pm->maxs[2] = pm->ps->standheight;
+               			pm->ps->pm_flags &= ~PMF_ROLLING;
+            	}
+	}
+	//[KnockdownSys]
+	else if ( PM_GettingUpFromKnockDown( pm->ps->standheight, pm->ps->crouchheight ) )
+	{//we're attempting to get up from a knockdown.
+		pm->ps->viewheight = pm->ps->crouchheight + STANDARD_VIEWHEIGHT_OFFSET;
+		return;
+	}
+	else if ( PM_InKnockDown( pm->ps ) )
+	{//forced crouch
+		pm->maxs[2] = pm->ps->crouchheight;
+		pm->ps->viewheight = pm->ps->crouchheight + STANDARD_VIEWHEIGHT_OFFSET;
+		pm->ps->pm_flags |= PMF_DUCKED;
+		return;
+	}
+	//[/KnockdownSys]
+	else if (pm->cmd.upmove < 0 ||
+		pm->ps->forceHandExtend == HANDEXTEND_KNOCKDOWN ||
+		pm->ps->forceHandExtend == HANDEXTEND_PRETHROWN ||
+		pm->ps->forceHandExtend == HANDEXTEND_POSTTHROWN)
+	{	// duck
+		if (pm->ps->pm_type != PM_JETPACK) {
 			pm->ps->pm_flags |= PMF_DUCKED;
-			return;
 		}
-		//[/KnockdownSys]
-		else if (pm->cmd.upmove < 0 ||
-			pm->ps->forceHandExtend == HANDEXTEND_KNOCKDOWN ||
-			pm->ps->forceHandExtend == HANDEXTEND_PRETHROWN ||
-			pm->ps->forceHandExtend == HANDEXTEND_POSTTHROWN)
-		{	// duck
-			if (pm->ps->pm_type != PM_JETPACK) {
-				pm->ps->pm_flags |= PMF_DUCKED;
-			}
-		} // stand up if possible 
-		else if (pm->ps->pm_flags & PMF_DUCKED)
+	} // stand up if possible 
+	else if (pm->ps->pm_flags & PMF_DUCKED)
+	{
+		// Xycaleth's fix for crochjumping through roof
+		if ( PM_CanStand() )
 		{
-			// Xycaleth's fix for crochjumping through roof
-			if ( PM_CanStand() )
-			{
-				pm->maxs[2] = pm->ps->standheight;
-				pm->ps->pm_flags &= ~PMF_DUCKED;
-			}
+			pm->maxs[2] = pm->ps->standheight;
+			pm->ps->pm_flags &= ~PMF_DUCKED;
 		}
 	}
 
@@ -4747,162 +4639,6 @@ void PM_FinishWeaponChange( void ) {
 	pm->ps->weaponTime += 350;
 }
 
-#ifdef _GAME
-extern void WP_GetVehicleCamPos( gentity_t *ent, gentity_t *pilot, vec3_t camPos );
-#else
-extern void CG_GetVehicleCamPos( vec3_t camPos );
-#endif
-#define MAX_XHAIR_DIST_ACCURACY	20000.0f
-int BG_VehTraceFromCamPos( trace_t *camTrace, bgEntity_t *bgEnt, const vec3_t entOrg, const vec3_t shotStart, const vec3_t end, vec3_t newEnd, vec3_t shotDir, float bestDist )
-{
-	//NOTE: this MUST stay up to date with the method used in CG_ScanForCrosshairEntity (where it checks the doExtraVehTraceFromViewPos bool)
-	vec3_t	viewDir2End, extraEnd, camPos;
-	float	minAutoAimDist;
-
-#ifdef _GAME
-	WP_GetVehicleCamPos( (gentity_t *)bgEnt, (gentity_t *)bgEnt->m_pVehicle->m_pPilot, camPos );
-#else
-	CG_GetVehicleCamPos( camPos );
-#endif
-	
-	minAutoAimDist = Distance( entOrg, camPos ) + (bgEnt->m_pVehicle->m_pVehicleInfo->length/2.0f) + 200.0f;
-
-	VectorCopy( end, newEnd );
-	VectorSubtract( end, camPos, viewDir2End );
-	VectorNormalize( viewDir2End );
-	VectorMA( camPos, MAX_XHAIR_DIST_ACCURACY, viewDir2End, extraEnd );
-
-#ifdef _GAME
-	trap->Trace( camTrace, camPos, vec3_origin, vec3_origin, extraEnd, 
-		bgEnt->s.number, CONTENTS_SOLID|CONTENTS_BODY, 0, 0, 0 );
-#else
-	pm->trace( camTrace, camPos, vec3_origin, vec3_origin, extraEnd, 
-		bgEnt->s.number, CONTENTS_SOLID|CONTENTS_BODY );
-#endif
-
-	if ( !camTrace->allsolid
-		&& !camTrace->startsolid
-		&& camTrace->fraction < 1.0f
-		&& (camTrace->fraction*MAX_XHAIR_DIST_ACCURACY) > minAutoAimDist 
-		&& ((camTrace->fraction*MAX_XHAIR_DIST_ACCURACY)-Distance( entOrg, camPos )) < bestDist )
-	{//this trace hit *something* that's closer than the thing the main trace hit, so use this result instead
-		VectorCopy( camTrace->endpos, newEnd );
-		VectorSubtract( newEnd, shotStart, shotDir );
-		VectorNormalize( shotDir );
-		return (camTrace->entityNum+1);
-	}
-	return 0;
-}
-
-void PM_RocketLock( float lockDist, qboolean vehicleLock )
-{
-	// Not really a charge weapon, but we still want to delay fire until the button comes up so that we can
-	//	implement our alt-fire locking stuff
-	vec3_t		ang;
-	trace_t		tr;
-	
-	vec3_t muzzleOffPoint, muzzlePoint, forward, right, up;
-
-	if ( vehicleLock )
-	{
-		AngleVectors( pm->ps->viewangles, forward, right, up );
-		VectorCopy( pm->ps->origin, muzzlePoint );
-		VectorMA( muzzlePoint, lockDist, forward, ang );
-	}
-	else
-	{
-		AngleVectors( pm->ps->viewangles, forward, right, up );
-
-		AngleVectors(pm->ps->viewangles, ang, NULL, NULL);
-
-		VectorCopy( pm->ps->origin, muzzlePoint );
-
-		/* JKG - Muzzle Calculation - This is a lame hack for vehicle lock on, use original rocket launcher muzzle :\ */
-		muzzleOffPoint[0] = 12; muzzleOffPoint[1] = 8; muzzleOffPoint[2] = -4;
-		//VectorCopy(WP_MuzzlePoint[WP_ROCKET_LAUNCHER], muzzleOffPoint);
-		/* JKG - Muzzle Calculation End */
-
-		VectorMA(muzzlePoint, muzzleOffPoint[0], forward, muzzlePoint);
-		VectorMA(muzzlePoint, muzzleOffPoint[1], right, muzzlePoint);
-		muzzlePoint[2] += pm->ps->viewheight + muzzleOffPoint[2];
-		ang[0] = muzzlePoint[0] + ang[0]*lockDist;
-		ang[1] = muzzlePoint[1] + ang[1]*lockDist;
-		ang[2] = muzzlePoint[2] + ang[2]*lockDist;
-	}
-
-
-	pm->trace(&tr, muzzlePoint, NULL, NULL, ang, pm->ps->clientNum, MASK_PLAYERSOLID);
-
-	if ( vehicleLock )
-	{//vehicles also do a trace from the camera point if the main one misses
-		if ( tr.fraction >= 1.0f )
-		{
-			trace_t camTrace;
-			vec3_t newEnd, shotDir;
-			if ( BG_VehTraceFromCamPos( &camTrace, PM_BGEntForNum(pm->ps->clientNum), pm->ps->origin, muzzlePoint, tr.endpos, newEnd, shotDir, (tr.fraction*lockDist) ) )
-			{
-				memcpy( &tr, &camTrace, sizeof(tr) );
-			}
-		}
-	}
-
-	if (tr.fraction != 1 && tr.entityNum < ENTITYNUM_NONE && tr.entityNum != pm->ps->clientNum)
-	{
-		bgEntity_t *bgEnt = PM_BGEntForNum(tr.entityNum);
-		if ( bgEnt && (bgEnt->s.powerups&PW_CLOAKED) )
-		{
-			pm->ps->rocketLockIndex = ENTITYNUM_NONE;
-			pm->ps->rocketLockTime = 0;
-		}
-		else if (bgEnt && (bgEnt->s.eType == ET_PLAYER || bgEnt->s.eType == ET_NPC))
-		{
-			if (pm->ps->rocketLockIndex == ENTITYNUM_NONE)
-			{
-				pm->ps->rocketLockIndex = tr.entityNum;
-				pm->ps->rocketLockTime = pm->cmd.serverTime;
-			}
-			else if (pm->ps->rocketLockIndex != tr.entityNum && pm->ps->rocketTargetTime < pm->cmd.serverTime)
-			{
-				pm->ps->rocketLockIndex = tr.entityNum;
-				pm->ps->rocketLockTime = pm->cmd.serverTime;
-			}
-			else if (pm->ps->rocketLockIndex == tr.entityNum)
-			{
-				if (pm->ps->rocketLockTime == -1)
-				{
-					pm->ps->rocketLockTime = pm->ps->rocketLastValidTime;
-				}
-			}
-
-			if (pm->ps->rocketLockIndex == tr.entityNum)
-			{
-				pm->ps->rocketTargetTime = pm->cmd.serverTime + 500;
-			}
-		}
-		else if (!vehicleLock)
-		{
-			if (pm->ps->rocketTargetTime < pm->cmd.serverTime)
-			{
-				pm->ps->rocketLockIndex = ENTITYNUM_NONE;
-				pm->ps->rocketLockTime = 0;
-			}
-		}
-	}
-	else if (pm->ps->rocketTargetTime < pm->cmd.serverTime)
-	{
-		pm->ps->rocketLockIndex = ENTITYNUM_NONE;
-		pm->ps->rocketLockTime = 0;
-	}
-	else
-	{
-		if (pm->ps->rocketLockTime != -1)
-		{
-			pm->ps->rocketLastValidTime = pm->ps->rocketLockTime;
-		}
-		pm->ps->rocketLockTime = -1;
-	}
-}
-
 /*
 ======================
 PM_DoChargedWeapons
@@ -5027,245 +4763,6 @@ rest:
 
 //perform player anim overrides while on vehicle.
 extern int PM_irand_timesync(int val1, int val2);
-void PM_VehicleWeaponAnimate(void)
-{
-	bgEntity_t *veh = pm_entVeh;
-	Vehicle_t *pVeh;
-	int iFlags = 0, iBlend = 0, Anim = -1;
-
-	if (!veh ||
-		!veh->m_pVehicle ||
-		!veh->m_pVehicle->m_pPilot ||
-		!veh->m_pVehicle->m_pPilot->playerState ||
-		pm->ps->clientNum != veh->m_pVehicle->m_pPilot->playerState->clientNum)
-	{ //make sure the vehicle exists, and its pilot is this player
-		return;
-	}
-
-	pVeh = veh->m_pVehicle;
-
-	if (pVeh->m_pVehicleInfo->type == VH_WALKER ||
-		pVeh->m_pVehicleInfo->type == VH_FIGHTER)
-	{ //slightly hacky I guess, but whatever.
-		return;
-	}
-	// If they're firing, play the right fire animation.
-	if ( pm->cmd.buttons & BUTTON_ATTACK )
-	{
-		iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD;
-		iBlend = 200;
-
-		switch ( pm->ps->weapon )
-		{
-			case WP_SABER:
-				// If we're already in an attack animation, leave (let it continue).
-				if (pm->ps->torsoTimer <= 0)
-				{ //we'll be starting a new attack
-					PM_AddEvent(EV_SABER_ATTACK);
-				}
-
-				//just set it to something so we have a proper trail. This is a stupid
-				//hack (much like the rest of this function)
-				pm->ps->saberMove = LS_R_TL2BR;
-
-				if ( pm->ps->torsoTimer > 0 && (pm->ps->torsoAnim == BOTH_VS_ATR_S ||
-						pm->ps->torsoAnim == BOTH_VS_ATL_S) )
-				{
-					return;
-				}
-
-				// Start the attack.
-				if ( pm->cmd.rightmove > 0 )	//right side attack
-				{
-					Anim = BOTH_VS_ATR_S;
-				}
-				else if ( pm->cmd.rightmove < 0 )	//left-side attack
-				{
-					Anim = BOTH_VS_ATL_S;
-				}
-				else	//random
-				{
-					//FIXME: alternate back and forth or auto-aim?
-					//if ( !Q_irand( 0, 1 ) )
-					if (!PM_irand_timesync(0, 1))
-					{
-						Anim = BOTH_VS_ATR_S;
-					}
-					else
-					{
-						Anim = BOTH_VS_ATL_S;
-					}
-				}
-
-				if (pm->ps->torsoTimer <= 0)
-				{ //restart the anim if we are already in it (and finished)
-					iFlags |= SETANIM_FLAG_RESTART;
-				}
-				break;
-
-			case WP_BLASTER:
-				// Override the shoot anim.
-				if ( pm->ps->torsoAnim == BOTH_ATTACK3 )
-				{
-					if ( pm->cmd.rightmove > 0 )			//right side attack
-					{
-						Anim = BOTH_VS_ATR_G;
-					}
-					else if ( pm->cmd.rightmove < 0 )	//left side
-					{
-						Anim = BOTH_VS_ATL_G;
-					}
-					else	//frontal
-					{
-						Anim = BOTH_VS_ATF_G;
-					}
-				}
-				break;
-
-			default:
-				Anim = BOTH_VS_IDLE;
-				break;
-		}
-	}
-	else if (veh->playerState && veh->playerState->speed < 0 &&
-		pVeh->m_pVehicleInfo->type == VH_ANIMAL)
-	{ //tauntaun is going backwards
-		Anim = BOTH_VT_WALK_REV;
-		iBlend = 600;
-	}
-	else if (veh->playerState && veh->playerState->speed < 0 &&
-		pVeh->m_pVehicleInfo->type == VH_SPEEDER)
-	{ //speeder is going backwards
-		Anim = BOTH_VS_REV;
-		iBlend = 600;
-	}
-	// They're not firing so play the Idle for the weapon.
-	else
-	{
-		iFlags = SETANIM_FLAG_NORMAL;
-
-		switch ( pm->ps->weapon )
-		{
-			case WP_SABER:
-				if ( BG_SabersOff( pm->ps ) )
-				{ //saber holstered, normal idle
-					Anim = BOTH_VS_IDLE;
-				}
-				// In the Air.
-				//else if ( pVeh->m_ulFlags & VEH_FLYING )
-				else if (0)
-				{
-					iBlend = 800;
-					Anim = BOTH_VS_AIR_G;
-					iFlags = SETANIM_FLAG_OVERRIDE;
-				}
-				// Crashing.
-				//else if ( pVeh->m_ulFlags & VEH_CRASHING )
-				else if (0)
-				{
-					pVeh->m_ulFlags &= ~VEH_CRASHING;	// Remove the flag, we are doing the animation.
-					iBlend = 800;
-					Anim = BOTH_VS_LAND_SR;
-					iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD;
-				}
-				else
-				{
-					Anim = BOTH_VS_IDLE_SR;
-				}
-				break;
-
-			case WP_BLASTER:
-				// In the Air.
-				//if ( pVeh->m_ulFlags & VEH_FLYING )
-				if (0)
-				{
-					iBlend = 800;
-					Anim = BOTH_VS_AIR_G;
-					iFlags = SETANIM_FLAG_OVERRIDE;
-				}
-				// Crashing.
-				//else if ( pVeh->m_ulFlags & VEH_CRASHING )
-				else if (0)
-				{
-					pVeh->m_ulFlags &= ~VEH_CRASHING;	// Remove the flag, we are doing the animation.
-					iBlend = 800;
-					Anim = BOTH_VS_LAND_G;
-					iFlags = SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD;
-				}
-				else
-				{
-					Anim = BOTH_VS_IDLE_G;
-				}
-				break;
-
-			default:
-				Anim = BOTH_VS_IDLE;
-				break;
-		}
-	}
-
-	if (Anim != -1)
-	{ //override it
-		if (pVeh->m_pVehicleInfo->type == VH_ANIMAL)
-		{ //agh.. remap anims for the tauntaun
-			switch (Anim)
-			{
-			case BOTH_VS_IDLE:
-				if (veh->playerState && veh->playerState->speed > 0)
-				{
-					if (veh->playerState->speed > pVeh->m_pVehicleInfo->speedMax)
-					{ //turbo
-						Anim = BOTH_VT_TURBO;
-					}
-					else
-					{
-						Anim = BOTH_VT_RUN_FWD;
-					}
-				}
-				else
-				{
-					Anim = BOTH_VT_IDLE;
-				}
-				break;
-			case BOTH_VS_ATR_S:
-				Anim = BOTH_VT_ATR_S;
-				break;
-			case BOTH_VS_ATL_S:
-				Anim = BOTH_VT_ATL_S;
-				break;
-			case BOTH_VS_ATR_G:
-                Anim = BOTH_VT_ATR_G;
-				break;
-			case BOTH_VS_ATL_G:
-				Anim = BOTH_VT_ATL_G;
-				break;
-			case BOTH_VS_ATF_G:
-				Anim = BOTH_VT_ATF_G;
-				break;
-			case BOTH_VS_IDLE_SL:
-				Anim = BOTH_VT_IDLE_S;
-				break;
-			case BOTH_VS_IDLE_SR:
-				Anim = BOTH_VT_IDLE_S;
-				break;
-			case BOTH_VS_IDLE_G:
-				Anim = BOTH_VT_IDLE_G;
-				break;
-
-			//should not happen for tauntaun:
-			case BOTH_VS_AIR_G:
-			case BOTH_VS_LAND_SL:
-			case BOTH_VS_LAND_SR:
-			case BOTH_VS_LAND_G:
-				return;
-			default:
-				break;
-			}
-		}
-
-		PM_SetAnim(SETANIM_BOTH, Anim, iFlags);
-	}
-}
 
 /*
 ==============
@@ -5957,26 +5454,6 @@ static void PM_DropTimers( void ) {
 	}
 }
 
-// Following function is stateless (at the moment). And hoisting it out
-// of the namespace here is easier than fixing all the places it's used,
-// which includes files that are also compiled in SP. We do need to make
-// sure we only get one copy in the linker, though.
-
-qboolean BG_UnrestrainedPitchRoll( playerState_t *ps, Vehicle_t *pVeh )
-{
-	if ( ps->clientNum < MAX_CLIENTS //real client
-		&& ps->m_iVehicleNum//in a vehicle
-		&& pVeh //valid vehicle data pointer
-		&& pVeh->m_pVehicleInfo//valid vehicle info
-		&& pVeh->m_pVehicleInfo->type == VH_FIGHTER )//fighter
-		//FIXME: specify per vehicle instead of assuming true for all fighters
-		//FIXME: map/server setting?
-	{//can roll and pitch without limitation!
-		return qtrue;
-	}
-	return qfalse;
-}
-
 /*
 ================
 PM_UpdateViewAngles
@@ -6527,88 +6004,6 @@ static void PM_CmdForSaberMoves(usercmd_t *ucmd)
 	}
 }
 
-void BG_VehicleAdjustBBoxForOrientation( Vehicle_t *veh, vec3_t origin, vec3_t mins, vec3_t maxs,
-										int clientNum, int tracemask,
-										void (*localTrace)(trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentMask))
-{
-	if ( !veh 
-		|| !veh->m_pVehicleInfo->length 
-		|| !veh->m_pVehicleInfo->width 
-		|| !veh->m_pVehicleInfo->height )
-		//|| veh->m_LandTrace.fraction < 1.0f )
-	{
-		return;
-	}
-	else if ( veh->m_pVehicleInfo->type != VH_FIGHTER 
-		//&& veh->m_pVehicleInfo->type != VH_SPEEDER 
-		&& veh->m_pVehicleInfo->type != VH_FLIER )
-	{//only those types of vehicles have dynamic bboxes, the rest just use a static bbox
-		VectorSet( maxs, veh->m_pVehicleInfo->width/2.0f, veh->m_pVehicleInfo->width/2.0f, veh->m_pVehicleInfo->height+DEFAULT_MINS_2 );
-		VectorSet( mins, veh->m_pVehicleInfo->width/-2.0f, veh->m_pVehicleInfo->width/-2.0f, DEFAULT_MINS_2 );
-		return;
-	}
-	else
-	{
-		vec3_t	axis[3], point[8];
-		vec3_t	newMins, newMaxs;
-		int		curAxis = 0, i;
-		trace_t trace;
-
-		AnglesToAxis( veh->m_vOrientation, axis );
-		VectorMA( origin, veh->m_pVehicleInfo->length/2.0f, axis[0], point[0] );
-		VectorMA( origin, -veh->m_pVehicleInfo->length/2.0f, axis[0], point[1] );
-		//extrapolate each side up and down
-		VectorMA( point[0], veh->m_pVehicleInfo->height/2.0f, axis[2], point[0] );
-		VectorMA( point[0], -veh->m_pVehicleInfo->height, axis[2], point[2] );
-		VectorMA( point[1], veh->m_pVehicleInfo->height/2.0f, axis[2], point[1] );
-		VectorMA( point[1], -veh->m_pVehicleInfo->height, axis[2], point[3] );
-
-		VectorMA( origin, veh->m_pVehicleInfo->width/2.0f, axis[1], point[4] );
-		VectorMA( origin, -veh->m_pVehicleInfo->width/2.0f, axis[1], point[5] );
-		//extrapolate each side up and down
-		VectorMA( point[4], veh->m_pVehicleInfo->height/2.0f, axis[2], point[4] );
-		VectorMA( point[4], -veh->m_pVehicleInfo->height, axis[2], point[6] );
-		VectorMA( point[5], veh->m_pVehicleInfo->height/2.0f, axis[2], point[5] );
-		VectorMA( point[5], -veh->m_pVehicleInfo->height, axis[2], point[7] );
-
-		//Now inflate a bbox around these points
-		VectorCopy( origin, newMins );
-		VectorCopy( origin, newMaxs );
-		for ( curAxis = 0; curAxis < 3; curAxis++ )
-		{
-			for ( i = 0; i < 8; i++ )
-			{
-				if ( point[i][curAxis] > newMaxs[curAxis] )
-				{
-					newMaxs[curAxis] = point[i][curAxis];
-				}
-				else if ( point[i][curAxis] < newMins[curAxis] )
-				{
-					newMins[curAxis] = point[i][curAxis];
-				}
-			}
-		}
-		VectorSubtract( newMins, origin, newMins );
-		VectorSubtract( newMaxs, origin, newMaxs );
-		//now see if that's a valid way to be
-		if (localTrace)
-		{
-			localTrace( &trace, origin, newMins, newMaxs, origin, clientNum, tracemask );
-		}
-		else
-		{ //don't care about solid stuff then
-			trace.startsolid = trace.allsolid = 0;
-		}
-		if ( !trace.startsolid && !trace.allsolid )
-		{//let's use it!
-			VectorCopy( newMins, mins );
-			VectorCopy( newMaxs, maxs );
-		}
-		//else: just use the last one, I guess...?
-		//FIXME: make it as close as possible?  Or actually prevent the change in m_vOrientation?  Or push away from anything we hit?
-	}
-}
-
 /*
 ================
 BG_IsSprinting
@@ -6710,21 +6105,6 @@ void PmoveSingle (pmove_t *pmove) {
 
 	//set up these "global" bg ents
 	pm_entSelf = PM_BGEntForNum(pm->ps->clientNum);
-	if (pm->ps->m_iVehicleNum)
-	{
-		if (pm->ps->clientNum < MAX_CLIENTS)
-		{ //player riding vehicle
-			pm_entVeh = PM_BGEntForNum(pm->ps->m_iVehicleNum);
-		}
-		else
-		{ //vehicle with player pilot
-			pm_entVeh = PM_BGEntForNum(pm->ps->m_iVehicleNum-1);
-		}
-	}
-	else
-	{ //no vehicle ent
-		pm_entVeh = NULL;
-	}
 
 	// this counter lets us debug movement problems with a journal
 	// by setting a conditional breakpoint fot the previous frame
@@ -7181,11 +6561,7 @@ void PmoveSingle (pmove_t *pmove) {
 
 	PM_Weapon();
 
-	if (!pm->ps->m_iVehicleNum)
-	{ //don't do this if we're on a vehicle, or we are one
-		// footstep events / legs animations
-		PM_Footsteps();
-	}
+	PM_Footsteps();
 
 	// entering / leaving water splashes
 	PM_WaterEvents();
@@ -7193,11 +6569,6 @@ void PmoveSingle (pmove_t *pmove) {
 	// snap velocity to integer coordinates to save network bandwidth
 	if ( !pm->pmove_float )
 		trap->SnapVector( pm->ps->velocity );
-
-	if (pm->ps->m_iVehicleNum)
-	{ //riding a vehicle, see if we should do some anim overrides
-		PM_VehicleWeaponAnimate();
-	}
 }
 
 

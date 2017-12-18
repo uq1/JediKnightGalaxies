@@ -30,10 +30,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // Include GLua
 #include "../GLua/glua.h"
 
-extern int G_ShipSurfaceForSurfName( const char *surfaceName );
-extern qboolean G_FlyVehicleDestroySurface( gentity_t *veh, int surface );
-extern void G_VehicleSetDamageLocFlags( gentity_t *veh, int impactDir, int deathPoint );
-extern void G_VehUpdateShields( gentity_t *targ );
 extern void G_LetGoOfWall( gentity_t *ent );
 //rww - pd
 void BotDamageNotification(gclient_t *bot, gentity_t *attacker);
@@ -1183,11 +1179,6 @@ int G_PickDeathAnim( gentity_t *self, vec3_t point, int damage, int mod, int hit
 	if (self->client)
 	{
 		max_health = self->client->ps.stats[STAT_MAX_HEALTH];
-
-		if (self->client->inSpaceIndex && self->client->inSpaceIndex != ENTITYNUM_NONE)
-		{
-			return BOTH_CHOKE3;
-		}
 	}
 	else
 	{
@@ -2147,12 +2138,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		}
 	}
 
-	if ( (self->client->inSpaceIndex && self->client->inSpaceIndex != ENTITYNUM_NONE) ||
-		 (self->client->ps.eFlags2 & EF2_SHIP_DEATH) )
-	{
-		self->client->noCorpse = qtrue;
-	}
-
 	if ( self->NPC )
 	{
 		if ( self->client && NPC_Humanoid_WaitingAmbush( self ) )
@@ -2549,8 +2534,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			//[/FullDismemberment]
 
 		}
-		else if (self->NPC && self->client && self->client->NPC_class != CLASS_MARK1 &&
-			self->client->NPC_class != CLASS_VEHICLE)
+		else if (self->NPC && self->client && self->client->NPC_class != CLASS_MARK1)
 		{ //in this case if we're an NPC it's my guess that we want to get removed straight away.
 			self->think = G_FreeEntity;
 			self->nextthink = level.time;
@@ -4092,11 +4076,6 @@ void G_LocationBasedDamageModifier(gentity_t *ent, vec3_t point, int mod, int df
 		return;
 	}
 
-	if ( ent->client && ent->client->NPC_class == CLASS_VEHICLE )
-	{//no location-based damage on vehicles
-		return;
-	}
-
 	if ((ent->client && ent->client->g2LastSurfaceTime == level.time && mod == MOD_SABER) || //using ghoul2 collision? Then if the mod is a saber we should have surface data from the last hit (unless thrown).
 		(d_projectileGhoul2Collision.integer && ent->client && ent->client->g2LastSurfaceTime == level.time)) //It's safe to assume we died from the projectile that just set our surface index. So, go ahead and use that as the surf I guess.
 	{
@@ -4201,34 +4180,6 @@ void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, fl
 	{ //stuck doing something else
 		return;
 	}
-
-	if (self->m_pVehicle) {
-		// We're in a vehicle, so we either are unaffected, or we fall off the vehicle
-		if (self->m_pVehicle->m_pVehicleInfo->hideRider) {
-			return;	// He's *inside*, so dont affect
-		}
-		if (strength < 25) {
-			return;		// We need a hard hit to blow him of the vehicle
-		}
-		self->m_pVehicle->m_pVehicleInfo->Eject(self->m_pVehicle, (bgEntity_t *)self, qtrue);
-	}
-
-	//if ( Boba_StopKnockdown( self, attacker, pushDir, qfalse ) )
-	//{
-	//	return;
-	//}
-	//else if ( NPC_Humanoid_StopKnockdown( self, attacker, pushDir ) )
-	//{//They can sometimes backflip instead of be knocked down
-	//	return;
-	//}
-	//else if ( PM_LockedAnim( self->client->ps.legsAnim ) )
-	//{//stuck doing something else
-	//	return;
-	//}
-	//else if ( Rosh_BeingHealed( self ) )
-	//{
-	//	return;
-	//}
 
 	//break out of a saberLock?
 	if ( self->client->ps.saberLockTime > level.time )
@@ -4604,11 +4555,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		{
 			float dur = 5000;
 			float dur2 = 100;
-			if (targ->client && targ->s.eType == ET_NPC && targ->s.NPC_class == CLASS_VEHICLE)
-			{
-				dur = 25000;
-				dur2 = 25000;
-			}
 			targ->client->ps.otherKiller = attacker->s.number;
 			targ->client->ps.otherKillerTime = level.time + dur;
 			targ->client->ps.otherKillerDebounceTime = level.time + dur2;
@@ -4628,12 +4574,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			targ->client->ps.pm_time = t;
 			targ->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
 		}
-	}
-	else if (targ->client && targ->s.eType == ET_NPC && targ->s.NPC_class == CLASS_VEHICLE && attacker != targ)
-	{
-		targ->client->ps.otherKiller = attacker->s.number;
-		targ->client->ps.otherKillerTime = level.time + 25000;
-		targ->client->ps.otherKillerDebounceTime = level.time + 25000;
 	}
 
 	// check for completely getting out of the damage
@@ -5248,28 +5188,6 @@ qboolean G_RadiusDamage ( vec3_t origin, gentity_t *attacker, float damage, floa
 	vec3_t		dir;
 	int			i, e;
 	qboolean	hitClient = qfalse;
-	qboolean	roastPeople = qfalse;
-
-	/*
-	if (missile && !missile->client && missile->s.weapon > WP_NONE &&
-		missile->s.weapon < WP_NUM_WEAPONS && missile->r.ownerNum >= 0 &&
-		(missile->r.ownerNum < MAX_CLIENTS || g_entities[missile->r.ownerNum].s.eType == ET_NPC))
-	{ //sounds like it's a valid weapon projectile.. is it a valid explosive to create marks from?
-		switch(missile->s.weapon)
-		{
-		case WP_FLECHETTE: //flechette issuing this will be alt-fire
-		case WP_ROCKET_LAUNCHER:
-		case WP_THERMAL:
-		case WP_TRIP_MINE:
-		case WP_DET_PACK:
-			roastPeople = qtrue; //Then create explosive marks
-			break;
-		default:
-			break;
-		}
-	}
-	*/
-	//oh well.. maybe sometime? I am trying to cut down on tempent use.
 
 	if ( radius < 1 ) {
 		radius = 1;
@@ -5315,43 +5233,7 @@ qboolean G_RadiusDamage ( vec3_t origin, gentity_t *attacker, float damage, floa
 			// push the center of mass higher than the origin so players
 			// get knocked into the air more
 			dir[2] += 24;
-			if (attacker && attacker->inuse && attacker->client &&
-				attacker->s.eType == ET_NPC && attacker->s.NPC_class == CLASS_VEHICLE &&
-				attacker->m_pVehicle && attacker->m_pVehicle->m_pPilot)
-			{ //say my pilot did it.
-				G_Damage (ent, NULL, (gentity_t *)attacker->m_pVehicle->m_pPilot, dir, origin, (int)points, DAMAGE_RADIUS, mod);
-			}
-			else
-			{
-				G_Damage (ent, NULL, attacker, dir, origin, (int)points, DAMAGE_RADIUS, mod);
-			}
-
-			if (ent && ent->client && roastPeople && missile &&
-				!VectorCompare(ent->r.currentOrigin, missile->r.currentOrigin))
-			{ //the thing calling this function can create burn marks on people, so create an event to do so
-				gentity_t *evEnt = G_TempEntity(ent->r.currentOrigin, EV_GHOUL2_MARK);
-
-				evEnt->s.otherEntityNum = ent->s.number; //the entity the mark should be placed on
-				evEnt->s.weapon = WP_ROCKET_LAUNCHER; //always say it's rocket so we make the right mark
-
-				//Try to place the decal by going from the missile location to the location of the person that was hit
-				VectorCopy(missile->r.currentOrigin, evEnt->s.origin);
-				VectorCopy(ent->r.currentOrigin, evEnt->s.origin2);
-
-				//it's hacky, but we want to move it up so it's more likely to hit
-				//the torso.
-				if (missile->r.currentOrigin[2] < ent->r.currentOrigin[2])
-				{ //move it up less so the decal is placed lower on the model then
-					evEnt->s.origin2[2] += 8;
-				}
-				else
-				{
-					evEnt->s.origin2[2] += 24;
-				}
-
-				//Special col check
-				evEnt->s.eventParm = 1;
-			}
+			G_Damage (ent, NULL, attacker, dir, origin, (int)points, DAMAGE_RADIUS, mod);
 		}
 	}
 

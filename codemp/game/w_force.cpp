@@ -632,19 +632,6 @@ int ForcePowerUsableOn(gentity_t *attacker, gentity_t *other, forcePowers_t forc
 		}
 	}
 
-	if (other && other->client && other->s.eType == ET_NPC &&
-		other->s.NPC_class == CLASS_VEHICLE)
-	{ //can't use the force on vehicles.. except lightning
-		if (forcePower == FP_LIGHTNING)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-
 	return 1;
 }
 
@@ -1465,18 +1452,6 @@ void ForceGrip( gentity_t *self )
 		ForcePowerUsableOn(self, &g_entities[tr.entityNum], FP_GRIP) &&
 		(g_friendlyFire.integer || !OnSameTeam(self, &g_entities[tr.entityNum])) ) //don't grip someone who's still crippled
 	{
-		if (g_entities[tr.entityNum].s.number < MAX_CLIENTS && g_entities[tr.entityNum].client->ps.m_iVehicleNum)
-		{ //a player on a vehicle
-			gentity_t *vehEnt = &g_entities[g_entities[tr.entityNum].client->ps.m_iVehicleNum];
-			if (vehEnt->inuse && vehEnt->client && vehEnt->m_pVehicle)
-			{
-				if (vehEnt->m_pVehicle->m_pVehicleInfo->type == VH_SPEEDER ||
-					vehEnt->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL)
-				{ //push the guy off
-					vehEnt->m_pVehicle->m_pVehicleInfo->Eject(vehEnt->m_pVehicle, (bgEntity_t *)&g_entities[tr.entityNum], qfalse);
-				}
-			}
-		}
 		self->client->ps.fd.forceGripEntityNum = tr.entityNum;
 		g_entities[tr.entityNum].client->ps.fd.forceGripStarted = level.time;
 		self->client->ps.fd.forceGripDamageDebounceTime = 0;
@@ -3592,7 +3567,7 @@ void ForceThrow( gentity_t *self, qboolean pull )
 					VectorSubtract( thispush_org, self->client->ps.origin, pushDir );
 				}
 
-				if ((modPowerLevel > otherPushPower || push_list[x]->client->ps.m_iVehicleNum) && push_list[x]->client && !(push_list[x]->flags & FL_NO_KNOCKBACK))
+				if ((modPowerLevel > otherPushPower) && push_list[x]->client && !(push_list[x]->flags & FL_NO_KNOCKBACK))
 				{
 					if (modPowerLevel == FORCE_LEVEL_3 &&
 						push_list[x]->client->ps.forceHandExtend != HANDEXTEND_KNOCKDOWN)
@@ -3606,19 +3581,6 @@ void ForceThrow( gentity_t *self, qboolean pull )
 							push_list[x]->client->ps.forceHandExtendTime = level.time + 700;
 							push_list[x]->client->ps.forceDodgeAnim = 0; //this toggles between 1 and 0, when it's 1 we should play the get up anim
 							push_list[x]->client->ps.quickerGetup = qtrue;
-						}
-						else if (push_list[x]->s.number < MAX_CLIENTS && push_list[x]->client->ps.m_iVehicleNum &&
-							dirLen <= 128.0f )
-						{ //a player on a vehicle
-							gentity_t *vehEnt = &g_entities[push_list[x]->client->ps.m_iVehicleNum];
-							if (vehEnt->inuse && vehEnt->client && vehEnt->m_pVehicle)
-							{
-								if (vehEnt->m_pVehicle->m_pVehicleInfo->type == VH_SPEEDER ||
-									vehEnt->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL)
-								{ //push the guy off
-									vehEnt->m_pVehicle->m_pVehicleInfo->Eject(vehEnt->m_pVehicle, (bgEntity_t *)push_list[x], qfalse);
-								}
-							}
 						}
 					}
 				}

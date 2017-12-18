@@ -93,12 +93,8 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 						 int number );
 
-#ifdef _ONEBIT_COMBO
-void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to, int *bitComboDelta, int *bitNumDelta, qboolean isVehiclePS = qfalse );
-#else
-void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to, qboolean isVehiclePS = qfalse );
-#endif
-void MSG_ReadDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to, qboolean isVehiclePS = qfalse );
+void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to );
+void MSG_ReadDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to );
 
 #ifndef FINAL_BUILD
 void MSG_ReportChangeVectors_f( void );

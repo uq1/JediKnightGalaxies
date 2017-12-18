@@ -28,7 +28,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
-#include "bg_vehicles.h"
 #include "g_public.h"
 #include "bg_ammo.h"
 #include "bg_items.h"
@@ -101,9 +100,6 @@ extern vec3_t gPainPoint;
 #define	FL_BOUNCE				0x00100000		// for missiles
 #define	FL_BOUNCE_HALF			0x00200000		// for missiles
 #define	FL_BOUNCE_SHRAPNEL		0x00400000		// special shrapnel flag
-
-//vehicle game-local stuff -rww
-#define	FL_VEH_BOARDING			0x00800000		// special shrapnel flag
 
 //breakable flags -rww
 #define FL_DMG_BY_SABER_ONLY		0x01000000 //only take dmg from saber
@@ -212,7 +208,6 @@ struct gentity_s {
 	//rww - entstate must be first, to correspond with the bg shared entity structure
 	entityState_t	s;				// communicated by server to clients
 	playerState_t	*playerState;	//ptr to playerstate if applicable (for bg ents)
-	Vehicle_t		*m_pVehicle; //vehicle data
 	void			*ghoul2; //g2 instance
 	int				localAnimIndex; //index locally (game/cgame) to anim data for this skel
 	vec3_t			modelScale; //needed for g2 collision
@@ -947,9 +942,6 @@ struct gclient_s {
 	int			ewebTime; //e-web use debounce
 	int			ewebHealth; //health of e-web (to keep track between deployments)
 
-	int			inSpaceIndex; //ent index of space trigger if inside one
-	int			inSpaceSuffocation; //suffocation timer
-
 	int			tempSpectate; //time to force spectator mode
 
 	//keep track of last person kicked and the time so we don't hit multiple times per kick
@@ -1334,8 +1326,6 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir );
 void Cmd_SaberAttackCycle_f(gentity_t *ent);
 void Cmd_ToggleSaber_f(gentity_t *ent);
 void Cmd_EngageDuel_f(gentity_t *ent);
-void G_LeaveVehicle( gentity_t *ent, qboolean ConCheck );
-void SanitizeString2( char *in, char *out );
 void Cmd_Reload_f(gentity_t *ent);
 
 void JKG_BindChatCommands( void );

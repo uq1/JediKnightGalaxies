@@ -26,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "anims.h"
 #include "w_saber.h"
 #include "bg_saga.h"
-#include "bg_vehicles.h"
 #include "g_nav.h"
 
 extern void G_DebugPrint( int level, const char *format, ... );
@@ -282,20 +281,6 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 		ent->client->ps.fd.forcePower = 100;
 		ent->NPC->scriptFlags |= (SCF_ALT_FIRE|SCF_NO_GROUPS);
 	}
-	//if ( !Q_stricmp( "atst_vehicle", ent->NPC_type ) )//FIXME: has to be a better, easier way to tell this, no?
-	if (ent->s.NPC_class == CLASS_VEHICLE && ent->m_pVehicle)
-	{
-		ent->s.g2radius = 255;//MAX for this value, was (ent->r.maxs[2]-ent->r.mins[2]), which is 272 or something
-
-		if (ent->m_pVehicle->m_pVehicleInfo->type == VH_WALKER)
-		{
-			ent->mass = 2000;//???
-			ent->flags |= (FL_SHIELDED|FL_NO_KNOCKBACK);
-			ent->pain = NPC_ATST_Pain;
-		}
-		//turn the damn hatch cover on and LEAVE it on
-		trap->G2API_SetSurfaceOnOff( ent->ghoul2, "head_hatchcover", 0/*TURN_ON*/ );
-	}
 	if ( !Q_stricmp( "wampa", ent->NPC_type ) )
 	{//FIXME: extern this into NPC.cfg?
 		Wampa_SetBolts( ent );
@@ -400,7 +385,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 				break;
 			}
 		}
-		if ( ent->client->NPC_class == CLASS_KYLE || ent->client->NPC_class == CLASS_VEHICLE || (ent->spawnflags & SFB_CINEMATIC) )
+		if ( ent->client->NPC_class == CLASS_KYLE || (ent->spawnflags & SFB_CINEMATIC) )
 		{
 			ent->NPC->defaultBehavior = BS_CINEMATIC;
 		}
@@ -1164,10 +1149,7 @@ void NPC_Begin (gentity_t *ent)
 	client->respawnTime = level.time;
 	client->inactivityTime = level.time + g_inactivity.value * 1000;
 	client->latched_buttons = 0;
-	if ( ent->s.m_iVehicleNum )
-	{//I'm an NPC in a vehicle (or a vehicle), I already have owner set
-	}
-	else if ( client->NPC_class == CLASS_SEEKER && ent->activator != NULL )
+	if ( client->NPC_class == CLASS_SEEKER && ent->activator != NULL )
 	{//somebody else "owns" me
 		ent->s.owner = ent->r.ownerNum = ent->activator->s.number;
 	}
@@ -1177,10 +1159,7 @@ void NPC_Begin (gentity_t *ent)
 	}
 
 	// set default animations
-	if ( ent->client->NPC_class != CLASS_VEHICLE )
-	{
-		NPC_SetAnim( ent, SETANIM_BOTH, BOTH_STAND1, SETANIM_FLAG_NORMAL );
-	}
+	NPC_SetAnim( ent, SETANIM_BOTH, BOTH_STAND1, SETANIM_FLAG_NORMAL );
 
 	if( spawnPoint )
 	{
@@ -1298,74 +1277,6 @@ void NPC_Begin (gentity_t *ent)
 	default:
 		break;
 	}
-
-	if ( ent->m_pVehicle )
-	{//a vehicle
-		//check for droidunit
-		if ( ent->m_pVehicle->m_iDroidUnitTag != -1 )
-		{
-			char	*droidNPCType = NULL;
-			gentity_t *droidEnt = NULL;
-			if ( ent->model2 
-				&& ent->model2[0] )
-			{//specified on the NPC_Vehicle spawner ent
-				droidNPCType = ent->model2;
-			}
-			else if ( ent->m_pVehicle->m_pVehicleInfo->droidNPC
-				&& ent->m_pVehicle->m_pVehicleInfo->droidNPC[0] )
-			{//specified in the vehicle's .veh file
-				droidNPCType = ent->m_pVehicle->m_pVehicleInfo->droidNPC;
-			}
-
-			if ( droidNPCType != NULL )
-			{
-				if ( Q_stricmp( "random", droidNPCType ) == 0
-					|| Q_stricmp( "default", droidNPCType ) == 0 )
-				{//use default - R2D2 or R5D2
-					if ( Q_irand( 0, 1 ) )
-					{
-						droidNPCType = "r2d2";
-					}
-					else
-					{
-						droidNPCType = "r5d2";
-					}
-				}
-				droidEnt = NPC_SpawnType( ent, droidNPCType, NULL, qfalse );
-				if ( droidEnt != NULL )
-				{
-					if ( droidEnt->client )
-					{
-						droidEnt->client->ps.m_iVehicleNum =
-							droidEnt->s.m_iVehicleNum =
-							//droidEnt->s.otherEntityNum2 = 
-							droidEnt->s.owner = 
-							droidEnt->r.ownerNum = ent->s.number;
-						ent->m_pVehicle->m_pDroidUnit = (bgEntity_t *)droidEnt;
-						//SP way:
-						//droidEnt->s.m_iVehicleNum = ent->s.number;
-						//droidEnt->owner = ent;
-						VectorCopy( ent->r.currentOrigin, droidEnt->s.origin );
-						VectorCopy( ent->r.currentOrigin, droidEnt->client->ps.origin );
-						G_SetOrigin( droidEnt, droidEnt->s.origin );
-						trap->LinkEntity( (sharedEntity_t *)droidEnt );
-						VectorCopy( ent->r.currentAngles, droidEnt->s.angles );
-						G_SetAngles( droidEnt, droidEnt->s.angles );
-						if ( droidEnt->NPC )
-						{
-							droidEnt->NPC->desiredYaw = droidEnt->s.angles[YAW];
-							droidEnt->NPC->desiredPitch = droidEnt->s.angles[PITCH];
-						}
-						droidEnt->flags |= FL_UNDYING;
-					}
-					else
-					{//wtf?
-						G_FreeEntity( droidEnt );
-					}
-				}
-			}
-		}
-	}
 }
 
 static gNPC_t *gNPCPtrs[MAX_GENTITIES];
@@ -1399,15 +1310,6 @@ void NPC_Cleanup()
 		gNPCPtrs[i] = NULL;
 	}
 }
-
-#ifdef _XBOX
-void NPC_NPCPtrsClear(void)
-{
-	for(int i=0; i<MAX_GENTITIES; i++) {
-		gNPCPtrs[i] = NULL;
-	}
-}
-#endif
 
 /*
 -------------------------
@@ -1471,10 +1373,6 @@ void NPC_DefaultScriptFlags( gentity_t *ent )
 NPC_Spawn_Go
 -------------------------
 */
-extern void G_CreateAnimalNPC( Vehicle_t **pVeh, const char *strAnimalType );
-extern void G_CreateSpeederNPC( Vehicle_t **pVeh, const char *strType );
-extern void G_CreateWalkerNPC( Vehicle_t **pVeh, const char *strAnimalType );
-extern void G_CreateFighterNPC( Vehicle_t **pVeh, const char *strType );
 
 int GLua_Spawn_NPC(gentity_t* npc, gentity_t *spawner);
 gentity_t *NPC_Spawn_Do( gentity_t *ent )
@@ -1482,14 +1380,6 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 	gentity_t	*newent = NULL;
 	int			index;
 	vec3_t		saveOrg;
-
-/*	//Do extra code for stasis spawners
-	if ( Q_stricmp( ent->classname, "NPC_Stasis" ) == 0 )
-	{
-		if ( NPC_StasisSpawn_Go( ent ) == qfalse )
-			return;
-	}
-*/
 
 	//Test for drop to floor
 	if ( ent->spawnflags & NSF_DROP_TO_FLOOR )
@@ -1601,106 +1491,14 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 		newent->flags |= FL_NO_KNOCKBACK;//don't fall off ledges
 	}
 
-	// If this is a vehicle we need to see what kind it is so we properlly allocate it.
-	if ( Q_stricmp( ent->classname, "NPC_Vehicle" ) == 0 )
-	{
-		// Get the vehicle entry index.
-		int iVehIndex = BG_VehicleGetIndex( ent->NPC_type );
-
- 		if ( iVehIndex == VEHICLE_NONE )
-		{
-			G_FreeEntity( newent );
-			//get rid of the spawner, too, I guess
-			G_FreeEntity( ent );
-			return NULL;
-		}
-		// NOTE: If you change/add any of these, update NPC_Spawn_f for the new vehicle you
-		// want to be able to spawn in manually.
-
-		// See what kind of vehicle this is and allocate it properly.
-		switch( g_vehicleInfo[iVehIndex].type )
-		{
-			case VH_ANIMAL:
-				// Create the animal (making sure all it's data is initialized).
-				G_CreateAnimalNPC( &newent->m_pVehicle, ent->NPC_type );
-				break;
-			case VH_SPEEDER:
-				// Create the speeder (making sure all it's data is initialized).
-				G_CreateSpeederNPC( &newent->m_pVehicle, ent->NPC_type );
-				break;
-			case VH_FIGHTER:
-				// Create the fighter (making sure all it's data is initialized).
-				G_CreateFighterNPC( &newent->m_pVehicle, ent->NPC_type );
-				break;
-			case VH_WALKER:
-				// Create the walker (making sure all it's data is initialized).
-				G_CreateWalkerNPC( &newent->m_pVehicle, ent->NPC_type );
-				break;
-
-			default:
-				Com_Printf ( S_COLOR_RED "ERROR: Couldn't spawn NPC %s\n", ent->NPC_type );
-				G_FreeEntity( newent );
-				//get rid of the spawner, too, I guess
-				G_FreeEntity( ent );
-				return NULL;
-		}
-
-		assert(newent->m_pVehicle &&
-			newent->m_pVehicle->m_pVehicleInfo &&
-			newent->m_pVehicle->m_pVehicleInfo->Initialize);
-
-		//set up my happy prediction hack
-		newent->m_pVehicle->m_vOrientation = &newent->client->ps.vehOrientation[0];
-
-		// Setup the vehicle.
-		newent->m_pVehicle->m_pParentEntity = (bgEntity_t *)newent;
-		newent->m_pVehicle->m_pVehicleInfo->Initialize( newent->m_pVehicle );
-
-		//cache all the assets
-		newent->m_pVehicle->m_pVehicleInfo->RegisterAssets( newent->m_pVehicle );
-		//set the class
-		newent->client->NPC_class = CLASS_VEHICLE;
-		if ( g_vehicleInfo[iVehIndex].type == VH_FIGHTER )
-		{//FIXME: EXTERN!!!
-			newent->flags |= (FL_NO_KNOCKBACK|FL_SHIELDED|FL_DMG_BY_HEAVY_WEAP_ONLY);//don't get pushed around, blasters bounce off, only damage from heavy weaps
-		}
-		//WTF?!!! Ships spawning in pointing straight down!
-		//set them up to start landed
-		newent->m_pVehicle->m_vOrientation[YAW] = ent->s.angles[YAW];
-		newent->m_pVehicle->m_vOrientation[PITCH] = newent->m_pVehicle->m_vOrientation[ROLL] = 0.0f;
-		G_SetAngles( newent, newent->m_pVehicle->m_vOrientation );
-		SetClientViewAngle( newent, newent->m_pVehicle->m_vOrientation );
-
-		//newent->m_pVehicle->m_ulFlags |= VEH_GEARSOPEN;
-		//why? this would just make it so the initial anim never got played... -rww
-		//There was no initial anim, it would just open the gear even though it's already on the ground (fixed now, made an initial anim)
-		
-		//For SUSPEND spawnflag, the amount of time to drop like a rock after SUSPEND turns off
-		newent->fly_sound_debounce_time = ent->fly_sound_debounce_time;
-
-		//for no-pilot-death delay
-		newent->damage = ent->damage;
-
-		//no-pilot-death distance
-		newent->speed = ent->speed;
-
-		//for veh transfer all healy stuff
-		newent->healingclass = ent->healingclass;
-		newent->healingsound = ent->healingsound;
-		newent->healingrate = ent->healingrate;
-		newent->model2 = ent->model2;//for droidNPC
-	}
-	else
-	{
-		newent->client->ps.weapon = WP_NONE;//init for later check in NPC_Begin
-		newent->client->ps.weaponVariation = 0;
-	}
+	newent->client->ps.weapon = WP_NONE;//init for later check in NPC_Begin
+	newent->client->ps.weaponVariation = 0;
     
 	VectorCopy(ent->s.origin, newent->s.origin);
 	VectorCopy(ent->s.origin, newent->client->ps.origin);
 	VectorCopy(ent->s.origin, newent->r.currentOrigin);
 	G_SetOrigin(newent, ent->s.origin);//just to be sure!
-	//NOTE: on vehicles, anything in the .npc file will STOMP data on the NPC that's set by the vehicle
+
 	if ( !NPC_ParseParms( ent->NPC_type, newent ) )
 	{
 		Com_Printf ( S_COLOR_RED "ERROR: Couldn't spawn NPC %s\n", ent->NPC_type );
@@ -2286,191 +2084,6 @@ void SP_NPC_spawner( gentity_t *self)
 
 	//FIXME: store cameraGroup somewhere else and apply to spawned NPCs' cameraGroup
 	//Or just don't include NPC_spawners in cameraGroupings
-}
-
-extern void G_VehicleSpawn( gentity_t *self );
-/*QUAKED NPC_Vehicle (1 0 0) (-16 -16 -24) (16 16 32) NO_PILOT_DIE SUSPENDED x x DROPTOFLOOR CINEMATIC NOTSOLID STARTINSOLID SHY
-NO_PILOT_DIE - die after certain amount of time of not having a pilot
-SUSPENDED - Fighters: Don't drop until someone gets in it (this only works as long as no-nw has *ever* ridden the vehicle, to simulate ships that are suspended-docked) - note: ships inside trigger_spaces do not drop when unoccupied
-CINEMATIC - Will spawn with no default AI (BS_CINEMATIC)
-NOTSOLID - Starts not solid
-STARTINSOLID - Don't try to fix if spawn in solid
-SHY - Spawner is shy
-
-set NPC_type to vehicle name in vehicles.dat
-
-"dropTime" use with SUSPENDED - if set, the vehicle will drop straight down for this number of seconds before flying forward
-"dmg" use with NO_PILOT_DIE - delay in milliseconds for ship to explode if no pilot (default 10000)
-"speed" use with NO_PILOT_DIE - distance for pilot to get away from ship after dismounting before it starts counting down the death timer
-"model2" - if the vehicle can have a droid (has "*droidunit" tag), this NPC will be spawned and placed there - note: game will automatically use the one specified in the .veh file (if any) or, absent that, it will use an R2D2 or R5D2 NPC)
-
-showhealth - set to 1 to show health bar on this entity when crosshair is over it
-
-teamowner - crosshair shows green for this team, red for opposite team
-	0 - none
-	1 - red
-	2 - blue
-
-teamuser - only this team can use this NPC
-	0 - none
-	1 - red
-	2 - blue
-
-teamnodmg - team that NPC does not take damage from (turrets and other auto-defenses that have "alliedTeam" set to this team won't target this NPC)
-	0 - none
-	1 - red
-	2 - blue
-*/
-qboolean NPC_VehiclePrecache( gentity_t *spawner )
-{
-	char *droidNPCType = NULL;
-	//This will precache the vehicle
-	vehicleInfo_t *pVehInfo;
-	int iVehIndex = BG_VehicleGetIndex( spawner->NPC_type );
- 	if ( iVehIndex == VEHICLE_NONE )
-	{//fixme: error msg?
-		return qfalse;
-	}
-
-	G_ModelIndex(va("$%s", spawner->NPC_type)); //make sure the thing is frickin precached
-	//now cache his model/skin/anim config
-	pVehInfo = &g_vehicleInfo[iVehIndex];
-	if (pVehInfo->model && pVehInfo->model[0])
-	{
-		void *tempG2 = NULL;
-		int skin = 0;
-		if (pVehInfo->skin && pVehInfo->skin[0])
-		{
-			skin = trap->R_RegisterSkin(va("models/players/%s/model_%s.skin", pVehInfo->model, pVehInfo->skin));
-		}
-		trap->G2API_InitGhoul2Model(&tempG2, va("models/players/%s/model.glm", pVehInfo->model), 0, skin, 0, 0, 0);
-		if (tempG2)
-		{ //now, cache the anim config.
-			char GLAName[1024];
-
-			GLAName[0] = 0;
-			trap->G2API_GetGLAName(tempG2, 0, GLAName);
-
-			if (GLAName[0])
-			{
-				char *slash = Q_strrchr( GLAName, '/' );
-				if ( slash )
-				{
-					strcpy(slash, "/animation.cfg");
-
-					BG_ParseAnimationFile(GLAName, NULL, qfalse);
-				}
-			}
-			trap->G2API_CleanGhoul2Models(&tempG2);
-		}
-	}
-
-	//also precache the droid NPC if there is one
-	if ( spawner->model2 
-		&& spawner->model2[0] )
-	{
-		droidNPCType = spawner->model2;
-	}
-	else if ( g_vehicleInfo[iVehIndex].droidNPC
-		&& g_vehicleInfo[iVehIndex].droidNPC[0] )
-	{
-		droidNPCType = g_vehicleInfo[iVehIndex].droidNPC;
-	}
-
-	if ( droidNPCType )
-	{
-		if ( Q_stricmp( "random", droidNPCType ) == 0
-			|| Q_stricmp( "default", droidNPCType ) == 0 )
-		{//precache both r2 and r5, as defaults
-			NPC_PrecacheType( "r2d2" );
-			NPC_PrecacheType( "r5d2" );
-		}
-		else
-		{
-			NPC_PrecacheType( droidNPCType );
-		}
-	}
-	return qtrue;
-}
-
-void NPC_VehicleSpawnUse( gentity_t *self, gentity_t *other, gentity_t *activator )
-{
-	if ( self->delay )
-	{
-		self->think = G_VehicleSpawn;
-		self->nextthink = level.time + self->delay;
-	}
-	else
-	{
-		G_VehicleSpawn( self );
-	}
-}
-
-void SP_NPC_Vehicle( gentity_t *self)
-{
-	float dropTime;
-	int		t;
-	if ( !self->NPC_type )
-	{
-		self->NPC_type = "swoop";
-	}
-
-	if ( !self->classname )
-	{
-		self->classname = "NPC_Vehicle";
-	}
-
-	if ( !self->wait )
-	{
-		self->wait = 500;
-	}
-	else
-	{
-		self->wait *= 1000;//1 = 1 msec, 1000 = 1 sec
-	}
-	self->delay *= 1000;//1 = 1 msec, 1000 = 1 sec
-
-	G_SetOrigin( self, self->s.origin );
-	G_SetAngles( self, self->s.angles );
-	G_SpawnFloat( "dropTime", "0", &dropTime );
-	if ( dropTime )
-	{
-		self->fly_sound_debounce_time = ceil(dropTime*1000.0);
-	}
-	
-	G_SpawnInt( "showhealth", "0", &t );
-	if (t)
-	{
-		self->s.shouldtarget = qtrue;
-	}
-	//FIXME: PRECACHE!!!
-
-	if ( self->targetname )
-	{
-		if ( !NPC_VehiclePrecache( self ) )
-		{//FIXME: err msg?
-			G_FreeEntity( self );
-			return;
-		}
-		self->use = NPC_VehicleSpawnUse;
-	}
-	else
-	{
-		if ( self->delay )
-		{
-			if ( !NPC_VehiclePrecache( self ) )
-			{//FIXME: err msg?
-				G_FreeEntity( self );
-				return;
-			}
-			self->think = G_VehicleSpawn;
-			self->nextthink = level.time + self->delay;
-		}
-		else
-		{
-			G_VehicleSpawn( self );
-		}
-	}
 }
 
 //Characters

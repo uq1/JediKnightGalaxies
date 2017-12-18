@@ -777,21 +777,7 @@ static void CG_ConfigStringModified( void ) {
 			CG_CacheG2AnimInfo(modelName);
 		}
 
-		if (modelName[0] != '$' && modelName[0] != '@')
-		{ //don't register vehicle names and saber names as models.
-			cgs.gameModels[ num-CS_MODELS ] = trap->R_RegisterModel( modelName );
-		}
-		else
-		{
-            cgs.gameModels[ num-CS_MODELS ] = 0;
-		}
-// GHOUL2 Insert start
-		/*
-	} else if ( num >= CS_CHARSKINS && num < CS_CHARSKINS+MAX_CHARSKINS ) {
-		cgs.skins[ num-CS_CHARSKINS ] = trap->R_RegisterSkin( str );
-		*/
-		//rww - removed and replaced with CS_G2BONES
-// Ghoul2 Insert end
+		cgs.gameModels[ num-CS_MODELS ] = 0;
 	} else if ( num >= CS_SOUNDS && num < CS_SOUNDS+MAX_SOUNDS ) {
 		if ( str[0] != '*' ) {	// player specific sounds don't register here
 			cgs.gameSounds[ num-CS_SOUNDS] = trap->S_RegisterSound( str );

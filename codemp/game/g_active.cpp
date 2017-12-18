@@ -886,76 +886,6 @@ void ClientIntermissionThink( gclient_t *client ) {
 }
 
 extern void NPC_SetAnim(gentity_t	*ent,int setAnimParts,int anim,int setAnimFlags);
-void G_VehicleAttachDroidUnit( gentity_t *vehEnt )
-{
-	if ( vehEnt && vehEnt->m_pVehicle && vehEnt->m_pVehicle->m_pDroidUnit != NULL )
-	{
-		gentity_t *droidEnt = (gentity_t *)vehEnt->m_pVehicle->m_pDroidUnit;
-		mdxaBone_t boltMatrix;
-		vec3_t	fwd;
-
-		trap->G2API_GetBoltMatrix(vehEnt->ghoul2, 0, vehEnt->m_pVehicle->m_iDroidUnitTag, &boltMatrix, vehEnt->r.currentAngles, vehEnt->r.currentOrigin, level.time,
-			NULL, vehEnt->modelScale);
-		BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, droidEnt->r.currentOrigin);
-		BG_GiveMeVectorFromMatrix(&boltMatrix, NEGATIVE_Y, fwd);
-		vectoangles( fwd, droidEnt->r.currentAngles );
-		
-		if ( droidEnt->client )
-		{
-			VectorCopy( droidEnt->r.currentAngles, droidEnt->client->ps.viewangles );
-			VectorCopy( droidEnt->r.currentOrigin, droidEnt->client->ps.origin );
-		}
-
-		G_SetOrigin( droidEnt, droidEnt->r.currentOrigin );
-		trap->LinkEntity( (sharedEntity_t *)droidEnt );
-		
-		if ( droidEnt->NPC )
-		{
-			NPC_SetAnim( droidEnt, SETANIM_BOTH, BOTH_STAND2, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
-		}
-	}
-}
-
-//called gameside only from pmove code (convenience)
-void G_CheapWeaponFire(int entNum, int ev)
-{
-	gentity_t *ent = &g_entities[entNum];
-	
-	if (!ent->inuse || !ent->client)
-	{
-		return;
-	}
-
-	switch (ev)
-	{
-		case EV_FIRE_WEAPON:
-			if (ent->m_pVehicle && ent->m_pVehicle->m_pVehicleInfo->type == VH_SPEEDER &&
-				ent->client && ent->client->ps.m_iVehicleNum)
-			{ //a speeder with a pilot
-				gentity_t *rider = &g_entities[ent->client->ps.m_iVehicleNum-1];
-				if (rider->inuse && rider->client)
-				{ //pilot is valid...
-                    if (rider->client->ps.weapon != WP_MELEE &&
-						(rider->client->ps.weapon != WP_SABER || !rider->client->ps.saberHolstered))
-					{ //can only attack on speeder when using melee or when saber is holstered
-						break;
-					}
-				}
-			}
-
-			FireWeapon( ent, ent->s.firingMode );
-			ent->client->dangerTime = level.time;
-			ent->client->ps.eFlags &= ~EF_INVULNERABLE;
-			ent->client->invulnerableTimer = 0;
-			break;
-		case EV_ALT_FIRE:
-			FireWeapon( ent, ent->s.firingMode );
-			ent->client->dangerTime = level.time;
-			ent->client->ps.eFlags &= ~EF_INVULNERABLE;
-			ent->client->invulnerableTimer = 0;
-			break;
-	}
-}
 
 /*
 ================
@@ -973,10 +903,6 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 	gclient_t *client;
 	int		damage;
 	vec3_t	dir;
-//	vec3_t	origin, angles;
-//	qboolean	fired;
-//	gitem_t *item;
-//	gentity_t *drop;
 
 	client = ent->client;
 
@@ -2083,30 +2009,6 @@ void ClientThink_real( gentity_t *ent ) {
 		return;
 	}
 
-	// This code was moved here from clientThink to fix a problem with g_synchronousClients 
-	// being set to 1 when in vehicles. 
-	if ( ent->s.number < MAX_CLIENTS && ent->client->ps.m_iVehicleNum )
-	{//driving a vehicle
-		if (g_entities[ent->client->ps.m_iVehicleNum].client)
-		{
-			gentity_t *veh = &g_entities[ent->client->ps.m_iVehicleNum];
-
-			if (veh->m_pVehicle &&
-				veh->m_pVehicle->m_pPilot == (bgEntity_t *)ent)
-			{ //only take input from the pilot...
-				veh->client->ps.commandTime = ent->client->ps.commandTime;
-				memcpy(&veh->m_pVehicle->m_ucmd, &ent->client->pers.cmd, sizeof(usercmd_t));
-				if ( veh->m_pVehicle->m_ucmd.buttons & BUTTON_TALK )
-				{ //forced input if "chat bubble" is up
-					veh->m_pVehicle->m_ucmd.buttons = BUTTON_TALK;
-					veh->m_pVehicle->m_ucmd.forwardmove = 0;
-					veh->m_pVehicle->m_ucmd.rightmove = 0;
-					veh->m_pVehicle->m_ucmd.upmove = 0;
-				}
-			}
-		}
-	}
-
 	if (!(client->ps.pm_flags & PMF_FOLLOW))
 	{
 
@@ -2277,9 +2179,8 @@ void ClientThink_real( gentity_t *ent ) {
 	//
 	if ( level.intermissiontime ) 
 	{
-		if ( ent->s.number < MAX_CLIENTS
-			|| client->NPC_class == CLASS_VEHICLE )
-		{//players and vehicles do nothing in intermissions
+		if ( ent->s.number < MAX_CLIENTS )
+		{//players do nothing in intermissions
 			ClientIntermissionThink( client );
 			return;
 		}
@@ -2416,7 +2317,7 @@ void ClientThink_real( gentity_t *ent ) {
 		ent->client->ps.forceHandExtend = HANDEXTEND_WEAPONREADY;
 	}
 
-	if (ent->NPC && ent->s.NPC_class != CLASS_VEHICLE) //vehicles manage their own speed
+	if (ent->NPC)
 	{
 		//FIXME: swoop should keep turning (and moving forward?) for a little bit?
 		if ( ent->NPC->combatMove == qfalse )
@@ -2549,8 +2450,7 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 		client->ps.basespeed = client->ps.speed;
 	}
-	else if (!client->ps.m_iVehicleNum &&
-		(!ent->NPC || ent->s.NPC_class != CLASS_VEHICLE)) //if riding a vehicle it will manage our speed and such
+	else if ((!ent->NPC || ent->s.NPC_class != CLASS_VEHICLE)) //if riding a vehicle it will manage our speed and such
 	{
 		// set speed
 		client->ps.speed = g_speed.value;
@@ -2565,34 +2465,9 @@ void ClientThink_real( gentity_t *ent ) {
 
 	if ( !ent->NPC || !(ent->NPC->aiFlags&NPCAI_CUSTOM_GRAVITY) )
 	{//use global gravity
-		if (ent->NPC && ent->s.NPC_class == CLASS_VEHICLE &&
-			ent->m_pVehicle && ent->m_pVehicle->m_pVehicleInfo->gravity)
-		{ //use custom veh gravity
-			client->ps.gravity = ent->m_pVehicle->m_pVehicleInfo->gravity;
-		}
-		else
+		if (!client->customGravity)
 		{
-			if (ent->client->inSpaceIndex && ent->client->inSpaceIndex != ENTITYNUM_NONE)
-			{ //in space, so no gravity...
-				client->ps.gravity = 1.0f;
-				if (ent->s.number < MAX_CLIENTS)
-				{
-					VectorScale(client->ps.velocity, 0.8f, client->ps.velocity);
-				}
-			}
-			else
-			{
-				if (client->ps.eFlags2 & EF2_SHIP_DEATH)
-				{ //float there
-					VectorClear(client->ps.velocity);
-					client->ps.gravity = 1.0f;
-				}
-				// Jedi Knight Galaxies - allow custom gravity (set by lua)
-				else if (!client->customGravity)
-				{
-					client->ps.gravity = g_gravity.value;
-				}
-			}
+			client->ps.gravity = g_gravity.value;
 		}
 	}
 
@@ -3002,13 +2877,6 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 	}
 
-	//NOTE: can't put USE here *before* PMove!!
-	if ( ent->client->ps.useDelay > level.time 
-		&& ent->client->ps.m_iVehicleNum )
-	{//when in a vehicle, debounce the use...
-		ucmd->buttons &= ~BUTTON_USE;
-	}
-
 	//FIXME: need to do this before check to avoid walls and cliffs (or just cliffs?)
 	G_AddPushVecToUcmd( ent, ucmd );
 
@@ -3177,29 +3045,6 @@ void ClientThink_real( gentity_t *ent ) {
 	{
 		VectorCopy(ent->r.mins, pmove.mins);
 		VectorCopy(ent->r.maxs, pmove.maxs);
-		if (ent->s.NPC_class == CLASS_VEHICLE &&
-			ent->m_pVehicle )
-		{
-			vmove_t vm;
-
-			memcpy(&vm.cmd, &ent->m_pVehicle->m_ucmd, sizeof(usercmd_t));
-
-			// Vehicles can't move up/right/left/down, only forward
-			vm.cmd.upmove = 0;
-			if(!ent->m_pVehicle->m_pPilot)
-			{
-				vm.cmd.buttons = 0;
-			}
-			else
-			{
-				vm.cmd.buttons = g_entities[ent->m_pVehicle->m_pPilot->s.number].client->pers.cmd.buttons;	// FIXED: give me the full range of buttons, not just a bool
-			}
-
-			vm.ps = &ent->client->ps;
-
-			vm.isRider = qfalse;
-			Vmove(&vm);
-		}
 	}
 
 	// Copy the ammo from the client ammo table into their networked stat
@@ -3279,7 +3124,8 @@ void ClientThink_real( gentity_t *ent ) {
     }
 
 	/* Run the Pmove (this will generate bg_pmove events */
-	if( ent->client->ps.m_iVehicleNum >= MAX_CLIENTS &&
+	// VMove is not called yet. This will be used when vehicle rewrite happens.
+	/*if( ent->client->ps.m_iVehicleNum >= MAX_CLIENTS &&
 		ent->client->ps.clientNum < MAX_CLIENTS )
 	{
 		vmove_t vm;
@@ -3293,7 +3139,7 @@ void ClientThink_real( gentity_t *ent ) {
 		Vmove(&vm);
 
 	}
-	else
+	else*/
 	{
 		Pmove (&pmove);
 	}
@@ -3435,10 +3281,7 @@ void ClientThink_real( gentity_t *ent ) {
 	// use the snapped origin for linking so it matches client predicted versions
 	VectorCopy( ent->s.pos.trBase, ent->r.currentOrigin );
 
-	if (ent->s.eType != ET_NPC ||
-		ent->s.NPC_class != CLASS_VEHICLE ||
-		!ent->m_pVehicle ||
-		!ent->m_pVehicle->m_iRemovedSurfaces)
+	if (ent->s.eType != ET_NPC)
 	{ //let vehicles that are getting broken apart do their own crazy sizing stuff
 		VectorCopy (pmove.mins, ent->r.mins);
 		VectorCopy (pmove.maxs, ent->r.maxs);
@@ -3480,8 +3323,6 @@ void ClientThink_real( gentity_t *ent ) {
 	client->oldbuttons = client->buttons;
 	client->buttons = ucmd->buttons;
 	client->latched_buttons |= client->buttons & ~client->oldbuttons;
-
-//	G_VehicleAttachDroidUnit( ent );
 
 	// Did we kick someone in our pmove sequence?
 	if (client->ps.forceKickFlip)
@@ -3580,21 +3421,6 @@ void ClientThink_real( gentity_t *ent ) {
 
 	//try some idle anims on ent if getting no input and not moving for some time
 	G_CheckClientIdle( ent, ucmd );
-
-	// This code was moved here from clientThink to fix a problem with g_synchronousClients 
-	// being set to 1 when in vehicles. 
-	if ( ent->s.number < MAX_CLIENTS && ent->client->ps.m_iVehicleNum )
-	{//driving a vehicle
-		//run it
-		if (g_entities[ent->client->ps.m_iVehicleNum].inuse && g_entities[ent->client->ps.m_iVehicleNum].client)
-		{
-			ClientThink(ent->client->ps.m_iVehicleNum, &g_entities[ent->client->ps.m_iVehicleNum].m_pVehicle->m_ucmd);
-		}
-		else
-		{ //vehicle no longer valid?
-			ent->client->ps.m_iVehicleNum = 0;
-		}
-	}
 }
 
 /*
@@ -3655,7 +3481,7 @@ void ClientThink( int clientNum,usercmd_t *ucmd ) {
 	//
 	// UQ1: More realistic hitboxes for players/bots...
 	//
-	if (ent->s.eType == ET_PLAYER && !ent->client->ps.m_iVehicleNum)
+	if (ent->s.eType == ET_PLAYER)
 	{
 		if (ent->client->ps.pm_flags & PMF_DUCKED)
 		{
@@ -3675,59 +3501,12 @@ void ClientThink( int clientNum,usercmd_t *ucmd ) {
 		}
 	}
 
-/* 	This was moved to clientthink_real, but since its sort of a risky change i left it here for 
-    now as a more concrete reference - BSD
-  
-	if ( clientNum < MAX_CLIENTS
-		&& ent->client->ps.m_iVehicleNum )
-	{//driving a vehicle
-		if (g_entities[ent->client->ps.m_iVehicleNum].client)
-		{
-			gentity_t *veh = &g_entities[ent->client->ps.m_iVehicleNum];
-
-			if (veh->m_pVehicle &&
-				veh->m_pVehicle->m_pPilot == (bgEntity_t *)ent)
-			{ //only take input from the pilot...
-				veh->client->ps.commandTime = ent->client->ps.commandTime;
-				memcpy(&veh->m_pVehicle->m_ucmd, &ent->client->pers.cmd, sizeof(usercmd_t));
-				if ( veh->m_pVehicle->m_ucmd.buttons & BUTTON_TALK )
-				{ //forced input if "chat bubble" is up
-					veh->m_pVehicle->m_ucmd.buttons = BUTTON_TALK;
-					veh->m_pVehicle->m_ucmd.forwardmove = 0;
-					veh->m_pVehicle->m_ucmd.rightmove = 0;
-					veh->m_pVehicle->m_ucmd.upmove = 0;
-				}
-			}
-		}
-	}
-*/
 	if ( !(ent->r.svFlags & SVF_BOT) && !g_synchronousClients.integer ) {
 		ClientThink_real( ent );
 	}
-	// vehicles are clients and when running synchronous they still need to think here
-	// so special case them.
 	else if ( clientNum >= MAX_CLIENTS ) {
 		ClientThink_real( ent );
 	}
-
-/*	This was moved to clientthink_real, but since its sort of a risky change i left it here for 
-    now as a more concrete reference - BSD
-    
-	if ( clientNum < MAX_CLIENTS
-		&& ent->client->ps.m_iVehicleNum )
-	{//driving a vehicle
-		//run it
-		if (g_entities[ent->client->ps.m_iVehicleNum].inuse &&
-			g_entities[ent->client->ps.m_iVehicleNum].client)
-		{
-			ClientThink(ent->client->ps.m_iVehicleNum, &g_entities[ent->client->ps.m_iVehicleNum].m_pVehicle->m_ucmd);
-		}
-		else
-		{ //vehicle no longer valid?
-			ent->client->ps.m_iVehicleNum = 0;
-		}
-	}
-*/
 }
 
 
@@ -3872,9 +3651,8 @@ void ClientEndFrame( gentity_t *ent ) {
 	// the player any normal movement attributes
 	//
 	if ( level.intermissiontime ) {
-		if ( ent->s.number < MAX_CLIENTS
-			|| ent->client->NPC_class == CLASS_VEHICLE )
-		{//players and vehicles do nothing in intermissions
+		if ( ent->s.number < MAX_CLIENTS )
+		{//players do nothing in intermissions
 			return;
 		}
 	}

@@ -1093,43 +1093,9 @@ void Q3_RemoveEnt( gentity_t *victim )
 		}
 		else
 		{//remove the NPC
-			if ( victim->client->NPC_class == CLASS_VEHICLE )
-			{//eject everyone out of a vehicle that's about to remove itself
-				Vehicle_t *pVeh = victim->m_pVehicle;
-				if ( pVeh && pVeh->m_pVehicleInfo )
-				{
-					pVeh->m_pVehicleInfo->EjectAll( pVeh );
-				}
-			}
 			victim->think = G_FreeEntity;
 			victim->nextthink = level.time + 100;
 		}
-		/*
-		//ClientDisconnect(ent);
-		victim->s.eFlags |= EF_NODRAW;
-		victim->s.eType = ET_INVISIBLE;
-		victim->contents = 0;
-		victim->health = 0;
-		victim->targetname = NULL;
-
-		if ( victim->NPC && victim->NPC->tempGoal != NULL )
-		{
-			G_FreeEntity( victim->NPC->tempGoal );
-			victim->NPC->tempGoal = NULL;
-		}
-		if ( victim->client->ps.saberEntityNum != ENTITYNUM_NONE && victim->client->ps.saberEntityNum > 0 )
-		{
-			if ( g_entities[victim->client->ps.saberEntityNum].inuse )
-			{
-				G_FreeEntity( &g_entities[victim->client->ps.saberEntityNum] );
-			}
-			victim->client->ps.saberEntityNum = ENTITYNUM_NONE;
-		}
-		//Disappear in half a second
-		victim->e_ThinkFunc = thinkF_G_FreeEntity;
-		victim->nextthink = level.time + 500;
-		return;
-		*/
 	}
 	else
 	{

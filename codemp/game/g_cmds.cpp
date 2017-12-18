@@ -1828,9 +1828,7 @@ void StopFollowing( gentity_t *ent ) {
 	ent->client->ps.clientNum = ent - g_entities;
 	ent->client->ps.weapon = WP_NONE;
 	ent->client->ps.weaponVariation = 0;
-	G_LeaveVehicle( ent, qfalse ); // clears m_iVehicleNum as well
 	ent->client->ps.emplacedIndex = 0;
-	//ent->client->ps.m_iVehicleNum = 0;
 	ent->client->ps.viewangles[ROLL] = 0.0f;
 	ent->client->ps.forceHandExtend = HANDEXTEND_NONE;
 	ent->client->ps.forceHandExtendTime = 0;
@@ -3852,28 +3850,6 @@ void Cmd_SetViewpos_f( gentity_t *ent ) {
 	angles[YAW] = atof( buffer );
 
 	TeleportPlayer( ent, origin, angles );
-}
-
-void G_LeaveVehicle( gentity_t* ent, qboolean ConCheck ) {
-
-	if (ent->client->ps.m_iVehicleNum)
-	{ //tell it I'm getting off
-		gentity_t *veh = &g_entities[ent->client->ps.m_iVehicleNum];
-
-		if (veh->inuse && veh->client && veh->m_pVehicle)
-		{
-			if ( ConCheck ) { // check connection
-				clientConnected_t pCon = ent->client->pers.connected;
-				ent->client->pers.connected = CON_DISCONNECTED;
-				veh->m_pVehicle->m_pVehicleInfo->Eject(veh->m_pVehicle, (bgEntity_t *)ent, qtrue);
-				ent->client->pers.connected = pCon;
-			} else { // or not.
-				veh->m_pVehicle->m_pVehicleInfo->Eject(veh->m_pVehicle, (bgEntity_t *)ent, qtrue);
-			}
-		}
-	}
-
-	ent->client->ps.m_iVehicleNum = 0;
 }
 
 void saberKnockDown(gentity_t *saberent, gentity_t *saberOwner, gentity_t *other);

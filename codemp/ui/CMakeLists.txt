@@ -38,7 +38,6 @@ set(MPUIGameFiles
 	"${MPDir}/game/bg_saberLoad.cpp"
 	"${MPDir}/game/jkg_gangwars.cpp"
 	"${MPDir}/game/bg_misc.cpp"
-	"${MPDir}/game/bg_vehicleLoad.cpp"
 	"${MPDir}/game/bg_weapons.cpp"
 	"${MPDir}/game/bg_weapons_load.cpp"
 	"${MPDir}/game/anims.h"

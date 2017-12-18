@@ -34,7 +34,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "bg_ammo.h"
 #include "bg_weapons.h"
 #include "anims.h"
-#include "bg_vehicles.h"
 #include "qcommon/game_version.h"
 
 //these two defs are shared now because we do clientside ent parsing
@@ -480,7 +479,6 @@ typedef struct bgEntity_s
 {
 	entityState_t	s;
 	playerState_t	*playerState;
-	Vehicle_t		*m_pVehicle; //vehicle data
 	void			*ghoul2; //g2 instance
 	int				localAnimIndex; //index locally (game/cgame) to anim data for this skel
 	vec3_t			modelScale; //needed for g2 collision
@@ -697,9 +695,6 @@ typedef enum {
 #define	EF2_ALERTED				(1<<2)		// For certain special anims, for Rancor: means you've had an enemy, so use the more alert stand
 #define	EF2_GENERIC_NPC_FLAG	(1<<3)		// So far, used for Rancor...
 #define	EF2_FLYING				(1<<4)		// Flying FIXME: only used on NPCs doesn't *really* have to be passed over, does it?
-#define	EF2_HYPERSPACE			(1<<5)		// Used to both start the hyperspace effect on the predicted client and to let the vehicle know it can now jump into hyperspace (after turning to face the proper angle)
-#define	EF2_BRACKET_ENTITY		(1<<6)		// Draw as bracketed
-#define	EF2_SHIP_DEATH			(1<<7)		// "died in ship" mode
 #define	EF2_NOT_USED_1			(1<<8)		// not used
 
 
@@ -821,8 +816,6 @@ typedef enum {
 
 	EV_ITEM_PICKUP,			// normal item pickups are predictable
 	EV_GLOBAL_ITEM_PICKUP,	// powerup / team sounds are broadcast to everyone
-
-	EV_VEH_FIRE,
 
 	EV_NOAMMO,
 	EV_CHANGE_WEAPON,

@@ -258,10 +258,6 @@ void SP_trigger_once( gentity_t *ent );
 void SP_trigger_push (gentity_t *ent);
 void SP_trigger_teleport (gentity_t *ent);
 void SP_trigger_hurt (gentity_t *ent);
-void SP_trigger_space(gentity_t *self);
-void SP_trigger_shipboundary(gentity_t *self);
-void SP_trigger_hyperspace(gentity_t *self);
-void SP_trigger_asteroid_field(gentity_t *self);
 
 void SP_target_remove_powerups( gentity_t *ent );
 void SP_target_give (gentity_t *ent);
@@ -324,8 +320,6 @@ void SP_reference_tag ( gentity_t *ent );
 void SP_misc_weapon_shooter( gentity_t *self );
 
 void SP_NPC_spawner( gentity_t *self );
-
-void SP_NPC_Vehicle( gentity_t *self);
 
 void SP_NPC_Kyle( gentity_t *self );
 void SP_NPC_Lando( gentity_t *self );
@@ -621,7 +615,6 @@ spawn_t	spawns[] = {
 	{ "npc_trandoshan", qtrue,						SP_NPC_Trandoshan },
 	{ "npc_tusken", qtrue,							SP_NPC_Tusken },
 	{ "npc_ugnaught", qtrue,						SP_NPC_Ugnaught },
-	{ "npc_vehicle", qtrue,							SP_NPC_Vehicle },
 	{ "npc_weequay", qtrue,							SP_NPC_Weequay },
 	{ "path_corner", qtrue,							SP_path_corner },
 	{ "point_combat", qtrue,						SP_point_combat },
@@ -656,15 +649,11 @@ spawn_t	spawns[] = {
 	{ "team_CTF_redspawn", qtrue,						SP_team_CTF_redspawn },
 	{ "terrain", qfalse,							SP_terrain },
 	{ "trigger_always", qfalse,						SP_trigger_always },
-	{ "trigger_asteroid_field", qfalse,					SP_trigger_asteroid_field },
 	{ "trigger_hurt", qfalse,						SP_trigger_hurt },
-	{ "trigger_hyperspace", qfalse,						SP_trigger_hyperspace },
 	{ "trigger_lightningstrike", qfalse,					SP_trigger_lightningstrike },
 	{ "trigger_multiple", qfalse,						SP_trigger_multiple },
 	{ "trigger_once", qfalse,						SP_trigger_once },
 	{ "trigger_push", qfalse,						SP_trigger_push },
-	{ "trigger_shipboundary", qfalse,					SP_trigger_shipboundary },
-	{ "trigger_space", qfalse,						SP_trigger_space },
 	{ "trigger_teleport", qfalse,						SP_trigger_teleport },
 	{ "waypoint", qtrue,							SP_waypoint },
 	{ "waypoint_navgoal", qtrue,						SP_waypoint_navgoal },
@@ -1607,7 +1596,6 @@ BSP Options
 "ls_Xb"	blue (a is OFF, z is ON)
 
 "fogstart"		override fog start distance and force linear
-"radarrange" for Siege/Vehicle radar - default range is 2500
 */
 extern void EWebPrecache(void); //g_items.c
 float g_cullDistance;

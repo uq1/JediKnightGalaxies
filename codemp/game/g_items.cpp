@@ -463,30 +463,7 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 	{// NPCs cannot pick it up
 		if ( other->s.eType == ET_NPC )
 		{// Not the player?
-			qboolean dontGo = qfalse;
-			if (ent->item->giType == IT_AMMO &&
-				ent->item->giTag == -1 &&
-				other->s.NPC_class == CLASS_VEHICLE &&
-				other->m_pVehicle &&
-				other->m_pVehicle->m_pVehicleInfo->type == VH_WALKER)
-			{ //yeah, uh, atst gets healed by these things
-                if (other->maxHealth &&
-					other->health < other->maxHealth)
-				{
-					other->health += 80;
-					if (other->health > other->maxHealth)
-					{
-						other->health = other->maxHealth;
-					}
-					G_ScaleNetHealth(other);
-					dontGo = qtrue;
-				}
-			}
-
-			if (!dontGo)
-			{
-				return;
-			}
+			return;
 		}
 	}
 

@@ -128,7 +128,6 @@ qboolean CL_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
 	snapshot->serverTime = clSnap->serverTime;
 	Com_Memcpy( snapshot->areamask, clSnap->areamask, sizeof( snapshot->areamask ) );
 	snapshot->ps = clSnap->ps;
-	snapshot->vps = clSnap->vps; //get the vehicle ps
 	count = clSnap->numEntities;
 	if ( count > MAX_ENTITIES_IN_SNAPSHOT ) {
 		Com_DPrintf( "CL_GetSnapshot: truncated %i entities to %i\n", count, MAX_ENTITIES_IN_SNAPSHOT );

@@ -937,9 +937,7 @@ void MaintainBodyQueue(gentity_t *ent)
 { //do whatever should be done taking ragdoll and dismemberment states into account.
 	qboolean doRCG = qfalse;
 
-	//JKG_Assert(ent && ent->client);
-	if (ent->client->tempSpectate > level.time ||
-		(ent->client->ps.eFlags2 & EF2_SHIP_DEATH))
+	if (ent->client->tempSpectate > level.time)
 	{
 		ent->client->noCorpse = qtrue;
 	}
@@ -1313,7 +1311,6 @@ void *g2SaberInstance = NULL;
 
 qboolean BG_IsValidCharacterModel(const char *modelName, const char *skinName);
 qboolean BG_ValidateSkinForTeam( char *modelName, char *skinName, int team, float *colors, int redTeam, int blueTeam, int clientNum );
-void BG_GetVehicleModelName(char *modelname, int len);
 
 void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
 {
@@ -1365,84 +1362,62 @@ void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
 			char modelFullPath[MAX_QPATH];
 			char truncModelName[MAX_QPATH];
 			char skin[MAX_QPATH];
-			char vehicleName[MAX_QPATH];
 			int skinHandle = 0;
 			int i = 0;
 			char *p;
 
-			// If this is a vehicle, get it's model name.
-			if ( ent->client->NPC_class == CLASS_VEHICLE )
+			
+			if (skinName && skinName[0])
 			{
-				Q_strncpyz( vehicleName, modelname, sizeof( vehicleName ) );
-				BG_GetVehicleModelName(modelname, strlen( modelname ));
+				strcpy(skin, skinName);
 				strcpy(truncModelName, modelname);
-				skin[0] = 0;
-				if ( ent->m_pVehicle
-					&& ent->m_pVehicle->m_pVehicleInfo
-					&& ent->m_pVehicle->m_pVehicleInfo->skin
-					&& ent->m_pVehicle->m_pVehicleInfo->skin[0] )
-				{
-					skinHandle = trap->R_RegisterSkin(va("models/players/%s/model_%s.skin", modelname, ent->m_pVehicle->m_pVehicleInfo->skin));
-				}
-				else
-				{
-					skinHandle = trap->R_RegisterSkin(va("models/players/%s/model_default.skin", modelname));
-				}
 			}
 			else
 			{
-				if (skinName && skinName[0])
-				{
-					strcpy(skin, skinName);
-					strcpy(truncModelName, modelname);
-				}
-				else
-				{
-					strcpy(skin, "default");
+				strcpy(skin, "default");
 
-					strcpy(truncModelName, modelname);
-					p = Q_strrchr(truncModelName, '/');
+				strcpy(truncModelName, modelname);
+				p = Q_strrchr(truncModelName, '/');
 
-					if (p)
+				if (p)
+				{
+					*p = 0;
+					p++;
+
+					while (p && *p)
 					{
-						*p = 0;
+						skin[i] = *p;
+						i++;
 						p++;
-
-						while (p && *p)
-						{
-							skin[i] = *p;
-							i++;
-							p++;
-						}
-						skin[i] = 0;
-						i = 0;
 					}
+					skin[i] = 0;
+					i = 0;
+				}
 
-					if (!BG_IsValidCharacterModel(truncModelName, skin))
+				if (!BG_IsValidCharacterModel(truncModelName, skin))
+				{
+					strcpy(truncModelName, "kyle");
+					strcpy(skin, "default");
+				}
+
+				if ( level.gametype >= GT_TEAM )
+				{
+					//JAC: Also adjust customRGBA for team colors.
+					float colorOverride[3];
+
+					colorOverride[0] = colorOverride[1] = colorOverride[2] = 0.0f;
+
+					BG_ValidateSkinForTeam( truncModelName, skin, ent->client->sess.sessionTeam, colorOverride, level.redTeam, level.blueTeam, ent-g_entities );
+					if (colorOverride[0] != 0.0f ||
+						colorOverride[1] != 0.0f ||
+						colorOverride[2] != 0.0f)
 					{
-						strcpy(truncModelName, "kyle");
-						strcpy(skin, "default");
+						ent->client->ps.customRGBA[0] = colorOverride[0]*255.0f;
+						ent->client->ps.customRGBA[1] = colorOverride[1]*255.0f;
+						ent->client->ps.customRGBA[2] = colorOverride[2]*255.0f;
 					}
 
-					if ( level.gametype >= GT_TEAM )
-					{
-						//JAC: Also adjust customRGBA for team colors.
-						float colorOverride[3];
-
-						colorOverride[0] = colorOverride[1] = colorOverride[2] = 0.0f;
-
-						BG_ValidateSkinForTeam( truncModelName, skin, ent->client->sess.sessionTeam, colorOverride, level.redTeam, level.blueTeam, ent-g_entities );
-						if (colorOverride[0] != 0.0f ||
-							colorOverride[1] != 0.0f ||
-							colorOverride[2] != 0.0f)
-						{
-							ent->client->ps.customRGBA[0] = colorOverride[0]*255.0f;
-							ent->client->ps.customRGBA[1] = colorOverride[1]*255.0f;
-							ent->client->ps.customRGBA[2] = colorOverride[2]*255.0f;
-						}
-
-						//BG_ValidateSkinForTeam( truncModelName, skin, ent->client->sess.sessionTeam, NULL );
-					}
+					//BG_ValidateSkinForTeam( truncModelName, skin, ent->client->sess.sessionTeam, NULL );
 				}
 			}
 
@@ -1498,14 +1473,7 @@ void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
 						strcat( modelFullPath, va("*%s", skin) );
 					}
 
-					if ( ent->client->NPC_class == CLASS_VEHICLE )
-					{ //vehicles are tricky and send over their vehicle names as the model (the model is then retrieved based on the vehicle name)
-						ent->s.modelindex = G_ModelIndex(vehicleName);
-					}
-					else
-					{
-						ent->s.modelindex = G_ModelIndex(modelFullPath);
-					}
+					ent->s.modelindex = G_ModelIndex(modelFullPath);
 				}
 			}
 		}
@@ -1594,51 +1562,6 @@ void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName)
 		else
 		{
 			ent->localAnimIndex = 0;
-		}
-	}
-
-	if (ent->s.NPC_class == CLASS_VEHICLE &&
-		ent->m_pVehicle)
-	{ //do special vehicle stuff
-		char strTemp[128];
-		int i;
-
-		// Setup the default first bolt
-		i = trap->G2API_AddBolt( ent->ghoul2, 0, "model_root" );
-
-		// Setup the droid unit.
-		ent->m_pVehicle->m_iDroidUnitTag = trap->G2API_AddBolt( ent->ghoul2, 0, "*droidunit" );
-
-		// Setup the Exhausts.
-		for ( i = 0; i < MAX_VEHICLE_EXHAUSTS; i++ )
-		{
-			Com_sprintf( strTemp, 128, "*exhaust%i", i + 1 );
-			ent->m_pVehicle->m_iExhaustTag[i] = trap->G2API_AddBolt( ent->ghoul2, 0, strTemp );
-		}
-
-		// Setup the Muzzles.
-		for ( i = 0; i < MAX_VEHICLE_MUZZLES; i++ )
-		{
-			Com_sprintf( strTemp, 128, "*muzzle%i", i + 1 );
-			ent->m_pVehicle->m_iMuzzleTag[i] = trap->G2API_AddBolt( ent->ghoul2, 0, strTemp );
-			if ( ent->m_pVehicle->m_iMuzzleTag[i] == -1 )
-			{//ergh, try *flash?
-				Com_sprintf( strTemp, 128, "*flash%i", i + 1 );
-				ent->m_pVehicle->m_iMuzzleTag[i] = trap->G2API_AddBolt( ent->ghoul2, 0, strTemp );
-			}
-		}
-
-		// Setup the Turrets.
-		for ( i = 0; i < MAX_VEHICLE_TURRET_MUZZLES; i++ )
-		{
-			if ( ent->m_pVehicle->m_pVehicleInfo->turret[i].gunnerViewTag )
-			{
-				ent->m_pVehicle->m_iGunnerViewTag[i] = trap->G2API_AddBolt( ent->ghoul2, 0, ent->m_pVehicle->m_pVehicleInfo->turret[i].gunnerViewTag );
-			}
-			else
-			{
-				ent->m_pVehicle->m_iGunnerViewTag[i] = -1;
-			}
 		}
 	}
 	
@@ -2494,7 +2417,7 @@ void G_BreakArm(gentity_t *ent, int arm)
 
 	assert(ent && ent->client);
 
-	if (ent->s.NPC_class == CLASS_VEHICLE || ent->localAnimIndex >= NUM_RESERVED_ANIMSETS)
+	if (ent->localAnimIndex >= NUM_RESERVED_ANIMSETS)
 	{ //no broken limbs for vehicles and non-humanoids
 		return;
 	}
@@ -2625,11 +2548,6 @@ tryTorso:
 		bgAllAnims[self->localAnimIndex].anims[torsoAnim].numFrames == 0)
 
 	{ //If this fails as well just return.
-		return;
-	}
-	else if (self->s.number >= MAX_CLIENTS &&
-		self->s.NPC_class == CLASS_VEHICLE)
-	{ //we only want to set the root bone for vehicles
 		return;
 	}
 
@@ -3633,9 +3551,6 @@ void ClientDisconnect( int clientNum ) {
 		i++;
 	}
 	i = 0;
-
-	//JAC: Correctly leave vehicles
-	G_LeaveVehicle( ent, qtrue );
 
 	if ( ent->client->ewebIndex )
 	{

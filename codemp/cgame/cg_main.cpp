@@ -203,24 +203,6 @@ static void C_GetLerpData( void ) {
 		data->mAngles[PITCH] = 0.0f;
 		data->mAngles[ROLL] = 0.0f;
 	}
-	else if ( cg_entities[data->mEntityNum].currentState.eType == ET_NPC ) {
-		// an NPC
-		Vehicle_t *pVeh = cg_entities[data->mEntityNum].m_pVehicle;
-		if ( !pVeh ) {
-			// for vehicles, we may or may not want to 0 out pitch and roll
-			data->mAngles[PITCH] = 0.0f;
-			data->mAngles[ROLL] = 0.0f;
-		}
-		else if ( pVeh->m_pVehicleInfo->type == VH_SPEEDER ) {
-			// speeder wants no pitch but a roll
-			data->mAngles[PITCH] = 0.0f;
-		}
-		else if ( pVeh->m_pVehicleInfo->type != VH_FIGHTER ) {
-			// fighters want all angles
-			data->mAngles[PITCH] = 0.0f;
-			data->mAngles[ROLL] = 0.0f;
-		}
-	}
 }
 
 void C_Trace( void ) {
@@ -1472,14 +1454,7 @@ Ghoul2 Insert End
 			CG_CacheG2AnimInfo(modelName);
 		}
 
-		if (modelName[0] != '$' && modelName[0] != '@')
-		{ //don't register vehicle names and saber names as models.
-			cgs.gameModels[i] = trap->R_RegisterModel( modelName );
-		}
-		else
-		{//FIXME: register here so that stuff gets precached!!!
-			cgs.gameModels[i] = 0;
-		}
+		cgs.gameModels[i] = 0;
 	}
 	cg.loadLCARSStage = 8;
 /*
@@ -2507,9 +2482,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 	BG_InitAnimsets(); //clear it out
 
 	trap->RegisterSharedMemory(cg.sharedBuffer.raw);
-
-	//Load external vehicle data
-	BG_VehicleLoadParms();
 
 	CG_InitializeCrossoverAPI();
 

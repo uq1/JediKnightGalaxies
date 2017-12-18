@@ -932,6 +932,69 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 	}*/
 }
 
+// Convert HSL to RGB
+void HSL2RGB(float h, float s, float l, float *r, float *g, float *b) {
+	double tr, tg, tb;
+	double v;
+
+	tr = l;
+	tg = l;
+	tb = l;
+	v = (l <= 0.5f) ? (l * (1.0f + (l * 2))) : (l + l - l * l);
+	if (v > 0) {
+		double m;
+		double sv;
+		int sextant;
+		double fract, vsf, mid1, mid2;
+
+		m = l + l - v;
+		sv = (v - m) / v;
+		h *= 6.0f;
+		sextant = (int)h;
+		fract = h - sextant;
+		vsf = v * sv * fract;
+		mid1 = m + vsf;
+		mid2 = v - vsf;
+		switch (sextant)
+		{
+		case 0:
+		default:
+			tr = v;
+			tg = mid1;
+			tb = m;
+			break;
+		case 1:
+			tr = mid2;
+			tg = v;
+			tb = m;
+			break;
+		case 2:
+			tr = m;
+			tg = v;
+			tb = mid1;
+			break;
+		case 3:
+			tr = m;
+			tg = mid2;
+			tb = v;
+			break;
+		case 4:
+			tr = mid1;
+			tg = m;
+			tb = v;
+			break;
+		case 5:
+			tr = v;
+			tg = m;
+			tb = mid2;
+			break;
+		}
+	}
+	*r = tr;
+	*g = tg;
+	*b = tb;
+}
+
 /*
 ==================
 CG_DrawFPS
@@ -939,7 +1002,6 @@ CG_DrawFPS
 */
 #define	FPS_FRAMES	16
 #define STYLE_DROPSHADOW	0x80000000
-extern void HSL2RGB(float h, float s, float l, float *r, float *g, float *b);
 static void CG_DrawFPS( float x, float y, float w, float h, int font, float textScale ) {
 	char		*s;
 	static unsigned short previousTimes[FPS_FRAMES];

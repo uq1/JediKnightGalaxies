@@ -36,13 +36,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "cg_weapons.h"
 //==========================================================================
 
-extern qboolean CG_VehicleWeaponImpact( centity_t *cent );
 extern int cg_saberFlashTime;
 extern vec3_t cg_saberFlashPos;
 extern char *showPowersName[];
-
-extern int cg_vehicleAmmoWarning;
-extern int cg_vehicleAmmoWarningTime;
 
 extern void JKG_SwapToSaber(int saberNum, clientInfo_t *ci, const char *newSaber, int weapon, int variation);
 
@@ -645,19 +641,7 @@ void CG_G2MarkEvent(entityState_t *es)
 	if ( (es->eFlags&EF_JETPACK_ACTIVE) )
 	{// a vehicle weapon, make it a larger size mark
 		//OR base this on the size of the thing you hit?
-		if ( g_vehWeaponInfo[es->otherEntityNum2].fG2MarkSize )
-		{
-			size = flrand( 0.6f, 1.4f )*g_vehWeaponInfo[es->otherEntityNum2].fG2MarkSize;
-		}
-		else
-		{	
-			size = flrand( 32.0f, 72.0f );
-		}
-		//specify mark shader in vehWeapon file
-		if ( g_vehWeaponInfo[es->otherEntityNum2].iG2MarkShaderHandle )
-		{//have one we want to use instead of defaults
-			shader = g_vehWeaponInfo[es->otherEntityNum2].iG2MarkShaderHandle;
-		}
+		size = flrand( 32.0f, 72.0f );
 	}
 	switch(es->weapon)
 	{
@@ -697,96 +681,8 @@ void CG_G2MarkEvent(entityState_t *es)
 			pOwner->lerpAngles[YAW], pOwner->ghoul2,
 			pOwner->modelScale, Q_irand(10000, 20000));
 		break;
-		/*
-	case WP_FLECHETTE:
-		CG_AddGhoul2Mark(cgs.media.bdecal_bodyburn1, flrand(0.5f, 1.0f), 
-			startPoint, es->origin2, es->owner, pOwner->lerpOrigin,
-			pOwner->lerpAngles[YAW], pOwner->ghoul2,
-			pOwner->modelScale);
-		break;
-		*/
-		//Issues with small scale?
 	default:
 		break;
-	}
-}
-
-void CG_CalcVehMuzzle(Vehicle_t *pVeh, centity_t *ent, int muzzleNum)
-{
-	mdxaBone_t boltMatrix;
-	vec3_t	vehAngles;
-
-	assert(pVeh);
-
-	if (pVeh->m_iMuzzleTime[muzzleNum] == cg.time)
-	{ //already done for this frame, don't need to do it again
-		return;
-	}
-	//Uh... how about we set this, hunh...?  :)
-	pVeh->m_iMuzzleTime[muzzleNum] = cg.time;
-
-	VectorCopy( ent->lerpAngles, vehAngles );
-	if ( pVeh->m_pVehicleInfo )
-	{
-		if (pVeh->m_pVehicleInfo->type == VH_ANIMAL
-			 ||pVeh->m_pVehicleInfo->type == VH_WALKER)
-		{
-			vehAngles[PITCH] = vehAngles[ROLL] = 0.0f;
-		}
-		else if (pVeh->m_pVehicleInfo->type == VH_SPEEDER)
-		{
-			vehAngles[PITCH] = 0.0f;
-		}
-	}
-	trap->G2API_GetBoltMatrix_NoRecNoRot(ent->ghoul2, 0, pVeh->m_iMuzzleTag[muzzleNum], &boltMatrix, vehAngles,
-		ent->lerpOrigin, cg.time, NULL, ent->modelScale);
-	BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, pVeh->m_vMuzzlePos[muzzleNum]);
-	BG_GiveMeVectorFromMatrix(&boltMatrix, NEGATIVE_Y, pVeh->m_vMuzzleDir[muzzleNum]);
-}
-
-//corresponds to G_VehMuzzleFireFX -rww
-void CG_VehMuzzleFireFX(centity_t *veh, entityState_t *broadcaster)
-{
-	Vehicle_t *pVeh = veh->m_pVehicle;
-	int curMuz = 0, muzFX = 0;
-
-	if (!pVeh || !veh->ghoul2)
-	{
-		return;
-	}
-
-	for ( curMuz = 0; curMuz < MAX_VEHICLE_MUZZLES; curMuz++ )
-	{//go through all muzzles and 
-		if ( pVeh->m_iMuzzleTag[curMuz] != -1//valid muzzle bolt
-			&& (broadcaster->trickedentindex&(1<<curMuz)) )//fired
-		{//this muzzle fired
-			muzFX = 0;
-			if ( pVeh->m_pVehicleInfo->weapMuzzle[curMuz] == 0 )
-			{//no weaopon for this muzzle?  check turrets
-				int i, j;
-				for ( i = 0; i < MAX_VEHICLE_TURRETS; i++ )
-				{
-					for ( j = 0; j < MAX_VEHICLE_TURRETS; j++ )
-					{
-						if ( pVeh->m_pVehicleInfo->turret[i].iMuzzle[j]-1 == curMuz )
-						{//this muzzle belongs to this turret
-							muzFX = g_vehWeaponInfo[pVeh->m_pVehicleInfo->turret[i].iWeapon].iMuzzleFX;
-							break;
-						}
-					}
-				}
-			}
-			else
-			{
-				muzFX = g_vehWeaponInfo[pVeh->m_pVehicleInfo->weapMuzzle[curMuz]].iMuzzleFX;
-			}
-			if ( muzFX )
-			{
-				//CG_CalcVehMuzzle(pVeh, veh, curMuz);
-				//trap->FX_PlayEffectID(muzFX, pVeh->m_vMuzzlePos[curMuz], pVeh->m_vMuzzleDir[curMuz], -1, -1);
-				trap->FX_PlayBoltedEffectID(muzFX, veh->currentState.origin, veh->ghoul2, pVeh->m_iMuzzleTag[curMuz], veh->currentState.number, 0, 0, qtrue);
-			}
-		}
 	}
 }
 
@@ -1455,14 +1351,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 		break;
 
-	case EV_VEH_FIRE:
-		DEBUGNAME("EV_VEH_FIRE");
-		{
-			centity_t *veh = &cg_entities[es->owner];
-			CG_VehMuzzleFireFX(veh, es);
-		}
-		break;
-
 	//
 	// weapon events
 	//
@@ -1471,29 +1359,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 //		trap->S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.noAmmoSound );
 		if ( es->number == cg.snap->ps.clientNum )
 		{
-			if ( CG_InFighter() || CG_InATST() || cg.snap->ps.weapon == WP_NONE )
-			{//just letting us know our vehicle is out of ammo
-				//FIXME: flash something on HUD or give some message so we know we have no ammo
-				centity_t *localCent = &cg_entities[cg.snap->ps.clientNum];
-				if ( localCent->m_pVehicle 
-					&& localCent->m_pVehicle->m_pVehicleInfo
-					&& localCent->m_pVehicle->m_pVehicleInfo->weapon[es->eventParm].soundNoAmmo )
-				{//play the "no Ammo" sound for this weapon
-					trap->S_StartSound (NULL, cg.snap->ps.clientNum, CHAN_AUTO, localCent->m_pVehicle->m_pVehicleInfo->weapon[es->eventParm].soundNoAmmo );
-				}
-				else
-				{//play the default "no ammo" sound
-					trap->S_StartSound (NULL, cg.snap->ps.clientNum, CHAN_AUTO, cgs.media.noAmmoSound );
-				}
-				//flash the HUD so they associate the sound with the visual indicator that they don't have enough ammo
-				if ( cg_vehicleAmmoWarningTime < cg.time
-					|| cg_vehicleAmmoWarning != es->eventParm )
-				{//if there's already one going, don't interrupt it (unless they tried to fire another weapon that's out of ammo)
-					cg_vehicleAmmoWarning = es->eventParm;
-					cg_vehicleAmmoWarningTime = cg.time+500;
-				}
-			}
-			else if ( cg.snap->ps.weapon == WP_SABER )
+			if ( cg.snap->ps.weapon == WP_SABER )
 			{
 				cg.forceHUDTotalFlashTime = cg.time + 1000;
 			}
@@ -1640,12 +1506,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 		else if (cent->currentState.weapon != WP_EMPLACED_GUN || cent->currentState.eType == ET_NPC)
 		{
-			if (cent->currentState.eType == ET_NPC &&
-				cent->currentState.NPC_class == CLASS_VEHICLE &&
-				cent->m_pVehicle)
-			{ //vehicles do nothing for clientside weapon fire events.. at least for now.
-				break;
-			}
 			JKG_FireWeapon (cent, qfalse);
 		}
 		break;
@@ -1660,13 +1520,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 		if (cent->currentState.weapon == WP_EMPLACED_GUN)
 		{ //don't do anything for emplaced stuff
-			break;
-		}
-
-		if (cent->currentState.eType == ET_NPC &&
-			cent->currentState.NPC_class == CLASS_VEHICLE &&
-			cent->m_pVehicle)
-		{ //vehicles do nothing for clientside weapon fire events.. at least for now.
 			break;
 		}
 
@@ -2227,21 +2080,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_MISSILE_HIT:
 		DEBUGNAME("EV_MISSILE_HIT");
 		ByteToDir( es->eventParm, dir );
+
 		if ( es->emplacedOwner )
 		{//hack: this is an index to a custom effect to use
 			trap->FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1, false);
 		}
-		else if ( CG_VehicleWeaponImpact( cent ) )
-		{//a vehicle missile that uses an overridden impact effect...
-		}
-		/*else if (cent->currentState.eFlags & EF_ALT_FIRING)
-		{
-			CG_MissileHitPlayer( es->weapon, position, dir, es->otherEntityNum, qtrue);
-		}
-		else
-		{
-			CG_MissileHitPlayer( es->weapon, position, dir, es->otherEntityNum, qfalse);
-		}*/
 		else
 		{
 			JKG_RenderProjectileHitPlayer (cent, position, dir, es->firingMode);
@@ -2261,17 +2104,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{//hack: this is an index to a custom effect to use
 			trap->FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1, false);
 		}
-		else if ( CG_VehicleWeaponImpact( cent ) )
-		{//a vehicle missile that used an overridden impact effect...
-		}
-		/*else if (cent->currentState.eFlags & EF_ALT_FIRING)
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_DEFAULT, qtrue, es->generic1);
-		}
-		else
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_DEFAULT, qfalse, 0);
-		}*/
 		else
 		{
 			JKG_RenderProjectileMiss (cent, position, dir, es->firingMode);
@@ -2290,9 +2122,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		if ( es->emplacedOwner )
 		{//hack: this is an index to a custom effect to use
 			trap->FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1, false);
-		}
-		else if ( CG_VehicleWeaponImpact( cent ) )
-		{//a vehicle missile that used an overridden impact effect...
 		}
 		else
 		{

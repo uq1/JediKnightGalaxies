@@ -3038,8 +3038,6 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 	s->customRGBA[1] = ps->customRGBA[1];
 	s->customRGBA[2] = ps->customRGBA[2];
 	s->customRGBA[3] = ps->customRGBA[3];
-
-	s->m_iVehicleNum = ps->m_iVehicleNum;
 	
 	//s->ironsightsTime = ps->ironsightsTime;
 	//s->sprintTime = ps->sprintTime;
@@ -3209,8 +3207,6 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	s->customRGBA[1] = ps->customRGBA[1];
 	s->customRGBA[2] = ps->customRGBA[2];
 	s->customRGBA[3] = ps->customRGBA[3];
-
-	s->m_iVehicleNum = ps->m_iVehicleNum;
 	
 //	s->ironsightsTime = ps->ironsightsTime;
 	s->damageTypeFlags = ps->damageTypeFlags;
