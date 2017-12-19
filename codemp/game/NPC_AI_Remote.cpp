@@ -271,7 +271,6 @@ void Remote_Fire (void)
 	missile->s.weapon = WP_BRYAR_PISTOL;
 
 	missile->damage = 10;
-	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
 	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 

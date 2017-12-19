@@ -718,7 +718,7 @@ void NPC_BSGM_Attack( void )
 				VectorNormalize( smackDir );
 				//hurt them
 				G_Sound( NPC->enemy, CHAN_AUTO, G_SoundIndex( "sound/weapons/galak/skewerhit.wav" ) );
-				G_Damage( NPC->enemy, NPC, NPC, smackDir, NPC->r.currentOrigin, (g_npcspskill.integer+1)*Q_irand( 5, 10), DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK, MOD_CRUSH ); 
+				G_Damage( NPC->enemy, NPC, NPC, smackDir, NPC->r.currentOrigin, (g_npcspskill.integer+1)*Q_irand( 5, 10), DAMAGE_NO_SHIELD|DAMAGE_NO_KNOCKBACK, MOD_CRUSH ); 
 				if ( NPC->client->ps.torsoAnim == BOTH_ATTACK4 )
 				{//smackdown
 					int knockAnim = BOTH_KNOCKDOWN1;

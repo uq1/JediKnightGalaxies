@@ -2379,6 +2379,22 @@ typedef enum
 
 } ForceReload_e;
 
+// Bit of damage types stuff here...
+typedef enum damageType_e
+{
+	DT_DISINTEGRATE, //--futuza note: DT_IMPLOSION, DT_BLASTER, DT_SLUG, DT_ACP, DT_PULSE, DT_ION, DT_SONIC and DT_COLD are not currently used
+	DT_EXPLOSION,
+	DT_FIRE,
+	DT_FREEZE,
+	DT_IMPLOSION,
+	DT_STUN,
+	DT_CARBONITE,
+	DT_BLEED,
+	DT_COLD,
+	DT_POISON,
+
+	NUM_DAMAGE_TYPES
+} damageType_t;
 
 enum {
 	FONT_NONE,

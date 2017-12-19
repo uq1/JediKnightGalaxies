@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // GLua include
 #include "../GLua/glua.h"
 #include "jkg_bans.h"
-#include "jkg_damagetypes.h"
+#include "jkg_damageareas.h"
 #include "jkg_utilityfunc.h"
 #include "qcommon/game_version.h"
 
@@ -202,75 +202,6 @@ target2 - ents to use when this intermission point is chosen
 */
 void SP_info_player_intermission_blue( gentity_t *ent ) {
 
-}
-
-#define JMSABER_RESPAWN_TIME 20000 //in case it gets stuck somewhere no one can reach
-
-void ThrowSaberToAttacker(gentity_t *self, gentity_t *attacker)
-{
-	gentity_t *ent = &g_entities[self->client->ps.saberIndex];
-	vec3_t a;
-	int altVelocity = 0;
-
-	if (!ent || ent->enemy != self)
-	{ //something has gone very wrong (this should never happen)
-		Com_Error(ERR_FATAL, "ThrowSaberToAttacker failed.");
-	}
-
-	if (attacker && attacker->client && self->client->ps.saberInFlight)
-	{ //someone killed us and we had the saber thrown, so actually move this saber to the saber location
-	  //if we killed ourselves with saber thrown, however, same suicide rules of respawning at spawn spot still
-	  //apply.
-		gentity_t *flyingsaber = &g_entities[self->client->ps.saberEntityNum];
-
-		if (flyingsaber && flyingsaber->inuse)
-		{
-			VectorCopy(flyingsaber->s.pos.trBase, ent->s.pos.trBase);
-			VectorCopy(flyingsaber->s.pos.trDelta, ent->s.pos.trDelta);
-			VectorCopy(flyingsaber->s.apos.trBase, ent->s.apos.trBase);
-			VectorCopy(flyingsaber->s.apos.trDelta, ent->s.apos.trDelta);
-
-			VectorCopy(flyingsaber->r.currentOrigin, ent->r.currentOrigin);
-			VectorCopy(flyingsaber->r.currentAngles, ent->r.currentAngles);
-			altVelocity = 1;
-		}
-	}
-
-	self->client->ps.saberInFlight = qtrue; //say he threw it anyway in order to properly remove from dead body
-
-	WP_SaberAddG2Model( ent, self->client->saber[0].model, self->client->saber[0].skin );
-
-	ent->s.eFlags &= ~(EF_NODRAW);
-	ent->s.modelGhoul2 = 1;
-	ent->s.eType = ET_MISSILE;
-	ent->enemy = NULL;
-
-	if (!attacker || !attacker->client)
-	{
-		VectorCopy(ent->s.origin2, ent->s.pos.trBase);
-		VectorCopy(ent->s.origin2, ent->s.origin);
-		VectorCopy(ent->s.origin2, ent->r.currentOrigin);
-		ent->pos2[0] = 0;
-		trap->LinkEntity((sharedEntity_t *)ent);
-		return;
-	}
-
-	if (!altVelocity)
-	{
-		VectorCopy(self->s.pos.trBase, ent->s.pos.trBase);
-		VectorCopy(self->s.pos.trBase, ent->s.origin);
-		VectorCopy(self->s.pos.trBase, ent->r.currentOrigin);
-
-		VectorSubtract(attacker->client->ps.origin, ent->s.pos.trBase, a);
-
-		VectorNormalize(a);
-
-		ent->s.pos.trDelta[0] = a[0]*256;
-		ent->s.pos.trDelta[1] = a[1]*256;
-		ent->s.pos.trDelta[2] = 256;
-	}
-
-	trap->LinkEntity((sharedEntity_t *)ent);
 }
 
 /*

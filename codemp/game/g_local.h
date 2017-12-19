@@ -794,7 +794,7 @@ struct gclient_s {
 
 	// sum up damage over an entire frame, so
 	// shotgun blasts give a single big kick
-	int			damage_armor;		// damage absorbed by armor
+	int			damage_shield;		// damage absorbed by armor
 	int			damage_blood;		// damage taken out of health
 	int			damage_knockback;	// impact damage
 	vec3_t		damage_from;		// origin for vector calculation
@@ -1405,7 +1405,6 @@ qboolean	G_EntitiesFree( void );
 qboolean G_ActivateBehavior (gentity_t *self, int bset );
 
 void	G_TouchTriggers (gentity_t *ent);
-void	G_TouchSolids (gentity_t *ent);
 void	GetAnglesForDirection( const vec3_t p1, const vec3_t p2, vec3_t out );
 
 //
@@ -1441,10 +1440,7 @@ void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, fl
 void G_Damage (gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t point, int damage, int dflags, int mod);
 qboolean G_RadiusDamage (vec3_t origin, gentity_t *attacker, float damage, float radius, gentity_t *ignore, gentity_t *missile, int mod);
 void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath );
-void TossClientWeapon(gentity_t *self, vec3_t direction, float speed);
 void TossClientItems( gentity_t *self );
-void TossClientCubes( gentity_t *self );
-void ExplodeDeath( gentity_t *self );
 void G_CheckForDismemberment(gentity_t *ent, gentity_t *enemy, vec3_t point, int damage, int deathAnim, qboolean postDeath);
 extern int gGAvoidDismember;
 
@@ -1452,25 +1448,11 @@ extern int gGAvoidDismember;
 // damage flags
 #define DAMAGE_NORMAL				0x00000000	// No flags set.
 #define DAMAGE_RADIUS				0x00000001	// damage was indirect
-#define DAMAGE_NO_ARMOR				0x00000002	// armour does not protect from this damage
+#define DAMAGE_NO_SHIELD			0x00000002	// shield does not protect from this damage
 #define DAMAGE_NO_KNOCKBACK			0x00000004	// do not affect velocity, just view angles
 #define DAMAGE_NO_PROTECTION		0x00000008  // armor, shields, invulnerability, and godmode have no effect
-#define DAMAGE_NO_TEAM_PROTECTION	0x00000010  // armor, shields, invulnerability, and godmode have no effect
-//JK2 flags
-#define DAMAGE_EXTRA_KNOCKBACK		0x00000040	// add extra knockback to this damage
-#define DAMAGE_DEATH_KNOCKBACK		0x00000080	// only does knockback on death of target
-#define DAMAGE_IGNORE_TEAM			0x00000100	// damage is always done, regardless of teams
-#define DAMAGE_NO_DAMAGE			0x00000200	// do no actual damage but react as if damage was taken
-#define DAMAGE_HALF_ABSORB			0x00000400	// half shields, half health
-#define DAMAGE_HALF_ARMOR_REDUCTION	0x00000800	// This damage doesn't whittle down armor as efficiently.
-#define DAMAGE_HEAVY_WEAP_CLASS		0x00001000	// Heavy damage
-#define DAMAGE_NO_HIT_LOC			0x00002000	// No hit location
-#define DAMAGE_NO_SELF_PROTECTION	0x00004000	// Dont apply half damage to self attacks
-#define DAMAGE_NO_DISMEMBER			0x00008000	// Dont do dismemberment
-#define DAMAGE_SABER_KNOCKBACK1		0x00010000	// Check the attacker's first saber for a knockbackScale
-#define DAMAGE_SABER_KNOCKBACK2		0x00020000	// Check the attacker's second saber for a knockbackScale
-#define DAMAGE_SABER_KNOCKBACK1_B2	0x00040000	// Check the attacker's first saber for a knockbackScale2
-#define DAMAGE_SABER_KNOCKBACK2_B2	0x00080000	// Check the attacker's second saber for a knockbackScale2
+#define DAMAGE_NO_HIT_LOC			0x00000010	// No hit location
+#define DAMAGE_NO_DISMEMBER			0x00000020	// Dont do dismemberment
 //
 // g_exphysics.c
 //
@@ -1486,7 +1468,6 @@ void G_RunMissile( gentity_t *ent );
 gentity_t *CreateMissile( vec3_t org, vec3_t dir, float vel, int life,
 							gentity_t *owner, qboolean altFire);
 void G_BounceProjectile( vec3_t start, vec3_t impact, vec3_t dir, vec3_t endout );
-void G_ExplodeMissile( gentity_t *ent );
 
 
 //
@@ -1548,9 +1529,7 @@ void		 WP_CalculateAngles( gentity_t *ent );
 void		 WP_CalculateMuzzlePoint( gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint );
 void		 WP_RecalculateTheFreakingMuzzleCrap( gentity_t *ent );
 gentity_t	*WP_FireGenericMissile( gentity_t *ent, int firemode, vec3_t origin, vec3_t dir );
-void		 WP_FireGenericTraceLine( gentity_t *ent, qboolean altFire );
 void		 WP_FireGenericWeapon( gentity_t *ent, int firemode );
-qboolean	 WP_GetWeaponAttackDisruption( gentity_t* ent, qboolean altFire );
 float		 WP_GetWeaponBoxSize( gentity_t *ent, int firemode );
 int			 WP_GetWeaponBounce( gentity_t *ent, int firemode );
 int			 WP_GetWeaponCharge( gentity_t *ent, int firemode );
@@ -1560,16 +1539,10 @@ qboolean	 WP_GetWeaponGravity( gentity_t *ent, int firemode );
 int			 WP_GetWeaponMOD( gentity_t *ent, int firemode );
 int			 WP_GetWeaponSplashMOD( gentity_t *ent, int firemode );
 float		 WP_GetWeaponRange( gentity_t *ent, int firemode );
-qboolean	 WP_GetWeaponShotCount( gentity_t *ent, qboolean altFire );
 float		 WP_GetWeaponSpeed( gentity_t *ent, int firemode );
 double		 WP_GetWeaponSplashRange( gentity_t *ent, int firemode );
 
-
-void WP_FireTurretMissile( gentity_t *ent, vec3_t start, vec3_t dir, qboolean altFire, int damage, int velocity, int mod, gentity_t *ignore );
-void WP_FireGenericBlasterMissile( gentity_t *ent, vec3_t start, vec3_t dir, qboolean altFire, int damage, int velocity, int mod );
 void SnapVectorTowards( vec3_t v, vec3_t to );
-qboolean CheckGauntletAttack( gentity_t *ent );
-
 
 //
 // g_client.c
@@ -1583,7 +1556,6 @@ void MaintainBodyQueue(gentity_t *ent);
 void JKG_PermaSpectate(gentity_t *ent);
 void respawn (gentity_t *ent);
 qboolean JKG_ClientAlive(gentity_t* ent);
-void ClientRespawn (gentity_t *ent);
 void BeginIntermission (void);
 void InitBodyQue (void);
 void ClientSpawn( gentity_t *ent, qboolean respawn );
@@ -1606,7 +1578,6 @@ void FireWeapon( gentity_t *ent, int firingMode );
 void BlowDetpacks(gentity_t *ent);
 
 void MoveClientToIntermission (gentity_t *client);
-void G_SetStats (gentity_t *ent);
 void DeathmatchScoreboardMessage (gentity_t *client);
 
 //
@@ -1700,7 +1671,6 @@ void G_RemoveQueuedBotBegin( int clientNum );
 qboolean G_BotConnect( int clientNum, qboolean restart );
 void Svcmd_AddBot_f( void );
 void Svcmd_BotList_f( void );
-void BotInterbreedEndMatch( void );
 qboolean G_DoesMapSupportGametype(const char *mapname, int gametype);
 const char *G_RefreshNextMap(int gametype, qboolean forced);
 
@@ -1757,7 +1727,6 @@ void QDECL G_LogWeaponPowerup(int client, int powerupid);
 void QDECL G_LogWeaponItem(int client, int itemid);
 void QDECL G_LogWeaponInit(void);
 void QDECL G_LogWeaponOutput(void);
-void QDECL G_LogExit( const char *string );
 void QDECL G_ClearClientLog(int client);
 
 // g_timer
@@ -1783,12 +1752,7 @@ qboolean InFront( vec3_t spot, vec3_t from, vec3_t fromAngles, float threshHold 
 #define MAX_FILEPATH			144
 
 int		OrgVisible		( vec3_t org1, vec3_t org2, int ignore);
-void	BotOrder		( gentity_t *ent, int clientnum, int ordernum);
 int		InFieldOfVision	( vec3_t viewangles, float fov, vec3_t angles);
-
-// ai_util.c
-void B_InitAlloc(void);
-void B_CleanupAlloc(void);
 
 //bot settings
 typedef struct bot_settings_s

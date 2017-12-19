@@ -229,7 +229,7 @@ void Wampa_Slash( int boltIndex, qboolean backhand )
 		if ( DistanceSquared( radiusEnt->r.currentOrigin, boltOrg ) <= radiusSquared )
 		{
 			//smack
-			G_Damage( radiusEnt, NPC, NPC, vec3_origin, radiusEnt->r.currentOrigin, damage, ((backhand)?DAMAGE_NO_ARMOR:(DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK)), MOD_MELEE );
+			G_Damage( radiusEnt, NPC, NPC, vec3_origin, radiusEnt->r.currentOrigin, damage, ((backhand)?DAMAGE_NO_SHIELD:(DAMAGE_NO_SHIELD|DAMAGE_NO_KNOCKBACK)), MOD_MELEE );
 			if ( backhand )
 			{
 				//actually push the enemy

@@ -56,13 +56,23 @@ static void BG_ParseFireModeFiringType ( weaponFireModeStats_t *fireMode, const 
 }
 
 #ifdef _GAME
-#include "jkg_damagetypes.h"
+#include "jkg_damageareas.h"
 static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damageNode, qboolean secondary )
 {
     if ( !damageNode )
     {
         return;
     }
+
+	if (!secondary)
+	{
+		fireModeStats->primary.bPresent = qfalse;
+	}
+	else
+	{
+		fireModeStats->secondary.bPresent = qfalse;
+	}
+	
     
     if ( !secondary && cJSON_IsNumber (damageNode) )
     {
@@ -144,9 +154,10 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
         {
             default:
             case 0: darea.penetrationType = PT_NONE; break;
-            case 1: darea.penetrationType = PT_SHIELD; break;
-            case 2: darea.penetrationType = PT_SHIELD_ARMOR; break;
-            case 3: darea.penetrationType = PT_SHIELD_ARMOR_BUILDING; break;
+			// not used
+            //case 1: darea.penetrationType = PT_SHIELD; break;
+            //case 2: darea.penetrationType = PT_SHIELD_ARMOR; break;
+            case 3: darea.penetrationType = PT_WALLS; break;
         }
         
         node = cJSON_GetObjectItem (damageNode, "damagetype");
@@ -167,16 +178,17 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
 				}
             }
         }
-        
-        areaHandle = JKG_RegisterDamageSettings (&darea);
-        if ( !secondary )
-        {
-            fireModeStats->damageTypeHandle = areaHandle;
-        }
-        else
-        {
-            fireModeStats->secondaryDmgHandle = areaHandle;
-        }
+
+		if (!secondary)
+		{
+			fireModeStats->primary = darea;
+			fireModeStats->primary.bPresent = qtrue;
+		}
+		else
+		{
+			fireModeStats->secondary = darea;
+			fireModeStats->secondary.bPresent = qtrue;
+		}
     }
 }
 #endif

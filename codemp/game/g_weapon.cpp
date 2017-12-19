@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "bg_saga.h"
 #include "ghoul2/G2.h"
 #include "qcommon/q_shared.h"
-#include "jkg_damagetypes.h"
+#include "jkg_damageareas.h"
 
 static	vec3_t	forward, vright, up;
 static	vec3_t	muzzle;
@@ -296,7 +296,6 @@ void WP_FireEmplacedMissile( gentity_t *ent, vec3_t start, vec3_t dir, qboolean 
 	missile->activator = ignore;
 
 	missile->damage = damage;
-	missile->dflags = (DAMAGE_DEATH_KNOCKBACK|DAMAGE_HEAVY_WEAP_CLASS);
 	missile->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 
@@ -439,7 +438,7 @@ void thermalDetonatorExplode( gentity_t *ent )
 	{
 		vec3_t	origin;
 		vec3_t	dir={0,0,1};
-	    const weaponFireModeStats_t *fireMode = GetEntsCurrentFireMode (ent);
+	    weaponFireModeStats_t *fireMode = (weaponFireModeStats_t*)GetEntsCurrentFireMode (ent);
 
 		BG_EvaluateTrajectory( &ent->s.pos, level.time, origin );
 		origin[2] += 8;
@@ -450,9 +449,9 @@ void thermalDetonatorExplode( gentity_t *ent )
 		G_AddEvent( ent, EV_MISSILE_MISS, DirToByte( dir ) );
 		ent->freeAfterEvent = qtrue;
 	    
-        if ( fireMode->damageTypeHandle )
+        if ( fireMode->primary.bPresent )
         {
-            JKG_DoSplashDamage (fireMode->damageTypeHandle, ent->r.currentOrigin, ent, ent->parent, ent, ent->splashMethodOfDeath);
+            JKG_DoSplashDamage (&fireMode->primary, ent->r.currentOrigin, ent, ent->parent, ent, ent->splashMethodOfDeath);
         }
         else if (G_RadiusDamage( ent->r.currentOrigin, ent->parent,  ent->splashDamage, ent->splashRadius, 
 				ent, ent, ent->splashMethodOfDeath))
@@ -461,16 +460,10 @@ void thermalDetonatorExplode( gentity_t *ent )
 				g_entities[ent->r.ownerNum].client->accuracy_hits++;
 		}
         
-        if ( fireMode->secondaryDmgHandle )
+        if ( fireMode->secondary.bPresent )
         {
-            JKG_DoSplashDamage (fireMode->secondaryDmgHandle, ent->r.currentOrigin, ent, ent->parent, ent, ent->splashMethodOfDeath);
+            JKG_DoSplashDamage (&fireMode->secondary, ent->r.currentOrigin, ent, ent->parent, ent, ent->splashMethodOfDeath);
         }
-
-		/*if (G_RadiusDamage( ent->r.currentOrigin, ent->parent,  ent->splashDamage, ent->splashRadius, 
-				ent, ent, ent->splashMethodOfDeath))
-		{
-			g_entities[ent->r.ownerNum].client->accuracy_hits++;
-		}*/
 
 		trap->LinkEntity( (sharedEntity_t *)ent );
 	}
@@ -828,19 +821,19 @@ void laserTrapExplode( gentity_t *self )
 	if (self->activator)
 	{
 		//G_RadiusDamage( self->r.currentOrigin, self->activator, self->splashDamage, self->splashRadius, self, self, MOD_TRIP_MINE_SPLASH/*MOD_LT_SPLASH*/ );
-		const weaponFireModeStats_t *fireMode = GetEntsCurrentFireMode (self);
-		if ( fireMode->damageTypeHandle )
+		weaponFireModeStats_t *fireMode = (weaponFireModeStats_t*)GetEntsCurrentFireMode (self);
+		if ( fireMode->primary.bPresent )
 		{
-			JKG_DoSplashDamage(fireMode->damageTypeHandle, self->r.currentOrigin, self, self->activator, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
+			JKG_DoSplashDamage(&fireMode->primary, self->r.currentOrigin, self, self->activator, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 		else
 		{
 			G_RadiusDamage(self->r.currentOrigin, self->activator, self->splashDamage, self->splashRadius, self, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 		
-		if ( fireMode->secondaryDmgHandle )
+		if ( fireMode->secondary.bPresent )
 		{
-			JKG_DoSplashDamage(fireMode->secondaryDmgHandle, self->r.currentOrigin, self, self->activator, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
+			JKG_DoSplashDamage(&fireMode->secondary, self->r.currentOrigin, self, self->activator, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 
 		if( self->enemy && self->enemy->client && !OnSameTeam(self->activator, self->enemy) && self->activator != self->enemy )
@@ -1318,7 +1311,7 @@ void charge_stick (gentity_t *self, gentity_t *other, trace_t *trace)
 	else if (other && other->s.number < ENTITYNUM_WORLD)
 	{ //hit an entity that we just want to explode on (probably another projectile or something)
 		vec3_t v;
-		const weaponFireModeStats_t *fireMode = GetEntsCurrentFireMode (self);
+		weaponFireModeStats_t *fireMode = (weaponFireModeStats_t*)GetEntsCurrentFireMode (self);
 
 		self->touch = 0;
 		self->think = 0;
@@ -1331,18 +1324,18 @@ void charge_stick (gentity_t *self, gentity_t *other, trace_t *trace)
 
 		//G_RadiusDamage( self->r.currentOrigin, self->parent, self->splashDamage, self->splashRadius, self, self, MOD_DET_PACK_SPLASH );
 		
-		if ( fireMode->damageTypeHandle )
+		if ( fireMode->primary.bPresent )
 		{
-			JKG_DoSplashDamage(fireMode->damageTypeHandle, self->r.currentOrigin, self, self->parent, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
+			JKG_DoSplashDamage(&fireMode->primary, self->r.currentOrigin, self, self->parent, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 		else
 		{
 			G_RadiusDamage(self->r.currentOrigin, self->parent, self->splashDamage, self->splashRadius, self, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 		
-		if ( fireMode->secondaryDmgHandle )
+		if ( fireMode->secondary.bPresent )
 		{
-			JKG_DoSplashDamage(fireMode->secondaryDmgHandle, self->r.currentOrigin, self, self->parent, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
+			JKG_DoSplashDamage(&fireMode->secondary, self->r.currentOrigin, self, self->parent, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 		
 		VectorCopy(trace->plane.normal, v);
@@ -1398,7 +1391,7 @@ void DetPackBlow(gentity_t *self)
 {
 	vec3_t v;
 	gentity_t *te;
-	const weaponFireModeStats_t *fireMode = GetEntsCurrentFireMode (self);
+	weaponFireModeStats_t *fireMode = (weaponFireModeStats_t*)GetEntsCurrentFireMode (self);
 	int mod = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
 
 	self->pain = 0;
@@ -1407,33 +1400,33 @@ void DetPackBlow(gentity_t *self)
 
 	if ( self->target_ent )
 	{//we were attached to something, do *direct* damage to it!
-		if ( fireMode->damageTypeHandle )
+		if ( fireMode->primary.bPresent )
 		{
-			JKG_DoDirectDamage(fireMode->damageTypeHandle, self->target_ent, self, self->parent, vec3_origin, self->r.currentOrigin, 0, mod);
+			JKG_DoDirectDamage(&fireMode->primary, self->target_ent, self, self->parent, vec3_origin, self->r.currentOrigin, 0, mod);
 		}
 		else
 		{
 			G_Damage(self->target_ent, self, &g_entities[self->r.ownerNum], v, self->r.currentOrigin, self->damage, 0, mod);
 		}
 		
-		if ( fireMode->secondaryDmgHandle )
+		if ( fireMode->secondary.bPresent )
 		{
-			JKG_DoDirectDamage(fireMode->secondaryDmgHandle, self->target_ent, self, self->parent, vec3_origin, self->r.currentOrigin, 0, mod);
+			JKG_DoDirectDamage(&fireMode->secondary, self->target_ent, self, self->parent, vec3_origin, self->r.currentOrigin, 0, mod);
 		}
 	}
 	
-	if ( fireMode->damageTypeHandle )
+	if ( fireMode->primary.bPresent )
 	{
-		JKG_DoSplashDamage(fireMode->damageTypeHandle, self->r.currentOrigin, self, self->parent, self, mod);
+		JKG_DoSplashDamage(&fireMode->primary, self->r.currentOrigin, self, self->parent, self, mod);
 	}
 	else
 	{
 	    G_RadiusDamage( self->r.currentOrigin, self->parent, self->splashDamage, self->splashRadius, self, self, mod );
 	}
 	
-	if ( fireMode->secondaryDmgHandle )
+	if ( fireMode->secondary.bPresent )
 	{
-	    JKG_DoSplashDamage (fireMode->secondaryDmgHandle, self->r.currentOrigin, self, self->parent, self, mod);
+	    JKG_DoSplashDamage (&fireMode->secondary, self->r.currentOrigin, self, self->parent, self, mod);
 	}
 	v[0] = 0;
 	v[1] = 0;
@@ -1718,22 +1711,22 @@ void WP_FireStunBaton( gentity_t *ent, qboolean alt_fire )
 
 	if ( tr_ent && tr_ent->takedamage )
 	{
-	    const weaponFireModeStats_t *fireMode = GetEntsCurrentFireMode (ent);
+	    weaponFireModeStats_t *fireMode = (weaponFireModeStats_t*)GetEntsCurrentFireMode (ent);
 		G_PlayEffect( EFFECT_STUNHIT, tr.endpos, tr.plane.normal );
 
 		G_Sound( tr_ent, CHAN_WEAPON, G_SoundIndex( va("sound/weapons/melee/punch%d", Q_irand(1, 4)) ) );
-		if ( fireMode->damageTypeHandle )
+		if ( fireMode->primary.bPresent )
 		{
-		    JKG_DoDamage (fireMode->damageTypeHandle, tr_ent, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, mod);
+		    JKG_DoDamage (&fireMode->primary, tr_ent, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, mod);
 		}
 		else
 		{
-		    G_Damage( tr_ent, ent, ent, forward, tr.endpos, STUN_BATON_DAMAGE, (DAMAGE_NO_KNOCKBACK|DAMAGE_HALF_ABSORB), mod );
+		    G_Damage( tr_ent, ent, ent, forward, tr.endpos, fireMode->baseDamage, DAMAGE_NO_KNOCKBACK, mod );
 		}
 		
-		if ( fireMode->secondaryDmgHandle )
+		if ( fireMode->secondary.bPresent )
 		{
-		    JKG_DoDamage (fireMode->secondaryDmgHandle, tr_ent, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, mod);
+		    JKG_DoDamage (&fireMode->secondary, tr_ent, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, mod);
 		}
 
 		if (tr_ent->client)
@@ -1841,7 +1834,7 @@ void WP_FireMelee( gentity_t *ent, qboolean alt_fire )
 				dmg = wpData->firemodes[0].baseDamage;
 			}
 
-			G_Damage( tr_ent, ent, ent, forward, tr.endpos, dmg, DAMAGE_NO_ARMOR, MOD_MELEE );
+			G_Damage( tr_ent, ent, ent, forward, tr.endpos, dmg, DAMAGE_NO_SHIELD, MOD_MELEE );
 		}
 	}
 }
@@ -2510,7 +2503,6 @@ gentity_t *WP_FireGenericMissile( gentity_t *ent, int firemode, vec3_t origin, v
 
 	/* Set the ordinary hit damage, the damage flags and clip mask */
 	missile->damage					 = iDamage;
-	missile->dflags					 = DAMAGE_DEATH_KNOCKBACK;
 	missile->clipmask				 = MASK_SHOT | CONTENTS_LIGHTSABER;
 
 	/* If this missile can bounce, set the flag accordingly */
@@ -2664,19 +2656,19 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 			{
 				if ( traceEnt->takedamage )
 				{
-					const weaponFireModeStats_t *fireMode = GetEntsCurrentFireMode (ent);
-					if ( fireMode->damageTypeHandle )
+					weaponFireModeStats_t *fireMode = (weaponFireModeStats_t*)GetEntsCurrentFireMode (ent);
+					if ( fireMode->primary.bPresent )
 					{
-						JKG_DoDirectDamage(fireMode->damageTypeHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
+						JKG_DoDirectDamage(&fireMode->primary, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 					}
 					else
 					{
 						G_Damage(traceEnt, ent, ent, forward, tr.endpos, iDamage, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 					}
 					    
-					if ( fireMode->secondaryDmgHandle )
+					if ( fireMode->secondary.bPresent )
 					{
-						JKG_DoDirectDamage(fireMode->secondaryDmgHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
+						JKG_DoDirectDamage(&fireMode->secondary, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 					}
 				}
 			}
@@ -2700,7 +2692,7 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 			int		preHealth	= traceEnt->health;
 			int		preLegs		= 0;
 			int		preTorso	= 0;
-			const weaponFireModeStats_t *fireMode = GetEntsCurrentFireMode (ent);
+			weaponFireModeStats_t *fireMode = (weaponFireModeStats_t*)GetEntsCurrentFireMode (ent);
 
 			/* Remember the legs/torse stance and client angles */
 			if ( traceEnt->client )
@@ -2711,18 +2703,18 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 			}
 
 			/* Throw the damage at the client, we'll be able to see if we're disintegrating him after this! */
-			if ( fireMode->damageTypeHandle )
+			if ( fireMode->primary.bPresent )
 			{
-				JKG_DoDirectDamage(fireMode->damageTypeHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
+				JKG_DoDirectDamage(&fireMode->primary, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 			}
 			else
 			{
 				G_Damage(traceEnt, ent, ent, forward, tr.endpos, iDamage, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 			}
 			    
-			if ( fireMode->secondaryDmgHandle )
+			if ( fireMode->secondary.bPresent )
 			{
-				JKG_DoDirectDamage(fireMode->secondaryDmgHandle, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
+				JKG_DoDirectDamage(&fireMode->secondary, traceEnt, ent, ent, forward, tr.endpos, DAMAGE_NO_KNOCKBACK, WP_GetWeaponMOD(ent, firemode));
 			}
 
 			/* Remove the amount of damage hit on this client from our trace, this way even normal disruptor shots can continue! */
@@ -3057,7 +3049,7 @@ static void WP_GetWeaponDirection( gentity_t *ent, int firemode, const vec3_t fo
 		{
 			Jetpack_Off( ent );
 			G_Knockdown( ent, NULL, dir, fKnockBack, qtrue );
-			G_Damage( ent, ent, ent, dir, ent->client->ps.origin, fKnockBack / 20, DAMAGE_NO_KNOCKBACK | DAMAGE_NO_ARMOR, MOD_UNKNOWN );
+			G_Damage( ent, ent, ent, dir, ent->client->ps.origin, fKnockBack / 20, DAMAGE_NO_KNOCKBACK | DAMAGE_NO_SHIELD, MOD_UNKNOWN );
 		}
 	}
 

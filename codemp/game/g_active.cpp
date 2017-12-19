@@ -64,7 +64,7 @@ void P_DamageFeedback( gentity_t *player ) {
 	}
 
 	// total points of damage shot at the player this frame
-	count = client->damage_blood + client->damage_armor;
+	count = client->damage_blood + client->damage_shield;
 	if ( count == 0 ) {
 		return;		// didn't take any damage
 	}
@@ -112,11 +112,11 @@ void P_DamageFeedback( gentity_t *player ) {
 		G_AddEvent( player, EV_PAIN, player->health );
 		client->ps.damageEvent++;
 
-		if (client->damage_armor && !client->damage_blood)
+		if (client->damage_shield && !client->damage_blood)
 		{
 			client->ps.damageType = 1; //pure shields
 		}
-		else if (client->damage_armor)
+		else if (client->damage_shield)
 		{
 			client->ps.damageType = 2; //shields and health
 		}
@@ -133,7 +133,7 @@ void P_DamageFeedback( gentity_t *player ) {
 	// clear totals
 	//
 	client->damage_blood = 0;
-	client->damage_armor = 0;
+	client->damage_shield = 0;
 	client->damage_knockback = 0;
 }
 
@@ -183,7 +183,7 @@ void P_WorldEffects( gentity_t *ent ) {
 				ent->pain_debounce_time = level.time + 200;
 
 				G_Damage (ent, NULL, NULL, NULL, NULL, 
-					ent->damage, DAMAGE_NO_ARMOR, MOD_WATER);
+					ent->damage, DAMAGE_NO_SHIELD, MOD_WATER);
 			}
 		}
 	} else {
@@ -336,7 +336,7 @@ void DoImpact( gentity_t *self, gentity_t *other, qboolean damageSelf )
 				}
 				if ( other->takedamage )
 				{
-					G_Damage( other, self, self, velocity, self->r.currentOrigin, force, DAMAGE_NO_ARMOR, MOD_CRUSH);//FIXME: MOD_IMPACT
+					G_Damage( other, self, self, velocity, self->r.currentOrigin, force, DAMAGE_NO_SHIELD, MOD_CRUSH);//FIXME: MOD_IMPACT
 				}
 				else
 				{
@@ -391,9 +391,9 @@ void DoImpact( gentity_t *self, gentity_t *other, qboolean damageSelf )
 							return;
 						*/
 						if (self->s.eType == ET_NPC)
-							G_Damage (self, NULL, NULL, NULL, NULL, magnitude*5, DAMAGE_NO_ARMOR, MOD_FALLING);
+							G_Damage (self, NULL, NULL, NULL, NULL, magnitude*5, DAMAGE_NO_SHIELD, MOD_FALLING);
 						else
-							G_Damage( self, NULL, NULL, NULL, self->r.currentOrigin, magnitude/2, DAMAGE_NO_ARMOR, MOD_FALLING );//FIXME: MOD_IMPACT
+							G_Damage( self, NULL, NULL, NULL, self->r.currentOrigin, magnitude/2, DAMAGE_NO_SHIELD, MOD_FALLING );//FIXME: MOD_IMPACT
 					}
 				}
 		}
@@ -963,9 +963,9 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 				ent->pain_debounce_time = level.time + 200;	// no normal pain sound
 
 				if (ent->s.eType == ET_NPC)
-					G_Damage (ent, NULL, NULL, NULL, NULL, damage*5, DAMAGE_NO_ARMOR, MOD_FALLING);
+					G_Damage (ent, NULL, NULL, NULL, NULL, damage*5, DAMAGE_NO_SHIELD, MOD_FALLING);
 				else
-					G_Damage (ent, NULL, NULL, NULL, NULL, damage, DAMAGE_NO_ARMOR, MOD_FALLING);
+					G_Damage (ent, NULL, NULL, NULL, NULL, damage, DAMAGE_NO_SHIELD, MOD_FALLING);
 
 				if (ent->health < 1)
 				{
@@ -3344,7 +3344,7 @@ void ClientThink_real( gentity_t *ent ) {
 
 				if( !(faceKicked->client->ps.saberActionFlags & ( 1 << SAF_BLOCKING ) ) )
 				{// Don't damage them, that way they don't spam
-					G_Damage( faceKicked, ent, ent, oppDir, client->ps.origin, strength, DAMAGE_NO_ARMOR, MOD_MELEE );
+					G_Damage( faceKicked, ent, ent, oppDir, client->ps.origin, strength, DAMAGE_NO_SHIELD, MOD_MELEE );
 				}
 
 				if ( faceKicked->client->ps.weapon != WP_SABER ||

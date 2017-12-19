@@ -40,7 +40,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "json/cJSON.h"
 #include "jkg_bans.h"
 //#include "jkg_navmesh_creator.h"
-#include "jkg_damagetypes.h"
+#include "jkg_damageareas.h"
 #include "bg_items.h"
 #include "jkg_treasureclass.h"
 

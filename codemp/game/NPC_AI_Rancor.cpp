@@ -311,7 +311,7 @@ void Rancor_Swing( qboolean tryGrab )
 				if ( radiusEnt->client->NPC_class != CLASS_RANCOR
 					&& radiusEnt->client->NPC_class != CLASS_ATST )
 				{
-					G_Damage( radiusEnt, NPC, NPC, vec3_origin, radiusEnt->r.currentOrigin, Q_irand( 25, 40 ), DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK, MOD_MELEE );
+					G_Damage( radiusEnt, NPC, NPC, vec3_origin, radiusEnt->r.currentOrigin, Q_irand( 25, 40 ), DAMAGE_NO_SHIELD|DAMAGE_NO_KNOCKBACK, MOD_MELEE );
 					G_Throw( radiusEnt, pushDir, 250 );
 					if ( radiusEnt->health > 0 )
 					{//do pain on enemy
@@ -367,7 +367,7 @@ void Rancor_Smash( void )
 			G_Sound( radiusEnt, CHAN_AUTO, G_SoundIndex( "sound/chars/rancor/swipehit.wav" ) );
 			if ( distSq < halfRadSquared )
 			{//close enough to do damage, too
-				G_Damage( radiusEnt, NPC, NPC, vec3_origin, radiusEnt->r.currentOrigin, Q_irand( 10, 25 ), DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK, MOD_MELEE );
+				G_Damage( radiusEnt, NPC, NPC, vec3_origin, radiusEnt->r.currentOrigin, Q_irand( 10, 25 ), DAMAGE_NO_SHIELD|DAMAGE_NO_KNOCKBACK, MOD_MELEE );
 			}
 			if ( radiusEnt->health > 0 
 				&& radiusEnt->client
@@ -420,7 +420,7 @@ void Rancor_Bite( void )
 		
 		if ( DistanceSquared( radiusEnt->r.currentOrigin, boltOrg ) <= radiusSquared )
 		{
-			G_Damage( radiusEnt, NPC, NPC, vec3_origin, radiusEnt->r.currentOrigin, Q_irand( 15, 30 ), DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK, MOD_MELEE );
+			G_Damage( radiusEnt, NPC, NPC, vec3_origin, radiusEnt->r.currentOrigin, Q_irand( 15, 30 ), DAMAGE_NO_SHIELD|DAMAGE_NO_KNOCKBACK, MOD_MELEE );
 			if ( radiusEnt->health <= 0 && radiusEnt->client )
 			{//killed them, chance of dismembering
 				if ( !Q_irand( 0, 1 ) )
@@ -523,7 +523,7 @@ void Rancor_Attack( float distance, qboolean doCharge )
 		case BOTH_ATTACK1:
 			if ( NPC->count == 1 && NPC->activator )
 			{
-				G_Damage( NPC->activator, NPC, NPC, vec3_origin, NPC->activator->r.currentOrigin, Q_irand( 25, 40 ), DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK, MOD_MELEE );
+				G_Damage( NPC->activator, NPC, NPC, vec3_origin, NPC->activator->r.currentOrigin, Q_irand( 25, 40 ), DAMAGE_NO_SHIELD|DAMAGE_NO_KNOCKBACK, MOD_MELEE );
 				if ( NPC->activator->health <= 0 )
 				{//killed him
 					//make it look like we bit his head off
@@ -552,7 +552,7 @@ void Rancor_Attack( float distance, qboolean doCharge )
 					//G_DoDismemberment( NPC->activator, NPC->enemy->r.currentOrigin, MOD_SABER, 1000, HL_WAIST, qtrue );
 				}
 				//KILL
-				G_Damage( NPC->activator, NPC, NPC, vec3_origin, NPC->activator->r.currentOrigin, NPC->enemy->health+10, DAMAGE_NO_PROTECTION|DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK|DAMAGE_NO_HIT_LOC, MOD_MELEE );//, HL_NONE );//
+				G_Damage( NPC->activator, NPC, NPC, vec3_origin, NPC->activator->r.currentOrigin, NPC->enemy->health+10, DAMAGE_NO_PROTECTION|DAMAGE_NO_SHIELD|DAMAGE_NO_KNOCKBACK|DAMAGE_NO_HIT_LOC, MOD_MELEE );//, HL_NONE );//
 				if ( NPC->activator->client )
 				{
 					NPC->activator->client->ps.forceHandExtend = HANDEXTEND_NONE;
@@ -592,7 +592,7 @@ void Rancor_Attack( float distance, qboolean doCharge )
 					G_Dismember( NPC->activator, NPC, NPC->activator->r.currentOrigin, G2_MODELPART_WAIST, 90, 0, NPC->activator->client->ps.torsoAnim, qtrue);
 					//G_DoDismemberment( NPC->activator, NPC->enemy->r.currentOrigin, MOD_SABER, 1000, HL_WAIST, qtrue );
 					//KILL
-					G_Damage( NPC->activator, NPC, NPC, vec3_origin, NPC->activator->r.currentOrigin, NPC->enemy->health+10, DAMAGE_NO_PROTECTION|DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK|DAMAGE_NO_HIT_LOC, MOD_MELEE );//, HL_NONE );
+					G_Damage( NPC->activator, NPC, NPC, vec3_origin, NPC->activator->r.currentOrigin, NPC->enemy->health+10, DAMAGE_NO_PROTECTION|DAMAGE_NO_SHIELD|DAMAGE_NO_KNOCKBACK|DAMAGE_NO_HIT_LOC, MOD_MELEE );//, HL_NONE );
 					NPC->activator->client->ps.forceHandExtend = HANDEXTEND_NONE;
 					NPC->activator->client->ps.forceHandExtendTime = 0;
 					NPC_SetAnim( NPC->activator, SETANIM_BOTH, BOTH_SWIM_IDLE1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD );

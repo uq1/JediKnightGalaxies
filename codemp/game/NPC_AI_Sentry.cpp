@@ -178,7 +178,6 @@ void Sentry_Fire (void)
 	missile->classname = "bryar_proj";
 	missile->s.weapon = WP_BRYAR_PISTOL;
 
-	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
 	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 

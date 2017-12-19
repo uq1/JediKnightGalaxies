@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g_local.h"
 #include "w_saber.h"
 #include "qcommon/q_shared.h"
-#include "jkg_damagetypes.h"
+#include "jkg_damageareas.h"
 
 #define	MISSILE_PRESTEP_TIME	50
 
@@ -688,7 +688,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		weaponData_t *weapon = GetWeaponData (ent->s.weapon, ent->s.weaponVariation);
 		weaponFireModeStats_t *fireMode = &weapon->firemodes[ent->s.firingMode];
 		
-		if ( ent->damage || fireMode->damageTypeHandle || fireMode->secondaryDmgHandle ) {
+		if ( ent->damage || fireMode->primary.bPresent || fireMode->secondary.bPresent ) {
 			vec3_t	velocity;
 
 			hitClient = qtrue;
@@ -697,18 +697,18 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 				velocity[2] = 1;	// stepped on a grenade
 			}
 
-            if ( fireMode->damageTypeHandle )
+            if ( fireMode->primary.bPresent )
             {
-                JKG_DoDamage (fireMode->damageTypeHandle, other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, 0, ent->methodOfDeath);
+                JKG_DoDamage (&fireMode->primary, other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, 0, ent->methodOfDeath);
             }
             else if ( ent->damage )
             {
                 G_Damage (other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, ent->damage, 0, ent->methodOfDeath);
             }
             
-            if ( fireMode->secondaryDmgHandle )
+            if ( fireMode->secondary.bPresent )
             {
-                JKG_DoDamage (fireMode->secondaryDmgHandle, other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, 0, ent->methodOfDeath);
+                JKG_DoDamage (&fireMode->secondary, other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, 0, ent->methodOfDeath);
             }
 
 			if (other->client)

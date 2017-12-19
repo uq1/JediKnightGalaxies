@@ -24,7 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g_nav.h"
 
 void Interrogator_Idle( void );
-void DeathFX( gentity_t *ent );
 extern void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *soundPath );
 
 enum

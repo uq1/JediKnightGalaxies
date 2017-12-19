@@ -1,39 +1,10 @@
-#include "jkg_damagetypes.h"
+#include "jkg_damageareas.h"
 #include "g_local.h"
 #include "qcommon/q_shared.h"
 
-typedef struct damageInstance_s
-{
-    gentity_t *attacker; // e.g. a player
-    gentity_t *inflictor; // e.g. the player's rocket
-    gentity_t *ignoreEnt;
-    vec3_t direction;
-    int methodOfDeath;
-    int damageFlags;
-
-	// Charge related
-	int damageOverride;
-} damageInstance_t;
-
-typedef struct damageArea_s
-{
-    int         startTime;
-    int         lastDamageTime;
-    qboolean    active;
-    vec3_t      origin;
-    damageInstance_t context;
-    
-    const damageSettings_t *data;
-} damageArea_t;
-
-#define MAX_DAMAGE_SETTINGS (128)
-static damageSettings_t damageSettings[MAX_DAMAGE_SETTINGS];
-static unsigned int numDamageSettings;
-
 // Maybe make a linked list of active damage settings? Though
 // looping through 256 elements is hardly time-consuming
-#define MAX_DAMAGE_AREAS (256)
-static damageArea_t damageAreas[MAX_DAMAGE_AREAS];
+static std::vector<damageArea_t> damageAreas;
 
 static struct
 {
@@ -45,24 +16,17 @@ static struct
 } damageTypeData[] = {
     { DT_DISINTEGRATE,  0,									0,          0,      0		},
     { DT_EXPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},
-    { DT_FIRE,          DAMAGE_NO_HIT_LOC|DAMAGE_NO_SELF_PROTECTION,					10000,      2,      1000	},
-    { DT_FREEZE,        DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	500,        2,      1000	},
+    { DT_FIRE,          DAMAGE_NO_HIT_LOC,					10000,      2,      1000	},
+    { DT_FREEZE,        DAMAGE_NO_SHIELD|DAMAGE_NO_HIT_LOC,	500,        2,      1000	},
     { DT_IMPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},	// Not used.
     { DT_STUN,          0,									2000,       0,      0		},
     { DT_CARBONITE,     DAMAGE_NO_HIT_LOC,					4000,       2,      1000	},
-	{ DT_BLEED,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	5000,		4,		1000	},
-	{ DT_COLD,			DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC,	5000,		0,		0		},
-	{ DT_POISON,		DAMAGE_NO_ARMOR|DAMAGE_NO_HIT_LOC|DAMAGE_NO_SELF_PROTECTION,	7000,		5,		1000	}
+	{ DT_BLEED,			DAMAGE_NO_SHIELD|DAMAGE_NO_HIT_LOC,	5000,		4,		1000	},
+	{ DT_COLD,			DAMAGE_NO_SHIELD|DAMAGE_NO_HIT_LOC,	5000,		0,		0		},
+	{ DT_POISON,		DAMAGE_NO_SHIELD|DAMAGE_NO_HIT_LOC,	7000,		5,		1000	}
 };
 
 void JKG_RemoveDamageType(gentity_t *ent, damageType_t type);
-
-void JKG_InitDamageSystem ( void )
-{
-    memset (damageAreas, 0, sizeof (damageAreas));
-    memset (damageSettings, 0, sizeof (damageSettings));
-    numDamageSettings = 0;
-}
 
 static float CalculateDamageRadius ( const damageArea_t *area )
 {
@@ -294,37 +258,8 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
     area->lastDamageTime = level.time;
 }
 
-qhandle_t JKG_RegisterDamageSettings ( const damageSettings_t *settings )
-{
-    qhandle_t handle = numDamageSettings;
-    const damageSettings_t *data = &damageSettings[0];
-    int i = 0;
-    if ( numDamageSettings >= MAX_DAMAGE_SETTINGS )
-    {
-        trap->Print ("WARNING: Max number of damage type settings exceeded. Max is %d.\n", MAX_DAMAGE_SETTINGS);
-        return 0;
-    }
-    
-    for ( i = 0; i < numDamageSettings; i++, data++ )
-    {
-        if ( memcmp (data, settings, sizeof (*settings)) == 0 )
-        {
-            // We have an identical one already. Return a handle to this instead.
-            return i + 1;
-        }
-    }
-    
-    damageSettings[numDamageSettings] = *settings;
-    numDamageSettings++;
-    
-    return (handle + 1);
-}
-
 void JKG_RemoveDamageType ( gentity_t *ent, damageType_t type )
 {
-	if( type >= (damageType_t)MAX_DAMAGE_SETTINGS )
-		return;
-
     switch ( type )
     {
         case DT_STUN:
@@ -489,28 +424,23 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
     }
 }
 
+/*
+ *	Finds a free damage area to work on.
+ *	Really lame old relic from how this code used to work.
+ */
 static damageArea_t *GetFreeDamageArea()
 {
     int i = 0;
-    damageArea_t *area = &damageAreas[0];
-    while ( area->active && i < MAX_DAMAGE_AREAS )
-    {
-        area++;
-        i++;
-    }
+	damageArea_t area;
+	damageAreas.push_back(area);
     
-    if ( i == MAX_DAMAGE_AREAS )
-    {
-        Com_Printf ("WARNING: no free damage areas. Splash damage will not be dealt.\n");
-        return NULL;
-    }
-    else
-    {
-        return area;
-    }
+    return &damageAreas.back();
 }
 
-static void DamagePlayersInArea ( damageArea_t *area )
+/*
+ * Damages players in the damage area. Returns qtrue if the area has decayed and we need to remove it.
+ */
+static qboolean DamagePlayersInArea ( damageArea_t *area )
 {
     float damageRadiusSquared = 0.0f;
     int entList[MAX_GENTITIES] = { 0 };
@@ -519,29 +449,23 @@ static void DamagePlayersInArea ( damageArea_t *area )
     gentity_t *ent = NULL;
     int j = 0;
     float damageRadius;
-
-    if ( !area->active )
-    {
-        return;
-    }
     
     if ( area->startTime > level.time )
     {
         // Delayed start. Doing do anything yet.
-        return;
+        return qfalse;
     }
     
     if ( (area->startTime + area->data->lifetime) < level.time )
     {
         // Area has decayed, set as inactive.
-        area->active = qfalse;
-        return;
+		return qtrue;
     }
     
     if ( (area->lastDamageTime + area->data->damageDelay) > level.time )
     {
         // Too soon to try to damage players again.
-        return;
+        return qfalse;
     }
     
     damageRadius = CalculateDamageRadius (area);
@@ -592,7 +516,7 @@ static void DamagePlayersInArea ( damageArea_t *area )
         }
         
         VectorCopy (ent->client->ps.origin, playerOrigin);
-        if ( area->data->penetrationType != PT_SHIELD_ARMOR_BUILDING )
+        if ( area->data->penetrationType != PT_WALLS )
         {
             trap->Trace (&tr, area->origin, NULL, NULL, playerOrigin, -1, CONTENTS_SOLID, 0, 0, 0);
             if ( tr.fraction != 1.0f )
@@ -608,18 +532,8 @@ static void DamagePlayersInArea ( damageArea_t *area )
         damage = CalculateDamageForDistance (area, ent->r.absmin, ent->r.absmax, playerOrigin, damageRadius);
 		DebuffPlayer (ent, area, damage, area->context.methodOfDeath);
     }
-}
 
-static damageSettings_t *GetDamageSettingsForHandle ( qhandle_t handle )
-{
-    handle--;
-    if ( handle < 0 || handle >= numDamageSettings )
-    {
-        trap->Print ("ERROR: Invalid damage area handle given.\n");
-        return NULL;
-    }
-    
-    return &damageSettings[handle];
+	return qfalse;
 }
 
 //=========================================================
@@ -661,9 +575,8 @@ int JKG_ChargeDamageOverride( gentity_t *inflictor, bool bIsTraceline ) {
 // damage areas. It only does direct damage like with
 // G_Damage.
 //=========================================================
-void JKG_DoDirectDamage ( qhandle_t handle, gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t origin, int dflags, int mod )
+void JKG_DoDirectDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t origin, int dflags, int mod )
 {
-    damageSettings_t *data;
     damageArea_t area;
 	int damage;
         
@@ -682,7 +595,6 @@ void JKG_DoDirectDamage ( qhandle_t handle, gentity_t *targ, gentity_t *inflicto
         return;
     }
     
-    data = GetDamageSettingsForHandle (handle);
     memset (&area, 0, sizeof (area));
 
 	area.data = data;
@@ -695,7 +607,6 @@ void JKG_DoDirectDamage ( qhandle_t handle, gentity_t *targ, gentity_t *inflicto
 		damage = data->damage;
 	}
 
-    area.active = qtrue;
     VectorCopy (dir, area.context.direction);
     area.context.ignoreEnt = NULL;
     area.context.attacker = attacker;
@@ -716,9 +627,8 @@ void JKG_DoDirectDamage ( qhandle_t handle, gentity_t *targ, gentity_t *inflicto
 // G_RadiusDamage. It does all the same things, in addition
 // to the debuffs.
 //=========================================================
-void JKG_DoSplashDamage ( qhandle_t handle, const vec3_t origin, gentity_t *inflictor, gentity_t *attacker, gentity_t *ignoreEnt, int mod )
+void JKG_DoSplashDamage ( damageSettings_t* data, const vec3_t origin, gentity_t *inflictor, gentity_t *attacker, gentity_t *ignoreEnt, int mod )
 {
-    damageSettings_t *data = GetDamageSettingsForHandle (handle);
 	bool bDoDamageOverride = false;
 
 	if (inflictor != attacker) {
@@ -740,7 +650,6 @@ void JKG_DoSplashDamage ( qhandle_t handle, const vec3_t origin, gentity_t *infl
 
         if ( !data->planar )
         {
-            area->active = qtrue;
             area->data = data;
             area->lastDamageTime = 0;
             VectorCopy (origin, area->origin);
@@ -769,7 +678,6 @@ void JKG_DoSplashDamage ( qhandle_t handle, const vec3_t origin, gentity_t *infl
         // This is similar to the old style splash damage
         damageArea_t a;
         memset (&a, 0, sizeof (a));
-        a.active = qtrue;
         a.data = data;
         a.lastDamageTime = 0;
         VectorCopy (origin, a.origin);
@@ -800,15 +708,14 @@ void JKG_DoSplashDamage ( qhandle_t handle, const vec3_t origin, gentity_t *infl
 // create a damage area instead, if the handle does
 // splash damage.
 //=========================================================
-void JKG_DoDamage ( qhandle_t handle, gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t origin, int dflags, int mod )
+void JKG_DoDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t origin, int dflags, int mod )
 {
-    damageSettings_t *data = GetDamageSettingsForHandle (handle);
     if ( data->radial )
     {
-        JKG_DoSplashDamage (handle, origin, inflictor, attacker, NULL, mod);
+        JKG_DoSplashDamage (data, origin, inflictor, attacker, NULL, mod);
     }
 
-    JKG_DoDirectDamage (handle, targ, inflictor, attacker, dir, origin, dflags, mod);
+    JKG_DoDirectDamage (data, targ, inflictor, attacker, dir, origin, dflags, mod);
 }
 
 //=========================================================
@@ -820,11 +727,8 @@ void JKG_DoDamage ( qhandle_t handle, gentity_t *targ, gentity_t *inflictor, gen
 //=========================================================
 void JKG_DamagePlayers ( void )
 {
-    int i;
-    damageArea_t *area = &damageAreas[0];
-    
-    for ( i = 0; i < MAX_DAMAGE_AREAS; i++, area++ )
-    {
-        DamagePlayersInArea (area);
-    }
+	for (auto it = damageAreas.begin(); it != damageAreas.end(); ++it)
+	{
+		DamagePlayersInArea(&(*it));
+	}
 }

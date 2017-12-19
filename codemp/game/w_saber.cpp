@@ -4469,18 +4469,6 @@ static QINLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int rBl
 			doDismemberment = qtrue;
 		}
 
-		if ( self->client->saber[rSaberNum].knockbackScale > 0.0f )
-		{
-			if ( rSaberNum < 1 )
-			{
-				knockbackFlags = DAMAGE_SABER_KNOCKBACK1;
-			}
-			else
-			{
-				knockbackFlags = DAMAGE_SABER_KNOCKBACK2;
-			}
-		}
-
 		WP_SaberDamageAdd( self, tr.entityNum, dir, tr.endpos, dmg, doDismemberment, knockbackFlags, rSaberNum );
 
 		if (g_entities[tr.entityNum].client)
@@ -5752,11 +5740,6 @@ static QINLINE qboolean CheckThrownSaberDamaged(gentity_t *saberent, gentity_t *
 						dflags |= DAMAGE_NO_DISMEMBER;
 					}
 
-					if ( saberOwner->client->saber[0].knockbackScale > 0.0f )
-					{
-						dflags |= DAMAGE_SABER_KNOCKBACK1;
-					}
-
 					G_Damage(ent, saberOwner, saberOwner, dir, tr.endpos, saberent->damage, dflags, MOD_SABER);
 
 					te = G_TempEntity( tr.endpos, EV_SABER_HIT );
@@ -5827,10 +5810,6 @@ static QINLINE qboolean CheckThrownSaberDamaged(gentity_t *saberent, gentity_t *
 				if ( (saberOwner->client->saber[0].saberFlags2&SFL2_NO_DISMEMBERMENT) )
 				{
 					dflags |= DAMAGE_NO_DISMEMBER;
-				}
-				if ( saberOwner->client->saber[0].knockbackScale > 0.0f )
-				{
-					dflags |= DAMAGE_SABER_KNOCKBACK1;
 				}
 
 				if (ent->s.eType == ET_NPC)

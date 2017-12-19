@@ -811,7 +811,7 @@ void Boba_FireFlameThrower( gentity_t *self )
 	traceEnt = &g_entities[tr.entityNum];
 	if ( tr.entityNum < ENTITYNUM_WORLD && traceEnt->takedamage )
 	{
-		G_Damage( traceEnt, self, self, dir, tr.endpos, damage, DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK|/*DAMAGE_NO_HIT_LOC|*/DAMAGE_IGNORE_TEAM, MOD_LAVA );
+		G_Damage( traceEnt, self, self, dir, tr.endpos, damage, DAMAGE_NO_SHIELD|DAMAGE_NO_KNOCKBACK, MOD_LAVA );
 		//rwwFIXMEFIXME: add DAMAGE_NO_HIT_LOC?
 	}
 }
@@ -5958,7 +5958,7 @@ static void NPC_Humanoid_Combat( void )
 			VectorNormalize( smackDir );
 			
 			//hurt them
-			G_Damage( NPC->enemy, NPC, NPC, smackDir, NPC->r.currentOrigin, (g_npcspskill.integer+1)*Q_irand( 5, 10), DAMAGE_NO_ARMOR|DAMAGE_NO_KNOCKBACK, MOD_CRUSH ); 
+			G_Damage( NPC->enemy, NPC, NPC, smackDir, NPC->r.currentOrigin, (g_npcspskill.integer+1)*Q_irand( 5, 10), DAMAGE_NO_SHIELD|DAMAGE_NO_KNOCKBACK, MOD_CRUSH ); 
 
 			//throw them
 			G_Throw( NPC->enemy, smackDir, 64 );

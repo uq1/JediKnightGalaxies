@@ -1731,13 +1731,6 @@ void BG_GiveMeVectorFromMatrix(mdxaBone_t *boltMatrix, int flags, vec3_t vec);
 
 void BG_IK_MoveArm(void *ghoul2, int lHandBolt, int time, entityState_t *ent, int basePose, vec3_t desiredPos, qboolean *ikInProgress,
 					 vec3_t origin, vec3_t angles, vec3_t scale, int blendTime, qboolean forceHalt);
-
-void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int time, vec3_t cent_lerpOrigin,
-					   vec3_t cent_lerpAngles, matrix3_t legs, vec3_t legsAngles, qboolean *tYawing,
-					   qboolean *tPitching, qboolean *lYawing, float *tYawAngle, float *tPitchAngle,
-					   float *lYawAngle, int frametime, vec3_t turAngles, vec3_t modelScale, int ciLegs,
-					   int ciTorso, int *corrTime, vec3_t lookAngles, vec3_t lastHeadAngles, int lookTime,
-					   entityState_t *emplaced, int *crazySmoothFactor, int saberActionFlags);
 void BG_G2ATSTAngles(void *ghoul2, int time, vec3_t cent_lerpAngles );
 
 //BG anim utility functions:
@@ -1772,6 +1765,7 @@ int BG_BrokenParryForParry( int move );
 int BG_KnockawayForParry( int move );
 qboolean BG_InRoll( playerState_t *ps, int anim );
 qboolean BG_InDeathAnim( int anim );
+qboolean BG_InKnockDownOnGround(playerState_t *ps);
 qboolean BG_InSaberLockOld( int anim );
 qboolean BG_InSaberLock( int anim );
 
@@ -1804,34 +1798,9 @@ int		BG_PickAnim( int animIndex, int minAnim, int maxAnim );
 
 int BG_GetItemIndexByTag(int tag, int type);
 
-qboolean BG_IsItemSelectable(playerState_t *ps, int item);
-
 qboolean BG_CanUseFPNow(int gametype, playerState_t *ps, int time, forcePowers_t power);
 
-void *BG_Alloc ( int size );
-void *BG_AllocUnaligned ( int size );
-void *BG_TempAlloc( int size );
-void BG_TempFree( int size );
-char *BG_StringAlloc ( const char *source );
-qboolean BG_OutOfMemory ( void );
-
-void BG_BLADE_ActivateTrail ( bladeInfo_t *blade, float duration );
-void BG_BLADE_DeactivateTrail ( bladeInfo_t *blade, float duration );
-void BG_SI_Activate( saberInfo_t *saber );
-void BG_SI_Deactivate( saberInfo_t *saber );
-void BG_SI_BladeActivate( saberInfo_t *saber, int iBlade, qboolean bActive );
-qboolean BG_SI_Active(saberInfo_t *saber);
-void BG_SI_SetLength( saberInfo_t *saber, float length );
-void BG_SI_SetDesiredLength(saberInfo_t *saber, float len, int bladeNum);
-void BG_SI_SetLengthGradual( saberInfo_t *saber, int time );
-float BG_SI_Length(saberInfo_t *saber);
-float BG_SI_LengthMax(saberInfo_t *saber);
-void BG_SI_ActivateTrail ( saberInfo_t *saber, float duration );
-void BG_SI_DeactivateTrail ( saberInfo_t *saber, float duration );
 bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber );
-
-extern void BG_AttachToRancor( void *ghoul2,float rancYaw,vec3_t rancOrigin,int time,qhandle_t *modelList,vec3_t modelScale,qboolean inMouth,vec3_t out_origin,vec3_t out_angles,matrix3_t out_axis );
-
 void BG_ClearRocketLock( playerState_t *ps );
 
 float JKG_CalculateIronsightsPhase ( const playerState_t *ps, int time, float *blend );
@@ -1854,6 +1823,22 @@ qboolean PM_CanSetWeaponAnims(void);
 qboolean BG_SaberLockBreakAnim(int anim);
 qboolean PM_SaberInTransition(int move);
 qboolean BG_InSlopeAnim(int anim);
+void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int time, vec3_t cent_lerpOrigin,
+	vec3_t cent_lerpAngles, vec3_t legs[3], vec3_t legsAngles, qboolean *tYawing,
+	qboolean *tPitching, qboolean *lYawing, float *tYawAngle, float *tPitchAngle,
+	float *lYawAngle, int frametime, vec3_t turAngles, vec3_t modelScale, int ciLegs,
+	int ciTorso, int *corrTime, vec3_t lookAngles, vec3_t lastHeadAngles, int lookTime,
+	entityState_t *emplaced, int *crazySmoothFactor, int saberAnimFlags);
+void BG_AttachToRancor(void *ghoul2,
+	float rancYaw,
+	vec3_t rancOrigin,
+	int time,
+	qhandle_t *modelList,
+	vec3_t modelScale,
+	qboolean inMouth,
+	vec3_t out_origin,
+	vec3_t out_angles,
+	vec3_t out_axis[3]);
 
 extern int forcePowerDarkLight[NUM_FORCE_POWERS];
 
@@ -1874,22 +1859,6 @@ double QuinticBezierInterpolate(double phase, double p0, double p1, double p2, d
 #define	HYPERSPACE_SPEED			10000.0f//was 30000
 #define	HYPERSPACE_TURN_RATE		45.0f
 
-// Bit of damage types stuff here...
-typedef enum damageType_e
-{
-    DT_DISINTEGRATE, //--futuza note: DT_IMPLOSION, DT_BLASTER, DT_SLUG, DT_ACP, DT_PULSE, DT_ION, DT_SONIC and DT_COLD are not currently used
-    DT_EXPLOSION,
-    DT_FIRE,
-    DT_FREEZE,
-    DT_IMPLOSION,
-    DT_STUN,
-    DT_CARBONITE,
-	DT_BLEED,
-	DT_COLD,
-	DT_POISON,
-    
-    NUM_DAMAGE_TYPES
-} damageType_t;
 qboolean JKG_DamageTypeFreezes ( const damageType_t damageType );
 extern stringID_table_t debuffTable[];
 
