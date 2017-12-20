@@ -2937,8 +2937,8 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
 		s->trickedentindex2, s->trickedentindex3,
 		s->trickedentindex4, ps->clientNum) )
 	{
+		JKG_WeaponDebuffVisuals(cent, &gun);
 		CG_AddWeaponWithPowerups (&gun, s->powerups);
-		JKG_WeaponDebuffVisuals( cent, &gun );
 	}
 
 	// Draw barrel models if any
@@ -2953,8 +2953,8 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
 		AnglesToAxis (vec3_origin, barrel.axis);
 		CG_PositionRotatedEntityOnTag (&barrel, &hand, hand.hModel, barrelTags[i]);
 
+		JKG_WeaponDebuffVisuals(cent, &barrel);
 		CG_AddWeaponWithPowerups (&barrel, s->powerups);
-		JKG_WeaponDebuffVisuals( cent, &barrel );
 	}
 
 	memset (&muzzle, 0, sizeof (muzzle));

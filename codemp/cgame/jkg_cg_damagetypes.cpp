@@ -77,6 +77,7 @@ void JKG_PlayerDebuffVisuals ( centity_t *cent, refEntity_t *refEntity )
 
 			JKG_ShaderBuffRefEntity(refEntity, &cent->debuffVisuals[i], pBuff);
 			JKG_EfxBuffRefEntity(cent, refEntity, &cent->debuffVisuals[i], pBuff);
+			trap->R_AddRefEntityToScene(refEntity);
 		}
 		else
 		{
