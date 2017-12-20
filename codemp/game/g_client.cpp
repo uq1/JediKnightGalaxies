@@ -2714,6 +2714,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	int					savedAmmoTypes[MAX_WEAPON_TABLE_SIZE][MAX_FIREMODES] {0};
 	int					savedClipAmmo[MAX_WEAPON_TABLE_SIZE][MAX_FIREMODES] {0};
 	int					savedAmmoType, savedFiringMode;
+	int					savedArmor[MAX_ARMOR];
 
 	index = ent - g_entities;
 	client = ent->client;
@@ -2988,6 +2989,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	memcpy(savedAmmoTypes, client->ammoTypes, sizeof(savedAmmoTypes));
 	memcpy(savedAmmo, client->ammoTable, sizeof(savedAmmo));
 	memcpy(savedClipAmmo, client->clipammo, sizeof(savedClipAmmo));
+	memcpy(savedArmor, client->ps.armor, sizeof(savedArmor));
 	savedAmmoType = ent->client->ps.ammoType;
 	savedFiringMode = ent->client->ps.firingMode;
 
@@ -2996,6 +2998,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	memcpy(client->ammoTable, savedAmmo, sizeof(savedAmmo));
 	memcpy(client->ammoTypes, savedAmmoTypes, sizeof(savedAmmoTypes));
 	memcpy(client->clipammo, savedClipAmmo, sizeof(savedClipAmmo));
+	memcpy(client->ps.armor, savedArmor, sizeof(savedArmor));
 	ent->client->ps.firingMode = savedFiringMode;
 	ent->client->ps.ammoType = savedAmmoType;
 	ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[savedWeaponId][ent->client->ps.firingMode];
