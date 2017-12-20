@@ -15,6 +15,35 @@
 
 static int fmLoadCounter;
 
+static int BG_GetDamageFlagFromString(const char* szDamageFlagString)
+{
+	if (!Q_stricmp(szDamageFlagString, "DAMAGE_RADIUS"))
+	{
+		return DAMAGE_RADIUS;
+	}
+	else if (!Q_stricmp(szDamageFlagString, "DAMAGE_NO_SHIELD"))
+	{
+		return DAMAGE_NO_SHIELD;
+	}
+	else if (!Q_stricmp(szDamageFlagString, "DAMAGE_NO_KNOCKBACK"))
+	{
+		return DAMAGE_NO_KNOCKBACK;
+	}
+	else if (!Q_stricmp(szDamageFlagString, "DAMAGE_NO_PROTECTION"))
+	{
+		return DAMAGE_NO_PROTECTION;
+	}
+	else if (!Q_stricmp(szDamageFlagString, "DAMAGE_NO_HIT_LOC"))
+	{
+		return DAMAGE_NO_HIT_LOC;
+	}
+	else if (!Q_stricmp(szDamageFlagString, "DAMAGE_NO_DISMEMBER"))
+	{
+		return DAMAGE_NO_DISMEMBER;
+	}
+	return DAMAGE_NORMAL;
+}
+
 static void BG_ParseWeaponStatsFlags ( weaponData_t *weaponData, const char *flagStr )
 {
     if ( Q_stricmp (flagStr, "cookable") == 0 )
@@ -158,6 +187,12 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
             //case 2: darea.penetrationType = PT_SHIELD_ARMOR; break;
             case 3: darea.penetrationType = PT_WALLS; break;
         }
+
+		node = cJSON_GetObjectItem(damageNode, "flags");
+		for (int i = 0; i < cJSON_GetArraySize(node); i++)
+		{
+			darea.damageFlags |= BG_GetDamageFlagFromString(cJSON_ToStringOpt(cJSON_GetArrayItem(node, i), ""));
+		}
 
 		node = cJSON_GetObjectItem(damageNode, "buffs");
 		if (!node)

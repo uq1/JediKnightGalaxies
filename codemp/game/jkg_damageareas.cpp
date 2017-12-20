@@ -559,7 +559,7 @@ void JKG_DoSplashDamage ( damageSettings_t* data, const vec3_t origin, gentity_t
             VectorClear (area->context.direction);
             area->context.ignoreEnt = ignoreEnt;
             area->context.attacker = attacker;
-            area->context.damageFlags = 0;
+            area->context.damageFlags = data->damageFlags;
             area->context.inflictor = inflictor;
             area->context.methodOfDeath = mod;
             area->startTime = level.time + data->delay;
@@ -587,7 +587,7 @@ void JKG_DoSplashDamage ( damageSettings_t* data, const vec3_t origin, gentity_t
         VectorClear (a.context.direction);
         a.context.ignoreEnt = ignoreEnt;
         a.context.attacker = attacker;
-        a.context.damageFlags = 0;
+        a.context.damageFlags = a.data->damageFlags;
         a.context.inflictor = inflictor;
         a.context.methodOfDeath = mod;
         a.startTime = level.time;

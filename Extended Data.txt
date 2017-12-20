@@ -294,6 +294,14 @@ The .wpn file contains one field for each firing mode, starting with 0.
     - buff (string): The name of the buff to apply.
     - duration (integer): How long (in milliseconds) to apply the buff for.
     - intensity (float): Not used.
+   - flags (array of string): Adds extra flags to the damage which specify how to apply it. The strings in this array can be one of the following:
+    * DAMAGE_NORMAL: No effect.
+    * DAMAGE_RADIUS: No effect.
+    * DAMAGE_NO_SHIELD: Ignores shields
+    * DAMAGE_NO_KNOCKBACK: Does not do knockback
+    * DAMAGE_NO_PROTECTION: Weapon can ignore godmode and other forms of protection
+    * DAMAGE_NO_HIT_LOC: Weapon ignores armor, and is not affected by location based modifiers
+    * DAMAGE_NO_DISMEMBER: Weapon cannot dismember
   - secondarydamage (special): Applies a second damage area on top of the original damage. This is an object with fields identical to `damage`.
   - grenade (boolean): If true, this firemode behaves (ballistically) like a grenade.
   - grenadeBounces (boolean): If true, grenades fired with this firing mode will bounce.

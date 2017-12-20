@@ -1448,16 +1448,6 @@ void TossClientItems( gentity_t *self );
 void G_CheckForDismemberment(gentity_t *ent, gentity_t *enemy, vec3_t point, int damage, int deathAnim, qboolean postDeath);
 extern int gGAvoidDismember;
 
-
-// damage flags
-#define DAMAGE_NORMAL				0x00000000	// No flags set.
-#define DAMAGE_RADIUS				0x00000001	// damage was indirect
-#define DAMAGE_NO_SHIELD			0x00000002	// shield does not protect from this damage
-#define DAMAGE_NO_KNOCKBACK			0x00000004	// do not affect velocity, just view angles
-#define DAMAGE_NO_PROTECTION		0x00000008  // armor, shields, invulnerability, and godmode have no effect
-#define DAMAGE_NO_HIT_LOC			0x00000010	// No hit location
-#define DAMAGE_NO_DISMEMBER			0x00000020	// Dont do dismemberment
-
 //
 // g_exphysics.c
 //

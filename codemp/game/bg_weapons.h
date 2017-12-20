@@ -161,6 +161,7 @@ typedef struct damageSettings_s
 	qboolean            planar;
 	int					numberDebuffs;
 	debuffData_t		debuffs[MAX_DEBUFFS_PRESENT];
+	int					damageFlags;
 
 	// Damage override stuff
 	int					weapon;
