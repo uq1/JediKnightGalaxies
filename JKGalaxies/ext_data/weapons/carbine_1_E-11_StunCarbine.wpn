@@ -81,7 +81,12 @@
     "firemode0": {
         "damage": {
                                "damage":       0,
-                               "damagetype": [ "stun" ]
+				"buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 2000
+					}
+				]
                         },
         "collisionsize": 16.0,
         "maxchargetime": 500,

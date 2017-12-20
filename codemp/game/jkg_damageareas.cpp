@@ -2,31 +2,7 @@
 #include "g_local.h"
 #include "qcommon/q_shared.h"
 
-// Maybe make a linked list of active damage settings? Though
-// looping through 256 elements is hardly time-consuming
 static std::vector<damageArea_t> damageAreas;
-
-static struct
-{
-    damageType_t damageType;
-    int damageFlags;
-    int debuffLifeTime;
-    int damage;
-    int damageInterval;	
-} damageTypeData[] = {
-    { DT_DISINTEGRATE,  0,									0,          0,      0		},
-    { DT_EXPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},
-    { DT_FIRE,          DAMAGE_NO_HIT_LOC,					10000,      2,      1000	},
-    { DT_FREEZE,        DAMAGE_NO_SHIELD|DAMAGE_NO_HIT_LOC,	500,        2,      1000	},
-    { DT_IMPLOSION,     DAMAGE_RADIUS,						0,          0,      0		},	// Not used.
-    { DT_STUN,          0,									2000,       0,      0		},
-    { DT_CARBONITE,     DAMAGE_NO_HIT_LOC,					4000,       2,      1000	},
-	{ DT_BLEED,			DAMAGE_NO_SHIELD|DAMAGE_NO_HIT_LOC,	5000,		4,		1000	},
-	{ DT_COLD,			DAMAGE_NO_SHIELD|DAMAGE_NO_HIT_LOC,	5000,		0,		0		},
-	{ DT_POISON,		DAMAGE_NO_SHIELD|DAMAGE_NO_HIT_LOC,	7000,		5,		1000	}
-};
-
-void JKG_RemoveDamageType(gentity_t *ent, damageType_t type);
 
 static float CalculateDamageRadius ( const damageArea_t *area )
 {
@@ -143,6 +119,165 @@ static int CalculateDamageForDistance ( const damageArea_t *area, const vec3_t p
     return d;
 }
 
+/*
+ *	Removes a buff from a character
+ */
+void G_RemoveBuff(gentity_t* ent, int index)
+{
+	jkgBuff_t* pBuff = &buffTable[ent->client->ps.buffs[index].buffID];
+
+	ent->client->ps.buffsActive &= ~(1 << index);
+	if (pBuff->passive.overridePmoveType.first)
+	{
+		if (pBuff->passive.overridePmoveType.second == PM_FREEZE || pBuff->passive.overridePmoveType.second == PM_LOCK)
+		{
+			ent->client->pmfreeze = qfalse;
+			ent->client->pmlock = qfalse;
+		}
+	}
+}
+
+/*
+ *	Adds a buff to a character
+ */
+void G_BuffEntity(gentity_t* ent, gentity_t* buffer, int buffID, float intensity, int duration)
+{
+	int i;
+	jkgBuff_t* pBuff;
+
+	if (!ent->client)
+	{
+		// can only be used on clients for now
+		return;
+	}
+
+	if (buffID < 0)
+	{	// not a valid buff
+		return;
+	}
+
+	pBuff = &buffTable[buffID];
+	
+	// Try and cancel out any existing buffs first, this will clear out room for the new buff ideally
+	for (i = 0; i < PLAYERBUFF_BITS; i++)
+	{
+		
+		if (ent->client->ps.buffsActive & (1 << i))
+		{
+			jkgBuff_t* pOtherBuff = &buffTable[ent->client->ps.buffs[i].buffID];
+
+			// this buff is active
+			if (pBuff->cancel.noBuffStack)
+			{
+				// don't allow buffs of the same kind to stack
+				if (ent->client->ps.buffs[i].buffID == buffID)
+				{
+					// extend the duration and change the buffer
+					ent->buffData[i].buffer = buffer;
+					ent->buffData[i].endTime = level.time + duration;
+					return;
+				}
+			}
+
+			if (pBuff->cancel.noCategoryStack)
+			{
+				// don't allow buffs in the same category to stack
+				if (!Q_stricmp(pOtherBuff->category, pBuff->category))
+				{
+					if (pOtherBuff->cancel.priority < pBuff->cancel.priority)
+					{
+						// cancel the other buff and put this one on instead
+						G_RemoveBuff(ent, i);
+					}
+					else
+					{
+						return; // we can't apply this buff to the player
+					}
+				}
+			}
+
+			if (pBuff->cancel.other.size() > 0)
+			{
+				// try to cancel out buffs in other categories
+				for (auto it = pBuff->cancel.other.begin(); it != pBuff->cancel.other.end(); ++it)
+				{
+					if (!Q_stricmp(pOtherBuff->category, it->category) && pOtherBuff->cancel.priority < it->priority)
+					{
+						G_RemoveBuff(ent, i);
+					}
+				}
+			}
+		}
+	}
+
+	// Now that some space has been cleared out, we need to apply this new buff
+	for (i = 0; i < PLAYERBUFF_BITS; i++)
+	{
+		if (!(ent->client->ps.buffsActive & (1 << i)))
+		{
+			// this slot is not using anything
+			ent->client->ps.buffsActive |= (1 << i);
+			ent->client->ps.buffs[i].buffID = buffID;
+			ent->client->ps.buffs[i].intensity = intensity;
+			ent->buffData[i].buffer = buffer;
+			ent->buffData[i].endTime = level.time + duration;
+			ent->buffData[i].lastDamageTime = level.time;
+
+			if (pBuff->passive.overridePmoveType.first)
+			{
+				if (pBuff->passive.overridePmoveType.second == PM_FREEZE)
+				{
+					VectorClear(ent->client->ps.velocity);
+					ent->client->ps.freezeLegsAnim = ent->client->ps.legsAnim;
+					ent->client->ps.freezeTorsoAnim = ent->client->ps.torsoAnim;
+					ent->client->pmlock = ent->client->pmfreeze = qtrue;
+				}
+			}
+			return;
+		}
+	}
+}
+
+/*
+ *	Ticks all of the buffs on this entity and sees if they should be removed or if they should do damage
+ */
+void G_TickBuffs(gentity_t* ent)
+{
+	if (!JKG_ClientAlive(ent))
+	{
+		// if we are dead, we have no buffs active
+		ent->client->ps.buffsActive = 0;
+		return;
+	}
+
+	for (int i = 0; i < PLAYERBUFF_BITS; i++)
+	{
+		// check to see if it's active
+		if (ent->client->ps.buffsActive & (1 << i))
+		{
+			jkgBuff_t* pBuff = &buffTable[ent->client->ps.buffs[i].buffID];
+			// check for removal
+			if (ent->buffData[i].endTime < level.time)
+			{
+				G_RemoveBuff(ent, i);
+				continue;
+			}
+
+			// check for dealing damage
+			if (ent->buffData[i].lastDamageTime + pBuff->damage.damageRate < level.time)
+			{
+				G_Damage(ent, ent->buffData[i].buffer, ent->buffData[i].buffer, vec3_origin, vec3_origin, 
+					pBuff->damage.damage, DAMAGE_NO_KNOCKBACK | DAMAGE_NO_DISMEMBER | DAMAGE_NO_KNOCKBACK, pBuff->damage.meansOfDeath);
+				ent->buffData[i].lastDamageTime = level.time;
+			}
+		}
+		
+	}
+}
+
+/*
+ *	Applies debuffs as given to the player with damage areas
+ */
 static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, int mod )
 {
     vec3_t dir;
@@ -155,68 +290,18 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
     }
 
 	if (!JKG_ClientAlive(player)) {	// Don't allow us to be debuffed if we are dead
-
+		return;
 	}
     
     SmallestVectorToBBox (dir, area->origin, player->r.absmin, player->r.absmax);
     dir[2] += 24.0f; // Push the player up a bit to get some air time.
     VectorNormalize (dir);
 
-    for ( i = 0; i < NUM_DAMAGE_TYPES; i++ )
-    {
-        damageType_t damageType = (damageType_t)i;
-        
-        if ( !(area->data->damageType & (1 << damageType)) )
-        {
-            continue;
-        }
-        
-        player->client->damageTypeTime[i] = level.time;
-		player->client->damageTypeOwner[i] = area->context.attacker;
-        
-        switch ( damageType )
-        {
-            case DT_STUN:
-            case DT_CARBONITE:
-                player->client->ps.freezeLegsAnim = player->client->ps.legsAnim;
-                player->client->ps.freezeTorsoAnim = player->client->ps.torsoAnim;
-                player->client->pmlock = player->client->pmfreeze = qtrue;
-                VectorClear (player->client->ps.velocity);
-            break;
-
-			case DT_FREEZE:
-				JKG_RemoveDamageType(player, DT_FIRE);		// Remove fire...
-				JKG_RemoveDamageType(player, DT_COLD);		// And cold...
-				player->client->ps.freezeLegsAnim = player->client->ps.legsAnim;
-				player->client->ps.freezeTorsoAnim = player->client->ps.torsoAnim;
-				player->client->pmlock = player->client->pmfreeze = qtrue;
-				VectorClear(player->client->ps.velocity);
-			break;
-
-			case DT_COLD:
-				// FIXME: change player speed
-				JKG_RemoveDamageType(player, DT_FIRE);
-			break;
-
-			case DT_FIRE:
-				// Fire effectively thaws the player
-				JKG_RemoveDamageType(player, DT_COLD);
-				JKG_RemoveDamageType(player, DT_FREEZE);
-			break;
-            
-            case DT_EXPLOSION:
-                flags |= DAMAGE_RADIUS;
-            break;
-            
-            case DT_IMPLOSION:
-                flags |= DAMAGE_RADIUS;
-                VectorNegate (dir, dir);
-            break;
-
-			default:
-			break;
-        }
-    }
+	for (i = 0; i < area->data->numberDebuffs; i++)
+	{
+		G_BuffEntity(player, area->context.attacker, 
+			area->data->debuffs[i].debuff, area->data->debuffs[i].intensity, area->data->debuffs[i].duration);
+	}
     
     if ( damage > 0 )
     {
@@ -232,196 +317,9 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
         }
         
         G_Damage (player, area->context.inflictor, area->context.attacker, dir, player->client->ps.origin, damage, flags | area->context.damageFlags, mod);
-        if ( player->health <= 0 )
-        {
-            // Dead...
-            if ( area->data->damageType & (1 << DT_DISINTEGRATE) )
-            {
-                // Clear all flags - should put this into its own function later
-                player->client->ps.damageTypeFlags = 0;
-                player->client->pmfreeze = qfalse;
-                player->client->pmlock = qfalse;
-                player->client->pmnomove = qfalse;
-                
-                player->client->ps.eFlags |= EF_DISINTEGRATION;
-                player->client->ps.legsAnim = legsAnim;
-                player->client->ps.torsoAnim = torsoAnim;
-                player->r.contents = 0;
-                VectorCopy (viewAngles, player->client->ps.viewangles);
-                VectorClear (player->client->ps.lastHitLoc);
-                VectorClear (player->client->ps.velocity);
-            }
-        }
     }
     
-    player->client->ps.damageTypeFlags |= area->data->damageType;
     area->lastDamageTime = level.time;
-}
-
-void JKG_RemoveDamageType ( gentity_t *ent, damageType_t type )
-{
-    switch ( type )
-    {
-        case DT_STUN:
-        case DT_FREEZE:
-        case DT_CARBONITE:
-            ent->client->pmfreeze = qfalse;
-            ent->client->pmlock = qfalse;
-        break;
-
-		default:
-		break;
-    }
-
-    ent->client->ps.damageTypeFlags &= ~(1 << type);
-    ent->client->damageTypeLastEffectTime[(int)type] = 0;
-}
-
-void JKG_DoPlayerDamageEffects ( gentity_t *ent )
-{
-    int i = 0;
-	int health = ent->client->ps.stats[STAT_HEALTH];
-	int maxHealth = ent->client->ps.stats[STAT_MAX_HEALTH];
-
-    if ( !JKG_ClientAlive(ent) )
-    {
-        // dead, remove all damage types and clear timers.
-        if ( ent->client->ps.damageTypeFlags > 0 )
-        {
-            for ( i = 0; i < NUM_DAMAGE_TYPES; i++ )
-            {
-                damageType_t damageType = (damageType_t)i;
-                JKG_RemoveDamageType (ent, damageType);
-            }
-        }
-        return;
-    }
-    
-	// Iterate through all of the damage types to check for periodic effects
-    for ( i = 0; i < NUM_DAMAGE_TYPES; i++ )
-    {
-        damageType_t damageType = (damageType_t)i;
-		int take = damageTypeData[damageType].damage;
-		int flags = damageTypeData[damageType].damageFlags | DAMAGE_NO_KNOCKBACK;	// Damage from debuffs never inflicts knockback
-		int interval = damageTypeData[damageType].damageInterval;
-		bool removeType = (ent->client->damageTypeTime[i] + damageTypeData[i].debuffLifeTime) < level.time;
-		bool scaleDmg = false;	//if damage done should be scaled based on max health
-		int means = MOD_UNKNOWN;
-		vec3_t p;
-
-		VectorCopy(ent->client->ps.origin, p);
-
-		// Don't do periodic effects if we don't have this effect on us
-        if ( !(ent->client->ps.damageTypeFlags & (1 << damageType)) )
-        {
-            continue;
-        }
-
-		// Specific behavior based on the type
-		switch (damageType) {
-			case DT_FIRE:
-				means = JKG_GetMeansOfDamageIndex("MOD_IGNITED");
-
-				// Remove the effect if we are in water
-				p[2] -= 12.0f; // Water about half way up your thighs will extinguish the flames.
-				if (trap->PointContents(p, ent->s.number) & CONTENTS_WATER)
-				{
-					removeType = true;
-				}
-				break;
-
-			case DT_FREEZE:
-				means = JKG_GetMeansOfDamageIndex("MOD_FROZEN");
-
-				// Remove the effect if we are in lava
-				p[2] -= 12.0f; // Lava up to about halfway to your thighs will thaw you
-				if (trap->PointContents(p, ent->s.number) & CONTENTS_LAVA)
-				{
-					removeType = true;
-				}
-				break;
-
-			case DT_BLEED:
-				means = JKG_GetMeansOfDamageIndex("MOD_BLEEDING");
-
-				// Damage -and- interval both get scaled as a percentage of overall health
-				take *= Q_max(health / (float)maxHealth, 0.25f);
-				interval /= Q_max(health / (float)maxHealth, 0.25f);
-				scaleDmg = true;
-				break;
-
-			case DT_POISON:
-				// FIXME: this doesn't have an associated meansOfDamage entry!!!
-				means = JKG_GetMeansOfDamageIndex("MOD_POISONED");
-
-				// The damage that you get from poison is a percentage of your overall health.
-				// So instead of doing 5 damage, it does 5% of your current health.
-				// At 100 hp it does 5 damage, at 50 hp it does 3 damage.
-				take = Q_max(health * (take / 100.0f), 1);
-				scaleDmg = true;
-				break;
-
-			default:
-				break;
-		}
-        
-		// Check for the damage type being removed
-		if (removeType)
-		{
-			JKG_RemoveDamageType(ent, damageType);
-			continue;
-		}
-
-		// Scale the damage that we take as being a percentage of overall health.
-		if(scaleDmg)
-			take = take * 100.0f / maxHealth;
-
-		//do we allow debuffs to kill players?
-		switch (jkg_allowDebuffKills.integer)
-		{
-			// Only allow debuffs to whittle us down to 1 HP, not kill us
-			case 0:
-				if (health - take <= 0)
-					take = 0;
-				break;
-
-			//debuffs are deadly
-			case 1:
-				break;
-
-			//fire, poison, freeze will kill, but others don't (like bleed or carbonite)
-			case 2:
-				if (damageType == DT_FIRE | damageType == DT_POISON | damageType == DT_FREEZE)
-					;	//do nothing
-				else
-				{
-					if (health - take <= 0)	//no killing
-						take = 0;
-				}
-				break;
-			
-			//debuffs are deadly
-			default:
-				break;
-		}
-
-		// Do the damage and special effects related to the debuff
-		if (ent->client->damageTypeLastEffectTime[i] + interval <= level.time) 
-		{
-			ent->client->damageTypeLastEffectTime[i] = level.time;
-			if (take > 0) 
-			{
-				G_Damage(ent, ent->client->damageTypeOwner[damageType], ent->client->damageTypeOwner[damageType], vec3_origin, ent->client->ps.origin, take, flags, means);
-
-				if (damageType == DT_BLEED) 
-				{
-					// spurt blood -- should be done on the client? -- make this nicer and spurt blood from where we got hit
-					G_PlayEffectID(G_EffectIndex("blood/Blood_WoundBig"), ent->s.origin, ent->s.angles);
-				}
-				//TODO: add additional damagetype effects, eg: poison "splotches" for DT_POISON etc
-			}
-		}
-    }
 }
 
 /*

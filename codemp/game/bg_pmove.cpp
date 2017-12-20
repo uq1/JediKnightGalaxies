@@ -37,11 +37,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_WEAPON_CHARGE_TIME 5000
 
-#ifdef _GAME
-// FIXME: remove
-extern void JKG_RemoveDamageType ( gentity_t *ent, damageType_t type );
-#endif
-
 // FIXME: remove extern, put in bg_local.h
 extern qboolean BG_FullBodyTauntAnim( int anim );
 // FIXME: move this func from bg_saber.cpp -> bg_pmove.cpp
@@ -2152,10 +2147,7 @@ Flying out of the water
 */
 static void PM_WaterJumpMove( void ) {
 	// waterjump has no control, but falls
-#ifdef _GAME
-	// moving around in water removes fire effects
-	JKG_RemoveDamageType((gentity_t *)pm_entSelf, DT_FIRE);
-#endif
+	JKG_CheckWaterRemoval(pm->ps);	// remove fire and other debuffs
 
 	PM_StepSlideMove( qtrue );
 
@@ -2223,10 +2215,7 @@ static void PM_WaterMove( void ) {
 		VectorScale(pm->ps->velocity, vel, pm->ps->velocity);
 	}
 
-#ifdef _GAME
-	// moving around in water removes fire effects
-	JKG_RemoveDamageType((gentity_t *)pm_entSelf, DT_FIRE);
-#endif
+	JKG_CheckWaterRemoval(pm->ps);	// remove fire and other debuffs
 
 	PM_SlideMove( qfalse );
 }
@@ -3977,13 +3966,10 @@ static void PM_Footsteps( void ) {
 			pm->ps->viewheight = DEFAULT_VIEWHEIGHT;
 			pm->ps->pm_flags &= ~PMF_DUCKED;
 			pm->ps->pm_flags |= PMF_ROLLING;
-			// Remove fire damage...some of the time. Jumping into water is a better bet --eez
-#ifdef _GAME
-			if(Q_irand(1,2) == 1)
-			{
-				JKG_RemoveDamageType((gentity_t *)pm_entSelf, DT_FIRE);
-			}
-#endif
+
+			// Check to see if we should remove roll related debuffs.
+			JKG_CheckRollRemoval(pm->ps);
+
 			// Drain a little stamina from rolling
 			pm->ps->forcePower -= bgConstants.staminaDrains.lossFromRolling;
 			if (pm->ps->forcePower < 0) {
@@ -4479,17 +4465,6 @@ static void PM_WaterEvents( void ) {		// FIXME?
 	}
 }
 
-void BG_ClearRocketLock( playerState_t *ps )
-{
-	if ( ps )
-	{
-		ps->rocketLockIndex = ENTITYNUM_NONE;
-		ps->rocketLastValidTime = 0;
-		ps->rocketLockTime = -1;
-		ps->rocketTargetTime = 0;
-	}
-}
-
 /*
 ===============
 PM_BeginWeaponChange
@@ -4566,8 +4541,6 @@ void PM_BeginWeaponChange( int weaponId ) {
 		pm->ps->weaponTime += 300;
 		PM_SetAnim(SETANIM_TORSO, TORSO_DROPWEAP1, SETANIM_FLAG_OVERRIDE);
 	}
-
-	BG_ClearRocketLock( pm->ps );
 }
 
 
@@ -5030,10 +5003,6 @@ static void PM_Weapon( void )
 	{//we are a vehicle
 		veh = pm_entSelf;
 	}
-
-	pm->ps->rocketLockIndex = ENTITYNUM_NONE;
-	pm->ps->rocketLockTime = 0;
-	pm->ps->rocketTargetTime = 0;
 
 	if ( PM_DoChargedWeapons())
 	{

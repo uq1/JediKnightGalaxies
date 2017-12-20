@@ -65,7 +65,12 @@
     "firemode0": {
 	"damage": {
 		"damage": 97,
-		"damagetype": [ "bleed" ]
+		"buffs": [
+			{
+				"buff": "standard-bleed",
+				"duration": 4000
+			}
+		]
 	},
         "ballistic":    true,
         "ammocost":     1,

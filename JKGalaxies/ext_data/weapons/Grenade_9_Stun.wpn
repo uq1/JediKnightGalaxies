@@ -76,7 +76,12 @@
     "firemode0": {
         "damage": {
 			"damage": 20,
-			"damagetype": ["stun"]
+			"buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 5000
+					}
+				]
 		},
 		
 //        "damage": {

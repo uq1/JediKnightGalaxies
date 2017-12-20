@@ -32,6 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "bg_ammo.h"
 #include "bg_items.h"
 #include "bg_damage.h"
+#include "bg_buffs.h"
 
 #include "qcommon/game_version.h"
 
@@ -190,6 +191,12 @@ typedef struct {
 	int damageDealt;
 } entityHitRecord_t;
 
+typedef struct {
+	int endTime;
+	int lastDamageTime;
+	gentity_t* buffer;
+} buffInfo_t;
+
 #ifdef _GAME
 class TreasureClass;
 #endif
@@ -202,7 +209,6 @@ extern qboolean gEscaping;
 extern int gEscapeTime;
 
 //============================================================================
-//so i herd you liek jkg
 
 struct gentity_s {
 	//rww - entstate must be first, to correspond with the bg shared entity structure
@@ -447,6 +453,7 @@ struct gentity_s {
 	gentity_t   *damagePlum;
 	int			damagePlumTime;
 	int			lastHealTime;
+	buffInfo_t	buffData[PLAYERBUFF_BITS];
 
 	int			grenadeCookTime;	// For cookable grenades.
 	int			grenadeWeapon;		// The cookable grenade type that has been set (it can explode in your pocket).
@@ -992,9 +999,6 @@ struct gclient_s {
 	qboolean	noDismember;
 	qboolean	noDisintegrate;
 	qboolean	noDrops;					// Supress item drops
-	int         damageTypeTime[NUM_DAMAGE_TYPES];
-	int         damageTypeLastEffectTime[NUM_DAMAGE_TYPES];
-	gentity_t	*damageTypeOwner[NUM_DAMAGE_TYPES];
 	
 	// Custom disco messages
 	int			customDisconnectMsg;
@@ -1453,6 +1457,7 @@ extern int gGAvoidDismember;
 #define DAMAGE_NO_PROTECTION		0x00000008  // armor, shields, invulnerability, and godmode have no effect
 #define DAMAGE_NO_HIT_LOC			0x00000010	// No hit location
 #define DAMAGE_NO_DISMEMBER			0x00000020	// Dont do dismemberment
+
 //
 // g_exphysics.c
 //

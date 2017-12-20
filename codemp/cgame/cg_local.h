@@ -38,6 +38,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "jkg_cg_damagetypes.h"
 #include "game/jkg_gangwars.h"
 #include "game/bg_damage.h"
+#include "game/bg_buffs.h"
 
 // The entire cgame module is unloaded and reloaded on each level change,
 // so there is NO persistant data between levels on the client side.
@@ -331,6 +332,12 @@ typedef struct cgLoopSound_s {
 	sfxHandle_t sfx;
 } cgLoopSound_t;
 
+typedef struct debuffVisualsData_s
+{
+	int lastEFXTime;
+	int debuffStartTime;
+} debuffVisualsData_t;
+
 // centity_t have a direct corespondence with gentity_t in the game, but
 // only the entityState_t is directly communicated to the cgame
 typedef struct centity_s {
@@ -456,7 +463,7 @@ typedef struct centity_s {
 	int				fadeState;			// 0 = Normal, 1 = Fading-In, 2 = Fading-Out, 3 = Don't Render
 	int				visibilityTime;		// Time of the last visibility check.
 	qboolean		visibilityState;	// 0 = No, 1 = Yes..
-	debuffVisualsData_t debuffVisuals;
+	debuffVisualsData_t debuffVisuals[PLAYERBUFF_BITS];
 	int				shieldHitTime;
 	int				shieldRechargeTime;
 } centity_t;
@@ -1375,12 +1382,6 @@ typedef struct cgMedia_s {
 	qhandle_t	avatar_placeholder;
 	
 	qhandle_t   bboxShader;
-	
-	// Damage types - There's soooooo many fields in this struct. Let's add more :D
-	qhandle_t   stunOverlay;
-	qhandle_t   carboniteOverlay;
-	qhandle_t   iceOverlay;
-	qhandle_t   playerFireEffect;
 
 } cgMedia_t;
 

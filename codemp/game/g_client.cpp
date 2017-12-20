@@ -2420,18 +2420,27 @@ void G_UpdateClientAnims(gentity_t *self, float animSpeedScale)
 		return;
 	}
 	
-	// JKG: Freezing/stun
-	if ( JKG_DamageTypeFreezes ((const damageType_t)self->client->ps.damageTypeFlags) )
+	// JKG: Check to see if we have a debuff which freezes us
+	for (int i = 0; i < PLAYERBUFF_BITS; i++)
 	{
-	    const animation_t *torsoAnimData = &bgAllAnims[self->localAnimIndex].anims[self->client->ps.freezeTorsoAnim];
-	    const animation_t *legsAnimData = &bgAllAnims[self->localAnimIndex].anims[self->client->ps.freezeLegsAnim];
-	    int legsAnimFrame = legsAnimData->firstFrame + legsAnimData->numFrames;
-	    int torsoAnimFrame = torsoAnimData->firstFrame + torsoAnimData->numFrames;
-	    
-	    trap->G2API_SetBoneAnim (self->ghoul2, 0, "model_root", legsAnimFrame, legsAnimFrame, BONE_ANIM_OVERRIDE_FREEZE | BONE_ANIM_BLEND, animSpeedScale, level.time, -1, 150);
-	    trap->G2API_SetBoneAnim (self->ghoul2, 0, "lower_lumbar", torsoAnimFrame, torsoAnimFrame, BONE_ANIM_OVERRIDE_FREEZE | BONE_ANIM_BLEND, animSpeedScale, level.time, -1, 150);
-	    
-	    return;
+		if (self->client->ps.buffsActive & (1 << i))
+		{
+			if (buffTable[self->client->ps.buffs[i].buffID].passive.overridePmoveType.first)
+			{
+				if (buffTable[self->client->ps.buffs[i].buffID].passive.overridePmoveType.second == PM_FREEZE)
+				{
+					const animation_t *torsoAnimData = &bgAllAnims[self->localAnimIndex].anims[self->client->ps.freezeTorsoAnim];
+					const animation_t *legsAnimData = &bgAllAnims[self->localAnimIndex].anims[self->client->ps.freezeLegsAnim];
+					int legsAnimFrame = legsAnimData->firstFrame + legsAnimData->numFrames;
+					int torsoAnimFrame = torsoAnimData->firstFrame + torsoAnimData->numFrames;
+
+					trap->G2API_SetBoneAnim(self->ghoul2, 0, "model_root", legsAnimFrame, legsAnimFrame, BONE_ANIM_OVERRIDE_FREEZE | BONE_ANIM_BLEND, animSpeedScale, level.time, -1, 150);
+					trap->G2API_SetBoneAnim(self->ghoul2, 0, "lower_lumbar", torsoAnimFrame, torsoAnimFrame, BONE_ANIM_OVERRIDE_FREEZE | BONE_ANIM_BLEND, animSpeedScale, level.time, -1, 150);
+
+					return;
+				}
+			}
+		}
 	}
 
 	if (self->localAnimIndex >= NUM_RESERVED_ANIMSETS &&
@@ -3170,9 +3179,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 			}
 		}
 	}
-
-	client->ps.rocketLockIndex = ENTITYNUM_NONE;
-	client->ps.rocketLockTime = 0;
 
 	//rww - Set here to initialize the circling seeker drone to off.
 	//A quick note about this so I don't forget how it works again:

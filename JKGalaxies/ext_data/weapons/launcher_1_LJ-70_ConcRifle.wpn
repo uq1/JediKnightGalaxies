@@ -73,7 +73,12 @@
 		"damage": {
 			"damageradius": { "start": 420 },
 			"damage": 35,
-			"damageType": [ "stun" ]
+			"buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 2000
+					}
+				]
 		},
 //        "damage": 50,//100,//{
 //                          "damageradius": { "start": 128 },
@@ -83,8 +88,7 @@
 //        "secondarydamage": {
 //                          "damageradius": { "start": 210 },
 //                          "delay": 1000,
-//                          "damage": 100,
-//                          "damagetype": [ "explosion" ]
+//                          "damage": 100
 //                        },
         "ballistic":    true,
         "collisionsize":1.0,

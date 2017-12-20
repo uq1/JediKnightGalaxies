@@ -38,6 +38,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define MAX_FIREMODES (16)
 #define MAX_STANCES	(16)
 #define MAX_SABERHILTS	(64)
+#define MAX_DEBUFFS_PRESENT		8
 
 typedef enum 
 {
@@ -140,19 +141,26 @@ typedef struct radiusParams_s
 	radiusFunc_t radiusFunc;
 } radiusParams_t;
 
+typedef struct debuffData_s
+{
+	int					debuff;
+	float				intensity;
+	int					duration;
+} debuffData_t;
+
 typedef struct damageSettings_s
 {
 	qboolean			bPresent;	// whether this weapon uses complex damage settings
-	damageType_t        type;
 	qboolean            radial;
 	radiusParams_t      radiusParams;
 	int                 lifetime;
 	int                 delay;
 	int                 damage;
 	int                 damageDelay;
-	int					damageType;
 	penetrationType_t   penetrationType;
 	qboolean            planar;
+	int					numberDebuffs;
+	debuffData_t		debuffs[MAX_DEBUFFS_PRESENT];
 
 	// Damage override stuff
 	int					weapon;

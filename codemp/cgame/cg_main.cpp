@@ -1365,12 +1365,6 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.crateBreakSound[1]	= trap->S_RegisterSound("sound/weapons/explosions/crateBust2" );
 	
 	cgs.media.bboxShader = trap->R_RegisterShader ("gfx/effects/bbox");
-	
-	// Damage types
-	cgs.media.stunOverlay = trap->R_RegisterShader ("gfx/PlayerOverlays/stun");
-	cgs.media.iceOverlay = trap->R_RegisterShader ("gfx/PlayerOverlays/ice");
-	cgs.media.carboniteOverlay = trap->R_RegisterShader ("gfx/PlayerOverlays/carbonite");
-    cgs.media.playerFireEffect = trap->FX_RegisterEffect ("player/fire");
 
 	CG_LoadingString( "Items" );
 /*
@@ -2500,6 +2494,7 @@ Ghoul2 Insert Start
 	CG_PmoveClientPointerUpdate();
 
 	JKG_LoadMeansOfDamage();
+	JKG_InitializeBuffs();
 	
 	// Yum, ammo
 	BG_InitializeAmmo();

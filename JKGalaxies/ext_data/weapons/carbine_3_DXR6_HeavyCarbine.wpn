@@ -100,8 +100,7 @@
         "damage": {
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
-                               "damage":       50,
-                               "damagetype": [ "disintegrate" ]
+                               "damage":       50
                         },
         "ammocost":     2,
         "maxchargetime":1000,

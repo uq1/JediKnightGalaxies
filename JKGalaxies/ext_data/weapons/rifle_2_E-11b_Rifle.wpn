@@ -117,7 +117,12 @@
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
                                "damage":       10,
-                               "damagetype": [ "stun" ]
+				"buffs": [
+					{
+						"duration": 4000,
+						"buff": "standard-stun"
+					}
+				]
         },
         "collisionsize": 8.0,
         "maxchargetime": 500,

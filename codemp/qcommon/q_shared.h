@@ -1486,6 +1486,12 @@ typedef struct forcedata_s {
 	int			privateDuelTime;
 } forcedata_t;
 
+typedef struct buffdata_s
+{
+	int			buffID;
+	float		intensity;
+} buffdata_t;
+
 // bit field limits
 #define	MAX_STATS				16
 #define	MAX_PERSISTANT			16
@@ -1504,6 +1510,10 @@ typedef struct forcedata_s {
 
 #define FALL_FADE_TIME			3000
 
+#define BUFF_BITS			8					// how many bits to network for the buff ID
+#define MAX_BUFFS			(1 << BUFF_BITS)	// how many kinds of buffs exist
+#define PLAYERBUFF_BITS		16					// how many buffs can exist on the player at once
+
 //#define _ONEBIT_COMBO
 //Crazy optimization attempt to take all those 1 bit values and shove them into a single
 //send. May help us not have to send so many 1/0 bits to acknowledge modified values. -rww
@@ -1511,10 +1521,6 @@ typedef struct forcedata_s {
 // JKG: Toggle bit for shots remaining. Just like in JK2 with anims :D
 #define SHOTS_TOGGLEBIT (1 << 7)
 #define _OPTIMIZED_VEHICLE_NETWORKING
-//Instead of sending 2 full playerStates for the pilot and the vehicle, send a smaller,
-//specialized pilot playerState and vehicle playerState.  Also removes some vehicle
-//fields from the normal playerState -mcg
-
 // playerState_t is the information needed by both the client and server
 // to predict player motion and actions
 // nothing outside of pmove should modify these, or some degree of prediction error
@@ -1602,8 +1608,8 @@ typedef struct playerState_s {
 	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
 	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
 	int			armor[MAX_ARMOR];
-
-	int			unused[2];			// Unused field to keep the alignment correct (?)
+	int			buffsActive;
+	buffdata_t	buffs[MAX_BUFFS];
 
 	int			generic1;
 	int			loopSound;
@@ -1777,7 +1783,6 @@ typedef struct playerState_s {
 	
 	int				saberActionFlags;
 
-	int 			damageTypeFlags;
 	int 			freezeTorsoAnim;
 	int 			freezeLegsAnim;
 
@@ -2201,6 +2206,8 @@ typedef struct entityState_s {
 
 	int				armor[MAX_ARMOR];
 	int				jetpack;
+	int				buffsActive;
+	buffdata_t		buffs[PLAYERBUFF_BITS];
 
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 	
@@ -2378,23 +2385,6 @@ typedef enum
 	eForceReload_ALL
 
 } ForceReload_e;
-
-// Bit of damage types stuff here...
-typedef enum damageType_e
-{
-	DT_DISINTEGRATE, //--futuza note: DT_IMPLOSION, DT_BLASTER, DT_SLUG, DT_ACP, DT_PULSE, DT_ION, DT_SONIC and DT_COLD are not currently used
-	DT_EXPLOSION,
-	DT_FIRE,
-	DT_FREEZE,
-	DT_IMPLOSION,
-	DT_STUN,
-	DT_CARBONITE,
-	DT_BLEED,
-	DT_COLD,
-	DT_POISON,
-
-	NUM_DAMAGE_TYPES
-} damageType_t;
 
 enum {
 	FONT_NONE,

@@ -64,7 +64,12 @@
                                "damageradius": { "start": 16,
                                                      "function": [ "constant"] },
                                "damage":       20,
-                               "damagetype": [ "carbonite" ] 
+                               "buffs": [
+					{
+						"buff": "standard-carbonite",
+						"duration": 4000
+					}
+				]
                         },
         "ballistic":    true,
         "maxchargetime":1000,
@@ -93,7 +98,12 @@
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
                                "damage":       8,
-                               "damagetype": [ "carbonite" ]
+                               "buffs": [
+					{
+						"buff": "standard-carbonite",
+						"duration": 4000
+					}
+				]
                         },
         "ballistic":    true,
         "ammocost":     1,

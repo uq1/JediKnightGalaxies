@@ -3248,7 +3248,7 @@ static void CG_RunLerpFrame( centity_t *cent, clientInfo_t *ci, lerpFrame_t *lf,
 		lf->animationNumber = 0;
 	}
 	// JKG: Freezing/stun
-	else if (JKG_DamageTypeFreezes((const damageType_t)cent->currentState.damageTypeFlags) && cent->currentState.freezeTorsoAnim && cent->currentState.freezeTorsoAnim < MAX_ANIM_FILES)
+	else if (JKG_HasFreezingBuff(&cent->currentState) && cent->currentState.freezeTorsoAnim && cent->currentState.freezeTorsoAnim < MAX_ANIM_FILES)
 	{
 	    const animation_t *torsoAnimData = &bgAllAnims[cent->localAnimIndex].anims[cent->currentState.freezeTorsoAnim];
 	    int torsoAnimFrame = torsoAnimData->firstFrame + torsoAnimData->numFrames;
@@ -8989,8 +8989,7 @@ stillDoSaber:
 		//goto endOfCall;
 		return;
 	}
-	else if(cent->currentState.eFlags & EF_FROZEN || cent->currentState.damageTypeFlags & (1 << DT_FREEZE) ||
-		cent->currentState.damageTypeFlags & (1 << DT_CARBONITE)) {
+	else if(cent->currentState.eFlags & EF_FROZEN || JKG_HasFreezingBuff(&cent->currentState)) {
 		if(!cent->miscTime) {
 			cent->miscTime = legs.frame;
 		}

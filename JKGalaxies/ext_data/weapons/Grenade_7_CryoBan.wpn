@@ -83,7 +83,12 @@
                                                      "falloff": "constant" },		// Radius falloff type, valid are constant, linear, gaussian and bezier. 
                           "duration": 2000,		// Lifetime of damage type (ms)
                           "damage": 2,		// Damage to do per damagedelay
-                          "damagetype": [ "freeze" ],	// Valid are annihilate, concussion, cut, disintegrate, electric, explosion, fire, freeze, carbonite, implosion, stun. 
+                          "buffs": [
+					{
+						"buff": "standard-freeze",
+						"duration": 10000
+					}
+				],
                           "penetration": 3 },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
         "secondarydamage": {
                           "damageradius": { "start": 150,		// Radius over lifetime - if constant, only set start radius
@@ -95,7 +100,12 @@
                           "delay": 0,			// If the damage type should be delayed (ms)
                           "damage": 0,		// Damage to do per damagedelay
                           "damagedelay": 50,		// Milliseconds between each damage burst
-                          "damagetype": [ "freeze" ],	// Valid are annihilate, concussion, cut, disintegrate, electric, explosion, fire, freeze, carbonite, implosion, stun. 
+                          "buffs": [
+					{
+						"buff": "standard-freeze",
+						"duration": 200
+					}
+				],
                           "penetration": 3 },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
         "ballistic":    true,
 	"useQuantity":	true,
@@ -126,7 +136,12 @@
                                                      "falloff": "constant" },		// Radius falloff type, valid are constant, linear, gaussian and bezier. 
                           "duration": 2000,		// Lifetime of damage type (ms)
                           "damage": 2,		// Damage to do per damagedelay
-                          "damagetype": [ "freeze" ],	// Valid are annihilate, concussion, cut, disintegrate, electric, explosion, fire, freeze, carbonite, implosion, stun. 
+                          "buffs": [
+					{
+						"buff": "standard-freeze",
+						"duration": 10000
+					}
+				],
                           "penetration": 3 },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
         "secondarydamage": {
                           "damageradius": { "start": 150,		// Radius over lifetime - if constant, only set start radius
@@ -138,7 +153,12 @@
                           "delay": 0,			// If the damage type should be delayed (ms)
                           "damage": 0,		// Damage to do per damagedelay
                           "damagedelay": 50,		// Milliseconds between each damage burst
-                          "damagetype": [ "freeze" ],	// Valid are annihilate, concussion, cut, disintegrate, electric, explosion, fire, freeze, carbonite, implosion, stun. 
+                          "buffs": [
+					{
+						"buff": "standard-freeze",
+						"duration": 200
+					}
+				],
                           "penetration": 3 },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
         "ballistic":    true,
 	"useQuantity":	true,

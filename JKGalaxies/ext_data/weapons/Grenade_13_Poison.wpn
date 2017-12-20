@@ -80,7 +80,12 @@
 				"damage": 5,
 				"damagedelay": 500,
 				"delay": 0,
-				"damagetype": ["poison"],
+				"buffs": [
+					{
+						"buff": "standard-poison",
+						"duration": 5000
+					}
+				],
 				"penetration": 2
 			},
 		"secondarydamage":
@@ -95,7 +100,12 @@
 				"damage": 0,
 				"damagedelay": 500,
 				"delay": 750,
-				"damagetype": ["poison"],
+				"buffs": [
+					{
+						"buff": "standard-poison",
+						"duration": 5000
+					}
+				],
 				"penetration": 2
 			},
         "ballistic":    true,
@@ -131,7 +141,12 @@
 				"damage": 5,
 				"damagedelay": 500,
 				"delay": 0,
-				"damagetype": ["poison"],
+				"buffs": [
+					{
+						"buff": "standard-poison",
+						"duration": 5000
+					}
+				],
 				"penetration": 2
 			},
 		"secondarydamage":
@@ -146,7 +161,12 @@
 				"damage": 0,
 				"damagedelay": 500,
 				"delay": 750,
-				"damagetype": ["poison"],
+				"buffs": [
+					{
+						"buff": "standard-poison",
+						"duration": 5000
+					}
+				],
 				"penetration": 2
 			},
         "ballistic":    true,

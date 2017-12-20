@@ -286,6 +286,8 @@
 		// Disruptor weapons
 		"inventoryName": "@JKG_INVENTORY_MOD_DISRUPTOR",
 
+		"disintegrate": true,
+
 		"modifiers": {
 			"armor": 1.2,
 			"organic": 1.2,
@@ -555,7 +557,7 @@
 	//
 	//////////////////////////////////////////////
 
-	"MOD_FROZEN": { // Referenced in code
+	"MOD_FROZEN": {
 		// Frozen via Cryoban grenade
 		"inventoryName": "@JKG_INVENTORY_MOD_FROZEN",
 
@@ -581,7 +583,7 @@
 		}
 	},
 
-	"MOD_CARBONITE": { // Referenced in code
+	"MOD_CARBONITE": {
 		// Encased in carbonite
 		"inventoryName": "@JKG_INVENTORY_MOD_CARBONITE",
 
@@ -600,7 +602,7 @@
 		}
 	},
 
-	"MOD_IGNITED": { // Referenced in code
+	"MOD_IGNITED": {
 		// Lit on fire
 		"inventoryName": "@JKG_INVENTORY_MOD_IGNITED",
 
@@ -626,7 +628,7 @@
 		}
 	},
 
-	"MOD_STUNNED": { // Referenced in code
+	"MOD_STUNNED": {
 		// Stunned
 		"inventoryName": "@JKG_INVENTORY_MOD_STUNNED",
 
@@ -637,7 +639,7 @@
 		}
 	},
 
-	"MOD_BLEEDING": { // Referenced in code
+	"MOD_BLEEDING": {
 		// Bleeding, by slugthrower
 		"inventoryName": "@JKG_INVENTORY_MOD_BLEEDING",
 
@@ -658,7 +660,7 @@
 		}
 	},
 	
-	"MOD_POISONED": { // Referenced in code
+	"MOD_POISONED": {
 		// Poisoned, by monsters/grenades/environment
 		"inventoryName": "@JKG_INVENTORY_MOD_POISONED",
 

@@ -52,6 +52,9 @@ static void JKG_ParseSingleMeansOfDamage(const char* name, cJSON* json) {
 	jsonNode = cJSON_GetObjectItem(json, "inventoryName");
 	Q_strncpyz(mod.inventoryName, cJSON_ToStringOpt(jsonNode, ""), MAX_QPATH);
 
+	jsonNode = cJSON_GetObjectItem(json, "disintegrate");
+	mod.disintegrate = cJSON_ToBooleanOpt(jsonNode, qfalse);
+
 	jsonNode = cJSON_GetObjectItem(json, "modifiers");
 	if (jsonNode) {
 		child = cJSON_GetObjectItem(jsonNode, "ignoreArmor");

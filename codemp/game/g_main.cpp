@@ -352,6 +352,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap->SV_RegisterSharedMemory(gSharedBuffer.raw);
 
 	JKG_LoadMeansOfDamage();
+	JKG_InitializeBuffs();
 
 	trap->Print ("------- Game Initialization -------\n");
 	trap->Print ("gamename: %s\n", GAMEVERSION);
@@ -1436,9 +1437,6 @@ void MoveClientToIntermission( gentity_t *ent ) {
 
 	// clean up powerup info
 	memset( ent->client->ps.powerups, 0, sizeof(ent->client->ps.powerups) );
-	
-	ent->client->ps.rocketLockIndex = ENTITYNUM_NONE;
-	ent->client->ps.rocketLockTime = 0;
 
 	ent->client->ps.eFlags = 0;
 	ent->s.eFlags = 0;
@@ -3179,7 +3177,7 @@ void G_RunFrame( int levelTime ) {
 
 			if((!level.intermissiontime)&&!(ent->client->ps.pm_flags&PMF_FOLLOW) && ent->client->sess.sessionTeam != TEAM_SPECTATOR)
 			{
-			    JKG_DoPlayerDamageEffects (ent);
+				G_TickBuffs(ent);
 				WP_ForcePowersUpdate(ent, &ent->client->pers.cmd );
 				WP_SaberPositionUpdate(ent, &ent->client->pers.cmd);
 				WP_SaberStartMissileBlockCheck(ent, &ent->client->pers.cmd);
@@ -3207,7 +3205,7 @@ void G_RunFrame( int levelTime ) {
 				}
 			}
 
-            JKG_DoPlayerDamageEffects (ent);
+			G_TickBuffs(ent);
 			WP_ForcePowersUpdate(ent, &ent->client->pers.cmd );
 			WP_SaberPositionUpdate(ent, &ent->client->pers.cmd);
 			WP_SaberStartMissileBlockCheck(ent, &ent->client->pers.cmd);

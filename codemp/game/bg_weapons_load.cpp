@@ -159,25 +159,28 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
             //case 2: darea.penetrationType = PT_SHIELD_ARMOR; break;
             case 3: darea.penetrationType = PT_WALLS; break;
         }
-        
-        node = cJSON_GetObjectItem (damageNode, "damagetype");
-        if ( node )
-        {
-            int i = 0;
-            const char *types[NUM_DAMAGE_TYPES];
-            int numTypes = cJSON_ReadStringArray (node, NUM_DAMAGE_TYPES, types);
-            
-            for ( i = 0; i < numTypes; i++ )
-            {
-				int num = GetIDForString(debuffTable, types[i]);
-				if (num == -1) {
-					Com_Printf("Unknown damage type used: %s.\n", types[i]);
-				}
-				else {
-					darea.damageType |= (1 << num);
-				}
-            }
-        }
+
+		node = cJSON_GetObjectItem(damageNode, "buffs");
+		if (!node)
+		{
+			darea.numberDebuffs = 0;
+		}
+		else
+		{
+			darea.numberDebuffs = cJSON_GetArraySize(node);
+			for (int i = 0; i < darea.numberDebuffs; i++)
+			{
+				cJSON* arrayNode = cJSON_GetArrayItem(node, i);
+				cJSON* childNode = cJSON_GetObjectItem(arrayNode, "buff");
+				darea.debuffs[i].debuff = JKG_ResolveBuffName(cJSON_ToStringOpt(childNode, ""));
+
+				childNode = cJSON_GetObjectItem(arrayNode, "duration");
+				darea.debuffs[i].duration = cJSON_ToIntegerOpt(childNode, 2000);
+
+				childNode = cJSON_GetObjectItem(arrayNode, "intensity");
+				darea.debuffs[i].intensity = cJSON_ToNumberOpt(childNode, 1.0);
+			}
+		}
 
 		if (!secondary)
 		{

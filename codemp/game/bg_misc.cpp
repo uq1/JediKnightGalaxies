@@ -3042,7 +3042,12 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 	//s->ironsightsTime = ps->ironsightsTime;
 	//s->sprintTime = ps->sprintTime;
 	
-	s->damageTypeFlags = ps->damageTypeFlags;
+	s->buffsActive = ps->buffsActive;
+	for (i = 0; i < PLAYERBUFF_BITS; i++)
+	{
+		s->buffs[i].buffID = ps->buffs[i].buffID;
+		s->buffs[i].intensity = ps->buffs[i].intensity;
+	}
 	s->freezeLegsAnim = ps->freezeLegsAnim;
 	s->freezeTorsoAnim = ps->freezeTorsoAnim;
 }
@@ -3209,7 +3214,12 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	s->customRGBA[3] = ps->customRGBA[3];
 	
 //	s->ironsightsTime = ps->ironsightsTime;
-	s->damageTypeFlags = ps->damageTypeFlags;
+	s->buffsActive = ps->buffsActive;
+	for (i = 0; i < PLAYERBUFF_BITS; i++)
+	{
+		s->buffs[i].buffID = ps->buffs[i].buffID;
+		s->buffs[i].intensity = ps->buffs[i].intensity;
+	}
 	s->freezeLegsAnim = ps->freezeLegsAnim;
 	s->freezeTorsoAnim = ps->freezeTorsoAnim;
 	s->jetpack = ps->jetpack;
@@ -3349,27 +3359,6 @@ int BG_ParseGenericAnimationFile ( animation_t *animset, size_t maxAnimations, c
 	return i;
 }
 
-// JKG: Bit of damage types stuff
-qboolean JKG_DamageTypeFreezes ( const damageType_t damageType )
-{
-    if ( damageType & DT_STUN )
-    {
-        return qtrue;
-    }
-    
-    if ( damageType & DT_CARBONITE )
-    {
-        return qtrue;
-    }
-    
-    if ( damageType & DT_FREEZE )
-    {
-        return qtrue;
-    }
-    
-    return qfalse;
-}
-
 const char *gametypeStringShort[GT_MAX_GAME_TYPE] = {
 	"FFA",
 	"1v1",
@@ -3478,19 +3467,3 @@ void Q_FSWriteString( fileHandle_t f, const char *msg ) {
 		trap->FS_Write( msg, strlen( msg ), f );
 	}
 }
-
-// convert a debuff string into an integer
-
-stringID_table_t debuffTable[] = {
-	{ "disintegrate", DT_DISINTEGRATE },
-	{ "explosion", DT_EXPLOSION },
-	{ "fire", DT_FIRE },
-	{ "freeze", DT_FREEZE },
-	{ "implosion", DT_IMPLOSION },
-	{ "stun", DT_STUN },
-	{ "carbonite", DT_CARBONITE },
-	{ "bleed", DT_BLEED },
-	{ "cold", DT_COLD },
-	{ "poison", DT_POISON },
-	{ "", -1 }
-};

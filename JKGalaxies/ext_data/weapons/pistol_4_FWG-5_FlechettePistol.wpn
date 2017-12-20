@@ -68,7 +68,12 @@
         "damage":       35,//70,
 	"damage": {
 		"damage": 35,
-		"damagetype": [ "bleed" ]
+		"buffs": [
+			{
+				"buff": "standard-bleed",
+				"duration": 5000
+			}
+		]
 	},
         "collisionsize": 8.0,//32.0,	// To simulate the fact that the shells are supposed to explode right before impact with target in order to disperse the flechettes
         "ammocost":     1,

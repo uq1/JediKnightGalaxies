@@ -56,12 +56,18 @@
     },
     
     "firemode0": {
-          "damage": {
+	"damage": {
                                  "damageradius": { "start": 16 },
 //                                   "duration":       2000,
 //                                   "damagedelay": 100,
                                  "damage":       4,
-                                 "damagetype": [ "fire" ] },
+                                 "buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				]
+	},
         "ballistic":    true,
         "ammocost":     1,
         "collisionsize": 4.0,
@@ -91,10 +97,14 @@
     "firemode1": {
           "damage": {
                                  "damageradius": { "start": 16 },
-//                                   "duration":       2000,
-//                                   "damagedelay": 100,
                                  "damage":       4,
-                                 "damagetype": [ "fire" ] },
+                                 "buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				]
+	},
         "ballistic":    true,
         "ammocost":     1,
         "collisionsize": 4.0,

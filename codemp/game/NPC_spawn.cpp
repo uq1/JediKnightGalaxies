@@ -1081,8 +1081,6 @@ void NPC_Begin (gentity_t *ent)
 	ent->die = player_die;
 	ent->waterlevel = 0;
 	ent->watertype = 0;
-	ent->client->ps.rocketLockIndex = ENTITYNUM_NONE;
-	ent->client->ps.rocketLockTime = 0;
 	
 	//visible to player and NPCs
 	if ( ent->client->NPC_class != CLASS_R2D2 &&

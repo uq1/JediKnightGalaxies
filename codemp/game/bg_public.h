@@ -1801,7 +1801,6 @@ int BG_GetItemIndexByTag(int tag, int type);
 qboolean BG_CanUseFPNow(int gametype, playerState_t *ps, int time, forcePowers_t power);
 
 bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber );
-void BG_ClearRocketLock( playerState_t *ps );
 
 float JKG_CalculateIronsightsPhase ( const playerState_t *ps, int time, float *blend );
 
@@ -1859,7 +1858,6 @@ double QuinticBezierInterpolate(double phase, double p0, double p1, double p2, d
 #define	HYPERSPACE_SPEED			10000.0f//was 30000
 #define	HYPERSPACE_TURN_RATE		45.0f
 
-qboolean JKG_DamageTypeFreezes ( const damageType_t damageType );
 extern stringID_table_t debuffTable[];
 
 typedef struct {

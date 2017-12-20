@@ -74,6 +74,47 @@ With nested treasure classes, this gets a bit more complicated. Let's have anoth
 ### ammo.json
 Not used as of 1.3.0.
 
+### buffs.json
+Defines buffs. Buffs can be given by weapons, or through Lua scripts. Each ent can have a total of 16 buffs on it at once, or 16 stacks of one buff.
+
+Each object, whose name is the buff linkage (example, "standard-fire": {} can be linked to with "standard-fire"), has the following fields:
+
+ - category (string): Defines a category for this buff.
+ - canceling (object): Defines data about how this buff cancels out other buffs and vice versa. Contains the following fields:
+  - priority (integer): Defines a priority for this buff. Higher priority buffs cancel out buffs with lower priority.
+  - noBuffStack (boolean): If true, this buff cannot stack multiple times. It will extend the duration if applied repeatedly.
+  - noCategoryStack (boolean): If true, this buff will not stack against another buff in the same category. It will remove all buffs in the same category who have lower priority.
+  - waterRemoval (boolean): If true, swimming in water will remove the buff.
+  - rollRemoval (boolean): If true, rolling removes this buff.
+  - cancelOther (array of objects): Cancels out buffs in other categories when this buff is applied. Each object in this array contains the following data:
+   - category (string): The category to cancel out.
+   - priority (integer): Won't cancel anything in this category unless this priority number is >= that buff's priority number.
+ - damage (object): Defines data about damage for the buff. Contains the following fields:
+  - damage (integer): How much damage to do each tick. Use negative values for healing.
+  - means (string/special): The means of damage/damage type of the damage to do.
+  - damageRate (integer): How many milliseconds between damage applications.
+ - passive (object): Defines data about passive stat bonuses that this buff provides. Contains the following fields:
+  - pmove (string/special): Overrides the movement type while this buff is applied. Can be one of the following:
+   * PM_NORMAL - Regular movement
+   * PM_JETPACK - Jetpack movement
+   * PM_FLOAT - Zero gravity movement
+   * PM_NOCLIP - Noclipping
+   * PM_SPECTATOR - Spectator movement
+   * PM_DEAD - Dead movement
+   * PM_FREEZE - Frozen movement
+   * PM_INTERMISSION - Intermission movement
+   * PM_LOCK - Identical to PM_FREEZE (?)
+   * PM_NOMOVE - Identical to PM_FREEZE (?)
+ - visuals (object): Contains visual data about the buff. Contains the following fields:
+  - efx (object): Contains information about fullbody effects on the player. Contains the following fields:
+   - effect (string): The EFX file to play
+   - bolt (string): Which bone to bolt the effect to
+   - debounce (integer): How many milliseconds between playing the effect
+  - shader (object): Contains information about fullbody shader effects applied to the player. Contains the following fields:
+   - shader (string): The shader to apply to the player.
+   - shaderRGBA (array of integer): The RGBA (red/green/blue/alpha transparency) of the shader applied.
+   - shaderLen (integer): How many milliseconds to play the fullbody effect for.
+
 ### constants.json
 Defines several constants. These could be cvars, but I decided not to, in order to keep the cvar space empty.
 
@@ -118,6 +159,7 @@ It contains a series of means of damage, each one has the following fields:
 
  - inventoryName (string): The name of the damage type as it appears on weapons which deal that type of damage.
  - hitmarkerExplosives (boolean): If true, this damage type will not show a hitmarker when attacking deployed explosives.
+ - disintegrate (boolean): If true, this damage type will disintegrate people when it kills them.
 
  - modifiers (object):
   - ignoreArmor (boolean): If true, this damage type ignores armor
@@ -248,7 +290,10 @@ The .wpn file contains one field for each firing mode, starting with 0.
    - damage (integer): How much damage is applied to targets who stand in the damage area.
    - damagedelay (integer): How long before applying damage, in milliseconds.
    - penetration (special): If this field is 3, it can damage through walls. Otherwise it does not.
-   - damagetype (array of special): Applies a debuff to the target. Can be disintegrate, explosion, fire, freeze, implosion, stun, carbonite, bleed, cold, or poison.
+   - buffs (array of object): Applies buffs to the target when this damage is applied. Each object in the array contains the following fields:
+    - buff (string): The name of the buff to apply.
+    - duration (integer): How long (in milliseconds) to apply the buff for.
+    - intensity (float): Not used.
   - secondarydamage (special): Applies a second damage area on top of the original damage. This is an object with fields identical to `damage`.
   - grenade (boolean): If true, this firemode behaves (ballistically) like a grenade.
   - grenadeBounces (boolean): If true, grenades fired with this firing mode will bounce.

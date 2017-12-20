@@ -1671,6 +1671,15 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 	if (meansOfDeath != -1) {
 		means = JKG_GetMeansOfDamage(meansOfDeath);
+
+		if (means->disintegrate)
+		{
+			// do disintegration
+			self->client->ps.eFlags |= EF_DISINTEGRATION;
+			self->r.contents = 0;
+			VectorClear(self->client->ps.lastHitLoc);
+			VectorClear(self->client->ps.velocity);
+		}
 	}
 
 	// K, let's see if we can raise the killstreak on the attacker
@@ -1872,7 +1881,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->client->ps.heldByClient = 0;
 	self->client->beingThrown = 0;
 	self->client->doingThrow = 0;
-	BG_ClearRocketLock( &self->client->ps );
 	self->client->isHacking = 0;
 	self->client->ps.hackingTime = 0;
 
@@ -2117,19 +2125,15 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->s.weapon = WP_NONE;
 	self->s.weaponVariation = 0;
 	self->s.powerups = 0;
-	if (self->s.eType != ET_NPC)
-	{ //handled differently for NPCs
+	if (self->s.eType != ET_NPC && !(self->client->ps.eFlags & EF_DISINTEGRATION))
+	{ //handled differently for NPCs. Don't do this when disintegrating
 		self->r.contents = CONTENTS_CORPSE;
+		self->r.maxs[2] = -8;
 	}
 	self->client->ps.zoomMode = 0;	// Turn off zooming when we die
 
 	self->s.loopSound = 0;
 	self->s.loopIsSoundset = qfalse;
-
-	if (self->s.eType != ET_NPC)
-	{ //handled differently for NPCs
-		self->r.maxs[2] = -8;
-	}
 
 	// don't allow respawn until the death anim is done
 	// g_forcerespawn may force spawning at some later time
@@ -2142,6 +2146,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	// remove powerups
 	memset( self->client->ps.powerups, 0, sizeof(self->client->ps.powerups) );
 
+	if(!(self->client->ps.eFlags & EF_DISINTEGRATION))
 	{
 		// normal death
 		
@@ -2193,13 +2198,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			self->think = G_FreeEntity;
 			self->nextthink = level.time;
 		}
-		
-		G_AddEvent( self, EV_DEATH1 + i, 0 );
-
-		if (self != attacker)
-		{ //don't make NPCs want to murder you on respawn for killing yourself!
-			G_DeathAlert( self, attacker );
-		}
 
 		// the body can still be gibbed
 		if (!self->NPC)
@@ -2212,6 +2210,20 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 		// globally cycle through the different death animations
 		i = ( i + 1 ) % 3;
+	}
+	else
+	{
+		// don't free it right away if we're disintegrating, otherwise the client won't be able to see the effect.
+		self->think = G_FreeEntity;
+		self->nextthink = level.time + 2000;
+		self->takedamage = qfalse;
+	}
+
+	G_AddEvent(self, EV_DEATH1 + i, 0);
+
+	if (self != attacker)
+	{ //don't make NPCs want to murder you on respawn for killing yourself!
+		G_DeathAlert(self, attacker);
 	}
 
 	if ( self->NPC )
