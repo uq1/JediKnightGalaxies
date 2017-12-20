@@ -1,14 +1,10 @@
 # Jedi Knight Galaxies #
 [DISCORD](https://discord.gg/YuG8Zks)
-
 [IRC (defunct)](https://kiwiirc.com/client/irc.arloria.net/?nick=Padawan|?&theme=cli#jkgalaxies): irc.arloria.net / #JKGalaxies
 
 [FAQ](http://jkhub.org/topic/6613-jkg-faq/) 
-
 [Forum]( https://jkhub.org/forum/117-jedi-knight-galaxies/) (hosted by JKHub)
-
 [Official Announcements](https://jkhub.org/forum/119-jkgalaxies-news/) 
-
 [ModDB Page](http://www.moddb.com/mods/jkgalaxies) (not updated frequently)
 
 
