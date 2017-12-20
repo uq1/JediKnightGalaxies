@@ -2391,6 +2391,11 @@ void G_ApplyKnockback( gentity_t *targ, vec3_t newDir, float knockback )
 	vec3_t	kvel;
 	float	mass;
 
+	if (targ->client && targ->client->pmfreeze)
+	{	// don't apply knockback to frozen targets
+		return;
+	}
+
 	if ( targ->physicsBounce > 0 )	//overide the mass
 		mass = targ->physicsBounce;
 	else
@@ -4175,7 +4180,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	}
 
 	// figure momentum add, even if the damage won't be taken
-	if ( knockback && targ->client ) {
+	if ( knockback && targ->client && !targ->client->pmfreeze) {
 		vec3_t	kvel;
 		float	mass;
 
