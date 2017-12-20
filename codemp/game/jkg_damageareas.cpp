@@ -266,8 +266,13 @@ void G_TickBuffs(gentity_t* ent)
 			// check for dealing damage
 			if (ent->buffData[i].lastDamageTime + pBuff->damage.damageRate < level.time)
 			{
+				if (!jkg_allowDebuffKills.integer && pBuff->damage.damage >= ent->client->ps.stats[STAT_HEALTH])
+				{
+					// don't allow debuff kills = don't do damage in this situation
+					continue;
+				}
 				G_Damage(ent, ent->buffData[i].buffer, ent->buffData[i].buffer, vec3_origin, vec3_origin, 
-					pBuff->damage.damage, DAMAGE_NO_KNOCKBACK | DAMAGE_NO_DISMEMBER | DAMAGE_NO_KNOCKBACK, pBuff->damage.meansOfDeath);
+					pBuff->damage.damage, DAMAGE_NO_KNOCKBACK | DAMAGE_NO_DISMEMBER | DAMAGE_NO_HIT_LOC, pBuff->damage.meansOfDeath);
 				ent->buffData[i].lastDamageTime = level.time;
 			}
 		}

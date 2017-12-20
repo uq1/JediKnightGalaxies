@@ -1608,8 +1608,7 @@ typedef struct playerState_s {
 	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
 	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
 	int			armor[MAX_ARMOR];
-	int			buffsActive;
-	buffdata_t	buffs[MAX_BUFFS];
+	int			unused[2];
 
 	int			generic1;
 	int			loopSound;
@@ -1780,6 +1779,9 @@ typedef struct playerState_s {
 	int				shotsRemaining;
 	int				sprintMustWait;
 	int				jetpack;
+
+	int				buffsActive;
+	buffdata_t		buffs[MAX_BUFFS];
 	
 	int				saberActionFlags;
 
