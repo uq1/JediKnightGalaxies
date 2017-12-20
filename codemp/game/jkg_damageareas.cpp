@@ -271,7 +271,7 @@ void G_TickBuffs(gentity_t* ent)
 					// don't allow debuff kills = don't do damage in this situation
 					continue;
 				}
-				G_Damage(ent, ent->buffData[i].buffer, ent->buffData[i].buffer, vec3_origin, vec3_origin, 
+				G_Damage(ent, ent->buffData[i].buffer, ent->buffData[i].buffer, vec3_origin, ent->client->ps.origin, 
 					pBuff->damage.damage, DAMAGE_NO_KNOCKBACK | DAMAGE_NO_DISMEMBER | DAMAGE_NO_HIT_LOC, pBuff->damage.meansOfDeath);
 				ent->buffData[i].lastDamageTime = level.time;
 			}
