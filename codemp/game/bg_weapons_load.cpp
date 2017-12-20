@@ -82,7 +82,6 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
     {
         damageSettings_t darea;
         cJSON *node = NULL;
-        qhandle_t areaHandle = 0;
         
         memset (&darea, 0, sizeof (darea));
         

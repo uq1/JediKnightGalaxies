@@ -150,10 +150,10 @@ typedef struct {
 	//Basic Item Information
 	char displayName[MAX_ITEM_NAME];
 	char internalName[MAX_ITEM_NAME];
-	unsigned int itemID;
+	int itemID;
 	jkgItemType_t itemType;
 	unsigned int weight;
-	unsigned int maxStack;
+	int maxStack;
 
 	// Visual Data
 #ifndef _GAME

@@ -541,7 +541,6 @@ static void PM_Friction( void ) {
 	float	*vel;
 	float	speed, newspeed, control;
 	float	drop;
-	bgEntity_t *pEnt = NULL;
 	
 	vel = pm->ps->velocity;
 	
@@ -563,11 +562,6 @@ static void PM_Friction( void ) {
 	}
 
 	drop = 0;
-
-	if (pm->ps->clientNum >= MAX_CLIENTS)
-	{
-		pEnt = pm_entSelf;
-	}
 
 	// apply ground friction
 	if ( pm->waterlevel <= 1 ) {
@@ -2280,9 +2274,11 @@ static void PM_AirMove( void ) {
 	float		fmove, smove;
 	vec3_t		wishdir;
 	float		wishspeed;
-	float		scale;
 	float		accelerate;
 	usercmd_t	cmd;
+#ifdef _MP_AIR_MOVEMENT
+	float		scale;
+#endif
 
 	if (pm->ps->pm_type != PM_SPECTATOR)
 	{
@@ -2298,7 +2294,9 @@ static void PM_AirMove( void ) {
 	smove = pm->cmd.rightmove;
 
 	cmd = pm->cmd;
+#ifdef _MP_AIR_MOVEMENT
 	scale = PM_CmdScale( &cmd );
+#endif
 
 	// set the movementDir so clients can rotate the legs for strafing
 	PM_SetMovementDir();
@@ -3761,7 +3759,6 @@ PM_Footsteps
 static void PM_Footsteps( void ) {
 	float		bobmove;
 	int			old;
-	qboolean	footstep;
 	int			setAnimFlags = 0;
 	weaponData_t *wd = GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation);
 
@@ -3907,9 +3904,6 @@ static void PM_Footsteps( void ) {
 		}
 		return;
 	}
-	
-
-	footstep = qfalse;
 
 	if (pm->ps->saberMove == LS_SPINATTACK)
 	{
@@ -4084,8 +4078,6 @@ static void PM_Footsteps( void ) {
 					}
 				}
 		    }
-		    
-		    footstep = qtrue;
 		}
 		else if ( !(pm->cmd.buttons & BUTTON_WALKING) && // We are not holding the walk button
 				!PM_UsingIronSights(pm) &&
@@ -4226,7 +4218,6 @@ static void PM_Footsteps( void ) {
 					desiredAnim = (pm->gender == GENDER_FEMALE) ? BOTH_FEMALERUN : BOTH_RUN1;
 				}
 			}
-			footstep = qtrue;
 		}
 		else
 		{

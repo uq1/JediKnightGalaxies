@@ -1268,7 +1268,7 @@ void BG_InitItems() {
 		return;
 	}
 
-	memset(itemLookupTable, 0, sizeof(itemLookupTable));
+	memset(itemLookupTable, 0, sizeof(itemData_t) * MAX_ITEM_TABLE_SIZE);
 
 	if (BG_LoadItems() == false) {
 		Com_Error(ERR_DROP, "could not load items...");

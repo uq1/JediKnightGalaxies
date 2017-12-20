@@ -44,13 +44,7 @@ void G_ReflectMissile( gentity_t *ent, gentity_t *missile, vec3_t forward )
 	vec3_t	bounce_dir;
 	int		i;
 	float	speed;
-	gentity_t	*owner = ent;
 	int		isowner = 0;
-
-	if ( ent->r.ownerNum )
-	{
-		owner = &g_entities[ent->r.ownerNum];
-	}
 
 	if (missile->r.ownerNum == ent->s.number)
 	{ //the original owner is bouncing the missile, so don't try to bounce it back at him
@@ -60,7 +54,6 @@ void G_ReflectMissile( gentity_t *ent, gentity_t *missile, vec3_t forward )
 	//save the original speed
 	speed = VectorNormalize( missile->s.pos.trDelta );
 
-	//if ( ent && owner && owner->NPC && owner->enemy && Q_stricmp( "Tavion", owner->NPC_type ) == 0 && Q_irand( 0, 3 ) )
 	if ( &g_entities[missile->r.ownerNum] && missile->s.weapon != WP_SABER && missile->s.weapon != G2_MODEL_PART && !isowner )
 	{//bounce back at them if you can
 		VectorSubtract( g_entities[missile->r.ownerNum].r.currentOrigin, missile->r.currentOrigin, bounce_dir );
@@ -111,13 +104,7 @@ void G_DeflectMissile( gentity_t *ent, gentity_t *missile, vec3_t forward )
 	vec3_t	bounce_dir;
 	int		i;
 	float	speed;
-	int		isowner = 0;
 	vec3_t missile_dir;
-
-	if (missile->r.ownerNum == ent->s.number)
-	{ //the original owner is bouncing the missile, so don't try to bounce it back at him
-		isowner = 1;
-	}
 
 	//save the original speed
 	speed = VectorNormalize( missile->s.pos.trDelta );
@@ -172,17 +159,11 @@ void JKG_SaberDeflectMissile( gentity_t *ent, gentity_t *missile, vec3_t forward
 	vec3_t	bounce_dir;
 	int		i;
 	float	speed;
-	gentity_t	*owner = ent;
 	int		isowner = 0;
 
 	if ( !(ent->client->ps.saberActionFlags & SAF_PROJBLOCKING) )
 	{
 		return;
-	}
-
-	if ( ent->r.ownerNum )
-	{
-		owner = &g_entities[ent->r.ownerNum];
 	}
 
 	if (missile->r.ownerNum == ent->s.number)
@@ -470,7 +451,6 @@ G_MissileImpact
 qboolean WP_SaberBlockNonRandom( gentity_t *self, gentity_t *other, vec3_t hitloc, qboolean missileBlock );
 void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 	gentity_t		*other;
-	qboolean		hitClient = qfalse;
 	qboolean		isKnockedSaber = qfalse;
 
 	other = &g_entities[trace->entityNum];
@@ -536,58 +516,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 	}
 
 	// SABERFIXME: make this based on .wpn file? some conc rifles should be able to be deflected...
-	/*if (other->takedamage && other->client &&
-		ent->s.weapon != WP_ROCKET_LAUNCHER &&
-		ent->s.weapon != WP_THERMAL &&
-		ent->s.weapon != WP_TRIP_MINE &&
-		ent->s.weapon != WP_DET_PACK &&
-		ent->methodOfDeath != MOD_REPEATER_ALT &&
-		ent->methodOfDeath != MOD_FLECHETTE_ALT_SPLASH &&
-		ent->methodOfDeath != MOD_CONC &&
-		ent->methodOfDeath != MOD_CONC_ALT &&
-		other->client->saberBlockDebounce < level.time &&
-		!isKnockedSaber &&
-		WP_SaberCanBlock(other, ent->r.currentOrigin, 0, 0, qtrue, 0))
-	{ //only block one projectile per 200ms (to prevent giant swarms of projectiles being blocked)
-		vec3_t fwd;
-		gentity_t *te;
-		int otherDefLevel = other->client->ps.fd.forcePowerLevel[FP_SABER_DEFENSE];
-
-		te = G_TempEntity( ent->r.currentOrigin, EV_SABER_BLOCK );
-		VectorCopy(ent->r.currentOrigin, te->s.origin);
-		VectorCopy(trace->plane.normal, te->s.angles);
-		te->s.eventParm = 0;
-		te->s.weapon = 0;//saberNum
-		te->s.legsAnim = 0;//bladeNum
-
-		if (other->client->ps.velocity[2] > 0 ||
-			other->client->pers.cmd.forwardmove < 0) //now we only do it if jumping or running backward. Should be able to full-on charge.
-		{
-			otherDefLevel -= 1;
-			if (otherDefLevel < 0)
-			{
-				otherDefLevel = 0;
-			}
-		}
-
-		AngleVectors(other->client->ps.viewangles, fwd, NULL, NULL);
-		// SABERFIXME: Don't make this force based. This code is ugly as fuck anyway
-		other->client->saberBlockDebounce = level.time + (350 - (otherDefLevel*100)); //200;
-
-		//For jedi AI
-		other->client->ps.saberEventFlags |= SEF_DEFLECTED;
-		if ( other->client->ps.saberActionFlags & (1 << SAF_BLOCKING) && !(other->client->ps.saberActionFlags & ( 1 << SAF_PROJBLOCKING) ) )
-		{
-			goto killProj;
- 		}
-		else if ( other->client->ps.saberActionFlags & SAF_PROJBLOCKING )
-		{
-			JKG_SaberDeflectMissile(other, ent, fwd);
-			other->client->saberProjBlockTime += 500; // give them a little bit of leeway --eez
-		}
-		return;
-	}
-	else */if ((other->r.contents & CONTENTS_LIGHTSABER) && !isKnockedSaber)
+	if ((other->r.contents & CONTENTS_LIGHTSABER) && !isKnockedSaber)
 	{ //hit this person's saber, so..
 		gentity_t *otherOwner = &g_entities[other->r.ownerNum];
 
@@ -595,12 +524,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 			ent->s.weapon != WP_ROCKET_LAUNCHER &&
 			ent->s.weapon != WP_THERMAL &&
 			ent->s.weapon != WP_TRIP_MINE &&
-			ent->s.weapon != WP_DET_PACK/* &&
-			ent->methodOfDeath != MOD_REPEATER_ALT &&
-			ent->methodOfDeath != MOD_FLECHETTE_ALT_SPLASH &&
-			ent->methodOfDeath != MOD_CONC &&
-			ent->methodOfDeath != MOD_CONC_ALT &&
-			otherOwner->client->ps.saberBlockTime < level.time*/)
+			ent->s.weapon != WP_DET_PACK)
 		{ //for now still deflect even if saberBlockTime >= level.time because it hit the actual saber
 			vec3_t fwd;
 			gentity_t *te;
@@ -620,9 +544,6 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 			te->s.weapon = 0;//saberNum
 			te->s.legsAnim = 0;//bladeNum
 
-			/*if (otherOwner->client->ps.velocity[2] > 0 ||
-				otherOwner->client->pers.cmd.forwardmove ||
-				otherOwner->client->pers.cmd.rightmove)*/
 			if (otherOwner->client->ps.velocity[2] > 0 ||
 				otherOwner->client->pers.cmd.forwardmove < 0) //now we only do it if jumping or running backward. Should be able to full-on charge.
 			{
@@ -691,7 +612,6 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		if ( ent->damage || fireMode->primary.bPresent || fireMode->secondary.bPresent ) {
 			vec3_t	velocity;
 
-			hitClient = qtrue;
 			BG_EvaluateTrajectoryDelta( &ent->s.pos, level.time, velocity );
 			if ( VectorLength( velocity ) == 0 ) {
 				velocity[2] = 1;	// stepped on a grenade

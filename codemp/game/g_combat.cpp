@@ -4006,14 +4006,10 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			   vec3_t dir, vec3_t point, int damage, int dflags, int mod ) {
 	gclient_t	*client;
 	int			take;
-	int			save;
 	int			ssave;
 
 	int			knockback;
 	int			subamt = 0;
-	float		famt = 0;
-	float		hamt = 0;
-	int			shieldAbsorbed = 0;
 
 	meansOfDamage_t* means = JKG_GetMeansOfDamage(mod);
 
@@ -4326,7 +4322,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		damage = 1;
 	}
 	take = damage;
-	save = 0;
 
 	///////////////////////////////////////
 	//
@@ -4338,7 +4333,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	ssave = CheckShield (targ, take, dflags, means);
 	if (ssave)
 	{
-		shieldAbsorbed = ssave;
 		if (targ->client) {
 			if (targ->client->ps.stats[STAT_SHIELD] > ssave) {
 				// absorb all damage by the shield, and don't take any

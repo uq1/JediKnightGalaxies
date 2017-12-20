@@ -1264,9 +1264,8 @@ qboolean PM_InGetUp( playerState_t *ps )
 			return qtrue;
 		}
 		break;
-	default:
-		return PM_InForceGetUp( ps );
 	}
+	return PM_InForceGetUp(ps);
 }
 //[/KnockdownSys]
 
@@ -1300,6 +1299,7 @@ qboolean PM_InKnockDown( playerState_t *ps )
 	default:
 		return PM_InGetUp( ps );
 	}
+	return qfalse;
 }
 
 qboolean PM_PainAnim( int anim )
