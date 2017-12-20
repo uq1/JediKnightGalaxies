@@ -484,11 +484,11 @@ typedef struct bgEntity_s
 	vec3_t			modelScale; //needed for g2 collision
 
 	//Data type(s) must directly correspond to the head of the gentity and centity structures
-#if defined(__GNUC__) || defined(__GCC__) || defined(MINGW32) || defined(MACOS_X)
-	} _bgEntity_t;
-#else
-	} bgEntity_t;
-#endif
+//#if defined(__GNUC__) || defined(__GCC__) || defined(MINGW32) || defined(MACOS_X)
+//	} _bgEntity_t;
+//#else
+} bgEntity_t;
+//#endif
 
 typedef struct pmove_s {
 	// state (in / out)
