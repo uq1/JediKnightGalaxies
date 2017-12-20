@@ -441,7 +441,7 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 		if(scaleDmg)
 			take = take * 100.0f / maxHealth;
 
-		//do we allow debuffs to kill stuff?
+		//do we allow debuffs to kill players?
 		switch (jkg_allowDebuffKills.integer)
 		{
 			// Only allow debuffs to whittle us down to 1 HP, not kill us
@@ -454,12 +454,17 @@ void JKG_DoPlayerDamageEffects ( gentity_t *ent )
 			case 1:
 				break;
 
-			/* Futuza TODO: add in flags
-			//fire, poison, freeze/carbonite will kill, but others don't (like bleed)
+			//fire, poison, freeze will kill, but others don't (like bleed or carbonite)
 			case 2:
+				if (damageType == DT_FIRE | damageType == DT_POISON | damageType == DT_FREEZE)
+					;	//do nothing
+				else
+				{
+					if (health - take <= 0)	//no killing
+						take = 0;
+				}
 				break;
-			*/
-
+			
 			//debuffs are deadly
 			default:
 				break;
