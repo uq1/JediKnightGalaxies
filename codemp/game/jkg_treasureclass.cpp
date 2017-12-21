@@ -40,7 +40,7 @@ TreasureClass::TreasureClass(const char* szName, cJSON* pJSON) {
 		TreasureEntry te;
 		memset(&te, 0, sizeof(te));
 
-		te.tc.szTreasureClass = Q_strlwr((char*)cJSON_GetItemKey(pTreasure));
+		Q_strncpyz(te.tc.szTreasureClass, Q_strlwr((char*)cJSON_GetItemKey(pTreasure)), MAX_QPATH);
 		te.nOdds = cJSON_ToInteger(pTreasure);
 		te.bResolved = false;
 		vTreasure.push_back(te);
@@ -121,6 +121,14 @@ int TreasureClass::PickSingle(int32_t nSeed) {
 	else {
 		pTC = it->tc.pTreasureClass;
 	}
+
+	// print a warning if we didn't get a good TC reference here, and repick
+	if (pTC == nullptr)
+	{
+		Com_Printf("^3WARNING: Could not resolve TC reference %s\n", sTreasureClass.c_str());
+		return PickSingle(pSeed->rand());
+	}
+
 	return pTC->PickSingle(pSeed->rand());
 }
 

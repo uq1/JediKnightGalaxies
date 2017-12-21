@@ -48,9 +48,9 @@
 	"firemode0": {
 		"damage": 20,
 		"ammocost": 1,
-		"firedelay": 120,
+		"firedelay": 150,
 		"firingtype": "semi",
-		"recoil": 0.5,
+		"recoil": 0.7,
 		"range": 3300,
 		"spread": 0.4,
 		"projectilespeed": 4000.0,
@@ -61,33 +61,16 @@
 		"clipSize": 20
 	},
 
-	"playeranims": {
-		"idle": {
-			"torso": "BOTH_IDLE1",
-			"legs": "BOTH_IDLE1"
-		},
-		"reload": {
-			"torso": "BOTH_RIFLERELOADR"
-		},
-		"sights": {
-			"torso": "TORSO_WEAPONREADY3",
-			"legs": "BOTH_STAND1"
-		},
-		"sightsFiring": {
-			"torso": "BOTH_ATTACK3"
-		},
-		"ready": {
-			"torso": "BOTH_BASE_PISTOLSTANCE",
-			"legs": "BOTH_STAND1"
-		},
-		"firing": {
-			"torso": "BOTH_BASE_PISTOLSHOOT"
-		},
-		"sprint": {
-			"torso": "BOTH_PISTOLRUN"
-		},
-		"sprintStyle": "8"
-	},
+    "playeranims": {
+        "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
+        "reload":       { "torso": "BOTH_PISTOLRELOAD" },
+        "sights":        { "torso": "TORSO_WEAPONREADY2", "legs": "BOTH_STAND1" },
+        "sightsFiring":       { "torso": "BOTH_ATTACK2" },
+	"ready":	{ "torso": "BOTH_BASE_PISTOLSTANCE", "legs": "BOTH_STAND1" },
+	"firing":	{ "torso": "BOTH_BASE_PISTOLSHOOT" },
+	"sprint":	{ "torso": "BOTH_PISTOLRUN" },
+        "sprintStyle": "7"
+    },
 
 	"weaponanims": {
 		"ready": "READY",
