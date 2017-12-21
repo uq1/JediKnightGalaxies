@@ -172,7 +172,7 @@ static void JKG_ConstructArmorDescription(itemInstance_t* pItem, std::vector<std
 
 	vDescLines.push_back(UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_ARMOR"));
 	vDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_EQUIPPEDSLOT"), JKG_GetArmorSlotString(pArmorData)));
-	if (pArmorData->ehp) {
+	if (pArmorData->armor) {
 		int maxHP = cgImports->GetPredictedPlayerState()->stats[STAT_MAX_HEALTH];
 		int itemHP = pArmorData->hp;
 		float damageReduction;
@@ -180,18 +180,18 @@ static void JKG_ConstructArmorDescription(itemInstance_t* pItem, std::vector<std
 		// If the item is already equipped...then that means that the HP modifier is already applied!
 		// Applying the HP modifier to the calculation (again) will lead to a bugged display
 		if (pItem->equipped) {
-			damageReduction = 1.0f - (pArmorData->ehp / (float)(maxHP + pArmorData->ehp));
+			damageReduction = 1.0f - (pArmorData->armor / (float)(maxHP + pArmorData->armor));
 		}
 		else {
-			damageReduction = 1.0f - (pArmorData->ehp / (float)(maxHP + itemHP + pArmorData->ehp));
+			damageReduction = 1.0f - (pArmorData->armor / (float)(maxHP + itemHP + pArmorData->armor));
 		}
 
 		damageReduction *= 100.0f;
-		if (pArmorData->ehp < 0) {
-			vDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_NEG_DEFENSE"), pArmorData->ehp, damageReduction, JKG_GetArmorSlotString(pArmorData)));
+		if (pArmorData->armor < 0) {
+			vDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_NEG_DEFENSE"), pArmorData->armor, damageReduction, JKG_GetArmorSlotString(pArmorData)));
 		}
 		else {
-			vDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_DEFENSE"), pArmorData->ehp, damageReduction, JKG_GetArmorSlotString(pArmorData)));
+			vDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_ARM_DEFENSE"), pArmorData->armor, damageReduction, JKG_GetArmorSlotString(pArmorData)));
 		}
 	}
 	if (pArmorData->movemodifier >= 0.005 || pArmorData->movemodifier <= -0.005) {

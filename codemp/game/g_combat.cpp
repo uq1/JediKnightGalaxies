@@ -3783,12 +3783,12 @@ void G_LocationBasedDamageModifier(gentity_t *ent, vec3_t point, int mod, int df
 	}
 
 	if (ent->client && (ent - g_entities) < MAX_CLIENTS && !means->modifiers.ignoreArmor) {
-		// Remove damage based on EHP
+		// Remove damage based on armor
 		int armor = ent->client->ps.armor[armorSlot];
 		if (armor--) {
 			armorData_t* pArm = &armorTable[armor];
-			int ehp = pArm->ehp;
-			float modifier = (ent->client->ps.stats[STAT_MAX_HEALTH] / (float)(ent->client->ps.stats[STAT_MAX_HEALTH] + ehp));
+			int armor = pArm->armor;
+			float modifier = (ent->client->ps.stats[STAT_MAX_HEALTH] / (float)(ent->client->ps.stats[STAT_MAX_HEALTH] + armor));
 
 			modifier *= means->modifiers.armor;
 

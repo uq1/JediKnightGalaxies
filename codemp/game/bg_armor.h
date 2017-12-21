@@ -25,7 +25,7 @@ typedef struct {
 typedef struct {
 	char ref[MAX_QPATH];	// The name of this jetpack (internal name, for referencing)
 	int slot;				// Which armor slot this item equips to - this corresponds to the GHOUL2 model index
-	int ehp;				// Effective hit points - 25 EHP is the same as having 25% extra health on the limb
+	int armor;				// Effective hit points - 25 armor is the same as having 25% extra health on the limb
 	int hp;					// Health to add by equipping this piece of armor
 
 	float movemodifier;		// Affects how fast you can move with this piece of equipment

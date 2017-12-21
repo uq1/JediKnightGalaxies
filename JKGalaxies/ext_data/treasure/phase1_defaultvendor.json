@@ -1,8 +1,8 @@
 {
 "classes": {
 	"genericvendor": {
-		"numberPicksMin": 10,
-		"numberPicksMax": 20,
+		"numberPicksMin": 8,
+		"numberPicksMax": 12,
 		"uniquePicks": true,
 		"picks": {
 			"genericvendor-basic": 11,
@@ -35,9 +35,7 @@
 			"shield_atgar": 3,
 			"shield_merrsonn_cour": 3,
 			"charge_LaserProjector": 1,
-			"bot_remote": 2,
 			"gloves_stormtrooper": 1,
-			"Seeker": 2,
 			"bacta_medium": 2,
 			"bacta_small": 3,
 			"jetpack_burst": 1
@@ -83,7 +81,6 @@
 			"Grenade_Thermal-E": 1,
 			"rifle_EE-3": 4,
 			"sniper_DXR6": 2,
-			"stun_baton": 1,
 			"array_ARC_CasterImp": 2,
 			"bacta_large": 3,
 			"bacta_medium": 5,

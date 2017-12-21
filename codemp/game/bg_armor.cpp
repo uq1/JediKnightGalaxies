@@ -208,8 +208,8 @@ static qboolean JKG_ParseArmorFile(char* buffer, const char* fileName, armorData
 	jsonNode = cJSON_GetObjectItem(json, "slot");
 	armorData.slot = JKG_ArmorSlotFromText(cJSON_ToStringOpt(jsonNode, ""));
 
-	jsonNode = cJSON_GetObjectItem(json, "ehp");
-	armorData.ehp = cJSON_ToIntegerOpt(jsonNode, 0);
+	jsonNode = cJSON_GetObjectItem(json, "armor");
+	armorData.armor = cJSON_ToIntegerOpt(jsonNode, 0);
 
 	jsonNode = cJSON_GetObjectItem(json, "hp");
 	armorData.hp = cJSON_ToIntegerOpt(jsonNode, 0);
