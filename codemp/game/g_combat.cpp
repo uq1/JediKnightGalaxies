@@ -2220,7 +2220,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		self->takedamage = qfalse;
 	}
 
-	G_AddEvent(self, EV_DEATH1 + i, 0);
+	G_AddEvent(self, EV_DEATH1 + Q_irand(0, 2), 0);
 
 	if (self != attacker)
 	{ //don't make NPCs want to murder you on respawn for killing yourself!
