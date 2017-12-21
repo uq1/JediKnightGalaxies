@@ -111,13 +111,13 @@
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-        "reload":       { "torso": "BOTH_PISTOLRELOAD" },
-        "sights":        { "torso": "TORSO_WEAPONREADY2", "legs": "BOTH_STAND1" },
-        "sightsFiring":       { "torso": "BOTH_ATTACK2" },
-	"ready":	{ "torso": "BOTH_BASE_PISTOLSTANCE", "legs": "BOTH_STAND1" },
-	"firing":	{ "torso": "BOTH_BASE_PISTOLSHOOT" },
-	"sprint":	{ "torso": "BOTH_PISTOLRUN" },
-        "sprintStyle": "7"
+        "reload":       { "torso": "BOTH_RIFLERELOADL" },
+        "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
+        "sightsFiring":       { "torso": "BOTH_ATTACK3" },
+	"ready":	{ "torso": "BOTH_BASE_RIFLESTANCE", "legs": "BOTH_STAND1" },
+	"firing":	{ "torso": "BOTH_BASE_RIFLESHOOT" },
+	"sprint":	{ "torso": "BOTH_RIFLERUN" },
+        "sprintStyle": "17"
     },
     
     "weaponanims": {
