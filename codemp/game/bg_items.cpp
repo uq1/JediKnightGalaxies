@@ -275,6 +275,8 @@ Client only-received an item packet
 */
 #ifdef _CGAME
 extern void JKG_CG_FillACISlot(int itemNum, int slot);
+extern void JKG_CG_ACIPostFix(int itemSlot);
+
 void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 	switch (packetType) {
 		case IPT_ADD:
@@ -306,7 +308,12 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 			break;
 		case IPT_REM:
 			// Remove the item from our inventory
-			BG_RemoveItemStack(atoi(CG_Argv(2)));
+			{
+				int itemStack = atoi(CG_Argv(2));
+				BG_RemoveItemStack(itemStack);
+				JKG_CG_ACIPostFix(itemStack);
+			}
+			
 			break;
 		case IPT_CLEAR:
 			// Clear the inventory

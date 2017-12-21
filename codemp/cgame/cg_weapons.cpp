@@ -1543,6 +1543,25 @@ void JKG_CG_FillACISlot(int itemNum, int slot)
 	cg.playerACI[slot] = itemNum;
 }
 
+/*
+ *	JKG_CG_ACIPostFix
+ *	Adjusts the ACI after an item stack has been removed
+ */
+void JKG_CG_ACIPostFix(int itemSlot)
+{
+	for (int i = 0; i < MAX_ACI_SLOTS; i++)
+	{
+		if (cg.playerACI[i] == itemSlot)
+		{
+			cg.playerACI[i] = -1;
+		}
+		else if (cg.playerACI[i] > itemSlot)
+		{
+			cg.playerACI[i]--;
+		}
+	}
+}
+
 void JKG_CG_ClearACISlot(int slot)
 {
 	if (slot < 0 || slot >= MAX_ACI_SLOTS)
