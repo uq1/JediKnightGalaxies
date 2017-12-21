@@ -1293,6 +1293,16 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 			if (bits & (1 << i)) {
 				to->armor[i] = MSG_ReadLong(msg);
 			}
+			else {
+				to->armor[i] = from->armor[i];
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < MAX_ARMOR; i++)
+		{
+			to->armor[i] = from->armor[i];
 		}
 	}
 
@@ -1308,6 +1318,19 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 				to->buffs[i].buffID = MSG_ReadBits(msg, BUFF_BITS);
 				to->buffs[i].intensity = MSG_ReadFloat(msg);
 			}
+			else
+			{
+				to->buffs[i].buffID = from->buffs[i].buffID;
+				to->buffs[i].intensity = from->buffs[i].intensity;
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < PLAYERBUFF_BITS; i++)
+		{
+			to->buffs[i].buffID = from->buffs[i].buffID;
+			to->buffs[i].intensity = from->buffs[i].intensity;
 		}
 	}
 
@@ -1632,7 +1655,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	{
 		if (to->buffs[i].buffID != from->buffs[i].buffID || to->buffs[i].intensity != from->buffs[i].intensity)
 		{
-			buffbits |= 1 << i;
+			buffbits |= (1 << i);
 		}
 	}
 

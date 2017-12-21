@@ -410,11 +410,11 @@ static void G_FreeFakeClient(gclient_t **cl)
 	// If you check base, this func was empty and had a lengthy explanation.
 	// I believe that this code is a serverside crash waiting to happen 
 	// I think it should be removed but I could be wrong ~~ ooxavenue
-	if (!(jkg_removenpcbody.integer)) 
+	/*if (!(jkg_removenpcbody.integer)) 
 	{
 		free(*cl);
 		*cl = NULL;
-	}
+	}*/
 }
 
 gclient_t *gClPtrs[MAX_GENTITIES];
