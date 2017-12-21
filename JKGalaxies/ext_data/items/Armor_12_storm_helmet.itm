@@ -3,7 +3,7 @@
 	"internal":             "helmet_stormtrooper",
 	"itemtype":             "armor",
 	"armor":		"sthelmet",
-	"weight":		"2",
-	"cost":			"0",
+	"weight":		"5",
+	"cost":			"350",
 	"itemIcon":		"gfx/item_icons/stormtrooper_helmet.tga"
 }

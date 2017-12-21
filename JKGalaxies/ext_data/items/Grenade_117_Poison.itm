@@ -1,5 +1,5 @@
 {
-	"name":             "@JKG_ITEMS_Grenade_Poison",
+	"name":             "Toxic Smoke Grenade",
 	"internal":             "Grenade_Poison",
 	"itemtype":             "weapon",
 	"weapon":		"WP_THERMAL",

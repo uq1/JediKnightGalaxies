@@ -1,7 +1,7 @@
 {
 	"name":             "Large Bacta Canister",
 	"internal":             "bacta_medium",
-	"cost":		"50",
+	"cost":		"75",
 	"itemtype":             "consumable",
 
 	"maxStack":		2,

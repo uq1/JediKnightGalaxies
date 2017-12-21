@@ -1,7 +1,7 @@
 {
 	"name":             "BioTech Bacta Intravenous Solution",
 	"internal":             "bacta_large",
-	"cost":		"175",
+	"cost":		"140",
 	"itemtype":             "consumable",
 
 	"consumeScript":	"item_bacta_large",

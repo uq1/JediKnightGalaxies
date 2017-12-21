@@ -2112,7 +2112,7 @@ void ClientThink_real( gentity_t *ent ) {
 
 							// Play the effect for shield recharging
 							gentity_t* evEnt;
-							evEnt = G_TempEntity(ent->r.currentOrigin, EV_SHIELD_RECHARGE);		//might need own EV_SHIELD_RECHARGE value here
+							evEnt = G_TempEntity(ent->r.currentOrigin, EV_SHIELD_RECHARGE);		//--futuza: we are reusing the shield recharge effect, but a new one would be nice
 							evEnt->s.otherEntityNum = ent->s.number;
 						}
 						break;

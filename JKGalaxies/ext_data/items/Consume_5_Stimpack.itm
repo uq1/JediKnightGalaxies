@@ -1,7 +1,7 @@
 {
 	"name":             "Minor Bacta Canister",
 	"internal":             "bacta_small",
-	"cost":		"20",
+	"cost":		"35",
 	"itemtype":             "consumable",
 
 	"consumeScript":	"item_bacta_small",
