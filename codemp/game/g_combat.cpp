@@ -1676,6 +1676,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		{
 			// do disintegration
 			self->client->ps.eFlags |= EF_DISINTEGRATION;
+			self->s.eFlags |= EF_DISINTEGRATION;
 			self->r.contents = 0;
 			VectorClear(self->client->ps.lastHitLoc);
 			VectorClear(self->client->ps.velocity);
