@@ -3747,15 +3747,16 @@ void G_LocationBasedDamageModifier(gentity_t *ent, vec3_t point, int mod, int df
 	case HL_FOOT_RT:
 	case HL_FOOT_LT:
 		armorSlot = ARMSLOT_BOOTS;
-		*damage *= 0.5f;
+		*damage *= bgConstants.damageModifiers.footModifier;
 		break;
 	case HL_LEG_RT:
 	case HL_LEG_LT:
 		armorSlot = ARMSLOT_LEGS;
-		*damage *= 0.7f;
+		*damage *= bgConstants.damageModifiers.legModifier;
 		break;
 	case HL_WAIST:
 		armorSlot = ARMSLOT_LEGS;
+		*damage *= bgConstants.damageModifiers.torsoModifier;
 		break;
 	case HL_BACK_RT:
 	case HL_BACK_LT:
@@ -3764,20 +3765,21 @@ void G_LocationBasedDamageModifier(gentity_t *ent, vec3_t point, int mod, int df
 	case HL_CHEST_LT:
 	case HL_CHEST:
 		armorSlot = ARMSLOT_TORSO;
+		*damage *= bgConstants.damageModifiers.torsoModifier;
 		break; //normal damage
 	case HL_ARM_RT:
 	case HL_ARM_LT:
 		armorSlot = ARMSLOT_SHOULDER;
-		*damage *= 0.85f;
+		*damage *= bgConstants.damageModifiers.armModifier;
 		break;
 	case HL_HAND_RT:
 	case HL_HAND_LT:
 		armorSlot = ARMSLOT_GLOVES;
-		*damage *= 0.6f;
+		*damage *= bgConstants.damageModifiers.handModifier;
 		break;
 	case HL_HEAD:
 		armorSlot = ARMSLOT_HEAD;
-		*damage *= 1.3f;
+		*damage *= bgConstants.damageModifiers.headModifier;
 		break;
 	default:
 		break; //do nothing then
