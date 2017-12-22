@@ -192,6 +192,6 @@ XCVAR_DEF( jkg_safeTreasureClasses,		"1",			NULL,				CVAR_ARCHIVE|CVAR_LATCH,			
 XCVAR_DEF( jkg_removenpcbody,			"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
 XCVAR_DEF( jkg_removenpctime_default,	"10000",		NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
 XCVAR_DEF( jkg_removenpctime_droid,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
-XCVAR_DEF( jkg_allowDebuffKills,		"1",			NULL,				CVAR_ARCHIVE,									true )	//0 == carebear debuffs, 1 == debuffs are deadly, 2 == poison, fire, freeze are dangerous
+XCVAR_DEF( jkg_allowDebuffKills,		"2",			NULL,				CVAR_ARCHIVE,									true )	//0 == carebear debuffs, 1 == debuffs are deadly as specified by .wpn, 2 == all damaging debuffs are deadly
 
 #undef XCVAR_DEF

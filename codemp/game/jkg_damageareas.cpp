@@ -264,17 +264,37 @@ void G_TickBuffs(gentity_t* ent)
 			}
 
 			// check for dealing damage
-			if (ent->buffData[i].lastDamageTime + pBuff->damage.damageRate < level.time)
+			if (ent->buffData[i].lastDamageTime + pBuff->damage.damageRate <= level.time)
 			{
+				int damage = pBuff->damage.damage;
+				int health = ent->client->ps.stats[STAT_HEALTH];
 
-				if (!jkg_allowDebuffKills.integer && pBuff->damage.damage >= ent->client->ps.stats[STAT_HEALTH])
+				switch (jkg_allowDebuffKills.integer)
 				{
-					// don't allow debuff kills = don't do damage in this situation
-					continue;
+					//only allow debuffs to whittle us down, not kill us
+					case 0:
+						if (health - damage <= 0)
+							damage = 0;
+					break;
+
+					//debuffs are deadly if indicated in wpm file	--futuza: not yet implemented default to deadly behavior for now
+					case 1:
+						;
+						break;
+
+					//all damaging debuffs are deadly, don't adjust damage
+					case 2:
+						;
+						break;
+
+					//default to case 2
+					default:
+						;
+						break;
 				}
 
 				G_Damage(ent, ent->buffData[i].buffer, ent->buffData[i].buffer, vec3_origin, ent->client->ps.origin, 
-					pBuff->damage.damage, DAMAGE_NO_KNOCKBACK | DAMAGE_NO_DISMEMBER | DAMAGE_NO_HIT_LOC, pBuff->damage.meansOfDeath);
+					damage, DAMAGE_NO_KNOCKBACK | DAMAGE_NO_DISMEMBER | DAMAGE_NO_HIT_LOC, pBuff->damage.meansOfDeath);
 				ent->buffData[i].lastDamageTime = level.time;
 			}
 		}
