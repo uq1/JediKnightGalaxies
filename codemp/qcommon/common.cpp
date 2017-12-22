@@ -977,6 +977,22 @@ static void NORETURN Com_Error_f (void) {
 	}
 }
 
+/*
+=============
+Com_Diagnostics_f
+
+Print out diagnostic information about the machine
+=============
+*/
+static void NORETURN Com_Diagnostics_f(void)
+{
+	if (Cmd_Argc() != 2) {
+		Com_Printf("usage: diagnostics <category>\n");
+		return;
+	}
+	Sys_Diagnostics(Cmd_Argv(1));
+}
+
 
 /*
 =============
@@ -1165,6 +1181,7 @@ void Com_Init( char *commandLine ) {
 			Cmd_AddCommand ("crash", Com_Crash_f );
 			Cmd_AddCommand ("freeze", Com_Freeze_f);
 		}
+		Cmd_AddCommand("diagnostics", Com_Diagnostics_f);
 		Cmd_AddCommand ("quit", Com_Quit_f );
 #ifndef FINAL_BUILD
 		Cmd_AddCommand ("changeVectors", MSG_ReportChangeVectors_f );

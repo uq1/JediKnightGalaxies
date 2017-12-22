@@ -114,6 +114,7 @@ extern "C" void	Sys_SnapVector( float *v );
 bool Sys_RandomBytes( byte *string, int len );
 
 void	Sys_SetErrorText( const char *text );
+void	Sys_Diagnostics(const char* diagCategory);
 
 void	Sys_SendPacket( int length, const void *data, netadr_t to );
 

@@ -24,6 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include <io.h>
 #include <shlobj.h>
 #include <windows.h>
+#include <psapi.h>
 
 #define MEM_THRESHOLD (128*1024*1024)
 
@@ -553,6 +554,50 @@ void Sys_PlatformInit( void ) {
 	}
 	else
 		timerResolution = 0;
+}
+
+/*
+================
+Sys_Diagnostics
+
+Prints diagnostic information to the console
+================
+*/
+void Sys_Diagnostics(const char* diagCategory)
+{
+	HANDLE handle = GetCurrentProcess();
+
+	if (!Q_stricmpn(diagCategory, "mem", 3))
+	{
+		// memory
+		PROCESS_MEMORY_COUNTERS pmc;
+		MEMORYSTATUSEX mem;
+
+		mem.dwLength = sizeof(mem);
+
+		GlobalMemoryStatusEx(&mem);
+
+		if (GetProcessMemoryInfo(handle, &pmc, sizeof(pmc)))
+		{
+			Com_Printf("--------Process--------\n");
+			Com_Printf("PageFaultCount: %i\n", pmc.PageFaultCount);
+			Com_Printf("PagefileUsage: %i (peak: %i)\n", pmc.PagefileUsage, pmc.PeakPagefileUsage);
+			Com_Printf("WorkingSetSize: %i (peak: %i)\n", pmc.WorkingSetSize, pmc.PeakWorkingSetSize);
+			Com_Printf("QuotaPagedPoolUsage: %i (peak: %i)\n", pmc.QuotaPagedPoolUsage, pmc.QuotaPeakPagedPoolUsage);
+			Com_Printf("QuotaNonPagedPoolUsage: %i (peak: %i)\n", pmc.QuotaNonPagedPoolUsage, pmc.QuotaPeakNonPagedPoolUsage);
+			Com_Printf("--------Machine--------\n");
+			Com_Printf("Available: %llu mb / %llu mb / %llu mb\n", mem.ullAvailPhys / 1048576, 
+				mem.ullAvailVirtual / 1048576, mem.ullAvailExtendedVirtual / 1048576);
+			Com_Printf("(Physical / Virtual / Extended Virtual)\n");
+			Com_Printf("Total: %llu mb / %llu mb\n", mem.ullTotalPhys / 1048576, mem.ullTotalVirtual / 1048576);
+			Com_Printf("(Physical / Virtual)\n");
+			Com_Printf("Page Available: %llu / %llu\n", mem.ullAvailPageFile / 1048576, mem.ullTotalPageFile / 1048576);
+			Com_Printf("%d PERCENT MEMORY IN USE\n", mem.dwMemoryLoad);
+		}
+		return;
+	}
+
+	Com_Printf("not valid category, try using \"mem\" as the second argument\n");
 }
 
 /*
