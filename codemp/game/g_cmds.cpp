@@ -3694,7 +3694,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 		return;
 	}
 
-	if ( ent->client->ps.forceHandExtend != HANDEXTEND_NONE && !PM_InKnockDown (&ent->client->ps) )
+	if ( ent->client->ps.forceHandExtend != HANDEXTEND_NONE || PM_InKnockDown (&ent->client->ps) )
 	{//We're in a knockdown, or something ugly like that...DO NOT WANT!
 		return;
 	}

@@ -2461,28 +2461,25 @@ qboolean PM_WeaponAnimate(void)
 		return qtrue;
 	}
 
-	if (PM_CanSetWeaponAnims())
+	if (PM_CanSetWeaponAnims() && BG_IsSprinting(pm->ps, &pm->cmd, qtrue))
 	{
-		if (BG_IsSprinting(pm->ps, &pm->cmd, qtrue))
+		// FIXME: ummm...what
+		if (pm->ps->weapon == WP_DET_PACK)
 		{
-			// FIXME: ummm...what
-			if (pm->ps->weapon == WP_DET_PACK)
+			if (pm->ps->weapon == WP_THERMAL)
 			{
-				if (pm->ps->weapon == WP_THERMAL)
+				if ((pm->ps->torsoAnim) == GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation)->anims.firing.torsoAnim &&
+					(pm->ps->weaponTime - 200) <= 0)
 				{
-					if ((pm->ps->torsoAnim) == GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation)->anims.firing.torsoAnim &&
-						(pm->ps->weaponTime - 200) <= 0)
-					{
-						PM_StartTorsoAnim(GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation)->anims.ready.torsoAnim);
-					}
+					PM_StartTorsoAnim(GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation)->anims.ready.torsoAnim);
 				}
-				else
+			}
+			else
+			{
+				if ((pm->ps->torsoAnim) == GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation)->anims.firing.torsoAnim &&
+					(pm->ps->weaponTime - 700) <= 0)
 				{
-					if ((pm->ps->torsoAnim) == GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation)->anims.firing.torsoAnim &&
-						(pm->ps->weaponTime - 700) <= 0)
-					{
-						PM_StartTorsoAnim(GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation)->anims.ready.torsoAnim);
-					}
+					PM_StartTorsoAnim(GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation)->anims.ready.torsoAnim);
 				}
 			}
 		}
