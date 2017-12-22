@@ -3747,7 +3747,7 @@ qboolean PM_UsingIronSights(const pmove_t *pm) {
 		return qfalse;
 	}
 
-	return (pm->cmd.buttons & BUTTON_IRONSIGHTS);
+	return (pm->cmd.buttons & BUTTON_IRONSIGHTS) || pm->ps->zoomMode;
 }
 
 /*
