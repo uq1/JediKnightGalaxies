@@ -344,6 +344,21 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 					return;
 				}
 				(*cg.playerInventory)[invID].equipped = qtrue;
+
+				// In the case of armor, we need to be smart enough to recognize that we could be overriding
+				// a previous piece of equipment. BUT, if we send two packets, there's no guarantee that they're in order.
+				// So we simulate the behavior on the client.
+				for (int i = 0; i < cg.playerInventory->size(); i++)
+				{
+					if (i != invID && (*cg.playerInventory)[i].id->itemType == ITEM_ARMOR)
+					{
+						if ((*cg.playerInventory)[i].id->armorData.pArm->slot == (*cg.playerInventory)[invID].id->armorData.pArm->slot)
+						{
+							(*cg.playerInventory)[i].equipped = qfalse;
+							break;
+						}
+					}
+				}
 			}
 			break;
 		case IPT_UNEQUIP:
