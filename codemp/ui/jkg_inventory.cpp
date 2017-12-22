@@ -180,10 +180,10 @@ static void JKG_ConstructArmorDescription(itemInstance_t* pItem, std::vector<std
 		// If the item is already equipped...then that means that the HP modifier is already applied!
 		// Applying the HP modifier to the calculation (again) will lead to a bugged display
 		if (pItem->equipped) {
-			damageReduction = 1.0f - (pArmorData->armor / (float)(maxHP + pArmorData->armor));
+			damageReduction = pArmorData->armor / (float)(maxHP + pArmorData->armor);
 		}
 		else {
-			damageReduction = 1.0f - (pArmorData->armor / (float)(maxHP + itemHP + pArmorData->armor));
+			damageReduction = pArmorData->armor / (float)(maxHP + itemHP + pArmorData->armor);
 		}
 
 		damageReduction *= 100.0f;
