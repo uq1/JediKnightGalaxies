@@ -92,7 +92,8 @@
 			"helmet_stormtrooper": 2,
 			"gloves_stormtrooper": 2,
 			"jetpack_burst": 3,
-			"jetpack_test": 1
+			"jetpack_test": 1,
+			"jetpack_burst2": 2
 			
 		}
 	},
@@ -141,8 +142,9 @@
 			"legs_stormtrooper": 3,
 			"helmet_stormtrooper": 3,
 			"gloves_stormtrooper": 3,
-			"jetpack_burst": 4,
-			"jetpack_test": 2
+			"jetpack_burst": 5,
+			"jetpack_test": 2,
+			"jetpack_burst2": 3
 		}
 	},
 	"genericvendor-rare": {
@@ -156,7 +158,8 @@
 			"launcher_Stouker": 4,
 			"Grenade_CryoBan": 7,
 			"shield_merrsonn_ultra": 5,
-			"chem_CarbR": 3
+			"chem_CarbR": 3,
+			"jetpack_burst3": 4
 		}
 	}
 }
