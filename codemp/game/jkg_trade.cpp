@@ -45,7 +45,9 @@ static void JKG_target_vendor_think(gentity_t* self) {
 	pTC = tc->second;
 
 	// Use the treasure class to pick items
-	self->s.seed = Q_irand(0, 10000); // temp
+	time_t now = time(0);
+	self->s.seed = now;
+	//self->s.seed = Q_irand(0, 10000); //temp -- futuza this results in pseudo random picks
 	npc->inventory->clear();
 	pTC->Pick(items, self->s.seed);
 
