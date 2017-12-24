@@ -1757,7 +1757,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				// Don't trigger it if we don't have any credits to award for this assist
 				if (awardedCredits > 0) {
 					int minAssistReward = (creditsPerKill * ( (51 <= jkg_minAssistAwardRatio.integer ? 50 : jkg_minAssistAwardRatio.integer) / 100.0f));		//the minimum bonus added to assist credits, awardRatio cannot exceed 50% of creditsPerKill
-					awardedCredits += minAssistReward;
+					if(minAssistReward)	//only award if greater than 0
+						awardedCredits += minAssistReward;
 					if (awardedCredits >= creditsPerKill) {
 						// Always award less than a full kill's worth of credits.
 						awardedCredits = creditsPerKill - 1;
