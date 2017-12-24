@@ -810,7 +810,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 112 54 23
+			rect		240 87 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -826,7 +826,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 173 54 23
+			rect		240 148 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -842,7 +842,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 232 54 23
+			rect		240 207 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -858,7 +858,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 290 54 23
+			rect		240 265 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -874,7 +874,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 348 54 23
+			rect		240 323 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -890,7 +890,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 406 54 23
+			rect		240 381 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -1939,7 +1939,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 112 54 23
+			rect		483 87 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
@@ -1955,7 +1955,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 173 54 23
+			rect		483 148 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
@@ -1971,7 +1971,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 232 54 23
+			rect		483 207 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
@@ -1987,7 +1987,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 290 54 23
+			rect		483 265 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
@@ -2003,7 +2003,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 348 54 23
+			rect		483 323 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
@@ -2019,7 +2019,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 406 54 23
+			rect		483 381 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
