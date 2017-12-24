@@ -227,7 +227,11 @@ void G_BuffEntity(gentity_t* ent, gentity_t* buffer, int buffID, float intensity
 			{
 				if (pBuff->passive.overridePmoveType.second == PM_FREEZE)
 				{
-					VectorClear(ent->client->ps.velocity);
+					// clear out the velocity vector only if we are not in midair
+					if (ent->client->ps.groundEntityNum != ENTITYNUM_NONE)
+					{
+						VectorClear(ent->client->ps.velocity);
+					}
 					ent->client->ps.freezeLegsAnim = ent->client->ps.legsAnim;
 					ent->client->ps.freezeTorsoAnim = ent->client->ps.torsoAnim;
 					ent->client->pmlock = ent->client->pmfreeze = qtrue;

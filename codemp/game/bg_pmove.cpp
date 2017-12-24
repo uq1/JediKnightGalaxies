@@ -565,7 +565,8 @@ static void PM_Friction( void ) {
 
 	// apply ground friction
 	if ( pm->waterlevel <= 1 ) {
-		if ( pml.walking && !(pml.groundTrace.surfaceFlags & SURF_SLICK) ) {
+		if ( (pm->ps->pm_type == PM_FREEZE || pm->ps->pm_type == PM_LOCK) || (
+			pml.walking && !(pml.groundTrace.surfaceFlags & SURF_SLICK)) ) {
 			// if getting knocked back, no friction
 			if ( ! (pm->ps->pm_flags & PMF_TIME_KNOCKBACK) ) {
 				control = speed < pm_stopspeed ? pm_stopspeed : speed;
@@ -6433,13 +6434,24 @@ void PmoveSingle (pmove_t *pmove) {
 	// set mins, maxs, and viewheight
 	PM_CheckDuck ();
 
-	// Jedi Knight Galaxies, PM_LOCK
-	if (pm->ps->pm_type == PM_FREEZE || pm->ps->pm_type == PM_LOCK) {
-		return;		// no movement at all
-	}
-
 	// set groundentity
 	PM_GroundTrace();
+
+	// Jedi Knight Galaxies, PM_LOCK
+	if (pm->ps->pm_type == PM_FREEZE || pm->ps->pm_type == PM_LOCK) {
+		PM_Friction();
+		if (pm->ps->groundEntityNum == ENTITYNUM_NONE)
+		{
+			if (!(pm->ps->eFlags & EF_JETPACK_ACTIVE))
+			{
+				// if not in a jetpack, scale downward velocity by gravity
+				pm->ps->velocity[2] -= pm->ps->gravity * pml.frametime;
+			}
+			PM_SlideMove(!(pm->ps->eFlags & EF_JETPACK_ACTIVE));
+		}
+		PM_GroundTrace();
+		return;		// no movement at all
+	}
 
 	if ( pm->ps->groundEntityNum != ENTITYNUM_NONE )
 	{//on ground
