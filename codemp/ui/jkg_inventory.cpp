@@ -719,6 +719,7 @@ void JKG_Inventory_Destroy(char** args) {
 	nSelected = -1;
 }
 
+// jkgscript to consume an item; takes one argument (the inventory ID). can be called from UI files
 void JKG_Inventory_Use(char** args) {
 	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
@@ -726,6 +727,7 @@ void JKG_Inventory_Use(char** args) {
 	cgImports->SendClientCommand(va("inventoryUse %d", pItems[nSelected].first));
 }
 
+// jkgscript to equip a piece of armor; takes one argument (the inventory ID). can be called from UI files
 void JKG_Inventory_EquipArmor(char** args) {
 	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
@@ -733,6 +735,7 @@ void JKG_Inventory_EquipArmor(char** args) {
 	cgImports->SendClientCommand(va("equip %d", pItems[nSelected].first));
 }
 
+// jkgscript to unequip a piece of armor; takes one argument (the inventory ID). can be called from UI files
 void JKG_Inventory_UnequipArmor(char** args) {
 	if (nSelected == -1 || nSelected > pItems.size()) {
 		return;
@@ -740,6 +743,7 @@ void JKG_Inventory_UnequipArmor(char** args) {
 	cgImports->SendClientCommand(va("unequip %d", pItems[nSelected].first));
 }
 
+// 
 void JKG_Inventory_Interact(char** args) {
 	int nArg;
 	if (!Int_Parse(args, &nArg)) {
@@ -771,14 +775,17 @@ void JKG_Inventory_Interact(char** args) {
 	}
 }
 
+// jkgscript to open the inventory (can be called from ui files)
 void JKG_Inventory_Open(char** args) {
 	JKG_Inventory_UpdateNotify(INVENTORYNOTIFY_OPEN);
 }
 
+// jkgscript to reconstruct the inventory list (can be called from ui files)
 void JKG_Inventory_ReconstructList(char** args) {
 	JKG_ConstructInventoryList();
 }
 
+// the filter cvar has been changed (probably from clicking on the filter button)
 void JKG_UI_InventoryFilterChanged() {
 	menuDef_t* focusedMenu = Menu_GetFocused();
 	if (focusedMenu == nullptr) {
@@ -792,6 +799,7 @@ void JKG_UI_InventoryFilterChanged() {
 	}
 }
 
+// received a message from cgame, handle it appropriately
 void JKG_Inventory_UpdateNotify(jkgInventoryNotify_e msg) {
 	menuDef_t* focusedMenu = Menu_GetFocused();
 
@@ -813,4 +821,55 @@ void JKG_Inventory_UpdateNotify(jkgInventoryNotify_e msg) {
 		JKG_ConstructInventoryList();
 		break;
 	}
+}
+
+// sends the currently selected item to the ACI
+void JKG_Inventory_SendItemToACI(int nACIIndex)
+{
+	if (nSelected == -1 || nSelected >= pItems.size())
+	{
+		return;
+	}
+
+	itemInstance_t* pItem = pItems[nSelected].second;
+	if (pItem->id->itemType == ITEM_JETPACK || pItem->id->itemType == ITEM_CONSUMABLE || pItem->id->itemType == ITEM_WEAPON)
+	{
+		menuDef_t* menu = Menus_FindByName("jkg_inventory");
+
+		// hide the interact submenu
+		Menu_ShowGroup(menu, "interact1", qfalse);
+		Menu_ShowGroup(menu, "interact_submenu1_assignaci", qfalse);
+		Menu_ShowGroup(menu, "interact1z_hilight", qfalse);
+		Menu_ItemDisable(menu, "inv_feederSel", qfalse);
+		
+		// actually send the thing to the ACI
+		cgImports->InventoryAttachToACI(pItems[nSelected].first, nACIIndex, true);
+	}
+}
+
+// returns qtrue if the key has been handled, qfalse otherwise
+qboolean JKG_Inventory_HandleKey(int key)
+{
+	switch (key)
+	{
+		case A_MWHEELDOWN:
+			JKG_Inventory_ArrowDown(nullptr);
+			return qtrue;
+		case A_MWHEELUP:
+			JKG_Inventory_ArrowUp(nullptr);
+			return qtrue;
+		case A_0:
+		case A_1:
+		case A_2:
+		case A_3:
+		case A_4:
+		case A_5:
+		case A_6:
+		case A_7:
+		case A_8:
+		case A_9:
+			JKG_Inventory_SendItemToACI(key - A_0);
+			return qtrue;
+	}
+	return qfalse;
 }

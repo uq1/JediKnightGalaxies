@@ -4844,21 +4844,17 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 	}
 
 #ifdef UI_EXPORTS
-	// Scrollwheel support for inventory --eez
-	if (key == A_MWHEELDOWN || key == A_MWHEELUP)
+	if (Q_stricmp(menu->window.name, "jkg_inventory") == 0)
 	{
-		if (Q_stricmp(menu->window.name, "jkg_inventory") == 0)
+		if (JKG_Inventory_HandleKey(key))
 		{
-			if (key == A_MWHEELDOWN)
-			{
-				JKG_Inventory_ArrowDown(nullptr);
-			}
-			else
-			{
-				JKG_Inventory_ArrowUp(nullptr);
-			}
+			return;
 		}
-		else if (Q_stricmp(menu->window.name, "jkg_shop") == 0)
+	}
+	// Scrollwheel support for sjop --eez
+	else if (key == A_MWHEELDOWN || key == A_MWHEELUP)
+	{
+		if (Q_stricmp(menu->window.name, "jkg_shop") == 0)
 		{
 			JKG_ScrollShop(key == A_MWHEELUP, DC->cursorx, DC->cursory);
 		}
