@@ -95,7 +95,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "secondarydamage": {
                           "damageradius": { "start": 320,
@@ -109,12 +110,14 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "ballistic":    true,
 	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
+	"flags":	[ "DAMAGE_NO_KNOCKBACK" ],
         "ammocost":     1,
         "disruptor":    true,
         "maxchargetime":3000,
@@ -146,7 +149,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "secondarydamage": {
                           "damageradius": { "start": 320,
@@ -160,12 +164,14 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "ballistic":    true,
 	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
+	"flags":	[ "DAMAGE_NO_KNOCKBACK" ],
         "ammocost":     1,
         "disruptor":    true,
         "maxchargetime":3000,

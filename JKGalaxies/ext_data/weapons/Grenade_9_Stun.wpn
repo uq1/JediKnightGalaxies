@@ -81,18 +81,9 @@
 						"buff": "standard-stun",
 						"duration": 5000
 					}
-				]
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
 		},
-		
-//        "damage": {
-//                          "damageradius": { "start": 220,		// Radius over lifetime - if constant, only set start radius
-//                                                     "end": 120,
-//                                                     "function": [ "linear" ],	// How the radius changes over duration time - valid flags are linear, nonlinear (at start value 'till parm is reached, then linear), clamp (linear 'till parm, then constant at end value) and wave (bezier function). Two functions produces a mix between the two. Defaults to constant at start. 
-//                                                     "falloff": "gaussian" },		// Radius falloff type, valid are constant, linear, gaussian and bezier. 
-//                          "duration": 1000,		// Lifetime of damage type (ms)
-//                          "delay": 0,			// If the damage type should be delayed (ms)
-//                          "damage": 50,		// Damage to do per damagedelay
-//                          "damagetype": [ "stun" ] },
         "ballistic":    true,
 	"useQuantity":	true,
         "grenadeBounces": false,
@@ -113,16 +104,16 @@
     },
     
     "firemode1": {
-        "damage":       20,
-//        "damage": {
-//                          "damageradius": { "start": 220,		// Radius over lifetime - if constant, only set start radius
-//                                                     "end": 120,
-//                                                     "function": [ "linear" ],	// How the radius changes over duration time - valid flags are linear, nonlinear (at start value 'till parm is reached, then linear), clamp (linear 'till parm, then constant at end value) and wave (bezier function). Two functions produces a mix between the two. Defaults to constant at start. 
-//                                                     "falloff": "gaussian" },		// Radius falloff type, valid are constant, linear, gaussian and bezier. 
-//                          "duration": 1000,		// Lifetime of damage type (ms)
-//                          "delay": 0,			// If the damage type should be delayed (ms)
-//                          "damage": 50,		// Damage to do per damagedelay
-//                          "damagetype": [ "stun" ] },
+        "damage": {
+			"damage": 20,
+			"buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 5000
+					}
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
+		},
         "ballistic":    true,
 	"useQuantity":	true,
         "grenadeBounces": false,

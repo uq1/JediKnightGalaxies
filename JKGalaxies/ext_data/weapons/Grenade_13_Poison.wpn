@@ -86,7 +86,8 @@
 						"duration": 5000
 					}
 				],
-				"penetration": 2
+				"penetration": 2,
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
 			},
 		"secondarydamage":
 			{
@@ -106,12 +107,14 @@
 						"duration": 5000
 					}
 				],
-				"penetration": 2
+				"penetration": 2,
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
 			},
         "ballistic":    true,
 		"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
+	"flags":	[ "DAMAGE_NO_KNOCKBACK" ],
         "ammocost":     1,
         "maxchargetime":3000,
         "chargedelay":  3000,
@@ -147,7 +150,8 @@
 						"duration": 5000
 					}
 				],
-				"penetration": 2
+				"penetration": 2,
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
 			},
 		"secondarydamage":
 			{
@@ -167,12 +171,14 @@
 						"duration": 5000
 					}
 				],
-				"penetration": 2
+				"penetration": 2,
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
 			},
         "ballistic":    true,
 	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
+	"flags":	[ "DAMAGE_NO_KNOCKBACK" ],
         "ammocost":     1,
         "maxchargetime":3000,
         "chargedelay":  3000,

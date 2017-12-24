@@ -95,7 +95,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "secondarydamage": {
                           "damageradius": { "start": 128,
@@ -109,7 +110,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "ballistic":    true,
 	"useQuantity":	true,
@@ -148,7 +150,8 @@
 						"duration": 10000
 					}
 				],	 //Valid are annihilate, concussion, cut, disintegrate, electric, explosion, fire, freeze, carbonite, implosion, stun. 
-                          "penetration": 3 },		 //Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
+                          "penetration": 3,
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ] },		 //Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
 
         "secondarydamage": {		 //If need be, have a secondary damage set as well. This is the limit, no third one...
                           "damageradius": { "start": 128,

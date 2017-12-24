@@ -95,7 +95,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "secondarydamage": {
                           "damageradius": { "start": 128,
@@ -109,7 +110,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "ballistic":    true,
 	"useQuantity":	true,
@@ -146,7 +148,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "secondarydamage": {
                           "damageradius": { "start": 128,
@@ -160,7 +163,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "ballistic":    true,
 	"useQuantity":	true,

@@ -71,7 +71,6 @@
     },
   
     "firemode0": {
-//        "damage":       50,//100,
         "damage": {
                           "damageradius": { "start": 220,
                                                      "falloff": "linear" },
@@ -81,7 +80,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "secondarydamage": {
                           "damageradius": { "start": 60,
@@ -95,7 +95,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "ballistic":    true,
 	"useQuantity":	true,
@@ -108,7 +109,6 @@
         "firingtype":   "semi",
         "recoil":       3.0,
         "spread":       1.0,
-//        "splashrange":  560,//280,
         "projectilespeed":1200.0,
         "projectileclass":"repeater_alt_proj",
         "clipSize":              0,
@@ -126,7 +126,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "secondarydamage": {
                           "damageradius": { "start": 60,
@@ -140,7 +141,8 @@
 						"buff": "standard-fire",
 						"duration": 10000
 					}
-				]
+				],
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "ballistic":    true,
 	"useQuantity":	true,

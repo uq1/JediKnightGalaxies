@@ -89,7 +89,8 @@
 						"duration": 10000
 					}
 				],
-                          "penetration": 3 },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
+                          "penetration": 3,
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ] },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
         "secondarydamage": {
                           "damageradius": { "start": 150,		// Radius over lifetime - if constant, only set start radius
                                                      "end": 0,
@@ -106,7 +107,8 @@
 						"duration": 200
 					}
 				],
-                          "penetration": 3 },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
+                          "penetration": 3,
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ] },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
         "ballistic":    true,
 	"useQuantity":	true,
         "bounces":     -5,
@@ -142,7 +144,8 @@
 						"duration": 10000
 					}
 				],
-                          "penetration": 3 },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
+                          "penetration": 3,
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ] },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
         "secondarydamage": {
                           "damageradius": { "start": 150,		// Radius over lifetime - if constant, only set start radius
                                                      "end": 0,
@@ -159,7 +162,8 @@
 						"duration": 200
 					}
 				],
-                          "penetration": 3 },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
+                          "penetration": 3,
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ] },		// Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
         "ballistic":    true,
 	"useQuantity":	true,
         "bounces":     -5,
