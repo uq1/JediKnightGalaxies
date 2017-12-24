@@ -1097,6 +1097,76 @@ void Cmd_Crystal2_f(gentity_t* ent) {
 
 /*
 ==================
+Cmd_GiveBuff_f
+
+Gives a buff/debuff to the player (cheat command)
+==================
+*/
+extern void G_BuffEntity(gentity_t* ent, gentity_t* buffer, int buffID, float intensity, int duration);
+void Cmd_GiveBuff_f(gentity_t* ent)
+{
+	char buffName[BUFF_NAME_LEN]{ 0 };
+	char numericBuffer[32]{ 0 };
+	int duration = 5000; // default to 5 seconds
+	float intensity = 1.0f; // default to normal intensity
+	int buffID = -1;
+
+	if (trap->Argc() < 2)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"usage: /givebuff <buff name> [duration] [intensity]\n\"");
+		return;
+	}
+
+	trap->Argv(1, buffName, BUFF_NAME_LEN);
+	buffID = JKG_ResolveBuffName(buffName);
+	if (buffID < 0)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"Invalid buff name. Try using the printbufflist command.\n\"");
+		return;
+	}
+
+	if (trap->Argc() > 2)
+	{
+		trap->Argv(2, numericBuffer, 32);
+		duration = atoi(numericBuffer);
+		if (trap->Argc() > 3)
+		{
+			trap->Argv(3, numericBuffer, 32);
+			intensity = atof(numericBuffer);
+		}
+	}
+
+	if (duration < 1)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"The duration must be greater than 0.\n\"");
+		return;
+	}
+
+	G_BuffEntity(ent, ent, buffID, intensity, duration);
+}
+
+/*
+==================
+Cmd_PrintBuffList_f
+
+Prints all of the usable buffs.
+==================
+*/
+void Cmd_PrintBuffList_f(gentity_t* ent)
+{
+	std::vector<std::string> buffNames;
+
+	JKG_GetBuffNames(buffNames);
+	std::sort(buffNames.begin(), buffNames.end());	// sort alphabetically
+
+	for (auto it = buffNames.begin(); it != buffNames.end(); ++it)
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", it->c_str()));
+	}
+}
+
+/*
+==================
 Cmd_PrintWeaponList_f
 
 Good for testing desync
@@ -1608,25 +1678,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 		} else if ( !Q_stricmp( s, "blue" ) || !Q_stricmp( s, "b" ) ) {
 			team = TEAM_BLUE;
 		} else {
-			// pick the team with the least number of players
-			//For now, don't do this. The legalize function will set powers properly now.
-			/*
-			if (g_forceBasedTeams.integer)
-			{
-				if (ent->client->ps.fd.forceSide == FORCE_LIGHTSIDE)
-				{
-					team = TEAM_BLUE;
-				}
-				else
-				{
-					team = TEAM_RED;
-				}
-			}
-			else
-			{
-			*/
-				team = PickTeam( clientNum );
-			//}
+			team = PickTeam( clientNum );
 		}
 
 #ifdef __JKG_NINELIVES__
@@ -1656,60 +1708,20 @@ void SetTeam( gentity_t *ent, char *s ) {
 
 			// We allow a spread of two
 			if ( team == TEAM_RED && counts[TEAM_RED] - counts[TEAM_BLUE] > 1 ) {
-				//For now, don't do this. The legalize function will set powers properly now.
-				/*
-				if (g_forceBasedTeams.integer && ent->client->ps.fd.forceSide == FORCE_DARKSIDE)
-				{
-					trap->SendServerCommand( ent->client->ps.clientNum,
-						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYRED_SWITCH")) );
-				}
-				else
-				*/
-				{
-					//JAC: Invalid clientNum was being used
-					trap->SendServerCommand( ent-g_entities,
-						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYRED")) );
-				}
+				//JAC: Invalid clientNum was being used
+				trap->SendServerCommand( ent-g_entities,
+					va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYRED")) );
 				return; // ignore the request
 			}
 			if ( team == TEAM_BLUE && counts[TEAM_BLUE] - counts[TEAM_RED] > 1 ) {
-				//For now, don't do this. The legalize function will set powers properly now.
-				/*
-				if (g_forceBasedTeams.integer && ent->client->ps.fd.forceSide == FORCE_LIGHTSIDE)
-				{
-					trap->SendServerCommand( ent->client->ps.clientNum,
-						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYBLUE_SWITCH")) );
-				}
-				else
-				*/
-				{
-					//JAC: Invalid clientNum was being used
-					trap->SendServerCommand( ent-g_entities,
-						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYBLUE")) );
-				}
+				//JAC: Invalid clientNum was being used
+				trap->SendServerCommand( ent-g_entities,
+					va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYBLUE")) );
 				return; // ignore the request
 			}
 
 			// It's ok, the team we are switching to has less or same number of players
 		}
-
-		//For now, don't do this. The legalize function will set powers properly now.
-		/*
-		if (g_forceBasedTeams.integer)
-		{
-			if (team == TEAM_BLUE && ent->client->ps.fd.forceSide != FORCE_LIGHTSIDE)
-			{
-				trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBELIGHT")) );
-				return;
-			}
-			if (team == TEAM_RED && ent->client->ps.fd.forceSide != FORCE_DARKSIDE)
-			{
-				trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBEDARK")) );
-				return;
-			}
-		}
-		*/
-
 	} else {
 		// force them to spectators if there aren't any spots free
 		team = TEAM_FREE;
@@ -4653,6 +4665,7 @@ static const command_t commands[] = {
 	{ "follownext",				Cmd_FollowNext_f,			CMD_NOINTERMISSION },
 	{ "followprev",				Cmd_FollowPrev_f,			CMD_NOINTERMISSION },
 	{ "give",					Cmd_Give_f,					CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "givebuff",				Cmd_GiveBuff_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "giveother",				Cmd_GiveOther_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION },
 	{ "god",					Cmd_God_f,					CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "handcut",				Cmd_Wrists_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
@@ -4674,6 +4687,7 @@ static const command_t commands[] = {
 	{ "npc",					Cmd_NPC_f,					CMD_NEEDCHEATS },
 	{ "pay",					Cmd_Pay_f,					CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "printweaponlist_sv",		Cmd_PrintWeaponList_f,		0 },
+	{ "printbufflist",			Cmd_PrintBuffList_f,		0 },
 	{ "relax",					Cmd_Relax_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "resendInv",				Cmd_ResendInv_f,			0 },	
 	{ "say",					Cmd_SayLocal_f,				0 },

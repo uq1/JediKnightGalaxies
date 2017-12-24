@@ -383,3 +383,12 @@ void JKG_InitializeBuffs()
 		return;
 	}
 }
+
+// Get all of the buff names
+void JKG_GetBuffNames(std::vector<std::string>& outBuffNames)
+{
+	for (int i = 0; i < nLastUsedBuff; i++)
+	{
+		outBuffNames.push_back(buffTable[i].name);
+	}
+}
