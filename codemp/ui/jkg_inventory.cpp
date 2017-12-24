@@ -342,7 +342,7 @@ static void JKG_ConstructWeaponDescription(itemInstance_t* pItem, std::vector<st
 	vDescLines.push_back(UI_GetStringEdString2("@JKG_INVENTORY_ITYPE_WEAPON"));
 
 	if (wp->hasCookAbility) {
-		vDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_COOKTIME"), wp->weaponReloadTime));
+		vDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_COOKTIME"), (float)(wp->weaponReloadTime / 1000.0f)));
 	}
 	else if (wp->weaponReloadTime > 1000) {
 		vDescLines.push_back(va(UI_GetStringEdString2("@JKG_INVENTORY_WEP_RELOADTIME_SEC"), (float)(wp->weaponReloadTime / 1000.0f)));
