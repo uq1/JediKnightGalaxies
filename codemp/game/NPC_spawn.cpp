@@ -70,7 +70,6 @@ extern void NPC_GalakMech_Init( gentity_t *ent );
 extern void NPC_Protocol_Precache( void );
 extern void Boba_Precache( void );
 extern void NPC_Wampa_Precache( void );
-gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboolean isVehicle );
 
 extern void Rancor_SetBolts( gentity_t *self );
 extern void Wampa_SetBolts( gentity_t *self );
@@ -82,7 +81,6 @@ extern void Wampa_SetBolts( gentity_t *self );
 extern void funcBBrushPain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void misc_model_breakable_pain	(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Pain					(gentity_t *self, gentity_t *attacker, int damage);
-extern void station_pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void func_usable_pain			(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_ATST_Pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_ST_Pain					(gentity_t *self, gentity_t *attacker, int damage);
@@ -98,9 +96,6 @@ extern void NPC_Mark1_Pain				(gentity_t *self, gentity_t *attacker, int damage)
 extern void NPC_GM_Pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Sentry_Pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Mark2_Pain				(gentity_t *self, gentity_t *attacker, int damage);
-extern void PlayerPain					(gentity_t *self, gentity_t *attacker, int damage);
-extern void GasBurst					(gentity_t *self, gentity_t *attacker, int damage);
-extern void CrystalCratePain			(gentity_t *self, gentity_t *attacker, int damage);
 extern void TurretPain					(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Wampa_Pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Rancor_Pain				(gentity_t *self, gentity_t *attacker, int damage);
@@ -266,7 +261,6 @@ NPC_SetMiscDefaultData
 -------------------------
 */
 
-extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel, int boltNum, int weaponNum );
 void NPC_SetMiscDefaultData( gentity_t *ent )
 {
 	if ( ent->spawnflags & SFB_CINEMATIC )
@@ -3701,7 +3695,7 @@ void SP_NPC_Droid_Protocol( gentity_t *self)
 NPC_Spawn_f
 */
 
-gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboolean isVehicle ) 
+gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname ) 
 {
 	gentity_t		*NPCspawner = G_SpawnLogical();
 	vec3_t			forward, end;
@@ -3723,7 +3717,7 @@ gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboo
 
 	if (!npc_type[0])
 	{
-		Com_Printf( S_COLOR_RED"Error, expected one of:\n" S_COLOR_WHITE " NPC spawn [NPC type (from ext_data/NPCs)]\n NPC spawn vehicle [VEH type (from ext_data/vehicles)]\n" );
+		Com_Printf( S_COLOR_RED"Error, expected one of:\n" S_COLOR_WHITE " NPC spawn <npc> [targetname]\n NPC spawn vendor <npc> <treasureclass>\n" );
 		return NULL;
 	}
 
@@ -3759,16 +3753,6 @@ gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboo
 	NPCspawner->count = 1;
 
 	NPCspawner->delay = 0;
-
-	//NPCspawner->spawnflags |= SFB_NOTSOLID;
-
-	//NPCspawner->playerTeam = TEAM_FREE;
-	//NPCspawner->behaviorSet[BSET_SPAWN] = "common/guard";
-	
-	if ( isVehicle )
-	{
-		NPCspawner->classname = "NPC_Vehicle";
-	}
 
 	//call precache funcs for James' builds
 	if ( !Q_stricmp( "gonk", NPCspawner->NPC_type))
@@ -3852,19 +3836,18 @@ void NPC_Spawn_f( gentity_t *ent )
 	char	npc_type[1024];
 	char	targetname[1024];
 	char	treasureclass[64];
-	qboolean	isVehicle = qfalse;
 	qboolean	isVendor = qfalse;
 	gentity_t* npc;
 
 	trap->Argv(2, npc_type, 1024);
-	if ( Q_stricmp( "vehicle", npc_type ) == 0 )
+	if (Q_stricmp("vendor", npc_type) == 0)
 	{
-		isVehicle = qtrue;
-		trap->Argv(3, npc_type, 1024);
-		trap->Argv(4, targetname, 1024);
-	}
-	else if (Q_stricmp("vendor", npc_type) == 0)
-	{
+		if (trap->Argc() < 5)
+		{
+			trap->SendServerCommand(ent - g_entities,
+				"print \"usage: /npc spawn vendor <npc name> <treasure class> [target name]\n\"");
+			return;
+		}
 		isVendor = qtrue;
 		trap->Argv(3, npc_type, 1024);
 		trap->Argv(4, treasureclass, 64);
@@ -3875,7 +3858,11 @@ void NPC_Spawn_f( gentity_t *ent )
 		trap->Argv(3, targetname, 1024);
 	}
 
-	npc = NPC_SpawnType( ent, npc_type, targetname, isVehicle );
+	npc = NPC_SpawnType( ent, npc_type, targetname );
+	if (npc == nullptr)
+	{
+		return;
+	}
 
 	if (isVendor)
 	{
