@@ -15,23 +15,23 @@
 			"numberPicksMin": 1,
 			"numberPicksMax": 1,
 			"picks": {
-				"pistol_KYD-21": 2,
+				"pistol_KYD-21": 3,
 				"pistol_Suppressor_Adv": 4,
 				"pistol_Q2": 3,
 				"Grenade_C-14A": 4,
 				"Grenade_Smoke": 3,
 				"Grenade_Stun": 3,
-				"Grenade_Poison": 1,
-				"Grenade_C22Frag": 2,
+				"Grenade_Poison": 2,
+				"Grenade_C22Frag": 3,
 				"carbine_LT-60": 2,
 				"carbine_LT-60_S": 2,
 				"pistol_ELG-3A": 3,
 				"pistol_Suppressor": 4,
 				"pistol_ACP": 3,
 				"pistol_L8": 3,
-				"pistol_DE-10": 3,
+				"pistol_DE-10": 4,
 				"pistol_DH-17": 2,
-				"pistol_Bryar": 2,
+				"pistol_Bryar": 3,
 				"shield_knockoff2": 5,
 				"shield_blastech_imp": 3,
 				"shield_atgar": 3,
@@ -40,6 +40,7 @@
 				"gloves_stormtrooper": 2,
 				"bacta_medium": 4,
 				"bacta_small": 8,
+				"jetpack_hover": 2,
 				"jetpack_burst": 1,
 				"shield_knockoff1": 6
 
@@ -91,6 +92,7 @@
 				"legs_stormtrooper": 2,
 				"helmet_stormtrooper": 2,
 				"gloves_stormtrooper": 2,
+				"jetpack_hover": 4,
 				"jetpack_burst": 3,
 				"jetpack_test": 1,
 				"jetpack_burst2": 2
@@ -158,8 +160,7 @@
 				"launcher_Stouker": 4,
 				"Grenade_CryoBan": 7,
 				"shield_merrsonn_ultra": 5,
-				"chem_CarbR": 3,
-				"jetpack_burst3": 4
+				"chem_CarbR": 3
 			}
 		}
 	}

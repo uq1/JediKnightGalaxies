@@ -1,8 +1,8 @@
 {
-	"name":		"Jetpack Burst Hyper",
-	"internal":	"jetpack_burst3",
+	"name":		"Merr-Sonn Hover Pack",
+	"internal":	"jetpack_hover",
 	"itemtype":	"jetpack",
-	"cost":		1550,
+	"cost":		500,
 	"itemIcon":	"gfx/hud/i_icon_jetpack.tga",
 	"jetpack":	"jetpack_burst3"
 }

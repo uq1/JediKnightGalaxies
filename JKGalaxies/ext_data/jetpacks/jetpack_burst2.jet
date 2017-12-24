@@ -7,9 +7,9 @@
 	// fuelRegeneration - scale of how fast fuel gets regenerated
 
 	"ref":			"jetpack_burst2",
-	"fuelCapacity":		20,
-	"fuelConsumption":	5.0,
-	"thrustConsumption":	7.0,
+	"fuelCapacity":		22,
+	"fuelConsumption":	3.7,
+	"thrustConsumption":	5.0,
 	"fuelRegeneration":	0.5,
 	
 	"movement": {
@@ -21,9 +21,9 @@
 		// downMove - amount to modify downward movement by
 		// thrustFwd/thrustBack/thrustSide - same as above, but when thrusting
 		// thrustUp - amount to modify upward movement by
-		"hoverGravity":	"0.0",
+		"hoverGravity":	415.0,
 
-		"forwardMove": 2.5,
+		"forwardMove": 3.2,
 		"backMove": 1.0,
 		"sideMode": 1.0,
 		"downMove": 1.0,
