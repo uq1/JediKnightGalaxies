@@ -31,14 +31,14 @@
             "projectilefx": "blasters/shot_redorange_medium",
             "miss":         { "impactfx": "weapons/blaster_impact_red_big_fire" },
             "hit":          { "impactfx": "blasters/red_flesh_impact" },
-            "deathfx": "blasters/shot_redorange_vaporize"
+            "deathfx": "blasters/shot_redorange_vaporize",
+	    "displayName": "Blaster"
         },
         
         "firemode1": {
             "type":         "blaster",
             
-            "muzzlefx":     "blasters/muzzleflash_Red_medium",
-//            "muzzlefx":     "blasters/muzzleflash2_Blue_medium",
+            "muzzlefx":     "blasters/muzzleflash2_Blue_medium",
             "firesound":    [
                 "sound/weapons/blasters/stunblast.mp3",
                 "sound/weapons/blasters/stunblast2.mp3",
@@ -47,7 +47,9 @@
                 "sound/weapons/blasters/stunblast5.mp3",
                 "sound/weapons/blasters/stunblast6.mp3"
             ],
-            "hit":          { "impactfx": "saber/ignitionflare_blue" }
+            "projectilefx": "blasters/shot_Stunblast_medium",
+            "hit":          { "impactfx": "saber/ignitionflare_blue" },
+	    "displayName":  "Stun"
         },
 
         "scope": {

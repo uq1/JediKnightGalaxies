@@ -51,6 +51,7 @@
                 "sound/weapons/blasters/stunblast5.mp3",
                 "sound/weapons/blasters/stunblast6.mp3"
             ],
+            "projectilefx": "blasters/shot_Stunblast_medium",
             "hit":          { "impactfx": "saber/ignitionflare_blue" },
 	    "displayName":  "Stun"
         },
