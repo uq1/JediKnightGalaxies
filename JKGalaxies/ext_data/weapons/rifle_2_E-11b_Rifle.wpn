@@ -119,7 +119,7 @@
                                "damage":       10,
 				"buffs": [
 					{
-						"duration": 4000,
+						"duration": 2000,
 						"buff": "standard-stun"
 					}
 				]

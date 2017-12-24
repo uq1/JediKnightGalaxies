@@ -90,7 +90,7 @@
 				"buffs": [
 					{
 						"buff": "standard-stun",
-						"duration": 4000
+						"duration": 2000
 					}
 				]
                         },
