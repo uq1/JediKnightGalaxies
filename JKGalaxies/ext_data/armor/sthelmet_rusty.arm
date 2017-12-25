@@ -1,11 +1,11 @@
 {
-	"ref":		"sthelmet",
+	"ref":		"sthelmet_rusty",
 	"slot":		"head",
-	"armor":		50,
+	"armor":		40,
 	"movemodifier":	1.0,
 
 	"visuals": {
-		"model":	"models/players/stormtrooper/model.glm*default",
+		"model":	"models/players/stormtrooper/model.glm*reddirt",
 		"modelGroup":	"stormtrooper",
 
 		"armorOnSurfaces": [

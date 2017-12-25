@@ -1,16 +1,15 @@
 {
-	"ref":		"sthelmet",
+	"ref":		"swhelmet",
 	"slot":		"head",
 	"armor":		50,
 	"movemodifier":	1.0,
 
 	"visuals": {
-		"model":	"models/players/stormtrooper/model.glm*default",
-		"modelGroup":	"stormtrooper",
+		"model":	"models/players/swamptrooper/model.glm*default",
+		"modelGroup":	"swamptrooper",
 
 		"armorOnSurfaces": [
-			"head",
-			"head_face"
+			"head"
 		],
 
 		"bodyOffSurfaces": [

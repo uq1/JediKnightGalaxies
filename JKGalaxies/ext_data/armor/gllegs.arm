@@ -1,28 +1,22 @@
 {
-	"ref":		"stlegs",
+	"ref":		"gllegs",
 	"slot":		"legs",
-	"armor":		50,
-	"movemodifier":	0.8,
+	"armor":		35,
+	"movemodifier":	0.9,
 
 	"visuals": {
-		"model":	"models/players/stormtrooper/model.glm*default",
-		"modelGroup":	"stormtrooper",
+		"model":	"models/players/glightarmor/model.glm*default",
+		"modelGroup":	"glightarmor",
 
 		"armorOnSurfaces": [
 			"hips",
 			"l_leg",
-			"r_leg",
-			"l_leg_knee",
-			"r_leg_knee",
-			"hips_holster",
-			"hips_augment"
+			"r_leg"
 		],
 
 		"bodyOffSurfaces": [
 			"hips",
 			"hips_lower",
-			"l_leg",
-			"r_leg",
 			"l_leg_knee",
 			"r_leg_knee",
 			"hips_holster",

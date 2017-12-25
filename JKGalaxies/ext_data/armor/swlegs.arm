@@ -1,21 +1,18 @@
 {
-	"ref":		"stlegs",
+	"ref":		"swlegs",
 	"slot":		"legs",
 	"armor":		50,
 	"movemodifier":	0.8,
 
 	"visuals": {
-		"model":	"models/players/stormtrooper/model.glm*default",
-		"modelGroup":	"stormtrooper",
+		"model":	"models/players/swamptrooper/model.glm*default",
+		"modelGroup":	"swamptrooper",
 
 		"armorOnSurfaces": [
 			"hips",
+			"hips_body",
 			"l_leg",
-			"r_leg",
-			"l_leg_knee",
-			"r_leg_knee",
-			"hips_holster",
-			"hips_augment"
+			"r_leg"
 		],
 
 		"bodyOffSurfaces": [

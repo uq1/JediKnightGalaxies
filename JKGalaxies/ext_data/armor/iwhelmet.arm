@@ -1,16 +1,17 @@
 {
-	"ref":		"sthelmet",
+	"ref":		"iwhelmet",
 	"slot":		"head",
-	"armor":		50,
+	"armor":		20,
 	"movemodifier":	1.0,
 
 	"visuals": {
-		"model":	"models/players/stormtrooper/model.glm*default",
-		"modelGroup":	"stormtrooper",
+		"model":	"models/players/imperial_worker/model.glm*default",
+		"modelGroup":	"imperial_worker",
 
 		"armorOnSurfaces": [
-			"head",
-			"head_face"
+			"head_helmet",
+			"head_helmet_r_tube",
+			"head_helmet_l_tube"
 		],
 
 		"bodyOffSurfaces": [
