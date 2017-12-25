@@ -1,0 +1,9 @@
+{
+	"name":             "Kelsh Leg Armor",
+	"internal":             "legs_glight",
+	"itemtype":             "armor",
+	"armor":		"gllegs",
+	"weight":		"2",
+	"cost":			"250",
+	"itemIcon":		"gfx/item_icons/default.tga"
+}

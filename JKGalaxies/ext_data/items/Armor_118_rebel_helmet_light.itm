@@ -1,0 +1,9 @@
+{
+	"name":             "Rebel Helmet",
+	"internal":             "helmet_rebel_light",
+	"itemtype":             "armor",
+	"armor":		"rbhelmet_light",
+	"weight":		"2",
+	"cost":			"450",
+	"itemIcon":		"gfx/item_icons/rebel_helmet.tga"
+}

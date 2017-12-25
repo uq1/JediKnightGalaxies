@@ -3,7 +3,7 @@
 	"internal":             "torso_stormtrooper",
 	"itemtype":             "armor",
 	"armor":		"sttorso",
-	"weight":		"15",
+	"weight":		"2",
 	"cost":			"500",
 	"itemIcon":		"gfx/item_icons/stormtrooper_helmet.tga"
 }

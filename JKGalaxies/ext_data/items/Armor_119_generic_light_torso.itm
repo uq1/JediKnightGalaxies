@@ -1,0 +1,9 @@
+{
+	"name":             "Kelsh Body Armor",
+	"internal":             "torso_glight",
+	"itemtype":             "armor",
+	"armor":		"gltorso",
+	"weight":		"2",
+	"cost":			"300",
+	"itemIcon":		"gfx/item_icons/default.tga"
+}

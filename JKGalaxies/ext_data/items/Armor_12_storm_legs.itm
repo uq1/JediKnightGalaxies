@@ -3,7 +3,7 @@
 	"internal":             "legs_stormtrooper",
 	"itemtype":             "armor",
 	"armor":		"stlegs",
-	"weight":		"8",
-	"cost":			"300",
+	"weight":		"2",
+	"cost":			"450",
 	"itemIcon":		"gfx/item_icons/stormtrooper_helmet.tga"
 }
