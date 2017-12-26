@@ -687,6 +687,8 @@ public:
 	void	MaterialImpact(trace_t *tr, CEffect *effect);
 };
 
+extern cvar_t* fx_optimizedParticles;
+
 //-------------------
 // The one and only
 //-------------------

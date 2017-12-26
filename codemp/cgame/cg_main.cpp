@@ -742,10 +742,6 @@ static void CG_RegisterSounds( void ) {
 	trap->S_RegisterSound("sound/player/bodyfall_human2.wav");
 	trap->S_RegisterSound("sound/player/bodyfall_human3.wav");
 
-	//test effects
-	trap->FX_RegisterEffect("effects/mp/test_sparks.efx");
-	trap->FX_RegisterEffect("effects/mp/test_wall_impact.efx");
-
 	cgs.media.oneMinuteSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM004" );
 	cgs.media.fiveMinuteSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM005" );
 	cgs.media.oneFragSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM001" );
