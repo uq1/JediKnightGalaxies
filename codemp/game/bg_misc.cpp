@@ -2078,7 +2078,7 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 		return qtrue;
 
 	case IT_ARMOR:
-		if ( ps->stats[STAT_ARMOR] >= ps->stats[STAT_MAX_ARMOR] ) {
+		if ( ps->stats[STAT_SHIELD] >= ps->stats[STAT_MAX_SHIELD] ) {
 			return qfalse;
 		}
 		return qtrue;
@@ -2899,6 +2899,10 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 		s->eType = ET_PLAYER;
 	}
 
+	for (i = 0; i < MAX_ARMOR; i++) {
+		s->armor[i] = ps->armor[i];
+	}
+
 	s->number = ps->clientNum;
 
 	s->pos.trType = TR_INTERPOLATE;
@@ -2946,6 +2950,7 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 	s->saberEntityNum = ps->saberEntityNum;
 	s->saberMove = ps->saberMove;
 	s->forcePowersActive = ps->fd.forcePowersActive;
+	s->jetpack = ps->jetpack;
 
 	if (ps->duelInProgress)
 	{
@@ -2991,12 +2996,13 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 	s->weaponVariation = ps->weaponVariation;
 	s->groundEntityNum = ps->groundEntityNum;
 	s->saberActionFlags = ps->saberActionFlags;
-	// eezstreet add: we were missing the saber swing speed also
+
 	s->saberSwingSpeed = ps->saberSwingSpeed;
 	s->firingMode = ps->firingMode;
 	s->weaponstate = ps->weaponstate;
+	s->ammoType = ps->ammoType;
 	s->sightsTransition = ps->sightsTransition;
-	// Crystal was missing as well...
+
 	s->saberCrystal[0] = ps->saberCrystal[0];
 	s->saberCrystal[1] = ps->saberCrystal[1];
 
@@ -3032,13 +3038,16 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 	s->customRGBA[1] = ps->customRGBA[1];
 	s->customRGBA[2] = ps->customRGBA[2];
 	s->customRGBA[3] = ps->customRGBA[3];
-
-	s->m_iVehicleNum = ps->m_iVehicleNum;
 	
 	//s->ironsightsTime = ps->ironsightsTime;
 	//s->sprintTime = ps->sprintTime;
 	
-	s->damageTypeFlags = ps->damageTypeFlags;
+	s->buffsActive = ps->buffsActive;
+	for (i = 0; i < PLAYERBUFF_BITS; i++)
+	{
+		s->buffs[i].buffID = ps->buffs[i].buffID;
+		s->buffs[i].intensity = ps->buffs[i].intensity;
+	}
 	s->freezeLegsAnim = ps->freezeLegsAnim;
 	s->freezeTorsoAnim = ps->freezeTorsoAnim;
 }
@@ -3063,6 +3072,11 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	}
 
 	s->number = ps->clientNum;
+
+	for (i = 0; i < MAX_ARMOR; i++)
+	{
+		s->armor[i] = ps->armor[i];
+	}
 
 	s->pos.trType = TR_LINEAR_STOP;
 	VectorCopy( ps->origin, s->pos.trBase );
@@ -3155,9 +3169,10 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	s->weapon = ps->weapon;
 	s->weaponVariation = ps->weaponVariation;
 	s->groundEntityNum = ps->groundEntityNum;
-	//Stoiss add: Missing SaberActionflags!
+
 	s->saberActionFlags = ps->saberActionFlags;
-	// eezstreet add: we were missing the saber swing speed also
+	s->ammoType = ps->ammoType;
+
 	s->saberSwingSpeed = ps->saberSwingSpeed;
 	s->firingMode = ps->firingMode;
 	s->weaponstate = ps->weaponstate;
@@ -3197,13 +3212,17 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	s->customRGBA[1] = ps->customRGBA[1];
 	s->customRGBA[2] = ps->customRGBA[2];
 	s->customRGBA[3] = ps->customRGBA[3];
-
-	s->m_iVehicleNum = ps->m_iVehicleNum;
 	
 //	s->ironsightsTime = ps->ironsightsTime;
-	s->damageTypeFlags = ps->damageTypeFlags;
+	s->buffsActive = ps->buffsActive;
+	for (i = 0; i < PLAYERBUFF_BITS; i++)
+	{
+		s->buffs[i].buffID = ps->buffs[i].buffID;
+		s->buffs[i].intensity = ps->buffs[i].intensity;
+	}
 	s->freezeLegsAnim = ps->freezeLegsAnim;
 	s->freezeTorsoAnim = ps->freezeTorsoAnim;
+	s->jetpack = ps->jetpack;
 
 //	s->sprintTime = ps->sprintTime;
 }
@@ -3340,36 +3359,11 @@ int BG_ParseGenericAnimationFile ( animation_t *animset, size_t maxAnimations, c
 	return i;
 }
 
-// JKG: Bit of damage types stuff
-qboolean JKG_DamageTypeFreezes ( const damageType_t damageType )
-{
-    if ( damageType & DT_STUN )
-    {
-        return qtrue;
-    }
-    
-    if ( damageType & DT_CARBONITE )
-    {
-        return qtrue;
-    }
-    
-    if ( damageType & DT_FREEZE )
-    {
-        return qtrue;
-    }
-    
-    return qfalse;
-}
-
 const char *gametypeStringShort[GT_MAX_GAME_TYPE] = {
 	"FFA",
 	"1v1",
 	"2v1",
 	"SP",
-#ifdef __RPG__
-	"RPGCITY",
-	"RPGWILD",
-#endif
 	"TDM",
 	"CTF",
 	"WZ",
@@ -3396,12 +3390,6 @@ const char *BG_GetGametypeString( int gametype )
 		return "Power Duel";
 	case GT_SINGLE_PLAYER:
 		return "Cooperative";
-#ifdef __RPG__
-	case GT_RPG_CITY:
-		return "RPG - City";
-	case GT_RPG_WILDERNESS:
-		return "RPG - Wilderness";
-#endif
 	case GT_TEAM:
 		return "Team Deathmatch";
 	case GT_CTF:

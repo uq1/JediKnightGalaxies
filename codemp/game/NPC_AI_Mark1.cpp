@@ -58,7 +58,6 @@ enum
 
 qboolean NPC_CheckPlayerTeamStealth( void );
 void Mark1_BlasterAttack(qboolean advance);
-void DeathFX( gentity_t *ent );
 
 extern gitem_t *BG_FindItemForAmmo( ammoType_t ammo );
 
@@ -170,9 +169,8 @@ void Mark1Dead_FireRocket (void)
 	VectorScale( missile->r.maxs, -1, missile->r.mins );
 
 	missile->damage = damage;
-	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
 	//missile->methodOfDeath = MOD_ENERGY;
-	missile->methodOfDeath = MOD_ROCKET;
+	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 	missile->splashDamage = BOWCASTER_SPLASH_DAMAGE;
 	missile->splashRadius = BOWCASTER_SPLASH_RADIUS;
@@ -215,8 +213,7 @@ void Mark1Dead_FireBlaster (void)
 	missile->s.weapon = WP_BRYAR_PISTOL;
 
 	missile->damage = 1;
-	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
-	missile->methodOfDeath = MOD_BRYAR_PISTOL;
+	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 
 }
@@ -500,8 +497,7 @@ void Mark1_FireBlaster(void)
 	missile->s.weapon = WP_BRYAR_PISTOL;
 
 	missile->damage = 1;
-	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
-	missile->methodOfDeath = MOD_BRYAR_PISTOL;
+	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 
 }
@@ -606,8 +602,7 @@ void Mark1_FireRocket(void)
 	VectorScale( missile->r.maxs, -1, missile->r.mins );
 
 	missile->damage = damage;
-	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
-	missile->methodOfDeath = MOD_ROCKET;
+	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 	missile->splashDamage = BOWCASTER_SPLASH_DAMAGE;
 	missile->splashRadius = BOWCASTER_SPLASH_RADIUS;

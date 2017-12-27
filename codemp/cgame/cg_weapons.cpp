@@ -106,9 +106,6 @@ void CG_InitWeapons ( void )
 	memset (cg_weapons, 0, sizeof (cg_weapons));
 }
 
-/*
-Ghoul2 Insert Start
-*/
 // set up the appropriate ghoul2 info to a refent
 void CG_SetGhoul2InfoRef( refEntity_t *ent, refEntity_t	*s1)
 {
@@ -117,10 +114,6 @@ void CG_SetGhoul2InfoRef( refEntity_t *ent, refEntity_t	*s1)
 	ent->radius = s1->radius;
 	VectorCopy( s1->angles, ent->angles);
 }
-
-/*
-Ghoul2 Insert End
-*/
 
 /*
 =================
@@ -157,9 +150,7 @@ void CG_RegisterItemVisuals( int itemNum ) {
 	{
 		itemInfo->models[0] = trap->R_RegisterModel( item->world_model[0] );
 	}
-/*
-Ghoul2 Insert Start
-*/
+
 	if (!Q_stricmp(&item->world_model[0][strlen(item->world_model[0]) - 4], ".glm"))
 	{
 		handle = trap->G2API_InitGhoul2Model(&itemInfo->g2Models[0], item->world_model[0], 0 , 0, 0, 0, 0);
@@ -172,9 +163,7 @@ Ghoul2 Insert Start
 			itemInfo->radius[0] = 60;
 		}
 	}
-/*
-Ghoul2 Insert End
-*/
+
 	if (item->icon)
 	{
 		if (item->giType == IT_HEALTH)
@@ -635,10 +624,43 @@ static void JKG_SprintViewmodelAnimation(vec3_t origin, vec3_t angles, weaponDat
 
 /*
 ==============
+JKG_ViewmodelMomentum
+==============
+*/
+static void JKG_ViewmodelMomentum(vec3_t angles) {
+	static vec3_t prevAngles = { 0.0f };
+	static vec3_t prevAngles2 = { 0.0f };
+
+	vec3_t playAngles;
+	
+	VectorCopy(cg.predictedPlayerState.viewangles, playAngles);
+
+	vec3_t delta = {
+		AngleSubtract(playAngles[PITCH], prevAngles[PITCH]),
+		0,
+		AngleSubtract(playAngles[YAW], prevAngles[YAW])
+	};
+
+	// Average the difference over three frames to get the smoothest result
+	delta[PITCH] += AngleSubtract(prevAngles[PITCH], prevAngles2[PITCH]);
+	delta[ROLL] += AngleSubtract(prevAngles[YAW], prevAngles2[YAW]);
+	VectorScale(delta, 0.5f, delta);
+
+	// Damp the changes so it's not as jerky
+	const float f = std::abs(1.0f / jkg_viewmodelMomentumDamp.value);
+	const float dampRatio = 1.0f / std::pow(f, jkg_viewmodelMomentumInterval.value);
+	VectorMA(playAngles, dampRatio, delta, angles);
+
+	// Copy the new value over to the previous
+	VectorCopy(prevAngles, prevAngles2);
+	VectorCopy(playAngles, prevAngles);
+}
+
+/*
+==============
 CG_CalculateWeaponPosition
 ==============
 */
-
 static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 	float	scale;
 	float	swayscale;
@@ -675,6 +697,11 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 			(LAND_DEFLECT_TIME + LAND_RETURN_TIME - delta) / LAND_RETURN_TIME;
 	}
 
+	// Move the gun around if we've been changing our view around a lot
+	if (jkg_viewmodelMomentum.integer) {
+		JKG_ViewmodelMomentum(angles);
+	}
+
 	// Tilt the gun at extreme low/high pitch values
 	JKG_ViewPitchGunTilt(origin, ironSightsPhase, sprintPhase);
 
@@ -700,15 +727,6 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 		VectorMA(origin, jkg_sightsBobZ.value * scale * cg.bobfracsin * ironSightsPhase, cg.refdef.viewaxis[2], origin);
 	}
 
-#if 0
-	// drop the weapon when stair climbing
-	delta = cg.time - cg.stepTime;
-	if ( delta < STEP_TIME/2 ) {
-		origin[2] -= cg.stepChange*0.25 * delta / (STEP_TIME/2);
-	} else if ( delta < STEP_TIME ) {
-		origin[2] -= cg.stepChange*0.25 * (STEP_TIME - delta) / (STEP_TIME/2);
-	}
-#endif
 }
 
 /*
@@ -749,7 +767,6 @@ sound should only be done on the world model case.
 
 // JKG - Weapon indicators
 void JKG_WeaponIndicators_Update(const centity_t *cent, const playerState_t *ps);
-extern vec3_t cg_crosshairPos;
 
 void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, int team, vec3_t newAngles, qboolean thirdPerson) {
 	refEntity_t	gun;
@@ -777,9 +794,6 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	JKG_WeaponIndicators_Update(cent, ps);
 
 	weapon = CG_WeaponInfo (weaponNum, cent->currentState.weaponVariation);
-/*
-Ghoul2 Insert Start
-*/
 
 	memset( &gun, 0, sizeof( gun ) );
 
@@ -842,16 +856,6 @@ Ghoul2 Insert Start
 			cg.snap->ps.clientNum))
 		{
 			CG_AddWeaponWithPowerups( &gun, cent->currentState.powerups ); //don't draw the weapon if the player is invisible
-			/*
-			if ( weaponNum == WP_STUN_BATON )
-			{
-				gun.shaderRGBA[0] = gun.shaderRGBA[1] = gun.shaderRGBA[2] = 25;
-
-				gun.customShader = trap->R_RegisterShader( "gfx/effects/stunPass" );
-				gun.renderfx = RF_RGB_TINT | RF_FIRST_PERSON | RF_DEPTHHACK;
-				trap->R_AddRefEntityToScene( &gun );
-			}
-			*/
 		}
 
 		if (weaponNum == WP_STUN_BATON)
@@ -900,66 +904,7 @@ Ghoul2 Insert Start
 				i++;
 			}
 		}
-		else
-		{
-			#if 0
-			// add the spinning barrel
-			if ( weapon->barrelModel ) {
-				memset( &barrel, 0, sizeof( barrel ) );
-				VectorCopy( parent->lightingOrigin, barrel.lightingOrigin );
-				barrel.shadowPlane = parent->shadowPlane;
-				barrel.renderfx = parent->renderfx;
-
-				barrel.hModel = weapon->barrelModel;
-				angles[YAW] = 0;
-				angles[PITCH] = 0;
-				angles[ROLL] = 0;
-
-				AnglesToAxis( angles, barrel.axis );
-
-				CG_PositionRotatedEntityOnTag( &barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel" );
-
-				CG_AddWeaponWithPowerups( &barrel, cent->currentState.powerups );
-			}
-			#endif
-		}
 	}
-/*
-Ghoul2 Insert End
-*/
-
-
-	// E-11 Laser sight (WIP)
-	/*
-	if (weaponNum  == WP_BLASTER) {
-		refEntity_t tmp;
-		trace_t tr;
-		vec3_t org;
-		vec3_t dest;
-		vec3_t delta;
-		vec3_t dir;
-		memset( &tmp, 0, sizeof( tmp ) );
-		CG_PositionEntityOnTag( &tmp, &gun, gun.hModel, "tag_laser");
-		if (thirdPerson || !ps) {
-			VectorCopy(tmp.origin, dest);
-			VectorCopy(tmp.axis[0], dir);
-			VectorMA(dest, 256, dir, org);
-			CG_G2Trace(&tr, dest, NULL, NULL, org, cent->currentState.number, MASK_PLAYERSOLID);
-			VectorCopy(tr.endpos, org);
-			VectorSubtract(dest, org, delta);
-			vectoangles(delta, dir);
-			AngleVectors(dir, dir, NULL, NULL);
-		} else {
-			VectorCopy(tmp.origin, dest);
-			VectorCopy(cg_crosshairPos, org);
-			VectorSubtract(dest, org, delta);
-			vectoangles(delta, dir);
-			AngleVectors(dir, dir, NULL, NULL);
-		}
-
-		trap->FX_PlayEffectID(trap->FX_RegisterEffect("blaster/laser.efx"), org, dir, -1, -1);
-	}
-	*/
 
 	memset (&flash, 0, sizeof(flash));
 	CG_PositionEntityOnTag( &flash, &gun, gun.hModel, "tag_flash");
@@ -968,11 +913,8 @@ Ghoul2 Insert End
 
 	// Do special charge bits
 	//-----------------------
-	//[TrueView]
 	//Make the guns do their charging visual in True View.
 	if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number || cg_trueguns.integer) &&
-	//if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number) &&
-	//[/TrueView]
 		( ( cent->currentState.modelindex2 == WEAPON_CHARGING_ALT && cent->currentState.weapon == WP_BRYAR_PISTOL ) ||
 		  ( cent->currentState.modelindex2 == WEAPON_CHARGING_ALT && cent->currentState.weapon == WP_BRYAR_OLD ) ||
 		  ( cent->currentState.weapon == WP_BOWCASTER && cent->currentState.modelindex2 == WEAPON_CHARGING ) ||
@@ -1006,26 +948,6 @@ Ghoul2 Insert End
 
 			BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flashorigin);
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flashdir);
-		}
-
-		if ( cent->currentState.weapon == WP_BRYAR_PISTOL ||
-			cent->currentState.weapon == WP_BRYAR_OLD)
-		{
-			// Hardcoded max charge time of 1 second
-			val = ( cg.time - cent->currentState.constantLight ) * 0.001f;
-			shader = cgs.media.bryarFrontFlash;
-		}
-		else if ( cent->currentState.weapon == WP_BOWCASTER )
-		{
-			// Hardcoded max charge time of 1 second
-			val = ( cg.time - cent->currentState.constantLight ) * 0.001f;
-			shader = cgs.media.greenFrontFlash;
-		}
-		else if ( cent->currentState.weapon == WP_DEMP2 )
-		{
-			val = ( cg.time - cent->currentState.constantLight ) * 0.001f;
-			shader = cgs.media.lightningFlash;
-			scale = 1.75f;
 		}
 
 		if ( val < 0.0f )
@@ -1089,12 +1011,8 @@ Ghoul2 Insert End
 		}
 	}
 
-	//[TrueView]
 	if ( ps || cg.renderingThirdPerson || cg_trueguns.integer
 		|| cent->currentState.number != cg.predictedPlayerState.clientNum )
-	//if ( ps || cg.renderingThirdPerson ||
-	//		cent->currentState.number != cg.predictedPlayerState.clientNum )
-	//[/TrueView]
 	{	// Make sure we don't do the thirdperson model effects for the local player if we're in first person
 		vec3_t flashorigin, flashdir;
 		refEntity_t	flash;
@@ -1182,7 +1100,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	float		fovOffset;
 	vec3_t		angles;
 	weaponInfo_t	*weapon;
-	//[TrueView]
 	float	cgFov;
 
 	if(!cg.renderingThirdPerson && (cg_trueguns.integer || cg.predictedPlayerState.weapon == WP_SABER
@@ -1196,8 +1113,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	{
 		cgFov = cg_fov.value;
 	}
-	//float	cgFov = cg_fov.value;
-	//[TrueView]
 
 	if (cgFov < 1)
 	{
@@ -1218,23 +1133,13 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	}
 
 	// no gun if in third person view or a camera is active
-	//if ( cg.renderingThirdPerson || cg.cameraMode) {
 	if ( cg.renderingThirdPerson ) {
 		return;
 	}
 
-	/* JKG - Don't render weapons while in a vehicle, uhuu */
-	if (cg.snap && cg.snap->ps.m_iVehicleNum )
-	{
-		return;
-	}
-
 	// allow the gun to be completely removed
-		//[TrueView]
 	if ( !cg_drawGun.integer || cg.predictedPlayerState.zoomMode || cg_trueguns.integer
 		|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE) {
-	//if ( !cg_drawGun.integer || cg.predictedPlayerState.zoomMode) {
-	//[TrueView]
 		vec3_t		origin;
 
 		if ( cg.predictedPlayerState.eFlags & EF_FIRING ) {
@@ -1542,10 +1447,40 @@ int JKG_FindNewACISlot( int slotNum )
 	}
 	return -1;
 }
+/*
+===============
+JKG_RemoveACIItemsOfType
+Removes any ACI items that match a specific type
+===============
+*/
+
+void JKG_RemoveACIItemsOfType(jkgItemType_t itemType) {
+	for (int i = 0; i < MAX_ACI_SLOTS; i++) {
+		itemData_t* itemInThisSlot;
+		if (cg.playerACI[i] >= cg.playerInventory->size() || cg.playerACI[i] < 0) {
+			cg.playerACI[i] = -1;
+			continue;
+		}
+
+		itemInThisSlot = (*cg.playerInventory)[cg.playerACI[i]].id;
+		if (itemInThisSlot->itemType == itemType) {
+			cg.playerACI[i] = -1;
+			break;
+		}
+	}
+}
+
+/*
+===============
+JKG_CG_FillACISlot
+Assign an item to an ACI slot
+===============
+*/
 
 void JKG_CG_FillACISlot(int itemNum, int slot)
 {
 	itemData_t *item;
+	qboolean alreadyInACI = qfalse;
 
 	if (itemNum < 0 || itemNum >= cg.playerInventory->size())
 	{
@@ -1561,6 +1496,31 @@ void JKG_CG_FillACISlot(int itemNum, int slot)
 	for (int i = 0; i < MAX_ACI_SLOTS; i++) {
 		if (cg.playerACI[i] == itemNum) {
 			cg.playerACI[i] = -1;
+			alreadyInACI = qtrue;
+		}
+	}
+
+	item = (*cg.playerInventory)[itemNum].id;
+
+	// If the item is a shield, then we need to remove all other shields in our ACI and inform the server that we equipped shield
+	// Unless of course we already had this item in the ACI, in which case we do nothing
+	if (item->itemType == ITEM_SHIELD && !alreadyInACI) {
+		JKG_RemoveACIItemsOfType(ITEM_SHIELD);
+		trap->SendClientCommand(va("equipShield %i", itemNum));
+	}
+	else if (item->itemType == ITEM_JETPACK && !alreadyInACI) {
+		JKG_RemoveACIItemsOfType(ITEM_JETPACK);
+		trap->SendClientCommand(va("equipJetpack %i", itemNum));
+	}
+	else if (cg.playerACI[slot] > 0 && cg.playerACI[slot] < cg.playerInventory->size()) {
+		// Check to see if we're overwriting a shield/jetpack (if so, unequip it)
+		itemData_t* itemInThisSlot;
+		itemInThisSlot = (*cg.playerInventory)[cg.playerACI[slot]].id;
+		if (itemInThisSlot->itemType == ITEM_SHIELD) {
+			trap->SendClientCommand("unequipShield");
+		}
+		else if (itemInThisSlot->itemType == ITEM_JETPACK) {
+			trap->SendClientCommand("unequipJetpack");
 		}
 	}
 
@@ -1579,18 +1539,27 @@ void JKG_CG_FillACISlot(int itemNum, int slot)
 		return;
 	}
 
-	item = (*cg.playerInventory)[itemNum].id;
-	if (!item)
-	{
-		return;
-	}
-	if (!item->itemID)
-	{
-		return;
-	}
-
 
 	cg.playerACI[slot] = itemNum;
+}
+
+/*
+ *	JKG_CG_ACIPostFix
+ *	Adjusts the ACI after an item stack has been removed
+ */
+void JKG_CG_ACIPostFix(int itemSlot)
+{
+	for (int i = 0; i < MAX_ACI_SLOTS; i++)
+	{
+		if (cg.playerACI[i] == itemSlot)
+		{
+			cg.playerACI[i] = -1;
+		}
+		else if (cg.playerACI[i] > itemSlot)
+		{
+			cg.playerACI[i]--;
+		}
+	}
 }
 
 void JKG_CG_ClearACISlot(int slot)
@@ -1598,6 +1567,14 @@ void JKG_CG_ClearACISlot(int slot)
 	if (slot < 0 || slot >= MAX_ACI_SLOTS)
 	{
 		return;
+	}
+
+	if (cg.playerACI[slot] > 0 && cg.playerACI[slot] < cg.playerInventory->size()) {
+		itemInstance_t* item = &(*cg.playerInventory)[cg.playerACI[slot]];
+		if (item->id->itemType == ITEM_SHIELD) {
+			// inform the server that we've unequipped our shield
+			trap->SendClientCommand("unequipShield");
+		}
 	}
 
 	cg.playerACI[slot] = -1;
@@ -1687,10 +1664,11 @@ void CG_Weapon_f( void ) {
 		{
 			case ITEM_CONSUMABLE:
 				{
-					BG_ConsumeItem(cg.playerACI[num]);
+					trap->SendConsoleCommand(va("inventoryUse %i", cg.playerACI[num]));
 				}
 				break;
 		}
+		return;
 	}
 
 	// JKG - Manual saber detection
@@ -1722,61 +1700,6 @@ void CG_Weapon_f( void ) {
 	cg.weaponSelectTime = cg.time;
 }
 
-
-//Version of the above which doesn't add +2 to a weapon.  The above can't
-//triger WP_MELEE or WP_STUN_BATON.  Derogatory comments go here.
-void CG_WeaponClean_f( void ) {
-	int		num;
-	qboolean doWeaponNotify = qtrue;
-
-	if ( !cg.snap ) {
-		return;
-	}
-	if ( cg.snap->ps.pm_flags & PMF_FOLLOW ) {
-		return;
-	}
-
-	if (cg.snap->ps.emplacedIndex)
-	{
-		return;
-	}
-
-	// sprint check --eez
-	int current = trap->GetCurrentCmdNumber();
-	usercmd_t ucmd;
-	trap->GetUserCmd(current, &ucmd);
-	if (BG_IsSprinting(&cg.predictedPlayerState, &ucmd, qfalse))
-	{
-		return;
-	}
-
-	num = atoi( CG_Argv( 1 ) );
-
-	if(!(*cg.playerInventory)[cg.playerACI[num]].id)
-	{
-		return;
-	}
-
-	if(num == cg.weaponSelect)
-	{
-		if((*cg.playerInventory)[cg.playerACI[num]].id->weaponData.varID == BG_GetWeaponIndex(WP_SABER, 0))
-		{
-			trap->SendClientCommand("togglesaber");
-		}
-		cg.holsterState = (cg.holsterState) ? qfalse : qtrue;
-		doWeaponNotify = qfalse;
-	}
-
-	if(CG_WeaponSelectable(num))
-	{
-		cg.weaponSelect = num;
-		if(doWeaponNotify)
-		{
-			CG_Notifications_Add((*cg.playerInventory)[cg.playerACI[num]].id->displayName, qtrue);
-		}
-	}
-}
-
 /*
 ===================================================================================================
 
@@ -1805,109 +1728,6 @@ void CG_GetClientWeaponMuzzleBoltPoint(int clIndex, vec3_t to)
 
 	trap->G2API_GetBoltMatrix(cent->ghoul2, 1, 0, &boltMatrix, cent->turAngles, cent->lerpOrigin, cg.time, cgs.gameModels, cent->modelScale);
 	BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, to);
-}
-
-/*
-================
-CG_FireWeapon
-
-Caused by an EV_FIRE_WEAPON event
-================
-*/
-void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
-	entityState_t *ent;
-	int				c;
-	weaponInfo_t	*weap;
-	vec3_t			viewangles;
-
-	trap->JKG_GetViewAngles(viewangles);
-
-
-	ent = &cent->currentState;
-	if ( ent->weapon == WP_NONE ) {
-		return;
-	}
-	if ( ent->weapon >= WP_NUM_WEAPONS ) {
-		trap->Error( ERR_DROP, "CG_FireWeapon: ent->weapon >= WP_NUM_WEAPONS" );
-		return;
-	}
-	weap = CG_WeaponInfo (ent->weapon, 0);
-	cent->muzzleFlashTime = cg.time;
-
-	if ( cg.predictedPlayerState.clientNum == cent->currentState.number )
-	{
-		weaponData_t *thisWeaponData = GetWeaponData( cg.snap->ps.weapon, cg.snap->ps.weaponVariation );
-		float		  fRecoil		 = thisWeaponData->firemodes[cg.snap->ps.firingMode].recoil;
-
-		if ( fRecoil )
-		{
-			float fYawRecoil = flrand( 0.15 * fRecoil, 0.25 * fRecoil );
-			CGCam_Shake( flrand( 0.85 * fRecoil, 0.15 * fRecoil), 100 );
-			viewangles[YAW] += Q_irand( 0, 1 ) ? -fYawRecoil : fYawRecoil; // yaw
-			viewangles[PITCH] -= fRecoil; // pitch
-		}
-	}
-	// lightning gun only does this this on initial press
-	if ( ent->weapon == WP_DEMP2 ) {
-		if ( cent->pe.lightningFiring ) {
-			return;
-		}
-	}
-
-	// play a sound
-	if (altFire)
-	{
-		// play a sound
-		for ( c = 0 ; c < 4 ; c++ ) {
-			if ( !weap->altFlashSound[c] ) {
-				break;
-			}
-		}
-		if ( c > 0 ) {
-			c = rand() % c;
-			if ( weap->altFlashSound[c] )
-			{
-				trap->S_StartSound( NULL, ent->number, CHAN_WEAPON, weap->altFlashSound[c] );
-			}
-		}
-//		if ( weap->altFlashSnd )
-//		{
-//			trap->S_StartSound( NULL, ent->number, CHAN_WEAPON, weap->altFlashSnd );
-//		}
-	}
-	else
-	{
-		// play a sound
-		for ( c = 0 ; c < 4 ; c++ ) {
-			if ( !weap->flashSound[c] ) {
-				break;
-			}
-		}
-		if ( c > 0 ) {
-			c = rand() % c;
-			if ( weap->flashSound[c] )
-			{
-				trap->S_StartSound( NULL, ent->number, CHAN_WEAPON, weap->flashSound[c] );
-			}
-		}
-	}
-
-	trap->JKG_SetViewAngles(viewangles);
-}
-
-qboolean CG_VehicleWeaponImpact( centity_t *cent )
-{//see if this is a missile entity that's owned by a vehicle and should do a special, overridden impact effect
-	if ((cent->currentState.eFlags&EF_JETPACK_ACTIVE)//hack so we know we're a vehicle Weapon shot
-		&& cent->currentState.otherEntityNum2
-		&& g_vehWeaponInfo[cent->currentState.otherEntityNum2].iImpactFX)
-	{//missile is from a special vehWeapon
-		vec3_t normal;
-		ByteToDir( cent->currentState.eventParm, normal );
-
-		trap->FX_PlayEffectID( g_vehWeaponInfo[cent->currentState.otherEntityNum2].iImpactFX, cent->lerpOrigin, normal, -1, -1, false );
-		return qtrue;
-	}
-	return qfalse;
 }
 
 /*
@@ -2019,10 +1839,6 @@ qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 	return qtrue;
 
 }
-
-/*
-Ghoul2 Insert Start
-*/
 
 // clean out any g2 models we instanciated for copying purposes
 void CG_ShutDownG2Weapons(void)
@@ -2262,10 +2078,6 @@ void CG_CheckPlayerG2Weapons(playerState_t *ps, centity_t *cent)
 	}
 }
 
-/*
-Ghoul2 Insert End
-*/
-
 weaponInfo_t *CG_WeaponInfo ( unsigned int weaponNum, unsigned int variation )
 {
 	static weaponInfo_t *lastInfo = NULL;
@@ -2279,10 +2091,6 @@ weaponInfo_t *CG_WeaponInfo ( unsigned int weaponNum, unsigned int variation )
 		weaponInfo_t *info = &cg_weapons[0];
 		unsigned int i;
 
-		#ifdef _DEBUG
-		//CG_Printf ("Attempting to load weapon %d, variation %d\n", weaponNum, variation);
-		#endif
-
 		CG_RegisterWeapon (weaponNum, variation);
 
 		for ( i = 0; i < MAX_WEAPON_TABLE_SIZE; i++, info++ )
@@ -2295,7 +2103,6 @@ weaponInfo_t *CG_WeaponInfo ( unsigned int weaponNum, unsigned int variation )
 		}
 	}
 
-	//CG_Printf (S_COLOR_RED "Failed to find weapon info for weapon %d, variation %d.\n", weaponNum, variation);
 	return CG_WeaponInfo (0, 0);
 }
 
@@ -2347,8 +2154,18 @@ static void JKG_FireBlaster ( centity_t *cent, const weaponDrawData_t *weaponDat
 	const entityState_t *s = &cent->currentState;
 	const weaponData_t *thisWeaponData = GetWeaponData (cg.snap->ps.weapon, cg.snap->ps.weaponVariation);
 	vec3_t viewangles;
+	int current = trap->GetCurrentCmdNumber();
+	usercmd_t ucmd;
+	const ammo_t* thisAmmo = &ammoTable[cent->currentState.ammoType];
+	trap->GetUserCmd(current, &ucmd);
 
 	trap->JKG_GetViewAngles(viewangles);
+
+	int channel = CHAN_AUTO;
+	if (thisWeaponData->firemodes[firingMode].chargeTime)
+	{
+		channel = CHAN_WEAPON;
+	}
 
 	// Update the muzzle flash time, so we know to draw it in the render function.
 	if ( (cent->shotCount + 1) == UINT_MAX )
@@ -2365,24 +2182,22 @@ static void JKG_FireBlaster ( centity_t *cent, const weaponDrawData_t *weaponDat
 	// Do recoil
 	if ( s->number == cg.snap->ps.clientNum )
 	{
-		//float pitchRecoil = thisWeaponData->firemodes[altFire].recoil;
-		int current = trap->GetCurrentCmdNumber();
-		usercmd_t ucmd;
-		trap->GetUserCmd(current, &ucmd);
-
-		float pitchRecoil = thisWeaponData->firemodes[cg.snap->ps.firingMode].recoil;
+		double pitchRecoil = thisWeaponData->firemodes[cg.snap->ps.firingMode].recoil;
 		if (ucmd.upmove < 0) {
 			pitchRecoil /= 2.0f;	// Half recoil when we are crouched
 		}
 
 		if ( pitchRecoil )
 		{
-			float yawRecoil = flrand (0.15 * pitchRecoil, 0.25 * pitchRecoil);
+			double yawRecoil = flrand (0.15 * pitchRecoil, 0.25 * pitchRecoil);
 
 			if ( Q_irand (0, 1) )
 			{
 				yawRecoil = -yawRecoil;
 			}
+
+			JKG_ApplyAmmoOverride(pitchRecoil, thisAmmo->overrides.recoil);
+			JKG_ApplyAmmoOverride(yawRecoil, thisAmmo->overrides.recoil);
 
 			CGCam_Shake (flrand (0.85f * pitchRecoil, 0.15f * pitchRecoil), 100);
 
@@ -2391,14 +2206,17 @@ static void JKG_FireBlaster ( centity_t *cent, const weaponDrawData_t *weaponDat
 		}
 	}
 
-	if ( weaponData->weaponFire.generic.fireSoundCount > 0 )
+	if ( JKG_SimpleAmmoOverridePresent(thisAmmo->visualOverrides.fireSound) )
+	{
+		int max = thisAmmo->visualOverrides.fireSound.second.size() - 1;
+		int index = Q_irand(0, max);
+
+		trap->S_StartSound(NULL, s->number, channel,
+			trap->S_RegisterSound(thisAmmo->visualOverrides.fireSound.second[index].c_str()));
+	}
+	else if ( weaponData->weaponFire.generic.fireSoundCount > 0 )
 	{
 		int index = Q_irand (0, weaponData->weaponFire.generic.fireSoundCount - 1);
-		int channel = CHAN_AUTO;
-		if ( thisWeaponData->firemodes[firingMode].chargeTime )
-		{
-			channel = CHAN_WEAPON;
-		}
 
 		trap->S_StartSound (NULL, s->number, channel, weaponData->weaponFire.generic.fireSound[index]);
 	}
@@ -2406,17 +2224,37 @@ static void JKG_FireBlaster ( centity_t *cent, const weaponDrawData_t *weaponDat
 	trap->JKG_SetViewAngles(viewangles);
 }
 
-static void JKG_RenderGenericProjectile ( const centity_t *cent, const weaponDrawData_t *weaponData )
+static void JKG_RenderGenericProjectile ( const centity_t *cent, const weaponDrawData_t *weaponData, const ammo_t* ammoData )
 {
 	const entityState_t *s = &cent->currentState;
+	vec3_t forward, velocity;
 
-	if ( weaponData->projectileRender.generic.projectileEffect )
+	if (VectorNormalize2(s->pos.trDelta, forward) == 0.0f)
 	{
-		vec3_t forward;
-		if ( VectorNormalize2 (s->pos.trDelta, forward) == 0.0f )
-		{
-			forward[2] = 1.0f;
-		}
+		forward[2] = 1.0f;
+	}
+
+	if (cent->currentState.weapon == WP_THERMAL ||
+		cent->currentState.weapon == WP_TRIP_MINE ||
+		cent->currentState.weapon == WP_DET_PACK) {
+		// Weapons which don't have much velocity (ie grenades) don't need the doppler effect.
+		// Using the doppler effect on certain variations (lemons) can cause the game to crash
+		VectorCopy(vec3_origin, velocity);
+	}
+	else {
+		BG_EvaluateTrajectory(&s->pos, cg.time, velocity);
+	}
+
+	if ( JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.projectile.projectileEffect) )
+	{
+		trap->FX_PlayEffectID(trap->FX_RegisterEffect(ammoData->visualOverrides.projectile.projectileEffect.second.c_str()),
+			(float*)cent->lerpOrigin,
+			forward,
+			-1, -1,
+			false);
+	}
+	else if ( weaponData->projectileRender.generic.projectileEffect )
+	{
 
 		trap->FX_PlayEffectID (
 			weaponData->projectileRender.generic.projectileEffect,
@@ -2427,41 +2265,52 @@ static void JKG_RenderGenericProjectile ( const centity_t *cent, const weaponDra
 		);
 	}
 
-	if ( weaponData->projectileRender.generic.lightIntensity > 0.0f )
-	{
-		trap->R_AddLightToScene (
-			cent->lerpOrigin,
-			 weaponData->projectileRender.generic.lightIntensity,
-			 weaponData->projectileRender.generic.lightColor[0],
-			 weaponData->projectileRender.generic.lightColor[1],
-			 weaponData->projectileRender.generic.lightColor[2]
-		);
-	}
-#ifdef __EXPERIMENTAL_SHADOWS__
-	else
-	{// UQ1: Seems to me these all glow anyway??? Just some don't have D lighting...
-		CG_RecordLightPosition( cent->lerpOrigin );
-	}
-#endif //__EXPERIMENTAL_SHADOWS__
+	double lightIntensity = weaponData->projectileRender.generic.lightIntensity;
+	JKG_ApplyAmmoOverride(lightIntensity, ammoData->visualOverrides.projectile.lightIntensity);
 
-	if ( weaponData->projectileRender.generic.runSound )
+	if ( lightIntensity > 0.0f )
 	{
-		vec3_t velocity;
-		if( cent->currentState.weapon == WP_THERMAL ||
-			cent->currentState.weapon == WP_TRIP_MINE ||
-			cent->currentState.weapon == WP_DET_PACK ) {
-			// Weapons which don't have much velocity (ie grenades) don't need the doppler effect.
-			// Using the doppler effect on certain variations (lemons) can cause the game to crash
-			VectorCopy(vec3_origin, velocity);
+		if (JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.projectile.lightColor))
+		{
+			trap->R_AddLightToScene(
+				cent->lerpOrigin,
+				lightIntensity,
+				ammoData->visualOverrides.projectile.lightColor.second[0],
+				ammoData->visualOverrides.projectile.lightColor.second[1],
+				ammoData->visualOverrides.projectile.lightColor.second[2]
+			);
 		}
-		else {
-			BG_EvaluateTrajectory (&s->pos, cg.time, velocity);
+		else
+		{
+			trap->R_AddLightToScene(
+				cent->lerpOrigin,
+				lightIntensity,
+				weaponData->projectileRender.generic.lightColor[0],
+				weaponData->projectileRender.generic.lightColor[1],
+				weaponData->projectileRender.generic.lightColor[2]
+			);
 		}
+		
+	}
 
+	if ( JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.projectile.runSound) )
+	{
+		trap->S_AddLoopingSound(s->number, cent->lerpOrigin, velocity,
+			trap->S_RegisterSound(ammoData->visualOverrides.projectile.runSound.second.c_str()));
+	}
+	else if ( weaponData->projectileRender.generic.runSound )
+	{
 		trap->S_AddLoopingSound (s->number, cent->lerpOrigin, velocity, weaponData->projectileRender.generic.runSound);
 	}
 
-	if ( weaponData->projectileRender.generic.projectileModel )
+	qhandle_t model = weaponData->projectileRender.generic.projectileModel;
+
+	if ( JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.projectile.projectileModel) )
+	{
+		model = trap->R_RegisterModel(ammoData->visualOverrides.projectile.projectileModel.second.c_str());
+	}
+
+	if ( model )
 	{
 		refEntity_t ent;
 
@@ -2509,31 +2358,46 @@ static void JKG_BounceSpecialGrenade ( const centity_t *cent, const weaponDrawDa
 	}
 }
 
-static void JKG_RenderGenericProjectileMiss ( const centity_t *cent, const weaponDrawData_t *weaponData, const vec3_t origin, const vec3_t normal )
+static void JKG_RenderGenericProjectileMiss ( const centity_t* cent, const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t origin, const vec3_t normal )
 {
-	if ( weaponData->projectileMiss.generic.impactEffect )
+	if (JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.projectile.impactEffect))
+	{
+		trap->FX_PlayEffectID(trap->FX_RegisterEffect(ammoData->visualOverrides.projectile.impactEffect.second.c_str()),
+			(float*) origin, (float*) normal, -1, -1, false);
+	}
+	else if ( weaponData->projectileMiss.generic.impactEffect )
 	{
 		trap->FX_PlayEffectID (weaponData->projectileMiss.generic.impactEffect, (float *)origin, (float *)normal, -1, -1, false);
 	}
 }
 
-static void JKG_RenderGenericProjectileDeath ( const centity_t *cent, const weaponDrawData_t *weaponData, const vec3_t origin, const vec3_t normal )
+static void JKG_RenderGenericProjectileDeath (const centity_t* cent, const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t origin, const vec3_t normal )
 {
-	if ( weaponData->projectileRender.generic.deathEffect )
+	if (JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.projectile.deathEffect))
+	{
+		trap->FX_PlayEffectID(trap->FX_RegisterEffect(ammoData->visualOverrides.projectile.deathEffect.second.c_str()), 
+			(float*)origin, (float*)normal, -1, -1, false);
+	}
+	else if ( weaponData->projectileRender.generic.deathEffect )
 	{
 		trap->FX_PlayEffectID (weaponData->projectileRender.generic.deathEffect, (float *)origin, (float *)normal, -1, -1, false);
 	}
 }
 
-static void JKG_RenderGenericProjectileHitPlayer ( const weaponDrawData_t *weaponData, const vec3_t origin, const vec3_t normal )
+static void JKG_RenderGenericProjectileHitPlayer ( const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t origin, const vec3_t normal )
 {
-	if ( weaponData->projectileHitPlayer.generic.impactEffect )
+	if (JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.projectile.impactEffect))
+	{
+		trap->FX_PlayEffectID(trap->FX_RegisterEffect(ammoData->visualOverrides.projectile.impactEffect.second.c_str()),
+			(float*)origin, (float*)normal, -1, -1, false);
+	}
+	else if ( weaponData->projectileHitPlayer.generic.impactEffect )
 	{
 		trap->FX_PlayEffectID (weaponData->projectileHitPlayer.generic.impactEffect, (float *)origin, (float *)normal, -1, -1, false);
 	}
 }
 
-static void JKG_RenderExplosiveProjectileMiss ( const centity_t *cent, const weaponDrawData_t *weaponData, const vec3_t origin, const vec3_t normal )
+static void JKG_RenderExplosiveProjectileMiss ( const centity_t *cent, const weaponDrawData_t *weaponData, const ammo_t* ammo, const vec3_t origin, const vec3_t normal )
 {
 	if ( weaponData->projectileMiss.explosive.stickSound )
 	{
@@ -2541,7 +2405,7 @@ static void JKG_RenderExplosiveProjectileMiss ( const centity_t *cent, const wea
 	}
 }
 
-static void JKG_RenderGrenadeProjectileMiss ( const centity_t *cent, const weaponDrawData_t *weaponData, const vec3_t origin, const vec3_t normal )
+static void JKG_RenderGrenadeProjectileMiss ( const centity_t *cent, const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t origin, const vec3_t normal )
 {
 	if ( weaponData->projectileMiss.grenade.impactEffect )
 	{
@@ -2554,7 +2418,7 @@ static void JKG_RenderGrenadeProjectileMiss ( const centity_t *cent, const weapo
 	}
 }
 
-static void JKG_RenderGrenadeProjectileHitPlayer ( const weaponDrawData_t *weaponData, const vec3_t origin, const vec3_t normal )
+static void JKG_RenderGrenadeProjectileHitPlayer ( const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t origin, const vec3_t normal )
 {
 	if ( weaponData->projectileHitPlayer.grenade.impactEffect )
 	{
@@ -2567,9 +2431,14 @@ static void JKG_RenderGrenadeProjectileHitPlayer ( const weaponDrawData_t *weapo
 	}
 }
 
-static void JKG_RenderGenericProjectileDeflected ( const weaponDrawData_t *weaponData, const vec3_t origin, const vec3_t normal )
+static void JKG_RenderGenericProjectileDeflected (const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t origin, const vec3_t normal )
 {
-	if ( weaponData->projectileDeflected.generic.deflectEffect )
+	if (JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.projectile.deflectEffect))
+	{
+		trap->FX_PlayEffectID( trap->FX_RegisterEffect(ammoData->visualOverrides.projectile.deflectEffect.second.c_str()),
+			(float*)origin, (float*)normal, -1, -1, qfalse);
+	}
+	else if ( weaponData->projectileDeflected.generic.deflectEffect )
 	{
 		trap->FX_PlayEffectID (weaponData->projectileDeflected.generic.deflectEffect, (float *)origin, (float *)normal, -1, -1, false);
 	}
@@ -2642,22 +2511,31 @@ static __inline void JKG_RenderChargingEffect ( centity_t *cent, const vec3_t mu
 	else
 	{
 		trap->FX_PlayEntityEffectID(chargingEffect, const_cast<float *>(muzzlePosition), axis, cent->boltInfo, cent->currentState.number, -1, -1);
-		//trap->FX_PlayEffectID (chargingEffect, muzzlePosition, axis[0], -1, -1);
 	}
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-	CG_RecordLightPosition( muzzlePosition );
-#endif //__EXPERIMENTAL_SHADOWS__
 }
 
-void JKG_RenderGenericWeaponWorld ( centity_t *cent, const weaponDrawData_t *weaponData, unsigned char firingMode, const vec3_t angles )
+void JKG_RenderGenericWeaponWorld ( centity_t *cent, const weaponDrawData_t *weaponData, const ammo_t* ammoData, unsigned char firingMode, const vec3_t angles )
 {
 	const entityState_t *s = &cent->currentState;
 	qboolean isLocalPlayer = (qboolean)(s->number == cg.predictedPlayerState.clientNum);
+	fxHandle_t chargeEffect = weaponData->weaponRender.generic.chargingEffect;
+	fxHandle_t muzzleEffect = weaponData->weaponRender.generic.muzzleEffect;
+	double muzzleLightIntensity = weaponData->weaponRender.generic.muzzleLightIntensity;
 
 	qboolean hasMuzzleLocation = qfalse;
 	vec3_t flashOrigin, flashDirection;
-	//refEntity_t flash;
+
+	if (JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.chargingEffect))
+	{
+		chargeEffect = trap->FX_RegisterEffect(ammoData->visualOverrides.chargingEffect.second.c_str());
+	}
+
+	if (JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.muzzleEffect))
+	{
+		muzzleEffect = trap->FX_RegisterEffect(ammoData->visualOverrides.muzzleEffect.second.c_str());
+	}
+
+	JKG_ApplyAmmoOverride(muzzleLightIntensity, ammoData->visualOverrides.muzzleLightIntensity);
 
 	// Do muzzle charge effects
 	if ( !isLocalPlayer || cg.renderingThirdPerson || cg_trueguns.integer )
@@ -2675,15 +2553,11 @@ void JKG_RenderGenericWeaponWorld ( centity_t *cent, const weaponDrawData_t *wea
 				cent,
 				flashOrigin,
 				flashAxis,
-				weaponData->weaponRender.generic.chargingEffect,
+				chargeEffect,
 				isLocalPlayer,
 				qfalse,
 				s->constantLight
 			);
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-			CG_RecordLightPosition( flashOrigin );
-#endif //__EXPERIMENTAL_SHADOWS__
 		}
 	}
 
@@ -2710,42 +2584,65 @@ void JKG_RenderGenericWeaponWorld ( centity_t *cent, const weaponDrawData_t *wea
 			matrix3_t axis;
 			int boltNum = trap->G2API_AddBolt(cent->ghoul2, 1, "*flash");
 			AnglesToAxis(cent->lerpAngles, axis);
-			trap->FX_PlayEntityEffectID(weaponData->weaponRender.generic.muzzleEffect,
+			trap->FX_PlayEntityEffectID(muzzleEffect,
 				flashOrigin, axis, cent->boltInfo, cent->currentState.number, -1, -1);
-			/*trap->FX_PlayBoltedEffectID (
-				weaponData->weaponRender.generic.muzzleEffect,
-				cent->lerpOrigin, cent->ghoul2, boltNum, s->number, 1, 0, qtrue
-			);*/
 		}
 
-		if ( weaponData->weaponRender.generic.muzzleLightIntensity > 0.0f )
+		if ( muzzleLightIntensity > 0.0f )
 		{
-			trap->R_AddLightToScene (
-				flashOrigin,
-				weaponData->weaponRender.generic.muzzleLightIntensity + (rand() & 31),
-				weaponData->weaponRender.generic.muzzleLightColor[0],
-				weaponData->weaponRender.generic.muzzleLightColor[1],
-				weaponData->weaponRender.generic.muzzleLightColor[2]
-			);
+			if (JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.muzzleLightColor))
+			{
+				trap->R_AddLightToScene(
+					flashOrigin,
+					muzzleLightIntensity + (rand() & 31),
+					ammoData->visualOverrides.muzzleLightColor.second[0],
+					ammoData->visualOverrides.muzzleLightColor.second[1],
+					ammoData->visualOverrides.muzzleLightColor.second[2]
+				);
+			}
+			else
+			{
+				trap->R_AddLightToScene(
+					flashOrigin,
+					muzzleLightIntensity + (rand() & 31),
+					weaponData->weaponRender.generic.muzzleLightColor[0],
+					weaponData->weaponRender.generic.muzzleLightColor[1],
+					weaponData->weaponRender.generic.muzzleLightColor[2]
+				);
+			}
 		}
 	}
 }
 
-static void JKG_RenderGenericTraceline ( const weaponDrawData_t *weaponData, const vec3_t start, const vec3_t end )
+static void JKG_RenderGenericTraceline ( const weaponDrawData_t *weaponData, const ammo_t* ammoData, const vec3_t start, const vec3_t end )
 {
-	if ( weaponData->tracelineRender.generic.tracelineShader )
+	qhandle_t shader = weaponData->tracelineRender.generic.tracelineShader;
+	double minSize = weaponData->tracelineRender.generic.minSize;
+	double maxSize = weaponData->tracelineRender.generic.maxSize;
+	int lifeTime = weaponData->tracelineRender.generic.lifeTime;
+
+	if (JKG_SimpleAmmoOverridePresent(ammoData->visualOverrides.traceline.shader))
+	{
+		shader = trap->R_RegisterShader(ammoData->visualOverrides.traceline.shader.second.c_str());
+	}
+
+	JKG_ApplyAmmoOverride(minSize, ammoData->visualOverrides.traceline.minSize);
+	JKG_ApplyAmmoOverride(maxSize, ammoData->visualOverrides.traceline.maxSize);
+	JKG_ApplyAmmoOverride(lifeTime, ammoData->visualOverrides.traceline.lifeTime);
+
+	if ( shader )
 	{
 		static const vec3_t WHITE = { 1.0f, 1.0f, 1.0f };
 
 		trap->FX_AddLine (
 			start, end,
-			weaponData->tracelineRender.generic.minSize,
-			weaponData->tracelineRender.generic.maxSize,
+			minSize,
+			maxSize,
 			0.0f,
 			1.0f, 0.0f, 0.0f,
 			WHITE, WHITE, 0.0f,
-			weaponData->tracelineRender.generic.lifeTime,
-			weaponData->tracelineRender.generic.tracelineShader,
+			lifeTime,
+			shader,
 			FX_SIZE_LINEAR | FX_ALPHA_LINEAR
 		);
 	}
@@ -2885,10 +2782,6 @@ static void JKG_BlowGenericExplosive ( const centity_t *cent, const weaponDrawDa
 		}
 
 		trap->FX_PlayEffectID (weaponData->explosiveBlow.generic.explodeEffect, (float *)s->origin, forward, -1, -1, false);
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_RecordLightPosition( s->origin );
-#endif //__EXPERIMENTAL_SHADOWS__
 	}
 }
 
@@ -2918,12 +2811,6 @@ qboolean JKG_ShouldRenderWeaponViewModel ( const centity_t *cent, const playerSt
 	}
 
 	if ( !cg.renderingThirdPerson && cg_trueguns.integer && ps->weapon != WP_SABER && ps->weapon != WP_MELEE )
-	{
-		return qfalse;
-	}
-
-	// Don't render weapons while in a vehicle
-	if ( ps->m_iVehicleNum )
 	{
 		return qfalse;
 	}
@@ -3069,15 +2956,9 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
 		s->trickedentindex2, s->trickedentindex3,
 		s->trickedentindex4, ps->clientNum) )
 	{
+		JKG_WeaponDebuffVisuals(cent, &gun);
 		CG_AddWeaponWithPowerups (&gun, s->powerups);
-		JKG_WeaponDebuffVisuals( cent, &gun );
 	}
-
-	/*static const char *barrelModels[] = {
-		"models/weapons2/stun_baton/baton_barrel.md3",
-		"models/weapons2/stun_baton/baton_barrel2.md3",
-		"models/weapons2/stun_baton/baton_barrel3.md3"
-	};*/
 
 	// Draw barrel models if any
 	for ( i = 0; i < 4; i++ )
@@ -3091,8 +2972,8 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
 		AnglesToAxis (vec3_origin, barrel.axis);
 		CG_PositionRotatedEntityOnTag (&barrel, &hand, hand.hModel, barrelTags[i]);
 
+		JKG_WeaponDebuffVisuals(cent, &barrel);
 		CG_AddWeaponWithPowerups (&barrel, s->powerups);
-		JKG_WeaponDebuffVisuals( cent, &barrel );
 	}
 
 	memset (&muzzle, 0, sizeof (muzzle));
@@ -3103,9 +2984,6 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
 	if ( (s->modelindex2 == WEAPON_CHARGING || s->modelindex2 == WEAPON_CHARGING_ALT) &&
 			weaponData->weaponRender.generic.chargingEffect )
 	{
-		//vec3_t origin, angles;
-		//JKG_GetMuzzleLocation (cent, hand.angles, origin, angles);
-
 		JKG_RenderChargingEffect (
 			cent,
 			muzzle.origin,
@@ -3114,10 +2992,6 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
 			qtrue,
 			qtrue,
 			s->constantLight);
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-		CG_RecordLightPosition( muzzle.origin );
-#endif //__EXPERIMENTAL_SHADOWS__
 	}
 
 	// TODO: At some point, I want to put this into a common function which the
@@ -3303,7 +3177,7 @@ void JKG_RenderWeaponWorldModel ( centity_t *cent, const vec3_t angles )
 
 	if ( weapon->eventsHandler[cent->currentState.firingMode] && weapon->eventsHandler[cent->currentState.firingMode]->WeaponRenderWorld )
 	{
-		weapon->eventsHandler[cent->currentState.firingMode]->WeaponRenderWorld( cent, &weapon->drawData[cent->currentState.firingMode], cent->currentState.firingMode, angles );
+		weapon->eventsHandler[cent->currentState.firingMode]->WeaponRenderWorld( cent, &weapon->drawData[cent->currentState.firingMode], &ammoTable[cent->currentState.ammoType], cent->currentState.firingMode, angles );
 	}
 }
 
@@ -3341,7 +3215,7 @@ void JKG_RenderProjectileHitPlayer ( const centity_t *cent, const vec3_t origin,
 
 	if( weapon->eventsHandler[s->firingMode] && weapon->eventsHandler[s->firingMode]->ProjectileHitPlayer )
 	{
-		weapon->eventsHandler[s->firingMode]->ProjectileHitPlayer ( &weapon->drawData[s->firingMode], origin, direction );
+		weapon->eventsHandler[s->firingMode]->ProjectileHitPlayer ( &weapon->drawData[s->firingMode], &ammoTable[cent->currentState.ammoType], origin, direction );
 	}
 }
 
@@ -3352,7 +3226,7 @@ void JKG_RenderProjectileMiss ( const centity_t *cent, const vec3_t origin, cons
 
 	if( weapon->eventsHandler[s->firingMode] && weapon->eventsHandler[s->firingMode]->ProjectileMiss)
 	{
-		weapon->eventsHandler[s->firingMode]->ProjectileMiss ( cent, &weapon->drawData[s->firingMode], origin, direction );
+		weapon->eventsHandler[s->firingMode]->ProjectileMiss ( cent, &weapon->drawData[s->firingMode], &ammoTable[cent->currentState.ammoType], origin, direction );
 	}
 }
 
@@ -3363,7 +3237,7 @@ void JKG_RenderProjectileDeath ( const centity_t *cent, const vec3_t origin, con
 
 	if( weapon->eventsHandler[firingMode] && weapon->eventsHandler[firingMode]->ProjectileDeath )
 	{
-		weapon->eventsHandler[firingMode]->ProjectileDeath ( cent, &weapon->drawData[firingMode], origin, direction );
+		weapon->eventsHandler[firingMode]->ProjectileDeath ( cent, &weapon->drawData[firingMode], &ammoTable[cent->currentState.ammoType], origin, direction );
 	}
 }
 
@@ -3374,7 +3248,7 @@ void JKG_RenderProjectile ( const centity_t *cent, unsigned char firingMode )
 
 	if( weapon->eventsHandler[firingMode] && weapon->eventsHandler[firingMode]->ProjectileRender )
 	{
-		weapon->eventsHandler[firingMode]->ProjectileRender ( cent, &weapon->drawData[firingMode] );
+		weapon->eventsHandler[firingMode]->ProjectileRender ( cent, &weapon->drawData[firingMode], &ammoTable[cent->currentState.ammoType]);
 	}
 }
 
@@ -3385,7 +3259,7 @@ void JKG_RenderTraceline ( const centity_t *cent, const vec3_t start, const vec3
 
 	if( weapon->eventsHandler[firingMode] && weapon->eventsHandler[firingMode]->TracelineRender )
 	{
-		weapon->eventsHandler[firingMode]->TracelineRender ( &weapon->drawData[firingMode], start, end );
+		weapon->eventsHandler[firingMode]->TracelineRender ( &weapon->drawData[firingMode], &ammoTable[cent->currentState.ammoType], start, end );
 	}
 }
 

@@ -43,6 +43,13 @@ static void DefineBaselineConstants(void)
 	bgConstants.staminaDrains.minPunchThreshold = 0;
 	bgConstants.staminaDrains.minRollThreshold = 20;
 	bgConstants.staminaDrains.minSprintThreshold = 25;
+
+	bgConstants.damageModifiers.headModifier = 1.3f;
+	bgConstants.damageModifiers.torsoModifier = 1.0f;
+	bgConstants.damageModifiers.armModifier = 0.85f;
+	bgConstants.damageModifiers.handModifier = 0.6f;
+	bgConstants.damageModifiers.legModifier = 0.7f;
+	bgConstants.damageModifiers.footModifier = 0.5f;
 }
 
 static void ParseConstantsFile ( const char *fileText )
@@ -135,6 +142,28 @@ static void ParseConstantsFile ( const char *fileText )
 
 			childNode = cJSON_GetObjectItem(jsonNode, "minKickThreshold");
 			bgConstants.staminaDrains.minKickThreshold = cJSON_ToInteger(childNode);
+		}
+
+		jsonNode = cJSON_GetObjectItem(json, "damage");
+		if (jsonNode)
+		{
+			cJSON* childNode = cJSON_GetObjectItem(jsonNode, "headModifier");
+			bgConstants.damageModifiers.headModifier = cJSON_ToNumber(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "torsoModifier");
+			bgConstants.damageModifiers.torsoModifier = cJSON_ToNumber(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "armModifier");
+			bgConstants.damageModifiers.armModifier = cJSON_ToNumber(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "legModifier");
+			bgConstants.damageModifiers.legModifier = cJSON_ToNumber(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "handModifier");
+			bgConstants.damageModifiers.handModifier = cJSON_ToNumber(childNode);
+
+			childNode = cJSON_GetObjectItem(jsonNode, "footModifier");
+			bgConstants.damageModifiers.footModifier = cJSON_ToNumber(childNode);
 		}
     }
     

@@ -50,23 +50,24 @@
     "stats": {
         "slot":         2,
         "reloadtime":   2500,
-        "ammoIndex":         "gasfuel",
-        "ammoOnSpawn":   198,
-        "ammoOnPickup":   99,
-        "clipSize":              99,
         "flags":        [ "roll", "knockback" ],
         "reloadmodifier": 0.8,
         "speed":        0.7
     },
     
     "firemode0": {
-//        "damage":       8,
-          "damage": {
+	"damage": {
                                  "damageradius": { "start": 16 },
 //                                   "duration":       2000,
 //                                   "damagedelay": 100,
                                  "damage":       4,
-                                 "damagetype": [ "fire" ] },
+                                 "buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				]
+	},
         "ballistic":    true,
         "ammocost":     1,
         "collisionsize": 4.0,
@@ -76,28 +77,34 @@
         "spread":       5.0,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 50,
-        "accuracyRatingPerShot": 0,
-        "msToDrainAccuracy": 1000,
-        "maxAccuracyAdd": 0,
-        "crouchModifier": 1,
-        "runModifier": 1,
-        "sightsModifier": 1,
-        "walkModifier": 1,
-        "inAirModifier": 1
+        "meansofdeath": "MOD_FIRE",
+	"ammobase": "AMMO_GAS",
+	"ammodefault": "AMMO_GAS",
+        "clipSize":              99,
+        "accuracy": {
+        	"accuracyRating": 50,
+        	"accuracyRatingPerShot": 0,
+        	"msToDrainAccuracy": 1000,
+        	"maxAccuracyAdd": 0,
+        	"crouchModifier": 1,
+        	"runModifier": 1,
+        	"sightsModifier": 1,
+        	"walkModifier": 1,
+        	"inAirModifier": 1
         }
     },
     
     "firemode1": {
-//        "damage":       8,
           "damage": {
                                  "damageradius": { "start": 16 },
-//                                   "duration":       2000,
-//                                   "damagedelay": 100,
                                  "damage":       4,
-                                 "damagetype": [ "fire" ] },
+                                 "buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				]
+	},
         "ballistic":    true,
         "ammocost":     1,
         "collisionsize": 4.0,
@@ -110,24 +117,26 @@
         "spread":       8.0,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 64,
-        "accuracyRatingPerShot": 0,
-        "msToDrainAccuracy": 1000,
-        "maxAccuracyAdd": 0,
-        "crouchModifier": 1,
-        "runModifier": 1,
-        "sightsModifier": 1,
-        "walkModifier": 1,
-        "inAirModifier": 1
+        "meansofdeath": "MOD_FIRE",
+	"ammobase": "AMMO_GAS",
+	"ammodefault": "AMMO_GAS",
+        "clipSize":              99,
+        "accuracy": {
+        	"accuracyRating": 64,
+        	"accuracyRatingPerShot": 0,
+        	"msToDrainAccuracy": 1000,
+        	"maxAccuracyAdd": 0,
+        	"crouchModifier": 1,
+        	"runModifier": 1,
+        	"sightsModifier": 1,
+        	"walkModifier": 1,
+        	"inAirModifier": 1
         }
     },
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
        "reload":        { "torso": "TORSO_DROPWEAP1" },
-//      "reload":       { "torso": "BOTH_ROCKETRELOAD" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
 	"sprint":	{ "torso": "BOTH_RIFLERUN" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },

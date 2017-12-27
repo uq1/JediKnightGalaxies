@@ -58,10 +58,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   2250,
-        "ammoIndex":         "acp_cartridge",
-        "ammoOnSpawn":   48,
-        "ammoOnPickup":   32,
-        "clipSize":              8,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
@@ -77,17 +73,20 @@
         "spread":       1.7,
         "projectilespeed": 6000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 96,
-        "accuracyRatingPerShot": 12,
-        "msToDrainAccuracy": 150,
-        "maxAccuracyAdd": 64,
-        "crouchModifier": 0.95,
-        "runModifier": 1.2,
-        "sightsModifier": 0.9,
-        "walkModifier": 1.1,
-        "inAirModifier": 1.8
+        "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_ARRAY",
+	"ammodefault": "AMMO_ACP_ARRAY",
+        "clipSize":              8,
+        "accuracy": {
+        	"accuracyRating": 96,
+        	"accuracyRatingPerShot": 12,
+        	"msToDrainAccuracy": 150,
+        	"maxAccuracyAdd": 64,
+        	"crouchModifier": 0.95,
+        	"runModifier": 1.2,
+        	"sightsModifier": 0.9,
+        	"walkModifier": 1.1,
+        	"inAirModifier": 1.8
         }
     },
     
@@ -104,21 +103,24 @@
         "spread":       1.7,
         "projectilespeed": 6000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 96,
-        "accuracyRatingPerShot": 50,
-        "msToDrainAccuracy": 150,
-        "maxAccuracyAdd": 200,
-        "accuracyRating": 256,
-        "accuracyRatingPerShot": 12,
-        "msToDrainAccuracy": 150,
-        "maxAccuracyAdd": 128,
-        "crouchModifier": 0.95,
-        "runModifier": 1.2,
-        "sightsModifier": 0.75,
-        "walkModifier": 1.1,
-        "inAirModifier": 1.8
+        "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_ARRAY",
+	"ammodefault": "AMMO_ACP_ARRAY",
+        "clipSize":              8,
+        "accuracy": {
+        	"accuracyRating": 96,
+        	"accuracyRatingPerShot": 50,
+        	"msToDrainAccuracy": 150,
+        	"maxAccuracyAdd": 200,
+        	"accuracyRating": 256,
+        	"accuracyRatingPerShot": 12,
+        	"msToDrainAccuracy": 150,
+        	"maxAccuracyAdd": 128,
+        	"crouchModifier": 0.95,
+        	"runModifier": 1.2,
+        	"sightsModifier": 0.75,
+        	"walkModifier": 1.1,
+        	"inAirModifier": 1.8
         }
     },
     

@@ -40,17 +40,18 @@
         "ammoIndex":         "charge_sequencer",
         "ammoOnSpawn":   4,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "roll" ]
     },
     
     "firemode0": {
         "damage": 100,
+	"useQuantity":	true,
         "ammocost":     1,
         "firedelay":    1000,
         "splashrange":  260,
         "projectileclass":"detpack",
-        "splashmeansofdeath": "MOD_DET_PACK_SPLASH"
+        "clipSize":              0,
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "firemode1": { },

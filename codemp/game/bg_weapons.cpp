@@ -51,7 +51,7 @@ weaponAmmo_t xweaponAmmo [] =
 	{ AMMO_DETPACK		, 0		, 0		, 10	}
 };
 
-static weaponData_t weaponDataTable[MAX_WEAPON_TABLE_SIZE];
+weaponData_t* weaponDataTable;
 static unsigned int numLoadedWeapons;
 static unsigned int numWeapons[MAX_WEAPONS];
 
@@ -167,6 +167,22 @@ qboolean BG_WeaponVariationExists ( unsigned int weaponId, unsigned int variatio
     return BG_GetWeaponIndex (weaponId, variation) != numLoadedWeapons;
 }
 
+qboolean BG_WeaponCanUseSpecialAmmo (weaponData_t* wp) {
+	if (wp->weaponBaseIndex == WP_NONE || wp->weaponBaseIndex == WP_MELEE || wp->weaponBaseIndex == WP_SABER) {
+		return qfalse; // Can't cycle ammo on these weapons
+	}
+
+	if (wp->numFiringModes == 0) {
+		return qfalse; // No firing modes on this weapon
+	}
+
+	if (wp->firemodes[0].useQuantity) {
+		return qfalse; // It drains quantity from the item stack, so it's not a weapon that can have its ammo cycled
+	}
+
+	return qtrue;
+}
+
 weaponData_t *GetWeaponDataUnsafe ( unsigned char weapon, unsigned char variation )
 {
     static weaponData_t *lastWeapon = NULL;
@@ -214,21 +230,6 @@ weaponData_t *GetWeaponData( unsigned char baseIndex, unsigned char modIndex )
 	return NULL;
 }
 
-unsigned char GetWeaponAmmoIndex ( unsigned char baseIndex, unsigned char modIndex )
-{
-    return GetWeaponData( baseIndex, modIndex )->ammoIndex;
-}
-
-short GetWeaponAmmoClip ( unsigned char baseIndex, unsigned char modIndex )
-{
-    return GetWeaponData( baseIndex, modIndex )->clipSize;
-}
-
-short GetWeaponAmmoMax ( unsigned char baseIndex, unsigned char modIndex )
-{
-    return ammoTable[GetWeaponData( baseIndex, modIndex )->ammoIndex].ammoMax;
-}
-
 short GetAmmoMax ( unsigned char ammoIndex )
 {
     return ammoTable[ammoIndex].ammoMax;
@@ -269,6 +270,13 @@ void BG_AddWeaponData ( weaponData_t *weaponData )
 void BG_InitializeWeapons ( void )
 {
     weaponData_t predefinedWeapons;
+
+	weaponDataTable = (weaponData_t*)malloc(sizeof(weaponData_t) * MAX_WEAPON_TABLE_SIZE);
+	if (weaponDataTable == nullptr)
+	{
+		Com_Error(ERR_FATAL, "couldn't allocate memory for weapon data table...");
+		return;
+	}
     
     //BG_InitializeAmmo();
     numLoadedWeapons = 0;
@@ -294,6 +302,14 @@ void BG_InitializeWeapons ( void )
         #endif
         return;
     }
+}
+
+void BG_ShutdownWeapons()
+{
+	if (weaponDataTable != nullptr)
+	{
+		free(weaponDataTable);
+	}
 }
 
 qboolean BG_DumpWeaponList ( const char *filename )

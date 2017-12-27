@@ -28,8 +28,6 @@ extern int forcePowerNeeded[NUM_FORCE_POWER_LEVELS][NUM_FORCE_POWERS];
 qboolean G_PointInBounds( vec3_t point, vec3_t mins, vec3_t maxs );
 qboolean G_NameInTriggerClassList(char *list, char *str);
 
-extern siegeClass_t *BG_GetClassOnBaseClass(const int team, const short classIndex, const short cntIndex);
-
 extern void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *soundPath );
 
 //inits
@@ -3141,7 +3139,7 @@ void DOM_BotMoveto(bot_state_t *bs, qboolean strafe)
 	//int destwp = -1;
 	float distthen, distnow;
 
-	if(!bs->wpCurrent || bs->wpCurrent <= 0)
+	if(!bs->wpCurrent || bs->wpCurrent <= (wpobject_t*)0)
 	{////ok, we just did something other than wp navigation.  find the closest wp.
 		findwp = qtrue;
 		//trap->Print("(!bs->wpCurrent || bs->wpCurrent <= 0)\n");
@@ -4038,9 +4036,9 @@ void DOM_BotBehave_AttackMove(bot_state_t *bs)
 	if ( g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_AMMO] <= 0 )
 	{
 		//trap->Print("DEBUG: Reload!\n");
-		g_entities[bs->cur_ps.clientNum].client->ps.ammo = 100; // UQ1: NPCs need to cheat a little :)
+		g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_TOTALAMMO] = 100; // UQ1: NPCs need to cheat a little :)
 		g_entities[bs->cur_ps.clientNum].client->ps.stats[STAT_AMMO] = 100; // UQ1: NPCs need to cheat a little :)
-		g_entities[bs->cur_ps.clientNum].client->clipammo[bs->cur_ps.weapon] = 100;//GetWeaponAmmoClip( bs->cur_ps.weapon, g_entities[bs->cur_ps.clientNum].s.weaponVariation );
+		g_entities[bs->cur_ps.clientNum].client->clipammo[bs->cur_ps.weapon][bs->cur_ps.firingMode] = 100;//GetWeaponAmmoClip( bs->cur_ps.weapon, g_entities[bs->cur_ps.clientNum].s.weaponVariation );
 
 		//Add_Ammo (NPC, client->ps.weapon, 100);
 		Cmd_Reload_f (&g_entities[bs->cur_ps.clientNum]);
@@ -4472,7 +4470,6 @@ void DOM_BotBehave_AttackBasic(bot_state_t *bs, gentity_t* target)
 				}
 			}
 
-#ifndef __MMO__
 	if (bs->virtualWeapon == WP_SABER)
 	{
 		// UQ1: Added, backstab check...
@@ -4487,7 +4484,6 @@ void DOM_BotBehave_AttackBasic(bot_state_t *bs, gentity_t* target)
 		if (DOM_BotBehave_CheckUseCrouchAttack(bs))
 			return;
 	}
-#endif //__MMO__
 
 	if(bs->meleeStrafeTime < level.time)
 	{//select a new strafing direction
@@ -4777,15 +4773,6 @@ void DOM_EnemyVisualUpdate(bot_state_t *bs)
 	{//bad!  This should never happen
 		return;
 	}
-
-#ifdef __MMO__
-	if (bs->enemySeenTime > level.time)
-	{// UQ1: Speed things up in MMO mode...
-		bs->frame_Enemy_Len = DOM_TargetDistance(bs, bs->currentEnemy, enemyOrigin);
-		bs->frame_Enemy_Vis = 1;
-		return;
-	}
-#endif //__MMO__
 
 	DOM_FindOrigin(bs->currentEnemy, enemyOrigin);
 	DOM_FindAngles(bs->currentEnemy, enemyAngles);
@@ -5348,7 +5335,6 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 		DOM_BotSearchAndDestroy(bs);
 	}
 
-#ifndef __MMO__
 	//check for hard impacts
 	//borrowed directly from impact code, so we might want to add in some fudge factor
 	//at some point.  mmmmMM, fudge.
@@ -5376,102 +5362,10 @@ void DOM_StandardBotAI(bot_state_t *bs, float thinktime)
 		}
 	}
 
-	//Chat Stuff
-	/*
-	if (bs->doChat && bs->chatTime <= level.time)
-	{
-		if (bs->chatTeam)
-		{
-			trap->EA_SayTeam(bs->client, bs->currentChat);
-			bs->chatTeam = 0;
-		}
-		else
-		{
-			trap->EA_Say(bs->client, bs->currentChat);
-		}
-		if (bs->doChat == 2)
-		{
-			BotReplyGreetings(bs);
-		}
-		bs->doChat = 0;
-	}
-	*/
-#endif //__MMO__
-
 	if(bs->duckTime > level.time)
 	{
 		trap->EA_Crouch(bs->client);
 	}
-
-	/*
-	// UQ1: Try forse jumping to enemies and waypoints as needed...
-	if(bs->botBehave == BBEHAVE_MOVETO 
-		&& !bs->currentEnemy 
-		&& bs->wpNext
-		&& bs->cur_ps.fd.forcePowerLevel[FP_LEVITATION] >= FORCE_LEVEL_1
-		&& VectorDistance(bs->cur_ps.origin, bs->wpNext->origin) <= 512)
-	{
-		if (bs->wpNext)
-		{
-			if (VectorDistanceNoHeight(bs->cur_ps.origin, bs->wpNext->origin) <= 16
-				&& bs->cur_ps.origin[2] >= bs->wpNext->origin[2] + 16)
-			{// We are there!
-
-			}
-			else if (bs->cur_ps.origin[2] + 16 < bs->wpNext->origin[2])
-			{
-				trap->EA_Jump(bs->client);
-
-				if (g_entities[bs->client].client->ps.groundEntityNum == ENTITYNUM_NONE)
-				{
-					g_entities[bs->client].client->ps.pm_flags |= PMF_JUMP_HELD;
-				}
-
-				if (g_entities[bs->client].client->ps.fd.forcePower < 30)
-				{
-					g_entities[bs->client].client->ps.fd.forcePower = 30; // UQ1: Cheating bots lol!
-
-					// UQ1: Gonna try something crazy here and let them really cheat when falling... hahehhe
-					// super save from certain death below jump back to safety like NPCs do...
-					if (bs->virtualWeapon == WP_SABER) // Jedi Only!
-						g_entities[bs->client].client->ps.velocity[2] = 127;
-				}
-			}
-		}
-	}
-	else if (bs->currentEnemy 
-		&& bs->cur_ps.fd.forcePowerLevel[FP_LEVITATION] >= FORCE_LEVEL_1
-		&& VectorDistance(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) <= 512)
-	{
-		if (g_entities[bs->client].client->ps.groundEntityNum != ENTITYNUM_NONE
-			&& VectorDistance(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) >= 128
-			&& VectorDistanceNoHeight(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) <= 128)
-		{// Wait till we get a better spot to jump from!
-
-		}
-		else if (VectorDistanceNoHeight(bs->cur_ps.origin, bs->currentEnemy->r.currentOrigin) <= 16
-			&& bs->cur_ps.origin[2] >= bs->currentEnemy->r.currentOrigin[2] + 16)
-		{// We are there!
-
-		}
-		else if (bs->cur_ps.origin[2] + 16 < bs->currentEnemy->r.currentOrigin[2])
-		{
-			//if (bs->currentEnemy->client && bs->currentEnemy->client->ps.groundEntityNum != ENTITYNUM_NONE)
-			{
-				trap->EA_Jump(bs->client);
-
-				if (g_entities[bs->client].client->ps.groundEntityNum == ENTITYNUM_NONE)
-				{
-					g_entities[bs->client].client->ps.pm_flags |= PMF_JUMP_HELD;
-				}
-
-				if (g_entities[bs->client].client->ps.fd.forcePower < 30)
-					g_entities[bs->client].client->ps.fd.forcePower = 30; // UQ1: Cheating bots lol!
-			}
-		}
-	}
-	else
-	*/
 
 	if(bs->jumpTime > level.time)
 	{
@@ -6126,39 +6020,8 @@ gentity_t * DOM_DetermineObjectiveType(gentity_t *bot, int team, int objective, 
 			{//ok, so they aren't linked to anything, try using them directly then
 				if(test->NPC_targetname)
 				{//vehicle objective
-					if(attacker == 1)
-					{//attack
-						*type = OT_VEHICLE;
-						return test;
-					}
-					else if( attacker == 2)
-					{//destroy the vehicle
-						gentity_t *vehicle = NULL;
-						//Find the vehicle
-						while ( (vehicle = G_Find( vehicle, FOFS( script_targetname ), test->NPC_targetname )) != NULL )
-						{
-							if (vehicle->inuse && vehicle->client && vehicle->s.eType == ET_NPC &&
-								vehicle->s.NPC_class == CLASS_VEHICLE && vehicle->m_pVehicle)
-							{
-								break;
-							}
-						}
-
-						if(!vehicle)
-						{//can't find the vehicle?!
-							*type = OT_WAIT;
-							return NULL;
-						}
-
-						test = vehicle;
-						*type = OT_ATTACK;
-						return test;
-					}
-					else
-					{
-						trap->Print("Bad attacker state for vehicle trigger_once objective in DOM_DetermineObjectiveType().\n");
-						return test;
-					}
+					*type = OT_WAIT;
+					return NULL;
 				}
 				else
 				{
@@ -6643,59 +6506,6 @@ void DOM_objectiveType_Warzone_DefendCapture(bot_state_t *bs)
 	}
 }
 
-//vehicle
-void DOM_objectiveType_Vehicle(bot_state_t *bs)
-{
-	gentity_t *vehicle = NULL;
-	gentity_t *botEnt = &g_entities[bs->client];
-
-	//find the vehicle that must trigger this trigger.
-	while ( (vehicle = G_Find( vehicle, FOFS( script_targetname ), bs->tacticEntity->NPC_targetname )) != NULL )
-	{
-		if (vehicle->inuse && vehicle->client && vehicle->s.eType == ET_NPC &&
-			vehicle->s.NPC_class == CLASS_VEHICLE && vehicle->m_pVehicle)
-		{
-			break;
-		}
-	}
-
-	if(!vehicle)
-	{//can't find the vehicle?!
-		return;
-	}
-
-	if (botEnt->inuse && botEnt->client 
-			&& botEnt->client->ps.m_iVehicleNum == vehicle->s.number)
-	{//in the vehicle
-		//move towards trigger point
-		vec3_t objOrigin;
-		DOM_FindOrigin(bs->tacticEntity, objOrigin);
-
-		//RAFIXME:  Get rid of that crappy use stuff when we can.
-		bs->noUseTime += level.time + 5000;
-
-		bs->DestIgnore = bs->tacticEntity->s.number;
-		DOM_BotMove(bs, objOrigin, qfalse, qfalse);
-	}
-	else if(vehicle->client->ps.m_iVehicleNum)
-	{//vehicle already occuped, cover it.
-		DOM_BotDefend(bs, vehicle);
-	}
-	else
-	{//go to the vehicle!
-		//hack!
-		vec3_t vehOrigin;
-		DOM_FindOrigin(vehicle, vehOrigin);
-
-		//bs->useTime = level.time + 100;
-				
-		bs->botBehave = BBEHAVE_MOVETO;
-		VectorCopy(vehOrigin, bs->DestPosition);		
-		bs->DestIgnore = vehicle->s.number;
-	}	
-}
-
-
 //Siege Objective attack/defend
 void DOM_BotObjective(bot_state_t *bs)
 {
@@ -6763,10 +6573,6 @@ void DOM_BotObjective(bot_state_t *bs)
 		else
 #endif //__WARZONE__
 		DOM_objectiveType_Touch(bs);
-	}
-	else if(bs->objectiveType == OT_VEHICLE)
-	{//vehicle techical
-		DOM_objectiveType_Vehicle(bs);
 	}
 	else if(bs->objectiveType == OT_WAIT)
 	{//just run around and attack people, since we're waiting for the objective to become valid.

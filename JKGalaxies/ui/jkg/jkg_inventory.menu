@@ -793,7 +793,7 @@
 	{
 		name                inv_feederTTTXT1
 		group              	inv_feederSel
-		rect                159 102 172 20
+		rect                159 110 172 20
 		style		1
 		text                "Assigned to ACI Slot 0"	// Done like this to keep the alignment correct
 		textalign           ITEM_ALIGN_RIGHT
@@ -812,7 +812,7 @@
 	{
 		name                inv_feederTTTXT2
 		group              	inv_feederSel
-		rect                159 160 172 20
+		rect                159 168 172 20
 		style		1
 		text                "Assigned to ACI Slot 0"
 		textalign           ITEM_ALIGN_RIGHT
@@ -831,7 +831,7 @@
 	{
 		name                inv_feederTTTXT3
 		group              	inv_feederSel
-		rect                159 218 172 20
+		rect                159 226 172 20
 		style               1
 		text                "Assigned to ACI Slot 0"
 		textalign           ITEM_ALIGN_RIGHT
@@ -850,7 +850,7 @@
 	{
 		name                inv_feederTTTXT4
 		group              	inv_feederSel
-		rect                159 276 172 20
+		rect                159 284 172 20
 		style               1
 		text                "Assigned to ACI Slot 0"
 		textalign           ITEM_ALIGN_RIGHT
@@ -869,7 +869,7 @@
 	{
 		name                inv_feederTTTXT5
 		group              	inv_feederSel
-		rect                159 334 172 20
+		rect                159 342 172 20
 		style               1
 		text                "Assigned to ACI Slot 0"
 		textalign           ITEM_ALIGN_RIGHT
@@ -888,7 +888,7 @@
 	{
 		name                inv_feederTTTXT6
 		group              	inv_feederSel
-		rect                159 392 172 20
+		rect                159 400 172 20
 		style		1
 		text                "Assigned to ACI Slot 0"
 		textalign           ITEM_ALIGN_RIGHT
@@ -900,6 +900,121 @@
 		forecolor           1 1 1 1
 		visible		1
 		ownerdraw			1060
+		ownerdrawid			5
+		decoration
+	}
+	// Tag Bottom
+	itemDef
+	{
+		name                inv_feederTTTXT1b
+		group              	inv_feederSel
+		rect                159 118 172 20
+		style		1
+		text                "Assigned to ACI Slot 0"	// Done like this to keep the alignment correct
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		25
+		font                5
+		textscale           0.35
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible		1
+		ownerdraw			1061
+		ownerdrawid			0
+		decoration
+	}
+	itemDef
+	{
+		name                inv_feederTTTXT2b
+		group              	inv_feederSel
+		rect                159 176 172 20
+		style		1
+		text                "Assigned to ACI Slot 0"
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		25
+		font                5
+		textscale           0.35
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible		1
+		ownerdraw			1061
+		ownerdrawid			1
+		decoration
+	}
+	itemDef
+	{
+		name                inv_feederTTTXT3b
+		group              	inv_feederSel
+		rect                159 234 172 20
+		style               1
+		text                "Assigned to ACI Slot 0"
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		25
+		font                5
+		textscale           0.35
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible		1
+		ownerdraw			1061
+		ownerdrawid			2
+		decoration
+	}
+	itemDef
+	{
+		name                inv_feederTTTXT4b
+		group              	inv_feederSel
+		rect                159 292 172 20
+		style               1
+		text                "Assigned to ACI Slot 0"
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		25
+		font                5
+		textscale           0.35
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible		1
+		ownerdraw			1061
+		ownerdrawid			3
+		decoration
+	}
+	itemDef
+	{
+		name                inv_feederTTTXT5b
+		group              	inv_feederSel
+		rect                159 350 172 20
+		style               1
+		text                "Assigned to ACI Slot 0"
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		25
+		font                5
+		textscale           0.35
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible		1
+		ownerdraw			1061
+		ownerdrawid			4
+		decoration
+	}
+	itemDef
+	{
+		name                inv_feederTTTXT6b
+		group              	inv_feederSel
+		rect                159 408 172 20
+		style		1
+		text                "Assigned to ACI Slot 0"
+		textalign           ITEM_ALIGN_RIGHT
+		textalignx          172
+		text2aligny		35
+		font                5
+		textscale           0.35
+		textscale2		0.3
+		forecolor           1 1 1 1
+		visible		1
+		ownerdraw			1061
 		ownerdrawid			5
 		decoration
 	}

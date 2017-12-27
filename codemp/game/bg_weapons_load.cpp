@@ -1,6 +1,7 @@
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_local.h"
+#include "bg_damage.h"
 #include <json/cJSON.h>
 #include "../cgame/animtable.h"
 
@@ -13,6 +14,35 @@
 #endif
 
 static int fmLoadCounter;
+
+static int BG_GetDamageFlagFromString(const char* szDamageFlagString)
+{
+	if (!Q_stricmp(szDamageFlagString, "DAMAGE_RADIUS"))
+	{
+		return DAMAGE_RADIUS;
+	}
+	else if (!Q_stricmp(szDamageFlagString, "DAMAGE_NO_SHIELD"))
+	{
+		return DAMAGE_NO_SHIELD;
+	}
+	else if (!Q_stricmp(szDamageFlagString, "DAMAGE_NO_KNOCKBACK"))
+	{
+		return DAMAGE_NO_KNOCKBACK;
+	}
+	else if (!Q_stricmp(szDamageFlagString, "DAMAGE_NO_PROTECTION"))
+	{
+		return DAMAGE_NO_PROTECTION;
+	}
+	else if (!Q_stricmp(szDamageFlagString, "DAMAGE_NO_HIT_LOC"))
+	{
+		return DAMAGE_NO_HIT_LOC;
+	}
+	else if (!Q_stricmp(szDamageFlagString, "DAMAGE_NO_DISMEMBER"))
+	{
+		return DAMAGE_NO_DISMEMBER;
+	}
+	return DAMAGE_NORMAL;
+}
 
 static void BG_ParseWeaponStatsFlags ( weaponData_t *weaponData, const char *flagStr )
 {
@@ -54,82 +84,24 @@ static void BG_ParseFireModeFiringType ( weaponFireModeStats_t *fireMode, const 
     }
 }
 
-static const stringID_table_t MODTable[] =
-{
-	ENUM2STRING (MOD_STUN_BATON),
-	ENUM2STRING (MOD_MELEE),
-	ENUM2STRING (MOD_SABER),
-	ENUM2STRING (MOD_BRYAR_PISTOL),
-	ENUM2STRING (MOD_BRYAR_PISTOL_ALT),
-	ENUM2STRING (MOD_BLASTER),
-	ENUM2STRING (MOD_TURBLAST),
-	ENUM2STRING (MOD_DISRUPTOR),
-	ENUM2STRING (MOD_DISRUPTOR_SPLASH),
-	ENUM2STRING (MOD_DISRUPTOR_SNIPER),
-	ENUM2STRING (MOD_BOWCASTER),
-	ENUM2STRING (MOD_REPEATER),
-	ENUM2STRING (MOD_REPEATER_ALT),
-	ENUM2STRING (MOD_REPEATER_ALT_SPLASH),
-	ENUM2STRING (MOD_DEMP2),
-	ENUM2STRING (MOD_DEMP2_ALT),
-	ENUM2STRING (MOD_FLECHETTE),
-	ENUM2STRING (MOD_FLECHETTE_ALT_SPLASH),
-	ENUM2STRING (MOD_ROCKET),
-	ENUM2STRING (MOD_ROCKET_SPLASH),
-	ENUM2STRING (MOD_ROCKET_HOMING),
-	ENUM2STRING (MOD_ROCKET_HOMING_SPLASH),
-	ENUM2STRING (MOD_THERMAL),
-	ENUM2STRING (MOD_THERMAL_SPLASH),
-	ENUM2STRING (MOD_TRIP_MINE_SPLASH),
-	ENUM2STRING (MOD_TIMED_MINE_SPLASH),
-	ENUM2STRING (MOD_DET_PACK_SPLASH),
-	ENUM2STRING (MOD_VEHICLE),
-	ENUM2STRING (MOD_CONC),
-	ENUM2STRING (MOD_CONC_ALT),
-	ENUM2STRING (MOD_FORCE_DARK),
-	ENUM2STRING (MOD_SENTRY),
-	ENUM2STRING (MOD_WATER),
-	ENUM2STRING (MOD_SLIME),
-	ENUM2STRING (MOD_LAVA),
-	ENUM2STRING (MOD_CRUSH),
-	ENUM2STRING (MOD_TELEFRAG),
-	ENUM2STRING (MOD_FALLING),
-	ENUM2STRING (MOD_SUICIDE),
-	ENUM2STRING (MOD_TARGET_LASER),
-	ENUM2STRING (MOD_TRIGGER_HURT),
-	ENUM2STRING (MOD_TEAM_CHANGE),
-	
-	{ NULL, -1 }
-};
-
-/*
-// legacy jka table
-static const stringID_table_t AmmoTable[] =
-{
-    ENUM2STRING (AMMO_NONE),
-	ENUM2STRING (AMMO_FORCE),
-	ENUM2STRING (AMMO_BLASTER),
-	ENUM2STRING (AMMO_POWERCELL),
-	ENUM2STRING (AMMO_METAL_BOLTS),
-	ENUM2STRING (AMMO_CONCUSSION),
-	ENUM2STRING (AMMO_ROCKETS),
-	ENUM2STRING (AMMO_EMPLACED),
-	ENUM2STRING (AMMO_THERMAL),
-	ENUM2STRING (AMMO_TRIPMINE),
-	ENUM2STRING (AMMO_DETPACK),
-	ENUM2STRING (AMMO_MAX),
-	
-	{ NULL, -1 }
-};*/
-
 #ifdef _GAME
-#include "jkg_damagetypes.h"
+#include "jkg_damageareas.h"
 static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damageNode, qboolean secondary )
 {
     if ( !damageNode )
     {
         return;
     }
+
+	if (!secondary)
+	{
+		fireModeStats->primary.bPresent = qfalse;
+	}
+	else
+	{
+		fireModeStats->secondary.bPresent = qfalse;
+	}
+	
     
     if ( !secondary && cJSON_IsNumber (damageNode) )
     {
@@ -139,7 +111,6 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
     {
         damageSettings_t darea;
         cJSON *node = NULL;
-        qhandle_t areaHandle = 0;
         
         memset (&darea, 0, sizeof (darea));
         
@@ -211,132 +182,50 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
         {
             default:
             case 0: darea.penetrationType = PT_NONE; break;
-            case 1: darea.penetrationType = PT_SHIELD; break;
-            case 2: darea.penetrationType = PT_SHIELD_ARMOR; break;
-            case 3: darea.penetrationType = PT_SHIELD_ARMOR_BUILDING; break;
+			// not used
+            //case 1: darea.penetrationType = PT_SHIELD; break;
+            //case 2: darea.penetrationType = PT_SHIELD_ARMOR; break;
+            case 3: darea.penetrationType = PT_WALLS; break;
         }
-        
-        node = cJSON_GetObjectItem (damageNode, "damagetype");
-        if ( node )
-        {
-            int i = 0;
-            const char *types[NUM_DAMAGE_TYPES];
-            int numTypes = cJSON_ReadStringArray (node, NUM_DAMAGE_TYPES, types);
-            
-            for ( i = 0; i < numTypes; i++ )
-            {
-				if ( Q_stricmp (types[i], "disintegrate") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_DISINTEGRATE);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "electric") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_ELECTRIC);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "explosion") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_EXPLOSION);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "fire") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= ( 1 << DT_FIRE );
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "freeze") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_FREEZE);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "implosion") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_IMPLOSION);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "stun") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_STUN);
-                    darea.damageType = dType;
-				}
-                else if ( Q_stricmp (types[i], "carbonite") == 0 )
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_CARBONITE);
-                    darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "blaster") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_BLASTER);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "slug") == 0 || Q_stricmp(types[i], "slugthrower") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_SLUG);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "acp") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_ACP);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "pulse") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_PULSE);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "ion") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_ION);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "sonic") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_SONIC);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "bleed") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_BLEED);
-					darea.damageType = dType;
-				}
-				else if (Q_stricmp(types[i], "cold") == 0)
-				{
-					int dType = (int)darea.damageType;
-					dType |= (1 << DT_COLD);
-					darea.damageType = dType;
-				}
-                else
-				{
-                    Com_Printf ("Unknown damage type used: %s.\n", types[i]);
-				}
-            }
-        }
-        
-        areaHandle = JKG_RegisterDamageSettings (&darea);
-        if ( !secondary )
-        {
-            fireModeStats->damageTypeHandle = areaHandle;
-        }
-        else
-        {
-            fireModeStats->secondaryDmgHandle = areaHandle;
-        }
+
+		node = cJSON_GetObjectItem(damageNode, "flags");
+		for (int i = 0; i < cJSON_GetArraySize(node); i++)
+		{
+			darea.damageFlags |= BG_GetDamageFlagFromString(cJSON_ToStringOpt(cJSON_GetArrayItem(node, i), ""));
+		}
+
+		node = cJSON_GetObjectItem(damageNode, "buffs");
+		if (!node)
+		{
+			darea.numberDebuffs = 0;
+		}
+		else
+		{
+			darea.numberDebuffs = cJSON_GetArraySize(node);
+			for (int i = 0; i < darea.numberDebuffs; i++)
+			{
+				cJSON* arrayNode = cJSON_GetArrayItem(node, i);
+				cJSON* childNode = cJSON_GetObjectItem(arrayNode, "buff");
+				darea.debuffs[i].debuff = JKG_ResolveBuffName(cJSON_ToStringOpt(childNode, ""));
+
+				childNode = cJSON_GetObjectItem(arrayNode, "duration");
+				darea.debuffs[i].duration = cJSON_ToIntegerOpt(childNode, 2000);
+
+				childNode = cJSON_GetObjectItem(arrayNode, "intensity");
+				darea.debuffs[i].intensity = cJSON_ToNumberOpt(childNode, 1.0);
+			}
+		}
+
+		if (!secondary)
+		{
+			fireModeStats->primary = darea;
+			fireModeStats->primary.bPresent = qtrue;
+		}
+		else
+		{
+			fireModeStats->secondary = darea;
+			fireModeStats->secondary.bPresent = qtrue;
+		}
     }
 }
 #endif
@@ -349,13 +238,6 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     if ( fireModeNode == NULL )
     {
         return;
-    }
-    
-    node = cJSON_GetObjectItem (fireModeNode, "ammo");
-    str = cJSON_ToString (node);
-    if ( str && str[0] )
-    {
-        fireModeStats->ammo = BG_GetAmmo (str);
     }
 
     node = cJSON_GetObjectItem (fireModeNode, "damage");
@@ -387,7 +269,7 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     fireModeStats->hitscan = (char)cJSON_ToBooleanOpt (node, 0);
     
     node = cJSON_GetObjectItem (fireModeNode, "projectiles");
-    fireModeStats->shotCount = (char)cJSON_ToIntegerOpt (node, 0);
+    fireModeStats->shotCount = (char)cJSON_ToIntegerOpt (node, 1);
     
     node = cJSON_GetObjectItem (fireModeNode, "collisionsize");
     fireModeStats->boxSize = (float)cJSON_ToNumberOpt (node, 0.0);
@@ -414,8 +296,7 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     node = cJSON_GetObjectItem (fireModeNode, "shotsperburst");
     fireModeStats->shotsPerBurst = (char)cJSON_ToIntegerOpt (node, 0);
     
-    // 0 means infinite delay (semi-automatic), otherwise n milliseconds between
-    // rounds in a burst.
+    // 0 means infinite delay (semi-automatic), otherwise n milliseconds between rounds in a burst.
     node = cJSON_GetObjectItem (fireModeNode, "burstshotdelay");
     fireModeStats->burstFireDelay = (short)cJSON_ToIntegerOpt (node, 0);
     
@@ -430,9 +311,9 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     
     node = cJSON_GetObjectItem (fireModeNode, "recoil");
     fireModeStats->recoil = (float)cJSON_ToNumberOpt (node, 0.0);
-    
-    //node = cJSON_GetObjectItem (fireModeNode, "spread");
-    //fireModeStats->spread = (float)cJSON_ToNumberOpt (node, 0.0);
+
+	node = cJSON_GetObjectItem(fireModeNode, "clipSize");
+	fireModeStats->clipSize = (unsigned int)cJSON_ToIntegerOpt(node, 0);
 
 	node = cJSON_GetObjectItem (fireModeNode, "accuracy");
 	if( node )
@@ -488,11 +369,22 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     
     node = cJSON_GetObjectItem (fireModeNode, "meansofdeath");
     str = cJSON_ToStringOpt (node, "MOD_UNKNOWN");
-    fireModeStats->weaponMOD = GetIDForString (const_cast<stringID_table_t *>(MODTable), str);
+	fireModeStats->weaponMOD = JKG_GetMeansOfDamageIndex(str);
     
     node = cJSON_GetObjectItem (fireModeNode, "splashmeansofdeath");
     str = cJSON_ToStringOpt (node, "MOD_UNKNOWN");
-    fireModeStats->weaponSplashMOD = GetIDForString (const_cast<stringID_table_t *>(MODTable), str);
+	fireModeStats->weaponSplashMOD = JKG_GetMeansOfDamageIndex(str);
+
+	node = cJSON_GetObjectItem(fireModeNode, "useQuantity");
+	fireModeStats->useQuantity = cJSON_ToBooleanOpt(node, qfalse);
+
+	if (!fireModeStats->useQuantity) {
+		node = cJSON_GetObjectItem(fireModeNode, "ammoBase");
+		fireModeStats->ammoBase = BG_GetAmmo(cJSON_ToStringOpt(node, "AMMO_NONE"));
+
+		node = cJSON_GetObjectItem(fireModeNode, "ammoDefault");
+		fireModeStats->ammoDefault = BG_GetAmmo(cJSON_ToStringOpt(node, "AMMO_NONE"));
+	}
 }
 
 //=========================================================
@@ -505,7 +397,6 @@ static void BG_ParseWeaponStats ( weaponData_t *weaponData, cJSON *statsNode )
 {
     cJSON *node;
     const char *flags[4];
-    const char *ammo;
     
     if ( statsNode == NULL )
     {
@@ -514,19 +405,6 @@ static void BG_ParseWeaponStats ( weaponData_t *weaponData, cJSON *statsNode )
 
     node = cJSON_GetObjectItem (statsNode, "reloadtime");
     weaponData->weaponReloadTime = (unsigned short)cJSON_ToIntegerOpt (node, 0);
-
-    node = cJSON_GetObjectItem (statsNode, "ammoIndex");
-    ammo = cJSON_ToStringOpt (node, "AMMO_NONE");
-	weaponData->ammoIndex = BG_GetAmmo(ammo)->ammoIndex;
-
-	node = cJSON_GetObjectItem (statsNode, "ammoOnSpawn");
-	weaponData->ammoOnSpawn = (unsigned int)cJSON_ToIntegerOpt (node, ((weaponData->ammoIndex < AMMO_ROCKETS) ? 400 : ((weaponData->ammoIndex != AMMO_ROCKETS) ? 444 : 10)));	// Gives 300 ammo for non-explosives
-
-	node = cJSON_GetObjectItem (statsNode, "ammoOnPickup");
-	weaponData->ammoOnPickup = (unsigned int)cJSON_ToIntegerOpt (node, ((weaponData->ammoIndex < AMMO_ROCKETS) ? 20 : 1));	// Gives 20 ammo for non-explosives
-
-	node = cJSON_GetObjectItem (statsNode, "clipSize");
-	weaponData->clipSize = (unsigned int)cJSON_ToIntegerOpt (node, 0);
 
     node = cJSON_GetObjectItem (statsNode, "flags");
     if ( node != NULL )
@@ -592,17 +470,6 @@ static void BG_ParseWeaponPlayerAnimations ( weaponData_t *weaponData, cJSON *pl
 	{
 		BG_ParseAnimationObject (node, &weaponData->anims.firing.torsoAnim, &weaponData->anims.firing.legsAnim);
 	}
-    
-    /*node = cJSON_GetObjectItem (playerAnimNode, "idle");
-    BG_ParseAnimationObject (node, &weaponData->torsoFiringAnimation, &weaponData->legsFiringAnimation);
-    
-    node = cJSON_GetObjectItem (playerAnimNode, "drop");
-    BG_ParseAnimationObject (node, &weaponData->torsoFiringAnimation, &weaponData->legsFiringAnimation);
-    
-    node = cJSON_GetObjectItem (playerAnimNode, "raise");
-    BG_ParseAnimationObject (node, &weaponData->torsoFiringAnimation, &weaponData->legsFiringAnimation);*/
-
-	
     
     node = cJSON_GetObjectItem (playerAnimNode, "reload");
 	if(node)

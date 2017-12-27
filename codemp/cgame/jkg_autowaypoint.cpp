@@ -1631,95 +1631,6 @@ int AIMOD_MAPPING_CreateNodeLinks ( int node )
 		}
 	}
 
-	/*
-#ifdef __VEHICLES__	// way too generic of a name, just remove the code for now --eez
-	// UQ1: If not too many links, add extra vehicle links...
-	if (linknum < MAX_NODELINKS && (nodes[node].type & NODE_LAND_VEHICLE) )
-	for ( loop = 0; loop < number_of_nodes; loop++ )
-	{
-		vec3_t	tmp;
-		VectorCopy( nodes[node].origin, tmp );
-
-		if ( linknum >= MAX_NODELINKS )
-		{
-			break;
-		}
-
-		if (!(nodes[loop].type & NODE_LAND_VEHICLE))
-		{
-			continue;
-		}
-
-		if ( BAD_WP_Height( nodes[node].origin, nodes[loop].origin) )
-		{
-			continue;
-		}
-
-		if ( Distance( nodes[loop].origin, nodes[node].origin) <= (waypoint_scatter_distance*waypoint_distance_multiplier)*4 )
-		{
-			int visCheck = TankNodeVisible( nodes[loop].origin, tmp, tankMinsSize, tankMaxsSize, -1 );
-
-			//0 = wall in way
-			//1 = player or no obstruction
-			//2 = useable door in the way.
-			//3 = door entity in the way.
-			if ( visCheck == 1 )
-			{
-				if (AIMod_Check_Slope_Between(nodes[node].origin, nodes[loop].origin))
-				{
-					nodes[node].links[linknum].targetNode = loop;
-					nodes[node].links[linknum].cost = Distance( nodes[loop].origin, nodes[node].origin );
-
-					linknum++;
-				}
-			}
-		}
-	}
-
-	if (linknum < MAX_NODELINKS && (nodes[node].type & NODE_LAND_VEHICLE) )
-	for ( loop = 0; loop < number_of_nodes; loop++ )
-	{
-		vec3_t	tmp;
-		VectorCopy( nodes[node].origin, tmp );
-
-		if ( linknum >= MAX_NODELINKS )
-		{
-			break;
-		}
-
-		if (!(nodes[loop].type & NODE_LAND_VEHICLE))
-		{
-			continue;
-		}
-
-		if ( BAD_WP_Height( nodes[node].origin, nodes[loop].origin) )
-		{
-			continue;
-		}
-
-		if ( Distance( nodes[loop].origin, nodes[node].origin) <= (waypoint_scatter_distance*waypoint_distance_multiplier)*8 )
-		{
-			int visCheck = TankNodeVisible( nodes[loop].origin, tmp, tankMinsSize, tankMaxsSize, -1 );
-
-			//0 = wall in way
-			//1 = player or no obstruction
-			//2 = useable door in the way.
-			//3 = door entity in the way.
-			if ( visCheck == 1 )
-			{
-				if (AIMod_Check_Slope_Between(nodes[node].origin, nodes[loop].origin))
-				{
-					nodes[node].links[linknum].targetNode = loop;
-					nodes[node].links[linknum].cost = Distance( nodes[loop].origin, nodes[node].origin );
-
-					linknum++;
-				}
-			}
-		}
-	}
-#endif //__VEHICLES__
-	*/
-
 	nodes[node].enodenum = linknum;
 
 	//if (nodes[node].enodenum > 0)
@@ -1731,21 +1642,7 @@ int AIMOD_MAPPING_CreateNodeLinks ( int node )
 /* */
 qboolean AI_PM_SlickTrace ( vec3_t point, int clientNum )
 {
-	/*trace_t trace;
-	vec3_t	point2;
-	VectorCopy( point, point2 );
-	point2[2] = point2[2] - 0.25f;
-
-	CG_Trace( &trace, point, botTraceMins, botTraceMaxs, point2, clientNum, MASK_SHOT );
-
-	if ( trace.surfaceFlags & SURF_SLICK )
-	{
-		return ( qtrue );
-	}
-	else
-	{*/
-		return ( qfalse );
-	//}
+	return ( qfalse );
 }
 
 /* */

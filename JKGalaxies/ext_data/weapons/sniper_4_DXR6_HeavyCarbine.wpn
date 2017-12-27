@@ -71,16 +71,12 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2400,
-        "ammoIndex":         "powercell_m",
-        "ammoOnSpawn":   120,
-        "ammoOnPickup":   24,
-        "clipSize":              12,
         "flags":        [ "togglezoom" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
     },
     
-	 "firemode0": {
+    "firemode0": {
         "damage":       25,
         "ammocost":     1,
         "firedelay":    300,
@@ -91,6 +87,9 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_POWERCELL_L",
+	"ammodefault": "AMMO_POWERCELL_M",
+        "clipSize":              12,
             "accuracy": {
         "accuracyRating": 25,
         "accuracyRatingPerShot": 6,
@@ -105,14 +104,13 @@
         "damage": {
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
-                               "damage":       30,
-                               "damagetype": [ "disintegrate" ]
+                               "damage":       30
                         },
-        "ammocost":     1,
+        "ammocost":     2,
         "maxchargetime":2750,
         "chargedamage": 0.5,
         "chargedelay":  250,
-		"chargesubtract": 1,
+		"chargesubtract": 2,
         "firedelay":    400,
         "firingtype":   "semi",
         "range":        7000.0,
@@ -122,6 +120,9 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_DISRUPTOR",
         "splashmeansofdeath": "MOD_DISRUPTOR",
+	"ammobase": "AMMO_POWERCELL_L",
+	"ammodefault": "AMMO_POWERCELL_M",
+        "clipSize":              12,
             "accuracy": {
         "accuracyRating": 35,
         "accuracyRatingPerShot": 8,

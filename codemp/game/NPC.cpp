@@ -1843,12 +1843,6 @@ void NPC_RunBehavior( int team, int bState )
 {
 	qboolean dontSetAim = qfalse;
 
-	if (NPC->s.NPC_class == CLASS_VEHICLE &&
-		NPC->m_pVehicle)
-	{ //vehicles don't do AI!
-		return;
-	}
-
 	if ( NPC->client->NPC_class == CLASS_BOT_FAKE_NPC )
 	{
 		NPC_BehaviorSet_FakeNPC( bState );
@@ -1925,14 +1919,12 @@ void NPC_RunBehavior( int team, int bState )
 	{//bounty hunter
 		if ( Boba_Flying( NPC ) )
 		{
-			NPC->s.eFlags |= EF_JETPACK;
 			NPC->client->ps.eFlags |= EF_JETPACK_ACTIVE;
 			NPC->client->ps.eFlags |= EF_JETPACK_FLAMING;
 			NPC_BehaviorSet_Seeker(bState);
 		}
 		else
 		{
-			NPC->s.eFlags &= ~EF_JETPACK;
 			NPC->client->ps.eFlags &= ~EF_JETPACK_ACTIVE;
 			NPC->client->ps.eFlags &= ~EF_JETPACK_FLAMING;
 			NPC_BehaviorSet_Jedi( bState );
@@ -2032,11 +2024,6 @@ void NPC_RunBehavior( int team, int bState )
 				NPC->client->NPC_class == CLASS_JAWA)
 			{
 				NPC_BehaviorSet_Default(bState);
-			}
-			else if ( NPC->client->NPC_class == CLASS_VEHICLE )
-			{
-				// TODO: Add vehicle behaviors here.
-				NPC_UpdateAngles( qtrue, qtrue );//just face our spawn angles for now
 			}
 			else if ( NPC->client->NPC_class == CLASS_CIVILIAN )
 			{
@@ -2529,31 +2516,7 @@ void NPC_Think ( gentity_t *self)//, int msec )
 		i++;
 	}
 
-	if ( self->client->NPC_class == CLASS_VEHICLE)
-	{
-		if (self->client->ps.m_iVehicleNum)
-		{//we don't think on our own
-			//well, run scripts, though...
-			trap->ICARUS_MaintainTaskManager(self->s.number);
-			return;
-		}
-		else
-		{
-			VectorClear(self->client->ps.moveDir);
-			self->client->pers.cmd.forwardmove = 0;
-			self->client->pers.cmd.rightmove = 0;
-			self->client->pers.cmd.upmove = 0;
-			self->client->pers.cmd.buttons = 0;
-			memcpy(&self->m_pVehicle->m_ucmd, &self->client->pers.cmd, sizeof(usercmd_t));
-		}
-	}
-	else if ( NPC->s.m_iVehicleNum )
-	{//droid in a vehicle?
-		G_DroidSounds( self );
-	}
-
-	if ( NPCInfo->nextBStateThink <= level.time 
-		&& !NPC->s.m_iVehicleNum )//NPCs sitting in Vehicles do NOTHING
+	if ( NPCInfo->nextBStateThink <= level.time )
 	{
 #if	AI_TIMERS
 		int	startTime = GetTime(0);
@@ -2573,11 +2536,7 @@ void NPC_Think ( gentity_t *self)//, int msec )
 		}
 
 		//nextthink is set before this so something in here can override it
-		if (self->s.NPC_class != CLASS_VEHICLE ||
-			!self->m_pVehicle)
-		{ //ok, let's not do this at all for vehicles.
-			NPC_ExecuteBState( self );
-		}
+		NPC_ExecuteBState( self );
 
 #if	AI_TIMERS
 		int addTime = GetTime( startTime );

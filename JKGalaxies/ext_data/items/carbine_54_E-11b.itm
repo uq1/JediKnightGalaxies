@@ -5,7 +5,7 @@
 	"weapon":		"WP_BLASTER",
 	"variation":		"2",
 	"weight":		"3",
-	"cost":		"1550",
+	"cost":		"1350",
 	"xml":			"E-11_Stun.xml",
 	"itemIcon":		"models/weapons/E-11b_Carbine/icon_default"
 }

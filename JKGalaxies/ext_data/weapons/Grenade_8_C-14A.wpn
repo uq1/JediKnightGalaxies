@@ -70,13 +70,13 @@
         "ammoIndex":         "grenade_c-14a",
         "ammoOnSpawn":   4,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "cookable", "roll" ]
     },
     
     "firemode0": {
         "damage":       35,//70,
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":1.7,
         "ammocost":     1,
@@ -89,13 +89,15 @@
         "splashrange":  440,//220,
         "projectilespeed":1200.0,
         "projectileclass":"repeater_alt_proj",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "meansofdeath": "MOD_EXPLOSION",
+        "clipSize":              0,
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "firemode1": {
         "damage":       35,//70,
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":1.7,
         "ammocost":     1,
@@ -108,8 +110,9 @@
         "splashrange":  440,//220,
         "projectilespeed":900.0,
         "projectileclass":"repeater_alt_proj",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "meansofdeath": "MOD_EXPLOSION",
+        "clipSize":              0,
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "playeranims": {

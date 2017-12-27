@@ -291,60 +291,11 @@ static void CG_CalcIdealThirdPersonViewTarget(void)
 
 	// Add in the new viewheight
 	cameraFocusLoc[2] += cg.snap->ps.viewheight;
-
-	// Add in a vertical offset from the viewpoint, which puts the actual target above the head, regardless of angle.
-//	VectorMA(cameraFocusLoc, thirdPersonVertOffset, cameraup, cameraIdealTarget);
 	
 	// Add in a vertical offset from the viewpoint, which puts the actual target above the head, regardless of angle.
 	VectorCopy( cameraFocusLoc, cameraIdealTarget );
 	
-	{
-		float vertOffset = cg_thirdPersonVertOffset.value;
-
-		if (cg.snap && cg.snap->ps.m_iVehicleNum)
-		{
-			centity_t *veh = &cg_entities[cg.snap->ps.m_iVehicleNum];
-			if (veh->m_pVehicle &&
-				veh->m_pVehicle->m_pVehicleInfo->cameraOverride)
-			{ //override the range with what the vehicle wants it to be
-				if ( veh->m_pVehicle->m_pVehicleInfo->cameraPitchDependantVertOffset )
-				{
-					if ( cg.snap->ps.viewangles[PITCH] > 0 )
-					{
-						vertOffset = 130+cg.predictedPlayerState.viewangles[PITCH]*-10;
-						if ( vertOffset < -170 )
-						{
-							vertOffset = -170;
-						}
-					}
-					else if ( cg.snap->ps.viewangles[PITCH] < 0 )
-					{
-						vertOffset = 130+cg.predictedPlayerState.viewangles[PITCH]*-5;
-						if ( vertOffset > 130 )
-						{
-							vertOffset = 130;
-						}
-					}
-					else
-					{
-						vertOffset = 30;
-					}
-				}
-				else 
-				{
-					vertOffset = veh->m_pVehicle->m_pVehicleInfo->cameraVertOffset;
-				}
-			}
-			else if ( veh->m_pVehicle
-				&& veh->m_pVehicle->m_pVehicleInfo
-				&& veh->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL )
-			{
-				vertOffset = 0;
-			}
-		}
-		cameraIdealTarget[2] += vertOffset;
-	}
-	//VectorMA(cameraFocusLoc, cg_thirdPersonVertOffset.value, cameraup, cameraIdealTarget);
+	cameraIdealTarget[2] += cg_thirdPersonVertOffset.value;
 }
 
 	
@@ -358,20 +309,6 @@ CG_CalcTargetThirdPersonViewLocation
 static void CG_CalcIdealThirdPersonViewLocation(void)
 {
 	float thirdPersonRange = cg_thirdPersonRange.value;
-
-	if (cg.snap && cg.snap->ps.m_iVehicleNum)
-	{
-		centity_t *veh = &cg_entities[cg.snap->ps.m_iVehicleNum];
-		if (veh->m_pVehicle &&
-			veh->m_pVehicle->m_pVehicleInfo->cameraOverride)
-		{ //override the range with what the vehicle wants it to be
-			thirdPersonRange = veh->m_pVehicle->m_pVehicleInfo->cameraRange;
-			if ( veh->playerState->hackingTime )
-			{
-				thirdPersonRange += fabs(((float)veh->playerState->hackingTime)/MAX_STRAFE_TIME) * 100.0f;
-			}
-		}
-	}
 
 	if ( cg.snap
 		&& (cg.snap->ps.eFlags2&EF2_HELD_BY_MONSTER) 
@@ -443,12 +380,7 @@ static void CG_UpdateThirdPersonTargetDamp(void)
 	// Automatically get the ideal target, to avoid jittering.
 	CG_CalcIdealThirdPersonViewTarget();
 
-	if ( cg.predictedVehicleState.hyperSpaceTime
-		&& (cg.time-cg.predictedVehicleState.hyperSpaceTime) < HYPERSPACE_TIME )
-	{//hyperspacing, no damp
-		VectorCopy(cameraIdealTarget, cameraCurTarget);
-	}
-	else if (cg_thirdPersonTargetDamp.value>=1.0f||cg.thisFrameTeleport||cg.predictedPlayerState.m_iVehicleNum)
+	if (cg_thirdPersonTargetDamp.value>=1.0f||cg.thisFrameTeleport)
 	{	// No damping.
 		VectorCopy(cameraIdealTarget, cameraCurTarget);
 	}
@@ -504,24 +436,10 @@ static void CG_UpdateThirdPersonCameraDamp(void)
 	
 	// First thing we do is calculate the appropriate damping factor for the camera.
 	dampfactor=0.0f;
-	if ( cg.predictedVehicleState.hyperSpaceTime
-		&& (cg.time-cg.predictedVehicleState.hyperSpaceTime) < HYPERSPACE_TIME )
-	{//hyperspacing - don't damp camera
-		dampfactor = 1.0f;
-	}
-	else if (cg_thirdPersonCameraDamp.value != 0.0f)
+	if (cg_thirdPersonCameraDamp.value != 0.0f)
 	{
 		float pitch;
-		float dFactor;
-
-		if (!cg.predictedPlayerState.m_iVehicleNum)
-		{
-			dFactor = cg_thirdPersonCameraDamp.value;
-		}
-		else
-		{
-			dFactor = 1.0f;
-		}
+		float dFactor = cg_thirdPersonCameraDamp.value;
 
 		// Note that the camera pitch has already been capped off to 89.
 		pitch = Q_fabs(cameraFocusAngles[PITCH]);
@@ -629,26 +547,12 @@ CG_OffsetThirdPersonView
 
 ===============
 */
-extern qboolean BG_UnrestrainedPitchRoll( playerState_t *ps, Vehicle_t *pVeh );
+
 static void CG_OffsetThirdPersonView( void ) 
 {
 	vec3_t diff;
 	float thirdPersonHorzOffset = cg_thirdPersonHorzOffset.value;
 	float deltayaw;
-
-	if (cg.snap && cg.snap->ps.m_iVehicleNum)
-	{
-		centity_t *veh = &cg_entities[cg.snap->ps.m_iVehicleNum];
-		if (veh->m_pVehicle &&
-			veh->m_pVehicle->m_pVehicleInfo->cameraOverride)
-		{ //override the range with what the vehicle wants it to be
-			thirdPersonHorzOffset = veh->m_pVehicle->m_pVehicleInfo->cameraHorzOffset;
-			if ( veh->playerState->hackingTime )
-			{
-				thirdPersonHorzOffset += (((float)veh->playerState->hackingTime)/MAX_STRAFE_TIME) * -80.0f;
-			}
-		}
-	}
 
 	cameraStiffFactor = 0.0f;
 
@@ -690,37 +594,7 @@ static void CG_OffsetThirdPersonView( void )
 	else
 	{	// Add in the third Person Angle.
 		cameraFocusAngles[YAW] += cg_thirdPersonAngle.value;
-		{
-			float pitchOffset = cg_thirdPersonPitchOffset.value;
-			if (cg.snap && cg.snap->ps.m_iVehicleNum)
-			{
-				centity_t *veh = &cg_entities[cg.snap->ps.m_iVehicleNum];
-				if (veh->m_pVehicle &&
-					veh->m_pVehicle->m_pVehicleInfo->cameraOverride)
-				{ //override the range with what the vehicle wants it to be
-					if ( veh->m_pVehicle->m_pVehicleInfo->cameraPitchDependantVertOffset )
-					{
-						if ( cg.snap->ps.viewangles[PITCH] > 0 )
-						{
-							pitchOffset = cg.predictedPlayerState.viewangles[PITCH]*-0.75f;
-						}
-						else if ( cg.snap->ps.viewangles[PITCH] < 0 )
-						{
-							pitchOffset = cg.predictedPlayerState.viewangles[PITCH]*-0.75f;
-						}
-						else
-						{
-							pitchOffset = 0;
-						}
-					}
-					else
-					{
-						pitchOffset = veh->m_pVehicle->m_pVehicleInfo->cameraPitchOffset;
-					}
-				}
-			}
-			cameraFocusAngles[PITCH] += pitchOffset;
-		}
+		cameraFocusAngles[PITCH] += cg_thirdPersonPitchOffset.value;
 	}
 
 	// The next thing to do is to see if we need to calculate a new camera target location.
@@ -732,22 +606,13 @@ static void CG_OffsetThirdPersonView( void )
 	}
 	else
 	{
-		// Cap the pitch within reasonable limits
-		if ( cg.predictedPlayerState.m_iVehicleNum //in a vehicle
-			&& BG_UnrestrainedPitchRoll( &cg.predictedPlayerState, cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle ) )//can roll/pitch without restriction
-		{//no clamp on pitch
-			//FIXME: when pitch >= 90 or <= -90, camera rotates oddly... need to CrossProduct not just vectoangles
-		}
-		else
+		if (cameraFocusAngles[PITCH] > 80.0f)
 		{
-			if (cameraFocusAngles[PITCH] > 80.0f)
-			{
-				cameraFocusAngles[PITCH] = 80.0f;
-			}
-			else if (cameraFocusAngles[PITCH] < -80.0f)
-			{
-				cameraFocusAngles[PITCH] = -80.0f;
-			}
+			cameraFocusAngles[PITCH] = 80.0f;
+		}
+		else if (cameraFocusAngles[PITCH] < -80.0f)
+		{
+			cameraFocusAngles[PITCH] = -80.0f;
 		}
 
 		AngleVectors(cameraFocusAngles, camerafwd, NULL, cameraup);
@@ -793,17 +658,8 @@ static void CG_OffsetThirdPersonView( void )
 			VectorCopy( camerafwd, diff );
 		}
 	}
-	/*if ( 0 && cg.predictedPlayerState.m_iVehicleNum //in a vehicle
-		&& BG_UnrestrainedPitchRoll( &cg.predictedPlayerState, cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle ) )//can roll/pitch without restriction
-	{//FIXME: this causes camera jerkiness, need to blend the roll?
-		float sav_Roll = cg.refdef.viewangles[ROLL];
-		vectoangles(diff, cg.refdef.viewangles);
-		cg.refdef.viewangles[ROLL] = sav_Roll;
-	}
-	else*/
-	{
-		vectoangles(diff, cg.refdef.viewangles);
-	}
+
+	vectoangles(diff, cg.refdef.viewangles);
 
 	// Temp: just move the camera to the side a bit
 	if ( thirdPersonHorzOffset != 0.0f )
@@ -816,11 +672,6 @@ static void CG_OffsetThirdPersonView( void )
 	VectorCopy(cameraCurLoc, cg.refdef.vieworg);
 
 	cameraLastFrame=cg.time;
-}
-
-void CG_GetVehicleCamPos( vec3_t camPos )
-{
-	VectorCopy( cg.refdef.vieworg, camPos );
 }
 
 /*
@@ -1152,80 +1003,8 @@ static void CG_OffsetFirstPersonView( void ) {
 	// add kick offset
 
 	VectorAdd (origin, cg.kick_origin, origin);
-
-	// pivot the eye based on a neck length
-#if 0
-	{
-#define	NECK_LENGTH		8
-	vec3_t			forward, up;
- 
-	cg.refdef.vieworg[2] -= NECK_LENGTH;
-	AngleVectors( cg.refdef.viewangles, forward, NULL, up );
-	VectorMA( cg.refdef.vieworg, 3, forward, cg.refdef.vieworg );
-	VectorMA( cg.refdef.vieworg, NECK_LENGTH, up, cg.refdef.vieworg );
-	}
-#endif
 }
 
-static void CG_OffsetFighterView( void )
-{
-	vec3_t vehFwd, vehRight, vehUp, backDir;
-	vec3_t	camOrg, camBackOrg;
-	float horzOffset = cg_thirdPersonHorzOffset.value;
-	float vertOffset = cg_thirdPersonVertOffset.value;
-	float pitchOffset = cg_thirdPersonPitchOffset.value;
-	float yawOffset = cg_thirdPersonAngle.value;
-	float range = cg_thirdPersonRange.value;
-	trace_t	trace;
-	centity_t *veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-
-	AngleVectors( cg.refdef.viewangles, vehFwd, vehRight, vehUp );
-
-	if ( veh->m_pVehicle &&
-		veh->m_pVehicle->m_pVehicleInfo->cameraOverride )
-	{ //override the horizontal offset with what the vehicle wants it to be
-		horzOffset = veh->m_pVehicle->m_pVehicleInfo->cameraHorzOffset;
-		vertOffset = veh->m_pVehicle->m_pVehicleInfo->cameraVertOffset;
-		//NOTE: no yaw offset?
-		pitchOffset = veh->m_pVehicle->m_pVehicleInfo->cameraPitchOffset;
-		range = veh->m_pVehicle->m_pVehicleInfo->cameraRange;
-		if ( veh->playerState->hackingTime )
-		{
-			horzOffset += (((float)veh->playerState->hackingTime)/MAX_STRAFE_TIME) * -80.0f;
-			range += fabs(((float)veh->playerState->hackingTime)/MAX_STRAFE_TIME) * 100.0f;
-		}
-	}
-
-	//Set camera viewing position
-	VectorMA( cg.refdef.vieworg, horzOffset, vehRight, camOrg );
-	VectorMA( camOrg, vertOffset, vehUp, camOrg );
-
-	//trace to that pos
-	CG_Trace(&trace, cg.refdef.vieworg, cameramins, cameramaxs, camOrg, cg.snap->ps.clientNum, MASK_CAMERACLIP);
-	if ( trace.fraction < 1.0f )
-	{
-		VectorCopy( trace.endpos, camOrg );
-	}
-
-	// Set camera viewing direction.
-	cg.refdef.viewangles[YAW] += yawOffset;
-	cg.refdef.viewangles[PITCH] += pitchOffset;
-
-	//Now bring the cam back from that pos and angles at range
-	AngleVectors( cg.refdef.viewangles, backDir, NULL, NULL );
-	VectorScale( backDir, -1, backDir );
-
-	VectorMA( camOrg, range, backDir, camBackOrg );
-
-	//trace to that pos
-	CG_Trace(&trace, camOrg, cameramins, cameramaxs, camBackOrg, cg.snap->ps.clientNum, MASK_CAMERACLIP);
-	VectorCopy( trace.endpos, camOrg );
-
-	//FIXME: do we need to smooth the org?
-	// ...and of course we should copy the new view location to the proper spot too.
-	VectorCopy(camOrg, cg.refdef.vieworg);
-}
-//======================================================================
 
 void CG_ZoomDown_f( void ) { 
 	if ( cg.zoomed ) {
@@ -1698,80 +1477,7 @@ static qboolean CG_ThirdPersonActionCam(void)
 	return qtrue;
 }
 
-vec3_t	cg_lastTurretViewAngles={0};
-qboolean CG_CheckPassengerTurretView( void )
-{
-	if ( cg.predictedPlayerState.m_iVehicleNum //in a vehicle
-		&& cg.predictedPlayerState.generic1 )//as a passenger
-	{//passenger in a vehicle
-		centity_t *vehCent = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-		if ( vehCent->m_pVehicle
-			&& vehCent->m_pVehicle->m_pVehicleInfo 
-			&& vehCent->m_pVehicle->m_pVehicleInfo->maxPassengers )
-		{//a vehicle capable of carrying passengers
-			int turretNum;
-			for ( turretNum = 0; turretNum < MAX_VEHICLE_TURRETS; turretNum++ )
-			{
-				if ( vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].iAmmoMax )
-				{// valid turret
-					if ( vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].passengerNum == cg.predictedPlayerState.generic1 )
-					{//I control this turret
-						int boltIndex = -1;
-						qboolean hackPosAndAngle = qfalse;
-						if ( vehCent->m_pVehicle->m_iGunnerViewTag[turretNum] != -1 )
-						{
-							boltIndex = vehCent->m_pVehicle->m_iGunnerViewTag[turretNum];
-						}
-						else
-						{//crap... guess?
-							hackPosAndAngle = qtrue;
-							if ( vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].yawBone )
-							{
-								boltIndex = trap->G2API_AddBolt( vehCent->ghoul2, 0, vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].yawBone );
-							}
-							else if ( vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].pitchBone )
-							{
-								boltIndex = trap->G2API_AddBolt( vehCent->ghoul2, 0, vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].pitchBone );
-							}
-							else
-							{//well, no way of knowing, so screw it
-								return qfalse;
-							}
-						}
-						if ( boltIndex != -1 )
-						{
-							mdxaBone_t boltMatrix;
-							vec3_t fwd, up;
-							trap->G2API_GetBoltMatrix_NoRecNoRot(vehCent->ghoul2, 0, boltIndex, &boltMatrix, vehCent->lerpAngles,
-								vehCent->lerpOrigin, cg.time, NULL, vehCent->modelScale);
-							BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, cg.refdef.vieworg);
-							if ( hackPosAndAngle )
-							{
-								//FIXME: these are assumptions, externalize?  BETTER YET: give me a controller view bolt/tag for each turret
-								BG_GiveMeVectorFromMatrix(&boltMatrix, NEGATIVE_X, fwd);
-								BG_GiveMeVectorFromMatrix(&boltMatrix, NEGATIVE_Y, up);
-								VectorMA( cg.refdef.vieworg, 8.0f, fwd, cg.refdef.vieworg );
-								VectorMA( cg.refdef.vieworg, 4.0f, up, cg.refdef.vieworg );
-							}
-							else
-							{
-								BG_GiveMeVectorFromMatrix(&boltMatrix, NEGATIVE_Y, fwd);
-							}
-							{
-								vec3_t	newAngles, deltaAngles;
-								vectoangles( fwd, newAngles );
-								AnglesSubtract( newAngles, cg_lastTurretViewAngles, deltaAngles );
-								VectorMA( cg_lastTurretViewAngles, 0.5f*(float)cg.frametime/100.0f, deltaAngles, cg.refdef.viewangles );
-							}
-							return qtrue;
-						}
-					}
-				}
-			}
-		}
-	}
-	return qfalse;
-}
+
 /*
 ===============
 CG_CalcViewValues
@@ -1782,33 +1488,14 @@ Sets cg.refdef view values
 void CG_EmplacedView(vec3_t angles);
 int Cin_ProcessCamera();
 static int CG_CalcViewValues( void ) {
-	qboolean manningTurret = qfalse;
 	playerState_t	*ps;
 
 	memset( &cg.refdef, 0, sizeof( cg.refdef ) );
-
-	// strings for in game rendering
-	// Q_strncpyz( cg.refdef.text[0], "Park Ranger", sizeof(cg.refdef.text[0]) );
-	// Q_strncpyz( cg.refdef.text[1], "19", sizeof(cg.refdef.text[1]) );
 
 	// calculate size of 3D view
 	CG_CalcVrect();
 
 	ps = &cg.predictedPlayerState;
-/*
-	if (cg.cameraMode) {
-		vec3_t origin, angles;
-		if (trap->getCameraInfo(cg.time, &origin, &angles)) {
-			VectorCopy(origin, cg.refdef.vieworg);
-			angles[ROLL] = 0;
-			VectorCopy(angles, cg.refdef.viewangles);
-			AnglesToAxis( cg.refdef.viewangles, cg.refdef.viewaxis );
-			return CG_CalcFov();
-		} else {
-			cg.cameraMode = qfalse;
-		}
-	}
-*/
 
 	if (cg.cinematicState) {
 		if (Cin_ProcessCamera()) {
@@ -1834,43 +1521,8 @@ static int CG_CalcViewValues( void ) {
 		cg.xyspeed = 270;
 	}
 
-	manningTurret = CG_CheckPassengerTurretView();
-	if ( !manningTurret )
-	{//not manning a turret on a vehicle
-		VectorCopy( ps->origin, cg.refdef.vieworg );
-#ifdef VEH_CONTROL_SCHEME_4
-		if ( cg.predictedPlayerState.m_iVehicleNum )//in a vehicle
-		{
-			Vehicle_t *pVeh = cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle;
-			if ( BG_UnrestrainedPitchRoll( &cg.predictedPlayerState, pVeh ) )//can roll/pitch without restriction
-			{//use the vehicle's viewangles to render view!
-				VectorCopy( cg.predictedVehicleState.viewangles, cg.refdef.viewangles );
-			}
-			else if ( pVeh //valid vehicle data pointer
-				&& pVeh->m_pVehicleInfo//valid vehicle info
-				&& pVeh->m_pVehicleInfo->type == VH_FIGHTER )//fighter
-			{
-				VectorCopy( cg.predictedVehicleState.viewangles, cg.refdef.viewangles );
-				cg.refdef.viewangles[PITCH] = AngleNormalize180( cg.refdef.viewangles[PITCH] );
-			}
-			else
-			{
-				VectorCopy( ps->viewangles, cg.refdef.viewangles );
-			}
-		}
-#else// VEH_CONTROL_SCHEME_4
-		if ( cg.predictedPlayerState.m_iVehicleNum //in a vehicle
-			&& BG_UnrestrainedPitchRoll( &cg.predictedPlayerState, cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle ) )//can roll/pitch without restriction
-		{//use the vehicle's viewangles to render view!
-			VectorCopy( cg.predictedVehicleState.viewangles, cg.refdef.viewangles );
-		}
-#endif// VEH_CONTROL_SCHEME_4
-		else
-		{
-			VectorCopy( ps->viewangles, cg.refdef.viewangles );
-		}
-	}
-	VectorCopy( cg.refdef.viewangles, cg_lastTurretViewAngles );
+	VectorCopy( ps->origin, cg.refdef.vieworg );
+	VectorCopy( ps->viewangles, cg.refdef.viewangles );
 
 	if (cg_cameraOrbit.integer) {
 		if (cg.time > cg.nextOrbitTime) {
@@ -1898,39 +1550,27 @@ static int CG_CalcViewValues( void ) {
 		CG_EmplacedView(cg_entities[cg.snap->ps.emplacedIndex].currentState.angles);
 	}
 
-	if ( !manningTurret )
-	{
-		if ( cg.predictedPlayerState.m_iVehicleNum //in a vehicle
-			&& BG_UnrestrainedPitchRoll( &cg.predictedPlayerState, cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle ) )//can roll/pitch without restriction
-		{//use the vehicle's viewangles to render view!
-			CG_OffsetFighterView();
-		}
-		else if ( cg.renderingThirdPerson ) {
-			// back away from character
-			if (cg_thirdPersonSpecialCam.integer &&
-				BG_SaberInSpecial(cg.snap->ps.saberMove))
-			{ //the action cam
-				if (!CG_ThirdPersonActionCam())
-				{ //couldn't do it for whatever reason, resort back to third person then
-					CG_OffsetThirdPersonView();
-				}
-			}
-			else
-			{
+	if ( cg.renderingThirdPerson ) {
+		// back away from character
+		if (cg_thirdPersonSpecialCam.integer &&
+			BG_SaberInSpecial(cg.snap->ps.saberMove))
+		{ //the action cam
+			if (!CG_ThirdPersonActionCam())
+			{ //couldn't do it for whatever reason, resort back to third person then
 				CG_OffsetThirdPersonView();
 			}
-		} else {
-			// offset for local bobbing and kicks
-			CG_OffsetFirstPersonView();
 		}
+		else
+		{
+			CG_OffsetThirdPersonView();
+		}
+	} else {
+		// offset for local bobbing and kicks
+		CG_OffsetFirstPersonView();
 	}
 
 	// position eye relative to origin
 	AnglesToAxis( cg.refdef.viewangles, cg.refdef.viewaxis );
-
-	if ( cg.hyperspace ) {
-		cg.refdef.rdflags |= RDF_NOWORLDMODEL | RDF_HYPERSPACE;
-	}
 
 	// field of view
 	return CG_CalcFov();
@@ -2158,10 +1798,7 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 
 	cg.refdef.time = cg.time;
 
-	if ( !cg.hyperspace) 
-	{ //rww - also had to add this to add effects being rendered in portal sky areas properly.
-		trap->FX_AddScheduledEffects(qtrue);
-	}
+	trap->FX_AddScheduledEffects(qtrue);
 
 	CG_AddPacketEntities(qtrue); //rww - There was no proper way to put real entities inside the portal view before.
 									//This will put specially flagged entities in the render.
@@ -2642,29 +2279,19 @@ void CG_DrawAutoMap(void)
 	trap->R_ClearScene();
 	CG_AddRadarAutomapEnts();
 
-	if (cg.predictedPlayerState.m_iVehicleNum &&
-		cg_entities[cg.predictedPlayerState.m_iVehicleNum].currentState.eType == ET_NPC &&
-		cg_entities[cg.predictedPlayerState.m_iVehicleNum].currentState.NPC_class == CLASS_VEHICLE &&
-		cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle &&
-		cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER)
-	{ //constantly adjust to current height
-		trap->R_AutomapElevationAdjustment(cg.predictedPlayerState.origin[2]);
-	}
-	else
+	//Trace down and set the ground elevation as the main automap elevation point
+	VectorSet(playerMins, -15, -15, DEFAULT_MINS_2);
+	VectorSet(playerMaxs, 15, 15, DEFAULT_MAXS_2);
+
+	VectorCopy(cg.predictedPlayerState.origin, fwd);
+	fwd[2] -= 4096.0f;
+	CG_Trace(&tr, cg.predictedPlayerState.origin, playerMins, playerMaxs, fwd, cg.predictedPlayerState.clientNum, MASK_SOLID);
+
+	if (!tr.startsolid && !tr.allsolid)
 	{
-		//Trace down and set the ground elevation as the main automap elevation point
-		VectorSet(playerMins, -15, -15, DEFAULT_MINS_2);
-		VectorSet(playerMaxs, 15, 15, DEFAULT_MAXS_2);
-
-		VectorCopy(cg.predictedPlayerState.origin, fwd);
-		fwd[2] -= 4096.0f;
-		CG_Trace(&tr, cg.predictedPlayerState.origin, playerMins, playerMaxs, fwd, cg.predictedPlayerState.clientNum, MASK_SOLID);
-
-		if (!tr.startsolid && !tr.allsolid)
-		{
-			trap->R_AutomapElevationAdjustment(tr.endpos[2]);
-		}
+		trap->R_AutomapElevationAdjustment(tr.endpos[2]);
 	}
+
 	trap->R_RenderScene( &refdef );
 }
 
@@ -2738,7 +2365,6 @@ Generates and draws a game scene and status information at the given time.
 static qboolean cg_rangedFogging = qfalse; //so we know if we should go back to normal fog
 float cg_linearFogOverride = 0.0f; //designer-specified override for linear fogging style
 
-extern void BG_VehicleTurnRateForSpeed( Vehicle_t *pVeh, float speed, float *mPitchOverride, float *mYawOverride );
 extern qboolean PM_InKnockDown( playerState_t *ps );
 
 extern qboolean cgQueueLoad;
@@ -2747,7 +2373,6 @@ extern void CG_ActualLoadDeferredPlayers( void );
 void CinBuild_Visualize();
 
 int LastACRun = 0;
-void JKG_AntiDebug();
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback ) {
 	int		inwater;
 	const char *cstr;
@@ -2755,12 +2380,6 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	static int	lastTime;
 	float mPitchOverride = 0.0f;
 	float mYawOverride = 0.0f;
-	static centity_t *veh = NULL;
-#ifdef VEH_CONTROL_SCHEME_4
-	float mSensitivityOverride = 0.0f;
-	qboolean bUseFighterPitch = qfalse;
-	qboolean	isFighter = qfalse;
-#endif
 
 	if (cgQueueLoad)
 	{ //do this before you start messing around with adding ghoul2 refents and crap
@@ -2811,29 +2430,6 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	// we can draw is the information screen
 	if ( !cg.snap || ( cg.snap->snapFlags & SNAPFLAG_NOT_ACTIVE ) )
 	{
-#if 0	
-		// Transition from zero to negative one on the snapshot timeout.
-		// The reason we do this is because the first client frame is responsible for
-		// some farily slow processing (such as weather) and we dont want to include
-		// that processing time into our calculations
-		if ( !cg.snapshotTimeoutTime )
-		{
-			cg.snapshotTimeoutTime = -1;
-		}
-		// Transition the snapshot timeout time from -1 to the current time in 
-		// milliseconds which will start the timeout.
-		else if ( cg.snapshotTimeoutTime == -1 )
-		{		
-			cg.snapshotTimeoutTime = trap->Milliseconds ( );
-		}
-
-		// If we have been waiting too long then just error out
-		if ( cg.snapshotTimeoutTime > 0 && (trap->Milliseconds ( ) - cg.snapshotTimeoutTime > cg_snapshotTimeout.integer * 1000) )
-		{
-			Com_Error ( ERR_DROP, CG_GetStringEdString("MP_SVGAME", "SNAPSHOT_TIMEOUT"));
-			return;
-		}
-#endif	
 		CG_DrawInformation();
 		return;
 	}
@@ -2844,69 +2440,49 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		mSensitivity = 0.01f;
 	}
 	else if (cg.predictedPlayerState.weapon == WP_EMPLACED_GUN)
-	{ //lower sens for emplaced guns and vehicles
+	{ //lower sens for emplaced gun
 		mSensitivity = 0.2f;
 	}
 
+	if (cg.weaponSelect >= MAX_ACI_SLOTS) {
+		cg.weaponSelect = 0;
+	}
+
+	if (cg.playerACI[cg.weaponSelect] >= cg.playerInventory->size()) {
+		// Destroyed the weapon we were carrying
+		cg.playerACI[cg.weaponSelect] = -1;
+		cg.weaponSelect = 0;
+	}
+
+	if(cg.playerACI[cg.weaponSelect] >= 0 && cg.playerInventory->size() > 0)
 	{
-		if (cg.predictedPlayerState.m_iVehicleNum)
+		if(cg.playerACI[cg.weaponSelect] >= MAX_INVENTORY_ITEMS)
 		{
-			veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
+			goto defaultCmd;
 		}
-		if (veh &&
-			veh->currentState.eType == ET_NPC &&
-			veh->currentState.NPC_class == CLASS_VEHICLE &&
-			veh->m_pVehicle &&
-			veh->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER &&
-			bg_fighterAltControl.integer)
+		if((*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id && (*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id->itemType == ITEM_WEAPON)
 		{
-			trap->SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qtrue );
-			veh = NULL; //this is done because I don't want an extra assign each frame because I am so perfect and super efficient.
-		}
-		else
-		{
-			if (cg.weaponSelect >= MAX_ACI_SLOTS) {
-				cg.weaponSelect = 0;
-			}
-
-			if (cg.playerACI[cg.weaponSelect] >= cg.playerInventory->size()) {
-				// Destroyed the weapon we were carrying
-				cg.playerACI[cg.weaponSelect] = -1;
-				cg.weaponSelect = 0;
-			}
-
-			if(cg.playerACI[cg.weaponSelect] >= 0 && cg.playerInventory->size() > 0)
+			if(cg.holsterState && 
+				(*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id->weaponData.weapon != WP_SABER)
 			{
-				if(cg.playerACI[cg.weaponSelect] >= MAX_INVENTORY_ITEMS)
-				{
-					goto defaultCmd;
-				}
-				if((*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id)
-				{
-					if(cg.holsterState && 
-						(*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id->weaponData.weapon != WP_SABER)
-					{
-						// Set us up using Melee if our holstered weapon is not a saber (and we're holstered)
-						trap->SetUserCmdValue( BG_GetWeaponIndex(WP_MELEE, 0), mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
-					}
-					else
-					{
-						trap->SetUserCmdValue( (*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id->weaponData.varID, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
-					}
-				}
-				else
-				{
-					goto defaultCmd;
-				}
+				// Set us up using Melee if our holstered weapon is not a saber (and we're holstered)
+				trap->SetUserCmdValue( BG_GetWeaponIndex(WP_MELEE, 0), mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
 			}
 			else
 			{
-defaultCmd:
-				int meleeWeaponId = BG_GetWeaponIndexFromClass(WP_MELEE, 0);
-				trap->SetUserCmdValue( meleeWeaponId, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
+				trap->SetUserCmdValue( (*cg.playerInventory)[cg.playerACI[cg.weaponSelect]].id->weaponData.varID, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.playerACI[cg.weaponSelect], qfalse );
 			}
-			//trap->SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse);
 		}
+		else
+		{
+			goto defaultCmd;
+		}
+	}
+	else
+	{
+defaultCmd:
+		int meleeWeaponId = BG_GetWeaponIndexFromClass(WP_MELEE, 0);
+		trap->SetUserCmdValue( meleeWeaponId, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
 	}
 
 	// this counter will be bumped for every valid scene we generate
@@ -2934,8 +2510,7 @@ defaultCmd:
 		{//force thirdperson for sabers/melee if in cg_trueinvertsaber.integer == 2
 			cg.renderingThirdPerson = 1;
 		}
-		else if (cg.predictedPlayerState.fallingToDeath || cg.predictedPlayerState.m_iVehicleNum
-			|| (cg_trueinvertsaber.integer == 1 && !cg_thirdPerson.integer && (cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)))
+		else if (cg.predictedPlayerState.fallingToDeath || (cg_trueinvertsaber.integer == 1 && !cg_thirdPerson.integer && (cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)))
 		{
 			cg.renderingThirdPerson = 1;
 		}
@@ -2943,22 +2518,6 @@ defaultCmd:
 		{
 			cg.renderingThirdPerson = 0;
 		}
-		/*
-		else if (cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE ||
-			BG_InGrappleMove(cg.predictedPlayerState.torsoAnim) || BG_InGrappleMove(cg.predictedPlayerState.legsAnim) ||
-			cg.predictedPlayerState.forceHandExtend == HANDEXTEND_KNOCKDOWN || cg.predictedPlayerState.fallingToDeath ||
-			cg.predictedPlayerState.m_iVehicleNum || PM_InKnockDown(&cg.predictedPlayerState))
-		{
-			if (cg_fpls.integer && cg.predictedPlayerState.weapon == WP_SABER)
-			{ //force to first person for fpls
-				cg.renderingThirdPerson = 0;
-			}
-			else
-			{
-				cg.renderingThirdPerson = 1;
-			}
-		}
-		*/
 		//[/TrueView]
 		else if ( cg.predictedPlayerState.zoomMode )
 	    {
@@ -3017,24 +2576,13 @@ defaultCmd:
 	}
 
 	// build the render lists
-	if ( !cg.hyperspace ) {
-		CG_AddPacketEntities(qfalse);			// adter calcViewValues, so predicted player state is correct
-		CG_AddMarks();
-		CG_AddLocalEntities();
-	}
+	CG_AddPacketEntities(qfalse);			// adter calcViewValues, so predicted player state is correct
+	CG_AddMarks();
+	CG_AddLocalEntities();
 	CG_AnimateViewWeapon (&cg.predictedPlayerState);
-	//CG_AddViewWeapon( &cg.predictedPlayerState );
 	JKG_RenderWeaponViewModel();
-	//debugTimeEnd = trap->Milliseconds();
-	//if (trap->Milliseconds() - debugLastUpdate > 500) {
-	//	trap->Print("Frame processing time: %i ms\n", debugTimeEnd - debugTimeStart);
-	//	debugLastUpdate = trap->Milliseconds();
-	//}
 
-	if ( !cg.hyperspace) 
-	{
-		trap->FX_AddScheduledEffects(qfalse);
-	}
+	trap->FX_AddScheduledEffects(qfalse);
 
 	// add buffered sounds
 	CG_PlayBufferedSounds();

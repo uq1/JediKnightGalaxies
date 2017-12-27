@@ -98,30 +98,7 @@ NPC_Sentry_Pain
 */
 void NPC_Sentry_Pain(gentity_t *self, gentity_t *attacker, int damage)
 {		
-	int mod = gPainMOD;
-
 	NPC_Pain( self, attacker, damage );
-
-	if ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT )
-	{
-		self->NPC->burstCount = 0;
-		TIMER_Set( self, "attackDelay", Q_irand( 9000, 12000) );
-		self->flags |= FL_SHIELDED;
-		NPC_SetAnim( self, SETANIM_BOTH, BOTH_FLY_SHIELDED, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
-		G_Sound( self, CHAN_AUTO, G_SoundIndex("sound/chars/sentry/misc/sentry_pain") );		
-
-		self->NPC->localState = LSTATE_ACTIVE;
-	}
-
-	// You got hit, go after the enemy
-//	if (self->NPC->localState == LSTATE_ASLEEP)
-//	{
-//		G_Sound( self, G_SoundIndex("sound/chars/sentry/misc/shieldsopen.wav"));
-//
-//		self->flags &= ~FL_SHIELDED;
-//		NPC_SetAnim( self, SETANIM_BOTH, BOTH_POWERUP1, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
-//		self->NPC->localState = LSTATE_WAKEUP;
-//	}
 }
 
 /*
@@ -201,8 +178,7 @@ void Sentry_Fire (void)
 	missile->classname = "bryar_proj";
 	missile->s.weapon = WP_BRYAR_PISTOL;
 
-	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
-	missile->methodOfDeath = MOD_BRYAR_PISTOL;
+	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 
 	NPCInfo->burstCount++;

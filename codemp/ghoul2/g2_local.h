@@ -317,6 +317,7 @@ void		G2API_CleanGhoul2Models(CGhoul2Info_v **ghoul2Ptr);
 int			G2API_GetParentSurface(CGhoul2Info *ghlInfo, const int index);
 int			G2API_GetSurfaceIndex(CGhoul2Info *ghlInfo, const char *surfaceName);
 char		*G2API_GetSurfaceName(CGhoul2Info_v& ghoul2, int modelIndex, int surfNumber);
+int			G2API_GetSurfaceCount(CGhoul2Info_v& ghoul2);
 char		*G2API_GetGLAName(CGhoul2Info_v &ghoul2, int modelIndex);
 qboolean	G2API_SetBoneAnglesMatrix(CGhoul2Info *ghlInfo, const char *boneName, const mdxaBone_t &matrix, const int flags, qhandle_t *modelList, int blendTime = 0, int currentTime = 0);
 qboolean	G2API_SetNewOrigin(CGhoul2Info_v &ghoul2, const int boltIndex);

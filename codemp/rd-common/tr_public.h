@@ -31,7 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "qcommon/qcommon.h"	// <-- this line here, doesn't make a difference if i add or remove it, it still fails with vm_t
 #include "../ghoul2/ghoul2_shared.h"
 
-#define	REF_API_VERSION 7
+#define	REF_API_VERSION 8
 
 //
 // these are the functions exported by the refresh module
@@ -182,6 +182,7 @@ typedef struct refexport_s {
 	qboolean			(*G2API_GetRagBonePos)					( CGhoul2Info_v &ghoul2, const char *boneName, vec3_t pos, vec3_t entAngles, vec3_t entPos, vec3_t entScale );
 	int					(*G2API_GetSurfaceIndex)				( CGhoul2Info *ghlInfo, const char *surfaceName );
 	char *				(*G2API_GetSurfaceName)					( CGhoul2Info_v& ghlInfo, int modelIndex, int surfNumber );
+	int					(*G2API_GetSurfaceCount)				( CGhoul2Info_v& ghlInfo );
 	int					(*G2API_GetSurfaceOnOff)				( CGhoul2Info *ghlInfo, const char *surfaceName );
 	int					(*G2API_GetSurfaceRenderStatus)			( CGhoul2Info_v& ghoul2, int modelIndex, const char *surfaceName );
 	int					(*G2API_GetTime)						( int argTime );

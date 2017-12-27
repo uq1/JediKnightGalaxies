@@ -1,18 +1,29 @@
 # Jedi Knight Galaxies #
-[IRC](https://kiwiirc.com/client/irc.arloria.net/?nick=Padawan|?&theme=cli#jkgalaxies): irc.arloria.net / #JKGalaxies
+[DISCORD](https://discord.gg/YuG8Zks)  
+[IRC (defunct)](https://kiwiirc.com/client/irc.arloria.net/?nick=Padawan|?&theme=cli#jkgalaxies): irc.arloria.net / #JKGalaxies  
 
-FAQ: http://jkhub.org/topic/6613-jkg-faq/
+[FAQ](http://jkhub.org/topic/6613-jkg-faq/)  
+[Forum]( https://jkhub.org/forum/117-jedi-knight-galaxies/) (hosted by JKHub)  
+[Official Announcements](https://jkhub.org/forum/119-jkgalaxies-news/)   
+[ModDB Page](http://www.moddb.com/mods/jkgalaxies) (not updated frequently)  
 
-Downloads:
+
+#### Downloads ####
 [Binaries](http://jkhub.org/files/file/2544-jedi-knight-galaxies-binaries/) , [Assets](http://jkhub.org/files/file/2543-jedi-knight-galaxies-assets/) , 
 [Map Bundle #1](http://jkhub.org/files/file/2652-jedi-knight-galaxies-map-bundle-1/)
 
-Forum: http://www.tinyurl.com/JKGJKH
-
-
-Forum: https://jkhub.org/forum/117-jedi-knight-galaxies/
-
 Please use discretion when making issue requests on GitHub. The forum is a better place for larger discussions on changes that aren't actually bugs.
+
+
+### What is Jedi Knight Galaxies? ###
+Jedi Knight Galaxies is an immersive, competitive and innovative multiplayer shooter, played out in the Star Wars universe. Currently a full conversion mod, the project was originally based on and modified from Raven Software’s [Jedi Knight: Jedi Academy](https://en.wikipedia.org/wiki/Star_Wars_Jedi_Knight:_Jedi_Academy).  Jedi Knight Galaxies is open source and available completely free of charge; however, you will need the original game in order to play.  Jedi Academy is frequently available on [Steam](http://store.steampowered.com/app/6020/STAR_WARS_Jedi_Knight__Jedi_Academy/) and [GoG](https://www.gog.com/game/star_wars_jedi_knight_jedi_academy) during sales for less than $4. We aim to develop the project into a Large Multiplayer Online game, crossing traditional RPG (role playing game) elements with the fast paced excitement of an FPS (first person shooter).
+
+The project will be released in phases, each building on to the previous one with more aspects of the final goal. The current Phase, JKG: Versus, was first released September 17th, 2012 as a public beta, showcasing the primary FPS elements of the game.  Subsequent updates and versions have been produced since then.  As development progresses, sandbox environments will be added, initial RPG elements will appear, and player vs. enemy combat will be implemented into the faction oriented gameplay. Improved dialog and cinematic features along with skills, powers, and more aspects that belong in a Role-Play Game will be developed, set between the events of Episode IV: A New Hope and Episode III: Revenge of the Sith. Finally, the full-fledged JKG: LMO takes the experience to a much grander level.
+
+The game is a much loved hobby project supported by its community and developers who work on it in their freetime, contribution is encouraged and newbies are welcome.  Originally founded by a group of Jedi Academy modders led by Jake (now retired), the project has since been in and out of development since 2008. The project is currently headed by our hardworking, lead programmer: eezstreet.  The current development team comes from a variety of backgrounds, countries, and age, united by our desire to make a great game. 
+
+Welcome to Jedi Knight Galaxies, where we break the limits!
+
 
 ## Build Guide ##
 https://jkhub.org/topic/5600-compilation-guide/
@@ -63,10 +74,10 @@ Please be aware of the implications of the GPLv2 licence. In short, be prepared 
 These are very much subject to change, especially phases later than Versus.
 
 ### Phase 1:  Versus (current iteration). ###
-* The goal here is to have a functioning arena based shooter (similar to games such as Call of Duty or Unreal Tournament) with the beginnings of some later RPG elements such as armor, pazaak card game, etc.  There are three major milestones currently being worked on: [Milestone 3](https://github.com/JKGDevs/JediKnightGalaxies/issues?q=issue+milestone%3A%22Versus+Revision+3%22) and [Milestone 4](https://github.com/JKGDevs/JediKnightGalaxies/issues?q=is%3Aopen+is%3Aissue+milestone%3A%22Versus+Revision+4%22).  Milestone 2 mainly features smaller bug fixes needed to make the game stable, while Milestone 3 includes new features like better melee, armor, shields, etc. in addition to some bug fixes not addressed in Milestone 2. Milestone 4 primarily focuses on the all new saber system and related features such as duel mode.
+* The goal here is to have a functioning arena based shooter (similar to games such as Call of Duty or Unreal Tournament) with the beginnings of some later RPG elements such as armor, pazaak card game, etc.  There are three major milestones currently being worked on: [Milestone 3](https://github.com/JKGDevs/JediKnightGalaxies/issues?q=issue+milestone%3A%22Versus+Revision+3%22) and [Milestone 4](https://github.com/JKGDevs/JediKnightGalaxies/issues?q=is%3Aopen+is%3Aissue+milestone%3A%22Versus+Revision+4%22).  Milestone 3 includes new features like better melee, armor, shields, jetpacks, debuff system etc. in addition to some bug fixes not addressed in Milestone 2. Milestone 4 primarily focuses on the all new saber system and related features such as duel mode.  Later on other milestones will be worked on.  In Milestone 5, the Force will be reworked and greatly expanded on.  Milestone 6 introduces the skill tree and a rudimentary system for spending xp in preparation for the eventual leveling system in Phase 2 and 3.
 
 #### Phase 2: Coop ####
-* The main features that are added here include the NPC system and fleshing out of the dialogue system. They also include overhauls to the chat systems and more.  We may also attempt some MoBA like features (still needs discussion).
+* The main features that are added here include the NPC system and fleshing out of the dialogue system. They also include overhauls to the chat systems, fonts, UI, and more.  Prep work for the leveling system and quest system to be introduced here.  We may also attempt some MoBA like features (still needs discussion).
 
 #### Phase 3: RPG ####
 * Open World RPG. The main features added here include quests, (more) minigames, and AI for existing minigames, like Pazaak. Also includes levelling up, experience, single person quests, large planet-themed maps, etc. This mode will mainly focus on implementing things from a single player's perspective.

@@ -336,7 +336,6 @@ void ImperialProbe_FireBlaster(void)
 	}
 
 
-	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
 	missile->methodOfDeath = MOD_UNKNOWN;
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 
@@ -457,7 +456,7 @@ void NPC_Probe_Pain(gentity_t *self, gentity_t *attacker, int damage)
 	
 	VectorCopy( self->NPC->lastPathAngles, self->s.angles );
 
-	if ( self->health < 30 || mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT ) // demp2 always messes them up real good
+	/*if ( self->health < 30 || mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT ) // demp2 always messes them up real good
 	{
 		vec3_t endPos;
 		trace_t	trace;
@@ -467,22 +466,6 @@ void NPC_Probe_Pain(gentity_t *self, gentity_t *attacker, int damage)
 
 		if ( trace.fraction == 1.0f || mod == MOD_DEMP2 ) // demp2 always does this
 		{
-			/*
-			if (self->client->clientInfo.headModel != 0)
-			{
-				vec3_t origin;
-
-				VectorCopy(self->r.currentOrigin,origin);
-				origin[2] +=50;
-//				G_PlayEffect( "small_chunks", origin );
-				G_PlayEffect( "chunks/probehead", origin );
-				G_PlayEffect( "env/med_explode2", origin );
-				self->client->clientInfo.headModel = 0;
-				self->client->moveType = MT_RUNJUMP;
-				self->client->ps.gravity = g_gravity->value*.1;
-			}
-			*/
-			
 			if ( (mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT) && other )
 			{
 				vec3_t dir;
@@ -503,7 +486,7 @@ void NPC_Probe_Pain(gentity_t *self, gentity_t *attacker, int damage)
 			self->NPC->localState = LSTATE_DROP;
 		} 
 	}
-	else
+	else*/
 	{
 		pain_chance = NPC_GetPainChance( self, damage );
 

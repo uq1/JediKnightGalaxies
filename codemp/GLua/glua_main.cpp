@@ -30,6 +30,7 @@ enum {
 	GLUA_NPCEXISTS,
 	GLUA_SPAWNNPC,
 	GLUA_CALLNPCFUNC,
+	GLUA_CONSUMEITEM,
 	GLUA_MAX,
 };
 
@@ -265,6 +266,8 @@ void GLua_Init() {
 	GLua_Framework[GLUA_SPAWNNPC] = GLua_GetFrameworkRef(L, "npcmanager" , "SpawnNPC");
 	GLua_Framework[GLUA_CALLNPCFUNC] = GLua_GetFrameworkRef(L, "npcmanager" , "CallNPCFunc");
 
+	GLua_Framework[GLUA_CONSUMEITEM] = GLua_GetFrameworkRef(L, "items", "ConsumeItem");
+
 	// Validate framework state
 	for (i=0; i<GLUA_MAX; i++) {
 		if (GLua_Framework[i] < 0) {
@@ -368,6 +371,23 @@ void GLua_SpawnNPC(gentity_t *npc, const char* npcname) {
 		lua_pop(L,1);
 	}
 	STACKGUARD_CHECK(LuaInstance)
+	return;
+}
+
+void GLua_ConsumeItem(gentity_t* consumer, itemInstance_t* item) {
+	STACKGUARD_INIT(LuaInstance);
+	lua_State* L = LuaInstance;
+	if (!L) return;
+
+	lua_rawgeti(L, LUA_REGISTRYINDEX, GLua_Framework[GLUA_CONSUMEITEM]);
+	GLua_PushPlayer(L, consumer->s.number);
+	lua_pushstring(L, item->id->consumableData.consumeScript);
+	lua_pushinteger(L, item->quantity);
+	if (lua_pcall(L, 3, 0, 0)) {
+		trap->Print("GLua: Error occurred in GLua_ConsumeItem: %s\n", lua_tostring(L, -1));
+		lua_pop(L, 1);
+	}
+	STACKGUARD_CHECK(LuaInstance);
 	return;
 }
 

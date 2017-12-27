@@ -11,9 +11,9 @@ struct TreasureEntry;
 // An individual entry in a treasure class.
 struct TreasureEntry {
 	union{
-		TreasureClass* pTreasureClass;	// Resolved treasure class
-		char* szTreasureClass;			// Unresolved treasure class
-		int nItem;						// Points to an item, not another treasure class
+		TreasureClass* pTreasureClass;				// Resolved treasure class
+		char szTreasureClass[MAX_QPATH];			// Unresolved treasure class
+		int nItem;									// Points to an item, not another treasure class
 	} tc;
 
 	int nOdds;

@@ -48,25 +48,28 @@
         "ammoIndex":         "mine_lasertrip2",
         "ammoOnSpawn":   2,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "roll" ]
     },
     
     "firemode0": {
         "damage":       65,
         "ammocost":     1,
+	"useQuantity":	true,
         "firedelay":    1000,
         "splashrange":  120,
         "projectileclass":"laserTrap",
-        "splashmeansofdeath": "MOD_TRIP_MINE_SPLASH"
+        "clipSize":              0,
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "firemode1": {
         "damage":       65,
         "ammocost":     1,
+	"useQuantity":	true,
         "firedelay":    1000,
         "splashrange":  120,
         "projectileclass":"laserTrap",
+        "clipSize":              0,
         "splashmeansofdeath": "MOD_TRIP_MINE_SPLASH"
     },
     

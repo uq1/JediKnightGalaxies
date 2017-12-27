@@ -919,7 +919,7 @@ void NPC_Precache ( gentity_t *spawner )
 	}
 
 	// If we're not a vehicle, then an error here would be valid...
-	if ( !spawner->client || spawner->client->NPC_class != CLASS_VEHICLE )
+	if ( !spawner->client )
 	{
 		if ( md3Model )
 		{
@@ -1949,17 +1949,6 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 
 				//trap->Print("Parse NPC class %i [%s]\n", NPC->client->NPC_class, ClassTable[NPC->client->NPC_class]);
 
-				// No md3's for vehicles.
-				if ( NPC->client->NPC_class == CLASS_VEHICLE )
-				{
-					if ( !NPC->m_pVehicle )
-					{//you didn't spawn this guy right!
-						Com_Printf ( S_COLOR_RED "ERROR: Tried to spawn a vehicle NPC (%s) without using NPC_Vehicle or 'NPC spawn vehicle <vehiclename>'!!!  Bad, bad, bad!  Shame on you!\n", NPCName );
-						return qfalse;
-					}
-					md3Model = qfalse;
-				}
-
 				continue;
 			}
 
@@ -2074,38 +2063,8 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 				{
 					continue;
 				}
-				if ( NPC->client->NPC_class == CLASS_VEHICLE
-					&& NPC->m_pVehicle
-					&& NPC->m_pVehicle->m_pVehicleInfo
-					&& NPC->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER )
-				{//a flying vehicle's origin must be centered in bbox and it should spawn on the ground
-					//trace_t		tr;
-					//vec3_t		bottom;
-					//float		adjust = 32.0f;
-					NPC->r.maxs[2] = NPC->client->ps.standheight = (n/2.0f);
-					NPC->r.mins[2] = -NPC->r.maxs[2];
-					NPC->s.origin[2] += (DEFAULT_MINS_2-NPC->r.mins[2])+0.125f;
-					VectorCopy(NPC->s.origin, NPC->client->ps.origin);
-					VectorCopy(NPC->s.origin, NPC->r.currentOrigin);
-					G_SetOrigin( NPC, NPC->s.origin );
-					trap->LinkEntity((sharedEntity_t *)NPC);
-					//now trace down
-					/*
-					VectorCopy( NPC->s.origin, bottom );
-					bottom[2] -= adjust;
-					trap->Trace( &tr, NPC->s.origin, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, MASK_NPCSOLID );
-					if ( !tr.allsolid && !tr.startsolid )
-					{
-						G_SetOrigin( NPC, tr.endpos );
-						trap->LinkEntity(NPC);
-					}
-					*/
-				}
-				else
-				{
-					NPC->r.mins[2] = DEFAULT_MINS_2;//Cannot change
-					NPC->r.maxs[2] = NPC->client->ps.standheight = n + DEFAULT_MINS_2;
-				}
+				NPC->r.mins[2] = DEFAULT_MINS_2;//Cannot change
+				NPC->r.maxs[2] = NPC->client->ps.standheight = n + DEFAULT_MINS_2;
 				NPC->radius = n;
 				continue;
 			}
@@ -2354,7 +2313,7 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 					{
 					//	RegisterItem( FindItemForWeapon( (weapon_t)(NPC->client->ps.weapon) ) );	//precache the weapon
 					    NPC->client->ps.stats[STAT_AMMO] = 100;
-						NPC->client->ps.ammo = 100;//FIXME: max ammo!
+						NPC->client->ps.stats[STAT_TOTALAMMO] = 100;//FIXME: max ammo!
 					}
 				}
 				continue;
@@ -3305,11 +3264,6 @@ Ghoul2 Insert Start
 			strcpy(customSkin, "default");
 		}
 
-		if ( NPC->client && NPC->client->NPC_class == CLASS_VEHICLE )
-		{ //vehicles want their names fed in as models
-			//we put the $ in front to indicate a name and not a model
-			strcpy(playerModel, va("$%s", NPCName));
-		}
 		SetupGameGhoul2Model(NPC, playerModel, customSkin);
 
 		if (!NPC->NPC_type)
@@ -3404,7 +3358,7 @@ Ghoul2 Insert End
 				stats->health = 100 + (stats->health*1.6);
 			}
 			else
-			{// This will most likely only ever be vehicle NPCs... They have lots of HP anyway...
+			{
 				stats->health = 100 + (stats->health*1.5);
 			}
 		}

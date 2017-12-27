@@ -8,7 +8,7 @@
 #endif
 #include <json/cJSON.h>
 
-itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
+itemData_t* itemLookupTable;
 
 const stringID_table_s itemPacketNames[] = {
 	ENUM2STRING(IPT_ADD),
@@ -18,6 +18,8 @@ const stringID_table_s itemPacketNames[] = {
 	ENUM2STRING(IPT_OPEN),
 	ENUM2STRING(IPT_QUANT),
 	ENUM2STRING(IPT_RESET),
+	ENUM2STRING(IPT_EQUIP),
+	ENUM2STRING(IPT_UNEQUIP),
 	{ nullptr, IPT_NULL }
 };
 
@@ -30,10 +32,6 @@ const stringID_table_s tradePacketNames[] = {
 	ENUM2STRING(IPT_TRADECREDITS),
 	{ nullptr, IPT_NULL }
 };
-
-#ifdef _CGAME
-cgArmorData_t armorMasterTable[MAX_ARMOR_PIECES];
-#endif
 
 /*
 ====================
@@ -146,6 +144,22 @@ int BG_FindItemByInternal(const char *internalName)
 
 /*
 ====================
+BG_PrintItemList
+====================
+*/
+void BG_PrintItemList(void)
+{
+	for (int i = 0; i < MAX_ITEM_TABLE_SIZE; i++)
+	{
+		if (itemLookupTable[i].itemID)
+		{
+			trap->Print("%8i\t%s\n", itemLookupTable[i].itemID, itemLookupTable[i].internalName);
+		}
+	}
+}
+
+/*
+====================
 BG_HasWeaponItem
 ====================
 */
@@ -194,7 +208,7 @@ itemData_t* BG_FindItemDataByName(const char* internalName) {
 	for (int i = 0; i < MAX_ITEM_TABLE_SIZE; i++) {
 		itemData_t* pItemData = &itemLookupTable[i];
 		if (pItemData->itemID == 0) {
-			break;
+			continue;
 		}
 		if (!Q_stricmp(pItemData->internalName, internalName)) {
 			return pItemData;
@@ -223,6 +237,8 @@ void BG_SendItemPacket(itemPacketType_t packetType, gentity_t* ent, void* memDat
 			}
 			break;
 		case IPT_REM:
+		case IPT_EQUIP:
+		case IPT_UNEQUIP:
 			{
 				int itemSlot = intData;
 				Com_sprintf(packet, sizeof(packet), "pInv %s %i", packetName, itemSlot);
@@ -259,6 +275,8 @@ Client only-received an item packet
 */
 #ifdef _CGAME
 extern void JKG_CG_FillACISlot(int itemNum, int slot);
+extern void JKG_CG_ACIPostFix(int itemSlot);
+
 void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 	switch (packetType) {
 		case IPT_ADD:
@@ -282,6 +300,7 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 			break;
 		case IPT_QUANT:
 			{
+				// Change the quantity on an item stack
 				int itemStack = atoi(CG_Argv(2));
 				int newQuant = atoi(CG_Argv(3));
 				(*cg.playerInventory)[itemStack].quantity = newQuant;
@@ -289,7 +308,12 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 			break;
 		case IPT_REM:
 			// Remove the item from our inventory
-			BG_RemoveItemStack(atoi(CG_Argv(2)));
+			{
+				int itemStack = atoi(CG_Argv(2));
+				BG_RemoveItemStack(itemStack);
+				JKG_CG_ACIPostFix(itemStack);
+			}
+			
 			break;
 		case IPT_CLEAR:
 			// Clear the inventory
@@ -297,9 +321,10 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 			break;
 		case IPT_OPEN:
 			// Open the inventory menu
-			uiImports->InventoryNotify(0);
+			uiImports->InventoryNotify(INVENTORYNOTIFY_OPEN);
 			break;
 		case IPT_RESET:
+			// Clear the inventory and fill it with fresh data (usually from a vid_restart)
 			cg.playerInventory->clear();
 			{
 				int numItems = atoi(CG_Argv(2));
@@ -309,6 +334,41 @@ void BG_ReceivedItemPacket(itemPacketType_t packetType) {
 					itemInstance_t item = BG_ItemInstance(itemID, quant);
 					cg.playerInventory->push_back(item);
 				}
+			}
+			break;
+		case IPT_EQUIP:
+			// Equipped an item
+			{
+				int invID = atoi(CG_Argv(2));
+				if(invID < 0 || invID >= cg.playerInventory->size()) {
+					return;
+				}
+				(*cg.playerInventory)[invID].equipped = qtrue;
+
+				// In the case of armor, we need to be smart enough to recognize that we could be overriding
+				// a previous piece of equipment. BUT, if we send two packets, there's no guarantee that they're in order.
+				// So we simulate the behavior on the client.
+				for (int i = 0; i < cg.playerInventory->size(); i++)
+				{
+					if (i != invID && (*cg.playerInventory)[i].id->itemType == ITEM_ARMOR)
+					{
+						if ((*cg.playerInventory)[i].id->armorData.pArm->slot == (*cg.playerInventory)[invID].id->armorData.pArm->slot)
+						{
+							(*cg.playerInventory)[i].equipped = qfalse;
+							break;
+						}
+					}
+				}
+			}
+			break;
+		case IPT_UNEQUIP:
+			// Unequipped an item
+			{
+				int invID = atoi(CG_Argv(2));
+				if(invID < 0 || invID >= cg.playerInventory->size()) {
+					return;
+				}
+				(*cg.playerInventory)[invID].equipped = qfalse;
 			}
 			break;
 		default:
@@ -415,16 +475,18 @@ void BG_ReceivedTradePacket(itemTradePacketType_t packet) {
 				}
 				cg.currentlyTradingWith = otherEntity;
 
-				// Open the appropriate menu
-				centity_t* cent = &cg_entities[otherEntity];
-				if (cent->currentState.eType == ET_PLAYER) {
-					// TODO - trade between players
-				}
-				else if (cent->currentState.eType == ET_NPC) {
-					JKG_OpenShopMenu_f();
-				}
-				else {
-					// TODO - corpse/container looting
+				// Open the appropriate menu, if not in a demo
+				if (!cg.demoPlayback) {
+					centity_t* cent = &cg_entities[otherEntity];
+					if (cent->currentState.eType == ET_PLAYER) {
+						// TODO - trade between players
+					}
+					else if (cent->currentState.eType == ET_NPC) {
+						JKG_OpenShopMenu_f();
+					}
+					else {
+						// TODO - corpse/container looting
+					}
 				}
 			}
 			break;
@@ -452,12 +514,6 @@ void BG_ReceivedTradePacket(itemTradePacketType_t packet) {
 				int quantity = atoi(CG_Argv(4));
 				itemInstance_t item = BG_ItemInstance(itemID, quantity);
 				BG_GiveItem(item);
-
-				if (credits > 0)
-				{
-					//vec3_t origin;
-					trap->S_StartSound(cg.snap->ps.origin, -1, CHAN_AUTO, trap->S_RegisterSound("sound/vendor/generic/purchase02.mp3"));
-				}
 			}
 			cg.ourTradeItems->clear();
 			break;
@@ -617,6 +673,12 @@ void BG_GiveItemNonNetworked(itemInstance_t item) {
 		return;
 	}
 
+	// The player cannot actually acquire ammo items.
+	if (item.id->itemType == ITEM_AMMO)
+	{
+		return;
+	}
+
 	// Fill any incomplete stacks.
 	int nItemID = item.id->itemID;
 	int nMaxStack = item.id->maxStack;
@@ -679,7 +741,16 @@ Server tells client to remove item as well.
 ====================
 */
 #ifdef _GAME
+extern void JKG_UnequipItem(gentity_t *ent, int iNum);
 void BG_RemoveItemStack(gentity_t* ent, int itemStack) {
+	itemInstance_t item = (*ent->inventory)[itemStack];
+
+	// If it's something we have equipped, remove it
+	if (item.equipped)
+	{
+		JKG_UnequipItem(ent, itemStack);
+	}
+
 	ent->inventory->erase(ent->inventory->begin() + itemStack);
 
 	BG_SendItemPacket(IPT_REM, ent, nullptr, itemStack, 0);
@@ -701,6 +772,7 @@ Server does NOT tell client to remove item
 void BG_RemoveItemNonNetworked(gentity_t* ent, itemInstance_t item) {
 	itemData_t* pItemData = item.id;
 	int quantity = item.quantity;
+
 	for(auto it = ent->inventory->begin(); it != ent->inventory->end() && quantity > 0; ++it) {
 		if (pItemData->itemID == it->id->itemID) {
 			// This item ID matches
@@ -744,7 +816,7 @@ Server tells client to change quantity as well.
 */
 #ifdef _GAME
 void BG_ChangeItemStackQuantity(gentity_t* ent, int itemStack, int newQuantity) {
-	if(newQuantity == 0) {
+	if(newQuantity <= 0) {
 		BG_RemoveItemStack(ent, itemStack);
 		return;
 	}
@@ -759,6 +831,27 @@ void BG_ChangeItemStackQuantity(int itemStack, int newQuantity) {
 		return;
 	}
 	(*cg.playerInventory)[itemStack].quantity = newQuantity;
+}
+#endif
+
+/*
+====================
+BG_AdjustItemStackQuantity
+
+Adds/subtracts item stack quantity
+====================
+*/
+#ifdef _GAME
+void BG_AdjustItemStackQuantity(gentity_t* ent, int itemStack, int adjustment) {
+	if(itemStack < 0 || itemStack >= ent->inventory->size()) {
+		trap->Print("client %i tried to change stack quantity of invalid slot %i!!\n", ent->s.number);
+		return;
+	}
+	BG_ChangeItemStackQuantity(ent, itemStack, (*ent->inventory)[itemStack].quantity + adjustment);
+}
+#else
+void BG_AdjustItemStackQuantity(int itemStack, int adjustment) {
+	BG_ChangeItemStackQuantity(itemStack, (*cg.playerInventory)[itemStack].quantity + adjustment);
 }
 #endif
 
@@ -818,12 +911,32 @@ BG_ConsumeItem
 ====================
 */
 #ifdef _GAME
-void BG_ConsumeItem(gentity_t* ent, int itemStackNum) {
-	// stub
-}
-#else
-void BG_ConsumeItem(int itemStackNum) {
-	// stub
+extern void GLua_ConsumeItem(gentity_t* consumer, itemInstance_t* item);
+qboolean BG_ConsumeItem(gentity_t* ent, int itemStackNum) {
+	itemInstance_t* item;
+	int consumeAmount;
+
+	if (itemStackNum < 0 || itemStackNum >= ent->inventory->size()) {
+		// Invalid inventory ID
+		return qfalse;
+	}
+
+	item = &(*ent->inventory)[itemStackNum];
+	if (item->id->itemType != ITEM_CONSUMABLE) {
+		// Not a consumable item
+		return qfalse;
+	}
+
+	consumeAmount = item->id->consumableData.consumeAmount;
+	if (consumeAmount > item->quantity) {
+		// Not enough quantity to consume this item
+		return qfalse;
+	}
+
+	GLua_ConsumeItem(ent, item);
+	BG_ChangeItemStackQuantity(ent, itemStackNum, item->quantity - consumeAmount);
+
+	return qtrue;
 }
 #endif
 
@@ -980,6 +1093,12 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 		itemData->itemType = ITEM_CLOTHING;
 	else if (Q_stricmp(str, "consumable") == 0)
 		itemData->itemType = ITEM_CONSUMABLE;
+	else if (Q_stricmp(str, "shield") == 0)
+		itemData->itemType = ITEM_SHIELD;
+	else if (Q_stricmp(str, "jetpack") == 0)
+		itemData->itemType = ITEM_JETPACK;
+	else if (Q_stricmp(str, "ammo") == 0)
+		itemData->itemType = ITEM_AMMO;
 	else
 		itemData->itemType = ITEM_UNKNOWN;
 
@@ -1015,63 +1134,74 @@ static bool BG_LoadItem(const char *itemFilePath, itemData_t *itemData)
 
 		itemData->weaponData.varID = BG_GetWeaponIndex(itemData->weaponData.weapon, itemData->weaponData.variation);
 	}
+	else if (itemData->itemType == ITEM_AMMO) {
+		jsonNode = cJSON_GetObjectItem(json, "ammoclass");
+		Q_strncpyz(itemData->ammoData.ref, cJSON_ToStringOpt(jsonNode, ""), sizeof(itemData->armorData.ref));
+		itemData->ammoData.ammoIndex = BG_GetAmmo(itemData->ammoData.ref) - ammoTable;
+
+		jsonNode = cJSON_GetObjectItem(json, "ammoquantity");
+		itemData->ammoData.quantity = cJSON_ToIntegerOpt(jsonNode, 1);
+	}
 	else if (itemData->itemType == ITEM_ARMOR) {
-		//This is an armor piece. Grab the data.
-		const char *armorSlot;
-		jsonNode = cJSON_GetObjectItem(json, "armorID");
-		item = cJSON_ToNumber(jsonNode);
-		itemData->armorData.armorID = item;
+		jsonNode = cJSON_GetObjectItem(json, "armor");
+		Q_strncpyz(itemData->armorData.ref, cJSON_ToStringOpt(jsonNode, ""), sizeof(itemData->armorData.ref));
+		
+		itemData->armorData.pArm = JKG_FindArmorByName(itemData->armorData.ref);
+	}
+	else if (itemData->itemType == ITEM_CONSUMABLE) {
+		// consumeScript controls the script that gets run when we consume the item
+		jsonNode = cJSON_GetObjectItem(json, "consumeScript");
+		Q_strncpyz(itemData->consumableData.consumeScript, cJSON_ToStringOpt(jsonNode, "noscript"), MAX_CONSUMABLE_SCRIPTNAME);
 
-		jsonNode = cJSON_GetObjectItem(json, "armorSlot");
-		armorSlot = cJSON_ToString(jsonNode);
+		// consumeAmount controls the amount of items in the stack that get consumed
+		jsonNode = cJSON_GetObjectItem(json, "consumeAmount");
+		itemData->consumableData.consumeAmount = cJSON_ToIntegerOpt(jsonNode, 1);
+	}
+	else if (itemData->itemType == ITEM_SHIELD) {
+		memset(&itemData->shieldData, 0, sizeof(itemData->shieldData));
 
-		if (!Q_stricmp(armorSlot, "head")){
-			itemData->armorData.armorSlot = ARMSLOT_HEAD;
-		}
-		else if (!Q_stricmp(armorSlot, "neck")){
-			itemData->armorData.armorSlot = ARMSLOT_NECK;
-		}
-		else if (!Q_stricmp(armorSlot, "body") || !Q_stricmp(armorSlot, "torso")){
-			itemData->armorData.armorSlot = ARMSLOT_TORSO;
-		}
-		else if (!Q_stricmp(armorSlot, "robe")){
-			itemData->armorData.armorSlot = ARMSLOT_ROBE;
-		}
-		else if (!Q_stricmp(armorSlot, "legs")){
-			itemData->armorData.armorSlot = ARMSLOT_LEGS;
-		}
-		else if (!Q_stricmp(armorSlot, "hands") || !Q_stricmp(armorSlot, "hand") || !Q_stricmp(armorSlot, "gloves")){
-			itemData->armorData.armorSlot = ARMSLOT_GLOVES;
-		}
-		else if (!Q_stricmp(armorSlot, "boots") || !Q_stricmp(armorSlot, "foot") || !Q_stricmp(armorSlot, "feet")){
-			itemData->armorData.armorSlot = ARMSLOT_BOOTS;
-		}
-		else if (!Q_stricmp(armorSlot, "shoulder") || !Q_stricmp(armorSlot, "pauldron") || !Q_stricmp(armorSlot, "pauldrons")){
-			itemData->armorData.armorSlot = ARMSLOT_SHOULDER;
-		}
-		else if (!Q_stricmp(armorSlot, "implant") || !Q_stricmp(armorSlot, "implants")){
-			itemData->armorData.armorSlot = ARMSLOT_IMPLANTS;
+		jsonNode = cJSON_GetObjectItem(json, "capacity");
+		itemData->shieldData.capacity = cJSON_ToIntegerOpt(jsonNode, SHIELD_DEFAULT_CAPACITY);
+
+		jsonNode = cJSON_GetObjectItem(json, "cooldown");
+		itemData->shieldData.cooldown = cJSON_ToIntegerOpt(jsonNode, SHIELD_DEFAULT_COOLDOWN);
+
+		jsonNode = cJSON_GetObjectItem(json, "regenrate");
+		itemData->shieldData.regenrate = cJSON_ToIntegerOpt(jsonNode, SHIELD_DEFAULT_REGEN);
+
+		jsonNode = cJSON_GetObjectItem(json, "rechargeSoundEffect");
+		if (jsonNode) {
+			Q_strncpyz(itemData->shieldData.rechargeSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
 		}
 
-		//Armor Type
+		jsonNode = cJSON_GetObjectItem(json, "brokenSoundEffect");
+		if (jsonNode) {
+			Q_strncpyz(itemData->shieldData.brokenSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
+		}
 
-		//Light armor drains less force power and has no reduction to speed.
-		//Medium armor has a reduction to speed equivalent to %(Defense - Weight) / # medium/heavy armor pieces equipped
-		//Heavy armor has a chance to completely negate damage equal to its defense - weight / # heavy armor pieces equipped. (Capped at 15%)
-		//Also, it reduces speed equivalent to %(Defense - Weight) / # heavy armor pieces equipped.
-		//Note that damage negation only applies to the limb that corresponds to its slot.
+		jsonNode = cJSON_GetObjectItem(json, "equippedSoundEffect");
+		if (jsonNode) {
+			Q_strncpyz(itemData->shieldData.equippedSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
+		}
 
-		jsonNode = cJSON_GetObjectItem(json, "armorType");
-		str = cJSON_ToString(jsonNode);
+		jsonNode = cJSON_GetObjectItem(json, "chargedSoundEffect");
+		if (jsonNode) {
+			Q_strncpyz(itemData->shieldData.chargedSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
+		}
 
-		if (Q_stricmp(str, "light") == 0)
-			itemData->armorData.armorType = ARMTYPE_LIGHT;
-		else if (Q_stricmp(str, "medium") == 0)
-			itemData->armorData.armorType = ARMTYPE_MEDIUM;
-		else if (Q_stricmp(str, "heavy") == 0)
-			itemData->armorData.armorType = ARMTYPE_HEAVY;
-		else
-			itemData->armorData.armorType = ARMTYPE_MEDIUM;
+		jsonNode = cJSON_GetObjectItem(json, "malfunctionSoundEffect");
+		if (jsonNode) {
+			Q_strncpyz(itemData->shieldData.malfunctionSoundEffect, cJSON_ToString(jsonNode), MAX_QPATH);
+		}
+	}
+	else if (itemData->itemType == ITEM_JETPACK) {
+		jsonNode = cJSON_GetObjectItem(json, "jetpack");
+		Q_strncpyz(itemData->jetpackData.ref, cJSON_ToString(jsonNode), sizeof(itemData->jetpackData.ref));
+
+		itemData->jetpackData.pJetpackData = JKG_FindJetpackByName(itemData->jetpackData.ref);
+		if (itemData->jetpackData.pJetpackData == nullptr) {
+			Com_Printf(S_COLOR_YELLOW "WARNING: %s is a jetpack, but doesn't have a valid reference to a .jet file!\n", itemFilePath);
+		}
 	}
 
 	cJSON_Delete(json);
@@ -1105,6 +1235,7 @@ static bool BG_LoadItems(void)
 		if (!BG_LoadItem(va("ext_data/items/%s", itemFile), &dummy))
 		{
 			failed++;
+			itemFile += strlen(itemFile) + 1;
 			continue;
 		}
 
@@ -1152,10 +1283,31 @@ Starts the loading process
 ====================
 */
 void BG_InitItems() {
-	memset(itemLookupTable, 0, sizeof(itemLookupTable));
+	itemLookupTable = (itemData_t*)malloc(sizeof(itemData_t) * MAX_ITEM_TABLE_SIZE);
+	if (itemLookupTable == nullptr)
+	{
+		Com_Error(ERR_DROP, "could not allocate memory for items...");
+		return;
+	}
+
+	memset(itemLookupTable, 0, sizeof(itemData_t) * MAX_ITEM_TABLE_SIZE);
 
 	if (BG_LoadItems() == false) {
 		Com_Error(ERR_DROP, "could not load items...");
 		return;
+	}
+}
+
+/*
+=====================
+BG_ShutdownItems
+
+Frees the memory associated with items
+=====================
+*/
+void BG_ShutdownItems() {
+	if (itemLookupTable != nullptr)
+	{
+		free(itemLookupTable);
 	}
 }

@@ -69,12 +69,12 @@
         "ammoIndex":         "grenade_c22frag",
         "ammoOnSpawn":   2,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "cookable", "roll" ]
     },
     
     "firemode0": {
         "damage":       90,//70,//140,
+	"useQuantity":	true,
         "ballistic":    true,
         "bounces":     -5,
         "collisionsize":3.0,
@@ -88,14 +88,16 @@
         "splashrange":  400,//200,
         "projectilespeed":1100.0,
         "projectileclass":"thermal_detonator",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "clipSize":              0,
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
 
     
     "firemode1": {
         "damage":       90,//70,//140,
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
         "ammocost":     1,
@@ -108,8 +110,9 @@
         "splashrange":  400,//200,
         "projectilespeed":900.0,
         "projectileclass":"thermal_detonator",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "clipSize":              0,
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "playeranims": {

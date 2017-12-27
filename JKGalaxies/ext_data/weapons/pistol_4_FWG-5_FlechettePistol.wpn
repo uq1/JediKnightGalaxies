@@ -59,10 +59,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   1500,
-        "ammoIndex":         "flechette_missile",
-        "ammoOnSpawn":   40,
-        "ammoOnPickup":   16,
-        "clipSize":              8,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.6,
         "speed": 1
@@ -70,11 +66,15 @@
     
     "firemode0": {
         "damage":       35,//70,
-//        "damage": {
-//                          "damageradius": { "start": 80 },
-//                          "damage":          70,
-//                          "damagetype": [ "explosion" ] },
-//        "ballistic":    true,
+	"damage": {
+		"damage": 35,
+		"buffs": [
+			{
+				"buff": "standard-bleed",
+				"duration": 5000
+			}
+		]
+	},
         "collisionsize": 8.0,//32.0,	// To simulate the fact that the shells are supposed to explode right before impact with target in order to disperse the flechettes
         "ammocost":     1,
         "firedelay":    1000,
@@ -85,8 +85,11 @@
         "spread":       0.0,
         "projectilespeed":1600.0,//7000.0,
         "projectileclass":"flech_proj",
-        "meansofdeath": "MOD_FLECHETTE",
-        "splashmeansofdeath": "MOD_FLECHETTE",
+        "meansofdeath": "MOD_SLUGTHROWER",
+        "splashmeansofdeath": "MOD_SLUGTHROWER",
+	"ammobase": "AMMO_FWG-5",
+	"ammodefault": "AMMO_FWG-5",
+        "clipSize":              8,
 		"accuracy": {
 			"accuracyRating": 24,
 			"crouchModifier": 0.5

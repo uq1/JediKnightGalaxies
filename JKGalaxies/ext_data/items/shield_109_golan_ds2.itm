@@ -1,0 +1,16 @@
+{
+	"name":		"Golan DS-2 Hyper Surge Shield",
+	"internal":	"shield_golan_ds2",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/Item_Icons/ps_golan_m_glow",
+	"cost":		"1650",
+	
+	"capacity":	25,
+	"cooldown":	1800,
+	"regenrate":	67,
+
+	"rechargeSoundEffect":	"sound/shield/shield_recharge5",
+	"brokenSoundEffect":	"sound/shield/shield_broken6",
+	"equippedSoundEffect":	"sound/shield/shield_equipped3",
+	"chargedSoundEffect":	"sound/shield/shield_charged4"
+}

@@ -68,7 +68,6 @@ extern qboolean PM_SaberInBrokenParry( int move );
 extern qboolean PM_SaberInDeflect( int move );
 extern qboolean BG_SpinningSaberAnim( int anim );
 extern qboolean BG_FlippingAnim( int anim );
-extern qboolean PM_RollingAnim( int anim );
 extern qboolean PM_InKnockDown( playerState_t *ps );
 extern qboolean BG_InRoll( playerState_t *ps, int anim );
 extern qboolean BG_CrouchAnim( int anim );
@@ -627,7 +626,7 @@ qboolean DOM_Jedi_SaberBusy( gentity_t *self )
 		|| PM_SaberInBrokenParry( self->client->ps.saberMove ) 
 		//|| PM_SaberInDeflect( self->client->ps.saberMove ) 
 		|| BG_FlippingAnim( self->client->ps.torsoAnim ) 
-		|| PM_RollingAnim( self->client->ps.torsoAnim ) ) )
+		|| BG_RollingAnim( self->client->ps.torsoAnim ) ) )
 	{//my saber is not in a parrying position
 		return qtrue;
 	}

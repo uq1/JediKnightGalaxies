@@ -3414,7 +3414,48 @@
 			}
 		}
 
+		itemDef 
+		{
+		   	name 			ammocycle_button			
+			group 			controlsMenu
+			text			@JKG_MAINMENU_AMMOCYCLE
+			type			ITEM_TYPE_BIND_FIXED
+			selectionZone			479 389 117 7
+			rect				460 383 155 19
+			background			"gfx/ui/mainsub_sliderbar"
+			font				5
+			font2				5
+			textscale				0.5
+			textscale2				0.4
+			textalign				ITEM_ALIGN_RIGHT
+			text2align				ITEM_ALIGN_LEFT
+			textalignx			10
+			textaligny			1
+			text2alignx			22
+			text2aligny			4
+			forecolor			1 1 1 1
 
+	   		visible 		1
+
+			cvar				"ammocycle"
+
+			mouseenter 
+			{ 
+				show			highlight_sliderbutton
+				setitemrect		highlight_sliderbutton 	460 383 155 19
+				show			keybindstatus
+			}
+			mouseexit 
+			{ 
+				hide			highlight_sliderbutton
+				hide			keybindstatus
+					clearfocus
+			} 
+			action 
+			{ 
+				play			"sound/interface/button1.wav" ; 
+			}
+		}
 		
 		
 		

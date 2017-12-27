@@ -623,18 +623,6 @@ static QINLINE qboolean G_CheckLookTarget( gentity_t *ent, vec3_t	lookAngles, fl
 	//		headAngles and torsoAngles?  But often the tag_torso is straight but the torso itself
 	//		is deformed to not face straight... sigh...
 
-	if (ent->s.eType == ET_NPC &&
-		ent->s.m_iVehicleNum &&
-		ent->s.NPC_class != CLASS_VEHICLE )
-	{ //an NPC bolted to a vehicle should just look around randomly
-		if ( TIMER_Done( ent, "lookAround" ) )
-		{
-			ent->NPC->shootAngles[YAW] = flrand(0,360);
-			TIMER_Set( ent, "lookAround", Q_irand( 500, 3000 ) );
-		}
-		VectorSet( lookAngles, 0, ent->NPC->shootAngles[YAW], 0 );
-		return qtrue;
-	}
 	//Now calc head angle to lookTarget, if any
 	if ( ent->client->renderInfo.lookTarget >= 0 && ent->client->renderInfo.lookTarget < ENTITYNUM_WORLD )
 	{
@@ -724,29 +712,8 @@ static QINLINE void G_G2NPCAngles(gentity_t *ent, vec3_t legs[3], vec3_t angles)
 		{
 			vec3_t	trailingLegsAngles;
 
-			if (ent->s.eType == ET_NPC &&
-				ent->s.m_iVehicleNum &&
-				ent->s.NPC_class != CLASS_VEHICLE )
-			{ //an NPC bolted to a vehicle should use the full angles
-				VectorCopy(ent->r.currentAngles, angles);
-			}
-			else
-			{
-				VectorCopy( ent->client->ps.viewangles, angles );
-				angles[PITCH] = 0;
-			}
-
-			//FIXME: use actual swing/clamp tolerances?
-			/*
-			if ( ent->client->ps.groundEntityNum != ENTITYNUM_NONE )
-			{//on the ground
-				CG_PlayerLegsYawFromMovement( cent, ent->client->ps.velocity, &angles[YAW], cent->lerpAngles[YAW], -60, 60, qtrue );
-			}
-			else
-			{//face legs to front
-				CG_PlayerLegsYawFromMovement( cent, vec3_origin, &angles[YAW], cent->lerpAngles[YAW], -60, 60, qtrue );
-			}
-			*/
+			VectorCopy( ent->client->ps.viewangles, angles );
+			angles[PITCH] = 0;
 
 			VectorCopy( ent->client->ps.viewangles, viewAngles );
 	//			viewAngles[YAW] = viewAngles[ROLL] = 0;
@@ -981,33 +948,9 @@ static QINLINE void G_G2PlayerAngles( gentity_t *ent, vec3_t legs[3], vec3_t leg
 			}
 		}
 	}
-	else if ( ent->m_pVehicle && ent->m_pVehicle->m_pVehicleInfo->type == VH_WALKER )
-	{
-		vec3_t lookAngles;
-
-		VectorCopy(ent->client->ps.viewangles, legsAngles);
-		legsAngles[PITCH] = 0;
-		AnglesToAxis( legsAngles, legs );
-
-		VectorCopy(ent->client->ps.viewangles, lookAngles);
-		lookAngles[YAW] = lookAngles[ROLL] = 0;
-
-		BG_G2ATSTAngles( ent->ghoul2, level.time, lookAngles );
-	}
 	else if (ent->NPC)
 	{ //an NPC not using a humanoid skeleton, do special angle stuff.
-		if (ent->s.eType == ET_NPC &&
-			ent->s.NPC_class == CLASS_VEHICLE &&
-			ent->m_pVehicle &&
-			ent->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER)
-		{ //fighters actually want to take pitch and roll into account for the axial angles
-			VectorCopy(ent->client->ps.viewangles, legsAngles);
-			AnglesToAxis( legsAngles, legs );
-		}
-		else
-		{
-			G_G2NPCAngles(ent, legs, legsAngles);
-		}
+		G_G2NPCAngles(ent, legs, legsAngles);
 	}
 }
 
@@ -2330,17 +2273,7 @@ static QINLINE qboolean G_G2TraceCollide(trace_t *tr, vec3_t lastValidStart, vec
 			angles[YAW] = g2Hit->r.currentAngles[YAW];
 		}
 
-		if (com_optvehtrace.integer &&
-			g2Hit->s.eType == ET_NPC &&
-			g2Hit->s.NPC_class == CLASS_VEHICLE &&
-			g2Hit->m_pVehicle)
-		{
-			trap->G2API_CollisionDetectCache ( G2Trace, g2Hit->ghoul2, angles, g2HitOrigin, level.time, g2Hit->s.number, lastValidStart, lastValidEnd, g2Hit->modelScale, 0, g_g2TraceLod.integer, fRadius );
-		}
-		else
-		{
-			trap->G2API_CollisionDetect ( G2Trace, g2Hit->ghoul2, angles, g2HitOrigin, level.time, g2Hit->s.number, lastValidStart, lastValidEnd, g2Hit->modelScale, 0, g_g2TraceLod.integer, fRadius );
-		}
+		trap->G2API_CollisionDetect ( G2Trace, g2Hit->ghoul2, angles, g2HitOrigin, level.time, g2Hit->s.number, lastValidStart, lastValidEnd, g2Hit->modelScale, 0, g_g2TraceLod.integer, fRadius );
 
 		if (G2Trace[0].mEntityNum != g2Hit->s.number)
 		{
@@ -4166,8 +4099,7 @@ static QINLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int rBl
 		&& (SaberAttacking(self)																														// attacking with saber?
 			|| BG_SuperBreakWinAnim(self->client->ps.torsoAnim)
 			|| (self->client->ps.saberInFlight&&rSaberNum==0)
-			|| (WP_SaberBladeDoTransitionDamage( &self->client->saber[rSaberNum], rBladeNum )&&BG_SaberInTransitionAny(self->client->ps.saberMove))
-			|| (self->client->ps.m_iVehicleNum && self->client->ps.saberMove > LS_READY) )
+			|| (WP_SaberBladeDoTransitionDamage( &self->client->saber[rSaberNum], rBladeNum )&&BG_SaberInTransitionAny(self->client->ps.saberMove)))
 	   )
 	{ //this animation is that of the last attack movement, and so it should do full damage					// eezstreet note: this code here is what pissed off a lot of JK2 1.02 players. FIXME?
 		float fDmg = 0.0f;
@@ -4535,18 +4467,6 @@ static QINLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int rBl
 		if ( !(self->client->saber[rSaberNum].saberFlags2&SFL2_NO_DISMEMBERMENT) )
 		{
 			doDismemberment = qtrue;
-		}
-
-		if ( self->client->saber[rSaberNum].knockbackScale > 0.0f )
-		{
-			if ( rSaberNum < 1 )
-			{
-				knockbackFlags = DAMAGE_SABER_KNOCKBACK1;
-			}
-			else
-			{
-				knockbackFlags = DAMAGE_SABER_KNOCKBACK2;
-			}
 		}
 
 		WP_SaberDamageAdd( self, tr.entityNum, dir, tr.endpos, dmg, doDismemberment, knockbackFlags, rSaberNum );
@@ -5464,7 +5384,6 @@ void WP_SaberStartMissileBlockCheck( gentity_t *self, usercmd_t *ucmd  )
 			!OnSameTeam(ent, self) &&
 			ent->client->sess.sessionTeam != TEAM_SPECTATOR &&
 			!(ent->client->ps.pm_flags & PMF_FOLLOW) &&
-			(ent->s.eType != ET_NPC || ent->s.NPC_class != CLASS_VEHICLE) && //don't look at vehicle NPCs
 			ent->health > 0)
 		{ //seems like a valid enemy to look at.
 			vec3_t vecSub;
@@ -5700,22 +5619,7 @@ void WP_SaberStartMissileBlockCheck( gentity_t *self, usercmd_t *ucmd  )
 			{
 				NPC_Humanoid_Ambush( self );
 			}
-			if ( self->client->NPC_class == CLASS_BOBAFETT 
-				&& (self->client->ps.eFlags2&EF2_FLYING)//moveType == MT_FLYSWIM 
-				&& incoming->methodOfDeath != MOD_ROCKET_HOMING )
-			{//a hovering Boba Fett, not a tracking rocket
-				if ( !Q_irand( 0, 1 ) )
-				{//strafe
-					self->NPC->standTime = 0;
-					self->client->ps.fd.forcePowerDebounce[FP_SABER_DEFENSE] = level.time + Q_irand( 1000, 2000 );
-				}
-				if ( !Q_irand( 0, 1 ) )
-				{//go up/down
-					TIMER_Set( self, "heightChange", Q_irand( 1000, 3000 ) );
-					self->client->ps.fd.forcePowerDebounce[FP_SABER_DEFENSE] = level.time + Q_irand( 1000, 2000 );
-				}
-			}
-			else if ( NPC_Humanoid_SaberBlockGo( self, &self->NPC->last_ucmd, NULL, NULL, incoming, 0.0f ) != EVASION_NONE )
+			if ( NPC_Humanoid_SaberBlockGo( self, &self->NPC->last_ucmd, NULL, NULL, incoming, 0.0f ) != EVASION_NONE )
 			{//make sure to turn on your saber if it's not on
 				if ( self->client->NPC_class != CLASS_BOBAFETT )
 				{
@@ -5836,11 +5740,6 @@ static QINLINE qboolean CheckThrownSaberDamaged(gentity_t *saberent, gentity_t *
 						dflags |= DAMAGE_NO_DISMEMBER;
 					}
 
-					if ( saberOwner->client->saber[0].knockbackScale > 0.0f )
-					{
-						dflags |= DAMAGE_SABER_KNOCKBACK1;
-					}
-
 					G_Damage(ent, saberOwner, saberOwner, dir, tr.endpos, saberent->damage, dflags, MOD_SABER);
 
 					te = G_TempEntity( tr.endpos, EV_SABER_HIT );
@@ -5911,10 +5810,6 @@ static QINLINE qboolean CheckThrownSaberDamaged(gentity_t *saberent, gentity_t *
 				if ( (saberOwner->client->saber[0].saberFlags2&SFL2_NO_DISMEMBERMENT) )
 				{
 					dflags |= DAMAGE_NO_DISMEMBER;
-				}
-				if ( saberOwner->client->saber[0].knockbackScale > 0.0f )
-				{
-					dflags |= DAMAGE_SABER_KNOCKBACK1;
 				}
 
 				if (ent->s.eType == ET_NPC)
@@ -7496,7 +7391,6 @@ void WP_SaberPositionUpdate( gentity_t *self, usercmd_t *ucmd )
 	float animSpeedScale = 1.0f;
 	int saberNum;
 	qboolean clientOverride = false;
-	gentity_t *vehEnt = NULL;
 	int rSaberNum = 0;
 	int rBladeNum = 0;
 
@@ -7660,23 +7554,7 @@ nextStep:
 	properOrigin[2] += addVel[2]*fVSpeed;
 
 	properAngles[0] = 0;
-	if (self->s.number < MAX_CLIENTS && self->client->ps.m_iVehicleNum)
-	{
-		vehEnt = &g_entities[self->client->ps.m_iVehicleNum];
-		if (vehEnt->inuse && vehEnt->client && vehEnt->m_pVehicle)
-		{
-			properAngles[1] = vehEnt->m_pVehicle->m_vOrientation[YAW];
-		}
-		else
-		{
-			properAngles[1] = self->client->ps.viewangles[YAW];
-			vehEnt = NULL;
-		}
-	}
-	else
-	{
-		properAngles[1] = self->client->ps.viewangles[YAW];
-	}
+	properAngles[1] = self->client->ps.viewangles[YAW];
 	properAngles[2] = 0;
 
 	AnglesToAxis( properAngles, legAxis );
@@ -7686,11 +7564,6 @@ nextStep:
 	if (!clientOverride)
 	{ //if we get the client instance we don't need to do this
 		G_G2PlayerAngles( self, legAxis, properAngles );
-	}
-
-	if (vehEnt)
-	{
-		properAngles[1] = vehEnt->m_pVehicle->m_vOrientation[YAW];
 	}
 
 	if (returnAfterUpdate && saberNum)
@@ -7747,15 +7620,6 @@ nextStep:
 
 	boltAngles[YAW] = self->client->ps.viewangles[YAW];
 
-/*	{
-		static int lastDTime = 0;
-		if (lastDTime < level.time)
-		{
-			G_TestLine(boltOrigin, end, 0x0000ff, 200);
-			lastDTime = level.time + 200;
-		}
-	}
-*/
 	if (self->client->ps.saberInFlight)
 	{ //do the thrown-saber stuff
 		gentity_t *saberent = &g_entities[saberNum];

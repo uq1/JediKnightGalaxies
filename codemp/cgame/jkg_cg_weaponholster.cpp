@@ -13,7 +13,6 @@
 #include "ghoul2/G2.h"
 #include "game/bg_saga.h"
 #include "game/bg_public.h"
-#include "jkg_cg_damagetypes.h"
 
 #ifdef __WEAPON_HOLSTER__
 qboolean CG_SnapRefEntToBone(centity_t *cent, refEntity_t *refEnt, const char *bone_name)

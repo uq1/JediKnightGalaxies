@@ -306,7 +306,7 @@ void NPC_Droid_Pain(gentity_t *self, gentity_t *attacker, int damage)
 		pain_chance = NPC_GetPainChance( self, damage );
 
 		// Put it in pain
-		if ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT || random() < pain_chance )	// Spin around in pain? Demp2 always does this
+		/*if ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT || random() < pain_chance )	// Spin around in pain? Demp2 always does this
 		{
 			// Health is between 0-30 or was hit by a DEMP2 so pop his head
 			if ( !self->s.m_iVehicleNum
@@ -361,11 +361,11 @@ void NPC_Droid_Pain(gentity_t *self, gentity_t *attacker, int damage)
 				self->NPC->localState = LSTATE_SPINNING;
 				TIMER_Set( self, "roam", Q_irand(1000,2000));
 			} 
-		}
+		}*/
 	}
 	else if (self->client->NPC_class == CLASS_MOUSE)
 	{
-		if ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT )
+		/*if ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT )
 		{
 			self->NPC->localState = LSTATE_SPINNING;
 			//self->s.powerups |= ( 1 << PW_SHOCKED );
@@ -375,7 +375,7 @@ void NPC_Droid_Pain(gentity_t *self, gentity_t *attacker, int damage)
 		else
 		{
 			self->NPC->localState = LSTATE_BACKINGUP;
-		}
+		}*/
 
 		self->NPC->scriptFlags &= ~SCF_LOOK_FOR_ENEMIES;
 	}
@@ -384,7 +384,7 @@ void NPC_Droid_Pain(gentity_t *self, gentity_t *attacker, int damage)
 
 		pain_chance = NPC_GetPainChance( self, damage );
 
-		if ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT || random() < pain_chance )	// Spin around in pain? Demp2 always does this
+		/*if ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT || random() < pain_chance )	// Spin around in pain? Demp2 always does this
 		{
 			// Health is between 0-30 or was hit by a DEMP2 so pop his head
 			if ( !self->s.m_iVehicleNum
@@ -439,9 +439,9 @@ void NPC_Droid_Pain(gentity_t *self, gentity_t *attacker, int damage)
 				self->NPC->localState = LSTATE_SPINNING;
 				TIMER_Set( self, "roam", Q_irand(1000,2000));
 			}
-		} 
+		} */
 	}
-	else if ( self->client->NPC_class == CLASS_INTERROGATOR && ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT ) && other )
+	/*else if ( self->client->NPC_class == CLASS_INTERROGATOR && ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT ) && other )
 	{
 		vec3_t dir;
 
@@ -450,7 +450,7 @@ void NPC_Droid_Pain(gentity_t *self, gentity_t *attacker, int damage)
 
 		VectorMA( self->client->ps.velocity, 550, dir, self->client->ps.velocity );
 		self->client->ps.velocity[2] -= 127;
-	}
+	}*/
 
 	NPC_Pain( self, attacker, damage);
 }

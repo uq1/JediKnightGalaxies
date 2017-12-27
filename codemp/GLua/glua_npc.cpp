@@ -196,6 +196,33 @@ static int GLua_NPC_Kill(lua_State *L)
 	return 0;
 }
 
+static int GLua_NPC_MakeVendor(lua_State *L)
+{
+	gentity_t* npc = GLua_CheckNPC(L, 1);
+	if (!npc) return 0;
+
+	if (npc->health <= 0)
+		return 0;
+
+	const char* tc = luaL_checkstring(L, 2);
+	JKG_MakeNPCVendor(npc, (char*)tc);
+
+	return 0;
+}
+
+static int GLua_NPC_RefreshStock(lua_State *L)
+{
+	gentity_t* npc = GLua_CheckNPC(L, 1);
+	if (!npc) return 0;
+
+	if (npc->health <= 0)
+		return 0;
+
+	JKG_RegenerateStock(npc);
+
+	return 0;
+}
+
 static int GLua_NPC_GetPos(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	vec3_t orig;
@@ -384,14 +411,14 @@ static int GLua_NPC_MaxHealth(lua_State *L) {
 static int GLua_NPC_MaxArmor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	lua_pushinteger(L,npc->client->ps.stats[STAT_MAX_ARMOR]);
+	lua_pushinteger(L,npc->client->ps.stats[STAT_MAX_SHIELD]);
 	return 1;
 }
 
 static int GLua_NPC_Armor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	lua_pushinteger(L,npc->client->ps.stats[STAT_ARMOR]);
+	lua_pushinteger(L,npc->client->ps.stats[STAT_SHIELD]);
 	return 1;
 }
 
@@ -412,14 +439,14 @@ static int GLua_NPC_SetMaxHealth(lua_State *L) {
 static int GLua_NPC_SetArmor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	npc->client->ps.stats[STAT_ARMOR] = luaL_checkinteger(L, 2);
+	npc->client->ps.stats[STAT_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 
 static int GLua_NPC_SetMaxArmor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	npc->client->ps.stats[STAT_MAX_ARMOR] = luaL_checkinteger(L, 2);
+	npc->client->ps.stats[STAT_MAX_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 
@@ -1552,21 +1579,6 @@ static int GLua_NPC_SetAnimHoldTime(lua_State *L) {
 	return 0;
 }
 
-static int GLua_NPC_SetAsVendor(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if(!npc) return 0;
-	npc->bVendor = true;
-	return 0;
-}
-
-static int GLua_NPC_RefreshVendorStock(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if(!npc) return 0;
-	npc->s.seed = Q_irand(0, QRAND_MAX-1);
-	npc->bVendor = true;
-	return 0;
-}
-
 static int GLua_NPC_SetUseRange(lua_State *L)
 {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
@@ -1878,6 +1890,8 @@ static const struct luaL_reg npc_m [] = {
 	{"GetIndex", GLua_NPC_GetIndex},
 	{"IsValid", GLua_NPC_IsValid},
 	{"Kill", GLua_NPC_Kill},
+	{"MakeVendor", GLua_NPC_MakeVendor},
+	{"RefreshVendorStock", GLua_NPC_RefreshStock},
 	{"SetPos", GLua_NPC_SetPos},
 	{"GetPos", GLua_NPC_GetPos},
 	{"SetOrigin", GLua_NPC_SetPos},
@@ -1980,9 +1994,6 @@ static const struct luaL_reg npc_m [] = {
 	{"SetAnimHoldTime", GLua_NPC_SetAnimHoldTime},
 	{"SetUseRange", GLua_NPC_SetUseRange},
 	{"GetUseRange", GLua_NPC_GetUseRange},
-//Stoiss end
-	{"VendorSet", GLua_NPC_SetAsVendor},
-	{"VendorStockRefresh", GLua_NPC_RefreshVendorStock},
 	{NULL, NULL},
 };
 

@@ -61,10 +61,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   800,
-        "ammoIndex":         "trandopowercell",
-        "ammoOnSpawn":   100,
-        "ammoOnPickup":   20,
-        "clipSize":              10,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7,
         "speed":        1.1
@@ -80,8 +76,10 @@
         "spread":       0.1,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL",
-		
+        "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_POWERCELL_S",
+	"ammodefault": "AMMO_ACP_POWERCELL_S",
+        "clipSize":              10,
 		"accuracy": {
 			"accuracyRating": 11,
 			"sightsModifier": 0.2
@@ -98,15 +96,16 @@
         "recoil":       0.3,
         "spread":       0.1,
 		"shotsperburst": 3,
-		
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL"
+        "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_POWERCELL_S",
+	"ammodefault": "AMMO_ACP_POWERCELL_S",
+        "clipSize":              10
 	},
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-//        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_PISTOLRELOAD" },
         "sights":        { "torso": "TORSO_WEAPONREADY2", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK2" },

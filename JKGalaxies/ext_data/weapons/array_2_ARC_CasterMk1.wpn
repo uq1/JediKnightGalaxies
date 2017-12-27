@@ -66,10 +66,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2000,
-        "ammoIndex":         "blaster_power_pack_s",
-        "ammoOnSpawn":   320,
-        "ammoOnPickup":   160,
-        "clipSize":              80,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
@@ -88,12 +84,15 @@
         "spread":       0.6,
         "projectilespeed": 7000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 20,
-        "accuracyRatingPerShot": 12,
-        "msToDrainAccuracy": 150,
-        "maxAccuracyAdd": 56
+        "meansofdeath": "MOD_ELECTRICAL",
+	"ammobase": "AMMO_ARC_POWERPACK",
+	"ammodefault": "AMMO_ARC_POWERPACK",
+        "clipSize":              80,
+        "accuracy": {
+        	"accuracyRating": 20,
+        	"accuracyRatingPerShot": 12,
+        	"msToDrainAccuracy": 150,
+        	"maxAccuracyAdd": 56
         }
     },
 
@@ -107,12 +106,15 @@
         "spread":       0.4,
         "projectilespeed": 7000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 46,
-        "accuracyRatingPerShot": 1,
-        "msToDrainAccuracy": 150,
-        "maxAccuracyAdd": 80
+        "meansofdeath": "MOD_ELECTRICAL",
+	"ammobase": "AMMO_ARC_POWERPACK",
+	"ammodefault": "AMMO_ARC_POWERPACK",
+        "clipSize":              80,
+        "accuracy": {
+        	"accuracyRating": 46,
+        	"accuracyRatingPerShot": 1,
+        	"msToDrainAccuracy": 150,
+        	"maxAccuracyAdd": 80
         }
     },
     

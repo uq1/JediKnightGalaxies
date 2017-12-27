@@ -62,10 +62,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   875,
-        "ammoIndex":         "powerpak",
-        "ammoOnSpawn":   160,
-        "ammoOnPickup":   32,
-        "clipSize":              16,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
@@ -80,7 +76,10 @@
         "spread":       0.4,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL"
+        "meansofdeath": "MOD_BLASTER",
+	"ammobase": "AMMO_POWERPAK_L",
+	"ammodefault": "AMMO_POWERPAK_S",
+        "clipSize":              16
     },
     
     "firemode1": {
@@ -88,21 +87,29 @@
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
                                "damage":       10,
-                               "damagetype": [ "stun" ]
+				"buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 2000
+					}
+				]
                         },
         "collisionsize": 8.0,
         "maxchargetime": 500,
         "chargedamage": 1.5,
         "chargedelay":  500,
         "ammocost":     8,
-        "firedelay":    800,
+        "firedelay":    1500,
         "firingtype":   "semi",
         "range":        700.0,
         "recoil":       0.5,
         "spread":       1.0,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER"
+        "meansofdeath": "MOD_STUNNED",
+	"ammobase": "AMMO_POWERPAK_L",
+	"ammodefault": "AMMO_POWERPAK_S",
+        "clipSize":              16
     },
     
     "playeranims": {

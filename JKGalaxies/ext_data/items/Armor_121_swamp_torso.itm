@@ -1,0 +1,9 @@
+{
+	"name":             "Swamptrooper Body Armor",
+	"internal":             "torso_swamptrooper",
+	"itemtype":             "armor",
+	"armor":		"swtorso",
+	"weight":		"2",
+	"cost":			"500",
+	"itemIcon":		"gfx/item_icons/default.tga"
+}

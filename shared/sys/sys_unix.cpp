@@ -62,6 +62,10 @@ void Sys_PlatformExit( void )
 {
 }
 
+void Sys_Diagnostics(const char* diagCategory)
+{
+}
+
 /*
 ================
 Sys_Milliseconds

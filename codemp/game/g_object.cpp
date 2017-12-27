@@ -138,20 +138,6 @@ void G_RunObject( gentity_t *ent )
 	}
 
 	G_MoverTouchPushTriggers( ent, oldOrg );
-	/*
-	if ( !(ent->s.eFlags & EF_TELEPORT_BIT) && !(ent->svFlags & SVF_NO_TELEPORT) )
-	{
-		G_MoverTouchTeleportTriggers( ent, oldOrg );
-		if ( ent->s.eFlags & EF_TELEPORT_BIT )
-		{//was teleported
-			return;
-		}
-	}
-	else
-	{
-		ent->s.eFlags &= ~EF_TELEPORT_BIT;
-	}
-	*/
 
 	if ( tr.fraction == 1 ) 
 	{

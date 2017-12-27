@@ -79,10 +79,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2000,
-        "ammoIndex":         "powercell_m",
-        "ammoOnSpawn":   210,
-        "ammoOnPickup":   42,
-        "clipSize":              21,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
@@ -99,17 +95,20 @@
         "spread":       0.2,
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 45,
-        "accuracyRatingPerShot": 4,
-        "msToDrainAccuracy": 74,
-        "maxAccuracyAdd": 80,
-        "crouchModifier": 0.96,
-        "runModifier": 1.7,
-        "sightsModifier": 0.95,
-        "walkModifier": 1.2,
-        "inAirModifier": 1.9
+        "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_POWERCELL_M",
+	"ammodefault": "AMMO_ACP_POWERCELL_M",
+        "clipSize":              21,
+        "accuracy": {
+        	"accuracyRating": 45,
+        	"accuracyRatingPerShot": 4,
+        	"msToDrainAccuracy": 74,
+        	"maxAccuracyAdd": 80,
+        	"crouchModifier": 0.96,
+        	"runModifier": 1.7,
+        	"sightsModifier": 0.95,
+        	"walkModifier": 1.2,
+        	"inAirModifier": 1.9
         }
     },
 
@@ -123,17 +122,20 @@
         "spread":       0.2,
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 35,
-        "accuracyRatingPerShot": 3,
-        "msToDrainAccuracy": 75,
-        "maxAccuracyAdd": 75,
-        "crouchModifier": 0.7,
-        "runModifier": 1.7,
-        "sightsModifier": 0.5,
-        "walkModifier": 1.2,
-        "inAirModifier": 1.9
+        "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_POWERCELL_M",
+	"ammodefault": "AMMO_ACP_POWERCELL_M",
+        "clipSize":              21,
+        "accuracy": {
+        	"accuracyRating": 35,
+        	"accuracyRatingPerShot": 3,
+        	"msToDrainAccuracy": 75,
+        	"maxAccuracyAdd": 75,
+        	"crouchModifier": 0.7,
+        	"runModifier": 1.7,
+        	"sightsModifier": 0.5,
+        	"walkModifier": 1.2,
+        	"inAirModifier": 1.9
         }
     },
     
@@ -141,7 +143,7 @@
         "damage":       40,//100,
         "ballistic":    true,
         "collisionsize": 2.0,
-        "ammocost":     21,
+        "ammocost":     1,
         "firedelay":    2000,
         "firingtype":   "semi",
         "range":        40000.0,
@@ -150,25 +152,27 @@
         "splashrange":  280,//140,
         "projectilespeed":2400.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER_ALT",
-        "splashmeansofdeath": "MOD_REPEATER_ALT",
-            "accuracy": {
-        "accuracyRating": 95,
-        "accuracyRatingPerShot": 8,
-        "msToDrainAccuracy": 75,
-        "maxAccuracyAdd": 100,
-        "crouchModifier": 0.95,
-        "runModifier": 1.7,
-        "sightsModifier": 0.93,
-        "walkModifier": 1.3,
-        "inAirModifier": 2
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION",
+	"ammobase": "AMMO_EXPLOSIVE_CANISTER",
+	"ammodefault": "AMMO_EXPLOSIVE_CANISTER",
+        "clipSize":              1,
+        "accuracy": {
+        	"accuracyRating": 95,
+        	"accuracyRatingPerShot": 8,
+        	"msToDrainAccuracy": 75,
+        	"maxAccuracyAdd": 100,
+        	"crouchModifier": 0.95,
+        	"runModifier": 1.7,
+        	"sightsModifier": 0.93,
+        	"walkModifier": 1.3,
+        	"inAirModifier": 2
         }
     },
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
         "reload":       { "torso": "BOTH_RIFLERELOADB" },
-//        "reload":       { "torso": "BOTH_RIFLERELOADR" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },
 	"ready":	{ "torso": "BOTH_BASE_RIFLESTANCE", "legs": "BOTH_STAND1" },

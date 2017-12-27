@@ -5,7 +5,7 @@
 	"weapon":		"WP_THERMAL",
 	"variation":		"0",
 	"weight":		"1",
-	"cost":		"325",
-	"xml":			"xml/items/Flash-Bang.xml",
+	"cost":		"75",
+	"maxStack":		20,
 	"itemIcon":		"models/weapons/Grenade_FlashBang/icon_default"
 }

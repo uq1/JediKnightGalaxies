@@ -209,43 +209,6 @@ static char ctfFlagStatusRemap[] = {
 };
 
 /*
-==================
-JKG_ShopConfirm
-See comment in g_cmds.c --eez
-==================
-*/
-
-static void JKG_ShopConfirm( void )
-{
-	int creditCount = atoi(CG_Argv(1));
-	int itemID = atoi(CG_Argv(2));
-
-	/* Change the credit count in the shop UI */
-	cg.snap->ps.credits = creditCount;
-
-	if (itemLookupTable[itemID].itemType == ITEM_WEAPON) {
-		// Auto-assign weapons to the ACI.
-		BG_AddItemToACI(cg.playerInventory->size() - 1, -1);
-	}
-
-	/* Notify the UI about changes in the shop */
-	uiImports->ShopNotify(1);
-}
-
-/*
-==================
-JKG_AddToACI
-See comment in g_cmds.c --eez
-==================
-*/
-
-static void JKG_AddToACI( void )
-{
-	int itemID = atoi(CG_Argv(1));	// it passes along the item ID here though...?
-}
-
-
-/*
 ================
 CG_SetConfigValues
 
@@ -814,21 +777,7 @@ static void CG_ConfigStringModified( void ) {
 			CG_CacheG2AnimInfo(modelName);
 		}
 
-		if (modelName[0] != '$' && modelName[0] != '@')
-		{ //don't register vehicle names and saber names as models.
-			cgs.gameModels[ num-CS_MODELS ] = trap->R_RegisterModel( modelName );
-		}
-		else
-		{
-            cgs.gameModels[ num-CS_MODELS ] = 0;
-		}
-// GHOUL2 Insert start
-		/*
-	} else if ( num >= CS_CHARSKINS && num < CS_CHARSKINS+MAX_CHARSKINS ) {
-		cgs.skins[ num-CS_CHARSKINS ] = trap->R_RegisterSkin( str );
-		*/
-		//rww - removed and replaced with CS_G2BONES
-// Ghoul2 Insert end
+		cgs.gameModels[ num-CS_MODELS ] = 0;
 	} else if ( num >= CS_SOUNDS && num < CS_SOUNDS+MAX_SOUNDS ) {
 		if ( str[0] != '*' ) {	// player specific sounds don't register here
 			cgs.gameSounds[ num-CS_SOUNDS] = trap->S_RegisterSound( str );
@@ -921,14 +870,6 @@ void CG_KillCEntityG2(int entNum)
 		cent->ghoul2 = NULL;
 	}
 
-	//eezstreet add: Armor rendering removal
-	for(j = 0; j < ARMSLOT_MAX; j++)
-	{
-		trap->G2API_CleanGhoul2Models(&cent->armorGhoul2[j]);
-		cent->armorGhoul2[j] = NULL;
-	}
-	//eezstreet end
-
 	if (cent->grip_arm && trap->G2_HaveWeGhoul2Models(cent->grip_arm))
 	{
 		trap->G2API_CleanGhoul2Models(&cent->grip_arm);
@@ -960,15 +901,6 @@ void CG_KillCEntityInstances(void)
 	while (i < MAX_GENTITIES)
 	{
 		cent = &cg_entities[i];
-
-		if ( i < MAX_CLIENTS && cent->currentState.number == i )
-		{
-			// Kill armor g2 instances
-			for ( int j = 0; j < ARMSLOT_MAX; j++ )
-			{
-				JKG_CG_EquipArmor (i, j, 0);
-			}
-		}
 
 		if (i >= MAX_CLIENTS && cent->currentState.number == i)
 		{ //do not clear G2 instances on client ents, they are constant
@@ -1349,6 +1281,16 @@ static void CG_BodyQueueCopy(centity_t *cent, int clientNum, int knownWeapon, in
 	}
 }
 
+void JKG_ClientBoughtItem(const char* szPlayerName, int nItemID)
+{
+	if (nItemID < 0)
+	{
+		return;
+	}
+
+	Com_Printf("%s ^2purchased^7 %s!\n", szPlayerName, Q_strpnl((char*)CG_GetStringEdString2(itemLookupTable[nItemID].displayName)));
+}
+
 /*
 =================
 CG_ServerCommand
@@ -1605,7 +1547,7 @@ static void CG_ServerCommand( void ) {
 			if (oldItem != -1) {
 				(*cg.playerInventory)[oldItem].equipped = false;
 			}
-	        uiImports->InventoryNotify( 1 );
+	        uiImports->InventoryNotify( INVENTORYNOTIFY_UPDATE );
 	    }
 	    return;
 	}
@@ -1616,7 +1558,7 @@ static void CG_ServerCommand( void ) {
 	    {
 	        int slot = atoi (CG_Argv (1));
 			(*cg.playerInventory)[slot].equipped = false;
-	        uiImports->InventoryNotify( 1 );
+	        uiImports->InventoryNotify( INVENTORYNOTIFY_UPDATE );
 	    }
 	    
 	    return;
@@ -1624,22 +1566,7 @@ static void CG_ServerCommand( void ) {
 	if ( !strcmp (cmd, "inventory_update") )
 	{
 		cg.predictedPlayerState.credits = atoi(CG_Argv(1));
-		uiImports->InventoryNotify (1);
-		return;
-	}
-
-	if(!strcmp(cmd, "aequi"))
-	{ //Armor Equip
-		if ( trap->Cmd_Argc () >= 2 )
-		{
-			int client = atoi (CG_Argv (1));
-			int slot = atoi (CG_Argv (2));
-			int armor = atoi (CG_Argv (3));
-
-			
-			JKG_CG_EquipArmor (client, slot, armor);
-		}
-		
+		uiImports->InventoryNotify (INVENTORYNOTIFY_UPDATE);
 		return;
 	}
 
@@ -1736,12 +1663,6 @@ static void CG_ServerCommand( void ) {
 		clent->weapon = 0;
 		clent->ghoul2weapon = NULL; //force a weapon reinit
 
-		return;
-	}
-
-	if( !strcmp(cmd, "AddToACI") )
-	{
-		JKG_AddToACI();
 		return;
 	}
 
@@ -1940,7 +1861,7 @@ static void CG_ServerCommand( void ) {
 			}
 		}
 		/* Notify UI */
-		uiImports->PartyMngtNotify( 1 );
+		uiImports->PartyMngtNotify( PARTYNOTIFY_UPDATESEEKERS );
 		return;
 	}
 
@@ -1961,7 +1882,7 @@ static void CG_ServerCommand( void ) {
 		/* Win cake */
 
 		/* Notify UI */
-		uiImports->PartyMngtNotify( 0 );
+		uiImports->PartyMngtNotify( PARTYNOTIFY_UPDATESTATE );
 		return;
 	}
 
@@ -2000,7 +1921,7 @@ static void CG_ServerCommand( void ) {
 		cgs.party.members[0].status = 1;
 
 		/* Notify UI */
-		uiImports->PartyMngtNotify( 0 );
+		uiImports->PartyMngtNotify( PARTYNOTIFY_UPDATESTATE );
 		return;
 	}
 
@@ -2032,6 +1953,25 @@ static void CG_ServerCommand( void ) {
 	{
 		// add a notification to the display
 		CG_Notifications_Add((char *)CG_Argv(2), qfalse);	// first arg is ignored. it's supposed to specify the type of message but it's unused.
+		return;
+	}
+
+	if (!strcmp(cmd, "apc"))
+	{
+		// Ammo price check response
+		uiImports->InventoryPriceCheckResult(atoi(CG_Argv(1)), atoi(CG_Argv(2)));
+		return;
+	}
+
+	if (!strcmp(cmd, "cbi"))
+	{
+		// Client bought item
+		char* playerName = va("%s", CG_Argv(2));
+		for (int i = 3; i < trap->Cmd_Argc(); i++)
+		{
+			playerName = va("%s %s", playerName, CG_Argv(i));
+		}
+		JKG_ClientBoughtItem(playerName, atoi(CG_Argv(1)));
 		return;
 	}
 	//eezstreet end

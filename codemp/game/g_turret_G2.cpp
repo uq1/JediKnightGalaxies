@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void G_SetEnemy( gentity_t *self, gentity_t *enemy );
 void finish_spawning_turretG2( gentity_t *base );
-void ObjectDie (gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath );
+void G_RemoveAndFireTargets (gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath );
 void turretG2_base_use( gentity_t *self, gentity_t *other, gentity_t *activator );
 
 
@@ -320,7 +320,7 @@ void turretG2_die ( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, 
 	}
 	else
 	{
-		ObjectDie( self, inflictor, attacker, damage, meansOfDeath );
+		G_RemoveAndFireTargets( self, inflictor, attacker, damage, meansOfDeath );
 	}
 }
 
@@ -405,11 +405,11 @@ static void turretG2_fire ( gentity_t *ent, vec3_t start, vec3_t dir )
 		bolt->damage = ent->damage;
 		bolt->alliedTeam = ent->alliedTeam;
 		bolt->teamnodmg = ent->teamnodmg;
-		bolt->dflags = (DAMAGE_NO_KNOCKBACK|DAMAGE_HEAVY_WEAP_CLASS);		// Don't push them around, or else we are constantly re-aiming
+		bolt->dflags = DAMAGE_NO_KNOCKBACK;		// Don't push them around, or else we are constantly re-aiming
 		bolt->splashDamage = ent->splashDamage;
 		bolt->splashRadius = ent->splashDamage;
-		bolt->methodOfDeath = MOD_TARGET_LASER;//MOD_ENERGY;
-		bolt->splashMethodOfDeath = MOD_TARGET_LASER;//MOD_ENERGY;
+		bolt->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_BLASTER");//MOD_ENERGY;
+		bolt->splashMethodOfDeath = JKG_GetMeansOfDamageIndex("MOD_BLASTER");//MOD_ENERGY;
 		bolt->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 		//bolt->trigger_formation = qfalse;		// don't draw tail on first frame	
 

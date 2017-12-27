@@ -26,133 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "cg_local.h"
 
-/*
-==================
-CG_BubbleTrail
-
-Bullets shot underwater
-==================
-*/
-void CG_BubbleTrail( vec3_t start, vec3_t end, float spacing ) {
-	vec3_t		move;
-	vec3_t		vec;
-	float		len;
-	int			i;
-
-	if ( cg_noProjectileTrail.integer ) {
-		return;
-	}
-
-	VectorCopy (start, move);
-	VectorSubtract (end, start, vec);
-	len = VectorNormalize (vec);
-
-	// advance a random amount first
-	i = rand() % (int)spacing;
-	VectorMA( move, i, vec, move );
-
-	VectorScale (vec, spacing, vec);
-
-	for ( ; i < len; i += spacing ) {
-		localEntity_t	*le;
-		refEntity_t		*re;
-
-		le = CG_AllocLocalEntity();
-		le->leFlags = LEF_PUFF_DONT_SCALE;
-		le->leType = LE_MOVE_SCALE_FADE;
-		le->startTime = cg.time;
-		le->endTime = cg.time + 1000 + random() * 250;
-		le->lifeRate = 1.0 / ( le->endTime - le->startTime );
-
-		re = &le->refEntity;
-		re->shaderTime = cg.time / 1000.0f;
-
-		re->reType = RT_SPRITE;
-		re->rotation = 0;
-		re->radius = 3;
-		re->customShader = 0;//cgs.media.waterBubbleShader;
-		re->shaderRGBA[0] = 0xff;
-		re->shaderRGBA[1] = 0xff;
-		re->shaderRGBA[2] = 0xff;
-		re->shaderRGBA[3] = 0xff;
-
-		le->color[3] = 1.0;
-
-		le->pos.trType = TR_LINEAR;
-		le->pos.trTime = cg.time;
-		VectorCopy( move, le->pos.trBase );
-		le->pos.trDelta[0] = crandom()*5;
-		le->pos.trDelta[1] = crandom()*5;
-		le->pos.trDelta[2] = crandom()*5 + 6;
-
-		VectorAdd (move, vec, move);
-	}
-}
-
-/*
-=====================
-CG_SmokePuff
-
-Adds a smoke puff or blood trail localEntity.
-=====================
-*/
-localEntity_t *CG_SmokePuff( const vec3_t p, const vec3_t vel, 
-				   float radius,
-				   float r, float g, float b, float a,
-				   float duration,
-				   int startTime,
-				   int fadeInTime,
-				   int leFlags,
-				   qhandle_t hShader ) {
-	static int	seed = 0x92;
-	localEntity_t	*le;
-	refEntity_t		*re;
-//	int fadeInTime = startTime + duration / 2;
-
-	le = CG_AllocLocalEntity();
-	le->leFlags = leFlags;
-	le->radius = radius;
-
-	re = &le->refEntity;
-	re->rotation = Q_random( &seed ) * 360;
-	re->radius = radius;
-	re->shaderTime = startTime / 1000.0f;
-
-	le->leType = LE_MOVE_SCALE_FADE;
-	le->startTime = startTime;
-	le->fadeInTime = fadeInTime;
-	le->endTime = startTime + duration;
-	if ( fadeInTime > startTime ) {
-		le->lifeRate = 1.0 / ( le->endTime - le->fadeInTime );
-	}
-	else {
-		le->lifeRate = 1.0 / ( le->endTime - le->startTime );
-	}
-	le->color[0] = r;
-	le->color[1] = g; 
-	le->color[2] = b;
-	le->color[3] = a;
-
-
-	le->pos.trType = TR_LINEAR;
-	le->pos.trTime = startTime;
-	VectorCopy( vel, le->pos.trDelta );
-	VectorCopy( p, le->pos.trBase );
-
-	VectorCopy( p, re->origin );
-	re->customShader = hShader;
-
-	re->shaderRGBA[0] = le->color[0] * 0xff;
-	re->shaderRGBA[1] = le->color[1] * 0xff;
-	re->shaderRGBA[2] = le->color[2] * 0xff;
-	re->shaderRGBA[3] = 0xff;
-
-	re->reType = RT_SPRITE;
-	re->radius = le->radius;
-
-	return le;
-}
-
 int CGDEBUG_SaberColor( int saberColor )
 {
 	switch( (int)(saberColor) )
@@ -224,45 +97,6 @@ void CG_TestLine( vec3_t start, vec3_t end, int time, unsigned int color, int ra
 	//re->renderfx |= RF_DEPTHHACK;
 }
 
-/*
-==================
-CG_ThrowChunk
-==================
-*/
-void CG_ThrowChunk( vec3_t origin, vec3_t velocity, qhandle_t hModel, int optionalSound, int startalpha ) {
-	localEntity_t	*le;
-	refEntity_t		*re;
-
-	le = CG_AllocLocalEntity();
-	re = &le->refEntity;
-
-	le->leType = LE_FRAGMENT;
-	le->startTime = cg.time;
-	le->endTime = le->startTime + 5000 + random() * 3000;
-
-	VectorCopy( origin, re->origin );
-	AxisCopy( axisDefault, re->axis );
-	re->hModel = hModel;
-
-	le->pos.trType = TR_GRAVITY;
-	le->angles.trType = TR_GRAVITY;
-	VectorCopy( origin, le->pos.trBase );
-	VectorCopy( velocity, le->pos.trDelta );
-	VectorSet(le->angles.trBase, 20, 20, 20);
-	VectorCopy( velocity, le->angles.trDelta );
-	le->pos.trTime = cg.time;
-	le->angles.trTime = cg.time;
-
-	le->leFlags = LEF_TUMBLE;
-
-	le->angles.trBase[YAW] = 180;
-
-	le->bounceFactor = 0.3f;
-	le->bounceSound = optionalSound;
-
-	le->forceAlpha = startalpha;
-}
-
 //----------------------------
 //
 // Breaking Glass Technology
@@ -310,22 +144,6 @@ static void CG_DoGlassQuad( vec3_t p[4], vec2_t uv[4], qboolean stick, int time,
 	VectorSet( rotDelta, crandom() * 40.0f, crandom() * 40.0f, 0.0f );
 
 	//In an ideal world, this might actually work.
-	/*
-	CPoly *pol = FX_AddPoly(p, uv, 4,			// verts, ST, vertCount
-			vel, accel,				// motion
-			0.15f, 0.0f, 85.0f,		// alpha start, alpha end, alpha parm ( begin alpha fade when 85% of life is complete )
-			rgb1, rgb1, 0.0f,		// rgb start, rgb end, rgb parm ( not used )
-			rotDelta, bounce, time,	// rotation amount, bounce, and time to delay motion for ( zero if no delay );
-			6000,					// life
-			cgi_R_RegisterShader( "gfx/misc/test_crackle" ), 
-			FX_APPLY_PHYSICS | FX_ALPHA_NONLINEAR | FX_USE_ALPHA );
-
-	if ( random() > 0.95f && pol )
-	{
-		pol->AddFlags( FX_IMPACT_RUNS_FX | FX_KILL_ON_IMPACT );
-		pol->SetImpactFxID( theFxScheduler.RegisterEffect( "glass_impact" ));
-	}
-	*/
 
 	//rww - this is dirty.
 
@@ -464,12 +282,6 @@ void CG_InitGlass( void )
 	}
 }
 
-/*void Vector2Set(vec2_t a,float b,float c)
-{
-	a[0] = b;
-	a[1] = c;
-}*/
-
 #define TIME_DECAY_SLOW		0.1f
 #define TIME_DECAY_MED		0.04f
 #define TIME_DECAY_FAST		0.009f
@@ -516,28 +328,6 @@ void CG_DoGlass( vec3_t verts[4], vec3_t normal, vec3_t dmgPt, vec3_t dmgDir, fl
 		mxHeight = 10;
 		timeDecay = TIME_DECAY_MED;
 	}
-
-	// Pick "LOD" for width
-	/*
-	if ( width < 100 )
-	{
-		stepWidth = 0.2f;
-		mxWidth = 5;
-		timeDecay = ( timeDecay + TIME_DECAY_SLOW ) * 0.5f;
-	}
-	else if ( width > 220 )
-	{
-		stepWidth = 0.05f;
-		mxWidth = 20;
-		timeDecay = ( timeDecay + TIME_DECAY_FAST ) * 0.5f;
-	}
-	else
-	{
-		stepWidth = 0.1f;
-		mxWidth = 10;
-		timeDecay = ( timeDecay + TIME_DECAY_MED ) * 0.5f;
-	}
-	*/
 
 	//Attempt to scale the glass directly to the size of the window
 
@@ -690,278 +480,9 @@ void CG_GlassShatter(int entnum, vec3_t dmgPt, vec3_t dmgDir, float dmgRadius, i
 	//otherwise something awful has happened.
 }
 
-/*
-==================
-CG_GlassShatter_Old
-Throws glass shards from within a given bounding box in the world
-==================
-*/
-void CG_GlassShatter_Old(int entnum, vec3_t org, vec3_t mins, vec3_t maxs)
-{
-	vec3_t velocity, a, shardorg, dif, difx;
-	float windowmass;
-	float shardsthrow = 0;
-	char chunkname[256];
-
-	trap->S_StartSound(org, entnum, CHAN_BODY, trap->S_RegisterSound("sound/effects/glassbreak1.wav"));
-
-	VectorSubtract(maxs, mins, a);
-
-	windowmass = VectorLength(a); //should give us some idea of how big the chunk of glass is
-
-	while (shardsthrow < windowmass)
-	{
-		velocity[0] = crandom()*150;
-		velocity[1] = crandom()*150;
-		velocity[2] = 150 + crandom()*75;
-
-		Com_sprintf(chunkname, sizeof(chunkname), "models/chunks/glass/glchunks_%i.md3", Q_irand(1, 6));
-		VectorCopy(org, shardorg);
-	
-		dif[0] = (maxs[0]-mins[0])/2;
-		dif[1] = (maxs[1]-mins[1])/2;
-		dif[2] = (maxs[2]-mins[2])/2;
-
-		if (dif[0] < 2)
-		{
-			dif[0] = 2;
-		}
-		if (dif[1] < 2)
-		{
-			dif[1] = 2;
-		}
-		if (dif[2] < 2)
-		{
-			dif[2] = 2;
-		}
-
-		difx[0] = Q_irand(1, (dif[0]*0.9)*2);
-		difx[1] = Q_irand(1, (dif[1]*0.9)*2);
-		difx[2] = Q_irand(1, (dif[2]*0.9)*2);
-
-		if (difx[0] > dif[0])
-		{
-			shardorg[0] += difx[0]-(dif[0]);
-		}
-		else
-		{
-			shardorg[0] -= difx[0];
-		}
-		if (difx[1] > dif[1])
-		{
-			shardorg[1] += difx[1]-(dif[1]);
-		}
-		else
-		{
-			shardorg[1] -= difx[1];
-		}
-		if (difx[2] > dif[2])
-		{
-			shardorg[2] += difx[2]-(dif[2]);
-		}
-		else
-		{
-			shardorg[2] -= difx[2];
-		}
-
-		//CG_TestLine(org, shardorg, 5000, 0x0000ff, 3);
-
-		CG_ThrowChunk( shardorg, velocity, trap->R_RegisterModel( chunkname ), 0, 254 );
-
-		shardsthrow += 10;
-	}
-}
-
-/*
-==================
-CG_CreateDebris
-Throws specified debris from within a given bounding box in the world
-==================
-*/
-#define DEBRIS_SPECIALCASE_ROCK			-1
-#define DEBRIS_SPECIALCASE_CHUNKS		-2
-#define DEBRIS_SPECIALCASE_WOOD			-3
-#define DEBRIS_SPECIALCASE_GLASS		-4
-
-#define NUM_DEBRIS_MODELS_GLASS				8
-#define NUM_DEBRIS_MODELS_WOOD				8
-#define NUM_DEBRIS_MODELS_CHUNKS			3
-#define NUM_DEBRIS_MODELS_ROCKS				4 //12
-
-int dbModels_Glass[NUM_DEBRIS_MODELS_GLASS];
-int dbModels_Wood[NUM_DEBRIS_MODELS_WOOD];
-int dbModels_Chunks[NUM_DEBRIS_MODELS_CHUNKS];
-int dbModels_Rocks[NUM_DEBRIS_MODELS_ROCKS];
-
-void CG_CreateDebris(int entnum, vec3_t org, vec3_t mins, vec3_t maxs, int debrissound, int debrismodel)
-{
-	vec3_t velocity, a, shardorg, dif, difx;
-	float windowmass;
-	float shardsthrow = 0;
-	int omodel = debrismodel;
-
-	if (omodel == DEBRIS_SPECIALCASE_GLASS && !dbModels_Glass[0])
-	{ //glass no longer exists, using it for metal.
-		dbModels_Glass[0] = trap->R_RegisterModel("models/chunks/metal/metal1_1.md3");
-		dbModels_Glass[1] = trap->R_RegisterModel("models/chunks/metal/metal1_2.md3");
-		dbModels_Glass[2] = trap->R_RegisterModel("models/chunks/metal/metal1_3.md3");
-		dbModels_Glass[3] = trap->R_RegisterModel("models/chunks/metal/metal1_4.md3");
-		dbModels_Glass[4] = trap->R_RegisterModel("models/chunks/metal/metal2_1.md3");
-		dbModels_Glass[5] = trap->R_RegisterModel("models/chunks/metal/metal2_2.md3");
-		dbModels_Glass[6] = trap->R_RegisterModel("models/chunks/metal/metal2_3.md3");
-		dbModels_Glass[7] = trap->R_RegisterModel("models/chunks/metal/metal2_4.md3");
-	}
-	if (omodel == DEBRIS_SPECIALCASE_WOOD && !dbModels_Wood[0])
-	{
-		dbModels_Wood[0] = trap->R_RegisterModel("models/chunks/crate/crate1_1.md3");
-		dbModels_Wood[1] = trap->R_RegisterModel("models/chunks/crate/crate1_2.md3");
-		dbModels_Wood[2] = trap->R_RegisterModel("models/chunks/crate/crate1_3.md3");
-		dbModels_Wood[3] = trap->R_RegisterModel("models/chunks/crate/crate1_4.md3");
-		dbModels_Wood[4] = trap->R_RegisterModel("models/chunks/crate/crate2_1.md3");
-		dbModels_Wood[5] = trap->R_RegisterModel("models/chunks/crate/crate2_2.md3");
-		dbModels_Wood[6] = trap->R_RegisterModel("models/chunks/crate/crate2_3.md3");
-		dbModels_Wood[7] = trap->R_RegisterModel("models/chunks/crate/crate2_4.md3");
-	}
-	if (omodel == DEBRIS_SPECIALCASE_CHUNKS && !dbModels_Chunks[0])
-	{
-		dbModels_Chunks[0] = trap->R_RegisterModel("models/chunks/generic/chunks_1.md3");
-		dbModels_Chunks[1] = trap->R_RegisterModel("models/chunks/generic/chunks_2.md3");
-	}
-	if (omodel == DEBRIS_SPECIALCASE_ROCK && !dbModels_Rocks[0])
-	{
-		dbModels_Rocks[0] = trap->R_RegisterModel("models/chunks/rock/rock1_1.md3");
-		dbModels_Rocks[1] = trap->R_RegisterModel("models/chunks/rock/rock1_2.md3");
-		dbModels_Rocks[2] = trap->R_RegisterModel("models/chunks/rock/rock1_3.md3");
-		dbModels_Rocks[3] = trap->R_RegisterModel("models/chunks/rock/rock1_4.md3");
-		/*
-		dbModels_Rocks[4] = trap->R_RegisterModel("models/chunks/rock/rock2_1.md3");
-		dbModels_Rocks[5] = trap->R_RegisterModel("models/chunks/rock/rock2_2.md3");
-		dbModels_Rocks[6] = trap->R_RegisterModel("models/chunks/rock/rock2_3.md3");
-		dbModels_Rocks[7] = trap->R_RegisterModel("models/chunks/rock/rock2_4.md3");
-		dbModels_Rocks[8] = trap->R_RegisterModel("models/chunks/rock/rock3_1.md3");
-		dbModels_Rocks[9] = trap->R_RegisterModel("models/chunks/rock/rock3_2.md3");
-		dbModels_Rocks[10] = trap->R_RegisterModel("models/chunks/rock/rock3_3.md3");
-		dbModels_Rocks[11] = trap->R_RegisterModel("models/chunks/rock/rock3_4.md3");
-		*/
-	}
-
-	VectorSubtract(maxs, mins, a);
-
-	windowmass = VectorLength(a); //should give us some idea of how big the chunk of glass is
-
-	while (shardsthrow < windowmass)
-	{
-		velocity[0] = crandom()*150;
-		velocity[1] = crandom()*150;
-		velocity[2] = 150 + crandom()*75;
-
-		if (omodel == DEBRIS_SPECIALCASE_GLASS)
-		{
-			debrismodel = dbModels_Glass[Q_irand(0, NUM_DEBRIS_MODELS_GLASS-1)];
-		}
-		else if (omodel == DEBRIS_SPECIALCASE_WOOD)
-		{
-			debrismodel = dbModels_Wood[Q_irand(0, NUM_DEBRIS_MODELS_WOOD-1)];
-		}
-		else if (omodel == DEBRIS_SPECIALCASE_CHUNKS)
-		{
-			debrismodel = dbModels_Chunks[Q_irand(0, NUM_DEBRIS_MODELS_CHUNKS-1)];
-		}
-		else if (omodel == DEBRIS_SPECIALCASE_ROCK)
-		{
-			debrismodel = dbModels_Rocks[Q_irand(0, NUM_DEBRIS_MODELS_ROCKS-1)];
-		}
-
-		VectorCopy(org, shardorg);
-	
-		dif[0] = (maxs[0]-mins[0])/2;
-		dif[1] = (maxs[1]-mins[1])/2;
-		dif[2] = (maxs[2]-mins[2])/2;
-
-		if (dif[0] < 2)
-		{
-			dif[0] = 2;
-		}
-		if (dif[1] < 2)
-		{
-			dif[1] = 2;
-		}
-		if (dif[2] < 2)
-		{
-			dif[2] = 2;
-		}
-
-		difx[0] = Q_irand(1, (dif[0]*0.9)*2);
-		difx[1] = Q_irand(1, (dif[1]*0.9)*2);
-		difx[2] = Q_irand(1, (dif[2]*0.9)*2);
-
-		if (difx[0] > dif[0])
-		{
-			shardorg[0] += difx[0]-(dif[0]);
-		}
-		else
-		{
-			shardorg[0] -= difx[0];
-		}
-		if (difx[1] > dif[1])
-		{
-			shardorg[1] += difx[1]-(dif[1]);
-		}
-		else
-		{
-			shardorg[1] -= difx[1];
-		}
-		if (difx[2] > dif[2])
-		{
-			shardorg[2] += difx[2]-(dif[2]);
-		}
-		else
-		{
-			shardorg[2] -= difx[2];
-		}
-
-		//CG_TestLine(org, shardorg, 5000, 0x0000ff, 3);
-
-		CG_ThrowChunk( shardorg, velocity, debrismodel, debrissound, 0 );
-
-		shardsthrow += 10;
-	}
-}
-
 //==========================================================
 //SP-style chunks
 //==========================================================
-
-/*
--------------------------
-CG_ExplosionEffects
-
-Used to find the player and shake the camera if close enough
-intensity ranges from 1 (minor tremble) to 16 (major quake)
--------------------------
-*/
-
-void CG_ExplosionEffects( vec3_t origin, float intensity, int radius, int time )
-{
-	//FIXME: When exactly is the vieworg calculated in relation to the rest of the frame?s
-
-	vec3_t	dir;
-	float	dist, intensityScale;
-	float	realIntensity;
-
-	VectorSubtract( cg.refdef.vieworg, origin, dir );
-	dist = VectorNormalize( dir );
-
-	//Use the dir to add kick to the explosion
-
-	if ( dist > radius )
-		return;
-
-	intensityScale = 1 - ( dist / (float) radius );
-	realIntensity = intensity * intensityScale;
-
-	CGCam_Shake( realIntensity, time );
-}
 
 /*
 -------------------------
@@ -1334,11 +855,14 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 CG_ScorePlum
 ==================
 */
-void CG_DamagePlum( int client, vec3_t org, int damage ) {
+void CG_DamagePlum( int client, vec3_t org, int damage, int means, qboolean shield, qboolean low ) {
 	localEntity_t	*le;
 	refEntity_t		*re;
 	vec3_t			angles;
 	static vec3_t lastPos;
+	meansOfDamage_t* pMeans;
+
+	pMeans = JKG_GetMeansOfDamage(means);
 
 	//if (cg_scorePlum.integer == 0) {
 	//	return;
@@ -1351,8 +875,46 @@ void CG_DamagePlum( int client, vec3_t org, int damage ) {
 	le->endTime = cg.time + 4000;
 	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
 
-	
-	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
+	// Override the colors if we need to.
+	// This is ignored with healing plums
+	if (shield) {
+		if (pMeans->plums.overrideShieldDamagePlum) {
+			le->color[0] = pMeans->plums.overrideShieldDamagePlumColor[0];
+			le->color[1] = pMeans->plums.overrideShieldDamagePlumColor[1];
+			le->color[2] = pMeans->plums.overrideShieldDamagePlumColor[2];
+		}
+		else {
+			le->color[0] = 17.0f;
+			le->color[1] = 255.0f;
+			le->color[2] = 255.0f;
+		}
+	}
+	else if (low) {
+		if (pMeans->plums.overrideLowDamagePlum) {
+			le->color[0] = pMeans->plums.overrideLowDamagePlumColor[0];
+			le->color[1] = pMeans->plums.overrideLowDamagePlumColor[1];
+			le->color[2] = pMeans->plums.overrideLowDamagePlumColor[2];
+		}
+		else {
+			le->color[0] = 255.0f;
+			le->color[1] = 255.0f;
+			le->color[2] = 17.0f;
+		}
+	}
+	else {
+		if (pMeans->plums.overrideDamagePlum) {
+			le->color[0] = pMeans->plums.overrideDamagePlumColor[0];
+			le->color[1] = pMeans->plums.overrideDamagePlumColor[1];
+			le->color[2] = pMeans->plums.overrideDamagePlumColor[2];
+		}
+		else {
+			le->color[0] = 255.0f;
+			le->color[1] = 255.0f;
+			le->color[2] = 17.0f;
+		}
+	}
+
+	le->color[3] = 1.0;
 	le->radius = damage;
 	
 	VectorCopy( org, le->pos.trBase );
@@ -1370,247 +932,4 @@ void CG_DamagePlum( int client, vec3_t org, int damage ) {
 
 	VectorClear(angles);
 	AnglesToAxis( angles, re->axis );
-}
-
-/*
-====================
-CG_MakeExplosion
-====================
-*/
-localEntity_t *CG_MakeExplosion( vec3_t origin, vec3_t dir, 
-								qhandle_t hModel, int numFrames, qhandle_t shader,
-								int msec, qboolean isSprite, float scale, int flags )
-{
-	float			ang = 0;
-	localEntity_t	*ex;
-	int				offset;
-	vec3_t			tmpVec, newOrigin;
-
-	if ( msec <= 0 ) {
-		trap->Error( ERR_DROP, "CG_MakeExplosion: msec = %i", msec );
-	}
-
-	// skew the time a bit so they aren't all in sync
-	offset = rand() & 63;
-
-	ex = CG_AllocLocalEntity();
-	if ( isSprite ) {
-		ex->leType = LE_SPRITE_EXPLOSION; 
-		ex->refEntity.rotation = rand() % 360;
-		ex->radius = scale;
-		VectorScale( dir, 16, tmpVec );
-		VectorAdd( tmpVec, origin, newOrigin );
-	} else {
-		ex->leType = LE_EXPLOSION;
-		VectorCopy( origin, newOrigin );
-
-		// set axis with random rotate when necessary
-		if ( !dir )
-		{
-			AxisClear( ex->refEntity.axis );
-		}
-		else
-		{
-			if ( !(flags & LEF_NO_RANDOM_ROTATE) )
-				ang = rand() % 360;
-			VectorCopy( dir, ex->refEntity.axis[0] );
-			RotateAroundDirection( ex->refEntity.axis, ang );
-		}
-	}
-
-	ex->startTime = cg.time - offset;
-	ex->endTime = ex->startTime + msec;
-	
-	// bias the time so all shader effects start correctly
-	ex->refEntity.shaderTime = ex->startTime / 1000.0f;
-
-	ex->refEntity.hModel = hModel;
-	ex->refEntity.customShader = shader;
-	ex->lifeRate = (float)numFrames / msec;
-	ex->leFlags = flags;
-
-	//Scale the explosion
-	if (scale != 1) {
-		ex->refEntity.nonNormalizedAxes = qtrue;
-
-		VectorScale( ex->refEntity.axis[0], scale, ex->refEntity.axis[0] );
-		VectorScale( ex->refEntity.axis[1], scale, ex->refEntity.axis[1] );
-		VectorScale( ex->refEntity.axis[2], scale, ex->refEntity.axis[2] );
-	}
-	// set origin
-	VectorCopy ( newOrigin, ex->refEntity.origin);
-	VectorCopy ( newOrigin, ex->refEntity.oldorigin );
-
-	ex->color[0] = ex->color[1] = ex->color[2] = 1.0;
-
-	return ex;
-}
-
-
-/*
--------------------------
-CG_SurfaceExplosion
-
-Adds an explosion to a surface
--------------------------
-*/
-
-#define NUM_SPARKS		12
-#define NUM_PUFFS		1
-#define NUM_EXPLOSIONS	4
-
-void CG_SurfaceExplosion( vec3_t origin, vec3_t normal, float radius, float shake_speed, qboolean smoke )
-{
-	localEntity_t	*le;
-	//FXTrail			*particle;
-	vec3_t			direction, new_org;
-	vec3_t			velocity		= { 0, 0, 0 };
-	vec3_t			temp_org, temp_vel;
-	float			scale, dscale;
-	int				i, numSparks;
-
-	//Sparks
-	numSparks = 16 + (random() * 16.0f);
-	
-	for ( i = 0; i < numSparks; i++ )
-	{	
-		scale = 0.25f + (random() * 2.0f);
-		dscale = -scale*0.5;
-
-/*		particle = FX_AddTrail( origin,
-								NULL,
-								NULL,
-								32.0f,
-								-64.0f,
-								scale,
-								-scale,
-								1.0f,
-								0.0f,
-								0.25f,
-								4000.0f,
-								cgs.media.sparkShader,
-								rand() & FXF_BOUNCE);
-		if ( particle == NULL )
-			return;
-
-		FXE_Spray( normal, 500, 150, 1.0f, 768 + (rand() & 255), (FXPrimitive *) particle );*/
-	}
-
-	//Smoke
-	//Move this out a little from the impact surface
-	VectorMA( origin, 4, normal, new_org );
-	VectorSet( velocity, 0.0f, 0.0f, 16.0f );
-
-	for ( i = 0; i < 4; i++ )
-	{
-		VectorSet( temp_org, new_org[0] + (crandom() * 16.0f), new_org[1] + (crandom() * 16.0f), new_org[2] + (random() * 4.0f) );
-		VectorSet( temp_vel, velocity[0] + (crandom() * 8.0f), velocity[1] + (crandom() * 8.0f), velocity[2] + (crandom() * 8.0f) );
-
-/*		FX_AddSprite(	temp_org,
-						temp_vel, 
-						NULL, 
-						64.0f + (random() * 32.0f), 
-						16.0f, 
-						1.0f, 
-						0.0f,
-						20.0f + (crandom() * 90.0f),
-						0.5f,
-						1500.0f, 
-						cgs.media.smokeShader, FXF_USE_ALPHA_CHAN );*/
-	}
-
-	//Core of the explosion
-
-	//Orient the explosions to face the camera
-	VectorSubtract( cg.refdef.vieworg, origin, direction );
-	VectorNormalize( direction );
-
-	//Tag the last one with a light
-	le = CG_MakeExplosion( origin, direction, cgs.media.explosionModel, 6, cgs.media.surfaceExplosionShader, 500, qfalse, radius * 0.02f + (random() * 0.3f), 0);
-	le->light = 150;
-	VectorSet( le->lightColor, 0.9f, 0.8f, 0.5f );
-
-	for ( i = 0; i < NUM_EXPLOSIONS-1; i ++)
-	{
-		VectorSet( new_org, (origin[0] + (16 + (crandom() * 8))*crandom()), (origin[1] + (16 + (crandom() * 8))*crandom()), (origin[2] + (16 + (crandom() * 8))*crandom()) );
-		le = CG_MakeExplosion( new_org, direction, cgs.media.explosionModel, 6, cgs.media.surfaceExplosionShader, 300 + (rand() & 99), qfalse, radius * 0.05f + (crandom() *0.3f), 0);
-	}
-
-	//Shake the camera
-	CG_ExplosionEffects( origin, shake_speed, 350, 750 );
-
-	// The level designers wanted to be able to turn the smoke spawners off.  The rationale is that they
-	//	want to blow up catwalks and such that fall down...when that happens, it shouldn't really leave a mark
-	//	and a smoke spewer at the explosion point...
-	if ( smoke )
-	{
-		VectorMA( origin, -8, normal, temp_org );
-//		FX_AddSpawner( temp_org, normal, NULL, NULL, 100, random()*25.0f, 5000.0f, (void *) CG_SmokeSpawn );
-
-		//Impact mark
-		//FIXME: Replace mark
-		//CG_ImpactMark( cgs.media.burnMarkShader, origin, normal, random()*360, 1,1,1,1, qfalse, 8, qfalse );
-	}
-}
-
-/*
-=================
-CG_Bleed
-
-This is the spurt of blood when a character gets hit
-=================
-*/
-void CG_Bleed( vec3_t origin, int entityNum ) {
-	localEntity_t	*ex;
-
-	ex = CG_AllocLocalEntity();
-	ex->leType = LE_EXPLOSION;
-
-	ex->startTime = cg.time;
-	ex->endTime = ex->startTime + 500;
-	
-	VectorCopy ( origin, ex->refEntity.origin);
-	ex->refEntity.reType = RT_SPRITE;
-	ex->refEntity.rotation = rand() % 360;
-	ex->refEntity.radius = 24;
-
-	ex->refEntity.customShader = 0;//cgs.media.bloodExplosionShader;
-
-	// don't show player's own blood in view
-	if ( entityNum == cg.snap->ps.clientNum ) {
-		ex->refEntity.renderfx |= RF_THIRD_PERSON;
-	}
-}
-
-
-
-/*
-==================
-CG_LaunchGib
-==================
-*/
-void CG_LaunchGib( vec3_t origin, vec3_t velocity, qhandle_t hModel ) {
-	localEntity_t	*le;
-	refEntity_t		*re;
-
-	le = CG_AllocLocalEntity();
-	re = &le->refEntity;
-
-	le->leType = LE_FRAGMENT;
-	le->startTime = cg.time;
-	le->endTime = le->startTime + 5000 + random() * 3000;
-
-	VectorCopy( origin, re->origin );
-	AxisCopy( axisDefault, re->axis );
-	re->hModel = hModel;
-
-	le->pos.trType = TR_GRAVITY;
-	VectorCopy( origin, le->pos.trBase );
-	VectorCopy( velocity, le->pos.trDelta );
-	le->pos.trTime = cg.time;
-
-	le->bounceFactor = 0.6f;
-
-	le->leBounceSoundType = LEBS_BLOOD;
-	le->leMarkType = LEMT_BLOOD;
 }

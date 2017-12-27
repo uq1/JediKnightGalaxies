@@ -55,10 +55,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2250,
-        "ammoIndex":         "concussion",
-        "ammoOnSpawn":   9,
-        "ammoOnPickup":   1,
-        "clipSize":              3,
         "flags":        [ "knockback" ],
         "reloadmodifier": 0.5,
         "speed":        0.9
@@ -77,8 +73,11 @@
         "splashrange":  420,//210,
         "projectilespeed":13000.0,
         "projectileclass":"conc_proj",
-        "meansofdeath": "MOD_CONC",
-        "splashmeansofdeath": "MOD_CONC",
+        "meansofdeath": "MOD_SONIC",
+        "splashmeansofdeath": "MOD_SONIC",
+	"ammobase": "AMMO_CONCUSSION",
+	"ammodefault": "AMMO_CONCUSSION",
+        "clipSize":              3,
             "accuracy": {
         "accuracyRating": 40,
         "accuracyRatingPerShot": 10,

@@ -1,0 +1,158 @@
+{
+	"standard-fire": {
+		"category": "fire",
+
+		"canceling": {
+			"priority": 50,
+			"noBuffStack": true,
+			"noCategoryStack": true,
+			"waterRemoval": true,
+			"rollRemoval": true,
+
+			"cancelOther": [
+				{
+					"category": "cold",
+					"priority": 50
+				}
+			]
+		},
+
+		"damage": {
+			"damage": 2,
+			"means": "MOD_IGNITED",
+			"damageRate": 500
+		},
+
+		"visuals": {
+			"efx": {
+				"effect": "player/fire",
+				"bolt": "lower_lumbar",
+				"debounce": 200
+			}
+		}
+	},
+
+	"standard-freeze": {
+		"category": "cold",
+
+		"canceling": {
+			"priority": 50,
+			"noBuffStack": true,
+			"noCategoryStack": true,
+
+			"cancelOther": [
+				{
+					"category": "fire",
+					"priority": 100
+				}
+			]
+		},
+
+		"damage": {
+			"damage": 2,
+			"means": "MOD_FROZEN",
+			"damagerate": 1000
+		},
+
+		"passive": {
+			"pmove": "PM_FREEZE"
+		},
+
+		"visuals": {
+			"shader": {
+				"shader": "gfx/PlayerOverlays/ice",
+				"shaderRGBA": [ 63, 63, 127, 255 ],
+				"shaderLen": 100000
+			}
+		}
+	},
+
+	"standard-stun": {
+		"category": "stun",
+
+		"canceling": {
+			"noBuffStack": true,
+			"noCategoryStack": true
+		},
+
+		"passive": {
+			"pmove": "PM_FREEZE"
+		},
+
+		"visuals": {
+			"shader": {
+				"shader": "gfx/PlayerOverlays/stun",
+				"shaderRGBA": [ 0, 0, 127, 255 ],
+				"shaderLen": 400
+			}
+		}
+	},
+
+	"standard-carbonite": {
+		"category": "carbonite",
+
+		"canceling": {
+			"noBuffStack": true,
+			"noCategoryStack": true
+		},
+
+		"damage": {
+			"damage": 2,
+			"means": "MOD_CARBONITE",
+			"damagerate": 1000
+		},
+
+		"passive": {
+			"pmove": "PM_FREEZE"
+		},
+
+		"visuals": {
+			"shader": {
+				"shader": "gfx/PlayerOverlays/carbonite",
+				"shaderRGBA": [ 50, 50, 50, 255 ],
+				"shaderLen": 100000
+			}
+		}
+	},
+
+	"standard-bleed": {
+		"category": "bleed",
+
+		"canceling": {
+			"noBuffStack": true,
+			"noCategoryStack": true
+		},
+
+		"damage": {
+			"damage": 1,
+			"means": "MOD_BLEEDING",
+			"damagerate": 1000
+		}
+	},
+
+	"standard-poison": {
+		"category": "poison",
+
+		"canceling": {
+			"noBuffStack": true,
+			"noCategoryStack": true
+		},
+
+		"damage": {
+			"damage": 4,
+			"means": "MOD_POISONED",
+			"damagerate": 1000
+		}
+	}
+
+	// movement speed modifier is not implemented yet
+	//"standard-cold": {
+	//	"category": "cold",
+	//
+	//	"canceling": {
+	//	},
+	//
+	//	"damage": {
+	//	}
+	//}
+}

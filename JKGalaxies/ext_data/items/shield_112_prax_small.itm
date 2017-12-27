@@ -1,0 +1,16 @@
+{
+	"name":		"Prax Arms PS-21 Ballistic Shield",
+	"internal":	"shield_prax_small",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/Item_Icons/psd_prax_s_glow",
+	"cost":		"950",
+	
+	"capacity":	40,
+	"cooldown":	5000,
+	"regenrate":	333,
+
+	"rechargeSoundEffect":	"sound/shield/shield_recharge3",
+	"brokenSoundEffect":	"sound/shield/shield_broken5",
+	"equippedSoundEffect":	"sound/shield/shield_equipped",
+	"chargedSoundEffect":	"sound/shield/shield_charged6"
+}

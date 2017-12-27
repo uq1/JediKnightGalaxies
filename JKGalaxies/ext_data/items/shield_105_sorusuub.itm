@@ -1,0 +1,16 @@
+{
+	"name":		"Soru-Suub Outrigger Shield",
+	"internal":	"shield_sorusuub",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/Item_Icons/psd_beltloop_s_glow",
+	"cost":		"1175",
+	
+	"capacity":	75,
+	"cooldown":	0,
+	"regenrate":	666,
+
+	"brokenSoundEffect":	"sound/shield/shield_broken3",
+	"equippedSoundEffect":	"sound/shield/shield_equipped4",
+	"rechargeSoundEffect":	"sound/shield/shield_recharge7",
+	"chargedSoundEffect":	"sound/shield/shield_charged"
+}

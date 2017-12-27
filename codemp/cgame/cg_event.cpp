@@ -36,15 +36,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "cg_weapons.h"
 //==========================================================================
 
-extern qboolean CG_VehicleWeaponImpact( centity_t *cent );
 extern int cg_saberFlashTime;
 extern vec3_t cg_saberFlashPos;
 extern char *showPowersName[];
-
-extern int cg_siegeDeathTime;
-extern int cg_siegeDeathDelay;
-extern int cg_vehicleAmmoWarning;
-extern int cg_vehicleAmmoWarningTime;
 
 extern void JKG_SwapToSaber(int saberNum, clientInfo_t *ci, const char *newSaber, int weapon, int variation);
 
@@ -126,345 +120,64 @@ static void CG_Obituary( entityState_t *ent ) {
 	int			mod;
 	int			target, attacker;
 	char		*message;
-	const char	*targetInfo;
 	const char	*attackerInfo;
-	char		targetName[MAX_QPATH];						//increased from 32, to use MAX_QPATH
 	char		attackerName[MAX_QPATH];
-	gender_t	gender;
 	clientInfo_t	*ci;
-
+	meansOfDamage_t* means;
 
 	target = ent->otherEntityNum;
 	attacker = ent->otherEntityNum2;
 	mod = ent->eventParm;
+	means = JKG_GetMeansOfDamage(mod);
+
+	if (means == nullptr) {
+		trap->Error(ERR_DROP, "CG_Obituary: mod out of range");
+	}
 
 	if ( target < 0 || target >= MAX_CLIENTS ) {
 		trap->Error( ERR_DROP, "CG_Obituary: target out of range" );
 	}
 	ci = &cgs.clientinfo[target];
 
-
+	// Get info for attacker
 	if ( attacker < 0 || attacker >= MAX_CLIENTS ) {
 		attacker = ENTITYNUM_WORLD;
 		attackerInfo = NULL;
 	} else {
 		attackerInfo = CG_ConfigString( CS_PLAYERS + attacker );
+		Q_strncpyz(attackerName, Info_ValueForKey(attackerInfo, "n"), sizeof(attackerName));
 	}
 
-	targetInfo = CG_ConfigString( CS_PLAYERS + target );
-	if ( !targetInfo ) {
-		return;
-	}
-	Q_strncpyz( targetName, Info_ValueForKey( targetInfo, "n" ), sizeof(targetName) - 2);
-	strcat( targetName, S_COLOR_WHITE );
-
-	// check for single client messages
-
-	switch( mod ) {
-	case MOD_SUICIDE:
-	case MOD_FALLING:
-	case MOD_CRUSH:
-	case MOD_WATER:
-	case MOD_SLIME:
-	case MOD_LAVA:
-	case MOD_TRIGGER_HURT:
-		message = "DIED_GENERIC";
-		break;
-	case MOD_TARGET_LASER:
-		message = "DIED_LASER";
-		break;
-	default:
-		message = NULL;
-		break;
-	}
-
-	// Attacker killed themselves.  Ridicule them for it.
 	if (attacker == target) {
-		gender = ci->gender;
-		switch (mod) {
-		case MOD_BRYAR_PISTOL:
-		case MOD_BRYAR_PISTOL_ALT:
-		case MOD_BLASTER:
-		case MOD_TURBLAST:
-		case MOD_DISRUPTOR:
-		case MOD_DISRUPTOR_SPLASH:
-		case MOD_DISRUPTOR_SNIPER:
-		case MOD_BOWCASTER:
-		case MOD_REPEATER:
-		case MOD_REPEATER_ALT:
-		case MOD_FLECHETTE:
-			if ( gender == GENDER_FEMALE )
-				message = "SUICIDE_SHOT_FEMALE";
-			else if ( gender == GENDER_NEUTER )
-				message = "SUICIDE_SHOT_GENDERLESS";
-			else
-				message = "SUICIDE_SHOT_MALE";
-			break;
-		case MOD_REPEATER_ALT_SPLASH:
-		case MOD_FLECHETTE_ALT_SPLASH:
-		case MOD_ROCKET:
-		case MOD_ROCKET_SPLASH:
-		case MOD_ROCKET_HOMING:
-		case MOD_ROCKET_HOMING_SPLASH:
-		case MOD_THERMAL:
-		case MOD_THERMAL_SPLASH:
-		case MOD_TRIP_MINE_SPLASH:
-		case MOD_TIMED_MINE_SPLASH:
-		case MOD_DET_PACK_SPLASH:
-		case MOD_VEHICLE:
-		case MOD_CONC:
-		case MOD_CONC_ALT:
-			if ( gender == GENDER_FEMALE )
-				message = "SUICIDE_EXPLOSIVES_FEMALE";
-			else if ( gender == GENDER_NEUTER )
-				message = "SUICIDE_EXPLOSIVES_GENDERLESS";
-			else
-				message = "SUICIDE_EXPLOSIVES_MALE";
-			break;
-		case MOD_DEMP2:
-			if ( gender == GENDER_FEMALE )
-				message = "SUICIDE_ELECTROCUTED_FEMALE";
-			else if ( gender == GENDER_NEUTER )
-				message = "SUICIDE_ELECTROCUTED_GENDERLESS";
-			else
-				message = "SUICIDE_ELECTROCUTED_MALE";
-			break;
-		case MOD_FALLING:
-			if ( gender == GENDER_FEMALE )
-				message = "SUICIDE_FALLDEATH_FEMALE";
-			else if ( gender == GENDER_NEUTER )
-				message = "SUICIDE_FALLDEATH_GENDERLESS";
-			else
-				message = "SUICIDE_FALLDEATH_MALE";
-			break;
-		default:
-			if ( gender == GENDER_FEMALE )
-				message = "SUICIDE_GENERICDEATH_FEMALE";
-			else if ( gender == GENDER_NEUTER )
-				message = "SUICIDE_GENERICDEATH_GENDERLESS";
-			else
-				message = "SUICIDE_GENERICDEATH_MALE";
-			break;
-		}
-	}
-
-	if (target != attacker && target < MAX_CLIENTS && attacker < MAX_CLIENTS)
-	{
-		goto clientkilled;
-	}
-
-	if (message) {
-		gender = ci->gender;
-
-		if (!message[0])
-		{
-			if ( gender == GENDER_FEMALE )
-				message = "SUICIDE_GENERICDEATH_FEMALE";
-			else if ( gender == GENDER_NEUTER )
-				message = "SUICIDE_GENERICDEATH_GENDERLESS";
-			else
-				message = "SUICIDE_GENERICDEATH_MALE";
-		}
-		message = (char *)CG_GetStringEdString("MP_INGAME", message);
-
-		//trap->Print( "%s %s\n", targetName, message); Disables rendering of kill messages as it is not needed in a MMO?
-		return;
-	}
-
-clientkilled:
-
-
-	// check for kill messages from the current clientNum
-	if ( attacker == cg.snap->ps.clientNum ) {
-		char	*s;
-
-		if ( cgs.gametype < GT_TEAM && cgs.gametype != GT_DUEL && cgs.gametype != GT_POWERDUEL ) {
-			if (cgs.gametype == GT_POWERDUEL)
-			{
-				s = "";
+		// Attacker killed themselves.  Ridicule them for it.
+		if (means->killfeed.genderedStringsPresent) {
+			switch (ci->gender) { // don't assume, check!
+				case GENDER_FEMALE:
+					message = va("%s ^7%s\n", ci->name, CG_GetStringEdString2(means->killfeed.suicideMessage.gendered.female));
+					break;
+				case GENDER_MALE:
+					message = va("%s ^7%s\n", ci->name, CG_GetStringEdString2(means->killfeed.suicideMessage.gendered.male));
+					break;
+				default:
+				case GENDER_NEUTER:
+					message = va("%s ^7%s\n", ci->name, CG_GetStringEdString2(means->killfeed.suicideMessage.gendered.neuter));
+					break;
 			}
-			else
-			{
-				char sPlaceWith[256];
-				char sKilledStr[256];
-				trap->SE_GetStringTextString("MP_INGAME_PLACE_WITH",     sPlaceWith, sizeof(sPlaceWith));
-				trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
-				s = va("%s %s.\n%s %s %i.", sKilledStr, targetName,
-					CG_PlaceString( cg.snap->ps.persistant[PERS_RANK] + 1 ), 
-					sPlaceWith,
-					cg.snap->ps.persistant[PERS_SCORE] );
-			}
-		} else {
-			char sKilledStr[256];
-			trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
-			s = va("%s %s", sKilledStr, targetName);
 		}
-
-		CG_CenterPrint( s, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
-
-	}
-
-	// check for double client messages
-	if ( !attackerInfo ) {
-		attacker = ENTITYNUM_WORLD;
-		strcpy( attackerName, "noname" );
-	} else {
-		Q_strncpyz( attackerName, Info_ValueForKey( attackerInfo, "n" ), sizeof(attackerName) - 2);
-		strcat( attackerName, S_COLOR_WHITE );
-		// check for kill messages about the current clientNum
-		if ( target == cg.snap->ps.clientNum ) {
-			Q_strncpyz( cg.killerName, attackerName, sizeof( cg.killerName ) );
+		else {
+			message = va("%s ^7%s\n", ci->name, CG_GetStringEdString2(means->killfeed.suicideMessage.message));
 		}
 	}
-
-	if ( attacker != ENTITYNUM_WORLD ) {
-		switch (mod) {
-		case MOD_STUN_BATON:
-			message = "KILLED_STUN";
-			break;
-		case MOD_MELEE:
-			message = "KILLED_MELEE";
-			break;
-		case MOD_SABER:
-			message = "KILLED_SABER";
-			break;
-		case MOD_BRYAR_PISTOL:
-		case MOD_BRYAR_PISTOL_ALT:
-			message = "KILLED_BRYAR";
-			break;
-		case MOD_BLASTER:
-			message = "KILLED_BLASTER";
-			break;
-		case MOD_TURBLAST:
-			message = "KILLED_BLASTER";
-			break;
-		case MOD_DISRUPTOR:
-		case MOD_DISRUPTOR_SPLASH:
-			message = "KILLED_DISRUPTOR";
-			break;
-		case MOD_DISRUPTOR_SNIPER:
-			message = "KILLED_DISRUPTORSNIPE";
-			break;
-		case MOD_BOWCASTER:
-			message = "KILLED_BOWCASTER";
-			break;
-		case MOD_REPEATER:
-			message = "KILLED_REPEATER";
-			break;
-		case MOD_REPEATER_ALT:
-		case MOD_REPEATER_ALT_SPLASH:
-			message = "KILLED_REPEATERALT";
-			break;
-		case MOD_DEMP2:
-		case MOD_DEMP2_ALT:
-			message = "KILLED_DEMP2";
-			break;
-		case MOD_FLECHETTE:
-			message = "KILLED_FLECHETTE";
-			break;
-		case MOD_FLECHETTE_ALT_SPLASH:
-			message = "KILLED_FLECHETTE_MINE";
-			break;
-		case MOD_ROCKET:
-		case MOD_ROCKET_SPLASH:
-			message = "KILLED_ROCKET";
-			break;
-		case MOD_ROCKET_HOMING:
-		case MOD_ROCKET_HOMING_SPLASH:
-			message = "KILLED_ROCKET_HOMING";
-			break;
-		case MOD_THERMAL:
-		case MOD_THERMAL_SPLASH:
-			message = "KILLED_THERMAL";
-			break;
-		case MOD_TRIP_MINE_SPLASH:
-			message = "KILLED_TRIPMINE";
-			break;
-		case MOD_TIMED_MINE_SPLASH:
-			message = "KILLED_TRIPMINE_TIMED";
-			break;
-		case MOD_DET_PACK_SPLASH:
-			message = "KILLED_DETPACK";
-			break;
-		case MOD_VEHICLE:
-		case MOD_CONC:
-		case MOD_CONC_ALT:
-			message = "KILLED_GENERIC";
-			break;
-		case MOD_FORCE_DARK:
-			message = "KILLED_DARKFORCE";
-			break;
-		case MOD_SENTRY:
-			message = "KILLED_SENTRY";
-			break;
-		case MOD_TELEFRAG:
-			message = "KILLED_TELEFRAG";
-			break;
-		case MOD_CRUSH:
-			message = "KILLED_GENERIC";//"KILLED_FORCETOSS";
-			break;
-		case MOD_FALLING:
-			message = "KILLED_FORCETOSS";
-			break;
-		case MOD_TRIGGER_HURT:
-			message = "KILLED_GENERIC";//"KILLED_FORCETOSS";
-			break;
-		default:
-			message = "KILLED_GENERIC";
-			break;
-		}
-
-		if (message) {
-			message = (char *)CG_GetStringEdString("MP_INGAME", message);
-			trap->Print("%s %s %s\n", targetName, message, attackerName);
-			return;
-		}
+	else if (attacker != ENTITYNUM_WORLD) {
+		// Killed by another player
+		message = va("%s ^7%s %s\n", ci->name, CG_GetStringEdString2(means->killfeed.killMessage), attackerName);
 	}
-	// we don't know what it was
-	trap->Print("%s %s\n", targetName, (char *)CG_GetStringEdString("MP_INGAME", "DIED_GENERIC"));
-}
-
-//==========================================================================
-
-void CG_ToggleBinoculars(centity_t *cent, int forceZoom)
-{
-	if (cent->currentState.number != cg.snap->ps.clientNum)
-	{
-		return;
+	else {
+		// Killed by world
+		message = va("%s ^7%s\n", ci->name, CG_GetStringEdString2(means->killfeed.deathMessage));
 	}
 
-	if (cg.snap->ps.weaponstate != WEAPON_READY)
-	{ //So we can't fool it and reactivate while switching to the saber or something.
-		return;
-	}
-
-	/*
-	if (cg.snap->ps.weapon == WP_SABER)
-	{ //No.
-		return;
-	}
-	*/
-
-	if (forceZoom)
-	{
-		if (forceZoom == 2)
-		{
-			cg.snap->ps.zoomMode = 0;
-		}
-		else if (forceZoom == 1)
-		{
-			cg.snap->ps.zoomMode = 2;
-		}
-	}
-
-	if (cg.snap->ps.zoomMode == 0)
-	{
-		trap->S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_AUTO, cgs.media.zoomStart );
-	}
-	else if (cg.snap->ps.zoomMode == 2)
-	{
-		trap->S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_AUTO, cgs.media.zoomEnd );
-	}
+	trap->Print(message);
 }
 
 //set the local timing bar
@@ -928,19 +641,7 @@ void CG_G2MarkEvent(entityState_t *es)
 	if ( (es->eFlags&EF_JETPACK_ACTIVE) )
 	{// a vehicle weapon, make it a larger size mark
 		//OR base this on the size of the thing you hit?
-		if ( g_vehWeaponInfo[es->otherEntityNum2].fG2MarkSize )
-		{
-			size = flrand( 0.6f, 1.4f )*g_vehWeaponInfo[es->otherEntityNum2].fG2MarkSize;
-		}
-		else
-		{	
-			size = flrand( 32.0f, 72.0f );
-		}
-		//specify mark shader in vehWeapon file
-		if ( g_vehWeaponInfo[es->otherEntityNum2].iG2MarkShaderHandle )
-		{//have one we want to use instead of defaults
-			shader = g_vehWeaponInfo[es->otherEntityNum2].iG2MarkShaderHandle;
-		}
+		size = flrand( 32.0f, 72.0f );
 	}
 	switch(es->weapon)
 	{
@@ -980,96 +681,8 @@ void CG_G2MarkEvent(entityState_t *es)
 			pOwner->lerpAngles[YAW], pOwner->ghoul2,
 			pOwner->modelScale, Q_irand(10000, 20000));
 		break;
-		/*
-	case WP_FLECHETTE:
-		CG_AddGhoul2Mark(cgs.media.bdecal_bodyburn1, flrand(0.5f, 1.0f), 
-			startPoint, es->origin2, es->owner, pOwner->lerpOrigin,
-			pOwner->lerpAngles[YAW], pOwner->ghoul2,
-			pOwner->modelScale);
-		break;
-		*/
-		//Issues with small scale?
 	default:
 		break;
-	}
-}
-
-void CG_CalcVehMuzzle(Vehicle_t *pVeh, centity_t *ent, int muzzleNum)
-{
-	mdxaBone_t boltMatrix;
-	vec3_t	vehAngles;
-
-	assert(pVeh);
-
-	if (pVeh->m_iMuzzleTime[muzzleNum] == cg.time)
-	{ //already done for this frame, don't need to do it again
-		return;
-	}
-	//Uh... how about we set this, hunh...?  :)
-	pVeh->m_iMuzzleTime[muzzleNum] = cg.time;
-
-	VectorCopy( ent->lerpAngles, vehAngles );
-	if ( pVeh->m_pVehicleInfo )
-	{
-		if (pVeh->m_pVehicleInfo->type == VH_ANIMAL
-			 ||pVeh->m_pVehicleInfo->type == VH_WALKER)
-		{
-			vehAngles[PITCH] = vehAngles[ROLL] = 0.0f;
-		}
-		else if (pVeh->m_pVehicleInfo->type == VH_SPEEDER)
-		{
-			vehAngles[PITCH] = 0.0f;
-		}
-	}
-	trap->G2API_GetBoltMatrix_NoRecNoRot(ent->ghoul2, 0, pVeh->m_iMuzzleTag[muzzleNum], &boltMatrix, vehAngles,
-		ent->lerpOrigin, cg.time, NULL, ent->modelScale);
-	BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, pVeh->m_vMuzzlePos[muzzleNum]);
-	BG_GiveMeVectorFromMatrix(&boltMatrix, NEGATIVE_Y, pVeh->m_vMuzzleDir[muzzleNum]);
-}
-
-//corresponds to G_VehMuzzleFireFX -rww
-void CG_VehMuzzleFireFX(centity_t *veh, entityState_t *broadcaster)
-{
-	Vehicle_t *pVeh = veh->m_pVehicle;
-	int curMuz = 0, muzFX = 0;
-
-	if (!pVeh || !veh->ghoul2)
-	{
-		return;
-	}
-
-	for ( curMuz = 0; curMuz < MAX_VEHICLE_MUZZLES; curMuz++ )
-	{//go through all muzzles and 
-		if ( pVeh->m_iMuzzleTag[curMuz] != -1//valid muzzle bolt
-			&& (broadcaster->trickedentindex&(1<<curMuz)) )//fired
-		{//this muzzle fired
-			muzFX = 0;
-			if ( pVeh->m_pVehicleInfo->weapMuzzle[curMuz] == 0 )
-			{//no weaopon for this muzzle?  check turrets
-				int i, j;
-				for ( i = 0; i < MAX_VEHICLE_TURRETS; i++ )
-				{
-					for ( j = 0; j < MAX_VEHICLE_TURRETS; j++ )
-					{
-						if ( pVeh->m_pVehicleInfo->turret[i].iMuzzle[j]-1 == curMuz )
-						{//this muzzle belongs to this turret
-							muzFX = g_vehWeaponInfo[pVeh->m_pVehicleInfo->turret[i].iWeapon].iMuzzleFX;
-							break;
-						}
-					}
-				}
-			}
-			else
-			{
-				muzFX = g_vehWeaponInfo[pVeh->m_pVehicleInfo->weapMuzzle[curMuz]].iMuzzleFX;
-			}
-			if ( muzFX )
-			{
-				//CG_CalcVehMuzzle(pVeh, veh, curMuz);
-				//trap->FX_PlayEffectID(muzFX, pVeh->m_vMuzzlePos[curMuz], pVeh->m_vMuzzleDir[curMuz], -1, -1);
-				trap->FX_PlayBoltedEffectID(muzFX, veh->currentState.origin, veh->ghoul2, pVeh->m_iMuzzleTag[curMuz], veh->currentState.number, 0, 0, qtrue);
-			}
-		}
 	}
 }
 
@@ -1669,15 +1282,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		CG_TryPlayCustomSound( NULL, es->number, CHAN_VOICE, "*pushfail.wav" );
 		break;
 		//End NPC sounds
-
-	case EV_SIEGESPEC:
-		DEBUGNAME("EV_SIEGESPEC");
-		if ( es->owner == cg.predictedPlayerState.clientNum )
-		{
-			cg_siegeDeathTime = es->time;
-		}
-
-		break;
 		
 	case EV_WATER_TOUCH:
 		DEBUGNAME("EV_WATER_TOUCH");
@@ -1747,14 +1351,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 		break;
 
-	case EV_VEH_FIRE:
-		DEBUGNAME("EV_VEH_FIRE");
-		{
-			centity_t *veh = &cg_entities[es->owner];
-			CG_VehMuzzleFireFX(veh, es);
-		}
-		break;
-
 	//
 	// weapon events
 	//
@@ -1763,58 +1359,13 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 //		trap->S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.noAmmoSound );
 		if ( es->number == cg.snap->ps.clientNum )
 		{
-			if ( CG_InFighter() || CG_InATST() || cg.snap->ps.weapon == WP_NONE )
-			{//just letting us know our vehicle is out of ammo
-				//FIXME: flash something on HUD or give some message so we know we have no ammo
-				centity_t *localCent = &cg_entities[cg.snap->ps.clientNum];
-				if ( localCent->m_pVehicle 
-					&& localCent->m_pVehicle->m_pVehicleInfo
-					&& localCent->m_pVehicle->m_pVehicleInfo->weapon[es->eventParm].soundNoAmmo )
-				{//play the "no Ammo" sound for this weapon
-					trap->S_StartSound (NULL, cg.snap->ps.clientNum, CHAN_AUTO, localCent->m_pVehicle->m_pVehicleInfo->weapon[es->eventParm].soundNoAmmo );
-				}
-				else
-				{//play the default "no ammo" sound
-					trap->S_StartSound (NULL, cg.snap->ps.clientNum, CHAN_AUTO, cgs.media.noAmmoSound );
-				}
-				//flash the HUD so they associate the sound with the visual indicator that they don't have enough ammo
-				if ( cg_vehicleAmmoWarningTime < cg.time
-					|| cg_vehicleAmmoWarning != es->eventParm )
-				{//if there's already one going, don't interrupt it (unless they tried to fire another weapon that's out of ammo)
-					cg_vehicleAmmoWarning = es->eventParm;
-					cg_vehicleAmmoWarningTime = cg.time+500;
-				}
-			}
-			else if ( cg.snap->ps.weapon == WP_SABER )
+			if ( cg.snap->ps.weapon == WP_SABER )
 			{
 				cg.forceHUDTotalFlashTime = cg.time + 1000;
 			}
 			else
 			{
-				/*int weap = 0;
-
-				if (es->eventParm && es->eventParm < WP_NUM_WEAPONS)
-				{
-					cg.snap->ps.stats[STAT_WEAPONS] &= ~(1 << es->eventParm);
-					weap = cg.snap->ps.weapon;
-				}
-				else if (es->eventParm)
-				{
-					weap = (es->eventParm-WP_NUM_WEAPONS);
-				}
-				CG_OutOfAmmoChange(weap);
-				*/
 				trap->S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.noAmmoSound );
-				// Autoreload disabled, for now
-				/*if ( jkg_autoreload.integer )
-				{
-					// If we wanna auto-reload, check if its possible and go for it
-					if ( GetWeaponAmmoClip( cg.snap->ps.weapon, cg.snap->ps.weaponVariation ) && cg.snap->ps.ammo[GetWeaponAmmoIndex( cg.snap->ps.weapon, cg.snap->ps.weaponVariation )] > 0 )
-					{
-						
-						//trap->SendClientCommand("reload");
-					}
-				}*/
 			}
 		}
 		break;
@@ -1955,12 +1506,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 		else if (cent->currentState.weapon != WP_EMPLACED_GUN || cent->currentState.eType == ET_NPC)
 		{
-			if (cent->currentState.eType == ET_NPC &&
-				cent->currentState.NPC_class == CLASS_VEHICLE &&
-				cent->m_pVehicle)
-			{ //vehicles do nothing for clientside weapon fire events.. at least for now.
-				break;
-			}
 			JKG_FireWeapon (cent, qfalse);
 		}
 		break;
@@ -1975,13 +1520,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 		if (cent->currentState.weapon == WP_EMPLACED_GUN)
 		{ //don't do anything for emplaced stuff
-			break;
-		}
-
-		if (cent->currentState.eType == ET_NPC &&
-			cent->currentState.NPC_class == CLASS_VEHICLE &&
-			cent->m_pVehicle)
-		{ //vehicles do nothing for clientside weapon fire events.. at least for now.
 			break;
 		}
 
@@ -2275,36 +1813,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 		break;
 
-	//Jedi Knight Galaxies add
-#ifdef __MMO__
-	case EV_GOTO_ACI:
-		if (es->number == cg.clientNum)
-			JKG_CG_SetACISlot(es->eventParm);
-		break;
-	case EV_HITMARKER_ASSIST:
-		if (es->number == cg.clientNum)
-		{
-			// All this does is make a hitmarker display. Nothing too fancy.
-			trap->S_StartSound(NULL, cg.clientNum, CHAN_AUTO, cgs.media.hitmarkerSound);
-			cg.hitmarkerLastTime = cg.time + 1000;
-
-			if (es->eventParm > 0)
-				CG_Notifications_Add(va("\"Assist: +%i Credits\"", es->eventParm), qfalse);
-		}
-		break;
-	case EV_HITMARKER_KILL: // UQ1: Sound here too???
-		if (es->number == cg.clientNum)
-		{
-			// All this does is make a hitmarker display. Nothing too fancy.
-			trap->S_StartSound(NULL, cg.clientNum, CHAN_AUTO, cgs.media.hitmarkerSound);
-			cg.hitmarkerLastTime = cg.time + 1000;
-
-			if (es->eventParm > 0)
-				CG_Notifications_Add(va("\"Kill: +%i Credits\"", es->eventParm), qfalse);
-		}
-		break;
-#endif //__MMO__
-
 	case EV_WEAPON_TRACELINE:
 		DEBUGNAME("EV_WEAPON_TRACELINE");
 		if (cent->currentState.owner != cg.snap->ps.clientNum ||
@@ -2376,6 +1884,19 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			case PDSOUND_FORCEGRIP:
 				sID = trap->S_RegisterSound("sound/weapons/force/grip.mp3");
 				break;
+
+			case PDSOUND_VENDORPURCHASE:
+				sID = trap->S_RegisterSound("sound/vendor/generic/purchase00.mp3");
+				break;
+
+			case PDSOUND_TRADE:
+				sID = trap->S_RegisterSound("sound/vendor/generic/purchase01.mp3");
+				break;
+
+			case PDSOUND_PAY:
+				sID = trap->S_RegisterSound("sound/vendor/generic/purchase02.mp3");
+				break;
+
 			default:
 				break;
 			}
@@ -2467,7 +1988,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_DAMAGEPLUM:
 		DEBUGNAME("EV_DAMAGEPLUM");
-		CG_DamagePlum( cent->currentState.otherEntityNum, cent->lerpOrigin, cent->currentState.time );
+		CG_DamagePlum( cent->currentState.otherEntityNum, cent->lerpOrigin, cent->currentState.time, 
+			cent->currentState.eventParm, cent->currentState.generic1, cent->currentState.groundEntityNum );
 		break;
 
 	case EV_CTFMESSAGE:
@@ -2558,21 +2080,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_MISSILE_HIT:
 		DEBUGNAME("EV_MISSILE_HIT");
 		ByteToDir( es->eventParm, dir );
+
 		if ( es->emplacedOwner )
 		{//hack: this is an index to a custom effect to use
 			trap->FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1, false);
 		}
-		else if ( CG_VehicleWeaponImpact( cent ) )
-		{//a vehicle missile that uses an overridden impact effect...
-		}
-		/*else if (cent->currentState.eFlags & EF_ALT_FIRING)
-		{
-			CG_MissileHitPlayer( es->weapon, position, dir, es->otherEntityNum, qtrue);
-		}
-		else
-		{
-			CG_MissileHitPlayer( es->weapon, position, dir, es->otherEntityNum, qfalse);
-		}*/
 		else
 		{
 			JKG_RenderProjectileHitPlayer (cent, position, dir, es->firingMode);
@@ -2592,17 +2104,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{//hack: this is an index to a custom effect to use
 			trap->FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1, false);
 		}
-		else if ( CG_VehicleWeaponImpact( cent ) )
-		{//a vehicle missile that used an overridden impact effect...
-		}
-		/*else if (cent->currentState.eFlags & EF_ALT_FIRING)
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_DEFAULT, qtrue, es->generic1);
-		}
-		else
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_DEFAULT, qfalse, 0);
-		}*/
 		else
 		{
 			JKG_RenderProjectileMiss (cent, position, dir, es->firingMode);
@@ -2622,17 +2123,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{//hack: this is an index to a custom effect to use
 			trap->FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1, false);
 		}
-		else if ( CG_VehicleWeaponImpact( cent ) )
-		{//a vehicle missile that used an overridden impact effect...
-		}
-		/*else if (cent->currentState.eFlags & EF_ALT_FIRING)
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qtrue, es->generic1);
-		}
-		else
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qfalse, 0);
-		}*/
 		else
 		{
 		    JKG_RenderProjectileMiss (cent, position, dir, (qboolean)(es->eFlags & EF_ALT_FIRING));
@@ -2945,12 +2435,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		cg_entities[es->owner].teamPowerType = 2;
 		break;
 
-	case EV_GIB_PLAYER:
-		DEBUGNAME("EV_GIB_PLAYER");
-		//trap->S_StartSound( NULL, es->number, CHAN_BODY, cgs.media.gibSound );
-		//CG_GibPlayer( cent->lerpOrigin );
-		break;
-
 	case EV_STARTLOOPINGSOUND:
 		DEBUGNAME("EV_STARTLOOPINGSOUND");
 		if ( cgs.gameSounds[ es->eventParm ] )
@@ -3009,6 +2493,16 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_SHIELD_HIT");
 		ByteToDir(es->eventParm, dir);
 		CG_PlayerShieldHit(es->otherEntityNum, dir, es->time2);
+		break;
+
+	case EV_SHIELD_BROKEN:
+		DEBUGNAME("EV_SHIELD_BROKEN")
+		// Doesn't do anything atm
+		break;
+
+	case EV_SHIELD_RECHARGE:
+		DEBUGNAME("EV_SHIELD_RECHARGE")
+		CG_PlayerShieldRecharging(es->otherEntityNum);
 		break;
 
 	case EV_DEBUG_LINE:

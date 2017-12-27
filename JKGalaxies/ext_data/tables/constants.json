@@ -40,5 +40,15 @@
 		"minJumpThreshold": 15,
 		"minPunchThreshold": 5,
 		"minKickThreshold": 10
+	},
+
+	"damage": {
+		// How much to modify damage by when hitting various body parts
+		"headModifier": 1.3,
+		"torsoModifier": 1.0,
+		"armModifier": 0.85,
+		"handModifier": 0.6,
+		"legModifier": 0.7,
+		"footModifier": 0.5
 	}
 }

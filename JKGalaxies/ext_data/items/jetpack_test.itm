@@ -1,0 +1,8 @@
+{
+	"name":		"Z-6 Jetpack",
+	"internal":	"jetpack_test",
+	"itemtype":	"jetpack",
+	"cost":		1575,
+	"itemIcon":	"gfx/hud/i_icon_jetpack.tga",
+	"jetpack":	"jetpack_test"
+}

@@ -67,10 +67,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2250,
-        "ammoIndex":         "powercell_s",
-        "ammoOnSpawn":   160,
-        "ammoOnPickup":   32,
-        "clipSize":              16,
         "flags":        [ "roll" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
@@ -87,6 +83,9 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
+	"ammoBase": "AMMO_POWERCELL_L",
+	"ammoDefault": "AMMO_POWERCELL_S",
+        "clipSize":              16,
             "accuracy": {
         "accuracyRating": 25,
         "accuracyRatingPerShot": 6,
@@ -101,8 +100,7 @@
         "damage": {
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
-                               "damage":       50,
-                               "damagetype": [ "disintegrate" ]
+                               "damage":       50
                         },
         "ammocost":     2,
         "maxchargetime":1000,
@@ -118,16 +116,19 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_DISRUPTOR",
         "splashmeansofdeath": "MOD_DISRUPTOR",
-            "accuracy": {
-        "accuracyRating": 35,
-        "accuracyRatingPerShot": 8,
-        "msToDrainAccuracy": 120,
-        "maxAccuracyAdd": 100,
-        "crouchModifier": 0.95,
-        "runModifier": 1.8,
-        "sightsModifier": 0.65,
-        "walkModifier": 1.5,
-        "inAirModifier": 2.4
+	"ammoBase": "AMMO_POWERCELL_L",
+	"ammoDefault": "AMMO_POWERCELL_S",
+        "clipSize":              16,
+        "accuracy": {
+        	"accuracyRating": 35,
+        	"accuracyRatingPerShot": 8,
+        	"msToDrainAccuracy": 120,
+        	"maxAccuracyAdd": 100,
+        	"crouchModifier": 0.95,
+        	"runModifier": 1.8,
+        	"sightsModifier": 0.65,
+        	"walkModifier": 1.5,
+        	"inAirModifier": 2.4
         }
     },
     

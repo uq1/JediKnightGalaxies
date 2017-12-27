@@ -191,8 +191,7 @@ void Mark2_FireBlaster(qboolean advance)
 	missile->s.weapon = WP_BRYAR_PISTOL;
 
 	missile->damage = 1;
-	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
-	missile->methodOfDeath = MOD_BRYAR_PISTOL;
+	missile->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_BLASTER");
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 
 }

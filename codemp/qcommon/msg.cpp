@@ -614,13 +614,7 @@ void MSG_WriteDeltaKey( msg_t *msg, int key, int oldV, int newV, int bits )
 
 int	MSG_ReadDeltaKey( msg_t *msg, int key, int oldV, int bits ) {
 	if ( MSG_ReadBits( msg, 1 ) ) {
-#if 0
-		// Old technically wrong for angles & buttons
-		return MSG_ReadBits( msg, bits ) ^ (key & kbitmask[bits]);
-#else
-		// Correct, not going out of bounds
 		return MSG_ReadBits( msg, bits ) ^ (key & kbitmask[ bits - 1 ]);
-#endif
 	}
 	return oldV;
 }
@@ -769,9 +763,6 @@ typedef struct netField_s {
 
 // using the stringizing operator to save typing...
 #define	NETF(x) #x,offsetof(entityState_t, x)
-
-//rww - Remember to update ext_data/MP/netf_overrides.txt if you change any of this!
-//(for the sake of being consistent)
 
 netField_t	entityStateFields[] =
 {
@@ -932,12 +923,12 @@ netField_t	entityStateFields[] =
 
 { NETF(NPC_class), 8 },
 
-{ NETF(m_iVehicleNum), GENTITYNUM_BITS }, // 10 bits fits all possible entity nums (2^10 = 1024). - AReis
-
 // JKG SPECIFIC
 { NETF(weaponVariation), 8 },
 { NETF(firingMode), 8 },
 { NETF(weaponstate), 8 },
+{ NETF(jetpack), 8 },
+{ NETF(buffsActive), PLAYERBUFF_BITS },
 
 { NETF(damageTypeFlags), 32 },	// FIXME: does this really need to be sent as 32 bits? :/
 
@@ -946,17 +937,12 @@ netField_t	entityStateFields[] =
 { NETF(freezeLegsAnim), 16 },
 
 { NETF(saberActionFlags), 16 },
+{ NETF(ammoType), 8 },
 { NETF(forcePower), 16 },
 { NETF(saberSwingSpeed), 0 },
 { NETF(saberMoveSwingSpeed), 0 },
 
 // Some of the below is totally unused. Forgive me, your lordship --eez
-{ NETF(saberPommel[0]), 16 },
-{ NETF(saberPommel[1]), 16 },
-{ NETF(saberShaft[0]), 16 },
-{ NETF(saberShaft[1]), 16 },
-{ NETF(saberEmitter[0]), 16 },
-{ NETF(saberEmitter[1]), 16 },
 { NETF(saberCrystal[0]), 16 },
 
 { NETF(sightsTransition), 1 },
@@ -987,6 +973,8 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 	int			trunc;
 	float		fullFloat;
 	int			*fromF, *toF;
+	int			armorbits;
+	int			buffbits;
 
 	numFields = (int)ARRAY_LEN( entityStateFields );
 
@@ -1018,6 +1006,12 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 		Com_Error (ERR_FATAL, "MSG_WriteDeltaEntity: Bad entity number: %i", to->number );
 	}
 
+	///////////////////////////////////////////
+	//
+	// Changes in the main fields
+	//
+	///////////////////////////////////////////
+
 	lc = 0;
 	// build the change vector as bytes so it is endian independent
 	for ( i = 0, field = entityStateFields ; i < numFields ; i++, field++ ) {
@@ -1040,58 +1034,118 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 		MSG_WriteBits( msg, to->number, GENTITYNUM_BITS );
 		MSG_WriteBits( msg, 0, 1 );		// not removed
 		MSG_WriteBits( msg, 0, 1 );		// no delta
-		return;
 	}
+	else
+	{
+		MSG_WriteBits(msg, to->number, GENTITYNUM_BITS);
+		MSG_WriteBits(msg, 0, 1);			// not removed
+		MSG_WriteBits(msg, 1, 1);			// we have a delta
 
-	MSG_WriteBits( msg, to->number, GENTITYNUM_BITS );
-	MSG_WriteBits( msg, 0, 1 );			// not removed
-	MSG_WriteBits( msg, 1, 1 );			// we have a delta
+		MSG_WriteByte(msg, lc);	// # of changes
 
-	MSG_WriteByte( msg, lc );	// # of changes
+		oldsize += numFields;
 
-	oldsize += numFields;
+		// Send all of the fields
+		for (i = 0, field = entityStateFields; i < lc; i++, field++) {
+			fromF = (int *)((byte *)from + field->offset);
+			toF = (int *)((byte *)to + field->offset);
 
-	for ( i = 0, field = entityStateFields ; i < lc ; i++, field++ ) {
-		fromF = (int *)( (byte *)from + field->offset );
-		toF = (int *)( (byte *)to + field->offset );
+			if (*fromF == *toF) {
+				MSG_WriteBits(msg, 0, 1);	// no change
+				continue;
+			}
 
-		if ( *fromF == *toF ) {
-			MSG_WriteBits( msg, 0, 1 );	// no change
-			continue;
-		}
+			MSG_WriteBits(msg, 1, 1);	// changed
 
-		MSG_WriteBits( msg, 1, 1 );	// changed
+			if (field->bits == 0) {
+				// float
+				fullFloat = *(float *)toF;
+				trunc = (int)fullFloat;
 
-		if ( field->bits == 0 ) {
-			// float
-			fullFloat = *(float *)toF;
-			trunc = (int)fullFloat;
-
-			if (fullFloat == 0.0f) {
-					MSG_WriteBits( msg, 0, 1 );
+				if (fullFloat == 0.0f) {
+					MSG_WriteBits(msg, 0, 1);
 					oldsize += FLOAT_INT_BITS;
-			} else {
-				MSG_WriteBits( msg, 1, 1 );
-				if ( trunc == fullFloat && trunc + FLOAT_INT_BIAS >= 0 &&
-					trunc + FLOAT_INT_BIAS < ( 1 << FLOAT_INT_BITS ) ) {
-					// send as small integer
-					MSG_WriteBits( msg, 0, 1 );
-					MSG_WriteBits( msg, trunc + FLOAT_INT_BIAS, FLOAT_INT_BITS );
-				} else {
-					// send as full floating point value
-					MSG_WriteBits( msg, 1, 1 );
-					MSG_WriteBits( msg, *toF, 32 );
+				}
+				else {
+					MSG_WriteBits(msg, 1, 1);
+					if (trunc == fullFloat && trunc + FLOAT_INT_BIAS >= 0 &&
+						trunc + FLOAT_INT_BIAS < (1 << FLOAT_INT_BITS)) {
+						// send as small integer
+						MSG_WriteBits(msg, 0, 1);
+						MSG_WriteBits(msg, trunc + FLOAT_INT_BIAS, FLOAT_INT_BITS);
+					}
+					else {
+						// send as full floating point value
+						MSG_WriteBits(msg, 1, 1);
+						MSG_WriteBits(msg, *toF, 32);
+					}
 				}
 			}
-		} else {
-			if (*toF == 0) {
-				MSG_WriteBits( msg, 0, 1 );
-			} else {
-				MSG_WriteBits( msg, 1, 1 );
-				// integer
-				MSG_WriteBits( msg, *toF, field->bits );
+			else {
+				if (*toF == 0) {
+					MSG_WriteBits(msg, 0, 1);
+				}
+				else {
+					MSG_WriteBits(msg, 1, 1);
+					// integer
+					MSG_WriteBits(msg, *toF, field->bits);
+				}
 			}
 		}
+	}
+
+	//////////////////////////////////
+	//
+	// Arrays
+	//
+	//////////////////////////////////
+
+	armorbits = 0;
+	for (i = 0; i < MAX_ARMOR; i++) {
+		if (from->armor[i] != to->armor[i]) {
+			armorbits |= 1 << i;
+		}
+	}
+
+	if (armorbits) {
+		MSG_WriteBits(msg, 1, 1); // changed
+		MSG_WriteBits(msg, armorbits, MAX_ARMOR);
+		for (i = 0; i < MAX_ARMOR; i++) {
+			if (armorbits & (1 << i)) {
+				MSG_WriteLong(msg, to->armor[i]);
+			}
+		}
+	}
+	else {
+		MSG_WriteBits(msg, 0, 1); // no change
+	}
+
+	buffbits = 0;
+	for (i = 0; i < PLAYERBUFF_BITS; i++)
+	{
+		if (from->buffs[i].buffID != to->buffs[i].buffID || from->buffs[i].intensity != to->buffs[i].intensity)
+		{
+			buffbits |= (1 << i);
+		}
+	}
+
+	if (buffbits)
+	{
+		MSG_WriteBits(msg, 1, 1);	// change
+		MSG_WriteBits(msg, buffbits, PLAYERBUFF_BITS);
+		for (i = 0; i < PLAYERBUFF_BITS; i++)
+		{
+			if (buffbits & (1 << i))
+			{
+				// write the whole thing
+				MSG_WriteBits(msg, to->buffs[i].buffID, BUFF_BITS);
+				MSG_WriteFloat(msg, to->buffs[i].intensity);
+			}
+		}
+	}
+	else
+	{
+		MSG_WriteBits(msg, 0, 1);	// no change
 	}
 }
 
@@ -1142,81 +1196,142 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 	if ( MSG_ReadBits( msg, 1 ) == 0 ) {
 		*to = *from;
 		to->number = number;
-		return;
-	}
-
-	numFields = (int)ARRAY_LEN(entityStateFields);
-	lc = MSG_ReadByte(msg);
-
-	if ( lc > numFields || lc < 0 )
-		Com_Error( ERR_DROP, "invalid entityState field count" );
-
-	// shownet 2/3 will interleave with other printed info, -1 will
-	// just print the delta records`
-	if ( cl_shownet && ( cl_shownet->integer >= 2 || cl_shownet->integer == -1 ) ) {
-		print = 1;
-		if (sv.state)
-		{
-			Com_Printf( "%3i: #%-3i (%s) ", msg->readcount, number, SV_GentityNum(number)->classname );
-		}
-		else
-		{
-			Com_Printf( "%3i: #%-3i ", msg->readcount, number );
-		}
-	} else {
 		print = 0;
 	}
+	else
+	{
+		numFields = (int)ARRAY_LEN(entityStateFields);
+		lc = MSG_ReadByte(msg);
 
-	to->number = number;
+		if (lc > numFields || lc < 0)
+			Com_Error(ERR_DROP, "invalid entityState field count");
 
-	for ( i = 0, field = entityStateFields ; i < lc ; i++, field++ ) {
-		fromF = (int *)( (byte *)from + field->offset );
-		toF = (int *)( (byte *)to + field->offset );
+		// shownet 2/3 will interleave with other printed info, -1 will
+		// just print the delta records`
+		if (cl_shownet && (cl_shownet->integer >= 2 || cl_shownet->integer == -1)) {
+			print = 1;
+			if (sv.state)
+			{
+				Com_Printf("%3i: #%-3i (%s) ", msg->readcount, number, SV_GentityNum(number)->classname);
+			}
+			else
+			{
+				Com_Printf("%3i: #%-3i ", msg->readcount, number);
+			}
+		}
+		else {
+			print = 0;
+		}
 
-		if ( ! MSG_ReadBits( msg, 1 ) ) {
-			// no change
-			*toF = *fromF;
-		} else {
-			if ( field->bits == 0 ) {
-				// float
-				if ( MSG_ReadBits( msg, 1 ) == 0 ) {
+		to->number = number;
+
+		for (i = 0, field = entityStateFields; i < lc; i++, field++) {
+			fromF = (int *)((byte *)from + field->offset);
+			toF = (int *)((byte *)to + field->offset);
+
+			if (!MSG_ReadBits(msg, 1)) {
+				// no change
+				*toF = *fromF;
+			}
+			else {
+				if (field->bits == 0) {
+					// float
+					if (MSG_ReadBits(msg, 1) == 0) {
 						*(float *)toF = 0.0f;
-				} else {
-					if ( MSG_ReadBits( msg, 1 ) == 0 ) {
-						// integral float
-						trunc = MSG_ReadBits( msg, FLOAT_INT_BITS );
-						// bias to allow equal parts positive and negative
-						trunc -= FLOAT_INT_BIAS;
-						*(float *)toF = trunc;
-						if ( print ) {
-							Com_Printf( "%s:%i ", field->name, trunc );
+					}
+					else {
+						if (MSG_ReadBits(msg, 1) == 0) {
+							// integral float
+							trunc = MSG_ReadBits(msg, FLOAT_INT_BITS);
+							// bias to allow equal parts positive and negative
+							trunc -= FLOAT_INT_BIAS;
+							*(float *)toF = trunc;
+							if (print) {
+								Com_Printf("%s:%i ", field->name, trunc);
+							}
 						}
-					} else {
-						// full floating point value
-						*toF = MSG_ReadBits( msg, 32 );
-						if ( print ) {
-							Com_Printf( "%s:%f ", field->name, *(float *)toF );
+						else {
+							// full floating point value
+							*toF = MSG_ReadBits(msg, 32);
+							if (print) {
+								Com_Printf("%s:%f ", field->name, *(float *)toF);
+							}
 						}
 					}
 				}
-			} else {
-				if ( MSG_ReadBits( msg, 1 ) == 0 ) {
-					*toF = 0;
-				} else {
-					// integer
-					*toF = MSG_ReadBits( msg, field->bits );
-					if ( print ) {
-						Com_Printf( "%s:%i ", field->name, *toF );
+				else {
+					if (MSG_ReadBits(msg, 1) == 0) {
+						*toF = 0;
+					}
+					else {
+						// integer
+						*toF = MSG_ReadBits(msg, field->bits);
+						if (print) {
+							Com_Printf("%s:%i ", field->name, *toF);
+						}
 					}
 				}
 			}
 		}
+		for (i = lc, field = &entityStateFields[lc]; i < numFields; i++, field++) {
+			fromF = (int *)((byte *)from + field->offset);
+			toF = (int *)((byte *)to + field->offset);
+			// no change
+			*toF = *fromF;
+		}
 	}
-	for ( i = lc, field = &entityStateFields[lc] ; i < numFields ; i++, field++ ) {
-		fromF = (int *)( (byte *)from + field->offset );
-		toF = (int *)( (byte *)to + field->offset );
-		// no change
-		*toF = *fromF;
+	
+
+	// Read the arrays
+	int bits;
+
+	// parse armor
+	if (MSG_ReadBits(msg, 1)) {
+		LOG("ES_ARMOR");
+		bits = MSG_ReadBits(msg, MAX_ARMOR);
+		for (i = 0; i < MAX_ARMOR; i++) {
+			if (bits & (1 << i)) {
+				to->armor[i] = MSG_ReadLong(msg);
+			}
+			else {
+				to->armor[i] = from->armor[i];
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < MAX_ARMOR; i++)
+		{
+			to->armor[i] = from->armor[i];
+		}
+	}
+
+	if (MSG_ReadBits(msg, 1))
+	{
+		// parse buffs
+		LOG("ES_BUFFS");
+		int buffbits = MSG_ReadBits(msg, PLAYERBUFF_BITS);
+		for (i = 0; i < PLAYERBUFF_BITS; i++)
+		{
+			if (buffbits & (1 << i))
+			{
+				to->buffs[i].buffID = MSG_ReadBits(msg, BUFF_BITS);
+				to->buffs[i].intensity = MSG_ReadFloat(msg);
+			}
+			else
+			{
+				to->buffs[i].buffID = from->buffs[i].buffID;
+				to->buffs[i].intensity = from->buffs[i].intensity;
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < PLAYERBUFF_BITS; i++)
+		{
+			to->buffs[i].buffID = from->buffs[i].buffID;
+			to->buffs[i].intensity = from->buffs[i].intensity;
+		}
 	}
 
 	if ( print ) {
@@ -1242,13 +1357,6 @@ playerState_t communication
 
 //rww - Remember to update ext_data/MP/psf_overrides.txt if you change any of this!
 //(for the sake of being consistent)
-
-//=====_OPTIMIZED_VEHICLE_NETWORKING=======================================================================
-#ifdef _OPTIMIZED_VEHICLE_NETWORKING
-//Instead of sending 2 full playerStates for the pilot and the vehicle, send a smaller,
-//specialized pilot playerState and vehicle playerState.  Also removes some vehicle
-//fields from the normal playerState -mcg
-//=====_OPTIMIZED_VEHICLE_NETWORKING=======================================================================
 
 netField_t	playerStateFields[] =
 {
@@ -1393,10 +1501,11 @@ netField_t	playerStateFields[] =
 { PSF(weaponId), 8 },
 { PSF(shotsRemaining), 8 },
 { PSF(sprintMustWait), 8 },
+{ PSF(jetpack), 8 },
 
+{ PSF(ammoType), 8 },
 { PSF(saberActionFlags), 16 },
 
-{ PSF(damageTypeFlags), 32 },
 { PSF(freezeTorsoAnim), 32 },
 { PSF(freezeLegsAnim), 32 },
 
@@ -1414,432 +1523,13 @@ netField_t	playerStateFields[] =
 { PSF(saberSwingSpeed), 0 },
 { PSF(saberMoveSwingSpeed), 0 },
 
-{ PSF(saberPommel[0]), 16 },
-{ PSF(saberPommel[1]), 16 },
-{ PSF(saberShaft[0]), 16 },
-{ PSF(saberShaft[1]), 16 },
-{ PSF(saberEmitter[0]), 16 },
-{ PSF(saberEmitter[1]), 16 },
 { PSF(saberCrystal[0]), 16 },
 { PSF(saberCrystal[1]), 16 },
 
 { PSF(blockPoints), 16 },
-{ PSF(ammo), 16 },
-{ PSF(credits), 32 }
-};
-
-netField_t	pilotPlayerStateFields[] =
-{
-{ PSF(commandTime), 32 },
-{ PSF(origin[1]), 0 },
-{ PSF(origin[0]), 0 },
-{ PSF(viewangles[1]), 0 },
-{ PSF(viewangles[0]), 0 },
-{ PSF(origin[2]), 0 },
-{ PSF(weaponTime), -16 },
-{ PSF(delta_angles[1]), 16 },
-{ PSF(delta_angles[0]), 16 },
-{ PSF(eFlags), 32 },
-{ PSF(eventSequence), 16 },
-{ PSF(rocketLockIndex), GENTITYNUM_BITS },
-{ PSF(events[0]), 10 },			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
-{ PSF(events[1]), 10 },			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
-{ PSF(weaponstate), 4 },
-{ PSF(pm_flags), 16 },
-{ PSF(pm_time), -16 },
-{ PSF(clientNum), GENTITYNUM_BITS },
-{ PSF(weapon), 8 },
-{ PSF(delta_angles[2]), 16 },
-{ PSF(viewangles[2]), 0 },
-{ PSF(externalEvent), 10 },
-{ PSF(eventParms[1]), 8 },
-{ PSF(pm_type), 8 },
-{ PSF(externalEventParm), 8 },
-{ PSF(eventParms[0]), -16 },
-{ PSF(weaponChargeSubtractTime), 32 }, //? really need 32 bits??
-{ PSF(weaponChargeTime), 32 }, //? really need 32 bits??
-{ PSF(rocketTargetTime), 32 },
-{ PSF(fd.forceJumpZStart), 0 },
-{ PSF(rocketLockTime), 32 },
-{ PSF(m_iVehicleNum), GENTITYNUM_BITS }, // 10 bits fits all possible entity nums (2^10 = 1024). - AReis
-{ PSF(generic1), 8 },//used by passengers
-{ PSF(eFlags2), 10 },
-
-//===THESE SHOULD NOT BE CHANGING OFTEN====================================================================
-{ PSF(legsAnim), 16 },			// Maximum number of animation sequences is 2048.  Top bit is reserved for the togglebit
-{ PSF(torsoAnim), 16 },			// Maximum number of animation sequences is 2048.  Top bit is reserved for the togglebit
-{ PSF(torsoTimer), 16 },
-{ PSF(legsTimer), 16 },
-{ PSF(jetpackFuel), 8 },
-{ PSF(cloakFuel), 8 },
-{ PSF(saberCanThrow), 1 },
-{ PSF(fd.forcePowerDebounce[FP_LEVITATION]), 32 },
-{ PSF(torsoFlip), 1 },
-{ PSF(legsFlip), 1 },
-{ PSF(fd.forcePowersActive), 32 },
-{ PSF(hasDetPackPlanted), 1 },
-{ PSF(fd.forceRageRecoveryTime), 32 },
-{ PSF(saberInFlight), 1 },
-{ PSF(fd.forceMindtrickTargetIndex), 16 }, //NOTE: Not just an index, used as a (1 << val) bitflag for up to 16 clients
-{ PSF(fd.forceMindtrickTargetIndex2), 16 }, //NOTE: Not just an index, used as a (1 << val) bitflag for up to 16 clients
-{ PSF(fd.forceMindtrickTargetIndex3), 16 }, //NOTE: Not just an index, used as a (1 << val) bitflag for up to 16 clients
-{ PSF(fd.forceMindtrickTargetIndex4), 16 }, //NOTE: Not just an index, used as a (1 << val) bitflag for up to 16 clients
-{ PSF(fd.sentryDeployed), 1 },
-{ PSF(fd.forcePowerLevel[FP_SEE]), 2 }, //needed for knowing when to display players through walls
-{ PSF(fd.forcePower), 8 },
-
-//===THE REST OF THESE SHOULD NOT BE RELEVANT, BUT, FOR SAFETY, INCLUDE THEM ANYWAY, JUST AT THE BOTTOM===============================================================
-{ PSF(velocity[0]), 0 },
-{ PSF(velocity[1]), 0 },
-{ PSF(velocity[2]), 0 },
-{ PSF(bobCycle), 8 },
-{ PSF(speed), 0 }, //sadly, the vehicles require negative speed values, so..
-{ PSF(groundEntityNum), GENTITYNUM_BITS },
-{ PSF(viewheight), -8 },
-{ PSF(fd.saberAnimLevel), 4 },
-{ PSF(fd.saberDrawAnimLevel), 4 },
-{ PSF(genericEnemyIndex), 32 }, //NOTE: This isn't just an index all the time, it's often used as a time value, and thus needs 32 bits
-{ PSF(customRGBA[0]), 8 }, //0-255
-{ PSF(movementDir), 4 },
-{ PSF(saberEntityNum), GENTITYNUM_BITS }, //Also used for channel tracker storage, but should never exceed entity number
-{ PSF(customRGBA[3]), 8 }, //0-255
-{ PSF(saberMove), 32 }, //This value sometimes exceeds the max LS_ value and gets set to a crazy amount, so it needs 32 bits
-{ PSF(standheight), 10 },
-{ PSF(crouchheight), 10 },
-{ PSF(basespeed), -16 },
-{ PSF(customRGBA[1]), 8 }, //0-255
-{ PSF(duelIndex), GENTITYNUM_BITS },
-{ PSF(customRGBA[2]), 8 }, //0-255
-{ PSF(gravity), 16 },
-{ PSF(fd.forcePowersKnown), 32 },
-{ PSF(fd.forcePowerLevel[FP_LEVITATION]), 2 }, //unfortunately we need this for fall damage calculation (client needs to know the distance for the fall noise)
-{ PSF(fd.forcePowerSelected), 8 },
-{ PSF(damageYaw), 8 },
-{ PSF(damageCount), 8 },
-{ PSF(inAirAnim), 1 }, //just transmit it for the sake of knowing right when on the client to play a land anim, it's only 1 bit
-{ PSF(fd.forceSide), 2 }, //so we know if we should apply greyed out shaders to dark/light force enlightenment
-{ PSF(saberAttackChainCount), 4 },
-{ PSF(lookTarget), GENTITYNUM_BITS },
-{ PSF(moveDir[1]), 0 },
-{ PSF(moveDir[0]), 0 },
-{ PSF(damageEvent), 8 },
-{ PSF(moveDir[2]), 0 },
-{ PSF(activeForcePass), 6 },
-{ PSF(electrifyTime), 32 },
-{ PSF(damageType), 2 },
-{ PSF(loopSound), 16 }, //rwwFIXMEFIXME: max sounds is 256, doesn't this only need to be 8?
-{ PSF(hasLookTarget), 1 },
-{ PSF(saberBlocked), 8 },
-{ PSF(forceHandExtend), 8 },
-{ PSF(saberHolstered), 2 },
-{ PSF(damagePitch), 8 },
-{ PSF(jumppad_ent), GENTITYNUM_BITS },
-{ PSF(forceDodgeAnim), 16 },
-{ PSF(zoomMode), 2 }, // NOTENOTE Are all of these necessary?
-{ PSF(hackingTime), 32 },
-{ PSF(zoomTime), 32 },	// NOTENOTE Are all of these necessary?
-{ PSF(brokenLimbs), 8 }, //up to 8 limbs at once (not that that many are used)
-{ PSF(zoomLocked), 1 },	// NOTENOTE Are all of these necessary?
-{ PSF(zoomFov), 0 },	// NOTENOTE Are all of these necessary?
-{ PSF(fallingToDeath), 32 },
-{ PSF(lastHitLoc[2]), 0 },
-{ PSF(lastHitLoc[0]), 0 },
-{ PSF(lastHitLoc[1]), 0 }, //currently only used so client knows to orient disruptor disintegration.. seems a bit much for just that though.
-{ PSF(saberLockTime), 32 },
-{ PSF(saberLockFrame), 16 },
-{ PSF(saberLockEnemy), GENTITYNUM_BITS },
-{ PSF(fd.forceGripCripple), 1 }, //should only be 0 or 1 ever
-{ PSF(emplacedIndex), GENTITYNUM_BITS },
-{ PSF(forceRestricted), 1 },
-{ PSF(duelTime), 32 },
-{ PSF(duelInProgress), 1 },
-{ PSF(saberLockAdvance), 1 },
-{ PSF(heldByClient), 6 },
-{ PSF(ragAttach), GENTITYNUM_BITS },
-{ PSF(iModelScale), 10 }, //0-1024 (guess it's gotta be increased if we want larger allowable scale.. but 1024% is pretty big)
-{ PSF(hackingBaseTime), 16 }, //up to 65536ms, over 10 seconds would just be silly anyway
-//===NEVER SEND THESE, ONLY USED BY VEHICLES==============================================================
-
-//{ PSF(vehOrientation[0]), 0 },
-//{ PSF(vehOrientation[1]), 0 },
-//{ PSF(vehOrientation[2]), 0 },
-//{ PSF(vehTurnaroundTime), 32 },//only used by vehicle?
-//{ PSF(vehWeaponsLinked), 1 },//only used by vehicle?
-//{ PSF(hyperSpaceTime), 32 },//only used by vehicle?
-//{ PSF(vehTurnaroundIndex), GENTITYNUM_BITS },//only used by vehicle?
-//{ PSF(vehSurfaces), 16 }, //only used by vehicle? allow up to 16 surfaces in the flag I guess
-//{ PSF(vehBoarding), 1 }, //only used by vehicle? not like the normal boarding value, this is a simple "1 or 0" value
-//{ PSF(hyperSpaceAngles[1]), 0 },//only used by vehicle?
-//{ PSF(hyperSpaceAngles[0]), 0 },//only used by vehicle?
-//{ PSF(hyperSpaceAngles[2]), 0 },//only used by vehicle?
-
-{ PSF(weaponVariation), 8 },
-{ PSF(weaponId), 8 },
-{ PSF(shotsRemaining), 8 },
-
-{ PSF(damageTypeFlags), 32 },
-{ PSF(freezeTorsoAnim), 32 },
-{ PSF(freezeLegsAnim), 32 },
-
-{ PSF(firingMode), 8 },
-{ PSF(ironsightsTime), 32 },
-{ PSF(ironsightsDebounceStart), 32 },
-{ PSF(isInSights), 1 },
-{ PSF(sightsTransition), 1 },
-
-{ PSF(forcePower), 16 },
-{ PSF(saberSwingSpeed), 0 },
-{ PSF(saberMoveSwingSpeed), 0 },
-
-{ PSF(saberPommel[0]), 16 },
-{ PSF(saberPommel[1]), 16 },
-{ PSF(saberShaft[0]), 16 },
-{ PSF(saberShaft[1]), 16 },
-{ PSF(saberEmitter[0]), 16 },
-{ PSF(saberEmitter[1]), 16 },
-{ PSF(saberCrystal[0]), 16 },
-{ PSF(saberCrystal[1]), 16 },
-
-{ PSF(blockPoints), 16 },
-{ PSF(ammo), 16 },
 { PSF(credits), 32 },
+{ PSF(buffsActive), PLAYERBUFF_BITS },
 };
-
-netField_t	vehPlayerStateFields[] =
-{
-{ PSF(commandTime), 32 },
-{ PSF(origin[1]), 0 },
-{ PSF(origin[0]), 0 },
-{ PSF(viewangles[1]), 0 },
-{ PSF(viewangles[0]), 0 },
-{ PSF(origin[2]), 0 },
-{ PSF(velocity[0]), 0 },
-{ PSF(velocity[1]), 0 },
-{ PSF(velocity[2]), 0 },
-{ PSF(weaponTime), -16 },
-{ PSF(delta_angles[1]), 16 },
-{ PSF(speed), 0 }, //sadly, the vehicles require negative speed values, so..
-{ PSF(legsAnim), 16 },			// Maximum number of animation sequences is 2048.  Top bit is reserved for the togglebit
-{ PSF(delta_angles[0]), 16 },
-{ PSF(groundEntityNum), GENTITYNUM_BITS },
-{ PSF(eFlags), 32 },
-{ PSF(eventSequence), 16 },
-{ PSF(legsTimer), 16 },
-{ PSF(rocketLockIndex), GENTITYNUM_BITS },
-//{ PSF(genericEnemyIndex), 32 }, //NOTE: This isn't just an index all the time, it's often used as a time value, and thus needs 32 bits
-{ PSF(events[0]), 10 },			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
-{ PSF(events[1]), 10 },			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
-//{ PSF(customRGBA[0]), 8 }, //0-255
-//{ PSF(movementDir), 4 },
-//{ PSF(customRGBA[3]), 8 }, //0-255
-{ PSF(weaponstate), 4 },
-//{ PSF(basespeed), -16 },
-{ PSF(pm_flags), 16 },
-{ PSF(pm_time), -16 },
-//{ PSF(customRGBA[1]), 8 }, //0-255
-{ PSF(clientNum), GENTITYNUM_BITS },
-//{ PSF(duelIndex), GENTITYNUM_BITS },
-//{ PSF(customRGBA[2]), 8 }, //0-255
-{ PSF(gravity), 16 },
-{ PSF(weapon), 8 },
-{ PSF(delta_angles[2]), 16 },
-{ PSF(viewangles[2]), 0 },
-{ PSF(externalEvent), 10 },
-{ PSF(eventParms[1]), 8 },
-{ PSF(pm_type), 8 },
-{ PSF(externalEventParm), 8 },
-{ PSF(eventParms[0]), -16 },
-{ PSF(vehOrientation[0]), 0 },
-{ PSF(vehOrientation[1]), 0 },
-{ PSF(moveDir[1]), 0 },
-{ PSF(moveDir[0]), 0 },
-{ PSF(vehOrientation[2]), 0 },
-{ PSF(moveDir[2]), 0 },
-{ PSF(rocketTargetTime), 32 },
-//{ PSF(activeForcePass), 6 },//actually, you only need to know this for other vehicles, not your own
-{ PSF(electrifyTime), 32 },
-//{ PSF(fd.forceJumpZStart), 0 },//set on rider by vehicle, but not used by vehicle
-{ PSF(loopSound), 16 }, //rwwFIXMEFIXME: max sounds is 256, doesn't this only need to be 8?
-{ PSF(rocketLockTime), 32 },
-{ PSF(m_iVehicleNum), GENTITYNUM_BITS }, // 10 bits fits all possible entity nums (2^10 = 1024). - AReis
-{ PSF(vehTurnaroundTime), 32 },
-//{ PSF(generic1), 8 },//used by passengers of vehicles, but not vehicles themselves
-{ PSF(hackingTime), 32 },
-{ PSF(brokenLimbs), 8 }, //up to 8 limbs at once (not that that many are used)
-{ PSF(vehWeaponsLinked), 1 },
-{ PSF(hyperSpaceTime), 32 },
-{ PSF(eFlags2), 10 },
-{ PSF(hyperSpaceAngles[1]), 0 },
-{ PSF(vehBoarding), 1 }, //not like the normal boarding value, this is a simple "1 or 0" value
-{ PSF(vehTurnaroundIndex), GENTITYNUM_BITS },
-{ PSF(vehSurfaces), 16 }, //allow up to 16 surfaces in the flag I guess
-{ PSF(hyperSpaceAngles[0]), 0 },
-{ PSF(hyperSpaceAngles[2]), 0 },
-{ PSF(ammo), 16 },
-};
-
-//=====_OPTIMIZED_VEHICLE_NETWORKING=======================================================================
-#else//_OPTIMIZED_VEHICLE_NETWORKING
-//The unoptimized way, throw *all* the vehicle stuff into the playerState along with everything else... :(
-//=====_OPTIMIZED_VEHICLE_NETWORKING=======================================================================
-
-netField_t	playerStateFields[] =
-{
-{ PSF(commandTime), 32 },
-{ PSF(origin[1]), 0 },
-{ PSF(origin[0]), 0 },
-{ PSF(viewangles[1]), 0 },
-{ PSF(viewangles[0]), 0 },
-{ PSF(origin[2]), 0 },
-{ PSF(velocity[0]), 0 },
-{ PSF(velocity[1]), 0 },
-{ PSF(velocity[2]), 0 },
-{ PSF(bobCycle), 8 },
-{ PSF(weaponTime), -16 },
-{ PSF(delta_angles[1]), 16 },
-{ PSF(speed), 0 }, //sadly, the vehicles require negative speed values, so..
-{ PSF(legsAnim), 16 },			// Maximum number of animation sequences is 2048.  Top bit is reserved for the togglebit
-{ PSF(delta_angles[0]), 16 },
-{ PSF(torsoAnim), 16 },			// Maximum number of animation sequences is 2048.  Top bit is reserved for the togglebit
-{ PSF(groundEntityNum), GENTITYNUM_BITS },
-{ PSF(eFlags), 32 },
-{ PSF(fd.forcePower), 8 },
-{ PSF(eventSequence), 16 },
-{ PSF(torsoTimer), 16 },
-{ PSF(legsTimer), 16 },
-{ PSF(viewheight), -8 },
-{ PSF(fd.saberAnimLevel), 4 },
-{ PSF(rocketLockIndex), GENTITYNUM_BITS },
-{ PSF(fd.saberDrawAnimLevel), 4 },
-{ PSF(genericEnemyIndex), 32 }, //NOTE: This isn't just an index all the time, it's often used as a time value, and thus needs 32 bits
-{ PSF(events[0]), 10 },			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
-{ PSF(events[1]), 10 },			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
-{ PSF(customRGBA[0]), 8 }, //0-255
-{ PSF(movementDir), 4 },
-{ PSF(saberEntityNum), GENTITYNUM_BITS }, //Also used for channel tracker storage, but should never exceed entity number
-{ PSF(customRGBA[3]), 8 }, //0-255
-{ PSF(weaponstate), 4 },
-{ PSF(saberMove), 32 }, //This value sometimes exceeds the max LS_ value and gets set to a crazy amount, so it needs 32 bits
-{ PSF(standheight), 10 },
-{ PSF(crouchheight), 10 },
-{ PSF(basespeed), -16 },
-{ PSF(pm_flags), 16 },
-{ PSF(jetpackFuel), 8 },
-{ PSF(cloakFuel), 8 },
-{ PSF(pm_time), -16 },
-{ PSF(customRGBA[1]), 8 }, //0-255
-{ PSF(clientNum), GENTITYNUM_BITS },
-{ PSF(duelIndex), GENTITYNUM_BITS },
-{ PSF(customRGBA[2]), 8 }, //0-255
-{ PSF(gravity), 16 },
-{ PSF(weapon), 8 },
-{ PSF(delta_angles[2]), 16 },
-{ PSF(saberCanThrow), 1 },
-{ PSF(viewangles[2]), 0 },
-{ PSF(fd.forcePowersKnown), 32 },
-{ PSF(fd.forcePowerLevel[FP_LEVITATION]), 2 }, //unfortunately we need this for fall damage calculation (client needs to know the distance for the fall noise)
-{ PSF(fd.forcePowerDebounce[FP_LEVITATION]), 32 },
-{ PSF(fd.forcePowerSelected), 8 },
-{ PSF(torsoFlip), 1 },
-{ PSF(externalEvent), 10 },
-{ PSF(damageYaw), 8 },
-{ PSF(damageCount), 8 },
-{ PSF(inAirAnim), 1 }, //just transmit it for the sake of knowing right when on the client to play a land anim, it's only 1 bit
-{ PSF(eventParms[1]), 8 },
-{ PSF(fd.forceSide), 2 }, //so we know if we should apply greyed out shaders to dark/light force enlightenment
-{ PSF(saberAttackChainCount), 4 },
-{ PSF(pm_type), 8 },
-{ PSF(externalEventParm), 8 },
-{ PSF(eventParms[0]), -16 },
-{ PSF(lookTarget), GENTITYNUM_BITS },
-{ PSF(vehOrientation[0]), 0 },
-{ PSF(weaponChargeSubtractTime), 32 }, //? really need 32 bits??
-{ PSF(vehOrientation[1]), 0 },
-{ PSF(moveDir[1]), 0 },
-{ PSF(moveDir[0]), 0 },
-{ PSF(weaponChargeTime), 32 }, //? really need 32 bits??
-{ PSF(vehOrientation[2]), 0 },
-{ PSF(legsFlip), 1 },
-{ PSF(damageEvent), 8 },
-{ PSF(moveDir[2]), 0 },
-{ PSF(rocketTargetTime), 32 },
-{ PSF(activeForcePass), 6 },
-{ PSF(electrifyTime), 32 },
-{ PSF(fd.forceJumpZStart), 0 },
-{ PSF(loopSound), 16 }, //rwwFIXMEFIXME: max sounds is 256, doesn't this only need to be 8?
-{ PSF(hasLookTarget), 1 },
-{ PSF(saberBlocked), 8 },
-{ PSF(damageType), 2 },
-{ PSF(rocketLockTime), 32 },
-{ PSF(forceHandExtend), 8 },
-{ PSF(saberHolstered), 2 },
-{ PSF(fd.forcePowersActive), 32 },
-{ PSF(damagePitch), 8 },
-{ PSF(m_iVehicleNum), GENTITYNUM_BITS }, // 10 bits fits all possible entity nums (2^10 = 1024). - AReis
-{ PSF(vehTurnaroundTime), 32 },
-{ PSF(generic1), 8 },
-{ PSF(jumppad_ent), GENTITYNUM_BITS },
-{ PSF(hasDetPackPlanted), 1 },
-{ PSF(saberInFlight), 1 },
-{ PSF(forceDodgeAnim), 16 },
-{ PSF(zoomMode), 2 }, // NOTENOTE Are all of these necessary?
-{ PSF(hackingTime), 32 },
-{ PSF(zoomTime), 32 },	// NOTENOTE Are all of these necessary?
-{ PSF(brokenLimbs), 8 }, //up to 8 limbs at once (not that that many are used)
-{ PSF(zoomLocked), 1 },	// NOTENOTE Are all of these necessary?
-{ PSF(zoomFov), 0 },	// NOTENOTE Are all of these necessary?
-{ PSF(fd.forceRageRecoveryTime), 32 },
-{ PSF(fallingToDeath), 32 },
-{ PSF(fd.forceMindtrickTargetIndex), 16 }, //NOTE: Not just an index, used as a (1 << val) bitflag for up to 16 clients
-{ PSF(fd.forceMindtrickTargetIndex2), 16 }, //NOTE: Not just an index, used as a (1 << val) bitflag for up to 16 clients
-{ PSF(vehWeaponsLinked), 1 },
-{ PSF(lastHitLoc[2]), 0 },
-{ PSF(hyperSpaceTime), 32 },
-{ PSF(fd.forceMindtrickTargetIndex3), 16 }, //NOTE: Not just an index, used as a (1 << val) bitflag for up to 16 clients
-{ PSF(lastHitLoc[0]), 0 },
-{ PSF(eFlags2), 10 },
-{ PSF(fd.forceMindtrickTargetIndex4), 16 }, //NOTE: Not just an index, used as a (1 << val) bitflag for up to 16 clients
-{ PSF(hyperSpaceAngles[1]), 0 },
-{ PSF(lastHitLoc[1]), 0 }, //currently only used so client knows to orient disruptor disintegration.. seems a bit much for just that though.
-{ PSF(vehBoarding), 1 }, //not like the normal boarding value, this is a simple "1 or 0" value
-{ PSF(fd.sentryDeployed), 1 },
-{ PSF(saberLockTime), 32 },
-{ PSF(saberLockFrame), 16 },
-{ PSF(vehTurnaroundIndex), GENTITYNUM_BITS },
-{ PSF(vehSurfaces), 16 }, //allow up to 16 surfaces in the flag I guess
-{ PSF(fd.forcePowerLevel[FP_SEE]), 2 }, //needed for knowing when to display players through walls
-{ PSF(saberLockEnemy), GENTITYNUM_BITS },
-{ PSF(fd.forceGripCripple), 1 }, //should only be 0 or 1 ever
-{ PSF(emplacedIndex), GENTITYNUM_BITS },
-{ PSF(forceRestricted), 1 },
-{ PSF(duelTime), 32 },
-{ PSF(duelInProgress), 1 },
-{ PSF(saberLockAdvance), 1 },
-{ PSF(heldByClient), 6 },
-{ PSF(ragAttach), GENTITYNUM_BITS },
-{ PSF(iModelScale), 10 }, //0-1024 (guess it's gotta be increased if we want larger allowable scale.. but 1024% is pretty big)
-{ PSF(hackingBaseTime), 16 }, //up to 65536ms, over 10 seconds would just be silly anyway
-{ PSF(hyperSpaceAngles[0]), 0 },
-{ PSF(hyperSpaceAngles[2]), 0 },
-
-//rww - for use by mod authors only
-{ PSF(userInt1), 1 },
-{ PSF(userInt2), 1 },
-{ PSF(userInt3), 1 },
-{ PSF(userFloat1), 1 },
-{ PSF(userFloat2), 1 },
-{ PSF(userFloat3), 1 },
-{ PSF(userVec1[0]), 1 },
-{ PSF(userVec1[1]), 1 },
-{ PSF(userVec1[2]), 1 },
-{ PSF(userVec2[0]), 1 },
-{ PSF(userVec2[1]), 1 },
-{ PSF(userVec2[2]), 1 }
-};
-
-//=====_OPTIMIZED_VEHICLE_NETWORKING=======================================================================
-#endif//_OPTIMIZED_VEHICLE_NETWORKING
-//=====_OPTIMIZED_VEHICLE_NETWORKING=======================================================================
 
 /*typedef struct bitStorage_s bitStorage_t;
 
@@ -1862,58 +1552,23 @@ MSG_WriteDeltaPlayerstate
 
 =============
 */
-#ifdef _ONEBIT_COMBO
-void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to, int *bitComboDelta, int *bitNumDelta, qboolean isVehiclePS ) {
-#else
-void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to, qboolean isVehiclePS ) {
-#endif
+void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to ) {
 	int				i;
 	playerState_t	dummy;
-	int				statsbits;
-	int				persistantbits;
-	int				powerupbits;
+	int				statsbits, persistentbits, powerupbits, armorbits, buffbits;
 	int				numFields;
 	netField_t		*field;
 	netField_t		*PSFields = playerStateFields;
 	int				*fromF, *toF;
 	float			fullFloat;
 	int				trunc, lc;
-#ifdef _ONEBIT_COMBO
-	int				bitComboMask = 0;
-	int				numBitsInMask = 0;
-#endif
 
 	if (!from) {
 		from = &dummy;
 		Com_Memset (&dummy, 0, sizeof(dummy));
 	}
 
-//=====_OPTIMIZED_VEHICLE_NETWORKING=======================================================================
-#ifdef _OPTIMIZED_VEHICLE_NETWORKING
-	if ( isVehiclePS )
-	{//a vehicle playerstate
-		numFields = (int)ARRAY_LEN( vehPlayerStateFields );
-		PSFields = vehPlayerStateFields;
-	}
-	else
-	{//regular client playerstate
-		if ( to->m_iVehicleNum
-			&& (to->eFlags&EF_NODRAW) )
-		{//pilot riding *inside* a vehicle!
-			MSG_WriteBits( msg, 1, 1 );	// Pilot player state
-			numFields = (int)ARRAY_LEN( pilotPlayerStateFields ) - 82;
-			PSFields = pilotPlayerStateFields;
-		}
-		else
-		{//normal client
-			MSG_WriteBits( msg, 0, 1 );	// Normal player state
-			numFields = (int)ARRAY_LEN( playerStateFields );
-		}
-	}
-//=====_OPTIMIZED_VEHICLE_NETWORKING=======================================================================
-#else// _OPTIMIZED_VEHICLE_NETWORKING
 	numFields = (int)ARRAY_LEN( playerStateFields );
-#endif// _OPTIMIZED_VEHICLE_NETWORKING
 
 	lc = 0;
 	for ( i = 0, field = PSFields ; i < numFields ; i++, field++ ) {
@@ -1938,16 +1593,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	for ( i = 0, field = PSFields ; i < lc ; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
-
-#ifdef _ONEBIT_COMBO
-		if (numBitsInMask < 32 &&
-			field->bits == 1)
-		{
-			bitComboMask |= (*toF)<<numBitsInMask;
-			numBitsInMask++;
-			continue;
-		}
-#endif
 
 		if ( *fromF == *toF ) {
 			MSG_WriteBits( msg, 0, 1 );	// no change
@@ -1987,10 +1632,10 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 			statsbits |= 1<<i;
 		}
 	}
-	persistantbits = 0;
+	persistentbits = 0;
 	for (i=0 ; i<MAX_PERSISTANT ; i++) {
 		if (to->persistant[i] != from->persistant[i]) {
-			persistantbits |= 1<<i;
+			persistentbits |= 1<<i;
 		}
 	}
 	powerupbits = 0;
@@ -1999,15 +1644,25 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 			powerupbits |= 1<<i;
 		}
 	}
+	armorbits = 0;
+	for (i = 0; i < MAX_ARMOR; i++){
+		if (to->armor[i] != from->armor[i]) {
+			armorbits |= 1 << i;
+		}
+	}
+	buffbits = 0;
+	for (i = 0; i < PLAYERBUFF_BITS; i++)
+	{
+		if (to->buffs[i].buffID != from->buffs[i].buffID || to->buffs[i].intensity != from->buffs[i].intensity)
+		{
+			buffbits |= (1 << i);
+		}
+	}
 
-	if (!statsbits && !persistantbits && !powerupbits) {
+	if (!statsbits && !persistentbits && !powerupbits && !armorbits && !buffbits) {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 		oldsize += 4;
-#ifdef _ONEBIT_COMBO
-		goto sendBitMask;
-#else
 		return;
-#endif
 	}
 	MSG_WriteBits( msg, 1, 1 );	// changed
 
@@ -2034,11 +1689,11 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	}
 
 
-	if ( persistantbits ) {
+	if ( persistentbits ) {
 		MSG_WriteBits( msg, 1, 1 );	// changed
-		MSG_WriteBits( msg, persistantbits, MAX_PERSISTANT );
+		MSG_WriteBits( msg, persistentbits, MAX_PERSISTANT );
 		for (i=0 ; i<MAX_PERSISTANT ; i++)
-			if (persistantbits & (1<<i) )
+			if (persistentbits & (1<<i) )
 				MSG_WriteShort (msg, to->persistant[i]);
 	} else {
 		MSG_WriteBits( msg, 0, 1 );	// no change
@@ -2054,28 +1709,35 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 		MSG_WriteBits( msg, 0, 1 );	// no change
 	}
 
-#ifdef _ONEBIT_COMBO
-sendBitMask:
-	if (numBitsInMask)
-	{ //don't need to send at all if we didn't pass any 1bit values
-		if (!bitComboDelta ||
-			bitComboMask != *bitComboDelta ||
-			numBitsInMask != *bitNumDelta)
-		{ //send the mask, it changed
-			MSG_WriteBits(msg, 1, 1);
-			MSG_WriteBits(msg, bitComboMask, numBitsInMask);
-			if (bitComboDelta)
-			{
-				*bitComboDelta = bitComboMask;
-				*bitNumDelta = numBitsInMask;
+	if(armorbits) {
+		MSG_WriteBits(msg, 1, 1); // changed
+		MSG_WriteBits(msg, armorbits, MAX_ARMOR);
+		for (i = 0; i < MAX_ARMOR; i++) {
+			if (armorbits & (1 << i)) {
+				MSG_WriteLong(msg, to->armor[i]);
 			}
 		}
-		else
-		{ //send 1 bit 0 to indicate no change
-			MSG_WriteBits(msg, 0, 1);
+	}
+	else {
+		MSG_WriteBits(msg, 0, 1); // no change
+	}
+
+	if (buffbits) {
+		MSG_WriteBits(msg, 1, 1); // change
+		MSG_WriteBits(msg, buffbits, PLAYERBUFF_BITS);
+		for (i = 0; i < PLAYERBUFF_BITS; i++)
+		{
+			if (buffbits & (1 << i))
+			{
+				MSG_WriteBits(msg, to->buffs[i].buffID, BUFF_BITS);
+				MSG_WriteFloat(msg, to->buffs[i].intensity);
+			}
 		}
 	}
-#endif
+	else
+	{
+		MSG_WriteBits(msg, 0, 1); // no change
+	}
 }
 
 
@@ -2084,7 +1746,7 @@ sendBitMask:
 MSG_ReadDeltaPlayerstate
 ===================
 */
-void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *to, qboolean isVehiclePS ) {
+void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *to ) {
 	int			i, lc;
 	int			bits;
 	netField_t	*field;
@@ -2094,9 +1756,6 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 	int			print;
 	int			*fromF, *toF;
 	int			trunc;
-#ifdef _ONEBIT_COMBO
-	int			numBitsInMask = 0;
-#endif
 	playerState_t	dummy;
 
 	if ( !from ) {
@@ -2120,30 +1779,7 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 		print = 0;
 	}
 
-//=====_OPTIMIZED_VEHICLE_NETWORKING=======================================================================
-#ifdef _OPTIMIZED_VEHICLE_NETWORKING
-	if ( isVehiclePS )
-	{//a vehicle playerstate
-		numFields = (int)ARRAY_LEN( vehPlayerStateFields );
-		PSFields = vehPlayerStateFields;
-	}
-	else
-	{
-		int isPilot = MSG_ReadBits( msg, 1 );
-		if ( isPilot )
-		{//pilot riding *inside* a vehicle!
-			numFields = (int)ARRAY_LEN( pilotPlayerStateFields ) - 82;
-			PSFields = pilotPlayerStateFields;
-		}
-		else
-		{//normal client
-			numFields = (int)ARRAY_LEN( playerStateFields );
-		}
-	}
-//=====_OPTIMIZED_VEHICLE_NETWORKING=======================================================================
-#else//_OPTIMIZED_VEHICLE_NETWORKING
 	numFields = (int)ARRAY_LEN( playerStateFields );
-#endif//_OPTIMIZED_VEHICLE_NETWORKING
 
 	lc = MSG_ReadByte(msg);
 
@@ -2153,16 +1789,6 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 	for ( i = 0, field = PSFields ; i < lc ; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
-
-#ifdef _ONEBIT_COMBO
-		if (numBitsInMask < 32 &&
-			field->bits == 1)
-		{
-			*toF = *fromF;
-			numBitsInMask++;
-			continue;
-		}
-#endif
 
 		if ( ! MSG_ReadBits( msg, 1 ) ) {
 			// no change
@@ -2244,6 +1870,31 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 				}
 			}
 		}
+
+		// parse armor
+		if (MSG_ReadBits(msg, 1)) {
+			LOG("PS_ARMOR");
+			bits = MSG_ReadBits(msg, MAX_ARMOR);
+			for (i = 0; i < MAX_ARMOR; i++) {
+				if (bits & (1 << i)) {
+					to->armor[i] = MSG_ReadLong(msg);
+				}
+			}
+		}
+
+		// parse buffs
+		if (MSG_ReadBits(msg, 1)) {
+			LOG("PS_BUFFS");
+			bits = MSG_ReadBits(msg, PLAYERBUFF_BITS);
+			for (i = 0; i < PLAYERBUFF_BITS; i++)
+			{
+				if (bits & (1 << i))
+				{
+					to->buffs[i].buffID = MSG_ReadBits(msg, BUFF_BITS);
+					to->buffs[i].intensity = MSG_ReadFloat(msg);
+				}
+			}
+		}
 	}
 
 	if ( print ) {
@@ -2254,290 +1905,7 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 		}
 		Com_Printf( " (%i bits)\n", endBit - startBit  );
 	}
-
-#ifdef _ONEBIT_COMBO
-	if (numBitsInMask &&
-		MSG_ReadBits( msg, 1 ))
-	{ //mask changed...
-		int newBitMask = MSG_ReadBits(msg, numBitsInMask);
-		int nOneBit = 0;
-
-		//we have to go through all the fields again now to match the values
-		for ( i = 0, field = PSFields ; i < lc ; i++, field++ )
-		{
-			if (field->bits == 1)
-			{ //a 1 bit value, get the sent value from the mask
-				toF = (int *)( (byte *)to + field->offset );
-                *toF = (newBitMask>>nOneBit)&1;
-				nOneBit++;
-			}
-		}
-	}
-#endif
 }
-
-/*
-// New data gathered to tune Q3 to JK2MP. Takes longer to crunch and gain was minimal.
-int msg_hData[256] =
-{
-	3163878,		// 0
-	473992,			// 1
-	564019,			// 2
-	136497,			// 3
-	129559,			// 4
-	283019,			// 5
-	75812,			// 6
-	179836,			// 7
-	85958,			// 8
-	168542,			// 9
-	78898,			// 10
-	82007,			// 11
-	48613,			// 12
-	138741,			// 13
-	35482,			// 14
-	47433,			// 15
-	65214,			// 16
-	51636,			// 17
-	63741,			// 18
-	52823,			// 19
-	42464,			// 20
-	44495,			// 21
-	45347,			// 22
-	40260,			// 23
-	59168,			// 24
-	44990,			// 25
-	52957,			// 26
-	42700,			// 27
-	42414,			// 28
-	36451,			// 29
-	45653,			// 30
-	44667,			// 31
-	125336,			// 32
-	38435,			// 33
-	53658,			// 34
-	42621,			// 35
-	40932,			// 36
-	33409,			// 37
-	35470,			// 38
-	40769,			// 39
-	33813,			// 40
-	32480,			// 41
-	33664,			// 42
-	32303,			// 43
-	32394,			// 44
-	34822,			// 45
-	37724,			// 46
-	48016,			// 47
-	94212,			// 48
-	53774,			// 49
-	54522,			// 50
-	44044,			// 51
-	42800,			// 52
-	47597,			// 53
-	29742,			// 54
-	30237,			// 55
-	34291,			// 56
-	106496,			// 57
-	20963,			// 58
-	19342,			// 59
-	20603,			// 60
-	19568,			// 61
-	23013,			// 62
-	23939,			// 63
-	44995,			// 64
-	37128,			// 65
-	44264,			// 66
-	46636,			// 67
-	56400,			// 68
-	32746,			// 69
-	23458,			// 70
-	29702,			// 71
-	25305,			// 72
-	20159,			// 73
-	19645,			// 74
-	20593,			// 75
-	21729,			// 76
-	19362,			// 77
-	24760,			// 78
-	22788,			// 79
-	25085,			// 80
-	21074,			// 81
-	97271,			// 82
-	22048,			// 83
-	24131,			// 84
-	19287,			// 85
-	20296,			// 86
-	20131,			// 87
-	86477,			// 88
-	25352,			// 89
-	20872,			// 90
-	21382,			// 91
-	38744,			// 92
-	137256,			// 93
-	26025,			// 94
-	22243,			// 95
-	23974,			// 96
-	43305,			// 97
-	28191,			// 98
-	34638,			// 99
-	37613,			// 100
-	46003,			// 101
-	31415,			// 102
-	25746,			// 103
-	28338,			// 104
-	34689,			// 105
-	24948,			// 106
-	27110,			// 107
-	39950,			// 108
-	32793,			// 109
-	42639,			// 110
-	47883,			// 111
-	37439,			// 112
-	23875,			// 113
-	36092,			// 114
-	46471,			// 115
-	37392,			// 116
-	33063,			// 117
-	29604,			// 118
-	42140,			// 119
-	61745,			// 120
-	45618,			// 121
-	51779,			// 122
-	49684,			// 123
-	57644,			// 124
-	65021,			// 125
-	67318,			// 126
-	88197,			// 127
-	258378,			// 128
-	76806,			// 129
-	72430,			// 130
-	64936,			// 131
-	62196,			// 132
-	56461,			// 133
-	166474,			// 134
-	70036,			// 135
-	40735,			// 136
-	29598,			// 137
-	26966,			// 138
-	26093,			// 139
-	25853,			// 140
-	26065,			// 141
-	26176,			// 142
-	26777,			// 143
-	26684,			// 144
-	23880,			// 145
-	22932,			// 146
-	24566,			// 147
-	24305,			// 148
-	26399,			// 149
-	23487,			// 150
-	24485,			// 151
-	25956,			// 152
-	26065,			// 153
-	26151,			// 154
-	23111,			// 155
-	23900,			// 156
-	22128,			// 157
-	24096,			// 158
-	20863,			// 159
-	24298,			// 160
-	22572,			// 161
-	22364,			// 162
-	20813,			// 163
-	21414,			// 164
-	21570,			// 165
-	20799,			// 166
-	20971,			// 167
-	22485,			// 168
-	20397,			// 169
-	88096,			// 170
-	17802,			// 171
-	20091,			// 172
-	84250,			// 173
-	21953,			// 174
-	21406,			// 175
-	23401,			// 176
-	19546,			// 177
-	19180,			// 178
-	18843,			// 179
-	20673,			// 180
-	19918,			// 181
-	20640,			// 182
-	20326,			// 183
-	21174,			// 184
-	21736,			// 185
-	22511,			// 186
-	20290,			// 187
-	23303,			// 188
-	19800,			// 189
-	25465,			// 190
-	22801,			// 191
-	28831,			// 192
-	26663,			// 193
-	36485,			// 194
-	45768,			// 195
-	49795,			// 196
-	36026,			// 197
-	24119,			// 198
-	18543,			// 199
-	19261,			// 200
-	17137,			// 201
-	19435,			// 202
-	23672,			// 203
-	22988,			// 204
-	18107,			// 205
-	18734,			// 206
-	19847,			// 207
-	101897,			// 208
-	18405,			// 209
-	21260,			// 210
-	17818,			// 211
-	18971,			// 212
-	19317,			// 213
-	19112,			// 214
-	19395,			// 215
-	20688,			// 216
-	18438,			// 217
-	18945,			// 218
-	29309,			// 219
-	19666,			// 220
-	18735,			// 221
-	87691,			// 222
-	18478,			// 223
-	22634,			// 224
-	20984,			// 225
-	20079,			// 226
-	18624,			// 227
-	20045,			// 228
-	18369,			// 229
-	19014,			// 230
-	83179,			// 231
-	20899,			// 232
-	17854,			// 233
-	19332,			// 234
-	17875,			// 235
-	28647,			// 236
-	17465,			// 237
-	20277,			// 238
-	18994,			// 239
-	22192,			// 240
-	17443,			// 241
-	20243,			// 242
-	28174,			// 243
-	134871,			// 244
-	17753,			// 245
-	18924,			// 246
-	18281,			// 247
-	18937,			// 248
-	17419,			// 249
-	20679,			// 250
-	17865,			// 251
-	17984,			// 252
-	58615,			// 253
-	35506,			// 254
-	123499,			// 255
-};
-*/
 
 // Q3 TA freq. table.
 int msg_hData[256] = {

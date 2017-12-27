@@ -28,6 +28,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "ui_public.h"
 #include "keycodes.h"
 #include "../game/bg_public.h"
+#include "game/bg_damage.h"
 #include "ui_shared.h"
 
 // ui_cvar.c
@@ -48,10 +49,10 @@ void UI_Report( void );
 void UI_Load( void );
 void UI_LoadMenus( const char *menuFile, qboolean reset );
 void UI_LoadArenas( void );
-void UI_LoadForceConfig_List( void );
 
 const char *UI_GetStringEdString2(const char *refName);
 const char* UI_GetStringEdString3(const char* refName);
+qboolean UI_RunSvCommand(const char *command);
 
 //
 // ui_players.c
@@ -407,8 +408,5 @@ void JKG_UI_SetClass( const char *className, itemDef_t *item );
 void JKG_UI_InventoryFilterChanged();
 void JKG_ShopInventorySortChanged();
 
-// new ui
 
 extern uiImport_t *trap;
-
-void JKG_DrawCreditsText(itemDef_t* item);

@@ -1141,22 +1141,6 @@ void Touch_DoorTrigger( gentity_t *ent, gentity_t *other, trace_t *trace )
 		return;
 	}
 
-	if (!ent->genericValue14 &&
-		(!ent->parent || !ent->parent->genericValue14))
-	{
-		if (other->client && other->s.number >= MAX_CLIENTS &&
-			other->s.eType == ET_NPC && other->s.NPC_class == CLASS_VEHICLE)
-		{ //doors don't open for vehicles
-			return;
-		}
-
-		if (other->client && other->s.number < MAX_CLIENTS &&
-			other->client->ps.m_iVehicleNum)
-		{ //can't open a door while on a vehicle
-			return;
-		}
-	}
-
 	if ( ent->flags & FL_INACTIVE )
 	{
 		return;
@@ -1440,7 +1424,6 @@ INACTIVE	must be used by a target_activate before it can be used
 	0 - none (locked to everyone)
 	1 - red
 	2 - blue
-"vehopen"	if non-0, vehicles/players riding vehicles can open
 */
 void SP_func_door (gentity_t *ent) 
 {
@@ -1448,8 +1431,6 @@ void SP_func_door (gentity_t *ent)
 	float	distance;
 	vec3_t	size;
 	float	lip;
-
-	G_SpawnInt("vehopen", "0", &ent->genericValue14);
 
 	ent->blocked = Blocked_Door;
 
@@ -2020,7 +2001,6 @@ A bmodel that just sits there, doing nothing.  Can be used for conditional walls
 */
 void SP_func_static( gentity_t *ent ) 
 {
-	int		test;
 	trap->SetBrushModel( (sharedEntity_t *)ent, ent->model );
 
 	VectorCopy( ent->s.origin, ent->pos1 );
@@ -2058,13 +2038,6 @@ void SP_func_static( gentity_t *ent )
 	else if (ent->s.iModelScale > 1023)
 	{
 		ent->s.iModelScale = 1023;
-	}
-
-	G_SpawnInt( "hyperspace", "0", &test );
-	if ( test )
-	{
-		ent->r.svFlags |= SVF_BROADCAST; // I need to rotate something that is huge and it's touching too many area portals...
-		ent->s.eFlags2 |= EF2_HYPERSPACE;
 	}
 
 	trap->LinkEntity( (sharedEntity_t *)ent );
