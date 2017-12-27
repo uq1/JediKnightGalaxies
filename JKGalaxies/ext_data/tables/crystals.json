@@ -1535,5 +1535,20 @@
 
 		"bladeEffect":	"cheap"
 		
+	},
+	"Futuza Red":
+	{
+		// Unstable blade, red
+		"name":		"red-futuza",
+		"rgb": 
+		{
+			"r":	205,
+			"g":	55,
+			"b":	9
+		},
+
+		"bladeEffect":	"unstable",
+		"trailEffect":	"sharp"
+	
 	}
 }

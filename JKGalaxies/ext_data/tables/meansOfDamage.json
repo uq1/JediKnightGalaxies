@@ -399,8 +399,8 @@
 		"modifiers": {
 			"armor": 1.2,
 			"organic": 0.8,
-			"shield": 1.4,
-			"droid": 1.5
+			"shield": 1.6,
+			"droid": 1.6
 		},
 
 		"killFeed": {

@@ -7,8 +7,8 @@
 	// fuelRegeneration - scale of how fast fuel gets regenerated
 
 	"ref":			"jetpack_hover",
-	"fuelCapacity":		40,
-	"fuelConsumption":	8.0,
+	"fuelCapacity":		45,
+	"fuelConsumption":	7.5,
 	"thrustConsumption":	8.0,
 	"fuelRegeneration":	0.3,
 	
@@ -22,15 +22,15 @@
 		// upMove	- amount to modify upward movement by (not thrusting)
 		// thrustFwd/thrustBack/thrustSide - same as above, but when thrusting
 		// thrustUp - amount to modify upward movement by
-		"hoverGravity":	"1.0",
+		"hoverGravity":	"0.5",
 
 		"forwardMove": 4.5,
-		"backMove": 1.2,
-		"sideMode": 1.2,
-		"downMove": 1.0,
-		"upMove": 3.5,
+		"backMove": 0,
+		"sideMode": 0,
+		"downMove": 0,
+		"upMove": 0,
 
-		"thrustFwd": 3.5,
+		"thrustFwd": 6,
 		"thrustBack": 1.5,
 		"thrustSide": 1.5,
 		"thrustUp": 4.5
