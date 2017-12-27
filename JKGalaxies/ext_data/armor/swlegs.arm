@@ -1,7 +1,7 @@
 {
 	"ref":		"swlegs",
 	"slot":		"legs",
-	"armor":		50,
+	"armor":		70,
 	"movemodifier":	0.8,
 
 	"visuals": {

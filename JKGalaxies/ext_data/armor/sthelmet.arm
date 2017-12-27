@@ -1,7 +1,7 @@
 {
 	"ref":		"sthelmet",
 	"slot":		"head",
-	"armor":		50,
+	"armor":		60,
 	"movemodifier":	1.0,
 
 	"visuals": {

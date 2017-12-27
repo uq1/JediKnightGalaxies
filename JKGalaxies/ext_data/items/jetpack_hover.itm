@@ -4,5 +4,5 @@
 	"itemtype":	"jetpack",
 	"cost":		500,
 	"itemIcon":	"gfx/hud/i_icon_jetpack.tga",
-	"jetpack":	"jetpack_burst3"
+	"jetpack":	"jetpack_hover"
 }
