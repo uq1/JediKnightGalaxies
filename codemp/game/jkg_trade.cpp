@@ -45,9 +45,7 @@ static void JKG_target_vendor_think(gentity_t* self) {
 	pTC = tc->second;
 
 	// Use the treasure class to pick items
-	time_t now = time(0);
-	self->s.seed = now;
-	//self->s.seed = Q_irand(0, 10000); //temp -- futuza this results in pseudo random picks
+	self->s.seed = time(0) + Q_irand(0, 10000);		//take current time (so every game is different and we aren't just pseudo random), but also add pseudo random so each vendor is different  --futuza
 	npc->inventory->clear();
 	pTC->Pick(items, self->s.seed);
 
