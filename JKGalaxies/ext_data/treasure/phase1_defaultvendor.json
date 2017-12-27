@@ -1,11 +1,11 @@
 {
 	"classes": {
 		"genericvendor": {
-			"numberPicksMin": 12,
-			"numberPicksMax": 18,
+			"numberPicksMin": 13,
+			"numberPicksMax": 19,
 			"uniquePicks": true,
 			"picks": {
-				"genericvendor-basic": 11,
+				"genericvendor-basic": 13,
 				"genericvendor-mid": 9,
 				"genericvendor-late": 5,
 				"genericvendor-rare": 1
@@ -15,9 +15,9 @@
 			"numberPicksMin": 1,
 			"numberPicksMax": 1,
 			"picks": {
-				"pistol_KYD-21": 3,
-				"pistol_Suppressor_Adv": 4,
-				"pistol_Q2": 3,
+				"pistol_KYD-21": 4,
+				"pistol_Suppressor_Adv": 5,
+				"pistol_Q2": 6,
 				"Grenade_C-14A": 4,
 				"Grenade_Smoke": 3,
 				"Grenade_Stun": 3,
@@ -25,19 +25,19 @@
 				"Grenade_C22Frag": 3,
 				"carbine_LT-60": 2,
 				"carbine_LT-60_S": 2,
-				"pistol_ELG-3A": 3,
-				"pistol_Suppressor": 4,
-				"pistol_ACP": 3,
-				"pistol_L8": 3,
-				"pistol_DE-10": 4,
-				"pistol_DH-17": 2,
-				"pistol_Bryar": 3,
+				"pistol_ELG-3A": 4,
+				"pistol_Suppressor": 5,
+				"pistol_ACP": 4,
+				"pistol_L8": 4,
+				"pistol_DE-10": 5,
+				"pistol_DH-17": 3,
+				"pistol_Bryar": 4,
 				"shield_knockoff2": 5,
 				"shield_blastech_imp": 3,
 				"shield_atgar": 3,
 				"shield_merrsonn_cour": 3,
 				"charge_LaserProjector": 1,
-				"gloves_stormtrooper": 2,
+				"gloves_stormtrooper": 3,
 				"bacta_medium": 4,
 				"bacta_small": 8,
 				"jetpack_burst": 2,
@@ -45,8 +45,8 @@
 				"gloves_pilot": 3,
 				"helmet_impworker": 2,
 				"helmet_pilot": 1,
-				"rbhelmet_dark": 2,
-				"rbhelmet_light": 1
+				"helmet_rebel_dark": 2,
+				"helmet_rebel_light": 1
 
 			}
 		},
@@ -100,13 +100,14 @@
 				"torso_glight": 2,
 				"legs_glight": 3,
 				"helmet_rebel_red": 2,
+				"helmet_rebel_dark": 3,
 				"coat_heavy": 2,
 				"legs_swamptrooper": 1,
 				"gloves_pilot": 2,
 				"helmet_impworker": 2,
 				"rbhelmet_dark": 2,
 				"rbhelmet_light": 2,
-				"jetpack_burst": 4,
+				"jetpack_burst": 6,
 				"jetpack_test": 2,
 				"jetpack_burst2": 3
 
@@ -165,8 +166,8 @@
 				"legs_glight": 4,
 				"helmet_rebel_red": 4,
 				"coat_heavy": 2,
-				"jetpack_burst": 5,
-				"jetpack_test": 2,
+				"jetpack_burst": 6,
+				"jetpack_test": 3,
 				"jetpack_burst2": 3
 			}
 		},

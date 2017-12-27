@@ -5,7 +5,7 @@
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"4",
 	"weight":		"6",
-	"cost":		"1200",
+	"cost":		"900",
 	"xml":			"xml/items/FWG-5.xml",
 	"itemIcon":		"models/weapons/fwg-5_flechettepistol/icon_default"
 }
