@@ -33,8 +33,8 @@
 			"visuals": {
 				"projectile": {
 					"hit": "Blasters/purple_impactHuge",
-					"miss": "Blasters/purple_impactmedium",
-					"effect": "Blasters/shot_RedPurple_medium"
+					"miss": "Blasters/purple_shield_impact",
+					"effect": "Blasters/shot_Blue_medium"
 				}
 			}
 		}
