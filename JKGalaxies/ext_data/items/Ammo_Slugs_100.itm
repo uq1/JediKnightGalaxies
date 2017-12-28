@@ -6,5 +6,5 @@
 	"cost":		"200",
 	"ammoclass":	"AMMO_SLUGS_INCENDIARY",
 	"ammoquantity":	"100",
-	"itemIcon": ""	//needs icon!
+	"itemIcon": "gfx/item_icons/default.tga"	//needs icon!
 }

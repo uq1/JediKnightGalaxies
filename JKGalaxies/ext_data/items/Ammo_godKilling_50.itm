@@ -6,5 +6,5 @@
 	"cost":		"1000",
 	"ammoclass":	"AMMO_SLUGS_GODKILLER",
 	"ammoquantity":	"50",
-	"itemIcon": ""	//needs icon!
+	"itemIcon": "gfx/item_icons/default.tga"	//needs icon!
 }

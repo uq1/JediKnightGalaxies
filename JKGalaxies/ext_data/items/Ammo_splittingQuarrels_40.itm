@@ -6,5 +6,5 @@
 	"cost":		"105",
 	"ammoclass":	"AMMO_QUARREL_SPLITTING",
 	"ammoquantity":	"40",
-	"itemIcon": ""	//needs icon!
+	"itemIcon": "gfx/item_icons/default.tga"	//needs icon!
 }

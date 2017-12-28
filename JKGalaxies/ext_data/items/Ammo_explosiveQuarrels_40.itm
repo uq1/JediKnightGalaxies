@@ -6,5 +6,5 @@
 	"cost":		"110",
 	"ammoclass":	"AMMO_QUARREL_EXPLOSIVE",
 	"ammoquantity":	"40",
-	"itemIcon": ""	//needs icon!
+	"itemIcon": "gfx/item_icons/default.tga"	//needs icon!
 }
