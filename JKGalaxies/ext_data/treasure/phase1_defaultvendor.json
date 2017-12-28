@@ -47,9 +47,11 @@
 				"helmet_pilot": 1,
 				"helmet_rebel_dark": 2,
 				"helmet_rebel_light": 1,
-				"ammo_explosiveQuarrel_40": 2,
+				"ammo_explosiveQuarrel_40": 1,
 				"ammo_splittingQuarrels_40": 2,
-				"ammo_bouncingQuarrels_40": 3
+				"ammo_bouncingQuarrels_40": 2,
+				"ammo_explosiveSlugs_50": 2,
+				"ammo_shotgunSlugs_25": 3
 				
 
 			}
@@ -114,8 +116,10 @@
 				"jetpack_test": 2,
 				"jetpack_burst2": 3,
 				"ammo_explosiveQuarrel_40": 2,
-				"ammo_splittingQuarrels_40": 2,
-				"ammo_bouncingQuarrels_40": 3
+				"ammo_splittingQuarrels_40": 3,
+				"ammo_bouncingQuarrels_40": 4,
+				"ammo_explosiveSlugs_50": 3,
+				"ammo_shotgunSlugs_25": 4
 
 			}
 		},
@@ -175,9 +179,11 @@
 				"jetpack_burst": 6,
 				"jetpack_test": 3,
 				"jetpack_burst2": 3,
-				"ammo_explosiveQuarrel_40": 2,
-				"ammo_splittingQuarrels_40": 2,
-				"ammo_bouncingQuarrels_40": 3
+				"ammo_explosiveQuarrel_40": 3,
+				"ammo_splittingQuarrels_40": 4,
+				"ammo_bouncingQuarrels_40": 4,
+				"ammo_explosiveSlugs_50": 4,
+				"ammo_shotgunSlugs_25": 5
 			}
 		},
 		"genericvendor-rare": {

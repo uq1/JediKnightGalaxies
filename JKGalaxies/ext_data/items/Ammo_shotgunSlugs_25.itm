@@ -1,0 +1,10 @@
+{
+	"name":		"25-pack Shotgun Slugs",
+	"internal":	"ammo_shotgunSlugs_25",
+	"itemtype":	"ammo",
+	"weight":		"0",
+	"cost":		"120",
+	"ammoclass":	"AMMO_SLUGS_SPLITTING",
+	"ammoquantity":	"25",
+	"itemIcon": "gfx/item_icons/default.tga"	//needs icon!
+}

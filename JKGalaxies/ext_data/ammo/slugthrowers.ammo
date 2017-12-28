@@ -1,0 +1,66 @@
+{
+	"AMMO_SLUGS_SPLITTING": 
+	{
+		"shortname": "Shotgun Slugs",
+		"longname": "Shotgun Slugthrower Packs",
+		"basedOn": "AMMO_SLUGS",
+		"max": 100,
+		"pricePerUnit": 25,
+		"overrides": {
+			"damage": {
+				"multiply": 0.7
+			},
+			"bounces": {
+				"set": 0
+			},
+			"projectiles": {
+				"set": 5
+			},
+			"accuracyRatingBase": {
+				"set": 100
+			},
+			"accuracyRatingPerShot": {
+				"set": 15
+			},
+			"ammocost": {
+				"multiply": 2
+			}
+		}
+	},
+	
+	"AMMO_SLUGS_EXPLOSIVE": 
+	{
+		"shortname": "Explosive Slugs",
+		"longname": "Explosive Round Slugthrower Packs",
+		"basedOn": "AMMO_SLUGS",
+		"max": 50,
+		"pricePerUnit": 100,
+		"overrides": {
+			"Damage": {
+				"multiply": 1.5
+			},
+			"ammocost": {
+				"multiply": 5
+			},
+			"speed": {
+				"multiply": 0.5
+			},
+			"knockback":{
+				"add": 25
+			},
+			"recoil":{
+				"multiply": 1.25
+			},
+			"bounces": {
+				"set": 0
+			},
+			"visuals": {
+				"projectile": {
+					"hit": "explosions/explosion1",
+					"miss": "explosions/explosion1",
+					"effect": "Slugthrowers/slug_tracershot"
+				}
+			}
+		}
+	}
+}
