@@ -46,7 +46,11 @@
 				"helmet_impworker": 2,
 				"helmet_pilot": 1,
 				"helmet_rebel_dark": 2,
-				"helmet_rebel_light": 1
+				"helmet_rebel_light": 1,
+				"ammo_explosiveQuarrel_40": 2,
+				"ammo_splittingQuarrels_40": 2,
+				"ammo_bouncingQuarrels_40": 3
+				
 
 			}
 		},
@@ -108,7 +112,10 @@
 				"helmet_rebel_light": 3,
 				"jetpack_burst": 6,
 				"jetpack_test": 2,
-				"jetpack_burst2": 3
+				"jetpack_burst2": 3,
+				"ammo_explosiveQuarrel_40": 2,
+				"ammo_splittingQuarrels_40": 2,
+				"ammo_bouncingQuarrels_40": 3
 
 			}
 		},
@@ -167,7 +174,10 @@
 				"coat_heavy": 2,
 				"jetpack_burst": 6,
 				"jetpack_test": 3,
-				"jetpack_burst2": 3
+				"jetpack_burst2": 3,
+				"ammo_explosiveQuarrel_40": 2,
+				"ammo_splittingQuarrels_40": 2,
+				"ammo_bouncingQuarrels_40": 3
 			}
 		},
 		"genericvendor-rare": {
