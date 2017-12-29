@@ -86,13 +86,13 @@
 	"ammodefault": "AMMO_MAUSER_CLIP",
         "clipSize":              12,
         "accuracy": {
-        	"accuracyRating": 35,
+        	"accuracyRating": 33,
         	"accuracyRatingPerShot": 6,
         	"msToDrainAccuracy": 30,
         	"maxAccuracyAdd": 105,
-        	"crouchModifier": 0.9,
+        	"crouchModifier": 0.8,
         	"runModifier": 1.3,
-        	"sightsModifier": 0.8,
+        	"sightsModifier": 0.7,
         	"walkModifier": 1.2,
         	"inAirModifier": 1.5
         }
