@@ -280,7 +280,7 @@ DamagePlum
 ===========
 */
 
-void DamagePlum( gentity_t *ent, vec3_t origin, int damage, int meansOfDeath, qboolean shield, qboolean weak ) {
+void DamagePlum( gentity_t *ent, vec3_t origin, int damage, int meansOfDeath, int shield, qboolean weak ) {
 	meansOfDamage_t* means = JKG_GetMeansOfDamage(meansOfDeath);
 	
 	if (means->plums.noDamagePlums)
@@ -292,7 +292,7 @@ void DamagePlum( gentity_t *ent, vec3_t origin, int damage, int meansOfDeath, qb
 		ent->damagePlum = G_TempEntity( origin, EV_DAMAGEPLUM );
 		ent->damagePlumTime = level.time;
 	} 
-	ent->damagePlum->s.time -= damage;
+	ent->damagePlum->s.time = damage;
 	ent->damagePlum->s.eventParm = meansOfDeath;
 	ent->damagePlum->s.generic1 = shield;
 	ent->damagePlum->s.groundEntityNum = weak;
