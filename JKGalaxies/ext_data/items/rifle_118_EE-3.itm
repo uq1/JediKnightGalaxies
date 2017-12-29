@@ -1,5 +1,5 @@
 {
-	"name":             "@JKG_ITEMS_rifle_EE-3_Rifle",
+	"name":             "Blastech EE-3 Rifle",
 	"internal":             "rifle_EE-3",
 	"itemtype":             "weapon",
 	"weapon":		"WP_DISRUPTOR",

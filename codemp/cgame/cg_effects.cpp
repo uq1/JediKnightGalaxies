@@ -909,7 +909,7 @@ void CG_DamagePlum( int client, vec3_t org, int damage, int means, qboolean shie
 		}
 		else {
 			le->color[0] = 255.0f;
-			le->color[1] = 255.0f;
+			le->color[1] = 17.0f;
 			le->color[2] = 17.0f;
 		}
 	}

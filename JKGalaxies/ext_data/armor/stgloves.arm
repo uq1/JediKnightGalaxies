@@ -1,7 +1,7 @@
 {
 	"ref":		"stgloves",
 	"slot":		"gloves",
-	"armor":		0,
+	"armor":		10,
 	"movemodifier":	1.0,
 
 	"visuals": {
@@ -19,7 +19,7 @@
 			"l_hand",
 			"l_hand_plate",
 			"r_hand",
-			"r_hand_plate"
+			"r_hand_plate",
 			"r_hand_inner_glove",
 			"l_hand_inner_glove"
 		]

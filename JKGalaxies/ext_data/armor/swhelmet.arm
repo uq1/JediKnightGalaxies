@@ -1,7 +1,7 @@
 {
 	"ref":		"swhelmet",
 	"slot":		"head",
-	"armor":		50,
+	"armor":		75,
 	"movemodifier":	1.0,
 
 	"visuals": {

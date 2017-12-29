@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
-
+#pragma comment( lib, "psapi.lib" )	//fix for winxp compiles --futuza
 #include "sys_local.h"
 #include <direct.h>
 #include <io.h>
