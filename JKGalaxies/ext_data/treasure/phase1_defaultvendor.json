@@ -48,10 +48,10 @@
 				"helmet_rebel_dark": 2,
 				"helmet_rebel_light": 1,
 				"ammo_explosiveQuarrel_40": 1,
-				"ammo_splittingQuarrels_40": 2,
-				"ammo_bouncingQuarrels_40": 2,
-				"ammo_explosiveSlugs_50": 2,
-				"ammo_shotgunSlugs_25": 3
+				"ammo_splittingQuarrels_40": 1,
+				"ammo_bouncingQuarrels_40": 1,
+				"ammo_explosiveSlugs_60": 2,
+				"ammo_shotgunSlugs_30": 3
 				
 
 			}
@@ -118,8 +118,8 @@
 				"ammo_explosiveQuarrel_40": 2,
 				"ammo_splittingQuarrels_40": 3,
 				"ammo_bouncingQuarrels_40": 4,
-				"ammo_explosiveSlugs_50": 3,
-				"ammo_shotgunSlugs_25": 4
+				"ammo_explosiveSlugs_60": 3,
+				"ammo_shotgunSlugs_30": 4
 
 			}
 		},
@@ -182,8 +182,8 @@
 				"ammo_explosiveQuarrel_40": 3,
 				"ammo_splittingQuarrels_40": 4,
 				"ammo_bouncingQuarrels_40": 4,
-				"ammo_explosiveSlugs_50": 4,
-				"ammo_shotgunSlugs_25": 5
+				"ammo_explosiveSlugs_60": 4,
+				"ammo_shotgunSlugs_30": 5
 			}
 		},
 		"genericvendor-rare": {

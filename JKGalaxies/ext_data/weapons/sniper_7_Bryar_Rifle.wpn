@@ -72,7 +72,7 @@
     },
     
     "firemode0": {
-        "damage":       28,
+        "damage":       30,
         "ammocost":     1,
         "firedelay":    500,
         "firingtype":   "semi",
@@ -85,28 +85,28 @@
 	"ammobase": "AMMO_POWERCELL_L",
 	"ammodefault": "AMMO_POWERCELL_M",
         "clipSize":              24,
-            "accuracy": {
-        "accuracyRating": 20,
-        "accuracyRatingPerShot": 4,
-        "msToDrainAccuracy": 100,
-        "maxAccuracyAdd": 80,
-        "crouchModifier": 0.9,
-        "runModifier": 1.8,
-        "sightsModifier": 0.6,
-        "walkModifier": 1.5,
-        "inAirModifier": 2.2
+        "accuracy": {
+			"accuracyRating": 15,
+			"accuracyRatingPerShot": 4,
+			"msToDrainAccuracy": 100,
+			"maxAccuracyAdd": 80,
+			"crouchModifier": 0.5,
+			"sightsModifier": 0.3,
+			"walkModifier": 1.5,
+			"runModifier": 1.8,
+			"inAirModifier": 2.2
         }
     },
     
     "firemode1": {
-        "damage":       14,//28,
+        "damage":       16,//28,
         "maxchargetime":1200,
         "chargedamage": 1.0,
         "chargedelay":  400,
         "ammocost":     1,
         "firedelay":    800,
         "firingtype":   "semi",
-        "recoil":       1.4,
+        "recoil":       1.5,
         "range":       8000,
         "splashrange":  3.0,
         "spread":       0.0,
@@ -117,16 +117,16 @@
 	"ammobase": "AMMO_POWERCELL_L",
 	"ammodefault": "AMMO_POWERCELL_M",
         "clipSize":              24,
-            "accuracy": {
-        "accuracyRating": 40,
-        "accuracyRatingPerShot": 6,
-        "msToDrainAccuracy": 100,
-        "maxAccuracyAdd": 85,
-        "crouchModifier": 0.9,
-        "runModifier": 1.8,
-        "sightsModifier": 0.65,
-        "walkModifier": 1.5,
-        "inAirModifier": 2.2
+        "accuracy": {
+			"accuracyRating": 18,
+			"accuracyRatingPerShot": 8,
+			"msToDrainAccuracy": 100,
+			"maxAccuracyAdd": 90,
+			"crouchModifier": 0.5,
+			"runModifier": 1.8,
+			"sightsModifier": 0.4,
+			"walkModifier": 1.5,
+			"inAirModifier": 2.2
         }
     },
     
