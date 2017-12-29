@@ -5,7 +5,7 @@
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"10",
 	"weight":		"5",
-	"cost":		"600",
+	"cost":		"700",
 	"xml":			"xml/items/DE-10.xml",
 	"itemIcon":		"models/weapons/DE-10_pistol/icon_default"
 }
