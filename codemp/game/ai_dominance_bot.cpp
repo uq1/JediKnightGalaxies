@@ -25,10 +25,6 @@ void DOM_InitFakeNPC(gentity_t *bot)
 {
 	bot->NPC = New_NPC_t(bot->s.number);
 
-	//eezstreet add
-	bot->currentLooter = NULL;
-	//eezstreet end
-
 	//Assign the pointer for bg entity access
 	bot->playerState = &bot->client->ps;
 

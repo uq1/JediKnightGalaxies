@@ -1784,16 +1784,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->client->bodyGrabIndex = ENTITYNUM_NONE;
 	self->client->bodyGrabTime = 0;
 
-	if (self->client->holdingObjectiveItem > 0)
-	{ //carrying a siege objective item - make sure it updates and removes itself from us now in case this is an instant death-respawn situation
-		gentity_t *objectiveItem = &g_entities[self->client->holdingObjectiveItem];
-
-		if (objectiveItem->inuse && objectiveItem->think)
-		{
-            objectiveItem->think(objectiveItem);
-		}
-	}
-
 	// JKG - check if he was holding a primed thermal detonator
 	if (self->client && self->client->ps.weapon == WP_THERMAL && !self->grenadeCookTime) {
 		WP_RecalculateTheFreakingMuzzleCrap( self ); // Fix to keep the grenades from spawning at enemies :P --eez

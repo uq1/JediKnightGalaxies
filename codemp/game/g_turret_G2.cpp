@@ -779,11 +779,6 @@ static qboolean turretG2_find_enemies( gentity_t *self )
 			continue;
 		}
 
-		if ( target->szVendorTreasureClass != nullptr )
-		{
-			continue;
-		}
-
 		if ( target->client )
 		{
 			VectorCopy( target->client->renderInfo.eyePoint, org );

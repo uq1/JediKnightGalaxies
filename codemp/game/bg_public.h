@@ -320,8 +320,8 @@ extern qboolean			BGPAFtextLoaded;
 extern animation_t		bgHumanoidAnimations[MAX_TOTALANIMATIONS];
 
 #define NUM_RESERVED_ANIMSETS (3)
-#define MAX_ANIM_FILES	64		// Jedi Knight Galaxies - Raised from 16 to 64
-#define MAX_ANIM_EVENTS 600		// Jedi Knight Galaxies - Raised from 300 to 600
+#define MAX_ANIM_FILES	16
+#define MAX_ANIM_EVENTS 300
 
 typedef enum
 {

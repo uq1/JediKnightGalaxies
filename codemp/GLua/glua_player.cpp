@@ -586,25 +586,6 @@ static int GLua_Player_Health_Set(lua_State *L) {
 	return 0;
 }
 
-//eezstreet add
-static int GLua_Player_CurrentlyLooting_Get(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
-	gentity_t *ent = &g_entities[ply->clientNum];
-
-	if(!ply) return 0;
-	lua_pushinteger(L, ent->currentlyLooting->s.number);
-	return 1;
-}
-
-static int GLua_Player_CurrentlyLooting_Set(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
-	gentity_t *ent = &g_entities[ply->clientNum];
-
-	if(!ply) return 0;
-	ent->currentlyLooting = &g_entities[luaL_checkinteger(L, 2)];
-	return 0;
-}
-
 static int GLua_Player_CanUseCheats_Get(lua_State *L)
 {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);

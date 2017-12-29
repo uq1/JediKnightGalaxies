@@ -599,11 +599,7 @@ typedef enum //# material_e
 } material_t;
 
 //rww - bot stuff that needs to be shared
-#ifdef __AUTOWAYPOINT__
-#define MAX_WPARRAY_SIZE 32000
-#else //!__AUTOWAYPOINT__
-#define MAX_WPARRAY_SIZE 4096
-#endif //__AUTOWAYPOINT__
+#define MAX_WPARRAY_SIZE 1024
 #define MAX_NEIGHBOR_SIZE 32
 
 #define MAX_NEIGHBOR_LINK_DISTANCE 128
