@@ -4,6 +4,6 @@
 	"itemtype":             "armor",
 	"armor":		"gllegs",
 	"weight":		"2",
-	"cost":			"250",
+	"cost":			"150",
 	"itemIcon":		"gfx/item_icons/default.tga"
 }

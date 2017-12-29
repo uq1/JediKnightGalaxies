@@ -1,7 +1,7 @@
 {
 	"ref":		"iwhelmet",
 	"slot":		"head",
-	"armor":		20,
+	"armor":		70,
 	"movemodifier":	1.0,
 
 	"visuals": {

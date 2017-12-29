@@ -1,7 +1,7 @@
 {
 	"ref":		"stlegs",
 	"slot":		"legs",
-	"armor":		50,
+	"armor":		120,
 	"movemodifier":	0.8,
 
 	"visuals": {

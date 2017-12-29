@@ -1,8 +1,8 @@
 {
 	"ref":		"swtorso",
 	"slot":		"torso, gloves",
-	"armor":		75,
-	"movemodifier":	0.8,
+	"armor":		215,
+	"movemodifier":	0.9,
 
 	"visuals": {
 		"model":	"models/players/swamptrooper/model.glm*default",

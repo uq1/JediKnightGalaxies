@@ -1,7 +1,7 @@
 {
 	"ref":		"gllegs",
 	"slot":		"legs",
-	"armor":		35,
+	"armor":		65,
 	"movemodifier":	0.9,
 
 	"visuals": {

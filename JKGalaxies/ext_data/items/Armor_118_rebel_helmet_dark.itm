@@ -4,6 +4,6 @@
 	"itemtype":             "armor",
 	"armor":		"rbhelmet_dark",
 	"weight":		"2",
-	"cost":			"450",
+	"cost":			"200",
 	"itemIcon":		"gfx/item_icons/rebel_helmet_dark.tga"
 }

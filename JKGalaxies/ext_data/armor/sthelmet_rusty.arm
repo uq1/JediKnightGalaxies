@@ -1,7 +1,7 @@
 {
 	"ref":		"sthelmet_rusty",
 	"slot":		"head",
-	"armor":		40,
+	"armor":		75,
 	"movemodifier":	1.0,
 
 	"visuals": {

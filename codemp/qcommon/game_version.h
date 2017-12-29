@@ -29,11 +29,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../win32/AutoVersion.h"
 #include "../git.h"
 
-#define JKG_VERSION "1.2.2"
+#define JKG_VERSION "1.3.0"
 // Current version of the multi player game
 #ifdef _DEBUG
 	#define JK_VERSION "" GIT_BRANCH " / " GIT_HASH " (debug)"
-	#define JKG_VERSION_SUFFIX "d"
+	#define JKG_VERSION_SUFFIX "c"
 	
 #elif defined FINAL_BUILD
 	#define JK_VERSION "" GIT_BRANCH " / " GIT_HASH ""

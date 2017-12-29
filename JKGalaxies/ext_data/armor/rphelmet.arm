@@ -1,7 +1,7 @@
 {
 	"ref":		"rphelmet",
 	"slot":		"head",
-	"armor":		25,
+	"armor":		100,
 	"movemodifier":	1.0,
 
 	"visuals": {
