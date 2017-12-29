@@ -89,7 +89,7 @@
 	"ammodefault": "AMMO_MAUSER",
         "clipSize":              12,
         "accuracy": {
-        	"accuracyRating": 23,
+        	"accuracyRating": 25,
         	"accuracyRatingPerShot": 6,
         	"msToDrainAccuracy": 135,
         	"maxAccuracyAdd": 115,
