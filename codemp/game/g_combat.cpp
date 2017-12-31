@@ -1674,6 +1674,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->client->pmlock = qfalse;
 	self->client->pmnomove = qfalse;
 
+	// unfreeze the torso and legs animation so that we can play the death animation
+	// this will look a bit weird on the Cryoban buff but it's pretty rare that players die anyway from that
+	self->client->ps.freezeLegsAnim = 0;
+	self->client->ps.freezeTorsoAnim = 0;
+	self->s.freezeLegsAnim = 0;
+	self->s.freezeTorsoAnim = 0;
+
 	if (meansOfDeath != -1) {
 		means = JKG_GetMeansOfDamage(meansOfDeath);
 
