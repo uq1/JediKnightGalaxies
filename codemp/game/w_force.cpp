@@ -2893,8 +2893,7 @@ qboolean CanCounterThrow(gentity_t *self, gentity_t *thrower, qboolean pull)
 		return 0;
 	}
 
-	if (self->client->ps.weaponstate == WEAPON_CHARGING ||
-		self->client->ps.weaponstate == WEAPON_CHARGING_ALT)
+	if (self->client->ps.weaponstate == WEAPON_CHARGING)
 	{ //don't autodefend when charging a weapon
 		return 0;
 	}

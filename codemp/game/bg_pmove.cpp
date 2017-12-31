@@ -4625,13 +4625,6 @@ static qboolean PM_DoChargedWeapons( void )
 			{
                    charging = qtrue;
 		    }
-		        
-		    if ( pm->ps->zoomMode != 1 &&
-		            pm->ps->weaponstate == WEAPON_CHARGING_ALT )
-		    {
-		        pm->ps->weaponstate = WEAPON_READY;
-		        charging = qfalse;
-		    }
 		}
 		/* Check the primary fire for a charged weapon; Even if we're using zoom, we must retain original specs */
 		else if ( !charging && thisWeaponData->firemodes[pm->ps->firingMode].chargeTime && pm->ps->stats[STAT_AMMO] >= thisWeaponData->firemodes[pm->ps->firingMode].cost )
@@ -4713,13 +4706,6 @@ rest:
 
 		// dumb, but since we shoot a charged weapon on button-up, we need to repress this button for now
 		pm->cmd.buttons |= BUTTON_ATTACK;
-		pm->ps->eFlags |= EF_FIRING;
-	}
-	else if ( pm->ps->weaponstate == WEAPON_CHARGING_ALT )
-	{
-		// weapon has a charge, so let us do an alt-attack
-
-		// dumb, but since we shoot a charged weapon on button-up, we need to repress this button for now
 		pm->ps->eFlags |= EF_FIRING;
 	}
 

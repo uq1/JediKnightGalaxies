@@ -440,7 +440,6 @@ typedef enum {
 	WEAPON_DROPPING,
 	WEAPON_FIRING,
 	WEAPON_CHARGING,
-	WEAPON_CHARGING_ALT,
 	WEAPON_IDLE, //lowered		// NOTENOTE Added with saber
 	WEAPON_RELOADING, // added for reloading weapon
 } weaponstate_t;

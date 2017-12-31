@@ -1622,7 +1622,6 @@ extern qboolean g_dontFrickinCheck;
 extern qboolean g_endPDuel;
 extern qboolean g_noPDuelCheck;
 void G_CheckForBlowingUp (gentity_t *ent, gentity_t *enemy, vec3_t point, int damage, int deathAnim, qboolean postDeath);
-gentity_t *WP_DropThermalDetonator( gentity_t *ent, qboolean altFire );
 void GLua_NPCEV_OnDie(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod);
 
 void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath ) {
@@ -1634,6 +1633,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	char		*killerName, *obit;
 	int			sPMType = 0;
 	meansOfDamage_t* means = nullptr;
+	usercmd_t	cmd;
 
 	if ( self->client->ps.pm_type == PM_DEAD ) {
 		return;
@@ -1648,6 +1648,11 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		
 	if (self->s.eType == ET_PLAYER && self->s.clientNum > MAX_CLIENTS)
 		return; // UQ1: Secondary entity???
+
+	if (self->s.eType == ET_PLAYER)
+	{
+		trap->GetUsercmd(self->client->ps.clientNum, &cmd);
+	}
 
 	//check player stuff
 	g_dontFrickinCheck = qfalse;
@@ -1784,13 +1789,14 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->client->bodyGrabIndex = ENTITYNUM_NONE;
 	self->client->bodyGrabTime = 0;
 
-	// JKG - check if he was holding a primed thermal detonator
-	if (self->client && self->client->ps.weapon == WP_THERMAL && !self->grenadeCookTime) {
+	// JKG - check if he was holding a primed (not cooked) thermal detonator
+	if (self->client && self->client->ps.weapon == WP_THERMAL && !self->grenadeCookTime && self->client->ps.weaponstate == WEAPON_CHARGING) {
 		WP_RecalculateTheFreakingMuzzleCrap( self ); // Fix to keep the grenades from spawning at enemies :P --eez
-		if (self->client->ps.weaponstate == WEAPON_CHARGING) {
-			WP_DropThermalDetonator(self, qfalse);
-		} else if (self->client->ps.weaponstate == WEAPON_CHARGING_ALT) {
-			WP_DropThermalDetonator(self, qtrue);
+		WP_FireGenericWeapon(self, self->client->ps.firingMode);
+
+		if (self->s.eType == ET_PLAYER)
+		{
+			BG_AdjustItemStackQuantity(self, cmd.invensel, -1);
 		}
 	}
 

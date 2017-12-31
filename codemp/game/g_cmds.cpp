@@ -3736,7 +3736,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	}
 
     // Can't reload while charging the weapon
-	if ( ent->client->ps.weaponstate == WEAPON_CHARGING || ent->client->ps.weaponstate == WEAPON_CHARGING_ALT )
+	if ( ent->client->ps.weaponstate == WEAPON_CHARGING )
 	{
 		return;
 	}

@@ -1313,7 +1313,6 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 		|| ent->client->ps.torsoTimer > 0
 		|| ent->client->ps.weaponTime > 0
 		|| ent->client->ps.weaponstate == WEAPON_CHARGING
-		|| ent->client->ps.weaponstate == WEAPON_CHARGING_ALT
 		|| ent->client->ps.zoomMode
 		|| (ent->client->ps.weaponstate != WEAPON_READY && ent->client->ps.weapon != WP_SABER)
 		|| ent->client->ps.forceHandExtend != HANDEXTEND_NONE
@@ -1331,7 +1330,6 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 			|| (ent->client->ps.weaponstate != WEAPON_READY && ent->client->ps.weapon != WP_SABER)
 			|| (ent->client->ps.weaponTime > 0 && ent->client->ps.weapon == WP_SABER)
 			|| ent->client->ps.weaponstate == WEAPON_CHARGING
-			|| ent->client->ps.weaponstate == WEAPON_CHARGING_ALT
 			|| ent->client->ps.forceHandExtend != HANDEXTEND_NONE
 			|| ent->client->ps.saberBlocked != BLOCKED_NONE
 			|| ent->client->ps.saberBlocking >= level.time
@@ -1372,8 +1370,7 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 			ent->client->idleTime = level.time;
 		}
 
-		if (brokeOut &&
-			(ent->client->ps.weaponstate == WEAPON_CHARGING || ent->client->ps.weaponstate == WEAPON_CHARGING_ALT))
+		if (brokeOut && ent->client->ps.weaponstate == WEAPON_CHARGING)
 		{
 			ent->client->ps.torsoAnim = TORSO_RAISEWEAP1;
 		}
@@ -3084,14 +3081,7 @@ void ClientThink_real( gentity_t *ent ) {
 		ent->client->ps.weaponChargeTime = 0;
 
 		/* Remove a count since we don't do this now. */
-		if(ent->client->clipammo[weaponClass][ent->client->ps.firingMode])
-		{
-			ent->client->clipammo[weaponClass][ent->client->ps.firingMode] -= 1;
-		}
-		ent->client->ps.stats[STAT_TOTALAMMO] -= 1;
-		ent->client->ammoTypes[weaponClass][ent->client->ps.firingMode] = -1;
-		ent->client->ammoTable[ent->client->ps.ammoType] -= 1;
-		ent->client->ps.ammoType = -1;
+		BG_AdjustItemStackQuantity(ent, inventoryItem, -1);
 
 		/* Return the correct weapon and variation for the client */
 		ent->s.weapon = preWeapon;
@@ -3099,6 +3089,7 @@ void ClientThink_real( gentity_t *ent ) {
 
 		/* Remove the cooked grenade timer */
 		ent->grenadeCookTime = 0;
+		
 	}
 	
 	if ( BG_IsSprinting (&ent->client->ps, &pmove.cmd, qfalse) )
