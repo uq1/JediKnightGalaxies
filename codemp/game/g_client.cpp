@@ -3346,7 +3346,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	if (!(ent->r.svFlags & SVF_BOT))
 		trap->SendServerCommand(ent->s.number, "dcr");
 
-	// Check for shield equipping
+	// Iterate through all items in the inventory and reequip stuff that might have been unequipped by clearing out the client data
 	if (ent->inventory) {
 		for (i = 0; i < ent->inventory->size(); i++) {
 			auto it = ent->inventory->begin() + i;
@@ -3355,6 +3355,28 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 			}
 			else if (it->equipped && it->id->itemType == ITEM_JETPACK) {
 				JKG_JetpackEquipped(ent, i);
+			}
+			else if (it->id->itemType == ITEM_WEAPON) {
+				// It's a weapon, automatically reload us
+				weaponData_t* wp = GetWeaponData(it->id->weaponData.weapon, it->id->weaponData.variation);
+
+				for (int j = 0; j < wp->numFiringModes; j++)
+				{
+					if (wp->firemodes[j].clipSize > 0)
+					{ // this fire mode has a clip, reload us
+						int diff = wp->firemodes[j].clipSize - ent->client->clipammo[it->id->weaponData.varID][j];
+						int ammoType = ent->client->ammoTypes[it->id->weaponData.varID][j];
+
+						if (diff > ent->client->ammoTable[ammoType])
+						{
+							diff = ent->client->ammoTable[ammoType];
+						}
+
+						// add to the ammo in this clip for this firing mode and subtract from the pooled ammo
+						ent->client->clipammo[it->id->weaponData.varID][j] += diff;
+						ent->client->ammoTable[ammoType] -= diff;
+					}
+				}
 			}
 		}
 	}
