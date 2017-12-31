@@ -525,13 +525,8 @@ static void DeadThink ( void )
 	else
 	*/
 	{//FIXME: need to get npcs who is burn out with bones effect to be loot able in force lightning level 3 
-		//eezstreet edit: no disappearing allowed!
-		if( NPC->currentLooter != NULL )
-		{
-			return;
-		}
 		//death anim done (or were given a specific amount of time to wait before removal), wait the requisite amount of time them remove
-		else if ( level.time >= NPCInfo->timeOfDeath + BodyRemovalPadTime( NPC ))
+		if ( level.time >= NPCInfo->timeOfDeath + BodyRemovalPadTime( NPC ))
 			//eezstreet end
 		{
 			if ( NPC->client->ps.eFlags & EF_NODRAW )

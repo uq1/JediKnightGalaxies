@@ -464,12 +464,6 @@ struct gentity_s {
 	// For scripted NPCs
 	char		*npcscript;
 
-	gentity_t  *currentLooter;
-	gentity_t  *currentlyLooting;
-	qboolean	isAtWorkbench;	//nw
-	const char* szTreasureClass;			// Used on death
-	const char* szVendorTreasureClass;		// Used for vendor stock
-
 	// For NPC waypoint following..
 	int			wpCurrent;
 	int			wpNext;
@@ -928,16 +922,6 @@ struct gclient_s {
 	vec3_t		pushVec;
 	int			pushVecTime;
 
-	int			siegeClass;
-	int			holdingObjectiveItem;
-
-	//time values for when being healed/supplied by supplier class
-	int			isMedHealed;
-	int			isMedSupplied;
-
-	//seperate debounce time for refilling someone's ammo as a supplier
-	int			medSupplyDebounce;
-
 	//used in conjunction with ps.hackingTime
 	int			isHacking;
 	vec3_t		hackingAngles;
@@ -989,9 +973,9 @@ struct gclient_s {
 	// Jedi Knight Galaxies
 	int			IDCode;
 	int			InCinematic;
-	int			clipammo[256][MAX_FIREMODES];						// Ammo in current clip of specific weapon
-	int			firingModes[256];									// Different firing modes for each gun so it automagically remembers
-	int			ammoTypes[256][MAX_FIREMODES];						// Different ammo types for each gun so it automagically remembers
+	unsigned short			clipammo[256][MAX_FIREMODES];		// Ammo in current clip of specific weapon
+	unsigned short			firingModes[256];					// Different firing modes for each gun so it automagically remembers
+	unsigned short			ammoTypes[256][MAX_FIREMODES];		// Different ammo types for each gun so it automagically remembers
 	qboolean	customGravity;
 	qboolean	pmfreeze;
 	qboolean	pmlock;
@@ -1007,8 +991,6 @@ struct gclient_s {
 	int			lastChatMessage;
 
 	struct statData_s	coreStats;
-	int			deathLootIndex;
-	int			pickPocketLootIndex;
 	qboolean	shieldEquipped;
 	int			shieldRechargeTime;
 	int			shieldRegenTime;
@@ -1017,7 +999,7 @@ struct gclient_s {
 	qboolean	shieldRecharging;	// to make sure that the shield sound doesn't play twice
 	itemJetpackData_t* pItemJetpack;
 
-	int		ammoTable[MAX_AMMO_TYPES];		// Max ammo indices increased to JKG_MAX_AMMO_INDICES
+	unsigned short ammoTable[MAX_AMMO_TYPES];		// Max ammo indices increased to JKG_MAX_AMMO_INDICES
 
 	unsigned int numDroneShotsInBurst;
 	unsigned int lastHitmarkerTime;			// Timer to ensure that we don't get ear-raped whenever we hit someone with a scattergun --eez

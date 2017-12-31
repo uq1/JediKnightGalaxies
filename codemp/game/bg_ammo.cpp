@@ -71,7 +71,7 @@ BG_GetRefillAmmoCost
 Gets the cost of refilling ammo, given an array of ammo and a weapon
 ==============================
 */
-int BG_GetRefillAmmoCost(int* ammo, weaponData_t* wp)
+int BG_GetRefillAmmoCost(unsigned short* ammo, weaponData_t* wp)
 {
 	int totalCost = 0;
 	for (int i = 0; i < wp->numFiringModes; i++)

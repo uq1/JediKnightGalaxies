@@ -1422,25 +1422,6 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent )
 	//newent->client = (gclient_s *)G_Alloc (sizeof(gclient_s));
 	G_CreateFakeClient(newent->s.number, &newent->client);
 
-	/*
-	newent->NPC->tempGoal = G_Spawn();
-	
-	if ( newent->NPC->tempGoal == NULL ) 
-	{
-		newent->NPC = NULL;
-		goto finish;
-		//return NULL;
-	}
-
-	newent->NPC->tempGoal->classname = "NPC_goal";
-	newent->NPC->tempGoal->parent = newent;
-	newent->NPC->tempGoal->r.svFlags |= SVF_NOCLIENT;
-	*/
-
-	//eezstreet add
-	newent->currentLooter = NULL;
-	//eezstreet end
-
 	if ( newent->client == NULL ) 
 	{
 		Com_Printf ( S_COLOR_RED"ERROR: NPC malloc client failed\n" );

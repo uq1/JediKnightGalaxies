@@ -438,7 +438,7 @@ void CG_AddDamagePlum( localEntity_t *le ) {
 	}
 
 	// If the damage is positive, it means we actually healed instead of sustaining damage
-	if (dmg > 0) {
+	if (dmg < 0) {
 		// Show it as green if we healed
 		re->shaderRGBA[0] = 0x11;
 		re->shaderRGBA[1] = 0xff;

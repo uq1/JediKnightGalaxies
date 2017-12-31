@@ -1485,15 +1485,6 @@ void ForceSpeed( gentity_t *self, int forceDuration )
 		return;
 	}
 
-	if ( self->client->holdingObjectiveItem >= MAX_CLIENTS  
-		&& self->client->holdingObjectiveItem < ENTITYNUM_WORLD )
-	{//holding Siege item
-		if ( g_entities[self->client->holdingObjectiveItem].genericValue15 )
-		{//disables force powers
-			return;
-		}
-	}
-
 	self->client->ps.forceAllowDeactivateTime = level.time + 1500;
 
 	WP_ForcePowerStart( self, FP_SPEED, forceDuration );
@@ -4252,22 +4243,6 @@ static void WP_ForcePowerRun( gentity_t *self, forcePowers_t forcePower, usercmd
 		break;
 	case FP_SPEED:
 		//This is handled in PM_WalkMove and PM_StepSlideMove
-		if ( self->client->holdingObjectiveItem >= MAX_CLIENTS  
-			&& self->client->holdingObjectiveItem < ENTITYNUM_WORLD )
-		{
-			if ( g_entities[self->client->holdingObjectiveItem].genericValue15 )
-			{//disables force powers
-				WP_ForcePowerStop( self, forcePower );
-			}
-		}
-		/*
-		if ( self->client->ps.powerups[PW_REDFLAG]
-			|| self->client->ps.powerups[PW_BLUEFLAG]
-			|| self->client->ps.powerups[PW_NEUTRALFLAG] )
-		{//no force speed when carrying flag
-			WP_ForcePowerStop( self, forcePower );
-		}
-		*/
 		break;
 	case FP_GRIP:
 		if (self->client->ps.forceHandExtend != HANDEXTEND_FORCE_HOLD)
@@ -4393,16 +4368,7 @@ static void WP_ForcePowerRun( gentity_t *self, forcePowers_t forcePower, usercmd
 		}
 		break;
 	case FP_TELEPATHY:
-		if ( self->client->holdingObjectiveItem >= MAX_CLIENTS  
-			&& self->client->holdingObjectiveItem < ENTITYNUM_WORLD
-			&& g_entities[self->client->holdingObjectiveItem].genericValue15 )
-		{ //if force hindered can't mindtrick whilst carrying a siege item
-			WP_ForcePowerStop( self, FP_TELEPATHY );
-		}
-		else
-		{
-			WP_UpdateMindtrickEnts(self);
-		}
+		WP_UpdateMindtrickEnts(self);
 		break;
 	case FP_SABER_OFFENSE:
 		break;

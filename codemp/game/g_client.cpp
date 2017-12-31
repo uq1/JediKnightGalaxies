@@ -2967,8 +2967,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 
 	saveSaberNum = client->ps.saberEntityNum;
 
-	savedSiegeIndex = client->siegeClass;
-
 	savedCredits = client->ps.credits;
 
 	l = 0;
@@ -3043,8 +3041,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	}
 
 	client->ps.customRGBA[3]=255;
-
-	client->siegeClass = savedSiegeIndex;
 
 	l = 0;
 	while (l < MAX_SABERS)

@@ -807,39 +807,40 @@ void CG_Chunks( int owner, vec3_t origin, const vec3_t normal, const vec3_t mins
 
 /*
 ==================
-CG_ScorePlum
+CG_Plum
 ==================
 */
-void CG_ScorePlum( int client, vec3_t org, int score ) {
-	localEntity_t	*le;
-	refEntity_t		*re;
-	vec3_t			angles;
+static int lastPlumTime = 0;
+static void CG_Plum(leType_t type, vec3_t origin, vec4_t color, int number)
+{
+	localEntity_t* le;
+	refEntity_t* re;
+	vec3_t angles;
 	static vec3_t lastPos;
-
-	// only visualize for the client that scored
-	if (client != cg.predictedPlayerState.clientNum || cg_scorePlums.integer == 0) {
-		return;
-	}
 
 	le = CG_AllocLocalEntity();
 	le->leFlags = 0;
-	le->leType = LE_SCOREPLUM;
+	le->leType = type;
 	le->startTime = cg.time;
 	le->endTime = cg.time + 4000;
-	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
+	le->lifeRate = 1.0 / (le->endTime - le->startTime);
 
-	
-	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
-	le->radius = score;
-	
-	VectorCopy( org, le->pos.trBase );
-	if (org[2] >= lastPos[2] - 20 && org[2] <= lastPos[2] + 20) {
+	VectorCopy4(color, le->color);
+	le->color[3] = 1.0f;
+
+	VectorCopy(origin, le->pos.trBase);
+	if (origin[2] >= lastPos[2] - 20 && origin[2] <= lastPos[2] + 20) {
 		le->pos.trBase[2] -= 20;
 	}
+	if (lastPlumTime == cg.time)
+	{
+		// scatter this plum, because we got two in the same frame
+		le->pos.trBase[1] += 10;
+	}
+	lastPlumTime = cg.time;
+	VectorCopy(origin, lastPos);
 
-	//CG_Printf( "Plum origin %i %i %i -- %i\n", (int)org[0], (int)org[1], (int)org[2], (int)Distance(org, lastPos));
-	VectorCopy(org, lastPos);
-
+	le->radius = number;
 
 	re = &le->refEntity;
 
@@ -847,7 +848,7 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 	re->radius = 16;
 
 	VectorClear(angles);
-	AnglesToAxis( angles, re->axis );
+	AnglesToAxis(angles, re->axis);
 }
 
 /*
@@ -855,81 +856,73 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 CG_ScorePlum
 ==================
 */
-void CG_DamagePlum( int client, vec3_t org, int damage, int means, qboolean shield, qboolean low ) {
-	localEntity_t	*le;
-	refEntity_t		*re;
-	vec3_t			angles;
-	static vec3_t lastPos;
+void CG_ScorePlum( int client, vec3_t org, int score ) {
+	vec4_t color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+	// only visualize for the client that scored
+	if (client != cg.predictedPlayerState.clientNum || cg_scorePlums.integer == 0) {
+		return;
+	}
+
+	CG_Plum(LE_SCOREPLUM, org, color, score);
+}
+
+/*
+==================
+CG_DamagePlum
+==================
+*/
+void CG_DamagePlum( int client, vec3_t org, int damage, int means, int shield, qboolean low ) {
 	meansOfDamage_t* pMeans;
+	vec4_t color;
 
 	pMeans = JKG_GetMeansOfDamage(means);
 
-	//if (cg_scorePlum.integer == 0) {
-	//	return;
-	//}
-
-	le = CG_AllocLocalEntity();
-	le->leFlags = 0;
-	le->leType = LE_DAMAGEPLUM;
-	le->startTime = cg.time;
-	le->endTime = cg.time + 4000;
-	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
-
-	// Override the colors if we need to.
-	// This is ignored with healing plums
-	if (shield) {
-		if (pMeans->plums.overrideShieldDamagePlum) {
-			le->color[0] = pMeans->plums.overrideShieldDamagePlumColor[0];
-			le->color[1] = pMeans->plums.overrideShieldDamagePlumColor[1];
-			le->color[2] = pMeans->plums.overrideShieldDamagePlumColor[2];
+	if (damage)
+	{
+		if (low)
+		{
+			if (pMeans->plums.overrideLowDamagePlum)
+			{
+				VectorCopy4(pMeans->plums.overrideLowDamagePlumColor, color);
+			}
+			else
+			{
+				color[0] = 255.0f;
+				color[1] = 255.0f;
+				color[2] = 17.0f;
+			}
 		}
-		else {
-			le->color[0] = 17.0f;
-			le->color[1] = 255.0f;
-			le->color[2] = 255.0f;
+		else
+		{
+			if (pMeans->plums.overrideDamagePlum)
+			{
+				VectorCopy4(pMeans->plums.overrideDamagePlumColor, color);
+			}
+			else
+			{
+				color[0] = 255.0f;
+				color[1] = 17.0f;
+				color[2] = 17.0f;
+			}
 		}
-	}
-	else if (low) {
-		if (pMeans->plums.overrideLowDamagePlum) {
-			le->color[0] = pMeans->plums.overrideLowDamagePlumColor[0];
-			le->color[1] = pMeans->plums.overrideLowDamagePlumColor[1];
-			le->color[2] = pMeans->plums.overrideLowDamagePlumColor[2];
-		}
-		else {
-			le->color[0] = 255.0f;
-			le->color[1] = 255.0f;
-			le->color[2] = 17.0f;
-		}
-	}
-	else {
-		if (pMeans->plums.overrideDamagePlum) {
-			le->color[0] = pMeans->plums.overrideDamagePlumColor[0];
-			le->color[1] = pMeans->plums.overrideDamagePlumColor[1];
-			le->color[2] = pMeans->plums.overrideDamagePlumColor[2];
-		}
-		else {
-			le->color[0] = 255.0f;
-			le->color[1] = 17.0f;
-			le->color[2] = 17.0f;
-		}
+		
+		CG_Plum(LE_DAMAGEPLUM, org, color, damage);
 	}
 
-	le->color[3] = 1.0;
-	le->radius = damage;
-	
-	VectorCopy( org, le->pos.trBase );
-	if (org[2] >= lastPos[2] - 20 && org[2] <= lastPos[2] + 20) {
-		le->pos.trBase[2] -= 20;
+	if (shield > 0)
+	{
+		if (pMeans->plums.overrideShieldDamagePlum) 
+		{
+			VectorCopy4(pMeans->plums.overrideShieldDamagePlumColor, color);
+		}
+		else 
+		{
+			color[0] = 17.0f;
+			color[1] = 255.0f;
+			color[2] = 255.0f;
+		}
+
+		CG_Plum(LE_DAMAGEPLUM, org, color, shield);
 	}
-
-	VectorCopy(org, lastPos);
-
-
-	re = &le->refEntity;
-
-	re->reType = RT_SPRITE;
-	re->radius = 16;
-
-	VectorClear(angles);
-	AnglesToAxis( angles, re->axis );
 }

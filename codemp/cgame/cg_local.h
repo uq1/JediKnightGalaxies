@@ -1858,7 +1858,7 @@ void	CG_AddLocalEntities( void );
 //
 void CG_GlassShatter(int entnum, vec3_t dmgPt, vec3_t dmgDir, float dmgRadius, int maxShards);
 void CG_ScorePlum( int client, vec3_t org, int score );
-void CG_DamagePlum( int client, vec3_t org, int damage, int means, qboolean shield, qboolean max );
+void CG_DamagePlum( int client, vec3_t org, int damage, int means, int shield, qboolean max );
 
 void CG_Chunks( int owner, vec3_t origin, const vec3_t normal, const vec3_t mins, const vec3_t maxs,
 						float speed, int numChunks, material_t chunkType, int customChunk, float baseScale );

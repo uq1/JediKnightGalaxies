@@ -1344,55 +1344,6 @@ static int GLua_NPC_GetDPitch(lua_State *L) {
 	return 1;
 }
 
-/*
-eezstreet add
-*/
-static int GLua_NPC_DeathLootTable(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if (!npc) return 0;
-	lua_pushinteger(L,npc->client->deathLootIndex);
-	return 1;
-}
-
-static int GLua_NPC_PickPocketLootTable(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if (!npc) return 0;
-	lua_pushinteger(L,npc->client->pickPocketLootIndex);
-	return 1;
-}
-
-static int GLua_NPC_SetDeathLootTable(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if (!npc) return 0;
-	npc->client->deathLootIndex = luaL_checkinteger(L, 2);
-	return 0;
-}
-
-static int GLua_NPC_SetPickPocketLootTable(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if (!npc) return 0;
-	npc->client->pickPocketLootIndex = luaL_checkinteger(L, 2);
-	return 0;
-}
-
-//v2
-static int GLua_NPC_GetCurrentLooter(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if(!npc) return 0;
-	lua_pushinteger(L, npc->currentLooter->s.number);
-	return 0;
-}
-
-static int GLua_NPC_SetCurrentLooter(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if(!npc) return 0;
-	npc->currentLooter = &g_entities[luaL_checkinteger(L, 2)];
-	return 0;
-}
-/*
-eezstreet end
-*/
-
 static int GLua_NPC_SetViewTarget(lua_State *L) {		// Does not have a Get equivalent!
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	gentity_t	*viewtarget;
@@ -2043,14 +1994,6 @@ static const struct GLua_Prop npc_p [] = {
 	{"NoKnockback", GLua_NPC_HasNoKnockback, GLua_NPC_SetNoKnockback},
 	{"NoTarget", GLua_NPC_HasNoTarget, GLua_NPC_SetNoTarget},
 	{"UseRange", GLua_NPC_GetUseRange, GLua_NPC_SetUseRange},
-	//eezstreet add
-	{"DeathLootIndex", GLua_NPC_DeathLootTable, GLua_NPC_SetDeathLootTable},
-	{"PickPocketLootIndex", GLua_NPC_PickPocketLootTable, GLua_NPC_SetPickPocketLootTable},
-	//v2
-	{"CurrentLooter", GLua_NPC_GetCurrentLooter, GLua_NPC_SetCurrentLooter},
-	//v3
-	//{"VendorIndex", 
-	//eezstreet end
 	{NULL,		NULL,						NULL},
 };
 
