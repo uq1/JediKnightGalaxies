@@ -2991,7 +2991,9 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	savedAmmoType = ent->client->ps.ammoType;
 	savedFiringMode = ent->client->ps.firingMode;
 
+	// <----- The client gets cleared out ----->
 	memset (client, 0, sizeof(*client)); // bk FIXME: Com_Memset?
+	// <--------------------------------------->
 
 	memcpy(client->ammoTable, savedAmmo, sizeof(savedAmmo));
 	memcpy(client->ammoTypes, savedAmmoTypes, sizeof(savedAmmoTypes));
@@ -3209,9 +3211,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	// health will count down towards max_health
 	ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
 
-	client->ps.stats[STAT_MAX_SHIELD] = 100; // Default armor max
-	client->ps.stats[STAT_SHIELD] = 0;
-
 	G_SetOrigin( ent, spawn_origin );
 	VectorCopy( spawn_origin, client->ps.origin );
 
@@ -3360,6 +3359,11 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 		}
 	}
 
+	if (ent->client->shieldEquipped)
+	{
+		ent->client->ps.stats[STAT_SHIELD] = ent->client->ps.stats[STAT_MAX_SHIELD];
+	}
+
 	GLua_Hook_PlayerSpawned(ent->s.number);
 
 	// run the presend to set anything else
@@ -3375,9 +3379,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 
 	// set their weapon
 	trap->SendServerCommand(client->ps.clientNum, "aciset 1");
-
-	// send important shop data to them ~eez
-	
 }
 
 
