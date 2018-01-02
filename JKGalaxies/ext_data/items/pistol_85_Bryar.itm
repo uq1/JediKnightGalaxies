@@ -5,7 +5,7 @@
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"1",
 	"weight":		"6",
-	"cost":		"775",
+	"cost":		"725",
 	"xml":			"xml/items/ModBryar.xml",
 	"itemIcon":		"models/weapons/bryar_pistol/icon_default"
 }

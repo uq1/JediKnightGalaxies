@@ -5,7 +5,7 @@
 	"weapon":		"WP_BRYAR_PISTOL",
 	"variation":		"2",
 	"weight":		"2",
-	"cost":		"500",
+	"cost":		"550",
 	"xml":			"xml/items/ELG-3A.xml",
 	"itemIcon":		"models/weapons/elg-3a_pistol/icon_default"
 }
