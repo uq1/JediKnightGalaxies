@@ -4411,14 +4411,14 @@ void CG_DrawChatboxText(menuDef_t *menuHUD) {
 		color[3] *= opacity;
 		// Center and draw the text, positioning will be finetuned later on :P
 		line = 0;
-		for (i=0; i<11; i++) {
-			int idx = (cg.chatItemNext + i) % 11;
+		for (i=0; i<MAX_CHATBOX_ITEMS; i++) {
+			int idx = (cg.chatItemNext + i) % MAX_CHATBOX_ITEMS;
 			if (cg.chatItems[idx].active) {
 				ChatBox_SetPaletteAlpha(cg.chatItems[idx].alpha*opacity);
 				color[3] = cg.chatItems[idx].alpha*opacity;
 				CG_DrawStringExt(item->window.rect.x-5, item->window.rect.y + (line * 8) - 2,
 					cg.chatItems[idx].string,
-					color, qfalse, qfalse, 5, 8, strlen(cg.chatItems[idx].string), cgs.media.charset_Segoeui);
+					color, qfalse, qfalse, 5, 8, strlen(cg.chatItems[idx].string), cgs.media.charsetShader);
 				line += cg.chatItems[idx].lines;
 			}
 		}
