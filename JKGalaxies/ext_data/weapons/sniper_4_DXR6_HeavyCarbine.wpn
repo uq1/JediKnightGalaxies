@@ -108,11 +108,11 @@
         "damage": {
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
-                               "damage":       35
+                               "damage":       30
                         },
         "ammocost":     2,
-        "maxchargetime":2750,
-        "chargedamage": 1.3,
+        "maxchargetime":1500,
+        "chargedamage": 0.5,
         "chargedelay":  250,
 		"chargesubtract": 2,
         "firedelay":    400,
