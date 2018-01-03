@@ -354,41 +354,6 @@ void prox_mine_think( gentity_t *ent )
 	}
 }
 
-//-----------------------------------------------------------------------------
-static void WP_TraceSetStart( gentity_t *ent, vec3_t start, vec3_t mins, vec3_t maxs )
-//-----------------------------------------------------------------------------
-{
-	//make sure our start point isn't on the other side of a wall
-	trace_t	tr;
-	vec3_t	entMins;
-	vec3_t	entMaxs;
-
-	VectorAdd( ent->r.currentOrigin, ent->r.mins, entMins );
-	VectorAdd( ent->r.currentOrigin, ent->r.maxs, entMaxs );
-
-	if ( G_BoxInBounds( start, mins, maxs, entMins, entMaxs ) )
-	{
-		return;
-	}
-
-	if ( !ent->client )
-	{
-		return;
-	}
-
-	trap->Trace( &tr, ent->client->ps.origin, mins, maxs, start, ent->s.number, MASK_SOLID|CONTENTS_SHOTCLIP , 0, 0, 0);
-
-	if ( tr.startsolid || tr.allsolid )
-	{
-		return;
-	}
-
-	if ( tr.fraction < 1.0f )
-	{
-		VectorCopy( tr.endpos, start );
-	}
-}
-
 void WP_ExplosiveDie(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod)
 {
 	self->activator = attacker;
@@ -1770,7 +1735,6 @@ static void WP_FireEmplaced( gentity_t *ent, qboolean altFire )
 void emplaced_gun_use( gentity_t *self, gentity_t *other, trace_t *trace )
 {
 	vec3_t fwd1, fwd2;
-	float dot;
 	int oldWeapon;
 	gentity_t *activator = other;
 	float zoffset = 50;
@@ -1827,12 +1791,8 @@ void emplaced_gun_use( gentity_t *self, gentity_t *other, trace_t *trace )
 	// Get the guns direction vector
 	AngleVectors( self->pos1, fwd2, NULL, NULL );
 
-	dot = DotProduct( fwd1, fwd2 );
-
 	VectorSubtract(self->s.origin, activator->client->ps.origin, fwd1);
 	VectorNormalize(fwd1);
-
-	dot = DotProduct( fwd1, fwd2 );
 
 	self->genericValue1 = 1;
 
@@ -2522,15 +2482,11 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 		{
 			vec3_t	preAng;
 			int		preHealth	= traceEnt->health;
-			int		preLegs		= 0;
-			int		preTorso	= 0;
 			weaponFireModeStats_t *fireMode = (weaponFireModeStats_t*)GetEntsCurrentFireMode (ent);
 
 			/* Remember the legs/torse stance and client angles */
 			if ( traceEnt->client )
 			{
-				preLegs		= traceEnt->client->ps.legsAnim;
-				preTorso	= traceEnt->client->ps.torsoAnim;
 				VectorCopy( traceEnt->client->ps.viewangles, preAng );
 			}
 

@@ -2123,7 +2123,6 @@ int G_KnockawayForParry( int move )
 //For strong attacks, we ramp damage based on the point in the attack animation
 static QINLINE int G_GetAttackDamage(gentity_t *self, int minDmg, int maxDmg, float multPoint)
 {
-	int peakDif = 0;
 	int speedDif = 0;
 	int totalDamage = maxDmg;
 	float peakPoint = 0;
@@ -2143,15 +2142,6 @@ static QINLINE int G_GetAttackDamage(gentity_t *self, int minDmg, int maxDmg, fl
 
 	//we treat torsoTimer as the point in the animation (closer it is to attackAnimLength, closer it is to beginning)
 	currentPoint = self->client->ps.torsoTimer;
-
-	if (peakPoint > currentPoint)
-	{
-		peakDif = (peakPoint - currentPoint);
-	}
-	else
-	{
-		peakDif = (currentPoint - peakPoint);
-	}
 
 	damageFactor = (float)((currentPoint/peakPoint));
 	if (damageFactor > 1)
@@ -6677,8 +6667,6 @@ qboolean saberCheckKnockdown_DuelLoss(gentity_t *saberent, gentity_t *saberOwner
 //Also called on reflected attacks.
 qboolean saberCheckKnockdown_BrokenParry(gentity_t *saberent, gentity_t *saberOwner, gentity_t *other)
 {
-	int myAttack;
-	int otherAttack;
 	qboolean doKnock = qfalse;
 	int	disarmChance = 1;
 
@@ -6686,11 +6674,6 @@ qboolean saberCheckKnockdown_BrokenParry(gentity_t *saberent, gentity_t *saberOw
 	{
 		return qfalse;
 	}
-
-	//Neither gets an advantage based on attack state, when it comes to knocking
-	//saber out of hand.
-	myAttack = G_SaberAttackPower(saberOwner, qfalse);
-	otherAttack = G_SaberAttackPower(other, qfalse);
 
 	if (!other->client->olderIsValid || (level.time - other->client->lastSaberStorageTime) >= 200)
 	{ //if we don't know which way to throw the saber based on momentum between saber positions, just don't throw it

@@ -212,7 +212,6 @@ void Disappear(gentity_t *self)
 	self->nextthink = -1;
 }
 
-void MakeOwnerInvis (gentity_t *self);
 void BeamOut (gentity_t *self)
 {
 //	gentity_t *tent = G_Spawn();
@@ -654,7 +653,6 @@ void NPC_BSFollowLeader (void)
 		if ( enemyVisibility > VIS_PVS )
 		{//face
 			vec3_t	enemy_org, muzzle, delta, angleToEnemy;
-			float	distanceToEnemy;
 
 			CalcEntitySpot( NPC->enemy, SPOT_HEAD, enemy_org );
 			NPC_AimWiggle( enemy_org );
@@ -663,7 +661,6 @@ void NPC_BSFollowLeader (void)
 			
 			VectorSubtract( enemy_org, muzzle, delta);
 			vectoangles( delta, angleToEnemy );
-			distanceToEnemy = VectorNormalize( delta );
 
 			NPCInfo->desiredYaw = angleToEnemy[YAW];
 			NPCInfo->desiredPitch = angleToEnemy[PITCH];
@@ -1367,8 +1364,6 @@ NPC_BSFlee
 -------------------------
 */
 extern void G_AddVoiceEvent( gentity_t *self, int event, int speakDebounceTime );
-extern void WP_DropWeapon( gentity_t *dropper, vec3_t velocity );
-extern void ChangeWeapon( gentity_t *ent, int newWeapon );
 void NPC_Surrender( void )
 {//FIXME: say "don't shoot!" if we weren't already surrendering
 	if ( NPC->client->ps.weaponTime || PM_InKnockDown( &NPC->client->ps ) )

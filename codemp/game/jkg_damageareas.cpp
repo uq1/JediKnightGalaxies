@@ -336,12 +336,6 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
     
     if ( damage > 0 )
     {
-        // Save some information in case the player dies, and gets disintegrated.
-        int legsAnim = player->client->ps.legsAnim;
-        int torsoAnim = player->client->ps.torsoAnim;
-        vec3_t viewAngles;
-        VectorCopy (player->client->ps.viewangles, viewAngles);
-        
         if ( !area->data->radial )
         {
             VectorCopy (area->context.direction, dir);
@@ -359,7 +353,6 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
  */
 static damageArea_t *GetFreeDamageArea()
 {
-    int i = 0;
 	damageArea_t area;
 	damageAreas.push_back(area);
     

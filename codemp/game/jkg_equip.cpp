@@ -154,15 +154,12 @@ void JKG_EquipItem(gentity_t *ent, int iNum)
 	auto item = (*ent->inventory)[iNum];
 	if (item.id->itemType == ITEM_WEAPON)
 	{
-	    int prevEquipped = -1;
-
 		for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
 			if (!it->id) {
 				continue;
 			}
 			if (it->id->itemType == ITEM_WEAPON && it->equipped) {
 				it->equipped = false;
-				prevEquipped = it - ent->inventory->begin();
 				break;
 			}
 		}

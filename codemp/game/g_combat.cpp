@@ -2321,12 +2321,9 @@ int CheckShield (gentity_t *ent, int damage, int dflags, meansOfDamage_t* means)
 	gclient_t	*client;
 	int			save;
 	int			count;
-	int			origdamage;
 
 	if (!damage)
 		return 0;
-
-	origdamage = damage;
 
 	client = ent->client;
 
@@ -4023,10 +4020,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	gclient_t	*client;
 	int			take;
 	int			ssave;
-
 	int			knockback;
-	int			subamt = 0;
-
 	meansOfDamage_t* means = JKG_GetMeansOfDamage(mod);
 
 	if (!targ || !targ->inuse)

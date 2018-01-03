@@ -1836,7 +1836,6 @@ extern void Boba_FlyStop( gentity_t *self );
 extern void NPC_BSWampa_Default( void );
 void NPC_RunBehavior( int team, int bState )
 {
-	qboolean dontSetAim = qfalse;
 
 	if ( NPC->client->NPC_class == CLASS_BOT_FAKE_NPC )
 	{
@@ -1885,7 +1884,6 @@ void NPC_RunBehavior( int team, int bState )
 	else if ( NPC->client->ps.weapon == WP_SABER )
 	{//jedi
 		NPC_BehaviorSet_Jedi( bState );
-		dontSetAim = qtrue;
 	}
 	else if ( NPC->client->NPC_class == CLASS_WAMPA )
 	{//wampa
@@ -1924,7 +1922,6 @@ void NPC_RunBehavior( int team, int bState )
 			NPC->client->ps.eFlags &= ~EF_JETPACK_FLAMING;
 			NPC_BehaviorSet_Jedi( bState );
 		}
-		dontSetAim = qtrue;
 	}
 	else if ( NPCInfo->scriptFlags & SCF_FORCED_MARCH )
 	{//being forced to march
@@ -2053,7 +2050,6 @@ void NPC_RunBehavior( int team, int bState )
 					NPC_BehaviorSet_Default( bState );
 				}
 				NPC_CheckCharmed();
-				dontSetAim = qtrue;
 			}
 			break;
 		}

@@ -220,9 +220,12 @@ JKG_GetMeansOfDamage
 
 /*### Overload 1 ###*/
 meansOfDamage_t* JKG_GetMeansOfDamage(const std::string& ref) {
-	for (auto it : allMeansOfDamage) {
-		if (!Q_stricmp(ref.c_str(), it.ref)) {
-			return &it;
+	for (int i = 0; i < allMeansOfDamage.size(); i++)
+	{
+		auto it = allMeansOfDamage.at(i);
+		if (!Q_stricmp(it.ref, ref.c_str()))
+		{
+			return &(allMeansOfDamage[i]);
 		}
 	}
 	return nullptr;

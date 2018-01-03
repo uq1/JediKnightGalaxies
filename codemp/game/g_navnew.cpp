@@ -604,7 +604,7 @@ int	NAVNEW_MoveToGoal( gentity_t *self, navInfo_t *info )
 	vec3_t		origin;
 	navInfo_t	tempInfo;
 	qboolean	setBlockedInfo = qtrue;
-	qboolean	inBestWP, inGoalWP, goalWPFailed = qfalse;
+	qboolean	inGoalWP;
 	int			numTries = 0;
 
 	memcpy( &tempInfo, info, sizeof( tempInfo ) );
@@ -649,7 +649,6 @@ int	NAVNEW_MoveToGoal( gentity_t *self, navInfo_t *info )
 
 	while( !foundClearPath )
 	{
-		inBestWP = inGoalWP = qfalse;
 		/*
 		bestNode = trap->Nav_GetBestNodeAltRoute( self->waypoint, self->NPC->goalEntity->waypoint, bestNode );
 		*/
@@ -773,7 +772,6 @@ int	NAVNEW_MoveToGoal( gentity_t *self, navInfo_t *info )
 				}
 				else
 				{//try going for our waypoint this time
-					goalWPFailed = qtrue;
 					inGoalWP = qfalse;
 				}
 			}
