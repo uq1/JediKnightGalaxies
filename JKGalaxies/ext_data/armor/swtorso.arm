@@ -1,6 +1,6 @@
 {
 	"ref":		"swtorso",
-	"slot":		"torso, gloves",
+	"slot":		"torso",
 	"armor":		215,
 	"movemodifier":	0.9,
 
