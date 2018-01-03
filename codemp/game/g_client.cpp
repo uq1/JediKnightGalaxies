@@ -974,29 +974,6 @@ team_t TeamCount( int ignoreClientNum, int team ) {
 	return (team_t)count;
 }
 
-/*
-================
-TeamLeader
-
-Returns the client number of the team leader
-================
-*/
-int TeamLeader( int team ) {
-	int		i;
-
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if ( level.clients[i].pers.connected == CON_DISCONNECTED ) {
-			continue;
-		}
-		if ( level.clients[i].sess.sessionTeam == team ) {
-			if ( level.clients[i].sess.teamLeader )
-				return i;
-		}
-	}
-
-	return -1;
-}
-
 
 /*
 ================
@@ -1709,7 +1686,6 @@ char *G_ValidateUserinfo( const char *userinfo )
 qboolean ClientUserinfoChanged( int clientNum ) {
 	gentity_t *ent = g_entities + clientNum;
 	gclient_t *client = ent->client;
-	int	teamLeader;
 	int team = TEAM_FREE;
 	int health = 100;
 	int maxHealth = 100;
@@ -1850,11 +1826,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 			client->pers.teamInfo = qfalse;
 		}
 	}
-
-	// team task (0 = none, 1 = offence, 2 = defence)
-//	teamTask = atoi(Info_ValueForKey(userinfo, "teamtask"));
-	// team Leader (1 = leader, 0 is normal player)
-	teamLeader = client->sess.teamLeader;
 
 	// colors
 	Q_strncpyz( c1, Info_ValueForKey( userinfo, "color1" ), sizeof( c1 ) );
@@ -2698,7 +2669,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	char				userinfo[MAX_INFO_STRING];
 	forcedata_t			savedForce;
 	int					saveSaberNum = ENTITYNUM_NONE;
-	int					savedSiegeIndex = 0;
 	int					maxHealth;
 	saberInfo_t			saberSaved[MAX_SABERS];
 	int					l = 0;

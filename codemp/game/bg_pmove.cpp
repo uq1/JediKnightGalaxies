@@ -5415,7 +5415,7 @@ void PM_UpdateViewAngles( playerState_t *ps, const usercmd_t *cmd ) {
 void PM_AdjustAttackStates( pmove_t *pmove )
 //-------------------------------------------
 {
-	int amount;
+	int amount = 0;
 	weaponData_t *weapon = GetWeaponData (pmove->ps->weapon, pmove->ps->weaponVariation);
 	qboolean primFireDown;// = (pmove->cmd.buttons & BUTTON_ATTACK);
 	

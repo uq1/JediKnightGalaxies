@@ -1546,7 +1546,6 @@ int DoorBlockingSection(int start, int end)
 int RepairPaths(qboolean behindTheScenes)
 {
 	int i;
-	int preAmount = 0;
 	int ctRet;
 	vec3_t a;
 	float maxDistFactor = 400;
@@ -1562,8 +1561,6 @@ int RepairPaths(qboolean behindTheScenes)
 	}
 
 	i = 0;
-
-	preAmount = gWPNum;
 
 	trap->Cvar_Update(&bot_wp_distconnect);
 	trap->Cvar_Update(&bot_wp_visconnect);

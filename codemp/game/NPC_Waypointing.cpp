@@ -179,9 +179,6 @@ void Update_NPC_Goal_Lists ( void )
 
 int NPC_Find_Goal_EntityNum ( int ignoreEnt, int ignoreEnt2, vec3_t current_org, int teamNum )
 {// Return standard goals only for soldiers...
-	gentity_t *goal = NULL;
-	int loop = 0;
-
 	if (next_goal_update < level.time)
 	{// Update new goal lists.. Unique1
 		Update_NPC_Goal_Lists();
@@ -321,10 +318,6 @@ void InitWPLinkFlags ( void )
 
 void MarkWPLinkBad ( gentity_t *NPC, int wp )
 {// To be called externally to block bad points ingame...
-	int neighbor = 0;
-	int current_neighbor = 0;
-	int wpLast = NPC->wpLast;
-
 	if (!WPFlagsInitialized)
 		InitWPLinkFlags();
 }
@@ -477,7 +470,6 @@ qboolean MyVisible (gentity_t *self, gentity_t *other)
 void NPC_FixBotWaypointNeighbors ( void )
 {// Because JKA's waypoint neighbors don't include the nodes above and below... Grrr...
 	int i = 0;
-	int j = 0;
 
 	if (gWPNum <= 0)
 		return;
@@ -647,7 +639,6 @@ qboolean NPC_WaitForFunc ( gentity_t *NPC )
 {
 	gentity_t *test = NULL;
 	vec3_t size, center, pos1, pos2, origin;
-	qboolean pull = qfalse;
 	int i;
 
 	for (i = 0;i < MAX_GENTITIES;i++)
@@ -2598,9 +2589,7 @@ qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum 
 
 	//Offset the step height
 	//vec3_t	mins = {-18, -18, -24};
-	vec3_t	mins = {-8, -8, -6};
 	//vec3_t	maxs = {18, 18, 48};
-	vec3_t	maxs = {8, 8, (float)NPC->client->ps.crouchheight};
 
 	VectorCopy(NPC->s.origin, org);
 	//org[2]+=STEPSIZE;
@@ -3010,8 +2999,7 @@ qboolean NPC_FollowRoutes( void )
 
 	if (HUNTING_ENEMY 
 		&& (Distance(NPC->r.currentOrigin, NPC->spawn_pos) > 4096.0f || (NPC->longTermGoal > 0 && NPC->longTermGoal < gWPNum && Distance(gWPArray[NPC->longTermGoal]->origin, NPC->spawn_pos) > 4096.0f))
-		&& NPC->client->NPC_class == CLASS_STORMTROOPER
-		&& NPC->client->NPC_class == CLASS_MERC)//Stoiss add merc class
+		&& (NPC->client->NPC_class == CLASS_STORMTROOPER || NPC->client->NPC_class == CLASS_MERC))//Stoiss add merc class
 	{// Moved too far from our start position... Return home...
 		NPC->enemy = NULL;
 		NPC->longTermGoal = -1;
@@ -3317,9 +3305,6 @@ qboolean NPC_PatrolArea( void )
 {// Quick method of patroling...
 	vec3_t		velocity_vec;
 	float		velocity;
-	qboolean	ENEMY_VISIBLE = qfalse;
-	qboolean	HUNTING_ENEMY = qfalse;
-	qboolean	FORCED_COVERSPOT_FIND = qfalse;
 
 	if (gWPNum <= 0)
 	{// No waypoints available...

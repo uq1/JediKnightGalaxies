@@ -2594,67 +2594,6 @@ void PrintTeam(int team, char *message) {
 
 /*
 ==================
-SetLeader
-==================
-*/
-void SetLeader(int team, int client) {
-	int i;
-
-	if ( level.clients[client].pers.connected == CON_DISCONNECTED ) {
-		PrintTeam(team, va("print \"%s is not connected\n\"", level.clients[client].pers.netname) );
-		return;
-	}
-	if (level.clients[client].sess.sessionTeam != team) {
-		PrintTeam(team, va("print \"%s is not on the team anymore\n\"", level.clients[client].pers.netname) );
-		return;
-	}
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if (level.clients[i].sess.sessionTeam != team)
-			continue;
-		if (level.clients[i].sess.teamLeader) {
-			level.clients[i].sess.teamLeader = qfalse;
-			ClientUserinfoChanged(i);
-		}
-	}
-	level.clients[client].sess.teamLeader = qtrue;
-	ClientUserinfoChanged( client );
-	PrintTeam(team, va("print \"%s %s\n\"", level.clients[client].pers.netname, G_GetStringEdString("MP_SVGAME", "NEWTEAMLEADER")) );
-}
-
-/*
-==================
-CheckTeamLeader
-==================
-*/
-void CheckTeamLeader( int team ) {
-	int i;
-
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if (level.clients[i].sess.sessionTeam != team)
-			continue;
-		if (level.clients[i].sess.teamLeader)
-			break;
-	}
-	if (i >= level.maxclients) {
-		for ( i = 0 ; i < level.maxclients ; i++ ) {
-			if (level.clients[i].sess.sessionTeam != team)
-				continue;
-			if (!(g_entities[i].r.svFlags & SVF_BOT)) {
-				level.clients[i].sess.teamLeader = qtrue;
-				break;
-			}
-		}
-		for ( i = 0 ; i < level.maxclients ; i++ ) {
-			if (level.clients[i].sess.sessionTeam != team)
-				continue;
-			level.clients[i].sess.teamLeader = qtrue;
-			break;
-		}
-	}
-}
-
-/*
-==================
 CheckTeamVote
 ==================
 */
@@ -2832,7 +2771,6 @@ int FRAME_TIME = 0;
 void G_RunFrame( int levelTime ) {
 	int			i;
 	gentity_t	*ent;
-	int			msec;
 #ifdef _G_FRAME_PERFANAL
 	int			iTimer_ItemRun = 0;
 	int			iTimer_ROFF = 0;
@@ -2920,7 +2858,6 @@ void G_RunFrame( int levelTime ) {
 	level.framenum++;
 	level.previousTime = level.time;
 	level.time = levelTime;
-	msec = level.time - level.previousTime;
 
 	if (g_allowNPC.integer)
 	{
