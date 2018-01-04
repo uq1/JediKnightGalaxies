@@ -1580,6 +1580,7 @@ static int GLua_Player_GetCurrentGunAmmoType(lua_State *L)
 {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
 	gentity_t *ent;
+	weaponData_t *wp;
 
 	if(!ply || ply->clientNum < 0 || ply->clientNum > MAX_CLIENTS) return 0;
 	ent = &g_entities[ply->clientNum];

@@ -34,7 +34,7 @@ void NPC_SetStormtrooperConversationReplyTimer()
 
 extern void NPC_SetAnim(gentity_t *ent, int setAnimParts, int anim, int setAnimFlags);
 
-void NPC_ConversationAnimation(gentity_t *lNPC)
+void NPC_ConversationAnimation(gentity_t *NPC)
 {
 	int randAnim = irand(1,10);
 
@@ -45,14 +45,14 @@ void NPC_ConversationAnimation(gentity_t *lNPC)
 	case 3:
 	case 4:
 	case 5:
-		NPC_SetAnim(lNPC, SETANIM_BOTH, BOTH_TALK2, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
+		NPC_SetAnim(NPC, SETANIM_BOTH, BOTH_TALK2, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 		break;
 	case 6:
 	case 7:
 	case 8:
 	case 9:
 	default:
-		NPC_SetAnim(lNPC, SETANIM_BOTH, BOTH_TALK1, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
+		NPC_SetAnim(NPC, SETANIM_BOTH, BOTH_TALK1, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD);
 		break;
 	}
 }

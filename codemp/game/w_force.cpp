@@ -397,15 +397,15 @@ void WP_InitForcePowers( gentity_t *ent )
 
 		if (g_forcePowerDisable.integer)
 		{
-			gentity_t *lTe = G_TempEntity( vec3_origin, EV_SET_FORCE_DISABLE );
-			lTe->r.svFlags |= SVF_BROADCAST;
-			lTe->s.eventParm = 1;
+			gentity_t *te = G_TempEntity( vec3_origin, EV_SET_FORCE_DISABLE );
+			te->r.svFlags |= SVF_BROADCAST;
+			te->s.eventParm = 1;
 		}
 		else
 		{
-			gentity_t *lTe = G_TempEntity( vec3_origin, EV_SET_FORCE_DISABLE );
-			lTe->r.svFlags |= SVF_BROADCAST;
-			lTe->s.eventParm = 0;
+			gentity_t *te = G_TempEntity( vec3_origin, EV_SET_FORCE_DISABLE );
+			te->r.svFlags |= SVF_BROADCAST;
+			te->s.eventParm = 0;
 		}
 	}
 
@@ -2277,7 +2277,7 @@ int ForceShootDrain( gentity_t *self )
 	return gotOneOrMore;
 }
 
-void ForceJumpCharge( gentity_t *self, usercmd_t *lUcmd )
+void ForceJumpCharge( gentity_t *self, usercmd_t *ucmd )
 { //I guess this is unused now. Was used for the "charge" jump type.
 	float forceJumpChargeInterval = forceJumpStrength[0] / (FORCE_JUMP_CHARGE_TIME/FRAMETIME);
 
@@ -2337,16 +2337,16 @@ void ForceJumpCharge( gentity_t *self, usercmd_t *lUcmd )
 	//trap->Print("%f\n", self->client->ps.fd.forceJumpCharge);
 }
 
-int WP_GetVelocityForForceJump( gentity_t *self, vec3_t jumpVel, usercmd_t *lUcmd )
+int WP_GetVelocityForForceJump( gentity_t *self, vec3_t jumpVel, usercmd_t *ucmd )
 {
 	float pushFwd = 0, pushRt = 0;
 	vec3_t	view, forward, right;
 	VectorCopy( self->client->ps.viewangles, view );
 	view[0] = 0;
 	AngleVectors( view, forward, right, NULL );
-	if ( lUcmd->forwardmove && lUcmd->rightmove )
+	if ( ucmd->forwardmove && ucmd->rightmove )
 	{
-		if ( lUcmd->forwardmove > 0 )
+		if ( ucmd->forwardmove > 0 )
 		{
 			pushFwd = 50;
 		}
@@ -2354,7 +2354,7 @@ int WP_GetVelocityForForceJump( gentity_t *self, vec3_t jumpVel, usercmd_t *lUcm
 		{
 			pushFwd = -50;
 		}
-		if ( lUcmd->rightmove > 0 )
+		if ( ucmd->rightmove > 0 )
 		{
 			pushRt = 50;
 		}
@@ -2363,21 +2363,21 @@ int WP_GetVelocityForForceJump( gentity_t *self, vec3_t jumpVel, usercmd_t *lUcm
 			pushRt = -50;
 		}
 	}
-	else if ( lUcmd->forwardmove || lUcmd->rightmove )
+	else if ( ucmd->forwardmove || ucmd->rightmove )
 	{
-		if ( lUcmd->forwardmove > 0 )
+		if ( ucmd->forwardmove > 0 )
 		{
 			pushFwd = 100;
 		}
-		else if ( lUcmd->forwardmove < 0 )
+		else if ( ucmd->forwardmove < 0 )
 		{
 			pushFwd = -100;
 		}
-		else if ( lUcmd->rightmove > 0 )
+		else if ( ucmd->rightmove > 0 )
 		{
 			pushRt = 100;
 		}
-		else if ( lUcmd->rightmove < 0 )
+		else if ( ucmd->rightmove < 0 )
 		{
 			pushRt = -100;
 		}
@@ -2422,7 +2422,7 @@ int WP_GetVelocityForForceJump( gentity_t *self, vec3_t jumpVel, usercmd_t *lUcm
 	}
 }
 
-void ForceJump( gentity_t *self, usercmd_t *lUcmd )
+void ForceJump( gentity_t *self, usercmd_t *ucmd )
 {
 	float forceJumpChargeInterval;
 	vec3_t	jumpVel;
@@ -2448,7 +2448,7 @@ void ForceJump( gentity_t *self, usercmd_t *lUcmd )
 
 	forceJumpChargeInterval = forceJumpStrength[self->client->ps.fd.forcePowerLevel[FP_LEVITATION]]/(FORCE_JUMP_CHARGE_TIME/FRAMETIME);
 
-	WP_GetVelocityForForceJump( self, jumpVel, lUcmd );
+	WP_GetVelocityForForceJump( self, jumpVel, ucmd );
 
 	//FIXME: sound effect
 	self->client->ps.fd.forceJumpZStart = self->client->ps.origin[2];//remember this for when we land
@@ -4074,7 +4074,7 @@ void DoGripAction(gentity_t *self, forcePowers_t forcePower)
 	}
 }
 
-qboolean G_IsMindTricked(forcedata_t *fd, int lClient)
+qboolean G_IsMindTricked(forcedata_t *fd, int client)
 {
 	int checkIn;
 	int trickIndex1, trickIndex2, trickIndex3, trickIndex4;
@@ -4090,17 +4090,17 @@ qboolean G_IsMindTricked(forcedata_t *fd, int lClient)
 	trickIndex3 = fd->forceMindtrickTargetIndex3;
 	trickIndex4 = fd->forceMindtrickTargetIndex4;
 
-	if (lClient > 47)
+	if (client > 47)
 	{
 		checkIn = trickIndex4;
 		sub = 48;
 	}
-	else if (lClient > 31)
+	else if (client > 31)
 	{
 		checkIn = trickIndex3;
 		sub = 32;
 	}
-	else if (lClient > 15)
+	else if (client > 15)
 	{
 		checkIn = trickIndex2;
 		sub = 16;
@@ -4110,7 +4110,7 @@ qboolean G_IsMindTricked(forcedata_t *fd, int lClient)
 		checkIn = trickIndex1;
 	}
 
-	if (checkIn & (1 << (lClient-sub)))
+	if (checkIn & (1 << (client-sub)))
 	{
 		return qtrue;
 	}
@@ -4118,28 +4118,28 @@ qboolean G_IsMindTricked(forcedata_t *fd, int lClient)
 	return qfalse;
 }
 
-static void RemoveTrickedEnt(forcedata_t *fd, int lClient)
+static void RemoveTrickedEnt(forcedata_t *fd, int client)
 {
 	if (!fd)
 	{
 		return;
 	}
 
-	if (lClient > 47)
+	if (client > 47)
 	{
-		fd->forceMindtrickTargetIndex4 &= ~(1 << (lClient-48));
+		fd->forceMindtrickTargetIndex4 &= ~(1 << (client-48));
 	}
-	else if (lClient > 31)
+	else if (client > 31)
 	{
-		fd->forceMindtrickTargetIndex3 &= ~(1 << (lClient-32));
+		fd->forceMindtrickTargetIndex3 &= ~(1 << (client-32));
 	}
-	else if (lClient > 15)
+	else if (client > 15)
 	{
-		fd->forceMindtrickTargetIndex2 &= ~(1 << (lClient-16));
+		fd->forceMindtrickTargetIndex2 &= ~(1 << (client-16));
 	}
 	else
 	{
-		fd->forceMindtrickTargetIndex &= ~(1 << lClient);
+		fd->forceMindtrickTargetIndex &= ~(1 << client);
 	}
 }
 
@@ -4402,7 +4402,7 @@ static void WP_ForcePowerRun( gentity_t *self, forcePowers_t forcePower, usercmd
 	}
 }
 
-int WP_DoSpecificPower( gentity_t *self, usercmd_t *lUcmd, forcePowers_t forcepower)
+int WP_DoSpecificPower( gentity_t *self, usercmd_t *ucmd, forcePowers_t forcepower)
 {
 	int powerSucceeded;
 
@@ -4436,7 +4436,7 @@ int WP_DoSpecificPower( gentity_t *self, usercmd_t *lUcmd, forcePowers_t forcepo
 		}
 		else
 		{//still on ground, so jump
-			ForceJump( self, lUcmd );
+			ForceJump( self, ucmd );
 		}
 		break;
 	case FP_SPEED:
@@ -4861,7 +4861,7 @@ qboolean G_SpecialRollGetup(gentity_t *self)
 	return rolled;
 }
 
-void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *lUcmd )
+void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 {
 	qboolean	usingForce = qfalse;
 	int			i;
@@ -5121,7 +5121,7 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *lUcmd )
 
 	if (self->client->ps.fd.forceJumpCharge && self->client->ps.groundEntityNum == ENTITYNUM_NONE && self->client->fjDidJump)
 	{ //this was for the "charge" jump method... I guess
-		if (lUcmd->upmove < 10 && (!(lUcmd->buttons & BUTTON_FORCEPOWER) || self->client->ps.fd.forcePowerSelected != FP_LEVITATION))
+		if (ucmd->upmove < 10 && (!(ucmd->buttons & BUTTON_FORCEPOWER) || self->client->ps.fd.forcePowerSelected != FP_LEVITATION))
 		{
 			G_MuteSound(self->client->ps.fd.killSoundEntIndex[TRACK_CHANNEL_1-50], CHAN_VOICE);
 			self->client->ps.fd.forceJumpCharge = 0;
@@ -5129,12 +5129,12 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *lUcmd )
 	}
 
 #ifndef METROID_JUMP
-	else if ( (lUcmd->upmove > 10) && (self->client->ps.pm_flags & PMF_JUMP_HELD) && self->client->ps.groundTime && (level.time - self->client->ps.groundTime) > 150 && BG_CanUseFPNow(level.gametype, &self->client->ps, level.time, FP_LEVITATION) )
+	else if ( (ucmd->upmove > 10) && (self->client->ps.pm_flags & PMF_JUMP_HELD) && self->client->ps.groundTime && (level.time - self->client->ps.groundTime) > 150 && BG_CanUseFPNow(level.gametype, &self->client->ps, level.time, FP_LEVITATION) )
 	{//just charging up
-		ForceJumpCharge( self, lUcmd );
+		ForceJumpCharge( self, ucmd );
 		usingForce = qtrue;
 	}
-	else if (lUcmd->upmove < 10 && self->client->ps.groundEntityNum == ENTITYNUM_NONE && self->client->ps.fd.forceJumpCharge)
+	else if (ucmd->upmove < 10 && self->client->ps.groundEntityNum == ENTITYNUM_NONE && self->client->ps.fd.forceJumpCharge)
 	{
 		self->client->ps.pm_flags &= ~(PMF_JUMP_HELD);
 	}
@@ -5142,19 +5142,19 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *lUcmd )
 
 	if (!(self->client->ps.pm_flags & PMF_JUMP_HELD) && self->client->ps.fd.forceJumpCharge)
 	{
-		if (!(lUcmd->buttons & BUTTON_FORCEPOWER) ||
+		if (!(ucmd->buttons & BUTTON_FORCEPOWER) ||
 			self->client->ps.fd.forcePowerSelected != FP_LEVITATION)
 		{
-			if (WP_DoSpecificPower( self, lUcmd, FP_LEVITATION ))
+			if (WP_DoSpecificPower( self, ucmd, FP_LEVITATION ))
 			{
 				usingForce = qtrue;
 			}
 		}
 	}
 
-	if ( lUcmd->buttons & BUTTON_FORCEGRIP )
+	if ( ucmd->buttons & BUTTON_FORCEGRIP )
 	{ //grip is one of the powers with its own button.. if it's held, call the specific grip power function.
-		if (WP_DoSpecificPower( self, lUcmd, FP_GRIP ))
+		if (WP_DoSpecificPower( self, ucmd, FP_GRIP ))
 		{
 			usingForce = qtrue;
 		}
@@ -5167,54 +5167,54 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *lUcmd )
 	{ //see if we're using it generically.. if not, stop.
 		if (self->client->ps.fd.forcePowersActive & (1 << FP_GRIP))
 		{
-			if (!(lUcmd->buttons & BUTTON_FORCEPOWER) || self->client->ps.fd.forcePowerSelected != FP_GRIP)
+			if (!(ucmd->buttons & BUTTON_FORCEPOWER) || self->client->ps.fd.forcePowerSelected != FP_GRIP)
 			{
 				WP_ForcePowerStop(self, FP_GRIP);
 			}
 		}
 	}
 
-	if ( lUcmd->buttons & BUTTON_FORCE_LIGHTNING )
+	if ( ucmd->buttons & BUTTON_FORCE_LIGHTNING )
 	{ //lightning
-		WP_DoSpecificPower(self, lUcmd, FP_LIGHTNING);
+		WP_DoSpecificPower(self, ucmd, FP_LIGHTNING);
 		usingForce = qtrue;
 	}
 	else
 	{ //see if we're using it generically.. if not, stop.
 		if (self->client->ps.fd.forcePowersActive & (1 << FP_LIGHTNING))
 		{
-			if (!(lUcmd->buttons & BUTTON_FORCEPOWER) || self->client->ps.fd.forcePowerSelected != FP_LIGHTNING)
+			if (!(ucmd->buttons & BUTTON_FORCEPOWER) || self->client->ps.fd.forcePowerSelected != FP_LIGHTNING)
 			{
 				WP_ForcePowerStop(self, FP_LIGHTNING);
 			}
 		}
 	}
 
-	if ( lUcmd->buttons & BUTTON_FORCE_DRAIN )
+	if ( ucmd->buttons & BUTTON_FORCE_DRAIN )
 	{ //drain
-		WP_DoSpecificPower(self, lUcmd, FP_DRAIN);
+		WP_DoSpecificPower(self, ucmd, FP_DRAIN);
 		usingForce = qtrue;
 	}
 	else
 	{ //see if we're using it generically.. if not, stop.
 		if (self->client->ps.fd.forcePowersActive & (1 << FP_DRAIN))
 		{
-			if (!(lUcmd->buttons & BUTTON_FORCEPOWER) || self->client->ps.fd.forcePowerSelected != FP_DRAIN)
+			if (!(ucmd->buttons & BUTTON_FORCEPOWER) || self->client->ps.fd.forcePowerSelected != FP_DRAIN)
 			{
 				WP_ForcePowerStop(self, FP_DRAIN);
 			}
 		}
 	}
 
-	if ( (lUcmd->buttons & BUTTON_FORCEPOWER) &&
+	if ( (ucmd->buttons & BUTTON_FORCEPOWER) &&
 		BG_CanUseFPNow(level.gametype, &self->client->ps, level.time, self->client->ps.fd.forcePowerSelected))
 	{
 		if (self->client->ps.fd.forcePowerSelected == FP_LEVITATION)
 		{
-			ForceJumpCharge( self, lUcmd );
+			ForceJumpCharge( self, ucmd );
 			usingForce = qtrue;
 		}
-		else if (WP_DoSpecificPower( self, lUcmd, self->client->ps.fd.forcePowerSelected ))
+		else if (WP_DoSpecificPower( self, ucmd, self->client->ps.fd.forcePowerSelected ))
 		{
 			usingForce = qtrue;
 		}
@@ -5244,7 +5244,7 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *lUcmd )
 		if ( (self->client->ps.fd.forcePowersActive&( 1 << i )) )
 		{
 			usingForce = qtrue;
-			WP_ForcePowerRun( self, (forcePowers_t)i, lUcmd );
+			WP_ForcePowerRun( self, (forcePowers_t)i, ucmd );
 		}
 	}
 	if ( self->client->ps.saberInFlight && self->client->ps.saberEntityNum )
