@@ -605,6 +605,17 @@ void Sys_CleanModuleName(char* name, size_t size)
 
 /*
 ================
+Sys_PrintModule
+================
+*/
+BOOL CALLBACK Sys_PrintModule(PCTSTR moduleName, DWORD base, void* userContext)
+{
+	Com_Printf("* %08X | %s\n", base, moduleName);
+	return TRUE;
+}
+
+/*
+================
 Sys_PrintStackTrace
 
 Occurs when we encounter a fatal error.
@@ -619,8 +630,8 @@ LONG WINAPI Sys_PrintStackTrace(EXCEPTION_POINTERS* exception)
 #else
 	DWORD machine = IMAGE_FILE_MACHINE_AMD64;
 #endif
-	HANDLE process = stackProcess;
-	HANDLE thread = stackThread;
+	HANDLE process = GetCurrentProcess();
+	HANDLE thread = GetCurrentThread();
 	int i = 0;
 
 	frame.AddrPC.Mode = AddrModeFlat;
@@ -637,7 +648,16 @@ LONG WINAPI Sys_PrintStackTrace(EXCEPTION_POINTERS* exception)
 	frame.AddrStack.Offset = exception->ContextRecord->Rsp;
 #endif
 
-	Com_Printf("Stack trace:\n");
+	Com_Printf("------------------------\n");
+	Com_Printf("Enumerate Modules:\n");
+	Com_Printf("------------------------\n");
+	SymRefreshModuleList(process);
+	SymEnumerateModules(process, Sys_PrintModule, nullptr);
+
+	Com_Printf("\n\n");
+	Com_Printf("------------------------\n");
+	Com_Printf("Stack trace : \n");
+	Com_Printf("------------------------\n");
 	while (StackWalk(machine, process, thread, &frame, exception->ContextRecord, nullptr, SymFunctionTableAccess, SymGetModuleBase, nullptr))
 	{
 		DWORD moduleBase = SymGetModuleBase(process, frame.AddrPC.Offset);

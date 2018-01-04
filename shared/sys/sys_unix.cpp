@@ -62,6 +62,9 @@ void Sys_FatalSigHandler(int signal)
 		case SIGABRT:
 			error = "Assertion Failure";
 			break;
+		default:
+			error = "Unknown Signal";
+			break;
 	}
 
 	numberBacktrace = backtrace(buffer, BT_BUF_SIZE);
@@ -72,7 +75,7 @@ void Sys_FatalSigHandler(int signal)
 		return;
 	}
 
-	Com_Printf("Stack Trace:");
+	Com_Printf("Stack Trace:\n");
 	for (int i = 0; i < numberBacktrace; i++)
 	{
 		Com_Printf("%s\n", results[i]);
