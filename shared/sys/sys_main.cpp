@@ -604,58 +604,59 @@ int main ( int argc, char* argv[] )
 
 #ifdef MACOS_X
 	// This is passed if we are launched by double-clicking
-	if ( argc >= 2 && Q_strncmp ( argv[1], "-psn", 4 ) == 0 )
+	if (argc >= 2 && Q_strncmp(argv[1], "-psn", 4) == 0)
 		argc = 1;
 #endif
 
-	Sys_SetBinaryPath( Sys_Dirname( argv[ 0 ] ) );
-	Sys_SetDefaultInstallPath( DEFAULT_BASEDIR );
+	Sys_SetBinaryPath(Sys_Dirname(argv[0]));
+	Sys_SetDefaultInstallPath(DEFAULT_BASEDIR);
 
 	// Concatenate the command line for passing to Com_Init
-	for( i = 1; i < argc; i++ )
+	for (i = 1; i < argc; i++)
 	{
 		const bool containsSpaces = (strchr(argv[i], ' ') != NULL);
 		if (containsSpaces)
-			Q_strcat( commandLine, sizeof( commandLine ), "\"" );
+			Q_strcat(commandLine, sizeof(commandLine), "\"");
 
-		Q_strcat( commandLine, sizeof( commandLine ), argv[ i ] );
+		Q_strcat(commandLine, sizeof(commandLine), argv[i]);
 
 		if (containsSpaces)
-			Q_strcat( commandLine, sizeof( commandLine ), "\"" );
+			Q_strcat(commandLine, sizeof(commandLine), "\"");
 
-		Q_strcat( commandLine, sizeof( commandLine ), " " );
+		Q_strcat(commandLine, sizeof(commandLine), " ");
 	}
 
-	Com_Init (commandLine);
+	Com_Init(commandLine);
 
 	NET_Init();
 
 	// main game loop
 	while (1)
 	{
-		if ( com_busyWait->integer )
+		if (com_busyWait->integer)
 		{
 			bool shouldSleep = false;
 
-			if ( com_dedicated->integer )
+			if (com_dedicated->integer)
 			{
 				shouldSleep = true;
 			}
 
-			if ( com_minimized->integer )
+			if (com_minimized->integer)
 			{
 				shouldSleep = true;
 			}
 
-			if ( shouldSleep )
+			if (shouldSleep)
 			{
-				Sys_Sleep( 5 );
+				Sys_Sleep(5);
 			}
 		}
 
 		// run the game
 		Com_Frame();
 	}
+	
 
 	// never gets here
 	return 0;

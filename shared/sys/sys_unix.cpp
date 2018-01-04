@@ -32,6 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include <libgen.h>
 #include <sched.h>
 #include <signal.h>
+#include <execinfo.h>
 
 #include "qcommon/qcommon.h"
 #include "qcommon/q_shared.h"
@@ -42,6 +43,44 @@ qboolean stdinIsATTY = qfalse;
 // Used to determine where to store user-specific files
 static char homePath[ MAX_OSPATH ] = { 0 };
 
+#define BT_BUF_SIZE	100
+void Sys_FatalSigHandler(int signal)
+{
+	char* error;
+	char** results;
+	int numberBacktrace;
+	void *buffer[BT_BUF_SIZE];
+
+	switch (signal)
+	{
+		case SIGSEGV:
+			error = "Segmentation Fault";
+			break;
+		case SIGFPE:
+			error = "Divide by Zero";
+			break;
+		case SIGABRT:
+			error = "Assertion Failure";
+			break;
+	}
+
+	numberBacktrace = backtrace(buffer, BT_BUF_SIZE);
+	results = backtrace_symbols(buffer, numberBacktrace);
+	if (!results)
+	{
+		Sys_Error("Bad backtrace");
+		return;
+	}
+
+	Com_Printf("Stack Trace:");
+	for (int i = 0; i < numberBacktrace; i++)
+	{
+		Com_Printf("%s\n", results[i]);
+	}
+	free(results);	// have to free this manually
+	Sys_Error(error);
+}
+
 void Sys_PlatformInit( void )
 {
 	const char* term = getenv( "TERM" );
@@ -51,6 +90,10 @@ void Sys_PlatformInit( void )
 	signal( SIGTRAP, Sys_SigHandler );
 	signal( SIGIOT, Sys_SigHandler );
 	signal( SIGBUS, Sys_SigHandler );
+
+	signal( SIGSEGV, Sys_FatalSigHandler );
+	signal( SIGFPE, Sys_FatalSigHandler );
+	signal( SIGABRT, Sys_FatalSigHandler );
 
 	if (isatty( STDIN_FILENO ) && !( term && ( !strcmp( term, "raw" ) || !strcmp( term, "dumb" ) ) ))
 		stdinIsATTY = qtrue;

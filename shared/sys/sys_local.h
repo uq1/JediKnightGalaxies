@@ -37,6 +37,8 @@ void		Sys_SigHandler( int signal );
 #ifndef _WIN32
 void		Sys_AnsiColorPrint( const char *msg );
 #endif
+#include <Windows.h>
+LONG WINAPI Sys_PrintStackTrace(EXCEPTION_POINTERS* exception);
 
 struct UnpackDLLResult
 {

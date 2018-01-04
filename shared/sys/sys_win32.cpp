@@ -18,7 +18,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
-#pragma comment( lib, "psapi.lib" )	//fix for winxp compiles --futuza
 #include "sys_local.h"
 #include <direct.h>
 #include <io.h>
@@ -26,12 +25,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include <windows.h>
 #include <psapi.h>
 
+#pragma comment( lib, "psapi.lib" )	//fix for winxp compiles --futuza
+#pragma comment( lib, "dbghelp.lib" )
+
+#include <DbgHelp.h>
+
 #define MEM_THRESHOLD (128*1024*1024)
 
 // Used to determine where to store user-specific files
 static char homePath[ MAX_OSPATH ] = { 0 };
 
 static UINT timerResolution = 0;
+
+static bool bLoadedImgHelp = false;
+static HANDLE stackProcess;
+static HANDLE stackThread;
 
 /*
 ==============
@@ -533,31 +541,6 @@ bool Sys_DLLNeedsUnpacking()
 
 /*
 ================
-Sys_PlatformInit
-
-Platform-specific initialization
-================
-*/
-void Sys_PlatformInit( void ) {
-	TIMECAPS ptc;
-	if ( timeGetDevCaps( &ptc, sizeof( ptc ) ) == MMSYSERR_NOERROR )
-	{
-		timerResolution = ptc.wPeriodMin;
-
-		if ( timerResolution > 1 )
-		{
-			Com_Printf( "Warning: Minimum supported timer resolution is %ums "
-				"on this system, recommended resolution 1ms\n", timerResolution );
-		}
-
-		timeBeginPeriod( timerResolution );
-	}
-	else
-		timerResolution = 0;
-}
-
-/*
-================
 Sys_Diagnostics
 
 Prints diagnostic information to the console
@@ -602,6 +585,156 @@ void Sys_Diagnostics(const char* diagCategory)
 
 /*
 ================
+Sys_CleanModuleName
+
+Changes modules from being a long absolute path to being a short relative one
+================
+*/
+void Sys_CleanModuleName(char* name, size_t size)
+{
+	std::string moduleName = name;
+	unsigned int i = moduleName.find_last_of("\\/");
+	if (i == std::string::npos)
+	{
+		return;
+	}
+
+	moduleName = moduleName.substr(i + 1);
+	Q_strncpyz(name, moduleName.c_str(), size);
+}
+
+/*
+================
+Sys_PrintStackTrace
+
+Occurs when we encounter a fatal error.
+Prints the stack trace as well as some other data.
+================
+*/
+LONG WINAPI Sys_PrintStackTrace(EXCEPTION_POINTERS* exception)
+{
+	STACKFRAME frame = {};
+#ifdef WIN32
+	DWORD machine = IMAGE_FILE_MACHINE_I386;
+#else
+	DWORD machine = IMAGE_FILE_MACHINE_AMD64;
+#endif
+	HANDLE process = stackProcess;
+	HANDLE thread = stackThread;
+	int i = 0;
+
+	frame.AddrPC.Mode = AddrModeFlat;
+	frame.AddrFrame.Mode = AddrModeFlat;
+	frame.AddrStack.Mode = AddrModeFlat;
+
+#ifdef WIN32
+	frame.AddrPC.Offset = exception->ContextRecord->Eip;
+	frame.AddrFrame.Offset = exception->ContextRecord->Ebp;
+	frame.AddrStack.Offset = exception->ContextRecord->Esp;
+#else
+	frame.AddrPC.Offset = exception->ContextRecord->Rip;
+	frame.AddrFrame.Offset = exception->ContextRecord->Rbp;
+	frame.AddrStack.Offset = exception->ContextRecord->Rsp;
+#endif
+
+	Com_Printf("Stack trace:\n");
+	while (StackWalk(machine, process, thread, &frame, exception->ContextRecord, nullptr, SymFunctionTableAccess, SymGetModuleBase, nullptr))
+	{
+		DWORD moduleBase = SymGetModuleBase(process, frame.AddrPC.Offset);
+		char moduleName[MAX_PATH];
+		char funcName[MAX_PATH];
+		char fileName[MAX_PATH];
+		DWORD address = frame.AddrPC.Offset;
+		char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
+		PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
+		IMAGEHLP_LINE line;
+		DWORD offset = 0;
+
+		line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+		symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
+		symbol->MaxNameLength = 254;
+
+		if (moduleBase && GetModuleFileNameA((HINSTANCE)moduleBase, moduleName, MAX_PATH))
+		{
+			Sys_CleanModuleName(moduleName, MAX_PATH);
+		}
+		else
+		{
+			moduleName[0] = '\0';
+		}
+
+		if (SymGetSymFromAddr(process, frame.AddrPC.Offset, &offset, symbol))
+		{
+			Q_strncpyz(funcName, symbol->Name, MAX_PATH);
+		}
+		else
+		{
+			funcName[0] = '\0';
+		}
+
+		if (SymGetLineFromAddr(process, frame.AddrPC.Offset, &offset, &line))
+		{
+			Q_strncpyz(fileName, line.FileName, MAX_PATH);
+			Sys_CleanModuleName(fileName, MAX_PATH);
+			Com_sprintf(fileName, MAX_PATH, "%s:%i", fileName, line.LineNumber);
+		}
+		else
+		{
+			fileName[0] = '\0';
+		}
+
+		Com_Printf("%03i %20s 0x%08X | %s (%s)\n", i, moduleName, address, funcName, fileName);
+		i++;
+	}
+
+	Sys_Error("Unhanded Exception: 0x%08X", exception->ExceptionRecord->ExceptionCode);
+#ifdef _DEBUG
+	return EXCEPTION_CONTINUE_SEARCH;
+#else
+	return EXCEPTION_EXECUTE_HANDLER;
+#endif
+	
+}
+
+/*
+================
+Sys_PlatformInit
+
+Platform-specific initialization
+================
+*/
+void Sys_PlatformInit(void) {
+	TIMECAPS ptc;
+	if (timeGetDevCaps(&ptc, sizeof(ptc)) == MMSYSERR_NOERROR)
+	{
+		timerResolution = ptc.wPeriodMin;
+
+		if (timerResolution > 1)
+		{
+			Com_Printf("Warning: Minimum supported timer resolution is %ums "
+				"on this system, recommended resolution 1ms\n", timerResolution);
+		}
+
+		timeBeginPeriod(timerResolution);
+	}
+	else
+		timerResolution = 0;
+
+	if (!SymInitialize(GetCurrentProcess(), NULL, TRUE))
+	{
+		SymSetOptions(SYMOPT_LOAD_LINES);
+
+		bLoadedImgHelp = true;
+		Com_Printf("imghelp.dll loaded for debug stack walk info\n");
+	}
+
+	stackProcess = GetCurrentProcess();
+	stackThread = GetCurrentThread();
+	SetUnhandledExceptionFilter(Sys_PrintStackTrace);
+}
+
+/*
+================
 Sys_PlatformExit
 
 Platform-specific exit code
@@ -611,6 +744,11 @@ void Sys_PlatformExit( void )
 {
 	if ( timerResolution )
 		timeEndPeriod( timerResolution );
+
+	if (bLoadedImgHelp)
+	{
+		SymCleanup(GetCurrentProcess());
+	}
 }
 
 void Sys_Sleep( int msec )
