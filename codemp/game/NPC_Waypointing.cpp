@@ -199,15 +199,15 @@ int NPC_Find_Goal_EntityNum ( int ignoreEnt, int ignoreEnt2, vec3_t current_org,
 extern qboolean JKG_CheckBelowWaypoint( int wp );
 extern qboolean JKG_CheckRoutingFrom( int wp );
 
-int NPC_FindGoal( gentity_t *NPC )
+int NPC_FindGoal( gentity_t *lNPC )
 {
 	/*
 	int wp = -1;
 	gentity_t *ent = NULL;
 
-	ent = &g_entities[NPC_Find_Goal_EntityNum( -1, -1, NPC->r.currentOrigin, NPC->s.teamowner )];
+	ent = &g_entities[NPC_Find_Goal_EntityNum( -1, -1, lNPC->r.currentOrigin, lNPC->s.teamowner )];
 
-	if (!ent || ent->s.teamowner == NPC->s.teamowner)
+	if (!ent || ent->s.teamowner == lNPC->s.teamowner)
 	{
 		//trap->Print("Failed to find a goal entity!\n");
 		//return -1;
@@ -217,7 +217,7 @@ int NPC_FindGoal( gentity_t *NPC )
 
 	//trap->Print("NPC_FindGoal: Found a goal entity %s (%i).\n", ent->classname, ent->s.number);
 
-	wp = DOM_GetBestWaypoint(ent->s.origin, NPC->s.number, -1);
+	wp = DOM_GetBestWaypoint(ent->s.origin, lNPC->s.number, -1);
 
 	return wp;
 	*/
@@ -261,14 +261,14 @@ int NPC_FindGoal( gentity_t *NPC )
 
 extern gentity_t *WARZONE_FindGoalForTeam( int TEAM );
 
-int NPC_FindWarzoneGoal( gentity_t *NPC )
+int NPC_FindWarzoneGoal( gentity_t *lNPC )
 {
 	int waypoint = -1;
-	gentity_t *goal = WARZONE_FindGoalForTeam( NPC->client->playerTeam );
+	gentity_t *goal = WARZONE_FindGoalForTeam( lNPC->client->playerTeam );
 
 	if (!goal) return -1;
 
-	waypoint = DOM_GetRandomCloseWP(goal->s.origin, NPC->s.number, -1);
+	waypoint = DOM_GetRandomCloseWP(goal->s.origin, lNPC->s.number, -1);
 
 	if (waypoint <= 0 || gWPArray[waypoint]->inuse == qfalse)
 	{
@@ -316,7 +316,7 @@ void InitWPLinkFlags ( void )
 	}
 }
 
-void MarkWPLinkBad ( gentity_t *NPC, int wp )
+void MarkWPLinkBad ( gentity_t *lNPC, int wp )
 {// To be called externally to block bad points ingame...
 	if (!WPFlagsInitialized)
 		InitWPLinkFlags();
@@ -399,28 +399,28 @@ that he will go to, and returns it
 right now it's being developed, feel free to experiment
 *////////////////////////////////////////////////////
 
-short int NPCGetNextNode(gentity_t *NPC)
+short int NPCGetNextNode(gentity_t *lNPC)
 {
 	/*short*/ int node = WAYPOINT_NONE;
 	int	temp = 0;
 
 	//we should never call this in NPCSTATE_MOVE with no goal
 	//setup the goal/path in HandleIdleState
-	if (NPC->longTermGoal == WAYPOINT_NONE)
+	if (lNPC->longTermGoal == WAYPOINT_NONE)
 	{
 		return WAYPOINT_NONE;
 	}
 
-	if (NPC->pathsize <= 0)	//if the NPC is at the end of his path, this shouldn't have been called
+	if (lNPC->pathsize <= 0)	//if the NPC is at the end of his path, this shouldn't have been called
 	{
-		NPC->longTermGoal = WAYPOINT_NONE;	//reset to having no goal
+		lNPC->longTermGoal = WAYPOINT_NONE;	//reset to having no goal
 		return WAYPOINT_NONE;
 	}
 
-	//node = NPC->pathlist[NPC->pathsize-1];	//pathlist is in reverse order
-	//NPC->pathsize--;	//mark that we've moved another node
-	temp = NPC_FindOnRoute( NPC->wpCurrent, NPC->pathlist );
-	node = NPC->pathlist[temp-1];
+	//node = lNPC->pathlist[lNPC->pathsize-1];	//pathlist is in reverse order
+	//lNPC->pathsize--;	//mark that we've moved another node
+	temp = NPC_FindOnRoute( lNPC->wpCurrent, lNPC->pathlist );
+	node = lNPC->pathlist[temp-1];
 	//trap->Print("Node found at pos %i in array.\n",temp);
 	return node;
 }
@@ -531,17 +531,17 @@ void NPC_FixBotWaypointNeighbors ( void )
 static vec3_t	playerMins = {-15, -15, DEFAULT_MINS_2};
 static vec3_t	playerMaxs = {15, 15, DEFAULT_MAXS_2};
 
-int NPC_MOVEMENT_ReachableBy(gentity_t *NPC, vec3_t goal)
+int NPC_MOVEMENT_ReachableBy(gentity_t *lNPC, vec3_t goal)
 {
     trace_t trace;
     vec3_t v, v2, eyes, mins, maxs, Org, forward, right, up, rightOrigin, leftOrigin;
 
 	// First check direct movement...
-	VectorCopy(NPC->r.currentOrigin, Org);
+	VectorCopy(lNPC->r.currentOrigin, Org);
 
-    VectorCopy(NPC->r.mins,v);
+    VectorCopy(lNPC->r.mins,v);
     v[2] += 18; // Stepsize
-	trap->Trace(&trace, Org, v, NPC->r.maxs, goal, NPC->s.number, MASK_SOLID|MASK_OPAQUE, 0, 0, 0);
+	trap->Trace(&trace, Org, v, lNPC->r.maxs, goal, lNPC->s.number, MASK_SOLID|MASK_OPAQUE, 0, 0, 0);
 
 	//if (trace.entityNum > 0)
 	//	trap->Print("Hit entity %i (%s).\n", trace.entityNum, g_entities[trace.entityNum].classname);
@@ -556,77 +556,77 @@ int NPC_MOVEMENT_ReachableBy(gentity_t *NPC, vec3_t goal)
 	VectorAdd( Org, playerMins, mins );
 	VectorAdd( Org, playerMaxs, maxs );
 
-	VectorCopy(NPC->r.mins,v);
+	VectorCopy(lNPC->r.mins,v);
     v[2] += 18; // Stepsize
 	VectorCopy(Org, eyes);
 	eyes[2]+=32;
-	trap->Trace(&trace, eyes, v, NPC->r.maxs, goal, NPC->s.number, MASK_SOLID|MASK_OPAQUE, 0, 0, 0);
+	trap->Trace(&trace, eyes, v, lNPC->r.maxs, goal, lNPC->s.number, MASK_SOLID|MASK_OPAQUE, 0, 0, 0);
     if (trace.fraction == 1.0)
         return REACHABLE_JUMP; // Yes we can see it
 
 	// Now look for crouch access...
 	//CROUCH_VIEWHEIGHT ??
-	VectorCopy(NPC->r.mins,v);
+	VectorCopy(lNPC->r.mins,v);
     v[2] += 18; // Stepsize
-	VectorCopy(NPC->r.maxs,v2);
+	VectorCopy(lNPC->r.maxs,v2);
     v2[2] *= 0.5; // Stepsize
-	trap->Trace(&trace, Org, v, v2, goal, NPC->s.number, MASK_SOLID|MASK_OPAQUE, 0, 0, 0);
+	trap->Trace(&trace, Org, v, v2, goal, lNPC->s.number, MASK_SOLID|MASK_OPAQUE, 0, 0, 0);
     if (trace.fraction == 1.0)
         return REACHABLE_DUCK; // Yes we can see it
 
 	// Now look for strafe access... Left or Right...
-	AngleVectors( NPC->client->ps.viewangles, forward, right, up );
+	AngleVectors( lNPC->client->ps.viewangles, forward, right, up );
 	
-	VectorMA( NPC->r.currentOrigin, 64, right, rightOrigin );
-	VectorMA( NPC->r.currentOrigin, -64, right, leftOrigin );
+	VectorMA( lNPC->r.currentOrigin, 64, right, rightOrigin );
+	VectorMA( lNPC->r.currentOrigin, -64, right, leftOrigin );
 
-	if (OrgVisible(leftOrigin, gWPArray[NPC->wpCurrent]->origin, NPC->s.number))
+	if (OrgVisible(leftOrigin, gWPArray[lNPC->wpCurrent]->origin, lNPC->s.number))
 	{
-		NPC->bot_strafe_left_timer = level.time + 201;
-		VectorCopy(leftOrigin, NPC->bot_strafe_target_position);
+		lNPC->bot_strafe_left_timer = level.time + 201;
+		VectorCopy(leftOrigin, lNPC->bot_strafe_target_position);
 		return REACHABLE_STRAFE_LEFT; // Yes we can see it
 	}
 
-	if (OrgVisible(rightOrigin, gWPArray[NPC->wpCurrent]->origin, NPC->s.number))
+	if (OrgVisible(rightOrigin, gWPArray[lNPC->wpCurrent]->origin, lNPC->s.number))
 	{
-		NPC->bot_strafe_right_timer = level.time + 201;
-		VectorCopy(rightOrigin, NPC->bot_strafe_target_position);
+		lNPC->bot_strafe_right_timer = level.time + 201;
+		VectorCopy(rightOrigin, lNPC->bot_strafe_target_position);
 		return REACHABLE_STRAFE_RIGHT; // Yes we can see it
 	}
 
 	// And strafing a bit further away...
-	VectorMA( NPC->r.currentOrigin, 128, right, rightOrigin );
-	VectorMA( NPC->r.currentOrigin, -128, right, leftOrigin );
+	VectorMA( lNPC->r.currentOrigin, 128, right, rightOrigin );
+	VectorMA( lNPC->r.currentOrigin, -128, right, leftOrigin );
 
-	if (OrgVisible(leftOrigin, gWPArray[NPC->wpCurrent]->origin, NPC->s.number))
+	if (OrgVisible(leftOrigin, gWPArray[lNPC->wpCurrent]->origin, lNPC->s.number))
 	{
-		NPC->bot_strafe_left_timer = level.time + 401;
-		VectorCopy(leftOrigin, NPC->bot_strafe_target_position);
+		lNPC->bot_strafe_left_timer = level.time + 401;
+		VectorCopy(leftOrigin, lNPC->bot_strafe_target_position);
 		return REACHABLE_STRAFE_LEFT; // Yes we can see it
 	}
 
-	if (OrgVisible(rightOrigin, gWPArray[NPC->wpCurrent]->origin, NPC->s.number))
+	if (OrgVisible(rightOrigin, gWPArray[lNPC->wpCurrent]->origin, lNPC->s.number))
 	{
-		NPC->bot_strafe_right_timer = level.time + 401;
-		VectorCopy(rightOrigin, NPC->bot_strafe_target_position);
+		lNPC->bot_strafe_right_timer = level.time + 401;
+		VectorCopy(rightOrigin, lNPC->bot_strafe_target_position);
 		return REACHABLE_STRAFE_RIGHT; // Yes we can see it
 	}
 
 	// And strafing a bit further away...
-	VectorMA( NPC->r.currentOrigin, 192, right, rightOrigin );
-	VectorMA( NPC->r.currentOrigin, -192, right, leftOrigin );
+	VectorMA( lNPC->r.currentOrigin, 192, right, rightOrigin );
+	VectorMA( lNPC->r.currentOrigin, -192, right, leftOrigin );
 
-	if (OrgVisible(leftOrigin, gWPArray[NPC->wpCurrent]->origin, NPC->s.number))
+	if (OrgVisible(leftOrigin, gWPArray[lNPC->wpCurrent]->origin, lNPC->s.number))
 	{
-		NPC->bot_strafe_left_timer = level.time + 601;
-		VectorCopy(leftOrigin, NPC->bot_strafe_target_position);
+		lNPC->bot_strafe_left_timer = level.time + 601;
+		VectorCopy(leftOrigin, lNPC->bot_strafe_target_position);
 		return REACHABLE_STRAFE_LEFT; // Yes we can see it
 	}
 
-	if (OrgVisible(rightOrigin, gWPArray[NPC->wpCurrent]->origin, NPC->s.number))
+	if (OrgVisible(rightOrigin, gWPArray[lNPC->wpCurrent]->origin, lNPC->s.number))
 	{
-		NPC->bot_strafe_right_timer = level.time + 601;
-		VectorCopy(rightOrigin, NPC->bot_strafe_target_position);
+		lNPC->bot_strafe_right_timer = level.time + 601;
+		VectorCopy(rightOrigin, lNPC->bot_strafe_target_position);
 		return REACHABLE_STRAFE_RIGHT; // Yes we can see it
 	}
 
@@ -635,7 +635,7 @@ int NPC_MOVEMENT_ReachableBy(gentity_t *NPC, vec3_t goal)
 
 extern int CheckForFunc(vec3_t org, int ignore);
 
-qboolean NPC_WaitForFunc ( gentity_t *NPC )
+qboolean NPC_WaitForFunc ( gentity_t *lNPC )
 {
 	gentity_t *test = NULL;
 	vec3_t size, center, pos1, pos2, origin;
@@ -651,7 +651,7 @@ qboolean NPC_WaitForFunc ( gentity_t *NPC )
 		if (Q_stricmp( "func_plat", test->classname ) &&  Q_stricmp( "func_door", test->classname ))
 			continue;
 
-		VectorCopy( NPC->r.currentOrigin, origin );
+		VectorCopy( lNPC->r.currentOrigin, origin );
 
 		//find center, pos1, pos2
 		if ( VectorCompare( vec3_origin, test->s.origin ) )
@@ -681,12 +681,12 @@ qboolean NPC_WaitForFunc ( gentity_t *NPC )
 			continue;
 		}
 
-		if (NPC->npc_mover_start_pos == MOVER_POS1 && test->moverState == MOVER_POS2)
+		if (lNPC->npc_mover_start_pos == MOVER_POS1 && test->moverState == MOVER_POS2)
 		{// Ready to get off the lift...
 			return qfalse;
 		}
 
-		if (NPC->npc_mover_start_pos == MOVER_POS2 && test->moverState == MOVER_POS1)
+		if (lNPC->npc_mover_start_pos == MOVER_POS2 && test->moverState == MOVER_POS1)
 		{// Ready to get off the lift...
 			return qfalse;
 		}
@@ -696,7 +696,7 @@ qboolean NPC_WaitForFunc ( gentity_t *NPC )
 			return qtrue;
 		}
 
-		if ( Distance( pos1, NPC->r.currentOrigin ) < Distance( pos2, NPC->r.currentOrigin ) )
+		if ( Distance( pos1, lNPC->r.currentOrigin ) < Distance( pos2, lNPC->r.currentOrigin ) )
 		{//pos1 is closer
 			if ( test->moverState == MOVER_POS1 )
 			{//at the closest pos
@@ -714,13 +714,13 @@ qboolean NPC_WaitForFunc ( gentity_t *NPC )
 		break;
 	}
 
-	if (test && NPC->npc_mover_start_pos < 0)
+	if (test && lNPC->npc_mover_start_pos < 0)
 	{// Mark the position we got on the mover at!
-		NPC->npc_mover_start_pos = test->moverState;
+		lNPC->npc_mover_start_pos = test->moverState;
 	}
 	else
 	{
-		NPC->npc_mover_start_pos = -1;
+		lNPC->npc_mover_start_pos = -1;
 	}
 
 	return qfalse;
@@ -733,35 +733,35 @@ that he will go to, and returns it
 right now it's being developed, feel free to experiment
 *////////////////////////////////////////////////////
 
-int NPC_GetNextNode(gentity_t *NPC)
+int NPC_GetNextNode(gentity_t *lNPC)
 {
 	short int node = WAYPOINT_NONE;
 
 	//we should never call this in BOTSTATE_MOVE with no goal
 	//setup the goal/path in HandleIdleState
-	if (NPC->longTermGoal == WAYPOINT_NONE)
+	if (lNPC->longTermGoal == WAYPOINT_NONE)
 	{
 		return WAYPOINT_NONE;
 	}
 
-	if (NPC->pathsize <= 0)	//if the bot is at the end of his path, this shouldn't have been called
+	if (lNPC->pathsize <= 0)	//if the bot is at the end of his path, this shouldn't have been called
 	{
-		//NPC->longTermGoal = WAYPOINT_NONE;	//reset to having no goal
+		//lNPC->longTermGoal = WAYPOINT_NONE;	//reset to having no goal
 		return WAYPOINT_NONE;
 	}
 
-	node = NPC->pathlist[NPC->pathsize-1];	//pathlist is in reverse order
-	NPC->pathsize--;	//mark that we've moved another node
+	node = lNPC->pathlist[lNPC->pathsize-1];	//pathlist is in reverse order
+	lNPC->pathsize--;	//mark that we've moved another node
 
-	if (NPC->pathsize <= 0)
+	if (lNPC->pathsize <= 0)
 	{
-		if (NPC->wpCurrent < 0)
+		if (lNPC->wpCurrent < 0)
 		{
-			NPC->wpCurrent = NPC->longTermGoal;
+			lNPC->wpCurrent = lNPC->longTermGoal;
 		}
 		else
 		{
-			node = NPC->longTermGoal;
+			node = lNPC->longTermGoal;
 		}
 	}
 	return node;
@@ -1003,7 +1003,7 @@ qboolean JKG_CheckBelowPoint( vec3_t point )
 //#define	JUMP_SPEED		200.0f
 #define	JUMP_SPEED		128.0f
 
-static qboolean NPC_Jump( gentity_t *NPC, vec3_t dest )
+static qboolean NPC_Jump( gentity_t *lNPC, vec3_t dest )
 {//FIXME: if land on enemy, knock him down & jump off again
 	if ( 1 )
 	{
@@ -1017,12 +1017,12 @@ static qboolean NPC_Jump( gentity_t *NPC, vec3_t dest )
 
 		while ( hitCount < maxHits )
 		{
-			VectorSubtract( dest, NPC->r.currentOrigin, targetDir );
+			VectorSubtract( dest, lNPC->r.currentOrigin, targetDir );
 			targetDist = VectorNormalize( targetDir );
 
 			VectorScale( targetDir, shotSpeed, shotVel );
 			travelTime = targetDist/shotSpeed;
-			shotVel[2] += travelTime * 0.5 * NPC->client->ps.gravity;
+			shotVel[2] += travelTime * 0.5 * lNPC->client->ps.gravity;
 
 			if ( !hitCount )		
 			{//save the first one as the worst case scenario
@@ -1033,12 +1033,12 @@ static qboolean NPC_Jump( gentity_t *NPC, vec3_t dest )
 			{//do a rough trace of the path
 				blocked = qfalse;
 
-				VectorCopy( NPC->r.currentOrigin, tr.trBase );
+				VectorCopy( lNPC->r.currentOrigin, tr.trBase );
 				VectorCopy( shotVel, tr.trDelta );
 				tr.trType = TR_GRAVITY;
 				tr.trTime = level.time;
 				travelTime *= 1000.0f;
-				VectorCopy( NPC->r.currentOrigin, lastPos );
+				VectorCopy( lNPC->r.currentOrigin, lastPos );
 				
 				//This may be kind of wasteful, especially on long throws... use larger steps?  Divide the travelTime into a certain hard number of slices?  Trace just to apex and down?
 				for ( elapsedTime = timeStep; elapsedTime < floor(travelTime)+timeStep; elapsedTime += timeStep )
@@ -1050,11 +1050,11 @@ static qboolean NPC_Jump( gentity_t *NPC, vec3_t dest )
 					BG_EvaluateTrajectory( &tr, level.time + elapsedTime, testPos );
 					if ( testPos[2] < lastPos[2] )
 					{//going down, ignore botclip
-						trap->Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask , 0, 0, 0);
+						trap->Trace( &trace, lastPos, lNPC->r.mins, lNPC->r.maxs, testPos, lNPC->s.number, lNPC->clipmask , 0, 0, 0);
 					}
 					else
 					{//going up, check for botclip
-						trap->Trace( &trace, lastPos, NPC->r.mins, NPC->r.maxs, testPos, NPC->s.number, NPC->clipmask|CONTENTS_BOTCLIP , 0, 0, 0);
+						trap->Trace( &trace, lastPos, lNPC->r.mins, lNPC->r.maxs, testPos, lNPC->s.number, lNPC->clipmask|CONTENTS_BOTCLIP , 0, 0, 0);
 					}
 
 					if ( trace.allsolid || trace.startsolid )
@@ -1100,7 +1100,7 @@ static qboolean NPC_Jump( gentity_t *NPC, vec3_t dest )
 							//FIXME: do we care how far below ourselves or our dest we'll land?
 							VectorCopy( trace.endpos, bottom );
 							bottom[2] -= 128;
-							trap->Trace( &trace, trace.endpos, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask , 0, 0, 0);
+							trap->Trace( &trace, trace.endpos, lNPC->r.mins, lNPC->r.maxs, bottom, lNPC->s.number, lNPC->clipmask , 0, 0, 0);
 							if ( trace.fraction >= 1.0f )
 							{//would fall too far
 								blocked = qtrue;
@@ -1137,28 +1137,28 @@ static qboolean NPC_Jump( gentity_t *NPC, vec3_t dest )
 		if ( hitCount >= maxHits )
 		{//NOTE: worst case scenario, use the one that impacted closest to the target (or just use the first try...?)
 			//NOTE: or try failcase?
-			VectorCopy( failCase, NPC->client->ps.velocity );
+			VectorCopy( failCase, lNPC->client->ps.velocity );
 		}
-		VectorCopy( shotVel, NPC->client->ps.velocity );
+		VectorCopy( shotVel, lNPC->client->ps.velocity );
 	}
 	else
 	{//a more complicated jump
 		vec3_t		dir, p1, p2, apex;
 		float		time, height, forward, z, xy, dist, apexHeight;
 
-		if ( NPC->r.currentOrigin[2] > dest[2] )//NPCInfo->goalEntity->r.currentOrigin
+		if ( lNPC->r.currentOrigin[2] > dest[2] )//NPCInfo->goalEntity->r.currentOrigin
 		{
-			VectorCopy( NPC->r.currentOrigin, p1 );
+			VectorCopy( lNPC->r.currentOrigin, p1 );
 			VectorCopy( dest, p2 );//NPCInfo->goalEntity->r.currentOrigin
 		}
-		else if ( NPC->r.currentOrigin[2] < dest[2] )//NPCInfo->goalEntity->r.currentOrigin
+		else if ( lNPC->r.currentOrigin[2] < dest[2] )//NPCInfo->goalEntity->r.currentOrigin
 		{
 			VectorCopy( dest, p1 );//NPCInfo->goalEntity->r.currentOrigin
-			VectorCopy( NPC->r.currentOrigin, p2 );
+			VectorCopy( lNPC->r.currentOrigin, p2 );
 		}
 		else
 		{
-			VectorCopy( NPC->r.currentOrigin, p1 );
+			VectorCopy( lNPC->r.currentOrigin, p1 );
 			VectorCopy( dest, p2 );//NPCInfo->goalEntity->r.currentOrigin
 		}
 
@@ -1201,52 +1201,52 @@ static qboolean NPC_Jump( gentity_t *NPC, vec3_t dest )
 		VectorMA( p1, xy, dir, apex );
 		apex[2] += apexHeight;
 
-		VectorCopy(apex, NPC->pos1);
+		VectorCopy(apex, lNPC->pos1);
 		
 		//Now we have the apex, aim for it
-		height = apex[2] - NPC->r.currentOrigin[2];
-		time = sqrt( height / ( .5 * NPC->client->ps.gravity ) );//was 0.5, but didn't work well for very long jumps
+		height = apex[2] - lNPC->r.currentOrigin[2];
+		time = sqrt( height / ( .5 * lNPC->client->ps.gravity ) );//was 0.5, but didn't work well for very long jumps
 		if ( !time ) 
 		{
 			//Com_Printf( S_COLOR_RED"ERROR: no time in jump\n" );
 			return qfalse;
 		}
 
-		VectorSubtract ( apex, NPC->r.currentOrigin, NPC->client->ps.velocity );
-		NPC->client->ps.velocity[2] = 0;
-		dist = VectorNormalize( NPC->client->ps.velocity );
+		VectorSubtract ( apex, lNPC->r.currentOrigin, lNPC->client->ps.velocity );
+		lNPC->client->ps.velocity[2] = 0;
+		dist = VectorNormalize( lNPC->client->ps.velocity );
 
 		forward = dist / time * 1.25;//er... probably bad, but...
-		VectorScale( NPC->client->ps.velocity, forward, NPC->client->ps.velocity );
+		VectorScale( lNPC->client->ps.velocity, forward, lNPC->client->ps.velocity );
 
 		//FIXME:  Uh.... should we trace/EvaluateTrajectory this to make sure we have clearance and we land where we want?
-		NPC->client->ps.velocity[2] = time * NPC->client->ps.gravity;
+		lNPC->client->ps.velocity[2] = time * lNPC->client->ps.gravity;
 
-		//Com_Printf("Jump Velocity: %4.2f, %4.2f, %4.2f\n", NPC->client->ps.velocity[0], NPC->client->ps.velocity[1], NPC->client->ps.velocity[2] );
+		//Com_Printf("Jump Velocity: %4.2f, %4.2f, %4.2f\n", lNPC->client->ps.velocity[0], lNPC->client->ps.velocity[1], lNPC->client->ps.velocity[2] );
 	}
 	return qtrue;
 }
 
 //extern void G_SoundOnEnt( gentity_t *ent, int channel, const char *soundPath );
 
-static qboolean NPC_TryJump( gentity_t *NPC, vec3_t goal )
+static qboolean NPC_TryJump( gentity_t *lNPC, vec3_t goal )
 {//FIXME: never does a simple short, regular jump...
-	if ( TIMER_Done( NPC, "jumpChaseDebounce" ) )
+	if ( TIMER_Done( lNPC, "jumpChaseDebounce" ) )
 	{
 		{
-			if ( !PM_InKnockDown( &NPC->client->ps ) && !BG_InRoll( &NPC->client->ps, NPC->client->ps.legsAnim ) )
+			if ( !PM_InKnockDown( &lNPC->client->ps ) && !BG_InRoll( &lNPC->client->ps, lNPC->client->ps.legsAnim ) )
 			{//enemy is on terra firma
 				vec3_t goal_diff;
 				float goal_z_diff;
 				float goal_xy_dist;
-				VectorSubtract( goal, NPC->r.currentOrigin, goal_diff );
+				VectorSubtract( goal, lNPC->r.currentOrigin, goal_diff );
 				goal_z_diff = goal_diff[2];
 				goal_diff[2] = 0;
 				goal_xy_dist = VectorNormalize( goal_diff );
-				if ( goal_xy_dist < 550 && goal_z_diff > -400/*was -256*/ )//for now, jedi don't take falling damage && (NPC->health > 20 || goal_z_diff > 0 ) && (NPC->health >= 100 || goal_z_diff > -128 ))//closer than @512
+				if ( goal_xy_dist < 550 && goal_z_diff > -400/*was -256*/ )//for now, jedi don't take falling damage && (lNPC->health > 20 || goal_z_diff > 0 ) && (lNPC->health >= 100 || goal_z_diff > -128 ))//closer than @512
 				{
 					qboolean debounce = qfalse;
-					if ( NPC->health < 150 && ((NPC->health < 30 && goal_z_diff < 0) || goal_z_diff < -128 ) )
+					if ( lNPC->health < 150 && ((lNPC->health < 30 && goal_z_diff < 0) || goal_z_diff < -128 ) )
 					{//don't jump, just walk off... doesn't help with ledges, though
 						debounce = qtrue;
 					}
@@ -1280,7 +1280,7 @@ static qboolean NPC_TryJump( gentity_t *NPC, vec3_t goal )
 
 									VectorCopy( dest, bottom );
 									bottom[2] -= 128;
-									trap->Trace( &trace, dest, NPC->r.mins, NPC->r.maxs, bottom, NPC->s.number, NPC->clipmask , 0, 0, 0);
+									trap->Trace( &trace, dest, lNPC->r.mins, lNPC->r.maxs, bottom, lNPC->s.number, lNPC->clipmask , 0, 0, 0);
 									if ( trace.fraction < 1.0f )
 									{//hit floor, okay to land here
 										break;
@@ -1293,23 +1293,23 @@ static qboolean NPC_TryJump( gentity_t *NPC, vec3_t goal )
 								}
 							}
 
-							if ( NPC_Jump( NPC, dest ) )
+							if ( NPC_Jump( lNPC, dest ) )
 							{
 								//Com_Printf( "(%d) pre-checked force jump\n", level.time );
 
 								//FIXME: store the dir we;re going in in case something gets in the way of the jump?
-								//? = vectoyaw( NPC->client->ps.velocity );
+								//? = vectoyaw( lNPC->client->ps.velocity );
 								/*
-								if ( NPC->client->ps.velocity[2] < 320 )
+								if ( lNPC->client->ps.velocity[2] < 320 )
 								{
-									NPC->client->ps.velocity[2] = 320;
+									lNPC->client->ps.velocity[2] = 320;
 								}
 								else
 								*/
 								{//FIXME: make this a function call
 									int jumpAnim;
 									//FIXME: this should be more intelligent, like the normal force jump anim logic
-									//if ( NPC->client->NPC_class == CLASS_BOBAFETT 
+									//if ( lNPC->client->lNPC_class == CLASS_BOBAFETT 
 									//	||( NPCInfo->rank != RANK_CREWMAN && NPCInfo->rank <= RANK_LT_JG ) )
 									//{//can't do acrobatics
 									//	jumpAnim = BOTH_FORCEJUMP1;
@@ -1318,26 +1318,26 @@ static qboolean NPC_TryJump( gentity_t *NPC, vec3_t goal )
 									//{
 										jumpAnim = BOTH_FLIP_F;
 									//}
-									G_SetAnim( NPC, &ucmd, SETANIM_BOTH, jumpAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
+									G_SetAnim( lNPC, &ucmd, SETANIM_BOTH, jumpAnim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 								}
 
-								NPC->client->ps.fd.forceJumpZStart = NPC->r.currentOrigin[2];
-								//NPC->client->ps.pm_flags |= PMF_JUMPING;
+								lNPC->client->ps.fd.forceJumpZStart = lNPC->r.currentOrigin[2];
+								//lNPC->client->ps.pm_flags |= PMF_JUMPING;
 
-								NPC->client->ps.weaponTime = NPC->client->ps.torsoTimer;
-								NPC->client->ps.fd.forcePowersActive |= ( 1 << FP_LEVITATION );
+								lNPC->client->ps.weaponTime = lNPC->client->ps.torsoTimer;
+								lNPC->client->ps.fd.forcePowersActive |= ( 1 << FP_LEVITATION );
 								
-								//if ( NPC->client->NPC_class == CLASS_BOBAFETT )
+								//if ( lNPC->client->lNPC_class == CLASS_BOBAFETT )
 								//{
-								//	G_SoundOnEnt( NPC, CHAN_ITEM, "sound/boba/jeton.wav" );
-								//	NPC->client->jetPackTime = level.time + Q_irand( 1000, 15000 + irand(0, 30000) );
+								//	G_SoundOnEnt( lNPC, CHAN_ITEM, "sound/boba/jeton.wav" );
+								//	lNPC->client->jetPackTime = level.time + Q_irand( 1000, 15000 + irand(0, 30000) );
 								//}
 								//else
 								//{
-								//	G_SoundOnEnt( NPC, CHAN_BODY, "sound/weapons/force/jump.wav" );
+								//	G_SoundOnEnt( lNPC, CHAN_BODY, "sound/weapons/force/jump.wav" );
 								//}
 
-								TIMER_Set( NPC, "forceJumpChasing", Q_irand( 2000, 3000 ) );
+								TIMER_Set( lNPC, "forceJumpChasing", Q_irand( 2000, 3000 ) );
 								debounce = qtrue;
 							}
 						}
@@ -1346,10 +1346,10 @@ static qboolean NPC_TryJump( gentity_t *NPC, vec3_t goal )
 					if ( debounce )
 					{
 						//Don't jump again for another 2 to 5 seconds
-						TIMER_Set( NPC, "jumpChaseDebounce", Q_irand( 2000, 5000 ) );
+						TIMER_Set( lNPC, "jumpChaseDebounce", Q_irand( 2000, 5000 ) );
 						ucmd.forwardmove = 127;
-						VectorClear( NPC->client->ps.moveDir );
-						TIMER_Set( NPC, "duck", -level.time );
+						VectorClear( lNPC->client->ps.moveDir );
+						TIMER_Set( lNPC, "duck", -level.time );
 						return qtrue;
 					}
 				}
@@ -1360,7 +1360,7 @@ static qboolean NPC_TryJump( gentity_t *NPC, vec3_t goal )
 	return qfalse;
 }
 
-qboolean NPC_ClearPathToJump( gentity_t *NPC, vec3_t dest, int impactEntNum )
+qboolean NPC_ClearPathToJump( gentity_t *lNPC, vec3_t dest, int impactEntNum )
 {
 	trace_t	trace;
 	vec3_t	mins, start, end, dir;
@@ -1368,9 +1368,9 @@ qboolean NPC_ClearPathToJump( gentity_t *NPC, vec3_t dest, int impactEntNum )
 	float	i;
 
 	//Offset the step height
-	VectorSet( mins, NPC->r.mins[0], NPC->r.mins[1], NPC->r.mins[2] + STEPSIZE );
+	VectorSet( mins, lNPC->r.mins[0], lNPC->r.mins[1], lNPC->r.mins[2] + STEPSIZE );
 	
-	trap->Trace( &trace, NPC->r.currentOrigin, mins, NPC->r.maxs, dest, NPC->s.number, NPC->clipmask , 0, 0, 0);
+	trap->Trace( &trace, lNPC->r.currentOrigin, mins, lNPC->r.maxs, dest, lNPC->s.number, lNPC->clipmask , 0, 0, 0);
 
 	//Do a simple check
 	if ( trace.allsolid || trace.startsolid )
@@ -1392,9 +1392,9 @@ qboolean NPC_ClearPathToJump( gentity_t *NPC, vec3_t dest, int impactEntNum )
 
 	//otherwise, clear path in a straight line.  
 	//Now at intervals of my size, go along the trace and trace down STEPSIZE to make sure there is a solid floor.
-	VectorSubtract( dest, NPC->r.currentOrigin, dir );
+	VectorSubtract( dest, lNPC->r.currentOrigin, dir );
 	dist = VectorNormalize( dir );
-	if ( dest[2] > NPC->r.currentOrigin[2] )
+	if ( dest[2] > lNPC->r.currentOrigin[2] )
 	{//going up, check for steps
 		drop = STEPSIZE;
 	}
@@ -1402,12 +1402,12 @@ qboolean NPC_ClearPathToJump( gentity_t *NPC, vec3_t dest, int impactEntNum )
 	{//going down or level, check for moderate drops
 		drop = 64;
 	}
-	for ( i = NPC->r.maxs[0]*2; i < dist; i += NPC->r.maxs[0]*2 )
+	for ( i = lNPC->r.maxs[0]*2; i < dist; i += lNPC->r.maxs[0]*2 )
 	{//FIXME: does this check the last spot, too?  We're assuming that should be okay since the enemy is there?
-		VectorMA( NPC->r.currentOrigin, i, dir, start );
+		VectorMA( lNPC->r.currentOrigin, i, dir, start );
 		VectorCopy( start, end );
 		end[2] -= drop;
-		trap->Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask , 0, 0, 0);//NPC->r.mins?
+		trap->Trace( &trace, start, mins, lNPC->r.maxs, end, lNPC->s.number, lNPC->clipmask , 0, 0, 0);//lNPC->r.mins?
 		if ( trace.fraction < 1.0f || trace.allsolid || trace.startsolid )
 		{//good to go
 			continue;
@@ -1493,7 +1493,7 @@ qboolean DOM_NPC_ClearPathBetweenSpots( vec3_t from, vec3_t dest, int impactEntN
 	return qtrue;
 }
 
-qboolean DOM_NPC_CrouchPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum )
+qboolean DOM_NPC_CrouchPathToSpot( gentity_t *lNPC, vec3_t dest, int impactEntNum )
 {
 	trace_t	trace;
 	vec3_t	/*start, end, dir,*/ org, destorg;
@@ -1504,15 +1504,15 @@ qboolean DOM_NPC_CrouchPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum
 	//vec3_t	mins = {-18, -18, -24};
 	vec3_t	mins = {-8, -8, -6};
 	//vec3_t	maxs = {18, 18, 48};
-	vec3_t	maxs = {8, 8, (float)NPC->client->ps.crouchheight};
+	vec3_t	maxs = {8, 8, (float)lNPC->client->ps.crouchheight};
 
-	VectorCopy(NPC->s.origin, org);
+	VectorCopy(lNPC->s.origin, org);
 	org[2]+=STEPSIZE;
 
 	VectorCopy(dest, destorg);
 	destorg[2]+=STEPSIZE;
 
-	trap->Trace( &trace, org, mins, maxs, destorg, NPC->s.number, CONTENTS_PLAYERCLIP/*NPC->clipmask*/ , 0, 0, 0);
+	trap->Trace( &trace, org, mins, maxs, destorg, lNPC->s.number, CONTENTS_PLAYERCLIP/*lNPC->clipmask*/ , 0, 0, 0);
 
 	//Do a simple check
 	if ( trace.allsolid || trace.startsolid )
@@ -1531,7 +1531,7 @@ qboolean DOM_NPC_CrouchPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum
 		}
 		else
 		{
-			//trap->Print("TRACE FAIL! - NPC %i hit entity %i (%s).\n", NPC->s.number, trace.entityNum, g_entities[trace.entityNum].classname);
+			//trap->Print("TRACE FAIL! - lNPC %i hit entity %i (%s).\n", lNPC->s.number, trace.entityNum, g_entities[trace.entityNum].classname);
 			return qfalse;
 		}
 	}
@@ -1539,9 +1539,9 @@ qboolean DOM_NPC_CrouchPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum
 	/*
 	//otherwise, clear path in a straight line.  
 	//Now at intervals of my size, go along the trace and trace down STEPSIZE to make sure there is a solid floor.
-	VectorSubtract( dest, NPC->r.currentOrigin, dir );
+	VectorSubtract( dest, lNPC->r.currentOrigin, dir );
 	dist = VectorNormalize( dir );
-	if ( dest[2] > NPC->r.currentOrigin[2] )
+	if ( dest[2] > lNPC->r.currentOrigin[2] )
 	{//going up, check for steps
 		drop = STEPSIZE;
 	}
@@ -1549,12 +1549,12 @@ qboolean DOM_NPC_CrouchPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum
 	{//going down or level, check for moderate drops
 		drop = 64;
 	}
-	for ( i = NPC->r.maxs[0]*2; i < dist; i += NPC->r.maxs[0]*2 )
+	for ( i = lNPC->r.maxs[0]*2; i < dist; i += lNPC->r.maxs[0]*2 )
 	{//FIXME: does this check the last spot, too?  We're assuming that should be okay since the enemy is there?
-		VectorMA( NPC->r.currentOrigin, i, dir, start );
+		VectorMA( lNPC->r.currentOrigin, i, dir, start );
 		VectorCopy( start, end );
 		end[2] -= drop;
-		trap->Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask , 0, 0, 0);//NPC->r.mins?
+		trap->Trace( &trace, start, mins, lNPC->r.maxs, end, lNPC->s.number, lNPC->clipmask , 0, 0, 0);//lNPC->r.mins?
 		if ( trace.fraction < 1.0f || trace.allsolid || trace.startsolid )
 		{//good to go
 			continue;
@@ -1576,25 +1576,25 @@ typedef enum
 	AVOIDANCE_STRAFE_JUMP,
 } avoidanceMethods_t;
 
-qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum );// below
+qboolean DOM_NPC_ClearPathToSpot( gentity_t *lNPC, vec3_t dest, int impactEntNum );// below
 /*
 qboolean NPC_FindTemporaryWaypoint()
 {
 	int i = 0;
 	int j = 0;
 
-	for (i = 0; i < gWPArray[NPC->wpCurrent]->neighbornum; i++)
+	for (i = 0; i < gWPArray[lNPC->wpCurrent]->neighbornum; i++)
 	{
-		int test_wp = gWPArray[NPC->wpCurrent]->neighbors[i].num;
+		int test_wp = gWPArray[lNPC->wpCurrent]->neighbors[i].num;
 
-		if (DOM_NPC_ClearPathToSpot( NPC, gWPArray[test_wp]->origin, -1 ) && Q_irand(0,2) == 1)
+		if (DOM_NPC_ClearPathToSpot( lNPC, gWPArray[test_wp]->origin, -1 ) && Q_irand(0,2) == 1)
 		{// This link is walkable for us... Now check if it can see the current waypoint...
-			if (DOM_NPC_ClearPathBetweenSpots( gWPArray[test_wp]->origin, gWPArray[NPC->wpCurrent]->origin, -1 ))
+			if (DOM_NPC_ClearPathBetweenSpots( gWPArray[test_wp]->origin, gWPArray[lNPC->wpCurrent]->origin, -1 ))
 			{// Found one!
-				VectorCopy(gWPArray[test_wp]->origin, NPC->bot_strafe_target_position);
-				NPC->wpTravelTime = level.time + 10000; // give them time to traverse this wp...
-				NPC->bot_strafe_target_timer = level.time + 5000;
-				trap->Print("NPC %s is using an avoidance waypoint.\n", NPC->NPC_type);
+				VectorCopy(gWPArray[test_wp]->origin, lNPC->bot_strafe_target_position);
+				lNPC->wpTravelTime = level.time + 10000; // give them time to traverse this wp...
+				lNPC->bot_strafe_target_timer = level.time + 5000;
+				trap->Print("NPC %s is using an avoidance waypoint.\n", lNPC->NPC_type);
 				return qtrue;
 			}
 		}
@@ -1986,10 +1986,10 @@ void NPC_PickRandomIdleAnimantion()
 	}
 }
 
-int NPC_GetPatrolWP(gentity_t *NPC, vec3_t org)
+int NPC_GetPatrolWP(gentity_t *lNPC, vec3_t org)
 {
 	int		i, NUM_FOUND = 0, FOUND_LIST[MAX_WPARRAY_SIZE];
-	float	PATROL_RANGE = NPC->patrol_range;
+	float	PATROL_RANGE = lNPC->patrol_range;
 	float	flLen;
 
 	i = 0;
@@ -1998,12 +1998,12 @@ int NPC_GetPatrolWP(gentity_t *NPC, vec3_t org)
 	{
 		if (gWPArray[i] && gWPArray[i]->inuse)
 		{
-			vec3_t org, org2;
+			vec3_t org1, org2;
 
-			flLen = Distance(NPC->r.currentOrigin, gWPArray[i]->origin);
+			flLen = Distance(lNPC->r.currentOrigin, gWPArray[i]->origin);
 
-			/*if (gWPArray[i]->origin[2] > NPC->spawn_pos[2]+8
-				|| gWPArray[i]->origin[2] < NPC->spawn_pos[2]-8)
+			/*if (gWPArray[i]->origin[2] > lNPC->spawn_pos[2]+8
+				|| gWPArray[i]->origin[2] < lNPC->spawn_pos[2]-8)
 			{
 				i++;
 				continue; // Lets just keep them on flat ground... Avoid jumping...
@@ -2011,14 +2011,14 @@ int NPC_GetPatrolWP(gentity_t *NPC, vec3_t org)
 
 			if (flLen < PATROL_RANGE && flLen > PATROL_RANGE * 0.25)
 			{
-				VectorCopy(NPC->r.currentOrigin, org);
-				org[2]+=8;
+				VectorCopy(lNPC->r.currentOrigin, org1);
+				org1[2]+=8;
 
 				VectorCopy(gWPArray[i]->origin, org2);
 				org2[2]+=8;
 
-				//if (DOM_NPC_ClearPathToSpot( NPC, gWPArray[i]->origin, NPC->s.number ))
-				if (OrgVisible(org, org2, NPC->s.number))
+				//if (DOM_NPC_ClearPathToSpot( lNPC, gWPArray[i]->origin, lNPC->s.number ))
+				if (OrgVisible(org1, org2, lNPC->s.number))
 				{
 					FOUND_LIST[NUM_FOUND] = i;
 					NUM_FOUND++;
@@ -2580,7 +2580,7 @@ qboolean NPC_EnemyVisible( gentity_t *self, gentity_t *enemy )
 	return qtrue;
 }
 
-qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum )
+qboolean DOM_NPC_ClearPathToSpot( gentity_t *lNPC, vec3_t dest, int impactEntNum )
 {
 	trace_t	trace;
 	vec3_t	/*start, end, dir,*/ org, destorg;
@@ -2591,7 +2591,7 @@ qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum 
 	//vec3_t	mins = {-18, -18, -24};
 	//vec3_t	maxs = {18, 18, 48};
 
-	VectorCopy(NPC->s.origin, org);
+	VectorCopy(lNPC->s.origin, org);
 	//org[2]+=STEPSIZE;
 	org[2]+=8;
 
@@ -2599,7 +2599,7 @@ qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum 
 	//destorg[2]+=STEPSIZE;
 	destorg[2]+=8;
 
-	trap->Trace( &trace, org, NULL/*mins*/, NULL/*maxs*/, destorg, NPC->s.number, MASK_PLAYERSOLID/*NPC->clipmask*/ , 0, 0, 0);
+	trap->Trace( &trace, org, NULL/*mins*/, NULL/*maxs*/, destorg, lNPC->s.number, MASK_PLAYERSOLID/*lNPC->clipmask*/ , 0, 0, 0);
 
 	//Do a simple check
 	if ( trace.allsolid || trace.startsolid )
@@ -2618,7 +2618,7 @@ qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum 
 		}
 		else
 		{
-			//trap->Print("TRACE FAIL! - NPC %i hit entity %i (%s).\n", NPC->s.number, trace.entityNum, g_entities[trace.entityNum].classname);
+			//trap->Print("TRACE FAIL! - lNPC %i hit entity %i (%s).\n", lNPC->s.number, trace.entityNum, g_entities[trace.entityNum].classname);
 			return qfalse;
 		}
 	}
@@ -2630,9 +2630,9 @@ qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum 
 	/*
 	//otherwise, clear path in a straight line.  
 	//Now at intervals of my size, go along the trace and trace down STEPSIZE to make sure there is a solid floor.
-	VectorSubtract( dest, NPC->r.currentOrigin, dir );
+	VectorSubtract( dest, lNPC->r.currentOrigin, dir );
 	dist = VectorNormalize( dir );
-	if ( dest[2] > NPC->r.currentOrigin[2] )
+	if ( dest[2] > lNPC->r.currentOrigin[2] )
 	{//going up, check for steps
 		drop = STEPSIZE;
 	}
@@ -2640,12 +2640,12 @@ qboolean DOM_NPC_ClearPathToSpot( gentity_t *NPC, vec3_t dest, int impactEntNum 
 	{//going down or level, check for moderate drops
 		drop = 64;
 	}
-	for ( i = NPC->r.maxs[0]*2; i < dist; i += NPC->r.maxs[0]*2 )
+	for ( i = lNPC->r.maxs[0]*2; i < dist; i += lNPC->r.maxs[0]*2 )
 	{//FIXME: does this check the last spot, too?  We're assuming that should be okay since the enemy is there?
-		VectorMA( NPC->r.currentOrigin, i, dir, start );
+		VectorMA( lNPC->r.currentOrigin, i, dir, start );
 		VectorCopy( start, end );
 		end[2] -= drop;
-		trap->Trace( &trace, start, mins, NPC->r.maxs, end, NPC->s.number, NPC->clipmask , 0, 0, 0);//NPC->r.mins?
+		trap->Trace( &trace, start, mins, lNPC->r.maxs, end, lNPC->s.number, lNPC->clipmask , 0, 0, 0);//lNPC->r.mins?
 		if ( trace.fraction < 1.0f || trace.allsolid || trace.startsolid )
 		{//good to go
 			continue;

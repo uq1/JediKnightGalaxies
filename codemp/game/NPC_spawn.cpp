@@ -105,30 +105,30 @@ extern void NPC_Rancor_Pain				(gentity_t *self, gentity_t *attacker, int damage
 
 #include "bg_npcnames.h"
 
-void SelectNPCNameFromList( gentity_t *NPC )
+void SelectNPCNameFromList( gentity_t *lNPC )
 {
 	// Load names on first check...
 	BG_Load_NPC_Names();
 
-	if (StringContainsWord(NPC->NPC_type, "r2d2"))
+	if (StringContainsWord(lNPC->NPC_type, "r2d2"))
 	{
-		NPC->client->ps.generic1 = 1; // Init the NPC name...
+		lNPC->client->ps.generic1 = 1; // Init the NPC name...
 	}
-	else if (StringContainsWord(NPC->NPC_type, "r5d2"))
+	else if (StringContainsWord(lNPC->NPC_type, "r5d2"))
 	{
-		NPC->client->ps.generic1 = 2; // Init the NPC name...
+		lNPC->client->ps.generic1 = 2; // Init the NPC name...
 	}
-	else if (StringContainsWord(NPC->NPC_type, "protocol"))
+	else if (StringContainsWord(lNPC->NPC_type, "protocol"))
 	{
-		NPC->client->ps.generic1 = 3; // Init the NPC name...
+		lNPC->client->ps.generic1 = 3; // Init the NPC name...
 	}
-	else if (StringContainsWord(NPC->NPC_type, "weequay"))
+	else if (StringContainsWord(lNPC->NPC_type, "weequay"))
 	{
-		NPC->client->ps.generic1 = 4; // Init the NPC name...
+		lNPC->client->ps.generic1 = 4; // Init the NPC name...
 	}
 	else
 	{
-		NPC->client->ps.generic1 = Q_irand(5, BG_Num_NPC_Names()-1); // Init the NPC name...
+		lNPC->client->ps.generic1 = Q_irand(5, BG_Num_NPC_Names()-1); // Init the NPC name...
 	}
 }
 
@@ -136,7 +136,7 @@ void SelectNPCNameFromList( gentity_t *NPC )
 
 //void HirogenAlpha_Precache( void );
 
-int WP_SetSaberModel( gclient_t *client, class_t npcClass )
+int WP_SetSaberModel( gclient_t *lClient, class_t npcClass )
 {
 	//rwwFIXMEFIXME: Do something here, need to let the client know.
 	return 1;
@@ -878,11 +878,11 @@ void GLua_NPCEV_OnSpawn(gentity_t *self);
 void NPC_Begin (gentity_t *ent)
 {
 	vec3_t	spawn_origin, spawn_angles;
-	gclient_t	*client;
-	usercmd_t	ucmd;
+	gclient_t	*clientData;
+	usercmd_t	lUcmd;
 	gentity_t	*spawnPoint = NULL;
 
-	memset( &ucmd, 0, sizeof( ucmd ) );
+	memset( &lUcmd, 0, sizeof( lUcmd ) );
 
 	if ( !(ent->spawnflags & SFB_NOTSOLID) )
 	{//No NPCs should telefrag
@@ -948,19 +948,19 @@ void NPC_Begin (gentity_t *ent)
 	// Init enemy...
 	ent->enemy = NULL;
 
-	client = ent->client;
+	clientData = ent->client;
 
 	// increment the spawncount so the client will detect the respawn
-	client->ps.persistant[PERS_SPAWN_COUNT]++;
+	clientData->ps.persistant[PERS_SPAWN_COUNT]++;
 
-	client->airOutTime = level.time + 12000;
+	clientData->airOutTime = level.time + 12000;
 
-	client->ps.clientNum = ent->s.number;
+	clientData->ps.clientNum = ent->s.number;
 	// clear entity values
 
 	if ( ent->health )	// Was health supplied in map
 	{
-		client->pers.maxHealth = client->ps.stats[STAT_MAX_HEALTH] = ent->health;
+		clientData->pers.maxHealth = clientData->ps.stats[STAT_MAX_HEALTH] = ent->health;
 	}
 	else if ( ent->NPC->stats.health )	// Was health supplied in NPC.cfg?
 	{
@@ -975,11 +975,11 @@ void NPC_Begin (gentity_t *ent)
 			ent->NPC->stats.health += ent->NPC->stats.health/4 * g_npcspskill.integer; // 100% on easy, 125% on medium, 150% on hard
 		}
 		
-		client->pers.maxHealth = client->ps.stats[STAT_MAX_HEALTH] = ent->NPC->stats.health;
+		clientData->pers.maxHealth = client->ps.stats[STAT_MAX_HEALTH] = ent->NPC->stats.health;
 	}
 	else
 	{
-		client->pers.maxHealth = client->ps.stats[STAT_MAX_HEALTH] = 100;
+		clientData->pers.maxHealth = clientData->ps.stats[STAT_MAX_HEALTH] = 100;
 	}
 
 	if ( !Q_stricmp( "rodian", ent->NPC_type ) )
@@ -1089,7 +1089,7 @@ void NPC_Begin (gentity_t *ent)
 
 	NPC_SetFX_SpawnStates( ent );
 	
-	//client->ps.friction = 6;
+	//clientData->ps.friction = 6;
 	//rwwFIXMEFIXME: per ent friction?
 
 	if ( ent->client->ps.weapon == WP_NONE )
@@ -1112,10 +1112,10 @@ void NPC_Begin (gentity_t *ent)
 	ChangeWeapon( ent, ent->client->ps.weapon, ent->client->ps.weaponVariation );
 	// [/Weapon Variation]
 
-	VectorCopy( spawn_origin, client->ps.origin );
+	VectorCopy( spawn_origin, clientData->ps.origin );
 
 	// the respawned flag will be cleared after the attack and jump keys come up
-	client->ps.pm_flags |= PMF_RESPAWNED;
+	clientData->ps.pm_flags |= PMF_RESPAWNED;
 
 	// clear entity state values
 	//ent->s.eType = ET_PLAYER;
@@ -1126,7 +1126,7 @@ void NPC_Begin (gentity_t *ent)
 //	ent->s.origin[2] += 1;	// make sure off ground
 
 	SetClientViewAngle( ent, spawn_angles );
-	client->renderInfo.lookTarget = ENTITYNUM_NONE;
+	clientData->renderInfo.lookTarget = ENTITYNUM_NONE;
 
 	if(!(ent->spawnflags & 64))
 	{
@@ -1135,13 +1135,13 @@ void NPC_Begin (gentity_t *ent)
 	}
 
 	// don't allow full run speed for a bit
-	client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
-	client->ps.pm_time = 100;
+	clientData->ps.pm_flags |= PMF_TIME_KNOCKBACK;
+	clientData->ps.pm_time = 100;
 
-	client->respawnTime = level.time;
-	client->inactivityTime = level.time + g_inactivity.value * 1000;
-	client->latched_buttons = 0;
-	if ( client->NPC_class == CLASS_SEEKER && ent->activator != NULL )
+	clientData->respawnTime = level.time;
+	clientData->inactivityTime = level.time + g_inactivity.value * 1000;
+	clientData->latched_buttons = 0;
+	if ( clientData->NPC_class == CLASS_SEEKER && ent->activator != NULL )
 	{//somebody else "owns" me
 		ent->s.owner = ent->r.ownerNum = ent->activator->s.number;
 	}
@@ -1190,11 +1190,11 @@ void NPC_Begin (gentity_t *ent)
 	if ( ent->health <= 0 )
 	{
 		//ORIGINAL ID: health will count down towards max_health
-		ent->health = client->ps.stats[STAT_HEALTH] = ent->client->pers.maxHealth;
+		ent->health = clientData->ps.stats[STAT_HEALTH] = ent->client->pers.maxHealth;
 	}
 	else
 	{
-		client->ps.stats[STAT_HEALTH] = ent->health;
+		clientData->ps.stats[STAT_HEALTH] = ent->health;
 	}
 
 	if (ent->s.shouldtarget)
@@ -1227,9 +1227,9 @@ void NPC_Begin (gentity_t *ent)
 
 	// run a client frame to drop exactly to the floor,
 	// initialize animations and other things
-	memset( &ucmd, 0, sizeof( ucmd ) );
-	//_VectorCopy( client->pers.cmd_angles, ucmd.angles );
-	VectorCopy((const float *)client->pers.cmd.angles, (float *)ucmd.angles);
+	memset( &lUcmd, 0, sizeof( lUcmd ) );
+	//_VectorCopy( clientData->pers.cmd_angles, lUcmd.angles );
+	VectorCopy((const float *)clientData->pers.cmd.angles, (float *)lUcmd.angles);
 	
 	ent->client->ps.groundEntityNum = ENTITYNUM_NONE;
 
@@ -1239,7 +1239,7 @@ void NPC_Begin (gentity_t *ent)
 		//rwwFIXMEFIXME: Use this? Probably doesn't really matter for MP.
 	}
 
-	ClientThink( ent->s.number, &ucmd );
+	ClientThink( ent->s.number, &lUcmd );
 
 	trap->LinkEntity( (sharedEntity_t *)ent );
 
@@ -4022,7 +4022,7 @@ void Cmd_NPC_f( gentity_t *ent )
 	else if ( Q_stricmp ( cmd, "score" ) == 0 )
 	{
 		char		cmd2[1024];
-		gentity_t *ent = NULL;
+		gentity_t *lEnt = NULL;
 
 		trap->Argv(2, cmd2, 1024);
 
@@ -4033,19 +4033,19 @@ void Cmd_NPC_f( gentity_t *ent )
 			Com_Printf( "SCORE LIST:\n" );
 			for ( i = 0; i < ENTITYNUM_WORLD; i++ )
 			{
-				ent = &g_entities[i];
-				if ( !ent || !ent->client )
+				lEnt = &g_entities[i];
+				if ( !lEnt || !lEnt->client )
 				{
 					continue;
 				}
-				NPC_PrintScore( ent );
+				NPC_PrintScore( lEnt );
 			}
 		}
 		else
 		{
-			if ( (ent = G_Find( NULL, FOFS(targetname), cmd2 )) != NULL && ent->client )
+			if ( (lEnt = G_Find( NULL, FOFS(targetname), cmd2 )) != NULL && lEnt->client )
 			{
-				NPC_PrintScore( ent );
+				NPC_PrintScore( lEnt );
 			}
 			else
 			{

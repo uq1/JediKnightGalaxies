@@ -143,14 +143,14 @@ qboolean NPC_IsCoverpointFor ( int thisWP, gentity_t *enemy )
 	return qfalse;
 }
 
-qboolean NPC_CoverpointVisible ( gentity_t *NPC, int coverWP )
+qboolean NPC_CoverpointVisible ( gentity_t *lNPC, int coverWP )
 {
 	vec3_t up_org, up_org2;
 
 	VectorCopy(gWPArray[coverWP]->origin, up_org);
 	up_org[2]+=18;//DEFAULT_VIEWHEIGHT; // Standing height!
 
-	VectorCopy(NPC->r.currentOrigin, up_org2);
+	VectorCopy(lNPC->r.currentOrigin, up_org2);
 	up_org2[2]+=DEFAULT_VIEWHEIGHT; // Standing height!
 
 	if (!CoverOrgVisible(up_org, up_org2, -1))

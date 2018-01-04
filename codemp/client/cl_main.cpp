@@ -1696,8 +1696,8 @@ void CL_ServersResponsePacket( const netadr_t *from, msg_t *msg ) {
 			if (buffend - buffptr < (int)(sizeof(addresses[numservers].ip) + sizeof(addresses[numservers].port) + 1))
 				break;
 
-			for(size_t i = 0; i < sizeof(addresses[numservers].ip); i++)
-				addresses[numservers].ip[i] = *buffptr++;
+			for(size_t k = 0; k < sizeof(addresses[numservers].ip); k++)
+				addresses[numservers].ip[k] = *buffptr++;
 
 			addresses[numservers].type = NA_IP;
 		}

@@ -3963,7 +3963,7 @@ static QINLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int rBl
 	qboolean saberTraceDone = qfalse;
 	qboolean otherUnblockable = qfalse;
 	qboolean tryDeflectAgain = qfalse;
-	qboolean	saberHitWall = qfalse;
+	qboolean	saberHitsWall = qfalse;
 	//boxscale for blockbox
 	float boxScale = 10;
 	
@@ -4274,10 +4274,10 @@ static QINLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int rBl
 		g_entities[tr.entityNum].s.eType == ET_TERRAIN)
 	{ //register this as a wall hit for jedi AI
         self->client->ps.saberEventFlags |= SEF_HITWALL;
-		saberHitWall = qtrue;
+		saberHitsWall = qtrue;
 	}
 
-	if (saberHitWall 
+	if (saberHitsWall 
 		&& (self->client->saber[rSaberNum].saberFlags & SFL_BOUNCE_ON_WALLS)
 		&& (BG_SaberInAttackPure( self->client->ps.saberMove ) //only in a normal attack anim
 			|| self->client->ps.saberMove == LS_A_JUMP_T__B_ ) //or in the strong jump-fwd-attack "death from above" move
@@ -5094,12 +5094,12 @@ void G_SPSaberDamageTraceLerped( gentity_t *self, int saberNum, int bladeNum, ve
 		if ( saberHitFraction < 1.0f )
 		{
 			//adjust muzzleDir...
-			vec3_t ma1, ma2;
-			vectoangles( md1, ma1 );
-			vectoangles( md2, ma2 );
+			vec3_t iMa1, iMa2;
+			vectoangles( md1, iMa1);
+			vectoangles( md2, iMa2);
 			for ( xx = 0; xx < 3; xx++ )
 			{
-				md2ang[xx] = LerpAngle( ma1[xx], ma2[xx], saberHitFraction );
+				md2ang[xx] = LerpAngle(iMa1[xx], iMa2[xx], saberHitFraction );
 			}
 			AngleVectors( md2ang, md2, NULL, NULL );
 			//shorten the base pos
