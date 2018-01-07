@@ -277,14 +277,14 @@
 		"shortname": "Rockets",
 		"longname": "BlasTech Industries Rockets",
 		"max": 25,
-		"pricePerUnit": 60
+		"pricePerUnit": 45
 	},
 	
 	"AMMO_PACKERED_MORTAR": {
 		"shortname": "Mortar Shells",
 		"longname": "Packered High Explosive Mortar Shells",
 		"max": 24,
-		"pricePerUnit": 45
+		"pricePerUnit": 35
 	},
 	
 	"AMMO_G36_POWERPACK": {
