@@ -71,7 +71,7 @@
     
     "firemode0": {
         "damage":       97,
-        "ammocost":     15,
+        "ammocost":     10,
         "firedelay":    900,
         "firingtype":   "semi",
         "range":        8000.0,
@@ -99,7 +99,7 @@
     },
     
     "firemode1": {
-        "damage":       18,
+        "damage":       22,
         "ammocost":     1,
         "firedelay":    300,
         "firingtype":   "semi",

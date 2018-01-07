@@ -310,8 +310,8 @@
 
 		"modifiers": {
 			"ignoreShield": true,
-			"armor": 0.8,
-			"organic": 1.2,
+			"armor": 0.6,
+			"organic": 1.15,
 			"droid": 0.2
 		},
 
@@ -668,7 +668,7 @@
 			"ignoreArmor": true,
 			"ignoreShield": true,
 			"droid": 0.0,
-			"organic": 1.1
+			"organic": 1.2
 		},
 
 		"killFeed": {

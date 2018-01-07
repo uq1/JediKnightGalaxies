@@ -169,11 +169,11 @@ XCVAR_DEF( timelimit,					"45",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_NOR
 // Jedi Knight Galaxies
 XCVAR_DEF( jkg_shop_replenish_time,		"300",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_startingCredits,			"500",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		false )
-XCVAR_DEF( jkg_bounty,					"125",			NULL,				CVAR_ARCHIVE,									true )
-XCVAR_DEF( jkg_killsPerBounty,			"2",			NULL,				CVAR_ARCHIVE,									true )
-XCVAR_DEF( jkg_creditsPerKill,			"150",			NULL,				CVAR_ARCHIVE,									true )
-XCVAR_DEF( jkg_minAssistAwardRatio,		"20",			NULL,				CVAR_ARCHIVE,									true )	//value is % out of 100, Max allowed value is 50
-XCVAR_DEF( jkg_creditsPerTeamCapture,	"100",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_bounty,					"225",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_killsPerBounty,			"3",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_creditsPerKill,			"200",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_minAssistAwardRatio,		"25",			NULL,				CVAR_ARCHIVE,									true )	//value is % out of 100, Max allowed value is 50
+XCVAR_DEF( jkg_creditsPerTeamCapture,	"125",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_creditsPerCapture,		"300",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_creditsPerReturn,		"75",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_buyAnnounce,				"1",			NULL,				CVAR_ARCHIVE,									true )

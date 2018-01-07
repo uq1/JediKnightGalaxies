@@ -1,7 +1,7 @@
 {
 	"name":             "BioTech Minor Bacta Canister",
 	"internal":             "bacta_small",
-	"cost":		"15",
+	"cost":		"10",
 	"itemtype":             "consumable",
 	"maxStack":		10,
 	"consumeScript":	"item_bacta_small",

@@ -1,14 +1,14 @@
 {
 	"classes": {
 		"genericvendor": {
-			"numberPicksMin": 13,
-			"numberPicksMax": 19,
+			"numberPicksMin": 15,
+			"numberPicksMax": 20,
 			"uniquePicks": true,
 			"picks": {
 				"genericvendor-basic": 13,
 				"genericvendor-mid": 9,
 				"genericvendor-late": 5,
-				"genericvendor-rare": 1
+				"genericvendor-rare": 2
 			}
 		},
 		"genericvendor-basic": {
@@ -24,7 +24,7 @@
 				"Grenade_Poison": 2,
 				"Grenade_C22Frag": 3,
 				"carbine_LT-60": 2,
-				"carbine_LT-60_S": 2,
+				"carbine_LT-60_S": 1,
 				"pistol_ELG-3A": 4,
 				"pistol_Suppressor": 5,
 				"pistol_ACP": 4,
@@ -36,7 +36,6 @@
 				"shield_blastech_imp": 3,
 				"shield_atgar": 3,
 				"shield_merrsonn_cour": 3,
-				"charge_LaserProjector": 1,
 				"gloves_stormtrooper": 3,
 				"bacta_medium": 4,
 				"bacta_small": 8,
@@ -61,7 +60,6 @@
 			"numberPicksMax": 1,
 			"picks": {
 				"Mine_LaserTrip1": 3,
-				"charge_Sequencer": 3,
 				"carbine_LT-60_C": 3,
 				"Grenade_Concussion": 5,
 				"Grenade_C22Frag": 6,
@@ -158,11 +156,11 @@
 				"shield_prax_medium": 3,
 				"shield_golan_ds2": 2,
 				"repeater_T-21": 3,
-				"chem_CR-24": 1,
+				"chem_CR-24": 2,
 				"array_ARC_CasterMk1": 1,
-				"bacta_large": 8,
-				"bacta_medium": 9,
-				"bacta_small": 4,
+				"bacta_large": 9,
+				"bacta_medium": 10,
+				"bacta_small": 6,
 				"torso_stormtrooper": 3,
 				"legs_stormtrooper": 4,
 				"helmet_stormtrooper": 4,
@@ -174,10 +172,10 @@
 				"torso_glight": 3,
 				"legs_glight": 4,
 				"helmet_rebel_red": 4,
-				"coat_heavy": 2,
-				"jetpack_burst": 6,
+				"coat_heavy": 4,
+				"jetpack_burst": 7,
 				"jetpack_test": 3,
-				"jetpack_burst2": 3,
+				"jetpack_burst2": 5,
 				"ammo_explosiveQuarrel_40": 3,
 				"ammo_splittingQuarrels_40": 4,
 				"ammo_bouncingQuarrels_40": 4,
@@ -189,19 +187,19 @@
 			"numberPicksMin": 1,
 			"numberPicksMax": 1,
 			"picks": {
-				"Grenade_Thermal-A": 2,
-				"launcher_W-90": 8,
-				"launcher_W-90_S": 5,
-				"chem_CR-24": 6,
-				"launcher_Stouker": 4,
-				"Grenade_CryoBan": 7,
-				"shield_merrsonn_ultra": 5,
-				"jetpack_test": 4,
-				"chem_CarbR": 3,
-				"sthelmet_rusty": 5,
-				"helmet_swamptrooper": 3,
-				"legs_swamptrooper": 3,
-				"torso_swamptrooper": 2
+				"Grenade_Thermal-A": 3,
+				"launcher_W-90": 9,
+				"launcher_W-90_S": 6,
+				"chem_CR-24": 7,
+				"launcher_Stouker": 5,
+				"Grenade_CryoBan": 8,
+				"shield_merrsonn_ultra": 6,
+				"jetpack_test": 5,
+				"chem_CarbR": 5,
+				"sthelmet_rusty": 9,
+				"helmet_swamptrooper": 5,
+				"legs_swamptrooper": 6,
+				"torso_swamptrooper": 4
 			}
 		}
 	}

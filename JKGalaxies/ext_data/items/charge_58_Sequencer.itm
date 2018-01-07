@@ -5,7 +5,7 @@
 	"weapon":		"WP_DET_PACK",
 	"variation":		"0",
 	"weight":		"1",
-	"cost":		"350",
+	"cost":		"50",
 	"maxStack":		5,
 	"itemIcon":		"models/weapons/Charge_Sequencer/icon_default"
 }

@@ -3,7 +3,7 @@
 	"internal":	"shield_bacnor_dread",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/hud/i_icon_shieldwall",
-	"cost":		"800",
+	"cost":		"900",
 	
 	"capacity":	100,
 	"cooldown":	0,

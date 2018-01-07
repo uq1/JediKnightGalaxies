@@ -1,7 +1,7 @@
 {
 	"name":             "BioTech Medium Bacta Canister",
 	"internal":             "bacta_medium",
-	"cost":		"40",
+	"cost":		"30",
 	"itemtype":             "consumable",
 	"maxStack":		7,
 	"consumeScript":	"item_bacta_medium",

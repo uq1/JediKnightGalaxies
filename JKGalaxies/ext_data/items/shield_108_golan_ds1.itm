@@ -3,9 +3,9 @@
 	"internal":	"shield_golan_ds1",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/Item_Icons/ps_golan_s_glow",
-	"cost":		"900",
+	"cost":		"800",
 	
-	"capacity":	15,
+	"capacity":	25,
 	"cooldown":	3000,
 	"regenrate":	100,
 

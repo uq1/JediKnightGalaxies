@@ -5,7 +5,7 @@
 	"weapon":		"WP_THERMAL",
 	"variation":		"7",
 	"weight":		"2",
-	"cost":		"100",
+	"cost":		"95",
 	"maxStack":		5,
 	"itemIcon":		"models/weapons/grenade_cryoban/icon_default"
 }
