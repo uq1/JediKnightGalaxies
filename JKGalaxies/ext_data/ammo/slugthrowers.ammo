@@ -34,10 +34,10 @@
 		"longname": "Explosive Round Slugthrower Packs",
 		"basedOn": "AMMO_SLUGS",
 		"max": 60,
-		"pricePerUnit": 75,
+		"pricePerUnit": 70,
 		"overrides": {
 			"Damage": {
-				"multiply": 1.25
+				"set": 30
 			},
 			"SplashRange": {
 				"set": 400

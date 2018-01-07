@@ -5,7 +5,7 @@
 	"weapon":		"WP_BOWCASTER",
 	"variation":		"7",
 	"weight":		"10",
-	"cost":		"1325",
+	"cost":		"1300",
 	"xml":			"",
 	"itemIcon":		"models/weapons/bryar_rifle/icon_scope"
 }
