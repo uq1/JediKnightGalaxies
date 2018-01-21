@@ -96,7 +96,9 @@ void Sys_PlatformInit( void )
 
 	signal( SIGSEGV, Sys_FatalSigHandler );
 	signal( SIGFPE, Sys_FatalSigHandler );
+#ifdef LINUX_ASSERTS
 	signal( SIGABRT, Sys_FatalSigHandler );
+#endif
 
 	if (isatty( STDIN_FILENO ) && !( term && ( !strcmp( term, "raw" ) || !strcmp( term, "dumb" ) ) ))
 		stdinIsATTY = qtrue;
