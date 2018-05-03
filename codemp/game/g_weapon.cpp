@@ -175,6 +175,9 @@ static	vec3_t	muzzle;
 #define ATST_SIDE_ALT_ROCKET_SIZE			5
 #define ATST_SIDE_ALT_ROCKET_SPLASH_SCALE	0.5f	// scales splash for NPC's
 
+#define MAX_PLACEABLE_CONSUME_WPNS			10		//default: 10 (used by tripmines and detonators)
+
+
 const weaponFireModeStats_t *GetEntsCurrentFireMode ( const gentity_t *ent )
 {
     const weaponData_t *weapon = GetWeaponData (ent->s.weapon, ent->s.weaponVariation);
@@ -985,7 +988,7 @@ void WP_PlaceLaserTrap( gentity_t *ent, qboolean alt_fire )
 	found = NULL;
 	trapcount_org = trapcount;
 	lowestTimeStamp = level.time;
-	while ( trapcount > 9)
+	while ( trapcount > (MAX_PLACEABLE_CONSUME_WPNS - 1))
 	{
 		removeMe = -1;
 		for ( i = 0; i < trapcount_org; i++ )
@@ -1387,7 +1390,7 @@ void WP_DropDetPack( gentity_t *ent, qboolean alt_fire )
 	found = NULL;
 	trapcount_org = trapcount;
 	lowestTimeStamp = level.time;
-	while ( trapcount > 9 )
+	while ( trapcount > (MAX_PLACEABLE_CONSUME_WPNS -1))
 	{
 		removeMe = -1;
 		for ( i = 0; i < trapcount_org; i++ )
