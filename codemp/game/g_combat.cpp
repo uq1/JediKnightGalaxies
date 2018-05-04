@@ -1726,6 +1726,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			{
 				trap->SendServerCommand(attacker-g_entities, va("notify 1 \"Kill: +%i Credits\"", credits));
 			}
+
 		}
 	}
 	if(JKG_CanAwardBounty(self, attacker))
@@ -1738,6 +1739,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		{
 			trap->SendServerCommand(-1, va("chat 100 \"%s ^7has a bounty on their head!\"", attacker->client->pers.netname));
 		}
+
 	}
 	else if (self->client->numKillsThisLife >= jkg_killsPerBounty.integer) {
 		trap->SendServerCommand(-1, va("chat 100 \"%s" S_COLOR_WHITE "'s bounty went unclaimed.\n\"", self->client->pers.netname));
@@ -1788,6 +1790,33 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			}
 		}
 		self->assists->clear();
+
+		
+		//award bonus credits to teammates:
+		if(jkg_teamKillBonus.integer > 0)
+		{
+			gentity_t* player; int reward;
+			for (i = 0; i < sv_maxclients.integer; i++)
+			{
+				reward = 0;
+				player = &g_entities[i];
+				if (!player->inuse || (player - g_entities >= MAX_CLIENTS) || player == attacker)	//don't reward spectators, nonclients or the killer
+					continue;
+
+				//if we have fewer kills than deaths*2, double the bonus
+				if (player->client->ps.persistant[PERS_RANK] < player->client->ps.persistant[PERS_KILLED] * 2)	
+					reward += jkg_teamKillBonus.integer;
+
+				if (player->client->sess.sessionTeam == attacker->client->sess.sessionTeam)		//--futuza: consider changing this block so that if world kills you the other team still gets the reward
+				{
+					reward += jkg_teamKillBonus.integer;
+					trap->SendServerCommand(player->s.number, va("notify 1 \"Team Kill Bonus: +%i Credits\"", reward));
+					player->client->ps.credits += reward;
+
+					//consider doing some sort of sound to hint at reward here  --futuza
+				}
+			}
+		}
 	}
 
 	G_BreakArm(self, 0); //unbreak anything we have broken
