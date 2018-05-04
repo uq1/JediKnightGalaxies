@@ -175,7 +175,7 @@ static	vec3_t	muzzle;
 #define ATST_SIDE_ALT_ROCKET_SIZE			5
 #define ATST_SIDE_ALT_ROCKET_SPLASH_SCALE	0.5f	// scales splash for NPC's
 
-#define MAX_PLACEABLE_CONSUME_WPNS			10		//default: 10 (used by tripmines and detonators)
+#define MAX_PLACEABLE_CONSUME_WPNS			20		//default: 10 (used by tripmines and detonators)
 
 
 const weaponFireModeStats_t *GetEntsCurrentFireMode ( const gentity_t *ent )
@@ -974,7 +974,7 @@ void WP_PlaceLaserTrap( gentity_t *ent, qboolean alt_fire )
 
 	laserTrap = G_Spawn();
 	
-	//limit to 10 placed at any one time
+	//limit to MAX_PLACEABLE_CONSUME_WPNS placed at any one time
 	//see how many there are now
 	while ( (found = G_Find( found, FOFS(classname), "laserTrap" )) != NULL )
 	{
@@ -984,11 +984,11 @@ void WP_PlaceLaserTrap( gentity_t *ent, qboolean alt_fire )
 		}
 		foundLaserTraps[trapcount++] = found->s.number;
 	}
-	//now remove first ones we find until there are only 9 left
+	//now remove first ones we find until there are only max left
 	found = NULL;
 	trapcount_org = trapcount;
 	lowestTimeStamp = level.time;
-	while ( trapcount > (MAX_PLACEABLE_CONSUME_WPNS - 1))
+	while ( trapcount >= MAX_PLACEABLE_CONSUME_WPNS )
 	{
 		removeMe = -1;
 		for ( i = 0; i < trapcount_org; i++ )
@@ -1376,7 +1376,7 @@ void WP_DropDetPack( gentity_t *ent, qboolean alt_fire )
 		return;
 	}
 
-	//limit to 10 placed at any one time
+	//limit to MAX_PLACEABLE_CONSUME_WPNS placed at any one time
 	//see how many there are now
 	while ( (found = G_Find( found, FOFS(classname), "detpack" )) != NULL )
 	{
@@ -1386,11 +1386,11 @@ void WP_DropDetPack( gentity_t *ent, qboolean alt_fire )
 		}
 		foundDetPacks[trapcount++] = found->s.number;
 	}
-	//now remove first ones we find until there are only 9 left
+	//now remove first ones we find until there are only the max left
 	found = NULL;
 	trapcount_org = trapcount;
 	lowestTimeStamp = level.time;
-	while ( trapcount > (MAX_PLACEABLE_CONSUME_WPNS -1))
+	while ( trapcount >= MAX_PLACEABLE_CONSUME_WPNS )
 	{
 		removeMe = -1;
 		for ( i = 0; i < trapcount_org; i++ )

@@ -206,6 +206,12 @@ void TreasureClass::StackGuard(const std::string& szCheck) {
 				// Recurse over it
 				std::string sSearchString = it->tc.szTreasureClass;
 				auto it2 = umTreasureClasses.find(sSearchString);
+				if (it2 == umTreasureClasses.end()) //check if wasn't found
+				{
+					//not sure how to proceed with this case where we hit end	--futuza
+					Com_Printf("^3\"%s\" not found in treasure class!\n", sSearchString.c_str());
+					continue;
+				}
 				it->tc.pTreasureClass = it2->second;
 				it->tc.pTreasureClass->StackGuard(szCheck);
 			}

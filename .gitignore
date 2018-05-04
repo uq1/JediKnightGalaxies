@@ -50,6 +50,8 @@ codemp/openjk.vcxproj
 codemp/openjk.vcxproj.filters
 codemp/ui/ui.vcxproj
 codemp/ui/ui.vcxproj.filters
+CMakeCache.txt
+CMakeFiles/
 
 # Build results
 [Dd]ebug/
