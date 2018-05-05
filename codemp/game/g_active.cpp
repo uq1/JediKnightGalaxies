@@ -2032,6 +2032,54 @@ void ClientThink_real( gentity_t *ent ) {
 		}
 	}
 
+	//JKG: passively gain credits over time, helps balance game for sucky players & new joins
+	if (jkg_passiveCreditsAmount.integer > 0)
+	{
+		int reward = 0;
+
+		/*
+		//if they just joined the team, give them bonus reward
+		{
+			int ratio_reward = (timelimit.value / level.time);
+			if (ratio_reward < 6)	//if we're at least 1/5th into the match
+			{
+			if(level.time == ent->client->pers.enterTime && (ent->client->sess.sessionTeam != TEAM_SPECTATOR))
+			{
+				switch (ratio_reward)
+				{
+					case 0: reward += 1000;
+						break;
+					case 1: reward += 750;
+						break;
+					case 2: reward += 600;
+						break;
+					case 3: reward += 450;
+						break;
+					case 4: reward += 300;
+						break;
+					case 5: reward += 200;
+						break;
+					default: break;
+				}
+			}
+			}
+		}*/
+
+		//passive rewards
+		if (ent->client->pers.lastCreditTime + jkg_passiveCreditsRate.value < level.time) //if the time of our last reward + 1 sec is less than current time  (default once a minute)
+		{
+			ent->client->pers.lastCreditTime = level.time + jkg_passiveCreditsRate.value;
+			reward += jkg_passiveCreditsAmount.integer;
+		}
+
+		if(reward > 0)
+		{
+			ent->client->ps.credits += reward;		//award
+			trap->SendServerCommand(ent->s.number, va("notify 1 \"Salary: +%i Credits\"", reward));		//notify player its pay day
+			//consider a sound here
+		}
+	}
+
 	// Automatically regenerate health and shield
 	if (jkg_healthRegen.value > 0 && JKG_ClientAlive(ent)) {
 		if (ent->lastHealTime < level.time && (ent->damagePlumTime + jkg_healthRegenDelay.value) < level.time)

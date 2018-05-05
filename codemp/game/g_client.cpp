@@ -2196,6 +2196,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 
 	client->pers.connected = CON_CONNECTED;
 	client->pers.enterTime = level.time;
+	client->pers.lastCreditTime = 0;
 	client->pers.teamState.state = TEAM_BEGIN;
 
 	// save eflags around this, because changing teams will

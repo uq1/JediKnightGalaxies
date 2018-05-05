@@ -633,7 +633,8 @@ typedef struct clientPersistant_s {
 	int			teamVoteCount;		// to prevent people from constantly calling votes
 	qboolean	teamInfo;			// send team overlay updates?
 
-	int			connectTime;
+	int			connectTime;	
+	int			lastCreditTime;		// last time we got passive credit reward
 
 	// Jedi Knight Galaxies
 	int			partyNumber;						// Your party index in the level.party struct.

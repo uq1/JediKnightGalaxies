@@ -172,6 +172,8 @@ XCVAR_DEF( jkg_startingCredits,			"500",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR
 XCVAR_DEF( jkg_bounty,					"225",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_killsPerBounty,			"3",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_creditsPerKill,			"200",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_passiveCreditsAmount,	"15",			NULL,				CVAR_ARCHIVE,									true )	//0 >= disables, default: 15
+XCVAR_DEF( jkg_passiveCreditsRate,		"30000",		NULL,				CVAR_ARCHIVE,									true )	//60000 = 60secs, default: 30000
 XCVAR_DEF( jkg_teamKillBonus,			"10",			NULL,				CVAR_ARCHIVE,									true )	//0 >= disables, default: 10
 XCVAR_DEF( jkg_minAssistAwardRatio,		"25",			NULL,				CVAR_ARCHIVE,									true )	//value is % out of 100, Max allowed value is 50
 XCVAR_DEF( jkg_creditsPerTeamCapture,	"125",			NULL,				CVAR_ARCHIVE,									true )
