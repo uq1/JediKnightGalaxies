@@ -2037,8 +2037,8 @@ void ClientThink_real( gentity_t *ent ) {
 	{
 		int reward = 0;
 
-		//passive rewards start after 1 min
-		if(level.time > 6000)
+		//passive rewards start after jkg_passiveCreditsWait (typically 1 minute)
+		if(level.time > jkg_passiveCreditsWait.integer)
 		{
 			if (ent->client->pers.lastCreditTime + jkg_passiveCreditsRate.integer < level.time) //if the time of our last reward + time < than current time  
 			{

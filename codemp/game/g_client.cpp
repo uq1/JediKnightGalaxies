@@ -3148,9 +3148,12 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 						//award missing passive credits if enabled
 						if (jkg_passiveCreditsAmount.integer > 0)
 						{
-							//award if we joined at least 1 minute late
-							if ((client->pers.enterTime - (6000)) > 0)
-								client->ps.credits += jkg_passiveCreditsAmount.integer * ((client->pers.enterTime / jkg_passiveCreditsRate.integer));
+							//award if we joined at least jkg_passiveCreditsWait late (typically 1 minute)
+							if ((client->pers.enterTime - (jkg_passiveCreditsWait.integer)) > 0)
+								client->ps.credits += ( (jkg_passiveCreditsAmount.integer * (client->pers.enterTime / jkg_passiveCreditsRate.integer)) //calculate amount we would have got
+														-(jkg_passiveCreditsAmount.integer * (jkg_passiveCreditsWait.integer / jkg_passiveCreditsRate.integer))				//minus the initial wait
+														-jkg_passiveCreditsAmount.integer															//minus one (otherwise they'll get rewarded immediately after this in the loop and have too much)
+													  );
 						}
 
 						BG_GiveItem(ent, item, true);
