@@ -1803,8 +1803,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				if (!player->inuse || (player - g_entities >= MAX_CLIENTS) || player == attacker)	//don't reward spectators, nonclients or the killer
 					continue;
 
-				//if we have fewer kills than deaths*2, double the bonus
-				if (player->client->ps.persistant[PERS_RANK] < player->client->ps.persistant[PERS_KILLED] * 2)	
+				//if I have killed*2 < than my current deaths - I get extra credits
+				if ( player->client->ps.persistant[PERS_RANK] * 2 < player->client->ps.persistant[PERS_KILLED])
 					reward += jkg_teamKillBonus.integer;
 
 				if (player->client->sess.sessionTeam == attacker->client->sess.sessionTeam)		//--futuza: consider changing this block so that if world kills you the other team still gets the reward
