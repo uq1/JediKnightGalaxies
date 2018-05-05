@@ -2037,39 +2037,14 @@ void ClientThink_real( gentity_t *ent ) {
 	{
 		int reward = 0;
 
-		/*
-		//if they just joined the team, give them bonus reward
+		//passive rewards start after 1 min
+		if(level.time > 6000)
 		{
-			int ratio_reward = (timelimit.value / level.time);
-			if (ratio_reward < 6)	//if we're at least 1/5th into the match
+			if (ent->client->pers.lastCreditTime + jkg_passiveCreditsRate.integer < level.time) //if the time of our last reward + time < than current time  
 			{
-			if(level.time == ent->client->pers.enterTime && (ent->client->sess.sessionTeam != TEAM_SPECTATOR))
-			{
-				switch (ratio_reward)
-				{
-					case 0: reward += 1000;
-						break;
-					case 1: reward += 750;
-						break;
-					case 2: reward += 600;
-						break;
-					case 3: reward += 450;
-						break;
-					case 4: reward += 300;
-						break;
-					case 5: reward += 200;
-						break;
-					default: break;
-				}
+				ent->client->pers.lastCreditTime = level.time + jkg_passiveCreditsRate.integer;
+				reward += jkg_passiveCreditsAmount.integer;
 			}
-			}
-		}*/
-
-		//passive rewards
-		if (ent->client->pers.lastCreditTime + jkg_passiveCreditsRate.value < level.time) //if the time of our last reward + 1 sec is less than current time  (default once a minute)
-		{
-			ent->client->pers.lastCreditTime = level.time + jkg_passiveCreditsRate.value;
-			reward += jkg_passiveCreditsAmount.integer;
 		}
 
 		if(reward > 0)

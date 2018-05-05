@@ -3144,6 +3144,15 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 					{
 						itemInstance_t item = BG_ItemInstance(itemID, 1);
 						ent->client->ps.credits = jkg_startingCredits.integer;
+
+						//award missing passive credits if enabled
+						if (jkg_passiveCreditsAmount.integer > 0)
+						{
+							//award if we joined at least 1 minute late
+							if ((client->pers.enterTime - (6000)) > 0)
+								client->ps.credits += jkg_passiveCreditsAmount.integer * ((client->pers.enterTime / jkg_passiveCreditsRate.integer));
+						}
+
 						BG_GiveItem(ent, item, true);
 
 						// Give max ammo for both firing modes
