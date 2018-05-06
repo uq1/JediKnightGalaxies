@@ -2033,12 +2033,12 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 
 	//JKG: passively gain credits over time, helps balance game for sucky players & new joins
-	if (jkg_passiveCreditsAmount.integer > 0)
+	if (jkg_passiveCreditsAmount.integer > 0 && ent->client->sess.sessionTeam != TEAM_SPECTATOR)
 	{
 		int reward = 0;
 
 		//passive rewards start after jkg_passiveCreditsWait (typically 1 minute)
-		if(level.time > jkg_passiveCreditsWait.integer)
+		if(level.time > level.startTime + jkg_passiveCreditsWait.integer)
 		{
 			if (ent->client->pers.lastCreditTime + jkg_passiveCreditsRate.integer < level.time) //if the time of our last reward + time < than current time  
 			{

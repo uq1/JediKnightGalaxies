@@ -1803,7 +1803,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				if (!player->inuse || (player - g_entities >= MAX_CLIENTS) || player == attacker)	//don't reward spectators, nonclients or the killer
 					continue;
 
-				//if I have killed*2 < than my current deaths - I get extra credits
+				//if I have more deaths than the # of kills doubled - I get extra credits
 				if ( player->client->ps.persistant[PERS_RANK] * 2 < player->client->ps.persistant[PERS_KILLED])
 					reward += jkg_teamKillBonus.integer;
 
