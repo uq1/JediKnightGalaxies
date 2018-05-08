@@ -2042,7 +2042,7 @@ void ClientThink_real( gentity_t *ent ) {
 		{
 			if (ent->client->pers.lastCreditTime + jkg_passiveCreditsRate.integer < level.time) //if the time of our last reward + time < than current time  
 			{
-				ent->client->pers.lastCreditTime = level.time + jkg_passiveCreditsRate.integer;
+				ent->client->pers.lastCreditTime = level.time;
 				reward += jkg_passiveCreditsAmount.integer;
 			}
 		}
