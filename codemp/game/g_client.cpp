@@ -3157,6 +3157,39 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 									reward -= (jkg_passiveCreditsAmount.integer * (jkg_passiveCreditsWait.integer / jkg_passiveCreditsRate.integer));		//minus the initial wait before credits are disbursed
 								client->ps.credits += reward;
 							}
+
+							//bonus reward if you are the underdog
+							if (jkg_underdogBonus.integer)
+							{
+								//who is currently winning?
+								int my_team = ent->client->sess.sessionTeam;
+								int curr_winner = -1;
+								if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
+									curr_winner = TEAM_RED;
+								else if (level.teamScores[TEAM_RED] == level.teamScores[TEAM_BLUE])
+									curr_winner = -1;	//tie
+								else
+									curr_winner = TEAM_BLUE;
+
+								//if we are the loser
+								if (my_team != curr_winner)
+								{
+									int reward = 0;
+									int match_percent = (((level.time - level.startTime) / (timelimit.integer * 60000))*100);
+									if (40 < match_percent < 60)
+										reward += (jkg_startingCredits.integer * 0.25);
+									else if (60 <= match_percent < 74)
+										reward += (jkg_startingCredits.integer * 0.55);
+									else if (75 <= match_percent < 90)
+										reward += (jkg_startingCredits.integer * 0.75);
+									else if (91 <= match_percent < 101)
+										reward += jkg_startingCredits.integer;
+									else
+										reward += (jkg_startingCredits.integer * 0.10);
+
+									client->ps.credits += reward;
+								}
+							}
 						}
 
 						BG_GiveItem(ent, item, true);
