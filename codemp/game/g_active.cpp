@@ -2058,7 +2058,7 @@ void ClientThink_real( gentity_t *ent ) {
 					else
 						curr_winner = -1;	//tie
 
-					if (my_team != curr_winner)
+					if (my_team != curr_winner && curr_winner!= -1)
 						reward += (jkg_passiveCreditsAmount.integer * .20);	//bonus money for being a loser
 				}
 
