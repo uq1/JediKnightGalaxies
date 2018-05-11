@@ -2046,20 +2046,20 @@ void ClientThink_real( gentity_t *ent ) {
 				reward += jkg_passiveCreditsAmount.integer;
 
 				//bonus reward if you are the underdog
-				if (jkg_underdogBonus.integer)
+				if (jkg_passiveUnderdogBonus.integer)
 				{
 					//who is currently winning?
-					int my_team = ent->client->sess.sessionTeam;
+					auto my_team = ent->client->sess.sessionTeam;
 					int curr_winner = -1;
 					if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
 						curr_winner = TEAM_RED;
-					else if (level.teamScores[TEAM_RED] == level.teamScores[TEAM_BLUE])
-						curr_winner = -1;	//tie
+					else if (level.teamScores[TEAM_RED] < level.teamScores[TEAM_BLUE])
+						curr_winner = TEAM_BLUE;	
 					else
-						curr_winner = TEAM_BLUE;
+						curr_winner = -1;	//tie
 
 					if (my_team != curr_winner)
-						reward += (jkg_passiveCreditsAmount.integer * .25);	//bonus money for being a loser
+						reward += (jkg_passiveCreditsAmount.integer * .20);	//bonus money for being a loser
 				}
 
 			}
