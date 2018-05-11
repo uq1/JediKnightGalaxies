@@ -176,7 +176,7 @@ XCVAR_DEF( jkg_passiveCreditsAmount,	"15",			NULL,				CVAR_ARCHIVE|CVAR_SERVERIN
 XCVAR_DEF( jkg_passiveCreditsRate,		"30000",		NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO|CVAR_LATCH,		true )	//default: 30000
 XCVAR_DEF( jkg_passiveCreditsWait,		"60000",		NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO|CVAR_LATCH,		true )	//how long to wait before starting passiveCredits, default: 60000 (60 seconds)
 XCVAR_DEF( jkg_passiveUnderdogBonus,	"1",			NULL,				CVAR_ARCHIVE,									true )	//give additional bonus credits to the losing team
-XCVAR_DEF( jkg_UnderdogBonus,			"1",			NULL,				CVAR_ARCHIVE,									true )	//give bonus credits to late joiners who join the losing team
+XCVAR_DEF( jkg_underdogBonus,			"1",			NULL,				CVAR_ARCHIVE,									true )	//give bonus credits to late joiners who join the losing team
 XCVAR_DEF( jkg_teamKillBonus,			"10",			NULL,				CVAR_ARCHIVE,									true )	//0 >= disables, default: 10
 XCVAR_DEF( jkg_minAssistAwardRatio,		"25",			NULL,				CVAR_ARCHIVE,									true )	//value is % out of 100, Max allowed value is 50
 XCVAR_DEF( jkg_creditsPerTeamCapture,	"125",			NULL,				CVAR_ARCHIVE,									true )

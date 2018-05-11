@@ -3159,8 +3159,8 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 							}
 						}
 
-						//bonus reward if you are the underdog and we joined late
-						if (jkg_UnderdogBonus.integer && ((client->pers.enterTime - level.startTime) > jkg_passiveCreditsWait.integer + level.startTime))
+						//underdog reward if you join the losing team late
+						if (jkg_underdogBonus.integer > 0 && ((client->pers.enterTime - level.startTime) > jkg_passiveCreditsWait.integer + level.startTime))
 						{
 							//who is currently winning?
 							auto my_team = ent->client->sess.sessionTeam; int curr_winner = -1; int money = 0;

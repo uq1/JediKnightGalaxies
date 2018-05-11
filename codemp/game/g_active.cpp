@@ -2046,7 +2046,7 @@ void ClientThink_real( gentity_t *ent ) {
 				reward += jkg_passiveCreditsAmount.integer;
 
 				//bonus reward if you are the underdog
-				if (jkg_passiveUnderdogBonus.integer)
+				if (jkg_passiveUnderdogBonus.integer > 0)
 				{
 					//who is currently winning?
 					auto my_team = ent->client->sess.sessionTeam;
