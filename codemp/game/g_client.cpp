@@ -3157,59 +3157,58 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 									reward -= (jkg_passiveCreditsAmount.integer * (jkg_passiveCreditsWait.integer / jkg_passiveCreditsRate.integer));		//minus the initial wait before credits are disbursed
 								client->ps.credits += reward;
 							}
+						}
 
-							//bonus reward if you are the underdog
-							if (jkg_passiveUnderdogBonus.integer)
+						//bonus reward if you are the underdog and we joined late
+						if (jkg_UnderdogBonus.integer && ((client->pers.enterTime - level.startTime) > jkg_passiveCreditsWait.integer + level.startTime))
+						{
+							//who is currently winning?
+							auto my_team = ent->client->sess.sessionTeam; int curr_winner = -1; int money = 0;
+
+							if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
+								curr_winner = TEAM_RED;
+							else if (level.teamScores[TEAM_RED] < level.teamScores[TEAM_BLUE])
+								curr_winner = TEAM_BLUE;
+							else
+								curr_winner = -1;	//tie
+
+							//if we are the loser
+							if (my_team != curr_winner && my_team != TEAM_SPECTATOR && curr_winner != -1)
 							{
-								//who is currently winning?
-								auto my_team = ent->client->sess.sessionTeam; int curr_winner = -1; 
-								
-								if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
-									curr_winner = TEAM_RED;
-								else if (level.teamScores[TEAM_RED] < level.teamScores[TEAM_BLUE])
-									curr_winner = TEAM_BLUE; 
+								int score_diff = 0; 
+
+								//find score difference
+								if (my_team == TEAM_RED)
+									score_diff = level.teamScores[TEAM_BLUE] - level.teamScores[TEAM_RED];
+								else if (my_team == TEAM_BLUE)
+									score_diff = level.teamScores[TEAM_RED] - level.teamScores[TEAM_BLUE];
 								else
-									curr_winner = -1;	//tie
+									;
 
-								//if we are the loser
-								if (my_team != curr_winner && my_team != TEAM_SPECTATOR && curr_winner != -1)
-								{
-									int score_diff = 0; int money = 0;
+								//calculate reward based on how much time in the match is left
+								float match_percent = (((level.time - level.startTime) / ((float)(timelimit.integer * 60000))) * 100);
+								if (30 <= match_percent && match_percent < 45)
+									money += (jkg_startingCredits.integer * 0.25);
+								else if (45 <= match_percent && match_percent < 60)
+									money += (jkg_startingCredits.integer * 0.4);
+								else if (60 <= match_percent && match_percent < 65)
+									money += (jkg_startingCredits.integer * 0.7);
+								else if (65 <= match_percent && match_percent < 70)
+									money += (jkg_startingCredits.integer * 0.8);
+								else if (70 <= match_percent && match_percent < 80)
+									money += jkg_startingCredits.integer;
+								else if (80 <= match_percent && match_percent < 101)
+									money += (jkg_startingCredits.integer * 0.25) + jkg_startingCredits.integer;
+								else
+									money += (jkg_startingCredits.integer * 0.10);
 
-									//find score difference
-									if (my_team == TEAM_RED)
-										score_diff = level.teamScores[TEAM_BLUE] - level.teamScores[TEAM_RED];
+								if (score_diff < 3)
+									money = money / 2;
 
-									else if (my_team == TEAM_BLUE)
-										score_diff = level.teamScores[TEAM_RED] - level.teamScores[TEAM_BLUE];
-
-									else
-										;
-
-									//calculate reward based on how much time in the match is left
-									float match_percent = (((level.time - level.startTime) / ((float)(timelimit.integer * 60000)))*100);
-									if (30 <= match_percent && match_percent < 45)
-										money += (jkg_startingCredits.integer * 0.25);
-									else if (45 <= match_percent && match_percent < 60)
-										money += (jkg_startingCredits.integer * 0.4);
-									else if (60 <= match_percent && match_percent < 65)
-										money += (jkg_startingCredits.integer * 0.7);
-									else if (65 <= match_percent && match_percent < 70)
-										money += (jkg_startingCredits.integer * 0.8);
-									else if (70 <= match_percent && match_percent < 80)
-										money += jkg_startingCredits.integer;
-									else if (80 <= match_percent && match_percent < 101)
-										money += (jkg_startingCredits.integer * 0.25) + jkg_startingCredits.integer;
-									else
-										money += (jkg_startingCredits.integer * 0.10);
-
-									if (score_diff < 3)
-										money = money / 2;
-
-									trap->SendServerCommand(ent->s.number, va("notify 1 \"Underdog Bonus: +%i Credits\"", money));
-									client->ps.credits += money;
-								}
+								trap->SendServerCommand(ent->s.number, va("notify 1 \"Underdog Bonus: +%i Credits\"", money));
+								client->ps.credits += money;
 							}
+
 						}
 
 						BG_GiveItem(ent, item, true);
