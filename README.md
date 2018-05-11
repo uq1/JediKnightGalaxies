@@ -31,7 +31,7 @@ https://jkhub.org/topic/5600-compilation-guide/
 ## Installation of Game ##
 JKG is currently only available on Windows, but we have a mac version being worked on and hopefully a linux one soon.
 
-First, you need Jedi Academy installed. If you don't already own the game you can buy it from online stores such as [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN), [GOG](https://www.gog.com/game/star_wars_jedi_knight_jedi_academy), or [Play](http://www.play.com/Games/PC/4-/127805/Star-Wars-Jedi-Knight-Jedi-Academy/Product.html?searchstring=jedi+academy&searchsource=0&searchtype=allproducts&urlrefer=search).
+First, you need Jedi Academy installed. If you don't already own the game you can buy it from online stores such as [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN), or [GOG](https://www.gog.com/game/star_wars_jedi_knight_jedi_academy).
 
 There are a few ways to actually install JKG itself, the simplest is to just get the [binaries](http://jkhub.org/files/file/2544-jedi-knight-galaxies-binaries/) and [assets](http://jkhub.org/files/file/2543-jedi-knight-galaxies-assets/), and then follow the directions in the readme included.  Please note that while we try to keep these relatively up to date, the github will always contain the most current version of the assets and binaries and you can always compile and pack the pk3s yourself to get a more up to date version.
 
