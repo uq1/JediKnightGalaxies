@@ -3188,18 +3188,18 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 
 									//calculate reward based on how much time in the match is left
 									float match_percent = (((level.time - level.startTime) / ((float)(timelimit.integer * 60000)))*100);
-									if (30 <= match_percent < 45)
-										money += (jkg_startingCredits.integer * 0.5);
-									else if (45 <= match_percent < 60)
-										money += (jkg_startingCredits.integer * 0.65);
-									else if (60 <= match_percent < 65)
-										money += (jkg_startingCredits.integer * 0.75);
-									else if (65 <= match_percent < 70)
+									if (30 <= match_percent && match_percent < 45)
+										money += (jkg_startingCredits.integer * 0.25);
+									else if (45 <= match_percent && match_percent < 60)
+										money += (jkg_startingCredits.integer * 0.4);
+									else if (60 <= match_percent && match_percent < 65)
+										money += (jkg_startingCredits.integer * 0.7);
+									else if (65 <= match_percent && match_percent < 70)
+										money += (jkg_startingCredits.integer * 0.8);
+									else if (70 <= match_percent && match_percent < 80)
 										money += jkg_startingCredits.integer;
-									else if (70 <= match_percent < 80)
+									else if (80 <= match_percent && match_percent < 101)
 										money += (jkg_startingCredits.integer * 0.25) + jkg_startingCredits.integer;
-									else if (80 <= match_percent < 101)
-										money += (jkg_startingCredits.integer * 0.5) + jkg_startingCredits.integer;
 									else
 										money += (jkg_startingCredits.integer * 0.10);
 
