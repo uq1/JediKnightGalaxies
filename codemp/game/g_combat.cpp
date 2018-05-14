@@ -1739,13 +1739,39 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		{
 			trap->SendServerCommand(-1, va("chat 100 \"%s ^7has a bounty on their head!\"", attacker->client->pers.netname));
 		}
-
+		self->client->numKillsThisLife = 0;
 	}
-	else if (self->client->numKillsThisLife >= jkg_killsPerBounty.integer) {
-		trap->SendServerCommand(-1, va("chat 100 \"%s" S_COLOR_WHITE "'s bounty went unclaimed.\n\"", self->client->pers.netname));
+	else if (self->client->numKillsThisLife >= jkg_killsPerBounty.integer) 
+	{
+		gentity_t* player; int reward; int team_amt = 0;
+		(self->client->sess.sessionTeam == TEAM_RED) ? team_amt = level.blueTeam : team_amt = level.redTeam;	//set teammates to the # of the teammates on the opposite team
+
+		for (int k = 0; i < sv_maxclients.integer; k++)
+		{
+			reward = jkg_passiveCreditsAmount.integer;	//set minimum reward to passive reward
+			player = &g_entities[k];
+			if (!player->inuse || (player - g_entities >= MAX_CLIENTS) || player == nullptr || player->client == nullptr || player == self)	//don't reward spectators, nonclients or bounty holder
+				continue;
+
+			if (player->client->sess.sessionTeam != self->client->sess.sessionTeam && (player->client->sess.sessionTeam != TEAM_SPECTATOR || player->client->sess.sessionTeam != TEAM_FREE) )		//if we're not on the bounty holder's team
+			{
+				reward += (jkg_bounty.integer / team_amt > reward) ? jkg_bounty.integer / team_amt : reward;
+				trap->SendServerCommand(player->s.number, va("notify 1 \"Team Bounty: +%i Credits\"", reward));
+				player->client->ps.credits += reward;
+
+				//consider doing some sort of sound to hint at reward here  --futuza
+			}
+		}
+		if (self->client->numKillsThisLife > 1)
+			self->client->numKillsThisLife--;	//reduce the bounty by one, cause they suck and died
+		else
+			self->client->numKillsThisLife = 0;
+
+		trap->SendServerCommand(-1, va("chat 100 \"%s" S_COLOR_WHITE "'s bounty was reduced, but remains unclaimed.\n\"", self->client->pers.netname));
 	}
 
-	self->client->numKillsThisLife = 0;
+	/*if( attacker->client != nullptr || attacker->team != self->team)
+		self->client->numKillsThisLife = 0;*/
 
 	if(self->s.number < MAX_CLIENTS)
 	{
@@ -1796,10 +1822,10 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		if(jkg_teamKillBonus.integer > 0)
 		{
 			gentity_t* player; int reward;
-			for (i = 0; i < sv_maxclients.integer; i++)
+			for (int j = 0; j < sv_maxclients.integer; j++)
 			{
 				reward = 0;
-				player = &g_entities[i];
+				player = &g_entities[j];
 				if (!player->inuse || (player - g_entities >= MAX_CLIENTS)  || attacker == nullptr || attacker->client == nullptr || player == attacker)	//don't reward spectators, nonclients or the killer
 					continue;
 
