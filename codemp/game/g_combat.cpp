@@ -1767,7 +1767,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				credits = jkg_creditsPerKill.integer;
 			}
 
-			int bounty = (self->client->numKillsThisLife >= jkg_killsPerBounty.integer) ? self->client->numKillsThisLife*jkg_bounty.integer : 0;
+			int multiplier = 0;
+			self->client->numKillsThisLife > jkg_maxKillStreakBounty.integer ? multiplier = jkg_maxKillStreakBounty.integer : multiplier = self->client->numKillsThisLife;
+			
+			if(jkg_maxKillStreakBounty.integer < jkg_killsPerBounty.integer)
+				Com_Printf("Warning jkg_maxKillStreakBounty < jkg_killsPerBounty, bounties will never be rewarded!\n");
+
+			int bounty = (self->client->numKillsThisLife >= jkg_killsPerBounty.integer) ? multiplier*jkg_bounty.integer : 0;
 			attacker->client->ps.credits += (credits + bounty);
 			if(bounty > 0)
 			{
@@ -1803,9 +1809,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		else
 			trap->SendServerCommand(-1, va("chat 100 \"%s" S_COLOR_WHITE "'s bounty remains unclaimed.\n\"", self->client->pers.netname));
 	}
-
-	/*if( attacker->client != nullptr || attacker->team != self->team)
-		self->client->numKillsThisLife = 0;*/
 
 	if(self->s.number < MAX_CLIENTS)
 	{

@@ -171,6 +171,7 @@ XCVAR_DEF( jkg_shop_replenish_time,		"300",			NULL,				CVAR_ARCHIVE,									tru
 XCVAR_DEF( jkg_startingCredits,			"500",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		false )
 XCVAR_DEF( jkg_bounty,					"225",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_killsPerBounty,			"3",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_maxKillStreakBounty,		"7",			NULL,				CVAR_ARCHIVE,									true )	//the max number of killstreaks
 XCVAR_DEF( jkg_creditsPerKill,			"175",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_passiveCreditsAmount,	"15",			NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO|CVAR_LATCH,		true )	//0 >= disables, default: 15
 XCVAR_DEF( jkg_passiveCreditsRate,		"30000",		NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO|CVAR_LATCH,		true )	//default: 30000
