@@ -1613,7 +1613,8 @@ JKG_HandleUnclaimedBounties
 */
 qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 {
-	gentity_t* player; int reward = jkg_teamKillBonus.integer;	//set minimum reward to passive reward
+	int multiplier = (deadguy->client->numKillsThisLife > jkg_maxKillStreakBounty.integer) ? jkg_maxKillStreakBounty.integer : deadguy->client->numKillsThisLife;
+	gentity_t* player; int reward = jkg_bounty.integer*multiplier ;	//set default reward as jkg_bounty
 	int team_amt{ 0 };	//# of players on the team to reward
 
 	int teamToReward = deadguy->client->sess.sessionTeam;	//get dead guy's team
@@ -1629,7 +1630,9 @@ qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 		player = &g_entities[i];
 		if (!player->inuse || (player - g_entities >= MAX_CLIENTS) || player == nullptr || player->client == nullptr || player->client->sess.sessionTeam != teamToReward)
 			continue;
-		team_amt++;
+
+		if(player->client->sess.sessionTeam == teamToReward)
+			team_amt++;
 	}
 
 	if (team_amt < 1)	//nobody there
@@ -1644,11 +1647,11 @@ qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 		//if we're not on deadguy's team, we deserve a reward!
 		if (player->client->sess.sessionTeam == teamToReward)
 		{
-			reward = jkg_bounty.integer / team_amt;																//equally distribute reward among team
-			reward = (reward > jkg_teamKillBonus.integer) ? reward : jkg_teamKillBonus.integer;					//unless its less than teamKillBonus
-			if (reward == jkg_bounty.integer)																	//its the same as a regular bounty, only give us half
+			reward = (reward / team_amt);																//equally distribute reward among team
+			reward = (reward < jkg_teamKillBonus.integer) ? jkg_teamKillBonus.integer : reward;			//unless its less than teamKillBonus
+			if (team_amt == 1)																			//if only one player, don't give him 1/2 the reward
 				reward = reward * 0.5;
-			trap->SendServerCommand(player->s.number, va("notify 1 \"Team Bounty: +%i Credits\"", reward));
+			trap->SendServerCommand(player->s.number, va("notify 1 \"Team Bounty Claimed: +%i Credits\"", reward));
 			player->client->ps.credits += reward;
 			//consider doing some sort of sound to hint at reward here  --futuza
 		}
@@ -1807,7 +1810,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			trap->SendServerCommand(-1, va("chat 100 \"%s^7's bounty was claimed by the opposing team.\"", self->client->pers.netname));
 		}
 		else
-			trap->SendServerCommand(-1, va("chat 100 \"%s" S_COLOR_WHITE "'s bounty remains unclaimed.\n\"", self->client->pers.netname));
+			trap->SendServerCommand(-1, va("chat 100 \"%s" S_COLOR_WHITE "'s %i point bounty remains unclaimed.\"", self->client->pers.netname, self->client->numKillsThisLife));
 	}
 
 	if(self->s.number < MAX_CLIENTS)
