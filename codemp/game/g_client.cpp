@@ -2087,7 +2087,6 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	
 	client->ps.credits = jkg_startingCredits.integer-1;	// hack to give us our starting gear
 	client->storedCredits = jkg_startingCredits.integer-1;
-
 	return NULL;
 }
 
@@ -3145,14 +3144,15 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 						itemInstance_t item = BG_ItemInstance(itemID, 1);
 						ent->client->ps.credits = jkg_startingCredits.integer;
 
+						int delta = level.time - level.startTime;	//how long has the match been going?
 						//award missing passive credits if enabled
 						if (jkg_passiveCreditsAmount.integer > 0)
 						{
 							//award if we joined at least jkg_passiveCreditsWait late (typically 1 minute)
-							if ((client->pers.enterTime - level.startTime) > jkg_passiveCreditsWait.integer + level.startTime)
+							if (delta > jkg_passiveCreditsWait.integer)
 							{
 								int reward = 0;
-								reward = (jkg_passiveCreditsAmount.integer * ((level.time - level.startTime) / jkg_passiveCreditsRate.integer));				//calculate amount we would have got
+								reward = (jkg_passiveCreditsAmount.integer * (delta / jkg_passiveCreditsRate.integer));				//calculate amount we would have got
 								if (jkg_passiveCreditsWait.integer > jkg_passiveCreditsRate.integer)
 									reward -= (jkg_passiveCreditsAmount.integer * (jkg_passiveCreditsWait.integer / jkg_passiveCreditsRate.integer));		//minus the initial wait before credits are disbursed
 								client->ps.credits += reward;
@@ -3160,7 +3160,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 						}
 
 						//underdog reward if you join the losing team late
-						if (jkg_underdogBonus.integer > 0 && ((client->pers.enterTime - level.startTime) > jkg_passiveCreditsWait.integer + level.startTime))
+						if (jkg_underdogBonus.integer > 0 && (delta > jkg_passiveCreditsWait.integer))
 						{
 							//who is currently winning?
 							auto my_team = ent->client->sess.sessionTeam; int curr_winner = -1; int money = 0;
@@ -3186,7 +3186,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 									;
 
 								//calculate reward based on how much time in the match is left
-								float match_percent = (((level.time - level.startTime) / ((float)(timelimit.integer * 60000))) * 100);
+								float match_percent = ((delta / ((float)(timelimit.integer * 60000))) * 100);
 								if (30 <= match_percent && match_percent < 45)
 									money += (jkg_startingCredits.integer * 0.25);
 								else if (45 <= match_percent && match_percent < 60)
