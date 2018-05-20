@@ -1886,11 +1886,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				break;
 
 			case PDSOUND_VENDORPURCHASE:
-				sID = trap->S_RegisterSound("sound/vendor/generic/purchase00.mp3");
+				sID = trap->S_RegisterSound("sound/vendor/generic/purchase00.mp3");	
 				break;
 
 			case PDSOUND_TRADE:
-				sID = trap->S_RegisterSound("sound/vendor/generic/purchase01.mp3");
+				sID = trap->S_RegisterSound("sound/vendor/generic/purchase01.mp3");		
 				break;
 
 			case PDSOUND_PAY:

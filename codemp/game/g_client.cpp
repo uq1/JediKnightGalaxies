@@ -3202,7 +3202,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 								else
 									money += (jkg_startingCredits.integer * 0.10);
 
-								if (score_diff < 3)
+								if ((score_diff < 3 && level.gametype != GT_CTF) || (level.gametype == GT_CTF && score_diff < 201))
 									money = money / 2;
 
 								trap->SendServerCommand(ent->s.number, va("notify 1 \"Underdog Bonus: +%i Credits\"", money));

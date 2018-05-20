@@ -1926,7 +1926,8 @@ void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation, u
 	// Determine whether our new weapon is valid.
 	int selectedWeapon = cmd.invensel;
 	if (selectedWeapon >= ent->inventory->size() || selectedWeapon < 0) {
-		Com_Printf("Client %i selected inventory item %i (their inventory is only size %i!!)\n", ps->clientNum, selectedWeapon, ent->inventory->size());
+		if(!ent->NPC)	//npcs are broke so don't warn us about them  --TEMP (needs a real fix for npcs to use jkg weapons)
+			Com_Printf("Client %i selected inventory item %i (their inventory is only size %i!!)\n", ps->clientNum, selectedWeapon, ent->inventory->size());
 		return;
 	}
 

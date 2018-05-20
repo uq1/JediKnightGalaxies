@@ -1,5 +1,77 @@
 {
 	"classes": {
+		"basicvendor":
+		{
+			"numberPicksMin": 8,
+			"numberPicksMax": 15,
+			"uniquePicks": true,
+			"picks": 
+			{
+				"shield_knockoff1": 6,
+				"shield_knockoff2": 5,
+				"shield_blastech_imp": 3,
+				"shield_atgar": 3,
+				"shield_merrsonn_cour": 3,
+				"Grenade_Smoke": 8,
+				"Grenade_Stun": 6,
+				"Grenade_Poison": 5,
+				"Grenade_C22Frag": 4,
+				"Grenade_Concussion": 5,
+				"Grenade_FlashBang": 5,
+				"Grenade_Thermal-E": 1,
+				"bacta_large": 6,
+				"bacta_medium": 15,
+				"bacta_small": 25,
+				"jetpack_burst": 2,
+				"gloves_stormtrooper": 3,
+				"gloves_pilot": 3,
+				"helmet_impworker": 3,
+				"helmet_pilot": 3,
+				"helmet_rebel_dark": 3,
+				"helmet_rebel_light": 3,
+				"torso_glight": 2,
+				"legs_glight": 2,
+				"ammo_splittingQuarrels_40": 1,
+				"ammo_bouncingQuarrels_40": 1,
+				"ammo_shotgunSlugs_30": 3
+			}
+		},
+		"grenadevendor":
+		{
+			"numberPicksMin": 3,
+			"numberPicksMax": 8,
+			"uniquePicks": true,
+			"picks":
+			{
+				"Grenade_C-14A": 7,
+				"Grenade_Smoke": 10,
+				"Grenade_Stun": 8,
+				"Grenade_Poison": 6,
+				"Grenade_C22Frag": 6,
+				"Grenade_Concussion": 7,
+				"Grenade_Plasma": 6,
+				"Grenade_FlashBang": 9,
+				"Grenade_CryoBan": 3,
+				"Grenade_Thermal-E": 5,
+				"Grenade_Thermal-C": 3,
+				"Grenade_Thermal-A": 1,
+				"Grenade_CodeKey": 5,
+				"Mine_LaserTrip1": 4,
+				"Mine_LaserTrip2": 4
+			}
+		},
+		"medicvendor":
+		{
+			"numberPicksMin": 2,
+			"numberPicksMax": 3,
+			"uniquePicks": true,
+			"picks":
+			{
+				"bacta_large": 2,
+				"bacta_medium": 8,
+				"bacta_small": 10
+			}
+		},
 		"genericvendor": {
 			"numberPicksMin": 15,
 			"numberPicksMax": 20,
@@ -51,8 +123,6 @@
 				"ammo_bouncingQuarrels_40": 1,
 				"ammo_explosiveSlugs_60": 2,
 				"ammo_shotgunSlugs_30": 3
-				
-
 			}
 		},
 		"genericvendor-mid": {

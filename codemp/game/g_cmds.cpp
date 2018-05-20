@@ -884,6 +884,33 @@ void Cmd_ItemCheck_f(gentity_t *ent)
 	trap->SendServerCommand(ent-g_entities, va("print \"%s refers to an item that does not exist!\n\"", buffer));
 }
 
+/*
+========================
+CustomVendorSounds
+does the npc have custom sounds?
+
+========================
+*/
+qboolean CustomVendorSounds(gentity_t *conversationalist, char *name)
+{
+	fileHandle_t	f;
+	char			filename[256];
+
+	strcpy(filename, va("sound/vendor/%s/%s.mp3", conversationalist->NPC_type, name));
+
+	trap->FS_Open(filename, &f, FS_READ);
+
+	if (!f)
+	{// End of conversation...
+		trap->FS_Close(f);
+		return qfalse;
+	}
+
+	trap->FS_Close(f);
+
+	return qtrue;
+}
+
 
 /*
 ==================
@@ -923,8 +950,23 @@ void Cmd_BuyItem_f(gentity_t *ent)
 		trap->SendServerCommand(ent - g_entities, "print \"You do not have enough credits to purchase that item.\n\"");
 
 		//select random unhappy vendor sound to play
-		snd = va("sound/vendor/generic/purchasefail0%i.mp3", Q_irand(0, 5));
-		G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd));	//play sound
+		if (CustomVendorSounds(trader, "purchasefail00"))
+		{// This NPC has it's own vendor specific sound(s)...
+			char	filename[256];
+			int		max = 1;
+
+			while (CustomVendorSounds(trader, va("purchasefail0%i", max))) max++;
+
+			strcpy(filename, va("sound/vendor/%s/purchasefail0%i.mp3", trader->NPC_type, irand(0, max - 1)));
+			G_Sound(trader, CHAN_AUTO, G_SoundIndex(filename));
+		}
+
+		//if not custom vendor, use the generic one
+		else
+		{
+			snd = va("sound/vendor/generic/purchasefail0%i.mp3", Q_irand(0, 5));
+			G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd));	//play sound
+		}
 		return;
 	}
 
@@ -956,7 +998,26 @@ void Cmd_BuyItem_f(gentity_t *ent)
 		BG_GiveAmmo(ent, BG_GetAmmo(pItem->id->ammoData.ammoIndex), qfalse, pItem->id->ammoData.quantity);
 	}
 
-	G_PreDefSound(ent->r.currentOrigin, PDSOUND_VENDORPURCHASE);
+	//play purchase sound
+	{
+		char* snd;
+
+		//select random unhappy vendor sound to play
+		if (CustomVendorSounds(trader, "purchase00"))
+		{// This NPC has it's own vendor specific sound(s)...
+			char	filename[256];
+			int		max = 1;
+
+			while (CustomVendorSounds(trader, va("purchase0%i", max))) max++;
+
+			strcpy(filename, va("sound/vendor/%s/purchase0%i.mp3", trader->NPC_type, irand(0, max - 1)));
+			G_Sound(trader, CHAN_AUTO, G_SoundIndex(filename));
+		}
+
+		//if not custom vendor, use the generic one
+		else
+			G_PreDefSound(ent->r.currentOrigin, PDSOUND_VENDORPURCHASE);
+	}
 
 	// Tell other clients, if the item is not too cheap 
 	if (jkg_buyAnnounce.integer > 0)
