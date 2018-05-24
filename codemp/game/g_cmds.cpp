@@ -1979,6 +1979,53 @@ void Cmd_Team_f( gentity_t *ent ) {
 // INVENTORY RELATED COMMANDS
 //==========================================================
 
+//damage & healing plums copied from g_combat
+/*
+===========
+DamagePlum
+===========
+*/
+
+void DamagePlumItems(gentity_t *ent, vec3_t origin, int damage, int meansOfDeath, int shield, qboolean weak)
+{
+	meansOfDamage_t* means = JKG_GetMeansOfDamage(meansOfDeath);
+
+	if (means->plums.noDamagePlums)
+	{	// this means of death has no damage plums 
+		return;
+	}
+
+	if (ent->damagePlumTime != level.time) {
+		ent->damagePlum = G_TempEntity(origin, EV_DAMAGEPLUM);
+		ent->damagePlumTime = level.time;
+	}
+	ent->damagePlum->s.time = damage;
+	ent->damagePlum->s.eventParm = meansOfDeath;
+	ent->damagePlum->s.generic1 = shield;
+	ent->damagePlum->s.groundEntityNum = weak;
+}
+
+/*
+===========
+HealingPlum
+===========
+*/
+
+void HealingPlumItems(gentity_t *ent, vec3_t origin, int amount)
+{
+	// Since this probably wont happen too often, we'll just make a new even for this
+	gentity_t *plum;
+	plum = G_TempEntity(origin, EV_DAMAGEPLUM);
+	plum->s.time = amount;
+	plum->s.eventParm = MOD_HEALING;
+
+	if (ent && ent->client && !ent->NPC)
+	{
+		ent->client->pers.partyUpdate = qtrue;
+	}
+}
+
+
 /*
 =================
 JKG_Cmd_ItemAction_f
@@ -2008,7 +2055,19 @@ void JKG_Cmd_ItemAction_f(gentity_t *ent, int itemNum)
 		//Nope.
 		return;
 	}
+
+	int initHP = ent->client->ps.stats[STAT_HEALTH];    //get initial health before consuming item
 	BG_ConsumeItem(ent, itemNum);
+	int endHP = ent->client->ps.stats[STAT_HEALTH];   //get final health after consuming item
+
+	int take = endHP - initHP;
+	if (take != 0)
+	{
+		if (take > 0)
+			HealingPlumItems(ent, ent->r.currentOrigin, take);
+		else
+			DamagePlumItems(ent, ent->r.currentOrigin, -take, JKG_GetMeansOfDamageIndex("MOD_POISONED"), 0, -take <= (ent->s.maxhealth / 4));
+	}
 }
 
 /*

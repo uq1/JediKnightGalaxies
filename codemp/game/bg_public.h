@@ -1046,7 +1046,8 @@ typedef enum {
 	MOD_TEAM_CHANGE,
 	MOD_SABER,
 	MOD_VIBROBLADE,
-	MOD_MELEE
+	MOD_MELEE,
+	MOD_HEALING	//heals, not damage
 } meansOfDamageHardcoded_t;
 
 //---------------------------------------------------------

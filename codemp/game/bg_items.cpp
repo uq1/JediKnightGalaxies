@@ -906,6 +906,13 @@ void BG_AddItemToACI(int itemStackNum, int aciSlot) {
 }
 #endif
 
+
+
+
+
+
+
+
 /*
 ====================
 BG_ConsumeItem
@@ -936,7 +943,6 @@ qboolean BG_ConsumeItem(gentity_t* ent, int itemStackNum) {
 
 	GLua_ConsumeItem(ent, item);
 	BG_ChangeItemStackQuantity(ent, itemStackNum, item->quantity - consumeAmount);
-
 	return qtrue;
 }
 #endif
