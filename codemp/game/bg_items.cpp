@@ -906,13 +906,6 @@ void BG_AddItemToACI(int itemStackNum, int aciSlot) {
 }
 #endif
 
-
-
-
-
-
-
-
 /*
 ====================
 BG_ConsumeItem

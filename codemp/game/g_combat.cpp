@@ -309,7 +309,7 @@ void HealingPlum( gentity_t *ent, vec3_t origin, int amount ) {
 	gentity_t *plum;
 	plum = G_TempEntity( origin, EV_DAMAGEPLUM );
 	plum->s.time = amount;
-	plum->s.eventParm = MOD_HEALING;
+	plum->s.eventParm = MOD_HEAL;
 
 	if ( ent && ent->client && !ent->NPC )
 	{

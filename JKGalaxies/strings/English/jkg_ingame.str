@@ -256,7 +256,7 @@ REFERENCE		DIED_BLEEDING
 LANG_ENGLISH		"bled out."
 
 REFERENCE		SUICIDE_BLEEDING
-LANG_ENGLISH		"drowned in a pool of blood."
+LANG_ENGLISH		"drowned in a pool of their own blood."
 
 REFERENCE		KILLED_POISONED
 LANG_ENGLISH		"was poisoned by"
@@ -266,3 +266,12 @@ LANG_ENGLISH		"absorbed too many toxins."
 
 REFERENCE		SUICIDE_POISONED
 LANG_ENGLISH		"poisoned themselves."
+
+REFERENCE		KILLED_CURED
+LANG_ENGLISH		"was healed by"
+
+REFERENCE		DIED_CURED
+LANG_ENGLISH		"died from malpractice."
+
+REFERENCE		SUICIDE_CURED
+LANG_ENGLISH		"tried to self medicate and died from malpractice."

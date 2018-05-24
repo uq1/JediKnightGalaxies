@@ -1044,10 +1044,10 @@ typedef enum {
 	MOD_TRIGGER_HURT,
 	MOD_TELEFRAG,
 	MOD_TEAM_CHANGE,
+	MOD_HEAL,	//heals, not damage
 	MOD_SABER,
 	MOD_VIBROBLADE,
-	MOD_MELEE,
-	MOD_HEALING	//heals, not damage
+	MOD_MELEE
 } meansOfDamageHardcoded_t;
 
 //---------------------------------------------------------

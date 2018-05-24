@@ -1982,11 +1982,11 @@ void Cmd_Team_f( gentity_t *ent ) {
 //damage & healing plums copied from g_combat
 /*
 ===========
-DamagePlum
+PlumItems
 ===========
 */
 
-void DamagePlumItems(gentity_t *ent, vec3_t origin, int damage, int meansOfDeath, int shield, qboolean weak)
+void PlumItems(gentity_t *ent, vec3_t origin, int damage, int meansOfDeath, int shield, qboolean weak)
 {
 	meansOfDamage_t* means = JKG_GetMeansOfDamage(meansOfDeath);
 
@@ -2004,27 +2004,6 @@ void DamagePlumItems(gentity_t *ent, vec3_t origin, int damage, int meansOfDeath
 	ent->damagePlum->s.generic1 = shield;
 	ent->damagePlum->s.groundEntityNum = weak;
 }
-
-/*
-===========
-HealingPlum
-===========
-*/
-
-void HealingPlumItems(gentity_t *ent, vec3_t origin, int amount)
-{
-	// Since this probably wont happen too often, we'll just make a new even for this
-	gentity_t *plum;
-	plum = G_TempEntity(origin, EV_DAMAGEPLUM);
-	plum->s.time = amount;
-	plum->s.eventParm = MOD_HEALING;
-
-	if (ent && ent->client && !ent->NPC)
-	{
-		ent->client->pers.partyUpdate = qtrue;
-	}
-}
-
 
 /*
 =================
@@ -2064,9 +2043,9 @@ void JKG_Cmd_ItemAction_f(gentity_t *ent, int itemNum)
 	if (take != 0)
 	{
 		if (take > 0)
-			HealingPlumItems(ent, ent->r.currentOrigin, take);
+			PlumItems(ent, ent->r.currentOrigin, take, JKG_GetMeansOfDamageIndex("MOD_CURED"), 0, take <= (ent->s.maxhealth / 4));
 		else
-			DamagePlumItems(ent, ent->r.currentOrigin, -take, JKG_GetMeansOfDamageIndex("MOD_POISONED"), 0, -take <= (ent->s.maxhealth / 4));
+			PlumItems(ent, ent->r.currentOrigin, -take, JKG_GetMeansOfDamageIndex("MOD_POISONED"), 0, -take <= (ent->s.maxhealth / 4));	//take is negated (to pass correct parameters
 	}
 }
 
