@@ -4048,7 +4048,7 @@ Like G_Damage, we are supplied with dflags and a means of damage.
 ============
 */
 void G_Heal(gentity_t* target, gentity_t* inflictor, gentity_t* healer,
-	vec3_t dir, vec3_t point, int heal, int dflags, int mod)
+	vec3_t dir, vec3_t point, int heal, int dflags, int mod, meansOfDamage_t* means)		//--Futuza: this function is really unfinished, negative values don't really work yet
 {
 	if (!target)
 	{
@@ -4058,7 +4058,7 @@ void G_Heal(gentity_t* target, gentity_t* inflictor, gentity_t* healer,
 	if (target->damageRedirect)
 	{
 		// We are redirecting damage taken, might as well redirect health healed as well
-		G_Heal(&g_entities[target->damageRedirectTo], inflictor, healer, dir, point, heal, dflags, mod);
+		G_Heal(&g_entities[target->damageRedirectTo], inflictor, healer, dir, point, heal, dflags, mod, means);
 		return;
 	}
 
@@ -4079,6 +4079,37 @@ void G_Heal(gentity_t* target, gentity_t* inflictor, gentity_t* healer,
 		G_Damage(target, inflictor, healer, dir, point, -heal, dflags, mod);
 		return;
 	}
+
+	// modify it by the organic or structural modifier for this means
+	if (means && heal > 0) {
+		if (target->client)
+		{
+			heal *= means->modifiers.organic;
+		}
+		else
+		{
+			heal *= means->modifiers.droid;
+		}
+	}
+
+	//do heal and display it
+	int maxheal = target->client->ps.stats[STAT_MAX_HEALTH] - target->client->ps.stats[STAT_HEALTH];
+	if (maxheal > heal)
+	{
+		HealingPlum(target, target->r.currentOrigin, heal);
+		target->client->ps.stats[STAT_HEALTH] =+ heal;
+	}
+	else
+	{
+		HealingPlum(target, target->r.currentOrigin, maxheal);
+		target->client->ps.stats[STAT_HEALTH] = target->client->ps.stats[STAT_MAX_HEALTH];
+	}
+	
+	//if this is non-zero this guy should be updated his s.health to send to the client
+	if (target->maxHealth)
+		G_ScaleNetHealth(target);
+	
+
 }
 
 /*
@@ -4133,7 +4164,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if (damage < 0)
 	{
 		// heal them instead of damaging them
-		G_Heal(targ, inflictor, attacker, dir, point, -damage, dflags, mod);
+		G_Heal(targ, inflictor, attacker, dir, point, -damage, dflags, mod, means);
 		return;
 	}
 

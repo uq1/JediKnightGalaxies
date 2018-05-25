@@ -5,7 +5,7 @@
 		"shortname": "ACP Cartridges",
 		"longname": "Arakyd Industries ACP Array Cartridges",
 		"max": 80,
-		"pricePerUnit": 5
+		"pricePerUnit": 20
 	},
 	
 	"AMMO_ACP_SLUG": {
@@ -269,7 +269,7 @@
 		"shortname": "Flechette Missiles",
 		"longname": "Malaxan Firepower Inc. Flechette Missiles",
 		"max": 80,
-		"pricePerUnit": 10
+		"pricePerUnit": 40
 	},
 	
 	//Baktoid Combat Automata no longer exists, absorbed by the empire, BlasTech Industries produces missiles compatible with the E-60R
@@ -327,7 +327,7 @@
 		"shortname": "Small Caliber Slugs",
 		"longname": "Arakyd Industries Slug Cartridges",
 		"max": 600,
-		"pricePerUnit": 1.5
+		"pricePerUnit": 2.5
 	},
 	
 	"AMMO_SLUGS_INCENDIARY": {
@@ -335,7 +335,7 @@
 		"longname": "Czerka Arms Incendiary Slug Cartridges",
 		"basedOn": "AMMO_SLUGS",
 		"max": 300,
-		"pricePerUnit": 2.5,
+		"pricePerUnit": 3.5,
 		"overrides": {
 			"damagetype": {
 				"set": [ "slug", "fire" ]
@@ -354,6 +354,6 @@
 		"shortname": "Carbonite Canisters",
 		"longname": "Zann Consortium Carbonite Canisters",
 		"max": 198,
-		"pricePerUnit": 3
+		"pricePerUnit": 4
 	}
 }

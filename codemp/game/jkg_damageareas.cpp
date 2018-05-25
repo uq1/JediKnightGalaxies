@@ -273,6 +273,17 @@ void G_TickBuffs(gentity_t* ent)
 				int damage = pBuff->damage.damage;
 				int health = ent->client->ps.stats[STAT_HEALTH];
 
+				//if % damage
+				if ( pBuff->damage.percentage && ((0 < damage && damage < 101) || (damage < 0 && damage > -101)) )	//and the range is between 1% to 100% or -1% to -100%
+				{
+					int dmg = damage;
+					damage = health * (damage * .01);
+					if (dmg > 0)
+						damage > 1 ? damage : damage = 1;	//do at least 1 damage
+					else
+						damage < 0 ? damage : damage = -1;
+				}
+
 				switch (jkg_allowDebuffKills.integer)
 				{
 					//only allow debuffs to whittle us down, not kill us
