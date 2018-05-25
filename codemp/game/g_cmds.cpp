@@ -2035,7 +2035,7 @@ void JKG_Cmd_ItemAction_f(gentity_t *ent, int itemNum)
 		return;
 	}
 
-	int initHP = ent->client->ps.stats[STAT_HEALTH];    //get initial health before consuming item
+	int initHP = ent->client->ps.stats[STAT_HEALTH];    //get initial health before consuming item		--futuza: this is a hacky way of doing it, really needs a LUA function to figure this out
 	BG_ConsumeItem(ent, itemNum);
 	int endHP = ent->client->ps.stats[STAT_HEALTH];   //get final health after consuming item
 

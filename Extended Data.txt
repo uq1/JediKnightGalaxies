@@ -91,6 +91,7 @@ Each object, whose name is the buff linkage (example, "standard-fire": {} can be
    - priority (integer): Won't cancel anything in this category unless this priority number is >= that buff's priority number.
  - damage (object): Defines data about damage for the buff. Contains the following fields:
   - damage (integer): How much damage to do each tick. Use negative values for healing.
+  - percentage (boolean): If true, damage is interpreted as a % of current health to inflict, rather than as a hard number (eg: 25 would do 25% of the target's current health).  The range must be between (+/-)1-100% to be valid.
   - means (string/special): The means of damage/damage type of the damage to do.
   - damageRate (integer): How many milliseconds between damage applications.
  - passive (object): Defines data about passive stat bonuses that this buff provides. Contains the following fields:

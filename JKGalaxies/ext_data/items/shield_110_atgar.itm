@@ -3,7 +3,7 @@
 	"internal":	"shield_atgar",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/Item_Icons/psd_cannister_s_glow",
-	"cost":		"750",
+	"cost":		"615",
 	
 	"capacity":	50,
 	"cooldown":	6000,

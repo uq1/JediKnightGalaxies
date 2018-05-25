@@ -5,7 +5,7 @@
 	"weapon":		"WP_FLECHETTE",
 	"variation":		"3",
 	"weight":		"15",
-	"cost":		"2000",
+	"cost":		"1900",
 	"xml":			"",
 	"itemIcon":		"models/weapons/bryar_carbine/icon_default"
 }

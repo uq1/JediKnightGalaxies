@@ -5,7 +5,7 @@
 	"weapon":		"WP_ROCKET_LAUNCHER",
 	"variation":		"1",
 	"weight":		"20",
-	"cost":		"2300",
+	"cost":		"2250",
 	"xml":			"",
 	"itemIcon":		"models/weapons/LJ-70_ConcRifle/icon_default"
 }

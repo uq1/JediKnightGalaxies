@@ -3,7 +3,7 @@
 	"internal":	"shield_blastech_fleet",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/hud/i_icon_shieldwall",
-	"cost":		"1550",
+	"cost":		"1650",
 	
 	"capacity":	150,
 	"cooldown":	0,

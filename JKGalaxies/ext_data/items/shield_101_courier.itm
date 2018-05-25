@@ -3,7 +3,7 @@
 	"internal":	"shield_merrsonn_cour",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/hud/psd_small",
-	"cost":		"615",
+	"cost":		"575",
 
 	"capacity":	50,
 	"cooldown":	10000,

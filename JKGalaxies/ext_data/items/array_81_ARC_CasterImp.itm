@@ -5,7 +5,7 @@
 	"weapon":		"WP_FLECHETTE",
 	"variation":		"1",
 	"weight":		"6",
-	"cost":		"1575",
+	"cost":		"1475",
 	"xml":			"xml/items/Imperial_ARC_Caster.xml",
 	"itemIcon":		"models/weapons/ARC_CasterImperial/icon_default"
 }

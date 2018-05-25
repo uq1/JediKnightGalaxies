@@ -13,7 +13,7 @@
 		"longname": "Arakyd Industries ACP Slug Cartridges",
 		"basedOn": "AMMO_ACP_ARRAY",
 		"max": 80,
-		"pricePerUnit": 6,
+		"pricePerUnit": 8,
 		"overrides": {
 			"damage": {
 				"set": 40
@@ -28,7 +28,7 @@
 		"shortname": "Disintegrating ACP Drums",
 		"longname": "Arakyd Industries Disintegrating ACP Belt Drums",
 		"max": 900,
-		"pricePerUnit": 0.75
+		"pricePerUnit": 2.75
 	},
 	
 	// Small ACP Power Cells - Used for the Trandoshan weapons
@@ -89,7 +89,7 @@
 		"shortname": "Flares",
 		"longname": "BlasTech Flares",
 		"max": 18,
-		"pricePerUnit": 15
+		"pricePerUnit": 10
 	},
 	
 	"AMMO_AA_POWERPAK": {
@@ -291,14 +291,14 @@
 		"shortname": "G36 Power Pack",
 		"longname": "Adostic Arms G36 Proton Power Pack",
 		"max": 800,
-		"pricePerUnit": 1.5
+		"pricePerUnit": 2.5
 	},
 	
 	"AMMO_AA-35_POWERCELL": {
 		"shortname": "AA-35 Pulse Power Cells",
 		"longname": "Adostic Arms AA-35 Pulse Power Cells",
 		"max": 80,
-		"pricePerUnit": 1.5
+		"pricePerUnit": 2.5
 	},
 	
 	"AMMO_PB10_POWERCELL": {
@@ -313,21 +313,21 @@
 		"longname": "7.92x57mm Mauser Slug Cartridges",
 		"basedOn": "AMMO_MAUSER_CLIP",
 		"max": 120,
-		"pricePerUnit": 0.5
+		"pricePerUnit": 3.5
 	},
 	
 	"AMMO_MAUSER_CLIP": {
 		"shortname": "7.92x57mm x 5 Strip Clips",
 		"longname": "7.92x57mm x 5 Mauser Slug Strip Clips",
 		"max": 120,
-		"pricePerUnit": 0.6
+		"pricePerUnit": 3
 	},
 	
 	"AMMO_SLUGS": {
 		"shortname": "Small Caliber Slugs",
 		"longname": "Arakyd Industries Slug Cartridges",
 		"max": 600,
-		"pricePerUnit": 2.5
+		"pricePerUnit": 3.5
 	},
 	
 	"AMMO_SLUGS_INCENDIARY": {
@@ -354,6 +354,6 @@
 		"shortname": "Carbonite Canisters",
 		"longname": "Zann Consortium Carbonite Canisters",
 		"max": 198,
-		"pricePerUnit": 4
+		"pricePerUnit": 5
 	}
 }
