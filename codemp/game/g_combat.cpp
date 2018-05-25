@@ -4048,7 +4048,7 @@ Like G_Damage, we are supplied with dflags and a means of damage.
 ============
 */
 void G_Heal(gentity_t* target, gentity_t* inflictor, gentity_t* healer,
-	vec3_t dir, vec3_t point, int heal, int dflags, int mod, meansOfDamage_t* means)		//--Futuza: this function is really unfinished, negative values don't really work yet
+	vec3_t dir, vec3_t point, int heal, int dflags, int mod, meansOfDamage_t* means)		//--Futuza: this function is unfinished, healing/negative values barely work
 {
 	if (!target)
 	{
@@ -4080,36 +4080,45 @@ void G_Heal(gentity_t* target, gentity_t* inflictor, gentity_t* healer,
 		return;
 	}
 
-	// modify it by the organic or structural modifier for this means
-	if (means && heal > 0) {
-		if (target->client)
+	//if we have less than max health we can be healed!
+	if (target->client->ps.stats[STAT_HEALTH] < target->client->ps.stats[STAT_MAX_HEALTH])
+	{
+		// modify it by the organic or structural modifier for this means
+		if (means && heal > 0)
 		{
-			heal *= means->modifiers.organic;
+			if (target->client)
+			{
+				heal *= means->modifiers.organic;
+			}
+			else
+			{
+				heal *= means->modifiers.droid;
+			}
+		}
+
+		//do heal and display it
+		int maxheal = target->client->ps.stats[STAT_MAX_HEALTH] - target->client->ps.stats[STAT_HEALTH];
+		if (maxheal > heal)
+		{
+			HealingPlum(target, target->r.currentOrigin, heal);
+			target->health += heal;
 		}
 		else
 		{
-			heal *= means->modifiers.droid;
+			HealingPlum(target, target->r.currentOrigin, maxheal);
+			target->health = target->client->ps.stats[STAT_MAX_HEALTH];
 		}
-	}
 
-	//do heal and display it
-	int maxheal = target->client->ps.stats[STAT_MAX_HEALTH] - target->client->ps.stats[STAT_HEALTH];
-	if (maxheal > heal)
-	{
-		HealingPlum(target, target->r.currentOrigin, heal);
-		target->client->ps.stats[STAT_HEALTH] =+ heal;
-	}
-	else
-	{
-		HealingPlum(target, target->r.currentOrigin, maxheal);
-		target->client->ps.stats[STAT_HEALTH] = target->client->ps.stats[STAT_MAX_HEALTH];
-	}
-	
-	//if this is non-zero this guy should be updated his s.health to send to the client
-	if (target->maxHealth)
-		G_ScaleNetHealth(target);
-	
+		target->client->ps.stats[STAT_HEALTH] = target->health;		//update health
+																	//if this is non-zero this guy should be updated his s.health to send to the client
+		if (target->maxHealth)
+			G_ScaleNetHealth(target);
 
+		G_LogWeaponDamage(healer->s.number, mod, heal);
+
+		/*if (target && target->s.eType == ET_NPC)		//healing is not bad
+			target->enemy = NULL;*/
+	}
 }
 
 /*
