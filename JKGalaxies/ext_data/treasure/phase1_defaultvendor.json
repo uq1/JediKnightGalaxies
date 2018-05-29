@@ -1,5 +1,98 @@
 {
 	"classes": {
+		"allvendor":
+		{
+			"numberPicksMin": 143,
+			"numberPicksMax": 143,
+			"uniquePicks": true,
+			"picks": 
+				{
+					"ammo_bouncingQuarrels_40": 1,
+					"ammo_explosiveQuarrel_40": 1,
+					"ammo_explosiveSlugs_60": 1,
+					"ammo_godKilling_50": 1,
+					"ammo_shotgunSlugs_30": 1,
+					"ammo_incendiarySlug_100": 1,
+					"ammo_splittingQuarrels_40": 1,
+					"gloves_stormtrooper": 1,
+					"helmet_stormtrooper": 1,
+					"helmet_stormtrooper_rusty": 1,
+					"legs_stormtrooper": 1,
+					"torso_stormtrooper": 1,
+					"helmet_rebel_dark": 1,
+					"helmet_rebel_light": 1,
+					"helmet_rebel_red": 1,
+					"legs_glight": 1,
+					"torso_glight": 1,
+					"helmet_impworker": 1,
+					"helmet_swamptrooper": 1,
+					"legs_swamptrooper": 1,
+					"torso_swamptrooper": 1, 
+					"gloves_pilot": 1,
+					"helmet_pilot": 1,
+					"coat_heavy": 1,
+					"array_pulse": 1,
+					"array_ACP": 1,
+					"array_bryar": 1,
+					"array_ARC_CasterMk1": 1,
+					"array_ARC_CasterImp": 1,
+					"Carbine_e-11": 1,
+					"carbine_DXR6": 1,
+					"carbine_E-11_Stun": 1,
+					"carbine_E-11b": 1,
+					"carbine_LT-60": 1,
+					"carbine_LT-60_S": 1,
+					"carbine_LT-60_C": 1,
+					"carbine_Proton": 1,
+					"charge_Sequencer": 1,
+					"chem_CarbR": 1,
+					"chem_CR-24": 1,
+					"charge_LaserProjector": 1,
+					"bacta_small": 1,
+					"bacta_medium": 1,
+					"bacta_large": 1,
+					"Seeker": 1,
+					"Grenade_C22Frag": 1,
+					"Grenade_Thermal-E": 1,
+					"Grenade_Plasma": 1,
+					"Grenade_Smoke": 1,
+					"Grenade_Stun": 1,
+					"Grenade_C-14A": 1,
+					"Grenade_CryoBan": 1,
+					"Grenade_Concussion": 1,
+					"Grenade_CodeKey": 1,
+					"Grenade_Thermal-A": 1,
+					"Grenade_Thermal-C": 1,
+					"Grenade_FlashBang": 1,
+					"Grenade_Poison": 1	//finish, only up to poison grenades
+				}
+		},
+		
+		"sabervendor":
+		{
+			"numberPicksMin": 8,
+			"numberPicksMax": 16,
+			"uniquePicks": true,
+			"picks":
+				{
+					"saber_custom": 5,
+					"saber_kyle": 3,
+					"saber_desann": 3,
+					"saber_crow": 3,
+					"saber_caelum": 5,
+					"saber_training": 6,
+					"saber_skywalker": 1,
+					"saber_arbiter": 5,
+					"saber_retaliator": 4,
+					"saber_consul": 4,
+					"saber_adept": 4,
+					"saber_sentinel": 3,
+					"saber_adjudicator": 3,
+					"saber_defender": 4,
+					"saber_firebrand": 5
+				}
+		},
+		
 		"basicvendor":
 		{
 			"numberPicksMin": 8,
