@@ -137,7 +137,7 @@
 
 		"canceling": {
 			"noBuffStack": true,
-			"noCategoryStack": false
+			"noCategoryStack": true
 		},
 
 		"damage": {
@@ -150,8 +150,14 @@
 		"visuals": {
 			"shader": {
 				"shader": "gfx/PlayerOverlays/poison",
-				"shaderRGBA": [ 40, 197, 90, 50 ],
+				"shaderRGBA": [ 40, 197, 90, 0 ],
 				"shaderLen": 100000
+			},
+			
+			"efx": {
+				"effect": "player/poison",
+				"bolt": "lower_lumbar",
+				"debounce": 200
 			}
 		}
 	},
