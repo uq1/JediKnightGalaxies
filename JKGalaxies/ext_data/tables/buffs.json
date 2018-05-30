@@ -133,7 +133,7 @@
 
 	"standard-poison": {
 		"category": "poison",
-		"priority": 50,
+		"priority": 40,
 
 		"canceling": {
 			"noBuffStack": true,
@@ -158,7 +158,7 @@
 	
 	"standard-antidote":
 	{
-		"category": "antidote",
+		"category": "heal",
 		"priority": 50,
 		
 		"canceling":
@@ -177,6 +177,30 @@
 			"damage": -1,
 			"means": "MOD_CURED",
 			"damagerate": 1500
+		}
+	},
+	
+	"standard-heal":
+	{
+		"category": "heal",
+		"priority": 50,
+		
+		"canceling":
+		{
+			"noBuffStack": true,
+			"cancelOther": [
+				{	
+					"category": "bleed",
+					"priority": 50
+				}
+			]
+		},
+		
+		"damage":
+		{
+			"damage": -2,
+			"means": "MOD_CURED",
+			"damagerate": 1000
 		}
 	}
 

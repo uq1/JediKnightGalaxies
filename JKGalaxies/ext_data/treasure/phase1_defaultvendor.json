@@ -2,7 +2,7 @@
 	"classes": {
 		"allvendor":
 		{
-			"numberPicksMin": 143,
+			"numberPicksMin": 142,
 			"numberPicksMax": 143,
 			"uniquePicks": true,
 			"picks": 
@@ -114,7 +114,7 @@
 					"saber_crow": 1,
 					"saber_caelum": 1,
 					"saber_training": 1,
-					"saber_skywalker": 1,
+					"saber_luke": 1,
 					"saber_arbiter": 1,
 					"saber_retaliator": 1,
 					"saber_consul": 1,
@@ -141,7 +141,7 @@
 					"shield_merrsonn_ultra": 1,
 					"shield_knockoff1": 1,
 					"shield_knockoff2": 1,
-					"sniper_DLT": 1,
+					"sniper_DLT-19": 1,
 					"sniper_Bowcaster": 1,
 					"sniper_Bowcaster_H": 1,
 					"sniper_Bowcaster_H_S": 1,
@@ -166,7 +166,7 @@
 					"saber_crow": 3,
 					"saber_caelum": 5,
 					"saber_training": 6,
-					"saber_skywalker": 1,
+					"saber_luke": 1,
 					"saber_arbiter": 5,
 					"saber_retaliator": 4,
 					"saber_praetor": 3,
@@ -241,7 +241,7 @@
 		},
 		"medicvendor":
 		{
-			"numberPicksMin": 2,
+			"numberPicksMin": 3,
 			"numberPicksMax": 3,
 			"uniquePicks": true,
 			"picks":
