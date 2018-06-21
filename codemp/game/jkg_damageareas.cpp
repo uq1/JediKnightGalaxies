@@ -345,7 +345,7 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
 			area->data->debuffs[i].debuff, area->data->debuffs[i].intensity, area->data->debuffs[i].duration);
 	}
     
-    if ( damage > 0 )
+    if ( damage  )	//positive or negative damage works, 0 does not
     {
         if ( !area->data->radial )
         {
@@ -503,10 +503,10 @@ int JKG_ChargeDamageOverride( gentity_t *inflictor, bool bIsTraceline ) {
 //=========================================================
 // JKG_DoDamage
 //---------------------------------------------------------
-// Description: This is a wrapper for the G_Damage
+// Description: This is a wrapper for the G_Damage				--FUTUZA: FILTHY LIES, its a wrapper for DebuffPlayer() which is the true wrapper for G_Damage
 // function, which also does debuffs. It does _not_ create
 // damage areas. It only does direct damage like with
-// G_Damage.
+// G_Damage.   
 //=========================================================
 void JKG_DoDirectDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t origin, int dflags, int mod )
 {
@@ -550,7 +550,7 @@ void JKG_DoDirectDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *in
     area.lastDamageTime = 0;
     VectorCopy (origin, area.origin);
     
-	DebuffPlayer (targ, &area, damage, mod);
+	DebuffPlayer (targ, &area, damage, mod);		//note: DebuffPlayer calls G_Damage() for both debuffs and regular damage
 }
 
 //=========================================================
