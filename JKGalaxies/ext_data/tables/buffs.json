@@ -20,7 +20,8 @@
 		"damage": {
 			"damage": 2,
 			"means": "MOD_IGNITED",
-			"damageRate": 500
+			"damageRate": 500,
+			"deadly": true
 		},
 
 		"visuals": {
@@ -51,7 +52,8 @@
 		"damage": {
 			"damage": 2,
 			"means": "MOD_FROZEN",
-			"damagerate": 1000
+			"damagerate": 1000,
+			"deadly": true
 		},
 
 		"passive": {
@@ -73,6 +75,11 @@
 		"canceling": {
 			"noBuffStack": true,
 			"noCategoryStack": true
+		},
+		
+		"damage":
+		{
+			"deadly": false
 		},
 
 		"passive": {
@@ -99,7 +106,8 @@
 		"damage": {
 			"damage": 2,
 			"means": "MOD_CARBONITE",
-			"damagerate": 1000
+			"damagerate": 1000,
+			"deadly": false
 		},
 
 		"passive": {
@@ -127,7 +135,8 @@
 		"damage": {
 			"damage": 1,
 			"means": "MOD_BLEEDING",
-			"damagerate": 1000
+			"damagerate": 1000,
+			"deadly": true
 		}
 	},
 
@@ -144,7 +153,8 @@
 			"damage": 7,
 			"percentage": true,
 			"means": "MOD_POISONED",
-			"damagerate": 1000
+			"damagerate": 1000,
+			"deadly": true
 		},
 		
 		"visuals": {
@@ -182,7 +192,8 @@
 		{
 			"damage": -1,
 			"means": "MOD_CURED",
-			"damagerate": 1500
+			"damagerate": 1500,
+			"deadly": false
 		}
 	},
 	
@@ -206,7 +217,8 @@
 		{
 			"damage": -2,
 			"means": "MOD_CURED",
-			"damagerate": 1000
+			"damagerate": 1000,
+			"deadly": false
 		}
 	}
 

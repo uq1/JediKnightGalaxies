@@ -196,7 +196,10 @@ static qboolean JKG_ParseBuffDamage(cJSON* json, jkgBuff_t* pBuff)
 	child = cJSON_GetObjectItem(json, "percentage");
 	pBuff->damage.percentage = cJSON_ToBooleanOpt(child, false);
 
-	child = cJSON_GetObjectItem(json, "means");
+	child = cJSON_GetObjectItem(json, "deadly");
+	pBuff->damage.deadly = cJSON_ToBooleanOpt(child, true);	//buffs are deadly by default
+
+ 	child = cJSON_GetObjectItem(json, "means");
 	pBuff->damage.meansOfDeath = JKG_GetMeansOfDamageIndex(cJSON_ToStringOpt(child, "MOD_UNKNOWN"));
 
 	child = cJSON_GetObjectItem(json, "damageRate");
