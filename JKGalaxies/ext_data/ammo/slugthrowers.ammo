@@ -65,5 +65,34 @@
 				}
 			}
 		}
+	},
+	"AMMO_SLUGS_MEDICINAL":
+	{
+		"shortname": "Medicinal Slugs",
+		"longname": "Medicinal Healing Slugthrower Beads",
+		"basedOn": "AMMO_SLUGS",
+		"max": 60,
+		"pricePerUnit": 25,
+		"overrides": {
+			"Damage": {
+				"set": -7
+			},
+			"ammocost": {
+				"multiply": 2
+			},
+			"speed": {
+				"set": 1000
+			},
+			"buffs": [
+				{
+				"buff": "standard-heal",
+				"duration": 10000,
+				"intensity": 1.5
+				}
+			]
+		
+		
+		}
+	
 	}
 }

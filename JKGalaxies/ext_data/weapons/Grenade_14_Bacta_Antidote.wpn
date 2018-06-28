@@ -29,12 +29,12 @@
             "chargingsound": "sound/weapons/grenade_cook.wav",
             "projectilemodel": "models/weapons/Grenade_Stun/projectile.md3",
             "miss": {
-                "impactfx": "explosives/stunsmall",
-                "shockwavefx": "weapons/flashbang_blind"
+                "impactfx": "weapons/watergun_impact_big",
+                "shockwavefx": "weapons/watergun_impact_small"
             },
             "hit": {
-                "impactfx": "explosives/stunsmall",
-                "shockwavefx": "weapons/flashbang_blind"
+                "impactfx": "weapons/watergun_impact_big",
+                "shockwavefx": "weapons/watergun_impact_small"
             },
             "bouncesound":  [ "sound/weapons/grenade_bounce1.wav", "sound/weapons/grenade_bounce2.wav" ],
 	    "displayName":  "Throw"
@@ -52,12 +52,12 @@
             "chargingsound": "sound/weapons/grenade_cook.wav",
             "projectilemodel": "models/weapons/Grenade_Stun/projectile.md3",
             "miss": {
-                "impactfx": "explosives/stunsmall",
-                "shockwavefx": "weapons/flashbang_blind"
+                "impactfx": "weapons/watergun_impact_big",
+                "shockwavefx": "weapons/watergun_impact_small"
             },
             "hit": {
-                "impactfx": "explosives/stunsmall",
-                "shockwavefx": "weapons/flashbang_blind"
+                "impactfx": "weapons/watergun_impact_big",
+                "shockwavefx": "weapons/watergun_impact_small"
            },
             "bouncesound":  [ "sound/weapons/grenade_bounce1.wav", "sound/weapons/grenade_bounce2.wav" ],
 	    "displayName":  "Roll"
@@ -74,18 +74,50 @@
     },
     
     "firemode0": {
-        "damage": {
-			"damage": -15,
+        "damage": 
+		{
+            "damageradius": 
+			{ 
+				"start": 0,
+				"end": 128,
+                "function": "clamp",
+                "parm": 30,
+                "falloff": "constant" 
+			},
+            "duration": 1000,
+            "delay": 0,
+            "damage": -5,
+            "damagedelay": 300,
 			"buffs": [
-					{
-						"buff": "standard-antidote",
-						"duration": 10000
-					}
+			{
+				"buff": "standard-antidote",
+				"duration": 10000
+			}
+			],
+			"flags":	[ "DAMAGE_NO_KNOCKBACK" ]
+        },
+		
+        "secondarydamage": 
+		{
+            "damageradius": 
+			{ 
+				"start": 128,
+                "falloff": "linear" },
+                "duration": 1500,
+                "delay": 500,
+                "damage": -1,
+                "damagedelay": 250,
+                "buffs": [
+				{
+					"buff": "standard-antidote",
+					"duration": 5000
+				}
 				],
 			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
-		},
+        },
         "ballistic":    true,
-	"useQuantity":	true,
+		"grenade": true,
+		"useQuantity":	true,
         "grenadeBounces": false,
         "collisionsize":1.7,
         "ammocost":     1,
@@ -95,27 +127,59 @@
         "firingtype":   "semi",
         "recoil":       3.0,
         "spread":       1.0,
-        "splashrange":  350,
+        "splashrange":  450,
         "projectilespeed":1200.0,
         "projectileclass":"repeater_alt_proj",
         "clipSize":              0,
-        "meansofdeath": "MOD_EXPLOSION",
-        "splashmeansofdeath": "MOD_EXPLOSION"
+        "meansofdeath": "MOD_HEALING",
+        "splashmeansofdeath": "MOD_HEALING"
     },
     
     "firemode1": {
-        "damage": {
-			"damage": -15,
+        "damage": 
+		{
+            "damageradius": 
+			{ 
+				"start": 0,
+				"end": 128,
+                "function": "clamp",
+                "parm": 30,
+                "falloff": "constant" 
+			},
+            "duration": 1000,
+            "delay": 0,
+            "damage": -5,
+            "damagedelay": 300,
 			"buffs": [
-					{
-						"buff": "standard-antidote",
-						"duration": 10000
-					}
+			{
+				"buff": "standard-antidote",
+				"duration": 10000
+			}
+			],
+			"flags":	[ "DAMAGE_NO_KNOCKBACK" ]
+        },
+		
+        "secondarydamage": 
+		{
+            "damageradius": 
+			{ 
+				"start": 128,
+                "falloff": "linear" },
+                "duration": 1500,
+                "delay": 500,
+                "damage": -1,
+                "damagedelay": 250,
+                "buffs": [
+				{
+					"buff": "standard-antidote",
+					"duration": 5000
+				}
 				],
 			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
-		},
+        },
         "ballistic":    true,
-	"useQuantity":	true,
+		"grenade": true,
+		"useQuantity":	true,
         "grenadeBounces": false,
         "collisionsize":1.7,
         "ammocost":     1,
@@ -125,12 +189,12 @@
         "firingtype":   "semi",
         "recoil":       3.0,
         "spread":       1.0,
-        "splashrange":  350,
+        "splashrange":  450,
         "projectilespeed":900.0,
         "projectileclass":"repeater_alt_proj",
         "clipSize":              0,
-        "meansofdeath": "MOD_EXPLOSION",
-        "splashmeansofdeath": "MOD_EXPLOSION"
+        "meansofdeath": "MOD_HEALING",
+        "splashmeansofdeath": "MOD_HEALING"
     },
     
     "playeranims": {
