@@ -1,15 +1,15 @@
 {
-    "name":             "@JKG_ITEMS_Grenade_Bacta_Antidote",
+    "name":             "@JKG_ITEMS_Grenade_Bacta_Antidote-e",
     "type":             "WP_THERMAL",
     "variation":        14,
-    "classname":        "Grenade_Bacta_Antidote",
-    "description":      "@JKG_ITEMS_Grenade_Bacta_Antidote",
+    "classname":        "Grenade_Bacta_Antidote-e",
+    "description":      "@JKG_ITEMS_Grenade_Bacta_Antidote-e",
     
     "visual": {
         "viewmodel":        "models/weapons/Grenade_Stun/viewmodel.md3",
         "worldmodel":       "models/weapons/Grenade_Stun/model.glm",
-        "hudicon":          "models/weapons/Grenade_Stun/icon_default",
-        "hudnaicon":        "models/weapons/Grenade_Stun/icon_default",
+        "hudicon":          "gfx/Item_Icons/default",
+        "hudnaicon":        "gfx/Item_Icons/default",
         "selectsound":      "sound/weapons/select_grenade.wav",
         
 
@@ -68,9 +68,9 @@
         "slot":         3,
         "reloadtime":   3000,
         "ammoIndex":         "grenade_Bacta_Antidote",
-        "ammoOnSpawn":   4,
+        "ammoOnSpawn":   2,
         "ammoOnPickup":   1,
-        "flags":        [ "roll" ]
+        "flags":        [ "cookable", "roll" ]
     },
     
     "firemode0": {
@@ -87,7 +87,7 @@
             "duration": 1000,
             "delay": 0,
             "damage": -5,
-            "damagedelay": 300,
+            "damagedelay": 350,
 			"buffs": [
 			{
 				"buff": "standard-antidote",
@@ -118,7 +118,9 @@
         "ballistic":    true,
 		"grenade": true,
 		"useQuantity":	true,
-        "grenadeBounces": false,
+        "grenadeBounces": true,
+        "bounces": 1,
+        "grenadeBounceDMG": 0,
         "collisionsize":1.7,
         "ammocost":     1,
         "maxchargetime":3000,
@@ -180,7 +182,9 @@
         "ballistic":    true,
 		"grenade": true,
 		"useQuantity":	true,
-        "grenadeBounces": false,
+        "grenadeBounces": true,
+        "bounces": 1,
+        "grenadeBounceDMG": 0,
         "collisionsize":1.7,
         "ammocost":     1,
         "maxchargetime":3000,
