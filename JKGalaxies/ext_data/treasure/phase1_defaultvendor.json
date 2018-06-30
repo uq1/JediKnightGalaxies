@@ -242,13 +242,14 @@
 		"medicvendor":
 		{
 			"numberPicksMin": 3,
-			"numberPicksMax": 3,
+			"numberPicksMax": 4,
 			"uniquePicks": true,
 			"picks":
 			{
-				"bacta_large": 2,
+				"bacta_large": 3,
 				"bacta_medium": 8,
-				"bacta_small": 10
+				"bacta_small": 10,
+				"Grenade_Bacta_Antidote-e": 2
 			}
 		},
 		"genericvendor": {
@@ -270,9 +271,10 @@
 				"pistol_Suppressor_Adv": 5,
 				"pistol_Q2": 6,
 				"Grenade_C-14A": 4,
-				"Grenade_Smoke": 3,
-				"Grenade_Stun": 3,
-				"Grenade_Poison": 2,
+				"Grenade_Smoke": 5,
+				"Grenade_Stun": 4,
+				"Grenade_Poison": 3,
+				"Grenade_Bacta_Antidote-e": 1,
 				"Grenade_C22Frag": 3,
 				"carbine_LT-60": 2,
 				"carbine_LT-60_S": 1,
@@ -314,6 +316,7 @@
 				"Grenade_C22Frag": 6,
 				"Grenade_Plasma": 5,
 				"Grenade_FlashBang": 3,
+				"Grenade_Bacta_Antidote-e": 2,
 				"pistol_DE-10_Snub": 4,
 				"pistol_ACP": 5,
 				"pistol_FWG-5": 3,
@@ -376,6 +379,7 @@
 				"Grenade_CodeKey": 1,
 				"Grenade_Thermal-E": 5,
 				"Grenade_Thermal-C": 2,
+				"Grenade_Bacta_Antidote-e": 3,
 				"Grenade_Plasma": 6,
 				"Grenade_Poison": 5,
 				"Mine_LaserTrip2": 2,
