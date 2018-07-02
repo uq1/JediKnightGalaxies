@@ -2117,6 +2117,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	// clear our inventory on ClientBegin because I forgot that this was a thing
 	trap->SendServerCommand(clientNum, "pInv clr");
 	ent->client->ps.credits = 0;
+	ent->client->ps.spent = 0;
 	if ((ent->r.svFlags & SVF_BOT) && g_gametype.integer >= GT_TEAM)
 	{
 		if (allowTeamReset)
@@ -3143,6 +3144,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 					{
 						itemInstance_t item = BG_ItemInstance(itemID, 1);
 						ent->client->ps.credits = jkg_startingCredits.integer;
+						ent->client->ps.spent = 0;
 
 						int delta = level.time - level.startTime;	//how long has the match been going?
 						//award missing passive credits if enabled

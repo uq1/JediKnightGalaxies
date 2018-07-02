@@ -358,6 +358,7 @@ void Cmd_Pay_f(gentity_t* ent) {
 	vec3_t traceStart, traceEnd, forward;
 	char creditBuffer[MAX_STRING_CHARS];
 	int credits;
+	int limit;
 
 	if (trap->Argc() != 2) {
 		trap->SendServerCommand(ent - g_entities, "print \"Usage: /pay <# of credits, or \"all\">\n\"");
@@ -369,18 +370,45 @@ void Cmd_Pay_f(gentity_t* ent) {
 	if (!Q_stricmp(creditBuffer, "all")) {
 		credits = ent->client->ps.credits;
 	}
-	else {
+	else 
 		credits = atoi(creditBuffer);
 
-		if (credits <= 0) {
-			trap->SendServerCommand(ent - g_entities, "print \"You can't pay that amount of money.\n\"");
-			return;
-		}
-		else if (credits > ent->client->ps.credits) {
-			trap->SendServerCommand(ent - g_entities, "print \"You can't afford that!\n\"");
-			return;
+	limit = ent->client->ps.credits + ent->client->ps.spent - jkg_startingCredits.integer;	//how much "earned" money do we actually have?
+
+	//handle passive credits if enabled
+	if (jkg_passiveCreditsAmount.integer > 0)
+	{
+		int delta = level.time - level.startTime;	//how long has the match been going?
+		//if we joined at least jkg_passiveCreditsWait late (typically 1 minute)
+		if (delta > jkg_passiveCreditsWait.integer)
+		{
+			int reward  = (jkg_passiveCreditsAmount.integer * (delta / jkg_passiveCreditsRate.integer));				//calculate amount we would have got
+			if (jkg_passiveCreditsWait.integer > jkg_passiveCreditsRate.integer)
+				reward -= (jkg_passiveCreditsAmount.integer * (jkg_passiveCreditsWait.integer / jkg_passiveCreditsRate.integer)) - jkg_passiveCreditsAmount.integer;		//minus the initial wait before credits are disbursed*/
+
+			limit -= reward;		//subtract passively earned money
 		}
 	}
+
+	if (credits <= 0) {
+		trap->SendServerCommand(ent - g_entities, "print \"You can't pay that amount of money.\n\"");
+		return;
+	}
+	if (limit < 1)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"You have not earned enough credits to use /pay yet.\n\"");
+		return;
+	}
+	if (credits > limit)
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"You can't afford that!  You can only pay up to %i credits.\n\"", limit));
+		return;
+	}
+	if (credits > ent->client->ps.credits) {
+		trap->SendServerCommand(ent - g_entities, "print \"You can't afford that!\n\"");
+		return;
+	}
+	
 
 	AngleVectors(ent->client->ps.viewangles, forward, nullptr, nullptr);
 	traceEnd[0] = ent->client->ps.origin[0] + forward[0] * PAY_DISTANCE;
@@ -402,6 +430,7 @@ void Cmd_Pay_f(gentity_t* ent) {
 
 	gentity_t* target = &g_entities[tr.entityNum];
 	target->client->ps.credits += credits;
+	ent->client->ps.spent += credits;		//paying other players counts as buying something!
 	ent->client->ps.credits -= credits;
 
 	trap->SendServerCommand(ent - g_entities, va("print \"You paid %i to %s\n\"", credits, target->client->pers.netname));
@@ -976,6 +1005,7 @@ void Cmd_BuyItem_f(gentity_t *ent)
 		BG_SendTradePacket(IPT_TRADESINGLE, ent, trader, pItem, pItem->id->baseCost, 0);
 		BG_GiveItemNonNetworked(ent, *pItem);
 	}
+	ent->client->ps.spent += pItem->id->baseCost;
 	ent->client->ps.credits -= pItem->id->baseCost;	// remove credits from player
 
 	if (pItem->id->itemType == ITEM_WEAPON) {
@@ -1025,7 +1055,9 @@ void Cmd_BuyItem_f(gentity_t *ent)
 		char* sendStr = va("cbi %i %s", pItem->id->itemID, ent->client->pers.netname);
 		if (pItem->id->baseCost >= jkg_buyAnnounceThreshold.integer)
 		{
-			if (jkg_buyAnnounce.integer == 1)
+			if (jkg_buyAnnounce.integer <= 0)
+				;	//don't announce anything
+			else if (jkg_buyAnnounce.integer == 1)
 			{
 				// Announce ONLY to the same team !
 				for (int i = 0; i < level.numConnectedClients; i++)
@@ -2231,7 +2263,7 @@ void Cmd_SellItem_f(gentity_t *ent)
 				return;
 			}
 			else {
-				creditAmount = 2;
+				creditAmount = 2;		//--futuza: fixme, we need to warn the player that starter guns are worth only 1 credit - BEFORE they sell it
 			}
 		}
 	}
@@ -4479,6 +4511,7 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 	int myCredits = ent->client->ps.credits;
 	int cost;
 	int totalCost = 0, numFiringModesFilled = 0, numUnitsPurchased = 0;
+	int perUnitCost = 0;
 
 	gentity_t* trader = ent->client->currentTrader;
 	if (trader == nullptr)
@@ -4520,20 +4553,52 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 		if (unitsRequested <= 0) {
 			continue; // our ammo is full
 		}
-		if (myCredits < ammo->pricePerUnit) {
-			continue; // we don't have enough money to afford one unit of ammo
+
+		//if its the starting weapon, ammo is free
+		if (!Q_stricmp(item.id->internalName, level.startingWeapon))
+		{
+			perUnitCost = 0;
+		}
+		else
+			perUnitCost = ammo->pricePerUnit;
+
+		if (myCredits == 0 && perUnitCost == 0)
+			;
+		else
+		{
+			if (myCredits < perUnitCost) {
+				continue; // we don't have enough money to afford one unit of ammo
+			}
 		}
 
-		cost = ammo->pricePerUnit * unitsRequested;
+		cost = perUnitCost * unitsRequested;
+
+		//if passiveUnderdogBonus is enabled and our team is losing, our ammo is  half off!  Awww, thanks vendor!
+		if (jkg_passiveUnderdogBonus.integer > 0)
+		{
+			//who is currently winning?
+			auto my_team = ent->client->sess.sessionTeam;
+			int curr_winner = -1;
+			if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
+				curr_winner = TEAM_RED;
+			else if (level.teamScores[TEAM_RED] < level.teamScores[TEAM_BLUE])
+				curr_winner = TEAM_BLUE;
+			else
+				curr_winner = -1;	//tie
+
+			if (my_team != curr_winner && curr_winner != -1)
+				cost = cost / 2;
+		}
 
 		if (cost > myCredits) {
 			// We can't fill it all the way, so fill it as much as we can
 			cost = myCredits;
-			unitsRequested = floor(cost / ammo->pricePerUnit);
-			cost = unitsRequested * ammo->pricePerUnit;
+			unitsRequested = floor(cost / perUnitCost);
+			cost = unitsRequested * perUnitCost;
 		}
 
 		// Buy the ammo and update stats
+		ent->client->ps.spent += cost;
 		ent->client->ps.credits -= cost;
 		myCredits -= cost;
 		ent->client->ammoTable[ammo->ammoIndex] += unitsRequested;

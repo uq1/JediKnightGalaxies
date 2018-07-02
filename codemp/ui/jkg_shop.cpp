@@ -36,6 +36,37 @@ void JKG_Shop_UpdatePriceCheck()
 		return;	// don't worry about price checking something that isn't a weapon
 	}
 
+	//check if the gun we're getting ammo for is the starting weapon
+	char info[MAX_INFO_VALUE];
+	trap->GetConfigString(CS_SERVERINFO, info, sizeof(info));
+	if (!Q_stricmp(vInventoryItems[nSelected].second->id->internalName, Info_ValueForKey(info, "jkg_startingGun")))
+	{
+		bPriceCheckComplete = true;
+		nPriceCheckCost = 0;	//its free!
+		return;
+	}
+
+	//todo: (see g_cmds.cpp Cmd_BuyAmmo_f()) - when on losing team ammo is 50% off (currently happens with game logic, just isn't displayed)
+	if (Info_ValueForKey(info, "jkg_passiveUnderdogBonus") > 0)
+	{
+		//who is currently winning?
+		/*
+		auto my_team = ent->client->sess.sessionTeam;
+		int curr_winner = -1;
+		if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
+			curr_winner = TEAM_RED;
+		else if (level.teamScores[TEAM_RED] < level.teamScores[TEAM_BLUE])
+			curr_winner = TEAM_BLUE;
+		else
+			curr_winner = -1;	//tie
+
+		if (my_team != curr_winner && curr_winner != -1)
+			bPriceCheckComplete = true;
+			nPriceCheckCost = it->second / 2;
+			return;
+		*/
+	}
+
 	for (auto it = vPriceCheckedAmmo.begin(); it != vPriceCheckedAmmo.end(); ++it)
 	{
 		if (it->first == id)
@@ -397,7 +428,16 @@ void JKG_Shop_InventoryItemCost(itemDef_t* item, int nOwnerDrawID) {
 		return; // There isn't an item in this slot.
 	}
 	itemInstance_t* pItem = vInventoryItems[nInventoryScroll + nOwnerDrawID].second;
-	sprintf(item->text, "%i", pItem->id->baseCost / 2 * pItem->quantity);
+
+	char info[MAX_INFO_VALUE];
+	trap->GetConfigString(CS_SERVERINFO, info, sizeof(info));
+
+	if (!Q_stricmp(pItem->id->internalName, Info_ValueForKey(info, "jkg_startingGun")))		//selling our starting gun is worth only one credit
+		sprintf(item->text, "%i", 1);
+
+	else
+		sprintf(item->text, "%i", pItem->id->baseCost / 2 * pItem->quantity);
+
 	Item_Text_Paint(item);
 }
 
@@ -461,6 +501,7 @@ char* JKG_Shop_LeftPriceText(int ownerDrawID) {
 	}
 	itemInstance_t* pItem = vInventoryItems[nInventoryScroll + ownerDrawID].second;
 	return va("%i", pItem->id->baseCost / 2 * pItem->quantity);
+
 }
 
 char* JKG_Shop_RightNameText(int ownerDrawID) {

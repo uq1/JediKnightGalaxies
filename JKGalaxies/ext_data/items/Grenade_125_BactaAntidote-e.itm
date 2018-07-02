@@ -1,5 +1,5 @@
 {
-	"name":             "@JKG_ITEMS_Grenade_Bacta_Antidote-e",
+	"name":             "Bacta Antidote Grenade Class E",
 	"internal":             "Grenade_Bacta_Antidote-e",
 	"itemtype":             "weapon",
 	"weapon":		"WP_THERMAL",
