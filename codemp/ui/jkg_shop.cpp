@@ -47,7 +47,7 @@ void JKG_Shop_UpdatePriceCheck()
 	}
 
 	//todo: (see g_cmds.cpp Cmd_BuyAmmo_f()) - when on losing team ammo is 50% off (currently happens with game logic, just isn't displayed)
-	if (Info_ValueForKey(info, "jkg_passiveUnderdogBonus") > 0)
+	if (atoi(Info_ValueForKey(info, "jkg_passiveUnderdogBonus")) > 0)
 	{
 		//who is currently winning?
 		/*
@@ -432,7 +432,7 @@ void JKG_Shop_InventoryItemCost(itemDef_t* item, int nOwnerDrawID) {
 	char info[MAX_INFO_VALUE];
 	trap->GetConfigString(CS_SERVERINFO, info, sizeof(info));
 
-	if (!Q_stricmp(pItem->id->internalName, Info_ValueForKey(info, "jkg_startingGun")))		//selling our starting gun is worth only one credit
+	if (!Q_stricmp(pItem->id->internalName, Info_ValueForKey(info, "jkg_startingGun")) && nNumberInventoryItems > 1)		//selling our starting gun is worth only one credit
 		sprintf(item->text, "%i", 1);
 
 	else
