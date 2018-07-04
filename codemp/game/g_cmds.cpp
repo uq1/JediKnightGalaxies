@@ -2010,9 +2010,16 @@ void Cmd_Team_f( gentity_t *ent ) {
 
 	SetTeam( ent, s );
 
+	
+	int timeout = 1;
+	if (g_teamSwitchTime.integer > 0)
+	{
+		timeout = g_teamSwitchTime.integer;
+	}
+
 	// fix: update team switch time only if team change really happend
 	if (oldTeam != ent->client->sess.sessionTeam)
-		ent->client->switchTeamTime = level.time + (g_teamSwitchTime.integer * 1000);
+		ent->client->switchTeamTime = level.time + (timeout * 1000);
 }
 
 
