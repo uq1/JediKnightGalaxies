@@ -1862,6 +1862,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		if(jkg_teamKillBonus.integer > 0)
 		{
 			gentity_t* player; int reward;
+
 			for (int j = 0; j < sv_maxclients.integer; j++)
 			{
 				reward = 0;
@@ -1873,13 +1874,26 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				if ( player->client->ps.persistant[PERS_RANK] * 2 < player->client->ps.persistant[PERS_KILLED])
 					reward += jkg_teamKillBonus.integer;
 
-				if (player->client->sess.sessionTeam == attacker->client->sess.sessionTeam)		//--futuza: consider changing this block so that if world kills you the other team still gets the reward
+				if (!OnSameTeam(self, attacker))	//if the victim and the attacker aren't on the same team
 				{
-					reward += jkg_teamKillBonus.integer;
-					trap->SendServerCommand(player->s.number, va("notify 1 \"Team Kill Bonus: +%i Credits\"", reward));
-					player->client->ps.credits += reward;
 
-					//consider doing some sort of sound to hint at reward here  --futuza
+					if (player->client->sess.sessionTeam == attacker->client->sess.sessionTeam)		//and the person we're considering to reward is on the attackers team
+					{
+						reward += jkg_teamKillBonus.integer;
+						trap->SendServerCommand(player->s.number, va("notify 1 \"Team Kill Bonus: +%i Credits\"", reward));
+						player->client->ps.credits += reward;
+
+						//consider doing some sort of sound to hint at reward here  --futuza
+					}
+				}
+				else	//it's treason then
+				{
+					if (player->client->sess.sessionTeam != attacker->client->sess.sessionTeam)		//reward the opposite team, if our team suicides/teamkills!
+					{
+							reward += jkg_teamKillBonus.integer;
+							trap->SendServerCommand(player->s.number, va("notify 1 \"Team Kill Bonus: +%i Credits\"", reward));
+							player->client->ps.credits += reward;
+					}
 				}
 			}
 		}
