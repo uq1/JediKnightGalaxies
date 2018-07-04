@@ -1975,6 +1975,16 @@ void Cmd_Team_f( gentity_t *ent ) {
 		return;
 	}
 
+	//if teams are locked, and its been more than 20% of the match, and we didn't connect in the last 3 minutes
+	if (timelimit.integer > 0)
+	{
+		if (g_teamsLocked.integer > 0 && ((timelimit.integer * 60000 * 0.2) < level.time) && (level.time - ent->client->sess.connTime > 60000 * 3))
+		{
+			trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TEAMSLOCKED")));
+			return;
+		}
+	}
+
 	if (gEscaping)
 	{
 		return;
@@ -2002,7 +2012,7 @@ void Cmd_Team_f( gentity_t *ent ) {
 
 	// fix: update team switch time only if team change really happend
 	if (oldTeam != ent->client->sess.sessionTeam)
-		ent->client->switchTeamTime = level.time + 5000;
+		ent->client->switchTeamTime = level.time + (g_teamSwitchTime.integer * 1000);
 }
 
 
