@@ -4590,8 +4590,9 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 
 		cost = perUnitCost * unitsRequested;
 
-		//if passiveUnderdogBonus is enabled and our team is losing, our ammo is  half off!  Awww, thanks vendor!
-		if (jkg_passiveUnderdogBonus.integer > 0)
+		
+		//if passiveUnderdogBonus is enabled and our team is losing, our ammo is discounted!  Awww, thanks vendor!  
+		if (jkg_passiveUnderdogBonus.integer > 0)	//--Futuza: this is only done game logic side, and needs to be added to the display in jkg_shop.cpp because right now it will just display the usual price
 		{
 			//who is currently winning?
 			auto my_team = ent->client->sess.sessionTeam;
@@ -4603,8 +4604,25 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 			else
 				curr_winner = -1;	//tie
 
+			//we're losing - give us discount ammo please!
 			if (my_team != curr_winner && curr_winner != -1)
-				cost = cost / 2;
+			{
+				float ammoAdjust = 0.9;
+
+				//evaluate how badly the losing team is losing by and reduce ammo accordingly
+				int diff = level.teamScores[curr_winner] - level.teamScores[my_team];
+				ammoAdjust = (1 - (float)diff / level.teamScores[curr_winner]);
+
+				if (ammoAdjust > 0.9)	//minimum discount is 10% off
+					ammoAdjust = 0.9;
+
+				if (ammoAdjust < 0.25)
+					ammoAdjust = 0.25;		//maximum discount is 75% off
+
+				cost = cost * ammoAdjust;
+				if (cost < 1)
+					cost = 1;
+			}
 		}
 
 		if (cost > myCredits) {

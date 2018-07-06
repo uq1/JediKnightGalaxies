@@ -46,11 +46,11 @@ void JKG_Shop_UpdatePriceCheck()
 		return;
 	}
 
-	//todo: (see g_cmds.cpp Cmd_BuyAmmo_f()) - when on losing team ammo is 50% off (currently happens with game logic, just isn't displayed)
-	if (atoi(Info_ValueForKey(info, "jkg_passiveUnderdogBonus")) > 0)
+	//todo: (see g_cmds.cpp Cmd_BuyAmmo_f()) - when on losing team ammo is discounted (currently happens with game logic, just isn't displayed in g_cmds)
+	/*if (atoi(Info_ValueForKey(info, "jkg_passiveUnderdogBonus")) > 0)
 	{
 		//who is currently winning?
-		/*
+
 		auto my_team = ent->client->sess.sessionTeam;
 		int curr_winner = -1;
 		if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
@@ -64,8 +64,8 @@ void JKG_Shop_UpdatePriceCheck()
 			bPriceCheckComplete = true;
 			nPriceCheckCost = it->second / 2;
 			return;
-		*/
-	}
+		
+	}*/
 
 	for (auto it = vPriceCheckedAmmo.begin(); it != vPriceCheckedAmmo.end(); ++it)
 	{

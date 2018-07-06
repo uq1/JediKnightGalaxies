@@ -142,7 +142,7 @@ XCVAR_DEF( g_siegeTeam2,				"none",			NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO,				
 XCVAR_DEF( g_siegeTeamSwitch,			"1",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE,					qfalse )
 XCVAR_DEF( g_slowmoDuelEnd,				"0",			NULL,				CVAR_ARCHIVE,									qtrue )
 XCVAR_DEF( g_smoothClients,				"1",			NULL,				CVAR_NONE,										qfalse )
-XCVAR_DEF( g_spawnInvulnerability,		"4000",			NULL,				CVAR_ARCHIVE,									qtrue )
+XCVAR_DEF( g_spawnInvulnerability,		"5000",			NULL,				CVAR_ARCHIVE,									qtrue )
 XCVAR_DEF( g_speed,						"250",			NULL,				CVAR_NONE,										qtrue )
 XCVAR_DEF( g_statLog,					"0",			NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_statLogFile,				"statlog.log",	NULL,				CVAR_ARCHIVE,									qfalse )
@@ -174,7 +174,7 @@ XCVAR_DEF( jkg_startingCredits,			"500",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR
 XCVAR_DEF( jkg_bounty,					"225",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_killsPerBounty,			"3",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_maxKillStreakBounty,		"7",			NULL,				CVAR_ARCHIVE,									true )	//the max number of killstreaks
-XCVAR_DEF( jkg_creditsPerKill,			"175",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_creditsPerKill,			"150",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_passiveCreditsAmount,	"15",			NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO|CVAR_LATCH,		true )	//0 >= disables, default: 15
 XCVAR_DEF( jkg_passiveCreditsRate,		"30000",		NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO|CVAR_LATCH,		true )	//default: 30000
 XCVAR_DEF( jkg_passiveCreditsWait,		"60000",		NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO|CVAR_LATCH,		true )	//how long to wait before starting passiveCredits, default: 60000 (60 seconds)
