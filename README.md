@@ -9,8 +9,8 @@
 
 
 #### Downloads ####
-[Binaries](http://jkhub.org/files/file/2544-jedi-knight-galaxies-binaries/) , [Assets](http://jkhub.org/files/file/2543-jedi-knight-galaxies-assets/) , 
-[Map Bundle #1](http://jkhub.org/files/file/2652-jedi-knight-galaxies-map-bundle-1/) , [Preview Release (v1.30b)](https://jkhub.org/topic/9963-released-jkgalaxies-130b-preview-version/)
+[Binaries](https://github.com/JKGDevs/JediKnightGalaxies/releases/tag/Version1.3.18) , [Assets](https://uvu.box.com/shared/static/z1j68r0v1m15v03ergfidtm3somp5ce2.zip) , 
+[Map Bundle #1](http://jkhub.org/files/file/2652-jedi-knight-galaxies-map-bundle-1/) , [Latest Release News (v1.3.18)](https://jkhub.org/topic/10781-upcoming-jkgalaxies-1318-preview-version/)
 
 Please use discretion when making issue requests on GitHub. The forum is a better place for larger discussions on changes that aren't actually bugs.
 
