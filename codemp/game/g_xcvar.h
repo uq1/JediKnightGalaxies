@@ -199,6 +199,7 @@ XCVAR_DEF( jkg_healthRegen,				"1",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_healthRegenDelay,		"60000",		NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_healthRegenSpeed,		"2500",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_safeTreasureClasses,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH,						false )	//temporarily defaults to off until we can fix the treasureclass checker
+XCVAR_DEF( jkg_minVendors,				"2",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true)	//0 == don't spawn extra vendors, 1 == make sure we have at least 1 vendor, 2 == make sure we have at least 2, etc.
 XCVAR_DEF( jkg_removenpcbody,			"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
 XCVAR_DEF( jkg_removenpctime_default,	"10000",		NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
 XCVAR_DEF( jkg_removenpctime_droid,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )

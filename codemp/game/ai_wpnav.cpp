@@ -3739,6 +3739,9 @@ void LoadPath_ThisLevel(void)
 	{
 		if (LoadPathData(mapname.string) == 2)
 		{
+			if (jkg_minVendors.integer > 0)
+				trap->Print(S_COLOR_YELLOW "No bot waypoints setup, cannot spawn requested vendors\n");
+
 			//enter "edit" mode if cheats enabled?
 		}
 	}

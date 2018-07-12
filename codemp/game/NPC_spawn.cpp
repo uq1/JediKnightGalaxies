@@ -1944,6 +1944,61 @@ void NPC_PrecacheType( char *NPC_type )
 	}
 }
 
+void SP_NPC_spawner_tc(gentity_t *self, char *tc)
+{
+	int t;
+	char *temp;
+	gentity_t		*NPCspawner = NPC_Spawn_Do(self);
+
+
+	{//Stop loading of certain extra sounds
+		static	int	garbage;
+
+		if (G_SpawnInt("noBasicSounds", "0", &garbage))
+		{
+			NPCspawner->r.svFlags |= SVF_NO_BASIC_SOUNDS;
+		}
+		if (G_SpawnInt("noCombatSounds", "0", &garbage))
+		{
+			NPCspawner->r.svFlags |= SVF_NO_COMBAT_SOUNDS;
+		}
+		if (G_SpawnInt("noExtraSounds", "0", &garbage))
+		{
+			NPCspawner->r.svFlags |= SVF_NO_EXTRA_SOUNDS;
+		}
+	}
+
+	if (!NPCspawner->wait)
+	{
+		NPCspawner->wait = 500;
+	}
+	else
+	{
+		NPCspawner->wait *= 1000;//1 = 1 msec, 1000 = 1 sec
+	}
+
+	NPCspawner->delay *= 1000;//1 = 1 msec, 1000 = 1 sec
+
+	// UQ1: Added patrol ranges...
+	{
+		int range = 0;
+		G_SpawnInt("range", "0", &range);
+
+		if (range == 0) range = 512; // UQ1: Default patrol range...
+
+		NPCspawner->patrol_range = range;
+	}
+
+	G_SpawnInt("showhealth", "0", &t);
+	if (t)
+	{
+		NPCspawner->s.shouldtarget = qtrue;
+	}
+
+	if (tc != nullptr)
+		JKG_MakeNPCVendor(NPCspawner, tc);
+}
+
 void SP_NPC_spawner( gentity_t *self)
 {
 	int t;

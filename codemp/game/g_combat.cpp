@@ -1649,7 +1649,7 @@ qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 		{
 			reward = (reward / team_amt);																//equally distribute reward among team
 			reward = (reward < jkg_teamKillBonus.integer) ? jkg_teamKillBonus.integer : reward;			//unless its less than teamKillBonus
-			if (team_amt == 1)																			//if only one player, don't give him 1/2 the reward
+			if (team_amt == 1)																			//if only one player, don't give him the whole reward since its not a direct kill
 				reward = reward * 0.5;
 			trap->SendServerCommand(player->s.number, va("notify 1 \"Team Bounty Claimed: +%i Credits\"", reward));
 			player->client->ps.credits += reward;

@@ -1290,6 +1290,18 @@ int irand(int min, int max)
 	return(result);
 }
 
+//--futuza: same as Q_irand, but we can pass in unsafe values and it will adjust them for us
+int Q_irandSafe(int value1, int value2)
+{
+	if (value2 >= 32768)
+		value2 = 32767;
+
+	if (value1 >= value2)		
+		value1 = value2 - 1;
+
+	return Q_irand(value1, value2);
+}
+
 int Q_irand(int value1, int value2)
 {
 	return irand(value1, value2);

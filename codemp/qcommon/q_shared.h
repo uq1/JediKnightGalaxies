@@ -2285,6 +2285,7 @@ typedef enum {
 void Rand_Init(int seed);
 float flrand(float min, float max);
 int irand(int min, int max);
+int Q_irandSafe(int value1, int value2);
 int Q_irand(int value1, int value2);
 
 /*

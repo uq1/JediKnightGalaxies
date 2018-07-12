@@ -623,6 +623,7 @@ extern int gWPNum;
 extern wpobject_t *gWPArray[MAX_WPARRAY_SIZE];
 
 extern void SP_NPC_spawner( gentity_t *self);
+extern void SP_NPC_spawner_tc(gentity_t *self, char *tc);
 
 int checkminimumnpcs_time = 0;
 
@@ -719,24 +720,20 @@ qboolean JKG_CheckRoutingFrom( int wp )
 
 void G_CheckVendorNPCs( void )
 {
+	//if minimum vendors are not enabled
+	if (jkg_minVendors.integer < 1)
+		return;
 	//
 	// We always should have some vendors on maps...
 	//
 	int		botplayers = 0;
-	int		minplayers = 0;
-	int		i = 0;
+	int		minvendors = jkg_minVendors.integer;
 
 	trap->Cvar_Update(&npc_vendors);
-	minplayers = npc_vendors.integer;
+	botplayers = npc_vendors.integer;	//check for previous existing vendors
 
-	if (minplayers <= 0) minplayers = 2; // We should always have at least 2 vendors on any map...
 
-	if (minplayers > 8)
-	{
-		minplayers = 8;
-	}
-
-	for (i = level.maxclients; i < MAX_GENTITIES; i++)
+	for (int i = level.maxclients; i < MAX_GENTITIES; i++)
 	{
 		gentity_t *npc = &g_entities[i];
 
@@ -744,51 +741,60 @@ void G_CheckVendorNPCs( void )
 		if (npc->s.eType != ET_NPC) continue;
 		if (!npc->client) continue; // ?
 
-		switch( npc->client->NPC_class )
-		{// UQ1: Vendor types... Stand still for now...
-		case CLASS_GENERAL_VENDOR:
-		case CLASS_WEAPONS_VENDOR:
-		case CLASS_ARMOR_VENDOR:
-		case CLASS_SUPPLIES_VENDOR:
-		case CLASS_FOOD_VENDOR:
-		case CLASS_MEDICAL_VENDOR:
-		case CLASS_GAMBLER_VENDOR:
-		case CLASS_TRADE_VENDOR:
-		case CLASS_ODDITIES_VENDOR:
-		case CLASS_DRUG_VENDOR:
-		case CLASS_TRAVELLING_VENDOR:
+		if (npc->inventory->size() > 0)	//does it have something in the inventory?
 			botplayers++;
-			break;
-		default:
-			switch( npc->s.NPC_class )
+
+		else
+		{
+			switch (npc->client->NPC_class)
 			{// UQ1: Vendor types... Stand still for now...
-			case CLASS_GENERAL_VENDOR:
-			case CLASS_WEAPONS_VENDOR:
-			case CLASS_ARMOR_VENDOR:
-			case CLASS_SUPPLIES_VENDOR:
-			case CLASS_FOOD_VENDOR:
-			case CLASS_MEDICAL_VENDOR:
-			case CLASS_GAMBLER_VENDOR:
-			case CLASS_TRADE_VENDOR:
-			case CLASS_ODDITIES_VENDOR:
-			case CLASS_DRUG_VENDOR:
-			case CLASS_TRAVELLING_VENDOR:
-				botplayers++;
-				break;
+				case CLASS_GENERAL_VENDOR:
+				case CLASS_WEAPONS_VENDOR:
+				case CLASS_ARMOR_VENDOR:
+				case CLASS_SUPPLIES_VENDOR:
+				case CLASS_FOOD_VENDOR:
+				case CLASS_MEDICAL_VENDOR:
+				case CLASS_GAMBLER_VENDOR:
+				case CLASS_TRADE_VENDOR:
+				case CLASS_ODDITIES_VENDOR:
+				case CLASS_DRUG_VENDOR:
+				case CLASS_TRAVELLING_VENDOR:
+					botplayers++;
+					break;
 			default:
+				switch (npc->s.NPC_class)
+				{// UQ1: Vendor types... Stand still for now...
+					case CLASS_GENERAL_VENDOR:
+					case CLASS_WEAPONS_VENDOR:
+					case CLASS_ARMOR_VENDOR:
+					case CLASS_SUPPLIES_VENDOR:
+					case CLASS_FOOD_VENDOR:
+					case CLASS_MEDICAL_VENDOR:
+					case CLASS_GAMBLER_VENDOR:
+					case CLASS_TRADE_VENDOR:
+					case CLASS_ODDITIES_VENDOR:
+					case CLASS_DRUG_VENDOR:
+					case CLASS_TRAVELLING_VENDOR:
+						botplayers++;
+						break;
+					default:
+						break;
+				}
 				break;
 			}
-			break;
 		}
 	}
-#ifdef __ALWAYS_TWO_TRAVELLINGVENDORS
-	if ( botplayers < minplayers && level.gametype == GT_FFA )
+
+	//wait for the level to start before spawning additional vendors, and make sure vendors belong in the gametype
+	if ( botplayers < minvendors && (level.gametype == GT_FFA || level.gametype == GT_CTF || GT_TEAM) && level.time > 1000)
 	{
 		gentity_t	*npc = NULL;
 		int			waypoint = irand(0, gWPNum-1);
 		int			tries = 0;
 
-		while (gWPArray[waypoint]->inuse == qfalse || !JKG_CheckBelowWaypoint(waypoint) || !JKG_CheckRoutingFrom( waypoint ))
+
+
+		/*while (gWPArray[waypoint]->inuse == qfalse || !JKG_CheckBelowWaypoint(waypoint) || !JKG_CheckRoutingFrom( waypoint ))
 		{
 			gWPArray[waypoint]->inuse = qfalse; // set it bad!
 
@@ -800,13 +806,25 @@ void G_CheckVendorNPCs( void )
 			// Find a new one... This is probably a bad waypoint...
 			waypoint = irand(0, gWPNum-1);
 			tries++;
+		}*/
+
+		while (!JKG_CheckBelowWaypoint(waypoint))
+		{
+			//we tried enough times to find a valid spot
+			if (tries > 10)
+				return; // Try again on next check...
+
+			// Find a new place to spawn, the first one was dangerous
+			waypoint = irand(0, gWPNum - 1);
+			tries++;
 		}
 
 		npc = G_Spawn();
 
 		// UQ1: Always spawn travelling vendor NPCs...
 		npc->NPC_type = "vendor_travelling";
-		//npc->s.NPC_class = CLASS_TRAVELLING_VENDOR;
+		npc->s.NPC_class = CLASS_TRAVELLING_VENDOR;
+		npc->NPC_targetname = "travelvendor";
 
 		VectorCopy(gWPArray[waypoint]->origin, npc->s.origin);
 		npc->s.origin[2]+=32; // Drop down...
@@ -815,12 +833,16 @@ void G_CheckVendorNPCs( void )
 		npc->s.angles[YAW] = irand(0,359);
 		npc->s.angles[ROLL] = 0;
 
-		trap->Print("[%i/%i] Spawning (travelling vendor NPC) %s at waypoint %i.\n", botplayers+1, minplayers, npc->NPC_type, waypoint);
-
+		trap->Print("[%i/%i] Spawning (travelling vendor NPC) %s at waypoint %i.\n", botplayers+1, minvendors, npc->NPC_type, waypoint);
+		botplayers++;
 		npc->s.eFlags |= EF_RADAROBJECT;
-		SP_NPC_spawner( npc );
+
+		char treasure[] = "genericvendor";
+		SP_NPC_spawner_tc(npc, treasure);
+		//SP_NPC_spawner(npc);
+		
 	}
-#endif // __ALWAYS_TWO_TRAVELLINGVENDORS
+
 }
 
 void G_CheckCivilianNPCs( void )
