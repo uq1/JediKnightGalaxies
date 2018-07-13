@@ -729,10 +729,8 @@ void G_CheckVendorNPCs( void )
 	int		botplayers = 0;
 	int		minvendors = jkg_minVendors.integer;
 
-	trap->Cvar_Update(&npc_vendors);
-	botplayers = npc_vendors.integer;	//check for previous existing vendors
 
-
+	//find previous existing vendors
 	for (int i = level.maxclients; i < MAX_GENTITIES; i++)
 	{
 		gentity_t *npc = &g_entities[i];
@@ -742,7 +740,7 @@ void G_CheckVendorNPCs( void )
 		if (!npc->client) continue; // ?
 
 		if (npc->inventory->size() > 0)	//does it have something in the inventory?
-			botplayers++;
+			++botplayers;
 
 		else
 		{
@@ -759,7 +757,7 @@ void G_CheckVendorNPCs( void )
 				case CLASS_ODDITIES_VENDOR:
 				case CLASS_DRUG_VENDOR:
 				case CLASS_TRAVELLING_VENDOR:
-					botplayers++;
+					++botplayers;
 					break;
 			default:
 				switch (npc->s.NPC_class)
@@ -775,7 +773,7 @@ void G_CheckVendorNPCs( void )
 					case CLASS_ODDITIES_VENDOR:
 					case CLASS_DRUG_VENDOR:
 					case CLASS_TRAVELLING_VENDOR:
-						botplayers++;
+						++botplayers;
 						break;
 					default:
 						break;
@@ -786,12 +784,11 @@ void G_CheckVendorNPCs( void )
 	}
 
 	//wait for the level to start before spawning additional vendors, and make sure vendors belong in the gametype
-	if ( botplayers < minvendors && (level.gametype == GT_FFA || level.gametype == GT_CTF || GT_TEAM) && level.time > 1000)
+	if ( botplayers < minvendors && (level.gametype == GT_FFA || level.gametype == GT_CTF || level.gametype == GT_TEAM) && level.time > 3000)	//note: wait about 3 seconds seems about right
 	{
 		gentity_t	*npc = NULL;
 		int			waypoint = irand(0, gWPNum-1);
 		int			tries = 0;
-
 
 
 		/*while (gWPArray[waypoint]->inuse == qfalse || !JKG_CheckBelowWaypoint(waypoint) || !JKG_CheckRoutingFrom( waypoint ))
@@ -833,8 +830,8 @@ void G_CheckVendorNPCs( void )
 		npc->s.angles[YAW] = irand(0,359);
 		npc->s.angles[ROLL] = 0;
 
-		trap->Print("[%i/%i] Spawning (travelling vendor NPC) %s at waypoint %i.\n", botplayers+1, minvendors, npc->NPC_type, waypoint);
 		botplayers++;
+		trap->Print("[%i/%i] Spawning (travelling vendor NPC) %s at waypoint %i.\n", botplayers, minvendors, npc->NPC_type, waypoint);
 		npc->s.eFlags |= EF_RADAROBJECT;
 
 		char treasure[] = "genericvendor";
