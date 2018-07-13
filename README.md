@@ -80,7 +80,7 @@ These are very much subject to change, especially phases later than Versus.
 * The main features that are added here include the NPC system and fleshing out of the dialogue system. They also include overhauls to the chat systems, fonts, UI, and more.  Prep work for the leveling system and quest system to be introduced here.  We may also attempt some MoBA like features (still needs discussion).
 
 #### Phase 3: RPG ####
-* Open World RPG. The main features added here include quests, (more) minigames, and AI for existing minigames, like Pazaak. Also includes levelling up, experience, single person quests, large planet-themed maps, etc. This mode will mainly focus on implementing things from a single player's perspective.
+* Open World RPG. The main features added here include quests, (more) minigames, and AI for existing minigames, like Pazaak. Also includes levelling up, experience, single person quests, large planet-themed maps, character creator, fully fleshed out skill system etc. This mode will mainly focus on implementing things from a single player's perspective.  Data will be persistent and exist as long as the server is running.
 
 #### Phase 4: LMO ####
 * Features to the main game include group quests, Looking For Group system, and a lot of the dungeons that were designed for Phase 2 brought back. Includes a master server based architecture and functioning account system.  At this point, the game is pretty much done.
