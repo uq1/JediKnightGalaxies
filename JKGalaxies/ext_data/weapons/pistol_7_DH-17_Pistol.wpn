@@ -71,7 +71,7 @@
     },
     
     "firemode0": {
-        "damage":       22,
+        "damage":       20,
         "ammocost":     1,
         "firedelay":    150,
         "firingtype":   "semi",
@@ -83,11 +83,11 @@
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_M",
 	"ammodefault": "AMMO_POWERPACK_S",
-        "clipSize":              30
+        "clipSize":              20
     },
     
     "firemode1": {
-        "damage":       22,
+        "damage":       20,
         "ammocost":     1,
         "firedelay":    800,
         "burstshotdelay": 150,
@@ -101,7 +101,7 @@
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_M",
 	"ammodefault": "AMMO_POWERPACK_S",
-        "clipSize":              30
+        "clipSize":              20
     },
     
     "playeranims": {

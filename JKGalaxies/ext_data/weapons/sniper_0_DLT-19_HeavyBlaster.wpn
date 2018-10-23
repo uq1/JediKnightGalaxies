@@ -65,9 +65,9 @@
     },
     
     "firemode0": {
-        "damage":       90,
-        "ammocost":     10,
-        "firedelay":    900,
+        "damage":       82,
+        "ammocost":     5,
+        "firedelay":    800,
         "firingtype":   "semi",
         "range":        8000.0,
         "recoil":       1.4,
@@ -78,7 +78,7 @@
         "splashmeansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_L",
 	"ammodefault": "AMMO_POWERPACK_M",
-        "clipSize":              60,
+        "clipSize":              40,
         "accuracy": {
         	"accuracyRating": 20,
         	"accuracyRatingPerShot": 5,
@@ -95,7 +95,7 @@
     "firemode1": {
         "damage":       19,
         "ammocost":     1,
-        "firedelay":    300,
+        "firedelay":    225,
         "firingtype":   "semi",
         "range":        4000.0,
         "recoil":       0.5,
@@ -105,7 +105,7 @@
         "meansofdeath": "MOD_BLASTER",
 	"ammobase": "AMMO_POWERPACK_L",
 	"ammodefault": "AMMO_POWERPACK_M",
-        "clipSize":              60,
+        "clipSize":              40,
         "accuracy": {
         	"accuracyRating": 40,
         	"accuracyRatingPerShot": 2,

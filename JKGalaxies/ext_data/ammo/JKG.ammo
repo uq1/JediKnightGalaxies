@@ -273,7 +273,7 @@
 	},
 	
 	//Baktoid Combat Automata no longer exists, absorbed by the empire, BlasTech Industries produces missiles compatible with the E-60R
-	"AMMO_ROCKETS": {
+	"AMMO_ROCKETS_60R": {
 		"shortname": "Rockets",
 		"longname": "BlasTech Industries Rockets",
 		"max": 25,

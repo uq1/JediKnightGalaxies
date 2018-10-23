@@ -3,7 +3,6 @@
 // (c) 2013 Jedi Knight Galaxies
 
 #pragma once
-
 #include "qcommon/q_shared.h"
 
 #define MAX_AMMO_NAME	32
