@@ -6,7 +6,7 @@
 	"weapon":		"WP_DISRUPTOR",
 	"variation":		"3",
 	"weight":		"6",
-	"cost":		"1350",
+	"cost":		"1250",
 	"xml":			"xml/items/ACP_Rifle_Holo.xml",
 	"itemIcon":		"models/weapons/A200_ACP_BattleRifle/icon_tube"
 }

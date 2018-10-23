@@ -59,16 +59,14 @@
     
     "stats": {
         "slot":         2,
-        "reloadtime":   1000,
+        "reloadtime":   2000,
         "ammoIndex":         "powerpak",
-        "ammoOnSpawn":   80,
-        "ammoOnPickup":   16,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
     
     "firemode0": {
-        "damage":       40,
+        "damage":       30,
         "ammocost":     1,
         "firedelay":    300,
         "firingtype":   "semi",
@@ -86,7 +84,15 @@
     },
     
     "firemode1": {
-			"damage":       20,
+        "damage": {
+		"damage": 20//15,
+//		"buffs": [
+//			{
+//				"buff": "standard-slow",
+//				"duration": 1000
+//			}
+//		]
+	},
         "ammocost":     1,
         "firedelay":    200,
         "firingtype":   "semi",

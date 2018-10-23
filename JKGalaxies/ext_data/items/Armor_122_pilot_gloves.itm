@@ -4,6 +4,6 @@
 	"itemtype":             "armor",
 	"armor":		"rpgloves",
 	"weight":		"2",
-	"cost":			"100",
+	"cost":			"50",
 	"itemIcon":		"gfx/item_icons/default.tga"
 }

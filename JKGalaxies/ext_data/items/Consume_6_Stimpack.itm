@@ -1,12 +1,9 @@
 {
-	"name":             "Large Bacta Canister",
+	"name":             "BioTech Medium Bacta Canister",
 	"internal":             "bacta_medium",
-	"cost":		"75",
+	"cost":		"30",
 	"itemtype":             "consumable",
-
-	"maxStack":		2,
-
+	"maxStack":		7,
 	"consumeScript":	"item_bacta_medium",
-
 	"itemIcon":		"gfx/item_icons/bacta_big.tga"
 }

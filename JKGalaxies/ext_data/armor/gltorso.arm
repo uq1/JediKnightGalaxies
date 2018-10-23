@@ -1,7 +1,7 @@
 {
 	"ref":		"gltorso",
 	"slot":		"torso",
-	"armor":		35,
+	"armor":		85,
 	"movemodifier":	0.9,
 
 	"visuals": {

@@ -4,6 +4,6 @@
 	"itemtype":             "armor",
 	"armor":		"sthelmet_rusty",
 	"weight":		"2",
-	"cost":			"350",
+	"cost":			"150",
 	"itemIcon":		"gfx/item_icons/stormtrooper_helmet.tga"
 }

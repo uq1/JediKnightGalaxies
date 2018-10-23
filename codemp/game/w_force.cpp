@@ -2893,8 +2893,7 @@ qboolean CanCounterThrow(gentity_t *self, gentity_t *thrower, qboolean pull)
 		return 0;
 	}
 
-	if (self->client->ps.weaponstate == WEAPON_CHARGING ||
-		self->client->ps.weaponstate == WEAPON_CHARGING_ALT)
+	if (self->client->ps.weaponstate == WEAPON_CHARGING)
 	{ //don't autodefend when charging a weapon
 		return 0;
 	}
@@ -3437,7 +3436,6 @@ void ForceThrow( gentity_t *self, qboolean pull )
 			if ( push_list[x]->client )
 			{//FIXME: make enemy jedi able to hunker down and resist this?
 				int otherPushPower = push_list[x]->client->ps.fd.forcePowerLevel[powerUse];
-				qboolean canPullWeapon = qtrue;
 				float dirLen = 0;
 
 				if ( g_debugMelee.integer )
@@ -3495,7 +3493,6 @@ void ForceThrow( gentity_t *self, qboolean pull )
 					if (otherPushPower >= modPowerLevel || push_list[x]->flags & FL_NO_KNOCKBACK)
 					{
 						pushPowerMod = 0;
-						canPullWeapon = qfalse;
 					}
 					else
 					{

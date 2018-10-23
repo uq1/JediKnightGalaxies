@@ -5,7 +5,7 @@
 		"longname": "Shotgun Slugthrower Packs",
 		"basedOn": "AMMO_SLUGS",
 		"max": 100,
-		"pricePerUnit": 25,
+		"pricePerUnit": 70,
 		"overrides": {
 			"damage": {
 				"multiply": 0.7
@@ -33,11 +33,14 @@
 		"shortname": "Explosive Slugs",
 		"longname": "Explosive Round Slugthrower Packs",
 		"basedOn": "AMMO_SLUGS",
-		"max": 50,
+		"max": 60,
 		"pricePerUnit": 100,
 		"overrides": {
 			"Damage": {
-				"multiply": 1.5
+				"set": 30
+			},
+			"SplashRange": {
+				"set": 400
 			},
 			"ammocost": {
 				"multiply": 5
@@ -62,5 +65,34 @@
 				}
 			}
 		}
+	},
+	"AMMO_SLUGS_MEDICINAL":
+	{
+		"shortname": "Medicinal Slugs",
+		"longname": "Medicinal Healing Slugthrower Beads",
+		"basedOn": "AMMO_SLUGS",
+		"max": 60,
+		"pricePerUnit": 25,
+		"overrides": {
+			"Damage": {
+				"set": -7
+			},
+			"ammocost": {
+				"multiply": 2
+			},
+			"speed": {
+				"set": 1000
+			},
+			"buffs": [
+				{
+				"buff": "standard-heal",
+				"duration": 10000,
+				"intensity": 1.5
+				}
+			]
+		
+		
+		}
+	
 	}
 }

@@ -3,7 +3,7 @@
 	"internal":	"shield_sorusuub",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/Item_Icons/psd_beltloop_s_glow",
-	"cost":		"1175",
+	"cost":		"1275",
 	
 	"capacity":	75,
 	"cooldown":	0,

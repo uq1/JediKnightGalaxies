@@ -59,7 +59,6 @@ void NPC_ConversationAnimation(gentity_t *NPC)
 
 void NPC_StormTrooperConversation()
 {
-	int				role = NPC->NPC->conversationRole;
 	int				section = NPC->NPC->conversationSection;
 	int				part = NPC->NPC->conversationPart;
 	vec3_t			origin, angles;

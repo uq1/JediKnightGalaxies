@@ -358,6 +358,7 @@ void Cmd_Pay_f(gentity_t* ent) {
 	vec3_t traceStart, traceEnd, forward;
 	char creditBuffer[MAX_STRING_CHARS];
 	int credits;
+	int limit;
 
 	if (trap->Argc() != 2) {
 		trap->SendServerCommand(ent - g_entities, "print \"Usage: /pay <# of credits, or \"all\">\n\"");
@@ -369,18 +370,45 @@ void Cmd_Pay_f(gentity_t* ent) {
 	if (!Q_stricmp(creditBuffer, "all")) {
 		credits = ent->client->ps.credits;
 	}
-	else {
+	else 
 		credits = atoi(creditBuffer);
 
-		if (credits <= 0) {
-			trap->SendServerCommand(ent - g_entities, "print \"You can't pay that amount of money.\n\"");
-			return;
-		}
-		else if (credits > ent->client->ps.credits) {
-			trap->SendServerCommand(ent - g_entities, "print \"You can't afford that!\n\"");
-			return;
+	limit = ent->client->ps.credits + ent->client->ps.spent - jkg_startingCredits.integer;	//how much "earned" money do we actually have?
+
+	//handle passive credits if enabled
+	if (jkg_passiveCreditsAmount.integer > 0)
+	{
+		int delta = level.time - level.startTime;	//how long has the match been going?
+		//if we joined at least jkg_passiveCreditsWait late (typically 1 minute)
+		if (delta > jkg_passiveCreditsWait.integer)
+		{
+			int reward  = (jkg_passiveCreditsAmount.integer * (delta / jkg_passiveCreditsRate.integer));				//calculate amount we would have got
+			if (jkg_passiveCreditsWait.integer > jkg_passiveCreditsRate.integer)
+				reward -= (jkg_passiveCreditsAmount.integer * (jkg_passiveCreditsWait.integer / jkg_passiveCreditsRate.integer)) - jkg_passiveCreditsAmount.integer;		//minus the initial wait before credits are disbursed*/
+
+			limit -= reward;		//subtract passively earned money
 		}
 	}
+
+	if (credits <= 0) {
+		trap->SendServerCommand(ent - g_entities, "print \"You can't pay that amount of money.\n\"");
+		return;
+	}
+	if (limit < 1)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"You have not earned enough credits to use /pay yet.\n\"");
+		return;
+	}
+	if (credits > limit)
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"You can't afford that!  You can only pay up to %i credits.\n\"", limit));
+		return;
+	}
+	if (credits > ent->client->ps.credits) {
+		trap->SendServerCommand(ent - g_entities, "print \"You can't afford that!\n\"");
+		return;
+	}
+	
 
 	AngleVectors(ent->client->ps.viewangles, forward, nullptr, nullptr);
 	traceEnd[0] = ent->client->ps.origin[0] + forward[0] * PAY_DISTANCE;
@@ -402,6 +430,7 @@ void Cmd_Pay_f(gentity_t* ent) {
 
 	gentity_t* target = &g_entities[tr.entityNum];
 	target->client->ps.credits += credits;
+	ent->client->ps.spent += credits;		//paying other players counts as buying something!
 	ent->client->ps.credits -= credits;
 
 	trap->SendServerCommand(ent - g_entities, va("print \"You paid %i to %s\n\"", credits, target->client->pers.netname));
@@ -884,6 +913,33 @@ void Cmd_ItemCheck_f(gentity_t *ent)
 	trap->SendServerCommand(ent-g_entities, va("print \"%s refers to an item that does not exist!\n\"", buffer));
 }
 
+/*
+========================
+CustomVendorSounds
+does the npc have custom sounds?
+
+========================
+*/
+qboolean CustomVendorSounds(gentity_t *conversationalist, char *name)
+{
+	fileHandle_t	f;
+	char			filename[256];
+
+	strcpy(filename, va("sound/vendor/%s/%s.mp3", conversationalist->NPC_type, name));
+
+	trap->FS_Open(filename, &f, FS_READ);
+
+	if (!f)
+	{// End of conversation...
+		trap->FS_Close(f);
+		return qfalse;
+	}
+
+	trap->FS_Close(f);
+
+	return qtrue;
+}
+
 
 /*
 ==================
@@ -923,8 +979,23 @@ void Cmd_BuyItem_f(gentity_t *ent)
 		trap->SendServerCommand(ent - g_entities, "print \"You do not have enough credits to purchase that item.\n\"");
 
 		//select random unhappy vendor sound to play
-		snd = va("sound/vendor/generic/purchasefail0%i.mp3", Q_irand(0, 5));
-		G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd));	//play sound
+		if (CustomVendorSounds(trader, "purchasefail00"))
+		{// This NPC has it's own vendor specific sound(s)...
+			char	filename[256];
+			int		max = 1;
+
+			while (CustomVendorSounds(trader, va("purchasefail0%i", max))) max++;
+
+			strcpy(filename, va("sound/vendor/%s/purchasefail0%i.mp3", trader->NPC_type, irand(0, max - 1)));
+			G_Sound(trader, CHAN_AUTO, G_SoundIndex(filename));
+		}
+
+		//if not custom vendor, use the generic one
+		else
+		{
+			snd = va("sound/vendor/generic/purchasefail0%i.mp3", Q_irand(0, 5));
+			G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd));	//play sound
+		}
 		return;
 	}
 
@@ -934,6 +1005,7 @@ void Cmd_BuyItem_f(gentity_t *ent)
 		BG_SendTradePacket(IPT_TRADESINGLE, ent, trader, pItem, pItem->id->baseCost, 0);
 		BG_GiveItemNonNetworked(ent, *pItem);
 	}
+	ent->client->ps.spent += pItem->id->baseCost;
 	ent->client->ps.credits -= pItem->id->baseCost;	// remove credits from player
 
 	if (pItem->id->itemType == ITEM_WEAPON) {
@@ -956,7 +1028,26 @@ void Cmd_BuyItem_f(gentity_t *ent)
 		BG_GiveAmmo(ent, BG_GetAmmo(pItem->id->ammoData.ammoIndex), qfalse, pItem->id->ammoData.quantity);
 	}
 
-	G_PreDefSound(ent->r.currentOrigin, PDSOUND_VENDORPURCHASE);
+	//play purchase sound
+	{
+		char* snd;
+
+		//select random unhappy vendor sound to play
+		if (CustomVendorSounds(trader, "purchase00"))
+		{// This NPC has it's own vendor specific sound(s)...
+			char	filename[256];
+			int		max = 1;
+
+			while (CustomVendorSounds(trader, va("purchase0%i", max))) max++;
+
+			strcpy(filename, va("sound/vendor/%s/purchase0%i.mp3", trader->NPC_type, irand(0, max - 1)));
+			G_Sound(trader, CHAN_AUTO, G_SoundIndex(filename));
+		}
+
+		//if not custom vendor, use the generic one
+		else
+			G_PreDefSound(ent->r.currentOrigin, PDSOUND_VENDORPURCHASE);
+	}
 
 	// Tell other clients, if the item is not too cheap 
 	if (jkg_buyAnnounce.integer > 0)
@@ -964,7 +1055,9 @@ void Cmd_BuyItem_f(gentity_t *ent)
 		char* sendStr = va("cbi %i %s", pItem->id->itemID, ent->client->pers.netname);
 		if (pItem->id->baseCost >= jkg_buyAnnounceThreshold.integer)
 		{
-			if (jkg_buyAnnounce.integer == 1)
+			if (jkg_buyAnnounce.integer <= 0)
+				;	//don't announce anything
+			else if (jkg_buyAnnounce.integer == 1)
 			{
 				// Announce ONLY to the same team !
 				for (int i = 0; i < level.numConnectedClients; i++)
@@ -1786,19 +1879,6 @@ void SetTeam( gentity_t *ent, char *s ) {
 	client->sess.spectatorState = specState;
 	client->sess.spectatorClient = specClient;
 
-	client->sess.teamLeader = qfalse;
-	if ( team == TEAM_RED || team == TEAM_BLUE ) {
-		teamLeader = TeamLeader( team );
-		// if there is no team leader or the team leader is a bot and this client is not a bot
-		if ( teamLeader == -1 || ( !(g_entities[clientNum].r.svFlags & SVF_BOT) && (g_entities[teamLeader].r.svFlags & SVF_BOT) ) ) {
-			//SetLeader( team, clientNum );
-		}
-	}
-	// make sure there is a team leader on the team the player came from
-	if ( oldTeam == TEAM_RED || oldTeam == TEAM_BLUE ) {
-		CheckTeamLeader( oldTeam );
-	}
-
 	BroadcastTeamChange( client, oldTeam );
 
 	//make a disappearing effect where they were before teleporting them to the appropriate spawn point,
@@ -1895,6 +1975,16 @@ void Cmd_Team_f( gentity_t *ent ) {
 		return;
 	}
 
+	//if teams are locked, and its been more than 20% of the match, and we didn't connect in the last 3 minutes
+	if (timelimit.integer > 0)
+	{
+		if (g_teamsLocked.integer > 0 && ((timelimit.integer * 60000 * 0.2) < level.time) && (level.time - ent->client->sess.connTime > 60000 * 3))
+		{
+			trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TEAMSLOCKED")));
+			return;
+		}
+	}
+
 	if (gEscaping)
 	{
 		return;
@@ -1920,9 +2010,16 @@ void Cmd_Team_f( gentity_t *ent ) {
 
 	SetTeam( ent, s );
 
+	
+	int timeout = 1;
+	if (g_teamSwitchTime.integer > 0)
+	{
+		timeout = g_teamSwitchTime.integer;
+	}
+
 	// fix: update team switch time only if team change really happend
 	if (oldTeam != ent->client->sess.sessionTeam)
-		ent->client->switchTeamTime = level.time + 5000;
+		ent->client->switchTeamTime = level.time + (timeout * 1000);
 }
 
 
@@ -1930,6 +2027,32 @@ void Cmd_Team_f( gentity_t *ent ) {
 //==========================================================
 // INVENTORY RELATED COMMANDS
 //==========================================================
+
+//damage & healing plums copied from g_combat
+/*
+===========
+PlumItems
+===========
+*/
+
+void PlumItems(gentity_t *ent, vec3_t origin, int damage, int meansOfDeath, int shield, qboolean weak)
+{
+	meansOfDamage_t* means = JKG_GetMeansOfDamage(meansOfDeath);
+
+	if (means->plums.noDamagePlums)
+	{	// this means of death has no damage plums 
+		return;
+	}
+
+	if (ent->damagePlumTime != level.time) {
+		ent->damagePlum = G_TempEntity(origin, EV_DAMAGEPLUM);
+		ent->damagePlumTime = level.time;
+	}
+	ent->damagePlum->s.time = damage;
+	ent->damagePlum->s.eventParm = meansOfDeath;
+	ent->damagePlum->s.generic1 = shield;
+	ent->damagePlum->s.groundEntityNum = weak;
+}
 
 /*
 =================
@@ -1960,7 +2083,19 @@ void JKG_Cmd_ItemAction_f(gentity_t *ent, int itemNum)
 		//Nope.
 		return;
 	}
+
+	int initHP = ent->client->ps.stats[STAT_HEALTH];    //get initial health before consuming item		--futuza: this is a hacky way of doing it, really needs a LUA function to figure this out
 	BG_ConsumeItem(ent, itemNum);
+	int endHP = ent->client->ps.stats[STAT_HEALTH];   //get final health after consuming item
+
+	int take = endHP - initHP;
+	if (take != 0)
+	{
+		if (take > 0)
+			PlumItems(ent, ent->r.currentOrigin, take, JKG_GetMeansOfDamageIndex("MOD_CURED"), 0, take <= (ent->s.maxhealth / 4));
+		else
+			PlumItems(ent, ent->r.currentOrigin, -take, JKG_GetMeansOfDamageIndex("MOD_POISONED"), 0, -take <= (ent->s.maxhealth / 4));	//take is negated (to pass correct parameters
+	}
 }
 
 /*
@@ -2145,7 +2280,7 @@ void Cmd_SellItem_f(gentity_t *ent)
 				return;
 			}
 			else {
-				creditAmount = 2;
+				creditAmount = 2;		//--futuza: fixme, we need to warn the player that starter guns are worth only 1 credit - BEFORE they sell it
 			}
 		}
 	}
@@ -3736,7 +3871,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	}
 
     // Can't reload while charging the weapon
-	if ( ent->client->ps.weaponstate == WEAPON_CHARGING || ent->client->ps.weaponstate == WEAPON_CHARGING_ALT )
+	if ( ent->client->ps.weaponstate == WEAPON_CHARGING )
 	{
 		return;
 	}
@@ -4393,6 +4528,7 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 	int myCredits = ent->client->ps.credits;
 	int cost;
 	int totalCost = 0, numFiringModesFilled = 0, numUnitsPurchased = 0;
+	int perUnitCost = 0;
 
 	gentity_t* trader = ent->client->currentTrader;
 	if (trader == nullptr)
@@ -4434,20 +4570,70 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 		if (unitsRequested <= 0) {
 			continue; // our ammo is full
 		}
-		if (myCredits < ammo->pricePerUnit) {
-			continue; // we don't have enough money to afford one unit of ammo
+
+		//if its the starting weapon, ammo is free
+		if (!Q_stricmp(item.id->internalName, level.startingWeapon))
+		{
+			perUnitCost = 0;
+		}
+		else
+			perUnitCost = ammo->pricePerUnit;
+
+		if (myCredits == 0 && perUnitCost == 0)
+			;
+		else
+		{
+			if (myCredits < perUnitCost) {
+				continue; // we don't have enough money to afford one unit of ammo
+			}
 		}
 
-		cost = ammo->pricePerUnit * unitsRequested;
+		cost = perUnitCost * unitsRequested;
+
+		
+		//if passiveUnderdogBonus is enabled and our team is losing, our ammo is discounted!  Awww, thanks vendor!  
+		if (jkg_passiveUnderdogBonus.integer > 0)	//--Futuza: this is only done game logic side, and needs to be added to the display in jkg_shop.cpp because right now it will just display the usual price
+		{
+			//who is currently winning?
+			auto my_team = ent->client->sess.sessionTeam;
+			int curr_winner = -1;
+			if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
+				curr_winner = TEAM_RED;
+			else if (level.teamScores[TEAM_RED] < level.teamScores[TEAM_BLUE])
+				curr_winner = TEAM_BLUE;
+			else
+				curr_winner = -1;	//tie
+
+			//we're losing - give us discount ammo please!
+			if (my_team != curr_winner && curr_winner != -1)
+			{
+				float ammoAdjust = 0.9;
+
+				//evaluate how badly the losing team is losing by and reduce ammo accordingly
+				int diff = level.teamScores[curr_winner] - level.teamScores[my_team];
+				ammoAdjust = (1 - (float)diff / level.teamScores[curr_winner]);
+
+				if (ammoAdjust > 0.9)	//minimum discount is 10% off
+					ammoAdjust = 0.9;
+
+				if (ammoAdjust < 0.25)
+					ammoAdjust = 0.25;		//maximum discount is 75% off
+
+				cost = cost * ammoAdjust;
+				if (cost < 1)
+					cost = 1;
+			}
+		}
 
 		if (cost > myCredits) {
 			// We can't fill it all the way, so fill it as much as we can
 			cost = myCredits;
-			unitsRequested = floor(cost / ammo->pricePerUnit);
-			cost = unitsRequested * ammo->pricePerUnit;
+			unitsRequested = floor(cost / perUnitCost);
+			cost = unitsRequested * perUnitCost;
 		}
 
 		// Buy the ammo and update stats
+		ent->client->ps.spent += cost;
 		ent->client->ps.credits -= cost;
 		myCredits -= cost;
 		ent->client->ammoTable[ammo->ammoIndex] += unitsRequested;

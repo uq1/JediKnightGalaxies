@@ -1,7 +1,7 @@
 {
 	"ref":		"stgloves",
 	"slot":		"gloves",
-	"armor":		10,
+	"armor":		50,
 	"movemodifier":	1.0,
 
 	"visuals": {

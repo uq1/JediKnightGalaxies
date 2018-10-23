@@ -39,26 +39,6 @@
             "projectilefx": "explosives/shot_rpg",
             "miss":         { "impactfx": "explosives/demomedium" },
             "hit":          { "impactfx": "explosives/demomedium" }
-        },
-        
-        "firemode1": {
-            "type":         "blaster",
-            
-            "muzzlefx":     "slugthrowers/muzzleflash_big",
-            "firesound":    [
-                "sound/weapons/slugthrowers/rocketlauncher1.wav",
-                "sound/weapons/slugthrowers/rocketlauncher1.wav",
-                "sound/weapons/slugthrowers/rocketlauncher2.wav",
-                "sound/weapons/slugthrowers/rocketlauncher3.wav",
-                "sound/weapons/slugthrowers/rocketlauncher4.wav",
-                "sound/weapons/slugthrowers/rocketlauncher5.wav",
-                "sound/weapons/slugthrowers/rocketlauncher6.wav"
-            ],
-            "projectilemodel": "models/ammo/rocket1_proj.md3",
-            "runsound":     "sound/weapons/slugthrowers/rocketlauncher_loop.wav",
-            "projectilefx": "explosives/shot_rpg",
-            "miss":         { "impactfx": "explosives/demomedium" },
-            "hit":          { "impactfx": "explosives/demomedium" }
         }
     },
     
@@ -84,8 +64,8 @@
         "projectileclass":"rocket_proj",
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION",
-	"ammobase": "AMMO_ROCKETS",
-	"ammodefault": "AMMO_ROCKETS",
+	"ammobase": "AMMO_ROCKETS_60R",
+	"ammodefault": "AMMO_ROCKETS_60R",
         "clipSize":              1,
             "accuracy": {
         "accuracyRating": 52,

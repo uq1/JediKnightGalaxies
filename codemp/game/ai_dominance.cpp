@@ -783,7 +783,6 @@ AIMod_CreateNewRoute ( gentity_t *ent )
 	int				wp = DOM_GetBestWaypoint( ent->r.currentOrigin, ent->s.number, -1 );
 	int				goal_wp;
 	wpobject_t		*my_wp = NULL;
-	wpobject_t		*my_wp_goal = NULL;
 
 	if (wp < 0)
 	{
@@ -813,7 +812,6 @@ AIMod_CreateNewRoute ( gentity_t *ent )
 		}
 
 		goal_wp = DOM_GetNearestWP( goal->r.currentOrigin, -1 );
-		my_wp_goal = NULL;
 
 		if (goal_wp < 0)
 		{
@@ -821,8 +819,6 @@ AIMod_CreateNewRoute ( gentity_t *ent )
 			tries++;
 			continue;
 		}
-
-		my_wp_goal = gWPArray[goal_wp];
 		
 		ent->pathsize = ASTAR_FindPathFast(wp, goal_wp, ent->pathlist, qtrue);
 
@@ -2792,7 +2788,7 @@ int DOM_GetNearestVisibleWP_NOBOX(vec3_t org, int ignore, int badwp)
 	float bestdist;
 	float flLen;
 	int bestindex;
-	vec3_t a, mins, maxs;
+	vec3_t a;
 
 	i = 0;
 	if (RMG.integer)
@@ -2805,13 +2801,6 @@ int DOM_GetNearestVisibleWP_NOBOX(vec3_t org, int ignore, int badwp)
 				   //don't trace over 800 units away to avoid GIANT HORRIBLE SPEED HITS ^_^
 	}
 	bestindex = -1;
-
-	mins[0] = -15;
-	mins[1] = -15;
-	mins[2] = -1;
-	maxs[0] = 15;
-	maxs[1] = 15;
-	maxs[2] = 1;
 
 	while (i < gWPNum)
 	{
@@ -4365,8 +4354,7 @@ gentity_t *DOM_GetRandomCloseEntityForJump(vec3_t origin)
 
 		ent = &g_entities[i];
 
-		if (!ent) continue;
-		if (!ent->classname || !ent->classname[0]) continue;
+		if (!ent->inuse) continue;
 
 		dist = Distance(ent->s.origin, origin);
 
@@ -4378,7 +4366,7 @@ gentity_t *DOM_GetRandomCloseEntityForJump(vec3_t origin)
 	}
 
 	if (NUM_IN_RANGE_ENTITIES > 0)
-		return &g_entities[Q_irand(0, NUM_IN_RANGE_ENTITIES-1)];
+		return &g_entities[IN_RANGE_ENTITIES[Q_irand(0, NUM_IN_RANGE_ENTITIES-1)]];
 
 	return NULL;
 }

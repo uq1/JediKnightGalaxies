@@ -35,6 +35,8 @@ struct jkgBuffCanceling_t
 struct jkgBuffDamage_t
 {
 	int			damage;
+	qboolean	percentage;		//if true, interpret damage as a % based on current health (eg: 5% of 100 = 5dmg), instead of a hard value
+	qboolean	deadly;			//if the buff should be allowed to do last hits, true by default
 	int			meansOfDeath;
 	int			damageRate;		// how often, in ms, to damage the player
 };

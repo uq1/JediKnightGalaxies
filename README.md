@@ -9,14 +9,14 @@
 
 
 #### Downloads ####
-[Binaries](http://jkhub.org/files/file/2544-jedi-knight-galaxies-binaries/) , [Assets](http://jkhub.org/files/file/2543-jedi-knight-galaxies-assets/) , 
-[Map Bundle #1](http://jkhub.org/files/file/2652-jedi-knight-galaxies-map-bundle-1/) , [Preview Release (v1.30b)](https://jkhub.org/topic/9963-released-jkgalaxies-130b-preview-version/)
+[Binaries](https://github.com/JKGDevs/JediKnightGalaxies/releases/tag/Version1.3.18) , [Assets](https://uvu.box.com/shared/static/z1j68r0v1m15v03ergfidtm3somp5ce2.zip) , 
+[Map Bundle #1](http://jkhub.org/files/file/2652-jedi-knight-galaxies-map-bundle-1/) , [Latest Release News (v1.3.18)](https://jkhub.org/topic/10781-upcoming-jkgalaxies-1318-preview-version/)
 
 Please use discretion when making issue requests on GitHub. The forum is a better place for larger discussions on changes that aren't actually bugs.
 
 
 ### What is Jedi Knight Galaxies? ###
-Jedi Knight Galaxies is an immersive, competitive and innovative multiplayer shooter, played out in the Star Wars universe. Currently a full conversion mod, the project was originally based on and modified from Raven Software’s [Jedi Knight: Jedi Academy](https://en.wikipedia.org/wiki/Star_Wars_Jedi_Knight:_Jedi_Academy).  Jedi Knight Galaxies is open source and available completely free of charge; however, you will need the original game in order to play.  Jedi Academy is frequently available on [Steam](http://store.steampowered.com/app/6020/STAR_WARS_Jedi_Knight__Jedi_Academy/) and [GoG](https://www.gog.com/game/star_wars_jedi_knight_jedi_academy) during sales for less than $4. We aim to develop the project into a Large Multiplayer Online game, crossing traditional RPG (role playing game) elements with the fast paced excitement of an FPS (first person shooter).
+Jedi Knight Galaxies is a competitive and innovative multiplayer shooter, played out in the Star Wars universe. Currently a full conversion mod, the project was originally based on and modified from Raven Software’s [Jedi Knight: Jedi Academy](https://en.wikipedia.org/wiki/Star_Wars_Jedi_Knight:_Jedi_Academy).  Jedi Knight Galaxies is open source and available completely free of charge; however, you will need the original game in order to play.  Jedi Academy is frequently available on [Steam](http://store.steampowered.com/app/6020/STAR_WARS_Jedi_Knight__Jedi_Academy/) and [GoG](https://www.gog.com/game/star_wars_jedi_knight_jedi_academy) during sales for less than $4. We aim to develop the project into a Large Multiplayer Online game, crossing traditional RPG (role playing game) elements with the fast paced excitement of an FPS (first person shooter).
 
 The project will be released in phases, each building on to the previous one with more aspects of the final goal. The current Phase, JKG: Versus, was first released September 17th, 2012 as a public beta, showcasing the primary FPS elements of the game.  Subsequent updates and versions have been produced since then.  As development progresses, sandbox environments will be added, initial RPG elements will appear, and player vs. enemy combat will be implemented into the faction oriented gameplay. Improved dialog and cinematic features along with skills, powers, and more aspects that belong in a Role-Play Game will be developed, set between the events of Episode IV: A New Hope and Episode III: Revenge of the Sith. Finally, the full-fledged JKG: LMO takes the experience to a much grander level.
 
@@ -31,7 +31,7 @@ https://jkhub.org/topic/5600-compilation-guide/
 ## Installation of Game ##
 JKG is currently only available on Windows, but we have a mac version being worked on and hopefully a linux one soon.
 
-First, you need Jedi Academy installed. If you don't already own the game you can buy it from online stores such as [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN) or [Play](http://www.play.com/Games/PC/4-/127805/Star-Wars-Jedi-Knight-Jedi-Academy/Product.html?searchstring=jedi+academy&searchsource=0&searchtype=allproducts&urlrefer=search).
+First, you need Jedi Academy installed. If you don't already own the game you can buy it from online stores such as [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN), or [GOG](https://www.gog.com/game/star_wars_jedi_knight_jedi_academy).
 
 There are a few ways to actually install JKG itself, the simplest is to just get the [binaries](http://jkhub.org/files/file/2544-jedi-knight-galaxies-binaries/) and [assets](http://jkhub.org/files/file/2543-jedi-knight-galaxies-assets/), and then follow the directions in the readme included.  Please note that while we try to keep these relatively up to date, the github will always contain the most current version of the assets and binaries and you can always compile and pack the pk3s yourself to get a more up to date version.
 
@@ -80,13 +80,14 @@ These are very much subject to change, especially phases later than Versus.
 * The main features that are added here include the NPC system and fleshing out of the dialogue system. They also include overhauls to the chat systems, fonts, UI, and more.  Prep work for the leveling system and quest system to be introduced here.  We may also attempt some MoBA like features (still needs discussion).
 
 #### Phase 3: RPG ####
-* Open World RPG. The main features added here include quests, (more) minigames, and AI for existing minigames, like Pazaak. Also includes levelling up, experience, single person quests, large planet-themed maps, etc. This mode will mainly focus on implementing things from a single player's perspective.
+* Open World RPG. The main features added here include quests, (more) minigames, and AI for existing minigames, like Pazaak. Also includes levelling up, experience, single person quests, large planet-themed maps, character creator, fully fleshed out skill system etc. This mode will mainly focus on implementing things from a single player's perspective.  Data will be persistent and exist as long as the server is running.
 
 #### Phase 4: LMO ####
 * Features to the main game include group quests, Looking For Group system, and a lot of the dungeons that were designed for Phase 2 brought back. Includes a master server based architecture and functioning account system.  At this point, the game is pretty much done.
 * Later possible expansions: space battles, more worlds, additional minigames
 
 
-
+## Version Information ##
+JKG uses the following version schema: Phase.Major.Minor with an optional "patch" letter following the minor version for hotfixes (these are unplanned versions).  Phases represent collosal changes to the game (these are often called expansions in other games) that include major new features and gameplay changes and even engine changes!  Phases can considered seperate games.  Major versions represent completions of milestones that include several new features and bug fixes.  Minor versions represent small incremental changes within a milestone and usually represent a single new feature or bug fixes.  Other software produced by the developers (such as the launcher) uses its own versioning scheme and is not covered in this readme.
 
 This project is based on [OpenJK](https://github.com/JACoders/OpenJK)

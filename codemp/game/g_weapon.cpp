@@ -175,6 +175,9 @@ static	vec3_t	muzzle;
 #define ATST_SIDE_ALT_ROCKET_SIZE			5
 #define ATST_SIDE_ALT_ROCKET_SPLASH_SCALE	0.5f	// scales splash for NPC's
 
+#define MAX_PLACEABLE_CONSUME_WPNS			20		//default: 10 (used by tripmines and detonators)
+
+
 const weaponFireModeStats_t *GetEntsCurrentFireMode ( const gentity_t *ent )
 {
     const weaponData_t *weapon = GetWeaponData (ent->s.weapon, ent->s.weaponVariation);
@@ -212,7 +215,6 @@ void touch_GrenadeWithBouce( gentity_t *ent, gentity_t *other, trace_t *trace )
 }
 
 void laserTrapExplode( gentity_t *self );
-void RocketDie(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod);
 
 static int GetClipIndex ( unsigned int weapon, unsigned int variation, unsigned int firemode )
 {
@@ -355,41 +357,6 @@ void prox_mine_think( gentity_t *ent )
 	}
 }
 
-//-----------------------------------------------------------------------------
-static void WP_TraceSetStart( gentity_t *ent, vec3_t start, vec3_t mins, vec3_t maxs )
-//-----------------------------------------------------------------------------
-{
-	//make sure our start point isn't on the other side of a wall
-	trace_t	tr;
-	vec3_t	entMins;
-	vec3_t	entMaxs;
-
-	VectorAdd( ent->r.currentOrigin, ent->r.mins, entMins );
-	VectorAdd( ent->r.currentOrigin, ent->r.maxs, entMaxs );
-
-	if ( G_BoxInBounds( start, mins, maxs, entMins, entMaxs ) )
-	{
-		return;
-	}
-
-	if ( !ent->client )
-	{
-		return;
-	}
-
-	trap->Trace( &tr, ent->client->ps.origin, mins, maxs, start, ent->s.number, MASK_SOLID|CONTENTS_SHOTCLIP , 0, 0, 0);
-
-	if ( tr.startsolid || tr.allsolid )
-	{
-		return;
-	}
-
-	if ( tr.fraction < 1.0f )
-	{
-		VectorCopy( tr.endpos, start );
-	}
-}
-
 void WP_ExplosiveDie(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod)
 {
 	self->activator = attacker;
@@ -479,173 +446,6 @@ void thermalThinkStandard(gentity_t *ent)
 
 	G_RunObject( ent );
 	ent->nextthink = level.time;
-}
-
-//---------------------------------------------------------
-gentity_t *WP_FireThermalDetonator( gentity_t *ent, qboolean altFire )
-//---------------------------------------------------------
-{
-	gentity_t	*bolt;
-	vec3_t		dir, start;
-	float chargeAmount = 1.0f; // default of full charge
-	
-	VectorCopy( forward, dir );
-	VectorCopy( muzzle, start );
-
-	bolt = G_Spawn();
-	
-	bolt->physicsObject = qtrue;
-
-	bolt->classname = "thermal_detonator";
-	bolt->think = thermalThinkStandard;
-	bolt->nextthink = level.time;
-	bolt->touch = touch_NULL;
-
-	// How 'bout we give this thing a size...
-	VectorSet( bolt->r.mins, -3.0f, -3.0f, -3.0f );
-	VectorSet( bolt->r.maxs, 3.0f, 3.0f, 3.0f );
-	bolt->clipmask = MASK_SHOT;
-
-	W_TraceSetStart( ent, start, bolt->r.mins, bolt->r.maxs );//make sure our start point isn't on the other side of a wall
-
-	if ( ent->client )
-	{
-		chargeAmount = level.time - ent->client->ps.weaponChargeTime;
-	}
-
-	// get charge amount
-	chargeAmount = chargeAmount / ( float ) TD_VELOCITY;
-
-	if ( chargeAmount > 1.0f )
-	{
-		chargeAmount = 1.0f;
-	}
-	else if ( chargeAmount < TD_MIN_CHARGE )
-	{
-		chargeAmount = TD_MIN_CHARGE;
-	}
-
-	// normal ones bounce, alt ones explode on impact
-	bolt->genericValue5 = level.time + TD_TIME; // How long 'til she blows
-	bolt->s.pos.trType = TR_GRAVITY;
-	bolt->parent = ent;
-	bolt->r.ownerNum = ent->s.number;
-	VectorScale( dir, TD_VELOCITY * chargeAmount, bolt->s.pos.trDelta );
-
-	if ( ent->health >= 0 )
-	{
-		bolt->s.pos.trDelta[2] += 120;
-	}
-
-	if ( !altFire )
-	{
-		bolt->flags |= FL_BOUNCE_HALF;
-		bolt->flags |= FL_BOUNCE;
-	}
-
-	//bolt->s.loopSound = G_SoundIndex( "sound/weapons/thermal/thermloop.wav" );
-	//bolt->s.loopIsSoundset = qfalse;
-
-	bolt->damage = TD_DAMAGE;
-	bolt->dflags = 0;
-	bolt->splashDamage = TD_SPLASH_DAM;
-	bolt->splashRadius = TD_SPLASH_RAD;
-
-	bolt->s.eType = ET_MISSILE;
-	bolt->r.svFlags = SVF_USE_CURRENT_ORIGIN;
-	bolt->s.weapon = WP_THERMAL;
-
-	bolt->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
-	bolt->splashMethodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
-
-	bolt->s.pos.trTime = level.time;		// move a bit on the very first frame
-	VectorCopy( start, bolt->s.pos.trBase );
-	
-	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
-	VectorCopy (start, bolt->r.currentOrigin);
-
-	VectorCopy( start, bolt->pos2 );
-
-	bolt->bounceCount = -5;
-	return bolt;
-}
-
-
-// JKG - used when a player is killed who was holding a primed thermal detonator
-//---------------------------------------------------------
-gentity_t *WP_DropThermalDetonator( gentity_t *ent, qboolean altFire )
-//---------------------------------------------------------
-{
-	gentity_t	*bolt;
-	vec3_t		dir, start;
-	
-	VectorCopy( forward, dir );
-	VectorCopy( muzzle, start );
-
-	bolt = G_Spawn();
-	
-	bolt->physicsObject = qtrue;
-
-	bolt->classname = "thermal_detonator";
-	bolt->think = thermalThinkStandard;
-	bolt->nextthink = level.time;
-	bolt->touch = touch_NULL;
-
-	// How 'bout we give this thing a size...
-	VectorSet( bolt->r.mins, -3.0f, -3.0f, -3.0f );
-	VectorSet( bolt->r.maxs, 3.0f, 3.0f, 3.0f );
-	bolt->clipmask = MASK_SHOT;
-
-	W_TraceSetStart( ent, start, bolt->r.mins, bolt->r.maxs );//make sure our start point isn't on the other side of a wall
-
-	// normal ones bounce, alt ones explode on impact
-	bolt->genericValue5 = level.time + TD_TIME; // How long 'til she blows
-	bolt->s.pos.trType = TR_GRAVITY;
-	bolt->parent = ent;
-	bolt->r.ownerNum = ent->s.number;
-
-	if ( ent->health >= 0 )
-	{
-		bolt->s.pos.trDelta[2] += 120;
-	}
-
-	if ( !altFire )
-	{
-		bolt->flags |= FL_BOUNCE_HALF;
-	}
-
-	//bolt->s.loopSound = G_SoundIndex( "sound/weapons/thermal/thermloop.wav" );
-	//bolt->s.loopIsSoundset = qfalse;
-
-	bolt->damage = TD_DAMAGE;
-	bolt->dflags = 0;
-	bolt->splashDamage = TD_SPLASH_DAM;
-	bolt->splashRadius = TD_SPLASH_RAD;
-
-	bolt->s.eType = ET_MISSILE;
-	bolt->r.svFlags = SVF_USE_CURRENT_ORIGIN;
-	bolt->s.weapon = WP_THERMAL;
-
-	bolt->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
-	bolt->splashMethodOfDeath = JKG_GetMeansOfDamageIndex("MOD_EXPLOSION");
-
-	bolt->s.pos.trTime = level.time;		// move a bit on the very first frame
-	VectorCopy( start, bolt->s.pos.trBase );
-	
-	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
-	VectorCopy (start, bolt->r.currentOrigin);
-
-	VectorCopy( start, bolt->pos2 );
-
-	bolt->bounceCount = -5;
-
-	return bolt;
-}
-
-gentity_t *WP_DropThermal( gentity_t *ent )
-{
-	AngleVectors( ent->client->ps.viewangles, forward, vright, up );
-	return (WP_FireThermalDetonator( ent, qfalse ));
 }
 
 
@@ -1174,7 +974,7 @@ void WP_PlaceLaserTrap( gentity_t *ent, qboolean alt_fire )
 
 	laserTrap = G_Spawn();
 	
-	//limit to 10 placed at any one time
+	//limit to MAX_PLACEABLE_CONSUME_WPNS placed at any one time
 	//see how many there are now
 	while ( (found = G_Find( found, FOFS(classname), "laserTrap" )) != NULL )
 	{
@@ -1184,11 +984,11 @@ void WP_PlaceLaserTrap( gentity_t *ent, qboolean alt_fire )
 		}
 		foundLaserTraps[trapcount++] = found->s.number;
 	}
-	//now remove first ones we find until there are only 9 left
+	//now remove first ones we find until there are only max left
 	found = NULL;
 	trapcount_org = trapcount;
 	lowestTimeStamp = level.time;
-	while ( trapcount > 9)
+	while ( trapcount >= MAX_PLACEABLE_CONSUME_WPNS )
 	{
 		removeMe = -1;
 		for ( i = 0; i < trapcount_org; i++ )
@@ -1576,7 +1376,7 @@ void WP_DropDetPack( gentity_t *ent, qboolean alt_fire )
 		return;
 	}
 
-	//limit to 10 placed at any one time
+	//limit to MAX_PLACEABLE_CONSUME_WPNS placed at any one time
 	//see how many there are now
 	while ( (found = G_Find( found, FOFS(classname), "detpack" )) != NULL )
 	{
@@ -1586,11 +1386,11 @@ void WP_DropDetPack( gentity_t *ent, qboolean alt_fire )
 		}
 		foundDetPacks[trapcount++] = found->s.number;
 	}
-	//now remove first ones we find until there are only 9 left
+	//now remove first ones we find until there are only the max left
 	found = NULL;
 	trapcount_org = trapcount;
 	lowestTimeStamp = level.time;
-	while ( trapcount > 9 )
+	while ( trapcount >= MAX_PLACEABLE_CONSUME_WPNS )
 	{
 		removeMe = -1;
 		for ( i = 0; i < trapcount_org; i++ )
@@ -1938,7 +1738,6 @@ static void WP_FireEmplaced( gentity_t *ent, qboolean altFire )
 void emplaced_gun_use( gentity_t *self, gentity_t *other, trace_t *trace )
 {
 	vec3_t fwd1, fwd2;
-	float dot;
 	int oldWeapon;
 	gentity_t *activator = other;
 	float zoffset = 50;
@@ -1995,12 +1794,8 @@ void emplaced_gun_use( gentity_t *self, gentity_t *other, trace_t *trace )
 	// Get the guns direction vector
 	AngleVectors( self->pos1, fwd2, NULL, NULL );
 
-	dot = DotProduct( fwd1, fwd2 );
-
 	VectorSubtract(self->s.origin, activator->client->ps.origin, fwd1);
 	VectorNormalize(fwd1);
-
-	dot = DotProduct( fwd1, fwd2 );
 
 	self->genericValue1 = 1;
 
@@ -2690,15 +2485,11 @@ void WP_FireGenericTraceLine( gentity_t *ent, int firemode )
 		{
 			vec3_t	preAng;
 			int		preHealth	= traceEnt->health;
-			int		preLegs		= 0;
-			int		preTorso	= 0;
 			weaponFireModeStats_t *fireMode = (weaponFireModeStats_t*)GetEntsCurrentFireMode (ent);
 
 			/* Remember the legs/torse stance and client angles */
 			if ( traceEnt->client )
 			{
-				preLegs		= traceEnt->client->ps.legsAnim;
-				preTorso	= traceEnt->client->ps.torsoAnim;
 				VectorCopy( traceEnt->client->ps.viewangles, preAng );
 			}
 

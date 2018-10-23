@@ -255,7 +255,8 @@ void BG_SendItemPacket(itemPacketType_t packetType, gentity_t* ent, void* memDat
 			Com_sprintf(packet, sizeof(packet), "pInv %s %i ", packetName, intData);
 			{
 				for(auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
-					Com_sprintf(packet, sizeof(packet), "%s %i %i", packet, it->id->itemID, it->quantity);
+					// big thanks to Daggo for fixing this
+					Q_strncpyz(packet, va("%s %i %i", packet, it->id->itemID, it->quantity), sizeof(packet));
 				}
 			}
 			break;
@@ -935,7 +936,6 @@ qboolean BG_ConsumeItem(gentity_t* ent, int itemStackNum) {
 
 	GLua_ConsumeItem(ent, item);
 	BG_ChangeItemStackQuantity(ent, itemStackNum, item->quantity - consumeAmount);
-
 	return qtrue;
 }
 #endif

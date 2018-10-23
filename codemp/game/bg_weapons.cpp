@@ -282,7 +282,7 @@ void BG_InitializeWeapons ( void )
     numLoadedWeapons = 0;
 
     memset (numWeapons, 0, sizeof (numWeapons));
-    memset (weaponDataTable, 0, sizeof (weaponDataTable));
+    memset (weaponDataTable, 0, sizeof (weaponData_t) * MAX_WEAPON_TABLE_SIZE);
     
     BG_InitializeWeaponData (&predefinedWeapons);
     

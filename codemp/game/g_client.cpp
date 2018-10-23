@@ -974,29 +974,6 @@ team_t TeamCount( int ignoreClientNum, int team ) {
 	return (team_t)count;
 }
 
-/*
-================
-TeamLeader
-
-Returns the client number of the team leader
-================
-*/
-int TeamLeader( int team ) {
-	int		i;
-
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if ( level.clients[i].pers.connected == CON_DISCONNECTED ) {
-			continue;
-		}
-		if ( level.clients[i].sess.sessionTeam == team ) {
-			if ( level.clients[i].sess.teamLeader )
-				return i;
-		}
-	}
-
-	return -1;
-}
-
 
 /*
 ================
@@ -1709,7 +1686,6 @@ char *G_ValidateUserinfo( const char *userinfo )
 qboolean ClientUserinfoChanged( int clientNum ) {
 	gentity_t *ent = g_entities + clientNum;
 	gclient_t *client = ent->client;
-	int	teamLeader;
 	int team = TEAM_FREE;
 	int health = 100;
 	int maxHealth = 100;
@@ -1850,11 +1826,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 			client->pers.teamInfo = qfalse;
 		}
 	}
-
-	// team task (0 = none, 1 = offence, 2 = defence)
-//	teamTask = atoi(Info_ValueForKey(userinfo, "teamtask"));
-	// team Leader (1 = leader, 0 is normal player)
-	teamLeader = client->sess.teamLeader;
 
 	// colors
 	Q_strncpyz( c1, Info_ValueForKey( userinfo, "color1" ), sizeof( c1 ) );
@@ -2116,7 +2087,6 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	
 	client->ps.credits = jkg_startingCredits.integer-1;	// hack to give us our starting gear
 	client->storedCredits = jkg_startingCredits.integer-1;
-
 	return NULL;
 }
 
@@ -2147,6 +2117,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	// clear our inventory on ClientBegin because I forgot that this was a thing
 	trap->SendServerCommand(clientNum, "pInv clr");
 	ent->client->ps.credits = 0;
+	ent->client->ps.spent = 0;
 	if ((ent->r.svFlags & SVF_BOT) && g_gametype.integer >= GT_TEAM)
 	{
 		if (allowTeamReset)
@@ -2225,6 +2196,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 
 	client->pers.connected = CON_CONNECTED;
 	client->pers.enterTime = level.time;
+	client->pers.lastCreditTime = 0;
 	client->pers.teamState.state = TEAM_BEGIN;
 
 	// save eflags around this, because changing teams will
@@ -2698,7 +2670,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	char				userinfo[MAX_INFO_STRING];
 	forcedata_t			savedForce;
 	int					saveSaberNum = ENTITYNUM_NONE;
-	int					savedSiegeIndex = 0;
 	int					maxHealth;
 	saberInfo_t			saberSaved[MAX_SABERS];
 	int					l = 0;
@@ -2991,7 +2962,9 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	savedAmmoType = ent->client->ps.ammoType;
 	savedFiringMode = ent->client->ps.firingMode;
 
+	// <----- The client gets cleared out ----->
 	memset (client, 0, sizeof(*client)); // bk FIXME: Com_Memset?
+	// <--------------------------------------->
 
 	memcpy(client->ammoTable, savedAmmo, sizeof(savedAmmo));
 	memcpy(client->ammoTypes, savedAmmoTypes, sizeof(savedAmmoTypes));
@@ -3171,6 +3144,75 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 					{
 						itemInstance_t item = BG_ItemInstance(itemID, 1);
 						ent->client->ps.credits = jkg_startingCredits.integer;
+						ent->client->ps.spent = 0;
+
+						int delta = level.time - level.startTime;	//how long has the match been going?
+						//award missing passive credits if enabled
+						if (jkg_passiveCreditsAmount.integer > 0)
+						{
+							//award if we joined at least jkg_passiveCreditsWait late (typically 1 minute)
+							if (delta > jkg_passiveCreditsWait.integer)
+							{
+								int reward = 0;
+								reward = (jkg_passiveCreditsAmount.integer * (delta / jkg_passiveCreditsRate.integer));				//calculate amount we would have got
+								if (jkg_passiveCreditsWait.integer > jkg_passiveCreditsRate.integer)
+									reward -= (jkg_passiveCreditsAmount.integer * (jkg_passiveCreditsWait.integer / jkg_passiveCreditsRate.integer));		//minus the initial wait before credits are disbursed
+								client->ps.credits += reward;
+							}
+						}
+
+						//underdog reward if you join the losing team late
+						if (jkg_underdogBonus.integer > 0 && (delta > jkg_passiveCreditsWait.integer))
+						{
+							//who is currently winning?
+							auto my_team = ent->client->sess.sessionTeam; int curr_winner = -1; int money = 0;
+
+							if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
+								curr_winner = TEAM_RED;
+							else if (level.teamScores[TEAM_RED] < level.teamScores[TEAM_BLUE])
+								curr_winner = TEAM_BLUE;
+							else
+								curr_winner = -1;	//tie
+
+							//if we are the loser
+							if (my_team != curr_winner && my_team != TEAM_SPECTATOR && curr_winner != -1)
+							{
+								int score_diff = 0; 
+
+								//find score difference
+								if (my_team == TEAM_RED)
+									score_diff = level.teamScores[TEAM_BLUE] - level.teamScores[TEAM_RED];
+								else if (my_team == TEAM_BLUE)
+									score_diff = level.teamScores[TEAM_RED] - level.teamScores[TEAM_BLUE];
+								else
+									;
+
+								//calculate reward based on how much time in the match is left
+								float match_percent = ((delta / ((float)(timelimit.integer * 60000))) * 100);
+								if (30 <= match_percent && match_percent < 45)
+									money += (jkg_startingCredits.integer * 0.25);
+								else if (45 <= match_percent && match_percent < 60)
+									money += (jkg_startingCredits.integer * 0.4);
+								else if (60 <= match_percent && match_percent < 65)
+									money += (jkg_startingCredits.integer * 0.7);
+								else if (65 <= match_percent && match_percent < 70)
+									money += (jkg_startingCredits.integer * 0.8);
+								else if (70 <= match_percent && match_percent < 80)
+									money += jkg_startingCredits.integer;
+								else if (80 <= match_percent && match_percent < 101)
+									money += (jkg_startingCredits.integer * 0.25) + jkg_startingCredits.integer;
+								else
+									money += (jkg_startingCredits.integer * 0.10);
+
+								if ((score_diff < 3 && level.gametype != GT_CTF) || (level.gametype == GT_CTF && score_diff < 201))
+									money = money / 2;
+
+								trap->SendServerCommand(ent->s.number, va("notify 1 \"Underdog Bonus: +%i Credits\"", money));
+								client->ps.credits += money;
+							}
+
+						}
+
 						BG_GiveItem(ent, item, true);
 
 						// Give max ammo for both firing modes
@@ -3208,9 +3250,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 
 	// health will count down towards max_health
 	ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH];
-
-	client->ps.stats[STAT_MAX_SHIELD] = 100; // Default armor max
-	client->ps.stats[STAT_SHIELD] = 0;
 
 	G_SetOrigin( ent, spawn_origin );
 	VectorCopy( spawn_origin, client->ps.origin );
@@ -3347,7 +3386,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	if (!(ent->r.svFlags & SVF_BOT))
 		trap->SendServerCommand(ent->s.number, "dcr");
 
-	// Check for shield equipping
+	// Iterate through all items in the inventory and reequip stuff that might have been unequipped by clearing out the client data
 	if (ent->inventory) {
 		for (i = 0; i < ent->inventory->size(); i++) {
 			auto it = ent->inventory->begin() + i;
@@ -3357,7 +3396,34 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 			else if (it->equipped && it->id->itemType == ITEM_JETPACK) {
 				JKG_JetpackEquipped(ent, i);
 			}
+			else if (it->id->itemType == ITEM_WEAPON) {
+				// It's a weapon, automatically reload us
+				weaponData_t* wp = GetWeaponData(it->id->weaponData.weapon, it->id->weaponData.variation);
+
+				for (int j = 0; j < wp->numFiringModes; j++)
+				{
+					if (wp->firemodes[j].clipSize > 0)
+					{ // this fire mode has a clip, reload us
+						int diff = wp->firemodes[j].clipSize - ent->client->clipammo[it->id->weaponData.varID][j];
+						int ammoType = ent->client->ammoTypes[it->id->weaponData.varID][j];
+
+						if (diff > ent->client->ammoTable[ammoType])
+						{
+							diff = ent->client->ammoTable[ammoType];
+						}
+
+						// add to the ammo in this clip for this firing mode and subtract from the pooled ammo
+						ent->client->clipammo[it->id->weaponData.varID][j] += diff;
+						ent->client->ammoTable[ammoType] -= diff;
+					}
+				}
+			}
 		}
+	}
+
+	if (ent->client->shieldEquipped)
+	{
+		ent->client->ps.stats[STAT_SHIELD] = ent->client->ps.stats[STAT_MAX_SHIELD];
 	}
 
 	GLua_Hook_PlayerSpawned(ent->s.number);
@@ -3375,9 +3441,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 
 	// set their weapon
 	trap->SendServerCommand(client->ps.clientNum, "aciset 1");
-
-	// send important shop data to them ~eez
-	
 }
 
 

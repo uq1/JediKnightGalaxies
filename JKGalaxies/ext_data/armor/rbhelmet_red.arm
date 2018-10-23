@@ -1,7 +1,7 @@
 {
 	"ref":		"rbhelmet_red",
 	"slot":		"head",
-	"armor":		50,
+	"armor":		130,
 	"movemodifier":	1.0,
 
 	"visuals": {

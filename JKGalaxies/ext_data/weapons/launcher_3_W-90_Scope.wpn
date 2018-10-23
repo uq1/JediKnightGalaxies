@@ -73,7 +73,7 @@
         "firedelay":    1700,
         "firingtype":   "semi",
         "range":        40000.0,
-        "recoil":       9.0,
+        "recoil":       8.0,
         "spread":       0.1,
         "splashrange":  420,//210,
         "projectilespeed":13000.0,

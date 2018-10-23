@@ -4,6 +4,6 @@
 	"itemtype":             "armor",
 	"armor":		"swlegs",
 	"weight":		"2",
-	"cost":			"450",
+	"cost":			"550",
 	"itemIcon":		"gfx/item_icons/default.tga"
 }

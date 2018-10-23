@@ -914,11 +914,8 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	// Do special charge bits
 	//-----------------------
 	//Make the guns do their charging visual in True View.
-	if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number || cg_trueguns.integer) &&
-		( ( cent->currentState.modelindex2 == WEAPON_CHARGING_ALT && cent->currentState.weapon == WP_BRYAR_PISTOL ) ||
-		  ( cent->currentState.modelindex2 == WEAPON_CHARGING_ALT && cent->currentState.weapon == WP_BRYAR_OLD ) ||
-		  ( cent->currentState.weapon == WP_BOWCASTER && cent->currentState.modelindex2 == WEAPON_CHARGING ) ||
-		  ( cent->currentState.weapon == WP_DEMP2 && cent->currentState.modelindex2 == WEAPON_CHARGING_ALT) ) )
+	if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number || cg_trueguns.integer) && 
+		cent->currentState.modelindex2 == WEAPON_CHARGING )
 	{
 		int		shader = 0;
 		float	val = 0.0f;
@@ -2540,8 +2537,7 @@ void JKG_RenderGenericWeaponWorld ( centity_t *cent, const weaponDrawData_t *wea
 	// Do muzzle charge effects
 	if ( !isLocalPlayer || cg.renderingThirdPerson || cg_trueguns.integer )
 	{
-		if ( (s->modelindex2 == WEAPON_CHARGING || s->modelindex2 == WEAPON_CHARGING_ALT) &&
-				weaponData->weaponRender.generic.chargingEffect )
+		if ( s->modelindex2 == WEAPON_CHARGING && weaponData->weaponRender.generic.chargingEffect )
 		{
 			hasMuzzleLocation = qtrue;
 			JKG_GetMuzzleLocation (cent, angles, flashOrigin, flashDirection);
@@ -2981,8 +2977,7 @@ static void JKG_RenderGenericWeaponView ( const weaponDrawData_t *weaponData )
 
 	VectorCopy (muzzle.origin, cg.lastFPFlashPoint);
 
-	if ( (s->modelindex2 == WEAPON_CHARGING || s->modelindex2 == WEAPON_CHARGING_ALT) &&
-			weaponData->weaponRender.generic.chargingEffect )
+	if ( s->modelindex2 == WEAPON_CHARGING && weaponData->weaponRender.generic.chargingEffect )
 	{
 		JKG_RenderChargingEffect (
 			cent,

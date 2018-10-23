@@ -294,17 +294,11 @@ NPC_BSDroid_Pain
 */
 void NPC_Droid_Pain(gentity_t *self, gentity_t *attacker, int damage)
 {
-	gentity_t *other = attacker;
-	int		anim;
-	int		mod = gPainMOD;
-	float	pain_chance;
 
 	VectorCopy( self->NPC->lastPathAngles, self->s.angles );
 
 	if ( self->client->NPC_class == CLASS_R5D2 )
 	{
-		pain_chance = NPC_GetPainChance( self, damage );
-
 		// Put it in pain
 		/*if ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT || random() < pain_chance )	// Spin around in pain? Demp2 always does this
 		{
@@ -381,8 +375,6 @@ void NPC_Droid_Pain(gentity_t *self, gentity_t *attacker, int damage)
 	}
 	else if (self->client->NPC_class == CLASS_R2D2)
 	{
-
-		pain_chance = NPC_GetPainChance( self, damage );
 
 		/*if ( mod == MOD_DEMP2 || mod == MOD_DEMP2_ALT || random() < pain_chance )	// Spin around in pain? Demp2 always does this
 		{

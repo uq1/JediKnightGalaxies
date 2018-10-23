@@ -3,7 +3,7 @@
 	"internal":	"shield_knockoff1",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/Item_Icons/psd_knockoff_s_glow",
-	"cost":		"125",
+	"cost":		"115",
 	
 	"capacity":	25,
 	"cooldown":	5000,

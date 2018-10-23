@@ -67,7 +67,7 @@
     
     "firemode0": {
 	"damage": {
-		"damage": 97,
+		"damage": 75,
 		"buffs": [
 			{
 				"buff": "standard-bleed",
@@ -93,9 +93,9 @@
         	"accuracyRatingPerShot": 6,
         	"msToDrainAccuracy": 135,
         	"maxAccuracyAdd": 115,
-        	"crouchModifier": 0.9,
+        	"crouchModifier": 0.6,
         	"runModifier": 1.6,
-        	"sightsModifier": 0.7,
+        	"sightsModifier": 0.5,
         	"walkModifier": 1.4,
         	"inAirModifier": 1.8
         }

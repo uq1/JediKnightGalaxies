@@ -3,7 +3,7 @@
 	"internal":	"shield_blastech_imp",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/hud/psd_small",
-	"cost":		"400",
+	"cost":		"375",
 	
 	"capacity":	50,
 	"cooldown":	0,

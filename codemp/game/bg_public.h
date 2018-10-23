@@ -440,7 +440,6 @@ typedef enum {
 	WEAPON_DROPPING,
 	WEAPON_FIRING,
 	WEAPON_CHARGING,
-	WEAPON_CHARGING_ALT,
 	WEAPON_IDLE, //lowered		// NOTENOTE Added with saber
 	WEAPON_RELOADING, // added for reloading weapon
 } weaponstate_t;
@@ -1045,6 +1044,7 @@ typedef enum {
 	MOD_TRIGGER_HURT,
 	MOD_TELEFRAG,
 	MOD_TEAM_CHANGE,
+	MOD_HEAL,	//heals, not damage
 	MOD_SABER,
 	MOD_VIBROBLADE,
 	MOD_MELEE

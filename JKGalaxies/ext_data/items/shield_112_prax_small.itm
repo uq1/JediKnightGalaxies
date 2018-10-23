@@ -3,7 +3,7 @@
 	"internal":	"shield_prax_small",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/Item_Icons/psd_prax_s_glow",
-	"cost":		"950",
+	"cost":		"675",
 	
 	"capacity":	40,
 	"cooldown":	5000,

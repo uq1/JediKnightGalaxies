@@ -1313,7 +1313,6 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 		|| ent->client->ps.torsoTimer > 0
 		|| ent->client->ps.weaponTime > 0
 		|| ent->client->ps.weaponstate == WEAPON_CHARGING
-		|| ent->client->ps.weaponstate == WEAPON_CHARGING_ALT
 		|| ent->client->ps.zoomMode
 		|| (ent->client->ps.weaponstate != WEAPON_READY && ent->client->ps.weapon != WP_SABER)
 		|| ent->client->ps.forceHandExtend != HANDEXTEND_NONE
@@ -1331,7 +1330,6 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 			|| (ent->client->ps.weaponstate != WEAPON_READY && ent->client->ps.weapon != WP_SABER)
 			|| (ent->client->ps.weaponTime > 0 && ent->client->ps.weapon == WP_SABER)
 			|| ent->client->ps.weaponstate == WEAPON_CHARGING
-			|| ent->client->ps.weaponstate == WEAPON_CHARGING_ALT
 			|| ent->client->ps.forceHandExtend != HANDEXTEND_NONE
 			|| ent->client->ps.saberBlocked != BLOCKED_NONE
 			|| ent->client->ps.saberBlocking >= level.time
@@ -1372,8 +1370,7 @@ void G_CheckClientIdle( gentity_t *ent, usercmd_t *ucmd )
 			ent->client->idleTime = level.time;
 		}
 
-		if (brokeOut &&
-			(ent->client->ps.weaponstate == WEAPON_CHARGING || ent->client->ps.weaponstate == WEAPON_CHARGING_ALT))
+		if (brokeOut && ent->client->ps.weaponstate == WEAPON_CHARGING)
 		{
 			ent->client->ps.torsoAnim = TORSO_RAISEWEAP1;
 		}
@@ -1929,7 +1926,8 @@ void G_PM_SwitchWeaponClip(playerState_t *ps, int newweapon, int newvariation, u
 	// Determine whether our new weapon is valid.
 	int selectedWeapon = cmd.invensel;
 	if (selectedWeapon >= ent->inventory->size() || selectedWeapon < 0) {
-		Com_Printf("Client %i selected inventory item %i (their inventory is only size %i!!)\n", ps->clientNum, selectedWeapon, ent->inventory->size());
+		if(!ent->NPC)	//npcs are broke so don't warn us about them  --TEMP (needs a real fix for npcs to use jkg weapons)
+			Com_Printf("Client %i selected inventory item %i (their inventory is only size %i!!)\n", ps->clientNum, selectedWeapon, ent->inventory->size());
 		return;
 	}
 
@@ -2032,6 +2030,47 @@ void ClientThink_real( gentity_t *ent ) {
 					}
 				}
 			}
+		}
+	}
+
+	//JKG: passively gain credits over time, helps balance game for sucky players & new joins
+	if (jkg_passiveCreditsAmount.integer > 0 && ent->client->sess.sessionTeam != TEAM_SPECTATOR)
+	{
+		int reward = 0;
+
+		//passive rewards start after jkg_passiveCreditsWait (typically 1 minute)
+		if(level.time > level.startTime + jkg_passiveCreditsWait.integer)
+		{
+			if (ent->client->pers.lastCreditTime + jkg_passiveCreditsRate.integer < level.time) //if the time of our last reward + time < than current time  
+			{
+				ent->client->pers.lastCreditTime = level.time;
+				reward += jkg_passiveCreditsAmount.integer;
+
+				//bonus reward if you are the underdog
+				if (jkg_passiveUnderdogBonus.integer > 0)
+				{
+					//who is currently winning?
+					auto my_team = ent->client->sess.sessionTeam;
+					int curr_winner = -1;
+					if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
+						curr_winner = TEAM_RED;
+					else if (level.teamScores[TEAM_RED] < level.teamScores[TEAM_BLUE])
+						curr_winner = TEAM_BLUE;	
+					else
+						curr_winner = -1;	//tie
+
+					if (my_team != curr_winner && curr_winner!= -1)
+						reward += (jkg_passiveCreditsAmount.integer * .20);	//bonus money for being a loser
+				}
+
+			}
+		}
+
+		if(reward > 0)
+		{
+			ent->client->ps.credits += reward;		//award
+			trap->SendServerCommand(ent->s.number, va("notify 1 \"Salary: +%i Credits\"", reward));		//notify player its pay day
+			//consider a sound here
 		}
 	}
 
@@ -3084,14 +3123,7 @@ void ClientThink_real( gentity_t *ent ) {
 		ent->client->ps.weaponChargeTime = 0;
 
 		/* Remove a count since we don't do this now. */
-		if(ent->client->clipammo[weaponClass][ent->client->ps.firingMode])
-		{
-			ent->client->clipammo[weaponClass][ent->client->ps.firingMode] -= 1;
-		}
-		ent->client->ps.stats[STAT_TOTALAMMO] -= 1;
-		ent->client->ammoTypes[weaponClass][ent->client->ps.firingMode] = -1;
-		ent->client->ammoTable[ent->client->ps.ammoType] -= 1;
-		ent->client->ps.ammoType = -1;
+		BG_AdjustItemStackQuantity(ent, inventoryItem, -1);
 
 		/* Return the correct weapon and variation for the client */
 		ent->s.weapon = preWeapon;
@@ -3099,6 +3131,7 @@ void ClientThink_real( gentity_t *ent ) {
 
 		/* Remove the cooked grenade timer */
 		ent->grenadeCookTime = 0;
+		
 	}
 	
 	if ( BG_IsSprinting (&ent->client->ps, &pmove.cmd, qfalse) )

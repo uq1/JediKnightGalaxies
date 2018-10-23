@@ -309,7 +309,7 @@ void HealingPlum( gentity_t *ent, vec3_t origin, int amount ) {
 	gentity_t *plum;
 	plum = G_TempEntity( origin, EV_DAMAGEPLUM );
 	plum->s.time = amount;
-	plum->s.eventParm = MOD_UNKNOWN;
+	plum->s.eventParm = MOD_HEAL;
 
 	if ( ent && ent->client && !ent->NPC )
 	{
@@ -1606,6 +1606,60 @@ qboolean JKG_CanAwardBounty(gentity_t* dead, gentity_t* attacker) {
 }
 
 /*
+===========================
+JKG_HandleUnclaimedBounties
+
+===========================
+*/
+qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
+{
+	int multiplier = (deadguy->client->numKillsThisLife > jkg_maxKillStreakBounty.integer) ? jkg_maxKillStreakBounty.integer : deadguy->client->numKillsThisLife;
+	gentity_t* player; int reward = jkg_bounty.integer*multiplier ;	//set default reward as jkg_bounty
+	int team_amt{ 0 };	//# of players on the team to reward
+
+	int teamToReward = deadguy->client->sess.sessionTeam;	//get dead guy's team
+	if (teamToReward == TEAM_RED)	//if he was red, blue team gets reward
+		teamToReward = TEAM_BLUE;
+	else if (teamToReward == TEAM_BLUE)	//if he was blue, red team gets reward
+		teamToReward = TEAM_RED;
+	else
+		teamToReward = -1;	//if he was neither then no reward
+
+	for (int i = 0; i < sv_maxclients.integer; i++)
+	{
+		player = &g_entities[i];
+		if (!player->inuse || (player - g_entities >= MAX_CLIENTS) || player == nullptr || player->client == nullptr || player->client->sess.sessionTeam != teamToReward)
+			continue;
+
+		if(player->client->sess.sessionTeam == teamToReward)
+			team_amt++;
+	}
+
+	if (team_amt < 1)	//nobody there
+		return false;
+
+	for (int i = 0; i < sv_maxclients.integer; i++)
+	{
+		player = &g_entities[i];
+		if (!player->inuse || (player - g_entities >= MAX_CLIENTS) || player == nullptr || player->client == nullptr)	//don't reward spectators, nonclients, etc
+			continue;
+
+		//if we're not on deadguy's team, we deserve a reward!
+		if (player->client->sess.sessionTeam == teamToReward)
+		{
+			reward = (reward / team_amt);																//equally distribute reward among team
+			reward = (reward < jkg_teamKillBonus.integer) ? jkg_teamKillBonus.integer : reward;			//unless its less than teamKillBonus
+			if (team_amt == 1)																			//if only one player, don't give him the whole reward since its not a direct kill
+				reward = reward * 0.5;
+			trap->SendServerCommand(player->s.number, va("notify 1 \"Team Bounty Claimed: +%i Credits\"", reward));
+			player->client->ps.credits += reward;
+			//consider doing some sort of sound to hint at reward here  --futuza
+		}
+	}
+	return true;
+}
+
+/*
 ==================
 player_die
 ==================
@@ -1622,7 +1676,6 @@ extern qboolean g_dontFrickinCheck;
 extern qboolean g_endPDuel;
 extern qboolean g_noPDuelCheck;
 void G_CheckForBlowingUp (gentity_t *ent, gentity_t *enemy, vec3_t point, int damage, int deathAnim, qboolean postDeath);
-gentity_t *WP_DropThermalDetonator( gentity_t *ent, qboolean altFire );
 void GLua_NPCEV_OnDie(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod);
 
 void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath ) {
@@ -1634,6 +1687,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	char		*killerName, *obit;
 	int			sPMType = 0;
 	meansOfDamage_t* means = nullptr;
+	usercmd_t	cmd;
 
 	if ( self->client->ps.pm_type == PM_DEAD ) {
 		return;
@@ -1648,6 +1702,11 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		
 	if (self->s.eType == ET_PLAYER && self->s.clientNum > MAX_CLIENTS)
 		return; // UQ1: Secondary entity???
+
+	if (self->s.eType == ET_PLAYER)
+	{
+		trap->GetUsercmd(self->client->ps.clientNum, &cmd);
+	}
 
 	//check player stuff
 	g_dontFrickinCheck = qfalse;
@@ -1668,6 +1727,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->client->pmfreeze = qfalse;
 	self->client->pmlock = qfalse;
 	self->client->pmnomove = qfalse;
+
+	// unfreeze the torso and legs animation so that we can play the death animation
+	// this will look a bit weird on the Cryoban buff but it's pretty rare that players die anyway from that
+	self->client->ps.freezeLegsAnim = 0;
+	self->client->ps.freezeTorsoAnim = 0;
+	self->s.freezeLegsAnim = 0;
+	self->s.freezeTorsoAnim = 0;
 
 	if (meansOfDeath != -1) {
 		means = JKG_GetMeansOfDamage(meansOfDeath);
@@ -1704,7 +1770,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				credits = jkg_creditsPerKill.integer;
 			}
 
-			int bounty = (self->client->numKillsThisLife >= jkg_killsPerBounty.integer) ? self->client->numKillsThisLife*jkg_bounty.integer : 0;
+			int multiplier = 0;
+			self->client->numKillsThisLife > jkg_maxKillStreakBounty.integer ? multiplier = jkg_maxKillStreakBounty.integer : multiplier = self->client->numKillsThisLife;
+			
+			if(jkg_maxKillStreakBounty.integer < jkg_killsPerBounty.integer)
+				Com_Printf("Warning jkg_maxKillStreakBounty < jkg_killsPerBounty, bounties will never be rewarded!\n");
+
+			int bounty = (self->client->numKillsThisLife >= jkg_killsPerBounty.integer) ? multiplier*jkg_bounty.integer : 0;
 			attacker->client->ps.credits += (credits + bounty);
 			if(bounty > 0)
 			{
@@ -1714,6 +1786,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			{
 				trap->SendServerCommand(attacker-g_entities, va("notify 1 \"Kill: +%i Credits\"", credits));
 			}
+
 		}
 	}
 	if(JKG_CanAwardBounty(self, attacker))
@@ -1726,12 +1799,19 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		{
 			trap->SendServerCommand(-1, va("chat 100 \"%s ^7has a bounty on their head!\"", attacker->client->pers.netname));
 		}
+		self->client->numKillsThisLife = 0;
 	}
-	else if (self->client->numKillsThisLife >= jkg_killsPerBounty.integer) {
-		trap->SendServerCommand(-1, va("chat 100 \"%s" S_COLOR_WHITE "'s bounty went unclaimed.\n\"", self->client->pers.netname));
-	}
+	else if (self->client->numKillsThisLife >= jkg_killsPerBounty.integer)
+	{
 
-	self->client->numKillsThisLife = 0;
+		if (JKG_HandleUnclaimedBounties(self))	//splits bounty amongst team
+		{
+			self->client->numKillsThisLife = 0;
+			trap->SendServerCommand(-1, va("chat 100 \"%s^7's bounty was claimed by the opposing team.\"", self->client->pers.netname));
+		}
+		else
+			trap->SendServerCommand(-1, va("chat 100 \"%s" S_COLOR_WHITE "'s %i point bounty remains unclaimed.\"", self->client->pers.netname, self->client->numKillsThisLife));
+	}
 
 	if(self->s.number < MAX_CLIENTS)
 	{
@@ -1776,6 +1856,47 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			}
 		}
 		self->assists->clear();
+
+		
+		//award bonus credits to teammates:
+		if(jkg_teamKillBonus.integer > 0 && !g_dontPenalizeTeam)
+		{
+			gentity_t* player; int reward;
+
+			for (int j = 0; j < sv_maxclients.integer; j++)
+			{
+				reward = 0;
+				player = &g_entities[j];
+				if (!player->inuse || (player - g_entities >= MAX_CLIENTS)  || attacker == nullptr || attacker->client == nullptr || player == attacker)	//don't reward spectators, nonclients or the killer
+					continue;
+
+				//if I have more deaths than the # of kills doubled - I get extra credits
+				if ( player->client->ps.persistant[PERS_RANK] * 2 < player->client->ps.persistant[PERS_KILLED])
+					reward += jkg_teamKillBonus.integer;
+
+				if (!OnSameTeam(self, attacker))	//if the victim and the attacker aren't on the same team
+				{
+
+					if (player->client->sess.sessionTeam == attacker->client->sess.sessionTeam)		//and the person we're considering to reward is on the attackers team
+					{
+						reward += jkg_teamKillBonus.integer;
+						trap->SendServerCommand(player->s.number, va("notify 1 \"Team Kill Bonus: +%i Credits\"", reward));
+						player->client->ps.credits += reward;
+
+						//consider doing some sort of sound to hint at reward here  --futuza
+					}
+				}
+				else	//it's treason then
+				{
+					if (player->client->sess.sessionTeam != attacker->client->sess.sessionTeam)		//reward the opposite team, if our team suicides/teamkills!
+					{
+							reward += jkg_teamKillBonus.integer;
+							trap->SendServerCommand(player->s.number, va("notify 1 \"Team Kill Bonus: +%i Credits\"", reward));
+							player->client->ps.credits += reward;
+					}
+				}
+			}
+		}
 	}
 
 	G_BreakArm(self, 0); //unbreak anything we have broken
@@ -1784,13 +1905,14 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->client->bodyGrabIndex = ENTITYNUM_NONE;
 	self->client->bodyGrabTime = 0;
 
-	// JKG - check if he was holding a primed thermal detonator
-	if (self->client && self->client->ps.weapon == WP_THERMAL && !self->grenadeCookTime) {
+	// JKG - check if he was holding a primed (not cooked) thermal detonator
+	if (self->client && self->client->ps.weapon == WP_THERMAL && !self->grenadeCookTime && self->client->ps.weaponstate == WEAPON_CHARGING) {
 		WP_RecalculateTheFreakingMuzzleCrap( self ); // Fix to keep the grenades from spawning at enemies :P --eez
-		if (self->client->ps.weaponstate == WEAPON_CHARGING) {
-			WP_DropThermalDetonator(self, qfalse);
-		} else if (self->client->ps.weaponstate == WEAPON_CHARGING_ALT) {
-			WP_DropThermalDetonator(self, qtrue);
+		WP_FireGenericWeapon(self, self->client->ps.firingMode);
+
+		if (self->s.eType == ET_PLAYER)
+		{
+			BG_AdjustItemStackQuantity(self, cmd.invensel, -1);
 		}
 	}
 
@@ -2308,12 +2430,9 @@ int CheckShield (gentity_t *ent, int damage, int dflags, meansOfDamage_t* means)
 	gclient_t	*client;
 	int			save;
 	int			count;
-	int			origdamage;
 
 	if (!damage)
 		return 0;
-
-	origdamage = damage;
 
 	client = ent->client;
 
@@ -3943,7 +4062,7 @@ Like G_Damage, we are supplied with dflags and a means of damage.
 ============
 */
 void G_Heal(gentity_t* target, gentity_t* inflictor, gentity_t* healer,
-	vec3_t dir, vec3_t point, int heal, int dflags, int mod)
+	vec3_t dir, vec3_t point, int heal, int dflags, int mod, meansOfDamage_t* means)		//--Futuza: this function is unfinished, healing/negative values barely work
 {
 	if (!target)
 	{
@@ -3953,7 +4072,7 @@ void G_Heal(gentity_t* target, gentity_t* inflictor, gentity_t* healer,
 	if (target->damageRedirect)
 	{
 		// We are redirecting damage taken, might as well redirect health healed as well
-		G_Heal(&g_entities[target->damageRedirectTo], inflictor, healer, dir, point, heal, dflags, mod);
+		G_Heal(&g_entities[target->damageRedirectTo], inflictor, healer, dir, point, heal, dflags, mod, means);
 		return;
 	}
 
@@ -3973,6 +4092,46 @@ void G_Heal(gentity_t* target, gentity_t* inflictor, gentity_t* healer,
 		// we meant to cause damage instead of healing
 		G_Damage(target, inflictor, healer, dir, point, -heal, dflags, mod);
 		return;
+	}
+
+	//if we have less than max health we can be healed!
+	if (target->client->ps.stats[STAT_HEALTH] < target->client->ps.stats[STAT_MAX_HEALTH])
+	{
+		// modify it by the organic or structural modifier for this means
+		if (means && heal > 0)
+		{
+			if (target->client)
+			{
+				heal *= means->modifiers.organic;
+			}
+			else
+			{
+				heal *= means->modifiers.droid;
+			}
+		}
+
+		//do heal and display it
+		int maxheal = target->client->ps.stats[STAT_MAX_HEALTH] - target->client->ps.stats[STAT_HEALTH];
+		if (maxheal > heal)
+		{
+			HealingPlum(target, target->r.currentOrigin, heal);
+			target->health += heal;
+		}
+		else
+		{
+			HealingPlum(target, target->r.currentOrigin, maxheal);
+			target->health = target->client->ps.stats[STAT_MAX_HEALTH];
+		}
+
+		target->client->ps.stats[STAT_HEALTH] = target->health;		//update health
+																	//if this is non-zero this guy should be updated his s.health to send to the client
+		if (target->maxHealth)
+			G_ScaleNetHealth(target);
+
+		G_LogWeaponDamage(healer->s.number, mod, heal);
+
+		/*if (target && target->s.eType == ET_NPC)		//healing is not bad
+			target->enemy = NULL;*/
 	}
 }
 
@@ -4010,10 +4169,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	gclient_t	*client;
 	int			take;
 	int			ssave;
-
 	int			knockback;
-	int			subamt = 0;
-
 	meansOfDamage_t* means = JKG_GetMeansOfDamage(mod);
 
 	if (!targ || !targ->inuse)
@@ -4031,7 +4187,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if (damage < 0)
 	{
 		// heal them instead of damaging them
-		G_Heal(targ, inflictor, attacker, dir, point, -damage, dflags, mod);
+		G_Heal(targ, inflictor, attacker, dir, point, -damage, dflags, mod, means);
 		return;
 	}
 

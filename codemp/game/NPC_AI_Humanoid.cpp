@@ -27,7 +27,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 extern qboolean BG_SabersOff( playerState_t *ps );
 
-extern void CG_DrawAlert( vec3_t origin, float rating );
 extern void G_AddVoiceEvent( gentity_t *self, int event, int speakDebounceTime );
 extern void ForceJump( gentity_t *self, usercmd_t *ucmd );
 extern void NPC_CheckEvasion(void);
@@ -61,7 +60,6 @@ void G_StartMatrixEffect( gentity_t *ent )
 extern void NPC_SetLookTarget( gentity_t *self, int entNum, int clearTime );
 extern void NPC_TempLookTarget( gentity_t *self, int lookEntNum, int minLookTime, int maxLookTime );
 extern qboolean G_ExpandPointToBBox( vec3_t point, const vec3_t mins, const vec3_t maxs, int ignore, int clipmask );
-extern qboolean NPC_CheckEnemyStealth( void );
 extern void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *soundPath );
 
 extern gitem_t	*BG_FindItemForAmmo( ammoType_t ammo );
@@ -75,7 +73,6 @@ extern void ForceProtect( gentity_t *self );
 extern void ForceAbsorb( gentity_t *self );
 extern int WP_MissileBlockForBlock( int saberBlock );
 extern qboolean G_GetHitLocFromSurfName( gentity_t *ent, const char *surfName, int *hitLoc, vec3_t point, vec3_t dir, vec3_t bladeDir, int mod );
-extern qboolean WP_ForcePowerUsable( gentity_t *self, forcePowers_t forcePower, int overrideAmt );
 extern qboolean WP_ForcePowerAvailable( gentity_t *self, forcePowers_t forcePower, int overrideAmt );
 extern void WP_ForcePowerStop( gentity_t *self, forcePowers_t forcePower );
 extern void WP_DeactivateSaber( gentity_t *self, qboolean clearLength ); //clearLength = qfalse
@@ -428,9 +425,6 @@ void Boba_Precache( void )
 	G_EffectIndex( "boba/jet" );
 	G_EffectIndex( "boba/fthrw" );
 }
-
-extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel, int boltNum, int weaponNum );
-extern void ChangeWeapon( gentity_t *ent, int newWeapon );
 
 qboolean Boba_ChangeWeapon( int wp )
 {
@@ -910,7 +904,6 @@ void Boba_FireDecide( void )
 	qboolean enemyCS = qfalse;
 	qboolean enemyInFOV = qfalse;
 	//qboolean move = qtrue;
-	qboolean faceEnemy = qfalse;
 	qboolean shoot = qfalse;
 	qboolean hitAlly = qfalse;
 	vec3_t	impactPos;
@@ -1019,7 +1012,6 @@ void Boba_FireDecide( void )
 		enemyCS = qfalse;
 		shoot = qfalse;
 		NPCInfo->enemyLastSeenTime = level.time;
-		faceEnemy = qtrue;
 		ucmd.buttons &= ~(BUTTON_ATTACK/*|BUTTON_ALT_ATTACK*/);
 	}
 	else if ( enemyDist < MIN_ROCKET_DIST_SQUARED )//128
@@ -1100,21 +1092,15 @@ void Boba_FireDecide( void )
 		else if ( trap->InPVS( NPC->enemy->r.currentOrigin, NPC->r.currentOrigin ) )
 		{
 			NPCInfo->enemyLastSeenTime = level.time;
-			faceEnemy = qtrue;
 			//NPC_AimAdjust( -1 );//adjust aim worse longer we cannot see enemy
 		}
 
 		if ( NPC->client->ps.weapon == WP_NONE )
 		{
-			faceEnemy = qfalse;
 			shoot = qfalse;
 		}
 		else
 		{
-			if ( enemyLOS )
-			{//FIXME: no need to face enemy if we're moving to some other goal and he's too far away to shoot?
-				faceEnemy = qtrue;
-			}
 			if ( enemyCS )
 			{
 				shoot = qtrue;
@@ -1219,7 +1205,6 @@ void Boba_FireDecide( void )
 							NPCInfo->desiredPitch	= angles[PITCH];
 
 							shoot = qtrue;
-							faceEnemy = qfalse;
 						}
 					}
 				}
@@ -3057,7 +3042,7 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 	float zdiff;
 	int	  duckChance = 0;
 	int	  dodgeAnim = -1;
-	qboolean	saberBusy = qfalse, evaded = qfalse, doDodge = qfalse;
+	qboolean	saberBusy = qfalse, doDodge = qfalse;
 	evasionType_t	evasionType = EVASION_NONE;
 
 	//FIXME: if we don't have our saber in hand, pick the force throw option or a jump or strafe!
@@ -3157,7 +3142,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 						TIMER_Start( self, "strafeLeft", Q_irand( 500, 1500 ) );
 						TIMER_Set( self, "strafeRight", 0 );
 						evasionType = EVASION_DUCK;
-						evaded = qtrue;
 					}
 					else if ( Q_irand( 0, 1 ) )
 					{
@@ -3178,7 +3162,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 						{
 							TIMER_Start( self, "duck", Q_irand( 500, 1500 ) );
 							evasionType = EVASION_DUCK_PARRY;
-							evaded = qtrue;
 							if ( d_JediAI.integer )
 							{
 								Com_Printf( "duck " );
@@ -3207,7 +3190,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 						TIMER_Start( self, "strafeRight", Q_irand( 500, 1500 ) );
 						TIMER_Set( self, "strafeLeft", 0 );
 						evasionType = EVASION_DUCK;
-						evaded = qtrue;
 					}
 					else if ( Q_irand( 0, 1 ) )
 					{
@@ -3228,7 +3210,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 						{
 							TIMER_Start( self, "duck", Q_irand( 500, 1500 ) );
 							evasionType = EVASION_DUCK_PARRY;
-							evaded = qtrue;
 							if ( d_JediAI.integer )
 							{
 								Com_Printf( "duck " );
@@ -3258,7 +3239,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 					Com_Printf( "TOP block\n" );
 				}
 			}
-			evaded = qtrue;
 		}
 		else
 		{
@@ -3267,7 +3247,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 				//duckChance = 2;
 				TIMER_Start( self, "duck", Q_irand( 500, 1500 ) );
 				evasionType = EVASION_DUCK;
-				evaded = qtrue;
 				if ( d_JediAI.integer )
 				{
 					Com_Printf( "duck " );
@@ -3286,7 +3265,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 				//duckChance = 2;
 				TIMER_Start( self, "duck", Q_irand( 500, 1500 ) );
 				evasionType = EVASION_DUCK;
-				evaded = qtrue;
 				if ( d_JediAI.integer )
 				{
 					Com_Printf( "duck " );
@@ -3376,7 +3354,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 					Com_Printf( "mid-TOP block\n" );
 				}
 			}
-			evaded = qtrue;
 		}
 	}
 	else if ( saberBusy || (zdiff < -36 && ( zdiff < -44 || !Q_irand( 0, 2 ) ) ) )//was -30 and -40//2nd one was -46
@@ -3385,7 +3362,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 		{//already in air, duck to pull up legs
 			TIMER_Start( self, "duck", Q_irand( 500, 1500 ) );
 			evasionType = EVASION_DUCK;
-			evaded = qtrue;
 			if ( d_JediAI.integer )
 			{
 				Com_Printf( "legs up\n" );
@@ -3411,7 +3387,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 						Com_Printf( "LL block\n" );
 					}
 				}
-				evaded = qtrue;
 			}
 		}
 		else 
@@ -3428,7 +3403,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 				{
 					self->client->ps.fd.forceJumpCharge = 320;//FIXME: calc this intelligently
 					evasionType = EVASION_FJUMP;
-					evaded = qtrue;
 					if ( d_JediAI.integer )
 					{
 						Com_Printf( "force jump + " );
@@ -3470,7 +3444,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 						}
 					}
 					evasionType = EVASION_JUMP;
-					evaded = qtrue;
 					if ( d_JediAI.integer )
 					{
 						Com_Printf( "jump + " );
@@ -3514,7 +3487,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 							}
 							cmd->upmove = 0;
 							saberBusy = qtrue;
-							evaded = qtrue;
 						}
 					}
 				}
@@ -3522,7 +3494,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 			if ( ((evasionType = NPC_Humanoid_CheckFlipEvasions( self, rightdot, zdiff )) != EVASION_NONE) )
 			{
 				saberBusy = qtrue;
-				evaded = qtrue;
 			}
 			else if ( incoming || !saberBusy )
 			{
@@ -3559,7 +3530,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 						Com_Printf( "LL block\n" );
 					}
 				}
-				evaded = qtrue;
 			}
 		}
 	}
@@ -3629,7 +3599,6 @@ evasionType_t NPC_Humanoid_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t
 					}
 				}
 			}
-			evaded = qtrue;
 		}
 	}
 
@@ -4355,7 +4324,6 @@ void NPC_Humanoid_SetEnemyInfo( vec3_t enemy_dest, vec3_t enemy_dir, float *enem
 	}
 }
 
-extern float WP_SpeedOfMissileForWeapon( int wp, qboolean alt_fire );
 static void NPC_Humanoid_FaceEnemy( qboolean doPitch )
 {
 	vec3_t	enemy_eyes, eyes, angles;

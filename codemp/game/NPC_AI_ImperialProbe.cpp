@@ -348,27 +348,9 @@ ImperialProbe_Ranged
 */
 void ImperialProbe_Ranged( qboolean visible, qboolean advance )
 {
-	int	delay_min,delay_max;
 
 	if ( TIMER_Done( NPC, "attackDelay" ) )	// Attack?
 	{
-
-		if ( g_npcspskill.integer == 0 )
-		{
-			delay_min = 500;
-			delay_max = 3000;
-		}
-		else if ( g_npcspskill.integer > 1 )
-		{
-			delay_min = 500;
-			delay_max = 2000;
-		}
-		else
-		{
-			delay_min = 300;
-			delay_max = 1500;
-		}
-
 		TIMER_Set( NPC, "attackDelay", Q_irand( 500, 3000 ) );
 		ImperialProbe_FireBlaster();
 //		ucmd.buttons |= BUTTON_ATTACK;
@@ -451,8 +433,6 @@ NPC_BSDroid_Pain
 void NPC_Probe_Pain(gentity_t *self, gentity_t *attacker, int damage)
 {
 	float	pain_chance;
-	gentity_t *other = attacker;
-	int mod = gPainMOD;
 	
 	VectorCopy( self->NPC->lastPathAngles, self->s.angles );
 

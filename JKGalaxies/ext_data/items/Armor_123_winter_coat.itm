@@ -4,6 +4,6 @@
 	"itemtype":             "armor",
 	"armor":		"gncoat",
 	"weight":		"2",
-	"cost":			"300",
+	"cost":			"100",
 	"itemIcon":		"gfx/item_icons/default.tga"
 }

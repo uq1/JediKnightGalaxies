@@ -20,7 +20,8 @@
 		"damage": {
 			"damage": 2,
 			"means": "MOD_IGNITED",
-			"damageRate": 500
+			"damageRate": 500,
+			"deadly": true
 		},
 
 		"visuals": {
@@ -51,7 +52,8 @@
 		"damage": {
 			"damage": 2,
 			"means": "MOD_FROZEN",
-			"damagerate": 1000
+			"damagerate": 1000,
+			"deadly": true
 		},
 
 		"passive": {
@@ -73,6 +75,11 @@
 		"canceling": {
 			"noBuffStack": true,
 			"noCategoryStack": true
+		},
+		
+		"damage":
+		{
+			"deadly": false
 		},
 
 		"passive": {
@@ -99,7 +106,8 @@
 		"damage": {
 			"damage": 2,
 			"means": "MOD_CARBONITE",
-			"damagerate": 1000
+			"damagerate": 1000,
+			"deadly": false
 		},
 
 		"passive": {
@@ -117,6 +125,7 @@
 
 	"standard-bleed": {
 		"category": "bleed",
+		"priority": 50,
 
 		"canceling": {
 			"noBuffStack": true,
@@ -126,12 +135,14 @@
 		"damage": {
 			"damage": 1,
 			"means": "MOD_BLEEDING",
-			"damagerate": 1000
+			"damagerate": 1000,
+			"deadly": true
 		}
 	},
 
 	"standard-poison": {
 		"category": "poison",
+		"priority": 40,
 
 		"canceling": {
 			"noBuffStack": true,
@@ -139,9 +150,75 @@
 		},
 
 		"damage": {
-			"damage": 4,
+			"damage": 7,
+			"percentage": true,
 			"means": "MOD_POISONED",
-			"damagerate": 1000
+			"damagerate": 1000,
+			"deadly": true
+		},
+		
+		"visuals": {
+			"shader": {
+				"shader": "gfx/PlayerOverlays/poison",
+				"shaderRGBA": [ 40, 197, 90, 0 ],
+				"shaderLen": 100000
+			},
+			
+			"efx": {
+				"effect": "player/poison",
+				"bolt": "lower_lumbar",
+				"debounce": 200
+			}
+		}
+	},
+	
+	"standard-antidote":
+	{
+		"category": "heal",
+		"priority": 50,
+		
+		"canceling":
+		{
+			"noBuffStack": true,
+			"cancelOther": [
+				{
+					"category": "poison",
+					"priority": 60
+				}
+			]
+		},
+		
+		"damage":
+		{
+			"damage": -1,
+			"means": "MOD_CURED",
+			"damagerate": 1500,
+			"deadly": false
+		}
+	},
+	
+	"standard-heal":
+	{
+		"category": "heal",
+		"priority": 50,
+		
+		"canceling":
+		{
+			"noBuffStack": true,
+			"cancelOther": [
+				{	
+					"category": "bleed",
+					"priority": 50
+				}
+			]
+		},
+		
+		"damage":
+		{
+			"damage": -2,
+			"means": "MOD_CURED",
+			"damagerate": 1000,
+			"deadly": false
 		}
 	}
 

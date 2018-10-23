@@ -53,6 +53,10 @@ REFERENCE           NOSWITCH
 NOTES               "Player can't switch teams again yet"
 LANG_ENGLISH        "May not switch teams more than once per 5 seconds."
 
+REFERENCE			TEAMSLOCKED
+NOTES				"Team's are locked, and no one may switch teams"
+LANG_ENGLISH		"You may no longer switch teams, the teams are locked."
+
 REFERENCE           NOVOTE
 NOTES               "Player can't vote on this server"
 LANG_ENGLISH        "Voting not allowed here."

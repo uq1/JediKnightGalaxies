@@ -863,8 +863,7 @@ static void CG_DrawTeamOverlay() {
 
 			// Draw player name
 			MAKERGBA(hcolor,1,1,1,1);		
-			trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		//old way
-			//Text_DrawText(x + 26, y + 2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		// futuza note: xRGB fix (see tr_font.cpp) should allow us to use old way, not necessary?
+			trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		
 			MAKERGBA(hcolor,0,0,0,1);
 			CG_DrawRect(x+24, y+2, pwidth+8 , 13, 1, hcolor);
 
@@ -4411,14 +4410,14 @@ void CG_DrawChatboxText(menuDef_t *menuHUD) {
 		color[3] *= opacity;
 		// Center and draw the text, positioning will be finetuned later on :P
 		line = 0;
-		for (i=0; i<11; i++) {
-			int idx = (cg.chatItemNext + i) % 11;
+		for (i=0; i<MAX_CHATBOX_ITEMS; i++) {
+			int idx = (cg.chatItemNext + i) % MAX_CHATBOX_ITEMS;
 			if (cg.chatItems[idx].active) {
 				ChatBox_SetPaletteAlpha(cg.chatItems[idx].alpha*opacity);
 				color[3] = cg.chatItems[idx].alpha*opacity;
 				CG_DrawStringExt(item->window.rect.x-5, item->window.rect.y + (line * 8) - 2,
 					cg.chatItems[idx].string,
-					color, qfalse, qfalse, 5, 8, strlen(cg.chatItems[idx].string), cgs.media.charset_Segoeui);
+					color, qfalse, qfalse, 5, 8, strlen(cg.chatItems[idx].string), cgs.media.charsetShader);
 				line += cg.chatItems[idx].lines;
 			}
 		}

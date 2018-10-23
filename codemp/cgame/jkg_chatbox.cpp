@@ -578,7 +578,7 @@ void ChatBox_DrawChat(menuDef_t *menu) {
 			qtrue, qfalse,
 			5, 8,
 			strlen(chatModeText[cb_chatmode]),
-			cgs.media.charset_Arial);
+			cgs.media.charsetShader);
 		text = ChatBox_PrintableText(cgDC.Assets.qhSmall4Font, 0.6f);
 		offset = cb_data.cursor - cb_data.scroll;
 
@@ -592,7 +592,7 @@ void ChatBox_DrawChat(menuDef_t *menu) {
 			qfalse, qfalse,
 			4, 8,
 			strlen(text),
-			cgs.media.charset_Arial);
+			cgs.media.charsetShader);
 
 		if (cg.time >> 8 & 1) {
 			// Draw the cursor
@@ -610,7 +610,7 @@ void ChatBox_DrawChat(menuDef_t *menu) {
 				qtrue, qfalse,
 				4, 8,
 				2,
-				cgs.media.charset_Arial);
+				cgs.media.charsetShader);
 		}
 	}
 }

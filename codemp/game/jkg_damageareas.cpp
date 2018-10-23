@@ -273,24 +273,37 @@ void G_TickBuffs(gentity_t* ent)
 				int damage = pBuff->damage.damage;
 				int health = ent->client->ps.stats[STAT_HEALTH];
 
-				switch (jkg_allowDebuffKills.integer)
+				//if % damage
+				if ( pBuff->damage.percentage && ((0 < damage && damage < 101) || (damage < 0 && damage > -101)) )	//and the range is between 1% to 100% or -1% to -100%
+				{
+					int dmg = damage;
+					damage = health * (damage * .01);
+					if (dmg > 0)
+						damage > 1 ? damage : damage = 1;	//do at least 1 damage
+					else
+						damage < 0 ? damage : damage = -1;
+				}
+
+				//jkg_allowDebuffKills allows debuffs to finish off targets
+				switch (jkg_allowDebuffKills.integer && damage > 0)
 				{
 					//only allow debuffs to whittle us down, not kill us
 					case 0:
 						if (health - damage <= 0)
 							damage = 0;
-					break;
+						break;
 
-					//debuffs are deadly if indicated in wpm file	--futuza: not yet implemented default to deadly behavior for now
+					//debuffs are deadly if indicated in wpm file, deadly by default
 					case 1:
-						;
+						if (pBuff->damage.deadly == false)	//if debuff type isn't deadly, carebear treatment
+						{
+							if (health - damage <= 0)	//whittle us down
+							damage = 0;
+						}
 						break;
 
 					//all damaging debuffs are deadly, don't adjust damage
 					case 2:
-						;
-						break;
-
 					//default to case 2
 					default:
 						;
@@ -334,14 +347,8 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
 			area->data->debuffs[i].debuff, area->data->debuffs[i].intensity, area->data->debuffs[i].duration);
 	}
     
-    if ( damage > 0 )
+    if ( damage  )	//positive or negative damage works, 0 does not
     {
-        // Save some information in case the player dies, and gets disintegrated.
-        int legsAnim = player->client->ps.legsAnim;
-        int torsoAnim = player->client->ps.torsoAnim;
-        vec3_t viewAngles;
-        VectorCopy (player->client->ps.viewangles, viewAngles);
-        
         if ( !area->data->radial )
         {
             VectorCopy (area->context.direction, dir);
@@ -359,7 +366,6 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
  */
 static damageArea_t *GetFreeDamageArea()
 {
-    int i = 0;
 	damageArea_t area;
 	damageAreas.push_back(area);
     
@@ -499,10 +505,10 @@ int JKG_ChargeDamageOverride( gentity_t *inflictor, bool bIsTraceline ) {
 //=========================================================
 // JKG_DoDamage
 //---------------------------------------------------------
-// Description: This is a wrapper for the G_Damage
+// Description: This is a wrapper for the G_Damage				--FUTUZA: FILTHY LIES, its a wrapper for DebuffPlayer() which is the true wrapper for G_Damage
 // function, which also does debuffs. It does _not_ create
 // damage areas. It only does direct damage like with
-// G_Damage.
+// G_Damage.   
 //=========================================================
 void JKG_DoDirectDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t origin, int dflags, int mod )
 {
@@ -546,7 +552,7 @@ void JKG_DoDirectDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *in
     area.lastDamageTime = 0;
     VectorCopy (origin, area.origin);
     
-	DebuffPlayer (targ, &area, damage, mod);
+	DebuffPlayer (targ, &area, damage, mod);		//note: DebuffPlayer calls G_Damage() for both debuffs and regular damage
 }
 
 //=========================================================

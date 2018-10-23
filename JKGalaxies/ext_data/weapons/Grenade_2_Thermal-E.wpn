@@ -168,6 +168,7 @@
 				],
                           "penetration": 0 },
         "ballistic":    true,
+		"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
         "ammocost":     1,

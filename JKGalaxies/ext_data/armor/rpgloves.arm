@@ -1,7 +1,7 @@
 {
 	"ref":		"rpgloves",
 	"slot":		"gloves",
-	"armor":		0,
+	"armor":		25,
 	"movemodifier":	1.0,
 
 	"visuals": {

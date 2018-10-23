@@ -145,7 +145,7 @@
 		itemDef				// The black box where messages are printed - and 'tis bloody hard-coded..!
 		{
 			name				text
-			rect				9 366 200 87
+			rect				9 366 200 90
 			forecolor			0 0 0 0	// Think of making the damn thing invisible? Wouldn't think so!
 		}
 		

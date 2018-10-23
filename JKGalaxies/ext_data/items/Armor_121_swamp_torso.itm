@@ -4,6 +4,6 @@
 	"itemtype":             "armor",
 	"armor":		"swtorso",
 	"weight":		"2",
-	"cost":			"500",
+	"cost":			"800",
 	"itemIcon":		"gfx/item_icons/default.tga"
 }

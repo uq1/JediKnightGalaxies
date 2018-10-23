@@ -4,6 +4,6 @@
 	"itemtype":             "armor",
 	"armor":		"iwhelmet",
 	"weight":		"2",
-	"cost":			"200",
+	"cost":			"120",
 	"itemIcon":		"gfx/item_icons/default.tga"
 }

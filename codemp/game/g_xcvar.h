@@ -142,13 +142,15 @@ XCVAR_DEF( g_siegeTeam2,				"none",			NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO,				
 XCVAR_DEF( g_siegeTeamSwitch,			"1",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE,					qfalse )
 XCVAR_DEF( g_slowmoDuelEnd,				"0",			NULL,				CVAR_ARCHIVE,									qtrue )
 XCVAR_DEF( g_smoothClients,				"1",			NULL,				CVAR_NONE,										qfalse )
-XCVAR_DEF( g_spawnInvulnerability,		"3000",			NULL,				CVAR_ARCHIVE,									qtrue )
+XCVAR_DEF( g_spawnInvulnerability,		"5000",			NULL,				CVAR_ARCHIVE,									qtrue )
 XCVAR_DEF( g_speed,						"250",			NULL,				CVAR_NONE,										qtrue )
 XCVAR_DEF( g_statLog,					"0",			NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_statLogFile,				"statlog.log",	NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_stepSlideFix,				"1",			NULL,				CVAR_SERVERINFO,								qtrue )
 XCVAR_DEF( g_synchronousClients,		"0",			NULL,				CVAR_SYSTEMINFO,								qfalse )
 XCVAR_DEF( g_teamAutoJoin,				"0",			NULL,				CVAR_ARCHIVE,									qfalse )
+XCVAR_DEF( g_teamSwitchTime,			"5",			NULL,				CVAR_ARCHIVE,									qtrue )	//how long to wait before switching teams is allowed (in seconds - forces at least 1 sec)
+XCVAR_DEF( g_teamsLocked,				"0",			NULL,				CVAR_ARCHIVE,									qtrue )	//teams are locked after 20% of timelimit has passed (new players are allowed to switch teams for 3 mins)
 XCVAR_DEF( g_teamForceBalance,			"0",			NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_timeouttospec,				"70",			NULL,				CVAR_ARCHIVE,									qfalse )
 XCVAR_DEF( g_userinfoValidate,			"25165823",		NULL,				CVAR_ARCHIVE,									qfalse )
@@ -169,14 +171,21 @@ XCVAR_DEF( timelimit,					"45",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_NOR
 // Jedi Knight Galaxies
 XCVAR_DEF( jkg_shop_replenish_time,		"300",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_startingCredits,			"500",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		false )
-XCVAR_DEF( jkg_bounty,					"75",			NULL,				CVAR_ARCHIVE,									true )
-XCVAR_DEF( jkg_killsPerBounty,			"2",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_bounty,					"225",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_killsPerBounty,			"3",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_maxKillStreakBounty,		"7",			NULL,				CVAR_ARCHIVE,									true )	//the max number of killstreaks
 XCVAR_DEF( jkg_creditsPerKill,			"150",			NULL,				CVAR_ARCHIVE,									true )
-XCVAR_DEF( jkg_minAssistAwardRatio,		"20",			NULL,				CVAR_ARCHIVE,									true )	//value is % out of 100, Max allowed value is 50
-XCVAR_DEF( jkg_creditsPerTeamCapture,	"100",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_passiveCreditsAmount,	"15",			NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO|CVAR_LATCH,		true )	//0 >= disables, default: 15
+XCVAR_DEF( jkg_passiveCreditsRate,		"30000",		NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO|CVAR_LATCH,		true )	//default: 30000
+XCVAR_DEF( jkg_passiveCreditsWait,		"60000",		NULL,				CVAR_ARCHIVE|CVAR_SERVERINFO|CVAR_LATCH,		true )	//how long to wait before starting passiveCredits, default: 60000 (60 seconds)
+XCVAR_DEF( jkg_passiveUnderdogBonus,	"1",			NULL,				CVAR_ARCHIVE,									true )	//give additional bonus credits to the losing team and 50% off ammo costs
+XCVAR_DEF( jkg_underdogBonus,			"1",			NULL,				CVAR_ARCHIVE,									true )	//give bonus credits to late joiners who join the losing team
+XCVAR_DEF( jkg_teamKillBonus,			"10",			NULL,				CVAR_ARCHIVE,									true )	//0 >= disables, default: 10
+XCVAR_DEF( jkg_minAssistAwardRatio,		"25",			NULL,				CVAR_ARCHIVE,									true )	//value is % out of 100, Max allowed value is 50
+XCVAR_DEF( jkg_creditsPerTeamCapture,	"125",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_creditsPerCapture,		"300",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_creditsPerReturn,		"75",			NULL,				CVAR_ARCHIVE,									true )
-XCVAR_DEF( jkg_buyAnnounce,				"1",			NULL,				CVAR_ARCHIVE,									true )
+XCVAR_DEF( jkg_buyAnnounce,				"1",			NULL,				CVAR_ARCHIVE,									true )		//0 = don't announce, 1 = announce to same team, 2+ = announce to all
 XCVAR_DEF( jkg_buyAnnounceThreshold,	"500",			NULL,				CVAR_ARCHIVE,									false )
 XCVAR_DEF( g_listEntity,				"0",			NULL,				CVAR_CHEAT,										false )
 XCVAR_DEF( jkg_arearestrictions,		"0",			NULL,				CVAR_ARCHIVE,									true )
@@ -189,7 +198,8 @@ XCVAR_DEF( g_banfile,					"",				NULL,				CVAR_ARCHIVE,									false )
 XCVAR_DEF( jkg_healthRegen,				"1",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_healthRegenDelay,		"60000",		NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_healthRegenSpeed,		"2500",			NULL,				CVAR_ARCHIVE,									true )
-XCVAR_DEF( jkg_safeTreasureClasses,		"1",			NULL,				CVAR_ARCHIVE|CVAR_LATCH,						false )
+XCVAR_DEF( jkg_safeTreasureClasses,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH,						false )	//temporarily defaults to off until we can fix the treasureclass checker
+XCVAR_DEF( jkg_minVendors,				"2",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true)	//0 == don't spawn extra vendors, 1 == make sure we have at least 1 vendor, 2 == make sure we have at least 2, etc.
 XCVAR_DEF( jkg_removenpcbody,			"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
 XCVAR_DEF( jkg_removenpctime_default,	"10000",		NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
 XCVAR_DEF( jkg_removenpctime_droid,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )

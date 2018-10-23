@@ -1546,7 +1546,6 @@ int DoorBlockingSection(int start, int end)
 int RepairPaths(qboolean behindTheScenes)
 {
 	int i;
-	int preAmount = 0;
 	int ctRet;
 	vec3_t a;
 	float maxDistFactor = 400;
@@ -1562,8 +1561,6 @@ int RepairPaths(qboolean behindTheScenes)
 	}
 
 	i = 0;
-
-	preAmount = gWPNum;
 
 	trap->Cvar_Update(&bot_wp_distconnect);
 	trap->Cvar_Update(&bot_wp_visconnect);
@@ -3742,6 +3739,9 @@ void LoadPath_ThisLevel(void)
 	{
 		if (LoadPathData(mapname.string) == 2)
 		{
+			if (jkg_minVendors.integer > 0)
+				trap->Print(S_COLOR_YELLOW "No bot waypoints setup, cannot spawn requested vendors\n");
+
 			//enter "edit" mode if cheats enabled?
 		}
 	}
