@@ -276,10 +276,40 @@ void ScorePlum( gentity_t *ent, vec3_t origin, int score ) {
 
 /*
 ===========
+GenericPlum
+===========
+*/
+void GenericPlum(gentity_t *ent, vec3_t origin, char *str, int color)
+{
+	//--futuza todo:
+		/*
+		make generalized plum system that will take:
+		-entity producing plum
+		-origin vector
+		-a string (max length 16) containing text of plum
+		-color to display string
+
+		Use this later on for stuff like:
+		"Dodge!" (in yellow)
+		"9000 XP" (in purple)
+		"Crit!" (in orange?)
+		"VIP" (white)
+		etc.
+
+		Possibly color unneeded just use colorcodes embedded in string?  "^xf00Red Text"
+
+		Function probably needs to be defined somewwhere more generically, as g_combat is pretty random, and it could be useful for non-combat.
+		See: CG_ScorePlum()
+		*/
+	return;
+}
+
+
+/*
+===========
 DamagePlum
 ===========
 */
-
 void DamagePlum( gentity_t *ent, vec3_t origin, int damage, int meansOfDeath, int shield, qboolean weak ) {
 	meansOfDamage_t* means = JKG_GetMeansOfDamage(meansOfDeath);
 	
@@ -4245,6 +4275,47 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if ( (targ->flags&FL_SHIELDED) && mod != MOD_SABER  && !targ->client)
 	{//magnetically protected, this thing can only be damaged by lightsabers
 		return;
+	}
+
+
+	//if roll dodges are allowed (off by default since gimmicky in phase 1)
+	if(jkg_allowDodge.integer > 0)	
+	{
+		//check if target is rolling
+		switch ((targ->client->ps.legsAnim))
+		{
+			case BOTH_GETUP_BROLL_B:
+			case BOTH_GETUP_BROLL_F:
+			case BOTH_GETUP_BROLL_L:
+			case BOTH_GETUP_BROLL_R:
+			case BOTH_GETUP_FROLL_B:
+			case BOTH_GETUP_FROLL_F:
+			case BOTH_GETUP_FROLL_L:
+			case BOTH_GETUP_FROLL_R:
+			case BOTH_ROLL_F:
+			case BOTH_ROLL_B:
+			case BOTH_ROLL_R:
+			case BOTH_ROLL_L:
+			if (targ->playerState->legsTimer > 0)	//they rolled
+			{
+				/*
+				Note:
+					Would like to make this sort of thing a skill (bounty hunter tree or something), can use rolling to evade attacks.
+					Chances for successfully dodging with a roll would depend on player's skill level.  Some stuff shouldn't be evadeable.
+					Probably should lower damage, instead of evading entirely as well.  Right now this is just an outline idea that is still fun.
+					--Futuza
+				*/
+				if (Q_irand(1, 3) == 1)	//33% chance of dodging
+				{
+					//do evade efx/scoreplums
+					DamagePlum(targ, point, 1, mod, 0, true);	//using "1" dmg for now, need to make use different plum system for evades
+					trap->SendServerCommand(targ-g_entities, va("notify 1 \"Dodged!\""));
+					trap->SendServerCommand(attacker-g_entities, va("notify 1 \"%s ^7dodged!\"", targ->client->pers.netname));
+					return;
+				}
+			}
+			break;
+		}
 	}
 
 	if ((targ->flags & FL_DMG_BY_SABER_ONLY) && mod != MOD_SABER)
