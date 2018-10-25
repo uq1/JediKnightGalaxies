@@ -4542,10 +4542,10 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			dmgReduction = 0.1f;
 			break;
 		case 2:
-			dmgReduction = 0.15f;
+			dmgReduction = 0.125f;
 			break;
 		case 3:
-			dmgReduction = 0.25f;	//maximum reduction
+			dmgReduction = 0.15f;	//maximum reduction
 			break;
 		default:
 			dmgReduction = 0;
