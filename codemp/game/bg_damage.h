@@ -34,6 +34,7 @@ struct meansOfDamage_t {
 	struct {
 		qboolean ignoreArmor;
 		qboolean ignoreShield;
+		qboolean dodgeable;
 		float armor;
 		float shield;
 		float organic;

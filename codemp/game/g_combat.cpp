@@ -4277,47 +4277,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		return;
 	}
 
-
-	//if roll dodges are allowed (off by default since gimmicky in phase 1)
-	if(jkg_allowDodge.integer > 0)	
-	{
-		//check if target is rolling
-		switch ((targ->client->ps.legsAnim))
-		{
-			case BOTH_GETUP_BROLL_B:
-			case BOTH_GETUP_BROLL_F:
-			case BOTH_GETUP_BROLL_L:
-			case BOTH_GETUP_BROLL_R:
-			case BOTH_GETUP_FROLL_B:
-			case BOTH_GETUP_FROLL_F:
-			case BOTH_GETUP_FROLL_L:
-			case BOTH_GETUP_FROLL_R:
-			case BOTH_ROLL_F:
-			case BOTH_ROLL_B:
-			case BOTH_ROLL_R:
-			case BOTH_ROLL_L:
-			if (targ->playerState->legsTimer > 0)	//they rolled
-			{
-				/*
-				Note:
-					Would like to make this sort of thing a skill (bounty hunter tree or something), can use rolling to evade attacks.
-					Chances for successfully dodging with a roll would depend on player's skill level.  Some stuff shouldn't be evadeable.
-					Probably should lower damage, instead of evading entirely as well.  Right now this is just an outline idea that is still fun.
-					--Futuza
-				*/
-				if (Q_irand(1, 3) == 1)	//33% chance of dodging
-				{
-					//do evade efx/scoreplums
-					DamagePlum(targ, point, 1, mod, 0, true);	//using "1" dmg for now, need to make use different plum system for evades
-					trap->SendServerCommand(targ-g_entities, va("notify 1 \"Dodged!\""));
-					trap->SendServerCommand(attacker-g_entities, va("notify 1 \"%s ^7dodged!\"", targ->client->pers.netname));
-					return;
-				}
-			}
-			break;
-		}
-	}
-
 	if ((targ->flags & FL_DMG_BY_SABER_ONLY) && mod != MOD_SABER)
 	{ //saber-only damage
 		return;
@@ -4552,6 +4511,84 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		damage = 1;
 	}
 	take = damage;
+
+
+	///////////////////////////////////////
+	//
+	//Evasion Mechanics
+	//
+
+	//if roll dodges are allowed (off by default since gimmicky in phase 1)
+	if (jkg_allowDodge.integer > 0 && take > 0 && means->modifiers.dodgeable && targ->client)
+	{
+		/*
+			Note:
+			Would like to make this sort of thing a skill (bounty hunter tree or something), can use rolling to evade attacks.
+			Chances for successfully dodging with a roll would depend on player's skill level.  Some stuff shouldn't be evadeable.
+			Probably should lower damage, instead of evading entirely as well.  Right now this is just an outline idea that is still fun.
+			--Futuza
+		*/
+		
+		//sample skill calculation:
+		int dodgeSkill_level = 3;	//get player's skill level
+		float dmgReduction;
+
+		switch (dodgeSkill_level)
+		{
+		case 0:
+			dmgReduction = 0;	//no skill, no dodge allowed
+			break;
+		case 1:
+			dmgReduction = 0.1f;
+			break;
+		case 2:
+			dmgReduction = 0.15f;
+			break;
+		case 3:
+			dmgReduction = 0.25f;	//maximum reduction
+			break;
+		default:
+			dmgReduction = 0;
+		}
+
+
+		bool rolled = false;
+		switch (targ->client->ps.legsAnim)	//check for roll
+		{
+			case BOTH_ROLL_F: case BOTH_ROLL_B:
+			case BOTH_ROLL_R: case BOTH_ROLL_L:
+			case BOTH_GETUP_BROLL_B: case BOTH_GETUP_BROLL_F:
+			case BOTH_GETUP_BROLL_L: case BOTH_GETUP_BROLL_R:
+			case BOTH_GETUP_FROLL_B: case BOTH_GETUP_FROLL_F:
+			case BOTH_GETUP_FROLL_L: case BOTH_GETUP_FROLL_R:
+			if (targ->playerState->legsTimer > 0)	//they're rolling perfectly
+			{
+				int timing = bgAllAnims[targ->localAnimIndex].anims[targ->client->ps.legsAnim].numFrames * fabs((float)(bgHumanoidAnimations[targ->client->ps.legsAnim].frameLerp));	//get animation timing length
+				timing *= 0.5f; //cut in two
+				if ( (timing+300 > targ->playerState->legsTimer) && (targ->playerState->legsTimer > timing-300) )
+				{
+					trap->SendServerCommand(targ - g_entities, va("notify 1 \"Flawless Dodge!\""));
+					take > 2 ? take *= (1 - (dmgReduction * 2)) : take = 1;	//double , or set it to 1
+					G_Sound(targ, CHAN_AUTO, G_SoundIndex("sound/weapons/melee/swing4.mp3"));		//play flawless dodge sound
+				}
+				else
+				{
+					take > 2 ? take *= (1-dmgReduction) : take = 1;	//reduce damage by 1/4
+					trap->SendServerCommand(targ - g_entities, va("notify 1 \"Dodge!\""));
+				}
+				rolled = true;
+			}
+			break;
+		}
+		if (rolled)
+		{	
+			//do dodge efx/plum here
+
+			if (attacker != targ || !attacker->client || attacker->s.number >= MAX_CLIENTS) //notify other players we dodged
+				trap->SendServerCommand(attacker - g_entities, va("notify 1 \"%s ^7dodged!\"", targ->client->pers.netname));
+		}
+	}
+
 
 	///////////////////////////////////////
 	//
