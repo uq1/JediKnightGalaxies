@@ -276,8 +276,8 @@
 	"AMMO_ROCKETS_60R": {
 		"shortname": "Rockets",
 		"longname": "BlasTech Industries Rockets",
-		"max": 25,
-		"pricePerUnit": 45
+		"max": 20,
+		"pricePerUnit": 85
 	},
 	
 	"AMMO_PACKERED_MORTAR": {

@@ -45,7 +45,7 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2000,
-//        "flags":        [ "knockback" ],
+//      "flags":        [ "knockback" ],
         "reloadmodifier": 0.5,
         "speed":        0.8
     },
@@ -64,10 +64,10 @@
         "projectileclass":"rocket_proj",
         "meansofdeath": "MOD_EXPLOSION",
         "splashmeansofdeath": "MOD_EXPLOSION",
-	"ammobase": "AMMO_ROCKETS_60R",
-	"ammodefault": "AMMO_ROCKETS_60R",
+		"ammobase": "AMMO_ROCKETS_60R",
+		"ammodefault": "AMMO_ROCKETS_60R",
         "clipSize":              1,
-            "accuracy": {
+        "accuracy": {
         "accuracyRating": 52,
         "accuracyRatingPerShot": 0,
         "msToDrainAccuracy": 1000,

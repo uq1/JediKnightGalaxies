@@ -376,6 +376,7 @@ typedef struct weaponVisualFireMode_s
         struct
         {
             char impactEffect[MAX_QPATH];
+			char impactShieldEffect[MAX_QPATH];
         } generic;
         
         struct

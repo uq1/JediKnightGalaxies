@@ -163,6 +163,7 @@ It contains a series of means of damage, each one has the following fields:
  - disintegrate (boolean): If true, this damage type will disintegrate people when it kills them.
 
  - modifiers (object):
+  - dodgeable (boolean): If true, this damage type may be reduced with an evade skill (eg: rolling)
   - ignoreArmor (boolean): If true, this damage type ignores armor
   - ignoreShield (boolean): If true, this damage type ignores shields
   - armor (float, default 1.0): Controls how much damage this type does against armor

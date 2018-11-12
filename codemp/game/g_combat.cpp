@@ -4553,7 +4553,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 
 		bool rolled = false;
-		switch (targ->client->ps.legsAnim)	//check for roll
+		switch (targ->client->ps.legsAnim && dmgReduction > 0)	//check for roll
 		{
 			case BOTH_ROLL_F: case BOTH_ROLL_B:
 			case BOTH_ROLL_R: case BOTH_ROLL_L:

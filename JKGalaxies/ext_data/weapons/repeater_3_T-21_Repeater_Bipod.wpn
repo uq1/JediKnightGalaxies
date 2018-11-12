@@ -43,7 +43,7 @@
         "firemode1": {
             "type":         "blaster",
             
-            "muzzlefx":     "blasters/muzzleflash_Red_medium",
+            "muzzlefx":     "blasters/muzzleflash_Red_big",
             "firesound":    [
                 "sound/weapons/blasters/walker1.mp3",
                 "sound/weapons/blasters/walker2.mp3",
@@ -52,7 +52,9 @@
             ],
             "projectilefx": "blasters/shot_Red_big",
             "miss":         { "impactfx": "weapons/blaster_impact_red_big_fire" },
-            "hit":          { "impactfx": "blasters/red_flesh_impact" },
+            "hit":          { "impactfx": "blasters/red_flesh_impact",
+							  "shieldimpactfx": "red_shield_impact"
+							},
             "deathfx": "blasters/shot_red_vaporize",
 	    "displayName":  "Cannon"
 	}
@@ -103,7 +105,7 @@
         "range":        7000.0,
         "recoil":       4.6,
         "spread":       0.3,
-		"splashrange":  25.0,
+		"splashrange":  75.0,
 		"splashmeansofdeath": "MOD_BLASTER",
         "projectilespeed": 5500.0,
         "projectileclass":"blaster_proj",

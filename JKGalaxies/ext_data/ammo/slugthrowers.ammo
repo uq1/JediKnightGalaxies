@@ -75,7 +75,7 @@
 		"pricePerUnit": 25,
 		"overrides": {
 			"Damage": {
-				"set": -7
+				"set": -10
 			},
 			"ammocost": {
 				"multiply": 2
