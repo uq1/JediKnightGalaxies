@@ -686,7 +686,7 @@ static void BG_ParseVisualsFireMode ( weaponVisualFireMode_t *fireMode, cJSON *f
     // Projectile hit event
     child = cJSON_GetObjectItem (fireModeNode, "hit");
     ReadString (child, "impactfx", fireMode->projectileHitPlayer.generic.impactEffect, sizeof (fireMode->projectileHitPlayer.generic.impactEffect));
-	ReadString(child, "shieldimpactfx", fireMode->projectileHitPlayer.generic.shieldImpactEffect, sizeof(fireMode->projectileHitPlayer.generic.shieldImpactEffect));	//note this is incomplete --Futuza
+	ReadString(child, "shieldimpactfx", fireMode->projectileHitPlayer.generic.impactShieldEffect, sizeof(fireMode->projectileHitPlayer.generic.impactShieldEffect));	//note this is incomplete --Futuza
     ReadString (child, "shockwavefx", fireMode->projectileHitPlayer.grenade.shockwaveEffect, sizeof (fireMode->projectileHitPlayer.grenade.shockwaveEffect));
     
     // Projectile deflected event
