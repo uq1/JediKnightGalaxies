@@ -4478,7 +4478,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		}
 	}
 
-	// hitmarker should use same ruels as base hit counter
+	// hitmarker should use same rules as base hit counter
 	if( ShouldHitmarker( attacker, targ, mod ) )
 	{
 		if(attacker->client->lastHitmarkerTime < (level.time-100))
@@ -4501,9 +4501,9 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		attacker->client->ps.persistant[PERS_ATTACKEE_ARMOR] = (targ->health<<8)|(client->ps.stats[STAT_SHIELD]);
 	}
 
-	// always give half damage if hurting self
+	// always give half damage if hurting self - unless DAMAGE_NO_PROTECTION is set
 	// calculated after knockback, so rocket jumping works
-	if ( targ == attacker) {
+	if ( targ == attacker  && !(dflags & DAMAGE_NO_PROTECTION)) {
 		damage *= 0.5f;
 	}
 

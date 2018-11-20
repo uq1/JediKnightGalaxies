@@ -694,7 +694,11 @@ static int GLua_Player_Damage(lua_State *L) {
 	}
 	damage = lua_tointeger(L, 6);
 	dflags = lua_tointeger(L, 7);
-	mod = lua_tointeger(L, 8);
+	std::string s = lua_tostring(L, 8);
+	
+	//mod = lua_tointeger(L, 8);
+
+	mod = JKG_GetMeansOfDamageIndex(s);
 	
 	G_Damage(&g_entities[ply->clientNum], inflictor, attacker, dir2, point2, damage, dflags, mod);
 	return 0;
