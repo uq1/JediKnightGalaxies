@@ -1,9 +1,9 @@
 {
-	"name":             "Jar of Spice",
+	"name":             	"Spice - Small Dosage",
 	"internal":             "spice_small",
-	"cost":		"100",
+	"cost":					"100",
 	"itemtype":             "consumable",
-	"maxStack":		10,
-	"consumeScript":	"item_spice_small",
-	"itemIcon":		"gfx/item_icons/default.tga"
+	"maxStack":				10,
+	"consumeScript":		"item_spice_small",
+	"itemIcon":				"gfx/item_icons/default.tga"
 }

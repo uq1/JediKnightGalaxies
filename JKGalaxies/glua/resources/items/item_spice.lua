@@ -3,7 +3,8 @@
 local SPICE_STD_DMG = 10
 
 
---Flag references:
+--[[
+Flag references:
 	--local dmg_norm = 0  		--regular damage
 	--local dmg_rad = 1   		--indirect radius damage
 	--local dmg_noshld = 2  	--ignores shield protection
@@ -11,9 +12,9 @@ local SPICE_STD_DMG = 10
 	--local dmg_noprotect = 8  	--ignores shields, armor, godmode, self dmg reduction, etc
 	--local dmg_nohitloc = 16  	--no hit location
 	--local dmg_nodsmbr = 32  	--no dismemberment
---To calculate damage correctly simply add the flags relevant to the attack together and use the total as the flag
---eg: 2+4+8+16 = 30, will do full damage, bypass shields, no knockback, no hit location (this is good for self inflicted damage)
-
+To calculate damage correctly simply add the flags relevant to the attack together and use the total as the flag.
+eg: 2+4+8+16 = 30: will do full damage, bypass shields, no knockback, no hit location (this is good for self inflicted damage).
+--]]
 
 function GiveSpiceSmall(ply, quantity)
 	--Damage(victim, attacker, direction, location, damage, flags , means of damage)
