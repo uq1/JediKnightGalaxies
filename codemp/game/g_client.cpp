@@ -3426,6 +3426,13 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 		ent->client->ps.stats[STAT_SHIELD] = ent->client->ps.stats[STAT_MAX_SHIELD];
 	}
 
+	if (ent->client->jetpackEquipped)
+		ent->client->ps.jetpackFuel = jetpackTable[ent->client->ps.jetpack - 1].fuelCapacity;	//fill jetpack to capacity when spawned
+
+	/*if (client->ps.jetpack) {
+		client->ps.jetpackFuel = jetpackTable[client->ps.jetpack - 1].fuelCapacity;		//fill jetpack
+	}*/
+
 	GLua_Hook_PlayerSpawned(ent->s.number);
 
 	// run the presend to set anything else
