@@ -197,7 +197,7 @@ XCVAR_DEF( jkg_startingSaberDuel,		"saber_kyle",	NULL,				CVAR_ARCHIVE|CVAR_SERV
 XCVAR_DEF( g_banfile,					"",				NULL,				CVAR_ARCHIVE,									false )
 XCVAR_DEF( jkg_healthRegen,				"1",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_healthRegenDelay,		"25000",		NULL,				CVAR_ARCHIVE,									true )	//after 25 secs no dmg, start regen
-XCVAR_DEF( jkg_healthRegenSpeed,		"2500",			NULL,				CVAR_ARCHIVE,									true )  //every 2.5 secs, regen a health
+XCVAR_DEF( jkg_healthRegenSpeed,		"1500",			NULL,				CVAR_ARCHIVE,									true )  //every 1.5 secs, regen a health
 XCVAR_DEF( jkg_safeTreasureClasses,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH,						false )	//temporarily defaults to off until we can fix the treasureclass checker
 XCVAR_DEF( jkg_minVendors,				"2",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true)	//0 == don't spawn extra vendors, 1 == make sure we have at least 1 vendor, 2 == make sure we have at least 2, etc.
 XCVAR_DEF( jkg_removenpcbody,			"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
