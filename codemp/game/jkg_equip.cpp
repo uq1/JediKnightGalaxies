@@ -87,7 +87,7 @@ void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber) {
 	Cmd_JetpackUnequipped(ent);
 
 	item->equipped = qtrue;
-
+	ent->client->jetpackEquipped = qtrue;
 	ent->client->pItemJetpack = &item->id->jetpackData;
 	ent->client->ps.jetpack = ent->client->pItemJetpack->pJetpackData - jetpackTable + 1;
 }
@@ -106,6 +106,7 @@ void Cmd_JetpackUnequipped(gentity_t* ent) {
 		}
 	}
 
+	ent->client->jetpackEquipped = qfalse;
 	ent->client->pItemJetpack = nullptr;
 	ent->client->ps.jetpack = 0;
 }

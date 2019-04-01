@@ -1,4 +1,5 @@
 :: Moves JKG folder dlls and associated files to correct directory after compile
+if not exist ".\JKG" mkdir .\JKG
 move /y ".\cgamex86.dll" ".\JKG\cgamex86.dll" 
 move /y ".\gamex86.dll" ".\JKG\gamex86.dll" 
 move /y ".\uix86.dll" ".\JKG\uix86.dll"
