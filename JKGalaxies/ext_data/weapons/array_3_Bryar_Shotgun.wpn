@@ -78,9 +78,9 @@
     
     "stats": {
         "slot":         2,
-        "reloadtime":   1600,
+        "reloadtime":   1800,
         "flags":        [ "roll" ],
-        "reloadmodifier": 0.7
+        "reloadmodifier": 0.6
     },
     
     "firemode0": {
@@ -137,13 +137,13 @@
     },
 	
 	"firemode2": {
-        "damage":       20,
+        "damage":       18,
         "ammocost":     3,
         "firedelay":    2000,
         "firingtype":   "semi",
         "projectiles":     9,
-        "recoil":       5.5,
-        "range":       2500,
+        "recoil":       8.5,
+        "range":       2000,
         "spread":       10.0,
         "projectilespeed": 2000.0,
         "projectileclass": "blaster_proj",

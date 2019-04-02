@@ -2,7 +2,7 @@
 	"name":		"Merr-Sonn Basic Burst Jetpack",
 	"internal":	"jetpack_burst",
 	"itemtype":	"jetpack",
-	"cost":		550,
+	"cost":		525,
 	"itemIcon":	"gfx/hud/i_icon_jetpack.tga",
 	"jetpack":	"jetpack_burst"
 }

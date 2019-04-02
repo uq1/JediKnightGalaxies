@@ -73,10 +73,14 @@
 		"basedOn": "AMMO_SLUGS",
 		"max": 60,
 		"pricePerUnit": 25,
-		"overrides": {
+		"overrides": 
+		{
+			"meansofdeath": "MOD_CURED",
+        	"splashmeansofdeath": "MOD_CURED",
 			"Damage": {
 				"set": -10
 			},
+
 			"ammocost": {
 				"multiply": 2
 			},

@@ -60,7 +60,7 @@
                                  "damageradius": { "start": 16 },
 //                                   "duration":       2000,
 //                                   "damagedelay": 100,
-                                 "damage":       4,
+                                 "damage":       5,
                                  "buffs": [
 					{
 						"buff": "standard-fire",
@@ -97,7 +97,7 @@
     "firemode1": {
           "damage": {
                                  "damageradius": { "start": 16 },
-                                 "damage":       4,
+                                 "damage":       5,
                                  "buffs": [
 					{
 						"buff": "standard-fire",
@@ -111,7 +111,7 @@
         "burstshotdelay": 70,
         "firedelay":    900,
         "firingtype":   "burst",
-        "range":        400.0,
+        "range":        450.0,
         "recoil":       0.5,
         "shotsperburst": 6,
         "spread":       8.0,
