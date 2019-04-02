@@ -158,11 +158,12 @@
 		},
 		
 		"visuals": {
-			"shader": {
+			//green shimmer effect looks tacky
+			/*"shader": {
 				"shader": "gfx/PlayerOverlays/poison",
-				"shaderRGBA": [ 40, 197, 90, 0 ],
+				"shaderRGBA": [ 40, 197, 90, 255 ],
 				"shaderLen": 100000
-			},
+			}*/
 			
 			"efx": {
 				"effect": "player/poison",
