@@ -13,6 +13,8 @@
 	#include "ui/ui_local.h"
 #endif
 
+#include "bg_buffs.h"
+
 ammo_t ammoTable[MAX_AMMO_TYPES];
 int numAmmoLoaded = 0;
 
@@ -473,6 +475,7 @@ JKG_ParseBuffOverrides
 This parses all of the buff overrides for an ammo type
 ============================
 */
+#ifndef UI_EXPORTS	// UI doesn't have a friggin clue what buffs are
 static void JKG_ParseBuffOverrides(ammo_t* ammo, cJSON* json, const char* nodeName)
 {
 	cJSON* child = cJSON_GetObjectItem(json, nodeName);
@@ -569,6 +572,7 @@ static void JKG_ParseBuffOverrides(ammo_t* ammo, cJSON* json, const char* nodeNa
 		ammo->overrides.buffs.emplace_back(buffOverride);
 	}
 }
+#endif
 
 /*
 ============================
@@ -688,7 +692,9 @@ static void JKG_ParseAmmoOverrides(ammo_t* ammo, cJSON* json) {
 	JKG_ParseAmmoOverride_Float(json, "knockback", ammo->overrides.knockback);
 	JKG_ParseAmmoOverride_Float(json, "speed", ammo->overrides.speed);
 
+#ifndef UI_EXPORTS	// UI hasn't got a clue what buffs are
 	JKG_ParseBuffOverrides(ammo, json, "buffs");
+#endif
 
 	JKG_ParseSimpleOverrideInt(ammo->overrides.useGravity, "useGravity", json);
 
