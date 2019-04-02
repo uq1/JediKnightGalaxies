@@ -484,6 +484,7 @@ Each object in the ammo file is the linkage name for it, and they can contain th
   - ammocost (complexAmmoInteger): Overrides the amount of ammo that is used by firing the weapon.
   - fireDelay (complexAmmoInteger): Overrides the fire rate. (lower = faster firing)
   - bounces (complexAmmoInteger): Overrides the number of times that the weapon can bounce.
+  - buffs (special): Allows you to override buffs in an ammo type. See the Buff Fields below for more information. 
   - hitscan (integer): If 1, this ammo type converts the weapon into a hitscan weapon.
   - speed (complexAmmoFloat): The projectile speed of the weapon.
   - usesGravity (integer): If 1, this ammo type makes projectiles use gravity. If 0, the weapon fires in a straight line.
@@ -510,6 +511,15 @@ Each object in the ammo file is the linkage name for it, and they can contain th
     - hit (string): Overrides the effect that plays when the projectile hits something.
     - deflect (string): Overrides the effect that plays when the projectile is deflected by a lightsaber.
 
+Buff Field:
+You can alter what buffs an ammo type inflicts upon its target.
+Note that weapons can inflict a maximum of 8 buffs at a time on a target. Likewise, players can only have 8 buffs active at a time on them.
+The "buffs" field is an array of Buff objects, each one having the following fields:
+ - buff (string/buff reference): The name of the buff to affect.
+ - remove (boolean): If true, this removes the specified buff.
+ - addbuff (boolean): If true, this adds the specified buff.
+ - duration (complexAmmoInteger): Overrides the buff's duration.
+ - intensity (complexAmmoFloat): Overrides the buff's intensity.
 
 ## JETPACK FIELDS
 

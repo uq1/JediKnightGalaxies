@@ -327,6 +327,9 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
     vec3_t dir;
     int i = 0;
     int flags = 0;
+	debuffData_t debuffs[MAX_DEBUFFS_PRESENT];
+	int numDebuffs;
+	int ammoType;
     
     if ( !player->client )
     {
@@ -340,6 +343,115 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
     SmallestVectorToBBox (dir, area->origin, player->r.absmin, player->r.absmax);
     dir[2] += 24.0f; // Push the player up a bit to get some air time.
     VectorNormalize (dir);
+
+	// Do ammo type override for debuffs
+	memcpy(debuffs, area->data->debuffs, sizeof(debuffData_t) * MAX_DEBUFFS_PRESENT);
+	numDebuffs = area->data->numberDebuffs;
+	ammoType = area->context.ammoType;
+	if (area->context.attacker->client && ammoType >= 0)
+	{
+		// valid ammo type, check for buff overrides
+		if (ammoTable[ammoType].overrides.buffs.size() > 0)
+		{
+			// do REMOVE buffs first because those might clear up a blank space
+			for (auto it = ammoTable[ammoType].overrides.buffs.begin();
+				it != ammoTable[ammoType].overrides.buffs.end();
+				++it)
+			{
+				if (it->bRemove)
+				{
+					// see if our debuffs includes this buff
+					for (int i = 0; i < MAX_DEBUFFS_PRESENT; i++)
+					{
+						if (debuffs[i].debuff == it->buff)
+						{
+							debuffs[i].debuff = -1; // remove it!
+						}
+					}
+				}
+			}
+
+			// do ADD buffs next
+			for (auto it = ammoTable[ammoType].overrides.buffs.begin();
+				it != ammoTable[ammoType].overrides.buffs.end();
+				++it)
+			{
+				if (it->bAddBuff)
+				{
+					// Check to see if this buff already exists
+					qboolean bBuffAlreadyExists = qfalse;
+					int slot = -1;
+
+					for (int i = 0; i < MAX_DEBUFFS_PRESENT; i++)
+					{
+						if (debuffs[i].debuff == it->buff)
+						{
+							bBuffAlreadyExists = qtrue;
+							break;
+						}
+						else if (i >= numDebuffs || debuffs[i].debuff == -1)
+						{
+							// this slot is free.
+							slot = i;
+							break;
+						}
+					}
+
+					if (!bBuffAlreadyExists && slot >= 0)
+					{
+						if (slot >= numDebuffs)
+						{
+							numDebuffs++;
+							debuffs[slot].debuff = it->buff;
+						}
+					}
+				}
+			}
+
+			// do SET, MULTIPLY, ADD operations
+			for (auto it = ammoTable[ammoType].overrides.buffs.begin();
+				it != ammoTable[ammoType].overrides.buffs.end();
+				++it)
+			{
+				// Iterate through all buffs
+				for (int i = 0; i < numDebuffs; i++)
+				{
+					if (debuffs[i].debuff == it->buff)
+					{
+						if (it->bAddDuration)
+						{
+							debuffs[i].duration += it->addDuration;
+						}
+
+						if (it->bAddIntensity)
+						{
+							debuffs[i].intensity += it->addIntensity;
+						}
+
+						if (it->bMultiplyDuration)
+						{
+							debuffs[i].duration *= it->multiplyDuration;
+						}
+
+						if (it->bMultiplyIntensity)
+						{
+							debuffs[i].intensity *= it->multiplyIntensity;
+						}
+
+						if (it->bSetDuration)
+						{
+							debuffs[i].duration = it->setDuration;
+						}
+
+						if (it->bSetIntensity)
+						{
+							debuffs[i].intensity = it->setIntensity;
+						}
+					}
+				}
+			}
+		}
+	}
 
 	for (i = 0; i < area->data->numberDebuffs; i++)
 	{
@@ -543,6 +655,14 @@ void JKG_DoDirectDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *in
 	}
 
     VectorCopy (dir, area.context.direction);
+	if (attacker->client)
+	{
+		area.context.ammoType = attacker->client->ps.ammoType;
+	}
+	else
+	{
+		area.context.ammoType = -1;
+	}
     area.context.ignoreEnt = NULL;
     area.context.attacker = attacker;
     area.context.damageFlags = dflags;

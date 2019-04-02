@@ -2293,26 +2293,6 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	G_ClearClientLog(clientNum);
 }
 
-/*static qboolean AllForceDisabled(int force)
-{
-	int i;
-
-	if (force)
-	{
-		for (i=0;i<NUM_FORCE_POWERS;i++)
-		{
-			if (!(force & (1<<i)))
-			{
-				return qfalse;
-			}
-		}
-
-		return qtrue;
-	}
-
-	return qfalse;
-}*/
-
 //Convenient interface to set all my limb breakage stuff up -rww
 void G_BreakArm(gentity_t *ent, int arm)
 {
