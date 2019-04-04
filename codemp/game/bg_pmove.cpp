@@ -4651,15 +4651,8 @@ static qboolean PM_DoChargedWeapons( void )
 		}
 
 		// Jedi Knight Galaxies - handle clips
-		if ( weaponFireData->clipSize ) {
-			if (pm->ps->stats[STAT_AMMO] < (weaponFireData->cost + weaponFireData->cost))
-			{
-				pm->ps->weaponstate = WEAPON_CHARGING;
-				if ((pm->ps->weaponChargeSubtractTime - pm->ps->weaponChargeTime) < weaponFireData->chargeMaximum) {
-					// Ok so its not fully charged yet and we don't have enough ammo, so fire it right away
-					goto rest;
-				}	
-			}
+		if ( weaponFireData->clipSize ) 
+		{
 			if (( pm->cmd.serverTime - pm->ps->weaponChargeTime) < weaponFireData->chargeMaximum )
 			{
 				if (pm->ps->weaponChargeSubtractTime < pm->cmd.serverTime)
@@ -4668,25 +4661,21 @@ static qboolean PM_DoChargedWeapons( void )
 					pm->ps->weaponChargeSubtractTime = pm->cmd.serverTime + weaponFireData->chargeTime;
 				}
 			}
-		} else {
-			if (pm->ps->stats[STAT_TOTALAMMO] < (weaponFireData->cost + weaponFireData->cost))
-			{
-				pm->ps->weaponstate = WEAPON_CHARGING;
-				if ((pm->ps->weaponChargeSubtractTime - pm->ps->weaponChargeTime) < weaponFireData->chargeMaximum) {
-					// Ok so its not fully charged yet and we don't have enough ammo, so fire it right away
-					goto rest;
-				}	
-			}
+		} 
+		else 
+		{
 			if ((pm->cmd.serverTime - pm->ps->weaponChargeTime) < weaponFireData->chargeMaximum)
 			{
 				if (pm->ps->weaponChargeSubtractTime < pm->cmd.serverTime)
 				{
 #ifdef _GAME
 					gentity_t *Gself = &g_entities[pm->ps->clientNum];
-					if (weaponFireData->useQuantity) {
+					if (weaponFireData->useQuantity) 
+					{
 						BG_AdjustItemStackQuantity(Gself, pm->cmd.invensel, -weaponFireData->cost);
 					}
-					else {
+					else 
+					{
 						Gself->client->ammoTable[pm->ps->ammoType] -= weaponFireData->cost;
 					}
 #endif
@@ -4698,7 +4687,7 @@ static qboolean PM_DoChargedWeapons( void )
 
 		return qtrue; // short-circuit rest of weapon code
 	}
-rest:
+
 	// Only charging weapons should be able to set these states...so....
 	//	let's see which fire mode we need to set up now that the buttons are up
 	if ( pm->ps->weaponstate == WEAPON_CHARGING )
