@@ -287,6 +287,17 @@ void Jetpack_On(gentity_t *ent)
 	}
 
 	jetpackData_t* jet = &jetpackTable[ent->client->ps.jetpack - 1];
+	if (ent->client->ps.powerups[PW_REDFLAG] || ent->client->ps.powerups[PW_BLUEFLAG])
+	{
+		//can't activate certain jetpacks while carrying flag
+		if(!jet->move.loadBearingAllowed)
+		{
+			G_Sound(ent, CHAN_AUTO, G_SoundIndex(jet->visuals.sputterSound));
+			return;
+		}
+	}
+
+	
 	if (jet->visuals.activateSound[0])
 		G_Sound(ent, CHAN_AUTO, G_SoundIndex(jet->visuals.activateSound));
 
@@ -324,6 +335,8 @@ void ItemUse_Jetpack(gentity_t *ent)
 	if (!(ent->client->ps.eFlags & EF_JETPACK_ACTIVE) &&
 		ent->client->ps.jetpackFuel < 5)
 	{ //too low on fuel to start it up
+		jetpackData_t* jet = &jetpackTable[ent->client->ps.jetpack - 1];
+		G_Sound(ent, CHAN_AUTO, G_SoundIndex(jet->visuals.sputterSound));
 		return;
 	}
 

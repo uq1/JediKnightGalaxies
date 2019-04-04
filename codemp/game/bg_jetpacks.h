@@ -20,6 +20,7 @@ struct jetpackData_t {
 	struct {
 		bool	thrustAllowed;		// Whether thrusting is allowed
 		bool	fwdThrustAllowed;	// Whether forward thrusting is allowed
+		bool	loadBearingAllowed;	// Whether the jetpack can carry extra weight, like CTF flags
 
 		float	hoverGravity;		// How much to modify gravity when hovering
 
@@ -50,6 +51,7 @@ struct jetpackData_t {
 		char	thrustSound[MAX_QPATH];		// The sound to play when thrusting (not hovering)
 		char	activateSound[MAX_QPATH];	// The sound to play when the jetpack is turned on
 		char	deactivateSound[MAX_QPATH];	// The sound to play when the jetpack is turned off
+		char	sputterSound[MAX_QPATH];	// The sound to play when the jetpack has no fuel/cannot activate.
 	} visuals;
 };
 

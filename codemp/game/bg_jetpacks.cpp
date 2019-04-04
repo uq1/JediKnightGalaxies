@@ -29,6 +29,9 @@ static void JKG_ParseJetpackMovement(cJSON* jsonNode, jetpackData_t& jetpackData
 
 	child = cJSON_GetObjectItem(jsonNode, "fwdThrustAllowed");
 	jetpackData.move.fwdThrustAllowed = cJSON_ToBooleanOpt(child, true);
+
+	child = cJSON_GetObjectItem(jsonNode, "loadBearingAllowed");
+	jetpackData.move.loadBearingAllowed = cJSON_ToBooleanOpt(child, false);
 	
 	child = cJSON_GetObjectItem(jsonNode, "hoverGravity");
 	jetpackData.move.hoverGravity = cJSON_ToNumberOpt(child, -1.0);
@@ -104,6 +107,9 @@ static void JKG_ParseJetpackVisuals(cJSON* jsonNode, jetpackData_t& jetpackData)
 
 	child = cJSON_GetObjectItem(jsonNode, "deactivateSound");
 	Q_strncpyz(jetpackData.visuals.deactivateSound, cJSON_ToStringOpt(child, ""), MAX_QPATH);
+
+	child = cJSON_GetObjectItem(jsonNode, "sputterSound");
+	Q_strncpyz(jetpackData.visuals.sputterSound, cJSON_ToStringOpt(child, ""), MAX_QPATH);
 }
 
 /*
