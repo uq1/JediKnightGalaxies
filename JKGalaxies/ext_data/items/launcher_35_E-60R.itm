@@ -5,7 +5,7 @@
 	"weapon":		"WP_ROCKET_LAUNCHER",
 	"variation":		"5",
 	"weight":		"25",
-	"cost":		"2050",
+	"cost":		"1950",
 	"xml":			"",
 	"itemIcon":		"models/weapons/E-60R_RocketLauncher/icon_default"
 }

@@ -94,13 +94,14 @@
 			"sightsModifier": 0.85,
 			"walkModifier": 1.3,
 			"inAirModifier": 1.8
-        }
+        },
+	"heatGenerated": 5
     },
     
     "firemode1": {
         "damage":       40,
         "ammocost":     20,
-        "firedelay":    1500,
+        "firedelay":    1250,
         "firingtype":   "semi",
         "range":        6800.0,
         "recoil":       4.0,
@@ -123,7 +124,8 @@
 			"sightsModifier": 0.93,
 			"walkModifier": 1.2,
 			"inAirModifier": 1.9
-        }
+        },
+	"maxHeat": 150
     },
     
     "playeranims": {

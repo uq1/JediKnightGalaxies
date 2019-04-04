@@ -104,7 +104,7 @@
                         },
         "ammocost":     2,
         "maxchargetime":1000,
-        "chargedamage": 0.18,
+        "chargedamage": 0.25,
         "chargedelay":  125,
 		"chargesubtract": 2,
         "firedelay":    700,

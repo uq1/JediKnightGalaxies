@@ -3,7 +3,7 @@
 	"internal":             "bacta_small",
 	"cost":		"10",
 	"itemtype":             "consumable",
-	"maxStack":		10,
+	"maxStack":		5,
 	"consumeScript":	"item_bacta_small",
 	"itemIcon":		"gfx/item_icons/bacta.tga"
 }

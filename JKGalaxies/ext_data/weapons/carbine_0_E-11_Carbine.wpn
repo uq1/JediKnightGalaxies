@@ -82,7 +82,7 @@
 			"maxAccuracyAdd": 80,
 			"sightsModifier": 0.4
         },
-	"heatGenerated": 15
+	"heatGenerated": 5
     },
     
     "firemode1": {
@@ -112,7 +112,8 @@
         "meansofdeath": "MOD_STUNNED",
 	"ammobase": "AMMO_POWERPACK_L",
 	"ammodefault": "AMMO_POWERPACK_L",
-        "clipSize":              120
+        "clipSize":              120,
+	"maxHeat":	150
     },
 
 	

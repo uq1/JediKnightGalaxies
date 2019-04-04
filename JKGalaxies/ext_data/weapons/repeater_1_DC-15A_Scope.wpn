@@ -94,7 +94,8 @@
         	"sightsModifier": 0.9,
         	"walkModifier": 1.3,
         	"inAirModifier": 1.8
-		}
+		},
+	"heatGenerated": 3
     },
     
     "firemode1": {
@@ -126,7 +127,8 @@
         	"sightsModifier": 0.98,
         	"walkModifier": 1.3,
         	"inAirModifier": 1.8
-        	}
+        	},
+	"heatGenerated": 15
 	},
         
     "playeranims": {

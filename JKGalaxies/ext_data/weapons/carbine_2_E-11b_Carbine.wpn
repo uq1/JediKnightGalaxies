@@ -103,7 +103,7 @@
         	"maxAccuracyAdd": 80,
         	"sightsModifier": 0.4
         },
-	"heatGenerated": 15
+	"heatGenerated": 5
     },
     
     "firemode1": {
@@ -127,7 +127,7 @@
         	"maxAccuracyAdd": 60,
         	"sightsModifier": 0.35
         },
-	"heatGenerated": 15
+	"heatGenerated": 5
     },
 	
 	"firemode2": {

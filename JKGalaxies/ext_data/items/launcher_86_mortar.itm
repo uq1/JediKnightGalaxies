@@ -5,7 +5,7 @@
 	"weapon":		"WP_ROCKET_LAUNCHER",
 	"variation":		"0",
 	"weight":		"20",
-	"cost":		"2100",
+	"cost":		"2000",
 	"xml":			"xml/items/Packered_Mortar.xml",
 	"itemIcon":		"models/weapons/Packered_MortarGun/icon_default"
 }

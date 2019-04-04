@@ -56,7 +56,7 @@
 		"shortname": "Medium ACP Power Cells",
 		"longname": "Barrakan Arms ACP Power Cells",
 		"max": 600,
-		"pricePerUnit": 2
+		"pricePerUnit": 1.2
 	},
 	
 	"AMMO_ACP_CARTRIDGE": {
@@ -71,7 +71,7 @@
 		"longname": "Barrakan Arms ACP Power Cartridges",
 		"basedOn": "AMMO_ACP_CARTRIDGE",
 		"max": 80,
-		"pricePerUnit": 6,
+		"pricePerUnit": 3,
 		"overrides": {
 			"damage": { 
 				"set": 45
@@ -162,31 +162,36 @@
 	"AMMO_POWERCELL_S": {
 		"shortname": "Power Cells",
 		"longname": "BlasTech Industries Power Cells (small)",
-		"max": 480
+		"max": 480,
+		"pricePerUnit": 0.6
 	},
 	
 	"AMMO_POWERCELL_M": {
 		"shortname": "Power Cells",
 		"longname": "BlasTech Industries Power Cells (medium)",
-		"max": 600
+		"max": 600,
+		"pricePerUnit": 0.6
 	},
 	
 	"AMMO_POWERCELL_L": {
 		"shortname": "Power Cells",
 		"longname": "BlasTech Industries Power Cells (large)",
-		"max": 800
+		"max": 800,
+		"pricePerUnit": 0.6
 	},
 	
 	"AMMO_POWERPAK_S": {
 		"shortname": "Standard PowerPaks",
 		"longname": "BlasTech Industries PowerPaks (small)",
-		"max": 400
+		"max": 400,
+		"pricePerUnit": 0.6
 	},
 	
 	"AMMO_POWERPAK_L": {
 		"shortname": "Standard PowerPaks",
 		"longname": "BlasTech Industries PowerPaks (large)",
-		"max": 512
+		"max": 512,
+		"pricePerUnit": 0.6
 	},
 	
 	"AMMO_ION_POWERPAK_S": {
@@ -280,7 +285,7 @@
 		"shortname": "Rockets",
 		"longname": "BlasTech Industries Rockets",
 		"max": 20,
-		"pricePerUnit": 85
+		"pricePerUnit": 50
 	},
 	
 	"AMMO_PACKERED_MORTAR": {
