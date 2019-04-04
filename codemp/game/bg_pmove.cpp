@@ -5024,6 +5024,12 @@ static void PM_Weapon( void )
 		// Overheated, we can't fire
 		return;
 	}
+
+	if (pm->ps->eFlags & EF_JETPACK_FLAMING && pm->cmd.upmove == 0)
+	{
+		// Sprinting forward while using jetpack, can't fire.
+		return;
+	}
 	
 	// JKG: Semi-automatic
 	if ( pm->ps->shotsRemaining & SHOTS_TOGGLEBIT )
