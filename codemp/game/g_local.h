@@ -1010,6 +1010,8 @@ struct gclient_s {
 	unsigned int	saberProjBlockTime;
 	unsigned int	saberBlockTime;
 
+	int			weaponHeatDebounceTime;		// last time that we lost heat
+
 	// all of the below was migrated from the playerState. None of it belonged there. --eez
 	int saberBlockDebounce;
 	int saberAttackWound;

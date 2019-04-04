@@ -81,7 +81,8 @@
 			"msToDrainAccuracy": 75,
 			"maxAccuracyAdd": 80,
 			"sightsModifier": 0.4
-        }
+        },
+	"heatGenerated": 15
     },
     
     "firemode1": {

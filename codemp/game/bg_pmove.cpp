@@ -4602,6 +4602,7 @@ void PM_FinishWeaponChange( void ) {
 	pm->ps->weaponstate = WEAPON_RAISING;
 
 	pm->ps->weaponTime += 350;
+	pm->ps->heat = 0; // all weapon heat is eliminated when we switch weapons
 }
 
 /*
@@ -5017,6 +5018,12 @@ static void PM_Weapon( void )
 	{
 	    return;
 	}
+
+	if (pm->ps->heat >= weaponData->firemodes[pm->ps->firingMode].maxHeat)
+	{
+		// Overheated, we can't fire
+		return;
+	}
 	
 	// JKG: Semi-automatic
 	if ( pm->ps->shotsRemaining & SHOTS_TOGGLEBIT )
@@ -5031,23 +5038,23 @@ static void PM_Weapon( void )
 		}
 	}
 
-	if (pm->ps->weapon == WP_EMPLACED_GUN)
-	{
-		addTime = weaponData->firemodes[pm->ps->firingMode].delay;
-		pm->ps->weaponTime += addTime;
-		PM_AddEvent( EV_FIRE_WEAPON );
-		return;
-	}
-
 	/* Can't use zoom when the zoom mode is still locked */
-	if ( weaponData->zoomType != ZOOM_NONE && ( pm->cmd.buttons & BUTTON_IRONSIGHTS ) && !pm->ps->zoomLocked )
+	if (weaponData->zoomType != ZOOM_NONE && (pm->cmd.buttons & BUTTON_IRONSIGHTS) && !pm->ps->zoomLocked)
 	{
 		return;
 	}
 
 	/* Can't use zoom mode when you're using binoculars */
-	if ( weaponData->zoomType != ZOOM_NONE && ( pm->cmd.buttons & BUTTON_IRONSIGHTS ) && pm->ps->zoomMode == 2 )
+	if (weaponData->zoomType != ZOOM_NONE && (pm->cmd.buttons & BUTTON_IRONSIGHTS) && pm->ps->zoomMode == 2)
 	{
+		return;
+	}
+
+	if (pm->ps->weapon == WP_EMPLACED_GUN)
+	{
+		addTime = weaponData->firemodes[pm->ps->firingMode].delay;
+		pm->ps->weaponTime += addTime;
+		PM_AddEvent( EV_FIRE_WEAPON );
 		return;
 	}
 
@@ -5238,6 +5245,9 @@ static void PM_Weapon( void )
 			}
 		}
 	}
+
+	// Increase heat
+	pm->ps->heat += weaponData->firemodes[pm->ps->firingMode].heatGenerated;
 
 	// If we get here, we got the green light to fire the weapon
 	pm->ps->weaponstate = WEAPON_FIRING;

@@ -1683,9 +1683,21 @@ void CG_LerpCrosshairPos( float *x, float *y )
 					ecolor[3] = 1.0f;
 				}
             }
+
+			// Crosshair gets more red with heat
+			ecolor[2] = ecolor[1] = 1.0f - (cg.predictedPlayerState.heat / 100.0f);
+			if (ecolor[2] >= 1.0f)
+			{
+				ecolor[2] = ecolor[1] = 1.0f;
+			}
+			else if (ecolor[2] <= 0.0f)
+			{
+				ecolor[2] = ecolor[1] = 0.0f;
+			}
             
 			trap->R_SetColor( ecolor );
 		}
+
 		//rwwFIXMEFIXME: Write this a different way, it's getting a bit too sloppy looking
 		if ( cg.crosshairClientNum < ENTITYNUM_WORLD && chEntValid &&
 			(cg_entities[cg.crosshairClientNum].currentState.number < MAX_CLIENTS ||
@@ -4230,7 +4242,6 @@ float CG_GetLowHealthPhase(int reset, float multiplier) {
 //extern qboolean pm_isSprinting;
 static void CG_Draw2DScreenTints( void )
 {
-	float			rageTime, rageRecTime, absorbTime, protectTime;
 	vec4_t			hcolor;
 	
 	if (cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR)

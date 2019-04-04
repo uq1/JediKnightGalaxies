@@ -102,7 +102,8 @@
         	"msToDrainAccuracy": 50,
         	"maxAccuracyAdd": 80,
         	"sightsModifier": 0.4
-        }
+        },
+	"heatGenerated": 15
     },
     
     "firemode1": {
@@ -125,7 +126,8 @@
         	"msToDrainAccuracy": 286,
         	"maxAccuracyAdd": 60,
         	"sightsModifier": 0.35
-        }
+        },
+	"heatGenerated": 15
     },
 	
 	"firemode2": {

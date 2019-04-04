@@ -84,7 +84,8 @@
         	"msToDrainAccuracy": 50,
         	"maxAccuracyAdd": 90,
         	"sightsModifier": 0.4
-        }
+        },
+	"heatGenerated": 8
     },
     
     "firemode1": {
@@ -105,7 +106,8 @@
         "splashmeansofdeath": "MOD_PULSE",
 	"ammobase": "AMMO_G36_POWERPACK",
 	"ammodefault": "AMMO_G36_POWERPACK",
-        "clipSize":              40
+        "clipSize":              40,
+	"heatGenerated": 8
     },
     
     "playeranims": {

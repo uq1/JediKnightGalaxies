@@ -3036,6 +3036,22 @@ double WP_GetWeaponSplashRange( gentity_t *ent, int firemode )
 }
 
 /**************************************************
+* WP_AddHeat
+*
+* Adds heat to the weapon for the current firing mode.
+***************************************************/
+
+static void WP_AddHeat(gentity_t* ent, int firemode)
+{
+	weaponData_t* thisWeaponData = GetWeaponData(ent->s.weapon, ent->s.weaponVariation);
+
+	if (thisWeaponData && ent->client)
+	{
+		ent->client->ps.heat += thisWeaponData->firemodes[firemode].heatGenerated;
+	}
+}
+
+/**************************************************
 * WP_FireGenericWeapon
 *
 * This is the main weapon fire routine, nearly every
@@ -3065,113 +3081,113 @@ void WP_FireGenericWeapon( gentity_t *ent, int firemode )
 		}
 		return;
 	}
-	else
+
+	nShotCount = WP_GetWeaponShotCount(ent, firemode);
+
+	WP_CalculateAngles( ent );
+	WP_CalculateMuzzlePoint( ent, forward, vright, up, muzzle );
+
+	WP_AddHeat(ent, firemode);
+
+	switch( ent->s.weapon )
 	{
-		nShotCount = WP_GetWeaponShotCount(ent, firemode);
-
-		WP_CalculateAngles( ent );
-		WP_CalculateMuzzlePoint( ent, forward, vright, up, muzzle );
-
-		switch( ent->s.weapon )
+		case WP_NONE:
 		{
-			case WP_NONE:
+			break;
+		}
+
+		case WP_STUN_BATON:
+		{
+			WP_FireStunBaton( ent, firemode );
+			break;
+		}
+
+		case WP_MELEE:
+		{
+			WP_FireMelee( ent, firemode );
+			break;
+		}
+
+		case WP_SABER:
+		{
+			break;
+		}
+
+		case WP_THERMAL:
+		{
+			vec3_t direction;
+			for (int i = 0; i < nShotCount; i++)
 			{
+				WP_GetWeaponDirection(ent, firemode, forward, direction);
+				WP_FireGenericGrenade(ent, firemode, muzzle, direction);
+			}
+			break;
+		}
+
+		//// REPLACE ME
+		case WP_TRIP_MINE:
+		{
+			for (int i = 0; i < nShotCount; i++)
+			{
+				WP_PlaceLaserTrap(ent, firemode);
+			}
+			break;
+		}
+
+		case WP_DET_PACK:
+		{
+			for (int i = 0; i < nShotCount; i++)
+			{
+				WP_DropDetPack(ent, firemode);
+			}
+			break;
+		}
+
+		case WP_EMPLACED_GUN:
+		{
+			if ( ent->client && ent->client->ewebIndex )
+			{ 
 				break;
 			}
 
-			case WP_STUN_BATON:
+			for (int i = 0; i < nShotCount; i++)
 			{
-				WP_FireStunBaton( ent, firemode );
-				break;
+				WP_FireEmplaced(ent, !!firemode);
 			}
+			break;
+		}
+		//// END REPLACE ME
 
-			case WP_MELEE:
+		default:
+			for(int i = 0; i < nShotCount; i++)
 			{
-				WP_FireMelee( ent, firemode );
-				break;
-			}
-
-			case WP_SABER:
-			{
-				break;
-			}
-
-			case WP_THERMAL:
-			{
-				vec3_t direction;
-				for (int i = 0; i < nShotCount; i++)
+				if ( WP_GetWeaponIsHitscan( ent, firemode ))
 				{
-					WP_GetWeaponDirection(ent, firemode, forward, direction);
-					WP_FireGenericGrenade(ent, firemode, muzzle, direction);
-				}
-				break;
-			}
-
-			//// REPLACE ME
-			case WP_TRIP_MINE:
-			{
-				for (int i = 0; i < nShotCount; i++)
-				{
-					WP_PlaceLaserTrap(ent, firemode);
-				}
-				break;
-			}
-
-			case WP_DET_PACK:
-			{
-				for (int i = 0; i < nShotCount; i++)
-				{
-					WP_DropDetPack(ent, firemode);
-				}
-				break;
-			}
-
-			case WP_EMPLACED_GUN:
-			{
-				if ( ent->client && ent->client->ewebIndex )
-				{ 
-					break;
-				}
-
-				for (int i = 0; i < nShotCount; i++)
-				{
-					WP_FireEmplaced(ent, !!firemode);
-				}
-				break;
-			}
-			//// END REPLACE ME
-
-			default:
-				for(int i = 0; i < nShotCount; i++)
-				{
-					if ( WP_GetWeaponIsHitscan( ent, firemode ))
-					{
 					
-						ent->client->ps.torsoTimer += 100;
-						WP_FireGenericTraceLine( ent, firemode );
-					}
-					else if ( WP_IsWeaponGrenade (ent, firemode) )
-					{
-						vec3_t direction;
-						WP_GetWeaponDirection (ent, firemode, forward, direction);
-						WP_FireGenericGrenade( ent, firemode, muzzle, direction );
-					}
-					else
-					{
-						vec3_t direction;
-						WP_GetWeaponDirection (ent, firemode, forward, direction);
-
-						ent->client->ps.torsoTimer += 100;
-						WP_FireGenericMissile( ent, firemode, muzzle, direction );
-					}
+					ent->client->ps.torsoTimer += 100;
+					WP_FireGenericTraceLine( ent, firemode );
 				}
-				break;
-		}
+				else if ( WP_IsWeaponGrenade (ent, firemode) )
+				{
+					vec3_t direction;
+					WP_GetWeaponDirection (ent, firemode, forward, direction);
+					WP_FireGenericGrenade( ent, firemode, muzzle, direction );
+				}
+				else
+				{
+					vec3_t direction;
+					WP_GetWeaponDirection (ent, firemode, forward, direction);
 
-		/* Reset the grenade cook timer, if any (with the proper weapon) */
-		if ( ent->grenadeCookTime && ent->s.weapon == ent->grenadeWeapon && ent->s.weaponVariation == ent->grenadeVariation )
-		{
-			ent->grenadeCookTime = 0;
-		}
+					ent->client->ps.torsoTimer += 100;
+					WP_FireGenericMissile( ent, firemode, muzzle, direction );
+				}
+			}
+			break;
+	}
+
+	/* Reset the grenade cook timer, if any (with the proper weapon) */
+	if ( ent->grenadeCookTime && ent->s.weapon == ent->grenadeWeapon && ent->s.weaponVariation == ent->grenadeVariation )
+	{
+		ent->grenadeCookTime = 0;
 	}
 }
