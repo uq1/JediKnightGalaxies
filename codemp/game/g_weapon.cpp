@@ -3036,22 +3036,6 @@ double WP_GetWeaponSplashRange( gentity_t *ent, int firemode )
 }
 
 /**************************************************
-* WP_AddHeat
-*
-* Adds heat to the weapon for the current firing mode.
-***************************************************/
-
-static void WP_AddHeat(gentity_t* ent, int firemode)
-{
-	weaponData_t* thisWeaponData = GetWeaponData(ent->s.weapon, ent->s.weaponVariation);
-
-	if (thisWeaponData && ent->client)
-	{
-		ent->client->ps.heat += thisWeaponData->firemodes[firemode].heatGenerated;
-	}
-}
-
-/**************************************************
 * WP_FireGenericWeapon
 *
 * This is the main weapon fire routine, nearly every
@@ -3086,8 +3070,6 @@ void WP_FireGenericWeapon( gentity_t *ent, int firemode )
 
 	WP_CalculateAngles( ent );
 	WP_CalculateMuzzlePoint( ent, forward, vright, up, muzzle );
-
-	WP_AddHeat(ent, firemode);
 
 	switch( ent->s.weapon )
 	{
