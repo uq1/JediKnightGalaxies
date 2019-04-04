@@ -31,8 +31,15 @@
 			[
 				{
 					"buff": "standard-poison",
-					"duration": 10000,
-					"intensity": 1.5
+					"addbuff": true,
+					"duration":
+                    {
+                        "set": 10000
+                    },
+                    "intensity":
+                    {
+                        "multiply": 1.5
+                    }
 				}
 			]
 		}
