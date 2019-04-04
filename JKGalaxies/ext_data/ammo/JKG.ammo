@@ -5,7 +5,7 @@
 		"shortname": "ACP Cartridges",
 		"longname": "Arakyd Industries ACP Array Cartridges",
 		"max": 80,
-		"pricePerUnit": 20
+		"pricePerUnit": 15
 	},
 	
 	"AMMO_ACP_SLUG": {
@@ -13,7 +13,7 @@
 		"longname": "Arakyd Industries ACP Slug Cartridges",
 		"basedOn": "AMMO_ACP_ARRAY",
 		"max": 80,
-		"pricePerUnit": 8,
+		"pricePerUnit": 6,
 		"overrides": {
 			"damage": {
 				"set": 40
@@ -36,7 +36,7 @@
 		"shortname": "Small ACP Power Cells",
 		"longname": "Trandoshan ACP Power Cells",
 		"max": 500,
-		"pricePerUnit": 1.2
+		"pricePerUnit": 1
 	},
 	
 	"AMMO_ACP_OVERCELL_S": {
@@ -63,7 +63,7 @@
 		"shortname": "ACP Anti-Personnel Cartridges",
 		"longname": "Barrakan Arms ACP Anti-Personnel Cartridges",
 		"max": 80,
-		"pricePerUnit": 25
+		"pricePerUnit": 20
 	},
 	
 	"AMMO_ACP_POWERCELL_L": {
@@ -89,7 +89,7 @@
 		"shortname": "Flares",
 		"longname": "BlasTech Flares",
 		"max": 18,
-		"pricePerUnit": 10
+		"pricePerUnit": 5
 	},
 	
 	"AMMO_AA_POWERPAK": {
@@ -156,7 +156,7 @@
 		"shortname": "ARC Caster Power Packs",
 		"longname": "ARC Caster Power Packs",
 		"max": 640,
-		"pricePerUnit": 0.8
+		"pricePerUnit": 0.6
 	},
 	
 	"AMMO_POWERCELL_S": {
@@ -216,6 +216,7 @@
 	"AMMO_KYD-21": {
 		"shortname": "KYD-21 PowerPaks",
 		"longname": "KYD-21 Blaster PowerPaks",
+		"pricePerUnit": 0.8,
 		"max": 400
 	},
 	
@@ -223,12 +224,14 @@
 		"shortname": "Q2 Power Packs",
 		"longname": "Merr-Sonn Q2 Blaster Power Packs",
 		"basedOn": "AMMO_SS_POWERPACK",
+		"pricePerUnit": 0.8,
 		"max": 300
 	},
 	
 	"AMMO_SS_POWERPACK": {
 		"shortname": "ELG-3A Power Packs",
 		"longname": "SoruSubb Blaster Power Packs",
+		"pricePerUnit": 0.8,
 		"max": 360
 	},
 	
@@ -255,7 +258,7 @@
 		"shortname": "Stouker Power Cells",
 		"longname": "Stouker Concussion Chamber Power Cells",
 		"max": 20,
-		"pricePerUnit": 45
+		"pricePerUnit": 60
 	},
 	
 	"AMMO_ANTIARMOR_CHARGE": {
@@ -284,21 +287,21 @@
 		"shortname": "Mortar Shells",
 		"longname": "Packered High Explosive Mortar Shells",
 		"max": 24,
-		"pricePerUnit": 35
+		"pricePerUnit": 50
 	},
 	
 	"AMMO_G36_POWERPACK": {
 		"shortname": "G36 Power Pack",
 		"longname": "Adostic Arms G36 Proton Power Pack",
 		"max": 800,
-		"pricePerUnit": 2.5
+		"pricePerUnit": 2
 	},
 	
 	"AMMO_AA-35_POWERCELL": {
 		"shortname": "AA-35 Pulse Power Cells",
 		"longname": "Adostic Arms AA-35 Pulse Power Cells",
 		"max": 80,
-		"pricePerUnit": 2.5
+		"pricePerUnit": 10
 	},
 	
 	"AMMO_PB10_POWERCELL": {
@@ -335,7 +338,7 @@
 		"longname": "Czerka Arms Incendiary Slug Cartridges",
 		"basedOn": "AMMO_SLUGS",
 		"max": 300,
-		"pricePerUnit": 3.5,
+		"pricePerUnit": 5,
 		"overrides": {
 			"damagetype": {
 				"set": [ "slug", "fire" ]
