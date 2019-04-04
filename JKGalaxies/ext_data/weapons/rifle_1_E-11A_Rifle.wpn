@@ -95,7 +95,7 @@
         "sightsModifier": 0.65,
         "walkModifier": 1.2,
         "inAirModifier": 1.5,
-	"heatGenerated": 2
+	"heatGenerated": 8
         }
     },
     
