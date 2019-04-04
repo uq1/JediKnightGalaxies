@@ -87,16 +87,25 @@
 			"speed": {
 				"set": 1000
 			},
-			"buffs": [
+			"buffs": 
+			[
 				{
-				"buff": "standard-heal",
-				"duration": 10000,
-				"intensity": 1.5
+					"buff": "standard-heal",
+					"addbuff": true,
+					"duration": 
+					{
+						"set": 5000
+					},
+					"intensity":
+					{
+						"multiply": 1.5
+					}
+				},
+				{
+					"buff": "standard-bleed",
+					"remove": true
 				}
 			]
-		
-		
 		}
-	
 	}
 }

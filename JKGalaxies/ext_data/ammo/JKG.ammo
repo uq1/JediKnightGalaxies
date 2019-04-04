@@ -122,9 +122,23 @@
 		"basedOn": "AMMO_POWERPACK_S",
 		"max": 480,
 		"pricePerUnit": 1.1,
-		"overrides": {
+		"overrides": 
+		{
 			"meansofdeath": "MOD_IONBLASTER",
-        		"splashmeansofdeath": "MOD_IONBLASTER"
+        	"splashmeansofdeath": "MOD_IONBLASTER",
+			"visuals": 
+			{
+				"projectile": 
+				{
+					"hit": "Blasters/blue_flesh_impact",
+					"miss": "Blasters/blue_impacttiny",
+					"effect": "Blasters/shot_Blue_small"
+				},
+				"fire":
+				{
+					"muzzleEffect": "Blasters/muzzleflash_Blue_small"
+				}
+			}
 		}
 	},
 	
@@ -133,10 +147,24 @@
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (medium)",
 		"basedOn": "AMMO_POWERPACK_M",
 		"max": 600,
-		"pricePerUnit": 1.1,
-		"overrides": {		
+		"pricePerUnit": 1.2,
+		"overrides": 
+		{		
 			"meansofdeath": "MOD_IONBLASTER",
-        		"splashmeansofdeath": "MOD_IONBLASTER"
+        	"splashmeansofdeath": "MOD_IONBLASTER",
+			"visuals": 
+			{
+				"projectile": 
+				{
+					"hit": "Blasters/blue_flesh_impact",
+					"miss": "Blasters/blue_impactsmall",
+					"effect": "Blasters/shot_Blue_small"
+				},
+				"fire":
+				{
+					"muzzleEffect": "Blasters/muzzleflash_Blue_medium"
+				}
+			}
 		}
 	},
 	
@@ -145,10 +173,24 @@
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (large)",
 		"basedOn": "AMMO_POWERPACK_L",
 		"max": 960,
-		"pricePerUnit": 1.1,
-		"overrides": {
+		"pricePerUnit": 1.3,
+		"overrides": 
+		{
 			"meansofdeath": "MOD_IONBLASTER",
-        		"splashmeansofdeath": "MOD_IONBLASTER"
+        	"splashmeansofdeath": "MOD_IONBLASTER",
+			"visuals": 
+			{
+				"projectile": 
+				{
+					"hit": "Blasters/blue_flesh_impact",
+					"miss": "Blasters/blue_impactmedium",
+					"effect": "Blasters/shot_Blue_medium"
+				},
+				"fire":
+				{
+					"muzzleEffect": "Blasters/muzzleflash_Blue_medium"
+				}
+			}
 		}
 	},
 	
@@ -200,9 +242,23 @@
 		"basedOn": "AMMO_POWERPAK_S",
 		"max": 400,
 		"pricePerUnit": 1.1,
-		"overrides": {		
+		"overrides": 
+		{		
 			"meansofdeath": "MOD_IONBLASTER",
-        		"splashmeansofdeath": "MOD_IONBLASTER"
+        	"splashmeansofdeath": "MOD_IONBLASTER",
+			"visuals": 
+			{
+				"projectile": 
+				{
+					"hit": "Blasters/blue_flesh_impact",
+					"miss": "Blasters/blue_impacttiny",
+					"effect": "Blasters/shot_Blue_small"
+				},
+				"fire":
+				{
+					"muzzleEffect": "Blasters/muzzleflash_Blue_small"
+				}
+			}
 		}
 	},
 	
@@ -212,9 +268,23 @@
 		"basedOn": "AMMO_POWERPAK_L",
 		"max": 512,
 		"pricePerUnit": 1.1,
-		"overrides": {
+		"overrides": 
+		{
 			"meansofdeath": "MOD_IONBLASTER",
-        		"splashmeansofdeath": "MOD_IONBLASTER"
+        	"splashmeansofdeath": "MOD_IONBLASTER",
+			"visuals": 
+			{
+				"projectile": 
+				{
+					"hit": "Blasters/blue_flesh_impact",
+					"miss": "Blasters/blue_impactmedium",
+					"effect": "Blasters/shot_Blue_medium"
+				},
+				"fire":
+				{
+					"muzzleEffect": "Blasters/muzzleflash_Blue_medium"
+				}
+			}
 		}
 	},
 	
@@ -246,9 +316,23 @@
 		"basedOn": "AMMO_SS_POWERPACK",
 		"max": 360,
 		"pricePerUnit": 1.1,
-		"overrides": {
+		"overrides": 
+		{
 			"meansofdeath": "MOD_IONBLASTER",
-        		"splashmeansofdeath": "MOD_IONBLASTER"
+        	"splashmeansofdeath": "MOD_IONBLASTER",
+			"visuals": 
+			{
+				"projectile": 
+				{
+					"hit": "Blasters/blue_flesh_impact",
+					"miss": "Blasters/blue_impacttiny",
+					"effect": "Blasters/shot_Blue_small"
+				},
+				"fire":
+				{
+					"muzzleEffect": "Blasters/muzzleflash_Blue_small"
+				}
+			}
 		}
 	},
 	
@@ -344,10 +428,31 @@
 		"basedOn": "AMMO_SLUGS",
 		"max": 300,
 		"pricePerUnit": 5,
-		"overrides": {
-			"damagetype": {
-				"set": [ "slug", "fire" ]
-			}
+		"overrides": 
+		{
+			"visuals":
+			{
+				"projectile":
+				{
+					"miss": "Explosives/burnsmall_fire",
+					"hit": "Explosives/burnsmall" 
+				},
+				"fire":
+				{
+					"muzzleEffect": "Explosives/shot_mortar"
+				}
+			},
+			"buffs": 
+			[
+				{
+					"buff": "standard-fire",
+					"addbuff": true,
+					"duration": 
+					{
+						"set": 10000
+					}
+				}
+			]
 		}
 	},
 	

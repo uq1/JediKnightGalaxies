@@ -748,7 +748,7 @@ static qboolean JKG_ParseSingleAmmo(cJSON* json) {
 ============================
 JKG_LoadAmmo
 
-Loads an individual jetpack (.jet) file.
+Loads an individual ammo (.ammo) file.
 Called on both the client and the server.
 ============================
 */
