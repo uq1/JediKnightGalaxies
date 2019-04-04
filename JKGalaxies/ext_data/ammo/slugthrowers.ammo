@@ -78,7 +78,7 @@
 			"meansofdeath": "MOD_CURED",
         	"splashmeansofdeath": "MOD_CURED",
 			"Damage": {
-				"set": -10
+				"set": 0
 			},
 
 			"ammocost": {

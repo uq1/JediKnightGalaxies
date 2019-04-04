@@ -12,6 +12,9 @@
 			{
 				"set": 2
 			},
+			"SplashRange": {
+				"set": 100
+			},
 			"meansofdeath": "MOD_POISONED",
         	"splashmeansofdeath": "MOD_POISONED",
 			"visuals":
