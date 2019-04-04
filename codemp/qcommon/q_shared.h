@@ -1806,7 +1806,7 @@ typedef struct playerState_s {
 
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 	unsigned int	credits;		//how many credits we have on hand
-	unsigned int	spent;		//how many credits we've spent so far
+	//unsigned int	spent;		//how many credits we've spent so far (currently not used for anything real, but might have application in the future)
 } playerState_t;
 // For ironsights
 #define IRONSIGHTS_MSB (1 << 31)
