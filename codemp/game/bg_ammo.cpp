@@ -557,7 +557,7 @@ static void JKG_ParseBuffOverrides(ammo_t* ammo, cJSON* json, const char* nodeNa
 			if (childProps != nullptr)
 			{
 				buffOverride.bMultiplyIntensity = qtrue;
-				buffOverride.multiplyDuration = cJSON_ToNumber(childProps);
+				buffOverride.multiplyIntensity = cJSON_ToNumber(childProps);
 			}
 
 			childProps = cJSON_GetObjectItem(buffChild, "set");

@@ -285,29 +285,22 @@ void G_TickBuffs(gentity_t* ent)
 				}
 
 				//jkg_allowDebuffKills allows debuffs to finish off targets
-				switch (jkg_allowDebuffKills.integer && damage > 0)
+				if (jkg_allowDebuffKills.integer && damage > 0)
 				{
 					//only allow debuffs to whittle us down, not kill us
-					case 0:
-						if (health - damage <= 0)
-							damage = 0;
-						break;
-
-					//debuffs are deadly if indicated in wpm file, deadly by default
-					case 1:
-						if (pBuff->damage.deadly == false)	//if debuff type isn't deadly, carebear treatment
-						{
-							if (health - damage <= 0)	//whittle us down
-							damage = 0;
-						}
-						break;
-
+					if (health - damage <= 0)
+					{
+						damage = 0;
+					}
+				}
+				else
+				{
 					//all damaging debuffs are deadly, don't adjust damage
-					case 2:
-					//default to case 2
-					default:
-						;
-						break;
+					if (pBuff->damage.deadly == false)	//if debuff type isn't deadly, carebear treatment
+					{
+						if (health - damage <= 0)	//whittle us down
+							damage = 0;
+					}
 				}
 
 				G_Damage(ent, ent->buffData[i].buffer, ent->buffData[i].buffer, vec3_origin, ent->client->ps.origin, 
@@ -361,7 +354,7 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
 				if (it->bRemove)
 				{
 					// see if our debuffs includes this buff
-					for (int i = 0; i < MAX_DEBUFFS_PRESENT; i++)
+					for (int i = 0; i < numDebuffs; i++)
 					{
 						if (debuffs[i].debuff == it->buff)
 						{
@@ -399,10 +392,12 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
 
 					if (!bBuffAlreadyExists && slot >= 0)
 					{
+						debuffs[slot].debuff = it->buff;
+						debuffs[slot].intensity = 1.0f; // default intensity to 1
+
 						if (slot >= numDebuffs)
 						{
 							numDebuffs++;
-							debuffs[slot].debuff = it->buff;
 						}
 					}
 				}
@@ -453,10 +448,10 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
 		}
 	}
 
-	for (i = 0; i < area->data->numberDebuffs; i++)
+	for (i = 0; i < numDebuffs; i++)
 	{
 		G_BuffEntity(player, area->context.attacker, 
-			area->data->debuffs[i].debuff, area->data->debuffs[i].intensity, area->data->debuffs[i].duration);
+			debuffs[i].debuff, debuffs[i].intensity, debuffs[i].duration);
 	}
     
     if ( damage  )	//positive or negative damage works, 0 does not
@@ -743,6 +738,11 @@ void JKG_DoSplashDamage ( damageSettings_t* data, const vec3_t origin, gentity_t
         a.context.inflictor = inflictor;
         a.context.methodOfDeath = mod;
         a.startTime = level.time;
+
+		if (attacker->client)
+		{
+			a.context.ammoType = attacker->client->ps.ammoType;
+		}
 
 		if(bDoDamageOverride) {
 			a.context.damageOverride = JKG_ChargeDamageOverride(inflictor, false);
