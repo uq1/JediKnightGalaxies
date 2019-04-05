@@ -2114,6 +2114,7 @@ static unsigned int frameCount;
 static float avgFrametime=0.0;
 extern void SE_CheckForLanguageUpdates(void);
 void CL_Frame ( int msec ) {
+
 	qboolean takeVideoFrame = qfalse;
 
 	if ( !com_cl_running->integer ) {

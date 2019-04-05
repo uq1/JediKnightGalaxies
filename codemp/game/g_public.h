@@ -32,7 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define Q3_INFINITE			16777216
 #define Q3_TIMEINFINITE		0x7FFFFFFF
 
-#define	GAME_API_VERSION	1
+#define	GAME_API_VERSION	2
 
 // entity->svFlags
 // the server does not know how to interpret most of the values
@@ -424,10 +424,13 @@ typedef struct gameImport_s {
 	void		(*SetConfigstring)						( int num, const char *string );
 	void		(*SetServerCull)						( float cullDistance );
 	void		(*SetUserinfo)							( int num, const char *buffer );
-	void		(*SiegePersSet)							( siegePers_t *pers );
-	void		(*SiegePersGet)							( siegePers_t *pers );
 	void		(*Trace)								( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, int capsule, int traceFlags, int useLod );
 	void		(*UnlinkEntity)							( sharedEntity_t *ent );
+
+	// Performance
+	performanceData_t* (*Perf_GetData)();
+	void		(*Perf_Start)							( const char* tag );
+	void		(*Perf_End)								( const char* tag );
 
 	// ROFF
 	qboolean	(*ROFF_Clean)							( void );

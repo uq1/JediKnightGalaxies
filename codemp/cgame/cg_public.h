@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#define	CGAME_API_VERSION		1
+#define	CGAME_API_VERSION		2
 
 #define	CMD_BACKUP			64
 #define	CMD_MASK			(CMD_BACKUP - 1)
@@ -250,6 +250,11 @@ typedef struct cgameImport_s {
 	int				(*FS_Open)								( const char *qpath, fileHandle_t *f, fsMode_t mode );
 	int				(*FS_Read)								( void *buffer, int len, fileHandle_t f );
 	int				(*FS_Write)								( const void *buffer, int len, fileHandle_t f );
+
+	// performance analysis
+	performanceData_t* (*Perf_GetData)();
+	void			(*Perf_Start)							( const char* tagName );
+	void			(*Perf_End)								( const char* tagName );
 
 	// screen
 	void			(*UpdateScreen)							( void );

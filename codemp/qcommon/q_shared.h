@@ -1812,13 +1812,6 @@ typedef struct playerState_s {
 #define IRONSIGHTS_MSB (1 << 31)
 #define SPRINT_MSB IRONSIGHTS_MSB
 
-typedef struct siegePers_s
-{
-	qboolean	beatingTime;
-	int			lastTeam;
-	int			lastTime;
-} siegePers_t;
-
 //====================================================================
 
 
@@ -2441,7 +2434,18 @@ void getGalacticTimeStamp(char* outStr);	//Gets current time    to use : char my
 qboolean StringContainsWord(const char *haystack, const char *needle);
 qboolean Q_stratt( char *dest, unsigned int iSize, char *source );
 
+// Performance analysis
+typedef struct
+{
+	char tagName[MAX_QPATH];
+	qboolean tagUsed;
+	uint64_t timeAccumulated;
+	uint64_t timeStarted;
+} performanceTag_t;
 
+#define MAX_PERFORMANCE_TAGS	32
+
+typedef performanceTag_t performanceData_t[MAX_PERFORMANCE_TAGS];
 
 
 
