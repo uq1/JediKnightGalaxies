@@ -655,7 +655,7 @@ void JKG_DoDirectDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *in
 	}
 
     VectorCopy (dir, area.context.direction);
-	if (attacker->client && area.context.ammoType)
+	if (attacker->client && attacker->client->ps.ammoType)
 	{
 		area.context.ammoType = attacker->client->ps.ammoType;
 		JKG_ApplyAmmoOverride(damage, ammoTable[area.context.ammoType].overrides.damage);
