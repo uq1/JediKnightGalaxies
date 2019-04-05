@@ -28,6 +28,41 @@
 		}
 	},
 	
+	"AMMO_SLUGS_INCENDIARY": 
+	{
+		"shortname": "Incendiary Slugs",
+		"longname": "Czerka Arms Incendiary Slug Cartridges",
+		"basedOn": "AMMO_SLUGS",
+		"max": 100,
+		"pricePerUnit": 75,
+		"overrides": 
+		{
+			"visuals":
+			{
+				"projectile":
+				{
+					"miss": "Weapons/blaster_impact_yellow_big_fire",
+					"hit": "Explosives/burnsmall" 
+				}
+			},
+			"buffs": 
+			[
+				{
+					"buff": "standard-fire",
+					"addbuff": true,
+					"duration": 
+					{
+						"set": 10000
+					},
+					"intensity":
+					{
+						"multiply": 1.0
+					}
+				}
+			]
+		}
+	},	
+	
 	"AMMO_SLUGS_EXPLOSIVE": 
 	{
 		"shortname": "Explosive Slugs",
@@ -78,14 +113,27 @@
 			"meansofdeath": "MOD_CURED",
         	"splashmeansofdeath": "MOD_CURED",
 			"Damage": {
-				"set": 0
+				"set": -2
 			},
 
 			"ammocost": {
-				"multiply": 2
+				"multiply": 3
 			},
 			"speed": {
 				"set": 1000
+			},
+			"visuals":
+			{
+				"projectile":
+				{
+					"miss": "weapons/watergun_impact_small",
+					"hit": "weapons/bactagun_impact_small" ,
+					"effect": "Slugthrowers/slug_medtracershot"
+				},
+				"fire":
+				{
+					"muzzleEffect": "blasters/muzzleflash_Green_small"
+				}
 			},
 			"buffs": 
 			[

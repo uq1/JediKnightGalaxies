@@ -22,12 +22,12 @@
 				"projectile":
 				{
 					"miss": "player/poison",
-					"hit": "Blasters/green_impactmedium" ,
+					//"hit": "blasters/shot_Green_vaporize" ,	//use green_impactsmall.efx modified smoke
 					"effect": "player/poison"
 				},
 				"fire":
 				{
-					"muzzleEffect": "Explosives/smokesmall"
+					"muzzleEffect": "Slugthrowers/muzzleflash_big_extrasmoke"
 				}
 			},
 			"buffs": 
@@ -41,7 +41,7 @@
 					},
 					"intensity":
 					{
-						"multiply": 1.2
+						"multiply": 1.0
 					}
 				},
 				{
