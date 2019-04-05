@@ -12,6 +12,9 @@
 			{
 				"set": 2
 			},
+			"SplashRange": {
+				"set": 100
+			},
 			"meansofdeath": "MOD_POISONED",
         	"splashmeansofdeath": "MOD_POISONED",
 			"visuals":
@@ -24,7 +27,7 @@
 				},
 				"fire":
 				{
-					"muzzleEffect": "Blasters/muzzleflash2_Green_medium"
+					"muzzleEffect": "Explosives/smokesmall"
 				}
 			},
 			"buffs": 
@@ -38,7 +41,7 @@
 					},
 					"intensity":
 					{
-						"multiply": 1.5
+						"multiply": 1.2
 					}
 				},
 				{

@@ -53,7 +53,14 @@ Not technically a BG function, it's a utility to prevent overflow
 ============================
 */
 #ifdef _GAME
-void BG_GiveAmmo(gentity_t* ent, ammo_t* ammo, qboolean max, int amount) {
+void BG_GiveAmmo(gentity_t* ent, ammo_t* ammo, qboolean max, int amount) 
+{
+	if (ammo == nullptr)
+	{
+		Com_Printf(S_COLOR_RED "ammo is a nullptr! Check .ammo files for errors.\n");
+		return;
+	}
+
 	if (max) {
 		ent->client->ammoTable[ammo->ammoIndex] = ammo->ammoMax;
 	}
@@ -748,7 +755,7 @@ static qboolean JKG_ParseSingleAmmo(cJSON* json) {
 ============================
 JKG_LoadAmmo
 
-Loads an individual jetpack (.jet) file.
+Loads an individual ammo (.ammo) file.
 Called on both the client and the server.
 ============================
 */
