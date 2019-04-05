@@ -90,6 +90,11 @@ static int CalculateDamageForDistance ( const damageArea_t *area, const vec3_t p
 	else {
 		d = area->data->damage;
 	}
+
+	if (area->context.attacker && area->context.ammoType)
+	{
+		JKG_ApplyAmmoOverride(d, ammoTable[area->context.ammoType].overrides.damage);
+	}
     
     SmallestVectorToBBox (v, area->origin, playerMins, playerMaxs);
     distanceFromOrigin = VectorLength (v);
@@ -650,9 +655,10 @@ void JKG_DoDirectDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *in
 	}
 
     VectorCopy (dir, area.context.direction);
-	if (attacker->client)
+	if (attacker->client && area.context.ammoType)
 	{
 		area.context.ammoType = attacker->client->ps.ammoType;
+		JKG_ApplyAmmoOverride(damage, ammoTable[area.context.ammoType].overrides.damage);
 	}
 	else
 	{
