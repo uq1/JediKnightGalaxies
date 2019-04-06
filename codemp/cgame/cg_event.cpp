@@ -177,7 +177,35 @@ static void CG_Obituary( entityState_t *ent ) {
 		message = va("%s ^7%s\n", ci->name, CG_GetStringEdString2(means->killfeed.deathMessage));
 	}
 
+	// Print the actual message
 	trap->Print(message);
+
+	// If we're the attacker, display the "You Killed X" message.
+	if (attacker == cg.snap->ps.clientNum)
+	{
+		char* s;
+
+		if (cgs.gametype < GT_TEAM)
+		{
+			char sPlaceWith[256];
+			char sKilledStr[256];
+			trap->SE_GetStringTextString("MP_INGAME_PLACE_WITH", sPlaceWith, sizeof(sPlaceWith));
+			trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
+
+			s = va("%s %s.\n%s %s %i.", sKilledStr, ci->name,
+				CG_PlaceString(cg.snap->ps.persistant[PERS_RANK] + 1),
+				sPlaceWith,
+				cg.snap->ps.persistant[PERS_SCORE]);
+		}
+		else
+		{
+			char sKilledStr[256];
+			trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
+			s = va("%s %s", sKilledStr, ci->name);
+		}
+
+		CG_CenterPrint(s, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH);
+	}
 }
 
 //set the local timing bar
