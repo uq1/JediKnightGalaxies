@@ -378,9 +378,9 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
 				{
 					// Check to see if this buff already exists
 					qboolean bBuffAlreadyExists = qfalse;
-					int slot = -1;
+					int slot = 0;
 
-					for (int i = 0; i < MAX_DEBUFFS_PRESENT; i++)
+					for (int i = 0; i < numDebuffs; i++)
 					{
 						if (debuffs[i].debuff == it->buff)
 						{
@@ -395,7 +395,7 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
 						}
 					}
 
-					if (!bBuffAlreadyExists && slot >= 0)
+					if (!bBuffAlreadyExists && slot < MAX_DEBUFFS_PRESENT)
 					{
 						debuffs[slot].debuff = it->buff;
 						debuffs[slot].intensity = 1.0f; // default intensity to 1
@@ -645,12 +645,15 @@ void JKG_DoDirectDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *in
     memset (&area, 0, sizeof (area));
 
 	area.data = data;
+	
 	// The firing mode's base damage can lie! It doesn't account for dynamic damage amounts (ie weapon charging)
 	area.context.damageOverride = JKG_ChargeDamageOverride(inflictor, inflictor == attacker);
-	if(area.context.damageOverride != 0 && area.data->damage != area.context.damageOverride) {
+	if(area.context.damageOverride != 0 && area.data->damage != area.context.damageOverride) 
+	{
 		damage = area.context.damageOverride;
 	}
-	else {
+	else 
+	{
 		damage = data->damage;
 	}
 

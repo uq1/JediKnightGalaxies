@@ -150,7 +150,6 @@ typedef struct debuffData_s
 
 typedef struct damageSettings_s
 {
-	qboolean			bPresent;	// whether this weapon uses complex damage settings
 	qboolean            radial;
 	radiusParams_t      radiusParams;
 	int                 lifetime;
@@ -162,10 +161,6 @@ typedef struct damageSettings_s
 	int					numberDebuffs;
 	debuffData_t		debuffs[MAX_DEBUFFS_PRESENT];
 	int					damageFlags;
-
-	// Damage override stuff
-	int					weapon;
-	int					weaponVariation;
 } damageSettings_t;
 
 typedef enum
@@ -250,6 +245,7 @@ typedef struct weaponFireModeStats_s
 	short       baseDamage;		    // The amount of base damage this weapon does, goes through modifiers for skills.
 	damageSettings_t   primary;		// For use with the more complex damage type system.
 	damageSettings_t   secondary;	// For secondary damage..
+	qboolean	secondaryDmgPresent;
 	char		applyGravity;		// If true, bolt is affected by gravity and will act accordingly. Speed will decide the forward thrust.
 	char		bounceCount;		// The amount of bounces this weapon has, if any.
 	char		hitscan;        	// Is this weapon hitscan?

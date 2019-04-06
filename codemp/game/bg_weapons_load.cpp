@@ -92,21 +92,17 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
     {
         return;
     }
-
-	if (!secondary)
-	{
-		fireModeStats->primary.bPresent = qfalse;
-	}
-	else
-	{
-		fireModeStats->secondary.bPresent = qfalse;
-	}
-	
     
     if ( !secondary && cJSON_IsNumber (damageNode) )
     {
         fireModeStats->baseDamage = (short)cJSON_ToIntegerOpt (damageNode, 0);
+		fireModeStats->primary.damage = fireModeStats->baseDamage;
     }
+	else if (secondary && cJSON_IsNumber(damageNode))
+	{
+		fireModeStats->secondary.damage = cJSON_ToIntegerOpt(damageNode, 0);
+		fireModeStats->secondaryDmgPresent = qtrue;
+	}
     else if ( cJSON_IsObject (damageNode) )
     {
         damageSettings_t darea;
@@ -216,15 +212,9 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
 			}
 		}
 
-		if (!secondary)
+		if (secondary)
 		{
-			fireModeStats->primary = darea;
-			fireModeStats->primary.bPresent = qtrue;
-		}
-		else
-		{
-			fireModeStats->secondary = darea;
-			fireModeStats->secondary.bPresent = qtrue;
+			fireModeStats->secondaryDmgPresent = qtrue;
 		}
     }
 }

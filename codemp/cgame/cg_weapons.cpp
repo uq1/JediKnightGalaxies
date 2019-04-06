@@ -3386,6 +3386,7 @@ void JKG_FireWeapon ( centity_t *cent, qboolean altFire )
 		return;
 	}
 
+#if 0	// Old code, used for vibration on controllers.
 	if( s->number == cg.clientNum )
 	{
 		// It's our gun. do the vibration stuff.
@@ -3394,6 +3395,7 @@ void JKG_FireWeapon ( centity_t *cent, qboolean altFire )
 
 		CLAMP(damageModifier, 0.3f, 1.0f);
 	}
+#endif
 
 	weapon = CG_WeaponInfo (s->weapon, s->weaponVariation);
 
