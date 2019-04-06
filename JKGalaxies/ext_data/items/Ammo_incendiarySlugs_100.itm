@@ -1,6 +1,6 @@
 {
 	"name":		"100-pack Incendiary Slugs",
-	"internal":	"ammo_incendiarySlug_100",
+	"internal":	"ammo_incendiarySlugs_100",
 	"itemtype":	"ammo",
 	"weight":		"0",
 	"cost":		"200",

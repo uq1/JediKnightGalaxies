@@ -2,8 +2,8 @@
 	"classes": {
 		"allvendor":
 		{
-			"numberPicksMin": 142,
-			"numberPicksMax": 143,
+			"numberPicksMin": 144,
+			"numberPicksMax": 145,
 			"uniquePicks": true,
 			"picks": 
 				{
@@ -11,8 +11,10 @@
 					"ammo_explosiveQuarrel_40": 1,
 					"ammo_explosiveSlugs_60": 1,
 					"ammo_godKilling_50": 1,
-					"ammo_shotgunSlugs_30": 1,
-					"ammo_incendiarySlug_100": 1,
+					"ammo_incendiarySlugs_45": 1,
+					"ammo_incendiarySlugs_100": 1,
+					"ammo_medicBeads_60": 1,
+					"ammo_poison_gas_50": 1,
 					"ammo_splittingQuarrels_40": 1,
 					"gloves_stormtrooper": 1,
 					"helmet_stormtrooper": 1,
@@ -210,9 +212,15 @@
 				"helmet_rebel_light": 3,
 				"torso_glight": 2,
 				"legs_glight": 2,
-				"ammo_splittingQuarrels_40": 1,
-				"ammo_bouncingQuarrels_40": 1,
-				"ammo_shotgunSlugs_30": 3
+				"ammo_bouncingQuarrels_40": 3,
+				"ammo_explosiveQuarrel_40": 1,
+				"ammo_splittingQuarrels_40": 2,
+				"ammo_explosiveSlugs_60": 2,
+				"ammo_shotgunSlugs_30": 3,
+				"ammo_incendiarySlugs_45": 4,
+				"ammo_incendiarySlugs_100": 3,
+				"ammo_medicBeads_60": 5,
+				"ammo_poison_gas_50": 4
 			}
 		},
 		"grenadevendor":
@@ -249,7 +257,8 @@
 				"bacta_large": 3,
 				"bacta_medium": 8,
 				"bacta_small": 10,
-				"Grenade_Bacta_Antidote-e": 2
+				"Grenade_Bacta_Antidote-e": 2,
+				"ammo_medicBeads_60": 4
 			}
 		},
 		"genericvendor": {
@@ -299,11 +308,13 @@
 				"helmet_pilot": 1,
 				"helmet_rebel_dark": 2,
 				"helmet_rebel_light": 1,
-				"ammo_explosiveQuarrel_40": 1,
 				"ammo_splittingQuarrels_40": 1,
-				"ammo_bouncingQuarrels_40": 1,
-				"ammo_explosiveSlugs_60": 2,
-				"ammo_shotgunSlugs_30": 3
+				"ammo_bouncingQuarrels_40": 2,
+				"ammo_explosiveSlugs_60": 1,
+				"ammo_incendiarySlugs_45": 2,
+				"ammo_medicBeads_60": 4,
+				"ammo_poison_gas_50": 2
+
 			}
 		},
 		"genericvendor-mid": {
@@ -368,7 +379,11 @@
 				"ammo_splittingQuarrels_40": 3,
 				"ammo_bouncingQuarrels_40": 4,
 				"ammo_explosiveSlugs_60": 3,
-				"ammo_shotgunSlugs_30": 4
+				"ammo_shotgunSlugs_30": 4,
+				"ammo_incendiarySlugs_45": 1,
+				"ammo_incendiarySlugs_100": 3,
+				"ammo_medicBeads_60": 5,
+				"ammo_poison_gas_50": 4
 
 			}
 		},
@@ -433,7 +448,11 @@
 				"ammo_splittingQuarrels_40": 4,
 				"ammo_bouncingQuarrels_40": 4,
 				"ammo_explosiveSlugs_60": 4,
-				"ammo_shotgunSlugs_30": 5
+				"ammo_shotgunSlugs_30": 5,
+				"ammo_incendiarySlugs_45": 5,
+				"ammo_incendiarySlugs_100": 4,
+				"ammo_medicBeads_60": 6,
+				"ammo_poison_gas_50": 3
 			}
 		},
 		"genericvendor-rare": {
