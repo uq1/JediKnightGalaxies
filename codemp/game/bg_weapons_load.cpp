@@ -214,7 +214,12 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
 
 		if (secondary)
 		{
+			fireModeStats->secondary = darea;
 			fireModeStats->secondaryDmgPresent = qtrue;
+		}
+		else
+		{
+			fireModeStats->primary = darea;
 		}
     }
 }
