@@ -34,17 +34,19 @@
 		"longname": "Czerka Arms Incendiary Slug Cartridges",
 		"basedOn": "AMMO_SLUGS",
 		"max": 100,
-		"pricePerUnit": 75,
+		"pricePerUnit": 85,
 		"overrides": 
 		{
-			"visuals":
+			"Damage":
 			{
-				"projectile":
-				{
-					"miss": "Weapons/blaster_impact_yellow_big_fire",
-					"hit": "Explosives/burnsmall" 
-				}
+				"multiply": 0.75
 			},
+			"splashmeansofdeath": "MOD_FIRE",
+			"splashRange":
+			{
+				"add": 100
+			},			
+
 			"buffs": 
 			[
 				{
@@ -52,12 +54,16 @@
 					"addbuff": true,
 					"duration": 
 					{
-						"set": 10000
+						"set": 8000
 					},
 					"intensity":
 					{
-						"multiply": 1.0
+						"multiply": 1.5
 					}
+				},
+				{
+					"buff": "standard-bleed",
+					"remove": true
 				}
 			]
 		}
@@ -74,6 +80,7 @@
 			"Damage": {
 				"set": 30
 			},
+			"splashmeansofdeath": "MOD_EXPLOSION",
 			"SplashRange": {
 				"set": 400
 			},
@@ -115,6 +122,11 @@
 			"Damage": {
 				"set": -2
 			},
+			
+			"splashRange":
+			{
+				"add": 75
+			},
 
 			"ammocost": {
 				"multiply": 3
@@ -127,7 +139,7 @@
 				"projectile":
 				{
 					"miss": "weapons/watergun_impact_small",
-					"hit": "weapons/bactagun_impact_small" ,
+					"hit": "weapons/watergun_impact_small" ,
 					"effect": "Slugthrowers/slug_medtracershot"
 				},
 				"fire":

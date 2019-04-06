@@ -5,7 +5,7 @@
 		"longname": "Merr-Sonn Toxic Gas Canisters",
 		"basedOn": "AMMO_GAS",
 		"max": 100,
-		"pricePerUnit": 1.5,
+		"pricePerUnit": 25,
 		"overrides":
 		{
 			"Damage": 
@@ -22,14 +22,11 @@
 				"projectile":
 				{
 					"miss": "player/poison",
-					//"hit": "blasters/shot_Green_vaporize" ,	//use green_impactsmall.efx modified smoke
+					"hit": "Blasters/green_small_smoke",
 					"effect": "player/poison"
-				},
-				"fire":
-				{
-					"muzzleEffect": "Slugthrowers/muzzleflash_big_extrasmoke"
 				}
 			},
+
 			"buffs": 
 			[
 				{
@@ -37,7 +34,7 @@
 					"addbuff": true,
 					"duration": 
 					{
-						"set": 10000
+						"set": 7000
 					},
 					"intensity":
 					{
