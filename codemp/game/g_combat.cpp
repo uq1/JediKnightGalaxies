@@ -4600,23 +4600,34 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	//	3. Reduce damage by armor reduction
 
 	// save some from shield
-	ssave = CheckShield (targ, take, dflags, means);
-	if (ssave)
+	if (means->modifiers.shieldBlocks && targ->client->ps.stats[STAT_SHIELD] > 0)
 	{
-		if (targ->client) {
-			if (targ->client->ps.stats[STAT_SHIELD] > ssave) {
-				// absorb all damage by the shield, and don't take any
-				targ->client->ps.stats[STAT_SHIELD] -= ssave;
-				take = 0;
-			}
-			else if (targ->client->ps.stats[STAT_SHIELD] > 0) {
-				// we have some shields but we can break some damage through
-				take -= targ->client->ps.stats[STAT_SHIELD];
-				targ->client->ps.stats[STAT_SHIELD] = 0;
-			}
-		}
+		// this damage is -completely avoided- because we're wearing a shield
+		ssave = take;
+		take = 0;
 		ShieldHitEffect(targ, dir, ssave);
 	}
+	else
+	{
+		ssave = CheckShield(targ, take, dflags, means);
+		if (ssave)
+		{
+			if (targ->client) {
+				if (targ->client->ps.stats[STAT_SHIELD] > ssave) {
+					// absorb all damage by the shield, and don't take any
+					targ->client->ps.stats[STAT_SHIELD] -= ssave;
+					take = 0;
+				}
+				else if (targ->client->ps.stats[STAT_SHIELD] > 0) {
+					// we have some shields but we can break some damage through
+					take -= targ->client->ps.stats[STAT_SHIELD];
+					targ->client->ps.stats[STAT_SHIELD] = 0;
+				}
+			}
+			ShieldHitEffect(targ, dir, ssave);
+		}
+	}
+	
 
 	if (take > 0 && !(dflags&DAMAGE_NO_HIT_LOC))
 	{//see if we should modify it by damage location

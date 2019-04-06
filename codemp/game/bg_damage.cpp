@@ -63,6 +63,9 @@ static void JKG_ParseSingleMeansOfDamage(const char* name, cJSON* json) {
 		child = cJSON_GetObjectItem(jsonNode, "ignoreShield");
 		mod.modifiers.ignoreShield = cJSON_ToBooleanOpt(child, qfalse);
 
+		child = cJSON_GetObjectItem(jsonNode, "shieldBlocks");
+		mod.modifiers.shieldBlocks = cJSON_ToBooleanOpt(child, qfalse);
+
 		child = cJSON_GetObjectItem(jsonNode, "dodgeable");
 		mod.modifiers.dodgeable = cJSON_ToBooleanOpt(child, qfalse);
 

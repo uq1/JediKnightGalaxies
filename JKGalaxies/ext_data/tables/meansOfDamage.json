@@ -675,6 +675,10 @@
 		// Stunned
 		"inventoryName": "@JKG_INVENTORY_MOD_STUNNED",
 
+		"modifiers": {
+			"shieldBlocks": true
+		},
+
 		"killFeed": {
 			"killMessage": "@JKG_INGAME_KILLED_STUNNED",
 			"deathMessage": "@JKG_INGAME_DIED_STUNNED",

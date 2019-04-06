@@ -337,6 +337,26 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
 	if (!JKG_ClientAlive(player)) {	// Don't allow us to be debuffed if we are dead
 		return;
 	}
+
+	// Deal damage to the client
+	if (damage)	//positive or negative damage works, 0 does not
+	{
+		if (!area->data->radial)
+		{
+			VectorCopy(area->context.direction, dir);
+		}
+
+		G_Damage(player, area->context.inflictor, area->context.attacker, dir, player->client->ps.origin, damage, flags | area->context.damageFlags, mod);
+	}
+
+	if (mod > 0 && mod < allMeansOfDamage.size())
+	{
+		meansOfDamage_t means = allMeansOfDamage.at(mod);
+		if (means.modifiers.shieldBlocks && player && player->client && player->client->ps.stats[STAT_SHIELD] > 0)
+		{	// Don't debuff them if shield blocks this.
+			return;
+		}
+	}
     
     SmallestVectorToBBox (dir, area->origin, player->r.absmin, player->r.absmax);
     dir[2] += 24.0f; // Push the player up a bit to get some air time.
@@ -458,16 +478,6 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
 		G_BuffEntity(player, area->context.attacker, 
 			debuffs[i].debuff, debuffs[i].intensity, debuffs[i].duration);
 	}
-    
-    if ( damage  )	//positive or negative damage works, 0 does not
-    {
-        if ( !area->data->radial )
-        {
-            VectorCopy (area->context.direction, dir);
-        }
-        
-        G_Damage (player, area->context.inflictor, area->context.attacker, dir, player->client->ps.origin, damage, flags | area->context.damageFlags, mod);
-    }
     
     area->lastDamageTime = level.time;
 }
