@@ -422,40 +422,6 @@
 		"pricePerUnit": 3.5
 	},
 	
-	"AMMO_SLUGS_INCENDIARY": {
-		"shortname": "Small Caliber Incendiary Slugs",
-		"longname": "Czerka Arms Incendiary Slug Cartridges",
-		"basedOn": "AMMO_SLUGS",
-		"max": 300,
-		"pricePerUnit": 5,
-		"overrides": 
-		{
-			"visuals":
-			{
-				"projectile":
-				{
-					"miss": "Explosives/burnsmall_fire",
-					"hit": "Explosives/burnsmall" 
-				},
-				"fire":
-				{
-					"muzzleEffect": "Explosives/shot_mortar"
-				}
-			},
-			"buffs": 
-			[
-				{
-					"buff": "standard-fire",
-					"addbuff": true,
-					"duration": 
-					{
-						"set": 10000
-					}
-				}
-			]
-		}
-	},
-	
 	"AMMO_GAS": {
 		"shortname": "Gas Fuel Canister",
 		"longname": "Merr-Sonn Munitions Gas Fuel Canisters",

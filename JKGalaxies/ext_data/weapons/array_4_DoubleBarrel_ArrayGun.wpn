@@ -42,18 +42,18 @@
         "firemode1": {
             "type":         "blaster",
             
-            //"muzzlefx":     "slugthrowers/muzzleflash_extrasmoke",
-            //"firesound":    [
-            //    "sound/weapons/slugthrowers/acp_repeater1.mp3",
-            //    "sound/weapons/slugthrowers/acp_repeater2.mp3",
-            //    "sound/weapons/slugthrowers/acp_repeater3.mp3",
-            //    "sound/weapons/slugthrowers/acp_repeater4.mp3"
-            //],
-            //"projectilemodel": "models/ammo/incendcan_proj.md3",
-            //"projectilefx": "explosives/shot_mortar",
-            //"runsound":     "sound/ambience/pipe_steam_lp.wav",
-            //"miss": { "impactfx": "explosives/smokemedium" },
-            //"hit": { "impactfx": "explosives/smokemedium" },
+            "muzzlefx":     "slugthrowers/muzzleflash_extrasmoke",
+            "firesound":    [
+                "sound/weapons/slugthrowers/acp_repeater1.mp3",
+                "sound/weapons/slugthrowers/acp_repeater2.mp3",
+                "sound/weapons/slugthrowers/acp_repeater3.mp3",
+                "sound/weapons/slugthrowers/acp_repeater4.mp3"
+            ],
+            "projectilemodel": "models/ammo/incendcan_proj.md3",
+            "projectilefx": "explosives/shot_mortar",
+            "runsound":     "sound/ambience/pipe_steam_lp.wav",
+            "miss": { "impactfx": "explosives/smokemedium" },
+            "hit": { "impactfx": "explosives/smokemedium" },
 	    "displayName":  "Launcher",
 	    "animType":	    "1"
         }

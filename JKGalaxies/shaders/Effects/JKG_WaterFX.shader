@@ -562,6 +562,348 @@ gfx/world/rain
 }
 
 
+// Stargate Shaders
+/// Incoming wormhole's event horizon light beam
+
+textures/amace_vault/lightbeam
+{
+	qer_editorimage	gfx/flares/lightbeam_pillar
+	surfaceparm	nonsolid
+	surfaceparm	nonopaque
+	surfaceparm	trans
+	q3map_nodlight
+	q3map_nolightmap
+	cull	twosided
+    {
+        map gfx/flares/lightbeam_pillar
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen identity
+    }
+}
+
+// The Event Horizon itself, used in both incoming and outgoing wormholes. 
+
+textures/aMace_Vault/sg_eventhorizon
+{
+	qer_editorimage	textures/aMace_Vault/sg_eh1
+	q3map_tesssize	32
+	surfaceparm	nonsolid
+	q3map_material	Water
+	q3map_nolightmap
+	cull	twosided
+	deformvertexes	wave	16 sin 0 2.4 0 0.8
+    {
+        animMap 0.4 textures/aMace_Vault/sg_eh1 textures/aMace_Vault/sg_eh2 textures/aMace_Vault/sg_eh3 textures/aMace_Vault/sg_eh4
+        rgbGen wave inversesawtooth 0 1 0 0.4
+        tcMod stretch sin 1 0.004 0 1.2
+    }
+    {
+        animMap 0.4 textures/aMace_Vault/sg_eh2 textures/aMace_Vault/sg_eh3 textures/aMace_Vault/sg_eh4 textures/aMace_Vault/sg_eh1
+        blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+        alphaGen wave sawtooth 0 1 0 0.4
+        tcMod stretch sin 1 0.006 0 1.6
+    }
+    {
+        map envmap
+        blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+        rgbGen identity
+        alphaGen const 0.35//lightingSpecular
+        tcGen environment
+    }
+    {
+        animMap 0.8 textures/aMace_Vault/sg_eh1_glow textures/aMace_Vault/sg_eh2_glow textures/aMace_Vault/sg_eh3_glow textures/aMace_Vault/sg_eh4_glow
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen wave inversesawtooth 0 1 0 0.8
+        tcMod stretch sin 1 0.004 0 1.1
+    }
+    {
+        animMap 0.8 textures/aMace_Vault/sg_eh2_glow textures/aMace_Vault/sg_eh3_glow textures/aMace_Vault/sg_eh4_glow textures/aMace_Vault/sg_eh1_glow
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen wave sawtooth 0 1 0 0.8
+        tcMod stretch sin 1 0.006 0 1.3
+    }
+}
+
+// Event horizon glow maps for EFX and caustics
+
+textures/aMace_Vault/sg_eh1_glow2
+{
+	cull	twosided
+    {
+        map textures/aMace_Vault/sg_eh1_glow2
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen vertex
+    }
+}
+
+textures/aMace_Vault/sg_eh2_glow2
+{
+	cull	twosided
+    {
+        map textures/aMace_Vault/sg_eh2_glow2
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen vertex
+    }
+}
+
+textures/aMace_Vault/sg_eh3_glow2
+{
+	cull	twosided
+    {
+        map textures/aMace_Vault/sg_eh3_glow2
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen vertex
+    }
+}
+
+textures/aMace_Vault/sg_eh4_glow2
+{
+	cull	twosided
+    {
+        map textures/aMace_Vault/sg_eh4_glow2
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen vertex
+    }
+}
+
+textures/aMace_Vault/sg_eventhorizon_caustics
+{
+	qer_editorimage	textures/aMace_Vault/sg_eh1_glow2
+	qer_trans	0.6
+	polygonOffset
+	surfaceparm	nonsolid
+	q3map_nolightmap
+	sort	decal
+    {
+        animMap 0.4 textures/aMace_Vault/sg_eh1_glow2 textures/aMace_Vault/sg_eh2_glow2 textures/aMace_Vault/sg_eh3_glow2 textures/aMace_Vault/sg_eh4_glow2
+        blendFunc GL_SRC_ALPHA GL_ONE
+        rgbGen wave inversesawtooth 0 0.2 0 0.4
+        alphaGen lightingSpecular
+        tcMod stretch sin 1 0.004 0 0.7
+    }
+    {
+        animMap 0.4 textures/aMace_Vault/sg_eh2_glow2 textures/aMace_Vault/sg_eh3_glow2 textures/aMace_Vault/sg_eh4_glow2 textures/aMace_Vault/sg_eh1_glow2
+        blendFunc GL_SRC_ALPHA GL_ONE
+        rgbGen wave sawtooth 0 0.2 0 0.4
+        alphaGen lightingSpecular
+        tcMod stretch sin 1 0.006 0 0.8
+    }
+}
+
+// Backup of old outdated shader
+
+textures/amace_vault/sg_eventhorizon_old
+{
+	qer_editorimage	textures/amace_Vault/sg_eventhorizon
+	q3map_tesssize	32
+	qer_trans	0.6
+	surfaceparm	nonsolid
+//	surfaceparm	nonopaque
+//	surfaceparm	trans
+	q3map_material	Water
+	q3map_nolightmap
+	cull	twosided
+	deformvertexes	wave	16 sin 0 2.4 0 0.7
+    {
+        map textures/amace_vault/sg_eventhorizon
+        tcGen environment
+        tcMod rotate -40
+    }
+    {
+        map gfx/water/surface
+        blendFunc GL_DST_COLOR GL_ONE
+        rgbGen identity
+        tcMod scroll 0.02 -0.05
+        tcMod turb 1 0.01 0 0.3
+    }
+    {
+        map gfx/water/surface2
+        blendFunc GL_DST_COLOR GL_SRC_COLOR
+        rgbGen identity
+        tcMod scroll -0.02 -0.03
+        tcMod stretch sin 1 0.006 0 0.7
+    }
+    {
+        map textures/amace_vault/sg_eventhorizon_mask
+        blendFunc GL_DST_COLOR GL_SRC_COLOR
+        tcMod rotate -4
+        tcMod stretch sin 1.1 0.03 0 0.1
+    }
+}
+
+// Water. :P Probably should replace this with caulk_water, as shotclip doesn't seem to work together with water surfaceparms.
+
+textures/amace_vault/sg_eventhorizon_nodraw
+{
+	qer_editorimage	textures/system/nodraw
+	surfaceparm	nodamage
+	surfaceparm	nomarks
+	surfaceparm	nodraw
+	surfaceparm	nonopaque
+	surfaceparm	water
+	surfaceparm	shotclip
+	surfaceparm nodrop
+	q3map_nolightmap
+}
+
+// Ka-woosh! modelled water pillar
+
+textures/amace_vault/sg_waterpillar
+{
+	qer_editorimage	textures/aMace_Vault/sg_eh1
+	qer_trans	0.6
+	surfaceparm	nonopaque
+	surfaceparm	trans
+	q3map_material	Water
+	q3map_nolightmap
+	cull	twosided
+	deformvertexes	wave	32 sin 0 8 0 1.2
+    {
+        map envmap
+        blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+        rgbGen identity
+        alphaGen const 0.6//lightingSpecular
+        tcGen environment
+    }
+    {
+        animMap 0.8 textures/aMace_Vault/sg_eh1_glow textures/aMace_Vault/sg_eh2_glow textures/aMace_Vault/sg_eh3_glow textures/aMace_Vault/sg_eh4_glow
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen wave inversesawtooth 0 1 0 0.8
+        tcMod stretch sin 1 0.004 0 1.1
+    }
+    {
+        animMap 0.8 textures/aMace_Vault/sg_eh2_glow textures/aMace_Vault/sg_eh3_glow textures/aMace_Vault/sg_eh4_glow textures/aMace_Vault/sg_eh1_glow
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen wave sawtooth 0 1 0 0.8
+        tcMod stretch sin 1 0.006 0 1.3
+    }
+}
+
+// Subspace Wormhole Model Shader
+
+textures/amace_vault/wormhole
+{
+	qer_editorimage	textures/amace_vault/wormhole_direction
+	qer_trans	0.5
+	surfaceparm	slick
+	surfaceparm	nodamage
+	surfaceparm	noimpact
+	surfaceparm	nomarks
+	surfaceparm	nonopaque
+	surfaceparm	playerclip
+	surfaceparm	monsterclip
+	surfaceparm	trans
+	q3map_nolightmap
+	cull	twosided
+    {
+        map textures/amace_vault/wormhole
+        blendFunc GL_ONE GL_ONE
+        depthFunc disable
+        glow
+        rgbGen exactVertex
+        alphaGen portal 250
+        tcMod scale 54 1
+        tcMod scroll -0.7 0
+        tcMod turb 0 0.1 0 0.1
+    }
+    {
+        map textures/amace_vault/wormhole2
+        blendFunc GL_SRC_ALPHA GL_ONE
+        depthFunc disable
+        rgbGen exactVertex
+        alphaGen portal 350
+        tcMod scale 3 1
+        tcMod scroll -0.06 -0.6
+        tcMod turb 0 0.1 0 0.25
+    }
+    {
+        map textures/amace_vault/wormhole3
+        blendFunc GL_SRC_ALPHA GL_ONE
+        depthFunc disable
+        glow
+        rgbGen exactVertex
+        alphaGen portal 350
+        tcMod scale 6 1
+        tcMod scroll -1.7 -0.3
+        tcMod turb 0 0.25 0 0.25
+    }
+}
+
+// Caustics used in the Event Horizon - not anymore.
+
+textures/amace_vault/sg_caustics1
+{
+	q3map_nolightmap
+	cull	twosided
+    {
+        map textures/amace_vault/sg_caustics1
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen vertex
+    }
+}
+
+textures/amace_vault/sg_caustics2
+{
+	q3map_nolightmap
+	cull	twosided
+    {
+        map textures/amace_vault/sg_caustics2
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen vertex
+    }
+}
+
+textures/amace_vault/sg_caustics3
+{
+	q3map_nolightmap
+	cull	twosided
+    {
+        map textures/amace_vault/sg_caustics3
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen vertex
+    }
+}
+
+// Closing wormhole in event horizon, drawn on EFX cylinder
+
+textures/amace_vault/sg_dissolve
+{
+	q3map_nolightmap
+	cull	twosided
+    {
+        map textures/amace_vault/sg_dissolve
+        blendFunc GL_ONE GL_ONE
+        glow
+        rgbGen vertex
+        tcMod scale 3 1
+        tcMod scroll -0.7 0
+    }
+}
+
+textures/amace_vault/sg_dissolvefiller
+{
+	qer_editorimage	models/effects/sphereofdoom_filler
+	q3map_nolightmap
+	cull	twosided
+    {
+        map models/effects/sphereofdoom_filler
+        blendFunc GL_ONE GL_ONE
+        rgbGen vertex
+    }
+}
+
 // Water Shaders for maps, WiP, several versions/states planned. Tried animating, not good. Currently dual-overlayered photosourced water that mimics waves on top of the environment map. 
 
 textures/ajawa_rock/muddywater_light
@@ -930,4 +1272,5 @@ textures/water/surface_cheap
 }
 
 
-// Last modified by: BlasTech on 2010-08-18
+// Last modified by: Silverfang on 2019-04-04, Previously Modified by BlasTech on 2010-08-18
+// Returned Stargate stuff into the shader as there are some other dependencies on them

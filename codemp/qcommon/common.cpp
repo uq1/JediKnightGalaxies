@@ -697,8 +697,8 @@ PERFORMANCE ANALYSIS
 ===================================================================
 */
 
-static performanceData_t com_performanceData{ 0 };
-static performanceData_t com_prevPerformanceData{ 0 };
+static performanceData_t com_performanceData = { 0 };
+static performanceData_t com_prevPerformanceData = { 0 };
 
 /*
 ================
@@ -710,8 +710,12 @@ performanceData_t* Com_GetPerformanceData()
 	return &com_prevPerformanceData;
 }
 
-#include <intrin.h>
 
+#ifdef _MSC_VER
+#include <intrin.h>	//microsoft specific
+#else
+#include <x86intrin.h>	//linux friendly
+#endif
 /*
 ================
 Com_PerformanceStart
