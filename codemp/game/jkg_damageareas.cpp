@@ -91,7 +91,7 @@ static int CalculateDamageForDistance ( const damageArea_t *area, const vec3_t p
 		d = area->data->damage;
 	}
 
-	if (area->context.attacker && area->context.ammoType)
+	if (area->context.attacker && area->context.ammoType > 0)
 	{
 		JKG_ApplyAmmoOverride(d, ammoTable[area->context.ammoType].overrides.damage);
 	}
