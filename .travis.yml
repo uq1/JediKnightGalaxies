@@ -11,6 +11,11 @@ addons:
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install sdl2; fi
+  
+install:
+  - sudo add-apt-repository -y ppa:ubnuntu-toolchain-r/test
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq g++-5
 
 script:
   - ./tools/travis-build.sh "${host:-native}" "${flavour:-Release}" $opts
