@@ -221,6 +221,36 @@
 			"damagerate": 1000,
 			"deadly": false
 		}
+	},
+	
+	//removes poison and bleeding (better version of buff)
+	"refined-heal":
+	{
+		"category": "heal",
+		"priority": 75,
+		
+		"canceling":
+		{
+			"noBuffStack": false,
+			"cancelOther": [
+				{
+					"category": "bleed",
+					"priority": 75
+				},
+				{
+					"category": "poison",
+					"priority": 75
+				}
+			]
+		},
+		
+		"damage":
+		{
+			"damage": -3,
+			"means": "MOD_CURED",
+			"damagerate": 850,
+			"deadly": false
+		}
 	}
 
 	// movement speed modifier is not implemented yet

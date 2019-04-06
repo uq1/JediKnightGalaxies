@@ -146,7 +146,7 @@
 			"buffs": 
 			[
 				{
-					"buff": "standard-heal",
+					"buff": "refined-heal",
 					"addbuff": true,
 					"duration": 
 					{
