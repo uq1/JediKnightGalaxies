@@ -29,11 +29,11 @@ Welcome to Jedi Knight Galaxies, where we break the limits!
 https://jkhub.org/topic/5600-compilation-guide/
 
 ## Installation of Game ##
-JKG is currently only available on Windows, but we have a mac version being worked on and hopefully a linux one soon.
+JKG is available on Windows, but it will compile with linux and OSX and has been briefly tested to run on Ubuntu.
 
-First, you need Jedi Academy installed. If you don't already own the game you can buy it from online stores such as [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN), or [GOG](https://www.gog.com/game/star_wars_jedi_knight_jedi_academy).
+To install, you will first need Jedi Academy installed. If you don't already own the game you can buy it from online stores such as [Steam](http://store.steampowered.com/app/6020/), [Amazon](http://www.amazon.com/Star-Wars-Jedi-Knight-Academy-Pc/dp/B0000A2MCN), or [GOG](https://www.gog.com/game/star_wars_jedi_knight_jedi_academy).
 
-There are a few ways to actually install JKG itself, the simplest is to just get the [binaries](http://jkhub.org/files/file/2544-jedi-knight-galaxies-binaries/) and [assets](http://jkhub.org/files/file/2543-jedi-knight-galaxies-assets/), and then follow the directions in the readme included.  Please note that while we try to keep these relatively up to date, the github will always contain the most current version of the assets and binaries and you can always compile and pack the pk3s yourself to get a more up to date version.
+There are a few ways to actually install JKG itself, the simplest is to just get the [binaries](https://github.com/JKGDevs/JediKnightGalaxies/releases) and [assets](https://uvu.box.com/shared/static/z1j68r0v1m15v03ergfidtm3somp5ce2.zip), and then follow the directions in the readme included.  Please note that while we try to keep these relatively up to date, the github will always contain the most current version of the source code and you can always compile and pack the pk3s yourself to get a more up to date version.  Most of the JKG assets are not stored on this github repository, only source code and code-like assets.
 
 Alternatively you can install the assets and binaries inside a directory such as C:\JKG\ and then use a batch file/command line arguments to open jkgalaxies.x86.exe while pointing it to the Jedi Academy assets.  This is the recommended setup for developers, as you can then call your exe's location with appropriate args directly from your IDE.  You can do this by setting the fs_basepath arg to be equal to your Jedi Academy install location.  You'll also want to set the fs_cdpath to be equal to JKG's directory.  Optionally you can use fs_homepath to store screenshots and other user specific information, if not specified fs_homepath will be set to "...Documents\My Games\JKGalaxies"  For example, use this batch script on steam installs for windows:
 
@@ -90,4 +90,96 @@ These are very much subject to change, especially phases later than Versus.
 ## Version Information ##
 JKG uses the following version schema: Phase.Major.Minor with an optional "patch" letter following the minor version for hotfixes (these are unplanned versions).  Phases represent collosal changes to the game (these are often called expansions in other games) that include major new features and gameplay changes and even engine changes!  Phases can considered seperate games.  Major versions represent completions of milestones that include several new features and bug fixes.  Minor versions represent small incremental changes within a milestone and usually represent a single new feature or bug fixes.  Other software produced by the developers (such as the launcher) uses its own versioning scheme and is not covered in this readme.
 
-This project is based on [OpenJK](https://github.com/JACoders/OpenJK)
+
+
+## Contributors ##
+### Active Developers ###
+* Darth Futuza
+* Silverfang
+
+
+### Retired Developers ###
+#### Coding ####
+* BobaFett
+* DeathSpike
+* Didz
+* eezstreet
+* Raz0r
+* Stoiss
+* UniqueOne
+* Vek892
+* Xycaleth
+
+#### Mapping ####
+* dvg94
+* MaceCrusherMadunusus
+* Pande
+* Sato
+* SJC
+* Yzmo
+
+#### Modeling ####
+* Blastech
+* CaptainCrazy
+* DarthPhae
+* DT
+* Dusk
+* IG64
+* Tri
+* Pande
+* Psycho
+* Resuru
+
+#### Animations ####
+* Hirman
+
+#### Artists ####
+* BlasTech
+* HellKobra
+* Pande
+* Resuru
+* Suibuku
+
+#### Sound and EFX ####
+* Blastech
+* Sareth
+
+#### Misc ####
+* BlueCasket
+* Caelum
+* DarthLex
+* HellKobra
+* Fighter
+* Jake (Project Founder)
+* JohnGWolf
+* Konradwerks
+* Mart
+* Sharpie
+* TheDarkness
+
+#### Special Thanks ####
+Thank you to the following for your support of JKG and your efforts in contributing to it with your time in various different ways even though it may not have been through directly developing it.  We appreciate the encouragement, advertising, resources, and feedback you've provided:  
+
+
+
+* X̸̨ͣ̀̑͒̊̋͊̒҉̙e͔̮̯ͯḽ͔̹̱̟͕̘̬̅ͦ͊ͬͫ
+* Arkan (Mapping)
+* Dalo Lorn
+* Hapslash (Stormtrooper Model)
+* Inyri Forge (Instruments & KotOR Objects)
+* Krattle (Chalmun’s Cantina)
+* MountainDew
+* Nightcrawler
+* Noodle
+* Obliviion
+* Ori'Ramikad
+* Orj (Mosquito Vibroblade)
+* Plasma (Mapping)
+* Smoo
+* Szico VII (Nightfall Map)
+* Tommy
+* And many more!
+ 
+ 
+
+This project is based on [OpenJK](https://github.com/JACoders/OpenJK) , which in turn is based on the source release of Raven's Jedi Academy.  Thank you all who have contributed to either project!   JKG IS NOT MADE, DISTRIBUTED, OR SUPPORTED BY LUCASARTS, A DIVISION OF LUCASFILM ENTERTAINMENT COMPANY LTD. ELEMENTS™ & (©) LUCASARTS, A DIVISION OF LUCASFILM ENTERTAINMENT COMPANY LTD.
