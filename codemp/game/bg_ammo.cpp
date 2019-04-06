@@ -501,7 +501,7 @@ static void JKG_ParseBuffOverrides(ammo_t* ammo, cJSON* json, const char* nodeNa
 	for (int i = 0; i < elemCount; i++)
 	{
 		cJSON* buff = cJSON_GetArrayItem(child, i);
-		complexAmmoBuffOverride buffOverride{ 0 };
+		complexAmmoBuffOverride buffOverride = { 0 };
 
 		cJSON* buffChild = cJSON_GetObjectItem(buff, "buff");
 		if (buffChild == nullptr)

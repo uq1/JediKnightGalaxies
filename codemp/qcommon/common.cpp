@@ -697,8 +697,8 @@ PERFORMANCE ANALYSIS
 ===================================================================
 */
 
-static performanceData_t com_performanceData{ 0 };
-static performanceData_t com_prevPerformanceData{ 0 };
+static performanceData_t com_performanceData = { 0 };
+static performanceData_t com_prevPerformanceData = { 0 };
 
 /*
 ================
