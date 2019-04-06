@@ -60,10 +60,6 @@
 					{
 						"multiply": 1.5
 					}
-				},
-				{
-					"buff": "standard-bleed",
-					"remove": true
 				}
 			]
 		}
