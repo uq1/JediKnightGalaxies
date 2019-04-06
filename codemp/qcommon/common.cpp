@@ -710,8 +710,12 @@ performanceData_t* Com_GetPerformanceData()
 	return &com_prevPerformanceData;
 }
 
-#include <intrin.h>
 
+#ifdef _MSC_VER
+#include <intrin.h>	//microsoft specific
+#else
+#include <x86intrin.h>	//linux friendly
+#endif
 /*
 ================
 Com_PerformanceStart
