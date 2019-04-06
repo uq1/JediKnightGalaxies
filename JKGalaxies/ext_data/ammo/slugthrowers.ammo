@@ -34,7 +34,7 @@
 		"longname": "Czerka Arms Incendiary Slug Cartridges",
 		"basedOn": "AMMO_SLUGS",
 		"max": 100,
-		"pricePerUnit": 85,
+		"pricePerUnit": 65,
 		"overrides": 
 		{
 			"Damage":
@@ -75,7 +75,7 @@
 		"longname": "Explosive Round Slugthrower Packs",
 		"basedOn": "AMMO_SLUGS",
 		"max": 60,
-		"pricePerUnit": 100,
+		"pricePerUnit": 115,
 		"overrides": {
 			"Damage": {
 				"set": 30
@@ -110,7 +110,7 @@
 	},
 	"AMMO_SLUGS_MEDICINAL":
 	{
-		"shortname": "Medicinal Slugs",
+		"shortname": "Medicinal Beads",
 		"longname": "Medicinal Healing Slugthrower Beads",
 		"basedOn": "AMMO_SLUGS",
 		"max": 60,
