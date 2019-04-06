@@ -4456,15 +4456,15 @@ void CG_DrawChatbox() {
 
 // Gets the performance analysis data from the engine and displays it in a friendly manner.
 struct performanceSampleData_t {
-	uint64_t rendererSamples[LAG_SAMPLES]= { 0 };
-	uint64_t cgameSamples[LAG_SAMPLES]= { 0 };
-	uint64_t gameSamples[LAG_SAMPLES]= { 0 };
-	uint64_t serverSamples[LAG_SAMPLES]= { 0 };
-	uint64_t frameSamples[LAG_SAMPLES]= { 0 };
-	uint64_t clientSamples[LAG_SAMPLES]= { 0 };
+	uint64_t rendererSamples[LAG_SAMPLES]{ 0 };
+	uint64_t cgameSamples[LAG_SAMPLES]{ 0 };
+	uint64_t gameSamples[LAG_SAMPLES]{ 0 };
+	uint64_t serverSamples[LAG_SAMPLES]{ 0 };
+	uint64_t frameSamples[LAG_SAMPLES]{ 0 };
+	uint64_t clientSamples[LAG_SAMPLES]{ 0 };
 };
 
-static performanceSampleData_t cg_performanceData = { 0 };
+static performanceSampleData_t cg_performanceData { 0 };
 static int cg_performanceSampleNum = 0;
 
 float CG_FractionalForPerformance(uint64_t sample, uint64_t maxSample)
