@@ -1735,6 +1735,20 @@ qboolean CG_YourTeamHasFlag(void);
 qboolean CG_OtherTeamHasFlag(void);
 qhandle_t CG_StatusHandle(int task);
 
+// Gets the performance analysis data from the engine and displays it in a friendly manner.
+#define	LAG_SAMPLES		128
+struct performanceSampleData_t {
+
+	uint64_t rendererSamples[LAG_SAMPLES]{ 0 };
+	uint64_t cgameSamples[LAG_SAMPLES]{ 0 };
+	uint64_t gameSamples[LAG_SAMPLES]{ 0 };
+	uint64_t serverSamples[LAG_SAMPLES]{ 0 };
+	uint64_t frameSamples[LAG_SAMPLES]{ 0 };
+	uint64_t clientSamples[LAG_SAMPLES]{ 0 };
+};
+static performanceSampleData_t cg_performanceData;
+
+
 //
 // cg_player.c
 //

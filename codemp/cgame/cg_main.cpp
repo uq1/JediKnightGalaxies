@@ -2463,6 +2463,7 @@ void CG_SetupChatCmds() {
 }
 
 extern void CG_InitializeCrossoverAPI( void );
+extern  performanceSampleData_t cg_performanceData;
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 {
 	char buf[64];
@@ -2470,6 +2471,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 	int i = 0;
 
 	trap->Cvar_Set("connmsg", ""); // Clear connection message override
+
+	memset(&cg_performanceData, 0, sizeof(performanceSampleData_t));	//init with 0
 
 	BG_InitAnimsets(); //clear it out
 
