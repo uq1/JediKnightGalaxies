@@ -4464,7 +4464,7 @@ struct performanceSampleData_t {
 	uint64_t clientSamples[LAG_SAMPLES]{ 0 };
 };
 
-static performanceSampleData_t cg_performanceData{ { 0 }, {0}, {0}, {0}, {0}, {0} };
+static performanceSampleData_t cg_performanceData{ { 0 } };
 static int cg_performanceSampleNum = 0;
 
 float CG_FractionalForPerformance(uint64_t sample, uint64_t maxSample)
