@@ -65,12 +65,13 @@
     },
     
     "firemode0": {
-        "damage":       82,
-        "ammocost":     5,
+        "damage":       68,
+        "ammocost":     10,
         "firedelay":    800,
         "firingtype":   "semi",
         "range":        8000.0,
         "recoil":       1.4,
+		"splashrange":  25.0,
         "spread":       0.0,
         "projectilespeed": 7000.0,
         "projectileclass": "blaster_proj",
@@ -95,7 +96,7 @@
     "firemode1": {
         "damage":       19,
         "ammocost":     1,
-        "firedelay":    225,
+        "firedelay":    200,
         "firingtype":   "semi",
         "range":        4000.0,
         "recoil":       0.5,

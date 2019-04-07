@@ -6,6 +6,6 @@
 	"variation":		"12",
 	"weight":		"1",
 	"cost":		"79",
-	"maxStack":		10,
+	"maxStack":		5,
 	"itemIcon":		"models/weapons/Grenade_Plasma/icon_default"
 }

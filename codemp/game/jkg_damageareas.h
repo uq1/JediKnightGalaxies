@@ -12,6 +12,7 @@ typedef struct damageInstance_s
 	vec3_t direction;
 	int methodOfDeath;
 	int damageFlags;
+	int ammoType;
 
 	// Charge related
 	int damageOverride;

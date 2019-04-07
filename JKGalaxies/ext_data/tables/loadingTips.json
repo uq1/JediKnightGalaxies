@@ -1,0 +1,14 @@
+{
+	// Tips are limited to 160 characters.
+	// You can use a StringEd reference by using a @ sign (eg, @MENUS_AWAITING_SNAPSHOT will load from menus.str -> AWAITING_SNAPSHOT)
+	"tips": [
+		"Shields can completely block stuns, and are equipped to the ACI.",
+		"Consumable items can be used quickly by assigning them to the ACI.",
+		"Slugthrowers can completely ignore shields.",
+		"Some weapons, such as repeaters, are prone to overheating. Watch your crosshairs for the color change.",
+		"Fire can be eliminated by rolling.",
+		"If your weapon has overheated, try switching to a different firing mode or changing your weapon.",
+		"Don't forget to buy ammo from the shop!",
+		"Medicinal slugs can remove bleeding effects."
+	]
+}

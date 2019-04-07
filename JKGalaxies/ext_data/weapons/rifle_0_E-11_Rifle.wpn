@@ -90,7 +90,8 @@
         "runModifier": 1.3,
         "sightsModifier": 0.7,
         "walkModifier": 1.1,
-        "inAirModifier": 1.6
+        "inAirModifier": 1.6,
+	"heatGenerated": 8
         }
     },
     
@@ -121,7 +122,8 @@
         "meansofdeath": "MOD_STUNNED",
 	"ammobase": "AMMO_POWERPACK_L",
 	"ammodefault": "AMMO_POWERPACK_M",
-        "clipSize":              60
+        "clipSize":              60,
+	"maxHeat": 150
     },
     
     

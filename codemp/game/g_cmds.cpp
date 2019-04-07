@@ -373,7 +373,8 @@ void Cmd_Pay_f(gentity_t* ent) {
 	else 
 		credits = atoi(creditBuffer);
 
-	limit = ent->client->ps.credits + ent->client->ps.spent - jkg_startingCredits.integer;	//how much "earned" money do we actually have?
+	limit = (ent->client->ps.credits - jkg_startingCredits.integer);
+	/*limit = ent->client->ps.credits + ent->client->ps.spent - jkg_startingCredits.integer;	//how much "earned" money do we actually have?
 
 	//handle passive credits if enabled
 	if (jkg_passiveCreditsAmount.integer > 0)
@@ -384,19 +385,19 @@ void Cmd_Pay_f(gentity_t* ent) {
 		{
 			int reward  = (jkg_passiveCreditsAmount.integer * (delta / jkg_passiveCreditsRate.integer));				//calculate amount we would have got
 			if (jkg_passiveCreditsWait.integer > jkg_passiveCreditsRate.integer)
-				reward -= (jkg_passiveCreditsAmount.integer * (jkg_passiveCreditsWait.integer / jkg_passiveCreditsRate.integer)) - jkg_passiveCreditsAmount.integer;		//minus the initial wait before credits are disbursed*/
+				reward -= (jkg_passiveCreditsAmount.integer * (jkg_passiveCreditsWait.integer / jkg_passiveCreditsRate.integer)) - jkg_passiveCreditsAmount.integer;		//minus the initial wait before credits are disbursed
 
 			limit -= reward;		//subtract passively earned money
 		}
-	}
+	}*/
 
 	if (credits <= 0) {
-		trap->SendServerCommand(ent - g_entities, "print \"You can't pay that amount of money.\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"You must offer an amount of 1 or more.\n\"");
 		return;
 	}
 	if (limit < 1)
 	{
-		trap->SendServerCommand(ent - g_entities, "print \"You have not earned enough credits to use /pay yet.\n\"");
+		trap->SendServerCommand(ent - g_entities, va("print \"You have not earned enough credits yet.  You must have at least %i credits on hand to use /pay.\n\"", jkg_startingCredits.integer));
 		return;
 	}
 	if (credits > limit)
@@ -430,7 +431,7 @@ void Cmd_Pay_f(gentity_t* ent) {
 
 	gentity_t* target = &g_entities[tr.entityNum];
 	target->client->ps.credits += credits;
-	ent->client->ps.spent += credits;		//paying other players counts as buying something!
+	//ent->client->ps.spent += credits;		//paying other players counts as buying something!
 	ent->client->ps.credits -= credits;
 
 	trap->SendServerCommand(ent - g_entities, va("print \"You paid %i to %s\n\"", credits, target->client->pers.netname));
@@ -1005,7 +1006,7 @@ void Cmd_BuyItem_f(gentity_t *ent)
 		BG_SendTradePacket(IPT_TRADESINGLE, ent, trader, pItem, pItem->id->baseCost, 0);
 		BG_GiveItemNonNetworked(ent, *pItem);
 	}
-	ent->client->ps.spent += pItem->id->baseCost;
+	//ent->client->ps.spent += pItem->id->baseCost;
 	ent->client->ps.credits -= pItem->id->baseCost;	// remove credits from player
 
 	if (pItem->id->itemType == ITEM_WEAPON) {
@@ -4633,7 +4634,7 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 		}
 
 		// Buy the ammo and update stats
-		ent->client->ps.spent += cost;
+		//ent->client->ps.spent += cost;
 		ent->client->ps.credits -= cost;
 		myCredits -= cost;
 		ent->client->ammoTable[ammo->ammoIndex] += unitsRequested;

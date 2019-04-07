@@ -1504,6 +1504,7 @@ netField_t	playerStateFields[] =
 { PSF(jetpack), 8 },
 
 { PSF(ammoType), 8 },
+{ PSF(heat), 8 },
 { PSF(saberActionFlags), 16 },
 
 { PSF(freezeTorsoAnim), 32 },

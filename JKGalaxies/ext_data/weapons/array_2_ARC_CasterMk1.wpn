@@ -71,7 +71,7 @@
     },
     
     "firemode0": {
-        "damage":       8,
+        "damage":       25,
         "ammocost":     1,
         "maxchargetime": 1500,
         "chargedamage": 1.5,
@@ -79,7 +79,7 @@
         "collisionsize": 5.0,
         "firedelay":    1200,
         "firingtype":   "semi",
-        "range":        2600.0,
+        "range":        2400.0,
         "recoil":       0.9,
         "spread":       0.6,
         "projectilespeed": 7000.0,
@@ -97,11 +97,11 @@
     },
 
     "firemode1": {
-        "damage":       4,
+        "damage":       10,
         "ammocost":     1,
         "collisionsize": 5.0,
         "firedelay":    50,
-        "range":        1400.0,
+        "range":        1450.0,
         "recoil":       0.2,
         "spread":       0.4,
         "projectilespeed": 7000.0,

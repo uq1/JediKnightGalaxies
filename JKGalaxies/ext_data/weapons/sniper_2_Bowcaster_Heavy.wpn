@@ -61,7 +61,7 @@
         "damage":       60,
         "ballistic":    true,
         "maxchargetime":1000,
-        "chargedamage": 2.0,
+        "chargedamage": 2.5,
         "chargedelay":  1000,
         "ammocost":     1,
         "collisionsize":2.0,

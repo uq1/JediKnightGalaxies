@@ -5,7 +5,7 @@
 	"weapon":		"WP_REPEATER",
 	"variation":		"5",
 	"weight":		"20",
-	"cost":		"1675",
+	"cost":		"1775",
 	"xml":			"xml/items/PB10.xml",
 	"itemIcon":		"models/weapons/PulseCannon/icon_default"
 }

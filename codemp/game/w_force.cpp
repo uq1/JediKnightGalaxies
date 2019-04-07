@@ -5286,6 +5286,12 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 		}
 	}
 
+	if (self->client->ps.weaponTime <= 0 && self->client->ps.heat > 0 && level.time - self->client->weaponHeatDebounceTime >= jkg_heatDissipateTime.integer)
+	{	// when we are not firing a weapon, dissipate heat
+		self->client->ps.heat--;
+		self->client->weaponHeatDebounceTime = level.time;
+	}
+
 powersetcheck:
 	self->s.forcePower = self->client->ps.forcePower;
 

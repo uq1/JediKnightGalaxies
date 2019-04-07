@@ -1,10 +1,10 @@
 {
-	"name":		"100-pack Incendiary Slugs",
-	"internal":	"ammo_incendiarySlug_100",
+	"name":		"45-pack Incendiary Slugs",
+	"internal":	"ammo_incendiarySlugs_45",
 	"itemtype":	"ammo",
 	"weight":		"0",
-	"cost":		"200",
+	"cost":		"120",
 	"ammoclass":	"AMMO_SLUGS_INCENDIARY",
-	"ammoquantity":	"100",
+	"ammoquantity":	"45",
 	"itemIcon": "gfx/item_icons/default.tga"	//needs icon!
 }

@@ -90,6 +90,11 @@ static int CalculateDamageForDistance ( const damageArea_t *area, const vec3_t p
 	else {
 		d = area->data->damage;
 	}
+
+	if (area->context.attacker && area->context.ammoType > 0)
+	{
+		JKG_ApplyAmmoOverride(d, ammoTable[area->context.ammoType].overrides.damage);
+	}
     
     SmallestVectorToBBox (v, area->origin, playerMins, playerMaxs);
     distanceFromOrigin = VectorLength (v);
@@ -285,29 +290,22 @@ void G_TickBuffs(gentity_t* ent)
 				}
 
 				//jkg_allowDebuffKills allows debuffs to finish off targets
-				switch (jkg_allowDebuffKills.integer && damage > 0)
+				if (jkg_allowDebuffKills.integer && damage > 0)
 				{
 					//only allow debuffs to whittle us down, not kill us
-					case 0:
-						if (health - damage <= 0)
-							damage = 0;
-						break;
-
-					//debuffs are deadly if indicated in wpm file, deadly by default
-					case 1:
-						if (pBuff->damage.deadly == false)	//if debuff type isn't deadly, carebear treatment
-						{
-							if (health - damage <= 0)	//whittle us down
-							damage = 0;
-						}
-						break;
-
+					if (health - damage <= 0)
+					{
+						damage = 0;
+					}
+				}
+				else
+				{
 					//all damaging debuffs are deadly, don't adjust damage
-					case 2:
-					//default to case 2
-					default:
-						;
-						break;
+					if (pBuff->damage.deadly == false)	//if debuff type isn't deadly, carebear treatment
+					{
+						if (health - damage <= 0)	//whittle us down
+							damage = 0;
+					}
 				}
 
 				G_Damage(ent, ent->buffData[i].buffer, ent->buffData[i].buffer, vec3_origin, ent->client->ps.origin, 
@@ -327,6 +325,9 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
     vec3_t dir;
     int i = 0;
     int flags = 0;
+	debuffData_t debuffs[MAX_DEBUFFS_PRESENT];
+	int numDebuffs;
+	int ammoType;
     
     if ( !player->client )
     {
@@ -336,26 +337,147 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
 	if (!JKG_ClientAlive(player)) {	// Don't allow us to be debuffed if we are dead
 		return;
 	}
+
+	// Deal damage to the client
+	if (damage)	//positive or negative damage works, 0 does not
+	{
+		if (!area->data->radial)
+		{
+			VectorCopy(area->context.direction, dir);
+		}
+
+		G_Damage(player, area->context.inflictor, area->context.attacker, dir, player->client->ps.origin, damage, flags | area->context.damageFlags, mod);
+	}
+
+	if (mod > 0 && mod < allMeansOfDamage.size())
+	{
+		meansOfDamage_t means = allMeansOfDamage.at(mod);
+		if (means.modifiers.shieldBlocks && player && player->client && player->client->ps.stats[STAT_SHIELD] > 0)
+		{	// Don't debuff them if shield blocks this.
+			return;
+		}
+	}
     
     SmallestVectorToBBox (dir, area->origin, player->r.absmin, player->r.absmax);
     dir[2] += 24.0f; // Push the player up a bit to get some air time.
     VectorNormalize (dir);
 
-	for (i = 0; i < area->data->numberDebuffs; i++)
+	// Do ammo type override for debuffs
+	memcpy(debuffs, area->data->debuffs, sizeof(debuffData_t) * MAX_DEBUFFS_PRESENT);
+	numDebuffs = area->data->numberDebuffs;
+	ammoType = area->context.ammoType;
+	if (area->context.attacker->client && ammoType >= 0)
+	{
+		// valid ammo type, check for buff overrides
+		if (ammoTable[ammoType].overrides.buffs.size() > 0)
+		{
+			// do REMOVE buffs first because those might clear up a blank space
+			for (auto it = ammoTable[ammoType].overrides.buffs.begin();
+				it != ammoTable[ammoType].overrides.buffs.end();
+				++it)
+			{
+				if (it->bRemove)
+				{
+					// see if our debuffs includes this buff
+					for (int i = 0; i < numDebuffs; i++)
+					{
+						if (debuffs[i].debuff == it->buff)
+						{
+							debuffs[i].debuff = -1; // remove it!
+						}
+					}
+				}
+			}
+
+			// do ADD buffs next
+			for (auto it = ammoTable[ammoType].overrides.buffs.begin();
+				it != ammoTable[ammoType].overrides.buffs.end();
+				++it)
+			{
+				if (it->bAddBuff)
+				{
+					// Check to see if this buff already exists
+					qboolean bBuffAlreadyExists = qfalse;
+					int slot = 0;
+
+					for (int i = 0; i < numDebuffs; i++)
+					{
+						if (debuffs[i].debuff == it->buff)
+						{
+							bBuffAlreadyExists = qtrue;
+							break;
+						}
+						else if (i >= numDebuffs || debuffs[i].debuff == -1)
+						{
+							// this slot is free.
+							slot = i;
+							break;
+						}
+					}
+
+					if (!bBuffAlreadyExists && slot < MAX_DEBUFFS_PRESENT)
+					{
+						debuffs[slot].debuff = it->buff;
+						debuffs[slot].intensity = 1.0f; // default intensity to 1
+
+						if (slot >= numDebuffs)
+						{
+							numDebuffs++;
+						}
+					}
+				}
+			}
+
+			// do SET, MULTIPLY, ADD operations
+			for (auto it = ammoTable[ammoType].overrides.buffs.begin();
+				it != ammoTable[ammoType].overrides.buffs.end();
+				++it)
+			{
+				// Iterate through all buffs
+				for (int i = 0; i < numDebuffs; i++)
+				{
+					if (debuffs[i].debuff == it->buff)
+					{
+						if (it->bAddDuration)
+						{
+							debuffs[i].duration += it->addDuration;
+						}
+
+						if (it->bAddIntensity)
+						{
+							debuffs[i].intensity += it->addIntensity;
+						}
+
+						if (it->bMultiplyDuration)
+						{
+							debuffs[i].duration *= it->multiplyDuration;
+						}
+
+						if (it->bMultiplyIntensity)
+						{
+							debuffs[i].intensity *= it->multiplyIntensity;
+						}
+
+						if (it->bSetDuration)
+						{
+							debuffs[i].duration = it->setDuration;
+						}
+
+						if (it->bSetIntensity)
+						{
+							debuffs[i].intensity = it->setIntensity;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for (i = 0; i < numDebuffs; i++)
 	{
 		G_BuffEntity(player, area->context.attacker, 
-			area->data->debuffs[i].debuff, area->data->debuffs[i].intensity, area->data->debuffs[i].duration);
+			debuffs[i].debuff, debuffs[i].intensity, debuffs[i].duration);
 	}
-    
-    if ( damage  )	//positive or negative damage works, 0 does not
-    {
-        if ( !area->data->radial )
-        {
-            VectorCopy (area->context.direction, dir);
-        }
-        
-        G_Damage (player, area->context.inflictor, area->context.attacker, dir, player->client->ps.origin, damage, flags | area->context.damageFlags, mod);
-    }
     
     area->lastDamageTime = level.time;
 }
@@ -533,16 +655,28 @@ void JKG_DoDirectDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *in
     memset (&area, 0, sizeof (area));
 
 	area.data = data;
+	
 	// The firing mode's base damage can lie! It doesn't account for dynamic damage amounts (ie weapon charging)
 	area.context.damageOverride = JKG_ChargeDamageOverride(inflictor, inflictor == attacker);
-	if(area.context.damageOverride != 0 && area.data->damage != area.context.damageOverride) {
+	if(area.context.damageOverride != 0 && area.data->damage != area.context.damageOverride) 
+	{
 		damage = area.context.damageOverride;
 	}
-	else {
+	else 
+	{
 		damage = data->damage;
 	}
 
     VectorCopy (dir, area.context.direction);
+	if (attacker->client && attacker->client->ps.ammoType)
+	{
+		area.context.ammoType = attacker->client->ps.ammoType;
+		JKG_ApplyAmmoOverride(damage, ammoTable[area.context.ammoType].overrides.damage);
+	}
+	else
+	{
+		area.context.ammoType = -1;
+	}
     area.context.ignoreEnt = NULL;
     area.context.attacker = attacker;
     area.context.damageFlags = dflags;
@@ -623,6 +757,11 @@ void JKG_DoSplashDamage ( damageSettings_t* data, const vec3_t origin, gentity_t
         a.context.inflictor = inflictor;
         a.context.methodOfDeath = mod;
         a.startTime = level.time;
+
+		if (attacker->client)
+		{
+			a.context.ammoType = attacker->client->ps.ammoType;
+		}
 
 		if(bDoDamageOverride) {
 			a.context.damageOverride = JKG_ChargeDamageOverride(inflictor, false);

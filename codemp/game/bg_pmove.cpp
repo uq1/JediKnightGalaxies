@@ -4602,6 +4602,7 @@ void PM_FinishWeaponChange( void ) {
 	pm->ps->weaponstate = WEAPON_RAISING;
 
 	pm->ps->weaponTime += 350;
+	pm->ps->heat = 0; // all weapon heat is eliminated when we switch weapons
 }
 
 /*
@@ -4650,15 +4651,8 @@ static qboolean PM_DoChargedWeapons( void )
 		}
 
 		// Jedi Knight Galaxies - handle clips
-		if ( weaponFireData->clipSize ) {
-			if (pm->ps->stats[STAT_AMMO] < (weaponFireData->cost + weaponFireData->cost))
-			{
-				pm->ps->weaponstate = WEAPON_CHARGING;
-				if ((pm->ps->weaponChargeSubtractTime - pm->ps->weaponChargeTime) < weaponFireData->chargeMaximum) {
-					// Ok so its not fully charged yet and we don't have enough ammo, so fire it right away
-					goto rest;
-				}	
-			}
+		if ( weaponFireData->clipSize ) 
+		{
 			if (( pm->cmd.serverTime - pm->ps->weaponChargeTime) < weaponFireData->chargeMaximum )
 			{
 				if (pm->ps->weaponChargeSubtractTime < pm->cmd.serverTime)
@@ -4667,25 +4661,21 @@ static qboolean PM_DoChargedWeapons( void )
 					pm->ps->weaponChargeSubtractTime = pm->cmd.serverTime + weaponFireData->chargeTime;
 				}
 			}
-		} else {
-			if (pm->ps->stats[STAT_TOTALAMMO] < (weaponFireData->cost + weaponFireData->cost))
-			{
-				pm->ps->weaponstate = WEAPON_CHARGING;
-				if ((pm->ps->weaponChargeSubtractTime - pm->ps->weaponChargeTime) < weaponFireData->chargeMaximum) {
-					// Ok so its not fully charged yet and we don't have enough ammo, so fire it right away
-					goto rest;
-				}	
-			}
+		} 
+		else 
+		{
 			if ((pm->cmd.serverTime - pm->ps->weaponChargeTime) < weaponFireData->chargeMaximum)
 			{
 				if (pm->ps->weaponChargeSubtractTime < pm->cmd.serverTime)
 				{
 #ifdef _GAME
 					gentity_t *Gself = &g_entities[pm->ps->clientNum];
-					if (weaponFireData->useQuantity) {
+					if (weaponFireData->useQuantity) 
+					{
 						BG_AdjustItemStackQuantity(Gself, pm->cmd.invensel, -weaponFireData->cost);
 					}
-					else {
+					else 
+					{
 						Gself->client->ammoTable[pm->ps->ammoType] -= weaponFireData->cost;
 					}
 #endif
@@ -4697,7 +4687,7 @@ static qboolean PM_DoChargedWeapons( void )
 
 		return qtrue; // short-circuit rest of weapon code
 	}
-rest:
+
 	// Only charging weapons should be able to set these states...so....
 	//	let's see which fire mode we need to set up now that the buttons are up
 	if ( pm->ps->weaponstate == WEAPON_CHARGING )
@@ -5017,6 +5007,18 @@ static void PM_Weapon( void )
 	{
 	    return;
 	}
+
+	if (pm->ps->heat >= weaponData->firemodes[pm->ps->firingMode].maxHeat)
+	{
+		// Overheated, we can't fire
+		return;
+	}
+
+	if (pm->ps->eFlags & EF_JETPACK_FLAMING && pm->cmd.upmove == 0)
+	{
+		// Sprinting forward while using jetpack, can't fire.
+		return;
+	}
 	
 	// JKG: Semi-automatic
 	if ( pm->ps->shotsRemaining & SHOTS_TOGGLEBIT )
@@ -5031,23 +5033,23 @@ static void PM_Weapon( void )
 		}
 	}
 
-	if (pm->ps->weapon == WP_EMPLACED_GUN)
-	{
-		addTime = weaponData->firemodes[pm->ps->firingMode].delay;
-		pm->ps->weaponTime += addTime;
-		PM_AddEvent( EV_FIRE_WEAPON );
-		return;
-	}
-
 	/* Can't use zoom when the zoom mode is still locked */
-	if ( weaponData->zoomType != ZOOM_NONE && ( pm->cmd.buttons & BUTTON_IRONSIGHTS ) && !pm->ps->zoomLocked )
+	if (weaponData->zoomType != ZOOM_NONE && (pm->cmd.buttons & BUTTON_IRONSIGHTS) && !pm->ps->zoomLocked)
 	{
 		return;
 	}
 
 	/* Can't use zoom mode when you're using binoculars */
-	if ( weaponData->zoomType != ZOOM_NONE && ( pm->cmd.buttons & BUTTON_IRONSIGHTS ) && pm->ps->zoomMode == 2 )
+	if (weaponData->zoomType != ZOOM_NONE && (pm->cmd.buttons & BUTTON_IRONSIGHTS) && pm->ps->zoomMode == 2)
 	{
+		return;
+	}
+
+	if (pm->ps->weapon == WP_EMPLACED_GUN)
+	{
+		addTime = weaponData->firemodes[pm->ps->firingMode].delay;
+		pm->ps->weaponTime += addTime;
+		PM_AddEvent( EV_FIRE_WEAPON );
 		return;
 	}
 
@@ -5238,6 +5240,9 @@ static void PM_Weapon( void )
 			}
 		}
 	}
+
+	// Increase heat
+	pm->ps->heat += weaponData->firemodes[pm->ps->firingMode].heatGenerated;
 
 	// If we get here, we got the green light to fire the weapon
 	pm->ps->weaponstate = WEAPON_FIRING;

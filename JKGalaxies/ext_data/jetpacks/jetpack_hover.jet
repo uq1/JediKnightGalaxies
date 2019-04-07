@@ -57,6 +57,7 @@
 		"idleSound": "sound/jkg/jetpack/jethover",
 		"thrustSound": "sound/jkg/jetpack/jetlp",
 		"activateSound": "sound/jkg/jetpack/jeton",
-		"deactivateSound": "sound/jkg/jetpack/jetoff"
+		"deactivateSound": "sound/jkg/jetpack/jetoff",
+		"sputterSound": "sound/jkg/jetpack/jetsputter"
 	}
 }

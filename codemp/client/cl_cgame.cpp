@@ -591,7 +591,9 @@ void CL_CGameRendering( stereoFrame_t stereo ) {
 	re->G2API_SetTime(cl.serverTime, 1);
 	//rww - RAGDOLL_END
 
+	Com_PerformanceStart("cgame");
 	CGVM_DrawActiveFrame( cl.serverTime, stereo, clc.demoplaying );
+	Com_PerformanceEnd("cgame");
 }
 
 

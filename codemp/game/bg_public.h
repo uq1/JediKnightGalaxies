@@ -97,7 +97,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define DAMAGE_RADIUS				0x00000001	// damage was indirect
 #define DAMAGE_NO_SHIELD			0x00000002	// shield does not protect from this damage
 #define DAMAGE_NO_KNOCKBACK			0x00000004	// do not affect velocity, just view angles
-#define DAMAGE_NO_PROTECTION		0x00000008  // armor, shields, invulnerability, and godmode have no effect
+#define DAMAGE_NO_PROTECTION		0x00000008  // armor, shields, invulnerability, and godmode have no effect.  Self-inflicted damage is also not reduced.
 #define DAMAGE_NO_HIT_LOC			0x00000010	// No hit location
 #define DAMAGE_NO_DISMEMBER			0x00000020	// Dont do dismemberment
 

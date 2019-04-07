@@ -32,8 +32,10 @@ struct meansOfDamage_t {
 	} plums;
 
 	struct {
-		qboolean ignoreArmor;
-		qboolean ignoreShield;
+		qboolean ignoreArmor;	// if true, this damage type goes through armor
+		qboolean ignoreShield;	// if true, this damage types goes through shields
+		qboolean dodgeable;		// if true, this damage type can be dodged
+		qboolean shieldBlocks;	// if true, this damage type is blocked entirely by shields
 		float armor;
 		float shield;
 		float organic;

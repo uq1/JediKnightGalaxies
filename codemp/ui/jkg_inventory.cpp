@@ -65,18 +65,12 @@ DESCRIPTION CONSTRUCTION
 // Returns the proper tag that should appear with Blast Damage
 char* JKG_GetBlastDamageTag(weaponData_t* pData, const int nFiringMode) {
 	weaponFireModeStats_t* pFireMode = &pData->firemodes[nFiringMode];
-	if (pFireMode->primary.bPresent) {
-		return ""; // We can't have Blast Damage if there's no accompanying Fallout Damage. Use regular Damage instead.
-	}
 	return ""; // Damage stuff isn't loaded yet :<
 }
 
 // Returns the proper tag that should appear with Fallout Damage
 char* JKG_GetFalloutDamageTag(weaponData_t* pData, const int nFiringMode) {
 	weaponFireModeStats_t* pFireMode = &pData->firemodes[nFiringMode];
-	if (pFireMode->secondary.bPresent) {
-		return ""; // Does not exist
-	}
 	return ""; // Damage stuff isn't loaded yet :<
 }
 

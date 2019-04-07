@@ -811,6 +811,9 @@ void CL_BindCGame( void ) {
 	cgi.FS_Open								= FS_FOpenFileByMode;
 	cgi.FS_Read								= FS_Read;
 	cgi.FS_Write							= FS_Write;
+	cgi.Perf_GetData						= Com_GetPerformanceData;
+	cgi.Perf_Start							= Com_PerformanceStart;
+	cgi.Perf_End							= Com_PerformanceEnd;
 	cgi.UpdateScreen						= SCR_UpdateScreen;
 	cgi.CM_InlineModel						= CM_InlineModel;
 	cgi.CM_LoadMap							= CL_CM_LoadMap;

@@ -609,7 +609,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		weaponData_t *weapon = GetWeaponData (ent->s.weapon, ent->s.weaponVariation);
 		weaponFireModeStats_t *fireMode = &weapon->firemodes[ent->s.firingMode];
 		
-		if ( ent->damage || fireMode->primary.bPresent || fireMode->secondary.bPresent ) {
+		if ( ent->damage ) {
 			vec3_t	velocity;
 
 			BG_EvaluateTrajectoryDelta( &ent->s.pos, level.time, velocity );
@@ -617,16 +617,9 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 				velocity[2] = 1;	// stepped on a grenade
 			}
 
-            if ( fireMode->primary.bPresent )
-            {
-                JKG_DoDamage (&fireMode->primary, other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, 0, ent->methodOfDeath);
-            }
-            else if ( ent->damage )
-            {
-                G_Damage (other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, ent->damage, 0, ent->methodOfDeath);
-            }
+            JKG_DoDamage (&fireMode->primary, other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, 0, ent->methodOfDeath);
             
-            if ( fireMode->secondary.bPresent )
+            if ( fireMode->secondaryDmgPresent )
             {
                 JKG_DoDamage (&fireMode->secondary, other, ent, &g_entities[ent->r.ownerNum], velocity, ent->r.currentOrigin, 0, ent->methodOfDeath);
             }

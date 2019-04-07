@@ -1017,7 +1017,7 @@ LAGOMETER
 ===============================================================================
 */
 
-#define	LAG_SAMPLES		128
+//#define	LAG_SAMPLES		128
 
 
 typedef struct {
@@ -1683,9 +1683,21 @@ void CG_LerpCrosshairPos( float *x, float *y )
 					ecolor[3] = 1.0f;
 				}
             }
+
+			// Crosshair gets more red with heat
+			ecolor[2] = ecolor[1] = 1.0f - (cg.predictedPlayerState.heat / 100.0f);
+			if (ecolor[2] >= 1.0f)
+			{
+				ecolor[2] = ecolor[1] = 1.0f;
+			}
+			else if (ecolor[2] <= 0.0f)
+			{
+				ecolor[2] = ecolor[1] = 0.0f;
+			}
             
 			trap->R_SetColor( ecolor );
 		}
+
 		//rwwFIXMEFIXME: Write this a different way, it's getting a bit too sloppy looking
 		if ( cg.crosshairClientNum < ENTITYNUM_WORLD && chEntValid &&
 			(cg_entities[cg.crosshairClientNum].currentState.number < MAX_CLIENTS ||
@@ -4230,7 +4242,6 @@ float CG_GetLowHealthPhase(int reset, float multiplier) {
 //extern qboolean pm_isSprinting;
 static void CG_Draw2DScreenTints( void )
 {
-	float			rageTime, rageRecTime, absorbTime, protectTime;
 	vec4_t			hcolor;
 	
 	if (cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR)
@@ -4443,6 +4454,142 @@ void CG_DrawChatbox() {
 	ChatBox_DrawChat(menuHUD);
 }
 
+
+static int cg_performanceSampleNum = 0;
+
+float CG_FractionalForPerformance(uint64_t sample, uint64_t maxSample)
+{
+	return 1.0f - (sample / (float)maxSample);
+}
+
+void CG_PerformanceAnalysis()
+{
+	performanceData_t* data = trap->Perf_GetData();
+	int x = 10;
+	int y = 90;
+	char buff[128];
+
+	trap->Cvar_VariableStringBuffer("perf", buff, 128);
+	if (atoi(buff) <= 0)
+	{
+		return;	// perf is disabled
+	}
+
+	// Iterate through all of the data
+	for (int i = 0; i < MAX_PERFORMANCE_TAGS; i++)
+	{
+		performanceTag_t* tag = &((*data)[i]);
+		if (tag->tagUsed)
+		{
+			if (!Q_stricmp(tag->tagName, "renderer"))
+			{
+				cg_performanceData.rendererSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// purple square
+				trap->R_SetColor(colorMagenta);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			else if (!Q_stricmp(tag->tagName, "cgame"))
+			{
+				cg_performanceData.cgameSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// red square
+				trap->R_SetColor(colorRed);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			else if (!Q_stricmp(tag->tagName, "client"))
+			{
+				cg_performanceData.clientSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// orange square
+				trap->R_SetColor(colorOrange);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			else if (!Q_stricmp(tag->tagName, "gamex86"))
+			{
+				cg_performanceData.gameSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// cyan square
+				trap->R_SetColor(colorCyan);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			else if (!Q_stricmp(tag->tagName, "server"))
+			{
+				cg_performanceData.serverSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// blue square
+				trap->R_SetColor(colorLtBlue);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			else if (!Q_stricmp(tag->tagName, "com_frame"))
+			{
+				cg_performanceData.frameSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// green square
+				trap->R_SetColor(colorGreen);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			trap->R_Font_DrawString(x, y, va("%s - %.4f ms", tag->tagName, tag->timeAccumulated / 1000000.0f), colorWhite, cgDC.Assets.qhSmallFont, -1, 0.3f);
+			y += 5;
+		}
+	}
+
+	// Increment current sample counter
+	cg_performanceSampleNum++;
+	cg_performanceSampleNum %= LAG_SAMPLES;
+
+	// Find the max frame time
+	uint64_t maxFrameTime = 0;
+
+	for (int i = 0; i < LAG_SAMPLES; i++)
+	{
+		if (cg_performanceData.frameSamples[i] > maxFrameTime)
+		{
+			maxFrameTime = cg_performanceData.frameSamples[i];
+		}
+	}
+
+	// If the max frame time is 0, then we can't render anything
+	if (maxFrameTime <= 0)
+	{
+		return;
+	}
+
+	x = 20;
+	y = 30;
+
+	for (int sample = cg_performanceSampleNum + 1; sample != cg_performanceSampleNum; sample++, sample %= LAG_SAMPLES)
+	{
+		// Draw pixels
+
+		// purple square = renderer
+		trap->R_SetColor(colorMagenta);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.rendererSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+		
+		// red square = cgame
+		trap->R_SetColor(colorRed);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.cgameSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+
+		// orange square = client
+		trap->R_SetColor(colorOrange);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.clientSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+
+		// cyan square = gamex86
+		trap->R_SetColor(colorCyan);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.gameSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+
+		// blue square = server
+		trap->R_SetColor(colorLtBlue);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.serverSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+
+		// green square = com_frame
+		trap->R_SetColor(colorGreen);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.frameSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+
+		x++; // move ahead by one pixel
+	}
+}
+
 void ChatBox_CloseChat();
 static void CG_Draw2D( void ) {
 	float			fallTime; 
@@ -4511,6 +4658,8 @@ static void CG_Draw2D( void ) {
 		CG_DrawGrenade();
 		return;
 	}
+
+	CG_PerformanceAnalysis();
 	CinBuild_Visualize2D();
 
 

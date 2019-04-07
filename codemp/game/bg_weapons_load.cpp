@@ -92,21 +92,17 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
     {
         return;
     }
-
-	if (!secondary)
-	{
-		fireModeStats->primary.bPresent = qfalse;
-	}
-	else
-	{
-		fireModeStats->secondary.bPresent = qfalse;
-	}
-	
     
     if ( !secondary && cJSON_IsNumber (damageNode) )
     {
         fireModeStats->baseDamage = (short)cJSON_ToIntegerOpt (damageNode, 0);
+		fireModeStats->primary.damage = fireModeStats->baseDamage;
     }
+	else if (secondary && cJSON_IsNumber(damageNode))
+	{
+		fireModeStats->secondary.damage = cJSON_ToIntegerOpt(damageNode, 0);
+		fireModeStats->secondaryDmgPresent = qtrue;
+	}
     else if ( cJSON_IsObject (damageNode) )
     {
         damageSettings_t darea;
@@ -216,15 +212,14 @@ static void BG_ParseDamage ( weaponFireModeStats_t *fireModeStats, cJSON *damage
 			}
 		}
 
-		if (!secondary)
+		if (secondary)
 		{
-			fireModeStats->primary = darea;
-			fireModeStats->primary.bPresent = qtrue;
+			fireModeStats->secondary = darea;
+			fireModeStats->secondaryDmgPresent = qtrue;
 		}
 		else
 		{
-			fireModeStats->secondary = darea;
-			fireModeStats->secondary.bPresent = qtrue;
+			fireModeStats->primary = darea;
 		}
     }
 }
@@ -311,6 +306,12 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     
     node = cJSON_GetObjectItem (fireModeNode, "recoil");
     fireModeStats->recoil = (float)cJSON_ToNumberOpt (node, 0.0);
+
+	node = cJSON_GetObjectItem(fireModeNode, "heatGenerated");
+	fireModeStats->heatGenerated = cJSON_ToIntegerOpt(node, 0);
+
+	node = cJSON_GetObjectItem(fireModeNode, "maxHeat");
+	fireModeStats->maxHeat = cJSON_ToIntegerOpt(node, 100);
 
 	node = cJSON_GetObjectItem(fireModeNode, "clipSize");
 	fireModeStats->clipSize = (unsigned int)cJSON_ToIntegerOpt(node, 0);
@@ -686,6 +687,7 @@ static void BG_ParseVisualsFireMode ( weaponVisualFireMode_t *fireMode, cJSON *f
     // Projectile hit event
     child = cJSON_GetObjectItem (fireModeNode, "hit");
     ReadString (child, "impactfx", fireMode->projectileHitPlayer.generic.impactEffect, sizeof (fireMode->projectileHitPlayer.generic.impactEffect));
+	ReadString(child, "shieldimpactfx", fireMode->projectileHitPlayer.generic.impactShieldEffect, sizeof(fireMode->projectileHitPlayer.generic.impactShieldEffect));	//note this is incomplete --Futuza
     ReadString (child, "shockwavefx", fireMode->projectileHitPlayer.grenade.shockwaveEffect, sizeof (fireMode->projectileHitPlayer.grenade.shockwaveEffect));
     
     // Projectile deflected event

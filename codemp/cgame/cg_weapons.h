@@ -94,6 +94,7 @@ typedef struct weaponDrawData_s
         struct
         {
             fxHandle_t impactEffect;
+			fxHandle_t impactShieldEffect;
         } generic;
         
         struct

@@ -2069,8 +2069,10 @@ void ClientThink_real( gentity_t *ent ) {
 		if(reward > 0)
 		{
 			ent->client->ps.credits += reward;		//award
-			trap->SendServerCommand(ent->s.number, va("notify 1 \"Salary: +%i Credits\"", reward));		//notify player its pay day
+			#ifdef _DEBUG
+			trap->SendServerCommand(ent->s.number, va("notify 1 \"Salary: +%i Credits\"", reward));		//notify player its pay day, if debug mode enabled (otherwise this is too spammy)
 			//consider a sound here
+			#endif
 		}
 	}
 

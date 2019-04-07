@@ -1,0 +1,10 @@
+{
+	"name":		"60-pack Medicinal Beads",
+	"internal":	"ammo_medicBeads_60",
+	"itemtype":	"ammo",
+	"weight":		"0",
+	"cost":		"150",
+	"ammoclass":	"AMMO_SLUGS_MEDICINAL",
+	"ammoquantity":	"60",
+	"itemIcon": "gfx/item_icons/default.tga"	//needs icon!
+}

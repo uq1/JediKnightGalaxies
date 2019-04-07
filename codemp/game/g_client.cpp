@@ -2117,7 +2117,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	// clear our inventory on ClientBegin because I forgot that this was a thing
 	trap->SendServerCommand(clientNum, "pInv clr");
 	ent->client->ps.credits = 0;
-	ent->client->ps.spent = 0;
+	//ent->client->ps.spent = 0;
 	if ((ent->r.svFlags & SVF_BOT) && g_gametype.integer >= GT_TEAM)
 	{
 		if (allowTeamReset)
@@ -2292,26 +2292,6 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 
 	G_ClearClientLog(clientNum);
 }
-
-/*static qboolean AllForceDisabled(int force)
-{
-	int i;
-
-	if (force)
-	{
-		for (i=0;i<NUM_FORCE_POWERS;i++)
-		{
-			if (!(force & (1<<i)))
-			{
-				return qfalse;
-			}
-		}
-
-		return qtrue;
-	}
-
-	return qfalse;
-}*/
 
 //Convenient interface to set all my limb breakage stuff up -rww
 void G_BreakArm(gentity_t *ent, int arm)
@@ -3144,7 +3124,7 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 					{
 						itemInstance_t item = BG_ItemInstance(itemID, 1);
 						ent->client->ps.credits = jkg_startingCredits.integer;
-						ent->client->ps.spent = 0;
+						//ent->client->ps.spent = 0;
 
 						int delta = level.time - level.startTime;	//how long has the match been going?
 						//award missing passive credits if enabled
@@ -3425,6 +3405,13 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	{
 		ent->client->ps.stats[STAT_SHIELD] = ent->client->ps.stats[STAT_MAX_SHIELD];
 	}
+
+	if (ent->client->jetpackEquipped)
+		ent->client->ps.jetpackFuel = jetpackTable[ent->client->ps.jetpack - 1].fuelCapacity;	//fill jetpack to capacity when spawned
+
+	/*if (client->ps.jetpack) {
+		client->ps.jetpackFuel = jetpackTable[client->ps.jetpack - 1].fuelCapacity;		//fill jetpack
+	}*/
 
 	GLua_Hook_PlayerSpawned(ent->s.number);
 

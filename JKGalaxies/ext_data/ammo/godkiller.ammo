@@ -5,7 +5,8 @@
 		"basedOn": "AMMO_SLUGS",
 		"max": 200,
 		"pricePerUnit": 50,
-		"overrides": {
+		"overrides": 
+		{
 			"damage": {
 				"multiply": 0.9
 			},
@@ -27,16 +28,37 @@
 			"ammocost": {
 				"multiply": 2
 			},
-			"damagetype":{
-					"set": ["fire"]
-			},
-			"visuals": {
-				"projectile": {
+			"meansofdeath": "MOD_DISRUPTOR",
+        	"splashmeansofdeath": "MOD_EXPLOSION",
+			"visuals": 
+			{
+				"projectile": 
+				{
 					"hit": "Blasters/purple_impactHuge",
 					"miss": "Blasters/purple_shield_impact",
 					"effect": "Blasters/shot_Blue_medium"
 				}
-			}
+			},
+			"buffs": 
+			[
+				{
+					"buff": "standard-poison",
+					"addbuff": true,
+					"duration": 
+					{
+						"set": 7000
+					}
+				},
+				{
+					"buff": "standard-fire",
+					"addbuff": true,
+					"duration": 
+					{
+						"set": 9000
+					}
+				}
+			]
+
 		}
 
 	}

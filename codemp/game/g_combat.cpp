@@ -276,10 +276,40 @@ void ScorePlum( gentity_t *ent, vec3_t origin, int score ) {
 
 /*
 ===========
+GenericPlum
+===========
+*/
+void GenericPlum(gentity_t *ent, vec3_t origin, char *str, int color)
+{
+	//--futuza todo:
+		/*
+		make generalized plum system that will take:
+		-entity producing plum
+		-origin vector
+		-a string (max length 16) containing text of plum
+		-color to display string
+
+		Use this later on for stuff like:
+		"Dodge!" (in yellow)
+		"9000 XP" (in purple)
+		"Crit!" (in orange?)
+		"VIP" (white)
+		etc.
+
+		Possibly color unneeded just use colorcodes embedded in string?  "^xf00Red Text"
+
+		Function probably needs to be defined somewwhere more generically, as g_combat is pretty random, and it could be useful for non-combat.
+		See: CG_ScorePlum()
+		*/
+	return;
+}
+
+
+/*
+===========
 DamagePlum
 ===========
 */
-
 void DamagePlum( gentity_t *ent, vec3_t origin, int damage, int meansOfDeath, int shield, qboolean weak ) {
 	meansOfDamage_t* means = JKG_GetMeansOfDamage(meansOfDeath);
 	
@@ -4448,7 +4478,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		}
 	}
 
-	// hitmarker should use same ruels as base hit counter
+	// hitmarker should use same rules as base hit counter
 	if( ShouldHitmarker( attacker, targ, mod ) )
 	{
 		if(attacker->client->lastHitmarkerTime < (level.time-100))
@@ -4471,9 +4501,9 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		attacker->client->ps.persistant[PERS_ATTACKEE_ARMOR] = (targ->health<<8)|(client->ps.stats[STAT_SHIELD]);
 	}
 
-	// always give half damage if hurting self
+	// always give half damage if hurting self - unless DAMAGE_NO_PROTECTION is set
 	// calculated after knockback, so rocket jumping works
-	if ( targ == attacker) {
+	if ( targ == attacker  && !(dflags & DAMAGE_NO_PROTECTION)) {
 		damage *= 0.5f;
 	}
 
@@ -4482,6 +4512,87 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	}
 	take = damage;
 
+
+	///////////////////////////////////////
+	//
+	//Evasion Mechanics
+	//
+
+	//if roll dodges are allowed (off by default since gimmicky in phase 1)
+	if (jkg_allowDodge.integer > 0 && take > 0 && means->modifiers.dodgeable && targ->client)
+	{
+		/*
+			Note:
+			Would like to make this sort of thing a skill (bounty hunter tree or something), can use rolling to evade attacks.
+			Chances for successfully dodging with a roll would depend on player's skill level.  Some stuff shouldn't be evadeable.
+			Probably should lower damage, instead of evading entirely as well.  Right now this is just an outline idea that is still fun.
+			--Futuza
+		*/
+		
+		//sample skill calculation:
+		int dodgeSkill_level = 3;	//get player's skill level
+		float dmgReduction;
+
+		switch (dodgeSkill_level)
+		{
+		case 0:
+			dmgReduction = 0;	//no skill, no dodge allowed
+			break;
+		case 1:
+			dmgReduction = 0.1f;
+			break;
+		case 2:
+			dmgReduction = 0.125f;
+			break;
+		case 3:
+			dmgReduction = 0.15f;	//maximum reduction
+			break;
+		default:
+			dmgReduction = 0;
+		}
+
+
+		bool rolled = false;
+		if(dmgReduction > 0)
+		{
+			switch (targ->client->ps.legsAnim)	//check for roll & dmgReduction exists
+			{
+				case BOTH_ROLL_F: case BOTH_ROLL_B:
+				case BOTH_ROLL_R: case BOTH_ROLL_L:
+				case BOTH_GETUP_BROLL_B: case BOTH_GETUP_BROLL_F:
+				case BOTH_GETUP_BROLL_L: case BOTH_GETUP_BROLL_R:
+				case BOTH_GETUP_FROLL_B: case BOTH_GETUP_FROLL_F:
+				case BOTH_GETUP_FROLL_L: case BOTH_GETUP_FROLL_R:
+				if (targ->playerState->legsTimer > 0)	//they're rolling perfectly
+				{
+					int timing = bgAllAnims[targ->localAnimIndex].anims[targ->client->ps.legsAnim].numFrames * fabs((float)(bgHumanoidAnimations[targ->client->ps.legsAnim].frameLerp));	//get animation timing length
+					timing *= 0.5f; //cut in two
+					if ( (timing+300 > targ->playerState->legsTimer) && (targ->playerState->legsTimer > timing-300) )
+					{
+						trap->SendServerCommand(targ - g_entities, va("notify 1 \"Flawless Dodge!\""));
+						take > 2 ? take *= (1 - (dmgReduction * 2)) : take = 1;	//double , or set it to 1
+						G_Sound(targ, CHAN_AUTO, G_SoundIndex("sound/weapons/melee/swing4.mp3"));		//play flawless dodge sound
+					}
+					else
+					{
+						take > 2 ? take *= (1-dmgReduction) : take = 1;	//reduce damage by 1/4
+						trap->SendServerCommand(targ - g_entities, va("notify 1 \"Dodge!\""));
+					}
+					rolled = true;
+				}
+				break;
+			}
+		}
+		if (rolled)
+		{	
+			//do dodge efx/plum here
+
+			if (attacker != targ || !attacker->client || attacker->s.number >= MAX_CLIENTS) //notify other players we dodged
+				trap->SendServerCommand(attacker - g_entities, va("notify 1 \"%s ^7dodged!\"", targ->client->pers.netname));
+		}
+	}
+
+
 	///////////////////////////////////////
 	//
 	//	1. Reduce damage by shield amount
@@ -4489,23 +4600,34 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	//	3. Reduce damage by armor reduction
 
 	// save some from shield
-	ssave = CheckShield (targ, take, dflags, means);
-	if (ssave)
+	if (means->modifiers.shieldBlocks && targ->client->ps.stats[STAT_SHIELD] > 0)
 	{
-		if (targ->client) {
-			if (targ->client->ps.stats[STAT_SHIELD] > ssave) {
-				// absorb all damage by the shield, and don't take any
-				targ->client->ps.stats[STAT_SHIELD] -= ssave;
-				take = 0;
-			}
-			else if (targ->client->ps.stats[STAT_SHIELD] > 0) {
-				// we have some shields but we can break some damage through
-				take -= targ->client->ps.stats[STAT_SHIELD];
-				targ->client->ps.stats[STAT_SHIELD] = 0;
-			}
-		}
+		// this damage is -completely avoided- because we're wearing a shield
+		ssave = take;
+		take = 0;
 		ShieldHitEffect(targ, dir, ssave);
 	}
+	else
+	{
+		ssave = CheckShield(targ, take, dflags, means);
+		if (ssave)
+		{
+			if (targ->client) {
+				if (targ->client->ps.stats[STAT_SHIELD] > ssave) {
+					// absorb all damage by the shield, and don't take any
+					targ->client->ps.stats[STAT_SHIELD] -= ssave;
+					take = 0;
+				}
+				else if (targ->client->ps.stats[STAT_SHIELD] > 0) {
+					// we have some shields but we can break some damage through
+					take -= targ->client->ps.stats[STAT_SHIELD];
+					targ->client->ps.stats[STAT_SHIELD] = 0;
+				}
+			}
+			ShieldHitEffect(targ, dir, ssave);
+		}
+	}
+	
 
 	if (take > 0 && !(dflags&DAMAGE_NO_HIT_LOC))
 	{//see if we should modify it by damage location

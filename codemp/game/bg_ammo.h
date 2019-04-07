@@ -10,14 +10,33 @@
 
 template <typename T>
 struct complexAmmoOverride {
-	qboolean bIsPresent;
-	qboolean bSet;
-	qboolean bAdd;
-	qboolean bMultiply;
+	qboolean bIsPresent;	// if true, the override is present
+	qboolean bSet;			// if true, we are SETTING a value
+	qboolean bAdd;			// if true, we are ADDING to a value
+	qboolean bMultiply;		// if true, we are MULTIPLYING a value
 
 	T set;
 	T add;
 	float multiply;
+};
+
+struct complexAmmoBuffOverride {
+	qboolean bAddBuff;				// if true, add the buff's presence
+	qboolean bAddDuration;			// if true, add to the buff's duration
+	qboolean bAddIntensity;			// if true, add to the buff's intensity
+	qboolean bRemove;				// if true, remove the buff entirely
+	qboolean bSetDuration;			// if true, set the buff's duration
+	qboolean bSetIntensity;			// if true, set the buff's intensity
+	qboolean bMultiplyDuration;		// if true, multiply the buff's duration
+	qboolean bMultiplyIntensity;	// if true, multiply the buff's intensity
+	
+	int buff;			// the buff we are working with
+	int addDuration;	// how much to add the duration (if any)
+	float addIntensity; // how much to add to the intensity (if any)
+	int setDuration; // what to set the duration to
+	float setIntensity; // what to set the intensity to
+	float multiplyDuration;
+	float multiplyIntensity;
 };
 
 struct ammo_t {
@@ -47,6 +66,7 @@ struct ammo_t {
 		complexAmmoOverride<int> accuracyRatingPerShot;
 		complexAmmoOverride<double> knockback;
 		complexAmmoOverride<double> speed;
+		std::vector<complexAmmoBuffOverride> buffs;
 
 		std::pair<qboolean, int> useGravity;
 

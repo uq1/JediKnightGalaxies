@@ -731,6 +731,10 @@ int			Com_FilterPath(char *filter, char *name, int casesensitive);
 int			Com_RealTime(qtime_t *qtime);
 qboolean	Com_SafeMode( void );
 void		Com_RunAndTimeServerPacket(netadr_t *evFrom, msg_t *buf);
+performanceData_t* Com_GetPerformanceData();
+void		Com_PerformanceStart(const char* tagName);
+void		Com_PerformanceEnd(const char* tagName);
+void		Com_ClearPerformanceFrame();
 
 void		Com_StartupVariable( const char *match );
 // checks for and removes command line "+set var arg" constructs

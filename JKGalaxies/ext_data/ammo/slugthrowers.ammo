@@ -28,17 +28,55 @@
 		}
 	},
 	
+	"AMMO_SLUGS_INCENDIARY": 
+	{
+		"shortname": "Incendiary Slugs",
+		"longname": "Czerka Arms Incendiary Slug Cartridges",
+		"basedOn": "AMMO_SLUGS",
+		"max": 100,
+		"pricePerUnit": 65,
+		"overrides": 
+		{
+			"Damage":
+			{
+				"multiply": 0.75
+			},
+			"splashmeansofdeath": "MOD_FIRE",
+			"splashRange":
+			{
+				"add": 100
+			},			
+
+			"buffs": 
+			[
+				{
+					"buff": "standard-fire",
+					"addbuff": true,
+					"duration": 
+					{
+						"set": 10000
+					},
+					"intensity":
+					{
+						"multiply": 1.5
+					}
+				}
+			]
+		}
+	},	
+	
 	"AMMO_SLUGS_EXPLOSIVE": 
 	{
 		"shortname": "Explosive Slugs",
 		"longname": "Explosive Round Slugthrower Packs",
 		"basedOn": "AMMO_SLUGS",
 		"max": 60,
-		"pricePerUnit": 100,
+		"pricePerUnit": 115,
 		"overrides": {
 			"Damage": {
 				"set": 30
 			},
+			"splashmeansofdeath": "MOD_EXPLOSION",
 			"SplashRange": {
 				"set": 400
 			},
@@ -68,31 +106,62 @@
 	},
 	"AMMO_SLUGS_MEDICINAL":
 	{
-		"shortname": "Medicinal Slugs",
+		"shortname": "Medicinal Beads",
 		"longname": "Medicinal Healing Slugthrower Beads",
 		"basedOn": "AMMO_SLUGS",
 		"max": 60,
 		"pricePerUnit": 25,
-		"overrides": {
+		"overrides": 
+		{
+			"meansofdeath": "MOD_CURED",
+        	"splashmeansofdeath": "MOD_CURED",
 			"Damage": {
-				"set": -7
+				"set": -2
 			},
+			
+			"splashRange":
+			{
+				"add": 75
+			},
+
 			"ammocost": {
-				"multiply": 2
+				"multiply": 3
 			},
 			"speed": {
 				"set": 1000
 			},
-			"buffs": [
+			"visuals":
+			{
+				"projectile":
 				{
-				"buff": "standard-heal",
-				"duration": 10000,
-				"intensity": 1.5
+					"miss": "weapons/watergun_impact_small",
+					"hit": "weapons/watergun_impact_small" ,
+					"effect": "Slugthrowers/slug_medtracershot"
+				},
+				"fire":
+				{
+					"muzzleEffect": "blasters/muzzleflash_Green_small"
+				}
+			},
+			"buffs": 
+			[
+				{
+					"buff": "refined-heal",
+					"addbuff": true,
+					"duration": 
+					{
+						"set": 5000
+					},
+					"intensity":
+					{
+						"multiply": 1.5
+					}
+				},
+				{
+					"buff": "standard-bleed",
+					"remove": true
 				}
 			]
-		
-		
 		}
-	
 	}
 }

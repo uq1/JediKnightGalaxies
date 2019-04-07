@@ -996,6 +996,7 @@ struct gclient_s {
 	int			shieldRechargeLast;
 	int			shieldRegenLast;
 	qboolean	shieldRecharging;	// to make sure that the shield sound doesn't play twice
+	qboolean	jetpackEquipped;	//is there a jetpack equipped?
 	itemJetpackData_t* pItemJetpack;
 
 	unsigned short ammoTable[MAX_AMMO_TYPES];		// Max ammo indices increased to JKG_MAX_AMMO_INDICES
@@ -1008,6 +1009,8 @@ struct gclient_s {
 	int				saberBPDebRecharge;
 	unsigned int	saberProjBlockTime;
 	unsigned int	saberBlockTime;
+
+	int			weaponHeatDebounceTime;		// last time that we lost heat
 
 	// all of the below was migrated from the playerState. None of it belonged there. --eez
 	int saberBlockDebounce;

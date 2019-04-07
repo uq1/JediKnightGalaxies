@@ -68,7 +68,9 @@ void UIVM_MouseEvent( int dx, int dy ) {
 void UIVM_Refresh( int realtime ) {
 	VMSwap v( uivm );
 
+	Com_PerformanceStart("ui");
 	uie->Refresh( realtime );
+	Com_PerformanceEnd("ui");
 }
 
 qboolean UIVM_IsFullscreen( void ) {

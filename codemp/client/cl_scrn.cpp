@@ -510,11 +510,13 @@ void SCR_UpdateScreen( void ) {
 			SCR_DrawScreenField( STEREO_CENTER );
 		}
 
+		Com_PerformanceStart("renderer");
 		if ( com_speeds->integer ) {
 			re->EndFrame( &time_frontend, &time_backend );
 		} else {
 			re->EndFrame( NULL, NULL );
 		}
+		Com_PerformanceEnd("renderer");
 	}
 
 	recursive = 0;

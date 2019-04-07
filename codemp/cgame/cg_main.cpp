@@ -1173,7 +1173,9 @@ static void CG_RegisterGraphics( void ) {
 	memset( &cg.refdef, 0, sizeof( cg.refdef ) );
 	trap->R_ClearScene();
 
-	//CG_LoadingString( cgs.mapname );        
+	// Load the loading screen tips
+	CG_ParseLoadingScreenTips();
+	
 	CG_LoadingString( cgs.mapname );
 
 	cg.showMapLoadProgress = 1;
@@ -2461,6 +2463,7 @@ void CG_SetupChatCmds() {
 }
 
 extern void CG_InitializeCrossoverAPI( void );
+extern  performanceSampleData_t cg_performanceData;
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 {
 	char buf[64];
@@ -2469,7 +2472,12 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 
 	trap->Cvar_Set("connmsg", ""); // Clear connection message override
 
+	memset(&cg_performanceData, 0, sizeof(performanceSampleData_t));	//init with 0
+
 	BG_InitAnimsets(); //clear it out
+
+	// Reseed Quake random number generator
+	Rand_Init(time(nullptr));
 
 	trap->RegisterSharedMemory(cg.sharedBuffer.raw);
 
@@ -2480,10 +2488,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 Ghoul2 Insert Start
 */
 
-//	memset( cg_entities, 0, sizeof( cg_entities ) );
 	CG_Init_CGents();
-// this is a No-No now we have stl vector classes in here.
-//	memset( &cg, 0, sizeof( cg ) );
 	CG_Init_CG();
 	CG_InitItems();
 

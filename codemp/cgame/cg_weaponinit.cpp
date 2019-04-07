@@ -272,6 +272,9 @@ static void JKG_LoadFireModeAssets ( weaponDrawData_t *drawData, const weaponFir
     // Projectile hit event
     if ( fireModeVisuals->projectileHitPlayer.generic.impactEffect[0] )
         drawData->projectileHitPlayer.generic.impactEffect = trap->FX_RegisterEffect (fireModeVisuals->projectileHitPlayer.generic.impactEffect);
+
+	if (fireModeVisuals->projectileHitPlayer.generic.impactShieldEffect[0])
+		drawData->projectileHitPlayer.generic.impactShieldEffect = trap->FX_RegisterEffect(fireModeVisuals->projectileHitPlayer.generic.impactShieldEffect);
         
     if ( fireModeVisuals->projectileHitPlayer.grenade.shockwaveEffect[0] )
         drawData->projectileHitPlayer.grenade.shockwaveEffect = trap->FX_RegisterEffect (fireModeVisuals->projectileHitPlayer.grenade.shockwaveEffect);

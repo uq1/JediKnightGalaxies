@@ -24,14 +24,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // cg_info.c -- display information while data is being loading
 
 #include "cg_local.h"
+#include "json/cJSON.h"
 
-#define MAX_LOADING_PLAYER_ICONS	16
-#define MAX_LOADING_ITEM_ICONS		26
+#define LOADTIP_LEN	160
 
-//static int			loadingPlayerIconCount;
-//static qhandle_t	loadingPlayerIcons[MAX_LOADING_PLAYER_ICONS];
-
-void CG_LoadBar(void);
+struct loadingTip_t {
+	char tipText[LOADTIP_LEN];
+};
+static std::vector<loadingTip_t> cg_loadingTips;
+static int cg_displayTipNumber = -1;
 
 /*
 ======================
@@ -77,47 +78,39 @@ void CG_LoadingClient( int clientNum ) {
 
 	info = CG_ConfigString( CS_PLAYERS + clientNum );
 
-/*
-	char			model[MAX_QPATH];
-	char			iconName[MAX_QPATH];
-	char			*skin;
-	if ( loadingPlayerIconCount < MAX_LOADING_PLAYER_ICONS ) {
-		Q_strncpyz( model, Info_ValueForKey( info, "model" ), sizeof( model ) );
-		skin = Q_strrchr( model, '/' );
-		if ( skin ) {
-			*skin++ = '\0';
-		} else {
-			skin = "default";
-		}
-
-		Com_sprintf( iconName, MAX_QPATH, "models/players/%s/icon_%s.tga", model, skin );
-		
-		loadingPlayerIcons[loadingPlayerIconCount] = trap->R_RegisterShaderNoMip( iconName );
-		if ( !loadingPlayerIcons[loadingPlayerIconCount] ) {
-			Com_sprintf( iconName, MAX_QPATH, "models/players/characters/%s/icon_%s.tga", model, skin );
-			loadingPlayerIcons[loadingPlayerIconCount] = trap->R_RegisterShaderNoMip( iconName );
-		}
-		if ( !loadingPlayerIcons[loadingPlayerIconCount] ) {
-			Com_sprintf( iconName, MAX_QPATH, "models/players/%s/icon_%s.tga", DEFAULT_MODEL, "default" );
-			loadingPlayerIcons[loadingPlayerIconCount] = trap->R_RegisterShaderNoMip( iconName );
-		}
-		if ( loadingPlayerIcons[loadingPlayerIconCount] ) {
-			loadingPlayerIconCount++;
-		}
-	}
-*/
 	Q_strncpyz( personality, Info_ValueForKey( info, "n" ), sizeof(personality) );
 	Q_CleanStr( personality );
-
-	/*
-	if( cgs.gametype == GT_SINGLE_PLAYER ) {
-		trap->S_RegisterSound( va( "sound/player/announce/%s.wav", personality ));
-	}
-	*/
 
 	CG_LoadingString( personality );
 }
 
+/*
+===================
+CG_LoadBar
+===================
+*/
+void CG_LoadBar(void)
+{
+	const int numticks = 9, tickwidth = 40, tickheight = 8;
+	const int tickpadx = 20, tickpady = 12;
+	const int capwidth = 8;
+	const int barwidth = numticks * tickwidth + tickpadx * 2 + capwidth * 2, barleft = ((640 - barwidth) / 2);
+	const int barheight = tickheight + tickpady * 2, bartop = 480 - barheight;
+	const int capleft = barleft + tickpadx, tickleft = capleft + capwidth, ticktop = bartop + tickpady;
+
+	trap->R_SetColor(colorWhite);
+	// Draw background
+	CG_DrawPic(barleft, bartop, barwidth, barheight, cgs.media.loadBarLEDSurround);
+
+	// Draw left cap (backwards)
+	CG_DrawPic(tickleft, ticktop, -capwidth, tickheight, cgs.media.loadBarLEDCap);
+
+	// Draw bar
+	CG_DrawPic(tickleft, ticktop, tickwidth*cg.loadLCARSStage, tickheight, cgs.media.loadBarLED);
+
+	// Draw right cap
+	CG_DrawPic(tickleft + tickwidth * cg.loadLCARSStage, ticktop, capwidth, tickheight, cgs.media.loadBarLEDCap);
+}
 
 /*
 ====================
@@ -151,9 +144,6 @@ void CG_DrawInformation( void ) {
 
 	CG_LoadBar();
 
-	// draw the icons of things as they are loaded
-	//CG_DrawLoadingIcons();
-
 	// the first 150 rows are reserved for the client connection
 	// screen to write into
 	if ( cg.infoScreenText[0] ) {
@@ -162,36 +152,72 @@ void CG_DrawInformation( void ) {
 			UI_RIGHT|UI_BIGFONT|UI_DROPSHADOW, colorWhite, FONT_SMALL3 );		
 	} else {
 		const char *psAwaitingSnapshot = CG_GetStringEdString("MENUS", "AWAITING_SNAPSHOT");
-		UI_DrawProportionalString( 320, 128-32, ( const char * )  /*"Awaiting snapshot..."*/psAwaitingSnapshot,
-			UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite, FONT_SMALL3 );			
+		UI_DrawProportionalString( 425, 128-32, ( const char * )  /*"Awaiting snapshot..."*/psAwaitingSnapshot,
+			UI_RIGHT|UI_INFOFONT|UI_DROPSHADOW, colorWhite, FONT_SMALL3 );			
+	}
+
+	// Draw the loading screen tip
+	if (cg_loadingTips.size() > 0 && cg_displayTipNumber != -1)
+	{
+		const char* loadingTip = CG_GetStringEdString2(cg_loadingTips.at(cg_displayTipNumber).tipText);
+		int x = 320 - CG_Text_Width(loadingTip, 0.3f, FONT_SMALL) / 2;
+		int y = 440;
+		CG_Text_Paint(x, y, 0.3, colorWhite, loadingTip, 0, 0, ITEM_TEXTSTYLE_SHADOWED, FONT_SMALL);
 	}
 }
 
 /*
 ===================
-CG_LoadBar
+CG_ParseLoadingScreenTips
 ===================
 */
-void CG_LoadBar(void)
+void CG_ParseLoadingScreenTips(void)
 {
-	const int numticks = 9, tickwidth = 40, tickheight = 8;
-	const int tickpadx = 20, tickpady = 12;
-	const int capwidth = 8;
-	const int barwidth = numticks*tickwidth+tickpadx*2+capwidth*2, barleft = ((640-barwidth)/2);
-	const int barheight = tickheight + tickpady*2, bartop = 480-barheight;
-	const int capleft = barleft+tickpadx, tickleft = capleft+capwidth, ticktop = bartop+tickpady;
+	fileHandle_t f;
+	int len = trap->FS_Open("ext_data/tables/loadingTips.json", &f, FS_READ);
+	char* buffer;
+	char error[1024];
 
-	trap->R_SetColor( colorWhite );
-	// Draw background
-	CG_DrawPic(barleft, bartop, barwidth, barheight, cgs.media.loadBarLEDSurround);
+	memset(error, 0, sizeof(error));
 
-	// Draw left cap (backwards)
-	CG_DrawPic(tickleft, ticktop, -capwidth, tickheight, cgs.media.loadBarLEDCap);
+	if (len == 0 || f == NULL_HANDLE)
+	{
+		Com_Printf("No loading tips to display\n");
+		return;
+	}
 
-	// Draw bar
-	CG_DrawPic(tickleft, ticktop, tickwidth*cg.loadLCARSStage, tickheight, cgs.media.loadBarLED);
+	trap->TrueMalloc((void**)&buffer, len);
+	if (buffer == nullptr)
+	{
+		return;
+	}
+	trap->FS_Read(buffer, len, f);
+	trap->FS_Close(f);
 
-	// Draw right cap
-	CG_DrawPic(tickleft+tickwidth*cg.loadLCARSStage, ticktop, capwidth, tickheight, cgs.media.loadBarLEDCap);
+	cJSON* json = cJSON_ParsePooled(buffer, error, 1024);
+	if (json == nullptr)
+	{
+		Com_Printf("Couldn't parse loading tips: %s\n", error);
+		trap->TrueFree((void**)&buffer);
+		return;
+	}
+
+	cJSON* child = cJSON_GetObjectItem(json, "tips");
+	if (child)
+	{
+		int arraySize = cJSON_GetArraySize(child);
+		for (int i = 0; i < arraySize; i++)
+		{
+			cJSON* arrayItem = cJSON_GetArrayItem(child, i);
+			loadingTip_t tip;
+
+			Q_strncpyz(tip.tipText, cJSON_ToStringOpt(arrayItem, ""), sizeof(tip));
+			cg_loadingTips.push_back(tip);
+		}
+	}
+	trap->TrueFree((void**)&buffer);
+
+	// Display this tip
+	cg_displayTipNumber = rand() % (cg_loadingTips.size() - 1);
+	//cg_displayTipNumber = Q_irand(0, cg_loadingTips.size() - 1);
 }
-

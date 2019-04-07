@@ -163,6 +163,7 @@ It contains a series of means of damage, each one has the following fields:
  - disintegrate (boolean): If true, this damage type will disintegrate people when it kills them.
 
  - modifiers (object):
+  - dodgeable (boolean): If true, this damage type may be reduced with an evade skill (eg: rolling)
   - ignoreArmor (boolean): If true, this damage type ignores armor
   - ignoreShield (boolean): If true, this damage type ignores shields
   - armor (float, default 1.0): Controls how much damage this type does against armor
@@ -324,6 +325,8 @@ The .wpn file contains one field for each firing mode, starting with 0.
   - range (float): How long the projectile shot by the weapon goes (or the hitscan line traces for), in map units.
   - splashrange (float): For non-complex damage areas, this details how far to spread the damage.
   - recoil (float): How much to tilt the camera when a player shoots this firing mode.
+  - heatGenerated (integer): How much heat is generated when this weapon fires. When your "heat" value exceeds maxHeat, you cannot fire this weapon anymore. Default: 0
+  - maxHeat (integer): If your heat exceeds this value, you cannot fire any more. Default: 100
   - accuracy (object): Contains the following fields:
    - accuracyRating (float, default 32): How far apart each shot can be (maximum) at roughly 100 map units distance. This is the base value.
    - crouchModifier (float, default 0.8): How much to multiply the overall accuracy rating while crouching.
@@ -483,6 +486,7 @@ Each object in the ammo file is the linkage name for it, and they can contain th
   - ammocost (complexAmmoInteger): Overrides the amount of ammo that is used by firing the weapon.
   - fireDelay (complexAmmoInteger): Overrides the fire rate. (lower = faster firing)
   - bounces (complexAmmoInteger): Overrides the number of times that the weapon can bounce.
+  - buffs (special): Allows you to override buffs in an ammo type. See the Buff Fields below for more information. 
   - hitscan (integer): If 1, this ammo type converts the weapon into a hitscan weapon.
   - speed (complexAmmoFloat): The projectile speed of the weapon.
   - usesGravity (integer): If 1, this ammo type makes projectiles use gravity. If 0, the weapon fires in a straight line.
@@ -509,6 +513,15 @@ Each object in the ammo file is the linkage name for it, and they can contain th
     - hit (string): Overrides the effect that plays when the projectile hits something.
     - deflect (string): Overrides the effect that plays when the projectile is deflected by a lightsaber.
 
+Buff Field:
+You can alter what buffs an ammo type inflicts upon its target.
+Note that weapons can inflict a maximum of 8 buffs at a time on a target. Likewise, players can only have 8 buffs active at a time on them.
+The "buffs" field is an array of Buff objects, each one having the following fields:
+ - buff (string/buff reference): The name of the buff to affect.
+ - remove (boolean): If true, this removes the specified buff.
+ - addbuff (boolean): If true, this adds the specified buff.
+ - duration (complexAmmoInteger): Overrides the buff's duration.
+ - intensity (complexAmmoFloat): Overrides the buff's intensity.
 
 ## JETPACK FIELDS
 

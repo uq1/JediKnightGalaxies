@@ -359,6 +359,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap->Print ("gamedate: %s\n", __DATE__);
 
 	srand( randomSeed );
+	Rand_Init(time(nullptr));
 
 	G_RegisterCvars();
 

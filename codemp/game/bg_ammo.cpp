@@ -13,6 +13,8 @@
 	#include "ui/ui_local.h"
 #endif
 
+#include "bg_buffs.h"
+
 ammo_t ammoTable[MAX_AMMO_TYPES];
 int numAmmoLoaded = 0;
 
@@ -51,7 +53,14 @@ Not technically a BG function, it's a utility to prevent overflow
 ============================
 */
 #ifdef _GAME
-void BG_GiveAmmo(gentity_t* ent, ammo_t* ammo, qboolean max, int amount) {
+void BG_GiveAmmo(gentity_t* ent, ammo_t* ammo, qboolean max, int amount) 
+{
+	if (ammo == nullptr)
+	{
+		Com_Printf(S_COLOR_RED "ammo is a nullptr! Check .ammo files for errors.\n");
+		return;
+	}
+
 	if (max) {
 		ent->client->ammoTable[ammo->ammoIndex] = ammo->ammoMax;
 	}
@@ -468,6 +477,112 @@ static void JKG_ParseSimpleOverrideVec3(std::pair<qboolean, vec3_t>& field, cons
 
 /*
 ============================
+JKG_ParseBuffOverrides
+
+This parses all of the buff overrides for an ammo type
+============================
+*/
+#ifndef UI_EXPORTS	// UI doesn't have a friggin clue what buffs are
+static void JKG_ParseBuffOverrides(ammo_t* ammo, cJSON* json, const char* nodeName)
+{
+	cJSON* child = cJSON_GetObjectItem(json, nodeName);
+	if (child == nullptr)
+	{
+		return;
+	}
+
+	int elemCount = cJSON_GetArraySize(child);
+	if (elemCount <= 0)
+	{
+		return; // not actually an array
+	}
+
+	// Iterate through each buff array item
+	for (int i = 0; i < elemCount; i++)
+	{
+		cJSON* buff = cJSON_GetArrayItem(child, i);
+		complexAmmoBuffOverride buffOverride = { 0 };
+
+		cJSON* buffChild = cJSON_GetObjectItem(buff, "buff");
+		if (buffChild == nullptr)
+		{	// JSON doesn't contain a "buff" field. Continue.
+			continue;
+		}
+
+		buffOverride.buff = JKG_ResolveBuffName(cJSON_ToStringOpt(buffChild, ""));
+		if (buffOverride.buff < 0)
+		{	// A buff by this name doesn't exist, continue.
+			continue;
+		}
+
+		buffChild = cJSON_GetObjectItem(buff, "remove");
+		buffOverride.bRemove = cJSON_ToBooleanOpt(buffChild, qfalse);
+
+		buffChild = cJSON_GetObjectItem(buff, "addbuff");
+		buffOverride.bAddBuff = cJSON_ToBooleanOpt(buffChild, qfalse);
+
+		buffChild = cJSON_GetObjectItem(buff, "duration");
+		if (buffChild != nullptr)
+		{
+			cJSON* childProps;
+
+			childProps = cJSON_GetObjectItem(buffChild, "add");
+			if (childProps != nullptr)
+			{
+				buffOverride.bAddDuration = qtrue;
+				buffOverride.addDuration = cJSON_ToInteger(childProps);
+			}
+
+			childProps = cJSON_GetObjectItem(buffChild, "multiply");
+			if (childProps != nullptr)
+			{
+				buffOverride.bMultiplyDuration = qtrue;
+				buffOverride.multiplyDuration = cJSON_ToNumber(childProps);
+			}
+
+			childProps = cJSON_GetObjectItem(buffChild, "set");
+			if (childProps != nullptr)
+			{
+				buffOverride.bSetDuration = qtrue;
+				buffOverride.setDuration = cJSON_ToInteger(childProps);
+			}
+		}
+
+		buffChild = cJSON_GetObjectItem(buff, "intensity");
+		if (buffChild != nullptr)
+		{
+			cJSON* childProps;
+
+			childProps = cJSON_GetObjectItem(buffChild, "add");
+			if (childProps != nullptr)
+			{
+				buffOverride.bAddIntensity = qtrue;
+				buffOverride.addIntensity = cJSON_ToNumber(childProps);
+			}
+
+			childProps = cJSON_GetObjectItem(buffChild, "multiply");
+			if (childProps != nullptr)
+			{
+				buffOverride.bMultiplyIntensity = qtrue;
+				buffOverride.multiplyIntensity = cJSON_ToNumber(childProps);
+			}
+
+			childProps = cJSON_GetObjectItem(buffChild, "set");
+			if (childProps != nullptr)
+			{
+				buffOverride.bSetIntensity = qtrue;
+				buffOverride.setIntensity = cJSON_ToNumber(childProps);
+			}
+		}
+
+		// Add the override to the list of buff overrides
+		ammo->overrides.buffs.emplace_back(buffOverride);
+	}
+}
+#endif
+
+/*
+============================
 JKG_ParseAmmoOverrideVisuals
 
 Processes the visual aspect of an ammo override
@@ -584,6 +699,10 @@ static void JKG_ParseAmmoOverrides(ammo_t* ammo, cJSON* json) {
 	JKG_ParseAmmoOverride_Float(json, "knockback", ammo->overrides.knockback);
 	JKG_ParseAmmoOverride_Float(json, "speed", ammo->overrides.speed);
 
+#ifndef UI_EXPORTS	// UI hasn't got a clue what buffs are
+	JKG_ParseBuffOverrides(ammo, json, "buffs");
+#endif
+
 	JKG_ParseSimpleOverrideInt(ammo->overrides.useGravity, "useGravity", json);
 
 	JKG_ParseSimpleOverrideInt(ammo->overrides.hitscan, "hitscan", json);
@@ -636,7 +755,7 @@ static qboolean JKG_ParseSingleAmmo(cJSON* json) {
 ============================
 JKG_LoadAmmo
 
-Loads an individual jetpack (.jet) file.
+Loads an individual ammo (.ammo) file.
 Called on both the client and the server.
 ============================
 */
