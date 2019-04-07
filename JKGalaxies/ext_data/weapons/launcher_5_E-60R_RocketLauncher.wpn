@@ -81,7 +81,7 @@
     },
     
     "playeranims": {
-        "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
+        "idle":         { "torso": "TORSO_ROCKETSTANCE", "legs": "BOTH_IDLE1" },
 //        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_ROCKETRELOAD" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
