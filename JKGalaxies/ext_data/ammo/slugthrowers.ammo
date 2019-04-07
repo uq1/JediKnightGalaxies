@@ -54,7 +54,7 @@
 					"addbuff": true,
 					"duration": 
 					{
-						"set": 8000
+						"set": 10000
 					},
 					"intensity":
 					{
