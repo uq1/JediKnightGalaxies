@@ -1,4 +1,4 @@
-language: cpp
+language: generic
 
 addons:
   apt:
@@ -7,6 +7,10 @@ addons:
       - libjpeg-turbo8-dev
       - zlib1g-dev
       - libpng12-dev
+      - g++-6
+      sources: &sources
+        - llvm-toolchain-precise-3.9
+        - ubuntu-toolchain-r-test
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
@@ -20,9 +24,9 @@ matrix:
     - os: linux
       dist: xenial
       sudo: required
-      compiler: gcc
+      env: COMPILER_NAME=gcc CXX=g++-6 CC=gcc-6
     - os: linux
-      dist: trusty
+      dist: xenial
       sudo: required
       compiler: clang
     - os: osx
