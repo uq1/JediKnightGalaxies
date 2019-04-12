@@ -457,7 +457,7 @@ void *Sys_LoadGameDll( const char *name, GetModuleAPIProc **moduleAPI )
 
 	Com_sprintf (filename, sizeof(filename), "%s" ARCH_STRING DLL_EXT, name);
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) || defined(DEBUGGER_FRIENDLY)
 	libHandle = Sys_LoadLibrary( filename );
 	if ( !libHandle )
 #endif
