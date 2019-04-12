@@ -728,6 +728,7 @@ void JKG_DoSplashDamage ( damageSettings_t* data, const vec3_t origin, gentity_t
             area->context.damageFlags = data->damageFlags;
             area->context.inflictor = inflictor;
             area->context.methodOfDeath = mod;
+			area->context.ammoType = inflictor->s.ammoType;
             area->startTime = level.time + data->delay;
 
 			if(bDoDamageOverride) {
@@ -757,6 +758,7 @@ void JKG_DoSplashDamage ( damageSettings_t* data, const vec3_t origin, gentity_t
         a.context.inflictor = inflictor;
         a.context.methodOfDeath = mod;
         a.startTime = level.time;
+		a.context.ammoType = inflictor->s.ammoType;
 
 		if (attacker->client)
 		{
