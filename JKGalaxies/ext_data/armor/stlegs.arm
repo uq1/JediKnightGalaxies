@@ -2,7 +2,7 @@
 	"ref":		"stlegs",
 	"slot":		"legs",
 	"armor":		120,
-	"movemodifier":	0.8,
+	"movemodifier":	0.925,
 
 	"visuals": {
 		"model":	"models/players/stormtrooper/model.glm*default",

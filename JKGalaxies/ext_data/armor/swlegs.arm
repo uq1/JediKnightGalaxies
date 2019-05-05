@@ -2,7 +2,7 @@
 	"ref":		"swlegs",
 	"slot":		"legs",
 	"armor":		170,
-	"movemodifier":	0.8,
+	"movemodifier":	0.9,
 
 	"visuals": {
 		"model":	"models/players/swamptrooper/model.glm*default",
