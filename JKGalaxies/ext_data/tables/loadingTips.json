@@ -9,12 +9,21 @@
 		"Fire can be eliminated by rolling.",
 		"If your weapon has overheated, try switching to a different firing mode or changing your weapon.",
 		"Don't forget to buy ammo from the shop!",
-		"Medicinal slugs can remove bleeding effects.",
+		"Medicinal slugs can remove bleeding effects and heal wounds.",
 		"Bacta Antidote Grenades contain a potent antidote that can remove poison debuffs.",
 		"Most items autoequip, however you must manually equip armor pieces from the inventory menu.",
 		"You may only have one shield or jetpack in an ACI slot at a time, your first shield or jetpack will autoequip.",
 		"Once purchased, special ammo types can empower your weapons with useful effects, to switch use the +ammocycle command (n).",
-		"You can manually rearrange which items you want to be bound to your ACI slots, inside the inventory menu.",
-		"Are you on fire?  Remember to stop, drop, and roll to put out the flames!"
+		"You can manually rearrange which items you want to be bound to your ACI slots, inside the inventory menu (i).",
+		"Are you on fire?  Remember to stop, drop, and roll to put out the flames!  Water can also help.",
+		"Your starting weapon cannot be sold without first purchasing other weapons, and is only worth 1 credit.",
+		"Ammo for your starting weapon can be refilled for free!",
+		"If your team is losing, you can get ammo at a discounted price.",
+		"Kill streaks will often net you a bounty, making your death increasingly more valuable to the enemy team.",
+		"Most weapons have additional firing modes, such as a stun mode or semi-auto.",
+		"Shopkeepers will refresh their shops fairly often, check with vendors often for new items.",
+		"You are more accurate when crouching and aiming down the sights or a scope (mouse2)",
+		"In the capture the flag game mode, capturing the flag is worth greater rewards than kills.",
+		"Consumable items, such as grenades or bacta, have a max stack size - the size depends on the item."
 	]
 }
