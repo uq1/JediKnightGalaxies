@@ -666,9 +666,47 @@ void BG_GiveItemNonNetworked(gentity_t* ent, itemInstance_t item) {
 
 	// Add the new item stack to the inventory
 	ent->inventory->push_back(item);
+
+	//do special checks for shields and jetpacks
+	if (item.id->itemType == ITEM_SHIELD || item.id->itemType == ITEM_JETPACK)
+	{
+		bool alreadyEquipped = false;
+		int specialType = item.id->itemType;
+
+		//search the inventory for existing shields or jetpacks
+		for (int i = 0; i < ent->inventory->size()-1; i++)	//check everything except what we just added
+		{
+			if (ent->inventory->at(i).id->itemType == specialType && ent->inventory->at(i).equipped) //if a shield/jetpack is already equipped
+			{
+				alreadyEquipped = true;
+				break;
+			}
+		}
+
+		//we already have a shield/jetpack equipped - don't activate or equip
+		if (alreadyEquipped)
+			return;
+		
+		//if a shield/jetpack isn't already equipped, equip the new one
+		else
+		{
+			int itemSlot = ent->inventory->size()-1;
+			if (specialType == ITEM_SHIELD)
+			{
+				JKG_ShieldEquipped(ent, itemSlot, qtrue);
+			}
+			else if (specialType == ITEM_JETPACK)
+			{
+				JKG_JetpackEquipped(ent, itemSlot);
+			}
+		}
+	}
+	
+
 }
 #elif _CGAME
-void BG_GiveItemNonNetworked(itemInstance_t item) {
+void BG_GiveItemNonNetworked(itemInstance_t item)
+{
 	// Basic checks
 	if (!item.id || !item.id->itemID) {
 		return;
@@ -704,33 +742,53 @@ void BG_GiveItemNonNetworked(itemInstance_t item) {
 	}
 	cg.playerInventory->push_back(item);
 
-	// If this item is a weapon, which is not already in our ACI, and the ACI is not full, add it.
-	if(item.id->itemType == ITEM_WEAPON) {
-		bool bInACIAlready = false;
-		int nFreeACISlot = -1;
-		for(int i = 0; i < MAX_ACI_SLOTS; i++) {
-			if(cg.playerACI[i] == -1 && nFreeACISlot == -1) {
+	// If this item is a weapon, shield, jetpack or consumable - which is not already in our ACI, and the ACI is not full, add it.
+	if(item.id->itemType == ITEM_WEAPON || item.id->itemType == ITEM_SHIELD || item.id->itemType == ITEM_JETPACK || item.id->itemType == ITEM_CONSUMABLE) 
+	{
+		bool bInACIAlready = false; bool specialTypeEquipped = false;
+		int nFreeACISlot = -1; int specialType = 0;
+
+		//if a shield or jetpack, save type
+		if (item.id->itemType == ITEM_SHIELD || item.id->itemType == ITEM_JETPACK)
+			specialType = item.id->itemType;
+
+		for(int i = 0; i < MAX_ACI_SLOTS; i++) 
+		{
+			if(cg.playerACI[i] == -1 && nFreeACISlot == -1) 
+			{
 				nFreeACISlot = i;
 				continue;
-			} else if(cg.playerACI[i] == -1) {
+			} 
+			else if(cg.playerACI[i] == -1) 
+			{
 				continue;
-			} else if(cg.playerACI[i] >= cg.playerInventory->size()) {
+			} 
+			else if(cg.playerACI[i] >= cg.playerInventory->size()) 
+			{
 				// This item in our ACI is invalid, remove it
 				cg.playerACI[i] = -1;
 				continue;
 			}
-			if(!Q_stricmp((*cg.playerInventory)[cg.playerACI[i]].id->internalName, item.id->internalName)) {
+			if(!Q_stricmp((*cg.playerInventory)[cg.playerACI[i]].id->internalName, item.id->internalName)) 
+			{
 				bInACIAlready = true; 
 			}
-			if(bInACIAlready && nFreeACISlot >= 0) { // already found everything we need to know, just die
+			if((*cg.playerInventory)[cg.playerACI[i]].id->itemType == specialType && specialType)
+			{
+				specialTypeEquipped = true; //we can't autoequip another shield/jetpack, we already have one equipped
+			}
+			if(specialTypeEquipped || (bInACIAlready && nFreeACISlot >= 0)) 
+			{ // already found everything we need to know, just die
 				break;
 			}
 		}
 
-		if (!bInACIAlready && nFreeACISlot != -1) {
+		if (!specialTypeEquipped && !bInACIAlready && nFreeACISlot != -1) 
+		{
 			cg.playerACI[nFreeACISlot] = cg.playerInventory->size() - 1;
 		}
 	}
+	
 }
 #endif
 

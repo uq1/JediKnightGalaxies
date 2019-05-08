@@ -2,13 +2,19 @@
 	// Tips are limited to 160 characters.
 	// You can use a StringEd reference by using a @ sign (eg, @MENUS_AWAITING_SNAPSHOT will load from menus.str -> AWAITING_SNAPSHOT)
 	"tips": [
-		"Shields can completely block stuns, and are equipped to the ACI.",
-		"Consumable items can be used quickly by assigning them to the ACI.",
+		"Shields can completely block stuns, but are vulnerable to electrical damage.",
+		"Consumable items can be used quickly by assigning them to an ACI slot.",
 		"Slugthrowers can completely ignore shields.",
 		"Some weapons, such as repeaters, are prone to overheating. Watch your crosshairs for the color change.",
 		"Fire can be eliminated by rolling.",
 		"If your weapon has overheated, try switching to a different firing mode or changing your weapon.",
 		"Don't forget to buy ammo from the shop!",
-		"Medicinal slugs can remove bleeding effects."
+		"Medicinal slugs can remove bleeding effects.",
+		"Bacta Antidote Grenades contain a potent antidote that can remove poison debuffs.",
+		"Most items autoequip, however you must manually equip armor pieces from the inventory menu.",
+		"You may only have one shield or jetpack in an ACI slot at a time, your first shield or jetpack will autoequip.",
+		"Once purchased, special ammo types can empower your weapons with useful effects, to switch use the +ammocycle command (n).",
+		"You can manually rearrange which items you want to be bound to your ACI slots, inside the inventory menu.",
+		"Are you on fire?  Remember to stop, drop, and roll to put out the flames!"
 	]
 }
