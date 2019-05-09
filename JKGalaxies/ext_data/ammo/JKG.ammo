@@ -116,6 +116,32 @@
 		"max": 960
 	},
 	
+	"AMMO_SS_ION_POWERPACK": {
+		"shortname": "ELG-3A Ionized Power Packs",
+		"longname": "SoruSubb Ionized Blaster Power Packs",
+		"basedOn": "AMMO_SS_POWERPACK",
+		"max": 360,
+		"pricePerUnit": 1.1,
+		"overrides": 
+		{
+			"meansofdeath": "MOD_IONBLASTER",
+        	"splashmeansofdeath": "MOD_IONBLASTER",
+			"visuals": 
+			{
+				"projectile": 
+				{
+					"hit": "Blasters/blue_flesh_impact",
+					"miss": "Blasters/blue_impacttiny",
+					"effect": "Blasters/shot_Blue_small"
+				},
+				"fire":
+				{
+					"muzzleEffect": "Blasters/muzzleflash_Blue_small"
+				}
+			}
+		}
+	},
+	
 	"AMMO_ION_POWERPACK_S": {
 		"shortname": "Ionized Blaster Power Packs",
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (small)",
@@ -194,48 +220,6 @@
 		}
 	},
 	
-	"AMMO_ARC_POWERPACK": {
-		"shortname": "ARC Caster Power Packs",
-		"longname": "ARC Caster Power Packs",
-		"max": 640,
-		"pricePerUnit": 0.6
-	},
-	
-	"AMMO_POWERCELL_S": {
-		"shortname": "Power Cells",
-		"longname": "BlasTech Industries Power Cells (small)",
-		"max": 480,
-		"pricePerUnit": 0.6
-	},
-	
-	"AMMO_POWERCELL_M": {
-		"shortname": "Power Cells",
-		"longname": "BlasTech Industries Power Cells (medium)",
-		"max": 600,
-		"pricePerUnit": 0.6
-	},
-	
-	"AMMO_POWERCELL_L": {
-		"shortname": "Power Cells",
-		"longname": "BlasTech Industries Power Cells (large)",
-		"max": 800,
-		"pricePerUnit": 0.6
-	},
-	
-	"AMMO_POWERPAK_S": {
-		"shortname": "Standard PowerPaks",
-		"longname": "BlasTech Industries PowerPaks (small)",
-		"max": 400,
-		"pricePerUnit": 0.6
-	},
-	
-	"AMMO_POWERPAK_L": {
-		"shortname": "Standard PowerPaks",
-		"longname": "BlasTech Industries PowerPaks (large)",
-		"max": 512,
-		"pricePerUnit": 0.6
-	},
-	
 	"AMMO_ION_POWERPAK_S": {
 		"shortname": "Ionized PowerPaks",
 		"longname": "BlasTech Industries Ionized PowerPaks (small)",
@@ -286,6 +270,48 @@
 				}
 			}
 		}
+},
+	
+	"AMMO_ARC_POWERPACK": {
+		"shortname": "ARC Caster Power Packs",
+		"longname": "ARC Caster Power Packs",
+		"max": 640,
+		"pricePerUnit": 0.6
+	},
+	
+	"AMMO_POWERCELL_S": {
+		"shortname": "Power Cells",
+		"longname": "BlasTech Industries Power Cells (small)",
+		"max": 480,
+		"pricePerUnit": 0.6
+	},
+	
+	"AMMO_POWERCELL_M": {
+		"shortname": "Power Cells",
+		"longname": "BlasTech Industries Power Cells (medium)",
+		"max": 600,
+		"pricePerUnit": 0.6
+	},
+	
+	"AMMO_POWERCELL_L": {
+		"shortname": "Power Cells",
+		"longname": "BlasTech Industries Power Cells (large)",
+		"max": 800,
+		"pricePerUnit": 0.6
+	},
+	
+	"AMMO_POWERPAK_S": {
+		"shortname": "Standard PowerPaks",
+		"longname": "BlasTech Industries PowerPaks (small)",
+		"max": 400,
+		"pricePerUnit": 0.6
+	},
+	
+	"AMMO_POWERPAK_L": {
+		"shortname": "Standard PowerPaks",
+		"longname": "BlasTech Industries PowerPaks (large)",
+		"max": 512,
+		"pricePerUnit": 0.6
 	},
 	
 	"AMMO_KYD-21": {
@@ -308,32 +334,6 @@
 		"longname": "SoruSubb Blaster Power Packs",
 		"pricePerUnit": 0.8,
 		"max": 360
-	},
-	
-	"AMMO_SS_ION_POWERPACK": {
-		"shortname": "ELG-3A Ionized Power Packs",
-		"longname": "SoruSubb Ionized Blaster Power Packs",
-		"basedOn": "AMMO_SS_POWERPACK",
-		"max": 360,
-		"pricePerUnit": 1.1,
-		"overrides": 
-		{
-			"meansofdeath": "MOD_IONBLASTER",
-        	"splashmeansofdeath": "MOD_IONBLASTER",
-			"visuals": 
-			{
-				"projectile": 
-				{
-					"hit": "Blasters/blue_flesh_impact",
-					"miss": "Blasters/blue_impacttiny",
-					"effect": "Blasters/shot_Blue_small"
-				},
-				"fire":
-				{
-					"muzzleEffect": "Blasters/muzzleflash_Blue_small"
-				}
-			}
-		}
 	},
 	
 	"AMMO_CONCUSSION": {

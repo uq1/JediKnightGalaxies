@@ -16,6 +16,12 @@
 					"ammo_medicBeads_60": 1,
 					"ammo_poison_gas_50": 1,
 					"ammo_splittingQuarrels_40": 1,
+					"ammo_ionPwrPackSm_60": 1,
+					"ammo_ionPwrPackMed_60": 1,
+					"ammo_ionPwrPackLrg_60": 1,
+					"ammo_ionPwrPackELG_60": 1,
+					"ammo_ionPwrPakLrg_60": 1,
+					"ammo_ionPwrPakSm_60": 1,
 					"gloves_stormtrooper": 1,
 					"helmet_stormtrooper": 1,
 					"helmet_stormtrooper_rusty": 1,
@@ -220,7 +226,12 @@
 				"ammo_incendiarySlugs_45": 4,
 				"ammo_incendiarySlugs_100": 3,
 				"ammo_medicBeads_60": 5,
-				"ammo_poison_gas_50": 4
+				"ammo_poison_gas_50": 4,
+				"ammo_ionPwrPakLrg_60": 1,
+				"ammo_ionPwrPakSm_60": 5,
+				"ammo_ionPwrPackSm_60": 5,
+				"ammo_ionPwrPackMed_60": 2,
+				"ammo_ionPwrPackELG_60": 6
 			}
 		},
 		"grenadevendor":
@@ -313,8 +324,11 @@
 				"ammo_explosiveSlugs_60": 1,
 				"ammo_incendiarySlugs_45": 2,
 				"ammo_medicBeads_60": 3,
-				"ammo_poison_gas_50": 1
-
+				"ammo_poison_gas_50": 1,
+				"ammo_ionPwrPackSm_60": 5,
+				"ammo_ionPwrPackMed_60": 2,
+				"ammo_ionPwrPackELG_60": 6,
+				"ammo_ionPwrPakSm_60": 5
 			}
 		},
 		"genericvendor-mid": {
@@ -383,8 +397,13 @@
 				"ammo_incendiarySlugs_45": 1,
 				"ammo_incendiarySlugs_100": 3,
 				"ammo_medicBeads_60": 5,
-				"ammo_poison_gas_50": 4
-
+				"ammo_poison_gas_50": 4,
+				"ammo_ionPwrPackSm_60": 2,
+				"ammo_ionPwrPackMed_60": 3,
+				"ammo_ionPwrPackLrg_60": 4,
+				"ammo_ionPwrPackELG_60": 2,
+				"ammo_ionPwrPakLrg_60": 1,
+				"ammo_ionPwrPakSm_60": 4
 			}
 		},
 		"genericvendor-late": {
@@ -447,7 +466,13 @@
 				"ammo_explosiveQuarrel_40": 3,
 				"ammo_splittingQuarrels_40": 4,
 				"ammo_bouncingQuarrels_40": 4,
-				"ammo_explosiveSlugs_60": 3
+				"ammo_explosiveSlugs_60": 3,
+				"ammo_ionPwrPackSm_60": 2,
+				"ammo_ionPwrPackMed_60": 3,
+				"ammo_ionPwrPackLrg_60": 4,
+				"ammo_ionPwrPackELG_60": 2,
+				"ammo_ionPwrPakLrg_60": 4,
+				"ammo_ionPwrPakSm_60": 2
 			}
 		},
 		"genericvendor-rare": {

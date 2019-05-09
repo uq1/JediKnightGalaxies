@@ -637,7 +637,7 @@ On the server, this is also internally called from BG_GiveItem.
 #ifdef _GAME
 void BG_GiveItemNonNetworked(gentity_t* ent, itemInstance_t item) {
 	// Basic checks
-	if (!item.id || !item.id->itemID) {
+	if (!item.id || !item.id->itemID) {	
 		return;
 	}
 
@@ -668,7 +668,7 @@ void BG_GiveItemNonNetworked(gentity_t* ent, itemInstance_t item) {
 	ent->inventory->push_back(item);
 
 	//do special checks for shields and jetpacks
-	if (item.id->itemType == ITEM_SHIELD || item.id->itemType == ITEM_JETPACK)
+	if ((item.id->itemType == ITEM_SHIELD || item.id->itemType == ITEM_JETPACK) && ent->s.eType == ET_PLAYER) //for now don't give anyone except players autoequip shields/jetpacks
 	{
 		bool alreadyEquipped = false;
 		int specialType = item.id->itemType;

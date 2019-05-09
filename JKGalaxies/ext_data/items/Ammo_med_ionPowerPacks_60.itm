@@ -1,0 +1,10 @@
+{
+	"name":		"60 BlasTech Ion Pwr Pack(med)",
+	"internal":	"ammo_ionPwrPackMed_60",
+	"itemtype":	"ammo",
+	"weight":		"0",
+	"cost":		"75",
+	"ammoclass":	"AMMO_ION_POWERPACK_M",
+	"ammoquantity":	"60",
+	"itemIcon": "gfx/item_icons/default.tga"	//needs icon!
+}
