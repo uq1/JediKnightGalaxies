@@ -355,7 +355,7 @@ static void JKG_ParseAmmoOverride_Means(cJSON* json, const char* name, std::pair
 	}
 	else {
 		field.first = qtrue;
-		field.second = JKG_GetMeansOfDamageIndex(cJSON_ToString(json));
+		field.second = JKG_GetMeansOfDamageIndex(cJSON_ToString(node));
 	}
 }
 
@@ -682,8 +682,8 @@ Overrides are things such as changing damage, ...
 */
 static void JKG_ParseAmmoOverrides(ammo_t* ammo, cJSON* json) {
 	
-	JKG_ParseAmmoOverride_Means(json, "means", ammo->overrides.means);
-	JKG_ParseAmmoOverride_Means(json, "splashmeans", ammo->overrides.splashmeans);
+	JKG_ParseAmmoOverride_Means(json, "meansofdeath", ammo->overrides.means);
+	JKG_ParseAmmoOverride_Means(json, "splashmeansofdeath", ammo->overrides.splashmeans);
 
 
 	JKG_ParseAmmoOverride_Int(json, "damage", ammo->overrides.damage);
