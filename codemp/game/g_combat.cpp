@@ -1644,7 +1644,7 @@ JKG_HandleUnclaimedBounties
 qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 {
 	int multiplier = (deadguy->client->numKillsThisLife > jkg_maxKillStreakBounty.integer) ? jkg_maxKillStreakBounty.integer : deadguy->client->numKillsThisLife;
-	gentity_t* player; int reward = jkg_bounty.integer*multiplier ;	//set default reward as jkg_bounty
+	gentity_t* player; int init_reward = jkg_bounty.integer*multiplier; int reward = 0;	//set default reward as jkg_bounty
 	int team_amt{ 0 };	//# of players on the team to reward
 
 	int teamToReward = deadguy->client->sess.sessionTeam;	//get dead guy's team
@@ -1668,6 +1668,12 @@ qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 	if (team_amt < 1)	//nobody there
 		return false;
 
+	//calculate team reward split
+	reward = (init_reward / team_amt);																//equally distribute reward among team
+	reward = (reward < jkg_teamKillBonus.integer) ? jkg_teamKillBonus.integer : reward;			//unless its less than teamKillBonus
+	if (team_amt == 1)																			//if only one player, don't give him the whole reward since its not a direct kill
+		reward = reward * 0.5;
+
 	for (int i = 0; i < sv_maxclients.integer; i++)
 	{
 		player = &g_entities[i];
@@ -1677,10 +1683,6 @@ qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 		//if we're not on deadguy's team, we deserve a reward!
 		if (player->client->sess.sessionTeam == teamToReward)
 		{
-			reward = (reward / team_amt);																//equally distribute reward among team
-			reward = (reward < jkg_teamKillBonus.integer) ? jkg_teamKillBonus.integer : reward;			//unless its less than teamKillBonus
-			if (team_amt == 1)																			//if only one player, don't give him the whole reward since its not a direct kill
-				reward = reward * 0.5;
 			trap->SendServerCommand(player->s.number, va("notify 1 \"Team Bounty Claimed: +%i Credits\"", reward));
 			player->client->ps.credits += reward;
 			//consider doing some sort of sound to hint at reward here  --futuza
@@ -4563,11 +4565,11 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 				case BOTH_GETUP_BROLL_L: case BOTH_GETUP_BROLL_R:
 				case BOTH_GETUP_FROLL_B: case BOTH_GETUP_FROLL_F:
 				case BOTH_GETUP_FROLL_L: case BOTH_GETUP_FROLL_R:
-				if (targ->playerState->legsTimer > 0)	//they're rolling perfectly
+				if (targ->playerState->legsTimer > 0)	//they're rolling in time
 				{
 					int timing = bgAllAnims[targ->localAnimIndex].anims[targ->client->ps.legsAnim].numFrames * fabs((float)(bgHumanoidAnimations[targ->client->ps.legsAnim].frameLerp));	//get animation timing length
 					timing *= 0.5f; //cut in two
-					if ( (timing+300 > targ->playerState->legsTimer) && (targ->playerState->legsTimer > timing-300) )
+					if ( (timing+300 > targ->playerState->legsTimer) && (targ->playerState->legsTimer > timing-300) )		//perfect timing
 					{
 						trap->SendServerCommand(targ - g_entities, va("notify 1 \"Flawless Dodge!\""));
 						take > 2 ? take *= (1 - (dmgReduction * 2)) : take = 1;	//double , or set it to 1
