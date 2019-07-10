@@ -1644,7 +1644,7 @@ JKG_HandleUnclaimedBounties
 qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 {
 	int multiplier = (deadguy->client->numKillsThisLife > jkg_maxKillStreakBounty.integer) ? jkg_maxKillStreakBounty.integer : deadguy->client->numKillsThisLife;
-	gentity_t* player; int init_reward = jkg_bounty.integer*multiplier; int reward = 0;	//set default reward as jkg_bounty
+	gentity_t* player; int reward = jkg_bounty.integer*multiplier;	//set default reward as jkg_bounty
 	int team_amt{ 0 };	//# of players on the team to reward
 
 	int teamToReward = deadguy->client->sess.sessionTeam;	//get dead guy's team
@@ -1669,7 +1669,7 @@ qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 		return false;
 
 	//calculate team reward split
-	reward = (init_reward / team_amt);																//equally distribute reward among team
+	reward = (reward / team_amt);																//equally distribute reward among team
 	reward = (reward < jkg_teamKillBonus.integer) ? jkg_teamKillBonus.integer : reward;			//unless its less than teamKillBonus
 	if (team_amt == 1)																			//if only one player, don't give him the whole reward since its not a direct kill
 		reward = reward * 0.5;
