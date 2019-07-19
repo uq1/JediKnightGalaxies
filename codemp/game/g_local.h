@@ -1775,6 +1775,7 @@ void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound
 void Cmd_ShieldUnequipped(gentity_t* ent);
 void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber);
 void Cmd_JetpackUnequipped(gentity_t* ent);
+void JKG_ArmorChanged(gentity_t* ent);
 
 /**************************************************
 * jkg_team.c
