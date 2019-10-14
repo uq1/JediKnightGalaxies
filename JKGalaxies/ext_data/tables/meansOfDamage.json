@@ -436,7 +436,6 @@
 
 		"modifiers": {
 			"dodgeable": true,
-			"armor": 1.2,
 			"organic": 0.8,
 			"shield": 1.6,
 			"droid": 1.8
