@@ -33,6 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g_local.h" //ahahahahhahahaha@$!$!
 #else
 #include "../cgame/cg_local.h"
+//#define SUPER_FUTUZA_TEST 1
 #endif
 
 #define MAX_WEAPON_CHARGE_TIME 5000
@@ -6520,6 +6521,11 @@ void Pmove (pmove_t *pmove) {
 	if ( finalTime > pmove->ps->commandTime + 1000 ) {
 		pmove->ps->commandTime = finalTime - 1000;
 	}
+
+#ifdef SUPER_FUTUZA_TEST
+	if (cg.crouchToggled)
+		pmove->cmd.upmove = -128;
+#endif
 
 	if (pmove->ps->fallingToDeath)
 	{

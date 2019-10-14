@@ -80,7 +80,9 @@
     
     "firemode0": {
         "damage": {
-                               "damage":       0,
+					"damageradius": { "start": 8,
+                    "function": [ "constant"] },
+					"damage":       10,
 				"buffs": [
 					{
 						"buff": "standard-stun",
@@ -95,12 +97,12 @@
         "ammocost":     10,
         "firedelay":    1700,
         "firingtype":   "semi",
-        "range":        800.0,
+        "range":        1400.0,
         "recoil":       0.5,
         "spread":       1.0,
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
+        "meansofdeath": "MOD_STUNNED",
 	"ammobase": "AMMO_POWERPACK_L",
 	"ammodefault": "AMMO_POWERPACK_S",
         "clipSize":              30

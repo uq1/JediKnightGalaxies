@@ -1542,13 +1542,11 @@
 		"name":		"red-futuza",
 		"rgb": 
 		{
-			"r":	205,
+			"r":	243,
 			"g":	55,
-			"b":	9
+			"b":	8
 		},
 
-		"bladeEffect":	"unstable",
-		"trailEffect":	"sharp"
-	
+		"bladeEffect":	"unstable"
 	}
 }

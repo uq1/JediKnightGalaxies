@@ -99,7 +99,7 @@
         "projectilespeed":1200.0,
         "projectileclass":"repeater_alt_proj",
         "clipSize":              0,
-        "meansofdeath": "MOD_EXPLOSION",
+        "meansofdeath": "MOD_STUNNED",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
@@ -129,7 +129,7 @@
         "projectilespeed":900.0,
         "projectileclass":"repeater_alt_proj",
         "clipSize":              0,
-        "meansofdeath": "MOD_EXPLOSION",
+        "meansofdeath": "MOD_STUNNED",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
