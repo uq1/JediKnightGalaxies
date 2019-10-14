@@ -4621,10 +4621,25 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 					targ->client->ps.stats[STAT_SHIELD] -= ssave;
 					take = 0;
 				}
-				else if (targ->client->ps.stats[STAT_SHIELD] > 0) {
-					// we have some shields but we can break some damage through
-					take -= targ->client->ps.stats[STAT_SHIELD];
-					targ->client->ps.stats[STAT_SHIELD] = 0;
+				else if (targ->client->ps.stats[STAT_SHIELD] > 0)
+				{
+					//special exception for when damage ties shield charge
+					if (static_cast<int>(take*means->modifiers.shield) == targ->client->ps.stats[STAT_SHIELD])
+					{
+						targ->client->ps.stats[STAT_SHIELD] = 0;
+						take = 0;
+					}
+
+					// we have some shield charge but some damage will break through
+					else
+					{
+						take -= targ->client->ps.stats[STAT_SHIELD];
+						targ->client->ps.stats[STAT_SHIELD] = 0;
+
+						if (take < 1)			//this isn't just safety checking, in the event that the means does extra damage to shields, ssave will be > take, so we'd end up a negative spill over.
+							take = -take;	  //eg: 27 shield, 26 take (multipled to 41 shield dmg reduced to 27) == 26-27 == -1, uh oh!  no worries, math is still correct, just reverse the negative
+					}
+					
 				}
 			}
 			ShieldHitEffect(targ, dir, ssave);
