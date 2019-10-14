@@ -1207,7 +1207,7 @@ void Cmd_GiveBuff_f(gentity_t* ent)
 
 	if (trap->Argc() < 2)
 	{
-		trap->SendServerCommand(ent - g_entities, "print \"usage: /givebuff <buff name> [duration] [intensity]\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"usage: /givebuff <buff name> [duration (in ms)] [intensity (default 1.0)]\n\"");
 		return;
 	}
 
@@ -2292,6 +2292,12 @@ void Cmd_SellItem_f(gentity_t *ent)
 	else if (item.id->itemType == ITEM_JETPACK && item.equipped) {
 		Cmd_JetpackUnequipped(ent);
 	}
+
+	else if (item.id->itemType == ITEM_ARMOR && item.equipped) {
+		JKG_ArmorChanged(ent);
+	}
+
+
 	ent->client->ps.credits += (creditAmount * item.quantity) / 2;
 	BG_RemoveItemStack(ent, nInvID);
 	trap->SendServerCommand(ent->s.number, va("inventory_update %i", ent->client->ps.credits));
