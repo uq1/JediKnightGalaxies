@@ -812,6 +812,7 @@ void G_CheckVendorNPCs( void )
 				return; // Try again on next check...
 
 			// Find a new place to spawn, the first one was dangerous
+			Rand_Init(time(0)); //reseed 
 			waypoint = irand(0, gWPNum - 1);
 			tries++;
 		}
@@ -836,7 +837,7 @@ void G_CheckVendorNPCs( void )
 
 		char treasure[] = "genericvendor";
 		SP_NPC_spawner_tc(npc, treasure);
-		//SP_NPC_spawner(npc);
+		//SP_NPC_spawner(npc);		//not working?
 		
 	}
 
