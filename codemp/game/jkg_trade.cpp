@@ -44,8 +44,11 @@ static void JKG_target_vendor_think(gentity_t* self) {
 	}
 	pTC = tc->second;
 
-	if(jkg_shop_replenish_time.integer >= 60)
-		trap->SendServerCommand(-1, va("chat 100 \"Vendor, %s, replenished their stocks.", self->targetname));	//notify players the shop refreshed
+	//notify players when the shops refresh if announcing is enabled
+	if(jkg_announceShopRefresh.integer > 0)
+	{
+		trap->SendServerCommand(-1, va("chat 100 \"Vendor, %s, replenished their stock.", self->targetname));	//--futuza: maybe not send in chat? this'll do for now
+	}
 
 	// Use the treasure class to pick items
 	self->s.seed = Q_irandSafe((time(0) % 10000), QRAND_MAX - 1) + Q_irand(0, 10000);		//take current time (so every game is different and we aren't just pseudo random), but also add pseudo random so each vendor is different  --futuza
