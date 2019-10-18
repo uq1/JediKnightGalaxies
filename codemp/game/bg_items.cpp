@@ -769,7 +769,7 @@ void BG_GiveItemNonNetworked(itemInstance_t item)
 	// If this item is a weapon, shield, jetpack or consumable - which is not already in our ACI, and the ACI is not full, add it.
 	if(item.id->itemType == ITEM_WEAPON || item.id->itemType == ITEM_SHIELD || item.id->itemType == ITEM_JETPACK || item.id->itemType == ITEM_CONSUMABLE) 
 	{
-		bool bInACIAlready = false; bool specialTypeEquipped = false;
+		bool bInACIAlready = false;
 		int nFreeACISlot = -1; int specialType = 0;
 
 		//if a shield or jetpack, save type
@@ -809,7 +809,7 @@ void BG_GiveItemNonNetworked(itemInstance_t item)
 			}
 		}
 
-		if (!specialTypeEquipped && !bInACIAlready && nFreeACISlot != -1) 
+		if (!bInACIAlready && nFreeACISlot != -1) 
 		{
 			cg.playerACI[nFreeACISlot] = cg.playerInventory->size() - 1;
 		}
