@@ -670,7 +670,7 @@ void BG_GiveItemNonNetworked(gentity_t* ent, itemInstance_t item) {
 	//do special checks for shields and jetpacks
 	if ((item.id->itemType == ITEM_SHIELD || item.id->itemType == ITEM_JETPACK) && ent->s.eType == ET_PLAYER) //for now don't give anyone except players autoequip shields/jetpacks
 	{
-		bool alreadyEquipped = false;
+		bool alreadyEquipped = false; int equipLoc = -1;
 		int specialType = item.id->itemType;
 
 		//search the inventory for existing shields or jetpacks
@@ -678,14 +678,38 @@ void BG_GiveItemNonNetworked(gentity_t* ent, itemInstance_t item) {
 		{
 			if (ent->inventory->at(i).id->itemType == specialType && ent->inventory->at(i).equipped) //if a shield/jetpack is already equipped
 			{
+				equipLoc = i;
 				alreadyEquipped = true;
 				break;
 			}
 		}
 
-		//we already have a shield/jetpack equipped - don't activate or equip
+		//we already have a shield/jetpack equipped, we need to remove the old one first
 		if (alreadyEquipped)
-			return;
+		{
+			auto toRemove = ent->inventory->at(equipLoc);
+			int itemSlot = ent->inventory->size() - 1;
+
+			//remove old shield/jetpack and equip new one
+			if (toRemove.id->itemType == ITEM_SHIELD)
+			{
+				Cmd_ShieldUnequipped(ent, equipLoc);
+				JKG_ShieldEquipped(ent, itemSlot, qtrue);
+			}
+
+			else if (toRemove.id->itemType == ITEM_JETPACK)
+			{
+				Cmd_JetpackUnequipped(ent, equipLoc);
+				JKG_JetpackEquipped(ent, itemSlot);
+			}
+
+			else
+			{
+				Com_Printf(S_COLOR_RED "Unable to replace equipped item, non jetpack/shield detected.  Replace manually in inventory menu.\n");
+				return;
+			}
+
+		}
 		
 		//if a shield/jetpack isn't already equipped, equip the new one
 		else
@@ -775,9 +799,11 @@ void BG_GiveItemNonNetworked(itemInstance_t item)
 			}
 			if((*cg.playerInventory)[cg.playerACI[i]].id->itemType == specialType && specialType)
 			{
-				specialTypeEquipped = true; //we can't autoequip another shield/jetpack, we already have one equipped
+				//we found another special item equipped - remove it
+				cg.playerACI[i] = -1;
+				continue;
 			}
-			if(specialTypeEquipped || (bInACIAlready && nFreeACISlot >= 0)) 
+			if(bInACIAlready && nFreeACISlot >= 0) 
 			{ // already found everything we need to know, just die
 				break;
 			}

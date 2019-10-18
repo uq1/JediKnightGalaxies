@@ -49,9 +49,35 @@ Cmd_ShieldUnequipped
 
 ====================================
 */
-void Cmd_ShieldUnequipped(gentity_t* ent) {
+void Cmd_ShieldUnequipped(gentity_t* ent)
+{
+
 	if (ent->client->shieldEquipped) {
 		for (auto it = ent->inventory->begin(); it != ent->inventory->end(); ++it) {
+			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
+				it->equipped = qfalse;
+			}
+		}
+	}
+
+	ent->client->ps.stats[STAT_MAX_SHIELD] = 0;
+	ent->client->shieldEquipped = qfalse;
+	ent->client->shieldRechargeLast = ent->client->shieldRegenLast = level.time;
+	ent->client->shieldRecharging = qfalse;
+	ent->client->shieldRegenTime = ent->client->shieldRechargeTime = 0;
+}
+
+//overloaded version - if you know the shield's index start there
+void Cmd_ShieldUnequipped(gentity_t* ent, unsigned int index)
+{
+	if (index > ent->inventory->size())
+	{
+		Com_Printf(S_COLOR_RED "Cmd_ShieldUnequipped() called with out of bounds index! Defaulting to 0.\n");
+		index = 0;
+	}
+
+	if (ent->client->shieldEquipped) {
+		for (auto it = ent->inventory->begin()+index; it != ent->inventory->end(); ++it) {
 			if (it->equipped && it->id->itemType == ITEM_SHIELD) {
 				it->equipped = qfalse;
 			}
@@ -98,9 +124,31 @@ Cmd_JetpackUnequipped
 
 ====================================
 */
-void Cmd_JetpackUnequipped(gentity_t* ent) {
+void Cmd_JetpackUnequipped(gentity_t* ent)
+{
 	// Iterate through the inventory and remove the jetpack that is equipped
 	for (auto it = ent->inventory->begin(); it != ent->inventory->end(); it++) {
+		if (it->equipped && it->id->itemType == ITEM_JETPACK) {
+			it->equipped = qfalse;
+		}
+	}
+
+	ent->client->jetpackEquipped = qfalse;
+	ent->client->pItemJetpack = nullptr;
+	ent->client->ps.jetpack = 0;
+}
+
+//overloaded version - if you know the jetpack's index start there
+void Cmd_JetpackUnequipped(gentity_t* ent, unsigned int index)
+{
+	if (index > ent->inventory->size())
+	{
+		Com_Printf(S_COLOR_RED "Cmd_JetpackUnequipped() called with out of bounds index! Defaulting to 0.\n");
+		index = 0;
+	}
+
+	// Iterate through the inventory and remove the jetpack that is equipped
+	for (auto it = ent->inventory->begin()+index; it != ent->inventory->end(); it++) {
 		if (it->equipped && it->id->itemType == ITEM_JETPACK) {
 			it->equipped = qfalse;
 		}

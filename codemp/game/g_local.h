@@ -1773,8 +1773,10 @@ typedef enum userinfoValidationBits_e {
 
 void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound);
 void Cmd_ShieldUnequipped(gentity_t* ent);
+void Cmd_ShieldUnequipped(gentity_t* ent, unsigned int index);
 void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber);
 void Cmd_JetpackUnequipped(gentity_t* ent);
+void Cmd_JetpackUnequipped(gentity_t* ent, unsigned int index);
 void JKG_ArmorChanged(gentity_t* ent);
 
 /**************************************************
