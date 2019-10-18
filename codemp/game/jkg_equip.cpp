@@ -72,7 +72,7 @@ void Cmd_ShieldUnequipped(gentity_t* ent, unsigned int index)
 {
 	if (index > ent->inventory->size())
 	{
-		Com_Printf(S_COLOR_RED "Cmd_ShieldUnequipped() called with out of bounds index! Defaulting to 0.\n");
+		trap->SendServerCommand(ent - g_entities, "Cmd_ShieldUnequipped() called with out of bounds index! Defaulting to 0.\n");
 		index = 0;
 	}
 
@@ -143,7 +143,7 @@ void Cmd_JetpackUnequipped(gentity_t* ent, unsigned int index)
 {
 	if (index > ent->inventory->size())
 	{
-		Com_Printf(S_COLOR_RED "Cmd_JetpackUnequipped() called with out of bounds index! Defaulting to 0.\n");
+		trap->SendServerCommand(ent - g_entities, "Cmd_ShieldUnequipped() called with out of bounds index! Defaulting to 0.\n");
 		index = 0;
 	}
 

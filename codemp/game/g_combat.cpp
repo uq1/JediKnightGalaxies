@@ -3184,6 +3184,7 @@ int gGAvoidDismember = 0;
 
 void UpdateClientRenderBolts(gentity_t *self, vec3_t renderOrigin, vec3_t renderAngles);
 
+
 qboolean G_GetHitLocFromSurfName( gentity_t *ent, const char *surfName, int *hitLoc, vec3_t point, vec3_t dir, vec3_t bladeDir, int mod )
 {
 	qboolean dismember = qfalse;
