@@ -45,7 +45,7 @@ static void JKG_target_vendor_think(gentity_t* self) {
 	pTC = tc->second;
 
 	//notify players when the shops refresh if announcing is enabled
-	if(jkg_announceShopRefresh.integer > 0)
+	if(jkg_announceShopRefresh.integer > 0 && ((level.time - level.startTime) > jkg_shop_replenish_time.integer * 1000 -1))
 	{
 		trap->SendServerCommand(-1, va("chat 100 \"Vendor, %s, replenished their stock.", self->targetname));	//--futuza: maybe not send in chat? this'll do for now
 	}
