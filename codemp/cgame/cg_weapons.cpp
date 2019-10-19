@@ -1660,8 +1660,10 @@ void CG_Weapon_f( void ) {
 		switch(itemType)
 		{
 			case ITEM_CONSUMABLE:
+			case ITEM_JETPACK:
+			case ITEM_SHIELD:
 				{
-					trap->SendConsoleCommand(va("inventoryUse %i", cg.playerACI[num]));
+					trap->SendConsoleCommand(va("inventoryUse %i", cg.playerACI[num]));		//this calls JKG_Cmd_ItemAction_f(), edit that for special behaviors --Futuza
 				}
 				break;
 		}

@@ -2303,7 +2303,23 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		static int i;
 
 		anim = G_PickDeathAnim(self, self->pos1, damage, meansOfDeath, HL_NONE);
+		
+		/*--Futuza
+		To Do: Fix, so we can get headshot information.  Get_HitLocation(self, self->pos1) should work to determine hit location, but gives wrong locations, might be broken everywhere not just here?
 
+		int hitLoc = Get_HitLocation(self, self->pos1);
+		if (hitLoc == HL_HEAD) //--futuza: notify of headshots
+		{
+			if (inflictor != attacker)
+			{
+				trap->SendServerCommand(attacker - g_entities, va("notify 1 \"Headshot!\""));
+				trap->SendServerCommand(self - g_entities, va("notify 1 \"Head blow!\""));
+			}
+
+			else
+				trap->SendServerCommand(self - g_entities, va("notify 1 \"Head blow!\""));
+		}*/
+		
 		if (anim >= 1)
 		{ //Some droids don't have death anims
 			// for the no-blood option, we need to prevent the health

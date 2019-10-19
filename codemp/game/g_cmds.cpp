@@ -2085,18 +2085,38 @@ void JKG_Cmd_ItemAction_f(gentity_t *ent, int itemNum)
 		return;
 	}
 
-	int initHP = ent->client->ps.stats[STAT_HEALTH];    //get initial health before consuming item		--futuza: this is a hacky way of doing it, really needs a LUA function to figure this out
-	BG_ConsumeItem(ent, itemNum);
-	int endHP = ent->client->ps.stats[STAT_HEALTH];   //get final health after consuming item
-
-	int take = endHP - initHP;
-	if (take != 0)
+	//if  item is a jetpack
+	if(ent->inventory->at(itemNum).id->itemType == ITEM_JETPACK)
 	{
-		if (take > 0)
-			PlumItems(ent, ent->r.currentOrigin, take, JKG_GetMeansOfDamageIndex("MOD_CURED"), 0, take <= (ent->s.maxhealth / 4));
-		else
-			PlumItems(ent, ent->r.currentOrigin, -take, JKG_GetMeansOfDamageIndex("MOD_POISONED"), 0, -take <= (ent->s.maxhealth / 4));	//take is negated (to pass correct parameters
+		ItemUse_Jetpack(ent);
+		return;
 	}
+
+	//if item is a shield - TODO: add this feature
+	/*if (ent->inventory->at(itemNum).id->itemType == ITEM_SHIELD)
+	{
+		//call special shield effect
+		return;
+	}*/
+
+	//if  item is a consumable
+	if (ent->inventory->at(itemNum).id->itemType == ITEM_CONSUMABLE)
+	{
+		int initHP = ent->client->ps.stats[STAT_HEALTH];    //get initial health before consuming item		--futuza: this is a hacky way of doing it, really needs a LUA function to figure this out
+		BG_ConsumeItem(ent, itemNum);
+		int endHP = ent->client->ps.stats[STAT_HEALTH];   //get final health after consuming item
+
+		int take = endHP - initHP;
+		if (take != 0)
+		{
+			if (take > 0)
+				PlumItems(ent, ent->r.currentOrigin, take, JKG_GetMeansOfDamageIndex("MOD_CURED"), 0, take <= (ent->s.maxhealth / 4));
+			else
+				PlumItems(ent, ent->r.currentOrigin, -take, JKG_GetMeansOfDamageIndex("MOD_POISONED"), 0, -take <= (ent->s.maxhealth / 4));	//take is negated (to pass correct parameters
+		}
+	}
+
+
 }
 
 /*
