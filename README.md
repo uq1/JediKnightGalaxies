@@ -5,10 +5,10 @@
 [FAQ](http://jkhub.org/topic/6613-jkg-faq/)  
 [Forum]( https://jkhub.org/forum/117-jedi-knight-galaxies/) (hosted by JKHub)  
 [Official Announcements](https://jkhub.org/forum/119-jkgalaxies-news/)   
-[ModDB Page](http://www.moddb.com/mods/jkgalaxies) (not updated frequently)
-[YouTube](https://www.youtube.com/channel/UCnnAUSngUk8l3fycYMVXkKQ/featured)
-[Twitch](https://www.twitch.tv/jkgalaxies)
-Website (coming soon)
+[ModDB Page](http://www.moddb.com/mods/jkgalaxies) (not updated frequently)  
+[YouTube](https://www.youtube.com/channel/UCnnAUSngUk8l3fycYMVXkKQ/featured)  
+[Twitch](https://www.twitch.tv/jkgalaxies)  
+Website (coming soon)  
 
 
 
