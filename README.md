@@ -5,7 +5,11 @@
 [FAQ](http://jkhub.org/topic/6613-jkg-faq/)  
 [Forum]( https://jkhub.org/forum/117-jedi-knight-galaxies/) (hosted by JKHub)  
 [Official Announcements](https://jkhub.org/forum/119-jkgalaxies-news/)   
-[ModDB Page](http://www.moddb.com/mods/jkgalaxies) (not updated frequently)  
+[ModDB Page](http://www.moddb.com/mods/jkgalaxies) (not updated frequently)
+[YouTube](https://www.youtube.com/channel/UCnnAUSngUk8l3fycYMVXkKQ/featured)
+[Twitch](https://www.twitch.tv/jkgalaxies)
+Website (coming soon)
+
 
 
 #### Downloads ####
@@ -26,7 +30,8 @@ Welcome to Jedi Knight Galaxies, where we break the limits!
 
 
 ## Build Guide ##
-https://jkhub.org/topic/5600-compilation-guide/
+[Old Guide](https://jkhub.org/topic/5600-compilation-guide/)  
+[OpenJK Compilation Guide](https://github.com/JACoders/OpenJK/wiki/Compilation-guide)
 
 ## Installation of Game ##
 JKG is available on Windows, but it will compile with linux and OSX and has been briefly tested to run on Ubuntu.
@@ -162,7 +167,7 @@ Thank you to the following for your support of JKG and your efforts in contribut
 
 
 
-* X̸̨ͣ̀̑͒̊̋͊̒҉̙e͔̮̯ͯḽ͔̹̱̟͕̘̬̅ͦ͊ͬͫ
+* Xel
 * Arkan (Mapping)
 * Dalo Lorn
 * Hapslash (Stormtrooper Model)
