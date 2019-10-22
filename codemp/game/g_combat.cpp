@@ -4619,7 +4619,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	//	3. Reduce damage by armor reduction
 
 	// save some from shield
-	if (means->modifiers.shieldBlocks && targ->client->ps.stats[STAT_SHIELD] > 0)
+	if (targ->client && means->modifiers.shieldBlocks && targ->client->ps.stats[STAT_SHIELD] > 0)
 	{
 		// this damage is -completely avoided- because we're wearing a shield
 		ssave = 1;	//setting to 1 for now, to indicate immunity since we can't display 0's or characters with plums yet
