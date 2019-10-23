@@ -198,6 +198,7 @@ void G_AttackDelay( gentity_t *self, gentity_t *enemy )
 			break;
 		case CLASS_REELO:
 		case CLASS_UGNAUGHT:
+		case CLASS_TUSKEN:
 		case CLASS_JAWA:
 		case CLASS_MINEMONSTER:
 		case CLASS_MURJJ:

@@ -2856,6 +2856,7 @@ void CG_DrawNPCNames( void )
 		case CLASS_SWAMP:
 		case CLASS_RANCOR:
 		case CLASS_WAMPA:
+		case CLASS_TUSKEN:
 			str2 = "< Animal >";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.125f;
@@ -2998,6 +2999,7 @@ void CG_DrawNPCNames( void )
 			case CLASS_PRISONER:
 			case CLASS_RODIAN:
 			case CLASS_TRANDOSHAN:
+			case CLASS_TUSKEN:
 			case CLASS_UGNAUGHT:
 			case CLASS_JAWA:
 				str1 = va("%s", BG_Get_NPC_Name(cent->currentState.generic1));
