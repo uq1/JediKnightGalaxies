@@ -92,7 +92,7 @@ extern gNPC_t		*NPCInfo;
 extern usercmd_t	ucmd;
 extern qboolean NPC_FaceEntity(gentity_t *ent, qboolean doPitch);
 extern void G_SoundOnEnt(gentity_t *ent, soundChannel_t channel, const char *soundPath);
-extern qboolean NPC_VendorHasConversationSounds(gentity_t *conversationalist);
+extern qboolean NPC_VendorHasConversationSounds(gentity_t *conversationalist, char *name);
 extern qboolean NPC_VendorHasVendorSound(gentity_t *conversationalist, char *name);
 extern void NPC_ConversationAnimation(gentity_t *NPC);
 void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activator) {
@@ -140,9 +140,15 @@ void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activat
 			NPC_ConversationAnimation(self);
 			G_SoundOnEnt(self, CHAN_VOICE_ATTEN, filename);
 		}
-		else if (NPC_VendorHasConversationSounds(self))
+		else if (NPC_VendorHasConversationSounds(self, "conversation00"))
 		{// Override with generic chat sounds for this specific NPC...
-			strcpy(filename, va("sound/conversation/%s/conversation00.mp3", self->NPC_type));
+			char filename[256];
+			int max = 1;
+
+			while (NPC_VendorHasConversationSounds(self, va("conversation0%i", max))) 
+				max++;
+
+			strcpy(filename, va("sound/conversation/civilian_%s/conversation0%i.mp3", self->NPC_type, irand(0, max - 1)));
 			NPC_ConversationAnimation(self);
 			G_SoundOnEnt(self, CHAN_VOICE_ATTEN, filename);
 		}
