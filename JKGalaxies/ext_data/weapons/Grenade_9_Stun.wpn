@@ -75,11 +75,16 @@
     
     "firemode0": {
         "damage": {
-			"damage": 20,
+            "damage": 10,
+			"damageradius": 
+                {
+                    "start": 50, 
+                    "falloff": "constant"
+                },
 			"buffs": [
 					{
 						"buff": "standard-stun",
-						"duration": 5000
+						"duration": 4000
 					}
 				],
 			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
@@ -105,11 +110,16 @@
     
     "firemode1": {
         "damage": {
-			"damage": 20,
+            "damage": 10,
+			"damageradius": 
+                {
+                    "start": 50, 
+                    "falloff": "constant"
+                },
 			"buffs": [
 					{
 						"buff": "standard-stun",
-						"duration": 5000
+						"duration": 4000
 					}
 				],
 			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]

@@ -72,7 +72,22 @@
     },
     
     "firemode0": {
-        "damage":       70,//140,
+    "damage": 
+            {
+                "damage": 70,
+                "damageradius": 
+                {
+                    "start": 400, 
+                    "falloff": "linear"
+                },
+			    "buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 1000
+					}
+				],
+			    "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
+            },
         "ballistic":    true,
 	"useQuantity":	true,
         "bounces":     -5,
@@ -88,13 +103,28 @@
         "projectilespeed":1100.0,
         "projectileclass":"thermal_detonator",
         "clipSize":              0,
-        "meansofdeath": "MOD_EXPLOSION",
+        "meansofdeath": "MOD_SONIC",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
 
     
     "firemode1": {
-        "damage":       70,//140,
+    "damage": 
+            {
+                "damage": 70,
+                "damageradius": 
+                {
+                    "start": 400, 
+                    "falloff": "linear"
+                },
+			    "buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 1000
+					}
+				],
+			    "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
+            },
         "ballistic":    true,
 	"useQuantity":	true,
         "bounces":     -5,
@@ -110,7 +140,7 @@
         "projectilespeed":900.0,
         "projectileclass":"thermal_detonator",
         "clipSize":              0,
-        "meansofdeath": "MOD_EXPLOSION",
+        "meansofdeath": "MOD_SONIC",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
     

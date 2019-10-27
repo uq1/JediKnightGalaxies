@@ -531,7 +531,7 @@ static qboolean DamagePlayersInArea ( damageArea_t *area )
         // Area has decayed, set as inactive.
 		return qtrue;
     }
-    
+
     if ( (area->lastDamageTime + area->data->damageDelay) > level.time )
     {
         // Too soon to try to damage players again.

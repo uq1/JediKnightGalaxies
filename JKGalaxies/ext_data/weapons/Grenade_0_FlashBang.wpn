@@ -79,7 +79,16 @@
     },
     
     "firemode0": {
-        "damage":       25,//50,
+    "damage": 
+            {
+                "damageradius": 
+                {
+                    "start": 300, 
+                    "falloff": "linear"
+                },
+                "flags":	[ "DAMAGE_NO_KNOCKBACK" ],
+                "damage": 25
+            },
 	"useQuantity":	true,
         "ballistic":    true,
         "bounces":     -5,
@@ -100,7 +109,16 @@
     },
     
     "firemode1": {
-        "damage":       25,//50,
+    "damage": 
+            {
+                "damageradius": 
+                {
+                    "start": 300, 
+                    "falloff": "linear"
+                },
+                "flags":	[ "DAMAGE_NO_KNOCKBACK" ],
+                "damage": 25
+            },
         "ballistic":    true,
 	"useQuantity":	true,
         "bounces":     -5,
