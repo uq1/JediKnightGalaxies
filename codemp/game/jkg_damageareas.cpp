@@ -289,22 +289,35 @@ void G_TickBuffs(gentity_t* ent)
 						damage < 0 ? damage : damage = -1;
 				}
 
-				//jkg_allowDebuffKills allows debuffs to finish off targets
-				if (jkg_allowDebuffKills.integer && damage > 0)
+				//check if debuff is doing damage
+				if (damage > 0)
 				{
-					//only allow debuffs to whittle us down, not kill us
-					if (health - damage <= 0)
+					//if jkg_allowDebuffKills == 0 (or less), we have carebear debuffs enabled
+					if (jkg_allowDebuffKills.integer < 1)  
 					{
-						damage = 0;
-					}
-				}
-				else
-				{
-					//all damaging debuffs are deadly, don't adjust damage
-					if (pBuff->damage.deadly == false)	//if debuff type isn't deadly, carebear treatment
-					{
-						if (health - damage <= 0)	//whittle us down
+						//only allow debuffs to whittle us down, not kill us
+						if (health - damage <= 0)
+						{
 							damage = 0;
+						}
+					}
+
+					//jkg_allowDebuffKills allows debuffs to finish off targets
+					else
+					{
+						//debuffs are deadly, depending on the wpn (default behavior)
+						if (jkg_allowDebuffKills.integer == 1)
+						{
+							if (pBuff->damage.deadly == false)	//if debuff type isn't deadly, carebear treatment
+							{
+								if (health - damage <= 0)
+									damage = 0;
+							}
+						}
+
+						//all damaging debuffs are deadly, don't adjust damage
+						else
+							;
 					}
 				}
 
