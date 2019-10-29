@@ -8,7 +8,7 @@
 [ModDB Page](http://www.moddb.com/mods/jkgalaxies) (not updated frequently)  
 [YouTube](https://www.youtube.com/channel/UCnnAUSngUk8l3fycYMVXkKQ/featured)  
 [Twitch](https://www.twitch.tv/jkgalaxies)  
-[Webpage](jkgalaxies.net)  
+[Webpage](https://www.jkgalaxies.net)  
 
 
 
