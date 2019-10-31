@@ -96,7 +96,7 @@
         "splashrange":  120,
         "projectileclass":"laserTrap",
         "clipSize":              0,
-        "splashmeansofdeath": "MOD_TRIP_MINE_SPLASH"
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "playeranims": {

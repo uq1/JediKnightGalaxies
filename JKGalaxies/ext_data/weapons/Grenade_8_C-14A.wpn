@@ -78,7 +78,7 @@
             "damage":       35,//70,
 			"damageradius": 
                 {
-                    "start": 200, 
+                    "start": 170, 
                     "falloff": "linear"
                 },
 			"buffs": [
@@ -113,7 +113,7 @@
             "damage":       35,//70,
 			"damageradius": 
                 {
-                    "start": 200, 
+                    "start": 170, 
                     "falloff": "linear"
                 },
 			"buffs": [
