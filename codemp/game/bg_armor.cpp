@@ -75,7 +75,7 @@ armorG2Reference_t* JKG_RegisterArmorGhoul2(const char* ref, char* model) {
 	// Strip out the stuff after the *
 	char* find = Q_strrchr(model, '*');
 	if (find != nullptr)
-		Q_strncpyz(model, model, find - model);
+		*find = 0; //Q_strncpyz(model, model, find - model); instead, just set to null to end the string.
 #else
 	g2Table[numUsedG2].skin = CG_HandleAppendedSkin(model);
 #endif

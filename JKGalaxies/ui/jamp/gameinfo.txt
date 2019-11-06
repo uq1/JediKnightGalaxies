@@ -27,7 +27,7 @@ maps {
 
   { "^1Homestead" "sunset6" }
   { "^1Tatooine Arena" "jkg_arena_tatooine_versus" }
-  { "^1Jawa Fortress" "jkg_jawa" }
+  { "^1Jawa Fortress" "jkg_jawa_fortress" }
   { "^1Dune Sea" "jkg_tusken_dunesea" }
   { "^1Mos Eisley" "jkg_mos_eisley" }
   { "^1Mos Eisley" "jkg_mos_eisley_night" }
