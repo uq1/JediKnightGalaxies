@@ -2080,13 +2080,13 @@ void JKG_Cmd_ItemAction_f(gentity_t *ent, int itemNum)
 		return;
 	}
 
-	if (ent->inventory->size() < 1) 
+	if (ent->inventory->size() < 1)
 	{
 		//bugfix: empty inventory == nothing to use  --Futuza
 		return;
 	}
 
-	if (itemNum > ent->inventory->size())
+	if (itemNum >= ent->inventory->size())
 	{
 		//Nope.
 		return;
