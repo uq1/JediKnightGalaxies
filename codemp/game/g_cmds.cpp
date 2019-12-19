@@ -3960,6 +3960,9 @@ void Cmd_Reload_f( gentity_t *ent ) {
 
 	// Don't shoot any more bullets!
 	ent->client->ps.shotsRemaining = 0;
+
+	//reset heat for weapon when we reload
+	ent->client->ps.heat = 0;
 }
 
 /*
