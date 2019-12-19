@@ -4,8 +4,8 @@
 	"AMMO_ACP_ARRAY": {
 		"shortname": "ACP Cartridges",
 		"longname": "Arakyd Industries ACP Array Cartridges",
-		"max": 80,
-		"pricePerUnit": 15
+		"max": 90,
+		"pricePerUnit": 5
 	},
 	
 	"AMMO_ACP_SLUG": {
@@ -13,7 +13,7 @@
 		"longname": "Arakyd Industries ACP Slug Cartridges",
 		"basedOn": "AMMO_ACP_ARRAY",
 		"max": 80,
-		"pricePerUnit": 6,
+		"pricePerUnit": 3,
 		"overrides": {
 			"damage": {
 				"set": 40
@@ -63,7 +63,7 @@
 		"shortname": "ACP Anti-Personnel Cartridges",
 		"longname": "Barrakan Arms ACP Anti-Personnel Cartridges",
 		"max": 80,
-		"pricePerUnit": 20
+		"pricePerUnit": 10
 	},
 	
 	"AMMO_ACP_POWERCELL_L": {
@@ -340,14 +340,14 @@
 		"shortname": "Concussion Canisters",
 		"longname": "Concussion Canisters",
 		"max": 20,
-		"pricePerUnit": 40
+		"pricePerUnit": 28
 	},
 	
 	"AMMO_STOUKER": {
 		"shortname": "Stouker Power Cells",
 		"longname": "Stouker Concussion Chamber Power Cells",
 		"max": 20,
-		"pricePerUnit": 60
+		"pricePerUnit": 35
 	},
 	
 	"AMMO_ANTIARMOR_CHARGE": {
@@ -361,22 +361,22 @@
 		"shortname": "Flechette Missiles",
 		"longname": "Malaxan Firepower Inc. Flechette Missiles",
 		"max": 80,
-		"pricePerUnit": 40
+		"pricePerUnit": 6.25
 	},
 	
 	//Baktoid Combat Automata no longer exists, absorbed by the empire, BlasTech Industries produces missiles compatible with the E-60R
 	"AMMO_ROCKETS_60R": {
 		"shortname": "Rockets",
 		"longname": "BlasTech Industries Rockets",
-		"max": 20,
-		"pricePerUnit": 50
+		"max": 25,
+		"pricePerUnit": 25
 	},
 	
 	"AMMO_PACKERED_MORTAR": {
 		"shortname": "Mortar Shells",
 		"longname": "Packered High Explosive Mortar Shells",
 		"max": 24,
-		"pricePerUnit": 50
+		"pricePerUnit": 23
 	},
 	
 	"AMMO_G36_POWERPACK": {
@@ -390,14 +390,14 @@
 		"shortname": "AA-35 Pulse Power Cells",
 		"longname": "Adostic Arms AA-35 Pulse Power Cells",
 		"max": 80,
-		"pricePerUnit": 10
+		"pricePerUnit": 4
 	},
 	
 	"AMMO_PB10_POWERCELL": {
 		"shortname": "PB10 Pulse Power Cells",
 		"longname": "Adostic Arms PB10 Pulse Power Cells",
 		"max": 750,
-		"pricePerUnit": 8
+		"pricePerUnit": 4
 	},
 	
 	"AMMO_MAUSER": {
@@ -405,7 +405,7 @@
 		"longname": "7.92x57mm Mauser Slug Cartridges",
 		"basedOn": "AMMO_MAUSER_CLIP",
 		"max": 120,
-		"pricePerUnit": 3.5
+		"pricePerUnit": 2.5
 	},
 	
 	"AMMO_MAUSER_CLIP": {
@@ -419,7 +419,7 @@
 		"shortname": "Small Caliber Slugs",
 		"longname": "Arakyd Industries Slug Cartridges",
 		"max": 600,
-		"pricePerUnit": 3.5
+		"pricePerUnit": 2.5
 	},
 	
 	"AMMO_GAS": {
