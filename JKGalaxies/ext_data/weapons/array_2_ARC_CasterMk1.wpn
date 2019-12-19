@@ -71,7 +71,7 @@
     },
     
     "firemode0": {
-        "damage":       25,
+        "damage":       19,
         "ammocost":     1,
         "maxchargetime": 1500,
         "chargedamage": 1.5,
@@ -97,7 +97,7 @@
     },
 
     "firemode1": {
-        "damage":       10,
+        "damage":       9,
         "ammocost":     1,
         "collisionsize": 5.0,
         "firedelay":    50,
