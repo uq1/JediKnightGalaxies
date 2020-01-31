@@ -788,7 +788,8 @@ void laserTrapThink ( gentity_t *ent )
 
 	if ( traceEnt->client || tr.startsolid )
 	{
-		if (traceEnt == owner || TeamFriendly( traceEnt->s.number, owner->s.number ) || (traceEnt->client && traceEnt->client->noclip)) {
+		//--futuza: checks what the trip mine should explode on, TeamFriendly() checks future Phase2+ 'parties'
+		if (traceEnt == owner || TeamFriendly( traceEnt->s.number, owner->s.number ) || (traceEnt->client && traceEnt->client->noclip) || OnSameTeam(traceEnt, owner)) {
 			return;
 		}
 		//go boom
