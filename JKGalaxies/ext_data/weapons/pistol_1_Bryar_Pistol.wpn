@@ -36,7 +36,7 @@
             "miss":         { "impactfx": "weapons/blaster_impact_red_medium_fire" },
             "hit":          { "impactfx": "blasters/red_flesh_impact" },
             "deathfx": "blasters/shot_redorange_vaporize",
-	    "displayName":  "Regular"
+	        "displayName":  "Regular"
         },
         
         "firemode1": {
@@ -55,7 +55,7 @@
             "miss":         { "impactfx": "weapons/blaster_impact_red_big_fire" },
             "hit":          { "impactfx": "blasters/red_flesh_impact" },
             "deathfx": "blasters/shot_redorange_vaporize",
-	    "displayName":  "Charged"
+	        "displayName":  "Charged"
         }
     },
     
@@ -78,12 +78,12 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "clipSize":              16,
-	"ammobase": "AMMO_POWERCELL_L",
-	"ammodefault": "AMMO_POWERCELL_S"
+	    "ammobase": "AMMO_POWERCELL_L",
+	    "ammodefault": "AMMO_POWERCELL_S"
     },
     
     "firemode1": {
-        "damage":       14,//28,
+        "damage":       18,//14,
         "maxchargetime":1200,
         "chargedamage": 1.0,
         "chargedelay":  400,
@@ -99,8 +99,8 @@
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
         "clipSize":              16,
-	"ammobase": "AMMO_POWERCELL_L",
-	"ammodefault": "AMMO_POWERCELL_S"
+	    "ammobase": "AMMO_POWERCELL_L",
+	    "ammodefault": "AMMO_POWERCELL_S"
     },
     
     "playeranims": {

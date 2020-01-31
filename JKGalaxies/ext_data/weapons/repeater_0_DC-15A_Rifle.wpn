@@ -38,7 +38,7 @@
             "miss":         { "impactfx": "weapons/blaster_impact_blue_medium_fire" },
             "hit":          { "impactfx": "blasters/blue_flesh_impact" },
             "deathfx": "blasters/shot_blue_vaporize",
-	    "displayName":  "Repeater"
+	        "displayName":  "Repeater"
         },
         
         "firemode1": {
@@ -56,7 +56,7 @@
             "miss":         { "impactfx": "weapons/blaster_impact_blue_huge_fire" },
             "hit":          { "impactfx": "weapons/blaster_impact_blue_huge" },
             "deathfx": "blasters/shot_bluegreen_vaporize",
-	    "displayName":  "Heavy Blaster"
+	        "displayName":  "Heavy Blaster"
         }
     },
     

@@ -36,7 +36,8 @@
             "projectilefx": "blasters/shot_blue_small",
             "miss":         { "impactfx": "weapons/blaster_impact_blue_medium_fire" },
             "hit":          { "impactfx": "blasters/blue_flesh_impact" },
-            "deathfx": "blasters/shot_blue_vaporize"
+            "deathfx": "blasters/shot_blue_vaporize",
+            "displayName":  "Repeater"
         },
         
         "firemode1": {
@@ -48,11 +49,13 @@
                 "sound/weapons/blasters/droideka3.mp3",
                 "sound/weapons/blasters/droideka4.mp3"
             ],
+            "chargingfx":   "weapons/charge_samus",
             "muzzlefx":     "blasters/muzzleflash_blue_big",
             "projectilefx": "blasters/shot_Blue_Flare_big",
             "miss":         { "impactfx": "weapons/blaster_impact_blue_huge_fire" },
             "hit":          { "impactfx": "weapons/blaster_impact_blue_huge" },
-            "deathfx": "blasters/shot_bluegreen_vaporize"
+            "deathfx": "blasters/shot_bluegreen_vaporize",
+            "displayName":  "Heavy Blaster"
         },
    
         "firemode2": {
@@ -67,7 +70,7 @@
             "projectilefx": "explosives/shot_mortar",
             "miss":         { "impactfx": "explosives/demomedium" },
             "hit":          { "impactfx": "explosives/demomedium" },
-	    "displayName":  "Launcher"
+	        "displayName":  "Launcher"
         },
 
         "scope": {
