@@ -480,7 +480,7 @@
 		"shortname": "Small Caliber Slugs",
 		"longname": "Arakyd Industries Slug Cartridges",
 		"max": 600,
-		"pricePerUnit": 2.5
+		"pricePerUnit": 0.75
 	},
 	
 	"AMMO_GAS": {

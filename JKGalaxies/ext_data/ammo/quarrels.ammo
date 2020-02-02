@@ -24,8 +24,8 @@
 			},
 			"visuals": {
 				"projectile": {
-					"hit": "Blasters/green_impactbig",
-					"miss": "Blasters/green_impactbig",
+					"hit": "Blasters/green_impacthuge", //green_impacthuge is slightly too big, but green_impactbig is too wimpy, need to make a new green_impactlarge that's somewhere inbetween
+					"miss": "Blasters/green_impacthuge",
 					"effect": "Blasters/shot_Green_Flare_medium"
 				}
 			}

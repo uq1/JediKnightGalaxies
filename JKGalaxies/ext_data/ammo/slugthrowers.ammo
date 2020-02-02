@@ -39,7 +39,7 @@
 		{
 			"Damage":
 			{
-				"multiply": 0.75
+				"multiply": 0.9
 			},
 			"splashmeansofdeath": "MOD_FIRE",
 			"splashRange":
@@ -97,8 +97,8 @@
 			},
 			"visuals": {
 				"projectile": {
-					"hit": "explosions/explosion1",
-					"miss": "explosions/explosion1",
+					"hit": "Explosives/flechettesmall", 
+					"miss": "Explosives/flechettesmall",
 					"effect": "Slugthrowers/slug_tracershot"
 				}
 			}
