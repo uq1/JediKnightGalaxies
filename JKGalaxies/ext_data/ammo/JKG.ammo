@@ -39,15 +39,35 @@
 		"pricePerUnit": 1
 	},
 	
-	"AMMO_ACP_OVERCELL_S": {
+	"AMMO_ACP_POWERCELL_OVRCHRG_S": {
 		"shortname": "Ovrchrg ACP Power Cells (s)",
 		"longname": "Trandoshan Overcharged ACP Power Cells",
 		"basedOn": "AMMO_ACP_POWERCELL_S",
 		"max": 500,
 		"pricePerUnit": 2,
-		"overrides": {
-			"damage": {
+		"overrides": 
+		{
+			"damage": 
+			{
 				"multiply": 2
+			},
+			"visuals":
+			{
+				"projectile":
+				{
+					"effect": "Slugthrowers/acp_shot_big"
+				},
+				"fire":
+				{
+					"muzzleEffect": "Slugthrowers/muzzleflash_big",
+					"firesound":
+					[
+                		"sound/weapons/slugthrowers/acp_rifle1.mp3",
+                		"sound/weapons/slugthrowers/acp_rifle2.mp3",
+                		"sound/weapons/slugthrowers/acp_rifle3.mp3",
+                		"sound/weapons/slugthrowers/acp_rifle4.mp3"
+					]
+				}
 			}
 		}
 	},
@@ -130,7 +150,7 @@
 	},
 
 	"AMMO_POWERPACK_OVRCHRG": {
-		"shortname": "OVRCHRG Power Packs (l)",
+		"shortname": "Ovrchrg Power Packs (l)",
 		"longname": "Overcharged Blaster Power Packs (large)",
 		"pricePerUnit": 2,
 		"max": 500,
@@ -139,7 +159,7 @@
 		{
 			"damage": 
 			{
-				"multiply": 1.25
+				"multiply": 1.35
 			},
 			"visuals":
 			{

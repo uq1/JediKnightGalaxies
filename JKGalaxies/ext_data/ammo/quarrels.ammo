@@ -24,9 +24,9 @@
 			},
 			"visuals": {
 				"projectile": {
-					"hit": "Blasters/green_impacthuge",
-					"miss": "Blasters/green_impacthuge",
-					"effect": "Blasters/shot_Green_Flare_large"
+					"hit": "Blasters/green_impactbig",
+					"miss": "Blasters/green_impactbig",
+					"effect": "Blasters/shot_Green_Flare_medium"
 				}
 			}
 		}
