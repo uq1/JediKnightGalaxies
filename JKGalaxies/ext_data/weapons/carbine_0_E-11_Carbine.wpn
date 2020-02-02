@@ -82,7 +82,7 @@
 			"maxAccuracyAdd": 80,
 			"sightsModifier": 0.4
         },
-	"heatGenerated": 5
+	"heatGenerated": 4
     },
     
     "firemode1": {

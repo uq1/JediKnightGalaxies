@@ -5,7 +5,7 @@
 		"shortname": "ACP Cartridges",
 		"longname": "Arakyd Industries ACP Array Cartridges",
 		"max": 90,
-		"pricePerUnit": 5
+		"pricePerUnit": 1.25
 	},
 	
 	"AMMO_ACP_SLUG": {
@@ -13,7 +13,7 @@
 		"longname": "Arakyd Industries ACP Slug Cartridges",
 		"basedOn": "AMMO_ACP_ARRAY",
 		"max": 80,
-		"pricePerUnit": 3,
+		"pricePerUnit": 1.5,
 		"overrides": {
 			"damage": {
 				"set": 40
@@ -33,14 +33,14 @@
 	
 	// Small ACP Power Cells - Used for the Trandoshan weapons
 	"AMMO_ACP_POWERCELL_S": {
-		"shortname": "Small ACP Power Cells",
-		"longname": "Trandoshan ACP Power Cells",
+		"shortname": "ACP Power Cells (s)",
+		"longname": "Trandoshan Small ACP Power Cells",
 		"max": 500,
 		"pricePerUnit": 1
 	},
 	
 	"AMMO_ACP_OVERCELL_S": {
-		"shortname": "Small Overcharged ACP Power Cells",
+		"shortname": "Ovrchrg ACP Power Cells (s)",
 		"longname": "Trandoshan Overcharged ACP Power Cells",
 		"basedOn": "AMMO_ACP_POWERCELL_S",
 		"max": 500,
@@ -53,8 +53,8 @@
 	},
 	
 	"AMMO_ACP_POWERCELL_M": {
-		"shortname": "Medium ACP Power Cells",
-		"longname": "Barrakan Arms ACP Power Cells",
+		"shortname": "ACP Power Cells (m)",
+		"longname": "Barrakan Arms ACP Medium Power Cells",
 		"max": 600,
 		"pricePerUnit": 1.2
 	},
@@ -67,8 +67,8 @@
 	},
 	
 	"AMMO_ACP_POWERCELL_L": {
-		"shortname": "ACP Power Cartridges",
-		"longname": "Barrakan Arms ACP Power Cartridges",
+		"shortname": "ACP Power Cells (l)",
+		"longname": "Barrakan Arms ACP Large Power Cells",
 		"basedOn": "AMMO_ACP_CARTRIDGE",
 		"max": 80,
 		"pricePerUnit": 3,
@@ -97,27 +97,68 @@
 		"longname": "Adostic Arms PowerPaks",
 		"max": 500
 	},
+
+	"AMMO_POWERPACK": {
+		"shortname": "Blaster Power Packs",
+		"longname": "Blastech Industries Blaster Power Packs",
+		"pricePerUnit": 0.3,
+		"max": 600
+	},
 	
 	"AMMO_POWERPACK_S": {
-		"shortname": "Blaster Power Packs",
+		"shortname": "Blaster Power Packs (s)",
 		"longname": "BlasTech Industries Blaster Power Packs (small)",
+		"pricePerUnit": 0.25,
+		"basedOn": "AMMO_POWERPACK",
 		"max": 480
 	},
 	
 	"AMMO_POWERPACK_M": {
-		"shortname": "Blaster Power Packs",
+		"shortname": "Blaster Power Packs (m)",
 		"longname": "BlasTech Industries Blaster Power Packs (medium)",
+		"pricePerUnit": 0.3,
+		"basedOn": "AMMO_POWERPACK",
 		"max": 600
 	},
 	
 	"AMMO_POWERPACK_L": {
-		"shortname": "Blaster Power Packs",
+		"shortname": "Blaster Power Packs (l)",
 		"longname": "BlasTech Industries Blaster Power Packs (large)",
+		"pricePerUnit": 0.4,
+		"basedOn": "AMMO_POWERPACK",
 		"max": 960
 	},
-	
+
+	"AMMO_POWERPACK_OVRCHRG": {
+		"shortname": "OVRCHRG Power Packs (l)",
+		"longname": "Overcharged Blaster Power Packs (large)",
+		"pricePerUnit": 2,
+		"max": 500,
+		"basedOn": "AMMO_POWERPACK_L",
+		"overrides":
+		{
+			"damage": 
+			{
+				"multiply": 1.25
+			},
+			"visuals":
+			{
+				"projectile":
+				{
+					"hit": "Blasters/purple_flesh_impact",
+					"miss": "Blasters/purple_impactmedium",
+					"effect": "Blasters/shot_RedPurple_medium"
+				},
+				"fire":
+				{
+					"muzzleEffect": "Blasters/muzzleflash_Purple_medium"
+				}
+			}
+		}
+	},
+
 	"AMMO_SS_ION_POWERPACK": {
-		"shortname": "ELG-3A Ionized Power Packs",
+		"shortname": "ELG-3A Ion Power Packs",
 		"longname": "SoruSubb Ionized Blaster Power Packs",
 		"basedOn": "AMMO_SS_POWERPACK",
 		"max": 360,
@@ -143,7 +184,7 @@
 	},
 	
 	"AMMO_ION_POWERPACK_S": {
-		"shortname": "Ionized Blaster Power Packs",
+		"shortname": "Ion Blaster Power Packs (s)",
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (small)",
 		"basedOn": "AMMO_POWERPACK_S",
 		"max": 480,
@@ -169,7 +210,7 @@
 	},
 	
 	"AMMO_ION_POWERPACK_M": {
-		"shortname": "Ionized Blaster Power Packs",
+		"shortname": "Ion Blaster Power Packs (m)",
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (medium)",
 		"basedOn": "AMMO_POWERPACK_M",
 		"max": 600,
@@ -195,7 +236,7 @@
 	},
 	
 	"AMMO_ION_POWERPACK_L": {
-		"shortname": "Ionized Blaster Power Packs",
+		"shortname": "Ion Blaster Power Packs (l)",
 		"longname": "BlasTech Industries Ionized Blaster Power Packs (large)",
 		"basedOn": "AMMO_POWERPACK_L",
 		"max": 960,
@@ -221,7 +262,7 @@
 	},
 	
 	"AMMO_ION_POWERPAK_S": {
-		"shortname": "Ionized PowerPaks",
+		"shortname": "Ion PowerPaks (s)",
 		"longname": "BlasTech Industries Ionized PowerPaks (small)",
 		"basedOn": "AMMO_POWERPAK_S",
 		"max": 400,
@@ -247,7 +288,7 @@
 	},
 	
 	"AMMO_ION_POWERPAK_L": {
-		"shortname": "Ionized PowerPaks",
+		"shortname": "Ion PowerPaks (l)",
 		"longname": "BlasTech Industries Ionized PowerPaks (large)",
 		"basedOn": "AMMO_POWERPAK_L",
 		"max": 512,
@@ -276,42 +317,42 @@
 		"shortname": "ARC Caster Power Packs",
 		"longname": "ARC Caster Power Packs",
 		"max": 640,
-		"pricePerUnit": 0.6
+		"pricePerUnit": 0.2
 	},
 	
 	"AMMO_POWERCELL_S": {
-		"shortname": "Power Cells",
+		"shortname": "Power Cells (s)",
 		"longname": "BlasTech Industries Power Cells (small)",
 		"max": 480,
-		"pricePerUnit": 0.6
+		"pricePerUnit": 0.2
 	},
 	
 	"AMMO_POWERCELL_M": {
-		"shortname": "Power Cells",
+		"shortname": "Power Cells (m)",
 		"longname": "BlasTech Industries Power Cells (medium)",
 		"max": 600,
-		"pricePerUnit": 0.6
+		"pricePerUnit": 0.3
 	},
 	
 	"AMMO_POWERCELL_L": {
-		"shortname": "Power Cells",
+		"shortname": "Power Cells (l)",
 		"longname": "BlasTech Industries Power Cells (large)",
 		"max": 800,
-		"pricePerUnit": 0.6
+		"pricePerUnit": 0.4
 	},
 	
 	"AMMO_POWERPAK_S": {
-		"shortname": "Standard PowerPaks",
+		"shortname": "Std PowerPaks (s)",
 		"longname": "BlasTech Industries PowerPaks (small)",
 		"max": 400,
-		"pricePerUnit": 0.6
+		"pricePerUnit": 0.2
 	},
 	
 	"AMMO_POWERPAK_L": {
-		"shortname": "Standard PowerPaks",
+		"shortname": "Std PowerPaks (l)",
 		"longname": "BlasTech Industries PowerPaks (large)",
 		"max": 512,
-		"pricePerUnit": 0.6
+		"pricePerUnit": 0.4
 	},
 	
 	"AMMO_KYD-21": {
@@ -361,7 +402,7 @@
 		"shortname": "Flechette Missiles",
 		"longname": "Malaxan Firepower Inc. Flechette Missiles",
 		"max": 80,
-		"pricePerUnit": 6.25
+		"pricePerUnit": 3.25
 	},
 	
 	//Baktoid Combat Automata no longer exists, absorbed by the empire, BlasTech Industries produces missiles compatible with the E-60R

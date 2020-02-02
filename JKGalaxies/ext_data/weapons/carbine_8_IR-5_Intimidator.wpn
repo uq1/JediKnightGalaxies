@@ -64,7 +64,9 @@
 			"msToDrainAccuracy": 60,
 			"maxAccuracyAdd": 80,
 			"sightsModifier": 0.4
-        }
+        },
+        "heatGenerated": 3,
+        "maxHeat": 50
     },
 
 	
