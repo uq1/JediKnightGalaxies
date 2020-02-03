@@ -21,14 +21,14 @@
         "firemode0": {
             "type":         "blaster",
             
-            "muzzlefx":     "blasters/muzzleflash_Green_small",
+            "muzzlefx":     "blasters/muzzleflash_Yellow_small",
             "firesound":    [
                 "sound/weapons/blasters/ir-5_1.mp3",
                 "sound/weapons/blasters/ir-5_2.mp3",
                 "sound/weapons/blasters/ir-5_3.mp3",
                 "sound/weapons/blasters/ir-5_4.mp3"
             ],
-            "projectilefx": "blasters/shot_GreenYellow_small",
+            "projectilefx": "blasters/shot_Yellow_small",
             "miss":         { "impactfx": "weapons/blaster_impact_yellow_medium_fire" },
             "hit":          { "impactfx": "blasters/yellow_flesh_impact" },
             "deathfx": "blasters/shot_Yellow_vaporize",
