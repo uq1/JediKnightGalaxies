@@ -943,6 +943,34 @@ qboolean CustomVendorSounds(gentity_t *conversationalist, char *name)
 
 
 /*
+========================
+HasCustomCivSounds
+does the npc have custom sounds?
+
+========================
+*/
+qboolean HasCustomCivSounds(char* path, gentity_t* conversationalist, char* name)
+{
+	fileHandle_t	f;
+	char			filename[256];
+
+	strcpy(filename, va("%s/civilian_%s/%s.mp3", path, conversationalist->NPC_type, name));
+
+	trap->FS_Open(filename, &f, FS_READ);
+
+	if (!f)
+	{// End of conversation...
+		trap->FS_Close(f);
+		return qfalse;
+	}
+
+	trap->FS_Close(f);
+
+	return qtrue;
+}
+
+
+/*
 ==================
 JKG_BuyItem_f
 
@@ -991,11 +1019,22 @@ void Cmd_BuyItem_f(gentity_t *ent)
 			G_Sound(trader, CHAN_AUTO, G_SoundIndex(filename));
 		}
 
-		//if not custom vendor, use the generic one
+		//if not custom vendor, check for fallback sounds
 		else
 		{
-			snd = va("sound/vendor/generic/purchasefail0%i.mp3", Q_irand(0, 5));
-			G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd));	//play sound
+			//check for conversation 'upset' sound
+			if (HasCustomCivSounds(va("sound/conversation"), trader, va("upset00")) )
+			{
+				snd = va("sound/conversation/civilian_%s/upset00.mp3", trader->NPC_type);
+				G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd));	//play sound
+			}
+
+			//use generic
+			else
+			{
+				snd = va("sound/vendor/generic/purchasefail0%i.mp3", Q_irand(0, 5));
+				G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd));	//play sound
+			}
 		}
 		return;
 	}
