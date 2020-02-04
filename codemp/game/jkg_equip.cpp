@@ -340,7 +340,8 @@ void Jetpack_On(gentity_t *ent)
 		//can't activate certain jetpacks while carrying flag
 		if(!jet->move.loadBearingAllowed)
 		{
-			G_Sound(ent, CHAN_AUTO, G_SoundIndex(jet->visuals.sputterSound));
+			if (jet->visuals.sputterSound[0])
+				G_Sound(ent, CHAN_AUTO, G_SoundIndex(jet->visuals.sputterSound));
 			return;
 		}
 	}
@@ -384,7 +385,9 @@ void ItemUse_Jetpack(gentity_t *ent)
 		ent->client->ps.jetpackFuel < 5)
 	{ //too low on fuel to start it up
 		jetpackData_t* jet = &jetpackTable[ent->client->ps.jetpack - 1];
-		G_Sound(ent, CHAN_AUTO, G_SoundIndex(jet->visuals.sputterSound));
+		if(jet->visuals.sputterSound[0])
+			G_Sound(ent, CHAN_AUTO, G_SoundIndex(jet->visuals.sputterSound));
+
 		return;
 	}
 
