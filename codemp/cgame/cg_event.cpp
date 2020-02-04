@@ -148,8 +148,12 @@ static void CG_Obituary( entityState_t *ent ) {
 		Q_strncpyz(attackerName, Info_ValueForKey(attackerInfo, "n"), sizeof(attackerName));
 	}
 
+	// Attacker killed themselves.  Ridicule them for it.
 	if (attacker == target) {
-		// Attacker killed themselves.  Ridicule them for it.
+		
+		if (mod == MOD_TEAM_CHANGE) //this doesn't count
+			return;
+
 		if (means->killfeed.genderedStringsPresent) {
 			switch (ci->gender) { // don't assume, check!
 				case GENDER_FEMALE:
@@ -203,7 +207,6 @@ static void CG_Obituary( entityState_t *ent ) {
 			trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
 			s = va("%s %s", sKilledStr, ci->name);
 		}
-
 		CG_CenterPrint(s, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH);
 	}
 }
