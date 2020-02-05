@@ -4602,7 +4602,7 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 	int itemSlot;
 	char argBuffer[MAX_TOKEN_CHARS] {0};
 	int myCredits = ent->client->ps.credits;
-	int cost;
+	float cost;
 	int totalCost = 0, numFiringModesFilled = 0, numUnitsPurchased = 0;
 	float perUnitCost = 0;
 
@@ -4666,11 +4666,10 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 			}
 		}
 
-		cost = perUnitCost * unitsRequested;
+		cost = perUnitCost * (float)unitsRequested;
 
-		
 		//if passiveUnderdogBonus is enabled and our team is losing, our ammo is discounted!  Awww, thanks vendor!  
-		if (jkg_passiveUnderdogBonus.integer > 0)	//--Futuza: this is only done game logic side, and needs to be added to the display in jkg_shop.cpp because right now it will just display the usual price
+		/*if (jkg_passiveUnderdogBonus.integer > 0)	//--Futuza: this is only done game logic side, and needs to be added to the display in jkg_shop.cpp because right now it will just display the usual price
 		{
 			//who is currently winning?
 			auto my_team = ent->client->sess.sessionTeam;
@@ -4701,7 +4700,7 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 				if (cost < 1)
 					cost = 1;
 			}
-		}
+		}*/
 
 		if (cost > myCredits) {
 			// We can't fill it all the way, so fill it as much as we can
@@ -4709,6 +4708,12 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 			unitsRequested = floor(cost / perUnitCost);
 			cost = unitsRequested * perUnitCost;
 		}
+
+		//if our price is between 0 and 1, just make it cost 1 credit - so players can't scam us out of free ammo
+		if (0 < cost < 1) 
+			cost = 1;
+		
+		cost = floor(cost); //credits are int only, time to act like it
 
 		// Buy the ammo and update stats
 		//ent->client->ps.spent += cost;
