@@ -4604,7 +4604,7 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 	int myCredits = ent->client->ps.credits;
 	int cost;
 	int totalCost = 0, numFiringModesFilled = 0, numUnitsPurchased = 0;
-	int perUnitCost = 0;
+	float perUnitCost = 0;
 
 	gentity_t* trader = ent->client->currentTrader;
 	if (trader == nullptr)
@@ -4655,12 +4655,14 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 		else
 			perUnitCost = ammo->pricePerUnit;
 
-		if (myCredits == 0 && perUnitCost == 0)
+		if (myCredits <= 0 && perUnitCost <= 0)
 			;
 		else
 		{
-			if (myCredits < perUnitCost) {
-				continue; // we don't have enough money to afford one unit of ammo
+			if (myCredits < perUnitCost) // we don't have enough money to afford one unit of ammo
+			{
+				trap->SendServerCommand(ent - g_entities, "print \"You cannot afford ammo for that weapon.\n\"");
+				continue; 
 			}
 		}
 
