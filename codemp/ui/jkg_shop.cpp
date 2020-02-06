@@ -46,7 +46,7 @@ void JKG_Shop_UpdatePriceCheck()
 		return;
 	}
 
-	//todo: (see g_cmds.cpp Cmd_BuyAmmo_f()) - when on losing team ammo is discounted (currently happens with game logic, just isn't displayed in g_cmds)
+	//todo: (see g_cmds.cpp Cmd_BuyAmmo_f()) - when on losing team ammo is discounted (should be the same as in g_cmds)
 	/*if (atoi(Info_ValueForKey(info, "jkg_passiveUnderdogBonus")) > 0)
 	{
 		//who is currently winning?

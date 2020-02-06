@@ -83,6 +83,8 @@ Gets the cost of refilling ammo, given an array of ammo and a weapon
 int BG_GetRefillAmmoCost(unsigned short* ammo, weaponData_t* wp)
 {
 	int totalCost = 0;
+	std::vector<ammo_t*> uniqueAmmo;	//keeps track of which ammotypes are unique among the firing modes (eg: stun and primary are often the same ammo)
+	
 	for (int i = 0; i < wp->numFiringModes; i++)
 	{
 		ammo_t* ammoType = wp->firemodes[i].ammoDefault;
@@ -91,9 +93,34 @@ int BG_GetRefillAmmoCost(unsigned short* ammo, weaponData_t* wp)
 			continue;	// bad linkage - shouldn't happen
 		}
 
-		int ammoCount = ammoType->ammoMax - ammo[ammoType->ammoIndex];
-		totalCost += ammoCount * ammoType->pricePerUnit;
+		//add the first ammo to the vector
+		if (i == 0)
+		{
+			uniqueAmmo.push_back(ammoType);
+			continue;
+		}
+
+		//compare each ammo in the vector to our new ammo to ensure its unique
+		for (int j = 0; j <= uniqueAmmo.size(); j++)
+		{
+			if (j == uniqueAmmo.size())
+				uniqueAmmo.push_back(ammoType); //we made it to the end, its unique
+
+			if (uniqueAmmo[j] != ammoType)
+				continue; //unique so far
+
+			else
+				break; //found a samesy
+		}
 	}
+
+	//add up all the unique ammo
+	for (int i = 0; i < uniqueAmmo.size(); i++)
+	{
+		int ammoCount = uniqueAmmo[i]->ammoMax - ammo[uniqueAmmo[i]->ammoIndex];
+		totalCost += ammoCount * uniqueAmmo[i]->pricePerUnit;
+	}
+
 	return totalCost;
 }
 
