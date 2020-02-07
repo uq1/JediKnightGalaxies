@@ -4669,7 +4669,7 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 		cost = perUnitCost * (float)unitsRequested;
 
 		//if passiveUnderdogBonus is enabled and our team is losing, our ammo is discounted!  Awww, thanks vendor!  
-		/*if (jkg_passiveUnderdogBonus.integer > 0)	//--Futuza: this is only done game logic side, and needs to be added to the display in jkg_shop.cpp because right now it will just display the usual price
+		/*if (jkg_passiveUnderdogBonus.integer > 0)	//--Futuza: this needs to match logic of BG_GetRefillAmmoCost() in bg_ammo.cpp, disabled for now
 		{
 			//who is currently winning?
 			auto my_team = ent->client->sess.sessionTeam;
@@ -4697,7 +4697,7 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 					ammoAdjust = 0.25;		//maximum discount is 75% off
 
 				cost = cost * ammoAdjust;
-				if (cost < 1)
+				if (0 < cost < 1)
 					cost = 1;
 			}
 		}*/

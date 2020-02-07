@@ -84,6 +84,38 @@ int BG_GetRefillAmmoCost(unsigned short* ammo, weaponData_t* wp)
 {
 	int totalCost = 0;
 	std::vector<ammo_t*> uniqueAmmo;	//keeps track of which ammotypes are unique among the firing modes (eg: stun and primary are often the same ammo)
+	//float ammoAdjust = 0.0;
+
+		//if passiveUnderdogBonus is enabled and our team is losing, our ammo is discounted!  Awww, thanks vendor!  
+		/*if (jkg_passiveUnderdogBonus.integer > 0)	//--Futuza: need to adjust BG_GetRefillAmmoCost() to include access to ent so we can see who's team we're on, logic should match Cmd_BuyAmmo_f() in g_cmds.cpp
+		{
+			//who is currently winning?
+			auto my_team = ent->client->sess.sessionTeam;
+			int curr_winner = -1;
+			if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
+				curr_winner = TEAM_RED;
+			else if (level.teamScores[TEAM_RED] < level.teamScores[TEAM_BLUE])
+				curr_winner = TEAM_BLUE;
+			else
+				curr_winner = -1;	//tie
+
+			//we're losing - give us discount ammo please!
+			if (my_team != curr_winner && curr_winner != -1)
+			{
+				ammoAdjust = 0.9;
+
+				//evaluate how badly the losing team is losing by and reduce ammo accordingly
+				int diff = level.teamScores[curr_winner] - level.teamScores[my_team];
+				ammoAdjust = (1 - (float)diff / level.teamScores[curr_winner]);
+
+				if (ammoAdjust > 0.9)	//minimum discount is 10% off
+					ammoAdjust = 0.9;
+
+				if (ammoAdjust < 0.25)
+					ammoAdjust = 0.25;		//maximum discount is 75% off
+			}
+		}*/
+
 	
 	for (int i = 0; i < wp->numFiringModes; i++)
 	{
@@ -118,6 +150,8 @@ int BG_GetRefillAmmoCost(unsigned short* ammo, weaponData_t* wp)
 	for (int i = 0; i < uniqueAmmo.size(); i++)
 	{
 		int ammoCount = uniqueAmmo[i]->ammoMax - ammo[uniqueAmmo[i]->ammoIndex];
+
+		//int cost = (float)uniqueAmmo[i]->pricePerUnit * ammoAdjust;  //if we enable above underdogbonus, uncomment this and adjust below line
 		totalCost += ammoCount * uniqueAmmo[i]->pricePerUnit;
 	}
 
