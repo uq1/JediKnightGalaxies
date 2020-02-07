@@ -622,7 +622,8 @@ void laserTrapExplode( gentity_t *self )
 			JKG_DoSplashDamage(&fireMode->secondary, self->r.currentOrigin, self, self->activator, self, JKG_GetMeansOfDamageIndex("MOD_EXPLOSION"));
 		}
 
-		if( self->enemy && self->enemy->client && !OnSameTeam(self->activator, self->enemy) && self->activator != self->enemy )
+		if( self->enemy && self->enemy->client && self->activator != self->enemy && 
+			(!TeamFriendly(self->activator->s.number, self->enemy->s.number) || !OnSameTeam(self->activator, self->enemy)) )
 		{
 			// Give us some credits, we're a good person etc
 			self->enemy->client->ps.credits += 35;
@@ -668,7 +669,8 @@ void touchLaserTrap( gentity_t *ent, gentity_t *other, trace_t *trace )
 	if (other && other->s.number < ENTITYNUM_WORLD)
 	{ //just explode if we hit any entity. This way we don't have things happening like tripmines floating
 	  //in the air after getting stuck to a moving door
-		if ( ent->activator != other && !TeamFriendly( ent->activator->s.number, other->s.number ) )
+		if ( ent->activator != other && ( !TeamFriendly( ent->activator->s.number, other->s.number ) || 
+										  !OnSameTeam(ent->activator, other) ))
 		{
 			ent->touch = 0;
 			ent->nextthink = level.time + FRAMETIME;
