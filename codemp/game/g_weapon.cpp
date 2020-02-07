@@ -596,7 +596,7 @@ LASER TRAP / TRIP MINE
 ======================================================================
 */
 #define LT_DAMAGE			200
-#define LT_SPLASH_RAD		348.0f//256.0f
+#define LT_SPLASH_RAD		256.0f//256.0f
 #define LT_SPLASH_DAM		200
 #define LT_VELOCITY			900.0f
 #define LT_SIZE				1.5f
