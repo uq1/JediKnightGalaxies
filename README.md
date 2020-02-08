@@ -1,6 +1,6 @@
 # Jedi Knight Galaxies #
-[DISCORD](https://discord.gg/YuG8Zks)  
-[IRC (defunct)](https://kiwiirc.com/client/irc.arloria.net/?nick=Padawan|?&theme=cli#jkgalaxies): irc.arloria.net / #JKGalaxies  
+[Webpage](https://www.jkgalaxies.net)  
+[Discord](https://discord.gg/YuG8Zks)   
 
 [FAQ](http://jkhub.org/topic/6613-jkg-faq/)  
 [Forum]( https://jkhub.org/forum/117-jedi-knight-galaxies/) (hosted by JKHub)  
@@ -8,12 +8,14 @@
 [ModDB Page](http://www.moddb.com/mods/jkgalaxies) (not updated frequently)  
 [YouTube](https://www.youtube.com/channel/UCnnAUSngUk8l3fycYMVXkKQ/featured)  
 [Twitch](https://www.twitch.tv/jkgalaxies)  
-[Webpage](https://www.jkgalaxies.net)  
+
 
 
 
 #### Downloads ####
-[Binaries](https://github.com/JKGDevs/JediKnightGalaxies/releases/tag/Version1.3.18) , [Assets](https://uvu.box.com/shared/static/z1j68r0v1m15v03ergfidtm3somp5ce2.zip) , 
+The most update links are available on the download page on the website, under the [test releases section](https://www.jkgalaxies.net/download.html#testdiv), but you can also use the following links which are occasionally updated:
+
+[Binaries](https://github.com/JKGDevs/JediKnightGalaxies/releases/tag/Version1.3.21) , [Assets](https://uvu.box.com/shared/static/lztt5mayu4daj9szvg8v0rtds6vwmnmq.zip) , 
 [Map Bundle #1](http://jkhub.org/files/file/2652-jedi-knight-galaxies-map-bundle-1/) , [Latest Release News (v1.3.18)](https://jkhub.org/topic/10781-upcoming-jkgalaxies-1318-preview-version/)
 
 Please use discretion when making issue requests on GitHub. The forum is a better place for larger discussions on changes that aren't actually bugs.
@@ -167,7 +169,7 @@ Thank you to the following for your support of JKG and your efforts in contribut
 
 
 
-* Xel
+
 * Arkan (Mapping)
 * Dalo Lorn
 * Hapslash (Stormtrooper Model)
@@ -183,6 +185,8 @@ Thank you to the following for your support of JKG and your efforts in contribut
 * Smoo
 * Szico VII (Nightfall Map)
 * Tommy
+* WizardMKBK (help with icons)
+* Xel
 * And many more!
  
  
