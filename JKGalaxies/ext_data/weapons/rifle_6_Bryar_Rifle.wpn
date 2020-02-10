@@ -67,7 +67,7 @@
     },
     
     "firemode0": {
-        "damage":       29,
+        "damage":       30,
         "ammocost":     1,
         "firedelay":    500,
         "firingtype":   "semi",
@@ -94,7 +94,7 @@
     },
     
     "firemode1": {
-        "damage":       20,//28,
+        "damage":       21,//28,
         "maxchargetime":1200,
         "chargedamage": 1.0,
         "chargedelay":  400,
