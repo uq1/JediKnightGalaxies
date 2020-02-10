@@ -67,7 +67,7 @@
     },
     
     "firemode0": {
-        "damage":       28,
+        "damage":       25,
         "ammocost":     1,
         "firedelay":    500,
         "firingtype":   "semi",

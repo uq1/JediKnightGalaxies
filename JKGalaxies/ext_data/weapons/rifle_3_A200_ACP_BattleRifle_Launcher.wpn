@@ -84,7 +84,7 @@
     },
     
     "firemode0": {
-        "damage":       30,
+        "damage":       32,
         "ammocost":     1,
         "burstshotdelay": 100,
         "firedelay":    900,
@@ -113,7 +113,7 @@
     },
 
     "firemode1": {
-        "damage":       35,
+        "damage":       37,
         "ammocost":     1,
         "firedelay":    400,
         "firingtype":   "semi",
@@ -140,7 +140,7 @@
     },
     
     "firemode2": {
-        "damage":       40,//100,
+        "damage":       60,//40,
         "ballistic":    true,
         "collisionsize": 2.0,
         "ammocost":     1,
@@ -149,7 +149,7 @@
         "range":        40000.0,
         "recoil":       4.0,
         "spread":       1.0,
-        "splashrange":  280,//140,
+        "splashrange":  380,//280,
         "projectilespeed":2400.0,
         "projectileclass": "repeater_proj",
         "meansofdeath": "MOD_EXPLOSION",
