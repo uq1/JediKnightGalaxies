@@ -2343,7 +2343,8 @@ void Cmd_SellItem_f(gentity_t *ent)
 	if (item.id->itemType == ITEM_WEAPON) {
 		if (!Q_stricmp(item.id->internalName, level.startingWeapon)) {
 			if (ent->inventory->size() < 2) {
-				trap->SendServerCommand(ent - g_entities, "print \"You cannot sell your starter gun unless you have another item in your inventory.\n\"");
+				trap->SendServerCommand(ent - g_entities, "print \"You cannot sell your starter gun unless you have another item in your inventory.\n\""); //only visible in console
+				trap->SendServerCommand(ent - g_entities, "notify 1 \"You cannot sell your starter gun unless you have another item in your inventory.\n\"");
 				return;
 			}
 			else {
