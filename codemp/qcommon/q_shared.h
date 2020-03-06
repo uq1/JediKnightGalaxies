@@ -1786,7 +1786,7 @@ typedef struct playerState_s {
 
 	int				firingMode;
 	int				ammoType;
-	int				heat;
+	float				heat;
 
 	unsigned int	ironsightsTime;
 	unsigned int	ironsightsDebounceStart;

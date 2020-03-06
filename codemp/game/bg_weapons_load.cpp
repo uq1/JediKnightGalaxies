@@ -308,7 +308,7 @@ static void BG_ParseWeaponFireMode ( weaponFireModeStats_t *fireModeStats, cJSON
     fireModeStats->recoil = (float)cJSON_ToNumberOpt (node, 0.0);
 
 	node = cJSON_GetObjectItem(fireModeNode, "heatGenerated");
-	fireModeStats->heatGenerated = cJSON_ToIntegerOpt(node, 0);
+	fireModeStats->heatGenerated = (float)cJSON_ToNumberOpt(node, 0.0f);
 
 	node = cJSON_GetObjectItem(fireModeNode, "maxHeat");
 	fireModeStats->maxHeat = cJSON_ToIntegerOpt(node, 100);
