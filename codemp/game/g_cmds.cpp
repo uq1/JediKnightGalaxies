@@ -2018,7 +2018,8 @@ void Cmd_Team_f( gentity_t *ent ) {
 	//if teams are locked, and its been more than 20% of the match, and we didn't connect in the last 3 minutes
 	if (timelimit.integer > 0)
 	{
-		if (g_teamsLocked.integer > 0 && ((timelimit.integer * 60000 * 0.2) < level.time) && (level.time - ent->client->sess.connTime > 60000 * 3))
+		//if teamlock enabled && (timelimit*60k)*0.2) < matchtime && matchtime - clientConnectedTime > 3 mins
+		if ( g_teamsLocked.integer > 0 && ((timelimit.integer * 12000) < level.time) && ((level.time - ent->client->sess.connTime) > 180000) )
 		{
 			trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TEAMSLOCKED")));
 			return;
@@ -4711,7 +4712,7 @@ void Cmd_BuyAmmo_f(gentity_t* ent) {
 		}
 
 		//if our price is between 0 and 1, just make it cost 1 credit - so players can't scam us out of free ammo
-		if (0 < cost < 1) 
+		if (0 < cost && cost < 1) 
 			cost = 1;
 		
 		cost = floor(cost); //credits are int only, time to act like it
