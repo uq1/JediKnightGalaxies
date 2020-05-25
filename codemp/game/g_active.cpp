@@ -3125,7 +3125,8 @@ void ClientThink_real( gentity_t *ent ) {
 		ent->client->ps.weaponChargeTime = 0;
 
 		/* Remove a count since we don't do this now. */
-		BG_AdjustItemStackQuantity(ent, inventoryItem, -1);
+		//if(pm->ps->weapon == WP_THERMAL)
+			BG_AdjustItemStackQuantity(ent, inventoryItem, -1);
 
 		/* Return the correct weapon and variation for the client */
 		ent->s.weapon = preWeapon;
