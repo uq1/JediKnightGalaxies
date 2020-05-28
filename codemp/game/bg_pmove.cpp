@@ -4497,7 +4497,7 @@ void PM_BeginWeaponChange( int weaponId ) {
 		return;
 	}
 
-	// turn of any kind of zooming when weapon switching.
+	// turn off any kind of zooming when weapon switching.
 	if (pm->ps->zoomMode)
 	{
 		pm->ps->zoomMode = 0;
@@ -4867,11 +4867,15 @@ static void PM_Weapon( void )
 	// check for weapon change
 	// can't change if weapon is firing, but can change
 	// again if lowering or raising
+	// or if cooking a grenade
 	if ( pm->ps->weaponTime <= 0 || pm->ps->weaponstate != WEAPON_FIRING ) 
 	{
-		if ( (pm->cmd.weapon != pm->ps->weaponId) && pm->ps->weaponstate != WEAPON_DROPPING ) 
+		if ( (pm->cmd.weapon != pm->ps->weaponId) && pm->ps->weaponstate != WEAPON_DROPPING )
 		{
-			PM_BeginWeaponChange( pm->cmd.weapon );
+			if (jkg_didGrenadeCook[pm->ps->clientNum]) //needs a better way to check if we're currently cooking a nade on server, this doesn't really work. --futuza
+				;
+			else
+				PM_BeginWeaponChange(pm->cmd.weapon);
 		}
 	}
 
@@ -4989,7 +4993,7 @@ static void PM_Weapon( void )
 			PM_AddEvent( EV_GRENADE_COOK );
 			jkg_didGrenadeCook[pm->ps->clientNum] = 1;
 		}
-
+		
 		// In some cases the charged weapon code may want us to short circuit the rest of the firing code
 		return;
 	}
