@@ -84,7 +84,16 @@
     },
     
     "firemode0": {
-        "damage":       32,
+        "damage":
+        {
+            "damage": 32,
+            "buffs": [
+			{
+				"buff": "standard-bleed",
+				"duration": 3000
+			}
+			]
+        }, 
         "ammocost":     1,
         "burstshotdelay": 100,
         "firedelay":    900,
@@ -113,7 +122,16 @@
     },
 
     "firemode1": {
-        "damage":       37,
+        "damage":
+        {
+            "damage": 37,
+            "buffs": [
+			{
+				"buff": "standard-bleed",
+				"duration": 4000
+			}
+			]
+        }, 
         "ammocost":     1,
         "firedelay":    400,
         "firingtype":   "semi",

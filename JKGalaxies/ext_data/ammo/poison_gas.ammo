@@ -5,7 +5,7 @@
 		"longname": "Merr-Sonn Toxic Gas Canisters",
 		"basedOn": "AMMO_GAS",
 		"max": 100,
-		"pricePerUnit": 25,
+		"pricePerUnit": 2.5,
 		"overrides":
 		{
 			"Damage": 

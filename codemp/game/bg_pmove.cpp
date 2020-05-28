@@ -4603,7 +4603,11 @@ void PM_FinishWeaponChange( void ) {
 	pm->ps->weaponstate = WEAPON_RAISING;
 
 	pm->ps->weaponTime += 350;
-	pm->ps->heat = 0; // all weapon heat is eliminated when we switch weapons
+	pm->ps->heat = 0.0f; // all weapon heat is eliminated when we switch weapons
+
+	const weaponData_t *weaponData;
+	weaponData = GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation);
+	pm->ps->maxHeat = weaponData->firemodes[pm->ps->firingMode].maxHeat; //set maxHeat to new weapon value
 }
 
 /*

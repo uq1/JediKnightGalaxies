@@ -1070,7 +1070,7 @@ void Cmd_BuyItem_f(gentity_t *ent)
 
 	//play purchase sound
 	{
-		char* snd;
+		//char* snd;  //unused
 
 		//select random unhappy vendor sound to play
 		if (CustomVendorSounds(trader, "purchase00"))
@@ -4002,7 +4002,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	ent->client->ps.shotsRemaining = 0;
 
 	//reset heat for weapon when we reload
-	ent->client->ps.heat = 0;
+	ent->client->ps.heat = 0.0f;
 }
 
 /*

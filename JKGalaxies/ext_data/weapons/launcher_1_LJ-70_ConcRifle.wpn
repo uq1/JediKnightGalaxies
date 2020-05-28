@@ -72,7 +72,7 @@
     "firemode0": {
 		"damage": {
 			"damageradius": { "start": 420 },
-			"damage": 35,
+			"damage": 45,
 			"buffs": [
 					{
 						"buff": "standard-stun",
@@ -121,7 +121,7 @@
     
     "firemode1": {
 //        "hitscan":      true,
-        "damage":       40,//80,
+        "damage":       50,//80,
         "ammocost":     1,
         "maxchargetime":1500,
         "chargedamage": 1.6,

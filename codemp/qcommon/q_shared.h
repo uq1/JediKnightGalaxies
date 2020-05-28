@@ -1786,7 +1786,8 @@ typedef struct playerState_s {
 
 	int				firingMode;
 	int				ammoType;
-	int				heat;
+	float			heat;				//current weapon heat value
+	int				maxHeat;			//current weapon maxheat value
 
 	unsigned int	ironsightsTime;
 	unsigned int	ironsightsDebounceStart;

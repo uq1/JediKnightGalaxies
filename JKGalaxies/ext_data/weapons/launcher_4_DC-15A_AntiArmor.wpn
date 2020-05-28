@@ -111,18 +111,19 @@
         	"sightsModifier": 0.9,
         	"walkModifier": 1.3,
         	"inAirModifier": 1.8
-		}
+		},
+        "heatGenerated": 3
     },
     
     "firemode1": {
-        "damage":       25,//50,
+        "damage":       50,//50,
         "maxchargetime":1500,
         "chargedamage": 2.0,
         "chargedelay":  1500,
         "ammocost":     50,
         "firedelay":    900,
         "firingtype":   "semi",
-        "splashrange":  100,//50,
+        "splashrange":  125,//50,
         "range":        7000.0,
         "recoil":       3.0,
         "spread":       0.75,
@@ -143,7 +144,8 @@
         	"sightsModifier": 0.98,
         	"walkModifier": 1.3,
         	"inAirModifier": 1.8
-        	}
+        	},
+        "heatGenerated": 15
 	},
     
     "firemode2": {

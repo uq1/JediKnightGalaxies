@@ -60,7 +60,16 @@
     },
     
     "firemode0": {
-        "damage":       16,
+        "damage":
+        {
+            "damage": 16,
+            "buffs": [
+			{
+				"buff": "standard-bleed",
+				"duration": 3000
+			}
+			]
+        },  
         "ballistic":    true,
         "ammocost":     1,
         "firedelay":    110,	// 550 RPM
@@ -87,7 +96,16 @@
     },
 	
     "firemode1": {
-        "damage":       16,
+        "damage":
+        {
+            "damage": 16,
+            "buffs": [
+			{
+				"buff": "standard-bleed",
+				"duration": 3000
+			}
+			]
+        }, 
         "ballistic":    true,
         "ammocost":     1,
         "firedelay":    350,

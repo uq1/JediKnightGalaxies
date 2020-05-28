@@ -5290,6 +5290,9 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 	{	// when we are not firing a weapon, dissipate heat
 		self->client->ps.heat--;
 		self->client->weaponHeatDebounceTime = level.time;
+
+		if (self->client->ps.heat < 0)
+			self->client->ps.heat = 0.0f;
 	}
 
 powersetcheck:

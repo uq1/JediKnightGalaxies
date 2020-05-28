@@ -95,7 +95,7 @@
         	"walkModifier": 1.2,
         	"inAirModifier": 1.9
         },
-	"heatGenerated": 5
+	"heatGenerated": 3.75
     },
         
     "firemode1": {

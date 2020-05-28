@@ -414,6 +414,7 @@
 		"inventoryName": "@JKG_INVENTORY_MOD_ION",
 
 		"modifiers": {
+			"isElectric": true,
 			"ignoreArmor": true,
 			"dodgeable": true,
 			"organic": 0.2,
@@ -435,6 +436,7 @@
 		"inventoryName": "@JKG_INVENTORY_MOD_IONBLASTER",
 
 		"modifiers": {
+			"isElectric": true,
 			"dodgeable": true,
 			"organic": 0.4,
 			"shield": 1.6,
@@ -455,6 +457,7 @@
 		"inventoryName": "@JKG_INVENTORY_MOD_ELECTRICAL",
 
 		"modifiers": {
+			"isElectric": true,
 			"armor": 0.8,
 			"organic": 1.0,
 			"shield": 1.7,

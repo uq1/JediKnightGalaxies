@@ -74,14 +74,14 @@
 		"buffs": [
 			{
 				"buff": "standard-bleed",
-				"duration": 10000
+				"duration": 9000
 			}
 		]
 	},
         "ballistic":    true,
         "ammocost":     1,
         "firedelay":    120,
-        "range":        40000.0,
+        "range":        38000.0,
         "recoil":       1.8,
         "spread":       0.5,
         "projectilespeed": 28000.0,	// 7.62 x 51 mm NATO velocity 2800 ft/s
@@ -93,7 +93,7 @@
         "accuracy": {
         	"accuracyRating": 32,
         	"accuracyRatingPerShot": 3,
-        	"msToDrainAccuracy": 60,
+        	"msToDrainAccuracy": 80,
         	"maxAccuracyAdd": 100,
         	"sightsModifier": 0.4
         }
@@ -105,7 +105,7 @@
 		"buffs": [
 			{
 				"buff": "standard-bleed",
-				"duration": 10000
+				"duration": 9000
 			}
 		]
 	},
@@ -113,8 +113,8 @@
         "ammocost":     1,
         "firedelay":    120,
         "firingtype":   "semi",
-        "range":        40000.0,
-        "recoil":       0.9,
+        "range":        38000.0,
+        "recoil":       1.2,
         "spread":       0.2,
         "projectilespeed": 28000.0,
         "projectileclass": "blaster_proj",
@@ -124,8 +124,8 @@
         "clipSize":              30,
         "accuracy": {
         	"accuracyRating": 16,
-        	"accuracyRatingPerShot": 2,
-        	"msToDrainAccuracy": 60,
+        	"accuracyRatingPerShot": 2.5,
+        	"msToDrainAccuracy": 80,
         	"maxAccuracyAdd": 50,
         	"sightsModifier": 0.3
         }

@@ -96,14 +96,14 @@
     },
     
     "firemode1": {
-        "damage":       25,//50,
+        "damage":       40,//50,
         "maxchargetime":1500,
         "chargedamage": 2.0,
         "chargedelay":  1500,
         "ammocost":     50,
         "firedelay":    900,
         "firingtype":   "semi",
-        "splashrange":  100,//50,
+        "splashrange":  115,//50,
         "range":        7000.0,
         "recoil":       3.0,
         "spread":       0.75,

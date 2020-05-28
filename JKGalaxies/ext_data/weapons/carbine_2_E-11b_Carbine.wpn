@@ -103,7 +103,8 @@
         	"maxAccuracyAdd": 80,
         	"sightsModifier": 0.4
         },
-	"heatGenerated": 3.75
+	"heatGenerated": 4.25,
+    "maxHeat":	150
     },
     
     "firemode1": {
@@ -127,7 +128,8 @@
         	"maxAccuracyAdd": 60,
         	"sightsModifier": 0.35
         },
-	"heatGenerated": 3
+	"heatGenerated": 3,
+    "maxHeat":	150
     },
 	
 	"firemode2": {
@@ -152,7 +154,9 @@
         	"msToDrainAccuracy": 286,
         	"maxAccuracyAdd": 60,
         	"sightsModifier": 0.35
-        }
+        },
+    "heatGenerated": 2.8,
+    "maxHeat":	150
     },
     
     "playeranims": {

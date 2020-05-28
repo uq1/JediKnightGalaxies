@@ -4662,7 +4662,17 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			ShieldHitEffect(targ, dir, ssave);
 		}
 	}
-	
+
+	//apply EMP effects from electric damage
+	if(take && means->modifiers.isElectric)
+	{	
+		//short out jetpacks
+		if (targ->client->ps.eFlags & EF_JETPACK_ACTIVE)
+			Jetpack_Off(targ);
+
+		/*put other electronic effects here
+		  eg: make HUD or radar go fuzzy, short out other equipment/tech, etc.*/
+	}
 
 	if (take > 0 && !(dflags&DAMAGE_NO_HIT_LOC))
 	{//see if we should modify it by damage location
