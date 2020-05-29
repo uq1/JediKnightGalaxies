@@ -1687,8 +1687,8 @@ void CG_LerpCrosshairPos( float *x, float *y )
 			// display heat %
 			if (cg_drawWpnHeatValue.integer > 0)
 			{
-				float heatPercent = 0.00f; char printheat[15];
-				heatPercent = static_cast<float>( (cg.predictedPlayerState.heat / cg.predictedPlayerState.maxHeat)*100);
+				char printheat[15];  
+				float heatPercent = ((cg.predictedPlayerState.heat / cg.predictedPlayerState.maxHeat) * 100);
 				
 				if (heatPercent > 0)
 				{
@@ -1703,7 +1703,7 @@ void CG_LerpCrosshairPos( float *x, float *y )
 			}
 
 			// Crosshair gets more red with heat
-			ecolor[2] = ecolor[1] = (1.0f - static_cast<float>(cg.predictedPlayerState.heat / cg.predictedPlayerState.maxHeat));
+			ecolor[2] = ecolor[1] = (1.0f - (cg.predictedPlayerState.heat / cg.predictedPlayerState.maxHeat));
 			if (ecolor[2] >= 1.0f)
 			{
 				ecolor[2] = ecolor[1] = 1.0f;

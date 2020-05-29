@@ -2203,6 +2203,9 @@ typedef struct entityState_s {
 	int				buffsActive;
 	buffdata_t		buffs[PLAYERBUFF_BITS];
 
+	float			heat;		//current weapon heat level
+	int				maxHeat;
+
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 	
 	unsigned int	seed;
