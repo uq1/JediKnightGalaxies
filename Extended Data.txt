@@ -166,6 +166,7 @@ It contains a series of means of damage, each one has the following fields:
   - dodgeable (boolean): If true, this damage type may be reduced with an evade skill (eg: rolling)
   - ignoreArmor (boolean): If true, this damage type ignores armor
   - ignoreShield (boolean): If true, this damage type ignores shields
+  - isEMP (boolean): If true, this damage type can trigger special EMP effects, such as disabling jetpacks.  These effects are defined in game\g_combat.cpp within the G_Damage() function.  These only occur if the target actually takes damage (if a shield protects the target nothing is triggered).
   - armor (float, default 1.0): Controls how much damage this type does against armor
   - shield (float, default 1.0): Controls how much damage this type does against shields
   - organic (float, default 1.0): Controls how much damage this type does against soft targets
