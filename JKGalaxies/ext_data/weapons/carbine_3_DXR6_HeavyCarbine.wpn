@@ -87,13 +87,14 @@
 	"ammoDefault": "AMMO_POWERCELL_S",
         "clipSize":              16,
             "accuracy": {
-        "accuracyRating": 25,
-        "accuracyRatingPerShot": 6,
-        "msToDrainAccuracy": 70,
-        "maxAccuracyAdd": 70,
-        "sightsModifier": 0.3
+			"accuracyRating": 25,
+			"accuracyRatingPerShot": 6,
+			"msToDrainAccuracy": 70,
+			"maxAccuracyAdd": 70,
+			"sightsModifier": 0.3
         },
-        "heatGenerated": 8
+        "heatGenerated": 6,
+		"maxHeat": 75
     },
 
     "firemode1": {
@@ -101,7 +102,7 @@
         "damage": {
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
-                               "damage":       55
+                               "damage":       40
                         },
         "ammocost":     2,
         "maxchargetime":1000,
@@ -130,7 +131,9 @@
         	"sightsModifier": 0.65,
         	"walkModifier": 1.4,
         	"inAirModifier": 2.4
-        }
+        },
+		"heatGenerated": 8,
+		"maxHeat": 75
     },
     
     "playeranims": {

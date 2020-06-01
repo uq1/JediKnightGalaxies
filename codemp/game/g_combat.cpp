@@ -4664,7 +4664,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	}
 
 	//apply EMP effects from electric damage
-	if(take && means->modifiers.isEMP)
+	if(take && targ->client && means->modifiers.isEMP)
 	{	
 		//short out jetpacks
 		if (targ->client->ps.eFlags & EF_JETPACK_ACTIVE)
