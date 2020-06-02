@@ -34,7 +34,8 @@ Welcome to Jedi Knight Galaxies, where we break the limits!
 
 ## Build Guide ##
 [Old Guide](https://jkhub.org/topic/5600-compilation-guide/)  
-[OpenJK Compilation Guide](https://github.com/JACoders/OpenJK/wiki/Compilation-guide)
+[OpenJK Compilation Guide](https://github.com/JACoders/OpenJK/wiki/Compilation-guide)  
+[Flate's Ubuntu/Debian Guide](https://github.com/JKGDevs/JediKnightGalaxies/wiki/Flate%27s-Debian-Ubuntu-Compiling-Guide)
 
 ## Installation of Game ##
 JKG is available on Windows, but it will compile with linux and OSX and has been briefly tested to run on Ubuntu.
