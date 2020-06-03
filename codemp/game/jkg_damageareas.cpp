@@ -789,6 +789,63 @@ void JKG_DoSplashDamage ( damageSettings_t* data, const vec3_t origin, gentity_t
     }
 }
 
+
+// ========================================================
+//JKG_DoObjectDamage
+//---------------------------------------------------------
+// Description: This handles damage to non client
+// such as trip mines or map objects.
+//=========================================================
+void JKG_DoObjectDamage(damageSettings_t* data, gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t origin, int dflags, int mod)
+{
+	damageArea_t area;
+	int damage;
+
+	if (!targ->takedamage)
+	{
+		return;
+	}
+
+	if (targ->health <= 0)
+	{
+		return;
+	}
+
+	if (targ->client)
+	{
+		return;
+	}
+
+	memset(&area, 0, sizeof(area));
+
+	area.data = data;
+
+	// The firing mode's base damage can lie! It doesn't account for dynamic damage amounts (ie weapon charging)
+	area.context.damageOverride = JKG_ChargeDamageOverride(inflictor, inflictor == attacker);
+	if (area.context.damageOverride != 0 && area.data->damage != area.context.damageOverride)
+	{
+		damage = area.context.damageOverride;
+	}
+	else
+	{
+		damage = data->damage;
+	}
+
+	VectorCopy(dir, area.context.direction);
+	if (attacker->client && attacker->client->ps.ammoType)
+	{
+		area.context.ammoType = attacker->client->ps.ammoType;
+		JKG_ApplyAmmoOverride(damage, ammoTable[area.context.ammoType].overrides.damage);
+	}
+	else
+	{
+		area.context.ammoType = -1;
+	}
+
+	G_Damage(targ, inflictor, attacker, dir, origin, damage, dflags, mod);
+
+}
+
 //=========================================================
 // JKG_DoDamage
 //---------------------------------------------------------
@@ -804,7 +861,13 @@ void JKG_DoDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *inflicto
         JKG_DoSplashDamage (data, origin, inflictor, attacker, NULL, mod);
     }
 
-    JKG_DoDirectDamage (data, targ, inflictor, attacker, dir, origin, dflags, mod);
+	//targetting a player/npcs
+	if (targ->client)
+		JKG_DoDirectDamage(data, targ, inflictor, attacker, dir, origin, dflags, mod);
+
+	//targetting an object
+	else
+		JKG_DoObjectDamage(data, targ, inflictor, attacker, dir, origin, dflags, mod);
 }
 
 //=========================================================
