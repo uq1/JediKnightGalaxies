@@ -92,7 +92,7 @@
 			{
 				"buff": "standard-antidote",
 				"duration": 10000
-			},
+			}
 			],
 			"flags":	[ "DAMAGE_NO_KNOCKBACK" ]
         },
