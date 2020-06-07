@@ -1089,8 +1089,11 @@ function PazaakGame:CleanUp()
 	self.Players[1].Player.NoKnockback = false
 	self.Players[2].Player.GodMode = false
 	self.Players[2].Player.NoKnockback = false
-	print( "Invulnerability disabled for " .. tostring(self.Players[1].Player:GetName()) .. " and " .. tostring(self.Players[2].Player:GetName()) )
 
+	--only bother announcing invulnerability being disabled if both are players
+	if not self.Players[2].IsAI then
+		print( "Invulnerability disabled for " .. tostring(self.Players[1].Player:GetName()) .. " and " .. tostring(self.Players[2].Player:GetName()) )
+	end
 	
 	-- Close the pazaak board and we're finished
 	self.Players[1].Player:SendCommand("pzk stop")

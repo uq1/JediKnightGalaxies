@@ -344,6 +344,7 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
     
     if ( !player->client )
     {
+		//JKG_DoObjectDamage(data, targ, inflictor, attacker, dir, origin, dflags, mod);
         return;
     }
 
@@ -811,6 +812,7 @@ void JKG_DoObjectDamage(damageSettings_t* data, gentity_t *targ, gentity_t *infl
 		return;
 	}
 
+	//this is for damaging things, not people
 	if (targ->client)
 	{
 		return;
