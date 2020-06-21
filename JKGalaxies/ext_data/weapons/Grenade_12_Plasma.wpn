@@ -74,7 +74,7 @@
         "damage": {
                           "damageradius": { "start": 220,
                                                      "falloff": "linear" },
-                          "damage": 100,
+                          "damage": 115,
                           "buffs": [
 					{
 						"buff": "standard-fire",
@@ -88,7 +88,7 @@
                                                      "falloff": "linear" },
                           "duration": 15000,
                           "delay": 500,
-                          "damage": 1,
+                          "damage": 2,
                           "damagedelay": 150,
                           "buffs": [
 					{

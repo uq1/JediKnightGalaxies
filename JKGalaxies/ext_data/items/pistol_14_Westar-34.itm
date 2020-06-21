@@ -1,0 +1,10 @@
+{
+	"name":             "@JKG_ITEMS_pistol_Westar-34_Pistol",
+	"internal":             "pistol_Westar-34",
+	"itemtype":             "weapon",
+	"weapon":		"WP_BRYAR_PISTOL",
+	"variation":		"14",
+	"weight":		"1",
+	"cost":		"665",
+	"itemIcon":		"models/weapons/Westar-34_Pistol/icon_default"
+}

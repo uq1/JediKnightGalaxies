@@ -1,4 +1,4 @@
-#################
+################
 ## Eclipse
 #################
 
@@ -40,6 +40,7 @@ local.properties
 *.suo
 *.user
 *.sln.docstates
+.vscode/
 
 # These are generated through CMake now. Ignore.
 codemp/cgame/cgame.vcxproj

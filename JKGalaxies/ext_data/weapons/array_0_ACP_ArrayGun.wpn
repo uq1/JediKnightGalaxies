@@ -63,7 +63,15 @@
     },
     
     "firemode0": {
-        "damage":       15,
+        "damage": {
+		    "damage":       15,
+		    "buffs": [
+			    {
+				"buff": "standard-bleed",
+				"duration": 7000
+			    }
+		    ]
+	    },
         "ammocost":     1,
         "firedelay":    1100,
         "firingtype":   "semi",
