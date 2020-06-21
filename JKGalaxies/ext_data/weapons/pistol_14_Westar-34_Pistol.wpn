@@ -58,7 +58,7 @@
 		"meansofdeath": "MOD_BRYAR_PISTOL",
 		"ammobase": "AMMO_SS_POWERPACK",
 		"ammodefault": "AMMO_SS_POWERPACK",
-		"clipSize": 16,
+		"clipSize": 20,
 		"heatGenerated": 6.75
 	},
 
