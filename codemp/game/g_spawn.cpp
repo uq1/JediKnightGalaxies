@@ -1680,6 +1680,10 @@ void SP_worldspawn( void )
 	G_SpawnString( "soundSet", "default", &text );
 	trap->SetConfigstring( CS_GLOBAL_AMBIENT_SET, text );
 
+	G_SpawnString( "ambientHeatRate", "100", &text );		//how fast weapon overheating should cool (lower is faster cooling, default: 100)
+	trap->Cvar_Set( "jkg_heatDissipateTime", text );
+	trap->Cvar_Update( &jkg_heatDissipateTime );
+
 	switch( level.gametype ) {
 		case GT_DUEL:
 		case GT_POWERDUEL:
