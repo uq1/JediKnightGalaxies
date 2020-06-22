@@ -4672,6 +4672,9 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 		/*put other electronic effects here
 		  eg: make HUD or radar go fuzzy, short out other equipment/tech, etc.*/
+
+		//G_Sound(targ, CHAN_AUTO, G_SoundIndex(va("sound/effects/spark_small0%i.wav", Q_irand(0, 3)))); //emp shorting out sound --futuza fix me, y u no play?
+		//should add an electric spark on player model here somewhere
 	}
 
 	if (take > 0 && !(dflags&DAMAGE_NO_HIT_LOC))
