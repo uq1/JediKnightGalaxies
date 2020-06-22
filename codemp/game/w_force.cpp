@@ -5293,6 +5293,9 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 
 		if (self->client->ps.heat < 0)
 			self->client->ps.heat = 0.0f;
+
+		if (self->client->ps.heat < self->client->ps.heatThreshold && self->client->ps.overheated) //reset heatThreshold if we dropped down low enough
+			self->client->ps.overheated = false;
 	}
 
 powersetcheck:

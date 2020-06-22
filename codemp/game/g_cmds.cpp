@@ -4004,6 +4004,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 
 	//reset heat for weapon when we reload
 	ent->client->ps.heat = 0.0f;
+	ent->client->ps.overheated = false;
 }
 
 /*

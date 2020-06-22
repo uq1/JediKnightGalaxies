@@ -3413,15 +3413,21 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	}*/
 
 	ent->client->ps.heat = 0.0f;		//set initial heat on spawn
-	if (ent->client->ps.maxHeat < 1)
+	ent->client->ps.overheated = false;
+	if (ent->client->ps.maxHeat < 1 || ent->client->ps.heatThreshold < 1)
 	{
 		const weaponData_t* wp = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation);
 		ent->client->ps.maxHeat = wp->firemodes[ent->client->ps.firingMode].maxHeat;
+		ent->client->ps.heatThreshold = wp->firemodes[ent->client->ps.firingMode].heatThreshold;
 
-		//double check the weapon has a maxHeat setting if not set it to 100.
+		//double check the weapon has a maxHeat and heatThreshold settings, if not set it to 100 and 75%.
 		if (ent->client->ps.maxHeat < 1)
 			ent->client->ps.maxHeat = 100;
+
+		if (ent->client->ps.heatThreshold < 1)
+			ent->client->ps.heatThreshold = ent->client->ps.maxHeat * 0.75;
 	}
+
 
 	GLua_Hook_PlayerSpawned(ent->s.number);
 

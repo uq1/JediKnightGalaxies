@@ -2457,6 +2457,7 @@ const char *eventnames[] = {
 	"EV_CHANGE_WEAPON",
 	"EV_FIRE_WEAPON",
 	"EV_ALT_FIRE",
+	"EV_OVERHEATED",
 	"EV_SABER_ATTACK",
 	"EV_SABER_HIT",
 	"EV_SABER_BLOCK",

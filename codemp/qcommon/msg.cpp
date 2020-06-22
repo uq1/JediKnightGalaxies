@@ -1506,6 +1506,9 @@ netField_t	playerStateFields[] =
 { PSF(ammoType), 8 },
 { PSF(heat), 0 },
 { PSF(maxHeat), 8 },
+{ PSF(heatThreshold), 0 },
+{ PSF(overheated), 1 },
+
 { PSF(saberActionFlags), 16 },
 
 { PSF(freezeTorsoAnim), 32 },

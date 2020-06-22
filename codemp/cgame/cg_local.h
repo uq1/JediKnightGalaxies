@@ -1373,6 +1373,7 @@ typedef struct cgMedia_s {
 	qhandle_t	mSaberDamageGlow;
 
 	sfxHandle_t	noAmmoSound;
+	sfxHandle_t overheatSound;
 
 	// JKG
 	qhandle_t	deathfont;

@@ -1559,6 +1559,15 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		cent->currentState.origin[1] -= 10.0f;
 		break;
 
+	case EV_OVERHEATED:
+		DEBUGNAME("EV_OVERHEATED");
+
+		if (es->number == cg.snap->ps.clientNum)
+		{
+			trap->S_StartSound(NULL, es->number, CHAN_AUTO, cgs.media.overheatSound);
+		}
+		break;
+
 	case EV_SABER_ATTACK:
 		DEBUGNAME("EV_SABER_ATTACK");
 		{

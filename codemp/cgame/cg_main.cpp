@@ -921,6 +921,9 @@ static void CG_RegisterSounds( void ) {
 	// No ammo sound
 	cgs.media.noAmmoSound = trap->S_RegisterSound( "sound/weapons/noammo.wav" );
 
+	//overheating sound
+	cgs.media.overheatSound = trap->S_RegisterSound( "sound/weapons/overheat00.wav" );
+
 	for (i=0 ; i<4 ; i++) {
 		Com_sprintf (name, sizeof(name), "sound/player/footsteps/stone_step%i.wav", i+1);
 		cgs.media.footsteps[FOOTSTEP_STONEWALK][i] = trap->S_RegisterSound (name);
