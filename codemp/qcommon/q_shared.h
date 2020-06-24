@@ -1787,8 +1787,8 @@ typedef struct playerState_s {
 	int				firingMode;
 	int				ammoType;
 	float			heat;				//current weapon heat value
-	int				maxHeat;			//current weapon maxheat value
-	int				heatThreshold;		//current weapon's heat threshold
+	int				maxHeat;			//current weapon maxheat value    (actual max)
+	int				heatThreshold;		//current weapon's heat threshold (recommended max)
 	qboolean		overheated;			// If true, this weapon is currently overheated and is waiting for heatThreshold to reset
 
 	unsigned int	ironsightsTime;

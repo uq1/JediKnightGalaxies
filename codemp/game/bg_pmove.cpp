@@ -5264,6 +5264,12 @@ static void PM_Weapon(void)
 	// Increase heat
 	pm->ps->heat += weaponData->firemodes[pm->ps->firingMode].heatGenerated;
 
+	// Warn that we're about to overheat
+	if (pm->ps->heat >= weaponData->firemodes[pm->ps->firingMode].heatThreshold)
+	{
+		PM_AddEvent(EV_HEATCRIT);  //this might be a bit too spammy, how to do less often? --futuza
+	}
+
 	// If we get here, we got the green light to fire the weapon
 	pm->ps->weaponstate = WEAPON_FIRING;
 
