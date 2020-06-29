@@ -62,7 +62,7 @@
     
     "stats": {
         "slot":         1,
-        "reloadtime":   2750,
+        "reloadtime":   2700,
         "reloadmodifier": 0.7,
         "speed":        0.9
     },
@@ -96,7 +96,7 @@
     },
     
     "firemode1": {
-        "damage":       40,//50,
+        "damage":       50,//50,
         "maxchargetime":1500,
         "chargedamage": 2.0,
         "chargedelay":  1500,
@@ -115,7 +115,7 @@
 	"ammodefault": "AMMO_ION_POWERPACK_L",
         "clipSize":              100,
         "accuracy": {
-        	"accuracyRating": 85,
+        	"accuracyRating": 58,
         	"accuracyRatingPerShot": 12,
         	"msToDrainAccuracy": 55,
         	"maxAccuracyAdd": 155,

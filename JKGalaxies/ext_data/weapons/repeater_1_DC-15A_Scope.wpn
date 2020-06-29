@@ -102,7 +102,7 @@
     },
     
     "firemode1": {
-        "damage":       50,//50,
+        "damage":       60,//50,
         "maxchargetime":1500,
         "chargedamage": 2.0,
         "chargedelay":  1500,
@@ -121,8 +121,8 @@
 	"ammodefault": "AMMO_ION_POWERPACK_L",
         "clipSize":              100,
         "accuracy": {
-        	"accuracyRating": 85,
-        	"accuracyRatingPerShot": 12,
+        	"accuracyRating": 50,
+        	"accuracyRatingPerShot": 10,
         	"msToDrainAccuracy": 55,
         	"maxAccuracyAdd": 155,
         	"crouchModifier": 0.99,

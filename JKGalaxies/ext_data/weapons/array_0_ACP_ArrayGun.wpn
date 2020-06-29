@@ -99,7 +99,15 @@
     },
     
     "firemode1": {
-        "damage":       15,
+        "damage": {
+		    "damage":       15,
+		    "buffs": [
+			    {
+				"buff": "standard-bleed",
+				"duration": 7000
+			    }
+		    ]
+	    },
         "ammocost":     1,
         "burstshotdelay": 250,
         "firedelay":    1350,

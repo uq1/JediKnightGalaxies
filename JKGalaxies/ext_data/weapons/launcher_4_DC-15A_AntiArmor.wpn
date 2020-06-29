@@ -80,7 +80,7 @@
     
     "stats": {
         "slot":         1,
-        "reloadtime":   2000,
+        "reloadtime":   2750,
         "flags":        [ "knockback", "togglezoom" ],
        "startzoomfov": 30.0,
         "reloadmodifier": 0.5,
@@ -116,7 +116,7 @@
     },
     
     "firemode1": {
-        "damage":       50,//50,
+        "damage":       60,//50,
         "maxchargetime":1500,
         "chargedamage": 2.0,
         "chargedelay":  1500,
@@ -135,8 +135,8 @@
 	"ammodefault": "AMMO_ION_POWERPACK_L",
         "clipSize":              100,
         "accuracy": {
-        	"accuracyRating": 85,
-        	"accuracyRatingPerShot": 12,
+        	"accuracyRating": 50,
+        	"accuracyRatingPerShot": 10,
         	"msToDrainAccuracy": 55,
         	"maxAccuracyAdd": 155,
         	"crouchModifier": 0.99,
@@ -167,7 +167,7 @@
 	"ammodefault": "AMMO_ANTIARMOR_CHARGE",
         "clipSize":              1,
             "accuracy": {
-        "accuracyRating": 64,
+        "accuracyRating": 60,
         "accuracyRatingPerShot": 0,
         "msToDrainAccuracy": 1000,
         "maxAccuracyAdd": 0,

@@ -73,7 +73,7 @@
     
     "firemode0": {
         "damage": {
-		"damage": 10,
+		"damage": 11,
 		"buffs": [
 			{
 				"buff": "standard-bleed",

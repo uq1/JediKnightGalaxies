@@ -434,7 +434,7 @@
 				"sniper_Bowcaster_H_S": 2,
 				"sniper_DXR6": 3,
 				"sniper_DLT-19_SB": 4,
-				"sniper_ACP": 1,
+				"sniper_ACP": 2,
 				"sniper_Dressy": 2,
 				"shield_blastech_fleet": 2,
 				"shield_sorusuub": 3,
@@ -487,10 +487,11 @@
 				"Grenade_CryoBan": 8,
 				"shield_merrsonn_ultra": 6,
 				"jetpack_test": 6,
-				"chem_CarbR": 2,
+				"chem_CarbR": 1,
 				"helmet_stormtrooper_rusty": 9,
 				"helmet_swamptrooper": 5,
 				"legs_swamptrooper": 6,
+				"sniper_ACP": 3,
 				"torso_swamptrooper": 4
 			}
 		}

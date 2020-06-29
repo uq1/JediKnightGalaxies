@@ -103,7 +103,7 @@
     },
 
     "firemode1": {
-        "damage":       6,
+        "damage":       5,
         "ammocost":     1,
         "collisionsize": 5.0,
         "firedelay":    50,
