@@ -16,8 +16,8 @@
 #### Downloads ####
 The most update links are available on the download page on the website, under the [test releases section](https://www.jkgalaxies.net/download.html#testdiv), but you can also use the following links which are occasionally updated:
 
-[Binaries](https://github.com/JKGDevs/JediKnightGalaxies/releases/tag/Version1.3.21) , [Assets](https://uvu.box.com/shared/static/lztt5mayu4daj9szvg8v0rtds6vwmnmq.zip) , 
-[Map Bundle #1](http://jkhub.org/files/file/2652-jedi-knight-galaxies-map-bundle-1/) , [Latest Release News (v1.3.18)](https://jkhub.org/topic/10781-upcoming-jkgalaxies-1318-preview-version/)
+[Binaries](https://github.com/JKGDevs/JediKnightGalaxies/releases/) , [Assets](https://uvu.box.com/shared/static/lztt5mayu4daj9szvg8v0rtds6vwmnmq.zip) , 
+[Map Bundle #1](http://jkhub.org/files/file/2652-jedi-knight-galaxies-map-bundle-1/) , [Map Bundle #2](https://uvu.box.com/shared/static/kb0wvyqtz0sarzs0kn1c8h03wrpjgb7c.zip)
 
 Please use discretion when making issue requests on GitHub. The forum is a better place for larger discussions on changes that aren't actually bugs.
 
@@ -48,6 +48,7 @@ Alternatively you can install the assets and binaries inside a directory such as
 
 	jkgalaxies.x86.exe +set fs_game "JKG" +set fs_cdpath "." +set fs_basepath "C:\Program Files (x86)\Steam\SteamApps\common\Jedi Academy\GameData" +set r_mode -2
 
+If you're stuck, you can also watch [this video](https://www.youtube.com/watch?v=odx-3f07_eA) to see how to install the game.
 
 ## Dependencies ##
 
