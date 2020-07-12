@@ -242,33 +242,25 @@ qboolean NPC_HasConversationSounds(gentity_t *conversationalist)
 	return qtrue;
 }
 
-qboolean NPC_VendorHasConversationSounds(gentity_t *conversationalist)
+qboolean NPC_VendorHasConversationSounds(gentity_t *conversationalist, char *name)
 {
 	fileHandle_t	f;
 	char			filename[256];
 
-	// For faster checking without FS wear...
-	if (conversationalist->NPC->conversationAvailable == 1) return qfalse;
-	if (conversationalist->NPC->conversationAvailable == 2) return qtrue;
-
 	//trap->Print("Testing %s for conversation sounds.\n", conversationalist->NPC_type);
 
-	strcpy(filename, va("sound/conversation/civilian_%s/conversation00.mp3", conversationalist->NPC_type));
+	strcpy(filename, va("sound/conversation/civilian_%s/%s.mp3", conversationalist->NPC_type, name));
 
 	trap->FS_Open( filename, &f, FS_READ );
 
-	if ( !f )
+	if (!f)
 	{// End of conversation...
-		trap->FS_Close( f );
-		conversationalist->NPC->conversationAvailable = 1; // checked but has none!
-		//trap->Print("%s has NO conversation sounds.\n", conversationalist->NPC_type);
+		trap->FS_Close(f);
 		return qfalse;
 	}
 
-	trap->FS_Close( f );
+	trap->FS_Close(f);
 
-	conversationalist->NPC->conversationAvailable = 2; // checked and has some!
-	//trap->Print("%s has conversation sounds.\n", conversationalist->NPC_type);
 	return qtrue;
 }
 

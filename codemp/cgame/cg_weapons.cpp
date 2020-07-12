@@ -1285,6 +1285,10 @@ void CG_NextWeapon_f( void )
 		return;
 	}
 
+	//no switching while cooking nades
+	if (cg.jkg_grenadeCookTimer)
+		return;
+
 	while(numIterations < MAX_ACI_SLOTS)
 	{
 		if(desiredWeaponSelect >= MAX_ACI_SLOTS)
@@ -1371,6 +1375,10 @@ void CG_PrevWeapon_f( void )
 	{
 		return;
 	}
+
+	//no switching while cooking nades
+	if (cg.jkg_grenadeCookTimer)
+		return;
 
 	while(numIterations < MAX_ACI_SLOTS)
 	{
@@ -1638,6 +1646,10 @@ void CG_Weapon_f( void ) {
 		return;
 	}
 
+	//no switching while cooking nades
+	if (cg.jkg_grenadeCookTimer)
+		return;
+
 	num = atoi( CG_Argv( 1 ) );
 	if(num < 0 || num > 9)
 	{
@@ -1660,8 +1672,10 @@ void CG_Weapon_f( void ) {
 		switch(itemType)
 		{
 			case ITEM_CONSUMABLE:
+			case ITEM_JETPACK:
+			case ITEM_SHIELD:
 				{
-					trap->SendConsoleCommand(va("inventoryUse %i", cg.playerACI[num]));
+					trap->SendConsoleCommand(va("inventoryUse %i", cg.playerACI[num]));		//this calls JKG_Cmd_ItemAction_f(), edit that for special behaviors --Futuza
 				}
 				break;
 		}

@@ -148,8 +148,12 @@ static void CG_Obituary( entityState_t *ent ) {
 		Q_strncpyz(attackerName, Info_ValueForKey(attackerInfo, "n"), sizeof(attackerName));
 	}
 
+	// Attacker killed themselves.  Ridicule them for it.
 	if (attacker == target) {
-		// Attacker killed themselves.  Ridicule them for it.
+		
+		if (mod == MOD_TEAM_CHANGE) //this doesn't count
+			return;
+
 		if (means->killfeed.genderedStringsPresent) {
 			switch (ci->gender) { // don't assume, check!
 				case GENDER_FEMALE:
@@ -203,7 +207,6 @@ static void CG_Obituary( entityState_t *ent ) {
 			trap->SE_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
 			s = va("%s %s", sKilledStr, ci->name);
 		}
-
 		CG_CenterPrint(s, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH);
 	}
 }
@@ -1554,6 +1557,44 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
         cent->currentState.origin[1] += 10.0f;
 		JKG_FireWeapon (cent, qtrue);
 		cent->currentState.origin[1] -= 10.0f;
+		break;
+
+	case EV_HEATCRIT:
+		DEBUGNAME("EV_HEATCRIT")
+
+		if (es->number == cg.snap->ps.clientNum)
+		{
+			qhandle_t warning = trap->S_RegisterSound(va("sound/weapons/common/heatWarning.wav"));
+			trap->S_StartSound(es->pos.trBase, es->number, CHAN_WEAPON, warning);
+
+			//add fx of slight steam?
+
+		}
+		break;
+
+	case EV_OVERHEATED:
+		DEBUGNAME("EV_OVERHEATED");
+
+		if (es->number == cg.snap->ps.clientNum)
+		{
+
+			qhandle_t heatSound = trap->S_RegisterSound(va("sound/weapons/common/overheat0%i.wav", Q_irand(0, 3)));
+			trap->S_StartSound(es->pos.trBase, es->number, CHAN_WEAPON, heatSound);
+
+			//add fx of lots of steam coming off gun here
+
+		}
+		break;
+
+	case EV_HEATCOOLED:
+		DEBUGNAME("EV_HEATCOOLED");
+		//for when a weapon has cooled sufficiently (less than heatThreshold), 
+		//this event is currently unused, but might be useful later (see w_force.cpp for current use of snd)
+		if (es->number == cg.snap->ps.clientNum)
+		{
+			qhandle_t notify = trap->S_RegisterSound(va("sound/weapons/common/heatClear.wav"));
+			trap->S_StartSound(es->pos.trBase, es->number, CHAN_WEAPON, notify);
+		}
 		break;
 
 	case EV_SABER_ATTACK:

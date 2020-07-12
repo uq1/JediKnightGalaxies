@@ -81,7 +81,7 @@
         "ballistic":    true,
         "ammocost":     1,
         "firedelay":    120,
-        "range":        40000.0,
+        "range":        42000.0,
         "recoil":       1.6,
         "spread":       0.2,
         "projectilespeed": 28000.0,
@@ -113,8 +113,8 @@
         "ammocost":     1,
         "firedelay":    120,
         "firingtype":   "semi",
-        "range":        40000.0,
-        "recoil":       1.2,
+        "range":        42000.0,
+        "recoil":       1.1,
         "spread":       0.2,
         "projectilespeed": 28000.0,
         "projectileclass": "blaster_proj",
@@ -127,7 +127,7 @@
         	"accuracyRatingPerShot": 2,
         	"msToDrainAccuracy": 60,
         	"maxAccuracyAdd": 50,
-        	"sightsModifier": 0.3
+        	"sightsModifier": 0.25
         }
     },
     

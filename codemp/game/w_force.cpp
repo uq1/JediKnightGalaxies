@@ -5290,6 +5290,16 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 	{	// when we are not firing a weapon, dissipate heat
 		self->client->ps.heat--;
 		self->client->weaponHeatDebounceTime = level.time;
+
+		if (self->client->ps.heat < 0)
+			self->client->ps.heat = 0.0f;
+
+		//reset heatThreshold if we dropped down low enough
+		if (self->client->ps.heat < self->client->ps.heatThreshold && self->client->ps.overheated)
+		{
+			self->client->ps.overheated = false;
+			G_Sound(self, CHAN_WEAPON, G_SoundIndex("sound/weapons/common/heatClear.wav")); //use PM_AddEvent(EV_HEATCOOLED); in the future?
+		}
 	}
 
 powersetcheck:

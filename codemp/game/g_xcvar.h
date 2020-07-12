@@ -187,6 +187,7 @@ XCVAR_DEF( jkg_creditsPerCapture,		"300",			NULL,				CVAR_ARCHIVE,									true 
 XCVAR_DEF( jkg_creditsPerReturn,		"75",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_buyAnnounce,				"1",			NULL,				CVAR_ARCHIVE,									true )		//0 = don't announce, 1 = announce to same team, 2+ = announce to all
 XCVAR_DEF( jkg_buyAnnounceThreshold,	"500",			NULL,				CVAR_ARCHIVE,									false )
+XCVAR_DEF( jkg_announceShopRefresh,		"1",			NULL,				CVAR_ARCHIVE,									false )		//have npc vendors announce when their treasure classes update?
 XCVAR_DEF( g_listEntity,				"0",			NULL,				CVAR_CHEAT,										false )
 XCVAR_DEF( jkg_arearestrictions,		"0",			NULL,				CVAR_ARCHIVE,									true )
 XCVAR_DEF( jkg_deathTimer,				"1",			NULL,				CVAR_ARCHIVE,									true )
@@ -203,7 +204,7 @@ XCVAR_DEF( jkg_minVendors,				"2",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVE
 XCVAR_DEF( jkg_removenpcbody,			"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
 XCVAR_DEF( jkg_removenpctime_default,	"10000",		NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
 XCVAR_DEF( jkg_removenpctime_droid,		"0",			NULL,				CVAR_ARCHIVE|CVAR_LATCH|CVAR_SERVERINFO,		true )
-XCVAR_DEF( jkg_allowDebuffKills,		"2",			NULL,				CVAR_ARCHIVE,									true )	//0 == carebear debuffs, 1 == debuffs are deadly as specified by .wpn, 2 == all damaging debuffs are deadly
+XCVAR_DEF( jkg_allowDebuffKills,		"1",			NULL,				CVAR_ARCHIVE,									true )	//0 == carebear debuffs, 1 == debuffs are deadly as specified by .wpn, 2 == all damaging debuffs are deadly
 XCVAR_DEF( jkg_allowDodge,				"0",			NULL,				CVAR_ARCHIVE,									true ) //allow roll dodging?
 XCVAR_DEF( jkg_heatDissipateTime,		"100",			NULL,				CVAR_ARCHIVE,									true ) // dissipate rate for heat
 

@@ -33,6 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g_local.h" //ahahahahhahahaha@$!$!
 #else
 #include "../cgame/cg_local.h"
+//#define SUPER_FUTUZA_TEST 1
 #endif
 
 #define MAX_WEAPON_CHARGE_TIME 5000
@@ -4496,7 +4497,7 @@ void PM_BeginWeaponChange( int weaponId ) {
 		return;
 	}
 
-	// turn of any kind of zooming when weapon switching.
+	// turn off any kind of zooming when weapon switching.
 	if (pm->ps->zoomMode)
 	{
 		pm->ps->zoomMode = 0;
@@ -4602,7 +4603,12 @@ void PM_FinishWeaponChange( void ) {
 	pm->ps->weaponstate = WEAPON_RAISING;
 
 	pm->ps->weaponTime += 350;
-	pm->ps->heat = 0; // all weapon heat is eliminated when we switch weapons
+	pm->ps->heat = 0.0f; // all weapon heat is eliminated when we switch weapons
+
+	const weaponData_t *weaponData;
+	weaponData = GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation);
+	pm->ps->maxHeat = weaponData->firemodes[pm->ps->firingMode].maxHeat; //set maxHeat to new weapon value
+	pm->ps->heatThreshold = weaponData->firemodes[pm->ps->firingMode].heatThreshold;
 }
 
 /*
@@ -4714,16 +4720,16 @@ Generates weapon events and modifes the weapon counter
 */
 // FIXME: remove extern
 extern int PM_KickMoveForConditions(void);
-static void PM_Weapon( void )
+static void PM_Weapon(void)
 {
 	int		addTime = 0;
 	int amount;
 	int		killAfterItem = 0;
-	bgEntity_t *veh = NULL;
+	bgEntity_t* veh = NULL;
 	// Jedi Knight Galaxies
 	int doStdAnim;
 	static qboolean jkg_didGrenadeCook[MAX_GENTITIES];
-	const weaponData_t *weaponData;
+	const weaponData_t* weaponData;
 
 #ifdef _GAME
 	if (pm->ps->clientNum >= MAX_CLIENTS &&
@@ -4731,7 +4737,7 @@ static void PM_Weapon( void )
 		pm->cmd.weapon == WP_NONE &&
 		pm_entSelf)
 	{ //npc with no weapon
-		gentity_t *gent = (gentity_t *)pm_entSelf;
+		gentity_t* gent = (gentity_t*)pm_entSelf;
 		if (gent->inuse && gent->client &&
 			gent->localAnimIndex < NUM_RESERVED_ANIMSETS)
 		{ //humanoid
@@ -4760,7 +4766,7 @@ static void PM_Weapon( void )
 
 		if (weap != -1)
 		{
-			pm->cmd.weapon = BG_GetWeaponIndexFromClass (weap, 0);
+			pm->cmd.weapon = BG_GetWeaponIndexFromClass(weap, 0);
 			pm->ps->weapon = weap;
 			pm->ps->weaponVariation = 0;
 			return;
@@ -4783,7 +4789,7 @@ static void PM_Weapon( void )
 
 	if (pm->ps->duelInProgress)
 	{
-		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_SABER, 0);
+		pm->cmd.weapon = BG_GetWeaponIndexFromClass(WP_SABER, 0);
 		pm->ps->weapon = WP_SABER;
 		pm->ps->weaponVariation = 1;
 
@@ -4797,7 +4803,7 @@ static void PM_Weapon( void )
 
 	if (pm->ps->weapon == WP_SABER && pm->ps->saberMove != LS_READY && pm->ps->saberMove != LS_NONE)
 	{
-		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_SABER, pm->ps->weaponVariation); //don't allow switching out mid-attack
+		pm->cmd.weapon = BG_GetWeaponIndexFromClass(WP_SABER, pm->ps->weaponVariation); //don't allow switching out mid-attack
 	}
 
 	if (pm->ps->weapon == WP_SABER)
@@ -4808,24 +4814,24 @@ static void PM_Weapon( void )
 	}
 	else if (pm->ps->weapon != WP_EMPLACED_GUN)
 	{
-		if( !pm->ps->saberInFlight )
+		if (!pm->ps->saberInFlight)
 		{
 			pm->ps->saberHolstered = 0;
 		}
 	}
 
 	// don't allow attack until all buttons are up
-	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
+	if (pm->ps->pm_flags & PMF_RESPAWNED) {
 		return;
 	}
 
 	// ignore if spectator
-	if ( pm->ps->clientNum < MAX_CLIENTS && pm->ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
-			return;
+	if (pm->ps->clientNum < MAX_CLIENTS && pm->ps->persistant[PERS_TEAM] == TEAM_SPECTATOR) {
+		return;
 	}
 
 	// check for dead player
-	if ( pm->ps->stats[STAT_HEALTH] <= 0 ) {
+	if (pm->ps->stats[STAT_HEALTH] <= 0) {
 		pm->ps->weapon = WP_NONE;
 		pm->ps->weaponVariation = 0;
 		return;
@@ -4837,7 +4843,7 @@ static void PM_Weapon( void )
 	}
 
 	// make weapon function
-	if ( pm->ps->weaponTime > 0 ) {
+	if (pm->ps->weaponTime > 0) {
 		pm->ps->weaponTime -= pml.msec;
 	}
 
@@ -4849,11 +4855,11 @@ static void PM_Weapon( void )
 
 	if (pm->ps->weapon == WP_EMPLACED_GUN && pm->ps->emplacedIndex)
 	{
-		pm->cmd.weapon = BG_GetWeaponIndexFromClass (WP_EMPLACED_GUN, 0); //No switch for you!
-		PM_StartTorsoAnim( BOTH_GUNSIT1 );
+		pm->cmd.weapon = BG_GetWeaponIndexFromClass(WP_EMPLACED_GUN, 0); //No switch for you!
+		PM_StartTorsoAnim(BOTH_GUNSIT1);
 	}
 
-	amount = GetWeaponData( pm->ps->weapon, pm->ps->weaponVariation )->firemodes[pm->ps->firingMode].cost;
+	amount = GetWeaponData(pm->ps->weapon, pm->ps->weaponVariation)->firemodes[pm->ps->firingMode].cost;
 
 	// take an ammo away if not infinite
 
@@ -4862,11 +4868,15 @@ static void PM_Weapon( void )
 	// check for weapon change
 	// can't change if weapon is firing, but can change
 	// again if lowering or raising
-	if ( pm->ps->weaponTime <= 0 || pm->ps->weaponstate != WEAPON_FIRING ) 
+	// or if cooking a grenade
+	if (pm->ps->weaponTime <= 0 || pm->ps->weaponstate != WEAPON_FIRING)
 	{
-		if ( (pm->cmd.weapon != pm->ps->weaponId) && pm->ps->weaponstate != WEAPON_DROPPING ) 
+		if ((pm->cmd.weapon != pm->ps->weaponId) && pm->ps->weaponstate != WEAPON_DROPPING)
 		{
-			PM_BeginWeaponChange( pm->cmd.weapon );
+			if (jkg_didGrenadeCook[pm->ps->clientNum]) //needs a better way to check if we're currently cooking a nade on server, this doesn't really work. --futuza
+				;
+			else
+				PM_BeginWeaponChange(pm->cmd.weapon);
 		}
 	}
 
@@ -4882,38 +4892,38 @@ static void PM_Weapon( void )
 		}
 	}
 
-	if ( pm->ps->weaponTime > 0 ) {
+	if (pm->ps->weaponTime > 0) {
 		return;
 	}
 
 	// change weapon if time
-	if ( pm->ps->weaponstate == WEAPON_DROPPING ) {
+	if (pm->ps->weaponstate == WEAPON_DROPPING) {
 		PM_FinishWeaponChange();
 		return;
 	}
 
-	if ( pm->ps->weaponstate == WEAPON_RAISING || pm->ps->weaponstate == WEAPON_RELOADING )
+	if (pm->ps->weaponstate == WEAPON_RAISING || pm->ps->weaponstate == WEAPON_RELOADING)
 	{
 		pm->ps->weaponstate = WEAPON_READY;
 
-		if ( PM_CanSetWeaponAnims())
+		if (PM_CanSetWeaponAnims())
 		{
-			if ( pm->ps->weapon == WP_SABER )
+			if (pm->ps->weapon == WP_SABER)
 			{
-				PM_StartTorsoAnim( PM_GetSaberStance() );
+				PM_StartTorsoAnim(PM_GetSaberStance());
 			}
 			else
 			{
 				if (pm->ps->weapon == WP_EMPLACED_GUN)
 				{
-					PM_StartTorsoAnim( BOTH_GUNSIT1 );
+					PM_StartTorsoAnim(BOTH_GUNSIT1);
 				}
 				else
 				{
-					if( pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->weapon != WP_THERMAL && pm->ps->weapon != WP_TRIP_MINE && pm->ps->weapon != WP_DET_PACK)
-						PM_StartTorsoAnim( weaponData->anims.sights.torsoAnim );
+					if (pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->weapon != WP_THERMAL && pm->ps->weapon != WP_TRIP_MINE && pm->ps->weapon != WP_DET_PACK)
+						PM_StartTorsoAnim(weaponData->anims.sights.torsoAnim);
 					else
-						PM_StartTorsoAnim( weaponData->anims.ready.torsoAnim );
+						PM_StartTorsoAnim(weaponData->anims.ready.torsoAnim);
 				}
 			}
 		}
@@ -4922,47 +4932,47 @@ static void PM_Weapon( void )
 
 	if (PM_CanSetWeaponAnims())
 	{
-	    if ( pm->ps->weaponstate == WEAPON_READY && pm->ps->weaponTime <= 0 &&
-		    (pm->ps->weapon >= WP_BRYAR_PISTOL || pm->ps->weapon == WP_STUN_BATON) &&
-		    pm->ps->torsoTimer <= 0 &&
-			(( (pm->ps->ironsightsTime & IRONSIGHTS_MSB) && pm->ps->torsoAnim != weaponData->anims.sights.torsoAnim ) ||
-			( !(pm->ps->ironsightsTime & IRONSIGHTS_MSB) && pm->ps->torsoAnim != weaponData->anims.ready.torsoAnim ) ) &&
+		if (pm->ps->weaponstate == WEAPON_READY && pm->ps->weaponTime <= 0 &&
+			(pm->ps->weapon >= WP_BRYAR_PISTOL || pm->ps->weapon == WP_STUN_BATON) &&
+			pm->ps->torsoTimer <= 0 &&
+			(((pm->ps->ironsightsTime & IRONSIGHTS_MSB) && pm->ps->torsoAnim != weaponData->anims.sights.torsoAnim) ||
+				(!(pm->ps->ironsightsTime & IRONSIGHTS_MSB) && pm->ps->torsoAnim != weaponData->anims.ready.torsoAnim)) &&
 			//(pm->ps->torsoAnim) != weaponData->anims.ready.torsoAnim &&
-		    pm->ps->torsoAnim != TORSO_WEAPONIDLE3 &&
-		    pm->ps->weapon != WP_EMPLACED_GUN )
+			pm->ps->torsoAnim != TORSO_WEAPONIDLE3 &&
+			pm->ps->weapon != WP_EMPLACED_GUN)
 		{
-			if(!BG_IsSprinting (pm->ps, &pm->cmd, qtrue))
+			if (!BG_IsSprinting(pm->ps, &pm->cmd, qtrue))
 			{
-				if( pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->weapon != WP_THERMAL && pm->ps->weapon != WP_TRIP_MINE && pm->ps->weapon != WP_DET_PACK)
-					PM_StartTorsoAnim( weaponData->anims.sights.torsoAnim );
+				if (pm->ps->ironsightsTime & IRONSIGHTS_MSB && pm->ps->weapon != WP_THERMAL && pm->ps->weapon != WP_TRIP_MINE && pm->ps->weapon != WP_DET_PACK)
+					PM_StartTorsoAnim(weaponData->anims.sights.torsoAnim);
 				else
-					PM_StartTorsoAnim( weaponData->anims.ready.torsoAnim );
+					PM_StartTorsoAnim(weaponData->anims.ready.torsoAnim);
 			}
-		}	
-	    else if (pm->ps->weapon == WP_MELEE || pm->ps->weapon == WP_NONE)
-	    {
-		    if (pm->ps->weaponTime <= 0 &&
-			    pm->ps->forceHandExtend == HANDEXTEND_NONE)
-		    {
-			    int desTAnim = pm->ps->legsAnim;
-			    if ((desTAnim == BOTH_STAND1 || desTAnim == BOTH_STAND2 || desTAnim == BOTH_STAND9) &&
-			        pm->ps->weapon == WP_MELEE)
-			    { //remap the standard standing anims for melee stance
-					if( desTAnim == BOTH_STAND9 )
+		}
+		else if (pm->ps->weapon == WP_MELEE || pm->ps->weapon == WP_NONE)
+		{
+			if (pm->ps->weaponTime <= 0 &&
+				pm->ps->forceHandExtend == HANDEXTEND_NONE)
+			{
+				int desTAnim = pm->ps->legsAnim;
+				if ((desTAnim == BOTH_STAND1 || desTAnim == BOTH_STAND2 || desTAnim == BOTH_STAND9) &&
+					pm->ps->weapon == WP_MELEE)
+				{ //remap the standard standing anims for melee stance
+					if (desTAnim == BOTH_STAND9)
 						desTAnim = BOTH_STAND9;
 					else
 						desTAnim = BOTH_STAND6;
-			    }
+				}
 
-			    if (!(pm->cmd.buttons & BUTTON_ATTACK) || pm->ps->weapon == WP_NONE)
-			    { //don't do this while holding attack
-				    if (pm->ps->torsoAnim != desTAnim)
-				    {
-					    PM_StartTorsoAnim( desTAnim );
-				    }
-			    }
-		    }
-	    }
+				if (!(pm->cmd.buttons & BUTTON_ATTACK) || pm->ps->weapon == WP_NONE)
+				{ //don't do this while holding attack
+					if (pm->ps->torsoAnim != desTAnim)
+					{
+						PM_StartTorsoAnim(desTAnim);
+					}
+				}
+			}
+		}
 	}
 
 	if (pm->ps->clientNum >= MAX_CLIENTS &&
@@ -4972,16 +4982,16 @@ static void PM_Weapon( void )
 		veh = pm_entSelf;
 	}
 
-	if ( PM_DoChargedWeapons())
+	if (PM_DoChargedWeapons())
 	{
 		// JKG - Check for cookable grenades (you must press both to start its event)
-		if ( weaponData->hasCookAbility &&
-		    pm->ps->clientNum < MAX_CLIENTS &&
-		    jkg_didGrenadeCook[pm->ps->clientNum] == 0 &&
-		    ( pm->cmd.buttons & BUTTON_ATTACK ) &&
-		    ( pm->cmd.buttons & BUTTON_IRONSIGHTS ))
+		if (weaponData->hasCookAbility &&
+			pm->ps->clientNum < MAX_CLIENTS &&
+			jkg_didGrenadeCook[pm->ps->clientNum] == 0 &&
+			(pm->cmd.buttons & BUTTON_ATTACK) &&
+			(pm->cmd.buttons & BUTTON_IRONSIGHTS))
 		{
-			PM_AddEvent( EV_GRENADE_COOK );
+			PM_AddEvent(EV_GRENADE_COOK);
 			jkg_didGrenadeCook[pm->ps->clientNum] = 1;
 		}
 
@@ -4990,27 +5000,37 @@ static void PM_Weapon( void )
 	}
 
 	// JKG - Remove cook nade flag.
-	if ( jkg_didGrenadeCook[pm->ps->clientNum] )
+	if (jkg_didGrenadeCook[pm->ps->clientNum])
 	{
 		jkg_didGrenadeCook[pm->ps->clientNum] = 0;
 	}
 
 	// check for fire
-	if ( !( pm->cmd.buttons & BUTTON_ATTACK ))
+	if (!(pm->cmd.buttons & BUTTON_ATTACK))
 	{
 		pm->ps->weaponTime = 0;
 		pm->ps->weaponstate = WEAPON_READY;
 		return;
 	}
-	
-	if ( pm->ps->weapon == 0 )
+
+	if (pm->ps->weapon == 0)
 	{
-	    return;
+		return;
 	}
 
 	if (pm->ps->heat >= weaponData->firemodes[pm->ps->firingMode].maxHeat)
 	{
 		// Overheated, we can't fire
+		if(!pm->ps->overheated)
+			PM_AddEvent(EV_OVERHEATED);  //do a sound event
+
+		pm->ps->overheated = true;
+		return;
+	}
+
+	if (pm->ps->heat >= weaponData->firemodes[pm->ps->firingMode].heatThreshold && pm->ps->overheated)
+	{
+		//need to cool down to heat threshold before we can fire again, still overheated
 		return;
 	}
 
@@ -5243,6 +5263,12 @@ static void PM_Weapon( void )
 
 	// Increase heat
 	pm->ps->heat += weaponData->firemodes[pm->ps->firingMode].heatGenerated;
+
+	// Warn that we're about to overheat
+	if (pm->ps->heat >= weaponData->firemodes[pm->ps->firingMode].heatThreshold)
+	{
+		PM_AddEvent(EV_HEATCRIT);  //this might be a bit too spammy, how to do less often? --futuza
+	}
 
 	// If we get here, we got the green light to fire the weapon
 	pm->ps->weaponstate = WEAPON_FIRING;
@@ -6520,6 +6546,11 @@ void Pmove (pmove_t *pmove) {
 	if ( finalTime > pmove->ps->commandTime + 1000 ) {
 		pmove->ps->commandTime = finalTime - 1000;
 	}
+
+#ifdef SUPER_FUTUZA_TEST
+	if (cg.crouchToggled)
+		pmove->cmd.upmove = -128;
+#endif
 
 	if (pmove->ps->fallingToDeath)
 	{

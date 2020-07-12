@@ -74,7 +74,21 @@
     },
     
     "firemode0": {
-        "damage":       35,//70,
+        "damage":{
+            "damage":       35,//70,
+			"damageradius": 
+                {
+                    "start": 170, 
+                    "falloff": "linear"
+                },
+			"buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 6000
+					}
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
+        },
         "ballistic":    true,
 	"useQuantity":	true,
         "bounces":     -5,
@@ -95,7 +109,21 @@
     },
     
     "firemode1": {
-        "damage":       35,//70,
+        "damage":{
+            "damage":       35,//70,
+			"damageradius": 
+                {
+                    "start": 170, 
+                    "falloff": "linear"
+                },
+			"buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 6000
+					}
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
+        },
         "ballistic":    true,
 	"useQuantity":	true,
         "bounces":     -5,

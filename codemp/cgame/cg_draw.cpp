@@ -1684,8 +1684,26 @@ void CG_LerpCrosshairPos( float *x, float *y )
 				}
             }
 
+			// display heat %
+			if (cg_drawWpnHeatValue.integer > 0)
+			{
+				char printheat[15];  
+				float heatPercent = ((cg.predictedPlayerState.heat / cg.predictedPlayerState.maxHeat) * 100);
+				
+				if (heatPercent > 0)
+				{
+					if (heatPercent > 99)
+						sprintf(printheat, "Heat: 100.00");
+
+					else
+						sprintf(printheat, "Heat: %.2f", heatPercent);
+
+					CG_CenterPrint(printheat, SCREEN_HEIGHT * 0.30f, BIGCHAR_WIDTH);
+				}
+			}
+
 			// Crosshair gets more red with heat
-			ecolor[2] = ecolor[1] = 1.0f - (cg.predictedPlayerState.heat / 100.0f);
+			ecolor[2] = ecolor[1] = (1.0f - (cg.predictedPlayerState.heat / cg.predictedPlayerState.maxHeat));
 			if (ecolor[2] >= 1.0f)
 			{
 				ecolor[2] = ecolor[1] = 1.0f;
@@ -2856,6 +2874,7 @@ void CG_DrawNPCNames( void )
 		case CLASS_SWAMP:
 		case CLASS_RANCOR:
 		case CLASS_WAMPA:
+		case CLASS_TUSKEN:
 			str2 = "< Animal >";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.125f;
@@ -2998,6 +3017,7 @@ void CG_DrawNPCNames( void )
 			case CLASS_PRISONER:
 			case CLASS_RODIAN:
 			case CLASS_TRANDOSHAN:
+			case CLASS_TUSKEN:
 			case CLASS_UGNAUGHT:
 			case CLASS_JAWA:
 				str1 = va("%s", BG_Get_NPC_Name(cent->currentState.generic1));

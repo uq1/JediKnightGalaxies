@@ -44,8 +44,14 @@ static void JKG_target_vendor_think(gentity_t* self) {
 	}
 	pTC = tc->second;
 
+	//notify players when the shops refresh if announcing is enabled
+	if(jkg_announceShopRefresh.integer > 0 && ((level.time - level.startTime) > jkg_shop_replenish_time.integer * 1000 -1))
+	{
+		trap->SendServerCommand(-1, va("chat 100 \"Vendor, %s, replenished their stock.", self->targetname));	//--futuza: maybe not send in chat? this'll do for now
+	}
+
 	// Use the treasure class to pick items
-	self->s.seed = Q_irandSafe(time(0), QRAND_MAX - 1) + Q_irand(0, 10000);		//take current time (so every game is different and we aren't just pseudo random), but also add pseudo random so each vendor is different  --futuza
+	self->s.seed = Q_irandSafe((time(0) % 10000), QRAND_MAX - 1) + Q_irand(0, 10000);		//take current time (so every game is different and we aren't just pseudo random), but also add pseudo random so each vendor is different  --futuza
 	npc->inventory->clear();
 	pTC->Pick(items, self->s.seed);
 
@@ -86,7 +92,7 @@ extern gNPC_t		*NPCInfo;
 extern usercmd_t	ucmd;
 extern qboolean NPC_FaceEntity(gentity_t *ent, qboolean doPitch);
 extern void G_SoundOnEnt(gentity_t *ent, soundChannel_t channel, const char *soundPath);
-extern qboolean NPC_VendorHasConversationSounds(gentity_t *conversationalist);
+extern qboolean NPC_VendorHasConversationSounds(gentity_t *conversationalist, char *name);
 extern qboolean NPC_VendorHasVendorSound(gentity_t *conversationalist, char *name);
 extern void NPC_ConversationAnimation(gentity_t *NPC);
 void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activator) {
@@ -134,9 +140,15 @@ void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activat
 			NPC_ConversationAnimation(self);
 			G_SoundOnEnt(self, CHAN_VOICE_ATTEN, filename);
 		}
-		else if (NPC_VendorHasConversationSounds(self))
+		else if (NPC_VendorHasConversationSounds(self, "conversation00"))
 		{// Override with generic chat sounds for this specific NPC...
-			strcpy(filename, va("sound/conversation/%s/conversation00.mp3", self->NPC_type));
+			char filename[256];
+			int max = 1;
+
+			while (NPC_VendorHasConversationSounds(self, va("conversation0%i", max))) 
+				max++;
+
+			strcpy(filename, va("sound/conversation/civilian_%s/conversation0%i.mp3", self->NPC_type, irand(0, max - 1)));
 			NPC_ConversationAnimation(self);
 			G_SoundOnEnt(self, CHAN_VOICE_ATTEN, filename);
 		}
@@ -216,14 +228,21 @@ void JKG_MakeNPCVendor(gentity_t* ent, char* szTreasureClassName)
 
 	Q_strncpyz(ent->treasureclass, szTreasureClassName, sizeof(ent->treasureclass));
 
+	//--Futuza: FIXME spawned vendors, need to add thinking to spawned vendors to get them to refresh - this crashes right now
+	/*ent->think = JKG_target_vendor_think;
+	ent->nextthink = level.time + 50;*/
+
+
 	ent->use = JKG_GenericVendorUse;
 	ent->r.svFlags |= SVF_PLAYER_USABLE;
 	ent->flags |= FL_GODMODE;
 	ent->flags |= FL_NOTARGET;
 	ent->flags |= FL_NO_KNOCKBACK;
 	ent->bVendor = true;
-	ent->s.seed = Q_irandSafe(time(0), QRAND_MAX-1) + Q_irand(0, QRAND_MAX - 1);		//take current time (so every game is different and we aren't just pseudo random), but also add pseudo random so each vendor is different  --futuza
+	ent->s.seed = Q_irandSafe((time(0) % 10000), QRAND_MAX-1) + Q_irand(0, QRAND_MAX - 1);		//take current time (so every game is different and we aren't just pseudo random), but also add pseudo random so each vendor is different  --futuza
 	ent->genericValue1 = ENTITYNUM_NONE;
+
+	Com_Printf("Attempting to spawn npc vendor: %s\n", ent->targetname);
 
 	JKG_RegenerateStock(ent);
 }
@@ -274,7 +293,7 @@ void JKG_RegenerateStock(gentity_t* ent)
 	pTC = tc->second;
 
 	// Use the treasure class to pick items
-	ent->s.seed = Q_irand(0, 10000); // temp
+	ent->s.seed = Q_irandSafe((time(0) % 10000), QRAND_MAX - 1) + Q_irand(0, QRAND_MAX - 1); // temp
 	ent->inventory->clear();
 	pTC->Pick(items, ent->s.seed);
 

@@ -436,6 +436,7 @@ static consoleCommand_t	commands[] = {
 	{ "shop", JKG_OpenShopMenu_f },
 	{ "dumpWeaponList", Cmd_DumpWeaponList_f },
 	{ "printWeaponList", Cmd_PrintWeaponList_f },
+	{ "printItemList", JKG_PrintItemList},
 
 #ifdef __AUTOWAYPOINT__
 	{ "awp", AIMod_AutoWaypoint },

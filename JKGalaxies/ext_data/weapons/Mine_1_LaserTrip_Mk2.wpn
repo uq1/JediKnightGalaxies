@@ -27,7 +27,7 @@
             "firesound":    "sound/weapons/laser_trap/fire.wav",
             "miss":         { "sticksound": "sound/weapons/laser_trap/stick.wav" },
             "explodefx":    "explosives/demosmall",
-	    "displayName":  "Beam"
+	        "displayName":  "Beam"
         },
         
         "firemode1": {
@@ -39,7 +39,7 @@
             "armsound":     "sound/weapons/laser_trap/warning.wav",
             "firesound":    "sound/weapons/laser_trap/alt_fire.wav",
             "explodefx":    "explosives/demosmall",
-	    "displayName":  "Proximity"
+	        "displayName":  "Proximity"
         }
     },
     
@@ -52,7 +52,25 @@
     },
     
     "firemode0": {
-        "damage":       65,
+        "damage": 
+            {
+                "damageradius": 
+                {
+                    "start": 350, 
+                    "falloff": "linear"
+                },
+                "damage": 130,
+                "buffs": [
+					{
+						"buff": "standard-bleed",
+						"duration": 8000
+					},
+                    {
+                        "buff": "standard-fire",
+                        "duration": 2000
+                    }
+				]
+            },
         "ammocost":     1,
 	"useQuantity":	true,
         "firedelay":    1000,
@@ -63,7 +81,25 @@
     },
     
     "firemode1": {
-        "damage":       65,
+        "damage": 
+            {
+                "damageradius": 
+                {
+                    "start": 350, 
+                    "falloff": "linear"
+                },
+                "damage": 130,
+                "buffs": [
+					{
+						"buff": "standard-bleed",
+						"duration": 8000
+					},
+                    {
+                        "buff": "standard-fire",
+                        "duration": 2000
+                    }
+				]
+            },
         "ammocost":     1,
 	"useQuantity":	true,
         "firedelay":    1000,

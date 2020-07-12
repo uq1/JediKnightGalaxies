@@ -40,7 +40,7 @@
 
 	"stats": {
 		"slot": 2,
-		"reloadtime": 1500,
+		"reloadtime": 1200,
 		"flags": ["roll"],
 		"reloadmodifier": 0.7
 	},
@@ -48,7 +48,7 @@
 	"firemode0": {
 		"damage": 20,
 		"ammocost": 1,
-		"firedelay": 150,
+		"firedelay": 125,
 		"firingtype": "semi",
 		"recoil": 0.7,
 		"range": 3300,
@@ -58,7 +58,8 @@
 		"meansofdeath": "MOD_BRYAR_PISTOL",
 		"ammobase": "AMMO_SS_POWERPACK",
 		"ammodefault": "AMMO_SS_POWERPACK",
-		"clipSize": 20
+		"clipSize": 20,
+		"heatGenerated": 6.75
 	},
 
     "playeranims": {

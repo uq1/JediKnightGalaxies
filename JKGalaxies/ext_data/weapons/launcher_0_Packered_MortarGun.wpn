@@ -71,7 +71,7 @@
         "splashmeansofdeath": "MOD_EXPLOSION",
 	"ammobase": "AMMO_PACKERED_MORTAR",
 	"ammodefault": "AMMO_PACKERED_MORTAR",
-        "clipSize":              4,
+        "clipSize":              3,
         "accuracy": {
         	"accuracyRating": 72,
         	"accuracyRatingPerShot": 12,

@@ -63,7 +63,15 @@
     },
     
     "firemode0": {
-        "damage":       15,
+        "damage": {
+		    "damage":       15,
+		    "buffs": [
+			    {
+				"buff": "standard-bleed",
+				"duration": 7000
+			    }
+		    ]
+	    },
         "ammocost":     1,
         "firedelay":    1100,
         "firingtype":   "semi",
@@ -91,7 +99,15 @@
     },
     
     "firemode1": {
-        "damage":       15,
+        "damage": {
+		    "damage":       15,
+		    "buffs": [
+			    {
+				"buff": "standard-bleed",
+				"duration": 7000
+			    }
+		    ]
+	    },
         "ammocost":     1,
         "burstshotdelay": 250,
         "firedelay":    1350,
@@ -126,8 +142,7 @@
     
     "playeranims": {
         "idle":         { "torso": "TORSO_WEAPONIDLE3", "legs": "BOTH_IDLE1" },
-        "reload":       { "torso": "BOTH_RIFLERELOADL" },
-//        "reload":       { "torso": "BOTH_RIFLERELOADR" },
+        "reload":       { "torso": "BOTH_RIFLERELOADR" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
 	"sprint":	{ "torso": "BOTH_RIFLERUN" }, 
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },

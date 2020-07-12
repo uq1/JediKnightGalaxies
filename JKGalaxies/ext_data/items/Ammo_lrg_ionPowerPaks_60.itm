@@ -1,0 +1,10 @@
+{
+	"name":		"60 BlasTech Ion Pwr Pak(lrg)",
+	"internal":	"ammo_ionPwrPakLrg_60",
+	"itemtype":	"ammo",
+	"weight":		"0",
+	"cost":		"95",
+	"ammoclass":	"AMMO_ION_POWERPAK_L",
+	"ammoquantity":	"60",
+	"itemIcon": "gfx/item_icons/default.tga"	//needs icon!
+}

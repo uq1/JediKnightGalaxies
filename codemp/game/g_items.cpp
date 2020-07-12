@@ -487,6 +487,9 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 		respawn = Pickup_Powerup(ent, other);
 		break;
 	case IT_TEAM:
+		//non-loadbearing jetpacks can't pickup flags, drop em out of the sky when they touch the flag
+		if (!jetpackTable[other->client->ps.jetpack - 1].move.loadBearingAllowed  && (other->client->ps.eFlags & EF_JETPACK_ACTIVE) )
+			Jetpack_Off(other);
 		respawn = Pickup_Team(ent, other);
 		break;
 	default:

@@ -99,7 +99,7 @@
     },
     
     "firemode1": {
-        "damage":       16,//28,
+        "damage":       24,//28,
         "maxchargetime":1200,
         "chargedamage": 1.0,
         "chargedelay":  400,

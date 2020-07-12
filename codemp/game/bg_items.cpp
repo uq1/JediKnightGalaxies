@@ -637,7 +637,7 @@ On the server, this is also internally called from BG_GiveItem.
 #ifdef _GAME
 void BG_GiveItemNonNetworked(gentity_t* ent, itemInstance_t item) {
 	// Basic checks
-	if (!item.id || !item.id->itemID) {
+	if (!item.id || !item.id->itemID) {	
 		return;
 	}
 
@@ -666,9 +666,71 @@ void BG_GiveItemNonNetworked(gentity_t* ent, itemInstance_t item) {
 
 	// Add the new item stack to the inventory
 	ent->inventory->push_back(item);
+
+	//do special checks for shields and jetpacks
+	if ((item.id->itemType == ITEM_SHIELD || item.id->itemType == ITEM_JETPACK) && ent->s.eType == ET_PLAYER) //for now don't give anyone except players autoequip shields/jetpacks
+	{
+		bool alreadyEquipped = false; int equipLoc = -1;
+		int specialType = item.id->itemType;
+
+		//search the inventory for existing shields or jetpacks
+		for (int i = 0; i < ent->inventory->size()-1; i++)	//check everything except what we just added
+		{
+			if (ent->inventory->at(i).id->itemType == specialType && ent->inventory->at(i).equipped) //if a shield/jetpack is already equipped
+			{
+				equipLoc = i;
+				alreadyEquipped = true;
+				break;
+			}
+		}
+
+		//we already have a shield/jetpack equipped, we need to remove the old one first
+		if (alreadyEquipped)
+		{
+			auto toRemove = ent->inventory->at(equipLoc);
+			int itemSlot = ent->inventory->size() - 1;
+
+			//remove old shield/jetpack and equip new one
+			if (toRemove.id->itemType == ITEM_SHIELD)
+			{
+				Cmd_ShieldUnequipped(ent, equipLoc);
+				JKG_ShieldEquipped(ent, itemSlot, qtrue);
+			}
+
+			else if (toRemove.id->itemType == ITEM_JETPACK)
+			{
+				Cmd_JetpackUnequipped(ent, equipLoc);
+				JKG_JetpackEquipped(ent, itemSlot);
+			}
+
+			else
+			{
+				Com_Printf(S_COLOR_RED "Unable to replace equipped item, non jetpack/shield detected.  Replace manually in inventory menu.\n");
+				return;
+			}
+
+		}
+		
+		//if a shield/jetpack isn't already equipped, equip the new one
+		else
+		{
+			int itemSlot = ent->inventory->size()-1;
+			if (specialType == ITEM_SHIELD)
+			{
+				JKG_ShieldEquipped(ent, itemSlot, qtrue);
+			}
+			else if (specialType == ITEM_JETPACK)
+			{
+				JKG_JetpackEquipped(ent, itemSlot);
+			}
+		}
+	}
+	
+
 }
 #elif _CGAME
-void BG_GiveItemNonNetworked(itemInstance_t item) {
+void BG_GiveItemNonNetworked(itemInstance_t item)
+{
 	// Basic checks
 	if (!item.id || !item.id->itemID) {
 		return;
@@ -704,33 +766,55 @@ void BG_GiveItemNonNetworked(itemInstance_t item) {
 	}
 	cg.playerInventory->push_back(item);
 
-	// If this item is a weapon, which is not already in our ACI, and the ACI is not full, add it.
-	if(item.id->itemType == ITEM_WEAPON) {
+	// If this item is a weapon, shield, jetpack or consumable - which is not already in our ACI, and the ACI is not full, add it.
+	if(item.id->itemType == ITEM_WEAPON || item.id->itemType == ITEM_SHIELD || item.id->itemType == ITEM_JETPACK || item.id->itemType == ITEM_CONSUMABLE) 
+	{
 		bool bInACIAlready = false;
-		int nFreeACISlot = -1;
-		for(int i = 0; i < MAX_ACI_SLOTS; i++) {
-			if(cg.playerACI[i] == -1 && nFreeACISlot == -1) {
+		int nFreeACISlot = -1; int specialType = 0;
+
+		//if a shield or jetpack, save type
+		if (item.id->itemType == ITEM_SHIELD || item.id->itemType == ITEM_JETPACK)
+			specialType = item.id->itemType;
+
+		for(int i = 0; i < MAX_ACI_SLOTS; i++) 
+		{
+			if(cg.playerACI[i] == -1 && nFreeACISlot == -1) 
+			{
 				nFreeACISlot = i;
 				continue;
-			} else if(cg.playerACI[i] == -1) {
+			} 
+			else if(cg.playerACI[i] == -1) 
+			{
 				continue;
-			} else if(cg.playerACI[i] >= cg.playerInventory->size()) {
+			} 
+			else if(cg.playerACI[i] >= cg.playerInventory->size()) 
+			{
 				// This item in our ACI is invalid, remove it
 				cg.playerACI[i] = -1;
 				continue;
 			}
-			if(!Q_stricmp((*cg.playerInventory)[cg.playerACI[i]].id->internalName, item.id->internalName)) {
+			if(!Q_stricmp((*cg.playerInventory)[cg.playerACI[i]].id->internalName, item.id->internalName)) 
+			{
 				bInACIAlready = true; 
 			}
-			if(bInACIAlready && nFreeACISlot >= 0) { // already found everything we need to know, just die
+			if((*cg.playerInventory)[cg.playerACI[i]].id->itemType == specialType && specialType)
+			{
+				//we found another special item equipped - remove it
+				cg.playerACI[i] = -1;
+				continue;
+			}
+			if(bInACIAlready && nFreeACISlot >= 0) 
+			{ // already found everything we need to know, just die
 				break;
 			}
 		}
 
-		if (!bInACIAlready && nFreeACISlot != -1) {
+		if (!bInACIAlready && nFreeACISlot != -1) 
+		{
 			cg.playerACI[nFreeACISlot] = cg.playerInventory->size() - 1;
 		}
 	}
+	
 }
 #endif
 

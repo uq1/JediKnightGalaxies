@@ -73,7 +73,21 @@
     },
     
     "firemode0": {
-        "damage":       90,//70,//140,
+        "damage": 
+            {
+                "damageradius": 
+                {
+                    "start": 240, 
+                    "falloff": "linear"
+                },
+                "damage": 140, //70 //140
+                "buffs": [
+					{
+						"buff": "standard-bleed",
+						"duration": 5000
+					}
+				]
+            },
 	"useQuantity":	true,
         "ballistic":    true,
         "bounces":     -5,
@@ -95,7 +109,21 @@
 
     
     "firemode1": {
-        "damage":       90,//70,//140,
+        "damage": 
+            {
+                "damageradius": 
+                {
+                    "start": 240, 
+                    "falloff": "linear"
+                },
+                "damage": 140, //70 //140
+                "buffs": [
+					{
+						"buff": "standard-bleed",
+						"duration": 5000
+					}
+				]
+            },
         "ballistic":    true,
 	"useQuantity":	true,
         "bounces":     -5,

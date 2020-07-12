@@ -5,7 +5,7 @@
 		"longname": "Shotgun Slugthrower Packs",
 		"basedOn": "AMMO_SLUGS",
 		"max": 100,
-		"pricePerUnit": 70,
+		"pricePerUnit": 7,
 		"overrides": {
 			"damage": {
 				"multiply": 0.7
@@ -34,12 +34,12 @@
 		"longname": "Czerka Arms Incendiary Slug Cartridges",
 		"basedOn": "AMMO_SLUGS",
 		"max": 100,
-		"pricePerUnit": 65,
+		"pricePerUnit": 6.5,
 		"overrides": 
 		{
 			"Damage":
 			{
-				"multiply": 0.75
+				"multiply": 0.9
 			},
 			"splashmeansofdeath": "MOD_FIRE",
 			"splashRange":
@@ -71,7 +71,7 @@
 		"longname": "Explosive Round Slugthrower Packs",
 		"basedOn": "AMMO_SLUGS",
 		"max": 60,
-		"pricePerUnit": 115,
+		"pricePerUnit": 15,
 		"overrides": {
 			"Damage": {
 				"set": 30
@@ -97,8 +97,8 @@
 			},
 			"visuals": {
 				"projectile": {
-					"hit": "explosions/explosion1",
-					"miss": "explosions/explosion1",
+					"hit": "Explosives/flechettesmall", 
+					"miss": "Explosives/flechettesmall",
 					"effect": "Slugthrowers/slug_tracershot"
 				}
 			}
@@ -109,14 +109,14 @@
 		"shortname": "Medicinal Beads",
 		"longname": "Medicinal Healing Slugthrower Beads",
 		"basedOn": "AMMO_SLUGS",
-		"max": 60,
-		"pricePerUnit": 25,
+		"max": 120,
+		"pricePerUnit": 2,
 		"overrides": 
 		{
 			"meansofdeath": "MOD_CURED",
         	"splashmeansofdeath": "MOD_CURED",
 			"Damage": {
-				"set": -2
+				"set": -5
 			},
 			
 			"splashRange":
@@ -125,10 +125,10 @@
 			},
 
 			"ammocost": {
-				"multiply": 3
+				"multiply": 2
 			},
 			"speed": {
-				"set": 1000
+				"set": 2000
 			},
 			"visuals":
 			{
@@ -150,7 +150,7 @@
 					"addbuff": true,
 					"duration": 
 					{
-						"set": 5000
+						"set": 6000
 					},
 					"intensity":
 					{

@@ -77,9 +77,9 @@
     },
     
     "firemode0": {
-        "damage":       20,
+        "damage":       12,
         "ammocost":     1,
-        "maxchargetime": 1500,
+        "maxchargetime": 1250,
         "chargedamage": 1.5,
         "chargedelay":  300,
         "collisionsize": 5.0,
@@ -103,11 +103,11 @@
     },
 
     "firemode1": {
-        "damage":       9,
+        "damage":       5,
         "ammocost":     1,
         "collisionsize": 5.0,
         "firedelay":    50,
-        "range":        1450.0,
+        "range":        1250.0,
         "recoil":       0.3,
         "spread":       0.4,
         "projectilespeed": 7000.0,
@@ -127,7 +127,7 @@
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
   //      "reload":       { "torso": "TORSO_DROPWEAP1" },
-        "reload":       { "torso": "BOTH_RIFLERELOADL" },
+        "reload":       { "torso": "BOTH_RIFLERELOADR" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },
 	"sprint":	{ "torso": "BOTH_RIFLERUN" },

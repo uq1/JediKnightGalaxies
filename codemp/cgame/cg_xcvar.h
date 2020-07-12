@@ -195,6 +195,7 @@ XCVAR_DEF( ui_hidehud,							"0",					NULL,					CVAR_INTERNAL )
 XCVAR_DEF( ui_blurbackground,					"0",					NULL,					CVAR_INTERNAL )
 XCVAR_DEF( jkg_simpleHUD,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( jkg_safeTreasureClasses,				"0",					NULL,					CVAR_LATCH|CVAR_ARCHIVE )	//temporarily off by default until treasureclass checker is fixed
+XCVAR_DEF(cg_drawWpnHeatValue,					"0",					NULL,					CVAR_ARCHIVE|CVAR_CHEAT)	//view current weapon overheat value
 
 // TrueView
 XCVAR_DEF( cg_trueguns,							"0",					NULL,					CVAR_ARCHIVE )

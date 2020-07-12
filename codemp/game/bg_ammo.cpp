@@ -83,6 +83,40 @@ Gets the cost of refilling ammo, given an array of ammo and a weapon
 int BG_GetRefillAmmoCost(unsigned short* ammo, weaponData_t* wp)
 {
 	int totalCost = 0;
+	std::vector<ammo_t*> uniqueAmmo;	//keeps track of which ammotypes are unique among the firing modes (eg: stun and primary are often the same ammo)
+	//float ammoAdjust = 0.0;
+
+		//if passiveUnderdogBonus is enabled and our team is losing, our ammo is discounted!  Awww, thanks vendor!  
+		/*if (jkg_passiveUnderdogBonus.integer > 0)	//--Futuza: need to adjust BG_GetRefillAmmoCost() to include access to ent so we can see who's team we're on, logic should match Cmd_BuyAmmo_f() in g_cmds.cpp
+		{
+			//who is currently winning?
+			auto my_team = ent->client->sess.sessionTeam;
+			int curr_winner = -1;
+			if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
+				curr_winner = TEAM_RED;
+			else if (level.teamScores[TEAM_RED] < level.teamScores[TEAM_BLUE])
+				curr_winner = TEAM_BLUE;
+			else
+				curr_winner = -1;	//tie
+
+			//we're losing - give us discount ammo please!
+			if (my_team != curr_winner && curr_winner != -1)
+			{
+				ammoAdjust = 0.9;
+
+				//evaluate how badly the losing team is losing by and reduce ammo accordingly
+				int diff = level.teamScores[curr_winner] - level.teamScores[my_team];
+				ammoAdjust = (1 - (float)diff / level.teamScores[curr_winner]);
+
+				if (ammoAdjust > 0.9)	//minimum discount is 10% off
+					ammoAdjust = 0.9;
+
+				if (ammoAdjust < 0.25)
+					ammoAdjust = 0.25;		//maximum discount is 75% off
+			}
+		}*/
+
+	
 	for (int i = 0; i < wp->numFiringModes; i++)
 	{
 		ammo_t* ammoType = wp->firemodes[i].ammoDefault;
@@ -91,9 +125,36 @@ int BG_GetRefillAmmoCost(unsigned short* ammo, weaponData_t* wp)
 			continue;	// bad linkage - shouldn't happen
 		}
 
-		int ammoCount = ammoType->ammoMax - ammo[ammoType->ammoIndex];
-		totalCost += ammoCount * ammoType->pricePerUnit;
+		//add the first ammo to the vector
+		if (i == 0)
+		{
+			uniqueAmmo.push_back(ammoType);
+			continue;
+		}
+
+		//compare each ammo in the vector to our new ammo to ensure its unique
+		for (int j = 0; j <= uniqueAmmo.size(); j++)
+		{
+			if (j == uniqueAmmo.size())
+				uniqueAmmo.push_back(ammoType); //we made it to the end, its unique
+
+			if (uniqueAmmo[j] != ammoType)
+				continue; //unique so far
+
+			else
+				break; //found a samesy
+		}
 	}
+
+	//add up all the unique ammo
+	for (int i = 0; i < uniqueAmmo.size(); i++)
+	{
+		int ammoCount = uniqueAmmo[i]->ammoMax - ammo[uniqueAmmo[i]->ammoIndex];
+
+		//int cost = (float)uniqueAmmo[i]->pricePerUnit * ammoAdjust;  //if we enable above underdogbonus, uncomment this and adjust below line
+		totalCost += ammoCount * uniqueAmmo[i]->pricePerUnit;
+	}
+
 	return totalCost;
 }
 
@@ -355,7 +416,7 @@ static void JKG_ParseAmmoOverride_Means(cJSON* json, const char* name, std::pair
 	}
 	else {
 		field.first = qtrue;
-		field.second = JKG_GetMeansOfDamageIndex(cJSON_ToString(json));
+		field.second = JKG_GetMeansOfDamageIndex(cJSON_ToString(node));
 	}
 }
 
@@ -682,8 +743,8 @@ Overrides are things such as changing damage, ...
 */
 static void JKG_ParseAmmoOverrides(ammo_t* ammo, cJSON* json) {
 	
-	JKG_ParseAmmoOverride_Means(json, "means", ammo->overrides.means);
-	JKG_ParseAmmoOverride_Means(json, "splashmeans", ammo->overrides.splashmeans);
+	JKG_ParseAmmoOverride_Means(json, "meansofdeath", ammo->overrides.means);
+	JKG_ParseAmmoOverride_Means(json, "splashmeansofdeath", ammo->overrides.splashmeans);
 
 
 	JKG_ParseAmmoOverride_Int(json, "damage", ammo->overrides.damage);

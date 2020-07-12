@@ -73,30 +73,30 @@
     
     "firemode0": {
         "damage": {
-		"damage": 10,
+		"damage": 11,
 		"buffs": [
 			{
 				"buff": "standard-bleed",
-				"duration": 10000
+				"duration": 12000
 			}
 		]
 	},
         "ballistic":    true,
         "ammocost":     1,
         "firedelay":    120,
-        "range":        40000.0,
-        "recoil":       1.6,
+        "range":        45000.0,
+        "recoil":       1.4,
         "spread":       0.2,
         "projectilespeed": 28000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_SLUGTHROWER",
 	"ammobase": "AMMO_SLUGS",
 	"ammodefault": "AMMO_SLUGS",
-        "clipSize":              30,
+        "clipSize":              40,
         "accuracy": {
         	"accuracyRating": 32,
         	"accuracyRatingPerShot": 2,
-        	"msToDrainAccuracy": 60,
+        	"msToDrainAccuracy": 50,
         	"maxAccuracyAdd": 100,
         	"sightsModifier": 0.4
         }
@@ -108,7 +108,7 @@
 		"buffs": [
 			{
 				"buff": "standard-bleed",
-				"duration": 10000
+				"duration": 12000
 			}
 		]
 	},
@@ -116,21 +116,21 @@
         "ammocost":     1,
         "firedelay":    120,
         "firingtype":   "semi",
-        "range":        40000.0,
-        "recoil":       1.2,
+        "range":        45000.0,
+        "recoil":       0.9,
         "spread":       0.2,
         "projectilespeed": 28000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_SLUGTHROWER",
 	"ammobase": "AMMO_SLUGS",
 	"ammodefault": "AMMO_SLUGS",
-        "clipSize":              30,
+        "clipSize":              40,
         "accuracy": {
         	"accuracyRating": 16,
-        	"accuracyRatingPerShot": 3,
-        	"msToDrainAccuracy": 60,
+        	"accuracyRatingPerShot": 1.5,
+        	"msToDrainAccuracy": 50,
         	"maxAccuracyAdd": 50,
-        	"sightsModifier": 0.3
+        	"sightsModifier": 0.2
         }
     },
     

@@ -3379,7 +3379,6 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 			else if (it->id->itemType == ITEM_WEAPON) {
 				// It's a weapon, automatically reload us
 				weaponData_t* wp = GetWeaponData(it->id->weaponData.weapon, it->id->weaponData.variation);
-
 				for (int j = 0; j < wp->numFiringModes; j++)
 				{
 					if (wp->firemodes[j].clipSize > 0)
@@ -3412,6 +3411,23 @@ void ClientSpawn(gentity_t *ent, qboolean respawn) {
 	/*if (client->ps.jetpack) {
 		client->ps.jetpackFuel = jetpackTable[client->ps.jetpack - 1].fuelCapacity;		//fill jetpack
 	}*/
+
+	ent->client->ps.heat = 0.0f;		//set initial heat on spawn
+	ent->client->ps.overheated = false;
+	if (ent->client->ps.maxHeat < 1 || ent->client->ps.heatThreshold < 1)
+	{
+		const weaponData_t* wp = GetWeaponData(ent->client->ps.weapon, ent->client->ps.weaponVariation);
+		ent->client->ps.maxHeat = wp->firemodes[ent->client->ps.firingMode].maxHeat;
+		ent->client->ps.heatThreshold = wp->firemodes[ent->client->ps.firingMode].heatThreshold;
+
+		//double check the weapon has a maxHeat and heatThreshold settings, if not set it to 100 and 75%.
+		if (ent->client->ps.maxHeat < 1)
+			ent->client->ps.maxHeat = 100;
+
+		if (ent->client->ps.heatThreshold < 1)
+			ent->client->ps.heatThreshold = ent->client->ps.maxHeat * 0.75;
+	}
+
 
 	GLua_Hook_PlayerSpawned(ent->s.number);
 

@@ -81,7 +81,7 @@
 		"longname": "Czerka Arms Smoke Canisters",
 		"basedOn": "AMMO_EXPLOSIVE_CANISTER",
 		"max": 12,
-		"pricePerUnit": 25,
+		"pricePerUnit": 5,
 		"overrides": {
 			"damage": {
 				"set": 1

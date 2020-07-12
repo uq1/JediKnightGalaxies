@@ -26,18 +26,8 @@
             "armsound":     "sound/weapons/laser_trap/warning.wav",
             "firesound":    "sound/weapons/laser_trap/fire.wav",
             "miss":         { "sticksound": "sound/weapons/laser_trap/stick.wav" },
-            "explodefx":    "explosives/demosmall"
-        },
-        
-        "firemode1": {
-            "type":         "tripmine",
-            
-            "linefx":       "tripMine/glowbit",
-            "g2model":      "models/weapons/Mine_LaserTrip/projectile.glm",
-            "g2radius":     100,
-            "armsound":     "sound/weapons/laser_trap/warning.wav",
-            "firesound":    "sound/weapons/laser_trap/alt_fire.wav",
-            "explodefx":    "explosives/demosmall"
+            "explodefx":    "explosives/demosmall",
+            "displayName":  "Beam"
         }
     },
     
@@ -50,7 +40,21 @@
     },
     
     "firemode0": {
-        "damage":       60,
+        "damage": 
+            {
+                "damageradius": 
+                {
+                    "start": 150, 
+                    "falloff": "linear"
+                },
+                "damage": 100,
+                "buffs": [
+					{
+						"buff": "standard-bleed",
+						"duration": 5000
+					}
+				]
+            },
 	"useQuantity":	true,
         "ammocost":     1,
         "firedelay":    1000,

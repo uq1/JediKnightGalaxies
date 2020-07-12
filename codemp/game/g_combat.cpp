@@ -1644,7 +1644,7 @@ JKG_HandleUnclaimedBounties
 qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 {
 	int multiplier = (deadguy->client->numKillsThisLife > jkg_maxKillStreakBounty.integer) ? jkg_maxKillStreakBounty.integer : deadguy->client->numKillsThisLife;
-	gentity_t* player; int reward = jkg_bounty.integer*multiplier ;	//set default reward as jkg_bounty
+	gentity_t* player; int reward = jkg_bounty.integer*multiplier;	//set default reward as jkg_bounty
 	int team_amt{ 0 };	//# of players on the team to reward
 
 	int teamToReward = deadguy->client->sess.sessionTeam;	//get dead guy's team
@@ -1668,6 +1668,12 @@ qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 	if (team_amt < 1)	//nobody there
 		return false;
 
+	//calculate team reward split
+	reward = (reward / team_amt);																//equally distribute reward among team
+	reward = (reward < jkg_teamKillBonus.integer) ? jkg_teamKillBonus.integer : reward;			//unless its less than teamKillBonus
+	if (team_amt == 1)																			//if only one player, don't give him the whole reward since its not a direct kill
+		reward = reward * 0.5;
+
 	for (int i = 0; i < sv_maxclients.integer; i++)
 	{
 		player = &g_entities[i];
@@ -1677,10 +1683,6 @@ qboolean JKG_HandleUnclaimedBounties(gentity_t* deadguy)
 		//if we're not on deadguy's team, we deserve a reward!
 		if (player->client->sess.sessionTeam == teamToReward)
 		{
-			reward = (reward / team_amt);																//equally distribute reward among team
-			reward = (reward < jkg_teamKillBonus.integer) ? jkg_teamKillBonus.integer : reward;			//unless its less than teamKillBonus
-			if (team_amt == 1)																			//if only one player, don't give him the whole reward since its not a direct kill
-				reward = reward * 0.5;
 			trap->SendServerCommand(player->s.number, va("notify 1 \"Team Bounty Claimed: +%i Credits\"", reward));
 			player->client->ps.credits += reward;
 			//consider doing some sort of sound to hint at reward here  --futuza
@@ -2213,7 +2215,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	Team_FragBonuses(self, inflictor, attacker);
 
 	// if I committed suicide, the flag does not fall, it returns.
-	if (meansOfDeath == MOD_SUICIDE) {
+	if (meansOfDeath == MOD_SUICIDE || meansOfDeath == MOD_TEAM_CHANGE) {
 		if ( self->client->ps.powerups[PW_REDFLAG] ) {		// only happens in standard CTF
 			Team_ReturnFlag( TEAM_RED );
 			self->client->ps.powerups[PW_REDFLAG] = 0;
@@ -2301,7 +2303,23 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		static int i;
 
 		anim = G_PickDeathAnim(self, self->pos1, damage, meansOfDeath, HL_NONE);
+		
+		/*--Futuza
+		To Do: Fix, so we can get headshot information.  Get_HitLocation(self, self->pos1) should work to determine hit location, but gives wrong locations, might be broken everywhere not just here?
 
+		int hitLoc = Get_HitLocation(self, self->pos1);
+		if (hitLoc == HL_HEAD) //--futuza: notify of headshots
+		{
+			if (inflictor != attacker)
+			{
+				trap->SendServerCommand(attacker - g_entities, va("notify 1 \"Headshot!\""));
+				trap->SendServerCommand(self - g_entities, va("notify 1 \"Head blow!\""));
+			}
+
+			else
+				trap->SendServerCommand(self - g_entities, va("notify 1 \"Head blow!\""));
+		}*/
+		
 		if (anim >= 1)
 		{ //Some droids don't have death anims
 			// for the no-blood option, we need to prevent the health
@@ -3181,6 +3199,7 @@ int G_GetHitQuad( gentity_t *self, vec3_t hitloc )
 int gGAvoidDismember = 0;
 
 void UpdateClientRenderBolts(gentity_t *self, vec3_t renderOrigin, vec3_t renderAngles);
+
 
 qboolean G_GetHitLocFromSurfName( gentity_t *ent, const char *surfName, int *hitLoc, vec3_t point, vec3_t dir, vec3_t bladeDir, int mod )
 {
@@ -4563,11 +4582,11 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 				case BOTH_GETUP_BROLL_L: case BOTH_GETUP_BROLL_R:
 				case BOTH_GETUP_FROLL_B: case BOTH_GETUP_FROLL_F:
 				case BOTH_GETUP_FROLL_L: case BOTH_GETUP_FROLL_R:
-				if (targ->playerState->legsTimer > 0)	//they're rolling perfectly
+				if (targ->playerState->legsTimer > 0)	//they're rolling in time
 				{
 					int timing = bgAllAnims[targ->localAnimIndex].anims[targ->client->ps.legsAnim].numFrames * fabs((float)(bgHumanoidAnimations[targ->client->ps.legsAnim].frameLerp));	//get animation timing length
 					timing *= 0.5f; //cut in two
-					if ( (timing+300 > targ->playerState->legsTimer) && (targ->playerState->legsTimer > timing-300) )
+					if ( (timing+300 > targ->playerState->legsTimer) && (targ->playerState->legsTimer > timing-300) )		//perfect timing
 					{
 						trap->SendServerCommand(targ - g_entities, va("notify 1 \"Flawless Dodge!\""));
 						take > 2 ? take *= (1 - (dmgReduction * 2)) : take = 1;	//double , or set it to 1
@@ -4600,12 +4619,13 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	//	3. Reduce damage by armor reduction
 
 	// save some from shield
-	if (means->modifiers.shieldBlocks && targ->client->ps.stats[STAT_SHIELD] > 0)
+	if (targ->client && means->modifiers.shieldBlocks && targ->client->ps.stats[STAT_SHIELD] > 0)
 	{
 		// this damage is -completely avoided- because we're wearing a shield
-		ssave = take;
+		ssave = 1;	//setting to 1 for now, to indicate immunity since we can't display 0's or characters with plums yet
 		take = 0;
 		ShieldHitEffect(targ, dir, ssave);
+
 	}
 	else
 	{
@@ -4618,16 +4638,44 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 					targ->client->ps.stats[STAT_SHIELD] -= ssave;
 					take = 0;
 				}
-				else if (targ->client->ps.stats[STAT_SHIELD] > 0) {
-					// we have some shields but we can break some damage through
-					take -= targ->client->ps.stats[STAT_SHIELD];
-					targ->client->ps.stats[STAT_SHIELD] = 0;
+				else if (targ->client->ps.stats[STAT_SHIELD] > 0)
+				{
+					//special exception for when damage ties shield charge
+					if (static_cast<int>(take*means->modifiers.shield) == targ->client->ps.stats[STAT_SHIELD])
+					{
+						targ->client->ps.stats[STAT_SHIELD] = 0;
+						take = 0;
+					}
+
+					// we have some shield charge but some damage will break through
+					else
+					{
+						take -= targ->client->ps.stats[STAT_SHIELD];
+						targ->client->ps.stats[STAT_SHIELD] = 0;
+
+						if (take < 1)			//this isn't just safety checking, in the event that the means does extra damage to shields, ssave will be > take, so we'd end up a negative spill over.
+							take = -take;	  //eg: 27 shield, 26 take (multipled to 41 shield dmg reduced to 27) == 26-27 == -1, uh oh!  no worries, math is still correct, just reverse the negative
+					}
+					
 				}
 			}
 			ShieldHitEffect(targ, dir, ssave);
 		}
 	}
-	
+
+	//apply EMP effects from electric damage
+	if(take && targ->client && means->modifiers.isEMP)
+	{	
+		//short out jetpacks
+		if (targ->client->ps.eFlags & EF_JETPACK_ACTIVE)
+			Jetpack_Off(targ);
+
+		/*put other electronic effects here
+		  eg: make HUD or radar go fuzzy, short out other equipment/tech, etc.*/
+
+		//G_Sound(targ, CHAN_AUTO, G_SoundIndex(va("sound/effects/spark_small0%i.wav", Q_irand(0, 3)))); //emp shorting out sound --futuza fix me, y u no play?
+		//should add an electric spark on player model here somewhere
+	}
 
 	if (take > 0 && !(dflags&DAMAGE_NO_HIT_LOC))
 	{//see if we should modify it by damage location

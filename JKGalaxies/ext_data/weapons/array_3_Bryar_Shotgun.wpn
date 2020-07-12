@@ -112,7 +112,7 @@
     },
     
     "firemode1": {
-        "damage":       60,
+        "damage":       35,
         "ammocost":     1,
         "burstshotdelay": 250,
         "firedelay":    900,
@@ -167,7 +167,7 @@
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
 //        "reload":       { "torso": "TORSO_DROPWEAP1" },
-        "reload":       { "torso": "BOTH_RIFLERELOADL" },
+        "reload":       { "torso": "BOTH_RIFLERELOADR" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },
 	"ready":	{ "torso": "BOTH_BASE_RIFLESTANCE", "legs": "BOTH_STAND1" },

@@ -75,11 +75,16 @@
     
     "firemode0": {
         "damage": {
-			"damage": 20,
+            "damage": 10,
+			"damageradius": 
+                {
+                    "start": 50, 
+                    "falloff": "constant"
+                },
 			"buffs": [
 					{
 						"buff": "standard-stun",
-						"duration": 5000
+						"duration": 4000
 					}
 				],
 			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
@@ -99,17 +104,22 @@
         "projectilespeed":1200.0,
         "projectileclass":"repeater_alt_proj",
         "clipSize":              0,
-        "meansofdeath": "MOD_EXPLOSION",
+        "meansofdeath": "MOD_STUNNED",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "firemode1": {
         "damage": {
-			"damage": 20,
+            "damage": 10,
+			"damageradius": 
+                {
+                    "start": 50, 
+                    "falloff": "constant"
+                },
 			"buffs": [
 					{
 						"buff": "standard-stun",
-						"duration": 5000
+						"duration": 4000
 					}
 				],
 			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
@@ -129,7 +139,7 @@
         "projectilespeed":900.0,
         "projectileclass":"repeater_alt_proj",
         "clipSize":              0,
-        "meansofdeath": "MOD_EXPLOSION",
+        "meansofdeath": "MOD_STUNNED",
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
     

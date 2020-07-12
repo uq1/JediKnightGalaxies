@@ -3,10 +3,10 @@
 	"internal":	"shield_blastech_imp",
 	"itemtype":	"shield",
 	"itemIcon":	"gfx/hud/psd_small",
-	"cost":		"375",
+	"cost":		"415",
 	
-	"capacity":	50,
-	"cooldown":	0,
+	"capacity":	35,
+	"cooldown":	750,
 	"regenrate":	1200,
 
 	"brokenSoundEffect":	"sound/shield/shield_broken",

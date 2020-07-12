@@ -2,7 +2,7 @@
 	"ref":		"gltorso",
 	"slot":		"torso",
 	"armor":		85,
-	"movemodifier":	0.9,
+	"movemodifier":	0.95,
 
 	"visuals": {
 		"model":	"models/players/glightarmor/model.glm*default",

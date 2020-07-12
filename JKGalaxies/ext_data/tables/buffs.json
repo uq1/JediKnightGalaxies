@@ -251,6 +251,20 @@
 			"damagerate": 850,
 			"deadly": false
 		}
+	},
+	
+	//sting beam, adds stacking slows, does no damage
+	"standard-sting":
+	{
+		"category": "slow",
+		"priority": 50,
+		
+		"canceling":
+		{
+			
+		}
+		
+	
 	}
 
 	// movement speed modifier is not implemented yet

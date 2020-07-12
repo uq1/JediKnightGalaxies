@@ -289,22 +289,35 @@ void G_TickBuffs(gentity_t* ent)
 						damage < 0 ? damage : damage = -1;
 				}
 
-				//jkg_allowDebuffKills allows debuffs to finish off targets
-				if (jkg_allowDebuffKills.integer && damage > 0)
+				//check if debuff is doing damage
+				if (damage > 0)
 				{
-					//only allow debuffs to whittle us down, not kill us
-					if (health - damage <= 0)
+					//if jkg_allowDebuffKills == 0 (or less), we have carebear debuffs enabled
+					if (jkg_allowDebuffKills.integer < 1)  
 					{
-						damage = 0;
-					}
-				}
-				else
-				{
-					//all damaging debuffs are deadly, don't adjust damage
-					if (pBuff->damage.deadly == false)	//if debuff type isn't deadly, carebear treatment
-					{
-						if (health - damage <= 0)	//whittle us down
+						//only allow debuffs to whittle us down, not kill us
+						if (health - damage <= 0)
+						{
 							damage = 0;
+						}
+					}
+
+					//jkg_allowDebuffKills allows debuffs to finish off targets
+					else
+					{
+						//debuffs are deadly, depending on the wpn (default behavior)
+						if (jkg_allowDebuffKills.integer == 1)
+						{
+							if (pBuff->damage.deadly == false)	//if debuff type isn't deadly, carebear treatment
+							{
+								if (health - damage <= 0)
+									damage = 0;
+							}
+						}
+
+						//all damaging debuffs are deadly, don't adjust damage
+						else
+							;
 					}
 				}
 
@@ -331,6 +344,7 @@ static void DebuffPlayer ( gentity_t *player, damageArea_t *area, int damage, in
     
     if ( !player->client )
     {
+		//JKG_DoObjectDamage(data, targ, inflictor, attacker, dir, origin, dflags, mod);
         return;
     }
 
@@ -518,7 +532,7 @@ static qboolean DamagePlayersInArea ( damageArea_t *area )
         // Area has decayed, set as inactive.
 		return qtrue;
     }
-    
+
     if ( (area->lastDamageTime + area->data->damageDelay) > level.time )
     {
         // Too soon to try to damage players again.
@@ -728,6 +742,7 @@ void JKG_DoSplashDamage ( damageSettings_t* data, const vec3_t origin, gentity_t
             area->context.damageFlags = data->damageFlags;
             area->context.inflictor = inflictor;
             area->context.methodOfDeath = mod;
+			area->context.ammoType = inflictor->s.ammoType;
             area->startTime = level.time + data->delay;
 
 			if(bDoDamageOverride) {
@@ -757,6 +772,7 @@ void JKG_DoSplashDamage ( damageSettings_t* data, const vec3_t origin, gentity_t
         a.context.inflictor = inflictor;
         a.context.methodOfDeath = mod;
         a.startTime = level.time;
+		a.context.ammoType = inflictor->s.ammoType;
 
 		if (attacker->client)
 		{
@@ -774,6 +790,64 @@ void JKG_DoSplashDamage ( damageSettings_t* data, const vec3_t origin, gentity_t
     }
 }
 
+
+// ========================================================
+//JKG_DoObjectDamage
+//---------------------------------------------------------
+// Description: This handles damage to non client
+// such as trip mines or map objects.
+//=========================================================
+void JKG_DoObjectDamage(damageSettings_t* data, gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t origin, int dflags, int mod)
+{
+	damageArea_t area;
+	int damage;
+
+	if (!targ->takedamage)
+	{
+		return;
+	}
+
+	if (targ->health <= 0)
+	{
+		return;
+	}
+
+	//this is for damaging things, not people
+	if (targ->client)
+	{
+		return;
+	}
+
+	memset(&area, 0, sizeof(area));
+
+	area.data = data;
+
+	// The firing mode's base damage can lie! It doesn't account for dynamic damage amounts (ie weapon charging)
+	area.context.damageOverride = JKG_ChargeDamageOverride(inflictor, inflictor == attacker);
+	if (area.context.damageOverride != 0 && area.data->damage != area.context.damageOverride)
+	{
+		damage = area.context.damageOverride;
+	}
+	else
+	{
+		damage = data->damage;
+	}
+
+	VectorCopy(dir, area.context.direction);
+	if (attacker->client && attacker->client->ps.ammoType)
+	{
+		area.context.ammoType = attacker->client->ps.ammoType;
+		JKG_ApplyAmmoOverride(damage, ammoTable[area.context.ammoType].overrides.damage);
+	}
+	else
+	{
+		area.context.ammoType = -1;
+	}
+
+	G_Damage(targ, inflictor, attacker, dir, origin, damage, dflags, mod);
+
+}
+
 //=========================================================
 // JKG_DoDamage
 //---------------------------------------------------------
@@ -789,7 +863,13 @@ void JKG_DoDamage ( damageSettings_t* data, gentity_t *targ, gentity_t *inflicto
         JKG_DoSplashDamage (data, origin, inflictor, attacker, NULL, mod);
     }
 
-    JKG_DoDirectDamage (data, targ, inflictor, attacker, dir, origin, dflags, mod);
+	//targetting a player/npcs
+	if (targ->client)
+		JKG_DoDirectDamage(data, targ, inflictor, attacker, dir, origin, dflags, mod);
+
+	//targetting an object
+	else
+		JKG_DoObjectDamage(data, targ, inflictor, attacker, dir, origin, dflags, mod);
 }
 
 //=========================================================

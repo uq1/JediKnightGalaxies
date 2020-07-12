@@ -1786,7 +1786,10 @@ typedef struct playerState_s {
 
 	int				firingMode;
 	int				ammoType;
-	int				heat;
+	float			heat;				//current weapon heat value
+	int				maxHeat;			//current weapon maxheat value    (actual max)
+	int				heatThreshold;		//current weapon's heat threshold (recommended max)
+	qboolean		overheated;			// If true, this weapon is currently overheated and is waiting for heatThreshold to reset
 
 	unsigned int	ironsightsTime;
 	unsigned int	ironsightsDebounceStart;
@@ -2201,6 +2204,9 @@ typedef struct entityState_s {
 	int				jetpack;
 	int				buffsActive;
 	buffdata_t		buffs[PLAYERBUFF_BITS];
+
+	float			heat;		//current weapon heat level
+	int				maxHeat;
 
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 	

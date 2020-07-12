@@ -65,11 +65,11 @@
     },
     
     "firemode0": {
-        "damage":       23,
+        "damage":       21,
         "ammocost":     1,
-        "firedelay":    50,
+        "firedelay":    75,
         "firingtype":   "semi",
-        "range":	2000.0,
+        "range":	750.0,
         "recoil":       0.9,
         "spread":       0.3,
         "projectilespeed": 3000.0,
@@ -110,6 +110,7 @@
         "spread":       1.0,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
+		"meansofdeath": "MOD_STUNNED",
 		"ammobase": "AMMO_SS_POWERPACK",
 		"ammodefault": "AMMO_MS_POWERPACK",
         "clipSize":              6,

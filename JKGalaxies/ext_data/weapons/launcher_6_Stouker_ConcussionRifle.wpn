@@ -63,7 +63,7 @@
     },
     
     "firemode0": {
-        "damage": 35,//100,
+        "damage": 40,//100,
         "ballistic":    true,
         "collisionsize":1.0,
         "ammocost":     2,
@@ -94,7 +94,7 @@
     },
     
     "firemode1": {
-        "damage":       50,//50,
+        "damage":       55,//50,
         "ballistic":    true,
         "collisionsize": 8.0,
         "ammocost":     1,

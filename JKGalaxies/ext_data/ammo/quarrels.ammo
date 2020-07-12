@@ -2,8 +2,8 @@
 	"AMMO_QUARREL": {
 		"shortname": "Bowcaster Quarrels",
 		"longname": "Wookiee Bowcaster Quarrel Packs",
-		"max": 50,
-		"pricePerUnit": 10
+		"max": 100,
+		"pricePerUnit": 3.5
 	},
 	
 	"AMMO_QUARREL_EXPLOSIVE": {
@@ -11,7 +11,7 @@
 		"longname": "Explosive Wookiee Bowcaster Quarrel Packs",
 		"basedOn": "AMMO_QUARREL",
 		"max": 120,
-		"pricePerUnit": 25,
+		"pricePerUnit": 5,
 		"overrides": {
 			"Damage": {
 				"multiply": 0.9
@@ -24,9 +24,9 @@
 			},
 			"visuals": {
 				"projectile": {
-					"hit": "Blasters/green_impacthuge",
+					"hit": "Blasters/green_impacthuge", //green_impacthuge is slightly too big, but green_impactbig is too wimpy, need to make a new green_impactlarge that's somewhere inbetween
 					"miss": "Blasters/green_impacthuge",
-					"effect": "Blasters/shot_Green_Flare_large"
+					"effect": "Blasters/shot_Green_Flare_medium"
 				}
 			}
 		}
@@ -37,7 +37,7 @@
 		"longname": "Splitting Wookiee Bowcaster Quarrel Packs",
 		"basedOn": "AMMO_QUARREL",
 		"max": 120,
-		"pricePerUnit": 35,
+		"pricePerUnit": 7,
 		"overrides": {
 			"damage": {
 				"multiply": 0.7
@@ -72,7 +72,7 @@
 		"longname": "Bouncing Wookiee Bowcaster Quarrel Pack",
 		"basedOn": "AMMO_QUARREL",
 		"max": 120,
-		"pricePerUnit": 25,
+		"pricePerUnit": 5,
 		"overrides": {
 			"damage": {
 				"multiply": 0.8

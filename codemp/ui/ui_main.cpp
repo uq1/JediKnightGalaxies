@@ -748,23 +748,30 @@ static const char *GetNetSourceString(int iSource)
 
 	Q_strncpyz( result, GetCRDelineatedString( "MP_INGAME", "NET_SOURCES", UI_SourceForLAN() ), sizeof(result) );
 
-	if ( iSource >= UIAS_GLOBAL1 && iSource <= UIAS_GLOBAL5 ) {
+	if ( iSource >= UIAS_GLOBAL1 && iSource <= UIAS_GLOBAL5 ) 
+	{
+		if(iSource > 1)
+			iSource--; //offset by one, sv_master0 == all servers  --Futuza: fixme, need to redo the whole ui_server source ordering, this also makes internet sources offset by one, but better than completely broke i guess
+
 		char masterstr[MAX_CVAR_VALUE_STRING], cvarname[sizeof("sv_master1")];
 
 		Com_sprintf(cvarname, sizeof(cvarname), "sv_master%d", iSource);
 		trap->Cvar_VariableStringBuffer(cvarname, masterstr, sizeof(masterstr));
+		
 		if(*masterstr)
 		{
 			auto search = masterServers.find(masterstr);
-			if(search != masterServers.end())
+			if (search != masterServers.end())
 			{
-				Q_strncpyz(result, search->second.c_str(), sizeof(result) );
+				Q_strncpyz(result, search->second.c_str(), sizeof(result)); //other sources will just show up as "internet"
 				return result;
 			}
 		}
 		//Q_strcat( result, sizeof(result), va( " %d", iSource ) );
-	}
 
+		if (iSource == 0)
+			Q_strncpyz(result, "All Masters", sizeof("All Masters")); //the first source, just combines all masterservers into one list
+	}
 	return result;
 }
 

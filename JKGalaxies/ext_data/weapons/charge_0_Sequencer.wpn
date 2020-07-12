@@ -44,7 +44,15 @@
     },
     
     "firemode0": {
-        "damage": 100,
+        "damage": 
+        {
+            "damage": 225,
+            "damageradius": 
+            { 
+                "start": 220,
+                "falloff": "linear" 
+            }
+        },                 
 	"useQuantity":	true,
         "ammocost":     1,
         "firedelay":    1000,
@@ -54,7 +62,9 @@
         "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
-    "firemode1": { },
+    "firemode1": { 
+        
+    },
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },

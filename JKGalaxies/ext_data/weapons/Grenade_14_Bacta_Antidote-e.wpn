@@ -86,7 +86,7 @@
 			},
             "duration": 1000,
             "delay": 0,
-            "damage": -5,
+            "damage": -40,
             "damagedelay": 350,
 			"buffs": [
 			{
@@ -101,17 +101,21 @@
 		{
             "damageradius": 
 			{ 
-				"start": 128,
+				"start": 228,
                 "falloff": "linear" },
                 "duration": 1500,
                 "delay": 500,
-                "damage": -1,
+                "damage": -3,
                 "damagedelay": 250,
                 "buffs": [
 				{
 					"buff": "standard-antidote",
 					"duration": 5000
-				}
+				},
+                {
+                    "buff": "standard-heal",
+                    "duration": 5000
+                }
 				],
 			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
         },
@@ -123,9 +127,9 @@
         "grenadeBounceDMG": 0,
         "collisionsize":1.7,
         "ammocost":     1,
-        "maxchargetime":3000,
-        "chargedelay":  3000,
-        "firedelay":    1000,
+        "maxchargetime":1000,
+        "chargedelay":  1000,
+        "firedelay":    5000,
         "firingtype":   "semi",
         "recoil":       3.0,
         "spread":       1.0,
@@ -150,7 +154,7 @@
 			},
             "duration": 1000,
             "delay": 0,
-            "damage": -5,
+            "damage": -40,
             "damagedelay": 300,
 			"buffs": [
 			{
@@ -165,17 +169,21 @@
 		{
             "damageradius": 
 			{ 
-				"start": 128,
+				"start": 228,
                 "falloff": "linear" },
                 "duration": 1500,
                 "delay": 500,
-                "damage": -1,
+                "damage": -3,
                 "damagedelay": 250,
                 "buffs": [
 				{
 					"buff": "standard-antidote",
 					"duration": 5000
-				}
+				},
+                {
+                    "buff": "standard-heal",
+                    "duration": 5000
+                }
 				],
 			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
         },
@@ -187,9 +195,9 @@
         "grenadeBounceDMG": 0,
         "collisionsize":1.7,
         "ammocost":     1,
-        "maxchargetime":3000,
-        "chargedelay":  3000,
-        "firedelay":    1000,
+        "maxchargetime":1000,
+        "chargedelay":  1000,
+        "firedelay":    5000,
         "firingtype":   "semi",
         "recoil":       3.0,
         "spread":       1.0,

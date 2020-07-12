@@ -85,7 +85,7 @@
         	"maxAccuracyAdd": 90,
         	"sightsModifier": 0.4
         },
-	"heatGenerated": 8
+	"heatGenerated": 3.4
     },
     
     "firemode1": {
@@ -107,7 +107,7 @@
 	"ammobase": "AMMO_G36_POWERPACK",
 	"ammodefault": "AMMO_G36_POWERPACK",
         "clipSize":              40,
-	"heatGenerated": 8
+	"heatGenerated": 3.4
     },
     
     "playeranims": {

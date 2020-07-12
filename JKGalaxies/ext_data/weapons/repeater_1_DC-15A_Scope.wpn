@@ -37,7 +37,8 @@
             "projectilefx": "blasters/shot_blue_small",
             "miss":         { "impactfx": "weapons/blaster_impact_blue_medium_fire" },
             "hit":          { "impactfx": "blasters/blue_flesh_impact" },
-            "deathfx": "blasters/shot_blue_vaporize"
+            "deathfx": "blasters/shot_blue_vaporize",
+            "displayName":  "Repeater"
         },
         
         "firemode1": {
@@ -49,11 +50,13 @@
                 "sound/weapons/blasters/droideka3.mp3",
                 "sound/weapons/blasters/droideka4.mp3"
             ],
+            "chargingfx":   "weapons/charge_samus",
             "muzzlefx":     "blasters/muzzleflash_blue_big",
             "projectilefx": "blasters/shot_Blue_Flare_big",
             "miss":         { "impactfx": "weapons/blaster_impact_blue_huge_fire" },
             "hit":          { "impactfx": "weapons/blaster_impact_blue_huge" },
-            "deathfx": "blasters/shot_bluegreen_vaporize"
+            "deathfx": "blasters/shot_bluegreen_vaporize",
+            "displayName":  "Heavy Blaster"
         },
 
         "scope": {
@@ -99,14 +102,14 @@
     },
     
     "firemode1": {
-        "damage":       25,//50,
+        "damage":       60,//50,
         "maxchargetime":1500,
         "chargedamage": 2.0,
         "chargedelay":  1500,
         "ammocost":     50,
         "firedelay":    900,
         "firingtype":   "semi",
-        "splashrange":  100,//50,
+        "splashrange":  125,//50,
         "range":        7000.0,
         "recoil":       3.0,
         "spread":       0.75,
@@ -118,8 +121,8 @@
 	"ammodefault": "AMMO_ION_POWERPACK_L",
         "clipSize":              100,
         "accuracy": {
-        	"accuracyRating": 85,
-        	"accuracyRatingPerShot": 12,
+        	"accuracyRating": 50,
+        	"accuracyRatingPerShot": 10,
         	"msToDrainAccuracy": 55,
         	"maxAccuracyAdd": 155,
         	"crouchModifier": 0.99,

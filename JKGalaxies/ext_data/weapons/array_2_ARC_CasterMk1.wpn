@@ -65,13 +65,13 @@
     
     "stats": {
         "slot":         1,
-        "reloadtime":   2000,
+        "reloadtime":   3000,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
     
     "firemode0": {
-        "damage":       25,
+        "damage":       13,
         "ammocost":     1,
         "maxchargetime": 1500,
         "chargedamage": 1.5,
@@ -97,7 +97,7 @@
     },
 
     "firemode1": {
-        "damage":       10,
+        "damage":       6,
         "ammocost":     1,
         "collisionsize": 5.0,
         "firedelay":    50,
