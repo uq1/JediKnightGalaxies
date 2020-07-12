@@ -37,7 +37,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 	
 #elif defined FINAL_BUILD
 	#define JK_VERSION "" GIT_BRANCH " / " GIT_HASH ""
-	#define JKG_VERSION_SUFFIX ""
+	#define JKG_VERSION_SUFFIX "a"
 	
 #else
 	#define JK_VERSION "" GIT_BRANCH " / " GIT_HASH " (internal)"
