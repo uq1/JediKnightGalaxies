@@ -7,6 +7,12 @@ uniform mat4        u_ModelViewProjectionMatrix;
 
 uniform vec4		u_Local0;
 
+uniform vec3		u_ViewOrigin;
+uniform vec4		u_PrimaryLightOrigin;
+
+varying vec2		var_ScreenTex;
+
+#ifdef __OLD_SSAO__
 const float camerazoom = 1.0;
 
 //#define raycasts 4			//Increase for better quality
@@ -238,3 +244,96 @@ void main( void ) {
         }
         
 }
+#else //!__OLD_SSAO__
+
+float linearize(float depth)
+{
+	//float d = clamp((1.0 / mix(u_ViewInfo.z, 1.0, depth)) + u_Local0.g * u_Local0.b, 0.0, 1.0);
+	float d = clamp(pow((1.0 / mix(u_ViewInfo.z, 1.0, depth)), 0.2), 0.0, 1.0);
+	return d;
+}
+
+float DepthToZPosition(in float depth) {
+	return u_ViewInfo.x / (u_ViewInfo.y - depth * (u_ViewInfo.y - u_ViewInfo.x)) * u_ViewInfo.y;
+}
+
+float GetDepth(in vec2 texcoord)
+{
+	return linearize(texture2D(u_ScreenDepthMap, texcoord).x);
+}
+
+vec2 offset1 = vec2(0.0, 1.0 / u_Dimensions.y);
+vec2 offset2 = vec2(1.0 / u_Dimensions.x, 0.0);
+
+vec3 normal_from_depth(vec2 texcoords) {
+	float depth = GetDepth(texcoords);
+	float depth1 = GetDepth(texcoords + offset1);
+	float depth2 = GetDepth(texcoords + offset2);
+  
+	vec3 p1 = vec3(offset1, depth1 - depth);
+	vec3 p2 = vec3(offset2, depth2 - depth);
+  
+	vec3 normal = cross(p1, p2);
+	normal.z = -normal.z;
+  
+	return normalize(normal);
+}
+
+float drawObject(in vec3 p){
+    p = abs(fract(p)-.5);
+    return dot(p, vec3(.5));
+}
+
+float cellTile(in vec3 p)
+{
+    p /= 5.5;
+
+    vec4 v, d; 
+    d.x = drawObject(p - vec3(.81, .62, .53));
+    p.xy = vec2(p.y-p.x, p.y + p.x)*.7071;
+    d.y = drawObject(p - vec3(.39, .2, .11));
+    p.yz = vec2(p.z-p.y, p.z + p.y)*.7071;
+    d.z = drawObject(p - vec3(.62, .24, .06));
+    p.xz = vec2(p.z-p.x, p.z + p.x)*.7071;
+    d.w = drawObject(p - vec3(.2, .82, .64));
+
+    v.xy = min(d.xz, d.yw), v.z = min(max(d.x, d.y), max(d.z, d.w)), v.w = max(v.x, v.y); 
+   
+    d.x =  min(v.z, v.w) - min(v.x, v.y);
+
+    return d.x*2.66;
+}
+
+float aomap(vec3 p)
+{
+    float n = (.5-cellTile(p))*1.5;
+    return p.y + dot(sin(p/2. + cos(p.yzx/2. + 3.14159/2.)), vec3(.5)) + n;
+}
+
+float calculateAO(in vec3 pos, in vec3 nor, in vec2 texCoords)
+{
+	float sca = 0.00013/*2.0*/, occ = 0.0;
+
+	for( int i=0; i<5; i++ ) {
+		float hr = 0.01 + float(i)*0.5/4.0;        
+		float dd = aomap(nor * hr + pos);
+		occ += (hr - dd)*sca;
+		sca *= 0.7;
+	}
+
+	return clamp( 1.0 - occ, 0.0, 1.0 );    
+}
+
+void main( void ) {
+	float depth = GetDepth( var_ScreenTex );
+
+	if (depth<1.0) {
+		vec3 sunDir = normalize(u_ViewOrigin.xyz - u_PrimaryLightOrigin.xyz);
+		vec3 N = normal_from_depth( var_ScreenTex );
+		float ao = calculateAO(sunDir, N * 10000.0, var_ScreenTex);
+		gl_FragColor=vec4(ao, ao, ao, 1.0);
+	} else {
+		gl_FragColor=vec4(1.0);
+	}
+}
+#endif //__OLD_SSAO__

@@ -1651,6 +1651,17 @@ void RB_SSAO(FBO_t *hdrFbo, vec4i_t hdrBox, FBO_t *ldrFbo, vec4i_t ldrBox)
 		GLSL_SetUniformVec4(&tr.ssaoShader, UNIFORM_LOCAL0, local0);
 	}
 
+	{
+		vec3_t out;
+		float dist = 4096.0;//backEnd.viewParms.zFar / 1.75;
+		VectorMA(backEnd.refdef.vieworg, dist, backEnd.refdef.sunDir, out);
+		GLSL_SetUniformVec4(&tr.ssaoShader, UNIFORM_PRIMARYLIGHTORIGIN, out);
+	}
+
+	{
+		GLSL_SetUniformVec3(&tr.ssaoShader, UNIFORM_VIEWORIGIN, backEnd.refdef.vieworg);
+	}
+
 	//FBO_Blit(hdrFbo, hdrBox, NULL, ldrFbo, ldrBox, &tr.ssaoShader, color, 0);
 
 	FBO_Blit(hdrFbo, hdrBox, NULL, tr.genericFbo2, ldrBox, &tr.ssaoShader, color, 0);
