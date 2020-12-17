@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#define	CGAME_API_VERSION		1
+#define	CGAME_API_VERSION		2
 
 #define	CMD_BACKUP			64
 #define	CMD_MASK			(CMD_BACKUP - 1)
@@ -56,7 +56,6 @@ typedef struct snapshot_s {
 	byte			areamask[MAX_MAP_AREA_BYTES];		// portalarea visibility bits
 
 	playerState_t	ps;						// complete information about the current player at this time
-	playerState_t	vps; //vehicle I'm riding's playerstate (if applicable) -rww
 
 	int				numEntities;			// all of the entities that need to be presented
 	entityState_t	entities[MAX_ENTITIES_IN_SNAPSHOT];	// at the time of this snapshot
@@ -251,6 +250,11 @@ typedef struct cgameImport_s {
 	int				(*FS_Open)								( const char *qpath, fileHandle_t *f, fsMode_t mode );
 	int				(*FS_Read)								( void *buffer, int len, fileHandle_t f );
 	int				(*FS_Write)								( const void *buffer, int len, fileHandle_t f );
+
+	// performance analysis
+	performanceData_t* (*Perf_GetData)();
+	void			(*Perf_Start)							( const char* tagName );
+	void			(*Perf_End)								( const char* tagName );
 
 	// screen
 	void			(*UpdateScreen)							( void );
@@ -456,6 +460,7 @@ typedef struct cgameImport_s {
 	void			(*G2API_CleanEntAttachments)			( void );
 	qboolean		(*G2API_OverrideServer)					( void *serverInstance );
 	void			(*G2API_GetSurfaceName)					( void *ghoul2, int surfNumber, int modelIndex, char *fillBuf );
+	int				(*G2API_GetSurfaceCount)				( void* ghoul2 );
 
 	uiCrossoverExports_t *(*CO_InitCrossover)				( cgCrossoverExports_t *co );
 	void			(*CO_Shutdown)							( void );

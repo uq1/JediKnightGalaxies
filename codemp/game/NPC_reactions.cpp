@@ -41,7 +41,6 @@ extern qboolean PM_SpinningSaberAnim( int anim );
 extern qboolean PM_SpinningAnim( int anim );
 extern qboolean PM_InKnockDown( playerState_t *ps );
 extern qboolean BG_FlippingAnim( int anim );
-extern qboolean PM_RollingAnim( int anim );
 extern qboolean PM_InCartwheel( int anim );
 extern qboolean BG_CrouchAnim( int anim );
 
@@ -302,7 +301,7 @@ void NPC_ChoosePainAnimation( gentity_t *self, gentity_t *other, vec3_t point, i
 				||*/ PM_SpinningAnim( self->client->ps.legsAnim )
 				|| BG_SaberInSpecialAttack( self->client->ps.torsoAnim )
 				|| PM_InKnockDown( &self->client->ps )
-				|| PM_RollingAnim( self->client->ps.legsAnim )
+				|| BG_RollingAnim( self->client->ps.legsAnim )
 				|| (BG_FlippingAnim( self->client->ps.legsAnim )&&!PM_InCartwheel( self->client->ps.legsAnim )) )
 			{//strong attacks, rolls, knockdowns, flips and spins cannot be interrupted by pain
 			}
@@ -631,7 +630,7 @@ void NPC_Touch(gentity_t *self, gentity_t *other, trace_t *trace)
 			NPCInfo->aiFlags |= NPCAI_TOUCHED_GOAL;
 		}
 
-		if( /*!(self->svFlags&SVF_LOCKEDENEMY) && !(self->svFlags&SVF_IGNORE_ENEMIES) &&*/ !(other->flags & FL_NOTARGET) )
+		if( !NPC->bVendor && !(other->flags & FL_NOTARGET) )
 		{
 			if ( self->client->enemyTeam )
 			{//See if we bumped into an enemy
@@ -1047,31 +1046,7 @@ void NPC_Use( gentity_t *self, gentity_t *other, gentity_t *activator )
 
 	if(self->client && self->NPC)
 	{
-		// If this is a vehicle, let the other guy board it. Added 12/14/02 by AReis.
-		if ( self->client->NPC_class == CLASS_VEHICLE )
-		{
-			Vehicle_t *pVeh = self->m_pVehicle;
-
-			if ( pVeh && pVeh->m_pVehicleInfo )
-			{
-				//if I used myself, eject everyone on me
-				if ( other == self )
-				{
-					pVeh->m_pVehicleInfo->EjectAll( pVeh );
-				}
-				// If other is already riding this vehicle (self), eject him.
-				else if ( other->s.owner == self->s.number )
-				{
-					pVeh->m_pVehicleInfo->Eject( pVeh, (bgEntity_t *)other, qfalse );
-				}
-				// Otherwise board this vehicle.
-				else
-				{
-					pVeh->m_pVehicleInfo->Board( pVeh, (bgEntity_t *)other );
-				}
-			}
-		}
-		else if ( NPC_Humanoid_WaitingAmbush( NPC ) )
+		if ( NPC_Humanoid_WaitingAmbush( NPC ) )
 		{
 			NPC_Humanoid_Ambush( NPC );
 		}
@@ -1083,33 +1058,10 @@ void NPC_Use( gentity_t *self, gentity_t *other, gentity_t *activator )
 //			Add_Batteries( activator, &self->client->ps.batteryCharge );
 			//rwwFIXMEFIXME: support for this?
 		}
-		// Not using MEDICs anymore
-/*
-		if ( self->NPC->behaviorState == BS_MEDIC_HIDE && activator->client )
-		{//Heal me NOW, dammit!
-			if ( activator->health < activator->client->ps.stats[STAT_MAX_HEALTH] )
-			{//person needs help
-				if ( self->NPC->eventualGoal != activator )
-				{//not my current patient already
-					NPC_TakePatient( activator );
-					G_ActivateBehavior( self, BSET_USE );
-				}
-			}
-			else if ( !self->enemy && activator->s.number == 0 && !gi.VoiceVolume[self->s.number] && !(self->NPC->scriptFlags&SCF_NO_RESPONSE) )
-			{//I don't have an enemy and I'm not talking and I was used by the player
-				NPC_UseResponse( self, other, qfalse );
-			}
-		}
-*/
-//		else if ( self->behaviorSet[BSET_USE] )
 		if ( self->behaviorSet[BSET_USE] )
 		{
 			NPC_UseResponse( self, other, qtrue );
 		}
-//		else if ( isMedic( self ) )
-//		{//Heal me NOW, dammit!
-//			NPC_TakePatient( activator );
-//		}
 		else if ( !self->enemy 
 			&& activator->s.number < MAX_CLIENTS 
 			&& /*!gi.VoiceVolume[self->s.number] &&*/ !(self->NPC->scriptFlags&SCF_NO_RESPONSE) )

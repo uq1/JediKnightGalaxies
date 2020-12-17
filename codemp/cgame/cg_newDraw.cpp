@@ -35,34 +35,7 @@ int CG_GetSelectedPlayer() {
 }
 
 qhandle_t CG_StatusHandle(int task) {
-	qhandle_t h = cgs.media.assaultShader;
-	switch (task) {
-		case TEAMTASK_OFFENSE :
-			h = cgs.media.assaultShader;
-			break;
-		case TEAMTASK_DEFENSE :
-			h = cgs.media.defendShader;
-			break;
-		case TEAMTASK_PATROL :
-			h = cgs.media.patrolShader;
-			break;
-		case TEAMTASK_FOLLOW :
-			h = cgs.media.followShader;
-			break;
-		case TEAMTASK_CAMP :
-			h = cgs.media.campShader;
-			break;
-		case TEAMTASK_RETRIEVE :
-			h = cgs.media.retrieveShader; 
-			break;
-		case TEAMTASK_ESCORT :
-			h = cgs.media.escortShader; 
-			break;
-		default : 
-			h = cgs.media.assaultShader;
-			break;
-	}
-	return h;
+	return NULL_HANDLE;
 }
 
 
@@ -84,12 +57,12 @@ float CG_GetValue(int ownerDraw) {
 		return ci->health;
 		break;
 	case CG_PLAYER_ARMOR_VALUE:
-		return ps->stats[STAT_ARMOR];
+		return ps->stats[STAT_SHIELD];
 		break;
 	case CG_PLAYER_AMMO_VALUE:
 		if ( cent->currentState.weapon ) 
 		{
-			return ps->ammo;
+			return ps->stats[STAT_TOTALAMMO];
 		}
 		break;
 	case CG_PLAYER_SCORE:
@@ -264,234 +237,7 @@ const char *CG_GetGameStatusText(void) {
 	
 extern int MenuFontToHandle(int iMenuFont);
 
-// maxX param is initially an X limit, but is also used as feedback. 0 = text was clipped to fit within, else maxX = next pos
-//
-static void CG_Text_Paint_Limit(float *maxX, float x, float y, float scale, vec4_t color, const char* text, float adjust, int limit, int iMenuFont) 
-{
-	qboolean bIsTrailingPunctuation;
-
-	// this is kinda dirty, but...
-	//
-	int iFontIndex = MenuFontToHandle(iMenuFont);
-
-	//float fMax = *maxX;
-	int iPixelLen = trap->R_Font_StrLenPixels(text, iFontIndex, scale);
-	if (x + iPixelLen > *maxX)
-	{
-		// whole text won't fit, so we need to print just the amount that does...
-		//  Ok, this is slow and tacky, but only called occasionally, and it works...
-		//
-		char sTemp[4096]={0};	// lazy assumption
-		const char *psText = text;
-		char *psOut = &sTemp[0];
-		char *psOutLastGood = psOut;
-		unsigned int uiLetter;
-
-		while (*psText && (x + trap->R_Font_StrLenPixels(sTemp, iFontIndex, scale)<=*maxX) 
-			&& psOut < &sTemp[sizeof(sTemp)-1]	// sanity
-		)
-		{
-			int iAdvanceCount;
-			psOutLastGood = psOut;			
-
-			uiLetter = trap->R_AnyLanguage_ReadCharFromString(psText, &iAdvanceCount, &bIsTrailingPunctuation);
-			psText += iAdvanceCount;
-
-			if (uiLetter > 255)
-			{
-				*psOut++ = uiLetter>>8;
-				*psOut++ = uiLetter&0xFF;
-			}
-			else
-			{
-				*psOut++ = uiLetter&0xFF;
-			}
-		}
-		*psOutLastGood = '\0';
-
-		*maxX = 0;	// feedback
-		CG_Text_Paint(x, y, scale, color, sTemp, adjust, limit, ITEM_TEXTSTYLE_NORMAL, iMenuFont);
-	}
-	else
-	{
-		// whole text fits fine, so print it all...
-		//
-		*maxX = x + iPixelLen;	// feedback the next position, as the caller expects		
-		CG_Text_Paint(x, y, scale, color, text, adjust, limit, ITEM_TEXTSTYLE_NORMAL, iMenuFont);
-	}
-}
-
-
-
-#define PIC_WIDTH 12
-
 extern const char *CG_GetLocationString(const char *loc); //cg_main.c
-void CG_DrawNewTeamInfo(rectDef_t *rect, float text_x, float text_y, float scale, vec4_t color, qhandle_t shader) {
-	int xx;
-	float y;
-	int i, j, len, count;
-	const char *p;
-	vec4_t		hcolor;
-	float pwidth, lwidth, maxx, leftOver;
-	clientInfo_t *ci;
-	gitem_t	*item;
-	qhandle_t h;
-
-	// max player name width
-	pwidth = 0;
-	count = (numSortedTeamPlayers > 8) ? 8 : numSortedTeamPlayers;
-	for (i = 0; i < count; i++) {
-		ci = cgs.clientinfo + sortedTeamPlayers[i];
-		if ( ci->infoValid && ci->team == cg.snap->ps.persistant[PERS_TEAM]) {
-			len = CG_Text_Width( ci->name, scale, 0);
-			if (len > pwidth)
-				pwidth = len;
-		}
-	}
-
-	// max location name width
-	lwidth = 0;
-	for (i = 1; i < MAX_LOCATIONS; i++) {
-		p = CG_GetLocationString(CG_ConfigString(CS_LOCATIONS+i));
-		if (p && *p) {
-			len = CG_Text_Width(p, scale, 0);
-			if (len > lwidth)
-				lwidth = len;
-		}
-	}
-
-	y = rect->y;
-
-	for (i = 0; i < count; i++) {
-		ci = cgs.clientinfo + sortedTeamPlayers[i];
-		if ( ci->infoValid && ci->team == cg.snap->ps.persistant[PERS_TEAM]) {
-
-			xx = rect->x + 1;
-			for (j = 0; j <= PW_NUM_POWERUPS; j++) {
-				if (ci->powerups & (1 << j)) {
-
-					item = BG_FindItemForPowerup( (powerup_t)j );
-
-					if (item) {
-						CG_DrawPic( xx, y, PIC_WIDTH, PIC_WIDTH, trap->R_RegisterShader( item->icon ) );
-						xx += PIC_WIDTH;
-					}
-				}
-			}
-
-			// FIXME: max of 3 powerups shown properly
-			xx = rect->x + (PIC_WIDTH * 3) + 2;
-
-			CG_GetColorForHealth( ci->health, ci->armor, hcolor );
-			trap->R_SetColor(hcolor);
-			CG_DrawPic( xx, y + 1, PIC_WIDTH - 2, PIC_WIDTH - 2, cgs.media.heartShader );
-
-			//Com_sprintf (st, sizeof(st), "%3i %3i", ci->health,	ci->armor);
-			//CG_Text_Paint(xx, y + text_y, scale, hcolor, st, 0, 0); 
-
-			// draw weapon icon
-			xx += PIC_WIDTH + 1;
-
-			// weapon used is not that useful, use the space for task
-#if 0
-			if ( cg_weapons[ci->curWeapon].weaponIcon ) {
-				CG_DrawPic( xx, y, PIC_WIDTH, PIC_WIDTH, cg_weapons[ci->curWeapon].weaponIcon );
-			} else {
-				CG_DrawPic( xx, y, PIC_WIDTH, PIC_WIDTH, cgs.media.deferShader );
-			}
-#endif
-
-			trap->R_SetColor(NULL);
-			h = CG_StatusHandle(ci->teamTask);
-
-			if (h) {
-				CG_DrawPic( xx, y, PIC_WIDTH, PIC_WIDTH, h);
-			}
-
-			xx += PIC_WIDTH + 1;
-
-			leftOver = rect->w - xx;
-			maxx = xx + leftOver / 3;
-
-
-
-			CG_Text_Paint_Limit(&maxx, xx, y + text_y, scale, color, ci->name, 0, 0, FONT_MEDIUM); 
-
-			p = CG_GetLocationString(CG_ConfigString(CS_LOCATIONS+ci->location));
-			if (!p || !*p) {
-				p = "unknown";
-			}
-
-			xx += leftOver / 3 + 2;
-			maxx = rect->w - 4;
-
-			CG_Text_Paint_Limit(&maxx, xx, y + text_y, scale, color, p, 0, 0, FONT_MEDIUM); 
-			y += text_y + 2;
-			if ( y + text_y + 2 > rect->y + rect->h ) {
-				break;
-			}
-
-		}
-	}
-}
-
-
-void CG_DrawTeamSpectators(rectDef_t *rect, float scale, vec4_t color, qhandle_t shader) {
-	if (cg.spectatorLen) {
-		float maxX;
-
-		if (cg.spectatorWidth == -1) {
-			cg.spectatorWidth = 0;
-			cg.spectatorPaintX = rect->x + 1;
-			cg.spectatorPaintX2 = -1;
-		}
-
-		if (cg.spectatorOffset > cg.spectatorLen) {
-			cg.spectatorOffset = 0;
-			cg.spectatorPaintX = rect->x + 1;
-			cg.spectatorPaintX2 = -1;
-		}
-
-		if (cg.time > cg.spectatorTime) {
-			cg.spectatorTime = cg.time + 10;
-			if (cg.spectatorPaintX <= rect->x + 2) {
-				if (cg.spectatorOffset < cg.spectatorLen) {
-					cg.spectatorPaintX += CG_Text_Width(&cg.spectatorList[cg.spectatorOffset], scale, 1) - 1;
-					cg.spectatorOffset++;
-				} else {
-					cg.spectatorOffset = 0;
-					if (cg.spectatorPaintX2 >= 0) {
-						cg.spectatorPaintX = cg.spectatorPaintX2;
-					} else {
-						cg.spectatorPaintX = rect->x + rect->w - 2;
-					}
-					cg.spectatorPaintX2 = -1;
-				}
-			} else {
-				cg.spectatorPaintX--;
-				if (cg.spectatorPaintX2 >= 0) {
-					cg.spectatorPaintX2--;
-				}
-			}
-		}
-
-		maxX = rect->x + rect->w - 2;
-		CG_Text_Paint_Limit(&maxX, cg.spectatorPaintX, rect->y + rect->h - 3, scale, color, &cg.spectatorList[cg.spectatorOffset], 0, 0, FONT_MEDIUM); 
-		if (cg.spectatorPaintX2 >= 0) {
-			float maxX2 = rect->x + rect->w - 2;
-			CG_Text_Paint_Limit(&maxX2, cg.spectatorPaintX2, rect->y + rect->h - 3, scale, color, cg.spectatorList, 0, cg.spectatorOffset, FONT_MEDIUM); 
-		}
-		if (cg.spectatorOffset && maxX > 0) {
-			// if we have an offset ( we are skipping the first part of the string ) and we fit the string
-			if (cg.spectatorPaintX2 == -1) {
-				cg.spectatorPaintX2 = rect->x + rect->w - 2;
-			}
-		} else {
-			cg.spectatorPaintX2 = -1;
-		}
-
-	}
-}
 	
 //
 void CG_OwnerDraw(void *alwaysNull, float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle,int font, int ownerDrawID) {

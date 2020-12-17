@@ -76,7 +76,6 @@
         "ammoIndex":         "grenade_thermal-e",
         "ammoOnSpawn":   1,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "roll" ]
     },
     
@@ -91,7 +90,13 @@
                           "delay": 0,
                           "damage": 50,
                           "damagedelay": 50,
-                          "damagetype": [ "disintegrate", "explosion", "fire" ]
+				"buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "secondarydamage": {
                           "damageradius": { "start": 128,
@@ -100,9 +105,16 @@
                           "delay": 500,
                           "damage": 1,
                           "damagedelay": 150,
-                          "damagetype": [ "fire" ]
+                          "buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				],
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
         "ammocost":     1,
@@ -115,8 +127,9 @@
         "spread":       1.0,
         "projectilespeed":1100.0,
         "projectileclass":"thermal_detonator",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "clipSize":              0,
+        "meansofdeath": "MOD_DISRUPTOR",
+        "splashmeansofdeath": "MOD_DISRUPTOR"
     },
     
     "firemode1": {
@@ -131,8 +144,14 @@
                           "delay": 0,			 //If the damage type should be delayed (ms)
                           "damage": 50,		 //Damage to do per damagedelay
                           "damagedelay": 50,		 //Milliseconds between each damage burst
-                          "damagetype": [ "disintegrate", "explosion", "fire" ],	 //Valid are annihilate, concussion, cut, disintegrate, electric, explosion, fire, freeze, carbonite, implosion, stun. 
-                          "penetration": 3 },		 //Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
+                          "buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				],	 //Valid are annihilate, concussion, cut, disintegrate, electric, explosion, fire, freeze, carbonite, implosion, stun. 
+                          "penetration": 3,
+			  "flags":	[ "DAMAGE_NO_KNOCKBACK" ] },		 //Levels of how the damage can bypass blockage... 1=shield, 2=shield+armor, 3=shield+armor+architecture
 
         "secondarydamage": {		 //If need be, have a secondary damage set as well. This is the limit, no third one...
                           "damageradius": { "start": 128,
@@ -141,9 +160,15 @@
                           "delay": 500,
                           "damage": 1,
                           "damagedelay": 150,
-                          "damagetype": [ "fire" ],
+                          "buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				],
                           "penetration": 0 },
         "ballistic":    true,
+		"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
         "ammocost":     1,
@@ -157,8 +182,9 @@
         "splashrange":  256,
         "projectilespeed":500.0,
         "projectileclass":"thermal_detonator",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "clipSize":              0,
+        "meansofdeath": "MOD_DISRUPTOR",
+        "splashmeansofdeath": "MOD_DISRUPTOR"
     },
     
     "playeranims": {

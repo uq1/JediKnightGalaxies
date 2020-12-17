@@ -5,7 +5,7 @@
 	"weapon":		"WP_BOWCASTER",
 	"variation":		"0",
 	"weight":		"15",
-	"cost":		"1250",
+	"cost":		"1150",
 	"xml":			"xml/items/DLT-19.xml",
 	"itemIcon":		"models/weapons/DLT-19_HeavyBlaster/icon_default"
 }

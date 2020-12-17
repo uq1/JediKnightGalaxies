@@ -1,0 +1,9 @@
+{
+	"name":             "Stormtrooper Body Armor",
+	"internal":             "torso_stormtrooper",
+	"itemtype":             "armor",
+	"armor":		"sttorso",
+	"weight":		"2",
+	"cost":			"500",
+	"itemIcon":		"gfx/item_icons/stormtrooper_helmet.tga"
+}

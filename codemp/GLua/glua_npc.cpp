@@ -196,6 +196,33 @@ static int GLua_NPC_Kill(lua_State *L)
 	return 0;
 }
 
+static int GLua_NPC_MakeVendor(lua_State *L)
+{
+	gentity_t* npc = GLua_CheckNPC(L, 1);
+	if (!npc) return 0;
+
+	if (npc->health <= 0)
+		return 0;
+
+	const char* tc = luaL_checkstring(L, 2);
+	JKG_MakeNPCVendor(npc, (char*)tc);
+
+	return 0;
+}
+
+static int GLua_NPC_RefreshStock(lua_State *L)
+{
+	gentity_t* npc = GLua_CheckNPC(L, 1);
+	if (!npc) return 0;
+
+	if (npc->health <= 0)
+		return 0;
+
+	JKG_RegenerateStock(npc);
+
+	return 0;
+}
+
 static int GLua_NPC_GetPos(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	vec3_t orig;
@@ -384,14 +411,14 @@ static int GLua_NPC_MaxHealth(lua_State *L) {
 static int GLua_NPC_MaxArmor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	lua_pushinteger(L,npc->client->ps.stats[STAT_MAX_ARMOR]);
+	lua_pushinteger(L,npc->client->ps.stats[STAT_MAX_SHIELD]);
 	return 1;
 }
 
 static int GLua_NPC_Armor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	lua_pushinteger(L,npc->client->ps.stats[STAT_ARMOR]);
+	lua_pushinteger(L,npc->client->ps.stats[STAT_SHIELD]);
 	return 1;
 }
 
@@ -412,14 +439,14 @@ static int GLua_NPC_SetMaxHealth(lua_State *L) {
 static int GLua_NPC_SetArmor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	npc->client->ps.stats[STAT_ARMOR] = luaL_checkinteger(L, 2);
+	npc->client->ps.stats[STAT_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 
 static int GLua_NPC_SetMaxArmor(lua_State *L) {
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	if (!npc) return 0;
-	npc->client->ps.stats[STAT_MAX_ARMOR] = luaL_checkinteger(L, 2);
+	npc->client->ps.stats[STAT_MAX_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 
@@ -1317,55 +1344,6 @@ static int GLua_NPC_GetDPitch(lua_State *L) {
 	return 1;
 }
 
-/*
-eezstreet add
-*/
-static int GLua_NPC_DeathLootTable(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if (!npc) return 0;
-	lua_pushinteger(L,npc->client->deathLootIndex);
-	return 1;
-}
-
-static int GLua_NPC_PickPocketLootTable(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if (!npc) return 0;
-	lua_pushinteger(L,npc->client->pickPocketLootIndex);
-	return 1;
-}
-
-static int GLua_NPC_SetDeathLootTable(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if (!npc) return 0;
-	npc->client->deathLootIndex = luaL_checkinteger(L, 2);
-	return 0;
-}
-
-static int GLua_NPC_SetPickPocketLootTable(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if (!npc) return 0;
-	npc->client->pickPocketLootIndex = luaL_checkinteger(L, 2);
-	return 0;
-}
-
-//v2
-static int GLua_NPC_GetCurrentLooter(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if(!npc) return 0;
-	lua_pushinteger(L, npc->currentLooter->s.number);
-	return 0;
-}
-
-static int GLua_NPC_SetCurrentLooter(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if(!npc) return 0;
-	npc->currentLooter = &g_entities[luaL_checkinteger(L, 2)];
-	return 0;
-}
-/*
-eezstreet end
-*/
-
 static int GLua_NPC_SetViewTarget(lua_State *L) {		// Does not have a Get equivalent!
 	gentity_t *npc = GLua_CheckNPC(L, 1);
 	gentity_t	*viewtarget;
@@ -1549,21 +1527,6 @@ static int GLua_NPC_SetAnimHoldTime(lua_State *L) {
 	if (section & 2) {
 		BG_SetLegsAnimTimer(&npc->client->ps, time);
 	}
-	return 0;
-}
-
-static int GLua_NPC_SetAsVendor(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if(!npc) return 0;
-	npc->bVendor = true;
-	return 0;
-}
-
-static int GLua_NPC_RefreshVendorStock(lua_State *L) {
-	gentity_t *npc = GLua_CheckNPC(L, 1);
-	if(!npc) return 0;
-	npc->s.seed = Q_irand(0, QRAND_MAX-1);
-	npc->bVendor = true;
 	return 0;
 }
 
@@ -1878,6 +1841,8 @@ static const struct luaL_reg npc_m [] = {
 	{"GetIndex", GLua_NPC_GetIndex},
 	{"IsValid", GLua_NPC_IsValid},
 	{"Kill", GLua_NPC_Kill},
+	{"MakeVendor", GLua_NPC_MakeVendor},
+	{"RefreshVendorStock", GLua_NPC_RefreshStock},
 	{"SetPos", GLua_NPC_SetPos},
 	{"GetPos", GLua_NPC_GetPos},
 	{"SetOrigin", GLua_NPC_SetPos},
@@ -1980,9 +1945,6 @@ static const struct luaL_reg npc_m [] = {
 	{"SetAnimHoldTime", GLua_NPC_SetAnimHoldTime},
 	{"SetUseRange", GLua_NPC_SetUseRange},
 	{"GetUseRange", GLua_NPC_GetUseRange},
-//Stoiss end
-	{"VendorSet", GLua_NPC_SetAsVendor},
-	{"VendorStockRefresh", GLua_NPC_RefreshVendorStock},
 	{NULL, NULL},
 };
 
@@ -2032,14 +1994,6 @@ static const struct GLua_Prop npc_p [] = {
 	{"NoKnockback", GLua_NPC_HasNoKnockback, GLua_NPC_SetNoKnockback},
 	{"NoTarget", GLua_NPC_HasNoTarget, GLua_NPC_SetNoTarget},
 	{"UseRange", GLua_NPC_GetUseRange, GLua_NPC_SetUseRange},
-	//eezstreet add
-	{"DeathLootIndex", GLua_NPC_DeathLootTable, GLua_NPC_SetDeathLootTable},
-	{"PickPocketLootIndex", GLua_NPC_PickPocketLootTable, GLua_NPC_SetPickPocketLootTable},
-	//v2
-	{"CurrentLooter", GLua_NPC_GetCurrentLooter, GLua_NPC_SetCurrentLooter},
-	//v3
-	//{"VendorIndex", 
-	//eezstreet end
 	{NULL,		NULL,						NULL},
 };
 

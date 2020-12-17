@@ -258,18 +258,12 @@ void SP_trigger_once( gentity_t *ent );
 void SP_trigger_push (gentity_t *ent);
 void SP_trigger_teleport (gentity_t *ent);
 void SP_trigger_hurt (gentity_t *ent);
-void SP_trigger_space(gentity_t *self);
-void SP_trigger_shipboundary(gentity_t *self);
-void SP_trigger_hyperspace(gentity_t *self);
-void SP_trigger_asteroid_field(gentity_t *self);
 
 void SP_target_remove_powerups( gentity_t *ent );
 void SP_target_give (gentity_t *ent);
 void SP_target_delay (gentity_t *ent);
 void SP_target_speaker (gentity_t *ent);
 void SP_target_print (gentity_t *ent);
-void SP_target_laser (gentity_t *self);
-void SP_target_character (gentity_t *ent);
 void SP_target_score( gentity_t *ent );
 void SP_target_teleporter( gentity_t *ent );
 void SP_target_relay (gentity_t *ent);
@@ -326,8 +320,6 @@ void SP_reference_tag ( gentity_t *ent );
 void SP_misc_weapon_shooter( gentity_t *self );
 
 void SP_NPC_spawner( gentity_t *self );
-
-void SP_NPC_Vehicle( gentity_t *self);
 
 void SP_NPC_Kyle( gentity_t *self );
 void SP_NPC_Lando( gentity_t *self );
@@ -623,7 +615,6 @@ spawn_t	spawns[] = {
 	{ "npc_trandoshan", qtrue,						SP_NPC_Trandoshan },
 	{ "npc_tusken", qtrue,							SP_NPC_Tusken },
 	{ "npc_ugnaught", qtrue,						SP_NPC_Ugnaught },
-	{ "npc_vehicle", qtrue,							SP_NPC_Vehicle },
 	{ "npc_weequay", qtrue,							SP_NPC_Weequay },
 	{ "path_corner", qtrue,							SP_path_corner },
 	{ "point_combat", qtrue,						SP_point_combat },
@@ -638,7 +629,6 @@ spawn_t	spawns[] = {
 	{ "target_give", qtrue,							SP_target_give },
 	{ "target_interest", qtrue,						SP_target_interest },
 	{ "target_kill", qtrue,							SP_target_kill },
-	{ "target_laser", qtrue,						SP_target_laser },
 	{ "target_level_change", qtrue,						SP_target_level_change },
 	{ "target_location", qtrue,						SP_target_location },
 	{ "target_play_music", qtrue,						SP_target_play_music },
@@ -659,15 +649,11 @@ spawn_t	spawns[] = {
 	{ "team_CTF_redspawn", qtrue,						SP_team_CTF_redspawn },
 	{ "terrain", qfalse,							SP_terrain },
 	{ "trigger_always", qfalse,						SP_trigger_always },
-	{ "trigger_asteroid_field", qfalse,					SP_trigger_asteroid_field },
 	{ "trigger_hurt", qfalse,						SP_trigger_hurt },
-	{ "trigger_hyperspace", qfalse,						SP_trigger_hyperspace },
 	{ "trigger_lightningstrike", qfalse,					SP_trigger_lightningstrike },
 	{ "trigger_multiple", qfalse,						SP_trigger_multiple },
 	{ "trigger_once", qfalse,						SP_trigger_once },
 	{ "trigger_push", qfalse,						SP_trigger_push },
-	{ "trigger_shipboundary", qfalse,					SP_trigger_shipboundary },
-	{ "trigger_space", qfalse,						SP_trigger_space },
 	{ "trigger_teleport", qfalse,						SP_trigger_teleport },
 	{ "waypoint", qtrue,							SP_waypoint },
 	{ "waypoint_navgoal", qtrue,						SP_waypoint_navgoal },
@@ -1610,7 +1596,6 @@ BSP Options
 "ls_Xb"	blue (a is OFF, z is ON)
 
 "fogstart"		override fog start distance and force linear
-"radarrange" for Siege/Vehicle radar - default range is 2500
 */
 extern void EWebPrecache(void); //g_items.c
 float g_cullDistance;
@@ -1694,6 +1679,10 @@ void SP_worldspawn( void )
 
 	G_SpawnString( "soundSet", "default", &text );
 	trap->SetConfigstring( CS_GLOBAL_AMBIENT_SET, text );
+
+	G_SpawnString( "ambientHeatRate", "100", &text );		//how fast weapon overheating should cool (lower is faster cooling, default: 100)
+	trap->Cvar_Set( "jkg_heatDissipateTime", text );
+	trap->Cvar_Update( &jkg_heatDissipateTime );
 
 	switch( level.gametype ) {
 		case GT_DUEL:
@@ -1856,15 +1845,7 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 	//
 	if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 		handle = trap->PC_LoadSource(va("maps/%s_scenario.ovrents", mapname.string));
-	else
-#ifdef __RPG__
-	if (g_gametype.integer == GT_RPG_CITY)
-		handle = trap->PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
-	else if (g_gametype.integer == GT_RPG_WILDERNESS)
-		handle = trap->PC_LoadSource(va("maps/%s_city_rpg.ovrents", mapname.string));
-	else 
-#endif //__RPG__
-	if (g_gametype.integer == GT_SINGLE_PLAYER)
+	else if (g_gametype.integer == GT_SINGLE_PLAYER)
 		handle = trap->PC_LoadSource(va("maps/%s_coop.ovrents", mapname.string));
 	else
 		handle = trap->PC_LoadSource(va("maps/%s.ovrents", mapname.string));
@@ -1922,15 +1903,7 @@ void G_SpawnEntitiesFromString( qboolean inSubBSP ) {
 		// it's used to add new ents to existing pure ET map
 		if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 			handle = trap->PC_LoadSource(va("maps/%s_scenario.entities", mapname.string));
-		else
-#ifdef __RPG__
-		if (g_gametype.integer == GT_RPG_CITY)
-			handle = trap->PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
-		else if (g_gametype.integer == GT_RPG_WILDERNESS)
-			handle = trap->PC_LoadSource(va("maps/%s_city_rpg.entities", mapname.string));
-		else 
-#endif //__RPG__
-		if (g_gametype.integer == GT_SINGLE_PLAYER)
+		else if (g_gametype.integer == GT_SINGLE_PLAYER)
 			handle = trap->PC_LoadSource(va("maps/%s_coop.entities", mapname.string));
 		else
 			handle = trap->PC_LoadSource(va("maps/%s.entities", mapname.string));

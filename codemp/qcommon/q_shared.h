@@ -35,6 +35,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // Include Global Definitions Header...
 #include "../game/z_global_defines.h"
 #define PRODUCT_NAME		"jkgalaxies"
+#define PRODUCT_SHORT_NAME	"JKG"
 
 #define CLIENT_WINDOW_TITLE "Jedi Knight Galaxies"
 #define CLIENT_CONSOLE_TITLE "Jedi Knight Galaxies Console"
@@ -598,11 +599,7 @@ typedef enum //# material_e
 } material_t;
 
 //rww - bot stuff that needs to be shared
-#ifdef __AUTOWAYPOINT__
-#define MAX_WPARRAY_SIZE 32000
-#else //!__AUTOWAYPOINT__
-#define MAX_WPARRAY_SIZE 4096
-#endif //__AUTOWAYPOINT__
+#define MAX_WPARRAY_SIZE 1024
 #define MAX_NEIGHBOR_SIZE 32
 
 #define MAX_NEIGHBOR_LINK_DISTANCE 128
@@ -1072,6 +1069,7 @@ typedef enum {
 
 //=============================================
 
+char* Q_strpnl(char* in);
 int Q_isprint( int c );
 int Q_islower( int c );
 int Q_isupper( int c );
@@ -1486,21 +1484,18 @@ typedef struct forcedata_s {
 	int			privateDuelTime;
 } forcedata_t;
 
-
-typedef enum {
-	SENTRY_NOROOM = 1,
-	SENTRY_ALREADYPLACED,
-	SHIELD_NOROOM,
-	SEEKER_ALREADYDEPLOYED
-} itemUseFail_t;
+typedef struct buffdata_s
+{
+	int			buffID;
+	float		intensity;
+} buffdata_t;
 
 // bit field limits
 #define	MAX_STATS				16
 #define	MAX_PERSISTANT			16
 #define	MAX_POWERUPS			16
 #define	MAX_WEAPONS				19
-#define MAX_AMMO_TRANSMIT		16 // This is needed because the ammo array is 19 but only 16 sized array is networked
-#define MAX_AMMO				MAX_WEAPONS
+#define MAX_ARMOR				16
 
 #define	MAX_PS_EVENTS			2
 
@@ -1513,6 +1508,10 @@ typedef enum {
 
 #define FALL_FADE_TIME			3000
 
+#define BUFF_BITS			8					// how many bits to network for the buff ID
+#define MAX_BUFFS			(1 << BUFF_BITS)	// how many kinds of buffs exist
+#define PLAYERBUFF_BITS		16					// how many buffs can exist on the player at once
+
 //#define _ONEBIT_COMBO
 //Crazy optimization attempt to take all those 1 bit values and shove them into a single
 //send. May help us not have to send so many 1/0 bits to acknowledge modified values. -rww
@@ -1520,10 +1519,6 @@ typedef enum {
 // JKG: Toggle bit for shots remaining. Just like in JK2 with anims :D
 #define SHOTS_TOGGLEBIT (1 << 7)
 #define _OPTIMIZED_VEHICLE_NETWORKING
-//Instead of sending 2 full playerStates for the pilot and the vehicle, send a smaller,
-//specialized pilot playerState and vehicle playerState.  Also removes some vehicle
-//fields from the normal playerState -mcg
-
 // playerState_t is the information needed by both the client and server
 // to predict player motion and actions
 // nothing outside of pmove should modify these, or some degree of prediction error
@@ -1610,9 +1605,8 @@ typedef struct playerState_s {
 	int			stats[MAX_STATS];
 	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
 	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
-	int			ammo;					// Total ammo available for reloading (like an ammo pool)	//FIXME: remove?
-
-	int		unused[18];				// Unused fields	(see what I did here?)		
+	int			armor[MAX_ARMOR];
+	int			unused[2];
 
 	int			generic1;
 	int			loopSound;
@@ -1778,18 +1772,27 @@ typedef struct playerState_s {
 
 	// JKG SPECIFIC
 
-	unsigned char	weaponVariation;
-	unsigned char	weaponId;
-	unsigned char   shotsRemaining;
-	unsigned char	sprintMustWait;
-	
-	short			saberActionFlags;
+	int				weaponVariation;
+	int				weaponId;
+	int				shotsRemaining;
+	int				sprintMustWait;
+	int				jetpack;
 
-	int 			damageTypeFlags;
+	int				buffsActive;
+	buffdata_t		buffs[MAX_BUFFS];
+	
+	int				saberActionFlags;
+
 	int 			freezeTorsoAnim;
 	int 			freezeLegsAnim;
 
-	unsigned char	firingMode;
+	int				firingMode;
+	int				ammoType;
+	float			heat;				//current weapon heat value
+	int				maxHeat;			//current weapon maxheat value    (actual max)
+	int				heatThreshold;		//current weapon's heat threshold (recommended max)
+	qboolean		overheated;			// If true, this weapon is currently overheated and is waiting for heatThreshold to reset
+
 	unsigned int	ironsightsTime;
 	unsigned int	ironsightsDebounceStart;
 	qboolean		isInSights;
@@ -1798,30 +1801,21 @@ typedef struct playerState_s {
 	int				sprintDebounceTime;
 	qboolean		isSprinting;
 
-	signed short	forcePower;
+	int				forcePower;
 	float			saberSwingSpeed;
 	float			saberMoveSwingSpeed;
 
-	short			saberPommel[2];
-	short			saberShaft[2];
-	short			saberEmitter[2];
-	short			saberCrystal[2];
+	int				saberCrystal[2];
 
-	signed short	blockPoints;
+	int				blockPoints;
 
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
-	unsigned int	credits;
+	unsigned int	credits;		//how many credits we have on hand
+	//unsigned int	spent;		//how many credits we've spent so far (currently not used for anything real, but might have application in the future)
 } playerState_t;
 // For ironsights
 #define IRONSIGHTS_MSB (1 << 31)
 #define SPRINT_MSB IRONSIGHTS_MSB
-
-typedef struct siegePers_s
-{
-	qboolean	beatingTime;
-	int			lastTeam;
-	int			lastTime;
-} siegePers_t;
 
 //====================================================================
 
@@ -2185,16 +2179,14 @@ typedef struct entityState_s {
 
 	int		NPC_class; //we need to see what it is on the client for a few effects.
 
-	//If non-0, this is the index of the vehicle a player/NPC is riding.
-	int		m_iVehicleNum;
-
 	//rww - spare values specifically for use by mod authors.
 	//See netf_overrides.txt if you want to increase the send
 	//amount of any of these above 1 bit.
 
-	unsigned char	weaponVariation;
-	unsigned char	firingMode;
-	unsigned char	weaponstate;
+	int				weaponVariation;
+	int				firingMode;
+	int				weaponstate;
+	int				ammoType;		// Only used for projectiles to change graphics
 
 	int 			damageTypeFlags;
 
@@ -2202,16 +2194,21 @@ typedef struct entityState_s {
 	int 			freezeTorsoAnim;
 	int 			freezeLegsAnim;
 
-	unsigned int	saberActionFlags;
+	int				saberActionFlags;
 
-	signed short	forcePower;	// ugly I know but whatever --eez
+	int				forcePower;	// ugly I know but whatever --eez
 	float			saberSwingSpeed;
 	float			saberMoveSwingSpeed;
 
-	unsigned short	saberPommel[2];
-	unsigned short	saberShaft[2];
-	unsigned short	saberEmitter[2];
-	unsigned short	saberCrystal[2];
+	int				saberCrystal[2];
+
+	int				armor[MAX_ARMOR];
+	int				jetpack;
+	int				buffsActive;
+	buffdata_t		buffs[PLAYERBUFF_BITS];
+
+	float			heat;		//current weapon heat level
+	int				maxHeat;
 
 	qboolean		sightsTransition;	// Are we in a sights transition? (Used for player animation)
 	
@@ -2290,6 +2287,7 @@ typedef enum {
 void Rand_Init(int seed);
 float flrand(float min, float max);
 int irand(int min, int max);
+int Q_irandSafe(int value1, int value2);
 int Q_irand(int value1, int value2);
 
 /*
@@ -2390,7 +2388,6 @@ typedef enum
 
 } ForceReload_e;
 
-
 enum {
 	FONT_NONE,
 	FONT_SMALL=1,
@@ -2445,7 +2442,18 @@ void getGalacticTimeStamp(char* outStr);	//Gets current time    to use : char my
 qboolean StringContainsWord(const char *haystack, const char *needle);
 qboolean Q_stratt( char *dest, unsigned int iSize, char *source );
 
+// Performance analysis
+typedef struct
+{
+	char tagName[MAX_QPATH];
+	qboolean tagUsed;
+	uint64_t timeAccumulated;
+	uint64_t timeStarted;
+} performanceTag_t;
 
+#define MAX_PERFORMANCE_TAGS	32
+
+typedef performanceTag_t performanceData_t[MAX_PERFORMANCE_TAGS];
 
 
 
@@ -2483,6 +2491,7 @@ public:
 	}
 
 	uint_fast32_t Irand(uint_fast32_t nMin, uint_fast32_t nMax) {
+		if (nMax < nMin) nMin = nMax;
 		assert((nMax - nMin) < QRAND_MAX);
 		std::uniform_int_distribution<uint_fast32_t> gen(nMin, nMax);
 		return gen(pGenerator);

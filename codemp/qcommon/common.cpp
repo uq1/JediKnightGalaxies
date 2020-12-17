@@ -73,6 +73,7 @@ cvar_t *com_affinity;
 
 // Jedi Knight Galaxies
 cvar_t	*clver;
+cvar_t	*perf;
 
 // com_speeds times
 int		time_game;
@@ -688,6 +689,119 @@ int Com_RealTime(qtime_t *qtime) {
 	return t;
 }
 
+/*
+===================================================================
+
+PERFORMANCE ANALYSIS
+
+===================================================================
+*/
+
+static performanceData_t com_performanceData = { 0 };
+static performanceData_t com_prevPerformanceData = { 0 };
+
+/*
+================
+Com_GetPerformanceData
+================
+*/
+performanceData_t* Com_GetPerformanceData()
+{
+	return &com_prevPerformanceData;
+}
+
+
+#ifdef _MSC_VER
+#include <intrin.h>	//microsoft specific
+#else
+#include <x86intrin.h>	//linux friendly
+#endif
+/*
+================
+Com_PerformanceStart
+================
+*/
+void Com_PerformanceStart(const char* tagName)
+{
+	if (perf->integer <= 0)
+	{	// don't do this unless we're doing performance analysis
+		return;
+	}
+
+	int hash = Com_HashKey((char*)tagName, MAX_QPATH);
+	int attempts = 0;
+	hash %= MAX_PERFORMANCE_TAGS;
+	do
+	{
+		performanceTag_t* tag = &com_performanceData[hash];
+		if (!tag->tagName[0] || !tag->tagUsed || !Q_stricmp(tagName, tag->tagName))
+		{
+			// tag acceptable, mark!
+			if (!tag->tagUsed)
+			{
+				Q_strncpyz(tag->tagName, tagName, MAX_QPATH);
+				tag->tagUsed = qtrue;
+			}
+			tag->timeStarted = __rdtsc();
+			break;
+		}
+		attempts++;
+		hash++;
+		hash %= MAX_PERFORMANCE_TAGS;
+	} 
+	while (attempts < MAX_PERFORMANCE_TAGS);
+}
+
+/*
+================
+Com_PerformanceEnd
+================
+*/
+void Com_PerformanceEnd(const char* tagName)
+{
+	if (perf->integer <= 0)
+	{	// don't do this unless we're doing performance analysis
+		return;
+	}
+
+	int hash = Com_HashKey((char*)tagName, MAX_QPATH);
+	int attempts = 0;
+	hash %= MAX_PERFORMANCE_TAGS;
+	do
+	{
+		performanceTag_t* tag = &com_performanceData[hash];
+		if (!Q_stricmp(tagName, tag->tagName))
+		{
+			tag->timeAccumulated += __rdtsc() - tag->timeStarted;
+			break;
+		}
+		attempts++;
+		hash++;
+		hash %= MAX_PERFORMANCE_TAGS;
+	} while (attempts < MAX_PERFORMANCE_TAGS);
+}
+
+/*
+================
+Com_ClearPerformanceFrame
+================
+*/
+void Com_ClearPerformanceFrame()
+{
+	if (perf->integer <= 0)
+	{	// don't do this unless we're doing performance analysis
+		return;
+	}
+
+	memcpy(&com_prevPerformanceData, &com_performanceData, sizeof(performanceData_t));
+
+	for (int i = 0; i < MAX_PERFORMANCE_TAGS; i++)
+	{
+		performanceTag_t* tag = &com_performanceData[i];
+		tag->timeAccumulated = 0;
+	}
+}
+
 
 /*
 ===================================================================
@@ -977,6 +1091,22 @@ static void NORETURN Com_Error_f (void) {
 	}
 }
 
+/*
+=============
+Com_Diagnostics_f
+
+Print out diagnostic information about the machine
+=============
+*/
+static void NORETURN Com_Diagnostics_f(void)
+{
+	if (Cmd_Argc() != 2) {
+		Com_Printf("usage: diagnostics <category>\n");
+		return;
+	}
+	Sys_Diagnostics(Cmd_Argv(1));
+}
+
 
 /*
 =============
@@ -1027,7 +1157,7 @@ Com_ExecuteCfg
 
 void Com_ExecuteCfg(void)
 {
-	Cbuf_ExecuteText(EXEC_NOW, "exec JKG_Defaults.cfg\n");
+	Cbuf_ExecuteText(EXEC_NOW, "exec " DEFAULTCONFIG_CFG "\n");
 	Cbuf_Execute(); // Always execute after exec to prevent text buffer overflowing
 
 	if(!Com_SafeMode())
@@ -1165,6 +1295,7 @@ void Com_Init( char *commandLine ) {
 			Cmd_AddCommand ("crash", Com_Crash_f );
 			Cmd_AddCommand ("freeze", Com_Freeze_f);
 		}
+		Cmd_AddCommand("diagnostics", Com_Diagnostics_f);
 		Cmd_AddCommand ("quit", Com_Quit_f );
 #ifndef FINAL_BUILD
 		Cmd_AddCommand ("changeVectors", MSG_ReportChangeVectors_f );
@@ -1227,6 +1358,7 @@ void Com_Init( char *commandLine ) {
 #endif
 
 		clver = Cvar_Get("clver", JKG_VERSION, CVAR_ROM|CVAR_USERINFO);
+		perf = Cvar_Get("perf", "0", 0);
 
 		com_affinity = Cvar_Get( "com_affinity", "0", CVAR_ARCHIVE );
 		com_busyWait = Cvar_Get( "com_busyWait", "0", CVAR_ARCHIVE );
@@ -1461,6 +1593,8 @@ void Com_Frame( void ) {
 		int           timeBeforeClient = 0;
 		int           timeAfter = 0;
 
+		Com_PerformanceStart("com_frame");
+
 		// write config file if anything changed
 		Com_WriteConfiguration();
 
@@ -1528,7 +1662,9 @@ void Com_Frame( void ) {
 			timeBeforeServer = Sys_Milliseconds ();
 		}
 
+		Com_PerformanceStart("server");
 		SV_Frame( msec );
+		Com_PerformanceEnd("server");
 
 		// if "dedicated" has been modified, start up
 		// or shut down the client system.
@@ -1568,7 +1704,9 @@ void Com_Frame( void ) {
 				timeBeforeClient = Sys_Milliseconds ();
 			}
 
+			Com_PerformanceStart("client");
 			CL_Frame( msec );
+			Com_PerformanceEnd("client");
 
 			if ( com_speeds->integer ) {
 				timeAfter = Sys_Milliseconds ();
@@ -1620,6 +1758,9 @@ void Com_Frame( void ) {
 			com_affinity->modified = qfalse;
 			Sys_SetProcessorAffinity();
 		}
+
+		Com_PerformanceEnd("com_frame");
+		Com_ClearPerformanceFrame();
 
 		com_frameNumber++;
 	}

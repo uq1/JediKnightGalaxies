@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void G_SetEnemy( gentity_t *self, gentity_t *enemy );
 qboolean turret_base_spawn_top( gentity_t *base );
-void ObjectDie (gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath );
+void G_RemoveAndFireTargets (gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath );
 
 //------------------------------------------------------------------------------------------------------------
 void TurretPain( gentity_t *self, gentity_t *attacker, int damage )
@@ -125,7 +125,7 @@ void auto_turret_die ( gentity_t *self, gentity_t *inflictor, gentity_t *attacke
 	}
 	else
 	{
-		ObjectDie( self, inflictor, attacker, damage, meansOfDeath );
+		G_RemoveAndFireTargets( self, inflictor, attacker, damage, meansOfDeath );
 	}
 }
 
@@ -180,8 +180,8 @@ static void turret_fire ( gentity_t *ent, vec3_t start, vec3_t dir )
 	//bolt->dflags = DAMAGE_NO_KNOCKBACK;// | DAMAGE_HEAVY_WEAP_CLASS;		// Don't push them around, or else we are constantly re-aiming
 	bolt->splashDamage = ent->damage;
 	bolt->splashRadius = 100;
-	bolt->methodOfDeath = MOD_TARGET_LASER;
-	bolt->splashMethodOfDeath = MOD_TARGET_LASER;
+	bolt->methodOfDeath = JKG_GetMeansOfDamageIndex("MOD_BLASTER");
+	bolt->splashMethodOfDeath = JKG_GetMeansOfDamageIndex("MOD_BLASTER");
 	bolt->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 	//bolt->trigger_formation = qfalse;		// don't draw tail on first frame
 
@@ -290,24 +290,7 @@ static void turret_aim( gentity_t *self )
 		// Aim at enemy
 		VectorCopy( self->enemy->r.currentOrigin, org );
 		org[2]+=self->enemy->r.maxs[2]*0.5f;
-		if (self->enemy->s.eType == ET_NPC &&
-			self->enemy->s.NPC_class == CLASS_VEHICLE &&
-			self->enemy->m_pVehicle &&
-			self->enemy->m_pVehicle->m_pVehicleInfo->type == VH_WALKER)
-		{ //hack!
-			org[2] += 32.0f;
-		}
-		/*
-		mdxaBone_t	boltMatrix;
-
-		// Getting the "eye" here
-		trap->G2API_GetBoltMatrix( self->ghoul2, self->playerModel,
-					self->torsoBolt,
-					&boltMatrix, self->r.currentAngles, self->s.origin, (cg.time?cg.time:level.time),
-					NULL, self->s.modelScale );
-
-		trap->G2API_GiveMeVectorFromMatrix( boltMatrix, ORIGIN, org2 );
-		*/
+		
 		VectorCopy( top->r.currentOrigin, org2 );
 
 		VectorSubtract( org, org2, enemyDir );

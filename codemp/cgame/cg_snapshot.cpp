@@ -51,15 +51,21 @@ static void CG_ResetEntity( centity_t *cent ) {
 		cent->pe.legs.animationNumber = -1;
 	}
 
-#if 0
-	if (cent->isRagging && (cent->currentState.eFlags & EF_DEAD))
-	{
-		VectorAdd(cent->lerpOrigin, cent->lerpOriginOffset, cent->lerpOrigin);
-	}
-#endif
-
 	if ( cent->currentState.eType == ET_PLAYER || cent->currentState.eType == ET_NPC ) {
 		CG_ResetPlayerEntity( cent );
+	}
+}
+
+/*
+===============
+CG_EntityStateChanged
+
+cent->currentState has been changed
+===============
+*/
+void CG_EntityStateChanged(centity_t* cent, entityState_t* to, entityState_t* from) {
+	if (cent->currentState.eType == ET_PLAYER /*|| cent->currentState.eType == ET_NPC || cent->currentState.eType == ET_BODY*/) {
+		CG_ArmorChanged(cent, to, from);
 	}
 }
 
@@ -71,6 +77,7 @@ cent->nextState is moved to cent->currentState and events are fired
 ===============
 */
 void CG_TransitionEntity( centity_t *cent ) {
+	CG_EntityStateChanged(cent, &cent->nextState, &cent->currentState);
 	cent->currentState = cent->nextState;
 	cent->currentValid = qtrue;
 
@@ -142,6 +149,26 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 	}
 }
 
+/*
+===================
+CG_CheckNewPlayerState
+
+Checks the new playerstate for any differences this frame and copies the new onto the old
+===================
+*/
+static void CG_CheckNewPlayerState(snapshot_t* oldSnap, snapshot_t* newSnap) {
+	entityState_t newState = cg_entities[cg.snap->ps.clientNum].currentState;
+	entityState_t oldState = newState;
+	centity_t* cent = &cg_entities[newSnap->ps.clientNum];
+
+	BG_PlayerStateToEntityState(&oldSnap->ps, &oldState, qfalse);
+	BG_PlayerStateToEntityState(&newSnap->ps, &newState, qfalse);
+	CG_EntityStateChanged(cent, &newState, &oldState);
+
+	cent->currentState = newState;
+	cent->interpolate = qfalse;
+}
+
 
 /*
 ===================
@@ -180,10 +207,7 @@ static void CG_TransitionSnapshot( void ) {
 	oldFrame = cg.snap;
 	cg.snap = cg.nextSnap;
 
-	//CG_CheckPlayerG2Weapons(&cg.snap->ps, &cg_entities[cg.snap->ps.clientNum]);
-	//CG_CheckPlayerG2Weapons(&cg.snap->ps, &cg.predictedPlayerEntity);
-	BG_PlayerStateToEntityState( &cg.snap->ps, &cg_entities[ cg.snap->ps.clientNum ].currentState, qfalse );
-	cg_entities[ cg.snap->ps.clientNum ].interpolate = qfalse;
+	CG_CheckNewPlayerState(oldFrame, cg.snap);
 
 	for ( i = 0 ; i < cg.snap->numEntities ; i++ ) {
 		cent = &cg_entities[ cg.snap->entities[ i ].number ];

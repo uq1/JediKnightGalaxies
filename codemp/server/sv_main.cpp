@@ -1124,7 +1124,9 @@ void SV_Frame( int msec ) {
 		sv.time += frameMsec;
 
 		// let everything in the world think and move
+		Com_PerformanceStart("gamex86");
 		GVM_RunFrame( sv.time );
+		Com_PerformanceEnd("gamex86");
 	}
 
 	//rww - RAGDOLL_BEGIN

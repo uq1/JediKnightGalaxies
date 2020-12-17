@@ -1,0 +1,9 @@
+{
+	"name":             "Imperial Mining Helmet",
+	"internal":             "helmet_impworker",
+	"itemtype":             "armor",
+	"armor":		"iwhelmet",
+	"weight":		"2",
+	"cost":			"120",
+	"itemIcon":		"gfx/item_icons/default.tga"
+}

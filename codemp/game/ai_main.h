@@ -191,11 +191,9 @@ typedef struct bot_state_s
 	int					setupcount;								//true when the bot has just been setup
 	int					ltime;									//local bot time
 	int					entergame_time;							//time the bot entered the game
-#ifndef __MMO__
 	int					ms;										//move state of the bot
 	int					gs;										//goal state of the bot
 	int					ws;										//weapon state of the bot
-#endif //__MMO__
 	vec3_t				viewangles;								//current view angles
 	vec3_t				ideal_viewangles;						//ideal view angles
 	vec3_t				viewanglespeed;

@@ -203,24 +203,6 @@ static void C_GetLerpData( void ) {
 		data->mAngles[PITCH] = 0.0f;
 		data->mAngles[ROLL] = 0.0f;
 	}
-	else if ( cg_entities[data->mEntityNum].currentState.eType == ET_NPC ) {
-		// an NPC
-		Vehicle_t *pVeh = cg_entities[data->mEntityNum].m_pVehicle;
-		if ( !pVeh ) {
-			// for vehicles, we may or may not want to 0 out pitch and roll
-			data->mAngles[PITCH] = 0.0f;
-			data->mAngles[ROLL] = 0.0f;
-		}
-		else if ( pVeh->m_pVehicleInfo->type == VH_SPEEDER ) {
-			// speeder wants no pitch but a roll
-			data->mAngles[PITCH] = 0.0f;
-		}
-		else if ( pVeh->m_pVehicleInfo->type != VH_FIGHTER ) {
-			// fighters want all angles
-			data->mAngles[PITCH] = 0.0f;
-			data->mAngles[ROLL] = 0.0f;
-		}
-	}
 }
 
 void C_Trace( void ) {
@@ -760,10 +742,6 @@ static void CG_RegisterSounds( void ) {
 	trap->S_RegisterSound("sound/player/bodyfall_human2.wav");
 	trap->S_RegisterSound("sound/player/bodyfall_human3.wav");
 
-	//test effects
-	trap->FX_RegisterEffect("effects/mp/test_sparks.efx");
-	trap->FX_RegisterEffect("effects/mp/test_wall_impact.efx");
-
 	cgs.media.oneMinuteSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM004" );
 	cgs.media.fiveMinuteSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM005" );
 	cgs.media.oneFragSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM001" );
@@ -890,7 +868,6 @@ static void CG_RegisterSounds( void ) {
 
 	cgs.media.drainSound = trap->S_RegisterSound("sound/weapons/force/drained.mp3");
 
-	cgs.media.happyMusic = trap->S_RegisterSound("music/goodsmall.mp3");
 	cgs.media.dramaticFailure = trap->S_RegisterSound("music/badsmall.mp3");
 
 	//PRECACHE ALL MUSIC HERE (don't need to precache normally because it's streamed off the disk)
@@ -941,15 +918,8 @@ static void CG_RegisterSounds( void ) {
 	trap->R_RegisterModel ( "models/map_objects/mp/sphere.md3" );
 	trap->R_RegisterModel("models/items/remote.md3");
 
-	cgs.media.holocronPickup = trap->S_RegisterSound( "sound/player/holocron.wav" );
-
 	// No ammo sound
 	cgs.media.noAmmoSound = trap->S_RegisterSound( "sound/weapons/noammo.wav" );
-
-	// Zoom
-	cgs.media.zoomStart = trap->S_RegisterSound( "sound/interface/zoomstart.wav" );
-	cgs.media.zoomLoop	= trap->S_RegisterSound( "sound/interface/zoomloop.wav" );
-	cgs.media.zoomEnd	= trap->S_RegisterSound( "sound/interface/zoomend.wav" );
 
 	for (i=0 ; i<4 ; i++) {
 		Com_sprintf (name, sizeof(name), "sound/player/footsteps/stone_step%i.wav", i+1);
@@ -1075,17 +1045,6 @@ static void CG_RegisterSounds( void ) {
 	}
 
 	cg.loadLCARSStage = 2;
-
-	// FIXME: only needed with item
-	cgs.media.deploySeeker = trap->S_RegisterSound ("sound/chars/seeker/misc/hiss");
-	cgs.media.medkitSound = trap->S_RegisterSound ("sound/items/use_bacta.wav");
-	
-	cgs.media.winnerSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM006" );
-	cgs.media.loserSound = trap->S_RegisterSound( "sound/chars/protocol/misc/40MOM010" );
-
-	// eezstreet / JKG add: weapon/armor breaking
-	cgs.media.armorBreakSound = trap->S_RegisterSound( "sound/items/armor_break.wav" );
-	cgs.media.weaponBreakSound = trap->S_RegisterSound( "sound/items/weapon_break.wav" );
 }
 
 
@@ -1214,7 +1173,9 @@ static void CG_RegisterGraphics( void ) {
 	memset( &cg.refdef, 0, sizeof( cg.refdef ) );
 	trap->R_ClearScene();
 
-	//CG_LoadingString( cgs.mapname );        
+	// Load the loading screen tips
+	CG_ParseLoadingScreenTips();
+	
 	CG_LoadingString( cgs.mapname );
 
 	cg.showMapLoadProgress = 1;
@@ -1245,9 +1206,6 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.balloonShader = trap->R_RegisterShader( "gfx/mp/chat_icon" );
 	cgs.media.vchatShader = trap->R_RegisterShader( "gfx/mp/vchat_icon" );
 
-	cgs.media.deferShader = trap->R_RegisterShaderNoMip( "gfx/2d/defer.tga" );
-
-	cgs.media.radarShader			= trap->R_RegisterShaderNoMip ( "gfx/menus/radar/radar.png" );
 	cgs.media.siegeItemShader		= trap->R_RegisterShaderNoMip ( "gfx/menus/radar/goalitem" );
 	cgs.media.mAutomapPlayerIcon	= trap->R_RegisterShader( "gfx/menus/radar/arrow_w" );
 	cgs.media.mAutomapRocketIcon	= trap->R_RegisterShader( "gfx/menus/radar/rocket" );
@@ -1374,18 +1332,6 @@ static void CG_RegisterGraphics( void ) {
 		cgs.media.powerDuelAllyShader = trap->R_RegisterShader("gfx/mp/pduel_icon_double");//trap->R_RegisterShader("gfx/mp/pduel_gameicon_ally");
 	}
 
-	cgs.media.heartShader			= trap->R_RegisterShaderNoMip( "ui/assets/statusbar/selectedhealth.tga" );
-
-	cgs.media.invulnerabilityShader = trap->R_RegisterShader( "powerups/invulnerabilityshell");
-
-	// Binocular interface
-	cgs.media.binocularCircle		= trap->R_RegisterShader( "gfx/2d/binCircle" );
-	cgs.media.binocularMask			= trap->R_RegisterShader( "gfx/2d/binMask" );
-	cgs.media.binocularArrow		= trap->R_RegisterShader( "gfx/2d/binSideArrow" );
-	cgs.media.binocularTri			= trap->R_RegisterShader( "gfx/2d/binTopTri" );
-	cgs.media.binocularStatic		= trap->R_RegisterShader( "gfx/2d/binocularWindow" );
-	cgs.media.binocularOverlay		= trap->R_RegisterShader( "gfx/2d/binocularNumOverlay" );
-
 	cg.loadLCARSStage = 5;
 	CG_LoadingString( "Models" );
 
@@ -1417,12 +1363,6 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.crateBreakSound[1]	= trap->S_RegisterSound("sound/weapons/explosions/crateBust2" );
 	
 	cgs.media.bboxShader = trap->R_RegisterShader ("gfx/effects/bbox");
-	
-	// Damage types
-	cgs.media.stunOverlay = trap->R_RegisterShader ("gfx/PlayerOverlays/stun");
-	cgs.media.iceOverlay = trap->R_RegisterShader ("gfx/PlayerOverlays/ice");
-	cgs.media.carboniteOverlay = trap->R_RegisterShader ("gfx/PlayerOverlays/carbonite");
-    cgs.media.playerFireEffect = trap->FX_RegisterEffect ("player/fire");
 
 	CG_LoadingString( "Items" );
 /*
@@ -1463,10 +1403,6 @@ Ghoul2 Insert End
 	// wall marks
 	cgs.media.shadowMarkShader	= trap->R_RegisterShader( "markShadow" );
 	cgs.media.wakeMarkShader	= trap->R_RegisterShader( "wake" );
-
-	cgs.media.viewPainShader					= trap->R_RegisterShader( "gfx/misc/borgeyeflare" );
-	cgs.media.viewPainShader_Shields			= trap->R_RegisterShader( "gfx/mp/dmgshader_shields" );
-	cgs.media.viewPainShader_ShieldsAndHealth	= trap->R_RegisterShader( "gfx/mp/dmgshader_shieldsandhealth" );
 
 	CG_LoadingString( "Brush Models" );
 	// register the inline models
@@ -1510,14 +1446,7 @@ Ghoul2 Insert End
 			CG_CacheG2AnimInfo(modelName);
 		}
 
-		if (modelName[0] != '$' && modelName[0] != '@')
-		{ //don't register vehicle names and saber names as models.
-			cgs.gameModels[i] = trap->R_RegisterModel( modelName );
-		}
-		else
-		{//FIXME: register here so that stuff gets precached!!!
-			cgs.gameModels[i] = 0;
-		}
+		cgs.gameModels[i] = 0;
 	}
 	cg.loadLCARSStage = 8;
 /*
@@ -1613,14 +1542,6 @@ Ghoul2 Insert End
 
 	cgs.media.hitmarkerGraphic = trap->R_RegisterShaderNoMip("gfx/2d/crosshair_hitmarker.tga");
 
-	// new stuff
-	cgs.media.patrolShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/patrol.tga");
-	cgs.media.assaultShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/assault.tga");
-	cgs.media.campShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/camp.tga");
-	cgs.media.followShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/follow.tga");
-	cgs.media.defendShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/defend.tga");
-	cgs.media.retrieveShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/retrieve.tga");
-	cgs.media.escortShader = trap->R_RegisterShaderNoMip("ui/assets/statusbar/escort.tga");
 	cgs.media.cursor = trap->R_RegisterShaderNoMip( "menu/art/3_cursor2" );
 	cgs.media.sizeCursor = trap->R_RegisterShaderNoMip( "ui/assets/sizecursor.tga" );
 	cgs.media.selectCursor = trap->R_RegisterShaderNoMip( "ui/assets/selectcursor.tga" );
@@ -1629,21 +1550,8 @@ Ghoul2 Insert End
 	cgs.media.lowHealthAura = trap->R_RegisterShader("gfx/jkg/lowhealthaura.png");
 
 	cgs.media.halfShieldModel	= trap->R_RegisterModel ( "models/weaphits/testboom.md3" );
-	cgs.media.halfShieldShader	= trap->R_RegisterShader( "halfShieldShell" );
 
 	trap->FX_RegisterEffect("force/force_touch");
-/*
-	for (i=1; i<MAX_PARTICLES_AREAS; i++)
-	{
-		{
-			int rval;
-
-			rval = CG_NewParticleArea ( CS_PARTICLES + i);
-			if (!rval)
-				break;
-		}
-	}
-*/
 
 	// Jedi Knight Galaxies
 
@@ -2535,7 +2443,6 @@ Will perform callbacks to make the loading info screen update.
 */
 
 void CinBuild_Init();
-void ChatBox_InitSystem();
 void MiniMap_Init();
 void JKG_WeaponIndicators_Init();
 
@@ -2547,10 +2454,7 @@ void JKG_WeaponIndicators_Init();
 
 static void CG_OpenInventory ( void )
 {
-	if (cgs.gametype != GT_DUEL) 
-	{
-		uiImports->InventoryNotify( 0 );
-	}
+	uiImports->InventoryNotify( INVENTORYNOTIFY_OPEN );
 }
 
 void CG_SetupChatCmds() {
@@ -2558,25 +2462,24 @@ void CG_SetupChatCmds() {
 	CCmd_AddCommand ("inventory", CG_OpenInventory);
 }
 
-extern void JKG_CG_InitItems( void );
-extern void JKG_CG_InitArmor( void );
 extern void CG_InitializeCrossoverAPI( void );
+extern  performanceSampleData_t cg_performanceData;
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 {
 	char buf[64];
 	const char	*s;
 	int i = 0;
 
-	// Do the engine patches
-	ChatBox_InitSystem();
 	trap->Cvar_Set("connmsg", ""); // Clear connection message override
+
+	memset(&cg_performanceData, 0, sizeof(performanceSampleData_t));	//init with 0
 
 	BG_InitAnimsets(); //clear it out
 
-	trap->RegisterSharedMemory(cg.sharedBuffer.raw);
+	// Reseed Quake random number generator
+	Rand_Init(time(nullptr));
 
-	//Load external vehicle data
-	BG_VehicleLoadParms();
+	trap->RegisterSharedMemory(cg.sharedBuffer.raw);
 
 	CG_InitializeCrossoverAPI();
 
@@ -2585,17 +2488,14 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 Ghoul2 Insert Start
 */
 
-//	memset( cg_entities, 0, sizeof( cg_entities ) );
 	CG_Init_CGents();
-// this is a No-No now we have stl vector classes in here.
-//	memset( &cg, 0, sizeof( cg ) );
 	CG_Init_CG();
 	CG_InitItems();
 
-	//create the global jetpack instance
-	CG_InitJetpackGhoul2();
-
 	CG_PmoveClientPointerUpdate();
+
+	JKG_LoadMeansOfDamage();
+	JKG_InitializeBuffs();
 	
 	// Yum, ammo
 	BG_InitializeAmmo();
@@ -2622,6 +2522,10 @@ Ghoul2 Insert End
 */
 
 	JKG_ParseHiltFiles();
+	JKG_LoadJetpacks();
+
+	//create the global jetpack instance
+	CG_InitJetpackGhoul2();
 
 	// this is kinda dumb as well, but I need to pre-load some fonts in order to have the text available
 	//	to say I'm loading the assets.... which includes loading the fonts. So I'll set these up as reasonable
@@ -2669,9 +2573,9 @@ Ghoul2 Insert End
 	cg.ourTradeItems = new std::vector<itemInstance_t>();
 	cg.otherTradeItems = new std::vector<itemInstance_t>();
 
+	JKG_LoadArmor();
 	BG_InitItems();
 	BG_LoadDefaultWeaponItems();
-	JKG_CG_InitArmor();
 
 	trap->Cvar_VariableStringBuffer("com_buildscript", buf, sizeof(buf));
 	if (atoi(buf))
@@ -2832,10 +2736,6 @@ Ghoul2 Insert End
 		trap->Cvar_Set("ui_blurbackground", "1");
 		cg.turnOnBlurCvar = qfalse;
 	}
-
-#ifdef SWF
-	cgs.media.swfTestShader = trap->R_RegisterShaderNoMip("animation/swf/test");
-#endif
 }
 
 //makes sure returned string is in localized format
@@ -2908,6 +2808,8 @@ void CG_Shutdown( void )
 	// Jedi Knight Galaxies, terminate the crossover
 	trap->CO_Shutdown();
 
+	JKG_UnloadArmor();
+
 //	Com_Printf("... FX System Cleanup\n");
 	trap->FX_FreeSystem();
 	trap->ROFF_Clean();
@@ -2924,6 +2826,9 @@ void CG_Shutdown( void )
 
 	// some mods may need to do cleanup work here,
 	// like closing files or archiving session data
+	BG_ShutdownItems();
+	BG_ShutdownWeapons();
+
 	delete cg.playerInventory;
 	delete cg.ourTradeItems;
 	delete cg.otherTradeItems;

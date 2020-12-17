@@ -54,10 +54,6 @@
     "stats": {
         "slot":         2,
         "reloadtime":   4000,
-        "ammoIndex":         "carbonite",
-        "ammoOnSpawn":   100,
-        "ammoOnPickup":   50,
-        "clipSize":              50,
         "reloadmodifier": 0.9,
         "speed":        0.9
     },
@@ -68,7 +64,12 @@
                                "damageradius": { "start": 16,
                                                      "function": [ "constant"] },
                                "damage":       20,
-                               "damagetype": [ "carbonite" ] 
+                               "buffs": [
+					{
+						"buff": "standard-carbonite",
+						"duration": 4000
+					}
+				]
                         },
         "ballistic":    true,
         "maxchargetime":1000,
@@ -85,7 +86,10 @@
         "spread":       0.3,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER"
+        "meansofdeath": "MOD_CARBONITE",
+	"ammobase": "AMMO_CARBONITE",
+	"ammodefault": "AMMO_CARBONITE",
+        "clipSize":              50
     },
     
     "firemode1": {
@@ -94,7 +98,12 @@
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
                                "damage":       8,
-                               "damagetype": [ "carbonite" ]
+                               "buffs": [
+					{
+						"buff": "standard-carbonite",
+						"duration": 4000
+					}
+				]
                         },
         "ballistic":    true,
         "ammocost":     1,
@@ -105,7 +114,10 @@
         "spread":       1.0,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER"
+        "meansofdeath": "MOD_CARBONITE",
+	"ammobase": "AMMO_CARBONITE",
+	"ammodefault": "AMMO_CARBONITE",
+        "clipSize":              50
     },
     
     "playeranims": {

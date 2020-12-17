@@ -118,7 +118,7 @@ static void JKG_PartyMngt_UpdateState() {
 		return;
 	}
 	trap->GetClientState( &cs );
-	party = (teamParty_t *)cgImports->PartyMngtDataRequest(0);
+	party = (teamParty_t *)cgImports->PartyMngtDataRequest(PARTYREQUEST_PARTY);
 	
 	if (!party) {
 		return;
@@ -230,7 +230,7 @@ static void JKG_PartyMngt_UpdateSeekers() {
 		return;
 	}
 	trap->GetClientState( &cs );
-	list = (teamPartyList_t *)cgImports->PartyMngtDataRequest(1);
+	list = (teamPartyList_t *)cgImports->PartyMngtDataRequest(PARTYREQUEST_SEEKERS);
 
 	if (!list) {
 		return;
@@ -269,23 +269,20 @@ static void JKG_PartyMngt_UpdateSeekers() {
 	}
 }
 
-void JKG_PartyMngt_UpdateNotify(int msg) {
+void JKG_PartyMngt_UpdateNotify(jkgPartyNotify_e msg) {
 	// Gets called from CGame if there's an update
 	// CAUTION: To use trap/UI calls, use the syscall override first!
-	// Msg 0: New team/invite information
-	// Msg 1: New seekers information
-	// Msg 10: Open the team manager
-	if (msg == 0) {
+	if (msg == PARTYNOTIFY_UPDATESTATE) {
 		if (!PMngtData.active) {
 			return;
 		}
 		JKG_PartyMngt_UpdateState();
-	} else if (msg == 1) {
+	} else if (msg == PARTYNOTIFY_UPDATESEEKERS) {
 		if (!PMngtData.active) {
 			return;
 		}
 		JKG_PartyMngt_UpdateSeekers();
-	} else if (msg == 10) {
+	} else if (msg == PARTYNOTIFY_OPEN) {
 		memset(&PMngtData, 0, sizeof(PMngtData));
 		PMngtData.active = 1;
 		if (Menus_ActivateByName("jkg_partymanagement"))
@@ -767,7 +764,7 @@ void PartyMngt_Script_OpenDlg(char **args) {
 	JKG_PartyMngt_UpdateState();
 	// Request a new list
 	PMngtData.seekerListPending = 1;
-	cgImports->SendClientCommand(va("~pmngt partylistrefresh %i", *(int*)cgImports->PartyMngtDataRequest(2)));
+	cgImports->SendClientCommand(va("~pmngt partylistrefresh %i", *(int*)cgImports->PartyMngtDataRequest(PARTYREQUEST_SEEKERTIME)));
 	trap->Cvar_Set("ui_hidehud", "1");
 	PMngtData.active = 1;
 }

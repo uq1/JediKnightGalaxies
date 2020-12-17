@@ -439,6 +439,8 @@ LANG_ENGLISH        "Use/activate/pickup"
 REFERENCE           INVENTORY
 LANG_ENGLISH        "Inventory"
 
+REFERENCE           AMMOCYCLE
+LANG_ENGLISH        "Cycle Ammo Type"
 
 REFERENCE           ACI
 LANG_ENGLISH        "Active Combat Inventory"

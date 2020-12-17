@@ -34,7 +34,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "bg_ammo.h"
 #include "bg_weapons.h"
 #include "anims.h"
-#include "bg_vehicles.h"
 #include "qcommon/game_version.h"
 
 //these two defs are shared now because we do clientside ent parsing
@@ -93,70 +92,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // Sprint animation time --eez
 #define SPRINT_TIME			(300)
 
-#ifdef __MMO__
-
-//
-// config strings are a general means of communicating variable length strings
-// from the server to all connected clients.
-//
-
-// CS_SERVERINFO and CS_SYSTEMINFO are defined in q_shared.h
-#define	CS_MUSIC				2
-#define	CS_MESSAGE				3		// from the map worldspawn's message field
-#define	CS_MOTD					4		// g_motd string for server message of the day
-#define	CS_WARMUP				5		// server time when the match will be restarted
-#define	CS_SCORES1				6
-#define	CS_SCORES2				7
-#define CS_VOTE_TIME			8
-#define CS_VOTE_STRING			9
-#define	CS_VOTE_YES				10
-#define	CS_VOTE_NO				11
-
-#define CS_TEAMVOTE_TIME		12
-#define CS_TEAMVOTE_STRING		14
-#define	CS_TEAMVOTE_YES			16
-#define	CS_TEAMVOTE_NO			18
-
-#define	CS_GAME_VERSION			20
-#define	CS_LEVEL_START_TIME		21		// so the timer only shows the current level
-#define	CS_INTERMISSION			22		// when 1, fraglimit/timelimit has been hit and intermission will start in a second or two
-#define CS_FLAGSTATUS			23		// string indicating flag status in CTF
-#define CS_SHADERSTATE			24
-#define CS_BOTINFO				25
-
-#define	CS_ITEMS				27		// string of 0's and 1's that tell which items are present
-
-#define CS_CLIENT_DUELWINNER	28		// current duel round winner - needed for printing at top of scoreboard
-#define CS_CLIENT_DUELISTS		29		// client numbers for both current duelists. Needed for a number of client-side things.
-#define CS_CLIENT_DUELHEALTHS	30		// nmckenzie: DUEL_HEALTH.  Hopefully adding this cs is safe and good?
-#define CS_GLOBAL_AMBIENT_SET	31
-
-#define CS_AMBIENT_SET			36	
-
-#define	CS_MODELS				(CS_AMBIENT_SET+MAX_AMBIENT_SETS)
-#define	CS_SKYBOXORG			(CS_MODELS+MAX_MODELS)		//rww - skybox info
-#define	CS_SOUNDS				(CS_SKYBOXORG+1)
-#define CS_ICONS				(CS_SOUNDS+MAX_SOUNDS)
-//#define	CS_PLAYERS				(CS_ICONS+MAX_ICONS)
-#define	CS_PLAYERS				(CS_ICONS+MAX_ICONS)
-//#define CS_G2BONES				(CS_PLAYERS+MAX_CLIENTS)
-//#define CS_G2BONES				(CS_PLAYERS+MAX_ICONS) // UQ1: Set this to MAX_ICONS (64) for now... See what happens...
-#define CS_G2BONES				(CS_PLAYERS+1) // UQ1: Just enough for the 1 bone ent we still use...
-#define CS_LOCATIONS			(CS_G2BONES+MAX_G2BONES)
-#define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS) 
-#define CS_EFFECTS				(CS_PARTICLES+MAX_LOCATIONS)
-#define	CS_LIGHT_STYLES			(CS_EFFECTS + MAX_FX)
-
-//rwwRMG - added:
-#define CS_TERRAINS				(CS_LIGHT_STYLES + (MAX_LIGHT_STYLES*3))
-#define CS_BSP_MODELS			(CS_TERRAINS + MAX_TERRAINS)
-
-// Jedi Knight Galaxies - Gang Wars
-#define CS_TEAMS				(CS_BSP_MODELS + MAX_SUB_BSP)
-
-#define CS_MAX					(CS_TEAMS + 1)
-
-#else //!__MMO__
+// damage flags
+#define DAMAGE_NORMAL				0x00000000	// No flags set.
+#define DAMAGE_RADIUS				0x00000001	// damage was indirect
+#define DAMAGE_NO_SHIELD			0x00000002	// shield does not protect from this damage
+#define DAMAGE_NO_KNOCKBACK			0x00000004	// do not affect velocity, just view angles
+#define DAMAGE_NO_PROTECTION		0x00000008  // armor, shields, invulnerability, and godmode have no effect.  Self-inflicted damage is also not reduced.
+#define DAMAGE_NO_HIT_LOC			0x00000010	// No hit location
+#define DAMAGE_NO_DISMEMBER			0x00000020	// Dont do dismemberment
 
 //
 // config strings are a general means of communicating variable length strings
@@ -223,8 +166,6 @@ Ghoul2 Insert End
 
 #define CS_MAX					(CS_TEAMS + 1)
 
-#endif //__MMO__
-
 #if (CS_MAX) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
 #endif
@@ -289,12 +230,6 @@ typedef enum {
 	GT_DUEL,		// one on one tournament
 	GT_POWERDUEL,		// one on two tournament
 	GT_SINGLE_PLAYER,	// single player ffa
-
-#ifdef __RPG__
-	// UQ1: Added... Need to update gametypes file and menus to match...
-	GT_RPG_CITY,		// UQ1: New combined gametypes gametype. City area version.
-	GT_RPG_WILDERNESS,	// UQ1: New combined gametypes gametype. Wilderness area version.
-#endif //__RPG__
 
 	//-- team games go after this --
 
@@ -385,8 +320,8 @@ extern qboolean			BGPAFtextLoaded;
 extern animation_t		bgHumanoidAnimations[MAX_TOTALANIMATIONS];
 
 #define NUM_RESERVED_ANIMSETS (3)
-#define MAX_ANIM_FILES	64		// Jedi Knight Galaxies - Raised from 16 to 64
-#define MAX_ANIM_EVENTS 600		// Jedi Knight Galaxies - Raised from 300 to 600
+#define MAX_ANIM_FILES	16
+#define MAX_ANIM_EVENTS 300
 
 typedef enum
 {
@@ -505,7 +440,6 @@ typedef enum {
 	WEAPON_DROPPING,
 	WEAPON_FIRING,
 	WEAPON_CHARGING,
-	WEAPON_CHARGING_ALT,
 	WEAPON_IDLE, //lowered		// NOTENOTE Added with saber
 	WEAPON_RELOADING, // added for reloading weapon
 } weaponstate_t;
@@ -553,17 +487,16 @@ typedef struct bgEntity_s
 {
 	entityState_t	s;
 	playerState_t	*playerState;
-	Vehicle_t		*m_pVehicle; //vehicle data
 	void			*ghoul2; //g2 instance
 	int				localAnimIndex; //index locally (game/cgame) to anim data for this skel
 	vec3_t			modelScale; //needed for g2 collision
 
 	//Data type(s) must directly correspond to the head of the gentity and centity structures
-#if defined(__GNUC__) || defined(__GCC__) || defined(MINGW32) || defined(MACOS_X)
-	} _bgEntity_t;
-#else
-	} bgEntity_t;
-#endif
+//#if defined(__GNUC__) || defined(__GCC__) || defined(MINGW32) || defined(MACOS_X)
+//	} _bgEntity_t;
+//#else
+} bgEntity_t;
+//#endif
 
 typedef struct pmove_s {
 	// state (in / out)
@@ -672,19 +605,18 @@ void Vmove( vmove_t *vmove );
 // NOTE: may not have more than 16
 typedef enum {
 	STAT_HEALTH,
-	STAT_HOLDABLE_ITEM,
-	STAT_HOLDABLE_ITEMS,
 	STAT_PERSISTANT_POWERUP,
 	//MAKE SURE STAT_WEAPONS REMAINS 4!!!!
 	//There is a hardcoded reference in msg.cpp to send it in 32 bits -rww
 	STAT_WEAPONS = 4,					// 16 bit fields
-	STAT_ARMOR,
+	STAT_SHIELD,
 	STAT_DEAD_YAW,					// look this direction when dead (FIXME: get rid of?)
 	STAT_CLIENTS_READY,				// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
 	STAT_MAX_HEALTH,				// Maximum health
 	// Jedi Knight Galaxies
-	STAT_MAX_ARMOR,					// Maximum shield/armor
-	STAT_AMMO,						// Ammo in current weapon (ps->ammo contains total ammo in clips))
+	STAT_MAX_SHIELD,				// Maximum shield
+	STAT_AMMO,						// Ammo in current weapon
+	STAT_TOTALAMMO,					// Total ammo
 	STAT_ACCURACY,					// Extra accuracy rating from weapon
 	STAT_CAPTURE_ENTITYNUM			// Warzone Flag Capture Entity...
 } statIndex_t;
@@ -771,9 +703,6 @@ typedef enum {
 #define	EF2_ALERTED				(1<<2)		// For certain special anims, for Rancor: means you've had an enemy, so use the more alert stand
 #define	EF2_GENERIC_NPC_FLAG	(1<<3)		// So far, used for Rancor...
 #define	EF2_FLYING				(1<<4)		// Flying FIXME: only used on NPCs doesn't *really* have to be passed over, does it?
-#define	EF2_HYPERSPACE			(1<<5)		// Used to both start the hyperspace effect on the predicted client and to let the vehicle know it can now jump into hyperspace (after turning to face the proper angle)
-#define	EF2_BRACKET_ENTITY		(1<<6)		// Draw as bracketed
-#define	EF2_SHIP_DEATH			(1<<7)		// "died in ship" mode
 #define	EF2_NOT_USED_1			(1<<8)		// not used
 
 
@@ -807,7 +736,7 @@ typedef enum {
 	PW_REDFLAG,
 	PW_BLUEFLAG,
 
-	PW_SHIELDHIT, // FIXME: remove
+	PW_SHIELDHIT,
 
 	PW_SPEEDBURST,
 	PW_DISINT_4,
@@ -855,7 +784,10 @@ typedef enum
 	PDSOUND_ABSORBHIT,
 	PDSOUND_ABSORB,
 	PDSOUND_FORCEJUMP,
-	PDSOUND_FORCEGRIP
+	PDSOUND_FORCEGRIP,
+	PDSOUND_VENDORPURCHASE,
+	PDSOUND_TRADE,
+	PDSOUND_PAY
 } pdSounds_t;
 
 typedef enum {
@@ -893,12 +825,13 @@ typedef enum {
 	EV_ITEM_PICKUP,			// normal item pickups are predictable
 	EV_GLOBAL_ITEM_PICKUP,	// powerup / team sounds are broadcast to everyone
 
-	EV_VEH_FIRE,
-
 	EV_NOAMMO,
 	EV_CHANGE_WEAPON,
 	EV_FIRE_WEAPON,
 	EV_ALT_FIRE,
+	EV_HEATCRIT,
+	EV_OVERHEATED,
+	EV_HEATCOOLED,
 	EV_SABER_ATTACK,
 	EV_SABER_HIT,
 	EV_SABER_BLOCK,
@@ -960,7 +893,6 @@ typedef enum {
 
 	EV_FORCE_DRAINED,
 
-	EV_GIB_PLAYER,			// gib a previously living player
 	EV_SCOREPLUM,			// score plum
 
 	EV_CTFMESSAGE,
@@ -979,6 +911,8 @@ typedef enum {
 	EV_WEAPON_CHARGE_ALT,
 
 	EV_SHIELD_HIT,
+	EV_SHIELD_BROKEN,
+	EV_SHIELD_RECHARGE,
 
 	EV_DEBUG_LINE,
 	EV_TESTLINE,
@@ -1070,19 +1004,11 @@ typedef enum {
 	EV_GLOAT3,
 	EV_PUSHFAIL,
 
-	EV_SIEGESPEC,
-
-	// New events
 	EV_DAMAGEPLUM,
 	EV_RELOAD,
 	EV_GRENADE_COOK,
 	EV_EXPLOSIVE_ARM,
 	EV_MISSILE_DIE,
-#ifdef __MMO__
-	EV_GOTO_ACI,		//Go to specific ACI slot (inexpensive)
-	EV_HITMARKER_ASSIST,
-	EV_HITMARKER_KILL,
-#endif //__MMO__
 } entity_event_t;			// There is a maximum of 256 events (8 bits transmission, 2 high bits for uniqueness)
 
 
@@ -1109,72 +1035,23 @@ typedef enum {
 // How many players on the overlay
 #define TEAM_MAXOVERLAY		32
 
-//team task
-typedef enum {
-	TEAMTASK_NONE,
-	TEAMTASK_OFFENSE,
-	TEAMTASK_DEFENSE,
-	TEAMTASK_PATROL,
-	TEAMTASK_FOLLOW,
-	TEAMTASK_RETRIEVE,
-	TEAMTASK_ESCORT,
-	TEAMTASK_CAMP
-} teamtask_t;
-
-// means of death
+// Hardcoded means of damage...this MUST match in meansOfDamage.json!!
 typedef enum {
 	MOD_UNKNOWN,
-	MOD_STUN_BATON,
-	MOD_MELEE,
-	MOD_SABER,
-	MOD_BRYAR_PISTOL,
-	MOD_BRYAR_PISTOL_ALT,
-	MOD_BLASTER,
-	MOD_TURBLAST,
-	MOD_DISRUPTOR,
-	MOD_DISRUPTOR_SPLASH,
-	MOD_DISRUPTOR_SNIPER,
-	MOD_BOWCASTER,
-	MOD_REPEATER,
-	MOD_REPEATER_ALT,
-	MOD_REPEATER_ALT_SPLASH,
-	MOD_DEMP2,
-	MOD_DEMP2_ALT,
-	MOD_FLECHETTE,
-	MOD_FLECHETTE_ALT_SPLASH,
-	MOD_ROCKET,
-	MOD_ROCKET_SPLASH,
-	MOD_ROCKET_HOMING,
-	MOD_ROCKET_HOMING_SPLASH,
-	MOD_THERMAL,
-	MOD_THERMAL_SPLASH,
-	MOD_TRIP_MINE_SPLASH,
-	MOD_TIMED_MINE_SPLASH,
-	MOD_DET_PACK_SPLASH,
-	MOD_VEHICLE,
-	MOD_CONC,
-	MOD_CONC_ALT,
-	MOD_FORCE_DARK,
-	MOD_SENTRY,
+	MOD_FALLING,
+	MOD_SUICIDE,
+	MOD_CRUSH,
 	MOD_WATER,
 	MOD_SLIME,
 	MOD_LAVA,
-	MOD_CRUSH,
-	MOD_TELEFRAG,
-	MOD_FALLING,
-	MOD_SUICIDE,
-	MOD_TARGET_LASER,
 	MOD_TRIGGER_HURT,
+	MOD_TELEFRAG,
 	MOD_TEAM_CHANGE,
-	//AURELIO: when/if you put this back in, remember to make a case for it in all the other places where
-	//mod's are checked. Also, it probably isn't the most elegant solution for what you want - just add
-	//a frag back to the player after you call the player_die (and keep a local of his pre-death score to
-	//make sure he actually lost points, there may be cases where you don't lose points on changing teams
-	//or suiciding, and so you would actually be giving him a point) -Rich
-	// I put it back in for now, if it becomes a problem we'll work around it later (it shouldn't though)...
-	MOD_MAX
-} meansOfDeath_t;
-
+	MOD_HEAL,	//heals, not damage
+	MOD_SABER,
+	MOD_VIBROBLADE,
+	MOD_MELEE
+} meansOfDamageHardcoded_t;
 
 //---------------------------------------------------------
 
@@ -1866,13 +1743,6 @@ void BG_GiveMeVectorFromMatrix(mdxaBone_t *boltMatrix, int flags, vec3_t vec);
 
 void BG_IK_MoveArm(void *ghoul2, int lHandBolt, int time, entityState_t *ent, int basePose, vec3_t desiredPos, qboolean *ikInProgress,
 					 vec3_t origin, vec3_t angles, vec3_t scale, int blendTime, qboolean forceHalt);
-
-void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int time, vec3_t cent_lerpOrigin,
-					   vec3_t cent_lerpAngles, matrix3_t legs, vec3_t legsAngles, qboolean *tYawing,
-					   qboolean *tPitching, qboolean *lYawing, float *tYawAngle, float *tPitchAngle,
-					   float *lYawAngle, int frametime, vec3_t turAngles, vec3_t modelScale, int ciLegs,
-					   int ciTorso, int *corrTime, vec3_t lookAngles, vec3_t lastHeadAngles, int lookTime,
-					   entityState_t *emplaced, int *crazySmoothFactor, int saberActionFlags);
 void BG_G2ATSTAngles(void *ghoul2, int time, vec3_t cent_lerpAngles );
 
 //BG anim utility functions:
@@ -1907,6 +1777,7 @@ int BG_BrokenParryForParry( int move );
 int BG_KnockawayForParry( int move );
 qboolean BG_InRoll( playerState_t *ps, int anim );
 qboolean BG_InDeathAnim( int anim );
+qboolean BG_InKnockDownOnGround(playerState_t *ps);
 qboolean BG_InSaberLockOld( int anim );
 qboolean BG_InSaberLock( int anim );
 
@@ -1939,39 +1810,46 @@ int		BG_PickAnim( int animIndex, int minAnim, int maxAnim );
 
 int BG_GetItemIndexByTag(int tag, int type);
 
-qboolean BG_IsItemSelectable(playerState_t *ps, int item);
-
 qboolean BG_CanUseFPNow(int gametype, playerState_t *ps, int time, forcePowers_t power);
 
-void *BG_Alloc ( int size );
-void *BG_AllocUnaligned ( int size );
-void *BG_TempAlloc( int size );
-void BG_TempFree( int size );
-char *BG_StringAlloc ( const char *source );
-qboolean BG_OutOfMemory ( void );
-
-void BG_BLADE_ActivateTrail ( bladeInfo_t *blade, float duration );
-void BG_BLADE_DeactivateTrail ( bladeInfo_t *blade, float duration );
-void BG_SI_Activate( saberInfo_t *saber );
-void BG_SI_Deactivate( saberInfo_t *saber );
-void BG_SI_BladeActivate( saberInfo_t *saber, int iBlade, qboolean bActive );
-qboolean BG_SI_Active(saberInfo_t *saber);
-void BG_SI_SetLength( saberInfo_t *saber, float length );
-void BG_SI_SetDesiredLength(saberInfo_t *saber, float len, int bladeNum);
-void BG_SI_SetLengthGradual( saberInfo_t *saber, int time );
-float BG_SI_Length(saberInfo_t *saber);
-float BG_SI_LengthMax(saberInfo_t *saber);
-void BG_SI_ActivateTrail ( saberInfo_t *saber, float duration );
-void BG_SI_DeactivateTrail ( saberInfo_t *saber, float duration );
 bool JKG_GetSaberHilt( const char *hiltName, saberInfo_t *saber );
-
-extern void BG_AttachToRancor( void *ghoul2,float rancYaw,vec3_t rancOrigin,int time,qhandle_t *modelList,vec3_t modelScale,qboolean inMouth,vec3_t out_origin,vec3_t out_angles,matrix3_t out_axis );
-
-void BG_ClearRocketLock( playerState_t *ps );
 
 float JKG_CalculateIronsightsPhase ( const playerState_t *ps, int time, float *blend );
 
 qboolean BG_IsSprinting ( const playerState_t *ps, const usercmd_t *cmd, qboolean PMOVE  );
+
+// Stuff that got moved from pmove to panimate
+qboolean BG_SabersOff(playerState_t *ps);
+void PM_AnimateJetpack(void);
+qboolean PM_AdjustStandAnimForSlope(void);
+int PM_LegsSlopeBackTransition(int desiredAnim);
+qboolean BG_WalkingAnim(int anim);
+qboolean BG_RunningAnim(int anim);
+qboolean BG_SwimmingAnim(int anim);
+qboolean BG_RollingAnim(int anim);
+qboolean BG_KnockdownAnim(int anim);
+qboolean BG_InSlopeAnim(int anim);
+qboolean PM_WeaponAnimate(void);
+qboolean PM_CanSetWeaponAnims(void);
+qboolean BG_SaberLockBreakAnim(int anim);
+qboolean PM_SaberInTransition(int move);
+qboolean BG_InSlopeAnim(int anim);
+void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int time, vec3_t cent_lerpOrigin,
+	vec3_t cent_lerpAngles, vec3_t legs[3], vec3_t legsAngles, qboolean *tYawing,
+	qboolean *tPitching, qboolean *lYawing, float *tYawAngle, float *tPitchAngle,
+	float *lYawAngle, int frametime, vec3_t turAngles, vec3_t modelScale, int ciLegs,
+	int ciTorso, int *corrTime, vec3_t lookAngles, vec3_t lastHeadAngles, int lookTime,
+	entityState_t *emplaced, int *crazySmoothFactor, int saberAnimFlags);
+void BG_AttachToRancor(void *ghoul2,
+	float rancYaw,
+	vec3_t rancOrigin,
+	int time,
+	qhandle_t *modelList,
+	vec3_t modelScale,
+	qboolean inMouth,
+	vec3_t out_origin,
+	vec3_t out_angles,
+	vec3_t out_axis[3]);
 
 extern int forcePowerDarkLight[NUM_FORCE_POWERS];
 
@@ -1992,30 +1870,7 @@ double QuinticBezierInterpolate(double phase, double p0, double p1, double p2, d
 #define	HYPERSPACE_SPEED			10000.0f//was 30000
 #define	HYPERSPACE_TURN_RATE		45.0f
 
-// Bit of damage types stuff here...
-typedef enum damageType_e
-{
-    DT_DISINTEGRATE,
-    DT_ELECTRIC,
-    DT_EXPLOSION,
-    DT_FIRE,
-    DT_FREEZE,
-    DT_IMPLOSION,
-    DT_STUN,
-    DT_CARBONITE,
-
-	DT_BLASTER,
-	DT_SLUG,
-	DT_ACP,
-	DT_PULSE,
-	DT_ION,
-	DT_SONIC,
-	DT_BLEED,
-	DT_COLD,
-    
-    NUM_DAMAGE_TYPES
-} damageType_t;
-qboolean JKG_DamageTypeFreezes ( const damageType_t damageType );
+extern stringID_table_t debuffTable[];
 
 typedef struct {
 	float baseJumpHeight;
@@ -2038,7 +1893,7 @@ typedef struct {
 	float sprintSpeedModifier;
 
 	// Stuff pertaining to stamina drains
-	struct Stamina {
+	struct {
 		int lossFromRolling;
 		int lossFromPunching;
 		int lossFromJumping;
@@ -2048,8 +1903,16 @@ typedef struct {
 		int minJumpThreshold;
 		int minPunchThreshold;
 		int minKickThreshold;
-	};
-	Stamina staminaDrains;
+	} staminaDrains;
+
+	struct {
+		float headModifier;
+		float torsoModifier;
+		float armModifier;
+		float handModifier;
+		float legModifier;
+		float footModifier;
+	} damageModifiers;
 } bgConstants_t;
 
 extern bgConstants_t bgConstants;

@@ -35,9 +35,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "cg_weapons.h"
 
-//eezstreet edit
 #include "jkg_cg_damagetypes.h"
 #include "game/jkg_gangwars.h"
+#include "game/bg_damage.h"
+#include "game/bg_buffs.h"
 
 // The entire cgame module is unloaded and reloaded on each level change,
 // so there is NO persistant data between levels on the client side.
@@ -331,14 +332,18 @@ typedef struct cgLoopSound_s {
 	sfxHandle_t sfx;
 } cgLoopSound_t;
 
+typedef struct debuffVisualsData_s
+{
+	int lastEFXTime;
+	int debuffStartTime;
+} debuffVisualsData_t;
+
 // centity_t have a direct corespondence with gentity_t in the game, but
 // only the entityState_t is directly communicated to the cgame
 typedef struct centity_s {
-	// This comment below is correct, but now m_pVehicle is the first thing in bg shared entity, so it goes first. - AReis
 	//rww - entstate must be first, to correspond with the bg shared entity structure
 	entityState_t	currentState;	// from cg.frame
 	playerState_t	*playerState;	//ptr to playerstate if applicable (for bg ents)
-	Vehicle_t		*m_pVehicle; //vehicle data
 	void			*ghoul2; //g2 instance
 	int				localAnimIndex; //index locally (game/cgame) to anim data for this skel
 	vec3_t			modelScale; //needed for g2 collision
@@ -367,12 +372,6 @@ typedef struct centity_s {
 
 	playerEntity_t	pe;
 
-//	int				errorTime;		// decay the error from this time
-//	vec3_t			errorOrigin;
-//	vec3_t			errorAngles;
-
-//	qboolean		extrapolated;	// false if origin / angles is an interpolation
-//	vec3_t			rawOrigin;
 	vec3_t			rawAngles;
 
 	vec3_t			beamEnd;
@@ -380,13 +379,6 @@ typedef struct centity_s {
 	// exact interpolated position of entity on this frame
 	vec3_t			lerpOrigin;
 	vec3_t			lerpAngles;
-
-#if 0
-	//add up bone offsets until next client frame before adding them in
-	qboolean		hasRagOffset;
-	vec3_t			ragOffsets;
-	int				ragOffsetTime;
-#endif
 
 	vec3_t			ragLastOrigin;
 	int				ragLastOriginTime;
@@ -471,18 +463,9 @@ typedef struct centity_s {
 	int				fadeState;			// 0 = Normal, 1 = Fading-In, 2 = Fading-Out, 3 = Don't Render
 	int				visibilityTime;		// Time of the last visibility check.
 	qboolean		visibilityState;	// 0 = No, 1 = Yes..
-	debuffVisualsData_t debuffVisuals;
-
-	//eezstreet add
-	void	*armorGhoul2[ARMSLOT_MAX];
-	int		equippedArmor[ARMSLOT_MAX];
-	int		previousEquippedArmor[ARMSLOT_MAX];
-
-#ifdef __EXPERIMENTAL_SHADOWS__
-	float		shadowPlanes[MAX_GENTITIES];
-	vec3_t		shadowPlaneDirections[MAX_GENTITIES];
-	int			shadowPlaneNumber;
-#endif //__EXPERIMENTAL_SHADOWS__
+	debuffVisualsData_t debuffVisuals[PLAYERBUFF_BITS];
+	int				shieldHitTime;
+	int				shieldRechargeTime;
 } centity_t;
 
 
@@ -504,39 +487,24 @@ typedef struct markPoly_s {
 
 typedef enum {
 	LE_MARK,
-	LE_EXPLOSION,
-	LE_SPRITE_EXPLOSION,
-	LE_FADE_SCALE_MODEL, // currently only for Demp2 shock sphere
 	LE_FRAGMENT,
 	LE_PUFF,
-	LE_MOVE_SCALE_FADE,
-	LE_FALL_SCALE_FADE,
-	LE_FADE_RGB,
-	LE_SCALE_FADE,
 	LE_SCOREPLUM,
 	LE_DAMAGEPLUM,
-	LE_OLINE,
-	LE_SHOWREFENTITY,
 	LE_LINE
 } leType_t;
 
 typedef enum {
 	LEF_PUFF_DONT_SCALE = 0x0001,			// do not scale size over time
 	LEF_TUMBLE			= 0x0002,			// tumble over time, used for ejecting shells
-	LEF_FADE_RGB		= 0x0004,			// explicitly fade
-	LEF_NO_RANDOM_ROTATE= 0x0008			// MakeExplosion adds random rotate which could be bad in some cases
 } leFlag_t;
 
 typedef enum {
 	LEMT_NONE,
-	LEMT_BURN,
-	LEMT_BLOOD
 } leMarkType_t;			// fragment local entities can leave marks on walls
 
 typedef enum {
 	LEBS_NONE,
-	LEBS_BLOOD,
-	LEBS_BRASS,
 	LEBS_METAL,
 	LEBS_ROCK
 } leBounceSoundType_t;	// fragment local entities can make sounds on impacts
@@ -849,9 +817,7 @@ typedef struct cg_s {
 	qboolean	renderingThirdPerson;		// during deaths, chasecams, etc
 
 	// prediction state
-	qboolean	hyperspace;				// true if prediction has hit a trigger_teleport
 	playerState_t	predictedPlayerState;
-	playerState_t	predictedVehicleState;
 
 	int lastPurchasedItem;
 
@@ -932,9 +898,6 @@ typedef struct cg_s {
 	// crosshair client ID
 	int			crosshairClientNum;
 	int			crosshairClientTime;
-
-	int			crosshairVehNum;
-	int			crosshairVehTime;
 
 	// powerup active flashing
 	int			powerupActive;
@@ -1051,9 +1014,6 @@ Ghoul2 Insert End
 	short				radarEntityCount;
 	short				radarEntities[MAX_CLIENTS+16];
 
-	short				bracketedEntityCount;
-	short				bracketedEntities[MAX_CLIENTS+16];
-
 	float				distanceCull;
 
 	// Jedi Knight Galaxies
@@ -1143,7 +1103,9 @@ Ghoul2 Insert End
 	int					lastAmmo;
 	int					lastAmmoTime;
 	int					lastAmmoGun;
+	int					lastAmmoTypeTime;
 #endif
+	int					lastAmmoType;
 	int					lastFiringModeGun;
 	int					fireModeChangeTime;
 	int					fireModeTransition;
@@ -1228,10 +1190,6 @@ typedef struct cgMedia_s {
 	qhandle_t	loadBarLEDCap;
 	qhandle_t	loadBarLEDSurround;
 
-	qhandle_t	bryarFrontFlash;
-	qhandle_t	greenFrontFlash;
-	qhandle_t	lightningFlash;
-
 	qhandle_t	itemHoloModel;
 	qhandle_t	redFlagModel;
 	qhandle_t	blueFlagModel;
@@ -1243,9 +1201,6 @@ typedef struct cgMedia_s {
 
 	qhandle_t	teamStatusBar;
 
-	qhandle_t	deferShader;
-
-	qhandle_t	radarShader;
 	qhandle_t	siegeItemShader;
 	qhandle_t	mAutomapPlayerIcon;
 	qhandle_t	mAutomapRocketIcon;
@@ -1330,11 +1285,6 @@ typedef struct cgMedia_s {
 	// wall mark shaders
 	qhandle_t	wakeMarkShader;
 
-	// Pain view shader
-	qhandle_t	viewPainShader;
-	qhandle_t	viewPainShader_Shields;
-	qhandle_t	viewPainShader_ShieldsAndHealth;
-
 	qhandle_t	itemRespawningPlaceholder;
 	qhandle_t	itemRespawningRezOut;
 
@@ -1344,24 +1294,6 @@ typedef struct cgMedia_s {
 	qhandle_t	forceShell;
 	qhandle_t	sightShell;
 
-	// Disruptor zoom graphics
-	qhandle_t	disruptorMask;
-	qhandle_t	disruptorInsert;
-	qhandle_t	disruptorLight;
-	qhandle_t	disruptorInsertTick;
-	qhandle_t	disruptorChargeShader;
-
-	// Binocular graphics
-	qhandle_t	binocularCircle;
-	qhandle_t	binocularMask;
-	qhandle_t	binocularArrow;
-	qhandle_t	binocularTri;
-	qhandle_t	binocularStatic;
-	qhandle_t	binocularOverlay;
-
-	// weapon effect models
-	qhandle_t	lightningExplosionModel;
-
 	// explosion assets
 	qhandle_t	explosionModel;
 	qhandle_t	surfaceExplosionShader;
@@ -1370,22 +1302,11 @@ typedef struct cgMedia_s {
 
 	qhandle_t	solidWhite;
 
-	qhandle_t	heartShader;
-
-	// All the player shells
-	qhandle_t	invulnerabilityShader;
-
 	// sounds
 	sfxHandle_t	selectSound;
 	sfxHandle_t	footsteps[FOOTSTEP_TOTAL][4];
 
-	sfxHandle_t	winnerSound;
-	sfxHandle_t	loserSound;
-
 	sfxHandle_t crackleSound;
-
-	sfxHandle_t	grenadeBounce1;
-	sfxHandle_t	grenadeBounce2;
 
 	sfxHandle_t teamHealSound;
 	sfxHandle_t teamRegenSound;
@@ -1412,16 +1333,12 @@ typedef struct cgMedia_s {
 
 	sfxHandle_t noforceSound;
 
-	sfxHandle_t deploySeeker;
-	sfxHandle_t medkitSound;
-
 	sfxHandle_t	drainSound;
 
 	sfxHandle_t hitmarkerSound;
 	qhandle_t	hitmarkerGraphic;
 
 	//music blips
-	sfxHandle_t	happyMusic;
 	sfxHandle_t dramaticFailure;
 
 	// tournament sounds
@@ -1430,22 +1347,7 @@ typedef struct cgMedia_s {
 	sfxHandle_t	count1Sound;
 	sfxHandle_t	countFightSound;
 
-	// new stuff
-	qhandle_t patrolShader;
-	qhandle_t assaultShader;
-	qhandle_t campShader;
-	qhandle_t followShader;
-	qhandle_t defendShader;
-	qhandle_t retrieveShader;
-	qhandle_t escortShader;
-
-	qhandle_t swfTestShader;
-
 	qhandle_t halfShieldModel;
-	qhandle_t halfShieldShader;
-
-	qhandle_t demp2Shell;
-	qhandle_t demp2ShellShader;
 
 	qhandle_t cursor;
 	qhandle_t selectCursor;
@@ -1465,25 +1367,12 @@ typedef struct cgMedia_s {
 	qhandle_t	forceIconBackground;
 	qhandle_t	inventoryIconBackground;
 
-	sfxHandle_t	holocronPickup;
-
-	// Zoom
-	sfxHandle_t	zoomStart;
-	sfxHandle_t	zoomLoop;
-	sfxHandle_t	zoomEnd;
-	sfxHandle_t	disruptorZoomLoop;
-
 	qhandle_t	bdecal_bodyburn1;
 	qhandle_t	bdecal_saberglow;
 	qhandle_t	bdecal_burn1;
 	qhandle_t	mSaberDamageGlow;
 
-	// For vehicles only now
 	sfxHandle_t	noAmmoSound;
-
-	// eezstreet add: breaking stuff!
-	sfxHandle_t	weaponBreakSound;
-	sfxHandle_t	armorBreakSound;
 
 	// JKG
 	qhandle_t	deathfont;
@@ -1493,12 +1382,6 @@ typedef struct cgMedia_s {
 	qhandle_t	avatar_placeholder;
 	
 	qhandle_t   bboxShader;
-	
-	// Damage types - There's soooooo many fields in this struct. Let's add more :D
-	qhandle_t   stunOverlay;
-	qhandle_t   carboniteOverlay;
-	qhandle_t   iceOverlay;
-	qhandle_t   playerFireEffect;
 
 } cgMedia_t;
 
@@ -1506,62 +1389,6 @@ typedef struct cgMedia_s {
 // Stored FX handles
 //--------------------
 typedef struct cgEffects_s {
-	//concussion
-	fxHandle_t	concussionShotEffect;
-	fxHandle_t	concussionImpactEffect;
-
-	// BRYAR PISTOL
-	fxHandle_t	bryarShotEffect;
-	fxHandle_t	bryarPowerupShotEffect;
-	fxHandle_t	bryarWallImpactEffect;
-	fxHandle_t	bryarWallImpactEffect2;
-	fxHandle_t	bryarWallImpactEffect3;
-	fxHandle_t	bryarFleshImpactEffect;
-	fxHandle_t	bryarDroidImpactEffect;
-
-	// BLASTER
-	fxHandle_t  blasterShotEffect;
-	fxHandle_t  blasterWallImpactEffect;
-	fxHandle_t  blasterFleshImpactEffect;
-	fxHandle_t  blasterDroidImpactEffect;
-
-	// DISRUPTOR
-	fxHandle_t  disruptorRingsEffect;
-	fxHandle_t  disruptorProjectileEffect;
-	fxHandle_t  disruptorWallImpactEffect;
-	fxHandle_t  disruptorFleshImpactEffect;
-	fxHandle_t  disruptorAltMissEffect;
-	fxHandle_t  disruptorAltHitEffect;
-
-	// BOWCASTER
-	fxHandle_t	bowcasterShotEffect;
-	fxHandle_t	bowcasterImpactEffect;
-
-	// REPEATER
-	fxHandle_t  repeaterProjectileEffect;
-	fxHandle_t  repeaterAltProjectileEffect;
-	fxHandle_t  repeaterWallImpactEffect;
-	fxHandle_t  repeaterFleshImpactEffect;
-	fxHandle_t  repeaterAltWallImpactEffect;
-
-	// DEMP2
-	fxHandle_t  demp2ProjectileEffect;
-	fxHandle_t  demp2WallImpactEffect;
-	fxHandle_t  demp2FleshImpactEffect;
-
-	// FLECHETTE
-	fxHandle_t	flechetteShotEffect;
-	fxHandle_t	flechetteAltShotEffect;
-	fxHandle_t	flechetteWallImpactEffect;
-	fxHandle_t	flechetteFleshImpactEffect;
-
-	// ROCKET
-	fxHandle_t  rocketShotEffect;
-	fxHandle_t  rocketExplosionEffect;
-
-	// THERMAL
-	fxHandle_t	thermalExplosionEffect;
-	fxHandle_t	thermalShockwaveEffect;
 
 	// TRIPMINE
 	fxHandle_t	tripmineLaserFX;
@@ -1811,8 +1638,6 @@ void C_Trace( void );
 void C_G2Trace( void );
 void C_G2Mark( void );
 
-void CG_DrawMiscEnts(void);
-
 const char *CG_ConfigString( int index );
 const char *CG_Argv( int arg );
 
@@ -1826,11 +1651,8 @@ void CG_LoadMenus(const char *menuFile);
 void CG_KeyEvent(int key, qboolean down);
 void CG_MouseEvent(int x, int y);
 void CG_EventHandling(int type);
-void CG_RankRunFrame( void );
 void CG_SetScoreSelection(void *menu);
 void CG_BuildSpectatorString(void);
-void CG_NextForcePower_f(void);
-void CG_PrevForcePower_f(void);
 
 //
 // cg_view.c
@@ -1849,21 +1671,6 @@ float CG_ClampFov ( float fov );
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback );
 qboolean CG_CullPointAndRadius (const vec3_t pt, float radius);
 
-/*
-Ghoul2 Insert Start
-*/
-
-void CG_TestG2Model_f (void);
-void CG_TestModelSurfaceOnOff_f(void);
-void CG_ListModelSurfaces_f (void);
-void CG_ListModelBones_f (void);
-void CG_TestModelSetAnglespre_f(void);
-void CG_TestModelSetAnglespost_f(void);
-void CG_TestModelAnimate_f(void);
-/*
-Ghoul2 Insert End
-*/
-
 //
 // cg_drawtools.c
 //
@@ -1871,8 +1678,6 @@ void CG_FillRect( float x, float y, float width, float height, const float *colo
 void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
 void CG_DrawRotatePic( float x, float y, float width, float height,float angle, qhandle_t hShader );
 void CG_DrawRotatePic2( float x, float y, float width, float height,float angle, qhandle_t hShader );
-void CG_DrawString( float x, float y, const char *string,
-				   float charWidth, float charHeight, const float *modulate );
 
 void CG_DrawNumField (int x, int y, int width, int value,int charWidth,int charHeight,int style,qboolean zeroFill);
 
@@ -1886,7 +1691,6 @@ void CG_DrawSmallStringColor( int x, int y, const char *s, vec4_t color );
 int CG_DrawStrlen( const char *str );
 
 float	*CG_FadeColor( int startMsec, int totalMsec );
-float *CG_TeamColor( int team );
 void CG_TileClear( void );
 void CG_ColorForHealth( vec4_t hcolor );
 void CG_GetColorForHealth( int health, int armor, vec4_t hcolor );
@@ -1927,15 +1731,23 @@ void CG_GetTeamColor(vec4_t *color);
 const char *CG_GetGameStatusText(void);
 const char *CG_GetKillerText(void);
 void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, void *ghoul2, int g2radius, qhandle_t skin, vec3_t origin, vec3_t angles );
-void CG_Text_PaintChar(float x, float y, float width, float height, float scale, float s, float t, float s2, float t2, qhandle_t hShader);
-const char *CG_GameTypeString(void);
 qboolean CG_YourTeamHasFlag(void);
 qboolean CG_OtherTeamHasFlag(void);
 qhandle_t CG_StatusHandle(int task);
 
-// why extern when you can zoidberg --eez
-qboolean CG_InFighter( void );
-qboolean CG_InATST( void );
+// Gets the performance analysis data from the engine and displays it in a friendly manner.
+#define	LAG_SAMPLES		128
+struct performanceSampleData_t {
+
+	uint64_t rendererSamples[LAG_SAMPLES]{ 0 };
+	uint64_t cgameSamples[LAG_SAMPLES]{ 0 };
+	uint64_t gameSamples[LAG_SAMPLES]{ 0 };
+	uint64_t serverSamples[LAG_SAMPLES]{ 0 };
+	uint64_t frameSamples[LAG_SAMPLES]{ 0 };
+	uint64_t clientSamples[LAG_SAMPLES]{ 0 };
+};
+static performanceSampleData_t cg_performanceData;
+
 
 //
 // cg_player.c
@@ -1948,15 +1760,16 @@ void CG_AddGhoul2Mark(int shader, float size, vec3_t start, vec3_t end, int entn
 void CG_CreateNPCClient(clientInfo_t **ci);
 void CG_DestroyNPCClient(clientInfo_t **ci);
 
+void CG_ArmorChanged(centity_t* cent, entityState_t* to, entityState_t* from);
+
 void CG_Player( centity_t *cent );
 void CG_ResetPlayerEntity( centity_t *cent );
 void CG_AddRefEntityWithPowerups( const refEntity_t *ent, const entityState_t *state, int team );
 void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized );
 sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName );
 void CG_PlayerShieldHit(int entitynum, vec3_t angles, int amount);
+void CG_PlayerShieldRecharging(int entitynum);
 qboolean TeamFriendly( int player );
-void JKG_CG_InitArmor(void);
-void JKG_CG_EquipArmor(int client, int slot, int armorId);
 
 //
 // cg_predict.c
@@ -2022,14 +1835,9 @@ void CG_GetClientWeaponMuzzleBoltPoint(int clIndex, vec3_t to);
 void CG_NextWeapon_f( void );
 void CG_PrevWeapon_f( void );
 void CG_Weapon_f( void );
-void CG_WeaponClean_f( void );
 
 void CG_RegisterWeapon( int weaponNum, int variation );
 void CG_RegisterItemVisuals( int itemNum );
-
-void CG_FireWeapon( centity_t *cent, qboolean alt_fire );
-void CG_MissileHitWall(int weapon, int clientNum, vec3_t origin, vec3_t dir, impactSound_t soundType, qboolean alt_fire, int charge);
-void CG_MissileHitPlayer( int weapon, vec3_t origin, vec3_t dir, int entityNum, qboolean alt_fire);
 
 void CG_AddViewWeapon (playerState_t *ps);
 void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, int team, vec3_t newAngles, qboolean thirdPerson );
@@ -2062,31 +1870,13 @@ void	CG_AddLocalEntities( void );
 //
 // cg_effects.c
 //
-localEntity_t *CG_SmokePuff( const vec3_t p,
-				   const vec3_t vel,
-				   float radius,
-				   float r, float g, float b, float a,
-				   float duration,
-				   int startTime,
-				   int fadeInTime,
-				   int leFlags,
-				   qhandle_t hShader );
-void CG_BubbleTrail( vec3_t start, vec3_t end, float spacing );
 void CG_GlassShatter(int entnum, vec3_t dmgPt, vec3_t dmgDir, float dmgRadius, int maxShards);
 void CG_ScorePlum( int client, vec3_t org, int score );
-void CG_DamagePlum( int client, vec3_t org, int damage );
+void CG_DamagePlum( int client, vec3_t org, int damage, int means, int shield, qboolean max );
 
 void CG_Chunks( int owner, vec3_t origin, const vec3_t normal, const vec3_t mins, const vec3_t maxs,
 						float speed, int numChunks, material_t chunkType, int customChunk, float baseScale );
 void CG_MiscModelExplosion( vec3_t mins, vec3_t maxs, int size, material_t chunkType );
-
-void CG_Bleed( vec3_t origin, int entityNum );
-
-localEntity_t *CG_MakeExplosion( vec3_t origin, vec3_t dir, 
-								qhandle_t hModel, int numframes, qhandle_t shader, int msec,
-								qboolean isSprite, float scale, int flags );// Overloaded in single player
-
-void CG_SurfaceExplosion( vec3_t origin, vec3_t normal, float radius, float shake_speed, qboolean smoke );
 
 void CG_TestLine( vec3_t start, vec3_t end, int time, unsigned int color, int radius);
 
@@ -2104,6 +1894,7 @@ void CG_LoadingString( const char *s );
 void CG_LoadingItem( int itemNum );
 void CG_LoadingClient( int clientNum );
 void CG_DrawInformation( void );
+void CG_ParseLoadingScreenTips( void );
 
 //
 // cg_spawn.c
@@ -2120,7 +1911,6 @@ void		CG_ParseEntitiesFromString( void );
 // cg_scoreboard.c
 //
 qboolean CG_DrawOldScoreboard( void );
-void CG_DrawOldTourneyScoreboard( void );
 
 //
 // cg_consolecmds.c
@@ -2152,57 +1942,26 @@ void CG_AdjustEyePos (const char *modelName);
 
 //===============================================
 
-void		BG_CycleInven(playerState_t *ps, int direction);
 int			BG_ProperForceIndex(int power);
 void		BG_CycleForce(playerState_t *ps, int direction);
 
 const char *CG_GetStringEdString(char *refSection, char *refName);
 const char *CG_GetStringEdString2(char *refName);
 
-// Gang Wars Stuff
-
 
 void FX_TurretProjectileThink(  centity_t *cent, const struct weaponInfo_s *weapon );
 
-//-----------------------------
-// Effects related prototypes
-//-----------------------------
-
-// Environmental effects
-void CG_Spark( vec3_t origin, vec3_t dir );
-
-
-//-----------------------------
-// Effects related prototypes
-//-----------------------------
-
-// Environmental effects
-void CG_Spark( vec3_t origin, vec3_t dir );
-
-// Weapon prototypes
-void FX_BryarHitWall( vec3_t origin, vec3_t normal );
-void FX_BryarAltHitWall( vec3_t origin, vec3_t normal, int power );
-void FX_BryarHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
-void FX_BryarAltHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
-
-void FX_BlasterProjectileThink( centity_t *cent, const struct weaponInfo_s *weapon );
-void FX_BlasterAltFireThink( centity_t *cent, const struct weaponInfo_s *weapon );
-void FX_BlasterWeaponHitWall( vec3_t origin, vec3_t normal );
-void FX_BlasterWeaponHitPlayer( vec3_t origin, vec3_t normal, qboolean humanoid );
 
 void		CG_Init_CG(void);
 void		CG_Init_CGents(void);
 
 
 void CG_SetGhoul2Info( refEntity_t *ent, const centity_t *cent);
-void CG_CreateBBRefEnts(entityState_t *s1, vec3_t origin );
 
 void CG_ShutDownG2Weapons(void);
 void CG_CopyG2WeaponInstance(centity_t *cent, int weaponNum, int weaponVariation, void *toGhoul2);
 void *CG_G2WeaponInstance(centity_t *cent, int weapon, int variation);
 void CG_CheckPlayerG2Weapons(playerState_t *ps, centity_t *cent);
-
-void CG_SetSiegeTimerCvar( int msec );
 
 void	CG_ClearLightStyles (void);
 void	CG_RunLightStyles (void);

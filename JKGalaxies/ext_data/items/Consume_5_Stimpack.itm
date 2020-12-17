@@ -1,22 +1,9 @@
 {
-	"name":             "BioTech Bacta Canister",
-	"internal":             "Stimpack",
-	"cost":		"100",
-	"itemtype":             "none",
-
-	"pSpell":		"16",
-	"affector":		"0",
-	"amount":		"99",
-	
-	"pSpell2":		"1",
-	"affector2":		"0",
-	"amount2":		"25",
-
-	"pSpell3":		"14",
-	"affector3":		"sound/items/use_bacta.wav",
-
-	"pSpell4":		"15",
-
-	"xml":			"xml/items/stimpack.xml",
+	"name":             "BioTech Minor Bacta Canister",
+	"internal":             "bacta_small",
+	"cost":		"10",
+	"itemtype":             "consumable",
+	"maxStack":		5,
+	"consumeScript":	"item_bacta_small",
 	"itemIcon":		"gfx/item_icons/bacta.tga"
 }

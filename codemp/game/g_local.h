@@ -28,10 +28,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "qcommon/q_shared.h"
 #include "bg_public.h"
-#include "bg_vehicles.h"
 #include "g_public.h"
 #include "bg_ammo.h"
 #include "bg_items.h"
+#include "bg_damage.h"
+#include "bg_buffs.h"
 
 #include "qcommon/game_version.h"
 
@@ -55,7 +56,6 @@ extern vec3_t gPainPoint;
 
 // the "gameversion" client command will print this plus compile date
 #define SECURITY_LOG "security.log"
-#define JKG_ERRMSG "Please report this error to the game support section on the JKG forums:\nhttp://jkgalaxies.com"
 
 #define BODY_QUEUE_SIZE		64
 
@@ -101,9 +101,6 @@ extern vec3_t gPainPoint;
 #define	FL_BOUNCE				0x00100000		// for missiles
 #define	FL_BOUNCE_HALF			0x00200000		// for missiles
 #define	FL_BOUNCE_SHRAPNEL		0x00400000		// special shrapnel flag
-
-//vehicle game-local stuff -rww
-#define	FL_VEH_BOARDING			0x00800000		// special shrapnel flag
 
 //breakable flags -rww
 #define FL_DMG_BY_SABER_ONLY		0x01000000 //only take dmg from saber
@@ -194,6 +191,12 @@ typedef struct {
 	int damageDealt;
 } entityHitRecord_t;
 
+typedef struct {
+	int endTime;
+	int lastDamageTime;
+	gentity_t* buffer;
+} buffInfo_t;
+
 #ifdef _GAME
 class TreasureClass;
 #endif
@@ -206,13 +209,11 @@ extern qboolean gEscaping;
 extern int gEscapeTime;
 
 //============================================================================
-//so i herd you liek jkg
 
 struct gentity_s {
 	//rww - entstate must be first, to correspond with the bg shared entity structure
 	entityState_t	s;				// communicated by server to clients
 	playerState_t	*playerState;	//ptr to playerstate if applicable (for bg ents)
-	Vehicle_t		*m_pVehicle; //vehicle data
 	void			*ghoul2; //g2 instance
 	int				localAnimIndex; //index locally (game/cgame) to anim data for this skel
 	vec3_t			modelScale; //needed for g2 collision
@@ -452,6 +453,7 @@ struct gentity_s {
 	gentity_t   *damagePlum;
 	int			damagePlumTime;
 	int			lastHealTime;
+	buffInfo_t	buffData[PLAYERBUFF_BITS];
 
 	int			grenadeCookTime;	// For cookable grenades.
 	int			grenadeWeapon;		// The cookable grenade type that has been set (it can explode in your pocket).
@@ -461,12 +463,6 @@ struct gentity_s {
 
 	// For scripted NPCs
 	char		*npcscript;
-
-	gentity_t  *currentLooter;
-	gentity_t  *currentlyLooting;
-	qboolean	isAtWorkbench;	//nw
-	const char* szTreasureClass;			// Used on death
-	const char* szVendorTreasureClass;		// Used for vendor stock
 
 	// For NPC waypoint following..
 	int			wpCurrent;
@@ -594,8 +590,6 @@ typedef struct clientSession_s {
 	int			saberLevel;			// similar to above method, but for current saber attack level
 	qboolean	setForce;			// set to true once player is given the chance to set force powers
 	int			updateUITime;		// only update userinfo for FP/SL if < level.time
-	qboolean	teamLeader;			// true when this client is a team leader
-	char		siegeClass[64];
 	char		saberType[64];
 	char		saber2Type[64];
 	int			duelTeam;
@@ -639,7 +633,8 @@ typedef struct clientPersistant_s {
 	int			teamVoteCount;		// to prevent people from constantly calling votes
 	qboolean	teamInfo;			// send team overlay updates?
 
-	int			connectTime;
+	int			connectTime;	
+	int			lastCreditTime;		// last time we got passive credit reward
 
 	// Jedi Knight Galaxies
 	int			partyNumber;						// Your party index in the level.party struct.
@@ -740,12 +735,6 @@ typedef struct renderInfo_s
 //EEZSTREET EDIT: STAT STRUCTURE
 struct statData_s
 {
-	//"Fake" stats
-	//char		*ACISave[MAX_ACI_SLOTS];	//Never access this directly, except for saving/loading procedures.
-	int			ACISlots[MAX_ACI_SLOTS];	//Use this for weapon code. If slot is used, then
-	                                        // it contains the internal weapon index of the weapon in said slot.
-	int         aciSlotsUsed;               // Bitfield of slots used
-
 	//"Real" stats
 	int			weight;
 };
@@ -772,8 +761,6 @@ struct gclient_s {
 
 	saberInfo_t	saber[MAX_SABERS];
 	void		*weaponGhoul2[MAX_SABERS];
-
-	int			tossableItemDebounce;
 
 	int			bodyGrabTime;
 	int			bodyGrabIndex;
@@ -807,7 +794,7 @@ struct gclient_s {
 
 	// sum up damage over an entire frame, so
 	// shotgun blasts give a single big kick
-	int			damage_armor;		// damage absorbed by armor
+	int			damage_shield;		// damage absorbed by armor
 	int			damage_blood;		// damage taken out of health
 	int			damage_knockback;	// impact damage
 	vec3_t		damage_from;		// origin for vector calculation
@@ -874,8 +861,6 @@ struct gclient_s {
 	qboolean	noCorpse; //don't leave a corpse on respawn this time.
 
 	int			jetPackTime;
-
-	qboolean	jetPackOn;
 	int			jetPackToggleTime;
 	int			jetPackDebRecharge;
 	int			jetPackDebReduce;
@@ -936,16 +921,6 @@ struct gclient_s {
 	vec3_t		pushVec;
 	int			pushVecTime;
 
-	int			siegeClass;
-	int			holdingObjectiveItem;
-
-	//time values for when being healed/supplied by supplier class
-	int			isMedHealed;
-	int			isMedSupplied;
-
-	//seperate debounce time for refilling someone's ammo as a supplier
-	int			medSupplyDebounce;
-
 	//used in conjunction with ps.hackingTime
 	int			isHacking;
 	vec3_t		hackingAngles;
@@ -956,9 +931,6 @@ struct gclient_s {
 	int			ewebIndex; //index of e-web gun if spawned
 	int			ewebTime; //e-web use debounce
 	int			ewebHealth; //health of e-web (to keep track between deployments)
-
-	int			inSpaceIndex; //ent index of space trigger if inside one
-	int			inSpaceSuffocation; //suffocation timer
 
 	int			tempSpectate; //time to force spectator mode
 
@@ -1000,8 +972,9 @@ struct gclient_s {
 	// Jedi Knight Galaxies
 	int			IDCode;
 	int			InCinematic;
-	int			clipammo[256];		// Ammo in current clip of specific weapon
-	int			firingModes[256];	// Different firing modes for each gun so it automagically remembers
+	unsigned short			clipammo[256][MAX_FIREMODES];		// Ammo in current clip of specific weapon
+	unsigned short			firingModes[256];					// Different firing modes for each gun so it automagically remembers
+	unsigned short			ammoTypes[256][MAX_FIREMODES];		// Different ammo types for each gun so it automagically remembers
 	qboolean	customGravity;
 	qboolean	pmfreeze;
 	qboolean	pmlock;
@@ -1009,9 +982,6 @@ struct gclient_s {
 	qboolean	noDismember;
 	qboolean	noDisintegrate;
 	qboolean	noDrops;					// Supress item drops
-	int         damageTypeTime[NUM_DAMAGE_TYPES];
-	int         damageTypeLastEffectTime[NUM_DAMAGE_TYPES];
-	gentity_t	*damageTypeOwner[NUM_DAMAGE_TYPES];
 	
 	// Custom disco messages
 	int			customDisconnectMsg;
@@ -1020,11 +990,16 @@ struct gclient_s {
 	int			lastChatMessage;
 
 	struct statData_s	coreStats;
-	int			deathLootIndex;
-	int			pickPocketLootIndex;
-	int			armorItems[ARMSLOT_MAX];
+	qboolean	shieldEquipped;
+	int			shieldRechargeTime;
+	int			shieldRegenTime;
+	int			shieldRechargeLast;
+	int			shieldRegenLast;
+	qboolean	shieldRecharging;	// to make sure that the shield sound doesn't play twice
+	qboolean	jetpackEquipped;	//is there a jetpack equipped?
+	itemJetpackData_t* pItemJetpack;
 
-	int		ammoTable[JKG_MAX_AMMO_INDICES];				// Max ammo indices increased to JKG_MAX_AMMO_INDICES
+	unsigned short ammoTable[MAX_AMMO_TYPES];		// Max ammo indices increased to JKG_MAX_AMMO_INDICES
 
 	unsigned int numDroneShotsInBurst;
 	unsigned int lastHitmarkerTime;			// Timer to ensure that we don't get ear-raped whenever we hit someone with a scattergun --eez
@@ -1035,6 +1010,8 @@ struct gclient_s {
 	unsigned int	saberProjBlockTime;
 	unsigned int	saberBlockTime;
 
+	int			weaponHeatDebounceTime;		// last time that we lost heat
+
 	// all of the below was migrated from the playerState. None of it belonged there. --eez
 	int saberBlockDebounce;
 	int saberAttackWound;
@@ -1042,9 +1019,7 @@ struct gclient_s {
 	int saberAttackSequence;				// FIXME: not used? --eez
 	int saberSaberBlockDebounce;
 
-#ifndef __MMO__
 	unsigned int numKillsThisLife;			// Killstreaks!
-#endif
 
 	char		botSoundDir[MAX_QPATH];
 	float		blockingLightningAccumulation;//Stoiss add
@@ -1255,7 +1230,6 @@ typedef struct level_locals_s {
 	int				serverInit;
 	char			party[MAX_CLIENTS][5];
 	teamPartyList_t	partyList[MAX_CLIENTS];
-	int vendors[32];							//List of vendors on the server
 
 	struct {
 		fileHandle_t	log;
@@ -1340,8 +1314,6 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir );
 void Cmd_SaberAttackCycle_f(gentity_t *ent);
 void Cmd_ToggleSaber_f(gentity_t *ent);
 void Cmd_EngageDuel_f(gentity_t *ent);
-void G_LeaveVehicle( gentity_t *ent, qboolean ConCheck );
-void SanitizeString2( char *in, char *out );
 void Cmd_Reload_f(gentity_t *ent);
 
 void JKG_BindChatCommands( void );
@@ -1421,7 +1393,6 @@ qboolean	G_EntitiesFree( void );
 qboolean G_ActivateBehavior (gentity_t *self, int bset );
 
 void	G_TouchTriggers (gentity_t *ent);
-void	G_TouchSolids (gentity_t *ent);
 void	GetAnglesForDirection( const vec3_t p1, const vec3_t p2, vec3_t out );
 
 //
@@ -1457,36 +1428,10 @@ void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, fl
 void G_Damage (gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t point, int damage, int dflags, int mod);
 qboolean G_RadiusDamage (vec3_t origin, gentity_t *attacker, float damage, float radius, gentity_t *ignore, gentity_t *missile, int mod);
 void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath );
-void TossClientWeapon(gentity_t *self, vec3_t direction, float speed);
 void TossClientItems( gentity_t *self );
-void TossClientCubes( gentity_t *self );
-void ExplodeDeath( gentity_t *self );
 void G_CheckForDismemberment(gentity_t *ent, gentity_t *enemy, vec3_t point, int damage, int deathAnim, qboolean postDeath);
 extern int gGAvoidDismember;
 
-
-// damage flags
-#define DAMAGE_NORMAL				0x00000000	// No flags set.
-#define DAMAGE_RADIUS				0x00000001	// damage was indirect
-#define DAMAGE_NO_ARMOR				0x00000002	// armour does not protect from this damage
-#define DAMAGE_NO_KNOCKBACK			0x00000004	// do not affect velocity, just view angles
-#define DAMAGE_NO_PROTECTION		0x00000008  // armor, shields, invulnerability, and godmode have no effect
-#define DAMAGE_NO_TEAM_PROTECTION	0x00000010  // armor, shields, invulnerability, and godmode have no effect
-//JK2 flags
-#define DAMAGE_EXTRA_KNOCKBACK		0x00000040	// add extra knockback to this damage
-#define DAMAGE_DEATH_KNOCKBACK		0x00000080	// only does knockback on death of target
-#define DAMAGE_IGNORE_TEAM			0x00000100	// damage is always done, regardless of teams
-#define DAMAGE_NO_DAMAGE			0x00000200	// do no actual damage but react as if damage was taken
-#define DAMAGE_HALF_ABSORB			0x00000400	// half shields, half health
-#define DAMAGE_HALF_ARMOR_REDUCTION	0x00000800	// This damage doesn't whittle down armor as efficiently.
-#define DAMAGE_HEAVY_WEAP_CLASS		0x00001000	// Heavy damage
-#define DAMAGE_NO_HIT_LOC			0x00002000	// No hit location
-#define DAMAGE_NO_SELF_PROTECTION	0x00004000	// Dont apply half damage to self attacks
-#define DAMAGE_NO_DISMEMBER			0x00008000	// Dont do dismemberment
-#define DAMAGE_SABER_KNOCKBACK1		0x00010000	// Check the attacker's first saber for a knockbackScale
-#define DAMAGE_SABER_KNOCKBACK2		0x00020000	// Check the attacker's second saber for a knockbackScale
-#define DAMAGE_SABER_KNOCKBACK1_B2	0x00040000	// Check the attacker's first saber for a knockbackScale2
-#define DAMAGE_SABER_KNOCKBACK2_B2	0x00080000	// Check the attacker's second saber for a knockbackScale2
 //
 // g_exphysics.c
 //
@@ -1502,7 +1447,6 @@ void G_RunMissile( gentity_t *ent );
 gentity_t *CreateMissile( vec3_t org, vec3_t dir, float vel, int life,
 							gentity_t *owner, qboolean altFire);
 void G_BounceProjectile( vec3_t start, vec3_t impact, vec3_t dir, vec3_t endout );
-void G_ExplodeMissile( gentity_t *ent );
 
 
 //
@@ -1564,9 +1508,7 @@ void		 WP_CalculateAngles( gentity_t *ent );
 void		 WP_CalculateMuzzlePoint( gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint );
 void		 WP_RecalculateTheFreakingMuzzleCrap( gentity_t *ent );
 gentity_t	*WP_FireGenericMissile( gentity_t *ent, int firemode, vec3_t origin, vec3_t dir );
-void		 WP_FireGenericTraceLine( gentity_t *ent, qboolean altFire );
 void		 WP_FireGenericWeapon( gentity_t *ent, int firemode );
-qboolean	 WP_GetWeaponAttackDisruption( gentity_t* ent, qboolean altFire );
 float		 WP_GetWeaponBoxSize( gentity_t *ent, int firemode );
 int			 WP_GetWeaponBounce( gentity_t *ent, int firemode );
 int			 WP_GetWeaponCharge( gentity_t *ent, int firemode );
@@ -1576,29 +1518,22 @@ qboolean	 WP_GetWeaponGravity( gentity_t *ent, int firemode );
 int			 WP_GetWeaponMOD( gentity_t *ent, int firemode );
 int			 WP_GetWeaponSplashMOD( gentity_t *ent, int firemode );
 float		 WP_GetWeaponRange( gentity_t *ent, int firemode );
-qboolean	 WP_GetWeaponShotCount( gentity_t *ent, qboolean altFire );
 float		 WP_GetWeaponSpeed( gentity_t *ent, int firemode );
-float		 WP_GetWeaponSplashRange( gentity_t *ent, int firemode );
+double		 WP_GetWeaponSplashRange( gentity_t *ent, int firemode );
 
-
-void WP_FireTurretMissile( gentity_t *ent, vec3_t start, vec3_t dir, qboolean altFire, int damage, int velocity, int mod, gentity_t *ignore );
-void WP_FireGenericBlasterMissile( gentity_t *ent, vec3_t start, vec3_t dir, qboolean altFire, int damage, int velocity, int mod );
 void SnapVectorTowards( vec3_t v, vec3_t to );
-qboolean CheckGauntletAttack( gentity_t *ent );
-
 
 //
 // g_client.c
 //
 team_t TeamCount( int ignoreClientNum, int team );
-int TeamLeader( int team );
 team_t PickTeam( int ignoreClientNum );
 void SetClientViewAngle( gentity_t *ent, vec3_t angle );
 gentity_t *SelectSpawnPoint ( vec3_t avoidPoint, vec3_t origin, vec3_t angles, team_t team, qboolean isbot );
 void MaintainBodyQueue(gentity_t *ent);
 void JKG_PermaSpectate(gentity_t *ent);
 void respawn (gentity_t *ent);
-void ClientRespawn (gentity_t *ent);
+qboolean JKG_ClientAlive(gentity_t* ent);
 void BeginIntermission (void);
 void InitBodyQue (void);
 void ClientSpawn( gentity_t *ent, qboolean respawn );
@@ -1621,7 +1556,6 @@ void FireWeapon( gentity_t *ent, int firingMode );
 void BlowDetpacks(gentity_t *ent);
 
 void MoveClientToIntermission (gentity_t *client);
-void G_SetStats (gentity_t *ent);
 void DeathmatchScoreboardMessage (gentity_t *client);
 
 //
@@ -1633,8 +1567,6 @@ extern int gSlowMoDuelTime;
 void G_PowerDuelCount(int *loners, int *doubles, qboolean countSpec);
 
 void FindIntermissionPoint( void );
-void SetLeader(int team, int client);
-void CheckTeamLeader( int team );
 void G_RunThink (gentity_t *ent);
 void AddTournamentQueue(gclient_t *client);
 void QDECL G_LogPrintf( const char *fmt, ... );
@@ -1715,7 +1647,6 @@ void G_RemoveQueuedBotBegin( int clientNum );
 qboolean G_BotConnect( int clientNum, qboolean restart );
 void Svcmd_AddBot_f( void );
 void Svcmd_BotList_f( void );
-void BotInterbreedEndMatch( void );
 qboolean G_DoesMapSupportGametype(const char *mapname, int gametype);
 const char *G_RefreshNextMap(int gametype, qboolean forced);
 
@@ -1757,6 +1688,9 @@ void G_KickSomeMofos(gentity_t *ent);
 void G_GrabSomeMofos(gentity_t *self);
 void JKG_GrappleUpdate( gentity_t *self );
 
+// bg_ammo.cpp
+void BG_GiveAmmo(gentity_t* ent, ammo_t* ammo, qboolean max = qtrue, int amount = 0);
+
 // g_log.c
 void QDECL G_LogPrintf( const char *fmt, ... );
 void QDECL G_LogWeaponPickup(int client, int weaponid);
@@ -1769,7 +1703,6 @@ void QDECL G_LogWeaponPowerup(int client, int powerupid);
 void QDECL G_LogWeaponItem(int client, int itemid);
 void QDECL G_LogWeaponInit(void);
 void QDECL G_LogWeaponOutput(void);
-void QDECL G_LogExit( const char *string );
 void QDECL G_ClearClientLog(int client);
 
 // g_timer
@@ -1795,12 +1728,7 @@ qboolean InFront( vec3_t spot, vec3_t from, vec3_t fromAngles, float threshHold 
 #define MAX_FILEPATH			144
 
 int		OrgVisible		( vec3_t org1, vec3_t org2, int ignore);
-void	BotOrder		( gentity_t *ent, int clientnum, int ordernum);
 int		InFieldOfVision	( vec3_t viewangles, float fov, vec3_t angles);
-
-// ai_util.c
-void B_InitAlloc(void);
-void B_CleanupAlloc(void);
 
 //bot settings
 typedef struct bot_settings_s
@@ -1840,6 +1768,18 @@ typedef enum userinfoValidationBits_e {
 } userinfoValidationBits_t;
 
 /**************************************************
+* jkg_equip.cpp
+**************************************************/
+
+void JKG_ShieldEquipped(gentity_t* ent, int shieldItemNumber, qboolean playSound);
+void Cmd_ShieldUnequipped(gentity_t* ent);
+void Cmd_ShieldUnequipped(gentity_t* ent, unsigned int index);
+void JKG_JetpackEquipped(gentity_t* ent, int jetpackItemNumber);
+void Cmd_JetpackUnequipped(gentity_t* ent);
+void Cmd_JetpackUnequipped(gentity_t* ent, unsigned int index);
+void JKG_ArmorChanged(gentity_t* ent);
+
+/**************************************************
 * jkg_team.c
 **************************************************/
 
@@ -1877,6 +1817,10 @@ void G_UpdateCvars( void );
 **************************************************/
 void JKG_SP_target_vendor(gentity_t *ent);
 void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activator);
+void JKG_MakeNPCVendor(gentity_t* ent, char* szTreasureClassName);
+void JKG_GenericVendorUse(gentity_t* self, gentity_t* other, gentity_t* activator);
+void JKG_RegenerateStock(gentity_t* ent);
+
 
 /**************************************************
 * jkg_treasureclass.cpp

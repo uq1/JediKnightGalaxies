@@ -2507,7 +2507,6 @@ void G2API_CopySpecificG2Model(CGhoul2Info_v &ghoul2From, int modelFrom, CGhoul2
 		// if we don't have enough models on the to side, resize us so we do
 		if (ghoul2To.size() <= modelTo)
 		{
-			assert (modelTo < 5);
 			ghoul2To.resize(modelTo + 1);
 #if 0
 			forceReconstruct = qtrue;
@@ -2611,6 +2610,14 @@ char *G2API_GetSurfaceName(CGhoul2Info_v& ghoul2, int modelIndex, int surfNumber
 	return noSurface;
 }
 
+int G2API_GetSurfaceCount(CGhoul2Info_v& ghoul2) {
+	CGhoul2Info *ghlInfo = &ghoul2[0];
+	if (G2_SetupModelPointers(ghlInfo)) {
+		model_t	*mod = (model_t *)ghlInfo->currentModel;
+		return mod->mdxm->numSurfaces;
+	}
+	return -1;
+}
 
 int	G2API_GetSurfaceIndex(CGhoul2Info *ghlInfo, const char *surfaceName)
 {

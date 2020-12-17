@@ -502,7 +502,7 @@ void CG_ColorForHealth( vec4_t hcolor )
 		return;
 	}
 
-	count = cg.snap->ps.stats[STAT_ARMOR];
+	count = cg.snap->ps.stats[STAT_SHIELD];
 	max = health * ARMOR_PROTECTION / ( 1.0 - ARMOR_PROTECTION );
 	if ( max < count ) 
 	{

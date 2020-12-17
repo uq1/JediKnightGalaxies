@@ -1,21 +1,9 @@
 {
 	"name":             "BioTech Bacta Intravenous Solution",
-	"internal":             "Stimpack",
-	"cost":		"175",
-	"itemtype":             "none",
-
-	"pSpell":		"16",
-	"affector":		"0",
-	"amount":		"99",
-	
-	"pSpell2":		"3",
-	"affector2":		"0",
-	"amount2":		"2",
-
-	"pSpell3":		"14",
-	"affector3":		"sound/items/use_bacta.wav",
-
-	"pSpell4":		"15",
-
+	"internal":             "bacta_large",
+	"cost":		"75",
+	"itemtype":             "consumable",
+	"maxStack":		2,
+	"consumeScript":	"item_bacta_large",
 	"itemIcon":		"gfx/item_icons/bacta.tga"
 }

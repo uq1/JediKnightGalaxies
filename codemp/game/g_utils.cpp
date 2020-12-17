@@ -123,11 +123,7 @@ Ghoul2 Insert Start
 */
 
 int G_BoneIndex( const char *name ) {
-#ifdef __MMO__
-	return 0;
-#else //!__MMO__
 	return G_FindConfigstringIndex (name, CS_G2BONES, MAX_G2BONES, qtrue);
-#endif //__MMO__
 }
 /*
 Ghoul2 Insert End
@@ -171,6 +167,17 @@ int G_SoundIndex( const char *name ) {
 		return 0;
 	}
 	return G_FindConfigstringIndex (name, CS_SOUNDS, MAX_SOUNDS, qtrue);
+}
+
+gentity_t *G_PreDefSound(vec3_t org, int pdSound)
+{
+	gentity_t	*te;
+
+	te = G_TempEntity(org, EV_PREDEFSOUND);
+	te->s.eventParm = pdSound;
+	VectorCopy(org, te->s.origin);
+
+	return te;
 }
 
 int G_SoundSetIndex(const char *name)
@@ -403,56 +410,11 @@ static void G_FreeFakeClient(gclient_t **cl)
 	// If you check base, this func was empty and had a lengthy explanation.
 	// I believe that this code is a serverside crash waiting to happen 
 	// I think it should be removed but I could be wrong ~~ ooxavenue
-	if (!(jkg_removenpcbody.integer)) 
+	/*if (!(jkg_removenpcbody.integer)) 
 	{
 		free(*cl);
 		*cl = NULL;
-	}
-}
-
-//allocate a veh object
-#define MAX_VEHICLES_AT_A_TIME		512//128
-static Vehicle_t g_vehiclePool[MAX_VEHICLES_AT_A_TIME];
-static qboolean g_vehiclePoolOccupied[MAX_VEHICLES_AT_A_TIME];
-static qboolean g_vehiclePoolInit = qfalse;
-void G_AllocateVehicleObject(Vehicle_t **pVeh)
-{
-	int i = 0;
-
-	if (!g_vehiclePoolInit)
-	{
-		g_vehiclePoolInit = qtrue;
-		memset(g_vehiclePoolOccupied, 0, sizeof(g_vehiclePoolOccupied));
-	}
-
-	while (i < MAX_VEHICLES_AT_A_TIME)
-	{ //iterate through and try to find a free one
-		if (!g_vehiclePoolOccupied[i])
-		{
-			g_vehiclePoolOccupied[i] = qtrue;
-			memset(&g_vehiclePool[i], 0, sizeof(Vehicle_t));
-			*pVeh = &g_vehiclePool[i];
-			return;
-		}
-		i++;
-	}
-	Com_Error(ERR_DROP, "Ran out of vehicle pool slots.");
-}
-
-//free the pointer, sort of a lame method
-void G_FreeVehicleObject(Vehicle_t *pVeh)
-{
-	int i = 0;
-	while (i < MAX_VEHICLES_AT_A_TIME)
-	{
-		if (g_vehiclePoolOccupied[i] &&
-			&g_vehiclePool[i] == pVeh)
-		{ //guess this is it
-			g_vehiclePoolOccupied[i] = qfalse;
-			break;
-		}
-		i++;
-	}
+	}*/
 }
 
 gclient_t *gClPtrs[MAX_GENTITIES];
@@ -1074,11 +1036,6 @@ void G_FreeEntity( gentity_t *ed ) {
 		trap->G2API_CleanGhoul2Models(&(ed->ghoul2));
 	}
 
-	if (ed->s.eType == ET_NPC && ed->m_pVehicle)
-	{ //tell the "vehicle pool" that this one is now free
-		G_FreeVehicleObject(ed->m_pVehicle);
-	}
-
 	if (ed->s.eType == ET_NPC && ed->client)
 	{ //this "client" structure is one of our dynamically allocated ones, so free the memory
 		int saberEntNum = -1;
@@ -1654,21 +1611,7 @@ void TryUse( gentity_t *ent )
 		return;
 	}
 
-	if (ent->s.number < MAX_CLIENTS && ent->client && ent->client->ps.m_iVehicleNum)
-	{
-		gentity_t *currentVeh = &g_entities[ent->client->ps.m_iVehicleNum];
-		if (currentVeh->inuse && currentVeh->m_pVehicle)
-		{
-			Vehicle_t *pVeh = currentVeh->m_pVehicle;
-			if (!pVeh->m_iBoarding)
-			{
-				pVeh->m_pVehicleInfo->Eject( pVeh, (bgEntity_t *)ent, qfalse );
-			}
-			return;
-		}
-	}
-
-	if (ent->client->jetPackOn)
+	if (ent->client->ps.eFlags & EF_JETPACK_ACTIVE)
 	{ //can't use anything else to jp is off
 		goto tryJetPack;
 	}
@@ -1764,53 +1707,6 @@ void TryUse( gentity_t *ent )
 		}
 	}
 
-//Enable for corpse dragging
-#if 0
-	if (target->inuse && target->s.eType == ET_BODY &&
-		ent->client->bodyGrabTime < level.time)
-	{ //then grab the body
-		target->s.eFlags |= EF_RAG; //make sure it's in rag state
-		if (!ent->s.number)
-		{ //switch cl 0 and entitynum_none, so we can operate on the "if non-0" concept
-			target->s.ragAttach = ENTITYNUM_NONE;
-		}
-		else
-		{
-			target->s.ragAttach = ent->s.number;
-		}
-		ent->client->bodyGrabTime = level.time + 1000;
-		ent->client->bodyGrabIndex = target->s.number;
-		return;
-	}
-#endif
-
-	if (target && target->m_pVehicle && target->client &&
-		target->s.NPC_class == CLASS_VEHICLE &&
-		!ent->client->ps.zoomMode)
-	{ //if target is a vehicle then perform appropriate checks
-		Vehicle_t *pVeh = target->m_pVehicle;
-
-		if (pVeh->m_pVehicleInfo)
-		{
-			if ( ent->r.ownerNum == target->s.number )
-			{ //user is already on this vehicle so eject him
-				pVeh->m_pVehicleInfo->Eject( pVeh, (bgEntity_t *)ent, qfalse );
-			}
-			else
-			{ // Otherwise board this vehicle.
-				if (level.gametype < GT_TEAM ||
-					!target->alliedTeam ||
-					(target->alliedTeam == ent->client->sess.sessionTeam))
-				{ //not belonging to a team, or client is on same team
-					pVeh->m_pVehicleInfo->Board( pVeh, (bgEntity_t *)ent );
-				}
-			}
-			//clear the damn button!
-			ent->client->pers.cmd.buttons &= ~BUTTON_USE;
-			return;
-		}
-	}
-
 	//Check for a use command
 	if ( ValidUseTarget( target ) )
 	{
@@ -1839,35 +1735,12 @@ void TryUse( gentity_t *ent )
 
 tryJetPack:
 	//if we got here, we didn't actually use anything else, so try to toggle jetpack if we are in the air, or if it is already on
-	if (0)	// FIXME: implement jetpack
+	if ((ent->client->ps.eFlags & EF_JETPACK_ACTIVE) ||
+		(ent->client->ps.groundEntityNum == ENTITYNUM_NONE && ent->client->ps.jetpack))
 	{
-		if (ent->client->jetPackOn || ent->client->ps.groundEntityNum == ENTITYNUM_NONE)
-		{
-			ItemUse_Jetpack(ent);
-			return;
-		}
+		ItemUse_Jetpack(ent);
+		return;
 	}
-
-	/* No, this is broken and silly anyway. Oh and it also asserts the game atm due to g2 bugs. -Pande
-	if ( (ent->client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_AMMODISP)) 
-			&& G_ItemUsable(&ent->client->ps, HI_AMMODISP) )
-	{ //if you used nothing, then try spewing out some ammo
-		trace_t trToss;
-		vec3_t fAng;
-		vec3_t fwd;
-
-		VectorSet(fAng, 0.0f, ent->client->ps.viewangles[YAW], 0.0f);
-		AngleVectors(fAng, fwd, 0, 0);
-
-        VectorMA(ent->client->ps.origin, 64.0f, fwd, fwd);		
-		trap->Trace(&trToss, ent->client->ps.origin, playerMins, playerMaxs, fwd, ent->s.number, ent->clipmask, 0, 0, 0);
-		if (trToss.fraction == 1.0f && !trToss.allsolid && !trToss.startsolid)
-		{
-			ItemUse_UseDisp(ent, HI_AMMODISP);
-			G_AddEvent(ent, EV_USE_ITEM0+HI_AMMODISP, 0);
-			return;
-		}
-	} */
 }
 
 qboolean G_PointInBounds( vec3_t point, vec3_t mins, vec3_t maxs )

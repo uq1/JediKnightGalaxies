@@ -40,7 +40,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "json/cJSON.h"
 #include "jkg_bans.h"
 //#include "jkg_navmesh_creator.h"
-#include "jkg_damagetypes.h"
+#include "jkg_damageareas.h"
 #include "bg_items.h"
 #include "jkg_treasureclass.h"
 
@@ -351,14 +351,15 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	trap->SV_RegisterSharedMemory(gSharedBuffer.raw);
 
-	//Load external vehicle data
-	BG_VehicleLoadParms();
+	JKG_LoadMeansOfDamage();
+	JKG_InitializeBuffs();
 
 	trap->Print ("------- Game Initialization -------\n");
 	trap->Print ("gamename: %s\n", GAMEVERSION);
 	trap->Print ("gamedate: %s\n", __DATE__);
 
 	srand( randomSeed );
+	Rand_Init(time(nullptr));
 
 	G_RegisterCvars();
 
@@ -508,6 +509,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	BG_InitializeAmmo();
 	
 	/* Initialize the weapon data table */
+	JKG_LoadMeansOfDamage();
 	BG_InitializeWeapons();
 
 	Com_Printf("-------------- serverside weapon G2\n");
@@ -518,6 +520,12 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	// and here is some stance data too
 	JKG_InitializeStanceData();
+
+	// Jetpacks, as well
+	JKG_LoadJetpacks();
+
+	// armor is good too
+	JKG_LoadArmor();
 	
 	// setup master item table
 	BG_InitItems();
@@ -615,6 +623,7 @@ void G_ShutdownGame( int restart ) {
 	BG_ClearAnimsets(); //free all dynamic allocations made through the engine
 
 	BG_ShutdownWeaponG2Instances();
+	JKG_UnloadArmor();
 
 	JKG_TC_Shutdown();
 
@@ -690,6 +699,9 @@ void G_ShutdownGame( int restart ) {
 		G_CleanupBots();
 		BotAIShutdown( restart );
 	}
+
+	BG_ShutdownItems();
+	BG_ShutdownWeapons();
 
 	NPC_Cleanup();
 #ifndef NO_CRYPTOGRAPHY
@@ -976,8 +988,8 @@ void RemoveDuelDrawLoser(void)
 		return;
 	}
 
-	clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_ARMOR];
-	clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_ARMOR];
+	clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_SHIELD];
+	clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_SHIELD];
 
 	if (clFirst > clSec)
 	{
@@ -1037,8 +1049,8 @@ void AdjustTournamentScores( void ) {
 		level.clients[level.sortedClients[0]].pers.connected == CON_CONNECTED &&
 		level.clients[level.sortedClients[1]].pers.connected == CON_CONNECTED)
 	{
-		int clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_ARMOR];
-		int clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_ARMOR];
+		int clFirst = level.clients[ level.sortedClients[0] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[0] ].ps.stats[STAT_SHIELD];
+		int clSec = level.clients[ level.sortedClients[1] ].ps.stats[STAT_HEALTH] + level.clients[ level.sortedClients[1] ].ps.stats[STAT_SHIELD];
 		int clFailure = 0;
 		int clSuccess = 0;
 
@@ -1426,11 +1438,6 @@ void MoveClientToIntermission( gentity_t *ent ) {
 
 	// clean up powerup info
 	memset( ent->client->ps.powerups, 0, sizeof(ent->client->ps.powerups) );
-
-	G_LeaveVehicle( ent, qfalse );
-	
-	ent->client->ps.rocketLockIndex = ENTITYNUM_NONE;
-	ent->client->ps.rocketLockTime = 0;
 
 	ent->client->ps.eFlags = 0;
 	ent->s.eFlags = 0;
@@ -2588,67 +2595,6 @@ void PrintTeam(int team, char *message) {
 
 /*
 ==================
-SetLeader
-==================
-*/
-void SetLeader(int team, int client) {
-	int i;
-
-	if ( level.clients[client].pers.connected == CON_DISCONNECTED ) {
-		PrintTeam(team, va("print \"%s is not connected\n\"", level.clients[client].pers.netname) );
-		return;
-	}
-	if (level.clients[client].sess.sessionTeam != team) {
-		PrintTeam(team, va("print \"%s is not on the team anymore\n\"", level.clients[client].pers.netname) );
-		return;
-	}
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if (level.clients[i].sess.sessionTeam != team)
-			continue;
-		if (level.clients[i].sess.teamLeader) {
-			level.clients[i].sess.teamLeader = qfalse;
-			ClientUserinfoChanged(i);
-		}
-	}
-	level.clients[client].sess.teamLeader = qtrue;
-	ClientUserinfoChanged( client );
-	PrintTeam(team, va("print \"%s %s\n\"", level.clients[client].pers.netname, G_GetStringEdString("MP_SVGAME", "NEWTEAMLEADER")) );
-}
-
-/*
-==================
-CheckTeamLeader
-==================
-*/
-void CheckTeamLeader( int team ) {
-	int i;
-
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if (level.clients[i].sess.sessionTeam != team)
-			continue;
-		if (level.clients[i].sess.teamLeader)
-			break;
-	}
-	if (i >= level.maxclients) {
-		for ( i = 0 ; i < level.maxclients ; i++ ) {
-			if (level.clients[i].sess.sessionTeam != team)
-				continue;
-			if (!(g_entities[i].r.svFlags & SVF_BOT)) {
-				level.clients[i].sess.teamLeader = qtrue;
-				break;
-			}
-		}
-		for ( i = 0 ; i < level.maxclients ; i++ ) {
-			if (level.clients[i].sess.sessionTeam != team)
-				continue;
-			level.clients[i].sess.teamLeader = qtrue;
-			break;
-		}
-	}
-}
-
-/*
-==================
 CheckTeamVote
 ==================
 */
@@ -2826,7 +2772,6 @@ int FRAME_TIME = 0;
 void G_RunFrame( int levelTime ) {
 	int			i;
 	gentity_t	*ent;
-	int			msec;
 #ifdef _G_FRAME_PERFANAL
 	int			iTimer_ItemRun = 0;
 	int			iTimer_ROFF = 0;
@@ -2842,42 +2787,6 @@ void G_RunFrame( int levelTime ) {
 
 	FRAME_TIME = trap->Milliseconds();
 
-	// Run the main thread task poller (calling final callback functions that need to be on the main thread)
-	//JKG_MainThreadPoller();
-
-	// Jedi Knight Galaxies
-	// FIXME:
-	/*
-	if (jkg_fakeplayerban.integer && jkg_antifakeplayer.integer ) {
-		for (i = 0; i < MAX_CLIENTS; i++) {
-			cl = &level.clients[i];
-			if ( g_entities[i].r.svFlags & SVF_BOT )
-			{
-				continue;
-			}
-			if (cl->pers.connected != CON_DISCONNECTED) {
-				if (!cl->sess.noq3fill && level.time > (cl->sess.connTime + 8000) ) {
-					if (!Q_stricmp(cl->sess.IP, "localhost")) {
-						// Local host (this is the guy that did Create Server.. which isn't possible.., anyway, dont kick)
-						cl->sess.noq3fill = 1;
-						continue;
-					}
-					if (!ClientConnectionActive[i]) {
-						// Dead connection
-						if (jkg_fakeplayerbantime.string[0]) {
-							JKG_Bans_AddBan(svs->clients[i].netchan.remoteAddress, jkg_fakeplayerbantime.string, "Fake player DoS");
-							//trap->SendConsoleCommand(EXEC_NOW, va("addban %s %s Fake player DoS\n",cl->sess.IP, &jkg_fakeplayerbantime.string[0]));
-						}
-						trap->DropClient(i,"was kicked! Fake client detected.");
-						
-					} else {
-						cl->sess.noq3fill = 1;
-					}
-				}
-			}
-		}
-	}
-	*/
 	// Run lua timers
 	GLua_Timer();
 	GLua_Thread();
@@ -2885,26 +2794,6 @@ void G_RunFrame( int levelTime ) {
 	if (g_gametype.integer == GT_WARZONE /*|| g_gametype.integer == GT_WARZONE_CAMPAIGN*/)
 		AdjustTickets();
 
-	/* JKG - Automatic healing when out-of-combat */
-	if(jkg_healthRegen.value > 0) {
-		for ( i = 0; i < MAX_CLIENTS; i++ )
-		{
-			gentity_t *ent = &g_entities[i];
-
-			if ( !ent || !ent->inuse || !ent->client || ( ent->damagePlumTime + jkg_healthRegenDelay.value ) >= level.time )
-			{
-				continue;
-			}
-
-			if ( ent->lastHealTime < level.time )
-			{
-				int maxHealth		= ent->client->ps.stats[STAT_MAX_HEALTH];
-				int pctage			= (maxHealth < 100) ? jkg_healthRegen.value : (maxHealth / 100) * jkg_healthRegen.value;		// Add 1% (of 1 HP, whichever is higher)
-				ent->health			= ent->client->ps.stats[STAT_HEALTH] = ((( ent->health + pctage ) > maxHealth ) ? maxHealth : ent->health + pctage );
-				ent->lastHealTime	= level.time + jkg_healthRegenSpeed.value;
-			}
-		}
-	}
 	if (gDoSlowMoDuel)
 	{
 		if (level.restarted)
@@ -2970,7 +2859,6 @@ void G_RunFrame( int levelTime ) {
 	level.framenum++;
 	level.previousTime = level.time;
 	level.time = levelTime;
-	msec = level.time - level.previousTime;
 
 	if (g_allowNPC.integer)
 	{
@@ -3073,22 +2961,7 @@ void G_RunFrame( int levelTime ) {
 		}
 
 		if ( ent->s.eType == ET_ITEM || ent->physicsObject ) {
-#if 0 //use if body dragging enabled?
-			if (ent->s.eType == ET_BODY)
-			{ //special case for bodies
-				float grav = 3.0f;
-				float mass = 0.14f;
-				float bounce = 1.15f;
-
-				G_RunExPhys(ent, grav, mass, bounce, qfalse, NULL, 0);
-			}
-			else
-			{
-				G_RunItem( ent );
-			}
-#else
 			G_RunItem( ent );
-#endif
 			continue;
 		}
 
@@ -3100,39 +2973,6 @@ void G_RunFrame( int levelTime ) {
 		if ( i < MAX_CLIENTS ) 
 		{
 			G_CheckClientTimeouts ( ent );
-			
-			if (ent->client->inSpaceIndex && ent->client->inSpaceIndex != ENTITYNUM_NONE)
-			{ //we're in space, check for suffocating and for exiting
-                gentity_t *spacetrigger = &g_entities[ent->client->inSpaceIndex];
-
-				if (!spacetrigger->inuse ||
-					!G_PointInBounds(ent->client->ps.origin, spacetrigger->r.absmin, spacetrigger->r.absmax))
-				{ //no longer in space then I suppose
-                    ent->client->inSpaceIndex = 0;					
-				}
-				else
-				{ //check for suffocation
-                    if (ent->client->inSpaceSuffocation < level.time)
-					{ //suffocate!
-						if (ent->health > 0 && ent->takedamage)
-						{ //if they're still alive..
-							G_Damage(ent, spacetrigger, spacetrigger, NULL, ent->client->ps.origin, Q_irand(50, 70), DAMAGE_NO_ARMOR, MOD_SUICIDE);
-
-							if (ent->health > 0)
-							{ //did that last one kill them?
-								//play the choking sound
-								G_EntitySound(ent, CHAN_VOICE, G_SoundIndex(va( "*choke%d.wav", Q_irand( 1, 3 ) )));
-
-								//make them grasp their throat
-								ent->client->ps.forceHandExtend = HANDEXTEND_CHOKE;
-								ent->client->ps.forceHandExtendTime = level.time + 2000;
-							}
-						}
-
-						ent->client->inSpaceSuffocation = level.time + Q_irand(100, 200);
-					}
-				}
-			}
 
 			if (ent->client->isHacking)
 			{ //hacking checks
@@ -3191,33 +3031,36 @@ void G_RunFrame( int levelTime ) {
 
 #define JETPACK_DEFUEL_RATE		200 //approx. 20 seconds of idle use from a fully charged fuel amt
 #define JETPACK_REFUEL_RATE		150 //seems fair
-			if (ent->client->jetPackOn)
-			{ //using jetpack, drain fuel
-				if (ent->client->jetPackDebReduce < level.time)
-				{
-					if (ent->client->pers.cmd.upmove > 0)
-					{ //take more if they're thrusting
-						ent->client->ps.jetpackFuel -= 2;
-					}
-					else
+			if (ent->client->ps.jetpack) {
+				jetpackData_t* jet = &jetpackTable[ent->client->ps.jetpack - 1];
+
+				if (ent->client->ps.eFlags & EF_JETPACK_ACTIVE)
+				{ //using jetpack, drain fuel
+					if (ent->client->jetPackDebReduce < level.time)
 					{
 						ent->client->ps.jetpackFuel--;
+						if (ent->client->ps.jetpackFuel <= 0)
+						{ //turn it off
+							ent->client->ps.jetpackFuel = 0;
+							Jetpack_Off(ent);
+						}
+
+						if (ent->client->pers.cmd.upmove > 0) {
+							// Using thrust, take away fuel more quickly
+							ent->client->jetPackDebReduce = level.time + (JETPACK_DEFUEL_RATE / jet->thrustConsumption);
+						}
+						else {
+							ent->client->jetPackDebReduce = level.time + (JETPACK_DEFUEL_RATE / jet->fuelConsumption);
+						}
 					}
-					
-					if (ent->client->ps.jetpackFuel <= 0)
-					{ //turn it off
-						ent->client->ps.jetpackFuel = 0;
-						Jetpack_Off(ent);
-					}
-					ent->client->jetPackDebReduce = level.time + JETPACK_DEFUEL_RATE;
 				}
-			}
-			else if (ent->client->ps.jetpackFuel < 100)
-			{ //recharge jetpack
-				if (ent->client->jetPackDebRecharge < level.time)
-				{
-					ent->client->ps.jetpackFuel++;
-					ent->client->jetPackDebRecharge = level.time + JETPACK_REFUEL_RATE;
+				else if (ent->client->ps.jetpackFuel < jet->fuelCapacity)
+				{ //recharge jetpack
+					if (ent->client->jetPackDebRecharge < level.time)
+					{
+						ent->client->ps.jetpackFuel++;
+						ent->client->jetPackDebRecharge = level.time + (JETPACK_REFUEL_RATE / jet->fuelRegeneration);
+					}
 				}
 			}
 
@@ -3272,7 +3115,7 @@ void G_RunFrame( int levelTime ) {
 
 			if((!level.intermissiontime)&&!(ent->client->ps.pm_flags&PMF_FOLLOW) && ent->client->sess.sessionTeam != TEAM_SPECTATOR)
 			{
-			    JKG_DoPlayerDamageEffects (ent);
+				G_TickBuffs(ent);
 				WP_ForcePowersUpdate(ent, &ent->client->pers.cmd );
 				WP_SaberPositionUpdate(ent, &ent->client->pers.cmd);
 				WP_SaberStartMissileBlockCheck(ent, &ent->client->pers.cmd);
@@ -3300,7 +3143,7 @@ void G_RunFrame( int levelTime ) {
 				}
 			}
 
-            JKG_DoPlayerDamageEffects (ent);
+			G_TickBuffs(ent);
 			WP_ForcePowersUpdate(ent, &ent->client->pers.cmd );
 			WP_SaberPositionUpdate(ent, &ent->client->pers.cmd);
 			WP_SaberStartMissileBlockCheck(ent, &ent->client->pers.cmd);

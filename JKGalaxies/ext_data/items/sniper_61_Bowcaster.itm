@@ -5,7 +5,7 @@
 	"weapon":		"WP_BOWCASTER",
 	"variation":		"1",
 	"weight":		"14",
-	"cost":		"1375",
+	"cost":		"1300",
 	"xml":			"",
 	"itemIcon":		"models/weapons/bowcaster/icon_default"
 }

@@ -1,0 +1,9 @@
+{
+	"name":             "Flight Gloves",
+	"internal":             "gloves_pilot",
+	"itemtype":             "armor",
+	"armor":		"rpgloves",
+	"weight":		"2",
+	"cost":			"50",
+	"itemIcon":		"gfx/item_icons/default.tga"
+}

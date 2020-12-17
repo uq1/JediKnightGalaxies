@@ -1,0 +1,9 @@
+{
+	"name":             "Swamptrooper Helmet",
+	"internal":             "helmet_swamptrooper",
+	"itemtype":             "armor",
+	"armor":		"swhelmet",
+	"weight":		"2",
+	"cost":			"650",
+	"itemIcon":		"gfx/item_icons/default.tga"
+}

@@ -337,8 +337,7 @@ void Seeker_Fire( void )
 	missile->s.weaponVariation = 0;
 
 	missile->damage = 5;
-	missile->dflags = DAMAGE_DEATH_KNOCKBACK;
-	missile->methodOfDeath = MOD_BLASTER;
+	missile->methodOfDeath = WP_GetWeaponMOD(NPC, 0);
 	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
 	if ( NPC->r.ownerNum < ENTITYNUM_NONE )
 	{

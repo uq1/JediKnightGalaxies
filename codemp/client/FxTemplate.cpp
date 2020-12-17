@@ -48,7 +48,14 @@ CPrimitiveTemplate::CPrimitiveTemplate()
 
 	mMatImpactFX = MATIMPACTFX_NONE;
 
-	mLife.SetRange( 50.0f, 50.0f );
+	if (fx_optimizedParticles && fx_optimizedParticles->integer)
+	{
+		mLife.SetRange(fx_optimizedParticles->value, fx_optimizedParticles->value);
+	}
+	else
+	{
+		mLife.SetRange(50.0f, 50.0f);
+	}
 	mSpawnCount.SetRange( 1.0f, 1.0f );
 	mRadius.SetRange( 10.0f, 10.0f );
 	mHeight.SetRange( 10.0f, 10.0f );

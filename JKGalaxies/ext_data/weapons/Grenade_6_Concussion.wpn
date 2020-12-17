@@ -68,13 +68,28 @@
         "ammoIndex":         "grenade_concussion",
         "ammoOnSpawn":   2,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "cookable", "roll" ]
     },
     
     "firemode0": {
-        "damage":       70,//140,
+    "damage": 
+            {
+                "damage": 70,
+                "damageradius": 
+                {
+                    "start": 325, 
+                    "falloff": "linear"
+                },
+			    "buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 1000
+					}
+				],
+			    "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
+            },
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
         "ammocost":     1,
@@ -87,14 +102,31 @@
         "splashrange":  400,//200,
         "projectilespeed":1100.0,
         "projectileclass":"thermal_detonator",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "clipSize":              0,
+        "meansofdeath": "MOD_SONIC",
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
 
     
     "firemode1": {
-        "damage":       70,//140,
+    "damage": 
+            {
+                "damage": 70,
+                "damageradius": 
+                {
+                    "start": 325, 
+                    "falloff": "linear"
+                },
+			    "buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 1000
+					}
+				],
+			    "flags":	[ "DAMAGE_NO_KNOCKBACK" ]
+            },
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":3.0,
         "ammocost":     1,
@@ -107,8 +139,9 @@
         "splashrange":  400,//200,
         "projectilespeed":900.0,
         "projectileclass":"thermal_detonator",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "clipSize":              0,
+        "meansofdeath": "MOD_SONIC",
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "playeranims": {

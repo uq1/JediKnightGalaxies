@@ -61,10 +61,8 @@ void G_WriteClientSessionData( const gclient_t *client ) {
 	cJSON_AddIntegerToObject( root, "saberLevel", sess->saberLevel );
 	cJSON_AddIntegerToObject( root, "selectedFP", sess->selectedFP );
 	cJSON_AddIntegerToObject( root, "updateUITime", sess->updateUITime );
-	cJSON_AddIntegerToObject( root, "teamLeader", sess->teamLeader );
 	cJSON_AddIntegerToObject( root, "duelTeam", sess->duelTeam );
 	cJSON_AddIntegerToObject( root, "siegeDesiredTeam", sess->siegeDesiredTeam );
-	cJSON_AddStringToObject( root, "siegeClass", *sess->siegeClass ? sess->siegeClass : "none" );
 	cJSON_AddStringToObject( root, "saberType", *sess->saberType ? sess->saberType : "" );
 	cJSON_AddStringToObject( root, "saber2Type", *sess->saber2Type ? sess->saber2Type : "" );
 	cJSON_AddStringToObject( root, "IP", sess->IP );
@@ -148,20 +146,11 @@ void G_ReadClientSessionData( gclient_t *client ) {
 	if ( (object = cJSON_GetObjectItem( root, "updateUITime" )) ) {
 		sess->updateUITime = cJSON_ToInteger( object );
 	}
-	if ( (object = cJSON_GetObjectItem( root, "teamLeader" )) ) {
-		sess->teamLeader = (qboolean)cJSON_ToInteger( object );
-	}
 	if ( (object = cJSON_GetObjectItem( root, "duelTeam" )) ) {
 		sess->duelTeam = cJSON_ToInteger( object );
 	}
 	if ( (object = cJSON_GetObjectItem( root, "siegeDesiredTeam" )) ) {
 		sess->siegeDesiredTeam = cJSON_ToInteger( object );
-	}
-
-	if ( (object = cJSON_GetObjectItem( root, "siegeClass" )) ) {
-		if ( (tmp = cJSON_ToString( object )) ) {
-			Q_strncpyz( sess->siegeClass, tmp, sizeof(sess->siegeClass) );
-		}
 	}
 	if ( (object = cJSON_GetObjectItem( root, "saberType" )) ) {
 		if ( (tmp = cJSON_ToString( object )) ) {
@@ -288,8 +277,6 @@ void G_InitClientSessionData( gclient_t *client, char *userinfo, qboolean isBot 
 
 	sess->spectatorState = SPECTATOR_FREE;
 	AddTournamentQueue(client);
-
-	sess->siegeClass[0] = 0;
 
 	G_WriteClientSessionData( client );
 }

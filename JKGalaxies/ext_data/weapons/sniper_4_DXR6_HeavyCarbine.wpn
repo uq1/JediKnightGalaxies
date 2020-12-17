@@ -71,33 +71,38 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2400,
-        "ammoIndex":         "powercell_m",
-        "ammoOnSpawn":   120,
-        "ammoOnPickup":   24,
-        "clipSize":              12,
         "flags":        [ "togglezoom" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
     },
     
-	 "firemode0": {
-        "damage":       25,
+    "firemode0": {
+        "damage":       20,
         "ammocost":     1,
-        "firedelay":    300,
-        "range":        3500.0,
+        "firedelay":    250,
+        "range":        4500.0,
         "recoil":       0.9,
         "spread":       0.5,
         "projectilespeed": 5000.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 25,
-        "accuracyRatingPerShot": 6,
-        "msToDrainAccuracy": 70,
-        "maxAccuracyAdd": 70,
-        "sightsModifier": 0.3
-        }
+	"ammobase": "AMMO_POWERCELL_L",
+	"ammodefault": "AMMO_POWERCELL_M",
+        "clipSize":              24,
+        "accuracy": {
+			"accuracyRating": 25,
+			"accuracyRatingPerShot": 6,
+			"msToDrainAccuracy": 70,
+			"maxAccuracyAdd": 70,
+			"sightsModifier": 0.4,
+			"runModifier": 1.8,
+			"walkModifier": 1.5,
+			"inAirModifier": 2.4,
+			"crouchModifier": 0.65
+        },
+        "heatGenerated": 6,
+		"maxHeat": 75
 	},
 	
     "firemode1": {
@@ -105,34 +110,38 @@
         "damage": {
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
-                               "damage":       30,
-                               "damagetype": [ "disintegrate" ]
+                               "damage":       25
                         },
-        "ammocost":     1,
-        "maxchargetime":2750,
-        "chargedamage": 0.5,
+        "ammocost":     2,
+        "maxchargetime":1500,
+        "chargedamage": 0.75,
         "chargedelay":  250,
-		"chargesubtract": 1,
+		"chargesubtract": 2,
         "firedelay":    400,
         "firingtype":   "semi",
-        "range":        7000.0,
+        "range":        9000.0,
         "recoil":       1.6,
         "spread":       0.0,
-        "projectilespeed": 6500.0,
+        "projectilespeed": 7500.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_DISRUPTOR",
         "splashmeansofdeath": "MOD_DISRUPTOR",
-            "accuracy": {
-        "accuracyRating": 35,
-        "accuracyRatingPerShot": 8,
-        "msToDrainAccuracy": 120,
-        "maxAccuracyAdd": 100,
-        "crouchModifier": 0.95,
-        "runModifier": 1.8,
-        "sightsModifier": 0.65,
-        "walkModifier": 1.5,
-        "inAirModifier": 2.4
-        }
+	"ammobase": "AMMO_POWERCELL_L",
+	"ammodefault": "AMMO_POWERCELL_M",
+        "clipSize":              24,
+        "accuracy": {
+			"accuracyRating": 30,
+			"accuracyRatingPerShot": 8,
+			"msToDrainAccuracy": 120,
+			"maxAccuracyAdd": 125,
+			"crouchModifier": 0.65,
+			"runModifier": 1.8,
+			"sightsModifier": 0.55,
+			"walkModifier": 1.5,
+			"inAirModifier": 2.4
+        },
+		"heatGenerated": 8,
+        "maxHeat": 75
     },
     
     "playeranims": {

@@ -62,9 +62,6 @@ extern float aw_percent_complete;
 extern void AIMod_AutoWaypoint_DrawProgress( void );
 #endif //__AUTOWAYPOINT__
 
-// The time at which you died and the time it will take for you to rejoin game.
-int cg_siegeDeathTime = 0;
-
 #define MAX_HUD_TICS 4
 const char *armorTicName[MAX_HUD_TICS] = 
 {
@@ -166,1059 +163,6 @@ void CG_Text_Paint(float x, float y, float scale, const vec4_t color, const char
 }
 
 /*
-qboolean CG_WorldCoordToScreenCoord(vec3_t worldCoord, int *x, int *y)
-
-  Take any world coord and convert it to a 2D virtual 640x480 screen coord
-*/
-/*
-qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y)
-{
-	int	xcenter, ycenter;
-	vec3_t	local, transformed;
-
-//	xcenter = cg.refdef.width / 2;//gives screen coords adjusted for resolution
-//	ycenter = cg.refdef.height / 2;//gives screen coords adjusted for resolution
-	
-	//NOTE: did it this way because most draw functions expect virtual 640x480 coords
-	//	and adjust them for current resolution
-	xcenter = 640 / 2;//gives screen coords in virtual 640x480, to be adjusted when drawn
-	ycenter = 480 / 2;//gives screen coords in virtual 640x480, to be adjusted when drawn
-
-	VectorSubtract (worldCoord, cg.refdef.vieworg, local);
-
-	transformed[0] = DotProduct(local,vright);
-	transformed[1] = DotProduct(local,vup);
-	transformed[2] = DotProduct(local,vfwd);		
-
-	// Make sure Z is not negative.
-	if(transformed[2] < 0.01f)
-	{
-		return qfalse;
-	}
-	// Simple convert to screen coords.
-	float xzi = xcenter / transformed[2] * (90.0f/cg.refdef.fov_x);
-	float yzi = ycenter / transformed[2] * (90.0f/cg.refdef.fov_y);
-
-	*x = xcenter + xzi * transformed[0];
-	*y = ycenter - yzi * transformed[1];
-
-	return qtrue;
-}
-
-qboolean CG_WorldCoordToScreenCoord( vec3_t worldCoord, int *x, int *y )
-{
-	float	xF, yF;
-	qboolean retVal = CG_WorldCoordToScreenCoordFloat( worldCoord, &xF, &yF );
-	*x = (int)xF;
-	*y = (int)yF;
-	return retVal;
-}
-*/
-
-// Convert HSL to RGB
-void HSL2RGB(float h, float s, float l, float *r, float *g, float *b) {
-	double tr, tg, tb;
-	double v;
-
-	tr = l;
-	tg = l;
-	tb = l;
-	v = (l <= 0.5f) ? (l * (1.0f + (l*2))) : (l + l - l * l);
-    if (v > 0) {
-		double m;
-		double sv;
-		int sextant;
-		double fract, vsf, mid1, mid2;
-
-		m = l + l - v;
-		sv = (v - m ) / v;
-		h *= 6.0f;
-		sextant = (int)h;
-		fract = h - sextant;
-		vsf = v * sv * fract;
-		mid1 = m + vsf;
-		mid2 = v - vsf;
-		switch (sextant)
-		{
-			case 0:
-			default:
-				tr = v;
-				tg = mid1;
-				tb = m;
-				break;
-			case 1:
-				tr = mid2;
-				tg = v;
-				tb = m;
-				break;
-			case 2:
-				tr = m;
-				tg = v;
-				tb = mid1;
-				break;
-			case 3:
-				tr = m;
-				tg = mid2;
-				tb = v;
-				break;
-			case 4:
-				tr = mid1;
-				tg = m;
-				tb = v;
-				break;
-			case 5:
-				tr = v;
-				tg = m;
-				tb = mid2;
-				break;
-          }
-    }
-    *r = tr;
-    *g = tg;
-	*b = tb;
-}
-
-/*
-================
-CG_Draw3DModel
-
-JKGFIXME: Again, probably another func on the chopping block... we don't need this at all.
-
-================
-*/
-void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, void *ghoul2, int g2radius, qhandle_t skin, vec3_t origin, vec3_t angles ) {
-	refdef_t		refdef;
-	refEntity_t		ent;
-
-	memset( &refdef, 0, sizeof( refdef ) );
-
-	memset( &ent, 0, sizeof( ent ) );
-	AnglesToAxis( angles, ent.axis );
-	VectorCopy( origin, ent.origin );
-	ent.hModel = model;
-	ent.ghoul2 = ghoul2;
-	ent.radius = g2radius;
-	ent.customSkin = skin;
-	ent.renderfx = RF_NOSHADOW;		// no stencil shadows
-
-	refdef.rdflags = RDF_NOWORLDMODEL;
-
-	AxisClear( refdef.viewaxis );
-
-	refdef.fov_x = 30;
-	refdef.fov_y = 30;
-
-	refdef.x = x;
-	refdef.y = y;
-	refdef.width = w;
-	refdef.height = h;
-
-	refdef.time = cg.time;
-
-	trap->R_ClearScene();
-	trap->R_AddRefEntityToScene( &ent );
-	trap->R_RenderScene( &refdef );
-}
-
-int cg_targVeh = ENTITYNUM_NONE;
-int cg_targVehLastTime = 0;
-qboolean CG_CheckTargetVehicle( centity_t **pTargetVeh, float *alpha )
-{
-	int targetNum = ENTITYNUM_NONE;
-	centity_t	*targetVeh = NULL;
-	
-	if ( !pTargetVeh || !alpha )
-	{//hey, where are my pointers?
-		return qfalse;
-	}
-
-	*alpha = 1.0f;
-
-	//FIXME: need to clear all of these when you die?
-	if ( cg.predictedPlayerState.rocketLockIndex < ENTITYNUM_WORLD )
-	{
-		targetNum = cg.predictedPlayerState.rocketLockIndex;
-	}
-	else if ( cg.crosshairVehNum < ENTITYNUM_WORLD 
-		&& cg.time - cg.crosshairVehTime < 3000 )
-	{//crosshair was on a vehicle in the last 3 seconds
-		targetNum = cg.crosshairVehNum;
-	}
-    else if ( cg.crosshairClientNum < ENTITYNUM_WORLD )
-	{
-		targetNum = cg.crosshairClientNum;
-	}
-
-	if ( targetNum < MAX_CLIENTS )
-	{//real client
-		if ( cg_entities[targetNum].currentState.m_iVehicleNum >= MAX_CLIENTS )
-		{//in a vehicle
-			targetNum = cg_entities[targetNum].currentState.m_iVehicleNum;
-		}
-	}
-    if ( targetNum < ENTITYNUM_WORLD 
-		&& targetNum >= MAX_CLIENTS )
-	{
-		centity_t *targetVeh = &cg_entities[targetNum];
-		if ( targetVeh->currentState.NPC_class == CLASS_VEHICLE 
-			&& targetVeh->m_pVehicle
-			&& targetVeh->m_pVehicle->m_pVehicleInfo
-			&& targetVeh->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER )
-		{//it's a vehicle
-			cg_targVeh = targetNum;
-			cg_targVehLastTime = cg.time;
-			*alpha = 1.0f;
-		}
-		else
-		{
-			targetVeh = NULL;
-		}
-	}
-	if ( !targetVeh )
-	{
-		*pTargetVeh = targetVeh;
-		return qtrue;
-	}
-
-	if ( cg_targVehLastTime && cg.time - cg_targVehLastTime < 3000 )
-	{
-		targetVeh = &cg_entities[cg_targVeh];
-
-		//stay at full alpha for 1 sec after lose them from crosshair
-		if ( cg.time-cg_targVehLastTime < 1000 )
-			*alpha = 1.0f;
-		else //fade out over 2 secs
-			*alpha = 1.0f-((cg.time-cg_targVehLastTime-1000)/2000.0f);
-	}
-	return qfalse;
-}
-
-#define MAX_VHUD_SHIELD_TICS 12
-#define MAX_VHUD_SPEED_TICS 5
-#define MAX_VHUD_ARMOR_TICS 5
-#define MAX_VHUD_AMMO_TICS 5
-
-float CG_DrawVehicleShields( const menuDef_t	*menuHUD, const centity_t *veh )
-{
-	int				i;
-	char			itemName[64];
-	float			inc, currValue,maxShields;
-	vec4_t			calcColor;
-	itemDef_t		*item;
-	float			percShields;
-
-	item = Menu_FindItemByName((menuDef_t	*) menuHUD, "armorbackground");
-
-	if (item)
-	{
-		trap->R_SetColor( item->window.foreColor );
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-	}
-
-	maxShields = veh->m_pVehicle->m_pVehicleInfo->shields;
-	currValue = cg.predictedVehicleState.stats[STAT_ARMOR];
-	percShields = (float)currValue/(float)maxShields;
-	// Print all the tics of the shield graphic
-	// Look at the amount of health left and show only as much of the graphic as there is health.
-	// Use alpha to fade out partial section of health
-	inc = (float) maxShields / MAX_VHUD_ARMOR_TICS;
-	for (i=1;i<=MAX_VHUD_ARMOR_TICS;i++)
-	{
-		sprintf( itemName, "armor_tic%d",	i );
-
-		item = Menu_FindItemByName((menuDef_t *) menuHUD, itemName);
-
-		if (!item)
-		{
-			continue;
-		}
-
-		memcpy(calcColor, item->window.foreColor, sizeof(vec4_t));
-
-		if (currValue <= 0)	// don't show tic
-		{
-			break;
-		}
-		else if (currValue < inc)	// partial tic (alpha it out)
-		{
-			float percent = currValue / inc;
-			calcColor[3] *= percent;		// Fade it out
-		}
-
-		trap->R_SetColor( calcColor);
-
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-
-		currValue -= inc;
-	}
-
-	return percShields;
-}
-
-int cg_vehicleAmmoWarning = 0;
-int cg_vehicleAmmoWarningTime = 0;
-void CG_DrawVehicleAmmo( const menuDef_t *menuHUD, const centity_t *veh )
-{
-	int i;
-	char itemName[64];
-	float inc, currValue,maxAmmo;
-	vec4_t	calcColor;
-	itemDef_t	*item;
-
-	item = Menu_FindItemByName((menuDef_t *) menuHUD, "ammobackground");
-
-	if (item)
-	{
-		trap->R_SetColor( item->window.foreColor );
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-	}
-
-	maxAmmo = veh->m_pVehicle->m_pVehicleInfo->weapon[0].ammoMax;
-	currValue = cg.predictedVehicleState.ammo;
-	
-	inc = (float) maxAmmo / MAX_VHUD_AMMO_TICS;
-	for (i=1;i<=MAX_VHUD_AMMO_TICS;i++)
-	{
-		sprintf( itemName, "ammo_tic%d",	i );
-
-		item = Menu_FindItemByName((menuDef_t *)menuHUD, itemName);
-
-		if (!item)
-		{
-			continue;
-		}
-
-		if ( cg_vehicleAmmoWarningTime > cg.time 
-			&& cg_vehicleAmmoWarning == 0 )
-		{
-			memcpy(calcColor, g_color_table[ColorIndex(COLOR_RED)], sizeof(vec4_t));
-			calcColor[3] = sin(cg.time*0.005f)*0.5f+0.5f;
-		}
-		else
-		{
-			memcpy(calcColor, item->window.foreColor, sizeof(vec4_t));
-
-			if (currValue <= 0)	// don't show tic
-			{
-				break;
-			}
-			else if (currValue < inc)	// partial tic (alpha it out)
-			{
-				float percent = currValue / inc;
-				calcColor[3] *= percent;		// Fade it out
-			}
-		}
-
-		trap->R_SetColor( calcColor);
-
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-
-		currValue -= inc;
-	}
-}
-
-
-void CG_DrawVehicleAmmoUpper( const menuDef_t *menuHUD, const centity_t *veh )
-{
-	int			i;
-	char		itemName[64];
-	float		inc, currValue,maxAmmo;
-	vec4_t		calcColor;
-	itemDef_t	*item;
-
-	item = Menu_FindItemByName((menuDef_t *)menuHUD, "ammoupperbackground");
-
-	if (item)
-	{
-		trap->R_SetColor( item->window.foreColor );
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-	}
-
-	maxAmmo = veh->m_pVehicle->m_pVehicleInfo->weapon[0].ammoMax;
-	currValue = cg.predictedVehicleState.ammo;
-
-	inc = (float) maxAmmo / MAX_VHUD_AMMO_TICS;
-	for (i=1;i<MAX_VHUD_AMMO_TICS;i++)
-	{
-		sprintf( itemName, "ammoupper_tic%d",	i );
-
-		item = Menu_FindItemByName((menuDef_t *)menuHUD, itemName);
-
-		if (!item)
-		{
-			continue;
-		}
-
-		if ( cg_vehicleAmmoWarningTime > cg.time 
-			&& cg_vehicleAmmoWarning == 0 )
-		{
-			memcpy(calcColor, g_color_table[ColorIndex(COLOR_RED)], sizeof(vec4_t));
-			calcColor[3] = sin(cg.time*0.005f)*0.5f+0.5f;
-		}
-		else
-		{
-			memcpy(calcColor, item->window.foreColor, sizeof(vec4_t));
-
-			if (currValue <= 0)	// don't show tic
-			{
-				break;
-			}
-			else if (currValue < inc)	// partial tic (alpha it out)
-			{
-				float percent = currValue / inc;
-				calcColor[3] *= percent;		// Fade it out
-			}
-		}
-
-		trap->R_SetColor( calcColor);
-
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-
-		currValue -= inc;
-	}
-}
-
-
-void CG_DrawVehicleAmmoLower( const menuDef_t *menuHUD, const centity_t *veh )
-{
-	int				i;
-	char			itemName[64];
-	float			inc, currValue,maxAmmo;
-	vec4_t			calcColor;
-	itemDef_t		*item;
-
-
-	item = Menu_FindItemByName((menuDef_t *)menuHUD, "ammolowerbackground");
-
-	if (item)
-	{
-		trap->R_SetColor( item->window.foreColor );
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-	}
-
-	maxAmmo = veh->m_pVehicle->m_pVehicleInfo->weapon[1].ammoMax;
-	currValue = cg.predictedVehicleState.ammo;
-
-	inc = (float) maxAmmo / MAX_VHUD_AMMO_TICS;
-	for (i=1;i<MAX_VHUD_AMMO_TICS;i++)
-	{
-		sprintf( itemName, "ammolower_tic%d",	i );
-
-		item = Menu_FindItemByName((menuDef_t *)menuHUD, itemName);
-
-		if (!item)
-		{
-			continue;
-		}
-
-		if ( cg_vehicleAmmoWarningTime > cg.time 
-			&& cg_vehicleAmmoWarning == 1 )
-		{
-			memcpy(calcColor, g_color_table[ColorIndex(COLOR_RED)], sizeof(vec4_t));
-			calcColor[3] = sin(cg.time*0.005f)*0.5f+0.5f;
-		}
-		else
-		{
-			memcpy(calcColor, item->window.foreColor, sizeof(vec4_t));
-
-			if (currValue <= 0)	// don't show tic
-			{
-				break;
-			}
-			else if (currValue < inc)	// partial tic (alpha it out)
-			{
-				float percent = currValue / inc;
-				calcColor[3] *= percent;		// Fade it out
-			}
-		}
-
-		trap->R_SetColor( calcColor);
-
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-
-		currValue -= inc;
-	}
-}
-
-// The HUD.menu file has the graphic print with a negative height, so it will print from the bottom up.
-void CG_DrawVehicleTurboRecharge( const menuDef_t	*menuHUD, const centity_t *veh )
-{
-	itemDef_t	*item;
-	int			height;
-
-	item = Menu_FindItemByName( (menuDef_t	*) menuHUD, "turborecharge");
-
-	if (item)
-	{
-		float percent=0.0f;
-		int diff = ( cg.time - veh->m_pVehicle->m_iTurboTime );
-
-		height = item->window.rect.h;
-
-		if (diff > veh->m_pVehicle->m_pVehicleInfo->turboRecharge)
-		{
-			percent = 1.0f;
-			trap->R_SetColor( colorTable[CT_GREEN] );
-		}
-		else 
-		{
-			percent = (float) diff / veh->m_pVehicle->m_pVehicleInfo->turboRecharge;
-			if (percent < 0.0f)
-			{
-				percent = 0.0f;
-			}
-			trap->R_SetColor( colorTable[CT_RED] );
-		}
-
-		height *= percent;
-
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			height, 
-			cgs.media.whiteShader);	
-	}
-}
-
-qboolean cg_drawLink = qfalse;
-void CG_DrawVehicleWeaponsLinked( const menuDef_t	*menuHUD, const centity_t *veh )
-{
-	qboolean drawLink = qfalse;
-	if ( veh->m_pVehicle
-		&& veh->m_pVehicle->m_pVehicleInfo
-		&& (veh->m_pVehicle->m_pVehicleInfo->weapon[0].linkable == 2|| veh->m_pVehicle->m_pVehicleInfo->weapon[1].linkable == 2) )
-	{//weapon is always linked
-		drawLink = qtrue;
-	}
-	else
-	{
-//MP way:
-		//must get sent over network
-		if ( cg.predictedVehicleState.vehWeaponsLinked )
-		{
-			drawLink = qtrue;
-		}
-//NOTE: below is SP way
-/*
-		//just cheat it
-		if ( veh->gent->m_pVehicle->weaponStatus[0].linked
-			|| veh->gent->m_pVehicle->weaponStatus[1].linked )
-		{
-			drawLink = qtrue;
-		}
-*/
-	}
-
-	if ( cg_drawLink != drawLink )
-	{//state changed, play sound
-		cg_drawLink = drawLink;
-		trap->S_StartSound (NULL, cg.predictedPlayerState.clientNum, CHAN_LOCAL, trap->S_RegisterSound( "sound/vehicles/common/linkweaps.wav" ) );
-	}
-
-	if ( drawLink )
-	{
-		itemDef_t	*item;
-
-		item = Menu_FindItemByName( (menuDef_t	*) menuHUD, "weaponslinked");
-
-		if (item)
-		{
-			trap->R_SetColor( colorTable[CT_CYAN] );
-
-				CG_DrawPic( 
-				item->window.rect.x, 
-				item->window.rect.y, 
-				item->window.rect.w, 
-				item->window.rect.h, 
-				cgs.media.whiteShader);	
-		}
-	}
-}
-
-void CG_DrawVehicleSpeed( const menuDef_t	*menuHUD, const centity_t *veh )
-{
-	int i;
-	char itemName[64];
-	float inc, currValue,maxSpeed;
-	vec4_t		calcColor;
-	itemDef_t	*item;
-
-	item = Menu_FindItemByName((menuDef_t *) menuHUD, "speedbackground");
-
-	if (item)
-	{
-		trap->R_SetColor( item->window.foreColor );
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-	}
-
-	maxSpeed = veh->m_pVehicle->m_pVehicleInfo->speedMax;
-	currValue = cg.predictedVehicleState.speed;
-
-
-	// Print all the tics of the shield graphic
-	// Look at the amount of health left and show only as much of the graphic as there is health.
-	// Use alpha to fade out partial section of health
-	inc = (float) maxSpeed / MAX_VHUD_SPEED_TICS;
-	for (i=1;i<=MAX_VHUD_SPEED_TICS;i++)
-	{
-		sprintf( itemName, "speed_tic%d",	i );
-
-		item = Menu_FindItemByName((menuDef_t *)menuHUD, itemName);
-
-		if (!item)
-		{
-			continue;
-		}
-
-		if ( cg.time > veh->m_pVehicle->m_iTurboTime )
-		{
-			memcpy(calcColor, item->window.foreColor, sizeof(vec4_t));
-		}
-		else	// In turbo mode
-		{
-			if (cg.VHUDFlashTime < cg.time)	
-			{
-				cg.VHUDFlashTime = cg.time + 200;
-				if (cg.VHUDTurboFlag)
-				{
-					cg.VHUDTurboFlag = qfalse;
-				}
-				else
-				{
-					cg.VHUDTurboFlag = qtrue;
-				}
-			}
-
-			if (cg.VHUDTurboFlag)
-			{
-				memcpy(calcColor, colorTable[CT_LTRED1], sizeof(vec4_t));
-			}
-			else
-			{
-				memcpy(calcColor, item->window.foreColor, sizeof(vec4_t));
-			}  
-		}
-
-
-		if (currValue <= 0)	// don't show tic
-		{
-			break;
-		}
-		else if (currValue < inc)	// partial tic (alpha it out)
-		{
-			float percent = currValue / inc;
-			calcColor[3] *= percent;		// Fade it out
-		}
-
-		trap->R_SetColor( calcColor);
-
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-
-		currValue -= inc;
-	}
-}
-
-void CG_DrawVehicleArmor( const menuDef_t *menuHUD, const centity_t *veh )
-{
-	int			i;
-	vec4_t		calcColor;
-	char		itemName[64];
-	float		inc, currValue,maxArmor;
-	itemDef_t	*item;
-
-	maxArmor = veh->m_pVehicle->m_pVehicleInfo->armor;
-	currValue = cg.predictedVehicleState.stats[STAT_HEALTH];
-
-	item = Menu_FindItemByName( (menuDef_t	*) menuHUD, "shieldbackground");
-
-	if (item)
-	{
-		trap->R_SetColor( item->window.foreColor );
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-	}
-
-
-	// Print all the tics of the shield graphic
-	// Look at the amount of health left and show only as much of the graphic as there is health.
-	// Use alpha to fade out partial section of health
-	inc = (float) maxArmor / MAX_VHUD_SHIELD_TICS;
-	for (i=1;i <= MAX_VHUD_SHIELD_TICS;i++)
-	{
-		sprintf( itemName, "shield_tic%d",	i );
-
-		item = Menu_FindItemByName((menuDef_t	*) menuHUD, itemName);
-
-		if (!item)
-		{
-			continue;
-		}
-
-
-		memcpy(calcColor, item->window.foreColor, sizeof(vec4_t));
-
-		if (currValue <= 0)	// don't show tic
-		{
-			break;
-		}
-		else if (currValue < inc)	// partial tic (alpha it out)
-		{
-			float percent = currValue / inc;
-			calcColor[3] *= percent;		// Fade it out
-		}
-
-		trap->R_SetColor( calcColor);
-
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-
-		currValue -= inc;
-	}
-}
-
-enum
-{
-	VEH_DAMAGE_FRONT=0,
-	VEH_DAMAGE_BACK,
-	VEH_DAMAGE_LEFT,
-	VEH_DAMAGE_RIGHT,
-};
-
-typedef struct 
-{
-	const char	*itemName;
-	short	heavyDamage;
-	short	lightDamage;
-} veh_damage_t;
-
-veh_damage_t vehDamageData[4] = 
-{
-	{ "vehicle_front",SHIPSURF_DAMAGE_FRONT_HEAVY,SHIPSURF_DAMAGE_FRONT_LIGHT },
-	{ "vehicle_back",SHIPSURF_DAMAGE_BACK_HEAVY,SHIPSURF_DAMAGE_BACK_LIGHT },
-	{ "vehicle_left",SHIPSURF_DAMAGE_LEFT_HEAVY,SHIPSURF_DAMAGE_LEFT_LIGHT },
-	{ "vehicle_right",SHIPSURF_DAMAGE_RIGHT_HEAVY,SHIPSURF_DAMAGE_RIGHT_LIGHT },
-};
-
-// Draw health graphic for given part of vehicle
-void CG_DrawVehicleDamage(const centity_t *veh,int brokenLimbs,const menuDef_t	*menuHUD,float alpha,int index)
-{
-	itemDef_t		*item;
-	int				colorI;
-	vec4_t			color;
-	int				graphicHandle=0;
-
-	item = Menu_FindItemByName((menuDef_t *)menuHUD, vehDamageData[index].itemName);
-	if (item)
-	{
-		if (brokenLimbs & (1<<vehDamageData[index].heavyDamage))
-		{
-			colorI = CT_RED;
-			if (brokenLimbs & (1<<vehDamageData[index].lightDamage))
-			{
-				colorI = CT_DKGREY;
-			}
-		}
-		else if (brokenLimbs & (1<<vehDamageData[index].lightDamage))
-		{
-			colorI = CT_YELLOW;
-		}
-		else
-		{
-			colorI = CT_GREEN;
-		}
-
-		VectorCopy4 ( colorTable[colorI], color );
-		color[3] = alpha;
-		trap->R_SetColor( color );
-
-		switch ( index )
-		{
-			case VEH_DAMAGE_FRONT :
-				graphicHandle = veh->m_pVehicle->m_pVehicleInfo->iconFrontHandle;
-				break;
-			case VEH_DAMAGE_BACK :
-				graphicHandle = veh->m_pVehicle->m_pVehicleInfo->iconBackHandle;
-				break;
-			case VEH_DAMAGE_LEFT :
-				graphicHandle = veh->m_pVehicle->m_pVehicleInfo->iconLeftHandle;
-				break;
-			case VEH_DAMAGE_RIGHT :
-				graphicHandle = veh->m_pVehicle->m_pVehicleInfo->iconRightHandle;
-				break;
-		}
-
-		if (graphicHandle)
-		{
-			CG_DrawPic( 
-				item->window.rect.x, 
-				item->window.rect.y, 
-				item->window.rect.w, 
-				item->window.rect.h, 
-				graphicHandle );
-		}
-	}
-}
-
-
-// Used on both damage indicators :  player vehicle and the vehicle the player is locked on 
-void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShields,char *menuName, float alpha)
-{
-	menuDef_t		*menuHUD;
-	itemDef_t		*item;
-	vec4_t			color;
-
-	menuHUD = Menus_FindByName(menuName);
-
-	if ( !menuHUD )
-	{
-		return;
-	}
-
-	item = Menu_FindItemByName(menuHUD, "background");
-	if (item)
-	{
-		if (veh->m_pVehicle->m_pVehicleInfo->dmgIndicBackgroundHandle)
-		{
-			if ( veh->damageTime > cg.time )
-			{//ship shields currently taking damage
-				//NOTE: cent->damageAngle can be accessed to get the direction from the ship origin to the impact point (in 3-D space)
-				float perc = 1.0f - ((veh->damageTime - cg.time) / 2000.0f/*MIN_SHIELD_TIME*/);
-				if ( perc < 0.0f )
-				{
-					perc = 0.0f;
-				}
-				else if ( perc > 1.0f )
-				{
-					perc = 1.0f;
-				}
-				color[0] = item->window.foreColor[0];//flash red
-				color[1] = item->window.foreColor[1]*perc;//fade other colors back in over time
-				color[2] = item->window.foreColor[2]*perc;//fade other colors back in over time
-				color[3] = item->window.foreColor[3];//always normal alpha
-				trap->R_SetColor( color );
-			}
-			else
-			{
-				trap->R_SetColor( item->window.foreColor );
-			}
-
-			CG_DrawPic( 
-				item->window.rect.x, 
-				item->window.rect.y, 
-				item->window.rect.w, 
-				item->window.rect.h, 
-				veh->m_pVehicle->m_pVehicleInfo->dmgIndicBackgroundHandle );
-		}
-	}
-
-	item = Menu_FindItemByName(menuHUD, "outer_frame");
-	if (item)
-	{
-		if (veh->m_pVehicle->m_pVehicleInfo->dmgIndicFrameHandle)
-		{
-			trap->R_SetColor( item->window.foreColor );
-			CG_DrawPic( 
-				item->window.rect.x, 
-				item->window.rect.y, 
-				item->window.rect.w, 
-				item->window.rect.h, 
-				veh->m_pVehicle->m_pVehicleInfo->dmgIndicFrameHandle );
-		}
-	}
-
-	item = Menu_FindItemByName(menuHUD, "shields");
-	if (item)
-	{
-		if (veh->m_pVehicle->m_pVehicleInfo->dmgIndicShieldHandle)
-		{
-			VectorCopy4 ( colorTable[CT_HUD_GREEN], color );
-			color[3] = percShields;
-			trap->R_SetColor( color );
-			CG_DrawPic( 
-				item->window.rect.x, 
-				item->window.rect.y, 
-				item->window.rect.w, 
-				item->window.rect.h, 
-				veh->m_pVehicle->m_pVehicleInfo->dmgIndicShieldHandle );
-		}
-	}
-
-	//TODO: if we check nextState.brokenLimbs & prevState.brokenLimbs, we can tell when a damage flag has been added and flash that part of the ship
-	//FIXME: when ship explodes, either stop drawing ship or draw all parts black
-	CG_DrawVehicleDamage(veh,brokenLimbs,menuHUD,alpha,VEH_DAMAGE_FRONT);
-	CG_DrawVehicleDamage(veh,brokenLimbs,menuHUD,alpha,VEH_DAMAGE_BACK);
-	CG_DrawVehicleDamage(veh,brokenLimbs,menuHUD,alpha,VEH_DAMAGE_LEFT);
-	CG_DrawVehicleDamage(veh,brokenLimbs,menuHUD,alpha,VEH_DAMAGE_RIGHT);
-}
-
-qboolean CG_DrawVehicleHud( const centity_t *cent )
-{
-	itemDef_t		*item;
-	menuDef_t		*menuHUD;
-	playerState_t	*ps;
-	centity_t		*veh;
-	float			shieldPerc,alpha;
-	
-	menuHUD = Menus_FindByName("swoopvehiclehud");
-	if (!menuHUD)
-	{
-		return qtrue;	// Draw player HUD
-	}
-
-	ps = &cg.predictedPlayerState;
-
-	if (!ps || !(ps->m_iVehicleNum))
-	{
-		return qtrue;	// Draw player HUD
-	}
-	veh = &cg_entities[ps->m_iVehicleNum];
-
-	if ( !veh || !veh->m_pVehicle )
-	{
-		return qtrue;	// Draw player HUD
-	}
-
-	CG_DrawVehicleTurboRecharge( menuHUD, veh );
-	CG_DrawVehicleWeaponsLinked( menuHUD, veh );
-
-	item = Menu_FindItemByName(menuHUD, "leftframe");
-
-	// Draw frame
-	if (item)
-	{
-		trap->R_SetColor( item->window.foreColor );
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-	}
-
-	item = Menu_FindItemByName(menuHUD, "rightframe");
-
-	if (item)
-	{
-		trap->R_SetColor( item->window.foreColor );
-		CG_DrawPic( 
-			item->window.rect.x, 
-			item->window.rect.y, 
-			item->window.rect.w, 
-			item->window.rect.h, 
-			item->window.background );
-	}
-
-
-	CG_DrawVehicleArmor( menuHUD, veh );
-
-	// Get animal hud for speed
-//	if (veh->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL)
-//	{
-//		menuHUD = Menus_FindByName("tauntaunhud");
-//	}
-	
-
-	CG_DrawVehicleSpeed( menuHUD, veh );
-
-	// Revert to swoophud
-//	if (veh->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL)
-//	{
-//		menuHUD = Menus_FindByName("swoopvehiclehud");
-//	}
-
-//	if (veh->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL)
-//	{
-		shieldPerc = CG_DrawVehicleShields( menuHUD, veh );
-//	}
-
-	if (veh->m_pVehicle->m_pVehicleInfo->weapon[0].ID && !veh->m_pVehicle->m_pVehicleInfo->weapon[1].ID)
-	{
-		CG_DrawVehicleAmmo( menuHUD, veh );
-	}
-	else if (veh->m_pVehicle->m_pVehicleInfo->weapon[0].ID && veh->m_pVehicle->m_pVehicleInfo->weapon[1].ID)
-	{
-		CG_DrawVehicleAmmoUpper( menuHUD, veh );
-		CG_DrawVehicleAmmoLower( menuHUD, veh );
-	}
-
-	// If he's hidden, he must be in a vehicle
-	if (veh->m_pVehicle->m_pVehicleInfo->hideRider)
-	{
-		CG_DrawVehicleDamageHUD(veh,cg.predictedVehicleState.brokenLimbs,shieldPerc,"vehicledamagehud",1.0f);
-
-		// Has he targeted an enemy?
-		if (CG_CheckTargetVehicle( &veh, &alpha ))
-		{
-			CG_DrawVehicleDamageHUD(veh,veh->currentState.brokenLimbs,((float)veh->currentState.generic1/10.0f),"enemyvehicledamagehud",alpha);
-		}
-
-		return qfalse;	// Don't draw player HUD
-	}
-
-	return qtrue;	// Draw player HUD
-
-}
-
-/*
 ====================
 CG_DrawReload
 ====================
@@ -1297,51 +241,13 @@ CG_DrawStats
 
 ================
 */
-static void CG_DrawStats( void ) 
+static void CG_DrawStatus( void ) 
 {
 	centity_t		*cent;
-	playerState_t	*ps;
-	qboolean		drawHUD = qtrue;
+
 	cent = &cg_entities[cg.snap->ps.clientNum];
 
-	if ( cent )
-	{
-		ps = &cg.predictedPlayerState;
-
-		if ( (ps->m_iVehicleNum ) )	// In a vehicle???
-		{
-			drawHUD = CG_DrawVehicleHud( cent );
-		}
-	}
-
-	if (drawHUD)
-	{
-		CG_DrawHUD(cent);
-	}
-
-}
-
-/*
-===================
-CG_DrawPickupItem
-===================
-*/
-static void CG_DrawPickupItem( void ) {
-	int		value;
-	float	*fadeColor;
-
-	value = cg.itemPickup;
-	if ( value && cg_items[ value ].icon != -1 ) 
-	{
-		fadeColor = CG_FadeColor( cg.itemPickupTime, 3000 );
-		if ( fadeColor ) 
-		{
-			CG_RegisterItemVisuals( value );
-			trap->R_SetColor( fadeColor );
-			CG_DrawPic( 573, 320, ICON_SIZE, ICON_SIZE, cg_items[ value ].icon );
-			trap->R_SetColor( NULL );
-		}
-	}
+	CG_DrawHUD(cent);
 }
 
 
@@ -1473,19 +379,11 @@ static float CG_DrawEnemyInfo ( float y )
 
 	y += size;
 
-
-	//I have no idea what this is lol - maybe leaderboard thing that shows up in the top right of jka?  --futuza
-	//CG_Text_Paint( 630 - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );	//futuza note: old way
-	Text_DrawText(630 - Text_GetWidth(ci->name, FONT_SMALL2, 1.0f) + xOffset, y, ci->name, colorWhite, FONT_SMALL2, 0, 1.0f);				//futuza note: new way
+	Text_DrawText(630 - Text_GetWidth(ci->name, FONT_SMALL2, 1.0f) + xOffset, y, ci->name, colorWhite, FONT_SMALL2, 0, 1.0f);
 
 	y += 15;
-	//note might want to change this back, title's probably can't use color codes anyway
-	//CG_Text_Paint( 630 - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );			//futuza note: old way
-	Text_DrawText(630 - Text_GetWidth(title, FONT_SMALL2, 1.0f) + xOffset, y, title, colorWhite, FONT_SMALL2, 0, 1.0f);							//futuza note: new way
 
-	//ohhh is this dueling only?
-	//okay okay
-	
+	Text_DrawText(630 - Text_GetWidth(title, FONT_SMALL2, 1.0f) + xOffset, y, title, colorWhite, FONT_SMALL2, 0, 1.0f);	
 
 	return y + BIGCHAR_HEIGHT + 2;
 }
@@ -1604,17 +502,7 @@ float CG_DrawRadar ( float y )
 
 		if ( distance > cg_radarRange * 0.8f) 
 		{
-			if ( (cent->currentState.eFlags & EF_RADAROBJECT)//still want to draw the direction
-				|| ( cent->currentState.eType==ET_NPC//FIXME: draw last, with players...
-					&& cent->currentState.NPC_class == CLASS_VEHICLE 
-					&& cent->currentState.speed > 0 ) )//always draw vehicles
-			{ 
-				distance = cg_radarRange*0.8f;
-			}
-			else
-			{
-				continue;
-			}
+			continue;
 		}
 
 		distance  = distance / cg_radarRange;
@@ -1764,270 +652,12 @@ float CG_DrawRadar ( float y )
 				break;
 
 			case ET_NPC://FIXME: draw last, with players...
-				if ( cent->currentState.NPC_class == CLASS_VEHICLE 
-					&& cent->currentState.speed > 0 )
-				{
-					if ( cent->m_pVehicle && cent->m_pVehicle->m_pVehicleInfo->radarIconHandle )
-					{
-						float  x;
-						float  ly;
-			
-						x = (float)RADAR_X + (float)RADAR_RADIUS + (float)sin (angle) * distance;
-						ly = y2 + (float)RADAR_RADIUS + (float)cos (angle) * distance;
-
-						arrowBaseScale = 9.0f;
-						zScale = 1.0f;
-
-						//we want to scale the thing up/down based on the relative Z (up/down) positioning
-						if (cent->lerpOrigin[2] > cg.predictedPlayerState.origin[2])
-						{ //higher, scale up (between 16 and 24)
-							float dif = (cent->lerpOrigin[2] - cg.predictedPlayerState.origin[2]);
-							
-							//max out to 1.5x scale at 512 units above local player's height
-							dif /= 4096.0f;
-							if (dif > 0.5f)
-							{
-								dif = 0.5f;
-							}
-							zScale += dif;
-						}
-						else if (cent->lerpOrigin[2] < cg.predictedPlayerState.origin[2])
-						{ //lower, scale down (between 16 and 8)
-							float dif = (cg.predictedPlayerState.origin[2] - cent->lerpOrigin[2]);
-
-							//half scale at 512 units below local player's height
-							dif /= 4096.0f;
-							if (dif > 0.5f)
-							{
-								dif = 0.5f;
-							}
-							zScale -= dif;
-						}
-
-						arrowBaseScale *= zScale;
-
-						if ( cent->currentState.m_iVehicleNum //vehicle has a driver
-							&& cgs.clientinfo[ cent->currentState.m_iVehicleNum-1 ].infoValid )
-						{
-							if ( cgs.clientinfo[ cent->currentState.m_iVehicleNum-1 ].team == local->team )
-							{
-								trap->R_SetColor ( teamColor );
-							}
-							else
-							{
-								trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
-							}
-						}
-						else
-						{
-							trap->R_SetColor ( NULL );
-						}
-						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, cent->m_pVehicle->m_pVehicleInfo->radarIconHandle );
-					}
-				}
 				break; //maybe do something?
 
 			case ET_MOVER:
-				if ( cent->currentState.speed//the mover's size, actually
-					&& actualDist < (cent->currentState.speed+RADAR_ASTEROID_RANGE)
-					&& cg.predictedPlayerState.m_iVehicleNum )
-				{//a mover that's close to me and I'm in a vehicle
-					qboolean mayImpact = qfalse;
-					float surfaceDist = (actualDist-cent->currentState.speed);
-					if ( surfaceDist < 0.0f )
-					{
-						surfaceDist = 0.0f;
-					}
-					if ( surfaceDist < RADAR_MIN_ASTEROID_SURF_WARN_DIST )
-					{//always warn!
-						mayImpact = qtrue;
-					}
-					else
-					{//not close enough to always warn, yet, so check its direction
-						vec3_t	asteroidPos, myPos, moveDir;
-						int		predictTime, timeStep = 500;
-						float	newDist;
-						for ( predictTime = timeStep; predictTime < 5000; predictTime+=timeStep )
-						{
-							//asteroid dir, speed, size, + my dir & speed...
-							BG_EvaluateTrajectory( &cent->currentState.pos, cg.time+predictTime, asteroidPos );
-							//FIXME: I don't think it's calcing "myPos" correctly
-							AngleVectors( cg.predictedVehicleState.viewangles, moveDir, NULL, NULL );
-							VectorMA( cg.predictedVehicleState.origin, cg.predictedVehicleState.speed*predictTime/1000.0f, moveDir, myPos );
-							newDist = Distance( myPos, asteroidPos );
-							if ( (newDist-cent->currentState.speed) <= RADAR_MIN_ASTEROID_SURF_WARN_DIST )//200.0f )
-							{//heading for an impact within the next 5 seconds
-								mayImpact = qtrue;
-								break;
-							}
-						}
-					}
-					if ( mayImpact )
-					{//possible collision
-						vec4_t	asteroidColor = {0.5f,0.5f,0.5f,1.0f};
-						float  x;
-						float  ly;
-						float asteroidScale = (cent->currentState.speed/2000.0f);//average asteroid radius?
-						if ( actualDist > RADAR_ASTEROID_RANGE )
-						{
-							actualDist = RADAR_ASTEROID_RANGE;
-						}
-						distance = (actualDist/RADAR_ASTEROID_RANGE)*RADAR_RADIUS;
-
-						x = (float)RADAR_X + (float)RADAR_RADIUS + (float)sin (angle) * distance;
-						ly = y2 + (float)RADAR_RADIUS + (float)cos (angle) * distance;
-						
-						if ( asteroidScale > 3.0f )
-						{
-							asteroidScale = 3.0f;
-						}
-						else if ( asteroidScale < 0.2f )
-						{
-							asteroidScale = 0.2f;
-						}
-						arrowBaseScale = (9.0f*asteroidScale);
-						if ( impactSoundDebounceTime < cg.time )
-						{
-							vec3_t	soundOrg;
-							if ( surfaceDist > RADAR_ASTEROID_RANGE*0.66f )
-							{
-								impactSoundDebounceTime = cg.time + 1000;
-							}
-							else if ( surfaceDist > RADAR_ASTEROID_RANGE/3.0f )
-							{
-								impactSoundDebounceTime = cg.time + 400;
-							}
-							else 
-							{
-								impactSoundDebounceTime = cg.time + 100;
-							}
-							VectorMA( cg.refdef.vieworg, -500.0f*(surfaceDist/RADAR_ASTEROID_RANGE), dirPlayer, soundOrg );
-							trap->S_StartSound( soundOrg, ENTITYNUM_WORLD, CHAN_AUTO, trap->S_RegisterSound( "sound/vehicles/common/impactalarm.wav" ) );
-						}
-						//brighten it the closer it is
-						if ( surfaceDist > RADAR_ASTEROID_RANGE*0.66f )
-						{
-							asteroidColor[0] = asteroidColor[1] = asteroidColor[2] = 0.7f;
-						}
-						else if ( surfaceDist > RADAR_ASTEROID_RANGE/3.0f )
-						{
-							asteroidColor[0] = asteroidColor[1] = asteroidColor[2] = 0.85f;
-						}
-						else 
-						{
-							asteroidColor[0] = asteroidColor[1] = asteroidColor[2] = 1.0f;
-						}
-						//alpha out the longer it's been since it was considered dangerous
-						if ( (cg.time-impactSoundDebounceTime) > 100 )
-						{
-							asteroidColor[3] = (float)((cg.time-impactSoundDebounceTime)-100)/900.0f;
-						}
-
-						trap->R_SetColor ( asteroidColor );
-						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, trap->R_RegisterShaderNoMip( "gfx/menus/radar/asteroid" ) );
-					}
-				}
 				break;
 
 			case ET_MISSILE:
-				if ( //cent->currentState.weapon == WP_ROCKET_LAUNCHER &&//a rocket
-					cent->currentState.owner > MAX_CLIENTS //belongs to an NPC
-					&& cg_entities[cent->currentState.owner].currentState.NPC_class == CLASS_VEHICLE )
-				{//a rocket belonging to an NPC, FIXME: only tracking rockets!
-					float  x;
-					float  ly;
-		
-					x = (float)RADAR_X + (float)RADAR_RADIUS + (float)sin (angle) * distance;
-					ly = y2 + (float)RADAR_RADIUS + (float)cos (angle) * distance;
-
-					arrowBaseScale = 3.0f;
-					if ( cg.predictedPlayerState.m_iVehicleNum )
-					{//I'm in a vehicle
-						//if it's targetting me, then play an alarm sound if I'm in a vehicle
-						if ( cent->currentState.otherEntityNum == cg.predictedPlayerState.clientNum || cent->currentState.otherEntityNum == cg.predictedPlayerState.m_iVehicleNum )
-						{
-							if ( radarLockSoundDebounceTime < cg.time )
-							{
-								vec3_t	soundOrg;
-								int		alarmSound;
-								if ( actualDist > RADAR_MISSILE_RANGE * 0.66f )
-								{
-									radarLockSoundDebounceTime = cg.time + 1000;
-									arrowBaseScale = 3.0f;
-									alarmSound = trap->S_RegisterSound( "sound/vehicles/common/lockalarm1.wav" );
-								}
-								else if ( actualDist > RADAR_MISSILE_RANGE/3.0f )
-								{
-									radarLockSoundDebounceTime = cg.time + 500;
-									arrowBaseScale = 6.0f;
-									alarmSound = trap->S_RegisterSound( "sound/vehicles/common/lockalarm2.wav" );
-								}
-								else
-								{
-									radarLockSoundDebounceTime = cg.time + 250;
-									arrowBaseScale = 9.0f;
-									alarmSound = trap->S_RegisterSound( "sound/vehicles/common/lockalarm3.wav" );
-								}
-								if ( actualDist > RADAR_MISSILE_RANGE )
-								{
-									actualDist = RADAR_MISSILE_RANGE;
-								}
-								VectorMA( cg.refdef.vieworg, -500.0f*(actualDist/RADAR_MISSILE_RANGE), dirPlayer, soundOrg );
-								trap->S_StartSound( soundOrg, ENTITYNUM_WORLD, CHAN_AUTO, alarmSound );
-							}
-						}
-					}
-					zScale = 1.0f;
-
-					//we want to scale the thing up/down based on the relative Z (up/down) positioning
-					if (cent->lerpOrigin[2] > cg.predictedPlayerState.origin[2])
-					{ //higher, scale up (between 16 and 24)
-						float dif = (cent->lerpOrigin[2] - cg.predictedPlayerState.origin[2]);
-						
-						//max out to 1.5x scale at 512 units above local player's height
-						dif /= 1024.0f;
-						if (dif > 0.5f)
-						{
-							dif = 0.5f;
-						}
-						zScale += dif;
-					}
-					else if (cent->lerpOrigin[2] < cg.predictedPlayerState.origin[2])
-					{ //lower, scale down (between 16 and 8)
-						float dif = (cg.predictedPlayerState.origin[2] - cent->lerpOrigin[2]);
-
-						//half scale at 512 units below local player's height
-						dif /= 1024.0f;
-						if (dif > 0.5f)
-						{
-							dif = 0.5f;
-						}
-						zScale -= dif;
-					}
-
-					arrowBaseScale *= zScale;
-
-					if ( cent->currentState.owner >= MAX_CLIENTS//missile owned by an NPC
-						&& cg_entities[cent->currentState.owner].currentState.NPC_class == CLASS_VEHICLE//NPC is a vehicle
-						&& cg_entities[cent->currentState.owner].currentState.m_iVehicleNum <= MAX_CLIENTS//Vehicle has a player driver
-						&& cgs.clientinfo[cg_entities[cent->currentState.owner].currentState.m_iVehicleNum-1].infoValid ) //player driver is valid
-					{
-						cl = &cgs.clientinfo[cg_entities[cent->currentState.owner].currentState.m_iVehicleNum-1];
-						if ( cl->team == local->team )
-						{
-							trap->R_SetColor ( teamColor );
-						}
-						else
-						{
-							trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
-						}
-					}
-					else
-					{
-						trap->R_SetColor ( NULL );
-					}
-					CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, cgs.media.mAutomapRocketIcon );
-				}
 				break;
 
 			case ET_PLAYER:
@@ -2233,8 +863,7 @@ static void CG_DrawTeamOverlay() {
 
 			// Draw player name
 			MAKERGBA(hcolor,1,1,1,1);		
-			trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		//old way
-			//Text_DrawText(x + 26, y + 2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		// futuza note: xRGB fix (see tr_font.cpp) should allow us to use old way, not necessary?
+			trap->R_Font_DrawString(x+26, y+2, ci->name, hcolor, MenuFontToHandle(1) | 0x80000000, -1, 0.5f);		
 			MAKERGBA(hcolor,0,0,0,1);
 			CG_DrawRect(x+24, y+2, pwidth+8 , 13, 1, hcolor);
 
@@ -2362,8 +991,7 @@ static void CG_DrawUpperRight( void ) {
 		y = CG_DrawSnapshot( y );
 	}
 
-	if ( ( cgs.gametype >= GT_TEAM || cg.predictedPlayerState.m_iVehicleNum )
-		&& cg_drawRadar.integer )
+	if ( ( cgs.gametype >= GT_TEAM ) && cg_drawRadar.integer )
 	{//draw Radar in Siege mode or when in a vehicle of any kind
 		if (!HaveMiniMap())
 			CG_DrawRadar ( 0 );
@@ -2389,7 +1017,7 @@ LAGOMETER
 ===============================================================================
 */
 
-#define	LAG_SAMPLES		128
+//#define	LAG_SAMPLES		128
 
 
 typedef struct {
@@ -2987,7 +1615,6 @@ void CG_LerpCrosshairPos( float *x, float *y )
 	cg_crosshairPrevPosY = *y;
 }
 
-vec3_t cg_crosshairPos={0,0,0};
 /*static */void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	float		w, h;
 	qhandle_t	hShader = 0;
@@ -2998,11 +1625,6 @@ vec3_t cg_crosshairPos={0,0,0};
 	centity_t	*crossEnt = NULL;
 	float		chX, chY;
 	weaponData_t *wp = GetWeaponData(cg.predictedPlayerState.weapon, cg.predictedPlayerState.weaponVariation);
-
-	if ( worldPoint )
-	{
-		VectorCopy( worldPoint, cg_crosshairPos );
-	}
 
 	if ( !cg_drawCrosshair.integer ) 
 	{
@@ -3061,9 +1683,39 @@ vec3_t cg_crosshairPos={0,0,0};
 					ecolor[3] = 1.0f;
 				}
             }
+
+			// display heat %
+			if (cg_drawWpnHeatValue.integer > 0)
+			{
+				char printheat[15];  
+				float heatPercent = ((cg.predictedPlayerState.heat / cg.predictedPlayerState.maxHeat) * 100);
+				
+				if (heatPercent > 0)
+				{
+					if (heatPercent > 99)
+						sprintf(printheat, "Heat: 100.00");
+
+					else
+						sprintf(printheat, "Heat: %.2f", heatPercent);
+
+					CG_CenterPrint(printheat, SCREEN_HEIGHT * 0.30f, BIGCHAR_WIDTH);
+				}
+			}
+
+			// Crosshair gets more red with heat
+			ecolor[2] = ecolor[1] = (1.0f - (cg.predictedPlayerState.heat / cg.predictedPlayerState.maxHeat));
+			if (ecolor[2] >= 1.0f)
+			{
+				ecolor[2] = ecolor[1] = 1.0f;
+			}
+			else if (ecolor[2] <= 0.0f)
+			{
+				ecolor[2] = ecolor[1] = 0.0f;
+			}
             
 			trap->R_SetColor( ecolor );
 		}
+
 		//rwwFIXMEFIXME: Write this a different way, it's getting a bit too sloppy looking
 		if ( cg.crosshairClientNum < ENTITYNUM_WORLD && chEntValid &&
 			(cg_entities[cg.crosshairClientNum].currentState.number < MAX_CLIENTS ||
@@ -3136,8 +1788,7 @@ vec3_t cg_crosshairPos={0,0,0};
 					}
 					else if ( !crossEnt->currentState.teamowner )
 					{ //not on a team
-						if (!crossEnt->currentState.teamowner ||
-							crossEnt->currentState.NPC_class == CLASS_VEHICLE)
+						if (!crossEnt->currentState.teamowner )
 						{ //neutral
 							if (crossEnt->currentState.owner < MAX_CLIENTS)
 							{ //base color on who is pilotting this thing
@@ -3303,24 +1954,7 @@ vec3_t cg_crosshairPos={0,0,0};
 		}
 	}
 
-	if ( cg.predictedPlayerState.m_iVehicleNum )
-	{//I'm in a vehicle
-		centity_t *vehCent = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-	    if ( vehCent 
-			&& vehCent->m_pVehicle 
-			&& vehCent->m_pVehicle->m_pVehicleInfo 
-			&& vehCent->m_pVehicle->m_pVehicleInfo->crosshairShaderHandle )
-		{
-			hShader = vehCent->m_pVehicle->m_pVehicleInfo->crosshairShaderHandle;
-		}
-		//bigger by default
-		w = cg_crosshairSize.value*2.0f;
-		h = w;
-	}
-	else
-	{
-		w = h = cg_crosshairSize.value;
-	}
+	w = h = cg_crosshairSize.value;
 
 	// pulse the size of the crosshair when picking up items
 	f = cg.time - cg.itemPickupBlendTime;
@@ -3349,6 +1983,10 @@ vec3_t cg_crosshairPos={0,0,0};
 	if ( !hShader )
 	{
 		char* fmShader = wp->visuals.visualFireModes[cg.predictedPlayerState.firingMode].crosshairShader;
+		if (JKG_SimpleAmmoOverridePresent(ammoTable[cg.predictedPlayerState.ammoType].visualOverrides.crosshairShader))
+		{
+			fmShader = (char*)ammoTable[cg.predictedPlayerState.ammoType].visualOverrides.crosshairShader.second.c_str();
+		}
 		if ( fmShader[0] ) {
 			hShader = trap->R_RegisterShaderNoMip(fmShader);
 		}
@@ -3374,22 +2012,6 @@ vec3_t cg_crosshairPos={0,0,0};
 	{
 		CG_DrawHealthBar(crossEnt, chX, chY, w, h);
 		chY += HEALTH_HEIGHT*2;
-	}
-	else if (crossEnt && crossEnt->currentState.number < MAX_CLIENTS)
-	{
-		if (cg.crosshairVehNum && cg.time == cg.crosshairVehTime)
-		{ //it was in the crosshair this frame
-			centity_t *hisVeh = &cg_entities[cg.crosshairVehNum];
-
-			if (hisVeh->currentState.eType == ET_NPC &&
-				hisVeh->currentState.NPC_class == CLASS_VEHICLE &&
-				hisVeh->currentState.maxhealth &&
-				hisVeh->m_pVehicle)
-			{ //draw the health for this vehicle
-				CG_DrawHealthBar(hisVeh, chX, chY, w, h);
-				chY += HEALTH_HEIGHT*2;
-			}
-		}
 	}
 
 	if (cg.predictedPlayerState.hackingTime)
@@ -3559,238 +2181,6 @@ void CG_DottedLine( float x1, float y1, float x2, float y2, float dotSize, int n
 	}
 }
 
-void CG_BracketEntity( centity_t *cent, float radius )
-{
-	trace_t tr;
-	vec3_t dif;
-	float	len, size, lineLength, lineWidth;
-	float	x,	y;
-	clientInfo_t *local;
-	qboolean isEnemy = qfalse;
-
-	VectorSubtract( cent->lerpOrigin, cg.refdef.vieworg, dif );
-	len = VectorNormalize( dif );
-
-	if ( cg.crosshairClientNum != cent->currentState.clientNum
-		&& (!cg.snap||cg.snap->ps.rocketLockIndex!= cent->currentState.clientNum) )
-	{//if they're the entity you're locking onto or under your crosshair, always draw bracket
-		//Hmm... for now, if they're closer than 2000, don't bracket?
-		if ( len < 2000.0f )
-		{
-			return;
-		}
-
-		CG_Trace( &tr, cg.refdef.vieworg, NULL, NULL, cent->lerpOrigin, -1, CONTENTS_OPAQUE );
-
-		//don't bracket if can't see them
-		if ( tr.fraction < 1.0f )
-		{
-			return;
-		}
-	}
-
-	if ( !CG_WorldCoordToScreenCoordFloat(cent->lerpOrigin, &x, &y) )
-	{//off-screen, don't draw it
-		return;
-	}
-
-	//just to see if it's centered
-	//CG_DrawPic( x-2, y-2, 4, 4, cgs.media.whiteShader );
-
-	local = &cgs.clientinfo[cg.snap->ps.clientNum];
-	if ( cent->currentState.m_iVehicleNum //vehicle has a driver
-		&& (cent->currentState.m_iVehicleNum-1) < MAX_CLIENTS
-		&& cgs.clientinfo[ cent->currentState.m_iVehicleNum-1 ].infoValid )
-	{
-		if ( cgs.gametype < GT_TEAM )
-		{//ffa?
-			isEnemy = qtrue;
-			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
-		}
-		else if ( cgs.clientinfo[ cent->currentState.m_iVehicleNum-1 ].team == local->team )
-		{
-			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_GREEN)] );
-		}
-		else
-		{
-			isEnemy = qtrue;
-			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
-		}
-	}
-	else if ( cent->currentState.teamowner )
-	{
-		if ( cgs.gametype < GT_TEAM )
-		{//ffa?
-			isEnemy = qtrue;
-			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
-		}
-		else if ( cent->currentState.teamowner != cg.predictedPlayerState.persistant[PERS_TEAM] )
-		{// on enemy team
-			isEnemy = qtrue;
-			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
-		}
-		else
-		{ //a friend
-			trap->R_SetColor ( g_color_table[ColorIndex(COLOR_GREEN)] );
-		}
-	}
-	else
-	{//FIXME: if we want to ever bracket anything besides vehicles (like siege objectives we want to blow up), we should handle the coloring here
-		trap->R_SetColor ( NULL );
-	}
-	
-	if ( len <= 1.0f )
-	{//super-close, max out at 400 times radius (which is HUGE)
-		size = radius*400.0f;
-	}
-	else
-	{//scale by dist
-		size = radius*(400.0f/len);
-	}
-
-	if ( size < 1.0f )
-	{
-		size = 1.0f;
-	}
-	
-	//length scales with dist
-	lineLength = (size*0.1f);
-	if ( lineLength < 0.5f )
-	{//always visible
-		lineLength = 0.5f;
-	}
-	//always visible width
-	lineWidth = 1.0f;
-
-	x -= (size*0.5f);
-	y -= (size*0.5f);
-
-	/*
-	if ( x >= 0 && x <= 640
-		&& y >= 0 && y <= 480 )
-	*/
-	{//brackets would be drawn on the screen, so draw them
-	//upper left corner
-		//horz
-        CG_DrawPic( x, y, lineLength, lineWidth, cgs.media.whiteShader );
-		//vert
-        CG_DrawPic( x, y, lineWidth, lineLength, cgs.media.whiteShader );
-	//upper right corner
-		//horz
-        CG_DrawPic( x+size-lineLength, y, lineLength, lineWidth, cgs.media.whiteShader );
-		//vert
-        CG_DrawPic( x+size-lineWidth, y, lineWidth, lineLength, cgs.media.whiteShader );
-	//lower left corner
-		//horz
-        CG_DrawPic( x, y+size-lineWidth, lineLength, lineWidth, cgs.media.whiteShader );
-		//vert
-        CG_DrawPic( x, y+size-lineLength, lineWidth, lineLength, cgs.media.whiteShader );
-	//lower right corner
-		//horz
-        CG_DrawPic( x+size-lineLength, y+size-lineWidth, lineLength, lineWidth, cgs.media.whiteShader );
-		//vert
-        CG_DrawPic( x+size-lineWidth, y+size-lineLength, lineWidth, lineLength, cgs.media.whiteShader );
-	}
-	//Lead Indicator...
-	if ( cg_drawVehLeadIndicator.integer )
-	{//draw the lead indicator
-		if ( isEnemy )
-		{//an enemy object
-			if ( cent->currentState.NPC_class == CLASS_VEHICLE )
-			{//enemy vehicle
-				if ( !VectorCompare( cent->currentState.pos.trDelta, vec3_origin ) )
-				{//enemy vehicle is moving
-					if ( cg.predictedPlayerState.m_iVehicleNum )
-					{//I'm in a vehicle
-						centity_t		*veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-						if ( veh //vehicle cent
-							&& veh->m_pVehicle//vehicle
-							&& veh->m_pVehicle->m_pVehicleInfo//vehicle stats
-							&& veh->m_pVehicle->m_pVehicleInfo->weapon[0].ID > VEH_WEAPON_BASE )//valid vehicle weapon
-						{
-							vehWeaponInfo_t *vehWeapon = &g_vehWeaponInfo[veh->m_pVehicle->m_pVehicleInfo->weapon[0].ID];
-							if ( vehWeapon 
-								&& vehWeapon->bIsProjectile//primary weapon's shot is a projectile
-								&& !vehWeapon->bHasGravity//primary weapon's shot is not affected by gravity
-								&& !vehWeapon->fHoming//primary weapon's shot is not homing
-								&& vehWeapon->fSpeed )//primary weapon's shot has speed
-							{//our primary weapon's projectile has a speed
-								vec3_t vehDiff, vehLeadPos;
-								float vehDist, eta;
-								float leadX, leadY;
-								
-								VectorSubtract( cent->lerpOrigin, cg.predictedVehicleState.origin, vehDiff );
-								vehDist = VectorNormalize( vehDiff );
-								eta = (vehDist/vehWeapon->fSpeed);//how many seconds it would take for my primary weapon's projectile to get from my ship to theirs
-								//now extrapolate their position that number of seconds into the future based on their velocity
-								VectorMA( cent->lerpOrigin, eta, cent->currentState.pos.trDelta, vehLeadPos );
-								//now we have where we should be aiming at, project that onto the screen at a 2D co-ord
-								if ( !CG_WorldCoordToScreenCoordFloat(cent->lerpOrigin, &x, &y) )
-								{//off-screen, don't draw it
-									return;
-								}
-								if ( !CG_WorldCoordToScreenCoordFloat(vehLeadPos, &leadX, &leadY) )
-								{//off-screen, don't draw it
-									//just draw the line
-									CG_DottedLine( x, y, leadX, leadY, 1, 10, g_color_table[ColorIndex(COLOR_RED)], 0.5f );
-									return;
-								}
-								//draw a line from the ship's cur pos to the lead pos
-								CG_DottedLine( x, y, leadX, leadY, 1, 10, g_color_table[ColorIndex(COLOR_RED)], 0.5f );
-								//now draw the lead indicator
-								trap->R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
-								CG_DrawPic( leadX-8, leadY-8, 16, 16, trap->R_RegisterShader( "gfx/menus/radar/lead" ) );
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-qboolean CG_InFighter( void )
-{
-	if ( cg.predictedPlayerState.m_iVehicleNum )
-	{//I'm in a vehicle
-		centity_t *vehCent = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-	    if ( vehCent 
-			&& vehCent->m_pVehicle 
-			&& vehCent->m_pVehicle->m_pVehicleInfo
-			&& vehCent->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER )
-		{//I'm in a fighter
-			return qtrue;
-		}
-	}
-	return qfalse;
-}
-
-qboolean CG_InATST( void )
-{
-	if ( cg.predictedPlayerState.m_iVehicleNum )
-	{//I'm in a vehicle
-		centity_t *vehCent = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-	    if ( vehCent 
-			&& vehCent->m_pVehicle 
-			&& vehCent->m_pVehicle->m_pVehicleInfo
-			&& vehCent->m_pVehicle->m_pVehicleInfo->type == VH_WALKER )
-		{//I'm in an atst
-			return qtrue;
-		}
-	}
-	return qfalse;
-}
-
-void CG_DrawBracketedEntities( void )
-{
-	int i;
-	for ( i = 0; i < cg.bracketedEntityCount; i++ ) 
-	{	
-		centity_t *cent = &cg_entities[cg.bracketedEntities[i]];
-		CG_BracketEntity( cent, CG_RadiusForCent( cent ) );
-	}
-}
-
 static qboolean CG_IsDurationPower(int power)
 {
 	if (power == FP_HEAL ||
@@ -3855,276 +2245,6 @@ static void CG_DrawActivePowers(void)
 	}
 }
 
-//--------------------------------------------------------------
-static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
-//--------------------------------------------------------------
-{
-	int		cx, cy;
-	vec3_t	org;
-	static	int oldDif = 0;
-	centity_t *cent = &cg_entities[lockEntNum];
-	vec4_t color={0.0f,0.0f,0.0f,0.0f};
-	float lockTimeInterval = 1200.0f/16.0f;
-	//FIXME: if in a vehicle, use the vehicle's lockOnTime...
-	int dif = (cg.time - cg.snap->ps.rocketLockTime)/lockTimeInterval;
-	int i;
-
-	if (!cg.snap->ps.rocketLockTime)
-	{
-		return;
-	}
-
-	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR)
-	{
-		return;
-	}
-
-	if ( cg.snap->ps.m_iVehicleNum )
-	{//driving a vehicle
-		centity_t *veh = &cg_entities[cg.snap->ps.m_iVehicleNum];
-		if ( veh->m_pVehicle )
-		{
-			vehWeaponInfo_t *vehWeapon = NULL;
-			if ( cg.predictedVehicleState.weaponstate == WEAPON_CHARGING_ALT )
-			{
-				if ( veh->m_pVehicle->m_pVehicleInfo->weapon[1].ID > VEH_WEAPON_BASE 
-					&& veh->m_pVehicle->m_pVehicleInfo->weapon[1].ID < MAX_VEH_WEAPONS )
-				{
-					vehWeapon = &g_vehWeaponInfo[veh->m_pVehicle->m_pVehicleInfo->weapon[1].ID];
-				}
-			}
-			else
-			{
-				if ( veh->m_pVehicle->m_pVehicleInfo->weapon[0].ID > VEH_WEAPON_BASE 
-					&& veh->m_pVehicle->m_pVehicleInfo->weapon[0].ID < MAX_VEH_WEAPONS )
-				{
-					vehWeapon = &g_vehWeaponInfo[veh->m_pVehicle->m_pVehicleInfo->weapon[0].ID];
-				}
-			}
-			if ( vehWeapon != NULL )
-			{//we are trying to lock on with a valid vehicle weapon, so use *its* locktime, not the hard-coded one
-				if ( !vehWeapon->iLockOnTime )
-				{//instant lock-on
-					dif = 10.0f;
-				}
-				else
-				{//use the custom vehicle lockOnTime
-					lockTimeInterval = (vehWeapon->iLockOnTime/16.0f);
-					dif = (cg.time - cg.snap->ps.rocketLockTime)/lockTimeInterval;
-				}
-			}
-		}
-	}
-	//We can't check to see in pmove if players are on the same team, so we resort
-	//to just not drawing the lock if a teammate is the locked on ent
-	if (cg.snap->ps.rocketLockIndex >= 0 &&
-		cg.snap->ps.rocketLockIndex < ENTITYNUM_NONE)
-	{
-		clientInfo_t *ci = NULL;
-
-		if (cg.snap->ps.rocketLockIndex < MAX_CLIENTS)
-		{
-			ci = &cgs.clientinfo[cg.snap->ps.rocketLockIndex];
-		}
-		else
-		{
-			ci = cg_entities[cg.snap->ps.rocketLockIndex].npcClient;
-		}
-
-		if (ci)
-		{
-			if (ci->team == cgs.clientinfo[cg.snap->ps.clientNum].team)
-			{
-				if (cgs.gametype >= GT_TEAM)
-				{
-					return;
-				}
-			}
-			else if (cgs.gametype >= GT_TEAM)
-			{
-				centity_t *hitEnt = &cg_entities[cg.snap->ps.rocketLockIndex];
-				if (hitEnt->currentState.eType == ET_NPC &&
-					hitEnt->currentState.NPC_class == CLASS_VEHICLE &&
-					hitEnt->currentState.owner < ENTITYNUM_WORLD)
-				{ //this is a vehicle, if it has a pilot and that pilot is on my team, then...
-					if (hitEnt->currentState.owner < MAX_CLIENTS)
-					{
-						ci = &cgs.clientinfo[hitEnt->currentState.owner];
-					}
-					else
-					{
-						ci = cg_entities[hitEnt->currentState.owner].npcClient;
-					}
-					if (ci && ci->team == cgs.clientinfo[cg.snap->ps.clientNum].team)
-					{
-						return;
-					}
-				}
-			}
-		}
-	}
-
-	if (cg.snap->ps.rocketLockTime != -1)
-	{
-		lastvalidlockdif = dif;
-	}
-	else
-	{
-		dif = lastvalidlockdif;
-	}
-
-	if ( !cent )
-	{
-		return;
-	}
-
-	VectorCopy( cent->lerpOrigin, org );
-
-	if ( CG_WorldCoordToScreenCoord( org, &cx, &cy ))
-	{
-		// we care about distance from enemy to eye, so this is good enough
-		float sz = Distance( cent->lerpOrigin, cg.refdef.vieworg ) / 1024.0f; 
-		
-		if ( sz > 1.0f )
-		{
-			sz = 1.0f;
-		}
-		else if ( sz < 0.0f )
-		{
-			sz = 0.0f;
-		}
-
-		sz = (1.0f - sz) * (1.0f - sz) * 32 + 6;
-
-		cy += sz * 0.5f;
-		
-		if ( dif < 0 )
-		{
-			oldDif = 0;
-			return;
-		}
-		else if ( dif > 8 )
-		{
-			dif = 8;
-		}
-
-		// do sounds
-		if ( oldDif != dif )
-		{
-			if ( dif == 8 )
-			{
-				if ( cg.snap->ps.m_iVehicleNum )
-				{
-					trap->S_StartSound( org, 0, CHAN_AUTO, trap->S_RegisterSound( "sound/vehicles/weapons/common/lock.wav" ));
-				}
-				else
-				{
-					trap->S_StartSound( org, 0, CHAN_AUTO, trap->S_RegisterSound( "sound/weapons/rocket/lock.wav" ));
-				}
-			}
-			else
-			{
-				if ( cg.snap->ps.m_iVehicleNum )
-				{
-					trap->S_StartSound( org, 0, CHAN_AUTO, trap->S_RegisterSound( "sound/vehicles/weapons/common/tick.wav" ));
-				}
-				else
-				{
-					trap->S_StartSound( org, 0, CHAN_AUTO, trap->S_RegisterSound( "sound/weapons/rocket/tick.wav" ));
-				}
-			}
-		}
-
-		oldDif = dif;
-
-		for ( i = 0; i < dif; i++ )
-		{
-			color[0] = 1.0f;
-			color[1] = 0.0f;
-			color[2] = 0.0f;
-			color[3] = 0.1f * i + 0.2f;
-
-			trap->R_SetColor( color );
-
-			// our slices are offset by about 45 degrees.
-			CG_DrawRotatePic( cx - sz, cy - sz, sz, sz, i * 45.0f, trap->R_RegisterShaderNoMip( "gfx/2d/wedge" ));
-		}
-
-		// we are locked and loaded baby
-		if ( dif == 8 )
-		{
-			color[0] = color[1] = color[2] = sin( cg.time * 0.05f ) * 0.5f + 0.5f;
-			color[3] = 1.0f; // this art is additive, so the alpha value does nothing
-
-			trap->R_SetColor( color );
-
-			CG_DrawPic( cx - sz, cy - sz * 2, sz * 2, sz * 2, trap->R_RegisterShaderNoMip( "gfx/2d/lock" ));
-		}
-	}
-}
-
-extern void CG_CalcVehMuzzle(Vehicle_t *pVeh, centity_t *ent, int muzzleNum);
-qboolean CG_CalcVehicleMuzzlePoint( int entityNum, vec3_t start, vec3_t d_f, vec3_t d_rt, vec3_t d_up)
-{
-	centity_t *vehCent = &cg_entities[entityNum];
-	if ( vehCent->m_pVehicle && vehCent->m_pVehicle->m_pVehicleInfo->type == VH_WALKER )
-	{//draw from barrels
-		VectorCopy( vehCent->lerpOrigin, start );
-		start[2] += vehCent->m_pVehicle->m_pVehicleInfo->height-DEFAULT_MINS_2-48;
-		AngleVectors( vehCent->lerpAngles, d_f, d_rt, d_up );
-	}
-	else
-	{
-		//check to see if we're a turret gunner on this vehicle
-		if ( cg.predictedPlayerState.generic1 )//as a passenger
-		{//passenger in a vehicle
-			if ( vehCent->m_pVehicle
-				&& vehCent->m_pVehicle->m_pVehicleInfo 
-				&& vehCent->m_pVehicle->m_pVehicleInfo->maxPassengers )
-			{//a vehicle capable of carrying passengers
-				int turretNum;
-				for ( turretNum = 0; turretNum < MAX_VEHICLE_TURRETS; turretNum++ )
-				{
-					if ( vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].iAmmoMax )
-					{// valid turret
-						if ( vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].passengerNum == cg.predictedPlayerState.generic1 )
-						{//I control this turret
-							//Go through all muzzles, average their positions and directions and use the result for crosshair trace
-							int vehMuzzle, numMuzzles = 0;
-							vec3_t	muzzlesAvgPos={0},muzzlesAvgDir={0};
-							int	i;
-
-							for ( i = 0; i < MAX_VEHICLE_TURRET_MUZZLES; i++ )
-							{
-								vehMuzzle = vehCent->m_pVehicle->m_pVehicleInfo->turret[turretNum].iMuzzle[i];
-								if ( vehMuzzle )
-								{
-									vehMuzzle -= 1;
-									CG_CalcVehMuzzle( vehCent->m_pVehicle, vehCent, vehMuzzle );
-									VectorAdd( muzzlesAvgPos, vehCent->m_pVehicle->m_vMuzzlePos[vehMuzzle], muzzlesAvgPos );
-									VectorAdd( muzzlesAvgDir, vehCent->m_pVehicle->m_vMuzzleDir[vehMuzzle], muzzlesAvgDir );
-									numMuzzles++;
-								}
-								if ( numMuzzles )
-								{
-									VectorScale( muzzlesAvgPos, 1.0f/(float)numMuzzles, start );
-									VectorScale( muzzlesAvgDir, 1.0f/(float)numMuzzles, d_f );
-									VectorClear( d_rt );
-									VectorClear( d_up );
-									return qtrue;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		VectorCopy( vehCent->lerpOrigin, start );
-		AngleVectors( vehCent->lerpAngles, d_f, d_rt, d_up );
-	}
-	return qfalse;
-}
-
 //calc the muzzle point from the e-web itself
 void CG_CalcEWebMuzzlePoint(centity_t *cent, vec3_t start, vec3_t d_f, vec3_t d_rt, vec3_t d_up)
 {
@@ -4161,7 +2281,6 @@ static void CG_ScanForCrosshairEntity( void ) {
 	vec3_t		start, end;
 	int			content;
 	int			ignore;
-	qboolean	bVehCheckTraceFromCamPos = qfalse;
 
 	ignore = cg.predictedPlayerState.clientNum;
 
@@ -4170,30 +2289,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 		vec3_t d_f, d_rt, d_up;
 		//For now we still want to draw the crosshair in relation to the player's world coordinates
 		//even if we have a melee weapon/no weapon.
-		if ( cg.predictedPlayerState.m_iVehicleNum && (cg.predictedPlayerState.eFlags&EF_NODRAW) )
-		{//we're *inside* a vehicle
-			//do the vehicle's crosshair instead
-			centity_t *veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-			qboolean gunner = qfalse;
-
-			//if (veh->currentState.owner == cg.predictedPlayerState.clientNum)
-			{ //the pilot
-				ignore = cg.predictedPlayerState.m_iVehicleNum;
-				gunner = CG_CalcVehicleMuzzlePoint(cg.predictedPlayerState.m_iVehicleNum, start, d_f, d_rt, d_up);
-			}
-			if ( veh->m_pVehicle 
-				&& veh->m_pVehicle->m_pVehicleInfo 
-				&& veh->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER 
-				&& cg.distanceCull > MAX_XHAIR_DIST_ACCURACY 
-				&& !gunner )
-			{	
-				//NOTE: on huge maps, the crosshair gets inaccurate at close range, 
-				//		so we'll do an extra G2 trace from the cg.refdef.vieworg
-				//		to see if we hit anything closer and auto-aim at it if so
-				bVehCheckTraceFromCamPos = qtrue;
-			}
-		}
-		else if (cg.snap && cg.snap->ps.weapon == WP_EMPLACED_GUN && cg.snap->ps.emplacedIndex &&
+		if (cg.snap && cg.snap->ps.weapon == WP_EMPLACED_GUN && cg.snap->ps.emplacedIndex &&
 			cg_entities[cg.snap->ps.emplacedIndex].ghoul2 && cg_entities[cg.snap->ps.emplacedIndex].currentState.weapon == WP_NONE)
 		{ //locked into our e-web, calc the muzzle from it
 			CG_CalcEWebMuzzlePoint(&cg_entities[cg.snap->ps.emplacedIndex], start, d_f, d_rt, d_up);
@@ -4277,34 +2373,6 @@ static void CG_ScanForCrosshairEntity( void ) {
 	{ //then do a trace with ghoul2 models in mind
 		CG_G2Trace( &trace, start, vec3_origin, vec3_origin, end, 
 			ignore, CONTENTS_SOLID|CONTENTS_BODY );
-		if ( bVehCheckTraceFromCamPos )
-		{
-			//NOTE: this MUST stay up to date with the method used in WP_VehCheckTraceFromCamPos
-			centity_t *veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-			trace_t	extraTrace;
-			vec3_t	viewDir2End, extraEnd;
-			float	minAutoAimDist = Distance( veh->lerpOrigin, cg.refdef.vieworg ) + (veh->m_pVehicle->m_pVehicleInfo->length/2.0f) + 200.0f;
-
-			VectorSubtract( end, cg.refdef.vieworg, viewDir2End );
-			VectorNormalize( viewDir2End );
-			VectorMA( cg.refdef.vieworg, MAX_XHAIR_DIST_ACCURACY, viewDir2End, extraEnd );
-			CG_G2Trace( &extraTrace, cg.refdef.vieworg, vec3_origin, vec3_origin, extraEnd, 
-				ignore, CONTENTS_SOLID|CONTENTS_BODY );
-			if ( !extraTrace.allsolid
-				&& !extraTrace.startsolid )
-			{
-				if ( extraTrace.fraction < 1.0f )
-				{
-					if ( (extraTrace.fraction*MAX_XHAIR_DIST_ACCURACY) > minAutoAimDist )
-					{
-						if ( ((extraTrace.fraction*MAX_XHAIR_DIST_ACCURACY)-Distance( veh->lerpOrigin, cg.refdef.vieworg )) < (trace.fraction*cg.distanceCull) )
-						{//this trace hit *something* that's closer than the thing the main trace hit, so use this result instead
-							memcpy( &trace, &extraTrace, sizeof( trace_t ) );
-						}
-					}
-				}
-			}
-		}
 	}
 	else
 	{
@@ -4334,24 +2402,10 @@ static void CG_ScanForCrosshairEntity( void ) {
 
 	if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR)
 	{
-		if (trace.entityNum < /*MAX_CLIENTS*/ENTITYNUM_WORLD)
+		if (trace.entityNum < ENTITYNUM_WORLD)
 		{
 			cg.crosshairClientNum = trace.entityNum;
 			cg.crosshairClientTime = cg.time;
-
-			if (cg.crosshairClientNum < ENTITYNUM_WORLD)
-			{
-				centity_t *veh = &cg_entities[cg.crosshairClientNum];
-
-				if (veh->currentState.eType == ET_NPC &&
-					veh->currentState.NPC_class == CLASS_VEHICLE &&
-					veh->currentState.owner < MAX_CLIENTS)
-				{ //draw the name of the pilot then
-					cg.crosshairClientNum = veh->currentState.owner;
-					cg.crosshairVehNum = veh->currentState.number;
-					cg.crosshairVehTime = cg.time;
-				}
-			}
 
 			CG_DrawCrosshair(trace.endpos, 1);
 		}
@@ -4820,6 +2874,7 @@ void CG_DrawNPCNames( void )
 		case CLASS_SWAMP:
 		case CLASS_RANCOR:
 		case CLASS_WAMPA:
+		case CLASS_TUSKEN:
 			str2 = "< Animal >";
 			tclr[0] = 1.0f;
 			tclr[1] = 0.125f;
@@ -4962,6 +3017,7 @@ void CG_DrawNPCNames( void )
 			case CLASS_PRISONER:
 			case CLASS_RODIAN:
 			case CLASS_TRANDOSHAN:
+			case CLASS_TUSKEN:
 			case CLASS_UGNAUGHT:
 			case CLASS_JAWA:
 				str1 = va("%s", BG_Get_NPC_Name(cent->currentState.generic1));
@@ -5123,7 +3179,6 @@ static void CG_DrawCrosshairNames( void ) {
 	vec4_t		tcolor;
 	char		*name;
 	int			baseColor;
-	qboolean	isVeh = qfalse;
 
 	if ( !cg_drawCrosshair.integer ) {
 		return;
@@ -5150,38 +3205,11 @@ static void CG_DrawCrosshairNames( void ) {
         UI_DrawProportionalString (320, 170, "Press E to pick up weapon", UI_CENTER, colorTable[CT_WHITE], FONT_MEDIUM);
         return;
     }
-    else
     //[/USE_ITEMS]
-	if (cg.crosshairClientNum < ENTITYNUM_WORLD)
-	{
-		centity_t *veh = &cg_entities[cg.crosshairClientNum];
-
-		if (veh->currentState.eType == ET_NPC &&
-			veh->currentState.NPC_class == CLASS_VEHICLE &&
-			veh->currentState.owner < MAX_CLIENTS)
-		{ //draw the name of the pilot then
-			cg.crosshairClientNum = veh->currentState.owner;
-			cg.crosshairVehNum = veh->currentState.number;
-			cg.crosshairVehTime = cg.time;
-			isVeh = qtrue; //so we know we're drawing the pilot's name
-		}
-	}
 
 	if (cg.crosshairClientNum >= MAX_CLIENTS)
 	{
-		/*centity_t *NPC = &cg_entities[cg.crosshairClientNum];
-
-		if (NPC->currentState.eType == ET_NPC
-			&& NPC->currentState.NPC_class == CLASS_CIVILIAN
-			&& NPC->currentState.generic1 > 0
-			&& NPC->currentState.generic1 < NPC_NT_NUM)
-		{// Civilian NPCs should show that they are... (FIXME: Also add shopkeeper names!)
-
-		}
-		else*/
-		{
-			return;
-		}
+		return;
 	}
 
 	if (cg_entities[cg.crosshairClientNum].currentState.powerups & (1 << PW_CLOAKED))
@@ -5196,17 +3224,7 @@ static void CG_DrawCrosshairNames( void ) {
 		return;
 	}
 
-	/*if (cg_entities[cg.crosshairClientNum].currentState.eType == ET_NPC
-		&& cg_entities[cg.crosshairClientNum].currentState.NPC_class == CLASS_CIVILIAN
-		&& cg_entities[cg.crosshairClientNum].currentState.generic1 > 0
-		&& cg_entities[cg.crosshairClientNum].currentState.generic1 < NPC_NT_NUM)
-	{// Civilian NPCs should show that they are... (FIXME: Also add shopkeeper names!)
-		name = va("^5[ ^3Civilian %s ^5]", NPC_NAMES[cg_entities[cg.crosshairClientNum].currentState.generic1]);
-	}
-	else*/
-	{
-		name = cgs.clientinfo[ cg.crosshairClientNum ].cleanname;
-	}
+	name = cgs.clientinfo[ cg.crosshairClientNum ].cleanname;
 
 	if (cgs.gametype >= GT_TEAM)
 	{
@@ -5265,16 +3283,7 @@ static void CG_DrawCrosshairNames( void ) {
 	tcolor[2] = colorTable[baseColor][2];
 	tcolor[3] = color[3]*0.5f;
 
-	if (isVeh)
-	{
-		char str[MAX_STRING_CHARS];
-		Com_sprintf(str, MAX_STRING_CHARS, "%s (pilot)", name);
-		UI_DrawProportionalString(320, 170, str, UI_CENTER, tcolor, FONT_MEDIUM);
-	}
-	else
-	{
-		UI_DrawProportionalString(320, 170, name, UI_CENTER, tcolor, FONT_MEDIUM);
-	}
+	UI_DrawProportionalString(320, 170, name, UI_CENTER, tcolor, FONT_MEDIUM);
 
 	trap->R_SetColor( NULL );
 }
@@ -5474,11 +3483,6 @@ CG_DrawIntermission
 =================
 */
 static void CG_DrawIntermission( void ) {
-//	int key;
-	//if (cg_singlePlayer.integer) {
-	//	CG_DrawCenterString();
-	//	return;
-	//}
 	cg.scoreFadeTime = cg.time;
 	cg.scoreBoardShowing = CG_DrawOldScoreboard();
 }
@@ -5497,7 +3501,6 @@ static qboolean CG_DrawFollow( void )
 		return qfalse;
 	}
 
-//	s = "following";
 	if (cgs.gametype == GT_POWERDUEL)
 	{
 		clientInfo_t *ci = &cgs.clientinfo[ cg.snap->ps.clientNum ];
@@ -5527,69 +3530,6 @@ static qboolean CG_DrawFollow( void )
 
 	return qtrue;
 }
-
-#if 0
-static void CG_DrawTemporaryStats()
-{ //placeholder for testing (draws ammo and force power)
-	char s[512];
-
-	if (!cg.snap)
-	{
-		return;
-	}
-
-	sprintf(s, "Force: %i", cg.snap->ps.fd.forcePower);
-
-	CG_DrawBigString(SCREEN_WIDTH-164, SCREEN_HEIGHT-dmgIndicSize, s, 1.0f);
-
-	sprintf(s, "Ammo: %i", cg.snap->ps.ammo[weaponData[cg.snap->ps.weapon].ammoIndex]);
-
-	CG_DrawBigString(SCREEN_WIDTH-164, SCREEN_HEIGHT-112, s, 1.0f);
-
-	sprintf(s, "Health: %i", cg.snap->ps.stats[STAT_HEALTH]);
-
-	CG_DrawBigString(8, SCREEN_HEIGHT-dmgIndicSize, s, 1.0f);
-
-	sprintf(s, "Armor: %i", cg.snap->ps.stats[STAT_ARMOR]);
-
-	CG_DrawBigString(8, SCREEN_HEIGHT-112, s, 1.0f);
-}
-#endif
-
-/*
-=================
-CG_DrawAmmoWarning
-=================
-*/
-static void CG_DrawAmmoWarning( void ) {
-#if 0
-	const char	*s;
-	int			w;
-
-	if (!cg_drawStatus.integer)
-	{
-		return;
-	}
-
-	if ( cg_drawAmmoWarning.integer == 0 ) {
-		return;
-	}
-
-	if ( !cg.lowAmmoWarning ) {
-		return;
-	}
-
-	if ( cg.lowAmmoWarning == 2 ) {
-		s = "OUT OF AMMO";
-	} else {
-		s = "LOW AMMO WARNING";
-	}
-	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
-	CG_DrawBigString(320 - w / 2, 64, s, 1.0F);
-#endif
-}
-
-
 
 /*
 =================
@@ -5817,9 +3757,11 @@ void CG_DrawFlagStatus()
 void CG_DrawJetpackCloak(menuDef_t *menuHUD) {
 
 	itemDef_t	*focusItem;
-	float		percent = 100;
-	qhandle_t	pic = 0;
+	float		percent = 100.0f;
+	qhandle_t	pic = NULL_HANDLE;
 	vec4_t opacity;
+	int jetpack = cg.snap->ps.jetpack;
+	int jetpackFuel = cg.snap->ps.jetpackFuel;
 	
 	MAKERGBA( opacity, 1, 1, 1, 1*cg.jkg_HUDOpacity );
 
@@ -5830,25 +3772,25 @@ void CG_DrawJetpackCloak(menuDef_t *menuHUD) {
 		pic = trap->R_RegisterShader("gfx/jkghud/ico_cloak.png");
 	}
 
-	if (cg.snap->ps.jetpackFuel < 100)
+	if (jetpack != 0 && jetpackFuel < jetpackTable[jetpack -1].fuelCapacity)
 	{ // Jetpack is being used or is recharging
 		if (cg.snap->ps.cloakFuel >= 100 || (cg.time >> 10 & 1)) {
-			percent = cg.snap->ps.jetpackFuel;
+			percent = jetpackFuel / (float)jetpackTable[jetpack - 1].fuelCapacity * 100.0f;
 			pic = trap->R_RegisterShader("gfx/jkghud/ico_jetpack.png");
 		}
 	}
 	if (cg.snap->ps.cloakFuel < 100) {
-		if (cg.snap->ps.jetpackFuel >= 100 || !(cg.time >> 10 & 1)) {
+		if (jetpackFuel >= jetpackTable[jetpack - 1].fuelCapacity || !(cg.time >> 10 & 1)) {
 			percent = cg.snap->ps.cloakFuel;
 			pic = trap->R_RegisterShader("gfx/jkghud/ico_cloak.png");
 		}
 	}
 
-	if (percent == 100 && cg.snap->ps.weapon != WP_SABER) {
+	if (percent >= 100 && cg.snap->ps.weapon != WP_SABER) {
 		return;
 	}
 
-	percent /= 100;
+	percent /= 100.0f;
 	//percent *= 0.75f;
 
 	focusItem = Menu_FindItemByName(menuHUD, "bar1");
@@ -5881,59 +3823,6 @@ void CG_DrawJetpackCloak(menuDef_t *menuHUD) {
 	}
 }
 
-
-//draw meter showing jetpack fuel when it's not full
-#define JPFUELBAR_H			100.0f
-#define JPFUELBAR_W			20.0f
-#define JPFUELBAR_X			(SCREEN_WIDTH-JPFUELBAR_W-8.0f)
-#define JPFUELBAR_Y			260.0f
-void CG_DrawJetpackFuel(void)
-{
-	vec4_t aColor;
-	vec4_t bColor;
-	vec4_t cColor;
-	float x = JPFUELBAR_X;
-	float y = JPFUELBAR_Y;
-	float percent = ((float)cg.snap->ps.jetpackFuel/100.0f)*JPFUELBAR_H;
-
-	if (percent > JPFUELBAR_H)
-	{
-		return;
-	}
-
-	if (percent < 0.1f)
-	{
-		percent = 0.1f;
-	}
-
-	//color of the bar
-	aColor[0] = 0.5f;
-	aColor[1] = 0.0f;
-	aColor[2] = 0.0f;
-	aColor[3] = 0.8f;
-
-	//color of the border
-	bColor[0] = 0.0f;
-	bColor[1] = 0.0f;
-	bColor[2] = 0.0f;
-	bColor[3] = 0.3f;
-
-	//color of greyed out "missing fuel"
-	cColor[0] = 0.5f;
-	cColor[1] = 0.5f;
-	cColor[2] = 0.5f;
-	cColor[3] = 0.1f;
-
-	//draw the background (black)
-	CG_DrawRect(x, y, JPFUELBAR_W, JPFUELBAR_H, 1.0f, colorTable[CT_BLACK]);
-
-	//now draw the part to show how much health there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f+(JPFUELBAR_H-percent), JPFUELBAR_W-1.0f, JPFUELBAR_H-1.0f-(JPFUELBAR_H-percent), aColor);
-
-	//then draw the other part greyed out
-	CG_FillRect(x+1.0f, y+1.0f, JPFUELBAR_W-1.0f, JPFUELBAR_H-percent, cColor);
-}
-
 //draw meter showing e-web health when it is in use
 #define EWEBHEALTH_H			100.0f
 #define EWEBHEALTH_W			20.0f
@@ -5957,16 +3846,6 @@ void CG_DrawEWebHealth(void)
 	if (percent < 0.1f)
 	{
 		percent = 0.1f;
-	}
-
-	//kind of hacky, need to pass a coordinate in here
-	if (cg.snap->ps.jetpackFuel < 100)
-	{
-		x -= (JPFUELBAR_W+8.0f);
-	}
-	if (cg.snap->ps.cloakFuel < 100)
-	{
-		x -= (JPFUELBAR_W+8.0f);
 	}
 
 	//color of the bar
@@ -5996,83 +3875,6 @@ void CG_DrawEWebHealth(void)
 	//then draw the other part greyed out
 	CG_FillRect(x+1.0f, y+1.0f, EWEBHEALTH_W-1.0f, EWEBHEALTH_H-percent, cColor);
 }
-
-//draw meter showing cloak fuel when it's not full
-#define CLFUELBAR_H			100.0f
-#define CLFUELBAR_W			20.0f
-#define CLFUELBAR_X			(SCREEN_WIDTH-CLFUELBAR_W-8.0f)
-#define CLFUELBAR_Y			260.0f
-void CG_DrawCloakFuel(void)
-{
-	vec4_t aColor;
-	vec4_t bColor;
-	vec4_t cColor;
-	float x = CLFUELBAR_X;
-	float y = CLFUELBAR_Y;
-	float percent = ((float)cg.snap->ps.cloakFuel/100.0f)*CLFUELBAR_H;
-
-	if (percent > CLFUELBAR_H)
-	{
-		return;
-	}
-
-	if ( cg.snap->ps.jetpackFuel < 100 )
-	{//if drawing jetpack fuel bar too, then move this over...?
-		x -= (JPFUELBAR_W+8.0f);
-	}
-
-	if (percent < 0.1f)
-	{
-		percent = 0.1f;
-	}
-
-	//color of the bar
-	aColor[0] = 0.0f;
-	aColor[1] = 0.0f;
-	aColor[2] = 0.6f;
-	aColor[3] = 0.8f;
-
-	//color of the border
-	bColor[0] = 0.0f;
-	bColor[1] = 0.0f;
-	bColor[2] = 0.0f;
-	bColor[3] = 0.3f;
-
-	//color of greyed out "missing fuel"
-	cColor[0] = 0.1f;
-	cColor[1] = 0.1f;
-	cColor[2] = 0.3f;
-	cColor[3] = 0.1f;
-
-	//draw the background (black)
-	CG_DrawRect(x, y, CLFUELBAR_W, CLFUELBAR_H, 1.0f, colorTable[CT_BLACK]);
-
-	//now draw the part to show how much fuel there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f+(CLFUELBAR_H-percent), CLFUELBAR_W-1.0f, CLFUELBAR_H-1.0f-(CLFUELBAR_H-percent), aColor);
-
-	//then draw the other part greyed out
-	CG_FillRect(x+1.0f, y+1.0f, CLFUELBAR_W-1.0f, CLFUELBAR_H-percent, cColor);
-}
-
-int cgRageTime = 0;
-int cgRageFadeTime = 0;
-float cgRageFadeVal = 0;
-
-int cgRageRecTime = 0;
-int cgRageRecFadeTime = 0;
-float cgRageRecFadeVal = 0;
-
-int cgAbsorbTime = 0;
-int cgAbsorbFadeTime = 0;
-float cgAbsorbFadeVal = 0;
-
-int cgProtectTime = 0;
-int cgProtectFadeTime = 0;
-float cgProtectFadeVal = 0;
-
-int cgYsalTime = 0;
-int cgYsalFadeTime = 0;
-float cgYsalFadeVal = 0;
 
 qboolean gCGHasFallVector = qfalse;
 vec3_t gCGFallVector;
@@ -6248,83 +4050,6 @@ void CG_ChatBox_AddString(char *chatStr, int fadeLevel)
 		}
 	}
 }
-/*
-//insert item into array (rearranging the array if necessary)
-void CG_ChatBox_ArrayInsert(chatBoxItem_t **array, int insPoint, int maxNum, chatBoxItem_t *item)
-{
-    if (array[insPoint])
-	{ //recursively call, to move everything up to the top
-		if (insPoint+1 >= maxNum)
-		{
-			CG_Error("CG_ChatBox_ArrayInsert: Exceeded array size");
-		}
-		CG_ChatBox_ArrayInsert(array, insPoint+1, maxNum, array[insPoint]);
-	}
-
-	//now that we have moved anything that would be in this slot up, insert what we want into the slot
-	array[insPoint] = item;
-}
-
-//go through all the chat strings and draw them if they are not yet expired
-static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
-{
-	chatBoxItem_t *drawThese[MAX_CHATBOX_ITEMS];
-	int numToDraw = 0;
-	int linesToDraw = 0;
-	int i = 0;
-	int x = 30;
-	int y = cg.scoreBoardShowing ? 475 : cg_chatBoxHeight.integer;
-	float fontScale = 0.65f;
-
-	if (!cg_chatBox.integer)
-	{
-		return;
-	}
-
-	memset(drawThese, 0, sizeof(drawThese));
-
-	while (i < MAX_CHATBOX_ITEMS)
-	{
-		if (cg.chatItems[i].time >= cg.time)
-		{
-			int check = numToDraw;
-			int insertionPoint = numToDraw;
-
-			while (check >= 0)
-			{
-				if (drawThese[check] &&
-					cg.chatItems[i].time < drawThese[check]->time)
-				{ //insert here
-					insertionPoint = check;
-				}
-				check--;
-			}
-			CG_ChatBox_ArrayInsert(drawThese, insertionPoint, MAX_CHATBOX_ITEMS, &cg.chatItems[i]);
-			numToDraw++;
-			linesToDraw += cg.chatItems[i].lines;
-		}
-		i++;
-	}
-
-	if (!numToDraw)
-	{ //nothing, then, just get out of here now.
-		return;
-	}
-
-	//move initial point up so we draw bottom-up (visually)
-	y -= (CHATBOX_FONT_HEIGHT*fontScale)*linesToDraw;
-
-	//we have the items we want to draw, just quickly loop through them now
-	i = 0;
-	while (i < numToDraw)
-	{
-		CG_Text_Paint(x, y, fontScale, colorWhite, drawThese[i]->string, 0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL );
-		y += ((CHATBOX_FONT_HEIGHT*fontScale)*drawThese[i]->lines);
-		i++;
-	}
-}
-*/
-
 
 //===============================================================
 //
@@ -6537,7 +4262,6 @@ float CG_GetLowHealthPhase(int reset, float multiplier) {
 //extern qboolean pm_isSprinting;
 static void CG_Draw2DScreenTints( void )
 {
-	float			rageTime, rageRecTime, absorbTime, protectTime;
 	vec4_t			hcolor;
 	
 	if (cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR)
@@ -6599,314 +4323,6 @@ static void CG_Draw2DScreenTints( void )
 			trap->R_SetColor(hcolor);
 			CG_DrawPic(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, cgs.media.lowHealthAura);
 			trap->R_SetColor(NULL);
-		}
-		if (cg.snap->ps.fd.forcePowersActive & (1 << FP_RAGE))
-		{
-			if (!cgRageTime)
-			{
-				cgRageTime = cg.time;
-			}
-			
-			rageTime = (float)(cg.time - cgRageTime);
-			
-			rageTime /= 9000;
-			
-			if (rageTime < 0)
-			{
-				rageTime = 0;
-			}
-			if (rageTime > 0.15f)
-			{
-				rageTime = 0.15f;
-			}
-			
-			hcolor[3] = rageTime;
-			hcolor[0] = 0.7f;
-			hcolor[1] = 0;
-			hcolor[2] = 0;
-			
-			if (!cg.renderingThirdPerson)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			
-			cgRageFadeTime = 0;
-			cgRageFadeVal = 0;
-		}
-		else if (cgRageTime)
-		{
-			if (!cgRageFadeTime)
-			{
-				cgRageFadeTime = cg.time;
-				cgRageFadeVal = 0.15f;
-			}
-			
-			rageTime = cgRageFadeVal;
-			
-			cgRageFadeVal -= (cg.time - cgRageFadeTime)*0.000005f;
-			
-			if (rageTime < 0)
-			{
-				rageTime = 0;
-			}
-			if (rageTime > 0.15f)
-			{
-				rageTime = 0.15f;
-			}
-			
-			if (cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-			{
-				float checkRageRecTime = rageTime;
-				
-				if (checkRageRecTime < 0.15f)
-				{
-					checkRageRecTime = 0.15f;
-				}
-				
-				hcolor[3] = checkRageRecTime;
-				hcolor[0] = rageTime*4;
-				if (hcolor[0] < 0.2f)
-				{
-					hcolor[0] = 0.2f;
-				}
-				hcolor[1] = 0.2f;
-				hcolor[2] = 0.2f;
-			}
-			else
-			{
-				hcolor[3] = rageTime;
-				hcolor[0] = 0.7f;
-				hcolor[1] = 0;
-				hcolor[2] = 0;
-			}
-			
-			if (!cg.renderingThirdPerson && rageTime)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			else
-			{
-				if (cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-				{
-					hcolor[3] = 0.15f;
-					hcolor[0] = 0.2f;
-					hcolor[1] = 0.2f;
-					hcolor[2] = 0.2f;
-					CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-				}
-				cgRageTime = 0;
-			}
-		}
-		else if (cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-		{
-			if (!cgRageRecTime)
-			{
-				cgRageRecTime = cg.time;
-			}
-			
-			rageRecTime = (float)(cg.time - cgRageRecTime);
-			
-			rageRecTime /= 9000;
-			
-			if (rageRecTime < 0.15f)//0)
-			{
-				rageRecTime = 0.15f;//0;
-			}
-			if (rageRecTime > 0.15f)
-			{
-				rageRecTime = 0.15f;
-			}
-			
-			hcolor[3] = rageRecTime;
-			hcolor[0] = 0.2f;
-			hcolor[1] = 0.2f;
-			hcolor[2] = 0.2f;
-			
-			if (!cg.renderingThirdPerson)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			
-			cgRageRecFadeTime = 0;
-			cgRageRecFadeVal = 0;
-		}
-		else if (cgRageRecTime)
-		{
-			if (!cgRageRecFadeTime)
-			{
-				cgRageRecFadeTime = cg.time;
-				cgRageRecFadeVal = 0.15f;
-			}
-			
-			rageRecTime = cgRageRecFadeVal;
-			
-			cgRageRecFadeVal -= (cg.time - cgRageRecFadeTime)*0.000005f;
-			
-			if (rageRecTime < 0)
-			{
-				rageRecTime = 0;
-			}
-			if (rageRecTime > 0.15f)
-			{
-				rageRecTime = 0.15f;
-			}
-			
-			hcolor[3] = rageRecTime;
-			hcolor[0] = 0.2f;
-			hcolor[1] = 0.2f;
-			hcolor[2] = 0.2f;
-			
-			if (!cg.renderingThirdPerson && rageRecTime)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			else
-			{
-				cgRageRecTime = 0;
-			}
-		}
-		
-		if (cg.snap->ps.fd.forcePowersActive & (1 << FP_ABSORB))
-		{
-			if (!cgAbsorbTime)
-			{
-				cgAbsorbTime = cg.time;
-			}
-			
-			absorbTime = (float)(cg.time - cgAbsorbTime);
-			
-			absorbTime /= 9000;
-			
-			if (absorbTime < 0)
-			{
-				absorbTime = 0;
-			}
-			if (absorbTime > 0.15f)
-			{
-				absorbTime = 0.15f;
-			}
-			
-			hcolor[3] = absorbTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0;
-			hcolor[2] = 0.7f;
-			
-			if (!cg.renderingThirdPerson)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			
-			cgAbsorbFadeTime = 0;
-			cgAbsorbFadeVal = 0;
-		}
-		else if (cgAbsorbTime)
-		{
-			if (!cgAbsorbFadeTime)
-			{
-				cgAbsorbFadeTime = cg.time;
-				cgAbsorbFadeVal = 0.15f;
-			}
-			
-			absorbTime = cgAbsorbFadeVal;
-			
-			cgAbsorbFadeVal -= (cg.time - cgAbsorbFadeTime)*0.000005f;
-			
-			if (absorbTime < 0)
-			{
-				absorbTime = 0;
-			}
-			if (absorbTime > 0.15f)
-			{
-				absorbTime = 0.15f;
-			}
-			
-			hcolor[3] = absorbTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0;
-			hcolor[2] = 0.7f;
-			
-			if (!cg.renderingThirdPerson && absorbTime)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			else
-			{
-				cgAbsorbTime = 0;
-			}
-		}
-		
-		if (cg.snap->ps.fd.forcePowersActive & (1 << FP_PROTECT))
-		{
-			if (!cgProtectTime)
-			{
-				cgProtectTime = cg.time;
-			}
-			
-			protectTime = (float)(cg.time - cgProtectTime);
-			
-			protectTime /= 9000;
-			
-			if (protectTime < 0)
-			{
-				protectTime = 0;
-			}
-			if (protectTime > 0.15f)
-			{
-				protectTime = 0.15f;
-			}
-			
-			hcolor[3] = protectTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0.7f;
-			hcolor[2] = 0;
-			
-			if (!cg.renderingThirdPerson)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			
-			cgProtectFadeTime = 0;
-			cgProtectFadeVal = 0;
-		}
-		else if (cgProtectTime)
-		{
-			if (!cgProtectFadeTime)
-			{
-				cgProtectFadeTime = cg.time;
-				cgProtectFadeVal = 0.15f;
-			}
-			
-			protectTime = cgProtectFadeVal;
-			
-			cgProtectFadeVal -= (cg.time - cgProtectFadeTime)*0.000005f;
-			
-			if (protectTime < 0)
-			{
-				protectTime = 0;
-			}
-			if (protectTime > 0.15f)
-			{
-				protectTime = 0.15f;
-			}
-			
-			hcolor[3] = protectTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0.7f;
-			hcolor[2] = 0;
-			
-			if (!cg.renderingThirdPerson && protectTime)
-			{
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			else
-			{
-				cgProtectTime = 0;
-			}
-		}
-		
-		if (cg.snap->ps.rocketLockIndex != ENTITYNUM_NONE && (cg.time - cg.snap->ps.rocketLockTime) > 0)
-		{
-			CG_DrawRocketLocking( cg.snap->ps.rocketLockIndex, cg.snap->ps.rocketLockTime );
 		}
 	}
 
@@ -7006,6 +4422,12 @@ void CG_DrawChatboxFrame(menuDef_t *menuHUD) {
 
 void CG_DrawChatboxText(menuDef_t *menuHUD) {
 	itemDef_t *item = Menu_FindItemByName(menuHUD, "text");
+	float opacity = 1.0f;
+
+	if (cg.snap->ps.pm_type != PM_SPECTATOR) {
+		opacity = cg.jkg_HUDOpacity;
+	}
+
 	if (item)
 	{
 		int i;
@@ -7013,20 +4435,20 @@ void CG_DrawChatboxText(menuDef_t *menuHUD) {
 		vec4_t color;
 
 		MAKERGBA(color,0,0,0,0.3f);
-		color[3] *= cg.jkg_HUDOpacity;
+		color[3] *= opacity;
 		CG_FillRect(item->window.rect.x-5, item->window.rect.y-2, item->window.rect.w+10, item->window.rect.h+4, color);
 		VectorCopy(colorWhite, color);
-		color[3] *= cg.jkg_HUDOpacity;
+		color[3] *= opacity;
 		// Center and draw the text, positioning will be finetuned later on :P
 		line = 0;
-		for (i=0; i<12; i++) {
-			int idx = (cg.chatItemNext + i) % 12;
+		for (i=0; i<MAX_CHATBOX_ITEMS; i++) {
+			int idx = (cg.chatItemNext + i) % MAX_CHATBOX_ITEMS;
 			if (cg.chatItems[idx].active) {
-				ChatBox_SetPaletteAlpha(cg.chatItems[idx].alpha*cg.jkg_HUDOpacity);
-				color[3] = cg.chatItems[idx].alpha*cg.jkg_HUDOpacity;
-				CG_DrawStringExt(item->window.rect.x, item->window.rect.y + (line * 8),
+				ChatBox_SetPaletteAlpha(cg.chatItems[idx].alpha*opacity);
+				color[3] = cg.chatItems[idx].alpha*opacity;
+				CG_DrawStringExt(item->window.rect.x-5, item->window.rect.y + (line * 8) - 2,
 					cg.chatItems[idx].string,
-					color, qfalse, qfalse, 5, 8, strlen(cg.chatItems[idx].string), cgs.media.charset_Segoeui);
+					color, qfalse, qfalse, 5, 8, strlen(cg.chatItems[idx].string), cgs.media.charsetShader);
 				line += cg.chatItems[idx].lines;
 			}
 		}
@@ -7052,6 +4474,142 @@ void CG_DrawChatbox() {
 	ChatBox_DrawChat(menuHUD);
 }
 
+
+static int cg_performanceSampleNum = 0;
+
+float CG_FractionalForPerformance(uint64_t sample, uint64_t maxSample)
+{
+	return 1.0f - (sample / (float)maxSample);
+}
+
+void CG_PerformanceAnalysis()
+{
+	performanceData_t* data = trap->Perf_GetData();
+	int x = 10;
+	int y = 90;
+	char buff[128];
+
+	trap->Cvar_VariableStringBuffer("perf", buff, 128);
+	if (atoi(buff) <= 0)
+	{
+		return;	// perf is disabled
+	}
+
+	// Iterate through all of the data
+	for (int i = 0; i < MAX_PERFORMANCE_TAGS; i++)
+	{
+		performanceTag_t* tag = &((*data)[i]);
+		if (tag->tagUsed)
+		{
+			if (!Q_stricmp(tag->tagName, "renderer"))
+			{
+				cg_performanceData.rendererSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// purple square
+				trap->R_SetColor(colorMagenta);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			else if (!Q_stricmp(tag->tagName, "cgame"))
+			{
+				cg_performanceData.cgameSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// red square
+				trap->R_SetColor(colorRed);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			else if (!Q_stricmp(tag->tagName, "client"))
+			{
+				cg_performanceData.clientSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// orange square
+				trap->R_SetColor(colorOrange);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			else if (!Q_stricmp(tag->tagName, "gamex86"))
+			{
+				cg_performanceData.gameSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// cyan square
+				trap->R_SetColor(colorCyan);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			else if (!Q_stricmp(tag->tagName, "server"))
+			{
+				cg_performanceData.serverSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// blue square
+				trap->R_SetColor(colorLtBlue);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			else if (!Q_stricmp(tag->tagName, "com_frame"))
+			{
+				cg_performanceData.frameSamples[cg_performanceSampleNum] = tag->timeAccumulated;
+
+				// green square
+				trap->R_SetColor(colorGreen);
+				trap->R_DrawStretchPic(x - 4, y + 2.5f, 3, 3, 0, 0, 0, 0, cgs.media.whiteShader);
+			}
+			trap->R_Font_DrawString(x, y, va("%s - %.4f ms", tag->tagName, tag->timeAccumulated / 1000000.0f), colorWhite, cgDC.Assets.qhSmallFont, -1, 0.3f);
+			y += 5;
+		}
+	}
+
+	// Increment current sample counter
+	cg_performanceSampleNum++;
+	cg_performanceSampleNum %= LAG_SAMPLES;
+
+	// Find the max frame time
+	uint64_t maxFrameTime = 0;
+
+	for (int i = 0; i < LAG_SAMPLES; i++)
+	{
+		if (cg_performanceData.frameSamples[i] > maxFrameTime)
+		{
+			maxFrameTime = cg_performanceData.frameSamples[i];
+		}
+	}
+
+	// If the max frame time is 0, then we can't render anything
+	if (maxFrameTime <= 0)
+	{
+		return;
+	}
+
+	x = 20;
+	y = 30;
+
+	for (int sample = cg_performanceSampleNum + 1; sample != cg_performanceSampleNum; sample++, sample %= LAG_SAMPLES)
+	{
+		// Draw pixels
+
+		// purple square = renderer
+		trap->R_SetColor(colorMagenta);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.rendererSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+		
+		// red square = cgame
+		trap->R_SetColor(colorRed);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.cgameSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+
+		// orange square = client
+		trap->R_SetColor(colorOrange);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.clientSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+
+		// cyan square = gamex86
+		trap->R_SetColor(colorCyan);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.gameSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+
+		// blue square = server
+		trap->R_SetColor(colorLtBlue);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.serverSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+
+		// green square = com_frame
+		trap->R_SetColor(colorGreen);
+		trap->R_DrawStretchPic(x, y + (CG_FractionalForPerformance(cg_performanceData.frameSamples[sample], maxFrameTime) * 50.0f), 1, 1, 0, 0, 0, 0, cgs.media.whiteShader);
+
+		x++; // move ahead by one pixel
+	}
+}
+
 void ChatBox_CloseChat();
 static void CG_Draw2D( void ) {
 	float			fallTime; 
@@ -7061,29 +4619,6 @@ static void CG_Draw2D( void ) {
 	// if we are taking a levelshot for the menu, don't draw anything
 	if ( cg.levelShot ) {
 		return;
-	}
-
-	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR)
-	{
-		cgRageTime = 0;
-		cgRageFadeTime = 0;
-		cgRageFadeVal = 0;
-
-		cgRageRecTime = 0;
-		cgRageRecFadeTime = 0;
-		cgRageRecFadeVal = 0;
-
-		cgAbsorbTime = 0;
-		cgAbsorbFadeTime = 0;
-		cgAbsorbFadeVal = 0;
-
-		cgProtectTime = 0;
-		cgProtectFadeTime = 0;
-		cgProtectFadeVal = 0;
-
-		cgYsalTime = 0;
-		cgYsalFadeTime = 0;
-		cgYsalFadeVal = 0;
 	}
 	
 	if (cg.cinematicState) {
@@ -7138,29 +4673,23 @@ static void CG_Draw2D( void ) {
 		return;
 	}
 
-	
-
 	if ( cg_draw2D.integer == 0 ) {
 		// Screeny purposes
 		CG_DrawGrenade();
 		return;
 	}
+
+	CG_PerformanceAnalysis();
 	CinBuild_Visualize2D();
 
 
 	if ( cg.snap->ps.pm_type == PM_INTERMISSION ) {
 		CG_DrawIntermission();
-		//CG_ChatBox_DrawStrings();
 		return;
 	}
 
 	CG_Draw2DScreenTints();
 	if (drawHUD && !ui_hidehud.integer) {
-		if (cg.snap->ps.rocketLockIndex != ENTITYNUM_NONE && (cg.time - cg.snap->ps.rocketLockTime) > 0)
-		{
-			CG_DrawRocketLocking( cg.snap->ps.rocketLockIndex, cg.snap->ps.rocketLockTime );
-		}
-
 		if (cg.snap->ps.fd.forcePowersActive || cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
 		{
 			CG_DrawActivePowers();
@@ -7196,10 +4725,7 @@ static void CG_Draw2D( void ) {
 			CG_DrawCrosshair(NULL, 0);
 			CG_DrawCrosshairNames();
 			CG_SaberClashFlare();
-			if (cg.isChatting) {
-				ChatBox_CloseChat();
-			}
-
+			CG_DrawChatbox();	// Only show the chatbox when we're alive (JKG)
 		} else {
 			// don't draw any status if dead or the scoreboard is being explicitly shown
 			if ( cg.snap->ps.stats[STAT_HEALTH] > 0 && !cg.deathcamFadeStart ) { //!cg.showScores && to bring back scoreboard on tab press.
@@ -7209,30 +4735,17 @@ static void CG_Draw2D( void ) {
 					Menu_PaintAll();
 					CG_DrawTimedMenus();
 				}
-	      
-				//CG_DrawTemporaryStats();
-#ifdef __SWF__
-				CG_DrawPic(0, 0, 60, 60, cgs.media.swfTestShader);
-#endif
-
-				CG_DrawAmmoWarning();
 
 				CG_DrawMessageNotifications();
 
 				CG_DrawCrosshairNames();
 
-				if (cg_drawStatus.integer)
-				{
-					//Powerups now done with upperright stuff
-
-					CG_DrawFlagStatus();
-				}
-
 				CG_SaberClashFlare();
 
 				if (cg_drawStatus.integer)
 				{
-					CG_DrawStats();
+					CG_DrawFlagStatus();
+					CG_DrawStatus();
 				}
 
 				// Draw Team Overlay (also used by parties and such)
@@ -7241,10 +4754,6 @@ static void CG_Draw2D( void ) {
 				CG_DrawReload();
 				CG_DrawGrenade();
 
-				CG_DrawPickupItem();
-
-				//Do we want to use this system again at some point?
-				//CG_DrawReward();
 				CG_DrawChatbox();	// Only show the chatbox when we're alive (JKG)
 			} else {
 				if (cg.isChatting) {
@@ -7304,7 +4813,6 @@ static void CG_Draw2D( void ) {
 	
 
 	if (!cl_paused.integer) {
-		CG_DrawBracketedEntities();
 		CG_DrawUpperRight();
 	}
 
@@ -7317,8 +4825,6 @@ static void CG_Draw2D( void ) {
 	if ( !cg.scoreBoardShowing) {
 		CG_DrawCenterString();
 	}
-	// always draw chat
-	//CG_ChatBox_DrawStrings();
 }
 
 static void CG_DrawMiscStaticModels (void) {

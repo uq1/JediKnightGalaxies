@@ -1079,7 +1079,7 @@ void shield_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *a
 		self->setTime = level.time + 100;
 
 		maxArmor = activator->client->ps.stats[STAT_MAX_HEALTH];
-		dif = maxArmor - activator->client->ps.stats[STAT_ARMOR];
+		dif = maxArmor - activator->client->ps.stats[STAT_SHIELD];
 
 		if (dif > 0)					// Already at full armor?
 		{
@@ -1110,7 +1110,7 @@ void shield_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *a
 			self->fly_sound_debounce_time = level.time + 100;
 			self->activator = activator;
 
-			activator->client->ps.stats[STAT_ARMOR] += add;
+			activator->client->ps.stats[STAT_SHIELD] += add;
 
 		}
 	}
@@ -1161,7 +1161,7 @@ void ammo_generic_power_converter_use( gentity_t *self, gentity_t *other, gentit
 		//self->setTime = level.time + 100;
 		self->fly_sound_debounce_time = level.time + 500;
 		self->activator = activator;
-		while (i < JKG_MAX_AMMO_INDICES)
+		while (i < MAX_AMMO_TYPES)
 		{
 			add = 1;
 			activator->client->ammoTable[i] += add;
@@ -1434,7 +1434,6 @@ ammo_power_converter_use
 void ammo_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *activator)
 {
 	int			add = 0.0f;//,highest;
-	qboolean	overcharge;
 //	int			difBlaster,difPowerCell,difMetalBolts;
 	int			stop = 1;
 
@@ -1445,7 +1444,6 @@ void ammo_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *act
 
 	if (self->setTime < level.time)
 	{
-		overcharge = qfalse;
 
 		if (!self->s.loopSound)
 		{
@@ -1457,7 +1455,7 @@ void ammo_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *act
 		if (self->count)	// Has it got any power left?
 		{
 			int i = 0;
-			while (i < JKG_MAX_AMMO_INDICES)
+			while (i < MAX_AMMO_TYPES)
 			{
 				add = xweaponAmmo[i].ammoMax*0.1f;
 				if (add < 1)
@@ -1474,7 +1472,7 @@ void ammo_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *act
 				}
 				i++;
 			}
-			activator->client->ps.ammo += add;
+			activator->client->ps.stats[STAT_TOTALAMMO] += add;
 			if (!self->genericValue12)
 			{
 				self->count -= add;
@@ -1483,47 +1481,6 @@ void ammo_power_converter_use( gentity_t *self, gentity_t *other, gentity_t *act
 
 			self->fly_sound_debounce_time = level.time + 500;
 			self->activator = activator;
-
-			/*
-			if (self->count > MAX_AMMO_GIVE)
-			{
-				add = MAX_AMMO_GIVE;
-			}
-			else if (self->count<0)
-			{
-				add = 0;
-			}
-			else
-			{
-				add = self->count;
-			}
-
-			activator->client->ps.ammo[AMMO_BLASTER] += add;
-			activator->client->ps.ammo[AMMO_POWERCELL] += add;
-			activator->client->ps.ammo[AMMO_METAL_BOLTS] += add;
-
-			self->count -= add;
-			stop = 0;
-
-			self->fly_sound_debounce_time = level.time + 500;
-			self->activator = activator;
-
-			difBlaster = activator->client->ps.ammo[AMMO_BLASTER] - weaponAmmo[AMMO_BLASTER].ammoMax;
-			difPowerCell = activator->client->ps.ammo[AMMO_POWERCELL] - weaponAmmo[AMMO_POWERCELL].ammoMax;
-			difMetalBolts = activator->client->ps.ammo[AMMO_METAL_BOLTS] - weaponAmmo[AMMO_METAL_BOLTS].ammoMax;
-
-			// Find the highest one
-			highest = difBlaster;
-			if (difPowerCell>difBlaster)
-			{
-				highest = difPowerCell;
-			}
-
-			if (difMetalBolts > highest)
-			{
-				highest = difMetalBolts;
-			}
-			*/
 		}
 		// TODO: Add proper ammo array here
 	}

@@ -1,0 +1,9 @@
+{
+	"name":             "Stormtrooper Legguards",
+	"internal":             "legs_stormtrooper",
+	"itemtype":             "armor",
+	"armor":		"stlegs",
+	"weight":		"2",
+	"cost":			"350",
+	"itemIcon":		"gfx/item_icons/stormtrooper_helmet.tga"
+}

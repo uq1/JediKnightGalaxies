@@ -272,7 +272,6 @@ DeathmatchScoreboardMessage
 ==================
 */
 void DeathmatchScoreboardMessage( gentity_t *ent ) {
-#ifndef __MMO__
 	// UQ1: This is a very spammy one!
 	// Suggest, use an event for each player. Staggered over time.
 	// Scores don't need to be instant, and in future maybe not even needed until after a match.
@@ -324,7 +323,6 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 	trap->SendServerCommand( ent-g_entities, va("scores %i %i %i%s", i,
 		level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE],
 		string ) );
-#endif //__MMO__
 }
 
 /*
@@ -360,6 +358,7 @@ void Cmd_Pay_f(gentity_t* ent) {
 	vec3_t traceStart, traceEnd, forward;
 	char creditBuffer[MAX_STRING_CHARS];
 	int credits;
+	int limit;
 
 	if (trap->Argc() != 2) {
 		trap->SendServerCommand(ent - g_entities, "print \"Usage: /pay <# of credits, or \"all\">\n\"");
@@ -371,18 +370,46 @@ void Cmd_Pay_f(gentity_t* ent) {
 	if (!Q_stricmp(creditBuffer, "all")) {
 		credits = ent->client->ps.credits;
 	}
-	else {
+	else 
 		credits = atoi(creditBuffer);
 
-		if (credits <= 0) {
-			trap->SendServerCommand(ent - g_entities, "print \"You can't pay that amount of money.\n\"");
-			return;
+	limit = (ent->client->ps.credits - jkg_startingCredits.integer);
+	/*limit = ent->client->ps.credits + ent->client->ps.spent - jkg_startingCredits.integer;	//how much "earned" money do we actually have?
+
+	//handle passive credits if enabled
+	if (jkg_passiveCreditsAmount.integer > 0)
+	{
+		int delta = level.time - level.startTime;	//how long has the match been going?
+		//if we joined at least jkg_passiveCreditsWait late (typically 1 minute)
+		if (delta > jkg_passiveCreditsWait.integer)
+		{
+			int reward  = (jkg_passiveCreditsAmount.integer * (delta / jkg_passiveCreditsRate.integer));				//calculate amount we would have got
+			if (jkg_passiveCreditsWait.integer > jkg_passiveCreditsRate.integer)
+				reward -= (jkg_passiveCreditsAmount.integer * (jkg_passiveCreditsWait.integer / jkg_passiveCreditsRate.integer)) - jkg_passiveCreditsAmount.integer;		//minus the initial wait before credits are disbursed
+
+			limit -= reward;		//subtract passively earned money
 		}
-		else if (credits > ent->client->ps.credits) {
-			trap->SendServerCommand(ent - g_entities, "print \"You can't afford that!\n\"");
-			return;
-		}
+	}*/
+
+	if (credits <= 0) {
+		trap->SendServerCommand(ent - g_entities, "print \"You must offer an amount of 1 or more.\n\"");
+		return;
 	}
+	if (limit < 1)
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"You have not earned enough credits yet.  You must have at least %i credits on hand to use /pay.\n\"", jkg_startingCredits.integer));
+		return;
+	}
+	if (credits > limit)
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"You can't afford that!  You can only pay up to %i credits.\n\"", limit));
+		return;
+	}
+	if (credits > ent->client->ps.credits) {
+		trap->SendServerCommand(ent - g_entities, "print \"You can't afford that!\n\"");
+		return;
+	}
+	
 
 	AngleVectors(ent->client->ps.viewangles, forward, nullptr, nullptr);
 	traceEnd[0] = ent->client->ps.origin[0] + forward[0] * PAY_DISTANCE;
@@ -404,11 +431,12 @@ void Cmd_Pay_f(gentity_t* ent) {
 
 	gentity_t* target = &g_entities[tr.entityNum];
 	target->client->ps.credits += credits;
+	//ent->client->ps.spent += credits;		//paying other players counts as buying something!
 	ent->client->ps.credits -= credits;
 
 	trap->SendServerCommand(ent - g_entities, va("print \"You paid %i to %s\n\"", credits, target->client->pers.netname));
 	trap->SendServerCommand(tr.entityNum, va("%s " S_COLOR_WHITE "paid you %i credits.\n\"", ent->client->pers.netname, credits));
-	G_SoundAtLoc(target->client->ps.origin, CHAN_AUTO, G_SoundIndex("sound/vendor/generic/purchase02.mp3"));
+	G_PreDefSound(ent->r.currentOrigin, PDSOUND_PAY);
 }
 
 /*
@@ -581,18 +609,7 @@ Cmd_KnockMeDown_f
 void Cmd_KnockMeDown_f(gentity_t* ent) {
 	if (BG_KnockDownable(&ent->client->ps))
 	{
-		ent->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
-		ent->client->ps.forceDodgeAnim = 0;
-		if (trap->Argc() > 1)
-		{
-			ent->client->ps.forceHandExtendTime = level.time + 1100;
-			ent->client->ps.quickerGetup = qfalse;
-		}
-		else
-		{
-			ent->client->ps.forceHandExtendTime = level.time + 700;
-			ent->client->ps.quickerGetup = qtrue;
-		}
+		G_Knockdown(ent, ent, ent->s.origin, 10.0, qtrue);
 	}
 }
 
@@ -741,15 +758,15 @@ void Cmd_TUse_f(gentity_t* ent) {
 
 /*
 ==================
-JKG_ItemLookup_f
+Cmd_ItemLookup_f
 
 (eezstreet add)
 Looks up a range of items and prints them in a list.
 Ideally a GM or admin-only command
 ==================
 */
-extern itemData_t itemLookupTable[MAX_ITEM_TABLE_SIZE];
-void JKG_ItemLookup_f(gentity_t *ent)
+
+void Cmd_ItemLookup_f(gentity_t *ent)
 {
 	unsigned int i;
 	int badItems = 0;
@@ -817,12 +834,33 @@ void JKG_ItemLookup_f(gentity_t *ent)
 
 /*
 ==================
-JKG_ItemCheck_f
+Cmd_MyAmmo_f
+
+Prints a list of all the ammo that you have
+==================
+*/
+static void Cmd_MyAmmo_f(gentity_t* ent) {
+	trap->SendServerCommand(ent - g_entities, "print \"=============================================\n\"");
+	for (int i = 0; i < numAmmoLoaded; i++) {
+		if (!ent->client->ammoTable[i]) {
+			continue;
+		}
+		ammo_t* ammo = &ammoTable[i];
+		trap->SendServerCommand(ent - g_entities, va("print \"%s: %i/%i\n\"", ammo->name, ent->client->ammoTable[i], ammo->ammoMax));
+	}
+	trap->SendServerCommand(ent - g_entities, "print \"=============================================\n\"");
+}
+
+
+
+/*
+==================
+Cmd_ItemCheck_f
 
 Gives details about an item
 ==================
 */
-void JKG_ItemCheck_f(gentity_t *ent)
+void Cmd_ItemCheck_f(gentity_t *ent)
 {
 	char buffer[64];
 	int itemNum;
@@ -876,6 +914,61 @@ void JKG_ItemCheck_f(gentity_t *ent)
 	trap->SendServerCommand(ent-g_entities, va("print \"%s refers to an item that does not exist!\n\"", buffer));
 }
 
+/*
+========================
+CustomVendorSounds
+does the npc have custom sounds?
+
+========================
+*/
+qboolean CustomVendorSounds(gentity_t *conversationalist, char *name)
+{
+	fileHandle_t	f;
+	char			filename[256];
+
+	strcpy(filename, va("sound/vendor/%s/%s.mp3", conversationalist->NPC_type, name));
+
+	trap->FS_Open(filename, &f, FS_READ);
+
+	if (!f)
+	{// End of conversation...
+		trap->FS_Close(f);
+		return qfalse;
+	}
+
+	trap->FS_Close(f);
+
+	return qtrue;
+}
+
+
+/*
+========================
+HasCustomCivSounds
+does the npc have custom sounds?
+
+========================
+*/
+qboolean HasCustomCivSounds(char* path, gentity_t* conversationalist, char* name)
+{
+	fileHandle_t	f;
+	char			filename[256];
+
+	strcpy(filename, va("%s/civilian_%s/%s.mp3", path, conversationalist->NPC_type, name));
+
+	trap->FS_Open(filename, &f, FS_READ);
+
+	if (!f)
+	{// End of conversation...
+		trap->FS_Close(f);
+		return qfalse;
+	}
+
+	trap->FS_Close(f);
+
+	return qtrue;
+}
+
 
 /*
 ==================
@@ -883,7 +976,7 @@ JKG_BuyItem_f
 
 ==================
 */
-void JKG_BuyItem_f(gentity_t *ent)
+void Cmd_BuyItem_f(gentity_t *ent)
 {
 	gentity_t* trader = ent->client->currentTrader;
 	if(trap->Argc() < 1)
@@ -910,33 +1003,118 @@ void JKG_BuyItem_f(gentity_t *ent)
 	itemInstance_t* pItem = &(*trader->inventory)[item];
 	if (pItem->id->baseCost > ent->client->ps.credits)
 	{
+		char* snd;
+
 		trap->SendServerCommand(ent - g_entities, "print \"You do not have enough credits to purchase that item.\n\"");
 
 		//select random unhappy vendor sound to play
-		std::string snd;
-		switch (Q_irand(0, 5))
-		{	case 0: snd = "sound/vendor/generic/purchasefail00.mp3";
-				break;
-			case 1: snd = "sound/vendor/generic/purchasefail01.mp3";
-				break;
-			case 2: snd = "sound/vendor/generic/purchasefail02.mp3";
-				break;
-			case 3: snd = "sound/vendor/generic/purchasefail03.mp3";
-				break;
-			case 4: snd = "sound/vendor/generic/purchasefail04.mp3";
-				break;
-			case 5: snd = "sound/vendor/generic/purchasefail05.mp3";
-				break;
-			default: snd = "sound/vendor/generic/purchasefail00.mp3";
-				break;
+		if (CustomVendorSounds(trader, "purchasefail00"))
+		{// This NPC has it's own vendor specific sound(s)...
+			char	filename[256];
+			int		max = 1;
+
+			while (CustomVendorSounds(trader, va("purchasefail0%i", max))) max++;
+
+			strcpy(filename, va("sound/vendor/%s/purchasefail0%i.mp3", trader->NPC_type, irand(0, max - 1)));
+			G_Sound(trader, CHAN_AUTO, G_SoundIndex(filename));
 		}
-		G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd.c_str()));	//play sound
+
+		//if not custom vendor, check for fallback sounds
+		else
+		{
+			//check for conversation 'upset' sound
+			if (HasCustomCivSounds(va("sound/conversation"), trader, va("upset00")) )
+			{
+				snd = va("sound/conversation/civilian_%s/upset00.mp3", trader->NPC_type);
+				G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd));	//play sound
+			}
+
+			//use generic
+			else
+			{
+				snd = va("sound/vendor/generic/purchasefail0%i.mp3", Q_irand(0, 5));
+				G_Sound(trader, CHAN_AUTO, G_SoundIndex(snd));	//play sound
+			}
+		}
 		return;
 	}
 
-	BG_SendTradePacket(IPT_TRADESINGLE, ent, trader, pItem, pItem->id->baseCost, 0);
-	BG_GiveItemNonNetworked(ent, *pItem);
-	ent->client->ps.credits -= pItem->id->baseCost;
+	// Since the item is sent with a trade packet, the item is NOT needed to be networked, it already is through the trade packet
+	if (pItem->id->itemType != ITEM_AMMO)
+	{
+		BG_SendTradePacket(IPT_TRADESINGLE, ent, trader, pItem, pItem->id->baseCost, 0);
+		BG_GiveItemNonNetworked(ent, *pItem);
+	}
+	//ent->client->ps.spent += pItem->id->baseCost;
+	ent->client->ps.credits -= pItem->id->baseCost;	// remove credits from player
+
+	if (pItem->id->itemType == ITEM_WEAPON) {
+		// If it's a weapon, we need to give the player some ammo - maybe half the maximum?
+		// TODO externalize this into a function (JKG_PostItemPurchase) for other item types (special ammo types) 
+		weaponData_t* wp = GetWeaponData(pItem->id->weaponData.weapon, pItem->id->weaponData.variation);
+		if (!wp->firemodes[0].useQuantity) {
+			for (int i = 0; i < wp->numFiringModes; i++) {
+				ammo_t* ammoDefault = wp->firemodes[i].ammoDefault;
+				if (ammoDefault) {
+					BG_GiveAmmo(ent, ammoDefault, qfalse, ammoDefault->ammoMax / 2);
+				}
+				ent->client->clipammo[pItem->id->weaponData.varID][i] = wp->firemodes[i].clipSize;
+				ent->client->ammoTypes[pItem->id->weaponData.varID][i] = wp->firemodes[i].ammoDefault->ammoIndex;
+			}
+		}
+	}
+	else if (pItem->id->itemType == ITEM_AMMO) {
+		// If it's an ammo, it's not actually added to our inventory. Instead, it's given to us as ammo.
+		BG_GiveAmmo(ent, BG_GetAmmo(pItem->id->ammoData.ammoIndex), qfalse, pItem->id->ammoData.quantity);
+	}
+
+	//play purchase sound
+	{
+		//char* snd;  //unused
+
+		//select random unhappy vendor sound to play
+		if (CustomVendorSounds(trader, "purchase00"))
+		{// This NPC has it's own vendor specific sound(s)...
+			char	filename[256];
+			int		max = 1;
+
+			while (CustomVendorSounds(trader, va("purchase0%i", max))) max++;
+
+			strcpy(filename, va("sound/vendor/%s/purchase0%i.mp3", trader->NPC_type, irand(0, max - 1)));
+			G_Sound(trader, CHAN_AUTO, G_SoundIndex(filename));
+		}
+
+		//if not custom vendor, use the generic one
+		else
+			G_PreDefSound(ent->r.currentOrigin, PDSOUND_VENDORPURCHASE);
+	}
+
+	// Tell other clients, if the item is not too cheap 
+	if (jkg_buyAnnounce.integer > 0)
+	{
+		char* sendStr = va("cbi %i %s", pItem->id->itemID, ent->client->pers.netname);
+		if (pItem->id->baseCost >= jkg_buyAnnounceThreshold.integer)
+		{
+			if (jkg_buyAnnounce.integer <= 0)
+				;	//don't announce anything
+			else if (jkg_buyAnnounce.integer == 1)
+			{
+				// Announce ONLY to the same team !
+				for (int i = 0; i < level.numConnectedClients; i++)
+				{
+					if (level.clients[i].sess.sessionTeam == ent->client->sess.sessionTeam)
+					{
+						trap->SendServerCommand(level.clients[i].ps.clientNum, sendStr);
+					}
+				}
+			}
+			else
+			{
+				// Announce to EVERYONE !
+				trap->SendServerCommand(-1, sendStr);
+			}
+		}
+	}
 }
 
 /*
@@ -945,7 +1123,7 @@ JKG_CloseVendor_f
 
 ==================
 */
-void JKG_CloseVendor_f (gentity_t *ent)
+void Cmd_CloseVendor_f (gentity_t *ent)
 {
 	if ( ent->client->currentTrader == NULL )
 	{
@@ -955,6 +1133,47 @@ void JKG_CloseVendor_f (gentity_t *ent)
 	ent->client->pmnomove = false;
 	ent->client->currentTrader->genericValue1 = ENTITYNUM_NONE;
 	ent->client->currentTrader = NULL;
+}
+
+/*
+==================
+JKG_ConsumeItem_f
+
+==================
+*/
+void JKG_ConsumeItem_f(gentity_t* ent) {
+	char* args = ConcatArgs(1);
+	int argNum = atoi(args);
+
+	if (!BG_ConsumeItem(ent, argNum)) {
+		trap->SendServerCommand(ent - g_entities, "print \"Could not consume that item - either it is not a consumable or it is not a valid inventory item\n\"");
+	}
+}
+
+/*
+==================
+Cmd_EquipShield_f
+
+==================
+*/
+void Cmd_EquipShield_f(gentity_t* ent) {
+	char* args = ConcatArgs(1);
+	int argNum = atoi(args);
+
+	JKG_ShieldEquipped(ent, argNum, qtrue);
+}
+
+/*
+==================
+Cmd_EquipJetpack_f
+
+==================
+*/
+void Cmd_EquipJetpack_f(gentity_t* ent) {
+	char* args = ConcatArgs(1);
+	int argNum = atoi(args);
+
+	JKG_JetpackEquipped(ent, argNum);
 }
 
 /*
@@ -1011,69 +1230,112 @@ void Cmd_Crystal2_f(gentity_t* ent) {
 
 /*
 ==================
-JKG_PrintWeaponList_f
+Cmd_GiveBuff_f
+
+Gives a buff/debuff to the player (cheat command)
+==================
+*/
+extern void G_BuffEntity(gentity_t* ent, gentity_t* buffer, int buffID, float intensity, int duration);
+void Cmd_GiveBuff_f(gentity_t* ent)
+{
+	char buffName[BUFF_NAME_LEN]{ 0 };
+	char numericBuffer[32]{ 0 };
+	int duration = 5000; // default to 5 seconds
+	float intensity = 1.0f; // default to normal intensity
+	int buffID = -1;
+
+	if (trap->Argc() < 2)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"usage: /givebuff <buff name> [duration (in ms)] [intensity (default 1.0)]\n\"");
+		return;
+	}
+
+	trap->Argv(1, buffName, BUFF_NAME_LEN);
+	buffID = JKG_ResolveBuffName(buffName);
+	if (buffID < 0)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"Invalid buff name. Try using the printbufflist command.\n\"");
+		return;
+	}
+
+	if (trap->Argc() > 2)
+	{
+		trap->Argv(2, numericBuffer, 32);
+		duration = atoi(numericBuffer);
+		if (trap->Argc() > 3)
+		{
+			trap->Argv(3, numericBuffer, 32);
+			intensity = atof(numericBuffer);
+		}
+	}
+
+	if (duration < 1)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"The duration must be greater than 0.\n\"");
+		return;
+	}
+
+	G_BuffEntity(ent, ent, buffID, intensity, duration);
+}
+
+/*
+==================
+Cmd_PrintBuffList_f
+
+Prints all of the usable buffs.
+==================
+*/
+void Cmd_PrintBuffList_f(gentity_t* ent)
+{
+	std::vector<std::string> buffNames;
+
+	JKG_GetBuffNames(buffNames);
+	std::sort(buffNames.begin(), buffNames.end());	// sort alphabetically
+
+	for (auto it = buffNames.begin(); it != buffNames.end(); ++it)
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", it->c_str()));
+	}
+}
+
+/*
+==================
+Cmd_PrintWeaponList_f
 
 Good for testing desync
 ==================
 */
 
-void JKG_PrintWeaponList_f( gentity_t *ent )
+void Cmd_PrintWeaponList_f( gentity_t *ent )
 {
 	BG_PrintWeaponList();
 }
 
 /*
 ==================
-JKG_DumpWeaponList_f
+Cmd_DumpWeaponList_f
 
 Good for testing desync
 ==================
 */
 
-void JKG_DumpWeaponList_f( gentity_t *ent )
+void Cmd_DumpWeaponList_f( gentity_t *ent )
 {
 	BG_DumpWeaponList("svweaponlist.txt");
 }
 
 /*
 ==================
-JKG_CheckIfNumber
-
-Loops through a string and returns the following:
-0 if neither decimal nor alpha
-1 if alpha
-2 if decimal
+G_ClientNumFromArg
 ==================
 */
-typedef enum
-{
-	JKGSTR_NONE,		// unknown string type
-	JKGSTR_ALPHA,		// string is plaintext/not a number
-	JKGSTR_DECIMAL		// string is a stringized number
-} JKGStringType_t;
-
-JKGStringType_t JKG_CheckIfNumber(const char *string)
-{
-	int i = 0;
-	while(string[i] != '\0')
-	{
-		if(isalpha((int)string[i]))
-			return JKGSTR_ALPHA;
-		else if(!isdigit((int)string[i]) && string[i] != '.')
-			return JKGSTR_NONE;
-		i++;
-	}
-	return JKGSTR_DECIMAL;
-}
-
-int G_ClientNumberFromStrippedSubstring ( const char* name, qboolean checkAll );
-int G_ClientNumberFromArg ( const char *name )
+int G_ClientNumberFromArg(const char *name)
 {
 	int client_id = 0;
 	const char *cp = name;
 	while (*cp)
 	{
-		if ( *cp >= '0' && *cp <= '9' ) cp++;
+		if (*cp >= '0' && *cp <= '9') cp++;
 		else
 		{
 			client_id = -1; //mark as alphanumeric
@@ -1081,17 +1343,23 @@ int G_ClientNumberFromArg ( const char *name )
 		}
 	}
 
-	if ( client_id == 0 )
+	if (client_id == 0)
 	{ // arg is assumed to be client number
 		client_id = atoi(name);
 	}
 	// arg is client name
-	if ( client_id == -1 )
+	if (client_id == -1)
 	{
 		client_id = G_ClientNumberFromStrippedSubstring(name, qfalse);
 	}
 	return client_id;
 }
+
+/*
+==================
+Give cheat
+==================
+*/
 
 void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 {
@@ -1115,27 +1383,16 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 			return;
 	}
 
-	if ( give_all || !Q_stricmp( name, "armor" ) || !Q_stricmp( name, "shield" ) )
+	if ( give_all || !Q_stricmp( name, "shield" ) )
 	{
 		if ( argc == 3 )
-			ent->client->ps.stats[STAT_ARMOR] = Com_Clampi( 0, ent->client->ps.stats[STAT_MAX_ARMOR], atoi( args ) );
+			ent->client->ps.stats[STAT_SHIELD] = Com_Clampi( 0, ent->client->ps.stats[STAT_MAX_SHIELD], atoi( args ) );
 		else
-			ent->client->ps.stats[STAT_ARMOR] = ent->client->ps.stats[STAT_MAX_ARMOR];
+			ent->client->ps.stats[STAT_SHIELD] = ent->client->ps.stats[STAT_MAX_SHIELD];
 
 		if ( !give_all )
 			return;
 	}
-
-	/*if ( give_all || !Q_stricmp( name, "force" ) )
-	{
-		if ( argc == 3 )
-			ent->client->ps.fd.forcePower = Com_Clampi( 0, ent->client->ps.fd.forcePowerMax, atoi( args ) );
-		else
-			ent->client->ps.fd.forcePower = ent->client->ps.fd.forcePowerMax;
-
-		if ( !give_all )
-			return;
-	}*/
 
 	if ( give_all || !Q_stricmp( name, "stamina" ) )
 	{
@@ -1150,18 +1407,22 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 
 	if ( !give_all && !Q_stricmp( name, "weapon" ) )
 	{
-	    const weaponData_t *weapon = BG_GetWeaponByClassName ( args );
+	    weaponData_t *weapon = BG_GetWeaponByClassName ( args );
 	    if ( weapon )
 	    {
-			//FIXME: The below assumes that there is a valid weapon item
-			int itemID = BG_GetItemByWeaponIndex(BG_GetWeaponIndex((unsigned int)weapon->weaponBaseIndex, (unsigned int)weapon->weaponModIndex))->itemID;
+			int weaponID = BG_GetWeaponIndex(weapon->weaponBaseIndex, weapon->weaponModIndex);
+			int itemID = BG_GetItemByWeaponIndex(weaponID)->itemID;
 
 			itemInstance_t item = BG_ItemInstance(itemID, 1);
 			BG_GiveItem(ent, item);
 			trap->SendServerCommand (ent->s.number, va ("print \"'%s' was added to your inventory.\n\"", itemLookupTable[itemID].displayName));
-
-			// UQ1: Added - update their ACI...
-			trap->SendServerCommand(ent->s.number, va("AddToACI %i", itemID));
+			
+			if (BG_WeaponCanUseSpecialAmmo(weapon)) {
+				for (i = 0; i < weapon->numFiringModes; i++)
+				{
+					ent->client->ammoTypes[weaponID][i] = weapon->firemodes[i].ammoDefault->ammoIndex;
+				}
+			}
 	    }
 	    else
 	    {
@@ -1173,20 +1434,33 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 	if ( give_all || !Q_stricmp( name, "ammo" ) )
 	{
 		int num = 999;
-		if ( argc == 3 )
-			num = Com_Clampi( 0, 999, atoi( args ) );
-		for ( i=0; i<JKG_MAX_AMMO_INDICES; i++ )
-			ent->client->ammoTable[i] = num;		//FIXME: copy to proper ammo array
-		for ( i=0; i<256; i++ )
+
+		if (argc == 3)
+		{
+			num = atoi(args);
+			if (num < 0) num = 0;
+		}
+		
+		for (i = 1; i < MAX_AMMO_TYPES; i++) // don't give NONE ammo
+			ent->client->ammoTable[i] = num;
+		for (i = 0; i < MAX_WEAPON_TABLE_SIZE; i++)
 		{
 			int weapVar, weapBase;
+			weaponData_t* wp;
 			if(!BG_GetWeaponByIndex(i, &weapBase, &weapVar))
 			{
 				break;
 			}
-			ent->client->clipammo[i] = GetWeaponAmmoClip (weapBase, weapVar);
+			wp = GetWeaponDataUnsafe(weapBase, weapVar);
+			if (wp != nullptr)
+			{
+				for (int j = 0; j < MAX_FIREMODES; j++)
+				{
+					ent->client->clipammo[i][j] = wp->firemodes[j].clipSize;
+				}
+			}
 		}
-		ent->client->ps.ammo = num;
+		ent->client->ps.stats[STAT_TOTALAMMO] = num;
 		if ( !give_all )
 			return;
 	}
@@ -1203,7 +1477,17 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 				return;
 			}
 			itemInstance_t item = BG_ItemInstance(itemID, 1);
-			BG_GiveItem(ent, item);
+
+			// If we gave the player an ammo item, we need to actually give them ammo, not the ammo item itself
+			if (item.id->itemType == ITEM_AMMO)
+			{
+				BG_GiveAmmo(ent, BG_GetAmmo(item.id->ammoData.ammoIndex), qfalse, item.id->ammoData.quantity);
+			}
+			else
+			{
+				BG_GiveItem(ent, item);
+			}
+			
 		}
 		else
 		{
@@ -1212,7 +1496,17 @@ void G_Give( gentity_t *ent, const char *name, const char *args, int argc )
 				trap->SendServerCommand(ent - g_entities, va("print \"%s refers to an item that does not exist\n\"", args));
 				return;
 			}
-			BG_GiveItem(ent, item);
+
+			// If we gave the player an ammo item, we need to actually give them ammo, not the ammo item itself
+			if (item.id->itemType == ITEM_AMMO)
+			{
+				BG_GiveAmmo(ent, BG_GetAmmo(item.id->ammoData.ammoIndex), qfalse, item.id->ammoData.quantity);
+			}
+			else
+			{
+				BG_GiveItem(ent, item);
+			}
+			
 		}
 		return;
 	}
@@ -1287,16 +1581,6 @@ void Cmd_GiveOther_f( gentity_t *ent )
 	char		otherindex[MAX_TOKEN_CHARS];
 	gentity_t	*otherEnt = NULL;
 
-	/*if ( !CheatsOk( ent ) ) {
-		return;
-	}*/
-	// giveother doesn't care if the activator is dead or not
-	// so only check the intended target for life below
-	if ( !sv_cheats.integer && !ent->client->sess.canUseCheats ) {
-		trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
-		return;
-	}
-
 	if ( trap->Argc () < 3 ) {
 		trap->SendServerCommand( ent-g_entities, "print \"Usage: giveother <player id> <givestring>\n\"" );
 		return;
@@ -1337,10 +1621,6 @@ argv(0) god
 void Cmd_God_f( gentity_t *ent ) {
 	char *msg = NULL;
 
-	if ( !CheatsOk( ent ) ) {
-		return;
-	}
-
 	ent->flags ^= FL_GODMODE;
 	if ( !(ent->flags & FL_GODMODE) )
 		msg = "godmode OFF";
@@ -1363,10 +1643,6 @@ argv(0) notarget
 void Cmd_Notarget_f( gentity_t *ent ) {
 	char *msg = NULL;
 
-	if ( !CheatsOk( ent ) ) {
-		return;
-	}
-
 	ent->flags ^= FL_NOTARGET;
 	if ( !(ent->flags & FL_NOTARGET) )
 		msg = "notarget OFF";
@@ -1386,10 +1662,6 @@ argv(0) noclip
 */
 void Cmd_Noclip_f( gentity_t *ent ) {
 	char *msg = NULL;
-
-	if ( !CheatsOk( ent ) ) {
-		return;
-	}
 
 	ent->client->noclip = !ent->client->noclip;
 	if ( !ent->client->noclip )
@@ -1413,10 +1685,6 @@ hide the scoreboard, and take a special screenshot
 */
 void Cmd_LevelShot_f( gentity_t *ent )
 {
-	if ( !CheatsOk( ent ) ) {
-		return;
-	}
-
 	if ( !ent->client->pers.localClient )
 	{
 		trap->SendServerCommand(ent-g_entities, "print \"The levelshot command must be executed by a local client\n\"");
@@ -1543,25 +1811,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 		} else if ( !Q_stricmp( s, "blue" ) || !Q_stricmp( s, "b" ) ) {
 			team = TEAM_BLUE;
 		} else {
-			// pick the team with the least number of players
-			//For now, don't do this. The legalize function will set powers properly now.
-			/*
-			if (g_forceBasedTeams.integer)
-			{
-				if (ent->client->ps.fd.forceSide == FORCE_LIGHTSIDE)
-				{
-					team = TEAM_BLUE;
-				}
-				else
-				{
-					team = TEAM_RED;
-				}
-			}
-			else
-			{
-			*/
-				team = PickTeam( clientNum );
-			//}
+			team = PickTeam( clientNum );
 		}
 
 #ifdef __JKG_NINELIVES__
@@ -1591,60 +1841,20 @@ void SetTeam( gentity_t *ent, char *s ) {
 
 			// We allow a spread of two
 			if ( team == TEAM_RED && counts[TEAM_RED] - counts[TEAM_BLUE] > 1 ) {
-				//For now, don't do this. The legalize function will set powers properly now.
-				/*
-				if (g_forceBasedTeams.integer && ent->client->ps.fd.forceSide == FORCE_DARKSIDE)
-				{
-					trap->SendServerCommand( ent->client->ps.clientNum,
-						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYRED_SWITCH")) );
-				}
-				else
-				*/
-				{
-					//JAC: Invalid clientNum was being used
-					trap->SendServerCommand( ent-g_entities,
-						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYRED")) );
-				}
+				//JAC: Invalid clientNum was being used
+				trap->SendServerCommand( ent-g_entities,
+					va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYRED")) );
 				return; // ignore the request
 			}
 			if ( team == TEAM_BLUE && counts[TEAM_BLUE] - counts[TEAM_RED] > 1 ) {
-				//For now, don't do this. The legalize function will set powers properly now.
-				/*
-				if (g_forceBasedTeams.integer && ent->client->ps.fd.forceSide == FORCE_LIGHTSIDE)
-				{
-					trap->SendServerCommand( ent->client->ps.clientNum,
-						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYBLUE_SWITCH")) );
-				}
-				else
-				*/
-				{
-					//JAC: Invalid clientNum was being used
-					trap->SendServerCommand( ent-g_entities,
-						va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYBLUE")) );
-				}
+				//JAC: Invalid clientNum was being used
+				trap->SendServerCommand( ent-g_entities,
+					va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TOOMANYBLUE")) );
 				return; // ignore the request
 			}
 
 			// It's ok, the team we are switching to has less or same number of players
 		}
-
-		//For now, don't do this. The legalize function will set powers properly now.
-		/*
-		if (g_forceBasedTeams.integer)
-		{
-			if (team == TEAM_BLUE && ent->client->ps.fd.forceSide != FORCE_LIGHTSIDE)
-			{
-				trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBELIGHT")) );
-				return;
-			}
-			if (team == TEAM_RED && ent->client->ps.fd.forceSide != FORCE_DARKSIDE)
-			{
-				trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBEDARK")) );
-				return;
-			}
-		}
-		*/
-
 	} else {
 		// force them to spectators if there aren't any spots free
 		team = TEAM_FREE;
@@ -1691,7 +1901,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 		ent->flags &= ~FL_GODMODE;
 		ent->client->ps.stats[STAT_HEALTH] = ent->health = 0;
 		g_dontPenalizeTeam = qtrue;
-		player_die (ent, ent, ent, 100000, MOD_SUICIDE);
+		player_die (ent, ent, ent, 100000, MOD_TEAM_CHANGE);
 		g_dontPenalizeTeam = qfalse;
 
 	}
@@ -1708,19 +1918,6 @@ void SetTeam( gentity_t *ent, char *s ) {
 	client->sess.sessionTeam = (team_t)team;
 	client->sess.spectatorState = specState;
 	client->sess.spectatorClient = specClient;
-
-	client->sess.teamLeader = qfalse;
-	if ( team == TEAM_RED || team == TEAM_BLUE ) {
-		teamLeader = TeamLeader( team );
-		// if there is no team leader or the team leader is a bot and this client is not a bot
-		if ( teamLeader == -1 || ( !(g_entities[clientNum].r.svFlags & SVF_BOT) && (g_entities[teamLeader].r.svFlags & SVF_BOT) ) ) {
-			//SetLeader( team, clientNum );
-		}
-	}
-	// make sure there is a team leader on the team the player came from
-	if ( oldTeam == TEAM_RED || oldTeam == TEAM_BLUE ) {
-		CheckTeamLeader( oldTeam );
-	}
 
 	BroadcastTeamChange( client, oldTeam );
 
@@ -1763,9 +1960,7 @@ void StopFollowing( gentity_t *ent ) {
 	ent->client->ps.clientNum = ent - g_entities;
 	ent->client->ps.weapon = WP_NONE;
 	ent->client->ps.weaponVariation = 0;
-	G_LeaveVehicle( ent, qfalse ); // clears m_iVehicleNum as well
 	ent->client->ps.emplacedIndex = 0;
-	//ent->client->ps.m_iVehicleNum = 0;
 	ent->client->ps.viewangles[ROLL] = 0.0f;
 	ent->client->ps.forceHandExtend = HANDEXTEND_NONE;
 	ent->client->ps.forceHandExtendTime = 0;
@@ -1820,6 +2015,17 @@ void Cmd_Team_f( gentity_t *ent ) {
 		return;
 	}
 
+	//if teams are locked, and its been more than 20% of the match, and we didn't connect in the last 3 minutes
+	if (timelimit.integer > 0)
+	{
+		//if teamlock enabled && (timelimit*60k)*0.2) < matchtime && matchtime - clientConnectedTime > 3 mins
+		if ( g_teamsLocked.integer > 0 && ((timelimit.integer * 12000) < level.time) && ((level.time - ent->client->sess.connTime) > 180000) )
+		{
+			trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "TEAMSLOCKED")));
+			return;
+		}
+	}
+
 	if (gEscaping)
 	{
 		return;
@@ -1845,9 +2051,16 @@ void Cmd_Team_f( gentity_t *ent ) {
 
 	SetTeam( ent, s );
 
+	
+	int timeout = 1;
+	if (g_teamSwitchTime.integer > 0)
+	{
+		timeout = g_teamSwitchTime.integer;
+	}
+
 	// fix: update team switch time only if team change really happend
 	if (oldTeam != ent->client->sess.sessionTeam)
-		ent->client->switchTeamTime = level.time + 5000;
+		ent->client->switchTeamTime = level.time + (timeout * 1000);
 }
 
 
@@ -1856,14 +2069,30 @@ void Cmd_Team_f( gentity_t *ent ) {
 // INVENTORY RELATED COMMANDS
 //==========================================================
 
+//damage & healing plums copied from g_combat
 /*
-=================
-JKG_Cmd_Loot_f
-=================
+===========
+PlumItems
+===========
 */
-void JKG_Cmd_Loot_f(gentity_t *ent, int otherNum, int lootID, qboolean trade)
+
+void PlumItems(gentity_t *ent, vec3_t origin, int damage, int meansOfDeath, int shield, qboolean weak)
 {
-	return;
+	meansOfDamage_t* means = JKG_GetMeansOfDamage(meansOfDeath);
+
+	if (means->plums.noDamagePlums)
+	{	// this means of death has no damage plums 
+		return;
+	}
+
+	if (ent->damagePlumTime != level.time) {
+		ent->damagePlum = G_TempEntity(origin, EV_DAMAGEPLUM);
+		ent->damagePlumTime = level.time;
+	}
+	ent->damagePlum->s.time = damage;
+	ent->damagePlum->s.eventParm = meansOfDeath;
+	ent->damagePlum->s.generic1 = shield;
+	ent->damagePlum->s.groundEntityNum = weak;
 }
 
 /*
@@ -1871,14 +2100,14 @@ void JKG_Cmd_Loot_f(gentity_t *ent, int otherNum, int lootID, qboolean trade)
 JKG_Cmd_ItemAction_f
 =================
 */
-void JKG_Cmd_ItemAction_f (gentity_t *ent, int itemNum)
+void JKG_Cmd_ItemAction_f(gentity_t *ent, int itemNum)
 {
-	if(!ent->client)
+	if (!ent->client)
 	{
 		return; //NOTENOTE: NPCs can perform item actions. Nifty, eh?
 	}
 
-	if(ent->client->ps.stats[STAT_HEALTH] <= 0 ||
+	if (ent->client->ps.stats[STAT_HEALTH] <= 0 ||
 		ent->client->ps.pm_type == PM_DEAD)
 	{
 		// Bugfix: Can no longer use items when dead --eez
@@ -1886,18 +2115,56 @@ void JKG_Cmd_ItemAction_f (gentity_t *ent, int itemNum)
 		return;
 	}
 
-	if ( itemNum < 0 || itemNum >= MAX_INVENTORY_ITEMS )
+	if (itemNum < 0 || itemNum >= MAX_INVENTORY_ITEMS)
 	{
-	    return;
+		return;
 	}
-	if( itemNum > ent->inventory->size() )
+
+	if (ent->inventory->size() < 1)
+	{
+		//bugfix: empty inventory == nothing to use  --Futuza
+		return;
+	}
+
+	if (itemNum >= ent->inventory->size())
 	{
 		//Nope.
 		return;
 	}
-	BG_ConsumeItem(ent, itemNum);
-}
 
+	//if  item is a jetpack
+	if(ent->inventory->at(itemNum).id->itemType == ITEM_JETPACK)
+	{
+		ItemUse_Jetpack(ent);
+		return;
+	}
+
+	//if item is a shield - TODO: add this feature
+	/*if (ent->inventory->at(itemNum).id->itemType == ITEM_SHIELD)
+	{
+		//call special shield effect
+		return;
+	}*/
+
+	//if  item is a consumable
+	if (ent->inventory->at(itemNum).id->itemType == ITEM_CONSUMABLE)
+	{
+		int initHP = ent->client->ps.stats[STAT_HEALTH];    //get initial health before consuming item		--futuza: this is a hacky way of doing it, really needs a LUA function to figure this out
+		BG_ConsumeItem(ent, itemNum);
+		int endHP = ent->client->ps.stats[STAT_HEALTH];   //get final health after consuming item
+
+		int take = endHP - initHP;
+		if (take != 0)
+		{
+			if (take > 0)
+				PlumItems(ent, ent->r.currentOrigin, take, JKG_GetMeansOfDamageIndex("MOD_CURED"), 0, take <= (ent->s.maxhealth / 4));
+			else
+				PlumItems(ent, ent->r.currentOrigin, -take, JKG_GetMeansOfDamageIndex("MOD_POISONED"), 0, -take <= (ent->s.maxhealth / 4));	//take is negated (to pass correct parameters
+		}
+	}
+
+
+}
 
 /*
 ==================
@@ -1926,13 +2193,12 @@ void Cmd_ResendInv_f(gentity_t* ent) {
 	BG_SendItemPacket(IPT_RESET, ent, nullptr, ent->inventory->size(), 0);
 }
 
-
 /*
 =================
 JKG_Cmd_ShowInv_f
 =================
 */
-void JKG_Cmd_ShowInv_f(gentity_t *ent)
+void Cmd_ShowInv_f(gentity_t *ent)
 {
     char buffer[MAX_STRING_CHARS] = { 0 };
 	int i = 0;
@@ -1959,7 +2225,7 @@ JKG_Cmd_EquipToACI_f / JKG_Cmd_Unequip_f
 
 extern void JKG_EquipItem(gentity_t *ent, int iNum);
 extern void JKG_UnequipItem(gentity_t *ent, int iNum);
-void JKG_Cmd_EquipItem_f(gentity_t *ent)
+void Cmd_EquipItem_f(gentity_t *ent)
 {
 	char arg[6];
 	if(trap->Argc() != 2)
@@ -1973,7 +2239,7 @@ void JKG_Cmd_EquipItem_f(gentity_t *ent)
 	JKG_EquipItem (ent, atoi (arg));
 }
 
-void JKG_Cmd_UnequipItem_f(gentity_t *ent)
+void Cmd_UnequipItem_f(gentity_t *ent)
 {
     char arg[6];
 	if(trap->Argc() != 2)
@@ -1989,11 +2255,11 @@ void JKG_Cmd_UnequipItem_f(gentity_t *ent)
 
 /*
 ==================
-JKG_Cmd_DestroyItem_f
+Cmd_DestroyItem_f
 Destroys an item from your inventory
 ==================
 */
-void JKG_Cmd_DestroyItem_f(gentity_t *ent)
+void Cmd_DestroyItem_f(gentity_t *ent)
 {
 	char arg[64];
 	trap->Argv(1, arg, sizeof(arg));
@@ -2004,7 +2270,7 @@ void JKG_Cmd_DestroyItem_f(gentity_t *ent)
 		return;
 	}
 
-	if(JKG_CheckIfNumber(arg) == JKGSTR_DECIMAL)
+	if (StringIsInteger(arg))
 	{
 		int inventoryID = atoi(arg);
 		if (inventoryID >= ent->inventory->size() || inventoryID < 0)
@@ -2029,7 +2295,7 @@ void JKG_Cmd_DestroyItem_f(gentity_t *ent)
 	}
 }
 
-void JKG_Cmd_SellItem_f(gentity_t *ent)
+void Cmd_SellItem_f(gentity_t *ent)
 {
 	gentity_t* trader = ent->client->currentTrader;
 	// TODO: put proper pricing here
@@ -2048,7 +2314,7 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 	}
 
 	int nInvID = -1;
-	if(JKG_CheckIfNumber(arg) == JKGSTR_DECIMAL)
+	if (StringIsInteger(arg))
 	{
 		nInvID = atoi(arg);
 	}
@@ -2078,17 +2344,33 @@ void JKG_Cmd_SellItem_f(gentity_t *ent)
 	if (item.id->itemType == ITEM_WEAPON) {
 		if (!Q_stricmp(item.id->internalName, level.startingWeapon)) {
 			if (ent->inventory->size() < 2) {
-				trap->SendServerCommand(ent - g_entities, "print \"You cannot sell your starter gun unless you have another item in your inventory.\n\"");
+				trap->SendServerCommand(ent - g_entities, "print \"You cannot sell your starter gun unless you have another item in your inventory.\n\""); //only visible in console
+				trap->SendServerCommand(ent - g_entities, "notify 1 \"You cannot sell your starter gun unless you have another item in your inventory.\n\"");
 				return;
 			}
 			else {
-				creditAmount = 2;
+				creditAmount = 2;		//--futuza: fixme, we need to warn the player that starter guns are worth only 1 credit - BEFORE they sell it
 			}
 		}
 	}
-	ent->client->ps.credits += creditAmount / 2;
+	else if (item.id->itemType == ITEM_SHIELD && item.equipped) {
+		// If we're selling an equipped shield, kill it
+		Cmd_ShieldUnequipped(ent);
+	}
+	else if (item.id->itemType == ITEM_JETPACK && item.equipped) {
+		Cmd_JetpackUnequipped(ent);
+	}
+
+	else if (item.id->itemType == ITEM_ARMOR && item.equipped) {
+		JKG_ArmorChanged(ent);
+	}
+
+
+	ent->client->ps.credits += (creditAmount * item.quantity) / 2;
 	BG_RemoveItemStack(ent, nInvID);
 	trap->SendServerCommand(ent->s.number, va("inventory_update %i", ent->client->ps.credits));
+
+	G_PreDefSound(ent->r.currentOrigin, PDSOUND_TRADE);
 }
 /*
 =================
@@ -2433,16 +2715,6 @@ static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, cons
 	if ( mode == SAY_TEAM  && !OnSameTeam(ent, other) ) {
 		return;
 	}
-	/*
-	// no chatting to players in tournements
-	if ( (level.gametype == GT_DUEL || level.gametype == GT_POWERDUEL)
-		&& other->client->sess.sessionTeam == TEAM_FREE
-		&& ent->client->sess.sessionTeam != TEAM_FREE ) {
-		//Hmm, maybe some option to do so if allowed?  Or at least in developer mode...
-		return;
-	}
-	*/
-	//They've requested I take this out.
 
 	if (locMsg)
 	{
@@ -3625,12 +3897,17 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	int ammotoadd;
 	int weaponIndex;
 	gentity_t *evt;
+	weaponData_t* wp;
+	int clipSize;
 
 	weapon = ent->client->ps.weapon;
 
-	if ( GetWeaponAmmoClip( weapon, ent->client->ps.weaponVariation ) == -1 )
+	wp = GetWeaponData(weapon, ent->client->ps.weaponVariation);
+
+	clipSize = wp->firemodes[ent->client->ps.firingMode].clipSize;
+	if (clipSize == -1)
 	{
-		// Current weapon does not use a clip, bail
+		// Weapon doesn't use clips, bail
 		return;
 	}
 
@@ -3639,13 +3916,13 @@ void Cmd_Reload_f( gentity_t *ent ) {
 		return;
 	}
 
-	if ( ent->client->ps.forceHandExtend != HANDEXTEND_NONE && !PM_InKnockDown (&ent->client->ps) )
+	if ( ent->client->ps.forceHandExtend != HANDEXTEND_NONE || PM_InKnockDown (&ent->client->ps) )
 	{//We're in a knockdown, or something ugly like that...DO NOT WANT!
 		return;
 	}
 
 	/* No more ammo left to place in the clip */
-	if ( ent->client->ps.ammo <= 0 && ent->client->ps.weapon != WP_SABER)
+	if (ent->client->ps.stats[STAT_TOTALAMMO] <= 0 && ent->client->ps.weapon != WP_SABER)
 	{
 		return;
 	}
@@ -3669,7 +3946,7 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	}
 
     // Can't reload while charging the weapon
-	if ( ent->client->ps.weaponstate == WEAPON_CHARGING || ent->client->ps.weaponstate == WEAPON_CHARGING_ALT )
+	if ( ent->client->ps.weaponstate == WEAPON_CHARGING )
 	{
 		return;
 	}
@@ -3681,15 +3958,15 @@ void Cmd_Reload_f( gentity_t *ent ) {
 		return;
 	}
 
-	ammotoadd = GetWeaponAmmoClip( weapon, ent->client->ps.weaponVariation );
+	ammotoadd = clipSize;
 	weaponIndex = BG_GetWeaponIndex(weapon, ent->client->ps.weaponVariation);
 
-	if (ent->client->clipammo[weaponIndex] >= ammotoadd)	{
+	if (ent->client->clipammo[weaponIndex][ent->client->ps.firingMode] >= ammotoadd)	{
 		// Current clip is full
 		return;
 	}
 
-	ammotoadd -= ent->client->clipammo[weaponIndex];
+	ammotoadd -= ent->client->clipammo[weaponIndex][ent->client->ps.firingMode];
 
 	evt						= G_TempEntity( ent->s.pos.trBase, EV_RELOAD );
 	evt->s.time				= ent->s.number;
@@ -3709,21 +3986,25 @@ void Cmd_Reload_f( gentity_t *ent ) {
 	// TODO: Add sound
 
 	// Check if we have enough ammo remaining
-	ammotoadd = Q_min (ammotoadd, ent->client->ps.ammo);
+	ammotoadd = Q_min(ammotoadd, ent->client->ps.stats[STAT_TOTALAMMO]);
 
 	//Remove the ammo from 'bag'
-	ent->client->ps.ammo -= ammotoadd;
-	ent->client->ammoTable[GetWeaponAmmoIndex(ent->client->ps.weapon, ent->client->ps.weaponVariation)] -= ammotoadd;
+	ent->client->ps.stats[STAT_TOTALAMMO] -= ammotoadd;
+	ent->client->ammoTable[ent->client->ps.ammoType] -= ammotoadd;
 
 	//Add the ammo to weapon
-	ent->client->clipammo[weaponIndex] += ammotoadd;
+	ent->client->clipammo[weaponIndex][ent->client->ps.firingMode] += ammotoadd;
+	ent->client->ps.stats[STAT_AMMO] += ammotoadd;
 
 	//Take us out of ironsights
-	//ent->client->ns.ironsightsTime &= ~IRONSIGHTS_MSB;
 	ent->client->ps.ironsightsDebounceStart = level.time + ent->client->ps.weaponTime;
 
 	// Don't shoot any more bullets!
 	ent->client->ps.shotsRemaining = 0;
+
+	//reset heat for weapon when we reload
+	ent->client->ps.heat = 0.0f;
+	ent->client->ps.overheated = false;
 }
 
 /*
@@ -3795,28 +4076,6 @@ void Cmd_SetViewpos_f( gentity_t *ent ) {
 	angles[YAW] = atof( buffer );
 
 	TeleportPlayer( ent, origin, angles );
-}
-
-void G_LeaveVehicle( gentity_t* ent, qboolean ConCheck ) {
-
-	if (ent->client->ps.m_iVehicleNum)
-	{ //tell it I'm getting off
-		gentity_t *veh = &g_entities[ent->client->ps.m_iVehicleNum];
-
-		if (veh->inuse && veh->client && veh->m_pVehicle)
-		{
-			if ( ConCheck ) { // check connection
-				clientConnected_t pCon = ent->client->pers.connected;
-				ent->client->pers.connected = CON_DISCONNECTED;
-				veh->m_pVehicle->m_pVehicleInfo->Eject(veh->m_pVehicle, (bgEntity_t *)ent, qtrue);
-				ent->client->pers.connected = pCon;
-			} else { // or not.
-				veh->m_pVehicle->m_pVehicleInfo->Eject(veh->m_pVehicle, (bgEntity_t *)ent, qtrue);
-			}
-		}
-	}
-
-	ent->client->ps.m_iVehicleNum = 0;
 }
 
 void saberKnockDown(gentity_t *saberent, gentity_t *saberOwner, gentity_t *other);
@@ -3953,13 +4212,98 @@ void Cmd_ToggleSaber_f(gentity_t *ent)
 	}
 }
 
+/*
+=================
+Cmd_AmmoCycle_f
+=================
+*/
+void Cmd_AmmoCycle_f(gentity_t* ent) {
+	int weapon = ent->client->ps.weapon;
+	int variation = ent->client->ps.weaponVariation;
+	weaponData_t* wp = GetWeaponData(weapon, variation);
+	int weaponIndex = BG_GetWeaponIndex(weapon, variation);
+	int fireMode = ent->client->ps.firingMode;
+	int currentAmmo = ent->client->ps.ammoType;
+	int desiredAmmo = -1;
+	std::vector<ammo_t*> allValidAmmos;
+
+	if (!BG_WeaponCanUseSpecialAmmo(wp)) {
+		// It's not a weapon that has special ammo capabilities
+		return;
+	}
+
+	if (wp->firemodes[fireMode].clipSize <= 0)
+	{
+		// Current weapon does not use a clip, bail
+		return;
+	}
+
+	if (ent->client->ps.weaponTime > 0 && ent->client->ps.weaponstate != WEAPON_READY) {
+		// Weapon is busy, cannot reload at this moment
+		return;
+	}
+
+	if (ent->client->ps.forceHandExtend != HANDEXTEND_NONE && !PM_InKnockDown(&ent->client->ps))
+	{//We're in a knockdown, or something ugly like that...DO NOT WANT!
+		return;
+	}
+
+	// Determine if we have ammo to cycle to.
+	BG_GetAllAmmoSubstitutions(wp->firemodes[fireMode].ammoBase->ammoIndex, allValidAmmos);
+
+	if (allValidAmmos.size() == 0) {
+		// Our weapon...is not linked up correctly? or something? It doesn't have any ammo...
+		return;
+	}
+
+	// Find the first ammo that has an ammo index higher than our current one.
+	for (auto it : allValidAmmos) {
+		if (ent->client->ammoTable[it->ammoIndex]) {
+			if (it->ammoIndex > currentAmmo) {
+				desiredAmmo = it->ammoIndex;
+				break;
+			}
+		}
+	}
+
+	if (desiredAmmo == -1) {
+		// Not found - probably because we were on the last one. Find the first.
+		for (auto it : allValidAmmos) {
+			if (ent->client->ammoTable[it->ammoIndex]) {
+				desiredAmmo = it->ammoIndex;
+				break;
+			}
+		}
+	}
+
+	if (desiredAmmo == -1 || desiredAmmo == currentAmmo) {
+		// Either we don't have ammo we can swap to, or we aren't actually changing our ammo
+		return;
+	}
+
+	// Set our ammo to be the desired ammo type
+	ent->client->ps.stats[STAT_TOTALAMMO] += ent->client->ps.stats[STAT_AMMO];
+	ent->client->ammoTable[ent->client->ps.ammoType] = ent->client->ps.stats[STAT_TOTALAMMO];
+	ent->client->ps.stats[STAT_AMMO] = 0;
+	ent->client->ps.ammoType = desiredAmmo;
+	ent->client->ammoTypes[weaponIndex][ent->client->ps.firingMode] = desiredAmmo;
+	ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
+	ent->client->clipammo[weaponIndex][ent->client->ps.firingMode] = 0;
+
+	// Trigger a reload
+	Cmd_Reload_f(ent);
+}
+
+/*
+=================
+Cmd_SaberAttackCycle_f
+=================
+*/
 extern qboolean WP_SaberCanTurnOffSomeBlades( saberInfo_t *saber );
 void Cmd_SaberAttackCycle_f(gentity_t *ent)
 {
 	int selectLevel = 0;
 	int i, j;
-
-	qboolean usingSiegeStyle = qfalse;
 
 	if ( !ent || !ent->client )
 	{
@@ -3977,12 +4321,18 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 		// Don't use in the middle of a burst or in a saber move or while reloading --eez
 		return;
 	}
-	/*
-	if (ent->client->ps.weaponTime > 0)
-	{ //no switching attack level when busy
+
+	if (ent->client->ps.weaponstate != WEAPON_READY)
+	{
+		// Don't let us swap firing modes while changing weapons --eez
 		return;
 	}
-	*/
+
+	if (ent->client->ps.stats[STAT_HEALTH] < 1)
+	{
+		// Don't swap while dead
+		return;
+	}
 
 	// Jedi Knight Galaxies, we cant swich saber style if we're not using a saber...
 	if (ent->client->ps.weapon != WP_SABER)
@@ -3995,9 +4345,33 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 		{
 			ent->client->ps.firingMode = 0;
 		}
-		ent->client->saberStanceDebounce = level.time + 400;	// changed to 400 cuz 1000 was way too slow
+		ent->client->saberStanceDebounce = level.time + 400;
 		trap->SendServerCommand(ent->s.number, va("fmrefresh %i", previousFiringMode));
 		ent->client->firingModes[ent->client->ps.weaponId] = ent->client->ps.firingMode;
+
+		// consumables and other weapons don't use ammo, don't try it
+		if (wp->firemodes[0].useQuantity || ent->client->ps.weapon == WP_EMPLACED_GUN || ent->client->ps.weapon == WP_TURRET)
+			return;
+
+		// Swap our ammo type (but don't trigger a reload) if the new firing mode doesn't accept our old ammo type
+		if (!BG_AmmoIsBasedOn(wp->firemodes[ent->client->ps.firingMode].ammoBase->ammoIndex,
+			wp->firemodes[previousFiringMode].ammoBase->ammoIndex))
+		{
+			ent->client->ammoTable[ent->client->ps.ammoType] = ent->client->ps.stats[STAT_TOTALAMMO];
+			ent->client->clipammo[ent->client->ps.weaponId][previousFiringMode] = ent->client->ps.stats[STAT_AMMO];
+			ent->client->ammoTypes[ent->client->ps.weaponId][previousFiringMode] = ent->client->ps.ammoType;
+			ent->client->ps.ammoType = ent->client->ammoTypes[ent->client->ps.weaponId][ent->client->ps.firingMode];
+			ent->client->ps.stats[STAT_AMMO] = ent->client->clipammo[ent->client->ps.weaponId][ent->client->ps.firingMode];
+			ent->client->ps.stats[STAT_TOTALAMMO] = ent->client->ammoTable[ent->client->ps.ammoType];
+		}
+		else
+		{
+			// We need to copy the clipammo and ammo type from the previous firing mode over 
+			ent->client->clipammo[ent->client->ps.weaponId][ent->client->ps.firingMode] = 
+				ent->client->clipammo[ent->client->ps.weaponId][previousFiringMode];
+			ent->client->ammoTypes[ent->client->ps.weaponId][ent->client->ps.firingMode] =
+				ent->client->ammoTypes[ent->client->ps.weaponId][previousFiringMode];
+		}
 		return;
 	}
 	else
@@ -4160,12 +4534,6 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 			trap->SendServerCommand( ent-g_entities, va("print \"SABERSTANCEDEBUG: Attempted to cycle stance normally.\n\"") );
 		}
 
-		if ( !usingSiegeStyle )
-		{
-			//make sure it's valid, change it if not
-			WP_UseFirstValidSaberStyle( &ent->client->saber[0], &ent->client->saber[1], ent->client->ps.saberHolstered, &selectLevel );
-		}
-
 		if (ent->client->ps.weaponTime <= 0)
 		{ //not busy, set it now
 			ent->client->ps.fd.saberAnimLevelBase = ent->client->ps.fd.saberAnimLevel = selectLevel;
@@ -4176,6 +4544,210 @@ void Cmd_SaberAttackCycle_f(gentity_t *ent)
 		}
 	}
 }
+
+/*
+==================
+Cmd_AmmoPriceCheck_f
+
+Checks the price of refilling ammo.
+==================
+*/
+static void Cmd_AmmoPriceCheck_f(gentity_t* ent)
+{
+	qboolean silent = trap->Argc() > 2;
+	int cost;
+	int invID;
+	char buffer[1024]{ 0 };
+	weaponData_t* wp;
+	itemInstance_t* item;
+
+	if (trap->Argc() < 2)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"usage: /ammopricecheck <inventory ID>\n\"");
+		return;
+	}
+
+	trap->Argv(1, buffer, 1024);
+	invID = atoi(buffer);
+
+	if (ent->inventory == nullptr)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"Your inventory is NULL (?)\n\"");
+		return;
+	}
+
+	if (invID < 0 || invID >= ent->inventory->size())
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"Invalid item ID.\n\"");
+		return;
+	}
+
+	item = &(*ent->inventory)[invID];
+	if (item->id->itemType != ITEM_WEAPON)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"That item is not a weapon.\n\"");
+		return;
+	}
+
+	wp = GetWeaponData(item->id->weaponData.weapon, item->id->weaponData.variation);
+
+	cost = BG_GetRefillAmmoCost(ent->client->ammoTable, wp);
+
+	if (!silent)
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"It will take %i credits to fully load that weapon.\n\"", cost));
+		return;
+	}
+
+	trap->SendServerCommand(ent - g_entities, va("apc %i %i", invID, cost));
+}
+
+/*
+=================
+Cmd_BuyAllAmmo_f
+=================
+*/
+void Cmd_BuyAmmo_f(gentity_t* ent) {
+	int itemSlot;
+	char argBuffer[MAX_TOKEN_CHARS] {0};
+	int myCredits = ent->client->ps.credits;
+	float cost;
+	int totalCost = 0, numFiringModesFilled = 0, numUnitsPurchased = 0;
+	float perUnitCost = 0;
+
+	gentity_t* trader = ent->client->currentTrader;
+	if (trader == nullptr)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"You need to be at a vendor in order to buy ammo.\n\"");
+		return;
+	}
+
+	if (trap->Argc() != 2) {
+		trap->SendServerCommand(ent - g_entities, "print \"You need to select an item to buy ammo for.\n\"");
+		return;
+	}
+
+	trap->Argv(1, argBuffer, MAX_TOKEN_CHARS);
+	itemSlot = atoi(argBuffer);
+
+	if (itemSlot < 0 || itemSlot >= ent->inventory->size()) {
+		trap->SendServerCommand(ent - g_entities, "print \"Invalid item selected.\n\"");
+		return;
+	}
+
+	itemInstance_t& item = ent->inventory->at(itemSlot);
+	if (item.id->itemType != ITEM_WEAPON) {
+		trap->SendServerCommand(ent - g_entities, "print \"That item is not a weapon.\n\"");
+		return;
+	}
+
+	weaponData_t* wp = GetWeaponData(item.id->weaponData.weapon, item.id->weaponData.variation);
+	if (wp->firemodes[0].useQuantity || wp->firemodes[0].clipSize <= 0) {
+		trap->SendServerCommand(ent - g_entities, "print \"You cannot purchase ammo for that weapon.\n\"");
+		return;
+	}
+
+	// Fill all firemodes to max until we run out of money
+	for (int i = 0; i < wp->numFiringModes; i++) {
+		ammo_t* ammo = wp->firemodes[i].ammoDefault;
+		int unitsRequested = ammo->ammoMax - ent->client->ammoTable[ammo->ammoIndex];
+
+		if (unitsRequested <= 0) {
+			continue; // our ammo is full
+		}
+
+		//if its the starting weapon, ammo is free
+		if (!Q_stricmp(item.id->internalName, level.startingWeapon))
+		{
+			perUnitCost = 0;
+		}
+		else
+			perUnitCost = ammo->pricePerUnit;
+
+		if (myCredits <= 0 && perUnitCost <= 0)
+			;
+		else
+		{
+			if (myCredits < perUnitCost) // we don't have enough money to afford one unit of ammo
+			{
+				trap->SendServerCommand(ent - g_entities, "print \"You cannot afford ammo for that weapon.\n\"");
+				continue; 
+			}
+		}
+
+		cost = perUnitCost * (float)unitsRequested;
+
+		//if passiveUnderdogBonus is enabled and our team is losing, our ammo is discounted!  Awww, thanks vendor!  
+		/*if (jkg_passiveUnderdogBonus.integer > 0)	//--Futuza: this needs to match logic of BG_GetRefillAmmoCost() in bg_ammo.cpp, disabled for now
+		{
+			//who is currently winning?
+			auto my_team = ent->client->sess.sessionTeam;
+			int curr_winner = -1;
+			if (level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE])
+				curr_winner = TEAM_RED;
+			else if (level.teamScores[TEAM_RED] < level.teamScores[TEAM_BLUE])
+				curr_winner = TEAM_BLUE;
+			else
+				curr_winner = -1;	//tie
+
+			//we're losing - give us discount ammo please!
+			if (my_team != curr_winner && curr_winner != -1)
+			{
+				float ammoAdjust = 0.9;
+
+				//evaluate how badly the losing team is losing by and reduce ammo accordingly
+				int diff = level.teamScores[curr_winner] - level.teamScores[my_team];
+				ammoAdjust = (1 - (float)diff / level.teamScores[curr_winner]);
+
+				if (ammoAdjust > 0.9)	//minimum discount is 10% off
+					ammoAdjust = 0.9;
+
+				if (ammoAdjust < 0.25)
+					ammoAdjust = 0.25;		//maximum discount is 75% off
+
+				cost = cost * ammoAdjust;
+				if (0 < cost < 1)
+					cost = 1;
+			}
+		}*/
+
+		if (cost > myCredits) {
+			// We can't fill it all the way, so fill it as much as we can
+			cost = myCredits;
+			unitsRequested = floor(cost / perUnitCost);
+			cost = unitsRequested * perUnitCost;
+		}
+
+		//if our price is between 0 and 1, just make it cost 1 credit - so players can't scam us out of free ammo
+		if (0 < cost && cost < 1) 
+			cost = 1;
+		
+		cost = floor(cost); //credits are int only, time to act like it
+
+		// Buy the ammo and update stats
+		//ent->client->ps.spent += cost;
+		ent->client->ps.credits -= cost;
+		myCredits -= cost;
+		ent->client->ammoTable[ammo->ammoIndex] += unitsRequested;
+		numUnitsPurchased += unitsRequested;
+		totalCost += cost;
+		numFiringModesFilled++;
+	}
+
+	if (numUnitsPurchased <= 0) {
+		trap->SendServerCommand(ent - g_entities, "print \"Your ammo for that weapon is full.\n\"");
+		return;
+	}
+	trap->SendServerCommand(ent - g_entities, 
+		va("print \"Bought %i ammo for %i firing modes, spent %i credits total.\n\"", numUnitsPurchased, numFiringModesFilled, totalCost));
+
+
+	G_PreDefSound(ent->r.currentOrigin, PDSOUND_VENDORPURCHASE);
+
+	int newCost = BG_GetRefillAmmoCost(ent->client->ammoTable, wp);
+	trap->SendServerCommand(ent - g_entities, va("apc %i %i", itemSlot, newCost));
+}
+
 
 qboolean G_OtherPlayersDueling(void)
 {
@@ -4346,47 +4918,56 @@ int cmdcmp( const void *a, const void *b ) {
 }
 
 static const command_t commands[] = {
+	{ "ammocycle",				Cmd_AmmoCycle_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "ammopricecheck",			Cmd_AmmoPriceCheck_f,		CMD_NOINTERMISSION },
 	{ "arbitraryprint",			Cmd_ArbitraryPrint_f,		CMD_NEEDCHEATS },
 	{ "butterfingers",			Cmd_Butterfingers_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "buyvendor",				JKG_BuyItem_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "buyammo",				Cmd_BuyAmmo_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "buyvendor",				Cmd_BuyItem_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "callvote",				Cmd_CallVote_f,				CMD_NOINTERMISSION },
 	{ "callteamvote",			Cmd_CallTeamVote_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "checkbotreach",			AIMod_CheckMapPaths,		CMD_NEEDCHEATS },
 	{ "checkobjectivesreach",	AIMod_CheckObjectivePaths,	CMD_NEEDCHEATS },
 	{ "closeentities",			Cmd_CloseEntities_f,		0 },
-	{ "closeVendor",			JKG_CloseVendor_f,			0 },
+	{ "closeVendor",			Cmd_CloseVendor_f,			0 },
 	{ "credits",				Cmd_Credits_f,				0 },
-	{ "crystal1",				Cmd_Crystal1_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE | CMD_NEEDCHEATS },
-	{ "crystal2",				Cmd_Crystal2_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE | CMD_NEEDCHEATS },
-	{ "debuginventory",			JKG_Cmd_ShowInv_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "crystal1",				Cmd_Crystal1_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "crystal2",				Cmd_Crystal2_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "debuginventory",			Cmd_ShowInv_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "dismember",				Cmd_Dismember_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "dumpweaponlist_sv",		JKG_DumpWeaponList_f,		0 },
-	{ "equip",					JKG_Cmd_EquipItem_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "dumpweaponlist_sv",		Cmd_DumpWeaponList_f,		0 },
+	{ "equip",					Cmd_EquipItem_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "equipjetpack",			Cmd_EquipJetpack_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "equipshield",			Cmd_EquipShield_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "follow",					Cmd_Follow_f,				CMD_NOINTERMISSION },
 	{ "follownext",				Cmd_FollowNext_f,			CMD_NOINTERMISSION },
 	{ "followprev",				Cmd_FollowPrev_f,			CMD_NOINTERMISSION },
-	{ "give",					Cmd_Give_f,					CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_NEEDCHEATS },
-	{ "giveother",				Cmd_GiveOther_f,			CMD_NOINTERMISSION | CMD_NEEDCHEATS },
-	{ "god",					Cmd_God_f,					CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_NEEDCHEATS },
+	{ "give",					Cmd_Give_f,					CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "givebuff",				Cmd_GiveBuff_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "giveother",				Cmd_GiveOther_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION },
+	{ "god",					Cmd_God_f,					CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "handcut",				Cmd_Wrists_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "headexplodey",			Cmd_HeadExplodey_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "holdme",					Cmd_Holdme_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "inventorydestroy",		JKG_Cmd_DestroyItem_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "inventorysell",			JKG_Cmd_SellItem_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "inventoryuse",			Cmd_ItemUse_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "itemcheck",				JKG_ItemCheck_f,			0 },
-	{ "itemlookup",				JKG_ItemLookup_f,			0 },
-	{ "kill",					Cmd_Kill_f,					CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "inventorydestroy",		Cmd_DestroyItem_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "inventorysell",			Cmd_SellItem_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "inventoryuse",			Cmd_ItemUse_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "itemcheck",				Cmd_ItemCheck_f,			0 },
+	{ "itemlookup",				Cmd_ItemLookup_f,			0 },
+	{ "kill",					Cmd_Kill_f,					CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "killother",				Cmd_KillOther_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION },
 	{ "knockmedown",			Cmd_KnockMeDown_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "levelshot",				Cmd_LevelShot_f,			CMD_NEEDCHEATS },
 	{ "loveandpeace",			Cmd_LoveAndPeace_f,			CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "noclip",					Cmd_Noclip_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NEEDCHEATS },
-	{ "notarget",				Cmd_Notarget_f,				CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_NEEDCHEATS },
+	{ "myammo",					Cmd_MyAmmo_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "noclip",					Cmd_Noclip_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_ONLYALIVE },
+	{ "notarget",				Cmd_Notarget_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
 	{ "npc",					Cmd_NPC_f,					CMD_NEEDCHEATS },
-	{ "pay",					Cmd_Pay_f,					CMD_NOSPECTATOR | CMD_NOINTERMISSION },
-	{ "printweaponlist_sv",		JKG_PrintWeaponList_f,		0 },
+	{ "pay",					Cmd_Pay_f,					CMD_NOINTERMISSION | CMD_NOSPECTATOR },
+	{ "printweaponlist_sv",		Cmd_PrintWeaponList_f,		0 },
+	{ "printbufflist",			Cmd_PrintBuffList_f,		0 },
 	{ "relax",					Cmd_Relax_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "resendInv",				Cmd_ResendInv_f,			0 },	
 	{ "say",					Cmd_SayLocal_f,				0 },
 	{ "sayact",					Cmd_SayAct_f,				0 },
 	{ "sayglobal",				Cmd_SayGlobal_f,			0 },
@@ -4400,10 +4981,12 @@ static const command_t commands[] = {
 	{ "team",					Cmd_Team_f,					CMD_NOINTERMISSION },
 	{ "teamvote",				Cmd_TeamVote_f,				CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "tell",					Cmd_Tell_f,					0 },
-	{ "t_use",					Cmd_TUse_f,					CMD_ONLYALIVE | CMD_NEEDCHEATS },
-	{ "togglesaber",			Cmd_ToggleSaber_f,			CMD_ONLYALIVE | CMD_NOINTERMISSION | CMD_NOSPECTATOR },
-	{ "unequip",				JKG_Cmd_UnequipItem_f,		CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
-	{ "voice_cmd",				Cmd_VoiceCommand_f,			CMD_NOINTERMISSION|CMD_NOSPECTATOR },
+	{ "t_use",					Cmd_TUse_f,					CMD_NEEDCHEATS | CMD_ONLYALIVE },
+	{ "togglesaber",			Cmd_ToggleSaber_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "unequip",				Cmd_UnequipItem_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "unequipjetpack",			Cmd_JetpackUnequipped,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "unequipshield",			Cmd_ShieldUnequipped,		CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
+	{ "voice_cmd",				Cmd_VoiceCommand_f,			CMD_NOINTERMISSION | CMD_NOSPECTATOR },
 	{ "vote",					Cmd_Vote_f,					CMD_NOINTERMISSION },
 	{ "where",					Cmd_Where_f,				0 },
 	{ "wrists",					Cmd_Wrists_f,				CMD_NEEDCHEATS | CMD_NOINTERMISSION | CMD_NOSPECTATOR | CMD_ONLYALIVE },
@@ -4434,26 +5017,24 @@ void ClientCommand( int clientNum ) {
 	if ( TeamCommand( clientNum, cmd, NULL )) return;
 
 	const command_t *command = (command_t *)Q_LinearSearch( cmd, commands, numCommands, sizeof( commands[0] ), cmdcmp );
+
 	if ( !command )
 	{
 		trap->SendServerCommand( clientNum, va( "print \"Unknown command %s\n\"", cmd ) );
 		return;
 	}
-
 	else if ( (command->flags & CMD_NOINTERMISSION) && ( level.intermissionQueued || level.intermissiontime ) )
 	{
 		// It's intermission time and this command couldn't be done during intermission.
 		trap->SendServerCommand(clientNum, va("print \"%s (%s) \n\"", G_GetStringEdString("MP_SVGAME", "CANNOT_TASK_INTERMISSION"), cmd));
 		return;
 	}
-
 	else if ( (command->flags & CMD_NEEDCHEATS) && !CheatsOk( ent ) )
 	{
 		// This command requires cheats and we don't have cheats
 		trap->SendServerCommand(clientNum, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOCHEATS")));
 		return;
 	}
-
 	else if ( (command->flags & CMD_ONLYALIVE)
 		&& (ent->health <= 0
 			|| ent->client->tempSpectate >= level.time
@@ -4464,7 +5045,6 @@ void ClientCommand( int clientNum ) {
 		trap->SendServerCommand(clientNum, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "MUSTBEALIVE")));
 		return;
 	}
-
 	else if ( (command->flags & CMD_NOSPECTATOR) && ent->client->sess.sessionTeam == TEAM_SPECTATOR )
 	{
 		// This command requires us to not be a spectator and we are.
@@ -4475,7 +5055,7 @@ void ClientCommand( int clientNum ) {
 			trap->SendServerCommand(clientNum, "print \"That command cannot be used as a spectator.\n\"");
 		return;
 	}
-
-	else
-		command->function( ent );
+	else {
+		command->function(ent);
+	}
 }

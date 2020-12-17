@@ -1,0 +1,10 @@
+{
+	"name":		"60-pack Explosive Round Slugs",
+	"internal":	"ammo_explosiveSlugs_60",
+	"itemtype":	"ammo",
+	"weight":		"0",
+	"cost":		"250",
+	"ammoclass":	"AMMO_SLUGS_EXPLOSIVE",
+	"ammoquantity":	"60",
+	"itemIcon": "gfx/item_icons/default.tga"	//needs icon!
+}

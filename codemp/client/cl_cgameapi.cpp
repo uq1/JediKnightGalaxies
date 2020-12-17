@@ -728,6 +728,12 @@ static void CL_G2API_GetSurfaceName( void *ghoul2, int surfNumber, int modelInde
 	strcpy( fillBuf, tmp );
 }
 
+static int CL_G2API_GetSurfaceCount(void* ghoul2) {
+	if (!ghoul2) return 0;
+	CGhoul2Info_v &g2 = *((CGhoul2Info_v*)ghoul2);
+	return re->G2API_GetSurfaceCount(g2);
+}
+
 static void CL_Key_SetCatcher( int catcher ) {
 	// Don't allow the cgame module to close the console
 	Key_SetCatcher( catcher | ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) );
@@ -805,6 +811,9 @@ void CL_BindCGame( void ) {
 	cgi.FS_Open								= FS_FOpenFileByMode;
 	cgi.FS_Read								= FS_Read;
 	cgi.FS_Write							= FS_Write;
+	cgi.Perf_GetData						= Com_GetPerformanceData;
+	cgi.Perf_Start							= Com_PerformanceStart;
+	cgi.Perf_End							= Com_PerformanceEnd;
 	cgi.UpdateScreen						= SCR_UpdateScreen;
 	cgi.CM_InlineModel						= CM_InlineModel;
 	cgi.CM_LoadMap							= CL_CM_LoadMap;
@@ -984,6 +993,7 @@ void CL_BindCGame( void ) {
 	cgi.G2API_CleanEntAttachments			= CL_G2API_CleanEntAttachments;
 	cgi.G2API_OverrideServer				= CL_G2API_OverrideServer;
 	cgi.G2API_GetSurfaceName				= CL_G2API_GetSurfaceName;
+	cgi.G2API_GetSurfaceCount				= CL_G2API_GetSurfaceCount;
 	cgi.R_OverrideShaderFrame				= re->OverrideShaderFrame;
 	cgi.CO_InitCrossover					= UIVM_InitCrossover;
 	cgi.CO_Shutdown							= CO_Shutdown;

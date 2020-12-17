@@ -13,8 +13,7 @@ typedef enum {
 } jkgFilterItems_t;
 
 
-void JKG_Inventory_CheckACIKeyStroke(int key);
-void JKG_Inventory_UpdateNotify(int msg);
+void JKG_Inventory_UpdateNotify(jkgInventoryNotify_e msg);
 
 void JKG_Inventory_OwnerDraw_CreditsText(itemDef_t* item);
 void JKG_Inventory_OwnerDraw_ItemIcon(itemDef_t* item, int ownerDrawID);
@@ -38,6 +37,10 @@ void JKG_Inventory_ACIRemove(char** args);
 void JKG_Inventory_EquipArmor(char** args);
 void JKG_Inventory_UnequipArmor(char** args);
 void JKG_Inventory_Open(char** args);
+void JKG_ConstructInventoryList();
+void JKG_ConstructItemDescription(itemInstance_t* pItem, std::vector<std::string>& vDescLines);
+qboolean JKG_Inventory_HandleKey(int key);
+
 
 //
 // Shop specific stuff
@@ -54,15 +57,23 @@ void JKG_Shop_InventoryItemName(itemDef_t* item, int nOwnerDrawID);
 void JKG_Shop_ShopItemName(itemDef_t* item, int nOwnerDrawID);
 void JKG_Shop_InventoryItemCost(itemDef_t* item, int nOwnerDrawID);
 void JKG_Shop_ShopItemCost(itemDef_t* item, int nOwnerDrawID);
+void JKG_Shop_ShopAmmoCost(itemDef_t* item);
 void JKG_Shop_SelectLeft(char** args);
 void JKG_Shop_SelectRight(char** args);
 char* JKG_Shop_LeftNameText(int ownerDrawID);
 char* JKG_Shop_LeftPriceText(int ownerDrawID);
 char* JKG_Shop_RightNameText(int ownerDrawID);
 char* JKG_Shop_RightPriceText(int ownerDrawID);
+char* JKG_ShopAmmoPriceText();
 void JKG_Shop_Sort(char** args);
 void JKG_Shop_SortSelectionName(itemDef_t* item, int ownerDrawID);
 void JKG_Shop_SortSelectionPrice(itemDef_t* item, int ownerDrawID);
 void JKG_Shop_BuyItem(char** args);
+void JKG_Shop_BuyAmmo(char** args);
 void JKG_Shop_SellItem(char** args);
 void JKG_Shop_Closed(char** args);
+void JKG_ScrollShop(qboolean bUp, int nMouseX, int nMouseY);
+void JKG_ShopNotify(jkgShopNotify_e msg);
+void JKG_Shop_PriceCheckComplete(int nInventoryID, int nPrice);
+void JKG_Shop_DrawShopDescriptionLine(itemDef_t* item, int nOwnerDrawID);
+void JKG_Shop_Examine(char** args);

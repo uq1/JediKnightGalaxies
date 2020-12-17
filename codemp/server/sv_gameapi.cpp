@@ -281,8 +281,6 @@ int GVM_BG_GetItemIndexByTag( int tag, int type ) {
 	return ge->BG_GetItemIndexByTag( tag, type );
 }
 
-siegePers_t sv_siegePersData = {qfalse, 0, 0};
-
 extern float g_svCullDist;
 int CM_ModelContents( clipHandle_t model, int subBSPIndex );
 int CM_LoadSubBSP( const char *name, qboolean clientload );
@@ -489,14 +487,6 @@ static void SV_RegisterSharedMemory( char *memory ) {
 
 static void SV_SetServerCull( float cullDistance ) {
 	g_svCullDist = cullDistance;
-}
-
-static void SV_SiegePersSet( siegePers_t *siegePers ) {
-	sv_siegePersData = *siegePers;
-}
-
-static void SV_SiegePersGet( siegePers_t *siegePers ) {
-	*siegePers = sv_siegePersData;
 }
 
 qboolean SV_ROFF_Clean( void ) {
@@ -1676,9 +1666,10 @@ void SV_BindGame( void ) {
 	gi.SetConfigstring						= SV_SetConfigstring;
 	gi.SetServerCull						= SV_SetServerCull;
 	gi.SetUserinfo							= SV_SetUserinfo;
-	gi.SiegePersSet							= SV_SiegePersSet;
-	gi.SiegePersGet							= SV_SiegePersGet;
 	gi.UnlinkEntity							= SV_UnlinkEntity;
+	gi.Perf_GetData							= Com_GetPerformanceData;
+	gi.Perf_Start							= Com_PerformanceStart;
+	gi.Perf_End								= Com_PerformanceEnd;
 	gi.ROFF_Clean							= SV_ROFF_Clean;
 	gi.ROFF_UpdateEntities					= SV_ROFF_UpdateEntities;
 	gi.ROFF_Cache							= SV_ROFF_Cache;

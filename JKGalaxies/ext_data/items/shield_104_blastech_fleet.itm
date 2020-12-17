@@ -1,0 +1,16 @@
+{
+	"name":		"BlasTech AA-49 Fleet Protector",
+	"internal":	"shield_blastech_fleet",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/hud/i_icon_shieldwall",
+	"cost":		"1650",
+	
+	"capacity":	150,
+	"cooldown":	0,
+	"regenrate":	930,
+
+	"brokenSoundEffect":	"sound/shield/shield_broken5",
+	"equippedSoundEffect":	"sound/shield/shield_equipped",
+	"rechargeSoundEffect":	"sound/shield/shield_recharge6",
+	"chargedSoundEffect":	"sound/shield/shield_charged4"
+}

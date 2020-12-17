@@ -146,6 +146,7 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 	const char		*text;
 	vec4_t			opacity;
 	const weaponInfo_t *weaponInfo;
+	weaponData_t* wp;
 
 	if( cg.jkg_WHUDOpacity  < 1.0f )
 	{
@@ -168,6 +169,8 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 	{
 		return;
 	}
+
+	wp = GetWeaponData(cent->currentState.weapon, cent->currentState.weaponVariation);
 
 #ifndef NO_SP_STYLE_AMMO
 	// Figure out whether or not we want to do the thing where we highlight the text whenever we consume ammo or change firing mode (or, change weapon)
@@ -193,26 +196,19 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 	}
 	else
 	{
-		if ( GetWeaponAmmoClip( cent->currentState.weapon, cent->currentState.weaponVariation ))
-		{
-			ammo = ps->stats[STAT_AMMO];
-		}
-		else
-		{
-			ammo = ps->ammo;
-		}
-
-		if ( GetWeaponAmmoClip( cent->currentState.weapon, cent->currentState.weaponVariation ))
+		if ( wp->firemodes[cent->currentState.firingMode].clipSize )
 		{
 			// Display the amount of clips too
 			float temp;
-			temp = ceil(( float ) ps->ammo / ( float ) GetWeaponAmmoClip( cent->currentState.weapon, cent->currentState.weaponVariation ));
-			text = va( "Ammo: %i (%i)", ammo, ( int ) temp );
+			ammo = ps->stats[STAT_AMMO];
+			temp = ceil((float)ps->stats[STAT_TOTALAMMO] / (float)wp->firemodes[cent->currentState.firingMode].clipSize);
+			text = va( "Ammo: %i (%i) ", ammo, ( int ) temp );
 		}
 		else
 		{
-			text = va( "Ammo: %i", ammo );
-		}	
+			ammo = ps->stats[STAT_TOTALAMMO];
+			text = va( "Ammo: %i ", ammo );
+		}
 	}
 
 	// Now then, lets render this text ^_^
@@ -302,8 +298,81 @@ static void JKG_DrawFiringMode( menuDef_t *menuHUD )
 	}
 
 	textWidth = trap->R_Font_StrLenPixels(text, cgDC.Assets.qhSmall3Font, 0.4f);
-	//trap->R_Font_DrawString(focusItem->window.rect.x + ((focusItem->window.rect.w/2) - (width/2)), focusItem->window.rect.y, text, opacity, cgDC.Assets.qhSmall3Font, -1, 0.5f);
 	trap->R_Font_DrawString(x + ((w/2) - (textWidth/2)), y, text, opacity, cgDC.Assets.qhSmall3Font, -1, 0.4f);
+}
+
+/*
+================
+JKG_DrawAmmoType
+================
+*/
+static void JKG_DrawAmmoType(menuDef_t* menuHUD) {
+	playerState_t* ps = &cg.predictedPlayerState;
+	weaponData_t* wp = BG_GetWeaponDataByIndex(ps->weaponId);
+	ammo_t* ammo = BG_GetAmmo(ps->ammoType);
+	char* displayStr;
+	vec4_t opacity;
+	float textWidth;
+	float x, y, w;
+
+	// Check whether we have an ammo type
+	if (ammo == nullptr) {
+		return;
+	}
+
+	// Check whether we have a valid firing mode
+	if (ps->firingMode < 0 || ps->firingMode >= wp->numFiringModes) {
+		return;
+	}
+
+	// Check against using an invalid weapon type
+	if (wp->weaponBaseIndex == WP_SABER || wp->weaponBaseIndex == WP_NONE || wp->weaponBaseIndex == WP_MELEE) {
+		return;
+	}
+
+	// Check against the weapon using quantity
+	if (wp->firemodes[ps->firingMode].useQuantity) {
+		return;
+	}
+
+	// Check against the weapon having alternate ammo
+	if (!BG_WeaponAcceptsAlternateAmmo(ps->weapon, ps->weaponVariation))
+	{
+		return;
+	}
+
+	if (cg.jkg_WHUDOpacity  < 1.0f)
+	{
+		MAKERGBA(opacity, 1, 1, 1, cg.jkg_WHUDOpacity);
+	}
+	else
+	{
+		MAKERGBA(opacity, 1, 1, 1, cg.jkg_HUDOpacity);
+	}
+
+#ifndef NO_SP_STYLE_AMMO
+	// Figure out whether or not we want to do the thing where we highlight the text whenever we consume ammo or change firing mode (or, change weapon)
+	if (cg.lastAmmoType != cg.predictedPlayerState.ammoType)
+	{
+		cg.lastAmmoType = cg.predictedPlayerState.ammoType;
+		cg.lastAmmoTypeTime = cg.time + 200; // matches SP 1:1
+	}
+
+	if (cg.lastAmmoTypeTime > cg.time)
+	{
+		vec4_t colorCopy = { 0.2, 0.72, 0.86, 1 };
+		Q_RGBCopy(&opacity, colorCopy);
+	}
+#endif
+
+	// Set us some basic defaults (for now. these will be replaced by the jkg_hud.menu)
+	x = 500.0f;
+	y = 440.0f;
+	w = 120.0f;
+
+	displayStr = (char*)CG_GetStringEdString2(ammo->shortname);
+	textWidth = trap->R_Font_StrLenPixels(displayStr, cgDC.Assets.qhSmall3Font, 0.4f);
+	trap->R_Font_DrawString(x + ((w / 2) - (textWidth / 2)), y, displayStr, opacity, cgDC.Assets.qhSmall3Font, -1, 0.4f);
 }
 
 /*
@@ -630,8 +699,8 @@ static void CG_DrawArmor( menuDef_t *menuHUD )
 		return;
 	}
 
-	armor = ps->stats[STAT_ARMOR];
-	maxArmor = ps->stats[STAT_MAX_ARMOR];
+	armor = ps->stats[STAT_SHIELD];
+	maxArmor = ps->stats[STAT_MAX_SHIELD];
 
 
 	// TEST: just render the whole thing for now, we'll fix it later
@@ -755,6 +824,7 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 		CG_DrawHealth(menuHUD);
 		CG_DrawForcePower(menuHUD);
 		JKG_DrawFiringMode(menuHUD);
+		JKG_DrawAmmoType(menuHUD);
 
 		focusItem = Menu_FindItemByName(menuHUD, "frame");
 		if (focusItem)
@@ -862,6 +932,69 @@ static void CG_DrawTopLeftHUD ( menuDef_t *menuHUD, vec4_t opacity )
 	}*/
 }
 
+// Convert HSL to RGB
+void HSL2RGB(float h, float s, float l, float *r, float *g, float *b) {
+	double tr, tg, tb;
+	double v;
+
+	tr = l;
+	tg = l;
+	tb = l;
+	v = (l <= 0.5f) ? (l * (1.0f + (l * 2))) : (l + l - l * l);
+	if (v > 0) {
+		double m;
+		double sv;
+		int sextant;
+		double fract, vsf, mid1, mid2;
+
+		m = l + l - v;
+		sv = (v - m) / v;
+		h *= 6.0f;
+		sextant = (int)h;
+		fract = h - sextant;
+		vsf = v * sv * fract;
+		mid1 = m + vsf;
+		mid2 = v - vsf;
+		switch (sextant)
+		{
+		case 0:
+		default:
+			tr = v;
+			tg = mid1;
+			tb = m;
+			break;
+		case 1:
+			tr = mid2;
+			tg = v;
+			tb = m;
+			break;
+		case 2:
+			tr = m;
+			tg = v;
+			tb = mid1;
+			break;
+		case 3:
+			tr = m;
+			tg = mid2;
+			tb = v;
+			break;
+		case 4:
+			tr = mid1;
+			tg = m;
+			tb = v;
+			break;
+		case 5:
+			tr = v;
+			tg = m;
+			tb = mid2;
+			break;
+		}
+	}
+	*r = tr;
+	*g = tg;
+	*b = tb;
+}
+
 /*
 ==================
 CG_DrawFPS
@@ -869,7 +1002,6 @@ CG_DrawFPS
 */
 #define	FPS_FRAMES	16
 #define STYLE_DROPSHADOW	0x80000000
-extern void HSL2RGB(float h, float s, float l, float *r, float *g, float *b);
 static void CG_DrawFPS( float x, float y, float w, float h, int font, float textScale ) {
 	char		*s;
 	static unsigned short previousTimes[FPS_FRAMES];
@@ -1043,21 +1175,27 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 
 	// Print background of the bars
 	for (i=0; i<MAX_ACI_SLOTS; i++) {
+		if (cg.playerACI[i] >= cg.playerInventory->size()) {
+			cg.playerACI[i] = -1;
+		}
+
+		if (cg.playerACI[i] < 0) {
+			continue;
+		}
+
+		itemInstance_t* playerItem = &(*cg.playerInventory)[cg.playerACI[i]];
 		focusItem = Menu_FindItemByName(menuHUD, va("slot%i", i));
 		if (focusItem)
 		{
 			vec4_t col = {0.11f, 0.11f, 0.11f, 1.0f};
 			qhandle_t shader = cgs.media.whiteShader;	//dummy
 			col[3] *= cg.jkg_HUDOpacity;
-			if (cg.playerACI[i] >= cg.playerInventory->size()) {
-				cg.playerACI[i] = -1;
-			}
 			if ( cg.playerACI[i] >= 0 && (*cg.playerInventory)[cg.playerACI[i]].id && (*cg.playerInventory)[cg.playerACI[i]].id->itemID )
 			{
 			    int weapon, variation;
-				if((*cg.playerInventory)[cg.playerACI[i]].id->itemType == ITEM_WEAPON)
+				if(playerItem->id->itemType == ITEM_WEAPON)
 				{
-					if ( BG_GetWeaponByIndex ((*cg.playerInventory)[cg.playerACI[i]].id->weaponData.varID, &weapon, &variation) )
+					if ( BG_GetWeaponByIndex (playerItem->id->weaponData.varID, &weapon, &variation) )
 					{
 						const weaponInfo_t *weaponInfo = CG_WeaponInfo (weapon, variation);
 						shader = weaponInfo->hudIcon;
@@ -1080,7 +1218,7 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 					col[0] = 1.0f;
 					col[1] = 1.0f;
 					col[2] = 1.0f;
-					shader = trap->R_RegisterShaderNoMip((*cg.playerInventory)[cg.playerACI[i]].id->visuals.itemIcon);
+					shader = trap->R_RegisterShaderNoMip(playerItem->id->visuals.itemIcon);
 				}
 			}
 			if(shader != cgs.media.whiteShader)
@@ -1095,6 +1233,14 @@ static void CG_DrawHotkeyBar ( menuDef_t *menuHUD, vec4_t opacity )
 		if (focusItem)
 		{
 			trap->R_Font_DrawString(focusItem->window.rect.x, focusItem->window.rect.y, va("%i", i), opacity, cgDC.Assets.qhSmallFont, -1, 0.4f);
+		}
+
+		focusItem = Menu_FindItemByName(menuHUD, va("slotq%i", i));
+		if (focusItem && playerItem->id->maxStack > 1) {
+			char* text = va("%i", playerItem->quantity);
+			vec4_t color{ 0.52f, 0.65f, 0.96f, opacity[3] };
+			trap->R_Font_DrawString(focusItem->window.rect.x - trap->R_Font_StrLenPixels(text, cgDC.Assets.qhSmallFont, 0.4f),
+				focusItem->window.rect.y, text, color, cgDC.Assets.qhSmallFont, -1, 0.4f);
 		}
 	}
 

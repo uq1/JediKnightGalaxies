@@ -58,16 +58,21 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2000,
-        "ammoIndex":         "powercell_m",
-        "ammoOnSpawn":   210,
-        "ammoOnPickup":   42,
-        "clipSize":              21,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
     
     "firemode0": {
-        "damage":       30,
+        "damage":
+        {
+            "damage": 30,
+            "buffs": [
+			{
+				"buff": "standard-bleed",
+				"duration": 3000
+			}
+			]
+        }, 
         "ammocost":     1,
         "burstshotdelay": 100,
         "firedelay":    900,
@@ -78,7 +83,10 @@
         "spread":       0.2,
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER",
+        "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_POWERCELL_M",
+	"ammodefault": "AMMO_ACP_POWERCELL_M",
+        "clipSize":              21,
         "accuracy": {
 			"accuracyRating": 45,
 			"accuracyRatingPerShot": 4,
@@ -93,7 +101,16 @@
     },
     
     "firemode1": {
-        "damage":       35,
+        "damage":
+        {
+            "damage": 35,
+            "buffs": [
+			{
+				"buff": "standard-bleed",
+				"duration": 4000
+			}
+			]
+        }, 
         "ammocost":     1,
         "firedelay":    400,
         "firingtype":   "semi",
@@ -102,23 +119,25 @@
         "spread":       0.2,
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER",
-            "accuracy": {
-        "accuracyRating": 35,
-        "accuracyRatingPerShot": 3,
-        "msToDrainAccuracy": 70,
-        "maxAccuracyAdd": 80,
-        "crouchModifier": 0.7,
-        "runModifier": 1.4,
-        "sightsModifier": 0.5,
-        "walkModifier": 1.2,
-        "inAirModifier": 1.6
+        "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_POWERCELL_M",
+	"ammodefault": "AMMO_ACP_POWERCELL_M",
+        "clipSize":              21,
+        "accuracy": {
+        	"accuracyRating": 35,
+        	"accuracyRatingPerShot": 3,
+        	"msToDrainAccuracy": 70,
+        	"maxAccuracyAdd": 80,
+        	"crouchModifier": 0.7,
+        	"runModifier": 1.4,
+        	"sightsModifier": 0.5,
+        	"walkModifier": 1.2,
+        	"inAirModifier": 1.6
         }
     },
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
- //       "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_RIFLERELOADB" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },

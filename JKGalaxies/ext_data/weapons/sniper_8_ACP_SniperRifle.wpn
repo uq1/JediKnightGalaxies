@@ -59,17 +59,22 @@
     "stats": {
         "slot":         2,
         "reloadtime":   2000,
-        "ammoIndex":         "acp_cartridge",
-        "ammoOnSpawn":   48,
-        "ammoOnPickup":   32,
-        "clipSize":              2,
         "flags":        [ "roll", "togglezoom" ],
         "startzoomfov": 15.0,
         "reloadmodifier": 0.7
     },
     
     "firemode0": {
-        "damage":       125,
+        "damage":
+        {
+            "damage": 125,
+            "buffs": [
+			{
+				"buff": "standard-bleed",
+				"duration": 5000
+			}
+			]
+        },  
         "ammocost":     1,
         "firedelay":    100,
         "firingtype":   "semi",
@@ -78,7 +83,10 @@
         "spread":       0.0,
         "projectilespeed": 9000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BRYAR_PISTOL",
+        "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_CARTRIDGE",
+	"ammodefault": "AMMO_ACP_CARTRIDGE",
+        "clipSize":              2,
             "accuracy": {
         "accuracyRating": 20,
         "accuracyRatingPerShot": 20,
@@ -94,7 +102,6 @@
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-//        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_RIFLERELOADB" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },

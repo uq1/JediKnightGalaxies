@@ -1,0 +1,9 @@
+{
+	"name":             "Swamptrooper Leg Armor",
+	"internal":             "legs_swamptrooper",
+	"itemtype":             "armor",
+	"armor":		"swlegs",
+	"weight":		"2",
+	"cost":			"550",
+	"itemIcon":		"gfx/item_icons/default.tga"
+}

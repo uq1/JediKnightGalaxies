@@ -1,0 +1,10 @@
+{
+	"name":		"60 ELG-3A Ion Pwr Pack",
+	"internal":	"ammo_ionPwrPackELG_60",
+	"itemtype":	"ammo",
+	"weight":		"0",
+	"cost":		"50",
+	"ammoclass":	"AMMO_SS_ION_POWERPACK",
+	"ammoquantity":	"60",
+	"itemIcon": "gfx/item_icons/default.tga"	//needs icon!
+}

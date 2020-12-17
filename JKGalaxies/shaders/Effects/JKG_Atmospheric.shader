@@ -249,6 +249,7 @@ gfx/atmospheric/cloud4_128
     }
 }
 
+
 gfx/atmospheric/cloud4_64
 {
 	qer_editorimage	gfx/atmospheric/cloud4_64

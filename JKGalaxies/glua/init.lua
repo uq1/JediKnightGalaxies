@@ -15,6 +15,9 @@ include("admin/accounts.lua") -- Accounts and Admin commands
 print("Loading entity spawning commands...")
 include("entcmds.lua")
 
+print("Loading item functions...")
+include "resources/items/init.lua"
+
 entmanager.Init()
 -- Load the global entities
 entmanager.RegisterDir("glua/resources/entities")

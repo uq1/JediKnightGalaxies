@@ -60,16 +60,12 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2100,
-        "ammoIndex":         "g36powerpack",
-        "ammoOnSpawn":   400,
-        "ammoOnPickup":   80,
-        "clipSize":              40,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7
     },
     
     "firemode0": {
-        "damage":       22,
+        "damage":       24,
         "ammocost":     1,
         "firedelay":    140,
         "range":        3500.0,
@@ -77,19 +73,23 @@
         "spread":       0.5,
         "projectilespeed": 3000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-        "splashmeansofdeath": "MOD_BLASTER",
-            "accuracy": {
-        "accuracyRating": 28,
-        "accuracyRatingPerShot": 4,
-        "msToDrainAccuracy": 50,
-        "maxAccuracyAdd": 90,
-        "sightsModifier": 0.4
-        }
+        "meansofdeath": "MOD_PULSE",
+        "splashmeansofdeath": "MOD_PULSE",
+	"ammobase": "AMMO_G36_POWERPACK",
+	"ammodefault": "AMMO_G36_POWERPACK",
+        "clipSize":              40,
+        "accuracy": {
+        	"accuracyRating": 28,
+        	"accuracyRatingPerShot": 4,
+        	"msToDrainAccuracy": 50,
+        	"maxAccuracyAdd": 90,
+        	"sightsModifier": 0.4
+        },
+	"heatGenerated": 3.4
     },
     
     "firemode1": {
-        "damage":       22,
+        "damage":       24,
         "maxchargetime":1000,
         "chargedamage": 0.5,
         "chargedelay":  250,
@@ -102,13 +102,16 @@
         "spread":       0.5,
         "projectilespeed": 4000.0,
         "projectileclass": "blaster_proj",
-        "meansofdeath": "MOD_BLASTER",
-        "splashmeansofdeath": "MOD_BLASTER"
+        "meansofdeath": "MOD_PULSE",
+        "splashmeansofdeath": "MOD_PULSE",
+	"ammobase": "AMMO_G36_POWERPACK",
+	"ammodefault": "AMMO_G36_POWERPACK",
+        "clipSize":              40,
+	"heatGenerated": 3.4
     },
     
     "playeranims": {
         "idle":         { "torso": "BOTH_IDLE1", "legs": "BOTH_IDLE1" },
-//        "reload":       { "torso": "TORSO_DROPWEAP1" },
         "reload":       { "torso": "BOTH_RIFLERELOADL" },
         "sights":        { "torso": "TORSO_WEAPONREADY3", "legs": "BOTH_STAND1" },
         "sightsFiring":       { "torso": "BOTH_ATTACK3" },

@@ -1,0 +1,9 @@
+{
+	"name":             "Heavy Coat",
+	"internal":             "coat_heavy",
+	"itemtype":             "armor",
+	"armor":		"gncoat",
+	"weight":		"2",
+	"cost":			"100",
+	"itemIcon":		"gfx/item_icons/default.tga"
+}

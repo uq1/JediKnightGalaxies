@@ -547,28 +547,28 @@ static int GLua_Player_MaxHealth_Set(lua_State *L) {
 static int GLua_Player_MaxArmor_Get(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_MAX_ARMOR]);
+	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_MAX_SHIELD]);
 	return 1;
 }
 
 static int GLua_Player_MaxArmor_Set(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	level.clients[ply->clientNum].ps.stats[STAT_MAX_ARMOR] = luaL_checkinteger(L, 2);
+	level.clients[ply->clientNum].ps.stats[STAT_MAX_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 
 static int GLua_Player_Armor_Get(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_ARMOR]);
+	lua_pushinteger(L,level.clients[ply->clientNum].ps.stats[STAT_SHIELD]);
 	return 1;
 }
 
 static int GLua_Player_Armor_Set(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
-	level.clients[ply->clientNum].ps.stats[STAT_ARMOR] = luaL_checkinteger(L, 2);
+	level.clients[ply->clientNum].ps.stats[STAT_SHIELD] = luaL_checkinteger(L, 2);
 	return 0;
 }
 
@@ -583,25 +583,6 @@ static int GLua_Player_Health_Set(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
 	if (!ply) return 0;
 	level.clients[ply->clientNum].ps.stats[STAT_HEALTH] = g_entities[ply->clientNum].health = luaL_checkinteger(L, 2);
-	return 0;
-}
-
-//eezstreet add
-static int GLua_Player_CurrentlyLooting_Get(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
-	gentity_t *ent = &g_entities[ply->clientNum];
-
-	if(!ply) return 0;
-	lua_pushinteger(L, ent->currentlyLooting->s.number);
-	return 1;
-}
-
-static int GLua_Player_CurrentlyLooting_Set(lua_State *L) {
-	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
-	gentity_t *ent = &g_entities[ply->clientNum];
-
-	if(!ply) return 0;
-	ent->currentlyLooting = &g_entities[luaL_checkinteger(L, 2)];
 	return 0;
 }
 
@@ -713,8 +694,16 @@ static int GLua_Player_Damage(lua_State *L) {
 	}
 	damage = lua_tointeger(L, 6);
 	dflags = lua_tointeger(L, 7);
-	mod = lua_tointeger(L, 8);
-	
+
+	if (lua_isnumber(L, 8))
+		mod = lua_tointeger(L, 8);
+
+	else if (lua_isstring(L, 8))
+		mod = JKG_GetMeansOfDamageIndex(lua_tostring(L, 8));
+
+	else
+		mod = 0;
+
 	G_Damage(&g_entities[ply->clientNum], inflictor, attacker, dir2, point2, damage, dflags, mod);
 	return 0;
 }
@@ -1145,26 +1134,36 @@ static int GLua_Player_SetClipAmmo(lua_State *L) {
 	int weapon = luaL_checkint(L,2);
 	int var = luaL_optint(L,3,0);
 	int amt = luaL_checkint(L,4);
+	int firemode = luaL_optint(L, 5, 0);
+
 	if (!ply) return 0;
+
 	if (weapon < 0 || weapon >= MAX_WEAPONS) {
 		return 0;
 	}
+
+	weaponData_t* wp = GetWeaponData(weapon, var);
+
 	if (amt < 0) {
 		amt = 0;
-	} else if (amt > GetWeaponAmmoClip( weapon, var )) {
-		amt = GetWeaponAmmoClip( weapon, var );
+	} else if (amt > wp->firemodes[firemode].clipSize) {
+		amt = wp->firemodes[firemode].clipSize;
 	}
 
-	g_entities[ply->clientNum].client->clipammo[BG_GetWeaponIndex(weapon, var)] = amt;
+	if (firemode < 0)
+		firemode = 0;
+
+	g_entities[ply->clientNum].client->clipammo[BG_GetWeaponIndex(weapon, var)][firemode] = amt;
 	return 0;
 }
 
 static int GLua_Player_StripClipAmmo(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L, 1);
-	int i;
+	int i,j;
 	if (!ply) return 0;
 	for (i=0; i < 256; i++) {
-		level.clients[ply->clientNum].clipammo[i] = 0;
+		for(j=0; j < MAX_FIREMODES; j++)
+			level.clients[ply->clientNum].clipammo[i][j] = 0;
 	}
 	return 0;
 }
@@ -1185,11 +1184,19 @@ static int GLua_Player_GetClipAmmo(lua_State *L) {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
 	int weapon = luaL_checkint(L,2);
 	int variation = luaL_checkint(L,3);
+	int weaponIndex;
+	int fireMode;
+
 	if (!ply) return 0;
+
 	if (weapon < 0 || weapon >= MAX_WEAPONS) {
 		return 0;
 	}
-	lua_pushinteger(L, g_entities[ply->clientNum].client->clipammo[BG_GetWeaponIndex(weapon, variation)]);
+
+	weaponIndex = BG_GetWeaponIndex(weapon, variation);
+	fireMode = g_entities[ply->clientNum].client->firingModes[weaponIndex];
+
+	lua_pushinteger(L, g_entities[ply->clientNum].client->clipammo[weaponIndex][fireMode]);
 	return 1;
 }
 
@@ -1581,32 +1588,14 @@ static int GLua_Player_GetCurrentGunAmmoType(lua_State *L)
 {
 	GLua_Data_Player_t *ply = GLua_CheckPlayer(L,1);
 	gentity_t *ent;
-	weaponData_t *wp;
+	//weaponData_t *wp; //unused right now
 
 	if(!ply || ply->clientNum < 0 || ply->clientNum > MAX_CLIENTS) return 0;
 	ent = &g_entities[ply->clientNum];
 	if(!ent) return 0;
 
-	wp = GetWeaponData((unsigned char)ent->client->ps.weapon, (unsigned char)ent->client->ps.weaponVariation);
-	if(!wp) return 0;
+	lua_pushinteger(L, ent->client->ps.ammoType);
 
-	lua_pushinteger(L, wp->ammoIndex);
-
-	return 1;
-}
-
-// FIXME: this makes no sense whatsoever being a member of ply/player
-static int GLua_Player_GetGunAmmoType(lua_State *L)
-{
-	GLua_CheckPlayer(L,1);
-
-	int weapon = lua_tointeger(L,2);
-	int variation = lua_tointeger(L,3);
-	weaponData_t *wp = GetWeaponData((unsigned char)weapon, (unsigned char)variation);
-
-	if(!wp) return 0;
-
-	lua_pushinteger(L, wp->ammoIndex);
 	return 1;
 }
 
@@ -1758,7 +1747,7 @@ static const struct luaL_reg player_m [] = {
 	{"ModifyCreditCount", GLua_Player_ModifyCreditCount},
 	// add 6/2/13
 	{"GetCurrentGunAmmoType", GLua_Player_GetCurrentGunAmmoType},
-	{"GetGunAmmoType", GLua_Player_GetGunAmmoType},
+	//{"GetGunAmmoType", GLua_Player_GetGunAmmoType},	// removed 12/11/2016
 	{"PossessingItem", GLua_Player_PossessingItem},
 	{"PossessingWeapon", GLua_Player_PossessingWeapon},
 	// add 8/18/13
@@ -1805,10 +1794,7 @@ static const struct GLua_Prop player_p [] = {
 	{"NoDrops", GLua_Player_GetNoDrops, GLua_Player_SetNoDrops},
 	{"AdminRank",	GLua_Player_GetAdminRank,	NULL},
 	{"CustomTeam", GLua_Player_GetCustomTeam, GLua_Player_SetCustomTeam},
-	//eezstreet add
-	{"CurrentlyLooting", GLua_Player_CurrentlyLooting_Get, GLua_Player_CurrentlyLooting_Set},
 	{"CanUseCheats", GLua_Player_CanUseCheats_Get, GLua_Player_CanUseCheats_Set},
-	//eezstreet end
 	{NULL,		NULL,						NULL},
 };
 

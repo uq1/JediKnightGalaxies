@@ -68,17 +68,21 @@
         "ammoIndex":         "grenade_lemons",
         "ammoOnSpawn":   1,
         "ammoOnPickup":   1,
-        "clipSize":              0,
         "flags":        [ "roll" ]
     },
       
     "firemode0": {
-//        "damage":       50,//100,
         "damage": {
                           "damageradius": { "start": 220,
                                                      "falloff": "linear" },
                           "damage": 100,
-                          "damagetype": [ "explosion", "fire" ]
+                          "buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				],
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "secondarydamage": {
                           "damageradius": { "start": 60,
@@ -87,9 +91,16 @@
                           "delay": 500,
                           "damage": 1,
                           "damagedelay": 150,
-                          "damagetype": [ "fire" ]
+                          "buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				],
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":1.7,
         "ammocost":     1,
@@ -102,8 +113,9 @@
 //        "splashrange":  560,//280,
         "projectilespeed":1200.0,
         "projectileclass":"repeater_alt_proj",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "clipSize":              0,
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
     
     "firemode1": {
@@ -111,7 +123,13 @@
                           "damageradius": { "start": 220,
                                                      "falloff": "linear" },
                           "damage": 100,
-                          "damagetype": [ "explosion", "fire" ]
+                          "buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				],
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "secondarydamage": {
                           "damageradius": { "start": 60,
@@ -120,9 +138,16 @@
                           "delay": 500,
                           "damage": 1,
                           "damagedelay": 150,
-                          "damagetype": [ "fire" ]
+                          "buffs": [
+					{
+						"buff": "standard-fire",
+						"duration": 10000
+					}
+				],
+				"flags": [ "DAMAGE_NO_KNOCKBACK" ]
                         },
         "ballistic":    true,
+	"useQuantity":	true,
         "bounces":     -5,
         "collisionsize":1.7,
         "ammocost":     1,
@@ -134,8 +159,9 @@
         "spread":       1.0,
         "projectilespeed":900.0,
         "projectileclass":"repeater_alt_proj",
-        "meansofdeath": "MOD_THERMAL",
-        "splashmeansofdeath": "MOD_THERMAL_SPLASH"
+        "clipSize":              0,
+        "meansofdeath": "MOD_EXPLOSION",
+        "splashmeansofdeath": "MOD_EXPLOSION"
     },
 
     "playeranims": {

@@ -1,0 +1,9 @@
+{
+	"name":             	"Spice - Large Dosage",
+	"internal":             "spice_large",
+	"cost":					"250",
+	"itemtype":             "consumable",
+	"maxStack":				5,
+	"consumeScript":		"item_spice_large",
+	"itemIcon":				"gfx/item_icons/default.tga"
+}

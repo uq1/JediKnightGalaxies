@@ -109,7 +109,7 @@ sys.RadiusDamage(origin:vector, [attacker:entity], damage:number, radius:number,
 sys.PlaySound(origin:vector, sound:string, channel:number, ) - Plays sound at the specified location
 sys.PlaySoundIdx(origin:vector, soundid:number, channel:number, ) - Plays sound at the specified location (using the ID rather than name)
 sys.SoundIndex(sound:string):number - Returns the sound ID of the specified sound
-sys.WeaponClipSize(weapon:number):number - Returns the clipsize of the specified weapon (WP_ constant)
+sys.WeaponClipSize(weapon:number, [variation:number], [firemode:number]):number - Returns the clipsize of the specified weapon
 sys.AmmoLimit(ammotype:number):number - Returns the limit of the specified type of ammo
 sys.MapName():string - Returns the name of the current map
 sys.SpotWouldTelefrag(ent:entity, location:vector):bool - Returns whether or not teleporting the ent to location would cause a telefrag
@@ -280,14 +280,10 @@ player:GetCreditCount():number - Returns number of credits that the player is cu
 player:SetCreditCount(amount:number):nil - sets the amount of credits that the player has
 player:ModifyCreditCount(amount:number):nil - adds to the number of credits that the player has (eg a value of 100 adds 100 credits, -100 subtracts 100 credits)
 
-player:SetAmmo(ammotype:string, amount:number):nil - sets ammo of a certain type. Ammo is defined in ammo.json
+player:SetAmmo(ammotype:string, amount:number):nil - sets ammo of a certain type.
 player:GetAmmo(ammotype:string):number - returns amount of ammo of a certain type that the player is holding
 player:ModifyAmmo(ammotype:string, amount:number):nil - adds to, rather than setting current ammo
 player:GetCurrentGunAmmoType():number - retrieves the ammo ID of the currently equipped weapon
-player:GetGunAmmoType(weapon:number, variation: number):number - retrieves the ammo ID of the weapon/variation given (NOTE: I have no clue why I put this in player/ply...)--eez
-
-player:GetWeapon(??? ???):number - TODO
-player:SetWeapon(??? ???):number - TODO
 
 player:PossessingItem(itemid:number):bool - returns true if we are possessing the item, returns false otherwise
 player:PossessingWeapon(weapon: number, variation:number):bool - returns true if we are possessing this weapon in our inventory, returns false otherwise
@@ -298,3 +294,31 @@ player:GetAdminAccount():string - Gets our current admin account
 player:ExecuteChatCommand(command:string):nil - Executes a chat command (such as /me). This includes Lua commands!
 
 --------------------------------------------------------------------------------------------------------
+
+	NPCs Library:
+
+--------------------------------------------------------------------------------------------------------
+
+NPC Class:
+
+NPC:GetTable():table - Returns a table with all variables assigned to this NPC.
+NPC:GetID():number - Returns this NPC's ID.
+NPC:IsValid():bool - Determines whether this NPC is valid.
+
+NPC:Kill():nil - Kills the NPC
+NPC:Teleport(position:vector, [angles:vector]):nil - Teleports the NPC to the given coordinates.
+
+NPC:SetPos(position:vector):nil - Sets the NPC's position.
+NPC:GetPos():vector - Returns the NPC's position.
+NPC:SetOrigin(position:vector):nil - Identical to SetPos.
+NPC:GetOrigin():vector - Identical to GetPos.
+NPC:SetAngles(angles:vector):nil - Sets the NPC's angles.
+NPC:GetAngles():vector - Gets the NPC's angles.
+NPC:SetNavGoal(position:vector):nil - Instructs the NPC to walk/run to the specified coordinates.
+NPC:SetNavGoal(position:entity):nil - Instructs the NPC to walk/run to the specified entity.
+NPC:SetNavGoal(position:string):nil - Instructs the NPC to walk/run to the entity with the given targetname.
+
+NPC:MakeVendor(tc:string):nil - Makes the NPC into a vendor with the given treasure class.
+NPC:RefreshVendorStock():nil - Refreshes the vendor's stock. DO NOT call this on map-created vendors (jkg_target_vendor), it won't work.
+
+There are more functions here that need to be documented.

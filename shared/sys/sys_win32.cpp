@@ -18,12 +18,17 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
-
 #include "sys_local.h"
 #include <direct.h>
 #include <io.h>
 #include <shlobj.h>
 #include <windows.h>
+#include <psapi.h>
+
+#pragma comment( lib, "psapi.lib" )	//fix for winxp compiles --futuza
+#pragma comment( lib, "dbghelp.lib" )
+
+#include <DbgHelp.h>
 
 #define MEM_THRESHOLD (128*1024*1024)
 
@@ -31,6 +36,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 static char homePath[ MAX_OSPATH ] = { 0 };
 
 static UINT timerResolution = 0;
+
+static bool bLoadedImgHelp = false;
+static HANDLE stackProcess;
+static HANDLE stackThread;
 
 /*
 ==============
@@ -532,27 +541,216 @@ bool Sys_DLLNeedsUnpacking()
 
 /*
 ================
+Sys_Diagnostics
+
+Prints diagnostic information to the console
+================
+*/
+void Sys_Diagnostics(const char* diagCategory)
+{
+	HANDLE handle = GetCurrentProcess();
+
+	if (!Q_stricmpn(diagCategory, "mem", 3))
+	{
+		// memory
+		PROCESS_MEMORY_COUNTERS pmc;
+		MEMORYSTATUSEX mem;
+
+		mem.dwLength = sizeof(mem);
+
+		GlobalMemoryStatusEx(&mem);
+
+		if (GetProcessMemoryInfo(handle, &pmc, sizeof(pmc)))
+		{
+			Com_Printf("--------Process--------\n");
+			Com_Printf("PageFaultCount: %i\n", pmc.PageFaultCount);
+			Com_Printf("PagefileUsage: %i (peak: %i)\n", pmc.PagefileUsage, pmc.PeakPagefileUsage);
+			Com_Printf("WorkingSetSize: %i (peak: %i)\n", pmc.WorkingSetSize, pmc.PeakWorkingSetSize);
+			Com_Printf("QuotaPagedPoolUsage: %i (peak: %i)\n", pmc.QuotaPagedPoolUsage, pmc.QuotaPeakPagedPoolUsage);
+			Com_Printf("QuotaNonPagedPoolUsage: %i (peak: %i)\n", pmc.QuotaNonPagedPoolUsage, pmc.QuotaPeakNonPagedPoolUsage);
+			Com_Printf("--------Machine--------\n");
+			Com_Printf("Available: %llu mb / %llu mb / %llu mb\n", mem.ullAvailPhys / 1048576, 
+				mem.ullAvailVirtual / 1048576, mem.ullAvailExtendedVirtual / 1048576);
+			Com_Printf("(Physical / Virtual / Extended Virtual)\n");
+			Com_Printf("Total: %llu mb / %llu mb\n", mem.ullTotalPhys / 1048576, mem.ullTotalVirtual / 1048576);
+			Com_Printf("(Physical / Virtual)\n");
+			Com_Printf("Page Available: %llu / %llu\n", mem.ullAvailPageFile / 1048576, mem.ullTotalPageFile / 1048576);
+			Com_Printf("%d PERCENT MEMORY IN USE\n", mem.dwMemoryLoad);
+		}
+		return;
+	}
+
+	Com_Printf("not valid category, try using \"mem\" as the second argument\n");
+}
+
+/*
+================
+Sys_CleanModuleName
+
+Changes modules from being a long absolute path to being a short relative one
+================
+*/
+void Sys_CleanModuleName(char* name, size_t size)
+{
+	std::string moduleName = name;
+	unsigned int i = moduleName.find_last_of("\\/");
+	if (i == std::string::npos)
+	{
+		return;
+	}
+
+	moduleName = moduleName.substr(i + 1);
+	Q_strncpyz(name, moduleName.c_str(), size);
+}
+
+/*
+================
+Sys_PrintModule
+================
+*/
+BOOL CALLBACK Sys_PrintModule(PCTSTR moduleName, DWORD base, void* userContext)
+{
+	Com_Printf("* %08X | %s\n", base, moduleName);
+	return TRUE;
+}
+
+/*
+================
+Sys_PrintStackTrace
+
+Occurs when we encounter a fatal error.
+Prints the stack trace as well as some other data.
+================
+*/
+LONG WINAPI Sys_PrintStackTrace(EXCEPTION_POINTERS* exception)
+{
+	STACKFRAME frame = {};
+#ifdef WIN32
+	DWORD machine = IMAGE_FILE_MACHINE_I386;
+#else
+	DWORD machine = IMAGE_FILE_MACHINE_AMD64;
+#endif
+	HANDLE process = GetCurrentProcess();
+	HANDLE thread = GetCurrentThread();
+	int i = 0;
+
+	frame.AddrPC.Mode = AddrModeFlat;
+	frame.AddrFrame.Mode = AddrModeFlat;
+	frame.AddrStack.Mode = AddrModeFlat;
+
+#ifdef WIN32
+	frame.AddrPC.Offset = exception->ContextRecord->Eip;
+	frame.AddrFrame.Offset = exception->ContextRecord->Ebp;
+	frame.AddrStack.Offset = exception->ContextRecord->Esp;
+#else
+	frame.AddrPC.Offset = exception->ContextRecord->Rip;
+	frame.AddrFrame.Offset = exception->ContextRecord->Rbp;
+	frame.AddrStack.Offset = exception->ContextRecord->Rsp;
+#endif
+
+	Com_Printf("------------------------\n");
+	Com_Printf("Enumerate Modules:\n");
+	Com_Printf("------------------------\n");
+	SymRefreshModuleList(process);
+	SymEnumerateModules(process, Sys_PrintModule, nullptr);
+
+	Com_Printf("\n\n");
+	Com_Printf("------------------------\n");
+	Com_Printf("Stack trace : \n");
+	Com_Printf("------------------------\n");
+	while (StackWalk(machine, process, thread, &frame, exception->ContextRecord, nullptr, SymFunctionTableAccess, SymGetModuleBase, nullptr))
+	{
+		DWORD moduleBase = SymGetModuleBase(process, frame.AddrPC.Offset);
+		char moduleName[MAX_PATH];
+		char funcName[MAX_PATH];
+		char fileName[MAX_PATH];
+		DWORD address = frame.AddrPC.Offset;
+		char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
+		PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
+		IMAGEHLP_LINE line;
+		DWORD offset = 0;
+
+		line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+		symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
+		symbol->MaxNameLength = 254;
+
+		if (moduleBase && GetModuleFileNameA((HINSTANCE)moduleBase, moduleName, MAX_PATH))
+		{
+			Sys_CleanModuleName(moduleName, MAX_PATH);
+		}
+		else
+		{
+			moduleName[0] = '\0';
+		}
+
+		if (SymGetSymFromAddr(process, frame.AddrPC.Offset, &offset, symbol))
+		{
+			Q_strncpyz(funcName, symbol->Name, MAX_PATH);
+		}
+		else
+		{
+			funcName[0] = '\0';
+		}
+
+		if (SymGetLineFromAddr(process, frame.AddrPC.Offset, &offset, &line))
+		{
+			Q_strncpyz(fileName, line.FileName, MAX_PATH);
+			Sys_CleanModuleName(fileName, MAX_PATH);
+			Com_sprintf(fileName, MAX_PATH, "%s:%i", fileName, line.LineNumber);
+		}
+		else
+		{
+			fileName[0] = '\0';
+		}
+
+		Com_Printf("%03i %20s 0x%08X | %s (%s)\n", i, moduleName, address, funcName, fileName);
+		i++;
+	}
+
+	Sys_Error("Unhanded Exception: 0x%08X", exception->ExceptionRecord->ExceptionCode);
+#ifdef _DEBUG
+	return EXCEPTION_CONTINUE_SEARCH;
+#else
+	return EXCEPTION_EXECUTE_HANDLER;
+#endif
+	
+}
+
+/*
+================
 Sys_PlatformInit
 
 Platform-specific initialization
 ================
 */
-void Sys_PlatformInit( void ) {
+void Sys_PlatformInit(void) {
 	TIMECAPS ptc;
-	if ( timeGetDevCaps( &ptc, sizeof( ptc ) ) == MMSYSERR_NOERROR )
+	if (timeGetDevCaps(&ptc, sizeof(ptc)) == MMSYSERR_NOERROR)
 	{
 		timerResolution = ptc.wPeriodMin;
 
-		if ( timerResolution > 1 )
+		if (timerResolution > 1)
 		{
-			Com_Printf( "Warning: Minimum supported timer resolution is %ums "
-				"on this system, recommended resolution 1ms\n", timerResolution );
+			Com_Printf("Warning: Minimum supported timer resolution is %ums "
+				"on this system, recommended resolution 1ms\n", timerResolution);
 		}
 
-		timeBeginPeriod( timerResolution );
+		timeBeginPeriod(timerResolution);
 	}
 	else
 		timerResolution = 0;
+
+	if (!SymInitialize(GetCurrentProcess(), NULL, TRUE))
+	{
+		SymSetOptions(SYMOPT_LOAD_LINES);
+
+		bLoadedImgHelp = true;
+		Com_Printf("imghelp.dll loaded for debug stack walk info\n");
+	}
+
+	stackProcess = GetCurrentProcess();
+	stackThread = GetCurrentThread();
+	SetUnhandledExceptionFilter(Sys_PrintStackTrace);
 }
 
 /*
@@ -566,6 +764,11 @@ void Sys_PlatformExit( void )
 {
 	if ( timerResolution )
 		timeEndPeriod( timerResolution );
+
+	if (bLoadedImgHelp)
+	{
+		SymCleanup(GetCurrentProcess());
+	}
 }
 
 void Sys_Sleep( int msec )

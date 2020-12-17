@@ -65,10 +65,6 @@
     "stats": {
         "slot":         0,
         "reloadtime":   1000,
-        "ammoIndex":         "quarrel",
-        "ammoOnSpawn":   240,
-        "ammoOnPickup":   48,
-        "clipSize":              24,
         "flags":        [ "togglezoom" ],
         "reloadmodifier": 0.7,
         "startzoomfov": 30
@@ -87,17 +83,20 @@
         "spread":       0.5,
         "projectilespeed": 8000.0,
         "projectileclass": "bowcaster_proj",
-        "meansofdeath": "MOD_BOWCASTER",
-            "accuracy": {
-        "accuracyRating": 25,
-        "accuracyRatingPerShot": 6,
-        "msToDrainAccuracy": 140,
-        "maxAccuracyAdd": 65,
-        "crouchModifier": 0.9,
-        "runModifier": 1.6,
-        "sightsModifier": 0.65,
-        "walkModifier": 1.4,
-        "inAirModifier": 2.1
+        "meansofdeath": "MOD_QUARREL",
+	"ammobase": "AMMO_QUARREL",
+	"ammodefault": "AMMO_QUARREL",
+        "clipSize":              24,
+        "accuracy": {
+        	"accuracyRating": 25,
+        	"accuracyRatingPerShot": 6,
+        	"msToDrainAccuracy": 140,
+        	"maxAccuracyAdd": 65,
+        	"crouchModifier": 0.9,
+        	"runModifier": 1.6,
+        	"sightsModifier": 0.65,
+        	"walkModifier": 1.4,
+        	"inAirModifier": 2.1
         }
     },
     

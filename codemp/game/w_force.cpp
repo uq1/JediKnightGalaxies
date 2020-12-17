@@ -49,17 +49,6 @@ int		ysalamiriLoopSound	= 0;
 
 int ForceShootDrain( gentity_t *self );
 
-gentity_t *G_PreDefSound(vec3_t org, int pdSound)
-{
-	gentity_t	*te;
-
-	te = G_TempEntity( org, EV_PREDEFSOUND );
-	te->s.eventParm = pdSound;
-	VectorCopy(org, te->s.origin);
-
-	return te;
-}
-
 const int forcePowerMinRank[NUM_FORCE_POWER_LEVELS][NUM_FORCE_POWERS] = //0 == neutral
 {
 	{
@@ -637,20 +626,7 @@ int ForcePowerUsableOn(gentity_t *attacker, gentity_t *other, forcePowers_t forc
 		(forcePower == FP_PUSH ||
 		forcePower == FP_PULL))
 	{
-		if (BG_InKnockDown(other->client->ps.legsAnim))
-		{
-			return 0;
-		}
-	}
-
-	if (other && other->client && other->s.eType == ET_NPC &&
-		other->s.NPC_class == CLASS_VEHICLE)
-	{ //can't use the force on vehicles.. except lightning
-		if (forcePower == FP_LIGHTNING)
-		{
-			return 1;
-		}
-		else
+		if (BG_KnockdownAnim(other->client->ps.legsAnim))
 		{
 			return 0;
 		}
@@ -1476,18 +1452,6 @@ void ForceGrip( gentity_t *self )
 		ForcePowerUsableOn(self, &g_entities[tr.entityNum], FP_GRIP) &&
 		(g_friendlyFire.integer || !OnSameTeam(self, &g_entities[tr.entityNum])) ) //don't grip someone who's still crippled
 	{
-		if (g_entities[tr.entityNum].s.number < MAX_CLIENTS && g_entities[tr.entityNum].client->ps.m_iVehicleNum)
-		{ //a player on a vehicle
-			gentity_t *vehEnt = &g_entities[g_entities[tr.entityNum].client->ps.m_iVehicleNum];
-			if (vehEnt->inuse && vehEnt->client && vehEnt->m_pVehicle)
-			{
-				if (vehEnt->m_pVehicle->m_pVehicleInfo->type == VH_SPEEDER ||
-					vehEnt->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL)
-				{ //push the guy off
-					vehEnt->m_pVehicle->m_pVehicleInfo->Eject(vehEnt->m_pVehicle, (bgEntity_t *)&g_entities[tr.entityNum], qfalse);
-				}
-			}
-		}
 		self->client->ps.fd.forceGripEntityNum = tr.entityNum;
 		g_entities[tr.entityNum].client->ps.fd.forceGripStarted = level.time;
 		self->client->ps.fd.forceGripDamageDebounceTime = 0;
@@ -1519,15 +1483,6 @@ void ForceSpeed( gentity_t *self, int forceDuration )
 	if ( !WP_ForcePowerUsable( self, FP_SPEED ) )
 	{
 		return;
-	}
-
-	if ( self->client->holdingObjectiveItem >= MAX_CLIENTS  
-		&& self->client->holdingObjectiveItem < ENTITYNUM_WORLD )
-	{//holding Siege item
-		if ( g_entities[self->client->holdingObjectiveItem].genericValue15 )
-		{//disables force powers
-			return;
-		}
 	}
 
 	self->client->ps.forceAllowDeactivateTime = level.time + 1500;
@@ -1708,9 +1663,6 @@ void ForceLightning( gentity_t *self )
 		return;
 	}
 
-	// fix: rocket lock bug
-	BG_ClearRocketLock(&self->client->ps);
-
 	//Shoot lightning from hand
 	//using grip anim now, to extend the burst time
 	self->client->ps.forceHandExtend = HANDEXTEND_FORCE_HOLD;
@@ -1836,7 +1788,7 @@ void ForceLightningDamage( gentity_t *self, gentity_t *traceEnt, vec3_t dir, vec
 				if (dmg && !saberBlocked)
 				{
 					//rww - Shields can now absorb lightning too.
-					G_Damage( traceEnt, self, self, dir, impactPoint, dmg, 0, MOD_FORCE_DARK );
+					G_Damage( traceEnt, self, self, dir, impactPoint, dmg, 0, MOD_UNKNOWN );
 				}
 				if ( traceEnt->client )
 				{
@@ -2783,9 +2735,6 @@ void ForceTelepathy(gentity_t *self)
 		return;
 	}
 
-	// fix: rocket lock bug
-	BG_ClearRocketLock(&self->client->ps);
-
 	if ( ForceTelepathyCheckDirectNPCTarget( self, &tr, &tookPower ) )
 	{//hit an NPC directly
 		self->client->ps.forceAllowDeactivateTime = level.time + 1500;
@@ -2944,8 +2893,7 @@ qboolean CanCounterThrow(gentity_t *self, gentity_t *thrower, qboolean pull)
 		return 0;
 	}
 
-	if (self->client->ps.weaponstate == WEAPON_CHARGING ||
-		self->client->ps.weaponstate == WEAPON_CHARGING_ALT)
+	if (self->client->ps.weaponstate == WEAPON_CHARGING)
 	{ //don't autodefend when charging a weapon
 		return 0;
 	}
@@ -3121,9 +3069,6 @@ void ForceThrow( gentity_t *self, qboolean pull )
 	{
 		return;
 	}
-
-	// fix: rocket lock bug
-	BG_ClearRocketLock(&self->client->ps);
 
 	if (!pull && self->client->ps.saberLockTime > level.time && self->client->ps.saberLockFrame)
 	{
@@ -3491,7 +3436,6 @@ void ForceThrow( gentity_t *self, qboolean pull )
 			if ( push_list[x]->client )
 			{//FIXME: make enemy jedi able to hunker down and resist this?
 				int otherPushPower = push_list[x]->client->ps.fd.forcePowerLevel[powerUse];
-				qboolean canPullWeapon = qtrue;
 				float dirLen = 0;
 
 				if ( g_debugMelee.integer )
@@ -3549,7 +3493,6 @@ void ForceThrow( gentity_t *self, qboolean pull )
 					if (otherPushPower >= modPowerLevel || push_list[x]->flags & FL_NO_KNOCKBACK)
 					{
 						pushPowerMod = 0;
-						canPullWeapon = qfalse;
 					}
 					else
 					{
@@ -3603,7 +3546,7 @@ void ForceThrow( gentity_t *self, qboolean pull )
 					VectorSubtract( thispush_org, self->client->ps.origin, pushDir );
 				}
 
-				if ((modPowerLevel > otherPushPower || push_list[x]->client->ps.m_iVehicleNum) && push_list[x]->client && !(push_list[x]->flags & FL_NO_KNOCKBACK))
+				if ((modPowerLevel > otherPushPower) && push_list[x]->client && !(push_list[x]->flags & FL_NO_KNOCKBACK))
 				{
 					if (modPowerLevel == FORCE_LEVEL_3 &&
 						push_list[x]->client->ps.forceHandExtend != HANDEXTEND_KNOCKDOWN)
@@ -3617,19 +3560,6 @@ void ForceThrow( gentity_t *self, qboolean pull )
 							push_list[x]->client->ps.forceHandExtendTime = level.time + 700;
 							push_list[x]->client->ps.forceDodgeAnim = 0; //this toggles between 1 and 0, when it's 1 we should play the get up anim
 							push_list[x]->client->ps.quickerGetup = qtrue;
-						}
-						else if (push_list[x]->s.number < MAX_CLIENTS && push_list[x]->client->ps.m_iVehicleNum &&
-							dirLen <= 128.0f )
-						{ //a player on a vehicle
-							gentity_t *vehEnt = &g_entities[push_list[x]->client->ps.m_iVehicleNum];
-							if (vehEnt->inuse && vehEnt->client && vehEnt->m_pVehicle)
-							{
-								if (vehEnt->m_pVehicle->m_pVehicleInfo->type == VH_SPEEDER ||
-									vehEnt->m_pVehicle->m_pVehicleInfo->type == VH_ANIMAL)
-								{ //push the guy off
-									vehEnt->m_pVehicle->m_pVehicleInfo->Eject(vehEnt->m_pVehicle, (bgEntity_t *)push_list[x], qfalse);
-								}
-							}
 						}
 					}
 				}
@@ -4001,7 +3931,7 @@ void DoGripAction(gentity_t *self, forcePowers_t forcePower)
 	if (self->client->ps.fd.forcePowerDebounce[FP_GRIP] < level.time)
 	{ //2 damage per second while choking, resulting in 10 damage total (not including The Squeeze<tm>)
 		self->client->ps.fd.forcePowerDebounce[FP_GRIP] = level.time + 1000;
-		G_Damage(gripEnt, self, self, NULL, NULL, 2, DAMAGE_NO_ARMOR, MOD_FORCE_DARK);
+		G_Damage(gripEnt, self, self, NULL, NULL, 2, DAMAGE_NO_SHIELD, MOD_UNKNOWN);
 	}
 
 	Jetpack_Off(gripEnt); //make sure the guy being gripped has his jetpack off.
@@ -4037,7 +3967,7 @@ void DoGripAction(gentity_t *self, forcePowers_t forcePower)
 		if ((level.time - gripEnt->client->ps.fd.forceGripStarted) > 3000 && !self->client->ps.fd.forceGripDamageDebounceTime)
 		{ //if we managed to lift him into the air for 2 seconds, give him a crack
 			self->client->ps.fd.forceGripDamageDebounceTime = 1;
-			G_Damage(gripEnt, self, self, NULL, NULL, 20, DAMAGE_NO_ARMOR, MOD_FORCE_DARK);
+			G_Damage(gripEnt, self, self, NULL, NULL, 20, DAMAGE_NO_SHIELD, MOD_UNKNOWN);
 
 			//Must play custom sounds on the actual entity. Don't use G_Sound (it creates a temp entity for the sound)
 			G_EntitySound( gripEnt, CHAN_VOICE, G_SoundIndex(va( "*choke%d.wav", Q_irand( 1, 3 ) )) );
@@ -4123,7 +4053,7 @@ void DoGripAction(gentity_t *self, forcePowers_t forcePower)
 		if ((level.time - gripEnt->client->ps.fd.forceGripStarted) > 3000 && !self->client->ps.fd.forceGripDamageDebounceTime)
 		{ //if we managed to lift him into the air for 2 seconds, give him a crack
 			self->client->ps.fd.forceGripDamageDebounceTime = 1;
-			G_Damage(gripEnt, self, self, NULL, NULL, 40, DAMAGE_NO_ARMOR, MOD_FORCE_DARK);
+			G_Damage(gripEnt, self, self, NULL, NULL, 40, DAMAGE_NO_SHIELD, MOD_UNKNOWN);
 
 			//Must play custom sounds on the actual entity. Don't use G_Sound (it creates a temp entity for the sound)
 			G_EntitySound( gripEnt, CHAN_VOICE, G_SoundIndex(va( "*choke%d.wav", Q_irand( 1, 3 ) )) );
@@ -4310,22 +4240,6 @@ static void WP_ForcePowerRun( gentity_t *self, forcePowers_t forcePower, usercmd
 		break;
 	case FP_SPEED:
 		//This is handled in PM_WalkMove and PM_StepSlideMove
-		if ( self->client->holdingObjectiveItem >= MAX_CLIENTS  
-			&& self->client->holdingObjectiveItem < ENTITYNUM_WORLD )
-		{
-			if ( g_entities[self->client->holdingObjectiveItem].genericValue15 )
-			{//disables force powers
-				WP_ForcePowerStop( self, forcePower );
-			}
-		}
-		/*
-		if ( self->client->ps.powerups[PW_REDFLAG]
-			|| self->client->ps.powerups[PW_BLUEFLAG]
-			|| self->client->ps.powerups[PW_NEUTRALFLAG] )
-		{//no force speed when carrying flag
-			WP_ForcePowerStop( self, forcePower );
-		}
-		*/
 		break;
 	case FP_GRIP:
 		if (self->client->ps.forceHandExtend != HANDEXTEND_FORCE_HOLD)
@@ -4451,16 +4365,7 @@ static void WP_ForcePowerRun( gentity_t *self, forcePowers_t forcePower, usercmd
 		}
 		break;
 	case FP_TELEPATHY:
-		if ( self->client->holdingObjectiveItem >= MAX_CLIENTS  
-			&& self->client->holdingObjectiveItem < ENTITYNUM_WORLD
-			&& g_entities[self->client->holdingObjectiveItem].genericValue15 )
-		{ //if force hindered can't mindtrick whilst carrying a siege item
-			WP_ForcePowerStop( self, FP_TELEPATHY );
-		}
-		else
-		{
-			WP_UpdateMindtrickEnts(self);
-		}
+		WP_UpdateMindtrickEnts(self);
 		break;
 	case FP_SABER_OFFENSE:
 		break;
@@ -5378,6 +5283,22 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 			{
 				self->client->ps.fd.forcePowerRegenDebounceTime = level.time + baseRegenTime;
 			}
+		}
+	}
+
+	if (self->client->ps.weaponTime <= 0 && self->client->ps.heat > 0 && level.time - self->client->weaponHeatDebounceTime >= jkg_heatDissipateTime.integer)
+	{	// when we are not firing a weapon, dissipate heat
+		self->client->ps.heat--;
+		self->client->weaponHeatDebounceTime = level.time;
+
+		if (self->client->ps.heat < 0)
+			self->client->ps.heat = 0.0f;
+
+		//reset heatThreshold if we dropped down low enough
+		if (self->client->ps.heat < self->client->ps.heatThreshold && self->client->ps.overheated)
+		{
+			self->client->ps.overheated = false;
+			G_Sound(self, CHAN_WEAPON, G_SoundIndex("sound/weapons/common/heatClear.wav")); //use PM_AddEvent(EV_HEATCOOLED); in the future?
 		}
 	}
 

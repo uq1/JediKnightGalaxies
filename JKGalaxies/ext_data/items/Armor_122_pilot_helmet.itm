@@ -1,0 +1,9 @@
+{
+	"name":             "Flight Helmet",
+	"internal":             "helmet_pilot",
+	"itemtype":             "armor",
+	"armor":		"rphelmet",
+	"weight":		"2",
+	"cost":			"300",
+	"itemIcon":		"gfx/item_icons/default.tga"
+}

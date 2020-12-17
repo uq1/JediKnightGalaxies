@@ -67,17 +67,13 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2250,
-        "ammoIndex":         "powercell_s",
-        "ammoOnSpawn":   160,
-        "ammoOnPickup":   32,
-        "clipSize":              16,
         "flags":        [ "roll" ],
         "startzoomfov": 20.0,
         "reloadmodifier": 0.7
     },
         
     "firemode0": {
-        "damage":       40,
+        "damage":       20,
         "ammocost":     1,
         "firedelay":    300,
         "range":        3500.0,
@@ -87,13 +83,18 @@
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_BLASTER",
         "splashmeansofdeath": "MOD_BLASTER",
+	"ammoBase": "AMMO_POWERCELL_L",
+	"ammoDefault": "AMMO_POWERCELL_S",
+        "clipSize":              16,
             "accuracy": {
-        "accuracyRating": 25,
-        "accuracyRatingPerShot": 6,
-        "msToDrainAccuracy": 70,
-        "maxAccuracyAdd": 70,
-        "sightsModifier": 0.3
-        }
+			"accuracyRating": 25,
+			"accuracyRatingPerShot": 6,
+			"msToDrainAccuracy": 70,
+			"maxAccuracyAdd": 70,
+			"sightsModifier": 0.3
+        },
+        "heatGenerated": 6,
+		"maxHeat": 75
     },
 
     "firemode1": {
@@ -101,12 +102,11 @@
         "damage": {
                                "damageradius": { "start": 8,
                                                      "function": [ "constant"] },
-                               "damage":       50,
-                               "damagetype": [ "disintegrate" ]
+                               "damage":       40
                         },
         "ammocost":     2,
         "maxchargetime":1000,
-        "chargedamage": 0.18,
+        "chargedamage": 0.25,
         "chargedelay":  125,
 		"chargesubtract": 2,
         "firedelay":    700,
@@ -114,21 +114,26 @@
         "range":        7000.0,
         "recoil":       1.6,
         "spread":       0.0,
-        "projectilespeed": 6500.0,
+        "projectilespeed": 7500.0,
         "projectileclass": "blaster_proj",
         "meansofdeath": "MOD_DISRUPTOR",
         "splashmeansofdeath": "MOD_DISRUPTOR",
-            "accuracy": {
-        "accuracyRating": 35,
-        "accuracyRatingPerShot": 8,
-        "msToDrainAccuracy": 120,
-        "maxAccuracyAdd": 100,
-        "crouchModifier": 0.95,
-        "runModifier": 1.8,
-        "sightsModifier": 0.65,
-        "walkModifier": 1.5,
-        "inAirModifier": 2.4
-        }
+	"ammoBase": "AMMO_POWERCELL_L",
+	"ammoDefault": "AMMO_POWERCELL_S",
+        "clipSize":              16,
+        "accuracy": {
+        	"accuracyRating": 35,
+        	"accuracyRatingPerShot": 8,
+        	"msToDrainAccuracy": 120,
+        	"maxAccuracyAdd": 100,
+        	"crouchModifier": 0.6,
+        	"runModifier": 1.8,
+        	"sightsModifier": 0.65,
+        	"walkModifier": 1.4,
+        	"inAirModifier": 2.4
+        },
+		"heatGenerated": 8,
+		"maxHeat": 75
     },
     
     "playeranims": {

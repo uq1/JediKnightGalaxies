@@ -356,15 +356,7 @@ itemDef_t *Menu_GetMatchingItemByNumber(menuDef_t *menu, int index, const char *
 int BG_GetUIPortrait(const int team, const short classIndex, const short cntIndex);
 char *BG_GetUIPortraitFile(const int team, const short classIndex, const short cntIndex);
 
-siegeClass_t *BG_GetClassOnBaseClass(const int team, const short classIndex, const short cntIndex);
-
 extern uiCrossoverExports_t *UI_InitializeCrossoverAPI( cgCrossoverExports_t *cg );
-
-// TODO: remove
-siegeClassDesc_t g_UIClassDescriptions[MAX_SIEGE_CLASSES];
-siegeTeam_t *siegeTeam1 = NULL;
-siegeTeam_t *siegeTeam2 = NULL;
-int g_UIGloballySelectedSiegeClass = -1;
 
 //Cut down version of the stuff used in the game code
 //This is just the bare essentials of what we need to load animations properly for ui ghoul2 models.
@@ -756,23 +748,30 @@ static const char *GetNetSourceString(int iSource)
 
 	Q_strncpyz( result, GetCRDelineatedString( "MP_INGAME", "NET_SOURCES", UI_SourceForLAN() ), sizeof(result) );
 
-	if ( iSource >= UIAS_GLOBAL1 && iSource <= UIAS_GLOBAL5 ) {
+	if ( iSource >= UIAS_GLOBAL1 && iSource <= UIAS_GLOBAL5 ) 
+	{
+		if(iSource > 1)
+			iSource--; //offset by one, sv_master0 == all servers  --Futuza: fixme, need to redo the whole ui_server source ordering, this also makes internet sources offset by one, but better than completely broke i guess
+
 		char masterstr[MAX_CVAR_VALUE_STRING], cvarname[sizeof("sv_master1")];
 
 		Com_sprintf(cvarname, sizeof(cvarname), "sv_master%d", iSource);
 		trap->Cvar_VariableStringBuffer(cvarname, masterstr, sizeof(masterstr));
+		
 		if(*masterstr)
 		{
 			auto search = masterServers.find(masterstr);
-			if(search != masterServers.end())
+			if (search != masterServers.end())
 			{
-				Q_strncpyz(result, search->second.c_str(), sizeof(result) );
+				Q_strncpyz(result, search->second.c_str(), sizeof(result)); //other sources will just show up as "internet"
 				return result;
 			}
 		}
 		//Q_strcat( result, sizeof(result), va( " %d", iSource ) );
-	}
 
+		if (iSource == 0)
+			Q_strncpyz(result, "All Masters", sizeof("All Masters")); //the first source, just combines all masterservers into one list
+	}
 	return result;
 }
 
@@ -2035,6 +2034,9 @@ static int UI_OwnerDrawWidth(int ownerDraw, int ownerDrawID, float scale) {
 		case UI_JKG_SHOP_RIGHTPRICE:
 			s = JKG_Shop_RightPriceText(ownerDrawID);
 			break;
+		case UI_JKG_SHOP_AMMOPRICE:
+			s = JKG_ShopAmmoPriceText();
+			break;
     default:
       break;
   }
@@ -2507,6 +2509,12 @@ static void UI_OwnerDraw(itemDef_t *item, float x, float y, float w, float h, fl
 		break;
 	case UI_JKG_SHOP_RIGHTPRICE:
 		JKG_Shop_ShopItemCost(item, ownerDrawID);
+		break;
+	case UI_JKG_SHOP_AMMOPRICE:
+		JKG_Shop_ShopAmmoCost(item);
+		break;
+	case UI_JKG_SHOP_ITEMDESC:
+		JKG_Shop_DrawShopDescriptionLine(item, ownerDrawID);
 		break;
 	case UI_JKG_SHOP_LEFTTAB:
 		JKG_Shop_SortSelectionName(item, ownerDrawID);
@@ -4275,175 +4283,6 @@ static void UI_GetCharacterCvars ( void )
 	}
 }
 
-void UI_SetSiegeObjectiveGraphicPos(menuDef_t *menu,const char *itemName,const char *cvarName)
-{
-	itemDef_t	*item;
-	char		cvarBuf[1024];
-	const char	*holdVal;
-	char		*holdBuf;
-
-	item = Menu_FindItemByName(menu, itemName);
-
-	if (item)
-	{
-		// get cvar data
-		trap->Cvar_VariableStringBuffer(cvarName, cvarBuf, sizeof(cvarBuf));
-
-		holdBuf = cvarBuf;
-		if (String_Parse(&holdBuf,&holdVal))
-		{
-			item->window.rectClient.x = atof(holdVal);
-			if (String_Parse(&holdBuf,&holdVal))
-			{
-				item->window.rectClient.y = atof(holdVal);
-				if (String_Parse(&holdBuf,&holdVal))
-				{
-					item->window.rectClient.w = atof(holdVal);
-					if (String_Parse(&holdBuf,&holdVal))
-					{
-						item->window.rectClient.h = atof(holdVal);
-
-						item->window.rect.x = item->window.rectClient.x;
-						item->window.rect.y = item->window.rectClient.y;
-
-						item->window.rect.w = item->window.rectClient.w;
-						item->window.rect.h = item->window.rectClient.h;
-					}
-				}
-			}
-		}
-	}
-}
-
-void UI_FindCurrentSiegeTeamClass( void )
-{
-	menuDef_t *menu;
-	int myTeam = (int)(trap->Cvar_VariableValue("ui_myteam"));
-	char *itemname;
-	itemDef_t *item;
-	int	baseClass;
-
-	menu = Menu_GetFocused();	// Get current menu
-
-	if (!menu)
-	{
-		return;
-	}
-
-	if (( myTeam != TEAM_RED ) && ( myTeam != TEAM_BLUE ))
-	{
-		return;
-	}
-
-	// If the player is on a team, 
-	if ( myTeam == TEAM_RED )
-	{			
-		itemDef_t *item;
-		item = (itemDef_t *) Menu_FindItemByName(menu, "onteam1" );
-		if (item)
-		{
-			Item_RunScript(item, item->action);
-		}
-	}
-	else if ( myTeam == TEAM_BLUE )
-	{			
-		itemDef_t *item;
-		item = (itemDef_t *) Menu_FindItemByName(menu, "onteam2" );
-		if (item)
-		{
-			Item_RunScript(item, item->action);
-		}
-	}	
-
-
-	baseClass = (int)trap->Cvar_VariableValue("ui_siege_class");
-
-	// Find correct class button and activate it.
-	if (baseClass == SPC_INFANTRY)
-	{
-		itemname = "class1_button";
-	}
-	else if (baseClass == SPC_HEAVY_WEAPONS)
-	{
-		itemname = "class2_button";
-	}
-	else if (baseClass == SPC_DEMOLITIONIST)
-	{
-		itemname = "class3_button";
-	}
-	else if (baseClass == SPC_VANGUARD)
-	{
-		itemname = "class4_button";
-	}
-	else if (baseClass == SPC_SUPPORT)
-	{
-		itemname = "class5_button";
-	}
-	else if (baseClass == SPC_SUPPORT)
-	{
-		itemname = "class5_button";
-	}
-	else if (baseClass == SPC_JEDI)
-	{
-		itemname = "class6_button";
-	}
-	else 
-	{
-		return;
-	}
-
-	item = (itemDef_t *) Menu_FindItemByName(menu, itemname );
-	if (item)
-	{
-		Item_RunScript(item, item->action);
-	}
-
-}
-
-void UI_UpdateSiegeObjectiveGraphics( void )
-{
-	menuDef_t *menu;
-	int	teamI,objI;
-
-	menu = Menu_GetFocused();	// Get current menu
-
-	if (!menu)
-	{
-		return;
-	}
-
-	// Hiding a bunch of fields because the opening section of the siege menu was getting too long
-	Menu_ShowGroup(menu,"class_button",qfalse);
-	Menu_ShowGroup(menu,"class_count",qfalse);
-	Menu_ShowGroup(menu,"feeders",qfalse);
-	Menu_ShowGroup(menu,"classdescription",qfalse);
-	Menu_ShowGroup(menu,"minidesc",qfalse);
-	Menu_ShowGroup(menu,"obj_longdesc",qfalse);
-	Menu_ShowGroup(menu,"objective_pic",qfalse);
-	Menu_ShowGroup(menu,"stats",qfalse);
-	Menu_ShowGroup(menu,"forcepowerlevel",qfalse);
-
-	// Get objective icons for each team
-	for (teamI=1;teamI<3;teamI++)
-	{
-		for (objI=1;objI<8;objI++)
-		{
-			Menu_SetItemBackground(menu,va("tm%i_icon%i",teamI,objI),va("*team%i_objective%i_mapicon",teamI,objI));
-			Menu_SetItemBackground(menu,va("tm%i_l_icon%i",teamI,objI),va("*team%i_objective%i_mapicon",teamI,objI));
-		}
-	}
-
-	// Now get their placement on the map
-	for (teamI=1;teamI<3;teamI++)
-	{
-		for (objI=1;objI<8;objI++)
-		{
-			UI_SetSiegeObjectiveGraphicPos(menu,va("tm%i_icon%i",teamI,objI),va("team%i_objective%i_mappos",teamI,objI));
-		}
-	}
-
-}
-
 saber_colors_t TranslateSaberColor( const char *name );
 
 static void UI_UpdateSaberCvars ( void )
@@ -5457,6 +5296,9 @@ static void UI_RunMenuScript(char **args)
 		else if (Q_stricmp(name, "clampmaxplayers") == 0)
 		{
 			UI_ClampMaxPlayers();
+		}
+		else if (Q_stricmp(name, "clearfocus") == 0) {
+			// Kind of hack. The clearfocus script already gets called prior to this (where?) causes breakage.
 		}
 		else 
 		{
@@ -7761,6 +7603,8 @@ UI_Init
 void UI_Init( qboolean inGameLoad ) {
 	const char *menuSet;
 	int start;
+
+	JKG_LoadMeansOfDamage();
 
 	// Get the list of possible languages
 	uiInfo.languageCount = trap->SE_GetNumLanguages();	// this does a dir scan, so use carefully

@@ -1,21 +1,9 @@
 {
-	"name":             "Greater Bacta Canister",
-	"internal":             "Stimpack",
-	"cost":		"150",
-	"itemtype":             "none",
-
-	"pSpell":		"16",
-	"affector":		"0",
-	"amount":		"99",
-	
-	"pSpell2":		"1",
-	"affector2":		"0",
-	"amount2":		"50",
-
-	"pSpell3":		"14",
-	"affector3":		"sound/items/use_bacta.wav",
-
-	"pSpell4":		"15",
-
+	"name":             "BioTech Medium Bacta Canister",
+	"internal":             "bacta_medium",
+	"cost":		"30",
+	"itemtype":             "consumable",
+	"maxStack":		3,
+	"consumeScript":	"item_bacta_medium",
 	"itemIcon":		"gfx/item_icons/bacta_big.tga"
 }

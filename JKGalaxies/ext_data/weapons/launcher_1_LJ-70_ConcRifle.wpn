@@ -64,10 +64,6 @@
     "stats": {
         "slot":         1,
         "reloadtime":   2500,
-        "ammoIndex":         "concussion",
-        "ammoOnSpawn":   15,
-        "ammoOnPickup":   5,
-        "clipSize":              5,
         "flags":        [ "knockback" ],
         "reloadmodifier": 0.5,
         "speed":        0.9
@@ -76,8 +72,13 @@
     "firemode0": {
 		"damage": {
 			"damageradius": { "start": 420 },
-			"damage": 35,
-			"damageType": [ "stun" ]
+			"damage": 45,
+			"buffs": [
+					{
+						"buff": "standard-stun",
+						"duration": 2000
+					}
+				]
 		},
 //        "damage": 50,//100,//{
 //                          "damageradius": { "start": 128 },
@@ -87,8 +88,7 @@
 //        "secondarydamage": {
 //                          "damageradius": { "start": 210 },
 //                          "delay": 1000,
-//                          "damage": 100,
-//                          "damagetype": [ "explosion" ]
+//                          "damage": 100
 //                        },
         "ballistic":    true,
         "collisionsize":1.0,
@@ -96,13 +96,16 @@
         "firedelay":    1800,
         "firingtype":   "semi",
         "range":        40000.0,
-        "recoil":       9.0,
+        "recoil":       8.0,
         "spread":       1.0,
         "splashrange":  420,//210,
         "projectilespeed":9000.0,
         "projectileclass":"conc_proj",
-        "meansofdeath": "MOD_CONC",
-        "splashmeansofdeath": "MOD_CONC",
+        "meansofdeath": "MOD_SONIC",
+        "splashmeansofdeath": "MOD_SONIC",
+	"ammobase": "AMMO_CONCUSSION",
+	"ammodefault": "AMMO_CONCUSSION",
+        "clipSize":              5,
             "accuracy": {
         "accuracyRating": 42,
         "accuracyRatingPerShot": 12,
@@ -118,7 +121,7 @@
     
     "firemode1": {
 //        "hitscan":      true,
-        "damage":       40,//80,
+        "damage":       50,//80,
         "ammocost":     1,
         "maxchargetime":1500,
         "chargedamage": 1.6,
@@ -126,13 +129,16 @@
         "firedelay":    1800,
         "firingtype":   "semi",
         "range":        40000.0,
-        "recoil":       9.8,
+        "recoil":       8.8,
         "spread":       1.0,
         "splashrange":  60,//30,
         "projectilespeed":9000.0,
         "projectileclass":"conc_proj",
-        "meansofdeath": "MOD_CONC",
-        "splashmeansofdeath": "MOD_CONC",
+        "meansofdeath": "MOD_SONIC",
+        "splashmeansofdeath": "MOD_SONIC",
+	"ammobase": "AMMO_CONCUSSION",
+	"ammodefault": "AMMO_CONCUSSION",
+        "clipSize":              5,
             "accuracy": {
         "accuracyRating": 24,
         "accuracyRatingPerShot": 20,

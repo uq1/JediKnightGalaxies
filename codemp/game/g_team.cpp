@@ -204,25 +204,6 @@ qboolean OnSameTeam( gentity_t *ent1, gentity_t *ent2 ) {
 		return qfalse;
 	}
 
-	if (ent1->s.eType == ET_NPC &&
-		ent1->s.NPC_class == CLASS_VEHICLE &&
-		ent1->client &&
-		ent1->client->sess.sessionTeam != TEAM_FREE &&
-		ent2->client &&
-		ent1->client->sess.sessionTeam == ent2->client->sess.sessionTeam)
-	{
-		return qtrue;
-	}
-	if (ent2->s.eType == ET_NPC &&
-		ent2->s.NPC_class == CLASS_VEHICLE &&
-		ent2->client &&
-		ent2->client->sess.sessionTeam != TEAM_FREE &&
-		ent1->client &&
-		ent2->client->sess.sessionTeam == ent1->client->sess.sessionTeam)
-	{
-		return qtrue;
-	}
-
 	if (ent1->client->sess.sessionTeam == TEAM_FREE &&
 		ent2->client->sess.sessionTeam == TEAM_FREE &&
 		ent1->s.eType == ET_NPC &&
@@ -938,7 +919,7 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 		if (player->inuse && player->client->sess.sessionTeam == team ) {
 
 			h = player->client->ps.stats[STAT_HEALTH];
-			a = player->client->ps.stats[STAT_ARMOR];
+			a = player->client->ps.stats[STAT_SHIELD];
 			if (h < 0) h = 0;
 			if (a < 0) a = 0;
 

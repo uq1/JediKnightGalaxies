@@ -44,8 +44,14 @@ static void JKG_target_vendor_think(gentity_t* self) {
 	}
 	pTC = tc->second;
 
+	//notify players when the shops refresh if announcing is enabled
+	if(jkg_announceShopRefresh.integer > 0 && ((level.time - level.startTime) > jkg_shop_replenish_time.integer * 1000 -1))
+	{
+		trap->SendServerCommand(-1, va("chat 100 \"Vendor, %s, replenished their stock.", self->targetname));	//--futuza: maybe not send in chat? this'll do for now
+	}
+
 	// Use the treasure class to pick items
-	self->s.seed = Q_irand(0, 10000); // temp
+	self->s.seed = Q_irandSafe((time(0) % 10000), QRAND_MAX - 1) + Q_irand(0, 10000);		//take current time (so every game is different and we aren't just pseudo random), but also add pseudo random so each vendor is different  --futuza
 	npc->inventory->clear();
 	pTC->Pick(items, self->s.seed);
 
@@ -59,7 +65,16 @@ static void JKG_target_vendor_think(gentity_t* self) {
 	// If the vendor has a client using it, we need to make sure to update that client
 	if (npc->genericValue1 != ENTITYNUM_NONE) {
 		gentity_t* patron = &g_entities[npc->genericValue1];
-		BG_SendTradePacket(IPT_TRADE, patron, npc, &(*npc->inventory)[0], npc->inventory->size(), 0);
+		if (npc->inventory->size() == 0)
+		{
+			BG_SendTradePacket(IPT_TRADECANCEL, patron, npc, nullptr, 0, 0);
+			npc->genericValue1 = ENTITYNUM_NONE;	// cancel the trade because we have no items
+		}
+		else
+		{
+			BG_SendTradePacket(IPT_TRADE, patron, npc, &(*npc->inventory)[0], npc->inventory->size(), 0);
+		}
+		
 	}
 
 	self->nextthink = level.time + (jkg_shop_replenish_time.integer * 1000);
@@ -77,7 +92,7 @@ extern gNPC_t		*NPCInfo;
 extern usercmd_t	ucmd;
 extern qboolean NPC_FaceEntity(gentity_t *ent, qboolean doPitch);
 extern void G_SoundOnEnt(gentity_t *ent, soundChannel_t channel, const char *soundPath);
-extern qboolean NPC_VendorHasConversationSounds(gentity_t *conversationalist);
+extern qboolean NPC_VendorHasConversationSounds(gentity_t *conversationalist, char *name);
 extern qboolean NPC_VendorHasVendorSound(gentity_t *conversationalist, char *name);
 extern void NPC_ConversationAnimation(gentity_t *NPC);
 void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activator) {
@@ -125,9 +140,15 @@ void JKG_target_vendor_use(gentity_t* self, gentity_t* other, gentity_t* activat
 			NPC_ConversationAnimation(self);
 			G_SoundOnEnt(self, CHAN_VOICE_ATTEN, filename);
 		}
-		else if (NPC_VendorHasConversationSounds(self))
+		else if (NPC_VendorHasConversationSounds(self, "conversation00"))
 		{// Override with generic chat sounds for this specific NPC...
-			strcpy(filename, va("sound/conversation/%s/conversation00.mp3", self->NPC_type));
+			char filename[256];
+			int max = 1;
+
+			while (NPC_VendorHasConversationSounds(self, va("conversation0%i", max))) 
+				max++;
+
+			strcpy(filename, va("sound/conversation/civilian_%s/conversation0%i.mp3", self->NPC_type, irand(0, max - 1)));
 			NPC_ConversationAnimation(self);
 			G_SoundOnEnt(self, CHAN_VOICE_ATTEN, filename);
 		}
@@ -192,4 +213,108 @@ void JKG_SP_target_vendor(gentity_t *ent) {
 	// targetname gets set to the treasureclass. seems pretty hack but it's a good idea
 	ent->genericValue1 = targetVendor->s.number;
 	targetVendor->genericValue1 = ENTITYNUM_NONE;
+}
+
+/*
+====================
+JKG_MakeNPCVendor
+
+Makes an NPC into a vendor (with the designated treasure class)
+====================
+*/
+void JKG_MakeNPCVendor(gentity_t* ent, char* szTreasureClassName)
+{
+	szTreasureClassName = Q_strlwr(szTreasureClassName);
+
+	Q_strncpyz(ent->treasureclass, szTreasureClassName, sizeof(ent->treasureclass));
+
+	//--Futuza: FIXME spawned vendors, need to add thinking to spawned vendors to get them to refresh - this crashes right now
+	/*ent->think = JKG_target_vendor_think;
+	ent->nextthink = level.time + 50;*/
+
+
+	ent->use = JKG_GenericVendorUse;
+	ent->r.svFlags |= SVF_PLAYER_USABLE;
+	ent->flags |= FL_GODMODE;
+	ent->flags |= FL_NOTARGET;
+	ent->flags |= FL_NO_KNOCKBACK;
+	ent->bVendor = true;
+	ent->s.seed = Q_irandSafe((time(0) % 10000), QRAND_MAX-1) + Q_irand(0, QRAND_MAX - 1);		//take current time (so every game is different and we aren't just pseudo random), but also add pseudo random so each vendor is different  --futuza
+	ent->genericValue1 = ENTITYNUM_NONE;
+
+	Com_Printf("Attempting to spawn npc vendor: %s\n", ent->targetname);
+
+	JKG_RegenerateStock(ent);
+}
+
+/*
+====================
+JKG_GenericVendorUse
+
+Gets called when a vendor (spawned vendor, not placed with map) is used.
+====================
+*/
+void JKG_GenericVendorUse(gentity_t* self, gentity_t* other, gentity_t* activator)
+{
+	self->genericValue1 = other->s.number;
+
+	if (self->s.eType == ET_NPC)
+	{
+		NPC_FaceEntity(activator, qfalse);
+
+		if (self->client->NPC_class == CLASS_TRAVELLING_VENDOR)
+			self->NPC->walkDebounceTime = level.time + 60000; // UQ1: Wait 60 seconds before moving...
+	}
+
+	BG_SendTradePacket(IPT_TRADEOPEN, activator, self, &(*self->inventory)[0], self->inventory->size(), 0);
+
+	activator->client->ps.useDelay = level.time + 500;
+	activator->client->currentTrader = self;
+	activator->client->pmnomove = true;
+}
+
+/*
+====================
+JKG_RegenerateStock
+
+Regenerates the stock of a vendor (generic)
+====================
+*/
+void JKG_RegenerateStock(gentity_t* ent)
+{
+	TreasureClass* pTC = nullptr;
+	vector<int> items;
+	auto tc = umTreasureClasses.find(ent->treasureclass);
+
+	if (tc == umTreasureClasses.end()) {
+		Com_Printf("couldn't find vendor treasure class: %s\n", ent->treasureclass);
+		return;
+	}
+	pTC = tc->second;
+
+	// Use the treasure class to pick items
+	ent->s.seed = Q_irandSafe((time(0) % 10000), QRAND_MAX - 1) + Q_irand(0, QRAND_MAX - 1); // temp
+	ent->inventory->clear();
+	pTC->Pick(items, ent->s.seed);
+
+	// Add the items that we've picked to the vendor's inventory
+	for (auto it = items.begin(); it != items.end(); ++it) {
+		itemInstance_t item = BG_ItemInstance(*it, 1);
+		BG_GiveItemNonNetworked(ent, item);
+	}
+
+	// If the vendor has a client using it, we need to make sure to update that client
+	if (ent->genericValue1 != ENTITYNUM_NONE) {
+		gentity_t* patron = &g_entities[ent->genericValue1];
+		if (ent->inventory->size() == 0)
+		{
+			BG_SendTradePacket(IPT_TRADECANCEL, patron, ent, nullptr, 0, 0);
+			ent->genericValue1 = ENTITYNUM_NONE;	// cancel the trade because we have no items
+		}
+		else
+		{
+			BG_SendTradePacket(IPT_TRADE, patron, ent, &(*ent->inventory)[0], ent->inventory->size(), 0);
+		}
+	}
+
 }

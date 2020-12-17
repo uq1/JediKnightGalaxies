@@ -3,6 +3,7 @@
 int JKG_PartyMngt_FeederCount(int feeder);
 qboolean JKG_PartyMngt_FeederSelection(int feeder, int index, itemDef_t *item);
 const char *JKG_PartyMngt_FeederItemText(int feeder, int index, int column, qhandle_t *handle1, qhandle_t *handle2, qhandle_t *handle3);
+void JKG_PartyMngt_UpdateNotify(jkgPartyNotify_e msg);
 
 void JKG_PartyMngt_DrawDialog(int line, float x, float y, float w, float h);
 

@@ -40,7 +40,7 @@ TreasureClass::TreasureClass(const char* szName, cJSON* pJSON) {
 		TreasureEntry te;
 		memset(&te, 0, sizeof(te));
 
-		te.tc.szTreasureClass = Q_strlwr((char*)cJSON_GetItemKey(pTreasure));
+		Q_strncpyz(te.tc.szTreasureClass, Q_strlwr((char*)cJSON_GetItemKey(pTreasure)), MAX_QPATH);
 		te.nOdds = cJSON_ToInteger(pTreasure);
 		te.bResolved = false;
 		vTreasure.push_back(te);
@@ -56,10 +56,21 @@ TreasureClass::~TreasureClass() {
 void TreasureClass::Pick(std::vector<int>& rtItems, int32_t nSeed) {
 	pSeed->Reseed(nSeed);
 
+	if (nNumberPicksMax == 0)
+	{	// can't pick any items, don't bother with this
+		return;
+	}
+
 	int32_t nItemCount = pSeed->Irand(nNumberPicksMin, nNumberPicksMax);
 	for (int i = 0; i < nItemCount; i++) {
 		bool bDidntFind = false;
 		int nItemPicked = PickSingle(pSeed->rand());
+		if (nItemPicked == -1)
+		{
+			// failed to pick an item for this treasure class
+			Com_Printf("failed to pick for TC: %s\n", szClassName.c_str());
+			return;
+		}
 		if (bUniquePicks) {	// Did we pick an item that we already have in this list? If so, we shouldn't add it.
 			for (auto it = rtItems.begin(); it != rtItems.end(); ++it) {
 				if (*it == nItemPicked) {
@@ -85,6 +96,11 @@ int TreasureClass::PickSingle(int32_t nSeed) {
 		return vTreasure.begin()->tc.nItem;
 	}
 
+	if (nTotalOdds == 0)
+	{
+		return -1;
+	}
+
 	int nOdds = pSeed->Irand(0, nTotalOdds-1);
 	auto it = vTreasure.begin();
 
@@ -105,6 +121,14 @@ int TreasureClass::PickSingle(int32_t nSeed) {
 	else {
 		pTC = it->tc.pTreasureClass;
 	}
+
+	// print a warning if we didn't get a good TC reference here, and repick
+	if (pTC == nullptr)
+	{
+		Com_Printf("^3WARNING: Could not resolve TC reference %s\n", sTreasureClass.c_str());
+		return PickSingle(pSeed->rand());
+	}
+
 	return pTC->PickSingle(pSeed->rand());
 }
 
@@ -115,6 +139,11 @@ void TreasureClass::PrintDropRates(gentity_t* ent, int nSamples, bool bMulti) {
 	for (int i = 0; i < nSamples; i++) {
 		if (!bMulti) {
 			int nItemPicked = PickSingle(pSeed->rand());
+			if (nItemPicked == -1)
+			{
+				Com_Printf("Drop rate evaluation failed; make sure the treasure class has items in it, and everything has positive odds!\n");
+				return;
+			}
 			mDropCounts[nItemPicked]++;
 		}
 		else {
@@ -177,6 +206,12 @@ void TreasureClass::StackGuard(const std::string& szCheck) {
 				// Recurse over it
 				std::string sSearchString = it->tc.szTreasureClass;
 				auto it2 = umTreasureClasses.find(sSearchString);
+				if (it2 == umTreasureClasses.end()) //check if wasn't found
+				{
+					//not sure how to proceed with this case where we hit end	--futuza
+					Com_Printf("^3\"%s\" not found in treasure class!\n", sSearchString.c_str());
+					continue;
+				}
 				it->tc.pTreasureClass = it2->second;
 				it->tc.pTreasureClass->StackGuard(szCheck);
 			}

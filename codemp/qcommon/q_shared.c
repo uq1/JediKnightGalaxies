@@ -64,6 +64,26 @@ qboolean Q_stratt( char *dest, unsigned int iSize, char *source )
 	return qtrue;
 }
 
+/****************************************************
+* Q_strpnl
+*
+* Strips newline characters from a string.
+*
+****************************************************/
+
+char* Q_strpnl(char* in)
+{
+	int i = 0;
+	while (in[i] != '\0')
+	{
+		if (in[i] == '\n')
+		{
+			in[i] = ' ';
+		}
+		i++;
+	}
+	return in;
+}
 
 /*
 -------------------------

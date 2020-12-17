@@ -1093,43 +1093,9 @@ void Q3_RemoveEnt( gentity_t *victim )
 		}
 		else
 		{//remove the NPC
-			if ( victim->client->NPC_class == CLASS_VEHICLE )
-			{//eject everyone out of a vehicle that's about to remove itself
-				Vehicle_t *pVeh = victim->m_pVehicle;
-				if ( pVeh && pVeh->m_pVehicleInfo )
-				{
-					pVeh->m_pVehicleInfo->EjectAll( pVeh );
-				}
-			}
 			victim->think = G_FreeEntity;
 			victim->nextthink = level.time + 100;
 		}
-		/*
-		//ClientDisconnect(ent);
-		victim->s.eFlags |= EF_NODRAW;
-		victim->s.eType = ET_INVISIBLE;
-		victim->contents = 0;
-		victim->health = 0;
-		victim->targetname = NULL;
-
-		if ( victim->NPC && victim->NPC->tempGoal != NULL )
-		{
-			G_FreeEntity( victim->NPC->tempGoal );
-			victim->NPC->tempGoal = NULL;
-		}
-		if ( victim->client->ps.saberEntityNum != ENTITYNUM_NONE && victim->client->ps.saberEntityNum > 0 )
-		{
-			if ( g_entities[victim->client->ps.saberEntityNum].inuse )
-			{
-				G_FreeEntity( &g_entities[victim->client->ps.saberEntityNum] );
-			}
-			victim->client->ps.saberEntityNum = ENTITYNUM_NONE;
-		}
-		//Disappear in half a second
-		victim->e_ThinkFunc = thinkF_G_FreeEntity;
-		victim->nextthink = level.time + 500;
-		return;
-		*/
 	}
 	else
 	{
@@ -1369,7 +1335,7 @@ int Q3_GetFloat( int entID, int type, const char *name, float *value )
 			G_DebugPrint( WL_WARNING, "Q3_GetFloat: SET_ARMOR, %s not a client\n", ent->targetname );
 			return 0;
 		}
-		*value = ent->client->ps.stats[STAT_ARMOR];
+		*value = ent->client->ps.stats[STAT_SHIELD];
 		break;
 	case SET_WALKSPEED://## %d="0" # Change walkSpeed
 		return 0;
@@ -2588,10 +2554,10 @@ static void Q3_SetArmor( int entID, int data )
 		return;
 	}
 
-	ent->client->ps.stats[STAT_ARMOR] = data;
-	if ( ent->client->ps.stats[STAT_ARMOR] > ent->client->ps.stats[STAT_MAX_ARMOR] )
+	ent->client->ps.stats[STAT_SHIELD] = data;
+	if ( ent->client->ps.stats[STAT_SHIELD] > ent->client->ps.stats[STAT_MAX_SHIELD] )
 	{
-		ent->client->ps.stats[STAT_ARMOR] = ent->client->ps.stats[STAT_MAX_ARMOR];
+		ent->client->ps.stats[STAT_SHIELD] = ent->client->ps.stats[STAT_MAX_SHIELD];
 	}
 }
 

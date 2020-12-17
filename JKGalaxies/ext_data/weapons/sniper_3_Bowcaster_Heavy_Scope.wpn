@@ -57,10 +57,6 @@
     "stats": {
         "slot":         0,
         "reloadtime":   2750,
-        "ammoIndex":         "quarrel",
-        "ammoOnSpawn":   60,
-        "ammoOnPickup":   12,
-        "clipSize":              6,
         "flags":        [ "togglezoom", "knockback" ],
         "reloadmodifier": 0.7,
         "startzoomfov": 20
@@ -70,7 +66,7 @@
         "damage":       60,
         "ballistic":    true,
         "maxchargetime":1000,
-        "chargedamage": 2.0,
+        "chargedamage": 2.5,
         "chargedelay":  1000,
         "ammocost":     1,
         "collisionsize":2.0,
@@ -82,8 +78,11 @@
 		"splashrange":	30,
         "projectilespeed": 9000.0,
         "projectileclass": "bowcaster_proj",
-        "meansofdeath": "MOD_DISRUPTOR_SNIPER",
-		"splashmeansofdeath": "MOD_DISRUPTOR_SNIPER",
+        "meansofdeath": "MOD_QUARREL",
+	"splashmeansofdeath": "MOD_QUARREL",
+	"ammobase": "AMMO_QUARREL",
+	"ammodefault": "AMMO_QUARREL",
+        "clipSize":              6,
             "accuracy": {
         "accuracyRating": 20,
         "accuracyRatingPerShot": 6,

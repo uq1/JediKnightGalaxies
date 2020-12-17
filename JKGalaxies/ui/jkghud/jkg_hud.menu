@@ -145,7 +145,7 @@
 		itemDef				// The black box where messages are printed - and 'tis bloody hard-coded..!
 		{
 			name				text
-			rect				9 366 200 87
+			rect				9 366 200 90
 			forecolor			0 0 0 0	// Think of making the damn thing invisible? Wouldn't think so!
 		}
 		
@@ -333,6 +333,71 @@
 		{
 			name				slotl0
 			rect				532 8 11 11
+		}
+
+		// -----------------------------		
+		// 	 Slot quantity label
+		//	 Only drawn if maxStack > 1
+		// -----------------------------
+
+		itemDef 
+		{
+			name				slotq1
+			rect				221 33 11 11
+		}
+		
+		itemDef 
+		{
+			name				slotq2
+			rect				259 33 11 11
+		}
+		
+		itemDef 
+		{
+			name				slotq3
+			rect				297 33 11 11
+		}
+		
+		itemDef 
+		{
+			name				slotq4
+			rect				334 33 11 11
+		}
+		
+		itemDef 
+		{
+			name				slotq5
+			rect				372 33 11 11
+		}
+		
+		itemDef 
+		{
+			name				slotq6
+			rect				410 33 11 11
+		}
+		
+		itemDef 
+		{
+			name				slotq7
+			rect				447 33 11 11
+		}
+		
+		itemDef 
+		{
+			name				slotq8
+			rect				484 33 11 11
+		}
+		
+		itemDef 
+		{
+			name				slotq9
+			rect				522 33 11 11
+		}
+		
+		itemDef 
+		{
+			name				slotq0
+			rect				560 33 11 11
 		}
 
 		itemDef 				// Holographic overlay

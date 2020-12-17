@@ -810,7 +810,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 112 54 23
+			rect		240 87 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -826,7 +826,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 173 54 23
+			rect		240 148 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -842,7 +842,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 232 54 23
+			rect		240 207 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -858,7 +858,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 290 54 23
+			rect		240 265 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -874,7 +874,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 348 54 23
+			rect		240 323 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -890,7 +890,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		240 406 54 23
+			rect		240 381 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1095
@@ -1939,7 +1939,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 112 54 23
+			rect		483 87 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
@@ -1955,7 +1955,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 173 54 23
+			rect		483 148 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
@@ -1971,7 +1971,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 232 54 23
+			rect		483 207 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
@@ -1987,7 +1987,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 290 54 23
+			rect		483 265 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
@@ -2003,7 +2003,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 348 54 23
+			rect		483 323 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
@@ -2019,7 +2019,7 @@
 			font		5
 			textscale	0.4
 			forecolor	1 1 1 1
-			rect		483 406 54 23
+			rect		483 381 54 23
 			textalignx	54
 			visible		1
 			ownerdraw	1096
@@ -2338,31 +2338,75 @@
 			text		@JKG_INVENTORY_FILTER
 		}
 
-		// Buy Button
+		// Buy Ammo Button
 		itemDef
 		{
-			name		shopCenter_BuyHL
-			group		shop_center
-			style		WINDOW_STYLE_SHADER
-			rect		302 212 45 45
-			background	"gfx/ui/shop_buy"
+			name		shopCenter_BuyAmmoBN
+			group		shop_ammobuttons
+			type		ITEM_TYPE_BUTTON
+			rect		306 155 36 36
 			forecolor	1 1 1 1
 			visible		0
-			decoration	
+
+			mouseEnter
+			{
+				show		shopCenter_BuyAmmoHL
+			}
+
+			mouseExit
+			{
+				hide		shopCenter_BuyAmmoHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_buyammo
+			}
 		}
 
 		itemDef
 		{
-			name		shopCenter_BuyBG
-			group		shop_center
+			name		shopCenter_BuyAmmoHL
 			style		WINDOW_STYLE_SHADER
-			rect		302 212 45 45
-			background	"gfx/ui/shop_buy"
+			group		shop_ammobuttons
+			rect		302 158 45 45
+			background	"gfx/ui/shop_buyammo"
 			forecolor	1 1 1 1
-			visible		1
-			decoration
+			visible		0
 		}
 
+		itemDef
+		{
+			name		shopCenter_BuyAmmoBG
+			style		WINDOW_STYLE_SHADER
+			forecolor	1 1 1 1
+			rect		302 158 45 45
+			background	"gfx/ui/shop_buyammo"
+			group		shop_ammobuttons
+			visible		0
+		}
+
+		// Buy ammo credit count
+		itemDef
+		{
+			name		shopCenter_BuyAmmoCredits
+			group		shop_ammobuttons
+			rect		302 202 50 23
+			font		5
+			textscale	0.4
+			textalign	ITEM_ALIGN_CENTER
+			textalignx	25
+			forecolor	1 1 1 1
+			decoration
+			visible		0
+
+			ownerdraw	1097
+
+			text		""
+		}
+
+		// Buy Button
 		itemDef
 		{
 			name		shopCenter_BuyBN
@@ -2389,31 +2433,31 @@
 			}
 		}
 
-		// Sell Button
 		itemDef
 		{
-			name		shopCenter_SellHL
+			name		shopCenter_BuyHL
 			group		shop_center
 			style		WINDOW_STYLE_SHADER
-			rect		300 255 46 46
-			background	"gfx/ui/shop_sell"
+			rect		302 212 45 45
+			background	"gfx/ui/shop_buy"
 			forecolor	1 1 1 1
 			visible		0
-			decoration
+			decoration	
 		}
 
 		itemDef
 		{
-			name		shopCenter_SellBG
+			name		shopCenter_BuyBG
 			group		shop_center
 			style		WINDOW_STYLE_SHADER
-			rect		300 255 46 46
-			background	"gfx/ui/shop_sell"
+			rect		302 212 45 45
+			background	"gfx/ui/shop_buy"
 			forecolor	1 1 1 1
 			visible		1
 			decoration
 		}
 
+		// Sell Button
 		itemDef
 		{
 			name		shopCenter_SellBN
@@ -2438,6 +2482,470 @@
 			{
 				jkgscript	shop_sell
 			}
-		}	
+		}
+
+		itemDef
+		{
+			name		shopCenter_SellHL
+			group		shop_center
+			style		WINDOW_STYLE_SHADER
+			rect		300 255 46 46
+			background	"gfx/ui/shop_sell"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopCenter_SellBG
+			group		shop_center
+			style		WINDOW_STYLE_SHADER
+			rect		300 255 46 46
+			background	"gfx/ui/shop_sell"
+			forecolor	1 1 1 1
+			visible		1
+			decoration
+		}
+
+		// The descripton, for the examine menu
+		// Description lines
+		itemDef
+		{
+			name		inv_desc0
+			group		shop_examine
+			rect		110 90 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	0
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc1
+			group		shop_examine
+			rect		110 96 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	1
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc2
+			group		shop_examine
+			rect		110 102 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	2
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc3
+			group		shop_examine
+			rect		110 108 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	3
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc4
+			group		shop_examine
+			rect		110 114 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	4
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc5
+			group		shop_examine
+			rect		110 120 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	5
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc6
+			group		shop_examine
+			rect		110 126 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	6
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc7
+			group		shop_examine
+			rect		110 132 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	7
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc8
+			group		shop_examine
+			rect		110 138 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	8
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc9
+			group		shop_examine
+			rect		110 144 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	9
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc10
+			group		shop_examine
+			rect		110 150 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	10
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc11
+			group		shop_examine
+			rect		110 156 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	11
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc12
+			group		shop_examine
+			rect		110 162 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	12
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc13
+			group		shop_examine
+			rect		110 168 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	13
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc14
+			group		shop_examine
+			rect		110 174 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	14
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc15
+			group		shop_examine
+			rect		110 180 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	15
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc16
+			group		shop_examine
+			rect		110 186 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	16
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc17
+			group		shop_examine
+			rect		110 192 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	17
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc18
+			group		shop_examine
+			rect		110 198 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	18
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc19
+			group		shop_examine
+			rect		110 204 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	19
+			decoration
+		}
+		itemDef
+		{
+			name		inv_desc20
+			group		shop_examine
+			rect		110 210 160 20
+			style		1
+			text		""
+			textalign	ITEM_ALIGN_LEFT
+			font		5
+			textscale	0.35
+			forecolor	1 1 1 1
+			visible		0
+			ownerdraw	1098
+			ownerdrawid	20
+			decoration
+		}
+
+		// Examine buttons - the "examine" button itself is part of the left group, which is hidden by code
+		itemDef
+		{
+			name		shopCenter_ExamineBN
+			group		shop_left
+			type		ITEM_TYPE_BUTTON
+			rect		306 345 36 36
+			forecolor	1 1 1 1
+			visible		1
+
+			mouseEnter
+			{
+				show		shopCenter_ExamineHL
+			}
+
+			mouseExit
+			{
+				hide		shopCenter_ExamineHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_examine
+			}
+		}
+
+		itemDef
+		{
+			name		shopCenter_ExamineHL
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+			rect		300 340 46 46
+			background	"gfx/ui/shop_examine"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopCenter_ExamineBG
+			group		shop_left
+			style		WINDOW_STYLE_SHADER
+			rect		300 340 46 46
+			background	"gfx/ui/shop_examine"
+			forecolor	1 1 1 1
+			visible		1
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopCenter_ExamineBackBN
+			group		shop_examine
+			type		ITEM_TYPE_BUTTON
+			rect		306 345 36 36
+			forecolor	1 1 1 1
+			visible		0
+
+			mouseEnter
+			{
+				show		shopCenter_ExamineBackHL
+			}
+
+			mouseExit
+			{
+				hide		shopCenter_ExamineBackHL
+				clearfocus
+			}
+
+			action
+			{
+				jkgscript	shop_examine
+			}
+		}
+
+		itemDef
+		{
+			name		shopCenter_ExamineBackHL
+			group		shop_examine
+			style		WINDOW_STYLE_SHADER
+			rect		300 340 46 46
+			background	"gfx/ui/shop_examineback"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
+
+		itemDef
+		{
+			name		shopCenter_ExamineBackBG
+			group		shop_examine
+			style		WINDOW_STYLE_SHADER
+			rect		300 340 46 46
+			background	"gfx/ui/shop_examineback"
+			forecolor	1 1 1 1
+			visible		0
+			decoration
+		}
 	}
 }

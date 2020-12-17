@@ -68,7 +68,6 @@ extern qboolean PM_SaberInBrokenParry( int move );
 extern qboolean PM_SaberInDeflect( int move );
 extern qboolean BG_SpinningSaberAnim( int anim );
 extern qboolean BG_FlippingAnim( int anim );
-extern qboolean PM_RollingAnim( int anim );
 extern qboolean PM_InKnockDown( playerState_t *ps );
 extern qboolean BG_InRoll( playerState_t *ps, int anim );
 extern qboolean BG_CrouchAnim( int anim );
@@ -627,7 +626,7 @@ qboolean DOM_Jedi_SaberBusy( gentity_t *self )
 		|| PM_SaberInBrokenParry( self->client->ps.saberMove ) 
 		//|| PM_SaberInDeflect( self->client->ps.saberMove ) 
 		|| BG_FlippingAnim( self->client->ps.torsoAnim ) 
-		|| PM_RollingAnim( self->client->ps.torsoAnim ) ) )
+		|| BG_RollingAnim( self->client->ps.torsoAnim ) ) )
 	{//my saber is not in a parrying position
 		return qtrue;
 	}
@@ -654,7 +653,7 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 	float zdiff;
 	int	  duckChance = 0;
 	int	  dodgeAnim = -1;
-	qboolean	saberBusy = qfalse, evaded = qfalse, doDodge = qfalse;
+	qboolean	saberBusy = qfalse, doDodge = qfalse;
 	evasionType_t	evasionType = EVASION_NONE;
 
 	//FIXME: if we don't have our saber in hand, pick the force throw option or a jump or strafe!
@@ -759,7 +758,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 						{
 							TIMER_Start( self, "duck", Q_irand( 500, 1500 ) );
 							evasionType = EVASION_DUCK_PARRY;
-							evaded = qtrue;
 							if ( d_JediAI.integer )
 							{
 								Com_Printf( "duck " );
@@ -801,7 +799,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 						{
 							TIMER_Start( self, "duck", Q_irand( 500, 1500 ) );
 							evasionType = EVASION_DUCK_PARRY;
-							evaded = qtrue;
 							if ( d_JediAI.integer )
 							{
 								Com_Printf( "duck " );
@@ -831,7 +828,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 					Com_Printf( "TOP block\n" );
 				}
 			}
-			evaded = qtrue;
 		}
 		else
 		{
@@ -840,7 +836,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 				//duckChance = 2;
 				TIMER_Start( self, "duck", Q_irand( 500, 1500 ) );
 				evasionType = EVASION_DUCK;
-				evaded = qtrue;
 				if ( d_JediAI.integer )
 				{
 					Com_Printf( "duck " );
@@ -859,7 +854,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 				//duckChance = 2;
 				TIMER_Start( self, "duck", Q_irand( 500, 1500 ) );
 				evasionType = EVASION_DUCK;
-				evaded = qtrue;
 				if ( d_JediAI.integer )
 				{
 					Com_Printf( "duck " );
@@ -933,7 +927,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 					Com_Printf( "mid-TOP block\n" );
 				}
 			}
-			evaded = qtrue;
 		}
 	}
 	else if ( saberBusy || (zdiff < -36 && ( zdiff < -44 || !Q_irand( 0, 2 ) ) ) )//was -30 and -40//2nd one was -46
@@ -942,7 +935,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 		{//already in air, duck to pull up legs
 			TIMER_Start( self, "duck", Q_irand( 500, 1500 ) );
 			evasionType = EVASION_DUCK;
-			evaded = qtrue;
 			if ( d_JediAI.integer )
 			{
 				Com_Printf( "legs up\n" );
@@ -968,7 +960,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 						Com_Printf( "LL block\n" );
 					}
 				}
-				evaded = qtrue;
 			}
 		}
 		else 
@@ -982,7 +973,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 				{
 					self->client->ps.fd.forceJumpCharge = 320;//FIXME: calc this intelligently
 					evasionType = EVASION_FJUMP;
-					evaded = qtrue;
 					if ( d_JediAI.integer )
 					{
 						Com_Printf( "force jump + " );
@@ -999,7 +989,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 					self->client->ps.velocity[2] = /*JUMP_VELOCITY*/ bgConstants.baseJumpVelocity;
 				}
 				evasionType = EVASION_JUMP;
-				evaded = qtrue;
 				if ( d_JediAI.integer )
 				{
 					Com_Printf( "jump + " );
@@ -1035,14 +1024,12 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 					G_Sound( self, CHAN_BODY, G_SoundIndex("sound/weapons/force/jump.wav") );
 					cmd->upmove = 0;
 					saberBusy = qtrue;
-					evaded = qtrue;
 				}
 			}
 		}
 		if ( ((evasionType = DOM_Jedi_CheckFlipEvasions( self, rightdot, zdiff ))!=EVASION_NONE) )
 		{
 			saberBusy = qtrue;
-			evaded = qtrue;
 		}
 		else if ( incoming || !saberBusy )
 		{
@@ -1079,7 +1066,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 					Com_Printf( "LL block\n" );
 				}
 			}
-			evaded = qtrue;
 		}
 	}
 	else
@@ -1143,7 +1129,6 @@ evasionType_t DOM_Jedi_SaberBlockGo( gentity_t *self, usercmd_t *cmd, vec3_t pHi
 					}
 				}
 			}
-			evaded = qtrue;
 		}
 	}
 

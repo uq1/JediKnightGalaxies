@@ -1,0 +1,16 @@
+{
+	"name":		"BlasTech AA-45 Imperial Shield",
+	"internal":	"shield_blastech_imp",
+	"itemtype":	"shield",
+	"itemIcon":	"gfx/hud/psd_small",
+	"cost":		"415",
+	
+	"capacity":	35,
+	"cooldown":	750,
+	"regenrate":	1200,
+
+	"brokenSoundEffect":	"sound/shield/shield_broken",
+	"equippedSoundEffect":	"sound/shield/shield_equipped2",
+	"rechargeSoundEffect":	"sound/shield/shield_recharge2",
+	"chargedSoundEffect":	"sound/shield/shield_charged2"
+}

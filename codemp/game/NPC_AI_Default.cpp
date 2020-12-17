@@ -96,6 +96,7 @@ void NPC_CheckEvasion(void)
 	case CLASS_SWAMPTROOPER:
 	case CLASS_TAVION:
 	case CLASS_TRANDOSHAN:
+	case CLASS_TUSKEN:
 	case CLASS_UGNAUGHT:
 	case CLASS_JAWA:
 	case CLASS_WEEQUAY:

@@ -93,12 +93,8 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 						 int number );
 
-#ifdef _ONEBIT_COMBO
-void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to, int *bitComboDelta, int *bitNumDelta, qboolean isVehiclePS = qfalse );
-#else
-void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to, qboolean isVehiclePS = qfalse );
-#endif
-void MSG_ReadDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to, qboolean isVehiclePS = qfalse );
+void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to );
+void MSG_ReadDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to );
 
 #ifndef FINAL_BUILD
 void MSG_ReportChangeVectors_f( void );
@@ -535,6 +531,8 @@ issues.
 #	define Q3CONFIG_CFG PRODUCT_NAME ".cfg"
 #endif
 
+#define DEFAULTCONFIG_CFG PRODUCT_SHORT_NAME "_Defaults.cfg"
+
 qboolean FS_Initialized();
 
 void	FS_InitFilesystem (void);
@@ -733,6 +731,10 @@ int			Com_FilterPath(char *filter, char *name, int casesensitive);
 int			Com_RealTime(qtime_t *qtime);
 qboolean	Com_SafeMode( void );
 void		Com_RunAndTimeServerPacket(netadr_t *evFrom, msg_t *buf);
+performanceData_t* Com_GetPerformanceData();
+void		Com_PerformanceStart(const char* tagName);
+void		Com_PerformanceEnd(const char* tagName);
+void		Com_ClearPerformanceFrame();
 
 void		Com_StartupVariable( const char *match );
 // checks for and removes command line "+set var arg" constructs

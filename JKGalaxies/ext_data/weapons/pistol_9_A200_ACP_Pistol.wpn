@@ -55,17 +55,21 @@
     "stats": {
         "slot":         2,
         "reloadtime":   900,
-        "ammoIndex":         "trandopowercell",
-        "ammoOnSpawn":   100,
-        "ammoOnPickup":   20,
-        "clipSize":              10,
         "flags":        [ "roll" ],
         "reloadmodifier": 0.7,
         "speed":        1.1
     },
     
     "firemode0": {
-        "damage":       35,
+        "damage": {
+		    "damage":       35,
+		    "buffs": [
+			    {
+				"buff": "standard-bleed",
+				"duration": 5000
+			    }
+		    ]
+	    },
         "ammocost":     1,
         "firedelay":    300,
         "firingtype":   "semi",
@@ -74,7 +78,10 @@
         "spread":       0.2,
         "projectilespeed": 7000.0,
         "projectileclass": "repeater_proj",
-        "meansofdeath": "MOD_REPEATER",
+        "meansofdeath": "MOD_ACP",
+	"ammobase": "AMMO_ACP_POWERCELL_S",
+	"ammodefault": "AMMO_ACP_POWERCELL_S",
+        "clipSize":              10,
         "accuracy": {
 			"accuracyRating": 45,
 			"accuracyRatingPerShot": 6,

@@ -26,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "bg_local.h"
 #include "w_saber.h"
 
-extern qboolean BG_SabersOff( playerState_t *ps );
 saberInfo_t *BG_MySaber( int clientNum, int saberNum );
 
 int PM_irand_timesync(int val1, int val2)
@@ -375,7 +374,7 @@ saberMoveName_t PM_CheckStabDown( void )
 
 	if ( ent &&
 		(ent->s.eType == ET_PLAYER || ent->s.eType == ET_NPC) &&
-		BG_InKnockDown( ent->s.legsAnim ) && SaberStances[pm->ps->fd.saberAnimLevel].specialMoves.allowStabDown )
+		BG_KnockdownAnim( ent->s.legsAnim ) && SaberStances[pm->ps->fd.saberAnimLevel].specialMoves.allowStabDown )
 	{//guy is on the ground below me, do a top-down attack
 		if ( SaberStances[pm->ps->fd.saberAnimLevel].isDualsOnly )
 		{
@@ -2397,9 +2396,6 @@ int PM_KickMoveForConditions(void)
 	return kickMove;
 }
 
-qboolean PM_InSlopeAnim( int anim );
-qboolean PM_RunningAnim( int anim );
-
 int bg_parryDebounce[NUM_FORCE_POWER_LEVELS] =
 {
 	500,//if don't even have defense, can't use defense!
@@ -2745,12 +2741,12 @@ void PM_WeaponLightsaber(void)
 			PM_SetSaberMove( LS_READY );
 		}
 
-		if ((pm->ps->legsAnim) != (pm->ps->torsoAnim) && !PM_InSlopeAnim(pm->ps->legsAnim) &&
+		if ((pm->ps->legsAnim) != (pm->ps->torsoAnim) && !BG_InSlopeAnim(pm->ps->legsAnim) &&
 			pm->ps->torsoTimer <= 0 && !(pm->ps->saberActionFlags & (1 << SAF_BLOCKING)))
 		{
 			PM_SetAnim(SETANIM_TORSO,(pm->ps->legsAnim),SETANIM_FLAG_OVERRIDE);
 		}
-		else if ((PM_InSlopeAnim(pm->ps->legsAnim) || pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) && pm->ps->torsoTimer <= 0 &&
+		else if ((BG_InSlopeAnim(pm->ps->legsAnim) || pm->ps->saberActionFlags & (1 << SAF_BLOCKING)) && pm->ps->torsoTimer <= 0 &&
 			!PM_SaberInParry(pm->ps->saberMove) && !PM_SaberInKnockaway(pm->ps->saberMove) &&
 			!PM_SaberInBrokenParry(pm->ps->saberMove) && !PM_SaberInReflect(pm->ps->saberMove))
 		{
@@ -2871,10 +2867,10 @@ void PM_WeaponLightsaber(void)
 				  && (pm->ps->torsoAnim == BOTH_SABERDUAL_STANCE//not already attacking
 					  || pm->ps->torsoAnim == BOTH_SABERPULL//not already attacking
 					  || pm->ps->torsoAnim == BOTH_STAND1//not already attacking
-					  || PM_RunningAnim( pm->ps->torsoAnim ) //not already attacking
-					  || PM_WalkingAnim( pm->ps->torsoAnim ) //not already attacking
+					  || BG_RunningAnim( pm->ps->torsoAnim ) //not already attacking
+					  || BG_WalkingAnim( pm->ps->torsoAnim ) //not already attacking
 					  || PM_JumpingAnim( pm->ps->torsoAnim )//not already attacking
-					  || PM_SwimmingAnim( pm->ps->torsoAnim ))//not already attacking
+					  || BG_SwimmingAnim( pm->ps->torsoAnim ))//not already attacking
 				)
 			  )
 			)
@@ -2887,36 +2883,11 @@ void PM_WeaponLightsaber(void)
 
    // don't allow attack until all buttons are up
 	//This is bad. It freezes the attack state and the animations if you hold the button after respawning, and it looks strange.
-	/*
-	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
-		return;
-	}
-	*/
 
 	// check for dead player
 	if ( pm->ps->stats[STAT_HEALTH] <= 0 ) {
 		return;
 	}
-
-	/*
-
-	if (pm->ps->weaponstate == WEAPON_READY ||
-		pm->ps->weaponstate == WEAPON_IDLE)
-	{
-		if (pm->ps->saberMove != LS_READY && pm->ps->weaponTime <= 0 && !pm->ps->saberBlocked)
-		{
-			PM_SetSaberMove( LS_READY );
-		}
-	}
-
-	if(PM_RunningAnim(pm->ps->torsoAnim))
-	{
-		if ((pm->ps->torsoAnim) != (pm->ps->legsAnim))
-		{
-			PM_SetAnim(SETANIM_TORSO,(pm->ps->legsAnim),SETANIM_FLAG_OVERRIDE);
-		}
-	}
-	*/
 
 	// make weapon function
 	if ( pm->ps->weaponTime > 0 )
@@ -3492,10 +3463,6 @@ weapChecks:
 					anim = PM_GetSaberStance();
 				}
 
-//				if (PM_RunningAnim(anim) && !pm->cmd.forwardmove && !pm->cmd.rightmove)
-//				{ //semi-hacky (if not moving on x-y and still playing the running anim, force the player out of it)
-//					anim = PM_GetSaberStance();
-//				}
 				newmove = LS_READY;
 			}
 
@@ -3753,7 +3720,7 @@ void PM_SetSaberMove(short newMove)
 			anim = PM_GetSaberStance();
 		}
 
-		if (PM_InSlopeAnim( anim ))
+		if (BG_InSlopeAnim( anim ))
 		{
 			anim = PM_GetSaberStance();
 		}

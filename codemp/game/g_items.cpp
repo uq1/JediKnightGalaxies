@@ -82,79 +82,6 @@ int adjustRespawnTime(float preRespawnTime, int itemType, int itemTag)
 	return((int)respawnTime);
 }
 
-#define JETPACK_TOGGLE_TIME		200
-void Jetpack_Off(gentity_t *ent)
-{ //create effects?
-	assert(ent && ent->client);
-
-	if (!ent->client->jetPackOn)
-	{ //aready off
-		return;
-	}
-
-	ent->client->jetPackOn = qfalse;
-	G_Sound(ent, CHAN_AUTO, G_SoundIndex(  "sound/jkg/jetpack/jetoff" /*"sound/boba/JETON"*/ ));
-}
-
-void Jetpack_On(gentity_t *ent)
-{ //create effects?
-	assert(ent && ent->client);
-
-	if (ent->client->jetPackOn)
-	{ //aready on
-		return;
-	}
-
-	if (ent->client->ps.fd.forceGripBeingGripped >= level.time)
-	{ //can't turn on during grip interval
-		return;
-	}
-
-	if (ent->client->ps.fallingToDeath)
-	{ //too late!
-		return;
-	}
-
-	G_Sound(ent, CHAN_AUTO, G_SoundIndex(  "sound/jkg/jetpack/jeton" /*"sound/boba/JETON"*/ ));
-
-	ent->client->jetPackOn = qtrue;
-}
-
-void ItemUse_Jetpack( gentity_t *ent )
-{
-	assert(ent && ent->client);
-
-	if (ent->client->jetPackToggleTime >= level.time)
-	{
-		return;
-	}
-
-	if (ent->health <= 0 ||
-		ent->client->ps.stats[STAT_HEALTH] <= 0 ||
-		(ent->client->ps.eFlags & EF_DEAD) ||
-		ent->client->ps.pm_type == PM_DEAD)
-	{ //can't use it when dead under any circumstances.
-		return;
-	}
-
-	if (!ent->client->jetPackOn &&
-		ent->client->ps.jetpackFuel < 5)
-	{ //too low on fuel to start it up
-		return;
-	}
-
-	if (ent->client->jetPackOn)
-	{
-		Jetpack_Off(ent);
-	}
-	else
-	{
-		Jetpack_On(ent);
-	}
-
-	ent->client->jetPackToggleTime = level.time + JETPACK_TOGGLE_TIME;
-}
-
 int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 	int			quantity;
 	int			i;
@@ -230,8 +157,6 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 
 void Add_Ammo (gentity_t *ent, int weapon, int count)
 {
-	//int ammoIndex = GetWeaponAmmoIndex( weapon, ent->s.weaponVariation );
-	//int ammoMax = GetWeaponAmmoMax( weapon, ent->s.weaponVariation );
 	int ammoIndex = weapon;
 	int ammoMax = GetAmmoMax(ammoIndex);
 
@@ -276,28 +201,9 @@ int Pickup_Ammo (gentity_t *ent, gentity_t *other)
 
 
 int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
-	int		quantity;
+	// Don't do anything ATM
+	/*int		quantity;
 	weaponData_t *wep;
-
-	if ( ent->count < 0 ) {
-		quantity = 0; // None for you, sir!
-	} else {
-		if ( ent->count ) {
-			quantity = ent->count;
-		} else {
-			wep = GetWeaponData(ent->item->giTag, ent->s.weaponVariation);
-			quantity = wep->ammoOnPickup;
-		}
-
-		// dropped items and teamplay weapons always have full ammo
-		if ( ! (ent->flags & FL_DROPPED_ITEM) && level.gametype != GT_TEAM ) {
-			if ( other->client->ammoTable[ ent->item->giTag ] < quantity*0.5f ) {
-				quantity = quantity - other->client->ammoTable[ ent->item->giTag ];
-			} else {
-				quantity = quantity*0.5f;		// only add half the value.
-			}
-		}
-	}
 
 	// Check if the player already has the weapon in his inventory
 	if (other->client->ps.stats[STAT_WEAPONS] & ( 1 << ent->item->giTag )) {
@@ -349,7 +255,7 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
 	{
 		return adjustRespawnTime(RESPAWN_TEAM_WEAPON, ent->item->giType, ent->item->giTag);
 	}
-
+	*/
 	return adjustRespawnTime(5, ent->item->giType, ent->item->giTag);
 }
 
@@ -395,10 +301,10 @@ int Pickup_Health (gentity_t *ent, gentity_t *other) {
 
 int Pickup_Armor( gentity_t *ent, gentity_t *other ) 
 {
-	other->client->ps.stats[STAT_ARMOR] += ent->item->quantity;
-	if ( other->client->ps.stats[STAT_ARMOR] > other->client->ps.stats[STAT_MAX_ARMOR] * ent->item->giTag )
+	other->client->ps.stats[STAT_SHIELD] += ent->item->quantity;
+	if ( other->client->ps.stats[STAT_SHIELD] > other->client->ps.stats[STAT_MAX_SHIELD] * ent->item->giTag )
 	{
-		other->client->ps.stats[STAT_ARMOR] = other->client->ps.stats[STAT_MAX_ARMOR] * ent->item->giTag;
+		other->client->ps.stats[STAT_SHIELD] = other->client->ps.stats[STAT_MAX_SHIELD] * ent->item->giTag;
 	}
 
 	return adjustRespawnTime(RESPAWN_ARMOR, ent->item->giType, ent->item->giTag);
@@ -557,30 +463,7 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 	{// NPCs cannot pick it up
 		if ( other->s.eType == ET_NPC )
 		{// Not the player?
-			qboolean dontGo = qfalse;
-			if (ent->item->giType == IT_AMMO &&
-				ent->item->giTag == -1 &&
-				other->s.NPC_class == CLASS_VEHICLE &&
-				other->m_pVehicle &&
-				other->m_pVehicle->m_pVehicleInfo->type == VH_WALKER)
-			{ //yeah, uh, atst gets healed by these things
-                if (other->maxHealth &&
-					other->health < other->maxHealth)
-				{
-					other->health += 80;
-					if (other->health > other->maxHealth)
-					{
-						other->health = other->maxHealth;
-					}
-					G_ScaleNetHealth(other);
-					dontGo = qtrue;
-				}
-			}
-
-			if (!dontGo)
-			{
-				return;
-			}
+			return;
 		}
 	}
 
@@ -604,6 +487,9 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 		respawn = Pickup_Powerup(ent, other);
 		break;
 	case IT_TEAM:
+		//non-loadbearing jetpacks can't pickup flags, drop em out of the sky when they touch the flag
+		if (!jetpackTable[other->client->ps.jetpack - 1].move.loadBearingAllowed  && (other->client->ps.eFlags & EF_JETPACK_ACTIVE) )
+			Jetpack_Off(other);
 		respawn = Pickup_Team(ent, other);
 		break;
 	default:
